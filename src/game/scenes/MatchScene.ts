@@ -38,6 +38,8 @@ export interface MatchSceneData {
     cinematic: boolean;
     /** Espécies que podem entrar em campo (bancos inteiros): pré-carregadas para substituições. */
     extraSpecies?: number[];
+    /** Começa parada (tela de VERSUS); a partida só rola depois de 'match:resume'. */
+    startPaused?: boolean;
 }
 
 type PenaltyEvent = Extract<MatchEvent, { type: 'penalty' }>;
@@ -207,8 +209,10 @@ export class MatchScene extends Phaser.Scene {
         EventBus.on('match:hold', this.onHold, this);
         EventBus.on('match:replace', this.onReplace, this);
         EventBus.on('match:seek-fulltime', this.onSeekFulltime, this);
+        EventBus.on('match:resume', this.onResume, this);
         this.unbind = () => {
             EventBus.off('match:seek-fulltime', this.onSeekFulltime, this);
+            EventBus.off('match:resume', this.onResume, this);
             EventBus.off('match:set-speed', this.onSpeed, this);
             EventBus.off('match:skip', this.onSkip, this);
             EventBus.off('match:hold', this.onHold, this);
@@ -218,7 +222,8 @@ export class MatchScene extends Phaser.Scene {
         this.sys.events.once('shutdown', () => this.unbind?.());
         this.sys.events.once('destroy', () => this.unbind?.());
 
-        playSfx('whistle');
+        this.paused = !!this.md.startPaused;
+        if (!this.paused) playSfx('whistle');
         this.applySnapshot(0, 0);
         EventBus.emit('current-scene-ready', this);
     }
@@ -237,6 +242,14 @@ export class MatchScene extends Phaser.Scene {
         this.penalties = this.matchEvents.filter((e): e is PenaltyEvent => e.type === 'penalty');
         this.fulltimeTick = this.matchEvents.find((e) => e.type === 'fulltime')?.tick ?? Number.POSITIVE_INFINITY;
         this.penaltyStage = this.penalties.map((_, i) => this.penaltyStage[i] ?? 0);
+    }
+
+    private paused = false;
+
+    private onResume() {
+        if (!this.paused) return;
+        this.paused = false;
+        playSfx('whistle');
     }
 
     private onSpeed(speed: PlaybackSpeed) {
@@ -379,7 +392,7 @@ export class MatchScene extends Phaser.Scene {
 
     // ------------------------------------------------------------------ playback
     update(time: number, delta: number) {
-        if (this.ended || !this.snaps.length) return;
+        if (this.ended || !this.snaps.length || this.paused) return;
         const factor = this.currentSpeedFactor(time);
         this.playTick = Math.min(this.playTick + (delta / 1000) * TICK_RATE * factor, this.holdAt - 1e-3);
 
@@ -560,6 +573,8 @@ export class MatchScene extends Phaser.Scene {
                 this.playTick - this.recentImportantTick < TICK_RATE * 1.5;
             base = near ? 1 : 10;
         }
+        // a disputa de pênaltis sempre em ritmo assistível, em qualquer velocidade
+        if (this.penalties.length > 0 && this.playTick >= this.fulltimeTick) base = Math.min(base, 1.25);
         if (!this.md.cinematic) return base;
         // câmera lenta chegando no gol/trave/defesa
         const next = this.dramaTicks.find((t) => t >= this.playTick);

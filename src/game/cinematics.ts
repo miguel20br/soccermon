@@ -23,6 +23,7 @@ export class Cinematics {
     private readonly beam: Phaser.GameObjects.Graphics;
     private pair: { attacker: number; target: number | null; color: number } | null = null;
     private dramaUntil = 0;
+    private dramaHolder: Phaser.GameObjects.Container | null = null;
     private spotlightUntil = 0;
     private slowFrom = 0;
     private slowUntil = 0;
@@ -359,7 +360,13 @@ export class Cinematics {
             this.scene.tweens.add({ targets: sub, alpha: 1, delay: 180, duration: 200 });
             children.push(sub);
         }
+        // um texto de drama por vez: o novo substitui o anterior
+        if (this.dramaHolder) {
+            this.scene.tweens.killTweensOf(this.dramaHolder.list);
+            this.dramaHolder.destroy();
+        }
         const holder = this.scene.add.container(0, 0, children).setDepth(9800);
+        this.dramaHolder = holder;
         this.pin(holder, GAME_W / 2, GAME_H * 0.17);
         // entra esticado na horizontal e "assenta"
         this.scene.tweens.add({ targets: t, scaleX: 1.12, scaleY: 1, duration: 240, ease: 'Back.easeOut' });

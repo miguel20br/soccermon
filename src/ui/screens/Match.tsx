@@ -7,6 +7,7 @@ import type { MatchSceneData } from '../../game/scenes/MatchScene';
 import { PhaserGame } from '../../PhaserGame';
 import { PLAYER_COLOR, type PlaybackSpeed, playerTeam, stageLabel, useGame } from '../../store/game-store';
 import { Commentator, type CommentLine } from '../commentary';
+import { VersusIntro } from '../components/VersusIntro';
 import { simulateMatch } from '../sim-client';
 
 const SPEEDS: { value: PlaybackSpeed; label: string }[] = [
@@ -44,6 +45,9 @@ export function Match() {
     const [sceneReady, setSceneReady] = useState(false);
     /** Se a quadra demorar demais (celular fraco, aba em segundo plano), oferece recarregar. */
     const [sceneSlow, setSceneSlow] = useState(false);
+    /** Tela de VERSUS antes do apito inicial; a cena espera parada até ela sair. */
+    const [introDone, setIntroDone] = useState(false);
+    const introDoneRef = useRef(false);
     const [sceneKey, setSceneKey] = useState(0);
     const [fulltime, setFulltime] = useState(false);
     const [tacticError, setTacticError] = useState<string | null>(null);
@@ -71,6 +75,7 @@ export function Match() {
                       speed: settings.speed,
                       cinematic: settings.cinematic,
                       extraSpecies: [...(run?.picks ?? []), ...(opponent?.bench ?? [])].map((p) => p.speciesId),
+                      startPaused: true,
                   }
                 : null,
         [match?.seed],
@@ -137,6 +142,8 @@ export function Match() {
         const onEnded = () => setEnded(true);
         const onReady = () => {
             setSceneReady(true);
+            // VERSUS já foi embora antes de a quadra carregar: começa direto
+            if (introDoneRef.current) EventBus.emit('match:resume');
             // velocidade escolhida antes da cena carregar
             EventBus.emit('match:set-speed', useGame.getState().settings.speed);
         };
@@ -202,8 +209,24 @@ export function Match() {
                   : 'Fim de jogo'
               : `${Math.min(40, Math.floor(clock.minute))}' · ${clock.half}º tempo`;
 
+    const finishIntro = () => {
+        if (introDoneRef.current) return;
+        introDoneRef.current = true;
+        setIntroDone(true);
+        EventBus.emit('match:resume');
+    };
+
     return (
         <>
+            {!introDone && (
+                <VersusIntro
+                    home={lockedSetup}
+                    away={opponent}
+                    stage={stageLabel(run.stage)}
+                    ready={sceneReady}
+                    onDone={finishIntro}
+                />
+            )}
             <div className="scoreboard">
                 <div className="sb-team">
                     <i style={{ background: hex(colors[0]) }} />
