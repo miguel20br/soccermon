@@ -145,6 +145,7 @@ export function Draft() {
                         byUid={byUid}
                         captainUid={run.captainUid}
                         preview={chosen}
+                        projection={chosen}
                         stateOf={slotState}
                         onSlot={onSlot}
                         footer={

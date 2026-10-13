@@ -1293,3 +1293,46 @@ button,
     font-size: 12px;
     margin: 6px 0 0;
 }
+
+/* ---------- projeção do Pokémon selecionado nas vagas ---------- */
+.slot.proj-good {
+    border-color: var(--green);
+    border-style: solid;
+    background: rgba(40, 120, 60, 0.82);
+    box-shadow: 0 0 0 2px rgba(88, 194, 107, 0.35);
+}
+.slot.proj-bad {
+    border-color: var(--red);
+    border-style: solid;
+    background: rgba(120, 30, 35, 0.82);
+    box-shadow: 0 0 0 2px rgba(232, 66, 63, 0.3);
+}
+.slot.proj-good.empty.target,
+.slot.proj-bad.empty.target {
+    animation: none;
+}
+.proj-badge {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    min-width: 30px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    border: 2px solid #0e1430;
+    z-index: 2;
+}
+.proj-badge.good {
+    background: var(--green);
+    color: #0e1430;
+}
+.proj-badge.bad {
+    background: var(--red);
+    color: #fff;
+}
+.slot.proj-good .slot-rating,
+.slot.proj-bad .slot-rating {
+    color: #fff;
+}

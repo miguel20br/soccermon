@@ -119,6 +119,11 @@ export function Lineup() {
                         bench={run.bench}
                         byUid={byUid}
                         captainUid={run.captainUid}
+                        projection={
+                            selected
+                                ? byUid.get((selected.zone === 'lineup' ? run.lineup : run.bench)[selected.index])
+                                : null
+                        }
                         stateOf={(ref) =>
                             selected?.zone === ref.zone && selected.index === ref.index ? 'selected' : 'idle'
                         }

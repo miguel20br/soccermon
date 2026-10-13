@@ -17,6 +17,11 @@ interface Props {
     captainUid?: string | null;
     /** Pokémon "fantasma" mostrado nas vagas-alvo com a nota que teria ali. */
     preview?: PokemonInstance | null;
+    /**
+     * Pokémon selecionado: cada vaga da quadra fica verde (joga bem ali) ou vermelha (fora de posição),
+     * com a nota que ele teria naquela vaga.
+     */
+    projection?: PokemonInstance | null;
     stateOf?: (slot: SlotRef, uid: string) => SlotState;
     onSlot?: (slot: SlotRef, uid: string) => void;
     emptyLabel?: string;
@@ -31,6 +36,7 @@ export function FormationBoard({
     byUid,
     captainUid,
     preview,
+    projection,
     stateOf,
     onSlot,
     emptyLabel = 'vaga',
@@ -47,11 +53,14 @@ export function FormationBoard({
         const shown = inst ?? ghost;
         const r = shown ? ratingAt(shown, role) : null;
         const clickable = !!onSlot && state !== 'locked';
+        // projeção do selecionado (não no banco nem na própria vaga dele)
+        const proj = projection && ref.zone === 'lineup' && uid !== projection.uid ? ratingAt(projection, role) : null;
+        const projClass = proj ? (proj.fit === 'off' ? ' proj-bad' : ' proj-good') : '';
         return (
             <button
                 type="button"
                 key={`${ref.zone}-${ref.index}`}
-                className={`slot ${inst ? 'filled' : 'empty'} ${state}`}
+                className={`slot ${inst ? 'filled' : 'empty'} ${state}${projClass}`}
                 style={style}
                 disabled={!clickable}
                 onClick={() => onSlot?.(ref, uid)}
@@ -59,6 +68,9 @@ export function FormationBoard({
             >
                 <span className="pos-badge">{label}</span>
                 {inst?.uid === captainUid && inst && <span className="captain-badge">C</span>}
+                {proj && (inst || !ghost) && (
+                    <span className={`proj-badge ${proj.fit === 'off' ? 'bad' : 'good'}`}>{proj.rating}</span>
+                )}
                 {shown ? (
                     <>
                         <img className={`pixel${ghost ? ' ghost' : ''}`} src={cardSprite(shown)} alt="" />
