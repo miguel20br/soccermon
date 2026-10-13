@@ -42,6 +42,9 @@ export function Match() {
     const [pending, setPending] = useState(false);
     /** A cena Phaser só escuta comandos depois de carregar; até lá os controles ficam travados. */
     const [sceneReady, setSceneReady] = useState(false);
+    /** Se a quadra demorar demais (celular fraco, aba em segundo plano), oferece recarregar. */
+    const [sceneSlow, setSceneSlow] = useState(false);
+    const [sceneKey, setSceneKey] = useState(0);
     const [fulltime, setFulltime] = useState(false);
     const [tacticError, setTacticError] = useState<string | null>(null);
     const alive = useRef(true);
@@ -76,6 +79,14 @@ export function Match() {
     useEffect(() => {
         setVolume(settings.volume);
     }, [settings.volume]);
+
+    // biome-ignore lint/correctness/useExhaustiveDependencies: sceneKey reinicia a contagem ao recarregar a quadra
+    useEffect(() => {
+        if (sceneReady || !fontsReady) return;
+        setSceneSlow(false);
+        const timer = window.setTimeout(() => setSceneSlow(true), 8000);
+        return () => clearTimeout(timer);
+    }, [sceneReady, fontsReady, sceneKey]);
 
     useEffect(() => {
         alive.current = true;
@@ -214,9 +225,14 @@ export function Match() {
             <div className="match-layout">
                 <div className="match-main">
                     {fontsReady ? (
-                        <PhaserGame key={match.seed.toString()} data={sceneData} />
+                        <PhaserGame key={`${match.seed}-${sceneKey}`} data={sceneData} />
                     ) : (
                         <div className="phaser-container" />
+                    )}
+                    {sceneSlow && !sceneReady && (
+                        <button type="button" className="btn yellow" onClick={() => setSceneKey((k) => k + 1)}>
+                            A quadra não carregou — recarregar
+                        </button>
                     )}
                     <div className="controls">
                         <div className="control-group">

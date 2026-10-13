@@ -130,6 +130,8 @@ interface PlayerView {
     currentKey: string;
     status: number;
     flags: number;
+    /** Deslocamento temporário do sprite (investida do golpe). */
+    lunge: { x: number; y: number };
 }
 
 export class MatchScene extends Phaser.Scene {
@@ -334,6 +336,7 @@ export class MatchScene extends Phaser.Scene {
             currentKey: '',
             status: -1,
             flags: -1,
+            lunge: { x: 0, y: 0 },
         };
         this.refreshTint(view);
         return view;
@@ -601,7 +604,7 @@ export class MatchScene extends Phaser.Scene {
             // em destaque (holofote): acima do escurecimento
             const focused = this.cine.focused.has(i);
             const base = focused ? FOCUS_DEPTH + px.y / 100 : px.y;
-            view.sprite.setPosition(px.x, px.y).setDepth(base);
+            view.sprite.setPosition(px.x + view.lunge.x, px.y + view.lunge.y).setDepth(base);
             view.shadow.setPosition(px.x, px.y + 1).setDepth(base - 2);
             view.ring.setPosition(px.x, px.y + 1).setDepth(base - 1);
             const labelDepth = focused ? FOCUS_DEPTH + 60 : 5000;
@@ -759,6 +762,26 @@ export class MatchScene extends Phaser.Scene {
                         color,
                         moveName: move?.name ?? e.moveId,
                         userName: view.name,
+                        userColor: this.md.colors[view.team],
+                        targetName: target?.name,
+                        targetColor: target ? this.md.colors[target.team] : undefined,
+                        // "no chute" só para golpes de dano usados com a bola (viram finalização)
+                        withBall: e.withBall && (e.kind === 'strike' || e.kind === 'blast'),
+                    });
+                }
+                // investida: o atacante dá um passo na direção do alvo
+                if (e.target !== null && this.players[e.target]) {
+                    const t = this.players[e.target];
+                    const dx = t.sprite.x - view.sprite.x;
+                    const dy = t.sprite.y - view.sprite.y;
+                    const d = Math.hypot(dx, dy) || 1;
+                    this.tweens.add({
+                        targets: view.lunge,
+                        x: (dx / d) * 12,
+                        y: (dy / d) * 12,
+                        duration: 140,
+                        yoyo: true,
+                        ease: 'Quad.easeOut',
                     });
                 }
                 this.moveFx(e.by, moveType, e.target, cinematic);
@@ -766,8 +789,11 @@ export class MatchScene extends Phaser.Scene {
                 if (!cinematic) this.battleBox.push(`${view.name} usou ${move?.name ?? e.moveId}!`);
                 if (e.kind === 'flavor' && e.moveId === 'splash') this.battleBox.push('Mas nada aconteceu!');
                 else if (e.target !== null && !e.hit) this.battleBox.push('Mas errou!');
-                else if (e.effectiveness !== null && e.effectiveness >= 1.12) this.battleBox.push('É super efetivo!');
-                else if (e.effectiveness !== null && e.effectiveness < 1) this.battleBox.push('Não é muito efetivo...');
+                else if (e.effectiveness !== null && e.effectiveness >= 1.12) {
+                    this.battleBox.push('É super efetivo!');
+                    if (e.target !== null) this.popText(e.target, 'SUPER EFETIVO!', '#ffd447');
+                } else if (e.effectiveness !== null && e.effectiveness < 1)
+                    this.battleBox.push('Não é muito efetivo...');
                 break;
             }
             case 'status': {
@@ -949,6 +975,12 @@ export class MatchScene extends Phaser.Scene {
                 onComplete: () => {
                     trail.remove();
                     this.impact(fx.x, fx.y, moveType);
+                    // alvo pisca em branco no impacto
+                    to.sprite.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL);
+                    this.time.delayedCall(130, () => {
+                        to.sprite.setTintMode(Phaser.TintModes.MULTIPLY);
+                        this.refreshTint(to);
+                    });
                     this.tweens.add({
                         targets: fx,
                         alpha: 0,

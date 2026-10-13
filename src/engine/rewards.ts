@@ -1,22 +1,42 @@
 import { species } from './data';
 import { draftOptions } from './draft';
-import type { PokemonInstance } from './instance';
+import { type PokemonInstance, viewInstance } from './instance';
 import { ITEM_IDS, ITEMS, TYPE_ITEM_FOR } from './items';
 import { Rng } from './rng';
 
 /**
  * Recompensa depois de cada vitória da copa (estilo Slay the Spire: 1 de 3 ou pular).
- * Sempre 1 reforço + 2 itens; itens de tipo puxam os tipos do seu time (como o portal do Pokémon Auto Chess).
+ * - "Contratar do adversário": um dos melhores Pokémon do time que você acabou de eliminar;
+ * - 2 itens (itens de tipo puxam os tipos do seu time, como o portal do Pokémon Auto Chess).
+ * Se não houver ninguém contratável, entra um reforço sorteado no lugar.
  */
-export type Reward = { kind: 'pokemon'; inst: PokemonInstance } | { kind: 'item'; item: string };
+export type Reward = { kind: 'pokemon'; inst: PokemonInstance; from: string | null } | { kind: 'item'; item: string };
 
-/** Raridade do reforço sobe a cada fase. */
+/** Raridade do reforço sorteado sobe a cada fase. */
 const REINFORCEMENT_ROUND = [3, 5, 6];
 
-export function rewardOptions(seed: string, stage: number, reroll: number, team: readonly PokemonInstance[]): Reward[] {
+export function rewardOptions(
+    seed: string,
+    stage: number,
+    reroll: number,
+    team: readonly PokemonInstance[],
+    defeated?: { name: string; players: readonly PokemonInstance[] },
+): Reward[] {
     const rng = new Rng(seed, `reward-${stage}-r${reroll}`);
     const taken = new Set(team.map((p) => p.speciesId));
-    const [inst] = draftOptions(rng, REINFORCEMENT_ROUND[Math.min(stage, 2)], taken, 1, [], 'ANY');
+
+    let pokemon: Reward | null = null;
+    const signable = (defeated?.players ?? []).filter((p) => !taken.has(p.speciesId));
+    if (defeated && signable.length) {
+        // um dos 3 melhores do adversário (sem o item dele)
+        const top = [...signable].sort((a, b) => viewInstance(b).overall - viewInstance(a).overall).slice(0, 3);
+        const star = rng.pick(top);
+        const inst: PokemonInstance = { ...star, uid: `${star.uid}-c${stage}`, item: null };
+        pokemon = { kind: 'pokemon', inst, from: defeated.name };
+    } else {
+        const [inst] = draftOptions(rng, REINFORCEMENT_ROUND[Math.min(stage, 2)], taken, 1, [], 'ANY');
+        if (inst) pokemon = { kind: 'pokemon', inst, from: null };
+    }
 
     const teamTypes = [...new Set(team.flatMap((p) => species(p.speciesId).types))];
     const owned = new Set(team.map((p) => p.item).filter(Boolean));
@@ -28,6 +48,6 @@ export function rewardOptions(seed: string, stage: number, reroll: number, team:
     while (items.size < 2 && guard++ < 50) items.add(rng.pick(general.length ? general : ITEM_IDS));
 
     const options: Reward[] = [...items].map((item) => ({ kind: 'item' as const, item }));
-    if (inst) options.splice(rng.int(0, options.length), 0, { kind: 'pokemon', inst });
+    if (pokemon) options.splice(rng.int(0, options.length), 0, pokemon);
     return options;
 }

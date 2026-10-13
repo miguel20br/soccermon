@@ -3,7 +3,9 @@ import { viewInstance } from '../../engine/instance';
 import { ITEMS, itemSprite } from '../../engine/items';
 import { playSfx } from '../../game/audio';
 import { stageLabel, useGame } from '../../store/game-store';
-import { cardSprite, PokeCard } from '../components/PokeCard';
+import { FormationBoard } from '../components/FormationBoard';
+import { FutCard } from '../components/FutCard';
+import { cardSprite } from '../components/PokeCard';
 
 /**
  * Recompensa após vitória (estilo Slay the Spire): 1 de 3 — reforço para o banco ou item —,
@@ -57,12 +59,17 @@ export function Reward() {
                 {run.rewards.map((r, i) => (
                     <div key={r.kind === 'item' ? r.item : r.inst.uid} className="option">
                         {r.kind === 'pokemon' ? (
-                            <PokeCard
+                            <FutCard
                                 inst={r.inst}
                                 selected={chosen === i}
-                                onClick={() => {
-                                    playSfx('select');
-                                    setChosen(chosen === i ? null : i);
+                                ribbon={r.from ? `Do ${r.from}` : 'Reforço'}
+                                action={{
+                                    label: chosen === i ? 'Escolhido' : r.from ? 'Contratar' : 'Escolher',
+                                    primary: true,
+                                    onClick: () => {
+                                        playSfx('select');
+                                        setChosen(chosen === i ? null : i);
+                                    },
                                 }}
                             />
                         ) : (
@@ -85,7 +92,7 @@ export function Reward() {
             </div>
 
             {reward && (
-                <div className="panel">
+                <div className="panel reward-pick">
                     <h2>{reward.kind === 'pokemon' ? 'Trocar por qual reserva?' : 'Entregar para…'}</h2>
                     <div className="squad-strip">
                         {targets.map((p) => (
@@ -114,6 +121,22 @@ export function Reward() {
                     </div>
                 </div>
             )}
+            <div className="panel reward-team">
+                <h2>Seu time</h2>
+                <p className="muted" style={{ marginTop: 0 }}>
+                    {reward?.kind === 'pokemon'
+                        ? `Verde: posições em que ${viewInstance(reward.inst).displayName} joga bem · vermelho: fora de posição.`
+                        : 'Compare com o seu elenco antes de escolher.'}
+                </p>
+                <FormationBoard
+                    formation={run.formation}
+                    lineup={run.lineup}
+                    bench={run.bench}
+                    byUid={byUid}
+                    captainUid={run.captainUid}
+                    projection={reward?.kind === 'pokemon' ? reward.inst : null}
+                />
+            </div>
         </>
     );
 }

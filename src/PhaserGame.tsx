@@ -9,9 +9,16 @@ export function PhaserGame({ data }: { data: MatchSceneData }) {
     const initial = useRef(data);
 
     useEffect(() => {
-        if (!container.current) return;
-        const game = startGame(container.current, initial.current);
-        return () => game.destroy(true);
+        let game: ReturnType<typeof startGame> | null = null;
+        // cria no próximo ciclo: no StrictMode (dev) a montagem dupla cancela o timer em vez de
+        // criar e destruir um jogo que ainda nem iniciou (isso podia deixar a cena travada)
+        const timer = window.setTimeout(() => {
+            if (container.current) game = startGame(container.current, initial.current);
+        }, 0);
+        return () => {
+            clearTimeout(timer);
+            game?.destroy(true);
+        };
     }, []);
 
     return <div ref={container} className="phaser-container" />;

@@ -11,6 +11,7 @@ import { GAME_H, GAME_W } from './court';
 export const FOCUS_DEPTH = 7100;
 
 type Pinnable = Phaser.GameObjects.Container;
+const hexColor = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 
 export class Cinematics {
     readonly focused = new Set<number>();
@@ -18,6 +19,10 @@ export class Cinematics {
     private readonly spots = new Map<number, Phaser.GameObjects.Image>();
     private banner: Phaser.GameObjects.Container | null = null;
     private readonly pins = new Map<Pinnable, { sx: number; sy: number; scale: number }>();
+    /** Feixe atacante → alvo e mira no alvo, redesenhados a cada quadro durante o holofote. */
+    private readonly beam: Phaser.GameObjects.Graphics;
+    private pair: { attacker: number; target: number | null; color: number } | null = null;
+    private dramaUntil = 0;
     private spotlightUntil = 0;
     private slowFrom = 0;
     private slowUntil = 0;
@@ -27,6 +32,7 @@ export class Cinematics {
 
     constructor(private readonly scene: Phaser.Scene) {
         this.dim = scene.add.rectangle(GAME_W / 2, GAME_H / 2, GAME_W * 2, GAME_H * 2, 0x05060f, 0).setDepth(7000);
+        this.beam = scene.add.graphics().setDepth(FOCUS_DEPTH + 40);
         if (!scene.textures.exists('spotlight')) {
             const size = 256;
             const tex = scene.textures.createCanvas('spotlight', size, size);
@@ -73,6 +79,10 @@ export class Cinematics {
         color: number;
         moveName: string;
         userName: string;
+        userColor: number;
+        targetName?: string;
+        targetColor?: number;
+        withBall?: boolean;
         durationMs?: number;
     }) {
         const now = this.scene.time.now;
@@ -97,8 +107,21 @@ export class Cinematics {
             this.scene.tweens.add({ targets: spot, scale: i === 0 ? 0.75 : 0.55, duration: 180, ease: 'Back.easeOut' });
             this.spots.set(f.idx, spot);
         }
-        this.showBanner(opts.userName, opts.moveName, opts.color, duration);
+        const [attacker, target] = opts.focus;
+        this.pair = { attacker: attacker.idx, target: target?.idx ?? null, color: opts.color };
+        this.showBanner(opts, duration);
         this.slowMotion(now, 0.3, duration);
+        // câmera enquadra atacante e alvo juntos
+        if (target) {
+            const cam = this.scene.cameras.main;
+            cam.pan((attacker.x + target.x) / 2, (attacker.y + target.y) / 2 - 10, 220, 'Sine.easeOut', true);
+            cam.zoomTo(1.12, 220, 'Sine.easeOut', true);
+            this.scene.time.delayedCall(duration, () => {
+                if (this.scene.time.now < this.dramaUntil) return; // um gol/defesa assumiu a câmera
+                cam.pan(GAME_W / 2, GAME_H / 2, 380, 'Sine.easeInOut', true);
+                cam.zoomTo(1, 380, 'Sine.easeInOut', true);
+            });
+        }
         this.scene.time.delayedCall(duration, () => {
             if (this.scene.time.now + 5 < this.spotlightUntil) return; // outro golpe estendeu o holofote
             this.clearSpotlight();
@@ -111,10 +134,61 @@ export class Cinematics {
             const p = positions.get(idx);
             if (p) spot.setPosition(p.x, p.y - 14);
         }
+        this.drawBeam(positions);
+    }
+
+    /** Seta do atacante até o alvo + mira girando em volta do alvo. */
+    private drawBeam(positions: Map<number, { x: number; y: number }>) {
+        const g = this.beam;
+        g.clear();
+        if (!this.pair || this.pair.target === null) return;
+        const a = positions.get(this.pair.attacker);
+        const b = positions.get(this.pair.target);
+        if (!a || !b) return;
+        const ax = a.x;
+        const ay = a.y - 16;
+        const bx = b.x;
+        const by = b.y - 16;
+        const dx = bx - ax;
+        const dy = by - ay;
+        const d = Math.hypot(dx, dy) || 1;
+        const ux = dx / d;
+        const uy = dy / d;
+        const stop = 24; // a seta para antes da mira
+        const ex = bx - ux * stop;
+        const ey = by - uy * stop;
+        const pulse = 0.6 + 0.4 * Math.sin(this.scene.time.now / 90);
+        g.lineStyle(9, this.pair.color, 0.25 * pulse).lineBetween(ax, ay, ex, ey);
+        g.lineStyle(4, this.pair.color, 0.95).lineBetween(ax, ay, ex, ey);
+        // ponta da seta
+        const px = -uy;
+        const py = ux;
+        g.fillStyle(this.pair.color, 1).fillTriangle(
+            ex + ux * 12,
+            ey + uy * 12,
+            ex - ux * 4 + px * 9,
+            ey - uy * 4 + py * 9,
+            ex - ux * 4 - px * 9,
+            ey - uy * 4 - py * 9,
+        );
+        // mira vermelha no alvo
+        const rot = this.scene.time.now / 300;
+        g.lineStyle(3, 0xff3b3b, 0.95).strokeCircle(bx, by, 20);
+        for (let i = 0; i < 4; i++) {
+            const ang = rot + (i * Math.PI) / 2;
+            g.lineBetween(
+                bx + Math.cos(ang) * 14,
+                by + Math.sin(ang) * 14,
+                bx + Math.cos(ang) * 27,
+                by + Math.sin(ang) * 27,
+            );
+        }
     }
 
     private clearSpotlight() {
         this.focused.clear();
+        this.pair = null;
+        this.beam.clear();
         this.scene.tweens.add({ targets: this.dim, fillAlpha: 0, duration: 250 });
         for (const spot of this.spots.values()) {
             this.scene.tweens.add({ targets: spot, alpha: 0, duration: 250, onComplete: () => spot.destroy() });
@@ -157,19 +231,51 @@ export class Cinematics {
     }
 
     /** Faixa compacta com o nome do golpe, no canto superior esquerdo (não cobre o lance). */
-    private showBanner(userName: string, moveName: string, color: number, duration: number) {
+    private showBanner(
+        opts: {
+            userName: string;
+            moveName: string;
+            color: number;
+            userColor: number;
+            targetName?: string;
+            targetColor?: number;
+            withBall?: boolean;
+        },
+        duration: number,
+    ) {
         this.banner?.destroy();
+        const { moveName, color } = opts;
         const s = Math.min(this.uiScale, 1.3);
-        const small = this.scene.add
-            .text(0, 0, `${userName.toUpperCase()} usou`, {
-                fontFamily: 'Galmuri11, monospace',
-                fontSize: `${Math.round(14 * s)}px`,
-                color: '#ffffff',
-                stroke: '#000000',
-                strokeThickness: 3,
-            })
-            .setOrigin(0, 0.5)
-            .setResolution(2);
+        const lineStyle = (c: string) => ({
+            fontFamily: 'Galmuri11, monospace',
+            fontSize: `${Math.round(14 * s)}px`,
+            fontStyle: 'bold',
+            color: c,
+            stroke: '#000000',
+            strokeThickness: 4,
+        });
+        // linha de cima: quem ataca (cor do time) → quem é atingido (cor do time adversário)
+        const parts = [this.scene.add.text(0, 0, opts.userName.toUpperCase(), lineStyle(hexColor(opts.userColor)))];
+        if (opts.targetName) {
+            parts.push(this.scene.add.text(0, 0, ' → ', lineStyle('#ffffff')));
+            parts.push(
+                this.scene.add.text(
+                    0,
+                    0,
+                    opts.targetName.toUpperCase(),
+                    lineStyle(hexColor(opts.targetColor ?? 0xffffff)),
+                ),
+            );
+        } else {
+            parts.push(this.scene.add.text(0, 0, opts.withBall ? ' no chute' : ' usou', lineStyle('#ffffff')));
+        }
+        let cursor = 0;
+        for (const t of parts) {
+            t.setOrigin(0, 0.5).setResolution(2).setX(cursor);
+            cursor += t.width;
+        }
+        const small = this.scene.add.container(0, 0, parts);
+        (small as unknown as { width: number }).width = cursor;
         const big = this.scene.add
             .text(0, 0, moveName.toUpperCase(), {
                 fontFamily: 'Galmuri11, monospace',
@@ -182,7 +288,7 @@ export class Cinematics {
             .setOrigin(0, 0.5)
             .setResolution(2);
         const pad = 12 * s;
-        const w = Math.max(small.width, big.width) + pad * 2;
+        const w = Math.max(cursor, big.width) + pad * 2;
         const h = 54 * s;
         small.setPosition(pad, h * 0.3);
         big.setPosition(pad, h * 0.66);
@@ -210,6 +316,7 @@ export class Cinematics {
     drama(text: string, opts: { color: string; stroke: string; at?: { x: number; y: number }; sub?: string }) {
         const now = this.scene.time.now;
         this.slowMotion(now, 0.25, 1100);
+        this.dramaUntil = now + 1500;
         this.banner?.destroy();
         this.banner = null;
         const cam = this.scene.cameras.main;

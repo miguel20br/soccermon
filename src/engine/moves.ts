@@ -163,8 +163,8 @@ export function classifyMove(id: string): MoveProfile {
         strength = 0;
     }
 
-    // usos por partida seguem o PP: golpes fracos/baratos aparecem mais, os devastadores 1–2 vezes
-    const uses = kind === 'flavor' ? 1 : data.pp >= 25 ? 4 : data.pp >= 15 ? 3 : data.pp >= 10 ? 2 : 1;
+    // golpes são eventos especiais: 1 uso por partida (golpes de PP alto, 2)
+    const uses = kind !== 'flavor' && data.pp >= 25 ? 2 : 1;
     return { id, kind, data, strength, uses, status };
 }
 

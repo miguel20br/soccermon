@@ -169,7 +169,8 @@ export class AIController implements Controller {
         const shootThreshold = (pressure > 0.5 ? 0.04 : 0.075) + tactic.shootBias - shootingSkill * 0.03;
         if (distGoal < 17 && xg > shootThreshold && s.rng.chance(0.9)) {
             const cmds: Command[] = [];
-            const slot = this.pickMoveSlot(p, ['strike', 'blast'], xg > 0.2 ? 0.9 : 0.6);
+            // golpe no chute só em chance clara: é o grande momento do lance
+            const slot = this.pickMoveSlot(p, ['strike', 'blast'], xg > 0.22 ? 0.55 : xg > 0.14 ? 0.2 : 0);
             if (slot !== null) cmds.push({ type: 'useMove', slot });
             cmds.push({ type: 'shoot', target: this.shotTarget(p), power: 1 });
             return cmds;
@@ -185,7 +186,7 @@ export class AIController implements Controller {
         // 3) drible (com finta ou arrancada quando há marcador perto)
         const cmds: Command[] = [];
         if (pressure > 0.55) {
-            const burst = this.pickMoveSlot(p, ['burst'], 0.6);
+            const burst = this.pickMoveSlot(p, ['burst'], 0.2);
             if (burst !== null) cmds.push({ type: 'useMove', slot: burst });
             else if (s.rng.chance(0.12 + (0.2 * eff(s, p, 'dribble')) / 99)) {
                 cmds.push({ type: 'skill', dir: this.evadeDir(p, goal) });
@@ -329,14 +330,14 @@ export class AIController implements Controller {
         let near = Infinity;
         for (const o of s.players) if (o.team !== p.team) near = Math.min(near, dist(o.pos, p.pos));
         if (p.energy < 0.4) {
-            const heal = this.pickMoveSlot(p, ['heal'], 0.1);
+            const heal = this.pickMoveSlot(p, ['heal'], 0.04);
             if (heal !== null) return heal;
         }
         if (near < 6) {
-            const hex = this.pickMoveSlot(p, ['status', 'debuff'], 0.035);
+            const hex = this.pickMoveSlot(p, ['status', 'debuff'], 0.006);
             if (hex !== null) return hex;
         }
-        return this.pickMoveSlot(p, ['buff', 'flavor'], 0.02);
+        return this.pickMoveSlot(p, ['buff', 'flavor'], 0.003);
     }
 
     private offBallMovement(p: PlayerState, ctx: TeamContext): Command | Command[] {
@@ -367,12 +368,12 @@ export class AIController implements Controller {
             if (d < 1.3 && p.tackleCooldown <= 0) {
                 const danger = toRel(s, team, carrier.pos).x < 14 ? 0.12 : 0;
                 if (s.rng.chance(0.14 + danger + tactic.pressBias)) {
-                    const strike = this.pickMoveSlot(p, ['strike'], 0.65);
+                    const strike = this.pickMoveSlot(p, ['strike'], 0.3);
                     if (strike !== null) cmds.push({ type: 'useMove', slot: strike });
                     cmds.push({ type: 'tackle', targetId: carrier.idx });
                 }
             } else if (d < 6.5) {
-                const slot = this.pickMoveSlot(p, ['blast', 'status', 'debuff'], 0.02);
+                const slot = this.pickMoveSlot(p, ['blast', 'status', 'debuff'], 0.005);
                 if (slot !== null) cmds.push({ type: 'useMove', slot });
             }
             // persegue a posição futura do portador, pelo lado do gol
@@ -474,7 +475,9 @@ export class AIController implements Controller {
 
     /** Escolhe um golpe disponível dos tipos pedidos, com probabilidade `chance`. */
     private pickMoveSlot(p: PlayerState, kinds: string[], chance: number): number | null {
-        if (p.moveCooldown > 0 || !this.s.rng.chance(chance)) return null;
+        if (chance <= 0 || p.moveCooldown > 0 || this.s.tick < this.s.nextMoveTick || !this.s.rng.chance(chance)) {
+            return null;
+        }
         const slots = p.inst.moves
             .map((m, i) => ({ i, prof: moveProfile(m) }))
             .filter(({ i, prof }) => p.moveUses[i] > 0 && kinds.includes(prof.kind));

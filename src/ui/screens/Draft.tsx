@@ -7,7 +7,8 @@ import { computeSynergies } from '../../engine/synergy';
 import { playSfx } from '../../game/audio';
 import { type SlotRef, slotRole, useGame } from '../../store/game-store';
 import { FormationBoard } from '../components/FormationBoard';
-import { PokeCard, TypeBadge } from '../components/PokeCard';
+import { FutCard } from '../components/FutCard';
+import { TypeBadge } from '../components/PokeCard';
 
 /** Desenho mini da formação (bolinhas nas posições da UI). */
 function FormationDiagram({ id }: { id: FormationId }) {
@@ -186,15 +187,23 @@ export function Draft() {
                         <div className="options">
                             {run.options.map((o) => (
                                 <div key={o.uid} className="option">
-                                    <PokeCard
+                                    <FutCard
                                         inst={o}
                                         position={role && role !== 'ANY' ? role : undefined}
                                         captain={isCaptain}
                                         selected={selected === o.uid}
-                                        onClick={() => {
-                                            playSfx('select');
-                                            if (isCaptain) setSelected(selected === o.uid ? null : o.uid);
-                                            else pick(o.uid);
+                                        action={{
+                                            label: isCaptain
+                                                ? selected === o.uid
+                                                    ? 'Escolhido'
+                                                    : 'Escolher capitão'
+                                                : `Escalar${roleLabel ? ` (${roleLabel})` : ''}`,
+                                            primary: true,
+                                            onClick: () => {
+                                                playSfx('select');
+                                                if (isCaptain) setSelected(selected === o.uid ? null : o.uid);
+                                                else pick(o.uid);
+                                            },
                                         }}
                                     />
                                 </div>

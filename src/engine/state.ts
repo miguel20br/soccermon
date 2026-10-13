@@ -243,6 +243,8 @@ export interface MatchState {
     players: PlayerState[];
     /** Índices dos jogadores com habilidade de aura (Intimidate…) — evita varrer todos a cada cálculo. */
     auraHolders: number[];
+    /** Nenhum golpe (de nenhum time) antes deste tick: golpes ficam espaçados e especiais. */
+    nextMoveTick: number;
     /** Jogadores substituídos (com as estatísticas que fizeram antes de sair). */
     subbedOut: PlayerState[];
     ball: BallState;

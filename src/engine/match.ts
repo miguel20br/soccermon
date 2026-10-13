@@ -34,6 +34,9 @@ const TACKLE_RANGE = 1.35;
 const DRIBBLE_OFFSET = 0.45;
 const WALL_DAMPING = 0.6;
 const POST_TOLERANCE = 0.12;
+/** Segundos até o mesmo Pokémon usar outro golpe, e intervalo mínimo entre golpes de qualquer time. */
+const MOVE_COOLDOWN = 25;
+const MOVE_GAP = 5;
 
 // ---------------------------------------------------------------- geometria
 export const attackSign = (team: 0 | 1) => (team === 0 ? 1 : -1);
@@ -169,6 +172,7 @@ export function createMatch(cfg: MatchConfig, home: TeamSetup, away: TeamSetup, 
         players,
         auraHolders: [],
         subbedOut: [],
+        nextMoveTick: 0,
         ball: {
             pos: v(cfg.pitch.length / 2, cfg.pitch.width / 2),
             vel: v(0, 0),
@@ -670,10 +674,11 @@ function applySecondary(s: MatchState, user: PlayerState, target: PlayerState, m
 
 function performMove(s: MatchState, p: PlayerState, slot: number) {
     const moveId = p.inst.moves[slot];
-    if (!moveId || p.moveUses[slot] <= 0 || p.moveCooldown > 0) return;
+    if (!moveId || p.moveUses[slot] <= 0 || p.moveCooldown > 0 || s.tick < s.nextMoveTick) return;
     const prof = moveProfile(moveId);
     p.moveUses[slot]--;
-    p.moveCooldown = 3;
+    p.moveCooldown = MOVE_COOLDOWN;
+    s.nextMoveTick = s.tick + Math.round(MOVE_GAP * s.cfg.tickRate);
     p.stats.movesUsed++;
     const technician =
         p.ability.weakMoveBoost && prof.data.power > 0 && prof.data.power <= 60 ? p.ability.weakMoveBoost : 1;

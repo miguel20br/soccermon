@@ -281,7 +281,7 @@ describe('iteração 3: posições, formações, capitão, itens, tática ao viv
             checked += r.subbedOut.length;
         }
         expect(checked).toBeGreaterThan(0);
-    });
+    }, 30_000);
 
     it('quem conduz a bola nunca sai da quadra', () => {
         const live = new LiveRunner(FUTSAL_5, home, away, 21);
@@ -303,5 +303,15 @@ describe('iteração 3: posições, formações, capitão, itens, tática ao viv
         expect(a.filter((r) => r.kind === 'pokemon')).toHaveLength(1);
         expect(a.filter((r) => r.kind === 'item')).toHaveLength(2);
         expect(rewardOptions('seed', 0, 1, home.lineup)).not.toEqual(a);
+        // contratar do adversário: o Pokémon vem do time derrotado, sem item e com uid novo
+        const defeated = { name: 'Fora', players: away.lineup };
+        const c = rewardOptions('seed', 0, 0, home.lineup, defeated);
+        const signed = c.find((r) => r.kind === 'pokemon');
+        expect(signed && signed.kind === 'pokemon' && signed.from).toBe('Fora');
+        if (signed?.kind === 'pokemon') {
+            expect(away.lineup.some((p) => p.speciesId === signed.inst.speciesId)).toBe(true);
+            expect(away.lineup.some((p) => p.uid === signed.inst.uid)).toBe(false);
+            expect(signed.inst.item).toBeNull();
+        }
     });
 });

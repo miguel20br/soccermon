@@ -139,6 +139,12 @@ export function playerTeam(run: RunState): TeamSetup {
 }
 
 export const stageLabel = (stage: number) => CUP_STAGES[stage] ?? 'Copa';
+
+/** Time eliminado na fase atual (de onde dá para contratar um Pokémon). */
+const defeatedOf = (run: RunState) => {
+    const opp = run.opponents[run.stage];
+    return opp ? { name: opp.name, players: [...opp.lineup, ...opp.bench] } : undefined;
+};
 export const isPerfectCup = (run: RunState) =>
     run.status === 'champion' && run.results.every((r) => r.won && r.score[1] === 0);
 
@@ -306,7 +312,7 @@ export const useGame = create<GameStore>()(
                     const status: RunStatus = !won ? 'eliminated' : last ? 'champion' : 'reward';
                     const next: RunState = { ...run, results: [...run.results, result], status, lockedTeam: null };
                     if (status === 'reward') {
-                        next.rewards = rewardOptions(run.seed, run.stage, 0, run.picks);
+                        next.rewards = rewardOptions(run.seed, run.stage, 0, run.picks, defeatedOf(run));
                     }
                     const ended = status === 'eliminated' || status === 'champion';
                     setState({
@@ -363,7 +369,7 @@ export const useGame = create<GameStore>()(
                     updateRun({
                         rerolls: run.rerolls - 1,
                         rerollsUsed: used,
-                        rewards: rewardOptions(run.seed, run.stage, used, run.picks),
+                        rewards: rewardOptions(run.seed, run.stage, used, run.picks, defeatedOf(run)),
                     });
                 },
 

@@ -1336,3 +1336,419 @@ button,
 .slot.proj-bad .slot-rating {
     color: #fff;
 }
+
+/* ---------- carta estilo Ultimate Team ---------- */
+.fut-wrap {
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    --fut-w: 190px;
+}
+.fut-wrap.sm {
+    --fut-w: 140px;
+}
+.fut-card {
+    position: relative;
+    width: var(--fut-w);
+    aspect-ratio: 190 / 268;
+    display: grid;
+    grid-template-rows: auto 1fr auto auto;
+    padding: 12px 12px 14px;
+    border: 0;
+    cursor: pointer;
+    font: inherit;
+    color: var(--fut-ink, #2a1d0f);
+    background: var(--fut-bg);
+    clip-path: polygon(50% 0, 100% 6%, 100% 92%, 50% 100%, 0 92%, 0 6%);
+    filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.35));
+    transition:
+        transform 0.12s ease,
+        filter 0.12s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+.fut-card::before {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    clip-path: polygon(50% 0, 100% 6%, 100% 92%, 50% 100%, 0 92%, 0 6%);
+    border: 2px solid var(--fut-line, rgba(0, 0, 0, 0.25));
+    pointer-events: none;
+}
+.fut-card:hover {
+    transform: translateY(-4px);
+}
+.fut-card:focus-visible {
+    outline: none;
+    filter: drop-shadow(0 0 0 var(--yellow)) drop-shadow(0 0 6px var(--yellow));
+}
+.fut-wrap.selected .fut-card {
+    filter: drop-shadow(0 0 4px var(--yellow)) drop-shadow(0 0 10px var(--yellow));
+    transform: translateY(-4px);
+}
+.frame-bronze {
+    --fut-bg: linear-gradient(160deg, #e2b384 0%, #b67a46 55%, #8a5a30 100%);
+}
+.frame-silver {
+    --fut-bg: linear-gradient(160deg, #f4f6fa 0%, #c3cad6 55%, #8f98a8 100%);
+}
+.frame-gold {
+    --fut-bg: linear-gradient(160deg, #fff1a8 0%, #f2c53d 50%, #c08f12 100%);
+}
+.frame-epic {
+    --fut-bg: linear-gradient(160deg, #c9a2ff 0%, #7b47e0 55%, #3d1d8a 100%);
+    --fut-ink: #fff;
+    --fut-line: rgba(255, 255, 255, 0.35);
+}
+.frame-legend {
+    --fut-bg: linear-gradient(135deg, #ff5ea8, #ffd75e, #5eeaff, #b16bff, #ff5ea8);
+    --fut-ink: #1d1033;
+    --fut-line: rgba(255, 255, 255, 0.55);
+    background-size: 300% 300%;
+    animation: holo 6s linear infinite;
+}
+@keyframes holo {
+    to {
+        background-position: 300% 300%;
+    }
+}
+.fut-top {
+    position: relative;
+    display: grid;
+    justify-items: start;
+    line-height: 1;
+    z-index: 1;
+}
+.fut-ovr {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: calc(var(--fut-w) * 0.19);
+    font-weight: 700;
+}
+.fut-pos {
+    font-size: calc(var(--fut-w) * 0.07);
+    font-weight: 700;
+    margin-top: 2px;
+}
+.fut-pos.off {
+    color: #b3261e;
+    text-decoration: underline wavy;
+}
+.fut-types {
+    display: flex;
+    gap: 3px;
+    margin-top: 5px;
+}
+.fut-types i {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 0, 0, 0.35);
+}
+.fut-captain {
+    position: absolute;
+    right: 0;
+    top: 2px;
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #0e1430;
+    color: var(--yellow);
+    font-weight: 700;
+    font-size: 12px;
+}
+.fut-shiny {
+    position: absolute;
+    right: 2px;
+    top: 28px;
+    color: #fff;
+    text-shadow: 0 0 4px #000;
+}
+.fut-art {
+    display: grid;
+    place-items: center;
+    margin-top: -8px;
+    pointer-events: none;
+    overflow: hidden;
+    min-height: 0;
+}
+.fut-art img {
+    width: 52%;
+    max-height: calc(var(--fut-w) * 0.42);
+    object-fit: contain;
+    transform: scale(1.12);
+    filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.25));
+}
+.fut-name {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    font-weight: 700;
+    font-size: calc(var(--fut-w) * 0.08);
+    border-top: 2px solid var(--fut-line, rgba(0, 0, 0, 0.25));
+    border-bottom: 2px solid var(--fut-line, rgba(0, 0, 0, 0.25));
+    padding: 2px 0;
+    margin: 2px 4px 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.fut-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px 10px;
+    font-size: calc(var(--fut-w) * 0.062);
+    padding: 0 8px 6px;
+}
+.fut-stats b {
+    font-size: calc(var(--fut-w) * 0.075);
+}
+.fut-item {
+    position: absolute;
+    left: 10px;
+    bottom: 16%;
+    width: 24px;
+    height: 24px;
+}
+.fut-ribbon {
+    position: absolute;
+    top: 20%;
+    right: -4px;
+    background: var(--red);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px 0 0 4px;
+    z-index: 2;
+    max-width: 80%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.fut-action {
+    width: var(--fut-w);
+}
+/* info rápida (hover / segurar) */
+.fut-peek {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 14px 14px 18px;
+    background: rgba(10, 14, 34, 0.93);
+    color: var(--text);
+    text-align: left;
+    font-size: 11px;
+}
+.peek-title {
+    color: var(--yellow);
+    font-weight: 700;
+    margin-top: 4px;
+}
+.peek-row {
+    display: flex;
+    justify-content: space-between;
+}
+.peek-row.main b {
+    color: var(--yellow);
+}
+.peek-row.alt b {
+    color: #b6d94c;
+}
+.peek-moves {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+}
+.peek-moves i {
+    font-style: normal;
+    border-left: 3px solid;
+    padding: 0 4px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 3px;
+}
+.peek-hint {
+    margin-top: auto;
+    color: var(--muted);
+    font-size: 10px;
+    text-align: center;
+}
+
+/* opções do draft e recompensas com cartas */
+.draft-options .options,
+.reward-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    justify-items: center;
+}
+.detail-card {
+    display: grid;
+    justify-items: center;
+}
+.scout-btn {
+    background: none;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    padding: 0;
+    cursor: pointer;
+}
+.scout-btn:hover {
+    border-color: var(--yellow);
+}
+.scout-btn img {
+    height: 44px;
+    display: block;
+}
+.reward-team .formation-board {
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+/* ---------- carta completa (modal) ---------- */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(5, 7, 18, 0.72);
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    overflow-y: auto;
+}
+.modal {
+    position: relative;
+    width: min(860px, 100%);
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+}
+.modal-close {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    background: none;
+    border: 0;
+    color: var(--text);
+    font-size: 26px;
+    cursor: pointer;
+    width: 44px;
+    height: 44px;
+}
+.card-modal-grid {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 20px;
+}
+.card-modal-left {
+    display: grid;
+    gap: 10px;
+    align-content: start;
+    justify-items: center;
+}
+.card-modal-left .fut-wrap {
+    --fut-w: 210px;
+}
+.card-modal-right h2 {
+    margin: 0 0 4px;
+}
+.card-modal-right h3 {
+    margin: 14px 0 6px;
+}
+.card-note {
+    font-size: 12px;
+    color: var(--yellow);
+    text-align: center;
+}
+.modal-actions {
+    display: grid;
+    gap: 8px;
+    width: 100%;
+}
+.pos-table {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+}
+.pos-row {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    padding: 6px 4px;
+    border-radius: 8px;
+    border: 2px solid var(--line);
+    font-size: 11px;
+}
+.pos-row b {
+    font-size: 18px;
+}
+.pos-row.main {
+    border-color: var(--yellow);
+}
+.pos-row.alt {
+    border-color: var(--green);
+}
+.pos-row.off {
+    opacity: 0.7;
+    border-color: #6b3036;
+}
+.modal-attrs {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 16px;
+    display: grid;
+}
+.move-details {
+    display: grid;
+    gap: 8px;
+}
+.move-detail {
+    border-left: 5px solid;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: grid;
+    gap: 4px;
+}
+.card-item-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.card-item-row img {
+    width: 32px;
+    height: 32px;
+}
+
+@media (max-width: 700px) {
+    .draft-options .options,
+    .reward-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    .fut-wrap {
+        --fut-w: min(44vw, 170px);
+    }
+    .card-modal-grid {
+        grid-template-columns: 1fr;
+    }
+    .modal-attrs {
+        grid-template-columns: 1fr;
+    }
+    .pos-table {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .modal-backdrop {
+        padding: 8px;
+        align-items: start;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .frame-legend {
+        animation: none;
+    }
+    .fut-card {
+        transition: none;
+    }
+}

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { setVolume } from './game/audio';
 import { useGame } from './store/game-store';
+import { CardModal } from './ui/components/CardModal';
 import { runDevDemo } from './ui/dev-demo';
 import { Credits } from './ui/screens/Credits';
 import { Draft } from './ui/screens/Draft';
@@ -43,6 +44,7 @@ export default function App() {
             {screen === 'reward' && <Reward />}
             {screen === 'settings' && <Settings />}
             {screen === 'credits' && <Credits />}
+            <CardModal />
         </div>
     );
 }

@@ -7,8 +7,10 @@ import { TACTIC_LABEL, type Tactic } from '../../engine/state';
 import { computeSynergies } from '../../engine/synergy';
 import { playSfx } from '../../game/audio';
 import { playerTeam, type SlotRef, stageLabel, useGame } from '../../store/game-store';
+import { useCardModal } from '../card-modal';
 import { FormationBoard } from '../components/FormationBoard';
-import { cardSprite, PokeCard, TypeBadge } from '../components/PokeCard';
+import { FutCard } from '../components/FutCard';
+import { cardSprite, TypeBadge } from '../components/PokeCard';
 import { simulateMatch } from '../sim-client';
 
 export const TACTIC_DESC: Record<Tactic, string> = {
@@ -21,6 +23,7 @@ export const TACTIC_DESC: Record<Tactic, string> = {
 export function Lineup() {
     const { run, swapSlots, setTactic, setFormation, moveItem, setMatch, go, abandonRun, lockMatch } = useGame();
     const [error, setError] = useState<string | null>(null);
+    const openCard = useCardModal((s) => s.open);
     const [selected, setSelected] = useState<SlotRef | null>(null);
     const [detail, setDetail] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -143,13 +146,15 @@ export function Lineup() {
                         </h2>
                         <div className="opponent-strip">
                             {opponent.lineup.map((p) => (
-                                <img
+                                <button
                                     key={p.uid}
-                                    className="pixel"
-                                    src={cardSprite(p)}
-                                    alt={viewInstance(p).displayName}
-                                    title={viewInstance(p).displayName}
-                                />
+                                    type="button"
+                                    className="scout-btn"
+                                    onClick={() => openCard(p, { note: `Adversário: ${opponent.name}` })}
+                                    aria-label={`Ver carta de ${viewInstance(p).displayName}`}
+                                >
+                                    <img className="pixel" src={cardSprite(p)} alt="" />
+                                </button>
                             ))}
                         </div>
                         <p className="muted" style={{ fontSize: 11 }}>
@@ -212,7 +217,10 @@ export function Lineup() {
 
                     {detailInst && (
                         <>
-                            <PokeCard inst={detailInst} captain={detailInst.uid === run.captainUid} />
+                            <div className="detail-card">
+                                <FutCard inst={detailInst} captain={detailInst.uid === run.captainUid} />
+                                <p className="tactic-desc center">Toque na carta para ver tudo sobre o Pokémon.</p>
+                            </div>
                             {detailInst.item && (
                                 <div className="panel item-move">
                                     <img className="pixel" src={itemSprite(detailInst.item)} alt="" />
