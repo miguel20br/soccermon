@@ -127,7 +127,7 @@ export function FutCard({
                 onContextMenu={(e) => e.preventDefault()}
                 aria-label={`${view.displayName}, ${display} de ${POSITION_LABEL[pos]}${edition ? `, edição ${EDITION[edition].label}` : ''}. Abrir carta completa`}
             >
-                <PokeCard2 inst={inst} variant="figurinha" position={pos} captain={captain} />
+                <PokeCard2 inst={inst} variant="metal" position={pos} captain={captain} />
                 {ribbon && <span className="fut-ribbon">{ribbon}</span>}
 
                 {peek && (

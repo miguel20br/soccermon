@@ -1,11 +1,11 @@
 import { type ReactNode, useMemo, useState } from 'react';
 import { SPECIES, species } from '../../engine/data';
-import { createInstance, type PokemonInstance } from '../../engine/instance';
+import { createInstance, type PokemonInstance, viewInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
 import { type Edition, ICONS } from '../../engine/specials';
 import { TIER_PT } from '../components/PokeCard';
 import { type CardVariant, HOLO_FINISHES, type HoloFinish, PokeCard2, VARIANT_LABEL } from '../components/PokeCard2';
-import { EDITION, RARITY } from '../rarity';
+import { EDITION, FINISH_LABEL, finishOf, METAL, type Metal, metalOf } from '../rarity';
 
 /**
  * Galeria de cartas (?cards=1): a família holográfica (6 acabamentos + a mistura sugerida), uma carta
@@ -80,13 +80,36 @@ function withEdition(inst: PokemonInstance, ed: Edition | 'none'): PokemonInstan
 const EDITIONS: (Edition | 'none')[] = ['none', 'shiny', 'destaque', 'icone', 'evento'];
 const EDITION_LABEL = (e: Edition | 'none') => (e === 'none' ? 'Normal' : EDITION[e].label);
 const EDITION_DESC: Record<Edition | 'none', string> = {
-    none: 'A cor da moldura é a raridade: branco, verde, azul, roxo e laranja. O brilho cresce junto.',
-    shiny: 'Shiny (1 em 64, sorte): moldura dourada gravada.',
-    destaque: 'Destaque: o craque do seu time na partida ganha esta carta, estilo TOTW.',
+    none: 'Bronze, prata ou ouro pela nota; fosco (comum) ou brilhante (raro) pela raridade; lendário é creme e dourado.',
+    shiny: 'Shiny (1 em 64, sorte): pérola iridescente.',
+    destaque: 'Destaque: o craque do seu time na partida ganha esta carta preta e dourada, estilo TOTW.',
     icone: 'Ícone: só Pokémon da lista, 1 em 20 quando aparecem no draft.',
     evento: 'Evento: o tipo da semana tem 1 em 8 de vir com esta carta.',
 };
-const RARITY_SAMPLES = DEFAULT_SAMPLES.slice(0, 5);
+/** Um exemplo de cada metal × acabamento (e o lendário), achado nos dados. */
+function metalSample(metal: Metal, finish: 'fosco' | 'brilhante' | 'lendario'): PokemonInstance | null {
+    const sp = SPECIES.find((x) => {
+        if (finishOf(x.tier) !== finish) return false;
+        const inst = sample(x.id);
+        return finish === 'lendario' || metalOf(viewInstance(inst).overall) === metal;
+    });
+    return sp ? sample(sp.id) : null;
+}
+const METAL_ROWS: { key: string; label: string; inst: PokemonInstance }[] = (
+    [
+        ['bronze', 'fosco'],
+        ['bronze', 'brilhante'],
+        ['prata', 'fosco'],
+        ['prata', 'brilhante'],
+        ['ouro', 'fosco'],
+        ['ouro', 'brilhante'],
+        ['ouro', 'lendario'],
+    ] as const
+).flatMap(([m, f]) => {
+    const inst = metalSample(m, f);
+    const label = f === 'lendario' ? 'Lendário' : `${METAL[m].label} · ${FINISH_LABEL[f]}`;
+    return inst ? [{ key: `${m}-${f}`, label, inst }] : [];
+});
 const EDITION_SAMPLES: { ed: Edition; inst: PokemonInstance }[] = [
     { ed: 'shiny', inst: withEdition(sample(6), 'shiny') },
     { ed: 'destaque', inst: withEdition(sample(68), 'destaque') },
@@ -145,10 +168,10 @@ export function CardGallery({ onExit }: { onExit: () => void }) {
             <div className="draft-head">
                 <div>
                     <div className="muted">Cartas do Soccermon</div>
-                    <h1>Figurinha Holo</h1>
+                    <h1>Carta Metal</h1>
                     <p className="muted" style={{ margin: '4px 0 0' }}>
-                        Passe o mouse (ou o dedo) nas cartas: elas inclinam e refletem a luz. A cor da moldura é a
-                        raridade; as edições especiais têm moldura própria.
+                        Bronze, prata ou ouro pela nota; fosco ou brilhante pela raridade; lendários e edições especiais
+                        com visual próprio. Passe o mouse (ou o dedo) nas cartas.
                     </p>
                 </div>
                 <button type="button" className="btn small" onClick={onExit}>
@@ -162,7 +185,7 @@ export function CardGallery({ onExit }: { onExit: () => void }) {
                         <PokeCard2
                             key={`fig-${edition}-${showcaseInst.speciesId}`}
                             inst={withEdition(showcaseInst, edition)}
-                            variant="figurinha"
+                            variant="metal"
                             showcase
                         />
                     ) : (
@@ -274,17 +297,15 @@ export function CardGallery({ onExit }: { onExit: () => void }) {
             {section === 'v06' ? (
                 <div className="cg-v06">
                     <section className="panel">
-                        <h2>Raridades</h2>
+                        <h2>Bronze, prata e ouro (pela nota) · fosco = comum, brilhante = raro</h2>
                         <div className="cg-row">
                             {(customInst
                                 ? [{ key: 'custom', label: 'Sua escolha', inst: customInst }]
-                                : RARITY_SAMPLES
+                                : METAL_ROWS
                             ).map((s) => (
                                 <figure key={s.key} className="cg-item">
-                                    <PokeCard2 inst={withEdition(s.inst, 'none')} variant="figurinha" size="md" />
-                                    <figcaption style={{ color: RARITY[species(s.inst.speciesId).tier].color }}>
-                                        {RARITY[species(s.inst.speciesId).tier].label}
-                                    </figcaption>
+                                    <PokeCard2 inst={withEdition(s.inst, 'none')} variant="metal" size="md" />
+                                    <figcaption className="muted">{s.label}</figcaption>
                                 </figure>
                             ))}
                         </div>
@@ -296,7 +317,7 @@ export function CardGallery({ onExit }: { onExit: () => void }) {
                                 <figure key={s.ed} className="cg-item">
                                     <PokeCard2
                                         inst={customInst ? withEdition(customInst, s.ed) : s.inst}
-                                        variant="figurinha"
+                                        variant="metal"
                                         size="md"
                                     />
                                     <figcaption className="muted">{EDITION_DESC[s.ed]}</figcaption>
@@ -308,7 +329,7 @@ export function CardGallery({ onExit }: { onExit: () => void }) {
                         <h2>Ícones ({ICON_SAMPLES.length}): a lista pra você aprovar</h2>
                         <div className="cg-row cg-icons">
                             {ICON_SAMPLES.map((inst) => (
-                                <PokeCard2 key={inst.speciesId} inst={inst} variant="figurinha" size="sm" />
+                                <PokeCard2 key={inst.speciesId} inst={inst} variant="metal" size="sm" />
                             ))}
                         </div>
                     </section>

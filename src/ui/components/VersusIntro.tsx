@@ -5,12 +5,15 @@ import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
 import { TACTIC_LABEL, type TeamSetup } from '../../engine/state';
 import { playSfx } from '../../game/audio';
-import { RARITY } from '../rarity';
 import { cardSprite } from './PokeCard';
 import './versus.css';
 
 const AUTO_START_MS = 4500;
 const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
+/** Tamanho natural moderado: o Pikachu fica um pouco menor que o Dragonite, sem sumir. */
+const sizeOf = (heightm: number) => Math.min(1.12, Math.max(0.84, 0.94 + 0.11 * Math.log2(Math.max(0.1, heightm))));
+/** Faíscas ao longo da linha diagonal (posição em % do comprimento da linha). */
+const SPARKS = [8, 19, 31, 42, 58, 69, 81, 92];
 
 /**
  * Os titulares de um time em fila diagonal, do canto rumo ao centro: o capitão na frente (perto do VS),
@@ -27,17 +30,16 @@ function Squad({ team, side }: { team: TeamSetup; side: 'home' | 'away' }) {
         <>
             {order.map(({ p, slot }, i) => {
                 const v = viewInstance(p);
-                const tier = species(p.speciesId).tier;
                 const style = {
                     '--i': i,
                     '--d': `${0.3 + (last - i) * 0.1}s`,
-                    '--rar': RARITY[tier].color,
+                    '--sz': sizeOf(species(p.speciesId).heightm),
                     zIndex: 20 - i,
                 } as CSSProperties;
                 return (
                     <div key={p.uid} className={`vsd-mon ${side}`} style={style}>
                         <div className="vsd-fig">
-                            <span className="vsd-ring" />
+                            <span className="vsd-shadow" />
                             <img className="pixel" src={cardSprite(p)} alt="" draggable={false} />
                         </div>
                         <span className="vsd-dust" />
@@ -58,6 +60,7 @@ function Band({ team, side }: { team: TeamSetup; side: 'home' | 'away' }) {
     const avg = Math.round(team.lineup.reduce((s, p) => s + viewInstance(p).overall, 0) / team.lineup.length);
     return (
         <div className={`vsd-band ${side}`}>
+            <div className="vsd-who">{side === 'home' ? 'Seu time' : 'Rival'}</div>
             <div className="vsd-band-name">{team.name}</div>
             <div className="vsd-band-meta">
                 {formation.name} · {TACTIC_LABEL[team.tactic]} · média <b>{avg}</b>
@@ -126,6 +129,12 @@ export function VersusIntro({
             <div className="vsd-scene">
                 <div className="vsd-half away" />
                 <div className="vsd-half home" />
+                <div className="vsd-mark away" aria-hidden>
+                    RIVAL
+                </div>
+                <div className="vsd-mark home" aria-hidden>
+                    VOCÊ
+                </div>
                 <svg className="vsd-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
                     <line className="vsd-divider wide" x1="0" y1="0" x2="100" y2="100" />
                     <line className="vsd-divider tall" x1="0" y1="40" x2="100" y2="60" />
@@ -142,6 +151,16 @@ export function VersusIntro({
                 <Band team={home} side="home" />
                 <Squad team={away} side="away" />
                 <Squad team={home} side="home" />
+                <div className="vsd-burst" aria-hidden />
+                <div className="vsd-shock" aria-hidden />
+                {SPARKS.map((t, i) => (
+                    <span
+                        key={t}
+                        className="vsd-spark"
+                        style={{ '--t': t, '--sd': `${1 + i * 0.13}s` } as CSSProperties}
+                        aria-hidden
+                    />
+                ))}
                 <div className="vsd-vs" aria-hidden>
                     VS
                 </div>

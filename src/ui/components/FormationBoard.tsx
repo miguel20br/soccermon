@@ -6,7 +6,7 @@ import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { editionOf } from '../../engine/specials';
 import type { SlotRef } from '../../store/game-store';
-import { EDITION, RARITY } from '../rarity';
+import { EDITION, METAL, metalOf } from '../rarity';
 import { ratingAt } from '../rating';
 import { cardSprite } from './PokeCard';
 
@@ -62,7 +62,13 @@ export function FormationBoard({
         // cor da raridade (anel) e marca da edição especial
         const tier = inst ? species(inst.speciesId).tier : null;
         const edition = inst ? editionOf(inst) : null;
-        const rarStyle = tier ? ({ ...style, '--rar': RARITY[tier].color } as CSSProperties) : style;
+        // anel na cor do metal da carta (lendário: creme e dourado)
+        const ring = inst
+            ? tier === 'legendary'
+                ? '#f2d878'
+                : METAL[metalOf(viewInstance(inst).overall)].color
+            : null;
+        const rarStyle = ring ? ({ ...style, '--rar': ring } as CSSProperties) : style;
         return (
             <button
                 type="button"

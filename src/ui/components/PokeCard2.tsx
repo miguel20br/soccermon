@@ -5,7 +5,7 @@ import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { ITEMS, itemSprite } from '../../engine/items';
 import { moveProfile } from '../../engine/moves';
 import { type Edition, editionOf } from '../../engine/specials';
-import { EDITION, RARITY } from '../rarity';
+import { EDITION, type FINISH_LABEL, finishOf, METAL, metalOf, RARITY } from '../rarity';
 import { ratingAt } from '../rating';
 import { TYPE_COLOR, TYPE_PT } from '../type-colors';
 import { cardSprite, TIER_PT } from './PokeCard';
@@ -23,11 +23,12 @@ import { useHoloPointer } from './useHoloPointer';
  * As cartas holográficas inclinam e refletem a luz com o ponteiro (useHoloPointer).
  */
 export type HoloFinish = 'holo' | 'rainbow' | 'reverse' | 'cosmos' | 'radiant' | 'gold';
-export type CardVariant = 'figurinha' | 'sticker' | 'tcg' | 'dex' | HoloFinish;
+export type CardVariant = 'metal' | 'figurinha' | 'sticker' | 'tcg' | 'dex' | HoloFinish;
 
 export const HOLO_FINISHES: HoloFinish[] = ['holo', 'rainbow', 'reverse', 'cosmos', 'radiant', 'gold'];
 
 export const VARIANT_LABEL: Record<CardVariant, string> = {
+    metal: 'Metal',
     figurinha: 'Figurinha Holo',
     sticker: 'Figurinha',
     tcg: 'TCG de futsal',
@@ -151,7 +152,10 @@ export function PokeCard2({ inst, variant, position, captain, onClick, weak, sho
     const d = cardData(inst, position);
     const holo = isHolo(variant);
     const fig = variant === 'figurinha';
+    const metal = variant === 'metal';
     const edition = editionOf(inst);
+    const metalTier = metalOf(d.view.overall);
+    const metalFinish = finishOf(d.sp.tier);
     // acabamento efetivo: o prop `finish` vale pra qualquer estilo; nas holográficas o padrão é a própria variante;
     // na Figurinha Holo, a edição especial define o acabamento (senão, o holo clássico com brilho pela raridade)
     const fin: HoloFinish | null =
@@ -163,11 +167,22 @@ export function PokeCard2({ inst, variant, position, captain, onClick, weak, sho
                 ? edition
                     ? EDITION[edition].finish
                     : 'holo'
-                : null;
+                : metal
+                  ? edition
+                      ? METAL_EDITION_FINISH[edition]
+                      : metalFinish === 'lendario'
+                        ? 'gold'
+                        : 'holo'
+                  : null;
     const ref = useRef<HTMLElement | null>(null);
     useHoloPointer(ref, { enabled: fin !== null, maxTilt: showcase ? 14 : 10 });
     const classes = ['pc2', holo ? 'pc2-holo' : fig ? 'pc2-fig' : `pc2-${variant}`, `tier-${d.sp.tier}`];
     if (size) classes.push(`size-${size}`);
+    if (metal) {
+        classes.push(edition ? `ed-${edition}` : metalFinish === 'lendario' ? 'm-lendario' : `m-${metalTier}`);
+        classes.push(`m-${metalFinish}`);
+        if (edition) classes.push('is-special');
+    }
     if (fig) {
         // tema do fundo: o 1º tipo, mas Normal cede pro 2º (Pidgey/Normal-Voador ganha o céu)
         const theme = d.sp.types[0] === 'Normal' && d.sp.types[1] ? d.sp.types[1] : d.sp.types[0];
@@ -180,7 +195,9 @@ export function PokeCard2({ inst, variant, position, captain, onClick, weak, sho
     if (weak) classes.push('is-weak');
     if (showcase) classes.push('pc2-showcase');
     const label = `${d.view.displayName}, ${d.display} de ${POSITION_LABEL[d.pos]}, ${TIER_PT[d.sp.tier]}${edition ? `, edição ${EDITION[edition].label}` : ''}`;
-    const base = fig ? (
+    const base = metal ? (
+        <Metal inst={inst} d={d} captain={captain} edition={edition} metalLabel={metalLabel(metalTier, metalFinish)} />
+    ) : fig ? (
         <Figurinha inst={inst} d={d} captain={captain} edition={edition} />
     ) : variant === 'sticker' ? (
         <Sticker inst={inst} d={d} captain={captain} />
@@ -195,7 +212,7 @@ export function PokeCard2({ inst, variant, position, captain, onClick, weak, sho
     const body = (
         <>
             {base}
-            {fin && !holo && !fig && <HoloLayer />}
+            {fin && !holo && !fig && !metal && <HoloLayer />}
         </>
     );
     if (onClick) {
@@ -239,7 +256,74 @@ function Types({ types }: { types: string[] }) {
     );
 }
 
-// ---------------------------------------------------------------- Figurinha Holo (a carta do jogo)
+// ---------------------------------------------------------------- Metal (a carta do jogo)
+/** Acabamento holográfico das edições especiais na carta Metal. */
+const METAL_EDITION_FINISH: Record<Edition, HoloFinish> = {
+    shiny: 'rainbow',
+    destaque: 'gold',
+    icone: 'cosmos',
+    evento: 'radiant',
+};
+const POS_SHORT: Record<Position, string> = { GK: 'GOL', FIXO: 'FIX', ALA: 'ALA', PIVO: 'PIV' };
+const metalLabel = (m: keyof typeof METAL, f: keyof typeof FINISH_LABEL) =>
+    f === 'lendario' ? 'Lendário' : `${METAL[m].label} ${f === 'brilhante' ? 'raro' : 'comum'}`;
+
+/**
+ * Carta minimalista: o metal (bronze/prata/ouro pela nota) diz se a carta é boa; o acabamento diz a
+ * raridade (fosco = comum, brilhante = raro, creme e dourado = lendário). Nota grande, atributos grandes,
+ * só o símbolo do tipo bem sutil no fundo. Edições especiais têm moldura própria e uma etiqueta.
+ */
+function Metal({
+    inst,
+    d,
+    captain,
+    edition,
+    metalLabel: label,
+}: VariantProps & { edition: Edition | null; metalLabel: string }) {
+    const theme = d.sp.types[0] === 'Normal' && d.sp.types[1] ? d.sp.types[1] : d.sp.types[0];
+    const tag =
+        edition === 'evento'
+            ? `Evento · ${TYPE_PT[inst.special?.type ?? ''] ?? ''}`
+            : edition
+              ? EDITION[edition].label
+              : null;
+    return (
+        <>
+            <span className="m-top">
+                <span
+                    className="m-mark"
+                    style={{ '--type-icon': `url(assets/types/${theme.toLowerCase()}.png)` } as CSSProperties}
+                />
+                <span className="m-left">
+                    <b className="m-ovr">{d.display}</b>
+                    <span className="m-pos">{POS_SHORT[d.pos]}</span>
+                    <span className="m-types">
+                        <TypeIcons types={d.sp.types} />
+                    </span>
+                    {captain && <span className="pc2-captain">C</span>}
+                </span>
+                <img className="pixel m-art" src={cardSprite(inst)} alt="" loading="lazy" draggable={false} />
+                {d.item && <img className="pixel m-item" src={itemSprite(d.item.id)} alt={d.item.name} />}
+                {tag && <span className="m-tag">{tag}</span>}
+            </span>
+            <span className="m-name">
+                {d.view.displayName}
+                <small>{inst.special?.title ?? label}</small>
+            </span>
+            <span className="m-stats">
+                {d.stats.map((s) => (
+                    <span key={s.k}>
+                        <b>{s.v}</b>
+                        <i>{s.label}</i>
+                    </span>
+                ))}
+            </span>
+            <HoloLayer />
+        </>
+    );
+}
+
+// ---------------------------------------------------------------- Figurinha Holo (galeria)
 /**
  * Figurinha + holográfico: moldura na cor da raridade, "foto" com o fundo animado do tipo e brilho que
  * cresce com a raridade. Edições especiais trocam a moldura por um acabamento próprio e ganham faixa;
