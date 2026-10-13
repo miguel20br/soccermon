@@ -1,15 +1,9 @@
 import { useState } from 'react';
+import { matchMvp } from '../../engine/mvp';
 import type { PlayerSummary } from '../../engine/runners/batch-runner';
 import { isPerfectCup, stageLabel, useGame } from '../../store/game-store';
 import { cardSprite } from '../components/PokeCard';
 import { shareRun } from '../share';
-
-function mvpScore(p: PlayerSummary) {
-    const s = p.stats;
-    return (
-        s.goals * 3 + s.assists * 2 + s.saves * 0.8 + s.tacklesWon * 0.5 + s.interceptions * 0.4 + s.shotsOnTarget * 0.4
-    );
-}
 
 export function Result() {
     const { run, match, advance, newRun } = useGame();
@@ -23,7 +17,7 @@ export function Result() {
     const everyone = [...match.finalRoster, ...(match.subbedOut ?? [])];
     const sum = (team: 0 | 1, key: keyof PlayerSummary['stats']) =>
         everyone.filter((p) => p.team === team).reduce((s, p) => s + p.stats[key], 0);
-    const mvp = [...everyone].sort((a, b) => mvpScore(b) - mvpScore(a))[0];
+    const mvp = matchMvp(match);
 
     const goals = match.events.filter((e) => e.type === 'goal');
     const nameAt = (idx: number, tick: number) => {

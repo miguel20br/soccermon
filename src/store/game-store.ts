@@ -5,9 +5,15 @@ import { buildCupOpponents, CUP_STAGES } from '../engine/cup';
 import { BENCH_SIZE, captainOptions, DRAFT_PICKS, draftOptions } from '../engine/draft';
 import { DEFAULT_FORMATION, type FormationId, formationOf } from '../engine/formations';
 import type { PokemonInstance } from '../engine/instance';
+import { matchMvp, mvpScore } from '../engine/mvp';
 import { type Reward, rewardOptions } from '../engine/rewards';
 import { Rng } from '../engine/rng';
 import type { MatchResult } from '../engine/runners/batch-runner';
+import { rollSpecial as roll, SPECIALS_LIVE, weeklyEventType } from '../engine/specials';
+
+/** Edição especial só quando as cartas novas estão no jogo. */
+const rollSpecial: typeof roll = (inst, ev) => (SPECIALS_LIVE ? roll(inst, ev) : inst);
+
 import type { Tactic, TeamSetup } from '../engine/state';
 
 export type Screen = 'home' | 'draft' | 'lineup' | 'match' | 'result' | 'reward' | 'settings' | 'credits';
@@ -23,6 +29,8 @@ export interface StageResult {
     score: [number, number];
     shootout: [number, number] | null;
     won: boolean;
+    /** Craque do seu time que virou carta Destaque nesta partida. */
+    destaqueUid?: string | null;
 }
 
 export type RunStatus = 'formation' | 'captain' | 'drafting' | 'lineup' | 'reward' | 'eliminated' | 'champion';
@@ -57,6 +65,8 @@ export interface RunState {
      * (sair no meio e voltar retoma a mesma partida, sem trocar escalação).
      */
     lockedTeam: TeamSetup | null;
+    /** Tipo em evento quando a copa começou (cartas Evento desse tipo no draft). */
+    eventType?: string | null;
 }
 
 export interface Settings {
@@ -70,6 +80,9 @@ export interface Records {
     cups: number;
     titles: number;
     perfect: number;
+    /** Cartas Destaque conquistadas e Ícones escalados. */
+    destaques?: number;
+    icones?: number;
 }
 
 export type SlotRef = { zone: 'lineup' | 'bench'; index: number };
@@ -115,14 +128,21 @@ export const slotRole = (run: RunState, slot: SlotRef) =>
 
 function rollCaptains(run: RunState): PokemonInstance[] {
     const rng = new Rng(run.seed, `captain-r${run.rerollsUsed}`);
-    return captainOptions(rng, new Set());
+    return captainOptions(rng, new Set()).map((o) => rollSpecial(o, run.eventType ?? null));
 }
 
 function rollOptions(run: RunState, slot: SlotRef): PokemonInstance[] {
     const taken = new Set(run.picks.map((p) => p.speciesId));
     const role = slotRole(run, slot);
     const rng = new Rng(run.seed, `draft-${run.draftRound}-${role}-r${run.rerollsUsed}`);
-    return draftOptions(rng, run.draftRound, taken, 3, [], role);
+    return draftOptions(rng, run.draftRound, taken, 3, [], role).map((o) => rollSpecial(o, run.eventType ?? null));
+}
+
+/** Recompensas da fase; o reforço sorteado (não o contratado do adversário) pode vir com edição especial. */
+function rollRewards(run: RunState, reroll: number): Reward[] {
+    return rewardOptions(run.seed, run.stage, reroll, run.picks, defeatedOf(run)).map((r) =>
+        r.kind === 'pokemon' && !r.from ? { ...r, inst: rollSpecial(r.inst, run.eventType ?? null) } : r,
+    );
 }
 
 export function playerTeam(run: RunState): TeamSetup {
@@ -197,6 +217,7 @@ export const useGame = create<GameStore>()(
                         results: [],
                         rewards: [],
                         lockedTeam: null,
+                        eventType: weeklyEventType(new Date()),
                     };
                     setState({ run, match: null, screen: 'draft' });
                 },
@@ -230,6 +251,10 @@ export const useGame = create<GameStore>()(
                     const zone = slot.zone === 'lineup' ? lineup : bench;
                     if (zone[slot.index] !== '') return;
                     zone[slot.index] = choice.uid;
+                    if (choice.special?.kind === 'icone') {
+                        const records = getState().records;
+                        setState({ records: { ...records, icones: (records.icones ?? 0) + 1 } });
+                    }
                     const next: RunState = {
                         ...run,
                         picks: [...run.picks, choice],
@@ -301,29 +326,45 @@ export const useGame = create<GameStore>()(
                     // só registra partidas da fase atual de uma run em escalação (evita resultado "fantasma")
                     if (run?.status !== 'lineup' || run.results.some((r) => r.stage === run.stage)) return;
                     const won = m.winner === 0;
+                    // carta Destaque: o craque do seu time vira edição especial (se ainda não tiver uma)
+                    const star = matchMvp(m, 0);
+                    const starInst = star && mvpScore(star) > 0 ? run.picks.find((p) => p.uid === star.uid) : null;
+                    const destaqueUid = SPECIALS_LIVE && starInst && !starInst.special ? starInst.uid : null;
+                    const picks = destaqueUid
+                        ? run.picks.map((p) =>
+                              p.uid === destaqueUid ? { ...p, special: { kind: 'destaque' as const } } : p,
+                          )
+                        : run.picks;
                     const result: StageResult = {
                         stage: run.stage,
                         opponent: run.opponents[run.stage].name,
                         score: m.score,
                         shootout: m.shootout,
                         won,
+                        destaqueUid,
                     };
                     const last = run.stage === CUP_STAGES.length - 1;
                     const status: RunStatus = !won ? 'eliminated' : last ? 'champion' : 'reward';
-                    const next: RunState = { ...run, results: [...run.results, result], status, lockedTeam: null };
-                    if (status === 'reward') {
-                        next.rewards = rewardOptions(run.seed, run.stage, 0, run.picks, defeatedOf(run));
-                    }
+                    const next: RunState = {
+                        ...run,
+                        picks,
+                        results: [...run.results, result],
+                        status,
+                        lockedTeam: null,
+                    };
+                    if (status === 'reward') next.rewards = rollRewards(next, 0);
                     const ended = status === 'eliminated' || status === 'champion';
+                    const withStar = { ...records, destaques: (records.destaques ?? 0) + (destaqueUid ? 1 : 0) };
                     setState({
                         run: next,
                         records: ended
                             ? {
+                                  ...withStar,
                                   cups: records.cups + 1,
                                   titles: records.titles + (status === 'champion' ? 1 : 0),
                                   perfect: records.perfect + (isPerfectCup(next) ? 1 : 0),
                               }
-                            : records,
+                            : withStar,
                     });
                 },
 
@@ -369,7 +410,7 @@ export const useGame = create<GameStore>()(
                     updateRun({
                         rerolls: run.rerolls - 1,
                         rerollsUsed: used,
-                        rewards: rewardOptions(run.seed, run.stage, used, run.picks, defeatedOf(run)),
+                        rewards: rollRewards({ ...run, rerollsUsed: used }, used),
                     });
                 },
 
@@ -384,7 +425,8 @@ export const useGame = create<GameStore>()(
         },
         {
             name: 'soccermon-save',
-            version: 3,
+            // v4: cartas especiais (campo opcional `special`, `eventType` na run, recordes novos)
+            version: 4,
             storage: createJSONStorage(() => idbStorage),
             partialize: (s) => ({ run: s.run, settings: s.settings, records: s.records }),
             // versões antigas tinham outro formato de draft: descarta a run, mantém configurações

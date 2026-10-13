@@ -1,29 +1,46 @@
-import type { CSSProperties } from 'react';
+import { type CSSProperties, useRef } from 'react';
 import { type AttrKey, POSITION_LABEL, type Position } from '../../engine/attributes';
 import { ABILITIES, MOVES, type Tier } from '../../engine/data';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { ITEMS, itemSprite } from '../../engine/items';
 import { moveProfile } from '../../engine/moves';
+import { type Edition, editionOf } from '../../engine/specials';
+import { EDITION, RARITY } from '../rarity';
 import { ratingAt } from '../rating';
 import { TYPE_COLOR, TYPE_PT } from '../type-colors';
 import { cardSprite, TIER_PT } from './PokeCard';
 import './pokecard2.css';
+import { TypeIcons } from './TypeIcon';
+import { useHoloPointer } from './useHoloPointer';
 
 /**
  * Cartas em teste (galeria ?cards=1): os mesmos dados da FutCard em 4 estilos.
  * - sticker: figurinha de álbum (Panini)
  * - tcg: carta do TCG adaptada ao futsal
  * - dex: tela de Pokédex
- * - holo: holográfico com fundo animado do tipo
+ * - holo: holográfico com fundo animado do tipo, e a família holográfica (acabamentos de foil):
+ *   rainbow (arco-íris), reverse, cosmos (galáxia), radiant (radiante) e gold (dourado)
+ * As cartas holográficas inclinam e refletem a luz com o ponteiro (useHoloPointer).
  */
-export type CardVariant = 'sticker' | 'tcg' | 'dex' | 'holo';
+export type HoloFinish = 'holo' | 'rainbow' | 'reverse' | 'cosmos' | 'radiant' | 'gold';
+export type CardVariant = 'figurinha' | 'sticker' | 'tcg' | 'dex' | HoloFinish;
+
+export const HOLO_FINISHES: HoloFinish[] = ['holo', 'rainbow', 'reverse', 'cosmos', 'radiant', 'gold'];
 
 export const VARIANT_LABEL: Record<CardVariant, string> = {
+    figurinha: 'Figurinha Holo',
     sticker: 'Figurinha',
     tcg: 'TCG de futsal',
     dex: 'Pokédex',
-    holo: 'Holográfico',
+    holo: 'Holo clássico',
+    rainbow: 'Arco-íris',
+    reverse: 'Reverse',
+    cosmos: 'Galáxia',
+    radiant: 'Radiante',
+    gold: 'Dourado',
 };
+
+const isHolo = (v: CardVariant): v is HoloFinish => (HOLO_FINISHES as string[]).includes(v);
 
 const FIELD_STATS: [AttrKey, string][] = [
     ['pace', 'VEL'],
@@ -68,13 +85,38 @@ interface PokeCard2Props {
     position?: Position;
     captain?: boolean;
     onClick?: () => void;
+    /** Brilho fraco (comum na mistura sugerida). */
+    weak?: boolean;
+    /** Carta grande de vitrine: balança sozinha quando ninguém está mexendo. */
+    showcase?: boolean;
+    /**
+     * Acabamento especial aplicado por cima de qualquer estilo (inclusive figurinha/TCG/Pokédex):
+     * liga a inclinação + reflexo e a camada de foil. Nas variantes holográficas, sobrepõe o acabamento da variante.
+     */
+    finish?: HoloFinish | 'none';
+    /** Tamanho da carta (o layout todo é em em). */
+    size?: 'lg' | 'md' | 'sm';
+}
+
+/**
+ * Camada de foil reutilizável: brilho do acabamento + glitter + reflexo. Precisa estar dentro de um
+ * elemento com as classes `pc2-fx fin-<acabamento>` (e o useHoloPointer ligado) para reagir ao ponteiro.
+ */
+export function HoloLayer() {
+    return (
+        <>
+            <span className="pc2-shine" />
+            <span className="pc2-glitter" />
+            <span className="pc2-glare" />
+        </>
+    );
 }
 
 function cardData(inst: PokemonInstance, position?: Position) {
     const view = viewInstance(inst);
     const sp = view.species;
     const pos = position ?? view.naturalPosition;
-    const { rating, fit } = ratingAt(inst, pos);
+    const { rating, display, fit } = ratingAt(inst, pos);
     const stats = (pos === 'GK' ? GK_STATS : FIELD_STATS).map(([k, label]) => ({
         k,
         label,
@@ -87,43 +129,99 @@ function cardData(inst: PokemonInstance, position?: Position) {
         sp,
         pos,
         rating,
+        display,
         fit,
         stats,
         dex: String(sp.id).padStart(3, '0'),
         item: inst.item ? ITEMS[inst.item] : null,
         ability: ABILITIES[inst.ability],
-        style: { '--t1': t1, '--t2': t2 } as CSSProperties,
+        style: {
+            '--t1': t1,
+            '--t2': t2,
+            '--rar': RARITY[sp.tier].color,
+            '--rar-dark': RARITY[sp.tier].dark,
+        } as CSSProperties,
     };
 }
 
 type Data = ReturnType<typeof cardData>;
 type VariantProps = { inst: PokemonInstance; d: Data; captain?: boolean };
 
-export function PokeCard2({ inst, variant, position, captain, onClick }: PokeCard2Props) {
+export function PokeCard2({ inst, variant, position, captain, onClick, weak, showcase, finish, size }: PokeCard2Props) {
     const d = cardData(inst, position);
-    const classes = ['pc2', `pc2-${variant}`, `tier-${d.sp.tier}`];
+    const holo = isHolo(variant);
+    const fig = variant === 'figurinha';
+    const edition = editionOf(inst);
+    // acabamento efetivo: o prop `finish` vale pra qualquer estilo; nas holográficas o padrão é a própria variante;
+    // na Figurinha Holo, a edição especial define o acabamento (senão, o holo clássico com brilho pela raridade)
+    const fin: HoloFinish | null =
+        finish && finish !== 'none'
+            ? finish
+            : holo
+              ? (variant as HoloFinish)
+              : fig
+                ? edition
+                    ? EDITION[edition].finish
+                    : 'holo'
+                : null;
+    const ref = useRef<HTMLElement | null>(null);
+    useHoloPointer(ref, { enabled: fin !== null, maxTilt: showcase ? 14 : 10 });
+    const classes = ['pc2', holo ? 'pc2-holo' : fig ? 'pc2-fig' : `pc2-${variant}`, `tier-${d.sp.tier}`];
+    if (size) classes.push(`size-${size}`);
+    if (fig) {
+        classes.push(`holo-${d.sp.types[0].toLowerCase()}`);
+        if (edition) classes.push('is-special', `sp-${edition}`);
+    }
     if (inst.shiny) classes.push('is-shiny');
-    if (variant === 'holo') classes.push(`holo-${d.sp.types[0].toLowerCase()}`);
-    const label = `${d.view.displayName}, ${d.rating} de ${POSITION_LABEL[d.pos]}, ${TIER_PT[d.sp.tier]}${inst.shiny ? ', shiny' : ''}`;
-    const body =
-        variant === 'sticker' ? (
-            <Sticker inst={inst} d={d} captain={captain} />
-        ) : variant === 'tcg' ? (
-            <Tcg inst={inst} d={d} captain={captain} />
-        ) : variant === 'dex' ? (
-            <Dex inst={inst} d={d} captain={captain} />
-        ) : (
-            <Holo inst={inst} d={d} captain={captain} />
-        );
+    if (fin) classes.push('pc2-fx', `fin-${fin}`);
+    if (holo) classes.push(`holo-${d.sp.types[0].toLowerCase()}`);
+    if (weak) classes.push('is-weak');
+    if (showcase) classes.push('pc2-showcase');
+    const label = `${d.view.displayName}, ${d.display} de ${POSITION_LABEL[d.pos]}, ${TIER_PT[d.sp.tier]}${edition ? `, edição ${EDITION[edition].label}` : ''}`;
+    const base = fig ? (
+        <Figurinha inst={inst} d={d} captain={captain} edition={edition} />
+    ) : variant === 'sticker' ? (
+        <Sticker inst={inst} d={d} captain={captain} />
+    ) : variant === 'tcg' ? (
+        <Tcg inst={inst} d={d} captain={captain} />
+    ) : variant === 'dex' ? (
+        <Dex inst={inst} d={d} captain={captain} />
+    ) : (
+        <Holo inst={inst} d={d} captain={captain} finish={fin ?? 'holo'} />
+    );
+    // a Holo já traz a HoloLayer; nos outros estilos ela entra por cima quando há acabamento
+    const body = (
+        <>
+            {base}
+            {fin && !holo && !fig && <HoloLayer />}
+        </>
+    );
     if (onClick) {
         return (
-            <button type="button" className={classes.join(' ')} style={d.style} onClick={onClick} aria-label={label}>
+            <button
+                ref={(el) => {
+                    ref.current = el;
+                }}
+                type="button"
+                className={classes.join(' ')}
+                style={d.style}
+                onClick={onClick}
+                aria-label={label}
+            >
                 {body}
             </button>
         );
     }
     return (
-        <div className={classes.join(' ')} style={d.style} role="img" aria-label={label}>
+        <div
+            ref={(el) => {
+                ref.current = el;
+            }}
+            className={classes.join(' ')}
+            style={d.style}
+            role="img"
+            aria-label={label}
+        >
             {body}
         </div>
     );
@@ -135,6 +233,63 @@ function Types({ types }: { types: string[] }) {
             {types.map((t) => (
                 <i key={t} className="pc2-type" style={{ background: TYPE_COLOR[t] }} title={TYPE_PT[t] ?? t} />
             ))}
+        </>
+    );
+}
+
+// ---------------------------------------------------------------- Figurinha Holo (a carta do jogo)
+/**
+ * Figurinha + holográfico: moldura na cor da raridade, "foto" com o fundo animado do tipo e brilho que
+ * cresce com a raridade. Edições especiais trocam a moldura por um acabamento próprio e ganham faixa;
+ * a gema na faixa do nome continua mostrando a raridade.
+ */
+function Figurinha({ inst, d, captain, edition }: VariantProps & { edition: Edition | null }) {
+    const ribbon =
+        edition === 'icone'
+            ? 'Ícone'
+            : edition === 'evento'
+              ? `Evento · ${TYPE_PT[inst.special?.type ?? ''] ?? ''}`
+              : edition
+                ? EDITION[edition].label
+                : null;
+    const sub = inst.special?.title ?? `${TIER_SYMBOL[d.sp.tier]} ${RARITY[d.sp.tier].label}`;
+    return (
+        <>
+            <span className="fg-photo">
+                <span className="holo-bg">
+                    <i className="holo-l1" />
+                    <i className="holo-l2" />
+                    {edition === 'icone' && <i className="holo-l3" />}
+                </span>
+                <span className="fg-num">{d.dex}</span>
+                <span className="fg-ovr">
+                    <b>{d.display}</b>
+                    <small>{POSITION_LABEL[d.pos]}</small>
+                </span>
+                {captain && <span className="pc2-captain">C</span>}
+                <img className="pixel fg-art" src={cardSprite(inst)} alt="" loading="lazy" draggable={false} />
+                <span className="fg-types">
+                    <TypeIcons types={d.sp.types} />
+                </span>
+                {d.item && <img className="pixel fg-item" src={itemSprite(d.item.id)} alt={d.item.name} />}
+                {!edition && <HoloLayer />}
+            </span>
+            {ribbon && <span className="fg-ribbon">{ribbon}</span>}
+            <span className="fg-band">
+                <i className="fg-gem" title={RARITY[d.sp.tier].label} />
+                <span className="fg-name">{d.view.displayName}</span>
+                <span className="fg-sub">{sub}</span>
+            </span>
+            <span className="fg-stats">
+                {d.stats.map((s) => (
+                    <span key={s.k}>
+                        <b>{s.v}</b>
+                        {s.label}
+                    </span>
+                ))}
+            </span>
+            {edition && <HoloLayer />}
+            {inst.shiny && <span className="pc2-sparkles" />}
         </>
     );
 }
@@ -321,15 +476,20 @@ function Dex({ inst, d, captain }: VariantProps) {
     );
 }
 
-// ---------------------------------------------------------------- F. holográfico
-function Holo({ inst, d, captain }: VariantProps) {
+// ---------------------------------------------------------------- F. holográfico (família)
+/**
+ * Camadas, de baixo pra cima: fundo (tema do tipo ou textura do acabamento) → foil do fundo (reverse) →
+ * janela da arte (reverse) → arte → painel → brilho do acabamento → glitter → reflexo (glare).
+ */
+function Holo({ inst, d, captain, finish }: VariantProps & { finish: HoloFinish }) {
     return (
         <>
             <span className="holo-bg">
                 <i className="holo-l1" />
                 <i className="holo-l2" />
+                {finish === 'cosmos' && <i className="holo-l3" />}
             </span>
-            <span className="pc2-foil" />
+            {finish === 'reverse' && <span className="rev-window" />}
             <span className="holo-top">
                 <span className="holo-ovr">
                     <b>{d.rating}</b>
@@ -355,6 +515,7 @@ function Holo({ inst, d, captain }: VariantProps) {
                     ))}
                 </span>
             </span>
+            <HoloLayer />
             {inst.shiny && <span className="pc2-sparkles" />}
         </>
     );

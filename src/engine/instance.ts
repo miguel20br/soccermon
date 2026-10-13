@@ -2,6 +2,7 @@ import { type Attributes, computeAttributes, eligiblePositions, type Position, p
 import { type Species, species } from './data';
 import { defaultMoveset } from './moves';
 import type { Rng } from './rng';
+import { type Special, specialBonus } from './specials';
 
 /**
  * Um Pokémon "de verdade" no time — não só a espécie. No MVP todos jogam no nível 50;
@@ -20,6 +21,8 @@ export interface PokemonInstance {
     condition: number;
     /** Item segurado (src/engine/items.ts), ou null. */
     item?: string | null;
+    /** Edição especial da carta (Ícone, Evento, Destaque): +2 em todos os atributos. */
+    special?: Special | null;
 }
 
 export const DEFAULT_LEVEL = 50;
@@ -59,8 +62,9 @@ export interface InstanceView {
 
 export function viewInstance(inst: PokemonInstance): InstanceView {
     const sp = species(inst.speciesId);
-    const attributes = computeAttributes(sp, inst.level);
-    const positions = eligiblePositions(attributes, sp.id);
+    const base = computeAttributes(sp, inst.level);
+    const positions = eligiblePositions(base, sp.id);
+    const attributes = withBonus(base, specialBonus(inst));
     return {
         instance: inst,
         species: sp,
@@ -70,4 +74,12 @@ export function viewInstance(inst: PokemonInstance): InstanceView {
         overall: positionRating(attributes, positions[0]),
         displayName: inst.nickname ?? sp.name,
     };
+}
+
+/** Soma `bonus` pontos em todos os atributos (edição especial), sem passar de 99. */
+export function withBonus(a: Attributes, bonus: number): Attributes {
+    if (!bonus) return a;
+    const out = { ...a };
+    for (const k of Object.keys(out) as (keyof Attributes)[]) out[k] = Math.min(99, out[k] + bonus);
+    return out;
 }

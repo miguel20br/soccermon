@@ -1,6 +1,6 @@
 /* Cartas em teste (galeria ?cards=1). Tudo em em: o tamanho da carta vem do font-size. */
 .pc2 {
-    --tier-c: #8f97b8;
+    --tier-c: #f4f4f4;
     position: relative;
     display: block;
     box-sizing: border-box;
@@ -36,19 +36,19 @@ button.pc2:hover {
     image-rendering: pixelated;
 }
 .tier-common {
-    --tier-c: #8f97b8;
+    --tier-c: #f4f4f4;
 }
 .tier-uncommon {
-    --tier-c: #58c26b;
+    --tier-c: #3ddc6a;
 }
 .tier-rare {
-    --tier-c: #3a9bff;
+    --tier-c: #3a8dff;
 }
 .tier-epic {
-    --tier-c: #b46cff;
+    --tier-c: #a45cff;
 }
 .tier-legendary {
-    --tier-c: #ffcb05;
+    --tier-c: #ff8a1c;
 }
 
 .pc2-type {
@@ -1393,6 +1393,499 @@ button.pc2:hover {
     }
 }
 
+/* =====================================================================
+   FAMÍLIA HOLOGRÁFICA: luz e inclinação pelo ponteiro (useHoloPointer)
+   Técnica inspirada no pokemon-cards-css (simeydotme, GPL-3.0), reimplementada só com gradientes.
+   Variáveis: --mx/--my (posição da luz), --rx/--ry (inclinação), --bx/--by (posição do brilho),
+   --act (0 parado → 1 sob o ponteiro), --ang (ângulo dos raios), --hyp (distância do centro).
+   ===================================================================== */
+@property --mx {
+    syntax: "<percentage>";
+    inherits: true;
+    initial-value: 50%;
+}
+@property --my {
+    syntax: "<percentage>";
+    inherits: true;
+    initial-value: 50%;
+}
+@property --bx {
+    syntax: "<percentage>";
+    inherits: true;
+    initial-value: 50%;
+}
+@property --by {
+    syntax: "<percentage>";
+    inherits: true;
+    initial-value: 50%;
+}
+@property --ang {
+    syntax: "<angle>";
+    inherits: true;
+    initial-value: 0deg;
+}
+@property --rx {
+    syntax: "<angle>";
+    inherits: true;
+    initial-value: 0deg;
+}
+@property --ry {
+    syntax: "<angle>";
+    inherits: true;
+    initial-value: 0deg;
+}
+/* .pc2-fx = carta com acabamento especial (qualquer estilo): variáveis + inclinação */
+.pc2-fx {
+    --act: 0;
+    --hyp: 0;
+    --shine: 0.4;
+    --glitter: 0;
+    transform: perspective(46em) rotateX(var(--rx)) rotateY(var(--ry));
+    transform-style: flat;
+    touch-action: pan-y;
+}
+button.pc2.pc2-fx:hover {
+    transform: perspective(46em) rotateX(var(--rx)) rotateY(var(--ry));
+}
+.pc2-fx.is-active {
+    z-index: 5;
+    will-change: transform;
+    box-shadow:
+        0 0.9em 1.6em rgba(0, 0, 0, 0.45),
+        0 0 1.2em color-mix(in srgb, var(--tier-c) 55%, transparent),
+        inset 0 0 0 0.16em var(--tier-c);
+}
+.pc2-fx.tier-common {
+    --shine: 0.4;
+}
+.pc2-fx.tier-uncommon {
+    --shine: 0.5;
+}
+.pc2-fx.tier-rare {
+    --shine: 0.6;
+}
+.pc2-fx.tier-epic {
+    --shine: 0.7;
+}
+.pc2-fx.tier-legendary,
+.pc2-fx.is-shiny {
+    --shine: 0.8;
+}
+.pc2-fx.is-weak {
+    --shine: 0.16;
+}
+.pc2-fx.is-shiny {
+    --glitter: 0.5;
+}
+
+/* ---------- camadas comuns ---------- */
+.pc2-shine,
+.pc2-glitter,
+.pc2-glare {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+}
+.pc2-shine {
+    z-index: 5;
+    opacity: calc(var(--shine) * (0.6 + 0.4 * var(--act)));
+    mix-blend-mode: color-dodge;
+    background-position: var(--bx) var(--by);
+}
+.pc2-glitter {
+    z-index: 6;
+    opacity: calc(var(--glitter) * (0.45 + 0.55 * var(--act)));
+    mix-blend-mode: color-dodge;
+    /* ruído em pontos (glitter) gerado por SVG: nada de imagem externa */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='1' seed='11'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='2' intercept='-0.3'/%3E%3CfeFuncG type='linear' slope='2' intercept='-0.3'/%3E%3CfeFuncB type='linear' slope='2' intercept='-0.2'/%3E%3CfeFuncA type='discrete' tableValues='0 0 0 0 0 0 0 0 0 0 0 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+    background-size: 9em 9em;
+    background-position: var(--bx) var(--by);
+    -webkit-mask-image: radial-gradient(
+        circle at var(--mx) var(--my),
+        #000 0,
+        rgba(0, 0, 0, 0.45) 45%,
+        rgba(0, 0, 0, 0.2) 80%
+    );
+    mask-image: radial-gradient(circle at var(--mx) var(--my), #000 0, rgba(0, 0, 0, 0.45) 45%, rgba(0, 0, 0, 0.2) 80%);
+}
+.pc2-glare {
+    z-index: 7;
+    opacity: calc(var(--act) * 0.75);
+    mix-blend-mode: overlay;
+    background: radial-gradient(
+        farthest-corner circle at var(--mx) var(--my),
+        rgba(255, 255, 255, 0.85) 8%,
+        rgba(255, 255, 255, 0.55) 22%,
+        rgba(0, 0, 0, 0.45) 95%
+    );
+}
+/* número grosso: a fonte pixel em tamanho grande fica com traço fino */
+.pc2-holo .holo-ovr b {
+    text-shadow:
+        0.05em 0 currentColor,
+        0 0.05em currentColor,
+        0.05em 0.05em currentColor,
+        0.06em 0.14em rgba(0, 0, 0, 0.6);
+}
+.pc2-holo .holo-top,
+.pc2-holo .holo-glass,
+.pc2-holo .holo-item {
+    z-index: 8;
+}
+.pc2-holo .holo-art {
+    transform: translateX(-50%) translate(calc((var(--mx) - 50%) * -0.05), calc((var(--my) - 50%) * -0.05));
+}
+
+/* ---------- 1. holo clássico: faixas de arco-íris na arte, sobre o tema do tipo ---------- */
+.fin-holo .pc2-shine {
+    background-image:
+        repeating-linear-gradient(
+            0deg,
+            rgb(255, 119, 115) 5%,
+            rgb(255, 237, 95) 10%,
+            rgb(168, 255, 95) 15%,
+            rgb(131, 255, 247) 20%,
+            rgb(120, 148, 255) 25%,
+            rgb(216, 117, 255) 30%,
+            rgb(255, 119, 115) 35%
+        ),
+        repeating-linear-gradient(
+            90deg,
+            transparent 0 0.9em,
+            rgba(255, 255, 255, 0.25) 0.9em 1.05em,
+            transparent 1.05em 2.2em
+        );
+    background-size:
+        200% 700%,
+        100% 100%;
+    background-position:
+        var(--bx) var(--by),
+        calc(var(--bx) * 0.4) 0;
+    filter: brightness(0.85) contrast(1.6) saturate(1.4);
+    -webkit-mask-image: linear-gradient(#000 60%, transparent 85%);
+    mask-image: linear-gradient(#000 60%, transparent 85%);
+}
+
+/* ---------- 2. arco-íris (secret rare): o arco-íris corre a carta inteira + glitter ---------- */
+.fin-rainbow {
+    --glitter: 0.75;
+}
+.fin-rainbow .holo-bg {
+    filter: saturate(0.5) brightness(0.95);
+}
+.fin-rainbow .pc2-shine {
+    opacity: calc(0.28 + 0.25 * var(--shine) + 0.2 * var(--act));
+    background-image:
+        linear-gradient(
+            -45deg,
+            hsl(0, 100%, 72%),
+            hsl(40, 100%, 70%),
+            hsl(80, 100%, 68%),
+            hsl(160, 100%, 66%),
+            hsl(200, 100%, 70%),
+            hsl(260, 100%, 74%),
+            hsl(320, 100%, 72%),
+            hsl(360, 100%, 72%)
+        ),
+        repeating-linear-gradient(
+            -45deg,
+            #0e152e 0%,
+            hsl(180, 10%, 60%) 3.8%,
+            hsl(180, 29%, 66%) 4.5%,
+            hsl(180, 10%, 60%) 5.2%,
+            #0e152e 10%,
+            #0e152e 12%
+        );
+    background-size:
+        300% 300%,
+        400% 400%;
+    background-position:
+        var(--bx) var(--by),
+        calc(100% - var(--bx)) calc(100% - var(--by));
+    background-blend-mode: hard-light;
+    filter: brightness(0.62) contrast(1.35) saturate(1.4);
+}
+.pc2-holo.fin-rainbow {
+    box-shadow:
+        0 0.25em 0 rgba(0, 0, 0, 0.4),
+        inset 0 0 0 0.16em hsl(calc(200 + var(--hyp) * 160), 90%, 75%);
+}
+
+/* ---------- 3. reverse: a moldura é foil, a janela da arte é lisa ---------- */
+.fin-reverse .holo-bg {
+    background:
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.28) 0 0.07em, transparent 0.07em 0.5em),
+        repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.25) 0 0.07em, transparent 0.07em 0.5em),
+        linear-gradient(
+            160deg,
+            color-mix(in srgb, var(--t1) 35%, #0b0e1e),
+            color-mix(in srgb, var(--t1) 80%, #000) 45%,
+            color-mix(in srgb, var(--t1) 60%, #fff) 70%,
+            color-mix(in srgb, var(--t1) 40%, #0b0e1e)
+        );
+}
+.fin-reverse .holo-l1,
+.fin-reverse .holo-l2 {
+    display: none;
+}
+.fin-reverse .pc2-shine {
+    z-index: 1;
+    opacity: calc(0.55 + 0.25 * var(--shine) + 0.2 * var(--act));
+    background-image:
+        linear-gradient(
+            110deg,
+            transparent 22%,
+            rgba(255, 255, 255, 0.8) 38%,
+            hsl(190, 100%, 75%) 44%,
+            hsl(290, 100%, 78%) 50%,
+            hsl(50, 100%, 72%) 56%,
+            rgba(255, 255, 255, 0.6) 62%,
+            transparent 78%
+        ),
+        repeating-radial-gradient(
+            circle at var(--mx) var(--my),
+            transparent 0 0.4em,
+            rgba(255, 255, 255, 0.18) 0.4em 0.5em
+        );
+    background-size:
+        260% 260%,
+        100% 100%;
+    background-position:
+        var(--bx) var(--by),
+        0 0;
+}
+.rev-window {
+    position: absolute;
+    left: 0.75em;
+    right: 0.75em;
+    top: 3.2em;
+    height: 10.2em;
+    z-index: 2;
+    border-radius: 0.55em;
+    background: linear-gradient(170deg, color-mix(in srgb, var(--t1) 45%, #fff), var(--t1));
+    box-shadow:
+        inset 0 0 0 0.12em rgba(255, 255, 255, 0.65),
+        0 0.2em 0.5em rgba(0, 0, 0, 0.45);
+}
+.fin-reverse .holo-art {
+    z-index: 3;
+    top: 16%;
+    width: 9.5em;
+    height: 9.5em;
+}
+
+/* ---------- 4. galáxia: nebulosa + 3 camadas de estrelas com paralaxe ---------- */
+.fin-cosmos {
+    --glitter: 0.35;
+}
+.pc2.fin-cosmos .holo-bg {
+    background:
+        radial-gradient(ellipse 60% 40% at 28% 30%, color-mix(in srgb, var(--t1) 60%, transparent), transparent 70%),
+        radial-gradient(ellipse 55% 45% at 78% 62%, rgba(120, 60, 255, 0.6), transparent 70%),
+        radial-gradient(ellipse 70% 30% at 50% 100%, rgba(255, 70, 180, 0.4), transparent 70%),
+        radial-gradient(ellipse 40% 25% at 70% 15%, rgba(60, 200, 255, 0.35), transparent 70%), #05041a;
+}
+.pc2.fin-cosmos .holo-l1,
+.pc2.fin-cosmos .holo-l2,
+.pc2.fin-cosmos .holo-l3 {
+    animation: none;
+    opacity: 1;
+}
+.pc2.fin-cosmos .holo-l1 {
+    background:
+        radial-gradient(circle, rgba(255, 255, 255, 0.75) 0 0.03em, transparent 0.06em) 0 0 / 0.9em 1.1em,
+        radial-gradient(circle, rgba(200, 220, 255, 0.6) 0 0.03em, transparent 0.06em) 0.45em 0.5em / 1.3em 0.95em;
+    transform: translate(calc((var(--mx) - 50%) * -0.04), calc((var(--my) - 50%) * -0.04));
+}
+.pc2.fin-cosmos .holo-l2 {
+    background:
+        radial-gradient(circle, #fff 0 0.05em, transparent 0.1em) 0.3em 0.2em / 2.3em 2.7em,
+        radial-gradient(circle, #ffe9b8 0 0.05em, transparent 0.1em) 1.4em 1.6em / 3.1em 2.5em;
+    transform: translate(calc((var(--mx) - 50%) * -0.1), calc((var(--my) - 50%) * -0.1));
+}
+.pc2.fin-cosmos .holo-l3 {
+    position: absolute;
+    inset: -25%;
+    display: block;
+    background:
+        radial-gradient(circle, #fff 0 0.07em, rgba(180, 200, 255, 0.6) 0.1em, transparent 0.3em) 1em 1.2em / 4.6em
+        5.3em,
+        radial-gradient(circle, #fff 0 0.06em, rgba(255, 180, 240, 0.6) 0.09em, transparent 0.26em) 3.3em 3.6em / 5.7em
+        4.4em;
+    transform: translate(calc((var(--mx) - 50%) * -0.2), calc((var(--my) - 50%) * -0.2));
+    animation: holo-pulse 1.8s ease-in-out infinite alternate;
+}
+.fin-cosmos .pc2-shine {
+    background-image:
+        radial-gradient(
+            circle at var(--mx) var(--my),
+            rgba(255, 255, 255, 0.6),
+            rgba(170, 120, 255, 0.45) 22%,
+            transparent 55%
+        ),
+        linear-gradient(
+            -30deg,
+            transparent 30%,
+            rgba(120, 255, 240, 0.35) 45%,
+            rgba(255, 120, 230, 0.35) 55%,
+            transparent 70%
+        );
+    background-size:
+        100% 100%,
+        250% 250%;
+    background-position:
+        0 0,
+        var(--bx) var(--by);
+}
+
+/* ---------- 5. radiante: raios de sol na cor do tipo que giram com a luz ---------- */
+.pc2.fin-radiant .holo-bg {
+    background: radial-gradient(
+        circle at 50% 36%,
+        color-mix(in srgb, var(--t1) 25%, #fff) 0,
+        var(--t1) 38%,
+        color-mix(in srgb, var(--t1) 45%, #000) 100%
+    );
+}
+.pc2.fin-radiant .holo-l1 {
+    animation: none;
+    opacity: 1;
+    background: repeating-conic-gradient(
+        from var(--ang) at 50% 36%,
+        rgba(255, 255, 255, 0.32) 0 3.5deg,
+        transparent 3.5deg 11deg
+    );
+    -webkit-mask-image: radial-gradient(circle at 50% 36%, #000 10%, transparent 75%);
+    mask-image: radial-gradient(circle at 50% 36%, #000 10%, transparent 75%);
+}
+.pc2.fin-radiant .holo-l2 {
+    animation: none;
+    opacity: 1;
+    background:
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.09) 0 0.05em, transparent 0.05em 0.45em),
+        repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.09) 0 0.05em, transparent 0.05em 0.45em);
+}
+.fin-radiant .pc2-shine {
+    background-image: repeating-conic-gradient(
+        from calc(var(--ang) * -2) at var(--mx) var(--my),
+        hsla(0, 100%, 72%, 0.9) 0 5deg,
+        hsla(55, 100%, 70%, 0.9) 5deg 10deg,
+        hsla(150, 100%, 68%, 0.9) 10deg 15deg,
+        hsla(210, 100%, 72%, 0.9) 15deg 20deg,
+        hsla(290, 100%, 74%, 0.9) 20deg 25deg
+    );
+    filter: brightness(0.55) contrast(1.3);
+    -webkit-mask-image: radial-gradient(circle at var(--mx) var(--my), #000 0, rgba(0, 0, 0, 0.5) 40%, transparent 75%);
+    mask-image: radial-gradient(circle at var(--mx) var(--my), #000 0, rgba(0, 0, 0, 0.5) 40%, transparent 75%);
+}
+
+/* ---------- 6. dourado: metal escovado com gravação em losango ---------- */
+.fin-gold {
+    --glitter: 0.6;
+    --tier-c: #ffd86b;
+}
+.pc2.fin-gold .holo-bg {
+    background: linear-gradient(135deg, #5c3d0a 0%, #c9962e 22%, #fff1b0 42%, #d4a537 55%, #7a5512 78%, #e8c25a 100%);
+}
+.pc2.fin-gold .holo-l1 {
+    animation: none;
+    opacity: 1;
+    background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.07) 0 0.04em, rgba(0, 0, 0, 0.06) 0.04em 0.11em);
+}
+.pc2.fin-gold .holo-l2 {
+    animation: none;
+    opacity: 1;
+    background:
+        repeating-linear-gradient(
+            45deg,
+            rgba(255, 250, 220, 0.4) 0 0.05em,
+            rgba(90, 55, 0, 0.35) 0.05em 0.1em,
+            transparent 0.1em 1.1em
+        ),
+        repeating-linear-gradient(
+            -45deg,
+            rgba(255, 250, 220, 0.4) 0 0.05em,
+            rgba(90, 55, 0, 0.35) 0.05em 0.1em,
+            transparent 0.1em 1.1em
+        );
+}
+.fin-gold .pc2-shine {
+    opacity: calc(0.55 + 0.35 * var(--act));
+    mix-blend-mode: overlay;
+    background-image:
+        linear-gradient(
+            115deg,
+            transparent 32%,
+            rgba(255, 252, 230, 1) 46%,
+            rgba(255, 215, 100, 0.7) 52%,
+            transparent 64%
+        ),
+        radial-gradient(circle at var(--mx) var(--my), rgba(255, 255, 240, 0.9), transparent 45%);
+    background-size:
+        260% 260%,
+        100% 100%;
+    background-position:
+        var(--bx) var(--by),
+        0 0;
+}
+.pc2-holo.fin-gold {
+    box-shadow:
+        0 0.25em 0 rgba(0, 0, 0, 0.4),
+        inset 0 0 0 0.16em #fff1b0,
+        inset 0 0 0 0.3em #a87a1c;
+}
+.fin-gold .holo-ovr,
+.fin-gold .holo-top {
+    color: #3a2400;
+}
+.pc2.fin-gold .holo-ovr b {
+    text-shadow:
+        0.05em 0 currentColor,
+        0 0.05em currentColor,
+        0.05em 0.05em currentColor,
+        0.04em 0.1em rgba(255, 245, 200, 0.75);
+}
+.fin-gold .holo-glass {
+    background: rgba(50, 30, 0, 0.55);
+    border-color: rgba(255, 230, 150, 0.5);
+}
+
+/* ---------- vitrine: balança sozinha quando ninguém mexe ---------- */
+.pc2-showcase:not(.is-active) {
+    animation: pc2-idle 7s ease-in-out infinite;
+}
+.pc2-showcase:not(.is-active) .pc2-glare {
+    opacity: 0.3;
+}
+@keyframes pc2-idle {
+    0%,
+    100% {
+        --rx: 4deg;
+        --ry: -7deg;
+        --mx: 28%;
+        --my: 30%;
+        --bx: 40%;
+        --by: 41%;
+        --ang: -13deg;
+    }
+    50% {
+        --rx: -3deg;
+        --ry: 7deg;
+        --mx: 72%;
+        --my: 64%;
+        --bx: 60%;
+        --by: 57%;
+        --ang: 13deg;
+    }
+}
+
+/* cartas fora da tela: pausa as animações de fundo */
+.pc2.pc2-offscreen,
+.pc2.pc2-offscreen * {
+    animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .pc2,
     .pc2 *,
@@ -1408,6 +1901,38 @@ button.pc2:hover {
     display: flex;
     flex-direction: column;
     gap: var(--gap);
+    /* a galeria usa a largura da tela toda (até 1640px), além da coluna do app */
+    width: min(1640px, calc(100vw - 32px));
+    align-self: center;
+}
+.cg-showcase {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 28px;
+    align-items: center;
+}
+.cg-stage {
+    padding: 18px 28px;
+    display: flex;
+    justify-content: center;
+    background: radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.08), transparent 70%);
+    border-radius: 12px;
+}
+.cg-stage .pc2 {
+    font-size: 24px;
+}
+.cg-stage-side h2 {
+    margin: 0 0 10px;
+}
+.cg-finishes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.cg-desc {
+    min-height: 2.6em;
+    margin: 10px 0 14px;
+    font-size: 13px;
 }
 .cg-picker {
     display: flex;
@@ -1425,27 +1950,54 @@ button.pc2:hover {
     gap: 6px;
     cursor: pointer;
 }
+.cg-sections {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
 .cg-tabs {
     display: none;
     gap: 6px;
     flex-wrap: wrap;
 }
+.cg-tab-desc {
+    display: none;
+    margin: -6px 0 0;
+}
 .cg-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 16px;
+    gap: 14px;
+}
+.cg-grid-holo {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+.cg-grid-other {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-width: 900px;
 }
 .cg-col {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
     min-width: 0;
 }
 .cg-col h2 {
     margin: 0;
     color: var(--yellow);
-    font-size: 16px;
+    font-size: 14px;
+    text-align: center;
+}
+.cg-col-sub {
+    margin: -8px 0 0;
+    min-height: 2.6em;
+    font-size: 11px;
+    line-height: 1.3;
+    color: var(--muted);
+    text-align: center;
+}
+.cg-col-sub.mix {
+    color: var(--yellow);
 }
 .cg-item {
     display: flex;
@@ -1453,39 +2005,462 @@ button.pc2:hover {
     align-items: center;
     gap: 6px;
     margin: 0;
+    width: 100%;
+    max-width: 260px;
+    container-type: inline-size;
+}
+/* o tamanho da carta acompanha a coluna (tudo na carta é em em) */
+.cg-item .pc2 {
+    font-size: min(16px, calc(100cqw / 15.2));
 }
 .cg-item figcaption {
-    font-size: 12px;
+    min-height: 2.7em;
+    font-size: 11px;
+    line-height: 1.3;
+    text-align: center;
 }
 @media (max-width: 1100px) {
-    .cg-col .pc2 {
-        font-size: 14px;
-    }
-}
-@media (max-width: 960px) {
     .cg-tabs {
         display: flex;
     }
-    .cg-grid {
+    .cg-tab-desc {
+        display: block;
+    }
+    .cg-grid-holo,
+    .cg-grid-other {
         grid-template-columns: minmax(0, 1fr);
+        max-width: none;
     }
     .cg-col {
         display: none;
     }
     .cg-col.active {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         justify-items: center;
     }
-    .cg-col.active h2 {
+    .cg-col.active h2,
+    .cg-col.active .cg-col-sub {
         display: none;
     }
-    .cg-col .pc2 {
-        font-size: 16px;
+}
+@media (max-width: 700px) {
+    .cg-showcase {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+    }
+    .cg-stage {
+        padding: 12px 0;
+    }
+    .cg-stage .pc2 {
+        font-size: min(20px, calc((100vw - 72px) / 15));
+    }
+    .cg-col.active {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
     }
 }
-@media (max-width: 420px) {
-    .cg-col .pc2 {
-        font-size: 17px;
+
+/* =====================================================================
+   FIGURINHA HOLO (a carta do jogo): figurinha + holográfico.
+   Moldura = cor da raridade; foto = fundo animado do tipo; brilho cresce com a raridade.
+   Edições especiais (.is-special) trocam a moldura por um acabamento próprio + faixa.
+   ===================================================================== */
+.pc2.size-lg {
+    font-size: 20px;
+}
+.pc2.size-md {
+    font-size: 15px;
+}
+.pc2.size-sm {
+    font-size: 11px;
+}
+.pc2-fig {
+    display: flex;
+    flex-direction: column;
+    gap: 0.32em;
+    padding: 0.5em;
+    border-radius: 0.75em;
+    color: #fff;
+    background: linear-gradient(
+        160deg,
+        color-mix(in srgb, var(--rar) 70%, #fff) 0%,
+        var(--rar) 40%,
+        var(--rar-dark) 100%
+    );
+    box-shadow:
+        0 0.25em 0 rgba(0, 0, 0, 0.35),
+        inset 0 0 0 0.1em rgba(255, 255, 255, 0.55);
+}
+.pc2-fig.tier-common {
+    background: linear-gradient(160deg, #ffffff 0%, #ececf2 55%, #cfd0dc 100%);
+}
+.pc2-fig.tier-epic {
+    box-shadow:
+        0 0.25em 0 rgba(0, 0, 0, 0.35),
+        0 0 0.9em color-mix(in srgb, var(--rar) 55%, transparent),
+        inset 0 0 0 0.1em rgba(255, 255, 255, 0.55);
+}
+.pc2-fig.tier-legendary:not(.is-special) {
+    background: linear-gradient(
+        115deg,
+        var(--rar-dark) 0%,
+        var(--rar) 25%,
+        #ffd9a8 45%,
+        var(--rar) 60%,
+        var(--rar-dark) 100%
+    );
+    background-size: 300% 100%;
+    animation: fg-legend 5s linear infinite;
+    box-shadow:
+        0 0.25em 0 rgba(0, 0, 0, 0.35),
+        0 0 1.1em color-mix(in srgb, var(--rar) 65%, transparent),
+        inset 0 0 0 0.1em rgba(255, 255, 255, 0.65);
+}
+@keyframes fg-legend {
+    to {
+        background-position: 300% 0;
+    }
+}
+
+/* brilho pela raridade (sem edição especial o foil fica só na foto) */
+.pc2-fig.pc2-fx.tier-common {
+    --shine: 0;
+    --glitter: 0;
+}
+.pc2-fig.pc2-fx.tier-uncommon {
+    --shine: 0.22;
+    --glitter: 0;
+}
+.pc2-fig.pc2-fx.tier-rare {
+    --shine: 0.5;
+    --glitter: 0;
+}
+.pc2-fig.pc2-fx.tier-epic {
+    --shine: 0.65;
+    --glitter: 0.35;
+}
+.pc2-fig.pc2-fx.tier-legendary {
+    --shine: 0.85;
+    --glitter: 0.55;
+}
+.pc2-fig.pc2-fx.is-special {
+    --shine: 0.75;
+}
+.pc2-fig.pc2-fx.is-active {
+    box-shadow:
+        0 0.9em 1.6em rgba(0, 0, 0, 0.45),
+        0 0 1.2em color-mix(in srgb, var(--rar) 60%, transparent);
+}
+
+.fg-photo {
+    position: relative;
+    display: block;
+    flex: 1;
+    min-height: 0;
+    border-radius: 0.45em;
+    overflow: hidden;
+    isolation: isolate;
+}
+.fg-photo .holo-bg {
+    inset: 0;
+    border-radius: 0;
+}
+.fg-photo::after {
+    /* contorno branco da figurinha por cima do foil */
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 9;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 0.14em rgba(255, 255, 255, 0.9);
+    pointer-events: none;
+}
+.fg-num {
+    position: absolute;
+    top: 0.35em;
+    left: 0.35em;
+    z-index: 8;
+    padding: 0.1em 0.35em;
+    border-radius: 0.2em;
+    background: rgba(255, 255, 255, 0.92);
+    color: #1b1d2e;
+    font-family: "Galmuri14", monospace;
+    font-size: 0.68em;
+}
+.fg-ovr {
+    position: absolute;
+    top: 0.3em;
+    right: 0.3em;
+    z-index: 8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 2.75em;
+    height: 2.75em;
+    border-radius: 50%;
+    background: #1b1d2e;
+    color: #fff;
+    border: 0.14em solid #fff;
+    box-shadow:
+        0 0 0 0.12em var(--rar),
+        0 0.15em 0.4em rgba(0, 0, 0, 0.45);
+}
+.fg-ovr b {
+    font-family: "Galmuri14", monospace;
+    font-size: 1.2em;
+    line-height: 1;
+    text-shadow: 0.04em 0 currentColor;
+}
+.fg-ovr small {
+    font-size: 0.5em;
+}
+.pc2-fig .pc2-captain {
+    position: absolute;
+    top: 1.9em;
+    left: 0.4em;
+    z-index: 8;
+}
+.fg-art {
+    position: absolute;
+    left: 50%;
+    bottom: 1.5em;
+    z-index: 3;
+    width: 9.6em;
+    height: 9.6em;
+    object-fit: contain;
+    transform: translateX(-50%) translate(calc((var(--mx, 50%) - 50%) * -0.05), calc((var(--my, 50%) - 50%) * -0.05));
+    filter: drop-shadow(0 0.25em 0.2em rgba(0, 0, 0, 0.45));
+}
+.fg-types {
+    position: absolute;
+    left: 0.35em;
+    bottom: 0.35em;
+    z-index: 8;
+    display: flex;
+    gap: 0.2em;
+}
+.fg-types .type-icon {
+    width: 1.35em;
+    height: 1.35em;
+    border-radius: 0.3em;
+    box-shadow:
+        0 0 0 0.08em #fff,
+        0 0.1em 0.2em rgba(0, 0, 0, 0.5);
+}
+.fg-item {
+    position: absolute;
+    right: 0.3em;
+    bottom: 0.25em;
+    z-index: 8;
+    width: 1.7em;
+    height: 1.7em;
+    filter: drop-shadow(0 0.08em 0 rgba(0, 0, 0, 0.6));
+}
+.fg-photo .pc2-shine,
+.fg-photo .pc2-glitter,
+.fg-photo .pc2-glare {
+    border-radius: 0;
+}
+.fg-band {
+    position: relative;
+    z-index: 8;
+    display: flex;
+    flex-direction: column;
+    padding: 0.25em 1.6em 0.25em 0.55em;
+    border-radius: 0.35em;
+    background: #1b1d2e;
+    box-shadow: 0 0.12em 0 rgba(0, 0, 0, 0.35);
+}
+.fg-name {
+    font-family: "Galmuri14", monospace;
+    font-size: 0.95em;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.fg-sub {
+    font-size: 0.6em;
+    color: color-mix(in srgb, var(--rar) 70%, #fff);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.tier-common .fg-sub {
+    color: #d6d6e0;
+}
+.fg-gem {
+    position: absolute;
+    right: 0.5em;
+    top: 50%;
+    width: 0.8em;
+    height: 0.8em;
+    transform: translateY(-50%) rotate(45deg);
+    border-radius: 0.15em;
+    background: var(--rar);
+    border: 0.1em solid #fff;
+    box-shadow: 0 0 0.45em var(--rar);
+}
+.fg-stats {
+    position: relative;
+    z-index: 8;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    padding: 0.2em 0.15em;
+    border-radius: 0.35em;
+    background: #fbf8ef;
+    color: #1b1d2e;
+}
+.fg-stats span {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.5em;
+    line-height: 1.1;
+    color: #5a5d70;
+}
+.fg-stats b {
+    font-family: "Galmuri14", monospace;
+    font-size: 1.75em;
+    color: #1b1d2e;
+}
+.fg-ribbon {
+    position: absolute;
+    top: 0.2em;
+    left: 50%;
+    z-index: 10;
+    transform: translateX(-50%);
+    padding: 0.12em 0.75em;
+    border-radius: 1em;
+    border: 0.1em solid #fff;
+    background: #1b1d2e;
+    color: #fff;
+    font-family: "Galmuri14", monospace;
+    font-size: 0.6em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    box-shadow: 0 0.15em 0.4em rgba(0, 0, 0, 0.5);
+}
+
+/* ---------- edições especiais: moldura maluca ---------- */
+.pc2-fig.is-special {
+    box-shadow:
+        0 0.25em 0 rgba(0, 0, 0, 0.35),
+        0 0 1em rgba(255, 255, 255, 0.35),
+        inset 0 0 0 0.1em rgba(255, 255, 255, 0.7);
+}
+/* Shiny: dourado gravado */
+.pc2-fig.sp-shiny {
+    background:
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.18) 0 0.06em, transparent 0.06em 0.45em),
+        repeating-linear-gradient(-45deg, rgba(120, 80, 0, 0.2) 0 0.06em, transparent 0.06em 0.45em),
+        linear-gradient(135deg, #7a5410 0%, #f7d774 28%, #fff3c0 45%, #d9a520 62%, #8a5f12 100%);
+}
+.sp-shiny .fg-ribbon {
+    background: linear-gradient(90deg, #b8860b, #ffe680, #b8860b);
+    color: #3a2600;
+}
+/* Destaque: arco-íris que corre a moldura */
+.pc2-fig.sp-destaque {
+    background: linear-gradient(
+        -45deg,
+        hsl(0, 95%, 66%),
+        hsl(45, 95%, 62%),
+        hsl(110, 80%, 58%),
+        hsl(190, 90%, 60%),
+        hsl(260, 90%, 68%),
+        hsl(320, 90%, 66%),
+        hsl(360, 95%, 66%)
+    );
+    background-size: 300% 300%;
+    animation: fg-rainbow 6s linear infinite;
+}
+@keyframes fg-rainbow {
+    to {
+        background-position: 300% 300%;
+    }
+}
+.sp-destaque .fg-ribbon {
+    background: #fff;
+    color: #c2185b;
+}
+/* Ícone: galáxia */
+.pc2-fig.sp-icone {
+    background:
+        radial-gradient(circle at 20% 15%, #fff 0 0.05em, transparent 0.08em) 0 0 / 2.3em 2.1em,
+        radial-gradient(circle at 70% 60%, rgba(255, 255, 255, 0.8) 0 0.04em, transparent 0.07em) 0 0 / 1.7em 1.9em,
+        radial-gradient(ellipse 70% 45% at 20% 25%, color-mix(in srgb, var(--t1) 55%, transparent), transparent 70%),
+        radial-gradient(ellipse 60% 50% at 85% 80%, rgba(140, 70, 255, 0.65), transparent 70%),
+        radial-gradient(ellipse 80% 40% at 50% 110%, rgba(255, 80, 190, 0.45), transparent 70%),
+        #07051f;
+}
+.sp-icone .fg-ribbon {
+    background: linear-gradient(90deg, #2a0f5c, #6a2cff, #2a0f5c);
+    border-color: #e4d4ff;
+}
+/* Evento: raios na cor do tipo */
+.pc2-fig.sp-evento {
+    background:
+        radial-gradient(circle at 50% 38%, rgba(255, 255, 255, 0.55), transparent 55%),
+        repeating-conic-gradient(
+            from 0deg at 50% 38%,
+            var(--t1) 0deg 7deg,
+            color-mix(in srgb, var(--t1) 45%, #fff) 7deg 14deg
+        );
+}
+.sp-evento .fg-ribbon {
+    background: var(--t1);
+    color: #fff;
+    text-shadow: 0 0.08em 0 rgba(0, 0, 0, 0.5);
+}
+@media (prefers-reduced-motion: reduce) {
+    .pc2-fig.tier-legendary:not(.is-special),
+    .pc2-fig.sp-destaque {
+        animation: none;
+    }
+}
+
+/* ---------- galeria v0.6 ---------- */
+.cg-v06 {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+}
+.cg-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    justify-content: center;
+}
+.cg-row .cg-item {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    max-width: 15em;
+    font-size: 15px;
+}
+.cg-row .cg-item figcaption {
+    font-size: 11px;
+    text-align: center;
+    max-width: 16em;
+}
+.cg-icons {
+    gap: 10px;
+}
+@media (max-width: 700px) {
+    .cg-row {
+        gap: 8px;
+    }
+    .cg-row .cg-item {
+        font-size: 9.5px;
+    }
+    .cg-row .pc2.size-md,
+    .cg-row .pc2.size-sm {
+        font-size: 9.5px;
     }
 }

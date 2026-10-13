@@ -12,11 +12,12 @@ import type { MatchConfig } from './config';
 import { MOVES, species } from './data';
 import { eff, fatigueFactor, isIncapacitated, TACTIC_MODS } from './effective';
 import { formationOf } from './formations';
-import type { PokemonInstance } from './instance';
+import { type PokemonInstance, withBonus } from './instance';
 import { ITEMS } from './items';
 import { type ActiveLink, computeLinks, linkFactor } from './links';
 import { moveProfile, type StatusKind } from './moves';
 import { Rng } from './rng';
+import { specialBonus } from './specials';
 import {
     Action,
     FLAG_BUFF,
@@ -92,8 +93,9 @@ function createPlayer(
     const synergy = synergyFactor(bonuses.synergies, sp.types) * linkFactor(bonuses.links, inst.uid);
     const isCaptain = bonuses.captain?.uid === inst.uid;
     const captainAura = isCaptain ? 1.03 : captainFactor(bonuses.captain, sp.types);
-    const raw = computeAttributes(sp, inst.level);
-    const factor = positionFactor(eligiblePositions(raw, sp.id), role);
+    const base = computeAttributes(sp, inst.level);
+    const factor = positionFactor(eligiblePositions(base, sp.id), role);
+    const raw = withBonus(base, specialBonus(inst));
     const ability = abilityEffect(inst.ability);
     const item = inst.item && ITEMS[inst.item] ? inst.item : null;
     const attr = { ...raw };

@@ -14,6 +14,7 @@ import { rewardOptions } from './rewards';
 import { Rng } from './rng';
 import { runMatch } from './runners/batch-runner';
 import { LiveRunner } from './runners/live-runner';
+import { EVENT_TYPES, rollSpecial, SPECIAL_BONUS, weeklyEventType } from './specials';
 import { SNAP_STRIDE, type TeamSetup } from './state';
 import { dir8, v } from './vec';
 
@@ -37,6 +38,12 @@ describe('dados', () => {
             expect(existsSync(`public/assets/field/${sp.id}.json`)).toBe(true);
             expect(existsSync(`public/assets/cries/legacy/${sp.id}.ogg`)).toBe(true);
             expect(existsSync(`public/assets/cries/latest/${sp.id}.ogg`)).toBe(true);
+        }
+    });
+
+    it('tem os ícones oficiais de todos os tipos dos Pokémon', () => {
+        for (const t of new Set(SPECIES.flatMap((sp) => sp.types))) {
+            expect(existsSync(`public/assets/types/${t.toLowerCase()}.png`)).toBe(true);
         }
     });
 
@@ -381,4 +388,49 @@ describe('v0.5: físico, sinergias de história e Ditto', () => {
         }
         expect(combos).toBeGreaterThan(0);
     }, 60_000);
+});
+
+describe('v0.6: cartas especiais', () => {
+    it('rollSpecial: determinístico, só Ícones da lista, chance perto de 1 em 20', () => {
+        const rng = new Rng('esp');
+        let icons = 0;
+        const n = 10_000;
+        for (let i = 0; i < n; i++) {
+            const inst = createInstance(25, rng);
+            const a = rollSpecial(inst, null);
+            expect(rollSpecial(inst, null)).toEqual(a);
+            if (a.special?.kind === 'icone') icons++;
+        }
+        expect(icons / n).toBeGreaterThan(0.035);
+        expect(icons / n).toBeLessThan(0.065);
+        for (let i = 0; i < 2000; i++) expect(rollSpecial(createInstance(16, rng), null).special).toBeFalsy();
+    });
+
+    it('evento: só cartas do tipo da semana', () => {
+        const rng = new Rng('evt');
+        let fire = 0;
+        for (let i = 0; i < 3000; i++) {
+            if (rollSpecial(createInstance(4, rng), 'Fire').special?.kind === 'evento') fire++;
+            expect(rollSpecial(createInstance(7, rng), 'Fire').special?.kind).not.toBe('evento');
+        }
+        expect(fire).toBeGreaterThan(250);
+    });
+
+    it('edição dá +2 em tudo, sem acumular com shiny', () => {
+        const base = createInstance(1, new Rng('b'));
+        const plain = viewInstance({ ...base, shiny: false, special: null }).attributes;
+        const both = viewInstance({ ...base, shiny: true, special: { kind: 'destaque' } }).attributes;
+        expect(both.pace - plain.pace).toBe(SPECIAL_BONUS);
+        expect(both.shooting - plain.shooting).toBe(SPECIAL_BONUS);
+    });
+
+    it('evento da semana gira entre tipos com Pokémon e é estável dentro da semana', () => {
+        const seg = weeklyEventType(new Date(2026, 9, 12));
+        expect(weeklyEventType(new Date(2026, 9, 18))).toBe(seg);
+        expect(weeklyEventType(new Date(2026, 9, 19))).not.toBe(seg);
+        const seen = new Set<string>();
+        for (let w = 0; w < 60; w++) seen.add(weeklyEventType(new Date(2026, 0, 1 + w * 7)));
+        expect([...seen].every((t) => EVENT_TYPES.includes(t))).toBe(true);
+        expect(EVENT_TYPES).not.toContain('Dark');
+    });
 });

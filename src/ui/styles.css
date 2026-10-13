@@ -2208,3 +2208,23 @@ button,
 .physique-line b {
     color: var(--text);
 }
+
+/* ---------- ícones oficiais de tipo ---------- */
+.type-icon {
+    display: inline-block;
+    width: 1.3em;
+    height: 1.3em;
+    border-radius: 0.25em;
+    vertical-align: middle;
+    object-fit: contain;
+}
+.type-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    padding: 0.1em 0.45em 0.1em 0.15em;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 12px;
+    white-space: nowrap;
+}
