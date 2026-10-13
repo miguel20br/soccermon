@@ -341,7 +341,7 @@ export class MatchScene extends Phaser.Scene {
             view.ring.setPosition(px.x, px.y + 1).setDepth(px.y - 1);
             view.sprite.setDepth(px.y);
             view.label.setPosition(px.x, px.y + 6).setDepth(5000);
-            view.badge.setPosition(px.x, px.y - view.sprite.displayHeight * 0.78 - 2).setDepth(5001);
+            view.badge.setPosition(px.x, px.y + 30).setDepth(5001);
             this.applyIndicators(view, near.p[o + 4], near.p[o + 5]);
 
             const anim = resolveAnim(view.speciesId, animForAction(action));

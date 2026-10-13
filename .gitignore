@@ -26,3 +26,5 @@ dist-ssr
 # caches de assets
 .cache
 .vitest
+
+.vercel
