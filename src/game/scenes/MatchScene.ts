@@ -19,6 +19,8 @@ import {
     animForAction,
     atlasKey,
     createSpeciesAnims,
+    footOrigin,
+    headTop,
     preloadSpecies,
     resolveAnim,
     shadowSize,
@@ -132,6 +134,8 @@ interface PlayerView {
     ring: Phaser.GameObjects.Ellipse;
     label: Phaser.GameObjects.Text;
     badge: Phaser.GameObjects.Text;
+    /** Setinha vermelha na cabeça dos jogadores do seu time. */
+    arrow: Phaser.GameObjects.Triangle | null;
     currentKey: string;
     status: number;
     flags: number;
@@ -322,7 +326,15 @@ export class MatchScene extends Phaser.Scene {
         const size = shadowSize(speciesId);
         const shadow = this.add.ellipse(0, 0, 14 + size * 6, 6 + size * 2, 0x000000, 0.3);
         const ring = this.add.ellipse(0, 0, 22 + size * 6, 9 + size * 2).setStrokeStyle(2.5, color, 0.95);
-        const sprite = this.add.sprite(0, 0, atlasKey(speciesId)).setScale(SPRITE_SCALE).setOrigin(0.5, 0.78);
+        const sprite = this.add
+            .sprite(0, 0, atlasKey(speciesId))
+            .setScale(SPRITE_SCALE)
+            .setOrigin(0.5, footOrigin(speciesId, 'Idle'));
+        // seu time (casa) ganha uma setinha vermelha discreta na cabeça
+        const arrow =
+            team === 0
+                ? this.add.triangle(0, 0, 0, 0, 9, 0, 4.5, 6, 0xff3b3b).setStrokeStyle(1.5, 0x000000, 0.8)
+                : null;
         const textStyle = {
             fontFamily: 'Galmuri11, monospace',
             fontSize: '10px',
@@ -349,6 +361,7 @@ export class MatchScene extends Phaser.Scene {
             ring,
             label,
             badge,
+            arrow,
             currentKey: '',
             status: -1,
             flags: -1,
@@ -358,12 +371,20 @@ export class MatchScene extends Phaser.Scene {
         return view;
     }
 
+    /** Setinha do seu time: logo acima da cabeça (topo visível do sprite no Idle). */
+    private placeArrow(view: PlayerView, x: number, y: number, depth: number) {
+        if (!view.arrow) return;
+        const h = view.sprite.frame.realHeight * view.sprite.scaleY;
+        const head = y - (view.sprite.originY - headTop(view.speciesId)) * h;
+        view.arrow.setPosition(x, head - 7).setDepth(depth);
+    }
+
     private swapSpecies(view: PlayerView, speciesId: number, name: string, shiny: boolean) {
         view.speciesId = speciesId;
         view.name = name;
         view.shiny = shiny;
         view.captain = false;
-        view.sprite.setTexture(atlasKey(speciesId));
+        view.sprite.setTexture(atlasKey(speciesId)).setOrigin(0.5, footOrigin(speciesId, 'Idle'));
         view.label.setText(name).setColor('#ffffff');
         view.currentKey = '';
         view.status = -1;
@@ -439,10 +460,12 @@ export class MatchScene extends Phaser.Scene {
         view.ring.setPosition(px.x, px.y + 1).setDepth(px.y - 1);
         view.label.setPosition(px.x, px.y + 6).setDepth(5000);
         view.badge.setPosition(px.x, px.y + 6 + view.label.height).setDepth(5001);
+        this.placeArrow(view, px.x, px.y, 4999);
         if (anim !== undefined && facing !== undefined) {
-            const key = `${view.speciesId}/${resolveAnim(view.speciesId, anim)}/${facing}`;
+            const resolved = resolveAnim(view.speciesId, anim);
+            const key = `${view.speciesId}/${resolved}/${facing}`;
             if (key !== view.currentKey) {
-                view.sprite.play(key);
+                view.sprite.play(key).setOrigin(0.5, footOrigin(view.speciesId, resolved));
                 view.currentKey = key;
             }
         }
@@ -628,13 +651,14 @@ export class MatchScene extends Phaser.Scene {
             const labelDepth = focused ? FOCUS_DEPTH + 60 : 5000;
             view.label.setPosition(px.x, px.y + 6).setDepth(labelDepth);
             view.badge.setPosition(px.x, px.y + 6 + view.label.height).setDepth(labelDepth + 1);
+            this.placeArrow(view, px.x, px.y, labelDepth - 1);
             if (focused) focusPos.set(i, px);
             this.applyIndicators(view, near.p[o + 4], near.p[o + 5]);
 
             const anim = resolveAnim(view.speciesId, animForAction(action));
             const key = `${view.speciesId}/${anim}/${facing}`;
             if (key !== view.currentKey) {
-                view.sprite.play(key);
+                view.sprite.play(key).setOrigin(0.5, footOrigin(view.speciesId, anim));
                 view.currentKey = key;
             }
             const dx = (b.p[o] - a.p[o]) * PPM;

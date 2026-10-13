@@ -1,5 +1,7 @@
 import type Phaser from 'phaser';
 import pmdAnims from '../data/pmd-anims.json';
+import spriteFeet from '../data/sprite-feet.json';
+import { species } from '../engine/data';
 import { Action } from '../engine/state';
 
 /**
@@ -71,6 +73,27 @@ export function createSpeciesAnims(scene: Phaser.Scene, speciesId: number) {
 
 export function shadowSize(speciesId: number): number {
     return PMD[speciesId]?.shadowSize ?? 1;
+}
+
+const FEET = spriteFeet as Record<string, Record<string, number>>;
+/** Quem tem asas paira só um pouquinho acima do chão (fração do quadro). */
+const HOVER_SHAPES = new Set(['wings', 'bug-wings']);
+const HOVER = 0.05;
+
+/**
+ * Origem vertical do sprite pra que o pé (última linha visível do quadro, scripts/build-sprite-feet.ts)
+ * fique no chão. Sem isso os voadores, desenhados no alto do quadro, flutuavam muito acima da bola.
+ */
+export function footOrigin(speciesId: number, anim: string): number {
+    const feet = FEET[speciesId];
+    const ratio = feet?.[anim] ?? feet?.Idle ?? 0.78;
+    const hover = HOVER_SHAPES.has(species(speciesId).shape) ? HOVER : 0;
+    return Math.min(0.97, ratio + 0.015 - hover);
+}
+
+/** Topo da cabeça no Idle (fração do quadro), pra posicionar a setinha do seu time. */
+export function headTop(speciesId: number): number {
+    return FEET[speciesId]?.top ?? 0.2;
 }
 
 /** Mapeia a ação do motor para a animação PMD. */

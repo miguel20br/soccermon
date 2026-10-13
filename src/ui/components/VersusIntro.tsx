@@ -12,8 +12,6 @@ const AUTO_START_MS = 4500;
 const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 /** Tamanho natural moderado: o Pikachu fica um pouco menor que o Dragonite, sem sumir. */
 const sizeOf = (heightm: number) => Math.min(1.12, Math.max(0.84, 0.94 + 0.11 * Math.log2(Math.max(0.1, heightm))));
-/** Faíscas ao longo da linha diagonal (posição em % do comprimento da linha). */
-const SPARKS = [8, 19, 31, 42, 58, 69, 81, 92];
 
 /**
  * Os titulares de um time em fila diagonal, do canto rumo ao centro: o capitão na frente (perto do VS),
@@ -39,10 +37,8 @@ function Squad({ team, side }: { team: TeamSetup; side: 'home' | 'away' }) {
                 return (
                     <div key={p.uid} className={`vsd-mon ${side}`} style={style}>
                         <div className="vsd-fig">
-                            <span className="vsd-shadow" />
                             <img className="pixel" src={cardSprite(p)} alt="" draggable={false} />
                         </div>
-                        <span className="vsd-dust" />
                         <div className="vsd-label">
                             {p.uid === team.captainUid && <span className="vsd-c">C</span>}
                             <b>{v.displayName}</b>
@@ -129,38 +125,14 @@ export function VersusIntro({
             <div className="vsd-scene">
                 <div className="vsd-half away" />
                 <div className="vsd-half home" />
-                <div className="vsd-mark away" aria-hidden>
-                    RIVAL
-                </div>
-                <div className="vsd-mark home" aria-hidden>
-                    VOCÊ
-                </div>
                 <svg className="vsd-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
                     <line className="vsd-divider wide" x1="0" y1="0" x2="100" y2="100" />
                     <line className="vsd-divider tall" x1="0" y1="40" x2="100" y2="60" />
-                    <polyline
-                        className="vsd-bolt wide"
-                        points="30,27 41,43 38,44 50,55 47,56 62,72 52,56 55,55 44,44 47,43"
-                    />
-                    <polyline
-                        className="vsd-bolt tall"
-                        points="20,45 36,49 34,51 52,53 50,55 80,56 54,51 56,50 38,47 40,46"
-                    />
                 </svg>
                 <Band team={away} side="away" />
                 <Band team={home} side="home" />
                 <Squad team={away} side="away" />
                 <Squad team={home} side="home" />
-                <div className="vsd-burst" aria-hidden />
-                <div className="vsd-shock" aria-hidden />
-                {SPARKS.map((t, i) => (
-                    <span
-                        key={t}
-                        className="vsd-spark"
-                        style={{ '--t': t, '--sd': `${1 + i * 0.13}s` } as CSSProperties}
-                        aria-hidden
-                    />
-                ))}
                 <div className="vsd-vs" aria-hidden>
                     VS
                 </div>
