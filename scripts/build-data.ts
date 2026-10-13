@@ -12,6 +12,25 @@ import { Generations } from '@pkmn/data';
 import { Dex } from '@pkmn/dex';
 
 const OUT = 'src/data';
+const POKEAPI = 'https://raw.githubusercontent.com/PokeAPI/api-data/master/data/api/v2/pokemon';
+
+/** Alturas (m) do PokeAPI — o @pkmn/dex não traz altura. */
+async function fetchHeights(ids: number[]): Promise<Map<number, number>> {
+    const heights = new Map<number, number>();
+    const queue = [...ids];
+    await Promise.all(
+        Array.from({ length: 8 }, async () => {
+            while (queue.length) {
+                const id = queue.shift() as number;
+                const res = await fetch(`${POKEAPI}/${id}/index.json`);
+                if (!res.ok) throw new Error(`Falha ao buscar altura de #${id}: ${res.status}`);
+                const json = (await res.json()) as { height: number };
+                heights.set(id, json.height / 10);
+            }
+        }),
+    );
+    return heights;
+}
 const LOCALES = 'https://raw.githubusercontent.com/pagefaultgames/pokerogue-locales/main/pt-BR';
 const LEGENDARY = new Set([144, 145, 146, 150, 151]);
 const PSEUDO = new Set([149]);
@@ -44,6 +63,7 @@ async function main() {
     const moveIds = new Set<string>();
     const abilityIds = new Set<string>();
 
+    const heights = await fetchHeights([...g1.species].map((s) => s.num));
     for (const s1 of g1.species) {
         const s = Dex.species.get(s1.id);
         const learnable = await g1.learnsets.learnable(s1.id);
@@ -76,7 +96,7 @@ async function main() {
             learnset,
             evolvesTo,
             prevo: s.prevo && Dex.species.get(s.prevo).num <= 151 ? Dex.species.get(s.prevo).num : null,
-            heightm: s.heightm,
+            heightm: heights.get(s.num) ?? 1,
             weightkg: s.weightkg,
         });
     }

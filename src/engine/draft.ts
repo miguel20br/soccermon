@@ -82,7 +82,9 @@ export function draftOptions(
     oddsOverride?: number[],
 ): PokemonInstance[] {
     const need = needOverride ?? DRAFT_ROUNDS[round]?.need ?? 'ANY';
-    const odds = oddsOverride ?? TIER_ODDS[Math.min(round, TIER_ODDS.length - 1)];
+    // Pivô é a posição mais escassa: a vaga puxa um pouco mais de raridade para não sobrar só nota baixa
+    const boost = need === 'PIVO' ? 2 : 0;
+    const odds = oddsOverride ?? TIER_ODDS[Math.min(round + boost, TIER_ODDS.length - 1)];
     const chosen: Species[] = [];
     let guard = 0;
     while (chosen.length < count && guard++ < 500) {

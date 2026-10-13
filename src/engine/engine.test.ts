@@ -179,10 +179,9 @@ describe('iteração 3: posições, formações, capitão, itens, tática ao viv
     const home = team('h3', 'Casa');
     const away = team('a3', 'Fora');
 
-    it('Snorlax joga de goleiro e de fixo', () => {
+    it('Snorlax é goleiro de posição principal', () => {
         const pos = eligiblePositions(computeAttributes(species(143), 50), 143);
-        expect(pos).toContain('GK');
-        expect(pos).toContain('FIXO');
+        expect(pos[0]).toBe('GK');
     });
 
     it('positionFactor: principal 1, secundária 0.98, fora penaliza', () => {
@@ -267,11 +266,12 @@ describe('iteração 3: posições, formações, capitão, itens, tática ao viv
     });
 
     it('estatísticas de quem saiu no intervalo entram no resultado (gols batem com o placar)', () => {
-        // times com reservas e titulares de pouco fôlego: substituição no intervalo é comum
+        // intervalo sem recuperação de fôlego: garante substituições, qualquer que seja o elenco sorteado
         const tired: TeamSetup = { ...home, tactic: 'offensive' };
+        const cfg = { ...FUTSAL_5, halftimeRecovery: -0.3 };
         let checked = 0;
         for (let seed = 1; seed <= 60 && checked < 2; seed++) {
-            const r = runMatch(FUTSAL_5, tired, { ...away, tactic: 'offensive' }, seed, { snapshots: false });
+            const r = runMatch(cfg, tired, { ...away, tactic: 'offensive' }, seed, { snapshots: false });
             const everyone = [...r.finalRoster, ...r.subbedOut];
             for (const team of [0, 1] as const) {
                 const ownGoals = r.events.filter((e) => e.type === 'goal' && e.team === team && e.ownGoal).length;

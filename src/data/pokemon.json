@@ -55,6 +55,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.7,
   "weightkg": 6.9
  },
  {
@@ -113,6 +114,7 @@
    }
   ],
   "prevo": 1,
+  "heightm": 1,
   "weightkg": 13
  },
  {
@@ -165,6 +167,7 @@
   ],
   "evolvesTo": [],
   "prevo": 2,
+  "heightm": 2,
   "weightkg": 100
  },
  {
@@ -230,6 +233,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.6,
   "weightkg": 8.5
  },
  {
@@ -295,6 +299,7 @@
    }
   ],
   "prevo": 4,
+  "heightm": 1.1,
   "weightkg": 19
  },
  {
@@ -358,6 +363,7 @@
   ],
   "evolvesTo": [],
   "prevo": 5,
+  "heightm": 1.7,
   "weightkg": 90.5
  },
  {
@@ -422,6 +428,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.5,
   "weightkg": 9
  },
  {
@@ -486,6 +493,7 @@
    }
   ],
   "prevo": 7,
+  "heightm": 1,
   "weightkg": 22.5
  },
  {
@@ -546,6 +554,7 @@
   ],
   "evolvesTo": [],
   "prevo": 8,
+  "heightm": 1.6,
   "weightkg": 85.5
  },
  {
@@ -582,6 +591,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.3,
   "weightkg": 2.9
  },
  {
@@ -618,6 +628,7 @@
    }
   ],
   "prevo": 10,
+  "heightm": 0.7,
   "weightkg": 9.9
  },
  {
@@ -676,6 +687,7 @@
   ],
   "evolvesTo": [],
   "prevo": 11,
+  "heightm": 1.1,
   "weightkg": 32
  },
  {
@@ -713,6 +725,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.3,
   "weightkg": 3.2
  },
  {
@@ -750,6 +763,7 @@
    }
   ],
   "prevo": 13,
+  "heightm": 0.6,
   "weightkg": 10
  },
  {
@@ -802,6 +816,7 @@
   ],
   "evolvesTo": [],
   "prevo": 14,
+  "heightm": 1,
   "weightkg": 29.5
  },
  {
@@ -859,6 +874,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.3,
   "weightkg": 1.8
  },
  {
@@ -916,6 +932,7 @@
    }
   ],
   "prevo": 16,
+  "heightm": 1.1,
   "weightkg": 30
  },
  {
@@ -967,6 +984,7 @@
   ],
   "evolvesTo": [],
   "prevo": 17,
+  "heightm": 1.5,
   "weightkg": 39.5
  },
  {
@@ -1026,6 +1044,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.3,
   "weightkg": 3.5
  },
  {
@@ -1080,6 +1099,7 @@
   ],
   "evolvesTo": [],
   "prevo": 19,
+  "heightm": 0.7,
   "weightkg": 18.5
  },
  {
@@ -1136,6 +1156,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.3,
   "weightkg": 2
  },
  {
@@ -1187,6 +1208,7 @@
   ],
   "evolvesTo": [],
   "prevo": 21,
+  "heightm": 1.2,
   "weightkg": 38
  },
  {
@@ -1246,6 +1268,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 2,
   "weightkg": 6.9
  },
  {
@@ -1299,6 +1322,7 @@
   ],
   "evolvesTo": [],
   "prevo": 23,
+  "heightm": 3.5,
   "weightkg": 65
  },
  {
@@ -1364,6 +1388,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.4,
   "weightkg": 6
  },
  {
@@ -1423,6 +1448,7 @@
   ],
   "evolvesTo": [],
   "prevo": 25,
+  "heightm": 0.8,
   "weightkg": 30
  },
  {
@@ -1483,6 +1509,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.6,
   "weightkg": 12
  },
  {
@@ -1537,6 +1564,7 @@
   ],
   "evolvesTo": [],
   "prevo": 27,
+  "heightm": 1,
   "weightkg": 29.5
  },
  {
@@ -1595,6 +1623,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.4,
   "weightkg": 7
  },
  {
@@ -1657,6 +1686,7 @@
    }
   ],
   "prevo": 29,
+  "heightm": 0.8,
   "weightkg": 20
  },
  {
@@ -1726,6 +1756,7 @@
   ],
   "evolvesTo": [],
   "prevo": 30,
+  "heightm": 1.3,
   "weightkg": 60
  },
  {
@@ -1784,6 +1815,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.5,
   "weightkg": 9
  },
  {
@@ -1845,6 +1877,7 @@
    }
   ],
   "prevo": 32,
+  "heightm": 0.9,
   "weightkg": 19.5
  },
  {
@@ -1914,6 +1947,7 @@
   ],
   "evolvesTo": [],
   "prevo": 33,
+  "heightm": 1.4,
   "weightkg": 62
  },
  {
@@ -1989,6 +2023,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.6,
   "weightkg": 7.5
  },
  {
@@ -2058,6 +2093,7 @@
   ],
   "evolvesTo": [],
   "prevo": 35,
+  "heightm": 1.3,
   "weightkg": 40
  },
  {
@@ -2114,6 +2150,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.6,
   "weightkg": 9.9
  },
  {
@@ -2164,6 +2201,7 @@
   ],
   "evolvesTo": [],
   "prevo": 37,
+  "heightm": 1.1,
   "weightkg": 19.9
  },
  {
@@ -2237,6 +2275,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.5,
   "weightkg": 5.5
  },
  {
@@ -2304,6 +2343,7 @@
   ],
   "evolvesTo": [],
   "prevo": 39,
+  "heightm": 1,
   "weightkg": 12
  },
  {
@@ -2358,6 +2398,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.8,
   "weightkg": 7.5
  },
  {
@@ -2407,6 +2448,7 @@
   ],
   "evolvesTo": [],
   "prevo": 41,
+  "heightm": 1.6,
   "weightkg": 55
  },
  {
@@ -2462,6 +2504,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.5,
   "weightkg": 5.4
  },
  {
@@ -2517,6 +2560,7 @@
    }
   ],
   "prevo": 43,
+  "heightm": 0.8,
   "weightkg": 8.6
  },
  {
@@ -2567,6 +2611,7 @@
   ],
   "evolvesTo": [],
   "prevo": 44,
+  "heightm": 1.2,
   "weightkg": 18.6
  },
  {
@@ -2626,6 +2671,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.3,
   "weightkg": 5.4
  },
  {
@@ -2679,6 +2725,7 @@
   ],
   "evolvesTo": [],
   "prevo": 46,
+  "heightm": 1,
   "weightkg": 29.5
  },
  {
@@ -2739,6 +2786,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 1,
   "weightkg": 30
  },
  {
@@ -2797,6 +2845,7 @@
   ],
   "evolvesTo": [],
   "prevo": 48,
+  "heightm": 1.5,
   "weightkg": 12.5
  },
  {
@@ -2851,6 +2900,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.2,
   "weightkg": 0.8
  },
  {
@@ -2899,6 +2949,7 @@
   ],
   "evolvesTo": [],
   "prevo": 50,
+  "heightm": 0.7,
   "weightkg": 33.3
  },
  {
@@ -2957,6 +3008,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.4,
   "weightkg": 4.2
  },
  {
@@ -3009,6 +3061,7 @@
   ],
   "evolvesTo": [],
   "prevo": 52,
+  "heightm": 1,
   "weightkg": 32
  },
  {
@@ -3076,6 +3129,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.8,
   "weightkg": 19.6
  },
  {
@@ -3137,6 +3191,7 @@
   ],
   "evolvesTo": [],
   "prevo": 54,
+  "heightm": 1.7,
   "weightkg": 76.6
  },
  {
@@ -3204,6 +3259,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.5,
   "weightkg": 28
  },
  {
@@ -3265,6 +3321,7 @@
   ],
   "evolvesTo": [],
   "prevo": 56,
+  "heightm": 1,
   "weightkg": 32
  },
  {
@@ -3322,6 +3379,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.7,
   "weightkg": 19
  },
  {
@@ -3374,6 +3432,7 @@
   ],
   "evolvesTo": [],
   "prevo": 58,
+  "heightm": 1.9,
   "weightkg": 155
  },
  {
@@ -3432,6 +3491,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.6,
   "weightkg": 12.4
  },
  {
@@ -3499,6 +3559,7 @@
    }
   ],
   "prevo": 60,
+  "heightm": 1,
   "weightkg": 20
  },
  {
@@ -3561,6 +3622,7 @@
   ],
   "evolvesTo": [],
   "prevo": 61,
+  "heightm": 1.3,
   "weightkg": 54
  },
  {
@@ -3620,6 +3682,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.9,
   "weightkg": 19.5
  },
  {
@@ -3685,6 +3748,7 @@
    }
   ],
   "prevo": 63,
+  "heightm": 1.3,
   "weightkg": 56.5
  },
  {
@@ -3744,6 +3808,7 @@
   ],
   "evolvesTo": [],
   "prevo": 64,
+  "heightm": 1.5,
   "weightkg": 48
  },
  {
@@ -3806,6 +3871,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.8,
   "weightkg": 19.5
  },
  {
@@ -3868,6 +3934,7 @@
    }
   ],
   "prevo": 66,
+  "heightm": 1.5,
   "weightkg": 70.5
  },
  {
@@ -3924,6 +3991,7 @@
   ],
   "evolvesTo": [],
   "prevo": 67,
+  "heightm": 1.6,
   "weightkg": 130
  },
  {
@@ -3982,6 +4050,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.7,
   "weightkg": 4
  },
  {
@@ -4040,6 +4109,7 @@
    }
   ],
   "prevo": 69,
+  "heightm": 1,
   "weightkg": 6.4
  },
  {
@@ -4093,6 +4163,7 @@
   ],
   "evolvesTo": [],
   "prevo": 70,
+  "heightm": 1.7,
   "weightkg": 15.5
  },
  {
@@ -4156,6 +4227,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.9,
   "weightkg": 45.5
  },
  {
@@ -4213,6 +4285,7 @@
   ],
   "evolvesTo": [],
   "prevo": 72,
+  "heightm": 1.6,
   "weightkg": 55
  },
  {
@@ -4276,6 +4349,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.4,
   "weightkg": 20
  },
  {
@@ -4339,6 +4413,7 @@
    }
   ],
   "prevo": 74,
+  "heightm": 1,
   "weightkg": 105
  },
  {
@@ -4397,6 +4472,7 @@
   ],
   "evolvesTo": [],
   "prevo": 75,
+  "heightm": 1.4,
   "weightkg": 300
  },
  {
@@ -4453,6 +4529,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 1,
   "weightkg": 30
  },
  {
@@ -4504,6 +4581,7 @@
   ],
   "evolvesTo": [],
   "prevo": 77,
+  "heightm": 1.7,
   "weightkg": 95
  },
  {
@@ -4575,6 +4653,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 1.2,
   "weightkg": 36
  },
  {
@@ -4646,6 +4725,7 @@
   ],
   "evolvesTo": [],
   "prevo": 79,
+  "heightm": 1.6,
   "weightkg": 78.5
  },
  {
@@ -4703,6 +4783,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.3,
   "weightkg": 6
  },
  {
@@ -4754,6 +4835,7 @@
   ],
   "evolvesTo": [],
   "prevo": 81,
+  "heightm": 1,
   "weightkg": 60
  },
  {
@@ -4807,6 +4889,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 0.8,
   "weightkg": 15
  },
  {
@@ -4864,6 +4947,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 1.4,
   "weightkg": 39.2
  },
  {
@@ -4915,6 +4999,7 @@
   ],
   "evolvesTo": [],
   "prevo": 84,
+  "heightm": 1.8,
   "weightkg": 85.2
  },
  {
@@ -4972,6 +5057,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 1.1,
   "weightkg": 90
  },
  {
@@ -5024,6 +5110,7 @@
   ],
   "evolvesTo": [],
   "prevo": 86,
+  "heightm": 1.7,
   "weightkg": 120
  },
  {
@@ -5081,6 +5168,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.9,
   "weightkg": 30
  },
  {
@@ -5132,6 +5220,7 @@
   ],
   "evolvesTo": [],
   "prevo": 88,
+  "heightm": 1.2,
   "weightkg": 30
  },
  {
@@ -5193,6 +5282,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.3,
   "weightkg": 4
  },
  {
@@ -5250,6 +5340,7 @@
   ],
   "evolvesTo": [],
   "prevo": 90,
+  "heightm": 1.5,
   "weightkg": 132.5
  },
  {
@@ -5303,6 +5394,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 1.3,
   "weightkg": 0.1
  },
  {
@@ -5356,6 +5448,7 @@
    }
   ],
   "prevo": 92,
+  "heightm": 1.6,
   "weightkg": 0.1
  },
  {
@@ -5414,6 +5507,7 @@
   ],
   "evolvesTo": [],
   "prevo": 93,
+  "heightm": 1.5,
   "weightkg": 40.5
  },
  {
@@ -5467,6 +5561,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 8.8,
   "weightkg": 210
  },
  {
@@ -5534,6 +5629,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 1,
   "weightkg": 32.4
  },
  {
@@ -5595,6 +5691,7 @@
   ],
   "evolvesTo": [],
   "prevo": 96,
+  "heightm": 1.6,
   "weightkg": 75.6
  },
  {
@@ -5655,6 +5752,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.4,
   "weightkg": 6.5
  },
  {
@@ -5709,6 +5807,7 @@
   ],
   "evolvesTo": [],
   "prevo": 98,
+  "heightm": 1.3,
   "weightkg": 60
  },
  {
@@ -5765,6 +5864,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.5,
   "weightkg": 10.4
  },
  {
@@ -5816,6 +5916,7 @@
   ],
   "evolvesTo": [],
   "prevo": 100,
+  "heightm": 1.2,
   "weightkg": 66.6
  },
  {
@@ -5874,6 +5975,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.4,
   "weightkg": 2.5
  },
  {
@@ -5929,6 +6031,7 @@
   ],
   "evolvesTo": [],
   "prevo": 102,
+  "heightm": 2,
   "weightkg": 120
  },
  {
@@ -5997,6 +6100,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.4,
   "weightkg": 6.5
  },
  {
@@ -6059,6 +6163,7 @@
   ],
   "evolvesTo": [],
   "prevo": 104,
+  "heightm": 1,
   "weightkg": 45
  },
  {
@@ -6112,6 +6217,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 1.5,
   "weightkg": 49.8
  },
  {
@@ -6164,6 +6270,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 1.4,
   "weightkg": 50.2
  },
  {
@@ -6229,6 +6336,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 1.2,
   "weightkg": 65.5
  },
  {
@@ -6281,6 +6389,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.6,
   "weightkg": 1
  },
  {
@@ -6327,6 +6436,7 @@
   ],
   "evolvesTo": [],
   "prevo": 109,
+  "heightm": 1.2,
   "weightkg": 9.5
  },
  {
@@ -6388,6 +6498,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 1,
   "weightkg": 115
  },
  {
@@ -6454,6 +6565,7 @@
   ],
   "evolvesTo": [],
   "prevo": 111,
+  "heightm": 1.9,
   "weightkg": 120
  },
  {
@@ -6526,6 +6638,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 1.1,
   "weightkg": 34.6
  },
  {
@@ -6579,6 +6692,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 1,
   "weightkg": 35
  },
  {
@@ -6641,6 +6755,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 2.2,
   "weightkg": 80
  },
  {
@@ -6697,6 +6812,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.4,
   "weightkg": 8
  },
  {
@@ -6747,6 +6863,7 @@
   ],
   "evolvesTo": [],
   "prevo": 116,
+  "heightm": 1.2,
   "weightkg": 25
  },
  {
@@ -6806,6 +6923,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.6,
   "weightkg": 15
  },
  {
@@ -6859,6 +6977,7 @@
   ],
   "evolvesTo": [],
   "prevo": 118,
+  "heightm": 1.3,
   "weightkg": 39
  },
  {
@@ -6925,6 +7044,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.8,
   "weightkg": 34.5
  },
  {
@@ -6986,6 +7106,7 @@
   ],
   "evolvesTo": [],
   "prevo": 120,
+  "heightm": 1.1,
   "weightkg": 80
  },
  {
@@ -7047,6 +7168,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 1.3,
   "weightkg": 54.5
  },
  {
@@ -7096,6 +7218,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 1.5,
   "weightkg": 56
  },
  {
@@ -7157,6 +7280,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 1.4,
   "weightkg": 40.6
  },
  {
@@ -7218,6 +7342,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 1.1,
   "weightkg": 30
  },
  {
@@ -7275,6 +7400,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 1.3,
   "weightkg": 44.5
  },
  {
@@ -7325,6 +7451,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 1.5,
   "weightkg": 55
  },
  {
@@ -7378,6 +7505,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 1.4,
   "weightkg": 88.4
  },
  {
@@ -7415,6 +7543,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.9,
   "weightkg": 10
  },
  {
@@ -7471,6 +7600,7 @@
   ],
   "evolvesTo": [],
   "prevo": 129,
+  "heightm": 6.5,
   "weightkg": 235
  },
  {
@@ -7531,6 +7661,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 2.5,
   "weightkg": 220
  },
  {
@@ -7559,6 +7690,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 0.3,
   "weightkg": 4
  },
  {
@@ -7626,6 +7758,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.3,
   "weightkg": 6.5
  },
  {
@@ -7684,6 +7817,7 @@
   ],
   "evolvesTo": [],
   "prevo": 133,
+  "heightm": 1,
   "weightkg": 29
  },
  {
@@ -7740,6 +7874,7 @@
   ],
   "evolvesTo": [],
   "prevo": 133,
+  "heightm": 0.8,
   "weightkg": 24.5
  },
  {
@@ -7794,6 +7929,7 @@
   ],
   "evolvesTo": [],
   "prevo": 133,
+  "heightm": 0.9,
   "weightkg": 25
  },
  {
@@ -7851,6 +7987,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 0.8,
   "weightkg": 36.5
  },
  {
@@ -7908,6 +8045,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.4,
   "weightkg": 7.5
  },
  {
@@ -7963,6 +8101,7 @@
   ],
   "evolvesTo": [],
   "prevo": 138,
+  "heightm": 1,
   "weightkg": 35
  },
  {
@@ -8021,6 +8160,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 0.5,
   "weightkg": 11.5
  },
  {
@@ -8080,6 +8220,7 @@
   ],
   "evolvesTo": [],
   "prevo": 140,
+  "heightm": 1.3,
   "weightkg": 40.5
  },
  {
@@ -8131,6 +8272,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 1.8,
   "weightkg": 59
  },
  {
@@ -8198,6 +8340,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 2.1,
   "weightkg": 460
  },
  {
@@ -8249,6 +8392,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 1.7,
   "weightkg": 55.4
  },
  {
@@ -8301,6 +8445,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 1.6,
   "weightkg": 52.6
  },
  {
@@ -8350,6 +8495,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 2,
   "weightkg": 60
  },
  {
@@ -8412,6 +8558,7 @@
    }
   ],
   "prevo": null,
+  "heightm": 1.8,
   "weightkg": 3.3
  },
  {
@@ -8475,6 +8622,7 @@
    }
   ],
   "prevo": 147,
+  "heightm": 4,
   "weightkg": 16.5
  },
  {
@@ -8534,6 +8682,7 @@
   ],
   "evolvesTo": [],
   "prevo": 148,
+  "heightm": 2.2,
   "weightkg": 210
  },
  {
@@ -8602,6 +8751,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 2,
   "weightkg": 122
  },
  {
@@ -8685,6 +8835,7 @@
   ],
   "evolvesTo": [],
   "prevo": null,
+  "heightm": 0.4,
   "weightkg": 4
  }
 ]

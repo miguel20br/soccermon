@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { setVolume } from './game/audio';
 import { useGame } from './store/game-store';
 import { CardModal } from './ui/components/CardModal';
@@ -8,12 +8,14 @@ import { Draft } from './ui/screens/Draft';
 import { Home } from './ui/screens/Home';
 import { Lineup } from './ui/screens/Lineup';
 import { Match } from './ui/screens/Match';
+import { PositionLab } from './ui/screens/PositionLab';
 import { Result } from './ui/screens/Result';
 import { Reward } from './ui/screens/Reward';
 import { Settings } from './ui/screens/Settings';
 
 export default function App() {
     const { screen, go, settings } = useGame();
+    const [lab, setLab] = useState(() => new URLSearchParams(window.location.search).get('lab') === 'posicoes');
 
     useEffect(() => {
         setVolume(settings.volume);
@@ -25,6 +27,18 @@ export default function App() {
         if (useGame.persist.hasHydrated()) runDevDemo();
         return unsub;
     }, []);
+
+    if (lab) {
+        const exit = () => {
+            window.history.replaceState(null, '', window.location.pathname);
+            setLab(false);
+        };
+        return (
+            <div className="app">
+                <PositionLab onExit={exit} />
+            </div>
+        );
+    }
 
     return (
         <div className="app">
