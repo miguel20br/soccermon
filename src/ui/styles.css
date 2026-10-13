@@ -1287,3 +1287,9 @@ button,
         animation: none;
     }
 }
+
+.error-text {
+    color: #ff9b7a;
+    font-size: 12px;
+    margin: 6px 0 0;
+}

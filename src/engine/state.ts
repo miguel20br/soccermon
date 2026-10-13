@@ -175,6 +175,8 @@ export type MatchEvent = MatchEventBase &
               target: number | null;
               effectiveness: number | null;
               hit: boolean;
+              /** Golpe usado com a bola (vira chute) ou sem (dividida/rajada). */
+              withBall: boolean;
           }
         | {
               type: 'status';
@@ -241,6 +243,8 @@ export interface MatchState {
     players: PlayerState[];
     /** Índices dos jogadores com habilidade de aura (Intimidate…) — evita varrer todos a cada cálculo. */
     auraHolders: number[];
+    /** Jogadores substituídos (com as estatísticas que fizeram antes de sair). */
+    subbedOut: PlayerState[];
     ball: BallState;
     score: [number, number];
     shootout: [number, number] | null;

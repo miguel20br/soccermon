@@ -18,7 +18,7 @@ export function Reward() {
     const reward = chosen !== null ? run.rewards[chosen] : null;
     const targets =
         reward?.kind === 'pokemon'
-            ? run.bench.map((u) => byUid.get(u)!).filter(Boolean)
+            ? run.bench.map((u) => byUid.get(u)!).filter((p) => p && p.uid !== run.captainUid)
             : [...run.lineup, ...run.bench].map((u) => byUid.get(u)!).filter(Boolean);
 
     return (
@@ -101,7 +101,13 @@ export function Reward() {
                                 <img className="pixel" src={cardSprite(p)} alt="" />
                                 <span>
                                     <b>{viewInstance(p).displayName}</b>
-                                    {p.item && <span className="muted"> (tem {ITEMS[p.item]?.name})</span>}
+                                    {p.item && (
+                                        <span className="muted">
+                                            {reward.kind === 'pokemon'
+                                                ? ` (${ITEMS[p.item]?.name} vai para o reforço)`
+                                                : ` (troca a ${ITEMS[p.item]?.name})`}
+                                        </span>
+                                    )}
                                 </span>
                             </button>
                         ))}

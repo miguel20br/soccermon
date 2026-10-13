@@ -1,7 +1,9 @@
 import { viewInstance } from '../engine/instance';
-import { isPerfectCup, type RunState, stageLabel } from '../store/game-store';
+import { isPerfectCup, type RunState } from '../store/game-store';
 
 export const SITE_URL = 'https://soccermon.vercel.app';
+
+const ELIMINATED_AT = ['nas oitavas de final', 'nas quartas de final', 'na semifinal', 'na final'];
 
 /** Resultado da copa em texto curto, estilo Wordle, para colar em qualquer lugar. */
 export function buildShareText(run: RunState): string {
@@ -11,7 +13,7 @@ export function buildShareText(run: RunState): string {
             ? isPerfectCup(run)
                 ? '🏆 COPA PERFEITA!'
                 : '🏆 Campeão!'
-            : `Caiu nas ${stageLabel(run.results.at(-1)?.stage ?? 0).toLowerCase()}`;
+            : `Caiu ${ELIMINATED_AT[run.results.at(-1)?.stage ?? 0] ?? 'na copa'}`;
     const lines = run.results.map((r) => {
         const pen = r.shootout ? ` (pên. ${r.shootout[0]}x${r.shootout[1]})` : '';
         return `${r.won ? '🟩' : '🟥'} ${r.score[0]}x${r.score[1]}${pen} ${r.opponent}`;

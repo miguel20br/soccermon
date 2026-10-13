@@ -36,7 +36,11 @@ export interface MatchSceneData {
     cries: CryStyle;
     speed: PlaybackSpeed;
     cinematic: boolean;
+    /** Espécies que podem entrar em campo (bancos inteiros): pré-carregadas para substituições. */
+    extraSpecies?: number[];
 }
+
+type PenaltyEvent = Extract<MatchEvent, { type: 'penalty' }>;
 
 const SPRITE_SCALE = 1.8;
 const TICK_RATE = FUTSAL_5.tickRate;
@@ -150,6 +154,13 @@ export class MatchScene extends Phaser.Scene {
     private recentImportantTick = Number.NEGATIVE_INFINITY;
     private importantTicks: number[] = [];
     private dramaTicks: number[] = [];
+    /** Disputa de pênaltis (acontece depois do último snapshot: a cena anima sozinha). */
+    private penalties: PenaltyEvent[] = [];
+    private fulltimeTick = Number.POSITIVE_INFINITY;
+    private shootoutOn = false;
+    private penaltyStage: number[] = [];
+    private linePos = new Map<number, { x: number; y: number }>();
+    private viewPos = new Map<number, { x: number; y: number }>();
     private uiScale = 1;
     private unbind?: () => void;
 
@@ -159,8 +170,7 @@ export class MatchScene extends Phaser.Scene {
 
     preload() {
         this.md = this.registry.get('matchData') as MatchSceneData;
-        const ids = new Set([...this.md.result.roster, ...this.md.result.finalRoster].map((p) => p.speciesId));
-        for (const id of ids) preloadSpecies(this, id);
+        for (const id of this.allSpecies()) preloadSpecies(this, id);
         for (const fx of new Set(Object.values(FX_BY_TYPE))) {
             if (!this.textures.exists(`fx-${fx}`)) this.load.image(`fx-${fx}`, `assets/fx/${fx}.png`);
         }
@@ -178,7 +188,7 @@ export class MatchScene extends Phaser.Scene {
             createSpeciesAnims(this, p.speciesId);
             this.players.push(this.createPlayerView(p.speciesId, p.team, p.name, p.shiny, p.captain));
         }
-        for (const p of result.finalRoster) createSpeciesAnims(this, p.speciesId);
+        for (const id of this.allSpecies()) createSpeciesAnims(this, id);
 
         this.ballShadow = this.add.ellipse(0, 0, 14, 6, 0x000000, 0.35);
         this.ballGlow = this.add.circle(0, 0, 13, 0xffffff, 0).setBlendMode(Phaser.BlendModes.ADD);
@@ -194,7 +204,9 @@ export class MatchScene extends Phaser.Scene {
         EventBus.on('match:skip', this.onSkip, this);
         EventBus.on('match:hold', this.onHold, this);
         EventBus.on('match:replace', this.onReplace, this);
+        EventBus.on('match:seek-fulltime', this.onSeekFulltime, this);
         this.unbind = () => {
+            EventBus.off('match:seek-fulltime', this.onSeekFulltime, this);
             EventBus.off('match:set-speed', this.onSpeed, this);
             EventBus.off('match:skip', this.onSkip, this);
             EventBus.off('match:hold', this.onHold, this);
@@ -209,12 +221,20 @@ export class MatchScene extends Phaser.Scene {
         EventBus.emit('current-scene-ready', this);
     }
 
+    private allSpecies(): Set<number> {
+        const { result, extraSpecies = [] } = this.md;
+        return new Set([...result.roster, ...result.finalRoster].map((p) => p.speciesId).concat(extraSpecies));
+    }
+
     private setTimeline(result: MatchResult) {
         this.snaps = result.snapshots;
         this.matchEvents = result.events;
         this.lastEventTick = this.matchEvents.at(-1)?.tick ?? 0;
         this.importantTicks = this.matchEvents.filter((e) => IMPORTANT.has(e.type)).map((e) => e.tick);
         this.dramaTicks = this.matchEvents.filter((e) => DRAMA.has(e.type)).map((e) => e.tick);
+        this.penalties = this.matchEvents.filter((e): e is PenaltyEvent => e.type === 'penalty');
+        this.fulltimeTick = this.matchEvents.find((e) => e.type === 'fulltime')?.tick ?? Number.POSITIVE_INFINITY;
+        this.penaltyStage = this.penalties.map((_, i) => this.penaltyStage[i] ?? 0);
     }
 
     private onSpeed(speed: PlaybackSpeed) {
@@ -227,9 +247,22 @@ export class MatchScene extends Phaser.Scene {
 
     /** Nova versão da partida (tática mudada): o passado é idêntico, então o cursor de eventos continua válido. */
     private onReplace(result: MatchResult) {
+        // a substituição do intervalo pode mudar com a nova tática: o finalRoster novo é o que vale
+        this.md = { ...this.md, result };
+        for (const p of result.finalRoster) {
+            if (this.textures.exists(atlasKey(p.speciesId))) createSpeciesAnims(this, p.speciesId);
+        }
         this.setTimeline(result);
         this.holdAt = Number.POSITIVE_INFINITY;
         // segurança: se algum evento novo ficou para trás do playback, pula para depois dele
+        this.eventCursor = this.matchEvents.findIndex((e) => e.tick > this.playTick);
+        if (this.eventCursor < 0) this.eventCursor = this.matchEvents.length;
+    }
+
+    /** (dev) Vai para 2 s antes do apito final, sem tocar os eventos pulados. */
+    private onSeekFulltime() {
+        if (!Number.isFinite(this.fulltimeTick)) return;
+        this.playTick = this.fulltimeTick - TICK_RATE * 2;
         this.eventCursor = this.matchEvents.findIndex((e) => e.tick > this.playTick);
         if (this.eventCursor < 0) this.eventCursor = this.matchEvents.length;
     }
@@ -343,14 +376,20 @@ export class MatchScene extends Phaser.Scene {
     update(time: number, delta: number) {
         if (this.ended || !this.snaps.length) return;
         const factor = this.currentSpeedFactor(time);
-        this.playTick = Math.min(this.playTick + (delta / 1000) * TICK_RATE * factor, this.holdAt);
+        this.playTick = Math.min(this.playTick + (delta / 1000) * TICK_RATE * factor, this.holdAt - 1e-3);
 
         while (this.eventCursor < this.matchEvents.length && this.matchEvents[this.eventCursor].tick <= this.playTick) {
             this.handleEvent(this.matchEvents[this.eventCursor++], false);
         }
 
         const { index, t } = this.locate(this.playTick);
-        this.applySnapshot(index, t, factor);
+        const inShootout = this.penalties.length > 0 && this.playTick >= this.fulltimeTick + TICK_RATE;
+        if (inShootout) {
+            if (!this.shootoutOn) this.startShootout();
+            this.updateShootout(factor);
+        } else {
+            this.applySnapshot(index, t, factor);
+        }
         this.battleBox.update(time, Math.max(1, factor));
 
         if (time - this.lastEmit > 120) {
@@ -360,6 +399,148 @@ export class MatchScene extends Phaser.Scene {
 
         const lastSnap = this.snaps[this.snaps.length - 1].tick;
         if (this.playTick > Math.max(lastSnap, this.lastEventTick) + TICK_RATE * 1.5) this.finish();
+    }
+
+    // ------------------------------------------------------------------ disputa de pênaltis
+    private ticksToMs(ticks: number, factor: number) {
+        return ((ticks / TICK_RATE) * 1000) / Math.max(factor, 0.2);
+    }
+
+    /** Posiciona um jogador (em metros) e, opcionalmente, troca a animação. */
+    private placeView(idx: number, x: number, y: number, facing?: number, anim?: string) {
+        const view = this.players[idx];
+        if (!view) return;
+        this.viewPos.set(idx, { x, y });
+        const px = toPx(x, y);
+        view.sprite.setPosition(px.x, px.y).setDepth(px.y);
+        view.shadow.setPosition(px.x, px.y + 1).setDepth(px.y - 2);
+        view.ring.setPosition(px.x, px.y + 1).setDepth(px.y - 1);
+        view.label.setPosition(px.x, px.y + 6).setDepth(5000);
+        view.badge.setPosition(px.x, px.y + 6 + view.label.height).setDepth(5001);
+        if (anim !== undefined && facing !== undefined) {
+            const key = `${view.speciesId}/${resolveAnim(view.speciesId, anim)}/${facing}`;
+            if (key !== view.currentKey) {
+                view.sprite.play(key);
+                view.currentKey = key;
+            }
+        }
+    }
+
+    private moveView(idx: number, to: { x: number; y: number }, facing: number, ms: number, endAnim = 'Idle') {
+        const from = this.viewPos.get(idx) ?? to;
+        const proxy = { x: from.x, y: from.y };
+        this.placeView(idx, from.x, from.y, facing, 'Walk');
+        this.tweens.add({
+            targets: proxy,
+            x: to.x,
+            y: to.y,
+            duration: ms,
+            ease: 'Sine.easeInOut',
+            onUpdate: () => this.placeView(idx, proxy.x, proxy.y),
+            onComplete: () => this.placeView(idx, to.x, to.y, facing, endAnim),
+        });
+    }
+
+    private moveBall(x: number, y: number, ms: number, onComplete?: () => void) {
+        const target = toPx(x, y);
+        this.tweens.add({
+            targets: this.ball,
+            x: target.x,
+            y: target.y - 4,
+            duration: ms,
+            ease: 'Quad.easeOut',
+            onUpdate: () => {
+                this.ball.rotation += 0.4;
+                this.ballShadow.setPosition(this.ball.x + 2, this.ball.y + 6);
+            },
+            onComplete,
+        });
+    }
+
+    /** Times perfilados no meio da quadra, câmera aproximando do gol. */
+    private startShootout() {
+        this.shootoutOn = true;
+        const { width } = FUTSAL_5.pitch;
+        for (const team of [0, 1] as const) {
+            const members = this.players.map((_, i) => i).filter((i) => this.players[i].team === team);
+            members.forEach((idx, k) => {
+                const pos = {
+                    x: 20.5 + (team === 0 ? -1.4 : 1.4),
+                    y: 3 + k * ((width - 6) / Math.max(1, members.length - 1)),
+                };
+                this.linePos.set(idx, pos);
+                this.placeView(idx, pos.x, pos.y, 2, 'Idle');
+            });
+        }
+        const spot = toPx(34, width / 2);
+        this.ball.setPosition(spot.x, spot.y - 4).setDepth(spot.y + 1);
+        this.ballShadow.setPosition(spot.x + 2, spot.y + 2);
+        this.ballGlow.setAlpha(0);
+        const cam = this.cameras.main;
+        const center = toPx(29.5, width / 2);
+        cam.pan(center.x, center.y, 700, 'Sine.easeInOut', true);
+        cam.zoomTo(1.35, 700, 'Sine.easeInOut', true);
+        this.battleBox.push('Disputa de pênaltis!');
+    }
+
+    private updateShootout(factor: number) {
+        this.penalties.forEach((pen, i) => {
+            if (this.penaltyStage[i] < 1 && this.playTick >= pen.tick - 48) {
+                this.penaltyStage[i] = 1;
+                this.preparePenalty(i, factor);
+            }
+            if (this.penaltyStage[i] < 2 && this.playTick >= pen.tick - 14) {
+                this.penaltyStage[i] = 2;
+                this.kickPenalty(pen, factor);
+            }
+        });
+    }
+
+    private preparePenalty(i: number, factor: number) {
+        const pen = this.penalties[i];
+        const prev = this.penalties[i - 1];
+        const { width } = FUTSAL_5.pitch;
+        if (prev) {
+            for (const idx of [prev.by, prev.gk]) {
+                const home = this.linePos.get(idx);
+                if (home) this.moveView(idx, home, 2, this.ticksToMs(16, factor));
+            }
+        }
+        this.moveView(pen.gk, { x: 39.5, y: width / 2 }, 6, this.ticksToMs(18, factor));
+        this.moveView(pen.by, { x: 32.8, y: width / 2 }, 2, this.ticksToMs(26, factor));
+        const spot = toPx(34, width / 2);
+        this.tweens.killTweensOf(this.ball);
+        this.ball.setPosition(spot.x, spot.y - 4);
+        this.ballShadow.setPosition(spot.x + 2, spot.y + 2);
+        this.battleBox.push(`${this.players[pen.by]?.name ?? '?'} vai para a bola...`);
+    }
+
+    private kickPenalty(pen: PenaltyEvent, factor: number) {
+        const { width } = FUTSAL_5.pitch;
+        const mid = width / 2;
+        const side = (pen.round + pen.by) % 2 === 0 ? 1 : -1;
+        const dive = pen.scored ? -side : side;
+        playSfx('shot');
+        this.placeView(pen.by, 33.4, mid, 2, 'Attack');
+        // goleiro mergulha para um lado
+        const gk = this.viewPos.get(pen.gk) ?? { x: 39.5, y: mid };
+        const proxy = { ...gk };
+        this.placeView(pen.gk, gk.x, gk.y, dive > 0 ? 0 : 4, 'Attack');
+        this.tweens.add({
+            targets: proxy,
+            y: mid + dive * 1.1,
+            x: 39.3,
+            duration: this.ticksToMs(8, factor),
+            ease: 'Quad.easeOut',
+            onUpdate: () => this.placeView(pen.gk, proxy.x, proxy.y),
+        });
+        if (pen.scored) {
+            this.moveBall(40.6, mid + side * 1.1, this.ticksToMs(9, factor));
+        } else {
+            this.moveBall(39.3, mid + side * 1.0, this.ticksToMs(8, factor), () =>
+                this.moveBall(36.5, mid + side * 3.5, this.ticksToMs(14, factor)),
+            );
+        }
     }
 
     private currentSpeedFactor(now: number): number {
@@ -627,6 +808,14 @@ export class MatchScene extends Phaser.Scene {
                 break;
             case 'penalty':
                 playSfx(e.scored ? 'goal' : 'save');
+                if (this.shootoutOn) {
+                    const mid = FUTSAL_5.pitch.width / 2;
+                    const shooter = this.viewPos.get(e.by) ?? { x: 33.4, y: mid };
+                    const keeper = this.viewPos.get(e.gk) ?? { x: 39.3, y: mid };
+                    this.placeView(e.by, shooter.x, shooter.y, e.scored ? 0 : 2, e.scored ? 'Hop' : 'Hurt');
+                    this.placeView(e.gk, keeper.x, keeper.y, 6, e.scored ? 'Hurt' : 'Hop');
+                    if (e.scored) playCry(this.players[e.by]?.speciesId ?? 1, cries, 1);
+                }
                 if (cinematic) {
                     this.cine.drama(e.scored ? 'É GOL!' : 'PEGOU!', {
                         color: e.scored ? '#ffffff' : '#9be7ff',

@@ -52,6 +52,11 @@ export interface RunState {
     stage: number;
     results: StageResult[];
     rewards: Reward[];
+    /**
+     * Partida iniciada e ainda sem resultado: o time fica travado até o apito final
+     * (sair no meio e voltar retoma a mesma partida, sem trocar escalação).
+     */
+    lockedTeam: TeamSetup | null;
 }
 
 export interface Settings {
@@ -89,6 +94,7 @@ interface GameStore {
     setTactic(t: Tactic): void;
     moveItem(fromUid: string, toUid: string): void;
     setMatch(m: MatchResult | null): void;
+    lockMatch(team: TeamSetup): void;
     recordResult(m: MatchResult): void;
     claimReward(index: number, targetUid: string): void;
     skipReward(): void;
@@ -184,6 +190,7 @@ export const useGame = create<GameStore>()(
                         stage: 0,
                         results: [],
                         rewards: [],
+                        lockedTeam: null,
                     };
                     setState({ run, match: null, screen: 'draft' });
                 },
@@ -278,9 +285,15 @@ export const useGame = create<GameStore>()(
 
                 setMatch: (match) => setState({ match }),
 
+                lockMatch: (team) => {
+                    const run = getState().run;
+                    if (run?.status === 'lineup' && !run.lockedTeam) updateRun({ lockedTeam: team });
+                },
+
                 recordResult: (m) => {
                     const { run, records } = getState();
-                    if (!run || run.results.some((r) => r.stage === run.stage)) return;
+                    // só registra partidas da fase atual de uma run em escalação (evita resultado "fantasma")
+                    if (run?.status !== 'lineup' || run.results.some((r) => r.stage === run.stage)) return;
                     const won = m.winner === 0;
                     const result: StageResult = {
                         stage: run.stage,
@@ -291,7 +304,7 @@ export const useGame = create<GameStore>()(
                     };
                     const last = run.stage === CUP_STAGES.length - 1;
                     const status: RunStatus = !won ? 'eliminated' : last ? 'champion' : 'reward';
-                    const next: RunState = { ...run, results: [...run.results, result], status };
+                    const next: RunState = { ...run, results: [...run.results, result], status, lockedTeam: null };
                     if (status === 'reward') {
                         next.rewards = rewardOptions(run.seed, run.stage, 0, run.picks);
                     }
@@ -315,11 +328,14 @@ export const useGame = create<GameStore>()(
                     let picks = run.picks;
                     let bench = run.bench;
                     if (reward.kind === 'pokemon') {
-                        // reforço entra no banco no lugar do reserva escolhido
+                        // reforço entra no banco no lugar do reserva escolhido (nunca o capitão);
+                        // o item do reserva que sai passa para o reforço
                         const benchIdx = run.bench.indexOf(targetUid);
-                        if (benchIdx < 0) return;
-                        bench = run.bench.map((u, i) => (i === benchIdx ? reward.inst.uid : u));
-                        picks = [...run.picks.filter((p) => p.uid !== targetUid), reward.inst];
+                        if (benchIdx < 0 || targetUid === run.captainUid) return;
+                        const leaving = run.picks.find((p) => p.uid === targetUid);
+                        const incoming = { ...reward.inst, item: reward.inst.item ?? leaving?.item ?? null };
+                        bench = run.bench.map((u, i) => (i === benchIdx ? incoming.uid : u));
+                        picks = [...run.picks.filter((p) => p.uid !== targetUid), incoming];
                     } else {
                         picks = run.picks.map((p) => (p.uid === targetUid ? { ...p, item: reward.item } : p));
                     }
@@ -381,7 +397,8 @@ export const useGame = create<GameStore>()(
                 } as Settings;
                 const records = old.records ?? { cups: 0, titles: 0, perfect: 0 };
                 if (version < 3) return { run: null, settings, records };
-                return { run: old.run ?? null, settings, records };
+                const run = old.run ? { ...old.run, lockedTeam: old.run.lockedTeam ?? null } : null;
+                return { run, settings, records };
             },
         },
     ),

@@ -146,6 +146,7 @@ export function PokeCard({ inst, onClick, position, captain, selected }: PokeCar
               tabIndex: 0,
               onClick,
               onKeyDown: (e: React.KeyboardEvent) => {
+                  if (e.target !== e.currentTarget) return;
                   if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
                       onClick();

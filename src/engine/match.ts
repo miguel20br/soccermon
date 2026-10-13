@@ -168,6 +168,7 @@ export function createMatch(cfg: MatchConfig, home: TeamSetup, away: TeamSetup, 
         ],
         players,
         auraHolders: [],
+        subbedOut: [],
         ball: {
             pos: v(cfg.pitch.length / 2, cfg.pitch.width / 2),
             vel: v(0, 0),
@@ -396,7 +397,9 @@ function applyMovement(s: MatchState, p: PlayerState, dir: Vec2, sprint: boolean
     p.vel = add(p.vel, dv);
     p.pos = add(p.pos, scale(p.vel, dt));
     const { length, width } = s.cfg.pitch;
-    p.pos = v(clamp(p.pos.x, -0.3, length + 0.3), clamp(p.pos.y, 0.2, width - 0.2));
+    // goleiro pode pisar na linha; quem conduz a bola fica dentro da quadra
+    const margin = s.ball.owner === p.idx ? -0.4 : 0.3;
+    p.pos = v(clamp(p.pos.x, -margin, length + margin), clamp(p.pos.y, 0.2, width - 0.2));
     if (len(p.vel) > 0.3) {
         p.heading = norm(p.vel);
         p.facing = dir8(p.heading, p.facing);
@@ -585,7 +588,12 @@ export function applyStatus(
     source: string,
 ): boolean {
     if (target.status || isStatusImmune(target.ability, status)) return false;
-    if (!target.itemUsed && (target.item === 'lumberry' || (target.item === 'focussash' && target.role !== 'GK'))) {
+    const selfInflicted = by === target.idx;
+    if (
+        !selfInflicted &&
+        !target.itemUsed &&
+        (target.item === 'lumberry' || (target.item === 'focussash' && target.role !== 'GK'))
+    ) {
         target.itemUsed = true;
         emit(s, {
             type: 'item',
@@ -760,7 +768,10 @@ function performMove(s: MatchState, p: PlayerState, slot: number) {
                     (prof.data.type === 'Electric' && target.sp.types.includes('Ground')) ||
                     (moveId.endsWith('powder') || moveId === 'spore' ? target.sp.types.includes('Grass') : false);
                 hit = !immuneByType && s.rng.chance(chance);
-                if (hit) hit = applyStatus(s, target, prof.status, p.idx, moveId);
+                if (hit) {
+                    const itemBefore = target.itemUsed;
+                    hit = applyStatus(s, target, prof.status, p.idx, moveId) || target.itemUsed !== itemBefore;
+                }
             }
             break;
         case 'heal':
@@ -780,7 +791,16 @@ function performMove(s: MatchState, p: PlayerState, slot: number) {
     if (target && effectiveness === null && prof.data.category !== 'Status') {
         effectiveness = typeMultiplier([prof.data.type], target.sp.types);
     }
-    emit(s, { type: 'move', by: p.idx, moveId, kind: prof.kind, target: target?.idx ?? null, effectiveness, hit });
+    emit(s, {
+        type: 'move',
+        by: p.idx,
+        moveId,
+        kind: prof.kind,
+        target: target?.idx ?? null,
+        effectiveness,
+        hit,
+        withBall: hasBall,
+    });
 }
 
 // ---------------------------------------------------------------- bola
@@ -1050,6 +1070,7 @@ function halftimeSubs(s: MatchState) {
             const inst = rt.bench.shift();
             if (!inst) break;
             const fresh = createPlayer(out.idx, team, out.slot, inst, out.role, teamBonuses(rt.setup));
+            s.subbedOut.push(out);
             fresh.pos = out.pos;
             const outName = out.name;
             s.players[out.idx] = fresh;

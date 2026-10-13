@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { setVolume } from './game/audio';
 import { useGame } from './store/game-store';
+import { runDevDemo } from './ui/dev-demo';
 import { Credits } from './ui/screens/Credits';
 import { Draft } from './ui/screens/Draft';
 import { Home } from './ui/screens/Home';
@@ -16,6 +17,13 @@ export default function App() {
     useEffect(() => {
         setVolume(settings.volume);
     }, [settings.volume]);
+
+    useEffect(() => {
+        // espera o save do IndexedDB carregar antes de montar a demo
+        const unsub = useGame.persist.onFinishHydration(() => runDevDemo());
+        if (useGame.persist.hasHydrated()) runDevDemo();
+        return unsub;
+    }, []);
 
     return (
         <div className="app">

@@ -20,10 +20,7 @@ export function Result() {
     const won = match.winner === 0;
 
     // estatísticas somam quem começou e quem entrou
-    const everyone = [
-        ...match.finalRoster,
-        ...match.roster.filter((r) => !match.finalRoster.some((f) => f.uid === r.uid)),
-    ];
+    const everyone = [...match.finalRoster, ...(match.subbedOut ?? [])];
     const sum = (team: 0 | 1, key: keyof PlayerSummary['stats']) =>
         everyone.filter((p) => p.team === team).reduce((s, p) => s + p.stats[key], 0);
     const mvp = [...everyone].sort((a, b) => mvpScore(b) - mvpScore(a))[0];

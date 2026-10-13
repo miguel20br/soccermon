@@ -19,7 +19,8 @@ export const TACTIC_DESC: Record<Tactic, string> = {
 };
 
 export function Lineup() {
-    const { run, swapSlots, setTactic, setFormation, moveItem, setMatch, go, abandonRun } = useGame();
+    const { run, swapSlots, setTactic, setFormation, moveItem, setMatch, go, abandonRun, lockMatch } = useGame();
+    const [error, setError] = useState<string | null>(null);
     const [selected, setSelected] = useState<SlotRef | null>(null);
     const [detail, setDetail] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -31,8 +32,12 @@ export function Lineup() {
     const synergies = computeSynergies(run.lineup.map((u) => byUid.get(u)!));
     const holders = run.picks.filter((p) => p.uid !== detailInst?.uid);
 
+    const locked = !!run.lockedTeam;
+    const captainBenched = !!run.captainUid && run.bench.includes(run.captainUid);
+
     const onSlot = (ref: SlotRef, uid: string) => {
         setDetail(uid);
+        if (locked) return;
         if (!selected) {
             setSelected(ref);
             return;
@@ -45,11 +50,25 @@ export function Lineup() {
     };
 
     const play = async () => {
+        const seed = run.seed;
+        const stage = run.stage;
+        // a partida trava o time: sair no meio e voltar retoma a mesma partida
+        const team = run.lockedTeam ?? playerTeam(run);
+        lockMatch(team);
         setLoading(true);
-        const result = await simulateMatch(playerTeam(run), opponent, `${run.seed}-stage-${run.stage}`);
-        setMatch(result);
-        setLoading(false);
-        go('match');
+        setError(null);
+        try {
+            const result = await simulateMatch(team, opponent, `${seed}-stage-${stage}`);
+            // só abre a partida se o jogador ainda está nesta tela, nesta run e nesta fase
+            const now = useGame.getState();
+            if (now.screen !== 'lineup' || now.run?.seed !== seed || now.run.stage !== stage) return;
+            setMatch(result);
+            go('match');
+        } catch {
+            setError('Não foi possível simular a partida. Tente de novo (recarregue a página se persistir).');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -84,6 +103,7 @@ export function Lineup() {
                                 key={f.id}
                                 type="button"
                                 className={`btn small${run.formation === f.id ? ' active' : ''}`}
+                                disabled={locked}
                                 onClick={() => setFormation(f.id)}
                             >
                                 {f.name}
@@ -135,8 +155,18 @@ export function Lineup() {
                             )}
                         </p>
                         <button type="button" className="btn primary wide" onClick={play} disabled={loading}>
-                            {loading ? 'Aquecendo…' : `Jogar ${stageLabel(run.stage).toLowerCase()}`}
+                            {loading
+                                ? 'Aquecendo…'
+                                : locked
+                                  ? 'Voltar para a partida'
+                                  : `Jogar ${stageLabel(run.stage).toLowerCase()}`}
                         </button>
+                        {locked && (
+                            <p className="tactic-desc">
+                                Partida em andamento: escalação e tática ficam travadas até o apito final.
+                            </p>
+                        )}
+                        {error && <p className="error-text">{error}</p>}
                     </div>
 
                     <div className="panel">
@@ -147,6 +177,7 @@ export function Lineup() {
                                     key={t}
                                     type="button"
                                     className={`btn small${run.tactic === t ? ' active' : ''}`}
+                                    disabled={locked}
                                     onClick={() => setTactic(t)}
                                 >
                                     {TACTIC_LABEL[t]}
@@ -154,6 +185,9 @@ export function Lineup() {
                             ))}
                         </div>
                         <p className="tactic-desc">{TACTIC_DESC[run.tactic]} Dá para mudar durante o jogo.</p>
+                        {captainBenched && (
+                            <p className="error-text">O capitão está no banco: a aura dele só vale em quadra.</p>
+                        )}
                         <h3 style={{ marginTop: 12 }}>Sinergias de tipo</h3>
                         {synergies.length === 0 ? (
                             <p className="tactic-desc">Escale 2+ titulares do mesmo tipo para ganhar bônus.</p>
@@ -184,6 +218,7 @@ export function Lineup() {
                                         Passar para{' '}
                                         <select
                                             value=""
+                                            disabled={locked}
                                             onChange={(e) => e.target.value && moveItem(detailInst.uid, e.target.value)}
                                         >
                                             <option value="">…</option>

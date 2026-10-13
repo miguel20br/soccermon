@@ -13,7 +13,7 @@ export const FOCUS_DEPTH = 7100;
 export class Cinematics {
     readonly focused = new Set<number>();
     private readonly dim: Phaser.GameObjects.Rectangle;
-    private readonly spots: Phaser.GameObjects.Image[] = [];
+    private readonly spots = new Map<number, Phaser.GameObjects.Image>();
     private banner: Phaser.GameObjects.Container | null = null;
     private spotlightUntil = 0;
     private slowFrom = 0;
@@ -82,6 +82,8 @@ export class Cinematics {
         this.scene.tweens.add({ targets: this.dim, fillAlpha: 0.58, duration: extending ? 60 : 160 });
 
         for (const [i, f] of opts.focus.entries()) {
+            // o mesmo Pokémon já em foco reaproveita a luz dele
+            if (this.spots.has(f.idx)) continue;
             const spot = this.scene.add
                 .image(f.x, f.y - 14, 'spotlight')
                 .setDepth(FOCUS_DEPTH - 50)
@@ -90,7 +92,7 @@ export class Cinematics {
                 .setScale(0)
                 .setAlpha(0.95);
             this.scene.tweens.add({ targets: spot, scale: i === 0 ? 0.75 : 0.55, duration: 180, ease: 'Back.easeOut' });
-            this.spots.push(spot);
+            this.spots.set(f.idx, spot);
         }
         this.showBanner(opts.userName, opts.moveName, opts.color, duration);
         this.slowMotion(now, 0.3, duration);
@@ -102,19 +104,19 @@ export class Cinematics {
 
     /** Atualiza a posição das luzes para acompanhar os Pokémon em destaque. */
     followSpots(positions: Map<number, { x: number; y: number }>) {
-        const ids = [...this.focused];
-        this.spots.forEach((spot, i) => {
-            const p = positions.get(ids[i]);
+        for (const [idx, spot] of this.spots) {
+            const p = positions.get(idx);
             if (p) spot.setPosition(p.x, p.y - 14);
-        });
+        }
     }
 
     private clearSpotlight() {
         this.focused.clear();
         this.scene.tweens.add({ targets: this.dim, fillAlpha: 0, duration: 250 });
-        for (const spot of this.spots.splice(0)) {
+        for (const spot of this.spots.values()) {
             this.scene.tweens.add({ targets: spot, alpha: 0, duration: 250, onComplete: () => spot.destroy() });
         }
+        this.spots.clear();
     }
 
     private showBanner(userName: string, moveName: string, color: number, duration: number) {

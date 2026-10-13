@@ -40,6 +40,11 @@ export function Match() {
     const [ended, setEnded] = useState(false);
     const [changes, setChanges] = useState<TacticChange[]>([]);
     const [pending, setPending] = useState(false);
+    /** A cena Phaser só escuta comandos depois de carregar; até lá os controles ficam travados. */
+    const [sceneReady, setSceneReady] = useState(false);
+    const [fulltime, setFulltime] = useState(false);
+    const [tacticError, setTacticError] = useState<string | null>(null);
+    const alive = useRef(true);
     const [feedOpen, setFeedOpen] = useState(true);
     const latest = useRef<MatchResult | null>(match);
     const recorded = useRef(false);
@@ -56,7 +61,14 @@ export function Match() {
     const sceneData = useMemo<MatchSceneData | null>(
         () =>
             match
-                ? { result: match, colors, cries: settings.cries, speed: settings.speed, cinematic: settings.cinematic }
+                ? {
+                      result: match,
+                      colors,
+                      cries: settings.cries,
+                      speed: settings.speed,
+                      cinematic: settings.cinematic,
+                      extraSpecies: [...(run?.picks ?? []), ...(opponent?.bench ?? [])].map((p) => p.speciesId),
+                  }
                 : null,
         [match?.seed],
     );
@@ -64,6 +76,13 @@ export function Match() {
     useEffect(() => {
         setVolume(settings.volume);
     }, [settings.volume]);
+
+    useEffect(() => {
+        alive.current = true;
+        return () => {
+            alive.current = false;
+        };
+    }, []);
 
     // o resultado só vale no apito final (pode mudar com a tática ao vivo). Sair antes não grava nada:
     // a fase continua aberta e, com a mesma seed, a partida se repete igual.
@@ -98,12 +117,19 @@ export function Match() {
             const line = commentator.lineFor(e);
             if (line) setLines((prev) => [{ ...line, id: lineId.current++ }, ...prev].slice(0, 200));
             if (e.type === 'penalty') setShootout(e.shootout);
+            if (e.type === 'fulltime') setFulltime(true);
         };
         const onTick = (t: Clock) => {
             tickRef.current = t.tick;
             setClock(t);
         };
         const onEnded = () => setEnded(true);
+        const onReady = () => {
+            setSceneReady(true);
+            // velocidade escolhida antes da cena carregar
+            EventBus.emit('match:set-speed', useGame.getState().settings.speed);
+        };
+        EventBus.on('current-scene-ready', onReady);
         EventBus.on('match:event', onEvent);
         EventBus.on('match:tick', onTick);
         EventBus.on('match:ended', onEnded);
@@ -111,10 +137,15 @@ export function Match() {
             EventBus.off('match:event', onEvent);
             EventBus.off('match:tick', onTick);
             EventBus.off('match:ended', onEnded);
+            EventBus.off('current-scene-ready', onReady);
         };
     }, [match?.seed]);
 
     if (!run || !match || !sceneData || !opponent) return null;
+
+    const lockedSetup = run.lockedTeam ?? playerTeam(run);
+    // trocas só no tempo normal e com folga antes do apito (senão nunca entrariam no motor)
+    const canChangeTactic = sceneReady && !pending && !ended && !fulltime && clock.minute < 38.5;
 
     const setSpeed = (speed: PlaybackSpeed) => {
         updateSettings({ speed });
@@ -123,24 +154,38 @@ export function Match() {
 
     /** Tática ao vivo: agenda a mudança um pouco à frente e resimula a partida com ela. */
     const changeTactic = async (tactic: Tactic) => {
-        if (pending || ended || tactic === currentTactic || changes.length >= MAX_TACTIC_CHANGES) return;
-        const speedMult = typeof settings.speed === 'number' ? settings.speed : 4;
-        const tick = Math.ceil(tickRef.current + CHANGE_LEAD_TICKS * speedMult);
+        if (!canChangeTactic || tactic === currentTactic || changes.length >= MAX_TACTIC_CHANGES) return;
+        const speedMult = typeof settings.speed === 'number' ? settings.speed : 10;
+        // sempre depois da troca anterior, para a ordem do motor bater com a da tela
+        const tick = Math.max(
+            Math.ceil(tickRef.current + CHANGE_LEAD_TICKS * speedMult),
+            (changes.at(-1)?.tick ?? 0) + 1,
+        );
         const schedule = [...changes, { tick, team: 0 as const, tactic }];
+        const seed = match.seed;
         setPending(true);
+        setTacticError(null);
         EventBus.emit('match:hold', tick);
-        const result = await simulateMatch(playerTeam(run), opponent, `${run.seed}-stage-${run.stage}`, schedule);
-        setChanges(schedule);
-        latest.current = result;
-        setMatch(result);
-        EventBus.emit('match:replace', result);
-        setPending(false);
+        try {
+            const result = await simulateMatch(lockedSetup, opponent, `${run.seed}-stage-${run.stage}`, schedule);
+            if (!alive.current || useGame.getState().match?.seed !== seed) return;
+            setChanges(schedule);
+            latest.current = result;
+            setMatch(result);
+            EventBus.emit('match:replace', result);
+        } catch {
+            // libera o playback com a partida que já estava valendo
+            if (alive.current && latest.current) EventBus.emit('match:replace', latest.current);
+            if (alive.current) setTacticError('Não deu para trocar a tática agora.');
+        } finally {
+            if (alive.current) setPending(false);
+        }
     };
 
     const clockLabel =
         clock.phase === 'halftime'
             ? 'Intervalo'
-            : clock.phase === 'fulltime' || ended
+            : clock.phase === 'fulltime' || fulltime || ended
               ? shootout
                   ? `Pênaltis ${shootout[0]} x ${shootout[1]}`
                   : 'Fim de jogo'
@@ -180,6 +225,7 @@ export function Match() {
                                     key={s.label}
                                     type="button"
                                     className={`btn small${settings.speed === s.value ? ' active' : ''}`}
+                                    disabled={!sceneReady}
                                     onClick={() => setSpeed(s.value)}
                                 >
                                     {s.label}
@@ -193,8 +239,7 @@ export function Match() {
                                     type="button"
                                     className={`btn small${currentTactic === t ? ' active' : ''}`}
                                     disabled={
-                                        pending ||
-                                        ended ||
+                                        !canChangeTactic ||
                                         (changes.length >= MAX_TACTIC_CHANGES && currentTactic !== t)
                                     }
                                     onClick={() => changeTactic(t)}
@@ -202,6 +247,7 @@ export function Match() {
                                     {TACTIC_LABEL[t]}
                                 </button>
                             ))}
+                            {tacticError && <span className="error-text tactic-left">{tacticError}</span>}
                             <span className="muted tactic-left">
                                 {pending ? 'mudando…' : `${MAX_TACTIC_CHANGES - changes.length} trocas`}
                             </span>
@@ -211,7 +257,7 @@ export function Match() {
                                 <button
                                     type="button"
                                     className="btn small ghost"
-                                    disabled={pending}
+                                    disabled={pending || !sceneReady}
                                     onClick={() => EventBus.emit('match:skip')}
                                 >
                                     Pular para o fim

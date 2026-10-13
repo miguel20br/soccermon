@@ -266,6 +266,36 @@ describe('iteração 3: posições, formações, capitão, itens, tática ao viv
         expect(changed.events.some((e) => e.type === 'tactic' && e.tick === T && e.team === 0)).toBe(true);
     });
 
+    it('estatísticas de quem saiu no intervalo entram no resultado (gols batem com o placar)', () => {
+        // times com reservas e titulares de pouco fôlego: substituição no intervalo é comum
+        const tired: TeamSetup = { ...home, tactic: 'offensive' };
+        let checked = 0;
+        for (let seed = 1; seed <= 60 && checked < 2; seed++) {
+            const r = runMatch(FUTSAL_5, tired, { ...away, tactic: 'offensive' }, seed, { snapshots: false });
+            const everyone = [...r.finalRoster, ...r.subbedOut];
+            for (const team of [0, 1] as const) {
+                const ownGoals = r.events.filter((e) => e.type === 'goal' && e.team === team && e.ownGoal).length;
+                const scored = everyone.filter((p) => p.team === team).reduce((s, p) => s + p.stats.goals, 0);
+                expect(scored + ownGoals).toBe(r.score[team]);
+            }
+            checked += r.subbedOut.length;
+        }
+        expect(checked).toBeGreaterThan(0);
+    });
+
+    it('quem conduz a bola nunca sai da quadra', () => {
+        const live = new LiveRunner(FUTSAL_5, home, away, 21);
+        while (!live.finished) {
+            live.step();
+            const s = live.state;
+            if (s.ball.owner !== null && s.phase === 'play') {
+                const x = s.players[s.ball.owner].pos.x;
+                expect(x).toBeGreaterThanOrEqual(0.39);
+                expect(x).toBeLessThanOrEqual(40 - 0.39);
+            }
+        }
+    });
+
     it('recompensas são determinísticas pela seed e trazem 1 reforço + 2 itens', () => {
         const a = rewardOptions('seed', 0, 0, home.lineup);
         const b = rewardOptions('seed', 0, 0, home.lineup);

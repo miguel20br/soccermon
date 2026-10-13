@@ -27,14 +27,16 @@ export interface MatchResult {
     roster: PlayerSummary[];
     /** Elenco ao final (após substituições). */
     finalRoster: PlayerSummary[];
+    /** Quem saiu no intervalo, com as estatísticas do 1º tempo. */
+    subbedOut: PlayerSummary[];
     possession: [number, number];
     ticks: number;
 }
 
 const MAX_TICKS = 200_000;
 
-function summarize(s: MatchState): PlayerSummary[] {
-    return s.players.map((p) => ({
+function summarize(s: MatchState, players = s.players): PlayerSummary[] {
+    return players.map((p) => ({
         idx: p.idx,
         team: p.team,
         uid: p.inst.uid,
@@ -78,6 +80,7 @@ export function runMatch(
         snapshots,
         roster,
         finalRoster: summarize(s),
+        subbedOut: summarize(s, s.subbedOut),
         possession: [s.teams[0].possessionTicks / total, s.teams[1].possessionTicks / total],
         ticks: s.tick,
     };

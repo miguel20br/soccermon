@@ -174,6 +174,7 @@ export class Commentator {
                     case 'status':
                         return e.hit ? null : line(`${who} usa ${move}... errou!`, 'minor', team);
                     case 'strike':
+                        if (e.withBall) return line(`${who} carrega ${move} no pé!`, 'normal', team);
                         return e.target === null && !e.hit
                             ? null
                             : line(`${who} chega com ${move} na dividida!${suffix}`, 'normal', team);
