@@ -1,0 +1,46 @@
+{
+  "name": "soccermon",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Fan game sem fins lucrativos: draft de Pokémon Gen 1 + futsal 5v5 simulado.",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --config vite/config.dev.mjs",
+    "build": "tsc --noEmit && vite build --config vite/config.prod.mjs",
+    "preview": "vite preview --config vite/config.prod.mjs",
+    "test": "vitest run",
+    "lint": "biome check src scripts",
+    "format": "biome format --write src scripts",
+    "data": "tsx scripts/build-data.ts",
+    "assets:cards": "tsx scripts/fetch-sprites.ts",
+    "assets:field": "tsx scripts/build-pmd-atlas.ts",
+    "assets:audio": "tsx scripts/fetch-audio.ts",
+    "calibrate": "tsx scripts/calibrate.ts"
+  },
+  "dependencies": {
+    "galmuri": "^2.40.3",
+    "idb-keyval": "^6.3.0",
+    "motion": "^14.2.0",
+    "phaser": "^4.2.1",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "zustand": "^5.0.15",
+    "zzfx": "^1.4.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.15",
+    "@pkmn/data": "^0.10.11",
+    "@pkmn/dex": "^0.10.11",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "fast-xml-parser": "^5.11.2",
+    "sharp": "^0.35.5",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.4"
+  }
+}

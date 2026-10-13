@@ -1,0 +1,8690 @@
+[
+ {
+  "id": 1,
+  "slug": "bulbasaur",
+  "name": "Bulbasaur",
+  "types": [
+   "Grass",
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 45,
+   "atk": 49,
+   "def": 49,
+   "spa": 65,
+   "spd": 65,
+   "spe": 45
+  },
+  "bst": 318,
+  "tier": "common",
+  "abilities": [
+   "overgrow",
+   "chlorophyll"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "cut",
+   "doubleedge",
+   "doubleteam",
+   "growl",
+   "growth",
+   "leechseed",
+   "megadrain",
+   "mimic",
+   "poisonpowder",
+   "rage",
+   "razorleaf",
+   "reflect",
+   "rest",
+   "sleeppowder",
+   "solarbeam",
+   "substitute",
+   "swordsdance",
+   "tackle",
+   "takedown",
+   "toxic",
+   "vinewhip"
+  ],
+  "evolvesTo": [
+   {
+    "id": 2,
+    "level": 16,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 6.9
+ },
+ {
+  "id": 2,
+  "slug": "ivysaur",
+  "name": "Ivysaur",
+  "types": [
+   "Grass",
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 60,
+   "atk": 62,
+   "def": 63,
+   "spa": 80,
+   "spd": 80,
+   "spe": 60
+  },
+  "bst": 405,
+  "tier": "uncommon",
+  "abilities": [
+   "overgrow",
+   "chlorophyll"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "cut",
+   "doubleedge",
+   "doubleteam",
+   "growl",
+   "growth",
+   "leechseed",
+   "megadrain",
+   "mimic",
+   "poisonpowder",
+   "rage",
+   "razorleaf",
+   "reflect",
+   "rest",
+   "sleeppowder",
+   "solarbeam",
+   "substitute",
+   "swordsdance",
+   "tackle",
+   "takedown",
+   "toxic",
+   "vinewhip"
+  ],
+  "evolvesTo": [
+   {
+    "id": 3,
+    "level": 32,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": 1,
+  "weightkg": 13
+ },
+ {
+  "id": 3,
+  "slug": "venusaur",
+  "name": "Venusaur",
+  "types": [
+   "Grass",
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 80,
+   "atk": 82,
+   "def": 83,
+   "spa": 100,
+   "spd": 100,
+   "spe": 80
+  },
+  "bst": 525,
+  "tier": "rare",
+  "abilities": [
+   "overgrow",
+   "chlorophyll"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "cut",
+   "doubleedge",
+   "doubleteam",
+   "growl",
+   "growth",
+   "hyperbeam",
+   "leechseed",
+   "megadrain",
+   "mimic",
+   "poisonpowder",
+   "rage",
+   "razorleaf",
+   "reflect",
+   "rest",
+   "sleeppowder",
+   "solarbeam",
+   "substitute",
+   "swordsdance",
+   "tackle",
+   "takedown",
+   "toxic",
+   "vinewhip"
+  ],
+  "evolvesTo": [],
+  "prevo": 2,
+  "weightkg": 100
+ },
+ {
+  "id": 4,
+  "slug": "charmander",
+  "name": "Charmander",
+  "types": [
+   "Fire"
+  ],
+  "baseStats": {
+   "hp": 39,
+   "atk": 52,
+   "def": 43,
+   "spa": 60,
+   "spd": 50,
+   "spe": 65
+  },
+  "bst": 309,
+  "tier": "common",
+  "abilities": [
+   "blaze",
+   "solarpower"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "counter",
+   "cut",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "dragonrage",
+   "ember",
+   "fireblast",
+   "firespin",
+   "flamethrower",
+   "growl",
+   "leer",
+   "megakick",
+   "megapunch",
+   "mimic",
+   "rage",
+   "reflect",
+   "rest",
+   "scratch",
+   "seismictoss",
+   "skullbash",
+   "slash",
+   "strength",
+   "submission",
+   "substitute",
+   "swift",
+   "swordsdance",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 5,
+    "level": 16,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 8.5
+ },
+ {
+  "id": 5,
+  "slug": "charmeleon",
+  "name": "Charmeleon",
+  "types": [
+   "Fire"
+  ],
+  "baseStats": {
+   "hp": 58,
+   "atk": 64,
+   "def": 58,
+   "spa": 80,
+   "spd": 65,
+   "spe": 80
+  },
+  "bst": 405,
+  "tier": "uncommon",
+  "abilities": [
+   "blaze",
+   "solarpower"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "counter",
+   "cut",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "dragonrage",
+   "ember",
+   "fireblast",
+   "firespin",
+   "flamethrower",
+   "growl",
+   "leer",
+   "megakick",
+   "megapunch",
+   "mimic",
+   "rage",
+   "reflect",
+   "rest",
+   "scratch",
+   "seismictoss",
+   "skullbash",
+   "slash",
+   "strength",
+   "submission",
+   "substitute",
+   "swift",
+   "swordsdance",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 6,
+    "level": 36,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": 4,
+  "weightkg": 19
+ },
+ {
+  "id": 6,
+  "slug": "charizard",
+  "name": "Charizard",
+  "types": [
+   "Fire",
+   "Flying"
+  ],
+  "baseStats": {
+   "hp": 78,
+   "atk": 84,
+   "def": 78,
+   "spa": 109,
+   "spd": 85,
+   "spe": 100
+  },
+  "bst": 534,
+  "tier": "epic",
+  "abilities": [
+   "blaze",
+   "solarpower"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "counter",
+   "cut",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "dragonrage",
+   "earthquake",
+   "ember",
+   "fireblast",
+   "firespin",
+   "fissure",
+   "flamethrower",
+   "fly",
+   "growl",
+   "hyperbeam",
+   "leer",
+   "megakick",
+   "megapunch",
+   "mimic",
+   "rage",
+   "reflect",
+   "rest",
+   "scratch",
+   "seismictoss",
+   "skullbash",
+   "slash",
+   "strength",
+   "submission",
+   "substitute",
+   "swift",
+   "swordsdance",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": 5,
+  "weightkg": 90.5
+ },
+ {
+  "id": 7,
+  "slug": "squirtle",
+  "name": "Squirtle",
+  "types": [
+   "Water"
+  ],
+  "baseStats": {
+   "hp": 44,
+   "atk": 48,
+   "def": 65,
+   "spa": 50,
+   "spd": 64,
+   "spe": 43
+  },
+  "bst": 314,
+  "tier": "common",
+  "abilities": [
+   "torrent",
+   "raindish"
+  ],
+  "learnset": [
+   "bide",
+   "bite",
+   "blizzard",
+   "bodyslam",
+   "bubble",
+   "bubblebeam",
+   "counter",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "hydropump",
+   "icebeam",
+   "megakick",
+   "megapunch",
+   "mimic",
+   "rage",
+   "reflect",
+   "rest",
+   "seismictoss",
+   "skullbash",
+   "strength",
+   "submission",
+   "substitute",
+   "surf",
+   "tackle",
+   "tailwhip",
+   "takedown",
+   "toxic",
+   "watergun",
+   "withdraw"
+  ],
+  "evolvesTo": [
+   {
+    "id": 8,
+    "level": 16,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 9
+ },
+ {
+  "id": 8,
+  "slug": "wartortle",
+  "name": "Wartortle",
+  "types": [
+   "Water"
+  ],
+  "baseStats": {
+   "hp": 59,
+   "atk": 63,
+   "def": 80,
+   "spa": 65,
+   "spd": 80,
+   "spe": 58
+  },
+  "bst": 405,
+  "tier": "uncommon",
+  "abilities": [
+   "torrent",
+   "raindish"
+  ],
+  "learnset": [
+   "bide",
+   "bite",
+   "blizzard",
+   "bodyslam",
+   "bubble",
+   "bubblebeam",
+   "counter",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "hydropump",
+   "icebeam",
+   "megakick",
+   "megapunch",
+   "mimic",
+   "rage",
+   "reflect",
+   "rest",
+   "seismictoss",
+   "skullbash",
+   "strength",
+   "submission",
+   "substitute",
+   "surf",
+   "tackle",
+   "tailwhip",
+   "takedown",
+   "toxic",
+   "watergun",
+   "withdraw"
+  ],
+  "evolvesTo": [
+   {
+    "id": 9,
+    "level": 36,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": 7,
+  "weightkg": 22.5
+ },
+ {
+  "id": 9,
+  "slug": "blastoise",
+  "name": "Blastoise",
+  "types": [
+   "Water"
+  ],
+  "baseStats": {
+   "hp": 79,
+   "atk": 83,
+   "def": 100,
+   "spa": 85,
+   "spd": 105,
+   "spe": 78
+  },
+  "bst": 530,
+  "tier": "epic",
+  "abilities": [
+   "torrent",
+   "raindish"
+  ],
+  "learnset": [
+   "bide",
+   "bite",
+   "blizzard",
+   "bodyslam",
+   "bubble",
+   "bubblebeam",
+   "counter",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "earthquake",
+   "fissure",
+   "hydropump",
+   "hyperbeam",
+   "icebeam",
+   "megakick",
+   "megapunch",
+   "mimic",
+   "rage",
+   "reflect",
+   "rest",
+   "seismictoss",
+   "skullbash",
+   "strength",
+   "submission",
+   "substitute",
+   "surf",
+   "tackle",
+   "tailwhip",
+   "takedown",
+   "toxic",
+   "watergun",
+   "withdraw"
+  ],
+  "evolvesTo": [],
+  "prevo": 8,
+  "weightkg": 85.5
+ },
+ {
+  "id": 10,
+  "slug": "caterpie",
+  "name": "Caterpie",
+  "types": [
+   "Bug"
+  ],
+  "baseStats": {
+   "hp": 45,
+   "atk": 30,
+   "def": 35,
+   "spa": 20,
+   "spd": 20,
+   "spe": 45
+  },
+  "bst": 195,
+  "tier": "common",
+  "abilities": [
+   "shielddust",
+   "runaway"
+  ],
+  "learnset": [
+   "stringshot",
+   "tackle"
+  ],
+  "evolvesTo": [
+   {
+    "id": 11,
+    "level": 7,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 2.9
+ },
+ {
+  "id": 11,
+  "slug": "metapod",
+  "name": "Metapod",
+  "types": [
+   "Bug"
+  ],
+  "baseStats": {
+   "hp": 50,
+   "atk": 20,
+   "def": 55,
+   "spa": 25,
+   "spd": 25,
+   "spe": 30
+  },
+  "bst": 205,
+  "tier": "common",
+  "abilities": [
+   "shedskin"
+  ],
+  "learnset": [
+   "harden",
+   "stringshot",
+   "tackle"
+  ],
+  "evolvesTo": [
+   {
+    "id": 12,
+    "level": 10,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": 10,
+  "weightkg": 9.9
+ },
+ {
+  "id": 12,
+  "slug": "butterfree",
+  "name": "Butterfree",
+  "types": [
+   "Bug",
+   "Flying"
+  ],
+  "baseStats": {
+   "hp": 60,
+   "atk": 45,
+   "def": 50,
+   "spa": 90,
+   "spd": 80,
+   "spe": 70
+  },
+  "bst": 395,
+  "tier": "uncommon",
+  "abilities": [
+   "compoundeyes",
+   "tintedlens"
+  ],
+  "learnset": [
+   "bide",
+   "confusion",
+   "doubleedge",
+   "doubleteam",
+   "flash",
+   "gust",
+   "harden",
+   "hyperbeam",
+   "megadrain",
+   "mimic",
+   "poisonpowder",
+   "psybeam",
+   "psychic",
+   "psywave",
+   "rage",
+   "razorwind",
+   "reflect",
+   "rest",
+   "sleeppowder",
+   "solarbeam",
+   "stringshot",
+   "stunspore",
+   "substitute",
+   "supersonic",
+   "swift",
+   "tackle",
+   "takedown",
+   "teleport",
+   "toxic",
+   "whirlwind"
+  ],
+  "evolvesTo": [],
+  "prevo": 11,
+  "weightkg": 32
+ },
+ {
+  "id": 13,
+  "slug": "weedle",
+  "name": "Weedle",
+  "types": [
+   "Bug",
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 40,
+   "atk": 35,
+   "def": 30,
+   "spa": 20,
+   "spd": 20,
+   "spe": 50
+  },
+  "bst": 195,
+  "tier": "common",
+  "abilities": [
+   "shielddust",
+   "runaway"
+  ],
+  "learnset": [
+   "poisonsting",
+   "stringshot"
+  ],
+  "evolvesTo": [
+   {
+    "id": 14,
+    "level": 7,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 3.2
+ },
+ {
+  "id": 14,
+  "slug": "kakuna",
+  "name": "Kakuna",
+  "types": [
+   "Bug",
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 45,
+   "atk": 25,
+   "def": 50,
+   "spa": 25,
+   "spd": 25,
+   "spe": 35
+  },
+  "bst": 205,
+  "tier": "common",
+  "abilities": [
+   "shedskin"
+  ],
+  "learnset": [
+   "harden",
+   "poisonsting",
+   "stringshot"
+  ],
+  "evolvesTo": [
+   {
+    "id": 15,
+    "level": 10,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": 13,
+  "weightkg": 10
+ },
+ {
+  "id": 15,
+  "slug": "beedrill",
+  "name": "Beedrill",
+  "types": [
+   "Bug",
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 65,
+   "atk": 90,
+   "def": 40,
+   "spa": 45,
+   "spd": 80,
+   "spe": 75
+  },
+  "bst": 395,
+  "tier": "uncommon",
+  "abilities": [
+   "swarm",
+   "sniper"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "cut",
+   "doubleedge",
+   "doubleteam",
+   "focusenergy",
+   "furyattack",
+   "harden",
+   "hyperbeam",
+   "megadrain",
+   "mimic",
+   "pinmissile",
+   "poisonsting",
+   "rage",
+   "reflect",
+   "rest",
+   "skullbash",
+   "stringshot",
+   "substitute",
+   "swift",
+   "swordsdance",
+   "takedown",
+   "toxic",
+   "twineedle"
+  ],
+  "evolvesTo": [],
+  "prevo": 14,
+  "weightkg": 29.5
+ },
+ {
+  "id": 16,
+  "slug": "pidgey",
+  "name": "Pidgey",
+  "types": [
+   "Normal",
+   "Flying"
+  ],
+  "baseStats": {
+   "hp": 40,
+   "atk": 45,
+   "def": 40,
+   "spa": 35,
+   "spd": 35,
+   "spe": 56
+  },
+  "bst": 251,
+  "tier": "common",
+  "abilities": [
+   "keeneye",
+   "tangledfeet",
+   "bigpecks"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "doubleedge",
+   "doubleteam",
+   "fly",
+   "gust",
+   "mimic",
+   "mirrormove",
+   "quickattack",
+   "rage",
+   "razorwind",
+   "reflect",
+   "rest",
+   "sandattack",
+   "skyattack",
+   "substitute",
+   "swift",
+   "takedown",
+   "toxic",
+   "whirlwind",
+   "wingattack"
+  ],
+  "evolvesTo": [
+   {
+    "id": 17,
+    "level": 18,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 1.8
+ },
+ {
+  "id": 17,
+  "slug": "pidgeotto",
+  "name": "Pidgeotto",
+  "types": [
+   "Normal",
+   "Flying"
+  ],
+  "baseStats": {
+   "hp": 63,
+   "atk": 60,
+   "def": 55,
+   "spa": 50,
+   "spd": 50,
+   "spe": 71
+  },
+  "bst": 349,
+  "tier": "common",
+  "abilities": [
+   "keeneye",
+   "tangledfeet",
+   "bigpecks"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "doubleedge",
+   "doubleteam",
+   "fly",
+   "gust",
+   "mimic",
+   "mirrormove",
+   "quickattack",
+   "rage",
+   "razorwind",
+   "reflect",
+   "rest",
+   "sandattack",
+   "skyattack",
+   "substitute",
+   "swift",
+   "takedown",
+   "toxic",
+   "whirlwind",
+   "wingattack"
+  ],
+  "evolvesTo": [
+   {
+    "id": 18,
+    "level": 36,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": 16,
+  "weightkg": 30
+ },
+ {
+  "id": 18,
+  "slug": "pidgeot",
+  "name": "Pidgeot",
+  "types": [
+   "Normal",
+   "Flying"
+  ],
+  "baseStats": {
+   "hp": 83,
+   "atk": 80,
+   "def": 75,
+   "spa": 70,
+   "spd": 70,
+   "spe": 101
+  },
+  "bst": 479,
+  "tier": "rare",
+  "abilities": [
+   "keeneye",
+   "tangledfeet",
+   "bigpecks"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "doubleedge",
+   "doubleteam",
+   "fly",
+   "gust",
+   "hyperbeam",
+   "mimic",
+   "mirrormove",
+   "quickattack",
+   "rage",
+   "razorwind",
+   "reflect",
+   "rest",
+   "sandattack",
+   "skyattack",
+   "substitute",
+   "swift",
+   "takedown",
+   "toxic",
+   "whirlwind",
+   "wingattack"
+  ],
+  "evolvesTo": [],
+  "prevo": 17,
+  "weightkg": 39.5
+ },
+ {
+  "id": 19,
+  "slug": "rattata",
+  "name": "Rattata",
+  "types": [
+   "Normal"
+  ],
+  "baseStats": {
+   "hp": 30,
+   "atk": 56,
+   "def": 35,
+   "spa": 25,
+   "spd": 35,
+   "spe": 72
+  },
+  "bst": 253,
+  "tier": "common",
+  "abilities": [
+   "runaway",
+   "guts",
+   "hustle"
+  ],
+  "learnset": [
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "focusenergy",
+   "hyperfang",
+   "mimic",
+   "quickattack",
+   "rage",
+   "rest",
+   "skullbash",
+   "substitute",
+   "superfang",
+   "swift",
+   "tackle",
+   "tailwhip",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [
+   {
+    "id": 20,
+    "level": 20,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 3.5
+ },
+ {
+  "id": 20,
+  "slug": "raticate",
+  "name": "Raticate",
+  "types": [
+   "Normal"
+  ],
+  "baseStats": {
+   "hp": 55,
+   "atk": 81,
+   "def": 60,
+   "spa": 50,
+   "spd": 70,
+   "spe": 97
+  },
+  "bst": 413,
+  "tier": "uncommon",
+  "abilities": [
+   "runaway",
+   "guts",
+   "hustle"
+  ],
+  "learnset": [
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "focusenergy",
+   "hyperbeam",
+   "hyperfang",
+   "icebeam",
+   "mimic",
+   "quickattack",
+   "rage",
+   "rest",
+   "skullbash",
+   "substitute",
+   "superfang",
+   "swift",
+   "tackle",
+   "tailwhip",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [],
+  "prevo": 19,
+  "weightkg": 18.5
+ },
+ {
+  "id": 21,
+  "slug": "spearow",
+  "name": "Spearow",
+  "types": [
+   "Normal",
+   "Flying"
+  ],
+  "baseStats": {
+   "hp": 40,
+   "atk": 60,
+   "def": 30,
+   "spa": 31,
+   "spd": 31,
+   "spe": 70
+  },
+  "bst": 262,
+  "tier": "common",
+  "abilities": [
+   "keeneye",
+   "sniper"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "doubleedge",
+   "doubleteam",
+   "drillpeck",
+   "fly",
+   "furyattack",
+   "growl",
+   "leer",
+   "mimic",
+   "mirrormove",
+   "peck",
+   "rage",
+   "razorwind",
+   "rest",
+   "skyattack",
+   "substitute",
+   "swift",
+   "takedown",
+   "toxic",
+   "whirlwind"
+  ],
+  "evolvesTo": [
+   {
+    "id": 22,
+    "level": 20,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 2
+ },
+ {
+  "id": 22,
+  "slug": "fearow",
+  "name": "Fearow",
+  "types": [
+   "Normal",
+   "Flying"
+  ],
+  "baseStats": {
+   "hp": 65,
+   "atk": 90,
+   "def": 65,
+   "spa": 61,
+   "spd": 61,
+   "spe": 100
+  },
+  "bst": 442,
+  "tier": "uncommon",
+  "abilities": [
+   "keeneye",
+   "sniper"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "doubleedge",
+   "doubleteam",
+   "drillpeck",
+   "fly",
+   "furyattack",
+   "growl",
+   "hyperbeam",
+   "leer",
+   "mimic",
+   "mirrormove",
+   "payday",
+   "peck",
+   "rage",
+   "razorwind",
+   "rest",
+   "skyattack",
+   "substitute",
+   "swift",
+   "takedown",
+   "toxic",
+   "whirlwind"
+  ],
+  "evolvesTo": [],
+  "prevo": 21,
+  "weightkg": 38
+ },
+ {
+  "id": 23,
+  "slug": "ekans",
+  "name": "Ekans",
+  "types": [
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 35,
+   "atk": 60,
+   "def": 44,
+   "spa": 40,
+   "spd": 54,
+   "spe": 55
+  },
+  "bst": 288,
+  "tier": "common",
+  "abilities": [
+   "intimidate",
+   "shedskin",
+   "unnerve"
+  ],
+  "learnset": [
+   "acid",
+   "bide",
+   "bite",
+   "bodyslam",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "earthquake",
+   "fissure",
+   "glare",
+   "leer",
+   "megadrain",
+   "mimic",
+   "poisonsting",
+   "rage",
+   "rest",
+   "rockslide",
+   "screech",
+   "skullbash",
+   "strength",
+   "substitute",
+   "takedown",
+   "toxic",
+   "wrap"
+  ],
+  "evolvesTo": [
+   {
+    "id": 24,
+    "level": 22,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 6.9
+ },
+ {
+  "id": 24,
+  "slug": "arbok",
+  "name": "Arbok",
+  "types": [
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 60,
+   "atk": 95,
+   "def": 69,
+   "spa": 65,
+   "spd": 79,
+   "spe": 80
+  },
+  "bst": 448,
+  "tier": "uncommon",
+  "abilities": [
+   "intimidate",
+   "shedskin",
+   "unnerve"
+  ],
+  "learnset": [
+   "acid",
+   "bide",
+   "bite",
+   "bodyslam",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "earthquake",
+   "fissure",
+   "glare",
+   "hyperbeam",
+   "leer",
+   "megadrain",
+   "mimic",
+   "poisonsting",
+   "rage",
+   "rest",
+   "rockslide",
+   "screech",
+   "skullbash",
+   "strength",
+   "substitute",
+   "takedown",
+   "toxic",
+   "wrap"
+  ],
+  "evolvesTo": [],
+  "prevo": 23,
+  "weightkg": 65
+ },
+ {
+  "id": 25,
+  "slug": "pikachu",
+  "name": "Pikachu",
+  "types": [
+   "Electric"
+  ],
+  "baseStats": {
+   "hp": 35,
+   "atk": 55,
+   "def": 40,
+   "spa": 50,
+   "spd": 50,
+   "spe": 90
+  },
+  "bst": 320,
+  "tier": "common",
+  "abilities": [
+   "static",
+   "lightningrod"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "bodyslam",
+   "doubleedge",
+   "doubleteam",
+   "flash",
+   "fly",
+   "growl",
+   "lightscreen",
+   "megakick",
+   "megapunch",
+   "mimic",
+   "payday",
+   "quickattack",
+   "rage",
+   "reflect",
+   "rest",
+   "seismictoss",
+   "skullbash",
+   "slam",
+   "submission",
+   "substitute",
+   "surf",
+   "swift",
+   "tailwhip",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "thundershock",
+   "thunderwave",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 26,
+    "level": null,
+    "method": "useItem",
+    "item": "Thunder Stone"
+   }
+  ],
+  "prevo": null,
+  "weightkg": 6
+ },
+ {
+  "id": 26,
+  "slug": "raichu",
+  "name": "Raichu",
+  "types": [
+   "Electric"
+  ],
+  "baseStats": {
+   "hp": 60,
+   "atk": 90,
+   "def": 55,
+   "spa": 90,
+   "spd": 80,
+   "spe": 110
+  },
+  "bst": 485,
+  "tier": "rare",
+  "abilities": [
+   "static",
+   "lightningrod"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "bodyslam",
+   "doubleedge",
+   "doubleteam",
+   "flash",
+   "fly",
+   "growl",
+   "hyperbeam",
+   "lightscreen",
+   "megakick",
+   "megapunch",
+   "mimic",
+   "payday",
+   "quickattack",
+   "rage",
+   "reflect",
+   "rest",
+   "seismictoss",
+   "skullbash",
+   "slam",
+   "submission",
+   "substitute",
+   "surf",
+   "swift",
+   "tailwhip",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "thundershock",
+   "thunderwave",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": 25,
+  "weightkg": 30
+ },
+ {
+  "id": 27,
+  "slug": "sandshrew",
+  "name": "Sandshrew",
+  "types": [
+   "Ground"
+  ],
+  "baseStats": {
+   "hp": 50,
+   "atk": 75,
+   "def": 85,
+   "spa": 20,
+   "spd": 30,
+   "spe": 40
+  },
+  "bst": 300,
+  "tier": "common",
+  "abilities": [
+   "sandveil",
+   "sandrush"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "cut",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "earthquake",
+   "fissure",
+   "furyswipes",
+   "mimic",
+   "poisonsting",
+   "rage",
+   "rest",
+   "rockslide",
+   "sandattack",
+   "scratch",
+   "seismictoss",
+   "skullbash",
+   "slash",
+   "strength",
+   "submission",
+   "substitute",
+   "swift",
+   "swordsdance",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 28,
+    "level": 22,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 12
+ },
+ {
+  "id": 28,
+  "slug": "sandslash",
+  "name": "Sandslash",
+  "types": [
+   "Ground"
+  ],
+  "baseStats": {
+   "hp": 75,
+   "atk": 100,
+   "def": 110,
+   "spa": 45,
+   "spd": 55,
+   "spe": 65
+  },
+  "bst": 450,
+  "tier": "rare",
+  "abilities": [
+   "sandveil",
+   "sandrush"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "cut",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "earthquake",
+   "fissure",
+   "furyswipes",
+   "hyperbeam",
+   "mimic",
+   "poisonsting",
+   "rage",
+   "rest",
+   "rockslide",
+   "sandattack",
+   "scratch",
+   "seismictoss",
+   "skullbash",
+   "slash",
+   "strength",
+   "submission",
+   "substitute",
+   "swift",
+   "swordsdance",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": 27,
+  "weightkg": 29.5
+ },
+ {
+  "id": 29,
+  "slug": "nidoranf",
+  "name": "Nidoran-F",
+  "types": [
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 55,
+   "atk": 47,
+   "def": 52,
+   "spa": 40,
+   "spd": 40,
+   "spe": 41
+  },
+  "bst": 275,
+  "tier": "common",
+  "abilities": [
+   "poisonpoint",
+   "rivalry",
+   "hustle"
+  ],
+  "learnset": [
+   "bide",
+   "bite",
+   "blizzard",
+   "bodyslam",
+   "doubleedge",
+   "doublekick",
+   "doubleteam",
+   "furyswipes",
+   "growl",
+   "mimic",
+   "poisonsting",
+   "rage",
+   "reflect",
+   "rest",
+   "scratch",
+   "skullbash",
+   "substitute",
+   "tackle",
+   "tailwhip",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 30,
+    "level": 16,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 7
+ },
+ {
+  "id": 30,
+  "slug": "nidorina",
+  "name": "Nidorina",
+  "types": [
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 70,
+   "atk": 62,
+   "def": 67,
+   "spa": 55,
+   "spd": 55,
+   "spe": 56
+  },
+  "bst": 365,
+  "tier": "uncommon",
+  "abilities": [
+   "poisonpoint",
+   "rivalry",
+   "hustle"
+  ],
+  "learnset": [
+   "bide",
+   "bite",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "doubleedge",
+   "doublekick",
+   "doubleteam",
+   "furyswipes",
+   "growl",
+   "horndrill",
+   "icebeam",
+   "mimic",
+   "poisonsting",
+   "rage",
+   "reflect",
+   "rest",
+   "scratch",
+   "skullbash",
+   "substitute",
+   "tackle",
+   "tailwhip",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [
+   {
+    "id": 31,
+    "level": null,
+    "method": "useItem",
+    "item": "Moon Stone"
+   }
+  ],
+  "prevo": 29,
+  "weightkg": 20
+ },
+ {
+  "id": 31,
+  "slug": "nidoqueen",
+  "name": "Nidoqueen",
+  "types": [
+   "Poison",
+   "Ground"
+  ],
+  "baseStats": {
+   "hp": 90,
+   "atk": 92,
+   "def": 87,
+   "spa": 75,
+   "spd": 85,
+   "spe": 76
+  },
+  "bst": 505,
+  "tier": "rare",
+  "abilities": [
+   "poisonpoint",
+   "rivalry",
+   "sheerforce"
+  ],
+  "learnset": [
+   "bide",
+   "bite",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "counter",
+   "doubleedge",
+   "doublekick",
+   "doubleteam",
+   "earthquake",
+   "fireblast",
+   "fissure",
+   "furyswipes",
+   "growl",
+   "horndrill",
+   "hyperbeam",
+   "icebeam",
+   "megakick",
+   "megapunch",
+   "mimic",
+   "payday",
+   "poisonsting",
+   "rage",
+   "reflect",
+   "rest",
+   "rockslide",
+   "scratch",
+   "seismictoss",
+   "skullbash",
+   "strength",
+   "submission",
+   "substitute",
+   "surf",
+   "tackle",
+   "tailwhip",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [],
+  "prevo": 30,
+  "weightkg": 60
+ },
+ {
+  "id": 32,
+  "slug": "nidoranm",
+  "name": "Nidoran-M",
+  "types": [
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 46,
+   "atk": 57,
+   "def": 40,
+   "spa": 40,
+   "spd": 40,
+   "spe": 50
+  },
+  "bst": 273,
+  "tier": "common",
+  "abilities": [
+   "poisonpoint",
+   "rivalry",
+   "hustle"
+  ],
+  "learnset": [
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "doubleedge",
+   "doublekick",
+   "doubleteam",
+   "focusenergy",
+   "furyattack",
+   "hornattack",
+   "horndrill",
+   "leer",
+   "mimic",
+   "poisonsting",
+   "rage",
+   "reflect",
+   "rest",
+   "skullbash",
+   "substitute",
+   "tackle",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 33,
+    "level": 16,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 9
+ },
+ {
+  "id": 33,
+  "slug": "nidorino",
+  "name": "Nidorino",
+  "types": [
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 61,
+   "atk": 72,
+   "def": 57,
+   "spa": 55,
+   "spd": 55,
+   "spe": 65
+  },
+  "bst": 365,
+  "tier": "uncommon",
+  "abilities": [
+   "poisonpoint",
+   "rivalry",
+   "hustle"
+  ],
+  "learnset": [
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "doubleedge",
+   "doublekick",
+   "doubleteam",
+   "focusenergy",
+   "furyattack",
+   "hornattack",
+   "horndrill",
+   "icebeam",
+   "leer",
+   "mimic",
+   "poisonsting",
+   "rage",
+   "reflect",
+   "rest",
+   "skullbash",
+   "substitute",
+   "tackle",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [
+   {
+    "id": 34,
+    "level": null,
+    "method": "useItem",
+    "item": "Moon Stone"
+   }
+  ],
+  "prevo": 32,
+  "weightkg": 19.5
+ },
+ {
+  "id": 34,
+  "slug": "nidoking",
+  "name": "Nidoking",
+  "types": [
+   "Poison",
+   "Ground"
+  ],
+  "baseStats": {
+   "hp": 81,
+   "atk": 102,
+   "def": 77,
+   "spa": 85,
+   "spd": 75,
+   "spe": 85
+  },
+  "bst": 505,
+  "tier": "rare",
+  "abilities": [
+   "poisonpoint",
+   "rivalry",
+   "sheerforce"
+  ],
+  "learnset": [
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "counter",
+   "doubleedge",
+   "doublekick",
+   "doubleteam",
+   "earthquake",
+   "fireblast",
+   "fissure",
+   "focusenergy",
+   "furyattack",
+   "hornattack",
+   "horndrill",
+   "hyperbeam",
+   "icebeam",
+   "leer",
+   "megakick",
+   "megapunch",
+   "mimic",
+   "payday",
+   "poisonsting",
+   "rage",
+   "reflect",
+   "rest",
+   "rockslide",
+   "seismictoss",
+   "skullbash",
+   "strength",
+   "submission",
+   "substitute",
+   "surf",
+   "tackle",
+   "takedown",
+   "thrash",
+   "thunder",
+   "thunderbolt",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [],
+  "prevo": 33,
+  "weightkg": 62
+ },
+ {
+  "id": 35,
+  "slug": "clefairy",
+  "name": "Clefairy",
+  "types": [
+   "Fairy"
+  ],
+  "baseStats": {
+   "hp": 70,
+   "atk": 45,
+   "def": 48,
+   "spa": 60,
+   "spd": 65,
+   "spe": 35
+  },
+  "bst": 323,
+  "tier": "common",
+  "abilities": [
+   "cutecharm",
+   "magicguard",
+   "friendguard"
+  ],
+  "learnset": [
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "counter",
+   "defensecurl",
+   "doubleedge",
+   "doubleslap",
+   "doubleteam",
+   "fireblast",
+   "flash",
+   "growl",
+   "icebeam",
+   "lightscreen",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "minimize",
+   "pound",
+   "psychic",
+   "psywave",
+   "rage",
+   "reflect",
+   "rest",
+   "seismictoss",
+   "sing",
+   "skullbash",
+   "solarbeam",
+   "strength",
+   "submission",
+   "substitute",
+   "takedown",
+   "teleport",
+   "thunder",
+   "thunderbolt",
+   "thunderwave",
+   "toxic",
+   "triattack",
+   "watergun"
+  ],
+  "evolvesTo": [
+   {
+    "id": 36,
+    "level": null,
+    "method": "useItem",
+    "item": "Moon Stone"
+   }
+  ],
+  "prevo": null,
+  "weightkg": 7.5
+ },
+ {
+  "id": 36,
+  "slug": "clefable",
+  "name": "Clefable",
+  "types": [
+   "Fairy"
+  ],
+  "baseStats": {
+   "hp": 95,
+   "atk": 70,
+   "def": 73,
+   "spa": 95,
+   "spd": 90,
+   "spe": 60
+  },
+  "bst": 483,
+  "tier": "rare",
+  "abilities": [
+   "cutecharm",
+   "magicguard",
+   "unaware"
+  ],
+  "learnset": [
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "counter",
+   "defensecurl",
+   "doubleedge",
+   "doubleslap",
+   "doubleteam",
+   "fireblast",
+   "flash",
+   "growl",
+   "hyperbeam",
+   "icebeam",
+   "lightscreen",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "minimize",
+   "pound",
+   "psychic",
+   "psywave",
+   "rage",
+   "reflect",
+   "rest",
+   "seismictoss",
+   "sing",
+   "skullbash",
+   "solarbeam",
+   "strength",
+   "submission",
+   "substitute",
+   "takedown",
+   "teleport",
+   "thunder",
+   "thunderbolt",
+   "thunderwave",
+   "toxic",
+   "triattack",
+   "watergun"
+  ],
+  "evolvesTo": [],
+  "prevo": 35,
+  "weightkg": 40
+ },
+ {
+  "id": 37,
+  "slug": "vulpix",
+  "name": "Vulpix",
+  "types": [
+   "Fire"
+  ],
+  "baseStats": {
+   "hp": 38,
+   "atk": 41,
+   "def": 40,
+   "spa": 50,
+   "spd": 65,
+   "spe": 65
+  },
+  "bst": 299,
+  "tier": "common",
+  "abilities": [
+   "flashfire",
+   "drought"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "confuseray",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "ember",
+   "fireblast",
+   "firespin",
+   "flamethrower",
+   "mimic",
+   "quickattack",
+   "rage",
+   "reflect",
+   "rest",
+   "roar",
+   "skullbash",
+   "substitute",
+   "swift",
+   "tailwhip",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 38,
+    "level": null,
+    "method": "useItem",
+    "item": "Fire Stone"
+   }
+  ],
+  "prevo": null,
+  "weightkg": 9.9
+ },
+ {
+  "id": 38,
+  "slug": "ninetales",
+  "name": "Ninetales",
+  "types": [
+   "Fire"
+  ],
+  "baseStats": {
+   "hp": 73,
+   "atk": 76,
+   "def": 75,
+   "spa": 81,
+   "spd": 100,
+   "spe": 100
+  },
+  "bst": 505,
+  "tier": "rare",
+  "abilities": [
+   "flashfire",
+   "drought"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "confuseray",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "ember",
+   "fireblast",
+   "firespin",
+   "flamethrower",
+   "hyperbeam",
+   "mimic",
+   "quickattack",
+   "rage",
+   "reflect",
+   "rest",
+   "roar",
+   "skullbash",
+   "substitute",
+   "swift",
+   "tailwhip",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": 37,
+  "weightkg": 19.9
+ },
+ {
+  "id": 39,
+  "slug": "jigglypuff",
+  "name": "Jigglypuff",
+  "types": [
+   "Normal",
+   "Fairy"
+  ],
+  "baseStats": {
+   "hp": 115,
+   "atk": 45,
+   "def": 20,
+   "spa": 45,
+   "spd": 25,
+   "spe": 20
+  },
+  "bst": 270,
+  "tier": "common",
+  "abilities": [
+   "cutecharm",
+   "competitive",
+   "friendguard"
+  ],
+  "learnset": [
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "counter",
+   "defensecurl",
+   "disable",
+   "doubleedge",
+   "doubleslap",
+   "doubleteam",
+   "fireblast",
+   "flash",
+   "icebeam",
+   "megakick",
+   "megapunch",
+   "mimic",
+   "pound",
+   "psychic",
+   "psywave",
+   "rage",
+   "reflect",
+   "rest",
+   "seismictoss",
+   "sing",
+   "skullbash",
+   "solarbeam",
+   "strength",
+   "submission",
+   "substitute",
+   "takedown",
+   "teleport",
+   "thunder",
+   "thunderbolt",
+   "thunderwave",
+   "toxic",
+   "triattack",
+   "watergun"
+  ],
+  "evolvesTo": [
+   {
+    "id": 40,
+    "level": null,
+    "method": "useItem",
+    "item": "Moon Stone"
+   }
+  ],
+  "prevo": null,
+  "weightkg": 5.5
+ },
+ {
+  "id": 40,
+  "slug": "wigglytuff",
+  "name": "Wigglytuff",
+  "types": [
+   "Normal",
+   "Fairy"
+  ],
+  "baseStats": {
+   "hp": 140,
+   "atk": 70,
+   "def": 45,
+   "spa": 85,
+   "spd": 50,
+   "spe": 45
+  },
+  "bst": 435,
+  "tier": "uncommon",
+  "abilities": [
+   "cutecharm",
+   "competitive",
+   "frisk"
+  ],
+  "learnset": [
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "counter",
+   "defensecurl",
+   "disable",
+   "doubleedge",
+   "doubleslap",
+   "doubleteam",
+   "fireblast",
+   "flash",
+   "hyperbeam",
+   "icebeam",
+   "megakick",
+   "megapunch",
+   "mimic",
+   "pound",
+   "psychic",
+   "psywave",
+   "rage",
+   "reflect",
+   "rest",
+   "seismictoss",
+   "sing",
+   "skullbash",
+   "solarbeam",
+   "strength",
+   "submission",
+   "substitute",
+   "takedown",
+   "teleport",
+   "thunder",
+   "thunderbolt",
+   "thunderwave",
+   "toxic",
+   "triattack",
+   "watergun"
+  ],
+  "evolvesTo": [],
+  "prevo": 39,
+  "weightkg": 12
+ },
+ {
+  "id": 41,
+  "slug": "zubat",
+  "name": "Zubat",
+  "types": [
+   "Poison",
+   "Flying"
+  ],
+  "baseStats": {
+   "hp": 40,
+   "atk": 45,
+   "def": 35,
+   "spa": 30,
+   "spd": 40,
+   "spe": 55
+  },
+  "bst": 245,
+  "tier": "common",
+  "abilities": [
+   "innerfocus",
+   "infiltrator"
+  ],
+  "learnset": [
+   "bide",
+   "bite",
+   "confuseray",
+   "doubleedge",
+   "doubleteam",
+   "haze",
+   "leechlife",
+   "megadrain",
+   "mimic",
+   "rage",
+   "razorwind",
+   "rest",
+   "substitute",
+   "supersonic",
+   "swift",
+   "takedown",
+   "toxic",
+   "whirlwind",
+   "wingattack"
+  ],
+  "evolvesTo": [
+   {
+    "id": 42,
+    "level": 22,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 7.5
+ },
+ {
+  "id": 42,
+  "slug": "golbat",
+  "name": "Golbat",
+  "types": [
+   "Poison",
+   "Flying"
+  ],
+  "baseStats": {
+   "hp": 75,
+   "atk": 80,
+   "def": 70,
+   "spa": 65,
+   "spd": 75,
+   "spe": 90
+  },
+  "bst": 455,
+  "tier": "rare",
+  "abilities": [
+   "innerfocus",
+   "infiltrator"
+  ],
+  "learnset": [
+   "bide",
+   "bite",
+   "confuseray",
+   "doubleedge",
+   "doubleteam",
+   "haze",
+   "hyperbeam",
+   "leechlife",
+   "megadrain",
+   "mimic",
+   "rage",
+   "razorwind",
+   "rest",
+   "screech",
+   "substitute",
+   "supersonic",
+   "swift",
+   "takedown",
+   "toxic",
+   "whirlwind",
+   "wingattack"
+  ],
+  "evolvesTo": [],
+  "prevo": 41,
+  "weightkg": 55
+ },
+ {
+  "id": 43,
+  "slug": "oddish",
+  "name": "Oddish",
+  "types": [
+   "Grass",
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 45,
+   "atk": 50,
+   "def": 55,
+   "spa": 75,
+   "spd": 65,
+   "spe": 30
+  },
+  "bst": 320,
+  "tier": "common",
+  "abilities": [
+   "chlorophyll",
+   "runaway"
+  ],
+  "learnset": [
+   "absorb",
+   "acid",
+   "bide",
+   "cut",
+   "doubleedge",
+   "doubleteam",
+   "megadrain",
+   "mimic",
+   "petaldance",
+   "poisonpowder",
+   "rage",
+   "reflect",
+   "rest",
+   "sleeppowder",
+   "solarbeam",
+   "stunspore",
+   "substitute",
+   "swordsdance",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 44,
+    "level": 21,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 5.4
+ },
+ {
+  "id": 44,
+  "slug": "gloom",
+  "name": "Gloom",
+  "types": [
+   "Grass",
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 60,
+   "atk": 65,
+   "def": 70,
+   "spa": 85,
+   "spd": 75,
+   "spe": 40
+  },
+  "bst": 395,
+  "tier": "uncommon",
+  "abilities": [
+   "chlorophyll",
+   "stench"
+  ],
+  "learnset": [
+   "absorb",
+   "acid",
+   "bide",
+   "cut",
+   "doubleedge",
+   "doubleteam",
+   "megadrain",
+   "mimic",
+   "petaldance",
+   "poisonpowder",
+   "rage",
+   "reflect",
+   "rest",
+   "sleeppowder",
+   "solarbeam",
+   "stunspore",
+   "substitute",
+   "swordsdance",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 45,
+    "level": null,
+    "method": "useItem",
+    "item": "Leaf Stone"
+   }
+  ],
+  "prevo": 43,
+  "weightkg": 8.6
+ },
+ {
+  "id": 45,
+  "slug": "vileplume",
+  "name": "Vileplume",
+  "types": [
+   "Grass",
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 75,
+   "atk": 80,
+   "def": 85,
+   "spa": 110,
+   "spd": 90,
+   "spe": 50
+  },
+  "bst": 490,
+  "tier": "rare",
+  "abilities": [
+   "chlorophyll",
+   "effectspore"
+  ],
+  "learnset": [
+   "absorb",
+   "acid",
+   "bide",
+   "bodyslam",
+   "cut",
+   "doubleedge",
+   "doubleteam",
+   "hyperbeam",
+   "megadrain",
+   "mimic",
+   "petaldance",
+   "poisonpowder",
+   "rage",
+   "reflect",
+   "rest",
+   "sleeppowder",
+   "solarbeam",
+   "stunspore",
+   "substitute",
+   "swordsdance",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": 44,
+  "weightkg": 18.6
+ },
+ {
+  "id": 46,
+  "slug": "paras",
+  "name": "Paras",
+  "types": [
+   "Bug",
+   "Grass"
+  ],
+  "baseStats": {
+   "hp": 35,
+   "atk": 70,
+   "def": 55,
+   "spa": 45,
+   "spd": 55,
+   "spe": 25
+  },
+  "bst": 285,
+  "tier": "common",
+  "abilities": [
+   "effectspore",
+   "dryskin",
+   "damp"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "cut",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "growth",
+   "leechlife",
+   "megadrain",
+   "mimic",
+   "rage",
+   "reflect",
+   "rest",
+   "scratch",
+   "skullbash",
+   "slash",
+   "solarbeam",
+   "spore",
+   "stunspore",
+   "substitute",
+   "swordsdance",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 47,
+    "level": 24,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 5.4
+ },
+ {
+  "id": 47,
+  "slug": "parasect",
+  "name": "Parasect",
+  "types": [
+   "Bug",
+   "Grass"
+  ],
+  "baseStats": {
+   "hp": 60,
+   "atk": 95,
+   "def": 80,
+   "spa": 60,
+   "spd": 80,
+   "spe": 30
+  },
+  "bst": 405,
+  "tier": "uncommon",
+  "abilities": [
+   "effectspore",
+   "dryskin",
+   "damp"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "cut",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "growth",
+   "hyperbeam",
+   "leechlife",
+   "megadrain",
+   "mimic",
+   "rage",
+   "reflect",
+   "rest",
+   "scratch",
+   "skullbash",
+   "slash",
+   "solarbeam",
+   "spore",
+   "stunspore",
+   "substitute",
+   "swordsdance",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": 46,
+  "weightkg": 29.5
+ },
+ {
+  "id": 48,
+  "slug": "venonat",
+  "name": "Venonat",
+  "types": [
+   "Bug",
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 60,
+   "atk": 55,
+   "def": 50,
+   "spa": 40,
+   "spd": 55,
+   "spe": 45
+  },
+  "bst": 305,
+  "tier": "common",
+  "abilities": [
+   "compoundeyes",
+   "tintedlens",
+   "runaway"
+  ],
+  "learnset": [
+   "bide",
+   "confusion",
+   "disable",
+   "doubleedge",
+   "doubleteam",
+   "flash",
+   "leechlife",
+   "megadrain",
+   "mimic",
+   "poisonpowder",
+   "psybeam",
+   "psychic",
+   "psywave",
+   "rage",
+   "reflect",
+   "rest",
+   "sleeppowder",
+   "solarbeam",
+   "stunspore",
+   "substitute",
+   "supersonic",
+   "tackle",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 49,
+    "level": 31,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 30
+ },
+ {
+  "id": 49,
+  "slug": "venomoth",
+  "name": "Venomoth",
+  "types": [
+   "Bug",
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 70,
+   "atk": 65,
+   "def": 60,
+   "spa": 90,
+   "spd": 75,
+   "spe": 90
+  },
+  "bst": 450,
+  "tier": "rare",
+  "abilities": [
+   "shielddust",
+   "tintedlens",
+   "wonderskin"
+  ],
+  "learnset": [
+   "bide",
+   "confusion",
+   "disable",
+   "doubleedge",
+   "doubleteam",
+   "flash",
+   "hyperbeam",
+   "leechlife",
+   "megadrain",
+   "mimic",
+   "poisonpowder",
+   "psybeam",
+   "psychic",
+   "psywave",
+   "rage",
+   "razorwind",
+   "reflect",
+   "rest",
+   "sleeppowder",
+   "solarbeam",
+   "stunspore",
+   "substitute",
+   "supersonic",
+   "swift",
+   "tackle",
+   "takedown",
+   "teleport",
+   "toxic",
+   "whirlwind"
+  ],
+  "evolvesTo": [],
+  "prevo": 48,
+  "weightkg": 12.5
+ },
+ {
+  "id": 50,
+  "slug": "diglett",
+  "name": "Diglett",
+  "types": [
+   "Ground"
+  ],
+  "baseStats": {
+   "hp": 10,
+   "atk": 55,
+   "def": 25,
+   "spa": 35,
+   "spd": 45,
+   "spe": 95
+  },
+  "bst": 265,
+  "tier": "common",
+  "abilities": [
+   "sandveil",
+   "arenatrap",
+   "sandforce"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "cut",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "earthquake",
+   "fissure",
+   "growl",
+   "mimic",
+   "rage",
+   "rest",
+   "rockslide",
+   "sandattack",
+   "scratch",
+   "slash",
+   "substitute",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 51,
+    "level": 26,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 0.8
+ },
+ {
+  "id": 51,
+  "slug": "dugtrio",
+  "name": "Dugtrio",
+  "types": [
+   "Ground"
+  ],
+  "baseStats": {
+   "hp": 35,
+   "atk": 100,
+   "def": 50,
+   "spa": 50,
+   "spd": 70,
+   "spe": 120
+  },
+  "bst": 425,
+  "tier": "uncommon",
+  "abilities": [
+   "sandveil",
+   "arenatrap",
+   "sandforce"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "cut",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "earthquake",
+   "fissure",
+   "growl",
+   "hyperbeam",
+   "mimic",
+   "rage",
+   "rest",
+   "rockslide",
+   "sandattack",
+   "scratch",
+   "slash",
+   "substitute",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": 50,
+  "weightkg": 33.3
+ },
+ {
+  "id": 52,
+  "slug": "meowth",
+  "name": "Meowth",
+  "types": [
+   "Normal"
+  ],
+  "baseStats": {
+   "hp": 40,
+   "atk": 45,
+   "def": 35,
+   "spa": 40,
+   "spd": 40,
+   "spe": 90
+  },
+  "bst": 290,
+  "tier": "common",
+  "abilities": [
+   "pickup",
+   "technician",
+   "unnerve"
+  ],
+  "learnset": [
+   "bide",
+   "bite",
+   "bodyslam",
+   "bubblebeam",
+   "doubleedge",
+   "doubleteam",
+   "furyswipes",
+   "growl",
+   "mimic",
+   "payday",
+   "rage",
+   "rest",
+   "scratch",
+   "screech",
+   "skullbash",
+   "slash",
+   "substitute",
+   "swift",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [
+   {
+    "id": 53,
+    "level": 28,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 4.2
+ },
+ {
+  "id": 53,
+  "slug": "persian",
+  "name": "Persian",
+  "types": [
+   "Normal"
+  ],
+  "baseStats": {
+   "hp": 65,
+   "atk": 70,
+   "def": 60,
+   "spa": 65,
+   "spd": 65,
+   "spe": 115
+  },
+  "bst": 440,
+  "tier": "uncommon",
+  "abilities": [
+   "limber",
+   "technician",
+   "unnerve"
+  ],
+  "learnset": [
+   "bide",
+   "bite",
+   "bodyslam",
+   "bubblebeam",
+   "doubleedge",
+   "doubleteam",
+   "furyswipes",
+   "growl",
+   "hyperbeam",
+   "mimic",
+   "payday",
+   "rage",
+   "rest",
+   "scratch",
+   "screech",
+   "skullbash",
+   "slash",
+   "substitute",
+   "swift",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [],
+  "prevo": 52,
+  "weightkg": 32
+ },
+ {
+  "id": 54,
+  "slug": "psyduck",
+  "name": "Psyduck",
+  "types": [
+   "Water"
+  ],
+  "baseStats": {
+   "hp": 50,
+   "atk": 52,
+   "def": 48,
+   "spa": 65,
+   "spd": 50,
+   "spe": 55
+  },
+  "bst": 320,
+  "tier": "common",
+  "abilities": [
+   "damp",
+   "cloudnine",
+   "swiftswim"
+  ],
+  "learnset": [
+   "amnesia",
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "confusion",
+   "counter",
+   "dig",
+   "disable",
+   "doubleedge",
+   "doubleteam",
+   "furyswipes",
+   "hydropump",
+   "icebeam",
+   "megakick",
+   "megapunch",
+   "mimic",
+   "payday",
+   "rage",
+   "rest",
+   "scratch",
+   "seismictoss",
+   "skullbash",
+   "strength",
+   "submission",
+   "substitute",
+   "surf",
+   "swift",
+   "tailwhip",
+   "takedown",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [
+   {
+    "id": 55,
+    "level": 33,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 19.6
+ },
+ {
+  "id": 55,
+  "slug": "golduck",
+  "name": "Golduck",
+  "types": [
+   "Water"
+  ],
+  "baseStats": {
+   "hp": 80,
+   "atk": 82,
+   "def": 78,
+   "spa": 95,
+   "spd": 80,
+   "spe": 85
+  },
+  "bst": 500,
+  "tier": "rare",
+  "abilities": [
+   "damp",
+   "cloudnine",
+   "swiftswim"
+  ],
+  "learnset": [
+   "amnesia",
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "confusion",
+   "counter",
+   "dig",
+   "disable",
+   "doubleedge",
+   "doubleteam",
+   "furyswipes",
+   "hydropump",
+   "hyperbeam",
+   "icebeam",
+   "megakick",
+   "megapunch",
+   "mimic",
+   "payday",
+   "rage",
+   "rest",
+   "scratch",
+   "seismictoss",
+   "skullbash",
+   "strength",
+   "submission",
+   "substitute",
+   "surf",
+   "swift",
+   "tailwhip",
+   "takedown",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [],
+  "prevo": 54,
+  "weightkg": 76.6
+ },
+ {
+  "id": 56,
+  "slug": "mankey",
+  "name": "Mankey",
+  "types": [
+   "Fighting"
+  ],
+  "baseStats": {
+   "hp": 40,
+   "atk": 80,
+   "def": 35,
+   "spa": 35,
+   "spd": 45,
+   "spe": 70
+  },
+  "bst": 305,
+  "tier": "common",
+  "abilities": [
+   "vitalspirit",
+   "angerpoint",
+   "defiant"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "counter",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "focusenergy",
+   "furyswipes",
+   "karatechop",
+   "leer",
+   "lowkick",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "payday",
+   "rage",
+   "rest",
+   "rockslide",
+   "scratch",
+   "screech",
+   "seismictoss",
+   "skullbash",
+   "strength",
+   "submission",
+   "substitute",
+   "swift",
+   "takedown",
+   "thrash",
+   "thunder",
+   "thunderbolt",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 57,
+    "level": 28,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 28
+ },
+ {
+  "id": 57,
+  "slug": "primeape",
+  "name": "Primeape",
+  "types": [
+   "Fighting"
+  ],
+  "baseStats": {
+   "hp": 65,
+   "atk": 105,
+   "def": 60,
+   "spa": 60,
+   "spd": 70,
+   "spe": 95
+  },
+  "bst": 455,
+  "tier": "rare",
+  "abilities": [
+   "vitalspirit",
+   "angerpoint",
+   "defiant"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "counter",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "focusenergy",
+   "furyswipes",
+   "hyperbeam",
+   "karatechop",
+   "leer",
+   "lowkick",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "payday",
+   "rage",
+   "rest",
+   "rockslide",
+   "scratch",
+   "screech",
+   "seismictoss",
+   "skullbash",
+   "strength",
+   "submission",
+   "substitute",
+   "swift",
+   "takedown",
+   "thrash",
+   "thunder",
+   "thunderbolt",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": 56,
+  "weightkg": 32
+ },
+ {
+  "id": 58,
+  "slug": "growlithe",
+  "name": "Growlithe",
+  "types": [
+   "Fire"
+  ],
+  "baseStats": {
+   "hp": 55,
+   "atk": 70,
+   "def": 45,
+   "spa": 70,
+   "spd": 50,
+   "spe": 60
+  },
+  "bst": 350,
+  "tier": "uncommon",
+  "abilities": [
+   "intimidate",
+   "flashfire",
+   "justified"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "bite",
+   "bodyslam",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "dragonrage",
+   "ember",
+   "fireblast",
+   "flamethrower",
+   "leer",
+   "mimic",
+   "rage",
+   "reflect",
+   "rest",
+   "roar",
+   "skullbash",
+   "substitute",
+   "swift",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 59,
+    "level": null,
+    "method": "useItem",
+    "item": "Fire Stone"
+   }
+  ],
+  "prevo": null,
+  "weightkg": 19
+ },
+ {
+  "id": 59,
+  "slug": "arcanine",
+  "name": "Arcanine",
+  "types": [
+   "Fire"
+  ],
+  "baseStats": {
+   "hp": 90,
+   "atk": 110,
+   "def": 80,
+   "spa": 100,
+   "spd": 80,
+   "spe": 95
+  },
+  "bst": 555,
+  "tier": "epic",
+  "abilities": [
+   "intimidate",
+   "flashfire",
+   "justified"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "bite",
+   "bodyslam",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "dragonrage",
+   "ember",
+   "fireblast",
+   "flamethrower",
+   "hyperbeam",
+   "leer",
+   "mimic",
+   "rage",
+   "reflect",
+   "rest",
+   "roar",
+   "skullbash",
+   "substitute",
+   "swift",
+   "takedown",
+   "teleport",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": 58,
+  "weightkg": 155
+ },
+ {
+  "id": 60,
+  "slug": "poliwag",
+  "name": "Poliwag",
+  "types": [
+   "Water"
+  ],
+  "baseStats": {
+   "hp": 40,
+   "atk": 50,
+   "def": 40,
+   "spa": 40,
+   "spd": 40,
+   "spe": 90
+  },
+  "bst": 300,
+  "tier": "common",
+  "abilities": [
+   "waterabsorb",
+   "damp",
+   "swiftswim"
+  ],
+  "learnset": [
+   "amnesia",
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubble",
+   "bubblebeam",
+   "doubleedge",
+   "doubleslap",
+   "doubleteam",
+   "hydropump",
+   "hypnosis",
+   "icebeam",
+   "mimic",
+   "psychic",
+   "psywave",
+   "rage",
+   "rest",
+   "skullbash",
+   "substitute",
+   "surf",
+   "takedown",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [
+   {
+    "id": 61,
+    "level": 25,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 12.4
+ },
+ {
+  "id": 61,
+  "slug": "poliwhirl",
+  "name": "Poliwhirl",
+  "types": [
+   "Water"
+  ],
+  "baseStats": {
+   "hp": 65,
+   "atk": 65,
+   "def": 65,
+   "spa": 50,
+   "spd": 50,
+   "spe": 90
+  },
+  "bst": 385,
+  "tier": "uncommon",
+  "abilities": [
+   "waterabsorb",
+   "damp",
+   "swiftswim"
+  ],
+  "learnset": [
+   "amnesia",
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubble",
+   "bubblebeam",
+   "counter",
+   "doubleedge",
+   "doubleslap",
+   "doubleteam",
+   "earthquake",
+   "fissure",
+   "hydropump",
+   "hypnosis",
+   "icebeam",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "psychic",
+   "psywave",
+   "rage",
+   "rest",
+   "seismictoss",
+   "skullbash",
+   "strength",
+   "submission",
+   "substitute",
+   "surf",
+   "takedown",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [
+   {
+    "id": 62,
+    "level": null,
+    "method": "useItem",
+    "item": "Water Stone"
+   }
+  ],
+  "prevo": 60,
+  "weightkg": 20
+ },
+ {
+  "id": 62,
+  "slug": "poliwrath",
+  "name": "Poliwrath",
+  "types": [
+   "Water",
+   "Fighting"
+  ],
+  "baseStats": {
+   "hp": 90,
+   "atk": 95,
+   "def": 95,
+   "spa": 70,
+   "spd": 90,
+   "spe": 70
+  },
+  "bst": 510,
+  "tier": "rare",
+  "abilities": [
+   "waterabsorb",
+   "damp",
+   "swiftswim"
+  ],
+  "learnset": [
+   "amnesia",
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubble",
+   "bubblebeam",
+   "counter",
+   "doubleedge",
+   "doubleslap",
+   "doubleteam",
+   "earthquake",
+   "fissure",
+   "hydropump",
+   "hyperbeam",
+   "hypnosis",
+   "icebeam",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "psychic",
+   "psywave",
+   "rage",
+   "rest",
+   "seismictoss",
+   "skullbash",
+   "strength",
+   "submission",
+   "substitute",
+   "surf",
+   "takedown",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [],
+  "prevo": 61,
+  "weightkg": 54
+ },
+ {
+  "id": 63,
+  "slug": "abra",
+  "name": "Abra",
+  "types": [
+   "Psychic"
+  ],
+  "baseStats": {
+   "hp": 25,
+   "atk": 20,
+   "def": 15,
+   "spa": 105,
+   "spd": 55,
+   "spe": 90
+  },
+  "bst": 310,
+  "tier": "common",
+  "abilities": [
+   "synchronize",
+   "innerfocus",
+   "magicguard"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "counter",
+   "doubleedge",
+   "doubleteam",
+   "flash",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "psychic",
+   "psywave",
+   "rage",
+   "reflect",
+   "rest",
+   "seismictoss",
+   "skullbash",
+   "submission",
+   "substitute",
+   "takedown",
+   "teleport",
+   "thunderwave",
+   "toxic",
+   "triattack"
+  ],
+  "evolvesTo": [
+   {
+    "id": 64,
+    "level": 16,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 19.5
+ },
+ {
+  "id": 64,
+  "slug": "kadabra",
+  "name": "Kadabra",
+  "types": [
+   "Psychic"
+  ],
+  "baseStats": {
+   "hp": 40,
+   "atk": 35,
+   "def": 30,
+   "spa": 120,
+   "spd": 70,
+   "spe": 105
+  },
+  "bst": 400,
+  "tier": "uncommon",
+  "abilities": [
+   "synchronize",
+   "innerfocus",
+   "magicguard"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "confusion",
+   "counter",
+   "dig",
+   "disable",
+   "doubleedge",
+   "doubleteam",
+   "flash",
+   "kinesis",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "psybeam",
+   "psychic",
+   "psywave",
+   "rage",
+   "recover",
+   "reflect",
+   "rest",
+   "seismictoss",
+   "skullbash",
+   "submission",
+   "substitute",
+   "takedown",
+   "teleport",
+   "thunderwave",
+   "toxic",
+   "triattack"
+  ],
+  "evolvesTo": [
+   {
+    "id": 65,
+    "level": null,
+    "method": "trade",
+    "item": null
+   }
+  ],
+  "prevo": 63,
+  "weightkg": 56.5
+ },
+ {
+  "id": 65,
+  "slug": "alakazam",
+  "name": "Alakazam",
+  "types": [
+   "Psychic"
+  ],
+  "baseStats": {
+   "hp": 55,
+   "atk": 50,
+   "def": 45,
+   "spa": 135,
+   "spd": 95,
+   "spe": 120
+  },
+  "bst": 500,
+  "tier": "rare",
+  "abilities": [
+   "synchronize",
+   "innerfocus",
+   "magicguard"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "confusion",
+   "counter",
+   "dig",
+   "disable",
+   "doubleedge",
+   "doubleteam",
+   "flash",
+   "hyperbeam",
+   "kinesis",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "psybeam",
+   "psychic",
+   "psywave",
+   "rage",
+   "recover",
+   "reflect",
+   "rest",
+   "seismictoss",
+   "skullbash",
+   "submission",
+   "substitute",
+   "takedown",
+   "teleport",
+   "thunderwave",
+   "toxic",
+   "triattack"
+  ],
+  "evolvesTo": [],
+  "prevo": 64,
+  "weightkg": 48
+ },
+ {
+  "id": 66,
+  "slug": "machop",
+  "name": "Machop",
+  "types": [
+   "Fighting"
+  ],
+  "baseStats": {
+   "hp": 70,
+   "atk": 80,
+   "def": 50,
+   "spa": 35,
+   "spd": 35,
+   "spe": 35
+  },
+  "bst": 305,
+  "tier": "common",
+  "abilities": [
+   "guts",
+   "noguard",
+   "steadfast"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "counter",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "earthquake",
+   "fireblast",
+   "fissure",
+   "focusenergy",
+   "karatechop",
+   "leer",
+   "lowkick",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "rage",
+   "rest",
+   "rockslide",
+   "seismictoss",
+   "skullbash",
+   "strength",
+   "submission",
+   "substitute",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 67,
+    "level": 28,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 19.5
+ },
+ {
+  "id": 67,
+  "slug": "machoke",
+  "name": "Machoke",
+  "types": [
+   "Fighting"
+  ],
+  "baseStats": {
+   "hp": 80,
+   "atk": 100,
+   "def": 70,
+   "spa": 50,
+   "spd": 60,
+   "spe": 45
+  },
+  "bst": 405,
+  "tier": "uncommon",
+  "abilities": [
+   "guts",
+   "noguard",
+   "steadfast"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "counter",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "earthquake",
+   "fireblast",
+   "fissure",
+   "focusenergy",
+   "karatechop",
+   "leer",
+   "lowkick",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "rage",
+   "rest",
+   "rockslide",
+   "seismictoss",
+   "skullbash",
+   "strength",
+   "submission",
+   "substitute",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 68,
+    "level": null,
+    "method": "trade",
+    "item": null
+   }
+  ],
+  "prevo": 66,
+  "weightkg": 70.5
+ },
+ {
+  "id": 68,
+  "slug": "machamp",
+  "name": "Machamp",
+  "types": [
+   "Fighting"
+  ],
+  "baseStats": {
+   "hp": 90,
+   "atk": 130,
+   "def": 80,
+   "spa": 65,
+   "spd": 85,
+   "spe": 55
+  },
+  "bst": 505,
+  "tier": "rare",
+  "abilities": [
+   "guts",
+   "noguard",
+   "steadfast"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "counter",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "earthquake",
+   "fireblast",
+   "fissure",
+   "focusenergy",
+   "hyperbeam",
+   "karatechop",
+   "leer",
+   "lowkick",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "rage",
+   "rest",
+   "rockslide",
+   "seismictoss",
+   "skullbash",
+   "strength",
+   "submission",
+   "substitute",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": 67,
+  "weightkg": 130
+ },
+ {
+  "id": 69,
+  "slug": "bellsprout",
+  "name": "Bellsprout",
+  "types": [
+   "Grass",
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 50,
+   "atk": 75,
+   "def": 35,
+   "spa": 70,
+   "spd": 30,
+   "spe": 40
+  },
+  "bst": 300,
+  "tier": "common",
+  "abilities": [
+   "chlorophyll",
+   "gluttony"
+  ],
+  "learnset": [
+   "acid",
+   "bide",
+   "cut",
+   "doubleedge",
+   "doubleteam",
+   "growth",
+   "megadrain",
+   "mimic",
+   "poisonpowder",
+   "rage",
+   "razorleaf",
+   "reflect",
+   "rest",
+   "slam",
+   "sleeppowder",
+   "solarbeam",
+   "stunspore",
+   "substitute",
+   "swordsdance",
+   "takedown",
+   "toxic",
+   "vinewhip",
+   "wrap"
+  ],
+  "evolvesTo": [
+   {
+    "id": 70,
+    "level": 21,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 4
+ },
+ {
+  "id": 70,
+  "slug": "weepinbell",
+  "name": "Weepinbell",
+  "types": [
+   "Grass",
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 65,
+   "atk": 90,
+   "def": 50,
+   "spa": 85,
+   "spd": 45,
+   "spe": 55
+  },
+  "bst": 390,
+  "tier": "uncommon",
+  "abilities": [
+   "chlorophyll",
+   "gluttony"
+  ],
+  "learnset": [
+   "acid",
+   "bide",
+   "cut",
+   "doubleedge",
+   "doubleteam",
+   "growth",
+   "megadrain",
+   "mimic",
+   "poisonpowder",
+   "rage",
+   "razorleaf",
+   "reflect",
+   "rest",
+   "slam",
+   "sleeppowder",
+   "solarbeam",
+   "stunspore",
+   "substitute",
+   "swordsdance",
+   "takedown",
+   "toxic",
+   "vinewhip",
+   "wrap"
+  ],
+  "evolvesTo": [
+   {
+    "id": 71,
+    "level": null,
+    "method": "useItem",
+    "item": "Leaf Stone"
+   }
+  ],
+  "prevo": 69,
+  "weightkg": 6.4
+ },
+ {
+  "id": 71,
+  "slug": "victreebel",
+  "name": "Victreebel",
+  "types": [
+   "Grass",
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 80,
+   "atk": 105,
+   "def": 65,
+   "spa": 100,
+   "spd": 70,
+   "spe": 70
+  },
+  "bst": 490,
+  "tier": "rare",
+  "abilities": [
+   "chlorophyll",
+   "gluttony"
+  ],
+  "learnset": [
+   "acid",
+   "bide",
+   "bodyslam",
+   "cut",
+   "doubleedge",
+   "doubleteam",
+   "growth",
+   "hyperbeam",
+   "megadrain",
+   "mimic",
+   "poisonpowder",
+   "rage",
+   "razorleaf",
+   "reflect",
+   "rest",
+   "slam",
+   "sleeppowder",
+   "solarbeam",
+   "stunspore",
+   "substitute",
+   "swordsdance",
+   "takedown",
+   "toxic",
+   "vinewhip",
+   "wrap"
+  ],
+  "evolvesTo": [],
+  "prevo": 70,
+  "weightkg": 15.5
+ },
+ {
+  "id": 72,
+  "slug": "tentacool",
+  "name": "Tentacool",
+  "types": [
+   "Water",
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 40,
+   "atk": 40,
+   "def": 35,
+   "spa": 50,
+   "spd": 100,
+   "spe": 70
+  },
+  "bst": 335,
+  "tier": "common",
+  "abilities": [
+   "clearbody",
+   "liquidooze",
+   "raindish"
+  ],
+  "learnset": [
+   "acid",
+   "barrier",
+   "bide",
+   "blizzard",
+   "bubblebeam",
+   "constrict",
+   "cut",
+   "doubleedge",
+   "doubleteam",
+   "hydropump",
+   "icebeam",
+   "megadrain",
+   "mimic",
+   "poisonsting",
+   "rage",
+   "reflect",
+   "rest",
+   "screech",
+   "skullbash",
+   "substitute",
+   "supersonic",
+   "surf",
+   "swordsdance",
+   "takedown",
+   "toxic",
+   "watergun",
+   "wrap"
+  ],
+  "evolvesTo": [
+   {
+    "id": 73,
+    "level": 30,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 45.5
+ },
+ {
+  "id": 73,
+  "slug": "tentacruel",
+  "name": "Tentacruel",
+  "types": [
+   "Water",
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 80,
+   "atk": 70,
+   "def": 65,
+   "spa": 80,
+   "spd": 120,
+   "spe": 100
+  },
+  "bst": 515,
+  "tier": "rare",
+  "abilities": [
+   "clearbody",
+   "liquidooze",
+   "raindish"
+  ],
+  "learnset": [
+   "acid",
+   "barrier",
+   "bide",
+   "blizzard",
+   "bubblebeam",
+   "constrict",
+   "cut",
+   "doubleedge",
+   "doubleteam",
+   "hydropump",
+   "hyperbeam",
+   "icebeam",
+   "megadrain",
+   "mimic",
+   "poisonsting",
+   "rage",
+   "reflect",
+   "rest",
+   "screech",
+   "skullbash",
+   "substitute",
+   "supersonic",
+   "surf",
+   "swordsdance",
+   "takedown",
+   "toxic",
+   "watergun",
+   "wrap"
+  ],
+  "evolvesTo": [],
+  "prevo": 72,
+  "weightkg": 55
+ },
+ {
+  "id": 74,
+  "slug": "geodude",
+  "name": "Geodude",
+  "types": [
+   "Rock",
+   "Ground"
+  ],
+  "baseStats": {
+   "hp": 40,
+   "atk": 80,
+   "def": 100,
+   "spa": 30,
+   "spd": 30,
+   "spe": 20
+  },
+  "bst": 300,
+  "tier": "common",
+  "abilities": [
+   "rockhead",
+   "sturdy",
+   "sandveil"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "counter",
+   "defensecurl",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "earthquake",
+   "explosion",
+   "fireblast",
+   "fissure",
+   "harden",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "rage",
+   "rest",
+   "rockslide",
+   "rockthrow",
+   "seismictoss",
+   "selfdestruct",
+   "strength",
+   "submission",
+   "substitute",
+   "tackle",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 75,
+    "level": 25,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 20
+ },
+ {
+  "id": 75,
+  "slug": "graveler",
+  "name": "Graveler",
+  "types": [
+   "Rock",
+   "Ground"
+  ],
+  "baseStats": {
+   "hp": 55,
+   "atk": 95,
+   "def": 115,
+   "spa": 45,
+   "spd": 45,
+   "spe": 35
+  },
+  "bst": 390,
+  "tier": "uncommon",
+  "abilities": [
+   "rockhead",
+   "sturdy",
+   "sandveil"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "counter",
+   "defensecurl",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "earthquake",
+   "explosion",
+   "fireblast",
+   "fissure",
+   "harden",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "rage",
+   "rest",
+   "rockslide",
+   "rockthrow",
+   "seismictoss",
+   "selfdestruct",
+   "strength",
+   "submission",
+   "substitute",
+   "tackle",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 76,
+    "level": null,
+    "method": "trade",
+    "item": null
+   }
+  ],
+  "prevo": 74,
+  "weightkg": 105
+ },
+ {
+  "id": 76,
+  "slug": "golem",
+  "name": "Golem",
+  "types": [
+   "Rock",
+   "Ground"
+  ],
+  "baseStats": {
+   "hp": 80,
+   "atk": 120,
+   "def": 130,
+   "spa": 55,
+   "spd": 65,
+   "spe": 45
+  },
+  "bst": 495,
+  "tier": "rare",
+  "abilities": [
+   "rockhead",
+   "sturdy",
+   "sandveil"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "counter",
+   "defensecurl",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "earthquake",
+   "explosion",
+   "fireblast",
+   "fissure",
+   "harden",
+   "hyperbeam",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "rage",
+   "rest",
+   "rockslide",
+   "rockthrow",
+   "seismictoss",
+   "selfdestruct",
+   "strength",
+   "submission",
+   "substitute",
+   "tackle",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": 75,
+  "weightkg": 300
+ },
+ {
+  "id": 77,
+  "slug": "ponyta",
+  "name": "Ponyta",
+  "types": [
+   "Fire"
+  ],
+  "baseStats": {
+   "hp": 50,
+   "atk": 85,
+   "def": 55,
+   "spa": 65,
+   "spd": 65,
+   "spe": 90
+  },
+  "bst": 410,
+  "tier": "uncommon",
+  "abilities": [
+   "runaway",
+   "flashfire",
+   "flamebody"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "bodyslam",
+   "doubleedge",
+   "doubleteam",
+   "ember",
+   "fireblast",
+   "firespin",
+   "growl",
+   "horndrill",
+   "mimic",
+   "rage",
+   "reflect",
+   "rest",
+   "skullbash",
+   "stomp",
+   "substitute",
+   "swift",
+   "tailwhip",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 78,
+    "level": 40,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 30
+ },
+ {
+  "id": 78,
+  "slug": "rapidash",
+  "name": "Rapidash",
+  "types": [
+   "Fire"
+  ],
+  "baseStats": {
+   "hp": 65,
+   "atk": 100,
+   "def": 70,
+   "spa": 80,
+   "spd": 80,
+   "spe": 105
+  },
+  "bst": 500,
+  "tier": "rare",
+  "abilities": [
+   "runaway",
+   "flashfire",
+   "flamebody"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "bodyslam",
+   "doubleedge",
+   "doubleteam",
+   "ember",
+   "fireblast",
+   "firespin",
+   "growl",
+   "horndrill",
+   "hyperbeam",
+   "mimic",
+   "payday",
+   "rage",
+   "reflect",
+   "rest",
+   "skullbash",
+   "stomp",
+   "substitute",
+   "swift",
+   "tailwhip",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": 77,
+  "weightkg": 95
+ },
+ {
+  "id": 79,
+  "slug": "slowpoke",
+  "name": "Slowpoke",
+  "types": [
+   "Water",
+   "Psychic"
+  ],
+  "baseStats": {
+   "hp": 90,
+   "atk": 65,
+   "def": 65,
+   "spa": 40,
+   "spd": 40,
+   "spe": 15
+  },
+  "bst": 315,
+  "tier": "common",
+  "abilities": [
+   "oblivious",
+   "owntempo",
+   "regenerator"
+  ],
+  "learnset": [
+   "amnesia",
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "confusion",
+   "dig",
+   "disable",
+   "doubleedge",
+   "doubleteam",
+   "earthquake",
+   "fireblast",
+   "fissure",
+   "flash",
+   "growl",
+   "headbutt",
+   "icebeam",
+   "mimic",
+   "payday",
+   "psychic",
+   "psywave",
+   "rage",
+   "reflect",
+   "rest",
+   "skullbash",
+   "strength",
+   "substitute",
+   "surf",
+   "swift",
+   "takedown",
+   "teleport",
+   "thunderwave",
+   "toxic",
+   "triattack",
+   "watergun"
+  ],
+  "evolvesTo": [
+   {
+    "id": 80,
+    "level": 37,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 36
+ },
+ {
+  "id": 80,
+  "slug": "slowbro",
+  "name": "Slowbro",
+  "types": [
+   "Water",
+   "Psychic"
+  ],
+  "baseStats": {
+   "hp": 95,
+   "atk": 75,
+   "def": 110,
+   "spa": 100,
+   "spd": 80,
+   "spe": 30
+  },
+  "bst": 490,
+  "tier": "rare",
+  "abilities": [
+   "oblivious",
+   "owntempo",
+   "regenerator"
+  ],
+  "learnset": [
+   "amnesia",
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "confusion",
+   "counter",
+   "dig",
+   "disable",
+   "doubleedge",
+   "doubleteam",
+   "earthquake",
+   "fireblast",
+   "fissure",
+   "flash",
+   "growl",
+   "headbutt",
+   "hyperbeam",
+   "icebeam",
+   "megakick",
+   "megapunch",
+   "mimic",
+   "payday",
+   "psychic",
+   "psywave",
+   "rage",
+   "reflect",
+   "rest",
+   "seismictoss",
+   "skullbash",
+   "strength",
+   "submission",
+   "substitute",
+   "surf",
+   "swift",
+   "takedown",
+   "teleport",
+   "thunderwave",
+   "toxic",
+   "triattack",
+   "watergun",
+   "withdraw"
+  ],
+  "evolvesTo": [],
+  "prevo": 79,
+  "weightkg": 78.5
+ },
+ {
+  "id": 81,
+  "slug": "magnemite",
+  "name": "Magnemite",
+  "types": [
+   "Electric",
+   "Steel"
+  ],
+  "baseStats": {
+   "hp": 25,
+   "atk": 35,
+   "def": 70,
+   "spa": 95,
+   "spd": 55,
+   "spe": 45
+  },
+  "bst": 325,
+  "tier": "common",
+  "abilities": [
+   "magnetpull",
+   "sturdy",
+   "analytic"
+  ],
+  "learnset": [
+   "bide",
+   "doubleedge",
+   "doubleteam",
+   "flash",
+   "mimic",
+   "rage",
+   "reflect",
+   "rest",
+   "screech",
+   "sonicboom",
+   "substitute",
+   "supersonic",
+   "swift",
+   "tackle",
+   "takedown",
+   "teleport",
+   "thunder",
+   "thunderbolt",
+   "thundershock",
+   "thunderwave",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 82,
+    "level": 30,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 6
+ },
+ {
+  "id": 82,
+  "slug": "magneton",
+  "name": "Magneton",
+  "types": [
+   "Electric",
+   "Steel"
+  ],
+  "baseStats": {
+   "hp": 50,
+   "atk": 60,
+   "def": 95,
+   "spa": 120,
+   "spd": 70,
+   "spe": 70
+  },
+  "bst": 465,
+  "tier": "rare",
+  "abilities": [
+   "magnetpull",
+   "sturdy",
+   "analytic"
+  ],
+  "learnset": [
+   "bide",
+   "doubleedge",
+   "doubleteam",
+   "flash",
+   "hyperbeam",
+   "mimic",
+   "rage",
+   "reflect",
+   "rest",
+   "screech",
+   "sonicboom",
+   "substitute",
+   "supersonic",
+   "swift",
+   "tackle",
+   "takedown",
+   "teleport",
+   "thunder",
+   "thunderbolt",
+   "thundershock",
+   "thunderwave",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": 81,
+  "weightkg": 60
+ },
+ {
+  "id": 83,
+  "slug": "farfetchd",
+  "name": "Farfetch’d",
+  "types": [
+   "Normal",
+   "Flying"
+  ],
+  "baseStats": {
+   "hp": 52,
+   "atk": 90,
+   "def": 55,
+   "spa": 58,
+   "spd": 62,
+   "spe": 60
+  },
+  "bst": 377,
+  "tier": "uncommon",
+  "abilities": [
+   "keeneye",
+   "innerfocus",
+   "defiant"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "bodyslam",
+   "cut",
+   "doubleedge",
+   "doubleteam",
+   "fly",
+   "furyattack",
+   "leer",
+   "mimic",
+   "peck",
+   "rage",
+   "razorwind",
+   "reflect",
+   "rest",
+   "sandattack",
+   "skullbash",
+   "slash",
+   "substitute",
+   "swift",
+   "swordsdance",
+   "takedown",
+   "toxic",
+   "whirlwind"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 15
+ },
+ {
+  "id": 84,
+  "slug": "doduo",
+  "name": "Doduo",
+  "types": [
+   "Normal",
+   "Flying"
+  ],
+  "baseStats": {
+   "hp": 35,
+   "atk": 85,
+   "def": 45,
+   "spa": 35,
+   "spd": 35,
+   "spe": 75
+  },
+  "bst": 310,
+  "tier": "common",
+  "abilities": [
+   "runaway",
+   "earlybird",
+   "tangledfeet"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "bodyslam",
+   "doubleedge",
+   "doubleteam",
+   "drillpeck",
+   "fly",
+   "furyattack",
+   "growl",
+   "mimic",
+   "peck",
+   "rage",
+   "reflect",
+   "rest",
+   "skullbash",
+   "skyattack",
+   "substitute",
+   "takedown",
+   "toxic",
+   "triattack",
+   "whirlwind"
+  ],
+  "evolvesTo": [
+   {
+    "id": 85,
+    "level": 31,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 39.2
+ },
+ {
+  "id": 85,
+  "slug": "dodrio",
+  "name": "Dodrio",
+  "types": [
+   "Normal",
+   "Flying"
+  ],
+  "baseStats": {
+   "hp": 60,
+   "atk": 110,
+   "def": 70,
+   "spa": 60,
+   "spd": 60,
+   "spe": 110
+  },
+  "bst": 470,
+  "tier": "rare",
+  "abilities": [
+   "runaway",
+   "earlybird",
+   "tangledfeet"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "bodyslam",
+   "doubleedge",
+   "doubleteam",
+   "drillpeck",
+   "fly",
+   "furyattack",
+   "growl",
+   "hyperbeam",
+   "mimic",
+   "peck",
+   "rage",
+   "reflect",
+   "rest",
+   "skullbash",
+   "skyattack",
+   "substitute",
+   "takedown",
+   "toxic",
+   "triattack",
+   "whirlwind"
+  ],
+  "evolvesTo": [],
+  "prevo": 84,
+  "weightkg": 85.2
+ },
+ {
+  "id": 86,
+  "slug": "seel",
+  "name": "Seel",
+  "types": [
+   "Water"
+  ],
+  "baseStats": {
+   "hp": 65,
+   "atk": 45,
+   "def": 55,
+   "spa": 45,
+   "spd": 70,
+   "spe": 45
+  },
+  "bst": 325,
+  "tier": "common",
+  "abilities": [
+   "thickfat",
+   "hydration",
+   "icebody"
+  ],
+  "learnset": [
+   "aurorabeam",
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "doubleedge",
+   "doubleteam",
+   "growl",
+   "headbutt",
+   "horndrill",
+   "icebeam",
+   "mimic",
+   "payday",
+   "rage",
+   "rest",
+   "skullbash",
+   "strength",
+   "substitute",
+   "surf",
+   "takedown",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [
+   {
+    "id": 87,
+    "level": 34,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 90
+ },
+ {
+  "id": 87,
+  "slug": "dewgong",
+  "name": "Dewgong",
+  "types": [
+   "Water",
+   "Ice"
+  ],
+  "baseStats": {
+   "hp": 90,
+   "atk": 70,
+   "def": 80,
+   "spa": 70,
+   "spd": 95,
+   "spe": 70
+  },
+  "bst": 475,
+  "tier": "rare",
+  "abilities": [
+   "thickfat",
+   "hydration",
+   "icebody"
+  ],
+  "learnset": [
+   "aurorabeam",
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "doubleedge",
+   "doubleteam",
+   "growl",
+   "headbutt",
+   "horndrill",
+   "hyperbeam",
+   "icebeam",
+   "mimic",
+   "payday",
+   "rage",
+   "rest",
+   "skullbash",
+   "strength",
+   "substitute",
+   "surf",
+   "takedown",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [],
+  "prevo": 86,
+  "weightkg": 120
+ },
+ {
+  "id": 88,
+  "slug": "grimer",
+  "name": "Grimer",
+  "types": [
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 80,
+   "atk": 80,
+   "def": 50,
+   "spa": 40,
+   "spd": 50,
+   "spe": 25
+  },
+  "bst": 325,
+  "tier": "common",
+  "abilities": [
+   "stench",
+   "stickyhold",
+   "poisontouch"
+  ],
+  "learnset": [
+   "acidarmor",
+   "bide",
+   "bodyslam",
+   "disable",
+   "doubleteam",
+   "explosion",
+   "fireblast",
+   "harden",
+   "megadrain",
+   "mimic",
+   "minimize",
+   "poisongas",
+   "pound",
+   "rage",
+   "rest",
+   "screech",
+   "selfdestruct",
+   "sludge",
+   "substitute",
+   "thunder",
+   "thunderbolt",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 89,
+    "level": 38,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 30
+ },
+ {
+  "id": 89,
+  "slug": "muk",
+  "name": "Muk",
+  "types": [
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 105,
+   "atk": 105,
+   "def": 75,
+   "spa": 65,
+   "spd": 100,
+   "spe": 50
+  },
+  "bst": 500,
+  "tier": "rare",
+  "abilities": [
+   "stench",
+   "stickyhold",
+   "poisontouch"
+  ],
+  "learnset": [
+   "acidarmor",
+   "bide",
+   "bodyslam",
+   "disable",
+   "doubleteam",
+   "explosion",
+   "fireblast",
+   "harden",
+   "hyperbeam",
+   "megadrain",
+   "mimic",
+   "minimize",
+   "poisongas",
+   "pound",
+   "rage",
+   "rest",
+   "screech",
+   "selfdestruct",
+   "sludge",
+   "substitute",
+   "thunder",
+   "thunderbolt",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": 88,
+  "weightkg": 30
+ },
+ {
+  "id": 90,
+  "slug": "shellder",
+  "name": "Shellder",
+  "types": [
+   "Water"
+  ],
+  "baseStats": {
+   "hp": 30,
+   "atk": 65,
+   "def": 100,
+   "spa": 45,
+   "spd": 25,
+   "spe": 40
+  },
+  "bst": 305,
+  "tier": "common",
+  "abilities": [
+   "shellarmor",
+   "skilllink",
+   "overcoat"
+  ],
+  "learnset": [
+   "aurorabeam",
+   "bide",
+   "blizzard",
+   "bubblebeam",
+   "clamp",
+   "doubleedge",
+   "doubleteam",
+   "explosion",
+   "icebeam",
+   "leer",
+   "mimic",
+   "rage",
+   "reflect",
+   "rest",
+   "selfdestruct",
+   "substitute",
+   "supersonic",
+   "surf",
+   "swift",
+   "tackle",
+   "takedown",
+   "teleport",
+   "toxic",
+   "triattack",
+   "watergun",
+   "withdraw"
+  ],
+  "evolvesTo": [
+   {
+    "id": 91,
+    "level": null,
+    "method": "useItem",
+    "item": "Water Stone"
+   }
+  ],
+  "prevo": null,
+  "weightkg": 4
+ },
+ {
+  "id": 91,
+  "slug": "cloyster",
+  "name": "Cloyster",
+  "types": [
+   "Water",
+   "Ice"
+  ],
+  "baseStats": {
+   "hp": 50,
+   "atk": 95,
+   "def": 180,
+   "spa": 85,
+   "spd": 45,
+   "spe": 70
+  },
+  "bst": 525,
+  "tier": "rare",
+  "abilities": [
+   "shellarmor",
+   "skilllink",
+   "overcoat"
+  ],
+  "learnset": [
+   "aurorabeam",
+   "bide",
+   "blizzard",
+   "bubblebeam",
+   "clamp",
+   "doubleedge",
+   "doubleteam",
+   "explosion",
+   "hyperbeam",
+   "icebeam",
+   "leer",
+   "mimic",
+   "rage",
+   "reflect",
+   "rest",
+   "selfdestruct",
+   "spikecannon",
+   "substitute",
+   "supersonic",
+   "surf",
+   "swift",
+   "tackle",
+   "takedown",
+   "teleport",
+   "toxic",
+   "triattack",
+   "watergun",
+   "withdraw"
+  ],
+  "evolvesTo": [],
+  "prevo": 90,
+  "weightkg": 132.5
+ },
+ {
+  "id": 92,
+  "slug": "gastly",
+  "name": "Gastly",
+  "types": [
+   "Ghost",
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 30,
+   "atk": 35,
+   "def": 30,
+   "spa": 100,
+   "spd": 35,
+   "spe": 80
+  },
+  "bst": 310,
+  "tier": "common",
+  "abilities": [
+   "levitate"
+  ],
+  "learnset": [
+   "bide",
+   "confuseray",
+   "doubleteam",
+   "dreameater",
+   "explosion",
+   "hypnosis",
+   "lick",
+   "megadrain",
+   "mimic",
+   "nightshade",
+   "psychic",
+   "psywave",
+   "rage",
+   "rest",
+   "selfdestruct",
+   "substitute",
+   "thunder",
+   "thunderbolt",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 93,
+    "level": 25,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 0.1
+ },
+ {
+  "id": 93,
+  "slug": "haunter",
+  "name": "Haunter",
+  "types": [
+   "Ghost",
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 45,
+   "atk": 50,
+   "def": 45,
+   "spa": 115,
+   "spd": 55,
+   "spe": 95
+  },
+  "bst": 405,
+  "tier": "uncommon",
+  "abilities": [
+   "levitate"
+  ],
+  "learnset": [
+   "bide",
+   "confuseray",
+   "doubleteam",
+   "dreameater",
+   "explosion",
+   "hypnosis",
+   "lick",
+   "megadrain",
+   "mimic",
+   "nightshade",
+   "psychic",
+   "psywave",
+   "rage",
+   "rest",
+   "selfdestruct",
+   "substitute",
+   "thunder",
+   "thunderbolt",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 94,
+    "level": null,
+    "method": "trade",
+    "item": null
+   }
+  ],
+  "prevo": 92,
+  "weightkg": 0.1
+ },
+ {
+  "id": 94,
+  "slug": "gengar",
+  "name": "Gengar",
+  "types": [
+   "Ghost",
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 60,
+   "atk": 65,
+   "def": 60,
+   "spa": 130,
+   "spd": 75,
+   "spe": 110
+  },
+  "bst": 500,
+  "tier": "rare",
+  "abilities": [
+   "cursedbody"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "confuseray",
+   "counter",
+   "doubleedge",
+   "doubleteam",
+   "dreameater",
+   "explosion",
+   "hyperbeam",
+   "hypnosis",
+   "lick",
+   "megadrain",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "nightshade",
+   "psychic",
+   "psywave",
+   "rage",
+   "rest",
+   "seismictoss",
+   "selfdestruct",
+   "skullbash",
+   "strength",
+   "submission",
+   "substitute",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": 93,
+  "weightkg": 40.5
+ },
+ {
+  "id": 95,
+  "slug": "onix",
+  "name": "Onix",
+  "types": [
+   "Rock",
+   "Ground"
+  ],
+  "baseStats": {
+   "hp": 35,
+   "atk": 45,
+   "def": 160,
+   "spa": 30,
+   "spd": 45,
+   "spe": 70
+  },
+  "bst": 385,
+  "tier": "uncommon",
+  "abilities": [
+   "rockhead",
+   "sturdy",
+   "weakarmor"
+  ],
+  "learnset": [
+   "bide",
+   "bind",
+   "bodyslam",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "earthquake",
+   "explosion",
+   "fissure",
+   "harden",
+   "mimic",
+   "rage",
+   "rest",
+   "rockslide",
+   "rockthrow",
+   "screech",
+   "selfdestruct",
+   "skullbash",
+   "slam",
+   "strength",
+   "substitute",
+   "tackle",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 210
+ },
+ {
+  "id": 96,
+  "slug": "drowzee",
+  "name": "Drowzee",
+  "types": [
+   "Psychic"
+  ],
+  "baseStats": {
+   "hp": 60,
+   "atk": 48,
+   "def": 45,
+   "spa": 43,
+   "spd": 90,
+   "spe": 42
+  },
+  "bst": 328,
+  "tier": "common",
+  "abilities": [
+   "insomnia",
+   "forewarn",
+   "innerfocus"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "confusion",
+   "counter",
+   "disable",
+   "doubleedge",
+   "doubleteam",
+   "dreameater",
+   "flash",
+   "headbutt",
+   "hypnosis",
+   "meditate",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "poisongas",
+   "pound",
+   "psychic",
+   "psywave",
+   "rage",
+   "reflect",
+   "rest",
+   "seismictoss",
+   "skullbash",
+   "submission",
+   "substitute",
+   "takedown",
+   "teleport",
+   "thunderwave",
+   "toxic",
+   "triattack"
+  ],
+  "evolvesTo": [
+   {
+    "id": 97,
+    "level": 26,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 32.4
+ },
+ {
+  "id": 97,
+  "slug": "hypno",
+  "name": "Hypno",
+  "types": [
+   "Psychic"
+  ],
+  "baseStats": {
+   "hp": 85,
+   "atk": 73,
+   "def": 70,
+   "spa": 73,
+   "spd": 115,
+   "spe": 67
+  },
+  "bst": 483,
+  "tier": "rare",
+  "abilities": [
+   "insomnia",
+   "forewarn",
+   "innerfocus"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "confusion",
+   "counter",
+   "disable",
+   "doubleedge",
+   "doubleteam",
+   "dreameater",
+   "flash",
+   "headbutt",
+   "hyperbeam",
+   "hypnosis",
+   "meditate",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "poisongas",
+   "pound",
+   "psychic",
+   "psywave",
+   "rage",
+   "reflect",
+   "rest",
+   "seismictoss",
+   "skullbash",
+   "submission",
+   "substitute",
+   "takedown",
+   "teleport",
+   "thunderwave",
+   "toxic",
+   "triattack"
+  ],
+  "evolvesTo": [],
+  "prevo": 96,
+  "weightkg": 75.6
+ },
+ {
+  "id": 98,
+  "slug": "krabby",
+  "name": "Krabby",
+  "types": [
+   "Water"
+  ],
+  "baseStats": {
+   "hp": 30,
+   "atk": 105,
+   "def": 90,
+   "spa": 25,
+   "spd": 25,
+   "spe": 50
+  },
+  "bst": 325,
+  "tier": "common",
+  "abilities": [
+   "hypercutter",
+   "shellarmor",
+   "sheerforce"
+  ],
+  "learnset": [
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubble",
+   "bubblebeam",
+   "crabhammer",
+   "cut",
+   "doubleedge",
+   "doubleteam",
+   "guillotine",
+   "harden",
+   "icebeam",
+   "leer",
+   "mimic",
+   "rage",
+   "rest",
+   "stomp",
+   "strength",
+   "substitute",
+   "surf",
+   "swordsdance",
+   "takedown",
+   "toxic",
+   "visegrip",
+   "watergun"
+  ],
+  "evolvesTo": [
+   {
+    "id": 99,
+    "level": 28,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 6.5
+ },
+ {
+  "id": 99,
+  "slug": "kingler",
+  "name": "Kingler",
+  "types": [
+   "Water"
+  ],
+  "baseStats": {
+   "hp": 55,
+   "atk": 130,
+   "def": 115,
+   "spa": 50,
+   "spd": 50,
+   "spe": 75
+  },
+  "bst": 475,
+  "tier": "rare",
+  "abilities": [
+   "hypercutter",
+   "shellarmor",
+   "sheerforce"
+  ],
+  "learnset": [
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubble",
+   "bubblebeam",
+   "crabhammer",
+   "cut",
+   "doubleedge",
+   "doubleteam",
+   "guillotine",
+   "harden",
+   "hyperbeam",
+   "icebeam",
+   "leer",
+   "mimic",
+   "rage",
+   "rest",
+   "stomp",
+   "strength",
+   "substitute",
+   "surf",
+   "swordsdance",
+   "takedown",
+   "toxic",
+   "visegrip",
+   "watergun"
+  ],
+  "evolvesTo": [],
+  "prevo": 98,
+  "weightkg": 60
+ },
+ {
+  "id": 100,
+  "slug": "voltorb",
+  "name": "Voltorb",
+  "types": [
+   "Electric"
+  ],
+  "baseStats": {
+   "hp": 40,
+   "atk": 30,
+   "def": 50,
+   "spa": 55,
+   "spd": 55,
+   "spe": 100
+  },
+  "bst": 330,
+  "tier": "common",
+  "abilities": [
+   "soundproof",
+   "static",
+   "aftermath"
+  ],
+  "learnset": [
+   "bide",
+   "doubleteam",
+   "explosion",
+   "flash",
+   "lightscreen",
+   "mimic",
+   "rage",
+   "reflect",
+   "rest",
+   "screech",
+   "selfdestruct",
+   "sonicboom",
+   "substitute",
+   "swift",
+   "tackle",
+   "takedown",
+   "teleport",
+   "thunder",
+   "thunderbolt",
+   "thunderwave",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 101,
+    "level": 30,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 10.4
+ },
+ {
+  "id": 101,
+  "slug": "electrode",
+  "name": "Electrode",
+  "types": [
+   "Electric"
+  ],
+  "baseStats": {
+   "hp": 60,
+   "atk": 50,
+   "def": 70,
+   "spa": 80,
+   "spd": 80,
+   "spe": 150
+  },
+  "bst": 490,
+  "tier": "rare",
+  "abilities": [
+   "soundproof",
+   "static",
+   "aftermath"
+  ],
+  "learnset": [
+   "bide",
+   "doubleteam",
+   "explosion",
+   "flash",
+   "hyperbeam",
+   "lightscreen",
+   "mimic",
+   "rage",
+   "reflect",
+   "rest",
+   "screech",
+   "selfdestruct",
+   "skullbash",
+   "sonicboom",
+   "substitute",
+   "swift",
+   "tackle",
+   "takedown",
+   "teleport",
+   "thunder",
+   "thunderbolt",
+   "thunderwave",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": 100,
+  "weightkg": 66.6
+ },
+ {
+  "id": 102,
+  "slug": "exeggcute",
+  "name": "Exeggcute",
+  "types": [
+   "Grass",
+   "Psychic"
+  ],
+  "baseStats": {
+   "hp": 60,
+   "atk": 40,
+   "def": 80,
+   "spa": 60,
+   "spd": 45,
+   "spe": 40
+  },
+  "bst": 325,
+  "tier": "common",
+  "abilities": [
+   "chlorophyll",
+   "harvest"
+  ],
+  "learnset": [
+   "barrage",
+   "bide",
+   "doubleedge",
+   "doubleteam",
+   "eggbomb",
+   "explosion",
+   "hypnosis",
+   "leechseed",
+   "mimic",
+   "poisonpowder",
+   "psychic",
+   "psywave",
+   "rage",
+   "reflect",
+   "rest",
+   "selfdestruct",
+   "sleeppowder",
+   "solarbeam",
+   "stunspore",
+   "substitute",
+   "takedown",
+   "teleport",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 103,
+    "level": null,
+    "method": "useItem",
+    "item": "Leaf Stone"
+   }
+  ],
+  "prevo": null,
+  "weightkg": 2.5
+ },
+ {
+  "id": 103,
+  "slug": "exeggutor",
+  "name": "Exeggutor",
+  "types": [
+   "Grass",
+   "Psychic"
+  ],
+  "baseStats": {
+   "hp": 95,
+   "atk": 95,
+   "def": 85,
+   "spa": 125,
+   "spd": 75,
+   "spe": 55
+  },
+  "bst": 530,
+  "tier": "epic",
+  "abilities": [
+   "chlorophyll",
+   "harvest"
+  ],
+  "learnset": [
+   "barrage",
+   "bide",
+   "doubleedge",
+   "doubleteam",
+   "eggbomb",
+   "explosion",
+   "hyperbeam",
+   "hypnosis",
+   "leechseed",
+   "megadrain",
+   "mimic",
+   "poisonpowder",
+   "psychic",
+   "psywave",
+   "rage",
+   "reflect",
+   "rest",
+   "selfdestruct",
+   "sleeppowder",
+   "solarbeam",
+   "stomp",
+   "strength",
+   "stunspore",
+   "substitute",
+   "takedown",
+   "teleport",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": 102,
+  "weightkg": 120
+ },
+ {
+  "id": 104,
+  "slug": "cubone",
+  "name": "Cubone",
+  "types": [
+   "Ground"
+  ],
+  "baseStats": {
+   "hp": 50,
+   "atk": 50,
+   "def": 95,
+   "spa": 40,
+   "spd": 50,
+   "spe": 35
+  },
+  "bst": 320,
+  "tier": "common",
+  "abilities": [
+   "rockhead",
+   "lightningrod",
+   "battlearmor"
+  ],
+  "learnset": [
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "boneclub",
+   "bonemerang",
+   "bubblebeam",
+   "counter",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "earthquake",
+   "fireblast",
+   "fissure",
+   "focusenergy",
+   "growl",
+   "headbutt",
+   "icebeam",
+   "leer",
+   "megakick",
+   "megapunch",
+   "mimic",
+   "rage",
+   "rest",
+   "seismictoss",
+   "skullbash",
+   "strength",
+   "submission",
+   "substitute",
+   "tailwhip",
+   "takedown",
+   "thrash",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [
+   {
+    "id": 105,
+    "level": 28,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 6.5
+ },
+ {
+  "id": 105,
+  "slug": "marowak",
+  "name": "Marowak",
+  "types": [
+   "Ground"
+  ],
+  "baseStats": {
+   "hp": 60,
+   "atk": 80,
+   "def": 110,
+   "spa": 50,
+   "spd": 80,
+   "spe": 45
+  },
+  "bst": 425,
+  "tier": "uncommon",
+  "abilities": [
+   "rockhead",
+   "lightningrod",
+   "battlearmor"
+  ],
+  "learnset": [
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "boneclub",
+   "bonemerang",
+   "bubblebeam",
+   "counter",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "earthquake",
+   "fireblast",
+   "fissure",
+   "focusenergy",
+   "growl",
+   "headbutt",
+   "hyperbeam",
+   "icebeam",
+   "leer",
+   "megakick",
+   "megapunch",
+   "mimic",
+   "rage",
+   "rest",
+   "seismictoss",
+   "skullbash",
+   "strength",
+   "submission",
+   "substitute",
+   "tailwhip",
+   "takedown",
+   "thrash",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [],
+  "prevo": 104,
+  "weightkg": 45
+ },
+ {
+  "id": 106,
+  "slug": "hitmonlee",
+  "name": "Hitmonlee",
+  "types": [
+   "Fighting"
+  ],
+  "baseStats": {
+   "hp": 50,
+   "atk": 120,
+   "def": 53,
+   "spa": 35,
+   "spd": 110,
+   "spe": 87
+  },
+  "bst": 455,
+  "tier": "rare",
+  "abilities": [
+   "limber",
+   "reckless",
+   "unburden"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "counter",
+   "doubleedge",
+   "doublekick",
+   "doubleteam",
+   "focusenergy",
+   "highjumpkick",
+   "jumpkick",
+   "meditate",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "rage",
+   "rest",
+   "rollingkick",
+   "seismictoss",
+   "skullbash",
+   "strength",
+   "submission",
+   "substitute",
+   "swift",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 49.8
+ },
+ {
+  "id": 107,
+  "slug": "hitmonchan",
+  "name": "Hitmonchan",
+  "types": [
+   "Fighting"
+  ],
+  "baseStats": {
+   "hp": 50,
+   "atk": 105,
+   "def": 79,
+   "spa": 35,
+   "spd": 110,
+   "spe": 76
+  },
+  "bst": 455,
+  "tier": "rare",
+  "abilities": [
+   "keeneye",
+   "ironfist",
+   "innerfocus"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "bodyslam",
+   "cometpunch",
+   "counter",
+   "doubleedge",
+   "doubleteam",
+   "firepunch",
+   "icepunch",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "rage",
+   "rest",
+   "seismictoss",
+   "skullbash",
+   "strength",
+   "submission",
+   "substitute",
+   "swift",
+   "takedown",
+   "thunderpunch",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 50.2
+ },
+ {
+  "id": 108,
+  "slug": "lickitung",
+  "name": "Lickitung",
+  "types": [
+   "Normal"
+  ],
+  "baseStats": {
+   "hp": 90,
+   "atk": 55,
+   "def": 75,
+   "spa": 60,
+   "spd": 75,
+   "spe": 30
+  },
+  "bst": 385,
+  "tier": "uncommon",
+  "abilities": [
+   "owntempo",
+   "oblivious",
+   "cloudnine"
+  ],
+  "learnset": [
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "counter",
+   "cut",
+   "defensecurl",
+   "disable",
+   "doubleedge",
+   "doubleteam",
+   "earthquake",
+   "fireblast",
+   "fissure",
+   "hyperbeam",
+   "icebeam",
+   "megakick",
+   "megapunch",
+   "mimic",
+   "rage",
+   "rest",
+   "screech",
+   "seismictoss",
+   "skullbash",
+   "slam",
+   "stomp",
+   "strength",
+   "submission",
+   "substitute",
+   "supersonic",
+   "surf",
+   "swordsdance",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "toxic",
+   "watergun",
+   "wrap"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 65.5
+ },
+ {
+  "id": 109,
+  "slug": "koffing",
+  "name": "Koffing",
+  "types": [
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 40,
+   "atk": 65,
+   "def": 95,
+   "spa": 60,
+   "spd": 45,
+   "spe": 35
+  },
+  "bst": 340,
+  "tier": "common",
+  "abilities": [
+   "levitate",
+   "neutralizinggas",
+   "stench"
+  ],
+  "learnset": [
+   "bide",
+   "doubleteam",
+   "explosion",
+   "fireblast",
+   "haze",
+   "mimic",
+   "rage",
+   "rest",
+   "selfdestruct",
+   "sludge",
+   "smog",
+   "smokescreen",
+   "substitute",
+   "tackle",
+   "thunder",
+   "thunderbolt",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 110,
+    "level": 35,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 1
+ },
+ {
+  "id": 110,
+  "slug": "weezing",
+  "name": "Weezing",
+  "types": [
+   "Poison"
+  ],
+  "baseStats": {
+   "hp": 65,
+   "atk": 90,
+   "def": 120,
+   "spa": 85,
+   "spd": 70,
+   "spe": 60
+  },
+  "bst": 490,
+  "tier": "rare",
+  "abilities": [
+   "levitate",
+   "neutralizinggas",
+   "stench"
+  ],
+  "learnset": [
+   "bide",
+   "doubleteam",
+   "explosion",
+   "fireblast",
+   "haze",
+   "hyperbeam",
+   "mimic",
+   "rage",
+   "rest",
+   "selfdestruct",
+   "sludge",
+   "smog",
+   "smokescreen",
+   "substitute",
+   "tackle",
+   "thunder",
+   "thunderbolt",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": 109,
+  "weightkg": 9.5
+ },
+ {
+  "id": 111,
+  "slug": "rhyhorn",
+  "name": "Rhyhorn",
+  "types": [
+   "Ground",
+   "Rock"
+  ],
+  "baseStats": {
+   "hp": 80,
+   "atk": 85,
+   "def": 95,
+   "spa": 30,
+   "spd": 30,
+   "spe": 25
+  },
+  "bst": 345,
+  "tier": "common",
+  "abilities": [
+   "lightningrod",
+   "rockhead",
+   "reckless"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "earthquake",
+   "fireblast",
+   "fissure",
+   "furyattack",
+   "hornattack",
+   "horndrill",
+   "leer",
+   "mimic",
+   "rage",
+   "rest",
+   "rockslide",
+   "skullbash",
+   "stomp",
+   "strength",
+   "substitute",
+   "tailwhip",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 112,
+    "level": 42,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 115
+ },
+ {
+  "id": 112,
+  "slug": "rhydon",
+  "name": "Rhydon",
+  "types": [
+   "Ground",
+   "Rock"
+  ],
+  "baseStats": {
+   "hp": 105,
+   "atk": 130,
+   "def": 120,
+   "spa": 45,
+   "spd": 45,
+   "spe": 40
+  },
+  "bst": 485,
+  "tier": "rare",
+  "abilities": [
+   "lightningrod",
+   "rockhead",
+   "reckless"
+  ],
+  "learnset": [
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "counter",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "earthquake",
+   "fireblast",
+   "fissure",
+   "furyattack",
+   "hornattack",
+   "horndrill",
+   "hyperbeam",
+   "icebeam",
+   "leer",
+   "megakick",
+   "megapunch",
+   "mimic",
+   "payday",
+   "rage",
+   "rest",
+   "rockslide",
+   "seismictoss",
+   "skullbash",
+   "stomp",
+   "strength",
+   "submission",
+   "substitute",
+   "surf",
+   "tailwhip",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [],
+  "prevo": 111,
+  "weightkg": 120
+ },
+ {
+  "id": 113,
+  "slug": "chansey",
+  "name": "Chansey",
+  "types": [
+   "Normal"
+  ],
+  "baseStats": {
+   "hp": 250,
+   "atk": 5,
+   "def": 5,
+   "spa": 35,
+   "spd": 105,
+   "spe": 50
+  },
+  "bst": 450,
+  "tier": "rare",
+  "abilities": [
+   "naturalcure",
+   "serenegrace",
+   "healer"
+  ],
+  "learnset": [
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "counter",
+   "defensecurl",
+   "doubleedge",
+   "doubleslap",
+   "doubleteam",
+   "eggbomb",
+   "fireblast",
+   "flash",
+   "growl",
+   "hyperbeam",
+   "icebeam",
+   "lightscreen",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "minimize",
+   "pound",
+   "psychic",
+   "psywave",
+   "rage",
+   "reflect",
+   "rest",
+   "seismictoss",
+   "sing",
+   "skullbash",
+   "softboiled",
+   "solarbeam",
+   "strength",
+   "submission",
+   "substitute",
+   "tailwhip",
+   "takedown",
+   "teleport",
+   "thunder",
+   "thunderbolt",
+   "thunderwave",
+   "toxic",
+   "triattack",
+   "watergun"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 34.6
+ },
+ {
+  "id": 114,
+  "slug": "tangela",
+  "name": "Tangela",
+  "types": [
+   "Grass"
+  ],
+  "baseStats": {
+   "hp": 65,
+   "atk": 55,
+   "def": 115,
+   "spa": 100,
+   "spd": 40,
+   "spe": 60
+  },
+  "bst": 435,
+  "tier": "uncommon",
+  "abilities": [
+   "chlorophyll",
+   "leafguard",
+   "regenerator"
+  ],
+  "learnset": [
+   "absorb",
+   "bide",
+   "bind",
+   "bodyslam",
+   "constrict",
+   "cut",
+   "doubleedge",
+   "doubleteam",
+   "growth",
+   "hyperbeam",
+   "megadrain",
+   "mimic",
+   "poisonpowder",
+   "rage",
+   "rest",
+   "skullbash",
+   "slam",
+   "sleeppowder",
+   "solarbeam",
+   "stunspore",
+   "substitute",
+   "swordsdance",
+   "takedown",
+   "toxic",
+   "vinewhip"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 35
+ },
+ {
+  "id": 115,
+  "slug": "kangaskhan",
+  "name": "Kangaskhan",
+  "types": [
+   "Normal"
+  ],
+  "baseStats": {
+   "hp": 105,
+   "atk": 95,
+   "def": 80,
+   "spa": 40,
+   "spd": 80,
+   "spe": 90
+  },
+  "bst": 490,
+  "tier": "rare",
+  "abilities": [
+   "earlybird",
+   "scrappy",
+   "innerfocus"
+  ],
+  "learnset": [
+   "bide",
+   "bite",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "cometpunch",
+   "counter",
+   "dizzypunch",
+   "doubleedge",
+   "doubleteam",
+   "earthquake",
+   "fireblast",
+   "fissure",
+   "hyperbeam",
+   "icebeam",
+   "leer",
+   "megakick",
+   "megapunch",
+   "mimic",
+   "rage",
+   "rest",
+   "rockslide",
+   "seismictoss",
+   "skullbash",
+   "strength",
+   "submission",
+   "substitute",
+   "surf",
+   "tailwhip",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 80
+ },
+ {
+  "id": 116,
+  "slug": "horsea",
+  "name": "Horsea",
+  "types": [
+   "Water"
+  ],
+  "baseStats": {
+   "hp": 30,
+   "atk": 40,
+   "def": 70,
+   "spa": 70,
+   "spd": 25,
+   "spe": 60
+  },
+  "bst": 295,
+  "tier": "common",
+  "abilities": [
+   "swiftswim",
+   "sniper",
+   "damp"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "blizzard",
+   "bubble",
+   "bubblebeam",
+   "doubleedge",
+   "doubleteam",
+   "hydropump",
+   "icebeam",
+   "leer",
+   "mimic",
+   "rage",
+   "rest",
+   "skullbash",
+   "smokescreen",
+   "substitute",
+   "surf",
+   "swift",
+   "takedown",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [
+   {
+    "id": 117,
+    "level": 32,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 8
+ },
+ {
+  "id": 117,
+  "slug": "seadra",
+  "name": "Seadra",
+  "types": [
+   "Water"
+  ],
+  "baseStats": {
+   "hp": 55,
+   "atk": 65,
+   "def": 95,
+   "spa": 95,
+   "spd": 45,
+   "spe": 85
+  },
+  "bst": 440,
+  "tier": "uncommon",
+  "abilities": [
+   "poisonpoint",
+   "sniper",
+   "damp"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "blizzard",
+   "bubble",
+   "bubblebeam",
+   "doubleedge",
+   "doubleteam",
+   "hydropump",
+   "hyperbeam",
+   "icebeam",
+   "leer",
+   "mimic",
+   "rage",
+   "rest",
+   "skullbash",
+   "smokescreen",
+   "substitute",
+   "surf",
+   "swift",
+   "takedown",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [],
+  "prevo": 116,
+  "weightkg": 25
+ },
+ {
+  "id": 118,
+  "slug": "goldeen",
+  "name": "Goldeen",
+  "types": [
+   "Water"
+  ],
+  "baseStats": {
+   "hp": 45,
+   "atk": 67,
+   "def": 60,
+   "spa": 35,
+   "spd": 50,
+   "spe": 63
+  },
+  "bst": 320,
+  "tier": "common",
+  "abilities": [
+   "swiftswim",
+   "waterveil",
+   "lightningrod"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "blizzard",
+   "bubblebeam",
+   "doubleedge",
+   "doubleteam",
+   "furyattack",
+   "hornattack",
+   "horndrill",
+   "icebeam",
+   "mimic",
+   "peck",
+   "rage",
+   "rest",
+   "skullbash",
+   "substitute",
+   "supersonic",
+   "surf",
+   "swift",
+   "tailwhip",
+   "takedown",
+   "toxic",
+   "waterfall",
+   "watergun"
+  ],
+  "evolvesTo": [
+   {
+    "id": 119,
+    "level": 33,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 15
+ },
+ {
+  "id": 119,
+  "slug": "seaking",
+  "name": "Seaking",
+  "types": [
+   "Water"
+  ],
+  "baseStats": {
+   "hp": 80,
+   "atk": 92,
+   "def": 65,
+   "spa": 65,
+   "spd": 80,
+   "spe": 68
+  },
+  "bst": 450,
+  "tier": "rare",
+  "abilities": [
+   "swiftswim",
+   "waterveil",
+   "lightningrod"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "blizzard",
+   "bubblebeam",
+   "doubleedge",
+   "doubleteam",
+   "furyattack",
+   "hornattack",
+   "horndrill",
+   "hyperbeam",
+   "icebeam",
+   "mimic",
+   "peck",
+   "rage",
+   "rest",
+   "skullbash",
+   "substitute",
+   "supersonic",
+   "surf",
+   "swift",
+   "tailwhip",
+   "takedown",
+   "toxic",
+   "waterfall",
+   "watergun"
+  ],
+  "evolvesTo": [],
+  "prevo": 118,
+  "weightkg": 39
+ },
+ {
+  "id": 120,
+  "slug": "staryu",
+  "name": "Staryu",
+  "types": [
+   "Water"
+  ],
+  "baseStats": {
+   "hp": 30,
+   "atk": 45,
+   "def": 55,
+   "spa": 70,
+   "spd": 55,
+   "spe": 85
+  },
+  "bst": 340,
+  "tier": "common",
+  "abilities": [
+   "illuminate",
+   "naturalcure",
+   "analytic"
+  ],
+  "learnset": [
+   "bide",
+   "blizzard",
+   "bubblebeam",
+   "doubleedge",
+   "doubleteam",
+   "flash",
+   "harden",
+   "hydropump",
+   "icebeam",
+   "lightscreen",
+   "mimic",
+   "minimize",
+   "psychic",
+   "psywave",
+   "rage",
+   "recover",
+   "reflect",
+   "rest",
+   "skullbash",
+   "substitute",
+   "surf",
+   "swift",
+   "tackle",
+   "takedown",
+   "teleport",
+   "thunder",
+   "thunderbolt",
+   "thunderwave",
+   "toxic",
+   "triattack",
+   "watergun"
+  ],
+  "evolvesTo": [
+   {
+    "id": 121,
+    "level": null,
+    "method": "useItem",
+    "item": "Water Stone"
+   }
+  ],
+  "prevo": null,
+  "weightkg": 34.5
+ },
+ {
+  "id": 121,
+  "slug": "starmie",
+  "name": "Starmie",
+  "types": [
+   "Water",
+   "Psychic"
+  ],
+  "baseStats": {
+   "hp": 60,
+   "atk": 75,
+   "def": 85,
+   "spa": 100,
+   "spd": 85,
+   "spe": 115
+  },
+  "bst": 520,
+  "tier": "rare",
+  "abilities": [
+   "illuminate",
+   "naturalcure",
+   "analytic"
+  ],
+  "learnset": [
+   "bide",
+   "blizzard",
+   "bubblebeam",
+   "doubleedge",
+   "doubleteam",
+   "flash",
+   "harden",
+   "hydropump",
+   "hyperbeam",
+   "icebeam",
+   "lightscreen",
+   "mimic",
+   "minimize",
+   "psychic",
+   "psywave",
+   "rage",
+   "recover",
+   "reflect",
+   "rest",
+   "skullbash",
+   "substitute",
+   "surf",
+   "swift",
+   "tackle",
+   "takedown",
+   "teleport",
+   "thunder",
+   "thunderbolt",
+   "thunderwave",
+   "toxic",
+   "triattack",
+   "watergun"
+  ],
+  "evolvesTo": [],
+  "prevo": 120,
+  "weightkg": 80
+ },
+ {
+  "id": 122,
+  "slug": "mrmime",
+  "name": "Mr. Mime",
+  "types": [
+   "Psychic",
+   "Fairy"
+  ],
+  "baseStats": {
+   "hp": 40,
+   "atk": 45,
+   "def": 65,
+   "spa": 100,
+   "spd": 120,
+   "spe": 90
+  },
+  "bst": 460,
+  "tier": "rare",
+  "abilities": [
+   "soundproof",
+   "filter",
+   "technician"
+  ],
+  "learnset": [
+   "barrier",
+   "bide",
+   "bodyslam",
+   "confusion",
+   "counter",
+   "doubleedge",
+   "doubleslap",
+   "doubleteam",
+   "flash",
+   "hyperbeam",
+   "lightscreen",
+   "meditate",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "psychic",
+   "psywave",
+   "rage",
+   "reflect",
+   "rest",
+   "seismictoss",
+   "skullbash",
+   "solarbeam",
+   "submission",
+   "substitute",
+   "takedown",
+   "teleport",
+   "thunder",
+   "thunderbolt",
+   "thunderwave",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 54.5
+ },
+ {
+  "id": 123,
+  "slug": "scyther",
+  "name": "Scyther",
+  "types": [
+   "Bug",
+   "Flying"
+  ],
+  "baseStats": {
+   "hp": 70,
+   "atk": 110,
+   "def": 80,
+   "spa": 55,
+   "spd": 80,
+   "spe": 105
+  },
+  "bst": 500,
+  "tier": "rare",
+  "abilities": [
+   "swarm",
+   "technician",
+   "steadfast"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "cut",
+   "doubleedge",
+   "doubleteam",
+   "focusenergy",
+   "hyperbeam",
+   "leer",
+   "mimic",
+   "quickattack",
+   "rage",
+   "rest",
+   "skullbash",
+   "slash",
+   "substitute",
+   "swift",
+   "swordsdance",
+   "takedown",
+   "toxic",
+   "wingattack"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 56
+ },
+ {
+  "id": 124,
+  "slug": "jynx",
+  "name": "Jynx",
+  "types": [
+   "Ice",
+   "Psychic"
+  ],
+  "baseStats": {
+   "hp": 65,
+   "atk": 50,
+   "def": 35,
+   "spa": 115,
+   "spd": 95,
+   "spe": 95
+  },
+  "bst": 455,
+  "tier": "rare",
+  "abilities": [
+   "oblivious",
+   "forewarn",
+   "dryskin"
+  ],
+  "learnset": [
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "counter",
+   "doubleedge",
+   "doubleslap",
+   "doubleteam",
+   "hyperbeam",
+   "icebeam",
+   "icepunch",
+   "lick",
+   "lovelykiss",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "pound",
+   "psychic",
+   "psywave",
+   "rage",
+   "reflect",
+   "rest",
+   "seismictoss",
+   "skullbash",
+   "submission",
+   "substitute",
+   "takedown",
+   "teleport",
+   "thrash",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 40.6
+ },
+ {
+  "id": 125,
+  "slug": "electabuzz",
+  "name": "Electabuzz",
+  "types": [
+   "Electric"
+  ],
+  "baseStats": {
+   "hp": 65,
+   "atk": 83,
+   "def": 57,
+   "spa": 95,
+   "spd": 85,
+   "spe": 105
+  },
+  "bst": 490,
+  "tier": "rare",
+  "abilities": [
+   "static",
+   "vitalspirit"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "counter",
+   "doubleedge",
+   "doubleteam",
+   "flash",
+   "hyperbeam",
+   "leer",
+   "lightscreen",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "psychic",
+   "psywave",
+   "quickattack",
+   "rage",
+   "reflect",
+   "rest",
+   "screech",
+   "seismictoss",
+   "skullbash",
+   "strength",
+   "submission",
+   "substitute",
+   "swift",
+   "takedown",
+   "teleport",
+   "thunder",
+   "thunderbolt",
+   "thunderpunch",
+   "thundershock",
+   "thunderwave",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 30
+ },
+ {
+  "id": 126,
+  "slug": "magmar",
+  "name": "Magmar",
+  "types": [
+   "Fire"
+  ],
+  "baseStats": {
+   "hp": 65,
+   "atk": 95,
+   "def": 57,
+   "spa": 100,
+   "spd": 85,
+   "spe": 93
+  },
+  "bst": 495,
+  "tier": "rare",
+  "abilities": [
+   "flamebody",
+   "vitalspirit"
+  ],
+  "learnset": [
+   "bide",
+   "bodyslam",
+   "confuseray",
+   "counter",
+   "doubleedge",
+   "doubleteam",
+   "ember",
+   "fireblast",
+   "firepunch",
+   "flamethrower",
+   "hyperbeam",
+   "leer",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "psychic",
+   "psywave",
+   "rage",
+   "rest",
+   "seismictoss",
+   "skullbash",
+   "smog",
+   "smokescreen",
+   "strength",
+   "submission",
+   "substitute",
+   "takedown",
+   "teleport",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 44.5
+ },
+ {
+  "id": 127,
+  "slug": "pinsir",
+  "name": "Pinsir",
+  "types": [
+   "Bug"
+  ],
+  "baseStats": {
+   "hp": 65,
+   "atk": 125,
+   "def": 100,
+   "spa": 55,
+   "spd": 70,
+   "spe": 85
+  },
+  "bst": 500,
+  "tier": "rare",
+  "abilities": [
+   "hypercutter",
+   "moldbreaker",
+   "moxie"
+  ],
+  "learnset": [
+   "bide",
+   "bind",
+   "bodyslam",
+   "cut",
+   "doubleedge",
+   "doubleteam",
+   "focusenergy",
+   "guillotine",
+   "harden",
+   "hyperbeam",
+   "mimic",
+   "rage",
+   "rest",
+   "seismictoss",
+   "slash",
+   "strength",
+   "submission",
+   "substitute",
+   "swordsdance",
+   "takedown",
+   "toxic",
+   "visegrip"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 55
+ },
+ {
+  "id": 128,
+  "slug": "tauros",
+  "name": "Tauros",
+  "types": [
+   "Normal"
+  ],
+  "baseStats": {
+   "hp": 75,
+   "atk": 100,
+   "def": 95,
+   "spa": 40,
+   "spd": 70,
+   "spe": 110
+  },
+  "bst": 490,
+  "tier": "rare",
+  "abilities": [
+   "intimidate",
+   "angerpoint",
+   "sheerforce"
+  ],
+  "learnset": [
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "doubleedge",
+   "doubleteam",
+   "earthquake",
+   "fireblast",
+   "fissure",
+   "horndrill",
+   "hyperbeam",
+   "icebeam",
+   "leer",
+   "mimic",
+   "rage",
+   "rest",
+   "skullbash",
+   "stomp",
+   "strength",
+   "substitute",
+   "tackle",
+   "tailwhip",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 88.4
+ },
+ {
+  "id": 129,
+  "slug": "magikarp",
+  "name": "Magikarp",
+  "types": [
+   "Water"
+  ],
+  "baseStats": {
+   "hp": 20,
+   "atk": 10,
+   "def": 55,
+   "spa": 15,
+   "spd": 20,
+   "spe": 80
+  },
+  "bst": 200,
+  "tier": "common",
+  "abilities": [
+   "swiftswim",
+   "rattled"
+  ],
+  "learnset": [
+   "dragonrage",
+   "splash",
+   "tackle"
+  ],
+  "evolvesTo": [
+   {
+    "id": 130,
+    "level": 20,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 10
+ },
+ {
+  "id": 130,
+  "slug": "gyarados",
+  "name": "Gyarados",
+  "types": [
+   "Water",
+   "Flying"
+  ],
+  "baseStats": {
+   "hp": 95,
+   "atk": 125,
+   "def": 79,
+   "spa": 60,
+   "spd": 100,
+   "spe": 81
+  },
+  "bst": 540,
+  "tier": "epic",
+  "abilities": [
+   "intimidate",
+   "moxie"
+  ],
+  "learnset": [
+   "bide",
+   "bite",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "doubleedge",
+   "doubleteam",
+   "dragonrage",
+   "fireblast",
+   "hydropump",
+   "hyperbeam",
+   "icebeam",
+   "leer",
+   "mimic",
+   "rage",
+   "reflect",
+   "rest",
+   "skullbash",
+   "splash",
+   "strength",
+   "substitute",
+   "surf",
+   "tackle",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [],
+  "prevo": 129,
+  "weightkg": 235
+ },
+ {
+  "id": 131,
+  "slug": "lapras",
+  "name": "Lapras",
+  "types": [
+   "Water",
+   "Ice"
+  ],
+  "baseStats": {
+   "hp": 130,
+   "atk": 85,
+   "def": 80,
+   "spa": 85,
+   "spd": 95,
+   "spe": 60
+  },
+  "bst": 535,
+  "tier": "epic",
+  "abilities": [
+   "waterabsorb",
+   "shellarmor",
+   "hydration"
+  ],
+  "learnset": [
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "confuseray",
+   "doubleedge",
+   "doubleteam",
+   "dragonrage",
+   "growl",
+   "horndrill",
+   "hydropump",
+   "hyperbeam",
+   "icebeam",
+   "mimic",
+   "mist",
+   "psychic",
+   "psywave",
+   "rage",
+   "reflect",
+   "rest",
+   "sing",
+   "skullbash",
+   "solarbeam",
+   "strength",
+   "substitute",
+   "surf",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 220
+ },
+ {
+  "id": 132,
+  "slug": "ditto",
+  "name": "Ditto",
+  "types": [
+   "Normal"
+  ],
+  "baseStats": {
+   "hp": 48,
+   "atk": 48,
+   "def": 48,
+   "spa": 48,
+   "spd": 48,
+   "spe": 48
+  },
+  "bst": 288,
+  "tier": "common",
+  "abilities": [
+   "limber",
+   "imposter"
+  ],
+  "learnset": [
+   "transform"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 4
+ },
+ {
+  "id": 133,
+  "slug": "eevee",
+  "name": "Eevee",
+  "types": [
+   "Normal"
+  ],
+  "baseStats": {
+   "hp": 55,
+   "atk": 55,
+   "def": 50,
+   "spa": 45,
+   "spd": 65,
+   "spe": 55
+  },
+  "bst": 325,
+  "tier": "common",
+  "abilities": [
+   "runaway",
+   "adaptability",
+   "anticipation"
+  ],
+  "learnset": [
+   "bide",
+   "bite",
+   "bodyslam",
+   "doubleedge",
+   "doubleteam",
+   "focusenergy",
+   "growl",
+   "mimic",
+   "quickattack",
+   "rage",
+   "reflect",
+   "rest",
+   "sandattack",
+   "skullbash",
+   "substitute",
+   "swift",
+   "tackle",
+   "tailwhip",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [
+   {
+    "id": 134,
+    "level": null,
+    "method": "useItem",
+    "item": "Water Stone"
+   },
+   {
+    "id": 135,
+    "level": null,
+    "method": "useItem",
+    "item": "Thunder Stone"
+   },
+   {
+    "id": 136,
+    "level": null,
+    "method": "useItem",
+    "item": "Fire Stone"
+   }
+  ],
+  "prevo": null,
+  "weightkg": 6.5
+ },
+ {
+  "id": 134,
+  "slug": "vaporeon",
+  "name": "Vaporeon",
+  "types": [
+   "Water"
+  ],
+  "baseStats": {
+   "hp": 130,
+   "atk": 65,
+   "def": 60,
+   "spa": 110,
+   "spd": 95,
+   "spe": 65
+  },
+  "bst": 525,
+  "tier": "rare",
+  "abilities": [
+   "waterabsorb",
+   "hydration"
+  ],
+  "learnset": [
+   "acidarmor",
+   "aurorabeam",
+   "bide",
+   "bite",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "doubleedge",
+   "doubleteam",
+   "focusenergy",
+   "growl",
+   "haze",
+   "hydropump",
+   "hyperbeam",
+   "icebeam",
+   "mimic",
+   "mist",
+   "quickattack",
+   "rage",
+   "reflect",
+   "rest",
+   "sandattack",
+   "skullbash",
+   "substitute",
+   "surf",
+   "swift",
+   "tackle",
+   "tailwhip",
+   "takedown",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [],
+  "prevo": 133,
+  "weightkg": 29
+ },
+ {
+  "id": 135,
+  "slug": "jolteon",
+  "name": "Jolteon",
+  "types": [
+   "Electric"
+  ],
+  "baseStats": {
+   "hp": 65,
+   "atk": 65,
+   "def": 60,
+   "spa": 110,
+   "spd": 95,
+   "spe": 130
+  },
+  "bst": 525,
+  "tier": "rare",
+  "abilities": [
+   "voltabsorb",
+   "quickfeet"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "bite",
+   "bodyslam",
+   "doubleedge",
+   "doublekick",
+   "doubleteam",
+   "flash",
+   "focusenergy",
+   "growl",
+   "hyperbeam",
+   "mimic",
+   "pinmissile",
+   "quickattack",
+   "rage",
+   "reflect",
+   "rest",
+   "sandattack",
+   "skullbash",
+   "substitute",
+   "swift",
+   "tackle",
+   "tailwhip",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "thundershock",
+   "thunderwave",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": 133,
+  "weightkg": 24.5
+ },
+ {
+  "id": 136,
+  "slug": "flareon",
+  "name": "Flareon",
+  "types": [
+   "Fire"
+  ],
+  "baseStats": {
+   "hp": 65,
+   "atk": 130,
+   "def": 60,
+   "spa": 95,
+   "spd": 110,
+   "spe": 65
+  },
+  "bst": 525,
+  "tier": "rare",
+  "abilities": [
+   "flashfire",
+   "guts"
+  ],
+  "learnset": [
+   "bide",
+   "bite",
+   "bodyslam",
+   "doubleedge",
+   "doubleteam",
+   "ember",
+   "fireblast",
+   "firespin",
+   "flamethrower",
+   "focusenergy",
+   "growl",
+   "hyperbeam",
+   "leer",
+   "mimic",
+   "quickattack",
+   "rage",
+   "reflect",
+   "rest",
+   "sandattack",
+   "skullbash",
+   "smog",
+   "substitute",
+   "swift",
+   "tackle",
+   "tailwhip",
+   "takedown",
+   "toxic"
+  ],
+  "evolvesTo": [],
+  "prevo": 133,
+  "weightkg": 25
+ },
+ {
+  "id": 137,
+  "slug": "porygon",
+  "name": "Porygon",
+  "types": [
+   "Normal"
+  ],
+  "baseStats": {
+   "hp": 65,
+   "atk": 60,
+   "def": 70,
+   "spa": 85,
+   "spd": 75,
+   "spe": 40
+  },
+  "bst": 395,
+  "tier": "uncommon",
+  "abilities": [
+   "trace",
+   "download",
+   "analytic"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "blizzard",
+   "conversion",
+   "doubleedge",
+   "doubleteam",
+   "flash",
+   "hyperbeam",
+   "icebeam",
+   "mimic",
+   "psybeam",
+   "psychic",
+   "psywave",
+   "rage",
+   "recover",
+   "reflect",
+   "rest",
+   "sharpen",
+   "skullbash",
+   "substitute",
+   "swift",
+   "tackle",
+   "takedown",
+   "teleport",
+   "thunder",
+   "thunderbolt",
+   "thunderwave",
+   "toxic",
+   "triattack"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 36.5
+ },
+ {
+  "id": 138,
+  "slug": "omanyte",
+  "name": "Omanyte",
+  "types": [
+   "Rock",
+   "Water"
+  ],
+  "baseStats": {
+   "hp": 35,
+   "atk": 40,
+   "def": 100,
+   "spa": 90,
+   "spd": 55,
+   "spe": 35
+  },
+  "bst": 355,
+  "tier": "uncommon",
+  "abilities": [
+   "swiftswim",
+   "shellarmor",
+   "weakarmor"
+  ],
+  "learnset": [
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "doubleedge",
+   "doubleteam",
+   "hornattack",
+   "hydropump",
+   "icebeam",
+   "leer",
+   "mimic",
+   "rage",
+   "reflect",
+   "rest",
+   "spikecannon",
+   "substitute",
+   "surf",
+   "takedown",
+   "toxic",
+   "watergun",
+   "withdraw"
+  ],
+  "evolvesTo": [
+   {
+    "id": 139,
+    "level": 40,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 7.5
+ },
+ {
+  "id": 139,
+  "slug": "omastar",
+  "name": "Omastar",
+  "types": [
+   "Rock",
+   "Water"
+  ],
+  "baseStats": {
+   "hp": 70,
+   "atk": 60,
+   "def": 125,
+   "spa": 115,
+   "spd": 70,
+   "spe": 55
+  },
+  "bst": 495,
+  "tier": "rare",
+  "abilities": [
+   "swiftswim",
+   "shellarmor",
+   "weakarmor"
+  ],
+  "learnset": [
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "doubleedge",
+   "doubleteam",
+   "hornattack",
+   "horndrill",
+   "hydropump",
+   "hyperbeam",
+   "icebeam",
+   "leer",
+   "mimic",
+   "rage",
+   "reflect",
+   "rest",
+   "seismictoss",
+   "skullbash",
+   "spikecannon",
+   "submission",
+   "substitute",
+   "surf",
+   "takedown",
+   "toxic",
+   "watergun",
+   "withdraw"
+  ],
+  "evolvesTo": [],
+  "prevo": 138,
+  "weightkg": 35
+ },
+ {
+  "id": 140,
+  "slug": "kabuto",
+  "name": "Kabuto",
+  "types": [
+   "Rock",
+   "Water"
+  ],
+  "baseStats": {
+   "hp": 30,
+   "atk": 80,
+   "def": 90,
+   "spa": 55,
+   "spd": 45,
+   "spe": 55
+  },
+  "bst": 355,
+  "tier": "uncommon",
+  "abilities": [
+   "swiftswim",
+   "battlearmor",
+   "weakarmor"
+  ],
+  "learnset": [
+   "absorb",
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "doubleedge",
+   "doubleteam",
+   "harden",
+   "hydropump",
+   "icebeam",
+   "leer",
+   "mimic",
+   "rage",
+   "reflect",
+   "rest",
+   "scratch",
+   "slash",
+   "substitute",
+   "surf",
+   "takedown",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [
+   {
+    "id": 141,
+    "level": 40,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 11.5
+ },
+ {
+  "id": 141,
+  "slug": "kabutops",
+  "name": "Kabutops",
+  "types": [
+   "Rock",
+   "Water"
+  ],
+  "baseStats": {
+   "hp": 60,
+   "atk": 115,
+   "def": 105,
+   "spa": 65,
+   "spd": 70,
+   "spe": 80
+  },
+  "bst": 495,
+  "tier": "rare",
+  "abilities": [
+   "swiftswim",
+   "battlearmor",
+   "weakarmor"
+  ],
+  "learnset": [
+   "absorb",
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "cut",
+   "doubleedge",
+   "doubleteam",
+   "harden",
+   "hydropump",
+   "hyperbeam",
+   "icebeam",
+   "leer",
+   "megakick",
+   "mimic",
+   "rage",
+   "razorwind",
+   "reflect",
+   "rest",
+   "scratch",
+   "seismictoss",
+   "skullbash",
+   "slash",
+   "submission",
+   "substitute",
+   "surf",
+   "swordsdance",
+   "takedown",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [],
+  "prevo": 140,
+  "weightkg": 40.5
+ },
+ {
+  "id": 142,
+  "slug": "aerodactyl",
+  "name": "Aerodactyl",
+  "types": [
+   "Rock",
+   "Flying"
+  ],
+  "baseStats": {
+   "hp": 80,
+   "atk": 105,
+   "def": 65,
+   "spa": 60,
+   "spd": 75,
+   "spe": 130
+  },
+  "bst": 515,
+  "tier": "rare",
+  "abilities": [
+   "rockhead",
+   "pressure",
+   "unnerve"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "bite",
+   "doubleedge",
+   "doubleteam",
+   "dragonrage",
+   "fireblast",
+   "fly",
+   "hyperbeam",
+   "mimic",
+   "rage",
+   "razorwind",
+   "reflect",
+   "rest",
+   "skyattack",
+   "substitute",
+   "supersonic",
+   "swift",
+   "takedown",
+   "toxic",
+   "whirlwind",
+   "wingattack"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 59
+ },
+ {
+  "id": 143,
+  "slug": "snorlax",
+  "name": "Snorlax",
+  "types": [
+   "Normal"
+  ],
+  "baseStats": {
+   "hp": 160,
+   "atk": 110,
+   "def": 65,
+   "spa": 65,
+   "spd": 110,
+   "spe": 30
+  },
+  "bst": 540,
+  "tier": "epic",
+  "abilities": [
+   "immunity",
+   "thickfat",
+   "gluttony"
+  ],
+  "learnset": [
+   "amnesia",
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "counter",
+   "doubleedge",
+   "doubleteam",
+   "earthquake",
+   "fireblast",
+   "fissure",
+   "harden",
+   "headbutt",
+   "hyperbeam",
+   "icebeam",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "payday",
+   "psychic",
+   "psywave",
+   "rage",
+   "reflect",
+   "rest",
+   "rockslide",
+   "seismictoss",
+   "selfdestruct",
+   "skullbash",
+   "solarbeam",
+   "strength",
+   "submission",
+   "substitute",
+   "surf",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "toxic",
+   "watergun"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 460
+ },
+ {
+  "id": 144,
+  "slug": "articuno",
+  "name": "Articuno",
+  "types": [
+   "Ice",
+   "Flying"
+  ],
+  "baseStats": {
+   "hp": 90,
+   "atk": 85,
+   "def": 100,
+   "spa": 95,
+   "spd": 125,
+   "spe": 85
+  },
+  "bst": 580,
+  "tier": "legendary",
+  "abilities": [
+   "pressure",
+   "snowcloak"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "blizzard",
+   "bubblebeam",
+   "doubleedge",
+   "doubleteam",
+   "fly",
+   "hyperbeam",
+   "icebeam",
+   "mimic",
+   "mist",
+   "peck",
+   "rage",
+   "razorwind",
+   "reflect",
+   "rest",
+   "skyattack",
+   "substitute",
+   "swift",
+   "takedown",
+   "toxic",
+   "watergun",
+   "whirlwind"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 55.4
+ },
+ {
+  "id": 145,
+  "slug": "zapdos",
+  "name": "Zapdos",
+  "types": [
+   "Electric",
+   "Flying"
+  ],
+  "baseStats": {
+   "hp": 90,
+   "atk": 90,
+   "def": 85,
+   "spa": 125,
+   "spd": 90,
+   "spe": 100
+  },
+  "bst": 580,
+  "tier": "legendary",
+  "abilities": [
+   "pressure",
+   "static"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "doubleedge",
+   "doubleteam",
+   "drillpeck",
+   "flash",
+   "fly",
+   "hyperbeam",
+   "lightscreen",
+   "mimic",
+   "rage",
+   "razorwind",
+   "reflect",
+   "rest",
+   "skyattack",
+   "substitute",
+   "swift",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "thundershock",
+   "thunderwave",
+   "toxic",
+   "whirlwind"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 52.6
+ },
+ {
+  "id": 146,
+  "slug": "moltres",
+  "name": "Moltres",
+  "types": [
+   "Fire",
+   "Flying"
+  ],
+  "baseStats": {
+   "hp": 90,
+   "atk": 100,
+   "def": 90,
+   "spa": 125,
+   "spd": 85,
+   "spe": 90
+  },
+  "bst": 580,
+  "tier": "legendary",
+  "abilities": [
+   "pressure",
+   "flamebody"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "doubleedge",
+   "doubleteam",
+   "fireblast",
+   "firespin",
+   "fly",
+   "hyperbeam",
+   "leer",
+   "mimic",
+   "peck",
+   "rage",
+   "razorwind",
+   "reflect",
+   "rest",
+   "skyattack",
+   "substitute",
+   "swift",
+   "takedown",
+   "toxic",
+   "whirlwind"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 60
+ },
+ {
+  "id": 147,
+  "slug": "dratini",
+  "name": "Dratini",
+  "types": [
+   "Dragon"
+  ],
+  "baseStats": {
+   "hp": 41,
+   "atk": 64,
+   "def": 45,
+   "spa": 50,
+   "spd": 50,
+   "spe": 50
+  },
+  "bst": 300,
+  "tier": "common",
+  "abilities": [
+   "shedskin",
+   "marvelscale"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "doubleedge",
+   "doubleteam",
+   "dragonrage",
+   "fireblast",
+   "hyperbeam",
+   "icebeam",
+   "leer",
+   "mimic",
+   "rage",
+   "reflect",
+   "rest",
+   "skullbash",
+   "slam",
+   "substitute",
+   "surf",
+   "swift",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "thunderwave",
+   "toxic",
+   "watergun",
+   "wrap"
+  ],
+  "evolvesTo": [
+   {
+    "id": 148,
+    "level": 30,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": null,
+  "weightkg": 3.3
+ },
+ {
+  "id": 148,
+  "slug": "dragonair",
+  "name": "Dragonair",
+  "types": [
+   "Dragon"
+  ],
+  "baseStats": {
+   "hp": 61,
+   "atk": 84,
+   "def": 65,
+   "spa": 70,
+   "spd": 70,
+   "spe": 70
+  },
+  "bst": 420,
+  "tier": "uncommon",
+  "abilities": [
+   "shedskin",
+   "marvelscale"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "doubleedge",
+   "doubleteam",
+   "dragonrage",
+   "fireblast",
+   "horndrill",
+   "hyperbeam",
+   "icebeam",
+   "leer",
+   "mimic",
+   "rage",
+   "reflect",
+   "rest",
+   "skullbash",
+   "slam",
+   "substitute",
+   "surf",
+   "swift",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "thunderwave",
+   "toxic",
+   "watergun",
+   "wrap"
+  ],
+  "evolvesTo": [
+   {
+    "id": 149,
+    "level": 55,
+    "method": "level",
+    "item": null
+   }
+  ],
+  "prevo": 147,
+  "weightkg": 16.5
+ },
+ {
+  "id": 149,
+  "slug": "dragonite",
+  "name": "Dragonite",
+  "types": [
+   "Dragon",
+   "Flying"
+  ],
+  "baseStats": {
+   "hp": 91,
+   "atk": 134,
+   "def": 95,
+   "spa": 100,
+   "spd": 100,
+   "spe": 80
+  },
+  "bst": 600,
+  "tier": "epic",
+  "abilities": [
+   "innerfocus",
+   "multiscale"
+  ],
+  "learnset": [
+   "agility",
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "doubleedge",
+   "doubleteam",
+   "dragonrage",
+   "fireblast",
+   "horndrill",
+   "hyperbeam",
+   "icebeam",
+   "leer",
+   "mimic",
+   "rage",
+   "razorwind",
+   "reflect",
+   "rest",
+   "skullbash",
+   "slam",
+   "strength",
+   "substitute",
+   "surf",
+   "swift",
+   "takedown",
+   "thunder",
+   "thunderbolt",
+   "thunderwave",
+   "toxic",
+   "watergun",
+   "wrap"
+  ],
+  "evolvesTo": [],
+  "prevo": 148,
+  "weightkg": 210
+ },
+ {
+  "id": 150,
+  "slug": "mewtwo",
+  "name": "Mewtwo",
+  "types": [
+   "Psychic"
+  ],
+  "baseStats": {
+   "hp": 106,
+   "atk": 110,
+   "def": 90,
+   "spa": 154,
+   "spd": 90,
+   "spe": 130
+  },
+  "bst": 680,
+  "tier": "legendary",
+  "abilities": [
+   "pressure",
+   "unnerve"
+  ],
+  "learnset": [
+   "amnesia",
+   "barrier",
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "counter",
+   "doubleedge",
+   "doubleteam",
+   "fireblast",
+   "flash",
+   "hyperbeam",
+   "icebeam",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "mist",
+   "payday",
+   "psychic",
+   "psywave",
+   "rage",
+   "recover",
+   "reflect",
+   "rest",
+   "seismictoss",
+   "selfdestruct",
+   "skullbash",
+   "solarbeam",
+   "strength",
+   "submission",
+   "substitute",
+   "swift",
+   "takedown",
+   "teleport",
+   "thunder",
+   "thunderbolt",
+   "thunderwave",
+   "toxic",
+   "triattack",
+   "watergun"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 122
+ },
+ {
+  "id": 151,
+  "slug": "mew",
+  "name": "Mew",
+  "types": [
+   "Psychic"
+  ],
+  "baseStats": {
+   "hp": 100,
+   "atk": 100,
+   "def": 100,
+   "spa": 100,
+   "spd": 100,
+   "spe": 100
+  },
+  "bst": 600,
+  "tier": "legendary",
+  "abilities": [
+   "synchronize"
+  ],
+  "learnset": [
+   "bide",
+   "blizzard",
+   "bodyslam",
+   "bubblebeam",
+   "counter",
+   "cut",
+   "dig",
+   "doubleedge",
+   "doubleteam",
+   "dragonrage",
+   "dreameater",
+   "earthquake",
+   "eggbomb",
+   "explosion",
+   "fireblast",
+   "fissure",
+   "flash",
+   "fly",
+   "horndrill",
+   "hyperbeam",
+   "icebeam",
+   "megadrain",
+   "megakick",
+   "megapunch",
+   "metronome",
+   "mimic",
+   "payday",
+   "pound",
+   "psychic",
+   "psywave",
+   "rage",
+   "razorwind",
+   "reflect",
+   "rest",
+   "rockslide",
+   "seismictoss",
+   "selfdestruct",
+   "skullbash",
+   "skyattack",
+   "softboiled",
+   "solarbeam",
+   "strength",
+   "submission",
+   "substitute",
+   "surf",
+   "swift",
+   "swordsdance",
+   "takedown",
+   "teleport",
+   "thunder",
+   "thunderbolt",
+   "thunderwave",
+   "toxic",
+   "transform",
+   "triattack",
+   "watergun",
+   "whirlwind"
+  ],
+  "evolvesTo": [],
+  "prevo": null,
+  "weightkg": 4
+ }
+]
