@@ -10,11 +10,14 @@ import { GAME_H, GAME_W } from './court';
  */
 export const FOCUS_DEPTH = 7100;
 
+type Pinnable = Phaser.GameObjects.Container;
+
 export class Cinematics {
     readonly focused = new Set<number>();
     private readonly dim: Phaser.GameObjects.Rectangle;
     private readonly spots = new Map<number, Phaser.GameObjects.Image>();
     private banner: Phaser.GameObjects.Container | null = null;
+    private readonly pins = new Map<Pinnable, { sx: number; sy: number; scale: number }>();
     private spotlightUntil = 0;
     private slowFrom = 0;
     private slowUntil = 0;
@@ -119,57 +122,96 @@ export class Cinematics {
         this.spots.clear();
     }
 
+    // ------------------------------------------------------------------ textos presos na tela
+    /**
+     * Prende um objeto a uma posição da TELA (coordenadas 0..GAME_W × 0..GAME_H), compensando pan e zoom
+     * da câmera: textos de interface não crescem nem saem de quadro quando a câmera aproxima do lance.
+     */
+    pin(obj: Pinnable, sx: number, sy: number, scale = 1) {
+        this.pins.set(obj, { sx, sy, scale });
+        this.applyPin(obj);
+    }
+
+    unpin(obj: Pinnable) {
+        this.pins.delete(obj);
+    }
+
+    updatePins() {
+        for (const obj of this.pins.keys()) {
+            if (!obj.active) this.pins.delete(obj);
+            else this.applyPin(obj);
+        }
+    }
+
+    private applyPin(obj: Pinnable) {
+        const pin = this.pins.get(obj);
+        if (!pin) return;
+        const cam = this.scene.cameras.main;
+        const view = cam.worldView;
+        const z = cam.zoom || 1;
+        // antes do primeiro render o worldView ainda está zerado
+        const vx = view.width > 0 ? view.x : 0;
+        const vy = view.height > 0 ? view.y : 0;
+        obj.setPosition(vx + pin.sx / z, vy + pin.sy / z);
+        obj.setScale(pin.scale / z);
+    }
+
+    /** Faixa compacta com o nome do golpe, no canto superior esquerdo (não cobre o lance). */
     private showBanner(userName: string, moveName: string, color: number, duration: number) {
         this.banner?.destroy();
-        const s = this.uiScale;
-        const w = Math.min(GAME_W - 40, 520 * Math.min(s, 1.6));
-        const h = 74 * Math.min(s, 1.6);
-        const g = this.scene.add.graphics();
-        g.fillStyle(0x0d1024, 0.92).fillRoundedRect(-w / 2 - 4, -h / 2 - 4, w + 8, h + 8, 14);
-        g.fillStyle(color, 1).fillRoundedRect(-w / 2, -h / 2, w, h, 12);
-        g.fillStyle(0xffffff, 0.18).fillRoundedRect(-w / 2, -h / 2, w, h / 2, { tl: 12, tr: 12, bl: 0, br: 0 });
+        const s = Math.min(this.uiScale, 1.3);
         const small = this.scene.add
-            .text(0, -h * 0.22, `${userName.toUpperCase()} usou`, {
+            .text(0, 0, `${userName.toUpperCase()} usou`, {
                 fontFamily: 'Galmuri11, monospace',
-                fontSize: `${Math.round(14 * Math.min(s, 1.6))}px`,
+                fontSize: `${Math.round(14 * s)}px`,
                 color: '#ffffff',
                 stroke: '#000000',
-                strokeThickness: 4,
+                strokeThickness: 3,
             })
-            .setOrigin(0.5)
+            .setOrigin(0, 0.5)
             .setResolution(2);
         const big = this.scene.add
-            .text(0, h * 0.14, moveName.toUpperCase(), {
+            .text(0, 0, moveName.toUpperCase(), {
                 fontFamily: 'Galmuri11, monospace',
-                fontSize: `${Math.round(32 * Math.min(s, 1.6))}px`,
+                fontSize: `${Math.round(22 * s)}px`,
                 fontStyle: 'bold',
                 color: '#ffffff',
                 stroke: '#000000',
-                strokeThickness: 7,
+                strokeThickness: 5,
             })
-            .setOrigin(0.5)
+            .setOrigin(0, 0.5)
             .setResolution(2);
-        const banner = this.scene.add
-            .container(GAME_W / 2, 26 + h / 2, [g, small, big])
-            .setDepth(9500)
-            .setScale(0.3)
-            .setAlpha(0);
+        const pad = 12 * s;
+        const w = Math.max(small.width, big.width) + pad * 2;
+        const h = 54 * s;
+        small.setPosition(pad, h * 0.3);
+        big.setPosition(pad, h * 0.66);
+        const g = this.scene.add.graphics();
+        g.fillStyle(0x0d1024, 0.92).fillRoundedRect(-3, -3, w + 6, h + 6, 10);
+        g.fillStyle(color, 1).fillRoundedRect(0, 0, w, h, 8);
+        g.fillStyle(0xffffff, 0.18).fillRoundedRect(0, 0, w, h / 2, { tl: 8, tr: 8, bl: 0, br: 0 });
+        // conteúdo animado dentro de um container preso à tela
+        const inner = this.scene.add.container(0, 0, [g, small, big]).setAlpha(0);
+        inner.x = -24;
+        const banner = this.scene.add.container(0, 0, [inner]).setDepth(9500);
         this.banner = banner;
-        this.scene.tweens.add({ targets: banner, scale: 1, alpha: 1, duration: 220, ease: 'Back.easeOut' });
+        this.pin(banner, 14, 14);
+        this.scene.tweens.add({ targets: inner, x: 0, alpha: 1, duration: 200, ease: 'Back.easeOut' });
         this.scene.tweens.add({
-            targets: banner,
+            targets: inner,
             alpha: 0,
-            y: banner.y - 12,
             delay: Math.max(400, duration - 200),
             duration: 220,
             onComplete: () => banner.destroy(),
         });
     }
 
-    /** Texto gigante de drama no centro, com tremida e zoom da câmera no ponto do lance. */
+    /** Texto grande de drama no alto da tela (a câmera centraliza o lance; o texto não o cobre). */
     drama(text: string, opts: { color: string; stroke: string; at?: { x: number; y: number }; sub?: string }) {
         const now = this.scene.time.now;
         this.slowMotion(now, 0.25, 1100);
+        this.banner?.destroy();
+        this.banner = null;
         const cam = this.scene.cameras.main;
         if (opts.at) {
             cam.pan(opts.at.x, opts.at.y, 220, 'Sine.easeOut', true);
@@ -179,52 +221,48 @@ export class Cinematics {
                 cam.zoomTo(1, 450, 'Sine.easeInOut', true);
             });
         }
-        cam.shake(380, 0.007);
+        cam.shake(380, 0.006);
         // cabe na largura da quadra mesmo no celular
-        const s = Math.min(this.uiScale, 1.25, (GAME_W * 0.92) / (text.length * 50));
+        const s = Math.min(this.uiScale, 1.1, (GAME_W * 0.9) / (text.length * 42));
         const t = this.scene.add
-            .text(GAME_W / 2, GAME_H / 2 - 10, text, {
+            .text(0, 0, text, {
                 fontFamily: 'Galmuri11, monospace',
-                fontSize: `${Math.round(78 * s)}px`,
+                fontSize: `${Math.round(60 * s)}px`,
                 fontStyle: 'bold',
                 color: opts.color,
                 stroke: opts.stroke,
-                strokeThickness: 12,
+                strokeThickness: 10,
             })
             .setOrigin(0.5)
-            .setDepth(9800)
-            .setScrollFactor(0)
-            .setScale(0.2, 0.2)
+            .setScale(0.2)
             .setResolution(2);
-        const parts: Phaser.GameObjects.GameObject[] = [t];
+        const children: Phaser.GameObjects.GameObject[] = [t];
         if (opts.sub) {
             const sub = this.scene.add
-                .text(GAME_W / 2, GAME_H / 2 + 52 * s, opts.sub, {
+                .text(0, 40 * s, opts.sub, {
                     fontFamily: 'Galmuri11, monospace',
-                    fontSize: `${Math.round(20 * s)}px`,
+                    fontSize: `${Math.round(17 * s)}px`,
                     color: '#ffffff',
                     stroke: '#000000',
-                    strokeThickness: 5,
+                    strokeThickness: 4,
                 })
                 .setOrigin(0.5)
-                .setDepth(9800)
-                .setScrollFactor(0)
                 .setAlpha(0)
                 .setResolution(2);
             this.scene.tweens.add({ targets: sub, alpha: 1, delay: 180, duration: 200 });
-            parts.push(sub);
+            children.push(sub);
         }
+        const holder = this.scene.add.container(0, 0, children).setDepth(9800);
+        this.pin(holder, GAME_W / 2, GAME_H * 0.17);
         // entra esticado na horizontal e "assenta"
-        this.scene.tweens.add({ targets: t, scaleX: 1.15, scaleY: 1, duration: 260, ease: 'Back.easeOut' });
-        this.scene.tweens.add({ targets: t, scaleX: 1, delay: 260, duration: 300, ease: 'Sine.easeInOut' });
+        this.scene.tweens.add({ targets: t, scaleX: 1.12, scaleY: 1, duration: 240, ease: 'Back.easeOut' });
+        this.scene.tweens.add({ targets: t, scaleX: 1, delay: 240, duration: 280, ease: 'Sine.easeInOut' });
         this.scene.tweens.add({
-            targets: parts,
+            targets: children,
             alpha: 0,
-            delay: 1300,
-            duration: 350,
-            onComplete: () => {
-                for (const p of parts) p.destroy();
-            },
+            delay: 1250,
+            duration: 330,
+            onComplete: () => holder.destroy(),
         });
     }
 }

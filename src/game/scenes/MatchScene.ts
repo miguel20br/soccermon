@@ -287,7 +287,9 @@ export class MatchScene extends Phaser.Scene {
             v.label.setFontSize(Math.round(10 * s));
             v.badge.setFontSize(Math.round(11 * s));
         }
-        this.battleBox.setUiScale(this.uiScale, GAME_H);
+        // caixa de batalha presa à base da tela (no celular cresce só um pouco)
+        const bs = Math.min(this.uiScale, 1.3);
+        this.cine.pin(this.battleBox.container, GAME_W / 2, GAME_H - 30 * bs, bs);
     }
 
     // ------------------------------------------------------------------ jogadores
@@ -391,6 +393,7 @@ export class MatchScene extends Phaser.Scene {
             this.applySnapshot(index, t, factor);
         }
         this.battleBox.update(time, Math.max(1, factor));
+        this.cine.updatePins();
 
         if (time - this.lastEmit > 120) {
             this.lastEmit = time;

@@ -5,7 +5,7 @@ import type Phaser from 'phaser';
  * Mensagens entram numa fila curta; se o jogo estiver acelerado, as mais antigas são descartadas.
  */
 export class BattleBox {
-    private readonly container: Phaser.GameObjects.Container;
+    readonly container: Phaser.GameObjects.Container;
     private readonly text: Phaser.GameObjects.Text;
     private readonly queue: string[] = [];
     private showingUntil = 0;
@@ -32,13 +32,6 @@ export class BattleBox {
             .setOrigin(0, 0.5)
             .setResolution(2);
         this.container = scene.add.container(x, y, [g, this.text]).setDepth(8000).setAlpha(0);
-    }
-
-    /** Telas pequenas: caixa maior (proporcional) e colada na base. */
-    setUiScale(scale: number, gameHeight: number) {
-        const s = Math.min(scale, 1.7);
-        this.container.setScale(s);
-        this.container.setY(gameHeight - 30 * s);
     }
 
     push(message: string) {
