@@ -1992,93 +1992,117 @@ button,
     flex-direction: column;
     gap: var(--gap);
 }
-.lab-grid {
+.lab-proposals {
     display: grid;
-    grid-template-columns: 320px minmax(0, 1fr);
-    gap: var(--gap);
-    align-items: start;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
 }
-.lab-controls {
-    position: sticky;
-    top: 12px;
-    max-height: calc(100vh - 24px);
-    overflow-y: auto;
-}
-.lab-results {
+.lab-proposal {
+    position: relative;
+    text-align: left;
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
     display: flex;
     flex-direction: column;
-    gap: var(--gap);
-    min-width: 0;
+    gap: 6px;
 }
-.lab-group {
-    border: 2px solid var(--line);
-    border-radius: 8px;
-    padding: 6px 10px 10px;
-    margin: 0 0 12px;
+.lab-proposal h2 {
+    margin: 0;
 }
-.lab-group legend {
-    color: var(--yellow);
+.lab-proposal p {
+    margin: 0;
     font-size: 12px;
-    padding: 0 4px;
+    color: var(--muted);
+    flex: 1;
 }
-.lab-slider {
-    display: grid;
-    grid-template-columns: 1fr 110px 40px;
+.lab-proposal.selected {
+    border-color: var(--yellow);
+    background: var(--panel-2);
+}
+.lab-tag {
+    position: absolute;
+    top: -10px;
+    right: 10px;
+    background: var(--yellow);
+    color: #222;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+.lab-bar {
+    display: flex;
+    height: 18px;
+    border-radius: 4px;
+    overflow: hidden;
+    font-size: 10px;
+    font-weight: 700;
+    color: #111;
+}
+.lab-bar span {
+    display: flex;
     align-items: center;
+    justify-content: center;
+    min-width: 16px;
+}
+.lab-pos-GK {
+    background: #f2a33a;
+}
+.lab-pos-FIXO {
+    background: #5aa0ef;
+}
+.lab-pos-ALA {
+    background: #63cf78;
+}
+.lab-pos-PIVO {
+    background: #ef6a6a;
+}
+.lab-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 11px;
+    margin-top: -6px;
+}
+.lab-legend i {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    vertical-align: middle;
+}
+.lab-details {
+    margin: 0 0 12px;
+    padding-left: 18px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+.lab-counts {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
+}
+.lab-count {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--bg-2);
+    border-radius: 8px;
+    padding: 8px 4px;
     font-size: 12px;
-    padding: 2px 0;
 }
-.lab-slider.off {
-    opacity: 0.45;
-}
-.lab-slider input {
-    width: 100%;
-    accent-color: var(--yellow);
-}
-.lab-slider b {
-    text-align: right;
-}
-.lab-table td,
-.lab-table td:first-child,
-.lab-table td:last-child {
-    width: auto;
-    text-align: center;
+.lab-count b {
+    font-size: 24px;
 }
 .lab-delta {
-    font-size: 10px;
-    margin-left: 2px;
+    font-size: 11px;
 }
 .lab-delta.up {
     color: var(--green);
 }
 .lab-delta.down {
     color: var(--red);
-}
-.lab-changes {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-}
-.lab-change {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    background: var(--panel-2);
-    border-radius: 6px;
-    padding: 2px 8px 2px 2px;
-    font-size: 12px;
-}
-.lab-change img,
-.lab-mon img {
-    width: 28px;
-    height: 28px;
-    object-fit: contain;
-}
-.lab-search {
-    width: 200px;
-    font-size: 12px;
-    padding: 6px 8px;
 }
 .lab-columns {
     display: grid;
@@ -2101,9 +2125,10 @@ button,
 .lab-mon:nth-child(odd) {
     background: rgba(255, 255, 255, 0.03);
 }
-.lab-mon.hit {
-    background: rgba(255, 203, 5, 0.25);
-    outline: 1px solid var(--yellow);
+.lab-mon img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
 }
 .lab-mon-name {
     overflow: hidden;
@@ -2124,13 +2149,7 @@ button,
     text-align: right;
 }
 @media (max-width: 1050px) {
-    .lab-grid {
-        grid-template-columns: minmax(0, 1fr);
-    }
-    .lab-controls {
-        position: static;
-        max-height: none;
-    }
+    .lab-proposals,
     .lab-columns {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -2139,7 +2158,7 @@ button,
     .lab-columns {
         grid-template-columns: minmax(0, 1fr);
     }
-    .lab-search {
-        width: 100%;
+    .lab-counts {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }

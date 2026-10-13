@@ -31,6 +31,8 @@ export interface PositionFormulas {
     FIXO: Partial<Record<AttrKey, number>>;
     ALA: Partial<Record<AttrKey, number>>;
     PIVO: Partial<Record<AttrKey, number>>;
+    /** Pontos somados à nota só na hora de escolher as posições (ex.: GK -4 = só vai pro gol quem é claramente melhor lá). */
+    bias?: Partial<Record<Position, number>>;
     /** Posições a até `margin` pontos da melhor nota contam como elegíveis… */
     margin: number;
     /** …até no máximo `maxPositions`. */
@@ -99,7 +101,11 @@ function weighted<K extends string>(values: Record<K, number>, weights: Partial<
     return total > 0 ? sum / total : 0;
 }
 
-export function computeAttributes(sp: Species, level: number, formulas: PositionFormulas = DEFAULT_FORMULAS): Attributes {
+export function computeAttributes(
+    sp: Species,
+    level: number,
+    formulas: PositionFormulas = DEFAULT_FORMULAS,
+): Attributes {
     const p = {} as Record<StatKey, number>;
     for (const k of STAT_KEYS) p[k] = percentile(REFERENCE[k], statAtLevel(sp.baseStats[k], level, k));
     const w = percentile(REFERENCE.weight, Math.log(sp.weightkg + 1));
@@ -145,7 +151,10 @@ export function eligiblePositions(
     speciesId?: number,
     formulas: PositionFormulas = DEFAULT_FORMULAS,
 ): Position[] {
-    const ratings = POSITIONS.map((pos) => ({ pos, r: positionRating(a, pos, formulas) })).sort((x, y) => y.r - x.r);
+    const ratings = POSITIONS.map((pos) => ({
+        pos,
+        r: positionRating(a, pos, formulas) + (formulas.bias?.[pos] ?? 0),
+    })).sort((x, y) => y.r - x.r);
     const best = ratings[0].r;
     const list = ratings
         .filter((x) => x.r >= best - formulas.margin)
