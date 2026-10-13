@@ -37,8 +37,8 @@ export function Home() {
             <div className="event-banner">
                 <TypeIcon type={eventType} size={28} />
                 <div>
-                    <b>Semana do {TYPE_PT[eventType] ?? eventType}</b>
-                    <span>Cartas Evento de {TYPE_PT[eventType] ?? eventType} podem aparecer no draft.</span>
+                    <b>Semana do tipo {TYPE_PT[eventType] ?? eventType}</b>
+                    <span>Cartas Evento do tipo {TYPE_PT[eventType] ?? eventType} podem aparecer no draft.</span>
                 </div>
             </div>
             <div className="menu panel">
