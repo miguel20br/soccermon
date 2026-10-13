@@ -1,6 +1,6 @@
 import type { MatchResult } from '../engine/runners/batch-runner';
 import type { SimRequest } from '../engine/sim.worker';
-import type { TeamSetup } from '../engine/state';
+import type { TacticChange, TeamSetup } from '../engine/state';
 
 /** Roda a simulação num Web Worker para não travar a UI. */
 let worker: Worker | null = null;
@@ -18,11 +18,16 @@ function getWorker(): Worker {
     return worker;
 }
 
-export function simulateMatch(home: TeamSetup, away: TeamSetup, seed: string): Promise<MatchResult> {
+export function simulateMatch(
+    home: TeamSetup,
+    away: TeamSetup,
+    seed: string,
+    tacticChanges: TacticChange[] = [],
+): Promise<MatchResult> {
     const id = nextId++;
     return new Promise((resolve) => {
         pending.set(id, resolve);
-        const req: SimRequest = { id, home, away, seed };
+        const req: SimRequest = { id, home, away, seed, tacticChanges };
         getWorker().postMessage(req);
     });
 }

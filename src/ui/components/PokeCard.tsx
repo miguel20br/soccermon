@@ -1,14 +1,11 @@
+import { useState } from 'react';
 import { abilityEffect } from '../../engine/abilities';
-import {
-    type AttrKey,
-    outOfPositionFactor,
-    POSITION_LABEL,
-    type Position,
-    positionRating,
-} from '../../engine/attributes';
+import { type AttrKey, POSITION_LABEL, type Position } from '../../engine/attributes';
 import { ABILITIES, MOVES, type Tier } from '../../engine/data';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
+import { ITEMS, itemSprite } from '../../engine/items';
 import { moveProfile } from '../../engine/moves';
+import { ratingAt } from '../rating';
 import { TYPE_COLOR, TYPE_DARK_TEXT, TYPE_PT } from '../type-colors';
 
 export const TIER_COLOR: Record<Tier, string> = {
@@ -128,26 +125,39 @@ export function MoveList({ inst }: { inst: PokemonInstance }) {
 interface PokeCardProps {
     inst: PokemonInstance;
     onClick?: () => void;
+    /** Posição para a nota exibida (padrão: a principal). */
     position?: Position;
-    compact?: boolean;
+    captain?: boolean;
+    selected?: boolean;
 }
 
-export function PokeCard({ inst, onClick, position, compact }: PokeCardProps) {
+export function PokeCard({ inst, onClick, position, captain, selected }: PokeCardProps) {
+    const [showAttrs, setShowAttrs] = useState(false);
     const view = viewInstance(inst);
     const sp = view.species;
     const ability = ABILITIES[inst.ability];
     const hasEffect = Object.keys(abilityEffect(inst.ability)).length > 0;
     const pos = position ?? view.naturalPosition;
-    // nota na posição pedida (com penalidade se não for a posição natural)
-    const rating = Math.round(positionRating(view.attributes, pos) * outOfPositionFactor(view.naturalPosition, pos));
-    const offPosition = pos !== view.naturalPosition;
-    const Tag = onClick ? 'button' : 'div';
+    const { rating, fit } = ratingAt(inst, pos);
+    const item = inst.item ? ITEMS[inst.item] : null;
+    const interactive = onClick
+        ? {
+              role: 'button',
+              tabIndex: 0,
+              onClick,
+              onKeyDown: (e: React.KeyboardEvent) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onClick();
+                  }
+              },
+          }
+        : {};
     return (
-        <Tag
-            className="card"
+        <div
+            className={`card${onClick ? ' clickable' : ''}${selected ? ' selected' : ''}${showAttrs ? ' attrs-open' : ''}`}
             style={{ ['--tier' as string]: TIER_COLOR[sp.tier] }}
-            onClick={onClick}
-            type={onClick ? 'button' : undefined}
+            {...interactive}
         >
             {inst.shiny && (
                 <span className="shiny" title="Shiny!">
@@ -156,7 +166,10 @@ export function PokeCard({ inst, onClick, position, compact }: PokeCardProps) {
             )}
             <div className="card-head">
                 <div>
-                    <div className="card-name">{view.displayName}</div>
+                    <div className="card-name">
+                        {captain && <span className="captain-badge inline">C</span>}
+                        {view.displayName}
+                    </div>
                     <div className="card-dex">
                         #{String(sp.id).padStart(3, '0')} · <span className="tier-label">{TIER_PT[sp.tier]}</span>
                     </div>
@@ -168,19 +181,41 @@ export function PokeCard({ inst, onClick, position, compact }: PokeCardProps) {
                 </div>
                 <div className="card-ovr">
                     <b>{rating}</b>
-                    <span className="pos-badge">{POSITION_LABEL[pos]}</span>
-                    {offPosition && <div className="card-natural">é {POSITION_LABEL[view.naturalPosition]}</div>}
+                    <span className={`pos-badge ${fit}`}>{POSITION_LABEL[pos]}</span>
+                    {fit === 'off' && <div className="card-natural">fora de posição</div>}
                 </div>
             </div>
             <div className="card-art">
                 <img className="pixel" src={cardSprite(inst)} alt={sp.name} loading="lazy" />
             </div>
-            {!compact && <AttrBars inst={inst} />}
+            <div className="card-positions" title="Posições em que joga bem">
+                {view.positions.map((p, i) => (
+                    <span key={p} className={`pos-chip${i === 0 ? ' main' : ''}`}>
+                        {POSITION_LABEL[p]}
+                    </span>
+                ))}
+            </div>
+            <button
+                type="button"
+                className="attrs-toggle"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setShowAttrs((v) => !v);
+                }}
+            >
+                {showAttrs ? 'esconder atributos' : 'ver atributos'}
+            </button>
+            <AttrBars inst={inst} />
             <MoveList inst={inst} />
             <div className="ability" title={ability?.descPt ?? ability?.shortDesc}>
                 Habilidade: <b>{ability?.name ?? inst.ability}</b>
                 {!hasEffect && <span> (sem efeito no futsal)</span>}
             </div>
-        </Tag>
+            {item && (
+                <div className="card-item" title={item.desc}>
+                    <img className="pixel" src={itemSprite(item.id)} alt="" /> {item.name}
+                </div>
+            )}
+        </div>
     );
 }

@@ -1,12 +1,20 @@
 import { useState } from 'react';
-import { useGame } from '../../store/game-store';
+import { seedFromUrl, useGame } from '../../store/game-store';
 
 const PARADE = [1, 4, 7, 25, 133, 143, 150];
 
 export function Home() {
-    const { run, newRun, go } = useGame();
+    const { run, newRun, go, records } = useGame();
     const [teamName, setTeamName] = useState('Pallet FC');
-    const canContinue = run && (run.status === 'drafting' || run.status === 'lineup');
+    const challengeSeed = seedFromUrl();
+    const inProgress = run && !['eliminated', 'champion'].includes(run.status);
+    const resumeScreen =
+        run && ['formation', 'captain', 'drafting'].includes(run.status)
+            ? 'draft'
+            : run?.status === 'reward'
+              ? 'reward'
+              : 'lineup';
+    const name = () => teamName.trim() || 'Pallet FC';
 
     return (
         <div className="home">
@@ -33,17 +41,31 @@ export function Home() {
                     maxLength={22}
                     onChange={(e) => setTeamName(e.target.value)}
                 />
-                <button type="button" className="btn primary" onClick={() => newRun(teamName.trim() || 'Pallet FC')}>
+                {challengeSeed && (
+                    <button type="button" className="btn yellow" onClick={() => newRun(name(), challengeSeed)}>
+                        Aceitar desafio ({challengeSeed})
+                    </button>
+                )}
+                <button type="button" className="btn primary" onClick={() => newRun(name())}>
                     Nova copa
                 </button>
-                {canContinue && (
-                    <button
-                        type="button"
-                        className="btn yellow"
-                        onClick={() => go(run.status === 'drafting' ? 'draft' : 'lineup')}
-                    >
+                {inProgress && (
+                    <button type="button" className="btn yellow" onClick={() => go(resumeScreen)}>
                         Continuar ({run.teamName})
                     </button>
+                )}
+                {records.cups > 0 && (
+                    <div className="records">
+                        <span>
+                            <b>{records.cups}</b> copas
+                        </span>
+                        <span>
+                            <b>{records.titles}</b> 🏆
+                        </span>
+                        <span>
+                            <b>{records.perfect}</b> perfeitas
+                        </span>
+                    </div>
                 )}
                 <div className="row" style={{ justifyContent: 'center' }}>
                     <button type="button" className="btn ghost small" onClick={() => go('settings')}>

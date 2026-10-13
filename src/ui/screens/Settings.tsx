@@ -47,6 +47,28 @@ export function Settings() {
                     onMouseUp={() => playSfx('kick')}
                 />
             </div>
+            <div className="setting">
+                <h3>Efeitos cinematográficos</h3>
+                <p className="tactic-desc" style={{ margin: 0 }}>
+                    Holofote e câmera lenta nos golpes, gols, defesas e bolas na trave.
+                </p>
+                <div className="row">
+                    <button
+                        type="button"
+                        className={`btn small${settings.cinematic ? ' active' : ''}`}
+                        onClick={() => updateSettings({ cinematic: true })}
+                    >
+                        Ligados
+                    </button>
+                    <button
+                        type="button"
+                        className={`btn small${!settings.cinematic ? ' active' : ''}`}
+                        onClick={() => updateSettings({ cinematic: false })}
+                    >
+                        Desligados (jogo corrido)
+                    </button>
+                </div>
+            </div>
             <button type="button" className="btn" onClick={() => go('home')}>
                 Voltar
             </button>

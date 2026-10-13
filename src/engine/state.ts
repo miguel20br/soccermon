@@ -2,6 +2,7 @@ import type { AbilityEffect } from './abilities';
 import type { Attributes, AttrKey, Position } from './attributes';
 import type { MatchConfig } from './config';
 import type { Species } from './data';
+import type { Formation, FormationId } from './formations';
 import type { PokemonInstance } from './instance';
 import type { MoveKind, StatusKind } from './moves';
 import type { Rng } from './rng';
@@ -15,16 +16,24 @@ export const TACTIC_LABEL: Record<Tactic, string> = {
     counter: 'Contra-ataque',
 };
 
-/** Papéis do losango 1-2-1 do futsal, na ordem dos slots da escalação. */
-export const FUTSAL_SLOTS: Position[] = ['GK', 'FIXO', 'ALA', 'ALA', 'PIVO'];
-
 export interface TeamSetup {
     name: string;
-    /** Exatamente `teamSize` jogadores, na ordem de FUTSAL_SLOTS. */
+    /** Exatamente `teamSize` jogadores, na ordem das vagas da formação. */
     lineup: PokemonInstance[];
     bench: PokemonInstance[];
     tactic: Tactic;
     color: number;
+    /** Padrão: losango 1-2-1. */
+    formation?: FormationId;
+    /** uid do capitão (dá aura ao time). */
+    captainUid?: string | null;
+}
+
+/** Mudança de tática agendada (tática ao vivo: a partida é resimulada com a agenda). */
+export interface TacticChange {
+    tick: number;
+    team: 0 | 1;
+    tactic: Tactic;
 }
 
 /** Códigos de ação para o render escolher a animação. */
@@ -98,6 +107,10 @@ export interface PlayerState {
     shotBonus: PendingBonus | null;
     tackleBonus: PendingBonus | null;
     clutchAnnounced: boolean;
+    captain: boolean;
+    /** Item segurado e se o efeito de uso único já foi gasto. */
+    item: string | null;
+    itemUsed: boolean;
     /** Memória da IA. */
     ai: { nextDecision: number; holdUntil: number };
     stats: PlayerStats;
@@ -128,6 +141,7 @@ export type Phase = 'kickoff' | 'play' | 'goal' | 'restart' | 'halftime' | 'full
 
 export interface TeamRuntime {
     setup: TeamSetup;
+    formation: Formation;
     tactic: Tactic;
     bench: PokemonInstance[];
     possessionTicks: number;
@@ -170,6 +184,8 @@ export type MatchEvent = MatchEventBase &
               source: string;
           }
         | { type: 'knockback'; target: number; by: number; moveId: string }
+        | { type: 'tactic'; team: 0 | 1; tactic: Tactic }
+        | { type: 'item'; by: number; item: string; effect: 'save' | 'cure' | 'crit' | 'endure' }
         | { type: 'ability'; by: number; ability: string; target: number | null }
         | { type: 'halftime'; score: [number, number] }
         | { type: 'sub'; team: 0 | 1; out: string; in: string; outIdx: number }

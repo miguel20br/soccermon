@@ -105,3 +105,36 @@ export function outOfPositionFactor(natural: Position, playing: Position): numbe
     if (natural === 'GK' || playing === 'GK') return 0.75;
     return 0.93;
 }
+
+/** Casos icônicos que a regra automática não pega (espécie → posições extras). */
+export const POSITION_OVERRIDES: Record<number, Position[]> = {
+    95: ['GK'], // Onix: a muralha de pedra
+};
+
+const ELIGIBLE_MARGIN = 4;
+const MAX_POSITIONS = 3;
+
+/**
+ * Posições em que o Pokémon joga bem: todas a até 4 pontos da melhor nota (máx. 3), ordenadas pela nota.
+ * Ex.: Snorlax → Fixo, Goleiro e Pivô.
+ */
+export function eligiblePositions(a: Attributes, speciesId?: number): Position[] {
+    const ratings = POSITIONS.map((pos) => ({ pos, r: positionRating(a, pos) })).sort((x, y) => y.r - x.r);
+    const best = ratings[0].r;
+    const list = ratings
+        .filter((x) => x.r >= best - ELIGIBLE_MARGIN)
+        .slice(0, MAX_POSITIONS)
+        .map((x) => x.pos);
+    for (const extra of (speciesId !== undefined && POSITION_OVERRIDES[speciesId]) || []) {
+        if (!list.includes(extra)) list.push(extra);
+    }
+    return list;
+}
+
+/** Multiplicador para jogar em `playing`: principal 1, secundária 0,98, fora das elegíveis penaliza. */
+export function positionFactor(eligible: readonly Position[], playing: Position): number {
+    const idx = eligible.indexOf(playing);
+    if (idx === 0) return 1;
+    if (idx > 0) return 0.98;
+    return outOfPositionFactor(eligible[0], playing);
+}

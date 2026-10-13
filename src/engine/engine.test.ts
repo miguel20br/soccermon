@@ -1,12 +1,15 @@
 import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { computeAttributes } from './attributes';
+import { computeAttributes, eligiblePositions, positionFactor } from './attributes';
 import { FUTSAL_5 } from './config';
 import { HumanController } from './controllers/human-controller';
 import { effectiveness, SPECIES, species } from './data';
 import { aiDraftTeam, DRAFT_ROUNDS, draftOptions } from './draft';
-import { createInstance } from './instance';
+import { FORMATIONS } from './formations';
+import { createInstance, viewInstance } from './instance';
+import { captainFactor, createMatch } from './match';
 import { defaultMoveset } from './moves';
+import { rewardOptions } from './rewards';
 import { Rng } from './rng';
 import { runMatch } from './runners/batch-runner';
 import { LiveRunner } from './runners/live-runner';
@@ -169,5 +172,106 @@ describe('partida', () => {
             expect(sp.abilities).toContain(inst.ability);
             expect(inst.moves.every((m) => sp.learnset.includes(m))).toBe(true);
         }
+    });
+});
+
+describe('iteração 3: posições, formações, capitão, itens, tática ao vivo', () => {
+    const home = team('h3', 'Casa');
+    const away = team('a3', 'Fora');
+
+    it('Snorlax joga de goleiro e de fixo', () => {
+        const pos = eligiblePositions(computeAttributes(species(143), 50), 143);
+        expect(pos).toContain('GK');
+        expect(pos).toContain('FIXO');
+    });
+
+    it('positionFactor: principal 1, secundária 0.98, fora penaliza', () => {
+        expect(positionFactor(['FIXO', 'GK'], 'FIXO')).toBe(1);
+        expect(positionFactor(['FIXO', 'GK'], 'GK')).toBe(0.98);
+        expect(positionFactor(['FIXO', 'GK'], 'ALA')).toBe(0.93);
+        expect(positionFactor(['ALA'], 'GK')).toBe(0.75);
+    });
+
+    it('opções do draft para uma posição sempre jogam nela', () => {
+        const rng = new Rng('elig');
+        for (const need of ['GK', 'FIXO', 'ALA', 'PIVO'] as const) {
+            for (let i = 0; i < 10; i++) {
+                for (const o of draftOptions(rng, i % 7, new Set(), 3, [], need)) {
+                    expect(viewInstance(o).positions).toContain(need);
+                }
+            }
+        }
+    });
+
+    it('formações têm 5 vagas, pivô no slot 4 e coordenadas dentro da quadra', () => {
+        for (const f of Object.values(FORMATIONS)) {
+            expect(f.slots).toHaveLength(5);
+            expect(f.slots[0]).toBe('GK');
+            expect(f.slots[4]).toBe('PIVO');
+            for (const [x, y] of [...f.attack, ...f.defend, ...f.kickoff]) {
+                expect(x).toBeGreaterThanOrEqual(0);
+                expect(x).toBeLessThanOrEqual(40);
+                expect(y).toBeGreaterThanOrEqual(0);
+                expect(y).toBeLessThanOrEqual(20);
+            }
+            const r = runMatch(FUTSAL_5, { ...home, formation: f.id }, away, 3, { snapshots: false });
+            expect(r.winner).not.toBeNull();
+        }
+    });
+
+    it('capitão dá +6% a quem divide tipo e +3% ao resto', () => {
+        const cap = createInstance(25, new Rng('cap')); // Pikachu (Elétrico)
+        expect(captainFactor(cap, ['Electric'])).toBe(1.06);
+        expect(captainFactor(cap, ['Water'])).toBe(1.03);
+        expect(captainFactor(null, ['Water'])).toBe(1);
+        const s = createMatch(FUTSAL_5, { ...home, captainUid: home.lineup[2].uid }, away, 1);
+        expect(s.players[2].captain).toBe(true);
+    });
+
+    it('Choice Band trava os outros golpes; Focus Sash e Lum Berry disparam no máximo uma vez', () => {
+        const withItems = (t: TeamSetup, item: string): TeamSetup => ({
+            ...t,
+            lineup: t.lineup.map((p) => ({ ...p, item })),
+        });
+        const s = createMatch(FUTSAL_5, withItems(home, 'choiceband'), away, 1);
+        for (const p of s.players.filter((pl) => pl.team === 0)) {
+            expect(p.moveUses.slice(1).every((u) => u === 0)).toBe(true);
+        }
+        let saves = 0;
+        let cures = 0;
+        for (const seed of [1, 2, 3, 4]) {
+            const r = runMatch(FUTSAL_5, home, withItems(away, seed % 2 ? 'focussash' : 'lumberry'), seed, {
+                snapshots: false,
+            });
+            const items = r.events.filter((e) => e.type === 'item');
+            const perPlayer = new Map<number, number>();
+            for (const e of items) if (e.type === 'item') perPlayer.set(e.by, (perPlayer.get(e.by) ?? 0) + 1);
+            expect([...perPlayer.values()].every((n) => n === 1)).toBe(true);
+            saves += items.filter((e) => e.type === 'item' && e.effect === 'save').length;
+            cures += items.filter((e) => e.type === 'item' && e.effect === 'cure').length;
+        }
+        expect(saves).toBeGreaterThan(0);
+        expect(cures).toBeGreaterThan(0);
+    });
+
+    it('mudança de tática no tick T mantém tudo igual antes de T', () => {
+        const base = runMatch(FUTSAL_5, home, away, 77, { snapshots: false });
+        const T = 2000;
+        const changed = runMatch(FUTSAL_5, home, away, 77, {
+            snapshots: false,
+            tacticChanges: [{ tick: T, team: 0, tactic: 'defensive' }],
+        });
+        const prefix = (r: typeof base) => r.events.filter((e) => e.tick < T);
+        expect(prefix(changed)).toEqual(prefix(base));
+        expect(changed.events.some((e) => e.type === 'tactic' && e.tick === T && e.team === 0)).toBe(true);
+    });
+
+    it('recompensas são determinísticas pela seed e trazem 1 reforço + 2 itens', () => {
+        const a = rewardOptions('seed', 0, 0, home.lineup);
+        const b = rewardOptions('seed', 0, 0, home.lineup);
+        expect(a).toEqual(b);
+        expect(a.filter((r) => r.kind === 'pokemon')).toHaveLength(1);
+        expect(a.filter((r) => r.kind === 'item')).toHaveLength(2);
+        expect(rewardOptions('seed', 0, 1, home.lineup)).not.toEqual(a);
     });
 });

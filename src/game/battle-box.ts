@@ -34,6 +34,13 @@ export class BattleBox {
         this.container = scene.add.container(x, y, [g, this.text]).setDepth(8000).setAlpha(0);
     }
 
+    /** Telas pequenas: caixa maior (proporcional) e colada na base. */
+    setUiScale(scale: number, gameHeight: number) {
+        const s = Math.min(scale, 1.7);
+        this.container.setScale(s);
+        this.container.setY(gameHeight - 30 * s);
+    }
+
     push(message: string) {
         this.queue.push(message);
         while (this.queue.length > 3) this.queue.shift();

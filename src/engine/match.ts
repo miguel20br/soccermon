@@ -1,10 +1,12 @@
 import { abilityEffect, isStatusImmune } from './abilities';
-import { type AttrKey, bestPosition, computeAttributes, outOfPositionFactor } from './attributes';
+import { type AttrKey, computeAttributes, eligiblePositions, type Position, positionFactor } from './attributes';
 import type { Command } from './commands';
 import type { MatchConfig } from './config';
 import { MOVES, species } from './data';
 import { eff, fatigueFactor, isIncapacitated, TACTIC_MODS } from './effective';
+import { formationOf } from './formations';
 import type { PokemonInstance } from './instance';
+import { ITEMS } from './items';
 import { moveProfile, type StatusKind } from './moves';
 import { Rng } from './rng';
 import {
@@ -12,7 +14,6 @@ import {
     FLAG_BUFF,
     FLAG_CHARGED,
     FLAG_DEBUFF,
-    FUTSAL_SLOTS,
     type MatchEvent,
     type MatchSnapshot,
     type MatchState,
@@ -49,26 +50,48 @@ export function minuteOf(s: MatchState): number {
 }
 
 // ---------------------------------------------------------------- criação
+/** Bônus coletivos do time: sinergias de tipo e aura do capitão. */
+interface TeamBonuses {
+    synergies: Synergy[];
+    captain: PokemonInstance | null;
+}
+
+function teamBonuses(setup: TeamSetup): TeamBonuses {
+    const captain = setup.lineup.find((p) => p.uid === setup.captainUid) ?? null;
+    return { synergies: computeSynergies(setup.lineup), captain };
+}
+
+/** Aura do capitão: +3% para o time, +6% para quem divide tipo com ele. */
+export function captainFactor(captain: PokemonInstance | null, types: readonly string[]): number {
+    if (!captain) return 1;
+    const capTypes = species(captain.speciesId).types;
+    return types.some((t) => capTypes.includes(t)) ? 1.06 : 1.03;
+}
+
 function createPlayer(
     idx: number,
     team: 0 | 1,
     slot: number,
     inst: PokemonInstance,
-    role = FUTSAL_SLOTS[slot] ?? 'ALA',
-    synergies: Synergy[] = [],
+    role: Position,
+    bonuses: TeamBonuses,
 ): PlayerState {
     const sp = species(inst.speciesId);
-    const synergy = synergyFactor(synergies, sp.types);
+    const synergy = synergyFactor(bonuses.synergies, sp.types);
+    const isCaptain = bonuses.captain?.uid === inst.uid;
+    const captainAura = isCaptain ? 1.03 : captainFactor(bonuses.captain, sp.types);
     const raw = computeAttributes(sp, inst.level);
-    const natural = bestPosition(raw).pos;
-    const factor = outOfPositionFactor(natural, role);
+    const factor = positionFactor(eligiblePositions(raw, sp.id), role);
     const ability = abilityEffect(inst.ability);
+    const item = inst.item && ITEMS[inst.item] ? inst.item : null;
     const attr = { ...raw };
     for (const k of Object.keys(attr) as AttrKey[]) {
         // goleiro de linha / linha no gol: penalidade só no que importa para a posição
         const relevant = role === 'GK' ? k === 'goalkeeping' : k !== 'goalkeeping';
-        attr[k] = attr[k] * (relevant ? factor : 1) * (ability.mods?.[k] ?? 1) * synergy;
+        attr[k] = attr[k] * (relevant ? factor : 1) * (ability.mods?.[k] ?? 1) * synergy * captainAura;
     }
+    if (item === 'choiceband') attr.shooting *= 1.15;
+    const moveUses = inst.moves.map((m, i) => (item === 'choiceband' && i > 0 ? 0 : moveProfile(m).uses));
     return {
         idx,
         team,
@@ -93,10 +116,13 @@ function createPlayer(
         evade: 0,
         status: null,
         buffs: [],
-        moveUses: inst.moves.map((m) => moveProfile(m).uses),
+        moveUses,
         shotBonus: null,
         tackleBonus: null,
         clutchAnnounced: false,
+        captain: isCaptain,
+        item,
+        itemUsed: false,
         ai: { nextDecision: 0, holdUntil: 0 },
         stats: {
             goals: 0,
@@ -119,12 +145,13 @@ export function createMatch(cfg: MatchConfig, home: TeamSetup, away: TeamSetup, 
         throw new Error(`Cada time precisa de ${cfg.teamSize} titulares`);
     }
     const players: PlayerState[] = [];
-    const synergies = [computeSynergies(home.lineup), computeSynergies(away.lineup)];
-    home.lineup.forEach((inst, slot) => {
-        players.push(createPlayer(players.length, 0, slot, inst, undefined, synergies[0]));
-    });
-    away.lineup.forEach((inst, slot) => {
-        players.push(createPlayer(players.length, 1, slot, inst, undefined, synergies[1]));
+    const formations = [formationOf(home.formation), formationOf(away.formation)];
+    [home, away].forEach((setup, t) => {
+        const team = t as 0 | 1;
+        const bonuses = teamBonuses(setup);
+        setup.lineup.forEach((inst, slot) => {
+            players.push(createPlayer(players.length, team, slot, inst, formations[team].slots[slot], bonuses));
+        });
     });
     const s: MatchState = {
         cfg,
@@ -136,8 +163,8 @@ export function createMatch(cfg: MatchConfig, home: TeamSetup, away: TeamSetup, 
         phaseTimer: 1,
         kickoffTeam: 0,
         teams: [
-            { setup: home, tactic: home.tactic, bench: [...home.bench], possessionTicks: 0 },
-            { setup: away, tactic: away.tactic, bench: [...away.bench], possessionTicks: 0 },
+            { setup: home, formation: formations[0], tactic: home.tactic, bench: [...home.bench], possessionTicks: 0 },
+            { setup: away, formation: formations[1], tactic: away.tactic, bench: [...away.bench], possessionTicks: 0 },
         ],
         players,
         auraHolders: [],
@@ -165,18 +192,10 @@ function refreshAuras(s: MatchState) {
     s.auraHolders = s.players.filter((p) => p.ability.aura).map((p) => p.idx);
 }
 
-const KICKOFF_SLOTS: [number, number][] = [
-    [1, 10],
-    [8, 10],
-    [14, 5],
-    [14, 15],
-    [18.5, 10],
-];
-
 function setupKickoff(s: MatchState, team: 0 | 1) {
     const { length, width } = s.cfg.pitch;
     for (const p of s.players) {
-        const [xr, y] = KICKOFF_SLOTS[p.slot] ?? [10, 10];
+        const [xr, y] = s.teams[p.team].formation.kickoff[p.slot] ?? [10, 10];
         const yScaled = (y / 20) * width;
         p.pos = toWorld(s, p.team, xr * (length / 40), yScaled);
         p.vel = v(0, 0);
@@ -315,7 +334,8 @@ function tickTimers(s: MatchState, p: PlayerState, dt: number) {
     for (const o of s.players) {
         if (o.team !== p.team && o.ability.drainAura && dist(o.pos, p.pos) < 4) drain *= o.ability.drainAura;
     }
-    p.energy = clamp(p.energy - drain * dt + (p.ability.regen ?? 0) * dt, 0, 1);
+    const regen = (p.ability.regen ?? 0) + (p.item === 'leftovers' ? 0.0015 : 0);
+    p.energy = clamp(p.energy - drain * dt + regen * dt, 0, 1);
     if (p.ability.clutch && !p.clutchAnnounced && p.energy < 0.45 && s.phase === 'play') {
         p.clutchAnnounced = true;
         emit(s, { type: 'ability', by: p.idx, ability: p.inst.ability, target: null });
@@ -406,8 +426,11 @@ function kick(s: MatchState, p: PlayerState, kind: 'pass' | 'shot', target: Vec2
     } else {
         const shooting = eff(s, p, 'shooting');
         const bonus = p.shotBonus;
-        speed = (10 + (15 * shooting) / 99) * clamp(power, 0.5, 1.1) * (bonus?.power ?? 1);
-        sigma = (0.07 * (1.3 - shooting / 99) * (1 + distance / 15)) / (bonus?.accuracy ?? 1);
+        // Scope Lens: chute crítico
+        const crit = p.item === 'scopelens' && s.rng.chance(0.15);
+        speed = (10 + (15 * shooting) / 99) * clamp(power, 0.5, 1.1) * (bonus?.power ?? 1) * (crit ? 1.25 : 1);
+        sigma = (0.07 * (1.3 - shooting / 99) * (1 + distance / 15)) / (bonus?.accuracy ?? 1) / (crit ? 1.4 : 1);
+        if (crit) emit(s, { type: 'item', by: p.idx, item: 'scopelens', effect: 'crit' });
         if (bonus) {
             moveId = bonus.moveId;
             moveType = bonus.moveType;
@@ -463,12 +486,14 @@ function tryTackle(s: MatchState, p: PlayerState, targetId: number) {
         (0.75 * eff(s, p, 'tackling') + 0.25 * eff(s, p, 'strength')) *
         tackleTypeMult *
         (bonus?.power ?? 1) *
+        (p.item === 'quickclaw' ? 1.1 : 1) *
         (behind ? 0.85 : 1) *
         s.rng.range(0.72, 1.28);
     const defend =
         (0.65 * eff(s, carrier, 'dribble') + 0.35 * eff(s, carrier, 'strength')) *
         keepTypeMult *
         (carrier.evade > 0 ? 1.3 : 1) *
+        (carrier.item === 'quickclaw' ? 1.1 : 1) *
         s.rng.range(0.72, 1.28);
     if (bonus) p.tackleBonus = null;
 
@@ -560,6 +585,16 @@ export function applyStatus(
     source: string,
 ): boolean {
     if (target.status || isStatusImmune(target.ability, status)) return false;
+    if (!target.itemUsed && (target.item === 'lumberry' || (target.item === 'focussash' && target.role !== 'GK'))) {
+        target.itemUsed = true;
+        emit(s, {
+            type: 'item',
+            by: target.idx,
+            item: target.item,
+            effect: target.item === 'lumberry' ? 'cure' : 'endure',
+        });
+        return false;
+    }
     const duration = STATUS_DURATION[status] * (target.ability.statusDuration ?? 1);
     target.status = { kind: status, timer: duration };
     if (status === 'slp' || status === 'frz') setAction(target, Action.Hurt, duration);
@@ -593,7 +628,14 @@ const SECONDARY_STATUS: Record<string, StatusKind> = {
  * Turbinado em relação aos jogos — é futsal Pokémon, os efeitos precisam aparecer.
  */
 function applySecondary(s: MatchState, user: PlayerState, target: PlayerState, moveId: string): boolean {
-    const sec = MOVES[moveId]?.secondary;
+    const move = MOVES[moveId];
+    if (user.item === 'kingsrock' && move?.category !== 'Status' && s.rng.chance(0.25)) {
+        target.stun = Math.max(target.stun, 0.7);
+        setAction(target, Action.Hurt, 0.7);
+        emit(s, { type: 'status', target: target.idx, status: 'flinch', by: user.idx, source: 'kingsrock' });
+        return true;
+    }
+    const sec = move?.secondary;
     if (!sec) return false;
     const chance = Math.min(0.65, (sec.chance / 100) * 3 + 0.05) * (user.ability.statusChanceBoost ?? 1);
     if (!s.rng.chance(chance)) return false;
@@ -627,7 +669,8 @@ function performMove(s: MatchState, p: PlayerState, slot: number) {
     p.stats.movesUsed++;
     const technician =
         p.ability.weakMoveBoost && prof.data.power > 0 && prof.data.power <= 60 ? p.ability.weakMoveBoost : 1;
-    const k = Math.min(1, prof.strength * technician);
+    const typeItem = p.item && ITEMS[p.item]?.type === prof.data.type ? 1.2 : 1;
+    const k = Math.min(1.25, prof.strength * technician * typeItem);
     const hasBall = s.ball.owner === p.idx;
     let target: PlayerState | null = null;
     let effectiveness: number | null = null;
@@ -818,7 +861,12 @@ function checkShotInteractions(s: MatchState) {
                 0.95,
             );
             setAction(p, Action.Dive, 0.5);
-            if (s.rng.chance(pSave)) {
+            const sash = p.item === 'focussash' && !p.itemUsed && shot.onTarget;
+            if (sash) {
+                p.itemUsed = true;
+                emit(s, { type: 'item', by: p.idx, item: 'focussash', effect: 'save' });
+            }
+            if (sash || s.rng.chance(pSave)) {
                 p.stats.saves++;
                 const caught = speed < 17 && s.rng.chance(0.55 + (0.3 * gk) / 99);
                 emit(s, { type: 'save', by: p.idx, shooter: shooter.idx, caught });
@@ -1001,7 +1049,7 @@ function halftimeSubs(s: MatchState) {
         for (const out of tired) {
             const inst = rt.bench.shift();
             if (!inst) break;
-            const fresh = createPlayer(out.idx, team, out.slot, inst, out.role, computeSynergies(rt.setup.lineup));
+            const fresh = createPlayer(out.idx, team, out.slot, inst, out.role, teamBonuses(rt.setup));
             fresh.pos = out.pos;
             const outName = out.name;
             s.players[out.idx] = fresh;

@@ -1,4 +1,4 @@
-import { type Attributes, bestPosition, computeAttributes, type Position } from './attributes';
+import { type Attributes, computeAttributes, eligiblePositions, type Position, positionRating } from './attributes';
 import { type Species, species } from './data';
 import { defaultMoveset } from './moves';
 import type { Rng } from './rng';
@@ -18,6 +18,8 @@ export interface PokemonInstance {
     nickname: string | null;
     /** Condição física entre partidas (0..1). Na copa do MVP sempre volta a 1. */
     condition: number;
+    /** Item segurado (src/engine/items.ts), ou null. */
+    item?: string | null;
 }
 
 export const DEFAULT_LEVEL = 50;
@@ -47,6 +49,8 @@ export interface InstanceView {
     species: Species;
     attributes: Attributes;
     naturalPosition: Position;
+    /** Posições em que joga bem (a principal primeiro). */
+    positions: Position[];
     overall: number;
     displayName: string;
 }
@@ -54,13 +58,14 @@ export interface InstanceView {
 export function viewInstance(inst: PokemonInstance): InstanceView {
     const sp = species(inst.speciesId);
     const attributes = computeAttributes(sp, inst.level);
-    const best = bestPosition(attributes);
+    const positions = eligiblePositions(attributes, sp.id);
     return {
         instance: inst,
         species: sp,
         attributes,
-        naturalPosition: best.pos,
-        overall: best.rating,
+        naturalPosition: positions[0],
+        positions,
+        overall: positionRating(attributes, positions[0]),
         displayName: inst.nickname ?? sp.name,
     };
 }

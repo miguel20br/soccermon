@@ -1,7 +1,9 @@
 import { ABILITIES, MOVES } from '../engine/data';
+import { ITEMS } from '../engine/items';
 import { Rng } from '../engine/rng';
 import type { MatchResult } from '../engine/runners/batch-runner';
 import type { MatchEvent } from '../engine/state';
+import { TACTIC_LABEL } from '../engine/state';
 import { effectivenessLabel } from '../engine/types';
 
 export type Tone = 'goal' | 'big' | 'normal' | 'minor' | 'whistle';
@@ -32,12 +34,14 @@ const STATUS_PT: Record<string, string> = {
 export class Commentator {
     private names: string[];
     private teams: (0 | 1)[];
+    private captains: boolean[];
     private teamNames: [string, string];
     private rng: Rng;
 
     constructor(result: MatchResult, teamNames: [string, string]) {
         this.names = result.roster.map((p) => p.name);
         this.teams = result.roster.map((p) => p.team);
+        this.captains = result.roster.map((p) => p.captain);
         this.teamNames = teamNames;
         this.rng = new Rng(result.seed, 'commentary');
     }
@@ -75,7 +79,7 @@ export class Commentator {
                 const assist = e.assist !== null ? ` Assistência de ${this.n(e.assist)}.` : '';
                 const shout = this.pick('GOOOOL', 'GOLAÇO', 'É GOL', 'GOOOL');
                 return line(
-                    `${shout} do ${team}! ${this.n(e.by)} balança a rede!${assist} ${this.score(e.score)}`,
+                    `${shout} do ${team}! ${this.captains[e.by] ? 'O capitão ' : ''}${this.n(e.by)} balança a rede!${assist} ${this.score(e.score)}`,
                     'goal',
                     e.team,
                 );
@@ -206,7 +210,23 @@ export class Commentator {
                 return this.rng.chance(0.12)
                     ? line(`${this.n(e.by)} dá um drible desconcertante!`, 'minor', this.teams[e.by])
                     : null;
+            case 'tactic':
+                return line(`${this.teamNames[e.team]} muda para ${TACTIC_LABEL[e.tactic]}!`, 'whistle', e.team);
+            case 'item': {
+                const item = ITEMS[e.item]?.name ?? e.item;
+                const who = this.n(e.by);
+                const text =
+                    e.effect === 'save'
+                        ? `${item} de ${who} segura o gol certo!`
+                        : e.effect === 'cure'
+                          ? `${who} come a ${item} e se cura!`
+                          : e.effect === 'crit'
+                            ? `Chute crítico! ${item} de ${who}!`
+                            : `${who} resiste graças à ${item}!`;
+                return line(text, 'big', this.teams[e.by]);
+            }
             case 'sub':
+                this.captains[e.outIdx] = false;
                 this.names[e.outIdx] = e.in;
                 return line(
                     `Substituição no ${this.teamNames[e.team]}: sai ${e.out}, entra ${e.in}.`,

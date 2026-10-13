@@ -11,22 +11,6 @@ import { expectedGoals } from '../xg';
  * (portador, apoio, pressão, cobertura, posição). Emite os mesmos Commands de um controle humano.
  */
 
-// Posições-base relativas (x = profundidade rumo ao ataque, campo de 40×20) por slot: GK, FIXO, ALA, ALA, PIVO
-const HOME_ATTACK: [number, number][] = [
-    [1.2, 10],
-    [14, 10],
-    [24, 4],
-    [24, 16],
-    [32, 10],
-];
-const HOME_DEFEND: [number, number][] = [
-    [1, 10],
-    [7, 10],
-    [12, 5],
-    [12, 15],
-    [18, 10],
-];
-
 const TACTIC_SHIFT: Record<
     Tactic,
     { attack: number; defend: number; pivotHold: number; shootBias: number; pressBias: number }
@@ -453,7 +437,9 @@ export class AIController implements Controller {
         const team = p.team;
         const tactic = TACTIC_SHIFT[s.teams[team].tactic];
         const attacking = ctx.attacking[team];
-        const base = (attacking ? HOME_ATTACK : HOME_DEFEND)[p.slot] ?? [20, 10];
+        // posições-base vêm da formação do time (losango, quadrado, linha de 3)
+        const formation = s.teams[team].formation;
+        const base = (attacking ? formation.attack : formation.defend)[p.slot] ?? [20, 10];
         const ballRel = toRel(s, team, s.ball.pos);
         const { length, width } = s.cfg.pitch;
         let xr = base[0] * (length / 40) + (attacking ? tactic.attack : tactic.defend);

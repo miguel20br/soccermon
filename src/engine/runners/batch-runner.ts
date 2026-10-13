@@ -1,5 +1,5 @@
 import type { MatchConfig } from '../config';
-import type { MatchEvent, MatchSnapshot, MatchState, PlayerStats, TeamSetup } from '../state';
+import type { MatchEvent, MatchSnapshot, MatchState, PlayerStats, TacticChange, TeamSetup } from '../state';
 import { LiveRunner } from './live-runner';
 
 export interface PlayerSummary {
@@ -10,6 +10,8 @@ export interface PlayerSummary {
     name: string;
     role: string;
     shiny: boolean;
+    captain: boolean;
+    item: string | null;
     stats: PlayerStats;
     energy: number;
 }
@@ -40,6 +42,8 @@ function summarize(s: MatchState): PlayerSummary[] {
         name: p.name,
         role: p.role,
         shiny: p.inst.shiny,
+        captain: p.captain,
+        item: p.item,
         stats: { ...p.stats },
         energy: p.energy,
     }));
@@ -51,9 +55,9 @@ export function runMatch(
     home: TeamSetup,
     away: TeamSetup,
     seed: number | string,
-    opts: { snapshots?: boolean } = {},
+    opts: { snapshots?: boolean; tacticChanges?: TacticChange[] } = {},
 ): MatchResult {
-    const runner = new LiveRunner(cfg, home, away, seed);
+    const runner = new LiveRunner(cfg, home, away, seed, opts.tacticChanges);
     const s = runner.state;
     const roster = summarize(s);
     const snapshots: MatchSnapshot[] = [];

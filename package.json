@@ -16,6 +16,7 @@
     "assets:cards": "tsx scripts/fetch-sprites.ts",
     "assets:field": "tsx scripts/build-pmd-atlas.ts",
     "assets:audio": "tsx scripts/fetch-audio.ts",
+    "assets:items": "tsx scripts/fetch-items.ts",
     "calibrate": "tsx scripts/calibrate.ts"
   },
   "dependencies": {

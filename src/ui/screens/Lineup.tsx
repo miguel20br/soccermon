@@ -1,43 +1,25 @@
 import { useState } from 'react';
-import { outOfPositionFactor, POSITION_LABEL, positionRating } from '../../engine/attributes';
 import { CUP_STAGES } from '../../engine/cup';
-import { type PokemonInstance, viewInstance } from '../../engine/instance';
-import { FUTSAL_SLOTS, TACTIC_LABEL, type Tactic } from '../../engine/state';
+import { FORMATIONS } from '../../engine/formations';
+import { viewInstance } from '../../engine/instance';
+import { ITEMS, itemSprite } from '../../engine/items';
+import { TACTIC_LABEL, type Tactic } from '../../engine/state';
 import { computeSynergies } from '../../engine/synergy';
 import { playSfx } from '../../game/audio';
 import { playerTeam, type SlotRef, stageLabel, useGame } from '../../store/game-store';
+import { FormationBoard } from '../components/FormationBoard';
 import { cardSprite, PokeCard, TypeBadge } from '../components/PokeCard';
 import { simulateMatch } from '../sim-client';
 
-// posições no mini-campo (vertical, ataque para cima), na ordem dos slots: GK, Fixo, Ala, Ala, Pivô
-export const SLOT_XY: [number, number][] = [
-    [50, 87],
-    [50, 62],
-    [20, 37],
-    [80, 37],
-    [50, 13],
-];
-
-const TACTIC_DESC: Record<Tactic, string> = {
+export const TACTIC_DESC: Record<Tactic, string> = {
     balanced: 'Sem bônus nem custo.',
     offensive: 'Linhas altas e mais chutes. Cansa mais e abre espaço atrás.',
     defensive: 'Bloco baixo: melhor desarme e leitura. Ataca pouco.',
     counter: 'Pivô espera lá na frente; passes e arrancadas mais rápidos.',
 };
 
-function slotRating(inst: PokemonInstance, slot: number) {
-    const view = viewInstance(inst);
-    const role = FUTSAL_SLOTS[slot];
-    const factor = outOfPositionFactor(view.naturalPosition, role);
-    return {
-        rating: Math.round(positionRating(view.attributes, role) * factor),
-        outOfPosition: factor < 1,
-        natural: view.naturalPosition,
-    };
-}
-
 export function Lineup() {
-    const { run, swapSlots, setTactic, setMatch, go, abandonRun } = useGame();
+    const { run, swapSlots, setTactic, setFormation, moveItem, setMatch, go, abandonRun } = useGame();
     const [selected, setSelected] = useState<SlotRef | null>(null);
     const [detail, setDetail] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -47,9 +29,9 @@ export function Lineup() {
     const opponent = run.opponents[run.stage];
     const detailInst = byUid.get(detail ?? run.lineup[0]) ?? run.picks[0];
     const synergies = computeSynergies(run.lineup.map((u) => byUid.get(u)!));
+    const holders = run.picks.filter((p) => p.uid !== detailInst?.uid);
 
-    const clickSlot = (ref: SlotRef) => {
-        const uid = (ref.zone === 'lineup' ? run.lineup : run.bench)[ref.index];
+    const onSlot = (ref: SlotRef, uid: string) => {
         setDetail(uid);
         if (!selected) {
             setSelected(ref);
@@ -69,8 +51,6 @@ export function Lineup() {
         setLoading(false);
         go('match');
     };
-
-    const isSel = (zone: SlotRef['zone'], index: number) => selected?.zone === zone && selected.index === index;
 
     return (
         <>
@@ -98,56 +78,67 @@ export function Lineup() {
             <div className="lineup-grid">
                 <div className="panel">
                     <h2>Escalação — {run.teamName}</h2>
-                    <p className="muted" style={{ marginTop: 0 }}>
-                        Clique em dois jogadores para trocá-los de posição (inclusive com o banco).
-                    </p>
-                    <div className="court">
-                        {run.lineup.map((uid, i) => {
-                            const inst = byUid.get(uid)!;
-                            const r = slotRating(inst, i);
-                            return (
-                                <button
-                                    type="button"
-                                    key={uid}
-                                    className={`slot${isSel('lineup', i) ? ' selected' : ''}`}
-                                    style={{ left: `${SLOT_XY[i][0]}%`, top: `${SLOT_XY[i][1]}%` }}
-                                    onClick={() => clickSlot({ zone: 'lineup', index: i })}
-                                >
-                                    <span className="pos-badge">{POSITION_LABEL[FUTSAL_SLOTS[i]]}</span>
-                                    <img className="pixel" src={cardSprite(inst)} alt="" />
-                                    <span className="slot-name">{viewInstance(inst).displayName}</span>
-                                    <span className={`slot-rating${r.outOfPosition ? ' warn' : ''}`}>
-                                        {r.rating}
-                                        {r.outOfPosition && ` · é ${POSITION_LABEL[r.natural]}`}
-                                    </span>
-                                </button>
-                            );
-                        })}
+                    <div className="formation-tabs">
+                        {Object.values(FORMATIONS).map((f) => (
+                            <button
+                                key={f.id}
+                                type="button"
+                                className={`btn small${run.formation === f.id ? ' active' : ''}`}
+                                onClick={() => setFormation(f.id)}
+                            >
+                                {f.name}
+                            </button>
+                        ))}
                     </div>
-                    <div className="bench">
-                        {run.bench.map((uid, i) => {
-                            const inst = byUid.get(uid)!;
-                            return (
-                                <button
-                                    type="button"
-                                    key={uid}
-                                    className={`slot${isSel('bench', i) ? ' selected' : ''}`}
-                                    onClick={() => clickSlot({ zone: 'bench', index: i })}
-                                >
-                                    <span className="pos-badge">Banco</span>
-                                    <img className="pixel" src={cardSprite(inst)} alt="" />
-                                    <span className="slot-name">{viewInstance(inst).displayName}</span>
-                                    <span className="slot-rating">{viewInstance(inst).overall}</span>
-                                </button>
-                            );
-                        })}
-                    </div>
-                    <p className="muted center" style={{ fontSize: 11, marginBottom: 0 }}>
-                        Reservas entram no intervalo no lugar de quem estiver cansado.
+                    <p className="muted" style={{ marginTop: 8 }}>
+                        Toque em dois jogadores para trocá-los de vaga (inclusive com o banco).
                     </p>
+                    <FormationBoard
+                        formation={run.formation}
+                        lineup={run.lineup}
+                        bench={run.bench}
+                        byUid={byUid}
+                        captainUid={run.captainUid}
+                        stateOf={(ref) =>
+                            selected?.zone === ref.zone && selected.index === ref.index ? 'selected' : 'idle'
+                        }
+                        onSlot={onSlot}
+                        footer={
+                            <p className="muted center" style={{ fontSize: 11, marginBottom: 0 }}>
+                                Reservas entram no intervalo no lugar de quem estiver cansado.
+                            </p>
+                        }
+                    />
                 </div>
 
-                <div style={{ display: 'grid', gap: 'var(--gap)', alignContent: 'start' }}>
+                <div className="side-stack">
+                    <div className="panel">
+                        <h2>
+                            {stageLabel(run.stage)}: {opponent.name}
+                        </h2>
+                        <div className="opponent-strip">
+                            {opponent.lineup.map((p) => (
+                                <img
+                                    key={p.uid}
+                                    className="pixel"
+                                    src={cardSprite(p)}
+                                    alt={viewInstance(p).displayName}
+                                    title={viewInstance(p).displayName}
+                                />
+                            ))}
+                        </div>
+                        <p className="muted" style={{ fontSize: 11 }}>
+                            {FORMATIONS[opponent.formation ?? '1-2-1'].name} · {TACTIC_LABEL[opponent.tactic]} · Média{' '}
+                            {Math.round(
+                                opponent.lineup.reduce((s, p) => s + viewInstance(p).overall, 0) /
+                                    opponent.lineup.length,
+                            )}
+                        </p>
+                        <button type="button" className="btn primary wide" onClick={play} disabled={loading}>
+                            {loading ? 'Aquecendo…' : `Jogar ${stageLabel(run.stage).toLowerCase()}`}
+                        </button>
+                    </div>
+
                     <div className="panel">
                         <h2>Tática</h2>
                         <div className="tactics">
@@ -162,7 +153,7 @@ export function Lineup() {
                                 </button>
                             ))}
                         </div>
-                        <p className="tactic-desc">{TACTIC_DESC[run.tactic]}</p>
+                        <p className="tactic-desc">{TACTIC_DESC[run.tactic]} Dá para mudar durante o jogo.</p>
                         <h3 style={{ marginTop: 12 }}>Sinergias de tipo</h3>
                         {synergies.length === 0 ? (
                             <p className="tactic-desc">Escale 2+ titulares do mesmo tipo para ganhar bônus.</p>
@@ -180,40 +171,34 @@ export function Lineup() {
                         )}
                     </div>
 
-                    <div className="panel">
-                        <h2>
-                            {stageLabel(run.stage)}: {opponent.name}
-                        </h2>
-                        <div className="opponent-strip">
-                            {opponent.lineup.map((p) => (
-                                <img
-                                    key={p.uid}
-                                    className="pixel"
-                                    src={cardSprite(p)}
-                                    alt={p.speciesId.toString()}
-                                    title={viewInstance(p).displayName}
-                                />
-                            ))}
-                        </div>
-                        <p className="muted" style={{ fontSize: 11 }}>
-                            Tática: {TACTIC_LABEL[opponent.tactic]} · Média{' '}
-                            {Math.round(
-                                opponent.lineup.reduce((s, p) => s + viewInstance(p).overall, 0) /
-                                    opponent.lineup.length,
+                    {detailInst && (
+                        <>
+                            <PokeCard inst={detailInst} captain={detailInst.uid === run.captainUid} />
+                            {detailInst.item && (
+                                <div className="panel item-move">
+                                    <img className="pixel" src={itemSprite(detailInst.item)} alt="" />
+                                    <span>
+                                        <b>{ITEMS[detailInst.item]?.name}</b> — {ITEMS[detailInst.item]?.desc}
+                                    </span>
+                                    <label className="muted">
+                                        Passar para{' '}
+                                        <select
+                                            value=""
+                                            onChange={(e) => e.target.value && moveItem(detailInst.uid, e.target.value)}
+                                        >
+                                            <option value="">…</option>
+                                            {holders.map((h) => (
+                                                <option key={h.uid} value={h.uid}>
+                                                    {viewInstance(h).displayName}
+                                                    {h.item ? ` (troca com ${ITEMS[h.item]?.name})` : ''}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </label>
+                                </div>
                             )}
-                        </p>
-                        <button
-                            type="button"
-                            className="btn primary"
-                            style={{ width: '100%' }}
-                            onClick={play}
-                            disabled={loading}
-                        >
-                            {loading ? 'Aquecendo…' : `Jogar ${stageLabel(run.stage).toLowerCase()}`}
-                        </button>
-                    </div>
-
-                    {detailInst && <PokeCard inst={detailInst} />}
+                        </>
+                    )}
 
                     <button
                         type="button"

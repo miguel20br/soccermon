@@ -8,6 +8,7 @@ import { writeFileSync } from 'node:fs';
 import { FUTSAL_5 } from '../src/engine/config';
 import { species } from '../src/engine/data';
 import { aiDraftTeam } from '../src/engine/draft';
+import { FORMATIONS, type FormationId } from '../src/engine/formations';
 import { viewInstance } from '../src/engine/instance';
 import { Rng } from '../src/engine/rng';
 import { runMatch } from '../src/engine/runners/batch-runner';
@@ -19,6 +20,47 @@ const csvPath = args.includes('--csv') ? args[args.indexOf('--csv') + 1] : null;
 const TACTICS: Tactic[] = ['balanced', 'offensive', 'defensive', 'counter'];
 
 const rng = new Rng('calibrate');
+
+// --formations: cada time é draftado para a própria formação; mede vitórias por formação
+if (args.includes('--formations')) {
+    const ids = Object.keys(FORMATIONS) as FormationId[];
+    const rec = new Map<FormationId, { w: number; g: number }>(ids.map((f) => [f, { w: 0, g: 0 }]));
+    for (let i = 0; i < N; i++) {
+        for (const fa of ids) {
+            for (const fb of ids) {
+                if (fa === fb) continue;
+                const home: TeamSetup = {
+                    name: 'A',
+                    ...aiDraftTeam(new Rng(`f-${i}`, 'A'), 1, [], fa),
+                    tactic: 'balanced',
+                    color: 0,
+                    formation: fa,
+                };
+                const away: TeamSetup = {
+                    name: 'B',
+                    ...aiDraftTeam(new Rng(`f-${i}`, 'B'), 1, [], fb),
+                    tactic: 'balanced',
+                    color: 0,
+                    formation: fb,
+                };
+                const r = runMatch(FUTSAL_5, home, away, `${i}-${fa}-${fb}`, { snapshots: false });
+                for (const [f, won] of [
+                    [fa, r.winner === 0],
+                    [fb, r.winner === 1],
+                ] as const) {
+                    const x = rec.get(f)!;
+                    x.g++;
+                    if (won) x.w++;
+                }
+            }
+        }
+    }
+    console.log(
+        'vitórias por formação:',
+        [...rec.entries()].map(([f, x]) => `${f}=${Math.round((x.w / x.g) * 100)}% (${x.g})`).join(' '),
+    );
+    process.exit(0);
+}
 
 // --tactics: mesmos times, só a tática muda (e os lados se invertem) → matriz de confrontos
 if (args.includes('--tactics')) {

@@ -7,6 +7,7 @@ import { Home } from './ui/screens/Home';
 import { Lineup } from './ui/screens/Lineup';
 import { Match } from './ui/screens/Match';
 import { Result } from './ui/screens/Result';
+import { Reward } from './ui/screens/Reward';
 import { Settings } from './ui/screens/Settings';
 
 export default function App() {
@@ -31,6 +32,7 @@ export default function App() {
             {screen === 'lineup' && <Lineup />}
             {screen === 'match' && <Match />}
             {screen === 'result' && <Result />}
+            {screen === 'reward' && <Reward />}
             {screen === 'settings' && <Settings />}
             {screen === 'credits' && <Credits />}
         </div>

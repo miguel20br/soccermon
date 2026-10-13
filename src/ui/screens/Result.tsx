@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import type { PlayerSummary } from '../../engine/runners/batch-runner';
-import { stageLabel, useGame } from '../../store/game-store';
+import { isPerfectCup, stageLabel, useGame } from '../../store/game-store';
 import { cardSprite } from '../components/PokeCard';
+import { shareRun } from '../share';
 
 function mvpScore(p: PlayerSummary) {
     const s = p.stats;
@@ -11,6 +13,7 @@ function mvpScore(p: PlayerSummary) {
 
 export function Result() {
     const { run, match, advance, newRun } = useGame();
+    const [shared, setShared] = useState<string | null>(null);
     if (!run || !match) return null;
     const opponent = run.opponents[run.stage];
     const names: [string, string] = [run.teamName, opponent.name];
@@ -43,11 +46,23 @@ export function Result() {
 
     const champion = run.status === 'champion';
     const eliminated = run.status === 'eliminated';
+    const perfect = isPerfectCup(run);
+    const share = async () => {
+        const res = await shareRun(run);
+        setShared(
+            res === 'copied'
+                ? 'Copiado! Cole onde quiser.'
+                : res === 'shared'
+                  ? 'Compartilhado!'
+                  : 'Não deu pra copiar :(',
+        );
+    };
 
     return (
         <>
             <div className="panel result-hero">
                 {champion && <div className="trophy">🏆</div>}
+                {perfect && <div className="perfect-badge">★ COPA PERFEITA ★</div>}
                 <h1>{champion ? 'CAMPEÕES DA COPA DE KANTO!' : won ? 'Vitória!' : 'Fim da linha…'}</h1>
                 <div className="muted">
                     {stageLabel(run.stage)} · {names[0]} x {names[1]}
@@ -62,20 +77,24 @@ export function Result() {
                 )}
                 <div className="row" style={{ justifyContent: 'center', marginTop: 8 }}>
                     {eliminated || champion ? (
-                        <button type="button" className="btn primary" onClick={() => newRun(run.teamName)}>
-                            Nova copa
-                        </button>
+                        <>
+                            <button type="button" className="btn yellow" onClick={share}>
+                                Compartilhar
+                            </button>
+                            <button type="button" className="btn primary" onClick={() => newRun(run.teamName)}>
+                                Nova copa
+                            </button>
+                            <button type="button" className="btn ghost" onClick={advance}>
+                                Menu
+                            </button>
+                        </>
                     ) : (
                         <button type="button" className="btn primary" onClick={advance}>
-                            Próxima fase: {stageLabel(run.stage + 1)}
-                        </button>
-                    )}
-                    {(eliminated || champion) && (
-                        <button type="button" className="btn ghost" onClick={advance}>
-                            Menu
+                            Escolher recompensa →
                         </button>
                     )}
                 </div>
+                {shared && <div className="muted">{shared}</div>}
             </div>
 
             <div className="two-col">

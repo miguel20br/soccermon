@@ -1,153 +1,206 @@
 import { useState } from 'react';
-import { outOfPositionFactor, POSITION_LABEL, positionRating } from '../../engine/attributes';
-import { DRAFT_ROUNDS } from '../../engine/draft';
-import { type PokemonInstance, viewInstance } from '../../engine/instance';
-import { FUTSAL_SLOTS } from '../../engine/state';
+import { POSITION_LABEL } from '../../engine/attributes';
+import { DRAFT_PICKS } from '../../engine/draft';
+import { FORMATIONS, type FormationId } from '../../engine/formations';
+import { viewInstance } from '../../engine/instance';
 import { computeSynergies } from '../../engine/synergy';
 import { playSfx } from '../../game/audio';
-import { type SlotRef, useGame } from '../../store/game-store';
-import { cardSprite, PokeCard, TypeBadge } from '../components/PokeCard';
-import { SLOT_XY } from './Lineup';
+import { type SlotRef, slotRole, useGame } from '../../store/game-store';
+import { FormationBoard } from '../components/FormationBoard';
+import { PokeCard, TypeBadge } from '../components/PokeCard';
 
-/** Nota do Pokémon numa vaga (banco usa a nota na posição natural). */
-function ratingAt(inst: PokemonInstance, slot: SlotRef) {
-    const view = viewInstance(inst);
-    if (slot.zone === 'bench') return { rating: view.overall, off: false };
-    const role = FUTSAL_SLOTS[slot.index];
-    const factor = outOfPositionFactor(view.naturalPosition, role);
-    return { rating: Math.round(positionRating(view.attributes, role) * factor), off: factor < 1 };
+/** Desenho mini da formação (bolinhas nas posições da UI). */
+function FormationDiagram({ id }: { id: FormationId }) {
+    const f = FORMATIONS[id];
+    return (
+        <svg viewBox="0 0 60 80" className="formation-diagram" aria-hidden>
+            <rect x="1" y="1" width="58" height="78" rx="3" />
+            <line x1="1" y1="40" x2="59" y2="40" />
+            {f.ui.map(([x, y], i) => (
+                <circle key={`${x}-${y}`} cx={(x / 100) * 60} cy={(y / 100) * 80} r={i === 0 ? 4 : 5} />
+            ))}
+        </svg>
+    );
 }
 
 /**
- * Draft estilo "7 a 0": a cada rodada saem 3 Pokémon de qualquer posição;
- * você escolhe um e decide em qual vaga ele entra (quadra ou banco).
+ * Draft estilo "7 a 0": formação → capitão (1 de 3 raros, qualquer vaga) → a cada rodada você escolhe a
+ * vaga e saem 3 Pokémon que jogam naquela posição.
  */
 export function Draft() {
-    const { run, pick } = useGame();
+    const { run, chooseFormation, chooseSlot, pick, reroll } = useGame();
     const [selected, setSelected] = useState<string | null>(null);
-    if (!run || run.draftRound >= DRAFT_ROUNDS.length) return null;
+    if (!run) return null;
+
+    if (run.status === 'formation') {
+        return (
+            <>
+                <div className="draft-head">
+                    <div>
+                        <div className="muted">Antes do draft</div>
+                        <h1>Escolha a formação</h1>
+                    </div>
+                </div>
+                <div className="formation-picker">
+                    {Object.values(FORMATIONS).map((f) => (
+                        <button
+                            key={f.id}
+                            type="button"
+                            className="panel formation-option"
+                            onClick={() => {
+                                playSfx('select');
+                                chooseFormation(f.id);
+                            }}
+                        >
+                            <FormationDiagram id={f.id} />
+                            <b>{f.name}</b>
+                            <span className="muted">{f.slots.map((s) => POSITION_LABEL[s]).join(' · ')}</span>
+                            <span className="tactic-desc">{f.description}</span>
+                        </button>
+                    ))}
+                </div>
+            </>
+        );
+    }
 
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
-    const chosen = run.options.find((o) => o.uid === selected) ?? null;
+    const isCaptain = run.status === 'captain';
+    const chosen = isCaptain ? (run.options.find((o) => o.uid === selected) ?? null) : null;
     const filled = run.lineup.filter(Boolean).map((u) => byUid.get(u)!);
     const synergies = computeSynergies(filled);
     const avg = filled.length ? Math.round(filled.reduce((s, p) => s + viewInstance(p).overall, 0) / filled.length) : 0;
+    const role = run.draftSlot ? slotRole(run, run.draftSlot) : null;
+    const roleLabel = role === 'ANY' ? 'o banco' : role ? POSITION_LABEL[role] : '';
 
-    const place = (slot: SlotRef) => {
-        if (!chosen) return;
+    const title = isCaptain
+        ? chosen
+            ? `Em que vaga ${viewInstance(chosen).displayName} vai jogar?`
+            : 'Escolha seu capitão'
+        : run.draftSlot
+          ? `Escolha quem vai para ${roleLabel === 'o banco' ? roleLabel : `a vaga de ${roleLabel}`}`
+          : 'Escolha uma posição para preencher';
+
+    const hint = isCaptain
+        ? chosen
+            ? 'Toque numa vaga: o número é a nota dele ali.'
+            : 'O capitão dá +3% ao time e +6% a quem divide tipo com ele.'
+        : run.draftSlot
+          ? 'Saíram 3 Pokémon que jogam nessa posição.'
+          : 'Toque numa vaga livre na quadra ou no banco.';
+
+    const onSlot = (slot: SlotRef, uid: string) => {
+        if (uid) return;
         playSfx('select');
-        pick(chosen.uid, slot);
-        setSelected(null);
+        if (isCaptain) {
+            if (!chosen) return;
+            pick(chosen.uid, slot);
+            setSelected(null);
+        } else {
+            chooseSlot(slot);
+        }
     };
 
-    const slotButton = (slot: SlotRef, uid: string, style?: React.CSSProperties) => {
-        const label = slot.zone === 'bench' ? 'Banco' : POSITION_LABEL[FUTSAL_SLOTS[slot.index]];
-        const key = `${slot.zone}-${slot.index}`;
-        if (uid) {
-            const inst = byUid.get(uid)!;
-            const r = ratingAt(inst, slot);
-            return (
-                <div key={key} className="slot filled" style={style}>
-                    <span className="pos-badge">{label}</span>
-                    <img className="pixel" src={cardSprite(inst)} alt="" />
-                    <span className="slot-name">{viewInstance(inst).displayName}</span>
-                    <span className={`slot-rating${r.off ? ' warn' : ''}`}>{r.rating}</span>
-                </div>
-            );
+    const slotState = (slot: SlotRef, uid: string) => {
+        if (uid) return 'locked' as const;
+        if (isCaptain) return chosen ? ('target' as const) : ('locked' as const);
+        if (run.draftSlot) {
+            return run.draftSlot.zone === slot.zone && run.draftSlot.index === slot.index ? 'selected' : 'locked';
         }
-        const preview = chosen ? ratingAt(chosen, slot) : null;
-        return (
-            <button
-                type="button"
-                key={key}
-                className={`slot empty${chosen ? ' target' : ''}`}
-                style={style}
-                disabled={!chosen}
-                onClick={() => place(slot)}
-                aria-label={chosen ? `Colocar ${viewInstance(chosen).displayName} como ${label}` : `${label} (vaga)`}
-            >
-                <span className="pos-badge">{label}</span>
-                {chosen && preview ? (
-                    <>
-                        <img className="pixel ghost" src={cardSprite(chosen)} alt="" />
-                        <span className={`slot-rating${preview.off ? ' warn' : ''}`}>
-                            {preview.rating}
-                            {preview.off && ' · fora'}
-                        </span>
-                    </>
-                ) : (
-                    <span className="slot-empty">vaga</span>
-                )}
-            </button>
-        );
+        return 'target' as const;
     };
+
+    const showOptions = isCaptain || !!run.draftSlot;
 
     return (
         <>
             <div className="draft-head">
                 <div>
                     <div className="muted">
-                        Rodada {run.draftRound + 1} de {DRAFT_ROUNDS.length}
+                        {isCaptain ? 'Capitão' : `Escolha ${run.draftRound + 1} de ${DRAFT_PICKS}`} ·{' '}
+                        {FORMATIONS[run.formation].name}
                     </div>
-                    <h1>
-                        {chosen ? `Onde ${viewInstance(chosen).displayName} vai jogar?` : 'Escolha um dos 3 sorteados'}
-                    </h1>
+                    <h1>{title}</h1>
+                    <p className="muted" style={{ margin: '4px 0 0' }}>
+                        {hint}
+                    </p>
                 </div>
                 <div className="steps" role="img" aria-label="Progresso do draft">
-                    {DRAFT_ROUNDS.map((r) => (
+                    {Array.from({ length: DRAFT_PICKS }, (_, i) => (
                         <span
-                            key={r.index}
-                            className={r.index < run.draftRound ? 'done' : r.index === run.draftRound ? 'now' : ''}
+                            // biome-ignore lint/suspicious/noArrayIndexKey: posições fixas do progresso
+                            key={i}
+                            className={i < run.draftRound ? 'done' : i === run.draftRound ? 'now' : ''}
                         />
                     ))}
                 </div>
             </div>
 
             <div className="draft-grid">
-                <div className="options">
-                    {run.options.map((o) => (
-                        <div key={o.uid} className={`option${selected === o.uid ? ' chosen' : ''}`}>
-                            <PokeCard
-                                inst={o}
-                                onClick={() => {
-                                    playSfx('select');
-                                    setSelected(selected === o.uid ? null : o.uid);
-                                }}
-                            />
-                        </div>
-                    ))}
+                <div className="panel board-panel">
+                    <h2>{run.teamName}</h2>
+                    <FormationBoard
+                        formation={run.formation}
+                        lineup={run.lineup}
+                        bench={run.bench}
+                        byUid={byUid}
+                        captainUid={run.captainUid}
+                        preview={chosen}
+                        stateOf={slotState}
+                        onSlot={onSlot}
+                        footer={
+                            <div className="row" style={{ marginTop: 12, gap: 8 }}>
+                                {filled.length > 0 && <span className="muted">Média dos titulares: {avg}</span>}
+                                {synergies.map((s) => (
+                                    <span key={s.type} className="row" style={{ gap: 4 }}>
+                                        <TypeBadge type={s.type} />
+                                        <span className="tactic-desc">
+                                            ×{s.count} +{Math.round((s.bonus - 1) * 100)}%
+                                        </span>
+                                    </span>
+                                ))}
+                            </div>
+                        }
+                    />
                 </div>
 
-                <div className="panel">
-                    <h2>{run.teamName}</h2>
-                    <p className="muted" style={{ marginTop: 0 }}>
-                        {chosen
-                            ? 'Clique numa vaga livre. O número é a nota dele naquela posição.'
-                            : 'Selecione um Pokémon para ver onde ele rende mais.'}
-                    </p>
-                    <div className="court small-court">
-                        {run.lineup.map((uid, i) =>
-                            slotButton({ zone: 'lineup', index: i }, uid, {
-                                left: `${SLOT_XY[i][0]}%`,
-                                top: `${SLOT_XY[i][1]}%`,
-                            }),
-                        )}
-                    </div>
-                    <div className="bench">
-                        {run.bench.map((uid, i) => slotButton({ zone: 'bench', index: i }, uid))}
-                    </div>
-                    <div className="row" style={{ marginTop: 12, gap: 8 }}>
-                        {filled.length > 0 && <span className="muted">Média dos titulares: {avg}</span>}
-                        {synergies.map((s) => (
-                            <span key={s.type} className="row" style={{ gap: 4 }}>
-                                <TypeBadge type={s.type} />
-                                <span className="tactic-desc">
-                                    ×{s.count} +{Math.round((s.bonus - 1) * 100)}%
-                                </span>
+                {showOptions && (
+                    <div className="draft-options">
+                        <div className="row options-bar">
+                            <span className="muted">
+                                {isCaptain ? 'Candidatos a capitão' : `Opções para ${roleLabel}`}
                             </span>
-                        ))}
+                            <button
+                                type="button"
+                                className="btn small"
+                                disabled={run.rerolls <= 0}
+                                onClick={() => {
+                                    playSfx('select');
+                                    reroll();
+                                    setSelected(null);
+                                }}
+                            >
+                                ↻ Sortear de novo ({run.rerolls})
+                            </button>
+                        </div>
+                        <div className="options">
+                            {run.options.map((o) => (
+                                <div key={o.uid} className="option">
+                                    <PokeCard
+                                        inst={o}
+                                        position={role && role !== 'ANY' ? role : undefined}
+                                        captain={isCaptain}
+                                        selected={selected === o.uid}
+                                        onClick={() => {
+                                            playSfx('select');
+                                            if (isCaptain) setSelected(selected === o.uid ? null : o.uid);
+                                            else pick(o.uid);
+                                        }}
+                                    />
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
         </>
     );
