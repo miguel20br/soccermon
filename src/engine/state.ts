@@ -84,6 +84,8 @@ export interface PlayerState {
     slot: number;
     role: Position;
     inst: PokemonInstance;
+    /** Ditto transformado: a instância original (a `inst` vira a cópia). */
+    origin?: PokemonInstance;
     sp: Species;
     name: string;
     /** Atributos já com nível, posição e habilidade (sem fadiga/buffs). */
@@ -145,6 +147,8 @@ export interface TeamRuntime {
     tactic: Tactic;
     bench: PokemonInstance[];
     possessionTicks: number;
+    /** Sinergias de história que já soltaram o combo neste tempo (1 combo por sinergia por tempo). */
+    combosUsed: string[];
 }
 
 export interface MatchEventBase {
@@ -189,6 +193,8 @@ export type MatchEvent = MatchEventBase &
         | { type: 'tactic'; team: 0 | 1; tactic: Tactic }
         | { type: 'item'; by: number; item: string; effect: 'save' | 'cure' | 'crit' | 'endure' }
         | { type: 'ability'; by: number; ability: string; target: number | null }
+        | { type: 'transform'; by: number; into: number; target: number }
+        | { type: 'combo'; by: number; partner: number; link: string }
         | { type: 'halftime'; score: [number, number] }
         | { type: 'sub'; team: 0 | 1; out: string; in: string; outIdx: number }
         | { type: 'fulltime'; score: [number, number] }

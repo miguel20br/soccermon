@@ -86,7 +86,7 @@ export function FutCard({
     const view = viewInstance(inst);
     const sp = view.species;
     const pos = position ?? view.naturalPosition;
-    const { rating, fit } = ratingAt(inst, pos);
+    const { rating, display, fit } = ratingAt(inst, pos);
     const stats = pos === 'GK' ? GK_STATS : FIELD_STATS;
     const item = inst.item ? ITEMS[inst.item] : null;
 
@@ -154,7 +154,7 @@ export function FutCard({
             >
                 {ribbon && <span className="fut-ribbon">{ribbon}</span>}
                 <span className="fut-top">
-                    <span className="fut-ovr">{rating}</span>
+                    <span className="fut-ovr">{display}</span>
                     <span className={`fut-pos ${fit}`}>{POSITION_LABEL[pos]}</span>
                     <span className="fut-types">
                         {sp.types.map((t) => (
@@ -182,7 +182,7 @@ export function FutCard({
                         <span className="peek-title">Posições</span>
                         {positions.map((x) => (
                             <span key={x.p} className={`peek-row ${x.fit}`}>
-                                {POSITION_LABEL[x.p]} <b>{x.rating}</b>
+                                {POSITION_LABEL[x.p]} <b>{x.display}</b>
                             </span>
                         ))}
                         <span className="peek-title">Destaques</span>

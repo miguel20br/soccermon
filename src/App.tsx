@@ -3,6 +3,7 @@ import { setVolume } from './game/audio';
 import { useGame } from './store/game-store';
 import { CardModal } from './ui/components/CardModal';
 import { runDevDemo } from './ui/dev-demo';
+import { CardGallery } from './ui/screens/CardGallery';
 import { Credits } from './ui/screens/Credits';
 import { Draft } from './ui/screens/Draft';
 import { Home } from './ui/screens/Home';
@@ -16,6 +17,7 @@ import { Settings } from './ui/screens/Settings';
 export default function App() {
     const { screen, go, settings } = useGame();
     const [lab, setLab] = useState(() => new URLSearchParams(window.location.search).get('lab') === 'posicoes');
+    const [cards, setCards] = useState(() => new URLSearchParams(window.location.search).get('cards') === '1');
 
     useEffect(() => {
         setVolume(settings.volume);
@@ -27,6 +29,18 @@ export default function App() {
         if (useGame.persist.hasHydrated()) runDevDemo();
         return unsub;
     }, []);
+
+    if (cards) {
+        const exit = () => {
+            window.history.replaceState(null, '', window.location.pathname);
+            setCards(false);
+        };
+        return (
+            <div className="app">
+                <CardGallery onExit={exit} />
+            </div>
+        );
+    }
 
     if (lab) {
         const exit = () => {

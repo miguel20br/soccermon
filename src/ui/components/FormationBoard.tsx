@@ -69,7 +69,7 @@ export function FormationBoard({
                 <span className="pos-badge">{label}</span>
                 {inst?.uid === captainUid && inst && <span className="captain-badge">C</span>}
                 {proj && (inst || !ghost) && (
-                    <span className={`proj-badge ${proj.fit === 'off' ? 'bad' : 'good'}`}>{proj.rating}</span>
+                    <span className={`proj-badge ${proj.fit === 'off' ? 'bad' : 'good'}`}>{proj.display}</span>
                 )}
                 {shown ? (
                     <>
@@ -77,7 +77,7 @@ export function FormationBoard({
                         {inst && <span className="slot-name">{viewInstance(inst).displayName}</span>}
                         {r && (
                             <span className={`slot-rating ${r.fit}`}>
-                                {r.rating}
+                                {r.display}
                                 {r.fit === 'off' && ' · fora'}
                             </span>
                         )}

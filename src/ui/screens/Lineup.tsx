@@ -3,6 +3,7 @@ import { CUP_STAGES } from '../../engine/cup';
 import { FORMATIONS } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
 import { ITEMS, itemSprite } from '../../engine/items';
+import { computeLinks } from '../../engine/links';
 import { TACTIC_LABEL, type Tactic } from '../../engine/state';
 import { computeSynergies } from '../../engine/synergy';
 import { playSfx } from '../../game/audio';
@@ -10,6 +11,7 @@ import { playerTeam, type SlotRef, stageLabel, useGame } from '../../store/game-
 import { useCardModal } from '../card-modal';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
+import { LinkChips } from '../components/LinkChips';
 import { cardSprite, TypeBadge } from '../components/PokeCard';
 import { simulateMatch } from '../sim-client';
 
@@ -33,6 +35,7 @@ export function Lineup() {
     const opponent = run.opponents[run.stage];
     const detailInst = byUid.get(detail ?? run.lineup[0]) ?? run.picks[0];
     const synergies = computeSynergies(run.lineup.map((u) => byUid.get(u)!));
+    const links = computeLinks(run.lineup.map((u) => byUid.get(u)!));
     const holders = run.picks.filter((p) => p.uid !== detailInst?.uid);
 
     const locked = !!run.lockedTeam;
@@ -211,6 +214,17 @@ export function Lineup() {
                                         </span>
                                     </span>
                                 ))}
+                            </div>
+                        )}
+                        <h3 style={{ marginTop: 12 }}>Sinergias de história</h3>
+                        {links.length === 0 ? (
+                            <p className="tactic-desc">
+                                Duplas e grupos famosos (Mew + Mewtwo, Pássaros Lendários, Equipe Rocket…) ganham bônus
+                                juntos e podem soltar um combo: passe de um, chute do outro.
+                            </p>
+                        ) : (
+                            <div className="row" style={{ gap: 6 }}>
+                                <LinkChips links={links} />
                             </div>
                         )}
                     </div>

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { FUTSAL_5 } from '../../engine/config';
 import { MOVES, species } from '../../engine/data';
 import { ITEMS } from '../../engine/items';
+import { LINKS } from '../../engine/links';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import {
     Action,
@@ -50,6 +51,8 @@ const TICK_RATE = FUTSAL_5.tickRate;
 const DRAMA_LEAD = 12;
 
 const IMPORTANT = new Set([
+    'transform',
+    'combo',
     'shot',
     'goal',
     'save',
@@ -699,6 +702,16 @@ export class MatchScene extends Phaser.Scene {
             this.swapSpecies(this.players[e.outIdx], incoming.speciesId, incoming.name, incoming.shiny);
             this.updateUiScale();
         }
+        if (e.type === 'transform') {
+            // Ditto vira a cópia; mantém o nome e o "capitão"
+            const view = this.players[e.by];
+            if (view) {
+                const captain = view.captain;
+                this.swapSpecies(view, e.into, view.name, this.players[e.target]?.shiny ?? false);
+                view.captain = captain;
+                createSpeciesAnims(this, e.into);
+            }
+        }
         if (silent) return;
         const cries = this.md.cries;
         const cinematic = this.md.cinematic;
@@ -826,6 +839,47 @@ export class MatchScene extends Phaser.Scene {
                 const view = this.players[e.target];
                 const type = MOVES[e.moveId]?.type ?? 'Normal';
                 if (view) this.impact(view.sprite.x, view.sprite.y - 16, type);
+                break;
+            }
+            case 'transform': {
+                const view = this.players[e.by];
+                if (!view) break;
+                playSfx('status');
+                playCry(e.into, cries, 0.8);
+                this.impact(view.sprite.x, view.sprite.y - 16, 'Normal');
+                view.sprite.setScale(SPRITE_SCALE * 0.2);
+                this.tweens.add({ targets: view.sprite, scale: SPRITE_SCALE, duration: 420, ease: 'Back.easeOut' });
+                const into = species(e.into).name;
+                this.battleBox.push(`${view.name} se transformou em ${into}!`);
+                if (cinematic) {
+                    this.cine.drama('TRANSFORMAR!', {
+                        color: '#d9a7ff',
+                        stroke: '#2a0b4a',
+                        at: { x: view.sprite.x, y: view.sprite.y },
+                        sub: `${view.name} virou ${into}`,
+                    });
+                } else this.popText(e.by, `→ ${into}`, '#d9a7ff');
+                break;
+            }
+            case 'combo': {
+                const link = LINKS.find((l) => l.id === e.link);
+                const a = this.players[e.partner];
+                const b = this.players[e.by];
+                playSfx('move');
+                if (b) playCry(b.speciesId, cries, 0.8);
+                this.popText(e.partner, 'COMBO!', '#ffd447');
+                this.popText(e.by, 'COMBO!', '#ffd447');
+                if (link && a && b) {
+                    this.battleBox.push(`Combo ${link.name}: ${a.name} + ${b.name}!`);
+                    if (cinematic) {
+                        this.cine.drama(link.combo.toUpperCase(), {
+                            color: '#ffd447',
+                            stroke: '#4a2a00',
+                            at: { x: b.sprite.x, y: b.sprite.y },
+                            sub: `Combo ${link.name}: ${a.name} + ${b.name}`,
+                        });
+                    }
+                }
                 break;
             }
             case 'ability': {

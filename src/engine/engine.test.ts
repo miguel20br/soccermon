@@ -7,6 +7,7 @@ import { effectiveness, SPECIES, species } from './data';
 import { aiDraftTeam, DRAFT_ROUNDS, draftOptions } from './draft';
 import { FORMATIONS } from './formations';
 import { createInstance, viewInstance } from './instance';
+import { computeLinks } from './links';
 import { captainFactor, createMatch } from './match';
 import { defaultMoveset } from './moves';
 import { rewardOptions } from './rewards';
@@ -314,4 +315,70 @@ describe('iteração 3: posições, formações, capitão, itens, tática ao viv
             expect(signed.inst.item).toBeNull();
         }
     });
+});
+
+describe('v0.5: físico, sinergias de história e Ditto', () => {
+    const rng = new Rng('v05');
+    const lineupOf = (ids: number[]) => ids.map((id) => createInstance(id, rng));
+    const setup = (ids: number[], name: string): TeamSetup => ({
+        name,
+        lineup: lineupOf(ids),
+        bench: [],
+        formation: '1-2-1',
+        tactic: 'balanced',
+        color: 0,
+    });
+
+    it('físico: Snorlax, Machamp e Muk são goleiros; Magikarp não', () => {
+        for (const id of [143, 68, 89]) expect(eligiblePositions(computeAttributes(species(id), 50), id)[0]).toBe('GK');
+        expect(eligiblePositions(computeAttributes(species(129), 50), 129)).not.toContain('GK');
+    });
+
+    it('Ditto pode jogar em qualquer posição e vem com Imposter', () => {
+        const pos = eligiblePositions(computeAttributes(species(132), 50), 132);
+        expect([...pos].sort()).toEqual(['ALA', 'FIXO', 'GK', 'PIVO']);
+        expect(createInstance(132, rng).ability).toBe('imposter');
+    });
+
+    it('sinergias de história: Mew + Mewtwo ativam Gênese; evoluções contam na família', () => {
+        const ids = (l: ReturnType<typeof computeLinks>) => l.map((x) => x.def.id);
+        expect(ids(computeLinks(lineupOf([150, 151, 1, 4, 7])))).toEqual(
+            expect.arrayContaining(['genese', 'iniciais']),
+        );
+        expect(ids(computeLinks(lineupOf([3, 6, 9, 19, 20])))).toContain('iniciais');
+        expect(ids(computeLinks(lineupOf([150, 19, 20, 21, 22])))).not.toContain('genese');
+    });
+
+    it('Ditto vira o melhor da posição em campo (de qualquer time) e continua Ditto no elenco', () => {
+        // Ditto no gol (slot 0) contra um time com Snorlax no gol
+        const home = setup([132, 19, 20, 21, 22], 'Casa');
+        const away = setup([143, 16, 17, 10, 11], 'Fora');
+        const s = createMatch(FUTSAL_5, home, away, 1);
+        const ditto = s.players[0];
+        expect(ditto.role).toBe('GK');
+        expect(ditto.inst.speciesId).toBe(143);
+        expect(ditto.origin?.speciesId).toBe(132);
+        expect(ditto.name).toBe('Ditto');
+        expect(s.events.find((e) => e.type === 'transform')).toMatchObject({ by: 0, into: 143 });
+        const r = runMatch(FUTSAL_5, home, away, 1, { snapshots: false });
+        expect(r.roster[0].speciesId).toBe(132);
+    });
+
+    it('combo de sinergia acontece no máximo 1 vez por tempo por sinergia', () => {
+        const home = setup([143, 150, 151, 144, 145], 'Lendas');
+        const away = setup([19, 20, 21, 22, 16], 'Fora');
+        let combos = 0;
+        for (let seed = 1; seed <= 6; seed++) {
+            const r = runMatch(FUTSAL_5, home, away, seed, { snapshots: false });
+            const list = r.events.filter((e) => e.type === 'combo');
+            for (const half of [1, 2]) {
+                const ids = list
+                    .filter((e) => e.half === half && e.type === 'combo')
+                    .map((e) => e.type === 'combo' && e.link);
+                expect(new Set(ids).size).toBe(ids.length);
+            }
+            combos += list.length;
+        }
+        expect(combos).toBeGreaterThan(0);
+    }, 60_000);
 });

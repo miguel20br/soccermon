@@ -74,6 +74,15 @@ export function Home() {
                     <button type="button" className="btn ghost small" onClick={() => go('credits')}>
                         Créditos
                     </button>
+                    <button
+                        type="button"
+                        className="btn ghost small"
+                        onClick={() => {
+                            window.location.search = '?cards=1';
+                        }}
+                    >
+                        Cartas novas (teste)
+                    </button>
                 </div>
             </div>
             <p className="disclaimer">

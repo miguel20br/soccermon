@@ -31,6 +31,8 @@ export interface PositionFormulas {
     FIXO: Partial<Record<AttrKey, number>>;
     ALA: Partial<Record<AttrKey, number>>;
     PIVO: Partial<Record<AttrKey, number>>;
+    /** Físico: o corpo mexe nos atributos (pontos somados), além do que os stats base já dizem. */
+    physique?: Physique;
     /** Pontos somados à nota só na hora de escolher as posições (ex.: GK -4 = só vai pro gol quem é claramente melhor lá). */
     bias?: Partial<Record<Position, number>>;
     /** Posições a até `margin` pontos da melhor nota contam como elegíveis… */
@@ -39,11 +41,57 @@ export interface PositionFormulas {
     maxPositions: number;
 }
 
-export const DEFAULT_FORMULAS: PositionFormulas = {
+/**
+ * Físico. `body`: pontos por formato do corpo (PokeAPI). `smallAgility`: pontos de drible e velocidade
+ * para o menor Pokémon (o maior perde o mesmo; o meio fica neutro).
+ */
+export interface Physique {
+    body: Record<string, Partial<Record<AttrKey, number>>>;
+    smallAgility: number;
+}
+
+/** Regra da v0.4 (só stats), mantida pra comparação no laboratório. */
+export const FORMULAS_V04: PositionFormulas = {
     goalkeeping: { hp: 30, def: 25, spd: 25, size: 20 },
     FIXO: { tackling: 35, positioning: 25, strength: 20, passing: 20 },
     ALA: { pace: 30, dribble: 30, passing: 25, stamina: 15 },
     PIVO: { shooting: 40, strength: 20, dribble: 20, positioning: 20 },
+    margin: 4,
+    maxPositions: 3,
+};
+
+/**
+ * Físico (v0.5): quem tem mãos/braços defende melhor; quadrúpedes, aves e peixes não. Bichos de várias
+ * cabeças enxergam o jogo (passe). Os pequenos driblam melhor, os gigantes pior.
+ */
+export const BODY_EFFECTS: Record<string, { label: string; note: string; mods: Partial<Record<AttrKey, number>> }> = {
+    humanoid: { label: 'Humanoide', note: 'Mãos de goleiro', mods: { goalkeeping: 6 } },
+    arms: { label: 'Com braços', note: 'Mãos de goleiro', mods: { goalkeeping: 6 } },
+    upright: { label: 'Bípede', note: 'Usa as mãos no gol', mods: { goalkeeping: 2 } },
+    blob: { label: 'Bolha', note: 'Ocupa o gol inteiro', mods: { goalkeeping: 4 } },
+    ball: { label: 'Bola', note: 'Ocupa o gol', mods: { goalkeeping: 3 } },
+    tentacles: { label: 'Tentáculos', note: 'Alcança tudo no gol', mods: { goalkeeping: 4 } },
+    quadruped: { label: 'Quadrúpede', note: 'Corredor, sem mãos', mods: { goalkeeping: -6, pace: 3, dribble: 2 } },
+    legs: { label: 'Pernas', note: 'Corredor, sem mãos', mods: { goalkeeping: -4, pace: 3 } },
+    wings: { label: 'Asas', note: 'Voa pela ala, sem mãos', mods: { goalkeeping: -5, pace: 2, positioning: 2 } },
+    'bug-wings': { label: 'Asas de inseto', note: 'Voa pela ala, sem mãos', mods: { goalkeeping: -5, pace: 2 } },
+    fish: { label: 'Peixe', note: 'Péssimo no gol', mods: { goalkeeping: -8 } },
+    squiggle: { label: 'Serpente', note: 'Corpo forte, sem mãos', mods: { goalkeeping: -4, strength: 2 } },
+    armor: { label: 'Couraça', note: 'Blindado na marcação', mods: { goalkeeping: -2, tackling: 4, strength: 2 } },
+    heads: { label: 'Várias cabeças', note: 'Enxerga o jogo todo', mods: { passing: 4, positioning: 2 } },
+};
+
+export const DEFAULT_FORMULAS: PositionFormulas = {
+    goalkeeping: { hp: 30, def: 25, spd: 25, size: 20 },
+    FIXO: { tackling: 35, positioning: 25, strength: 20, passing: 20 },
+    ALA: { pace: 30, dribble: 30, passing: 25, stamina: 15 },
+    // Pivô "trombador": segura a bola de costas pro gol, força pesa tanto quanto o chute
+    PIVO: { shooting: 35, strength: 35, dribble: 15, positioning: 15 },
+    physique: {
+        smallAgility: 6,
+        body: Object.fromEntries(Object.entries(BODY_EFFECTS).map(([k, b]) => [k, b.mods])),
+    },
+    bias: { GK: -2, PIVO: 2 },
     margin: 4,
     maxPositions: 3,
 };
@@ -101,6 +149,20 @@ function weighted<K extends string>(values: Record<K, number>, weights: Partial<
     return total > 0 ? sum / total : 0;
 }
 
+/** "Tamanho" (0..1, peso + altura entre os 151): goleiro grande fecha o gol. */
+export function sizePercentile(sp: Species): number {
+    const w = percentile(REFERENCE.weight, Math.log(sp.weightkg + 1));
+    return 0.5 * w + 0.5 * percentile(REFERENCE.height, Math.log(sp.heightm + 0.1));
+}
+
+/** Físico pra mostrar na carta: porte + formato do corpo. */
+export function physiqueOf(sp: Species): { size: string; body: string; note: string } {
+    const s = sizePercentile(sp);
+    const size = s < 0.25 ? 'Pequeno' : s < 0.6 ? 'Médio' : s < 0.88 ? 'Grande' : 'Gigante';
+    const b = BODY_EFFECTS[sp.shape];
+    return { size, body: b?.label ?? sp.shape, note: b?.note ?? '' };
+}
+
 export function computeAttributes(
     sp: Species,
     level: number,
@@ -109,10 +171,9 @@ export function computeAttributes(
     const p = {} as Record<StatKey, number>;
     for (const k of STAT_KEYS) p[k] = percentile(REFERENCE[k], statAtLevel(sp.baseStats[k], level, k));
     const w = percentile(REFERENCE.weight, Math.log(sp.weightkg + 1));
-    // "tamanho" (peso + altura): goleiro grande fecha o gol
-    const size = 0.5 * w + 0.5 * percentile(REFERENCE.height, Math.log(sp.heightm + 0.1));
+    const size = sizePercentile(sp);
 
-    return {
+    const attr: Attributes = {
         pace: toAttr(p.spe),
         dribble: toAttr(0.7 * p.spe + 0.3 * p.spa),
         shooting: toAttr(0.6 * p.atk + 0.4 * p.spa),
@@ -123,6 +184,18 @@ export function computeAttributes(
         stamina: toAttr(p.hp),
         goalkeeping: toAttr(weighted({ ...p, size }, formulas.goalkeeping)),
     };
+    const phys = formulas.physique;
+    if (phys) {
+        const bonus: Partial<Record<AttrKey, number>> = { ...phys.body[sp.shape] };
+        // pequeno = ágil, grande = pesado (centrado no Pokémon de tamanho médio)
+        const agility = phys.smallAgility * (1 - 2 * Math.min(1, size));
+        bonus.dribble = (bonus.dribble ?? 0) + agility;
+        bonus.pace = (bonus.pace ?? 0) + agility / 2;
+        for (const [k, b] of Object.entries(bonus) as [AttrKey, number][]) {
+            attr[k] = Math.round(Math.min(99, Math.max(1, attr[k] + b)));
+        }
+    }
+    return attr;
 }
 
 export function positionRating(a: Attributes, pos: Position, formulas: PositionFormulas = DEFAULT_FORMULAS): number {
@@ -140,6 +213,7 @@ export function outOfPositionFactor(natural: Position, playing: Position): numbe
 /** Casos icônicos que a regra automática não pega (espécie → posições extras). */
 export const POSITION_OVERRIDES: Record<number, Position[]> = {
     95: ['GK'], // Onix: a muralha de pedra
+    132: ['GK', 'FIXO', 'ALA', 'PIVO'], // Ditto: joga em qualquer posição (vira o melhor dela em campo)
 };
 
 /**

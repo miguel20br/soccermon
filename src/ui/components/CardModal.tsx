@@ -1,14 +1,16 @@
 import { useEffect } from 'react';
 import { abilityEffect } from '../../engine/abilities';
-import { type AttrKey, POSITION_LABEL, POSITIONS } from '../../engine/attributes';
-import { ABILITIES, MOVES } from '../../engine/data';
+import { type AttrKey, POSITION_LABEL, POSITIONS, physiqueOf } from '../../engine/attributes';
+import { ABILITIES, MOVES, species } from '../../engine/data';
 import { viewInstance } from '../../engine/instance';
 import { ITEMS, itemSprite } from '../../engine/items';
+import { linksOf } from '../../engine/links';
 import { moveProfile } from '../../engine/moves';
 import { useCardModal } from '../card-modal';
 import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
 import { ATTR_SHORT, FutCard } from './FutCard';
+import { LinkChip } from './LinkChips';
 import { TIER_PT, TypeBadge } from './PokeCard';
 
 /** O que cada tipo de golpe faz no futsal (explicação para o jogador). */
@@ -143,6 +145,30 @@ export function CardModal() {
                                 );
                             })}
                         </div>
+
+                        <h3>Físico</h3>
+                        <p className="tactic-desc physique-line">
+                            <b>{physiqueOf(sp).size}</b> · {physiqueOf(sp).body}
+                            {physiqueOf(sp).note && ` · ${physiqueOf(sp).note}`}
+                        </p>
+
+                        {linksOf(sp.id).length > 0 && (
+                            <>
+                                <h3>Sinergias de história</h3>
+                                <div className="modal-links">
+                                    {linksOf(sp.id).map((l) => (
+                                        <div key={l.id} className="tactic-desc">
+                                            <LinkChip def={l} /> com{' '}
+                                            {l.groups
+                                                .filter((g) => !g.includes(sp.id))
+                                                .map((g) => species(g[0]).name)
+                                                .join(', ')}{' '}
+                                            ({l.need} juntos) · combo {l.combo}
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        )}
 
                         <h3>Atributos</h3>
                         <div className="attrs modal-attrs">

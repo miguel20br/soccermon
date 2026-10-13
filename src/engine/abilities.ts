@@ -31,11 +31,14 @@ export interface AbilityEffect {
     typeBoost?: number;
     /** Ganha fôlego ao longo do jogo (Regenerator, Rain Dish, Ice Body). */
     regen?: number;
+    /** Ditto: vira o melhor Pokémon da posição em campo (tratado em match.ts, vale pra qualquer Ditto). */
+    transform?: boolean;
     /** Ganha atributos ao sofrer desarme (Anger Point, Defiant, Justified, Steadfast). */
     onTackledBoost?: Partial<Record<AttrKey, number>>;
 }
 
 export const ABILITY_EFFECTS: Record<string, AbilityEffect> = {
+    imposter: { transform: true },
     // velocidade
     swiftswim: { mods: { pace: 1.05 } },
     chlorophyll: { mods: { pace: 1.05 } },

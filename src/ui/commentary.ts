@@ -1,5 +1,6 @@
-import { ABILITIES, MOVES } from '../engine/data';
+import { ABILITIES, MOVES, species } from '../engine/data';
 import { ITEMS } from '../engine/items';
+import { LINKS } from '../engine/links';
 import { Rng } from '../engine/rng';
 import type { MatchResult } from '../engine/runners/batch-runner';
 import type { MatchEvent } from '../engine/state';
@@ -204,6 +205,20 @@ export class Commentator {
                         ? `${ab} de ${this.n(e.by)} pega ${this.n(e.target)}!`
                         : `${ab} de ${this.n(e.by)} é ativada!`,
                     'normal',
+                    this.teams[e.by],
+                );
+            }
+            case 'transform':
+                return line(
+                    `${this.n(e.by)} se transforma em ${species(e.into).name}, o melhor da posição em campo!`,
+                    'big',
+                    this.teams[e.by],
+                );
+            case 'combo': {
+                const link = LINKS.find((l) => l.id === e.link);
+                return line(
+                    `COMBO ${link?.name.toUpperCase() ?? ''}! ${this.n(e.partner)} serve ${this.n(e.by)}: ${link?.combo ?? ''}!`,
+                    'big',
                     this.teams[e.by],
                 );
             }

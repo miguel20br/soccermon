@@ -56,6 +56,7 @@
   ],
   "prevo": null,
   "heightm": 0.7,
+  "shape": "quadruped",
   "weightkg": 6.9
  },
  {
@@ -115,6 +116,7 @@
   ],
   "prevo": 1,
   "heightm": 1,
+  "shape": "quadruped",
   "weightkg": 13
  },
  {
@@ -168,6 +170,7 @@
   "evolvesTo": [],
   "prevo": 2,
   "heightm": 2,
+  "shape": "quadruped",
   "weightkg": 100
  },
  {
@@ -234,6 +237,7 @@
   ],
   "prevo": null,
   "heightm": 0.6,
+  "shape": "upright",
   "weightkg": 8.5
  },
  {
@@ -300,6 +304,7 @@
   ],
   "prevo": 4,
   "heightm": 1.1,
+  "shape": "upright",
   "weightkg": 19
  },
  {
@@ -364,6 +369,7 @@
   "evolvesTo": [],
   "prevo": 5,
   "heightm": 1.7,
+  "shape": "upright",
   "weightkg": 90.5
  },
  {
@@ -429,6 +435,7 @@
   ],
   "prevo": null,
   "heightm": 0.5,
+  "shape": "upright",
   "weightkg": 9
  },
  {
@@ -494,6 +501,7 @@
   ],
   "prevo": 7,
   "heightm": 1,
+  "shape": "upright",
   "weightkg": 22.5
  },
  {
@@ -555,6 +563,7 @@
   "evolvesTo": [],
   "prevo": 8,
   "heightm": 1.6,
+  "shape": "upright",
   "weightkg": 85.5
  },
  {
@@ -592,6 +601,7 @@
   ],
   "prevo": null,
   "heightm": 0.3,
+  "shape": "armor",
   "weightkg": 2.9
  },
  {
@@ -629,6 +639,7 @@
   ],
   "prevo": 10,
   "heightm": 0.7,
+  "shape": "squiggle",
   "weightkg": 9.9
  },
  {
@@ -688,6 +699,7 @@
   "evolvesTo": [],
   "prevo": 11,
   "heightm": 1.1,
+  "shape": "bug-wings",
   "weightkg": 32
  },
  {
@@ -726,6 +738,7 @@
   ],
   "prevo": null,
   "heightm": 0.3,
+  "shape": "armor",
   "weightkg": 3.2
  },
  {
@@ -764,6 +777,7 @@
   ],
   "prevo": 13,
   "heightm": 0.6,
+  "shape": "squiggle",
   "weightkg": 10
  },
  {
@@ -817,6 +831,7 @@
   "evolvesTo": [],
   "prevo": 14,
   "heightm": 1,
+  "shape": "bug-wings",
   "weightkg": 29.5
  },
  {
@@ -875,6 +890,7 @@
   ],
   "prevo": null,
   "heightm": 0.3,
+  "shape": "wings",
   "weightkg": 1.8
  },
  {
@@ -933,6 +949,7 @@
   ],
   "prevo": 16,
   "heightm": 1.1,
+  "shape": "wings",
   "weightkg": 30
  },
  {
@@ -985,6 +1002,7 @@
   "evolvesTo": [],
   "prevo": 17,
   "heightm": 1.5,
+  "shape": "wings",
   "weightkg": 39.5
  },
  {
@@ -1045,6 +1063,7 @@
   ],
   "prevo": null,
   "heightm": 0.3,
+  "shape": "quadruped",
   "weightkg": 3.5
  },
  {
@@ -1100,6 +1119,7 @@
   "evolvesTo": [],
   "prevo": 19,
   "heightm": 0.7,
+  "shape": "quadruped",
   "weightkg": 18.5
  },
  {
@@ -1157,6 +1177,7 @@
   ],
   "prevo": null,
   "heightm": 0.3,
+  "shape": "wings",
   "weightkg": 2
  },
  {
@@ -1209,6 +1230,7 @@
   "evolvesTo": [],
   "prevo": 21,
   "heightm": 1.2,
+  "shape": "wings",
   "weightkg": 38
  },
  {
@@ -1269,6 +1291,7 @@
   ],
   "prevo": null,
   "heightm": 2,
+  "shape": "squiggle",
   "weightkg": 6.9
  },
  {
@@ -1323,6 +1346,7 @@
   "evolvesTo": [],
   "prevo": 23,
   "heightm": 3.5,
+  "shape": "squiggle",
   "weightkg": 65
  },
  {
@@ -1389,6 +1413,7 @@
   ],
   "prevo": null,
   "heightm": 0.4,
+  "shape": "quadruped",
   "weightkg": 6
  },
  {
@@ -1449,6 +1474,7 @@
   "evolvesTo": [],
   "prevo": 25,
   "heightm": 0.8,
+  "shape": "upright",
   "weightkg": 30
  },
  {
@@ -1510,6 +1536,7 @@
   ],
   "prevo": null,
   "heightm": 0.6,
+  "shape": "upright",
   "weightkg": 12
  },
  {
@@ -1565,6 +1592,7 @@
   "evolvesTo": [],
   "prevo": 27,
   "heightm": 1,
+  "shape": "upright",
   "weightkg": 29.5
  },
  {
@@ -1624,6 +1652,7 @@
   ],
   "prevo": null,
   "heightm": 0.4,
+  "shape": "quadruped",
   "weightkg": 7
  },
  {
@@ -1687,6 +1716,7 @@
   ],
   "prevo": 29,
   "heightm": 0.8,
+  "shape": "quadruped",
   "weightkg": 20
  },
  {
@@ -1757,6 +1787,7 @@
   "evolvesTo": [],
   "prevo": 30,
   "heightm": 1.3,
+  "shape": "upright",
   "weightkg": 60
  },
  {
@@ -1816,6 +1847,7 @@
   ],
   "prevo": null,
   "heightm": 0.5,
+  "shape": "quadruped",
   "weightkg": 9
  },
  {
@@ -1878,6 +1910,7 @@
   ],
   "prevo": 32,
   "heightm": 0.9,
+  "shape": "quadruped",
   "weightkg": 19.5
  },
  {
@@ -1948,6 +1981,7 @@
   "evolvesTo": [],
   "prevo": 33,
   "heightm": 1.4,
+  "shape": "upright",
   "weightkg": 62
  },
  {
@@ -2024,6 +2058,7 @@
   ],
   "prevo": null,
   "heightm": 0.6,
+  "shape": "upright",
   "weightkg": 7.5
  },
  {
@@ -2094,6 +2129,7 @@
   "evolvesTo": [],
   "prevo": 35,
   "heightm": 1.3,
+  "shape": "upright",
   "weightkg": 40
  },
  {
@@ -2151,6 +2187,7 @@
   ],
   "prevo": null,
   "heightm": 0.6,
+  "shape": "quadruped",
   "weightkg": 9.9
  },
  {
@@ -2202,6 +2239,7 @@
   "evolvesTo": [],
   "prevo": 37,
   "heightm": 1.1,
+  "shape": "quadruped",
   "weightkg": 19.9
  },
  {
@@ -2276,6 +2314,7 @@
   ],
   "prevo": null,
   "heightm": 0.5,
+  "shape": "humanoid",
   "weightkg": 5.5
  },
  {
@@ -2344,6 +2383,7 @@
   "evolvesTo": [],
   "prevo": 39,
   "heightm": 1,
+  "shape": "humanoid",
   "weightkg": 12
  },
  {
@@ -2399,6 +2439,7 @@
   ],
   "prevo": null,
   "heightm": 0.8,
+  "shape": "wings",
   "weightkg": 7.5
  },
  {
@@ -2449,6 +2490,7 @@
   "evolvesTo": [],
   "prevo": 41,
   "heightm": 1.6,
+  "shape": "wings",
   "weightkg": 55
  },
  {
@@ -2505,6 +2547,7 @@
   ],
   "prevo": null,
   "heightm": 0.5,
+  "shape": "legs",
   "weightkg": 5.4
  },
  {
@@ -2561,6 +2604,7 @@
   ],
   "prevo": 43,
   "heightm": 0.8,
+  "shape": "humanoid",
   "weightkg": 8.6
  },
  {
@@ -2612,6 +2656,7 @@
   "evolvesTo": [],
   "prevo": 44,
   "heightm": 1.2,
+  "shape": "humanoid",
   "weightkg": 18.6
  },
  {
@@ -2672,6 +2717,7 @@
   ],
   "prevo": null,
   "heightm": 0.3,
+  "shape": "armor",
   "weightkg": 5.4
  },
  {
@@ -2726,6 +2772,7 @@
   "evolvesTo": [],
   "prevo": 46,
   "heightm": 1,
+  "shape": "armor",
   "weightkg": 29.5
  },
  {
@@ -2787,6 +2834,7 @@
   ],
   "prevo": null,
   "heightm": 1,
+  "shape": "humanoid",
   "weightkg": 30
  },
  {
@@ -2846,6 +2894,7 @@
   "evolvesTo": [],
   "prevo": 48,
   "heightm": 1.5,
+  "shape": "bug-wings",
   "weightkg": 12.5
  },
  {
@@ -2901,6 +2950,7 @@
   ],
   "prevo": null,
   "heightm": 0.2,
+  "shape": "blob",
   "weightkg": 0.8
  },
  {
@@ -2950,6 +3000,7 @@
   "evolvesTo": [],
   "prevo": 50,
   "heightm": 0.7,
+  "shape": "heads",
   "weightkg": 33.3
  },
  {
@@ -3009,6 +3060,7 @@
   ],
   "prevo": null,
   "heightm": 0.4,
+  "shape": "quadruped",
   "weightkg": 4.2
  },
  {
@@ -3062,6 +3114,7 @@
   "evolvesTo": [],
   "prevo": 52,
   "heightm": 1,
+  "shape": "quadruped",
   "weightkg": 32
  },
  {
@@ -3130,6 +3183,7 @@
   ],
   "prevo": null,
   "heightm": 0.8,
+  "shape": "upright",
   "weightkg": 19.6
  },
  {
@@ -3192,6 +3246,7 @@
   "evolvesTo": [],
   "prevo": 54,
   "heightm": 1.7,
+  "shape": "upright",
   "weightkg": 76.6
  },
  {
@@ -3260,6 +3315,7 @@
   ],
   "prevo": null,
   "heightm": 0.5,
+  "shape": "upright",
   "weightkg": 28
  },
  {
@@ -3322,6 +3378,7 @@
   "evolvesTo": [],
   "prevo": 56,
   "heightm": 1,
+  "shape": "upright",
   "weightkg": 32
  },
  {
@@ -3380,6 +3437,7 @@
   ],
   "prevo": null,
   "heightm": 0.7,
+  "shape": "quadruped",
   "weightkg": 19
  },
  {
@@ -3433,6 +3491,7 @@
   "evolvesTo": [],
   "prevo": 58,
   "heightm": 1.9,
+  "shape": "quadruped",
   "weightkg": 155
  },
  {
@@ -3492,6 +3551,7 @@
   ],
   "prevo": null,
   "heightm": 0.6,
+  "shape": "legs",
   "weightkg": 12.4
  },
  {
@@ -3560,6 +3620,7 @@
   ],
   "prevo": 60,
   "heightm": 1,
+  "shape": "humanoid",
   "weightkg": 20
  },
  {
@@ -3623,6 +3684,7 @@
   "evolvesTo": [],
   "prevo": 61,
   "heightm": 1.3,
+  "shape": "humanoid",
   "weightkg": 54
  },
  {
@@ -3683,6 +3745,7 @@
   ],
   "prevo": null,
   "heightm": 0.9,
+  "shape": "upright",
   "weightkg": 19.5
  },
  {
@@ -3749,6 +3812,7 @@
   ],
   "prevo": 63,
   "heightm": 1.3,
+  "shape": "upright",
   "weightkg": 56.5
  },
  {
@@ -3809,6 +3873,7 @@
   "evolvesTo": [],
   "prevo": 64,
   "heightm": 1.5,
+  "shape": "humanoid",
   "weightkg": 48
  },
  {
@@ -3872,6 +3937,7 @@
   ],
   "prevo": null,
   "heightm": 0.8,
+  "shape": "upright",
   "weightkg": 19.5
  },
  {
@@ -3935,6 +4001,7 @@
   ],
   "prevo": 66,
   "heightm": 1.5,
+  "shape": "humanoid",
   "weightkg": 70.5
  },
  {
@@ -3992,6 +4059,7 @@
   "evolvesTo": [],
   "prevo": 67,
   "heightm": 1.6,
+  "shape": "humanoid",
   "weightkg": 130
  },
  {
@@ -4051,6 +4119,7 @@
   ],
   "prevo": null,
   "heightm": 0.7,
+  "shape": "humanoid",
   "weightkg": 4
  },
  {
@@ -4110,6 +4179,7 @@
   ],
   "prevo": 69,
   "heightm": 1,
+  "shape": "blob",
   "weightkg": 6.4
  },
  {
@@ -4164,6 +4234,7 @@
   "evolvesTo": [],
   "prevo": 70,
   "heightm": 1.7,
+  "shape": "blob",
   "weightkg": 15.5
  },
  {
@@ -4228,6 +4299,7 @@
   ],
   "prevo": null,
   "heightm": 0.9,
+  "shape": "tentacles",
   "weightkg": 45.5
  },
  {
@@ -4286,6 +4358,7 @@
   "evolvesTo": [],
   "prevo": 72,
   "heightm": 1.6,
+  "shape": "tentacles",
   "weightkg": 55
  },
  {
@@ -4350,6 +4423,7 @@
   ],
   "prevo": null,
   "heightm": 0.4,
+  "shape": "arms",
   "weightkg": 20
  },
  {
@@ -4414,6 +4488,7 @@
   ],
   "prevo": 74,
   "heightm": 1,
+  "shape": "humanoid",
   "weightkg": 105
  },
  {
@@ -4473,6 +4548,7 @@
   "evolvesTo": [],
   "prevo": 75,
   "heightm": 1.4,
+  "shape": "humanoid",
   "weightkg": 300
  },
  {
@@ -4530,6 +4606,7 @@
   ],
   "prevo": null,
   "heightm": 1,
+  "shape": "quadruped",
   "weightkg": 30
  },
  {
@@ -4582,6 +4659,7 @@
   "evolvesTo": [],
   "prevo": 77,
   "heightm": 1.7,
+  "shape": "quadruped",
   "weightkg": 95
  },
  {
@@ -4654,6 +4732,7 @@
   ],
   "prevo": null,
   "heightm": 1.2,
+  "shape": "quadruped",
   "weightkg": 36
  },
  {
@@ -4726,6 +4805,7 @@
   "evolvesTo": [],
   "prevo": 79,
   "heightm": 1.6,
+  "shape": "upright",
   "weightkg": 78.5
  },
  {
@@ -4784,6 +4864,7 @@
   ],
   "prevo": null,
   "heightm": 0.3,
+  "shape": "arms",
   "weightkg": 6
  },
  {
@@ -4836,6 +4917,7 @@
   "evolvesTo": [],
   "prevo": 81,
   "heightm": 1,
+  "shape": "heads",
   "weightkg": 60
  },
  {
@@ -4890,6 +4972,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 0.8,
+  "shape": "wings",
   "weightkg": 15
  },
  {
@@ -4948,6 +5031,7 @@
   ],
   "prevo": null,
   "heightm": 1.4,
+  "shape": "legs",
   "weightkg": 39.2
  },
  {
@@ -5000,6 +5084,7 @@
   "evolvesTo": [],
   "prevo": 84,
   "heightm": 1.8,
+  "shape": "legs",
   "weightkg": 85.2
  },
  {
@@ -5058,6 +5143,7 @@
   ],
   "prevo": null,
   "heightm": 1.1,
+  "shape": "fish",
   "weightkg": 90
  },
  {
@@ -5111,6 +5197,7 @@
   "evolvesTo": [],
   "prevo": 86,
   "heightm": 1.7,
+  "shape": "fish",
   "weightkg": 120
  },
  {
@@ -5169,6 +5256,7 @@
   ],
   "prevo": null,
   "heightm": 0.9,
+  "shape": "arms",
   "weightkg": 30
  },
  {
@@ -5221,6 +5309,7 @@
   "evolvesTo": [],
   "prevo": 88,
   "heightm": 1.2,
+  "shape": "arms",
   "weightkg": 30
  },
  {
@@ -5283,6 +5372,7 @@
   ],
   "prevo": null,
   "heightm": 0.3,
+  "shape": "ball",
   "weightkg": 4
  },
  {
@@ -5341,6 +5431,7 @@
   "evolvesTo": [],
   "prevo": 90,
   "heightm": 1.5,
+  "shape": "ball",
   "weightkg": 132.5
  },
  {
@@ -5395,6 +5486,7 @@
   ],
   "prevo": null,
   "heightm": 1.3,
+  "shape": "ball",
   "weightkg": 0.1
  },
  {
@@ -5449,6 +5541,7 @@
   ],
   "prevo": 92,
   "heightm": 1.6,
+  "shape": "arms",
   "weightkg": 0.1
  },
  {
@@ -5508,6 +5601,7 @@
   "evolvesTo": [],
   "prevo": 93,
   "heightm": 1.5,
+  "shape": "upright",
   "weightkg": 40.5
  },
  {
@@ -5562,6 +5656,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 8.8,
+  "shape": "squiggle",
   "weightkg": 210
  },
  {
@@ -5630,6 +5725,7 @@
   ],
   "prevo": null,
   "heightm": 1,
+  "shape": "humanoid",
   "weightkg": 32.4
  },
  {
@@ -5692,6 +5788,7 @@
   "evolvesTo": [],
   "prevo": 96,
   "heightm": 1.6,
+  "shape": "humanoid",
   "weightkg": 75.6
  },
  {
@@ -5753,6 +5850,7 @@
   ],
   "prevo": null,
   "heightm": 0.4,
+  "shape": "armor",
   "weightkg": 6.5
  },
  {
@@ -5808,6 +5906,7 @@
   "evolvesTo": [],
   "prevo": 98,
   "heightm": 1.3,
+  "shape": "armor",
   "weightkg": 60
  },
  {
@@ -5865,6 +5964,7 @@
   ],
   "prevo": null,
   "heightm": 0.5,
+  "shape": "ball",
   "weightkg": 10.4
  },
  {
@@ -5917,6 +6017,7 @@
   "evolvesTo": [],
   "prevo": 100,
   "heightm": 1.2,
+  "shape": "ball",
   "weightkg": 66.6
  },
  {
@@ -5976,6 +6077,7 @@
   ],
   "prevo": null,
   "heightm": 0.4,
+  "shape": "heads",
   "weightkg": 2.5
  },
  {
@@ -6032,6 +6134,7 @@
   "evolvesTo": [],
   "prevo": 102,
   "heightm": 2,
+  "shape": "legs",
   "weightkg": 120
  },
  {
@@ -6101,6 +6204,7 @@
   ],
   "prevo": null,
   "heightm": 0.4,
+  "shape": "upright",
   "weightkg": 6.5
  },
  {
@@ -6164,6 +6268,7 @@
   "evolvesTo": [],
   "prevo": 104,
   "heightm": 1,
+  "shape": "upright",
   "weightkg": 45
  },
  {
@@ -6218,6 +6323,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 1.5,
+  "shape": "humanoid",
   "weightkg": 49.8
  },
  {
@@ -6271,6 +6377,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 1.4,
+  "shape": "humanoid",
   "weightkg": 50.2
  },
  {
@@ -6337,6 +6444,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 1.2,
+  "shape": "upright",
   "weightkg": 65.5
  },
  {
@@ -6390,6 +6498,7 @@
   ],
   "prevo": null,
   "heightm": 0.6,
+  "shape": "ball",
   "weightkg": 1
  },
  {
@@ -6437,6 +6546,7 @@
   "evolvesTo": [],
   "prevo": 109,
   "heightm": 1.2,
+  "shape": "heads",
   "weightkg": 9.5
  },
  {
@@ -6499,6 +6609,7 @@
   ],
   "prevo": null,
   "heightm": 1,
+  "shape": "quadruped",
   "weightkg": 115
  },
  {
@@ -6566,6 +6677,7 @@
   "evolvesTo": [],
   "prevo": 111,
   "heightm": 1.9,
+  "shape": "upright",
   "weightkg": 120
  },
  {
@@ -6639,6 +6751,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 1.1,
+  "shape": "upright",
   "weightkg": 34.6
  },
  {
@@ -6693,6 +6806,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 1,
+  "shape": "legs",
   "weightkg": 35
  },
  {
@@ -6756,6 +6870,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 2.2,
+  "shape": "upright",
   "weightkg": 80
  },
  {
@@ -6813,6 +6928,7 @@
   ],
   "prevo": null,
   "heightm": 0.4,
+  "shape": "blob",
   "weightkg": 8
  },
  {
@@ -6864,6 +6980,7 @@
   "evolvesTo": [],
   "prevo": 116,
   "heightm": 1.2,
+  "shape": "blob",
   "weightkg": 25
  },
  {
@@ -6924,6 +7041,7 @@
   ],
   "prevo": null,
   "heightm": 0.6,
+  "shape": "fish",
   "weightkg": 15
  },
  {
@@ -6978,6 +7096,7 @@
   "evolvesTo": [],
   "prevo": 118,
   "heightm": 1.3,
+  "shape": "fish",
   "weightkg": 39
  },
  {
@@ -7045,6 +7164,7 @@
   ],
   "prevo": null,
   "heightm": 0.8,
+  "shape": "blob",
   "weightkg": 34.5
  },
  {
@@ -7107,6 +7227,7 @@
   "evolvesTo": [],
   "prevo": 120,
   "heightm": 1.1,
+  "shape": "blob",
   "weightkg": 80
  },
  {
@@ -7169,6 +7290,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 1.3,
+  "shape": "humanoid",
   "weightkg": 54.5
  },
  {
@@ -7219,6 +7341,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 1.5,
+  "shape": "bug-wings",
   "weightkg": 56
  },
  {
@@ -7281,6 +7404,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 1.4,
+  "shape": "humanoid",
   "weightkg": 40.6
  },
  {
@@ -7343,6 +7467,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 1.1,
+  "shape": "upright",
   "weightkg": 30
  },
  {
@@ -7401,6 +7526,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 1.3,
+  "shape": "upright",
   "weightkg": 44.5
  },
  {
@@ -7452,6 +7578,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 1.5,
+  "shape": "humanoid",
   "weightkg": 55
  },
  {
@@ -7506,6 +7633,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 1.4,
+  "shape": "quadruped",
   "weightkg": 88.4
  },
  {
@@ -7544,6 +7672,7 @@
   ],
   "prevo": null,
   "heightm": 0.9,
+  "shape": "fish",
   "weightkg": 10
  },
  {
@@ -7601,6 +7730,7 @@
   "evolvesTo": [],
   "prevo": 129,
   "heightm": 6.5,
+  "shape": "squiggle",
   "weightkg": 235
  },
  {
@@ -7662,6 +7792,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 2.5,
+  "shape": "fish",
   "weightkg": 220
  },
  {
@@ -7680,7 +7811,7 @@
    "spe": 48
   },
   "bst": 288,
-  "tier": "common",
+  "tier": "epic",
   "abilities": [
    "limber",
    "imposter"
@@ -7691,6 +7822,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 0.3,
+  "shape": "ball",
   "weightkg": 4
  },
  {
@@ -7759,6 +7891,7 @@
   ],
   "prevo": null,
   "heightm": 0.3,
+  "shape": "quadruped",
   "weightkg": 6.5
  },
  {
@@ -7818,6 +7951,7 @@
   "evolvesTo": [],
   "prevo": 133,
   "heightm": 1,
+  "shape": "quadruped",
   "weightkg": 29
  },
  {
@@ -7875,6 +8009,7 @@
   "evolvesTo": [],
   "prevo": 133,
   "heightm": 0.8,
+  "shape": "quadruped",
   "weightkg": 24.5
  },
  {
@@ -7930,6 +8065,7 @@
   "evolvesTo": [],
   "prevo": 133,
   "heightm": 0.9,
+  "shape": "quadruped",
   "weightkg": 25
  },
  {
@@ -7988,6 +8124,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 0.8,
+  "shape": "legs",
   "weightkg": 36.5
  },
  {
@@ -8046,6 +8183,7 @@
   ],
   "prevo": null,
   "heightm": 0.4,
+  "shape": "tentacles",
   "weightkg": 7.5
  },
  {
@@ -8102,6 +8240,7 @@
   "evolvesTo": [],
   "prevo": 138,
   "heightm": 1,
+  "shape": "tentacles",
   "weightkg": 35
  },
  {
@@ -8161,6 +8300,7 @@
   ],
   "prevo": null,
   "heightm": 0.5,
+  "shape": "armor",
   "weightkg": 11.5
  },
  {
@@ -8221,6 +8361,7 @@
   "evolvesTo": [],
   "prevo": 140,
   "heightm": 1.3,
+  "shape": "upright",
   "weightkg": 40.5
  },
  {
@@ -8273,6 +8414,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 1.8,
+  "shape": "wings",
   "weightkg": 59
  },
  {
@@ -8341,6 +8483,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 2.1,
+  "shape": "humanoid",
   "weightkg": 460
  },
  {
@@ -8393,6 +8536,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 1.7,
+  "shape": "wings",
   "weightkg": 55.4
  },
  {
@@ -8446,6 +8590,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 1.6,
+  "shape": "wings",
   "weightkg": 52.6
  },
  {
@@ -8496,6 +8641,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 2,
+  "shape": "wings",
   "weightkg": 60
  },
  {
@@ -8559,6 +8705,7 @@
   ],
   "prevo": null,
   "heightm": 1.8,
+  "shape": "squiggle",
   "weightkg": 3.3
  },
  {
@@ -8623,6 +8770,7 @@
   ],
   "prevo": 147,
   "heightm": 4,
+  "shape": "squiggle",
   "weightkg": 16.5
  },
  {
@@ -8683,6 +8831,7 @@
   "evolvesTo": [],
   "prevo": 148,
   "heightm": 2.2,
+  "shape": "upright",
   "weightkg": 210
  },
  {
@@ -8752,6 +8901,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 2,
+  "shape": "upright",
   "weightkg": 122
  },
  {
@@ -8836,6 +8986,7 @@
   "evolvesTo": [],
   "prevo": null,
   "heightm": 0.4,
+  "shape": "upright",
   "weightkg": 4
  }
 ]

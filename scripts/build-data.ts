@@ -12,24 +12,30 @@ import { Generations } from '@pkmn/data';
 import { Dex } from '@pkmn/dex';
 
 const OUT = 'src/data';
-const POKEAPI = 'https://raw.githubusercontent.com/PokeAPI/api-data/master/data/api/v2/pokemon';
+const POKEAPI = 'https://raw.githubusercontent.com/PokeAPI/api-data/master/data/api/v2';
 
-/** Alturas (m) do PokeAPI — o @pkmn/dex não traz altura. */
-async function fetchHeights(ids: number[]): Promise<Map<number, number>> {
-    const heights = new Map<number, number>();
+/** Altura (m) e formato do corpo, do PokeAPI — o @pkmn/dex não traz nenhum dos dois. */
+async function fetchBodies(ids: number[]): Promise<Map<number, { heightm: number; shape: string }>> {
+    const bodies = new Map<number, { heightm: number; shape: string }>();
+    const getJson = async (url: string) => {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Falha ao buscar ${url}: ${res.status}`);
+        return res.json();
+    };
     const queue = [...ids];
     await Promise.all(
         Array.from({ length: 8 }, async () => {
             while (queue.length) {
                 const id = queue.shift() as number;
-                const res = await fetch(`${POKEAPI}/${id}/index.json`);
-                if (!res.ok) throw new Error(`Falha ao buscar altura de #${id}: ${res.status}`);
-                const json = (await res.json()) as { height: number };
-                heights.set(id, json.height / 10);
+                const [mon, spec] = await Promise.all([
+                    getJson(`${POKEAPI}/pokemon/${id}/index.json`) as Promise<{ height: number }>,
+                    getJson(`${POKEAPI}/pokemon-species/${id}/index.json`) as Promise<{ shape: { name: string } }>,
+                ]);
+                bodies.set(id, { heightm: mon.height / 10, shape: spec.shape.name });
             }
         }),
     );
-    return heights;
+    return bodies;
 }
 const LOCALES = 'https://raw.githubusercontent.com/pagefaultgames/pokerogue-locales/main/pt-BR';
 const LEGENDARY = new Set([144, 145, 146, 150, 151]);
@@ -48,6 +54,7 @@ async function fetchLocale(
 
 function tierOf(num: number, bst: number): 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' {
     if (LEGENDARY.has(num)) return 'legendary';
+    if (num === 132) return 'epic'; // Ditto: vira o melhor da posição em campo
     if (PSEUDO.has(num) || bst >= 530) return 'epic';
     if (bst >= 450) return 'rare';
     if (bst >= 350) return 'uncommon';
@@ -63,7 +70,7 @@ async function main() {
     const moveIds = new Set<string>();
     const abilityIds = new Set<string>();
 
-    const heights = await fetchHeights([...g1.species].map((s) => s.num));
+    const bodies = await fetchBodies([...g1.species].map((s) => s.num));
     for (const s1 of g1.species) {
         const s = Dex.species.get(s1.id);
         const learnable = await g1.learnsets.learnable(s1.id);
@@ -96,7 +103,8 @@ async function main() {
             learnset,
             evolvesTo,
             prevo: s.prevo && Dex.species.get(s.prevo).num <= 151 ? Dex.species.get(s.prevo).num : null,
-            heightm: heights.get(s.num) ?? 1,
+            heightm: bodies.get(s.num)?.heightm ?? 1,
+            shape: bodies.get(s.num)?.shape ?? 'upright',
             weightkg: s.weightkg,
         });
     }

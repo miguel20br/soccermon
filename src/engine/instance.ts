@@ -33,11 +33,13 @@ export function createInstance(speciesId: number, rng: Rng, level = DEFAULT_LEVE
         level,
         xp: 0,
         moves: defaultMoveset(sp),
-        // habilidade oculta é mais rara (1 em 5)
+        // habilidade oculta é mais rara (1 em 5); Ditto sempre vem com Imposter (Transformar)
         ability:
-            sp.abilities.length > 1 && rng.chance(0.2)
-                ? sp.abilities[sp.abilities.length - 1]
-                : rng.pick(sp.abilities.slice(0, Math.max(1, sp.abilities.length - 1))),
+            speciesId === 132
+                ? 'imposter'
+                : sp.abilities.length > 1 && rng.chance(0.2)
+                  ? sp.abilities[sp.abilities.length - 1]
+                  : rng.pick(sp.abilities.slice(0, Math.max(1, sp.abilities.length - 1))),
         shiny: rng.chance(SHINY_CHANCE),
         nickname: null,
         condition: 1,

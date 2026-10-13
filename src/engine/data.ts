@@ -21,6 +21,8 @@ export interface Species {
     prevo: number | null;
     heightm: number;
     weightkg: number;
+    /** Formato do corpo (PokeAPI): humanoid, upright, arms, quadruped, legs, wings, bug-wings, fish, squiggle, tentacles, blob, ball, armor, heads. */
+    shape: string;
 }
 
 export interface MoveData {
@@ -60,6 +62,13 @@ export const SPECIES: Species[] = pokemonJson as Species[];
 export const SPECIES_BY_ID = new Map(SPECIES.map((s) => [s.id, s]));
 export const MOVES = movesJson as unknown as Record<string, MoveData>;
 export const ABILITIES = abilitiesJson as Record<string, AbilityData>;
+// no Soccermon o Imposter do Ditto copia o melhor da posição dele em campo, de qualquer time
+if (ABILITIES.imposter) {
+    ABILITIES.imposter = {
+        ...ABILITIES.imposter,
+        descPt: 'Transformar: no apito inicial, o Ditto vira uma cópia do melhor Pokémon da posição dele em campo, seja do seu time ou do rival.',
+    };
+}
 export const TYPES: TypeName[] = typechartJson.types;
 const CHART = typechartJson.chart as Record<string, Record<string, number>>;
 

@@ -1,0 +1,1491 @@
+/* Cartas em teste (galeria ?cards=1). Tudo em em: o tamanho da carta vem do font-size. */
+.pc2 {
+    --tier-c: #8f97b8;
+    position: relative;
+    display: block;
+    box-sizing: border-box;
+    width: 15em;
+    aspect-ratio: 63 / 88;
+    font-size: 16px;
+    font-family: "Galmuri11", ui-monospace, monospace;
+    line-height: 1.2;
+    text-align: left;
+    color: #fff;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    isolation: isolate;
+    user-select: none;
+    -webkit-font-smoothing: none;
+}
+.pc2 *,
+.pc2 *::before,
+.pc2 *::after {
+    box-sizing: border-box;
+}
+button.pc2 {
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+button.pc2:hover {
+    transform: translateY(-0.2em) rotate(-0.4deg);
+}
+.pc2 img {
+    display: block;
+    image-rendering: pixelated;
+}
+.tier-common {
+    --tier-c: #8f97b8;
+}
+.tier-uncommon {
+    --tier-c: #58c26b;
+}
+.tier-rare {
+    --tier-c: #3a9bff;
+}
+.tier-epic {
+    --tier-c: #b46cff;
+}
+.tier-legendary {
+    --tier-c: #ffcb05;
+}
+
+.pc2-type {
+    display: inline-block;
+    width: 0.8em;
+    height: 0.8em;
+    border-radius: 50%;
+    border: 0.12em solid #fff;
+    box-shadow: 0 0 0 0.06em rgba(0, 0, 0, 0.35);
+}
+.pc2-captain {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.3em;
+    height: 1.3em;
+    border-radius: 50%;
+    background: #ffcb05;
+    color: #222;
+    font-family: "Galmuri14", monospace;
+    font-size: 0.75em;
+    box-shadow: 0 0.1em 0 rgba(0, 0, 0, 0.4);
+}
+
+/* ---------- brilho por raridade (compartilhado) ---------- */
+.pc2-foil {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(
+        115deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.75) 45%,
+        rgba(255, 255, 255, 0.1) 52%,
+        transparent 60%
+    );
+    background-size: 320% 100%;
+    mix-blend-mode: overlay;
+    animation: pc2-sheen 5s linear infinite;
+}
+.tier-rare .pc2-foil {
+    opacity: 0.35;
+}
+.tier-epic .pc2-foil {
+    opacity: 0.8;
+    background:
+        linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.8) 45%, transparent 58%),
+        linear-gradient(
+            135deg,
+            rgba(255, 60, 220, 0.45),
+            rgba(70, 220, 255, 0.45),
+            rgba(190, 120, 255, 0.45),
+            rgba(255, 60, 220, 0.45)
+        );
+    background-size:
+        320% 100%,
+        300% 300%;
+    mix-blend-mode: overlay;
+    animation:
+        pc2-sheen 5s linear infinite,
+        pc2-iris 9s linear infinite;
+}
+.tier-legendary .pc2-foil {
+    opacity: 0.9;
+    background:
+        linear-gradient(115deg, transparent 30%, rgba(255, 255, 230, 0.95) 45%, transparent 58%),
+        linear-gradient(
+            135deg,
+            rgba(255, 210, 60, 0.55),
+            rgba(255, 255, 200, 0.3),
+            rgba(255, 170, 30, 0.55),
+            rgba(255, 210, 60, 0.55)
+        );
+    background-size:
+        320% 100%,
+        300% 300%;
+    animation:
+        pc2-sheen 3.5s linear infinite,
+        pc2-iris 7s linear infinite;
+}
+.pc2.is-shiny .pc2-foil {
+    opacity: 0.9;
+    background:
+        linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.9) 45%, transparent 58%),
+        linear-gradient(
+            125deg,
+            rgba(255, 0, 0, 0.4),
+            rgba(255, 200, 0, 0.4),
+            rgba(0, 255, 120, 0.4),
+            rgba(0, 160, 255, 0.4),
+            rgba(200, 0, 255, 0.4),
+            rgba(255, 0, 0, 0.4)
+        );
+    background-size:
+        320% 100%,
+        400% 400%;
+    mix-blend-mode: overlay;
+    animation:
+        pc2-sheen 4s linear infinite,
+        pc2-iris 6s linear infinite;
+}
+.pc2-tcg.is-shiny .pc2-foil,
+.pc2-sticker.is-shiny .pc2-foil,
+.pc2-sticker.tier-epic .pc2-foil,
+.pc2-sticker.tier-legendary .pc2-foil {
+    opacity: 0.6;
+}
+.pc2-sparkles {
+    position: absolute;
+    inset: 0;
+    z-index: 7;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 18% 22%, #fff 0 0.08em, transparent 0.18em),
+        radial-gradient(circle at 78% 15%, #fff 0 0.1em, transparent 0.22em),
+        radial-gradient(circle at 85% 58%, #fff 0 0.07em, transparent 0.16em),
+        radial-gradient(circle at 12% 66%, #fff 0 0.09em, transparent 0.2em),
+        radial-gradient(circle at 55% 35%, #fff 0 0.06em, transparent 0.15em);
+    filter: drop-shadow(0 0 0.15em #fff);
+    animation: pc2-twinkle 1.6s ease-in-out infinite alternate;
+}
+@keyframes pc2-sheen {
+    from {
+        background-position:
+            100% 0,
+            0 0;
+    }
+    to {
+        background-position:
+            -100% 0,
+            0 0;
+    }
+}
+@keyframes pc2-iris {
+    from {
+        background-position:
+            100% 0,
+            0% 0%;
+    }
+    to {
+        background-position:
+            -100% 0,
+            100% 100%;
+    }
+}
+@keyframes pc2-twinkle {
+    from {
+        opacity: 0.25;
+        transform: scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1.02);
+    }
+}
+
+/* =====================================================================
+   A. FIGURINHA (álbum Panini)
+   ===================================================================== */
+.pc2-sticker {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35em;
+    padding: 0.55em;
+    border-radius: 0.6em;
+    background: #fbf8ef;
+    color: #1b1d2e;
+    box-shadow:
+        0 0.25em 0 rgba(0, 0, 0, 0.35),
+        inset 0 0 0 0.12em var(--tier-c);
+}
+.pc2-sticker.tier-common {
+    box-shadow:
+        0 0.25em 0 rgba(0, 0, 0, 0.35),
+        inset 0 0 0 0.06em #d8d2bf;
+}
+.pc2-sticker.tier-legendary {
+    background: linear-gradient(160deg, #fff6cf, #f3d77a 50%, #fff3c4);
+}
+.pc2-sticker.tier-epic {
+    background: linear-gradient(160deg, #f7efff, #e3d1ff 50%, #f8f1ff);
+}
+.pc2-sticker.is-shiny {
+    background: linear-gradient(135deg, #ffe3f1, #e6f7ff 35%, #f1ffe0 65%, #fff3d9);
+}
+.st-photo {
+    position: relative;
+    display: block;
+    flex: 1;
+    border-radius: 0.3em;
+    overflow: hidden;
+    background:
+        radial-gradient(ellipse 60% 45% at 50% 68%, rgba(255, 255, 255, 0.55), transparent 70%),
+        linear-gradient(165deg, var(--t1) 0%, color-mix(in srgb, var(--t2) 70%, #000) 100%);
+    box-shadow: inset 0 0 0 0.06em rgba(0, 0, 0, 0.25);
+}
+.st-dots {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(rgba(255, 255, 255, 0.28) 0.06em, transparent 0.08em) 0 0 / 0.45em 0.45em,
+        repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.07) 0 0.6em, transparent 0.6em 1.2em);
+}
+.st-num {
+    position: absolute;
+    top: 0.35em;
+    left: 0.35em;
+    padding: 0.1em 0.35em;
+    border-radius: 0.2em;
+    background: #fbf8ef;
+    color: #1b1d2e;
+    font-family: "Galmuri14", monospace;
+    font-size: 0.7em;
+    z-index: 2;
+}
+.st-ovr {
+    position: absolute;
+    top: 0.3em;
+    right: 0.3em;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 2.7em;
+    height: 2.7em;
+    border-radius: 50%;
+    background: #1b1d2e;
+    color: #fff;
+    border: 0.14em solid #fbf8ef;
+    box-shadow: 0 0 0 0.08em var(--tier-c);
+}
+.st-ovr b {
+    font-family: "Galmuri14", monospace;
+    font-size: 1.15em;
+    line-height: 1;
+}
+.st-ovr small {
+    font-size: 0.5em;
+    letter-spacing: 0.03em;
+}
+.pc2-sticker .pc2-captain {
+    position: absolute;
+    top: 2.2em;
+    left: 0.4em;
+    z-index: 2;
+}
+.st-art {
+    position: absolute;
+    left: 50%;
+    bottom: 1em;
+    width: 8.2em;
+    height: 8.2em;
+    object-fit: contain;
+    transform: translateX(-50%);
+    filter: drop-shadow(0.15em 0.2em 0 rgba(0, 0, 0, 0.3));
+    z-index: 1;
+}
+.st-types {
+    position: absolute;
+    left: 0.4em;
+    bottom: 0.35em;
+    display: flex;
+    gap: 0.2em;
+    z-index: 2;
+}
+.st-item {
+    position: absolute;
+    right: 0.3em;
+    bottom: 0.25em;
+    width: 1.7em;
+    height: 1.7em;
+    z-index: 2;
+}
+.st-band {
+    display: flex;
+    flex-direction: column;
+    padding: 0.28em 0.5em 0.3em;
+    border-radius: 0.25em;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--t1) 70%, #000), var(--t1));
+    color: #fff;
+    text-shadow: 0 0.08em 0 rgba(0, 0, 0, 0.45);
+    clip-path: polygon(0 0, 100% 0, 96% 100%, 0 100%);
+}
+.st-name {
+    font-family: "Galmuri14", monospace;
+    font-size: 1em;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.st-sub {
+    font-size: 0.6875em;
+    opacity: 0.9;
+}
+.st-stats {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    text-align: center;
+    font-size: 0.6875em;
+    color: #6b6a62;
+}
+.st-stats > span {
+    display: block;
+}
+.st-stats b {
+    display: block;
+    font-family: "Galmuri14", monospace;
+    font-size: 1.3em;
+    color: #1b1d2e;
+    line-height: 1.1;
+}
+
+/* =====================================================================
+   B. TCG DE FUTSAL
+   ===================================================================== */
+.pc2-tcg {
+    padding: 0.5em;
+    border-radius: 0.7em;
+    background: linear-gradient(160deg, #f8dc4a, #e9bf1c 50%, #f6d63f);
+    box-shadow: 0 0.25em 0 rgba(0, 0, 0, 0.35);
+}
+.pc2-tcg.tier-epic {
+    background: linear-gradient(160deg, #eef1f7, #a9b2c6 30%, #f4f6fb 55%, #9ea7bb 80%, #e9edf5);
+}
+.pc2-tcg.tier-legendary {
+    background: linear-gradient(160deg, #fff3b0, #d9a514 30%, #fff1a0 55%, #c58f0a 80%, #ffe98a);
+}
+.pc2-tcg.is-shiny {
+    background: linear-gradient(135deg, #ff8a8a, #ffd36b, #8affb4, #7fd2ff, #d79bff, #ff8a8a);
+}
+.tcg-inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.22em;
+    height: 100%;
+    padding: 0.3em 0.45em 0.25em;
+    border-radius: 0.3em;
+    overflow: hidden;
+    color: #1d1d1d;
+    background:
+        radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.45), transparent 60%),
+        linear-gradient(
+            170deg,
+            color-mix(in srgb, var(--t1) 45%, #fff) 0%,
+            color-mix(in srgb, var(--t1) 70%, #fff) 50%,
+            color-mix(in srgb, var(--t2) 55%, #fff) 100%
+        );
+}
+.tcg-head {
+    display: flex;
+    align-items: center;
+    gap: 0.3em;
+}
+.tcg-stage {
+    display: block;
+    flex: none;
+    padding: 0.12em 0.35em;
+    border-radius: 0.6em;
+    background: linear-gradient(#f2f2f2, #b7b7b7);
+    color: #333;
+    font-size: 0.5em;
+}
+.tcg-name {
+    display: flex;
+    align-items: center;
+    gap: 0.25em;
+    flex: 1;
+    min-width: 0;
+    font-family: "Galmuri14", monospace;
+    font-size: 0.95em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.tcg-name .pc2-captain {
+    font-size: 0.7em;
+    flex: none;
+}
+.tcg-hp {
+    display: block;
+    flex: none;
+    color: #c4161c;
+    font-family: "Galmuri14", monospace;
+    font-size: 1.05em;
+}
+.tcg-hp small {
+    font-size: 0.5em;
+    margin-right: 0.15em;
+}
+.tcg-energy {
+    display: inline-block;
+    flex: none;
+    width: 0.75em;
+    height: 0.75em;
+    border-radius: 50%;
+    border: 0.07em solid rgba(0, 0, 0, 0.5);
+    box-shadow:
+        inset -0.1em -0.1em 0 rgba(0, 0, 0, 0.22),
+        inset 0.1em 0.1em 0 rgba(255, 255, 255, 0.45);
+}
+.tcg-energy.big {
+    width: 1em;
+    height: 1em;
+}
+.tcg-art {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    flex: none;
+    height: 6.3em;
+    border: 0.22em solid;
+    border-color: #f4f4f4 #8d8d8d #8d8d8d #f4f4f4;
+    overflow: hidden;
+    background:
+        radial-gradient(ellipse 55% 30% at 50% 88%, rgba(0, 0, 0, 0.25), transparent 70%),
+        radial-gradient(circle at 50% 60%, rgba(255, 255, 255, 0.65), transparent 55%),
+        linear-gradient(180deg, color-mix(in srgb, var(--t1) 30%, #fff), color-mix(in srgb, var(--t2) 65%, #333));
+}
+.tcg-art img:first-child {
+    height: 6em;
+    width: auto;
+    margin-bottom: 0.05em;
+    filter: drop-shadow(0 0.15em 0.1em rgba(0, 0, 0, 0.35));
+}
+.tcg-holo {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    background:
+        repeating-linear-gradient(
+            125deg,
+            rgba(255, 0, 140, 0.35) 0 0.6em,
+            rgba(0, 220, 255, 0.35) 0.6em 1.2em,
+            rgba(255, 240, 0, 0.35) 1.2em 1.8em
+        ),
+        linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.8) 48%, transparent 60%);
+    background-size:
+        200% 200%,
+        320% 100%;
+    mix-blend-mode: color-dodge;
+    animation: pc2-iris 6s linear infinite;
+}
+.tier-rare .tcg-holo,
+.tier-epic .tcg-holo,
+.tier-legendary .tcg-holo,
+.is-shiny .tcg-holo {
+    opacity: 0.55;
+}
+.pc2-tcg.tier-rare .pc2-foil {
+    opacity: 0;
+}
+.tcg-item {
+    position: absolute;
+    right: 0.15em;
+    bottom: 0.15em;
+    width: 1.5em;
+    height: 1.5em;
+}
+.tcg-strip {
+    display: block;
+    margin: 0 0.5em;
+    padding: 0.12em 0.2em;
+    border-radius: 0.1em;
+    background: linear-gradient(90deg, #c19a2e, #f3df92, #c19a2e);
+    color: #3a2c00;
+    font-size: 0.5em;
+    font-style: italic;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.tcg-attacks {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    flex: 1;
+    min-height: 0;
+}
+.tcg-atk {
+    display: grid;
+    grid-template-columns: 2.5em 1fr auto;
+    align-items: center;
+    column-gap: 0.3em;
+    padding: 0.1em 0;
+    border-bottom: 0.04em solid rgba(0, 0, 0, 0.15);
+}
+.tcg-atk:last-child {
+    border-bottom: 0;
+}
+.tcg-cost {
+    display: flex;
+    gap: 0.08em;
+}
+.tcg-atk-name {
+    font-family: "Galmuri14", monospace;
+    font-size: 0.7em;
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.tcg-dmg {
+    display: block;
+    font-family: "Galmuri14", monospace;
+    font-size: 0.8em;
+}
+.tcg-atk-desc {
+    grid-column: 2 / 4;
+    font-size: 0.5em;
+    color: #3b3b3b;
+}
+.tcg-foot {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.2em;
+    padding-top: 0.2em;
+    border-top: 0.06em solid rgba(0, 0, 0, 0.35);
+    font-size: 0.5em;
+    text-align: center;
+}
+.tcg-foot > span {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.tcg-foot small {
+    display: block;
+    color: #4a4a4a;
+    text-transform: uppercase;
+    font-size: 0.85em;
+}
+.tcg-legal {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.45em;
+    color: #333;
+}
+.tcg-rarity {
+    display: block;
+    color: #111;
+}
+
+/* =====================================================================
+   C. POKÉDEX
+   ===================================================================== */
+.pc2-dex {
+    --trim: #7d141b;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35em;
+    padding: 0.5em 0.55em 0.45em;
+    border-radius: 0.8em 0.8em 1.4em 0.8em;
+    background:
+        radial-gradient(ellipse at 20% 0%, rgba(255, 255, 255, 0.25), transparent 50%),
+        linear-gradient(160deg, #e8434a, #b81f2b 70%, #a01824);
+    box-shadow:
+        0 0.25em 0 rgba(0, 0, 0, 0.35),
+        inset 0 -0.2em 0 rgba(0, 0, 0, 0.25),
+        inset 0 0 0 0.14em var(--trim);
+}
+.pc2-dex.tier-uncommon {
+    --trim: #58c26b;
+}
+.pc2-dex.tier-rare {
+    --trim: #3a9bff;
+}
+.pc2-dex.tier-epic {
+    --trim: #b46cff;
+}
+.pc2-dex.tier-legendary {
+    --trim: #ffcb05;
+    background:
+        radial-gradient(ellipse at 20% 0%, rgba(255, 255, 255, 0.35), transparent 50%),
+        linear-gradient(160deg, #f0b52a, #c8860b 70%, #a86c05);
+}
+.pc2-dex.is-shiny {
+    background:
+        radial-gradient(ellipse at 20% 0%, rgba(255, 255, 255, 0.3), transparent 50%),
+        linear-gradient(160deg, #3a3f55, #1f2233 70%, #15172a);
+    --trim: #c7d0ff;
+}
+.dex-top {
+    display: flex;
+    align-items: center;
+    gap: 0.3em;
+    height: 2.1em;
+}
+.dex-lens {
+    display: block;
+    flex: none;
+    width: 1.9em;
+    height: 1.9em;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #d9f3ff 0 10%, #3aa0ee 30%, #0c4d8f 80%);
+    border: 0.17em solid #fff;
+    box-shadow:
+        0 0 0 0.07em #2b2b2b,
+        0 0 0.6em rgba(90, 190, 255, 0.75);
+    animation: dex-lens 2.4s ease-in-out infinite;
+}
+.dex-led {
+    display: block;
+    flex: none;
+    align-self: flex-start;
+    width: 0.55em;
+    height: 0.55em;
+    margin-top: 0.15em;
+    border-radius: 50%;
+    border: 0.06em solid #2b2b2b;
+}
+.dex-led.r {
+    background: #ff5050;
+}
+.dex-led.y {
+    background: #ffd23c;
+}
+.dex-led.g {
+    background: #4cd964;
+    animation: dex-blink 1.2s steps(2, jump-none) infinite;
+}
+.dex-tier {
+    display: block;
+    margin-left: auto;
+    padding: 0.15em 0.45em;
+    border-radius: 0.3em;
+    background: rgba(0, 0, 0, 0.3);
+    color: var(--trim);
+    font-size: 0.6em;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.pc2-dex.tier-common .dex-tier {
+    color: #ffd5d7;
+}
+.dex-bezel {
+    display: block;
+    padding: 0.45em 0.55em 0.55em;
+    border-radius: 0.3em 0.3em 0.3em 1.2em;
+    background: #dcdcdc;
+    box-shadow:
+        inset 0 -0.12em 0 #9e9e9e,
+        inset 0 0.08em 0 #fff;
+}
+.dex-lcd {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 0.3em 0.4em 0.3em;
+    border-radius: 0.15em;
+    background: #9bbc0f;
+    color: #0f380f;
+    overflow: hidden;
+    box-shadow: inset 0 0 0.3em rgba(15, 56, 15, 0.45);
+}
+.dex-lcd::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        repeating-linear-gradient(0deg, rgba(15, 56, 15, 0.09) 0 1px, transparent 1px 3px),
+        repeating-linear-gradient(90deg, rgba(15, 56, 15, 0.05) 0 1px, transparent 1px 3px);
+}
+.dex-lcd-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    font-size: 0.65em;
+}
+.dex-ovr {
+    display: flex;
+    align-items: baseline;
+    gap: 0.15em;
+    font-family: "Galmuri14", monospace;
+    font-size: 1.7em;
+    line-height: 1;
+}
+.dex-ovr small {
+    font-size: 0.35em;
+}
+.dex-shot {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 4.9em;
+    margin-top: -0.4em;
+}
+.dex-sprite {
+    height: 100%;
+    width: auto;
+    filter: grayscale(1) contrast(1.6) brightness(0.95);
+    mix-blend-mode: multiply;
+}
+.is-shiny .dex-sprite {
+    filter: none;
+    mix-blend-mode: normal;
+}
+.dex-shot .pc2-captain {
+    position: absolute;
+    left: 0;
+    bottom: 0.2em;
+    background: #0f380f;
+    color: #9bbc0f;
+    box-shadow: none;
+}
+.dex-shiny {
+    position: absolute;
+    right: 0;
+    bottom: 0.1em;
+    font-size: 0.5em;
+    background: #0f380f;
+    color: #ffe680;
+    padding: 0.1em 0.3em;
+}
+.dex-name {
+    display: block;
+    font-family: "Galmuri14", monospace;
+    font-size: 0.82em;
+    border-top: 0.08em dashed #306230;
+    padding-top: 0.15em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.dex-cat {
+    display: block;
+    font-size: 0.5em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.dex-bars {
+    display: grid;
+    gap: 0.1em;
+    padding: 0.3em 0.45em;
+    border-radius: 0.3em;
+    background: #172417;
+    box-shadow: inset 0 0.08em 0.2em rgba(0, 0, 0, 0.6);
+}
+.dex-bar {
+    display: grid;
+    grid-template-columns: 2.2em 1fr 1.6em;
+    align-items: center;
+    gap: 0.35em;
+    font-size: 0.58em;
+    color: #9bbc0f;
+}
+.dex-bar > span {
+    display: block;
+}
+.dex-bar b {
+    text-align: right;
+    font-weight: 400;
+}
+.dex-seg {
+    position: relative;
+    height: 0.8em;
+    background: repeating-linear-gradient(90deg, #2f4f2f 0 0.5em, transparent 0.5em 0.65em);
+}
+.dex-seg i {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: repeating-linear-gradient(90deg, #9bbc0f 0 0.5em, transparent 0.5em 0.65em);
+    box-shadow: 0 0 0.3em rgba(155, 188, 15, 0.35);
+}
+.dex-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    margin-top: auto;
+    height: 1.5em;
+    padding: 0 0.15em;
+}
+.dex-dpad {
+    display: block;
+    width: 1.4em;
+    height: 1.4em;
+    background:
+        linear-gradient(#262626, #262626) center / 0.48em 100% no-repeat,
+        linear-gradient(#262626, #262626) center / 100% 0.48em no-repeat;
+    filter: drop-shadow(0 0.08em 0 rgba(0, 0, 0, 0.4));
+}
+.dex-btns {
+    display: flex;
+    gap: 0.3em;
+}
+.dex-btns i {
+    display: block;
+    width: 0.75em;
+    height: 0.75em;
+    border-radius: 50%;
+    background: #23233a;
+    box-shadow: 0 0.08em 0 rgba(0, 0, 0, 0.4);
+}
+.dex-btns i:first-child {
+    width: 1.6em;
+    height: 0.4em;
+    border-radius: 0.2em;
+    background: #26d0ff;
+    align-self: center;
+}
+.dex-grille {
+    display: block;
+    margin-left: auto;
+    width: 2em;
+    height: 0.8em;
+    background: repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.35) 0 0.14em, transparent 0.14em 0.32em);
+}
+.dex-item {
+    width: 1.4em;
+    height: 1.4em;
+}
+@keyframes dex-blink {
+    50% {
+        opacity: 0.25;
+    }
+}
+@keyframes dex-lens {
+    50% {
+        box-shadow:
+            0 0 0 0.07em #2b2b2b,
+            0 0 1em rgba(120, 210, 255, 0.95);
+    }
+}
+
+/* =====================================================================
+   F. HOLOGRÁFICO POR TIPO
+   ===================================================================== */
+.pc2-holo {
+    border-radius: 0.8em;
+    background: #10121f;
+    box-shadow:
+        0 0.25em 0 rgba(0, 0, 0, 0.4),
+        inset 0 0 0 0.16em var(--tier-c);
+}
+.pc2-holo.tier-legendary {
+    box-shadow:
+        0 0.25em 0 rgba(0, 0, 0, 0.4),
+        inset 0 0 0 0.16em #ffcb05,
+        inset 0 0 1.2em rgba(255, 203, 5, 0.5);
+}
+.pc2-holo.is-shiny {
+    box-shadow:
+        0 0.25em 0 rgba(0, 0, 0, 0.4),
+        inset 0 0 0 0.16em #fff,
+        inset 0 0 1.2em rgba(255, 255, 255, 0.5);
+}
+.holo-bg {
+    position: absolute;
+    inset: 0.16em;
+    z-index: 0;
+    border-radius: 0.65em;
+    overflow: hidden;
+    background: linear-gradient(170deg, color-mix(in srgb, var(--t1) 35%, #000), var(--t1));
+}
+.holo-bg i {
+    position: absolute;
+    inset: -25%;
+    display: block;
+}
+.holo-top {
+    position: absolute;
+    top: 0.5em;
+    left: 0.6em;
+    right: 0.6em;
+    z-index: 3;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.35em;
+}
+.holo-ovr {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-shadow: 0 0.1em 0 rgba(0, 0, 0, 0.55);
+}
+.holo-ovr b {
+    font-family: "Galmuri14", monospace;
+    font-size: 2.1em;
+    font-weight: 400;
+    line-height: 1;
+}
+.holo-ovr small {
+    font-size: 0.7em;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.holo-types {
+    display: flex;
+    gap: 0.2em;
+    margin-left: auto;
+}
+.pc2-holo .pc2-captain {
+    margin-left: 0.1em;
+}
+.holo-art {
+    position: absolute;
+    left: 50%;
+    top: 14%;
+    z-index: 2;
+    width: 10em;
+    height: 10em;
+    object-fit: contain;
+    transform: translateX(-50%);
+    filter: drop-shadow(0 0.35em 0.25em rgba(0, 0, 0, 0.55));
+}
+.holo-item {
+    position: absolute;
+    right: 0.5em;
+    top: 2.2em;
+    z-index: 3;
+    width: 1.6em;
+    height: 1.6em;
+}
+.holo-glass {
+    position: absolute;
+    left: 0.45em;
+    right: 0.45em;
+    bottom: 0.45em;
+    z-index: 4;
+    display: block;
+    padding: 0.35em 0.5em 0.4em;
+    border-radius: 0.5em;
+    background: rgba(8, 10, 28, 0.55);
+    border: 0.06em solid rgba(255, 255, 255, 0.28);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+.holo-name {
+    display: block;
+    font-family: "Galmuri14", monospace;
+    font-size: 1.05em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.holo-tier {
+    display: block;
+    font-size: 0.55em;
+    color: var(--tier-c);
+    margin-bottom: 0.25em;
+}
+.holo-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.1em 0.3em;
+    font-size: 0.62em;
+    color: rgba(255, 255, 255, 0.8);
+}
+.holo-stats > span {
+    display: block;
+}
+.holo-stats b {
+    color: #fff;
+    font-family: "Galmuri14", monospace;
+    font-size: 1.2em;
+    font-weight: 400;
+}
+.pc2-holo .pc2-foil {
+    border-radius: 0.8em;
+}
+.pc2-holo.tier-uncommon .pc2-foil {
+    opacity: 0.2;
+}
+.pc2-holo.tier-rare .pc2-foil {
+    opacity: 0.45;
+}
+
+/* --- temas por tipo: .holo-l1 (camada principal) e .holo-l2 (partículas) --- */
+.holo-fire .holo-bg {
+    background: linear-gradient(0deg, #ff7a00, #8d1a00 55%, #2a0600);
+}
+.holo-fire .holo-l1 {
+    background:
+        radial-gradient(ellipse 14% 30% at 25% 100%, #ffe08a, rgba(255, 140, 0, 0.6) 50%, transparent 72%),
+        radial-gradient(ellipse 16% 38% at 52% 100%, #fff1b8, rgba(255, 120, 0, 0.6) 50%, transparent 72%),
+        radial-gradient(ellipse 13% 28% at 78% 100%, #ffd25a, rgba(255, 90, 0, 0.6) 50%, transparent 72%);
+    transform-origin: 50% 100%;
+    animation: holo-flicker 0.9s ease-in-out infinite alternate;
+}
+.holo-fire .holo-l2 {
+    background: radial-gradient(circle, #ffd27a 0 0.07em, transparent 0.12em) 0 0 / 1.8em 2.6em;
+    animation: holo-rise 3s linear infinite;
+    opacity: 0.8;
+}
+.holo-water .holo-bg {
+    background: linear-gradient(180deg, #0a2e6e, #1565c0 60%, #4aa3ff);
+}
+.holo-water .holo-l1 {
+    background:
+        radial-gradient(ellipse 50% 40% at 50% 0, transparent 70%, rgba(255, 255, 255, 0.28) 72%, transparent 80%) 0 0 /
+        4em 2.2em,
+        radial-gradient(ellipse 50% 40% at 50% 0, transparent 70%, rgba(160, 220, 255, 0.25) 72%, transparent 80%) 2em
+        1.1em / 4em 2.2em;
+    animation: holo-wave 4s linear infinite;
+}
+.holo-water .holo-l2 {
+    background:
+        radial-gradient(circle, transparent 0 0.12em, rgba(255, 255, 255, 0.55) 0.13em 0.17em, transparent 0.18em) 0 0 /
+        2.2em 3em;
+    animation: holo-rise 5s linear infinite;
+}
+.holo-electric .holo-bg {
+    background: radial-gradient(circle at 50% 40%, #fff3a0, #f7d02c 35%, #6b5200 80%, #241b00);
+}
+.holo-electric .holo-l1 {
+    background:
+        repeating-linear-gradient(
+            115deg,
+            transparent 0 1.4em,
+            rgba(255, 255, 220, 0.9) 1.4em 1.5em,
+            transparent 1.5em 1.7em,
+            rgba(255, 255, 255, 0.5) 1.7em 1.75em,
+            transparent 1.75em 3.4em
+        ),
+        repeating-linear-gradient(
+            65deg,
+            transparent 0 2.6em,
+            rgba(255, 255, 160, 0.6) 2.6em 2.68em,
+            transparent 2.68em 5em
+        );
+    animation: holo-zap 2.2s steps(1, end) infinite;
+}
+.holo-electric .holo-l2 {
+    background: radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.55), transparent 45%);
+    animation: holo-pulse 1.1s ease-in-out infinite alternate;
+}
+.holo-grass .holo-bg {
+    background: linear-gradient(170deg, #0f3d14, #3f8f2c 55%, #8fd16a);
+}
+.holo-grass .holo-l1 {
+    background:
+        radial-gradient(ellipse 0.45em 0.22em at 50% 50%, #c8f59a 60%, transparent 65%) 0 0 / 2.6em 2.4em,
+        radial-gradient(ellipse 0.35em 0.18em at 50% 50%, #8fe06a 60%, transparent 65%) 1.3em 1.2em / 2.6em 2.4em;
+    animation: holo-drift 7s linear infinite;
+    opacity: 0.85;
+}
+.holo-grass .holo-l2 {
+    background: repeating-linear-gradient(100deg, rgba(255, 255, 200, 0.14) 0 1em, transparent 1em 3em);
+    animation: holo-sway 6s ease-in-out infinite alternate;
+}
+.holo-ice .holo-bg {
+    background: linear-gradient(170deg, #0b2c3d, #3b8ea5 55%, #c6f1ef);
+}
+.holo-ice .holo-l1 {
+    background:
+        repeating-linear-gradient(60deg, transparent 0 1.6em, rgba(255, 255, 255, 0.28) 1.6em 1.66em),
+        repeating-linear-gradient(-60deg, transparent 0 1.6em, rgba(255, 255, 255, 0.28) 1.6em 1.66em),
+        repeating-linear-gradient(0deg, transparent 0 1.6em, rgba(255, 255, 255, 0.18) 1.6em 1.66em);
+    animation: holo-pulse 3s ease-in-out infinite alternate;
+}
+.holo-ice .holo-l2 {
+    background: radial-gradient(circle, #fff 0 0.06em, transparent 0.1em) 0 0 / 1.4em 1.7em;
+    animation: holo-fall 6s linear infinite;
+}
+.holo-psychic .holo-bg {
+    background: radial-gradient(circle at 50% 42%, #ffc2dc, #f95587 35%, #5a0d3a 85%);
+}
+.holo-psychic .holo-l1 {
+    background: repeating-conic-gradient(
+        from 0deg at 50% 42%,
+        rgba(255, 255, 255, 0.16) 0 10deg,
+        transparent 10deg 30deg
+    );
+    animation: holo-spin 14s linear infinite;
+}
+.holo-psychic .holo-l2 {
+    background: repeating-radial-gradient(circle at 50% 42%, transparent 0 1em, rgba(255, 255, 255, 0.2) 1em 1.08em);
+    animation: holo-pulse 2s ease-in-out infinite alternate;
+}
+.holo-ghost .holo-bg {
+    background: linear-gradient(170deg, #0d0820, #3b2668 60%, #735797);
+}
+.holo-ghost .holo-l1 {
+    background:
+        radial-gradient(ellipse 35% 20% at 30% 70%, rgba(190, 150, 255, 0.45), transparent 70%),
+        radial-gradient(ellipse 40% 18% at 70% 40%, rgba(140, 90, 220, 0.45), transparent 70%),
+        radial-gradient(ellipse 30% 15% at 40% 25%, rgba(220, 200, 255, 0.3), transparent 70%);
+    animation: holo-mist 8s ease-in-out infinite alternate;
+}
+.holo-ghost .holo-l2 {
+    background: radial-gradient(circle, rgba(200, 160, 255, 0.8) 0 0.06em, transparent 0.14em) 0 0 / 2em 2.4em;
+    animation: holo-rise 9s linear infinite;
+}
+.holo-dragon .holo-bg {
+    background: linear-gradient(170deg, #070420, #2c1580 55%, #6f35fc);
+}
+.holo-dragon .holo-l1 {
+    background:
+        linear-gradient(115deg, transparent 30%, rgba(80, 255, 210, 0.38) 42%, transparent 55%),
+        linear-gradient(100deg, transparent 45%, rgba(255, 120, 230, 0.3) 55%, transparent 68%);
+    animation: holo-aurora 6s ease-in-out infinite alternate;
+}
+.holo-dragon .holo-l2 {
+    background: radial-gradient(circle, #fff 0 0.05em, transparent 0.09em) 0 0 / 1.3em 1.5em;
+    animation: holo-pulse 2.4s ease-in-out infinite alternate;
+}
+.holo-poison .holo-bg {
+    background: linear-gradient(170deg, #1f0620, #6a1f6a 55%, #b14db0);
+}
+.holo-poison .holo-l1 {
+    background:
+        radial-gradient(circle at 20% 90%, rgba(200, 90, 220, 0.6) 0 12%, transparent 13%),
+        radial-gradient(circle at 70% 95%, rgba(160, 60, 200, 0.6) 0 16%, transparent 17%),
+        radial-gradient(circle at 45% 100%, rgba(220, 120, 240, 0.5) 0 10%, transparent 11%);
+    animation: holo-sway 3s ease-in-out infinite alternate;
+}
+.holo-poison .holo-l2 {
+    background:
+        radial-gradient(circle, transparent 0 0.15em, rgba(240, 170, 255, 0.6) 0.16em 0.21em, transparent 0.22em) 0 0 /
+        2em 2.6em;
+    animation: holo-rise 4s linear infinite;
+}
+.holo-ground .holo-bg {
+    background: linear-gradient(175deg, #2a1c08, #8a6624 55%, #e2bf65);
+}
+.holo-ground .holo-l1 {
+    background: repeating-linear-gradient(
+        172deg,
+        transparent 0 0.8em,
+        rgba(255, 230, 170, 0.22) 0.8em 1em,
+        transparent 1em 1.8em
+    );
+    animation: holo-wave 6s linear infinite;
+}
+.holo-ground .holo-l2 {
+    background: radial-gradient(circle, rgba(255, 235, 190, 0.7) 0 0.05em, transparent 0.09em) 0 0 / 1.1em 1.3em;
+    animation: holo-drift 5s linear infinite;
+}
+.holo-rock .holo-bg {
+    background: linear-gradient(170deg, #1e1a10, #6b5f2a 55%, #b6a136);
+}
+.holo-rock .holo-l1 {
+    background: conic-gradient(
+        from 20deg at 30% 60%,
+        rgba(255, 255, 255, 0.12) 0 40deg,
+        transparent 40deg 110deg,
+        rgba(0, 0, 0, 0.18) 110deg 170deg,
+        rgba(255, 255, 255, 0.08) 170deg 230deg,
+        transparent 230deg 300deg,
+        rgba(0, 0, 0, 0.15) 300deg
+    );
+    animation: holo-sway 8s ease-in-out infinite alternate;
+}
+.holo-rock .holo-l2 {
+    background: radial-gradient(circle, rgba(255, 245, 200, 0.55) 0 0.05em, transparent 0.09em) 0 0 / 1.6em 1.6em;
+}
+.holo-flying .holo-bg {
+    background: linear-gradient(180deg, #2a3f9a, #6f8df0 55%, #c9d7ff);
+}
+.holo-flying .holo-l1 {
+    background:
+        radial-gradient(ellipse 30% 9% at 30% 30%, rgba(255, 255, 255, 0.55), transparent 70%),
+        radial-gradient(ellipse 25% 7% at 75% 55%, rgba(255, 255, 255, 0.45), transparent 70%),
+        radial-gradient(ellipse 35% 8% at 40% 80%, rgba(255, 255, 255, 0.4), transparent 70%);
+    animation: holo-wind 9s linear infinite;
+}
+.holo-flying .holo-l2 {
+    background: repeating-linear-gradient(
+        175deg,
+        transparent 0 2.5em,
+        rgba(255, 255, 255, 0.3) 2.5em 2.55em,
+        transparent 2.55em 5em
+    );
+    animation: holo-wind 3s linear infinite;
+}
+.holo-fighting .holo-bg {
+    background: radial-gradient(circle at 50% 45%, #ff8a6b, #c22e28 40%, #3a0806 85%);
+}
+.holo-fighting .holo-l1 {
+    background: repeating-conic-gradient(
+        from 0deg at 50% 45%,
+        rgba(255, 255, 255, 0.18) 0 3deg,
+        transparent 3deg 11deg
+    );
+    animation: holo-spin 40s linear infinite;
+}
+.holo-fighting .holo-l2 {
+    background: radial-gradient(circle at 50% 45%, rgba(255, 230, 200, 0.45), transparent 40%);
+    animation: holo-pulse 0.8s ease-in-out infinite alternate;
+}
+.holo-bug .holo-bg {
+    background: linear-gradient(170deg, #182006, #55660f 55%, #a6b91a);
+}
+.holo-bug .holo-l1 {
+    background:
+        radial-gradient(circle, transparent 0 0.55em, rgba(220, 255, 120, 0.18) 0.56em 0.62em, transparent 0.63em) 0 0 /
+        1.4em 1.4em,
+        radial-gradient(circle, transparent 0 0.55em, rgba(220, 255, 120, 0.18) 0.56em 0.62em, transparent 0.63em) 0.7em
+        0.7em / 1.4em 1.4em;
+}
+.holo-bug .holo-l2 {
+    background: radial-gradient(circle, #f6ff9a 0 0.07em, transparent 0.16em) 0 0 / 2.3em 2.1em;
+    animation: holo-firefly 2.5s ease-in-out infinite alternate;
+}
+.holo-normal .holo-bg {
+    background: radial-gradient(circle at 50% 40%, #e6e4c8, #a8a77a 40%, #3c3b2a 90%);
+}
+.holo-normal .holo-l1 {
+    background: repeating-conic-gradient(
+        from 0deg at 50% 40%,
+        rgba(255, 255, 255, 0.12) 0 6deg,
+        transparent 6deg 18deg
+    );
+    animation: holo-spin 30s linear infinite;
+}
+.holo-normal .holo-l2 {
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.5) 0 0.05em, transparent 0.09em) 0 0 / 1.5em 1.5em;
+}
+
+@keyframes holo-flicker {
+    from {
+        transform: scaleY(0.92) translateY(2%);
+        opacity: 0.85;
+    }
+    to {
+        transform: scaleY(1.08) translateY(-2%);
+        opacity: 1;
+    }
+}
+@keyframes holo-rise {
+    from {
+        transform: translateY(0);
+    }
+    to {
+        transform: translateY(-25%);
+    }
+}
+@keyframes holo-fall {
+    from {
+        transform: translateY(-20%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+@keyframes holo-wave {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-16%);
+    }
+}
+@keyframes holo-wind {
+    from {
+        transform: translateX(-12%);
+    }
+    to {
+        transform: translateX(12%);
+    }
+}
+@keyframes holo-drift {
+    from {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    to {
+        transform: translate(-10%, 15%) rotate(8deg);
+    }
+}
+@keyframes holo-sway {
+    from {
+        transform: translateX(-4%);
+    }
+    to {
+        transform: translateX(4%);
+    }
+}
+@keyframes holo-pulse {
+    from {
+        opacity: 0.45;
+    }
+    to {
+        opacity: 1;
+    }
+}
+@keyframes holo-zap {
+    0%,
+    100% {
+        opacity: 0.15;
+    }
+    6% {
+        opacity: 1;
+    }
+    9% {
+        opacity: 0.3;
+    }
+    12% {
+        opacity: 0.9;
+    }
+    20% {
+        opacity: 0.2;
+    }
+    55% {
+        opacity: 0.2;
+    }
+    58% {
+        opacity: 0.85;
+    }
+    62% {
+        opacity: 0.2;
+    }
+}
+@keyframes holo-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+@keyframes holo-mist {
+    from {
+        transform: translate(-6%, 2%);
+    }
+    to {
+        transform: translate(6%, -3%);
+    }
+}
+@keyframes holo-aurora {
+    from {
+        transform: translateX(-10%) skewX(-6deg);
+    }
+    to {
+        transform: translateX(10%) skewX(6deg);
+    }
+}
+@keyframes holo-firefly {
+    from {
+        opacity: 0.2;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pc2,
+    .pc2 *,
+    .pc2 *::before,
+    .pc2 *::after {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* ---------- galeria (?cards=1) ---------- */
+.cg {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+}
+.cg-picker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+.cg-picker .team-name-input {
+    width: 220px;
+    max-width: 100%;
+}
+.cg-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+.cg-tabs {
+    display: none;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.cg-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+.cg-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+}
+.cg-col h2 {
+    margin: 0;
+    color: var(--yellow);
+    font-size: 16px;
+}
+.cg-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+}
+.cg-item figcaption {
+    font-size: 12px;
+}
+@media (max-width: 1100px) {
+    .cg-col .pc2 {
+        font-size: 14px;
+    }
+}
+@media (max-width: 960px) {
+    .cg-tabs {
+        display: flex;
+    }
+    .cg-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .cg-col {
+        display: none;
+    }
+    .cg-col.active {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        justify-items: center;
+    }
+    .cg-col.active h2 {
+        display: none;
+    }
+    .cg-col .pc2 {
+        font-size: 16px;
+    }
+}
+@media (max-width: 420px) {
+    .cg-col .pc2 {
+        font-size: 17px;
+    }
+}

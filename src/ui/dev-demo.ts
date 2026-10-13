@@ -1,5 +1,6 @@
 import { FUTSAL_5 } from '../engine/config';
 import { aiDraftTeam } from '../engine/draft';
+import { createInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
 import { EventBus } from '../game/EventBus';
@@ -7,18 +8,47 @@ import { playerTeam, useGame } from '../store/game-store';
 
 /**
  * Atalhos de desenvolvimento (só em `npm run dev`): `?demo=penaltis` monta uma copa cuja primeira
- * partida termina empatada e vai para os pênaltis, já na tela de escalação.
+ * partida termina empatada e vai para os pênaltis, já na tela de escalação. `?demo=ditto` monta um time
+ * com Ditto e Mew + Mewtwo (sinergia Gênese) cuja primeira partida tem combo.
  */
 let started = false;
 
 export function runDevDemo() {
     if (!import.meta.env.DEV || started) return;
     const demo = new URLSearchParams(window.location.search).get('demo');
-    if (demo !== 'penaltis') return;
+    if (demo !== 'penaltis' && demo !== 'ditto') return;
     started = true;
     // permite aos testes pular direto para o fim do tempo normal
     (window as unknown as { __soccermonBus?: typeof EventBus }).__soccermonBus = EventBus;
     const store = useGame.getState();
+    if (demo === 'ditto') {
+        for (let k = 0; k < 80; k++) {
+            store.newRun('Demo FC', `ditto${k}`);
+            const run = useGame.getState().run!;
+            const rng = new Rng(`ditto${k}`, 'demo');
+            // 1-2-1: goleiro, fixo, alas, pivô
+            const lineup = [143, 68, 151, 132, 150].map((id) => createInstance(id, rng));
+            const ready = {
+                ...run,
+                formation: '1-2-1' as const,
+                picks: lineup,
+                lineup: lineup.map((p) => p.uid),
+                bench: [],
+                captainUid: lineup[4].uid,
+                draftRound: 7,
+                status: 'lineup' as const,
+            };
+            const r = runMatch(FUTSAL_5, playerTeam(ready), ready.opponents[0], `${ready.seed}-stage-0`, {
+                snapshots: false,
+            });
+            if (r.events.some((e) => e.type === 'combo' && r.roster[e.by].team === 0)) {
+                useGame.setState({ run: ready, screen: 'lineup' });
+                console.info(`[demo] copa ${ready.seed}: tem combo Gênese`);
+                return;
+            }
+        }
+        return;
+    }
     for (let k = 0; k < 80; k++) {
         store.newRun('Demo FC', `pen${k}`);
         const run = useGame.getState().run!;

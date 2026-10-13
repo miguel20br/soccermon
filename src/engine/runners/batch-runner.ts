@@ -40,7 +40,7 @@ function summarize(s: MatchState, players = s.players): PlayerSummary[] {
         idx: p.idx,
         team: p.team,
         uid: p.inst.uid,
-        speciesId: p.inst.speciesId,
+        speciesId: (p.origin ?? p.inst).speciesId,
         name: p.name,
         role: p.role,
         shiny: p.inst.shiny,

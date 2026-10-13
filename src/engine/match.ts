@@ -1,5 +1,12 @@
 import { abilityEffect, isStatusImmune } from './abilities';
-import { type AttrKey, computeAttributes, eligiblePositions, type Position, positionFactor } from './attributes';
+import {
+    type AttrKey,
+    computeAttributes,
+    eligiblePositions,
+    type Position,
+    positionFactor,
+    positionRating,
+} from './attributes';
 import type { Command } from './commands';
 import type { MatchConfig } from './config';
 import { MOVES, species } from './data';
@@ -7,6 +14,7 @@ import { eff, fatigueFactor, isIncapacitated, TACTIC_MODS } from './effective';
 import { formationOf } from './formations';
 import type { PokemonInstance } from './instance';
 import { ITEMS } from './items';
+import { type ActiveLink, computeLinks, linkFactor } from './links';
 import { moveProfile, type StatusKind } from './moves';
 import { Rng } from './rng';
 import {
@@ -56,12 +64,13 @@ export function minuteOf(s: MatchState): number {
 /** Bônus coletivos do time: sinergias de tipo e aura do capitão. */
 interface TeamBonuses {
     synergies: Synergy[];
+    links: ActiveLink[];
     captain: PokemonInstance | null;
 }
 
 function teamBonuses(setup: TeamSetup): TeamBonuses {
     const captain = setup.lineup.find((p) => p.uid === setup.captainUid) ?? null;
-    return { synergies: computeSynergies(setup.lineup), captain };
+    return { synergies: computeSynergies(setup.lineup), links: computeLinks(setup.lineup), captain };
 }
 
 /** Aura do capitão: +3% para o time, +6% para quem divide tipo com ele. */
@@ -80,7 +89,7 @@ function createPlayer(
     bonuses: TeamBonuses,
 ): PlayerState {
     const sp = species(inst.speciesId);
-    const synergy = synergyFactor(bonuses.synergies, sp.types);
+    const synergy = synergyFactor(bonuses.synergies, sp.types) * linkFactor(bonuses.links, inst.uid);
     const isCaptain = bonuses.captain?.uid === inst.uid;
     const captainAura = isCaptain ? 1.03 : captainFactor(bonuses.captain, sp.types);
     const raw = computeAttributes(sp, inst.level);
@@ -166,8 +175,22 @@ export function createMatch(cfg: MatchConfig, home: TeamSetup, away: TeamSetup, 
         phaseTimer: 1,
         kickoffTeam: 0,
         teams: [
-            { setup: home, formation: formations[0], tactic: home.tactic, bench: [...home.bench], possessionTicks: 0 },
-            { setup: away, formation: formations[1], tactic: away.tactic, bench: [...away.bench], possessionTicks: 0 },
+            {
+                setup: home,
+                formation: formations[0],
+                tactic: home.tactic,
+                bench: [...home.bench],
+                possessionTicks: 0,
+                combosUsed: [],
+            },
+            {
+                setup: away,
+                formation: formations[1],
+                tactic: away.tactic,
+                bench: [...away.bench],
+                possessionTicks: 0,
+                combosUsed: [],
+            },
         ],
         players,
         auraHolders: [],
@@ -188,9 +211,66 @@ export function createMatch(cfg: MatchConfig, home: TeamSetup, away: TeamSetup, 
         finished: false,
         winner: null,
     };
+    transformDittos(s, s.players);
     refreshAuras(s);
     setupKickoff(s, 0);
     return s;
+}
+
+const DITTO = 132;
+
+/**
+ * Ditto (Transformar): vira uma cópia do melhor Pokémon da posição dele em campo, do próprio time ou do
+ * rival — mesma espécie, nível, golpes e habilidade. Mantém o nome, o item e os bônus do time dele.
+ */
+function transformDittos(s: MatchState, candidates: PlayerState[]) {
+    for (const p of candidates) {
+        if (p.inst.speciesId !== DITTO || p.origin) continue;
+        let best: PlayerState | null = null;
+        let bestRating = -1;
+        for (const o of s.players) {
+            if (o === p || (o.origin ?? o.inst).speciesId === DITTO) continue;
+            const r = positionRating(computeAttributes(o.sp, o.inst.level), p.role);
+            if (r > bestRating) {
+                best = o;
+                bestRating = r;
+            }
+        }
+        if (!best) continue;
+        const copy: PokemonInstance = {
+            ...p.inst,
+            speciesId: best.inst.speciesId,
+            level: best.inst.level,
+            moves: [...best.inst.moves],
+            ability: best.inst.ability,
+        };
+        const fresh = createPlayer(p.idx, p.team, p.slot, copy, p.role, teamBonuses(s.teams[p.team].setup));
+        fresh.origin = p.inst;
+        fresh.name = p.name;
+        fresh.pos = p.pos;
+        fresh.energy = p.energy;
+        s.players[p.idx] = fresh;
+        emit(s, { type: 'transform', by: p.idx, into: best.inst.speciesId, target: best.idx });
+    }
+}
+
+/** Duas peças da mesma sinergia de história: passe de um, chute do outro = combo (1 por tempo). */
+function comboLink(s: MatchState, shooter: PlayerState): { link: string; partner: number } | null {
+    const lk = s.ball.lastKick;
+    if (!lk || lk.kind !== 'pass' || lk.receiverId !== shooter.idx || lk.by === shooter.idx) return null;
+    if (s.tick - lk.tick > 4 * s.cfg.tickRate) return null;
+    const partner = s.players[lk.by];
+    if (!partner || partner.team !== shooter.team) return null;
+    const rt = s.teams[shooter.team];
+    const links = computeLinks(rt.setup.lineup);
+    const uidOf = (p: PlayerState) => (p.origin ?? p.inst).uid;
+    const hit = links.find(
+        (l) =>
+            !rt.combosUsed.includes(l.def.id) &&
+            l.members.includes(uidOf(shooter)) &&
+            l.members.includes(uidOf(partner)),
+    );
+    return hit ? { link: hit.def.id, partner: partner.idx } : null;
 }
 
 function refreshAuras(s: MatchState) {
@@ -435,8 +515,20 @@ function kick(s: MatchState, p: PlayerState, kind: 'pass' | 'shot', target: Vec2
         const bonus = p.shotBonus;
         // Scope Lens: chute crítico
         const crit = p.item === 'scopelens' && s.rng.chance(0.15);
-        speed = (10 + (15 * shooting) / 99) * clamp(power, 0.5, 1.1) * (bonus?.power ?? 1) * (crit ? 1.25 : 1);
-        sigma = (0.07 * (1.3 - shooting / 99) * (1 + distance / 15)) / (bonus?.accuracy ?? 1) / (crit ? 1.4 : 1);
+        // combo de sinergia: chute mais forte e mais preciso
+        const combo = comboLink(s, p);
+        const comboMult = combo ? 1.2 : 1;
+        if (combo) {
+            s.teams[p.team].combosUsed.push(combo.link);
+            emit(s, { type: 'combo', by: p.idx, partner: combo.partner, link: combo.link });
+        }
+        speed =
+            (10 + (15 * shooting) / 99) * clamp(power, 0.5, 1.1) * (bonus?.power ?? 1) * (crit ? 1.25 : 1) * comboMult;
+        sigma =
+            (0.07 * (1.3 - shooting / 99) * (1 + distance / 15)) /
+            (bonus?.accuracy ?? 1) /
+            (crit ? 1.4 : 1) /
+            (combo ? 1.5 : 1);
         if (crit) emit(s, { type: 'item', by: p.idx, item: 'scopelens', effect: 'crit' });
         if (bonus) {
             moveId = bonus.moveId;
@@ -1043,6 +1135,7 @@ function endHalf(s: MatchState) {
             p.buffs = [];
         }
         halftimeSubs(s);
+        for (const t of s.teams) t.combosUsed = [];
         s.phase = 'halftime';
         s.phaseTimer = 2;
         return;
@@ -1080,6 +1173,7 @@ function halftimeSubs(s: MatchState) {
             const outName = out.name;
             s.players[out.idx] = fresh;
             emit(s, { type: 'sub', team, out: outName, in: fresh.name, outIdx: out.idx });
+            transformDittos(s, [fresh]);
         }
     }
     refreshAuras(s);

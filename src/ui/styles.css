@@ -1994,7 +1994,7 @@ button,
 }
 .lab-proposals {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 12px;
 }
 .lab-proposal {
@@ -2149,7 +2149,6 @@ button,
     text-align: right;
 }
 @media (max-width: 1050px) {
-    .lab-proposals,
     .lab-columns {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -2161,4 +2160,51 @@ button,
     .lab-counts {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+}
+
+/* ---------- sinergias de história ---------- */
+.link-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: linear-gradient(135deg, #3b2a6b, #5a3a8a);
+    border: 1px solid #b48cff;
+    color: #f4eaff;
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: 11px;
+    white-space: nowrap;
+}
+.link-chip b {
+    color: var(--yellow);
+}
+.link-chip.fresh {
+    animation: link-pulse 1.2s ease-in-out infinite;
+}
+@keyframes link-pulse {
+    50% {
+        box-shadow: 0 0 10px #b48cff;
+    }
+}
+.option-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 11px;
+    margin-bottom: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+    .link-chip.fresh {
+        animation: none;
+    }
+}
+.modal-links {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.physique-line b {
+    color: var(--text);
 }

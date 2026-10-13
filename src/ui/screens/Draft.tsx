@@ -3,11 +3,13 @@ import { POSITION_LABEL } from '../../engine/attributes';
 import { DRAFT_PICKS } from '../../engine/draft';
 import { FORMATIONS, type FormationId } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
+import { computeLinks } from '../../engine/links';
 import { computeSynergies } from '../../engine/synergy';
 import { playSfx } from '../../game/audio';
 import { type SlotRef, slotRole, useGame } from '../../store/game-store';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
+import { LinkChip, LinkChips, newLinks } from '../components/LinkChips';
 import { TypeBadge } from '../components/PokeCard';
 
 /** Desenho mini da formação (bolinhas nas posições da UI). */
@@ -69,6 +71,7 @@ export function Draft() {
     const chosen = isCaptain ? (run.options.find((o) => o.uid === selected) ?? null) : null;
     const filled = run.lineup.filter(Boolean).map((u) => byUid.get(u)!);
     const synergies = computeSynergies(filled);
+    const links = computeLinks(filled);
     const avg = filled.length ? Math.round(filled.reduce((s, p) => s + viewInstance(p).overall, 0) / filled.length) : 0;
     const role = run.draftSlot ? slotRole(run, run.draftSlot) : null;
     const roleLabel = role === 'ANY' ? 'o banco' : role ? POSITION_LABEL[role] : '';
@@ -160,6 +163,7 @@ export function Draft() {
                                         </span>
                                     </span>
                                 ))}
+                                <LinkChips links={links} />
                             </div>
                         }
                     />
@@ -187,6 +191,14 @@ export function Draft() {
                         <div className="options">
                             {run.options.map((o) => (
                                 <div key={o.uid} className="option">
+                                    {!isCaptain && role !== 'ANY' && newLinks(filled, o).length > 0 && (
+                                        <div className="option-links">
+                                            Ativa{' '}
+                                            {newLinks(filled, o).map((d) => (
+                                                <LinkChip key={d.id} def={d} fresh />
+                                            ))}
+                                        </div>
+                                    )}
                                     <FutCard
                                         inst={o}
                                         position={role && role !== 'ANY' ? role : undefined}

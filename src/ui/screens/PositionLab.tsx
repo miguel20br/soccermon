@@ -3,6 +3,7 @@ import {
     computeAttributes,
     DEFAULT_FORMULAS,
     eligiblePositions,
+    FORMULAS_V04,
     POSITION_LABEL,
     POSITIONS,
     type Position,
@@ -13,8 +14,8 @@ import { SPECIES, type Species } from '../../engine/data';
 import { TYPE_COLOR, TYPE_PT } from '../type-colors';
 
 /**
- * Laboratório de posições (?lab=posicoes): compara a regra atual com sugestões prontas de
- * distribuição de posições. O Miguel escolhe uma e ela é aplicada no jogo.
+ * Laboratório de posições (?lab=posicoes): compara a regra da v0.4 (só stats) com a atual
+ * (stats + físico), mostrando quem mudou de posição e os melhores de cada uma.
  */
 interface Proposal {
     id: string;
@@ -22,48 +23,31 @@ interface Proposal {
     pitch: string;
     details: string[];
     formulas: PositionFormulas;
-    recommended?: boolean;
 }
-
-// Pivô "trombador": no futsal o pivô segura a bola de costas pro gol, então força pesa tanto quanto o chute
-const PIVO_TROMBADOR = { shooting: 35, strength: 35, dribble: 15, positioning: 15 };
 
 const PROPOSALS: Proposal[] = [
     {
-        id: 'atual',
-        name: 'Como está hoje',
-        pitch: 'A regra que está no jogo agora.',
+        id: 'v04',
+        name: 'Antes (v0.4)',
+        pitch: 'Posição só pelos stats.',
         details: [
-            'Muitos goleiros: todo Pokémon forte e resistente acaba no gol (Dragonite, Machamp, Blastoise).',
-            'Pivô é raro: só 13 têm o Pivô como posição principal.',
+            'Muitos goleiros: todo Pokémon forte e resistente acabava no gol.',
+            'Pivô raro: só 13 tinham o Pivô como posição principal.',
+        ],
+        formulas: FORMULAS_V04,
+    },
+    {
+        id: 'v05',
+        name: 'Agora (v0.5): stats + físico',
+        pitch: 'O corpo do Pokémon conta: porte e formato.',
+        details: [
+            'Quem tem mãos ou braços defende melhor: Snorlax, Machamp, Muk, Poliwrath e Hypno são goleiros.',
+            'Sem mãos é ruim no gol: quadrúpedes, aves e peixes (Magikarp no gol, nunca).',
+            'Pequenos driblam melhor, gigantes pior. Quem tem várias cabeças (Doduo, Exeggutor, Magneton) enxerga o passe.',
+            'Pivô "trombador": força pesa tanto quanto o chute.',
+            'Ditto joga em qualquer posição.',
         ],
         formulas: DEFAULT_FORMULAS,
-    },
-    {
-        id: 'equilibrio',
-        name: 'Equilíbrio',
-        pitch: 'Menos goleiros, mais que o dobro de pivôs.',
-        details: [
-            'No gol ficam os grandões de verdade: Lapras, Snorlax, Gyarados, Slowbro e Rhydon.',
-            'O Pivô vira o "trombador", que segura a bola de costas: força pesa tanto quanto o chute. Machamp, Dragonite, Moltres e Cloyster passam a ser pivôs.',
-            'Fica perto da proporção de um time de futsal: 1 goleiro, 1 fixo, 2 alas e 1 pivô.',
-        ],
-        formulas: { ...DEFAULT_FORMULAS, PIVO: PIVO_TROMBADOR, bias: { GK: -4, PIVO: 2 } },
-        recommended: true,
-    },
-    {
-        id: 'goleiro',
-        name: 'Só goleiro',
-        pitch: 'Mexe só no gol: vai pra lá só quem é claramente melhor no gol.',
-        details: ['Dragonite, Articuno, Blastoise e Golem viram fixos.', 'O Pivô continua raro.'],
-        formulas: { ...DEFAULT_FORMULAS, bias: { GK: -4 } },
-    },
-    {
-        id: 'pivo',
-        name: 'Só pivô',
-        pitch: 'Mexe só no ataque: mais pivôs, com o perfil "trombador".',
-        details: ['Os novos pivôs saem dos alas e dos fixos.', 'O gol continua cheio, com uns 40 goleiros.'],
-        formulas: { ...DEFAULT_FORMULAS, PIVO: PIVO_TROMBADOR, bias: { PIVO: 3 } },
     },
 ];
 
@@ -109,7 +93,7 @@ function Mon({ r, pos, note }: { r: Row; pos: Position; note?: string }) {
 }
 
 export function PositionLab({ onExit }: { onExit: () => void }) {
-    const [selected, setSelected] = useState('equilibrio');
+    const [selected, setSelected] = useState('v05');
     const [showAll, setShowAll] = useState(false);
 
     const results = useMemo(() => PROPOSALS.map((p) => ({ p, rows: evaluate(p.formulas) })), []);
@@ -124,9 +108,9 @@ export function PositionLab({ onExit }: { onExit: () => void }) {
             <div className="draft-head">
                 <div>
                     <div className="muted">Balanceamento</div>
-                    <h1>Posições: qual você prefere?</h1>
+                    <h1>Posições: antes e depois</h1>
                     <p className="muted" style={{ margin: '4px 0 0' }}>
-                        Separei 3 sugestões. Toque em cada uma pra ver quem muda de posição e me diga qual quer no jogo.
+                        Compare a regra antiga com a nova: quem mudou de posição e os melhores de cada uma.
                     </p>
                 </div>
                 <button type="button" className="btn small" onClick={onExit}>
@@ -144,7 +128,6 @@ export function PositionLab({ onExit }: { onExit: () => void }) {
                             className={`panel lab-proposal${p.id === selected ? ' selected' : ''}`}
                             onClick={() => setSelected(p.id)}
                         >
-                            {p.recommended && <span className="lab-tag">Minha sugestão</span>}
                             <h2>{p.name}</h2>
                             <p>{p.pitch}</p>
                             <div className="lab-bar">
@@ -183,7 +166,7 @@ export function PositionLab({ onExit }: { onExit: () => void }) {
                                 <b>{counts[pos]}</b>
                                 {d !== 0 && (
                                     <span className={`lab-delta ${d > 0 ? 'up' : 'down'}`}>
-                                        {d > 0 ? `+${d}` : d} vs hoje
+                                        {d > 0 ? `+${d}` : d} vs v0.4
                                     </span>
                                 )}
                                 <small className="muted">ideal ≈ {IDEAL[pos]}</small>
