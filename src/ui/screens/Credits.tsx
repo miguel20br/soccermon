@@ -19,8 +19,13 @@ export function Credits() {
                     Pokémon Mystery Dungeon © Nintendo / Spike Chunsoft.
                 </li>
                 <li>
-                    Sprites animados de Black/White e ícones:{' '}
+                    Sprites animados de Black/White, ícones de itens e ícones de tipo (Pokémon Champions):{' '}
                     <a href="https://github.com/PokeAPI/sprites">PokeAPI/sprites</a>.
+                </li>
+                <li>
+                    Técnicas das cartas holográficas inspiradas em{' '}
+                    <a href="https://github.com/simeydotme/pokemon-cards-css">pokemon-cards-css</a> (simeydotme,
+                    GPL-3.0).
                 </li>
                 <li>
                     Gritos: <a href="https://github.com/PokeAPI/cries">PokeAPI/cries</a>.

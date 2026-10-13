@@ -19,8 +19,8 @@ export interface Special {
     title?: string;
 }
 
-/** Edições no jogo (draft, recompensa, Destaque): ligadas quando a carta nova substituir a FutCard. */
-export const SPECIALS_LIVE = false;
+/** Edições no jogo (draft, recompensa, Destaque). Desligar aqui some com elas do jogo (a galeria continua). */
+export const SPECIALS_LIVE = true;
 
 export const SPECIAL_BONUS = 2;
 export const ICON_CHANCE = 1 / 20;

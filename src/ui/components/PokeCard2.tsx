@@ -169,7 +169,9 @@ export function PokeCard2({ inst, variant, position, captain, onClick, weak, sho
     const classes = ['pc2', holo ? 'pc2-holo' : fig ? 'pc2-fig' : `pc2-${variant}`, `tier-${d.sp.tier}`];
     if (size) classes.push(`size-${size}`);
     if (fig) {
-        classes.push(`holo-${d.sp.types[0].toLowerCase()}`);
+        // tema do fundo: o 1º tipo, mas Normal cede pro 2º (Pidgey/Normal-Voador ganha o céu)
+        const theme = d.sp.types[0] === 'Normal' && d.sp.types[1] ? d.sp.types[1] : d.sp.types[0];
+        classes.push(`holo-${theme.toLowerCase()}`);
         if (edition) classes.push('is-special', `sp-${edition}`);
     }
     if (inst.shiny) classes.push('is-shiny');

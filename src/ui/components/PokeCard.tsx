@@ -6,7 +6,8 @@ import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { ITEMS, itemSprite } from '../../engine/items';
 import { moveProfile } from '../../engine/moves';
 import { ratingAt } from '../rating';
-import { TYPE_COLOR, TYPE_DARK_TEXT, TYPE_PT } from '../type-colors';
+import { TYPE_COLOR } from '../type-colors';
+import { TypeIcon } from './TypeIcon';
 
 export const TIER_COLOR: Record<Tier, string> = {
     common: '#8f97b8',
@@ -49,15 +50,9 @@ const KIND_PT: Record<string, string> = {
 export const cardSprite = (inst: Pick<PokemonInstance, 'speciesId' | 'shiny'>) =>
     `assets/cards/${inst.shiny ? 'shiny/' : ''}${inst.speciesId}.gif`;
 
+/** Tipo com o ícone oficial + nome em português (src/ui/components/TypeIcon.tsx). */
 export function TypeBadge({ type }: { type: string }) {
-    return (
-        <span
-            className={`type-badge${TYPE_DARK_TEXT.has(type) ? ' dark' : ''}`}
-            style={{ background: TYPE_COLOR[type] }}
-        >
-            {TYPE_PT[type] ?? type}
-        </span>
-    );
+    return <TypeIcon type={type} label />;
 }
 
 function attrColor(v: number) {

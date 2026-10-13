@@ -2,29 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import { type AttrKey, POSITION_LABEL, POSITIONS, type Position } from '../../engine/attributes';
 import { MOVES, type Tier } from '../../engine/data';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
-import { ITEMS, itemSprite } from '../../engine/items';
+import { editionOf } from '../../engine/specials';
 import { type CardAction, useCardModal } from '../card-modal';
+import { EDITION } from '../rarity';
 import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
-import { cardSprite, TIER_PT, TypeBadge } from './PokeCard';
+import { TIER_PT, TypeBadge } from './PokeCard';
+import { PokeCard2 } from './PokeCard2';
 
-/** As 6 estatísticas da carta (estilo Ultimate Team). */
-const FIELD_STATS: [AttrKey, string][] = [
-    ['pace', 'VEL'],
-    ['shooting', 'CHU'],
-    ['passing', 'PAS'],
-    ['dribble', 'DRI'],
-    ['tackling', 'DES'],
-    ['strength', 'FOR'],
-];
-const GK_STATS: [AttrKey, string][] = [
-    ['goalkeeping', 'GOL'],
-    ['positioning', 'LEI'],
-    ['strength', 'FOR'],
-    ['pace', 'VEL'],
-    ['passing', 'PAS'],
-    ['stamina', 'FÔL'],
-];
 export const ATTR_SHORT: Record<AttrKey, string> = {
     pace: 'Velocidade',
     dribble: 'Drible',
@@ -35,14 +20,6 @@ export const ATTR_SHORT: Record<AttrKey, string> = {
     positioning: 'Leitura',
     stamina: 'Fôlego',
     goalkeeping: 'Goleiro',
-};
-
-export const TIER_FRAME: Record<Tier, string> = {
-    common: 'bronze',
-    uncommon: 'silver',
-    rare: 'gold',
-    epic: 'epic',
-    legendary: 'legend',
 };
 
 const LONG_PRESS_MS = 420;
@@ -64,8 +41,8 @@ interface FutCardProps {
 }
 
 /**
- * Carta estilo Ultimate Team: moldura pela raridade, OVR, posição e 6 estatísticas.
- * Passar o mouse (ou segurar o dedo) mostra a info rápida; clicar abre a carta completa.
+ * A carta do jogo (Figurinha Holo, src/ui/components/PokeCard2.tsx) com as interações: passar o mouse
+ * (ou segurar o dedo) mostra a info rápida; clicar abre a carta completa; ação rápida embaixo.
  */
 export function FutCard({
     inst,
@@ -84,11 +61,9 @@ export function FutCard({
     const pressTimer = useRef<number | undefined>(undefined);
     const suppressClick = useRef(false);
     const view = viewInstance(inst);
-    const sp = view.species;
     const pos = position ?? view.naturalPosition;
-    const { rating, display, fit } = ratingAt(inst, pos);
-    const stats = pos === 'GK' ? GK_STATS : FIELD_STATS;
-    const item = inst.item ? ITEMS[inst.item] : null;
+    const { display } = ratingAt(inst, pos);
+    const edition = editionOf(inst);
 
     useEffect(
         () => () => {
@@ -142,7 +117,7 @@ export function FutCard({
         <div className={`fut-wrap ${size}${selected ? ' selected' : ''}`}>
             <button
                 type="button"
-                className={`fut-card frame-${TIER_FRAME[sp.tier]}`}
+                className="fut-card2"
                 onClick={openFull}
                 onPointerEnter={onPointerEnter}
                 onPointerLeave={onPointerLeave}
@@ -150,32 +125,10 @@ export function FutCard({
                 onPointerUp={onPointerUp}
                 onPointerCancel={onPointerLeave}
                 onContextMenu={(e) => e.preventDefault()}
-                aria-label={`${view.displayName}, ${rating} de ${POSITION_LABEL[pos]}. Abrir carta completa`}
+                aria-label={`${view.displayName}, ${display} de ${POSITION_LABEL[pos]}${edition ? `, edição ${EDITION[edition].label}` : ''}. Abrir carta completa`}
             >
+                <PokeCard2 inst={inst} variant="figurinha" position={pos} captain={captain} />
                 {ribbon && <span className="fut-ribbon">{ribbon}</span>}
-                <span className="fut-top">
-                    <span className="fut-ovr">{display}</span>
-                    <span className={`fut-pos ${fit}`}>{POSITION_LABEL[pos]}</span>
-                    <span className="fut-types">
-                        {sp.types.map((t) => (
-                            <i key={t} style={{ background: TYPE_COLOR[t] }} title={t} />
-                        ))}
-                    </span>
-                    {captain && <span className="fut-captain">C</span>}
-                    {inst.shiny && <span className="fut-shiny">★</span>}
-                </span>
-                <span className="fut-art">
-                    <img className="pixel" src={cardSprite(inst)} alt="" loading="lazy" draggable={false} />
-                </span>
-                <span className="fut-name">{view.displayName}</span>
-                <span className="fut-stats">
-                    {stats.map(([k, label]) => (
-                        <span key={k}>
-                            <b>{Math.round(view.attributes[k])}</b> {label}
-                        </span>
-                    ))}
-                </span>
-                {item && <img className="pixel fut-item" src={itemSprite(item.id)} alt={item.name} />}
 
                 {peek && (
                     <span className="fut-peek" aria-hidden>

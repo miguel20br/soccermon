@@ -1,7 +1,7 @@
 {
   "name": "soccermon",
   "private": true,
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Fan game sem fins lucrativos: draft de Pokémon Gen 1 + futsal 5v5 simulado.",
   "license": "AGPL-3.0-or-later",
   "type": "module",

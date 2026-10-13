@@ -1,0 +1,546 @@
+/* =====================================================================
+   VERSUS diagonal: tela partida de canto a canto nas cores dos times, cada time
+   em fila diagonal encarando o outro, VS no meio da linha.
+   Posições em % da tela: no desktop a linha vai do canto superior esquerdo ao
+   inferior direito; no celular (retrato) ela fica quase horizontal, inclinada.
+   ===================================================================== */
+.vs-overlay.vsd {
+    display: block;
+    padding: 0;
+    overflow: hidden;
+    background: #070915;
+    /* desktop: fila da casa sobe do canto inferior esquerdo; visitante desce do superior direito */
+    --home-x0: 37%;
+    --home-y0: 67%;
+    --away-x0: 63%;
+    --away-y0: 37%;
+    --step-x: 7.6%;
+    --step-y: 5.7%;
+    --k0: 2.7;
+    --k-step: 0.13;
+}
+.vsd-scene {
+    position: absolute;
+    inset: 0;
+    animation: vsd-shake 0.32s 0.92s linear both;
+}
+
+/* ---------- metades ---------- */
+.vsd-half {
+    position: absolute;
+    inset: 0;
+}
+.vsd-half.home {
+    clip-path: polygon(0 0, 0 100%, 100% 100%);
+    background:
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.05) 0 2px, transparent 2px 26px),
+        radial-gradient(ellipse 70% 60% at 25% 80%, color-mix(in srgb, var(--home) 70%, transparent), transparent 75%),
+        linear-gradient(
+            200deg,
+            color-mix(in srgb, var(--home) 30%, #070915),
+            color-mix(in srgb, var(--home) 55%, #070915)
+        );
+    animation: vsd-in-home 0.42s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+.vsd-half.away {
+    clip-path: polygon(0 0, 100% 0, 100% 100%);
+    background:
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.05) 0 2px, transparent 2px 26px),
+        radial-gradient(ellipse 70% 60% at 75% 20%, color-mix(in srgb, var(--away) 70%, transparent), transparent 75%),
+        linear-gradient(
+            20deg,
+            color-mix(in srgb, var(--away) 30%, #070915),
+            color-mix(in srgb, var(--away) 55%, #070915)
+        );
+    animation: vsd-in-away 0.42s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+/* ---------- linha diagonal + raio ---------- */
+.vsd-lines {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    /* acima das metades, abaixo dos Pokémon (z 16..20), das faixas e do VS */
+    z-index: 12;
+    overflow: visible;
+    pointer-events: none;
+}
+.vsd-divider {
+    stroke: #fff;
+    stroke-width: 5px;
+    vector-effect: non-scaling-stroke;
+    filter: drop-shadow(0 0 6px #fff) drop-shadow(0 0 14px #ffcb05);
+    animation: vsd-draw 0.35s 0.25s ease-out both;
+}
+.vsd-bolt {
+    fill: #fff6b0;
+    stroke: #ffcb05;
+    stroke-width: 2px;
+    vector-effect: non-scaling-stroke;
+    filter: drop-shadow(0 0 8px #ffcb05) drop-shadow(0 0 18px #fff);
+    opacity: 0;
+    animation: vsd-bolt 0.6s 0.9s ease-out both;
+}
+.vsd-lines .tall {
+    display: none;
+}
+
+/* ---------- Pokémon ---------- */
+.vsd-mon {
+    position: absolute;
+    width: 0;
+    height: 0;
+    --k: calc(var(--k0) * (1 - var(--i) * var(--k-step)));
+}
+.vsd-mon.home {
+    left: calc(var(--home-x0) - var(--i) * var(--step-x));
+    top: calc(var(--home-y0) + var(--i) * var(--step-y));
+}
+.vsd-mon.away {
+    left: calc(var(--away-x0) + var(--i) * var(--step-x));
+    top: calc(var(--away-y0) - var(--i) * var(--step-y));
+}
+.vsd-fig {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    transform: translateX(-50%) scale(var(--k));
+    transform-origin: 50% 100%;
+    animation: vsd-land 0.42s var(--d) cubic-bezier(0.3, 0.6, 0.4, 1.35) both;
+}
+.vsd-fig img {
+    position: relative;
+    z-index: 1;
+    display: block;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.45));
+}
+/* sprites olham pra esquerda: a casa vira pra direita, encarando o visitante */
+.vsd-mon.home .vsd-fig img {
+    transform: scaleX(-1);
+}
+.vsd-ring {
+    position: absolute;
+    left: -14%;
+    right: -14%;
+    bottom: -5px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1.5px solid var(--rar);
+    background: radial-gradient(
+        ellipse at center,
+        color-mix(in srgb, var(--rar) 45%, transparent),
+        rgba(0, 0, 0, 0.45) 70%
+    );
+    box-shadow:
+        0 0 6px var(--rar),
+        inset 0 0 4px var(--rar);
+}
+.vsd-dust {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: calc(34px * var(--k));
+    height: calc(10px * var(--k));
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 20% 60%, rgba(235, 225, 200, 0.85) 0 18%, transparent 35%),
+        radial-gradient(circle at 80% 60%, rgba(235, 225, 200, 0.85) 0 18%, transparent 35%),
+        radial-gradient(circle at 50% 50%, rgba(235, 225, 200, 0.6) 0 22%, transparent 45%);
+    opacity: 0;
+    pointer-events: none;
+    animation: vsd-dust 0.55s calc(var(--d) + 0.3s) ease-out both;
+}
+.vsd-label {
+    position: absolute;
+    left: 0;
+    top: 8px;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: rgba(7, 9, 21, 0.78);
+    border: 1px solid color-mix(in srgb, var(--rar) 70%, transparent);
+    white-space: nowrap;
+    font-size: 11px;
+    line-height: 1.4;
+    animation: vsd-fade 0.3s calc(var(--d) + 0.25s) ease both;
+}
+.vsd-label b {
+    font-weight: 700;
+}
+.vsd-label span {
+    color: var(--muted);
+    font-size: 10px;
+}
+.vsd-c {
+    display: inline-grid;
+    place-items: center;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--yellow);
+    color: #2a2a2a !important;
+    font-size: 9px !important;
+    font-weight: 700;
+}
+
+/* ---------- faixas dos times ---------- */
+.vsd-band {
+    position: absolute;
+    z-index: 25;
+    max-width: 31%;
+    padding: 10px 26px 10px 22px;
+    background: linear-gradient(90deg, rgba(7, 9, 21, 0.92), rgba(7, 9, 21, 0.72));
+    border-left: 6px solid var(--team-c);
+    transform: skewX(-12deg);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+.vsd-band > * {
+    transform: skewX(12deg);
+}
+.vsd-band.home {
+    --team-c: var(--home);
+    left: 44%;
+    bottom: 10%;
+    text-align: right;
+    border-left: 0;
+    border-right: 6px solid var(--team-c);
+    animation: vsd-band-home 0.4s 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+}
+.vsd-band.away {
+    --team-c: var(--away);
+    left: 25%;
+    top: 9%;
+    animation: vsd-band-away 0.4s 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+}
+.vsd-band-name {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 30px;
+    line-height: 1.1;
+    color: #fff;
+    text-shadow:
+        3px 3px 0 color-mix(in srgb, var(--team-c) 70%, #000),
+        0 0 14px color-mix(in srgb, var(--team-c) 60%, transparent);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.vsd-band-meta {
+    font-size: 13px;
+    color: var(--muted);
+}
+.vsd-band-meta b {
+    color: var(--yellow);
+}
+.vsd-bench {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--muted);
+}
+.vsd-band.home .vsd-bench {
+    justify-content: flex-end;
+}
+.vsd-bench img {
+    height: 30px;
+    image-rendering: pixelated;
+}
+
+/* ---------- VS ---------- */
+.vsd-vs {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 40;
+    transform: translate(-50%, -50%) rotate(-8deg);
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: clamp(64px, 12vmin, 132px);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: #fff;
+    text-shadow:
+        0.04em 0 0 #e8423f,
+        -0.04em 0 0 #e8423f,
+        0 0.04em 0 #e8423f,
+        0 -0.04em 0 #e8423f,
+        0.03em 0.03em 0 #e8423f,
+        -0.03em -0.03em 0 #e8423f,
+        0.03em -0.03em 0 #e8423f,
+        -0.03em 0.03em 0 #e8423f,
+        0.08em 0.08em 0 #0e1430,
+        0.1em 0.1em 0 #0e1430,
+        0 0 0.4em rgba(255, 203, 5, 0.85);
+    animation: vsd-slam 0.42s 0.88s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
+}
+.vsd-stage {
+    position: absolute;
+    left: 50%;
+    top: 3.5%;
+    z-index: 45;
+    transform: translateX(-50%);
+    padding: 4px 16px;
+    border-radius: 999px;
+    background: rgba(7, 9, 21, 0.85);
+    border: 2px solid var(--yellow);
+    white-space: nowrap;
+}
+.vsd-flash {
+    position: absolute;
+    inset: 0;
+    z-index: 60;
+    background: #fff;
+    opacity: 0;
+    pointer-events: none;
+    animation: vsd-flash 0.45s 0.92s ease-out both;
+}
+.vsd .vs-start {
+    position: absolute;
+    left: 50%;
+    bottom: 4.5%;
+    z-index: 70;
+    transform: translateX(-50%);
+    min-width: 220px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+.vsd .vs-progress {
+    z-index: 71;
+}
+
+/* ---------- animações ---------- */
+@keyframes vsd-in-home {
+    from {
+        transform: translate(-28%, 28%);
+        opacity: 0;
+    }
+}
+@keyframes vsd-in-away {
+    from {
+        transform: translate(28%, -28%);
+        opacity: 0;
+    }
+}
+@keyframes vsd-draw {
+    from {
+        opacity: 0;
+        stroke-width: 18px;
+    }
+}
+@keyframes vsd-land {
+    0% {
+        translate: 0 -45vh;
+        opacity: 0;
+    }
+    60% {
+        opacity: 1;
+    }
+    100% {
+        translate: 0 0;
+        opacity: 1;
+    }
+}
+@keyframes vsd-dust {
+    0% {
+        opacity: 0.9;
+        transform: translate(-50%, -50%) scale(0.4);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -80%) scale(1.6);
+    }
+}
+@keyframes vsd-fade {
+    from {
+        opacity: 0;
+    }
+}
+@keyframes vsd-band-home {
+    from {
+        transform: skewX(-12deg) translateX(60px);
+        opacity: 0;
+    }
+}
+@keyframes vsd-band-away {
+    from {
+        transform: skewX(-12deg) translateX(-60px);
+        opacity: 0;
+    }
+}
+@keyframes vsd-slam {
+    0% {
+        transform: translate(-50%, -50%) rotate(-8deg) scale(3.2);
+        opacity: 0;
+    }
+    55% {
+        transform: translate(-50%, -50%) rotate(-8deg) scale(0.88);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(-8deg) scale(1);
+        opacity: 1;
+    }
+}
+@keyframes vsd-bolt {
+    0% {
+        opacity: 0;
+    }
+    15% {
+        opacity: 1;
+    }
+    35% {
+        opacity: 0.5;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.85;
+    }
+}
+@keyframes vsd-flash {
+    0% {
+        opacity: 0;
+    }
+    18% {
+        opacity: 0.8;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+@keyframes vsd-shake {
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+    20% {
+        transform: translate(-7px, 4px);
+    }
+    40% {
+        transform: translate(6px, -5px);
+    }
+    60% {
+        transform: translate(-4px, -3px);
+    }
+    80% {
+        transform: translate(3px, 3px);
+    }
+}
+
+/* ---------- celular (retrato): linha quase horizontal, visitante em cima, casa embaixo ---------- */
+@media (max-width: 760px), (max-aspect-ratio: 4 / 5) {
+    .vs-overlay.vsd {
+        --home-x0: 64%;
+        --home-y0: 67%;
+        --away-x0: 36%;
+        --away-y0: 42%;
+        --step-x: -12.4%;
+        --step-y: 3.3%;
+        --k0: 1.12;
+        --k-step: 0.1;
+    }
+    /* no retrato a fila da casa vai pra esquerda/baixo e a do visitante pra direita/cima */
+    .vsd-mon.home {
+        left: calc(var(--home-x0) + var(--i) * var(--step-x));
+    }
+    .vsd-mon.away {
+        left: calc(var(--away-x0) - var(--i) * var(--step-x));
+        top: calc(var(--away-y0) - var(--i) * var(--step-y) * 1.2);
+    }
+    .vsd-half.home {
+        clip-path: polygon(0 40%, 100% 60%, 100% 100%, 0 100%);
+    }
+    .vsd-half.away {
+        clip-path: polygon(0 0, 100% 0, 100% 60%, 0 40%);
+    }
+    .vsd-lines .wide {
+        display: none;
+    }
+    .vsd-lines .tall {
+        display: inline;
+    }
+    @keyframes vsd-in-home {
+        from {
+            transform: translateY(30%);
+            opacity: 0;
+        }
+    }
+    @keyframes vsd-in-away {
+        from {
+            transform: translateY(-30%);
+            opacity: 0;
+        }
+    }
+    .vsd-band {
+        max-width: 84%;
+        padding: 5px 16px 5px 14px;
+    }
+    .vsd-band.away {
+        left: 3%;
+        top: 7.5%;
+    }
+    .vsd-band.home {
+        left: auto;
+        right: 3%;
+        bottom: 11.5%;
+    }
+    .vsd-band.home .vsd-bench {
+        display: none;
+    }
+    .vsd-band-name {
+        font-size: 19px;
+    }
+    .vsd-band-meta {
+        font-size: 11px;
+    }
+    .vsd-bench img {
+        height: 22px;
+    }
+    .vsd-label {
+        font-size: 9px;
+        padding: 0 5px;
+        top: 5px;
+    }
+    .vsd-label span {
+        display: none;
+    }
+    .vsd-stage {
+        top: 2%;
+        font-size: 13px;
+    }
+    .vsd .vs-start {
+        bottom: 3.5%;
+        min-width: 180px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vsd-scene,
+    .vsd-half,
+    .vsd-fig,
+    .vsd-label,
+    .vsd-band,
+    .vsd-vs,
+    .vsd-flash,
+    .vsd-dust {
+        animation: none !important;
+    }
+    .vsd-divider {
+        animation: none;
+    }
+    .vsd-bolt {
+        animation: none;
+        opacity: 0.85;
+    }
+    .vsd-flash,
+    .vsd-dust {
+        opacity: 0;
+    }
+}

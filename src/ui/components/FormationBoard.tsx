@@ -1,9 +1,12 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { POSITION_LABEL } from '../../engine/attributes';
+import { species } from '../../engine/data';
 import { type FormationId, formationOf } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
+import { editionOf } from '../../engine/specials';
 import type { SlotRef } from '../../store/game-store';
+import { EDITION, RARITY } from '../rarity';
 import { ratingAt } from '../rating';
 import { cardSprite } from './PokeCard';
 
@@ -56,12 +59,16 @@ export function FormationBoard({
         // projeção do selecionado (não no banco nem na própria vaga dele)
         const proj = projection && ref.zone === 'lineup' && uid !== projection.uid ? ratingAt(projection, role) : null;
         const projClass = proj ? (proj.fit === 'off' ? ' proj-bad' : ' proj-good') : '';
+        // cor da raridade (anel) e marca da edição especial
+        const tier = inst ? species(inst.speciesId).tier : null;
+        const edition = inst ? editionOf(inst) : null;
+        const rarStyle = tier ? ({ ...style, '--rar': RARITY[tier].color } as CSSProperties) : style;
         return (
             <button
                 type="button"
                 key={`${ref.zone}-${ref.index}`}
-                className={`slot ${inst ? 'filled' : 'empty'} ${state}${projClass}`}
-                style={style}
+                className={`slot ${inst ? 'filled' : 'empty'} ${state}${projClass}${tier ? ` rar-${tier}` : ''}`}
+                style={rarStyle}
                 disabled={!clickable}
                 onClick={() => onSlot?.(ref, uid)}
                 aria-label={`${label}${inst ? `: ${viewInstance(inst).displayName}` : ` (${emptyLabel})`}`}
@@ -82,6 +89,11 @@ export function FormationBoard({
                             </span>
                         )}
                         {inst?.item && <img className="pixel slot-item" src={itemSprite(inst.item)} alt="" />}
+                        {edition && (
+                            <span className={`slot-edition ed-${edition}`} title={EDITION[edition].label}>
+                                ★
+                            </span>
+                        )}
                     </>
                 ) : (
                     <span className="slot-empty">{emptyLabel}</span>

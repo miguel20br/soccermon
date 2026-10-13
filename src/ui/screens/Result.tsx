@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { species } from '../../engine/data';
 import { matchMvp } from '../../engine/mvp';
 import type { PlayerSummary } from '../../engine/runners/batch-runner';
 import { isPerfectCup, stageLabel, useGame } from '../../store/game-store';
+import { FutCard } from '../components/FutCard';
 import { cardSprite } from '../components/PokeCard';
 import { shareRun } from '../share';
 
@@ -18,6 +20,8 @@ export function Result() {
     const sum = (team: 0 | 1, key: keyof PlayerSummary['stats']) =>
         everyone.filter((p) => p.team === team).reduce((s, p) => s + p.stats[key], 0);
     const mvp = matchMvp(match);
+    const stageResult = run.results.find((r) => r.stage === run.stage);
+    const destaque = stageResult?.destaqueUid ? run.picks.find((p) => p.uid === stageResult.destaqueUid) : null;
 
     const goals = match.events.filter((e) => e.type === 'goal');
     const nameAt = (idx: number, tick: number) => {
@@ -127,6 +131,16 @@ export function Result() {
                                 ),
                         )}
                     </div>
+                    {destaque && (
+                        <div className="destaque-box">
+                            <h2>Virou carta Destaque!</h2>
+                            <p className="tactic-desc">
+                                {destaque.nickname ?? species(destaque.speciesId).name} foi o craque do seu time e
+                                ganhou a edição Destaque: +2 em todos os atributos.
+                            </p>
+                            <FutCard inst={destaque} size="sm" />
+                        </div>
+                    )}
                     {mvp && (
                         <>
                             <h2 style={{ marginTop: 16 }}>Craque da partida</h2>

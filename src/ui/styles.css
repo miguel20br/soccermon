@@ -2228,3 +2228,115 @@ button,
     font-size: 12px;
     white-space: nowrap;
 }
+
+/* ---------- a carta do jogo (Figurinha Holo dentro do FutCard) ---------- */
+.fut-card2 {
+    position: relative;
+    display: block;
+    width: var(--fut-w);
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+    border-radius: 0.75em;
+}
+.fut-card2 .pc2 {
+    font-size: calc(var(--fut-w) / 15);
+}
+.fut-card2 .fut-peek {
+    border-radius: 10px;
+}
+.fut-wrap.selected .fut-card2 {
+    filter: drop-shadow(0 0 4px var(--yellow)) drop-shadow(0 0 10px var(--yellow));
+    transform: translateY(-4px);
+}
+.fut-card2 .fut-ribbon {
+    z-index: 12;
+}
+
+/* ---------- vaga da formação: anel na cor da raridade + edição especial ---------- */
+.slot.filled {
+    box-shadow: inset 0 0 0 2px var(--rar, transparent);
+}
+.slot.filled.rar-epic {
+    box-shadow:
+        inset 0 0 0 2px var(--rar),
+        0 0 10px color-mix(in srgb, var(--rar) 60%, transparent);
+}
+.slot.filled.rar-legendary {
+    box-shadow:
+        inset 0 0 0 2px var(--rar),
+        0 0 14px color-mix(in srgb, var(--rar) 70%, transparent);
+}
+.slot-edition {
+    position: absolute;
+    left: 4px;
+    bottom: 4px;
+    width: 16px;
+    height: 16px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    font-size: 10px;
+    color: #fff;
+    border: 1px solid #fff;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+}
+.ed-shiny {
+    background: linear-gradient(135deg, #b8860b, #ffe680, #b8860b);
+}
+.ed-destaque {
+    background: linear-gradient(135deg, #ff5a5a, #ffd23f, #3ddc6a, #3a8dff, #a45cff);
+}
+.ed-icone {
+    background: radial-gradient(circle at 30% 30%, #6a2cff, #07051f);
+}
+.ed-evento {
+    background: repeating-conic-gradient(#ff8a1c 0 20deg, #ffd29a 20deg 40deg);
+}
+
+/* ---------- faixa do evento da semana / Destaque no resultado ---------- */
+.event-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    border-radius: 12px;
+    background: linear-gradient(90deg, rgba(255, 138, 28, 0.25), rgba(164, 92, 255, 0.25));
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    max-width: 420px;
+    margin: 0 auto;
+}
+.event-banner div {
+    display: flex;
+    flex-direction: column;
+    font-size: 12px;
+}
+.event-banner b {
+    font-size: 14px;
+    color: var(--yellow);
+}
+.event-banner .type-icon {
+    width: 28px;
+    height: 28px;
+}
+.destaque-box {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    padding: 10px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 90, 90, 0.2),
+        rgba(61, 220, 106, 0.2),
+        rgba(58, 141, 255, 0.2),
+        rgba(164, 92, 255, 0.2)
+    );
+}
+.destaque-box h2 {
+    margin: 0;
+}

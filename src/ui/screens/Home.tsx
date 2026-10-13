@@ -1,5 +1,8 @@
 import { useState } from 'react';
+import { weeklyEventType } from '../../engine/specials';
 import { seedFromUrl, useGame } from '../../store/game-store';
+import { TypeIcon } from '../components/TypeIcon';
+import { TYPE_PT } from '../type-colors';
 
 const PARADE = [1, 4, 7, 25, 133, 143, 150];
 
@@ -15,6 +18,7 @@ export function Home() {
               ? 'reward'
               : 'lineup';
     const name = () => teamName.trim() || 'Pallet FC';
+    const eventType = weeklyEventType(new Date());
 
     return (
         <div className="home">
@@ -29,6 +33,13 @@ export function Home() {
                 {PARADE.map((id) => (
                     <img key={id} className="pixel" src={`assets/cards/${id}.gif`} alt="" />
                 ))}
+            </div>
+            <div className="event-banner">
+                <TypeIcon type={eventType} size={28} />
+                <div>
+                    <b>Semana do {TYPE_PT[eventType] ?? eventType}</b>
+                    <span>Cartas Evento de {TYPE_PT[eventType] ?? eventType} podem aparecer no draft.</span>
+                </div>
             </div>
             <div className="menu panel">
                 <label className="muted" htmlFor="team-name">
@@ -65,6 +76,16 @@ export function Home() {
                         <span>
                             <b>{records.perfect}</b> perfeitas
                         </span>
+                        {(records.destaques ?? 0) > 0 && (
+                            <span>
+                                <b>{records.destaques}</b> destaques
+                            </span>
+                        )}
+                        {(records.icones ?? 0) > 0 && (
+                            <span>
+                                <b>{records.icones}</b> ícones
+                            </span>
+                        )}
                     </div>
                 )}
                 <div className="row" style={{ justifyContent: 'center' }}>
