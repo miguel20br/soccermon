@@ -83,7 +83,7 @@ const EDITION_DESC: Record<Edition | 'none', string> = {
     none: 'Bronze, prata ou ouro pela nota; fosco (comum) ou brilhante (raro) pela raridade; lendário é creme e dourado.',
     shiny: 'Shiny (1 em 64, sorte): pérola iridescente.',
     destaque: 'Destaque: o craque do seu time na partida ganha esta carta preta e dourada, estilo TOTW.',
-    icone: 'Ícone: só Pokémon da lista, 1 em 20 quando aparecem no draft.',
+    icone: 'Ícone: só Pokémon da lista, 1 em 80 quando aparecem no draft.',
     evento: 'Evento: o tipo da semana tem 1 em 8 de vir com esta carta.',
 };
 /** Um exemplo de cada metal × acabamento (e o lendário), achado nos dados. */

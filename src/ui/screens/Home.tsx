@@ -6,6 +6,14 @@ import { TYPE_PT } from '../type-colors';
 
 const PARADE = [1, 4, 7, 25, 133, 143, 150];
 
+/** O que vem por aí (só vitrine: nada disso é clicável ainda). */
+const SOON = [
+    { title: 'Modo história', text: 'Ginásios, insígnias e a Liga Índigo', img: 'assets/cards/25.gif' },
+    { title: 'Multiplayer', text: 'Desafie o time de um amigo', img: 'assets/cards/68.gif' },
+    { title: 'Futebol de campo', text: 'Partidas 11 contra 11', img: 'assets/cards/143.gif' },
+    { title: 'Geração 2', text: 'Os Pokémon de Johto', img: 'assets/ui/poke-ball.png' },
+];
+
 export function Home() {
     const { run, newRun, go, records } = useGame();
     const [teamName, setTeamName] = useState('Pallet FC');
@@ -140,6 +148,18 @@ export function Home() {
                     )}
                 </div>
             </div>
+            <section className="soon" aria-label="Em breve">
+                <h2>Em breve</h2>
+                <div className="soon-grid">
+                    {SOON.map((c) => (
+                        <div key={c.title} className="soon-card">
+                            <img className="pixel" src={c.img} alt="" />
+                            <b>{c.title}</b>
+                            <span>{c.text}</span>
+                        </div>
+                    ))}
+                </div>
+            </section>
             <p className="disclaimer">
                 Soccermon v{__APP_VERSION__.replace(/\.0$/, '')} · Fan game sem fins lucrativos, feito por fãs. Pokémon
                 e todos os nomes, sprites e sons relacionados são © Nintendo, Game Freak, Creatures Inc. e The Pokémon

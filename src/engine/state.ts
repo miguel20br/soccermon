@@ -131,6 +131,9 @@ export interface ShotInfo {
 export interface BallState {
     pos: Vec2;
     vel: Vec2;
+    /** Altura (m) e velocidade vertical: passe longo vai pelo alto ("bola cruzada"). */
+    z: number;
+    vz: number;
     owner: number | null;
     lastTouch: number | null;
     lastKick: { by: number; kind: 'pass' | 'shot' | 'clear'; tick: number; receiverId?: number } | null;
@@ -228,6 +231,8 @@ export interface MatchSnapshot {
     phase: Phase;
     bx: number;
     by: number;
+    /** Altura da bola (m): o render aumenta a bola e afasta da sombra. */
+    bz: number;
     owner: number;
     /** Tipo do golpe do chute em andamento (rastro colorido na bola), ou ''. */
     bfx: string;

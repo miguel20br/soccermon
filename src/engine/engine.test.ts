@@ -395,18 +395,18 @@ describe('v0.5: físico, sinergias de história e Ditto', () => {
 });
 
 describe('v0.6: cartas especiais', () => {
-    it('rollSpecial: determinístico, só Ícones da lista, chance perto de 1 em 20', () => {
+    it('rollSpecial: determinístico, só Ícones da lista, chance perto de 1 em 80', () => {
         const rng = new Rng('esp');
         let icons = 0;
-        const n = 10_000;
+        const n = 40_000;
         for (let i = 0; i < n; i++) {
             const inst = createInstance(25, rng);
             const a = rollSpecial(inst, null);
             expect(rollSpecial(inst, null)).toEqual(a);
             if (a.special?.kind === 'icone') icons++;
         }
-        expect(icons / n).toBeGreaterThan(0.035);
-        expect(icons / n).toBeLessThan(0.065);
+        expect(icons / n).toBeGreaterThan(0.009);
+        expect(icons / n).toBeLessThan(0.016);
         for (let i = 0; i < 2000; i++) expect(rollSpecial(createInstance(16, rng), null).special).toBeFalsy();
     });
 

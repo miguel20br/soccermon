@@ -37,6 +37,12 @@ import { expectedGoals } from './xg';
 
 // ---------------------------------------------------------------- constantes físicas
 export const FRICTION = 2.8; // desaceleração da bola rolando (m/s²)
+const GRAVITY = 9.8;
+/** Passe a partir desta distância (m) vai pelo alto: passa por cima de quem está no caminho. */
+const LOB_MIN = 12;
+/** Altura (m) até onde um jogador de linha domina a bola; o goleiro na área alcança mais alto. */
+const REACH_Z = 1.1;
+const GK_REACH_Z = 2.3;
 const CONTROL_RADIUS = 0.6;
 const GK_CONTROL_RADIUS = 0.95;
 const TACKLE_RANGE = 1.35;
@@ -201,6 +207,8 @@ export function createMatch(cfg: MatchConfig, home: TeamSetup, away: TeamSetup, 
         ball: {
             pos: v(cfg.pitch.length / 2, cfg.pitch.width / 2),
             vel: v(0, 0),
+            z: 0,
+            vz: 0,
             owner: null,
             lastTouch: null,
             lastKick: null,
@@ -301,6 +309,8 @@ function setupKickoff(s: MatchState, team: 0 | 1) {
     s.ball = {
         pos: v(length / 2, width / 2),
         vel: v(0, 0),
+        z: 0,
+        vz: 0,
         owner: kicker.idx,
         lastTouch: kicker.idx,
         lastKick: null,
@@ -546,6 +556,15 @@ function kick(s: MatchState, p: PlayerState, kind: 'pass' | 'shot', target: Vec2
 
     const dir = rotate(norm(toTarget), s.rng.gauss() * sigma);
     ball.vel = scale(dir, speed);
+    ball.z = 0;
+    ball.vz = 0;
+    if (kind === 'pass' && distance >= LOB_MIN) {
+        // bola cruzada: voa por ~85% do caminho e quica perto do alvo
+        const flight = clamp(distance / 13, 0.85, 1.45);
+        ball.vel = scale(dir, (0.85 * distance) / flight);
+        ball.vz = (GRAVITY * flight) / 2;
+        ball.z = 0.05;
+    }
     ball.owner = null;
     ball.lastTouch = p.idx;
     ball.lastKick = { by: p.idx, kind, tick: s.tick, receiverId };
@@ -910,13 +929,25 @@ function updateBall(s: MatchState, dt: number) {
         const o = s.players[ball.owner];
         ball.pos = add(o.pos, scale(o.heading, DRIBBLE_OFFSET));
         ball.vel = o.vel;
+        ball.z = 0;
+        ball.vz = 0;
         return;
     }
 
     const prev = ball.pos;
     ball.pos = add(ball.pos, scale(ball.vel, dt));
     const speed = len(ball.vel);
-    const newSpeed = Math.max(0, speed - FRICTION * dt);
+    let newSpeed = speed;
+    if (ball.z > 0) {
+        // no ar não há atrito do chão; ao cair, quica e perde força
+        ball.vz -= GRAVITY * dt;
+        ball.z += ball.vz * dt;
+        if (ball.z <= 0) {
+            ball.z = 0;
+            ball.vz = 0;
+            newSpeed = speed * 0.65;
+        }
+    } else newSpeed = Math.max(0, speed - FRICTION * dt);
     ball.vel = speed > 0 ? scale(ball.vel, newSpeed / speed) : ball.vel;
 
     // laterais: tabela na parede (futsal "arena" — sem lateral cobrado no MVP)
@@ -1052,6 +1083,8 @@ function checkPossession(s: MatchState) {
     for (const p of s.players) {
         if (p.kickCooldown > 0 || isIncapacitated(p)) continue;
         const inOwnArea = p.role === 'GK' && isInOwnArea(s, p, ball.pos);
+        // bola cruzada passa por cima de quem não alcança
+        if (ball.z > (inOwnArea ? GK_REACH_Z : REACH_Z)) continue;
         const radius = inOwnArea ? GK_CONTROL_RADIUS : CONTROL_RADIUS;
         const d = dist(p.pos, ball.pos);
         if (d > radius) continue;
@@ -1273,6 +1306,7 @@ export function snapshot(s: MatchState): MatchSnapshot {
         bfx: s.ball.shot?.moveId ? s.ball.shot.moveType : '',
         bx: Math.round(s.ball.pos.x * 100) / 100,
         by: Math.round(s.ball.pos.y * 100) / 100,
+        bz: Math.round(s.ball.z * 100) / 100,
         owner: s.ball.owner ?? -1,
         score: [s.score[0], s.score[1]],
         p,

@@ -5,7 +5,7 @@ import { Rng } from './rng';
 /**
  * Cartas especiais (edições). Uma carta tem no máximo uma edição; shiny continua sendo só o sprite
  * e conta como edição "Shiny" quando não há outra. Toda edição dá +2 em todos os atributos (não acumula).
- * - Ícone: Pokémon da lista curada, 1 em 20 quando aparece no draft ou na recompensa.
+ * - Ícone: Pokémon da lista curada, 1 em 80 quando aparece no draft ou na recompensa.
  * - Evento: tipo da semana, 1 em 8 para cartas desse tipo.
  * - Destaque: o craque do seu time na partida (dado pelo resultado, não sorteado).
  */
@@ -23,7 +23,8 @@ export interface Special {
 export const SPECIALS_LIVE = true;
 
 export const SPECIAL_BONUS = 2;
-export const ICON_CHANCE = 1 / 20;
+/** Ícone tem que ser raro de verdade: os 20 da lista já são os mais famosos, então saem muito no draft. */
+export const ICON_CHANCE = 1 / 80;
 export const EVENT_CHANCE = 1 / 8;
 
 /** Ícones: espécie → título da carta. */

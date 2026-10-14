@@ -554,8 +554,11 @@ export class MatchScene extends Phaser.Scene {
             });
         }
         const spot = toPx(34, width / 2);
-        this.ball.setPosition(spot.x, spot.y - 4);
-        this.ballShadow.setPosition(spot.x + 2, spot.y + 2);
+        this.ball.setPosition(spot.x, spot.y - 4).setScale(1);
+        this.ballShadow
+            .setPosition(spot.x + 2, spot.y + 2)
+            .setScale(1)
+            .setAlpha(0.35);
         this.ballGlow.setAlpha(0);
         const cam = this.cameras.main;
         const center = toPx(29.5, width / 2);
@@ -742,10 +745,17 @@ export class MatchScene extends Phaser.Scene {
             bp.x += held.x;
             bp.y += held.y;
         }
-        this.ball.setPosition(bp.x, bp.y - 4);
-        this.ballShadow.setPosition(bp.x + 2, bp.y + 2).setDepth(bp.y - 3);
+        // bola cruzada: sobe (afasta da sombra) e cresce, como se viesse na direção da câmera
+        const bz = Math.max(0, (a.bz ?? 0) + ((b.bz ?? 0) - (a.bz ?? 0)) * k);
+        const lift = bz * PPM * 0.9;
+        this.ball.setPosition(bp.x, bp.y - 4 - lift).setScale(1 + bz * 0.3);
+        this.ballShadow
+            .setPosition(bp.x + 2, bp.y + 2)
+            .setDepth(bp.y - 3)
+            .setScale(1 / (1 + bz * 0.25))
+            .setAlpha(0.35 / (1 + bz * 0.4));
         this.ballFree = near.owner < 0 && a.owner < 0;
-        this.updateBallFx(near.bfx, bp.x, bp.y - 4);
+        this.updateBallFx(near.bfx, bp.x, bp.y - 4 - lift);
     }
 
     /**
