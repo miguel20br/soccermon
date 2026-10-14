@@ -39,6 +39,26 @@ export const FX_NAMES = [
     'shine',
     'heart',
     'angry',
+    // revisão dos golpes: mordida, cortes, garras, golpe de karatê, osso, olhos, concha, lua…
+    'bone',
+    'topbite',
+    'bottombite',
+    'leftslash',
+    'rightslash',
+    'leftclaw',
+    'rightclaw',
+    'leftchop',
+    'rightchop',
+    'shell',
+    'moon',
+    'flareball',
+    'caltrop',
+    'gear',
+    'pokeball',
+    'rainbow',
+    'blackwisp',
+    'poisoncaltrop',
+    'stare',
 ];
 
 const cryJobs = ids151.flatMap((id) => [

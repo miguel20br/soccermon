@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MOVES, SPECIES } from '../../engine/data';
-import { defaultMoveset, moveProfile } from '../../engine/moves';
+import { DRAIN, defaultMoveset, moveProfile, SPECIAL_EXPLAIN } from '../../engine/moves';
 import { SIGNATURE } from '../../engine/signature-moves';
 import { EventBus } from '../../game/EventBus';
 import { type FxStyle, fxStyle } from '../../game/move-fx';
@@ -23,6 +23,7 @@ const KIND_PT: Record<string, string> = {
     status: 'Status no rival perto (paralisia, sono, veneno, confusão)',
     heal: 'Recupera fôlego',
     flavor: 'Só narração (não faz nada)',
+    special: 'Efeito especial',
 };
 
 const STYLE_PT: Record<FxStyle, string> = {
@@ -284,7 +285,12 @@ export function MoveLab({ onExit }: { onExit: () => void }) {
                             </div>
                             <dl className="ml-facts">
                                 <dt>Na partida</dt>
-                                <dd>{KIND_PT[row.kind] ?? row.kind}</dd>
+                                <dd>
+                                    {SPECIAL_EXPLAIN[row.id] ??
+                                        (DRAIN[row.id]
+                                            ? `${KIND_PT[row.kind]} · suga o fôlego do alvo`
+                                            : KIND_PT[row.kind])}
+                                </dd>
                                 <dt>Poder · precisão · usos</dt>
                                 <dd>
                                     {row.power || '—'} · {row.accuracy}% · {row.uses}x por partida

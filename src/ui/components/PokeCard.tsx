@@ -45,6 +45,7 @@ const KIND_PT: Record<string, string> = {
     status: 'status no rival',
     heal: 'recupera fôlego',
     flavor: '...nada?',
+    special: 'efeito especial',
 };
 
 export const cardSprite = (inst: Pick<PokemonInstance, 'speciesId' | 'shiny'>) =>

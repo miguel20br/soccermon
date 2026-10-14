@@ -10,7 +10,7 @@ import type { PokemonInstance } from './instance';
 import { ITEMS } from './items';
 import { type ActiveLink, computeLinks } from './links';
 import { applyModifiers, attributeModifiers, captainFactor } from './modifiers';
-import { moveProfile, type StatusKind } from './moves';
+import { DRAIN, moveProfile, type StatusKind } from './moves';
 import { Rng } from './rng';
 import {
     Action,
@@ -122,6 +122,8 @@ function createPlayer(
         item,
         itemUsed: false,
         evolved: false,
+        seeded: null,
+        substitute: 0,
         ai: { nextDecision: 0, holdUntil: 0 },
         stats: {
             goals: 0,
@@ -169,6 +171,7 @@ export function createMatch(cfg: MatchConfig, home: TeamSetup, away: TeamSetup, 
                 bench: [...home.bench],
                 possessionTicks: 0,
                 combosUsed: [],
+                screens: { light: 0, reflect: 0, mist: 0 },
             },
             {
                 setup: away,
@@ -177,12 +180,14 @@ export function createMatch(cfg: MatchConfig, home: TeamSetup, away: TeamSetup, 
                 bench: [...away.bench],
                 possessionTicks: 0,
                 combosUsed: [],
+                screens: { light: 0, reflect: 0, mist: 0 },
             },
         ],
         players,
         auraHolders: [],
         subbedOut: [],
         pendingSubs: [],
+        lastMove: [null, null],
         nextMoveTick: 0,
         ball: {
             pos: v(cfg.pitch.length / 2, cfg.pitch.width / 2),
@@ -362,6 +367,11 @@ export function step(s: MatchState, commands: (Command | Command[])[]) {
     if (s.finished) return;
     const dt = 1 / s.cfg.tickRate;
     s.tick++;
+    for (const t of s.teams) {
+        t.screens.light = Math.max(0, t.screens.light - dt);
+        t.screens.reflect = Math.max(0, t.screens.reflect - dt);
+        t.screens.mist = Math.max(0, t.screens.mist - dt);
+    }
 
     if (s.phase !== 'play') {
         updatePhase(s, dt, commands);
@@ -427,6 +437,16 @@ function tickTimers(s: MatchState, p: PlayerState, dt: number) {
         if (p.actionTimer <= 0) p.action = Action.Idle;
     }
     for (const b of p.buffs) b.timer -= dt;
+    p.substitute = Math.max(0, p.substitute - dt);
+    // Leech Seed: o fôlego escorre para quem plantou
+    if (p.seeded) {
+        p.seeded.timer -= dt;
+        const drain = Math.min(p.energy, 0.012 * dt);
+        p.energy -= drain;
+        const by = s.players[p.seeded.by];
+        if (by && by.team !== p.team) by.energy = Math.min(1, by.energy + drain);
+        if (p.seeded.timer <= 0) p.seeded = null;
+    }
     p.buffs = p.buffs.filter((b) => b.timer > 0);
     if (p.shotBonus) {
         p.shotBonus.timer -= dt;
@@ -614,6 +634,12 @@ function tryTackle(s: MatchState, p: PlayerState, targetId: number) {
     setAction(p, Action.Tackle, 0.35);
     p.heading = norm(sub(carrier.pos, p.pos));
     p.facing = dir8(p.heading, p.facing);
+    // Counter devolve / o boneco do Substitute aguenta o carrinho
+    if (protect(s, carrier, p, 'physical')) {
+        p.tackleBonus = null;
+        emit(s, { type: 'tackle', by: p.idx, victim: carrier.idx, success: false });
+        return;
+    }
 
     const bonus = p.tackleBonus;
     const atkTypes = bonus ? [bonus.moveType] : p.sp.types;
@@ -627,6 +653,8 @@ function tryTackle(s: MatchState, p: PlayerState, targetId: number) {
         (bonus?.power ?? 1) *
         (p.item === 'quickclaw' ? 1.1 : 1) *
         (behind ? 0.85 : 1) *
+        // Reflect do time de quem tem a bola: carrinho mais fraco
+        (s.teams[carrier.team].screens.reflect > 0 ? 0.7 : 1) *
         s.rng.range(0.72, 1.28);
     const defend =
         (0.65 * eff(s, carrier, 'dribble') + 0.35 * eff(s, carrier, 'strength')) *
@@ -682,11 +710,16 @@ function tryTackle(s: MatchState, p: PlayerState, targetId: number) {
 }
 
 // ---------------------------------------------------------------- golpes
-export function nearestOpponent(s: MatchState, p: PlayerState, maxDist = Infinity): PlayerState | null {
+export function nearestOpponent(
+    s: MatchState,
+    p: PlayerState,
+    maxDist = Infinity,
+    filter: (o: PlayerState) => boolean = () => true,
+): PlayerState | null {
     let best: PlayerState | null = null;
     let bestD = maxDist;
     for (const o of s.players) {
-        if (o.team === p.team) continue;
+        if (o.team === p.team || !filter(o)) continue;
         const d = dist(o.pos, p.pos);
         if (d < bestD) {
             bestD = d;
@@ -804,14 +837,58 @@ function applySecondary(s: MatchState, user: PlayerState, target: PlayerState, m
     return false;
 }
 
+/** Counter/Substitute do alvo: o golpe ou carrinho de `attacker` não pega. Devolve true se foi bloqueado. */
+function protect(s: MatchState, target: PlayerState, attacker: PlayerState, kind: 'physical' | 'special'): boolean {
+    if (isIncapacitated(target)) return false;
+    // Counter: reação automática, 1 vez por partida, devolve o golpe em quem atacou
+    const slot = target.inst.moves.indexOf('counter');
+    if (slot >= 0 && target.moveUses[slot] > 0) {
+        target.moveUses[slot]--;
+        target.stats.movesUsed++;
+        setAction(target, Action.Tackle, 0.35);
+        attacker.stun = Math.max(attacker.stun, 0.9);
+        attacker.energy -= 0.05;
+        knockback(s, attacker, target, 1.6, 'counter');
+        emit(s, {
+            type: 'move',
+            by: target.idx,
+            moveId: 'counter',
+            kind: 'special',
+            target: attacker.idx,
+            effectiveness: null,
+            hit: true,
+            withBall: s.ball.owner === target.idx,
+        });
+        return true;
+    }
+    if (target.substitute > 0) {
+        target.substitute = 0;
+        emit(s, { type: 'decoy', by: target.idx, attacker: attacker.idx });
+        return true;
+    }
+    void kind;
+    return false;
+}
+
+/** Fator das paredes do time do alvo (Light Screen corta golpes especiais/status pela metade). */
+const screenFactor = (s: MatchState, target: PlayerState, special: boolean) =>
+    special && s.teams[target.team].screens.light > 0 ? 0.5 : 1;
+
 function performMove(s: MatchState, p: PlayerState, slot: number) {
     const moveId = p.inst.moves[slot];
     if (!moveId || p.moveUses[slot] <= 0 || p.moveCooldown > 0 || s.tick < s.nextMoveTick) return;
-    const prof = moveProfile(moveId);
+    // Counter é reação (dispara sozinho ao receber um golpe), não se usa
+    if (moveId === 'counter') return;
     p.moveUses[slot]--;
     p.moveCooldown = MOVE_COOLDOWN;
     s.nextMoveTick = s.tick + Math.round(MOVE_GAP * s.cfg.tickRate);
     p.stats.movesUsed++;
+    moveEffect(s, p, moveId);
+}
+
+/** Efeito de um golpe (também usado por Metronome e Mirror Move/Mimic, que disparam outro golpe). */
+function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0) {
+    const prof = moveProfile(moveId);
     const technician =
         p.ability.weakMoveBoost && prof.data.power > 0 && prof.data.power <= 60 ? p.ability.weakMoveBoost : 1;
     const typeItem = p.item && ITEMS[p.item]?.type === prof.data.type ? 1.2 : 1;
@@ -820,6 +897,7 @@ function performMove(s: MatchState, p: PlayerState, slot: number) {
     let target: PlayerState | null = null;
     let effectiveness: number | null = null;
     let hit = true;
+    let after: (() => void) | null = null;
 
     switch (prof.kind) {
         case 'strike':
@@ -835,10 +913,15 @@ function performMove(s: MatchState, p: PlayerState, slot: number) {
             } else {
                 p.tackleBonus = { power: 1 + 0.4 * k, accuracy: 1, moveType: prof.data.type, moveId, timer: 1.5 };
                 setAction(p, Action.Tackle, 0.3);
+                // Leech Life: morde e suga o fôlego de quem está colado
+                if (DRAIN[moveId]) {
+                    target = nearestOpponent(s, p, 2.5);
+                    if (target) drainEnergy(p, target, DRAIN[moveId]);
+                }
             }
             break;
         case 'blast':
-            if (hasBall) {
+            if (hasBall && moveId !== 'dreameater') {
                 p.shotBonus = {
                     power: 1 + 0.15 * k,
                     accuracy: 1 + 0.45 * k,
@@ -847,16 +930,24 @@ function performMove(s: MatchState, p: PlayerState, slot: number) {
                     timer: 1.5,
                 };
             } else {
-                // sem bola: rajada atrapalha o rival mais próximo (perde fôlego e atrasa)
-                target = nearestOpponent(s, p, 7);
-                if (target) {
-                    const mult = typeMultiplier([prof.data.type], target.sp.types);
+                // sem bola: rajada atrapalha o rival mais próximo (perde fôlego e atrasa).
+                // Dream Eater só funciona em quem está dormindo
+                target =
+                    moveId === 'dreameater'
+                        ? nearestOpponent(s, p, 7, (o) => o.status?.kind === 'slp')
+                        : nearestOpponent(s, p, 7);
+                if (!target) hit = false;
+                else if (protect(s, target, p, 'special')) {
+                    hit = false;
+                } else {
+                    const mult = typeMultiplier([prof.data.type], target.sp.types) * screenFactor(s, target, true);
                     hit = s.rng.chance(prof.data.accuracy / 100);
                     if (hit) {
                         target.stun = Math.max(target.stun, 0.4 * k * mult);
                         target.energy -= 0.05 * k * mult;
                         knockback(s, target, p, 0.8 * mult, moveId);
                         applySecondary(s, p, target, moveId);
+                        if (DRAIN[moveId]) drainEnergy(p, target, DRAIN[moveId] * mult);
                     }
                 }
             }
@@ -875,31 +966,46 @@ function performMove(s: MatchState, p: PlayerState, slot: number) {
                     p.buffs.push({ attr, factor: 1 + 0.07 * Math.max(1, stages ?? 1), timer: 12 });
                 }
             }
-            if (moveId === 'reflect' || moveId === 'lightscreen')
-                p.buffs.push({ attr: 'positioning', factor: 1.12, timer: 12 });
+            // paredes valem para o time inteiro
+            if (moveId === 'lightscreen') s.teams[p.team].screens.light = 15;
+            if (moveId === 'reflect') s.teams[p.team].screens.reflect = 15;
             if (moveId === 'focusenergy') p.buffs.push({ attr: 'shooting', factor: 1.12, timer: 12 });
             setAction(p, Action.Charge, 0.5);
             break;
-        case 'debuff':
-            target = nearestOpponent(s, p, 6);
+        case 'debuff': {
+            // Flash: clarão pega todos os rivais em volta; o resto, o mais perto
+            const victims =
+                moveId === 'flash'
+                    ? s.players.filter((o) => o.team !== p.team && dist(o.pos, p.pos) < 7)
+                    : [nearestOpponent(s, p, 6)].filter((o): o is PlayerState => o !== null);
+            target = victims[0] ?? null;
             setAction(p, Action.Charge, 0.4);
-            if (target) {
-                hit = s.rng.chance(prof.data.accuracy / 100) && !target.ability.immuneDebuff;
-                if (hit) {
-                    for (const [stat, stages] of Object.entries(prof.data.targetBoosts ?? {})) {
-                        for (const attr of BOOST_TO_ATTR[stat] ?? []) {
-                            target.buffs.push({ attr, factor: 1 + 0.08 * (stages ?? -1), timer: 10 });
-                        }
+            hit = false;
+            for (const v of victims) {
+                if (protect(s, v, p, 'special') || s.teams[v.team].screens.mist > 0) continue;
+                if (!s.rng.chance(prof.data.accuracy / 100) || v.ability.immuneDebuff) continue;
+                hit = true;
+                for (const [stat, stages] of Object.entries(prof.data.targetBoosts ?? {})) {
+                    for (const attr of BOOST_TO_ATTR[stat] ?? []) {
+                        v.buffs.push({ attr, factor: 1 + 0.08 * (stages ?? -1), timer: 10 });
                     }
                 }
             }
             break;
+        }
         case 'status':
             target = nearestOpponent(s, p, 6.5);
             setAction(p, Action.Charge, 0.4);
             if (target && prof.status) {
+                if (protect(s, target, p, 'special')) {
+                    hit = false;
+                    break;
+                }
                 effectiveness = typeMultiplier([prof.data.type], target.sp.types);
-                const chance = (prof.data.accuracy / 100) * (p.ability.statusChanceBoost ? 1.15 : 1);
+                const chance =
+                    (prof.data.accuracy / 100) *
+                    (p.ability.statusChanceBoost ? 1.15 : 1) *
+                    screenFactor(s, target, true);
                 // Thunder Wave não afeta Ground; pós de planta não afetam Grass
                 const immuneByType =
                     (prof.data.type === 'Electric' && target.sp.types.includes('Ground')) ||
@@ -913,13 +1019,20 @@ function performMove(s: MatchState, p: PlayerState, slot: number) {
             break;
         case 'heal':
             if (moveId === 'rest') {
-                p.energy = Math.min(1, p.energy + 0.6);
+                p.energy = 1;
                 applyStatus(s, p, 'slp', p.idx, 'rest');
             } else {
                 p.energy = Math.min(1, p.energy + 0.3 * k + 0.1);
             }
             setAction(p, Action.Charge, 0.5);
             break;
+        case 'special': {
+            const res = specialMove(s, p, moveId, depth);
+            target = res.target;
+            hit = res.hit;
+            after = res.after;
+            break;
+        }
         case 'flavor':
             setAction(p, Action.Celebrate, 0.6);
             hit = false;
@@ -938,6 +1051,88 @@ function performMove(s: MatchState, p: PlayerState, slot: number) {
         hit,
         withBall: hasBall,
     });
+    if (moveId !== 'metronome' && moveId !== 'mirrormove' && moveId !== 'mimic') s.lastMove[p.team] = moveId;
+    after?.();
+}
+
+function drainEnergy(user: PlayerState, target: PlayerState, amount: number) {
+    const taken = Math.min(Math.max(0, target.energy), amount);
+    target.energy -= taken;
+    user.energy = Math.min(1, user.energy + taken);
+}
+
+/** Golpes com efeito próprio (Counter é reação, ver protect). */
+function specialMove(
+    s: MatchState,
+    p: PlayerState,
+    moveId: string,
+    depth: number,
+): { target: PlayerState | null; hit: boolean; after: (() => void) | null } {
+    setAction(p, Action.Charge, 0.4);
+    switch (moveId) {
+        case 'haze': {
+            // névoa: todo mundo em volta (dos dois times) perde status e reforços/enfraquecimentos
+            const cleared = s.players.filter((o) => dist(o.pos, p.pos) < 6 && (o.status || o.buffs.length || o.seeded));
+            for (const o of cleared) {
+                o.status = null;
+                o.buffs = [];
+                o.seeded = null;
+                if (o.action === Action.Hurt) o.action = Action.Idle;
+            }
+            return {
+                target: null,
+                hit: cleared.length > 0,
+                after: () => emit(s, { type: 'haze', by: p.idx, cleared: cleared.map((o) => o.idx) }),
+            };
+        }
+        case 'mist':
+            s.teams[p.team].screens.mist = 12;
+            return { target: null, hit: true, after: null };
+        case 'teleport': {
+            // some e reaparece: para a frente se o time ataca, para trás se defende
+            const attacking = s.ball.owner !== null && s.players[s.ball.owner].team === p.team;
+            const rel = toRel(s, p.team, p.pos);
+            const { length, width } = s.cfg.pitch;
+            const x = clamp(rel.x + (attacking ? 8 : -8), 3, length - 6);
+            const y = clamp(s.rng.range(3, width - 3), 1, width - 1);
+            p.pos = toWorld(s, p.team, x, y);
+            p.vel = v(0, 0);
+            return { target: null, hit: true, after: () => emit(s, { type: 'teleport', by: p.idx }) };
+        }
+        case 'substitute':
+            p.energy -= 0.08;
+            p.substitute = 15;
+            return { target: null, hit: true, after: null };
+        case 'leechseed': {
+            const target = nearestOpponent(s, p, 6);
+            if (!target || target.sp.types.includes('Grass') || target.seeded)
+                return { target, hit: false, after: null };
+            if (protect(s, target, p, 'special')) return { target, hit: false, after: null };
+            const hit = s.rng.chance(0.9);
+            if (hit) {
+                target.seeded = { by: p.idx, timer: 12 };
+                return {
+                    target,
+                    hit,
+                    after: () =>
+                        emit(s, { type: 'status', target: target.idx, status: 'seed', by: p.idx, source: moveId }),
+                };
+            }
+            return { target, hit, after: null };
+        }
+        case 'metronome':
+        case 'mirrormove':
+        case 'mimic': {
+            if (depth > 0) return { target: null, hit: false, after: null };
+            // Metronome: qualquer golpe; Mirror Move/Mimic: o último que o rival usou
+            const pool = Object.keys(MOVES).filter((m) => m !== 'counter' && moveProfile(m).kind !== 'flavor');
+            const copied = moveId === 'metronome' ? s.rng.pick(pool) : s.lastMove[p.team === 0 ? 1 : 0];
+            if (!copied || copied === moveId) return { target: null, hit: false, after: null };
+            return { target: null, hit: true, after: () => moveEffect(s, p, copied, depth + 1) };
+        }
+        default:
+            return { target: null, hit: false, after: null };
+    }
 }
 
 // ---------------------------------------------------------------- bola

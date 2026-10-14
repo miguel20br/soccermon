@@ -78,6 +78,7 @@ const KIND_PT: Record<string, string> = {
     status: 'Causa status no rival.',
     heal: 'Recupera fôlego.',
     flavor: 'Não faz nada… ou faz?',
+    special: 'Efeito especial',
 };
 
 interface PokeCard2Props {

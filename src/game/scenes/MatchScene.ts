@@ -146,6 +146,7 @@ const STATUS_PT: Record<string, string> = {
     confusion: 'ficou confuso!',
     infatuation: 'se apaixonou!',
     flinch: 'hesitou!',
+    seed: 'foi semeado!',
 };
 
 interface PlayerView {
@@ -1126,7 +1127,7 @@ export class MatchScene extends Phaser.Scene {
                 const view = this.players[e.target];
                 if (view) {
                     this.battleBox.push(`${view.name} ${STATUS_PT[e.status] ?? '!'}`);
-                    if (e.status !== 'flinch') {
+                    if (e.status !== 'flinch' && e.status !== 'seed') {
                         this.applyIndicators(view, STATUS_KIND_TO_CODE[e.status] ?? 0, view.flags);
                     }
                 }
@@ -1176,6 +1177,24 @@ export class MatchScene extends Phaser.Scene {
                             sub: `Combo ${link.name}: ${a.name} + ${b.name}`,
                         });
                     }
+                }
+                break;
+            }
+            case 'decoy': {
+                this.popText(e.by, 'SUBSTITUTO!', '#ffd9a0');
+                this.battleBox.push(`O boneco de ${this.players[e.by]?.name ?? '?'} aguentou o golpe!`);
+                break;
+            }
+            case 'haze': {
+                for (const i of e.cleared) this.popText(i, 'limpo!', '#d8e8ff');
+                this.battleBox.push('A névoa do Haze limpa tudo em volta!');
+                break;
+            }
+            case 'teleport': {
+                const view = this.players[e.by];
+                if (view) {
+                    this.impact(view.sprite.x, view.sprite.y - 16, 'Psychic');
+                    this.battleBox.push(`${view.name} se teleportou!`);
                 }
                 break;
             }
@@ -1370,6 +1389,19 @@ export class MatchScene extends Phaser.Scene {
             depth: FOCUS_DEPTH + 70,
             baseScale: SPRITE_SCALE,
             onHit: () => to && this.refreshTint(to),
+            // a posição vem do motor a cada quadro: o golpe desloca pelo "lunge" (somado à posição)
+            nudge: (who, dx, dy, ms) => {
+                const v = who === 'user' ? this.players[by] : to;
+                if (v)
+                    this.tweens.add({
+                        targets: v.lunge,
+                        x: dx,
+                        y: dy,
+                        duration: ms / 2,
+                        yoyo: true,
+                        ease: 'Sine.easeOut',
+                    });
+            },
         });
     }
 

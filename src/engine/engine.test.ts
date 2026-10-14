@@ -535,7 +535,9 @@ describe('evolução no meio da partida', () => {
                 evolutions++;
                 per.set(e.uid, (per.get(e.uid) ?? 0) + 1);
                 expect(species(e.from).evolvesTo.map((x) => x.id)).toContain(e.into);
-                expect(r.finalRoster[e.by].speciesId).toBe(e.into);
+                // (se depois ele saiu numa substituição, a vaga é de outro no fim)
+                const subbedLater = r.events.some((x) => x.type === 'sub' && x.outIdx === e.by && x.tick > e.tick);
+                if (!subbedLater) expect(r.finalRoster[e.by].speciesId).toBe(e.into);
             }
             expect([...per.values()].every((n) => n === 1)).toBe(true);
         }
@@ -588,5 +590,55 @@ describe('estatísticas da partida', () => {
         expect(shots.length).toBe(r.events.filter((e) => e.type === 'shot').length);
         expect(shots.filter((s) => s.outcome === 'gol').length).toBeLessThanOrEqual(r.score[0] + r.score[1]);
         for (const p of possessionByPeriod(r)) expect(p.home + p.away).toBeCloseTo(1, 5);
+    });
+});
+
+describe('golpes especiais', () => {
+    it('Counter devolve o golpe, Haze limpa status, Teleport move, Leech Seed suga e Dream Eater só em quem dorme', () => {
+        const rng = new Rng('esp-golpes', 'x');
+        const mk = (id: number, moves: string[]) => ({ ...createInstance(id, rng), moves });
+        const home: TeamSetup = {
+            name: 'A',
+            lineup: [
+                mk(143, ['bodyslam']),
+                mk(94, ['dreameater', 'hypnosis']),
+                mk(1, ['leechseed']),
+                mk(68, ['counter', 'haze']),
+                mk(64, ['teleport', 'counter']),
+            ],
+            bench: [],
+            tactic: 'balanced',
+            color: 0,
+        };
+        let counters = 0;
+        let hazes = 0;
+        let teleports = 0;
+        let seeds = 0;
+        let dreamOk = true;
+        for (let i = 0; i < 12; i++) {
+            const r = runMatch(FUTSAL_5, home, team(`esp-b${i}`, 'B'), `esp-${i}`, { snapshots: false });
+            for (const e of r.events) {
+                if (e.type === 'move' && e.moveId === 'counter' && e.hit) counters++;
+                if (e.type === 'haze') hazes++;
+                if (e.type === 'teleport') teleports++;
+                if (e.type === 'status' && e.status === 'seed') seeds++;
+            }
+            // Dream Eater: todo acerto foi num alvo dormindo (status de sono aplicado antes, ainda valendo)
+            const sleepTick = new Map<number, number>();
+            for (const e of r.events) {
+                if (e.type === 'status' && e.status === 'slp') sleepTick.set(e.target, e.tick);
+                if (e.type === 'move' && e.moveId === 'dreameater' && e.hit && e.target !== null) {
+                    const t = sleepTick.get(e.target);
+                    if (t === undefined || e.tick - t > 4 * FUTSAL_5.tickRate) dreamOk = false;
+                }
+            }
+        }
+        expect({ counters: counters > 0, hazes: hazes > 0, teleports: teleports > 0, seeds: seeds > 0 }).toEqual({
+            counters: true,
+            hazes: true,
+            teleports: true,
+            seeds: true,
+        });
+        expect(dreamOk).toBe(true);
     });
 });

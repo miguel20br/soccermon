@@ -195,6 +195,12 @@ export class AIController implements Controller {
             }
         }
 
+        // 1c) Teleport: cercado, some e aparece mais à frente
+        if (pressure > 0.7) {
+            const tp = this.pickSpecial(p, ['teleport'], 0.3);
+            if (tp !== null) return { type: 'useMove', slot: tp };
+        }
+
         // 2) passe
         const pass = this.bestPass(p, pressure);
         const dribbleScore = this.dribbleScore(p, pressure);
@@ -355,7 +361,21 @@ export class AIController implements Controller {
         if (near < 6) {
             const hex = this.pickMoveSlot(p, ['status', 'debuff'], 0.006);
             if (hex !== null) return hex;
+            const seed = this.pickSpecial(p, ['leechseed', 'substitute'], 0.005);
+            if (seed !== null) return seed;
         }
+        // Haze quando tem gente em volta com status ou reforço
+        const messy = s.players.some((o) => dist(o.pos, p.pos) < 6 && (o.status || o.buffs.length > 0));
+        if (messy) {
+            const haze = this.pickSpecial(p, ['haze'], 0.03);
+            if (haze !== null) return haze;
+        }
+        if (s.lastMove[p.team === 0 ? 1 : 0]) {
+            const copy = this.pickSpecial(p, ['mirrormove', 'mimic'], 0.005);
+            if (copy !== null) return copy;
+        }
+        const wild = this.pickSpecial(p, ['metronome', 'mist'], 0.003);
+        if (wild !== null) return wild;
         return this.pickMoveSlot(p, ['buff', 'flavor'], 0.003);
     }
 
@@ -494,14 +514,27 @@ export class AIController implements Controller {
         return v(clamp(p.x, 0.3, length - 0.3), clamp(p.y, 0.3, width - 0.3));
     }
 
+    /** Golpe especial específico (Teleport, Haze…), se o jogador tiver e puder usar agora. */
+    private pickSpecial(p: PlayerState, ids: string[], chance: number): number | null {
+        if (p.moveCooldown > 0 || this.s.tick < this.s.nextMoveTick || !this.s.rng.chance(chance)) return null;
+        const slot = p.inst.moves.findIndex((m, i) => ids.includes(m) && p.moveUses[i] > 0);
+        return slot >= 0 ? slot : null;
+    }
+
     /** Escolhe um golpe disponível dos tipos pedidos, com probabilidade `chance`. */
     private pickMoveSlot(p: PlayerState, kinds: string[], chance: number): number | null {
         if (chance <= 0 || p.moveCooldown > 0 || this.s.tick < this.s.nextMoveTick || !this.s.rng.chance(chance)) {
             return null;
         }
+        // Dream Eater só vale com um rival dormindo por perto
+        const sleeper = this.s.players.some(
+            (o) => o.team !== p.team && o.status?.kind === 'slp' && dist(o.pos, p.pos) < 7,
+        );
         const slots = p.inst.moves
-            .map((m, i) => ({ i, prof: moveProfile(m) }))
-            .filter(({ i, prof }) => p.moveUses[i] > 0 && kinds.includes(prof.kind));
+            .map((m, i) => ({ i, m, prof: moveProfile(m) }))
+            .filter(
+                ({ i, m, prof }) => p.moveUses[i] > 0 && kinds.includes(prof.kind) && (m !== 'dreameater' || sleeper),
+            );
         if (!slots.length) return null;
         return this.s.rng.pick(slots).i;
     }

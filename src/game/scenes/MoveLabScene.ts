@@ -45,6 +45,7 @@ export class MoveLabScene extends Phaser.Scene {
         this.sys.events.once('shutdown', () => EventBus.off('lab:play', onPlay));
         this.sys.events.once('destroy', () => EventBus.off('lab:play', onPlay));
         EventBus.emit('lab:ready');
+        if (import.meta.env.DEV) (window as unknown as { __lab?: unknown }).__lab = this;
     }
 
     private loadSpecies(ids: number[]): Promise<void> {

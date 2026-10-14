@@ -26,6 +26,7 @@ const STATUS_PT: Record<string, string> = {
     confusion: 'confuso',
     infatuation: 'apaixonado',
     flinch: 'hesitante',
+    seed: 'semeado (perde fôlego aos poucos)',
 };
 
 /**
@@ -154,6 +155,28 @@ export class Commentator {
                         : null;
                 const suffix = eff === 'super' ? ' É super efetivo!' : eff === 'weak' ? ' Não é muito efetivo...' : '';
                 switch (e.kind) {
+                    case 'special':
+                        return e.moveId === 'counter'
+                            ? line(`COUNTER! ${who} devolve o golpe em ${this.n(e.target)}!`, 'big', team)
+                            : e.moveId === 'metronome'
+                              ? line(`${who} balança o dedo... Metronome!`, 'normal', team)
+                              : e.moveId === 'mirrormove' || e.moveId === 'mimic'
+                                ? line(
+                                      e.hit
+                                          ? `${who} copia o golpe do rival com ${move}!`
+                                          : `${who} usa ${move}... não tinha o que copiar.`,
+                                      'normal',
+                                      team,
+                                  )
+                                : e.moveId === 'substitute'
+                                  ? line(`${who} usa Substitute: um boneco entra na frente!`, 'normal', team)
+                                  : e.moveId === 'mist'
+                                    ? line(`${who} cobre o time com Mist!`, 'minor', team)
+                                    : e.moveId === 'leechseed'
+                                      ? e.hit
+                                          ? null
+                                          : line(`${who} usa Leech Seed... não pegou.`, 'minor', team)
+                                      : null;
                     case 'flavor':
                         return e.moveId === 'splash'
                             ? line(`${who} usa Splash! ...mas nada acontece.`, 'normal', team)
@@ -227,6 +250,22 @@ export class Commentator {
                 if (this.names[e.by] === species(e.from).name) this.names[e.by] = species(e.into).name;
                 return line(text, 'big', e.team);
             }
+            case 'decoy':
+                return line(
+                    `O boneco de ${this.n(e.by)} aguentou o golpe de ${this.n(e.attacker)}!`,
+                    'normal',
+                    this.teams[e.by],
+                );
+            case 'haze':
+                return line(
+                    e.cleared.length
+                        ? `${this.n(e.by)} solta Haze: a névoa limpa ${e.cleared.length} Pokémon em volta!`
+                        : `${this.n(e.by)} solta Haze, mas ninguém por perto tinha nada.`,
+                    'normal',
+                    this.teams[e.by],
+                );
+            case 'teleport':
+                return line(`${this.n(e.by)} usa Teleport e aparece do outro lado!`, 'normal', this.teams[e.by]);
             case 'skill':
                 return this.rng.chance(0.12)
                     ? line(`${this.n(e.by)} dá um drible desconcertante!`, 'minor', this.teams[e.by])

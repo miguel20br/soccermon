@@ -13,7 +13,46 @@ import { SIGNATURE } from './signature-moves';
  * - heal:    recupera fôlego
  * - flavor:  não faz nada útil (Splash!) — só narração
  */
-export type MoveKind = 'strike' | 'blast' | 'burst' | 'buff' | 'debuff' | 'status' | 'heal' | 'flavor';
+export type MoveKind = 'strike' | 'blast' | 'burst' | 'buff' | 'debuff' | 'status' | 'heal' | 'flavor' | 'special';
+
+/**
+ * Golpes com efeito próprio no futsal (motor: match.ts → specialMove). Antes eram "enfeite" e não faziam nada.
+ * - counter: devolve, 1 vez, o próximo golpe ou carrinho que receber (reação automática)
+ * - haze: névoa que tira status e reforços/enfraquecimentos de todo mundo em volta
+ * - mist: o time fica imune a enfraquecimentos por um tempo
+ * - teleport: some e reaparece em outro ponto da quadra (foge da marcação)
+ * - mirrormove/mimic: repete o último golpe que o rival usou
+ * - metronome: um golpe aleatório
+ * - substitute: um boneco aguenta o próximo carrinho ou golpe no lugar dele
+ * - leechseed: semente que suga o fôlego do rival aos poucos para quem usou
+ */
+export const SPECIAL_MOVES = new Set([
+    'counter',
+    'haze',
+    'mist',
+    'teleport',
+    'mirrormove',
+    'mimic',
+    'metronome',
+    'substitute',
+    'leechseed',
+]);
+
+/** O que cada golpe especial faz no futsal. */
+export const SPECIAL_EXPLAIN: Record<string, string> = {
+    counter: 'Reação: na primeira vez que receber um golpe ou carrinho, devolve no atacante (1 vez por partida).',
+    haze: 'Névoa: tira status e reforços/enfraquecimentos de todo mundo em volta (dos dois times).',
+    mist: 'O time fica imune a enfraquecimentos por 12 segundos.',
+    teleport: 'Some e reaparece em outro ponto da quadra: foge da marcação.',
+    mirrormove: 'Repete o último golpe que o rival usou.',
+    mimic: 'Copia o último golpe que o rival usou.',
+    metronome: 'Balança o dedo e solta um golpe aleatório!',
+    substitute: 'Cria um boneco que aguenta o próximo golpe ou carrinho no lugar dele (custa um pouco de fôlego).',
+    leechseed: 'Planta uma semente no rival: o fôlego dele escorre aos poucos para quem usou (Planta é imune).',
+};
+
+/** Golpes que sugam o fôlego do alvo para quem usa (fração de fôlego). */
+export const DRAIN: Record<string, number> = { absorb: 0.06, megadrain: 0.1, leechlife: 0.07, dreameater: 0.14 };
 
 export type StatusKind = 'par' | 'slp' | 'psn' | 'brn' | 'frz' | 'confusion';
 
@@ -45,25 +84,15 @@ const STATUS_MOVES: Record<string, StatusKind> = {
 
 const FLAVOR = new Set([
     'splash',
-    'teleport',
-    'mimic',
     'transform',
-    'metronome',
-    'mirrormove',
-    'substitute',
     'bide',
-    'counter',
     'rage',
     'roar',
     'whirlwind',
     'conversion',
-    'haze',
-    'mist',
     'focusenergy',
     'disable',
     'payday',
-    'flash',
-    'kinesis',
     'doubleteam',
     'minimize',
     'lightscreen',
@@ -77,7 +106,6 @@ const FLAVOR = new Set([
     'hyperbeam',
     'selfdestruct',
     'explosion',
-    'leechseed',
     'dreameater',
     'superfang',
     'seismictoss',
@@ -114,7 +142,6 @@ const SPECTACULAR: Record<string, MoveKind> = {
     dreameater: 'blast',
     // Pay Day vira chuva de moedas e Metronome um golpe surpresa: eram golpes "inúteis" de dois ícones
     payday: 'blast',
-    metronome: 'blast',
     reflect: 'buff',
     lightscreen: 'buff',
     doubleteam: 'buff',
@@ -133,7 +160,10 @@ export function classifyMove(id: string): MoveProfile {
     const selfBoost = Object.values(data.selfBoosts ?? {}).reduce((s: number, b) => s + Math.max(0, b ?? 0), 0);
     const targetDrop = Object.values(data.targetBoosts ?? {}).reduce((s: number, b) => s + Math.min(0, b ?? 0), 0);
 
-    if (SPECTACULAR[id]) {
+    if (SPECIAL_MOVES.has(id)) {
+        kind = 'special';
+        strength = 0.6;
+    } else if (SPECTACULAR[id]) {
         kind = SPECTACULAR[id];
         strength = kind === 'buff' || kind === 'burst' ? 0.6 : Math.min(1, (data.power || FIXED_DAMAGE_POWER) / 120);
     } else if (status) {
@@ -275,6 +305,8 @@ export function defaultMoveset(sp: Species): string[] {
                 return (25 + 10 * p.strength) * generic;
             case 'heal':
                 return 30 * generic;
+            case 'special':
+                return 50 * generic;
             default:
                 return 0;
         }

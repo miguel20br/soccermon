@@ -6,7 +6,7 @@ import { viewInstance } from '../../engine/instance';
 import { ITEMS, itemSprite } from '../../engine/items';
 import { linksOf } from '../../engine/links';
 import { applyModifiers, attributeModifiers, moveModifiers } from '../../engine/modifiers';
-import { moveProfile } from '../../engine/moves';
+import { DRAIN, moveProfile, SPECIAL_EXPLAIN } from '../../engine/moves';
 import { useGame } from '../../store/game-store';
 import { useCardModal } from '../card-modal';
 import { ratingAt } from '../rating';
@@ -25,6 +25,7 @@ const KIND_EXPLAIN: Record<string, string> = {
     status: 'Aplica um status no rival mais perto (paralisia, sono, veneno, confusão…).',
     heal: 'Recupera o fôlego.',
     flavor: 'Não faz nada… mas a torcida adora.',
+    special: 'Efeito especial (veja abaixo).',
 };
 const KIND_NAME: Record<string, string> = {
     strike: 'Golpe físico',
@@ -35,6 +36,7 @@ const KIND_NAME: Record<string, string> = {
     status: 'Status',
     heal: 'Cura',
     flavor: 'Enfeite',
+    special: 'Especial',
 };
 const SECONDARY_PT: Record<string, string> = {
     par: 'paralisar',
@@ -251,7 +253,12 @@ export function CardModal() {
                                                 <span className="pos-chip">{KIND_NAME[prof.kind]}</span>
                                             </span>
                                         </div>
-                                        <div className="tactic-desc">{KIND_EXPLAIN[prof.kind]}</div>
+                                        <div className="tactic-desc">
+                                            {SPECIAL_EXPLAIN[m] ??
+                                                (DRAIN[m]
+                                                    ? `${KIND_EXPLAIN[prof.kind]} Suga o fôlego do alvo.`
+                                                    : KIND_EXPLAIN[prof.kind])}
+                                        </div>
                                         {moveMods
                                             .filter((mm) => mm.moveId === m)
                                             .map((mm) => (

@@ -128,6 +128,10 @@ export interface PlayerState {
     captain: boolean;
     /** Já evoluiu nesta partida (no máximo uma vez por partida). */
     evolved: boolean;
+    /** Leech Seed: perde fôlego aos poucos para quem plantou. */
+    seeded: { by: number; timer: number } | null;
+    /** Substitute: segundos em que o boneco ainda aguenta um golpe/carrinho. */
+    substitute: number;
     /** Item segurado e se o efeito de uso único já foi gasto. */
     item: string | null;
     itemUsed: boolean;
@@ -170,6 +174,8 @@ export interface TeamRuntime {
     possessionTicks: number;
     /** Sinergias de história que já soltaram o combo neste tempo (1 combo por sinergia por tempo). */
     combosUsed: string[];
+    /** Paredes do time (segundos restantes): Light Screen (golpes especiais), Reflect (físicos), Mist (enfraquecer). */
+    screens: { light: number; reflect: number; mist: number };
 }
 
 export interface MatchEventBase {
@@ -206,7 +212,7 @@ export type MatchEvent = MatchEventBase &
         | {
               type: 'status';
               target: number;
-              status: StatusKind | 'infatuation' | 'flinch';
+              status: StatusKind | 'infatuation' | 'flinch' | 'seed';
               by: number | null;
               source: string;
           }
@@ -217,6 +223,12 @@ export type MatchEvent = MatchEventBase &
         | { type: 'transform'; by: number; into: number; target: number }
         | { type: 'combo'; by: number; partner: number; link: string }
         | { type: 'evolve'; by: number; team: 0 | 1; uid: string; from: number; into: number }
+        /** O boneco do Substitute aguentou o golpe/carrinho no lugar de `by`. */
+        | { type: 'decoy'; by: number; attacker: number }
+        /** Haze: tirou status e reforços de quem estava em volta. */
+        | { type: 'haze'; by: number; cleared: number[] }
+        /** Teleport: `by` sumiu de um ponto e apareceu em outro. */
+        | { type: 'teleport'; by: number }
         | { type: 'halftime'; score: [number, number] }
         | {
               type: 'sub';
@@ -290,6 +302,8 @@ export interface MatchState {
     subbedOut: PlayerState[];
     /** Substituições pedidas esperando a próxima saída de bola. */
     pendingSubs: SubOrder[];
+    /** Último golpe usado por cada time (Mirror Move/Mimic copiam o do rival). */
+    lastMove: [string | null, string | null];
     ball: BallState;
     score: [number, number];
     shootout: [number, number] | null;
