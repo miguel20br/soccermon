@@ -208,7 +208,7 @@
     z-index: 50;
     transform: translate(-50%, -50%) rotate(-8deg);
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: clamp(100px, 21vmin, 220px);
+    font-size: clamp(170px, 36vmin, 400px);
     font-weight: 700;
     line-height: 1;
     letter-spacing: -0.05em;
@@ -223,7 +223,8 @@
 .vsp-stage {
     position: absolute;
     left: 50%;
-    top: 2.5%;
+    /* embaixo, acima do botão: o VS grandão ocupa o alto da tela */
+    bottom: 13%;
     z-index: 45;
     transform: translateX(-50%);
     padding: 4px 16px;
@@ -376,10 +377,10 @@
         text-overflow: ellipsis;
     }
     .vsp-vs {
-        font-size: clamp(84px, 26vw, 140px);
+        font-size: clamp(130px, 42vw, 230px);
     }
     .vsp-stage {
-        top: 1.5%;
+        bottom: 11%;
         font-size: 13px;
     }
     .vsp .vs-start {

@@ -9,9 +9,10 @@ import {
     teamTotals,
 } from '../../engine/match-stats';
 import { matchMvp } from '../../engine/mvp';
-import { isPerfectCup, stageLabel, useGame } from '../../store/game-store';
+import { isPerfectCup, useGame } from '../../store/game-store';
 import { FutCard } from '../components/FutCard';
 import { cardSprite } from '../components/PokeCard';
+import { ResultHero } from '../components/ResultHero';
 import { shareRun } from '../share';
 import { CupStats } from '../stats/CupStats';
 import { PlayerTable } from '../stats/PlayerTable';
@@ -44,7 +45,6 @@ export function Result() {
     if (!run || !match) return null;
     const opponent = run.opponents[run.stage];
     const names: [string, string] = [run.teamName, opponent.name];
-    const won = match.winner === 0;
 
     const mvp = matchMvp(match);
     const stageResult = run.results.find((r) => r.stage === run.stage);
@@ -68,6 +68,9 @@ export function Result() {
     const totals = [teamTotals(lines, 0), teamTotals(lines, 1)] as const;
     const danger = dangerByPeriod(match);
     const leaderList = leaders(lines);
+    const ourStar = lines
+        .filter((l) => l.team === 0)
+        .reduce<(typeof lines)[number] | null>((best, l) => (!best || l.rating > best.rating ? l : best), null);
 
     const champion = run.status === 'champion';
     const eliminated = run.status === 'eliminated';
@@ -85,42 +88,38 @@ export function Result() {
 
     return (
         <>
-            <div className="panel result-hero">
-                {champion && <div className="trophy">🏆</div>}
-                {perfect && <div className="perfect-badge">★ COPA PERFEITA ★</div>}
-                <h1>{champion ? 'CAMPEÕES DA COPA DE KANTO!' : won ? 'Vitória!' : 'Fim da linha…'}</h1>
-                <div className="muted">
-                    {stageLabel(run.stage)} · {names[0]} x {names[1]}
-                </div>
-                <div className="big-score">
-                    {match.score[0]} x {match.score[1]}
-                </div>
-                {match.shootout && (
-                    <div>
-                        Pênaltis: {match.shootout[0]} x {match.shootout[1]}
-                    </div>
-                )}
-                <div className="row" style={{ justifyContent: 'center', marginTop: 8 }}>
-                    {eliminated || champion ? (
-                        <>
-                            <button type="button" className="btn yellow" onClick={share}>
-                                Compartilhar
-                            </button>
-                            <button type="button" className="btn primary" onClick={() => newRun(run.teamName)}>
-                                Nova copa
-                            </button>
-                            <button type="button" className="btn ghost" onClick={advance}>
-                                Menu
-                            </button>
-                        </>
-                    ) : (
-                        <button type="button" className="btn primary" onClick={advance}>
-                            Escolher recompensa →
-                        </button>
-                    )}
-                </div>
-                {shared && <div className="muted">{shared}</div>}
-            </div>
+            <ResultHero
+                run={run}
+                match={match}
+                opponent={opponent}
+                names={names}
+                mvpUid={ourStar?.uid ?? null}
+                actions={
+                    <>
+                        {perfect && <div className="perfect-badge">★ COPA PERFEITA ★</div>}
+                        <div className="row" style={{ justifyContent: 'center' }}>
+                            {eliminated || champion ? (
+                                <>
+                                    <button type="button" className="btn yellow" onClick={share}>
+                                        Compartilhar
+                                    </button>
+                                    <button type="button" className="btn primary" onClick={() => newRun(run.teamName)}>
+                                        Nova copa
+                                    </button>
+                                    <button type="button" className="btn ghost" onClick={advance}>
+                                        Menu
+                                    </button>
+                                </>
+                            ) : (
+                                <button type="button" className="btn primary big" onClick={advance}>
+                                    Escolher recompensa →
+                                </button>
+                            )}
+                        </div>
+                        {shared && <div className="muted">{shared}</div>}
+                    </>
+                }
+            />
 
             <div className="two-col">
                 <div className="panel">

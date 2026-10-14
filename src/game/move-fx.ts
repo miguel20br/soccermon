@@ -791,9 +791,20 @@ class Kit {
 
     /** Gira no lugar (Fire Spin, Rolling Kick). */
     spin(turns = 2, who: Who = 'user') {
+        // giro no eixo vertical (o Pokémon rodopia de frente para trás), como nos jogos: a largura do sprite
+        // vai a zero e volta espelhada a cada meia volta
         const sp = who === 'user' ? this.c.user : this.c.target;
         if (!sp) return 0;
-        this.s.tweens.add({ targets: sp, angle: 360 * turns, duration: 300 * turns, onComplete: () => sp.setAngle(0) });
+        const base = Math.abs(sp.scaleX) || this.c.baseScale;
+        const st = { t: 0 };
+        this.s.tweens.add({
+            targets: st,
+            t: turns,
+            duration: 320 * turns,
+            ease: 'Sine.easeInOut',
+            onUpdate: () => sp.setScale(base * Math.cos(st.t * Math.PI * 2), sp.scaleY),
+            onComplete: () => sp.setScale(base, sp.scaleY),
+        });
         return 0;
     }
 
