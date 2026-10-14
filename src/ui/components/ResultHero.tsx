@@ -4,6 +4,7 @@ import { viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import type { TeamSetup } from '../../engine/state';
 import type { RunState } from '../../store/game-store';
+import { STAGE_IN, STAGE_WON } from '../text';
 import { cardSprite } from './PokeCard';
 
 const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
@@ -55,8 +56,10 @@ export function ResultHero({
     const sub = champion
         ? 'Copa de Kanto conquistada!'
         : won
-          ? `${CUP_STAGES[run.stage]} vencida`
-          : `Eliminado nas ${CUP_STAGES[run.stage].toLowerCase()}`;
+          ? STAGE_WON[run.stage]
+          : run.stage === CUP_STAGES.length - 1
+            ? 'Vice-campeão da Copa de Kanto'
+            : `Eliminado ${STAGE_IN[run.stage]}`;
     const squad = match.finalRoster.filter((p) => p.team === 0);
     const next = won && !champion ? run.opponents[run.stage + 1] : null;
     const style = { '--home': '#e8423f', '--away': hex(opponent.color) } as CSSProperties;
@@ -64,11 +67,6 @@ export function ResultHero({
     return (
         <section className={`panel rh rh-${mood}`} style={style} aria-label="Resultado da partida">
             {mood !== 'loss' && <Confetti count={mood === 'champ' ? 60 : 36} />}
-            {champion && (
-                <div className="rh-trophy" aria-hidden>
-                    🏆
-                </div>
-            )}
             <div className="rh-stage">{CUP_STAGES[run.stage]}</div>
             <h1 className="rh-title" aria-label={title}>
                 {[...title].map((ch, i) => (

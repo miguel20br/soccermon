@@ -38,6 +38,8 @@ interface FutCardProps {
     /** Ações extras mostradas na carta completa. */
     modalActions?: CardAction[];
     modalNote?: string;
+    /** Já está dentro da carta completa: tocar não reabre (senão perde as ações do modal). */
+    inModal?: boolean;
 }
 
 /**
@@ -54,6 +56,7 @@ export function FutCard({
     action,
     modalActions,
     modalNote,
+    inModal = false,
 }: FutCardProps) {
     const open = useCardModal((s) => s.open);
     const [peek, setPeek] = useState(false);
@@ -74,6 +77,7 @@ export function FutCard({
     );
 
     const openFull = () => {
+        if (inModal) return;
         if (suppressClick.current) {
             suppressClick.current = false;
             return;
@@ -125,6 +129,7 @@ export function FutCard({
                 onPointerUp={onPointerUp}
                 onPointerCancel={onPointerLeave}
                 onContextMenu={(e) => e.preventDefault()}
+                tabIndex={inModal ? -1 : undefined}
                 aria-label={`${view.displayName}, ${display} de ${POSITION_LABEL[pos]}${edition ? `, edição ${EDITION[edition].label}` : ''}. Abrir carta completa`}
             >
                 <PokeCard2 inst={inst} variant="metal" position={pos} captain={captain} />

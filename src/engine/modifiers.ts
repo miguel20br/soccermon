@@ -60,6 +60,19 @@ const ALL: AttrKey[] = [
     'goalkeeping',
 ];
 
+/** Nome do atributo na linha do bônus (uma habilidade pode mexer em mais de um: "Sturdy: Força +6%"). */
+const ATTR_NAME: Record<AttrKey, string> = {
+    pace: 'Velocidade',
+    dribble: 'Drible',
+    shooting: 'Chute',
+    passing: 'Passe',
+    tackling: 'Desarme',
+    strength: 'Força',
+    positioning: 'Leitura',
+    stamina: 'Fôlego',
+    goalkeeping: 'Goleiro',
+};
+
 /** Aura do capitão: +3% para o time, +6% para quem divide tipo com ele. */
 export function captainFactor(captain: PokemonInstance | null, types: readonly string[]): number {
     if (!captain) return 1;
@@ -79,7 +92,7 @@ export function attributeModifiers(inst: PokemonInstance, ctx: TeamContext = {})
     const ability = abilityEffect(inst.ability);
     for (const [k, f] of Object.entries(ability.mods ?? {}) as [AttrKey, number][]) {
         const name = ABILITIES[inst.ability]?.name ?? inst.ability;
-        mods.push({ source: 'habilidade', label: `${name}: ${pct(f)}`, attrs: [k], factor: f });
+        mods.push({ source: 'habilidade', label: `${name}: ${ATTR_NAME[k]} ${pct(f)}`, attrs: [k], factor: f });
     }
     if (inst.item === 'choiceband') {
         mods.push({

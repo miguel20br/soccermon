@@ -69,6 +69,33 @@ export function CompareRows({
 const PERIOD_LABEL = ["0'", "5'", "10'", "15'", "20'", "25'", "30'", "35'"];
 
 /** Perigo por período: colunas divergentes (seu time para cima, rival para baixo) e os gols de cada período. */
+/** Bolinhas desenhadas marcando os gols do período (até 3; mais que isso vira "+n"). */
+function GoalBalls({ n, cx, y }: { n: number; cx: number; y: number }) {
+    if (n <= 0) return null;
+    const m = Math.min(3, n);
+    return (
+        <g aria-hidden>
+            {Array.from({ length: m }, (_, k) => (
+                <circle
+                    // biome-ignore lint/suspicious/noArrayIndexKey: bolinhas iguais, sem identidade
+                    key={k}
+                    cx={cx + (k - (m - 1) / 2) * 9}
+                    cy={y}
+                    r={3.5}
+                    fill="#fff"
+                    stroke="#141a33"
+                    strokeWidth={1.2}
+                />
+            ))}
+            {n > 3 && (
+                <text x={cx + (m / 2) * 9 + 3} y={y + 3.5} fill={TEXT} fontSize={10}>
+                    +{n - 3}
+                </text>
+            )}
+        </g>
+    );
+}
+
 export function DangerChart({
     data,
     names,
@@ -140,16 +167,8 @@ export function DangerChart({
                                     fill={AWAY_C}
                                 />
                             )}
-                            {d.goals[0] > 0 && (
-                                <text x={cx} y={mid - hh - 6} fill={TEXT} fontSize={11} textAnchor="middle">
-                                    {'⚽'.repeat(Math.min(3, d.goals[0]))}
-                                </text>
-                            )}
-                            {d.goals[1] > 0 && (
-                                <text x={cx} y={mid + ah + 14} fill={TEXT} fontSize={11} textAnchor="middle">
-                                    {'⚽'.repeat(Math.min(3, d.goals[1]))}
-                                </text>
-                            )}
+                            <GoalBalls n={d.goals[0]} cx={cx} y={mid - hh - 8} />
+                            <GoalBalls n={d.goals[1]} cx={cx} y={mid + ah + 9} />
                             <text x={cx} y={H - 8} fill={MUTED} fontSize={10} textAnchor="middle">
                                 {PERIOD_LABEL[i]}
                             </text>

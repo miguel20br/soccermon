@@ -59,7 +59,8 @@ export function Lineup() {
         const seed = run.seed;
         const stage = run.stage;
         // a partida trava o time: sair no meio e voltar retoma a mesma partida
-        const team = run.lockedTeam ?? playerTeam(run);
+        // save da 0.6 não tinha manualSubs: nada automático no time do jogador
+        const team = run.lockedTeam ? { ...run.lockedTeam, manualSubs: true } : playerTeam(run);
         lockMatch(team);
         setLoading(true);
         setError(null);
@@ -139,7 +140,8 @@ export function Lineup() {
                         onSlot={onSlot}
                         footer={
                             <p className="muted center" style={{ fontSize: 11, marginBottom: 0 }}>
-                                Reservas entram no intervalo no lugar de quem estiver cansado.
+                                Na partida, toque em Substituir para trocar quem cansou: a troca entra na próxima saída
+                                de bola.
                             </p>
                         }
                     />

@@ -22,6 +22,7 @@ import { PlayerInspect } from '../components/PlayerInspect';
 import { cardSprite } from '../components/PokeCard';
 import { VersusIntro } from '../components/VersusIntro';
 import { simulateMatch } from '../sim-client';
+import { plural } from '../text';
 
 const SPEEDS: { value: PlaybackSpeed; label: string }[] = [
     { value: 1, label: '1x' },
@@ -157,6 +158,9 @@ export function Match() {
     useEffect(() => {
         if (!match) return;
         const commentator = new Commentator(match, teamNames);
+        // depois do apito final (pênaltis) o ponto de retomada não anda: voltar no meio da disputa
+        // faria todas as cobranças passarem de uma vez
+        let afterFulltime = false;
         const onEvent = (e: MatchEvent) => {
             if (e.type === 'sub' && e.team === 0) setSubsDone((prev) => [...prev, e.inUid]);
             // gol: salva o ponto na hora (não dá para sair e voltar antes dele)
@@ -164,14 +168,17 @@ export function Match() {
             const line = commentator.lineFor(e);
             if (line) setLines((prev) => [{ ...line, id: lineId.current++ }, ...prev].slice(0, 200));
             if (e.type === 'penalty') setShootout(e.shootout);
-            if (e.type === 'fulltime') setFulltime(true);
+            if (e.type === 'fulltime') {
+                afterFulltime = true;
+                setFulltime(true);
+            }
         };
         let lastSave = 0;
         const onTick = (t: Clock) => {
             tickRef.current = t.tick;
             setClock(t);
             const now = performance.now();
-            if (now - lastSave > SAVE_EVERY_MS) {
+            if (!afterFulltime && now - lastSave > SAVE_EVERY_MS) {
                 lastSave = now;
                 useGame.getState().saveLive({ tick: Math.floor(t.tick) });
             }
@@ -198,7 +205,7 @@ export function Match() {
 
     if (!run || !match || !sceneData || !opponent) return null;
 
-    const lockedSetup = run.lockedTeam ?? playerTeam(run);
+    const lockedSetup = run.lockedTeam ? { ...run.lockedTeam, manualSubs: true } : playerTeam(run);
     // a troca vale um pouco à frente do que está na tela (mais à frente em velocidades altas)
     const speedMult = typeof settings.speed === 'number' ? settings.speed : HIGHLIGHTS_MULT;
     const leadTicks = CHANGE_LEAD_TICKS * speedMult;
@@ -418,7 +425,13 @@ export function Match() {
                             </button>
                             {tacticError && <span className="error-text tactic-left">{tacticError}</span>}
                             <span className="muted tactic-left">
-                                {pending ? 'mudando…' : `${MAX_TACTIC_CHANGES - changes.length} trocas`}
+                                {pending
+                                    ? 'mudando…'
+                                    : plural(
+                                          MAX_TACTIC_CHANGES - changes.length,
+                                          'mudança de tática',
+                                          'mudanças de tática',
+                                      )}
                             </span>
                         </div>
                         <div className="control-group">

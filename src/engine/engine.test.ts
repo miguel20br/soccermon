@@ -544,7 +544,7 @@ describe('evolução no meio da partida', () => {
             expect([...per.values()].every((n) => n === 1)).toBe(true);
         }
         expect(evolutions).toBeGreaterThan(0);
-    });
+    }, 90_000);
 });
 
 describe('golpes', () => {

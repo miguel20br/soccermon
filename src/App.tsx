@@ -17,9 +17,14 @@ import { Settings } from './ui/screens/Settings';
 
 export default function App() {
     const { screen, go, settings } = useGame();
-    // laboratórios: ?lab=posicoes (posições) e ?lab=golpes (animação de todos os golpes)
-    const [lab, setLab] = useState(() => new URLSearchParams(window.location.search).get('lab'));
-    const [cards, setCards] = useState(() => new URLSearchParams(window.location.search).get('cards') === '1');
+    // laboratórios: ?lab=golpes (animação de todos os golpes, público); ?lab=posicoes e ?cards=1 só no dev
+    const [lab, setLab] = useState(() => {
+        const q = new URLSearchParams(window.location.search).get('lab');
+        return q === 'golpes' || (import.meta.env.DEV && q === 'posicoes') ? q : null;
+    });
+    const [cards, setCards] = useState(
+        () => import.meta.env.DEV && new URLSearchParams(window.location.search).get('cards') === '1',
+    );
 
     useEffect(() => {
         setVolume(settings.volume);

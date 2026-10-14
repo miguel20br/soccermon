@@ -117,7 +117,7 @@ export function CardModal() {
                 </button>
                 <div className="card-modal-grid">
                     <div className="card-modal-left">
-                        <FutCard inst={inst} position={position} captain={captain} />
+                        <FutCard inst={inst} position={position} captain={captain} inModal />
                         <div className="row" style={{ gap: 4, justifyContent: 'center' }}>
                             {sp.types.map((t) => (
                                 <TypeBadge key={t} type={t} />

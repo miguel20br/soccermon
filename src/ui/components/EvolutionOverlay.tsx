@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { type AttrKey, computeAttributes, eligiblePositions, positionRating } from '../../engine/attributes';
 import { species } from '../../engine/data';
 import { DEFAULT_LEVEL } from '../../engine/instance';
@@ -47,6 +47,7 @@ function cardOf(id: number) {
 
 export function EvolutionOverlay() {
     const [evo, setEvo] = useState<MatchEvolution | null>(null);
+    const boxRef = useRef<HTMLDivElement>(null);
     const [phase, setPhase] = useState<Phase>('intro');
     const [showNew, setShowNew] = useState(false);
     const finish = useCallback(() => {
@@ -93,6 +94,11 @@ export function EvolutionOverlay() {
         };
     }, [reveal]);
 
+    // biome-ignore lint/correctness/useExhaustiveDependencies: foca quando uma evolução nova aparece
+    useEffect(() => {
+        if (evo) boxRef.current?.focus();
+    }, [evo?.from, evo?.into]);
+
     if (!evo) return null;
     const before = cardOf(evo.from);
     const after = cardOf(evo.into);
@@ -101,9 +107,15 @@ export function EvolutionOverlay() {
 
     return (
         <div
+            ref={boxRef}
             className={`evo-overlay evo-phase-${phase}`}
             onClick={tap}
-            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') && tap()}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+                    e.preventDefault();
+                    tap();
+                }
+            }}
             role="dialog"
             aria-label="Evolução"
             tabIndex={-1}

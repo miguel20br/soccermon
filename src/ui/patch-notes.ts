@@ -7,6 +7,35 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.7.1',
+        title: 'Revisão completa',
+        sections: [
+            {
+                title: 'Corrigido',
+                lines: [
+                    'Save na nuvem: abrir o jogo em outro aparelho não apaga mais a copa salva',
+                    'Outra conta Google no mesmo aparelho não herda a copa nem os recordes',
+                    'Evoluir no meio da partida não cura status nem devolve golpes já usados',
+                    'Saves antigos não fazem mais substituição automática no seu time',
+                    'Voltar no meio da disputa de pênaltis não passa todas as cobranças de uma vez',
+                    'Tocar na carta dentro da carta completa sumia com os botões Escolher e Contratar',
+                    'Textos: "Eliminado na semifinal", "1 gol", "1 copa", vice-campeão ao perder a final',
+                    'Nidoran♀ e Nidoran♂ com o nome certo',
+                ],
+            },
+            {
+                title: 'Celular',
+                lines: [
+                    'Estatísticas da copa e topo do resultado cabem em telas de 320px',
+                    'Quadra cabe na tela com o celular deitado',
+                    'Selo de capitão não cobre mais o "Goleiro" na escalação',
+                    'Gráficos sem emoji: bolinhas desenhadas marcam os gols',
+                    'Esc e teclado funcionam na evolução e nas Novidades',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.7',
         title: 'Contas, evolução e golpes de verdade',
         sections: [

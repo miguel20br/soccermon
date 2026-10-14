@@ -226,12 +226,17 @@ export function leaders(lines: PlayerLine[]): Leader[] {
     const passer = best((p) => p.stats.passesCompleted);
     push('Mais passes certos', passer, (p) => `${p.stats.passesCompleted}`);
     const tackler = best((p) => p.stats.tacklesWon + p.stats.interceptions * 0.5);
-    push('Mais roubadas', tackler, (p) => `${p.stats.tacklesWon} desarmes · ${p.stats.interceptions} intercep.`);
+    push(
+        'Mais roubadas',
+        tackler,
+        (p) =>
+            `${p.stats.tacklesWon} desarme${p.stats.tacklesWon === 1 ? '' : 's'} · ${p.stats.interceptions} intercep.`,
+    );
     const keeper = best(
         (p) => p.stats.saves,
         (p) => p.role === 'GK',
     );
-    push('Paredão', keeper, (p) => `${p.stats.saves} defesas`, 0, keeper?.stats.saves);
+    push('Paredão', keeper, (p) => `${p.stats.saves} defesa${p.stats.saves === 1 ? '' : 's'}`, 0, keeper?.stats.saves);
     return out;
 }
 

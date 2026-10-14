@@ -1,4 +1,4 @@
-import { type CSSProperties, useState } from 'react';
+import { type CSSProperties, useEffect, useState } from 'react';
 import { CUP_STAGES } from '../../engine/cup';
 import { weeklyEventType } from '../../engine/specials';
 import { seedFromUrl, useGame } from '../../store/game-store';
@@ -25,6 +25,12 @@ export function Home() {
     const { run, newRun, go, records } = useGame();
     const [teamName, setTeamName] = useState('Pallet FC');
     const [notesOpen, setNotesOpen] = useState(false);
+    useEffect(() => {
+        if (!notesOpen) return;
+        const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setNotesOpen(false);
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [notesOpen]);
     const challengeSeed = seedFromUrl();
     const inProgress = run && !['eliminated', 'champion'].includes(run.status);
     const resumeScreen =
@@ -172,24 +178,24 @@ export function Home() {
                         <b>{records.titles}</b> {records.titles === 1 ? 'título' : 'títulos'}
                     </span>
                     <span>
-                        <b>{records.cups}</b> copas
+                        <b>{records.cups}</b> {records.cups === 1 ? 'copa' : 'copas'}
                     </span>
                     <span>
-                        <b>{records.perfect}</b> perfeitas
+                        <b>{records.perfect}</b> {records.perfect === 1 ? 'perfeita' : 'perfeitas'}
                     </span>
                     {(records.destaques ?? 0) > 0 && (
                         <span>
-                            <b>{records.destaques}</b> destaques
+                            <b>{records.destaques}</b> {records.destaques === 1 ? 'destaque' : 'destaques'}
                         </span>
                     )}
                     {(records.evolucoes ?? 0) > 0 && (
                         <span>
-                            <b>{records.evolucoes}</b> evoluções
+                            <b>{records.evolucoes}</b> {records.evolucoes === 1 ? 'evolução' : 'evoluções'}
                         </span>
                     )}
                     {(records.icones ?? 0) > 0 && (
                         <span>
-                            <b>{records.icones}</b> ícones
+                            <b>{records.icones}</b> {records.icones === 1 ? 'ícone' : 'ícones'}
                         </span>
                     )}
                 </div>
@@ -241,6 +247,8 @@ export function Home() {
                             className="modal-close"
                             onClick={() => setNotesOpen(false)}
                             aria-label="Fechar"
+                            // biome-ignore lint/a11y/noAutofocus: o foco vai para dentro da janela que acabou de abrir
+                            autoFocus
                         >
                             ×
                         </button>

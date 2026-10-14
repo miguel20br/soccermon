@@ -736,6 +736,9 @@ img.pixel {
     gap: 4px;
     font-size: 12px;
 }
+.scorers + .destaque-box {
+    margin-top: 14px;
+}
 
 /* ---------- créditos / config ---------- */
 .prose {
@@ -1195,6 +1198,15 @@ button,
     }
     .slot .pos-badge {
         font-size: 9px;
+    }
+    /* capitão na quina, fora do selo da posição (no celular "Goleiro" ocupa a largura toda) */
+    .slot .captain-badge {
+        top: -8px;
+        right: -8px;
+        width: 16px;
+        height: 16px;
+        font-size: 10px;
+        box-shadow: 0 0 0 2px #0e1430;
     }
     .bench .slot {
         width: 96px;
@@ -3094,6 +3106,13 @@ button,
     display: grid;
     gap: 12px;
     margin-top: var(--gap);
+    min-width: 0;
+}
+/* filhos de grid não podem crescer até a largura da tabela (ela rola dentro do .st-table-scroll) */
+.st-panel > *,
+.st-charts > *,
+.st-table-wrap > * {
+    min-width: 0;
 }
 .st-tabs {
     display: flex;
@@ -4386,4 +4405,70 @@ button,
 .credits-hero img {
     height: 64px;
     flex: none;
+}
+
+/* ---------- revisão 0.7: celular, telas baixas e textos longos ---------- */
+.st-chart {
+    overflow-x: clip;
+}
+.st-tip {
+    white-space: normal;
+    width: max-content;
+    max-width: min(240px, 70vw);
+}
+.rc-team {
+    overflow-wrap: anywhere;
+}
+.evo-stage {
+    width: min(70vw, 360px, 45vh);
+}
+@media (max-width: 480px) {
+    /* faixa de substituição: no celular sobra pouco espaço; fica só quem entra */
+    .mh-sub .mh-out,
+    .mh-sub .mh-arrow {
+        display: none;
+    }
+}
+@media (max-width: 359px) {
+    .champ-player {
+        width: 100%;
+    }
+}
+/* celular deitado: a quadra cabe na altura da tela */
+@media (orientation: landscape) and (max-height: 520px) {
+    .app {
+        padding: 6px 12px;
+        gap: 8px;
+    }
+    .scoreboard {
+        padding: 4px 12px;
+    }
+    .pitch-wrap {
+        width: min(100%, calc((100svh - 64px) * 968 / 528));
+        margin-inline: auto;
+    }
+}
+/* topo do resultado: a coluna do grid não cresce além da tela (nomes longos e o time inteiro em 320px) */
+.rh {
+    grid-template-columns: minmax(0, 1fr);
+}
+.rh > * {
+    max-width: 100%;
+}
+@media (max-width: 380px) {
+    .rh-title {
+        font-size: 36px;
+    }
+    .rh-squad {
+        gap: 2px;
+    }
+    .rh-mon img {
+        height: 44px;
+        max-width: 54px;
+        object-fit: contain;
+    }
+    .rh-mon.mvp img {
+        height: 56px;
+        max-width: 64px;
+    }
 }

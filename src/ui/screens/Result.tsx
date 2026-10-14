@@ -9,7 +9,7 @@ import {
     teamTotals,
 } from '../../engine/match-stats';
 import { matchMvp } from '../../engine/mvp';
-import { isPerfectCup, useGame } from '../../store/game-store';
+import { useGame } from '../../store/game-store';
 import { ChampionView } from '../components/ChampionView';
 import { FutCard } from '../components/FutCard';
 import { cardSprite } from '../components/PokeCard';
@@ -26,6 +26,7 @@ import {
     ShotMapChart,
     TeamLegend,
 } from '../stats/StatsCharts';
+import { plural } from '../text';
 
 type Tab = 'times' | 'jogadores' | 'graficos' | 'copa';
 const TABS: { id: Tab; label: string }[] = [
@@ -75,7 +76,6 @@ export function Result() {
 
     const champion = run.status === 'champion';
     const eliminated = run.status === 'eliminated';
-    const perfect = isPerfectCup(run);
     const share = async () => {
         const res = await shareRun(run);
         setShared(
@@ -89,7 +89,6 @@ export function Result() {
 
     const actions = (
         <>
-            {perfect && !champion && <div className="perfect-badge">★ COPA PERFEITA ★</div>}
             <div className="row" style={{ justifyContent: 'center' }}>
                 {eliminated || champion ? (
                     <>
@@ -203,8 +202,10 @@ export function Result() {
                                 <div>
                                     <b>{mvp.name}</b> <span className="muted">({names[mvp.team]})</span>
                                     <div className="muted">
-                                        {mvp.stats.goals} gols · {mvp.stats.assists} assist. · {mvp.stats.saves} defesas
-                                        · {mvp.stats.tacklesWon} desarmes
+                                        {plural(mvp.stats.goals, 'gol', 'gols')} ·{' '}
+                                        {plural(mvp.stats.assists, 'assistência', 'assistências')} ·{' '}
+                                        {plural(mvp.stats.saves, 'defesa', 'defesas')} ·{' '}
+                                        {plural(mvp.stats.tacklesWon, 'desarme', 'desarmes')}
                                     </div>
                                 </div>
                             </div>

@@ -18,6 +18,7 @@ import {
     type TeamSetup,
 } from '../../engine/state';
 import { EventBus } from '../../game/EventBus';
+import { useCardModal } from '../card-modal';
 import { TYPE_COLOR } from '../type-colors';
 import { FutCard } from './FutCard';
 
@@ -139,10 +140,17 @@ export function PlayerInspect({
 
     useEffect(() => {
         if (!open) return;
-        const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close();
+        // com a carta completa aberta por cima, o Esc fecha só ela
+        const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !useCardModal.getState().inst && close();
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
     }, [open, close]);
+
+    // não achou o Pokémon (save antigo?): fecha em vez de deixar a partida parada sem painel
+    // biome-ignore lint/correctness/useExhaustiveDependencies: depende só de qual painel foi aberto
+    useEffect(() => {
+        if (open && !whoAt(match, setups, open.idx, open.tick).inst) close();
+    }, [open]);
 
     if (!open) return null;
 

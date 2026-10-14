@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { StageResult, StageStats } from '../../store/game-store';
 import { stageLabel } from '../../store/game-store';
 import { cardSprite } from '../components/PokeCard';
+import { plural } from '../text';
 import { AWAY_C, HOME_C } from './StatsCharts';
 
 /**
@@ -77,7 +78,6 @@ export function aggregate(results: StageResult[]): Agg[] {
     return [...map.values()];
 }
 
-const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 export const avg = (a: Agg) => (a.games ? a.ratingSum / a.games : 0);
 
 /** Gols feitos (vermelho) e sofridos (azul) por partida. */

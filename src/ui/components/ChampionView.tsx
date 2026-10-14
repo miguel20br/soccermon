@@ -16,6 +16,8 @@ import { Trophy } from './Trophy';
 export function ChampionView({ run, actions }: { run: RunState; actions: ReactNode }) {
     const stats = new Map(aggregate(run.results).map((a) => [a.uid, a]));
     const slots = formationOf(run.formation).slots;
+    // partidas jogadas antes da 0.7 não guardaram estatísticas
+    const oldSave = run.results.some((r) => !r.stats);
     const squad = [...run.lineup, ...run.bench]
         .map((uid) => run.picks.find((p) => p.uid === uid))
         .filter((p): p is NonNullable<typeof p> => !!p);
@@ -74,7 +76,9 @@ export function ChampionView({ run, actions }: { run: RunState; actions: ReactNo
                 {topScorer && topScorer.goals > 0 && (
                     <div>
                         <b>{topScorer.goals}</b>
-                        <span>gols de {topScorer.name} (artilheiro)</span>
+                        <span>
+                            {topScorer.goals === 1 ? 'gol' : 'gols'} de {topScorer.name} (artilheiro)
+                        </span>
                     </div>
                 )}
                 {star && (
@@ -160,7 +164,9 @@ export function ChampionView({ run, actions }: { run: RunState; actions: ReactNo
                                     <dd>{(a.distance / 1000).toFixed(1)} km</dd>
                                 </dl>
                             ) : (
-                                <span className="muted champ-nostats">Ficou no banco</span>
+                                <span className="muted champ-nostats">
+                                    {oldSave ? 'Sem estatísticas' : 'Ficou no banco'}
+                                </span>
                             )}
                         </div>
                     );

@@ -25,6 +25,8 @@ const supabase =
 const SAVE_VERSION = 4;
 /** Quando o save local mudou pela última vez (para comparar com a nuvem). */
 const LOCAL_TS = 'soccermon-local-updated';
+/** De qual conta é o save deste aparelho ('' = visitante). Outra conta entrando não herda a copa nem os recordes. */
+const LOCAL_OWNER = 'soccermon-local-owner';
 const UPLOAD_DELAY_MS = 2500;
 
 export type CloudStatus = 'off' | 'guest' | 'syncing' | 'saved' | 'error';
@@ -39,6 +41,8 @@ export const useCloud = create<CloudState>(() => ({ status: cloudEnabled ? 'gues
 let userId: string | null = null;
 let uploadTimer = 0;
 let applying = false;
+/** Entre o login e a comparação com a nuvem nada sobe (senão o save local atropela o da nuvem antes da comparação). */
+let reconciling = false;
 
 const readLocalTs = () => {
     try {
@@ -52,6 +56,21 @@ const writeLocalTs = (ts: number) => {
         localStorage.setItem(LOCAL_TS, String(ts));
     } catch {
         // modo privado: só perde a comparação de data (a nuvem ganha)
+    }
+};
+
+const readOwner = () => {
+    try {
+        return localStorage.getItem(LOCAL_OWNER) ?? '';
+    } catch {
+        return '';
+    }
+};
+const writeOwner = (id: string) => {
+    try {
+        localStorage.setItem(LOCAL_OWNER, id);
+    } catch {
+        // modo privado: sem dono gravado, o save conta como visitante
     }
 };
 
@@ -112,14 +131,43 @@ async function onSignedIn(session: Session) {
     });
 
     await hydrated();
-    const { data, error } = await supabase.from('saves').select('data, updated_at').eq('user_id', userId).maybeSingle();
-    if (error) {
-        useCloud.setState({ status: 'error' });
+    reconciling = true;
+    try {
+        await reconcile(userId);
+    } finally {
+        reconciling = false;
+    }
+}
+
+/** Compara o save do aparelho com o da conta e fica com o certo. */
+async function reconcile(uid: string) {
+    if (!supabase) return;
+    const { data, error } = await supabase.from('saves').select('data, updated_at').eq('user_id', uid).maybeSingle();
+    if (error || userId !== uid) {
+        if (error) useCloud.setState({ status: 'error' });
         return;
     }
     const local = useGame.getState();
     const cloudTs = data ? Date.parse(data.updated_at) : 0;
     const cloud = data?.data as Partial<ReturnType<typeof snapshot>> | undefined;
+    const owner = readOwner();
+    if (owner && owner !== uid) {
+        // o save deste aparelho é de outra conta: essa conta começa com o que tem na nuvem (ou do zero)
+        applying = true;
+        useGame.setState({
+            run: cloud?.run ?? null,
+            settings: { ...local.settings, ...cloud?.settings },
+            records: mergeRecords({ cups: 0, titles: 0, perfect: 0 }, cloud?.records),
+            screen: 'home',
+        });
+        applying = false;
+        writeLocalTs(cloudTs || Date.now());
+        writeOwner(uid);
+        if (cloud) useCloud.setState({ status: 'saved' });
+        else await upload();
+        return;
+    }
+    writeOwner(uid);
     if (cloud && (cloudTs > readLocalTs() || !local.run)) {
         // a nuvem é mais nova (outro aparelho): ela vale; recordes juntam os dois
         applying = true;
@@ -133,7 +181,7 @@ async function onSignedIn(session: Session) {
         writeLocalTs(cloudTs);
         useCloud.setState({ status: 'saved' });
         // se os recordes locais eram maiores, sobe a junção
-        if (JSON.stringify(cloud.records) !== JSON.stringify(useGame.getState().records)) scheduleUpload();
+        if (JSON.stringify(cloud.records) !== JSON.stringify(useGame.getState().records)) await upload();
     } else {
         await upload();
     }
@@ -144,9 +192,10 @@ export function startCloudSync() {
     // toda mudança no save local marca a hora (vale também para visitante: ao entrar, compara com a nuvem)
     useGame.subscribe((s, prev) => {
         if (s.run === prev.run && s.settings === prev.settings && s.records === prev.records) return;
-        if (applying) return;
+        // o carregamento do save do IndexedDB não é "mudança": senão o local parece sempre mais novo que a nuvem
+        if (applying || !useGame.persist.hasHydrated()) return;
         writeLocalTs(Date.now());
-        if (userId) scheduleUpload();
+        if (userId && !reconciling) scheduleUpload();
     });
     if (!supabase) return;
     supabase.auth.onAuthStateChange((event, session) => {
@@ -164,10 +213,11 @@ export function startCloudSync() {
 
 export async function signInWithGoogle() {
     if (!supabase) return;
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo: `${window.location.origin}${window.location.pathname}` },
     });
+    if (error) throw error;
 }
 
 export async function signOut() {

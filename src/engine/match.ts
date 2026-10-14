@@ -335,6 +335,20 @@ export function checkEvolutions(s: MatchState) {
             itemUsed: p.itemUsed,
             stats: p.stats,
             ai: p.ai,
+            status: p.status,
+            buffs: p.buffs,
+            seeded: p.seeded,
+            substitute: p.substitute,
+            stun: p.stun,
+            evade: p.evade,
+            moveCooldown: p.moveCooldown,
+            shotBonus: p.shotBonus,
+            tackleBonus: p.tackleBonus,
+            clutchAnnounced: p.clutchAnnounced,
+            // golpe que continua na mesma vaga mantém os usos gastos; golpe novo chega cheio
+            moveUses: fresh.moveUses.map((u, i) =>
+                inst.moves[i] === p.inst.moves[i] ? Math.min(u, p.moveUses[i] ?? u) : u,
+            ),
             evolved: true,
         });
         s.players[p.idx] = fresh;
@@ -442,7 +456,7 @@ function tickTimers(s: MatchState, p: PlayerState, dt: number) {
     if (p.seeded) {
         p.seeded.timer -= dt;
         const drain = Math.min(p.energy, 0.012 * dt);
-        p.energy -= drain;
+        p.energy = Math.max(0, p.energy - drain);
         const by = s.players[p.seeded.by];
         if (by && by.team !== p.team) by.energy = Math.min(1, by.energy + drain);
         if (p.seeded.timer <= 0) p.seeded = null;
@@ -458,7 +472,7 @@ function tickTimers(s: MatchState, p: PlayerState, dt: number) {
     }
     if (p.status) {
         p.status.timer -= dt;
-        if (p.status.kind === 'psn' || p.status.kind === 'brn') p.energy -= 0.004 * dt;
+        if (p.status.kind === 'psn' || p.status.kind === 'brn') p.energy = Math.max(0, p.energy - 0.004 * dt);
         if (p.status.timer <= 0) p.status = null;
     }
     // fôlego: gasto proporcional ao esforço, menor para quem tem muito HP
@@ -507,7 +521,7 @@ function applyCommand(s: MatchState, p: PlayerState, c: Command, dt: number) {
         case 'skill':
             if (s.ball.owner === p.idx && p.evade <= 0) {
                 p.evade = 0.6;
-                p.energy -= 0.01;
+                p.energy = Math.max(0, p.energy - 0.01);
                 applyMovement(s, p, c.dir, true, dt);
                 emit(s, { type: 'skill', by: p.idx });
             }
@@ -620,7 +634,7 @@ function kick(s: MatchState, p: PlayerState, kind: 'pass' | 'shot', target: Vec2
     p.kickCooldown = 0.35;
     p.heading = dir;
     p.facing = dir8(dir, p.facing);
-    p.energy -= kind === 'shot' ? 0.006 : 0.002;
+    p.energy = Math.max(0, p.energy - (kind === 'shot' ? 0.006 : 0.002));
 }
 
 function tryTackle(s: MatchState, p: PlayerState, targetId: number) {
@@ -853,7 +867,7 @@ function protect(s: MatchState, target: PlayerState, attacker: PlayerState, kind
         target.stats.movesUsed++;
         setAction(target, Action.Tackle, 0.35);
         attacker.stun = Math.max(attacker.stun, 0.9);
-        attacker.energy -= 0.05;
+        attacker.energy = Math.max(0, attacker.energy - 0.05);
         knockback(s, attacker, target, 1.6, 'counter');
         emit(s, {
             type: 'move',
@@ -914,7 +928,7 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0) {
                 hit = false;
                 // Jump Kick/High Jump Kick: errou, se machucou
                 if (DRAWBACK[moveId] === 'crash') {
-                    p.energy -= 0.08;
+                    p.energy = Math.max(0, p.energy - 0.08);
                     p.stun = Math.max(p.stun, 0.6);
                     setAction(p, Action.Hurt, 0.6);
                 }
@@ -965,7 +979,7 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0) {
                     hit = s.rng.chance(prof.data.accuracy / 100);
                     if (hit) {
                         target.stun = Math.max(target.stun, 0.4 * k * mult);
-                        target.energy -= 0.05 * k * mult;
+                        target.energy = Math.max(0, target.energy - 0.05 * k * mult);
                         knockback(s, target, p, 0.8 * mult, moveId);
                         applySecondary(s, p, target, moveId);
                         if (DRAIN[moveId]) drainEnergy(p, target, DRAIN[moveId] * mult);
@@ -1103,7 +1117,7 @@ function drawback(s: MatchState, p: PlayerState, moveId: string) {
             p.stun = Math.max(p.stun, 0.9);
             break;
         case 'recoil':
-            p.energy -= 0.04;
+            p.energy = Math.max(0, p.energy - 0.04);
             break;
         case 'rampage':
             if (s.rng.chance(0.5)) applyStatus(s, p, 'confusion', p.idx, moveId);
@@ -1113,7 +1127,7 @@ function drawback(s: MatchState, p: PlayerState, moveId: string) {
 
 function drainEnergy(user: PlayerState, target: PlayerState, amount: number) {
     const taken = Math.min(Math.max(0, target.energy), amount);
-    target.energy -= taken;
+    target.energy = Math.max(0, target.energy - taken);
     user.energy = Math.min(1, user.energy + taken);
 }
 
@@ -1205,7 +1219,7 @@ function specialMove(
             return { target: null, hit: true, after: () => emit(s, { type: 'teleport', by: p.idx }) };
         }
         case 'substitute':
-            p.energy -= 0.08;
+            p.energy = Math.max(0, p.energy - 0.08);
             p.substitute = 15;
             return { target: null, hit: true, after: null };
         case 'leechseed': {

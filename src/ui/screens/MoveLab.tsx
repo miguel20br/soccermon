@@ -131,6 +131,9 @@ function Stage({ onReady }: { onReady: () => void }) {
     return <div ref={ref} className="ml-stage" />;
 }
 
+/** Ferramenta de revisão (ok / mudar / copiar): no dev ou com ?revisao=1. */
+const REVIEW = import.meta.env.DEV || new URLSearchParams(window.location.search).has('revisao');
+
 export function MoveLab({ onExit }: { onExit: () => void }) {
     const rows = useMemo(buildRows, []);
     const [query, setQuery] = useState('');
@@ -235,8 +238,14 @@ export function MoveLab({ onExit }: { onExit: () => void }) {
                 <div>
                     <h1>Laboratório de golpes</h1>
                     <p className="muted">
-                        Todos os {rows.length} golpes com a animação da partida. Marque <b>ok</b> ou <b>mudar</b>,
-                        anote, e no fim use "Copiar revisão" para me mandar. Setas ← → trocam de golpe, espaço repete.
+                        Todos os {rows.length} golpes com a animação da partida.
+                        {REVIEW && (
+                            <>
+                                {' '}
+                                Marque <b>ok</b> ou <b>mudar</b>, anote, e no fim use "Copiar revisão" para me mandar.
+                            </>
+                        )}{' '}
+                        Setas ← → trocam de golpe, espaço repete.
                     </p>
                 </div>
                 <button type="button" className="btn ghost small" onClick={onExit}>
@@ -306,29 +315,31 @@ export function MoveLab({ onExit }: { onExit: () => void }) {
                                     </>
                                 )}
                             </dl>
-                            <div className="ml-review">
-                                <div className="row" style={{ gap: 6 }}>
-                                    <button
-                                        type="button"
-                                        className={`btn small${rv?.verdict === 'ok' ? ' active' : ''}`}
-                                        onClick={() => save(row.id, { verdict: 'ok' })}
-                                    >
-                                        ✓ Ok
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className={`btn small yellow${rv?.verdict === 'mudar' ? ' active' : ''}`}
-                                        onClick={() => save(row.id, { verdict: 'mudar' })}
-                                    >
-                                        ✎ Mudar
-                                    </button>
+                            {REVIEW && (
+                                <div className="ml-review">
+                                    <div className="row" style={{ gap: 6 }}>
+                                        <button
+                                            type="button"
+                                            className={`btn small${rv?.verdict === 'ok' ? ' active' : ''}`}
+                                            onClick={() => save(row.id, { verdict: 'ok' })}
+                                        >
+                                            ✓ Ok
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className={`btn small yellow${rv?.verdict === 'mudar' ? ' active' : ''}`}
+                                            onClick={() => save(row.id, { verdict: 'mudar' })}
+                                        >
+                                            ✎ Mudar
+                                        </button>
+                                    </div>
+                                    <textarea
+                                        placeholder="O que mudar? (ex.: Fire Blast tinha que ser a estrela de fogo caindo no alvo)"
+                                        value={rv?.note ?? ''}
+                                        onChange={(e) => save(row.id, { note: e.target.value })}
+                                    />
                                 </div>
-                                <textarea
-                                    placeholder="O que mudar? (ex.: Fire Blast tinha que ser a estrela de fogo caindo no alvo)"
-                                    value={rv?.note ?? ''}
-                                    onChange={(e) => save(row.id, { note: e.target.value })}
-                                />
-                            </div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -360,14 +371,16 @@ export function MoveLab({ onExit }: { onExit: () => void }) {
                             />
                             Só os que algum Pokémon usa
                         </label>
-                        <div className="row" style={{ justifyContent: 'space-between' }}>
-                            <span className="muted">
-                                Revisados: {reviewed}/{rows.length}
-                            </span>
-                            <button type="button" className="btn small primary" onClick={copy}>
-                                {copied ? 'Copiado!' : 'Copiar revisão'}
-                            </button>
-                        </div>
+                        {REVIEW && (
+                            <div className="row" style={{ justifyContent: 'space-between' }}>
+                                <span className="muted">
+                                    Revisados: {reviewed}/{rows.length}
+                                </span>
+                                <button type="button" className="btn small primary" onClick={copy}>
+                                    {copied ? 'Copiado!' : 'Copiar revisão'}
+                                </button>
+                            </div>
+                        )}
                     </div>
                     <div className="ml-items">
                         {shown.map((r) => (

@@ -37,6 +37,7 @@ function GoogleLogo() {
 export function AccountBar() {
     const { status, user } = useCloud();
     const [busy, setBusy] = useState(false);
+    const [failed, setFailed] = useState(false);
     if (!cloudEnabled) return null;
 
     if (!user) {
@@ -48,13 +49,22 @@ export function AccountBar() {
                     disabled={busy}
                     onClick={() => {
                         setBusy(true);
-                        signInWithGoogle().finally(() => setBusy(false));
+                        setFailed(false);
+                        // deu certo: a página vai para o Google (continua ocupado até sair daqui)
+                        signInWithGoogle().catch(() => {
+                            setBusy(false);
+                            setFailed(true);
+                        });
                     }}
                 >
                     <GoogleLogo />
                     Entrar com Google
                 </button>
-                <span className="muted">Salve sua copa e seus recordes na nuvem e jogue em qualquer aparelho.</span>
+                <span className={failed ? 'error-text' : 'muted'}>
+                    {failed
+                        ? 'Não deu para abrir o login do Google. Confira a internet e tente de novo.'
+                        : 'Salve sua copa e seus recordes na nuvem e jogue em qualquer aparelho.'}
+                </span>
             </div>
         );
     }
