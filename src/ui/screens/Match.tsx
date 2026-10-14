@@ -18,6 +18,7 @@ import { PLAYER_COLOR, type PlaybackSpeed, playerTeam, stageLabel, useGame } fro
 import { Commentator, type CommentLine } from '../commentary';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
 import { MatchHighlight } from '../components/MatchHighlight';
+import { PlayerInspect } from '../components/PlayerInspect';
 import { cardSprite } from '../components/PokeCard';
 import { VersusIntro } from '../components/VersusIntro';
 import { simulateMatch } from '../sim-client';
@@ -329,6 +330,11 @@ export function Match() {
                         )}
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
+                        <PlayerInspect
+                            match={match}
+                            setups={[lockedSetup, opponent]}
+                            tactics={[currentTactic, opponent.tactic]}
+                        />
                     </div>
                     {pendingSub && (
                         <div className="sub-pending">

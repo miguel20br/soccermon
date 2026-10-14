@@ -2986,3 +2986,105 @@ button,
 .modal-attrs .attr {
     grid-template-columns: 74px 1fr 24px 30px;
 }
+
+/* ---------- painel do jogador em campo (tocar no Pokémon) ---------- */
+.inspect-panel {
+    width: min(760px, 100%);
+}
+.inspect-grid {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 18px;
+}
+.inspect-left {
+    display: grid;
+    gap: 10px;
+    align-content: start;
+    justify-items: center;
+}
+.inspect-right {
+    display: grid;
+    gap: 8px;
+    align-content: start;
+}
+.inspect-right h2,
+.inspect-right h3 {
+    margin: 0;
+}
+.inspect-right h3 {
+    margin-top: 4px;
+    font-size: 14px;
+    color: var(--muted);
+}
+.inspect-energy {
+    display: grid;
+    grid-template-columns: 64px 1fr 40px;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    font-size: 12px;
+}
+.inspect-energy .bar {
+    height: 8px;
+    border-radius: 4px;
+    background: #0e1430;
+    overflow: hidden;
+}
+.inspect-energy .bar i {
+    display: block;
+    height: 100%;
+}
+.inspect-energy.evo .bar i {
+    background: linear-gradient(90deg, #7a5cff, #e8e8ff);
+}
+.inspect-note {
+    font-size: 11px;
+    text-align: center;
+}
+.inspect-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+}
+.inspect-stats div {
+    display: grid;
+    justify-items: center;
+    padding: 6px 4px;
+    border-radius: 8px;
+    background: var(--bg-2);
+}
+.inspect-stats b {
+    font-size: 18px;
+}
+.inspect-stats span {
+    font-size: 11px;
+    color: var(--muted);
+}
+.inspect-moves {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+}
+.inspect-move {
+    display: grid;
+    gap: 2px;
+    padding: 6px 8px;
+    border-left: 4px solid;
+    border-radius: 6px;
+    background: var(--bg-2);
+    font-size: 12px;
+}
+.inspect-move span {
+    color: var(--muted);
+}
+.inspect-move.spent {
+    opacity: 0.5;
+}
+@media (max-width: 640px) {
+    .inspect-grid {
+        grid-template-columns: 1fr;
+    }
+    .inspect-stats {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}

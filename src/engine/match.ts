@@ -1350,6 +1350,7 @@ export function snapshot(s: MatchState): MatchSnapshot {
             pl.action,
             pl.status ? STATUS_CODE[pl.status.kind] : 0,
             flags,
+            Math.round(pl.energy * 100) / 100,
         );
     }
     return {

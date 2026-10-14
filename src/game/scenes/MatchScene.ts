@@ -257,10 +257,12 @@ export class MatchScene extends Phaser.Scene {
         EventBus.on('match:seek-fulltime', this.onSeekFulltime, this);
         EventBus.on('match:resume', this.onResume, this);
         EventBus.on('match:evolution-done', this.onEvolutionDone, this);
+        EventBus.on('match:inspect-close', this.onInspectClose, this);
         this.unbind = () => {
             EventBus.off('match:seek-fulltime', this.onSeekFulltime, this);
             EventBus.off('match:resume', this.onResume, this);
             EventBus.off('match:evolution-done', this.onEvolutionDone, this);
+            EventBus.off('match:inspect-close', this.onInspectClose, this);
             EventBus.off('match:set-speed', this.onSpeed, this);
             EventBus.off('match:skip', this.onSkip, this);
             EventBus.off('match:hold', this.onHold, this);
@@ -323,6 +325,12 @@ export class MatchScene extends Phaser.Scene {
     }
 
     private paused = false;
+    /** Painel de um jogador aberto (clicou nele): a partida espera. */
+    private inspecting = false;
+
+    private onInspectClose() {
+        this.inspecting = false;
+    }
 
     private onResume() {
         if (!this.paused) return;
@@ -449,6 +457,12 @@ export class MatchScene extends Phaser.Scene {
             enter: null,
         };
         this.refreshTint(view);
+        // tocar no Pokémon abre o painel dele (src/ui/components/PlayerInspect.tsx) e pausa a partida
+        sprite.setInteractive({ useHandCursor: true }).on('pointerdown', () => {
+            if (this.ended || this.holdReal > this.time.now) return;
+            this.inspecting = true;
+            EventBus.emit('match:inspect', { idx: this.players.indexOf(view), tick: this.playTick });
+        });
         return view;
     }
 
@@ -497,7 +511,7 @@ export class MatchScene extends Phaser.Scene {
 
     // ------------------------------------------------------------------ playback
     update(time: number, delta: number) {
-        if (this.ended || !this.snaps.length || this.paused) return;
+        if (this.ended || !this.snaps.length || this.paused || this.inspecting) return;
         // evolução: a partida para enquanto o Pokémon evolui, como nos jogos
         const factor = time < this.holdReal ? 0 : this.currentSpeedFactor(time);
         this.playTick = Math.min(this.playTick + (delta / 1000) * TICK_RATE * factor, this.holdAt - 1e-3);

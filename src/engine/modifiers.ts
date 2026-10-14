@@ -100,7 +100,7 @@ export function attributeModifiers(inst: PokemonInstance, ctx: TeamContext = {})
             mods.push({ source: 'capitao', label: 'Capitão: +3%', attrs: 'all', factor: 1.03 });
         } else if (ctx.captain) {
             const f = captainFactor(ctx.captain, sp.types);
-            const why = f > 1.03 ? 'mesmo tipo do capitão' : 'aura do capitão';
+            const why = f > 1.03 ? 'Mesmo tipo do capitão' : 'Aura do capitão';
             mods.push({ source: 'capitao', label: `${why}: ${pct(f)}`, attrs: 'all', factor: f });
         }
     }

@@ -237,8 +237,8 @@ export type MatchEvent = MatchEventBase &
 
 export type MatchEventType = MatchEvent['type'];
 
-/** Valores por jogador em `MatchSnapshot.p`: x, y, facing, action, status, flags. */
-export const SNAP_STRIDE = 6;
+/** Valores por jogador em `MatchSnapshot.p`: x, y, facing, action, status, flags, fôlego (0..1). */
+export const SNAP_STRIDE = 7;
 export const STATUS_CODE: Record<string, number> = {
     par: 1,
     slp: 2,
