@@ -14,6 +14,7 @@ import { rewardOptions } from './rewards';
 import { Rng } from './rng';
 import { runMatch } from './runners/batch-runner';
 import { LiveRunner } from './runners/live-runner';
+import { SIGNATURE } from './signature-moves';
 import { EVENT_TYPES, rollSpecial, SPECIAL_BONUS, weeklyEventType } from './specials';
 import { SNAP_STRIDE, type TeamSetup } from './state';
 import { dir8, v } from './vec';
@@ -537,5 +538,19 @@ describe('evolução no meio da partida', () => {
             expect([...per.values()].every((n) => n === 1)).toBe(true);
         }
         expect(evolutions).toBeGreaterThan(0);
+    });
+});
+
+describe('golpes', () => {
+    it('golpe-assinatura de cada Pokémon é um golpe que ele aprende e abre o moveset', () => {
+        const bad = Object.entries(SIGNATURE).filter(([id, m]) => !species(Number(id)).learnset.includes(m));
+        expect(bad).toEqual([]);
+        for (const [id, m] of Object.entries(SIGNATURE)) expect(defaultMoveset(species(Number(id)))[0]).toBe(m);
+    });
+
+    it('movesets variados: muitos golpes diferentes e no máximo 4 por Pokémon', () => {
+        const used = new Set(SPECIES.flatMap((sp) => defaultMoveset(sp)));
+        expect(used.size).toBeGreaterThan(100);
+        for (const sp of SPECIES) expect(defaultMoveset(sp).length).toBeLessThanOrEqual(4);
     });
 });

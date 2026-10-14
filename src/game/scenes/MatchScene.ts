@@ -3,6 +3,7 @@ import { FUTSAL_5 } from '../../engine/config';
 import { MOVES, species } from '../../engine/data';
 import { ITEMS } from '../../engine/items';
 import { LINKS } from '../../engine/links';
+import { moveProfile } from '../../engine/moves';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import {
     Action,
@@ -31,6 +32,7 @@ import { BattleBox } from '../battle-box';
 import { Cinematics, FOCUS_DEPTH } from '../cinematics';
 import { drawCourt, ensureBallTexture, GAME_H, GAME_W, PPM, toPx } from '../court';
 import { EventBus } from '../EventBus';
+import { EXTRA_FX, fxStyle, playMoveFx } from '../move-fx';
 
 export { GAME_H, GAME_W } from '../court';
 
@@ -227,7 +229,7 @@ export class MatchScene extends Phaser.Scene {
     preload() {
         this.md = this.registry.get('matchData') as MatchSceneData;
         for (const id of this.allSpecies()) preloadSpecies(this, id);
-        for (const fx of new Set(Object.values(FX_BY_TYPE))) {
+        for (const fx of new Set([...Object.values(FX_BY_TYPE), ...EXTRA_FX])) {
             if (!this.textures.exists(`fx-${fx}`)) this.load.image(`fx-${fx}`, `assets/fx/${fx}.png`);
         }
     }
@@ -280,6 +282,14 @@ export class MatchScene extends Phaser.Scene {
         this.applySnapshot(0, 0);
         if (this.md.startTick) this.seekTo(this.md.startTick);
         this.preloadEvolutions();
+        // (dev) testes visuais disparam golpes direto: __soccermonFx('thunder', 0, 6)
+        if (import.meta.env.DEV) {
+            (window as unknown as { __soccermonFx?: unknown }).__soccermonFx = (
+                id: string,
+                by: number,
+                t: number | null,
+            ) => this.moveFx(by, id, MOVES[id]?.type ?? 'Normal', t, true);
+        }
         EventBus.emit('current-scene-ready', this);
     }
 
@@ -1064,7 +1074,7 @@ export class MatchScene extends Phaser.Scene {
                         ease: 'Quad.easeOut',
                     });
                 }
-                this.moveFx(e.by, moveType, e.target, cinematic);
+                this.moveFx(e.by, e.moveId, moveType, e.target, cinematic);
                 // no modo cinematográfico a faixa já mostra o nome do golpe
                 if (!cinematic) this.battleBox.push(`${view.name} usou ${move?.name ?? e.moveId}!`);
                 if (e.kind === 'flavor' && e.moveId === 'splash') this.battleBox.push('Mas nada aconteceu!');
@@ -1292,8 +1302,11 @@ export class MatchScene extends Phaser.Scene {
         this.cameras.main.shake(120, 0.003);
     }
 
-    /** Animação do golpe: pulso no Pokémon, anéis de aura, explosão de partículas e projétil até o alvo. */
-    private moveFx(by: number, moveType: string, target: number | null, strong: boolean) {
+    /**
+     * Animação do golpe: pulso e anel de aura em quem usou + o estilo do golpe (raio, jato, do céu, terremoto,
+     * explosão, onda, corpo a corpo, som, nuvem…; src/game/move-fx.ts) na cor e partícula do tipo.
+     */
+    private moveFx(by: number, moveId: string, moveType: string, target: number | null, strong: boolean) {
         const from = this.players[by];
         const to = target !== null ? this.players[target] : null;
         const color = hexToNumber(TYPE_COLOR[moveType] ?? '#ffffff');
@@ -1312,94 +1325,30 @@ export class MatchScene extends Phaser.Scene {
                 onComplete: () => from.sprite.setScale(SPRITE_SCALE),
             });
         }
-        const rings = strong ? 3 : 1;
-        for (let i = 0; i < rings; i++) {
-            const aura = this.add.circle(x, y, 16, color, 0.5).setDepth(depth).setBlendMode(Phaser.BlendModes.ADD);
-            this.tweens.add({
-                targets: aura,
-                scale: 2.6,
-                alpha: 0,
-                delay: i * 120,
-                duration: 560,
-                onComplete: () => aura.destroy(),
-            });
-        }
-        if (!this.textures.exists(key)) return;
-        if (strong) {
-            // explosão radial de partículas do tipo
-            for (let i = 0; i < 7; i++) {
-                const ang = (i / 7) * Math.PI * 2;
-                const p = this.add
-                    .image(x, y, key)
-                    .setDepth(depth)
-                    .setScale(0.35)
-                    .setTint(color)
-                    .setBlendMode(Phaser.BlendModes.ADD);
-                this.tweens.add({
-                    targets: p,
-                    x: x + Math.cos(ang) * 46,
-                    y: y + Math.sin(ang) * 30,
-                    alpha: 0,
-                    scale: 0.6,
-                    duration: 520,
-                    ease: 'Cubic.easeOut',
-                    onComplete: () => p.destroy(),
+        const aura = this.add.circle(x, y, 16, color, 0.5).setDepth(depth).setBlendMode(Phaser.BlendModes.ADD);
+        this.tweens.add({ targets: aura, scale: 2.6, alpha: 0, duration: 560, onComplete: () => aura.destroy() });
+
+        const kind = MOVES[moveId] ? moveProfile(moveId).kind : 'blast';
+        playMoveFx(fxStyle(moveId, kind), {
+            scene: this,
+            from: { x, y },
+            to: to ? { x: to.sprite.x, y: to.sprite.y - 16 } : null,
+            color,
+            key: this.textures.exists(key) ? key : null,
+            depth,
+            strong,
+            moveId,
+            onHit: (hx, hy) => {
+                if (!to) return;
+                this.impact(hx, hy, moveType);
+                // alvo pisca em branco no impacto
+                to.sprite.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL);
+                this.time.delayedCall(130, () => {
+                    to.sprite.setTintMode(Phaser.TintModes.MULTIPLY);
+                    this.refreshTint(to);
                 });
-            }
-        }
-        const fx = this.add
-            .image(x, y - 2, key)
-            .setDepth(depth + 1)
-            .setScale(strong ? 0.9 : 0.7)
-            .setTint(color)
-            .setBlendMode(Phaser.BlendModes.ADD);
-        if (to) {
-            const trail = this.time.addEvent({
-                delay: 30,
-                repeat: 12,
-                callback: () => {
-                    const d = this.add
-                        .circle(fx.x, fx.y, 6, color, 0.7)
-                        .setDepth(depth)
-                        .setBlendMode(Phaser.BlendModes.ADD);
-                    this.tweens.add({ targets: d, alpha: 0, scale: 0.2, duration: 300, onComplete: () => d.destroy() });
-                },
-            });
-            this.tweens.add({
-                targets: fx,
-                x: to.sprite.x,
-                y: to.sprite.y - 16,
-                scale: strong ? 1.3 : 1,
-                duration: 380,
-                ease: 'Quad.easeIn',
-                onComplete: () => {
-                    trail.remove();
-                    this.impact(fx.x, fx.y, moveType);
-                    // alvo pisca em branco no impacto
-                    to.sprite.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL);
-                    this.time.delayedCall(130, () => {
-                        to.sprite.setTintMode(Phaser.TintModes.MULTIPLY);
-                        this.refreshTint(to);
-                    });
-                    this.tweens.add({
-                        targets: fx,
-                        alpha: 0,
-                        scale: 1.8,
-                        duration: 250,
-                        onComplete: () => fx.destroy(),
-                    });
-                },
-            });
-        } else {
-            this.tweens.add({
-                targets: fx,
-                scale: strong ? 1.8 : 1.4,
-                alpha: 0,
-                y: fx.y - 24,
-                duration: 650,
-                onComplete: () => fx.destroy(),
-            });
-        }
+            },
+        });
     }
 
     private goalBanner(stroke: string) {

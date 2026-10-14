@@ -1,4 +1,6 @@
+import levelMoves from '../data/level-moves.json';
 import { MOVES, type MoveData, type Species } from './data';
+import { SIGNATURE } from './signature-moves';
 
 /**
  * Como cada golpe vira uma ação de futsal.
@@ -110,6 +112,9 @@ const SPECTACULAR: Record<string, MoveKind> = {
     horndrill: 'strike',
     fissure: 'strike',
     dreameater: 'blast',
+    // Pay Day vira chuva de moedas e Metronome um golpe surpresa: eram golpes "inúteis" de dois ícones
+    payday: 'blast',
+    metronome: 'blast',
     reflect: 'buff',
     lightscreen: 'buff',
     doubleteam: 'buff',
@@ -211,20 +216,45 @@ const RISKY = new Set([
     'razorwind',
 ]);
 
+const LEVEL_MOVES = levelMoves as Record<string, Record<string, number>>;
+
+/**
+ * Até que nível o estágio "costuma" ter chegado: o básico de uma linha fica com os golpes do começo, o do meio
+ * com os do meio do caminho, o final com tudo (assim a carta muda quando o Pokémon evolui).
+ */
+function stageCap(sp: Species): number {
+    const evolves = sp.evolvesTo.some((e) => e.id <= 151);
+    if (!evolves) return 100;
+    return sp.prevo ? 42 : 30;
+}
+
 /**
  * Moveset padrão com cara de "jogo de verdade":
+ * 0) golpe-assinatura da espécie (src/engine/signature-moves.ts)
  * 1) melhor golpe STAB da categoria mais forte da espécie (Atk vs SpA)
  * 2) melhor golpe de dano de outro tipo ou outra categoria (cobertura)
  * 3) utilitário: status > arrancada > buff > debuff > cura
  * 4) melhor restante, preferindo um tipo ainda não coberto
  * Espécies com learnset curto (Magikarp, Ditto…) ficam com menos de 4.
  */
+/** Quem tem moveset fixo de propósito: o Magikarp é o Magikarp (a graça é evoluir). */
+const FIXED_MOVESET: Record<number, string[]> = { 129: ['splash', 'tackle'] };
+
 export function defaultMoveset(sp: Species): string[] {
+    if (FIXED_MOVESET[sp.id]) return FIXED_MOVESET[sp.id];
     const profiles = sp.learnset.map(moveProfile);
     const physical = sp.baseStats.atk >= sp.baseStats.spa;
+    const levels = LEVEL_MOVES[sp.id] ?? {};
+    const cap = stageCap(sp);
+    // golpe aprendido por nível tem a cara da espécie; TM (que quase todo mundo aprende) vale menos
+    const origin = (p: MoveProfile): number => {
+        const lv = levels[p.id];
+        if (lv === undefined) return 0.75;
+        return lv <= cap ? 1.4 : 0.85;
+    };
     const damageScore = (p: MoveProfile): number => {
         if (p.kind !== 'strike' && p.kind !== 'blast') return 0;
-        let sc = p.strength * 100;
+        let sc = p.strength * 100 * origin(p);
         if (sp.types.includes(p.data.type)) sc *= 1.6;
         else if (p.data.type === 'Normal') sc *= 0.7;
         if ((p.kind === 'strike') === physical) sc *= 1.2;
@@ -233,7 +263,7 @@ export function defaultMoveset(sp: Species): string[] {
         return sc;
     };
     const utilityScore = (p: MoveProfile): number => {
-        const generic = GENERIC_TM.has(p.id) ? 0.6 : 1;
+        const generic = (GENERIC_TM.has(p.id) ? 0.6 : 1) * (levels[p.id] !== undefined ? 1.3 : 1);
         switch (p.kind) {
             case 'status':
                 return (60 + 25 * p.strength) * generic;
@@ -264,7 +294,10 @@ export function defaultMoveset(sp: Species): string[] {
         if (top) chosen.push(top);
         return top;
     };
-    const first = best(damageScore);
+    const signature = profiles.find((p) => p.id === SIGNATURE[sp.id]);
+    if (signature) chosen.push(signature);
+    const first =
+        signature && (signature.kind === 'strike' || signature.kind === 'blast') ? signature : best(damageScore);
     best((p) => {
         const sc = damageScore(p);
         if (!first) return sc;
@@ -272,14 +305,18 @@ export function defaultMoveset(sp: Species): string[] {
         const sameKind = p.kind === first.kind;
         return sc * (sameType ? (sameKind ? 0.3 : 0.6) : 1.1);
     });
-    best(utilityScore);
+    // assinatura de suporte (Sing, Glare…) já é o utilitário
+    const isUtility = (p: MoveProfile | undefined) => !!p && p.kind !== 'strike' && p.kind !== 'blast';
+    if (!isUtility(signature)) best(utilityScore);
     const types = new Set(chosen.map((p) => p.data.type));
-    best((p) =>
-        Math.max(
-            damageScore(p) * (types.has(p.data.type) ? 0.5 : 1),
-            utilityScore(p) * 0.9,
-            p.kind === 'flavor' ? 1 : 0,
-        ),
-    );
-    return chosen.map((p) => p.id);
+    if (chosen.length < 4) {
+        best((p) =>
+            Math.max(
+                damageScore(p) * (types.has(p.data.type) ? 0.5 : 1),
+                utilityScore(p) * 0.9,
+                p.kind === 'flavor' ? 1 : 0,
+            ),
+        );
+    }
+    return chosen.slice(0, 4).map((p) => p.id);
 }
