@@ -71,7 +71,10 @@ npm run calibrate -- --n 400 [--formations|--tactics]   # equilíbrio headless
 No ar: contas e save na nuvem, evolução no meio da partida, substituição pelo técnico, painel ao tocar no
 Pokémon, estatísticas da partida e da copa, 6 formações, tela de campeão, menus novos, golpes revisados com
 animação própria, bônus de time recalculados a cada troca/evolução, página de privacidade e "Apagar minha
-conta" (migração `20261014180000_apagar_conta.sql` já aplicada no banco).
+conta" (migração `20261014180000_apagar_conta.sql` já aplicada no banco), Ditto no painel mostrando a forma
+copiada (não mais a original).
+
+Plano do trailer e dos posts de lançamento: [docs/planos/divulgacao-trailer.md](docs/planos/divulgacao-trailer.md).
 
 ### Pendente
 
@@ -89,8 +92,7 @@ conta" (migração `20261014180000_apagar_conta.sql` já aplicada no banco).
 2. **Tornar o repositório público** (decisão dele; é praticamente irreversível). Depois: descrição, site
    (`https://soccermon.vercel.app`) e tópicos no repo; decidir canal da comunidade (Discussions do GitHub ou
    Discord). O link "Código no GitHub" no rodapé do jogo dá 404 enquanto o repo for privado.
-3. Ditto no painel da partida mostra a forma original, não a copiada (`PlayerInspect.tsx`).
-4. Ideias combinadas para depois: melhores momentos/replay (os snapshots já existem), quadras temáticas e
+3. Ideias combinadas para depois: melhores momentos/replay (os snapshots já existem), quadras temáticas e
    treinadores, modo carreira (0.8+).
 
 ### Riscos que ele já conhece
