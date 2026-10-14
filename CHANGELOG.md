@@ -1,5 +1,16 @@
 # Novidades
 
+## 0.7.2 · Trocas que contam e privacidade
+
+### Alterado
+- Quem entra na troca passa a contar para sinergia de tipo, duplas de história e capitão
+- Quem sai leva o bônus junto; capitão substituído leva a aura
+- Evoluir muda o tipo na conta das sinergias do time
+
+### Adicionado
+- Apagar minha conta, em Configurações: remove login, perfil e save da nuvem
+- Página de privacidade e termos
+
 ## 0.7.1 · Revisão completa
 
 ### Corrigido

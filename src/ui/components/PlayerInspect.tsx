@@ -68,6 +68,11 @@ function whoAt(m: MatchResult, setups: [TeamSetup, TeamSetup], idx: number, tick
     return { team, inst, since, evolved, role: m.roster[idx].role as Position };
 }
 
+/** Escalação do time no tick (trocas e evoluções até ali): é por ela que o motor conta sinergias e capitão. */
+function lineupAt(m: MatchResult, setups: [TeamSetup, TeamSetup], team: 0 | 1, tick: number) {
+    return m.roster.flatMap((r, idx) => (r.team === team ? (whoAt(m, setups, idx, tick).inst ?? []) : []));
+}
+
 /** O que ele fez desde que entrou em campo até o tick (pelos eventos da partida). */
 function statsUntil(m: MatchResult, idx: number, from: number, tick: number) {
     const s: PlayerStats = {
@@ -165,8 +170,10 @@ export function PlayerInspect({
     const flags = snap.p[o + 5];
     const energy = snap.p[o + 6] ?? 1;
     const { stats, used } = statsUntil(match, idx, who.since, tick);
-    const captain = setup.lineup.find((p) => p.uid === setup.captainUid) ?? null;
-    const mods = attributeModifiers(inst, { lineup: setup.lineup, captain, role: who.role });
+    // a escalação de agora (com trocas e evoluções), igual à do motor
+    const lineupNow = lineupAt(match, setups, who.team, tick);
+    const captain = lineupNow.find((p) => p.uid === setup.captainUid) ?? null;
+    const mods = attributeModifiers(inst, { lineup: lineupNow, captain, role: who.role });
     const behind = snap.score[who.team === 0 ? 1 : 0] - snap.score[who.team];
     // mesma conta do motor (effective.ts: 0.72 + 0.28 × fôlego)
     const fatigue = Math.round(0.28 * (1 - energy) * 100);

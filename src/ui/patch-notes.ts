@@ -7,6 +7,27 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.7.2',
+        title: 'Trocas que contam e privacidade',
+        sections: [
+            {
+                title: 'Alterado',
+                lines: [
+                    'Quem entra na troca passa a contar para sinergia de tipo, duplas de história e capitão',
+                    'Quem sai leva o bônus junto; capitão substituído leva a aura',
+                    'Evoluir muda o tipo na conta das sinergias do time',
+                ],
+            },
+            {
+                title: 'Adicionado',
+                lines: [
+                    'Apagar minha conta, em Configurações: remove login, perfil e save da nuvem',
+                    'Página de privacidade e termos',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.7.1',
         title: 'Revisão completa',
         sections: [

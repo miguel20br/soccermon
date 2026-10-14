@@ -63,7 +63,10 @@ export function AccountBar() {
                 <span className={failed ? 'error-text' : 'muted'}>
                     {failed
                         ? 'Não deu para abrir o login do Google. Confira a internet e tente de novo.'
-                        : 'Salve sua copa e seus recordes na nuvem e jogue em qualquer aparelho.'}
+                        : 'Salve sua copa e seus recordes na nuvem e jogue em qualquer aparelho.'}{' '}
+                    <a href="privacidade.html" target="_blank" rel="noopener">
+                        Privacidade
+                    </a>
                 </span>
             </div>
         );

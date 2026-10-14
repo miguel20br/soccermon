@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { cloudEnabled, deleteAccount, useCloud } from '../../cloud/cloud';
 import { playCry, playSfx, setVolume } from '../../game/audio';
 import { useGame } from '../../store/game-store';
 import { MenuHead } from '../components/MenuHead';
@@ -74,6 +76,65 @@ export function Settings() {
                     </button>
                 </div>
             </section>
+            <AccountSettings />
+            <p className="muted center">
+                <a href="privacidade.html" target="_blank" rel="noopener">
+                    Privacidade e termos
+                </a>
+            </p>
         </div>
+    );
+}
+
+/** Conta Google: apagar tudo da nuvem (LGPD). Só aparece logado. */
+function AccountSettings() {
+    const user = useCloud((s) => s.user);
+    const [step, setStep] = useState<'idle' | 'confirm' | 'busy' | 'done' | 'error'>('idle');
+    if (!cloudEnabled || (!user && step !== 'done')) return null;
+    const remove = () => {
+        setStep('busy');
+        deleteAccount().then(
+            () => setStep('done'),
+            () => setStep('error'),
+        );
+    };
+    return (
+        <section className="panel setting-card">
+            <h2>Conta</h2>
+            {step === 'done' ? (
+                <p>Conta apagada. Seu progresso continua só neste aparelho, como visitante.</p>
+            ) : (
+                <>
+                    <p>
+                        Conectado como <b>{user?.name}</b>. Apagar a conta remove o login, o perfil e o save da nuvem de
+                        vez. O jogo neste aparelho continua, como visitante.
+                    </p>
+                    {step === 'confirm' || step === 'busy' ? (
+                        <div className="row">
+                            <button type="button" className="btn primary" disabled={step === 'busy'} onClick={remove}>
+                                {step === 'busy' ? 'Apagando…' : 'Sim, apagar minha conta'}
+                            </button>
+                            <button
+                                type="button"
+                                className="btn ghost"
+                                disabled={step === 'busy'}
+                                onClick={() => setStep('idle')}
+                            >
+                                Cancelar
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="row">
+                            <button type="button" className="btn ghost small" onClick={() => setStep('confirm')}>
+                                Apagar minha conta
+                            </button>
+                            {step === 'error' && (
+                                <span className="error-text">Não deu para apagar agora. Tente de novo.</span>
+                            )}
+                        </div>
+                    )}
+                </>
+            )}
+        </section>
     );
 }

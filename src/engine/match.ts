@@ -68,9 +68,26 @@ interface TeamBonuses {
     captain: PokemonInstance | null;
 }
 
-function teamBonuses(setup: TeamSetup): TeamBonuses {
-    const captain = setup.lineup.find((p) => p.uid === setup.captainUid) ?? null;
-    return { lineup: setup.lineup, links: computeLinks(setup.lineup), captain };
+/** Bônus pela escalação de agora (`lineup`): capitão substituído leva a aura junto. */
+function teamBonuses(lineup: readonly PokemonInstance[], captainUid: string | null | undefined): TeamBonuses {
+    const captain = lineup.find((p) => p.uid === captainUid) ?? null;
+    return { lineup, links: computeLinks(lineup), captain };
+}
+
+const bonusesOf = (s: MatchState, team: 0 | 1) => teamBonuses(s.teams[team].lineup, s.teams[team].setup.captainUid);
+
+/**
+ * A escalação mudou (troca ou evolução): recalcula para o time inteiro o que depende dela — sinergia de tipo,
+ * duplas de história e aura do capitão. Buffs e debuffs da partida ficam à parte e continuam valendo.
+ */
+function refreshTeamBonuses(s: MatchState, team: 0 | 1) {
+    const bonuses = bonusesOf(s, team);
+    for (const p of s.players) {
+        if (p.team !== team) continue;
+        const mods = attributeModifiers(p.inst, { lineup: bonuses.lineup, captain: bonuses.captain, role: p.role });
+        p.attr = applyModifiers(computeAttributes(p.sp, p.inst.level), mods, p.role);
+        p.captain = bonuses.captain?.uid === p.inst.uid;
+    }
 }
 
 export { captainFactor };
@@ -149,7 +166,7 @@ export function createMatch(cfg: MatchConfig, home: TeamSetup, away: TeamSetup, 
     const formations = [formationOf(home.formation), formationOf(away.formation)];
     [home, away].forEach((setup, t) => {
         const team = t as 0 | 1;
-        const bonuses = teamBonuses(setup);
+        const bonuses = teamBonuses(setup.lineup, setup.captainUid);
         setup.lineup.forEach((inst, slot) => {
             players.push(createPlayer(players.length, team, slot, inst, formations[team].slots[slot], bonuses));
         });
@@ -168,6 +185,7 @@ export function createMatch(cfg: MatchConfig, home: TeamSetup, away: TeamSetup, 
                 setup: home,
                 formation: formations[0],
                 tactic: home.tactic,
+                lineup: [...home.lineup],
                 bench: [...home.bench],
                 possessionTicks: 0,
                 combosUsed: [],
@@ -177,6 +195,7 @@ export function createMatch(cfg: MatchConfig, home: TeamSetup, away: TeamSetup, 
                 setup: away,
                 formation: formations[1],
                 tactic: away.tactic,
+                lineup: [...away.lineup],
                 bench: [...away.bench],
                 possessionTicks: 0,
                 combosUsed: [],
@@ -239,7 +258,7 @@ function transformDittos(s: MatchState, candidates: PlayerState[]) {
             moves: [...best.inst.moves],
             ability: best.inst.ability,
         };
-        const fresh = createPlayer(p.idx, p.team, p.slot, copy, p.role, teamBonuses(s.teams[p.team].setup));
+        const fresh = createPlayer(p.idx, p.team, p.slot, copy, p.role, bonusesOf(s, p.team));
         fresh.origin = p.inst;
         fresh.name = p.name;
         fresh.pos = p.pos;
@@ -257,7 +276,7 @@ function comboLink(s: MatchState, shooter: PlayerState): { link: string; partner
     const partner = s.players[lk.by];
     if (!partner || partner.team !== shooter.team) return null;
     const rt = s.teams[shooter.team];
-    const links = computeLinks(rt.setup.lineup);
+    const links = computeLinks(rt.lineup);
     const uidOf = (p: PlayerState) => (p.origin ?? p.inst).uid;
     const hit = links.find(
         (l) =>
@@ -319,12 +338,16 @@ const EVOLVE_PAUSE = 3.5;
  */
 export function checkEvolutions(s: MatchState) {
     let any = false;
+    const changed = new Set<0 | 1>();
     for (const p of s.players) {
         if (p.evolved || p.origin || p.inst.ability === 'imposter') continue;
         const into = evolutionTarget(p.inst.speciesId, p.inst.uid);
         if (into === null || evoScore(p.stats, p.role) < EVO_THRESHOLD) continue;
         const inst = evolveInstance(p.inst, into);
-        const fresh = createPlayer(p.idx, p.team, p.slot, inst, p.role, teamBonuses(s.teams[p.team].setup));
+        // a forma nova entra na escalação (tipo novo pode ligar ou desligar sinergias)
+        s.teams[p.team].lineup[p.slot] = inst;
+        changed.add(p.team);
+        const fresh = createPlayer(p.idx, p.team, p.slot, inst, p.role, bonusesOf(s, p.team));
         Object.assign(fresh, {
             pos: p.pos,
             vel: p.vel,
@@ -355,6 +378,7 @@ export function checkEvolutions(s: MatchState) {
         emit(s, { type: 'evolve', by: p.idx, team: p.team, uid: inst.uid, from: p.inst.speciesId, into });
         any = true;
     }
+    for (const team of changed) refreshTeamBonuses(s, team);
     if (any) {
         refreshAuras(s);
         s.phaseTimer = Math.max(s.phaseTimer, EVOLVE_PAUSE);
@@ -1553,7 +1577,9 @@ function endHalf(s: MatchState) {
 function substitute(s: MatchState, out: PlayerState, inst: PokemonInstance) {
     const rt = s.teams[out.team];
     rt.bench = rt.bench.filter((b) => b.uid !== inst.uid);
-    const fresh = createPlayer(out.idx, out.team, out.slot, inst, out.role, teamBonuses(rt.setup));
+    // quem entra assume a vaga na escalação: sinergias, duplas e capitão passam a contar com ele
+    rt.lineup[out.slot] = inst;
+    const fresh = createPlayer(out.idx, out.team, out.slot, inst, out.role, bonusesOf(s, out.team));
     s.subbedOut.push(out);
     fresh.pos = out.pos;
     s.players[out.idx] = fresh;
@@ -1570,6 +1596,7 @@ function substitute(s: MatchState, out: PlayerState, inst: PokemonInstance) {
         inShiny: inst.shiny,
     });
     transformDittos(s, [fresh]);
+    refreshTeamBonuses(s, out.team);
 }
 
 /** Bola parada (saída de bola, tiro de meta, intervalo): entram as substituições pedidas pelo técnico. */

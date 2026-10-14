@@ -1,54 +1,90 @@
 # Soccermon
 
+**Jogue agora: [soccermon.vercel.app](https://soccermon.vercel.app)**
+
 Fan game de navegador, **sem fins lucrativos**: monte um time com os 151 Pokémon de Kanto num draft
 "escolha 1 de 3" e dispute uma copa de **futsal 5v5 simulado** contra clubes temáticos dos ginásios.
 
-- Draft roguelike de 7 rodadas: goleiro, fixo, 2 alas, pivô e 2 reservas
-- Partida simulada em quadra 2D vista de cima, com sprites PMD animados em 8 direções e narração em PT-BR
-- Stats, tipos, golpes (learnset da Gen 1) e habilidades viram atributos e ações de futsal
-- Táticas, sinergias de tipo, substituições no intervalo e pênaltis no mata-mata
+![VERSUS antes da partida](docs/versus.jpg)
 
-## Rodando
+## O que tem no jogo
+
+- **Draft roguelike**: formação (6 opções), capitão, 5 titulares e 2 reservas, com rerolls
+- **Partida simulada** numa quadra 2D vista de cima, com sprites animados, narração em português e
+  velocidades de 1x a 8x
+- **Golpes de verdade**: os 164 golpes da Gen 1 viram ações de futsal (chute, carrinho, buff, status), cada um
+  com animação própria
+- **Evolução no meio da partida**, substituições pedidas pelo técnico e táticas que mudam ao vivo
+- **Sinergias** de tipo, duplas de história (Mew + Mewtwo, Pássaros Lendários...) e aura do capitão
+- **Cartas** com raridade e edições especiais (Destaque, Ícone, Shiny, Evento da semana)
+- **Estatísticas** da partida e da copa: notas, gráficos, mapa de chutes
+- **Conta Google opcional** para salvar a copa na nuvem; sem login, tudo fica no seu navegador
+
+![Partida em andamento](docs/partida.jpg)
+
+Novidades de cada versão em [CHANGELOG.md](CHANGELOG.md).
+
+## Rodando localmente
+
+Precisa de Node.js 22 ou mais novo.
 
 ```bash
 npm install
 npm run dev        # http://localhost:8080
 npm test           # testes do motor (Vitest)
+npm run lint       # Biome
 npm run build      # build estático em dist/
 ```
+
+O jogo roda completo sem configurar nada (modo visitante). O login com Google e o save na nuvem só
+aparecem com as variáveis do Supabase: copie `.env.example` para `.env.local` e preencha com as chaves
+**públicas** do seu projeto (nunca a `service_role`). As tabelas e regras de acesso estão em
+`supabase/migrations/`.
+
+Atalhos de desenvolvimento (só no `npm run dev`): `?demo=penaltis`, `?demo=ditto`, `?demo=evolucao`,
+`?demo=campeao`, `?cards=1` (galeria de cartas) e `?lab=posicoes`. O laboratório de golpes (`?lab=golpes`)
+também está no site público.
 
 Os dados e assets já estão no repositório. Para regenerar:
 
 ```bash
-npm run data           # src/data/*.json a partir do @pkmn/dex + textos pt-BR
-npm run assets:cards   # GIFs de Black/White (PokeAPI/sprites)
-npm run assets:field   # atlas PMD por Pokémon (PMDCollab/SpriteCollab) + CREDITS-PMD.md
-npm run assets:audio   # gritos legacy/latest (PokeAPI/cries) + partículas do Showdown
-npm run calibrate -- --n 1000   # balanceamento headless
+npm run data               # src/data/*.json a partir do @pkmn/dex + textos pt-BR
+npm run assets:cards       # GIFs de Black/White (PokeAPI/sprites)
+npm run assets:field       # atlas PMD por Pokémon (PMDCollab/SpriteCollab) + CREDITS-PMD.md
+npm run assets:portraits   # retratos PMD + CREDITS-PORTRAITS.md
+npm run assets:audio       # gritos (PokeAPI/cries) + partículas do Showdown
+npm run assets:types       # ícones de tipo
+npm run calibrate -- --n 1000   # balanceamento headless (gols, zebras, táticas, formações)
 ```
 
 ## Arquitetura
 
 ```
-src/engine/   motor headless e determinístico (TS puro, sem Phaser)
-  match.ts            estado + step(dt, commands) a 20 Hz → snapshots + eventos
-  commands.ts         Commands que IA e humano emitem igualmente
-  controllers/        AIController (estilo "Simple Soccer") e HumanController (modo jogável futuro)
-  runners/            BatchRunner (Worker/calibração) e LiveRunner (tick a tick)
-  attributes.ts       stats base → atributos 1–99 por posição
-  moves.ts            golpe → ação de futsal · abilities.ts · synergy.ts · types.ts · xg.ts
+src/engine/   motor headless e determinístico (TS puro, sem Phaser): mesma seed + mesmas ordens = mesma partida
+  match.ts            estado + step a 20 Hz → snapshots + eventos
+  controllers/        IA estilo "Simple Soccer" e HumanController (modo jogável futuro)
+  runners/            BatchRunner (Web Worker, calibração) e LiveRunner (tick a tick)
+  moves.ts            golpe → ação de futsal · modifiers.ts: a regra única de bônus (carta = campo)
   draft.ts, cup.ts    draft 1-de-3 e adversários da copa
-src/game/     Phaser 4: MatchScene toca os snapshots com interpolação, efeitos e sons
-src/ui/       React: telas, cards, narração
+src/game/     Phaser 4: MatchScene toca os snapshots com interpolação; move-fx.ts anima os golpes
+src/ui/       React 19: telas, cartas, estatísticas, narração
 src/store/    Zustand com save em IndexedDB
+src/cloud/    login Google e save na nuvem (Supabase), opcionais
 ```
 
-O motor já está preparado para dois modos futuros: **carreira** (`PokemonInstance` com nível, XP e
-evolução; `MatchConfig` paramétrico para 7v7/11v11) e **modo jogável** (troca o controller de um jogador
-por um `HumanController`; o `LiveRunner` roda tick a tick).
+## Contribuindo
+
+Ideias, bugs e balanceamento são bem-vindos: veja [CONTRIBUTING.md](CONTRIBUTING.md). Achou uma falha de
+segurança? Siga [SECURITY.md](SECURITY.md) em vez de abrir uma issue pública.
 
 ## Licença e créditos
 
-O código é licenciado sob **AGPL-3.0-or-later** (veja `LICENSE`). Pokémon e todos os nomes, imagens e sons
-relacionados são © Nintendo, Game Freak, Creatures Inc. e The Pokémon Company. Este projeto não é afiliado
-nem endossado por eles. Créditos completos em [CREDITS.md](CREDITS.md) e [CREDITS-PMD.md](CREDITS-PMD.md).
+- **Código**: [AGPL-3.0-or-later](LICENSE). Se você publicar uma versão modificada, o código dela também
+  precisa ficar aberto.
+- **Sprites, sons e dados de terceiros** não estão sob a AGPL: cada um segue a licença da sua fonte (várias
+  só para uso **não comercial**, como os sprites PMD em CC BY-NC 4.0). Veja [CREDITS.md](CREDITS.md),
+  [CREDITS-PMD.md](CREDITS-PMD.md) e [CREDITS-PORTRAITS.md](CREDITS-PORTRAITS.md).
+- **Pokémon** e todos os nomes, imagens e sons relacionados são © Nintendo, Game Freak, Creatures Inc. e
+  The Pokémon Company. Este projeto não é afiliado nem endossado por eles e não tem fins lucrativos.
+
+Privacidade e termos de uso: [soccermon.vercel.app/privacidade.html](https://soccermon.vercel.app/privacidade.html).

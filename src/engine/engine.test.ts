@@ -8,7 +8,7 @@ import { aiDraftTeam, DRAFT_ROUNDS, draftOptions } from './draft';
 import { FORMATIONS } from './formations';
 import { createInstance, viewInstance } from './instance';
 import { computeLinks } from './links';
-import { captainFactor, createMatch } from './match';
+import { applyPendingSubs, captainFactor, createMatch } from './match';
 import { playerLines, possessionByPeriod, shotMap } from './match-stats';
 import { applyModifiers, attributeModifiers } from './modifiers';
 import { defaultMoveset, moveProfile } from './moves';
@@ -578,6 +578,41 @@ describe('bônus e penalidades (carta = campo)', () => {
                 p.role,
             );
             if (p.inst.ability === 'imposter') continue;
+            expect(p.attr).toEqual(expected);
+        }
+    });
+
+    it('substituição recalcula o time: quem entra fecha a dupla de história e o parceiro ganha o bônus', () => {
+        const rng = new Rng('troca-bonus', 'x');
+        // Mew em campo; Mewtwo no banco (dupla Gênese só vale com os dois escalados)
+        const lineup = [143, 68, 151, 142, 25].map((id) => createInstance(id, rng));
+        const bench = [150, 4].map((id) => createInstance(id, rng));
+        const home: TeamSetup = {
+            name: 'A',
+            lineup,
+            bench,
+            tactic: 'balanced',
+            color: 0,
+            formation: '1-2-1',
+            captainUid: lineup[0].uid,
+            manualSubs: true,
+        };
+        const s = createMatch(FUTSAL_5, home, team('troca-b', 'B'), 'troca');
+        const mew = () => s.players.find((p) => p.inst.speciesId === 151)!;
+        const before = { ...mew().attr };
+        s.pendingSubs.push({ tick: 0, team: 0, kind: 'sub', outUid: lineup[4].uid, inUid: bench[0].uid });
+        applyPendingSubs(s);
+        expect(s.teams[0].lineup[4].uid).toBe(bench[0].uid);
+        expect(mew().attr.passing).toBeGreaterThan(before.passing);
+        // e todo o time bate com a regra dos modificadores aplicada à escalação de agora
+        const now = s.teams[0].lineup;
+        const captain = now.find((p) => p.uid === home.captainUid) ?? null;
+        for (const p of s.players.filter((pl) => pl.team === 0)) {
+            const expected = applyModifiers(
+                computeAttributes(species(p.inst.speciesId), p.inst.level),
+                attributeModifiers(p.inst, { lineup: now, captain, role: p.role }),
+                p.role,
+            );
             expect(p.attr).toEqual(expected);
         }
     });

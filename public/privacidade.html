@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacidade e termos · Soccermon</title>
+    <meta name="description" content="Como o Soccermon trata seus dados e os termos de uso do fan game." />
+    <link rel="icon" type="image/png" href="assets/ui/poke-ball.png" />
+    <style>
+        :root {
+            --bg: #141a33;
+            --panel: #232d57;
+            --line: #4b5a9a;
+            --text: #f4f1e6;
+            --muted: #a6aed6;
+            --yellow: #ffcb05;
+            color-scheme: dark;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            background: radial-gradient(1200px 600px at 50% -10%, #2a3570 0%, var(--bg) 60%) fixed, var(--bg);
+            color: var(--text);
+            font: 15px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        }
+        main {
+            width: min(760px, 100%);
+            margin: 0 auto;
+            padding: 24px 16px 48px;
+        }
+        h1 {
+            color: var(--yellow);
+            font-size: 28px;
+            margin: 8px 0 4px;
+        }
+        h2 {
+            color: var(--yellow);
+            font-size: 18px;
+            margin: 28px 0 6px;
+        }
+        section {
+            background: var(--panel);
+            border: 2px solid var(--line);
+            border-radius: 12px;
+            padding: 4px 18px 14px;
+            margin-top: 16px;
+        }
+        a {
+            color: var(--yellow);
+        }
+        .muted {
+            color: var(--muted);
+        }
+        ul {
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <a href="./">← Voltar ao jogo</a>
+        <h1>Privacidade e termos</h1>
+        <p class="muted">Última atualização: 14 de outubro de 2026</p>
+
+        <section>
+            <h2>Resumo</h2>
+            <ul>
+                <li>Sem login, nada sai do seu aparelho: o jogo salva só no seu navegador.</li>
+                <li>Com login do Google, guardamos seu nome, foto e o save do jogo para você continuar em qualquer aparelho.</li>
+                <li>Não vendemos dados, não mostramos anúncios e não usamos rastreadores.</li>
+                <li>Você apaga sua conta e tudo da nuvem a qualquer momento, em Configurações.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Quem somos</h2>
+            <p>
+                O Soccermon é um fan game <b>sem fins lucrativos</b>, feito por fãs, com código aberto sob a licença
+                AGPL-3.0. Pokémon e todos os nomes, imagens e sons relacionados são © Nintendo, Game Freak, Creatures
+                Inc. e The Pokémon Company. Este projeto não é afiliado nem endossado por eles.
+            </p>
+
+            <h2>O que coletamos</h2>
+            <p><b>Jogando como visitante (sem login):</b> nada. A copa, as configurações e os recordes ficam no
+                armazenamento do seu navegador (IndexedDB e localStorage) e não são enviados a nós.</p>
+            <p><b>Entrando com o Google:</b></p>
+            <ul>
+                <li>nome, e-mail e foto do seu perfil Google, e um identificador da conta (fornecidos pelo Google no login);</li>
+                <li>o save do jogo: copa em andamento, configurações e recordes.</li>
+            </ul>
+            <p>Não pedimos acesso a contatos, arquivos nem a qualquer outro dado da sua conta Google.</p>
+
+            <h2>Para que usamos</h2>
+            <p>
+                Só para fazer o login funcionar, salvar e sincronizar seu progresso entre aparelhos e mostrar seu nome
+                e foto dentro do jogo. Seus dados não são vendidos, compartilhados para publicidade nem usados para
+                criar perfis de comportamento.
+            </p>
+
+            <h2>Onde ficam</h2>
+            <ul>
+                <li><b>Supabase</b>: login e banco de dados (perfil e save).</li>
+                <li><b>Vercel</b>: hospedagem do site. Como qualquer servidor, registra dados técnicos de acesso
+                    (como endereço IP e navegador) por um tempo curto, para segurança e funcionamento.</li>
+                <li><b>Google</b>: autenticação, quando você escolhe entrar com o Google.</li>
+            </ul>
+            <p>Cada jogador só consegue ler e alterar o próprio save; ninguém mais tem acesso a ele pelo jogo.</p>
+
+            <h2>Por quanto tempo</h2>
+            <p>Enquanto sua conta existir. Se você apagar a conta, o login, o perfil e o save são removidos na hora.</p>
+
+            <h2>Seus direitos (LGPD)</h2>
+            <p>
+                Você pode acessar, corrigir e apagar seus dados. Para apagar tudo, entre no jogo, abra
+                <b>Configurações → Conta → Apagar minha conta</b>. Seu nome e foto vêm do Google: alterando lá, o jogo
+                mostra o novo no próximo login. Outras dúvidas sobre privacidade podem ser enviadas pelo repositório
+                do projeto no GitHub (sem colocar dados pessoais em público).
+            </p>
+
+            <h2>Cookies</h2>
+            <p>
+                Não usamos cookies de rastreamento ou de publicidade. O navegador guarda apenas o save do jogo e, se
+                você entrar, a sessão de login.
+            </p>
+        </section>
+
+        <section>
+            <h2>Termos de uso</h2>
+            <ul>
+                <li>O jogo é gratuito, sem compras e sem anúncios, oferecido como está, sem garantia de funcionamento
+                    contínuo. Pode mudar, perder saves em atualizações grandes ou sair do ar a qualquer momento.</li>
+                <li>Não use o jogo para atacar, sobrecarregar ou tentar acessar dados de outros jogadores.</li>
+                <li>O código é AGPL-3.0. Os sprites, sons e dados de terceiros seguem as licenças listadas nos créditos
+                    do jogo, várias delas só para uso não comercial.</li>
+                <li>Pokémon é marca e propriedade das empresas citadas acima. Se algum detentor de direitos pedir, o
+                    conteúdo será removido.</li>
+            </ul>
+        </section>
+    </main>
+</body>
+</html>

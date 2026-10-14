@@ -227,3 +227,19 @@ export async function signOut() {
     await upload();
     await supabase.auth.signOut();
 }
+
+/**
+ * Apaga a conta de vez (LGPD): login, perfil e save na nuvem (supabase/migrations/…_apagar_conta.sql).
+ * O save deste aparelho continua, agora como visitante. Lança erro se o servidor recusar.
+ */
+export async function deleteAccount() {
+    if (!supabase || !userId) return;
+    clearTimeout(uploadTimer);
+    const { error } = await supabase.rpc('delete_my_account');
+    if (error) throw error;
+    userId = null;
+    writeOwner('');
+    // a sessão já não vale no servidor; limpa a do navegador sem chamar a API
+    await supabase.auth.signOut({ scope: 'local' });
+    useCloud.setState({ status: 'guest', user: null });
+}

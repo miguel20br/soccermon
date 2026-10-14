@@ -1,0 +1,16 @@
+name: Ideia ou balanceamento
+description: Sugestão de recurso, golpe, Pokémon forte ou fraco demais, formação...
+labels: [ideia]
+body:
+  - type: textarea
+    id: ideia
+    attributes:
+      label: A ideia
+      description: O que você gostaria de ver, ou o que está desequilibrado.
+    validations:
+      required: true
+  - type: textarea
+    id: porque
+    attributes:
+      label: Por quê?
+      description: Que problema resolve ou o que deixaria o jogo mais divertido. Números ajudam (placares, estatísticas da copa).

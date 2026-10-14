@@ -170,6 +170,11 @@ export interface TeamRuntime {
     setup: TeamSetup;
     formation: Formation;
     tactic: Tactic;
+    /**
+     * Quem está em cada vaga agora (muda com substituição e evolução). Sinergias, duplas de história e a aura
+     * do capitão contam por aqui, não pela escalação inicial. Ditto conta como Ditto (a carta dele).
+     */
+    lineup: PokemonInstance[];
     bench: PokemonInstance[];
     possessionTicks: number;
     /** Sinergias de história que já soltaram o combo neste tempo (1 combo por sinergia por tempo). */

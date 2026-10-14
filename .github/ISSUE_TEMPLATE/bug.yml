@@ -1,0 +1,31 @@
+name: Bug
+description: Algo quebrou, travou ou ficou estranho no jogo
+labels: [bug]
+body:
+  - type: textarea
+    id: oque
+    attributes:
+      label: O que aconteceu?
+      description: O que você fez, o que esperava e o que aconteceu de verdade.
+    validations:
+      required: true
+  - type: input
+    id: onde
+    attributes:
+      label: Em que tela?
+      placeholder: Draft, escalação, partida, resultado, menu...
+  - type: input
+    id: seed
+    attributes:
+      label: Código da copa (seed), se tiver
+      description: Aparece no texto do botão Compartilhar. Com ele dá para repetir a mesma copa.
+  - type: input
+    id: aparelho
+    attributes:
+      label: Aparelho e navegador
+      placeholder: ex. iPhone 13 / Safari, PC / Chrome
+  - type: textarea
+    id: prints
+    attributes:
+      label: Prints ou vídeo
+      description: Arraste as imagens para cá.
