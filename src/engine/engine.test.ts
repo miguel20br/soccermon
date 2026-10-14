@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { computeAttributes, eligiblePositions, positionFactor } from './attributes';
-import { FUTSAL_5 } from './config';
+import { FUTSAL_5, withConfig } from './config';
 import { HumanController } from './controllers/human-controller';
 import { effectiveness, SPECIES, species } from './data';
 import { aiDraftTeam, DRAFT_ROUNDS, draftOptions } from './draft';
@@ -456,5 +456,36 @@ describe('defesa do goleiro', () => {
             }
         }
         expect(saves).toBeGreaterThan(10);
+    });
+});
+
+describe('disputa de pênaltis', () => {
+    const SHORT = withConfig({ halfSeconds: 4 });
+    it('para assim que um time não pode mais ser alcançado', () => {
+        let shootouts = 0;
+        for (let i = 0; i < 60 && shootouts < 30; i++) {
+            // partida curtinha: quase sempre empata e vai para os pênaltis
+            const r = runMatch(SHORT, team(`pk-a${i}`, 'A'), team(`pk-b${i}`, 'B'), `pk-${i}`, {
+                snapshots: false,
+            });
+            const pens = r.events.filter((e) => e.type === 'penalty');
+            if (!pens.length) continue;
+            shootouts++;
+            const taken = [0, 0];
+            const score = [0, 0];
+            const kicks = FUTSAL_5.penaltyKicks;
+            for (const e of pens) {
+                if (e.type !== 'penalty') continue;
+                if (taken[0] < kicks || taken[1] < kicks) {
+                    const rem = [kicks - taken[0], kicks - taken[1]].map((n) => Math.max(0, n));
+                    const decided = score[0] > score[1] + rem[1] || score[1] > score[0] + rem[0];
+                    expect(decided).toBe(false);
+                }
+                const t = r.roster[e.by].team;
+                taken[t]++;
+                if (e.scored) score[t]++;
+            }
+        }
+        expect(shootouts).toBeGreaterThan(10);
     });
 });

@@ -979,7 +979,8 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
         const d = seg.d;
         const contact = add(prev, scale(sub(end, prev), seg.t));
         if (p.role === 'GK') {
-            if (shot.gkChecked) continue;
+            // chute que ia para fora não vira "defesa" (era 1/3 das defesas e gerava "QUE DEFESA!" à toa)
+            if (shot.gkChecked || !shot.onTarget) continue;
             const reach = 0.55 + (1.0 * eff(s, p, 'goalkeeping')) / 99;
             if (d > reach) continue;
             shot.gkChecked = true;
@@ -1133,8 +1134,11 @@ function goalClearance(s: MatchState, team: 0 | 1) {
     const gk = s.players.find((p) => p.team === team && p.role === 'GK') ?? s.players.find((p) => p.team === team)!;
     gk.pos = toWorld(s, team, 1.5, s.cfg.pitch.width / 2 + s.rng.range(-2, 2));
     gk.vel = v(0, 0);
+    gk.heading = v(attackSign(team), 0);
     s.ball.owner = gk.idx;
     s.ball.lastTouch = gk.idx;
+    // a bola já vai para o pé do goleiro (antes ficava atrás da linha durante o reinício)
+    s.ball.pos = add(gk.pos, scale(gk.heading, DRIBBLE_OFFSET));
     s.ball.vel = v(0, 0);
     s.ball.shot = null;
     s.ball.assistCandidate = null;
@@ -1231,6 +1235,8 @@ function penaltyShootout(s: MatchState) {
     for (round = 0; round < kicks; round++) {
         take(0);
         if (score[0] > score[1] + (kicks - round)) break;
+        // o time 1 pode já ter vencido antes de cobrar (o time 0 não alcança mais)
+        if (score[1] > score[0] + (kicks - round - 1)) break;
         take(1);
         if (Math.abs(score[0] - score[1]) > kicks - round - 1) break;
     }

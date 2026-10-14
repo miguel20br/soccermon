@@ -15,8 +15,8 @@ export function Credits() {
                 <li>
                     Sprites de campo e retratos:{' '}
                     <a href="https://github.com/PMDCollab/SpriteCollab">PMD Sprite Repository (PMDCollab)</a>, licença
-                    CC BY-NC 4.0 — autores por Pokémon nos arquivos CREDITS-PMD.md e CREDITS-PORTRAITS.md do projeto. Sprites originais de
-                    Pokémon Mystery Dungeon © Nintendo / Spike Chunsoft.
+                    CC BY-NC 4.0 — autores por Pokémon nos arquivos CREDITS-PMD.md e CREDITS-PORTRAITS.md do projeto.
+                    Sprites originais de Pokémon Mystery Dungeon © Nintendo / Spike Chunsoft.
                 </li>
                 <li>
                     Sprites animados de Black/White, ícones de itens e ícones de tipo (Pokémon Champions):{' '}

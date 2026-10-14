@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { FUTSAL_5 } from '../../engine/config';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { type MatchEvent, type Phase, TACTIC_LABEL, type Tactic, type TacticChange } from '../../engine/state';
 import { setVolume } from '../../game/audio';
@@ -22,6 +23,8 @@ const SPEEDS: { value: PlaybackSpeed; label: string }[] = [
 const MAX_TACTIC_CHANGES = 3;
 /** A mudança vale ~2 s de jogo à frente (dá tempo de resimular sem pular nada). */
 const CHANGE_LEAD_TICKS = 40;
+/** No modo "Lances" o ritmo varia (1x perto dos lances, 10x no resto): usa uma média. */
+const HIGHLIGHTS_MULT = 6;
 
 const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 
@@ -164,8 +167,18 @@ export function Match() {
     if (!run || !match || !sceneData || !opponent) return null;
 
     const lockedSetup = run.lockedTeam ?? playerTeam(run);
-    // trocas só no tempo normal e com folga antes do apito (senão nunca entrariam no motor)
-    const canChangeTactic = sceneReady && !pending && !ended && !fulltime && clock.minute < 38.5;
+    // a troca vale um pouco à frente do que está na tela (mais à frente em velocidades altas)
+    const speedMult = typeof settings.speed === 'number' ? settings.speed : HIGHLIGHTS_MULT;
+    const leadTicks = CHANGE_LEAD_TICKS * speedMult;
+    // trocas só no tempo normal e com folga antes do apito: a troca tem que cair antes dele, senão
+    // nunca entraria no motor (e gastaria uma troca à toa)
+    const leadMinutes = (leadTicks / (FUTSAL_5.tickRate * FUTSAL_5.halfSeconds)) * FUTSAL_5.displayHalfMinutes;
+    const canChangeTactic =
+        sceneReady &&
+        !pending &&
+        !ended &&
+        !fulltime &&
+        clock.minute + leadMinutes < FUTSAL_5.displayHalfMinutes * 2 - 1;
 
     const setSpeed = (speed: PlaybackSpeed) => {
         updateSettings({ speed });
@@ -175,12 +188,8 @@ export function Match() {
     /** Tática ao vivo: agenda a mudança um pouco à frente e resimula a partida com ela. */
     const changeTactic = async (tactic: Tactic) => {
         if (!canChangeTactic || tactic === currentTactic || changes.length >= MAX_TACTIC_CHANGES) return;
-        const speedMult = typeof settings.speed === 'number' ? settings.speed : 10;
         // sempre depois da troca anterior, para a ordem do motor bater com a da tela
-        const tick = Math.max(
-            Math.ceil(tickRef.current + CHANGE_LEAD_TICKS * speedMult),
-            (changes.at(-1)?.tick ?? 0) + 1,
-        );
+        const tick = Math.max(Math.ceil(tickRef.current + leadTicks), (changes.at(-1)?.tick ?? 0) + 1);
         const schedule = [...changes, { tick, team: 0 as const, tactic }];
         const seed = match.seed;
         setPending(true);

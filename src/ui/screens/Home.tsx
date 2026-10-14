@@ -18,6 +18,12 @@ export function Home() {
               ? 'reward'
               : 'lineup';
     const name = () => teamName.trim() || 'Pallet FC';
+    /** Começar outra copa apaga a atual: com uma em andamento, pede confirmação antes. */
+    const [confirm, setConfirm] = useState<string | null | undefined>(undefined);
+    const start = (seed?: string) => {
+        if (inProgress && confirm === undefined) setConfirm(seed ?? null);
+        else newRun(name(), seed);
+    };
     const eventType = weeklyEventType(new Date());
 
     return (
@@ -52,18 +58,44 @@ export function Home() {
                     maxLength={22}
                     onChange={(e) => setTeamName(e.target.value)}
                 />
-                {challengeSeed && (
-                    <button type="button" className="btn yellow" onClick={() => newRun(name(), challengeSeed)}>
-                        Aceitar desafio ({challengeSeed})
-                    </button>
-                )}
-                <button type="button" className="btn primary" onClick={() => newRun(name())}>
-                    Nova copa
-                </button>
-                {inProgress && (
-                    <button type="button" className="btn yellow" onClick={() => go(resumeScreen)}>
-                        Continuar ({run.teamName})
-                    </button>
+                {confirm !== undefined ? (
+                    <div className="confirm-new">
+                        <p>
+                            Começar outra copa apaga a do <b>{run?.teamName}</b>. Tem certeza?
+                        </p>
+                        <div className="row" style={{ justifyContent: 'center' }}>
+                            <button
+                                type="button"
+                                className="btn primary"
+                                onClick={() => newRun(name(), confirm ?? undefined)}
+                            >
+                                Sim, começar outra
+                            </button>
+                            <button type="button" className="btn ghost" onClick={() => setConfirm(undefined)}>
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <>
+                        {inProgress && (
+                            <button type="button" className="btn primary" onClick={() => go(resumeScreen)}>
+                                Continuar ({run.teamName})
+                            </button>
+                        )}
+                        {challengeSeed && (
+                            <button type="button" className="btn yellow" onClick={() => start(challengeSeed)}>
+                                Aceitar desafio ({challengeSeed})
+                            </button>
+                        )}
+                        <button
+                            type="button"
+                            className={`btn ${inProgress ? 'ghost' : 'primary'}`}
+                            onClick={() => start()}
+                        >
+                            Nova copa
+                        </button>
+                    </>
                 )}
                 {records.cups > 0 && (
                     <div className="records">
@@ -95,15 +127,17 @@ export function Home() {
                     <button type="button" className="btn ghost small" onClick={() => go('credits')}>
                         Créditos
                     </button>
-                    <button
-                        type="button"
-                        className="btn ghost small"
-                        onClick={() => {
-                            window.location.search = '?cards=1';
-                        }}
-                    >
-                        Cartas novas (teste)
-                    </button>
+                    {import.meta.env.DEV && (
+                        <button
+                            type="button"
+                            className="btn ghost small"
+                            onClick={() => {
+                                window.location.search = '?cards=1';
+                            }}
+                        >
+                            Cartas (teste)
+                        </button>
+                    )}
                 </div>
             </div>
             <p className="disclaimer">

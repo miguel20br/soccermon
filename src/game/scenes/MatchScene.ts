@@ -52,6 +52,11 @@ const SPRITE_SCALE = 1.8;
 const TICK_RATE = FUTSAL_5.tickRate;
 /** Ticks antes de gol/trave/defesa em que a câmera lenta começa. */
 const DRAMA_LEAD = 12;
+/**
+ * A bola fica numa camada acima de todos os Pokémon, nomes e do escurecimento dos golpes
+ * (só a caixa de narração e os textos de drama ficam por cima): nunca some atrás de alguém.
+ */
+const BALL_DEPTH = FOCUS_DEPTH + 200;
 /** Rastro da bola: quantos ticks de jogo para trás ele alcança. */
 const TRAIL_TICKS = 5;
 /** Mergulho do goleiro: começa alguns ticks antes do contato e volta depois. */
@@ -235,7 +240,7 @@ export class MatchScene extends Phaser.Scene {
         this.ballShadow = this.add.ellipse(0, 0, 14, 6, 0x000000, 0.35);
         this.trailG = this.add.graphics();
         this.ballGlow = this.add.circle(0, 0, 13, 0xffffff, 0).setBlendMode(Phaser.BlendModes.ADD);
-        this.ball = this.add.image(0, 0, 'ball');
+        this.ball = this.add.image(0, 0, 'ball').setDepth(BALL_DEPTH);
         this.battleBox = new BattleBox(this, GAME_W / 2, GAME_H - 30, 560);
         this.cine = new Cinematics(this);
 
@@ -549,7 +554,7 @@ export class MatchScene extends Phaser.Scene {
             });
         }
         const spot = toPx(34, width / 2);
-        this.ball.setPosition(spot.x, spot.y - 4).setDepth(spot.y + 1);
+        this.ball.setPosition(spot.x, spot.y - 4);
         this.ballShadow.setPosition(spot.x + 2, spot.y + 2);
         this.ballGlow.setAlpha(0);
         const cam = this.cameras.main;
@@ -672,8 +677,7 @@ export class MatchScene extends Phaser.Scene {
             const o = i * SNAP_STRIDE;
             const x = a.p[o] + (b.p[o] - a.p[o]) * k;
             const y = a.p[o + 1] + (b.p[o + 1] - a.p[o + 1]) * k;
-            const facing = near.p[o + 2];
-            const action = near.p[o + 3];
+            const { facing, action } = this.steadyPose(index + (k < 0.5 ? 0 : 1), o);
             const px = toPx(x, y);
             pxOf[i] = px;
             // em destaque (holofote): acima do escurecimento
@@ -738,10 +742,29 @@ export class MatchScene extends Phaser.Scene {
             bp.x += held.x;
             bp.y += held.y;
         }
-        this.ball.setPosition(bp.x, bp.y - 4).setDepth(bp.y + 1);
+        this.ball.setPosition(bp.x, bp.y - 4);
         this.ballShadow.setPosition(bp.x + 2, bp.y + 2).setDepth(bp.y - 3);
         this.ballFree = near.owner < 0 && a.owner < 0;
         this.updateBallFx(near.bfx, bp.x, bp.y - 4);
+    }
+
+    /**
+     * Direção e ação do jogador num snapshot, ignorando "piscadas" de um snapshot só (A→B→A), que faziam o
+     * sprite virar e voltar ou alternar parado/correndo. Chute, carrinho etc. passam sempre (são curtos).
+     */
+    private steadyPose(n: number, o: number): { facing: number; action: number } {
+        const s = this.snaps;
+        const cur = s[Math.min(n, s.length - 1)];
+        const prev = s[n - 1];
+        const next = s[n + 1];
+        let facing = cur.p[o + 2];
+        let action = cur.p[o + 3];
+        if (prev && next) {
+            if (prev.p[o + 2] === next.p[o + 2]) facing = prev.p[o + 2];
+            const calm = (a: number) => a === Action.Idle || a === Action.Run;
+            if (calm(action) && prev.p[o + 3] === next.p[o + 3] && calm(prev.p[o + 3])) action = prev.p[o + 3];
+        }
+        return { facing, action };
     }
 
     /** Posição da bola na tela num tick qualquer (interpolada). */
@@ -795,7 +818,7 @@ export class MatchScene extends Phaser.Scene {
         const g = this.trailG.clear();
         const n = this.trail.length;
         if (n < 2) return;
-        g.setDepth(this.ball.depth - 1);
+        g.setDepth(BALL_DEPTH - 2);
         for (let i = 1; i < n; i++) {
             const k = i / (n - 1);
             g.lineStyle(1.5 + 5 * k, this.ballColor, 0.08 + 0.42 * k);
@@ -851,6 +874,7 @@ export class MatchScene extends Phaser.Scene {
                 const captain = view.captain;
                 this.swapSpecies(view, e.into, view.name, this.players[e.target]?.shiny ?? false);
                 view.captain = captain;
+                if (captain) view.label.setText(`C·${view.name}`).setColor('#ffd447');
                 createSpeciesAnims(this, e.into);
             }
         }
