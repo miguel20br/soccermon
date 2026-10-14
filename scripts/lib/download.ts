@@ -54,3 +54,16 @@ export async function fetchText(url: string): Promise<string | null> {
 }
 
 export const ids151 = Array.from({ length: 151 }, (_, i) => i + 1);
+
+/** Créditos do PMDCollab vêm como id do Discord: credit_names.txt traz o nome de cada autor. */
+export async function pmdCreditNames(): Promise<Map<string, string>> {
+    const txt = await fetchText('https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/credit_names.txt');
+    return new Map(
+        (txt ?? '')
+            .split('\n')
+            .slice(1)
+            .map((l) => l.split('\t'))
+            .filter((c) => c[0] && c[1])
+            .map((c) => [c[1].trim(), c[0].trim()] as const),
+    );
+}

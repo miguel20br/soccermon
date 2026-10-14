@@ -13,6 +13,7 @@ import {
     type MatchSnapshot,
     SNAP_STRIDE,
 } from '../../engine/state';
+import { dir8 } from '../../engine/vec';
 import type { CryStyle, PlaybackSpeed } from '../../store/game-store';
 import { hexToNumber, TYPE_COLOR } from '../../ui/type-colors';
 import {
@@ -51,6 +52,29 @@ const SPRITE_SCALE = 1.8;
 const TICK_RATE = FUTSAL_5.tickRate;
 /** Ticks antes de gol/trave/defesa em que a câmera lenta começa. */
 const DRAMA_LEAD = 12;
+/** Rastro da bola: quantos ticks de jogo para trás ele alcança. */
+const TRAIL_TICKS = 5;
+/** Mergulho do goleiro: começa alguns ticks antes do contato e volta depois. */
+const DIVE_LEAD = 6;
+const DIVE_TAIL = 10;
+/** Alcance máximo do mergulho na tela (px). */
+const DIVE_MAX = 1.8 * PPM;
+
+/** Faixa de gol/defesa que a tela React mostra no canto do time. */
+export interface MatchHighlight {
+    kind: 'goal' | 'owngoal' | 'save';
+    team: 0 | 1;
+    speciesId: number;
+    shiny: boolean;
+    name: string;
+}
+
+interface DiveInfo {
+    tick: number;
+    gk: number;
+    /** Ponto do contato na tela (calculado na 1ª vez). */
+    at: { x: number; y: number } | null;
+}
 
 const IMPORTANT = new Set([
     'transform',
@@ -157,11 +181,18 @@ export class MatchScene extends Phaser.Scene {
     private ball!: Phaser.GameObjects.Image;
     private ballGlow!: Phaser.GameObjects.Arc;
     private ballShadow!: Phaser.GameObjects.Ellipse;
+    private trailG!: Phaser.GameObjects.Graphics;
+    private trail: { x: number; y: number; tick: number }[] = [];
+    private ballFree = false;
+    private ballColor = 0xffffff;
+    private lastBall = { x: 0, y: 0 };
+    private dives: DiveInfo[] = [];
+    /** Deslocamento suavizado da bola em relação a quem conduz. */
+    private dribble = { owner: -1, x: 0, y: 0, tick: 0 };
     private battleBox!: BattleBox;
     private cine!: Cinematics;
     private ended = false;
     private lastEmit = 0;
-    private lastTrail = 0;
     private recentImportantTick = Number.NEGATIVE_INFINITY;
     private importantTicks: number[] = [];
     private dramaTicks: number[] = [];
@@ -202,6 +233,7 @@ export class MatchScene extends Phaser.Scene {
         for (const id of this.allSpecies()) createSpeciesAnims(this, id);
 
         this.ballShadow = this.add.ellipse(0, 0, 14, 6, 0x000000, 0.35);
+        this.trailG = this.add.graphics();
         this.ballGlow = this.add.circle(0, 0, 13, 0xffffff, 0).setBlendMode(Phaser.BlendModes.ADD);
         this.ball = this.add.image(0, 0, 'ball');
         this.battleBox = new BattleBox(this, GAME_W / 2, GAME_H - 30, 560);
@@ -247,6 +279,7 @@ export class MatchScene extends Phaser.Scene {
         this.importantTicks = this.matchEvents.filter((e) => IMPORTANT.has(e.type)).map((e) => e.tick);
         this.dramaTicks = this.matchEvents.filter((e) => DRAMA.has(e.type)).map((e) => e.tick);
         this.penalties = this.matchEvents.filter((e): e is PenaltyEvent => e.type === 'penalty');
+        this.dives = this.matchEvents.flatMap((e) => (e.type === 'save' ? [{ tick: e.tick, gk: e.by, at: null }] : []));
         this.fulltimeTick = this.matchEvents.find((e) => e.type === 'fulltime')?.tick ?? Number.POSITIVE_INFINITY;
         this.penaltyStage = this.penalties.map((_, i) => this.penaltyStage[i] ?? 0);
     }
@@ -432,6 +465,7 @@ export class MatchScene extends Phaser.Scene {
         } else {
             this.applySnapshot(index, t, factor);
         }
+        this.updateBallMotion(inShootout);
         this.battleBox.update(time, Math.max(1, factor));
         this.cine.updatePins();
 
@@ -494,10 +528,7 @@ export class MatchScene extends Phaser.Scene {
             y: target.y - 4,
             duration: ms,
             ease: 'Quad.easeOut',
-            onUpdate: () => {
-                this.ball.rotation += 0.4;
-                this.ballShadow.setPosition(this.ball.x + 2, this.ball.y + 6);
-            },
+            onUpdate: () => this.ballShadow.setPosition(this.ball.x + 2, this.ball.y + 6),
             onComplete,
         });
     }
@@ -634,6 +665,8 @@ export class MatchScene extends Phaser.Scene {
         const k = lerpOk ? t : 0;
         const near = k < 0.5 ? a : b;
         const focusPos = new Map<number, { x: number; y: number }>();
+        const diveOf = new Map<number, { x: number; y: number; facing: number }>();
+        const pxOf: { x: number; y: number }[] = [];
         for (let i = 0; i < this.players.length; i++) {
             const view = this.players[i];
             const o = i * SNAP_STRIDE;
@@ -642,10 +675,15 @@ export class MatchScene extends Phaser.Scene {
             const facing = near.p[o + 2];
             const action = near.p[o + 3];
             const px = toPx(x, y);
+            pxOf[i] = px;
             // em destaque (holofote): acima do escurecimento
             const focused = this.cine.focused.has(i);
             const base = focused ? FOCUS_DEPTH + px.y / 100 : px.y;
-            view.sprite.setPosition(px.x + view.lunge.x, px.y + view.lunge.y).setDepth(base);
+            const dive = this.diveOffset(i, px);
+            if (dive) diveOf.set(i, dive);
+            view.sprite
+                .setPosition(px.x + view.lunge.x + (dive?.x ?? 0), px.y + view.lunge.y + (dive?.y ?? 0))
+                .setDepth(base);
             view.shadow.setPosition(px.x, px.y + 1).setDepth(base - 2);
             view.ring.setPosition(px.x, px.y + 1).setDepth(base - 1);
             const labelDepth = focused ? FOCUS_DEPTH + 60 : 5000;
@@ -655,8 +693,8 @@ export class MatchScene extends Phaser.Scene {
             if (focused) focusPos.set(i, px);
             this.applyIndicators(view, near.p[o + 4], near.p[o + 5]);
 
-            const anim = resolveAnim(view.speciesId, animForAction(action));
-            const key = `${view.speciesId}/${anim}/${facing}`;
+            const anim = resolveAnim(view.speciesId, dive ? 'Attack' : animForAction(action));
+            const key = `${view.speciesId}/${anim}/${dive ? dive.facing : facing}`;
             if (key !== view.currentKey) {
                 view.sprite.play(key).setOrigin(0.5, footOrigin(view.speciesId, anim));
                 view.currentKey = key;
@@ -673,32 +711,112 @@ export class MatchScene extends Phaser.Scene {
         const bx = a.bx + (b.bx - a.bx) * k;
         const by = a.by + (b.by - a.by) * k;
         const bp = toPx(bx, by);
+        // condução: a bola fica no pé de quem conduz, girando suave quando ele muda de direção
+        // (no motor ela pula para a frente do jogador a cada tick, o que no 1x parecia "teleporte")
+        const carrier = a.owner >= 0 && a.owner === b.owner ? a.owner : -1;
+        const d = this.dribble;
+        if (carrier >= 0 && pxOf[carrier]) {
+            const c = pxOf[carrier];
+            const tx = bp.x - c.x;
+            const ty = bp.y - c.y;
+            if (d.owner !== carrier) {
+                d.x = tx;
+                d.y = ty;
+            } else {
+                const alpha = 1 - Math.exp(-Math.max(0, this.playTick - d.tick) / 1.5);
+                d.x += (tx - d.x) * alpha;
+                d.y += (ty - d.y) * alpha;
+            }
+            bp.x = c.x + d.x;
+            bp.y = c.y + d.y;
+        }
+        d.owner = carrier;
+        d.tick = this.playTick;
+        // bola na mão do goleiro que acabou de mergulhar acompanha o mergulho
+        const held = near.owner >= 0 ? diveOf.get(near.owner) : undefined;
+        if (held) {
+            bp.x += held.x;
+            bp.y += held.y;
+        }
         this.ball.setPosition(bp.x, bp.y - 4).setDepth(bp.y + 1);
-        this.ball.rotation += ((b.bx - a.bx) * PPM) / 30;
         this.ballShadow.setPosition(bp.x + 2, bp.y + 2).setDepth(bp.y - 3);
+        this.ballFree = near.owner < 0 && a.owner < 0;
         this.updateBallFx(near.bfx, bp.x, bp.y - 4);
     }
 
-    /** Chute com golpe: brilho e rastro na cor do tipo. */
+    /** Posição da bola na tela num tick qualquer (interpolada). */
+    private ballPxAt(tick: number) {
+        const { index, t } = this.locate(tick);
+        const a = this.snaps[index];
+        const b = this.snaps[Math.min(index + 1, this.snaps.length - 1)];
+        return toPx(a.bx + (b.bx - a.bx) * t, a.by + (b.by - a.by) * t);
+    }
+
+    /**
+     * Mergulho do goleiro numa defesa: o sprite sai do lugar e chega na bola exatamente no contato,
+     * em vez de a bola "passar" por ele e a defesa aparecer do nada.
+     */
+    private diveOffset(i: number, px: { x: number; y: number }): { x: number; y: number; facing: number } | null {
+        for (const d of this.dives) {
+            if (d.gk !== i) continue;
+            const dt = this.playTick - d.tick;
+            if (dt < -DIVE_LEAD || dt > DIVE_TAIL) continue;
+            d.at ??= this.ballPxAt(d.tick);
+            const k = dt < 0 ? 1 - (-dt / DIVE_LEAD) ** 2 : 1 - (dt / DIVE_TAIL) ** 2;
+            let ox = d.at.x - px.x;
+            // o sprite fica com o pé no chão: mira um pouco abaixo da bola para o corpo cobrir ela
+            let oy = d.at.y + 6 - px.y;
+            const l = Math.hypot(ox, oy);
+            if (l > DIVE_MAX) {
+                ox *= DIVE_MAX / l;
+                oy *= DIVE_MAX / l;
+            }
+            return { x: ox * k, y: oy * k, facing: dir8({ x: ox, y: oy }, 2) };
+        }
+        return null;
+    }
+
+    /** Giro proporcional ao que a bola andou de fato + rastro para mostrar a direção. */
+    private updateBallMotion(shootout: boolean) {
+        const { x, y } = this.ball;
+        const dx = x - this.lastBall.x;
+        const dy = y - this.lastBall.y;
+        const moved = Math.hypot(dx, dy);
+        if (moved < 60) this.ball.rotation += (dx >= 0 ? 1 : -1) * (moved / 8);
+        this.lastBall = { x, y };
+
+        const free = shootout || this.ballFree;
+        const last = this.trail.at(-1);
+        // bola dominada ou "teleporte" (saída depois do gol): sem rastro
+        if (!free || (last && Math.hypot(x - last.x, y - last.y) > 90)) this.trail.length = 0;
+        if (free && (!last || last.x !== x || last.y !== y)) this.trail.push({ x, y, tick: this.playTick });
+        while (this.trail.length && this.playTick - this.trail[0].tick > TRAIL_TICKS) this.trail.shift();
+
+        const g = this.trailG.clear();
+        const n = this.trail.length;
+        if (n < 2) return;
+        g.setDepth(this.ball.depth - 1);
+        for (let i = 1; i < n; i++) {
+            const k = i / (n - 1);
+            g.lineStyle(1.5 + 5 * k, this.ballColor, 0.08 + 0.42 * k);
+            g.lineBetween(this.trail[i - 1].x, this.trail[i - 1].y, this.trail[i].x, this.trail[i].y);
+        }
+    }
+
+    /** Chute com golpe: brilho na bola e rastro na cor do tipo. */
     private updateBallFx(type: string, x: number, y: number) {
         if (!type) {
             this.ballGlow.setAlpha(0);
+            this.ballColor = 0xffffff;
             return;
         }
         const color = hexToNumber(TYPE_COLOR[type] ?? '#ffffff');
+        this.ballColor = color;
         this.ballGlow
             .setPosition(x, y)
             .setFillStyle(color, 0.55)
             .setAlpha(1)
             .setDepth(this.ball.depth - 1);
-        const now = this.time.now;
-        if (now - this.lastTrail < 25) return;
-        this.lastTrail = now;
-        const dot = this.add
-            .circle(x, y, 7, color, 0.8)
-            .setDepth(this.ball.depth - 2)
-            .setBlendMode(Phaser.BlendModes.ADD);
-        this.tweens.add({ targets: dot, scale: 0.1, alpha: 0, duration: 380, onComplete: () => dot.destroy() });
     }
 
     private emitTick(snap: MatchSnapshot) {
@@ -754,6 +872,7 @@ export class MatchScene extends Phaser.Scene {
             case 'save': {
                 playSfx('save');
                 const gk = this.players[e.by];
+                if (gk) this.highlight('save', gk);
                 if (cinematic && gk) {
                     this.cine.drama('QUE DEFESA!', {
                         color: '#9be7ff',
@@ -778,7 +897,10 @@ export class MatchScene extends Phaser.Scene {
             case 'goal': {
                 playSfx('goal');
                 const scorer = this.players[e.by];
-                if (scorer) playCry(scorer.speciesId, cries, 1.2);
+                if (scorer) {
+                    playCry(scorer.speciesId, cries, 1.2);
+                    this.highlight(e.ownGoal ? 'owngoal' : 'goal', scorer);
+                }
                 this.cameras.main.flash(250, 255, 255, 255);
                 const color = Phaser.Display.Color.IntegerToColor(this.md.colors[e.team]).rgba;
                 if (cinematic) {
@@ -947,6 +1069,17 @@ export class MatchScene extends Phaser.Scene {
                 }
                 break;
         }
+    }
+
+    private highlight(kind: MatchHighlight['kind'], view: PlayerView) {
+        const h: MatchHighlight = {
+            kind,
+            team: view.team,
+            speciesId: view.speciesId,
+            shiny: view.shiny,
+            name: view.name,
+        };
+        EventBus.emit('match:highlight', h);
     }
 
     private popText(idx: number, text: string, color: string) {

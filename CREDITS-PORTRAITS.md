@@ -1,0 +1,156 @@
+# Retratos
+
+Retratos de [PMDCollab/SpriteCollab](https://github.com/PMDCollab/SpriteCollab), licença
+[CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/). Usados sem alteração.
+
+- #1 Bulbasaur: CHUNSOFT
+- #2 Ivysaur: CHUNSOFT, Emmuffin
+- #3 Venusaur: CHUNSOFT, <@!276175146304405514>, G〜
+- #4 Charmander: CHUNSOFT, Emboarger, baronessfaron
+- #5 Charmeleon: CHUNSOFT, 0palite
+- #6 Charizard: CHUNSOFT, 0palite
+- #7 Squirtle: CHUNSOFT
+- #8 Wartortle: CHUNSOFT, Emmuffin
+- #9 Blastoise: CHUNSOFT, Emmuffin, Top_Kec
+- #10 Caterpie: CHUNSOFT, Frostdrop1, baronessfaron
+- #11 Metapod: CHUNSOFT, Emboarger, baronessfaron, Blanky
+- #12 Butterfree: CHUNSOFT, Emmuffin
+- #13 Weedle: CHUNSOFT, Novie
+- #14 Kakuna: CHUNSOFT, Caitemis
+- #15 Beedrill: CHUNSOFT, Fable
+- #16 Pidgey: CHUNSOFT, JFain
+- #17 Pidgeotto: CHUNSOFT, Tainted#3886
+- #18 Pidgeot: CHUNSOFT, FalafelPorpoise
+- #19 Rattata: CHUNSOFT, Frostdrop1
+- #20 Raticate: CHUNSOFT, G〜, baronessfaron
+- #21 Spearow: CHUNSOFT, Blanky, Cloudy
+- #22 Fearow: CHUNSOFT, Caitemis
+- #23 Ekans: CHUNSOFT, drawsstuff, Fearless-Quit, TawnySoup
+- #24 Arbok: CHUNSOFT, drawsstuff, Noo, Emmuffin
+- #25 Pikachu: CHUNSOFT
+- #26 Raichu: CHUNSOFT, C_Pariah, 3Monika4, G〜
+- #27 Sandshrew: CHUNSOFT, Vex, ShyStarryRain
+- #28 Sandslash: CHUNSOFT, XModxGodX, Okami
+- #29 Nidoran-F: CHUNSOFT, JFain, Fearless-Quit
+- #30 Nidorina: CHUNSOFT, TawnySoup
+- #31 Nidoqueen: CHUNSOFT, Emboarger, TawnySoup
+- #32 Nidoran-M: CHUNSOFT, JFain
+- #33 Nidorino: CHUNSOFT, JustAGunk
+- #34 Nidoking: CHUNSOFT, JFain, Emboarger
+- #35 Clefairy: CHUNSOFT, estelstarlight
+- #36 Clefable: CHUNSOFT, jackolanternjackalope, Gust
+- #37 Vulpix: CHUNSOFT
+- #38 Ninetales: CHUNSOFT, baronessfaron
+- #39 Jigglypuff: CHUNSOFT, Mojo, Emboarger
+- #40 Wigglytuff: CHUNSOFT, gromchurch, Emboarger, Gust, Gayschlatt
+- #41 Zubat: CHUNSOFT, fledermaus
+- #42 Golbat: CHUNSOFT, JFain
+- #43 Oddish: CHUNSOFT, Felis-Licht, ShyStarryRain
+- #44 Gloom: CHUNSOFT, chikorene
+- #45 Vileplume: CHUNSOFT
+- #46 Paras: CHUNSOFT, jackolanternjackalope, G〜, bwappi
+- #47 Parasect: CHUNSOFT
+- #48 Venonat: CHUNSOFT, Blanky
+- #49 Venomoth: CHUNSOFT, skygummi, Mooncaller
+- #50 Diglett: CHUNSOFT, Gust, FlowerSnek
+- #51 Dugtrio: CHUNSOFT, Gust
+- #52 Meowth: CHUNSOFT, PhillipsYoung
+- #53 Persian: CHUNSOFT, baronessfaron, Emmuffin
+- #54 Psyduck: CHUNSOFT, Felis-Licht, Morei
+- #55 Golduck: CHUNSOFT, JFain, Caitemis
+- #56 Mankey: CHUNSOFT, baronessfaron
+- #57 Primeape: CHUNSOFT
+- #58 Growlithe: CHUNSOFT, Deltex12, LT
+- #59 Arcanine: CHUNSOFT, baronessfaron
+- #60 Poliwag: CHUNSOFT, Axcel
+- #61 Poliwhirl: CHUNSOFT, JFain
+- #62 Poliwrath: CHUNSOFT, Magu, JustAGunk
+- #63 Abra: CHUNSOFT, JFain, cosmosully
+- #64 Kadabra: CHUNSOFT, 0palite, baronessfaron
+- #65 Alakazam: CHUNSOFT, Gust
+- #66 Machop: CHUNSOFT, Felis-Licht, Morei
+- #67 Machoke: CHUNSOFT, JFain
+- #68 Machamp: CHUNSOFT
+- #69 Bellsprout: CHUNSOFT, <@!436940337865293834>, baronessfaron
+- #70 Weepinbell: CHUNSOFT, G〜
+- #71 Victreebel: CHUNSOFT
+- #72 Tentacool: CHUNSOFT, Caitemis, brookriver
+- #73 Tentacruel: CHUNSOFT
+- #74 Geodude: CHUNSOFT, JustAGunk
+- #75 Graveler: CHUNSOFT, Tainted#3886
+- #76 Golem: CHUNSOFT, baronessfaron
+- #77 Ponyta: CHUNSOFT, deltaflare, baronessfaron
+- #78 Rapidash: CHUNSOFT, deltaflare, baronessfaron
+- #79 Slowpoke: CHUNSOFT, <@!136619914512433152>, Morei
+- #80 Slowbro: CHUNSOFT, Caitemis
+- #81 Magnemite: CHUNSOFT, Fearless-Quit, Emboarger
+- #82 Magneton: CHUNSOFT, SirViolet
+- #83 Farfetch’d: CHUNSOFT, Noo
+- #84 Doduo: CHUNSOFT, Ray2064
+- #85 Dodrio: CHUNSOFT, Top_Kec
+- #86 Seel: CHUNSOFT, baronessfaron
+- #87 Dewgong: CHUNSOFT, Blanca
+- #88 Grimer: CHUNSOFT
+- #89 Muk: CHUNSOFT
+- #90 Shellder: CHUNSOFT, Emmuffin
+- #91 Cloyster: CHUNSOFT
+- #92 Gastly: CHUNSOFT, JFain
+- #93 Haunter: CHUNSOFT, PhillipsYoung
+- #94 Gengar: CHUNSOFT
+- #95 Onix: CHUNSOFT, baronessfaron
+- #96 Drowzee: CHUNSOFT, Caitemis, drawsstuff, G〜
+- #97 Hypno: CHUNSOFT, Caitemis
+- #98 Krabby: CHUNSOFT, <@!967585139485999154>
+- #99 Kingler: CHUNSOFT, baronessfaron
+- #100 Voltorb: CHUNSOFT, JFain
+- #101 Electrode: CHUNSOFT, PhillipsYoung, G〜
+- #102 Exeggcute: CHUNSOFT
+- #103 Exeggutor: CHUNSOFT, bwappi
+- #104 Cubone: CHUNSOFT, Felis-Licht, Morei, Emmuffin
+- #105 Marowak: CHUNSOFT, JFain, Emmuffin
+- #106 Hitmonlee: CHUNSOFT, Tainted#3886, G〜
+- #107 Hitmonchan: CHUNSOFT
+- #108 Lickitung: CHUNSOFT, Shitpost_Sunkern
+- #109 Koffing: CHUNSOFT, Caitemis
+- #110 Weezing: CHUNSOFT
+- #111 Rhyhorn: CHUNSOFT, chikorene
+- #112 Rhydon: CHUNSOFT, JFain, PhillipsYoung
+- #113 Chansey: CHUNSOFT, Mojo
+- #114 Tangela: CHUNSOFT, JFain, Morei
+- #115 Kangaskhan: CHUNSOFT, Top_Kec
+- #116 Horsea: CHUNSOFT, frostibirb, Blanky
+- #117 Seadra: CHUNSOFT
+- #118 Goldeen: CHUNSOFT, baronessfaron
+- #119 Seaking: CHUNSOFT
+- #120 Staryu: CHUNSOFT, JustAGunk
+- #121 Starmie: CHUNSOFT
+- #122 Mr. Mime: CHUNSOFT
+- #123 Scyther: CHUNSOFT, Noo, G〜
+- #124 Jynx: CHUNSOFT
+- #125 Electabuzz: CHUNSOFT, Coksi
+- #126 Magmar: CHUNSOFT, Caitemis
+- #127 Pinsir: CHUNSOFT
+- #128 Tauros: CHUNSOFT, Emmuffin
+- #129 Magikarp: CHUNSOFT, JemDragons
+- #130 Gyarados: CHUNSOFT, G〜, baronessfaron
+- #131 Lapras: CHUNSOFT, C_Pariah, silverfox88
+- #132 Ditto: CHUNSOFT, <@!787048769883602956>
+- #133 Eevee: CHUNSOFT
+- #134 Vaporeon: CHUNSOFT, baronessfaron
+- #135 Jolteon: CHUNSOFT, "motherhenna(Helen)", Morei, Vynnyal, baronessfaron, ShyStarryRain
+- #136 Flareon: CHUNSOFT, LegendaryPhoenix, baronessfaron, Vynnyal, ShyStarryRain
+- #137 Porygon: CHUNSOFT, Mojo, Emmuffin
+- #138 Omanyte: CHUNSOFT, Frostdrop1
+- #139 Omastar: CHUNSOFT
+- #140 Kabuto: CHUNSOFT, Frostdrop1, G〜
+- #141 Kabutops: CHUNSOFT, G〜
+- #142 Aerodactyl: CHUNSOFT, Caitemis
+- #143 Snorlax: CHUNSOFT, NOLASMOR, Emboarger
+- #144 Articuno: CHUNSOFT
+- #145 Zapdos: CHUNSOFT
+- #146 Moltres: CHUNSOFT
+- #147 Dratini: CHUNSOFT, frostibirb, Gust
+- #148 Dragonair: CHUNSOFT, Emmuffin
+- #149 Dragonite: CHUNSOFT, "motherhenna(Helen)", Emboarger, AlexGroeger
+- #150 Mewtwo: CHUNSOFT, baronessfaron
+- #151 Mew: CHUNSOFT, Mojo, G〜, baronessfaron

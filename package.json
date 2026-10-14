@@ -18,6 +18,7 @@
     "assets:audio": "tsx scripts/fetch-audio.ts",
     "assets:items": "tsx scripts/fetch-items.ts",
     "assets:types": "tsx scripts/fetch-type-icons.ts",
+    "assets:portraits": "tsx scripts/fetch-portraits.ts",
     "calibrate": "tsx scripts/calibrate.ts"
   },
   "dependencies": {

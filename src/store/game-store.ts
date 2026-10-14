@@ -18,7 +18,7 @@ import type { Tactic, TeamSetup } from '../engine/state';
 
 export type Screen = 'home' | 'draft' | 'lineup' | 'match' | 'result' | 'reward' | 'settings' | 'credits';
 export type CryStyle = 'legacy' | 'latest';
-export type PlaybackSpeed = 1 | 2 | 4 | 'highlights';
+export type PlaybackSpeed = 1 | 2 | 4 | 8 | 'highlights';
 
 export const PLAYER_COLOR = 0xe8423f;
 export const START_REROLLS = 2;

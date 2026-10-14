@@ -4,7 +4,13 @@
  *
  * Uso: npx tsx scripts/positions-report.ts
  */
-import { computeAttributes, eligiblePositions, type Position, POSITIONS, positionRating } from '../src/engine/attributes';
+import {
+    computeAttributes,
+    eligiblePositions,
+    POSITIONS,
+    type Position,
+    positionRating,
+} from '../src/engine/attributes';
 import { SPECIES } from '../src/engine/data';
 
 const rows = SPECIES.map((sp) => {
@@ -25,7 +31,9 @@ for (const p of POSITIONS) {
         .slice(0, 5)
         .map((r) => `${r.sp.name} ${r.ratings[p]}`)
         .join(', ');
-    console.log(`${p.padEnd(9)} ${String(main).padStart(9)}  ${String(list.length).padStart(9)}  ${String(avg).padStart(5)}  ${String(elite).padStart(3)}  ${top}`);
+    console.log(
+        `${p.padEnd(9)} ${String(main).padStart(9)}  ${String(list.length).padStart(9)}  ${String(avg).padStart(5)}  ${String(elite).padStart(3)}  ${top}`,
+    );
 }
 
 const counts = [1, 2, 3, 4].map((n) => rows.filter((r) => r.eligible.length === n).length);
@@ -43,4 +51,9 @@ for (const r of rows) {
 for (const [t, c] of [...byType.entries()].sort()) {
     console.log(`  ${t.padEnd(9)} GK ${c.GK}  FIXO ${c.FIXO}  ALA ${c.ALA}  PIVO ${c.PIVO}`);
 }
-console.log(`\nGoleiros principais: ${rows.filter((r) => r.eligible[0] === 'GK').map((r) => r.sp.name).join(', ')}`);
+console.log(
+    `\nGoleiros principais: ${rows
+        .filter((r) => r.eligible[0] === 'GK')
+        .map((r) => r.sp.name)
+        .join(', ')}`,
+);

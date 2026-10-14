@@ -7,6 +7,7 @@ import type { MatchSceneData } from '../../game/scenes/MatchScene';
 import { PhaserGame } from '../../PhaserGame';
 import { PLAYER_COLOR, type PlaybackSpeed, playerTeam, stageLabel, useGame } from '../../store/game-store';
 import { Commentator, type CommentLine } from '../commentary';
+import { MatchHighlight } from '../components/MatchHighlight';
 import { VersusIntro } from '../components/VersusIntro';
 import { simulateMatch } from '../sim-client';
 
@@ -14,6 +15,7 @@ const SPEEDS: { value: PlaybackSpeed; label: string }[] = [
     { value: 1, label: '1x' },
     { value: 2, label: '2x' },
     { value: 4, label: '4x' },
+    { value: 8, label: '8x' },
     { value: 'highlights', label: 'Lances' },
 ];
 
@@ -247,11 +249,14 @@ export function Match() {
 
             <div className="match-layout">
                 <div className="match-main">
-                    {fontsReady ? (
-                        <PhaserGame key={`${match.seed}-${sceneKey}`} data={sceneData} />
-                    ) : (
-                        <div className="phaser-container" />
-                    )}
+                    <div className="pitch-wrap">
+                        {fontsReady ? (
+                            <PhaserGame key={`${match.seed}-${sceneKey}`} data={sceneData} />
+                        ) : (
+                            <div className="phaser-container" />
+                        )}
+                        <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
+                    </div>
                     {sceneSlow && !sceneReady && (
                         <button type="button" className="btn yellow" onClick={() => setSceneKey((k) => k + 1)}>
                             A quadra não carregou — recarregar

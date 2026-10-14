@@ -7,6 +7,7 @@ Soccermon é um fan project sem fins lucrativos. Pokémon © Nintendo, Game Frea
 | O quê | Fonte | Licença / termos |
 |---|---|---|
 | Sprites de campo (8 direções) | [PMDCollab/SpriteCollab](https://github.com/PMDCollab/SpriteCollab) | CC BY-NC 4.0 — autores em [CREDITS-PMD.md](CREDITS-PMD.md) |
+| Retratos (faixa de gol/defesa) | [PMDCollab/SpriteCollab](https://github.com/PMDCollab/SpriteCollab) | CC BY-NC 4.0 — autores em [CREDITS-PORTRAITS.md](CREDITS-PORTRAITS.md) |
 | Sprites animados de Black/White, pokébola | [PokeAPI/sprites](https://github.com/PokeAPI/sprites) | CC0 (imagens © The Pokémon Company) |
 | Gritos legacy e modernos | [PokeAPI/cries](https://github.com/PokeAPI/cries) | CC0 (áudio © The Pokémon Company) |
 | Ícones de tipo (símbolo recortado do selo de Pokémon Champions) | [PokeAPI/sprites](https://github.com/PokeAPI/sprites) | CC0 (imagens © The Pokémon Company) |

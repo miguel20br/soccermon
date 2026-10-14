@@ -41,6 +41,10 @@ describe('dados', () => {
         }
     });
 
+    it('tem retrato (rostinho) de todos para a faixa de gol/defesa', () => {
+        for (const sp of SPECIES) expect(existsSync(`public/assets/portraits/${sp.id}.png`)).toBe(true);
+    });
+
     it('tem os ícones oficiais de todos os tipos dos Pokémon', () => {
         for (const t of new Set(SPECIES.flatMap((sp) => sp.types))) {
             expect(existsSync(`public/assets/types/${t.toLowerCase()}.png`)).toBe(true);
@@ -432,5 +436,25 @@ describe('v0.6: cartas especiais', () => {
         for (let w = 0; w < 60; w++) seen.add(weeklyEventType(new Date(2026, 0, 1 + w * 7)));
         expect([...seen].every((t) => EVENT_TYPES.includes(t))).toBe(true);
         expect(EVENT_TYPES).not.toContain('Dark');
+    });
+});
+
+describe('defesa do goleiro', () => {
+    it('nunca acontece com a bola já dentro do gol', () => {
+        const { length } = FUTSAL_5.pitch;
+        let saves = 0;
+        for (let i = 0; i < 6; i++) {
+            const r = runMatch(FUTSAL_5, team(`gk-a${i}`, 'A'), team(`gk-b${i}`, 'B'), `gk-${i}`);
+            for (const e of r.events) {
+                if (e.type !== 'save') continue;
+                saves++;
+                const snap = r.snapshots.find((sn) => sn.tick >= e.tick);
+                if (snap) {
+                    expect(snap.bx).toBeGreaterThanOrEqual(-0.01);
+                    expect(snap.bx).toBeLessThanOrEqual(length + 0.01);
+                }
+            }
+        }
+        expect(saves).toBeGreaterThan(10);
     });
 });

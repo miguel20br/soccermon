@@ -17,7 +17,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { XMLParser } from 'fast-xml-parser';
 import sharp from 'sharp';
 import pokemon from '../src/data/pokemon.json' with { type: 'json' };
-import { fetchBuffer, ids151 } from './lib/download';
+import { fetchBuffer, ids151, pmdCreditNames } from './lib/download';
 
 const REPO = 'https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/sprite';
 const CACHE = '.cache/pmd';
@@ -159,6 +159,7 @@ async function buildOne(id: number) {
 await mkdir(OUT, { recursive: true });
 const meta: Record<number, { shadowSize: number; anims: Record<string, PmdAnimInfo> }> = {};
 const creditLines: string[] = [];
+const NAMES = await pmdCreditNames();
 const errors: string[] = [];
 const queue = [...ids151];
 
@@ -170,7 +171,7 @@ await Promise.all(
                 const r = await buildOne(id);
                 meta[id] = { shadowSize: r.shadowSize, anims: r.anims };
                 const name = pokemon.find((p) => p.id === id)?.name ?? `#${id}`;
-                creditLines[id] = `| ${id} | ${name} | ${r.authors.join(', ') || '—'} |`;
+                creditLines[id] = `| ${id} | ${name} | ${r.authors.map((a) => NAMES.get(a) ?? a).join(', ') || '—'} |`;
             } catch (e) {
                 errors.push(String((e as Error).message));
             }

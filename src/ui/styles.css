@@ -2340,3 +2340,126 @@ button,
 .destaque-box h2 {
     margin: 0;
 }
+
+/* ---------------------------------------------------------------- faixa de gol / defesa */
+.pitch-wrap {
+    position: relative;
+    min-width: 0;
+}
+.mh {
+    --team: #e94b4b;
+    --cut: clamp(18px, 3.4vw, 34px);
+    position: absolute;
+    bottom: 17%;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: clamp(6px, 1.2vw, 12px);
+    padding: clamp(5px, 0.9vw, 9px) clamp(10px, 1.6vw, 18px);
+    max-width: 62%;
+    pointer-events: none;
+    color: #fff;
+    background:
+        linear-gradient(90deg, color-mix(in srgb, var(--team) 92%, #000) 0%, color-mix(in srgb, var(--team) 55%, #0b1020) 100%);
+    box-shadow: 0 4px 0 rgb(0 0 0 / 35%);
+    animation: mh-in-left 2.6s cubic-bezier(0.2, 0.9, 0.25, 1) both;
+}
+.mh-left {
+    left: 0;
+    padding-right: calc(var(--cut) + 8px);
+    clip-path: polygon(0 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%);
+}
+.mh-right {
+    right: 0;
+    flex-direction: row-reverse;
+    text-align: right;
+    padding-left: calc(var(--cut) + 8px);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, var(--cut) 100%);
+    animation-name: mh-in-right;
+}
+/* listra clara na diagonal */
+.mh::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    background: rgb(255 255 255 / 85%);
+}
+.mh-left::after {
+    right: calc(var(--cut) * 0.5);
+    transform: skewX(-20deg);
+}
+.mh-right::after {
+    left: calc(var(--cut) * 0.5);
+    transform: skewX(20deg);
+}
+.mh-face {
+    position: relative;
+    flex: none;
+    width: clamp(44px, 7vw, 76px);
+    aspect-ratio: 1;
+    border: 3px solid #fff;
+    border-radius: 6px;
+    background: #10162e;
+    overflow: hidden;
+}
+.mh-face img {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+.mh-shiny {
+    position: absolute;
+    top: 0;
+    right: 2px;
+    color: #ffe14d;
+    font-size: 12px;
+    text-shadow: 0 1px 0 #000;
+}
+.mh-text {
+    display: grid;
+    line-height: 1.05;
+    min-width: 0;
+    text-shadow: 0 2px 0 rgb(0 0 0 / 55%);
+}
+.mh-kind {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: clamp(16px, 2.6vw, 28px);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+.mh-save .mh-kind {
+    color: #9be7ff;
+}
+.mh-owngoal .mh-kind {
+    color: #ffd0d0;
+}
+.mh-name {
+    font-size: clamp(12px, 1.7vw, 18px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.mh-team {
+    font-size: clamp(10px, 1.2vw, 13px);
+    opacity: 0.85;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+@keyframes mh-in-left {
+    0% { transform: translateX(-105%); }
+    12%, 86% { transform: translateX(0); }
+    100% { transform: translateX(-105%); }
+}
+@keyframes mh-in-right {
+    0% { transform: translateX(105%); }
+    12%, 86% { transform: translateX(0); }
+    100% { transform: translateX(105%); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .mh {
+        animation: none;
+    }
+}

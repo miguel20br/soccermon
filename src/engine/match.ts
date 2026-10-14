@@ -32,7 +32,7 @@ import {
 } from './state';
 import { computeSynergies, type Synergy, synergyFactor } from './synergy';
 import { typeMultiplier } from './types';
-import { add, clamp, dir8, dist, len, norm, rotate, scale, sub, truncate, type Vec2, v } from './vec';
+import { add, clamp, dir8, dist, len, norm, pointSegment, rotate, scale, sub, truncate, type Vec2, v } from './vec';
 import { expectedGoals } from './xg';
 
 // ---------------------------------------------------------------- constantes físicas
@@ -925,8 +925,8 @@ function updateBall(s: MatchState, dt: number) {
         ball.vel = v(ball.vel.x * 0.85, -ball.vel.y * WALL_DAMPING);
     }
 
-    // goleiro e bloqueios durante um chute
-    if (ball.shot) checkShotInteractions(s);
+    // goleiro e bloqueios durante um chute (pelo trecho percorrido no tick, cortado na linha do gol)
+    if (ball.shot) checkShotInteractions(s, prev);
     if (s.ball.owner !== null) return;
 
     // linha de fundo
@@ -956,14 +956,28 @@ function updateBall(s: MatchState, dt: number) {
     if (ball.shot && newSpeed < 4) ball.shot = null;
 }
 
-function checkShotInteractions(s: MatchState) {
+/**
+ * Goleiro e bloqueios durante um chute. Usa o trecho que a bola percorreu no tick (chute forte anda >1 m por tick
+ * e "atravessava" o goleiro) e corta esse trecho na linha do gol: defesa nunca acontece com a bola já dentro da rede.
+ * Na defesa, a bola fica no ponto do contato.
+ */
+function checkShotInteractions(s: MatchState, prev: Vec2) {
     const ball = s.ball;
     const shot = ball.shot!;
     const shooter = s.players[shot.by];
     const speed = len(ball.vel);
+    const { length } = s.cfg.pitch;
+    let end = ball.pos;
+    if (end.x < 0 || end.x > length) {
+        const lineX = end.x < 0 ? 0 : length;
+        const t = (lineX - prev.x) / (end.x - prev.x || 1e-9);
+        end = v(lineX, prev.y + (end.y - prev.y) * clamp(t, 0, 1));
+    }
     for (const p of s.players) {
         if (p.team === shooter.team || isIncapacitated(p)) continue;
-        const d = dist(p.pos, ball.pos);
+        const seg = pointSegment(p.pos, prev, end);
+        const d = seg.d;
+        const contact = add(prev, scale(sub(end, prev), seg.t));
         if (p.role === 'GK') {
             if (shot.gkChecked) continue;
             const reach = 0.55 + (1.0 * eff(s, p, 'goalkeeping')) / 99;
@@ -990,6 +1004,7 @@ function checkShotInteractions(s: MatchState) {
                 const caught = speed < 17 && s.rng.chance(0.55 + (0.3 * gk) / 99);
                 emit(s, { type: 'save', by: p.idx, shooter: shooter.idx, caught });
                 ball.shot = null;
+                ball.pos = contact;
                 // defender um Thunderbolt tem preço
                 if (shot.moveId) applySecondary(s, shooter, p, shot.moveId);
                 if (caught) {
@@ -1013,6 +1028,7 @@ function checkShotInteractions(s: MatchState) {
             if (s.rng.chance(pBlock)) {
                 emit(s, { type: 'block', by: p.idx, shooter: shooter.idx });
                 ball.shot = null;
+                ball.pos = contact;
                 if (shot.moveId) {
                     knockback(s, p, shooter, 1, shot.moveId);
                     applySecondary(s, shooter, p, shot.moveId);
