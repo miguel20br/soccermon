@@ -3,6 +3,10 @@
 Este arquivo leva para qualquer aparelho (PC, celular, nuvem) o que o Claude precisa saber do projeto e do
 Miguel, o dono. As preferências abaixo valem em toda sessão.
 
+Planos para o futuro: [docs/planos/roadmap.md](docs/planos/roadmap.md). Cópia das memórias do Claude feitas
+no PC (preferências e decisões, com o porquê de cada uma): [docs/memoria/](docs/memoria/). Ao aprender uma
+preferência nova do Miguel em outro aparelho, registre aqui no CLAUDE.md para ela valer em todos.
+
 ## Como falar com o Miguel
 
 - **Sempre comece cada resposta com "Miguel,"** (nome e vírgula). É o teste de sanidade dele: se a resposta não

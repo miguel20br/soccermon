@@ -1,0 +1,6 @@
+- [Soccermon project](soccermon-project.md) — fan game Pokémon Gen1 + futsal sim, AGPL, sem lucro; arquitetura deve suportar carreira/modo jogável futuro
+- [Miguel é fã de Pokémon](user-pokemon-fan.md) — conhece a franquia; gosta de pesquisa ampla de repos/skills antes de planejar
+- [Diversão > realismo no Soccermon](feedback-fun-over-realism.md) — não otimizar gols/passes realistas; priorizar golpes/stats visíveis e ritmo
+- [Posições: decidir junto](feedback-collaborate-balance.md) — mudanças de posição/fórmula só com ok do Miguel; mostrar antes/depois e perguntar
+- [Design de cartas](feedback-card-design.md) — minimalista, bronze/prata/ouro pela nota, nota e atributos grandes, raridade só como acabamento
+- [Agência do jogador](feedback-player-agency.md) — nada automático no time dele (substituição só se pedir); eventos grandes com animação e gatilho exigente
