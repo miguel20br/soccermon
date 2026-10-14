@@ -4472,3 +4472,16 @@ button,
         max-width: 64px;
     }
 }
+
+/* botão oficial do Google (Google Identity Services) */
+.gsi-slot {
+    min-height: 44px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color-scheme: normal;
+}
+.gsi-slot[aria-busy="true"] {
+    opacity: 0.5;
+    pointer-events: none;
+}

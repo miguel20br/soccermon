@@ -220,6 +220,13 @@ export async function signInWithGoogle() {
     if (error) throw error;
 }
 
+/** Login pelo botão oficial do Google (google-button.ts): o Supabase confere o token e abre a sessão. */
+export async function signInWithGoogleToken(idToken: string, rawNonce: string) {
+    if (!supabase) return;
+    const { error } = await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken, nonce: rawNonce });
+    if (error) throw error;
+}
+
 export async function signOut() {
     if (!supabase) return;
     // sobe o que falta antes de sair; o save local continua no aparelho

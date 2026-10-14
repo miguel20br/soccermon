@@ -71,6 +71,14 @@ conta" (migração `20261014180000_apagar_conta.sql` já aplicada no banco).
 
 ### Pendente
 
+0. **Botão oficial do Google (tira o "vszcxacbcabohhdwxfpb.supabase.co" da tela de login):** o código já existe
+   (`src/cloud/google-button.ts`, login com `signInWithIdToken`), mas só liga com o Client ID da Web do Google.
+   Falta: (a) colocar o Client ID (termina em `.apps.googleusercontent.com`; é público) como valor padrão de
+   `GOOGLE_CLIENT_ID` em `src/cloud/google-button.ts` ou na variável `VITE_GOOGLE_CLIENT_ID` da Vercel;
+   (b) no Google Cloud Console → Clients → esse client → **Authorized JavaScript origins**:
+   `https://soccermon.vercel.app` e `http://localhost:8080`; (c) escopo `openid` em Data Access. No Supabase
+   (Google provider) o mesmo Client ID precisa estar em "Client IDs" e "Skip Nonce Check" desligado. Sem o
+   Client ID o jogo usa o login antigo por redirecionamento.
 1. **Tela de consentimento OAuth do Google (Google Cloud Console):** passar de "Teste" para "Em produção",
    com nome Soccermon, logo e link de privacidade `https://soccermon.vercel.app/privacidade.html`. Em modo
    teste só os e-mails cadastrados conseguem entrar. Só o Miguel faz (no navegador).

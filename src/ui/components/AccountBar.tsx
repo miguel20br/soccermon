@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { cloudEnabled, signInWithGoogle, signOut, useCloud } from '../../cloud/cloud';
+import { useEffect, useRef, useState } from 'react';
+import { cloudEnabled, signInWithGoogle, signInWithGoogleToken, signOut, useCloud } from '../../cloud/cloud';
+import { GOOGLE_CLIENT_ID, renderGoogleButton } from '../../cloud/google-button';
 
 const STATUS_TEXT = {
     off: '',
@@ -38,28 +39,61 @@ export function AccountBar() {
     const { status, user } = useCloud();
     const [busy, setBusy] = useState(false);
     const [failed, setFailed] = useState(false);
+    // script do Google bloqueado (bloqueador de anúncio, rede): volta para o login por redirecionamento
+    const [gsiFailed, setGsiFailed] = useState(false);
+    const gsiRef = useRef<HTMLDivElement>(null);
+    const signedIn = !!user;
+
+    useEffect(() => {
+        const el = gsiRef.current;
+        if (!cloudEnabled || signedIn || !GOOGLE_CLIENT_ID || !el) return;
+        let alive = true;
+        const width = Math.min(260, Math.max(200, el.parentElement?.clientWidth ?? 260));
+        renderGoogleButton(
+            el,
+            (token, nonce) => {
+                setBusy(true);
+                setFailed(false);
+                signInWithGoogleToken(token, nonce).catch(() => {
+                    if (!alive) return;
+                    setBusy(false);
+                    setFailed(true);
+                });
+            },
+            width,
+        ).catch(() => alive && setGsiFailed(true));
+        return () => {
+            alive = false;
+        };
+    }, [signedIn]);
+
     if (!cloudEnabled) return null;
 
     if (!user) {
         return (
             <div className="account-bar">
-                <button
-                    type="button"
-                    className="btn google-btn"
-                    disabled={busy}
-                    onClick={() => {
-                        setBusy(true);
-                        setFailed(false);
-                        // deu certo: a página vai para o Google (continua ocupado até sair daqui)
-                        signInWithGoogle().catch(() => {
-                            setBusy(false);
-                            setFailed(true);
-                        });
-                    }}
-                >
-                    <GoogleLogo />
-                    Entrar com Google
-                </button>
+                {GOOGLE_CLIENT_ID && !gsiFailed ? (
+                    // botão oficial: o Google mostra "Soccermon", não o endereço do Supabase
+                    <div ref={gsiRef} className="gsi-slot" aria-busy={busy} />
+                ) : (
+                    <button
+                        type="button"
+                        className="btn google-btn"
+                        disabled={busy}
+                        onClick={() => {
+                            setBusy(true);
+                            setFailed(false);
+                            // deu certo: a página vai para o Google (continua ocupado até sair daqui)
+                            signInWithGoogle().catch(() => {
+                                setBusy(false);
+                                setFailed(true);
+                            });
+                        }}
+                    >
+                        <GoogleLogo />
+                        Entrar com Google
+                    </button>
+                )}
                 <span className={failed ? 'error-text' : 'muted'}>
                     {failed
                         ? 'Não deu para abrir o login do Google. Confira a internet e tente de novo.'
