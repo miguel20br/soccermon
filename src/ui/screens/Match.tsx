@@ -16,6 +16,7 @@ import type { MatchSceneData } from '../../game/scenes/MatchScene';
 import { PhaserGame } from '../../PhaserGame';
 import { PLAYER_COLOR, type PlaybackSpeed, playerTeam, stageLabel, useGame } from '../../store/game-store';
 import { Commentator, type CommentLine } from '../commentary';
+import { EvolutionOverlay } from '../components/EvolutionOverlay';
 import { MatchHighlight } from '../components/MatchHighlight';
 import { cardSprite } from '../components/PokeCard';
 import { VersusIntro } from '../components/VersusIntro';
@@ -327,6 +328,7 @@ export function Match() {
                             <div className="phaser-container" />
                         )}
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
+                        <EvolutionOverlay />
                     </div>
                     {pendingSub && (
                         <div className="sub-pending">
