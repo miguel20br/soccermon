@@ -70,7 +70,13 @@ function whoAt(m: MatchResult, setups: [TeamSetup, TeamSetup], idx: number, tick
         if (e.type === 'transform' && e.by === idx && e.tick >= since && inst) {
             const copied = whoAt(m, setups, e.target, e.tick).inst;
             if (copied) {
-                inst = { ...inst, speciesId: copied.speciesId, level: copied.level, moves: [...copied.moves], ability: copied.ability };
+                inst = {
+                    ...inst,
+                    speciesId: copied.speciesId,
+                    level: copied.level,
+                    moves: [...copied.moves],
+                    ability: copied.ability,
+                };
                 transformed = true;
             }
         }
