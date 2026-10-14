@@ -1,24 +1,17 @@
 import { abilityEffect, isStatusImmune } from './abilities';
-import {
-    type AttrKey,
-    computeAttributes,
-    eligiblePositions,
-    type Position,
-    positionFactor,
-    positionRating,
-} from './attributes';
+import { type AttrKey, computeAttributes, type Position, positionRating } from './attributes';
 import type { Command } from './commands';
 import type { MatchConfig } from './config';
 import { MOVES, species } from './data';
 import { eff, fatigueFactor, isIncapacitated, TACTIC_MODS } from './effective';
 import { EVO_THRESHOLD, evolutionTarget, evolveInstance, evoScore } from './evolution';
 import { formationOf } from './formations';
-import { type PokemonInstance, withBonus } from './instance';
+import type { PokemonInstance } from './instance';
 import { ITEMS } from './items';
-import { type ActiveLink, computeLinks, linkFactor } from './links';
+import { type ActiveLink, computeLinks } from './links';
+import { applyModifiers, attributeModifiers, captainFactor } from './modifiers';
 import { moveProfile, type StatusKind } from './moves';
 import { Rng } from './rng';
-import { specialBonus } from './specials';
 import {
     Action,
     FLAG_BUFF,
@@ -31,7 +24,6 @@ import {
     STATUS_CODE,
     type TeamSetup,
 } from './state';
-import { computeSynergies, type Synergy, synergyFactor } from './synergy';
 import { typeMultiplier } from './types';
 import { add, clamp, dir8, dist, len, norm, pointSegment, rotate, scale, sub, truncate, type Vec2, v } from './vec';
 import { expectedGoals } from './xg';
@@ -71,22 +63,17 @@ export function minuteOf(s: MatchState): number {
 // ---------------------------------------------------------------- criação
 /** Bônus coletivos do time: sinergias de tipo e aura do capitão. */
 interface TeamBonuses {
-    synergies: Synergy[];
+    lineup: readonly PokemonInstance[];
     links: ActiveLink[];
     captain: PokemonInstance | null;
 }
 
 function teamBonuses(setup: TeamSetup): TeamBonuses {
     const captain = setup.lineup.find((p) => p.uid === setup.captainUid) ?? null;
-    return { synergies: computeSynergies(setup.lineup), links: computeLinks(setup.lineup), captain };
+    return { lineup: setup.lineup, links: computeLinks(setup.lineup), captain };
 }
 
-/** Aura do capitão: +3% para o time, +6% para quem divide tipo com ele. */
-export function captainFactor(captain: PokemonInstance | null, types: readonly string[]): number {
-    if (!captain) return 1;
-    const capTypes = species(captain.speciesId).types;
-    return types.some((t) => capTypes.includes(t)) ? 1.06 : 1.03;
-}
+export { captainFactor };
 
 function createPlayer(
     idx: number,
@@ -97,23 +84,11 @@ function createPlayer(
     bonuses: TeamBonuses,
 ): PlayerState {
     const sp = species(inst.speciesId);
-    const synergy = synergyFactor(bonuses.synergies, sp.types) * linkFactor(bonuses.links, inst.uid);
-    const isCaptain = bonuses.captain?.uid === inst.uid;
-    const captainAura = isCaptain ? 1.03 : captainFactor(bonuses.captain, sp.types);
-    // Encanto das fadas: os poucos Fada da Gen 1 são fracos de base (venciam 40%); um empurrãozinho de tipo
-    const fairy = sp.types.includes('Fairy') ? 1.08 : 1;
-    const base = computeAttributes(sp, inst.level);
-    const factor = positionFactor(eligiblePositions(base, sp.id), role);
-    const raw = withBonus(base, specialBonus(inst));
+    // edição, habilidade, item, tipo, capitão, sinergias e posição: a mesma regra que a carta mostra
+    const mods = attributeModifiers(inst, { lineup: bonuses.lineup, captain: bonuses.captain, role });
+    const attr = applyModifiers(computeAttributes(sp, inst.level), mods, role);
     const ability = abilityEffect(inst.ability);
     const item = inst.item && ITEMS[inst.item] ? inst.item : null;
-    const attr = { ...raw };
-    for (const k of Object.keys(attr) as AttrKey[]) {
-        // goleiro de linha / linha no gol: penalidade só no que importa para a posição
-        const relevant = role === 'GK' ? k === 'goalkeeping' : k !== 'goalkeeping';
-        attr[k] = attr[k] * (relevant ? factor : 1) * (ability.mods?.[k] ?? 1) * synergy * captainAura * fairy;
-    }
-    if (item === 'choiceband') attr.shooting *= 1.15;
     const moveUses = inst.moves.map((m, i) => (item === 'choiceband' && i > 0 ? 0 : moveProfile(m).uses));
     return {
         idx,
@@ -143,7 +118,7 @@ function createPlayer(
         shotBonus: null,
         tackleBonus: null,
         clutchAnnounced: false,
-        captain: isCaptain,
+        captain: bonuses.captain?.uid === inst.uid,
         item,
         itemUsed: false,
         evolved: false,
@@ -272,7 +247,7 @@ function transformDittos(s: MatchState, candidates: PlayerState[]) {
 /** Duas peças da mesma sinergia de história: passe de um, chute do outro = combo (1 por tempo). */
 function comboLink(s: MatchState, shooter: PlayerState): { link: string; partner: number } | null {
     const lk = s.ball.lastKick;
-    if (!lk || lk.kind !== 'pass' || lk.receiverId !== shooter.idx || lk.by === shooter.idx) return null;
+    if (lk?.kind !== 'pass' || lk.receiverId !== shooter.idx || lk.by === shooter.idx) return null;
     if (s.tick - lk.tick > 4 * s.cfg.tickRate) return null;
     const partner = s.players[lk.by];
     if (!partner || partner.team !== shooter.team) return null;

@@ -2951,3 +2951,38 @@ button,
         animation: none;
     }
 }
+
+/* ---------- bônus e penalidades (carta completa) ---------- */
+.mod-list {
+    display: grid;
+    gap: 3px;
+}
+.mod-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+}
+.mod-row span {
+    font-weight: 700;
+}
+.mod-row.up span {
+    color: #7dff8a;
+}
+.mod-row.down span {
+    color: #ff7a7a;
+}
+.attr-mod {
+    font-style: normal;
+    font-weight: 700;
+    font-size: 11px;
+}
+.attr-mod.up {
+    color: #7dff8a;
+}
+.attr-mod.down {
+    color: #ff7a7a;
+}
+.modal-attrs .attr {
+    grid-template-columns: 74px 1fr 24px 30px;
+}

@@ -1,11 +1,13 @@
 import { useEffect } from 'react';
 import { abilityEffect } from '../../engine/abilities';
-import { type AttrKey, POSITION_LABEL, POSITIONS, physiqueOf } from '../../engine/attributes';
+import { type AttrKey, computeAttributes, POSITION_LABEL, POSITIONS, physiqueOf } from '../../engine/attributes';
 import { ABILITIES, MOVES, species } from '../../engine/data';
 import { viewInstance } from '../../engine/instance';
 import { ITEMS, itemSprite } from '../../engine/items';
 import { linksOf } from '../../engine/links';
+import { applyModifiers, attributeModifiers, moveModifiers } from '../../engine/modifiers';
 import { moveProfile } from '../../engine/moves';
+import { useGame } from '../../store/game-store';
 import { useCardModal } from '../card-modal';
 import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
@@ -69,6 +71,7 @@ function secondaryText(moveId: string): string | null {
 /** Carta completa: tudo sobre o Pokémon, com ações (escolher, pegar…). */
 export function CardModal() {
     const { inst, position, captain, note, actions, close } = useCardModal();
+    const run = useGame((s) => s.run);
 
     useEffect(() => {
         if (!inst) return;
@@ -83,6 +86,18 @@ export function CardModal() {
     const ability = ABILITIES[inst.ability];
     const abilityWorks = Object.keys(abilityEffect(inst.ability)).length > 0;
     const item = inst.item ? ITEMS[inst.item] : null;
+    // bônus/penalidades: os da carta + os do time (se ela está no seu elenco), a mesma regra do motor
+    const picks = run?.picks ?? [];
+    const lineup = (run?.lineup ?? []).map((u) => picks.find((p) => p.uid === u)).filter((p) => !!p);
+    const onTeam = picks.some((p) => p.uid === inst.uid);
+    const mods = attributeModifiers(
+        inst,
+        onTeam
+            ? { lineup, captain: picks.find((p) => p.uid === run?.captainUid) ?? null, role: position ?? null }
+            : { role: position ?? null },
+    );
+    const inField = applyModifiers(computeAttributes(sp, inst.level), mods, position ?? null);
+    const moveMods = moveModifiers(inst);
 
     return (
         // biome-ignore lint/a11y/noStaticElementInteractions: clicar fora fecha; Esc e o botão × cobrem o teclado
@@ -170,10 +185,28 @@ export function CardModal() {
                             </>
                         )}
 
-                        <h3>Atributos</h3>
+                        {mods.length > 0 && (
+                            <>
+                                <h3>Bônus e penalidades</h3>
+                                <div className="mod-list">
+                                    {mods.map((m) => {
+                                        const up = (m.add ?? 0) > 0 || (m.factor ?? 1) > 1;
+                                        return (
+                                            <div key={m.label} className={`mod-row ${up ? 'up' : 'down'}`}>
+                                                <span>{up ? '▲' : '▼'}</span>
+                                                {m.label}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </>
+                        )}
+
+                        <h3>Atributos{onTeam ? ' (em campo, com o seu time)' : ''}</h3>
                         <div className="attrs modal-attrs">
                             {ALL_ATTRS.map((k) => {
                                 const v = Math.round(view.attributes[k]);
+                                const d = Math.round(inField[k] - view.attributes[k]);
                                 return (
                                     <div className="attr" key={k}>
                                         <span>{ATTR_SHORT[k]}</span>
@@ -193,6 +226,11 @@ export function CardModal() {
                                             />
                                         </span>
                                         <b>{v}</b>
+                                        {d !== 0 && (
+                                            <em className={`attr-mod ${d > 0 ? 'up' : 'down'}`}>
+                                                {d > 0 ? `▲${d}` : `▼${-d}`}
+                                            </em>
+                                        )}
                                     </div>
                                 );
                             })}
@@ -214,6 +252,17 @@ export function CardModal() {
                                             </span>
                                         </div>
                                         <div className="tactic-desc">{KIND_EXPLAIN[prof.kind]}</div>
+                                        {moveMods
+                                            .filter((mm) => mm.moveId === m)
+                                            .map((mm) => (
+                                                <div
+                                                    key={mm.label}
+                                                    className={`mod-row ${mm.factor > 1 ? 'up' : 'down'}`}
+                                                >
+                                                    <span>{mm.factor > 1 ? '▲' : '▼'}</span>
+                                                    {mm.label}
+                                                </div>
+                                            ))}
                                         <div className="tactic-desc">
                                             {prof.uses} {prof.uses === 1 ? 'uso' : 'usos'} por partida
                                             {data.power > 0 && ` · poder ${data.power}`}

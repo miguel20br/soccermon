@@ -3506,3 +3506,22 @@ button.pc2.pc2-fx:hover {
 .pc2-metal .m-pos {
     text-shadow: 0.035em 0 currentColor;
 }
+
+/* setinha de bônus/penalidade do atributo (edição, habilidade, item, Fada) */
+.m-stats .m-mod {
+    margin-left: auto;
+    padding: 0 0.3em;
+    border-radius: 0.3em;
+    font-style: normal;
+    font-size: 0.7em;
+    font-weight: 700;
+    line-height: 1.35;
+    color: #fff;
+    text-shadow: none;
+}
+.m-stats .m-mod.up {
+    background: #1f9d45;
+}
+.m-stats .m-mod.down {
+    background: #c9302c;
+}

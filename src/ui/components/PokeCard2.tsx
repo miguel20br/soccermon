@@ -1,8 +1,9 @@
 import { type CSSProperties, useRef } from 'react';
-import { type AttrKey, POSITION_LABEL, type Position } from '../../engine/attributes';
+import { type AttrKey, computeAttributes, POSITION_LABEL, type Position } from '../../engine/attributes';
 import { ABILITIES, MOVES, type Tier } from '../../engine/data';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { ITEMS, itemSprite } from '../../engine/items';
+import { applyModifiers, attributeModifiers } from '../../engine/modifiers';
 import { moveProfile } from '../../engine/moves';
 import { type Edition, editionOf } from '../../engine/specials';
 import { EDITION, type FINISH_LABEL, finishOf, METAL, metalOf, RARITY } from '../rarity';
@@ -118,10 +119,15 @@ function cardData(inst: PokemonInstance, position?: Position) {
     const sp = view.species;
     const pos = position ?? view.naturalPosition;
     const { rating, display, fit } = ratingAt(inst, pos);
+    // setinha de bônus/penalidade que vai com a carta (edição, habilidade, item, Fada): quanto o atributo
+    // vale a mais (ou a menos) em campo em relação ao Pokémon "puro"
+    const base = computeAttributes(sp, inst.level);
+    const final = applyModifiers(base, attributeModifiers(inst));
     const stats = (pos === 'GK' ? GK_STATS : FIELD_STATS).map(([k, label]) => ({
         k,
         label,
         v: Math.round(view.attributes[k]),
+        delta: Math.round(final[k] - base[k]),
     }));
     const t1 = TYPE_COLOR[sp.types[0]] ?? '#888';
     const t2 = TYPE_COLOR[sp.types[1] ?? sp.types[0]] ?? t1;
@@ -315,6 +321,11 @@ function Metal({
                     <span key={s.k}>
                         <b>{s.v}</b>
                         <i>{s.label}</i>
+                        {s.delta !== 0 && (
+                            <em className={`m-mod ${s.delta > 0 ? 'up' : 'down'}`}>
+                                {s.delta > 0 ? `▲${s.delta}` : `▼${-s.delta}`}
+                            </em>
+                        )}
                     </span>
                 ))}
             </span>

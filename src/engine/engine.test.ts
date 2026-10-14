@@ -9,6 +9,7 @@ import { FORMATIONS } from './formations';
 import { createInstance, viewInstance } from './instance';
 import { computeLinks } from './links';
 import { captainFactor, createMatch } from './match';
+import { applyModifiers, attributeModifiers } from './modifiers';
 import { defaultMoveset } from './moves';
 import { rewardOptions } from './rewards';
 import { Rng } from './rng';
@@ -552,5 +553,22 @@ describe('golpes', () => {
         const used = new Set(SPECIES.flatMap((sp) => defaultMoveset(sp)));
         expect(used.size).toBeGreaterThan(100);
         for (const sp of SPECIES) expect(defaultMoveset(sp).length).toBeLessThanOrEqual(4);
+    });
+});
+
+describe('bônus e penalidades (carta = campo)', () => {
+    it('os atributos do jogador em campo são exatamente os da regra de modificadores', () => {
+        const home = team('mods-a', 'A');
+        const s = createMatch(FUTSAL_5, home, team('mods-b', 'B'), 'mods');
+        const captain = home.lineup.find((p) => p.uid === home.captainUid) ?? null;
+        for (const p of s.players.filter((pl) => pl.team === 0)) {
+            const expected = applyModifiers(
+                computeAttributes(species(p.inst.speciesId), p.inst.level),
+                attributeModifiers(p.inst, { lineup: home.lineup, captain, role: p.role }),
+                p.role,
+            );
+            if (p.inst.ability === 'imposter') continue;
+            expect(p.attr).toEqual(expected);
+        }
     });
 });
