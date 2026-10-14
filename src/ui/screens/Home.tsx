@@ -142,6 +142,15 @@ export function Home() {
                     <button type="button" className="btn ghost small" onClick={() => go('credits')}>
                         Créditos
                     </button>
+                    <button
+                        type="button"
+                        className="btn ghost small"
+                        onClick={() => {
+                            window.location.search = '?lab=golpes';
+                        }}
+                    >
+                        Golpes
+                    </button>
                     {import.meta.env.DEV && (
                         <button
                             type="button"

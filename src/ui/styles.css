@@ -2635,15 +2635,9 @@ button,
     color: #1f1f1f;
 }
 .g-logo {
-    display: inline-grid;
-    place-items: center;
     width: 20px;
     height: 20px;
-    border-radius: 50%;
-    background: conic-gradient(#ea4335 0 25%, #fbbc05 0 50%, #34a853 0 75%, #4285f4 0);
-    color: #fff;
-    font-weight: 700;
-    font-size: 12px;
+    flex: none;
 }
 .account-bar .avatar {
     width: 32px;
