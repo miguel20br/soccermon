@@ -9,6 +9,7 @@ import { Draft } from './ui/screens/Draft';
 import { Home } from './ui/screens/Home';
 import { Lineup } from './ui/screens/Lineup';
 import { Match } from './ui/screens/Match';
+import { MoveLab } from './ui/screens/MoveLab';
 import { PositionLab } from './ui/screens/PositionLab';
 import { Result } from './ui/screens/Result';
 import { Reward } from './ui/screens/Reward';
@@ -16,7 +17,8 @@ import { Settings } from './ui/screens/Settings';
 
 export default function App() {
     const { screen, go, settings } = useGame();
-    const [lab, setLab] = useState(() => new URLSearchParams(window.location.search).get('lab') === 'posicoes');
+    // laboratórios: ?lab=posicoes (posições) e ?lab=golpes (animação de todos os golpes)
+    const [lab, setLab] = useState(() => new URLSearchParams(window.location.search).get('lab'));
     const [cards, setCards] = useState(() => new URLSearchParams(window.location.search).get('cards') === '1');
 
     useEffect(() => {
@@ -42,15 +44,13 @@ export default function App() {
         );
     }
 
-    if (lab) {
+    if (lab === 'posicoes' || lab === 'golpes') {
         const exit = () => {
             window.history.replaceState(null, '', window.location.pathname);
-            setLab(false);
+            setLab(null);
         };
         return (
-            <div className="app">
-                <PositionLab onExit={exit} />
-            </div>
+            <div className="app">{lab === 'golpes' ? <MoveLab onExit={exit} /> : <PositionLab onExit={exit} />}</div>
         );
     }
 

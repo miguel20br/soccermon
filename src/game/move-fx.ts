@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { hexToNumber, TYPE_COLOR } from '../ui/type-colors';
 
 /**
  * Animações de golpe por "estilo": antes todo golpe do mesmo tipo era igual (Thunder Shock = Thunder).
@@ -384,4 +385,103 @@ function aura(c: FxContext): number {
         .setDepth(c.depth - 1);
     fade(scene, ring, { scale: 2, alpha: 0 }, 600);
     return 0;
+}
+
+/** Partícula do Showdown por tipo do golpe. */
+export const FX_BY_TYPE: Record<string, string> = {
+    Fire: 'fireball',
+    Water: 'waterwisp',
+    Electric: 'lightning',
+    Grass: 'leaf1',
+    Ice: 'icicle',
+    Fighting: 'fist',
+    Poison: 'poisonwisp',
+    Ground: 'mudwisp',
+    Flying: 'feather',
+    Psychic: 'mistball',
+    Bug: 'web',
+    Rock: 'rock1',
+    Ghost: 'shadowball',
+    Dragon: 'bluefireball',
+    Normal: 'impact',
+    Steel: 'sword',
+    Fairy: 'heart',
+    Dark: 'shadowball',
+};
+
+/** Todas as partículas usadas pelos golpes (para o preload). */
+export const FX_TEXTURES = [...new Set([...Object.values(FX_BY_TYPE), ...EXTRA_FX])];
+
+export function preloadMoveFx(scene: Phaser.Scene) {
+    for (const fx of FX_TEXTURES) {
+        if (!scene.textures.exists(`fx-${fx}`)) scene.load.image(`fx-${fx}`, `assets/fx/${fx}.png`);
+    }
+}
+
+export interface CastOptions {
+    scene: Phaser.Scene;
+    user: Phaser.GameObjects.Sprite;
+    target: Phaser.GameObjects.Sprite | null;
+    moveId: string;
+    moveType: string;
+    /** strike, blast, buff… (src/engine/moves.ts) */
+    kind: string;
+    strong: boolean;
+    depth: number;
+    /** Escala normal do sprite (o pulso volta para ela). */
+    baseScale: number;
+    /** No acerto, além do anel de impacto (a partida usa para repintar o status do alvo). */
+    onHit?: (x: number, y: number) => void;
+}
+
+/**
+ * O golpe inteiro: pulso e anel de aura em quem usou + o estilo do golpe na cor e partícula do tipo + anel de
+ * impacto e o alvo piscando em branco. Usado na partida e no laboratório de golpes (?lab=golpes).
+ */
+export function castMove(o: CastOptions) {
+    const { scene, user, target, depth } = o;
+    const color = hexToNumber(TYPE_COLOR[o.moveType] ?? '#ffffff');
+    const key = `fx-${FX_BY_TYPE[o.moveType] ?? 'impact'}`;
+    const x = user.x;
+    const y = user.y - 14;
+    if (o.strong) {
+        scene.tweens.add({
+            targets: user,
+            scale: o.baseScale * 1.28,
+            duration: 160,
+            yoyo: true,
+            ease: 'Quad.easeOut',
+            onComplete: () => user.setScale(o.baseScale),
+        });
+    }
+    const ring = scene.add.circle(x, y, 16, color, 0.5).setDepth(depth).setBlendMode(Phaser.BlendModes.ADD);
+    scene.tweens.add({ targets: ring, scale: 2.6, alpha: 0, duration: 560, onComplete: () => ring.destroy() });
+
+    playMoveFx(fxStyle(o.moveId, o.kind), {
+        scene,
+        from: { x, y },
+        to: target ? { x: target.x, y: target.y - 16 } : null,
+        color,
+        key: scene.textures.exists(key) ? key : null,
+        depth,
+        strong: o.strong,
+        moveId: o.moveId,
+        onHit: (hx, hy) => {
+            if (!target) return;
+            const hit = scene.add
+                .circle(hx, hy, 10)
+                .setStrokeStyle(4, color, 1)
+                .setDepth(depth + 10);
+            scene.tweens.add({ targets: hit, scale: 2.6, alpha: 0, duration: 420, onComplete: () => hit.destroy() });
+            scene.cameras.main.shake(120, 0.003);
+            const tint = target.tintTopLeft;
+            const mode = target.tintMode;
+            target.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL);
+            scene.time.delayedCall(130, () => {
+                target.setTintMode(mode);
+                target.setTint(tint);
+                o.onHit?.(hx, hy);
+            });
+        },
+    });
 }

@@ -32,7 +32,7 @@ import { BattleBox } from '../battle-box';
 import { Cinematics, FOCUS_DEPTH } from '../cinematics';
 import { drawCourt, ensureBallTexture, GAME_H, GAME_W, PPM, toPx } from '../court';
 import { EventBus } from '../EventBus';
-import { EXTRA_FX, fxStyle, playMoveFx } from '../move-fx';
+import { castMove, preloadMoveFx } from '../move-fx';
 
 export { GAME_H, GAME_W } from '../court';
 
@@ -105,28 +105,6 @@ const IMPORTANT = new Set([
     'kickoff',
 ]);
 const DRAMA = new Set(['goal', 'post', 'save']);
-
-/** Partícula do Showdown por tipo do golpe. */
-const FX_BY_TYPE: Record<string, string> = {
-    Fire: 'fireball',
-    Water: 'waterwisp',
-    Electric: 'lightning',
-    Grass: 'leaf1',
-    Ice: 'icicle',
-    Fighting: 'fist',
-    Poison: 'poisonwisp',
-    Ground: 'mudwisp',
-    Flying: 'feather',
-    Psychic: 'mistball',
-    Bug: 'web',
-    Rock: 'rock1',
-    Ghost: 'shadowball',
-    Dragon: 'bluefireball',
-    Normal: 'impact',
-    Steel: 'sword',
-    Fairy: 'heart',
-    Dark: 'shadowball',
-};
 
 /** Status por código do snapshot: rótulo, cor do rótulo e tinta do sprite. */
 const STATUS_VIEW: Record<number, { label: string; color: string; tint: number }> = {
@@ -229,9 +207,7 @@ export class MatchScene extends Phaser.Scene {
     preload() {
         this.md = this.registry.get('matchData') as MatchSceneData;
         for (const id of this.allSpecies()) preloadSpecies(this, id);
-        for (const fx of new Set([...Object.values(FX_BY_TYPE), ...EXTRA_FX])) {
-            if (!this.textures.exists(`fx-${fx}`)) this.load.image(`fx-${fx}`, `assets/fx/${fx}.png`);
-        }
+        preloadMoveFx(this);
     }
 
     create() {
@@ -1302,52 +1278,20 @@ export class MatchScene extends Phaser.Scene {
         this.cameras.main.shake(120, 0.003);
     }
 
-    /**
-     * Animação do golpe: pulso e anel de aura em quem usou + o estilo do golpe (raio, jato, do céu, terremoto,
-     * explosão, onda, corpo a corpo, som, nuvem…; src/game/move-fx.ts) na cor e partícula do tipo.
-     */
+    /** Animação do golpe (src/game/move-fx.ts): estilo do golpe na cor e partícula do tipo. */
     private moveFx(by: number, moveId: string, moveType: string, target: number | null, strong: boolean) {
-        const from = this.players[by];
         const to = target !== null ? this.players[target] : null;
-        const color = hexToNumber(TYPE_COLOR[moveType] ?? '#ffffff');
-        const key = `fx-${FX_BY_TYPE[moveType] ?? 'impact'}`;
-        const depth = FOCUS_DEPTH + 70;
-        const x = from.sprite.x;
-        const y = from.sprite.y - 14;
-
-        if (strong) {
-            this.tweens.add({
-                targets: from.sprite,
-                scale: SPRITE_SCALE * 1.28,
-                duration: 160,
-                yoyo: true,
-                ease: 'Quad.easeOut',
-                onComplete: () => from.sprite.setScale(SPRITE_SCALE),
-            });
-        }
-        const aura = this.add.circle(x, y, 16, color, 0.5).setDepth(depth).setBlendMode(Phaser.BlendModes.ADD);
-        this.tweens.add({ targets: aura, scale: 2.6, alpha: 0, duration: 560, onComplete: () => aura.destroy() });
-
-        const kind = MOVES[moveId] ? moveProfile(moveId).kind : 'blast';
-        playMoveFx(fxStyle(moveId, kind), {
+        castMove({
             scene: this,
-            from: { x, y },
-            to: to ? { x: to.sprite.x, y: to.sprite.y - 16 } : null,
-            color,
-            key: this.textures.exists(key) ? key : null,
-            depth,
-            strong,
+            user: this.players[by].sprite,
+            target: to?.sprite ?? null,
             moveId,
-            onHit: (hx, hy) => {
-                if (!to) return;
-                this.impact(hx, hy, moveType);
-                // alvo pisca em branco no impacto
-                to.sprite.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL);
-                this.time.delayedCall(130, () => {
-                    to.sprite.setTintMode(Phaser.TintModes.MULTIPLY);
-                    this.refreshTint(to);
-                });
-            },
+            moveType,
+            kind: MOVES[moveId] ? moveProfile(moveId).kind : 'blast',
+            strong,
+            depth: FOCUS_DEPTH + 70,
+            baseScale: SPRITE_SCALE,
+            onHit: () => to && this.refreshTint(to),
         });
     }
 
