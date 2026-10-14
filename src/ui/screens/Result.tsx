@@ -22,6 +22,12 @@ export function Result() {
     const mvp = matchMvp(match);
     const stageResult = run.results.find((r) => r.stage === run.stage);
     const destaque = stageResult?.destaqueUid ? run.picks.find((p) => p.uid === stageResult.destaqueUid) : null;
+    // quem evoluiu no meio da partida (o run já guarda a forma nova)
+    const evolutions = match.events.flatMap((e) => {
+        if (e.type !== 'evolve' || e.team !== 0) return [];
+        const inst = run.picks.find((p) => p.uid === e.uid);
+        return inst ? [{ inst, from: e.from }] : [];
+    });
 
     const goals = match.events.filter((e) => e.type === 'goal');
     const nameAt = (idx: number, tick: number) => {
@@ -132,6 +138,22 @@ export function Result() {
                                 ),
                         )}
                     </div>
+                    {evolutions.length > 0 && (
+                        <div className="destaque-box">
+                            <h2>{evolutions.length > 1 ? 'Evoluíram na partida!' : 'Evoluiu na partida!'}</h2>
+                            <p className="tactic-desc">A evolução vale para o resto da copa.</p>
+                            <div className="row" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
+                                {evolutions.map(({ inst, from }) => (
+                                    <div key={inst.uid} className="evolved-card">
+                                        <span className="muted">
+                                            {species(from).name} → {species(inst.speciesId).name}
+                                        </span>
+                                        <FutCard inst={inst} size="sm" />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                     {destaque && (
                         <div className="destaque-box">
                             <h2>Virou carta Destaque!</h2>

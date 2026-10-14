@@ -9,14 +9,15 @@ import { playerTeam, useGame } from '../store/game-store';
 /**
  * Atalhos de desenvolvimento (só em `npm run dev`): `?demo=penaltis` monta uma copa cuja primeira
  * partida termina empatada e vai para os pênaltis, já na tela de escalação. `?demo=ditto` monta um time
- * com Ditto e Mew + Mewtwo (sinergia Gênese) cuja primeira partida tem combo.
+ * com Ditto e Mew + Mewtwo (sinergia Gênese) cuja primeira partida tem combo. `?demo=evolucao` monta um time
+ * de iniciais cuja primeira partida tem evolução do seu time logo no começo.
  */
 let started = false;
 
 export function runDevDemo() {
     if (!import.meta.env.DEV || started) return;
     const demo = new URLSearchParams(window.location.search).get('demo');
-    if (demo !== 'penaltis' && demo !== 'ditto') return;
+    if (demo !== 'penaltis' && demo !== 'ditto' && demo !== 'evolucao') return;
     started = true;
     // permite aos testes pular direto para o fim do tempo normal
     (window as unknown as { __soccermonBus?: typeof EventBus }).__soccermonBus = EventBus;
@@ -46,6 +47,35 @@ export function runDevDemo() {
             if (r.events.some((e) => e.type === 'combo' && r.roster[e.by].team === 0)) {
                 useGame.setState({ run: ready, screen: 'lineup' });
                 console.info(`[demo] copa ${ready.seed}: tem combo Gênese`);
+                return;
+            }
+        }
+        return;
+    }
+    if (demo === 'evolucao') {
+        for (let k = 0; k < 120; k++) {
+            store.newRun('Demo FC', `evo${k}`);
+            const run = useGame.getState().run!;
+            const rng = new Rng(`evo${k}`, 'demo');
+            // goleiro Geodude, fixo Squirtle, alas Charmander e Bulbasaur, pivô Pikachu
+            const lineup = [74, 7, 4, 1, 25].map((id) => createInstance(id, rng));
+            const ready = {
+                ...run,
+                formation: '1-2-1' as const,
+                picks: lineup,
+                lineup: lineup.map((p) => p.uid),
+                bench: [],
+                captainUid: lineup[4].uid,
+                draftRound: 7,
+                status: 'lineup' as const,
+            };
+            const r = runMatch(FUTSAL_5, playerTeam(ready), ready.opponents[0], `${ready.seed}-stage-0`, {
+                snapshots: false,
+            });
+            const evo = r.events.find((e) => e.type === 'evolve' && e.team === 0);
+            if (evo && evo.tick < 2400) {
+                useGame.setState({ run: ready, screen: 'lineup' });
+                console.info(`[demo] copa ${ready.seed}: evolução no tick ${evo.tick}`);
                 return;
             }
         }

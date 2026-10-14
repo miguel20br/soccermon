@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 import { buildCupOpponents, CUP_STAGES } from '../engine/cup';
 import { BENCH_SIZE, captainOptions, DRAFT_PICKS, draftOptions } from '../engine/draft';
+import { evolveInstance } from '../engine/evolution';
 import { DEFAULT_FORMATION, type FormationId, formationOf } from '../engine/formations';
 import type { PokemonInstance } from '../engine/instance';
 import { matchMvp, mvpScore } from '../engine/mvp';
@@ -94,6 +95,8 @@ export interface Records {
     /** Cartas Destaque conquistadas e Ícones escalados. */
     destaques?: number;
     icones?: number;
+    /** Evoluções no meio da partida (do seu time). */
+    evolucoes?: number;
 }
 
 export type SlotRef = { zone: 'lineup' | 'bench'; index: number };
@@ -354,11 +357,19 @@ export const useGame = create<GameStore>()(
                     const star = matchMvp(m, 0);
                     const starInst = star && mvpScore(star) > 0 ? run.picks.find((p) => p.uid === star.uid) : null;
                     const destaqueUid = SPECIALS_LIVE && starInst && !starInst.special ? starInst.uid : null;
-                    const picks = destaqueUid
-                        ? run.picks.map((p) =>
-                              p.uid === destaqueUid ? { ...p, special: { kind: 'destaque' as const } } : p,
-                          )
-                        : run.picks;
+                    // quem evoluiu no meio da partida continua evoluído pelo resto da copa
+                    const evolved = new Map(
+                        m.events.flatMap((e) =>
+                            e.type === 'evolve' && e.team === 0 ? [[e.uid, e.into] as const] : [],
+                        ),
+                    );
+                    const picks = run.picks.map((p) => {
+                        let out = p;
+                        const into = evolved.get(p.uid);
+                        if (into) out = evolveInstance(out, into);
+                        if (p.uid === destaqueUid) out = { ...out, special: { kind: 'destaque' as const } };
+                        return out;
+                    });
                     const result: StageResult = {
                         stage: run.stage,
                         opponent: run.opponents[run.stage].name,
@@ -379,7 +390,11 @@ export const useGame = create<GameStore>()(
                     };
                     if (status === 'reward') next.rewards = rollRewards(next, 0);
                     const ended = status === 'eliminated' || status === 'champion';
-                    const withStar = { ...records, destaques: (records.destaques ?? 0) + (destaqueUid ? 1 : 0) };
+                    const withStar = {
+                        ...records,
+                        destaques: (records.destaques ?? 0) + (destaqueUid ? 1 : 0),
+                        evolucoes: (records.evolucoes ?? 0) + evolved.size,
+                    };
                     setState({
                         run: next,
                         records: ended

@@ -109,6 +109,7 @@ const strength = (t: TeamSetup) => t.lineup.reduce((sum, i) => sum + viewInstanc
 
 let goals = 0;
 let draws = 0;
+let blowouts = 0;
 let strongerWins = 0;
 let decisive = 0;
 const scoreDist = new Map<number, number>();
@@ -131,6 +132,7 @@ for (let i = 0; i < N; i++) {
     goals += total;
     scoreDist.set(total, (scoreDist.get(total) ?? 0) + 1);
     if (r.score[0] === r.score[1]) draws++;
+    if (Math.abs(r.score[0] - r.score[1]) >= 6) blowouts++;
     for (const e of r.events) {
         eventCounts.set(e.type, (eventCounts.get(e.type) ?? 0) + 1);
         if (e.type === 'move') moveKinds.set(e.kind, (moveKinds.get(e.kind) ?? 0) + 1);
@@ -175,6 +177,7 @@ const per = (n: number) => (n / N).toFixed(2);
 console.log(`\n=== ${N} partidas em ${(ms / 1000).toFixed(1)}s (${(ms / N).toFixed(1)} ms/partida) ===`);
 console.log(`gols/jogo: ${(goals / N).toFixed(2)}   (meta 5–7)`);
 console.log(`empates no tempo normal: ${((draws / N) * 100).toFixed(1)}%`);
+console.log(`goleadas (6+ de diferença): ${((blowouts / N) * 100).toFixed(1)}%`);
 console.log(
     `mais forte (Δ≥3) vence: ${((strongerWins / Math.max(1, decisive)) * 100).toFixed(1)}% de ${decisive}   (meta 60–65%)`,
 );

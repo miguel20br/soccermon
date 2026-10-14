@@ -121,6 +121,11 @@ export function Home() {
                                 <b>{records.destaques}</b> destaques
                             </span>
                         )}
+                        {(records.evolucoes ?? 0) > 0 && (
+                            <span>
+                                <b>{records.evolucoes}</b> evoluções
+                            </span>
+                        )}
                         {(records.icones ?? 0) > 0 && (
                             <span>
                                 <b>{records.icones}</b> ícones

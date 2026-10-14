@@ -126,6 +126,8 @@ export interface PlayerState {
     tackleBonus: PendingBonus | null;
     clutchAnnounced: boolean;
     captain: boolean;
+    /** Já evoluiu nesta partida (no máximo uma vez por partida). */
+    evolved: boolean;
     /** Item segurado e se o efeito de uso único já foi gasto. */
     item: string | null;
     itemUsed: boolean;
@@ -214,6 +216,7 @@ export type MatchEvent = MatchEventBase &
         | { type: 'ability'; by: number; ability: string; target: number | null }
         | { type: 'transform'; by: number; into: number; target: number }
         | { type: 'combo'; by: number; partner: number; link: string }
+        | { type: 'evolve'; by: number; team: 0 | 1; uid: string; from: number; into: number }
         | { type: 'halftime'; score: [number, number] }
         | {
               type: 'sub';

@@ -11,6 +11,7 @@ import type { Command } from './commands';
 import type { MatchConfig } from './config';
 import { MOVES, species } from './data';
 import { eff, fatigueFactor, isIncapacitated, TACTIC_MODS } from './effective';
+import { EVO_THRESHOLD, evolutionTarget, evolveInstance, evoScore } from './evolution';
 import { formationOf } from './formations';
 import { type PokemonInstance, withBonus } from './instance';
 import { ITEMS } from './items';
@@ -99,6 +100,8 @@ function createPlayer(
     const synergy = synergyFactor(bonuses.synergies, sp.types) * linkFactor(bonuses.links, inst.uid);
     const isCaptain = bonuses.captain?.uid === inst.uid;
     const captainAura = isCaptain ? 1.03 : captainFactor(bonuses.captain, sp.types);
+    // Encanto das fadas: os poucos Fada da Gen 1 são fracos de base (venciam 40%); um empurrãozinho de tipo
+    const fairy = sp.types.includes('Fairy') ? 1.08 : 1;
     const base = computeAttributes(sp, inst.level);
     const factor = positionFactor(eligiblePositions(base, sp.id), role);
     const raw = withBonus(base, specialBonus(inst));
@@ -108,7 +111,7 @@ function createPlayer(
     for (const k of Object.keys(attr) as AttrKey[]) {
         // goleiro de linha / linha no gol: penalidade só no que importa para a posição
         const relevant = role === 'GK' ? k === 'goalkeeping' : k !== 'goalkeeping';
-        attr[k] = attr[k] * (relevant ? factor : 1) * (ability.mods?.[k] ?? 1) * synergy * captainAura;
+        attr[k] = attr[k] * (relevant ? factor : 1) * (ability.mods?.[k] ?? 1) * synergy * captainAura * fairy;
     }
     if (item === 'choiceband') attr.shooting *= 1.15;
     const moveUses = inst.moves.map((m, i) => (item === 'choiceband' && i > 0 ? 0 : moveProfile(m).uses));
@@ -143,6 +146,7 @@ function createPlayer(
         captain: isCaptain,
         item,
         itemUsed: false,
+        evolved: false,
         ai: { nextDecision: 0, holdUntil: 0 },
         stats: {
             goals: 0,
@@ -323,6 +327,44 @@ function setupKickoff(s: MatchState, team: 0 | 1) {
     s.kickoffTeam = team;
     s.phase = 'kickoff';
     s.phaseTimer = 1;
+    checkEvolutions(s);
+}
+
+/** Tempo de bola parada para a animação de evolução aparecer na tela. */
+const EVOLVE_PAUSE = 3.5;
+
+/**
+ * Bola parada: quem jogou muito acima do normal para a posição evolui (uma vez por partida).
+ * Ditto transformado não evolui; o Pokémon segue na mesma vaga, com fôlego e estatísticas.
+ */
+export function checkEvolutions(s: MatchState) {
+    let any = false;
+    for (const p of s.players) {
+        if (p.evolved || p.origin || p.inst.ability === 'imposter') continue;
+        const into = evolutionTarget(p.inst.speciesId, p.inst.uid);
+        if (into === null || evoScore(p.stats, p.role) < EVO_THRESHOLD) continue;
+        const inst = evolveInstance(p.inst, into);
+        const fresh = createPlayer(p.idx, p.team, p.slot, inst, p.role, teamBonuses(s.teams[p.team].setup));
+        Object.assign(fresh, {
+            pos: p.pos,
+            vel: p.vel,
+            heading: p.heading,
+            facing: p.facing,
+            energy: p.energy,
+            item: p.item,
+            itemUsed: p.itemUsed,
+            stats: p.stats,
+            ai: p.ai,
+            evolved: true,
+        });
+        s.players[p.idx] = fresh;
+        emit(s, { type: 'evolve', by: p.idx, team: p.team, uid: inst.uid, from: p.inst.speciesId, into });
+        any = true;
+    }
+    if (any) {
+        refreshAuras(s);
+        s.phaseTimer = Math.max(s.phaseTimer, EVOLVE_PAUSE);
+    }
 }
 
 // ---------------------------------------------------------------- eventos
@@ -1023,7 +1065,7 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
             // chute no corpo do goleiro (d pequeno) é mais fácil de pegar
             const placement = clamp(d / reach, 0, 1);
             const pSave = clamp(
-                (0.4 + (0.65 * gk) / 99 - 0.028 * (speed - 14) - 0.3 * placement) / shotTypeMult,
+                (0.34 + (0.65 * gk) / 99 - 0.028 * (speed - 14) - 0.3 * placement) / shotTypeMult,
                 0.05,
                 0.95,
             );
@@ -1183,6 +1225,7 @@ function goalClearance(s: MatchState, team: 0 | 1) {
     s.phase = 'restart';
     // tempo extra para a substituição aparecer na tela
     s.phaseTimer = subbed ? 2 : 0.8;
+    checkEvolutions(s);
 }
 
 // ---------------------------------------------------------------- tempos, substituições e pênaltis

@@ -2605,3 +2605,8 @@ button,
 .sub-pick small {
     color: var(--yellow);
 }
+.evolved-card {
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+}

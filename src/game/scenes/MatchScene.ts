@@ -175,6 +175,8 @@ interface PlayerView {
     flags: number;
     /** Deslocamento temporário do sprite (investida do golpe). */
     lunge: { x: number; y: number };
+    /** Em animação de evolução: a cena não troca a animação dele. */
+    evolving: boolean;
 }
 
 export class MatchScene extends Phaser.Scene {
@@ -199,6 +201,8 @@ export class MatchScene extends Phaser.Scene {
     private dives: DiveInfo[] = [];
     /** Deslocamento suavizado da bola em relação a quem conduz. */
     private dribble = { owner: -1, x: 0, y: 0, tick: 0 };
+    /** Até quando (tempo real) a partida fica parada para a animação de evolução. */
+    private holdReal = 0;
     private battleBox!: BattleBox;
     private cine!: Cinematics;
     private ended = false;
@@ -275,12 +279,32 @@ export class MatchScene extends Phaser.Scene {
         if (!this.paused) playSfx('whistle');
         this.applySnapshot(0, 0);
         if (this.md.startTick) this.seekTo(this.md.startTick);
+        this.preloadEvolutions();
         EventBus.emit('current-scene-ready', this);
     }
 
     private allSpecies(): Set<number> {
         const { result, extraSpecies = [] } = this.md;
         return new Set([...result.roster, ...result.finalRoster].map((p) => p.speciesId).concat(extraSpecies));
+    }
+
+    /**
+     * Formas evoluídas de quem está em jogo (evolução no meio da partida): carregam em segundo plano depois que
+     * a quadra abre, para não atrasar o início. Uma evolução por jogador por partida, então basta o próximo estágio.
+     */
+    private preloadEvolutions() {
+        const next = new Set<number>();
+        for (const id of this.allSpecies()) {
+            for (const e of species(id).evolvesTo) {
+                if (e.id <= 151 && !this.textures.exists(atlasKey(e.id))) next.add(e.id);
+            }
+        }
+        if (!next.size) return;
+        for (const id of next) preloadSpecies(this, id);
+        this.load.once('complete', () => {
+            for (const id of next) if (this.textures.exists(atlasKey(id))) createSpeciesAnims(this, id);
+        });
+        this.load.start();
     }
 
     private setTimeline(result: MatchResult) {
@@ -418,6 +442,7 @@ export class MatchScene extends Phaser.Scene {
             status: -1,
             flags: -1,
             lunge: { x: 0, y: 0 },
+            evolving: false,
         };
         this.refreshTint(view);
         return view;
@@ -469,7 +494,8 @@ export class MatchScene extends Phaser.Scene {
     // ------------------------------------------------------------------ playback
     update(time: number, delta: number) {
         if (this.ended || !this.snaps.length || this.paused) return;
-        const factor = this.currentSpeedFactor(time);
+        // evolução: a partida para enquanto o Pokémon evolui, como nos jogos
+        const factor = time < this.holdReal ? 0 : this.currentSpeedFactor(time);
         this.playTick = Math.min(this.playTick + (delta / 1000) * TICK_RATE * factor, this.holdAt - 1e-3);
 
         while (this.eventCursor < this.matchEvents.length && this.matchEvents[this.eventCursor].tick <= this.playTick) {
@@ -716,7 +742,7 @@ export class MatchScene extends Phaser.Scene {
 
             const anim = resolveAnim(view.speciesId, dive ? 'Attack' : animForAction(action));
             const key = `${view.speciesId}/${anim}/${dive ? dive.facing : facing}`;
-            if (key !== view.currentKey) {
+            if (key !== view.currentKey && !view.evolving) {
                 view.sprite.play(key).setOrigin(0.5, footOrigin(view.speciesId, anim));
                 view.currentKey = key;
             }
@@ -910,6 +936,17 @@ export class MatchScene extends Phaser.Scene {
                     };
                     EventBus.emit('match:highlight', h);
                 }
+            }
+        }
+        if (e.type === 'evolve') {
+            const view = this.players[e.by];
+            if (view) {
+                const ready = this.textures.exists(atlasKey(e.into));
+                if (ready) createSpeciesAnims(this, e.into);
+                const newName = view.name === species(e.from).name ? species(e.into).name : view.name;
+                // sem a forma nova carregada (rede lenta), troca direto sem a animação
+                if (silent || !ready) this.finishEvolution(view, e.into, newName);
+                else this.evolveAnimation(view, e.from, e.into, newName);
             }
         }
         if (e.type === 'transform') {
@@ -1138,6 +1175,74 @@ export class MatchScene extends Phaser.Scene {
                 }
                 break;
         }
+    }
+
+    /**
+     * "X está evoluindo!": a partida para, o Pokémon vira uma silhueta branca que alterna entre a forma
+     * antiga e a nova cada vez mais rápido, um clarão, e aparece a forma nova (como nos jogos).
+     */
+    private evolveAnimation(view: PlayerView, from: number, into: number, newName: string) {
+        const oldName = view.name;
+        const facing = view.currentKey.split('/')[2] ?? '0';
+        const total = 3000;
+        this.holdReal = this.time.now + total + 600;
+        view.evolving = true;
+        playSfx('status');
+        playCry(from, this.md.cries, 0.9);
+        this.battleBox.push(`O quê? ${oldName} está evoluindo!`);
+        if (this.md.cinematic) {
+            this.cine.drama('EVOLUINDO!', {
+                color: '#ffffff',
+                stroke: '#5a3fb0',
+                at: { x: view.sprite.x, y: view.sprite.y },
+                sub: `${oldName} está evoluindo!`,
+            });
+        } else this.popText(this.players.indexOf(view), 'EVOLUINDO!', '#ffffff');
+
+        const show = (id: number) => {
+            const anim = resolveAnim(id, 'Idle');
+            view.sprite.play(`${id}/${anim}/${facing}`).setOrigin(0.5, footOrigin(id, anim));
+        };
+        view.sprite.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL);
+        // alterna antiga/nova, cada vez mais rápido
+        const steps = [380, 330, 280, 240, 200, 170, 140, 115, 95, 80, 65, 55, 50, 45, 45, 45];
+        let at = 250;
+        steps.forEach((dt, i) => {
+            at += dt;
+            this.time.delayedCall(at, () => {
+                if (!view.evolving) return;
+                show(i % 2 === 0 ? into : from);
+                view.sprite.setScale(SPRITE_SCALE * (i % 2 === 0 ? 1.12 : 0.95));
+            });
+        });
+        this.time.delayedCall(total, () => {
+            if (!view.evolving) return;
+            this.cameras.main.flash(380, 255, 255, 255);
+            view.sprite.setTintMode(Phaser.TintModes.MULTIPLY).setScale(SPRITE_SCALE * 1.25);
+            this.tweens.add({ targets: view.sprite, scale: SPRITE_SCALE, duration: 420, ease: 'Back.easeOut' });
+            this.finishEvolution(view, into, newName);
+            playCry(into, this.md.cries, 1.1);
+            this.battleBox.push(`Parabéns! ${oldName} evoluiu para ${species(into).name}!`);
+            const h: MatchHighlight = {
+                kind: 'evolve',
+                team: view.team,
+                speciesId: into,
+                shiny: view.shiny,
+                name: newName,
+                outSpeciesId: from,
+                outName: oldName,
+            };
+            EventBus.emit('match:highlight', h);
+        });
+    }
+
+    private finishEvolution(view: PlayerView, into: number, newName: string) {
+        view.evolving = false;
+        const captain = view.captain;
+        this.swapSpecies(view, into, newName, view.shiny);
+        view.captain = captain;
+        if (captain) view.label.setText(`C·${newName}`).setColor('#ffd447');
+        this.refreshTint(view);
     }
 
     private highlight(kind: MatchHighlight['kind'], view: PlayerView) {

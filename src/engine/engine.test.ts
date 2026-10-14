@@ -516,3 +516,26 @@ describe('substituição pedida pelo técnico', () => {
         expect(r.finalRoster.some((p) => p.uid === inn.uid)).toBe(true);
     });
 });
+
+describe('evolução no meio da partida', () => {
+    it('evolui no máximo uma vez por jogador, com a forma certa, e a forma nova termina a partida', () => {
+        let evolutions = 0;
+        for (let i = 0; i < 25; i++) {
+            const rng = new Rng(`evo-t${i}`, 'x');
+            const lineup = [74, 7, 4, 1, 25].map((id) => createInstance(id, rng));
+            const home: TeamSetup = { name: 'A', lineup, bench: [], tactic: 'balanced', color: 0, formation: '1-2-1' };
+            const r = runMatch(FUTSAL_5, home, team(`evo-b${i}`, 'B'), `evo-${i}`, { snapshots: false });
+            const evos = r.events.filter((e) => e.type === 'evolve');
+            const per = new Map<string, number>();
+            for (const e of evos) {
+                if (e.type !== 'evolve') continue;
+                evolutions++;
+                per.set(e.uid, (per.get(e.uid) ?? 0) + 1);
+                expect(species(e.from).evolvesTo.map((x) => x.id)).toContain(e.into);
+                expect(r.finalRoster[e.by].speciesId).toBe(e.into);
+            }
+            expect([...per.values()].every((n) => n === 1)).toBe(true);
+        }
+        expect(evolutions).toBeGreaterThan(0);
+    });
+});

@@ -222,6 +222,11 @@ export class Commentator {
                     this.teams[e.by],
                 );
             }
+            case 'evolve': {
+                const text = `O QUÊ? ${this.n(e.by)} está evoluindo... virou ${species(e.into).name}!`;
+                if (this.names[e.by] === species(e.from).name) this.names[e.by] = species(e.into).name;
+                return line(text, 'big', e.team);
+            }
             case 'skill':
                 return this.rng.chance(0.12)
                     ? line(`${this.n(e.by)} dá um drible desconcertante!`, 'minor', this.teams[e.by])

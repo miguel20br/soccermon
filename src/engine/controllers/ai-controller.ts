@@ -73,8 +73,16 @@ export class AIController implements Controller {
             } else {
                 const carrier = s.players[s.ball.owner];
                 const sorted = [...field].sort((a, b) => dist(a.pos, carrier.pos) - dist(b.pos, carrier.pos));
-                ctx.presser[team] = sorted[0]?.idx ?? null;
-                ctx.cover[team] = sorted[1]?.idx ?? null;
+                // o Fixo é o xerife: rival chegando no nosso terço, ele sai para o combate (se estiver por perto)
+                const fixo = sorted.find((p) => p.role === 'FIXO');
+                const danger = toRel(s, team, carrier.pos).x < 20;
+                if (fixo && danger && dist(fixo.pos, carrier.pos) < 8) {
+                    ctx.presser[team] = fixo.idx;
+                    ctx.cover[team] = sorted.find((p) => p.idx !== fixo.idx)?.idx ?? null;
+                } else {
+                    ctx.presser[team] = sorted[0]?.idx ?? null;
+                    ctx.cover[team] = sorted[1]?.idx ?? null;
+                }
             }
         }
         this.ctx = ctx;
@@ -174,6 +182,17 @@ export class AIController implements Controller {
             if (slot !== null) cmds.push({ type: 'useMove', slot });
             cmds.push({ type: 'shoot', target: this.shotTarget(p), power: 1 });
             return cmds;
+        }
+
+        // 1b) bomba de longe do Fixo: com espaço na intermediária, ele arrisca
+        if (p.role === 'FIXO' && distGoal >= 10 && distGoal < 22 && pressure < 0.45) {
+            if (s.rng.chance(0.3 + shootingSkill * 0.25)) {
+                const cmds: Command[] = [];
+                const slot = this.pickMoveSlot(p, ['blast', 'strike'], 0.3);
+                if (slot !== null) cmds.push({ type: 'useMove', slot });
+                cmds.push({ type: 'shoot', target: this.shotTarget(p), power: 1.1 });
+                return cmds;
+            }
         }
 
         // 2) passe
@@ -445,6 +464,8 @@ export class AIController implements Controller {
         const { length, width } = s.cfg.pitch;
         let xr = base[0] * (length / 40) + (attacking ? tactic.attack : tactic.defend);
         if (p.role === 'PIVO') xr += tactic.pivotHold;
+        // Fixo sobe até a intermediária quando o time ataca no campo rival (opção de passe e de chute de longe)
+        if (p.role === 'FIXO' && attacking && ballRel.x > length / 2) xr += 6;
         xr += (ballRel.x - length / 2) * 0.35;
         const y = (base[1] / 20) * width + (s.ball.pos.y - width / 2) * 0.25;
         return toWorld(s, team, clamp(xr, 2, length - 2), clamp(y, 1, width - 1));
