@@ -2610,3 +2610,52 @@ button,
     justify-items: center;
     gap: 4px;
 }
+
+/* ---------- conta (login Google) ---------- */
+.account-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    max-width: 520px;
+    font-size: 12px;
+}
+.account-bar.signed {
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: var(--panel);
+    border: 2px solid var(--line);
+}
+.google-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    color: #1f1f1f;
+}
+.g-logo {
+    display: inline-grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: conic-gradient(#ea4335 0 25%, #fbbc05 0 50%, #34a853 0 75%, #4285f4 0);
+    color: #fff;
+    font-weight: 700;
+    font-size: 12px;
+}
+.account-bar .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-grid;
+    place-items: center;
+    background: var(--panel-2);
+    object-fit: cover;
+}
+.account-who {
+    display: grid;
+    text-align: left;
+    line-height: 1.2;
+}

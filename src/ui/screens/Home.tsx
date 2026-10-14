@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { weeklyEventType } from '../../engine/specials';
 import { seedFromUrl, useGame } from '../../store/game-store';
+import { AccountBar } from '../components/AccountBar';
 import { TypeIcon } from '../components/TypeIcon';
 import { TYPE_PT } from '../type-colors';
 
@@ -55,6 +56,7 @@ export function Home() {
                     <span>Cartas Evento do tipo {TYPE_PT[eventType] ?? eventType} podem aparecer no draft.</span>
                 </div>
             </div>
+            <AccountBar />
             <div className="menu panel">
                 <label className="muted" htmlFor="team-name">
                     Nome do seu time

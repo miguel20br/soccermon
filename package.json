@@ -22,6 +22,7 @@
     "calibrate": "tsx scripts/calibrate.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "2.117.2",
     "galmuri": "^2.40.3",
     "idb-keyval": "^6.3.0",
     "motion": "^14.2.0",
