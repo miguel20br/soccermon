@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FUTSAL_5 } from '../../engine/config';
+import { viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
-import { type MatchEvent, type Phase, TACTIC_LABEL, type Tactic, type TacticChange } from '../../engine/state';
+import {
+    isSubOrder,
+    type MatchEvent,
+    type MatchOrder,
+    type Phase,
+    TACTIC_LABEL,
+    type Tactic,
+} from '../../engine/state';
 import { setVolume } from '../../game/audio';
 import { EventBus } from '../../game/EventBus';
 import type { MatchSceneData } from '../../game/scenes/MatchScene';
@@ -9,6 +17,7 @@ import { PhaserGame } from '../../PhaserGame';
 import { PLAYER_COLOR, type PlaybackSpeed, playerTeam, stageLabel, useGame } from '../../store/game-store';
 import { Commentator, type CommentLine } from '../commentary';
 import { MatchHighlight } from '../components/MatchHighlight';
+import { cardSprite } from '../components/PokeCard';
 import { VersusIntro } from '../components/VersusIntro';
 import { simulateMatch } from '../sim-client';
 
@@ -27,6 +36,8 @@ const CHANGE_LEAD_TICKS = 40;
 const HIGHLIGHTS_MULT = 6;
 
 const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
+/** De quanto em quanto tempo (real) o ponto da partida é salvo para poder retomar. */
+const SAVE_EVERY_MS = 1500;
 
 interface Clock {
     tick: number;
@@ -37,22 +48,28 @@ interface Clock {
 }
 
 export function Match() {
-    const { run, match, settings, updateSettings, recordResult, setMatch, go } = useGame();
+    const { run, match, settings, updateSettings, recordResult, setMatch, go, saveLive } = useGame();
+    // retomando uma partida que ficou no meio: mesmo ponto e mesmas ordens
+    const resume = useRef(run?.live?.stage === run?.stage ? (run?.live ?? null) : null).current;
     const [fontsReady, setFontsReady] = useState(false);
     const [lines, setLines] = useState<(CommentLine & { id: number })[]>([]);
     const lineId = useRef(0);
     const [clock, setClock] = useState<Clock>({ tick: 0, minute: 0, half: 1, score: [0, 0], phase: 'kickoff' });
     const [shootout, setShootout] = useState<[number, number] | null>(null);
     const [ended, setEnded] = useState(false);
-    const [changes, setChanges] = useState<TacticChange[]>([]);
+    const [orders, setOrders] = useState<MatchOrder[]>(() => resume?.orders ?? []);
+    /** Substituições que já aconteceram em campo (uid de quem entrou). */
+    const [subsDone, setSubsDone] = useState<string[]>([]);
+    const [subOpen, setSubOpen] = useState(false);
+    const [subOut, setSubOut] = useState<string | null>(null);
     const [pending, setPending] = useState(false);
     /** A cena Phaser só escuta comandos depois de carregar; até lá os controles ficam travados. */
     const [sceneReady, setSceneReady] = useState(false);
     /** Se a quadra demorar demais (celular fraco, aba em segundo plano), oferece recarregar. */
     const [sceneSlow, setSceneSlow] = useState(false);
     /** Tela de VERSUS antes do apito inicial; a cena espera parada até ela sair. */
-    const [introDone, setIntroDone] = useState(false);
-    const introDoneRef = useRef(false);
+    const [introDone, setIntroDone] = useState(!!resume?.tick);
+    const introDoneRef = useRef(!!resume?.tick);
     const [sceneKey, setSceneKey] = useState(0);
     const [fulltime, setFulltime] = useState(false);
     const [tacticError, setTacticError] = useState<string | null>(null);
@@ -65,7 +82,10 @@ export function Match() {
     const opponent = run?.opponents[run.stage];
     const colors: [number, number] = [PLAYER_COLOR, opponent?.color ?? 0x3a7bd5];
     const teamNames: [string, string] = [run?.teamName ?? 'Casa', opponent?.name ?? 'Fora'];
-    const currentTactic: Tactic = changes.at(-1)?.tactic ?? run?.tactic ?? 'balanced';
+    const tacticOrders = orders.filter((o) => !isSubOrder(o));
+    const subOrders = orders.filter(isSubOrder);
+    const changes = tacticOrders;
+    const currentTactic: Tactic = tacticOrders.at(-1)?.tactic ?? run?.tactic ?? 'balanced';
 
     latest.current = match;
 
@@ -81,6 +101,7 @@ export function Match() {
                       cinematic: settings.cinematic,
                       extraSpecies: [...(run?.picks ?? []), ...(opponent?.bench ?? [])].map((p) => p.speciesId),
                       startPaused: true,
+                      startTick: resume?.tick || undefined,
                   }
                 : null,
         [match?.seed],
@@ -135,14 +156,23 @@ export function Match() {
         if (!match) return;
         const commentator = new Commentator(match, teamNames);
         const onEvent = (e: MatchEvent) => {
+            if (e.type === 'sub' && e.team === 0) setSubsDone((prev) => [...prev, e.inUid]);
+            // gol: salva o ponto na hora (não dá para sair e voltar antes dele)
+            if (e.type === 'goal') useGame.getState().saveLive({ tick: e.tick });
             const line = commentator.lineFor(e);
             if (line) setLines((prev) => [{ ...line, id: lineId.current++ }, ...prev].slice(0, 200));
             if (e.type === 'penalty') setShootout(e.shootout);
             if (e.type === 'fulltime') setFulltime(true);
         };
+        let lastSave = 0;
         const onTick = (t: Clock) => {
             tickRef.current = t.tick;
             setClock(t);
+            const now = performance.now();
+            if (now - lastSave > SAVE_EVERY_MS) {
+                lastSave = now;
+                useGame.getState().saveLive({ tick: Math.floor(t.tick) });
+            }
         };
         const onEnded = () => setEnded(true);
         const onReady = () => {
@@ -185,12 +215,14 @@ export function Match() {
         EventBus.emit('match:set-speed', speed);
     };
 
-    /** Tática ao vivo: agenda a mudança um pouco à frente e resimula a partida com ela. */
-    const changeTactic = async (tactic: Tactic) => {
-        if (!canChangeTactic || tactic === currentTactic || changes.length >= MAX_TACTIC_CHANGES) return;
-        // sempre depois da troca anterior, para a ordem do motor bater com a da tela
-        const tick = Math.max(Math.ceil(tickRef.current + leadTicks), (changes.at(-1)?.tick ?? 0) + 1);
-        const schedule = [...changes, { tick, team: 0 as const, tactic }];
+    /**
+     * Ordem do técnico ao vivo (tática ou substituição): agenda um pouco à frente do que está na tela e
+     * resimula a partida com a agenda inteira. As ordens ficam salvas para retomar a partida igual.
+     */
+    const sendOrder = async (make: (tick: number) => MatchOrder) => {
+        // sempre depois da ordem anterior, para a ordem do motor bater com a da tela
+        const tick = Math.max(Math.ceil(tickRef.current + leadTicks), (orders.at(-1)?.tick ?? 0) + 1);
+        const schedule = [...orders, make(tick)];
         const seed = match.seed;
         setPending(true);
         setTacticError(null);
@@ -198,17 +230,47 @@ export function Match() {
         try {
             const result = await simulateMatch(lockedSetup, opponent, `${run.seed}-stage-${run.stage}`, schedule);
             if (!alive.current || useGame.getState().match?.seed !== seed) return;
-            setChanges(schedule);
+            setOrders(schedule);
+            saveLive({ orders: schedule });
             latest.current = result;
             setMatch(result);
             EventBus.emit('match:replace', result);
         } catch {
             // libera o playback com a partida que já estava valendo
             if (alive.current && latest.current) EventBus.emit('match:replace', latest.current);
-            if (alive.current) setTacticError('Não deu para trocar a tática agora.');
+            if (alive.current) setTacticError('Não deu para mandar a ordem agora.');
         } finally {
             if (alive.current) setPending(false);
         }
+    };
+
+    const changeTactic = (tactic: Tactic) => {
+        if (!canChangeTactic || tactic === currentTactic || changes.length >= MAX_TACTIC_CHANGES) return;
+        sendOrder((tick) => ({ tick, team: 0, tactic }));
+    };
+
+    // quem está em campo e no banco agora (escalação + trocas que já aconteceram)
+    const byUid = new Map([...lockedSetup.lineup, ...lockedSetup.bench].map((p) => [p.uid, p]));
+    const onField = lockedSetup.lineup.map((p) => p.uid);
+    const benchNow = lockedSetup.bench.map((p) => p.uid);
+    for (const o of subOrders) {
+        if (!subsDone.includes(o.inUid)) continue;
+        const i = onField.indexOf(o.outUid);
+        if (i >= 0) onField[i] = o.inUid;
+        const j = benchNow.indexOf(o.inUid);
+        if (j >= 0) benchNow.splice(j, 1);
+    }
+    const pendingSub = subOrders.find((o) => !subsDone.includes(o.inUid)) ?? null;
+    const canSub = canChangeTactic && !pendingSub && subOrders.length < lockedSetup.bench.length && benchNow.length > 0;
+    const orderSub = (outUid: string, inUid: string) => {
+        setSubOpen(false);
+        setSubOut(null);
+        if (!canSub) return;
+        sendOrder((tick) => ({ tick, team: 0, kind: 'sub', outUid, inUid }));
+    };
+    const nameOf = (uid: string) => {
+        const p = byUid.get(uid);
+        return p ? viewInstance(p).displayName : '?';
     };
 
     const clockLabel =
@@ -266,6 +328,44 @@ export function Match() {
                         )}
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                     </div>
+                    {pendingSub && (
+                        <div className="sub-pending">
+                            Substituição na próxima saída de bola: sai <b>{nameOf(pendingSub.outUid)}</b>, entra{' '}
+                            <b>{nameOf(pendingSub.inUid)}</b>
+                        </div>
+                    )}
+                    {subOpen && canSub && (
+                        <div className="panel sub-panel">
+                            <div className="sub-head">
+                                <b>{subOut ? `Quem entra no lugar de ${nameOf(subOut)}?` : 'Quem sai?'}</b>
+                                <button
+                                    type="button"
+                                    className="btn small ghost"
+                                    onClick={() => (subOut ? setSubOut(null) : setSubOpen(false))}
+                                >
+                                    {subOut ? 'Voltar' : 'Fechar'}
+                                </button>
+                            </div>
+                            <div className="sub-list">
+                                {(subOut ? benchNow : onField).map((uid) => {
+                                    const p = byUid.get(uid);
+                                    if (!p) return null;
+                                    return (
+                                        <button
+                                            key={uid}
+                                            type="button"
+                                            className="sub-pick"
+                                            onClick={() => (subOut ? orderSub(subOut, uid) : setSubOut(uid))}
+                                        >
+                                            <img className="pixel" src={cardSprite(p)} alt="" />
+                                            <span>{nameOf(uid)}</span>
+                                            <small>{viewInstance(p).overall}</small>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
                     {sceneSlow && !sceneReady && (
                         <button type="button" className="btn yellow" onClick={() => setSceneKey((k) => k + 1)}>
                             A quadra não carregou — recarregar
@@ -300,6 +400,14 @@ export function Match() {
                                     {TACTIC_LABEL[t]}
                                 </button>
                             ))}
+                            <button
+                                type="button"
+                                className={`btn small yellow${subOpen ? ' active' : ''}`}
+                                disabled={!canSub}
+                                onClick={() => setSubOpen((v) => !v)}
+                            >
+                                Substituir
+                            </button>
                             {tacticError && <span className="error-text tactic-left">{tacticError}</span>}
                             <span className="muted tactic-left">
                                 {pending ? 'mudando…' : `${MAX_TACTIC_CHANGES - changes.length} trocas`}

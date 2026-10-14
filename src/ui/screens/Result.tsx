@@ -25,7 +25,8 @@ export function Result() {
 
     const goals = match.events.filter((e) => e.type === 'goal');
     const nameAt = (idx: number, tick: number) => {
-        const sub = match.events.find((e) => e.type === 'sub' && e.outIdx === idx && e.tick <= tick);
+        // a vaga pode ter tido mais de uma troca: vale a última antes do lance
+        const sub = match.events.filter((e) => e.type === 'sub' && e.outIdx === idx && e.tick <= tick).at(-1);
         return sub && sub.type === 'sub' ? sub.in : match.roster[idx].name;
     };
 

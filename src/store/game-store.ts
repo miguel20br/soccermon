@@ -14,7 +14,7 @@ import { rollSpecial as roll, SPECIALS_LIVE, weeklyEventType } from '../engine/s
 /** Edição especial só quando as cartas novas estão no jogo. */
 const rollSpecial: typeof roll = (inst, ev) => (SPECIALS_LIVE ? roll(inst, ev) : inst);
 
-import type { Tactic, TeamSetup } from '../engine/state';
+import type { MatchOrder, Tactic, TeamSetup } from '../engine/state';
 
 export type Screen = 'home' | 'draft' | 'lineup' | 'match' | 'result' | 'reward' | 'settings' | 'credits';
 export type CryStyle = 'legacy' | 'latest';
@@ -67,6 +67,17 @@ export interface RunState {
     lockedTeam: TeamSetup | null;
     /** Tipo em evento quando a copa começou (cartas Evento desse tipo no draft). */
     eventType?: string | null;
+    /**
+     * Partida em andamento: ordens do técnico e até onde foi assistida. Sair e voltar retoma do mesmo ponto
+     * com as mesmas ordens (antes dava para sair e tentar de novo até ganhar).
+     */
+    live?: LiveMatch | null;
+}
+
+export interface LiveMatch {
+    stage: number;
+    orders: MatchOrder[];
+    tick: number;
 }
 
 export interface Settings {
@@ -108,6 +119,8 @@ interface GameStore {
     moveItem(fromUid: string, toUid: string): void;
     setMatch(m: MatchResult | null): void;
     lockMatch(team: TeamSetup): void;
+    /** Guarda as ordens e o ponto da partida em andamento. */
+    saveLive(patch: Partial<Omit<LiveMatch, 'stage'>>): void;
     recordResult(m: MatchResult): void;
     claimReward(index: number, targetUid: string): void;
     skipReward(): void;
@@ -155,6 +168,7 @@ export function playerTeam(run: RunState): TeamSetup {
         color: PLAYER_COLOR,
         formation: run.formation,
         captainUid: run.captainUid,
+        manualSubs: true,
     };
 }
 
@@ -217,6 +231,7 @@ export const useGame = create<GameStore>()(
                         results: [],
                         rewards: [],
                         lockedTeam: null,
+                        live: null,
                         eventType: weeklyEventType(new Date()),
                     };
                     setState({ run, match: null, screen: 'draft' });
@@ -318,7 +333,16 @@ export const useGame = create<GameStore>()(
 
                 lockMatch: (team) => {
                     const run = getState().run;
-                    if (run?.status === 'lineup' && !run.lockedTeam) updateRun({ lockedTeam: team });
+                    if (run?.status === 'lineup' && !run.lockedTeam) {
+                        updateRun({ lockedTeam: team, live: { stage: run.stage, orders: [], tick: 0 } });
+                    }
+                },
+
+                saveLive: (patch) => {
+                    const run = getState().run;
+                    if (run?.status !== 'lineup' || !run.lockedTeam) return;
+                    const live = run.live?.stage === run.stage ? run.live : { stage: run.stage, orders: [], tick: 0 };
+                    updateRun({ live: { ...live, ...patch } });
                 },
 
                 recordResult: (m) => {
@@ -351,6 +375,7 @@ export const useGame = create<GameStore>()(
                         results: [...run.results, result],
                         status,
                         lockedTeam: null,
+                        live: null,
                     };
                     if (status === 'reward') next.rewards = rollRewards(next, 0);
                     const ended = status === 'eliminated' || status === 'champion';

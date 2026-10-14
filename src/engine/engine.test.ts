@@ -270,7 +270,7 @@ describe('iteração 3: posições, formações, capitão, itens, tática ao viv
         const T = 2000;
         const changed = runMatch(FUTSAL_5, home, away, 77, {
             snapshots: false,
-            tacticChanges: [{ tick: T, team: 0, tactic: 'defensive' }],
+            orders: [{ tick: T, team: 0, tactic: 'defensive' }],
         });
         const prefix = (r: typeof base) => r.events.filter((e) => e.tick < T);
         expect(prefix(changed)).toEqual(prefix(base));
@@ -487,5 +487,32 @@ describe('disputa de pênaltis', () => {
             }
         }
         expect(shootouts).toBeGreaterThan(10);
+    });
+});
+
+describe('substituição pedida pelo técnico', () => {
+    const home = { ...team('sub-a', 'A'), manualSubs: true };
+    const away = team('sub-b', 'B');
+
+    it('time do jogador não troca sozinho; a ordem entra na próxima bola parada', () => {
+        const base = runMatch(FUTSAL_5, home, away, 5, { snapshots: false });
+        expect(base.events.some((e) => e.type === 'sub' && e.team === 0)).toBe(false);
+
+        const T = 1500;
+        const out = home.lineup[2];
+        const inn = home.bench[0];
+        const r = runMatch(FUTSAL_5, home, away, 5, {
+            snapshots: false,
+            orders: [{ tick: T, team: 0, kind: 'sub', outUid: out.uid, inUid: inn.uid }],
+        });
+        const sub = r.events.find((e) => e.type === 'sub' && e.team === 0);
+        expect(sub && sub.type === 'sub' && sub.tick >= T).toBe(true);
+        if (sub?.type !== 'sub') return;
+        expect(sub.outUid).toBe(out.uid);
+        expect(sub.inSpeciesId).toBe(inn.speciesId);
+        // só em bola parada: logo depois dela vem reinício, saída de bola ou intervalo
+        const before = r.events.filter((e) => e.tick < T);
+        expect(before).toEqual(base.events.filter((e) => e.tick < T));
+        expect(r.finalRoster.some((p) => p.uid === inn.uid)).toBe(true);
     });
 });

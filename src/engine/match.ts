@@ -203,6 +203,7 @@ export function createMatch(cfg: MatchConfig, home: TeamSetup, away: TeamSetup, 
         players,
         auraHolders: [],
         subbedOut: [],
+        pendingSubs: [],
         nextMoveTick: 0,
         ball: {
             pos: v(cfg.pitch.length / 2, cfg.pitch.width / 2),
@@ -288,6 +289,7 @@ function refreshAuras(s: MatchState) {
 }
 
 function setupKickoff(s: MatchState, team: 0 | 1) {
+    applyPendingSubs(s);
     const { length, width } = s.cfg.pitch;
     for (const p of s.players) {
         const [xr, y] = s.teams[p.team].formation.kickoff[p.slot] ?? [10, 10];
@@ -1164,6 +1166,8 @@ function scoreGoal(s: MatchState, team: 0 | 1) {
 }
 
 function goalClearance(s: MatchState, team: 0 | 1) {
+    const subbed = s.pendingSubs.length > 0;
+    applyPendingSubs(s);
     const gk = s.players.find((p) => p.team === team && p.role === 'GK') ?? s.players.find((p) => p.team === team)!;
     gk.pos = toWorld(s, team, 1.5, s.cfg.pitch.width / 2 + s.rng.range(-2, 2));
     gk.vel = v(0, 0);
@@ -1177,7 +1181,8 @@ function goalClearance(s: MatchState, team: 0 | 1) {
     s.ball.assistCandidate = null;
     gk.ai.holdUntil = s.tick + Math.round(0.6 * s.cfg.tickRate);
     s.phase = 'restart';
-    s.phaseTimer = 0.8;
+    // tempo extra para a substituição aparecer na tela
+    s.phaseTimer = subbed ? 2 : 0.8;
 }
 
 // ---------------------------------------------------------------- tempos, substituições e pênaltis
@@ -1212,25 +1217,56 @@ function endHalf(s: MatchState) {
     s.finished = true;
 }
 
-/** No intervalo, quem está muito cansado sai para um reserva descansado. */
+/** Troca `out` pelo reserva `inst` (mesma vaga e posição). */
+function substitute(s: MatchState, out: PlayerState, inst: PokemonInstance) {
+    const rt = s.teams[out.team];
+    rt.bench = rt.bench.filter((b) => b.uid !== inst.uid);
+    const fresh = createPlayer(out.idx, out.team, out.slot, inst, out.role, teamBonuses(rt.setup));
+    s.subbedOut.push(out);
+    fresh.pos = out.pos;
+    s.players[out.idx] = fresh;
+    emit(s, {
+        type: 'sub',
+        team: out.team,
+        out: out.name,
+        in: fresh.name,
+        outIdx: out.idx,
+        outUid: (out.origin ?? out.inst).uid,
+        inUid: inst.uid,
+        outSpeciesId: out.inst.speciesId,
+        inSpeciesId: inst.speciesId,
+        inShiny: inst.shiny,
+    });
+    transformDittos(s, [fresh]);
+}
+
+/** Bola parada (saída de bola, tiro de meta, intervalo): entram as substituições pedidas pelo técnico. */
+export function applyPendingSubs(s: MatchState) {
+    if (!s.pendingSubs.length) return;
+    for (const order of s.pendingSubs.splice(0)) {
+        const out = s.players.find((p) => p.team === order.team && (p.origin ?? p.inst).uid === order.outUid);
+        const inst = s.teams[order.team].bench.find((b) => b.uid === order.inUid);
+        if (out && inst) substitute(s, out, inst);
+    }
+    refreshAuras(s);
+}
+
+/** No intervalo, o time da IA tira o mais cansado se ele estiver bem abaixo do resto. */
 function halftimeSubs(s: MatchState) {
     for (const team of [0, 1] as const) {
         const rt = s.teams[team];
+        if (rt.setup.manualSubs) continue;
         const tired = s.players
-            .filter((p) => p.team === team && p.role !== 'GK' && p.energy < 0.55)
-            .sort((a, b) => a.energy - b.energy);
+            .filter((p) => p.team === team && p.role !== 'GK' && p.energy < 0.8)
+            .sort((a, b) => a.energy - b.energy)
+            .slice(0, 1);
         for (const out of tired) {
-            const inst = rt.bench.shift();
+            const inst = rt.bench[0];
             if (!inst) break;
-            const fresh = createPlayer(out.idx, team, out.slot, inst, out.role, teamBonuses(rt.setup));
-            s.subbedOut.push(out);
-            fresh.pos = out.pos;
-            const outName = out.name;
-            s.players[out.idx] = fresh;
-            emit(s, { type: 'sub', team, out: outName, in: fresh.name, outIdx: out.idx });
-            transformDittos(s, [fresh]);
+            substitute(s, out, inst);
         }
     }
+    applyPendingSubs(s);
     refreshAuras(s);
 }
 

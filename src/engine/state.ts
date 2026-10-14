@@ -27,14 +27,30 @@ export interface TeamSetup {
     formation?: FormationId;
     /** uid do capitão (dá aura ao time). */
     captainUid?: string | null;
+    /** Só o técnico troca (time do jogador): sem substituição automática no intervalo. */
+    manualSubs?: boolean;
 }
 
 /** Mudança de tática agendada (tática ao vivo: a partida é resimulada com a agenda). */
 export interface TacticChange {
     tick: number;
     team: 0 | 1;
+    kind?: 'tactic';
     tactic: Tactic;
 }
+
+/** Substituição pedida pelo técnico: entra na próxima saída de bola depois de `tick`. */
+export interface SubOrder {
+    tick: number;
+    team: 0 | 1;
+    kind: 'sub';
+    outUid: string;
+    inUid: string;
+}
+
+/** Ordens do técnico durante a partida (a partida é resimulada com a agenda inteira). */
+export type MatchOrder = TacticChange | SubOrder;
+export const isSubOrder = (o: MatchOrder): o is SubOrder => o.kind === 'sub';
 
 /** Códigos de ação para o render escolher a animação. */
 export const Action = {
@@ -199,7 +215,18 @@ export type MatchEvent = MatchEventBase &
         | { type: 'transform'; by: number; into: number; target: number }
         | { type: 'combo'; by: number; partner: number; link: string }
         | { type: 'halftime'; score: [number, number] }
-        | { type: 'sub'; team: 0 | 1; out: string; in: string; outIdx: number }
+        | {
+              type: 'sub';
+              team: 0 | 1;
+              out: string;
+              in: string;
+              outIdx: number;
+              outUid: string;
+              inUid: string;
+              outSpeciesId: number;
+              inSpeciesId: number;
+              inShiny: boolean;
+          }
         | { type: 'fulltime'; score: [number, number] }
         | { type: 'penalty'; by: number; gk: number; scored: boolean; round: number; shootout: [number, number] }
         | { type: 'end'; winner: 0 | 1 | null; score: [number, number]; shootout: [number, number] | null }
@@ -258,6 +285,8 @@ export interface MatchState {
     nextMoveTick: number;
     /** Jogadores substituídos (com as estatísticas que fizeram antes de sair). */
     subbedOut: PlayerState[];
+    /** Substituições pedidas esperando a próxima saída de bola. */
+    pendingSubs: SubOrder[];
     ball: BallState;
     score: [number, number];
     shootout: [number, number] | null;

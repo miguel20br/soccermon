@@ -64,7 +64,10 @@ export function Lineup() {
         setLoading(true);
         setError(null);
         try {
-            const result = await simulateMatch(team, opponent, `${seed}-stage-${stage}`);
+            // retomando: as mesmas ordens do técnico (tática/substituições) dão a mesma partida
+            const live = useGame.getState().run?.live;
+            const orders = live?.stage === stage ? live.orders : [];
+            const result = await simulateMatch(team, opponent, `${seed}-stage-${stage}`, orders);
             // só abre a partida se o jogador ainda está nesta tela, nesta run e nesta fase
             const now = useGame.getState();
             if (now.screen !== 'lineup' || now.run?.seed !== seed || now.run.stage !== stage) return;

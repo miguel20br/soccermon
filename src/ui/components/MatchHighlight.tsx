@@ -11,13 +11,15 @@ const KIND_LABEL: Record<Highlight['kind'], string> = {
     goal: 'GOL!',
     owngoal: 'GOL CONTRA',
     save: 'DEFESA!',
+    sub: 'SUBSTITUIÇÃO',
+    evolve: 'EVOLUIU!',
 };
 
 /** Rostinho do PMDCollab: comemorando no gol, concentrado na defesa (cai no normal se não tiver). */
-function portraitOf(h: Highlight): string {
-    const want = h.kind === 'save' ? 'determined' : h.kind === 'goal' ? 'happy' : null;
-    const has = want && EMOTIONS[h.speciesId]?.includes(want);
-    return `assets/portraits/${h.speciesId}${has ? `-${want}` : ''}.png`;
+function portraitOf(speciesId: number, kind: Highlight['kind']): string {
+    const want = kind === 'save' ? 'determined' : kind === 'goal' || kind === 'evolve' ? 'happy' : null;
+    const has = want && EMOTIONS[speciesId]?.includes(want);
+    return `assets/portraits/${speciesId}${has ? `-${want}` : ''}.png`;
 }
 
 /** Faixa diagonal no canto do time com o rosto, o nome e o time de quem fez o gol ou a defesa. */
@@ -48,14 +50,30 @@ export function MatchHighlight({ teamNames, colors }: { teamNames: [string, stri
             style={{ ['--team' as string]: colors[shown.team] }}
             aria-live="polite"
         >
+            {shown.outSpeciesId !== undefined && (
+                <>
+                    <div className="mh-face mh-out">
+                        <img className="pixel" src={portraitOf(shown.outSpeciesId, 'sub')} alt="" />
+                    </div>
+                    <span className="mh-arrow" aria-hidden>
+                        ➜
+                    </span>
+                </>
+            )}
             <div className="mh-face">
-                <img className="pixel" src={portraitOf(shown)} alt="" />
+                <img className="pixel" src={portraitOf(shown.speciesId, shown.kind)} alt="" />
                 {shown.shiny && <span className="mh-shiny">✦</span>}
             </div>
             <div className="mh-text">
                 <span className="mh-kind">{KIND_LABEL[shown.kind]}</span>
-                <strong className="mh-name">{shown.name}</strong>
-                <span className="mh-team">{teamNames[shown.team]}</span>
+                <strong className="mh-name">{shown.kind === 'sub' ? `Entra ${shown.name}` : shown.name}</strong>
+                <span className="mh-team">
+                    {shown.kind === 'sub'
+                        ? `sai ${shown.outName}`
+                        : shown.kind === 'evolve'
+                          ? `${shown.outName} evoluiu`
+                          : teamNames[shown.team]}
+                </span>
             </div>
         </div>
     );

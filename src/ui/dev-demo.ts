@@ -28,12 +28,14 @@ export function runDevDemo() {
             const rng = new Rng(`ditto${k}`, 'demo');
             // 1-2-1: goleiro, fixo, alas, pivô
             const lineup = [143, 68, 151, 132, 150].map((id) => createInstance(id, rng));
+            // banco com quem evolui (Charmander, Pikachu): testa substituição e evolução
+            const bench = [4, 25].map((id) => createInstance(id, rng));
             const ready = {
                 ...run,
                 formation: '1-2-1' as const,
-                picks: lineup,
+                picks: [...lineup, ...bench],
                 lineup: lineup.map((p) => p.uid),
-                bench: [],
+                bench: bench.map((p) => p.uid),
                 captainUid: lineup[4].uid,
                 draftRound: 7,
                 status: 'lineup' as const,

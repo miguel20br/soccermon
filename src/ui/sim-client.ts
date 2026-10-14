@@ -1,6 +1,6 @@
 import type { MatchResult } from '../engine/runners/batch-runner';
 import type { SimRequest } from '../engine/sim.worker';
-import type { TacticChange, TeamSetup } from '../engine/state';
+import type { MatchOrder, TeamSetup } from '../engine/state';
 
 /** Roda a simulação num Web Worker para não travar a UI. Falhas e demora excessiva viram erro (nunca trava). */
 let worker: Worker | null = null;
@@ -39,7 +39,7 @@ export function simulateMatch(
     home: TeamSetup,
     away: TeamSetup,
     seed: string,
-    tacticChanges: TacticChange[] = [],
+    orders: MatchOrder[] = [],
 ): Promise<MatchResult> {
     const id = nextId++;
     return new Promise((resolve, reject) => {
@@ -48,7 +48,7 @@ export function simulateMatch(
             reject(new Error('A simulação demorou demais'));
         }, TIMEOUT_MS);
         pending.set(id, { resolve, reject, timer });
-        const req: SimRequest = { id, home, away, seed, tacticChanges };
+        const req: SimRequest = { id, home, away, seed, orders };
         try {
             getWorker().postMessage(req);
         } catch (err) {

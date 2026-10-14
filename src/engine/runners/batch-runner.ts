@@ -1,5 +1,5 @@
 import type { MatchConfig } from '../config';
-import type { MatchEvent, MatchSnapshot, MatchState, PlayerStats, TacticChange, TeamSetup } from '../state';
+import type { MatchEvent, MatchOrder, MatchSnapshot, MatchState, PlayerStats, TeamSetup } from '../state';
 import { LiveRunner } from './live-runner';
 
 export interface PlayerSummary {
@@ -57,9 +57,9 @@ export function runMatch(
     home: TeamSetup,
     away: TeamSetup,
     seed: number | string,
-    opts: { snapshots?: boolean; tacticChanges?: TacticChange[] } = {},
+    opts: { snapshots?: boolean; orders?: MatchOrder[] } = {},
 ): MatchResult {
-    const runner = new LiveRunner(cfg, home, away, seed, opts.tacticChanges);
+    const runner = new LiveRunner(cfg, home, away, seed, opts.orders);
     const s = runner.state;
     const roster = summarize(s);
     const snapshots: MatchSnapshot[] = [];

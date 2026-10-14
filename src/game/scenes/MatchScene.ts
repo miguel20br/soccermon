@@ -44,6 +44,8 @@ export interface MatchSceneData {
     extraSpecies?: number[];
     /** Começa parada (tela de VERSUS); a partida só rola depois de 'match:resume'. */
     startPaused?: boolean;
+    /** Retomando uma partida: começa deste tick (os eventos anteriores são aplicados sem animação). */
+    startTick?: number;
 }
 
 type PenaltyEvent = Extract<MatchEvent, { type: 'penalty' }>;
@@ -67,11 +69,14 @@ const DIVE_MAX = 1.8 * PPM;
 
 /** Faixa de gol/defesa que a tela React mostra no canto do time. */
 export interface MatchHighlight {
-    kind: 'goal' | 'owngoal' | 'save';
+    kind: 'goal' | 'owngoal' | 'save' | 'sub' | 'evolve';
     team: 0 | 1;
     speciesId: number;
     shiny: boolean;
     name: string;
+    /** Substituição: quem saiu. Evolução: a forma anterior. */
+    outSpeciesId?: number;
+    outName?: string;
 }
 
 interface DiveInfo {
@@ -269,6 +274,7 @@ export class MatchScene extends Phaser.Scene {
         this.paused = !!this.md.startPaused;
         if (!this.paused) playSfx('whistle');
         this.applySnapshot(0, 0);
+        if (this.md.startTick) this.seekTo(this.md.startTick);
         EventBus.emit('current-scene-ready', this);
     }
 
@@ -319,12 +325,20 @@ export class MatchScene extends Phaser.Scene {
         if (this.eventCursor < 0) this.eventCursor = this.matchEvents.length;
     }
 
-    /** (dev) Vai para 2 s antes do apito final, sem tocar os eventos pulados. */
+    /** (dev) Vai para 2 s antes do apito final. */
     private onSeekFulltime() {
-        if (!Number.isFinite(this.fulltimeTick)) return;
-        this.playTick = this.fulltimeTick - TICK_RATE * 2;
-        this.eventCursor = this.matchEvents.findIndex((e) => e.tick > this.playTick);
-        if (this.eventCursor < 0) this.eventCursor = this.matchEvents.length;
+        if (Number.isFinite(this.fulltimeTick)) this.seekTo(this.fulltimeTick - TICK_RATE * 2);
+    }
+
+    /** Pula para um tick: os eventos do caminho valem (placar, trocas, narração), mas sem animação. */
+    private seekTo(tick: number) {
+        this.playTick = Math.max(this.playTick, tick);
+        while (this.eventCursor < this.matchEvents.length && this.matchEvents[this.eventCursor].tick <= this.playTick) {
+            this.handleEvent(this.matchEvents[this.eventCursor++], true);
+        }
+        const { index, t } = this.locate(this.playTick);
+        this.applySnapshot(index, t);
+        this.emitTick(this.snaps[index]);
     }
 
     /** Pula para o fim: emite todos os eventos restantes de uma vez. */
@@ -873,9 +887,30 @@ export class MatchScene extends Phaser.Scene {
         EventBus.emit('match:event', e);
         if (IMPORTANT.has(e.type)) this.recentImportantTick = e.tick;
         if (e.type === 'sub') {
-            const incoming = this.md.result.finalRoster[e.outIdx];
-            this.swapSpecies(this.players[e.outIdx], incoming.speciesId, incoming.name, incoming.shiny);
-            this.updateUiScale();
+            const view = this.players[e.outIdx];
+            if (view) {
+                createSpeciesAnims(this, e.inSpeciesId);
+                this.swapSpecies(view, e.inSpeciesId, e.in, e.inShiny);
+                this.updateUiScale();
+                if (!silent) {
+                    // quem entra chega com uma "fumacinha" e a faixa mostra quem sai e quem entra
+                    playSfx('whistle');
+                    this.impact(view.sprite.x, view.sprite.y - 16, 'Normal');
+                    view.sprite.setScale(SPRITE_SCALE * 0.2);
+                    this.tweens.add({ targets: view.sprite, scale: SPRITE_SCALE, duration: 380, ease: 'Back.easeOut' });
+                    this.popText(e.outIdx, '⇅', '#7dff8a');
+                    const h: MatchHighlight = {
+                        kind: 'sub',
+                        team: e.team,
+                        speciesId: e.inSpeciesId,
+                        shiny: e.inShiny,
+                        name: e.in,
+                        outSpeciesId: e.outSpeciesId,
+                        outName: e.out,
+                    };
+                    EventBus.emit('match:highlight', h);
+                }
+            }
         }
         if (e.type === 'transform') {
             // Ditto vira a cópia; mantém o nome e o "capitão"

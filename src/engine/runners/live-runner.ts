@@ -2,7 +2,7 @@ import type { Command, Controller } from '../commands';
 import type { MatchConfig } from '../config';
 import { AIController } from '../controllers/ai-controller';
 import { createMatch, emit, snapshot, step } from '../match';
-import type { MatchState, Tactic, TacticChange, TeamSetup } from '../state';
+import { isSubOrder, type MatchOrder, type MatchState, type Tactic, type TeamSetup } from '../state';
 
 /**
  * Roda a partida tick a tick. Cada jogador tem um Controller — por padrão a IA; o modo jogável futuro
@@ -13,19 +13,16 @@ export class LiveRunner {
     private readonly ai: AIController;
     private readonly overrides = new Map<number, Controller>();
 
-    private readonly schedule: TacticChange[];
+    private readonly schedule: MatchOrder[];
 
-    /** `tacticChanges`: mudanças de tática agendadas (tática ao vivo). Aplicadas no início do tick indicado. */
-    constructor(
-        cfg: MatchConfig,
-        home: TeamSetup,
-        away: TeamSetup,
-        seed: number | string,
-        tacticChanges: TacticChange[] = [],
-    ) {
+    /**
+     * `orders`: ordens do técnico agendadas (tática ao vivo e substituições). A tática vale no início do tick
+     * indicado; a substituição espera a próxima saída de bola depois dele.
+     */
+    constructor(cfg: MatchConfig, home: TeamSetup, away: TeamSetup, seed: number | string, orders: MatchOrder[] = []) {
         this.state = createMatch(cfg, home, away, seed);
         this.ai = new AIController(this.state);
-        this.schedule = [...tacticChanges].sort((a, b) => a.tick - b.tick);
+        this.schedule = [...orders].sort((a, b) => a.tick - b.tick);
     }
 
     /** Muda a tática agora (modo jogável/tempo real). */
@@ -44,8 +41,10 @@ export class LiveRunner {
     step() {
         const s = this.state;
         while (this.schedule.length && this.schedule[0].tick <= s.tick) {
-            const change = this.schedule.shift()!;
-            if (s.phase !== 'fulltime') this.changeTactic(change.team, change.tactic);
+            const order = this.schedule.shift()!;
+            if (s.phase === 'fulltime') continue;
+            if (isSubOrder(order)) s.pendingSubs.push(order);
+            else this.changeTactic(order.team, order.tactic);
         }
         const commands: (Command | Command[])[] = s.players.map((p) =>
             (this.overrides.get(p.idx) ?? this.ai).decide(p.idx),
