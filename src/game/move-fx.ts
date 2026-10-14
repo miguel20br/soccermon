@@ -88,6 +88,27 @@ export function preloadMoveFx(scene: Phaser.Scene) {
 }
 
 type Pt = { x: number; y: number };
+type IconKind = 'lips' | 'dizzy' | 'tongue' | 'finger' | 'spoon' | 'doll' | 'zzz' | 'question' | 'note' | 'note2';
+
+/** Estrelinha de 5 pontas desenhada. */
+function starPoints(g: Phaser.GameObjects.Graphics, x: number, y: number, r: number, fill: number, ink: number) {
+    const pts: Pt[] = [];
+    for (let k = 0; k < 10; k++) {
+        const ang = (k / 10) * Math.PI * 2 - Math.PI / 2;
+        const rr = k % 2 ? r * 0.45 : r;
+        pts.push({ x: x + Math.cos(ang) * rr, y: y + Math.sin(ang) * rr });
+    }
+    g.fillStyle(fill, 1).fillPoints(pts as Phaser.Math.Vector2[], true);
+    g.lineStyle(1.5, ink, 1).strokePoints(pts as Phaser.Math.Vector2[], true);
+}
+
+/** Letra Z (zzz do sono). */
+const zPoints = (x: number, y: number, s: number): Pt[] => [
+    { x: x - s / 2, y: y - s / 2 },
+    { x: x + s / 2, y: y - s / 2 },
+    { x: x - s / 2, y: y + s / 2 },
+    { x: x + s / 2, y: y + s / 2 },
+];
 type Who = 'user' | 'target';
 
 interface KitCtx {
@@ -664,28 +685,37 @@ class Kit {
         return this.hit(o.travel ? 360 : 200);
     }
 
-    /** Rosnado/rugido/guincho: riscos saindo da boca de quem usa. */
+    /** Boca de quem usa: perto do topo do sprite, do lado para onde ele olha. */
+    get mouth(): Pt {
+        const u = this.c.user;
+        const top = u.y - u.displayHeight * u.originY;
+        return { x: u.x + this.dir * Math.abs(u.displayWidth) * 0.28, y: top + u.displayHeight * 0.38 };
+    }
+
+    /** Rosnado/rugido/guincho: riscos grossos saindo da boca de quem usa, em leque na direção do alvo. */
     roar(big = false, color = WHITE) {
-        const a = this.c.from;
-        const n = big ? 12 : 7;
+        const a = this.mouth;
+        const n = big ? 9 : 6;
         for (let k = 0; k < (big ? 3 : 2); k++) {
-            this.later(k * 160, () => {
+            this.later(k * 170, () => {
                 for (let i = 0; i < n; i++) {
-                    const ang = (this.dir > 0 ? 0 : Math.PI) + (i / (n - 1) - 0.5) * 1.6;
-                    const g = this.s.add.graphics().setDepth(this.c.depth);
-                    const r0 = 16;
-                    const r1 = big ? 44 : 30;
-                    g.lineStyle(big ? 4 : 3, color, 1).lineBetween(
+                    const ang = (this.dir > 0 ? 0 : Math.PI) + (i / (n - 1) - 0.5) * 1.5;
+                    const r0 = 10 + k * 8;
+                    const r1 = (big ? 62 : 46) + k * 8;
+                    const g = this.s.add.graphics().setDepth(this.c.depth + 1);
+                    const pts = [
                         a.x + Math.cos(ang) * r0,
                         a.y + Math.sin(ang) * r0,
                         a.x + Math.cos(ang) * r1,
                         a.y + Math.sin(ang) * r1,
-                    );
-                    this.fade(g, { alpha: 0 }, 300);
+                    ] as const;
+                    g.lineStyle(big ? 8 : 7, 0x000000, 0.55).lineBetween(...pts);
+                    g.lineStyle(big ? 5 : 4, color, 1).lineBetween(...pts);
+                    this.fade(g, { alpha: 0 }, 320);
                 }
             });
         }
-        if (big) this.s.cameras.main.shake(300, 0.006);
+        if (big) this.s.cameras.main.shake(320, 0.007);
         return this.hit(260);
     }
 
@@ -693,10 +723,13 @@ class Kit {
     notes(kind: 'music' | 'kiss' = 'music') {
         const a = this.c.from;
         const b = this.to;
-        const glyphs = kind === 'music' ? ['♪', '♫', '♪', '♬', '♫', '♪', '♬'] : ['♥', '♥', '♥'];
-        glyphs.forEach((g, i) => {
+        const n = kind === 'music' ? 7 : 4;
+        Array.from({ length: n }).forEach((_, i) => {
             this.later(i * 110, () => {
-                const t = this.text(g, a.x, a.y - 10, 22, kind === 'music' ? '#ffffff' : '#ff8fc8');
+                const t =
+                    kind === 'music'
+                        ? this.drawIcon(i % 2 ? 'note2' : 'note', a.x, a.y - 10).setScale(1.5)
+                        : this.img('heart', a.x, a.y - 10, 0.9, 0xff8fc8, false);
                 this.s.tweens.add({
                     targets: t,
                     x: b.x + Phaser.Math.Between(-16, 16),
@@ -707,7 +740,7 @@ class Kit {
                 });
             });
         });
-        if (kind === 'kiss') this.later(650, () => this.icon('💋', 'target', { size: 30 }));
+        if (kind === 'kiss') this.later(650, () => this.icon('lips', 'target'));
         return this.hit(650);
     }
 
@@ -937,15 +970,91 @@ class Kit {
         return 0;
     }
 
-    /** Ícone ou emoji aparecendo em cima de alguém (ovo, dedo, colher, beijo…). */
-    icon(what: string, who: Who, o: { size?: number; wag?: boolean; bend?: boolean; fx?: boolean; ms?: number } = {}) {
+    /**
+     * Ícones desenhados (nada de emoji): beijo, tontura, língua, dedo, colher, boneco, zzz, interrogação, notas.
+     * Tamanho ~32 px, com contorno escuro para ler em cima de qualquer Pokémon.
+     */
+    drawIcon(kind: IconKind, x: number, y: number) {
+        const g = this.s.add
+            .graphics()
+            .setDepth(this.c.depth + 3)
+            .setPosition(x, y);
+        const ink = 0x1a1020;
+        switch (kind) {
+            case 'lips':
+                g.fillStyle(0xff3f6c, 1)
+                    .fillEllipse(-6, -3, 16, 10)
+                    .fillEllipse(6, -3, 16, 10)
+                    .fillEllipse(0, 4, 26, 10);
+                g.lineStyle(2, ink, 1).strokeEllipse(0, 1, 30, 18).lineBetween(-12, 1, 12, 1);
+                break;
+            case 'dizzy':
+                for (let k = 0; k < 3; k++) {
+                    const ang = (k / 3) * Math.PI * 2;
+                    starPoints(g, Math.cos(ang) * 14, Math.sin(ang) * 6, 6, 0xffe14d, ink);
+                }
+                break;
+            case 'tongue':
+                g.fillStyle(0xff7aa8, 1).fillRoundedRect(-8, -12, 16, 26, 8);
+                g.lineStyle(2, ink, 1).strokeRoundedRect(-8, -12, 16, 26, 8).lineBetween(0, -6, 0, 8);
+                break;
+            case 'finger':
+                g.fillStyle(0xfff0dc, 1).fillRoundedRect(-9, -2, 18, 16, 4).fillRoundedRect(-3, -20, 7, 22, 3);
+                g.lineStyle(2, ink, 1).strokeRoundedRect(-9, -2, 18, 16, 4).strokeRoundedRect(-3, -20, 7, 22, 3);
+                break;
+            case 'spoon':
+                g.fillStyle(0xd8dde8, 1).fillEllipse(0, -10, 12, 16).fillRect(-2, -2, 4, 22);
+                g.lineStyle(2, ink, 1).strokeEllipse(0, -10, 12, 16).strokeRect(-2, -2, 4, 22);
+                break;
+            case 'doll':
+                g.fillStyle(0xd9a466, 1).fillCircle(-7, -14, 4).fillCircle(7, -14, 4).fillCircle(0, -8, 9);
+                g.fillEllipse(0, 10, 18, 20);
+                g.lineStyle(2, ink, 1).strokeCircle(0, -8, 9).strokeEllipse(0, 10, 18, 20);
+                g.fillStyle(ink, 1).fillCircle(-3, -9, 1.6).fillCircle(3, -9, 1.6);
+                break;
+            case 'zzz':
+                for (const [dx, dy, sz] of [
+                    [-8, 8, 10],
+                    [2, -2, 8],
+                    [10, -11, 6],
+                ] as const) {
+                    g.lineStyle(5, ink, 0.6).strokePoints(zPoints(dx, dy, sz) as Phaser.Math.Vector2[]);
+                    g.lineStyle(3, 0xbfe8ff, 1).strokePoints(zPoints(dx, dy, sz) as Phaser.Math.Vector2[]);
+                }
+                break;
+            case 'question':
+                g.lineStyle(7, ink, 0.6)
+                    .beginPath()
+                    .arc(0, -8, 8, Math.PI, Math.PI * 2.4)
+                    .strokePath();
+                g.lineStyle(4, WHITE, 1)
+                    .beginPath()
+                    .arc(0, -8, 8, Math.PI, Math.PI * 2.4)
+                    .strokePath();
+                g.lineBetween(3, 0, 0, 6);
+                g.fillStyle(WHITE, 1).fillCircle(0, 13, 2.6);
+                break;
+            case 'note':
+            case 'note2':
+                g.fillStyle(WHITE, 1).fillEllipse(-4, 8, 10, 7);
+                g.lineStyle(3, WHITE, 1).lineBetween(1, 8, 1, -12);
+                if (kind === 'note2')
+                    g.fillEllipse(10, 4, 10, 7).lineBetween(15, 4, 15, -15).lineBetween(1, -12, 15, -15);
+                else g.lineBetween(1, -12, 8, -6);
+                break;
+        }
+        return g;
+    }
+
+    /** Ícone aparecendo em cima de alguém (desenhado ou partícula do Showdown). */
+    icon(what: IconKind | string, who: Who, o: { wag?: boolean; bend?: boolean; fx?: boolean; ms?: number } = {}) {
         const p = who === 'user' ? this.c.from : this.to;
         const obj = o.fx
             ? this.img(what, p.x, p.y - 30, 0.6, null, false)
-            : this.text(what, p.x, p.y - 30, o.size ?? 26);
-        const full = o.fx ? 0.6 : 1;
+            : this.drawIcon(what as IconKind, p.x, p.y - 30);
+        const full = o.fx ? 0.6 : 1.6;
         obj.setScale(0.2 * full);
-        this.s.tweens.add({ targets: obj, scale: full, y: p.y - 40, duration: 220, ease: 'Back.easeOut' });
+        this.s.tweens.add({ targets: obj, scale: full, y: p.y - 44, duration: 220, ease: 'Back.easeOut' });
         if (o.wag)
             this.s.tweens.add({ targets: obj, angle: { from: -25, to: 25 }, duration: 140, yoyo: true, repeat: 3 });
         if (o.bend) this.s.tweens.add({ targets: obj, angle: 70, duration: 500, delay: 200 });
@@ -956,7 +1065,7 @@ class Kit {
     /** Olhos piscando em cima do alvo (Glare, Leer). */
     eyes(color: number | null = null) {
         const t = this.to;
-        const e = this.img('stare', t.x, t.y - 34, 0.45, color, false);
+        const e = this.img('stare', t.x, t.y - 44, 0.95, color, false);
         this.s.tweens.add({ targets: e, scaleY: 0.02, duration: 90, yoyo: true, repeat: 2, delay: 150 });
         this.fade(e, { alpha: 0 }, 200, 800);
         return this.hit(400);
@@ -1353,7 +1462,7 @@ const MOVE_FX: Record<string, Recipe> = {
     // Fantasma
     confuseray: R('projectile', (k) => k.projectile({ name: 'mistball', scale: 0.6, tint: 0xffe14d, trail: true })),
     lick: R('melee', (k) => {
-        k.icon('👅', 'target', { size: 30, ms: 500 });
+        k.icon('tongue', 'target', { ms: 500 });
         return k.hit(260);
     }),
     nightshade: R('beam', (k) => k.beam('shadow')),
@@ -1423,7 +1532,7 @@ const MOVE_FX: Record<string, Recipe> = {
     }),
     dizzypunch: R('melee', (k) => {
         k.strike(['fist'], { scale: 0.9 });
-        k.later(300, () => k.icon('💫', 'target', { size: 24 }));
+        k.later(300, () => k.icon('dizzy', 'target'));
         return 140;
     }),
     doubleslap: R('melee', (k) => k.strike(['leftchop', 'rightchop'], { count: 2, scale: 0.45, gap: 150 })),
@@ -1454,7 +1563,7 @@ const MOVE_FX: Record<string, Recipe> = {
     lovelykiss: R('sound', (k) => k.notes('kiss')),
     megakick: R('melee', kick(1, 1.15)),
     megapunch: R('melee', (k) => k.strike(['fist'], { scale: 1.15 })),
-    metronome: R('aura', (k) => k.icon('☝️', 'user', { size: 30, wag: true, ms: 900 })),
+    metronome: R('aura', (k) => k.icon('finger', 'user', { wag: true, ms: 900 })),
     mimic: R('aura', (k) => k.mirror()),
     minimize: R('aura', (k) => k.pulse(0.45, 700)),
     payday: R('projectile', (k) => k.shower('coins')),
@@ -1489,7 +1598,7 @@ const MOVE_FX: Record<string, Recipe> = {
     ),
     splash: R('aura', (k) => k.splash()),
     substitute: R('aura', (k) => {
-        k.icon('🧸', 'user', { size: 30, ms: 900 });
+        k.icon('doll', 'user', { ms: 900 });
         return k.shield(0xffd9a0, 'bubble');
     }),
     superfang: R('melee', (k) => k.bite(true)),
@@ -1518,12 +1627,12 @@ const MOVE_FX: Record<string, Recipe> = {
     smog: R('cloud', (k) => k.gas(0x5a4a6a, 'target', true)),
     // Psíquico
     amnesia: R('aura', (k) => {
-        k.icon('?', 'user', { size: 30 });
+        k.icon('question', 'user');
         return k.aura('mistball');
     }),
     barrier: R('aura', (k) => k.shield(0x9be7ff)),
     dreameater: R('beam', (k) => {
-        k.icon('💤', 'target', { size: 24, ms: 400 });
+        k.icon('zzz', 'target', { ms: 400 });
         k.later(200, () => k.stream({ name: 'mistball', count: 10, scale: 0.4, reverse: true, tint: 0xff7ad9 }));
         return k.hit(200);
     }),
@@ -1531,7 +1640,7 @@ const MOVE_FX: Record<string, Recipe> = {
         k.projectile({ name: 'mistball', ms: 300, scale: 0.4, tint: 0xd18bff });
         return k.spiral();
     }),
-    kinesis: R('aura', (k) => k.icon('🥄', 'user', { size: 30, bend: true, ms: 900 })),
+    kinesis: R('aura', (k) => k.icon('spoon', 'user', { bend: true, ms: 900 })),
     lightscreen: R('aura', (k) => k.wall(0xffe14d)),
     meditate: R('aura', (k) => {
         k.absorbIn(0xff7ad9, 'mistball', 8, 700);
@@ -1546,7 +1655,7 @@ const MOVE_FX: Record<string, Recipe> = {
     psywave: R('beam', (k) => k.beam('psywave')),
     reflect: R('aura', (k) => k.wall(0x9be7ff)),
     rest: R('aura', (k) => {
-        k.icon('💤', 'user', { size: 28, ms: 1200 });
+        k.icon('zzz', 'user', { ms: 1200 });
         return k.absorbIn(0x9be7ff, 'shine', 8, 600);
     }),
     teleport: R('aura', (k) => k.vanish()),

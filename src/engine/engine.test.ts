@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { computeAttributes, eligiblePositions, positionFactor } from './attributes';
 import { FUTSAL_5, withConfig } from './config';
 import { HumanController } from './controllers/human-controller';
-import { effectiveness, SPECIES, species } from './data';
+import { effectiveness, MOVES, SPECIES, species } from './data';
 import { aiDraftTeam, DRAFT_ROUNDS, draftOptions } from './draft';
 import { FORMATIONS } from './formations';
 import { createInstance, viewInstance } from './instance';
@@ -11,7 +11,7 @@ import { computeLinks } from './links';
 import { captainFactor, createMatch } from './match';
 import { playerLines, possessionByPeriod, shotMap } from './match-stats';
 import { applyModifiers, attributeModifiers } from './modifiers';
-import { defaultMoveset } from './moves';
+import { defaultMoveset, moveProfile } from './moves';
 import { rewardOptions } from './rewards';
 import { Rng } from './rng';
 import { runMatch } from './runners/batch-runner';
@@ -217,11 +217,13 @@ describe('iteração 3: posições, formações, capitão, itens, tática ao viv
         }
     });
 
-    it('formações têm 5 vagas, pivô no slot 4 e coordenadas dentro da quadra', () => {
+    it('formações têm 5 vagas, pivô no slot 4 (ou nenhum, no Rodízio) e coordenadas dentro da quadra', () => {
         for (const f of Object.values(FORMATIONS)) {
             expect(f.slots).toHaveLength(5);
             expect(f.slots[0]).toBe('GK');
-            expect(f.slots[4]).toBe('PIVO');
+            // quem dá a saída é o primeiro pivô; sem pivô (Rodízio), a vaga 4
+            if (f.slots.includes('PIVO')) expect(f.slots[4]).toBe('PIVO');
+            else expect(f.slots[4]).not.toBe('GK');
             for (const [x, y] of [...f.attack, ...f.defend, ...f.kickoff]) {
                 expect(x).toBeGreaterThanOrEqual(0);
                 expect(x).toBeLessThanOrEqual(40);
@@ -550,6 +552,11 @@ describe('golpes', () => {
         const bad = Object.entries(SIGNATURE).filter(([id, m]) => !species(Number(id)).learnset.includes(m));
         expect(bad).toEqual([]);
         for (const [id, m] of Object.entries(SIGNATURE)) expect(defaultMoveset(species(Number(id)))[0]).toBe(m);
+    });
+
+    it('nenhum golpe fica sem efeito', () => {
+        const flavor = Object.keys(MOVES).filter((m) => moveProfile(m).kind === 'flavor');
+        expect(flavor).toEqual([]);
     });
 
     it('movesets variados: muitos golpes diferentes e no máximo 4 por Pokémon', () => {

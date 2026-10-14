@@ -27,6 +27,14 @@ export type MoveKind = 'strike' | 'blast' | 'burst' | 'buff' | 'debuff' | 'statu
  * - leechseed: semente que suga o fôlego do rival aos poucos para quem usou
  */
 export const SPECIAL_MOVES = new Set([
+    'bide',
+    'rage',
+    'conversion',
+    'disable',
+    'roar',
+    'whirlwind',
+    'splash',
+    'transform',
     'counter',
     'haze',
     'mist',
@@ -49,6 +57,39 @@ export const SPECIAL_EXPLAIN: Record<string, string> = {
     metronome: 'Balança o dedo e solta um golpe aleatório!',
     substitute: 'Cria um boneco que aguenta o próximo golpe ou carrinho no lugar dele (custa um pouco de fôlego).',
     leechseed: 'Planta uma semente no rival: o fôlego dele escorre aos poucos para quem usou (Planta é imune).',
+    bide: 'Aguenta firme: fica mais forte na dividida e o próximo carrinho sai bem mais forte.',
+    rage: 'Fica com raiva: chute e força sobem por 12 segundos.',
+    conversion: 'Muda de tipo para se adaptar: tira os enfraquecimentos e melhora tudo um pouco.',
+    disable: 'Trava um golpe que o rival mais perto ainda tinha para usar.',
+    roar: 'Rugido que assusta: empurra e atordoa os rivais em volta.',
+    whirlwind: 'Ventania que empurra para longe os rivais em volta.',
+    splash: 'Pula e espirra água: fica difícil de desarmar por um instante (mas é só isso mesmo).',
+    transform: 'Vira uma cópia do rival mais perto: pega os atributos melhores dele por 12 segundos.',
+};
+
+/** Golpes que prendem o alvo (fica lento e atordoado um instante). */
+export const TRAP = new Set(['bind', 'wrap', 'clamp', 'firespin', 'constrict']);
+/** Nocaute: erram muito (30%), mas quando acertam derrubam o rival por um bom tempo. */
+export const OHKO = new Set(['fissure', 'guillotine', 'horndrill']);
+/**
+ * Golpes fortíssimos com preço:
+ * - faint (Explosion/Self-Destruct): explode em área e quem usou fica no chão quase sem fôlego
+ * - recharge (Hyper Beam): fica parado recarregando
+ * - recoil (Double-Edge, Take Down, Submission): perde fôlego no impacto
+ * - rampage (Thrash, Petal Dance): pode ficar confuso depois
+ * - crash (Jump Kick, High Jump Kick): se errar, se machuca
+ */
+export const DRAWBACK: Record<string, 'faint' | 'recharge' | 'recoil' | 'rampage' | 'crash'> = {
+    explosion: 'faint',
+    selfdestruct: 'faint',
+    hyperbeam: 'recharge',
+    doubleedge: 'recoil',
+    takedown: 'recoil',
+    submission: 'recoil',
+    thrash: 'rampage',
+    petaldance: 'rampage',
+    jumpkick: 'crash',
+    highjumpkick: 'crash',
 };
 
 /** Golpes que sugam o fôlego do alvo para quem usa (fração de fôlego). */
@@ -150,6 +191,15 @@ const SPECTACULAR: Record<string, MoveKind> = {
 };
 
 const FIXED_DAMAGE_POWER = 70;
+/** Poder de golpes cujo dano nos jogos depende de peso/HP (aqui um valor fixo). */
+const POWER_OVERRIDE: Record<string, number> = { lowkick: 60 };
+
+/** Poder efetivo: golpes de vários acertos (Fury Swipes, Pin Missile, Double Kick…) somam os acertos. */
+function effectivePower(data: MoveData): number {
+    const base = POWER_OVERRIDE[data.id] ?? data.power;
+    const hits = Array.isArray(data.multihit) ? 3 : (data.multihit ?? 1);
+    return base * hits;
+}
 
 export function classifyMove(id: string): MoveProfile {
     const data = MOVES[id];
@@ -178,12 +228,16 @@ export function classifyMove(id: string): MoveProfile {
     } else if (data.category !== 'Status' && data.priority > 0) {
         kind = 'burst';
         strength = 0.7;
+    } else if (OHKO.has(id)) {
+        // nocaute: a precisão baixa já é o preço (rolada no motor)
+        kind = 'strike';
+        strength = 1;
     } else if (data.category === 'Physical') {
         kind = 'strike';
-        strength = Math.min(1, (data.power * (data.accuracy / 100)) / 120);
+        strength = Math.min(1, effectivePower(data) / 120);
     } else if (data.category === 'Special') {
         kind = 'blast';
-        strength = Math.min(1, (data.power * (data.accuracy / 100)) / 120);
+        strength = Math.min(1, effectivePower(data) / 120);
     } else if ((data.selfBoosts?.spe ?? 0) > 0) {
         kind = 'burst';
         strength = Math.min(1, selfBoost / 2);

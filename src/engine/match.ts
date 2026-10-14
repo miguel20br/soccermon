@@ -10,7 +10,7 @@ import type { PokemonInstance } from './instance';
 import { ITEMS } from './items';
 import { type ActiveLink, computeLinks } from './links';
 import { applyModifiers, attributeModifiers, captainFactor } from './modifiers';
-import { DRAIN, moveProfile, type StatusKind } from './moves';
+import { DRAIN, DRAWBACK, moveProfile, OHKO, type StatusKind, TRAP } from './moves';
 import { Rng } from './rng';
 import {
     Action,
@@ -681,8 +681,14 @@ function tryTackle(s: MatchState, p: PlayerState, targetId: number) {
         carrier.stun = 0.35;
         if (bonus) {
             // carrinho com golpe: derruba, empurra e pode aplicar o efeito secundário
-            knockback(s, carrier, p, 1.4, bonus.moveId);
+            knockback(s, carrier, p, OHKO.has(bonus.moveId) ? 2.6 : 1.4, bonus.moveId);
             applySecondary(s, p, carrier, bonus.moveId);
+            if (TRAP.has(bonus.moveId)) trap(carrier);
+            // nocaute (Fissure, Guillotine, Horn Drill): fica um bom tempo no chão
+            if (OHKO.has(bonus.moveId)) {
+                carrier.stun = Math.max(carrier.stun, 2.2);
+                setAction(carrier, Action.Hurt, 2.2);
+            }
         }
         carrier.kickCooldown = 0.4;
         if (carrier.ability.onTackledBoost) {
@@ -899,8 +905,21 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0) {
     let hit = true;
     let after: (() => void) | null = null;
 
+    // golpe físico e chute com golpe também podem errar (precisão do golpe; nocaute só 30%)
+    const landed = (prof.kind !== 'strike' && prof.kind !== 'blast') || s.rng.chance(prof.data.accuracy / 100);
+
     switch (prof.kind) {
         case 'strike':
+            if (!landed) {
+                hit = false;
+                // Jump Kick/High Jump Kick: errou, se machucou
+                if (DRAWBACK[moveId] === 'crash') {
+                    p.energy -= 0.08;
+                    p.stun = Math.max(p.stun, 0.6);
+                    setAction(p, Action.Hurt, 0.6);
+                }
+                break;
+            }
             if (hasBall) {
                 p.shotBonus = {
                     power: 1 + 0.3 * k,
@@ -921,7 +940,9 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0) {
             }
             break;
         case 'blast':
-            if (hasBall && moveId !== 'dreameater') {
+            if (hasBall && moveId !== 'dreameater' && !landed) {
+                hit = false;
+            } else if (hasBall && moveId !== 'dreameater') {
                 p.shotBonus = {
                     power: 1 + 0.15 * k,
                     accuracy: 1 + 0.45 * k,
@@ -948,6 +969,7 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0) {
                         knockback(s, target, p, 0.8 * mult, moveId);
                         applySecondary(s, p, target, moveId);
                         if (DRAIN[moveId]) drainEnergy(p, target, DRAIN[moveId] * mult);
+                        if (TRAP.has(moveId)) trap(target);
                     }
                 }
             }
@@ -1052,7 +1074,41 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0) {
         withBall: hasBall,
     });
     if (moveId !== 'metronome' && moveId !== 'mirrormove' && moveId !== 'mimic') s.lastMove[p.team] = moveId;
+    if (landed) drawback(s, p, moveId);
     after?.();
+}
+
+/** Preso (Bind, Wrap, Clamp, Fire Spin, Constrict): lento e atordoado um instante. */
+function trap(target: PlayerState) {
+    target.stun = Math.max(target.stun, 0.6);
+    target.buffs.push({ attr: 'pace', factor: 0.6, timer: 3 }, { attr: 'dribble', factor: 0.8, timer: 3 });
+}
+
+/** O preço dos golpes fortíssimos (src/engine/moves.ts → DRAWBACK). */
+function drawback(s: MatchState, p: PlayerState, moveId: string) {
+    switch (DRAWBACK[moveId]) {
+        case 'faint':
+            // explode em área: empurra quem estiver perto e fica no chão sem fôlego
+            for (const o of s.players) {
+                if (o.idx !== p.idx && dist(o.pos, p.pos) < 3) {
+                    o.stun = Math.max(o.stun, 0.8);
+                    knockback(s, o, p, 1.8, moveId);
+                }
+            }
+            p.energy = Math.min(p.energy, 0.15);
+            p.stun = Math.max(p.stun, 1.6);
+            setAction(p, Action.Hurt, 1.6);
+            break;
+        case 'recharge':
+            p.stun = Math.max(p.stun, 0.9);
+            break;
+        case 'recoil':
+            p.energy -= 0.04;
+            break;
+        case 'rampage':
+            if (s.rng.chance(0.5)) applyStatus(s, p, 'confusion', p.idx, moveId);
+            break;
+    }
 }
 
 function drainEnergy(user: PlayerState, target: PlayerState, amount: number) {
@@ -1088,6 +1144,55 @@ function specialMove(
         case 'mist':
             s.teams[p.team].screens.mist = 12;
             return { target: null, hit: true, after: null };
+        case 'bide':
+            p.buffs.push({ attr: 'strength', factor: 1.2, timer: 10 }, { attr: 'tackling', factor: 1.15, timer: 10 });
+            p.tackleBonus = { power: 1.6, accuracy: 1, moveType: 'Normal', moveId, timer: 6 };
+            return { target: null, hit: true, after: null };
+        case 'rage':
+            p.buffs.push({ attr: 'shooting', factor: 1.15, timer: 12 }, { attr: 'strength', factor: 1.15, timer: 12 });
+            return { target: null, hit: true, after: null };
+        case 'conversion':
+            p.buffs = p.buffs.filter((b) => b.factor >= 1);
+            for (const attr of ['pace', 'dribble', 'shooting', 'passing', 'tackling'] as AttrKey[]) {
+                p.buffs.push({ attr, factor: 1.08, timer: 10 });
+            }
+            return { target: null, hit: true, after: null };
+        case 'disable': {
+            const target = nearestOpponent(s, p, 6);
+            if (!target) return { target, hit: false, after: null };
+            if (protect(s, target, p, 'special')) return { target, hit: false, after: null };
+            // trava o golpe mais forte que ele ainda tem
+            const slots = target.inst.moves
+                .map((m, i) => ({ i, str: moveProfile(m).strength }))
+                .filter(({ i }) => target.moveUses[i] > 0)
+                .sort((a, b) => b.str - a.str);
+            if (!slots.length) return { target, hit: false, after: null };
+            target.moveUses[slots[0].i] = 0;
+            return { target, hit: true, after: null };
+        }
+        case 'roar':
+        case 'whirlwind': {
+            const near = s.players.filter((o) => o.team !== p.team && dist(o.pos, p.pos) < 4.5);
+            for (const o of near) {
+                if (protect(s, o, p, 'special')) continue;
+                knockback(s, o, p, moveId === 'roar' ? 2 : 2.8, moveId);
+                if (moveId === 'roar') o.stun = Math.max(o.stun, 0.6);
+            }
+            return { target: near[0] ?? null, hit: near.length > 0, after: null };
+        }
+        case 'splash':
+            // só um pulinho... mas difícil de desarmar por um instante
+            p.evade = Math.max(p.evade, 1.5);
+            return { target: null, hit: true, after: null };
+        case 'transform': {
+            const target = nearestOpponent(s, p, 8);
+            if (!target) return { target, hit: false, after: null };
+            for (const attr of Object.keys(p.attr) as AttrKey[]) {
+                const ratio = target.attr[attr] / Math.max(1, p.attr[attr]);
+                if (ratio > 1.02) p.buffs.push({ attr, factor: Math.min(1.6, ratio), timer: 12 });
+            }
+            return { target, hit: true, after: null };
+        }
         case 'teleport': {
             // some e reaparece: para a frente se o time ataca, para trás se defende
             const attacking = s.ball.owner !== null && s.players[s.ball.owner].team === p.team;

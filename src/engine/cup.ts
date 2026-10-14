@@ -21,7 +21,7 @@ export const CLUBS: ClubTemplate[] = [
         types: ['Rock', 'Ground'],
         tactic: 'defensive',
         color: 0x9c7b4a,
-        formation: '3-1',
+        formation: 'ferrolho',
     },
     {
         name: 'Cerulean Cascata',
@@ -37,7 +37,7 @@ export const CLUBS: ClubTemplate[] = [
         types: ['Electric'],
         tactic: 'counter',
         color: 0xf2c53d,
-        formation: '2-2',
+        formation: '1-1-2',
     },
     {
         name: 'Celadon Arco-Íris',
@@ -61,7 +61,7 @@ export const CLUBS: ClubTemplate[] = [
         types: ['Psychic'],
         tactic: 'offensive',
         color: 0xe85d9e,
-        formation: '1-2-1',
+        formation: '4-0',
     },
     {
         name: 'Cinnabar Vulcão',
@@ -69,7 +69,7 @@ export const CLUBS: ClubTemplate[] = [
         types: ['Fire'],
         tactic: 'offensive',
         color: 0xe8553a,
-        formation: '2-2',
+        formation: '1-1-2',
     },
     {
         name: 'Viridian Terra',

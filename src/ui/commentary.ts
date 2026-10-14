@@ -17,6 +17,20 @@ export interface CommentLine {
     team: 0 | 1 | null;
 }
 
+/** Narração dos golpes especiais que não têm evento próprio. */
+const SPECIAL_LINE: Record<string, (who: string, target: string, hit: boolean) => string> = {
+    bide: (w) => `${w} usa Bide e se segura para o próximo carrinho!`,
+    rage: (w) => `${w} fica com RAIVA! Chute e força lá em cima!`,
+    conversion: (w) => `${w} usa Conversion e se adapta ao jogo!`,
+    disable: (w, t, hit) => (hit ? `${w} usa Disable: ${t} perdeu um golpe!` : `${w} usa Disable... não pegou.`),
+    roar: (w, _t, hit) => (hit ? `${w} RUGE e espanta todo mundo em volta!` : `${w} ruge para o nada.`),
+    whirlwind: (w, _t, hit) =>
+        hit ? `${w} usa Whirlwind: a ventania joga os rivais longe!` : `${w} usa Whirlwind no vazio.`,
+    splash: (w) => `${w} usa Splash! ...quase nada acontece, mas fica difícil de pegar.`,
+    transform: (w, t, hit) =>
+        hit ? `${w} usa Transform e copia o melhor de ${t}!` : `${w} tenta Transform, mas não tem ninguém perto.`,
+};
+
 const STATUS_PT: Record<string, string> = {
     par: 'paralisado',
     slp: 'dormindo',
@@ -176,7 +190,9 @@ export class Commentator {
                                       ? e.hit
                                           ? null
                                           : line(`${who} usa Leech Seed... não pegou.`, 'minor', team)
-                                      : null;
+                                      : SPECIAL_LINE[e.moveId]
+                                        ? line(SPECIAL_LINE[e.moveId](who, this.n(e.target), e.hit), 'normal', team)
+                                        : null;
                     case 'flavor':
                         return e.moveId === 'splash'
                             ? line(`${who} usa Splash! ...mas nada acontece.`, 'normal', team)

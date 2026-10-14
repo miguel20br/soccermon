@@ -10,7 +10,7 @@ const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 const CONFETTI_COLORS = ['#ffd447', '#e8423f', '#3a8ee6', '#7dff8a', '#ff8fc8', '#ffffff'];
 
 /** Confete caindo uma vez (vitória e título). Posições fixas por índice: nada de aleatório a cada render. */
-function Confetti({ count }: { count: number }) {
+export function Confetti({ count }: { count: number }) {
     return (
         <div className="rh-confetti" aria-hidden>
             {Array.from({ length: count }, (_, i) => {

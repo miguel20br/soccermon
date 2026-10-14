@@ -10,7 +10,7 @@ import { AWAY_C, HOME_C } from './StatsCharts';
  */
 type P = StageStats['players'][number];
 
-interface Agg {
+export interface Agg {
     uid: string;
     speciesId: number;
     name: string;
@@ -29,7 +29,7 @@ interface Agg {
     ratingSum: number;
 }
 
-function aggregate(results: StageResult[]): Agg[] {
+export function aggregate(results: StageResult[]): Agg[] {
     const map = new Map<string, Agg>();
     for (const r of results) {
         for (const p of r.stats?.players ?? []) {
@@ -78,7 +78,7 @@ function aggregate(results: StageResult[]): Agg[] {
 }
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
-const avg = (a: Agg) => (a.games ? a.ratingSum / a.games : 0);
+export const avg = (a: Agg) => (a.games ? a.ratingSum / a.games : 0);
 
 /** Gols feitos (vermelho) e sofridos (azul) por partida. */
 function GoalsChart({ results }: { results: StageResult[] }) {

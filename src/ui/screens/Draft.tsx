@@ -11,6 +11,7 @@ import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
 import { LinkChip, LinkChips, newLinks } from '../components/LinkChips';
 import { TypeBadge } from '../components/PokeCard';
+import { ratingAt } from '../rating';
 
 /** Desenho mini da formação (bolinhas nas posições da UI). */
 function FormationDiagram({ id }: { id: FormationId }) {
@@ -199,9 +200,24 @@ export function Draft() {
                                             ))}
                                         </div>
                                     )}
+                                    {!isCaptain &&
+                                        role &&
+                                        role !== 'ANY' &&
+                                        (() => {
+                                            // a carta mostra a posição principal; aqui o aviso de que ele também joga na vaga
+                                            const r = ratingAt(o, role);
+                                            return (
+                                                <div className={`option-fit ${r.fit}`}>
+                                                    {r.fit === 'main'
+                                                        ? `${POSITION_LABEL[role]} de origem`
+                                                        : r.fit === 'alt'
+                                                          ? `Também joga de ${POSITION_LABEL[role]} · ${r.display}`
+                                                          : `Improvisado de ${POSITION_LABEL[role]} · ${r.display}`}
+                                                </div>
+                                            );
+                                        })()}
                                     <FutCard
                                         inst={o}
-                                        position={role && role !== 'ANY' ? role : undefined}
                                         captain={isCaptain}
                                         selected={selected === o.uid}
                                         action={{

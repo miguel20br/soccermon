@@ -1,11 +1,17 @@
-import { useState } from 'react';
+import { type CSSProperties, useState } from 'react';
+import { CUP_STAGES } from '../../engine/cup';
 import { weeklyEventType } from '../../engine/specials';
 import { seedFromUrl, useGame } from '../../store/game-store';
 import { AccountBar } from '../components/AccountBar';
+import { MenuIcon } from '../components/MenuIcon';
+import { cardSprite } from '../components/PokeCard';
+import { Trophy } from '../components/Trophy';
 import { TypeIcon } from '../components/TypeIcon';
+import { PATCH_NOTES } from '../patch-notes';
 import { TYPE_PT } from '../type-colors';
 
-const PARADE = [1, 4, 7, 25, 133, 143, 150];
+/** Quem corre pela quadra do topo (atrás da bola). */
+const PARADE = [25, 4, 7, 1, 133, 143, 150];
 
 /** O que vem por aí (só vitrine: nada disso é clicável ainda). */
 const SOON = [
@@ -18,6 +24,7 @@ const SOON = [
 export function Home() {
     const { run, newRun, go, records } = useGame();
     const [teamName, setTeamName] = useState('Pallet FC');
+    const [notesOpen, setNotesOpen] = useState(false);
     const challengeSeed = seedFromUrl();
     const inProgress = run && !['eliminated', 'champion'].includes(run.status);
     const resumeScreen =
@@ -34,40 +41,60 @@ export function Home() {
         else newRun(name(), seed);
     };
     const eventType = weeklyEventType(new Date());
+    const byUid = new Map(run?.picks.map((p) => [p.uid, p]) ?? []);
+    const squad = run ? run.lineup.flatMap((u) => byUid.get(u) ?? []) : [];
+    const runStep =
+        run && ['formation', 'captain', 'drafting'].includes(run.status)
+            ? `Draft · escolha ${Math.min(run.draftRound + 1, 7)} de 7`
+            : run?.status === 'reward'
+              ? 'Escolhendo a recompensa'
+              : run
+                ? CUP_STAGES[run.stage]
+                : '';
+    const openLab = (q: string) => {
+        window.location.search = q;
+    };
 
     return (
         <div className="home">
-            <div>
+            <div className="home-top">
+                <div className="event-banner">
+                    <TypeIcon type={eventType} size={28} />
+                    <div>
+                        <b>Semana do tipo {TYPE_PT[eventType] ?? eventType}</b>
+                        <span>Cartas Evento do tipo {TYPE_PT[eventType] ?? eventType} podem aparecer no draft.</span>
+                    </div>
+                </div>
+                <AccountBar />
+            </div>
+
+            <section className="home-hero">
+                <div className="home-court" aria-hidden>
+                    <i className="hc-mid" />
+                    <i className="hc-circle" />
+                    <i className="hc-area left" />
+                    <i className="hc-area right" />
+                    <div className="home-parade">
+                        <span className="hp-ball" />
+                        {PARADE.map((id, i) => (
+                            <img
+                                key={id}
+                                className="pixel"
+                                src={`assets/cards/${id}.gif`}
+                                alt=""
+                                style={{ '--i': i } as CSSProperties}
+                            />
+                        ))}
+                    </div>
+                </div>
                 <h1 className="logo">SOCCERMON</h1>
                 <p className="tagline">
                     Monte seu time com os 151 de Kanto num draft “escolha 1 de 3” e dispute a Copa de Futsal contra os
                     ginásios.
                 </p>
-            </div>
-            <div className="home-parade" aria-hidden>
-                {PARADE.map((id) => (
-                    <img key={id} className="pixel" src={`assets/cards/${id}.gif`} alt="" />
-                ))}
-            </div>
-            <div className="event-banner">
-                <TypeIcon type={eventType} size={28} />
-                <div>
-                    <b>Semana do tipo {TYPE_PT[eventType] ?? eventType}</b>
-                    <span>Cartas Evento do tipo {TYPE_PT[eventType] ?? eventType} podem aparecer no draft.</span>
-                </div>
-            </div>
-            <AccountBar />
+            </section>
+
             <div className="menu panel">
-                <label className="muted" htmlFor="team-name">
-                    Nome do seu time
-                </label>
-                <input
-                    id="team-name"
-                    className="team-name-input"
-                    value={teamName}
-                    maxLength={22}
-                    onChange={(e) => setTeamName(e.target.value)}
-                />
                 {confirm !== undefined ? (
                     <div className="confirm-new">
                         <p>
@@ -88,82 +115,155 @@ export function Home() {
                     </div>
                 ) : (
                     <>
-                        {inProgress && (
-                            <button type="button" className="btn primary" onClick={() => go(resumeScreen)}>
-                                Continuar ({run.teamName})
+                        {inProgress && run && (
+                            <button type="button" className="resume-card" onClick={() => go(resumeScreen)}>
+                                <span className="rc-label">Copa em andamento</span>
+                                <b className="rc-team">{run.teamName}</b>
+                                <span className="rc-step">{runStep}</span>
+                                <span className="rc-path" title="Fases da copa">
+                                    {CUP_STAGES.map((st, i) => {
+                                        const r = run.results.find((x) => x.stage === i);
+                                        const cls = r ? (r.won ? 'won' : 'lost') : i === run.stage ? 'now' : '';
+                                        return <i key={st} className={cls} />;
+                                    })}
+                                </span>
+                                {squad.length > 0 && (
+                                    <span className="rc-squad">
+                                        {squad.map((p) => (
+                                            <img key={p.uid} className="pixel" src={cardSprite(p)} alt="" />
+                                        ))}
+                                    </span>
+                                )}
+                                <span className="btn primary rc-go">Continuar ▶</span>
                             </button>
                         )}
+                        <label className="muted" htmlFor="team-name">
+                            {inProgress ? 'Ou comece outra copa' : 'Nome do seu time'}
+                        </label>
+                        <div className="new-run">
+                            <input
+                                id="team-name"
+                                className="team-name-input"
+                                value={teamName}
+                                maxLength={22}
+                                onChange={(e) => setTeamName(e.target.value)}
+                            />
+                            <button
+                                type="button"
+                                className={`btn ${inProgress ? 'ghost' : 'primary'} big`}
+                                onClick={() => start()}
+                            >
+                                Nova copa
+                            </button>
+                        </div>
                         {challengeSeed && (
                             <button type="button" className="btn yellow" onClick={() => start(challengeSeed)}>
                                 Aceitar desafio ({challengeSeed})
                             </button>
                         )}
-                        <button
-                            type="button"
-                            className={`btn ${inProgress ? 'ghost' : 'primary'}`}
-                            onClick={() => start()}
-                        >
-                            Nova copa
-                        </button>
                     </>
                 )}
-                {records.cups > 0 && (
-                    <div className="records">
+            </div>
+
+            {records.cups > 0 && (
+                <div className="records">
+                    <span className="rec-titles">
+                        <Trophy size={30} />
+                        <b>{records.titles}</b> {records.titles === 1 ? 'título' : 'títulos'}
+                    </span>
+                    <span>
+                        <b>{records.cups}</b> copas
+                    </span>
+                    <span>
+                        <b>{records.perfect}</b> perfeitas
+                    </span>
+                    {(records.destaques ?? 0) > 0 && (
                         <span>
-                            <b>{records.cups}</b> copas
+                            <b>{records.destaques}</b> destaques
                         </span>
+                    )}
+                    {(records.evolucoes ?? 0) > 0 && (
                         <span>
-                            <b>{records.titles}</b> 🏆
+                            <b>{records.evolucoes}</b> evoluções
                         </span>
+                    )}
+                    {(records.icones ?? 0) > 0 && (
                         <span>
-                            <b>{records.perfect}</b> perfeitas
+                            <b>{records.icones}</b> ícones
                         </span>
-                        {(records.destaques ?? 0) > 0 && (
-                            <span>
-                                <b>{records.destaques}</b> destaques
-                            </span>
-                        )}
-                        {(records.evolucoes ?? 0) > 0 && (
-                            <span>
-                                <b>{records.evolucoes}</b> evoluções
-                            </span>
-                        )}
-                        {(records.icones ?? 0) > 0 && (
-                            <span>
-                                <b>{records.icones}</b> ícones
-                            </span>
-                        )}
-                    </div>
-                )}
-                <div className="row" style={{ justifyContent: 'center' }}>
-                    <button type="button" className="btn ghost small" onClick={() => go('settings')}>
-                        Configurações
-                    </button>
-                    <button type="button" className="btn ghost small" onClick={() => go('credits')}>
-                        Créditos
-                    </button>
-                    <button
-                        type="button"
-                        className="btn ghost small"
-                        onClick={() => {
-                            window.location.search = '?lab=golpes';
-                        }}
-                    >
-                        Golpes
-                    </button>
-                    {import.meta.env.DEV && (
-                        <button
-                            type="button"
-                            className="btn ghost small"
-                            onClick={() => {
-                                window.location.search = '?cards=1';
-                            }}
-                        >
-                            Cartas (teste)
-                        </button>
                     )}
                 </div>
-            </div>
+            )}
+
+            <nav className="home-tiles" aria-label="Menu">
+                <button type="button" className="home-tile" onClick={() => openLab('?lab=golpes')}>
+                    <MenuIcon kind="moves" />
+                    <b>Golpes</b>
+                    <span>A animação de todos os 164</span>
+                </button>
+                <button type="button" className="home-tile" onClick={() => setNotesOpen(true)}>
+                    <MenuIcon kind="news" />
+                    <b>Novidades</b>
+                    <span>O que mudou na versão {PATCH_NOTES[0].version}</span>
+                    <em className="tile-badge">v{PATCH_NOTES[0].version}</em>
+                </button>
+                <button type="button" className="home-tile" onClick={() => go('settings')}>
+                    <MenuIcon kind="settings" />
+                    <b>Configurações</b>
+                    <span>Som, gritos e efeitos</span>
+                </button>
+                <button type="button" className="home-tile" onClick={() => go('credits')}>
+                    <MenuIcon kind="credits" />
+                    <b>Créditos</b>
+                    <span>Sprites, sons e dados</span>
+                </button>
+                {import.meta.env.DEV && (
+                    <button type="button" className="home-tile dev" onClick={() => openLab('?cards=1')}>
+                        <MenuIcon kind="cards" />
+                        <b>Cartas (teste)</b>
+                        <span>Galeria de desenvolvimento</span>
+                    </button>
+                )}
+            </nav>
+            {notesOpen && (
+                // biome-ignore lint/a11y/noStaticElementInteractions: clicar fora fecha; o botão fecha pelo teclado
+                <div className="modal-backdrop" onClick={() => setNotesOpen(false)} role="presentation">
+                    {/* biome-ignore lint/a11y/useKeyWithClickEvents: só impede que o clique dentro feche */}
+                    <div
+                        className="modal panel patch-notes"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Novidades"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            type="button"
+                            className="modal-close"
+                            onClick={() => setNotesOpen(false)}
+                            aria-label="Fechar"
+                        >
+                            ×
+                        </button>
+                        {PATCH_NOTES.map((n) => (
+                            <div key={n.version}>
+                                <h2>
+                                    Versão {n.version} · {n.title}
+                                </h2>
+                                {n.sections.map((sec) => (
+                                    <div key={sec.title}>
+                                        <h3>{sec.title}</h3>
+                                        <ul>
+                                            {sec.lines.map((l) => (
+                                                <li key={l}>{l}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
             <section className="soon" aria-label="Em breve">
                 <h2>Em breve</h2>
                 <div className="soon-grid">

@@ -10,6 +10,7 @@ import {
 } from '../../engine/match-stats';
 import { matchMvp } from '../../engine/mvp';
 import { isPerfectCup, useGame } from '../../store/game-store';
+import { ChampionView } from '../components/ChampionView';
 import { FutCard } from '../components/FutCard';
 import { cardSprite } from '../components/PokeCard';
 import { ResultHero } from '../components/ResultHero';
@@ -86,40 +87,47 @@ export function Result() {
         );
     };
 
+    const actions = (
+        <>
+            {perfect && !champion && <div className="perfect-badge">★ COPA PERFEITA ★</div>}
+            <div className="row" style={{ justifyContent: 'center' }}>
+                {eliminated || champion ? (
+                    <>
+                        <button type="button" className="btn yellow" onClick={share}>
+                            Compartilhar
+                        </button>
+                        <button type="button" className="btn primary" onClick={() => newRun(run.teamName)}>
+                            Nova copa
+                        </button>
+                        <button type="button" className="btn ghost" onClick={advance}>
+                            Menu
+                        </button>
+                    </>
+                ) : (
+                    <button type="button" className="btn primary big" onClick={advance}>
+                        Escolher recompensa →
+                    </button>
+                )}
+            </div>
+            {shared && <div className="muted">{shared}</div>}
+        </>
+    );
+
     return (
         <>
-            <ResultHero
-                run={run}
-                match={match}
-                opponent={opponent}
-                names={names}
-                mvpUid={ourStar?.uid ?? null}
-                actions={
-                    <>
-                        {perfect && <div className="perfect-badge">★ COPA PERFEITA ★</div>}
-                        <div className="row" style={{ justifyContent: 'center' }}>
-                            {eliminated || champion ? (
-                                <>
-                                    <button type="button" className="btn yellow" onClick={share}>
-                                        Compartilhar
-                                    </button>
-                                    <button type="button" className="btn primary" onClick={() => newRun(run.teamName)}>
-                                        Nova copa
-                                    </button>
-                                    <button type="button" className="btn ghost" onClick={advance}>
-                                        Menu
-                                    </button>
-                                </>
-                            ) : (
-                                <button type="button" className="btn primary big" onClick={advance}>
-                                    Escolher recompensa →
-                                </button>
-                            )}
-                        </div>
-                        {shared && <div className="muted">{shared}</div>}
-                    </>
-                }
-            />
+            {champion ? (
+                <ChampionView run={run} actions={actions} />
+            ) : (
+                <ResultHero
+                    run={run}
+                    match={match}
+                    opponent={opponent}
+                    names={names}
+                    mvpUid={ourStar?.uid ?? null}
+                    actions={actions}
+                />
+            )}
+            {champion && <h2 className="champ-h champ-final-h">A final em detalhes</h2>}
 
             <div className="two-col">
                 <div className="panel">

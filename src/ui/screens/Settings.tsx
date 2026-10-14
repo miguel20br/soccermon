@@ -1,14 +1,16 @@
 import { playCry, playSfx, setVolume } from '../../game/audio';
 import { useGame } from '../../store/game-store';
+import { MenuHead } from '../components/MenuHead';
 
 export function Settings() {
     const { settings, updateSettings, go } = useGame();
     return (
-        <div className="panel prose">
-            <h2>Configurações</h2>
-            <div className="setting">
-                <h3>Gritos dos Pokémon</h3>
-                <div className="row">
+        <div className="menu-screen">
+            <MenuHead title="Configurações" icon="settings" onBack={() => go('home')} />
+            <section className="panel setting-card">
+                <h2>Gritos dos Pokémon</h2>
+                <p>Os gritos tocam quando um Pokémon entra em campo, marca ou evolui.</p>
+                <div className="segmented">
                     <button
                         type="button"
                         className={`btn small${settings.cries === 'legacy' ? ' active' : ''}`}
@@ -30,29 +32,32 @@ export function Settings() {
                         Modernos
                     </button>
                 </div>
-            </div>
-            <div className="setting">
-                <h3>Volume: {Math.round(settings.volume * 100)}%</h3>
-                <input
-                    type="range"
-                    min={0}
-                    max={1}
-                    step={0.05}
-                    value={settings.volume}
-                    onChange={(e) => {
-                        const volume = Number(e.target.value);
-                        updateSettings({ volume });
-                        setVolume(volume);
-                    }}
-                    onMouseUp={() => playSfx('kick')}
-                />
-            </div>
-            <div className="setting">
-                <h3>Efeitos cinematográficos</h3>
-                <p className="tactic-desc" style={{ margin: 0 }}>
-                    Holofote e câmera lenta nos golpes, gols, defesas e bolas na trave.
-                </p>
-                <div className="row">
+            </section>
+            <section className="panel setting-card">
+                <h2>Volume</h2>
+                <div className="volume-row">
+                    <input
+                        aria-label="Volume"
+                        type="range"
+                        min={0}
+                        max={1}
+                        step={0.05}
+                        value={settings.volume}
+                        onChange={(e) => {
+                            const volume = Number(e.target.value);
+                            updateSettings({ volume });
+                            setVolume(volume);
+                        }}
+                        onMouseUp={() => playSfx('kick')}
+                        onTouchEnd={() => playSfx('kick')}
+                    />
+                    <b>{Math.round(settings.volume * 100)}%</b>
+                </div>
+            </section>
+            <section className="panel setting-card">
+                <h2>Efeitos cinematográficos</h2>
+                <p>Holofote e câmera lenta nos golpes, gols, defesas e bolas na trave.</p>
+                <div className="segmented">
                     <button
                         type="button"
                         className={`btn small${settings.cinematic ? ' active' : ''}`}
@@ -68,10 +73,7 @@ export function Settings() {
                         Desligados (jogo corrido)
                     </button>
                 </div>
-            </div>
-            <button type="button" className="btn" onClick={() => go('home')}>
-                Voltar
-            </button>
+            </section>
         </div>
     );
 }

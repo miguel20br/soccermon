@@ -78,7 +78,9 @@ export class AIController implements Controller {
                 const danger = toRel(s, team, carrier.pos).x < 20;
                 if (fixo && danger && dist(fixo.pos, carrier.pos) < 8) {
                     ctx.presser[team] = fixo.idx;
-                    ctx.cover[team] = sorted.find((p) => p.idx !== fixo.idx)?.idx ?? null;
+                    // com mais de um fixo (Ferrolho, Quadrado), o segundo fixo é quem faz a cobertura
+                    const fixo2 = sorted.find((p) => p.role === 'FIXO' && p.idx !== fixo.idx);
+                    ctx.cover[team] = (fixo2 ?? sorted.find((p) => p.idx !== fixo.idx))?.idx ?? null;
                 } else {
                     ctx.presser[team] = sorted[0]?.idx ?? null;
                     ctx.cover[team] = sorted[1]?.idx ?? null;
@@ -185,7 +187,7 @@ export class AIController implements Controller {
         }
 
         // 1b) bomba de longe do Fixo: com espaço na intermediária, ele arrisca
-        if (p.role === 'FIXO' && distGoal >= 10 && distGoal < 22 && pressure < 0.45) {
+        if (this.leadFixo(p) && distGoal >= 10 && distGoal < 22 && pressure < 0.45) {
             if (s.rng.chance(0.3 + shootingSkill * 0.25)) {
                 const cmds: Command[] = [];
                 const slot = this.pickMoveSlot(p, ['blast', 'strike'], 0.3);
@@ -374,7 +376,15 @@ export class AIController implements Controller {
             const copy = this.pickSpecial(p, ['mirrormove', 'mimic'], 0.005);
             if (copy !== null) return copy;
         }
-        const wild = this.pickSpecial(p, ['metronome', 'mist'], 0.003);
+        if (near < 4) {
+            const push = this.pickSpecial(p, ['roar', 'whirlwind', 'disable'], 0.008);
+            if (push !== null) return push;
+        }
+        const wild = this.pickSpecial(
+            p,
+            ['metronome', 'mist', 'bide', 'rage', 'conversion', 'transform', 'splash'],
+            0.004,
+        );
         if (wild !== null) return wild;
         return this.pickMoveSlot(p, ['buff', 'flavor'], 0.003);
     }
@@ -483,15 +493,21 @@ export class AIController implements Controller {
         const ballRel = toRel(s, team, s.ball.pos);
         const { length, width } = s.cfg.pitch;
         let xr = base[0] * (length / 40) + (attacking ? tactic.attack : tactic.defend);
-        if (p.role === 'PIVO') xr += tactic.pivotHold;
+        // com dois pivôs, só o da vaga 4 fica plantado lá na frente
+        if (p.role === 'PIVO' && p.slot === 4) xr += tactic.pivotHold;
         // Fixo sobe até a intermediária quando o time ataca no campo rival (opção de passe e de chute de longe)
-        if (p.role === 'FIXO' && attacking && ballRel.x > length / 2) xr += 6;
+        if (this.leadFixo(p) && attacking && ballRel.x > length / 2) xr += 6;
         xr += (ballRel.x - length / 2) * 0.35;
         const y = (base[1] / 20) * width + (s.ball.pos.y - width / 2) * 0.25;
         return toWorld(s, team, clamp(xr, 2, length - 2), clamp(y, 1, width - 1));
     }
 
     // ------------------------------------------------------------ utilitários
+    /** O fixo que sobe (com mais de um fixo, como no Ferrolho, só o primeiro da formação; os outros guardam). */
+    private leadFixo(p: PlayerState) {
+        return p.role === 'FIXO' && this.s.teams[p.team].formation.slots.indexOf('FIXO') === p.slot;
+    }
+
     private moveTo(p: PlayerState, target: Vec2, urgent: boolean): Command {
         const delta = sub(target, p.pos);
         const d = len(delta);
