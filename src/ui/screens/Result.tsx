@@ -1,24 +1,51 @@
 import { useState } from 'react';
 import { species } from '../../engine/data';
+import {
+    dangerByPeriod,
+    leaders,
+    playerLines,
+    possessionByPeriod,
+    shotMap,
+    teamTotals,
+} from '../../engine/match-stats';
 import { matchMvp } from '../../engine/mvp';
-import type { PlayerSummary } from '../../engine/runners/batch-runner';
 import { isPerfectCup, stageLabel, useGame } from '../../store/game-store';
 import { FutCard } from '../components/FutCard';
 import { cardSprite } from '../components/PokeCard';
 import { shareRun } from '../share';
+import { CupStats } from '../stats/CupStats';
+import { PlayerTable } from '../stats/PlayerTable';
+import {
+    AWAY_C,
+    CompareRows,
+    DangerChart,
+    HOME_C,
+    PossessionChart,
+    ShotMapChart,
+    TeamLegend,
+} from '../stats/StatsCharts';
+
+type Tab = 'times' | 'jogadores' | 'graficos' | 'copa';
+const TABS: { id: Tab; label: string }[] = [
+    { id: 'times', label: 'Times' },
+    { id: 'jogadores', label: 'Jogadores' },
+    { id: 'graficos', label: 'Gráficos' },
+    { id: 'copa', label: 'Copa' },
+];
+const pctOf = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 
 export function Result() {
     const { run, match, advance, newRun } = useGame();
     const [shared, setShared] = useState<string | null>(null);
+    // fim da copa: abre direto no resumo da copa
+    const [tab, setTab] = useState<Tab>(() =>
+        run && ['eliminated', 'champion'].includes(run.status) ? 'copa' : 'times',
+    );
     if (!run || !match) return null;
     const opponent = run.opponents[run.stage];
     const names: [string, string] = [run.teamName, opponent.name];
     const won = match.winner === 0;
 
-    // estatísticas somam quem começou e quem entrou
-    const everyone = [...match.finalRoster, ...(match.subbedOut ?? [])];
-    const sum = (team: 0 | 1, key: keyof PlayerSummary['stats']) =>
-        everyone.filter((p) => p.team === team).reduce((s, p) => s + p.stats[key], 0);
     const mvp = matchMvp(match);
     const stageResult = run.results.find((r) => r.stage === run.stage);
     const destaque = stageResult?.destaqueUid ? run.picks.find((p) => p.uid === stageResult.destaqueUid) : null;
@@ -36,15 +63,11 @@ export function Result() {
         return sub && sub.type === 'sub' ? sub.in : match.roster[idx].name;
     };
 
-    const rows: [string, (t: 0 | 1) => string][] = [
-        ['Posse de bola', (t) => `${Math.round(match.possession[t] * 100)}%`],
-        ['Chutes', (t) => String(sum(t, 'shots'))],
-        ['No gol', (t) => String(sum(t, 'shotsOnTarget'))],
-        ['Defesas', (t) => String(sum(t, 'saves'))],
-        ['Passes certos', (t) => `${sum(t, 'passesCompleted')}/${sum(t, 'passes')}`],
-        ['Desarmes', (t) => String(sum(t, 'tacklesWon'))],
-        ['Golpes usados', (t) => String(sum(t, 'movesUsed'))],
-    ];
+    // estatísticas detalhadas (src/ui/stats/match-stats.ts)
+    const lines = playerLines(match);
+    const totals = [teamTotals(lines, 0), teamTotals(lines, 1)] as const;
+    const danger = dangerByPeriod(match);
+    const leaderList = leaders(lines);
 
     const champion = run.status === 'champion';
     const eliminated = run.status === 'eliminated';
@@ -101,25 +124,26 @@ export function Result() {
 
             <div className="two-col">
                 <div className="panel">
-                    <h2>Estatísticas</h2>
-                    <table className="stats-table">
-                        <thead>
-                            <tr>
-                                <th>{names[0]}</th>
-                                <th />
-                                <th>{names[1]}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {rows.map(([label, f]) => (
-                                <tr key={label}>
-                                    <td>{f(0)}</td>
-                                    <th>{label}</th>
-                                    <td>{f(1)}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    <h2>Destaques da partida</h2>
+                    <div className="st-leaders">
+                        {leaderList.map((l) => (
+                            <div key={l.title} className="st-leader">
+                                <img
+                                    className="pixel"
+                                    src={cardSprite({ speciesId: l.line.speciesId, shiny: false })}
+                                    alt=""
+                                />
+                                <div>
+                                    <span className="muted">{l.title}</span>
+                                    <b>{l.line.name}</b>
+                                    <small>
+                                        <i style={{ background: l.line.team === 0 ? HOME_C : AWAY_C }} />
+                                        {names[l.line.team]} · {l.value}
+                                    </small>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
                 <div className="panel">
                     <h2>Gols</h2>
@@ -180,6 +204,90 @@ export function Result() {
                         </>
                     )}
                 </div>
+            </div>
+
+            <div className="panel st-panel">
+                <div className="st-tabs" role="tablist">
+                    {TABS.map((t) => (
+                        <button
+                            key={t.id}
+                            type="button"
+                            role="tab"
+                            aria-selected={tab === t.id}
+                            className={`btn small${tab === t.id ? ' active' : ''}`}
+                            onClick={() => setTab(t.id)}
+                        >
+                            {t.label}
+                        </button>
+                    ))}
+                </div>
+                {tab !== 'copa' && <TeamLegend names={names} />}
+                {tab === 'copa' && <CupStats results={run.results} />}
+                {tab === 'times' && (
+                    <CompareRows
+                        rows={[
+                            {
+                                label: 'Posse de bola',
+                                home: Math.round(match.possession[0] * 100),
+                                away: Math.round(match.possession[1] * 100),
+                                fmt: (v) => `${v}%`,
+                            },
+                            { label: 'Chutes', home: totals[0].shots, away: totals[1].shots },
+                            { label: 'Chutes no gol', home: totals[0].shotsOnTarget, away: totals[1].shotsOnTarget },
+                            {
+                                label: 'Perigo criado (chance de gol somada)',
+                                home: Math.round(danger.reduce((s, d) => s + d.home, 0) * 100) / 100,
+                                away: Math.round(danger.reduce((s, d) => s + d.away, 0) * 100) / 100,
+                                fmt: (v) => v.toFixed(2),
+                            },
+                            {
+                                label: 'Passes certos',
+                                home: totals[0].passesCompleted,
+                                away: totals[1].passesCompleted,
+                            },
+                            {
+                                label: 'Acerto de passe',
+                                home: pctOf(totals[0].passesCompleted, totals[0].passes),
+                                away: pctOf(totals[1].passesCompleted, totals[1].passes),
+                                fmt: (v) => `${v}%`,
+                            },
+                            { label: 'Desarmes', home: totals[0].tacklesWon, away: totals[1].tacklesWon },
+                            { label: 'Interceptações', home: totals[0].interceptions, away: totals[1].interceptions },
+                            { label: 'Defesas', home: totals[0].saves, away: totals[1].saves },
+                            { label: 'Golpes usados', home: totals[0].movesUsed, away: totals[1].movesUsed },
+                            {
+                                label: 'Distância percorrida',
+                                home: totals[0].distance,
+                                away: totals[1].distance,
+                                fmt: (v) => `${(v / 1000).toFixed(1)} km`,
+                            },
+                        ]}
+                    />
+                )}
+                {tab === 'jogadores' && <PlayerTable lines={lines} names={names} />}
+                {tab === 'graficos' && (
+                    <div className="st-charts">
+                        <div>
+                            <h3>Perigo por período</h3>
+                            <p className="muted st-sub">
+                                Soma da chance de gol dos chutes a cada 5 minutos (para cima: {names[0]}; para baixo:{' '}
+                                {names[1]}). A bolinha marca os gols.
+                            </p>
+                            <DangerChart data={danger} names={names} />
+                        </div>
+                        <div>
+                            <h3>Posse de bola por período</h3>
+                            <PossessionChart data={possessionByPeriod(match)} names={names} />
+                        </div>
+                        <div>
+                            <h3>Mapa de chutes</h3>
+                            <p className="muted st-sub">
+                                De onde saiu cada chute. {names[0]} ataca para a direita, {names[1]} para a esquerda.
+                            </p>
+                            <ShotMapChart shots={shotMap(match, nameAt)} />
+                        </div>
+                    </div>
+                )}
             </div>
         </>
     );

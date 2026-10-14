@@ -6,6 +6,7 @@ import { BENCH_SIZE, captainOptions, DRAFT_PICKS, draftOptions } from '../engine
 import { evolveInstance } from '../engine/evolution';
 import { DEFAULT_FORMATION, type FormationId, formationOf } from '../engine/formations';
 import type { PokemonInstance } from '../engine/instance';
+import { playerLines, teamTotals } from '../engine/match-stats';
 import { matchMvp, mvpScore } from '../engine/mvp';
 import { type Reward, rewardOptions } from '../engine/rewards';
 import { Rng } from '../engine/rng';
@@ -32,6 +33,33 @@ export interface StageResult {
     won: boolean;
     /** Craque do seu time que virou carta Destaque nesta partida. */
     destaqueUid?: string | null;
+    /** Resumo da partida para as estatísticas da copa (partidas antigas não têm). */
+    stats?: StageStats;
+}
+
+/** Resumo de uma partida guardado no run (o MatchResult inteiro é grande demais para salvar). */
+export interface StageStats {
+    possession: [number, number];
+    shots: [number, number];
+    shotsOnTarget: [number, number];
+    players: {
+        uid: string;
+        speciesId: number;
+        name: string;
+        role: string;
+        rating: number;
+        minutes: number;
+        distance: number;
+        goals: number;
+        assists: number;
+        shots: number;
+        passes: number;
+        passesCompleted: number;
+        tacklesWon: number;
+        interceptions: number;
+        saves: number;
+        movesUsed: number;
+    }[];
 }
 
 export type RunStatus = 'formation' | 'captain' | 'drafting' | 'lineup' | 'reward' | 'eliminated' | 'champion';
@@ -370,6 +398,8 @@ export const useGame = create<GameStore>()(
                         if (p.uid === destaqueUid) out = { ...out, special: { kind: 'destaque' as const } };
                         return out;
                     });
+                    const lines = playerLines(m);
+                    const totals = [teamTotals(lines, 0), teamTotals(lines, 1)];
                     const result: StageResult = {
                         stage: run.stage,
                         opponent: run.opponents[run.stage].name,
@@ -377,6 +407,31 @@ export const useGame = create<GameStore>()(
                         shootout: m.shootout,
                         won,
                         destaqueUid,
+                        stats: {
+                            possession: [m.possession[0], m.possession[1]],
+                            shots: [totals[0].shots, totals[1].shots],
+                            shotsOnTarget: [totals[0].shotsOnTarget, totals[1].shotsOnTarget],
+                            players: lines
+                                .filter((l) => l.team === 0)
+                                .map((l) => ({
+                                    uid: l.uid,
+                                    speciesId: l.speciesId,
+                                    name: l.name,
+                                    role: l.role,
+                                    rating: l.rating,
+                                    minutes: l.minutes,
+                                    distance: l.distance,
+                                    goals: l.stats.goals,
+                                    assists: l.stats.assists,
+                                    shots: l.stats.shots,
+                                    passes: l.stats.passes,
+                                    passesCompleted: l.stats.passesCompleted,
+                                    tacklesWon: l.stats.tacklesWon,
+                                    interceptions: l.stats.interceptions,
+                                    saves: l.stats.saves,
+                                    movesUsed: l.stats.movesUsed,
+                                })),
+                        },
                     };
                     const last = run.stage === CUP_STAGES.length - 1;
                     const status: RunStatus = !won ? 'eliminated' : last ? 'champion' : 'reward';

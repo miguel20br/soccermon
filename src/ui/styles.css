@@ -3088,3 +3088,273 @@ button,
         grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 }
+
+/* ---------- estatísticas (fim da partida / copa) ---------- */
+.st-panel {
+    display: grid;
+    gap: 12px;
+    margin-top: var(--gap);
+}
+.st-tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.st-legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--muted);
+}
+.st-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.st-legend i {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}
+.st-compare {
+    display: grid;
+    gap: 10px;
+}
+.st-compare-row {
+    display: grid;
+    grid-template-columns: 70px 1fr 70px;
+    align-items: center;
+    gap: 4px 8px;
+    font-size: 13px;
+}
+.st-compare-row span {
+    text-align: center;
+    color: var(--muted);
+}
+.st-compare-row b:last-of-type {
+    text-align: right;
+}
+.st-split {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 2px;
+    height: 8px;
+}
+.st-split i {
+    display: block;
+    height: 100%;
+    border-radius: 4px;
+    min-width: 2px;
+}
+.st-charts {
+    display: grid;
+    gap: 18px;
+}
+.st-charts h3 {
+    margin: 0 0 4px;
+}
+.st-sub {
+    margin: 0 0 6px;
+    font-size: 12px;
+}
+.st-chart {
+    position: relative;
+    width: 100%;
+    max-width: 640px;
+}
+.st-chart svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+.st-chart .st-legend.outcomes {
+    margin-top: 6px;
+}
+.st-tip {
+    position: absolute;
+    z-index: 2;
+    transform: translate(-50%, 0);
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: #0b0f26;
+    border: 1px solid var(--line);
+    font-size: 12px;
+    line-height: 1.35;
+    white-space: nowrap;
+    pointer-events: none;
+}
+.st-leaders {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+.st-leader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    background: var(--bg-2);
+}
+.st-leader img {
+    height: 40px;
+}
+.st-leader div {
+    display: grid;
+    min-width: 0;
+    font-size: 12px;
+}
+.st-leader b {
+    font-size: 14px;
+}
+.st-leader small {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--muted);
+}
+.st-leader small i {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+}
+.st-table-wrap {
+    display: grid;
+    gap: 8px;
+}
+.st-table-scroll {
+    overflow-x: auto;
+}
+.st-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    white-space: nowrap;
+}
+.st-table th,
+.st-table td {
+    padding: 5px 6px;
+    text-align: right;
+    border-bottom: 1px solid #2f3a6b;
+}
+.st-table th button {
+    background: none;
+    border: 0;
+    color: var(--muted);
+    font: inherit;
+    cursor: pointer;
+    padding: 0;
+}
+.st-table th button.on {
+    color: var(--text);
+}
+.st-table .st-name {
+    text-align: left;
+    position: sticky;
+    left: 0;
+    background: var(--panel);
+}
+.st-table td.st-name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.st-table td.st-name i {
+    width: 4px;
+    height: 28px;
+    border-radius: 2px;
+}
+.st-table td.st-name img {
+    height: 28px;
+}
+.st-table td.st-name span {
+    display: grid;
+}
+.st-table td.st-name small {
+    color: var(--muted);
+}
+.st-rating {
+    display: inline-block;
+    min-width: 32px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: 700;
+    color: #0b0f26;
+}
+.st-rating.top {
+    background: #4fd17a;
+}
+.st-rating.good {
+    background: #b6e35a;
+}
+.st-rating.ok {
+    background: #ffd447;
+}
+.st-rating.low {
+    background: #ff9a5c;
+}
+@media (max-width: 640px) {
+    .st-leaders {
+        grid-template-columns: 1fr;
+    }
+}
+.st-table td,
+.st-table td span {
+    color: var(--text);
+    text-transform: none;
+    font-weight: 400;
+}
+.st-table td.st-name small {
+    color: var(--muted);
+}
+.st-table td .st-rating {
+    color: #0b0f26;
+    font-weight: 700;
+}
+.cup-totals {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 8px;
+}
+.cup-totals div {
+    display: grid;
+    justify-items: center;
+    padding: 10px;
+    border-radius: 10px;
+    background: var(--bg-2);
+}
+.cup-totals b {
+    font-size: 28px;
+}
+.cup-totals span {
+    color: var(--muted);
+    font-size: 12px;
+}
+.cup-campaign {
+    display: grid;
+    gap: 6px;
+}
+.cup-match {
+    display: grid;
+    grid-template-columns: 130px 120px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-left: 4px solid;
+    border-radius: 8px;
+    background: var(--bg-2);
+    font-size: 13px;
+}
+.cup-match.won {
+    border-color: #4fd17a;
+}
+.cup-match.lost {
+    border-color: #ff7a7a;
+}
+@media (max-width: 640px) {
+    .cup-match {
+        grid-template-columns: 1fr auto;
+    }
+}

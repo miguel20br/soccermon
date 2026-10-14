@@ -9,6 +9,7 @@ import { FORMATIONS } from './formations';
 import { createInstance, viewInstance } from './instance';
 import { computeLinks } from './links';
 import { captainFactor, createMatch } from './match';
+import { playerLines, possessionByPeriod, shotMap } from './match-stats';
 import { applyModifiers, attributeModifiers } from './modifiers';
 import { defaultMoveset } from './moves';
 import { rewardOptions } from './rewards';
@@ -570,5 +571,22 @@ describe('bônus e penalidades (carta = campo)', () => {
             if (p.inst.ability === 'imposter') continue;
             expect(p.attr).toEqual(expected);
         }
+    });
+});
+
+describe('estatísticas da partida', () => {
+    it('notas entre 3 e 10, todo mundo correu, cada chute tem desfecho e a posse por período soma 100%', () => {
+        const r = runMatch(FUTSAL_5, team('st-a', 'A'), team('st-b', 'B'), 'st');
+        const lines = playerLines(r);
+        expect(lines.length).toBeGreaterThanOrEqual(10);
+        for (const l of lines) {
+            expect(l.rating).toBeGreaterThanOrEqual(3);
+            expect(l.rating).toBeLessThanOrEqual(10);
+            expect(l.distance).toBeGreaterThan(0);
+        }
+        const shots = shotMap(r, () => '');
+        expect(shots.length).toBe(r.events.filter((e) => e.type === 'shot').length);
+        expect(shots.filter((s) => s.outcome === 'gol').length).toBeLessThanOrEqual(r.score[0] + r.score[1]);
+        for (const p of possessionByPeriod(r)) expect(p.home + p.away).toBeCloseTo(1, 5);
     });
 });
