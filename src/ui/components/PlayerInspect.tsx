@@ -43,7 +43,7 @@ function snapAt(snaps: MatchSnapshot[], tick: number): MatchSnapshot {
     return snaps[lo];
 }
 
-/** Quem está na vaga `idx` no tick, com a forma atual (trocas e evoluções até ali). */
+/** Quem está na vaga `idx` no tick, com a forma atual (trocas, evoluções e Transformar do Ditto até ali). */
 function whoAt(m: MatchResult, setups: [TeamSetup, TeamSetup], idx: number, tick: number) {
     const team = m.roster[idx].team;
     let uid = m.roster[idx].uid;
@@ -58,14 +58,24 @@ function whoAt(m: MatchResult, setups: [TeamSetup, TeamSetup], idx: number, tick
     const setup = setups[team];
     let inst: PokemonInstance | undefined = [...setup.lineup, ...setup.bench].find((p) => p.uid === uid);
     let evolved = false;
+    let transformed = false;
     for (const e of m.events) {
         if (e.tick > tick) break;
         if (e.type === 'evolve' && e.uid === uid && inst) {
             inst = evolveInstance(inst, e.into);
             evolved = true;
         }
+        // Ditto (Transformar): mesma espécie, nível, golpes e habilidade de quem ele copiou naquele momento
+        // (match.ts: transformDittos já manda esse evento, só faltava a carta ouvir)
+        if (e.type === 'transform' && e.by === idx && e.tick >= since && inst) {
+            const copied = whoAt(m, setups, e.target, e.tick).inst;
+            if (copied) {
+                inst = { ...inst, speciesId: copied.speciesId, level: copied.level, moves: [...copied.moves], ability: copied.ability };
+                transformed = true;
+            }
+        }
     }
-    return { team, inst, since, evolved, role: m.roster[idx].role as Position };
+    return { team, inst, since, evolved, transformed, role: m.roster[idx].role as Position };
 }
 
 /** Escalação do time no tick (trocas e evoluções até ali): é por ela que o motor conta sinergias e capitão. */
@@ -216,7 +226,7 @@ export function PlayerInspect({
                             </span>
                             <b>{Math.round(energy * 100)}%</b>
                         </div>
-                        {target && !who.evolved && (
+                        {target && !who.evolved && !who.transformed && (
                             <div className="inspect-energy evo">
                                 <span>Evolução</span>
                                 <span className="bar">
@@ -225,12 +235,17 @@ export function PlayerInspect({
                                 <b>{evoPct}%</b>
                             </div>
                         )}
-                        {target && !who.evolved && (
+                        {target && !who.evolved && !who.transformed && (
                             <div className="muted inspect-note">
                                 Jogando bem para a posição, evolui para {species(target).name} na próxima bola parada.
                             </div>
                         )}
                         {who.evolved && <div className="muted inspect-note">Já evoluiu nesta partida.</div>}
+                        {who.transformed && !who.evolved && (
+                            <div className="muted inspect-note">
+                                Ditto (Transformar): virou {species(inst.speciesId).name} nesta partida e não evolui.
+                            </div>
+                        )}
                     </div>
                     <div className="inspect-right">
                         <h2>{inst.nickname ?? species(inst.speciesId).name}</h2>
