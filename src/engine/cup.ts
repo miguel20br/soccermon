@@ -3,6 +3,7 @@ import type { FormationId } from './formations';
 import { ITEM_IDS } from './items';
 import { Rng } from './rng';
 import type { Tactic, TeamSetup } from './state';
+import { equipRivalTms } from './tm';
 
 /** Adversários da copa: clubes temáticos de Kanto, cada um puxado para os tipos do ginásio. */
 export interface ClubTemplate {
@@ -100,7 +101,10 @@ export const CLUBS: ClubTemplate[] = [
 export const CUP_STAGES = ['Oitavas de final', 'Quartas de final', 'Semifinal', 'Final'];
 const STAGE_DIFFICULTY = [0, 1, 2, 3];
 
-/** Sorteia os 4 adversários da copa (a final é sempre contra a Liga Índigo). */
+/**
+ * Sorteia os 4 adversários da copa (a final é sempre contra a Liga Índigo). Cada clube entra com a MT do
+ * líder do ginásio em quem aprende (sorteio à parte, para não mudar os times da mesma seed).
+ */
 export function buildCupOpponents(seed: number | string): TeamSetup[] {
     const rng = new Rng(seed, 'cup');
     const gyms = rng.shuffle(CLUBS.filter((c) => c.city !== 'Indigo Plateau'));
@@ -111,10 +115,11 @@ export function buildCupOpponents(seed: number | string): TeamSetup[] {
         const itemCount = stage >= 3 ? 2 : stage >= 2 ? 1 : 0;
         const holders = rng.shuffle([...d.lineup]).slice(0, itemCount);
         for (const h of holders) h.item = rng.pick(ITEM_IDS);
+        const tmRng = new Rng(seed, `cup-tm-${stage}`);
         return {
             name: club.name,
-            lineup: d.lineup,
-            bench: d.bench,
+            lineup: equipRivalTms(tmRng, club.name, d.lineup),
+            bench: equipRivalTms(tmRng, club.name, d.bench),
             tactic: club.tactic,
             color: club.color,
             formation: club.formation,
