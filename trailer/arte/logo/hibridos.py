@@ -118,7 +118,7 @@ def explosao_cartas():
 
 
 # ============ I: Evolução (ideia nova) ============
-def evolucao():
+def evolucao(tagline=None, nome="i-evolucao.svg"):
     W, H = 1600, 760
     raios = "".join(
         f'<polygon points="800,380 {800 + math.cos(a - .05) * 1200:.0f},{380 + math.sin(a - .05) * 1200:.0f} '
@@ -157,10 +157,19 @@ def evolucao():
         for x, y, s in ((380, 210, 26), (560, 560, 18), (980, 200, 22), (1240, 560, 28), (1330, 250, 16), (690, 170, 14)))
     sub = (f'<text x="800" y="640" text-anchor="middle" font-family="Galmuri11, monospace" font-weight="700" font-size="40" '
            f'fill="{AMARELO}" letter-spacing="8">O QUÊ? O FUTSAL ESTÁ EVOLUINDO!</text>')
-    salvar("i-evolucao.svg", W, H, fundo + corpo + brilhos + sub, defs)
+    # tagline escolhida pelo Miguel: paródia do bordão do desenho ("Temos que pegar!" / "Gotta catch 'em all!")
+    sub = ""
+    if tagline:
+        sub = (f'<text x="800" y="650" text-anchor="middle" font-family="Galmuri11, monospace" font-weight="700" '
+               f'font-size="54" fill="{NAVY}" letter-spacing="6" transform="translate(5 6)">{tagline}</text>'
+               f'<text x="800" y="650" text-anchor="middle" font-family="Galmuri11, monospace" font-weight="700" '
+               f'font-size="54" fill="{AMARELO}" letter-spacing="6">{tagline}</text>')
+    salvar(nome, W, H, fundo + corpo + brilhos + sub, defs)
 
 
 arena_cartas()
 explosao_cartas()
 evolucao()
+evolucao("TEMOS QUE CHUTAR!", "i-evolucao-pt.svg")
+evolucao("GOTTA KICK 'EM ALL!", "i-evolucao-en.svg")
 print("ok: g-arena-cartas, h-explosao-cartas, i-evolucao")

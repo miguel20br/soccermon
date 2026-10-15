@@ -43,6 +43,16 @@ Cena 0 do storyboard, ~4 s, sem texto, em faixa de cinema (barras pretas em cima
 | 0d | ~1,2 s | **Zoom out** da bola até mostrar a quadra inteira com os dois times posicionados (quadro real do jogo no tick 0) |
 | 0e | — | **Apito** e corte pro gancho; a música entra aqui |
 
+## Logo e tagline (decididos 15/10/2026)
+
+- **Logo: "I · Evolução"** (`trailer/arte/logo/hibridos.py`, função `evolucao`): SOCCERMON no meio de uma
+  evolução, com os raios da tela de evolução atrás; "SOCC" em silhueta branca, "ERMON" dourado com volume, e o O é
+  uma **carta holográfica com a bola**. Letras construídas por código (sem fonte de terceiros).
+- **Tagline:** **"Temos que chutar!"** (PT) / **"Gotta kick 'em all!"** (EN), paródia do bordão do desenho.
+- Arquivos: `i-evolucao-pt.svg`, `i-evolucao-en.svg` (render: `node trailer/arte/logo/render-svg.mjs`).
+- Frases soltas pros posts/cenas: "O Snorlax fecha o gol", "O Ditto joga em todas as posições", "Até o Magikarp
+  pode ser titular", "Pikachu, eu escolho você… de pivô".
+
 ## Título (cartela final e abertura)
 
 O Miguel achou que a fonte do logo precisa mudar (15/10): o logo novo sai da skill `logo-design`
