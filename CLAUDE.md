@@ -89,6 +89,9 @@ Plano do trailer e dos posts de lançamento: [docs/planos/divulgacao-trailer.md]
 
 ### Pendente
 
+> 15/10/2026: o Miguel configurou Supabase (Site URL/Redirect com soccermon.com) e Google Cloud em outra sessão;
+> os itens 0–2 abaixo ficam só pra conferência (login em soccermon.com funcionando, botão oficial do Google).
+
 0. **Botão oficial do Google (tira o "vszcxacbcabohhdwxfpb.supabase.co" da tela de login):** o código já existe
    (`src/cloud/google-button.ts`, login com `signInWithIdToken`), mas só liga com o Client ID da Web do Google.
    Falta: (a) colocar o Client ID (termina em `.apps.googleusercontent.com`; é público) como valor padrão de
