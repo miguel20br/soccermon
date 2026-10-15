@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { viewInstance } from '../../engine/instance';
-import { ITEMS, itemSprite } from '../../engine/items';
+import { itemSprite } from '../../engine/items';
 import { playSfx } from '../../game/audio';
-import { stageLabel, useGame } from '../../store/game-store';
+import { clubName, itemDesc, itemName, stageName } from '../../i18n';
+import { useT } from '../../i18n/react';
+import { useGame } from '../../store/game-store';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
 import { cardSprite } from '../components/PokeCard';
@@ -16,6 +18,7 @@ import { Tip } from '../help/Tip';
 export function Reward() {
     const { run, claimReward, skipReward, rerollReward } = useGame();
     const [chosen, setChosen] = useState<number | null>(null);
+    const { lang, t } = useT();
     if (run?.status !== 'reward') return null;
 
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
@@ -34,15 +37,17 @@ export function Reward() {
         <>
             <div className="draft-head">
                 <div>
-                    <div className="muted">Vitória! Próxima fase: {stageLabel(run.stage + 1)}</div>
+                    <div className="muted">
+                        {t('reward.nextStage', { stage: stageName(run.stage + 1, lang) || t('reward.cup') })}
+                    </div>
                     <h1>
                         {reward
                             ? reward.kind === 'pokemon'
-                                ? 'Quem sai do banco?'
+                                ? t('reward.whoLeaves')
                                 : reward.kind === 'tm'
-                                  ? 'Quem aprende o golpe?'
-                                  : 'Quem vai segurar o item?'
-                            : 'Escolha uma recompensa'}
+                                  ? t('reward.whoLearns')
+                                  : t('reward.whoHolds')
+                            : t('reward.choose')}
                     </h1>
                 </div>
                 <div className="row">
@@ -56,19 +61,15 @@ export function Reward() {
                             setChosen(null);
                         }}
                     >
-                        ↻ Sortear de novo ({run.rerolls})
+                        {t('reward.reroll', { n: run.rerolls })}
                     </button>
                     <button type="button" className="btn small ghost" onClick={skipReward}>
-                        Pular (+1 reroll)
+                        {t('reward.skip')}
                     </button>
                 </div>
             </div>
 
-            <Tip id="reward-pick">
-                Dá pra contratar do time que você eliminou: o Pokémon novo entra no lugar de um reserva (e herda o item
-                dele). A MT do ginásio ensina um golpe novo: você escolhe quem aprende e o que esquece. Pular não pega
-                nada, mas dá +1 reroll.
-            </Tip>
+            <Tip id="reward-pick">{t('reward.tip')}</Tip>
 
             <div className="reward-grid">
                 {run.rewards.map((r, i) => (
@@ -80,9 +81,13 @@ export function Reward() {
                             <FutCard
                                 inst={r.inst}
                                 selected={chosen === i}
-                                ribbon={r.from ? `Do ${r.from}` : 'Reforço'}
+                                ribbon={
+                                    r.from
+                                        ? t('reward.fromClub', { club: clubName(r.from, lang) })
+                                        : t('reward.reinforcement')
+                                }
                                 action={{
-                                    label: chosen === i ? 'Escolhido' : r.from ? 'Contratar' : 'Escolher',
+                                    label: t(chosen === i ? 'reward.chosen' : r.from ? 'reward.sign' : 'reward.pick'),
                                     primary: true,
                                     onClick: () => {
                                         playSfx('select');
@@ -104,10 +109,10 @@ export function Reward() {
                                 className={`card item-card${chosen === i ? ' selected' : ''}`}
                                 onClick={() => pick(i)}
                             >
-                                <span className="tier-label">Item</span>
+                                <span className="tier-label">{t('reward.item')}</span>
                                 <img className="pixel item-art" src={itemSprite(r.item)} alt="" />
-                                <b className="card-name">{ITEMS[r.item].name}</b>
-                                <span className="tactic-desc">{ITEMS[r.item].desc}</span>
+                                <b className="card-name">{itemName(r.item)}</b>
+                                <span className="tactic-desc">{itemDesc(r.item, lang)}</span>
                             </button>
                         )}
                     </div>
@@ -126,7 +131,7 @@ export function Reward() {
             )}
             {reward && reward.kind !== 'tm' && (
                 <div className="panel reward-pick">
-                    <h2>{reward.kind === 'pokemon' ? 'Trocar por qual reserva?' : 'Entregar para…'}</h2>
+                    <h2>{t(reward.kind === 'pokemon' ? 'reward.swapWhich' : 'reward.giveTo')}</h2>
                     <div className="squad-strip">
                         {targets.map((p) => (
                             <button
@@ -143,9 +148,14 @@ export function Reward() {
                                     <b>{viewInstance(p).displayName}</b>
                                     {p.item && (
                                         <span className="muted">
-                                            {reward.kind === 'pokemon'
-                                                ? ` (${ITEMS[p.item]?.name} vai para o reforço)`
-                                                : ` (troca a ${ITEMS[p.item]?.name})`}
+                                            {t(
+                                                reward.kind === 'pokemon'
+                                                    ? 'reward.itemGoesToNew'
+                                                    : 'reward.replacesItem',
+                                                {
+                                                    item: itemName(p.item),
+                                                },
+                                            )}
                                         </span>
                                     )}
                                 </span>
@@ -155,11 +165,11 @@ export function Reward() {
                 </div>
             )}
             <div className="panel reward-team">
-                <h2>Seu time</h2>
+                <h2>{t('reward.yourTeam')}</h2>
                 <p className="muted" style={{ marginTop: 0 }}>
                     {reward?.kind === 'pokemon'
-                        ? `Verde: posições em que ${viewInstance(reward.inst).displayName} joga bem · vermelho: fora de posição.`
-                        : 'Compare com o seu elenco antes de escolher.'}
+                        ? t('reward.positionsHint', { name: viewInstance(reward.inst).displayName })
+                        : t('reward.compare')}
                 </p>
                 <FormationBoard
                     formation={run.formation}

@@ -35,6 +35,9 @@ describe('MT do ginásio', () => {
         expect(tmLabel('fissure')).toBe('MT27');
         expect(tmLabel('fly')).toBe('MO02');
         expect(tmLabel('rollingkick')).toBeNull();
+        // em inglês a tela passa os prefixos oficiais
+        expect(tmLabel('bide', 'TM', 'HM')).toBe('TM34');
+        expect(tmLabel('fly', 'TM', 'HM')).toBe('HM02');
     });
 
     it('todo golpe tem quem aprenda (a Golpedex conta todos) e o baú raro só tem golpes fora dos movesets', () => {

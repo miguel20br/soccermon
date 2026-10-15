@@ -280,8 +280,6 @@ export function playerTeam(run: RunState, color = clubColorHex(useGame.getState(
     };
 }
 
-export const stageLabel = (stage: number) => CUP_STAGES[stage] ?? 'Copa';
-
 /** Time eliminado na fase atual (de onde dá para contratar um Pokémon). */
 const defeatedOf = (run: RunState) => {
     const opp = run.opponents[run.stage];

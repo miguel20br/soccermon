@@ -85,12 +85,15 @@ const TM_LIST = [
 ];
 const HM_LIST = ['cut', 'fly', 'surf', 'strength', 'flash'];
 
-/** "MT34", "MO02" ou null (golpe que na Gen 1 não vinha em disco). */
-export function tmLabel(move: string): string | null {
+/**
+ * "MT34", "MO02" ou null (golpe que na Gen 1 não vinha em disco). Os prefixos vêm da tela no idioma do
+ * jogo (em inglês, "TM34" / "HM02").
+ */
+export function tmLabel(move: string, tmPrefix = 'MT', hmPrefix = 'MO'): string | null {
     const tm = TM_LIST.indexOf(move);
-    if (tm >= 0) return `MT${String(tm + 1).padStart(2, '0')}`;
+    if (tm >= 0) return `${tmPrefix}${String(tm + 1).padStart(2, '0')}`;
     const hm = HM_LIST.indexOf(move);
-    return hm >= 0 ? `MO${String(hm + 1).padStart(2, '0')}` : null;
+    return hm >= 0 ? `${hmPrefix}${String(hm + 1).padStart(2, '0')}` : null;
 }
 
 let rarePool: string[] | null = null;

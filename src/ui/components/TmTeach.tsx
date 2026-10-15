@@ -4,6 +4,8 @@ import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { moveProfile } from '../../engine/moves';
 import { canLearn, isProtectedMove, rareMovePool, tmLabel } from '../../engine/tm';
 import { playSfx } from '../../game/audio';
+import { type Lang, moveDesc, moveName, t } from '../../i18n';
+import { rich, useT } from '../../i18n/react';
 import { GdxIcon } from '../golpedex/GdxIcon';
 import { TYPE_COLOR } from '../type-colors';
 import { cardSprite } from './PokeCard';
@@ -11,20 +13,6 @@ import { TypeIcon } from './TypeIcon';
 import './tm.css';
 
 /** "MT do ginásio" na recompensa: a carta do disco e o passo a passo de ensinar (quem aprende, o que esquece). */
-
-const KIND_SHORT: Record<string, string> = {
-    strike: 'Físico',
-    blast: 'Especial',
-    burst: 'Arrancada',
-    buff: 'Reforço',
-    debuff: 'Enfraquece',
-    status: 'Status',
-    heal: 'Cura',
-    flavor: 'Narração',
-    special: 'Efeito especial',
-};
-
-const moveName = (m: string) => MOVES[m]?.name ?? m;
 
 /** Disco de MT desenhado em SVG, na cor do tipo do golpe. */
 export function TmDisc({ type, size = 72, className = '' }: { type: string; size?: number; className?: string }) {
@@ -41,15 +29,18 @@ export function TmDisc({ type, size = 72, className = '' }: { type: string; size
     );
 }
 
-/** Rótulo do disco: "MT34" / "MO02", ou "Golpe raro" quando o golpe não tinha disco na Gen 1. */
-export const tmTag = (move: string) => tmLabel(move) ?? 'Golpe raro';
+/** Rótulo do disco: "MT34" / "MO02" ("TM34" / "HM02"), ou "Golpe raro" quando o golpe não tinha disco na Gen 1. */
+export const tmTag = (move: string, lang?: Lang) =>
+    tmLabel(move, t('reward.tm.tm', undefined, lang), t('reward.tm.hm', undefined, lang)) ??
+    t('reward.tm.rareMove', undefined, lang);
 
 /** Selo "MT" ao lado do nome do golpe nas listas de golpes (carta, painel). */
 export function TaughtMark({ inst, move }: { inst: PokemonInstance; move: string }) {
+    const { t } = useT();
     if (!inst.taught?.includes(move)) return null;
     return (
-        <span className="tm-mark" title="Ensinado por MT">
-            MT
+        <span className="tm-mark" title={t('reward.tm.taughtTitle')}>
+            {t('reward.tm.tm')}
         </span>
     );
 }
@@ -67,9 +58,11 @@ export function TmCard({
     selected: boolean;
     onClick: () => void;
 }) {
+    const { lang, d, t, tn } = useT();
     const data = MOVES[move];
     const learners = team.filter((p) => canLearn(p, move)).length;
     const rare = rareMovePool().includes(move);
+    const desc = lang === 'pt' ? data.descPt : moveDesc(move, lang);
     return (
         <button
             type="button"
@@ -78,18 +71,18 @@ export function TmCard({
             onClick={onClick}
         >
             <span className="tier-label">
-                {tmTag(move)} · {leader ? `Do ${leader}` : 'Baú raro'}
+                {tmTag(move, lang)} · {leader ? t('reward.tm.fromLeader', { leader }) : t('reward.tm.rareChest')}
             </span>
             <TmDisc type={data.type} className="item-art" />
-            <b className="card-name">{data.name}</b>
+            <b className="card-name">{moveName(move)}</b>
             <span className="tm-meta">
                 <TypeIcon type={data.type} label size={16} />
-                <span className="pos-chip">{KIND_SHORT[moveProfile(move).kind] ?? ''}</span>
+                <span className="pos-chip">{d.reward.tm.kind[moveProfile(move).kind] ?? ''}</span>
             </span>
-            {data.descPt && <span className="tactic-desc">{data.descPt}</span>}
+            {desc && <span className="tactic-desc">{desc}</span>}
             <span className="tm-learners">
-                {learners === 1 ? '1 do seu time aprende' : `${learners} do seu time aprendem`}
-                {rare && ' · quase ninguém usa'}
+                {tn('reward.tm.learners', learners)}
+                {rare && t('reward.tm.rarelyUsed')}
             </span>
         </button>
     );
@@ -97,7 +90,8 @@ export function TmCard({
 
 /**
  * Ensinar a MT: escolhe quem aprende (só quem tem o golpe no learnset e ainda não sabe), depois o golpe que
- * vai esquecer (a assinatura é protegida). "1, 2 e… Pronto!" e só então a recompensa é pega.
+ * vai esquecer (a assinatura é protegida). "1, 2 e… Pronto!" ("1, 2 and… Poof!", a fala oficial da Gen 1 em
+ * inglês) e só então a recompensa é pega.
  */
 export function TmTeachPanel({
     move,
@@ -108,6 +102,7 @@ export function TmTeachPanel({
     team: readonly PokemonInstance[];
     onTeach: (uid: string, slot: number) => void;
 }) {
+    const { d, t } = useT();
     const [uid, setUid] = useState<string | null>(null);
     const [slot, setSlot] = useState<number | null>(null);
     const [taught, setTaught] = useState(false);
@@ -136,11 +131,11 @@ export function TmTeachPanel({
     if (!target) {
         return (
             <div className="panel reward-pick tm-panel">
-                <h2>Quem aprende {newName}?</h2>
+                <h2>{t('reward.tm.whoLearns', { move: newName })}</h2>
                 <div className="squad-strip">
                     {team.map((p) => {
                         const ok = canLearn(p, move);
-                        const why = p.moves.includes(move) ? 'já sabe' : 'não aprende';
+                        const why = p.moves.includes(move) ? t('reward.tm.alreadyKnows') : t('reward.tm.cantLearn');
                         return (
                             <button
                                 key={p.uid}
@@ -174,10 +169,12 @@ export function TmTeachPanel({
         <div className="panel reward-pick tm-panel">
             <div className="tm-head">
                 <img className="pixel" src={cardSprite(target)} alt="" />
-                <h2>{free ? `${name} tem uma vaga livre` : `Qual golpe ${name} esquece?`}</h2>
+                <h2>{t(free ? 'reward.tm.freeSlotTitle' : 'reward.tm.whichForget', { name })}</h2>
             </div>
             <p className="muted tm-new">
-                Novo: <b style={{ color: TYPE_COLOR[MOVES[move].type] }}>{newName}</b>. A assinatura nunca é esquecida.
+                {rich(t('reward.tm.newMove'), {
+                    move: <b style={{ color: TYPE_COLOR[MOVES[move].type] }}>{newName}</b>,
+                })}
             </p>
             <div className="tm-moves">
                 {target.moves.map((m, i) => {
@@ -197,16 +194,16 @@ export function TmTeachPanel({
                         >
                             <TypeIcon type={data.type} size={18} />
                             <span className="tm-move-name">
-                                <b>{data.name}</b>
+                                <b>{moveName(m)}</b>
                                 <small>
                                     {locked ? (
                                         <>
-                                            <GdxIcon kind="lock" size={11} /> Assinatura
+                                            <GdxIcon kind="lock" size={11} /> {t('reward.tm.signature')}
                                         </>
                                     ) : (
-                                        (KIND_SHORT[moveProfile(m).kind] ?? '')
+                                        (d.reward.tm.kind[moveProfile(m).kind] ?? '')
                                     )}
-                                    {target.taught?.includes(m) && ' · MT'}
+                                    {target.taught?.includes(m) && t('reward.tm.taughtSuffix')}
                                 </small>
                             </span>
                         </button>
@@ -222,8 +219,8 @@ export function TmTeachPanel({
                         }}
                     >
                         <span className="tm-move-name">
-                            <b>Vaga livre</b>
-                            <small>aprende sem esquecer</small>
+                            <b>{t('reward.tm.freeSlot')}</b>
+                            <small>{t('reward.tm.freeSlotHint')}</small>
                         </span>
                     </button>
                 )}
@@ -231,10 +228,10 @@ export function TmTeachPanel({
             <div className="tm-confirm">
                 <span>
                     {slot === null
-                        ? 'Escolha o golpe que sai.'
+                        ? t('reward.tm.pickForget')
                         : forgotten
-                          ? `${name} vai esquecer ${forgotten} e aprender ${newName}.`
-                          : `${name} vai aprender ${newName}.`}
+                          ? t('reward.tm.willForget', { name, old: forgotten, move: newName })
+                          : t('reward.tm.willLearn', { name, move: newName })}
                 </span>
                 <div className="row">
                     <button
@@ -245,7 +242,7 @@ export function TmTeachPanel({
                             setSlot(null);
                         }}
                     >
-                        Voltar
+                        {t('reward.tm.back')}
                     </button>
                     <button
                         type="button"
@@ -256,26 +253,28 @@ export function TmTeachPanel({
                             setTaught(true);
                         }}
                     >
-                        Ensinar
+                        {t('reward.tm.teach')}
                     </button>
                 </div>
             </div>
 
             {taught && slot !== null && (
-                <div className="modal-backdrop tm-done" role="dialog" aria-modal="true" aria-label="Golpe ensinado">
+                <div
+                    className="modal-backdrop tm-done"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label={t('reward.tm.doneLabel')}
+                >
                     <div className="panel tm-done-box">
                         <TmDisc type={MOVES[move].type} size={64} />
-                        <p className="tm-count">{ready ? 'Pronto!' : '1, 2 e…'}</p>
+                        <p className="tm-count">{ready ? t('reward.tm.poof') : t('reward.tm.count')}</p>
                         <p className={`tm-done-text${ready ? ' show' : ''}`}>
-                            {forgotten ? (
-                                <>
-                                    {name} esqueceu <b>{forgotten}</b> e aprendeu <b>{newName}</b>!
-                                </>
-                            ) : (
-                                <>
-                                    {name} aprendeu <b>{newName}</b>!
-                                </>
-                            )}
+                            {forgotten
+                                ? rich(t('reward.tm.forgotLearned', { name }), {
+                                      old: <b>{forgotten}</b>,
+                                      move: <b>{newName}</b>,
+                                  })
+                                : rich(t('reward.tm.learned', { name }), { move: <b>{newName}</b> })}
                         </p>
                         <button
                             type="button"
@@ -283,7 +282,7 @@ export function TmTeachPanel({
                             disabled={!ready}
                             onClick={() => onTeach(target.uid, slot)}
                         >
-                            Continuar
+                            {t('reward.tm.continue')}
                         </button>
                     </div>
                 </div>

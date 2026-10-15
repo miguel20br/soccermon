@@ -223,28 +223,11 @@ Já existem em `common.tactic` (pt/en). Pendente só trocar os usos de `TACTIC_L
 Sugestão: chave `common.specialExplain` (pt idêntico ao motor) e usar na tela via `t()`; o outro trabalho
 pode mudar esses textos, então copiar o PT depois do merge.
 
-## src/engine/cup.ts (clubes e fases)
+## src/engine/cup.ts (clubes e fases) — FEITO
 
-O save guarda o nome do clube em português (`results[].opponent`); `clubName()` já traduz na exibição e as
-telas já usam. `common.club` e `common.stage` já têm PT idêntico e EN. Pendente só conferir, depois do
-merge, se os nomes do motor mudaram (se mudarem, atualizar as chaves de `common.club`).
-
-| Linha | PT | EN (já em `src/i18n/en/common.ts`) |
-| --- | --- | --- |
-| 19 | `Pewter Rochedo` | `Pewter Boulders` |
-| 27 | `Cerulean Cascata` | `Cerulean Cascade` |
-| 35 | `Vermilion Voltagem` | `Vermilion Thunder` |
-| 43 | `Celadon Arco-Íris` | `Celadon Rainbow` |
-| 51 | `Fuchsia Ninjas` | `Fuchsia Ninjas` |
-| 59 | `Saffron Mentes` | `Saffron Minds` |
-| 67 | `Cinnabar Vulcão` | `Cinnabar Volcano` |
-| 75 | `Viridian Terra` | `Viridian Earth` |
-| 83 | `Lavender Assombro` | `Lavender Haunt` |
-| 91 | `Liga Índigo` | `Indigo League` |
-| 100 | `Oitavas de final` | `Round of 16` |
-| 100 | `Quartas de final` | `Quarter-finals` |
-| 100 | `Semifinal` | `Semi-final` |
-| 100 | `Final` | `Final` |
+Conferido depois do merge: os nomes dos clubes e das fases do motor continuam iguais às chaves de
+`common.club` / `common.stage` (PT idêntico, EN `Pewter Boulders`, `Indigo League`, `Round of 16`...). O save
+segue guardando o nome em português; `clubName()` / `stageName()` traduzem na exibição (Reward.tsx inclusive).
 
 `city` (`Pewter`, `Indigo Plateau`...) já está em inglês oficial e funciona como id.
 
@@ -262,49 +245,29 @@ Ginásios e líderes (nomes oficiais em inglês, para a MT do ginásio e textos 
 | Viridian City | Giovanni | Earth Badge | Ground |
 | Indigo Plateau | Elite Four (Lorelei, Bruno, Agatha, Lance) | — | — |
 
-## src/store/game-store.ts
+## src/store/game-store.ts — FEITO
 
-| Linha | PT | EN proposto |
-| --- | --- | --- |
-| 281 | `stageLabel`: `CUP_STAGES[stage] ?? 'Copa'` | trocar o uso na tela por `stageName(stage) \|\| t('reward.cup')` (`Cup`) |
-| 385 | `Pallet FC` (nome padrão do time) | `Pallet FC` (igual nas duas línguas) |
+`stageLabel` saiu (era usado só na Reward.tsx, que agora usa `stageName(fase) || t('reward.cup')`).
+`Pallet FC` fica igual nas duas línguas. Fora isso, só o campo `lang` em `Settings`.
 
-Única mudança feita neste arquivo: campo `lang` em `Settings` + `lang: detectLang()` em `DEFAULT_SETTINGS`.
+## src/ui/screens/Reward.tsx (recompensa depois da vitória) — FEITO
 
-## src/ui/screens/Reward.tsx (recompensa depois da vitória)
+Área nova `reward` (`src/i18n/pt/reward.ts` / `en/reward.ts`), PT byte a byte igual ao texto antigo. Fase com
+`stageName`, time eliminado com `clubName`, item com `itemName` / `itemDesc`. A dica (`Tip id="reward-pick"`)
+já inclui a frase da MT do ginásio.
 
-| Linha | PT | EN proposto |
-| --- | --- | --- |
-| 31 | `Vitória! Próxima fase: ${fase}` | `Victory! Next round: ${stage}` (usar `stageName`) |
-| 35 | `Quem sai do banco?` | `Who leaves the bench?` |
-| 36 | `Quem vai segurar o item?` | `Who will hold the item?` |
-| 37 | `Escolha uma recompensa` | `Choose a reward` |
-| 51 | `↻ Sortear de novo (${n})` | `↻ Reroll (${n})` |
-| 54 | `Pular (+1 reroll)` | `Skip (+1 reroll)` |
-| 60–61 | `Dá pra contratar do time que você eliminou: o Pokémon novo entra no lugar de um reserva (e herda o item dele). Pular não pega nada, mas dá +1 reroll.` | `You can sign a player from the team you just knocked out: the new Pokémon replaces a sub (and inherits their item). Skipping takes nothing, but gives +1 reroll.` |
-| 71 | `Do ${clube}` | `From ${club}` (com `clubName`) |
-| 71 | `Reforço` | `Reinforcement` |
-| 73 | `Escolhido` | `Chosen` |
-| 73 | `Contratar` | `Sign` |
-| 73 | `Escolher` | `Choose` |
-| 90 | `Item` | `Item` (igual) |
-| 93 | `ITEMS[id].desc` (descrição do motor em PT) | `itemDesc(id)` |
-| 102 | `Trocar por qual reserva?` | `Swap for which sub?` |
-| 102 | `Entregar para…` | `Give to…` |
-| 120 | ` (${item} vai para o reforço)` | ` (${item} goes to the new player)` |
-| 121 | ` (troca a ${item})` | ` (replaces ${item})` |
-| 131 | `Seu time` | `Your team` |
-| 134 | `Verde: posições em que ${x} joga bem · vermelho: fora de posição.` | `Green: positions where ${x} plays well · red: out of position.` |
-| 135 | `Compare com o seu elenco antes de escolher.` | `Compare with your squad before choosing.` |
+## MT do ginásio (src/ui/components/TmTeach.tsx, src/engine/tm.ts) — FEITO
 
-O nome do item (`ITEMS[id].name`, 92/120/121) já é o oficial em inglês: pode ficar ou passar por
-`itemName(id)`.
+Chaves em `reward.tm`. Nomes oficiais em inglês: `TM34` / `HM02` (`tmLabel(move, 'TM', 'HM')`: o motor
+recebe o prefixo da tela, padrão `MT` / `MO`), líderes já oficiais (`From Brock`, `From Lt. Surge`),
+fala da Gen 1 ao esquecer: `1, 2 and… Poof!` + `X forgot Y! And… X learned Z!`, `not compatible` para
+quem não aprende. Descrição do golpe na carta da MT: PT `descPt`, EN `moveDesc` (texto oficial curto).
+O selo `TaughtMark` (carta e painel da partida) mostra `TM` / título `Taught by TM`.
 
-## src/ui/golpedex/golpedex-data.ts
+## src/ui/golpedex/golpedex-data.ts — FEITO
 
-| Linha | PT | EN proposto |
-| --- | --- | --- |
-| 53 | `desc: m.descPt` (descrição do golpe em PT) | `moveDesc(m.id)` na exibição (EN = `shortDesc` oficial); como `ALL_ROWS` é montado uma vez no carregamento, melhor chamar `moveDesc(row.id)` na tela do que guardar o texto na linha |
+`ALL_ROWS` continua com `descPt` (é o texto em PT); a tela (`MoveLab.tsx`) já mostra `moveDesc(row.id)` em
+inglês. Nada mais a fazer.
 
 ## Sem texto na tela (nada a fazer)
 
@@ -313,10 +276,7 @@ O nome do item (`ITEMS[id].name`, 92/120/121) já é o oficial em inglês: pode 
 com texto em PT). Nomes de Pokémon, golpes, habilidades e itens que esses arquivos mandam para a tela já
 são os oficiais em inglês.
 
-**A fazer:** `src/engine/tm.ts` (MT do ginásio) ainda não existe nesta branch. Quando entrar, inventariar os
-textos dele (nome da MT, "Você recebeu a TMxx!" → `You received TMxx!`, "X aprendeu Y!" →
-`X learned Y!`, "X quer aprender Y, mas já sabe 4 golpes" → `X wants to learn the move Y. But X can't learn
-more than four moves.`, etc.) junto com a parte nova da `Reward.tsx`.
+`src/engine/tm.ts` (MT do ginásio): feito, ver a seção da MT acima.
 
 ## Fora das áreas restritas
 
@@ -338,21 +298,19 @@ Ficaram de fora de propósito (só aparecem em telas de desenvolvimento ou nunca
   tipo de golpe (`stats.lab.kind`). Com o mapa EN por id (tabela de moves.ts acima) é só trocar nesses dois lugares.
 - Combos de sinergia: `MatchScene.ts` (~1301) e `commentary.ts` (~259) usam `link.name` / `link.combo` do motor;
   trocar por `linkText(id)` (já traduzido em `common.link`).
-- Reward.tsx: usar `stageName()` no lugar de `stageLabel()`, `clubName()` para o time eliminado, `itemName/itemDesc`.
+- ~~Reward.tsx: usar `stageName()` no lugar de `stageLabel()`, `clubName()` para o time eliminado, `itemName/itemDesc`.~~ Feito.
 - Nome da Golpedex em inglês: **Movedex** (Home, Ajuda e título da tela já usam).
 
 ## Resumo
+
+Feito depois do merge: Reward.tsx (21 + 5 textos novos da MT), MT do ginásio (TmTeach.tsx e tm.ts, ~40),
+cup.ts (14, só conferência), game-store.ts (2), golpedex-data.ts (1). Falta só o que é do trabalho dos efeitos
+dos golpes no motor:
 
 | Arquivo | Textos |
 | --- | --- |
 | src/ui/commentary.ts | 79 |
 | src/game/scenes/MatchScene.ts | 43 |
-| src/ui/screens/Reward.tsx | 21 |
 | src/engine/moves.ts | 17 |
-| src/engine/cup.ts | 14 |
 | src/engine/state.ts | 4 |
-| src/store/game-store.ts | 2 |
-| src/ui/golpedex/golpedex-data.ts | 1 |
-| **Total (áreas restritas)** | **181** |
-| src/game/cinematics.ts (fora das áreas restritas) | 2 |
-| **Total geral** | **183** |
+| **Total pendente** | **143** |
