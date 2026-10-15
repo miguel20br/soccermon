@@ -1,54 +1,35 @@
 import { useEffect } from 'react';
 import { abilityEffect } from '../../engine/abilities';
-import { type AttrKey, computeAttributes, POSITION_LABEL, POSITIONS, physiqueOf } from '../../engine/attributes';
-import { ABILITIES, MOVES, species } from '../../engine/data';
+import { type AttrKey, computeAttributes, POSITIONS, physiqueOf } from '../../engine/attributes';
+import { MOVES, species } from '../../engine/data';
 import { viewInstance } from '../../engine/instance';
-import { ITEMS, itemSprite } from '../../engine/items';
+import { itemSprite } from '../../engine/items';
 import { linksOf } from '../../engine/links';
 import { applyModifiers, attributeModifiers, moveModifiers } from '../../engine/modifiers';
 import { DRAIN, moveProfile, SPECIAL_EXPLAIN } from '../../engine/moves';
+import {
+    abilityDesc,
+    abilityName,
+    type Dict,
+    fmt,
+    itemDesc,
+    itemName,
+    type Lang,
+    linkText,
+    modLabel,
+    moveDesc,
+    moveModLabel,
+    moveName,
+} from '../../i18n';
+import { rich, useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { useCardModal } from '../card-modal';
 import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
-import { ATTR_SHORT, FutCard } from './FutCard';
+import { FutCard } from './FutCard';
 import { LinkChip } from './LinkChips';
-import { TIER_PT, TypeBadge } from './PokeCard';
+import { TypeBadge } from './PokeCard';
 
-/** O que cada tipo de golpe faz no futsal (explicação para o jogador). */
-const KIND_EXPLAIN: Record<string, string> = {
-    strike: 'Com a bola: chute mais forte. Sem a bola: desarme mais forte que derruba e empurra o rival.',
-    blast: 'Com a bola: chute mais preciso. Sem a bola: disparo no rival mais perto, que atordoa e empurra.',
-    burst: 'Arrancada: fica bem mais veloz por alguns segundos.',
-    buff: 'Melhora os próprios atributos por 12 segundos.',
-    debuff: 'Piora os atributos do rival mais perto por 10 segundos.',
-    status: 'Aplica um status no rival mais perto (paralisia, sono, veneno, confusão…).',
-    heal: 'Recupera o fôlego.',
-    flavor: 'Não faz nada… mas a torcida adora.',
-    special: 'Efeito especial (veja abaixo).',
-};
-const KIND_NAME: Record<string, string> = {
-    strike: 'Golpe físico',
-    blast: 'Golpe especial',
-    burst: 'Arrancada',
-    buff: 'Fortalecimento',
-    debuff: 'Enfraquecimento',
-    status: 'Status',
-    heal: 'Cura',
-    flavor: 'Enfeite',
-    special: 'Especial',
-};
-const SECONDARY_PT: Record<string, string> = {
-    par: 'paralisar',
-    brn: 'queimar',
-    frz: 'congelar',
-    psn: 'envenenar',
-    tox: 'envenenar',
-    slp: 'fazer dormir',
-    confusion: 'confundir',
-    flinch: 'fazer hesitar',
-};
-const FIT_PT = { main: 'principal', alt: 'joga bem', off: 'fora de posição' } as const;
 const ALL_ATTRS: AttrKey[] = [
     'pace',
     'dribble',
@@ -61,19 +42,31 @@ const ALL_ATTRS: AttrKey[] = [
     'goalkeeping',
 ];
 
-function secondaryText(moveId: string): string | null {
+function secondaryText(moveId: string, d: Dict): string | null {
     const sec = MOVES[moveId]?.secondary;
     if (!sec) return null;
-    const what = (sec.status && SECONDARY_PT[sec.status]) || (sec.volatile && SECONDARY_PT[sec.volatile]);
-    if (!what) return sec.boosts ? 'pode enfraquecer o alvo' : null;
+    const tx = d.team.modal;
+    const what = (sec.status && tx.secondary[sec.status]) || (sec.volatile && tx.secondary[sec.volatile]);
+    if (!what) return sec.boosts ? tx.mayWeaken : null;
     const chance = Math.round(Math.min(65, sec.chance * 3 + 5));
-    return `${chance}% de chance de ${what}`;
+    return fmt(tx.secondaryChance, { chance, what });
+}
+
+/**
+ * Explicação de um golpe com efeito próprio. SPECIAL_EXPLAIN (engine/moves.ts) só existe em português:
+ * em inglês, por enquanto, vai a descrição oficial do golpe.
+ */
+function specialExplain(moveId: string, lang: Lang): string | undefined {
+    const pt = SPECIAL_EXPLAIN[moveId];
+    if (!pt) return undefined;
+    return lang === 'pt' ? pt : moveDesc(moveId, lang);
 }
 
 /** Carta completa: tudo sobre o Pokémon, com ações (escolher, pegar…). */
 export function CardModal() {
     const { inst, position, captain, note, actions, close } = useCardModal();
     const run = useGame((s) => s.run);
+    const { t, tn, d, lang } = useT();
 
     useEffect(() => {
         if (!inst) return;
@@ -85,9 +78,8 @@ export function CardModal() {
     if (!inst) return null;
     const view = viewInstance(inst);
     const sp = view.species;
-    const ability = ABILITIES[inst.ability];
     const abilityWorks = Object.keys(abilityEffect(inst.ability)).length > 0;
-    const item = inst.item ? ITEMS[inst.item] : null;
+    const item = inst.item ?? null;
     // bônus/penalidades: os da carta + os do time (se ela está no seu elenco), a mesma regra do motor
     const picks = run?.picks ?? [];
     const lineup = (run?.lineup ?? []).map((u) => picks.find((p) => p.uid === u)).filter((p) => !!p);
@@ -100,6 +92,8 @@ export function CardModal() {
     );
     const inField = applyModifiers(computeAttributes(sp, inst.level), mods, position ?? null);
     const moveMods = moveModifiers(inst);
+    const physique = physiqueOf(sp);
+    const body = d.common.body[sp.shape] ?? { label: physique.body, note: physique.note };
 
     return (
         // biome-ignore lint/a11y/noStaticElementInteractions: clicar fora fecha; Esc e o botão × cobrem o teclado
@@ -109,10 +103,10 @@ export function CardModal() {
                 className="modal panel card-modal"
                 role="dialog"
                 aria-modal="true"
-                aria-label={`Carta de ${view.displayName}`}
+                aria-label={t('team.modal.aria', { name: view.displayName })}
                 onClick={(e) => e.stopPropagation()}
             >
-                <button type="button" className="modal-close" onClick={close} aria-label="Fechar">
+                <button type="button" className="modal-close" onClick={close} aria-label={t('common.ui.close')}>
                     ×
                 </button>
                 <div className="card-modal-grid">
@@ -124,7 +118,11 @@ export function CardModal() {
                             ))}
                         </div>
                         <div className="muted center" style={{ fontSize: 11 }}>
-                            #{String(sp.id).padStart(3, '0')} · {TIER_PT[sp.tier]} · nível {inst.level}
+                            {t('team.modal.dexLine', {
+                                id: String(sp.id).padStart(3, '0'),
+                                tier: d.common.tier[sp.tier],
+                                level: inst.level,
+                            })}
                         </div>
                         {note && <div className="card-note">{note}</div>}
                         {actions.length > 0 && (
@@ -149,38 +147,41 @@ export function CardModal() {
                     <div className="card-modal-right">
                         <h2>{view.displayName}</h2>
 
-                        <h3>Posições</h3>
+                        <h3>{t('team.modal.positions')}</h3>
                         <div className="pos-table">
                             {POSITIONS.map((p) => {
                                 const r = ratingAt(inst, p);
                                 return (
                                     <div key={p} className={`pos-row ${r.fit}`}>
-                                        <span>{POSITION_LABEL[p]}</span>
+                                        <span>{d.common.pos[p]}</span>
                                         <b>{r.rating}</b>
-                                        <span className="muted">{FIT_PT[r.fit]}</span>
+                                        <span className="muted">{d.team.modal.fit[r.fit]}</span>
                                     </div>
                                 );
                             })}
                         </div>
 
-                        <h3>Físico</h3>
+                        <h3>{t('team.modal.physique')}</h3>
                         <p className="tactic-desc physique-line">
-                            <b>{physiqueOf(sp).size}</b> · {physiqueOf(sp).body}
-                            {physiqueOf(sp).note && ` · ${physiqueOf(sp).note}`}
+                            <b>{d.common.size[physique.size] ?? physique.size}</b> · {body.label}
+                            {body.note && ` · ${body.note}`}
                         </p>
 
                         {linksOf(sp.id).length > 0 && (
                             <>
-                                <h3>Sinergias de história</h3>
+                                <h3>{t('team.modal.storySynergies')}</h3>
                                 <div className="modal-links">
                                     {linksOf(sp.id).map((l) => (
                                         <div key={l.id} className="tactic-desc">
-                                            <LinkChip def={l} /> com{' '}
-                                            {l.groups
-                                                .filter((g) => !g.includes(sp.id))
-                                                .map((g) => species(g[0]).name)
-                                                .join(', ')}{' '}
-                                            ({l.need} juntos) · combo {l.combo}
+                                            {rich(d.team.modal.linkWith, {
+                                                chip: <LinkChip def={l} />,
+                                                names: l.groups
+                                                    .filter((g) => !g.includes(sp.id))
+                                                    .map((g) => species(g[0]).name)
+                                                    .join(', '),
+                                                n: l.need,
+                                                combo: linkText(l.id, lang).combo,
+                                            })}
                                         </div>
                                     ))}
                                 </div>
@@ -189,14 +190,14 @@ export function CardModal() {
 
                         {mods.length > 0 && (
                             <>
-                                <h3>Bônus e penalidades</h3>
+                                <h3>{t('team.modal.mods')}</h3>
                                 <div className="mod-list">
                                     {mods.map((m) => {
                                         const up = (m.add ?? 0) > 0 || (m.factor ?? 1) > 1;
                                         return (
                                             <div key={m.label} className={`mod-row ${up ? 'up' : 'down'}`}>
                                                 <span>{up ? '▲' : '▼'}</span>
-                                                {m.label}
+                                                {modLabel(m, lang)}
                                             </div>
                                         );
                                     })}
@@ -204,14 +205,17 @@ export function CardModal() {
                             </>
                         )}
 
-                        <h3>Atributos{onTeam ? ' (em campo, com o seu time)' : ''}</h3>
+                        <h3>
+                            {t('team.modal.attrs')}
+                            {onTeam ? t('team.modal.attrsOnTeam') : ''}
+                        </h3>
                         <div className="attrs modal-attrs">
                             {ALL_ATTRS.map((k) => {
                                 const v = Math.round(view.attributes[k]);
-                                const d = Math.round(inField[k] - view.attributes[k]);
+                                const delta = Math.round(inField[k] - view.attributes[k]);
                                 return (
                                     <div className="attr" key={k}>
-                                        <span>{ATTR_SHORT[k]}</span>
+                                        <span>{d.common.attr[k]}</span>
                                         <span className="bar">
                                             <i
                                                 style={{
@@ -228,9 +232,9 @@ export function CardModal() {
                                             />
                                         </span>
                                         <b>{v}</b>
-                                        {d !== 0 && (
-                                            <em className={`attr-mod ${d > 0 ? 'up' : 'down'}`}>
-                                                {d > 0 ? `▲${d}` : `▼${-d}`}
+                                        {delta !== 0 && (
+                                            <em className={`attr-mod ${delta > 0 ? 'up' : 'down'}`}>
+                                                {delta > 0 ? `▲${delta}` : `▼${-delta}`}
                                             </em>
                                         )}
                                     </div>
@@ -238,26 +242,25 @@ export function CardModal() {
                             })}
                         </div>
 
-                        <h3>Golpes</h3>
+                        <h3>{t('team.modal.moves')}</h3>
                         <div className="move-details">
                             {inst.moves.map((m) => {
                                 const data = MOVES[m];
                                 const prof = moveProfile(m);
-                                const sec = secondaryText(m);
+                                const sec = secondaryText(m, d);
+                                const kindExplain = d.team.modal.kindExplain[prof.kind];
                                 return (
                                     <div key={m} className="move-detail" style={{ borderColor: TYPE_COLOR[data.type] }}>
                                         <div className="row" style={{ gap: 6, justifyContent: 'space-between' }}>
-                                            <b>{data.name}</b>
+                                            <b>{moveName(m)}</b>
                                             <span className="row" style={{ gap: 4 }}>
                                                 <TypeBadge type={data.type} />
-                                                <span className="pos-chip">{KIND_NAME[prof.kind]}</span>
+                                                <span className="pos-chip">{d.team.modal.kindName[prof.kind]}</span>
                                             </span>
                                         </div>
                                         <div className="tactic-desc">
-                                            {SPECIAL_EXPLAIN[m] ??
-                                                (DRAIN[m]
-                                                    ? `${KIND_EXPLAIN[prof.kind]} Suga o fôlego do alvo.`
-                                                    : KIND_EXPLAIN[prof.kind])}
+                                            {specialExplain(m, lang) ??
+                                                (DRAIN[m] ? `${kindExplain}${t('team.modal.drain')}` : kindExplain)}
                                         </div>
                                         {moveMods
                                             .filter((mm) => mm.moveId === m)
@@ -267,12 +270,13 @@ export function CardModal() {
                                                     className={`mod-row ${mm.factor > 1 ? 'up' : 'down'}`}
                                                 >
                                                     <span>{mm.factor > 1 ? '▲' : '▼'}</span>
-                                                    {mm.label}
+                                                    {moveModLabel(mm, lang)}
                                                 </div>
                                             ))}
                                         <div className="tactic-desc">
-                                            {prof.uses} {prof.uses === 1 ? 'uso' : 'usos'} por partida
-                                            {data.power > 0 && ` · poder ${data.power}`}
+                                            {tn('team.modal.uses', prof.uses)}
+                                            {t('team.modal.perMatch')}
+                                            {data.power > 0 && t('team.modal.power', { n: data.power })}
                                             {sec && ` · ${sec}`}
                                         </div>
                                     </div>
@@ -280,20 +284,21 @@ export function CardModal() {
                             })}
                         </div>
 
-                        <h3>Habilidade</h3>
+                        <h3>{t('team.modal.ability')}</h3>
                         <p className="tactic-desc" style={{ margin: 0 }}>
-                            <b style={{ color: 'var(--text)' }}>{ability?.name ?? inst.ability}</b>
-                            {abilityWorks ? ' (ativa no futsal)' : ' (sem efeito no futsal)'} —{' '}
-                            {ability?.descPt ?? ability?.shortDesc}
+                            <b style={{ color: 'var(--text)' }}>{abilityName(inst.ability)}</b>
+                            {abilityWorks ? t('team.modal.abilityOn') : t('team.modal.abilityOff')} —{' '}
+                            {abilityDesc(inst.ability, lang)}
                         </p>
 
                         {item && (
                             <>
-                                <h3>Item</h3>
+                                <h3>{t('team.modal.item')}</h3>
                                 <p className="tactic-desc card-item-row" style={{ margin: 0 }}>
-                                    <img className="pixel" src={itemSprite(item.id)} alt="" />
+                                    <img className="pixel" src={itemSprite(item)} alt="" />
                                     <span>
-                                        <b style={{ color: 'var(--text)' }}>{item.name}</b> — {item.desc}
+                                        <b style={{ color: 'var(--text)' }}>{itemName(item)}</b> —{' '}
+                                        {itemDesc(item, lang)}
                                     </span>
                                 </p>
                             </>

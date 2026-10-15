@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
-import { POSITION_LABEL } from '../../engine/attributes';
 import { species } from '../../engine/data';
 import { viewInstance } from '../../engine/instance';
 import { ratePlayer } from '../../engine/match-stats';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { SNAP_STRIDE, type TeamSetup } from '../../engine/state';
 import { EventBus } from '../../game/EventBus';
-import { STATUS_SHORT, snapAt, statsUntil, whoAt } from '../match-view';
+import { statusName } from '../../i18n';
+import { useT } from '../../i18n/react';
+import { snapAt, statsUntil, whoAt } from '../match-view';
 import { cardSprite } from './PokeCard';
 
 /** Recalcula a cada meio segundo de jogo (o relógio da partida atualiza bem mais rápido que isso). */
@@ -33,6 +34,7 @@ export function TeamPanel({
 }) {
     const [team, setTeam] = useState<0 | 1>(0);
     const [open, setOpen] = useState(true);
+    const { t, d, lang } = useT();
     const at = Math.floor(tick / STEP_TICKS) * STEP_TICKS;
 
     const view = useMemo(() => {
@@ -55,7 +57,7 @@ export function TeamPanel({
                     copied: who.transformed ? species(who.inst.speciesId).name : null,
                     role: who.role,
                     energy: snap.p[o + 6] ?? 1,
-                    status: STATUS_SHORT[snap.p[o + 4]] ?? null,
+                    status: snap.p[o + 4] ? statusName(snap.p[o + 4], lang) : null,
                     goals: stats.goals,
                     assists: stats.assists,
                     rating: ratePlayer(stats, who.role, null, who.role === 'GK' ? conceded : 0),
@@ -68,12 +70,12 @@ export function TeamPanel({
         );
         const bench = all.filter((p) => !onCourt.has(p.uid)).map((p) => ({ inst: p, out: left.has(p.uid) }));
         return { rows, bench };
-    }, [match, setups, team, at]);
+    }, [match, setups, team, at, lang]);
 
     return (
         <div className={`panel team-panel${open ? '' : ' collapsed'}`}>
             <div className="tp-head">
-                <div className="tp-tabs" role="tablist" aria-label="Time">
+                <div className="tp-tabs" role="tablist" aria-label={t('team.panel.team')}>
                     {([0, 1] as const).map((t) => (
                         <button
                             key={t}
@@ -94,7 +96,7 @@ export function TeamPanel({
                     type="button"
                     className="tp-toggle"
                     aria-expanded={open}
-                    aria-label={open ? 'Recolher painel do time' : 'Abrir painel do time'}
+                    aria-label={open ? t('team.panel.collapse') : t('team.panel.expand')}
                     onClick={() => setOpen((v) => !v)}
                 >
                     {open ? '▲' : '▼'}
@@ -104,11 +106,11 @@ export function TeamPanel({
                 <>
                     <div className="tp-row tp-labels" aria-hidden>
                         <span />
-                        <span>Em quadra</span>
-                        <span>Fôlego</span>
-                        <span title="Gols">G</span>
-                        <span title="Assistências">A</span>
-                        <span>Nota</span>
+                        <span>{t('team.panel.onCourt')}</span>
+                        <span>{t('team.panel.stamina')}</span>
+                        <span title={t('team.panel.goals')}>G</span>
+                        <span title={t('team.panel.assists')}>A</span>
+                        <span>{t('team.panel.rating')}</span>
                     </div>
                     {view.rows.map((r) => (
                         <button
@@ -117,18 +119,21 @@ export function TeamPanel({
                             className="tp-row"
                             disabled={!interactive}
                             onClick={() => EventBus.emit('match:inspect-request', r.idx)}
-                            aria-label={`${r.name}: abrir painel`}
+                            aria-label={t('team.panel.open', { name: r.name })}
                         >
                             <img className="pixel" src={cardSprite(r.inst)} alt="" />
                             <span className="tp-name">
                                 <b>{r.name}</b>
                                 <small>
-                                    {POSITION_LABEL[r.role]}
-                                    {r.copied && ` · virou ${r.copied}`}
+                                    {d.common.pos[r.role]}
+                                    {r.copied && t('team.panel.became', { name: r.copied })}
                                     {r.status && <em> · {r.status}</em>}
                                 </small>
                             </span>
-                            <span className="tp-energy" title={`Fôlego ${Math.round(r.energy * 100)}%`}>
+                            <span
+                                className="tp-energy"
+                                title={t('team.panel.staminaPct', { n: Math.round(r.energy * 100) })}
+                            >
                                 <i
                                     style={{
                                         width: `${Math.round(r.energy * 100)}%`,
@@ -146,12 +151,12 @@ export function TeamPanel({
                     ))}
                     {view.bench.length > 0 && (
                         <div className="tp-bench">
-                            <span className="muted">Banco</span>
+                            <span className="muted">{t('team.panel.bench')}</span>
                             {view.bench.map((b) => (
                                 <span key={b.inst.uid} className={`tp-sub${b.out ? ' out' : ''}`}>
                                     <img className="pixel" src={cardSprite(b.inst)} alt="" />
                                     {viewInstance(b.inst).displayName}
-                                    {b.out && <small>saiu</small>}
+                                    {b.out && <small>{t('team.panel.subbedOff')}</small>}
                                 </span>
                             ))}
                         </div>

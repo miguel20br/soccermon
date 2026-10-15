@@ -1,11 +1,12 @@
-import { TYPE_PT } from '../type-colors';
+import { typeName } from '../../i18n';
+import { useLang } from '../../i18n/react';
 
 /**
  * Ícone oficial do tipo (símbolo de Pokémon Champions, via PokeAPI/sprites; `npm run assets:types`).
- * Com `label`, mostra o nome em português ao lado; sem, o nome fica no title.
+ * Com `label`, mostra o nome no idioma do jogo ao lado; sem, o nome fica no title.
  */
 export function TypeIcon({ type, label, size }: { type: string; label?: boolean; size?: number }) {
-    const name = TYPE_PT[type] ?? type;
+    const name = typeName(type, useLang());
     const img = (
         <img
             className="type-icon"
