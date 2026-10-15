@@ -18,7 +18,7 @@ As memórias de preferência do Miguel (cópia das do Claude no PC) estão em [.
 
 - [ ] Botão oficial do Google ligado com o Client ID (tira o endereço do Supabase da tela de login)
 - [ ] Tela de consentimento OAuth em produção, com nome, logo e link de privacidade
-- [ ] Repositório público + descrição, site e tópicos; canal da comunidade (Discussions ou Discord)
+- [x] Repositório público + descrição, site e tópicos; Discussions ligado (15/10/2026, v0.7.3 · Beta aberta)
 - [x] Ditto no painel da partida mostrando a forma copiada (14/10/2026)
 
 Plano do trailer e dos posts de lançamento (LinkedIn como projeto pessoal, X como fan game):

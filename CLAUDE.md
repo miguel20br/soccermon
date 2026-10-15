@@ -63,10 +63,12 @@ npm run calibrate -- --n 400 [--formations|--tactics]   # equilíbrio headless
   testes e build em todo push e PR.
 - **Versão nova:** atualize `src/ui/patch-notes.ts` (aparece em Novidades no jogo), gere o `CHANGELOG.md` a
   partir dele, suba `version` no `package.json` e crie a tag `vX.Y.Z`. Commits em português, terminando com a
-  linha `Co-Authored-By` do Claude.
+  linha `Co-Authored-By` do Claude. **E-mail dos commits: `105948884+miguel20br@users.noreply.github.com`**
+  (repo público desde 15/10/2026; o e-mail pessoal foi tirado do histórico). Confira `git config user.email`
+  em cada aparelho.
 - Antes de fechar uma mudança visual, confira no celular (320 e 390 px), deitado e no desktop.
 
-## Estado atual (14/10/2026, v0.7.2)
+## Estado atual (15/10/2026, v0.7.3 · Beta aberta)
 
 No ar: contas e save na nuvem, evolução no meio da partida, substituição pelo técnico, painel ao tocar no
 Pokémon, estatísticas da partida e da copa, 6 formações, tela de campeão, menus novos, golpes revisados com
@@ -89,9 +91,9 @@ Plano do trailer e dos posts de lançamento: [docs/planos/divulgacao-trailer.md]
 1. **Tela de consentimento OAuth do Google (Google Cloud Console):** passar de "Teste" para "Em produção",
    com nome Soccermon, logo e link de privacidade `https://soccermon.vercel.app/privacidade.html`. Em modo
    teste só os e-mails cadastrados conseguem entrar. Só o Miguel faz (no navegador).
-2. **Tornar o repositório público** (decisão dele; é praticamente irreversível). Depois: descrição, site
-   (`https://soccermon.vercel.app`) e tópicos no repo; decidir canal da comunidade (Discussions do GitHub ou
-   Discord). O link "Código no GitHub" no rodapé do jogo dá 404 enquanto o repo for privado.
+2. **Domínio próprio** (Miguel compra no Cloudflare, pelo PC): depois trocar as menções de
+   `soccermon.vercel.app` (README, SECURITY.md, index.html, share.ts, template de issue, docs), o Site URL e as
+   Redirect URLs do Supabase, as origens do Client ID do Google e o site do repo.
 3. Ideias combinadas para depois: melhores momentos/replay (os snapshots já existem), quadras temáticas e
    treinadores, modo carreira (0.8+).
 
