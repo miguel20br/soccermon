@@ -53,6 +53,15 @@ Cena 0 do storyboard, ~4 s, sem texto, em faixa de cinema (barras pretas em cima
 - Frases soltas pros posts/cenas: "O Snorlax fecha o gol", "O Ditto joga em todas as posições", "Até o Magikarp
   pode ser titular", "Pikachu, eu escolho você… de pivô".
 
+## Música (decidida 15/10/2026)
+
+- **"Pokémon Red/Blue/Yellow - Trainer Battle Remix (5500 subs special)", por Bliitzit** (YouTube). Arquivo local em
+  `trailer/musica/` (fora do git). ~178 BPM (batida 0,337 s, compasso 1,348 s); 1º ataque forte em 2,3 s.
+- **Abertura em silêncio:** olhos do Pikachu → olhos do Mewtwo, só tensão (vento, sem música). A música começa do
+  **segundo 0:00** junto com o **zoom out da bola**; o ataque forte de 2,3 s marca o apito/primeira jogada, e daí os
+  cortes caem nos compassos.
+- Crédito no fim do vídeo e nos posts: "Música: Trainer Battle Remix por Bliitzit".
+
 ## Título (cartela final e abertura)
 
 O Miguel achou que a fonte do logo precisa mudar (15/10): o logo novo sai da skill `logo-design`
