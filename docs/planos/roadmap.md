@@ -56,7 +56,11 @@ Plano do trailer e dos posts de lançamento (LinkedIn como projeto pessoal, X co
 - Ranking.
 
 ### Tradução
-- **Jogo em inglês** (o trailer EN sai com a interface em português; depois traduzir menus, cartas e narração).
+- **Jogo em inglês, tradução completa** (pedido do Miguel, 15/10/2026): menus, cartas, narração, Ajuda, Perfil,
+  Pokédex e Golpedex, com os **nomes oficiais em inglês dos jogos originais** (golpes, habilidades, itens, tipos,
+  status, líderes e cidades de Kanto, frases como "It's super effective!"), nunca traduzidos de volta do
+  português. Idioma pelo navegador + seletor em Configurações e na tela inicial. Em andamento no branch
+  `traducao`; o que depende dos golpes novos e da MT fica em `docs/planos/traducao-pendente.md`.
 
 ### Mais adiante (vitrine "Em breve" do menu)
 - **Modo história**: ginásios, insígnias e a Liga Índigo contados como história.
