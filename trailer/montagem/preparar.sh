@@ -56,4 +56,5 @@ for r in 0 7; do for i in 0 1 2 3; do
   ffmpeg -v error -y -i $P/assets/field/6.png -vf "format=rgba,crop=40:48:$((i * 40)):$((384 + r * 48)),scale=320:384:flags=neighbor" $M/voo/r$r-$i.png
 done; done
 for id in 143 68 151 132 150 45 114 49 71 103; do ffmpeg -v error -y -i $P/assets/cards/$id.gif -frames:v 1 $M/carta-$id.png; done
+./abertura-sons.sh
 echo PRONTO
