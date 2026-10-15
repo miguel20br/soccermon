@@ -1,2 +1,46 @@
-/** Textos da área "match". */
-export const match = {};
+/** Partida: placar, controles, narração (HUD em React), faixa de destaque e VERSUS. */
+export const match = {
+    home: 'Casa',
+    away: 'Fora',
+    cup: 'Copa',
+    highlights: 'Lances',
+    orderFailed: 'Não deu para mandar a ordem agora.',
+    halftime: 'Intervalo',
+    penalties: 'Pênaltis {a} x {b}',
+    fulltime: 'Fim de jogo',
+    clock: "{min}' · {half}",
+    half: ['1º tempo', '2º tempo'],
+    subPending: 'Substituição na próxima saída de bola: sai {out}, entra {in}',
+    whoIn: 'Quem entra no lugar de {name}?',
+    whoOut: 'Quem sai?',
+    reload: 'A quadra não carregou — recarregar',
+    substitute: 'Substituir',
+    changing: 'mudando…',
+    tacticChanges: '{n} mudança de tática|{n} mudanças de tática',
+    skip: 'Pular para o fim',
+    seeResult: 'Ver resultado',
+    feed: 'Narração',
+    feedEmpty: 'Os times entram em quadra…',
+    highlight: {
+        goal: 'GOL!',
+        owngoal: 'GOL CONTRA',
+        save: 'DEFESA!',
+        sub: 'SUBSTITUIÇÃO',
+        evolve: 'EVOLUIU!',
+    },
+    subIn: 'Entra {name}',
+    subOut: 'sai {name}',
+    evolved: '{name} evoluiu',
+    /** Faixa do golpe na quadra (cinematics.ts): "PIKACHU usou" / "PIKACHU no chute". */
+    castUsed: ' usou',
+    castShot: ' no chute',
+    trophy: 'Taça',
+    vs: {
+        yourTeam: 'Seu time',
+        rival: 'Rival',
+        avg: 'média {n}',
+        aria: '{home} contra {away}',
+        start: 'Começar!',
+        loading: 'Carregando a quadra…',
+    },
+};
