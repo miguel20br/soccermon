@@ -3,7 +3,7 @@ import { GAME_H, GAME_W, MatchScene, type MatchSceneData } from './scenes/MatchS
 
 /** Cria o jogo Phaser só com a cena da partida; o resto da UI é React. */
 export default function startGame(parent: HTMLElement, data: MatchSceneData): Phaser.Game {
-    return new Phaser.Game({
+    const game = new Phaser.Game({
         type: Phaser.AUTO,
         width: GAME_W,
         height: GAME_H,
@@ -17,4 +17,7 @@ export default function startGame(parent: HTMLElement, data: MatchSceneData): Ph
         },
         scene: [MatchScene],
     });
+    // só no dev: a gravação do trailer (trailer/) pausa o loop e avança quadro a quadro com game.step
+    if (import.meta.env.DEV) (window as unknown as { __soccermonGame?: Phaser.Game }).__soccermonGame = game;
+    return game;
 }

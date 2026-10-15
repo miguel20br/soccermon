@@ -67,8 +67,7 @@ português; dá pra (a) aceitar, (b) priorizar cenas com pouco texto de interfac
 ## Passo a passo
 
 1. **Ferramentas:** pasta `trailer/` no repo (composição, scripts; quadros e vídeos gerados no `.gitignore`),
-   atalho só de dev `?demo=trailer&cena=N` e script de captura com tempo virtual. Primeiro risco a validar: o
-   Phaser respeitar o tempo virtual (plano B: gravar em câmera lenta e acelerar no ffmpeg).
+   atalho só de dev `?demo=trailer&cena=N` e script de captura quadro a quadro com `game.step` (validado).
 2. **Caça de lances:** centenas de partidas headless pontuando evolução cedo, gol de golpe, Ditto, combo e
    pênalti decisivo. Miniaturas pro Miguel escolher.
 3. **Gravação** das cenas em 1080p (16:9) e no enquadramento do 9:16.
@@ -83,7 +82,7 @@ português; dá pra (a) aceitar, (b) priorizar cenas com pouco texto de interfac
 
 | Risco | Plano B |
 |---|---|
-| Phaser não respeita o tempo virtual | Gravar em câmera lenta (0,25×) e acelerar no ffmpeg |
+| ~~Phaser não respeita o tempo virtual~~ **Resolvido (15/10):** o tempo virtual do Chromium não controla o Phaser, mas pausar o loop (`game.loop.sleep()`) e chamar `game.step(t, 1000/30)` avança exatamente 1/30 s por quadro (testado: 60 quadros = 39,7 ticks, esperado ~40; 3,2 s reais). Exposto só no dev como `window.__soccermonGame` | — |
 | Render pesado no celular | Rascunho aqui com 1 worker; final no PC |
 | Lance raro não aparece na caça | Montar o cenário direto, como os `?demo=` |
 | Música silenciada pelas redes | Trocar por royalty-free (a montagem segue igual) |
