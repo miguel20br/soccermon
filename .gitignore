@@ -34,3 +34,6 @@ trailer/.logs/
 trailer/arte/logo/__pycache__/
 trailer/arte/logo/renders/
 trailer/arte/logo/folha-v*.png
+trailer/musica/
+trailer/montagem/midia/
+trailer/montagem/.hyperframes/

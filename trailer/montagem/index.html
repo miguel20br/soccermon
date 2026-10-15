@@ -1,0 +1,227 @@
+<!doctype html>
+<!--
+  Trailer do Soccermon (16:9). Plano: docs/planos/trailer-plano.md. Mídia em midia/ (fora do git; gerar com
+  ./preparar.sh). Render no Termux:
+    HYPERFRAMES_BROWSER_PATH=/data/data/com.termux/files/usr/bin/chromium-browser npx hyperframes render -w 1 -q draft -o trailer.mp4
+  Tempos: silêncio da abertura até 2,8 s; a música começa no zoom out (2,8 s) e o 1º ataque forte dela cai em
+  H = 5,116 s (apito + corte). Daí em diante tudo anda em compassos B = 1,348 s (178 BPM).
+-->
+<html lang="pt-BR" data-composition-variables='[{"id":"lang","type":"string","label":"Idioma (pt/en)","default":"pt"}]'>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1920, height=1080" />
+<title>Soccermon · trailer</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+@font-face { font-family: "Galmuri11"; src: url("midia/Galmuri11-Bold.woff2") format("woff2"); font-weight: 700; }
+html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+#root { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: "Galmuri11", monospace; }
+.clip { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden; }
+video.clip, img.cheia { object-fit: cover; }
+.pixel { image-rendering: pixelated; }
+
+/* abertura faroeste */
+.olho { position: absolute; image-rendering: pixelated; }
+.barra { position: absolute; left: 0; right: 0; height: 140px; background: #000; z-index: 50; }
+
+/* textos */
+.legenda { position: absolute; left: 0; right: 0; bottom: 84px; text-align: center; z-index: 40; font-weight: 700;
+  font-size: 56px; letter-spacing: 2px; padding: 0 120px; color: #fff; -webkit-text-stroke: 14px #0e1430; paint-order: stroke fill;
+  text-shadow: 0 8px 0 #0e1430, 0 0 40px rgb(0 0 0 / 50%); }
+.legenda b { color: #ffcb05; font-weight: 700; }
+.flash { position: absolute; inset: 0; background: #fff; opacity: 0; z-index: 60; pointer-events: none; }
+
+/* versus */
+.lado { position: absolute; top: 0; bottom: 0; width: 62%; }
+.time { position: absolute; display: flex; gap: 6px; align-items: flex-end; }
+.time img { height: 230px; image-rendering: pixelated; }
+.vs { position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%); font-size: 220px; color: #ffcb05;
+  -webkit-text-stroke: 22px #0e1430; paint-order: stroke fill; text-shadow: 0 14px 0 #0e1430; z-index: 5; }
+
+/* final */
+#final { background: radial-gradient(circle at 50% 45%, #2a3a7a, #070a18 70%); }
+.raios { position: absolute; left: 50%; top: 45%; width: 3000px; height: 3000px; margin: -1500px 0 0 -1500px;
+  background: repeating-conic-gradient(rgb(255 255 255 / 9%) 0 6deg, transparent 6deg 13deg); }
+.halo { position: absolute; left: 50%; top: 45%; width: 1300px; height: 620px; transform: translate(-50%, -50%);
+  background: radial-gradient(rgb(255 255 255 / 45%), transparent 65%); }
+#zard { position: absolute; left: 50%; top: 45%; width: 200px; transform: translate(-50%, -50%); image-rendering: pixelated; }
+.logo { position: absolute; left: 50%; top: 40%; width: 1500px; transform: translate(-50%, -50%); }
+#logo-branco { filter: brightness(0) invert(1) drop-shadow(0 0 30px #fff); }
+.tag { position: absolute; left: 0; right: 0; top: 60%; text-align: center; font-size: 64px; letter-spacing: 8px; color: #ffcb05;
+  text-shadow: 6px 7px 0 #0e1430; }
+.selo { position: absolute; left: 50%; top: 73%; transform: translateX(-50%); padding: 16px 34px; border-radius: 14px; white-space: nowrap;
+  background: #e8423f; color: #fff; font-size: 40px; letter-spacing: 3px; box-shadow: 0 7px 0 #8c1d1b; }
+.site { position: absolute; left: 0; right: 0; top: 84%; text-align: center; font-size: 38px; color: #fff; letter-spacing: 2px; }
+.credito { position: absolute; left: 0; right: 0; bottom: 22px; text-align: center; font-size: 20px; color: rgb(255 255 255 / 60%); letter-spacing: 1px; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="root" data-width="1920" data-height="1080" data-start="0" data-duration="36">
+
+  <!-- ===== 0 · abertura em silêncio (0–2,8 s) + zoom out com a música (2,8–5,116 s) ===== -->
+  <div id="olho-pika" class="clip" data-start="0" data-duration="1.1" style="background:#000">
+    <img class="olho" src="midia/retrato-25.png" style="width:3200px;left:-920px;top:-880px" alt="" />
+  </div>
+  <div id="olho-mew" class="clip" data-start="1.1" data-duration="1.1" style="background:#000">
+    <img class="olho" src="midia/retrato-150.png" style="width:4400px;left:-1100px;top:-2075px" alt="" />
+  </div>
+  <div id="bola" class="clip" data-start="2.2" data-duration="2.916" style="background:#000">
+    <img id="saida" class="cheia" src="midia/saida.png" style="width:1920px;height:1080px;transform-origin:960px 527px" alt="" />
+  </div>
+  <div class="barra" id="barra-cima" style="top:0"></div>
+  <div class="barra" id="barra-baixo" style="bottom:0"></div>
+
+  <!-- ===== 1 · gancho: evolução + gol (3 compassos) ===== -->
+  <video id="v-gancho" class="clip" src="midia/gancho.mp4" muted playsinline data-start="5.116" data-duration="4.044"></video>
+
+  <!-- ===== 2 · draft (2 compassos) ===== -->
+  <div id="draft" class="clip" data-start="9.16" data-duration="2.696">
+    <img id="draft-a" class="cheia" src="midia/draft-a.png" style="width:1920px;height:1080px;transform-origin:66% 52%" alt="" />
+    <img id="draft-b" class="cheia" src="midia/draft-b.png" style="position:absolute;inset:0;width:1920px;height:1080px;opacity:0;transform-origin:45% 45%" alt="" />
+  </div>
+
+  <!-- ===== 3 · versus (2 compassos) ===== -->
+  <div id="versus" class="clip" data-start="11.856" data-duration="2.696" style="background:#0e1430">
+    <div class="lado" id="vs-esq" style="left:-12%;background:linear-gradient(135deg,#e8423f,#7a1412);clip-path:polygon(0 0,100% 0,78% 100%,0 100%)"></div>
+    <div class="lado" id="vs-dir" style="right:-12%;background:linear-gradient(135deg,#1b3f9e,#0a1440);clip-path:polygon(22% 0,100% 0,100% 100%,0 100%)"></div>
+    <div class="time" id="time-esq" style="left:60px;top:250px">
+      <img src="midia/carta-143.png" alt="" /><img src="midia/carta-68.png" alt="" /><img src="midia/carta-151.png" alt="" /><img src="midia/carta-132.png" alt="" /><img src="midia/carta-150.png" alt="" />
+    </div>
+    <div class="time" id="time-dir" style="right:60px;top:470px">
+      <img src="midia/carta-45.png" alt="" /><img src="midia/carta-114.png" alt="" /><img src="midia/carta-49.png" alt="" /><img src="midia/carta-71.png" alt="" /><img src="midia/carta-103.png" alt="" />
+    </div>
+    <div class="vs" id="vs">VS</div>
+  </div>
+
+  <!-- ===== 4 · jogada (2 compassos) ===== -->
+  <video id="v-jogada" class="clip" src="midia/jogada.mp4" muted playsinline data-start="14.552" data-duration="2.696"></video>
+  <!-- ===== 5 · golpes (3 compassos, 1 por golpe) ===== -->
+  <video id="v-golpes" class="clip" src="midia/golpes.mp4" muted playsinline data-start="17.248" data-duration="4.044"></video>
+  <!-- ===== 6 · Ditto + combo (2 compassos) ===== -->
+  <video id="v-ditto" class="clip" src="midia/ditto.mp4" muted playsinline data-start="21.292" data-duration="2.696"></video>
+
+  <!-- ===== 7 · técnico (2 compassos) ===== -->
+  <div id="tecnico" class="clip" data-start="23.988" data-duration="2.696">
+    <img id="escalacao" class="cheia" src="midia/escalacao.png" style="width:1920px;height:1080px;transform-origin:25% 45%" alt="" />
+  </div>
+
+  <!-- ===== 8 · pênaltis (3 compassos) ===== -->
+  <video id="v-penaltis" class="clip" src="midia/penaltis.mp4" muted playsinline data-start="26.684" data-duration="4.044"></video>
+
+  <!-- ===== 9 · final: Charizard voa na tela, clarão, o logo "evolui" (30,728–36 s) ===== -->
+  <div id="final" class="clip" data-start="30.728" data-duration="5.272">
+    <div class="raios" id="raios"></div>
+    <div class="halo"></div>
+    <img id="zard" src="midia/carta-6.gif" alt="" />
+    <img class="logo" id="logo-cor" src="midia/logo.svg" style="opacity:0" alt="" />
+    <img class="logo" id="logo-branco" src="midia/logo.svg" style="opacity:0" alt="" />
+    <div class="tag" id="tag" style="opacity:0"></div>
+    <div class="selo" id="selo" style="opacity:0"></div>
+    <div class="site" id="site" style="opacity:0">soccermon.vercel.app</div>
+    <div class="credito" id="credito" style="opacity:0"></div>
+  </div>
+
+  <!-- legendas (texto por idioma no script) -->
+  <div class="legenda" id="leg-draft" data-start="9.16" data-duration="2.696"></div>
+  <div class="legenda" id="leg-versus" data-start="11.856" data-duration="2.696"></div>
+  <div class="legenda" id="leg-futsal" data-start="14.552" data-duration="2.696"></div>
+  <div class="legenda" id="leg-golpes" data-start="17.248" data-duration="4.044"></div>
+  <div class="legenda" id="leg-tecnico" data-start="23.988" data-duration="2.696"></div>
+  <div class="legenda" id="leg-estrelato" data-start="26.684" data-duration="4.044"></div>
+  <div class="flash" id="flash"></div>
+
+  <!-- áudio: vento na abertura, apito no 1º ataque da música, música do zoom out até o fim -->
+  <audio id="a-vento" class="clip" src="midia/vento.wav" data-start="0" data-duration="2.9" data-volume="0.6"></audio>
+  <audio id="a-apito" class="clip" src="midia/apito.wav" data-start="4.95" data-duration="0.65" data-volume="0.7"></audio>
+  <audio id="a-musica" class="clip" src="midia/musica.mp3" data-start="2.8" data-duration="33.2" data-media-start="0" data-fade-out="1.6"></audio>
+
+  <script>
+    const TEXTOS = {
+      pt: {
+        draft: "Escolha seu time entre os <b>151 Pokémon</b> de Kanto",
+        versus: "Monte seu time e enfrente <b>batalhas</b>",
+        futsal: "Modo <b>futsal 5x5</b>",
+        golpes: "Mais de <b>100 movimentos</b>",
+        tecnico: "Seja o <b>técnico</b> do seu próprio time",
+        estrelato: "E conquiste o <b>estrelato</b>",
+        tag: "TEMOS QUE CHUTAR!",
+        selo: "BETA ABERTA · JOGUE GRÁTIS NO NAVEGADOR",
+        credito: "Música: Trainer Battle Remix por Bliitzit · Fan game sem fins lucrativos · Pokémon © Nintendo, Game Freak, Creatures, TPC",
+      },
+      en: {
+        draft: "Pick your team from all <b>151 Kanto Pokémon</b>",
+        versus: "Build your squad and take on <b>battles</b>",
+        futsal: "<b>5v5</b> indoor soccer",
+        golpes: "<b>100+</b> moves",
+        tecnico: "Be the <b>manager</b> of your own team",
+        estrelato: "And rise to <b>stardom</b>",
+        tag: "GOTTA KICK 'EM ALL!",
+        selo: "OPEN BETA · PLAY FREE IN YOUR BROWSER",
+        credito: "Music: Trainer Battle Remix by Bliitzit · Non-profit fan game · Pokémon © Nintendo, Game Freak, Creatures, TPC",
+      },
+    };
+    const vars = window.__hyperframes?.getVariables?.() ?? {};
+    const T = TEXTOS[vars.lang] ?? TEXTOS.pt;
+    for (const k of ["draft", "versus", "futsal", "golpes", "tecnico", "estrelato"]) document.getElementById(`leg-${k}`).innerHTML = T[k];
+    for (const k of ["tag", "selo", "credito"]) document.getElementById(k).textContent = T[k];
+
+    const B = 1.348, b = B / 4, H = 5.116;
+    const tl = gsap.timeline({ paused: true });
+
+    // abertura: empurrão lento nos olhos (tensão), bola parada bem de perto, zoom out com a música
+    tl.fromTo("#olho-pika img", { scale: 1 }, { scale: 1.07, duration: 1.1, ease: "none" }, 0);
+    tl.fromTo("#olho-mew img", { scale: 1 }, { scale: 1.07, duration: 1.1, ease: "none" }, 1.1);
+    tl.set("#saida", { scale: 7 }, 2.2);
+    tl.to("#saida", { scale: 1, duration: H - 2.8 - 0.1, ease: "power3.inOut" }, 2.8);
+    tl.to("#barra-cima", { yPercent: -100, duration: 0.6, ease: "power2.in" }, H - 0.7);
+    tl.to("#barra-baixo", { yPercent: 100, duration: 0.6, ease: "power2.in" }, H - 0.7);
+
+    // flash branco nos cortes fortes
+    for (const t of [H, H + 3.37, 17.248, 17.248 + B, 17.248 + 2 * B, 21.292, 30.728 + 1.15])
+      tl.fromTo("#flash", { opacity: 0.9 }, { opacity: 0, duration: 0.3, ease: "power2.out", immediateRender: false }, t);
+
+    // draft: aproxima nas cartas, depois a carta aberta
+    tl.fromTo("#draft-a", { scale: 1.05 }, { scale: 1.45, duration: B, ease: "power2.out" }, 9.16);
+    tl.set("#draft-b", { opacity: 1 }, 9.16 + B);
+    tl.fromTo("#draft-b", { scale: 1.3 }, { scale: 1.55, duration: B, ease: "power1.out" }, 9.16 + B);
+
+    // versus: lados entram em diagonal, times sobem, VS bate
+    tl.from("#vs-esq", { xPercent: -60, duration: 0.3, ease: "power3.out" }, 11.856);
+    tl.from("#vs-dir", { xPercent: 60, duration: 0.3, ease: "power3.out" }, 11.856);
+    tl.from("#time-esq img", { y: 300, opacity: 0, duration: 0.25, stagger: b / 3, ease: "back.out(2)" }, 11.856 + b);
+    tl.from("#time-dir img", { y: 300, opacity: 0, duration: 0.25, stagger: b / 3, ease: "back.out(2)" }, 11.856 + b);
+    tl.from("#vs", { scale: 3, opacity: 0, duration: 0.2, ease: "power4.in" }, 11.856 + 4 * b);
+
+    // técnico: passeia pela escalação e pela tática
+    tl.fromTo("#escalacao", { scale: 1.6, x: 120 }, { scale: 1.35, x: -260, duration: 2 * B, ease: "power1.inOut" }, 23.988);
+
+    // legendas: pulam na primeira batida da cena
+    for (const [id, t] of [["draft", 9.16], ["versus", 11.856], ["futsal", 14.552], ["golpes", 17.248], ["tecnico", 23.988], ["estrelato", 26.684]])
+      tl.from(`#leg-${id}`, { y: 60, scale: 0.8, opacity: 0, duration: 0.22, ease: "back.out(2.5)" }, t + 0.05);
+
+    // final: Charizard voa em direção à tela, clarão, o logo pisca branco/cor como a evolução e assenta
+    const F = 30.728;
+    tl.to("#raios", { rotation: 40, duration: 5.272, ease: "none" }, F);
+    tl.fromTo("#zard", { scale: 0.15, rotation: -8 }, { scale: 14, rotation: 4, duration: 1.15, ease: "power3.in" }, F);
+    tl.set("#zard", { opacity: 0 }, F + 1.15);
+    const L = F + 1.15;
+    for (let i = 0; i < 4; i++) {
+      tl.set("#logo-branco", { opacity: 1 }, L + i * 2 * b * 0.6);
+      tl.set("#logo-cor", { opacity: i ? 1 : 0 }, L + i * 2 * b * 0.6);
+      tl.set("#logo-branco", { opacity: 0 }, L + (i * 2 + 1) * b * 0.6);
+    }
+    tl.fromTo(".logo", { scale: 0.85 }, { scale: 1, duration: 0.5, ease: "back.out(3)" }, L);
+    tl.set("#logo-cor", { opacity: 1 }, L + 8 * b * 0.6);
+    tl.fromTo("#flash", { opacity: 0.8 }, { opacity: 0, duration: 0.4, immediateRender: false }, L + 8 * b * 0.6);
+    tl.to("#tag", { opacity: 1, duration: 0.01 }, L + 8 * b * 0.6 + b);
+    tl.from("#tag", { scale: 1.6, duration: 0.25, ease: "back.out(2)" }, L + 8 * b * 0.6 + b);
+    tl.to("#selo", { opacity: 1, duration: 0.2 }, L + 8 * b * 0.6 + 3 * b);
+    tl.from("#selo", { y: 40, duration: 0.25, ease: "back.out(2)" }, L + 8 * b * 0.6 + 3 * b);
+    tl.to(["#site", "#credito"], { opacity: 1, duration: 0.3 }, L + 8 * b * 0.6 + 4 * b);
+
+    window.__timelines = window.__timelines || {};
+    window.__timelines.root = tl;
+  </script>
+</div>
+</body>
+</html>
