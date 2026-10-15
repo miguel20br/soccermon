@@ -2,6 +2,8 @@
 
 **Jogue agora: [soccermon.vercel.app](https://soccermon.vercel.app)**
 
+Criado por **Miguel Cunha** ([@miguel20br](https://github.com/miguel20br)).
+
 Fan game de navegador, **sem fins lucrativos**: monte um time com os 151 Pokémon de Kanto num draft
 "escolha 1 de 3" e dispute uma copa de **futsal 5v5 simulado** contra clubes temáticos dos ginásios.
 
@@ -79,7 +81,7 @@ segurança? Siga [SECURITY.md](SECURITY.md) em vez de abrir uma issue pública.
 
 ## Licença e créditos
 
-- **Código**: [AGPL-3.0-or-later](LICENSE). Se você publicar uma versão modificada, o código dela também
+- **Código**: © 2026 Miguel Cunha, sob [AGPL-3.0-or-later](LICENSE). Se você publicar uma versão modificada, o código dela também
   precisa ficar aberto.
 - **Sprites, sons e dados de terceiros** não estão sob a AGPL: cada um segue a licença da sua fonte (várias
   só para uso **não comercial**, como os sprites PMD em CC BY-NC 4.0). Veja [CREDITS.md](CREDITS.md),

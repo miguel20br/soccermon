@@ -266,9 +266,9 @@ export function Home() {
                 </div>
             </section>
             <p className="disclaimer">
-                Soccermon v{__APP_VERSION__.replace(/\.0$/, '')} · Fan game sem fins lucrativos, feito por fãs. Pokémon
-                e todos os nomes, sprites e sons relacionados são © Nintendo, Game Freak, Creatures Inc. e The Pokémon
-                Company. Este projeto não é afiliado nem endossado por eles. ·{' '}
+                Soccermon v{__APP_VERSION__.replace(/\.0$/, '')} · Criado por Miguel Cunha · Fan game sem fins
+                lucrativos. Pokémon e todos os nomes, sprites e sons relacionados são © Nintendo, Game Freak, Creatures
+                Inc. e The Pokémon Company. Este projeto não é afiliado nem endossado por eles. ·{' '}
                 <a href="privacidade.html" target="_blank" rel="noopener">
                     Privacidade e termos
                 </a>{' '}

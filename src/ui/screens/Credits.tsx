@@ -8,11 +8,17 @@ export function Credits() {
             <MenuHead title="Créditos" icon="credits" onBack={() => go('home')} />
             <section className="panel setting-card credits-card credits-hero">
                 <img className="pixel" src="assets/cards/25.gif" alt="" />
-                <p>
-                    Soccermon é um fan game <b>sem fins lucrativos</b>, com código aberto sob a licença AGPL-3.0.
-                    Pokémon e todos os nomes, imagens e sons relacionados são © Nintendo, Game Freak, Creatures Inc. e
-                    The Pokémon Company. Este projeto não é afiliado nem endossado por eles.
-                </p>
+                <div>
+                    <p>
+                        Criado por <b>Miguel Cunha</b> (<a href="https://github.com/miguel20br">@miguel20br</a>): ideia,
+                        game design e código.
+                    </p>
+                    <p>
+                        Soccermon é um fan game <b>sem fins lucrativos</b>, com código aberto sob a licença AGPL-3.0.
+                        Pokémon e todos os nomes, imagens e sons relacionados são © Nintendo, Game Freak, Creatures Inc.
+                        e The Pokémon Company. Este projeto não é afiliado nem endossado por eles.
+                    </p>
+                </div>
             </section>
             <section className="panel setting-card credits-card">
                 <h2>Sprites e áudio</h2>

@@ -1,6 +1,6 @@
 # Créditos
 
-Soccermon é um fan project sem fins lucrativos. Pokémon © Nintendo, Game Freak, Creatures Inc. e The Pokémon Company.
+Soccermon é um fan project sem fins lucrativos criado por **Miguel Cunha** ([@miguel20br](https://github.com/miguel20br)): ideia, game design e código. Pokémon © Nintendo, Game Freak, Creatures Inc. e The Pokémon Company.
 
 ## Assets
 

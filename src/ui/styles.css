@@ -4953,6 +4953,10 @@ button,
     height: 64px;
     flex: none;
 }
+.credits-hero > div {
+    display: grid;
+    gap: 8px;
+}
 
 /* ---------- revisão 0.7: celular, telas baixas e textos longos ---------- */
 .st-chart {
