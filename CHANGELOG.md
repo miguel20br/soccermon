@@ -1,5 +1,14 @@
 # Novidades
 
+## 0.7.3 · Beta aberta
+
+### Beta aberta
+- O Soccermon agora é beta aberta: o jogo está completo e segue recebendo ajustes
+- Código aberto no GitHub (link no rodapé): dá para ler o código, relatar bugs e sugerir ideias
+
+### Corrigido
+- Ditto no painel da partida mostra a forma que copiou (espécie, nível, golpes e habilidade), não mais o Ditto original
+
 ## 0.7.2 · Trocas que contam e privacidade
 
 ### Alterado
