@@ -36,9 +36,10 @@ junta gancho g1 g2
 junta ditto d1 d2
 # quadros da saída de bola (com os times e vazia só com a bola): node quadra-vazia.mjs (precisa do npm run dev)
 # recortes dos menus (cartas, escalação, tática): node recortes.mjs
-# sons: vento (não usado desde a abertura nova) e o apito de juiz (~2650 Hz com o trinado da bolinha, forte)
+# sons: vento (não usado desde a abertura nova)
 ffmpeg -v error -y -f lavfi -i "anoisesrc=color=brown:amplitude=0.25:duration=2.9" -af "lowpass=f=500,afade=t=in:d=0.6,afade=t=out:st=2.3:d=0.6" $M/vento.wav
-ffmpeg -v error -y -f lavfi -i "aevalsrc=0.85*sin(2*PI*(2650+45*sin(2*PI*32*t))*t)*(0.65+0.35*sgn(sin(2*PI*32*t)))*min(1\,t*50):s=44100:d=0.65" -af "afade=t=out:st=0.5:d=0.15,highpass=f=900" $M/apito.wav
+# apito: gravação real de juiz num ginásio (CC0, ver ../sons/CREDITOS.md): o apito forte + o eco, 1,5 s
+ffmpeg -v error -y -ss 0.07 -t 1.5 -i ../sons/apito-ginasio-splicesound-cc0.wav -af "afade=t=out:st=1.1:d=0.4,loudnorm=I=-14:TP=-1:LRA=7" -ar 44100 $M/apito.wav
 cp ../musica/trainer-battle-remix.mp3 $M/musica.mp3   # análise de BPM/batidas: musica-analisar.py e musica-fase.py
 # assets do jogo
 P=../../public
