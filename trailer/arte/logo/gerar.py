@@ -66,6 +66,8 @@ def svg(w, h, corpo):
 
 
 def salvar(nome, conteudo):
+    if __name__ != "__main__":  # importado pelo hibridos.py: não regrava os conceitos descartados
+        return
     with open(os.path.join(AQUI, nome), "w") as f:
         f.write(conteudo)
 
@@ -121,4 +123,5 @@ total = max(larg * s, 200 * k)
 corpo = (simbolo_c((total - 200 * k) / 2 + 24, 18, k)
          + f'<g transform="translate({(total - larg * s) / 2 + 24:.1f} {18 + 236 * k + 24:.1f}) scale({s})">{g}</g>')
 salvar("c-lockup.svg", svg(total + 48, 18 + 236 * k + 24 + 8 * s + 18, corpo))
-print("ok: a/b/c symbol + lockup (v2)")
+if __name__ == "__main__":
+    print("ok: a/b/c symbol + lockup (v2)")

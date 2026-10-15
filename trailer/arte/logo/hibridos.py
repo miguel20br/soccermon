@@ -188,8 +188,7 @@ def icone():
         f.write(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><defs>{GRAD}{defs}</defs>{corpo}</svg>\n')
 
 
-arena_cartas()
-explosao_cartas()
+# G (arena_cartas) e H (explosao_cartas) foram descartados; o escolhido é o I (evolucao)
 evolucao()
 evolucao("TEMOS QUE CHUTAR!", "i-evolucao-pt.svg")
 evolucao("GOTTA KICK 'EM ALL!", "i-evolucao-en.svg")
@@ -197,4 +196,4 @@ evolucao(None, "logo.svg", com_fundo=False)
 evolucao("TEMOS QUE CHUTAR!", "logo-pt.svg", com_fundo=False)
 evolucao("GOTTA KICK 'EM ALL!", "logo-en.svg", com_fundo=False)
 icone()
-print("ok: g-arena-cartas, h-explosao-cartas, i-evolucao")
+print("ok: logo final (i-evolucao, logo*, icone)")

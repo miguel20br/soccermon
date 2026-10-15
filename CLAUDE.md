@@ -112,6 +112,9 @@ Plano do trailer e dos posts de lançamento: [docs/planos/divulgacao-trailer.md]
    (HyperFrames, PT/EN por variável); mídia e música fora do git (`trailer/montagem/preparar.sh` + scripts de
    recorte). Vídeos finais no celular em `Filmes/Soccermon-trailer/final/`. Capas, prévia do link, avatar,
    banner e textos dos posts em `docs/marketing/` (`node docs/marketing/arte/render.mjs` refaz as imagens).
+   **Pra criar qualquer asset novo (vídeo, logo, imagem, post), leia antes a skill
+   `.claude/skills/soccermon-assets/SKILL.md`** (pipeline, armadilhas do HyperFrames e o gosto do Miguel). Cópia de
+   tudo no Drive dele, pasta "Soccermon trailer".
 5. Ideias combinadas para depois: melhores momentos/replay (os snapshots já existem), quadras temáticas e
    treinadores, modo carreira (0.8+).
 

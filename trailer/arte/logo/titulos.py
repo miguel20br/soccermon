@@ -48,6 +48,8 @@ def bola_cor(cx, cy, r):
 
 
 def salvar(nome, w, h, corpo, defs=""):
+    if __name__ != "__main__":  # importado pelo hibridos.py: não regrava os conceitos descartados
+        return
     with open(os.path.join(AQUI, nome), "w") as f:
         f.write(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}"><defs>{defs}</defs>{corpo}</svg>\n')
 
@@ -200,4 +202,5 @@ def golaco():
 arena()
 colecao()
 golaco()
-print("ok: d-arena, e-colecao, f-golaco")
+if __name__ == "__main__":
+    print("ok: d-arena, e-colecao, f-golaco")
