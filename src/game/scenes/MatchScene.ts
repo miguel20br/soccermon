@@ -484,6 +484,17 @@ export class MatchScene extends Phaser.Scene {
         view.arrow.setPosition(x, head - 7).setDepth(depth);
     }
 
+    /** Ditto (Transformar) vira a cópia de quem escolheu: mantém o nome e o "capitão". */
+    private becomeCopy(idx: number, into: number, target: number) {
+        const view = this.players[idx];
+        if (!view) return;
+        const captain = view.captain;
+        createSpeciesAnims(this, into);
+        this.swapSpecies(view, into, view.name, this.players[target]?.shiny ?? false);
+        view.captain = captain;
+        if (captain) view.label.setText(`C·${view.name}`).setColor('#ffd447');
+    }
+
     private swapSpecies(view: PlayerView, speciesId: number, name: string, shiny: boolean) {
         view.speciesId = speciesId;
         view.name = name;
@@ -1004,17 +1015,8 @@ export class MatchScene extends Phaser.Scene {
                 else this.evolveAnimation(view, e.from, e.into, newName);
             }
         }
-        if (e.type === 'transform') {
-            // Ditto vira a cópia; mantém o nome e o "capitão"
-            const view = this.players[e.by];
-            if (view) {
-                const captain = view.captain;
-                this.swapSpecies(view, e.into, view.name, this.players[e.target]?.shiny ?? false);
-                view.captain = captain;
-                if (captain) view.label.setText(`C·${view.name}`).setColor('#ffd447');
-                createSpeciesAnims(this, e.into);
-            }
-        }
+        // Ditto vira a cópia; ao vivo quem troca é a animação de Transformar (pisca em branco antes, ver abaixo)
+        if (e.type === 'transform' && silent) this.becomeCopy(e.by, e.into, e.target);
         if (silent) return;
         const cries = this.md.cries;
         const cinematic = this.md.cinematic;
@@ -1151,21 +1153,40 @@ export class MatchScene extends Phaser.Scene {
             case 'transform': {
                 const view = this.players[e.by];
                 if (!view) break;
-                playSfx('status');
-                playCry(e.into, cries, 0.8);
-                this.impact(view.sprite.x, view.sprite.y - 16, 'Normal');
-                view.sprite.setScale(SPRITE_SCALE * 0.2);
-                this.tweens.add({ targets: view.sprite, scale: SPRITE_SCALE, duration: 420, ease: 'Back.easeOut' });
                 const into = species(e.into).name;
-                this.battleBox.push(`${view.name} se transformou em ${into}!`);
-                if (cinematic) {
-                    this.cine.drama('TRANSFORMAR!', {
-                        color: '#d9a7ff',
-                        stroke: '#2a0b4a',
-                        at: { x: view.sprite.x, y: view.sprite.y },
-                        sub: `${view.name} virou ${into}`,
+                playSfx('status');
+                // como a evolução, só que rápido: o Ditto pisca em branco, acelerando, e aí vira a cópia.
+                // Os atrasos também deixam as posições do tick 0 serem aplicadas antes do zoom mirar nele.
+                const blinks = [180, 150, 120, 100, 80, 70, 60, 60];
+                let at = 0;
+                blinks.forEach((ms, i) => {
+                    at += ms;
+                    this.time.delayedCall(at, () => {
+                        if (i % 2 === 0) view.sprite.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL);
+                        else view.sprite.setTintMode(Phaser.TintModes.MULTIPLY).clearTint();
                     });
-                } else this.popText(e.by, `→ ${into}`, '#d9a7ff');
+                });
+                if (cinematic) {
+                    this.time.delayedCall(60, () =>
+                        this.cine.drama('TRANSFORMAR!', {
+                            color: '#d9a7ff',
+                            stroke: '#2a0b4a',
+                            at: { x: view.sprite.x, y: view.sprite.y },
+                            sub: `${view.name} virou ${into}`,
+                        }),
+                    );
+                }
+                this.time.delayedCall(at + 60, () => {
+                    view.sprite.setTintMode(Phaser.TintModes.MULTIPLY);
+                    this.becomeCopy(e.by, e.into, e.target);
+                    this.refreshTint(view);
+                    playCry(e.into, cries, 0.8);
+                    this.impact(view.sprite.x, view.sprite.y - 16, 'Normal');
+                    view.sprite.setScale(SPRITE_SCALE * 0.2);
+                    this.tweens.add({ targets: view.sprite, scale: SPRITE_SCALE, duration: 420, ease: 'Back.easeOut' });
+                    this.battleBox.push(`${view.name} se transformou em ${into}!`);
+                    if (!cinematic) this.popText(e.by, `→ ${into}`, '#d9a7ff');
+                });
                 break;
             }
             case 'combo': {

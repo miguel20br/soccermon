@@ -23,6 +23,8 @@ const fps = Number(arg('--fps', 30));
 const speed = Number(arg('--vel', 1));
 const width = Number(arg('--largura', 1920));
 const out = arg('--out', `trailer/clips/${cena}-${seed}`);
+// canvas: só o jogo, resolução nativa (rápido). pagina: a área da quadra com o HTML por cima (tela de evolução).
+const modo = arg('--modo', 'canvas');
 if (!cena || !seed) throw new Error('use --cena e --seed (veja scripts/trailer-hunt.ts)');
 
 const TICK_RATE = 20; // FUTSAL_5.tickRate
@@ -41,7 +43,11 @@ const browser = await puppeteer.launch({
     protocolTimeout: 600000,
 });
 const page = await browser.newPage();
-await page.setViewport({ width, height: Math.round(width * 0.75) });
+await page.setViewport(
+    modo === 'pagina'
+        ? { width: 1280, height: 960, deviceScaleFactor: width / 1280 }
+        : { width, height: Math.round(width * 0.75) },
+);
 page.on('pageerror', (e) => console.log('[página]', e.message));
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const click = (re) =>
@@ -64,27 +70,135 @@ await page.addStyleTag({
     content:
         '.app{max-width:none!important;padding:0!important}.match-layout{grid-template-columns:1fr!important}.scoreboard,.controls,.team-panel,.feed,.topbar{display:none!important}',
 });
-for (let i = 0; i < 90 && !(await click('^Começar')); i++) await wait(1000);
-await wait(1000);
+// pausa o jogo ANTES do "Começar!" (o Ditto se transforma no tick 0)
+for (let i = 0; i < 90; i++) {
+    const pronto = await page.evaluate(
+        () =>
+            !!window.__soccermonGame &&
+            [...document.querySelectorAll('button')].some((b) => /^Começar/.test(b.innerText.trim()) && !b.disabled),
+    );
+    if (pronto) break;
+    await wait(1000);
+}
 
 // tick atual da partida (eventos do Phaser) e controles do jogo
 await page.evaluate(() => {
     window.__tick = 0;
+    window.__fim = false;
     window.__soccermonBus.on('match:tick', (t) => {
         window.__tick = t.tick;
     });
+    window.__soccermonBus.on('match:ended', () => {
+        window.__fim = true;
+    });
 });
+const ended = () => page.evaluate(() => window.__fim);
 const tick = () => page.evaluate(() => window.__tick);
 await page.evaluate(() => {
     const g = window.__soccermonGame;
     g.loop.sleep();
     window.__t = g.loop.now || performance.now();
+    // relógio falso pra parte em HTML (tela de evolução, faixas): setTimeout e animações CSS andam com o jogo
+    let vnow = performance.now();
+    let seq = 1e7;
+    const timers = new Map();
+    window.setTimeout = (fn, ms = 0, ...a) => {
+        const id = seq++;
+        timers.set(id, { at: vnow + Number(ms || 0), fn: () => fn(...a) });
+        return id;
+    };
+    window.clearTimeout = (id) => timers.delete(id);
+    window.__vadvance = (dt) => {
+        const alvo = vnow + dt;
+        for (;;) {
+            let prox = null;
+            for (const [id, t] of timers) if (t.at <= alvo && (!prox || t.at < prox[1].at)) prox = [id, t];
+            if (!prox) break;
+            vnow = prox[1].at;
+            timers.delete(prox[0]);
+            try {
+                prox[1].fn();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        vnow = alvo;
+        window.__vnow = vnow;
+        for (const an of document.getAnimations()) {
+            if (an.__vt === undefined) {
+                an.pause();
+                an.__vt = Number(an.currentTime ?? 0);
+            } else {
+                an.__vt += dt;
+                an.currentTime = an.__vt;
+            }
+        }
+    };
+    // GIFs animados (sprites na tela de evolução, VERSUS) andam no relógio real: decodifica os quadros e troca no
+    // compasso do relógio falso, respeitando a duração de cada quadro
+    const gifs = new Map();
+    const loadGif = (src) => {
+        if (!gifs.has(src))
+            gifs.set(
+                src,
+                (async () => {
+                    const dec = new ImageDecoder({ data: await (await fetch(src)).arrayBuffer(), type: 'image/gif' });
+                    await dec.tracks.ready;
+                    const c = document.createElement('canvas');
+                    const urls = [];
+                    const durs = [];
+                    for (let i = 0; i < dec.tracks.selectedTrack.frameCount; i++) {
+                        const { image } = await dec.decode({ frameIndex: i });
+                        c.width = image.displayWidth;
+                        c.height = image.displayHeight;
+                        const ctx = c.getContext('2d');
+                        ctx.clearRect(0, 0, c.width, c.height);
+                        ctx.drawImage(image, 0, 0);
+                        urls.push(c.toDataURL());
+                        durs.push(Math.max(20, (image.duration ?? 100000) / 1000));
+                        image.close();
+                    }
+                    return { urls, durs, total: durs.reduce((a, b) => a + b, 0) };
+                })(),
+            );
+        return gifs.get(src);
+    };
+    window.__gifTick = async () => {
+        const imgs = [...document.querySelectorAll('img')].filter((im) =>
+            /\.gif(\?|$)/.test(im.dataset.gifSrc || im.getAttribute('src') || ''),
+        );
+        await Promise.all(
+            imgs.map(async (im) => {
+                const attr = im.getAttribute('src') || '';
+                if (!attr.startsWith('data:') && attr !== im.dataset.gifSrc) {
+                    im.dataset.gifSrc = attr;
+                    im.dataset.gifT0 = String(window.__vnow ?? 0);
+                }
+                const g = await loadGif(new URL(im.dataset.gifSrc, location.href).href);
+                let t = ((window.__vnow ?? 0) - Number(im.dataset.gifT0)) % g.total;
+                let i = 0;
+                while (i < g.durs.length - 1 && t >= g.durs[i]) t -= g.durs[i++];
+                if (im.dataset.gifFrame !== String(i)) {
+                    im.dataset.gifFrame = String(i);
+                    im.src = g.urls[i];
+                    await im.decode().catch(() => {});
+                }
+            }),
+        );
+    };
 });
+await click('^Começar');
 const step = (dt) =>
-    page.evaluate((d) => {
-        window.__t += d;
-        window.__soccermonGame.step(window.__t, d);
-    }, dt);
+    page.evaluate(
+        async (d, gif) => {
+            window.__t += d;
+            window.__soccermonGame.step(window.__t, d);
+            window.__vadvance(d);
+            if (gif) await window.__gifTick();
+        },
+        dt,
+        modo === 'pagina',
+    );
 
 // 1) avança rápido até o começo do lance (8x, sem gravar)
 await page.evaluate(() => window.__soccermonBus.emit('match:set-speed', 8));
@@ -95,12 +209,37 @@ console.log(`no ponto: tick ${(await tick()).toFixed(0)} (${((Date.now() - t0) /
 // 2) grava quadro a quadro na velocidade pedida, direto do canvas do Phaser (resolução nativa do jogo; o print da
 // página trava com o tempo parado). As faixas em HTML (gol, evolução) ficam de fora: no trailer o texto é da composição.
 await page.evaluate((v) => window.__soccermonBus.emit('match:set-speed', v), speed);
+const cdp = await page.createCDPSession();
+const box = await page.evaluate(() => {
+    const r = document.querySelector('.pitch-wrap').getBoundingClientRect();
+    return { x: r.x, y: r.y, width: r.width, height: r.height, scale: 1 };
+});
 let n = 0;
 const t1 = Date.now();
+// trava: para no fim da partida, ou se o relógio não andar por 30 s de vídeo (cada evolução para a partida ~10 s; podem vir duas seguidas)
+let parado = 0;
+let ultimo = -1;
 while ((await tick()) < to * TICK_RATE) {
+    const agora = await tick();
+    parado = agora === ultimo ? parado + 1 : 0;
+    ultimo = agora;
+    if ((await ended()) && parado > fps) {
+        console.log('a partida terminou antes de --ate; parando');
+        break;
+    }
+    if (parado > fps * 30 && !(await ended())) {
+        console.log(`o relógio parou no tick ${agora.toFixed(0)}; parando`);
+        break;
+    }
     await step(DT);
-    const url = await page.evaluate(() => document.querySelector('.pitch-wrap canvas').toDataURL('image/png'));
-    writeFileSync(`${out}/${String(++n).padStart(5, '0')}.png`, Buffer.from(url.split(',')[1], 'base64'));
+    let b64;
+    if (modo === 'pagina') {
+        ({ data: b64 } = await cdp.send('Page.captureScreenshot', { format: 'png', clip: box }));
+    } else {
+        const url = await page.evaluate(() => document.querySelector('.pitch-wrap canvas').toDataURL('image/png'));
+        b64 = url.split(',')[1];
+    }
+    writeFileSync(`${out}/${String(++n).padStart(5, '0')}.png`, Buffer.from(b64, 'base64'));
 }
 console.log(`${n} quadros (${(n / fps).toFixed(1)} s de vídeo) em ${((Date.now() - t1) / 1000).toFixed(0)} s → ${out}`);
 console.log(
