@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useCloud } from '../../cloud/cloud';
+import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { clubColorHex } from '../../store/profile';
 import { MenuHead } from '../components/MenuHead';
@@ -10,11 +11,7 @@ import { NumbersTab } from '../profile/NumbersTab';
 import '../profile/profile.css';
 
 type Tab = 'clube' | 'dex' | 'numeros';
-const TABS: { id: Tab; label: string }[] = [
-    { id: 'clube', label: 'Meu clube' },
-    { id: 'dex', label: 'Pokédex' },
-    { id: 'numeros', label: 'Números' },
-];
+const TABS: Tab[] = ['clube', 'dex', 'numeros'];
 
 /** Perfil: seu clube, a Pokédex e os números da carreira. */
 export function Profile() {
@@ -25,10 +22,11 @@ export function Profile() {
     const googleName = useCloud((s) => s.user?.name ?? null);
     const avatar = useAvatar();
     const [tab, setTab] = useState<Tab>('clube');
+    const { t, d } = useT();
 
     return (
         <div className="menu-screen pf" style={clubVars(clubColorHex(profile.clubColor))}>
-            <MenuHead title="Perfil" icon="profile" onBack={() => go('home')} />
+            <MenuHead title={t('profile.title')} icon="profile" onBack={() => go('home')} />
 
             <header className="panel pf-head">
                 <img
@@ -46,33 +44,33 @@ export function Profile() {
                 </div>
                 <dl className="pf-quick">
                     <div>
-                        <dt>Copas</dt>
+                        <dt>{t('profile.quick.cups')}</dt>
                         <dd>{records.cups}</dd>
                     </div>
                     <div>
-                        <dt>Títulos</dt>
+                        <dt>{t('profile.quick.titles')}</dt>
                         <dd>{records.titles}</dd>
                     </div>
                     <div>
-                        <dt>Gols</dt>
+                        <dt>{t('profile.quick.goals')}</dt>
                         <dd>{career.goalsFor}</dd>
                     </div>
                 </dl>
             </header>
 
-            <div className="pf-tabs" role="tablist" aria-label="Perfil">
-                {TABS.map((t) => (
+            <div className="pf-tabs" role="tablist" aria-label={t('profile.title')}>
+                {TABS.map((id) => (
                     <button
                         type="button"
                         role="tab"
-                        key={t.id}
-                        id={`pf-tab-${t.id}`}
-                        aria-selected={tab === t.id}
-                        aria-controls={`pf-panel-${t.id}`}
-                        className={`pf-tab${tab === t.id ? ' active' : ''}`}
-                        onClick={() => setTab(t.id)}
+                        key={id}
+                        id={`pf-tab-${id}`}
+                        aria-selected={tab === id}
+                        aria-controls={`pf-panel-${id}`}
+                        className={`pf-tab${tab === id ? ' active' : ''}`}
+                        onClick={() => setTab(id)}
                     >
-                        {t.label}
+                        {d.profile.tabs[id]}
                     </button>
                 ))}
             </div>

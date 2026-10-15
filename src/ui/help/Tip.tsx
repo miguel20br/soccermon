@@ -1,4 +1,5 @@
 import { type ReactNode, useState } from 'react';
+import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import './help.css';
 
@@ -40,6 +41,7 @@ export function resetTips() {
 export function Tip({ id, children }: { id: string; children: ReactNode }) {
     const enabled = useGame((s) => s.settings.tips);
     const [hidden, setHidden] = useState(() => readDismissed().includes(id));
+    const { d } = useT();
     if (!enabled || hidden) return null;
     return (
         <div className="tip" role="note">
@@ -48,12 +50,12 @@ export function Tip({ id, children }: { id: string; children: ReactNode }) {
                 <rect x="6" y="13" width="4" height="1.6" rx=".6" />
             </svg>
             <span className="tip-text">
-                <b>Dica:</b> {children}
+                <b>{d.help.tip.label}</b> {children}
             </span>
             <button
                 type="button"
                 className="tip-close"
-                aria-label="Fechar dica"
+                aria-label={d.help.tip.close}
                 onClick={() => {
                     dismiss(id);
                     setHidden(true);

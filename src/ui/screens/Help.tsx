@@ -1,7 +1,9 @@
-import { Fragment, type ReactNode, useEffect, useState } from 'react';
+import { Fragment, type ReactNode, useEffect, useMemo, useState } from 'react';
+import { fmt } from '../../i18n';
+import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { MenuHead } from '../components/MenuHead';
-import { blockText, FAQ, HELP_SECTIONS, type HelpBlock, normalize } from '../help/content';
+import { blockText, faqEntries, type HelpBlock, helpSections, normalize } from '../help/content';
 import { resetTips } from '../help/Tip';
 import { FEEDBACK_URL } from '../links';
 import '../help/help.css';
@@ -49,17 +51,25 @@ function SearchIcon() {
     );
 }
 
-const SECTIONS_INDEX = HELP_SECTIONS.map((s) => ({
-    section: s,
-    text: normalize([s.title, ...s.blocks.map(blockText)].join(' ')),
-}));
-const FAQ_INDEX = FAQ.map((f) => ({ faq: f, text: normalize([f.q, ...f.a.map(blockText)].join(' ')) }));
+/** Índice de busca (texto normalizado) das seções e perguntas no idioma do jogo. */
+function searchIndex(lang: Parameters<typeof helpSections>[0]) {
+    return {
+        sections: helpSections(lang).map((s) => ({
+            section: s,
+            text: normalize([s.title, ...s.blocks.map(blockText)].join(' ')),
+        })),
+        faq: faqEntries(lang).map((f) => ({ faq: f, text: normalize([f.q, ...f.a.map(blockText)].join(' ')) })),
+    };
+}
 
 /** Ajuda: como jogar, todas as mecânicas (com busca) e perguntas frequentes. */
 export function Help() {
     const go = useGame((s) => s.go);
     const setOnboarded = useGame((s) => s.setOnboarded);
     const tipsOn = useGame((s) => s.settings.tips);
+    const { d, lang } = useT();
+    const tx = d.help.screen;
+    const index = useMemo(() => searchIndex(lang), [lang]);
     const [query, setQuery] = useState('');
     const [tipsReset, setTipsReset] = useState(false);
     useEffect(() => {
@@ -69,14 +79,14 @@ export function Help() {
     const terms = q.split(/\s+/).filter(Boolean);
     const match = (text: string) => terms.every((t) => text.includes(t));
 
-    const sections = SECTIONS_INDEX.filter((s) => !terms.length || match(s.text));
-    const faq = FAQ_INDEX.filter((f) => !terms.length || match(f.text));
+    const sections = index.sections.filter((s) => !terms.length || match(s.text));
+    const faq = index.faq.filter((f) => !terms.length || match(f.text));
     const searching = terms.length > 0;
     const nothing = searching && !sections.length && !faq.length;
 
     return (
         <div className="menu-screen help-screen">
-            <MenuHead title="Ajuda" icon="help" onBack={() => go('home')} />
+            <MenuHead title={tx.title} icon="help" onBack={() => go('home')} />
 
             <div className="help-actions">
                 <button
@@ -87,7 +97,7 @@ export function Help() {
                         go('home');
                     }}
                 >
-                    Ver o passo a passo de novo
+                    {tx.replay}
                 </button>
                 {tipsOn && (
                     <button
@@ -99,19 +109,19 @@ export function Help() {
                             setTipsReset(true);
                         }}
                     >
-                        {tipsReset ? 'Dicas de volta nas telas' : 'Mostrar as dicas de novo'}
+                        {tipsReset ? tx.tipsBack : tx.tipsShow}
                     </button>
                 )}
             </div>
 
             <label className="help-search">
                 <SearchIcon />
-                <span className="help-sr-only">Buscar na ajuda</span>
+                <span className="help-sr-only">{tx.searchLabel}</span>
                 <input
                     type="search"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Buscar: evolução, pênaltis, itens…"
+                    placeholder={tx.searchPlaceholder}
                     enterKeyHint="search"
                     autoComplete="off"
                 />
@@ -119,11 +129,11 @@ export function Help() {
 
             {nothing && (
                 <div className="panel help-empty">
-                    <p>Nada encontrado pra “{query.trim()}”.</p>
+                    <p>{fmt(tx.nothing, { query: query.trim() })}</p>
                     <p className="muted">
-                        Não achou o que queria?{' '}
+                        {tx.notFound}{' '}
                         <a href={FEEDBACK_URL} target="_blank" rel="noopener">
-                            Pergunta pra gente
+                            {tx.askUs}
                         </a>
                         .
                     </p>
@@ -163,7 +173,7 @@ export function Help() {
 
             {faq.length > 0 && (
                 <section className="help-faq" aria-labelledby="help-faq-title">
-                    <h2 id="help-faq-title">Perguntas frequentes</h2>
+                    <h2 id="help-faq-title">{tx.faq}</h2>
                     <div className="help-list">
                         {faq.map(({ faq: f }) => (
                             <details

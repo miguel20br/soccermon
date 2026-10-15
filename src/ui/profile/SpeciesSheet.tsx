@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
-import { POSITION_LABEL } from '../../engine/attributes';
 import { MOVES, SPECIES_BY_ID, type Species, type StatKey, species } from '../../engine/data';
 import { DEFAULT_LEVEL, type PokemonInstance, viewInstance } from '../../engine/instance';
 import { defaultMoveset } from '../../engine/moves';
 import { SIGNATURE } from '../../engine/signature-moves';
 import { playCry } from '../../game/audio';
+import { getLang, moveName } from '../../i18n';
+import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { type Dex, isPlayed, type MoveDex } from '../../store/profile';
 import { TypeIcon } from '../components/TypeIcon';
@@ -13,17 +14,10 @@ import { TYPE_COLOR } from '../type-colors';
 import { speciesGif } from './club';
 import { BallMark, Chevron, EvoArrow, LockIcon, SpeakerIcon } from './icons';
 
-const STATS: { k: StatKey; label: string }[] = [
-    { k: 'hp', label: 'PS' },
-    { k: 'atk', label: 'Ataque' },
-    { k: 'def', label: 'Defesa' },
-    { k: 'spa', label: 'At. Esp.' },
-    { k: 'spd', label: 'Def. Esp.' },
-    { k: 'spe', label: 'Velocidade' },
-];
+const STATS: StatKey[] = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'];
 
 export const dexNo = (id: number) => String(id).padStart(3, '0');
-const fmt1 = (n: number) => n.toFixed(1).replace('.', ',');
+const fmt1 = (n: number) => (getLang() === 'pt' ? n.toFixed(1).replace('.', ',') : n.toFixed(1));
 
 /** Um Pokémon "de vitrine" (nível 50, golpes padrão) só para ler posições e golpes. */
 function showcase(sp: Species): PokemonInstance {
@@ -75,6 +69,7 @@ export function SpeciesSheet({
     const dex = useGame((s) => s.dex);
     const moves = useGame((s) => s.moves);
     const cries = useGame((s) => s.settings.cries);
+    const { t } = useT();
     const sp = species(id);
     const entry = dex[id];
     const seen = !!entry;
@@ -104,7 +99,7 @@ export function SpeciesSheet({
                 className={`modal panel pf-sheet${seen ? '' : ' locked'}`}
                 role="dialog"
                 aria-modal="true"
-                aria-label={`Pokédex: nº ${dexNo(id)} ${name}`}
+                aria-label={t('profile.sheet.aria', { no: dexNo(id), name })}
                 style={{ ['--accent' as string]: seen ? accent : '#4b5a9a' }}
                 onClick={(e) => e.stopPropagation()}
             >
@@ -112,7 +107,7 @@ export function SpeciesSheet({
                     type="button"
                     className="modal-close"
                     onClick={onClose}
-                    aria-label="Fechar"
+                    aria-label={t('common.ui.close')}
                     // biome-ignore lint/a11y/noAutofocus: o foco vai para dentro da janela que acabou de abrir
                     autoFocus
                 >
@@ -124,12 +119,12 @@ export function SpeciesSheet({
                         <img
                             className={`pixel${seen ? '' : ' pf-silhouette'}`}
                             src={speciesGif(id)}
-                            alt={seen ? sp.name : 'Pokémon ainda não visto'}
+                            alt={seen ? sp.name : t('profile.sheet.notSeenAlt')}
                             draggable={false}
                         />
                     </div>
                     <div className="pf-sheet-id">
-                        <span className="pf-sheet-no">Nº {dexNo(id)}</span>
+                        <span className="pf-sheet-no">{t('profile.sheet.no', { no: dexNo(id) })}</span>
                         <h2>{name}</h2>
                         {seen ? (
                             <div className="pf-sheet-types">
@@ -141,13 +136,13 @@ export function SpeciesSheet({
                         <span className={`pf-status ${played ? 'played' : seen ? 'seen' : 'unseen'}`}>
                             {played ? (
                                 <>
-                                    <BallMark /> Jogou pelo seu time
+                                    <BallMark /> {t('profile.sheet.playedForYou')}
                                 </>
                             ) : seen ? (
-                                'Visto'
+                                t('profile.sheet.seen')
                             ) : (
                                 <>
-                                    <LockIcon /> Ainda não visto
+                                    <LockIcon /> {t('profile.sheet.notSeen')}
                                 </>
                             )}
                         </span>
@@ -156,9 +151,9 @@ export function SpeciesSheet({
                                 type="button"
                                 className="btn ghost small pf-cry"
                                 onClick={() => playCry(id, cries)}
-                                aria-label={`Ouvir o grito de ${sp.name}`}
+                                aria-label={t('profile.sheet.cryAria', { name: sp.name })}
                             >
-                                <SpeakerIcon /> Grito
+                                <SpeakerIcon /> {t('profile.sheet.cry')}
                             </button>
                         )}
                     </div>
@@ -172,19 +167,19 @@ export function SpeciesSheet({
                         className="btn ghost small"
                         disabled={prev === null}
                         onClick={() => prev !== null && onNav(prev)}
-                        aria-label="Pokémon anterior"
+                        aria-label={t('profile.sheet.prev')}
                     >
                         <Chevron dir="left" />
-                        {prev !== null && <span>Nº {dexNo(prev)}</span>}
+                        {prev !== null && <span>{t('profile.sheet.no', { no: dexNo(prev) })}</span>}
                     </button>
                     <button
                         type="button"
                         className="btn ghost small"
                         disabled={next === null}
                         onClick={() => next !== null && onNav(next)}
-                        aria-label="Próximo Pokémon"
+                        aria-label={t('profile.sheet.next')}
                     >
-                        {next !== null && <span>Nº {dexNo(next)}</span>}
+                        {next !== null && <span>{t('profile.sheet.no', { no: dexNo(next) })}</span>}
                         <Chevron dir="right" />
                     </button>
                 </div>
@@ -194,12 +189,10 @@ export function SpeciesSheet({
 }
 
 function LockedBody() {
+    const { t } = useT();
     return (
         <div className="pf-locked">
-            <p>
-                Você ainda não viu este Pokémon. Ele entra na Pokédex quando aparece no seu draft, nas recompensas ou no
-                time rival.
-            </p>
+            <p>{t('profile.sheet.locked')}</p>
         </div>
     );
 }
@@ -212,16 +205,17 @@ function SeenBody({ sp, dex, moves, onNav }: { sp: Species; dex: Dex; moves: Mov
     const signature = SIGNATURE[sp.id];
     const moveIds = inst.moves;
     const found = moveIds.filter((m) => (moves[m] ?? 0) > 0).length;
+    const { t, d } = useT();
 
     return (
         <div className="pf-sheet-body">
             <section className="pf-block">
-                <h3>Posições</h3>
+                <h3>{t('profile.sheet.positions')}</h3>
                 <div className="pf-chips">
                     {view.positions.map((p, i) => (
                         <span key={p} className={`pos-chip${i === 0 ? ' main' : ''}`}>
-                            {POSITION_LABEL[p]}
-                            {i === 0 ? ' (principal)' : ''}
+                            {d.common.pos[p]}
+                            {i === 0 ? t('profile.sheet.main') : ''}
                         </span>
                     ))}
                 </div>
@@ -229,14 +223,15 @@ function SeenBody({ sp, dex, moves, onNav }: { sp: Species; dex: Dex; moves: Mov
 
             <section className="pf-block">
                 <h3>
-                    Atributos base <span className="pf-bst">Total {sp.bst}</span>
+                    {t('profile.sheet.baseStats')}{' '}
+                    <span className="pf-bst">{t('profile.sheet.total', { n: sp.bst })}</span>
                 </h3>
                 <div className="pf-stats">
-                    {STATS.map((s) => {
-                        const v = sp.baseStats[s.k];
+                    {STATS.map((k) => {
+                        const v = sp.baseStats[k];
                         return (
-                            <div key={s.k} className="pf-stat">
-                                <span>{s.label}</span>
+                            <div key={k} className="pf-stat">
+                                <span>{d.profile.sheet.stats[k]}</span>
                                 <b>{v}</b>
                                 <span className="pf-stat-bar">
                                     <i
@@ -254,7 +249,7 @@ function SeenBody({ sp, dex, moves, onNav }: { sp: Species; dex: Dex; moves: Mov
 
             {stages.length > 1 && (
                 <section className="pf-block">
-                    <h3>Evolução</h3>
+                    <h3>{t('profile.sheet.evolution')}</h3>
                     <div className="pf-evo">
                         {stages.map((ids, i) => (
                             <div key={ids.join('-')} className="pf-evo-stage">
@@ -270,7 +265,11 @@ function SeenBody({ sp, dex, moves, onNav }: { sp: Species; dex: Dex; moves: Mov
                                                 className={`pf-evo-mon${current ? ' current' : ''}`}
                                                 onClick={() => onNav(eid)}
                                                 disabled={current}
-                                                aria-label={known ? species(eid).name : `Nº ${dexNo(eid)} não visto`}
+                                                aria-label={
+                                                    known
+                                                        ? species(eid).name
+                                                        : t('profile.sheet.evoNotSeen', { no: dexNo(eid) })
+                                                }
                                             >
                                                 <img
                                                     className={`pixel${known ? '' : ' pf-silhouette'}`}
@@ -288,18 +287,16 @@ function SeenBody({ sp, dex, moves, onNav }: { sp: Species; dex: Dex; moves: Mov
                     </div>
                     <p className="pf-note">
                         {sp.evolvesTo.some((e) => SPECIES_BY_ID.has(e.id))
-                            ? 'No Soccermon, ele evolui no meio da partida quando joga muito bem.'
-                            : 'Forma final da linha evolutiva.'}
+                            ? t('profile.sheet.evolvesMidMatch')
+                            : t('profile.sheet.finalForm')}
                     </p>
                 </section>
             )}
 
             <section className="pf-block">
                 <h3>
-                    Golpes no Soccermon{' '}
-                    <span className="pf-bst">
-                        {found}/{moveIds.length} descobertos
-                    </span>
+                    {t('profile.sheet.moves')}{' '}
+                    <span className="pf-bst">{t('profile.sheet.found', { found, total: moveIds.length })}</span>
                 </h3>
                 <ul className="pf-moves">
                     {moveIds.map((m) => {
@@ -312,34 +309,35 @@ function SeenBody({ sp, dex, moves, onNav }: { sp: Species; dex: Dex; moves: Mov
                                 style={known ? { borderColor: TYPE_COLOR[data.type] } : undefined}
                             >
                                 {known ? <TypeIcon type={data.type} size={18} /> : <LockIcon />}
-                                <b>{known ? data.name : '???'}</b>
-                                {m === signature && <em className="pf-sig">Assinatura</em>}
+                                <b>{known ? moveName(m) : '???'}</b>
+                                {m === signature && <em className="pf-sig">{t('profile.sheet.signature')}</em>}
                             </li>
                         );
                     })}
                 </ul>
-                {found < moveIds.length && (
-                    <p className="pf-note">Os golpes aparecem aqui quando você vê o golpe em campo numa partida.</p>
-                )}
+                {found < moveIds.length && <p className="pf-note">{t('profile.sheet.movesHelp')}</p>}
             </section>
 
             <section className="pf-block">
-                <h3>Sua carreira com ele</h3>
+                <h3>{t('profile.sheet.career')}</h3>
                 {entry && isPlayed(entry) ? (
                     <div className="pf-career">
-                        <Num label="Partidas" v={entry.matches} />
-                        <Num label="Minutos" v={entry.minutes} />
-                        <Num label="Gols" v={entry.goals} />
-                        <Num label="Assistências" v={entry.assists} />
-                        <Num label="Vitórias" v={entry.wins} />
-                        <Num label="Títulos" v={entry.titles} />
-                        <Num label="Melhor nota" v={entry.bestRating > 0 ? fmt1(entry.bestRating) : '—'} />
+                        <Num label={t('profile.sheet.matches')} v={entry.matches} />
+                        <Num label={t('profile.sheet.minutes')} v={entry.minutes} />
+                        <Num label={t('profile.sheet.goals')} v={entry.goals} />
+                        <Num label={t('profile.sheet.assists')} v={entry.assists} />
+                        <Num label={t('profile.sheet.wins')} v={entry.wins} />
+                        <Num label={t('profile.sheet.titles')} v={entry.titles} />
+                        <Num
+                            label={t('profile.sheet.bestRating')}
+                            v={entry.bestRating > 0 ? fmt1(entry.bestRating) : '—'}
+                        />
                         <div className="pf-num">
                             {entry.bestOvr > 0 ? (
                                 <b
                                     className="pf-metal"
                                     style={{ ['--metal' as string]: METAL[metalOf(entry.bestOvr)].color }}
-                                    title={METAL[metalOf(entry.bestOvr)].label}
+                                    title={d.common.metal[metalOf(entry.bestOvr)]}
                                 >
                                     {entry.bestOvr}
                                 </b>
@@ -347,16 +345,13 @@ function SeenBody({ sp, dex, moves, onNav }: { sp: Species; dex: Dex; moves: Mov
                                 <b>—</b>
                             )}
                             <span>
-                                Maior carta
-                                {entry.bestOvr > 0 && ` · ${METAL[metalOf(entry.bestOvr)].label}`}
+                                {t('profile.sheet.bestCard')}
+                                {entry.bestOvr > 0 && ` · ${d.common.metal[metalOf(entry.bestOvr)]}`}
                             </span>
                         </div>
                     </div>
                 ) : (
-                    <p className="pf-note">
-                        Ainda não jogou pelo seu time. Escale ele numa copa (pelo menos 1 minuto em quadra) para começar
-                        a carreira dele.
-                    </p>
+                    <p className="pf-note">{t('profile.sheet.notPlayed')}</p>
                 )}
             </section>
         </div>
