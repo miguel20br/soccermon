@@ -7,6 +7,14 @@ Planos para o futuro: [docs/planos/roadmap.md](docs/planos/roadmap.md). Cópia d
 no PC (preferências e decisões, com o porquê de cada uma): [docs/memoria/](docs/memoria/). Ao aprender uma
 preferência nova do Miguel em outro aparelho, registre aqui no CLAUDE.md para ela valer em todos.
 
+## Aviso (15/10/2026): histórico reescrito
+
+O repositório virou **público** e o histórico foi reescrito para tirar o e-mail pessoal dos commits (agora é o
+noreply `105948884+miguel20br@users.noreply.github.com`). Todo clone feito **antes de 15/10/2026** (o do PC,
+por exemplo) tem o histórico velho: não dê `git pull` nele. Salve o que houver de mudança local, depois
+re-clone (ou `git fetch && git reset --hard origin/main`) e rode `git config user.email` com o noreply. Se
+você é o Claude e `git log` mostrar commits com `miguelcunhabr@`, avise o Miguel antes de qualquer push.
+
 ## Como falar com o Miguel
 
 - **Sempre comece cada resposta com "Miguel,"** (nome e vírgula). É o teste de sanidade dele: se a resposta não
