@@ -1,4 +1,6 @@
 import { setVolumes } from '../game/audio';
+import { setLang } from '../i18n';
+import { detectLang, htmlLang } from '../i18n/lang';
 import { type ReduceMotion, type Settings, useGame } from '../store/game-store';
 import './motion.css';
 
@@ -14,8 +16,14 @@ export function reduceMotionOn(pref: ReduceMotion = useGame.getState().settings.
     }
 }
 
-/** Marca o <html> (o CSS em settings.css desliga animações, flashes e transições) e acerta o volume. */
+/**
+ * Marca o <html> (o CSS em settings.css desliga animações, flashes e transições, e `lang` segue o idioma),
+ * acerta o volume e o idioma dos textos fora do React.
+ */
 function apply(settings: Settings) {
+    const lang = settings.lang ?? detectLang();
+    setLang(lang);
+    document.documentElement.lang = htmlLang(lang);
     document.documentElement.dataset.reduceMotion = String(reduceMotionOn(settings.reduceMotion));
     setVolumes({ master: settings.volume, cries: settings.criesVolume, sfx: settings.sfxVolume });
 }
