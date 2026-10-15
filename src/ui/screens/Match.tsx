@@ -14,7 +14,8 @@ import { setVolume } from '../../game/audio';
 import { EventBus } from '../../game/EventBus';
 import type { MatchSceneData } from '../../game/scenes/MatchScene';
 import { PhaserGame } from '../../PhaserGame';
-import { PLAYER_COLOR, type PlaybackSpeed, playerTeam, stageLabel, useGame } from '../../store/game-store';
+import { type PlaybackSpeed, playerTeam, stageLabel, useGame } from '../../store/game-store';
+import { rivalColor, tagFromName } from '../../store/profile';
 import { Commentator, type CommentLine } from '../commentary';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
 import { MatchHighlight } from '../components/MatchHighlight';
@@ -22,6 +23,9 @@ import { PlayerInspect } from '../components/PlayerInspect';
 import { cardSprite } from '../components/PokeCard';
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
+import { LeaveConfirm } from '../leave-guard';
+import { useClubColor } from '../profile/club';
+import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
 import { plural } from '../text';
 
@@ -84,8 +88,13 @@ export function Match() {
     const tickRef = useRef(0);
 
     const opponent = run?.opponents[run.stage];
-    const colors: [number, number] = [PLAYER_COLOR, opponent?.color ?? 0x3a7bd5];
+    // cor do seu clube (Perfil); o rival troca para o uniforme reserva se a cor dele for parecida
+    const clubColor = useClubColor();
+    const colors: [number, number] = [clubColor, rivalColor(clubColor, opponent?.color ?? 0x3a7bd5)];
     const teamNames: [string, string] = [run?.teamName ?? 'Casa', opponent?.name ?? 'Fora'];
+    // sigla no placar do celular: a do perfil se a copa tem o nome do clube, senão a tirada do nome
+    const profileClub = useGame((s) => s.profile);
+    const homeTag = teamNames[0] === profileClub.clubName ? profileClub.clubTag : tagFromName(teamNames[0]);
     const tacticOrders = orders.filter((o) => !isSubOrder(o));
     const subOrders = orders.filter(isSubOrder);
     const changes = tacticOrders;
@@ -103,6 +112,8 @@ export function Match() {
                       cries: settings.cries,
                       speed: settings.speed,
                       cinematic: settings.cinematic,
+                      namesOnField: settings.namesOnField,
+                      reduceMotion: reduceMotionOn(settings.reduceMotion),
                       extraSpecies: [...(run?.picks ?? []), ...(opponent?.bench ?? [])].map((p) => p.speciesId),
                       startPaused: true,
                       startTick: resume?.tick || undefined,
@@ -313,7 +324,12 @@ export function Match() {
             <div className="scoreboard">
                 <div className="sb-team">
                     <i style={{ background: hex(colors[0]) }} />
-                    <span>{teamNames[0]}</span>
+                    <span className={`sb-name${teamNames[0].length > 10 ? ' has-tag' : ''}`}>{teamNames[0]}</span>
+                    {teamNames[0].length > 10 && (
+                        <span className="sb-tag" title={teamNames[0]}>
+                            {homeTag}
+                        </span>
+                    )}
                 </div>
                 <div className="sb-score">
                     {clock.score[0]} x {clock.score[1]}
@@ -338,6 +354,7 @@ export function Match() {
                         )}
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
+                        <LeaveConfirm />
                         <PlayerInspect
                             match={match}
                             setups={[lockedSetup, opponent]}

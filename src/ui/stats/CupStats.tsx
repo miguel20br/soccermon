@@ -3,7 +3,7 @@ import type { StageResult, StageStats } from '../../store/game-store';
 import { stageLabel } from '../../store/game-store';
 import { cardSprite } from '../components/PokeCard';
 import { plural } from '../text';
-import { AWAY_C, HOME_C } from './StatsCharts';
+import { awayC, homeC } from './StatsCharts';
 
 /**
  * Estatísticas da copa inteira (até aqui): campanha partida a partida, gols feitos x sofridos, somatório de
@@ -113,7 +113,7 @@ function GoalsChart({ results }: { results: StageResult[] }) {
                                                 width={bw}
                                                 height={h}
                                                 rx={3}
-                                                fill={k === 0 ? HOME_C : AWAY_C}
+                                                fill={k === 0 ? homeC() : awayC()}
                                             />
                                         )}
                                         <text
@@ -142,11 +142,11 @@ function GoalsChart({ results }: { results: StageResult[] }) {
             </svg>
             <div className="st-legend">
                 <span>
-                    <i style={{ background: HOME_C }} />
+                    <i style={{ background: homeC() }} />
                     Gols feitos
                 </span>
                 <span>
-                    <i style={{ background: AWAY_C }} />
+                    <i style={{ background: awayC() }} />
                     Gols sofridos
                 </span>
             </div>
@@ -279,7 +279,7 @@ export function CupStats({ results }: { results: StageResult[] }) {
                             {players.map((a) => (
                                 <tr key={a.uid}>
                                     <td className="st-name">
-                                        <i style={{ background: HOME_C }} />
+                                        <i style={{ background: homeC() }} />
                                         <img
                                             className="pixel"
                                             src={cardSprite({ speciesId: a.speciesId, shiny: false })}

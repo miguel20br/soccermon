@@ -157,6 +157,8 @@ export interface Settings {
     tips: boolean;
     /** Pedir confirmação antes de sair de uma partida em andamento. */
     confirmLeave: boolean;
+    /** Enviar estatísticas anônimas do jogo (sem conta, sem cookie). */
+    stats: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -170,6 +172,7 @@ export const DEFAULT_SETTINGS: Settings = {
     reduceMotion: 'system',
     tips: true,
     confirmLeave: true,
+    stats: true,
 };
 
 export interface Records {
@@ -185,7 +188,9 @@ export interface Records {
 
 export type SlotRef = { zone: 'lineup' | 'bench'; index: number };
 
-interface GameStore {
+/** Estado do jogo (save + tela atual). */
+export type GameState = GameStore;
+export interface GameStore {
     screen: Screen;
     run: RunState | null;
     settings: Settings;

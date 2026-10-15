@@ -1,0 +1,111 @@
+/* ---------- Configurações (src/ui/screens/Settings.tsx) ---------- */
+.set-group {
+    display: grid;
+    gap: 0;
+    padding: 14px 16px 6px;
+}
+.set-group > h2 {
+    margin: 0 0 4px;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 15px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--yellow);
+}
+.set-row {
+    display: grid;
+    gap: 8px;
+    padding: 12px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.set-group > h2 + .set-row {
+    border-top: 0;
+    padding-top: 8px;
+}
+.set-label {
+    display: grid;
+    gap: 2px;
+}
+.set-label b {
+    font-size: 14px;
+}
+.set-label span {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.35;
+}
+.settings-screen .segmented .btn {
+    min-height: 36px;
+}
+.settings-screen .volume-row input[type="range"] {
+    min-height: 32px;
+}
+.set-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.set-actions .btn {
+    min-height: 36px;
+}
+.set-icon {
+    width: 14px;
+    height: 14px;
+    flex: none;
+}
+.btn.danger {
+    color: #ff8a87;
+    border-color: rgba(232, 66, 63, 0.6);
+}
+.set-confirm {
+    display: grid;
+    gap: 6px;
+    margin: 0 0 12px;
+    padding: 12px;
+    border-radius: 10px;
+    border: 2px solid var(--yellow);
+    background: var(--bg-2);
+    font-size: 13px;
+}
+.set-confirm span {
+    color: var(--muted);
+    line-height: 1.4;
+}
+.set-confirm .set-actions {
+    margin-top: 4px;
+}
+.set-row .set-confirm {
+    margin: 0;
+}
+.set-confirm.danger {
+    border-color: var(--red);
+}
+.set-ok,
+.set-group > .error-text {
+    margin: 0 0 12px;
+    font-size: 13px;
+}
+.set-ok {
+    color: var(--green);
+}
+@media (max-width: 380px) {
+    .set-group {
+        padding: 12px 12px 4px;
+    }
+    .settings-screen .segmented {
+        width: 100%;
+    }
+}
+/* nada passa da largura da tela (grid sem minmax cresce até o conteúdo mais largo) */
+.settings-screen,
+.set-group,
+.set-row {
+    grid-template-columns: minmax(0, 1fr);
+}
+.set-group,
+.set-row {
+    min-width: 0;
+}
+.set-label a {
+    color: var(--yellow);
+}

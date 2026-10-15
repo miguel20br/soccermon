@@ -1,14 +1,24 @@
 import { type ReactNode, useState } from 'react';
 import { FUTSAL_5 } from '../../engine/config';
 import type { ShotOutcome, ShotPoint } from '../../engine/match-stats';
+import { useGame } from '../../store/game-store';
+import { clubColorHex, colorDistance } from '../../store/profile';
 
 /**
- * Gráficos da tela de estatísticas (SVG puro). Nos gráficos os times usam um par de cores fixo e validado para
- * daltonismo (vermelho = seu time, azul = rival), independente da cor do uniforme do rival, que às vezes é
- * quase igual ao vermelho. Toda marca tem dica ao passar o mouse/tocar e a legenda diz quem é quem.
+ * Gráficos da tela de estatísticas (SVG puro). Seu time usa a cor do clube (Perfil); o rival fica sempre no
+ * azul dos gráficos, ou no vermelho se o seu clube for azulado, independente da cor do uniforme dele (que às
+ * vezes é quase igual à sua). Toda marca tem dica ao passar o mouse/tocar e a legenda diz quem é quem.
  */
-export const HOME_C = '#e8423f';
-export const AWAY_C = '#3a8ee6';
+const css = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
+const CHART_AWAY = 0x3a8ee6;
+const CHART_ALT = 0xe8423f;
+/** Cor do seu time nos gráficos (a do clube). */
+export const homeC = () => css(clubColorHex(useGame.getState().profile.clubColor));
+/** Cor do rival nos gráficos: azul, ou vermelho quando o seu clube é parecido com o azul. */
+export const awayC = () => {
+    const club = clubColorHex(useGame.getState().profile.clubColor);
+    return css(colorDistance(club, CHART_AWAY) < 150 ? CHART_ALT : CHART_AWAY);
+};
 const GRID = '#3a4680';
 const TEXT = 'var(--text)';
 const MUTED = 'var(--muted)';
@@ -17,11 +27,11 @@ export function TeamLegend({ names }: { names: [string, string] }) {
     return (
         <div className="st-legend">
             <span>
-                <i style={{ background: HOME_C }} />
+                <i style={{ background: homeC() }} />
                 {names[0]}
             </span>
             <span>
-                <i style={{ background: AWAY_C }} />
+                <i style={{ background: awayC() }} />
                 {names[1]}
             </span>
         </div>
@@ -56,8 +66,8 @@ export function CompareRows({
                         <span>{r.label}</span>
                         <b>{fmt(r.away)}</b>
                         <div className="st-split" title={`${r.label}: ${fmt(r.home)} x ${fmt(r.away)}`}>
-                            <i style={{ width: `${(r.home / total) * 100}%`, background: HOME_C }} />
-                            <i style={{ width: `${(r.away / total) * 100}%`, background: AWAY_C }} />
+                            <i style={{ width: `${(r.home / total) * 100}%`, background: homeC() }} />
+                            <i style={{ width: `${(r.away / total) * 100}%`, background: awayC() }} />
                         </div>
                     </div>
                 );
@@ -158,13 +168,13 @@ export function DangerChart({
                             {hh > 0.5 && (
                                 <path
                                     d={`M${cx - bw / 2},${mid - 1} V${mid - hh + r} q0,-${r} ${r},-${r} H${cx + bw / 2 - r} q${r},0 ${r},${r} V${mid - 1} Z`}
-                                    fill={HOME_C}
+                                    fill={homeC()}
                                 />
                             )}
                             {ah > 0.5 && (
                                 <path
                                     d={`M${cx - bw / 2},${mid + 1} V${mid + ah - r} q0,${r} ${r},${r} H${cx + bw / 2 - r} q${r},0 ${r},-${r} V${mid + 1} Z`}
-                                    fill={AWAY_C}
+                                    fill={awayC()}
                                 />
                             )}
                             <GoalBalls n={d.goals[0]} cx={cx} y={mid - hh - 8} />
@@ -225,7 +235,7 @@ export function PossessionChart({ data, names }: { data: { home: number; away: n
                                 width={bw}
                                 height={Math.max(0, hh - 1)}
                                 rx={3}
-                                fill={HOME_C}
+                                fill={homeC()}
                             />
                             <rect
                                 x={cx - bw / 2}
@@ -233,7 +243,7 @@ export function PossessionChart({ data, names }: { data: { home: number; away: n
                                 width={bw}
                                 height={Math.max(0, ph - hh - 1)}
                                 rx={3}
-                                fill={AWAY_C}
+                                fill={awayC()}
                             />
                             <text x={cx} y={H - 8} fill={MUTED} fontSize={10} textAnchor="middle">
                                 {PERIOD_LABEL[i]}
@@ -256,7 +266,7 @@ const OUTCOME_PT: Record<ShotOutcome, string> = {
 };
 
 function ShotMark({ s, x, y, color }: { s: ShotPoint; x: number; y: number; color?: string }) {
-    const c = color ?? (s.team === 0 ? HOME_C : AWAY_C);
+    const c = color ?? (s.team === 0 ? homeC() : awayC());
     switch (s.outcome) {
         case 'gol':
             return <circle cx={x} cy={y} r={7} fill={c} stroke="#232d57" strokeWidth={2} />;

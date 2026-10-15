@@ -62,14 +62,16 @@
     <main>
         <a href="./">← Voltar ao jogo</a>
         <h1>Privacidade e termos</h1>
-        <p class="muted">Última atualização: 14 de outubro de 2026</p>
+        <p class="muted">Última atualização: 15 de outubro de 2026</p>
 
         <section>
             <h2>Resumo</h2>
             <ul>
                 <li>Sem login, nada sai do seu aparelho: o jogo salva só no seu navegador.</li>
                 <li>Com login do Google, guardamos seu nome, foto e o save do jogo para você continuar em qualquer aparelho.</li>
-                <li>Não vendemos dados, não mostramos anúncios e não usamos rastreadores.</li>
+                <li>Não vendemos dados, não mostramos anúncios e não usamos cookies de rastreamento. Contamos visitas e
+                    partidas de forma anônima (sem conta, sem cookie) para saber se o jogo está funcionando; dá para
+                    desligar em Configurações.</li>
                 <li>Você apaga sua conta e tudo da nuvem a qualquer momento, em Configurações.</li>
             </ul>
         </section>
@@ -83,8 +85,23 @@
             </p>
 
             <h2>O que coletamos</h2>
-            <p><b>Jogando como visitante (sem login):</b> nada. A copa, as configurações e os recordes ficam no
-                armazenamento do seu navegador (IndexedDB e localStorage) e não são enviados a nós.</p>
+            <p><b>Jogando como visitante (sem login):</b> seu progresso não sai do aparelho. A copa, as configurações,
+                os recordes e a Pokédex ficam no armazenamento do seu navegador (IndexedDB e localStorage) e não são
+                enviados a nós.</p>
+            <p><b>Estatísticas anônimas (todo mundo, com ou sem login):</b></p>
+            <ul>
+                <li><b>Visitas</b>, pelo Vercel Web Analytics e Speed Insights: página aberta, site de origem (ex.: veio
+                    do LinkedIn), país, tipo de aparelho e navegador, e a velocidade de carregamento. Não usa cookies e
+                    não identifica você.</li>
+                <li><b>Eventos do jogo</b>: coisas como "copa começou", "partida terminou 3 a 1 nas quartas", "Pokémon
+                    escolhido no draft", "tela aberta", "configuração trocada" e erros. Cada evento leva só um código
+                    aleatório da sessão (some quando você fecha a aba), a versão do jogo e o tipo de aparelho. Nunca
+                    levam seu nome, e-mail, conta ou IP.</li>
+            </ul>
+            <p>Para não enviar os eventos do jogo, desligue em <b>Configurações → Seus dados → Estatísticas
+                anônimas</b>.</p>
+            <p><b>Backup do save:</b> o arquivo de <b>Configurações → Baixar backup</b> é gerado e baixado no seu
+                próprio aparelho. Ele não passa pelos nossos servidores.</p>
             <p><b>Entrando com o Google:</b></p>
             <ul>
                 <li>nome, e-mail e foto do seu perfil Google, e um identificador da conta (fornecidos pelo Google no login);</li>
@@ -95,21 +112,26 @@
             <h2>Para que usamos</h2>
             <p>
                 Só para fazer o login funcionar, salvar e sincronizar seu progresso entre aparelhos e mostrar seu nome
-                e foto dentro do jogo. Seus dados não são vendidos, compartilhados para publicidade nem usados para
-                criar perfis de comportamento.
+                e foto dentro do jogo. As estatísticas anônimas servem para saber quantas pessoas jogam, onde o jogo
+                trava ou fica difícil demais e o que melhorar. Seus dados não são vendidos, compartilhados para
+                publicidade nem usados para criar perfis de comportamento.
             </p>
 
             <h2>Onde ficam</h2>
             <ul>
-                <li><b>Supabase</b>: login e banco de dados (perfil e save).</li>
+                <li><b>Supabase</b>: login e banco de dados (perfil, save e os eventos anônimos do jogo).</li>
                 <li><b>Vercel</b>: hospedagem do site. Como qualquer servidor, registra dados técnicos de acesso
                     (como endereço IP e navegador) por um tempo curto, para segurança e funcionamento.</li>
-                <li><b>Google</b>: autenticação, quando você escolhe entrar com o Google. O botão "Fazer login com o Google" da tela inicial é carregado dos servidores do Google, que recebem os dados técnicos dessa conexão.</li>
+                <li><b>Google</b>: autenticação, quando você escolhe entrar com o Google. O login acontece numa página do
+                    Google (ou num botão "Fazer login com o Google" carregado dos servidores dele), e o Google recebe os
+                    dados técnicos dessa conexão.</li>
             </ul>
             <p>Cada jogador só consegue ler e alterar o próprio save; ninguém mais tem acesso a ele pelo jogo.</p>
 
             <h2>Por quanto tempo</h2>
-            <p>Enquanto sua conta existir. Se você apagar a conta, o login, o perfil e o save são removidos na hora.</p>
+            <p>Enquanto sua conta existir. Se você apagar a conta, o login, o perfil e o save são removidos na hora.
+                Os eventos anônimos do jogo ficam guardados por até 12 meses; como não têm ligação com você, não dá
+                para apontar quais são seus.</p>
 
             <h2>Seus direitos (LGPD)</h2>
             <p>
@@ -121,8 +143,8 @@
 
             <h2>Cookies</h2>
             <p>
-                Não usamos cookies de rastreamento ou de publicidade. O navegador guarda apenas o save do jogo e, se
-                você entrar, a sessão de login.
+                Não usamos cookies de rastreamento ou de publicidade. O navegador guarda apenas o save do jogo, o
+                código aleatório da sessão (só enquanto a aba está aberta) e, se você entrar, a sessão de login.
             </p>
         </section>
 

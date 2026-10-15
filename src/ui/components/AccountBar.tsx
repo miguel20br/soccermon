@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { cloudEnabled, signInWithGoogle, signInWithGoogleToken, signOut, useCloud } from '../../cloud/cloud';
 import { GOOGLE_CLIENT_ID, renderGoogleButton } from '../../cloud/google-button';
+import { useGame } from '../../store/game-store';
+import { trainerLabel, useAvatar } from '../profile/club';
 
 const STATUS_TEXT = {
     off: '',
@@ -43,6 +45,9 @@ export function AccountBar() {
     const [gsiFailed, setGsiFailed] = useState(false);
     const gsiRef = useRef<HTMLDivElement>(null);
     const signedIn = !!user;
+    const profile = useGame((s) => s.profile);
+    const go = useGame((s) => s.go);
+    const avatar = useAvatar();
 
     useEffect(() => {
         const el = gsiRef.current;
@@ -107,15 +112,18 @@ export function AccountBar() {
     }
     return (
         <div className="account-bar signed">
-            {user.avatar ? (
-                <img className="avatar" src={user.avatar} alt="" referrerPolicy="no-referrer" />
-            ) : (
-                <span className="avatar">{user.name.slice(0, 1)}</span>
-            )}
-            <div className="account-who">
-                <b>{user.name}</b>
-                <span className={`muted${status === 'error' ? ' error-text' : ''}`}>{STATUS_TEXT[status]}</span>
-            </div>
+            <button type="button" className="account-me" onClick={() => go('profile')} title="Abrir o perfil">
+                <img
+                    className={`avatar${avatar.google ? '' : ' pixel'}`}
+                    src={avatar.src}
+                    alt=""
+                    referrerPolicy="no-referrer"
+                />
+                <span className="account-who">
+                    <b>{trainerLabel(profile, user.name)}</b>
+                    <span className={`muted${status === 'error' ? ' error-text' : ''}`}>{STATUS_TEXT[status]}</span>
+                </span>
+            </button>
             <button
                 type="button"
                 className="btn ghost small"

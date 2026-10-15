@@ -6,6 +6,7 @@ import { stageLabel, useGame } from '../../store/game-store';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
 import { cardSprite } from '../components/PokeCard';
+import { Tip } from '../help/Tip';
 
 /**
  * Recompensa após vitória (estilo Slay the Spire): 1 de 3 — reforço para o banco ou item —,
@@ -54,6 +55,11 @@ export function Reward() {
                     </button>
                 </div>
             </div>
+
+            <Tip id="reward-pick">
+                Dá pra contratar do time que você eliminou: o Pokémon novo entra no lugar de um reserva (e herda o item
+                dele). Pular não pega nada, mas dá +1 reroll.
+            </Tip>
 
             <div className="reward-grid">
                 {run.rewards.map((r, i) => (

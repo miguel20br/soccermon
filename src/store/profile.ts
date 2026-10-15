@@ -181,7 +181,8 @@ export type MoveDex = Record<string, number>;
 export function recordMovesSeen(moves: MoveDex, m: Pick<MatchResult, 'events'>): MoveDex {
     const out: MoveDex = { ...moves };
     for (const e of m.events) {
-        const id = e.type === 'move' ? e.moveId : e.type === 'shot' ? e.moveId : null;
+        // o Transformar do Ditto não vira evento 'move' (acontece sozinho no apito): conta pelo 'transform'
+        const id = e.type === 'move' || e.type === 'shot' ? e.moveId : e.type === 'transform' ? 'transform' : null;
         if (id) out[id] = (out[id] ?? 0) + 1;
     }
     return out;

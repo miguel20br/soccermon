@@ -1,0 +1,519 @@
+/* ---------- Golpedex (?lab=golpes) ---------- */
+.golpedex {
+    display: grid;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+}
+.gdx-icon {
+    flex: none;
+    vertical-align: -2px;
+}
+
+/* progresso */
+.gdx-progress {
+    display: grid;
+    gap: 8px;
+    padding: 12px 14px;
+}
+.gdx-progress-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 15px;
+}
+.gdx-progress-top b {
+    color: var(--yellow);
+    font-size: 20px;
+}
+.gdx-bar {
+    height: 12px;
+    border-radius: 999px;
+    background: var(--bg-2);
+    border: 2px solid #0e1430;
+    overflow: hidden;
+}
+.gdx-bar span {
+    display: block;
+    height: 100%;
+    min-width: 0;
+    background: linear-gradient(90deg, #ffcb05, #ffe680);
+    transition: width 0.4s ease;
+}
+.gdx-note {
+    margin: 0;
+    font-size: 12px;
+}
+.gdx-empty {
+    display: grid;
+    gap: 10px;
+    justify-items: start;
+    padding: 14px;
+    border-color: var(--yellow);
+}
+.gdx-empty p {
+    margin: 0;
+}
+.gdx-pick {
+    margin: 0;
+    padding: 8px 2px;
+    font-size: 13px;
+}
+
+/* layout: no PC, palco à esquerda (fixo ao rolar) e catálogo à direita */
+.gdx-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 480px);
+    gap: 12px;
+    align-items: start;
+}
+.gdx-detail {
+    position: sticky;
+    top: 12px;
+    display: grid;
+    grid-auto-rows: max-content; /* com altura limitada (gaveta), o palco não pode encolher */
+    gap: 10px;
+    padding: 12px;
+    min-width: 0;
+}
+.gdx-detail .ml-stage {
+    border-width: 2px;
+}
+.golpedex .gdx-close,
+.golpedex .gdx-backdrop {
+    display: none;
+}
+.gdx-seen {
+    margin: -4px 0 0;
+    font-size: 12px;
+    color: var(--yellow);
+}
+.gdx-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+.gdx-controls .btn.small {
+    min-height: 34px;
+    gap: 6px;
+}
+.gdx-count {
+    font-size: 12px;
+}
+
+/* catálogo */
+.gdx-browse {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    min-width: 0;
+    scroll-margin-top: 8px;
+}
+.gdx-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: grid;
+    gap: 8px;
+    margin: -12px -12px 0;
+    padding: 12px 12px 8px;
+    background: var(--panel);
+    border-radius: var(--radius) var(--radius) 0 0;
+    box-shadow: 0 6px 8px -6px rgb(0 0 0 / 45%);
+}
+.gdx-tabs,
+.gdx-seg {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: 4px;
+    padding: 3px;
+    border-radius: 10px;
+    background: var(--bg-2);
+}
+.gdx-tabs button,
+.gdx-seg button {
+    min-height: 34px;
+    padding: 4px 6px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--muted);
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+}
+.gdx-seg button {
+    font-size: 12px;
+    min-height: 30px;
+}
+.gdx-seg button {
+    display: grid;
+    align-content: center;
+    line-height: 1.15;
+}
+.gdx-seg small {
+    font-weight: 400;
+    font-size: 10px;
+    opacity: 0.8;
+}
+.gdx-tabs button.on,
+.gdx-seg button.on {
+    background: var(--panel-2);
+    color: var(--text);
+    box-shadow: inset 0 0 0 2px var(--line);
+}
+.gdx-tabs button.on {
+    color: var(--yellow);
+}
+.gdx-filters {
+    display: grid;
+    gap: 8px;
+}
+.gdx-search {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 8px;
+    border-radius: 8px;
+    border: 2px solid var(--line);
+    background: var(--bg-2);
+    color: var(--muted);
+}
+.gdx-search input {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-size: 16px; /* evita o zoom do iPhone ao focar */
+}
+.gdx-search:focus-within {
+    border-color: var(--yellow);
+}
+.gdx-types {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: thin;
+}
+.gdx-type {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    background: var(--bg-2);
+    cursor: pointer;
+    opacity: 0.75;
+}
+.gdx-type.all {
+    width: auto;
+    padding: 0 10px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+}
+.gdx-type.on {
+    opacity: 1;
+    border-color: var(--yellow);
+    background: color-mix(in srgb, var(--tc, var(--panel-2)) 45%, var(--bg-2));
+}
+.gdx-type:hover {
+    opacity: 1;
+}
+.gdx-review-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+}
+.gdx-review-tools select {
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 2px solid var(--line);
+    background: var(--bg-2);
+    color: var(--text);
+    font: inherit;
+}
+
+/* células de golpe */
+.gdx-grid,
+.gdx-dex {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+}
+.gdx-grid {
+    grid-template-columns: repeat(auto-fill, minmax(136px, 1fr));
+}
+.gdx-grid-one {
+    grid-template-columns: 1fr;
+}
+.gdx-grid li {
+    min-width: 0;
+}
+.gdx-cell {
+    position: relative;
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+    column-gap: 6px;
+    width: 100%;
+    height: 100%;
+    min-height: 52px;
+    padding: 6px 8px 6px 10px;
+    border: 2px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg-2);
+    color: var(--text);
+    text-align: left;
+    font-size: 13px;
+    cursor: pointer;
+}
+button.gdx-cell::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--tc, var(--line));
+}
+button.gdx-cell:hover {
+    background: var(--panel-2);
+}
+.gdx-cell.current {
+    border-color: var(--yellow);
+    background: var(--panel-2);
+}
+.gdx-cell.unseen {
+    border-style: dashed;
+}
+.gdx-cell .gdx-num {
+    grid-column: 1 / -1;
+}
+.gdx-num {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+}
+.gdx-name {
+    min-width: 0;
+    display: grid;
+    line-height: 1.2;
+    overflow-wrap: break-word;
+}
+.gdx-name small {
+    font-size: 10px;
+    color: var(--muted);
+}
+.gdx-sig {
+    color: var(--yellow);
+}
+.gdx-cell.locked {
+    cursor: default;
+    border-style: dashed;
+    background: rgb(14 20 48 / 55%);
+    color: var(--muted);
+}
+.gdx-lock {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--panel);
+    color: var(--muted);
+}
+.gdx-cell.locked .gdx-name {
+    letter-spacing: 2px;
+}
+
+/* por Pokémon */
+.gdx-dex {
+    grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+}
+.gdx-mon {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    width: 100%;
+    padding: 4px 2px 6px;
+    border: 2px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg-2);
+    color: var(--text);
+    font-size: 11px;
+    cursor: pointer;
+}
+.gdx-mon:hover:not(:disabled) {
+    background: var(--panel-2);
+    border-color: var(--yellow);
+}
+.gdx-mon.locked {
+    cursor: default;
+    border-style: dashed;
+    color: var(--muted);
+}
+.gdx-mon-name {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.gdx-mon small {
+    font-size: 10px;
+    color: var(--muted);
+}
+.gdx-mon small.full {
+    color: var(--yellow);
+}
+.gdx-sprite {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+}
+.gdx-sprite.silhouette {
+    filter: brightness(0) opacity(0.55);
+}
+.gdx-sp-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.gdx-sp-head h2 {
+    margin: 0;
+    font-size: 18px;
+}
+.gdx-sp-head .gdx-sprite {
+    width: 56px;
+    height: 56px;
+}
+.gdx-sp-head .btn {
+    gap: 4px;
+}
+
+@media (min-width: 900px) {
+    .gdx-types {
+        flex-wrap: wrap;
+    }
+}
+
+/* celular e tablet: o palco vira uma gaveta que sobe de baixo ao tocar num golpe */
+@media (max-width: 899px) {
+    .gdx-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .gdx-detail {
+        position: fixed;
+        top: auto;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 60;
+        max-height: 86dvh;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
+        border-radius: 14px 14px 0 0;
+        border-bottom: 0;
+        box-shadow: 0 -8px 24px rgb(0 0 0 / 55%);
+        transform: translateY(105%);
+        visibility: hidden;
+        transition:
+            transform 0.22s ease,
+            visibility 0s linear 0.22s;
+    }
+    .gdx-detail.open {
+        transform: none;
+        visibility: visible;
+        transition: transform 0.22s ease;
+    }
+    .golpedex .gdx-close {
+        display: inline-grid;
+        place-items: center;
+        justify-self: end;
+        width: 36px;
+        height: 32px;
+        padding: 0;
+        margin-bottom: -4px;
+    }
+    .golpedex .gdx-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 59;
+        border: 0;
+        background: rgb(8 10 24 / 60%);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+    }
+    .gdx-backdrop.open {
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
+
+/* celular deitado: palco e texto lado a lado na gaveta */
+@media (max-width: 899px) and (orientation: landscape) and (max-height: 520px) {
+    .gdx-detail {
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+        align-items: start;
+        max-height: 92dvh;
+    }
+    .gdx-close {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 1;
+    }
+    .gdx-detail .ml-info {
+        padding-right: 40px;
+    }
+    /* com pouca altura, os filtros rolam junto (fixos tomariam metade da tela) */
+    .gdx-sticky {
+        position: static;
+        box-shadow: none;
+    }
+}
+
+@media (max-width: 420px) {
+    .gdx-browse {
+        padding: 10px 8px;
+    }
+    .gdx-sticky {
+        margin: -10px -8px 0;
+        padding: 10px 8px 8px;
+    }
+    .gdx-grid:not(.gdx-grid-one) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .gdx-dex {
+        grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .golpedex .gdx-detail,
+    .golpedex .gdx-detail.open,
+    .golpedex .gdx-backdrop,
+    .golpedex .gdx-bar span {
+        transition: none;
+    }
+}

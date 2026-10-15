@@ -4,6 +4,8 @@ import { viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import type { TeamSetup } from '../../engine/state';
 import type { RunState } from '../../store/game-store';
+import { rivalColor } from '../../store/profile';
+import { useClubColor } from '../profile/club';
 import { STAGE_IN, STAGE_WON } from '../text';
 import { cardSprite } from './PokeCard';
 
@@ -62,7 +64,9 @@ export function ResultHero({
             : `Eliminado ${STAGE_IN[run.stage]}`;
     const squad = match.finalRoster.filter((p) => p.team === 0);
     const next = won && !champion ? run.opponents[run.stage + 1] : null;
-    const style = { '--home': '#e8423f', '--away': hex(opponent.color) } as CSSProperties;
+    // seu time na cor do clube (Perfil); o rival no uniforme reserva se as cores baterem
+    const homeColor = useClubColor();
+    const style = { '--home': hex(homeColor), '--away': hex(rivalColor(homeColor, opponent.color)) } as CSSProperties;
 
     return (
         <section className={`panel rh rh-${mood}`} style={style} aria-label="Resultado da partida">

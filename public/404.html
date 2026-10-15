@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Página não encontrada · Soccermon</title>
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#141a33" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/svg+xml" href="/assets/ui/icone.svg" />
+    <style>
+        :root {
+            --bg: #141a33;
+            --panel: #232d57;
+            --line: #4b5a9a;
+            --text: #f4f1e6;
+            --muted: #a6aed6;
+            --yellow: #ffcb05;
+            --red: #e8423f;
+            --red-dark: #b22b29;
+            color-scheme: dark;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: grid;
+            place-items: center;
+            background: radial-gradient(1200px 600px at 50% -10%, #2a3570 0%, var(--bg) 60%) fixed, var(--bg);
+            color: var(--text);
+            font: 15px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        }
+        main {
+            width: min(440px, 100%);
+            padding: 24px 16px;
+            text-align: center;
+        }
+        .logo {
+            width: min(280px, 80%);
+            height: auto;
+        }
+        section {
+            background: var(--panel);
+            border: 2px solid var(--line);
+            border-radius: 12px;
+            padding: 8px 18px 20px;
+            margin-top: 16px;
+        }
+        h1 {
+            color: var(--yellow);
+            font-size: 24px;
+            margin: 12px 0 4px;
+        }
+        p {
+            color: var(--muted);
+            margin: 0 0 16px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 3px solid var(--red-dark);
+            background: var(--red);
+            box-shadow: 0 3px 0 #6e1615;
+            color: var(--text);
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .btn:hover {
+            filter: brightness(1.15);
+        }
+        .btn:focus-visible {
+            outline: 3px solid var(--yellow);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <img class="logo" src="/assets/ui/logo.svg" alt="Soccermon" />
+        <section>
+            <h1>Essa página não existe</h1>
+            <p>O endereço pode ter mudado ou foi digitado errado. A copa continua te esperando.</p>
+            <a class="btn" href="/">Voltar ao jogo</a>
+        </section>
+    </main>
+</body>
+</html>

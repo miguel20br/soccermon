@@ -15,7 +15,7 @@ import {
     SNAP_STRIDE,
 } from '../../engine/state';
 import { dir8 } from '../../engine/vec';
-import type { CryStyle, PlaybackSpeed } from '../../store/game-store';
+import type { CryStyle, NamesOnField, PlaybackSpeed } from '../../store/game-store';
 import { hexToNumber, TYPE_COLOR } from '../../ui/type-colors';
 import {
     animForAction,
@@ -42,6 +42,10 @@ export interface MatchSceneData {
     cries: CryStyle;
     speed: PlaybackSpeed;
     cinematic: boolean;
+    /** Nomes na quadra: todos, só do seu time (time 0) ou nenhum. Padrão: todos. */
+    namesOnField?: NamesOnField;
+    /** Reduzir movimento (já resolvido): câmera parada, sem tremida, clarão nem zoom. */
+    reduceMotion?: boolean;
     /** Espécies que podem entrar em campo (bancos inteiros): pré-carregadas para substituições. */
     extraSpecies?: number[];
     /** Começa parada (tela de VERSUS); a partida só rola depois de 'match:resume'. */
@@ -231,6 +235,7 @@ export class MatchScene extends Phaser.Scene {
         this.speed = this.md.speed;
         this.setTimeline(result);
         this.playTick = this.snaps[0]?.tick ?? 0;
+        if (this.md.reduceMotion) this.steadyCamera();
 
         drawCourt(this);
         ensureBallTexture(this);
@@ -442,7 +447,8 @@ export class MatchScene extends Phaser.Scene {
         const label = this.add
             .text(0, 0, captain ? `C·${name}` : name, textStyle)
             .setOrigin(0.5, 0)
-            .setResolution(2);
+            .setResolution(2)
+            .setAlpha(this.showsName(team) ? 1 : 0);
         const badge = this.add
             .text(0, 0, '', { ...textStyle, fontSize: '11px', fontStyle: 'bold' })
             .setOrigin(0.5, 0)
@@ -474,6 +480,30 @@ export class MatchScene extends Phaser.Scene {
             EventBus.emit('match:inspect', { idx: this.players.indexOf(view), tick: this.playTick });
         });
         return view;
+    }
+
+    /**
+     * Reduzir movimento: a câmera desta cena fica parada. Tremida, clarão, zoom e panorâmica de todo lugar
+     * (golpes em move-fx.ts, holofote em cinematics.ts, pênaltis, Transformar) viram nada. Câmera lenta e
+     * holofote continuam com "Efeitos cinematográficos".
+     */
+    private steadyCamera() {
+        const cam = this.cameras.main;
+        cam.shake = () => cam;
+        cam.flash = () => cam;
+        cam.zoomTo = () => cam;
+        cam.pan = () => cam;
+    }
+
+    /** Nome acima do Pokémon conforme "Nomes na quadra" (o status e a setinha continuam). */
+    private showsName(team: 0 | 1) {
+        const mode = this.md.namesOnField ?? 'all';
+        return mode === 'all' || (mode === 'mine' && team === 0);
+    }
+
+    /** Altura ocupada pelo nome (zero quando escondido): o status sobe para o lugar dele. */
+    private nameHeight(view: PlayerView) {
+        return view.label.alpha > 0 ? view.label.height : 0;
     }
 
     /** Setinha do seu time: logo acima da cabeça (topo visível do sprite no Idle). */
@@ -577,7 +607,7 @@ export class MatchScene extends Phaser.Scene {
         view.shadow.setPosition(px.x, px.y + 1).setDepth(px.y - 2);
         view.ring.setPosition(px.x, px.y + 1).setDepth(px.y - 1);
         view.label.setPosition(px.x, px.y + 6).setDepth(5000);
-        view.badge.setPosition(px.x, px.y + 6 + view.label.height).setDepth(5001);
+        view.badge.setPosition(px.x, px.y + 6 + this.nameHeight(view)).setDepth(5001);
         this.placeArrow(view, px.x, px.y, 4999);
         if (anim !== undefined && facing !== undefined) {
             const resolved = resolveAnim(view.speciesId, anim);
@@ -791,7 +821,7 @@ export class MatchScene extends Phaser.Scene {
             view.ring.setPosition(px.x, px.y + 1).setDepth(base - 1);
             const labelDepth = focused ? FOCUS_DEPTH + 60 : 5000;
             view.label.setPosition(px.x, px.y + 6).setDepth(labelDepth);
-            view.badge.setPosition(px.x, px.y + 6 + view.label.height).setDepth(labelDepth + 1);
+            view.badge.setPosition(px.x, px.y + 6 + this.nameHeight(view)).setDepth(labelDepth + 1);
             this.placeArrow(view, px.x, px.y, labelDepth - 1);
             if (focused) focusPos.set(i, px);
             this.applyIndicators(view, near.p[o + 4], near.p[o + 5]);

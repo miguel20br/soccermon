@@ -1,0 +1,21 @@
+/*
+ * "Reduzir movimento" (Configurações > Acessibilidade): src/ui/settings-sync.ts marca o <html> com
+ * data-reduce-motion="true". Animações e transições acabam na hora (os elementos já aparecem no lugar
+ * final) e os clarões de tela somem. A barra do VERSUS conta o tempo do apito: essa continua.
+ */
+/* biome-ignore-start lint/complexity/noImportantStyles: precisa vencer as animações de cada tela */
+[data-reduce-motion="true"] *:not(.vs-progress),
+[data-reduce-motion="true"] *:not(.vs-progress)::before,
+[data-reduce-motion="true"] *:not(.vs-progress)::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+}
+/* biome-ignore-end lint/complexity/noImportantStyles: precisa vencer as animações de cada tela */
+[data-reduce-motion="true"] .evo-flash,
+[data-reduce-motion="true"] .vsp-flash {
+    display: none;
+}

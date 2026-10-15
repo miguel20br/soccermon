@@ -13,10 +13,11 @@ import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
 import { LinkChips } from '../components/LinkChips';
 import { cardSprite, TypeBadge } from '../components/PokeCard';
+import { Tip } from '../help/Tip';
 import { simulateMatch } from '../sim-client';
 
 export const TACTIC_DESC: Record<Tactic, string> = {
-    balanced: 'Sem bônus nem custo.',
+    balanced: 'Passe e posicionamento um pouco melhores (+3%), sem cansar mais.',
     offensive: 'Linhas altas e mais chutes. Cansa mais e abre espaço atrás.',
     defensive: 'Bloco baixo: melhor desarme e leitura. Ataca pouco.',
     counter: 'Pivô espera lá na frente; passes e arrancadas mais rápidos.',
@@ -83,6 +84,10 @@ export function Lineup() {
 
     return (
         <>
+            <Tip id="lineup-coach">
+                Na partida você é o técnico: toque num Pokémon pra ver o painel dele e use Substituir quando alguém
+                cansar.
+            </Tip>
             <div className="panel">
                 <div className="cup-path">
                     {CUP_STAGES.map((label, i) => {

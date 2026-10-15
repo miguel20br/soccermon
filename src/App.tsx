@@ -4,6 +4,7 @@ import { useGame } from './store/game-store';
 import { CardModal } from './ui/components/CardModal';
 import { Onboarding } from './ui/components/Onboarding';
 import { runDevDemo } from './ui/dev-demo';
+import { requestLeave } from './ui/leave-guard';
 import { CardGallery } from './ui/screens/CardGallery';
 import { Credits } from './ui/screens/Credits';
 import { Draft } from './ui/screens/Draft';
@@ -73,7 +74,12 @@ export default function App() {
         <div className="app">
             {screen !== 'home' && (
                 <header className="topbar">
-                    <button type="button" className="brand" onClick={() => go('home')} aria-label="Voltar ao início">
+                    <button
+                        type="button"
+                        className="brand"
+                        onClick={() => requestLeave(() => go('home'))}
+                        aria-label="Voltar ao início"
+                    >
                         <img className="pixel" src="assets/ui/poke-ball.png" alt="" />
                         <span>SOCCERMON</span>
                     </button>

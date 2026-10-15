@@ -11,6 +11,7 @@ import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
 import { LinkChip, LinkChips, newLinks } from '../components/LinkChips';
 import { TypeBadge } from '../components/PokeCard';
+import { Tip } from '../help/Tip';
 import { ratingAt } from '../rating';
 
 /** Desenho mini da formação (bolinhas nas posições da UI). */
@@ -139,6 +140,13 @@ export function Draft() {
                     ))}
                 </div>
             </div>
+
+            {run.status === 'drafting' && (
+                <Tip id="draft-slot">
+                    Toque numa vaga livre (na quadra ou no banco) pra ver 3 opções. "Sortear de novo" troca as 3, e os
+                    sorteios valem pra copa toda.
+                </Tip>
+            )}
 
             <div className="draft-grid">
                 <div className="panel board-panel">

@@ -14,14 +14,15 @@ import { ChampionView } from '../components/ChampionView';
 import { FutCard } from '../components/FutCard';
 import { cardSprite } from '../components/PokeCard';
 import { ResultHero } from '../components/ResultHero';
+import { FEEDBACK_URL } from '../links';
 import { shareRun } from '../share';
 import { CupStats } from '../stats/CupStats';
 import { PlayerTable } from '../stats/PlayerTable';
 import {
-    AWAY_C,
+    awayC,
     CompareRows,
     DangerChart,
-    HOME_C,
+    homeC,
     PossessionChart,
     ShotMapChart,
     TeamLegend,
@@ -109,6 +110,19 @@ export function Result() {
                 )}
             </div>
             {shared && <div className="muted">{shared}</div>}
+            {(eliminated || champion) && (
+                <div className="row" style={{ justifyContent: 'center' }}>
+                    <a
+                        className="btn ghost small"
+                        href={FEEDBACK_URL}
+                        target="_blank"
+                        rel="noopener"
+                        style={{ color: 'inherit', textDecoration: 'none' }}
+                    >
+                        Dar feedback
+                    </a>
+                </div>
+            )}
         </>
     );
 
@@ -143,7 +157,7 @@ export function Result() {
                                     <span className="muted">{l.title}</span>
                                     <b>{l.line.name}</b>
                                     <small>
-                                        <i style={{ background: l.line.team === 0 ? HOME_C : AWAY_C }} />
+                                        <i style={{ background: l.line.team === 0 ? homeC() : awayC() }} />
                                         {names[l.line.team]} · {l.value}
                                     </small>
                                 </div>

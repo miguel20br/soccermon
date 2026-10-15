@@ -20,15 +20,27 @@ const SFX = {
 
 export type SfxName = keyof typeof SFX;
 
-let volume = 0.6;
+/** Volume geral e de cada canal (0..1). Gritos e efeitos tocam com `geral × canal`. */
+const vol = { master: 0.6, cries: 1, sfx: 1 };
 
+const applyZzfx = () => {
+    ZZFX.volume = 0.35 * vol.master * vol.sfx;
+};
+
+/** Volume geral (compatível com as chamadas antigas). */
 export function setVolume(v: number) {
-    volume = v;
-    ZZFX.volume = 0.35 * v;
+    vol.master = v;
+    applyZzfx();
+}
+
+/** Volume geral e dos canais (gritos, efeitos) de uma vez. */
+export function setVolumes(v: { master?: number; cries?: number; sfx?: number }) {
+    Object.assign(vol, Object.fromEntries(Object.entries(v).filter(([, x]) => typeof x === 'number')));
+    applyZzfx();
 }
 
 export function playSfx(name: SfxName) {
-    if (volume <= 0) return;
+    if (vol.master * vol.sfx <= 0) return;
     try {
         zzfx(...SFX[name]);
     } catch {
@@ -43,6 +55,7 @@ export function cryUrl(speciesId: number, style: CryStyle) {
 }
 
 export function playCry(speciesId: number, style: CryStyle, gain = 1) {
+    const volume = vol.master * vol.cries;
     if (volume <= 0) return;
     const url = cryUrl(speciesId, style);
     let audio = cryCache.get(url);

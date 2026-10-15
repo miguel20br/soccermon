@@ -1,0 +1,37 @@
+import type { CSSProperties } from 'react';
+import { useCloud } from '../../cloud/cloud';
+import { useGame } from '../../store/game-store';
+import { type Avatar, clubColorHex, type Profile, rivalColor } from '../../store/profile';
+import './club.css';
+
+export const hexCss = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
+
+/** Cor do seu clube (número, para o Phaser) — acompanha o perfil. */
+export const useClubColor = () => useGame((s) => clubColorHex(s.profile.clubColor));
+
+/** `--club` (e `--rival`, se passar a cor do rival) para pendurar no style de um bloco. */
+export function clubVars(club: number, rival?: number): CSSProperties {
+    const vars: Record<string, string> = { '--club': hexCss(club) };
+    if (rival !== undefined) vars['--rival'] = hexCss(rivalColor(club, rival));
+    return vars as CSSProperties;
+}
+
+/** Nome que aparece para o treinador: o escolhido, senão o da conta Google, senão "Treinador". */
+export function trainerLabel(profile: Profile, googleName?: string | null): string {
+    return profile.trainerName.trim() || googleName?.trim() || 'Treinador';
+}
+
+export const speciesGif = (id: number) => `assets/cards/${id}.gif`;
+
+/** Foto do avatar: a do Google (se escolheu e está logado) ou o sprite do Pokémon (Pikachu de reserva). */
+export function avatarImage(avatar: Avatar, googlePhoto: string | null | undefined): { src: string; google: boolean } {
+    if (avatar.kind === 'google' && googlePhoto) return { src: googlePhoto, google: true };
+    return { src: speciesGif(avatar.kind === 'pokemon' ? avatar.speciesId : 25), google: false };
+}
+
+/** Avatar do perfil, pronto para usar (lê o perfil e a conta). */
+export function useAvatar() {
+    const avatar = useGame((s) => s.profile.avatar);
+    const photo = useCloud((s) => s.user?.avatar ?? null);
+    return avatarImage(avatar, photo);
+}

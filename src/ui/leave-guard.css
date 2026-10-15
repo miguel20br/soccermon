@@ -1,0 +1,30 @@
+/* "Sair da partida?" (src/ui/leave-guard.tsx) */
+.leave-backdrop {
+    z-index: 300;
+}
+.leave-confirm {
+    width: min(360px, 100%);
+    display: grid;
+    gap: 12px;
+    text-align: center;
+}
+.leave-confirm h2 {
+    margin: 0;
+    font-size: 18px;
+    color: var(--yellow);
+}
+.leave-confirm p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+.leave-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+@media (max-width: 360px) {
+    .leave-actions {
+        grid-template-columns: 1fr;
+    }
+}

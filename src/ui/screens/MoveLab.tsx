@@ -1,18 +1,32 @@
 import Phaser from 'phaser';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { MOVES, SPECIES } from '../../engine/data';
-import { DRAIN, defaultMoveset, moveProfile, SPECIAL_EXPLAIN } from '../../engine/moves';
-import { SIGNATURE } from '../../engine/signature-moves';
+import { type CSSProperties, memo, useEffect, useMemo, useRef, useState } from 'react';
+import { SPECIES, SPECIES_BY_ID, type Species } from '../../engine/data';
+import { DRAIN, SPECIAL_EXPLAIN } from '../../engine/moves';
 import { EventBus } from '../../game/EventBus';
-import { type FxStyle, fxStyle } from '../../game/move-fx';
+import type { FxStyle } from '../../game/move-fx';
 import { LAB_H, LAB_W, MoveLabScene } from '../../game/scenes/MoveLabScene';
-import { TypeIcon } from '../components/TypeIcon';
+import { useGame } from '../../store/game-store';
+import { MenuHead } from '../components/MenuHead';
+import { TypeIcon, TypeIcons } from '../components/TypeIcon';
+import { GdxIcon } from '../golpedex/GdxIcon';
+import {
+    ALL_ROWS,
+    GAME_ROWS,
+    MOVESET,
+    type MoveRow,
+    norm,
+    pad3,
+    ROW_BY_ID,
+    timesSeen,
+} from '../golpedex/golpedex-data';
+import '../golpedex/golpedex.css';
 import { TYPE_COLOR, TYPE_PT } from '../type-colors';
 
 /**
- * Laboratório de golpes (?lab=golpes): todos os golpes do jogo com a animação de cada um, quem usa,
- * o que fazem na partida e um espaço para o Miguel marcar "ok"/"mudar" e anotar (fica salvo no navegador
- * e dá para copiar tudo de uma vez para mandar).
+ * Golpedex (?lab=golpes): todos os golpes do jogo, descobertos como numa Pokédex. Um golpe aparece quando
+ * alguém usa em campo numa partida sua; descoberto, mostra a animação da partida, o que faz e quem usa.
+ * Dá para navegar por golpe ou por Pokémon. Com &revisao=1 tudo fica revelado e volta a ferramenta de
+ * revisão do Miguel (ok/mudar + anotação, salva no navegador, "Copiar revisão").
  */
 const KIND_PT: Record<string, string> = {
     strike: 'Físico: chute potente com a bola, carrinho forte sem ela',
@@ -24,6 +38,18 @@ const KIND_PT: Record<string, string> = {
     heal: 'Recupera fôlego',
     flavor: 'Só narração (não faz nada)',
     special: 'Efeito especial',
+};
+
+const KIND_SHORT: Record<string, string> = {
+    strike: 'Físico',
+    blast: 'Especial',
+    burst: 'Arrancada',
+    buff: 'Reforço',
+    debuff: 'Enfraquece',
+    status: 'Status',
+    heal: 'Cura',
+    flavor: 'Narração',
+    special: 'Especial',
 };
 
 const STYLE_PT: Record<FxStyle, string> = {
@@ -44,52 +70,15 @@ const STYLE_PT: Record<FxStyle, string> = {
 const DUMMY = 143;
 const REVIEW_KEY = 'soccermon-move-review';
 const AUTOPLAY_MS = 2200;
+const LOCKED_HINT = 'Aparece quando alguém usar em campo numa partida sua';
+
+/** Ferramenta de revisão (ok / mudar / copiar) e tudo revelado: só com &revisao=1. */
+const REVIEW = new URLSearchParams(window.location.search).has('revisao');
 
 type Verdict = 'ok' | 'mudar';
 type Review = Record<string, { verdict?: Verdict; note?: string }>;
-
-interface MoveRow {
-    id: string;
-    name: string;
-    type: string;
-    kind: string;
-    style: FxStyle;
-    power: number;
-    accuracy: number;
-    uses: number;
-    desc: string | null;
-    /** Pokémon que usam por padrão (o da assinatura primeiro). */
-    users: string[];
-    signatureOf: string[];
-    performer: number;
-}
-
-function buildRows(): MoveRow[] {
-    const defaults = SPECIES.map((sp) => ({ sp, moves: defaultMoveset(sp) }));
-    return Object.values(MOVES)
-        .map((m) => {
-            const prof = moveProfile(m.id);
-            const signatureOf = SPECIES.filter((sp) => SIGNATURE[sp.id] === m.id);
-            const users = defaults.filter((d) => d.moves.includes(m.id)).map((d) => d.sp);
-            const learner = SPECIES.find((sp) => sp.learnset.includes(m.id));
-            const performer = (signatureOf[0] ?? users[0] ?? learner ?? SPECIES[24]).id;
-            return {
-                id: m.id,
-                name: m.name,
-                type: m.type,
-                kind: prof.kind,
-                style: fxStyle(m.id, prof.kind),
-                power: m.power,
-                accuracy: m.accuracy,
-                uses: prof.uses,
-                desc: m.descPt,
-                users: users.map((sp) => sp.name),
-                signatureOf: signatureOf.map((sp) => sp.name),
-                performer,
-            };
-        })
-        .sort((a, b) => a.type.localeCompare(b.type) || a.name.localeCompare(b.name));
-}
+type Status = 'todos' | 'descobertos' | 'faltam';
+type View = 'golpe' | 'pokemon';
 
 function loadReview(): Review {
     try {
@@ -99,8 +88,18 @@ function loadReview(): Review {
     }
 }
 
-/** Palco Phaser com a cena do laboratório. */
-function Stage({ onReady }: { onReady: () => void }) {
+/** O save vem do IndexedDB depois do primeiro render: espera para não piscar o "comece a jogar". */
+function useHydrated() {
+    const [done, setDone] = useState(() => useGame.persist.hasHydrated());
+    useEffect(() => {
+        if (useGame.persist.hasHydrated()) setDone(true);
+        return useGame.persist.onFinishHydration(() => setDone(true));
+    }, []);
+    return done;
+}
+
+/** Palco Phaser com a cena do laboratório (montado uma vez só). */
+const Stage = memo(function Stage({ onReady }: { onReady: () => void }) {
     const ref = useRef<HTMLDivElement>(null);
     const ready = useRef(onReady);
     ready.current = onReady;
@@ -129,68 +128,146 @@ function Stage({ onReady }: { onReady: () => void }) {
         };
     }, []);
     return <div ref={ref} className="ml-stage" />;
+});
+
+function Sprite({ id, shown, size = 48 }: { id: number; shown: boolean; size?: number }) {
+    return (
+        <img
+            className={`pixel gdx-sprite${shown ? '' : ' silhouette'}`}
+            src={`assets/cards/${id}.gif`}
+            alt=""
+            width={size}
+            height={size}
+            loading="lazy"
+            draggable={false}
+        />
+    );
 }
 
-/** Ferramenta de revisão (ok / mudar / copiar): no dev ou com ?revisao=1. */
-const REVIEW = import.meta.env.DEV || new URLSearchParams(window.location.search).has('revisao');
-
 export function MoveLab({ onExit }: { onExit: () => void }) {
-    const rows = useMemo(buildRows, []);
+    const moves = useGame((s) => s.moves);
+    const dex = useGame((s) => s.dex);
+    const hydrated = useHydrated();
+
+    const [view, setView] = useState<View>('golpe');
     const [query, setQuery] = useState('');
     const [type, setType] = useState('');
+    const [status, setStatus] = useState<Status>('todos');
     const [style, setStyle] = useState('');
     const [onlyInGame, setOnlyInGame] = useState(false);
-    const [current, setCurrent] = useState(rows[0]?.id ?? '');
+    const [spQuery, setSpQuery] = useState('');
+    const [speciesId, setSpeciesId] = useState<number | null>(null);
+
+    const [current, setCurrent] = useState('');
+    const [performer, setPerformer] = useState(0);
+    const [sheet, setSheet] = useState(false);
     const [strong, setStrong] = useState(true);
     const [ready, setReady] = useState(false);
     const [auto, setAuto] = useState(false);
     const [review, setReview] = useState<Review>(loadReview);
     const [copied, setCopied] = useState(false);
+    const browseRef = useRef<HTMLElement>(null);
 
-    const shown = rows.filter(
-        (r) =>
-            (!query || r.name.toLowerCase().includes(query.toLowerCase())) &&
-            (!type || r.type === type) &&
-            (!style || r.style === style) &&
-            (!onlyInGame || r.users.length > 0),
-    );
-    const row = rows.find((r) => r.id === current) ?? rows[0];
-    const index = shown.findIndex((r) => r.id === current);
+    // vezes que cada golpe apareceu em campo
+    const seen = useMemo(() => {
+        const out: Record<string, number> = {};
+        for (const r of ALL_ROWS) out[r.id] = timesSeen(r.id, moves, dex);
+        return out;
+    }, [moves, dex]);
+    const isOpen = (id: string) => REVIEW || seen[id] > 0;
+    const spSeen = (id: number) => REVIEW || !!dex[id];
+    const discovered = GAME_ROWS.filter((r) => seen[r.id] > 0).length;
+    const total = GAME_ROWS.length;
 
-    const play = (r: MoveRow | undefined = row) => {
-        if (!r) return;
-        EventBus.emit('lab:play', { moveId: r.id, userId: r.performer, targetId: DUMMY, strong });
+    // ---------- por golpe ----------
+    const base = REVIEW && !onlyInGame ? ALL_ROWS : GAME_ROWS;
+    const baseFound = REVIEW ? base.filter((r) => seen[r.id] > 0).length : discovered;
+    const q = norm(query);
+    const shown = base.filter((r) => {
+        const open = isOpen(r.id);
+        if (status === 'descobertos' && !(seen[r.id] > 0)) return false;
+        if (status === 'faltam' && seen[r.id] > 0) return false;
+        // golpe escondido não revela nome nem tipo: some com busca ou filtro de tipo
+        if ((q || type) && !open) return false;
+        if (q && !norm(r.name).includes(q)) return false;
+        if (type && r.type !== type) return false;
+        if (style && r.style !== style) return false;
+        return true;
+    });
+    const hiddenOfType = type && !REVIEW ? GAME_ROWS.filter((r) => r.type === type && !(seen[r.id] > 0)).length : 0;
+    const types = useMemo(() => [...new Set(GAME_ROWS.map((r) => r.type))].sort(), []);
+
+    // ---------- por Pokémon ----------
+    const sp = speciesId !== null ? SPECIES_BY_ID.get(speciesId) : undefined;
+    const spMoves = sp ? (MOVESET.get(sp.id) ?? []).flatMap((id) => ROW_BY_ID.get(id) ?? []) : [];
+    const sq = norm(spQuery);
+    const spShown = SPECIES.filter((s) => {
+        if (!sq) return true;
+        if (/^\d+$/.test(sq)) return String(s.id).includes(String(Number(sq)));
+        return spSeen(s.id) && norm(s.name).includes(sq);
+    });
+
+    // lista que as setas / "tocar todos" percorrem
+    const nav = (view === 'pokemon' && sp ? spMoves : shown).filter((r) => isOpen(r.id));
+    const row = current ? ROW_BY_ID.get(current) : undefined;
+    const index = nav.findIndex((r) => r.id === current);
+
+    const performerFor = (r: MoveRow): number => {
+        if (view === 'pokemon' && sp && r.users.some((u) => u.id === sp.id)) return sp.id;
+        if (REVIEW) return r.performer;
+        const known = r.signatureOf.find((u) => dex[u.id]) ?? r.users.find((u) => dex[u.id]);
+        return known?.id ?? r.performer;
     };
-    const select = (r: MoveRow) => {
+    const emitPlay = (id: string, user: number) => {
+        if (!id || !user) return;
+        EventBus.emit('lab:play', { moveId: id, userId: user, targetId: DUMMY, strong });
+    };
+    const play = () => emitPlay(current, performer);
+    const select = (r: MoveRow, open = true) => {
+        if (!isOpen(r.id)) return;
+        const user = performerFor(r);
         setCurrent(r.id);
-        play(r);
+        setPerformer(user);
+        if (open) setSheet(true);
+        emitPlay(r.id, user);
     };
     const step = (d: number) => {
-        if (!shown.length) return;
-        const next = shown[(Math.max(0, index) + d + shown.length) % shown.length];
-        select(next);
+        if (!nav.length) return;
+        const next = nav[(Math.max(0, index) + d + nav.length) % nav.length];
+        select(next, false);
     };
 
-    // biome-ignore lint/correctness/useExhaustiveDependencies: toca o golpe atual assim que o palco abre
+    // abre já mostrando o primeiro golpe descoberto (no PC; no celular a gaveta fica fechada)
+    // biome-ignore lint/correctness/useExhaustiveDependencies: só na primeira vez que palco e save estão prontos
     useEffect(() => {
-        if (ready) play();
-    }, [ready]);
+        if (!ready || !hydrated) return;
+        if (current) return play();
+        const first = GAME_ROWS.find((r) => isOpen(r.id));
+        if (first) select(first, false);
+    }, [ready, hydrated]);
 
-    // tocar todos: avança sozinho pela lista filtrada
+    // tocar todos: avança sozinho pela lista atual
     // biome-ignore lint/correctness/useExhaustiveDependencies: o passo usa a lista atual
     useEffect(() => {
         if (!auto) return;
         const timer = window.setInterval(() => step(1), AUTOPLAY_MS);
         return () => clearInterval(timer);
-    }, [auto, current, shown.length]);
+    }, [auto, current, nav.length]);
 
     // biome-ignore lint/correctness/useExhaustiveDependencies: atalhos de teclado
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
-            if ((e.target as HTMLElement).tagName === 'TEXTAREA' || (e.target as HTMLElement).tagName === 'INPUT')
-                return;
-            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') step(1);
-            if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') step(-1);
+            const tag = (e.target as HTMLElement).tagName;
+            if (tag === 'TEXTAREA' || tag === 'INPUT' || tag === 'SELECT') return;
+            if (e.key === 'Escape') setSheet(false);
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                step(1);
+            }
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                step(-1);
+            }
             if (e.key === ' ') {
                 e.preventDefault();
                 play();
@@ -198,8 +275,9 @@ export function MoveLab({ onExit }: { onExit: () => void }) {
         };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
-    }, [current, shown.length, strong]);
+    }, [current, performer, nav.length, strong]);
 
+    // ---------- revisão ----------
     const save = (id: string, patch: { verdict?: Verdict; note?: string }) => {
         setReview((prev) => {
             const next = { ...prev, [id]: { ...prev[id], ...patch } };
@@ -211,15 +289,12 @@ export function MoveLab({ onExit }: { onExit: () => void }) {
             return next;
         });
     };
-
-    const reviewed = rows.filter((r) => review[r.id]?.verdict).length;
+    const reviewed = ALL_ROWS.filter((r) => review[r.id]?.verdict).length;
     const copy = async () => {
-        const lines = rows
-            .filter((r) => review[r.id]?.verdict || review[r.id]?.note)
-            .map((r) => {
-                const rv = review[r.id];
-                return `${r.name} (${TYPE_PT[r.type] ?? r.type}, ${STYLE_PT[r.style]}): ${rv.verdict === 'mudar' ? 'MUDAR' : 'ok'}${rv.note ? ` — ${rv.note}` : ''}`;
-            });
+        const lines = ALL_ROWS.filter((r) => review[r.id]?.verdict || review[r.id]?.note).map((r) => {
+            const rv = review[r.id];
+            return `${r.name} (${TYPE_PT[r.type] ?? r.type}, ${STYLE_PT[r.style]}): ${rv.verdict === 'mudar' ? 'MUDAR' : 'ok'}${rv.note ? ` — ${rv.note}` : ''}`;
+        });
         try {
             await navigator.clipboard.writeText(lines.join('\n'));
             setCopied(true);
@@ -229,68 +304,185 @@ export function MoveLab({ onExit }: { onExit: () => void }) {
         }
     };
 
-    const types = [...new Set(rows.map((r) => r.type))].sort();
+    /** Nomes de quem usa; quem você ainda não viu fica escondido. */
+    const who = (list: Species[], none: string) => {
+        if (!list.length) return none;
+        const known = list.filter((s) => spSeen(s.id));
+        const hidden = list.length - known.length;
+        const names = known.map((s) => s.name).join(', ');
+        if (!hidden) return names;
+        const rest = `${hidden} que você ainda não viu`;
+        return names ? `${names} e mais ${rest}` : rest;
+    };
+
     const rv = row ? review[row.id] : undefined;
+    const times = row ? seen[row.id] : 0;
+    const pct = total ? Math.round((discovered / total) * 100) : 0;
+    const empty = hydrated && discovered === 0 && !REVIEW;
+
+    const cellMark = (id: string) =>
+        REVIEW && review[id]?.verdict ? (
+            <span className={`ml-mark ${review[id]?.verdict}`}>{review[id]?.verdict === 'ok' ? '✓' : '✎'}</span>
+        ) : null;
+
+    const moveCell = (r: MoveRow, sig?: boolean) => {
+        const open = isOpen(r.id);
+        const n = seen[r.id] ?? 0;
+        if (!open)
+            return (
+                <li key={r.id} className="gdx-cell locked" title={LOCKED_HINT}>
+                    <span className="gdx-num">{r.num ? `#${pad3(r.num)}` : ''}</span>
+                    <span className="gdx-lock">
+                        <GdxIcon kind="lock" size={14} />
+                    </span>
+                    <span className="gdx-name">???</span>
+                </li>
+            );
+        return (
+            <li key={r.id}>
+                <button
+                    type="button"
+                    className={`gdx-cell${r.id === current ? ' current' : ''}${n > 0 ? '' : ' unseen'}`}
+                    style={{ '--tc': TYPE_COLOR[r.type] } as CSSProperties}
+                    onClick={() => select(r)}
+                >
+                    <span className="gdx-num">{r.num ? `#${pad3(r.num)}` : 'fora'}</span>
+                    <TypeIcon type={r.type} size={20} />
+                    <span className="gdx-name">
+                        {r.name}
+                        <small>
+                            {sig && (
+                                <span className="gdx-sig" title="Golpe assinatura">
+                                    <GdxIcon kind="star" size={10} /> Assinatura ·{' '}
+                                </span>
+                            )}
+                            {sig !== undefined && `${KIND_SHORT[r.kind] ?? ''} · `}
+                            {n > 0 ? `Visto ${n}x` : 'Não visto'}
+                        </small>
+                    </span>
+                    {cellMark(r.id)}
+                </button>
+            </li>
+        );
+    };
 
     return (
-        <div className="move-lab">
-            <div className="ml-head">
-                <div>
-                    <h1>Laboratório de golpes</h1>
-                    <p className="muted">
-                        Todos os {rows.length} golpes com a animação da partida.
-                        {REVIEW && (
-                            <>
-                                {' '}
-                                Marque <b>ok</b> ou <b>mudar</b>, anote, e no fim use "Copiar revisão" para me mandar.
-                            </>
-                        )}{' '}
-                        Setas ← → trocam de golpe, espaço repete.
-                    </p>
-                </div>
-                <button type="button" className="btn ghost small" onClick={onExit}>
-                    Voltar ao jogo
-                </button>
-            </div>
+        <div className="golpedex">
+            <MenuHead title="Golpedex" icon="moves" onBack={onExit} />
 
-            <div className="ml-layout">
-                <div className="ml-main">
+            <section className="panel gdx-progress" aria-label="Progresso">
+                <div className="gdx-progress-top">
+                    <span>
+                        <b>{discovered}</b>/{total} golpes descobertos
+                    </span>
+                    <span className="muted">{pct}%</span>
+                </div>
+                <div
+                    className="gdx-bar"
+                    role="progressbar"
+                    aria-valuemin={0}
+                    aria-valuemax={total}
+                    aria-valuenow={discovered}
+                >
+                    <span style={{ width: `${pct}%` }} />
+                </div>
+                {REVIEW ? (
+                    <p className="muted gdx-note">
+                        Modo revisão: tudo revelado ({ALL_ROWS.length} golpes, contando os que ninguém usa). Marque{' '}
+                        <b>ok</b> ou <b>mudar</b>, anote, e no fim use "Copiar revisão". Setas trocam de golpe, espaço
+                        repete.
+                    </p>
+                ) : (
+                    <p className="muted gdx-note">
+                        <GdxIcon kind="lock" size={12} /> {LOCKED_HINT}, do seu time ou do rival.
+                    </p>
+                )}
+            </section>
+
+            {empty && (
+                <section className="panel gdx-empty">
+                    <p>
+                        <b>Jogue uma partida pra começar a descobrir golpes.</b> Cada golpe que alguém usar em campo
+                        entra aqui, com a animação e o que ele faz.
+                    </p>
+                    <button type="button" className="btn primary small" onClick={onExit}>
+                        Voltar ao início
+                    </button>
+                </section>
+            )}
+
+            <div className="gdx-layout">
+                <button
+                    type="button"
+                    className={`gdx-backdrop${sheet ? ' open' : ''}`}
+                    aria-label="Fechar"
+                    tabIndex={-1}
+                    onClick={() => setSheet(false)}
+                />
+                <aside className={`panel gdx-detail${sheet ? ' open' : ''}`} aria-label="Golpe escolhido">
+                    <button
+                        type="button"
+                        className="btn ghost small gdx-close"
+                        onClick={() => setSheet(false)}
+                        aria-label="Fechar"
+                    >
+                        <GdxIcon kind="close" size={14} />
+                    </button>
                     <Stage onReady={() => setReady(true)} />
-                    {row && (
-                        <div className="panel ml-info">
+                    {row ? (
+                        <div className="ml-info">
                             <div className="ml-title">
-                                <TypeIcon type={row.type} size={28} />
+                                <TypeIcon type={row.type} size={26} />
                                 <h2 style={{ color: TYPE_COLOR[row.type] }}>{row.name}</h2>
+                                <span className="ml-chip">{TYPE_PT[row.type] ?? row.type}</span>
                                 <span className="ml-chip">{STYLE_PT[row.style]}</span>
-                                <span className="muted">
-                                    {index + 1}/{shown.length}
-                                </span>
                             </div>
-                            <div className="row" style={{ flexWrap: 'wrap', gap: 6 }}>
-                                <button type="button" className="btn small" onClick={() => step(-1)}>
-                                    ← Anterior
+                            <p className="gdx-seen">
+                                {times > 0
+                                    ? `Visto ${times} ${times === 1 ? 'vez' : 'vezes'} em campo`
+                                    : 'Ainda não visto em campo'}
+                            </p>
+                            <div className="gdx-controls">
+                                <button
+                                    type="button"
+                                    className="btn small"
+                                    onClick={() => step(-1)}
+                                    aria-label="Golpe anterior"
+                                >
+                                    <GdxIcon kind="prev" size={12} />
                                 </button>
-                                <button type="button" className="btn small primary" onClick={() => play()}>
-                                    ▶ Repetir
+                                <button type="button" className="btn small primary" onClick={play}>
+                                    <GdxIcon kind="play" size={12} /> Repetir
                                 </button>
-                                <button type="button" className="btn small" onClick={() => step(1)}>
-                                    Próximo →
+                                <button
+                                    type="button"
+                                    className="btn small"
+                                    onClick={() => step(1)}
+                                    aria-label="Próximo golpe"
+                                >
+                                    <GdxIcon kind="next" size={12} />
                                 </button>
                                 <button
                                     type="button"
                                     className={`btn small${auto ? ' active' : ''}`}
                                     onClick={() => setAuto((v) => !v)}
                                 >
-                                    {auto ? '■ Parar' : '▶▶ Tocar todos'}
+                                    <GdxIcon kind={auto ? 'stop' : 'auto'} size={12} />
+                                    {auto ? 'Parar' : 'Tocar todos'}
                                 </button>
-                                <label className="ml-check">
-                                    <input
-                                        type="checkbox"
-                                        checked={strong}
-                                        onChange={(e) => setStrong(e.target.checked)}
-                                    />
-                                    Versão forte (câmera de golpe)
-                                </label>
+                                <span className="muted gdx-count">
+                                    {index >= 0 ? `${index + 1}/${nav.length}` : `${nav.length} na lista`}
+                                </span>
+                                {REVIEW && (
+                                    <label className="ml-check">
+                                        <input
+                                            type="checkbox"
+                                            checked={strong}
+                                            onChange={(e) => setStrong(e.target.checked)}
+                                        />
+                                        Versão forte
+                                    </label>
+                                )}
                             </div>
                             <dl className="ml-facts">
                                 <dt>Na partida</dt>
@@ -300,14 +492,16 @@ export function MoveLab({ onExit }: { onExit: () => void }) {
                                             ? `${KIND_PT[row.kind]} · suga o fôlego do alvo`
                                             : KIND_PT[row.kind])}
                                 </dd>
-                                <dt>Poder · precisão · usos</dt>
+                                <dt>Poder · precisão</dt>
                                 <dd>
-                                    {row.power || '—'} · {row.accuracy}% · {row.uses}x por partida
+                                    {row.power || '—'} · {row.accuracy}%
                                 </dd>
+                                <dt>Usos</dt>
+                                <dd>{row.uses}x por partida</dd>
                                 <dt>Assinatura de</dt>
-                                <dd>{row.signatureOf.join(', ') || '—'}</dd>
-                                <dt>Usam por padrão</dt>
-                                <dd>{row.users.length ? `${row.users.length}: ${row.users.join(', ')}` : 'ninguém'}</dd>
+                                <dd>{who(row.signatureOf, '—')}</dd>
+                                <dt>Quem usa</dt>
+                                <dd>{who(row.users, 'ninguém')}</dd>
                                 {row.desc && (
                                     <>
                                         <dt>No jogo original</dt>
@@ -341,69 +535,218 @@ export function MoveLab({ onExit }: { onExit: () => void }) {
                                 </div>
                             )}
                         </div>
+                    ) : (
+                        <p className="muted gdx-pick">
+                            {empty
+                                ? 'Os golpes que você descobrir vão aparecer aqui, com a animação da partida.'
+                                : 'Toque num golpe descoberto pra ver a animação.'}
+                        </p>
                     )}
-                </div>
+                </aside>
 
-                <div className="panel ml-list">
-                    <div className="ml-filters">
-                        <input placeholder="Buscar golpe…" value={query} onChange={(e) => setQuery(e.target.value)} />
-                        <select value={type} onChange={(e) => setType(e.target.value)}>
-                            <option value="">Todos os tipos</option>
-                            {types.map((t) => (
-                                <option key={t} value={t}>
-                                    {TYPE_PT[t] ?? t}
-                                </option>
-                            ))}
-                        </select>
-                        <select value={style} onChange={(e) => setStyle(e.target.value)}>
-                            <option value="">Todos os estilos</option>
-                            {(Object.keys(STYLE_PT) as FxStyle[]).map((s) => (
-                                <option key={s} value={s}>
-                                    {STYLE_PT[s]}
-                                </option>
-                            ))}
-                        </select>
-                        <label className="ml-check">
-                            <input
-                                type="checkbox"
-                                checked={onlyInGame}
-                                onChange={(e) => setOnlyInGame(e.target.checked)}
-                            />
-                            Só os que algum Pokémon usa
-                        </label>
-                        {REVIEW && (
-                            <div className="row" style={{ justifyContent: 'space-between' }}>
-                                <span className="muted">
-                                    Revisados: {reviewed}/{rows.length}
-                                </span>
-                                <button type="button" className="btn small primary" onClick={copy}>
-                                    {copied ? 'Copiado!' : 'Copiar revisão'}
+                <section className="panel gdx-browse" ref={browseRef}>
+                    <div className="gdx-sticky">
+                        <div className="gdx-tabs" role="tablist">
+                            <button
+                                type="button"
+                                role="tab"
+                                aria-selected={view === 'golpe'}
+                                className={view === 'golpe' ? 'on' : ''}
+                                onClick={() => setView('golpe')}
+                            >
+                                Por golpe
+                            </button>
+                            <button
+                                type="button"
+                                role="tab"
+                                aria-selected={view === 'pokemon'}
+                                className={view === 'pokemon' ? 'on' : ''}
+                                onClick={() => setView('pokemon')}
+                            >
+                                Por Pokémon
+                            </button>
+                        </div>
+
+                        {view === 'golpe' ? (
+                            <div className="gdx-filters">
+                                <label className="gdx-search">
+                                    <GdxIcon kind="search" size={14} />
+                                    <input
+                                        type="search"
+                                        placeholder="Buscar golpe…"
+                                        value={query}
+                                        onChange={(e) => setQuery(e.target.value)}
+                                    />
+                                </label>
+                                <div className="gdx-seg">
+                                    {(
+                                        [
+                                            ['todos', 'Todos', base.length],
+                                            ['descobertos', 'Descobertos', baseFound],
+                                            ['faltam', 'Faltam', base.length - baseFound],
+                                        ] as const
+                                    ).map(([k, label, n]) => (
+                                        <button
+                                            key={k}
+                                            type="button"
+                                            className={status === k ? 'on' : ''}
+                                            onClick={() => setStatus(k)}
+                                        >
+                                            <span>{label}</span>
+                                            <small>{n}</small>
+                                        </button>
+                                    ))}
+                                </div>
+                                <div className="gdx-types">
+                                    <button
+                                        type="button"
+                                        className={`gdx-type all${type ? '' : ' on'}`}
+                                        onClick={() => setType('')}
+                                    >
+                                        Todos
+                                    </button>
+                                    {types.map((t) => (
+                                        <button
+                                            key={t}
+                                            type="button"
+                                            className={`gdx-type${type === t ? ' on' : ''}`}
+                                            style={{ '--tc': TYPE_COLOR[t] } as CSSProperties}
+                                            onClick={() => setType(type === t ? '' : t)}
+                                            aria-label={TYPE_PT[t] ?? t}
+                                            aria-pressed={type === t}
+                                        >
+                                            <TypeIcon type={t} size={22} />
+                                        </button>
+                                    ))}
+                                </div>
+                                {REVIEW && (
+                                    <div className="gdx-review-tools">
+                                        <select value={style} onChange={(e) => setStyle(e.target.value)}>
+                                            <option value="">Todos os estilos</option>
+                                            {(Object.keys(STYLE_PT) as FxStyle[]).map((s) => (
+                                                <option key={s} value={s}>
+                                                    {STYLE_PT[s]}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <label className="ml-check">
+                                            <input
+                                                type="checkbox"
+                                                checked={onlyInGame}
+                                                onChange={(e) => setOnlyInGame(e.target.checked)}
+                                            />
+                                            Só os que algum Pokémon usa
+                                        </label>
+                                        <span className="muted">
+                                            Revisados: {reviewed}/{ALL_ROWS.length}
+                                        </span>
+                                        <button type="button" className="btn small primary" onClick={copy}>
+                                            {copied ? 'Copiado!' : 'Copiar revisão'}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : sp ? (
+                            <div className="gdx-sp-head">
+                                <button
+                                    type="button"
+                                    className="btn ghost small"
+                                    onClick={() => setSpeciesId(null)}
+                                    aria-label="Voltar para todos os Pokémon"
+                                >
+                                    <GdxIcon kind="prev" size={12} /> Todos
                                 </button>
+                                <Sprite id={sp.id} shown size={56} />
+                                <div>
+                                    <span className="gdx-num">#{pad3(sp.id)}</span>
+                                    <h2>{sp.name}</h2>
+                                    <TypeIcons types={sp.types} size={18} />
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="gdx-filters">
+                                <label className="gdx-search">
+                                    <GdxIcon kind="search" size={14} />
+                                    <input
+                                        type="search"
+                                        placeholder="Nome ou número…"
+                                        value={spQuery}
+                                        onChange={(e) => setSpQuery(e.target.value)}
+                                    />
+                                </label>
                             </div>
                         )}
                     </div>
-                    <div className="ml-items">
-                        {shown.map((r) => (
-                            <button
-                                key={r.id}
-                                type="button"
-                                className={`ml-item${r.id === current ? ' current' : ''}`}
-                                onClick={() => select(r)}
-                            >
-                                <TypeIcon type={r.type} size={18} />
-                                <span className="ml-name">{r.name}</span>
-                                <span className="ml-style">{STYLE_PT[r.style]}</span>
-                                <span className={`ml-mark ${review[r.id]?.verdict ?? ''}`}>
-                                    {review[r.id]?.verdict === 'ok'
-                                        ? '✓'
-                                        : review[r.id]?.verdict === 'mudar'
-                                          ? '✎'
-                                          : ''}
-                                </span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
+
+                    {view === 'golpe' && (
+                        <>
+                            {hiddenOfType > 0 && (
+                                <p className="muted gdx-note">
+                                    <GdxIcon kind="lock" size={12} /> Faltam {hiddenOfType}{' '}
+                                    {hiddenOfType === 1 ? 'golpe' : 'golpes'} de {TYPE_PT[type] ?? type} pra descobrir.
+                                </p>
+                            )}
+                            {shown.length ? (
+                                <ul className="gdx-grid">{shown.map((r) => moveCell(r))}</ul>
+                            ) : (
+                                <p className="muted gdx-pick">Nenhum golpe com esses filtros.</p>
+                            )}
+                        </>
+                    )}
+
+                    {view === 'pokemon' && sp && (
+                        <>
+                            <p className="muted gdx-note">
+                                Os {spMoves.length} golpes que {sp.name} leva pra quadra.
+                                {dex[sp.id]?.matches
+                                    ? ` Jogou ${dex[sp.id].matches} ${dex[sp.id].matches === 1 ? 'partida' : 'partidas'} pelo seu time.`
+                                    : ''}
+                            </p>
+                            <ul className="gdx-grid gdx-grid-one">
+                                {spMoves.map((r) =>
+                                    moveCell(
+                                        r,
+                                        r.signatureOf.some((s) => s.id === sp.id),
+                                    ),
+                                )}
+                            </ul>
+                        </>
+                    )}
+
+                    {view === 'pokemon' && !sp && (
+                        <ul className="gdx-dex">
+                            {spShown.map((s) => {
+                                const open = spSeen(s.id);
+                                const set = MOVESET.get(s.id) ?? [];
+                                const got = set.filter((id) => (seen[id] ?? 0) > 0).length;
+                                return (
+                                    <li key={s.id}>
+                                        <button
+                                            type="button"
+                                            className={`gdx-mon${open ? '' : ' locked'}`}
+                                            disabled={!open}
+                                            title={open ? s.name : 'Pokémon ainda não visto'}
+                                            onClick={() => {
+                                                setSpeciesId(s.id);
+                                                browseRef.current?.scrollIntoView({ block: 'start' });
+                                            }}
+                                        >
+                                            <span className="gdx-num">#{pad3(s.id)}</span>
+                                            <Sprite id={s.id} shown={open} />
+                                            <span className="gdx-mon-name">{open ? s.name : '???'}</span>
+                                            {open && (
+                                                <small className={got === set.length ? 'full' : ''}>
+                                                    {got}/{set.length}
+                                                </small>
+                                            )}
+                                        </button>
+                                    </li>
+                                );
+                            })}
+                            {!spShown.length && <li className="muted gdx-pick">Nenhum Pokémon encontrado.</li>}
+                        </ul>
+                    )}
+                </section>
             </div>
         </div>
     );

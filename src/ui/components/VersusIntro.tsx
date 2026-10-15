@@ -4,6 +4,8 @@ import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
 import { TACTIC_LABEL, type TeamSetup } from '../../engine/state';
 import { playSfx } from '../../game/audio';
+import { rivalColor } from '../../store/profile';
+import { useClubColor } from '../profile/club';
 import { cardSprite } from './PokeCard';
 import './versus.css';
 
@@ -148,7 +150,12 @@ export function VersusIntro({
         };
     }, [ready]);
 
-    const style = { '--home': hex(home.color), '--away': hex(away.color) } as CSSProperties;
+    // seu time sempre na cor do clube (Perfil); o rival no uniforme reserva se as cores baterem
+    const homeColor = useClubColor();
+    const style = {
+        '--home': hex(homeColor),
+        '--away': hex(rivalColor(homeColor, away.color)),
+    } as CSSProperties;
 
     return (
         <div

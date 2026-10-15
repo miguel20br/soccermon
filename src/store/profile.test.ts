@@ -79,9 +79,10 @@ describe('Pokédex', () => {
                 { type: 'move', moveId: 'ember' },
                 { type: 'shot', moveId: 'thunderbolt' },
                 { type: 'shot', moveId: null },
+                { type: 'transform' },
             ],
         } as never);
-        expect(moves).toEqual({ ember: 2, thunderbolt: 1 });
+        expect(moves).toEqual({ ember: 2, thunderbolt: 1, transform: 1 });
     });
 });
 

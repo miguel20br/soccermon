@@ -2,6 +2,12 @@
 
 **Jogue agora: [soccermon.com](https://soccermon.com)**
 
+> **In English:** Soccermon is a free, non-profit browser fan game: draft a team from the 151 Kanto Pokémon
+> ("pick 1 of 3", roguelike style) and play a simulated 5v5 futsal cup against gym-themed clubs, with real
+> Gen 1 moves turned into futsal actions. No install, no ads, no purchases; the game text is in Brazilian
+> Portuguese. Built with Vite, React 19, TypeScript, Phaser 4 and a deterministic headless match engine;
+> open source under AGPL-3.0.
+
 Criado por **Miguel Cunha** ([@miguel20br](https://github.com/miguel20br)).
 
 Fan game de navegador, **sem fins lucrativos**: monte um time com os 151 Pokémon de Kanto num draft
@@ -20,6 +26,9 @@ Fan game de navegador, **sem fins lucrativos**: monte um time com os 151 Pokémo
 - **Sinergias** de tipo, duplas de história (Mew + Mewtwo, Pássaros Lendários...) e aura do capitão
 - **Cartas** com raridade e edições especiais (Destaque, Ícone, Shiny, Evento da semana)
 - **Estatísticas** da partida e da copa: notas, gráficos, mapa de chutes
+- **Perfil** do seu clube (nome, sigla e cor), **Pokédex** (visto, jogou e carreira de cada espécie) e
+  **Golpedex** com os golpes que você já descobriu
+- **Ajuda** com passo a passo e **Configurações**: velocidade, nomes na quadra, reduzir movimento e backup do save
 - **Conta Google opcional** para salvar a copa na nuvem; sem login, tudo fica no seu navegador
 
 ![Partida em andamento](docs/partida.jpg)

@@ -1,0 +1,168 @@
+import { cloudApi, useCloud } from '../cloud/cloud';
+import { type GameState, useGame } from '../store/game-store';
+
+/**
+ * Estatísticas anônimas do jogo, gravadas na tabela `game_events` do Supabase (só inserir; ninguém lê
+ * pela API). Sem conta, sem e-mail, sem cookie: cada evento leva só um id de sessão aleatório que vive
+ * enquanto a aba está aberta. Desliga em Configurações (`settings.stats`) e no `npm run dev`.
+ * Os eventos saem da observação do save (useGame.subscribe), sem espalhar chamadas pelas telas.
+ */
+
+type Props = Record<string, string | number | boolean | null>;
+interface Row {
+    session: string;
+    name: string;
+    props: Props;
+    app_version: string;
+    device: string;
+}
+
+const ENABLED = import.meta.env.PROD && !!cloudApi;
+const FLUSH_MS = 8000;
+const MAX_QUEUE = 50;
+
+const session = (() => {
+    const make = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
+    try {
+        const k = 'soccermon-session';
+        const id = sessionStorage.getItem(k) ?? make();
+        sessionStorage.setItem(k, id);
+        return id;
+    } catch {
+        return make();
+    }
+})();
+
+const device = () => {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    if (Math.min(w, h) < 500) return w > h ? 'mobile-land' : 'mobile';
+    return w < 1024 ? 'tablet' : 'desktop';
+};
+
+let queue: Row[] = [];
+let timer: ReturnType<typeof setTimeout> | null = null;
+
+function flush(keepalive = false) {
+    if (timer) clearTimeout(timer);
+    timer = null;
+    if (!queue.length || !cloudApi) return;
+    const rows = queue;
+    queue = [];
+    // keepalive deixa o envio terminar mesmo com a aba fechando
+    fetch(`${cloudApi.url}/rest/v1/game_events`, {
+        method: 'POST',
+        keepalive,
+        headers: {
+            apikey: cloudApi.key,
+            Authorization: `Bearer ${cloudApi.key}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=minimal',
+        },
+        body: JSON.stringify(rows),
+    }).catch(() => {
+        // estatística não pode atrapalhar o jogo: perdeu, perdeu
+    });
+}
+
+export function track(name: string, props: Props = {}) {
+    if (!ENABLED || !useGame.getState().settings.stats) return;
+    queue.push({ session, name, props, app_version: __APP_VERSION__, device: device() });
+    if (queue.length >= MAX_QUEUE) flush();
+    else timer ??= setTimeout(() => flush(), FLUSH_MS);
+}
+
+/** Domínio de quem mandou a pessoa (linkedin.com, github.com…), ou o utm_source do link. */
+function referrer(): string | null {
+    try {
+        const utm = new URLSearchParams(window.location.search).get('utm_source');
+        if (utm) return utm.slice(0, 40);
+        if (!document.referrer) return null;
+        const host = new URL(document.referrer).hostname.replace(/^www\./, '');
+        return host === window.location.hostname ? null : host.slice(0, 40);
+    } catch {
+        return null;
+    }
+}
+
+function onChange(s: GameState, prev: GameState) {
+    if (s.screen !== prev.screen) track('screen', { screen: s.screen });
+    if (s.onboarded && !prev.onboarded) track('onboarding_done');
+
+    const run = s.run;
+    const old = prev.run;
+    if (run && run.seed !== old?.seed)
+        track('run_start', { challenge: new URLSearchParams(location.search).has('seed') });
+    if (run && old && run.seed === old.seed) {
+        if (old.status === 'formation' && run.status === 'captain') track('formation', { formation: run.formation });
+        if (run.picks.length > old.picks.length) {
+            const p = run.picks.at(-1)!;
+            track('pick', {
+                species: p.speciesId,
+                round: old.draftRound,
+                captain: run.captainUid === p.uid && old.status === 'captain',
+                special: p.special?.kind ?? null,
+                rerolls_left: run.rerolls,
+            });
+        }
+        if (run.results.length > old.results.length) {
+            const r = run.results.at(-1)!;
+            track('match_end', {
+                stage: r.stage,
+                won: r.won,
+                gf: r.score[0],
+                ga: r.score[1],
+                shootout: !!r.shootout,
+                speed: String(s.settings.speed),
+                formation: run.formation,
+                tactic: run.tactic,
+            });
+        }
+        if (run.status !== old.status && (run.status === 'champion' || run.status === 'eliminated')) {
+            const r = run.results.at(-1);
+            track('run_end', {
+                champion: run.status === 'champion',
+                stage: r?.stage ?? 0,
+                perfect: run.status === 'champion' && run.results.every((x) => x.won && x.score[1] === 0),
+            });
+        }
+        if (old.status === 'reward' && run.status === 'lineup') {
+            track('reward', { stage: old.stage, rerolls_left: run.rerolls, skipped: run.picks === old.picks });
+        }
+    }
+    if (old && !run) track('run_abandon', { stage: old.stage, status: old.status });
+
+    if (s.profile.clubColor !== prev.profile.clubColor) track('club_color', { color: s.profile.clubColor });
+    for (const k of Object.keys(s.settings) as (keyof GameState['settings'])[]) {
+        if (k !== 'volume' && k !== 'criesVolume' && k !== 'sfxVolume' && s.settings[k] !== prev.settings[k]) {
+            track('setting', { key: k, value: String(s.settings[k]) });
+        }
+    }
+}
+
+/** Liga as estatísticas (uma vez, no início do app). */
+export function startAnalytics() {
+    if (!ENABLED) return;
+    const begin = () => {
+        const g = useGame.getState();
+        const lab = new URLSearchParams(location.search).get('lab');
+        track('session_start', {
+            returning: g.onboarded || g.records.cups > 0,
+            ref: referrer(),
+            device: device(),
+            lab,
+            cups: g.records.cups,
+            dex_seen: Object.keys(g.dex).length,
+        });
+        useGame.subscribe(onChange);
+    };
+    // espera o save carregar (senão todo mundo parece novo)
+    if (useGame.persist.hasHydrated()) begin();
+    else useGame.persist.onFinishHydration(begin);
+    useCloud.subscribe((s, prev) => {
+        if (s.user && !prev.user) track('login');
+    });
+    window.addEventListener('error', (e) => track('error', { msg: String(e.message ?? e.error).slice(0, 160) }));
+    window.addEventListener('unhandledrejection', (e) => track('error', { msg: String(e.reason).slice(0, 160) }));
+    document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && flush(true));
+}

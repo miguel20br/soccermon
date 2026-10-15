@@ -17,6 +17,8 @@ const KEY: string | undefined =
     env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export const cloudEnabled = Boolean(URL && KEY);
+/** Endereço e chave pública do Supabase (as estatísticas anônimas usam a mesma API). */
+export const cloudApi = URL && KEY ? { url: URL, key: KEY } : null;
 const supabase =
     URL && KEY
         ? createClient(URL, KEY, { auth: { flowType: 'pkce', persistSession: true, detectSessionInUrl: true } })
@@ -204,6 +206,15 @@ async function reconcile(uid: string) {
             JSON.stringify(cloud[k] ?? null) === JSON.stringify(merged[k]);
         if (!same('records') || !same('dex') || !same('moves') || !same('career')) await upload();
     } else {
+        // o aparelho é mais novo: vale a copa e o perfil daqui, mas recordes e Pokédex da conta não se perdem
+        if (cloud) {
+            applying = true;
+            useGame.setState({
+                records: mergeRecords(local.records, cloud.records),
+                ...mergeProgress(local, cloud, true),
+            });
+            applying = false;
+        }
         await upload();
     }
 }

@@ -1,0 +1,48 @@
+/* ---------- cor e sigla do clube fora do Perfil (conta na Home, placar da partida) ---------- */
+
+/* conta logada: foto/avatar e nome abrem o Perfil */
+.account-me {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding: 2px 6px 2px 2px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.account-me:hover .account-who b {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+.account-me:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+.account-me .avatar.pixel {
+    object-fit: contain;
+}
+.account-me .account-who b {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* placar: no celular a sigla do clube entra no lugar do nome (que cortava) */
+.sb-tag {
+    display: none;
+    letter-spacing: 1px;
+}
+@media (max-width: 420px) {
+    .sb-team .sb-name.has-tag {
+        display: none;
+    }
+    .sb-team .sb-tag {
+        display: inline;
+    }
+}

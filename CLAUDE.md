@@ -77,13 +77,24 @@ npm run calibrate -- --n 400 [--formations|--tactics]   # equilíbrio headless
   em cada aparelho.
 - Antes de fechar uma mudança visual, confira no celular (320 e 390 px), deitado e no desktop.
 
-## Estado atual (15/10/2026, v0.7.3 · Beta aberta)
+## Estado atual (15/10/2026, v0.8.0 · Perfil e Pokédex)
 
 No ar: contas e save na nuvem, evolução no meio da partida, substituição pelo técnico, painel ao tocar no
 Pokémon, estatísticas da partida e da copa, 6 formações, tela de campeão, menus novos, golpes revisados com
 animação própria, bônus de time recalculados a cada troca/evolução, página de privacidade e "Apagar minha
 conta" (migração `20261014180000_apagar_conta.sql` já aplicada no banco), Ditto no painel mostrando a forma
-copiada (não mais a original).
+copiada (não mais a original). Na 0.8.0: Perfil (treinador, avatar, clube com nome/sigla/cor de uma paleta
+curada; cor vale no placar, VERSUS, resultado e gráficos, rival troca de uniforme se bater), Pokédex (visto =
+apareceu no draft/recompensas/time rival; jogou = 1+ minuto em quadra pelo seu time; carreira por espécie),
+Golpedex (`?lab=golpes`, golpe descoberto quando aparece em campo; revisão do Miguel só com `&revisao=1`), passo a
+passo de boas-vindas + botão "?" + tela Ajuda + dicas, configurações a fundo (volumes, velocidade inicial, nomes
+na quadra, reduzir movimento, confirmar saída, backup/restaurar/apagar) e save v5 (`src/store/profile.ts`).
+
+**Estatísticas (15/10/2026):** Vercel Web Analytics + Speed Insights (ligar no painel da Vercel) e eventos
+anônimos do jogo em `public.game_events` (`src/analytics/track.ts`, migração `20261015150000_estatisticas.sql`
+já aplicada; só INSERT pela API). Consultas prontas no schema `analytics` (SQL Editor):
+`por_dia`, `funil`, `origem`, `pokemon_escolhidos`, `formacoes`, `fases`, `telas`, `erros`. Privacidade promete
+guardar no máximo 12 meses: falta um job de limpeza (pg_cron) ou apagar à mão.
 
 Plano do trailer e dos posts de lançamento: [docs/planos/divulgacao-trailer.md](docs/planos/divulgacao-trailer.md).
 
@@ -100,14 +111,13 @@ Plano do trailer e dos posts de lançamento: [docs/planos/divulgacao-trailer.md]
    `https://soccermon.com`, `https://soccermon.vercel.app` e `http://localhost:8080`; (c) escopo `openid` em Data Access. No Supabase
    (Google provider) o mesmo Client ID precisa estar em "Client IDs" e "Skip Nonce Check" desligado. Sem o
    Client ID o jogo usa o login antigo por redirecionamento.
-1. **Tela de consentimento OAuth do Google (Google Cloud Console):** passar de "Teste" para "Em produção",
-   com nome Soccermon, logo e link de privacidade `https://soccermon.com/privacidade.html`. Em modo
-   teste só os e-mails cadastrados conseguem entrar. Só o Miguel faz (no navegador).
-2. **Domínio soccermon.com no ar (15/10/2026)**; as menções no repo já foram trocadas. Conferir fora do código
-   (painéis): Site URL e Redirect URLs do Supabase com `https://soccermon.com/**`, origens do Client ID do Google
-   e o site do repo no GitHub. Sem o Supabase atualizado, o login no domínio novo volta pro vercel.app.
-3. **Polimento antes de divulgar** (lista em `docs/planos/roadmap.md`, seção "Agora"): testar pênaltis/campeão/
-   substituição, "Como jogar", botão de feedback, Home com celular deitado, nomes embolados na quadra.
+1. **Feito (15/10/2026):** tela de consentimento OAuth "In production" (testado com conta de fora). O Google
+   pede verificação da marca (logo/nome): opcional, 2–3 dias úteis, prova do domínio pelo Search Console.
+2. **Feito (15/10/2026):** domínio soccermon.com (Cloudflare Registrar, DNS em CNAME "DNS only" para a Vercel,
+   www → 308), Supabase Site URL/Redirect, origens do Client ID e site do repo no GitHub.
+3. **Polimento antes de divulgar** (lista em `docs/planos/roadmap.md`, seção "Agora"): "Como jogar" e botão de
+   feedback feitos na 0.8.0; nomes na quadra viraram opção em Configurações. Falta: testar pênaltis/campeão/
+   substituição e Home com celular deitado ("Nova copa" abaixo da dobra).
 4. **Trailer e marketing prontos (15/10/2026):** 16:9 em `trailer/montagem/`, 9:16 em `trailer/vertical/`
    (HyperFrames, PT/EN por variável); mídia e música fora do git (`trailer/montagem/preparar.sh` + scripts de
    recorte). Vídeos finais no celular em `Filmes/Soccermon-trailer/final/`. Capas, prévia do link, avatar,

@@ -7,6 +7,42 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.8.0',
+        title: 'Perfil e Pokédex',
+        sections: [
+            {
+                title: 'Adicionado',
+                lines: [
+                    'Perfil: seu nome de treinador, avatar (um Pokémon que já jogou no seu time ou a foto do Google), nome fixo do clube, sigla de 3 letras e cor do clube',
+                    'Cor do clube no placar, no VERSUS, no resultado e nos gráficos; se o rival tiver uma cor parecida, ele entra com o uniforme reserva',
+                    'Pokédex dos 151: visto (apareceu no draft, nas recompensas ou no time rival) e jogou (entrou em quadra pelo seu time), com a carreira de cada espécie: partidas, gols, assistências, títulos e a melhor carta',
+                    'Números da carreira: vitórias, gols, artilheiros e os mais escalados',
+                    'Golpedex: os golpes se revelam quando alguém usa em campo numa partida sua; dá para ver por golpe ou por Pokémon, com a animação de cada um',
+                    'Como jogar: passo a passo na primeira visita (e no botão de interrogação da tela inicial), seção Ajuda com todas as mecânicas e dicas curtas no draft, na escalação e nas recompensas',
+                    'Botão Dar feedback na tela inicial e no fim da copa',
+                ],
+            },
+            {
+                title: 'Configurações',
+                lines: [
+                    'Volume separado para gritos e efeitos',
+                    'Velocidade inicial da partida e nomes na quadra (todos, só do seu time ou nenhum)',
+                    'Reduzir movimento: menos tremida, flash e zoom',
+                    'Confirmação antes de sair de uma partida em andamento',
+                    'Baixar e restaurar backup do save, e apagar os dados do aparelho',
+                    'Estatísticas anônimas (sem conta e sem cookie), com opção de desligar',
+                ],
+            },
+            {
+                title: 'Corrigido',
+                lines: [
+                    'Entrar na conta depois de jogar como visitante não perde mais os recordes da nuvem',
+                    'Descrição da tática Equilibrado: ela dá +3% de passe e posicionamento',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.7.3',
         title: 'Beta aberta',
         sections: [

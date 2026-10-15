@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { POSITION_LABEL, type Position } from '../../engine/attributes';
 import type { PlayerLine } from '../../engine/match-stats';
 import { cardSprite } from '../components/PokeCard';
-import { AWAY_C, HOME_C } from './StatsCharts';
+import { awayC, homeC } from './StatsCharts';
 
 type Col = {
     key: string;
@@ -114,7 +114,7 @@ export function PlayerTable({ lines, names }: { lines: PlayerLine[]; names: [str
                         {rows.map((p) => (
                             <tr key={p.uid}>
                                 <td className="st-name">
-                                    <i style={{ background: p.team === 0 ? HOME_C : AWAY_C }} />
+                                    <i style={{ background: p.team === 0 ? homeC() : awayC() }} />
                                     <img
                                         className="pixel"
                                         src={cardSprite({ speciesId: p.speciesId, shiny: false })}
