@@ -3,7 +3,7 @@ import { ITEMS } from '../engine/items';
 import { LINKS } from '../engine/links';
 import { Rng } from '../engine/rng';
 import type { MatchResult } from '../engine/runners/batch-runner';
-import type { MatchEvent } from '../engine/state';
+import type { MatchEvent, TraitFx } from '../engine/state';
 import { TACTIC_LABEL } from '../engine/state';
 import { effectivenessLabel } from '../engine/types';
 
@@ -19,16 +19,63 @@ export interface CommentLine {
 
 /** Narração dos golpes especiais que não têm evento próprio. */
 const SPECIAL_LINE: Record<string, (who: string, target: string, hit: boolean) => string> = {
-    bide: (w) => `${w} usa Bide e se segura para o próximo carrinho!`,
-    rage: (w) => `${w} fica com RAIVA! Chute e força lá em cima!`,
-    conversion: (w) => `${w} usa Conversion e se adapta ao jogo!`,
+    bide: (w) => `${w} usa Bide e aguenta firme... vem troco aí!`,
+    rage: (w) => `${w} fica com RAIVA! Cada pancada deixa mais forte!`,
+    conversion: (w, _t, hit) => (hit ? `${w} usa Conversion!` : `${w} usa Conversion e se adapta ao jogo!`),
     disable: (w, t, hit) => (hit ? `${w} usa Disable: ${t} perdeu um golpe!` : `${w} usa Disable... não pegou.`),
-    roar: (w, _t, hit) => (hit ? `${w} RUGE e espanta todo mundo em volta!` : `${w} ruge para o nada.`),
+    roar: (w, _t, hit) => (hit ? `${w} usa Roar!` : `${w} ruge para o nada.`),
     whirlwind: (w, _t, hit) =>
         hit ? `${w} usa Whirlwind: a ventania joga os rivais longe!` : `${w} usa Whirlwind no vazio.`,
     splash: (w) => `${w} usa Splash! ...quase nada acontece, mas fica difícil de pegar.`,
     transform: (w, t, hit) =>
         hit ? `${w} usa Transform e copia o melhor de ${t}!` : `${w} tenta Transform, mas não tem ninguém perto.`,
+};
+
+/**
+ * Narração dos traços de golpe (evento 'trait', src/engine/moves.ts → MOVE_TRAITS).
+ * `w` = quem usou, `t` = alvo, `m` = golpe, `n` = número do efeito. null = não narra (fica só na cena).
+ */
+const TRAIT_LINE: Partial<Record<TraitFx, (w: string, t: string, m: string, n: number) => [string, Tone] | null>> = {
+    crit: (w) => [`ACERTO CRÍTICO de ${w}!`, 'big'],
+    focusBug: (w) => [`O Focus Energy de ${w} falhou... bug da Gen 1, clássico!`, 'normal'],
+    charge: (w, _t, m) => [`${w} para e começa a carregar ${m}...`, 'normal'],
+    chargeLost: (w, _t, m) => [`Tiraram ${w} da concentração: perdeu o ${m}!`, 'normal'],
+    noRecharge: (w) => [`Gol de Hyper Beam de ${w}: nem precisa recarregar!`, 'big'],
+    fly: (w) => [`${w} usa Fly e some lá no alto!`, 'big'],
+    dig: (w) => [`${w} usa Dig e some debaixo da quadra!`, 'big'],
+    priority: (w, t, m) => (t !== '???' ? [`${m}! ${w} chega antes em ${t}!`, 'normal'] : null),
+    area: (w, _t, m, n) => (n >= 2 ? [`${m} de ${w} pega ${n} de uma vez!`, 'normal'] : null),
+    pierce: (w, _t, m) => [`${m}: o chute de ${w} fura o bloqueio!`, 'normal'],
+    lob: (w) => [`${w} tenta a cobertura!`, 'normal'],
+    blind: (w, t, m, n) => [
+        n > 1 ? `${m} de ${w}: ${n} rivais sem mira!` : `${m} de ${w}: ${t} perde a mira!`,
+        'minor',
+    ],
+    halfEnergy: (w, t) => [`Super Fang! ${w} arranca metade do fôlego de ${t}!`, 'normal'],
+    throw: (w, t) => [`${w} arremessa ${t} longe com Seismic Toss!`, 'normal'],
+    trip: (w, t, _m, n) => [
+        n >= 150 ? `Rasteira em ${t}: pesado assim, demora para levantar!` : `${w} dá a rasteira em ${t}!`,
+        'minor',
+    ],
+    multi: (w, _t, m, n) => (n >= 3 ? [`${m}! ${w} tenta ${n} vezes seguidas!`, 'minor'] : null),
+    rebound: (w) => [`A bola volta para o pé de ${w}!`, 'normal'],
+    wrap: (w, t, m) => [`${m}! ${w} e ${t} ficam presos e a bola sobra!`, 'normal'],
+    clampHold: (w) => [`${w} fecha a concha com a bola dentro!`, 'minor'],
+    toxic: (_w, t) => [`${t} foi gravemente envenenado: vai piorando!`, 'normal'],
+    rageUp: (w, _t, _m, n) => [`${w} fica com mais RAIVA (${n}/3)!`, 'minor'],
+    bide: (w, _t, _m, n) => [`${w} solta o Bide${n ? ` com ${n} pancadas guardadas` : ''}!`, 'normal'],
+    clones: (w) => [`${w} se divide em clones!`, 'normal'],
+    clone: (w) => [`Era um clone! ${w} continua inteiro.`, 'normal'],
+    mini: (w) => [`${w} fica pequenininho: difícil de pegar!`, 'minor'],
+    guard: (w, t, m) => (t !== '???' ? [`${t} bate e volta: ${w} está protegido (${m})!`, 'minor'] : null),
+    curl: (w) => [`${w} se enrola e segura a bola!`, 'minor'],
+    wall: (w) => [`${w} ergue um muro invisível na frente do gol!`, 'normal'],
+    wallBlock: (w) => [`O chute bate no muro de ${w}!`, 'big'],
+    flee: (w, t) => [`${w} RUGE e ${t} sai correndo para o próprio campo!`, 'normal'],
+    blowBall: (w) => [`A ventania de ${w} leva a bola para longe!`, 'minor'],
+    typeCopy: (w, t) => [`${w} usa Conversion e vira do tipo de ${t}!`, 'normal'],
+    teamHeal: (w, t) => [`${w} divide o Soft-Boiled com ${t}!`, 'minor'],
+    coins: (w) => [`Pay Day de ${w}: chuva de moedas e todo mundo para para olhar!`, 'normal'],
 };
 
 const STATUS_PT: Record<string, string> = {
@@ -280,6 +327,11 @@ export class Commentator {
                     'normal',
                     this.teams[e.by],
                 );
+            case 'trait': {
+                const f = TRAIT_LINE[e.fx];
+                const r = f?.(this.n(e.by), this.n(e.target), MOVES[e.moveId]?.name ?? e.moveId, e.n ?? 0);
+                return r ? line(r[0], r[1], this.teams[e.by]) : null;
+            }
             case 'teleport':
                 return line(`${this.n(e.by)} usa Teleport e aparece do outro lado!`, 'normal', this.teams[e.by]);
             case 'skill':

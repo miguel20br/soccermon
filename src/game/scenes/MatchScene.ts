@@ -9,10 +9,18 @@ import {
     Action,
     FLAG_BUFF,
     FLAG_CHARGED,
+    FLAG_CHARGING,
+    FLAG_CLONES,
     FLAG_DEBUFF,
+    FLAG_DIG,
+    FLAG_FLY,
+    FLAG_GUARD,
+    FLAG_MINI,
+    FLAG_RAGE,
     type MatchEvent,
     type MatchSnapshot,
     SNAP_STRIDE,
+    type TraitFx,
 } from '../../engine/state';
 import { dir8 } from '../../engine/vec';
 import type { CryStyle, NamesOnField, PlaybackSpeed } from '../../store/game-store';
@@ -141,6 +149,80 @@ const STATUS_KIND_TO_CODE: Record<string, number> = {
     infatuation: 7,
 };
 
+/**
+ * Traços de golpe (evento 'trait'): texto que sobe da cabeça, cor e a linha da caixa de batalha.
+ * `who` = nome de quem usou, `move` = nome do golpe, `n` = número do efeito (acertos, vítimas).
+ */
+const TRAIT_VIEW: Partial<
+    Record<
+        TraitFx,
+        { pop: (n: number) => string; color: string; line?: (who: string, move: string, n: number) => string }
+    >
+> = {
+    crit: { pop: () => 'CRÍTICO!', color: '#ffd447', line: (w) => `Acerto crítico de ${w}!` },
+    focusBug: {
+        pop: () => 'FALHOU!',
+        color: '#c8c8c8',
+        line: (w) => `O Focus Energy de ${w} falhou... como na Gen 1!`,
+    },
+    charge: { pop: () => 'CARREGANDO', color: '#fff3a0', line: (w, m) => `${w} está carregando ${m}!` },
+    chargeLost: { pop: () => 'PERDEU A CARGA!', color: '#ff7a7a', line: (w, m) => `${w} perdeu o ${m}!` },
+    noRecharge: {
+        pop: () => 'SEM RECARGA!',
+        color: '#9be7ff',
+        line: (w) => `Gol de ${w}: o Hyper Beam nem precisa recarregar!`,
+    },
+    fly: { pop: () => 'VOOU!', color: '#bfe3ff', line: (w) => `${w} voou bem alto!` },
+    dig: { pop: () => 'CAVOU!', color: '#d9b07a', line: (w) => `${w} cavou um buraco!` },
+    land: { pop: () => 'LÁ VEM!', color: '#ffffff' },
+    priority: { pop: () => 'PRIORIDADE!', color: '#ffffff', line: (w) => `${w} foi mais rápido!` },
+    area: { pop: (n) => (n > 1 ? `PEGOU ${n}!` : 'EM ÁREA!'), color: '#ffb05c' },
+    pierce: { pop: () => 'FUROU!', color: '#ffd447', line: (w, m) => `O ${m} de ${w} furou o bloqueio!` },
+    lob: { pop: () => 'COBERTURA!', color: '#fff7d6', line: (w) => `${w} tenta a cobertura!` },
+    blind: {
+        pop: () => 'MIRA TORTA!',
+        color: '#e8d9a0',
+        line: (w, m) => `${m} de ${w}: o rival não acerta mais nada!`,
+    },
+    fixed: { pop: () => 'DANO FIXO!', color: '#d9a7ff' },
+    halfEnergy: { pop: () => 'METADE!', color: '#ff7a7a', line: (w) => `${w} tirou metade do fôlego do rival!` },
+    throw: { pop: () => 'ARREMESSO!', color: '#ffb05c', line: (w) => `${w} arremessa o rival longe!` },
+    trip: { pop: () => 'RASTEIRA!', color: '#ffb05c' },
+    multi: { pop: (n) => `${n}x!`, color: '#ffffff', line: (w, _m, n) => `${w} tentou ${n} vezes!` },
+    rebound: { pop: () => 'VOLTOU!', color: '#fff3a0', line: (w) => `A bola volta para o pé de ${w}!` },
+    reach: { pop: () => 'DE LONGE!', color: '#a8ffb0' },
+    wrap: { pop: () => 'PRESOS!', color: '#ffb05c', line: (w) => `${w} enrolou o rival: os dois ficam presos!` },
+    clampHold: { pop: () => 'CONCHA FECHADA!', color: '#9be7ff' },
+    zone: { pop: () => 'NO CHÃO!', color: '#d8d8d8' },
+    toxic: { pop: () => 'TÓXICO!', color: '#d48cff', line: () => 'O veneno vai piorando!' },
+    rageUp: { pop: (n) => `FÚRIA +${n}`, color: '#ff5c5c' },
+    bide: {
+        pop: () => 'SOLTOU!',
+        color: '#ffffff',
+        line: (w, _m, n) => `${w} solta o Bide${n ? ` (guardou ${n} pancadas)` : ''}!`,
+    },
+    clones: { pop: () => 'CLONES!', color: '#d8e8ff', line: (w) => `${w} se divide em clones!` },
+    clone: { pop: () => 'ERA UM CLONE!', color: '#d8e8ff', line: (w) => `Acertaram um clone de ${w}!` },
+    mini: { pop: () => 'MINIMIZOU!', color: '#ffd9f0' },
+    guard: { pop: () => 'PROTEGIDO!', color: '#9fc4e8' },
+    curl: { pop: () => 'ENROLOU!', color: '#ffd9a0' },
+    wall: { pop: () => 'MURO!', color: '#c8f0ff', line: (w) => `${w} ergue um muro invisível!` },
+    wallBlock: { pop: () => 'BATEU NO MURO!', color: '#c8f0ff', line: (w) => `O muro de ${w} segurou o chute!` },
+    flee: { pop: () => 'FUGIU!', color: '#ff9a9a' },
+    blowBall: { pop: () => 'VENTANIA!', color: '#e0f7ff' },
+    bulldoze: { pop: () => 'EMPURRÃO!', color: '#ffb05c' },
+    typeCopy: { pop: () => 'MUDOU DE TIPO!', color: '#d9a7ff' },
+    teamHeal: { pop: () => 'CURA!', color: '#7dff8a' },
+    coins: { pop: () => 'MOEDAS!', color: '#ffd447', line: () => 'Chuva de moedas: todo mundo parou para olhar!' },
+};
+
+/** Zona desenhada no chão (fumaça, anel de fogo, muro): some quando o tempo dela acaba. */
+interface ZoneView {
+    from: number;
+    to: number;
+    obj: Phaser.GameObjects.Shape;
+}
+
 const STATUS_PT: Record<string, string> = {
     par: 'foi paralisado!',
     slp: 'caiu no sono!',
@@ -175,6 +257,10 @@ interface PlayerView {
     evolving: boolean;
     /** Entrando na quadra vindo da lateral (substituição): de onde, quando começa e quanto dura (tempo real). */
     enter: { from: { x: number; y: number }; start: number; dur: number } | null;
+    /** Clones do Double Team (criados na primeira vez). */
+    clones: Phaser.GameObjects.Sprite[];
+    /** Piscando de carga (Solar Beam, Bide...). */
+    glowing: boolean;
 }
 
 export class MatchScene extends Phaser.Scene {
@@ -471,6 +557,8 @@ export class MatchScene extends Phaser.Scene {
             lunge: { x: 0, y: 0 },
             evolving: false,
             enter: null,
+            clones: [],
+            glowing: false,
         };
         this.refreshTint(view);
         // tocar no Pokémon abre o painel dele (src/ui/components/PlayerInspect.tsx) e pausa a partida
@@ -538,7 +626,11 @@ export class MatchScene extends Phaser.Scene {
 
     private refreshTint(view: PlayerView) {
         const st = STATUS_VIEW[view.status];
+        const flags = Math.max(0, view.flags);
         if (st && view.status !== 6) view.sprite.setTint(st.tint);
+        // casco/concha/derretido: azulado; fúria: avermelhado
+        else if (flags & FLAG_GUARD) view.sprite.setTint(0x9fc4e8);
+        else if (flags & FLAG_RAGE) view.sprite.setTint(0xff8a8a);
         else if (view.shiny) view.sprite.setTint(0xfff3b0);
         else view.sprite.clearTint();
     }
@@ -557,7 +649,50 @@ export class MatchScene extends Phaser.Scene {
             flags & FLAG_CHARGED ? 0xffe14d : this.md.colors[view.team],
             0.95,
         );
+        // Minimize: fica pequenininho
+        if (!view.evolving) view.sprite.setScale(SPRITE_SCALE * (flags & FLAG_MINI ? 0.6 : 1));
         this.refreshTint(view);
+    }
+
+    /** Estado visível dos traços de golpe a cada quadro: voo, buraco, carga piscando e clones. */
+    private applyTraitPose(view: PlayerView, flags: number) {
+        const sp = view.sprite;
+        if (flags & FLAG_FLY) {
+            // no alto: o sprite sobe e a sombra encolhe
+            sp.y -= 30;
+            view.shadow.setScale(0.55);
+        } else if (flags & FLAG_DIG) {
+            // embaixo da terra: só um montinho andando
+            sp.setAlpha(0.12);
+            view.shadow.setScale(1.3);
+        } else if (view.shadow.scaleX !== 1) view.shadow.setScale(1);
+        if (flags & FLAG_CHARGING) {
+            view.glowing = true;
+            const on = Math.floor(this.time.now / 110) % 2 === 0;
+            view.ring.setStrokeStyle(5, on ? 0xffffff : 0xffe14d, 1);
+            sp.setTintMode(on ? Phaser.TintModes.FILL : Phaser.TintModes.MULTIPLY);
+            if (on) sp.setTint(0xfff7c0);
+            else this.refreshTint(view);
+        } else if (view.glowing) {
+            view.glowing = false;
+            sp.setTintMode(Phaser.TintModes.MULTIPLY);
+            this.refreshTint(view);
+            view.ring.setStrokeStyle(2.5, this.md.colors[view.team], 0.95);
+        }
+        const wantClones = (flags & FLAG_CLONES) !== 0 && !(flags & (FLAG_FLY | FLAG_DIG));
+        if (wantClones && !view.clones.length) {
+            for (let k = 0; k < 2; k++) view.clones.push(this.add.sprite(sp.x, sp.y, sp.texture.key).setAlpha(0.4));
+        }
+        view.clones.forEach((c, k) => {
+            c.setVisible(wantClones);
+            if (!wantClones) return;
+            const wobble = Math.sin(this.time.now / 160 + k * Math.PI) * 4;
+            c.setTexture(sp.texture.key, sp.frame.name)
+                .setOrigin(sp.originX, sp.originY)
+                .setScale(sp.scaleX, sp.scaleY)
+                .setPosition(sp.x + (k === 0 ? -16 : 16) + wobble, sp.y)
+                .setDepth(sp.depth - 0.5);
+        });
     }
 
     // ------------------------------------------------------------------ playback
@@ -582,6 +717,7 @@ export class MatchScene extends Phaser.Scene {
         this.updateBallMotion(inShootout);
         this.battleBox.update(time, Math.max(1, factor));
         this.cine.updatePins();
+        this.updateZoneViews();
 
         if (time - this.lastEmit > 120) {
             this.lastEmit = time;
@@ -825,6 +961,7 @@ export class MatchScene extends Phaser.Scene {
             this.placeArrow(view, px.x, px.y, labelDepth - 1);
             if (focused) focusPos.set(i, px);
             this.applyIndicators(view, near.p[o + 4], near.p[o + 5]);
+            this.applyTraitPose(view, near.p[o + 5]);
 
             const anim = resolveAnim(view.speciesId, dive ? 'Attack' : animForAction(action));
             const key = `${view.speciesId}/${anim}/${dive ? dive.facing : facing}`;
@@ -1308,6 +1445,44 @@ export class MatchScene extends Phaser.Scene {
                 }
                 break;
             }
+            case 'trait': {
+                const view = this.players[e.by];
+                const tv = TRAIT_VIEW[e.fx];
+                const moveName = MOVES[e.moveId]?.name ?? e.moveId;
+                // o texto sobe de quem sofreu (fugiu, curado) ou de quem usou
+                const popAt = (e.fx === 'flee' || e.fx === 'teamHeal') && e.target !== null ? e.target : e.by;
+                if (tv) this.popText(popAt, tv.pop(e.n ?? 0), tv.color);
+                if (tv?.line && view) this.battleBox.push(tv.line(view.name, moveName, e.n ?? 0));
+                const type = MOVES[e.moveId]?.type ?? 'Normal';
+                const color = hexToNumber(TYPE_COLOR[type] ?? '#ffffff');
+                if (e.fx === 'area' && e.x !== undefined && e.y !== undefined && e.r) {
+                    // onda do golpe em área: anel que abre até o raio
+                    const c = toPx(e.x, e.y);
+                    const ring = this.add
+                        .circle(c.x, c.y, 8)
+                        .setStrokeStyle(4, color, 0.9)
+                        .setDepth(c.y + 1);
+                    this.tweens.add({
+                        targets: ring,
+                        scale: (e.r * PPM) / 8,
+                        alpha: 0,
+                        duration: 420,
+                        ease: 'Cubic.easeOut',
+                        onComplete: () => ring.destroy(),
+                    });
+                }
+                if ((e.fx === 'zone' || e.fx === 'wall') && e.x !== undefined && e.y !== undefined && e.r && e.dur) {
+                    this.addZoneView(e.tick, e.dur, e.x, e.y, e.r, e.fx === 'wall' ? 'wall' : e.moveId);
+                }
+                if (e.fx === 'wallBlock') {
+                    for (const z of this.zoneViews) z.to = Math.min(z.to, e.tick);
+                }
+                if ((e.fx === 'fly' || e.fx === 'dig' || e.fx === 'land' || e.fx === 'bide') && view) {
+                    this.impact(view.sprite.x, view.sprite.y - 8, type);
+                }
+                if (e.fx === 'crit' || e.fx === 'wallBlock' || e.fx === 'bide') this.cameras.main.shake(180, 0.004);
+                break;
+            }
             case 'decoy': {
                 this.popText(e.by, 'SUBSTITUTO!', '#ffd9a0');
                 this.battleBox.push(`O boneco de ${this.players[e.by]?.name ?? '?'} aguentou o golpe!`);
@@ -1465,6 +1640,32 @@ export class MatchScene extends Phaser.Scene {
             name: view.name,
         };
         EventBus.emit('match:highlight', h);
+    }
+
+    private zoneViews: ZoneView[] = [];
+
+    /** Desenha a zona no chão; `kind` = 'wall' ou o golpe (smokescreen, firespin). */
+    private addZoneView(tick: number, dur: number, x: number, y: number, r: number, kind: string) {
+        const c = toPx(x, y);
+        let obj: Phaser.GameObjects.Shape;
+        if (kind === 'wall') {
+            obj = this.add.rectangle(c.x, c.y, 6, r * 2 * PPM, 0xc8f0ff, 0.45).setStrokeStyle(2, 0xffffff, 0.8);
+        } else if (kind === 'firespin') {
+            obj = this.add.circle(c.x, c.y, r * PPM, 0xff6a2a, 0.22).setStrokeStyle(4, 0xffb05c, 0.9);
+        } else {
+            obj = this.add.circle(c.x, c.y, r * PPM, 0x9a9a9a, 0.38);
+        }
+        obj.setDepth(c.y - 40);
+        this.zoneViews.push({ from: tick, to: tick + dur * TICK_RATE, obj });
+    }
+
+    /** Zonas só aparecem no intervalo de tempo delas (funciona também voltando o replay). */
+    private updateZoneViews() {
+        if (!this.zoneViews.length) return;
+        for (const z of this.zoneViews) z.obj.setVisible(this.playTick >= z.from && this.playTick < z.to);
+        const done = this.zoneViews.filter((z) => z.to < this.playTick - TICK_RATE * 60);
+        for (const z of done) z.obj.destroy();
+        if (done.length) this.zoneViews = this.zoneViews.filter((z) => !done.includes(z));
     }
 
     private popText(idx: number, text: string, color: string) {
