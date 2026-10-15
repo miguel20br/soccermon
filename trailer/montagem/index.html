@@ -1,10 +1,10 @@
 <!doctype html>
 <!--
-  Trailer do Soccermon (16:9). Plano: docs/planos/trailer-plano.md. Mídia em midia/ (fora do git; gerar com
-  ./preparar.sh). Render no Termux:
-    HYPERFRAMES_BROWSER_PATH=/data/data/com.termux/files/usr/bin/chromium-browser npx hyperframes render -w 1 -q draft -o trailer.mp4
+  Trailer do Soccermon (16:9). Plano: docs/planos/trailer-plano.md. Mídia em midia/ (fora do git): ./preparar.sh,
+  node quadra-vazia.mjs e node recortes.mjs (os dois com o npm run dev ligado). Render no Termux: ../.logs/render.sh
+  (HYPERFRAMES_BROWSER_PATH=chromium-browser, HYPERFRAMES_RENDER_DETACHED=1, -w 1 -q draft). Inglês: --variables '{"lang":"en"}'.
   Tempos: silêncio da abertura até 2,8 s; a música começa no zoom out (2,8 s) e o 1º ataque forte dela cai em
-  H = 5,116 s (apito + corte). Daí em diante tudo anda em compassos B = 1,348 s (178 BPM).
+  H = 5,116 s (apito + corte). Daí em diante tudo anda em compassos B = 1,348 s (178 BPM), batida b = B/4.
 -->
 <html lang="pt-BR" data-composition-variables='[{"id":"lang","type":"string","label":"Idioma (pt/en)","default":"pt"}]'>
 <head>
@@ -18,10 +18,10 @@ html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; backgro
 #root { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: "Galmuri11", monospace; }
 .clip { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden; }
 video.clip, img.cheia { object-fit: cover; }
-.pixel { image-rendering: pixelated; }
+img { image-rendering: pixelated; }
 
-/* abertura faroeste */
-.olho { position: absolute; image-rendering: pixelated; }
+/* abertura faroeste: rosto inteiro em faixa de cinema */
+.rosto { position: absolute; left: 50%; top: 50%; width: 1000px; height: 1000px; margin: -500px 0 0 -500px; image-rendering: pixelated; }
 .barra { position: absolute; left: 0; right: 0; height: 140px; background: #000; z-index: 50; }
 
 /* textos */
@@ -31,24 +31,38 @@ video.clip, img.cheia { object-fit: cover; }
 .legenda b { color: #ffcb05; font-weight: 700; }
 .flash { position: absolute; inset: 0; background: #fff; opacity: 0; z-index: 60; pointer-events: none; }
 
+/* fundo dos menus e do final (o mesmo do logo) */
+.palco { background: radial-gradient(circle at 50% 45%, #2a3a7a, #070a18 72%); }
+.raios { position: absolute; left: 50%; top: 45%; width: 3000px; height: 3000px; margin: -1500px 0 0 -1500px;
+  background: repeating-conic-gradient(rgb(255 255 255 / 7%) 0 6deg, transparent 6deg 13deg); }
+/* recortes do jogo: um por corte seco, centrado acima da legenda */
+.recorte { position: absolute; left: 50%; top: 455px; transform: translate(-50%, -50%); opacity: 0;
+  filter: drop-shadow(0 18px 40px rgb(0 0 0 / 55%)); }
+.recorte.modal { mask-image: linear-gradient(#000 78%, transparent); -webkit-mask-image: linear-gradient(#000 78%, transparent); }
+
+/* letreiro de golpe: a faixa diagonal do jogo (MatchHighlight) com o retrato */
+.golpe { position: absolute; left: 0; top: 150px; z-index: 30; display: flex; align-items: center; gap: 26px;
+  padding: 20px 110px 20px 40px; color: #fff; clip-path: polygon(0 0, 100% 0, calc(100% - 70px) 100%, 0 100%);
+  background: linear-gradient(90deg, #c63a3a, #4a1830); box-shadow: 0 8px 0 rgb(0 0 0 / 35%); }
+.golpe::after { content: ""; position: absolute; top: 0; bottom: 0; right: 30px; width: 10px; background: rgb(255 255 255 / 85%); transform: skewX(-20deg); }
+.golpe .face { width: 170px; height: 170px; border: 6px solid #fff; border-radius: 12px; background: #10162e; overflow: hidden; }
+.golpe .face img { width: 100%; height: 100%; display: block; }
+.golpe .quem { font-size: 40px; letter-spacing: 2px; text-shadow: 0 4px 0 rgb(0 0 0 / 55%); }
+.golpe .nome { font-size: 92px; line-height: 1; letter-spacing: 3px; -webkit-text-stroke: 12px #0e1430; paint-order: stroke fill; text-shadow: 0 8px 0 #0e1430; }
+
 /* versus */
 .lado { position: absolute; top: 0; bottom: 0; width: 62%; }
-.time { position: absolute; display: flex; gap: 6px; align-items: flex-end; }
-.time img { height: 230px; image-rendering: pixelated; }
-.vs { position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%); font-size: 220px; color: #ffcb05;
+.vs-poke { position: absolute; height: 175px; }
+.vs { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); font-size: 220px; color: #ffcb05;
   -webkit-text-stroke: 22px #0e1430; paint-order: stroke fill; text-shadow: 0 14px 0 #0e1430; z-index: 5; }
 
 /* final */
-#final { background: radial-gradient(circle at 50% 45%, #2a3a7a, #070a18 70%); }
-.raios { position: absolute; left: 50%; top: 45%; width: 3000px; height: 3000px; margin: -1500px 0 0 -1500px;
-  background: repeating-conic-gradient(rgb(255 255 255 / 9%) 0 6deg, transparent 6deg 13deg); }
 .halo { position: absolute; left: 50%; top: 45%; width: 1300px; height: 620px; transform: translate(-50%, -50%);
   background: radial-gradient(rgb(255 255 255 / 45%), transparent 65%); }
-#zard { position: absolute; left: 50%; top: 45%; width: 200px; transform: translate(-50%, -50%); image-rendering: pixelated; }
-.logo { position: absolute; left: 50%; top: 40%; width: 1500px; transform: translate(-50%, -50%); }
+#zard { position: absolute; left: 50%; top: 45%; width: 200px; transform: translate(-50%, -50%); }
+.logo { position: absolute; left: 50%; top: 40%; width: 1500px; transform: translate(-50%, -50%); image-rendering: auto; }
 #logo-branco { filter: brightness(0) invert(1) drop-shadow(0 0 30px #fff); }
-.tag { position: absolute; left: 0; right: 0; top: 60%; text-align: center; font-size: 64px; letter-spacing: 8px; color: #ffcb05;
-  text-shadow: 6px 7px 0 #0e1430; }
+.tag { position: absolute; left: 0; right: 0; top: 60%; text-align: center; font-size: 64px; letter-spacing: 8px; color: #ffcb05; text-shadow: 6px 7px 0 #0e1430; }
 .selo { position: absolute; left: 50%; top: 73%; transform: translateX(-50%); padding: 16px 34px; border-radius: 14px; white-space: nowrap;
   background: #e8423f; color: #fff; font-size: 40px; letter-spacing: 3px; box-shadow: 0 7px 0 #8c1d1b; }
 .site { position: absolute; left: 0; right: 0; top: 84%; text-align: center; font-size: 38px; color: #fff; letter-spacing: 2px; }
@@ -58,15 +72,18 @@ video.clip, img.cheia { object-fit: cover; }
 <body>
 <div id="root" data-composition-id="root" data-width="1920" data-height="1080" data-start="0" data-duration="36">
 
-  <!-- ===== 0 · abertura em silêncio (0–2,8 s) + zoom out com a música (2,8–5,116 s) ===== -->
-  <div id="olho-pika" class="clip" data-start="0" data-duration="1.1" style="background:#000">
-    <img class="olho" src="midia/retrato-25.png" style="width:3200px;left:-920px;top:-880px" alt="" />
+  <!-- ===== 0 · abertura: rosto do Pikachu, rosto do Mewtwo, a bola sozinha na quadra (silêncio); zoom out com a música e os times aparecem ===== -->
+  <div id="rosto-pika" class="clip" data-start="0" data-duration="1.1" style="background:#000">
+    <img class="rosto" src="midia/retrato-25.png" alt="" />
   </div>
-  <div id="olho-mew" class="clip" data-start="1.1" data-duration="1.1" style="background:#000">
-    <img class="olho" src="midia/retrato-150.png" style="width:4400px;left:-1100px;top:-2075px" alt="" />
+  <div id="rosto-mew" class="clip" data-start="1.1" data-duration="1.1" style="background:#000">
+    <img class="rosto" src="midia/retrato-150.png" alt="" />
   </div>
   <div id="bola" class="clip" data-start="2.2" data-duration="2.916" style="background:#000">
-    <img id="saida" class="cheia" src="midia/saida.png" style="width:1920px;height:1080px;transform-origin:960px 527px" alt="" />
+    <div id="quadra" style="position:absolute;inset:0;transform-origin:960px 535px">
+      <img class="cheia" src="midia/saida-vazia.png" style="position:absolute;inset:0;width:1920px;height:1080px" alt="" />
+      <img id="com-times" class="cheia" src="midia/saida.png" style="position:absolute;inset:0;width:1920px;height:1080px;opacity:0" alt="" />
+    </div>
   </div>
   <div class="barra" id="barra-cima" style="top:0"></div>
   <div class="barra" id="barra-baixo" style="bottom:0"></div>
@@ -74,42 +91,64 @@ video.clip, img.cheia { object-fit: cover; }
   <!-- ===== 1 · gancho: evolução + gol (3 compassos) ===== -->
   <video id="v-gancho" class="clip" src="midia/gancho.mp4" muted playsinline data-start="5.116" data-duration="4.044"></video>
 
-  <!-- ===== 2 · draft (2 compassos) ===== -->
-  <div id="draft" class="clip" data-start="9.16" data-duration="2.696">
-    <img id="draft-a" class="cheia" src="midia/draft-a.png" style="width:1920px;height:1080px;transform-origin:66% 52%" alt="" />
-    <img id="draft-b" class="cheia" src="midia/draft-b.png" style="position:absolute;inset:0;width:1920px;height:1080px;opacity:0;transform-origin:45% 45%" alt="" />
+  <!-- ===== 2 · draft: 4 cortes secos de 2 batidas (formações, candidatos, carta, carta aberta) ===== -->
+  <div id="draft" class="clip palco" data-start="9.16" data-duration="2.696">
+    <div class="raios"></div>
+    <img class="recorte" id="r1" src="midia/r-formacoes.png" style="width:1500px" alt="" />
+    <img class="recorte" id="r2" src="midia/r-capitaes.png" style="width:1560px" alt="" />
+    <img class="recorte" id="r3" src="midia/r-carta.png" style="height:800px" alt="" />
+    <img class="recorte modal" id="r4" src="midia/r-carta-aberta.png" style="width:1080px" alt="" />
   </div>
 
   <!-- ===== 3 · versus (2 compassos) ===== -->
   <div id="versus" class="clip" data-start="11.856" data-duration="2.696" style="background:#0e1430">
     <div class="lado" id="vs-esq" style="left:-12%;background:linear-gradient(135deg,#e8423f,#7a1412);clip-path:polygon(0 0,100% 0,78% 100%,0 100%)"></div>
     <div class="lado" id="vs-dir" style="right:-12%;background:linear-gradient(135deg,#1b3f9e,#0a1440);clip-path:polygon(22% 0,100% 0,100% 100%,0 100%)"></div>
-    <div class="time" id="time-esq" style="left:60px;top:250px">
-      <img src="midia/carta-143.png" alt="" /><img src="midia/carta-68.png" alt="" /><img src="midia/carta-151.png" alt="" /><img src="midia/carta-132.png" alt="" /><img src="midia/carta-150.png" alt="" />
+    <div id="time-esq">
+      <img class="vs-poke" src="midia/carta-143.png" style="left:40px;top:170px" alt="" />
+      <img class="vs-poke" src="midia/carta-68.png" style="left:210px;top:170px" alt="" />
+      <img class="vs-poke" src="midia/carta-151.png" style="left:380px;top:170px" alt="" />
+      <img class="vs-poke" src="midia/carta-132.png" style="left:550px;top:170px" alt="" />
+      <img class="vs-poke" src="midia/carta-150.png" style="left:720px;top:170px" alt="" />
     </div>
-    <div class="time" id="time-dir" style="right:60px;top:470px">
-      <img src="midia/carta-45.png" alt="" /><img src="midia/carta-114.png" alt="" /><img src="midia/carta-49.png" alt="" /><img src="midia/carta-71.png" alt="" /><img src="midia/carta-103.png" alt="" />
+    <div id="time-dir">
+      <img class="vs-poke" src="midia/carta-45.png" style="left:1030px;top:690px" alt="" />
+      <img class="vs-poke" src="midia/carta-114.png" style="left:1200px;top:690px" alt="" />
+      <img class="vs-poke" src="midia/carta-49.png" style="left:1370px;top:690px" alt="" />
+      <img class="vs-poke" src="midia/carta-71.png" style="left:1540px;top:690px" alt="" />
+      <img class="vs-poke" src="midia/carta-103.png" style="left:1710px;top:690px" alt="" />
     </div>
     <div class="vs" id="vs">VS</div>
   </div>
 
   <!-- ===== 4 · jogada (2 compassos) ===== -->
   <video id="v-jogada" class="clip" src="midia/jogada.mp4" muted playsinline data-start="14.552" data-duration="2.696"></video>
-  <!-- ===== 5 · golpes (3 compassos, 1 por golpe) ===== -->
-  <video id="v-golpes" class="clip" src="midia/golpes.mp4" muted playsinline data-start="17.248" data-duration="4.044"></video>
+
+  <!-- ===== 5 · golpes: 1 compasso cada, com o letreiro "X usou Y!" e o grito ===== -->
+  <video id="v-golpe1" class="clip" src="midia/golpe1.mp4" muted playsinline data-start="17.248" data-duration="1.348"></video>
+  <video id="v-golpe2" class="clip" src="midia/golpe2.mp4" muted playsinline data-start="18.596" data-duration="1.348"></video>
+  <video id="v-golpe3" class="clip" src="midia/golpe3.mp4" muted playsinline data-start="19.944" data-duration="1.348"></video>
+  <div class="golpe" id="golpe1" data-start="17.248" data-duration="1.348"><div class="face"><img src="midia/retrato-6.png" alt="" /></div><div><div class="quem"></div><div class="nome"></div></div></div>
+  <div class="golpe" id="golpe2" data-start="18.596" data-duration="1.348"><div class="face"><img src="midia/retrato-150.png" alt="" /></div><div><div class="quem"></div><div class="nome"></div></div></div>
+  <div class="golpe" id="golpe3" data-start="19.944" data-duration="1.348"><div class="face"><img src="midia/retrato-6.png" alt="" /></div><div><div class="quem"></div><div class="nome"></div></div></div>
+
   <!-- ===== 6 · Ditto + combo (2 compassos) ===== -->
   <video id="v-ditto" class="clip" src="midia/ditto.mp4" muted playsinline data-start="21.292" data-duration="2.696"></video>
 
-  <!-- ===== 7 · técnico (2 compassos) ===== -->
-  <div id="tecnico" class="clip" data-start="23.988" data-duration="2.696">
-    <img id="escalacao" class="cheia" src="midia/escalacao.png" style="width:1920px;height:1080px;transform-origin:25% 45%" alt="" />
+  <!-- ===== 7 · técnico: 4 cortes secos (escalação, troca de formação, tática) ===== -->
+  <div id="tecnico" class="clip palco" data-start="23.988" data-duration="2.696">
+    <div class="raios"></div>
+    <img class="recorte" id="t1" src="midia/r-quadra-a.png" style="height:800px" alt="" />
+    <img class="recorte" id="t2" src="midia/r-quadra-b.png" style="height:800px" alt="" />
+    <img class="recorte" id="t3" src="midia/r-tatica-a.png" style="width:1500px" alt="" />
+    <img class="recorte" id="t4" src="midia/r-tatica-b.png" style="width:1500px" alt="" />
   </div>
 
   <!-- ===== 8 · pênaltis (3 compassos) ===== -->
   <video id="v-penaltis" class="clip" src="midia/penaltis.mp4" muted playsinline data-start="26.684" data-duration="4.044"></video>
 
   <!-- ===== 9 · final: Charizard voa na tela, clarão, o logo "evolui" (30,728–36 s) ===== -->
-  <div id="final" class="clip" data-start="30.728" data-duration="5.272">
+  <div id="final" class="clip palco" data-start="30.728" data-duration="5.272">
     <div class="raios" id="raios"></div>
     <div class="halo"></div>
     <img id="zard" src="midia/carta-6.gif" alt="" />
@@ -130,12 +169,21 @@ video.clip, img.cheia { object-fit: cover; }
   <div class="legenda" id="leg-estrelato" data-start="26.684" data-duration="4.044"></div>
   <div class="flash" id="flash"></div>
 
-  <!-- áudio: vento na abertura, apito no 1º ataque da música, música do zoom out até o fim -->
+  <!-- áudio: vento na abertura, apito no 1º ataque da música, gritos nos golpes e no voo do Charizard, música do zoom out até o fim -->
   <audio id="a-vento" class="clip" src="midia/vento.wav" data-start="0" data-duration="2.9" data-volume="0.6"></audio>
   <audio id="a-apito" class="clip" src="midia/apito.wav" data-start="4.95" data-duration="0.65" data-volume="0.7"></audio>
+  <audio id="a-grito1" class="clip" src="midia/grito-6.ogg" data-start="17.3" data-duration="1.25" data-volume="0.45"></audio>
+  <audio id="a-grito2" class="clip" src="midia/grito-150.ogg" data-start="18.65" data-duration="1.25" data-volume="0.45"></audio>
+  <audio id="a-grito3" class="clip" src="midia/grito-6.ogg" data-start="20.0" data-duration="1.25" data-volume="0.45"></audio>
+  <audio id="a-grito-final" class="clip" src="midia/grito-6.ogg" data-start="30.8" data-duration="1.3" data-volume="0.5"></audio>
   <audio id="a-musica" class="clip" src="midia/musica.mp3" data-start="2.8" data-duration="33.2" data-media-start="0" data-fade-out="1.6"></audio>
 
   <script>
+    const GOLPES = [
+      { quem: "Charizard", golpe: "Fire Blast", cor: "#EE8130" },
+      { quem: "Mewtwo", golpe: "Psychic", cor: "#F95587" },
+      { quem: "Charizard", golpe: "Flamethrower", cor: "#EE8130" },
+    ];
     const TEXTOS = {
       pt: {
         draft: "Escolha seu time entre os <b>151 Pokémon</b> de Kanto",
@@ -144,6 +192,7 @@ video.clip, img.cheia { object-fit: cover; }
         golpes: "Mais de <b>100 movimentos</b>",
         tecnico: "Seja o <b>técnico</b> do seu próprio time",
         estrelato: "E conquiste o <b>estrelato</b>",
+        usou: "usou",
         tag: "TEMOS QUE CHUTAR!",
         selo: "BETA ABERTA · JOGUE GRÁTIS NO NAVEGADOR",
         credito: "Música: Trainer Battle Remix por Bliitzit · Fan game sem fins lucrativos · Pokémon © Nintendo, Game Freak, Creatures, TPC",
@@ -155,6 +204,7 @@ video.clip, img.cheia { object-fit: cover; }
         golpes: "<b>100+</b> moves",
         tecnico: "Be the <b>manager</b> of your own team",
         estrelato: "And rise to <b>stardom</b>",
+        usou: "used",
         tag: "GOTTA KICK 'EM ALL!",
         selo: "OPEN BETA · PLAY FREE IN YOUR BROWSER",
         credito: "Music: Trainer Battle Remix by Bliitzit · Non-profit fan game · Pokémon © Nintendo, Game Freak, Creatures, TPC",
@@ -164,36 +214,56 @@ video.clip, img.cheia { object-fit: cover; }
     const T = TEXTOS[vars.lang] ?? TEXTOS.pt;
     for (const k of ["draft", "versus", "futsal", "golpes", "tecnico", "estrelato"]) document.getElementById(`leg-${k}`).innerHTML = T[k];
     for (const k of ["tag", "selo", "credito"]) document.getElementById(k).textContent = T[k];
+    GOLPES.forEach((g, i) => {
+      const el = document.getElementById(`golpe${i + 1}`);
+      el.querySelector(".quem").textContent = `${g.quem} ${T.usou}`;
+      el.querySelector(".nome").textContent = `${g.golpe}!`;
+      el.querySelector(".nome").style.color = g.cor;
+    });
 
     const B = 1.348, b = B / 4, H = 5.116;
     const tl = gsap.timeline({ paused: true });
+    const flash = (t, o = 0.9, d = 0.3) => tl.fromTo("#flash", { opacity: o }, { opacity: 0, duration: d, ease: "power2.out", immediateRender: false }, t);
+    // corte seco: o recorte aparece já no lugar, com um "soco" de escala pequeno, e some no corte seguinte
+    const corte = (sel, t, dur) => {
+      tl.set(sel, { opacity: 1 }, t);
+      tl.fromTo(sel, { scale: 1.06 }, { scale: 1, duration: 0.16, ease: "power2.out", immediateRender: false }, t);
+      tl.set(sel, { opacity: 0 }, t + dur);
+    };
 
-    // abertura: empurrão lento nos olhos (tensão), bola parada bem de perto, zoom out com a música
-    tl.fromTo("#olho-pika img", { scale: 1 }, { scale: 1.07, duration: 1.1, ease: "none" }, 0);
-    tl.fromTo("#olho-mew img", { scale: 1 }, { scale: 1.07, duration: 1.1, ease: "none" }, 1.1);
-    tl.set("#saida", { scale: 7 }, 2.2);
-    tl.to("#saida", { scale: 1, duration: H - 2.8 - 0.1, ease: "power3.inOut" }, 2.8);
+    // abertura: rostos com empurrão lento (tensão), corte seco pra bola sozinha; no zoom out os times aparecem
+    tl.fromTo("#rosto-pika img", { scale: 1 }, { scale: 1.06, duration: 1.1, ease: "none" }, 0);
+    tl.fromTo("#rosto-mew img", { scale: 1 }, { scale: 1.06, duration: 1.1, ease: "none" }, 1.1);
+    tl.set("#quadra", { scale: 7 }, 2.2);
+    tl.to("#quadra", { scale: 1, duration: H - 2.8 - 0.1, ease: "power3.inOut" }, 2.8);
+    tl.to("#com-times", { opacity: 1, duration: 0.7, ease: "power1.in" }, 3.6);
     tl.to("#barra-cima", { yPercent: -100, duration: 0.6, ease: "power2.in" }, H - 0.7);
     tl.to("#barra-baixo", { yPercent: 100, duration: 0.6, ease: "power2.in" }, H - 0.7);
 
-    // flash branco nos cortes fortes
-    for (const t of [H, H + 3.37, 17.248, 17.248 + B, 17.248 + 2 * B, 21.292, 30.728 + 1.15])
-      tl.fromTo("#flash", { opacity: 0.9 }, { opacity: 0, duration: 0.3, ease: "power2.out", immediateRender: false }, t);
+    // flashes nos cortes fortes (o gol do gancho cai em H + 3,37)
+    for (const t of [H, H + 3.37, 21.292]) flash(t);
 
-    // draft: aproxima nas cartas, depois a carta aberta
-    tl.fromTo("#draft-a", { scale: 1.05 }, { scale: 1.45, duration: B, ease: "power2.out" }, 9.16);
-    tl.set("#draft-b", { opacity: 1 }, 9.16 + B);
-    tl.fromTo("#draft-b", { scale: 1.3 }, { scale: 1.55, duration: B, ease: "power1.out" }, 9.16 + B);
+    // draft e técnico: cortes secos de 2 batidas
+    ["#r1", "#r2", "#r3", "#r4"].forEach((s, i) => corte(s, 9.16 + i * 2 * b, i === 3 ? 2 * b + 0.01 : 2 * b));
+    ["#t1", "#t2", "#t3", "#t4"].forEach((s, i) => corte(s, 23.988 + i * 2 * b, i === 3 ? 2 * b + 0.01 : 2 * b));
 
     // versus: lados entram em diagonal, times sobem, VS bate
     tl.from("#vs-esq", { xPercent: -60, duration: 0.3, ease: "power3.out" }, 11.856);
     tl.from("#vs-dir", { xPercent: 60, duration: 0.3, ease: "power3.out" }, 11.856);
-    tl.from("#time-esq img", { y: 300, opacity: 0, duration: 0.25, stagger: b / 3, ease: "back.out(2)" }, 11.856 + b);
-    tl.from("#time-dir img", { y: 300, opacity: 0, duration: 0.25, stagger: b / 3, ease: "back.out(2)" }, 11.856 + b);
+    tl.from("#time-esq img", { y: -260, opacity: 0, duration: 0.25, stagger: b / 3, ease: "back.out(2)" }, 11.856 + b);
+    tl.from("#time-dir img", { y: 260, opacity: 0, duration: 0.25, stagger: b / 3, ease: "back.out(2)" }, 11.856 + b);
     tl.from("#vs", { scale: 3, opacity: 0, duration: 0.2, ease: "power4.in" }, 11.856 + 4 * b);
+    flash(11.856 + 4 * b + 0.2, 0.6, 0.25);
 
-    // técnico: passeia pela escalação e pela tática
-    tl.fromTo("#escalacao", { scale: 1.6, x: 120 }, { scale: 1.35, x: -260, duration: 2 * B, ease: "power1.inOut" }, 23.988);
+    // golpes: soco de zoom no vídeo, a faixa entra pela esquerda e o nome do golpe bate; flash no corte
+    for (let i = 0; i < 3; i++) {
+      const t = 17.248 + i * B;
+      tl.fromTo(`#v-golpe${i + 1}`, { scale: 1.12 }, { scale: 1, duration: 0.35, ease: "power3.out", immediateRender: false }, t);
+      tl.from(`#golpe${i + 1}`, { xPercent: -105, duration: 0.18, ease: "power3.out" }, t + 0.02);
+      tl.from(`#golpe${i + 1} .nome`, { scale: 1.8, opacity: 0, duration: 0.16, ease: "back.out(2.5)", transformOrigin: "0% 50%" }, t + 0.2);
+      tl.to(`#golpe${i + 1}`, { xPercent: -105, duration: 0.14, ease: "power2.in" }, t + B - 0.16);
+      flash(t, 0.7, 0.2);
+    }
 
     // legendas: pulam na primeira batida da cena
     for (const [id, t] of [["draft", 9.16], ["versus", 11.856], ["futsal", 14.552], ["golpes", 17.248], ["tecnico", 23.988], ["estrelato", 26.684]])
@@ -204,20 +274,21 @@ video.clip, img.cheia { object-fit: cover; }
     tl.to("#raios", { rotation: 40, duration: 5.272, ease: "none" }, F);
     tl.fromTo("#zard", { scale: 0.15, rotation: -8 }, { scale: 14, rotation: 4, duration: 1.15, ease: "power3.in" }, F);
     tl.set("#zard", { opacity: 0 }, F + 1.15);
-    const L = F + 1.15;
+    const L = F + 1.15, p = b * 0.6;
+    flash(L);
     for (let i = 0; i < 4; i++) {
-      tl.set("#logo-branco", { opacity: 1 }, L + i * 2 * b * 0.6);
-      tl.set("#logo-cor", { opacity: i ? 1 : 0 }, L + i * 2 * b * 0.6);
-      tl.set("#logo-branco", { opacity: 0 }, L + (i * 2 + 1) * b * 0.6);
+      tl.set("#logo-branco", { opacity: 1 }, L + i * 2 * p);
+      tl.set("#logo-cor", { opacity: i ? 1 : 0 }, L + i * 2 * p);
+      tl.set("#logo-branco", { opacity: 0 }, L + (i * 2 + 1) * p);
     }
     tl.fromTo(".logo", { scale: 0.85 }, { scale: 1, duration: 0.5, ease: "back.out(3)" }, L);
-    tl.set("#logo-cor", { opacity: 1 }, L + 8 * b * 0.6);
-    tl.fromTo("#flash", { opacity: 0.8 }, { opacity: 0, duration: 0.4, immediateRender: false }, L + 8 * b * 0.6);
-    tl.to("#tag", { opacity: 1, duration: 0.01 }, L + 8 * b * 0.6 + b);
-    tl.from("#tag", { scale: 1.6, duration: 0.25, ease: "back.out(2)" }, L + 8 * b * 0.6 + b);
-    tl.to("#selo", { opacity: 1, duration: 0.2 }, L + 8 * b * 0.6 + 3 * b);
-    tl.from("#selo", { y: 40, duration: 0.25, ease: "back.out(2)" }, L + 8 * b * 0.6 + 3 * b);
-    tl.to(["#site", "#credito"], { opacity: 1, duration: 0.3 }, L + 8 * b * 0.6 + 4 * b);
+    tl.set("#logo-cor", { opacity: 1 }, L + 8 * p);
+    flash(L + 8 * p, 0.8, 0.4);
+    tl.to("#tag", { opacity: 1, duration: 0.01 }, L + 8 * p + b);
+    tl.from("#tag", { scale: 1.6, duration: 0.25, ease: "back.out(2)" }, L + 8 * p + b);
+    tl.to("#selo", { opacity: 1, duration: 0.2 }, L + 8 * p + 3 * b);
+    tl.from("#selo", { y: 40, duration: 0.25, ease: "back.out(2)" }, L + 8 * p + 3 * b);
+    tl.to(["#site", "#credito"], { opacity: 1, duration: 0.3 }, L + 8 * p + 4 * b);
 
     window.__timelines = window.__timelines || {};
     window.__timelines.root = tl;

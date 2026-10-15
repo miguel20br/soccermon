@@ -26,8 +26,8 @@ junta() { printf "file '%s'\nfile '%s'\n" "$2.mp4" "$3.mp4" > $M/lista.txt; (cd 
 junta gancho g1 g2
 junta ditto d1 d2
 printf "file 'golpe1.mp4'\nfile 'golpe2.mp4'\nfile 'golpe3.mp4'\n" > $M/lista.txt; (cd $M && ffmpeg -v error -y -f concat -safe 0 -i lista.txt -c copy golpes.mp4); rm $M/lista.txt
-# quadro da saída de bola (bola no centro) pro zoom out
-ffmpeg -v error -y -ss 0 -i "$C/6-ditto-vira-mewtwo-e-combo.mp4" -frames:v 1 -vf "scale=1980:1080,crop=1920:1080" $M/saida.png
+# quadros da saída de bola (com os times e vazia só com a bola): node quadra-vazia.mjs (precisa do npm run dev)
+# recortes dos menus (cartas, escalação, tática): node recortes.mjs
 # sons: vento da abertura (ruído marrom grave) e apito duplo (mesmo timbre do jogo: ~2400 Hz com vibrato)
 ffmpeg -v error -y -f lavfi -i "anoisesrc=color=brown:amplitude=0.25:duration=2.9" -af "lowpass=f=500,afade=t=in:d=0.6,afade=t=out:st=2.3:d=0.6" $M/vento.wav
 ffmpeg -v error -y -f lavfi -i "aevalsrc=0.5*sin(2*PI*(2400+90*sin(2*PI*38*t))*t)*(between(t\,0\,0.11)+between(t\,0.17\,0.6)):s=44100:d=0.65" -af "afade=t=out:st=0.5:d=0.15" $M/apito.wav
@@ -36,7 +36,8 @@ cp ../musica/trainer-battle-remix.mp3 $M/musica.mp3   # análise de BPM/batidas:
 P=../../public
 cp $P/fonts/Galmuri11-Bold.woff2 $P/assets/ui/logo.svg $P/assets/ui/ball.svg $M/
 cp ../arte/logo/i-evolucao-pt.svg ../arte/logo/i-evolucao-en.svg ../arte/logo/logo-pt.svg ../arte/logo/logo-en.svg $M/
-for id in 25 150; do cp $P/assets/portraits/$id-determined.png $M/retrato-$id.png; done
+for id in 25 150 6; do cp $P/assets/portraits/$id-determined.png $M/retrato-$id.png; done
+for id in 6 150; do cp $P/assets/cries/latest/$id.ogg $M/grito-$id.ogg; done
 # GIFs viram vídeo no render e perdem o tamanho do CSS: o versus usa o 1º quadro em PNG; o Charizard do final fica GIF
 cp $P/assets/cards/6.gif $M/carta-6.gif
 for id in 143 68 151 132 150 45 114 49 71 103; do ffmpeg -v error -y -i $P/assets/cards/$id.gif -frames:v 1 $M/carta-$id.png; done
