@@ -31,9 +31,22 @@ abertura) passa por ele em rascunho antes do final.
 
 Os cortes caem na batida da música escolhida (ajustar os tempos ao BPM dela).
 
+## Abertura faroeste (decidida 15/10/2026)
+
+Cena 0 do storyboard, ~4 s, sem texto, em faixa de cinema (barras pretas em cima e embaixo):
+
+| Plano | Duração | O quê |
+|---|---|---|
+| 0a | ~0,9 s | Close extremo nos **olhos do Pikachu** (retrato PMD "determinado", ampliado em pixel nítido), silêncio tenso |
+| 0b | ~0,9 s | Close extremo nos **olhos do Mewtwo**, espelhado pra encarar o Pikachu |
+| 0c | ~0,6 s | Corte seco pra **bola** parada no centro da quadra |
+| 0d | ~1,2 s | **Zoom out** da bola até mostrar a quadra inteira com os dois times posicionados (quadro real do jogo no tick 0) |
+| 0e | — | **Apito** e corte pro gancho; a música entra aqui |
+
 ## Título (cartela final e abertura)
 
-O logo de hoje (fonte pixel Galmuri em amarelo com sombra azul) é a base. Proposta pro trailer:
+O Miguel achou que a fonte do logo precisa mudar (15/10): o logo novo sai da skill `logo-design`
+(kaankiziltug/logo-design-skill, instalada em ~/.claude/skills): briefing, 3 conceitos, testes em 16 px, escolha dele. Proposta pro trailer:
 - **A bola de futsal no lugar do primeiro "O"** de SOCCERMON, girando quando o título se forma.
 - **Formação:** o Pokémon voa do fundo em direção à câmera, crescendo; quando "passa" pela tela, um clarão e as
   letras se encaixam uma a uma (efeito pixel, sem brilho genérico de template).
