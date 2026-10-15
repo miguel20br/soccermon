@@ -44,6 +44,7 @@ export const home = {
     news: 'Novidades',
     version: 'Versão {v} · {title}',
     soonTitle: 'Em breve',
+    soonRibbon: 'EM BREVE',
     disclaimer:
         'Soccermon v{v} · Criado por Miguel Cunha · Fan game sem fins lucrativos. Pokémon e todos os nomes, sprites e sons relacionados são © Nintendo, Game Freak, Creatures Inc. e The Pokémon Company. Este projeto não é afiliado nem endossado por eles. ·',
     privacy: 'Privacidade e termos',

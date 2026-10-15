@@ -45,6 +45,7 @@ export const home: typeof pt = {
     news: "What's new",
     version: 'Version {v} · {title}',
     soonTitle: 'Coming soon',
+    soonRibbon: 'SOON',
     disclaimer:
         'Soccermon v{v} · Made by Miguel Cunha · Non-profit fan game. Pokémon and all related names, sprites and sounds are © Nintendo, Game Freak, Creatures Inc. and The Pokémon Company. This project is not affiliated with or endorsed by them. ·',
     privacy: 'Privacy and terms',

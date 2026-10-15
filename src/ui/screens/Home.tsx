@@ -306,7 +306,7 @@ export function Home() {
                 <h2>{t('home.soonTitle')}</h2>
                 <div className="soon-grid">
                     {d.home.soon.map((c, i) => (
-                        <div key={SOON_IMG[i]} className="soon-card">
+                        <div key={SOON_IMG[i]} className="soon-card" data-ribbon={t('home.soonRibbon')}>
                             <img className="pixel" src={SOON_IMG[i]} alt="" />
                             <b>{c.title}</b>
                             <span>{c.text}</span>
