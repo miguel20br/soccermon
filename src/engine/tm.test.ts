@@ -12,6 +12,7 @@ import {
     GYM_TM,
     isProtectedMove,
     movesAfterEvolution,
+    RIVAL_GYM_TM_MAX,
     rareMovePool,
     rollTmOffer,
     teachMove,
@@ -127,7 +128,7 @@ describe('MT do ginásio', () => {
         expect(out.taught).toEqual([]);
     });
 
-    it('rivais entram com a MT do líder em quem aprende (determinístico)', () => {
+    it('rivais entram com a MT do líder em até 2 que aprendem (determinístico)', () => {
         let checked = 0;
         for (let k = 0; k < 30 && checked < 3; k++) {
             const cup = buildCupOpponents(`rival${k}`);
@@ -136,8 +137,12 @@ describe('MT do ginásio', () => {
                 const gym = GYM_TM[team.name];
                 if (!gym) continue;
                 checked++;
-                for (const p of [...team.lineup, ...team.bench]) {
-                    if (!species(p.speciesId).learnset.includes(gym.move)) continue;
+                const all = [...team.lineup, ...team.bench];
+                const learners = all.filter((p) => species(p.speciesId).learnset.includes(gym.move));
+                const withTm = all.filter((p) => p.taught?.includes(gym.move));
+                expect(withTm.length).toBeLessThanOrEqual(RIVAL_GYM_TM_MAX);
+                if (learners.length >= RIVAL_GYM_TM_MAX) expect(withTm.length).toBeGreaterThan(0);
+                for (const p of withTm) {
                     expect(p.moves).toContain(gym.move);
                     expect(p.moves.length).toBeLessThanOrEqual(4);
                     if (SIGNATURE[p.speciesId] && SIGNATURE[p.speciesId] !== gym.move)

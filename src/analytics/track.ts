@@ -1,4 +1,4 @@
-import { cloudApi, useCloud } from '../cloud/cloud';
+import { cloudApi, isApplyingCloud, takeLoginPending, useCloud } from '../cloud/cloud';
 import { type GameState, useGame } from '../store/game-store';
 
 /**
@@ -46,6 +46,8 @@ let timer: ReturnType<typeof setTimeout> | null = null;
 function flush(keepalive = false) {
     if (timer) clearTimeout(timer);
     timer = null;
+    // desligou as estatísticas depois de os eventos entrarem na fila: não manda nada
+    if (!useGame.getState().settings.stats) queue = [];
     if (!queue.length || !cloudApi) return;
     const rows = queue;
     queue = [];
@@ -66,7 +68,8 @@ function flush(keepalive = false) {
 }
 
 export function track(name: string, props: Props = {}) {
-    if (!ENABLED || !useGame.getState().settings.stats) return;
+    // antes de o save carregar, `stats` ainda é o padrão (pode ser de quem desligou)
+    if (!ENABLED || !useGame.persist.hasHydrated() || !useGame.getState().settings.stats) return;
     queue.push({ session, name, props, app_version: __APP_VERSION__, device: device() });
     if (queue.length >= MAX_QUEUE) flush();
     else timer ??= setTimeout(() => flush(), FLUSH_MS);
@@ -86,6 +89,8 @@ function referrer(): string | null {
 }
 
 function onChange(s: GameState, prev: GameState) {
+    // mudanças vindas da nuvem (login em outro aparelho) não são ações do jogador
+    if (isApplyingCloud()) return;
     if (s.screen !== prev.screen) track('screen', { screen: s.screen });
     if (s.onboarded && !prev.onboarded) track('onboarding_done');
 
@@ -140,12 +145,19 @@ function onChange(s: GameState, prev: GameState) {
     }
 }
 
+/** Mensagem de erro curta e sem endereços (URLs podem levar tokens ou dados da sessão). */
+const errorText = (e: unknown) =>
+    String(e)
+        .replace(/https?:\/\/\S+/g, '<url>')
+        .replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '<email>')
+        .slice(0, 160);
+
 /** Liga as estatísticas (uma vez, no início do app). */
 export function startAnalytics() {
     if (!ENABLED) return;
     const begin = () => {
         const g = useGame.getState();
-        const lab = new URLSearchParams(location.search).get('lab');
+        const lab = new URLSearchParams(location.search).get('lab')?.slice(0, 40) ?? null;
         track('session_start', {
             returning: g.onboarded || g.records.cups > 0,
             ref: referrer(),
@@ -160,9 +172,10 @@ export function startAnalytics() {
     if (useGame.persist.hasHydrated()) begin();
     else useGame.persist.onFinishHydration(begin);
     useCloud.subscribe((s, prev) => {
-        if (s.user && !prev.user) track('login');
+        // só o login que a pessoa pediu agora (abrir o jogo já logado não conta)
+        if (s.user && !prev.user && takeLoginPending()) track('login');
     });
-    window.addEventListener('error', (e) => track('error', { msg: String(e.message ?? e.error).slice(0, 160) }));
-    window.addEventListener('unhandledrejection', (e) => track('error', { msg: String(e.reason).slice(0, 160) }));
+    window.addEventListener('error', (e) => track('error', { msg: errorText(e.message ?? e.error) }));
+    window.addEventListener('unhandledrejection', (e) => track('error', { msg: errorText(e.reason) }));
     document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && flush(true));
 }

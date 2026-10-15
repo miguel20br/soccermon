@@ -12,8 +12,8 @@
 
 > **In English:** Soccermon is a free, non-profit browser fan game: draft a team from the 151 Kanto Pokémon
 > ("pick 1 of 3", roguelike style) and play a simulated 5v5 futsal cup against gym-themed clubs, with real
-> Gen 1 moves turned into futsal actions. No install, no ads, no purchases; the game text is in Brazilian
-> Portuguese. Built with Vite, React 19, TypeScript, Phaser 4 and a deterministic headless match engine;
+> Gen 1 moves turned into futsal actions. No install, no ads, no purchases; play in English or Brazilian
+> Portuguese (official English Pokémon names). Built with Vite, React 19, TypeScript, Phaser 4 and a deterministic headless match engine;
 > open source under AGPL-3.0.
 
 Criado por **Miguel Cunha** ([@miguel20br](https://github.com/miguel20br)).
@@ -26,8 +26,8 @@ Fan game de navegador, **sem fins lucrativos**: monte um time com os 151 Pokémo
 ## O que tem no jogo
 
 - **Draft roguelike**: formação (6 opções), capitão, 5 titulares e 2 reservas, com rerolls
-- **Partida simulada** numa quadra 2D vista de cima, com sprites animados, narração em português e
-  velocidades de 1x a 8x
+- **Partida simulada** numa quadra 2D vista de cima, com sprites animados, narração em português ou
+  inglês e velocidades de 1x a 8x
 - **Golpes de verdade**: os 164 golpes da Gen 1 viram ações de futsal (chute, carrinho, buff, status), cada um
   com animação própria
 - **Evolução no meio da partida**, substituições pedidas pelo técnico e táticas que mudam ao vivo
@@ -36,7 +36,10 @@ Fan game de navegador, **sem fins lucrativos**: monte um time com os 151 Pokémo
 - **Estatísticas** da partida e da copa: notas, gráficos, mapa de chutes
 - **Perfil** do seu clube (nome, sigla e cor), **Pokédex** (visto, jogou e carreira de cada espécie) e
   **Golpedex** com os golpes que você já descobriu
+- **MT do ginásio**: vencer um ginásio pode render a MT do líder (Brock dá Bide, Misty dá Bubble Beam...) para
+  ensinar a quem você quiser; golpes com o efeito dos jogos originais (crítico, carga, Fly/Dig, área, Toxic...)
 - **Ajuda** com passo a passo e **Configurações**: velocidade, nomes na quadra, reduzir movimento e backup do save
+- **Português ou inglês** (PT | EN na tela inicial), com os nomes oficiais em inglês dos jogos
 - **Conta Google opcional** para salvar a copa na nuvem; sem login, tudo fica no seu navegador
 
 ![Partida em andamento](docs/partida.jpg)

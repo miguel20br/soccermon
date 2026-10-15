@@ -77,7 +77,7 @@ npm run calibrate -- --n 400 [--formations|--tactics]   # equilíbrio headless
   em cada aparelho.
 - Antes de fechar uma mudança visual, confira no celular (320 e 390 px), deitado e no desktop.
 
-## Estado atual (15/10/2026, v0.8.0 · Perfil e Pokédex)
+## Estado atual (15/10/2026, v0.8.0 · Perfil, Pokédex e golpes novos)
 
 No ar: contas e save na nuvem, evolução no meio da partida, substituição pelo técnico, painel ao tocar no
 Pokémon, estatísticas da partida e da copa, 6 formações, tela de campeão, menus novos, golpes revisados com
@@ -89,12 +89,17 @@ apareceu no draft/recompensas/time rival; jogou = 1+ minuto em quadra pelo seu t
 Golpedex (`?lab=golpes`, golpe descoberto quando aparece em campo; revisão do Miguel só com `&revisao=1`), passo a
 passo de boas-vindas + botão "?" + tela Ajuda + dicas, configurações a fundo (volumes, velocidade inicial, nomes
 na quadra, reduzir movimento, confirmar saída, backup/restaurar/apagar) e save v5 (`src/store/profile.ts`).
+Também na 0.8.0: golpes com o efeito da Gen 1 em 12 famílias (`MOVE_TRAITS`/`MOVE_TUNING` em `src/engine/moves.ts`,
+relatório em `docs/planos/golpes-motor-relatorio.md`; fogo amigo do Earthquake/Surf aprovado), MT do ginásio como
+recompensa (`src/engine/tm.ts`; assinatura protegida, golpe ensinado em `PokemonInstance.taught` sobrevive à
+evolução, rival leva a MT do líder em até 2 Pokémon) e o jogo inteiro em inglês (`src/i18n/`, nomes oficiais;
+Golpedex = Movedex, Destaque = Star Player).
 
 **Estatísticas (15/10/2026):** Vercel Web Analytics + Speed Insights (ligar no painel da Vercel) e eventos
 anônimos do jogo em `public.game_events` (`src/analytics/track.ts`, migração `20261015150000_estatisticas.sql`
 já aplicada; só INSERT pela API). Consultas prontas no schema `analytics` (SQL Editor):
 `por_dia`, `funil`, `origem`, `pokemon_escolhidos`, `formacoes`, `fases`, `telas`, `erros`. Privacidade promete
-guardar no máximo 12 meses: falta um job de limpeza (pg_cron) ou apagar à mão.
+guardar no máximo 12 meses: job pg_cron `limpar-estatisticas-antigas` (dia 1, 4h) apaga o que passar disso; eventos só de uma lista fixa (migração `20261015190000_estatisticas_limites.sql`).
 
 Plano do trailer e dos posts de lançamento: [docs/planos/divulgacao-trailer.md](docs/planos/divulgacao-trailer.md).
 

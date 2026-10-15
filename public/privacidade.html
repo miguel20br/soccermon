@@ -67,7 +67,8 @@
         <section>
             <h2>Resumo</h2>
             <ul>
-                <li>Sem login, nada sai do seu aparelho: o jogo salva só no seu navegador.</li>
+                <li>Sem login, seu save fica só no seu navegador. O que sai do aparelho são as estatísticas anônimas
+                    descritas abaixo (dá para desligar).</li>
                 <li>Com login do Google, guardamos seu nome, foto e o save do jogo para você continuar em qualquer aparelho.</li>
                 <li>Não vendemos dados, não mostramos anúncios e não usamos cookies de rastreamento. Contamos visitas e
                     partidas de forma anônima (sem conta, sem cookie) para saber se o jogo está funcionando; dá para
@@ -85,18 +86,22 @@
             </p>
 
             <h2>O que coletamos</h2>
-            <p><b>Jogando como visitante (sem login):</b> seu progresso não sai do aparelho. A copa, as configurações,
-                os recordes e a Pokédex ficam no armazenamento do seu navegador (IndexedDB e localStorage) e não são
-                enviados a nós.</p>
+            <p><b>Jogando como visitante (sem login):</b> o save fica no armazenamento do seu navegador (IndexedDB e
+                localStorage): copa, perfil, configurações, recordes, Pokédex e golpes descobertos. O save em si não é
+                enviado a nós; só saem os eventos anônimos descritos logo abaixo (que incluem números soltos, como
+                quantas copas você jogou, quantos Pokémon já viu e as configurações que trocou).</p>
             <p><b>Estatísticas anônimas (todo mundo, com ou sem login):</b></p>
             <ul>
                 <li><b>Visitas</b>, pelo Vercel Web Analytics e Speed Insights: página aberta, site de origem (ex.: veio
                     do LinkedIn), país, tipo de aparelho e navegador, e a velocidade de carregamento. Não usa cookies e
                     não identifica você.</li>
                 <li><b>Eventos do jogo</b>: coisas como "copa começou", "partida terminou 3 a 1 nas quartas", "Pokémon
-                    escolhido no draft", "tela aberta", "configuração trocada" e erros. Cada evento leva só um código
-                    aleatório da sessão (some quando você fecha a aba), a versão do jogo e o tipo de aparelho. Nunca
-                    levam seu nome, e-mail, conta ou IP.</li>
+                    escolhido no draft", "tela aberta", "configuração trocada" (inclusive o idioma), "cor do clube
+                    escolhida", "entrou com o Google" e erros (sem endereços nem e-mails). No começo da sessão vão também
+                    o site de onde você veio (só o domínio, como linkedin.com, ou o utm_source do link), quantas copas
+                    você já jogou e quantos Pokémon já viu. Cada evento leva só um código aleatório da sessão (some
+                    quando você fecha a aba), a versão do jogo e o tipo de aparelho. Nunca levam seu nome, e-mail,
+                    conta ou IP.</li>
             </ul>
             <p>Para não enviar os eventos do jogo, desligue em <b>Configurações → Seus dados → Estatísticas
                 anônimas</b>.</p>
@@ -105,7 +110,8 @@
             <p><b>Entrando com o Google:</b></p>
             <ul>
                 <li>nome, e-mail e foto do seu perfil Google, e um identificador da conta (fornecidos pelo Google no login);</li>
-                <li>o save do jogo: copa em andamento, configurações e recordes.</li>
+                <li>o save do jogo: copa em andamento, configurações, recordes, perfil (nome de treinador e do clube
+                    que você digitar, sigla, cor e avatar), Pokédex, golpes descobertos e números da carreira.</li>
             </ul>
             <p>Não pedimos acesso a contatos, arquivos nem a qualquer outro dado da sua conta Google.</p>
 
@@ -120,8 +126,9 @@
             <h2>Onde ficam</h2>
             <ul>
                 <li><b>Supabase</b>: login e banco de dados (perfil, save e os eventos anônimos do jogo).</li>
-                <li><b>Vercel</b>: hospedagem do site. Como qualquer servidor, registra dados técnicos de acesso
-                    (como endereço IP e navegador) por um tempo curto, para segurança e funcionamento.</li>
+                <li><b>Vercel</b> (hospedagem) e <b>Supabase</b> (banco): como qualquer servidor, registram dados
+                    técnicos de acesso (como endereço IP e navegador) por um tempo curto, para segurança e
+                    funcionamento. Esses registros não entram nas estatísticas do jogo.</li>
                 <li><b>Google</b>: autenticação, quando você escolhe entrar com o Google. O login acontece numa página do
                     Google (ou num botão "Fazer login com o Google" carregado dos servidores dele), e o Google recebe os
                     dados técnicos dessa conexão.</li>
@@ -130,7 +137,8 @@
 
             <h2>Por quanto tempo</h2>
             <p>Enquanto sua conta existir. Se você apagar a conta, o login, o perfil e o save são removidos na hora.
-                Os eventos anônimos do jogo ficam guardados por até 12 meses; como não têm ligação com você, não dá
+                Os eventos anônimos do jogo são apagados automaticamente depois de 12 meses; como não têm ligação
+                com você, não dá
                 para apontar quais são seus.</p>
 
             <h2>Seus direitos (LGPD)</h2>

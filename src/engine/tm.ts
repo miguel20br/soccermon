@@ -17,6 +17,8 @@ import { SIGNATURE } from './signature-moves';
 export const TM_REWARD_CHANCE = 0.5;
 /** Chance de um Pokémon rival que não aprende a MT do ginásio levar um golpe do baú raro. */
 export const RIVAL_RARE_CHANCE = 0.2;
+/** Quantos Pokémon do rival levam a MT do líder (decidido com o Miguel: até 2 por time). */
+export const RIVAL_GYM_TM_MAX = 2;
 
 /** MT que cada líder dava na Gen 1, pelo nome do clube da copa. Lavender não tem ginásio: baú raro. */
 export const GYM_TM: Readonly<Record<string, { move: string; leader: string }>> = {
@@ -196,10 +198,22 @@ function withMove(inst: PokemonInstance, move: string): PokemonInstance {
  * Rivais da copa: quem aprende entra com a MT do ginásio do clube; os outros têm uma chance pequena de
  * levar um golpe do baú raro. Automático só no rival.
  */
-export function equipRivalTms(rng: Rng, clubName: string, players: PokemonInstance[]): PokemonInstance[] {
+export function equipRivalTms(
+    rng: Rng,
+    clubName: string,
+    players: PokemonInstance[],
+    /** Vagas da MT do líder que sobram no time (compartilhado entre titulares e banco). */
+    budget = { left: RIVAL_GYM_TM_MAX },
+): PokemonInstance[] {
     const gym = GYM_TM[clubName];
     return players.map((p) => {
-        if (gym && canLearn(p, gym.move)) return withMove(p, gym.move);
+        if (gym && budget.left > 0 && canLearn(p, gym.move)) {
+            const out = withMove(p, gym.move);
+            if (out !== p) {
+                budget.left--;
+                return out;
+            }
+        }
         if (!rng.chance(RIVAL_RARE_CHANCE)) return p;
         const rare = rareMovePool().filter((m) => canLearn(p, m));
         return rare.length ? withMove(p, rng.pick(rare)) : p;

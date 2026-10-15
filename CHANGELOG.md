@@ -1,6 +1,15 @@
 # Novidades
 
-## 0.8.0 · Perfil e Pokédex
+## 0.8.0 · Perfil, Pokédex e golpes novos
+
+### Golpes novos
+- Os golpes agora fazem o que faziam nos jogos: Earthquake e Surf pegam todo mundo em volta (até companheiro), Slash e Karate Chop dão crítico, Solar Beam e Sky Attack carregam, Fly e Dig somem do mapa, Swift nunca erra, Night Shade e Dragon Rage dão dano fixo, Toxic piora com o tempo, Double Team cria clones e muito mais
+- MT do ginásio: depois de vencer, uma recompensa pode ser a MT do líder (Brock dá Bide, Misty dá Bubble Beam...) ou um golpe raro; você escolhe quem aprende e o que esquece, e a assinatura fica protegida
+- O golpe ensinado continua depois da evolução, e os rivais também entram com a MT do líder deles
+- Golpedex com os 164 golpes do jogo
+
+### English
+- O jogo inteiro em inglês, com os nomes oficiais dos jogos: troque em PT | EN na tela inicial ou em Configurações
 
 ### Adicionado
 - Perfil: seu nome de treinador, avatar (um Pokémon que já jogou no seu time ou a foto do Google), nome fixo do clube, sigla de 3 letras e cor do clube

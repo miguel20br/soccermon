@@ -413,10 +413,12 @@ function DataSettings() {
                 return;
             }
         }
+        // idioma e a recusa das estatísticas são escolhas da pessoa, não progresso: ficam
+        const { lang, stats } = useGame.getState().settings;
         useGame.setState({
             run: null,
             match: null,
-            settings: DEFAULT_SETTINGS,
+            settings: { ...DEFAULT_SETTINGS, lang, stats },
             records: { cups: 0, titles: 0, perfect: 0 },
             profile: DEFAULT_PROFILE,
             dex: {},

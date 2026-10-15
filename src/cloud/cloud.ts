@@ -1,6 +1,6 @@
 import { createClient, type Session } from '@supabase/supabase-js';
 import { create } from 'zustand';
-import { type PersistedSave, type Records, useGame } from '../store/game-store';
+import { migrateSave, type PersistedSave, type Records, SAVE_VERSION, useGame } from '../store/game-store';
 import { DEFAULT_PROFILE, EMPTY_CAREER, mergeCareer, mergeDex, mergeMoves } from '../store/profile';
 
 /**
@@ -24,8 +24,6 @@ const supabase =
         ? createClient(URL, KEY, { auth: { flowType: 'pkce', persistSession: true, detectSessionInUrl: true } })
         : null;
 
-/** Formato do save na nuvem (mesmo do store persistido). */
-const SAVE_VERSION = 4;
 /** Quando o save local mudou pela última vez (para comparar com a nuvem). */
 const LOCAL_TS = 'soccermon-local-updated';
 /** De qual conta é o save deste aparelho ('' = visitante). Outra conta entrando não herda a copa nem os recordes. */
@@ -44,6 +42,27 @@ export const useCloud = create<CloudState>(() => ({ status: cloudEnabled ? 'gues
 let userId: string | null = null;
 let uploadTimer = 0;
 let applying = false;
+/** Mudança vinda da nuvem (não é ação do jogador): as estatísticas ignoram. */
+export const isApplyingCloud = () => applying;
+/** Marca que o jogador clicou em entrar (o redirecionamento volta na mesma aba). */
+const LOGIN_PENDING = 'soccermon-login-pending';
+const markLoginPending = () => {
+    try {
+        sessionStorage.setItem(LOGIN_PENDING, '1');
+    } catch {
+        // sem sessionStorage: o evento de login só não é contado
+    }
+};
+/** true uma vez só, logo depois de um login que o jogador pediu (não a cada carregamento com sessão aberta). */
+export function takeLoginPending(): boolean {
+    try {
+        const v = sessionStorage.getItem(LOGIN_PENDING) === '1';
+        sessionStorage.removeItem(LOGIN_PENDING);
+        return v;
+    } catch {
+        return false;
+    }
+}
 /** Entre o login e a comparação com a nuvem nada sobe (senão o save local atropela o da nuvem antes da comparação). */
 let reconciling = false;
 
@@ -82,6 +101,11 @@ function snapshot(): PersistedSave {
     return { run, settings, records, profile, dex, moves, career, onboarded };
 }
 
+/** Configurações da nuvem valem, mas recusar as estatísticas em qualquer lugar vence (não religa sozinho). */
+function mergeSettings(local: PersistedSave['settings'], cloud: Partial<PersistedSave['settings']> | undefined) {
+    return { ...local, ...cloud, stats: local.stats !== false && cloud?.stats !== false };
+}
+
 /** Perfil, Pokédex, golpes e carreira juntando aparelho e nuvem (nada de progresso se perde). */
 function mergeProgress(local: PersistedSave, cloud: Partial<PersistedSave>, keepLocal: boolean) {
     return {
@@ -102,8 +126,9 @@ function mergeRecords(a: Records, b: Partial<Records> | undefined): Records {
     return out;
 }
 
-async function upload() {
-    if (!supabase || !userId) return;
+/** Sobe o save; devolve false se a nuvem recusou (pausada, fora do ar, sem espaço). */
+async function upload(): Promise<boolean> {
+    if (!supabase || !userId) return true;
     useCloud.setState({ status: 'syncing' });
     const { error } = await supabase.from('saves').upsert({
         user_id: userId,
@@ -112,6 +137,7 @@ async function upload() {
         updated_at: new Date(readLocalTs() || Date.now()).toISOString(),
     });
     useCloud.setState({ status: error ? 'error' : 'saved' });
+    return !error;
 }
 
 function scheduleUpload() {
@@ -156,21 +182,28 @@ async function onSignedIn(session: Session) {
 /** Compara o save do aparelho com o da conta e fica com o certo. */
 async function reconcile(uid: string) {
     if (!supabase) return;
-    const { data, error } = await supabase.from('saves').select('data, updated_at').eq('user_id', uid).maybeSingle();
+    const { data, error } = await supabase
+        .from('saves')
+        .select('data, updated_at, version')
+        .eq('user_id', uid)
+        .maybeSingle();
     if (error || userId !== uid) {
         if (error) useCloud.setState({ status: 'error' });
         return;
     }
     const local = useGame.getState();
     const cloudTs = data ? Date.parse(data.updated_at) : 0;
-    const cloud = data?.data as Partial<PersistedSave> | undefined;
+    // saves da 0.7 (v4) ainda estão na nuvem: passam pela mesma migração do aparelho
+    const cloud = data?.data
+        ? (migrateSave(data.data as Partial<PersistedSave>, Number(data.version) || 4) as Partial<PersistedSave>)
+        : undefined;
     const owner = readOwner();
     if (owner && owner !== uid) {
         // o save deste aparelho é de outra conta: essa conta começa com o que tem na nuvem (ou do zero)
         applying = true;
         useGame.setState({
             run: cloud?.run ?? null,
-            settings: { ...local.settings, ...cloud?.settings },
+            settings: mergeSettings(local.settings, cloud?.settings),
             records: mergeRecords({ cups: 0, titles: 0, perfect: 0 }, cloud?.records),
             profile: { ...DEFAULT_PROFILE, ...cloud?.profile },
             dex: cloud?.dex ?? {},
@@ -192,7 +225,7 @@ async function reconcile(uid: string) {
         applying = true;
         useGame.setState({
             run: cloud.run ?? null,
-            settings: { ...local.settings, ...cloud.settings },
+            settings: mergeSettings(local.settings, cloud.settings),
             records: mergeRecords(local.records, cloud.records),
             ...mergeProgress(local, cloud, false),
             screen: 'home',
@@ -246,6 +279,7 @@ export function startCloudSync() {
 
 export async function signInWithGoogle() {
     if (!supabase) return;
+    markLoginPending();
     const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo: `${window.location.origin}${window.location.pathname}` },
@@ -256,15 +290,17 @@ export async function signInWithGoogle() {
 /** Login pelo botão oficial do Google (google-button.ts): o Supabase confere o token e abre a sessão. */
 export async function signInWithGoogleToken(idToken: string, rawNonce: string) {
     if (!supabase) return;
+    markLoginPending();
     const { error } = await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken, nonce: rawNonce });
     if (error) throw error;
 }
 
 export async function signOut() {
     if (!supabase) return;
-    // sobe o que falta antes de sair; o save local continua no aparelho
+    // sobe o que falta antes de sair; o save local continua no aparelho. Se a nuvem recusar, não sai
+    // (quem chama decide: "Apagar dados deste aparelho" não pode seguir com progresso sem cópia na nuvem)
     clearTimeout(uploadTimer);
-    await upload();
+    if (!(await upload())) throw new Error('Não deu para salvar na nuvem antes de sair');
     await supabase.auth.signOut();
 }
 

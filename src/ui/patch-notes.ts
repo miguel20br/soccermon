@@ -8,8 +8,23 @@ export interface PatchNotes {
 export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.8.0',
-        title: 'Perfil e Pokédex',
+        title: 'Perfil, Pokédex e golpes novos',
         sections: [
+            {
+                title: 'Golpes novos',
+                lines: [
+                    'Os golpes agora fazem o que faziam nos jogos: Earthquake e Surf pegam todo mundo em volta (até companheiro), Slash e Karate Chop dão crítico, Solar Beam e Sky Attack carregam, Fly e Dig somem do mapa, Swift nunca erra, Night Shade e Dragon Rage dão dano fixo, Toxic piora com o tempo, Double Team cria clones e muito mais',
+                    'MT do ginásio: depois de vencer, uma recompensa pode ser a MT do líder (Brock dá Bide, Misty dá Bubble Beam...) ou um golpe raro; você escolhe quem aprende e o que esquece, e a assinatura fica protegida',
+                    'O golpe ensinado continua depois da evolução, e os rivais também entram com a MT do líder deles',
+                    'Golpedex com os 164 golpes do jogo',
+                ],
+            },
+            {
+                title: 'English',
+                lines: [
+                    'O jogo inteiro em inglês, com os nomes oficiais dos jogos: troque em PT | EN na tela inicial ou em Configurações',
+                ],
+            },
             {
                 title: 'Adicionado',
                 lines: [
@@ -182,8 +197,23 @@ export const PATCH_NOTES: PatchNotes[] = [
 export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.8.0',
-        title: 'Profile and Pokédex',
+        title: 'Profile, Pokédex and new moves',
         sections: [
+            {
+                title: 'New moves',
+                lines: [
+                    'Moves now do what they did in the games: Earthquake and Surf hit everyone around (teammates too), Slash and Karate Chop land critical hits, Solar Beam and Sky Attack charge up, Fly and Dig vanish from the court, Swift never misses, Night Shade and Dragon Rage deal fixed damage, Toxic gets worse over time, Double Team makes clones and much more',
+                    "Gym TMs: after a win, a reward can be the leader's TM (Brock gives Bide, Misty gives Bubble Beam...) or a rare move; you pick who learns it and what it forgets, and the signature move is protected",
+                    "Taught moves stay after evolving, and rival gyms bring their leader's TM too",
+                    'Movedex with all 164 moves in the game',
+                ],
+            },
+            {
+                title: 'English',
+                lines: [
+                    'The whole game in English, with the official names from the games: switch with PT | EN on the home screen or in Settings',
+                ],
+            },
             {
                 title: 'Added',
                 lines: [
@@ -191,7 +221,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'Club color on the scoreboard, the VERSUS screen, the result and the charts; if the rival has a similar color, they wear their away kit',
                     'Pokédex of all 151: seen (showed up in the draft, the rewards or a rival team) and played (took the court for your team), with each species’ career: matches, goals, assists, titles and the best card',
                     'Career numbers: wins, goals, top scorers and most picked',
-                    'Golpedex: moves are revealed when someone uses them on the court in one of your matches; browse by move or by Pokémon, with each animation',
+                    'Movedex: moves are revealed when someone uses them on the court in one of your matches; browse by move or by Pokémon, with each animation',
                     'How to play: a walkthrough on your first visit (and on the question mark button on the start screen), a Help section with every mechanic and short tips in the draft, the lineup and the rewards',
                     'Give feedback button on the start screen and at the end of the cup',
                 ],

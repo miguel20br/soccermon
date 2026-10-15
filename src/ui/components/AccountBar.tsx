@@ -139,7 +139,10 @@ export function AccountBar() {
                 disabled={busy}
                 onClick={() => {
                     setBusy(true);
-                    signOut().finally(() => setBusy(false));
+                    // se a nuvem recusar o último save, continua conectado (o aviso de erro aparece na barra)
+                    signOut()
+                        .catch(() => {})
+                        .finally(() => setBusy(false));
                 }}
             >
                 {t('settings.bar.signOut')}

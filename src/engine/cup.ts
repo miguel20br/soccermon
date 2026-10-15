@@ -3,7 +3,7 @@ import type { FormationId } from './formations';
 import { ITEM_IDS } from './items';
 import { Rng } from './rng';
 import type { Tactic, TeamSetup } from './state';
-import { equipRivalTms } from './tm';
+import { equipRivalTms, RIVAL_GYM_TM_MAX } from './tm';
 
 /** Adversários da copa: clubes temáticos de Kanto, cada um puxado para os tipos do ginásio. */
 export interface ClubTemplate {
@@ -116,10 +116,11 @@ export function buildCupOpponents(seed: number | string): TeamSetup[] {
         const holders = rng.shuffle([...d.lineup]).slice(0, itemCount);
         for (const h of holders) h.item = rng.pick(ITEM_IDS);
         const tmRng = new Rng(seed, `cup-tm-${stage}`);
+        const gymTms = { left: RIVAL_GYM_TM_MAX };
         return {
             name: club.name,
-            lineup: equipRivalTms(tmRng, club.name, d.lineup),
-            bench: equipRivalTms(tmRng, club.name, d.bench),
+            lineup: equipRivalTms(tmRng, club.name, d.lineup, gymTms),
+            bench: equipRivalTms(tmRng, club.name, d.bench, gymTms),
             tactic: club.tactic,
             color: club.color,
             formation: club.formation,
