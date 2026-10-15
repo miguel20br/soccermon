@@ -17,6 +17,10 @@ import { Settings } from './ui/screens/Settings';
 
 export default function App() {
     const { screen, go, settings } = useGame();
+    // ?demo=crash (só no dev): quebra a renderização para conferir a tela do ErrorBoundary
+    if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('demo') === 'crash') {
+        throw new Error('Teste do aviso de erro (?demo=crash)');
+    }
     // laboratórios: ?lab=golpes (animação de todos os golpes, público); ?lab=posicoes e ?cards=1 só no dev
     const [lab, setLab] = useState(() => {
         const q = new URLSearchParams(window.location.search).get('lab');

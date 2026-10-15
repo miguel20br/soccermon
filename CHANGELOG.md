@@ -2,12 +2,18 @@
 
 ## 0.7.3 · Beta aberta
 
-### Beta aberta
+### Lançamento
 - O Soccermon agora é beta aberta: o jogo está completo e segue recebendo ajustes
 - Código aberto no GitHub (link no rodapé): dá para ler o código, relatar bugs e sugerir ideias
 
 ### Corrigido
 - Ditto no painel da partida mostra a forma que copiou (espécie, nível, golpes e habilidade), não mais o Ditto original
+- Tela de resultado: os Pokémon do time não saem mais cortados nas bordas no celular
+- Se uma tela der erro, aparece um aviso com saída em vez da página em branco (a copa continua salva)
+
+### Celular
+- Ícone próprio ao adicionar o jogo à tela inicial
+- Novidades com as versões separadas
 
 ## 0.7.2 · Trocas que contam e privacidade
 

@@ -1306,6 +1306,21 @@ button,
     margin: 6px 0 0;
 }
 
+/* tela quebrou (ErrorBoundary): aviso com saída em vez de página em branco */
+.crash-panel {
+    max-width: 440px;
+    margin: 48px auto 0;
+    display: grid;
+    gap: 12px;
+}
+.crash-actions {
+    justify-content: center;
+}
+.crash-detail {
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
 /* ---------- projeção do Pokémon selecionado nas vagas ---------- */
 .slot.proj-good {
     border-color: var(--green);
@@ -3545,14 +3560,20 @@ button,
     gap: clamp(4px, 2vw, 18px);
     min-height: 100px;
     margin-top: 6px;
+    max-width: 100%;
 }
+/* os sprites encolhem para caber no celular (sem isso a fileira vazava do painel e cortava as pontas) */
 .rh-mon {
     position: relative;
     display: grid;
     justify-items: center;
+    flex: 0 1 auto;
+    min-width: 0;
 }
 .rh-mon img {
     height: clamp(52px, 9vw, 80px);
+    max-width: 100%;
+    object-fit: contain;
 }
 .rh-mon.mvp img {
     height: clamp(64px, 11vw, 100px);
@@ -3692,6 +3713,12 @@ button,
 .patch-notes h2 {
     margin: 0 0 8px;
     padding-right: 30px;
+}
+/* separa uma versão da outra (o título da anterior colava na última linha da seguinte) */
+.patch-version + .patch-version {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 2px solid var(--line);
 }
 .patch-notes h3 {
     margin: 12px 0 4px;

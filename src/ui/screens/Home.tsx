@@ -253,7 +253,7 @@ export function Home() {
                             ×
                         </button>
                         {PATCH_NOTES.map((n) => (
-                            <div key={n.version}>
+                            <div key={n.version} className="patch-version">
                                 <h2>
                                     Versão {n.version} · {n.title}
                                 </h2>

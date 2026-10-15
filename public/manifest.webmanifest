@@ -1,0 +1,14 @@
+{
+    "name": "Soccermon",
+    "short_name": "Soccermon",
+    "description": "Fan game sem fins lucrativos: draft dos 151 Pokémon de Kanto + copa de futsal 5v5 simulado.",
+    "lang": "pt-BR",
+    "start_url": "./",
+    "display": "browser",
+    "background_color": "#141a33",
+    "theme_color": "#141a33",
+    "icons": [
+        { "src": "assets/ui/icon-192.png", "sizes": "192x192", "type": "image/png" },
+        { "src": "assets/ui/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    ]
+}

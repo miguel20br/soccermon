@@ -11,7 +11,7 @@ export const PATCH_NOTES: PatchNotes[] = [
         title: 'Beta aberta',
         sections: [
             {
-                title: 'Beta aberta',
+                title: 'Lançamento',
                 lines: [
                     'O Soccermon agora é beta aberta: o jogo está completo e segue recebendo ajustes',
                     'Código aberto no GitHub (link no rodapé): dá para ler o código, relatar bugs e sugerir ideias',
@@ -21,7 +21,13 @@ export const PATCH_NOTES: PatchNotes[] = [
                 title: 'Corrigido',
                 lines: [
                     'Ditto no painel da partida mostra a forma que copiou (espécie, nível, golpes e habilidade), não mais o Ditto original',
+                    'Tela de resultado: os Pokémon do time não saem mais cortados nas bordas no celular',
+                    'Se uma tela der erro, aparece um aviso com saída em vez da página em branco (a copa continua salva)',
                 ],
+            },
+            {
+                title: 'Celular',
+                lines: ['Ícone próprio ao adicionar o jogo à tela inicial', 'Novidades com as versões separadas'],
             },
         ],
     },
