@@ -49,5 +49,11 @@ for id in 6 150 25; do cp $P/assets/cries/latest/$id.ogg $M/grito-$id.ogg; done
 
 # GIFs viram vídeo no render e perdem o tamanho do CSS: o versus usa o 1º quadro em PNG; o Charizard do final fica GIF
 cp $P/assets/cards/6.gif $M/carta-6.gif
+# voo do final: o Charizard do PMD batendo as asas (Walk; linha 0 = de frente pra câmera, 7 = indo pra baixo-esquerda),
+# 4 quadros de 40x48 por linha, ampliados 8x sem suavizar
+mkdir -p $M/voo
+for r in 0 7; do for i in 0 1 2 3; do
+  ffmpeg -v error -y -i $P/assets/field/6.png -vf "format=rgba,crop=40:48:$((i * 40)):$((384 + r * 48)),scale=320:384:flags=neighbor" $M/voo/r$r-$i.png
+done; done
 for id in 143 68 151 132 150 45 114 49 71 103; do ffmpeg -v error -y -i $P/assets/cards/$id.gif -frames:v 1 $M/carta-$id.png; done
 echo PRONTO

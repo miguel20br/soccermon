@@ -77,7 +77,7 @@ img { image-rendering: pixelated; }
 .halo { position: absolute; left: 50%; top: 45%; width: 1300px; height: 620px; transform: translate(-50%, -50%);
   background: radial-gradient(rgb(255 255 255 / 45%), transparent 65%); }
 .voo { position: absolute; left: 50%; top: 45%; }
-#zard { position: absolute; left: 0; top: 0; width: 300px; display: block; }
+#zard { position: absolute; left: 0; top: 0; width: 320px; display: block; }
 .brasa { position: absolute; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%;
   background: radial-gradient(#fff6c0, #ffb347 35%, rgb(255 90 31 / 0%) 70%); mix-blend-mode: screen; }
 .logo { position: absolute; left: 210px; top: 279px; width: 1500px; height: 306px; image-rendering: auto; }
@@ -201,7 +201,7 @@ img { image-rendering: pixelated; }
     <div class="raios" id="raios"></div>
     <div class="halo"></div>
     <div class="voo" id="rastro"></div>
-    <div class="voo" id="voo"><img id="zard" src="midia/carta-6.gif" alt="" /></div>
+    <div class="voo" id="voo"><img id="zard" src="midia/voo/r7-0.png" alt="" /></div>
     <img class="logo" id="logo-cor" src="midia/logo.svg" style="opacity:0" alt="" />
     <img class="logo" id="logo-branco" src="midia/logo.svg" style="opacity:0" alt="" />
     <div class="tag" id="tag" style="opacity:0"></div>
@@ -373,7 +373,7 @@ img { image-rendering: pixelated; }
       { x: 60, y: -40, scale: 0.7, rotation: 6 },
       { x: -220, y: 80, scale: 1.2, rotation: 14 },
       { x: -60, y: 30, scale: 2.4, rotation: 4 },
-      { x: 0, y: 40, scale: 18, rotation: 0 },
+      { x: 0, y: 40, scale: 9, rotation: 0 },
     ];
     tl.set("#voo", caminho[0], F);
     tl.to("#voo", { keyframes: caminho.slice(1), duration: V, ease: "none" }, F);
@@ -381,6 +381,12 @@ img { image-rendering: pixelated; }
     // o centro do sprite fica no ponto da curva (o GIF não é quadrado: margem fixa tirava ele do eixo ao crescer)
     tl.set("#zard", { xPercent: -50, yPercent: -50 }, 0);
     tl.to("#zard", { keyframes: { y: [0, -16, 0] }, duration: 0.4, repeat: 3, ease: "sine.inOut" }, F);
+    // bater de asas: os 4 quadros do PMD em loop rápido; na curva ele vem de lado (linha 7) e no mergulho vira de
+    // frente pra câmera (linha 0)
+    for (let k = 0, t = F; t < F + V; k++, t += 0.075) {
+      const linha = t < F + V * 0.62 ? 7 : 0;
+      tl.set("#zard", { attr: { src: `midia/voo/r${linha}-${k % 4}.png` } }, t);
+    }
     // rastro: brasas que seguem o mesmo caminho com atraso e vão sumindo
     const rastro = document.getElementById("rastro");
     for (let k = 0; k < 14; k++) {
