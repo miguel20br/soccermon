@@ -222,6 +222,8 @@ const box = await page.evaluate(() => {
 });
 let n = 0;
 const t1 = Date.now();
+// por quadro: tick da partida e bola na imagem (0..1), pra emendar câmera lenta e mirar o zoom (trailer-uau.mjs)
+const meta = [];
 // trava: para no fim da partida, ou se o relógio não andar por 30 s de vídeo (cada evolução para a partida ~10 s; podem vir duas seguidas)
 let parado = 0;
 let ultimo = -1;
@@ -246,7 +248,20 @@ while ((await tick()) < to * TICK_RATE) {
         b64 = url.split(',')[1];
     }
     writeFileSync(`${out}/${String(++n).padStart(5, '0')}.png`, Buffer.from(b64, 'base64'));
+    meta.push(
+        await page.evaluate(() => {
+            const sc = window.__soccermonGame.scene.getScene('Match');
+            const cam = sc.cameras.main;
+            const v = cam.worldView;
+            return {
+                tick: window.__tick,
+                bx: (sc.ball.x - v.x) / v.width,
+                by: (sc.ball.y - v.y) / v.height,
+            };
+        }),
+    );
 }
+writeFileSync(`${out}/quadros.json`, JSON.stringify({ fps, speed, meta }));
 console.log(`${n} quadros (${(n / fps).toFixed(1)} s de vídeo) em ${((Date.now() - t1) / 1000).toFixed(0)} s → ${out}`);
 console.log(
     `juntar (2x, pixel nítido): ffmpeg -framerate ${fps} -i ${out}/%05d.png -vf scale=iw*2:ih*2:flags=neighbor -c:v libx264 -crf 14 -pix_fmt yuv420p ${out}.mp4`,

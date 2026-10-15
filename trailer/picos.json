@@ -1,0 +1,72 @@
+[
+  {
+    "nome": "1-gancho-charmander-evolui-e-marca",
+    "cena": "evolucao",
+    "seed": "trailer222",
+    "tipo": "gol",
+    "perto": 396.1,
+    "lentoDe": 7899,
+    "lentoAte": 7928,
+    "flash": 7923
+  },
+  {
+    "nome": "2-golpe-charizard-fire-blast",
+    "cena": "golpe",
+    "seed": "trailer315",
+    "tipo": "gol",
+    "perto": 9.7,
+    "lentoDe": 170,
+    "lentoAte": 198,
+    "flash": 193
+  },
+  {
+    "nome": "3-golpe-mewtwo-psychic",
+    "cena": "golpe",
+    "seed": "trailer397",
+    "tipo": "gol",
+    "perto": 19.7,
+    "lentoDe": 383,
+    "lentoAte": 399,
+    "flash": 394
+  },
+  {
+    "nome": "4-golpe-charizard-flamethrower",
+    "cena": "golpe",
+    "seed": "trailer26",
+    "tipo": "gol",
+    "perto": 130.1,
+    "lentoDe": 2578,
+    "lentoAte": 2606,
+    "flash": 2601
+  },
+  {
+    "nome": "5-jogada-pikachu-6-passes",
+    "cena": "jogada",
+    "seed": "trailer294",
+    "tipo": "gol",
+    "perto": 9.6,
+    "lentoDe": 166,
+    "lentoAte": 196,
+    "flash": 191
+  },
+  {
+    "nome": "6-ditto-vira-mewtwo-e-combo",
+    "cena": "ditto",
+    "seed": "trailer315",
+    "tipo": "combo",
+    "perto": 4.3,
+    "lentoDe": 83,
+    "lentoAte": 107,
+    "flash": 85
+  },
+  {
+    "nome": "7-penaltis-6x5-ultima-cobranca",
+    "cena": "penaltis",
+    "seed": "trailer7",
+    "tipo": "penalti",
+    "perto": 428.6,
+    "lentoDe": 8552,
+    "lentoAte": 8584,
+    "flash": 8572
+  }
+]
