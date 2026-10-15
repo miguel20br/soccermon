@@ -24,7 +24,8 @@ function apply(settings: Settings) {
     const lang = settings.lang ?? detectLang();
     setLang(lang);
     document.documentElement.lang = htmlLang(lang);
-    document.title = lang === 'en' ? 'Soccermon · Pokémon draft and futsal cup' : 'Soccermon · Draft de Pokémon e copa de futsal';
+    document.title =
+        lang === 'en' ? 'Soccermon · Pokémon draft and futsal cup' : 'Soccermon · Draft de Pokémon e copa de futsal';
     document.documentElement.dataset.reduceMotion = String(reduceMotionOn(settings.reduceMotion));
     setVolumes({ master: settings.volume, cries: settings.criesVolume, sfx: settings.sfxVolume });
 }

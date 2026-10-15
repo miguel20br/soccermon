@@ -139,6 +139,12 @@
 .tm-confirm > span {
     flex: 1 1 200px;
 }
+/* aviso da Choice Band (só o 1º golpe é usado) */
+.tm-warn {
+    display: block;
+    margin-top: 4px;
+    color: #ffb347;
+}
 
 .tm-done-box {
     display: grid;

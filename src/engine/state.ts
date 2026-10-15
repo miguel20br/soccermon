@@ -70,6 +70,8 @@ export interface Buff {
     attr: AttrKey;
     factor: number;
     timer: number;
+    /** Golpe que deu o reforço, quando ele pode acabar antes do tempo (Bide). */
+    src?: string;
 }
 
 export interface PendingBonus {
@@ -100,6 +102,8 @@ export interface TraitState {
     bide: { t: number; hits: number } | null;
     /** Double Team: clones que ainda aguentam um carrinho/golpe. */
     decoys: number;
+    /** Segundos até os clones sumirem. */
+    decoyT: number;
     /** Minimize: segundos pequenininho. */
     mini: number;
     /** Ninguém tira a bola dele (Skull Bash carregando, Clamp, Withdraw, Acid Armor). */

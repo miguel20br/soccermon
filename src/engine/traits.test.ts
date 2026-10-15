@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { Command } from './commands';
 import { FUTSAL_5 } from './config';
+import { species } from './data';
 import { createInstance } from './instance';
-import { createMatch, step } from './match';
-import { MOVE_EXPLAIN, MOVE_TRAITS, MOVE_TUNING } from './moves';
+import { checkEvolutions, createMatch, step } from './match';
+import { defaultMoveset, MOVE_EXPLAIN, MOVE_TRAITS, MOVE_TUNING, moveProfile } from './moves';
 import { Rng } from './rng';
 import type { MatchEvent, MatchState, TeamSetup } from './state';
 import { len, v } from './vec';
@@ -311,5 +312,120 @@ describe('traços de golpe', () => {
         run(s, {}, 15);
         // time 1 defende o gol da direita (x = 40): foge para lá
         expect(s.players[5].pos.x).toBeGreaterThan(x0 + 2);
+    });
+});
+
+/** Leva o relógio para o último tick do tempo: o próximo `run` apita (intervalo ou fim de jogo). */
+const toWhistle = (s: MatchState, half: 1 | 2) => {
+    s.half = half;
+    s.time = s.cfg.halfSeconds - 0.5 / s.cfg.tickRate;
+};
+
+describe('traços de golpe: bola parada, intervalo e fim', () => {
+    it('apito final: ninguém termina no ar, carregando ou fugindo', () => {
+        const s = scene();
+        const [a, b, c] = [s.players[1], s.players[2], s.players[6]];
+        a.fx.air = { kind: 'fly', moveId: 'fly', t: 5, from: a.pos, to: v(30, 10), prey: null };
+        b.fx.charging = { moveId: 'solarbeam', t: 5, armor: false };
+        c.fx.flee = { dir: v(1, 0), t: 5 };
+        toWhistle(s, 2);
+        const ev = run(s, {});
+        expect(ev.some((e) => e.type === 'fulltime')).toBe(true);
+        expect(s.finished).toBe(true);
+        expect([a.fx.air, b.fx.charging, c.fx.flee]).toEqual([null, null, null]);
+    });
+
+    it('bola parada: carga e Bide se perdem com aviso, e o reforço do Bide acaba junto', () => {
+        const s = scene({ 0: ['bide'], 3: ['solarbeam'] });
+        run(s, { 0: { type: 'useMove', slot: 0 } });
+        s.players[3].fx.charging = { moveId: 'solarbeam', t: 5, armor: false };
+        expect(s.players[0].fx.bide).not.toBeNull();
+        expect(s.players[0].buffs.some((b) => b.src === 'bide')).toBe(true);
+        s.phase = 'restart';
+        s.phaseTimer = 1;
+        const lost = traits(run(s, {}), 'chargeLost').map((e) => (e.type === 'trait' ? e.moveId : ''));
+        expect(lost.sort()).toEqual(['bide', 'solarbeam']);
+        expect(s.players[0].fx.bide).toBeNull();
+        expect(s.players[0].buffs.some((b) => b.src === 'bide')).toBe(false);
+    });
+
+    it(`Double Team: os clones somem depois de ${MOVE_TUNING.decoyTime} s e no intervalo`, () => {
+        const s = scene({}, { 0: ['doubleteam'] });
+        run(s, { 5: { type: 'useMove', slot: 0 } });
+        expect(s.players[5].fx.decoys).toBe(MOVE_TUNING.decoys);
+        run(s, {}, Math.round((MOVE_TUNING.decoyTime - 1) * FUTSAL_5.tickRate));
+        expect(s.players[5].fx.decoys).toBe(MOVE_TUNING.decoys);
+        run(s, {}, Math.round(1.2 * FUTSAL_5.tickRate));
+        expect(s.players[5].fx.decoys).toBe(0);
+
+        const h = scene();
+        h.players[5].fx.decoys = 2;
+        h.players[5].fx.decoyT = 99;
+        toWhistle(h, 1);
+        run(h, {});
+        expect(h.phase).toBe('halftime');
+        expect(h.players[5].fx.decoys).toBe(0);
+    });
+
+    it('intervalo: os traços do 1º tempo zeram (fúria, Minimize, casco, mira, tipo, Curl); o Focus Energy fica', () => {
+        const s = scene();
+        const p = s.players[2];
+        Object.assign(p.fx, {
+            focus: true,
+            rage: { t: 10, stacks: 2 },
+            mini: 3,
+            guard: 3,
+            aim: { factor: 2, t: 5, once: false },
+            typeCopy: { types: ['Water'], t: 8 },
+            curl: 8,
+        });
+        toWhistle(s, 1);
+        run(s, {});
+        expect(s.phase).toBe('halftime');
+        const { focus, rage, mini, guard, aim, typeCopy, curl } = s.players[2].fx;
+        expect({ focus, rage, mini, guard, aim, typeCopy, curl }).toEqual({
+            focus: true,
+            rage: null,
+            mini: 0,
+            guard: 0,
+            aim: null,
+            typeCopy: null,
+            curl: 0,
+        });
+    });
+
+    it('Roar: quem foge não domina a bola solta no pé dele', () => {
+        const setup = (flee: boolean) => {
+            const s = scene();
+            const p = s.players[5];
+            p.pos = v(20, 10);
+            s.ball.pos = v(20.2, 10);
+            if (flee) p.fx.flee = { dir: v(1, 0), t: 1 };
+            run(s, {});
+            return s.ball.owner;
+        };
+        // sem fugir, domina; fugindo, a bola fica solta
+        expect(setup(false)).toBe(5);
+        expect(setup(true)).toBeNull();
+    });
+
+    it('evolução: golpe que muda de vaga mantém os usos gastos (conta pelo golpe, não pela vaga)', () => {
+        const s = scene();
+        const p = s.players[1];
+        expect(p.inst.speciesId).toBe(4); // Charmander → Charmeleon
+        const next = defaultMoveset(species(5));
+        expect(next.length).toBeGreaterThan(1);
+        // os mesmos golpes da forma nova, em ordem invertida; o último da forma nova já foi gasto
+        p.inst = { ...p.inst, moves: [...next].reverse() };
+        p.moveUses = p.inst.moves.map((m) => moveProfile(m).uses);
+        p.moveUses[0] = 0;
+        p.stats.goals = 10;
+        checkEvolutions(s);
+        const q = s.players[1];
+        expect(q.inst.speciesId).toBe(5);
+        expect(q.inst.moves).toEqual(next);
+        q.inst.moves.forEach((m, i) => {
+            expect(q.moveUses[i], m).toBe(m === next.at(-1) ? 0 : moveProfile(m).uses);
+        });
     });
 });

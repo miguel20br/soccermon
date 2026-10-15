@@ -232,6 +232,9 @@ export function TmTeachPanel({
                         : forgotten
                           ? t('reward.tm.willForget', { name, old: forgotten, move: newName })
                           : t('reward.tm.willLearn', { name, move: newName })}
+                    {slot !== null && slot > 0 && target.item === 'choiceband' && (
+                        <small className="tm-warn">{t('reward.tm.choiceBandLock', { name, move: newName })}</small>
+                    )}
                 </span>
                 <div className="row">
                     <button

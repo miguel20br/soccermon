@@ -286,6 +286,8 @@ export const MOVE_TUNING = {
     bideRadius: 3.5,
     // F11 esquiva e muro
     decoys: 2,
+    /** Os clones do Double Team somem depois de tantos segundos (ok do Miguel: 15 s). */
+    decoyTime: 15,
     minimizeTime: 4,
     minimizeDodge: 0.6,
     meltTime: 3,

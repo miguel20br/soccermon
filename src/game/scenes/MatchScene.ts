@@ -250,6 +250,10 @@ interface ZoneView {
     from: number;
     to: number;
     obj: Phaser.GameObjects.Shape;
+    /** 'wall' ou o golpe; x/y em metros, como vêm no evento (o muro que segura o chute é achado por eles). */
+    kind: string;
+    x: number;
+    y: number;
 }
 
 interface PlayerView {
@@ -1207,6 +1211,10 @@ export class MatchScene extends Phaser.Scene {
         switch (e.type) {
             case 'kickoff':
             case 'halftime':
+                // saída de bola e intervalo: o motor limpa as zonas do chão (setupKickoff)
+                this.endZoneViews(e.tick);
+                playSfx('whistle');
+                break;
             case 'fulltime':
                 playSfx('whistle');
                 break;
@@ -1495,8 +1503,13 @@ export class MatchScene extends Phaser.Scene {
                 if ((e.fx === 'zone' || e.fx === 'wall') && e.x !== undefined && e.y !== undefined && e.r && e.dur) {
                     this.addZoneView(e.tick, e.dur, e.x, e.y, e.r, e.fx === 'wall' ? 'wall' : e.moveId);
                 }
-                if (e.fx === 'wallBlock') {
-                    for (const z of this.zoneViews) z.to = Math.min(z.to, e.tick);
+                if (e.fx === 'wallBlock' && e.x !== undefined && e.y !== undefined) {
+                    // o motor só gasta o muro que segurou o chute: fumaça, fogo e outros muros continuam
+                    const { x, y } = e;
+                    this.endZoneViews(
+                        e.tick,
+                        (z) => z.kind === 'wall' && Math.abs(z.x - x) < 0.02 && Math.abs(z.y - y) < 0.02,
+                    );
                 }
                 if ((e.fx === 'fly' || e.fx === 'dig' || e.fx === 'land' || e.fx === 'bide') && view) {
                     this.impact(view.sprite.x, view.sprite.y - 8, type);
@@ -1677,7 +1690,12 @@ export class MatchScene extends Phaser.Scene {
             obj = this.add.circle(c.x, c.y, r * PPM, 0x9a9a9a, 0.38);
         }
         obj.setDepth(c.y - 40);
-        this.zoneViews.push({ from: tick, to: tick + dur * TICK_RATE, obj });
+        this.zoneViews.push({ from: tick, to: tick + dur * TICK_RATE, obj, kind, x, y });
+    }
+
+    /** Encerra no `tick` as zonas desenhadas que já estavam no chão (todas, ou só as que `match` escolher). */
+    private endZoneViews(tick: number, match: (z: ZoneView) => boolean = () => true) {
+        for (const z of this.zoneViews) if (z.from <= tick && z.to > tick && match(z)) z.to = tick;
     }
 
     /** Zonas só aparecem no intervalo de tempo delas (funciona também voltando o replay). */

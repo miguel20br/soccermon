@@ -75,6 +75,7 @@ export function freshTraits(): TraitState {
         rage: null,
         bide: null,
         decoys: 0,
+        decoyT: 0,
         mini: 0,
         guard: 0,
         guardMove: '',
@@ -411,10 +412,13 @@ export function checkEvolutions(s: MatchState) {
             shotBonus: p.shotBonus,
             tackleBonus: p.tackleBonus,
             clutchAnnounced: p.clutchAnnounced,
-            // golpe que continua na mesma vaga mantém os usos gastos; golpe novo chega cheio
-            moveUses: fresh.moveUses.map((u, i) =>
-                inst.moves[i] === p.inst.moves[i] ? Math.min(u, p.moveUses[i] ?? u) : u,
-            ),
+            // golpe que continua (mesmo mudando de vaga) mantém os usos gastos; golpe novo chega cheio.
+            // Vaga travada pela Choice Band (0 usos) não é uso gasto.
+            moveUses: fresh.moveUses.map((u, i) => {
+                const old = p.inst.moves.indexOf(inst.moves[i]);
+                if (old < 0 || (p.item === 'choiceband' && old > 0)) return u;
+                return Math.min(u, p.moveUses[old] ?? u);
+            }),
             evolved: true,
         });
         s.players[p.idx] = fresh;
@@ -611,13 +615,18 @@ function tickTraits(s: MatchState, p: PlayerState, dt: number) {
         fx.rage.t -= dt;
         if (fx.rage.t <= 0) fx.rage = null;
     }
+    if (fx.decoys > 0) {
+        fx.decoyT -= dt;
+        if (fx.decoyT <= 0) fx.decoys = 0;
+    }
     if (p.status?.kind === 'psn' && fx.toxic > 0) fx.toxic += dt;
     else fx.toxic = 0;
+    // bola parada (gol, tiro de meta, intervalo): a carga e o Bide se perdem
+    if (s.phase !== 'play') loseCharge(s, p);
     if (fx.charging) {
         const c = fx.charging;
         c.t -= dt;
-        if (s.phase !== 'play') fx.charging = null;
-        else if (p.stun > 0 && !c.armor) {
+        if (p.stun > 0 && !c.armor) {
             // levou um tranco carregando: perdeu o golpe
             fx.charging = null;
             traitFx(s, p.idx, 'chargeLost', c.moveId);
@@ -628,12 +637,27 @@ function tickTraits(s: MatchState, p: PlayerState, dt: number) {
     }
     if (fx.bide) {
         fx.bide.t -= dt;
-        if (s.phase !== 'play') fx.bide = null;
-        else if (fx.bide.t <= 0) {
+        if (fx.bide.t <= 0) {
             const hits = fx.bide.hits;
             fx.bide = null;
             releaseBide(s, p, hits);
         }
+    }
+}
+
+/** A carga (Solar Beam, Skull Bash...) e o Bide acabam sem sair: avisa na tela e na narração. */
+function loseCharge(s: MatchState, p: PlayerState) {
+    const fx = p.fx;
+    if (fx.charging) {
+        const moveId = fx.charging.moveId;
+        fx.charging = null;
+        traitFx(s, p.idx, 'chargeLost', moveId);
+    }
+    if (fx.bide) {
+        fx.bide = null;
+        // o reforço de aguentar firme acaba junto
+        p.buffs = p.buffs.filter((b) => b.src !== 'bide');
+        traitFx(s, p.idx, 'chargeLost', 'bide');
     }
 }
 
@@ -1752,6 +1776,7 @@ function buffTraits(s: MatchState, p: PlayerState, moveId: string) {
     }
     if (hasTrait(moveId, 'clones')) {
         p.fx.decoys = T.decoys;
+        p.fx.decoyT = T.decoyTime;
         traitFx(s, p.idx, 'clones', moveId, null, { n: T.decoys });
     }
     if (hasTrait(moveId, 'minimize')) {
@@ -1852,8 +1877,8 @@ function specialMove(
             // F10: aguenta firme e conta as pancadas; depois solta a onda (tickTraits → releaseBide)
             p.fx.bide = { t: T.bideTime, hits: 0 };
             p.buffs.push(
-                { attr: 'strength', factor: 1.3, timer: T.bideTime },
-                { attr: 'dribble', factor: 1.15, timer: T.bideTime },
+                { attr: 'strength', factor: 1.3, timer: T.bideTime, src: 'bide' },
+                { attr: 'dribble', factor: 1.15, timer: T.bideTime, src: 'bide' },
             );
             return {
                 target: null,
@@ -2072,7 +2097,11 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
         if (seg.d > z.r) continue;
         z.t = 0;
         emit(s, { type: 'block', by: z.by, shooter: shooter.idx });
-        traitFx(s, z.by, 'wallBlock', 'barrier', shooter.idx);
+        // x/y do muro (como no evento 'wall'): a tela apaga só ele
+        traitFx(s, z.by, 'wallBlock', 'barrier', shooter.idx, {
+            x: Math.round(z.pos.x * 100) / 100,
+            y: Math.round(z.pos.y * 100) / 100,
+        });
         ball.shot = null;
         ball.pos = add(prev, scale(sub(end, prev), seg.t));
         ball.lastTouch = z.by;
@@ -2190,7 +2219,8 @@ function checkPossession(s: MatchState) {
     let best: PlayerState | null = null;
     let bestD = Infinity;
     for (const p of s.players) {
-        if (p.kickCooldown > 0 || isIncapacitated(p) || hidden(p)) continue;
+        // quem foge do Roar não para para dominar a bola
+        if (p.kickCooldown > 0 || isIncapacitated(p) || hidden(p) || p.fx.flee) continue;
         const inOwnArea = p.role === 'GK' && isInOwnArea(s, p, ball.pos);
         // bola cruzada passa por cima de quem não alcança
         if (ball.z > (inOwnArea ? GK_REACH_Z : REACH_Z)) continue;
@@ -2306,13 +2336,24 @@ function endHalf(s: MatchState) {
         for (const p of s.players) {
             p.energy = Math.min(1, p.energy + s.cfg.halftimeRecovery);
             p.status = null;
+            loseCharge(s, p);
             p.buffs = [];
+            // os traços do 1º tempo (fúria, clones, casco, mira, tipo copiado...) não voltam do vestiário;
+            // o Focus Energy fica, como o bônus de golpe guardado para o próximo chute (shotBonus)
+            p.fx = { ...freshTraits(), focus: p.fx.focus };
         }
         halftimeSubs(s);
         for (const t of s.teams) t.combosUsed = [];
         s.phase = 'halftime';
         s.phaseTimer = 2;
         return;
+    }
+    // apito final: ninguém termina no ar, carregando ou fugindo (o último quadro fica limpo)
+    for (const p of s.players) {
+        p.fx.air = null;
+        p.fx.charging = null;
+        p.fx.bide = null;
+        p.fx.flee = null;
     }
     emit(s, { type: 'fulltime', score: [s.score[0], s.score[1]] });
     s.phase = 'fulltime';

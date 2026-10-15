@@ -45,6 +45,7 @@ export const reward: typeof pt = {
         pickForget: 'Pick the move to forget.',
         willForget: '{name} will forget {old} and learn {move}.',
         willLearn: '{name} will learn {move}.',
+        choiceBandLock: 'With Choice Band, {name} only uses its first move: {move} stays locked in matches.',
         back: 'Back',
         teach: 'Teach',
         doneLabel: 'Move taught',

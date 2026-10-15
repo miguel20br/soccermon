@@ -193,7 +193,10 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
             },
             {
                 list: [
-                    ['Prender', 'Bind, Wrap, Clamp, Fire Spin e Constrict deixam o alvo lento e atordoado.'],
+                    [
+                        'Prender',
+                        'Bind, Wrap, Clamp e Fire Spin atordoam o alvo um instante e deixam lento; Constrict só deixa lento. Cada um tem ainda um jeito próprio (veja "Golpes que fazem o que faziam nos jogos").',
+                    ],
                     ['Nocaute', 'Fissure, Guillotine e Horn Drill erram muito, mas quando acertam derrubam o rival.'],
                     [
                         'Com preço',

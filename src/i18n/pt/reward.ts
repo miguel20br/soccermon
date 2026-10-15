@@ -47,6 +47,8 @@ export const reward = {
         pickForget: 'Escolha o golpe que sai.',
         willForget: '{name} vai esquecer {old} e aprender {move}.',
         willLearn: '{name} vai aprender {move}.',
+        /** Choice Band trava todo golpe fora da 1ª vaga (src/engine/match.ts → createPlayer). */
+        choiceBandLock: 'Com a Choice Band, {name} só usa o primeiro golpe: {move} fica travado nas partidas.',
         back: 'Voltar',
         teach: 'Ensinar',
         doneLabel: 'Golpe ensinado',

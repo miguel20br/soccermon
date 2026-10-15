@@ -164,7 +164,10 @@ export const help: typeof pt = {
                 },
                 {
                     list: [
-                        ['Trap', 'Bind, Wrap, Clamp, Fire Spin and Constrict leave the target slow and stunned.'],
+                        [
+                            'Trap',
+                            'Bind, Wrap, Clamp and Fire Spin stun the target for a moment and slow it down; Constrict only slows. Each also has its own twist (see "Moves that do what they did in the games").',
+                        ],
                         [
                             'One-hit KO',
                             'Fissure, Guillotine and Horn Drill miss a lot, but when they hit they knock the rival down.',

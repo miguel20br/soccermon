@@ -27,8 +27,14 @@ export function buildShareText(run: RunState, lang: Lang = getLang()): string {
         `Soccermon ⚽ ${run.teamName} — ${headline}`,
         ...lines,
         fmt(tx.team, { squad }),
-        fmt(tx.challenge, { url: `${SITE_URL}/?seed=${run.seed}` }),
+        fmt(tx.challenge, { url: challengeUrl(run.seed) }),
     ].join('\n');
+}
+
+/** Link do desafio: marca a origem (utm_source=share) e leva a seed no fim, como a Ajuda explica. */
+export function challengeUrl(seed: string): string {
+    const params = new URLSearchParams({ utm_source: 'share', seed });
+    return `${SITE_URL}/?${params}`;
 }
 
 /** Compartilha pelo menu nativo (celular) ou copia para a área de transferência. */
