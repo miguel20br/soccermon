@@ -5,6 +5,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { startAnalytics } from './analytics/track';
 import { startCloudSync } from './cloud/cloud';
+import { importFromOldDomain, moveToNewDomain } from './cloud/domain-move';
 import { ErrorBoundary } from './ui/components/ErrorBoundary';
 import { startSettingsSync } from './ui/settings-sync';
 import './ui/styles.css';
@@ -16,6 +17,10 @@ window.addEventListener('error', (e) => {
 window.addEventListener('unhandledrejection', (e) => {
     console.error('[Soccermon] promessa rejeitada sem tratamento:', e.reason);
 });
+
+// endereço antigo (soccermon.vercel.app) leva o jogador e o save para o soccermon.com
+void moveToNewDomain();
+void importFromOldDomain();
 
 // contas e save na nuvem (só liga se o Supabase estiver configurado)
 startCloudSync();

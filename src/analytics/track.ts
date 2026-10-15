@@ -17,7 +17,8 @@ interface Row {
     device: string;
 }
 
-const ENABLED = import.meta.env.PROD && !!cloudApi;
+/** Só no site oficial: prévias da Vercel, staging e o endereço antigo não sujam as estatísticas. */
+const ENABLED = import.meta.env.PROD && !!cloudApi && window.location.hostname === 'soccermon.com';
 const FLUSH_MS = 8000;
 const MAX_QUEUE = 50;
 
