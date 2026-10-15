@@ -1,22 +1,22 @@
 import { viewInstance } from '../engine/instance';
+import { clubName, dict, fmt, getLang, type Lang } from '../i18n';
 import { isPerfectCup, type RunState } from '../store/game-store';
 
 export const SITE_URL = 'https://soccermon.com';
 
-const ELIMINATED_AT = ['nas oitavas de final', 'nas quartas de final', 'na semifinal', 'na final'];
-
-/** Resultado da copa em texto curto, estilo Wordle, para colar em qualquer lugar. */
-export function buildShareText(run: RunState): string {
+/** Resultado da copa em texto curto, estilo Wordle, para colar em qualquer lugar (no idioma do jogo). */
+export function buildShareText(run: RunState, lang: Lang = getLang()): string {
+    const tx = dict(lang).result.shareText;
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
     const headline =
         run.status === 'champion'
             ? isPerfectCup(run)
-                ? '🏆 COPA PERFEITA!'
-                : '🏆 Campeão!'
-            : `Caiu ${ELIMINATED_AT[run.results.at(-1)?.stage ?? 0] ?? 'na copa'}`;
+                ? tx.perfect
+                : tx.champion
+            : fmt(tx.out, { stage: dict(lang).common.stageIn[run.results.at(-1)?.stage ?? 0] ?? tx.outFallback });
     const lines = run.results.map((r) => {
-        const pen = r.shootout ? ` (pên. ${r.shootout[0]}x${r.shootout[1]})` : '';
-        return `${r.won ? '🟩' : '🟥'} ${r.score[0]}x${r.score[1]}${pen} ${r.opponent}`;
+        const pen = r.shootout ? fmt(tx.pens, { a: r.shootout[0], b: r.shootout[1] }) : '';
+        return `${r.won ? '🟩' : '🟥'} ${r.score[0]}x${r.score[1]}${pen} ${clubName(r.opponent, lang)}`;
     });
     const squad = run.lineup
         .map((u) => byUid.get(u))
@@ -26,8 +26,8 @@ export function buildShareText(run: RunState): string {
     return [
         `Soccermon ⚽ ${run.teamName} — ${headline}`,
         ...lines,
-        `Time: ${squad}`,
-        `Desafie a mesma copa: ${SITE_URL}/?seed=${run.seed}`,
+        fmt(tx.team, { squad }),
+        fmt(tx.challenge, { url: `${SITE_URL}/?seed=${run.seed}` }),
     ].join('\n');
 }
 

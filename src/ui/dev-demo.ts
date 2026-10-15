@@ -1,6 +1,7 @@
 import { FUTSAL_5 } from '../engine/config';
 import { aiDraftTeam } from '../engine/draft';
 import { createInstance } from '../engine/instance';
+import { rewardOptions } from '../engine/rewards';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
 import { EventBus } from '../game/EventBus';
@@ -12,7 +13,8 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * partida termina empatada e vai para os pênaltis, já na tela de escalação. `?demo=ditto` monta um time
  * com Ditto e Mew + Mewtwo (sinergia Gênese) cuja primeira partida tem combo. `?demo=evolucao` monta um time
  * de iniciais cuja primeira partida tem evolução do seu time logo no começo. `?demo=campeao` joga uma copa
- * inteira com um time forte e para na tela do título. `?demo=trailer&cena=<cena>&seed=<seed>` abre na escalação a
+ * inteira com um time forte e para na tela do título. `?demo=mt` abre a recompensa depois das oitavas com
+ * uma MT do ginásio entre as 3 cartas (Charmeleon, Caterpie e cia. para testar quem aprende). `?demo=trailer&cena=<cena>&seed=<seed>` abre na escalação a
  * partida que a caça de lances (scripts/trailer-hunt.ts) escolheu para o trailer.
  */
 let started = false;
@@ -20,7 +22,14 @@ let started = false;
 export function runDevDemo() {
     if (!import.meta.env.DEV || started) return;
     const demo = new URLSearchParams(window.location.search).get('demo');
-    if (demo !== 'penaltis' && demo !== 'ditto' && demo !== 'evolucao' && demo !== 'campeao' && demo !== 'trailer')
+    if (
+        demo !== 'penaltis' &&
+        demo !== 'ditto' &&
+        demo !== 'evolucao' &&
+        demo !== 'campeao' &&
+        demo !== 'trailer' &&
+        demo !== 'mt'
+    )
         return;
     started = true;
     // permite aos testes pular direto para o fim do tempo normal
@@ -78,6 +87,43 @@ export function runDevDemo() {
                 console.info(`[demo] copa ${ready.seed}: tem combo Gênese`);
                 return;
             }
+        }
+        return;
+    }
+    if (demo === 'mt') {
+        for (let k = 0; k < 200; k++) {
+            store.newRun('Demo FC', `mt${k}`);
+            const run = useGame.getState().run!;
+            const rng = new Rng(`mt${k}`, 'demo');
+            // goleiro Onix, fixo Squirtle, alas Charmeleon e Pikachu, pivô Geodude; banco Caterpie e Gastly
+            const lineup = [95, 7, 5, 25, 74].map((id) => createInstance(id, rng));
+            const bench = [10, 92].map((id) => createInstance(id, rng));
+            const picks = [...lineup, ...bench];
+            const opp = run.opponents[0];
+            const rewards = rewardOptions(run.seed, 0, 0, picks, {
+                name: opp.name,
+                players: [...opp.lineup, ...opp.bench],
+            });
+            if (!rewards.some((r) => r.kind === 'tm' && r.leader)) continue;
+            useGame.setState({
+                run: {
+                    ...run,
+                    formation: '1-2-1',
+                    picks,
+                    lineup: lineup.map((p) => p.uid),
+                    bench: bench.map((p) => p.uid),
+                    captainUid: lineup[2].uid,
+                    draftRound: 7,
+                    status: 'reward',
+                    results: [
+                        { stage: 0, opponent: opp.name, score: [3, 1], shootout: null, won: true, destaqueUid: null },
+                    ],
+                    rewards,
+                },
+                screen: 'reward',
+            });
+            console.info(`[demo] copa mt${k}: MT do ${opp.name}`);
+            return;
         }
         return;
     }

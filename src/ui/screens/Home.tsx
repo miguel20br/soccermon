@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { CUP_STAGES } from '../../engine/cup';
 import { weeklyEventType } from '../../engine/specials';
+import { fmt, stageName, typeName } from '../../i18n';
+import { rich, useT } from '../../i18n/react';
 import { seedFromUrl, useGame } from '../../store/game-store';
 import { AccountBar } from '../components/AccountBar';
 import { HomeCourt } from '../components/HomeCourt';
@@ -9,19 +11,38 @@ import { cardSprite } from '../components/PokeCard';
 import { Trophy } from '../components/Trophy';
 import { TypeIcon } from '../components/TypeIcon';
 import { FEEDBACK_URL } from '../links';
-import { PATCH_NOTES } from '../patch-notes';
-import { TYPE_PT } from '../type-colors';
+import { patchNotes } from '../patch-notes';
 
-/** O que vem por aí (só vitrine: nada disso é clicável ainda). */
-const SOON = [
-    { title: 'Modo história', text: 'Ginásios, insígnias e a Liga Índigo', img: 'assets/cards/25.gif' },
-    { title: 'Multiplayer', text: 'Desafie o time de um amigo', img: 'assets/cards/68.gif' },
-    { title: 'Futebol de campo', text: 'Partidas 11 contra 11', img: 'assets/cards/143.gif' },
-    { title: 'Geração 2', text: 'Os Pokémon de Johto', img: 'assets/ui/poke-ball.png' },
-];
+/** O que vem por aí (só vitrine: nada disso é clicável ainda). Os textos ficam em i18n (home.soon). */
+const SOON_IMG = ['assets/cards/25.gif', 'assets/cards/68.gif', 'assets/cards/143.gif', 'assets/ui/poke-ball.png'];
+
+/** Troca rápida de idioma no topo da tela inicial (as Configurações também têm). */
+function LangToggle() {
+    const { lang, t } = useT();
+    const updateSettings = useGame((s) => s.updateSettings);
+    return (
+        <fieldset className="lang-toggle" aria-label={t('home.langAria')}>
+            {(['pt', 'en'] as const).map((l) => (
+                <button
+                    key={l}
+                    type="button"
+                    className={l === lang ? 'on' : ''}
+                    aria-pressed={l === lang}
+                    lang={l === 'pt' ? 'pt-BR' : 'en'}
+                    title={l === 'pt' ? 'Português (Brasil)' : 'English'}
+                    onClick={() => updateSettings({ lang: l })}
+                >
+                    {l.toUpperCase()}
+                </button>
+            ))}
+        </fieldset>
+    );
+}
 
 export function Home() {
     const { run, newRun, go, records, profile, setOnboarded } = useGame();
+    const { t, tn, d, lang } = useT();
+    const notes = patchNotes(lang);
     const [teamName, setTeamName] = useState(profile.clubName || 'Pallet FC');
     // o perfil chega do IndexedDB/nuvem depois do primeiro render: acompanha até a pessoa digitar
     const [typed, setTyped] = useState(false);
@@ -55,15 +76,21 @@ export function Home() {
     const squad = run ? run.lineup.flatMap((u) => byUid.get(u) ?? []) : [];
     const runStep =
         run && ['formation', 'captain', 'drafting'].includes(run.status)
-            ? `Draft · escolha ${Math.min(run.draftRound + 1, 7)} de 7`
+            ? t('home.draftStep', { n: Math.min(run.draftRound + 1, 7) })
             : run?.status === 'reward'
-              ? 'Escolhendo a recompensa'
+              ? t('home.choosingReward')
               : run
-                ? CUP_STAGES[run.stage]
+                ? stageName(run.stage)
                 : '';
     const openLab = (q: string) => {
         window.location.search = q;
     };
+    const tile = (k: keyof typeof d.home.tiles, vars?: Record<string, string>) => (
+        <>
+            <b>{d.home.tiles[k][0]}</b>
+            <span>{fmt(d.home.tiles[k][1], vars)}</span>
+        </>
+    );
 
     return (
         <div className="home">
@@ -71,16 +98,17 @@ export function Home() {
                 <div className="event-banner">
                     <TypeIcon type={eventType} size={28} />
                     <div>
-                        <b>Semana do tipo {TYPE_PT[eventType] ?? eventType}</b>
-                        <span>Cartas Evento do tipo {TYPE_PT[eventType] ?? eventType} podem aparecer no draft.</span>
+                        <b>{t('home.eventWeek', { type: typeName(eventType) })}</b>
+                        <span>{t('home.eventText', { type: typeName(eventType) })}</span>
                     </div>
                 </div>
                 <AccountBar />
+                <LangToggle />
                 <button
                     type="button"
                     className="help-fab"
-                    aria-label="Como jogar (ver o passo a passo de novo)"
-                    title="Como jogar"
+                    aria-label={t('home.helpAria')}
+                    title={t('home.helpTitle')}
                     onClick={() => setOnboarded(false)}
                 >
                     <MenuIcon kind="help" />
@@ -93,28 +121,23 @@ export function Home() {
                 <h1 className="logo logo-img">
                     <img src="assets/ui/logo.svg" alt="Soccermon" width="1468" height="300" />
                 </h1>
-                <p className="tagline">
-                    Monte seu time com os 151 de Kanto num draft “escolha 1 de 3” e dispute a Copa de Futsal contra os
-                    ginásios.
-                </p>
+                <p className="tagline">{t('home.tagline')}</p>
             </section>
 
             <div className="menu panel">
                 {confirm !== undefined ? (
                     <div className="confirm-new">
-                        <p>
-                            Começar outra copa apaga a do <b>{run?.teamName}</b>. Tem certeza?
-                        </p>
+                        <p>{rich(t('home.confirmNew'), { team: <b>{run?.teamName}</b> })}</p>
                         <div className="row" style={{ justifyContent: 'center' }}>
                             <button
                                 type="button"
                                 className="btn primary"
                                 onClick={() => newRun(name(), confirm ?? undefined)}
                             >
-                                Sim, começar outra
+                                {t('home.confirmYes')}
                             </button>
                             <button type="button" className="btn ghost" onClick={() => setConfirm(undefined)}>
-                                Cancelar
+                                {t('common.ui.cancel')}
                             </button>
                         </div>
                     </div>
@@ -122,10 +145,10 @@ export function Home() {
                     <>
                         {inProgress && run && (
                             <button type="button" className="resume-card" onClick={() => go(resumeScreen)}>
-                                <span className="rc-label">Copa em andamento</span>
+                                <span className="rc-label">{t('home.inProgress')}</span>
                                 <b className="rc-team">{run.teamName}</b>
                                 <span className="rc-step">{runStep}</span>
-                                <span className="rc-path" title="Fases da copa">
+                                <span className="rc-path" title={t('home.cupPath')}>
                                     {CUP_STAGES.map((st, i) => {
                                         const r = run.results.find((x) => x.stage === i);
                                         const cls = r ? (r.won ? 'won' : 'lost') : i === run.stage ? 'now' : '';
@@ -139,11 +162,11 @@ export function Home() {
                                         ))}
                                     </span>
                                 )}
-                                <span className="btn primary rc-go">Continuar ▶</span>
+                                <span className="btn primary rc-go">{t('home.resume')}</span>
                             </button>
                         )}
                         <label className="muted" htmlFor="team-name">
-                            {inProgress ? 'Ou comece outra copa' : 'Nome do seu time'}
+                            {inProgress ? t('home.orNew') : t('home.teamName')}
                         </label>
                         <div className="new-run">
                             <input
@@ -161,12 +184,12 @@ export function Home() {
                                 className={`btn ${inProgress ? 'ghost' : 'primary'} big`}
                                 onClick={() => start()}
                             >
-                                Nova copa
+                                {t('home.newCup')}
                             </button>
                         </div>
                         {challengeSeed && (
                             <button type="button" className="btn yellow" onClick={() => start(challengeSeed)}>
-                                Aceitar desafio ({challengeSeed})
+                                {t('home.challenge', { seed: challengeSeed })}
                             </button>
                         )}
                     </>
@@ -177,74 +200,66 @@ export function Home() {
                 <div className="records">
                     <span className="rec-titles">
                         <Trophy size={30} />
-                        <b>{records.titles}</b> {records.titles === 1 ? 'título' : 'títulos'}
+                        <b>{records.titles}</b> {tn('home.rec.titles', records.titles)}
                     </span>
                     <span>
-                        <b>{records.cups}</b> {records.cups === 1 ? 'copa' : 'copas'}
+                        <b>{records.cups}</b> {tn('home.rec.cups', records.cups)}
                     </span>
                     <span>
-                        <b>{records.perfect}</b> {records.perfect === 1 ? 'perfeita' : 'perfeitas'}
+                        <b>{records.perfect}</b> {tn('home.rec.perfect', records.perfect)}
                     </span>
                     {(records.destaques ?? 0) > 0 && (
                         <span>
-                            <b>{records.destaques}</b> {records.destaques === 1 ? 'destaque' : 'destaques'}
+                            <b>{records.destaques}</b> {tn('home.rec.destaques', records.destaques ?? 0)}
                         </span>
                     )}
                     {(records.evolucoes ?? 0) > 0 && (
                         <span>
-                            <b>{records.evolucoes}</b> {records.evolucoes === 1 ? 'evolução' : 'evoluções'}
+                            <b>{records.evolucoes}</b> {tn('home.rec.evolucoes', records.evolucoes ?? 0)}
                         </span>
                     )}
                     {(records.icones ?? 0) > 0 && (
                         <span>
-                            <b>{records.icones}</b> {records.icones === 1 ? 'ícone' : 'ícones'}
+                            <b>{records.icones}</b> {tn('home.rec.icones', records.icones ?? 0)}
                         </span>
                     )}
                 </div>
             )}
 
-            <nav className="home-tiles" aria-label="Menu">
+            <nav className="home-tiles" aria-label={t('common.ui.menu')}>
                 <button type="button" className="home-tile" onClick={() => go('profile')}>
                     <MenuIcon kind="profile" />
-                    <b>Perfil</b>
-                    <span>Seu clube, Pokédex e números</span>
+                    {tile('profile')}
                 </button>
                 <button type="button" className="home-tile" onClick={() => openLab('?lab=golpes')}>
                     <MenuIcon kind="moves" />
-                    <b>Golpedex</b>
-                    <span>Os golpes que você já viu em campo</span>
+                    {tile('moves')}
                 </button>
                 <button type="button" className="home-tile" onClick={() => go('help')}>
                     <MenuIcon kind="help" />
-                    <b>Ajuda</b>
-                    <span>Como jogar e todas as mecânicas</span>
+                    {tile('help')}
                 </button>
                 <button type="button" className="home-tile" onClick={() => setNotesOpen(true)}>
                     <MenuIcon kind="news" />
-                    <b>Novidades</b>
-                    <span>O que mudou na versão {PATCH_NOTES[0].version}</span>
-                    <em className="tile-badge">v{PATCH_NOTES[0].version}</em>
+                    {tile('news', { v: notes[0].version })}
+                    <em className="tile-badge">v{notes[0].version}</em>
                 </button>
                 <button type="button" className="home-tile" onClick={() => go('settings')}>
                     <MenuIcon kind="settings" />
-                    <b>Configurações</b>
-                    <span>Som, gritos e efeitos</span>
+                    {tile('settings')}
                 </button>
                 <button type="button" className="home-tile" onClick={() => go('credits')}>
                     <MenuIcon kind="credits" />
-                    <b>Créditos</b>
-                    <span>Sprites, sons e dados</span>
+                    {tile('credits')}
                 </button>
                 <a className="home-tile" href={FEEDBACK_URL} target="_blank" rel="noopener">
                     <MenuIcon kind="feedback" />
-                    <b>Dar feedback</b>
-                    <span>Ideia, elogio ou bug: conta pra gente</span>
+                    {tile('feedback')}
                 </a>
                 {import.meta.env.DEV && (
                     <button type="button" className="home-tile dev" onClick={() => openLab('?cards=1')}>
                         <MenuIcon kind="cards" />
-                        <b>Cartas (teste)</b>
-                        <span>Galeria de desenvolvimento</span>
+                        {tile('cards')}
                     </button>
                 )}
             </nav>
@@ -256,24 +271,22 @@ export function Home() {
                         className="modal panel patch-notes"
                         role="dialog"
                         aria-modal="true"
-                        aria-label="Novidades"
+                        aria-label={t('home.news')}
                         onClick={(e) => e.stopPropagation()}
                     >
                         <button
                             type="button"
                             className="modal-close"
                             onClick={() => setNotesOpen(false)}
-                            aria-label="Fechar"
+                            aria-label={t('common.ui.close')}
                             // biome-ignore lint/a11y/noAutofocus: o foco vai para dentro da janela que acabou de abrir
                             autoFocus
                         >
                             ×
                         </button>
-                        {PATCH_NOTES.map((n) => (
+                        {notes.map((n) => (
                             <div key={n.version} className="patch-version">
-                                <h2>
-                                    Versão {n.version} · {n.title}
-                                </h2>
+                                <h2>{t('home.version', { v: n.version, title: n.title })}</h2>
                                 {n.sections.map((sec) => (
                                     <div key={sec.title}>
                                         <h3>{sec.title}</h3>
@@ -289,12 +302,12 @@ export function Home() {
                     </div>
                 </div>
             )}
-            <section className="soon" aria-label="Em breve">
-                <h2>Em breve</h2>
+            <section className="soon" aria-label={t('home.soonTitle')}>
+                <h2>{t('home.soonTitle')}</h2>
                 <div className="soon-grid">
-                    {SOON.map((c) => (
-                        <div key={c.title} className="soon-card">
-                            <img className="pixel" src={c.img} alt="" />
+                    {d.home.soon.map((c, i) => (
+                        <div key={SOON_IMG[i]} className="soon-card" data-ribbon={t('home.soonRibbon')}>
+                            <img className="pixel" src={SOON_IMG[i]} alt="" />
                             <b>{c.title}</b>
                             <span>{c.text}</span>
                         </div>
@@ -302,15 +315,13 @@ export function Home() {
                 </div>
             </section>
             <p className="disclaimer">
-                Soccermon v{__APP_VERSION__.replace(/\.0$/, '')} · Criado por Miguel Cunha · Fan game sem fins
-                lucrativos. Pokémon e todos os nomes, sprites e sons relacionados são © Nintendo, Game Freak, Creatures
-                Inc. e The Pokémon Company. Este projeto não é afiliado nem endossado por eles. ·{' '}
+                {t('home.disclaimer', { v: __APP_VERSION__.replace(/\.0$/, '') })}{' '}
                 <a href="privacidade.html" target="_blank" rel="noopener">
-                    Privacidade e termos
+                    {t('home.privacy')}
                 </a>{' '}
                 ·{' '}
                 <a href="https://github.com/miguel20br/soccermon" target="_blank" rel="noopener">
-                    Código no GitHub
+                    {t('home.github')}
                 </a>
             </p>
         </div>

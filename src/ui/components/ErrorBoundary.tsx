@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { t } from '../../i18n';
 import { useGame } from '../../store/game-store';
 import { FEEDBACK_URL } from '../links';
 
@@ -6,11 +7,11 @@ import { FEEDBACK_URL } from '../links';
 function crashReport(error: Error, stack: string | null): string {
     return [
         `Soccermon ${__APP_VERSION__}`,
-        `Erro: ${error.message}`,
-        `Página: ${window.location.href}`,
-        `Navegador: ${navigator.userAgent}`,
+        `${t('settings.crash.reportError')}: ${error.message}`,
+        `${t('settings.crash.reportPage')}: ${window.location.href}`,
+        `${t('settings.crash.reportBrowser')}: ${navigator.userAgent}`,
         error.stack ? `\n${error.stack}` : '',
-        stack ? `\nComponentes:${stack}` : '',
+        stack ? `\n${t('settings.crash.reportComponents')}:${stack}` : '',
     ]
         .filter(Boolean)
         .join('\n');
@@ -75,44 +76,42 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, CrashState
         return (
             <div className="app">
                 <div className="panel center crash-panel" role="alert">
-                    <h2>Algo deu errado nesta tela</h2>
-                    <p className="muted">Sua copa e seus recordes continuam salvos.</p>
+                    <h2>{t('settings.crash.title')}</h2>
+                    <p className="muted">{t('settings.crash.saved')}</p>
                     <div className="row crash-actions">
                         <button type="button" className="btn primary" onClick={this.home}>
-                            Voltar ao início
+                            {t('settings.crash.home')}
                         </button>
                         <button type="button" className="btn ghost" onClick={() => window.location.reload()}>
-                            Recarregar
+                            {t('settings.crash.reload')}
                         </button>
                     </div>
                     <p className="muted crash-detail">
-                        Se continuar acontecendo,{' '}
+                        {t('settings.crash.ifRepeats')}{' '}
                         <a
                             href="https://github.com/miguel20br/soccermon/issues/new?template=bug.yml"
                             target="_blank"
                             rel="noopener"
                         >
-                            conte pra gente no GitHub
+                            {t('settings.crash.tellUs')}
                         </a>{' '}
-                        com esta mensagem: <code>{error.message}</code>
+                        {t('settings.crash.withMessage')} <code>{error.message}</code>
                     </p>
                     <p className="muted crash-detail">
-                        Sem conta no GitHub?{' '}
+                        {t('settings.crash.noGithub')}{' '}
                         <a href={FEEDBACK_URL} target="_blank" rel="noopener">
-                            Ou mande pelo Discussions
+                            {t('settings.crash.discussions')}
                         </a>
                         .
                     </p>
                     <div className="row crash-actions">
                         <button type="button" className="btn ghost small" onClick={this.copy}>
-                            Copiar detalhes do erro
+                            {t('settings.crash.copy')}
                         </button>
                     </div>
                     {copied && (
                         <p className="muted crash-detail" aria-live="polite">
-                            {copied === 'ok'
-                                ? 'Copiado! Cole onde quiser.'
-                                : 'Não deu pra copiar. Mande um print desta tela.'}
+                            {copied === 'ok' ? t('settings.crash.copied') : t('settings.crash.copyFailed')}
                         </p>
                     )}
                 </div>

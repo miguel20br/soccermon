@@ -3,6 +3,11 @@ import { describe, expect, it, vi } from 'vitest';
 // sem IndexedDB no Node: o save fica só na memória
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
+import { evolveInstance } from '../engine/evolution';
+import { createInstance } from '../engine/instance';
+import { Rng } from '../engine/rng';
+import { SIGNATURE } from '../engine/signature-moves';
+import { teachMove } from '../engine/tm';
 import { migrateSave, type RunState, SAVE_VERSION, useGame } from './game-store';
 
 describe('save', () => {
@@ -34,5 +39,50 @@ describe('save', () => {
         expect(useGame.getState().run!.teamName).toBe('Lavender FC');
         useGame.getState().chooseFormation(useGame.getState().run!.formation);
         for (const o of useGame.getState().run!.options) expect(useGame.getState().dex[o.speciesId]).toBeDefined();
+    });
+
+    it('save antigo (instância sem `taught`) continua válido: dá para ensinar MT e evoluir', () => {
+        useGame.getState().newRun('Pallet FC', 'teste-mt-save');
+        const rng = new Rng('teste-mt-save', 'team');
+        const picks = [5, 7, 25, 74, 95].map((id) => createInstance(id, rng));
+        const run = { ...(useGame.getState().run as RunState), picks };
+        const json = JSON.parse(JSON.stringify({ run, records: { cups: 1, titles: 0, perfect: 0 } }));
+        const out = migrateSave(json, SAVE_VERSION);
+        expect(out.run?.picks).toEqual(picks);
+        const charmeleon = out.run!.picks[0];
+        expect(charmeleon.taught).toBeUndefined();
+        const taught = teachMove(charmeleon, 'bide', 3)!;
+        expect(evolveInstance(taught, 6).moves).toContain('bide');
+    });
+
+    it('pegar a MT na recompensa ensina o golpe; a assinatura não sai', () => {
+        useGame.getState().newRun('Pallet FC', 'teste-mt-claim');
+        const rng = new Rng('teste-mt-claim', 'team');
+        const lineup = [95, 7, 5, 25, 74].map((id) => createInstance(id, rng));
+        const base = useGame.getState().run as RunState;
+        const charmeleon = lineup[2];
+        const reward = { kind: 'tm' as const, move: 'bide', leader: 'Brock' };
+        const ready: RunState = {
+            ...base,
+            picks: lineup,
+            lineup: lineup.map((p) => p.uid),
+            bench: [],
+            captainUid: lineup[0].uid,
+            status: 'reward',
+            rewards: [reward],
+        };
+        useGame.setState({ run: ready });
+        // assinatura: nada acontece
+        useGame.getState().claimReward(0, charmeleon.uid, 0);
+        expect(useGame.getState().run!.status).toBe('reward');
+        expect(useGame.getState().run!.picks[2].moves[0]).toBe(SIGNATURE[5]);
+        // golpe da vaga 1 sai, Bide entra e a copa segue
+        useGame.getState().claimReward(0, charmeleon.uid, 1);
+        const after = useGame.getState().run!;
+        expect(after.status).toBe('lineup');
+        expect(after.stage).toBe(base.stage + 1);
+        const p = after.picks.find((x) => x.uid === charmeleon.uid)!;
+        expect(p.moves[1]).toBe('bide');
+        expect(p.taught).toEqual(['bide']);
     });
 });

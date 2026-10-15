@@ -2,8 +2,10 @@ import { type CSSProperties, useEffect, useRef } from 'react';
 import { species } from '../../engine/data';
 import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
-import { TACTIC_LABEL, type TeamSetup } from '../../engine/state';
+import type { TeamSetup } from '../../engine/state';
 import { playSfx } from '../../game/audio';
+import { clubName, formationText } from '../../i18n';
+import { rich, useT } from '../../i18n/react';
 import { rivalColor } from '../../store/profile';
 import { useClubColor } from '../profile/club';
 import { cardSprite } from './PokeCard';
@@ -96,15 +98,16 @@ function Crowd({ team, side }: { team: TeamSetup; side: 'home' | 'away' }) {
 function Band({ team, side }: { team: TeamSetup; side: 'home' | 'away' }) {
     const formation = formationOf(team.formation);
     const avg = Math.round(team.lineup.reduce((s, p) => s + viewInstance(p).overall, 0) / team.lineup.length);
+    const { t, d } = useT();
     return (
         <div className={`vsp-band ${side}`}>
-            <div className="vsp-who">{side === 'home' ? 'Seu time' : 'Rival'}</div>
-            <div className="vsp-name">{team.name}</div>
+            <div className="vsp-who">{side === 'home' ? t('match.vs.yourTeam') : t('match.vs.rival')}</div>
+            <div className="vsp-name">{side === 'home' ? team.name : clubName(team.name)}</div>
             <div className="vsp-meta">
                 <span className="vsp-form">
-                    {formation.name} · {TACTIC_LABEL[team.tactic]} ·{' '}
+                    {formationText(formation.id).name} · {d.common.tactic[team.tactic]} ·{' '}
                 </span>
-                média <b>{avg}</b>
+                {rich(t('match.vs.avg'), { n: <b>{avg}</b> })}
             </div>
         </div>
     );
@@ -152,6 +155,7 @@ export function VersusIntro({
 
     // seu time sempre na cor do clube (Perfil); o rival no uniforme reserva se as cores baterem
     const homeColor = useClubColor();
+    const { t } = useT();
     const style = {
         '--home': hex(homeColor),
         '--away': hex(rivalColor(homeColor, away.color)),
@@ -163,7 +167,7 @@ export function VersusIntro({
             style={style}
             role="dialog"
             aria-modal="true"
-            aria-label={`${home.name} contra ${away.name}`}
+            aria-label={t('match.vs.aria', { home: home.name, away: clubName(away.name) })}
         >
             <div className="vsp-half home" />
             <div className="vsp-half away" />
@@ -194,7 +198,7 @@ export function VersusIntro({
             </div>
             <div className="vsp-flash" />
             <button type="button" className="btn primary vs-start" onClick={onDone}>
-                {ready ? 'Começar!' : 'Carregando a quadra…'}
+                {ready ? t('match.vs.start') : t('match.vs.loading')}
             </button>
             {ready && <div className="vs-progress" style={{ animationDuration: `${AUTO_START_MS}ms` }} />}
         </div>

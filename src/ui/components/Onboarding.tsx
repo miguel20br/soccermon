@@ -1,5 +1,7 @@
-import { type KeyboardEvent, type PointerEvent, type ReactNode, useEffect, useRef, useState } from 'react';
+import { type KeyboardEvent, type PointerEvent, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { playSfx } from '../../game/audio';
+import { type Dict, fmt } from '../../i18n';
+import { rich, useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import '../help/help.css';
 import { Trophy } from './Trophy';
@@ -75,151 +77,124 @@ interface Slide {
     visual: ReactNode;
 }
 
-const SLIDES: Slide[] = [
-    {
-        title: 'Bem-vindo ao Soccermon',
-        text: (
-            <>
-                Os <b>151 de Kanto</b> num futsal 5 contra 5. Monte o time, comande da beira da quadra e leve a copa.
-            </>
-        ),
-        visual: (
-            <div className="ob-welcome">
-                <img className="ob-logo" src="assets/ui/logo.svg" alt="Soccermon" draggable={false} />
-                <div className="ob-lineup">
-                    <Sprite id={1} scale={1.3} />
-                    <Sprite id={25} scale={1.3} />
-                    <Sprite id={4} scale={1.3} />
-                    <Sprite id={7} scale={1.3} />
-                </div>
-            </div>
-        ),
-    },
-    {
-        title: 'Draft: 1 de 3',
-        text: (
-            <>
-                Escolha a formação e o capitão. Depois toque numa vaga: saem 3 Pokémon pra ela e você leva 1. Não
-                gostou? <b>Sorteie de novo</b>.
-            </>
-        ),
-        visual: (
-            <div className="ob-draft">
-                {[6, 9, 3].map((id, i) => (
-                    <div key={id} className={`ob-mini-card${i === 1 ? ' picked' : ''}`}>
-                        <Sprite id={id} scale={0.62} />
-                        <span className="ob-mini-bar" />
-                        <span className="ob-mini-bar short" />
+/** Os passos, no idioma do jogo. */
+const slides = (d: Dict): Slide[] => {
+    const o = d.help.onboarding;
+    return [
+        {
+            title: o.welcomeTitle,
+            text: rich(o.welcomeText),
+            visual: (
+                <div className="ob-welcome">
+                    <img className="ob-logo" src="assets/ui/logo.svg" alt="Soccermon" draggable={false} />
+                    <div className="ob-lineup">
+                        <Sprite id={1} scale={1.3} />
+                        <Sprite id={25} scale={1.3} />
+                        <Sprite id={4} scale={1.3} />
+                        <Sprite id={7} scale={1.3} />
                     </div>
-                ))}
-            </div>
-        ),
-    },
-    {
-        title: 'Escalação e tática',
-        text: (
-            <>
-                Toque em dois jogadores pra trocar de vaga, inclusive com o banco. Mesmo tipo e duplas famosas dão{' '}
-                <b>sinergia</b>; itens ajudam também.
-            </>
-        ),
-        visual: (
-            <div className="ob-lineup-visual">
-                <CourtVisual />
-                <div className="ob-chips">
-                    <span className="ob-chip">
-                        <TypeIcon type="Fire" size={18} /> ×2 +3%
-                    </span>
-                    <span className="ob-chip">Iniciais de Kanto</span>
                 </div>
-            </div>
-        ),
-    },
-    {
-        title: 'Você é o técnico',
-        text: (
-            <>
-                A partida é simulada. Mude a tática, faça substituições e toque num Pokémon pra ver o painel. Golpes
-                saem em campo e quem joga muito <b>evolui no meio do jogo</b>!
-            </>
-        ),
-        visual: (
-            <div className="ob-evolve">
-                <div className="ob-evo-row">
-                    <Sprite id={4} scale={1.35} />
-                    <svg viewBox="0 0 40 20" className="ob-evo-arrow" aria-hidden="true">
-                        <path d="M2 10h30M26 4l7 6-7 6" />
-                    </svg>
-                    <Sprite id={5} scale={1.05} className="ob-glow" />
-                </div>
-                <div className="ob-controls">
-                    <span className="ob-pill">Tática</span>
-                    <span className="ob-pill yellow">Substituir</span>
-                    <span className="ob-pill">2x</span>
-                </div>
-            </div>
-        ),
-    },
-    {
-        title: 'A Copa',
-        text: (
-            <>
-                Oitavas, quartas, semi e final contra os ginásios de Kanto e a Liga Índigo. Venceu? Escolha um{' '}
-                <b>reforço</b> (dá pra contratar do rival) ou um item. Empate vai pros pênaltis.
-            </>
-        ),
-        visual: (
-            <div className="ob-cup">
-                <ol className="ob-path">
-                    {(
-                        [
-                            ['Rock', 'Oitavas'],
-                            ['Water', 'Quartas'],
-                            ['Electric', 'Semi'],
-                            ['Dragon', 'Final'],
-                        ] as const
-                    ).map(([type, label]) => (
-                        <li key={label}>
-                            <TypeIcon type={type} size={30} />
-                            <span>{label}</span>
-                        </li>
+            ),
+        },
+        {
+            title: o.draftTitle,
+            text: rich(o.draftText),
+            visual: (
+                <div className="ob-draft">
+                    {[6, 9, 3].map((id, i) => (
+                        <div key={id} className={`ob-mini-card${i === 1 ? ' picked' : ''}`}>
+                            <Sprite id={id} scale={0.62} />
+                            <span className="ob-mini-bar" />
+                            <span className="ob-mini-bar short" />
+                        </div>
                     ))}
-                </ol>
-                <Trophy size={70} />
-            </div>
-        ),
-    },
-    {
-        title: 'Pokédex e conta',
-        text: (
-            <>
-                Quem você vê e escala entra na Pokédex; os golpes vistos, na Golpedex. <b>Entre com Google</b> pra
-                salvar na nuvem e jogar em outro aparelho.
-            </>
-        ),
-        visual: (
-            <div className="ob-dex">
-                <div className="ob-dex-grid">
-                    {[25, 133, 143, 150, 151, 9].map((id, i) => (
-                        <span key={id} className={`ob-dex-cell${i >= 3 ? ' unseen' : ''}`}>
-                            <Sprite id={id} scale={id === 25 || id === 133 ? 0.9 : 0.6} />
+                </div>
+            ),
+        },
+        {
+            title: o.lineupTitle,
+            text: rich(o.lineupText),
+            visual: (
+                <div className="ob-lineup-visual">
+                    <CourtVisual />
+                    <div className="ob-chips">
+                        <span className="ob-chip">
+                            <TypeIcon type="Fire" size={18} /> ×2 +3%
                         </span>
-                    ))}
+                        <span className="ob-chip">{d.common.link.iniciais.name}</span>
+                    </div>
                 </div>
-                <svg viewBox="0 0 48 32" className="ob-cloud" aria-hidden="true">
-                    <path d="M14 28h22a8 8 0 0 0 1-15.9A11 11 0 0 0 16 9.5 9.3 9.3 0 0 0 14 28Z" />
-                    <path d="M24 24v-9M20 18.5l4-4 4 4" className="ob-cloud-arrow" />
-                </svg>
-            </div>
-        ),
-    },
-];
+            ),
+        },
+        {
+            title: o.coachTitle,
+            text: rich(o.coachText),
+            visual: (
+                <div className="ob-evolve">
+                    <div className="ob-evo-row">
+                        <Sprite id={4} scale={1.35} />
+                        <svg viewBox="0 0 40 20" className="ob-evo-arrow" aria-hidden="true">
+                            <path d="M2 10h30M26 4l7 6-7 6" />
+                        </svg>
+                        <Sprite id={5} scale={1.05} className="ob-glow" />
+                    </div>
+                    <div className="ob-controls">
+                        <span className="ob-pill">{o.tactic}</span>
+                        <span className="ob-pill yellow">{o.sub}</span>
+                        <span className="ob-pill">2x</span>
+                    </div>
+                </div>
+            ),
+        },
+        {
+            title: o.cupTitle,
+            text: rich(o.cupText),
+            visual: (
+                <div className="ob-cup">
+                    <ol className="ob-path">
+                        {(['Rock', 'Water', 'Electric', 'Dragon'] as const)
+                            .map((type, i) => [type, o.cupPath[i]] as const)
+                            .map(([type, label]) => (
+                                <li key={label}>
+                                    <TypeIcon type={type} size={30} />
+                                    <span>{label}</span>
+                                </li>
+                            ))}
+                    </ol>
+                    <Trophy size={70} />
+                </div>
+            ),
+        },
+        {
+            title: o.dexTitle,
+            text: rich(o.dexText),
+            visual: (
+                <div className="ob-dex">
+                    <div className="ob-dex-grid">
+                        {[25, 133, 143, 150, 151, 9].map((id, i) => (
+                            <span key={id} className={`ob-dex-cell${i >= 3 ? ' unseen' : ''}`}>
+                                <Sprite id={id} scale={id === 25 || id === 133 ? 0.9 : 0.6} />
+                            </span>
+                        ))}
+                    </div>
+                    <svg viewBox="0 0 48 32" className="ob-cloud" aria-hidden="true">
+                        <path d="M14 28h22a8 8 0 0 0 1-15.9A11 11 0 0 0 16 9.5 9.3 9.3 0 0 0 14 28Z" />
+                        <path d="M24 24v-9M20 18.5l4-4 4 4" className="ob-cloud-arrow" />
+                    </svg>
+                </div>
+            ),
+        },
+    ];
+};
 
 const SWIPE_MIN = 45;
 
 /** Passo a passo de boas-vindas ("Como jogar"): cards que deslizam, aparece na primeira visita. */
 export function Onboarding() {
     const setOnboarded = useGame((s) => s.setOnboarded);
+    const { d } = useT();
+    const o = d.help.onboarding;
+    const SLIDES = useMemo(() => slides(d), [d]);
     const [index, setIndex] = useState(0);
     const [drag, setDrag] = useState(0);
     const start = useRef<{ x: number; y: number; id: number } | null>(null);
@@ -295,16 +270,14 @@ export function Onboarding() {
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="ob-title"
-                aria-roledescription="carrossel"
+                aria-roledescription={o.carousel}
                 tabIndex={-1}
                 onKeyDown={onKeyDown}
             >
                 <div className="ob-top">
-                    <span className="ob-count">
-                        Como jogar · {index + 1}/{SLIDES.length}
-                    </span>
+                    <span className="ob-count">{fmt(o.count, { n: index + 1, total: SLIDES.length })}</span>
                     <button type="button" className="btn ghost small ob-skip" onClick={close}>
-                        Pular
+                        {o.skip}
                     </button>
                 </div>
 
@@ -324,8 +297,8 @@ export function Onboarding() {
                                 key={s.title}
                                 className="ob-slide"
                                 aria-hidden={i !== index}
-                                aria-roledescription="passo"
-                                aria-label={`${i + 1} de ${SLIDES.length}`}
+                                aria-roledescription={o.step}
+                                aria-label={fmt(o.stepOf, { n: i + 1, total: SLIDES.length })}
                             >
                                 <div className="ob-visual">{s.visual}</div>
                                 <div className="ob-copy">
@@ -343,7 +316,7 @@ export function Onboarding() {
                         className="btn ghost ob-arrow"
                         onClick={() => goTo(index - 1)}
                         disabled={index === 0}
-                        aria-label="Anterior"
+                        aria-label={o.prev}
                     >
                         <Chevron dir="left" />
                     </button>
@@ -354,21 +327,21 @@ export function Onboarding() {
                                 type="button"
                                 className={`ob-dot${i === index ? ' on' : ''}`}
                                 onClick={() => goTo(i)}
-                                aria-label={`Ir para o passo ${i + 1}: ${s.title}`}
+                                aria-label={fmt(o.goToStep, { n: i + 1, title: s.title })}
                                 aria-current={i === index ? 'step' : undefined}
                             />
                         ))}
                     </div>
                     {last ? (
                         <button type="button" className="btn primary ob-go" onClick={close}>
-                            Bora jogar
+                            {o.go}
                         </button>
                     ) : (
                         <button
                             type="button"
                             className="btn ob-arrow ob-next"
                             onClick={() => goTo(index + 1)}
-                            aria-label="Próximo"
+                            aria-label={o.next}
                         >
                             <Chevron dir="right" />
                         </button>

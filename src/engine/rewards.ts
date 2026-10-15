@@ -3,14 +3,19 @@ import { draftOptions } from './draft';
 import { type PokemonInstance, viewInstance } from './instance';
 import { ITEM_IDS, ITEMS, TYPE_ITEM_FOR } from './items';
 import { Rng } from './rng';
+import { rollTmOffer, TM_REWARD_CHANCE } from './tm';
 
 /**
  * Recompensa depois de cada vitória da copa (estilo Slay the Spire: 1 de 3 ou pular).
  * - "Contratar do adversário": um dos melhores Pokémon do time que você acabou de eliminar;
- * - 2 itens (itens de tipo puxam os tipos do seu time, como o portal do Pokémon Auto Chess).
+ * - 2 itens (itens de tipo puxam os tipos do seu time, como o portal do Pokémon Auto Chess);
+ * - em ~metade das vezes, um dos itens vira uma MT (src/engine/tm.ts): a do ginásio vencido ou uma do baú raro.
  * Se não houver ninguém contratável, entra um reforço sorteado no lugar.
  */
-export type Reward = { kind: 'pokemon'; inst: PokemonInstance; from: string | null } | { kind: 'item'; item: string };
+export type Reward =
+    | { kind: 'pokemon'; inst: PokemonInstance; from: string | null }
+    | { kind: 'item'; item: string }
+    | { kind: 'tm'; move: string; leader: string | null };
 
 /** Raridade do reforço sorteado sobe a cada fase. */
 const REINFORCEMENT_ROUND = [3, 5, 6];
@@ -49,5 +54,11 @@ export function rewardOptions(
 
     const options: Reward[] = [...items].map((item) => ({ kind: 'item' as const, item }));
     if (pokemon) options.splice(rng.int(0, options.length), 0, pokemon);
+
+    // MT no lugar do último item; sorteio à parte para não mudar o reforço e os itens da mesma seed
+    const tmRng = new Rng(seed, `reward-tm-${stage}-r${reroll}`);
+    const offer = tmRng.chance(TM_REWARD_CHANCE) ? rollTmOffer(tmRng, team, defeated?.name) : null;
+    const last = options.map((o) => o.kind).lastIndexOf('item');
+    if (offer && last >= 0) options[last] = { kind: 'tm', ...offer };
     return options;
 }

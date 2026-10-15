@@ -76,6 +76,7 @@ export async function renderGoogleButton(
     el: HTMLElement,
     onToken: (idToken: string, rawNonce: string) => void,
     width: number,
+    locale = 'pt-BR',
 ) {
     const [gsi, nonce] = await Promise.all([loadGsi(), makeNonce()]);
     gsi.accounts.id.initialize({
@@ -92,7 +93,7 @@ export async function renderGoogleButton(
         size: 'large',
         text: 'signin_with',
         shape: 'pill',
-        locale: 'pt-BR',
+        locale,
         width,
     });
 }

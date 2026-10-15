@@ -9,6 +9,8 @@ import {
     teamTotals,
 } from '../../engine/match-stats';
 import { matchMvp } from '../../engine/mvp';
+import { clubName } from '../../i18n';
+import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { ChampionView } from '../components/ChampionView';
 import { FutCard } from '../components/FutCard';
@@ -23,23 +25,21 @@ import {
     CompareRows,
     DangerChart,
     homeC,
+    leaderTitle,
+    leaderValue,
     PossessionChart,
     ShotMapChart,
     TeamLegend,
 } from '../stats/StatsCharts';
-import { plural } from '../text';
 
 type Tab = 'times' | 'jogadores' | 'graficos' | 'copa';
-const TABS: { id: Tab; label: string }[] = [
-    { id: 'times', label: 'Times' },
-    { id: 'jogadores', label: 'Jogadores' },
-    { id: 'graficos', label: 'Gráficos' },
-    { id: 'copa', label: 'Copa' },
-];
+/** Abas (o rótulo vem do dicionário: result.tabs). */
+const TABS: Tab[] = ['times', 'jogadores', 'graficos', 'copa'];
 const pctOf = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 
 export function Result() {
     const { run, match, advance, newRun } = useGame();
+    const { t, tn, d } = useT();
     const [shared, setShared] = useState<string | null>(null);
     // fim da copa: abre direto no resumo da copa
     const [tab, setTab] = useState<Tab>(() =>
@@ -47,7 +47,7 @@ export function Result() {
     );
     if (!run || !match) return null;
     const opponent = run.opponents[run.stage];
-    const names: [string, string] = [run.teamName, opponent.name];
+    const names: [string, string] = [run.teamName, clubName(opponent.name)];
 
     const mvp = matchMvp(match);
     const stageResult = run.results.find((r) => r.stage === run.stage);
@@ -80,11 +80,7 @@ export function Result() {
     const share = async () => {
         const res = await shareRun(run);
         setShared(
-            res === 'copied'
-                ? 'Copiado! Cole onde quiser.'
-                : res === 'shared'
-                  ? 'Compartilhado!'
-                  : 'Não deu pra copiar :(',
+            res === 'copied' ? t('result.copied') : res === 'shared' ? t('result.shared') : t('result.shareFailed'),
         );
     };
 
@@ -94,18 +90,18 @@ export function Result() {
                 {eliminated || champion ? (
                     <>
                         <button type="button" className="btn yellow" onClick={share}>
-                            Compartilhar
+                            {t('result.share')}
                         </button>
                         <button type="button" className="btn primary" onClick={() => newRun(run.teamName)}>
-                            Nova copa
+                            {t('result.newCup')}
                         </button>
                         <button type="button" className="btn ghost" onClick={advance}>
-                            Menu
+                            {t('result.menu')}
                         </button>
                     </>
                 ) : (
                     <button type="button" className="btn primary big" onClick={advance}>
-                        Escolher recompensa →
+                        {t('result.chooseReward')}
                     </button>
                 )}
             </div>
@@ -119,7 +115,7 @@ export function Result() {
                         rel="noopener"
                         style={{ color: 'inherit', textDecoration: 'none' }}
                     >
-                        Dar feedback
+                        {t('result.feedback')}
                     </a>
                 </div>
             )}
@@ -140,25 +136,25 @@ export function Result() {
                     actions={actions}
                 />
             )}
-            {champion && <h2 className="champ-h champ-final-h">A final em detalhes</h2>}
+            {champion && <h2 className="champ-h champ-final-h">{t('result.finalDetails')}</h2>}
 
             <div className="two-col">
                 <div className="panel">
-                    <h2>Destaques da partida</h2>
+                    <h2>{t('result.highlights')}</h2>
                     <div className="st-leaders">
                         {leaderList.map((l) => (
-                            <div key={l.title} className="st-leader">
+                            <div key={l.id} className="st-leader">
                                 <img
                                     className="pixel"
                                     src={cardSprite({ speciesId: l.line.speciesId, shiny: false })}
                                     alt=""
                                 />
                                 <div>
-                                    <span className="muted">{l.title}</span>
+                                    <span className="muted">{leaderTitle(l)}</span>
                                     <b>{l.line.name}</b>
                                     <small>
                                         <i style={{ background: l.line.team === 0 ? homeC() : awayC() }} />
-                                        {names[l.line.team]} · {l.value}
+                                        {names[l.line.team]} · {leaderValue(l)}
                                     </small>
                                 </div>
                             </div>
@@ -166,17 +162,19 @@ export function Result() {
                     </div>
                 </div>
                 <div className="panel">
-                    <h2>Gols</h2>
+                    <h2>{t('result.goals')}</h2>
                     <div className="scorers">
-                        {goals.length === 0 && <span className="muted">Nenhum gol.</span>}
+                        {goals.length === 0 && <span className="muted">{t('result.noGoals')}</span>}
                         {goals.map(
                             (g) =>
                                 g.type === 'goal' && (
                                     <div key={g.tick}>
                                         <span className="muted">{Math.floor(g.minute)}'</span> {nameAt(g.by, g.tick)}
-                                        {g.ownGoal ? ' (contra)' : ''} — {names[g.team]}
+                                        {g.ownGoal ? t('result.ownGoal') : ''} — {names[g.team]}
                                         {g.assist !== null && (
-                                            <span className="muted"> (assist. {nameAt(g.assist, g.tick)})</span>
+                                            <span className="muted">
+                                                {t('result.assist', { name: nameAt(g.assist, g.tick) })}
+                                            </span>
                                         )}
                                     </div>
                                 ),
@@ -184,8 +182,8 @@ export function Result() {
                     </div>
                     {evolutions.length > 0 && (
                         <div className="destaque-box">
-                            <h2>{evolutions.length > 1 ? 'Evoluíram na partida!' : 'Evoluiu na partida!'}</h2>
-                            <p className="tactic-desc">A evolução vale para o resto da copa.</p>
+                            <h2>{evolutions.length > 1 ? t('result.evolvedMany') : t('result.evolvedOne')}</h2>
+                            <p className="tactic-desc">{t('result.evolvedNote')}</p>
                             <div className="row" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
                                 {evolutions.map(({ inst, from }) => (
                                     <div key={inst.uid} className="evolved-card">
@@ -200,26 +198,27 @@ export function Result() {
                     )}
                     {destaque && (
                         <div className="destaque-box">
-                            <h2>Virou carta Destaque!</h2>
+                            <h2>{t('result.destaqueTitle')}</h2>
                             <p className="tactic-desc">
-                                {destaque.nickname ?? species(destaque.speciesId).name} foi o craque do seu time e
-                                ganhou a edição Destaque: +2 em todos os atributos.
+                                {t('result.destaqueText', {
+                                    name: destaque.nickname ?? species(destaque.speciesId).name,
+                                })}
                             </p>
                             <FutCard inst={destaque} size="sm" />
                         </div>
                     )}
                     {mvp && (
                         <>
-                            <h2 style={{ marginTop: 16 }}>Craque da partida</h2>
+                            <h2 style={{ marginTop: 16 }}>{t('result.mvp')}</h2>
                             <div className="mini" style={{ display: 'inline-flex' }}>
                                 <img className="pixel" src={cardSprite(mvp)} alt="" />
                                 <div>
                                     <b>{mvp.name}</b> <span className="muted">({names[mvp.team]})</span>
                                     <div className="muted">
-                                        {plural(mvp.stats.goals, 'gol', 'gols')} ·{' '}
-                                        {plural(mvp.stats.assists, 'assistência', 'assistências')} ·{' '}
-                                        {plural(mvp.stats.saves, 'defesa', 'defesas')} ·{' '}
-                                        {plural(mvp.stats.tacklesWon, 'desarme', 'desarmes')}
+                                        {tn('common.count.goals', mvp.stats.goals)} ·{' '}
+                                        {tn('common.count.assists', mvp.stats.assists)} ·{' '}
+                                        {tn('common.count.saves', mvp.stats.saves)} ·{' '}
+                                        {tn('common.count.tackles', mvp.stats.tacklesWon)}
                                     </div>
                                 </div>
                             </div>
@@ -230,16 +229,16 @@ export function Result() {
 
             <div className="panel st-panel">
                 <div className="st-tabs" role="tablist">
-                    {TABS.map((t) => (
+                    {TABS.map((id) => (
                         <button
-                            key={t.id}
+                            key={id}
                             type="button"
                             role="tab"
-                            aria-selected={tab === t.id}
-                            className={`btn small${tab === t.id ? ' active' : ''}`}
-                            onClick={() => setTab(t.id)}
+                            aria-selected={tab === id}
+                            className={`btn small${tab === id ? ' active' : ''}`}
+                            onClick={() => setTab(id)}
                         >
-                            {t.label}
+                            {d.result.tabs[id]}
                         </button>
                     ))}
                 </div>
@@ -249,36 +248,44 @@ export function Result() {
                     <CompareRows
                         rows={[
                             {
-                                label: 'Posse de bola',
+                                label: t('result.rows.possession'),
                                 home: Math.round(match.possession[0] * 100),
                                 away: Math.round(match.possession[1] * 100),
                                 fmt: (v) => `${v}%`,
                             },
-                            { label: 'Chutes', home: totals[0].shots, away: totals[1].shots },
-                            { label: 'Chutes no gol', home: totals[0].shotsOnTarget, away: totals[1].shotsOnTarget },
+                            { label: t('result.rows.shots'), home: totals[0].shots, away: totals[1].shots },
                             {
-                                label: 'Perigo criado (chance de gol somada)',
+                                label: t('result.rows.onTarget'),
+                                home: totals[0].shotsOnTarget,
+                                away: totals[1].shotsOnTarget,
+                            },
+                            {
+                                label: t('result.rows.danger'),
                                 home: Math.round(danger.reduce((s, d) => s + d.home, 0) * 100) / 100,
                                 away: Math.round(danger.reduce((s, d) => s + d.away, 0) * 100) / 100,
                                 fmt: (v) => v.toFixed(2),
                             },
                             {
-                                label: 'Passes certos',
+                                label: t('result.rows.passesCompleted'),
                                 home: totals[0].passesCompleted,
                                 away: totals[1].passesCompleted,
                             },
                             {
-                                label: 'Acerto de passe',
+                                label: t('result.rows.passAccuracy'),
                                 home: pctOf(totals[0].passesCompleted, totals[0].passes),
                                 away: pctOf(totals[1].passesCompleted, totals[1].passes),
                                 fmt: (v) => `${v}%`,
                             },
-                            { label: 'Desarmes', home: totals[0].tacklesWon, away: totals[1].tacklesWon },
-                            { label: 'Interceptações', home: totals[0].interceptions, away: totals[1].interceptions },
-                            { label: 'Defesas', home: totals[0].saves, away: totals[1].saves },
-                            { label: 'Golpes usados', home: totals[0].movesUsed, away: totals[1].movesUsed },
+                            { label: t('result.rows.tackles'), home: totals[0].tacklesWon, away: totals[1].tacklesWon },
                             {
-                                label: 'Distância percorrida',
+                                label: t('result.rows.interceptions'),
+                                home: totals[0].interceptions,
+                                away: totals[1].interceptions,
+                            },
+                            { label: t('result.rows.saves'), home: totals[0].saves, away: totals[1].saves },
+                            { label: t('result.rows.moves'), home: totals[0].movesUsed, away: totals[1].movesUsed },
+                            {
+                                label: t('result.rows.distance'),
                                 home: totals[0].distance,
                                 away: totals[1].distance,
                                 fmt: (v) => `${(v / 1000).toFixed(1)} km`,
@@ -290,22 +297,17 @@ export function Result() {
                 {tab === 'graficos' && (
                     <div className="st-charts">
                         <div>
-                            <h3>Perigo por período</h3>
-                            <p className="muted st-sub">
-                                Soma da chance de gol dos chutes a cada 5 minutos (para cima: {names[0]}; para baixo:{' '}
-                                {names[1]}). A bolinha marca os gols.
-                            </p>
+                            <h3>{t('result.dangerTitle')}</h3>
+                            <p className="muted st-sub">{t('result.dangerSub', { home: names[0], away: names[1] })}</p>
                             <DangerChart data={danger} names={names} />
                         </div>
                         <div>
-                            <h3>Posse de bola por período</h3>
+                            <h3>{t('result.possessionTitle')}</h3>
                             <PossessionChart data={possessionByPeriod(match)} names={names} />
                         </div>
                         <div>
-                            <h3>Mapa de chutes</h3>
-                            <p className="muted st-sub">
-                                De onde saiu cada chute. {names[0]} ataca para a direita, {names[1]} para a esquerda.
-                            </p>
+                            <h3>{t('result.shotMapTitle')}</h3>
+                            <p className="muted st-sub">{t('result.shotMapSub', { home: names[0], away: names[1] })}</p>
                             <ShotMapChart shots={shotMap(match, nameAt)} />
                         </div>
                     </div>

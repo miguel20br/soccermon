@@ -1,5 +1,6 @@
 import type { Tier } from '../engine/data';
 import type { Edition } from '../engine/specials';
+import { dict } from '../i18n';
 
 /**
  * Qualidade da carta = metal pela nota (padrão FIFA): bronze até 64, prata de 65 a 74, ouro 75+.
@@ -45,3 +46,9 @@ export const EDITION: Record<Edition, { label: string; finish: 'gold' | 'rainbow
     icone: { label: 'Ícone', finish: 'cosmos' },
     evento: { label: 'Evento', finish: 'radiant' },
 };
+
+// Rótulos no idioma do jogo (os objetos acima guardam o texto em português, para quem ainda usa).
+export const metalLabel = (m: Metal) => dict().common.metal[m];
+export const finishLabel = (f: Finish) => dict().common.finish[f];
+export const tierLabel = (tier: Tier) => dict().common.tier[tier];
+export const editionLabel = (e: Edition) => dict().common.edition[e];

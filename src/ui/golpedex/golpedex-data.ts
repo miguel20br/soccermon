@@ -7,12 +7,12 @@ import type { Dex, MoveDex } from '../../store/profile';
 /**
  * Dados da Golpedex (?lab=golpes): cada golpe do jogo com quem usa, e as regras de "descoberto".
  * Um golpe entra na Golpedex quando aparece em campo numa partida sua (store `moves`, contado no fim da
- * partida). Só contam os golpes que algum Pokémon usa de verdade (moveset padrão dos 151, que já inclui a
- * assinatura); os outros só aparecem no modo revisão.
+ * partida, dos dois times). Contam todos os golpes que algum Pokémon pode aprender: os do moveset padrão e
+ * os que só chegam por MT (recompensa "MT do ginásio" e rivais com a MT do líder, src/engine/tm.ts).
  */
 export interface MoveRow {
     id: string;
-    /** Número na Golpedex (ordem por tipo e nome); 0 = fora do jogo (só no modo revisão). */
+    /** Número na Golpedex (ordem por tipo e nome); 0 = ninguém aprende (fora do jogo, só no modo revisão). */
     num: number;
     name: string;
     type: string;
@@ -24,6 +24,8 @@ export interface MoveRow {
     desc: string | null;
     /** Espécies que usam por padrão. */
     users: Species[];
+    /** Ninguém leva no moveset padrão: só chega em campo por MT. */
+    tmOnly: boolean;
     signatureOf: Species[];
     /** Quem faz a animação quando nenhum usuário foi visto ainda. */
     performer: number;
@@ -40,6 +42,7 @@ function build(): MoveRow[] {
         const signatureOf = SPECIES.filter((sp) => SIGNATURE[sp.id] === m.id);
         const users = SPECIES.filter((sp) => MOVESET.get(sp.id)?.includes(m.id));
         const learner = SPECIES.find((sp) => sp.learnset.includes(m.id));
+        const learnable = !!learner || users.length > 0;
         return {
             id: m.id,
             num: 0,
@@ -52,19 +55,21 @@ function build(): MoveRow[] {
             uses: prof.uses,
             desc: m.descPt,
             users,
+            tmOnly: learnable && users.length === 0,
+            learnable,
             signatureOf,
             performer: (signatureOf[0] ?? users[0] ?? learner ?? SPECIES[24]).id,
         };
     });
     rows.sort((a, b) => a.type.localeCompare(b.type) || a.name.localeCompare(b.name));
     let n = 0;
-    for (const r of rows) if (r.users.length) r.num = ++n;
-    return rows;
+    for (const r of rows) if (r.learnable) r.num = ++n;
+    return rows.map(({ learnable: _, ...r }) => r);
 }
 
 /** Todos os golpes (164), em ordem de tipo e nome. */
 export const ALL_ROWS: MoveRow[] = build();
-/** Os que aparecem em campo: o total da Golpedex. */
+/** Os que dá para ver em campo (alguém aprende): o total da Golpedex. */
 export const GAME_ROWS: MoveRow[] = ALL_ROWS.filter((r) => r.num > 0);
 export const ROW_BY_ID: ReadonlyMap<string, MoveRow> = new Map(ALL_ROWS.map((r) => [r.id, r]));
 

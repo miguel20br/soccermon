@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { CUP_STAGES } from '../../engine/cup';
 import { FORMATIONS } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
-import { ITEMS, itemSprite } from '../../engine/items';
+import { itemSprite } from '../../engine/items';
 import { computeLinks } from '../../engine/links';
 import { TACTIC_LABEL, type Tactic } from '../../engine/state';
 import { computeSynergies } from '../../engine/synergy';
 import { playSfx } from '../../game/audio';
-import { playerTeam, type SlotRef, stageLabel, useGame } from '../../store/game-store';
+import { clubName, dict, formationText, itemDesc, itemName, stageName } from '../../i18n';
+import { useT } from '../../i18n/react';
+import { playerTeam, type SlotRef, useGame } from '../../store/game-store';
 import { useCardModal } from '../card-modal';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
@@ -16,12 +17,8 @@ import { cardSprite, TypeBadge } from '../components/PokeCard';
 import { Tip } from '../help/Tip';
 import { simulateMatch } from '../sim-client';
 
-export const TACTIC_DESC: Record<Tactic, string> = {
-    balanced: 'Passe e posicionamento um pouco melhores (+3%), sem cansar mais.',
-    offensive: 'Linhas altas e mais chutes. Cansa mais e abre espaço atrás.',
-    defensive: 'Bloco baixo: melhor desarme e leitura. Ataca pouco.',
-    counter: 'Pivô espera lá na frente; passes e arrancadas mais rápidos.',
-};
+/** Descrição das táticas em português (o texto de cada idioma está em i18n: team.lineup.tacticDesc). */
+export const TACTIC_DESC: Record<Tactic, string> = dict('pt').team.lineup.tacticDesc;
 
 export function Lineup() {
     const { run, swapSlots, setTactic, setFormation, moveItem, setMatch, go, abandonRun, lockMatch } = useGame();
@@ -30,6 +27,7 @@ export function Lineup() {
     const [selected, setSelected] = useState<SlotRef | null>(null);
     const [detail, setDetail] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const { t, d, lang } = useT();
     if (!run) return null;
 
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
@@ -76,7 +74,7 @@ export function Lineup() {
             setMatch(result);
             go('match');
         } catch {
-            setError('Não foi possível simular a partida. Tente de novo (recarregue a página se persistir).');
+            setError(t('team.lineup.simError'));
         } finally {
             setLoading(false);
         }
@@ -84,23 +82,21 @@ export function Lineup() {
 
     return (
         <>
-            <Tip id="lineup-coach">
-                Na partida você é o técnico: toque num Pokémon pra ver o painel dele e use Substituir quando alguém
-                cansar.
-            </Tip>
+            <Tip id="lineup-coach">{t('team.lineup.tip')}</Tip>
             <div className="panel">
                 <div className="cup-path">
-                    {CUP_STAGES.map((label, i) => {
+                    {d.common.stage.map((label, i) => {
                         const res = run.results.find((r) => r.stage === i);
                         const cls = res ? (res.won ? 'won' : 'lost') : i === run.stage ? 'now' : '';
                         return (
                             <div key={label} className={`cup-step ${cls}`}>
                                 <b>{label}</b>
-                                <span className="muted">{run.opponents[i].name}</span>
+                                <span className="muted">{clubName(run.opponents[i].name, lang)}</span>
                                 {res && (
                                     <div>
                                         {res.score[0]} x {res.score[1]}
-                                        {res.shootout && ` (pên. ${res.shootout[0]}x${res.shootout[1]})`}
+                                        {res.shootout &&
+                                            t('team.lineup.pens', { a: res.shootout[0], b: res.shootout[1] })}
                                     </div>
                                 )}
                             </div>
@@ -111,7 +107,7 @@ export function Lineup() {
 
             <div className="lineup-grid">
                 <div className="panel">
-                    <h2>Escalação — {run.teamName}</h2>
+                    <h2>{t('team.lineup.title', { team: run.teamName })}</h2>
                     <div className="formation-tabs">
                         {Object.values(FORMATIONS).map((f) => (
                             <button
@@ -121,12 +117,12 @@ export function Lineup() {
                                 disabled={locked}
                                 onClick={() => setFormation(f.id)}
                             >
-                                {f.name}
+                                {formationText(f.id, lang).name}
                             </button>
                         ))}
                     </div>
                     <p className="muted" style={{ marginTop: 8 }}>
-                        Toque em dois jogadores para trocá-los de vaga (inclusive com o banco).
+                        {t('team.lineup.swapHint')}
                     </p>
                     <FormationBoard
                         formation={run.formation}
@@ -145,8 +141,7 @@ export function Lineup() {
                         onSlot={onSlot}
                         footer={
                             <p className="muted center" style={{ fontSize: 11, marginBottom: 0 }}>
-                                Na partida, toque em Substituir para trocar quem cansou: a troca entra na próxima saída
-                                de bola.
+                                {t('team.lineup.subHint')}
                             </p>
                         }
                     />
@@ -155,7 +150,7 @@ export function Lineup() {
                 <div className="side-stack">
                     <div className="panel">
                         <h2>
-                            {stageLabel(run.stage)}: {opponent.name}
+                            {stageName(run.stage, lang)}: {clubName(opponent.name, lang)}
                         </h2>
                         <div className="opponent-strip">
                             {opponent.lineup.map((p) => (
@@ -163,57 +158,67 @@ export function Lineup() {
                                     key={p.uid}
                                     type="button"
                                     className="scout-btn"
-                                    onClick={() => openCard(p, { note: `Adversário: ${opponent.name}` })}
-                                    aria-label={`Ver carta de ${viewInstance(p).displayName}`}
+                                    onClick={() =>
+                                        openCard(p, {
+                                            note: t('team.lineup.opponentNote', {
+                                                name: clubName(opponent.name, lang),
+                                            }),
+                                        })
+                                    }
+                                    aria-label={t('team.lineup.seeCard', { name: viewInstance(p).displayName })}
                                 >
                                     <img className="pixel" src={cardSprite(p)} alt="" />
                                 </button>
                             ))}
                         </div>
                         <p className="muted" style={{ fontSize: 11 }}>
-                            {FORMATIONS[opponent.formation ?? '1-2-1'].name} · {TACTIC_LABEL[opponent.tactic]} · Média{' '}
-                            {Math.round(
-                                opponent.lineup.reduce((s, p) => s + viewInstance(p).overall, 0) /
-                                    opponent.lineup.length,
-                            )}
+                            {t('team.lineup.oppLine', {
+                                formation: formationText(opponent.formation ?? '1-2-1', lang).name,
+                                tactic: d.common.tactic[opponent.tactic],
+                                n: Math.round(
+                                    opponent.lineup.reduce((s, p) => s + viewInstance(p).overall, 0) /
+                                        opponent.lineup.length,
+                                ),
+                            })}
                         </p>
                         <button type="button" className="btn primary wide" onClick={play} disabled={loading}>
                             {loading
-                                ? 'Aquecendo…'
+                                ? t('team.lineup.warming')
                                 : locked
-                                  ? 'Voltar para a partida'
-                                  : `Jogar ${stageLabel(run.stage).toLowerCase()}`}
+                                  ? t('team.lineup.backToMatch')
+                                  : t('team.lineup.play', {
+                                        stage:
+                                            lang === 'pt'
+                                                ? stageName(run.stage, lang).toLowerCase()
+                                                : stageName(run.stage, lang),
+                                    })}
                         </button>
-                        {locked && (
-                            <p className="tactic-desc">
-                                Partida em andamento: escalação e tática ficam travadas até o apito final.
-                            </p>
-                        )}
+                        {locked && <p className="tactic-desc">{t('team.lineup.lockedNote')}</p>}
                         {error && <p className="error-text">{error}</p>}
                     </div>
 
                     <div className="panel">
-                        <h2>Tática</h2>
+                        <h2>{t('team.lineup.tactic')}</h2>
                         <div className="tactics">
-                            {(Object.keys(TACTIC_LABEL) as Tactic[]).map((t) => (
+                            {(Object.keys(TACTIC_LABEL) as Tactic[]).map((tc) => (
                                 <button
-                                    key={t}
+                                    key={tc}
                                     type="button"
-                                    className={`btn small${run.tactic === t ? ' active' : ''}`}
+                                    className={`btn small${run.tactic === tc ? ' active' : ''}`}
                                     disabled={locked}
-                                    onClick={() => setTactic(t)}
+                                    onClick={() => setTactic(tc)}
                                 >
-                                    {TACTIC_LABEL[t]}
+                                    {d.common.tactic[tc]}
                                 </button>
                             ))}
                         </div>
-                        <p className="tactic-desc">{TACTIC_DESC[run.tactic]} Dá para mudar durante o jogo.</p>
-                        {captainBenched && (
-                            <p className="error-text">O capitão está no banco: a aura dele só vale em quadra.</p>
-                        )}
-                        <h3 style={{ marginTop: 12 }}>Sinergias de tipo</h3>
+                        <p className="tactic-desc">
+                            {d.team.lineup.tacticDesc[run.tactic]} {t('team.lineup.canChange')}
+                        </p>
+                        {captainBenched && <p className="error-text">{t('team.lineup.captainBenched')}</p>}
+                        <h3 style={{ marginTop: 12 }}>{t('team.lineup.typeSynergies')}</h3>
                         {synergies.length === 0 ? (
-                            <p className="tactic-desc">Escale 2+ titulares do mesmo tipo para ganhar bônus.</p>
+                            <p className="tactic-desc">{t('team.lineup.typeSynEmpty')}</p>
                         ) : (
                             <div className="row" style={{ gap: 8 }}>
                                 {synergies.map((s) => (
@@ -226,12 +231,9 @@ export function Lineup() {
                                 ))}
                             </div>
                         )}
-                        <h3 style={{ marginTop: 12 }}>Sinergias de história</h3>
+                        <h3 style={{ marginTop: 12 }}>{t('team.lineup.storySynergies')}</h3>
                         {links.length === 0 ? (
-                            <p className="tactic-desc">
-                                Duplas e grupos famosos (Mew + Mewtwo, Pássaros Lendários, Equipe Rocket…) ganham bônus
-                                juntos e podem soltar um combo: passe de um, chute do outro.
-                            </p>
+                            <p className="tactic-desc">{t('team.lineup.storySynEmpty')}</p>
                         ) : (
                             <div className="row" style={{ gap: 6 }}>
                                 <LinkChips links={links} />
@@ -243,16 +245,16 @@ export function Lineup() {
                         <>
                             <div className="detail-card">
                                 <FutCard inst={detailInst} captain={detailInst.uid === run.captainUid} />
-                                <p className="tactic-desc center">Toque na carta para ver tudo sobre o Pokémon.</p>
+                                <p className="tactic-desc center">{t('team.lineup.detailHint')}</p>
                             </div>
                             {detailInst.item && (
                                 <div className="panel item-move">
                                     <img className="pixel" src={itemSprite(detailInst.item)} alt="" />
                                     <span>
-                                        <b>{ITEMS[detailInst.item]?.name}</b> — {ITEMS[detailInst.item]?.desc}
+                                        <b>{itemName(detailInst.item)}</b> — {itemDesc(detailInst.item, lang)}
                                     </span>
                                     <label className="muted">
-                                        Passar para{' '}
+                                        {t('team.lineup.giveTo')}{' '}
                                         <select
                                             value=""
                                             disabled={locked}
@@ -262,7 +264,9 @@ export function Lineup() {
                                             {holders.map((h) => (
                                                 <option key={h.uid} value={h.uid}>
                                                     {viewInstance(h).displayName}
-                                                    {h.item ? ` (troca com ${ITEMS[h.item]?.name})` : ''}
+                                                    {h.item
+                                                        ? t('team.lineup.swapWith', { item: itemName(h.item) })
+                                                        : ''}
                                                 </option>
                                             ))}
                                         </select>
@@ -276,10 +280,10 @@ export function Lineup() {
                         type="button"
                         className="btn ghost small"
                         onClick={() => {
-                            if (confirm('Abandonar esta copa? O time será perdido.')) abandonRun();
+                            if (confirm(t('team.lineup.abandonConfirm'))) abandonRun();
                         }}
                     >
-                        Abandonar copa
+                        {t('team.lineup.abandon')}
                     </button>
                 </div>
             </div>

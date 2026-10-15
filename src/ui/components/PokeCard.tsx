@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { abilityEffect } from '../../engine/abilities';
-import { type AttrKey, POSITION_LABEL, type Position } from '../../engine/attributes';
-import { ABILITIES, MOVES, type Tier } from '../../engine/data';
+import type { AttrKey, Position } from '../../engine/attributes';
+import { MOVES, type Tier } from '../../engine/data';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
-import { ITEMS, itemSprite } from '../../engine/items';
+import { itemSprite } from '../../engine/items';
 import { moveProfile } from '../../engine/moves';
+import { abilityDesc, abilityName, dict, itemDesc, itemName, moveDesc, moveName } from '../../i18n';
+import { useT } from '../../i18n/react';
 import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
 import { TypeIcon } from './TypeIcon';
@@ -16,42 +18,13 @@ export const TIER_COLOR: Record<Tier, string> = {
     epic: '#b46cff',
     legendary: '#ffcb05',
 };
-export const TIER_PT: Record<Tier, string> = {
-    common: 'Comum',
-    uncommon: 'Incomum',
-    rare: 'Raro',
-    epic: 'Épico',
-    legendary: 'Lendário',
-};
-
-const ATTR_PT: Record<AttrKey, string> = {
-    pace: 'Velocidade',
-    dribble: 'Drible',
-    shooting: 'Chute',
-    passing: 'Passe',
-    tackling: 'Desarme',
-    strength: 'Força',
-    positioning: 'Leitura',
-    stamina: 'Fôlego',
-    goalkeeping: 'Goleiro',
-};
-
-const KIND_PT: Record<string, string> = {
-    strike: 'chute forte / carrinho',
-    blast: 'finalização especial',
-    burst: 'arrancada',
-    buff: 'fortalece',
-    debuff: 'enfraquece rival',
-    status: 'status no rival',
-    heal: 'recupera fôlego',
-    flavor: '...nada?',
-    special: 'efeito especial',
-};
+/** Raridade em português (no idioma do jogo: `tierLabel` em ui/rarity.ts). */
+export const TIER_PT: Record<Tier, string> = dict('pt').common.tier;
 
 export const cardSprite = (inst: Pick<PokemonInstance, 'speciesId' | 'shiny'>) =>
     `assets/cards/${inst.shiny ? 'shiny/' : ''}${inst.speciesId}.gif`;
 
-/** Tipo com o ícone oficial + nome em português (src/ui/components/TypeIcon.tsx). */
+/** Tipo com o ícone oficial + nome no idioma do jogo (src/ui/components/TypeIcon.tsx). */
 export function TypeBadge({ type }: { type: string }) {
     return <TypeIcon type={type} label />;
 }
@@ -64,6 +37,7 @@ function attrColor(v: number) {
 }
 
 export function AttrBars({ inst, keys }: { inst: PokemonInstance; keys?: AttrKey[] }) {
+    const { d } = useT();
     const view = viewInstance(inst);
     const list =
         keys ??
@@ -85,7 +59,7 @@ export function AttrBars({ inst, keys }: { inst: PokemonInstance; keys?: AttrKey
                 const v = Math.round(view.attributes[k]);
                 return (
                     <div className="attr" key={k}>
-                        <span>{ATTR_PT[k]}</span>
+                        <span>{d.common.attr[k]}</span>
                         <span className="bar">
                             <i style={{ width: `${v}%`, background: attrColor(v) }} />
                         </span>
@@ -98,6 +72,7 @@ export function AttrBars({ inst, keys }: { inst: PokemonInstance; keys?: AttrKey
 }
 
 export function MoveList({ inst }: { inst: PokemonInstance }) {
+    const { d, lang } = useT();
     return (
         <div className="moves">
             {inst.moves.map((m) => {
@@ -108,9 +83,9 @@ export function MoveList({ inst }: { inst: PokemonInstance }) {
                         key={m}
                         className="move"
                         style={{ ['--move-color' as string]: TYPE_COLOR[data.type] }}
-                        title={`${KIND_PT[prof.kind]} · ${data.descPt ?? data.shortDesc}`}
+                        title={`${d.common.moveKind[prof.kind]} · ${moveDesc(m, lang)}`}
                     >
-                        {data.name}
+                        {moveName(m)}
                     </span>
                 );
             })}
@@ -129,13 +104,13 @@ interface PokeCardProps {
 
 export function PokeCard({ inst, onClick, position, captain, selected }: PokeCardProps) {
     const [showAttrs, setShowAttrs] = useState(false);
+    const { t, d, lang } = useT();
     const view = viewInstance(inst);
     const sp = view.species;
-    const ability = ABILITIES[inst.ability];
     const hasEffect = Object.keys(abilityEffect(inst.ability)).length > 0;
     const pos = position ?? view.naturalPosition;
     const { rating, fit } = ratingAt(inst, pos);
-    const item = inst.item ? ITEMS[inst.item] : null;
+    const item = inst.item;
     const interactive = onClick
         ? {
               role: 'button',
@@ -157,7 +132,7 @@ export function PokeCard({ inst, onClick, position, captain, selected }: PokeCar
             {...interactive}
         >
             {inst.shiny && (
-                <span className="shiny" title="Shiny!">
+                <span className="shiny" title={t('team.card.shiny')}>
                     ★
                 </span>
             )}
@@ -168,7 +143,7 @@ export function PokeCard({ inst, onClick, position, captain, selected }: PokeCar
                         {view.displayName}
                     </div>
                     <div className="card-dex">
-                        #{String(sp.id).padStart(3, '0')} · <span className="tier-label">{TIER_PT[sp.tier]}</span>
+                        #{String(sp.id).padStart(3, '0')} · <span className="tier-label">{d.common.tier[sp.tier]}</span>
                     </div>
                     <div className="row" style={{ gap: 4, marginTop: 4 }}>
                         {sp.types.map((t) => (
@@ -178,17 +153,17 @@ export function PokeCard({ inst, onClick, position, captain, selected }: PokeCar
                 </div>
                 <div className="card-ovr">
                     <b>{rating}</b>
-                    <span className={`pos-badge ${fit}`}>{POSITION_LABEL[pos]}</span>
-                    {fit === 'off' && <div className="card-natural">fora de posição</div>}
+                    <span className={`pos-badge ${fit}`}>{d.common.pos[pos]}</span>
+                    {fit === 'off' && <div className="card-natural">{t('team.card.offPosition')}</div>}
                 </div>
             </div>
             <div className="card-art">
                 <img className="pixel" src={cardSprite(inst)} alt={sp.name} loading="lazy" />
             </div>
-            <div className="card-positions" title="Posições em que joga bem">
+            <div className="card-positions" title={t('team.card.goodPositions')}>
                 {view.positions.map((p, i) => (
                     <span key={p} className={`pos-chip${i === 0 ? ' main' : ''}`}>
-                        {POSITION_LABEL[p]}
+                        {d.common.pos[p]}
                     </span>
                 ))}
             </div>
@@ -200,17 +175,17 @@ export function PokeCard({ inst, onClick, position, captain, selected }: PokeCar
                     setShowAttrs((v) => !v);
                 }}
             >
-                {showAttrs ? 'esconder atributos' : 'ver atributos'}
+                {showAttrs ? t('team.card.hideAttrs') : t('team.card.showAttrs')}
             </button>
             <AttrBars inst={inst} />
             <MoveList inst={inst} />
-            <div className="ability" title={ability?.descPt ?? ability?.shortDesc}>
-                Habilidade: <b>{ability?.name ?? inst.ability}</b>
-                {!hasEffect && <span> (sem efeito no futsal)</span>}
+            <div className="ability" title={abilityDesc(inst.ability, lang)}>
+                {t('team.card.abilityLabel')} <b>{abilityName(inst.ability)}</b>
+                {!hasEffect && <span>{t('team.card.noEffect')}</span>}
             </div>
             {item && (
-                <div className="card-item" title={item.desc}>
-                    <img className="pixel" src={itemSprite(item.id)} alt="" /> {item.name}
+                <div className="card-item" title={itemDesc(item, lang)}>
+                    <img className="pixel" src={itemSprite(item)} alt="" /> {itemName(item)}
                 </div>
             )}
         </div>

@@ -1,8 +1,8 @@
 import { useState } from 'react';
+import { clubName, stageName } from '../../i18n';
+import { useT } from '../../i18n/react';
 import type { StageResult, StageStats } from '../../store/game-store';
-import { stageLabel } from '../../store/game-store';
 import { cardSprite } from '../components/PokeCard';
-import { plural } from '../text';
 import { awayC, homeC } from './StatsCharts';
 
 /**
@@ -82,6 +82,7 @@ export const avg = (a: Agg) => (a.games ? a.ratingSum / a.games : 0);
 
 /** Gols feitos (vermelho) e sofridos (azul) por partida. */
 function GoalsChart({ results }: { results: StageResult[] }) {
+    const { t, d } = useT();
     const [hover, setHover] = useState<number | null>(null);
     const W = 560;
     const H = 180;
@@ -93,7 +94,7 @@ function GoalsChart({ results }: { results: StageResult[] }) {
     const y = (v: number) => pad.t + ph - (v / max) * ph;
     return (
         <div className="st-chart">
-            <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Gols feitos e sofridos por partida">
+            <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t('stats.cup.goalsAria')}>
                 <line x1={pad.l} x2={W - pad.r} y1={pad.t + ph} y2={pad.t + ph} stroke="#3a4680" />
                 {results.map((r, i) => {
                     const cx = pad.l + band * i + band / 2;
@@ -129,11 +130,11 @@ function GoalsChart({ results }: { results: StageResult[] }) {
                                 );
                             })}
                             <text x={cx} y={H - 12} fill="var(--muted)" fontSize={10} textAnchor="middle">
-                                {stageLabel(r.stage).replace(' de final', '')}
+                                {d.stats.cup.stageShort[r.stage] ?? ''}
                             </text>
                             {hover === i && (
                                 <text x={cx} y={H - 1} fill="var(--text)" fontSize={10} textAnchor="middle">
-                                    vs {r.opponent}
+                                    {t('stats.cup.vs', { name: clubName(r.opponent) })}
                                 </text>
                             )}
                         </g>
@@ -143,11 +144,11 @@ function GoalsChart({ results }: { results: StageResult[] }) {
             <div className="st-legend">
                 <span>
                     <i style={{ background: homeC() }} />
-                    Gols feitos
+                    {t('stats.cup.goalsFor')}
                 </span>
                 <span>
                     <i style={{ background: awayC() }} />
-                    Gols sofridos
+                    {t('stats.cup.goalsAgainst')}
                 </span>
             </div>
         </div>
@@ -155,7 +156,8 @@ function GoalsChart({ results }: { results: StageResult[] }) {
 }
 
 export function CupStats({ results }: { results: StageResult[] }) {
-    if (!results.length) return <p className="muted">A copa ainda não teve partidas.</p>;
+    const { t, tn, d } = useT();
+    if (!results.length) return <p className="muted">{t('stats.cup.empty')}</p>;
     const players = aggregate(results).sort((a, b) => b.goals - a.goals || avg(b) - avg(a));
     const gf = results.reduce((s, r) => s + r.score[0], 0);
     const ga = results.reduce((s, r) => s + r.score[1], 0);
@@ -167,58 +169,62 @@ export function CupStats({ results }: { results: StageResult[] }) {
         const list = players.filter((a) => score(a) > min);
         return list.length ? list.reduce((x, y) => (score(y) > score(x) ? y : x)) : null;
     };
+    const aw = d.stats.cup.award;
     const awards: [string, Agg | null, (a: Agg) => string][] = [
-        ['Artilheiro da copa', pick((a) => a.goals), (a) => plural(a.goals, 'gol', 'gols')],
-        ['Garçom', pick((a) => a.assists), (a) => plural(a.assists, 'assistência', 'assistências')],
-        ['Melhor nota média', pick((a) => (a.games >= 2 ? avg(a) : 0)), (a) => avg(a).toFixed(1)],
-        ['Maratonista', pick((a) => a.distance), (a) => `${(a.distance / 1000).toFixed(1)} km`],
+        [aw.scorer, pick((a) => a.goals), (a) => tn('common.count.goals', a.goals)],
+        [aw.assists, pick((a) => a.assists), (a) => tn('common.count.assists', a.assists)],
+        [aw.rating, pick((a) => (a.games >= 2 ? avg(a) : 0)), (a) => avg(a).toFixed(1)],
+        [aw.distance, pick((a) => a.distance), (a) => t('stats.cup.km', { n: (a.distance / 1000).toFixed(1) })],
         [
-            'Ladrão de bolas',
+            aw.steals,
             pick((a) => a.tacklesWon + a.interceptions),
-            (a) => plural(a.tacklesWon + a.interceptions, 'roubada', 'roubadas'),
+            (a) => tn('stats.cup.steals', a.tacklesWon + a.interceptions),
         ],
-        ['Paredão', pick((a) => a.saves), (a) => plural(a.saves, 'defesa', 'defesas')],
+        [aw.saves, pick((a) => a.saves), (a) => tn('common.count.saves', a.saves)],
     ];
+    const col = d.stats.cup.col;
 
     return (
         <div className="st-charts">
             <div className="cup-totals">
                 <div>
                     <b>{results.filter((r) => r.won).length}</b>
-                    <span>vitórias</span>
+                    <span>{t('stats.cup.totalWins')}</span>
                 </div>
                 <div>
                     <b>{gf}</b>
-                    <span>gols feitos</span>
+                    <span>{t('stats.cup.totalFor')}</span>
                 </div>
                 <div>
                     <b>{ga}</b>
-                    <span>gols sofridos</span>
+                    <span>{t('stats.cup.totalAgainst')}</span>
                 </div>
                 {poss !== null && (
                     <div>
                         <b>{poss}%</b>
-                        <span>posse média</span>
+                        <span>{t('stats.cup.totalPossession')}</span>
                     </div>
                 )}
             </div>
 
             <div>
-                <h3>Campanha</h3>
+                <h3>{t('stats.cup.campaign')}</h3>
                 <div className="cup-campaign">
                     {results.map((r) => {
                         const star = r.stats?.players.reduce((a, b) => (b.rating > a.rating ? b : a));
                         return (
                             <div key={r.stage} className={`cup-match ${r.won ? 'won' : 'lost'}`}>
-                                <span className="muted">{stageLabel(r.stage)}</span>
+                                <span className="muted">{stageName(r.stage)}</span>
                                 <b>
                                     {r.score[0]} x {r.score[1]}
-                                    {r.shootout && <small> (pên. {r.shootout.join('x')})</small>}
+                                    {r.shootout && (
+                                        <small>{t('stats.cup.shootout', { score: r.shootout.join('x') })}</small>
+                                    )}
                                 </b>
-                                <span>vs {r.opponent}</span>
+                                <span>{t('stats.cup.vs', { name: clubName(r.opponent) })}</span>
                                 {star && (
                                     <span className="muted">
-                                        Craque: {star.name} ({star.rating.toFixed(1)})
+                                        {t('stats.cup.star', { name: star.name, rating: star.rating.toFixed(1) })}
                                     </span>
                                 )}
                             </div>
@@ -228,12 +234,12 @@ export function CupStats({ results }: { results: StageResult[] }) {
             </div>
 
             <div>
-                <h3>Gols por partida</h3>
+                <h3>{t('stats.cup.goalsPerMatch')}</h3>
                 <GoalsChart results={results} />
             </div>
 
             <div>
-                <h3>Destaques da copa</h3>
+                <h3>{t('stats.cup.highlights')}</h3>
                 <div className="st-leaders">
                     {awards
                         .filter(([, a]) => a)
@@ -257,22 +263,22 @@ export function CupStats({ results }: { results: StageResult[] }) {
             </div>
 
             <div>
-                <h3>Seu time na copa</h3>
+                <h3>{t('stats.cup.yourTeam')}</h3>
                 <div className="st-table-scroll">
                     <table className="st-table">
                         <thead>
                             <tr>
-                                <th className="st-name">Pokémon</th>
-                                <th title="Partidas">J</th>
-                                <th title="Nota média">Nota</th>
-                                <th title="Gols">G</th>
-                                <th title="Assistências">A</th>
-                                <th title="Chutes">Chutes</th>
-                                <th title="Passes certos / tentados">Passes</th>
-                                <th title="Desarmes + interceptações">Roubadas</th>
-                                <th title="Defesas">Defesas</th>
-                                <th title="Golpes usados">Golpes</th>
-                                <th title="Distância percorrida">Correu</th>
+                                <th className="st-name">{col.pokemon}</th>
+                                <th title={col.gamesTitle}>{col.games}</th>
+                                <th title={col.ratingTitle}>{col.rating}</th>
+                                <th title={col.goalsTitle}>{col.goals}</th>
+                                <th title={col.assistsTitle}>{col.assists}</th>
+                                <th title={col.shotsTitle}>{col.shots}</th>
+                                <th title={col.passesTitle}>{col.passes}</th>
+                                <th title={col.stealsTitle}>{col.steals}</th>
+                                <th title={col.savesTitle}>{col.saves}</th>
+                                <th title={col.movesTitle}>{col.moves}</th>
+                                <th title={col.ranTitle}>{col.ran}</th>
                             </tr>
                         </thead>
                         <tbody>

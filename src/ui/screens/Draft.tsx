@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { POSITION_LABEL } from '../../engine/attributes';
 import { DRAFT_PICKS } from '../../engine/draft';
 import { FORMATIONS, type FormationId } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
 import { computeLinks } from '../../engine/links';
 import { computeSynergies } from '../../engine/synergy';
 import { playSfx } from '../../game/audio';
+import { formationText } from '../../i18n';
+import { useT } from '../../i18n/react';
 import { type SlotRef, slotRole, useGame } from '../../store/game-store';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
@@ -35,6 +36,7 @@ function FormationDiagram({ id }: { id: FormationId }) {
 export function Draft() {
     const { run, chooseFormation, chooseSlot, pick, reroll } = useGame();
     const [selected, setSelected] = useState<string | null>(null);
+    const { t, d, lang } = useT();
     if (!run) return null;
 
     if (run.status === 'formation') {
@@ -42,8 +44,8 @@ export function Draft() {
             <>
                 <div className="draft-head">
                     <div>
-                        <div className="muted">Antes do draft</div>
-                        <h1>Escolha a formação</h1>
+                        <div className="muted">{t('team.draft.beforeDraft')}</div>
+                        <h1>{t('team.draft.chooseFormation')}</h1>
                     </div>
                 </div>
                 <div className="formation-picker">
@@ -58,9 +60,9 @@ export function Draft() {
                             }}
                         >
                             <FormationDiagram id={f.id} />
-                            <b>{f.name}</b>
-                            <span className="muted">{f.slots.map((s) => POSITION_LABEL[s]).join(' · ')}</span>
-                            <span className="tactic-desc">{f.description}</span>
+                            <b>{formationText(f.id, lang).name}</b>
+                            <span className="muted">{f.slots.map((s) => d.common.pos[s]).join(' · ')}</span>
+                            <span className="tactic-desc">{formationText(f.id, lang).description}</span>
                         </button>
                     ))}
                 </div>
@@ -76,23 +78,25 @@ export function Draft() {
     const links = computeLinks(filled);
     const avg = filled.length ? Math.round(filled.reduce((s, p) => s + viewInstance(p).overall, 0) / filled.length) : 0;
     const role = run.draftSlot ? slotRole(run, run.draftSlot) : null;
-    const roleLabel = role === 'ANY' ? 'o banco' : role ? POSITION_LABEL[role] : '';
+    const roleLabel = role === 'ANY' ? t('team.draft.theBench') : role ? d.common.pos[role] : '';
 
     const title = isCaptain
         ? chosen
-            ? `Em que vaga ${viewInstance(chosen).displayName} vai jogar?`
-            : 'Escolha seu capitão'
+            ? t('team.draft.whereCaptain', { name: viewInstance(chosen).displayName })
+            : t('team.draft.chooseCaptain')
         : run.draftSlot
-          ? `Escolha quem vai para ${roleLabel === 'o banco' ? roleLabel : `a vaga de ${roleLabel}`}`
-          : 'Escolha uma posição para preencher';
+          ? role === 'ANY'
+              ? t('team.draft.chooseForBench')
+              : t('team.draft.chooseForSlot', { pos: roleLabel })
+          : t('team.draft.chooseSlot');
 
     const hint = isCaptain
         ? chosen
-            ? 'Toque numa vaga: o número é a nota dele ali.'
-            : 'O capitão dá +3% ao time e +6% a quem divide tipo com ele.'
+            ? t('team.draft.hintCaptainSlot')
+            : t('team.draft.hintCaptain')
         : run.draftSlot
-          ? 'Saíram 3 Pokémon que jogam nessa posição.'
-          : 'Toque numa vaga livre na quadra ou no banco.';
+          ? t('team.draft.hintOptions')
+          : t('team.draft.hintSlot');
 
     const onSlot = (slot: SlotRef, uid: string) => {
         if (uid) return;
@@ -122,15 +126,17 @@ export function Draft() {
             <div className="draft-head">
                 <div>
                     <div className="muted">
-                        {isCaptain ? 'Capitão' : `Escolha ${run.draftRound + 1} de ${DRAFT_PICKS}`} ·{' '}
-                        {FORMATIONS[run.formation].name}
+                        {isCaptain
+                            ? t('common.ui.captain')
+                            : t('team.draft.pickOf', { n: run.draftRound + 1, total: DRAFT_PICKS })}{' '}
+                        · {formationText(run.formation, lang).name}
                     </div>
                     <h1>{title}</h1>
                     <p className="muted" style={{ margin: '4px 0 0' }}>
                         {hint}
                     </p>
                 </div>
-                <div className="steps" role="img" aria-label="Progresso do draft">
+                <div className="steps" role="img" aria-label={t('team.draft.progress')}>
                     {Array.from({ length: DRAFT_PICKS }, (_, i) => (
                         <span
                             // biome-ignore lint/suspicious/noArrayIndexKey: posições fixas do progresso
@@ -141,12 +147,7 @@ export function Draft() {
                 </div>
             </div>
 
-            {run.status === 'drafting' && (
-                <Tip id="draft-slot">
-                    Toque numa vaga livre (na quadra ou no banco) pra ver 3 opções. "Sortear de novo" troca as 3, e os
-                    sorteios valem pra copa toda.
-                </Tip>
-            )}
+            {run.status === 'drafting' && <Tip id="draft-slot">{t('team.draft.tip')}</Tip>}
 
             <div className="draft-grid">
                 <div className="panel board-panel">
@@ -163,7 +164,7 @@ export function Draft() {
                         onSlot={onSlot}
                         footer={
                             <div className="row" style={{ marginTop: 12, gap: 8 }}>
-                                {filled.length > 0 && <span className="muted">Média dos titulares: {avg}</span>}
+                                {filled.length > 0 && <span className="muted">{t('team.draft.avg', { n: avg })}</span>}
                                 {synergies.map((s) => (
                                     <span key={s.type} className="row" style={{ gap: 4 }}>
                                         <TypeBadge type={s.type} />
@@ -182,7 +183,9 @@ export function Draft() {
                     <div className="draft-options">
                         <div className="row options-bar">
                             <span className="muted">
-                                {isCaptain ? 'Candidatos a capitão' : `Opções para ${roleLabel}`}
+                                {isCaptain
+                                    ? t('team.draft.captainCandidates')
+                                    : t('team.draft.optionsFor', { pos: roleLabel })}
                             </span>
                             <button
                                 type="button"
@@ -194,7 +197,7 @@ export function Draft() {
                                     setSelected(null);
                                 }}
                             >
-                                ↻ Sortear de novo ({run.rerolls})
+                                {t('team.draft.reroll', { n: run.rerolls })}
                             </button>
                         </div>
                         <div className="options">
@@ -202,9 +205,9 @@ export function Draft() {
                                 <div key={o.uid} className="option">
                                     {!isCaptain && role !== 'ANY' && newLinks(filled, o).length > 0 && (
                                         <div className="option-links">
-                                            Ativa{' '}
-                                            {newLinks(filled, o).map((d) => (
-                                                <LinkChip key={d.id} def={d} fresh />
+                                            {t('team.draft.activates')}{' '}
+                                            {newLinks(filled, o).map((l) => (
+                                                <LinkChip key={l.id} def={l} fresh />
                                             ))}
                                         </div>
                                     )}
@@ -217,10 +220,16 @@ export function Draft() {
                                             return (
                                                 <div className={`option-fit ${r.fit}`}>
                                                     {r.fit === 'main'
-                                                        ? `${POSITION_LABEL[role]} de origem`
-                                                        : r.fit === 'alt'
-                                                          ? `Também joga de ${POSITION_LABEL[role]} · ${r.display}`
-                                                          : `Improvisado de ${POSITION_LABEL[role]} · ${r.display}`}
+                                                        ? t('team.draft.fitMain', { pos: d.common.pos[role] })
+                                                        : t(
+                                                              r.fit === 'alt'
+                                                                  ? 'team.draft.fitAlt'
+                                                                  : 'team.draft.fitOff',
+                                                              {
+                                                                  pos: d.common.pos[role],
+                                                                  r: r.display,
+                                                              },
+                                                          )}
                                                 </div>
                                             );
                                         })()}
@@ -231,9 +240,11 @@ export function Draft() {
                                         action={{
                                             label: isCaptain
                                                 ? selected === o.uid
-                                                    ? 'Escolhido'
-                                                    : 'Escolher capitão'
-                                                : `Escalar${roleLabel ? ` (${roleLabel})` : ''}`,
+                                                    ? t('team.draft.chosen')
+                                                    : t('team.draft.pickCaptain')
+                                                : roleLabel
+                                                  ? t('team.draft.signAs', { pos: roleLabel })
+                                                  : t('team.draft.sign'),
                                             primary: true,
                                             onClick: () => {
                                                 playSfx('select');

@@ -5,6 +5,7 @@ import { DEFAULT_LEVEL } from '../../engine/instance';
 import { playCry, playSfx } from '../../game/audio';
 import { EventBus } from '../../game/EventBus';
 import type { MatchEvolution } from '../../game/scenes/MatchScene';
+import { rich, useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { cardSprite } from './PokeCard';
 
@@ -21,14 +22,8 @@ const MORPH = [520, 470, 420, 380, 340, 300, 260, 230, 200, 175, 150, 130, 115, 
 const FLASH_MS = 450;
 const DONE_MS = 3600;
 
-const STATS: [AttrKey, string][] = [
-    ['pace', 'VEL'],
-    ['shooting', 'CHU'],
-    ['passing', 'PAS'],
-    ['dribble', 'DRI'],
-    ['tackling', 'DES'],
-    ['strength', 'FOR'],
-];
+/** Atributos mostrados depois da evolução (a sigla vem do dicionário: common.attrShort). */
+const STATS: AttrKey[] = ['pace', 'shooting', 'passing', 'dribble', 'tackling', 'strength'];
 
 // uma tela de evolução por vez: os timers da animação ficam aqui
 let timers: number[] = [];
@@ -47,6 +42,7 @@ function cardOf(id: number) {
 
 export function EvolutionOverlay() {
     const [evo, setEvo] = useState<MatchEvolution | null>(null);
+    const { t, d } = useT();
     const boxRef = useRef<HTMLDivElement>(null);
     const [phase, setPhase] = useState<Phase>('intro');
     const [showNew, setShowNew] = useState(false);
@@ -117,7 +113,7 @@ export function EvolutionOverlay() {
                 }
             }}
             role="dialog"
-            aria-label="Evolução"
+            aria-label={t('team.evolution.aria')}
             tabIndex={-1}
         >
             <div className="evo-rays" aria-hidden />
@@ -139,13 +135,17 @@ export function EvolutionOverlay() {
                         <span>{before.overall}</span>
                         <b>→ {after.overall}</b>
                     </div>
-                    {STATS.map(([k, label]) => {
-                        const d = Math.round(after.attrs[k] - before.attrs[k]);
+                    {STATS.map((k) => {
+                        const delta = Math.round(after.attrs[k] - before.attrs[k]);
                         return (
                             <div key={k} className="evo-stat">
-                                <span>{label}</span>
+                                <span>{d.common.attrShort[k]}</span>
                                 <b>{Math.round(after.attrs[k])}</b>
-                                {d !== 0 && <em className={d > 0 ? 'up' : 'down'}>{d > 0 ? `▲ +${d}` : `▼ ${d}`}</em>}
+                                {delta !== 0 && (
+                                    <em className={delta > 0 ? 'up' : 'down'}>
+                                        {delta > 0 ? `▲ +${delta}` : `▼ ${delta}`}
+                                    </em>
+                                )}
                             </div>
                         );
                     })}
@@ -153,17 +153,14 @@ export function EvolutionOverlay() {
             )}
             <div className="evo-text">
                 <span>
-                    {phase === 'done' ? (
-                        <>
-                            Parabéns! <b>{evo.name}</b> evoluiu para <b>{species(evo.into).name}</b>!
-                        </>
-                    ) : (
-                        <>
-                            O quê? <b>{evo.name}</b> está evoluindo!
-                        </>
-                    )}
+                    {phase === 'done'
+                        ? rich(t('team.evolution.evolved'), {
+                              name: <b>{evo.name}</b>,
+                              into: <b>{species(evo.into).name}</b>,
+                          })
+                        : rich(t('team.evolution.evolving'), { name: <b>{evo.name}</b> })}
                 </span>
-                <small>{phase === 'done' ? 'toque para continuar' : 'toque para pular'}</small>
+                <small>{phase === 'done' ? t('team.evolution.tapContinue') : t('team.evolution.tapSkip')}</small>
             </div>
             <div className="evo-flash" aria-hidden />
         </div>

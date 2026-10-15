@@ -27,6 +27,8 @@ export type ModSource = 'edicao' | 'habilidade' | 'item' | 'tipo' | 'capitao' | 
 export interface AttrModifier {
     source: ModSource;
     label: string;
+    /** Para traduzir o rótulo: id da habilidade, do item, ou 'self' | 'same' | 'aura' no capitão. */
+    ref?: string;
     /** Atributos afetados ('all' = todos; 'role' = os que importam para a posição). */
     attrs: AttrKey[] | 'all' | 'role';
     /** Multiplicador (1.05 = +5%). Ausente quando é soma (edição). */
@@ -38,6 +40,8 @@ export interface AttrModifier {
 export interface MoveModifier {
     moveId: string;
     label: string;
+    /** Para traduzir o rótulo: id do item ou da habilidade que mexe no golpe. */
+    ref?: string;
     /** Multiplicador da força do golpe; 0 = travado. */
     factor: number;
 }
@@ -92,12 +96,19 @@ export function attributeModifiers(inst: PokemonInstance, ctx: TeamContext = {})
     const ability = abilityEffect(inst.ability);
     for (const [k, f] of Object.entries(ability.mods ?? {}) as [AttrKey, number][]) {
         const name = ABILITIES[inst.ability]?.name ?? inst.ability;
-        mods.push({ source: 'habilidade', label: `${name}: ${ATTR_NAME[k]} ${pct(f)}`, attrs: [k], factor: f });
+        mods.push({
+            source: 'habilidade',
+            label: `${name}: ${ATTR_NAME[k]} ${pct(f)}`,
+            ref: inst.ability,
+            attrs: [k],
+            factor: f,
+        });
     }
     if (inst.item === 'choiceband') {
         mods.push({
             source: 'item',
             label: 'Choice Band: chute +15% (só o 1º golpe)',
+            ref: 'choiceband',
             attrs: ['shooting'],
             factor: 1.15,
         });
@@ -110,11 +121,17 @@ export function attributeModifiers(inst: PokemonInstance, ctx: TeamContext = {})
     const lineup = ctx.lineup ?? [];
     if (ctx.captain !== undefined) {
         if (ctx.captain?.uid === inst.uid) {
-            mods.push({ source: 'capitao', label: 'Capitão: +3%', attrs: 'all', factor: 1.03 });
+            mods.push({ source: 'capitao', label: 'Capitão: +3%', ref: 'self', attrs: 'all', factor: 1.03 });
         } else if (ctx.captain) {
             const f = captainFactor(ctx.captain, sp.types);
             const why = f > 1.03 ? 'Mesmo tipo do capitão' : 'Aura do capitão';
-            mods.push({ source: 'capitao', label: `${why}: ${pct(f)}`, attrs: 'all', factor: f });
+            mods.push({
+                source: 'capitao',
+                label: `${why}: ${pct(f)}`,
+                ref: f > 1.03 ? 'same' : 'aura',
+                attrs: 'all',
+                factor: f,
+            });
         }
     }
     if (lineup.length) {
@@ -156,15 +173,18 @@ export function moveModifiers(inst: PokemonInstance): MoveModifier[] {
     inst.moves.forEach((m, i) => {
         const data = MOVES[m];
         if (!data) return;
-        if (item?.type && item.type === data.type) out.push({ moveId: m, label: `${item.name}: +20%`, factor: 1.2 });
+        if (item?.type && item.type === data.type)
+            out.push({ moveId: m, label: `${item.name}: +20%`, ref: item.id, factor: 1.2 });
         if (ability.weakMoveBoost && data.power > 0 && data.power <= 60 && moveProfile(m).kind !== 'flavor') {
             out.push({
                 moveId: m,
                 label: `${ABILITIES[inst.ability]?.name ?? 'Habilidade'}: +50%`,
+                ref: inst.ability,
                 factor: ability.weakMoveBoost,
             });
         }
-        if (inst.item === 'choiceband' && i > 0) out.push({ moveId: m, label: 'Choice Band: travado', factor: 0 });
+        if (inst.item === 'choiceband' && i > 0)
+            out.push({ moveId: m, label: 'Choice Band: travado', ref: 'choiceband', factor: 0 });
     });
     return out;
 }

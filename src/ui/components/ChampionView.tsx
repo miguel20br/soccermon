@@ -2,6 +2,8 @@ import type { CSSProperties, ReactNode } from 'react';
 import { CUP_STAGES } from '../../engine/cup';
 import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
+import { clubName, stageName } from '../../i18n';
+import { rich, useT } from '../../i18n/react';
 import { isPerfectCup, type RunState } from '../../store/game-store';
 import { aggregate, avg } from '../stats/CupStats';
 import { FutCard } from './FutCard';
@@ -14,6 +16,7 @@ import { Trophy } from './Trophy';
  * inteiro com as cartas e as estatísticas de cada um na copa. Tocar na carta abre tudo sobre o Pokémon.
  */
 export function ChampionView({ run, actions }: { run: RunState; actions: ReactNode }) {
+    const { t, tn } = useT();
     const stats = new Map(aggregate(run.results).map((a) => [a.uid, a]));
     const slots = formationOf(run.formation).slots;
     // partidas jogadas antes da 0.7 não guardaram estatísticas
@@ -34,74 +37,75 @@ export function ChampionView({ run, actions }: { run: RunState; actions: ReactNo
         .reduce<(typeof players)[number] | null>((best, a) => (!best || avg(a) > avg(best) ? a : best), null);
 
     return (
-        <section className="panel rh rh-champ champ" aria-label="Campeões da Copa de Kanto">
+        <section className="panel rh rh-champ champ" aria-label={t('result.champ.aria')}>
             <Confetti count={70} />
             <div className="champ-trophy">
                 <Trophy size={150} />
             </div>
-            <h1 className="rh-title champ-title" aria-label="Campeões!">
-                {[...'CAMPEÕES!'].map((ch, i) => (
+            <h1 className="rh-title champ-title" aria-label={t('result.champ.titleAria')}>
+                {[...t('result.champ.title')].map((ch, i) => (
                     // biome-ignore lint/suspicious/noArrayIndexKey: letras do título
                     <span key={i} style={{ '--i': i } as CSSProperties}>
                         {ch}
                     </span>
                 ))}
             </h1>
-            <div className="champ-sub">
-                <b>{run.teamName}</b> conquistou a Copa de Kanto
-            </div>
-            {isPerfectCup(run) && <div className="perfect-badge">★ COPA PERFEITA: nenhum gol sofrido ★</div>}
+            <div className="champ-sub">{rich(t('result.champ.sub'), { team: <b>{run.teamName}</b> })}</div>
+            {isPerfectCup(run) && <div className="perfect-badge">{t('result.champ.perfect')}</div>}
 
             <div className="cup-totals champ-totals">
                 <div>
                     <b>
                         {run.results.filter((r) => r.won).length}/{CUP_STAGES.length}
                     </b>
-                    <span>vitórias</span>
+                    <span>{t('result.champ.wins')}</span>
                 </div>
                 <div>
                     <b>{gf}</b>
-                    <span>gols feitos</span>
+                    <span>{t('result.champ.gf')}</span>
                 </div>
                 <div>
                     <b>{ga}</b>
-                    <span>gols sofridos</span>
+                    <span>{t('result.champ.ga')}</span>
                 </div>
                 {poss !== null && (
                     <div>
                         <b>{poss}%</b>
-                        <span>posse média</span>
+                        <span>{t('result.champ.poss')}</span>
                     </div>
                 )}
                 {topScorer && topScorer.goals > 0 && (
                     <div>
                         <b>{topScorer.goals}</b>
                         <span>
-                            {topScorer.goals === 1 ? 'gol' : 'gols'} de {topScorer.name} (artilheiro)
+                            {t('result.champ.topScorer', {
+                                goals: tn('result.champ.goalWord', topScorer.goals),
+                                name: topScorer.name,
+                            })}
                         </span>
                     </div>
                 )}
                 {star && (
                     <div>
                         <b>{avg(star).toFixed(1)}</b>
-                        <span>{star.name}, craque da copa</span>
+                        <span>{t('result.champ.star', { name: star.name })}</span>
                     </div>
                 )}
             </div>
 
-            <h2 className="champ-h">Caminho do título</h2>
+            <h2 className="champ-h">{t('result.champ.path')}</h2>
             <ol className="champ-path">
                 {run.results.map((r) => {
                     const opp = run.opponents[r.stage];
                     const best = r.stats?.players.reduce((a, b) => (b.rating > a.rating ? b : a));
                     return (
                         <li key={r.stage} className="champ-step">
-                            <span className="champ-stage">{CUP_STAGES[r.stage]}</span>
+                            <span className="champ-stage">{stageName(r.stage)}</span>
                             <b className="champ-score">
                                 {r.score[0]} x {r.score[1]}
                             </b>
-                            {r.shootout && <small>pênaltis {r.shootout.join(' x ')}</small>}
-                            <span className="muted">vs {r.opponent}</span>
+                            {r.shootout && <small>{t('result.champ.pens', { score: r.shootout.join(' x ') })}</small>}
+                            <span className="muted">{t('result.champ.vs', { team: clubName(r.opponent) })}</span>
                             {opp && (
                                 <div className="champ-opp">
                                     {opp.lineup.map((p) => (
@@ -124,7 +128,7 @@ export function ChampionView({ run, actions }: { run: RunState; actions: ReactNo
                 })}
             </ol>
 
-            <h2 className="champ-h">Elenco campeão</h2>
+            <h2 className="champ-h">{t('result.champ.squad')}</h2>
             <div className="champ-squad">
                 {squad.map((p) => {
                     const a = stats.get(p.uid);
@@ -140,32 +144,32 @@ export function ChampionView({ run, actions }: { run: RunState; actions: ReactNo
                             />
                             {a ? (
                                 <dl className="champ-stats">
-                                    <dt>Jogos</dt>
+                                    <dt>{t('result.champ.stats.games')}</dt>
                                     <dd>{a.games}</dd>
-                                    <dt>Nota</dt>
+                                    <dt>{t('result.champ.stats.rating')}</dt>
                                     <dd>{avg(a).toFixed(1)}</dd>
-                                    <dt>Gols</dt>
+                                    <dt>{t('result.champ.stats.goals')}</dt>
                                     <dd>{a.goals}</dd>
-                                    <dt>Assist.</dt>
+                                    <dt>{t('result.champ.stats.assists')}</dt>
                                     <dd>{a.assists}</dd>
-                                    <dt>Chutes</dt>
+                                    <dt>{t('result.champ.stats.shots')}</dt>
                                     <dd>{a.shots}</dd>
-                                    <dt>Passes</dt>
+                                    <dt>{t('result.champ.stats.passes')}</dt>
                                     <dd>
                                         {a.passesCompleted}/{a.passes}
                                     </dd>
-                                    <dt>Roubadas</dt>
+                                    <dt>{t('result.champ.stats.steals')}</dt>
                                     <dd>{a.tacklesWon + a.interceptions}</dd>
-                                    <dt>Defesas</dt>
+                                    <dt>{t('result.champ.stats.saves')}</dt>
                                     <dd>{a.saves}</dd>
-                                    <dt>Golpes</dt>
+                                    <dt>{t('result.champ.stats.moves')}</dt>
                                     <dd>{a.movesUsed}</dd>
-                                    <dt>Correu</dt>
+                                    <dt>{t('result.champ.stats.ran')}</dt>
                                     <dd>{(a.distance / 1000).toFixed(1)} km</dd>
                                 </dl>
                             ) : (
                                 <span className="muted champ-nostats">
-                                    {oldSave ? 'Sem estatísticas' : 'Ficou no banco'}
+                                    {oldSave ? t('result.champ.noStats') : t('result.champ.bench')}
                                 </span>
                             )}
                         </div>

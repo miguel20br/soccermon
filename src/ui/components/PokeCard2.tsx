@@ -1,15 +1,17 @@
 import { type CSSProperties, useRef } from 'react';
-import { type AttrKey, computeAttributes, POSITION_LABEL, type Position } from '../../engine/attributes';
-import { ABILITIES, MOVES, type Tier } from '../../engine/data';
+import { type AttrKey, computeAttributes, type Position } from '../../engine/attributes';
+import { MOVES, type Tier } from '../../engine/data';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
-import { ITEMS, itemSprite } from '../../engine/items';
+import { itemSprite } from '../../engine/items';
 import { applyModifiers, attributeModifiers } from '../../engine/modifiers';
 import { moveProfile } from '../../engine/moves';
 import { type Edition, editionOf } from '../../engine/specials';
-import { EDITION, type FINISH_LABEL, finishOf, METAL, metalOf, RARITY } from '../rarity';
+import { abilityName, iconTitle, itemName, moveName, typeName } from '../../i18n';
+import { type Translator, useT } from '../../i18n/react';
+import { EDITION, type FINISH_LABEL, finishOf, type METAL, metalOf, RARITY } from '../rarity';
 import { ratingAt } from '../rating';
-import { TYPE_COLOR, TYPE_PT } from '../type-colors';
-import { cardSprite, TIER_PT } from './PokeCard';
+import { TYPE_COLOR } from '../type-colors';
+import { cardSprite } from './PokeCard';
 import './pokecard2.css';
 import { TypeIcons } from './TypeIcon';
 import { useHoloPointer } from './useHoloPointer';
@@ -44,22 +46,9 @@ export const VARIANT_LABEL: Record<CardVariant, string> = {
 
 const isHolo = (v: CardVariant): v is HoloFinish => (HOLO_FINISHES as string[]).includes(v);
 
-const FIELD_STATS: [AttrKey, string][] = [
-    ['pace', 'VEL'],
-    ['shooting', 'CHU'],
-    ['passing', 'PAS'],
-    ['dribble', 'DRI'],
-    ['tackling', 'DES'],
-    ['strength', 'FOR'],
-];
-const GK_STATS: [AttrKey, string][] = [
-    ['goalkeeping', 'GOL'],
-    ['positioning', 'LEI'],
-    ['strength', 'FOR'],
-    ['pace', 'VEL'],
-    ['passing', 'PAS'],
-    ['stamina', 'FÔL'],
-];
+/** Atributos mostrados na carta (a sigla vem do dicionário: common.attrShort). */
+const FIELD_STATS: AttrKey[] = ['pace', 'shooting', 'passing', 'dribble', 'tackling', 'strength'];
+const GK_STATS: AttrKey[] = ['goalkeeping', 'positioning', 'strength', 'pace', 'passing', 'stamina'];
 
 const TIER_SYMBOL: Record<Tier, string> = {
     common: '●',
@@ -67,18 +56,6 @@ const TIER_SYMBOL: Record<Tier, string> = {
     rare: '★',
     epic: '★★',
     legendary: '★★★',
-};
-
-const KIND_PT: Record<string, string> = {
-    strike: 'Chute forte ou carrinho.',
-    blast: 'Finalização especial.',
-    burst: 'Arrancada.',
-    buff: 'Fortalece o time.',
-    debuff: 'Enfraquece o rival.',
-    status: 'Causa status no rival.',
-    heal: 'Recupera fôlego.',
-    flavor: 'Não faz nada… ou faz?',
-    special: 'Efeito especial',
 };
 
 interface PokeCard2Props {
@@ -115,7 +92,7 @@ export function HoloLayer() {
     );
 }
 
-function cardData(inst: PokemonInstance, position?: Position) {
+function cardData(inst: PokemonInstance, tr: Translator, position?: Position) {
     const view = viewInstance(inst);
     const sp = view.species;
     const pos = position ?? view.naturalPosition;
@@ -124,9 +101,9 @@ function cardData(inst: PokemonInstance, position?: Position) {
     // vale a mais (ou a menos) em campo em relação ao Pokémon "puro"
     const base = computeAttributes(sp, inst.level);
     const final = applyModifiers(base, attributeModifiers(inst));
-    const stats = (pos === 'GK' ? GK_STATS : FIELD_STATS).map(([k, label]) => ({
+    const stats = (pos === 'GK' ? GK_STATS : FIELD_STATS).map((k) => ({
         k,
-        label,
+        label: tr.d.common.attrShort[k],
         v: Math.round(view.attributes[k]),
         delta: Math.round(final[k] - base[k]),
     }));
@@ -141,8 +118,9 @@ function cardData(inst: PokemonInstance, position?: Position) {
         fit,
         stats,
         dex: String(sp.id).padStart(3, '0'),
-        item: inst.item ? ITEMS[inst.item] : null,
-        ability: ABILITIES[inst.ability],
+        tr,
+        item: inst.item ? { id: inst.item, name: itemName(inst.item) } : null,
+        ability: abilityName(inst.ability),
         style: {
             '--t1': t1,
             '--t2': t2,
@@ -156,7 +134,8 @@ type Data = ReturnType<typeof cardData>;
 type VariantProps = { inst: PokemonInstance; d: Data; captain?: boolean };
 
 export function PokeCard2({ inst, variant, position, captain, onClick, weak, showcase, finish, size }: PokeCard2Props) {
-    const d = cardData(inst, position);
+    const tr = useT();
+    const d = cardData(inst, tr, position);
     const holo = isHolo(variant);
     const fig = variant === 'figurinha';
     const metal = variant === 'metal';
@@ -201,9 +180,21 @@ export function PokeCard2({ inst, variant, position, captain, onClick, weak, sho
     if (holo) classes.push(`holo-${d.sp.types[0].toLowerCase()}`);
     if (weak) classes.push('is-weak');
     if (showcase) classes.push('pc2-showcase');
-    const label = `${d.view.displayName}, ${d.display} de ${POSITION_LABEL[d.pos]}, ${TIER_PT[d.sp.tier]}${edition ? `, edição ${EDITION[edition].label}` : ''}`;
+    const label = tr.t('team.card.ariaFull', {
+        name: d.view.displayName,
+        rating: d.display,
+        pos: tr.d.common.pos[d.pos],
+        tier: tr.d.common.tier[d.sp.tier],
+        edition: edition ? tr.t('team.card.editionAria', { label: tr.d.common.edition[edition] }) : '',
+    });
     const base = metal ? (
-        <Metal inst={inst} d={d} captain={captain} edition={edition} metalLabel={metalLabel(metalTier, metalFinish)} />
+        <Metal
+            inst={inst}
+            d={d}
+            captain={captain}
+            edition={edition}
+            metalLabel={metalLabel(tr, metalTier, metalFinish)}
+        />
     ) : fig ? (
         <Figurinha inst={inst} d={d} captain={captain} edition={edition} />
     ) : variant === 'sticker' ? (
@@ -253,11 +244,11 @@ export function PokeCard2({ inst, variant, position, captain, onClick, weak, sho
     );
 }
 
-function Types({ types }: { types: string[] }) {
+function Types({ types, tr }: { types: string[]; tr: Translator }) {
     return (
         <>
             {types.map((t) => (
-                <i key={t} className="pc2-type" style={{ background: TYPE_COLOR[t] }} title={TYPE_PT[t] ?? t} />
+                <i key={t} className="pc2-type" style={{ background: TYPE_COLOR[t] }} title={typeName(t, tr.lang)} />
             ))}
         </>
     );
@@ -271,9 +262,22 @@ const METAL_EDITION_FINISH: Record<Edition, HoloFinish> = {
     icone: 'cosmos',
     evento: 'radiant',
 };
-const POS_SHORT: Record<Position, string> = { GK: 'GOL', FIXO: 'FIX', ALA: 'ALA', PIVO: 'PIV' };
-const metalLabel = (m: keyof typeof METAL, f: keyof typeof FINISH_LABEL) =>
-    f === 'lendario' ? 'Lendário' : `${METAL[m].label} ${f === 'brilhante' ? 'raro' : 'comum'}`;
+const metalLabel = (tr: Translator, m: keyof typeof METAL, f: keyof typeof FINISH_LABEL) =>
+    f === 'lendario'
+        ? tr.t('team.card.legendary')
+        : tr.t(f === 'brilhante' ? 'team.card.metalRare' : 'team.card.metalCommon', { metal: tr.d.common.metal[m] });
+
+/** Etiqueta da edição especial ("Evento · Fogo", "Ícone"...). */
+const editionTag = (tr: Translator, inst: PokemonInstance, edition: Edition | null) =>
+    edition === 'evento'
+        ? tr.t('team.card.event', { type: typeName(inst.special?.type ?? '', tr.lang) })
+        : edition
+          ? tr.d.common.edition[edition]
+          : null;
+
+/** Título da carta Ícone no idioma do jogo (só quando a carta tem título salvo). */
+const specialTitle = (inst: PokemonInstance, tr: Translator) =>
+    inst.special?.title ? iconTitle(inst.speciesId, inst.special.title, tr.lang) : undefined;
 
 /**
  * Carta minimalista: o metal (bronze/prata/ouro pela nota) diz se a carta é boa; o acabamento diz a
@@ -288,12 +292,7 @@ function Metal({
     metalLabel: label,
 }: VariantProps & { edition: Edition | null; metalLabel: string }) {
     const theme = d.sp.types[0] === 'Normal' && d.sp.types[1] ? d.sp.types[1] : d.sp.types[0];
-    const tag =
-        edition === 'evento'
-            ? `Evento · ${TYPE_PT[inst.special?.type ?? ''] ?? ''}`
-            : edition
-              ? EDITION[edition].label
-              : null;
+    const tag = editionTag(d.tr, inst, edition);
     return (
         <>
             <span className="m-top">
@@ -303,7 +302,7 @@ function Metal({
                 />
                 <span className="m-left">
                     <b className="m-ovr">{d.display}</b>
-                    <span className="m-pos">{POS_SHORT[d.pos]}</span>
+                    <span className="m-pos">{d.tr.d.common.posShort[d.pos]}</span>
                     <span className="m-types">
                         <TypeIcons types={d.sp.types} />
                     </span>
@@ -315,7 +314,7 @@ function Metal({
             </span>
             <span className="m-name">
                 {d.view.displayName}
-                <small>{inst.special?.title ?? label}</small>
+                <small>{specialTitle(inst, d.tr) ?? label}</small>
             </span>
             <span className="m-stats">
                 {d.stats.map((s) => (
@@ -342,15 +341,8 @@ function Metal({
  * a gema na faixa do nome continua mostrando a raridade.
  */
 function Figurinha({ inst, d, captain, edition }: VariantProps & { edition: Edition | null }) {
-    const ribbon =
-        edition === 'icone'
-            ? 'Ícone'
-            : edition === 'evento'
-              ? `Evento · ${TYPE_PT[inst.special?.type ?? ''] ?? ''}`
-              : edition
-                ? EDITION[edition].label
-                : null;
-    const sub = inst.special?.title ?? `${TIER_SYMBOL[d.sp.tier]} ${RARITY[d.sp.tier].label}`;
+    const ribbon = editionTag(d.tr, inst, edition);
+    const sub = specialTitle(inst, d.tr) ?? `${TIER_SYMBOL[d.sp.tier]} ${d.tr.d.common.tier[d.sp.tier]}`;
     return (
         <>
             <span className="fg-photo">
@@ -362,7 +354,7 @@ function Figurinha({ inst, d, captain, edition }: VariantProps & { edition: Edit
                 <span className="fg-num">{d.dex}</span>
                 <span className="fg-ovr">
                     <b>{d.display}</b>
-                    <small>{POSITION_LABEL[d.pos]}</small>
+                    <small>{d.tr.d.common.pos[d.pos]}</small>
                 </span>
                 {captain && <span className="pc2-captain">C</span>}
                 <img className="pixel fg-art" src={cardSprite(inst)} alt="" loading="lazy" draggable={false} />
@@ -374,7 +366,7 @@ function Figurinha({ inst, d, captain, edition }: VariantProps & { edition: Edit
             </span>
             {ribbon && <span className="fg-ribbon">{ribbon}</span>}
             <span className="fg-band">
-                <i className="fg-gem" title={RARITY[d.sp.tier].label} />
+                <i className="fg-gem" title={d.tr.d.common.tier[d.sp.tier]} />
                 <span className="fg-name">{d.view.displayName}</span>
                 <span className="fg-sub">{sub}</span>
             </span>
@@ -401,19 +393,19 @@ function Sticker({ inst, d, captain }: VariantProps) {
                 <span className="st-num">{d.dex}</span>
                 <span className="st-ovr">
                     <b>{d.rating}</b>
-                    <small>{POSITION_LABEL[d.pos]}</small>
+                    <small>{d.tr.d.common.pos[d.pos]}</small>
                 </span>
                 {captain && <span className="pc2-captain">C</span>}
                 <img className="pixel st-art" src={cardSprite(inst)} alt="" loading="lazy" draggable={false} />
                 <span className="st-types">
-                    <Types types={d.sp.types} />
+                    <Types types={d.sp.types} tr={d.tr} />
                 </span>
                 {d.item && <img className="pixel st-item" src={itemSprite(d.item.id)} alt={d.item.name} />}
             </span>
             <span className="st-band">
                 <span className="st-name">{d.view.displayName}</span>
                 <span className="st-sub">
-                    {d.sp.types.map((t) => TYPE_PT[t] ?? t).join(' / ')} · {TIER_PT[d.sp.tier]}
+                    {d.sp.types.map((t) => typeName(t, d.tr.lang)).join(' / ')} · {d.tr.d.common.tier[d.sp.tier]}
                 </span>
             </span>
             <span className="st-stats">
@@ -431,6 +423,12 @@ function Sticker({ inst, d, captain }: VariantProps) {
 }
 
 // ---------------------------------------------------------------- B. TCG
+/** Número com uma casa: vírgula em português, ponto em inglês. */
+const num = (v: number, tr: Translator) => {
+    const s = v.toFixed(1);
+    return tr.lang === 'pt' ? s.replace('.', ',') : s;
+};
+
 function energies(power: number) {
     if (!power) return 1;
     if (power < 60) return 1;
@@ -443,7 +441,7 @@ function Tcg({ inst, d, captain }: VariantProps) {
     return (
         <span className="tcg-inner">
             <span className="tcg-head">
-                <span className="tcg-stage">{sp.prevo ? 'Evoluído' : 'Básico'}</span>
+                <span className="tcg-stage">{d.tr.t(sp.prevo ? 'team.card.evolved' : 'team.card.basic')}</span>
                 <span className="tcg-name">
                     {captain && <span className="pc2-captain">C</span>}
                     {d.view.displayName}
@@ -460,8 +458,8 @@ function Tcg({ inst, d, captain }: VariantProps) {
                 {d.item && <img className="pixel tcg-item" src={itemSprite(d.item.id)} alt={d.item.name} />}
             </span>
             <span className="tcg-strip">
-                Nº {d.dex} · {POSITION_LABEL[d.pos]} · {sp.heightm.toFixed(1).replace('.', ',')} m ·{' '}
-                {sp.weightkg.toFixed(1).replace('.', ',')} kg
+                {d.tr.t('team.card.dexNo')} {d.dex} · {d.tr.d.common.pos[d.pos]} · {num(sp.heightm, d.tr)} m ·{' '}
+                {num(sp.weightkg, d.tr)} kg
             </span>
             <span className="tcg-attacks">
                 {inst.moves.map((m) => {
@@ -479,24 +477,24 @@ function Tcg({ inst, d, captain }: VariantProps) {
                                     />
                                 ))}
                             </span>
-                            <b className="tcg-atk-name">{data.name}</b>
+                            <b className="tcg-atk-name">{moveName(m)}</b>
                             <span className="tcg-dmg">{data.power || ''}</span>
-                            <small className="tcg-atk-desc">{KIND_PT[moveProfile(m).kind]}</small>
+                            <small className="tcg-atk-desc">{d.tr.d.team.card.kindTcg[moveProfile(m).kind]}</small>
                         </span>
                     );
                 })}
             </span>
             <span className="tcg-foot">
                 <span>
-                    <small>habilidade</small>
-                    {d.ability?.name ?? inst.ability}
+                    <small>{d.tr.t('team.card.ability')}</small>
+                    {d.ability}
                 </span>
                 <span>
-                    <small>posições</small>
-                    {d.view.positions.map((p) => POSITION_LABEL[p]).join(' · ')}
+                    <small>{d.tr.t('team.card.positionsLower')}</small>
+                    {d.view.positions.map((p) => d.tr.d.common.pos[p]).join(' · ')}
                 </span>
                 <span>
-                    <small>item</small>
+                    <small>{d.tr.t('team.card.item')}</small>
                     {d.item?.name ?? '—'}
                 </span>
             </span>
@@ -521,7 +519,7 @@ function Dex({ inst, d, captain }: VariantProps) {
                 <span className="dex-led r" />
                 <span className="dex-led y" />
                 <span className="dex-led g" />
-                <span className="dex-tier">{TIER_PT[d.sp.tier]}</span>
+                <span className="dex-tier">{d.tr.d.common.tier[d.sp.tier]}</span>
             </span>
             <span className="dex-bezel">
                 <span className="dex-lcd">
@@ -545,8 +543,8 @@ function Dex({ inst, d, captain }: VariantProps) {
                     </span>
                     <span className="dex-name">{d.view.displayName.toUpperCase()}</span>
                     <span className="dex-cat">
-                        POS: {POSITION_LABEL[d.pos].toUpperCase()} ·{' '}
-                        {d.sp.types.map((t) => (TYPE_PT[t] ?? t).toUpperCase()).join('/')}
+                        {d.tr.t('team.card.dexPos')}: {d.tr.d.common.pos[d.pos].toUpperCase()} ·{' '}
+                        {d.sp.types.map((t) => typeName(t, d.tr.lang).toUpperCase()).join('/')}
                     </span>
                 </span>
             </span>
@@ -591,10 +589,10 @@ function Holo({ inst, d, captain, finish }: VariantProps & { finish: HoloFinish 
             <span className="holo-top">
                 <span className="holo-ovr">
                     <b>{d.rating}</b>
-                    <small>{POSITION_LABEL[d.pos]}</small>
+                    <small>{d.tr.d.common.pos[d.pos]}</small>
                 </span>
                 <span className="holo-types">
-                    <Types types={d.sp.types} />
+                    <Types types={d.sp.types} tr={d.tr} />
                 </span>
                 {captain && <span className="pc2-captain">C</span>}
             </span>
@@ -603,7 +601,7 @@ function Holo({ inst, d, captain, finish }: VariantProps & { finish: HoloFinish 
             <span className="holo-glass">
                 <span className="holo-name">{d.view.displayName}</span>
                 <span className="holo-tier">
-                    {TIER_SYMBOL[d.sp.tier]} {TIER_PT[d.sp.tier]}
+                    {TIER_SYMBOL[d.sp.tier]} {d.tr.d.common.tier[d.sp.tier]}
                 </span>
                 <span className="holo-stats">
                     {d.stats.map((s) => (
