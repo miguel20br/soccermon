@@ -1,0 +1,249 @@
+import type { PlayerLine } from '../engine/match-stats';
+import type { MatchResult } from '../engine/runners/batch-runner';
+
+/**
+ * Perfil, Pokédex e golpes descobertos (save v5). Tudo cosmético ou de registro: nada daqui mexe em
+ * atributo nem no motor. Funções puras (recebem o estado antigo e devolvem o novo) para dar para testar.
+ */
+
+/** Paleta curada do clube: todas com contraste bom na quadra e no placar. */
+export const CLUB_COLORS = [
+    { id: 'vermelho', name: 'Vermelho', hex: 0xe8423f },
+    { id: 'azul', name: 'Azul', hex: 0x2f6fde },
+    { id: 'verde', name: 'Verde', hex: 0x2fa84f },
+    { id: 'amarelo', name: 'Amarelo', hex: 0xf2c230 },
+    { id: 'laranja', name: 'Laranja', hex: 0xf07f1d },
+    { id: 'roxo', name: 'Roxo', hex: 0x8a4fd0 },
+    { id: 'rosa', name: 'Rosa', hex: 0xe0529c },
+    { id: 'ciano', name: 'Ciano', hex: 0x1fb5c9 },
+    { id: 'vinho', name: 'Vinho', hex: 0x9b1d3a },
+    { id: 'grafite', name: 'Grafite', hex: 0x3a3f4b },
+] as const;
+
+export type ClubColorId = (typeof CLUB_COLORS)[number]['id'];
+
+export const clubColorHex = (id: ClubColorId | string | undefined) =>
+    (CLUB_COLORS.find((c) => c.id === id) ?? CLUB_COLORS[0]).hex;
+
+/** Distância simples entre duas cores RGB (0..~441). */
+export function colorDistance(a: number, b: number): number {
+    const dr = ((a >> 16) & 255) - ((b >> 16) & 255);
+    const dg = ((a >> 8) & 255) - ((b >> 8) & 255);
+    const db = (a & 255) - (b & 255);
+    return Math.hypot(dr, dg, db);
+}
+
+/** Uniformes reserva do rival quando a cor dele fica parecida com a do seu clube. */
+const AWAY_KITS = [0xf2f2f2, 0x26282e, 0xf2c230, 0x2f6fde];
+const CLASH = 110;
+
+/** Cor que o rival usa contra você: a dele, ou um uniforme reserva se ficar parecida demais. */
+export function rivalColor(player: number, rival: number): number {
+    if (colorDistance(player, rival) >= CLASH) return rival;
+    return AWAY_KITS.find((k) => colorDistance(player, k) >= CLASH * 1.5) ?? 0xf2f2f2;
+}
+
+export type Avatar = { kind: 'google' } | { kind: 'pokemon'; speciesId: number };
+
+export interface Profile {
+    /** Nome do treinador ('' = usa o nome da conta Google, ou "Treinador"). */
+    trainerName: string;
+    avatar: Avatar;
+    /** Nome fixo do clube: já vem preenchido na Nova copa. */
+    clubName: string;
+    /** Sigla de 3 letras (placar no celular). */
+    clubTag: string;
+    clubColor: ClubColorId;
+}
+
+export const DEFAULT_PROFILE: Profile = {
+    trainerName: '',
+    avatar: { kind: 'pokemon', speciesId: 25 },
+    clubName: 'Pallet FC',
+    clubTag: 'PAL',
+    clubColor: 'vermelho',
+};
+
+/** Sigla a partir do nome: "Pallet FC" → "PAL". */
+export function tagFromName(name: string): string {
+    const letters = name
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '')
+        .replace(/[^a-z0-9]/gi, '')
+        .toUpperCase();
+    return (letters.slice(0, 3) || 'SOC').padEnd(3, 'X');
+}
+
+/**
+ * Página de uma espécie na Pokédex. Entrada existindo = "visto" (apareceu no seu draft, nas recompensas
+ * ou no time adversário). `matches > 0` = "jogou" (entrou em quadra pelo seu time, pelo menos 1 minuto).
+ */
+export interface DexEntry {
+    matches: number;
+    minutes: number;
+    goals: number;
+    assists: number;
+    wins: number;
+    /** Copas ganhas com ele tendo jogado. */
+    titles: number;
+    /** Melhor nota de partida (0–10) e maior nota de carta que já passou pelo seu time. */
+    bestRating: number;
+    bestOvr: number;
+}
+
+export type Dex = Record<number, DexEntry>;
+
+const EMPTY_ENTRY: DexEntry = {
+    matches: 0,
+    minutes: 0,
+    goals: 0,
+    assists: 0,
+    wins: 0,
+    titles: 0,
+    bestRating: 0,
+    bestOvr: 0,
+};
+
+export const isPlayed = (e: DexEntry | undefined) => !!e && e.matches > 0;
+
+/** Marca espécies como vistas (não mexe em quem já está na Dex). Devolve o mesmo objeto se nada mudou. */
+export function markSeen(dex: Dex, ids: Iterable<number>): Dex {
+    let out: Dex | null = null;
+    for (const id of ids) {
+        if (dex[id] || out?.[id]) continue;
+        out ??= { ...dex };
+        out[id] = { ...EMPTY_ENTRY };
+    }
+    return out ?? dex;
+}
+
+/** Guarda a maior nota de carta de uma espécie que passou pelo seu time. */
+export function markOvr(dex: Dex, entries: Iterable<[number, number]>): Dex {
+    let out: Dex | null = null;
+    for (const [id, ovr] of entries) {
+        const cur = (out ?? dex)[id] ?? EMPTY_ENTRY;
+        if (ovr <= cur.bestOvr) continue;
+        out ??= { ...dex };
+        out[id] = { ...cur, bestOvr: ovr };
+    }
+    return out ?? dex;
+}
+
+/** Soma uma partida na Dex: seu time (team 0) com 1+ minuto conta como "jogou"; o rival fica "visto". */
+export function recordMatchInDex(dex: Dex, lines: PlayerLine[], won: boolean): Dex {
+    const out: Dex = { ...dex };
+    // o mesmo Pokémon pode ter duas "passagens" (saiu e voltou): soma tudo numa partida só
+    const mine = new Map<number, { minutes: number; goals: number; assists: number; rating: number }>();
+    for (const l of lines) {
+        if (l.team !== 0) {
+            out[l.speciesId] ??= { ...EMPTY_ENTRY };
+            continue;
+        }
+        if (l.minutes < 1) {
+            out[l.speciesId] ??= { ...EMPTY_ENTRY };
+            continue;
+        }
+        const acc = mine.get(l.speciesId) ?? { minutes: 0, goals: 0, assists: 0, rating: 0 };
+        acc.minutes += l.minutes;
+        acc.goals += l.stats.goals;
+        acc.assists += l.stats.assists;
+        acc.rating = Math.max(acc.rating, l.rating);
+        mine.set(l.speciesId, acc);
+    }
+    for (const [id, acc] of mine) {
+        const cur = out[id] ?? EMPTY_ENTRY;
+        out[id] = {
+            ...cur,
+            matches: cur.matches + 1,
+            minutes: cur.minutes + acc.minutes,
+            goals: cur.goals + acc.goals,
+            assists: cur.assists + acc.assists,
+            wins: cur.wins + (won ? 1 : 0),
+            bestRating: Math.max(cur.bestRating, acc.rating),
+        };
+    }
+    return out;
+}
+
+/** Título: soma 1 para cada espécie que jogou alguma partida da copa campeã. */
+export function recordTitleInDex(dex: Dex, speciesIds: Iterable<number>): Dex {
+    const out: Dex = { ...dex };
+    for (const id of new Set(speciesIds)) {
+        const cur = out[id];
+        if (cur && cur.matches > 0) out[id] = { ...cur, titles: cur.titles + 1 };
+    }
+    return out;
+}
+
+/** Golpes descobertos: quantas vezes cada golpe apareceu em campo nas suas partidas (os dois times). */
+export type MoveDex = Record<string, number>;
+
+export function recordMovesSeen(moves: MoveDex, m: Pick<MatchResult, 'events'>): MoveDex {
+    const out: MoveDex = { ...moves };
+    for (const e of m.events) {
+        const id = e.type === 'move' ? e.moveId : e.type === 'shot' ? e.moveId : null;
+        if (id) out[id] = (out[id] ?? 0) + 1;
+    }
+    return out;
+}
+
+/** Números da carreira do treinador (somam todas as copas). */
+export interface Career {
+    matches: number;
+    wins: number;
+    losses: number;
+    /** Vitórias nos pênaltis (também contam em `wins`). */
+    shootoutWins: number;
+    goalsFor: number;
+    goalsAgainst: number;
+}
+
+export const EMPTY_CAREER: Career = {
+    matches: 0,
+    wins: 0,
+    losses: 0,
+    shootoutWins: 0,
+    goalsFor: 0,
+    goalsAgainst: 0,
+};
+
+export function recordMatchInCareer(c: Career, score: [number, number], won: boolean, shootout: boolean): Career {
+    return {
+        matches: c.matches + 1,
+        wins: c.wins + (won ? 1 : 0),
+        losses: c.losses + (won ? 0 : 1),
+        shootoutWins: c.shootoutWins + (won && shootout ? 1 : 0),
+        goalsFor: c.goalsFor + score[0],
+        goalsAgainst: c.goalsAgainst + score[1],
+    };
+}
+
+/** Junta duas Dex (nuvem + aparelho): fica o maior de cada número. */
+export function mergeDex(a: Dex = {}, b: Dex = {}): Dex {
+    const out: Dex = { ...a };
+    for (const [k, eb] of Object.entries(b)) {
+        const id = Number(k);
+        const ea = out[id];
+        if (!ea) {
+            out[id] = { ...EMPTY_ENTRY, ...eb };
+            continue;
+        }
+        const merged = { ...ea };
+        for (const key of Object.keys(EMPTY_ENTRY) as (keyof DexEntry)[]) {
+            merged[key] = Math.max(ea[key] ?? 0, eb[key] ?? 0);
+        }
+        out[id] = merged;
+    }
+    return out;
+}
+
+export function mergeMoves(a: MoveDex = {}, b: MoveDex = {}): MoveDex {
+    const out: MoveDex = { ...a };
+    for (const [id, n] of Object.entries(b)) out[id] = Math.max(out[id] ?? 0, n);
+    return out;
+}
+
+export function mergeCareer(a: Career = EMPTY_CAREER, b: Career = EMPTY_CAREER): Career {
+    // a carreira é um contador só: fica a que tem mais partidas (somar duplicaria o que já subiu)
+    return (b.matches ?? 0) > (a.matches ?? 0) ? { ...EMPTY_CAREER, ...b } : { ...EMPTY_CAREER, ...a };
+}

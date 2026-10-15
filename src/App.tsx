@@ -2,21 +2,27 @@ import { useEffect, useState } from 'react';
 import { setVolume } from './game/audio';
 import { useGame } from './store/game-store';
 import { CardModal } from './ui/components/CardModal';
+import { Onboarding } from './ui/components/Onboarding';
 import { runDevDemo } from './ui/dev-demo';
 import { CardGallery } from './ui/screens/CardGallery';
 import { Credits } from './ui/screens/Credits';
 import { Draft } from './ui/screens/Draft';
+import { Help } from './ui/screens/Help';
 import { Home } from './ui/screens/Home';
 import { Lineup } from './ui/screens/Lineup';
 import { Match } from './ui/screens/Match';
 import { MoveLab } from './ui/screens/MoveLab';
 import { PositionLab } from './ui/screens/PositionLab';
+import { Profile } from './ui/screens/Profile';
 import { Result } from './ui/screens/Result';
 import { Reward } from './ui/screens/Reward';
 import { Settings } from './ui/screens/Settings';
 
 export default function App() {
-    const { screen, go, settings } = useGame();
+    const { screen, go, settings, onboarded } = useGame();
+    // passo a passo de boas-vindas: só depois de o save carregar (senão aparece para quem já jogou)
+    const [hydrated, setHydrated] = useState(() => useGame.persist.hasHydrated());
+    useEffect(() => useGame.persist.onFinishHydration(() => setHydrated(true)), []);
     // ?demo=crash (só no dev): quebra a renderização para conferir a tela do ErrorBoundary
     if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('demo') === 'crash') {
         throw new Error('Teste do aviso de erro (?demo=crash)');
@@ -81,7 +87,10 @@ export default function App() {
             {screen === 'reward' && <Reward />}
             {screen === 'settings' && <Settings />}
             {screen === 'credits' && <Credits />}
+            {screen === 'profile' && <Profile />}
+            {screen === 'help' && <Help />}
             <CardModal />
+            {hydrated && !onboarded && screen === 'home' && <Onboarding />}
         </div>
     );
 }

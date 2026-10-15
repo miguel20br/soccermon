@@ -8,6 +8,7 @@ import { MenuIcon } from '../components/MenuIcon';
 import { cardSprite } from '../components/PokeCard';
 import { Trophy } from '../components/Trophy';
 import { TypeIcon } from '../components/TypeIcon';
+import { FEEDBACK_URL } from '../links';
 import { PATCH_NOTES } from '../patch-notes';
 import { TYPE_PT } from '../type-colors';
 
@@ -20,8 +21,13 @@ const SOON = [
 ];
 
 export function Home() {
-    const { run, newRun, go, records } = useGame();
-    const [teamName, setTeamName] = useState('Pallet FC');
+    const { run, newRun, go, records, profile, setOnboarded } = useGame();
+    const [teamName, setTeamName] = useState(profile.clubName || 'Pallet FC');
+    // o perfil chega do IndexedDB/nuvem depois do primeiro render: acompanha até a pessoa digitar
+    const [typed, setTyped] = useState(false);
+    useEffect(() => {
+        if (!typed) setTeamName(profile.clubName || 'Pallet FC');
+    }, [profile.clubName, typed]);
     const [notesOpen, setNotesOpen] = useState(false);
     useEffect(() => {
         if (!notesOpen) return;
@@ -70,6 +76,15 @@ export function Home() {
                     </div>
                 </div>
                 <AccountBar />
+                <button
+                    type="button"
+                    className="help-fab"
+                    aria-label="Como jogar (ver o passo a passo de novo)"
+                    title="Como jogar"
+                    onClick={() => setOnboarded(false)}
+                >
+                    <MenuIcon kind="help" />
+                </button>
             </div>
 
             <section className="home-hero">
@@ -136,7 +151,10 @@ export function Home() {
                                 className="team-name-input"
                                 value={teamName}
                                 maxLength={22}
-                                onChange={(e) => setTeamName(e.target.value)}
+                                onChange={(e) => {
+                                    setTyped(true);
+                                    setTeamName(e.target.value);
+                                }}
                             />
                             <button
                                 type="button"
@@ -186,10 +204,20 @@ export function Home() {
             )}
 
             <nav className="home-tiles" aria-label="Menu">
+                <button type="button" className="home-tile" onClick={() => go('profile')}>
+                    <MenuIcon kind="profile" />
+                    <b>Perfil</b>
+                    <span>Seu clube, Pokédex e números</span>
+                </button>
                 <button type="button" className="home-tile" onClick={() => openLab('?lab=golpes')}>
                     <MenuIcon kind="moves" />
-                    <b>Golpes</b>
-                    <span>A animação de todos os 164</span>
+                    <b>Golpedex</b>
+                    <span>Os golpes que você já viu em campo</span>
+                </button>
+                <button type="button" className="home-tile" onClick={() => go('help')}>
+                    <MenuIcon kind="help" />
+                    <b>Ajuda</b>
+                    <span>Como jogar e todas as mecânicas</span>
                 </button>
                 <button type="button" className="home-tile" onClick={() => setNotesOpen(true)}>
                     <MenuIcon kind="news" />
@@ -207,6 +235,11 @@ export function Home() {
                     <b>Créditos</b>
                     <span>Sprites, sons e dados</span>
                 </button>
+                <a className="home-tile" href={FEEDBACK_URL} target="_blank" rel="noopener">
+                    <MenuIcon kind="feedback" />
+                    <b>Dar feedback</b>
+                    <span>Ideia, elogio ou bug: conta pra gente</span>
+                </a>
                 {import.meta.env.DEV && (
                     <button type="button" className="home-tile dev" onClick={() => openLab('?cards=1')}>
                         <MenuIcon kind="cards" />

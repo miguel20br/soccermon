@@ -1,5 +1,15 @@
 /** Ícones do menu principal, desenhados em SVG (nada de emoji). */
-export type MenuIconKind = 'moves' | 'news' | 'settings' | 'credits' | 'cards' | 'back';
+export type MenuIconKind =
+    | 'moves'
+    | 'news'
+    | 'settings'
+    | 'credits'
+    | 'cards'
+    | 'back'
+    | 'profile'
+    | 'dex'
+    | 'help'
+    | 'feedback';
 
 export function MenuIcon({ kind }: { kind: MenuIconKind }) {
     return (
@@ -39,6 +49,43 @@ export function MenuIcon({ kind }: { kind: MenuIconKind }) {
                 <g stroke="#1a1430" strokeWidth="2">
                     <rect x="4" y="7" width="14" height="20" rx="2" fill="#a45cff" transform="rotate(-12 11 17)" />
                     <rect x="13" y="5" width="14" height="20" rx="2" fill="#3a8dff" transform="rotate(10 20 15)" />
+                </g>
+            )}
+            {kind === 'profile' && (
+                // boné de treinador
+                <g stroke="#1a1430" strokeWidth="2" strokeLinejoin="round">
+                    <path d="M5 19 C5 9 27 9 27 19 Z" fill="#e8423f" />
+                    <path d="M3 19 H29 L26 23 H6 Z" fill="#f4f1e6" />
+                    <path d="M16 10 V19" />
+                    <circle cx="16" cy="15" r="2.6" fill="#f4f1e6" />
+                </g>
+            )}
+            {kind === 'dex' && (
+                // Pokédex aberta: tela e luz azul
+                <g stroke="#1a1430" strokeWidth="2" strokeLinejoin="round">
+                    <rect x="5" y="3" width="22" height="26" rx="3" fill="#e8423f" />
+                    <circle cx="11" cy="9" r="3" fill="#7fd3ff" />
+                    <rect x="9" y="14" width="14" height="10" rx="1.5" fill="#d8f0d2" />
+                </g>
+            )}
+            {kind === 'help' && (
+                <g>
+                    <circle cx="16" cy="16" r="13" fill="#3a7bd5" stroke="#1a1430" strokeWidth="2" />
+                    <path
+                        d="M12 12.5 C12 9.5 14 8 16 8 C18.5 8 20 9.7 20 11.8 C20 15 16 15 16 18.5"
+                        fill="none"
+                        stroke="#fff"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                    />
+                    <circle cx="16" cy="23.5" r="2" fill="#fff" />
+                </g>
+            )}
+            {kind === 'feedback' && (
+                // balão de conversa
+                <g stroke="#1a1430" strokeWidth="2" strokeLinejoin="round">
+                    <path d="M4 6 H28 V22 H14 L8 28 V22 H4 Z" fill="#58b85c" />
+                    <path d="M9 12 H23 M9 17 H19" stroke="#f4f1e6" strokeLinecap="round" />
                 </g>
             )}
             {kind === 'back' && (

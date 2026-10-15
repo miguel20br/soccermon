@@ -1,6 +1,7 @@
 import { createClient, type Session } from '@supabase/supabase-js';
 import { create } from 'zustand';
-import { type Records, useGame } from '../store/game-store';
+import { type PersistedSave, type Records, useGame } from '../store/game-store';
+import { DEFAULT_PROFILE, EMPTY_CAREER, mergeCareer, mergeDex, mergeMoves } from '../store/profile';
 
 /**
  * Contas (login com Google) e save na nuvem, pelo Supabase. Sem as variáveis de ambiente o jogo continua
@@ -74,9 +75,20 @@ const writeOwner = (id: string) => {
     }
 };
 
-function snapshot() {
-    const { run, settings, records } = useGame.getState();
-    return { run, settings, records };
+function snapshot(): PersistedSave {
+    const { run, settings, records, profile, dex, moves, career, onboarded } = useGame.getState();
+    return { run, settings, records, profile, dex, moves, career, onboarded };
+}
+
+/** Perfil, Pokédex, golpes e carreira juntando aparelho e nuvem (nada de progresso se perde). */
+function mergeProgress(local: PersistedSave, cloud: Partial<PersistedSave>, keepLocal: boolean) {
+    return {
+        profile: cloud.profile && !keepLocal ? { ...DEFAULT_PROFILE, ...cloud.profile } : local.profile,
+        dex: mergeDex(local.dex, cloud.dex),
+        moves: mergeMoves(local.moves, cloud.moves),
+        career: mergeCareer(local.career, cloud.career),
+        onboarded: local.onboarded || !!cloud.onboarded,
+    };
 }
 
 /** Recordes nunca diminuem: junta local e nuvem pelo maior de cada contador. */
@@ -149,7 +161,7 @@ async function reconcile(uid: string) {
     }
     const local = useGame.getState();
     const cloudTs = data ? Date.parse(data.updated_at) : 0;
-    const cloud = data?.data as Partial<ReturnType<typeof snapshot>> | undefined;
+    const cloud = data?.data as Partial<PersistedSave> | undefined;
     const owner = readOwner();
     if (owner && owner !== uid) {
         // o save deste aparelho é de outra conta: essa conta começa com o que tem na nuvem (ou do zero)
@@ -158,6 +170,11 @@ async function reconcile(uid: string) {
             run: cloud?.run ?? null,
             settings: { ...local.settings, ...cloud?.settings },
             records: mergeRecords({ cups: 0, titles: 0, perfect: 0 }, cloud?.records),
+            profile: { ...DEFAULT_PROFILE, ...cloud?.profile },
+            dex: cloud?.dex ?? {},
+            moves: cloud?.moves ?? {},
+            career: { ...EMPTY_CAREER, ...cloud?.career },
+            onboarded: local.onboarded || !!cloud?.onboarded,
             screen: 'home',
         });
         applying = false;
@@ -175,13 +192,17 @@ async function reconcile(uid: string) {
             run: cloud.run ?? null,
             settings: { ...local.settings, ...cloud.settings },
             records: mergeRecords(local.records, cloud.records),
+            ...mergeProgress(local, cloud, false),
             screen: 'home',
         });
         applying = false;
         writeLocalTs(cloudTs);
         useCloud.setState({ status: 'saved' });
-        // se os recordes locais eram maiores, sobe a junção
-        if (JSON.stringify(cloud.records) !== JSON.stringify(useGame.getState().records)) await upload();
+        // se o aparelho tinha recordes ou Pokédex maiores, sobe a junção
+        const merged = useGame.getState();
+        const same = (k: 'records' | 'dex' | 'moves' | 'career') =>
+            JSON.stringify(cloud[k] ?? null) === JSON.stringify(merged[k]);
+        if (!same('records') || !same('dex') || !same('moves') || !same('career')) await upload();
     } else {
         await upload();
     }
@@ -191,7 +212,8 @@ async function reconcile(uid: string) {
 export function startCloudSync() {
     // toda mudança no save local marca a hora (vale também para visitante: ao entrar, compara com a nuvem)
     useGame.subscribe((s, prev) => {
-        if (s.run === prev.run && s.settings === prev.settings && s.records === prev.records) return;
+        const keys = ['run', 'settings', 'records', 'profile', 'dex', 'moves', 'career', 'onboarded'] as const;
+        if (keys.every((k) => s[k] === prev[k])) return;
         // o carregamento do save do IndexedDB não é "mudança": senão o local parece sempre mais novo que a nuvem
         if (applying || !useGame.persist.hasHydrated()) return;
         writeLocalTs(Date.now());

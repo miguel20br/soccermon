@@ -6,22 +6,50 @@ import { BENCH_SIZE, captainOptions, DRAFT_PICKS, draftOptions } from '../engine
 import { evolveInstance } from '../engine/evolution';
 import { DEFAULT_FORMATION, type FormationId, formationOf } from '../engine/formations';
 import type { PokemonInstance } from '../engine/instance';
-import { playerLines, teamTotals } from '../engine/match-stats';
+import { viewInstance } from '../engine/instance';
+import { type PlayerLine, playerLines, teamTotals } from '../engine/match-stats';
 import { matchMvp, mvpScore } from '../engine/mvp';
 import { type Reward, rewardOptions } from '../engine/rewards';
 import { Rng } from '../engine/rng';
 import type { MatchResult } from '../engine/runners/batch-runner';
 import { rollSpecial as roll, SPECIALS_LIVE, weeklyEventType } from '../engine/specials';
+import {
+    type Career,
+    clubColorHex,
+    DEFAULT_PROFILE,
+    type Dex,
+    EMPTY_CAREER,
+    type MoveDex,
+    markOvr,
+    markSeen,
+    type Profile,
+    recordMatchInCareer,
+    recordMatchInDex,
+    recordMovesSeen,
+    recordTitleInDex,
+    tagFromName,
+} from './profile';
 
 /** Edição especial só quando as cartas novas estão no jogo. */
 const rollSpecial: typeof roll = (inst, ev) => (SPECIALS_LIVE ? roll(inst, ev) : inst);
 
 import type { MatchOrder, Tactic, TeamSetup } from '../engine/state';
 
-export type Screen = 'home' | 'draft' | 'lineup' | 'match' | 'result' | 'reward' | 'settings' | 'credits';
+export type Screen =
+    | 'home'
+    | 'draft'
+    | 'lineup'
+    | 'match'
+    | 'result'
+    | 'reward'
+    | 'settings'
+    | 'credits'
+    | 'profile'
+    | 'help';
 export type CryStyle = 'legacy' | 'latest';
 export type PlaybackSpeed = 1 | 2 | 4 | 8 | 'highlights';
 
+/** Cor padrão do seu time (Vermelho). A cor de verdade vem do perfil: `clubColorHex(profile.clubColor)`. */
 export const PLAYER_COLOR = 0xe8423f;
 export const START_REROLLS = 2;
 
@@ -109,12 +137,40 @@ export interface LiveMatch {
     tick: number;
 }
 
+export type NamesOnField = 'all' | 'mine' | 'none';
+export type ReduceMotion = 'system' | 'on' | 'off';
+
 export interface Settings {
     cries: CryStyle;
+    /** Volume geral (0..1); gritos e efeitos têm o próprio volume por cima dele. */
     volume: number;
+    criesVolume: number;
+    sfxVolume: number;
+    /** Velocidade com que a partida começa. */
     speed: PlaybackSpeed;
     cinematic: boolean;
+    /** Nomes dos Pokémon na quadra. */
+    namesOnField: NamesOnField;
+    /** Menos tremida, flash e zoom ('system' segue o "reduzir movimento" do aparelho). */
+    reduceMotion: ReduceMotion;
+    /** Dicas do "Como jogar" nas telas. */
+    tips: boolean;
+    /** Pedir confirmação antes de sair de uma partida em andamento. */
+    confirmLeave: boolean;
 }
+
+export const DEFAULT_SETTINGS: Settings = {
+    cries: 'legacy',
+    volume: 0.6,
+    criesVolume: 1,
+    sfxVolume: 1,
+    speed: 1,
+    cinematic: true,
+    namesOnField: 'all',
+    reduceMotion: 'system',
+    tips: true,
+    confirmLeave: true,
+};
 
 export interface Records {
     cups: number;
@@ -134,6 +190,14 @@ interface GameStore {
     run: RunState | null;
     settings: Settings;
     records: Records;
+    profile: Profile;
+    /** Pokédex: espécies vistas/jogadas e a carreira de cada uma. */
+    dex: Dex;
+    /** Golpes descobertos (vistos em campo nas suas partidas). */
+    moves: MoveDex;
+    career: Career;
+    /** Já viu o passo a passo de boas-vindas. */
+    onboarded: boolean;
     /** Partida atual (não persistida — snapshots são grandes). */
     match: MatchResult | null;
     go(screen: Screen): void;
@@ -158,6 +222,8 @@ interface GameStore {
     rerollReward(): void;
     advance(): void;
     updateSettings(patch: Partial<Settings>): void;
+    updateProfile(patch: Partial<Profile>): void;
+    setOnboarded(done: boolean): void;
 }
 
 const idbStorage: StateStorage = {
@@ -189,14 +255,14 @@ function rollRewards(run: RunState, reroll: number): Reward[] {
     );
 }
 
-export function playerTeam(run: RunState): TeamSetup {
+export function playerTeam(run: RunState, color = clubColorHex(useGame.getState().profile.clubColor)): TeamSetup {
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
     return {
         name: run.teamName,
         lineup: run.lineup.map((u) => byUid.get(u)!),
         bench: run.bench.map((u) => byUid.get(u)!),
         tactic: run.tactic,
-        color: PLAYER_COLOR,
+        color,
         formation: run.formation,
         captainUid: run.captainUid,
         manualSubs: true,
@@ -223,6 +289,62 @@ export function seedFromUrl(): string | null {
     }
 }
 
+/** O que vai para o IndexedDB (e para a nuvem). */
+export type PersistedSave = Pick<
+    GameStore,
+    'run' | 'settings' | 'records' | 'profile' | 'dex' | 'moves' | 'career' | 'onboarded'
+>;
+
+/** Versão atual do save (a mesma do `persist`). */
+export const SAVE_VERSION = 5;
+
+/**
+ * Atualiza um save antigo (ou importado de um arquivo) para o formato atual. Versões antigas tinham outro
+ * formato de draft: descarta a run e mantém o resto. Na v5 a Pokédex nasce com o que dá para tirar da copa
+ * em andamento, e quem já jogava não vê o passo a passo de boas-vindas de novo.
+ */
+export function migrateSave(old: Partial<PersistedSave>, version: number): PersistedSave {
+    const settings: Settings = { ...DEFAULT_SETTINGS, ...old.settings };
+    const records = old.records ?? { cups: 0, titles: 0, perfect: 0 };
+    const run = version < 3 || !old.run ? null : { ...old.run, lockedTeam: old.run.lockedTeam ?? null };
+    const profile: Profile = {
+        ...DEFAULT_PROFILE,
+        ...(version < 5 && run ? { clubName: run.teamName, clubTag: tagFromName(run.teamName) } : {}),
+        ...old.profile,
+    };
+    let dex: Dex = old.dex ?? {};
+    if (version < 5 && run) {
+        dex = markSeen(
+            dex,
+            run.picks.map((p) => p.speciesId),
+        );
+        for (const r of run.results) {
+            const lines = (r.stats?.players ?? []).map((p) => ({
+                team: 0 as const,
+                speciesId: p.speciesId,
+                minutes: p.minutes,
+                rating: p.rating,
+                stats: { goals: p.goals, assists: p.assists },
+            }));
+            dex = recordMatchInDex(dex, lines as unknown as PlayerLine[], r.won);
+        }
+        dex = markOvr(
+            dex,
+            run.picks.map((p): [number, number] => [p.speciesId, viewInstance(p).overall]),
+        );
+    }
+    return {
+        run,
+        settings,
+        records,
+        profile,
+        dex,
+        moves: old.moves ?? {},
+        career: { ...EMPTY_CAREER, ...old.career },
+        onboarded: old.onboarded ?? (version < 5 && (records.cups > 0 || !!run)),
+    };
+}
+
 export const useGame = create<GameStore>()(
     persist(
         (setState, getState) => {
@@ -230,16 +352,28 @@ export const useGame = create<GameStore>()(
                 const run = getState().run;
                 if (run) setState({ run: { ...run, ...patch } });
             };
+            /** Pokédex com estas espécies marcadas como vistas. */
+            const seenDex = (list: { speciesId: number }[]) =>
+                markSeen(
+                    getState().dex,
+                    list.map((p) => p.speciesId),
+                );
+            const ovrOf = (p: PokemonInstance): [number, number] => [p.speciesId, viewInstance(p).overall];
             return {
                 screen: 'home',
                 run: null,
-                settings: { cries: 'legacy', volume: 0.6, speed: 1, cinematic: true },
+                settings: DEFAULT_SETTINGS,
                 records: { cups: 0, titles: 0, perfect: 0 },
+                profile: DEFAULT_PROFILE,
+                dex: {},
+                moves: {},
+                career: EMPTY_CAREER,
+                onboarded: false,
                 match: null,
 
                 go: (screen) => setState({ screen }),
 
-                newRun: (teamName = 'Pallet FC', seed) => {
+                newRun: (teamName = getState().profile.clubName || 'Pallet FC', seed) => {
                     const runSeed = seed ?? Math.floor(Math.random() * 1e9).toString(36);
                     const run: RunState = {
                         schemaVersion: 3,
@@ -275,7 +409,7 @@ export const useGame = create<GameStore>()(
                     if (run?.status !== 'formation') return;
                     const next: RunState = { ...run, formation, status: 'captain' };
                     next.options = rollCaptains(next);
-                    setState({ run: next });
+                    setState({ run: next, dex: seenDex(next.options) });
                 },
 
                 chooseSlot: (slot) => {
@@ -283,7 +417,8 @@ export const useGame = create<GameStore>()(
                     if (run?.status !== 'drafting' || run.draftSlot) return; // vaga travada até escolher
                     const zone = slot.zone === 'lineup' ? run.lineup : run.bench;
                     if (zone[slot.index] !== '') return;
-                    updateRun({ draftSlot: slot, options: rollOptions(run, slot) });
+                    const options = rollOptions(run, slot);
+                    setState({ run: { ...run, draftSlot: slot, options }, dex: seenDex(options) });
                 },
 
                 pick: (uid, slotArg) => {
@@ -312,11 +447,12 @@ export const useGame = create<GameStore>()(
                         captainUid: run.status === 'captain' ? choice.uid : run.captainUid,
                         status: 'drafting',
                     };
+                    const dex = markOvr(getState().dex, [ovrOf(choice)]);
                     if (isDraftComplete(next) || next.picks.length >= DRAFT_PICKS) {
                         next.status = 'lineup';
-                        setState({ run: next, screen: 'lineup' });
+                        setState({ run: next, screen: 'lineup', dex });
                     } else {
-                        setState({ run: next });
+                        setState({ run: next, dex });
                     }
                 },
 
@@ -328,7 +464,7 @@ export const useGame = create<GameStore>()(
                     else if (run.status === 'drafting' && run.draftSlot)
                         next.options = rollOptions(next, run.draftSlot);
                     else return;
-                    setState({ run: next });
+                    setState({ run: next, dex: seenDex(next.options) });
                 },
 
                 swapSlots: (a, b) => {
@@ -365,7 +501,11 @@ export const useGame = create<GameStore>()(
                 lockMatch: (team) => {
                     const run = getState().run;
                     if (run?.status === 'lineup' && !run.lockedTeam) {
-                        updateRun({ lockedTeam: team, live: { stage: run.stage, orders: [], tick: 0 } });
+                        const opp = run.opponents[run.stage];
+                        setState({
+                            run: { ...run, lockedTeam: team, live: { stage: run.stage, orders: [], tick: 0 } },
+                            dex: opp ? seenDex([...opp.lineup, ...opp.bench]) : getState().dex,
+                        });
                     }
                 },
 
@@ -377,7 +517,7 @@ export const useGame = create<GameStore>()(
                 },
 
                 recordResult: (m) => {
-                    const { run, records } = getState();
+                    const { run, records, career, moves } = getState();
                     // só registra partidas da fase atual de uma run em escalação (evita resultado "fantasma")
                     if (run?.status !== 'lineup' || run.results.some((r) => r.stage === run.stage)) return;
                     const won = m.winner === 0;
@@ -444,6 +584,21 @@ export const useGame = create<GameStore>()(
                         live: null,
                     };
                     if (status === 'reward') next.rewards = rollRewards(next, 0);
+                    // Pokédex: seu time (1+ minuto) "jogou", o rival e as recompensas ficam "vistos";
+                    // quem evoluiu em campo também entra (a forma nova jogou o resto da partida)
+                    let dex = recordMatchInDex(getState().dex, lines, won);
+                    dex = markSeen(dex, [...evolved.values()]);
+                    dex = markSeen(
+                        dex,
+                        next.rewards.flatMap((r) => (r.kind === 'pokemon' ? [r.inst.speciesId] : [])),
+                    );
+                    dex = markOvr(dex, picks.filter((p) => evolved.has(p.uid) || p.uid === destaqueUid).map(ovrOf));
+                    if (status === 'champion') {
+                        const played = next.results.flatMap((r) =>
+                            (r.stats?.players ?? []).filter((p) => p.minutes >= 1).map((p) => p.speciesId),
+                        );
+                        dex = recordTitleInDex(dex, played);
+                    }
                     const ended = status === 'eliminated' || status === 'champion';
                     const withStar = {
                         ...records,
@@ -452,6 +607,9 @@ export const useGame = create<GameStore>()(
                     };
                     setState({
                         run: next,
+                        dex,
+                        moves: recordMovesSeen(moves, m),
+                        career: recordMatchInCareer(career, m.score, won, !!m.shootout),
                         records: ended
                             ? {
                                   ...withStar,
@@ -483,6 +641,7 @@ export const useGame = create<GameStore>()(
                     }
                     setState({
                         run: { ...run, picks, bench, rewards: [], status: 'lineup', stage: run.stage + 1 },
+                        dex: markOvr(getState().dex, picks.filter((p) => !run.picks.includes(p)).map(ovrOf)),
                         match: null,
                         screen: 'lineup',
                     });
@@ -502,10 +661,10 @@ export const useGame = create<GameStore>()(
                     const run = getState().run;
                     if (run?.status !== 'reward' || run.rerolls <= 0) return;
                     const used = run.rerollsUsed + 1;
-                    updateRun({
-                        rerolls: run.rerolls - 1,
-                        rerollsUsed: used,
-                        rewards: rollRewards({ ...run, rerollsUsed: used }, used),
+                    const rewards = rollRewards({ ...run, rerollsUsed: used }, used);
+                    setState({
+                        run: { ...run, rerolls: run.rerolls - 1, rerollsUsed: used, rewards },
+                        dex: seenDex(rewards.flatMap((r) => (r.kind === 'pokemon' ? [r.inst] : []))),
                     });
                 },
 
@@ -516,32 +675,29 @@ export const useGame = create<GameStore>()(
                 },
 
                 updateSettings: (patch) => setState({ settings: { ...getState().settings, ...patch } }),
+                updateProfile: (patch) => setState({ profile: { ...getState().profile, ...patch } }),
+                setOnboarded: (onboarded) => setState({ onboarded }),
             };
         },
         {
             name: 'soccermon-save',
             // v4: cartas especiais (campo opcional `special`, `eventType` na run, recordes novos)
-            version: 4,
+            // v5: perfil, Pokédex, golpes descobertos, carreira e configurações novas
+            version: 5,
             storage: createJSONStorage(() => idbStorage),
-            partialize: (s) => ({ run: s.run, settings: s.settings, records: s.records }),
+            partialize: (s): PersistedSave => ({
+                run: s.run,
+                settings: s.settings,
+                records: s.records,
+                profile: s.profile,
+                dex: s.dex,
+                moves: s.moves,
+                career: s.career,
+                onboarded: s.onboarded,
+            }),
             // versões antigas tinham outro formato de draft: descarta a run, mantém configurações
             migrate: (persisted, version) => {
-                const old = (persisted ?? {}) as {
-                    run?: RunState | null;
-                    settings?: Partial<Settings>;
-                    records?: Records;
-                };
-                const settings = {
-                    cries: 'legacy',
-                    volume: 0.6,
-                    speed: 1,
-                    cinematic: true,
-                    ...old.settings,
-                } as Settings;
-                const records = old.records ?? { cups: 0, titles: 0, perfect: 0 };
-                if (version < 3) return { run: null, settings, records };
-                const run = old.run ? { ...old.run, lockedTeam: old.run.lockedTeam ?? null } : null;
-                return { run, settings, records };
+                return migrateSave((persisted ?? {}) as Partial<PersistedSave>, version);
             },
         },
     ),
