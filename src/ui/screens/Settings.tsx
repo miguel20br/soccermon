@@ -1,6 +1,9 @@
 import { type ReactNode, useRef, useState } from 'react';
 import { cloudEnabled, deleteAccount, signOut, useCloud } from '../../cloud/cloud';
 import { playCry, playSfx } from '../../game/audio';
+import { getLang, type Lang, t as tr } from '../../i18n';
+import { htmlLang } from '../../i18n/lang';
+import { rich, useLang, useT } from '../../i18n/react';
 import {
     DEFAULT_SETTINGS,
     migrateSave,
@@ -98,22 +101,23 @@ function VolumeSlider({
     );
 }
 
-const SPEED_OPTIONS: { value: PlaybackSpeed; label: string }[] = [
+type T = ReturnType<typeof useT>['t'];
+const speedOptions = (t: T): { value: PlaybackSpeed; label: string }[] => [
     { value: 1, label: '1x' },
     { value: 2, label: '2x' },
     { value: 4, label: '4x' },
     { value: 8, label: '8x' },
-    { value: 'highlights', label: 'Lances' },
+    { value: 'highlights', label: t('settings.screen.highlights') },
 ];
-const NAMES_OPTIONS: { value: NamesOnField; label: string }[] = [
-    { value: 'all', label: 'Todos' },
-    { value: 'mine', label: 'Só do meu time' },
-    { value: 'none', label: 'Nenhum' },
+const namesOptions = (t: T): { value: NamesOnField; label: string }[] => [
+    { value: 'all', label: t('settings.screen.namesAll') },
+    { value: 'mine', label: t('settings.screen.namesMine') },
+    { value: 'none', label: t('settings.screen.namesNone') },
 ];
-const MOTION_OPTIONS: { value: ReduceMotion; label: string }[] = [
-    { value: 'system', label: 'Seguir o aparelho' },
-    { value: 'on', label: 'Ligado' },
-    { value: 'off', label: 'Desligado' },
+const motionOptions = (t: T): { value: ReduceMotion; label: string }[] => [
+    { value: 'system', label: t('settings.screen.motionSystem') },
+    { value: 'on', label: t('settings.screen.on') },
+    { value: 'off', label: t('settings.screen.off') },
 ];
 const onOff = (on: string, off: string) => [
     { value: true, label: on },
@@ -123,42 +127,58 @@ const onOff = (on: string, off: string) => [
 export function Settings() {
     const { settings, updateSettings, go, setOnboarded } = useGame();
     const set = updateSettings;
+    const { t } = useT();
+    const lang = useLang();
     return (
         <div className="menu-screen settings-screen">
-            <MenuHead title="Configurações" icon="settings" onBack={() => go('home')} />
+            <MenuHead title={t('settings.screen.title')} icon="settings" onBack={() => go('home')} />
 
-            <Group title="Som">
-                <Row title="Volume geral">
+            <section className="panel set-group">
+                <Row title={t('settings.screen.langLabel')}>
+                    <Segmented<Lang>
+                        label={t('settings.screen.langLabel')}
+                        value={lang}
+                        options={[
+                            { value: 'pt', label: t('settings.screen.langPt') },
+                            { value: 'en', label: t('settings.screen.langEn') },
+                        ]}
+                        onPick={(l) => set({ lang: l })}
+                    />
+                </Row>
+            </section>
+
+            <Group title={t('settings.screen.sound')}>
+                <Row title={t('settings.screen.volume')}>
                     <VolumeSlider
-                        label="Volume geral"
+                        label={t('settings.screen.volume')}
                         value={settings.volume}
                         onChange={(volume) => set({ volume })}
                         preview={() => playSfx('kick')}
                     />
                 </Row>
-                <Row title="Gritos" hint="Quando um Pokémon entra, marca ou evolui.">
+                <Row title={t('settings.screen.cries')} hint={t('settings.screen.criesHint')}>
                     <VolumeSlider
-                        label="Volume dos gritos"
+                        label={t('settings.screen.criesVolume')}
                         value={settings.criesVolume}
                         onChange={(criesVolume) => set({ criesVolume })}
                         preview={() => playCry(25, settings.cries)}
                     />
                 </Row>
-                <Row title="Efeitos" hint="Chutes, apito, golpes e menus.">
+                <Row title={t('settings.screen.sfx')} hint={t('settings.screen.sfxHint')}>
                     <VolumeSlider
-                        label="Volume dos efeitos"
+                        label={t('settings.screen.sfxVolume')}
                         value={settings.sfxVolume}
                         onChange={(sfxVolume) => set({ sfxVolume })}
                         preview={() => playSfx('kick')}
                     />
                 </Row>
-                <Row title="Estilo dos gritos">
+                <Row title={t('settings.screen.criesStyle')}>
                     <Segmented
-                        label="Estilo dos gritos"
+                        label={t('settings.screen.criesStyle')}
                         value={settings.cries}
                         options={[
-                            { value: 'legacy', label: 'Clássicos 8-bit (Gen 1)' },
-                            { value: 'latest', label: 'Modernos' },
+                            { value: 'legacy', label: t('settings.screen.criesLegacy') },
+                            { value: 'latest', label: t('settings.screen.criesLatest') },
                         ]}
                         onPick={(cries) => {
                             set({ cries });
@@ -168,69 +188,75 @@ export function Settings() {
                 </Row>
             </Group>
 
-            <Group title="Partida">
-                <Row title="Velocidade inicial" hint="Também muda quando você troca a velocidade durante o jogo.">
+            <Group title={t('settings.screen.match')}>
+                <Row title={t('settings.screen.speed')} hint={t('settings.screen.speedHint')}>
                     <Segmented
-                        label="Velocidade inicial"
+                        label={t('settings.screen.speed')}
                         value={settings.speed}
-                        options={SPEED_OPTIONS}
+                        options={speedOptions(t)}
                         onPick={(speed) => set({ speed })}
                     />
                 </Row>
-                <Row title="Efeitos cinematográficos" hint="Holofote e câmera lenta nos golpes, gols e defesas.">
+                <Row title={t('settings.screen.cinematic')} hint={t('settings.screen.cinematicHint')}>
                     <Segmented
-                        label="Efeitos cinematográficos"
+                        label={t('settings.screen.cinematic')}
                         value={settings.cinematic}
-                        options={onOff('Ligados', 'Desligados (jogo corrido)')}
+                        options={onOff(t('settings.screen.cinematicOn'), t('settings.screen.cinematicOff'))}
                         onPick={(cinematic) => set({ cinematic })}
                     />
                 </Row>
-                <Row title="Nomes na quadra">
+                <Row title={t('settings.screen.names')}>
                     <Segmented
-                        label="Nomes na quadra"
+                        label={t('settings.screen.names')}
                         value={settings.namesOnField}
-                        options={NAMES_OPTIONS}
+                        options={namesOptions(t)}
                         onPick={(namesOnField) => set({ namesOnField })}
                     />
                 </Row>
-                <Row title="Confirmar antes de sair" hint="Pergunta antes de largar uma partida no meio.">
+                <Row title={t('settings.screen.confirmLeave')} hint={t('settings.screen.confirmLeaveHint')}>
                     <Segmented
-                        label="Confirmar antes de sair da partida"
+                        label={t('settings.screen.confirmLeaveLabel')}
                         value={settings.confirmLeave}
-                        options={onOff('Ligado', 'Desligado')}
+                        options={onOff(t('settings.screen.on'), t('settings.screen.off'))}
                         onPick={(confirmLeave) => set({ confirmLeave })}
                     />
                 </Row>
             </Group>
 
-            <Group title="Acessibilidade">
+            <Group title={t('settings.screen.accessibility')}>
                 <Row
-                    title="Reduzir movimento"
+                    title={t('settings.screen.motion')}
                     hint={
                         settings.reduceMotion === 'system'
-                            ? `Menos tremida, flash e zoom. Seu aparelho: ${reduceMotionOn('system') ? 'reduzido' : 'normal'}.`
-                            : 'Menos tremida, flash e zoom.'
+                            ? t('settings.screen.motionHintSystem', {
+                                  state: t(
+                                      reduceMotionOn('system')
+                                          ? 'settings.screen.motionReduced'
+                                          : 'settings.screen.motionNormal',
+                                  ),
+                              })
+                            : t('settings.screen.motionHint')
                     }
                 >
                     <Segmented
-                        label="Reduzir movimento"
+                        label={t('settings.screen.motion')}
                         value={settings.reduceMotion}
-                        options={MOTION_OPTIONS}
+                        options={motionOptions(t)}
                         onPick={(reduceMotion) => set({ reduceMotion })}
                     />
                 </Row>
             </Group>
 
-            <Group title="Ajuda">
-                <Row title="Dicas nas telas" hint="Lembretes curtos de como jogar.">
+            <Group title={t('settings.screen.help')}>
+                <Row title={t('settings.screen.tips')} hint={t('settings.screen.tipsHint')}>
                     <Segmented
-                        label="Dicas nas telas"
+                        label={t('settings.screen.tips')}
                         value={settings.tips}
-                        options={onOff('Ligadas', 'Desligadas')}
+                        options={onOff(t('settings.screen.onPl'), t('settings.screen.offPl'))}
                         onPick={(tips) => set({ tips })}
                     />
                 </Row>
-                <Row title="Boas-vindas">
+                <Row title={t('settings.screen.welcome')}>
                     <div>
                         <button
                             type="button"
@@ -240,7 +266,7 @@ export function Settings() {
                                 go('home');
                             }}
                         >
-                            Ver o passo a passo de novo
+                            {t('settings.screen.welcomeAgain')}
                         </button>
                     </div>
                 </Row>
@@ -250,7 +276,7 @@ export function Settings() {
             <AccountSettings />
             <p className="muted center">
                 <a href="privacidade.html" target="_blank" rel="noopener">
-                    Privacidade e termos
+                    {t('settings.screen.privacy')}
                 </a>
             </p>
         </div>
@@ -304,13 +330,13 @@ function parseBackup(text: string): { save: PersistedSave; exportedAt: string | 
     try {
         data = JSON.parse(text);
     } catch {
-        throw new Error('Esse arquivo não é um backup do Soccermon.');
+        throw new Error(tr('settings.data.notBackup'));
     }
     if (!isObj(data) || data.app !== 'soccermon' || !isObj(data.save) || typeof data.version !== 'number') {
-        throw new Error('Esse arquivo não é um backup do Soccermon.');
+        throw new Error(tr('settings.data.notBackup'));
     }
     if (data.version > SAVE_VERSION) {
-        throw new Error('Esse backup é de uma versão mais nova do jogo. Recarregue a página e tente de novo.');
+        throw new Error(tr('settings.data.newer'));
     }
     const raw = data.save as Partial<PersistedSave>;
     // copa em andamento com formato estranho: melhor descartar só ela do que travar o jogo
@@ -338,7 +364,7 @@ function parseBackup(text: string): { save: PersistedSave; exportedAt: string | 
 
 const dateLabel = (iso: string | null) => {
     const d = iso ? new Date(iso) : null;
-    return d && !Number.isNaN(d.getTime()) ? d.toLocaleDateString('pt-BR') : null;
+    return d && !Number.isNaN(d.getTime()) ? d.toLocaleDateString(htmlLang(getLang())) : null;
 };
 
 function DataSettings() {
@@ -349,6 +375,7 @@ function DataSettings() {
     const [pending, setPending] = useState<{ save: PersistedSave; exportedAt: string | null } | null>(null);
     const [msg, setMsg] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
     const [wipe, setWipe] = useState<'idle' | 'confirm' | 'busy'>('idle');
+    const { t } = useT();
 
     const pickFile = async (file: File | undefined) => {
         if (!file) return;
@@ -358,7 +385,7 @@ function DataSettings() {
             setPending(parseBackup(await file.text()));
         } catch (e) {
             setPending(null);
-            setMsg({ tone: 'error', text: e instanceof Error ? e.message : 'Não deu para ler o arquivo.' });
+            setMsg({ tone: 'error', text: e instanceof Error ? e.message : t('settings.data.unreadable') });
         }
     };
 
@@ -366,7 +393,7 @@ function DataSettings() {
         if (!pending) return;
         useGame.setState({ ...pending.save, match: null });
         setPending(null);
-        setMsg({ tone: 'ok', text: 'Backup restaurado.' });
+        setMsg({ tone: 'ok', text: t('settings.data.restored') });
     };
 
     const wipeDevice = async () => {
@@ -382,7 +409,7 @@ function DataSettings() {
             }
             if (useCloud.getState().user) {
                 setWipe('idle');
-                setMsg({ tone: 'error', text: 'Não deu para sair da conta agora. Tente de novo.' });
+                setMsg({ tone: 'error', text: t('settings.data.signOutFailed') });
                 return;
             }
         }
@@ -404,41 +431,41 @@ function DataSettings() {
     const seen = summary ? Object.keys(summary.dex).length : 0;
 
     return (
-        <Group title="Seus dados">
+        <Group title={t('settings.data.title')}>
             <Row
-                title="Estatísticas anônimas"
+                title={t('settings.data.stats')}
                 hint={
                     <>
-                        Conta visitas e partidas sem conta, sem cookie e sem saber quem é você. Ajuda a melhorar o jogo.{' '}
+                        {t('settings.data.statsHint')}{' '}
                         <a href="privacidade.html" target="_blank" rel="noopener">
-                            Detalhes
+                            {t('settings.data.details')}
                         </a>
                     </>
                 }
             >
                 <Segmented
-                    label="Estatísticas anônimas"
+                    label={t('settings.data.stats')}
                     value={stats}
-                    options={onOff('Ligadas', 'Desligadas')}
+                    options={onOff(t('settings.screen.onPl'), t('settings.screen.offPl'))}
                     onPick={(v) => updateSettings({ stats: v })}
                 />
             </Row>
-            <Row title="Backup" hint="Um arquivo com todo o seu progresso, para guardar ou levar a outro aparelho.">
+            <Row title={t('settings.data.backup')} hint={t('settings.data.backupHint')}>
                 <div className="set-actions">
                     <button
                         type="button"
                         className="btn small"
                         onClick={() => {
                             downloadBackup();
-                            setMsg({ tone: 'ok', text: 'Backup baixado.' });
+                            setMsg({ tone: 'ok', text: t('settings.data.downloaded') });
                         }}
                     >
                         <DataIcon kind="down" />
-                        Baixar backup
+                        {t('settings.data.download')}
                     </button>
                     <button type="button" className="btn small" onClick={() => fileRef.current?.click()}>
                         <DataIcon kind="up" />
-                        Restaurar backup
+                        {t('settings.data.restore')}
                     </button>
                     <input
                         ref={fileRef}
@@ -455,31 +482,34 @@ function DataSettings() {
 
             {summary && (
                 <div className="set-confirm" role="alert">
-                    <b>Restaurar este backup?</b>
+                    <b>{t('settings.data.restoreTitle')}</b>
                     <span>
-                        {dateLabel(pending.exportedAt) ? `Salvo em ${dateLabel(pending.exportedAt)}. ` : ''}
-                        Copas {summary.records.cups}, títulos {summary.records.titles}, Pokédex {seen} vistos
-                        {summary.run ? ', com uma copa em andamento' : ''}.
+                        {dateLabel(pending.exportedAt)
+                            ? t('settings.data.savedOn', { date: dateLabel(pending.exportedAt) ?? '' })
+                            : ''}
+                        {t('settings.data.summary', {
+                            cups: summary.records.cups,
+                            titles: summary.records.titles,
+                            seen,
+                        })}
+                        {summary.run ? t('settings.data.withRun') : ''}.
                     </span>
                     <span>
-                        Ele substitui o progresso deste aparelho.
-                        {user ? ' Como você está conectado, ele também vai para a sua conta na nuvem.' : ''}
+                        {t('settings.data.replaces')}
+                        {user ? t('settings.data.replacesCloud') : ''}
                     </span>
                     <div className="set-actions">
                         <button type="button" className="btn small primary" onClick={restore}>
-                            Restaurar
+                            {t('settings.data.restoreBtn')}
                         </button>
                         <button type="button" className="btn small ghost" onClick={() => setPending(null)}>
-                            Cancelar
+                            {t('common.ui.cancel')}
                         </button>
                     </div>
                 </div>
             )}
 
-            <Row
-                title="Apagar dados deste aparelho"
-                hint="Volta o jogo ao zero aqui. Baixe um backup antes, se quiser."
-            >
+            <Row title={t('settings.data.wipe')} hint={t('settings.data.wipeHint')}>
                 {wipe === 'idle' ? (
                     <div>
                         <button
@@ -491,19 +521,14 @@ function DataSettings() {
                                 setWipe('confirm');
                             }}
                         >
-                            Apagar dados deste aparelho
+                            {t('settings.data.wipe')}
                         </button>
                     </div>
                 ) : (
                     <div className="set-confirm danger" role="alert">
-                        <b>Apagar tudo deste aparelho?</b>
-                        <span>Copa em andamento, recordes, Pokédex, perfil e configurações. Não dá para desfazer.</span>
-                        {user && (
-                            <span>
-                                Você também sai da conta aqui. O save na nuvem não é apagado: entre de novo com o Google
-                                para trazê-lo de volta.
-                            </span>
-                        )}
+                        <b>{t('settings.data.wipeTitle')}</b>
+                        <span>{t('settings.data.wipeWhat')}</span>
+                        {user && <span>{t('settings.data.wipeCloud')}</span>}
                         <div className="set-actions">
                             <button
                                 type="button"
@@ -511,7 +536,7 @@ function DataSettings() {
                                 disabled={wipe === 'busy'}
                                 onClick={() => void wipeDevice()}
                             >
-                                {wipe === 'busy' ? 'Apagando…' : 'Sim, apagar'}
+                                {wipe === 'busy' ? t('settings.data.wiping') : t('settings.data.wipeYes')}
                             </button>
                             <button
                                 type="button"
@@ -519,7 +544,7 @@ function DataSettings() {
                                 disabled={wipe === 'busy'}
                                 onClick={() => setWipe('idle')}
                             >
-                                Cancelar
+                                {t('common.ui.cancel')}
                             </button>
                         </div>
                     </div>
@@ -564,6 +589,7 @@ function DataIcon({ kind }: { kind: 'down' | 'up' }) {
 function AccountSettings() {
     const user = useCloud((s) => s.user);
     const [step, setStep] = useState<'idle' | 'confirm' | 'busy' | 'done' | 'error'>('idle');
+    const { t } = useT();
     if (!cloudEnabled || (!user && step !== 'done')) return null;
     const remove = () => {
         setStep('busy');
@@ -574,19 +600,16 @@ function AccountSettings() {
     };
     return (
         <section className="panel setting-card">
-            <h2>Conta</h2>
+            <h2>{t('settings.account.title')}</h2>
             {step === 'done' ? (
-                <p>Conta apagada. Seu progresso continua só neste aparelho, como visitante.</p>
+                <p>{t('settings.account.deleted')}</p>
             ) : (
                 <>
-                    <p>
-                        Conectado como <b>{user?.name}</b>. Apagar a conta remove o login, o perfil e o save da nuvem de
-                        vez. O jogo neste aparelho continua, como visitante.
-                    </p>
+                    <p>{rich(t('settings.account.signedAs'), { name: <b>{user?.name}</b> })}</p>
                     {step === 'confirm' || step === 'busy' ? (
                         <div className="row">
                             <button type="button" className="btn primary" disabled={step === 'busy'} onClick={remove}>
-                                {step === 'busy' ? 'Apagando…' : 'Sim, apagar minha conta'}
+                                {step === 'busy' ? t('settings.account.deleting') : t('settings.account.deleteYes')}
                             </button>
                             <button
                                 type="button"
@@ -594,16 +617,16 @@ function AccountSettings() {
                                 disabled={step === 'busy'}
                                 onClick={() => setStep('idle')}
                             >
-                                Cancelar
+                                {t('common.ui.cancel')}
                             </button>
                         </div>
                     ) : (
                         <div className="row">
                             <button type="button" className="btn ghost small" onClick={() => setStep('confirm')}>
-                                Apagar minha conta
+                                {t('settings.account.delete')}
                             </button>
                             {step === 'error' && (
-                                <span className="error-text">Não deu para apagar agora. Tente de novo.</span>
+                                <span className="error-text">{t('settings.account.deleteFailed')}</span>
                             )}
                         </div>
                     )}

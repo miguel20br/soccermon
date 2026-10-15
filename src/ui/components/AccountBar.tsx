@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { cloudEnabled, signInWithGoogle, signInWithGoogleToken, signOut, useCloud } from '../../cloud/cloud';
 import { GOOGLE_CLIENT_ID, renderGoogleButton } from '../../cloud/google-button';
+import { htmlLang } from '../../i18n/lang';
+import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { trainerLabel, useAvatar } from '../profile/club';
 
-const STATUS_TEXT = {
-    off: '',
-    guest: '',
-    syncing: 'Salvando…',
-    saved: 'Salvo na nuvem ✓',
-    error: 'Não deu para salvar na nuvem (o jogo continua salvo neste aparelho)',
+const STATUS_KEY = {
+    off: null,
+    guest: null,
+    syncing: 'settings.bar.syncing',
+    saved: 'settings.bar.saved',
+    error: 'settings.bar.error',
 } as const;
 
 /** Logo "G" do Google (padrão dos botões "Sign in with Google"). */
@@ -48,6 +50,7 @@ export function AccountBar() {
     const profile = useGame((s) => s.profile);
     const go = useGame((s) => s.go);
     const avatar = useAvatar();
+    const { t, lang } = useT();
 
     useEffect(() => {
         const el = gsiRef.current;
@@ -66,11 +69,12 @@ export function AccountBar() {
                 });
             },
             width,
+            htmlLang(lang),
         ).catch(() => alive && setGsiFailed(true));
         return () => {
             alive = false;
         };
-    }, [signedIn]);
+    }, [signedIn, lang]);
 
     if (!cloudEnabled) return null;
 
@@ -96,15 +100,13 @@ export function AccountBar() {
                         }}
                     >
                         <GoogleLogo />
-                        Entrar com Google
+                        {t('settings.bar.signIn')}
                     </button>
                 )}
                 <span className={failed ? 'error-text' : 'muted'}>
-                    {failed
-                        ? 'Não deu para abrir o login do Google. Confira a internet e tente de novo.'
-                        : 'Salve sua copa e seus recordes na nuvem e jogue em qualquer aparelho.'}{' '}
+                    {failed ? t('settings.bar.signInFailed') : t('settings.bar.pitch')}{' '}
                     <a href="privacidade.html" target="_blank" rel="noopener">
-                        Privacidade
+                        {t('settings.bar.privacy')}
                     </a>
                 </span>
             </div>
@@ -112,7 +114,12 @@ export function AccountBar() {
     }
     return (
         <div className="account-bar signed">
-            <button type="button" className="account-me" onClick={() => go('profile')} title="Abrir o perfil">
+            <button
+                type="button"
+                className="account-me"
+                onClick={() => go('profile')}
+                title={t('settings.bar.openProfile')}
+            >
                 <img
                     className={`avatar${avatar.google ? '' : ' pixel'}`}
                     src={avatar.src}
@@ -121,7 +128,9 @@ export function AccountBar() {
                 />
                 <span className="account-who">
                     <b>{trainerLabel(profile, user.name)}</b>
-                    <span className={`muted${status === 'error' ? ' error-text' : ''}`}>{STATUS_TEXT[status]}</span>
+                    <span className={`muted${status === 'error' ? ' error-text' : ''}`}>
+                        {STATUS_KEY[status] ? t(STATUS_KEY[status]) : ''}
+                    </span>
                 </span>
             </button>
             <button
@@ -133,7 +142,7 @@ export function AccountBar() {
                     signOut().finally(() => setBusy(false));
                 }}
             >
-                Sair
+                {t('settings.bar.signOut')}
             </button>
         </div>
     );

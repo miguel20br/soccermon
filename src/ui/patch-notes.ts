@@ -177,3 +177,183 @@ export const PATCH_NOTES: PatchNotes[] = [
         ],
     },
 ];
+
+/** Notes in English (same versions; a version missing here falls back to Portuguese). */
+export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.8.0',
+        title: 'Profile and Pokédex',
+        sections: [
+            {
+                title: 'Added',
+                lines: [
+                    'Profile: your trainer name, avatar (a Pokémon that has played for your team, or your Google photo), a fixed club name, 3-letter tag and club color',
+                    'Club color on the scoreboard, the VERSUS screen, the result and the charts; if the rival has a similar color, they wear their away kit',
+                    'Pokédex of all 151: seen (showed up in the draft, the rewards or a rival team) and played (took the court for your team), with each species’ career: matches, goals, assists, titles and the best card',
+                    'Career numbers: wins, goals, top scorers and most picked',
+                    'Golpedex: moves are revealed when someone uses them on the court in one of your matches; browse by move or by Pokémon, with each animation',
+                    'How to play: a walkthrough on your first visit (and on the question mark button on the start screen), a Help section with every mechanic and short tips in the draft, the lineup and the rewards',
+                    'Give feedback button on the start screen and at the end of the cup',
+                ],
+            },
+            {
+                title: 'Settings',
+                lines: [
+                    'Separate volume for cries and effects',
+                    'Starting match speed and names on the court (all, my team only or none)',
+                    'Reduce motion: less shake, flash and zoom',
+                    'Confirmation before leaving a match in progress',
+                    'Download and restore a save backup, and erase the data on this device',
+                    'Anonymous statistics (no account, no cookie), with an option to turn them off',
+                ],
+            },
+            {
+                title: 'Fixed',
+                lines: [
+                    'Signing in after playing as a guest no longer loses your cloud records',
+                    'Balanced tactic description: it gives +3% passing and positioning',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.7.3',
+        title: 'Open beta',
+        sections: [
+            {
+                title: 'Launch',
+                lines: [
+                    'Soccermon is now an open beta: the game is complete and keeps getting tweaks',
+                    'Open source on GitHub (link in the footer): read the code, report bugs and suggest ideas',
+                ],
+            },
+            {
+                title: 'Added',
+                lines: [
+                    'Team panel during the match: stamina, status, goals, assists and live rating of each player, plus the bench (yours and the rival’s); tapping a player opens their panel',
+                    'Lineup with the card look: bronze, silver, gold, legendary and special editions',
+                    'Start screen with new scenes on the court: one-twos, goals and keepy-uppies, with random Pokémon',
+                ],
+            },
+            {
+                title: 'Fixed',
+                lines: [
+                    'Ditto in the match panel shows the form it copied (species, level, moves and Ability), not the original Ditto anymore',
+                    'Result screen: your team’s Pokémon are no longer cut off at the edges on phones',
+                    'If a screen crashes, a notice with a way out shows up instead of a blank page (your cup stays saved)',
+                    'Start screen ball redrawn: now it is a real futsal ball',
+                ],
+            },
+            {
+                title: 'Mobile',
+                lines: ['Proper icon when adding the game to the home screen', 'Patch notes with separate versions'],
+            },
+        ],
+    },
+    {
+        version: '0.7.2',
+        title: 'Substitutions that count and privacy',
+        sections: [
+            {
+                title: 'Changed',
+                lines: [
+                    'Whoever comes on as a sub now counts for type synergy, story duos and the captain',
+                    'Whoever goes off takes the bonus with them; a substituted captain takes the aura',
+                    'Evolving changes the type in the team synergy count',
+                ],
+            },
+            {
+                title: 'Added',
+                lines: [
+                    'Delete my account, in Settings: removes the login, profile and cloud save',
+                    'Privacy and terms page',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.7.1',
+        title: 'Full review',
+        sections: [
+            {
+                title: 'Fixed',
+                lines: [
+                    'Cloud save: opening the game on another device no longer erases the saved cup',
+                    'Another Google account on the same device no longer inherits the cup or the records',
+                    'Evolving mid-match no longer cures status or restores moves already used',
+                    'Old saves no longer make automatic substitutions on your team',
+                    'Going back during a penalty shootout no longer skips all the kicks at once',
+                    'Tapping the card inside the full card made the Pick and Sign buttons disappear',
+                    'Texts: "Knocked out in the semi-final", "1 goal", "1 cup", runner-up when losing the final',
+                    'Nidoran♀ and Nidoran♂ with the right name',
+                ],
+            },
+            {
+                title: 'Mobile',
+                lines: [
+                    'Cup statistics and the top of the result fit 320px screens',
+                    'The court fits the screen with the phone in landscape',
+                    'The captain badge no longer covers "Goalkeeper" in the lineup',
+                    'Charts without emoji: drawn dots mark the goals',
+                    'Esc and keyboard work in the evolution and in the patch notes',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.7',
+        title: 'Accounts, evolution and real moves',
+        sections: [
+            {
+                title: 'Added',
+                lines: [
+                    'Sign in with Google: cup and records saved to the cloud',
+                    'Champion screen: the trophy, the road to the title and the whole squad with each player’s stats',
+                    'Three new formations: Rotation (4-0), Twin Pivots (1-1-2) and Lockdown (3 DEF)',
+                    'Mid-match evolution, full screen',
+                    'Live substitutions: the change happens at the next restart',
+                    'Tap a Pokémon on the court to see stamina, status, moves and the evolution bar',
+                    'Full match and cup statistics: ratings, charts and a shot map',
+                    'Banner with the Pokémon’s face on goals, saves, substitutions and evolutions',
+                    'A unique animation for each of the 164 moves',
+                    'A signature move for all 151 Pokémon',
+                    'Bonus and penalty arrows on the cards',
+                    'Lofted ball on long passes and a trail on the ball',
+                    '8x speed',
+                    'New victory and VERSUS screens',
+                    'Moves page (Moves button)',
+                    'In the draft, players out of their usual role show their main position and whether they also fit the slot',
+                ],
+            },
+            {
+                title: 'Changed',
+                lines: [
+                    'Every move now does something on the court: Counter, Haze, Teleport, Leech Seed, Metronome, Transform and more',
+                    'Multi-hit moves are stronger; very strong moves now have a price (recoil, recharge, self-destruct)',
+                    'Upsets are more frequent, and Grit for whoever is losing by 3 or more',
+                    'The defender pushes forward and tries long-range shots',
+                    'The goalkeeper dives for the ball and only saves shots that were going in',
+                    'Icon cards are rarer',
+                    'Leaving and coming back resumes the match from the same point',
+                    'Main menu, Settings and Credits with a new look',
+                    'With more than one defender, only one pushes forward; the other covers',
+                ],
+            },
+            {
+                title: 'Fixed',
+                lines: [
+                    'Save counted with the ball already inside the goal',
+                    'An extra penalty kick after the shootout was decided',
+                    'Ball behind the line on goal kicks',
+                    'Flying Pokémon floating above the ball',
+                ],
+            },
+        ],
+    },
+];
+
+/** Notas no idioma do jogo (versão sem tradução cai para o português). */
+export function patchNotes(lang: 'pt' | 'en'): PatchNotes[] {
+    if (lang === 'pt') return PATCH_NOTES;
+    return PATCH_NOTES.map((n) => PATCH_NOTES_EN.find((e) => e.version === n.version) ?? n);
+}

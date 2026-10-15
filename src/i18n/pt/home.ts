@@ -1,2 +1,52 @@
-/** Textos da área "home". */
-export const home = {};
+/** Tela inicial. */
+export const home = {
+    soon: [
+        { title: 'Modo história', text: 'Ginásios, insígnias e a Liga Índigo' },
+        { title: 'Multiplayer', text: 'Desafie o time de um amigo' },
+        { title: 'Futebol de campo', text: 'Partidas 11 contra 11' },
+        { title: 'Geração 2', text: 'Os Pokémon de Johto' },
+    ],
+    draftStep: 'Draft · escolha {n} de 7',
+    choosingReward: 'Escolhendo a recompensa',
+    eventWeek: 'Semana do tipo {type}',
+    eventText: 'Cartas Evento do tipo {type} podem aparecer no draft.',
+    helpAria: 'Como jogar (ver o passo a passo de novo)',
+    helpTitle: 'Como jogar',
+    tagline:
+        'Monte seu time com os 151 de Kanto num draft “escolha 1 de 3” e dispute a Copa de Futsal contra os ginásios.',
+    confirmNew: 'Começar outra copa apaga a do {team}. Tem certeza?',
+    confirmYes: 'Sim, começar outra',
+    inProgress: 'Copa em andamento',
+    cupPath: 'Fases da copa',
+    resume: 'Continuar ▶',
+    orNew: 'Ou comece outra copa',
+    teamName: 'Nome do seu time',
+    newCup: 'Nova copa',
+    challenge: 'Aceitar desafio ({seed})',
+    rec: {
+        titles: 'título|títulos',
+        cups: 'copa|copas',
+        perfect: 'perfeita|perfeitas',
+        destaques: 'destaque|destaques',
+        evolucoes: 'evolução|evoluções',
+        icones: 'ícone|ícones',
+    },
+    tiles: {
+        profile: ['Perfil', 'Seu clube, Pokédex e números'],
+        moves: ['Golpedex', 'Os golpes que você já viu em campo'],
+        help: ['Ajuda', 'Como jogar e todas as mecânicas'],
+        news: ['Novidades', 'O que mudou na versão {v}'],
+        settings: ['Configurações', 'Som, gritos e efeitos'],
+        credits: ['Créditos', 'Sprites, sons e dados'],
+        feedback: ['Dar feedback', 'Ideia, elogio ou bug: conta pra gente'],
+        cards: ['Cartas (teste)', 'Galeria de desenvolvimento'],
+    },
+    news: 'Novidades',
+    version: 'Versão {v} · {title}',
+    soonTitle: 'Em breve',
+    disclaimer:
+        'Soccermon v{v} · Criado por Miguel Cunha · Fan game sem fins lucrativos. Pokémon e todos os nomes, sprites e sons relacionados são © Nintendo, Game Freak, Creatures Inc. e The Pokémon Company. Este projeto não é afiliado nem endossado por eles. ·',
+    privacy: 'Privacidade e termos',
+    github: 'Código no GitHub',
+    langAria: 'Idioma / Language',
+};

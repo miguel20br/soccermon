@@ -4222,6 +4222,42 @@ button,
     flex-basis: 100%;
     font-size: 11px;
 }
+/* PT | EN: troca rápida de idioma (as Configurações também têm) */
+.lang-toggle {
+    flex: none;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+    display: flex;
+    border: 2px solid var(--line);
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--panel);
+}
+.lang-toggle button {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 8px;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+}
+.lang-toggle button + button {
+    border-left: 2px solid var(--line);
+}
+.lang-toggle button.on {
+    background: var(--yellow);
+    color: #1c2447;
+}
+.lang-toggle button:not(.on):hover,
+.lang-toggle button:focus-visible {
+    color: var(--text);
+}
 /* "?" do Como jogar: rever o passo a passo de boas-vindas */
 .help-fab {
     flex: none;

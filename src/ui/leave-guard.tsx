@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { create } from 'zustand';
+import { useT } from '../i18n/react';
 import { useGame } from '../store/game-store';
 import './leave-guard.css';
 
@@ -26,6 +27,7 @@ export function requestLeave(leave: () => void) {
 export function LeaveConfirm() {
     const pending = useLeave((s) => s.pending);
     const stay = useRef<HTMLButtonElement>(null);
+    const { t } = useT();
     useEffect(() => {
         if (!pending) return;
         stay.current?.focus();
@@ -60,11 +62,11 @@ export function LeaveConfirm() {
                 aria-describedby="leave-text"
                 onClick={(e) => e.stopPropagation()}
             >
-                <h2 id="leave-title">Sair da partida?</h2>
-                <p id="leave-text">Ela continua de onde parou quando você voltar.</p>
+                <h2 id="leave-title">{t('settings.leave.title')}</h2>
+                <p id="leave-text">{t('settings.leave.text')}</p>
                 <div className="leave-actions">
                     <button ref={stay} type="button" className="btn" onClick={close}>
-                        Continuar assistindo
+                        {t('settings.leave.stay')}
                     </button>
                     <button
                         type="button"
@@ -74,7 +76,7 @@ export function LeaveConfirm() {
                             pending();
                         }}
                     >
-                        Sair
+                        {t('settings.leave.leave')}
                     </button>
                 </div>
             </div>

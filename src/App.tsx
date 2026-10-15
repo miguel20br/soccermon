@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { setVolume } from './game/audio';
+import { useT } from './i18n/react';
 import { useGame } from './store/game-store';
 import { CardModal } from './ui/components/CardModal';
 import { Onboarding } from './ui/components/Onboarding';
@@ -21,6 +22,8 @@ import { Settings } from './ui/screens/Settings';
 
 export default function App() {
     const { screen, go, settings, onboarded } = useGame();
+    // idioma: o App redesenha na troca e leva junto as telas que usam t() fora de hook
+    const { t } = useT();
     // passo a passo de boas-vindas: só depois de o save carregar (senão aparece para quem já jogou)
     const [hydrated, setHydrated] = useState(() => useGame.persist.hasHydrated());
     useEffect(() => useGame.persist.onFinishHydration(() => setHydrated(true)), []);
@@ -78,7 +81,7 @@ export default function App() {
                         type="button"
                         className="brand"
                         onClick={() => requestLeave(() => go('home'))}
-                        aria-label="Voltar ao início"
+                        aria-label={t('common.ui.backHome')}
                     >
                         <img className="pixel" src="assets/ui/poke-ball.png" alt="" />
                         <span>SOCCERMON</span>
