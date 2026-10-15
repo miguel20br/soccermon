@@ -23,6 +23,11 @@ export interface PokemonInstance {
     item?: string | null;
     /** Edição especial da carta (Ícone, Evento, Destaque): +2 em todos os atributos. */
     special?: Special | null;
+    /**
+     * Golpes ensinados por MT (src/engine/tm.ts), que também estão em `moves`. Sobrevivem à evolução
+     * (se a forma nova aprende). Saves antigos não têm o campo.
+     */
+    taught?: string[];
 }
 
 export const DEFAULT_LEVEL = 50;

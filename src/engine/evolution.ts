@@ -1,8 +1,8 @@
 import type { Position } from './attributes';
 import { SPECIES, species } from './data';
 import type { PokemonInstance } from './instance';
-import { defaultMoveset } from './moves';
 import type { PlayerStats } from './state';
+import { movesAfterEvolution } from './tm';
 
 /**
  * Evolução no meio da partida: o Pokémon que joga muito acima do normal para a posição dele evolui na
@@ -46,9 +46,16 @@ export function evolutionTarget(speciesId: number, uid: string): number | null {
     return options[h % options.length].id;
 }
 
-/** A instância depois de evoluir: golpes da nova forma, habilidade mantida se a nova forma tiver. */
+/**
+ * A instância depois de evoluir: golpes da nova forma (mantendo os ensinados por MT, se a forma nova aprende),
+ * habilidade mantida se a nova forma tiver.
+ */
 export function evolveInstance(inst: PokemonInstance, into: number): PokemonInstance {
     const sp = species(into);
     const ability = inst.ability === 'imposter' || sp.abilities.includes(inst.ability) ? inst.ability : sp.abilities[0];
-    return { ...inst, speciesId: into, moves: defaultMoveset(sp), ability };
+    const { moves, taught } = movesAfterEvolution(inst, sp);
+    const out: PokemonInstance = { ...inst, speciesId: into, moves, ability };
+    if (taught.length) out.taught = taught;
+    else delete out.taught;
+    return out;
 }

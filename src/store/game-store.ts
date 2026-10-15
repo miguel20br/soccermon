@@ -13,6 +13,7 @@ import { type Reward, rewardOptions } from '../engine/rewards';
 import { Rng } from '../engine/rng';
 import type { MatchResult } from '../engine/runners/batch-runner';
 import { rollSpecial as roll, SPECIALS_LIVE, weeklyEventType } from '../engine/specials';
+import { teachMove } from '../engine/tm';
 import {
     type Career,
     clubColorHex,
@@ -222,7 +223,8 @@ export interface GameStore {
     /** Guarda as ordens e o ponto da partida em andamento. */
     saveLive(patch: Partial<Omit<LiveMatch, 'stage'>>): void;
     recordResult(m: MatchResult): void;
-    claimReward(index: number, targetUid: string): void;
+    /** Pega a recompensa. MT: `forgetSlot` é a vaga do golpe esquecido (ou o tamanho do moveset, se há vaga). */
+    claimReward(index: number, targetUid: string, forgetSlot?: number): void;
     skipReward(): void;
     rerollReward(): void;
     advance(): void;
@@ -626,7 +628,7 @@ export const useGame = create<GameStore>()(
                     });
                 },
 
-                claimReward: (index, targetUid) => {
+                claimReward: (index, targetUid, forgetSlot) => {
                     const run = getState().run;
                     const reward = run?.rewards[index];
                     if (run?.status !== 'reward' || !reward) return;
@@ -641,6 +643,12 @@ export const useGame = create<GameStore>()(
                         const incoming = { ...reward.inst, item: reward.inst.item ?? leaving?.item ?? null };
                         bench = run.bench.map((u, i) => (i === benchIdx ? incoming.uid : u));
                         picks = [...run.picks.filter((p) => p.uid !== targetUid), incoming];
+                    } else if (reward.kind === 'tm') {
+                        // MT: o escolhido esquece um golpe (nunca a assinatura) e aprende o novo
+                        const target = run.picks.find((p) => p.uid === targetUid);
+                        const taught = target && forgetSlot !== undefined && teachMove(target, reward.move, forgetSlot);
+                        if (!taught) return;
+                        picks = run.picks.map((p) => (p.uid === targetUid ? taught : p));
                     } else {
                         picks = run.picks.map((p) => (p.uid === targetUid ? { ...p, item: reward.item } : p));
                     }

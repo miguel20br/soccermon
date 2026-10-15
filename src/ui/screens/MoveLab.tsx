@@ -180,7 +180,7 @@ export function MoveLab({ onExit }: { onExit: () => void }) {
     const total = GAME_ROWS.length;
 
     // ---------- por golpe ----------
-    const base = REVIEW && !onlyInGame ? ALL_ROWS : GAME_ROWS;
+    const base = REVIEW ? (onlyInGame ? ALL_ROWS.filter((r) => r.users.length) : ALL_ROWS) : GAME_ROWS;
     const baseFound = REVIEW ? base.filter((r) => seen[r.id] > 0).length : discovered;
     const q = norm(query);
     const shown = base.filter((r) => {
@@ -356,6 +356,11 @@ export function MoveLab({ onExit }: { onExit: () => void }) {
                                     <GdxIcon kind="star" size={10} /> Assinatura ·{' '}
                                 </span>
                             )}
+                            {r.tmOnly && (
+                                <span className="gdx-tm" title="Só chega em campo por MT">
+                                    MT
+                                </span>
+                            )}
                             {sig !== undefined && `${KIND_SHORT[r.kind] ?? ''} · `}
                             {n > 0 ? `Visto ${n}x` : 'Não visto'}
                         </small>
@@ -388,7 +393,7 @@ export function MoveLab({ onExit }: { onExit: () => void }) {
                 </div>
                 {REVIEW ? (
                     <p className="muted gdx-note">
-                        Modo revisão: tudo revelado ({ALL_ROWS.length} golpes, contando os que ninguém usa). Marque{' '}
+                        Modo revisão: tudo revelado ({ALL_ROWS.length} golpes, contando os que só chegam por MT). Marque{' '}
                         <b>ok</b> ou <b>mudar</b>, anote, e no fim use "Copiar revisão". Setas trocam de golpe, espaço
                         repete.
                     </p>
@@ -501,7 +506,7 @@ export function MoveLab({ onExit }: { onExit: () => void }) {
                                 <dt>Assinatura de</dt>
                                 <dd>{who(row.signatureOf, '—')}</dd>
                                 <dt>Quem usa</dt>
-                                <dd>{who(row.users, 'ninguém')}</dd>
+                                <dd>{who(row.users, 'ninguém por padrão: só chega por MT')}</dd>
                                 {row.desc && (
                                     <>
                                         <dt>No jogo original</dt>
@@ -635,7 +640,7 @@ export function MoveLab({ onExit }: { onExit: () => void }) {
                                                 checked={onlyInGame}
                                                 onChange={(e) => setOnlyInGame(e.target.checked)}
                                             />
-                                            Só os que algum Pokémon usa
+                                            Só os do moveset padrão
                                         </label>
                                         <span className="muted">
                                             Revisados: {reviewed}/{ALL_ROWS.length}

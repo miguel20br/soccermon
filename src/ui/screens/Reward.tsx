@@ -6,10 +6,11 @@ import { stageLabel, useGame } from '../../store/game-store';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
 import { cardSprite } from '../components/PokeCard';
+import { TmCard, TmTeachPanel } from '../components/TmTeach';
 import { Tip } from '../help/Tip';
 
 /**
- * Recompensa após vitória (estilo Slay the Spire): 1 de 3 — reforço para o banco ou item —,
+ * Recompensa após vitória (estilo Slay the Spire): 1 de 3 — reforço para o banco, item ou MT do ginásio —,
  * ou pular e ganhar +1 reroll.
  */
 export function Reward() {
@@ -19,10 +20,15 @@ export function Reward() {
 
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
     const reward = chosen !== null ? run.rewards[chosen] : null;
+    const squad = [...run.lineup, ...run.bench].map((u) => byUid.get(u)!).filter(Boolean);
     const targets =
         reward?.kind === 'pokemon'
             ? run.bench.map((u) => byUid.get(u)!).filter((p) => p && p.uid !== run.captainUid)
-            : [...run.lineup, ...run.bench].map((u) => byUid.get(u)!).filter(Boolean);
+            : squad;
+    const pick = (i: number) => {
+        playSfx('select');
+        setChosen(chosen === i ? null : i);
+    };
 
     return (
         <>
@@ -33,7 +39,9 @@ export function Reward() {
                         {reward
                             ? reward.kind === 'pokemon'
                                 ? 'Quem sai do banco?'
-                                : 'Quem vai segurar o item?'
+                                : reward.kind === 'tm'
+                                  ? 'Quem aprende o golpe?'
+                                  : 'Quem vai segurar o item?'
                             : 'Escolha uma recompensa'}
                     </h1>
                 </div>
@@ -58,12 +66,16 @@ export function Reward() {
 
             <Tip id="reward-pick">
                 Dá pra contratar do time que você eliminou: o Pokémon novo entra no lugar de um reserva (e herda o item
-                dele). Pular não pega nada, mas dá +1 reroll.
+                dele). A MT do ginásio ensina um golpe novo: você escolhe quem aprende e o que esquece. Pular não pega
+                nada, mas dá +1 reroll.
             </Tip>
 
             <div className="reward-grid">
                 {run.rewards.map((r, i) => (
-                    <div key={r.kind === 'item' ? r.item : r.inst.uid} className="option">
+                    <div
+                        key={r.kind === 'item' ? r.item : r.kind === 'tm' ? `tm-${r.move}` : r.inst.uid}
+                        className={`option${r.kind === 'tm' ? ' option-tm' : ''}`}
+                    >
                         {r.kind === 'pokemon' ? (
                             <FutCard
                                 inst={r.inst}
@@ -78,14 +90,19 @@ export function Reward() {
                                     },
                                 }}
                             />
+                        ) : r.kind === 'tm' ? (
+                            <TmCard
+                                move={r.move}
+                                leader={r.leader}
+                                team={squad}
+                                selected={chosen === i}
+                                onClick={() => pick(i)}
+                            />
                         ) : (
                             <button
                                 type="button"
                                 className={`card item-card${chosen === i ? ' selected' : ''}`}
-                                onClick={() => {
-                                    playSfx('select');
-                                    setChosen(chosen === i ? null : i);
-                                }}
+                                onClick={() => pick(i)}
                             >
                                 <span className="tier-label">Item</span>
                                 <img className="pixel item-art" src={itemSprite(r.item)} alt="" />
@@ -97,7 +114,17 @@ export function Reward() {
                 ))}
             </div>
 
-            {reward && (
+            {reward?.kind === 'tm' && (
+                <TmTeachPanel
+                    move={reward.move}
+                    team={squad}
+                    onTeach={(uid, slot) => {
+                        playSfx('select');
+                        claimReward(chosen!, uid, slot);
+                    }}
+                />
+            )}
+            {reward && reward.kind !== 'tm' && (
                 <div className="panel reward-pick">
                     <h2>{reward.kind === 'pokemon' ? 'Trocar por qual reserva?' : 'Entregar para…'}</h2>
                     <div className="squad-strip">

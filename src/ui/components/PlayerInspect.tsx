@@ -18,6 +18,7 @@ import { useCardModal } from '../card-modal';
 import { lineupAt, snapAt, statsUntil, whoAt } from '../match-view';
 import { TYPE_COLOR } from '../type-colors';
 import { FutCard } from './FutCard';
+import { TaughtMark } from './TmTeach';
 
 const STATUS_PT: Record<number, string> = {
     1: 'Paralisado: mais lento',
@@ -205,7 +206,10 @@ export function PlayerInspect({
                                         className={`inspect-move${left === 0 || locked ? ' spent' : ''}`}
                                         style={{ borderColor: TYPE_COLOR[data.type] }}
                                     >
-                                        <b>{data.name}</b>
+                                        <b>
+                                            {data.name}
+                                            <TaughtMark inst={inst} move={m} />
+                                        </b>
                                         <span>{locked ? 'travado' : left === 0 ? 'já usado' : `${left}x`}</span>
                                         {boost && <em className="attr-mod up">▲ {boost.label}</em>}
                                     </div>

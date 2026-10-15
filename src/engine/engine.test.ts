@@ -313,12 +313,14 @@ describe('iteração 3: posições, formações, capitão, itens, tática ao viv
         }
     });
 
-    it('recompensas são determinísticas pela seed e trazem 1 reforço + 2 itens', () => {
+    it('recompensas são determinísticas pela seed e trazem 1 reforço + 2 itens (ou 1 item e 1 MT)', () => {
         const a = rewardOptions('seed', 0, 0, home.lineup);
         const b = rewardOptions('seed', 0, 0, home.lineup);
         expect(a).toEqual(b);
+        expect(a).toHaveLength(3);
         expect(a.filter((r) => r.kind === 'pokemon')).toHaveLength(1);
-        expect(a.filter((r) => r.kind === 'item')).toHaveLength(2);
+        expect(a.filter((r) => r.kind === 'item' || r.kind === 'tm')).toHaveLength(2);
+        expect(a.filter((r) => r.kind === 'tm').length).toBeLessThanOrEqual(1);
         expect(rewardOptions('seed', 0, 1, home.lineup)).not.toEqual(a);
         // contratar do adversário: o Pokémon vem do time derrotado, sem item e com uid novo
         const defeated = { name: 'Fora', players: away.lineup };
