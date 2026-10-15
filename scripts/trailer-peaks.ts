@@ -18,6 +18,7 @@ const CLIPS: { nome: string; cena: TrailerScene; seed: string; tipo: Kind; perto
     { nome: '4-golpe-charizard-flamethrower', cena: 'golpe', seed: 'trailer26', tipo: 'gol', perto: 130.1 },
     { nome: '5-jogada-pikachu-6-passes', cena: 'jogada', seed: 'trailer294', tipo: 'gol', perto: 9.6 },
     { nome: '6-ditto-vira-mewtwo-e-combo', cena: 'ditto', seed: 'trailer315', tipo: 'combo', perto: 4.3 },
+    { nome: '8-golpe-pikachu-thunderbolt', cena: 'raio', seed: 'trailer419', tipo: 'gol', perto: 10.3 },
     { nome: '7-penaltis-6x5-ultima-cobranca', cena: 'penaltis', seed: 'trailer7', tipo: 'penalti', perto: 428.6 },
 ];
 const R = FUTSAL_5.tickRate;

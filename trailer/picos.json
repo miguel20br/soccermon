@@ -60,6 +60,16 @@
     "flash": 85
   },
   {
+    "nome": "8-golpe-pikachu-thunderbolt",
+    "cena": "raio",
+    "seed": "trailer419",
+    "tipo": "gol",
+    "perto": 10.3,
+    "lentoDe": 196,
+    "lentoAte": 210,
+    "flash": 205
+  },
+  {
     "nome": "7-penaltis-6x5-ultima-cobranca",
     "cena": "penaltis",
     "seed": "trailer7",

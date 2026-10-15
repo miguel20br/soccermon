@@ -16,6 +16,8 @@ export const TRAILER_SCENES = {
     jogada: { lineup: [143, 68, 25, 136, 150], bench: [] },
     // Ditto copia o melhor em campo + combo Gênese (Mew + Mewtwo)
     ditto: { lineup: [143, 68, 151, 132, 150], bench: [4, 25] },
+    // Pikachu (capitão) marcando com Thunder/Thunderbolt
+    raio: { lineup: [143, 68, 135, 6, 25], bench: [] },
     // pênaltis decididos na última cobrança
     penaltis: { lineup: [143, 68, 151, 142, 150], bench: [149, 25] },
 } as const satisfies Record<string, { lineup: readonly number[]; bench: readonly number[] }>;

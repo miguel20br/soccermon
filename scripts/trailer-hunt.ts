@@ -85,6 +85,24 @@ function rate(scene: TrailerScene, seed: string): Hit | null {
             lances.push(`${sec(g.tick)} gol do evoluído`);
         }
     }
+    if (scene === 'raio') {
+        // só gol do Pikachu com golpe elétrico
+        for (const g of goals) {
+            if (m.roster[g.by].speciesId !== 25) continue;
+            const s = shotBefore(g);
+            const mv = [...ev]
+                .reverse()
+                .find(
+                    (e) =>
+                        e.type === 'move' && e.by === g.by && e.withBall && e.tick <= g.tick && e.tick >= g.tick - 60,
+                );
+            const id = s?.moveId ?? (mv?.type === 'move' ? mv.moveId : null);
+            if (id !== 'thunder' && id !== 'thunderbolt') continue;
+            score += 600 - g.tick / 100;
+            lances.push(`${sec(g.tick)} gol do Pikachu com ${id}`);
+        }
+        if (!lances.length) return null;
+    }
     if (scene === 'golpe') {
         // chute com golpe (shot.moveId) ou golpe usado com a bola logo antes do gol; golpes vistosos valem mais
         for (const g of goals) {
