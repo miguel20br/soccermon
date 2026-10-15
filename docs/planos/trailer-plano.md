@@ -96,6 +96,26 @@ português; dá pra (a) aceitar, (b) priorizar cenas com pouco texto de interfac
 4. **Inglês:** textos da tabela, com "5v5 indoor soccer" no lugar de "futsal".
 5. **Interface em português no trailer EN:** fica assim; traduzir o jogo vem depois.
 
+## Estilo dos clipes (decidido 15/10/2026)
+
+- **Sem os nomes** em cima dos Pokémon (padrão do `trailer-capture`; `--nomes` mantém). Setinhas e letreiros
+  de golpe ficam.
+- **Versão "uau" de todos os clipes na edição**, não no jogo: câmera lenta de verdade nos picos (gravar o trecho
+  com `--vel 0.25`, sem frame duplicado), zoom de impacto, tremida, flash branco no corte, rampa de velocidade
+  (rápido → lento no golpe → rápido) e batidas de som nos impactos.
+- O Transformar do Ditto ganhou animação própria no jogo (gelatina, piscadas, anel roxo), já no ar.
+
+## Clipes gravados (galeria do celular: Filmes/Soccermon-trailer)
+
+1. Gancho: Charmander evolui e marca (`evolucao`/`trailer222`, 380–398 s, modo página por causa da tela de
+   evolução; tem duas evoluções seguidas)
+2. Charizard com Fire Blast (`golpe`/`trailer315`, 5–13 s)
+3. Mewtwo com Psychic (`golpe`/`trailer397`, 15–23 s)
+4. Charizard com Flamethrower (`golpe`/`trailer26`, 126–134 s)
+5. Pikachu marca depois de 6 passes (`jogada`/`trailer294`, 2–13 s)
+6. Ditto vira Mewtwo + combo Gênese (`ditto`/`trailer315`, 0–9 s)
+7. Pênaltis 6x5, última cobrança (`penaltis`/`trailer7`, 412 s até o fim)
+
 ## Caça de lances (feito)
 
 `scripts/trailer-hunt.ts` simula a 1ª partida de N copas com o time de cada cena (`src/ui/trailer-scenes.ts`)
