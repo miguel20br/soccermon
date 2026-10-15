@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>Soccermon trailer: quadros parados</title>
+<style>
+    @font-face { font-family: "Galmuri14"; src: url("/fonts/Galmuri14.woff2") format("woff2"); }
+    @font-face { font-family: "Galmuri11"; src: url("/fonts/Galmuri11-Bold.woff2") format("woff2"); font-weight: 700; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0b1024; }
+    .q { position: absolute; inset: 0; display: none; overflow: hidden; }
+    .q.on { display: block; }
+    .pixel { image-rendering: pixelated; }
+    .noite { background: radial-gradient(ellipse 70% 60% at 50% 45%, #24346e 0%, #121a3d 55%, #070a18 100%); }
+
+    /* ---------- título (logo do jogo: Galmuri amarelo com sombra azul) ---------- */
+    .logo { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -58%); display: flex; align-items: center;
+        font-family: "Galmuri14", monospace; font-size: 220px; letter-spacing: 6px; color: #ffcb05; line-height: 1;
+        -webkit-text-stroke: 9px #ffcb05; paint-order: stroke fill;
+        text-shadow: 10px 10px 0 #2a4ea0, 20px 20px 0 #0e1430, 0 0 40px rgb(255 203 5 / 25%); }
+    .logo .bola { width: 168px; height: 168px; margin: 0 8px; background: url("/assets/ui/ball.svg") center / contain no-repeat;
+        filter: drop-shadow(8px 8px 0 #2a4ea0) drop-shadow(8px 8px 0 #0e1430); transform: rotate(-18deg); }
+    .selo { position: absolute; left: 50%; top: 68%; transform: translateX(-50%); font-family: "Galmuri11", monospace;
+        font-weight: 700; font-size: 40px; color: #fff; background: #e8423f; padding: 10px 34px; border-radius: 999px;
+        box-shadow: 0 6px 0 #8f1f1d; letter-spacing: 4px; }
+    .site { position: absolute; left: 50%; top: 79%; transform: translateX(-50%); font-family: "Galmuri11", monospace;
+        font-size: 34px; color: #cdd6ff; letter-spacing: 2px; }
+    .aviso { position: absolute; left: 50%; bottom: 36px; transform: translateX(-50%); font-family: "Galmuri11", monospace;
+        font-size: 20px; color: #7f8bbd; }
+    .zard { position: absolute; height: 330px; }
+    .fogo { position: absolute; border-radius: 50%; filter: blur(6px); }
+
+    /* v2: quadra de madeira vista de cima */
+    .quadra { background: repeating-linear-gradient(90deg, #d39a5c 0 76px, #c98d4f 76px 152px); }
+    .quadra::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 70% at 50% 45%, transparent 30%, rgb(10 12 30 / 75%) 100%); }
+    .linha { position: absolute; border: 6px solid rgb(255 255 255 / 75%); }
+
+    /* v3: fogo */
+    .brasa { background: radial-gradient(ellipse 80% 60% at 30% 100%, #ff6a1a 0%, #8a1f0a 35%, #1a0805 75%); }
+    .logo.quente { color: #ffd54a; -webkit-text-stroke-color: #ffd54a; text-shadow: 8px 8px 0 #b3361a, 16px 16px 0 #3a0c06, 0 0 60px rgb(255 120 30 / 55%); }
+
+    /* ---------- abertura ---------- */
+    .retrato { position: absolute; width: 620px; height: 620px; border: 14px solid #fff; border-radius: 20px;
+        box-shadow: 0 0 0 8px #0e1430, 0 24px 60px rgb(0 0 0 / 55%); }
+    .lado { position: absolute; top: 0; bottom: 0; width: 60%; }
+    .barra { position: absolute; left: 0; right: 0; height: 140px; background: #000; }
+    .olhos { position: absolute; left: 0; width: 1920px; height: 400px; overflow: hidden; }
+    .olhos img { position: absolute; width: 960px; height: 960px; }
+    .sprite { position: absolute; height: 300px; }
+</style>
+</head>
+<body>
+
+<!-- Título 1: clássico — noite, Charizard passando por trás do logo com rastro de fogo -->
+<section class="q noite" id="titulo1">
+    <div class="fogo" style="left:1180px;top:150px;width:520px;height:90px;background:radial-gradient(#ffb347,#ff5a1f00 70%);transform:rotate(-12deg)"></div>
+    <img class="zard pixel" src="/assets/cards/6.gif" style="left:1460px;top:40px;transform:scaleX(-1) rotate(-10deg)" alt="" />
+    <div class="logo">S<span class="bola"></span>CCERMON</div>
+    <div class="selo">BETA ABERTA</div>
+    <div class="site">jogue grátis no navegador · soccermon.com</div>
+    <div class="aviso">fan game sem fins lucrativos</div>
+</section>
+
+<!-- Título 2: quadra — o logo em cima da quadra de madeira, Charizard vindo em direção à câmera -->
+<section class="q quadra" id="titulo2">
+    <div class="linha" style="left:50%;top:0;bottom:0;border-width:0 0 0 6px"></div>
+    <div class="linha" style="left:50%;top:50%;width:300px;height:300px;border-radius:50%;transform:translate(-50%,-50%)"></div>
+    <img class="zard pixel" src="/assets/cards/6.gif" style="left:50%;top:6%;height:420px;transform:translateX(-50%);z-index:1;opacity:.95" alt="" />
+    <div class="logo" style="z-index:2;top:60%">S<span class="bola"></span>CCERMON</div>
+    <div class="selo" style="z-index:2;top:78%">BETA ABERTA</div>
+    <div class="site" style="z-index:2;top:88%;color:#fff">jogue grátis no navegador · soccermon.com</div>
+</section>
+
+<!-- Título 3: fogo — o rastro do Charizard acende as letras -->
+<section class="q brasa" id="titulo3">
+    <img class="zard pixel" src="/assets/cards/6.gif" style="left:120px;top:160px;height:520px" alt="" />
+    <div class="fogo" style="left:520px;top:250px;width:1300px;height:46px;background:linear-gradient(90deg,#ffd54a,#ff6a1a 60%,#ff6a1a00)"></div>
+    <div class="logo quente" style="left:58%">S<span class="bola"></span>CCERMON</div>
+    <div class="selo" style="left:58%;background:#ffcb05;color:#2c2000;box-shadow:0 6px 0 #9c7208">BETA ABERTA</div>
+    <div class="site" style="left:58%;color:#ffe2c0">jogue grátis no navegador · soccermon.com</div>
+</section>
+
+<!-- Abertura A: VERSUS na diagonal (como a tela do jogo), retratos gigantes se encarando -->
+<section class="q" id="abertura1">
+    <div class="lado" style="left:-10%;background:linear-gradient(135deg,#e8423f,#7a1412);clip-path:polygon(0 0,100% 0,78% 100%,0 100%)"></div>
+    <div class="lado" style="right:-10%;background:linear-gradient(135deg,#1b3f9e,#0a1440);clip-path:polygon(22% 0,100% 0,100% 100%,0 100%)"></div>
+    <img class="retrato pixel" src="/assets/portraits/25-determined.png" style="left:180px;top:220px" alt="" />
+    <img class="retrato pixel" src="/assets/portraits/150-determined.png" style="right:180px;top:220px;transform:scaleX(-1)" alt="" />
+</section>
+
+<!-- Abertura B: duelo de faroeste — só os olhos, em faixa de cinema -->
+<section class="q" id="abertura2" style="background:#000">
+    <div class="olhos" style="top:140px"><img class="pixel" src="/assets/portraits/25-determined.png" style="left:0;top:-300px" alt="" /><img class="pixel" src="/assets/portraits/150-determined.png" style="right:0;top:-300px;transform:scaleX(-1)" alt="" /></div>
+    <div class="olhos" style="top:560px;height:380px;background:repeating-linear-gradient(90deg,#d39a5c 0 76px,#c98d4f 76px 152px)">
+        <div style="position:absolute;left:50%;top:50%;width:260px;height:260px;transform:translate(-50%,-50%);background:url('/assets/ui/ball.svg') center/contain no-repeat"></div>
+    </div>
+    <div class="barra" style="top:0"></div>
+    <div class="barra" style="bottom:0"></div>
+</section>
+
+<!-- Abertura C: na quadra — os dois no círculo central, a bola entre eles -->
+<section class="q quadra" id="abertura3">
+    <div class="linha" style="left:50%;top:0;bottom:0;border-width:0 0 0 6px"></div>
+    <div class="linha" style="left:50%;top:50%;width:520px;height:520px;border-radius:50%;transform:translate(-50%,-50%)"></div>
+    <img class="sprite pixel" src="/assets/cards/25.gif" style="left:470px;top:440px;transform:scaleX(-1)" alt="" />
+    <img class="sprite pixel" src="/assets/cards/150.gif" style="right:420px;top:340px;height:400px" alt="" />
+    <div style="position:absolute;left:50%;top:640px;width:90px;height:90px;transform:translateX(-50%);background:url('/assets/ui/ball.svg') center/contain no-repeat;z-index:2"></div>
+</section>
+
+<script>
+    const id = new URLSearchParams(location.search).get('q') || 'titulo1';
+    document.getElementById(id)?.classList.add('on');
+</script>
+</body>
+</html>
