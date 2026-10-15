@@ -183,6 +183,66 @@ export const help: typeof pt = {
                 { p: "And yes: Magikarp's Splash is just Splash. But nothing happened! The fun is evolving." },
             ],
         },
+        golpesJogos: {
+            title: 'Moves that do what they did in the games',
+            blocks: [
+                {
+                    p: 'Many moves got back the way they worked in Gen 1, adapted to the court. The full card and the Movedex explain each one.',
+                },
+                {
+                    list: [
+                        [
+                            'Area',
+                            'Earthquake, Surf, Blizzard, Rock Slide, Growl, Leer… hit every rival around (Earthquake and Surf hit teammates too). Whoever has the ball and gets hit loses it.',
+                        ],
+                        [
+                            'Critical hits',
+                            'Slash, Karate Chop, Razor Leaf, Crabhammer: a harder, more accurate shot, and a critical slide tackle wins outright. **Focus Energy** guarantees the next critical hit (and sometimes fails, like the Gen 1 bug).',
+                        ],
+                        [
+                            'Charge',
+                            'Solar Beam, Skull Bash, Sky Attack, Razor Wind: stop for a moment to charge and come out stronger. Tackled while charging, the move is lost. A Hyper Beam that scores needs no recharge.',
+                        ],
+                        [
+                            'Fly and Dig',
+                            'vanish for a moment (nobody can reach them): with the ball, they move forward and shoot; without it, they land on the ball carrier.',
+                        ],
+                        [
+                            'Priority',
+                            'Quick Attack tackles at once, no waiting; with the ball, a burst and a first-time shot. Agility lasts longer.',
+                        ],
+                        [
+                            'Accuracy',
+                            "Swift never misses and outfield players can't block it; Drill Peck and Cut go through the block; Egg Bomb goes over it. Sand Attack, Kinesis, Flash and Smokescreen throw the rival's aim off.",
+                        ],
+                        [
+                            'Fixed damage',
+                            "Sonic Boom, Dragon Rage, Night Shade, Seismic Toss: a shot at a fixed speed that doesn't depend on attributes or type. Super Fang cuts stamina in half; Low Kick floors heavy Pokémon for longer.",
+                        ],
+                        [
+                            'Multi-hit',
+                            'Double Kick, Fury Swipes, Double Slap, Pin Missile…: 2 to 5 tackle attempts in a row. Bonemerang, Barrage and friends can bring the ball back to the shooter.',
+                        ],
+                        [
+                            'Trapping',
+                            'Wrap and Bind trap both Pokémon and the ball runs loose; Clamp steals and holds on; Fire Spin leaves a ring of fire on the ground; Constrict slows down.',
+                        ],
+                        [
+                            'Toxic, Rage and Bide',
+                            'Toxic gets worse over time; Rage grows with every hit taken; Bide stores energy and then unleashes it on everyone nearby.',
+                        ],
+                        [
+                            'Clones and walls',
+                            'Double Team makes clones that take the next hits; Minimize, Acid Armor, Withdraw and Defense Curl protect the ball; Barrier puts up a wall that stops a shot.',
+                        ],
+                        [
+                            'Field control',
+                            "Roar makes the rival flee and drop the ball; Whirlwind and Gust blow the ball away; Strength shoves; Conversion copies the rival's type; Soft-Boiled heals a teammate; Pay Day makes everyone stop to look at the coins.",
+                        ],
+                    ],
+                },
+            ],
+        },
         status: {
             title: 'Status conditions',
             blocks: [
@@ -314,6 +374,7 @@ export const help: typeof pt = {
                         'The bar adds up everything it did: goals, assists, shots on target, saves, tackles, interceptions, passes and moves, weighted by position (so goalkeepers and Defenders evolve as often as Pivots).',
                         "A single goal isn't enough. It evolves at most once per match.",
                         "The evolution lasts for the rest of the cup. It learns the new form's moves and keeps its Ability if the new form also has it.",
+                        'A move taught by TM stays after evolving (if the new form can learn it too).',
                         'Eevee becomes one of its three evolutions (always the same one for that card). Ditto does not evolve.',
                         'The rival can evolve during the match too!',
                     ],
@@ -343,13 +404,24 @@ export const help: typeof pt = {
                             "one of the best Pokémon from the team you just knocked out (without its item). If there's nobody new for you, a random reinforcement comes instead.",
                         ],
                         ['2 items', "type items tend to lean toward your team's types."],
+                        [
+                            'Gym TM',
+                            'in {tmOdds}% of wins, one of the items becomes the TM the leader gave out in Gen 1 (Brock: Bide, Misty: BubbleBeam, Lt. Surge: Thunderbolt, Erika: Mega Drain, Koga: Toxic, Sabrina: Psywave, Blaine: Fire Blast, Giovanni: Fissure). If nobody on your team can learn it, you get a rare move that no Pokémon carries by default.',
+                        ],
                     ],
                 },
                 {
                     list: [
                         'The new Pokémon comes in **in place of a sub** (never the captain) and inherits the item of whoever left.',
-                        'The item goes to any player; if it already had one, they swap.',
+                        'The item goes to any player; if it already had one, the old item is replaced (and lost).',
                         'Rerolling costs 1 reroll. **Skip** takes nothing, but gives +1 reroll.',
+                    ],
+                },
+                {
+                    list: [
+                        'TM: you pick who learns it (only Pokémon that learn the move in the games) and which move it forgets. The signature move is never forgotten.',
+                        'A taught move stays after evolving (if the new form can learn it too).',
+                        "Rival gyms also take the court with their leader's TM (up to 2 Pokémon per team).",
                     ],
                 },
             ],
@@ -501,7 +573,7 @@ export const help: typeof pt = {
         sub: 'Substitute',
         cupTitle: 'The Cup',
         cupText:
-            "Round of 16, quarters, semi and final against Kanto's Gyms and the Indigo League. Won? Pick a **reinforcement** (you can sign one from the rival) or an item. A draw goes to penalties.",
+            "Round of 16, quarters, semi and final against Kanto's Gyms and the Indigo League. Won? Pick a **reinforcement** (you can sign one from the rival), an item or the **Gym TM**. A draw goes to penalties.",
         cupPath: ['R16', 'QF', 'SF', 'Final'],
         dexTitle: 'Pokédex and account',
         dexText:

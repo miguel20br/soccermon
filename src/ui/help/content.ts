@@ -6,6 +6,7 @@ import { ITEMS } from '../../engine/items';
 import { LINKS } from '../../engine/links';
 import { ICON_CHANCE, ICONS, SPECIAL_BONUS } from '../../engine/specials';
 import type { Tactic } from '../../engine/state';
+import { TM_REWARD_CHANCE } from '../../engine/tm';
 import {
     clubName,
     dict,
@@ -56,6 +57,7 @@ const SECTION_SPRITES = {
     cartas: 6,
     tipos: 9,
     golpes: 129,
+    golpesJogos: 18,
     status: 39,
     habilidades: 94,
     itens: 143,
@@ -145,6 +147,7 @@ function varsFor(lang: Lang): Vars {
         bonus: SPECIAL_BONUS,
         iconCount: Object.keys(ICONS).length,
         iconOdds: Math.round(1 / ICON_CHANCE),
+        tmOdds: Math.round(TM_REWARD_CHANCE * 100),
         league: league ? clubName(league.name, lang) : clubName('Liga Índigo', lang),
         typeItems: Object.values(ITEMS)
             .filter((i) => i.kind === 'type')

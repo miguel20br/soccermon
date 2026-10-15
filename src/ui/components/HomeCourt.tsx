@@ -1,4 +1,5 @@
 import { type CSSProperties, useEffect, useMemo, useState } from 'react';
+import { useT } from '../../i18n/react';
 
 /**
  * Quadra animada da Home: alterna cenas curtas (corrida atrás da bola, tabelinha, gol, embaixadinhas), cada
@@ -32,6 +33,7 @@ function castFor(scene: Scene, step: number): number[] {
 const reduced = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 
 export function HomeCourt() {
+    const { t } = useT();
     const [step, setStep] = useState(0);
     const scene = SCENES[step % SCENES.length];
     const ids = useMemo(() => castFor(scene.id, step), [scene.id, step]);
@@ -77,7 +79,7 @@ export function HomeCourt() {
                         <img className="pixel hc-mon striker" src={sprite(ids[0])} alt="" />
                         <img className="pixel hc-mon keeper" src={sprite(ids[1])} alt="" />
                         <span className="hc-ball" />
-                        <b className="hc-gol">GOL!</b>
+                        <b className="hc-gol">{t('match.highlight.goal')}</b>
                     </>
                 )}
                 {scene.id === 'juggle' && (

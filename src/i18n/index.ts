@@ -1,8 +1,10 @@
 import { ABILITIES, MOVES } from '../engine/data';
 import { ITEMS } from '../engine/items';
 import type { AttrModifier, MoveModifier } from '../engine/modifiers';
+import { DRAIN, type ExplainMoveId, MOVE_EXPLAIN, moveProfile } from '../engine/moves';
 import { SPECIAL_BONUS } from '../engine/specials';
 import { en } from './en';
+import { moveExplainEn } from './en/move-explain';
 import { detectLang, type Lang } from './lang';
 import { type Dict, pt } from './pt';
 
@@ -89,6 +91,28 @@ export function moveDesc(id: string, lang: Lang = current): string {
     const m = MOVES[id];
     if (!m) return '';
     return lang === 'pt' ? (m.descPt ?? m.shortDesc) : m.shortDesc;
+}
+
+/**
+ * O que o golpe faz no futsal (golpes especiais e os que ganharam traço; os outros: undefined e a tela usa o
+ * texto do tipo de golpe). Português: MOVE_EXPLAIN do motor; inglês: src/i18n/en/move-explain.ts.
+ */
+export function moveExplain(id: string, lang: Lang = current): string | undefined {
+    const pt = MOVE_EXPLAIN[id];
+    if (!pt || lang === 'pt') return pt;
+    return moveExplainEn[id as ExplainMoveId] ?? pt;
+}
+
+/**
+ * O que o golpe faz no futsal, sempre (nunca a regra de batalha dos jogos): a explicação própria do golpe ou,
+ * sem ela, o texto do tipo de golpe da Golpedex (físico, especial, arrancada...).
+ */
+export function moveFutsal(id: string, lang: Lang = current): string {
+    const own = moveExplain(id, lang);
+    if (own) return own;
+    const lab = DICTS[lang].stats.lab;
+    const kind = lab.kind[moveProfile(id).kind] ?? '';
+    return DRAIN[id] ? fmt(lab.drains, { kind }) : kind;
 }
 
 /** Descrição da habilidade (mesma regra dos golpes). */

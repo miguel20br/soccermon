@@ -1,3 +1,5 @@
+import { battle } from './pt/battle';
+import { commentary } from './pt/commentary';
 import { common } from './pt/common';
 import { help } from './pt/help';
 import { home } from './pt/home';
@@ -15,6 +17,19 @@ import { team } from './pt/team';
  *
  * Convenções: `{nome}` é trocado pelo valor em `t(chave, { nome })`; "um|vários" é plural (`tn`).
  */
-export const pt = { common, home, team, match, result, reward, help, settings, profile, stats };
+export const pt = {
+    common,
+    home,
+    team,
+    match,
+    commentary,
+    battle,
+    result,
+    reward,
+    help,
+    settings,
+    profile,
+    stats,
+};
 
 export type Dict = typeof pt;

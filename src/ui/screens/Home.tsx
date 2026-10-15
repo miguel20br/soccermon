@@ -10,7 +10,7 @@ import { MenuIcon } from '../components/MenuIcon';
 import { cardSprite } from '../components/PokeCard';
 import { Trophy } from '../components/Trophy';
 import { TypeIcon } from '../components/TypeIcon';
-import { FEEDBACK_URL } from '../links';
+import { FEEDBACK_URL, privacyUrl } from '../links';
 import { patchNotes } from '../patch-notes';
 
 /** O que vem por aí (só vitrine: nada disso é clicável ainda). Os textos ficam em i18n (home.soon). */
@@ -316,7 +316,7 @@ export function Home() {
             </section>
             <p className="disclaimer">
                 {t('home.disclaimer', { v: __APP_VERSION__.replace(/\.0$/, '') })}{' '}
-                <a href="privacidade.html" target="_blank" rel="noopener">
+                <a href={privacyUrl()} target="_blank" rel="noopener">
                     {t('home.privacy')}
                 </a>{' '}
                 ·{' '}

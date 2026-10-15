@@ -4,8 +4,8 @@ import { LINKS } from '../engine/links';
 import { Rng } from '../engine/rng';
 import type { MatchResult } from '../engine/runners/batch-runner';
 import type { MatchEvent, TraitFx } from '../engine/state';
-import { TACTIC_LABEL } from '../engine/state';
 import { effectivenessLabel } from '../engine/types';
+import { type Dict, dict, fmt, linkText, type Vars } from '../i18n';
 
 export type Tone = 'goal' | 'big' | 'normal' | 'minor' | 'whistle';
 
@@ -17,77 +17,68 @@ export interface CommentLine {
     team: 0 | 1 | null;
 }
 
+/** Dicionário da narração no idioma atual. */
+const C = () => dict().commentary;
+/** Linha da narração com `{nome}` trocado. */
+const say = (text: string, vars: Vars) => fmt(text, vars);
+
 /** Narração dos golpes especiais que não têm evento próprio. */
-const SPECIAL_LINE: Record<string, (who: string, target: string, hit: boolean) => string> = {
-    bide: (w) => `${w} usa Bide e aguenta firme... vem troco aí!`,
-    rage: (w) => `${w} fica com RAIVA! Cada pancada deixa mais forte!`,
-    conversion: (w, _t, hit) => (hit ? `${w} usa Conversion!` : `${w} usa Conversion e se adapta ao jogo!`),
-    disable: (w, t, hit) => (hit ? `${w} usa Disable: ${t} perdeu um golpe!` : `${w} usa Disable... não pegou.`),
-    roar: (w, _t, hit) => (hit ? `${w} usa Roar!` : `${w} ruge para o nada.`),
-    whirlwind: (w, _t, hit) =>
-        hit ? `${w} usa Whirlwind: a ventania joga os rivais longe!` : `${w} usa Whirlwind no vazio.`,
-    splash: (w) => `${w} usa Splash! ...quase nada acontece, mas fica difícil de pegar.`,
-    transform: (w, t, hit) =>
-        hit ? `${w} usa Transform e copia o melhor de ${t}!` : `${w} tenta Transform, mas não tem ninguém perto.`,
+const SPECIAL_LINE: Record<string, (w: string, tg: string, hit: boolean) => string> = {
+    bide: (w) => say(C().special.bide, { w }),
+    rage: (w) => say(C().special.rage, { w }),
+    conversion: (w, _t, hit) => say(hit ? C().special.conversionHit : C().special.conversionMiss, { w }),
+    disable: (w, tg, hit) => say(hit ? C().special.disableHit : C().special.disableMiss, { w, tg }),
+    roar: (w, _t, hit) => say(hit ? C().special.roarHit : C().special.roarMiss, { w }),
+    whirlwind: (w, _t, hit) => say(hit ? C().special.whirlwindHit : C().special.whirlwindMiss, { w }),
+    splash: (w) => say(C().special.splash, { w }),
+    transform: (w, tg, hit) => say(hit ? C().special.transformHit : C().special.transformMiss, { w, tg }),
 };
+
+type TraitText = Dict['commentary']['trait'];
+/** Linha simples de traço: texto do dicionário + tom. */
+const tl =
+    (key: keyof TraitText, tone: Tone) =>
+    (w: string, tg: string, m: string, n: number): [string, Tone] => [say(C().trait[key], { w, tg, m, n }), tone];
 
 /**
  * Narração dos traços de golpe (evento 'trait', src/engine/moves.ts → MOVE_TRAITS).
- * `w` = quem usou, `t` = alvo, `m` = golpe, `n` = número do efeito. null = não narra (fica só na cena).
+ * `w` = quem usou, `tg` = alvo, `m` = golpe, `n` = número do efeito. null = não narra (fica só na cena).
  */
-const TRAIT_LINE: Partial<Record<TraitFx, (w: string, t: string, m: string, n: number) => [string, Tone] | null>> = {
-    crit: (w) => [`ACERTO CRÍTICO de ${w}!`, 'big'],
-    focusBug: (w) => [`O Focus Energy de ${w} falhou... bug da Gen 1, clássico!`, 'normal'],
-    charge: (w, _t, m) => [`${w} para e começa a carregar ${m}...`, 'normal'],
-    chargeLost: (w, _t, m) => [`Tiraram ${w} da concentração: perdeu o ${m}!`, 'normal'],
-    noRecharge: (w) => [`Gol de Hyper Beam de ${w}: nem precisa recarregar!`, 'big'],
-    fly: (w) => [`${w} usa Fly e some lá no alto!`, 'big'],
-    dig: (w) => [`${w} usa Dig e some debaixo da quadra!`, 'big'],
-    priority: (w, t, m) => (t !== '???' ? [`${m}! ${w} chega antes em ${t}!`, 'normal'] : null),
-    area: (w, _t, m, n) => (n >= 2 ? [`${m} de ${w} pega ${n} de uma vez!`, 'normal'] : null),
-    pierce: (w, _t, m) => [`${m}: o chute de ${w} fura o bloqueio!`, 'normal'],
-    lob: (w) => [`${w} tenta a cobertura!`, 'normal'],
-    blind: (w, t, m, n) => [
-        n > 1 ? `${m} de ${w}: ${n} rivais sem mira!` : `${m} de ${w}: ${t} perde a mira!`,
-        'minor',
-    ],
-    halfEnergy: (w, t) => [`Super Fang! ${w} arranca metade do fôlego de ${t}!`, 'normal'],
-    throw: (w, t) => [`${w} arremessa ${t} longe com Seismic Toss!`, 'normal'],
-    trip: (w, t, _m, n) => [
-        n >= 150 ? `Rasteira em ${t}: pesado assim, demora para levantar!` : `${w} dá a rasteira em ${t}!`,
-        'minor',
-    ],
-    multi: (w, _t, m, n) => (n >= 3 ? [`${m}! ${w} tenta ${n} vezes seguidas!`, 'minor'] : null),
-    rebound: (w) => [`A bola volta para o pé de ${w}!`, 'normal'],
-    wrap: (w, t, m) => [`${m}! ${w} e ${t} ficam presos e a bola sobra!`, 'normal'],
-    clampHold: (w) => [`${w} fecha a concha com a bola dentro!`, 'minor'],
-    toxic: (_w, t) => [`${t} foi gravemente envenenado: vai piorando!`, 'normal'],
-    rageUp: (w, _t, _m, n) => [`${w} fica com mais RAIVA (${n}/3)!`, 'minor'],
-    bide: (w, _t, _m, n) => [`${w} solta o Bide${n ? ` com ${n} pancadas guardadas` : ''}!`, 'normal'],
-    clones: (w) => [`${w} se divide em clones!`, 'normal'],
-    clone: (w) => [`Era um clone! ${w} continua inteiro.`, 'normal'],
-    mini: (w) => [`${w} fica pequenininho: difícil de pegar!`, 'minor'],
-    guard: (w, t, m) => (t !== '???' ? [`${t} bate e volta: ${w} está protegido (${m})!`, 'minor'] : null),
-    curl: (w) => [`${w} se enrola e segura a bola!`, 'minor'],
-    wall: (w) => [`${w} ergue um muro invisível na frente do gol!`, 'normal'],
-    wallBlock: (w) => [`O chute bate no muro de ${w}!`, 'big'],
-    flee: (w, t) => [`${w} RUGE e ${t} sai correndo para o próprio campo!`, 'normal'],
-    blowBall: (w) => [`A ventania de ${w} leva a bola para longe!`, 'minor'],
-    typeCopy: (w, t) => [`${w} usa Conversion e vira do tipo de ${t}!`, 'normal'],
-    teamHeal: (w, t) => [`${w} divide o Soft-Boiled com ${t}!`, 'minor'],
-    coins: (w) => [`Pay Day de ${w}: chuva de moedas e todo mundo para para olhar!`, 'normal'],
-};
-
-const STATUS_PT: Record<string, string> = {
-    par: 'paralisado',
-    slp: 'dormindo',
-    psn: 'envenenado',
-    brn: 'queimado',
-    frz: 'congelado',
-    confusion: 'confuso',
-    infatuation: 'apaixonado',
-    flinch: 'hesitante',
-    seed: 'semeado (perde fôlego aos poucos)',
+const TRAIT_LINE: Partial<Record<TraitFx, (w: string, tg: string, m: string, n: number) => [string, Tone] | null>> = {
+    crit: tl('crit', 'big'),
+    focusBug: tl('focusBug', 'normal'),
+    charge: tl('charge', 'normal'),
+    chargeLost: tl('chargeLost', 'normal'),
+    noRecharge: tl('noRecharge', 'big'),
+    fly: tl('fly', 'big'),
+    dig: tl('dig', 'big'),
+    priority: (w, tg, m, n) => (tg !== '???' ? tl('priority', 'normal')(w, tg, m, n) : null),
+    area: (w, tg, m, n) => (n >= 2 ? tl('area', 'normal')(w, tg, m, n) : null),
+    pierce: tl('pierce', 'normal'),
+    lob: tl('lob', 'normal'),
+    blind: (w, tg, m, n) => tl(n > 1 ? 'blindMany' : 'blindOne', 'minor')(w, tg, m, n),
+    halfEnergy: tl('halfEnergy', 'normal'),
+    throw: tl('throw', 'normal'),
+    trip: (w, tg, m, n) => tl(n >= 150 ? 'tripHeavy' : 'trip', 'minor')(w, tg, m, n),
+    multi: (w, tg, m, n) => (n >= 3 ? tl('multi', 'minor')(w, tg, m, n) : null),
+    rebound: tl('rebound', 'normal'),
+    wrap: tl('wrap', 'normal'),
+    clampHold: tl('clampHold', 'minor'),
+    toxic: tl('toxic', 'normal'),
+    rageUp: tl('rageUp', 'minor'),
+    bide: (w, tg, m, n) => tl(n ? 'bideStored' : 'bide', 'normal')(w, tg, m, n),
+    clones: tl('clones', 'normal'),
+    clone: tl('clone', 'normal'),
+    mini: tl('mini', 'minor'),
+    guard: (w, tg, m, n) => (tg !== '???' ? tl('guard', 'minor')(w, tg, m, n) : null),
+    curl: tl('curl', 'minor'),
+    wall: tl('wall', 'normal'),
+    wallBlock: tl('wallBlock', 'big'),
+    flee: tl('flee', 'normal'),
+    blowBall: tl('blowBall', 'minor'),
+    typeCopy: tl('typeCopy', 'normal'),
+    teamHeal: tl('teamHeal', 'minor'),
+    coins: tl('coins', 'normal'),
 };
 
 /**
@@ -113,8 +104,9 @@ export class Commentator {
         return idx === null || idx === undefined ? '???' : (this.names[idx] ?? '???');
     }
 
-    private pick(...options: string[]): string {
-        return this.rng.pick(options);
+    /** Sorteia uma das opções (listas do dicionário: o mesmo tamanho nas duas línguas). */
+    private pick(options: readonly string[], vars: Vars): string {
+        return say(this.rng.pick(options as string[]), vars);
     }
 
     lineFor(e: MatchEvent): CommentLine | null {
@@ -125,205 +117,156 @@ export class Commentator {
             tone,
             team,
         });
+        const c = C();
         switch (e.type) {
             case 'kickoff':
                 return e.tick < 30 || e.minute < 0.5 || Math.abs(e.minute - 20) < 0.2
-                    ? line(`Rola a bola! Saída do ${this.teamNames[e.team]}.`, 'whistle', e.team)
+                    ? line(say(c.kickoff, { team: this.teamNames[e.team] }), 'whistle', e.team)
                     : null;
             case 'goal': {
                 const team = this.teamNames[e.team];
                 if (e.ownGoal) {
-                    return line(
-                        `GOL CONTRA! ${this.n(e.by)} manda pra própria rede! ${this.score(e.score)}`,
-                        'goal',
-                        e.team,
-                    );
+                    return line(say(c.ownGoal, { x: this.n(e.by), score: this.score(e.score) }), 'goal', e.team);
                 }
-                const assist = e.assist !== null ? ` Assistência de ${this.n(e.assist)}.` : '';
-                const shout = this.pick('GOOOOL', 'GOLAÇO', 'É GOL', 'GOOOL');
+                const assist = e.assist !== null ? say(c.assist, { x: this.n(e.assist) }) : '';
+                const shout = this.pick(c.shouts, {});
                 return line(
-                    `${shout} do ${team}! ${this.captains[e.by] ? 'O capitão ' : ''}${this.n(e.by)} balança a rede!${assist} ${this.score(e.score)}`,
+                    say(c.goal, {
+                        shout,
+                        team,
+                        captain: this.captains[e.by] ? c.captain : '',
+                        x: this.n(e.by),
+                        assist,
+                        score: this.score(e.score),
+                    }),
                     'goal',
                     e.team,
                 );
             }
             case 'shot': {
-                const who = this.n(e.by);
+                const w = this.n(e.by);
                 if (e.moveId) {
-                    const move = MOVES[e.moveId]?.name ?? e.moveId;
-                    return line(`${who} usa ${move} e solta a bomba!`, 'big', this.teams[e.by]);
+                    const m = MOVES[e.moveId]?.name ?? e.moveId;
+                    return line(say(c.shotMove, { w, m }), 'big', this.teams[e.by]);
                 }
-                if (e.xg > 0.3) return line(`${who} cara a cara com o goleiro... chutou!`, 'big', this.teams[e.by]);
-                return line(
-                    this.pick(
-                        `${who} arrisca de longe!`,
-                        `${who} finaliza!`,
-                        `Chute de ${who}!`,
-                        `${who} bate para o gol!`,
-                    ),
-                    'normal',
-                    this.teams[e.by],
-                );
+                if (e.xg > 0.3) return line(say(c.oneOnOne, { w }), 'big', this.teams[e.by]);
+                return line(this.pick(c.shots, { w }), 'normal', this.teams[e.by]);
             }
             case 'save':
                 return line(
-                    e.caught
-                        ? this.pick(`${this.n(e.by)} encaixa firme!`, `Defesa segura de ${this.n(e.by)}.`)
-                        : this.pick(
-                              `QUE DEFESA de ${this.n(e.by)}! Espalmou!`,
-                              `${this.n(e.by)} voa e manda para fora!`,
-                          ),
+                    this.pick(e.caught ? c.saveCaught : c.saveParried, { x: this.n(e.by) }),
                     'big',
                     this.teams[e.by],
                 );
             case 'post':
-                return line(
-                    this.pick('NA TRAVE!', 'Carimbou a trave!', 'Bola no poste! Que azar!'),
-                    'big',
-                    this.teams[e.shooter],
-                );
+                return line(this.pick(c.post, {}), 'big', this.teams[e.shooter]);
             case 'wide':
-                return line(
-                    this.pick('Pra fora.', 'Passou longe.', 'Raspando a trave, pra fora!'),
-                    'minor',
-                    this.teams[e.shooter],
-                );
+                return line(this.pick(c.wide, {}), 'minor', this.teams[e.shooter]);
             case 'block':
-                return line(`${this.n(e.by)} se joga na frente e bloqueia!`, 'normal', this.teams[e.by]);
+                return line(say(c.block, { x: this.n(e.by) }), 'normal', this.teams[e.by]);
             case 'tackle':
                 if (!e.success) return null;
                 return this.rng.chance(0.35)
-                    ? line(
-                          this.pick(
-                              `Desarme de ${this.n(e.by)} em ${this.n(e.victim)}.`,
-                              `${this.n(e.by)} rouba a bola!`,
-                          ),
-                          'minor',
-                          this.teams[e.by],
-                      )
+                    ? line(this.pick(c.tackle, { x: this.n(e.by), y: this.n(e.victim) }), 'minor', this.teams[e.by])
                     : null;
             case 'interception':
                 return this.rng.chance(0.2)
-                    ? line(`${this.n(e.by)} lê o passe e intercepta.`, 'minor', this.teams[e.by])
+                    ? line(say(c.interception, { x: this.n(e.by) }), 'minor', this.teams[e.by])
                     : null;
             case 'move': {
-                const move = MOVES[e.moveId]?.name ?? e.moveId;
-                const who = this.n(e.by);
+                const m = MOVES[e.moveId]?.name ?? e.moveId;
+                const w = this.n(e.by);
+                const tg = this.n(e.target);
                 const team = this.teams[e.by];
                 const eff =
                     e.effectiveness !== null
                         ? effectivenessLabel(e.effectiveness >= 1.12 ? 2 : e.effectiveness < 1 ? 0.5 : 1)
                         : null;
-                const suffix = eff === 'super' ? ' É super efetivo!' : eff === 'weak' ? ' Não é muito efetivo...' : '';
+                const suffix = eff === 'super' ? c.superEffective : eff === 'weak' ? c.notVeryEffective : '';
+                const v = { w, m, tg };
                 switch (e.kind) {
                     case 'special':
                         return e.moveId === 'counter'
-                            ? line(`COUNTER! ${who} devolve o golpe em ${this.n(e.target)}!`, 'big', team)
+                            ? line(say(c.counter, v), 'big', team)
                             : e.moveId === 'metronome'
-                              ? line(`${who} balança o dedo... Metronome!`, 'normal', team)
+                              ? line(say(c.metronome, v), 'normal', team)
                               : e.moveId === 'mirrormove' || e.moveId === 'mimic'
-                                ? line(
-                                      e.hit
-                                          ? `${who} copia o golpe do rival com ${move}!`
-                                          : `${who} usa ${move}... não tinha o que copiar.`,
-                                      'normal',
-                                      team,
-                                  )
+                                ? line(say(e.hit ? c.copyHit : c.copyMiss, v), 'normal', team)
                                 : e.moveId === 'substitute'
-                                  ? line(`${who} usa Substitute: um boneco entra na frente!`, 'normal', team)
+                                  ? line(say(c.substitute, v), 'normal', team)
                                   : e.moveId === 'mist'
-                                    ? line(`${who} cobre o time com Mist!`, 'minor', team)
+                                    ? line(say(c.mist, v), 'minor', team)
                                     : e.moveId === 'leechseed'
                                       ? e.hit
                                           ? null
-                                          : line(`${who} usa Leech Seed... não pegou.`, 'minor', team)
+                                          : line(say(c.leechSeedMiss, v), 'minor', team)
                                       : SPECIAL_LINE[e.moveId]
-                                        ? line(SPECIAL_LINE[e.moveId](who, this.n(e.target), e.hit), 'normal', team)
+                                        ? line(SPECIAL_LINE[e.moveId](w, tg, e.hit), 'normal', team)
                                         : null;
                     case 'flavor':
-                        return e.moveId === 'splash'
-                            ? line(`${who} usa Splash! ...mas nada acontece.`, 'normal', team)
-                            : line(`${who} usa ${move}! A torcida não entendeu nada.`, 'normal', team);
+                        return line(say(e.moveId === 'splash' ? c.splash : c.flavor, v), 'normal', team);
                     case 'burst':
-                        return line(`${who} usa ${move} e dispara em velocidade!`, 'normal', team);
+                        return line(say(c.burst, v), 'normal', team);
                     case 'buff':
-                        return line(`${who} usa ${move} e se concentra.`, 'minor', team);
+                        return line(say(c.buff, v), 'minor', team);
                     case 'heal':
-                        return line(`${who} usa ${move} e recupera o fôlego.`, 'minor', team);
+                        return line(say(c.heal, v), 'minor', team);
                     case 'debuff':
-                        return line(
-                            e.hit
-                                ? `${who} usa ${move} em ${this.n(e.target)}!`
-                                : `${who} usa ${move}, mas não surte efeito.`,
-                            'minor',
-                            team,
-                        );
+                        return line(say(e.hit ? c.debuffHit : c.debuffMiss, v), 'minor', team);
                     case 'status':
-                        return e.hit ? null : line(`${who} usa ${move}... errou!`, 'minor', team);
+                        return e.hit ? null : line(say(c.statusMiss, v), 'minor', team);
                     case 'strike':
-                        if (e.withBall) return line(`${who} carrega ${move} no pé!`, 'normal', team);
+                        if (e.withBall) return line(say(c.strikeBall, v), 'normal', team);
                         return e.target === null && !e.hit
                             ? null
-                            : line(`${who} chega com ${move} na dividida!${suffix}`, 'normal', team);
+                            : line(say(c.strike, { ...v, eff: suffix }), 'normal', team);
                     case 'blast':
                         return e.target !== null
-                            ? line(
-                                  `${who} dispara ${move} em ${this.n(e.target)}!${e.hit ? suffix : ' Errou!'}`,
-                                  'normal',
-                                  team,
-                              )
+                            ? line(say(c.blast, { ...v, eff: e.hit ? suffix : say(c.blastMissed, v) }), 'normal', team)
                             : null;
                 }
                 return null;
             }
             case 'status': {
                 const by = e.by !== null && e.source in MOVES ? ` (${MOVES[e.source].name})` : '';
-                return line(
-                    `${this.n(e.target)} ficou ${STATUS_PT[e.status] ?? e.status}!${by}`,
-                    'normal',
-                    this.teams[e.target],
-                );
+                const text = (c.status as Record<string, string>)[e.status] ?? c.statusOther;
+                return line(say(text, { x: this.n(e.target), s: e.status, by }), 'normal', this.teams[e.target]);
             }
             case 'ability': {
                 const ab = ABILITIES[e.ability]?.name ?? e.ability;
                 return line(
                     e.target !== null
-                        ? `${ab} de ${this.n(e.by)} pega ${this.n(e.target)}!`
-                        : `${ab} de ${this.n(e.by)} é ativada!`,
+                        ? say(c.abilityHit, { ab, x: this.n(e.by), y: this.n(e.target) })
+                        : say(c.ability, { ab, x: this.n(e.by) }),
                     'normal',
                     this.teams[e.by],
                 );
             }
             case 'transform':
-                return line(
-                    `${this.n(e.by)} se transforma em ${species(e.into).name}, o melhor da posição em campo!`,
-                    'big',
-                    this.teams[e.by],
-                );
+                return line(say(c.transform, { x: this.n(e.by), sp: species(e.into).name }), 'big', this.teams[e.by]);
             case 'combo': {
-                const link = LINKS.find((l) => l.id === e.link);
+                const link = LINKS.some((l) => l.id === e.link) ? linkText(e.link) : null;
                 return line(
-                    `COMBO ${link?.name.toUpperCase() ?? ''}! ${this.n(e.partner)} serve ${this.n(e.by)}: ${link?.combo ?? ''}!`,
+                    say(c.combo, {
+                        link: link?.name.toUpperCase() ?? '',
+                        a: this.n(e.partner),
+                        b: this.n(e.by),
+                        combo: link?.combo ?? '',
+                    }),
                     'big',
                     this.teams[e.by],
                 );
             }
             case 'evolve': {
-                const text = `O QUÊ? ${this.n(e.by)} está evoluindo... virou ${species(e.into).name}!`;
+                const text = say(c.evolve, { x: this.n(e.by), sp: species(e.into).name });
                 if (this.names[e.by] === species(e.from).name) this.names[e.by] = species(e.into).name;
                 return line(text, 'big', e.team);
             }
             case 'decoy':
-                return line(
-                    `O boneco de ${this.n(e.by)} aguentou o golpe de ${this.n(e.attacker)}!`,
-                    'normal',
-                    this.teams[e.by],
-                );
+                return line(say(c.decoy, { x: this.n(e.by), y: this.n(e.attacker) }), 'normal', this.teams[e.by]);
             case 'haze':
                 return line(
-                    e.cleared.length
-                        ? `${this.n(e.by)} solta Haze: a névoa limpa ${e.cleared.length} Pokémon em volta!`
-                        : `${this.n(e.by)} solta Haze, mas ninguém por perto tinha nada.`,
+                    say(e.cleared.length ? c.haze : c.hazeEmpty, { x: this.n(e.by), n: e.cleared.length }),
                     'normal',
                     this.teams[e.by],
                 );
@@ -333,58 +276,61 @@ export class Commentator {
                 return r ? line(r[0], r[1], this.teams[e.by]) : null;
             }
             case 'teleport':
-                return line(`${this.n(e.by)} usa Teleport e aparece do outro lado!`, 'normal', this.teams[e.by]);
+                return line(say(c.teleport, { x: this.n(e.by) }), 'normal', this.teams[e.by]);
             case 'skill':
                 return this.rng.chance(0.12)
-                    ? line(`${this.n(e.by)} dá um drible desconcertante!`, 'minor', this.teams[e.by])
+                    ? line(say(c.skill, { x: this.n(e.by) }), 'minor', this.teams[e.by])
                     : null;
             case 'tactic':
-                return line(`${this.teamNames[e.team]} muda para ${TACTIC_LABEL[e.tactic]}!`, 'whistle', e.team);
+                return line(
+                    say(c.tactic, { team: this.teamNames[e.team], tactic: dict().common.tactic[e.tactic] }),
+                    'whistle',
+                    e.team,
+                );
             case 'item': {
                 const item = ITEMS[e.item]?.name ?? e.item;
-                const who = this.n(e.by);
                 const text =
                     e.effect === 'save'
-                        ? `${item} de ${who} segura o gol certo!`
+                        ? c.itemSave
                         : e.effect === 'cure'
-                          ? `${who} come a ${item} e se cura!`
+                          ? c.itemCure
                           : e.effect === 'crit'
-                            ? `Chute crítico! ${item} de ${who}!`
-                            : `${who} resiste graças à ${item}!`;
-                return line(text, 'big', this.teams[e.by]);
+                            ? c.itemCrit
+                            : c.itemEndure;
+                return line(say(text, { item, x: this.n(e.by) }), 'big', this.teams[e.by]);
             }
             case 'sub':
                 this.captains[e.outIdx] = false;
                 this.names[e.outIdx] = e.in;
-                return line(
-                    `Substituição no ${this.teamNames[e.team]}: sai ${e.out}, entra ${e.in}.`,
-                    'whistle',
-                    e.team,
-                );
+                return line(say(c.sub, { team: this.teamNames[e.team], out: e.out, in: e.in }), 'whistle', e.team);
             case 'halftime':
-                return line(`Fim do primeiro tempo. ${this.score(e.score)}`, 'whistle');
+                return line(say(c.halftime, { score: this.score(e.score) }), 'whistle');
             case 'fulltime':
                 return line(
-                    e.score[0] === e.score[1]
-                        ? `Fim de jogo! ${this.score(e.score)} — vamos para os pênaltis!`
-                        : `Fim de jogo! ${this.score(e.score)}`,
+                    say(e.score[0] === e.score[1] ? c.fulltimeDraw : c.fulltime, { score: this.score(e.score) }),
                     'whistle',
                 );
             case 'penalty':
                 return line(
-                    `Pênalti ${e.round}: ${this.n(e.by)} ${e.scored ? 'converte!' : `perde! ${this.n(e.gk)} defende!`} (${e.shootout[0]} x ${e.shootout[1]})`,
+                    say(e.scored ? c.penaltyScored : c.penaltyMissed, {
+                        round: e.round,
+                        x: this.n(e.by),
+                        gk: this.n(e.gk),
+                        a: e.shootout[0],
+                        b: e.shootout[1],
+                    }),
                     e.scored ? 'big' : 'normal',
                     this.teams[e.by],
                 );
             case 'end':
                 if (e.winner === null) return null;
-                return line(`${this.teamNames[e.winner]} vence!`, 'whistle', e.winner);
+                return line(say(c.win, { team: this.teamNames[e.winner] }), 'whistle', e.winner);
             default:
                 return null;
         }
     }
 
     private score(s: [number, number]): string {
-        return `${this.teamNames[0]} ${s[0]} x ${s[1]} ${this.teamNames[1]}`;
+        return say(C().score, { home: this.teamNames[0], a: s[0], b: s[1], away: this.teamNames[1] });
     }
 }

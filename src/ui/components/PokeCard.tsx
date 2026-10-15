@@ -5,7 +5,7 @@ import { MOVES, type Tier } from '../../engine/data';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { moveProfile } from '../../engine/moves';
-import { abilityDesc, abilityName, dict, itemDesc, itemName, moveDesc, moveName } from '../../i18n';
+import { abilityDesc, abilityName, dict, itemDesc, itemName, moveFutsal, moveName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
@@ -83,7 +83,7 @@ export function MoveList({ inst }: { inst: PokemonInstance }) {
                         key={m}
                         className="move"
                         style={{ ['--move-color' as string]: TYPE_COLOR[data.type] }}
-                        title={`${d.common.moveKind[prof.kind]} · ${moveDesc(m, lang)}`}
+                        title={`${d.common.moveKind[prof.kind]} · ${moveFutsal(m, lang)}`}
                     >
                         {moveName(m)}
                     </span>

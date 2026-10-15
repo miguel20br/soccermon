@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Página não encontrada · Soccermon</title>
+    <title>Página não encontrada · Page not found · Soccermon</title>
     <meta name="robots" content="noindex" />
     <meta name="theme-color" content="#141a33" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -72,6 +72,14 @@
         .btn:hover {
             filter: brightness(1.15);
         }
+        .en {
+            border-top: 1px solid var(--line);
+            margin-top: 20px;
+            padding-top: 4px;
+        }
+        .en h1 {
+            font-size: 20px;
+        }
         .btn:focus-visible {
             outline: 3px solid var(--yellow);
             outline-offset: 2px;
@@ -85,6 +93,11 @@
             <h1>Essa página não existe</h1>
             <p>O endereço pode ter mudado ou foi digitado errado. A copa continua te esperando.</p>
             <a class="btn" href="/">Voltar ao jogo</a>
+            <div class="en" lang="en">
+                <h1>This page doesn't exist</h1>
+                <p>The address may have changed or was mistyped. Your cup is still waiting for you.</p>
+                <a class="btn" href="/">Back to the game</a>
+            </div>
         </section>
     </main>
 </body>

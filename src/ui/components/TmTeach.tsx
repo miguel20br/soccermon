@@ -4,7 +4,7 @@ import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { moveProfile } from '../../engine/moves';
 import { canLearn, isProtectedMove, rareMovePool, tmLabel } from '../../engine/tm';
 import { playSfx } from '../../game/audio';
-import { type Lang, moveDesc, moveName, t } from '../../i18n';
+import { type Lang, moveFutsal, moveName, t } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { GdxIcon } from '../golpedex/GdxIcon';
 import { TYPE_COLOR } from '../type-colors';
@@ -62,7 +62,7 @@ export function TmCard({
     const data = MOVES[move];
     const learners = team.filter((p) => canLearn(p, move)).length;
     const rare = rareMovePool().includes(move);
-    const desc = lang === 'pt' ? data.descPt : moveDesc(move, lang);
+    const desc = moveFutsal(move, lang);
     return (
         <button
             type="button"

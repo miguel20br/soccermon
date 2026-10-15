@@ -23,6 +23,7 @@ import {
     type TraitFx,
 } from '../../engine/state';
 import { dir8 } from '../../engine/vec';
+import { dict, linkText, t as tr } from '../../i18n';
 import type { CryStyle, NamesOnField, PlaybackSpeed } from '../../store/game-store';
 import { hexToNumber, TYPE_COLOR } from '../../ui/type-colors';
 import {
@@ -159,61 +160,89 @@ const TRAIT_VIEW: Partial<
         { pop: (n: number) => string; color: string; line?: (who: string, move: string, n: number) => string }
     >
 > = {
-    crit: { pop: () => 'CRÍTICO!', color: '#ffd447', line: (w) => `Acerto crítico de ${w}!` },
+    crit: { pop: () => tr('battle.pop.crit'), color: '#ffd447', line: (w) => tr('battle.line.crit', { w }) },
     focusBug: {
-        pop: () => 'FALHOU!',
+        pop: () => tr('battle.pop.focusBug'),
         color: '#c8c8c8',
-        line: (w) => `O Focus Energy de ${w} falhou... como na Gen 1!`,
+        line: (w) => tr('battle.line.focusBug', { w }),
     },
-    charge: { pop: () => 'CARREGANDO', color: '#fff3a0', line: (w, m) => `${w} está carregando ${m}!` },
-    chargeLost: { pop: () => 'PERDEU A CARGA!', color: '#ff7a7a', line: (w, m) => `${w} perdeu o ${m}!` },
+    charge: {
+        pop: () => tr('battle.pop.charge'),
+        color: '#fff3a0',
+        line: (w, m) => tr('battle.line.charge', { w, m }),
+    },
+    chargeLost: {
+        pop: () => tr('battle.pop.chargeLost'),
+        color: '#ff7a7a',
+        line: (w, m) => tr('battle.line.chargeLost', { w, m }),
+    },
     noRecharge: {
-        pop: () => 'SEM RECARGA!',
+        pop: () => tr('battle.pop.noRecharge'),
         color: '#9be7ff',
-        line: (w) => `Gol de ${w}: o Hyper Beam nem precisa recarregar!`,
+        line: (w) => tr('battle.line.noRecharge', { w }),
     },
-    fly: { pop: () => 'VOOU!', color: '#bfe3ff', line: (w) => `${w} voou bem alto!` },
-    dig: { pop: () => 'CAVOU!', color: '#d9b07a', line: (w) => `${w} cavou um buraco!` },
-    land: { pop: () => 'LÁ VEM!', color: '#ffffff' },
-    priority: { pop: () => 'PRIORIDADE!', color: '#ffffff', line: (w) => `${w} foi mais rápido!` },
-    area: { pop: (n) => (n > 1 ? `PEGOU ${n}!` : 'EM ÁREA!'), color: '#ffb05c' },
-    pierce: { pop: () => 'FUROU!', color: '#ffd447', line: (w, m) => `O ${m} de ${w} furou o bloqueio!` },
-    lob: { pop: () => 'COBERTURA!', color: '#fff7d6', line: (w) => `${w} tenta a cobertura!` },
-    blind: {
-        pop: () => 'MIRA TORTA!',
-        color: '#e8d9a0',
-        line: (w, m) => `${m} de ${w}: o rival não acerta mais nada!`,
-    },
-    fixed: { pop: () => 'DANO FIXO!', color: '#d9a7ff' },
-    halfEnergy: { pop: () => 'METADE!', color: '#ff7a7a', line: (w) => `${w} tirou metade do fôlego do rival!` },
-    throw: { pop: () => 'ARREMESSO!', color: '#ffb05c', line: (w) => `${w} arremessa o rival longe!` },
-    trip: { pop: () => 'RASTEIRA!', color: '#ffb05c' },
-    multi: { pop: (n) => `${n}x!`, color: '#ffffff', line: (w, _m, n) => `${w} tentou ${n} vezes!` },
-    rebound: { pop: () => 'VOLTOU!', color: '#fff3a0', line: (w) => `A bola volta para o pé de ${w}!` },
-    reach: { pop: () => 'DE LONGE!', color: '#a8ffb0' },
-    wrap: { pop: () => 'PRESOS!', color: '#ffb05c', line: (w) => `${w} enrolou o rival: os dois ficam presos!` },
-    clampHold: { pop: () => 'CONCHA FECHADA!', color: '#9be7ff' },
-    zone: { pop: () => 'NO CHÃO!', color: '#d8d8d8' },
-    toxic: { pop: () => 'TÓXICO!', color: '#d48cff', line: () => 'O veneno vai piorando!' },
-    rageUp: { pop: (n) => `FÚRIA +${n}`, color: '#ff5c5c' },
-    bide: {
-        pop: () => 'SOLTOU!',
+    fly: { pop: () => tr('battle.pop.fly'), color: '#bfe3ff', line: (w) => tr('battle.line.fly', { w }) },
+    dig: { pop: () => tr('battle.pop.dig'), color: '#d9b07a', line: (w) => tr('battle.line.dig', { w }) },
+    land: { pop: () => tr('battle.pop.land'), color: '#ffffff' },
+    priority: {
+        pop: () => tr('battle.pop.priority'),
         color: '#ffffff',
-        line: (w, _m, n) => `${w} solta o Bide${n ? ` (guardou ${n} pancadas)` : ''}!`,
+        line: (w) => tr('battle.line.priority', { w }),
     },
-    clones: { pop: () => 'CLONES!', color: '#d8e8ff', line: (w) => `${w} se divide em clones!` },
-    clone: { pop: () => 'ERA UM CLONE!', color: '#d8e8ff', line: (w) => `Acertaram um clone de ${w}!` },
-    mini: { pop: () => 'MINIMIZOU!', color: '#ffd9f0' },
-    guard: { pop: () => 'PROTEGIDO!', color: '#9fc4e8' },
-    curl: { pop: () => 'ENROLOU!', color: '#ffd9a0' },
-    wall: { pop: () => 'MURO!', color: '#c8f0ff', line: (w) => `${w} ergue um muro invisível!` },
-    wallBlock: { pop: () => 'BATEU NO MURO!', color: '#c8f0ff', line: (w) => `O muro de ${w} segurou o chute!` },
-    flee: { pop: () => 'FUGIU!', color: '#ff9a9a' },
-    blowBall: { pop: () => 'VENTANIA!', color: '#e0f7ff' },
-    bulldoze: { pop: () => 'EMPURRÃO!', color: '#ffb05c' },
-    typeCopy: { pop: () => 'MUDOU DE TIPO!', color: '#d9a7ff' },
-    teamHeal: { pop: () => 'CURA!', color: '#7dff8a' },
-    coins: { pop: () => 'MOEDAS!', color: '#ffd447', line: () => 'Chuva de moedas: todo mundo parou para olhar!' },
+    area: { pop: (n) => (n > 1 ? tr('battle.pop.areaMany', { n }) : tr('battle.pop.area')), color: '#ffb05c' },
+    pierce: {
+        pop: () => tr('battle.pop.pierce'),
+        color: '#ffd447',
+        line: (w, m) => tr('battle.line.pierce', { w, m }),
+    },
+    lob: { pop: () => tr('battle.pop.lob'), color: '#fff7d6', line: (w) => tr('battle.line.lob', { w }) },
+    blind: {
+        pop: () => tr('battle.pop.blind'),
+        color: '#e8d9a0',
+        line: (w, m) => tr('battle.line.blind', { w, m }),
+    },
+    fixed: { pop: () => tr('battle.pop.fixed'), color: '#d9a7ff' },
+    halfEnergy: {
+        pop: () => tr('battle.pop.halfEnergy'),
+        color: '#ff7a7a',
+        line: (w) => tr('battle.line.halfEnergy', { w }),
+    },
+    throw: { pop: () => tr('battle.pop.throw'), color: '#ffb05c', line: (w) => tr('battle.line.throw', { w }) },
+    trip: { pop: () => tr('battle.pop.trip'), color: '#ffb05c' },
+    multi: {
+        pop: (n) => tr('battle.pop.multi', { n }),
+        color: '#ffffff',
+        line: (w, _m, n) => tr('battle.line.multi', { w, n }),
+    },
+    rebound: { pop: () => tr('battle.pop.rebound'), color: '#fff3a0', line: (w) => tr('battle.line.rebound', { w }) },
+    reach: { pop: () => tr('battle.pop.reach'), color: '#a8ffb0' },
+    wrap: { pop: () => tr('battle.pop.wrap'), color: '#ffb05c', line: (w) => tr('battle.line.wrap', { w }) },
+    clampHold: { pop: () => tr('battle.pop.clampHold'), color: '#9be7ff' },
+    zone: { pop: () => tr('battle.pop.zone'), color: '#d8d8d8' },
+    toxic: { pop: () => tr('battle.pop.toxic'), color: '#d48cff', line: () => tr('battle.line.toxic') },
+    rageUp: { pop: (n) => tr('battle.pop.rageUp', { n }), color: '#ff5c5c' },
+    bide: {
+        pop: () => tr('battle.pop.bide'),
+        color: '#ffffff',
+        line: (w, _m, n) => (n ? tr('battle.line.bideStored', { w, n }) : tr('battle.line.bide', { w })),
+    },
+    clones: { pop: () => tr('battle.pop.clones'), color: '#d8e8ff', line: (w) => tr('battle.line.clones', { w }) },
+    clone: { pop: () => tr('battle.pop.clone'), color: '#d8e8ff', line: (w) => tr('battle.line.clone', { w }) },
+    mini: { pop: () => tr('battle.pop.mini'), color: '#ffd9f0' },
+    guard: { pop: () => tr('battle.pop.guard'), color: '#9fc4e8' },
+    curl: { pop: () => tr('battle.pop.curl'), color: '#ffd9a0' },
+    wall: { pop: () => tr('battle.pop.wall'), color: '#c8f0ff', line: (w) => tr('battle.line.wall', { w }) },
+    wallBlock: {
+        pop: () => tr('battle.pop.wallBlock'),
+        color: '#c8f0ff',
+        line: (w) => tr('battle.line.wallBlock', { w }),
+    },
+    flee: { pop: () => tr('battle.pop.flee'), color: '#ff9a9a' },
+    blowBall: { pop: () => tr('battle.pop.blowBall'), color: '#e0f7ff' },
+    bulldoze: { pop: () => tr('battle.pop.bulldoze'), color: '#ffb05c' },
+    typeCopy: { pop: () => tr('battle.pop.typeCopy'), color: '#d9a7ff' },
+    teamHeal: { pop: () => tr('battle.pop.teamHeal'), color: '#7dff8a' },
+    coins: { pop: () => tr('battle.pop.coins'), color: '#ffd447', line: () => tr('battle.line.coins') },
 };
 
 /** Zona desenhada no chão (fumaça, anel de fogo, muro): some quando o tempo dela acaba. */
@@ -222,18 +251,6 @@ interface ZoneView {
     to: number;
     obj: Phaser.GameObjects.Shape;
 }
-
-const STATUS_PT: Record<string, string> = {
-    par: 'foi paralisado!',
-    slp: 'caiu no sono!',
-    psn: 'foi envenenado!',
-    brn: 'foi queimado!',
-    frz: 'foi congelado!',
-    confusion: 'ficou confuso!',
-    infatuation: 'se apaixonou!',
-    flinch: 'hesitou!',
-    seed: 'foi semeado!',
-};
 
 interface PlayerView {
     speciesId: number;
@@ -809,7 +826,7 @@ export class MatchScene extends Phaser.Scene {
         const center = toPx(29.5, width / 2);
         cam.pan(center.x, center.y, 700, 'Sine.easeInOut', true);
         cam.zoomTo(1.35, 700, 'Sine.easeInOut', true);
-        this.battleBox.push('Disputa de pênaltis!');
+        this.battleBox.push(tr('battle.shootout'));
     }
 
     private updateShootout(factor: number) {
@@ -841,7 +858,7 @@ export class MatchScene extends Phaser.Scene {
         this.tweens.killTweensOf(this.ball);
         this.ball.setPosition(spot.x, spot.y - 4);
         this.ballShadow.setPosition(spot.x + 2, spot.y + 2);
-        this.battleBox.push(`${this.players[pen.by]?.name ?? '?'} vai para a bola...`);
+        this.battleBox.push(tr('battle.stepsUp', { x: this.players[pen.by]?.name ?? '?' }));
     }
 
     private kickPenalty(pen: PenaltyEvent, factor: number) {
@@ -1204,24 +1221,24 @@ export class MatchScene extends Phaser.Scene {
                 const gk = this.players[e.by];
                 if (gk) this.highlight('save', gk);
                 if (cinematic && gk) {
-                    this.cine.drama('QUE DEFESA!', {
+                    this.cine.drama(tr('battle.bigSave'), {
                         color: '#9be7ff',
                         stroke: '#0b2a4a',
                         at: { x: gk.sprite.x, y: gk.sprite.y },
                         sub: gk.name,
                     });
-                } else this.popText(e.by, 'DEFESA!', '#9be7ff');
+                } else this.popText(e.by, tr('battle.save'), '#9be7ff');
                 break;
             }
             case 'post': {
                 playSfx('post');
                 if (cinematic) {
-                    this.cine.drama('NA TRAAAVE!', {
+                    this.cine.drama(tr('battle.bigPost'), {
                         color: '#ffffff',
                         stroke: '#8a1c1c',
                         at: { x: this.ball.x, y: this.ball.y },
                     });
-                } else this.popText(e.shooter, 'TRAVE!', '#ffffff');
+                } else this.popText(e.shooter, tr('battle.post'), '#ffffff');
                 break;
             }
             case 'goal': {
@@ -1234,7 +1251,7 @@ export class MatchScene extends Phaser.Scene {
                 this.cameras.main.flash(250, 255, 255, 255);
                 const color = Phaser.Display.Color.IntegerToColor(this.md.colors[e.team]).rgba;
                 if (cinematic) {
-                    this.cine.drama(e.ownGoal ? 'GOL CONTRA!' : 'GOOOOOL!', {
+                    this.cine.drama(e.ownGoal ? tr('battle.ownGoal') : tr('battle.goal'), {
                         color: '#ffffff',
                         stroke: color,
                         at: { x: this.ball.x, y: this.ball.y },
@@ -1290,21 +1307,23 @@ export class MatchScene extends Phaser.Scene {
                 }
                 this.moveFx(e.by, e.moveId, moveType, e.target, cinematic);
                 // no modo cinematográfico a faixa já mostra o nome do golpe
-                if (!cinematic) this.battleBox.push(`${view.name} usou ${move?.name ?? e.moveId}!`);
-                if (e.kind === 'flavor' && e.moveId === 'splash') this.battleBox.push('Mas nada aconteceu!');
-                else if (e.target !== null && !e.hit) this.battleBox.push('Mas errou!');
+                if (!cinematic) this.battleBox.push(tr('battle.used', { x: view.name, m: move?.name ?? e.moveId }));
+                if (e.kind === 'flavor' && e.moveId === 'splash') this.battleBox.push(tr('battle.nothing'));
+                else if (e.target !== null && !e.hit) this.battleBox.push(tr('battle.missed', { x: view.name }));
                 else if (e.effectiveness !== null && e.effectiveness >= 1.12) {
-                    this.battleBox.push('É super efetivo!');
-                    if (e.target !== null) this.popText(e.target, 'SUPER EFETIVO!', '#ffd447');
+                    this.battleBox.push(tr('battle.superEffective'));
+                    if (e.target !== null) this.popText(e.target, tr('battle.superPop'), '#ffd447');
                 } else if (e.effectiveness !== null && e.effectiveness < 1)
-                    this.battleBox.push('Não é muito efetivo...');
+                    this.battleBox.push(tr('battle.notVeryEffective'));
                 break;
             }
             case 'status': {
                 playSfx('status');
                 const view = this.players[e.target];
                 if (view) {
-                    this.battleBox.push(`${view.name} ${STATUS_PT[e.status] ?? '!'}`);
+                    this.battleBox.push(
+                        `${view.name} ${(dict().battle.status as Record<string, string>)[e.status] ?? '!'}`,
+                    );
                     if (e.status !== 'flinch' && e.status !== 'seed') {
                         this.applyIndicators(view, STATUS_KIND_TO_CODE[e.status] ?? 0, view.flags);
                     }
@@ -1365,7 +1384,7 @@ export class MatchScene extends Phaser.Scene {
                     this.impact(sp.x, sp.y - 16, 'Psychic');
                     sp.setScale(SPRITE_SCALE * 0.2);
                     this.tweens.add({ targets: sp, scale: SPRITE_SCALE, duration: 420, ease: 'Back.easeOut' });
-                    this.battleBox.push(`${view.name} se transformou em ${into}!`);
+                    this.battleBox.push(tr('battle.transformed', { x: view.name, y: into }));
                     if (!cinematic) {
                         this.popText(e.by, `→ ${into}`, '#d9a7ff');
                         return;
@@ -1415,11 +1434,11 @@ export class MatchScene extends Phaser.Scene {
                         });
                     }
                     cam.shake(260, 0.008);
-                    this.cine.drama('TRANSFORMAR!', {
+                    this.cine.drama(tr('battle.transformBig'), {
                         color: '#d9a7ff',
                         stroke: '#2a0b4a',
                         at: { x: sp.x, y: sp.y },
-                        sub: `${view.name} virou ${into}`,
+                        sub: tr('battle.became', { x: view.name, y: into }),
                     });
                 });
                 break;
@@ -1430,16 +1449,18 @@ export class MatchScene extends Phaser.Scene {
                 const b = this.players[e.by];
                 playSfx('move');
                 if (b) playCry(b.speciesId, cries, 0.8);
-                this.popText(e.partner, 'COMBO!', '#ffd447');
-                this.popText(e.by, 'COMBO!', '#ffd447');
+                this.popText(e.partner, tr('battle.comboPop'), '#ffd447');
+                this.popText(e.by, tr('battle.comboPop'), '#ffd447');
                 if (link && a && b) {
-                    this.battleBox.push(`Combo ${link.name}: ${a.name} + ${b.name}!`);
+                    const text = linkText(link.id);
+                    const names = { link: text.name, a: a.name, b: b.name };
+                    this.battleBox.push(tr('battle.combo', names));
                     if (cinematic) {
-                        this.cine.drama(link.combo.toUpperCase(), {
+                        this.cine.drama(text.combo.toUpperCase(), {
                             color: '#ffd447',
                             stroke: '#4a2a00',
                             at: { x: b.sprite.x, y: b.sprite.y },
-                            sub: `Combo ${link.name}: ${a.name} + ${b.name}`,
+                            sub: tr('battle.comboSub', names),
                         });
                     }
                 }
@@ -1484,27 +1505,27 @@ export class MatchScene extends Phaser.Scene {
                 break;
             }
             case 'decoy': {
-                this.popText(e.by, 'SUBSTITUTO!', '#ffd9a0');
-                this.battleBox.push(`O boneco de ${this.players[e.by]?.name ?? '?'} aguentou o golpe!`);
+                this.popText(e.by, tr('battle.substitutePop'), '#ffd9a0');
+                this.battleBox.push(tr('battle.decoy', { x: this.players[e.by]?.name ?? '?' }));
                 break;
             }
             case 'haze': {
-                for (const i of e.cleared) this.popText(i, 'limpo!', '#d8e8ff');
-                this.battleBox.push('A névoa do Haze limpa tudo em volta!');
+                for (const i of e.cleared) this.popText(i, tr('battle.cleared'), '#d8e8ff');
+                this.battleBox.push(tr('battle.haze'));
                 break;
             }
             case 'teleport': {
                 const view = this.players[e.by];
                 if (view) {
                     this.impact(view.sprite.x, view.sprite.y - 16, 'Psychic');
-                    this.battleBox.push(`${view.name} se teleportou!`);
+                    this.battleBox.push(tr('battle.teleport', { x: view.name }));
                 }
                 break;
             }
             case 'ability': {
                 const view = this.players[e.by];
                 this.popText(e.by, '★', '#ffd447');
-                if (view) this.battleBox.push(`Habilidade de ${view.name} ativada!`);
+                if (view) this.battleBox.push(tr('battle.ability', { x: view.name }));
                 break;
             }
             case 'item': {
@@ -1514,8 +1535,8 @@ export class MatchScene extends Phaser.Scene {
                 if (view) {
                     this.battleBox.push(
                         e.effect === 'crit'
-                            ? `Chute crítico de ${view.name}!`
-                            : `${item} de ${view.name} entrou em ação!`,
+                            ? tr('battle.itemCrit', { x: view.name })
+                            : tr('battle.item', { item, x: view.name }),
                     );
                 }
                 break;
@@ -1534,10 +1555,10 @@ export class MatchScene extends Phaser.Scene {
                     if (e.scored) playCry(this.players[e.by]?.speciesId ?? 1, cries, 1);
                 }
                 if (cinematic) {
-                    this.cine.drama(e.scored ? 'É GOL!' : 'PEGOU!', {
+                    this.cine.drama(e.scored ? tr('battle.penGoal') : tr('battle.penSaved'), {
                         color: e.scored ? '#ffffff' : '#9be7ff',
                         stroke: '#000000',
-                        sub: `${e.shootout[0]} x ${e.shootout[1]}`,
+                        sub: tr('battle.penScore', { a: e.shootout[0], b: e.shootout[1] }),
                     });
                 }
                 break;
@@ -1600,7 +1621,7 @@ export class MatchScene extends Phaser.Scene {
             newName: next.newName,
             shiny: next.view.shiny,
         };
-        this.battleBox.push(`O quê? ${next.view.name} está evoluindo!`);
+        this.battleBox.push(tr('battle.evolving', { x: next.view.name }));
         EventBus.emit('match:evolution', evo);
         // segurança: se a tela não responder, a partida segue sozinha
         this.evoTimer?.remove();
@@ -1617,7 +1638,7 @@ export class MatchScene extends Phaser.Scene {
             done.view.sprite.setScale(SPRITE_SCALE * 1.3);
             this.tweens.add({ targets: done.view.sprite, scale: SPRITE_SCALE, duration: 420, ease: 'Back.easeOut' });
             this.impact(done.view.sprite.x, done.view.sprite.y - 16, species(done.into).types[0]);
-            this.battleBox.push(`Parabéns! ${oldName} evoluiu para ${species(done.into).name}!`);
+            this.battleBox.push(tr('battle.evolved', { x: oldName, y: species(done.into).name }));
         }
         this.showNextEvolution();
     }
@@ -1736,7 +1757,7 @@ export class MatchScene extends Phaser.Scene {
 
     private goalBanner(stroke: string) {
         const t = this.add
-            .text(GAME_W / 2, GAME_H / 2, 'GOL!', {
+            .text(GAME_W / 2, GAME_H / 2, tr('battle.goalBanner'), {
                 fontFamily: 'Galmuri11, monospace',
                 fontSize: '72px',
                 fontStyle: 'bold',

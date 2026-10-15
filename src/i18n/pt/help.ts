@@ -19,6 +19,7 @@ export type HelpSectionId =
     | 'cartas'
     | 'tipos'
     | 'golpes'
+    | 'golpesJogos'
     | 'status'
     | 'habilidades'
     | 'itens'
@@ -208,6 +209,66 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
             { p: 'E sim: o Splash do Magikarp é só Splash mesmo. A graça é evoluir.' },
         ],
     },
+    golpesJogos: {
+        title: 'Golpes que fazem o que faziam nos jogos',
+        blocks: [
+            {
+                p: 'Muitos golpes ganharam o jeito que tinham na Gen 1, adaptado à quadra. A carta completa e a Golpedex explicam cada um.',
+            },
+            {
+                list: [
+                    [
+                        'Área',
+                        'Earthquake, Surf, Blizzard, Rock Slide, Growl, Leer… pegam todos os rivais em volta (Earthquake e Surf, até companheiro). Quem está com a bola e leva, solta.',
+                    ],
+                    [
+                        'Crítico',
+                        'Slash, Karate Chop, Razor Leaf, Crabhammer: chute mais forte e certeiro, e carrinho crítico ganha direto. **Focus Energy** garante o próximo crítico (e às vezes falha, como o bug da Gen 1).',
+                    ],
+                    [
+                        'Carga',
+                        'Solar Beam, Skull Bash, Sky Attack, Razor Wind: param um instante carregando e saem mais fortes. Levou carrinho na carga, perdeu o golpe. Hyper Beam que vira gol não recarrega.',
+                    ],
+                    [
+                        'Fly e Dig',
+                        'somem por um instante (ninguém alcança): com a bola, avançam e finalizam; sem a bola, caem em cima de quem conduz.',
+                    ],
+                    [
+                        'Prioridade',
+                        'Quick Attack desarma na hora, sem esperar; com a bola, arrancada e chute de primeira. Agility dura mais.',
+                    ],
+                    [
+                        'Mira',
+                        'Swift nunca erra e jogador de linha não bloqueia; Drill Peck e Cut furam o bloqueio; Egg Bomb vai por cima. Sand Attack, Kinesis, Flash e Smokescreen entortam a mira do rival.',
+                    ],
+                    [
+                        'Dano fixo',
+                        'Sonic Boom, Dragon Rage, Night Shade, Seismic Toss: chute de velocidade fixa, sem depender de atributo nem de tipo. Super Fang tira metade do fôlego; Low Kick derruba mais quem é pesado.',
+                    ],
+                    [
+                        'Multi-acerto',
+                        'Double Kick, Fury Swipes, Double Slap, Pin Missile…: de 2 a 5 tentativas de desarme seguidas. Bonemerang, Barrage e companhia podem devolver a bola ao pé de quem chutou.',
+                    ],
+                    [
+                        'Prender',
+                        'Wrap e Bind prendem os dois e a bola sobra; Clamp rouba e segura; Fire Spin deixa um anel de fogo no chão; Constrict deixa lento.',
+                    ],
+                    [
+                        'Toxic, Rage e Bide',
+                        'Toxic piora com o tempo; Rage fica mais forte a cada pancada; Bide aguenta firme e depois solta tudo em quem está perto.',
+                    ],
+                    [
+                        'Clones e muro',
+                        'Double Team cria clones que levam os próximos golpes; Minimize, Acid Armor, Withdraw e Defense Curl protegem a bola; Barrier ergue um muro que segura um chute.',
+                    ],
+                    [
+                        'Controle de campo',
+                        'Roar faz o rival fugir e largar a bola; Whirlwind e Gust sopram a bola; Strength empurra; Conversion copia o tipo do rival; Soft-Boiled cura um companheiro; Pay Day faz todo mundo parar para olhar as moedas.',
+                    ],
+                ],
+            },
+        ],
+    },
     status: {
         title: 'Status',
         blocks: [
@@ -333,6 +394,7 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
                     'A barra junta tudo o que ele fez: gols, assistências, chutes no gol, defesas, desarmes, interceptações, passes e golpes, com peso por posição (assim goleiro e Fixo evoluem tanto quanto o Pivô).',
                     'Um gol sozinho não basta. Evolui no máximo 1 vez por partida.',
                     'A evolução vale pro resto da copa. Ele ganha os golpes da nova forma e mantém a habilidade se a nova forma também tiver.',
+                    'Golpe ensinado por MT continua depois de evoluir (se a forma nova também aprende).',
                     'Eevee vira uma das três evoluções (sempre a mesma pra aquela carta). Ditto não evolui.',
                     'O rival também pode evoluir durante o jogo!',
                 ],
@@ -362,13 +424,24 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
                         'um dos melhores Pokémon do time que você acabou de eliminar (sem o item dele). Se não houver ninguém novo pra você, vem um reforço sorteado.',
                     ],
                     ['2 itens', 'itens de tipo tendem a puxar os tipos do seu time.'],
+                    [
+                        'MT do ginásio',
+                        'em {tmOdds}% das vitórias, um dos itens vira a MT que o líder dava na Gen 1 (Brock: Bide, Misty: BubbleBeam, Lt. Surge: Thunderbolt, Erika: Mega Drain, Koga: Toxic, Sabrina: Psywave, Blaine: Fire Blast, Giovanni: Fissure). Se ninguém do seu time aprende, vem um golpe raro, que nenhum Pokémon leva de fábrica.',
+                    ],
                 ],
             },
             {
                 list: [
                     'O Pokémon novo entra **no lugar de um reserva** (nunca do capitão) e herda o item de quem saiu.',
-                    'O item vai pra qualquer jogador; se ele já tinha um, troca.',
+                    'O item vai pra qualquer jogador; se ele já tinha um, o item antigo é substituído (e some).',
                     'Sortear de novo gasta 1 reroll. **Pular** não pega nada, mas dá +1 reroll.',
+                ],
+            },
+            {
+                list: [
+                    'MT: você escolhe quem aprende (só quem aprende o golpe nos jogos) e qual golpe ele esquece. O golpe-assinatura nunca é esquecido.',
+                    'O golpe ensinado continua depois da evolução (se a forma nova também aprende).',
+                    'Os ginásios rivais também entram em quadra com a MT do líder (até 2 Pokémon por time).',
                 ],
             },
         ],
@@ -526,7 +599,7 @@ export const help = {
         sub: 'Substituir',
         cupTitle: 'A Copa',
         cupText:
-            'Oitavas, quartas, semi e final contra os ginásios de Kanto e a Liga Índigo. Venceu? Escolha um **reforço** (dá pra contratar do rival) ou um item. Empate vai pros pênaltis.',
+            'Oitavas, quartas, semi e final contra os ginásios de Kanto e a Liga Índigo. Venceu? Escolha um **reforço** (dá pra contratar do rival), um item ou a **MT do ginásio**. Empate vai pros pênaltis.',
         cupPath: ['Oitavas', 'Quartas', 'Semi', 'Final'],
         dexTitle: 'Pokédex e conta',
         dexText:

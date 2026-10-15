@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy and terms · Soccermon</title>
+    <meta name="description" content="How Soccermon handles your data and the terms of use of the fan game." />
+    <link rel="icon" type="image/png" href="assets/ui/poke-ball.png" />
+    <link rel="alternate" hreflang="pt-BR" href="privacidade.html" />
+    <style>
+        :root {
+            --bg: #141a33;
+            --panel: #232d57;
+            --line: #4b5a9a;
+            --text: #f4f1e6;
+            --muted: #a6aed6;
+            --yellow: #ffcb05;
+            color-scheme: dark;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            background: radial-gradient(1200px 600px at 50% -10%, #2a3570 0%, var(--bg) 60%) fixed, var(--bg);
+            color: var(--text);
+            font: 15px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        }
+        main {
+            width: min(760px, 100%);
+            margin: 0 auto;
+            padding: 24px 16px 48px;
+        }
+        h1 {
+            color: var(--yellow);
+            font-size: 28px;
+            margin: 8px 0 4px;
+        }
+        h2 {
+            color: var(--yellow);
+            font-size: 18px;
+            margin: 28px 0 6px;
+        }
+        section {
+            background: var(--panel);
+            border: 2px solid var(--line);
+            border-radius: 12px;
+            padding: 4px 18px 14px;
+            margin-top: 16px;
+        }
+        a {
+            color: var(--yellow);
+        }
+        .muted {
+            color: var(--muted);
+        }
+        ul {
+            padding-left: 20px;
+        }
+        .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .lang-switch {
+            color: var(--muted);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="top">
+            <a href="./">← Back to the game</a>
+            <span class="lang-switch"><a href="privacidade.html" hreflang="pt-BR" lang="pt-BR">Português</a> | <b>English</b></span>
+        </div>
+        <h1>Privacy and terms</h1>
+        <p class="muted">Last updated: October 15, 2026</p>
+
+        <section>
+            <h2>Summary</h2>
+            <ul>
+                <li>Without signing in, your save stays only in your browser. The only things that leave your device are
+                    the anonymous statistics described below (you can turn them off).</li>
+                <li>If you sign in with Google, we store your name, photo and game save so you can continue on any device.</li>
+                <li>We don't sell data, don't show ads and don't use tracking cookies. We count visits and matches
+                    anonymously (no account, no cookie) to know whether the game is working; you can turn this off in
+                    Settings.</li>
+                <li>You can delete your account and everything in the cloud at any time, in Settings.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Who we are</h2>
+            <p>
+                Soccermon is a <b>non-profit</b> fan game, created by Miguel Cunha, open source under the AGPL-3.0
+                license. Pokémon and all related names, images and sounds are © Nintendo, Game Freak, Creatures Inc.
+                and The Pokémon Company. This project is not affiliated with or endorsed by them.
+            </p>
+
+            <h2>What we collect</h2>
+            <p><b>Playing as a guest (without signing in):</b> your save stays in your browser's storage (IndexedDB and
+                localStorage): cup, profile, settings, records, Pokédex and discovered moves. The save itself is not
+                sent to us; only the anonymous events described right below leave your device (they include loose
+                numbers, such as how many cups you've played, how many Pokémon you've seen and which settings you
+                changed).</p>
+            <p><b>Anonymous statistics (everyone, signed in or not):</b></p>
+            <ul>
+                <li><b>Visits</b>, through Vercel Web Analytics and Speed Insights: page opened, referring site (e.g.
+                    came from LinkedIn), country, device type and browser, and loading speed. It doesn't use cookies
+                    and doesn't identify you.</li>
+                <li><b>Game events</b>: things like "cup started", "match ended 3–1 in the quarter-finals", "Pokémon
+                    picked in the draft", "screen opened", "setting changed" (including the language), "club color
+                    chosen", "signed in with Google" and errors (without addresses or emails). At the start of the
+                    session we also send the site you came from (only the domain, like linkedin.com, or the link's
+                    utm_source), how many cups you've played and how many Pokémon you've seen. Each event carries only
+                    a random session code (it disappears when you close the tab), the game version and the device
+                    type. They never carry your name, email, account or IP.</li>
+            </ul>
+            <p>To stop sending game events, turn off <b>Settings → Your data → Anonymous statistics</b>.</p>
+            <p><b>Save backup:</b> the file from <b>Settings → Download backup</b> is generated and downloaded on your
+                own device. It doesn't go through our servers.</p>
+            <p><b>Signing in with Google:</b></p>
+            <ul>
+                <li>the name, email and photo of your Google profile, and an account identifier (provided by Google at sign-in);</li>
+                <li>the game save: cup in progress, settings, records, profile (the coach and club names you type,
+                    tag, color and avatar), Pokédex, discovered moves and career numbers.</li>
+            </ul>
+            <p>We don't ask for access to contacts, files or any other data in your Google account.</p>
+
+            <h2>What we use it for</h2>
+            <p>
+                Only to make sign-in work, save and sync your progress between devices and show your name and photo
+                inside the game. The anonymous statistics tell us how many people play, where the game freezes or gets
+                too hard and what to improve. Your data is not sold, shared for advertising or used to build behavior
+                profiles.
+            </p>
+
+            <h2>Where it's stored</h2>
+            <ul>
+                <li><b>Supabase</b>: sign-in and database (profile, save and the anonymous game events).</li>
+                <li><b>Vercel</b> (hosting) and <b>Supabase</b> (database): like any server, they log technical access
+                    data (such as IP address and browser) for a short time, for security and operation. These logs are
+                    not part of the game statistics.</li>
+                <li><b>Google</b>: authentication, when you choose to sign in with Google. Sign-in happens on a Google
+                    page (or through a "Sign in with Google" button loaded from its servers), and Google receives the
+                    technical data of that connection.</li>
+            </ul>
+            <p>Each player can only read and change their own save; nobody else has access to it through the game.</p>
+
+            <h2>How long</h2>
+            <p>As long as your account exists. If you delete your account, the sign-in, profile and save are removed
+                immediately. Anonymous game events are deleted automatically after 12 months; since they aren't linked
+                to you, there's no way to tell which ones are yours.</p>
+
+            <h2>Your rights (LGPD, Brazil's data protection law)</h2>
+            <p>
+                You can access, correct and delete your data. To delete everything, open the game and go to
+                <b>Settings → Account → Delete my account</b>. Your name and photo come from Google: if you change them
+                there, the game shows the new ones at your next sign-in. Other privacy questions can be sent through
+                the project's GitHub repository (without posting personal data in public).
+            </p>
+
+            <h2>Cookies</h2>
+            <p>
+                We don't use tracking or advertising cookies. The browser stores only the game save, the random
+                session code (only while the tab is open) and, if you sign in, the sign-in session.
+            </p>
+        </section>
+
+        <section>
+            <h2>Terms of use</h2>
+            <ul>
+                <li>The game is free, with no purchases and no ads, offered as is, with no guarantee of continuous
+                    operation. It may change, lose saves in big updates or go offline at any time.</li>
+                <li>Don't use the game to attack, overload or try to access other players' data.</li>
+                <li>The code is AGPL-3.0. Third-party sprites, sounds and data follow the licenses listed in the game's
+                    credits, several of them for non-commercial use only.</li>
+                <li>Pokémon is a trademark and property of the companies mentioned above. If any rights holder asks,
+                    the content will be removed.</li>
+            </ul>
+        </section>
+    </main>
+</body>
+</html>

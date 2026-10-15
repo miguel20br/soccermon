@@ -1,11 +1,10 @@
 import Phaser from 'phaser';
 import { type CSSProperties, memo, useEffect, useMemo, useRef, useState } from 'react';
 import { SPECIES, SPECIES_BY_ID, type Species } from '../../engine/data';
-import { DRAIN, SPECIAL_EXPLAIN } from '../../engine/moves';
 import { EventBus } from '../../game/EventBus';
 import type { FxStyle } from '../../game/move-fx';
 import { LAB_H, LAB_W, MoveLabScene } from '../../game/scenes/MoveLabScene';
-import { moveDesc, plural, typeName } from '../../i18n';
+import { moveFutsal, plural, typeName } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { MenuHead } from '../components/MenuHead';
@@ -110,7 +109,6 @@ function Sprite({ id, shown, size = 48 }: { id: number; shown: boolean; size?: n
 export function MoveLab({ onExit }: { onExit: () => void }) {
     const { t, tn, d, lang } = useT();
     const L = d.stats.lab;
-    const kindLong = (k: string) => L.kind[k] ?? k;
     const moves = useGame((s) => s.moves);
     const dex = useGame((s) => s.dex);
     const hydrated = useHydrated();
@@ -282,8 +280,11 @@ export function MoveLab({ onExit }: { onExit: () => void }) {
     };
 
     const rv = row ? review[row.id] : undefined;
-    /** Texto do jogo original: em português a tradução dos dados, em inglês o oficial. */
-    const desc = row ? (lang === 'pt' ? row.desc : moveDesc(row.id, lang)) : null;
+    /**
+     * Texto do jogo original: só em português (a descrição traduzida dos jogos). Em inglês os dados só têm a
+     * regra de batalha do Showdown ("Double damage on Dive."), que confunde no futsal: fica de fora.
+     */
+    const desc = row && lang === 'pt' ? row.desc : null;
     const times = row ? seen[row.id] : 0;
     const pct = total ? Math.round((discovered / total) * 100) : 0;
     const empty = hydrated && discovered === 0 && !REVIEW;
@@ -445,12 +446,7 @@ export function MoveLab({ onExit }: { onExit: () => void }) {
                             </div>
                             <dl className="ml-facts">
                                 <dt>{L.inMatch}</dt>
-                                <dd>
-                                    {(lang === 'pt' ? SPECIAL_EXPLAIN[row.id] : undefined) ??
-                                        (DRAIN[row.id]
-                                            ? t('stats.lab.drains', { kind: kindLong(row.kind) })
-                                            : kindLong(row.kind))}
-                                </dd>
+                                <dd>{moveFutsal(row.id, lang)}</dd>
                                 <dt>{L.powerAcc}</dt>
                                 <dd>
                                     {row.power || '—'} · {row.accuracy}%

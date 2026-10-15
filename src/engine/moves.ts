@@ -305,8 +305,12 @@ export const MOVE_TUNING = {
     coinStun: 0.4,
 };
 
-/** O que cada golpe faz no futsal (os especiais e os que ganharam traço). Os outros usam o texto do tipo. */
-export const MOVE_EXPLAIN: Record<string, string> = {
+/**
+ * O que cada golpe faz no futsal (os especiais e os que ganharam traço). Os outros usam o texto do tipo.
+ * Fica em português aqui; o inglês está em src/i18n/en/move-explain.ts (mesmas chaves, cobradas pelo tsc) e a
+ * tela escolhe pelo idioma com `moveExplain()`. O motor não lê nada disso.
+ */
+const EXPLAIN = {
     counter: 'Reação: na primeira vez que receber um golpe ou carrinho, devolve no atacante (1 vez por partida).',
     haze: 'Névoa: tira status e reforços/enfraquecimentos de todo mundo em volta (dos dois times).',
     mist: 'O time fica imune a enfraquecimentos por 12 segundos.',
@@ -420,6 +424,10 @@ export const MOVE_EXPLAIN: Record<string, string> = {
     softboiled: 'Cura o fôlego dele e o do companheiro mais cansado a 5 m.',
     payday: 'Chuva de moedas: com a bola, chute; sem a bola, os rivais a 3 m param um instante para olhar.',
 };
+
+/** Golpes que têm explicação própria (a tradução em inglês precisa ter todas). */
+export type ExplainMoveId = keyof typeof EXPLAIN;
+export const MOVE_EXPLAIN: Readonly<Record<string, string>> = EXPLAIN;
 
 /** Compatibilidade: a carta e a Golpedex leem este nome. */
 export const SPECIAL_EXPLAIN = MOVE_EXPLAIN;

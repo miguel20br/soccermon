@@ -6,7 +6,7 @@ import { viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { linksOf } from '../../engine/links';
 import { applyModifiers, attributeModifiers, moveModifiers } from '../../engine/modifiers';
-import { DRAIN, moveProfile, SPECIAL_EXPLAIN } from '../../engine/moves';
+import { DRAIN, moveProfile } from '../../engine/moves';
 import {
     abilityDesc,
     abilityName,
@@ -14,10 +14,9 @@ import {
     fmt,
     itemDesc,
     itemName,
-    type Lang,
     linkText,
     modLabel,
-    moveDesc,
+    moveExplain,
     moveModLabel,
     moveName,
 } from '../../i18n';
@@ -51,16 +50,6 @@ function secondaryText(moveId: string, d: Dict): string | null {
     if (!what) return sec.boosts ? tx.mayWeaken : null;
     const chance = Math.round(Math.min(65, sec.chance * 3 + 5));
     return fmt(tx.secondaryChance, { chance, what });
-}
-
-/**
- * Explicação de um golpe com efeito próprio. SPECIAL_EXPLAIN (engine/moves.ts) só existe em português:
- * em inglês, por enquanto, vai a descrição oficial do golpe.
- */
-function specialExplain(moveId: string, lang: Lang): string | undefined {
-    const pt = SPECIAL_EXPLAIN[moveId];
-    if (!pt) return undefined;
-    return lang === 'pt' ? pt : moveDesc(moveId, lang);
 }
 
 /** Carta completa: tudo sobre o Pokémon, com ações (escolher, pegar…). */
@@ -263,7 +252,7 @@ export function CardModal() {
                                             </span>
                                         </div>
                                         <div className="tactic-desc">
-                                            {specialExplain(m, lang) ??
+                                            {moveExplain(m, lang) ??
                                                 (DRAIN[m] ? `${kindExplain}${t('team.modal.drain')}` : kindExplain)}
                                         </div>
                                         {moveMods

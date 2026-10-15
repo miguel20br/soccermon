@@ -16,6 +16,7 @@ import {
 } from '../../store/game-store';
 import { DEFAULT_PROFILE, EMPTY_CAREER } from '../../store/profile';
 import { MenuHead } from '../components/MenuHead';
+import { privacyUrl } from '../links';
 import { reduceMotionOn } from '../settings-sync';
 import '../settings.css';
 
@@ -275,7 +276,7 @@ export function Settings() {
             <DataSettings />
             <AccountSettings />
             <p className="muted center">
-                <a href="privacidade.html" target="_blank" rel="noopener">
+                <a href={privacyUrl()} target="_blank" rel="noopener">
                     {t('settings.screen.privacy')}
                 </a>
             </p>
@@ -439,7 +440,7 @@ function DataSettings() {
                 hint={
                     <>
                         {t('settings.data.statsHint')}{' '}
-                        <a href="privacidade.html" target="_blank" rel="noopener">
+                        <a href={privacyUrl()} target="_blank" rel="noopener">
                             {t('settings.data.details')}
                         </a>
                     </>

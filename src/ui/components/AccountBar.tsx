@@ -4,6 +4,7 @@ import { GOOGLE_CLIENT_ID, renderGoogleButton } from '../../cloud/google-button'
 import { htmlLang } from '../../i18n/lang';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
+import { privacyUrl } from '../links';
 import { trainerLabel, useAvatar } from '../profile/club';
 
 const STATUS_KEY = {
@@ -105,7 +106,7 @@ export function AccountBar() {
                 )}
                 <span className={failed ? 'error-text' : 'muted'}>
                     {failed ? t('settings.bar.signInFailed') : t('settings.bar.pitch')}{' '}
-                    <a href="privacidade.html" target="_blank" rel="noopener">
+                    <a href={privacyUrl()} target="_blank" rel="noopener">
                         {t('settings.bar.privacy')}
                     </a>
                 </span>

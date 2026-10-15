@@ -1,3 +1,5 @@
+import { battle } from './en/battle';
+import { commentary } from './en/commentary';
 import { common } from './en/common';
 import { help } from './en/help';
 import { home } from './en/home';
@@ -11,4 +13,17 @@ import { team } from './en/team';
 import type { Dict } from './pt';
 
 /** English dictionary: same shape as `pt` (a missing key is a compile error). */
-export const en: Dict = { common, home, team, match, result, reward, help, settings, profile, stats };
+export const en: Dict = {
+    common,
+    home,
+    team,
+    match,
+    commentary,
+    battle,
+    result,
+    reward,
+    help,
+    settings,
+    profile,
+    stats,
+};
