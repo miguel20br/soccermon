@@ -36,9 +36,9 @@ junta gancho g1 g2
 junta ditto d1 d2
 # quadros da saída de bola (com os times e vazia só com a bola): node quadra-vazia.mjs (precisa do npm run dev)
 # recortes dos menus (cartas, escalação, tática): node recortes.mjs
-# sons: vento da abertura (ruído marrom grave) e apito duplo (mesmo timbre do jogo: ~2400 Hz com vibrato)
+# sons: vento (não usado desde a abertura nova) e o apito de juiz (~2650 Hz com o trinado da bolinha, forte)
 ffmpeg -v error -y -f lavfi -i "anoisesrc=color=brown:amplitude=0.25:duration=2.9" -af "lowpass=f=500,afade=t=in:d=0.6,afade=t=out:st=2.3:d=0.6" $M/vento.wav
-ffmpeg -v error -y -f lavfi -i "aevalsrc=0.5*sin(2*PI*(2400+90*sin(2*PI*38*t))*t)*(between(t\,0\,0.11)+between(t\,0.17\,0.6)):s=44100:d=0.65" -af "afade=t=out:st=0.5:d=0.15" $M/apito.wav
+ffmpeg -v error -y -f lavfi -i "aevalsrc=0.85*sin(2*PI*(2650+45*sin(2*PI*32*t))*t)*(0.65+0.35*sgn(sin(2*PI*32*t)))*min(1\,t*50):s=44100:d=0.65" -af "afade=t=out:st=0.5:d=0.15,highpass=f=900" $M/apito.wav
 cp ../musica/trainer-battle-remix.mp3 $M/musica.mp3   # análise de BPM/batidas: musica-analisar.py e musica-fase.py
 # assets do jogo
 P=../../public

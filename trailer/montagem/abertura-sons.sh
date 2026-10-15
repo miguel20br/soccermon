@@ -13,13 +13,13 @@ ffmpeg -v error -y -f lavfi -i "aevalsrc=0.35*(sin(2*PI*(95+6*sin(2*PI*7*t))*t)+
 ffmpeg -v error -y -f lavfi -i "anoisesrc=color=white:amplitude=0.5:seed=25:duration=0.8" -af "highpass=f=2500,tremolo=f=19:d=1,tremolo=f=7:d=0.9,afade=t=out:st=0.6:d=0.2" $M/faiscas.wav
 # "Pika…": o começo do grito do Pikachu
 ffmpeg -v error -y -i $M/grito-25.ogg -t 0.55 -af "afade=t=out:st=0.4:d=0.15" $M/pika.wav
-# coração acelerando + som subindo (2,1 s, do Pikachu até o último close), corta seco no fim
+# coração acelerando + som subindo (2,9 s, do Pikachu até o último close), corta seco no fim
 CORACAO=$(python3 -c '
-t, gap, b = 0.0, 0.5, []
-while t < 2.0:
-    b += [t, t + 0.12]; t += gap; gap = max(0.2, gap * 0.82)
+t, gap, b = 0.0, 0.55, []
+while t < 2.75:
+    b += [t, t + 0.12]; t += gap; gap = max(0.22, gap * 0.86)
 print("+".join(f"0.9*exp(-28*(t-{x:.3f}))*sin(2*PI*55*(t-{x:.3f}))*gte(t\\,{x:.3f})" for x in b))')
-ffmpeg -v error -y -f lavfi -i "aevalsrc=$CORACAO:s=44100:d=2.1" $M/coracao.wav
-ffmpeg -v error -y -f lavfi -i "aevalsrc=0.28*sin(2*PI*(180*t+430*t*t))*pow(t/2.1\,2):s=44100:d=2.1" $M/subida.wav
+ffmpeg -v error -y -f lavfi -i "aevalsrc=$CORACAO:s=44100:d=2.9" $M/coracao.wav
+ffmpeg -v error -y -f lavfi -i "aevalsrc=0.28*sin(2*PI*(180*t+310*t*t))*pow(t/2.9\,2):s=44100:d=2.9" $M/subida.wav
 ffmpeg -v error -y -i $M/coracao.wav -i $M/subida.wav -filter_complex "amix=inputs=2:normalize=0" $M/tensao.wav
 echo SONS
