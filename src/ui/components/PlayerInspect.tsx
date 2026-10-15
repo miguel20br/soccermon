@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { Position } from '../../engine/attributes';
 import { MOVES, species } from '../../engine/data';
-import { EVO_THRESHOLD, evolutionTarget, evolveInstance, evoScore } from '../../engine/evolution';
-import type { PokemonInstance } from '../../engine/instance';
+import { EVO_THRESHOLD, evolutionTarget, evoScore } from '../../engine/evolution';
 import { attributeModifiers, moveModifiers } from '../../engine/modifiers';
 import { moveProfile } from '../../engine/moves';
 import type { MatchResult } from '../../engine/runners/batch-runner';
@@ -10,8 +8,6 @@ import {
     FLAG_BUFF,
     FLAG_CHARGED,
     FLAG_DEBUFF,
-    type MatchSnapshot,
-    type PlayerStats,
     SNAP_STRIDE,
     TACTIC_LABEL,
     type Tactic,
@@ -19,6 +15,7 @@ import {
 } from '../../engine/state';
 import { EventBus } from '../../game/EventBus';
 import { useCardModal } from '../card-modal';
+import { lineupAt, snapAt, statsUntil, whoAt } from '../match-view';
 import { TYPE_COLOR } from '../type-colors';
 import { FutCard } from './FutCard';
 
@@ -31,105 +28,6 @@ const STATUS_PT: Record<number, string> = {
     6: 'Confuso: erra passe e chute',
     7: 'Apaixonado: não joga',
 };
-
-function snapAt(snaps: MatchSnapshot[], tick: number): MatchSnapshot {
-    let lo = 0;
-    let hi = snaps.length - 1;
-    while (hi - lo > 1) {
-        const mid = (lo + hi) >> 1;
-        if (snaps[mid].tick <= tick) lo = mid;
-        else hi = mid;
-    }
-    return snaps[lo];
-}
-
-/** Quem está na vaga `idx` no tick, com a forma atual (trocas, evoluções e Transformar do Ditto até ali). */
-function whoAt(m: MatchResult, setups: [TeamSetup, TeamSetup], idx: number, tick: number) {
-    const team = m.roster[idx].team;
-    let uid = m.roster[idx].uid;
-    let since = 0;
-    for (const e of m.events) {
-        if (e.tick > tick) break;
-        if (e.type === 'sub' && e.outIdx === idx) {
-            uid = e.inUid;
-            since = e.tick;
-        }
-    }
-    const setup = setups[team];
-    let inst: PokemonInstance | undefined = [...setup.lineup, ...setup.bench].find((p) => p.uid === uid);
-    let evolved = false;
-    let transformed = false;
-    for (const e of m.events) {
-        if (e.tick > tick) break;
-        if (e.type === 'evolve' && e.uid === uid && inst) {
-            inst = evolveInstance(inst, e.into);
-            evolved = true;
-        }
-        // Ditto (Transformar): mesma espécie, nível, golpes e habilidade de quem ele copiou naquele momento
-        // (match.ts: transformDittos já manda esse evento, só faltava a carta ouvir)
-        if (e.type === 'transform' && e.by === idx && e.tick >= since && inst) {
-            const copied = whoAt(m, setups, e.target, e.tick).inst;
-            if (copied) {
-                inst = {
-                    ...inst,
-                    speciesId: copied.speciesId,
-                    level: copied.level,
-                    moves: [...copied.moves],
-                    ability: copied.ability,
-                };
-                transformed = true;
-            }
-        }
-    }
-    return { team, inst, since, evolved, transformed, role: m.roster[idx].role as Position };
-}
-
-/** Escalação do time no tick (trocas e evoluções até ali): é por ela que o motor conta sinergias e capitão. */
-function lineupAt(m: MatchResult, setups: [TeamSetup, TeamSetup], team: 0 | 1, tick: number) {
-    return m.roster.flatMap((r, idx) => (r.team === team ? (whoAt(m, setups, idx, tick).inst ?? []) : []));
-}
-
-/** O que ele fez desde que entrou em campo até o tick (pelos eventos da partida). */
-function statsUntil(m: MatchResult, idx: number, from: number, tick: number) {
-    const s: PlayerStats = {
-        goals: 0,
-        assists: 0,
-        shots: 0,
-        shotsOnTarget: 0,
-        passes: 0,
-        passesCompleted: 0,
-        tackles: 0,
-        tacklesWon: 0,
-        interceptions: 0,
-        saves: 0,
-        movesUsed: 0,
-    };
-    const used = new Map<string, number>();
-    let wide = 0;
-    for (const e of m.events) {
-        if (e.tick > tick) break;
-        if (e.tick < from) continue;
-        if (e.type === 'goal' && e.by === idx && !e.ownGoal) s.goals++;
-        if (e.type === 'goal' && e.assist === idx) s.assists++;
-        if (e.type === 'shot' && e.by === idx) s.shots++;
-        if (e.type === 'wide' && e.shooter === idx) wide++;
-        if (e.type === 'pass' && e.by === idx) s.passes++;
-        if (e.type === 'tackle' && e.by === idx) {
-            s.tackles++;
-            if (e.success) s.tacklesWon++;
-        }
-        if (e.type === 'interception' && e.by === idx) s.interceptions++;
-        if (e.type === 'save' && e.by === idx) s.saves++;
-        if (e.type === 'move' && e.by === idx) {
-            s.movesUsed++;
-            used.set(e.moveId, (used.get(e.moveId) ?? 0) + 1);
-        }
-    }
-    // os eventos não dizem se o passe chegou: estimativa pela média do jogo
-    s.passesCompleted = Math.round(s.passes * 0.85);
-    s.shotsOnTarget = Math.max(0, s.shots - wide);
-    return { stats: s, used };
-}
 
 /**
  * Painel de um jogador em campo (tocar no Pokémon): carta, fôlego, status, bônus/penalidades agora,

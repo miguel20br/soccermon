@@ -20,6 +20,7 @@ import { EvolutionOverlay } from '../components/EvolutionOverlay';
 import { MatchHighlight } from '../components/MatchHighlight';
 import { PlayerInspect } from '../components/PlayerInspect';
 import { cardSprite } from '../components/PokeCard';
+import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
 import { simulateMatch } from '../sim-client';
 import { plural } from '../text';
@@ -451,6 +452,13 @@ export function Match() {
                             )}
                         </div>
                     </div>
+                    <TeamPanel
+                        match={match}
+                        setups={[lockedSetup, opponent]}
+                        tick={clock.tick}
+                        teamNames={teamNames}
+                        interactive={sceneReady && !ended}
+                    />
                 </div>
                 <div className={`panel feed${feedOpen ? '' : ' collapsed'}`} aria-live="polite">
                     <button type="button" className="feed-toggle" onClick={() => setFeedOpen((v) => !v)}>

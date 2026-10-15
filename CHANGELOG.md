@@ -6,10 +6,16 @@
 - O Soccermon agora é beta aberta: o jogo está completo e segue recebendo ajustes
 - Código aberto no GitHub (link no rodapé): dá para ler o código, relatar bugs e sugerir ideias
 
+### Adicionado
+- Painel do time na partida: fôlego, status, gols, assistências e nota parcial de cada um, mais o banco (do seu time e do rival); tocar num jogador abre o painel dele
+- Escalação com o visual das cartas: bronze, prata, ouro, lendário e edições especiais
+- Tela inicial com cenas novas na quadra: tabelinha, gol e embaixadinhas, com Pokémon sorteados
+
 ### Corrigido
 - Ditto no painel da partida mostra a forma que copiou (espécie, nível, golpes e habilidade), não mais o Ditto original
 - Tela de resultado: os Pokémon do time não saem mais cortados nas bordas no celular
 - Se uma tela der erro, aparece um aviso com saída em vez da página em branco (a copa continua salva)
+- Bola da tela inicial redesenhada: agora é uma bola de futsal de verdade
 
 ### Celular
 - Ícone próprio ao adicionar o jogo à tela inicial

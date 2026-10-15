@@ -679,6 +679,176 @@ img.pixel {
 .feed-line.minor {
     opacity: 0.75;
 }
+
+/* ---------- painel do time na partida (TeamPanel.tsx) ---------- */
+.team-panel {
+    display: grid;
+    gap: 4px;
+    padding: 10px 12px;
+}
+.tp-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.tp-tabs {
+    display: flex;
+    flex: 1;
+    gap: 6px;
+    min-width: 0;
+}
+.tp-tab {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 4px 12px;
+    border: 2px solid var(--line);
+    border-radius: 999px;
+    background: none;
+    color: var(--muted);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+}
+.tp-tab.active {
+    border-color: var(--yellow);
+    color: var(--yellow);
+}
+.tp-toggle {
+    padding: 4px 6px;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    font: inherit;
+    cursor: pointer;
+}
+.tp-row {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) 52px 18px 18px 38px;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 4px 6px;
+    border: 0;
+    border-radius: 8px;
+    background: rgb(0 0 0 / 18%);
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.tp-row:hover:not(:disabled) {
+    background: rgb(255 255 255 / 8%);
+}
+.tp-row:disabled {
+    cursor: default;
+}
+.tp-row img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+.tp-row.tp-labels {
+    padding-top: 6px;
+    padding-bottom: 0;
+    background: none;
+    color: var(--muted);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: default;
+}
+.tp-labels span:nth-child(n + 3) {
+    text-align: center;
+}
+.tp-name {
+    display: grid;
+    min-width: 0;
+    line-height: 1.2;
+}
+.tp-name b,
+.tp-name small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.tp-name b {
+    font-size: 12px;
+}
+.tp-name small {
+    color: var(--muted);
+    font-size: 10px;
+}
+.tp-name em {
+    color: #ff9b7a;
+    font-style: normal;
+}
+.tp-energy {
+    height: 6px;
+    overflow: hidden;
+    border-radius: 3px;
+    background: rgb(255 255 255 / 12%);
+}
+.tp-energy i {
+    display: block;
+    height: 100%;
+}
+.tp-num {
+    color: var(--muted);
+    font-size: 12px;
+    text-align: center;
+}
+.tp-num.on {
+    color: #fff;
+    font-weight: 700;
+}
+.tp-rating {
+    justify-self: center;
+    min-width: 36px;
+    padding: 1px 4px;
+    border-radius: 6px;
+    background: rgb(255 255 255 / 10%);
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+}
+.tp-rating.good {
+    background: #2f8f47;
+}
+.tp-rating.bad {
+    background: #9b2f2f;
+}
+.tp-bench {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    margin-top: 4px;
+    font-size: 11px;
+}
+.tp-sub {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+.tp-sub img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+.tp-sub.out {
+    opacity: 0.5;
+}
+.tp-sub small {
+    margin-left: 3px;
+    color: var(--muted);
+}
+@media (min-width: 1051px) {
+    .tp-row {
+        grid-template-columns: 34px minmax(0, 1fr) 160px 26px 26px 46px;
+    }
+}
 .controls {
     display: flex;
     gap: 8px;
@@ -2296,6 +2466,106 @@ button,
     box-shadow:
         inset 0 0 0 2px var(--rar),
         0 0 14px color-mix(in srgb, var(--rar) 70%, transparent);
+}
+/* vaga com o visual da carta (mesmos gradientes da Metal em pokecard2.css), sem os atributos */
+.slot.sc {
+    background: var(--metal-base);
+    box-shadow:
+        inset 0 0 0 2px var(--edge),
+        0 3px 0 rgb(0 0 0 / 30%);
+}
+.slot.sc .slot-name {
+    color: var(--ink);
+}
+.slot.sc .slot-rating {
+    padding: 0 6px;
+    white-space: nowrap;
+    border-radius: 999px;
+    background: rgb(14 20 48 / 85%);
+    color: #fff;
+}
+.slot.sc .slot-rating.alt {
+    color: #b6d94c;
+}
+.slot.sc .slot-rating.off {
+    color: #ff9b7a;
+}
+.slot.sc.proj-good,
+.slot.sc.proj-bad {
+    --ink: #fff;
+}
+.sc-bronze {
+    --ink: #2f1b0b;
+    --edge: #f2cfa6;
+    --metal-base: linear-gradient(160deg, #f0c493 0%, #c98a52 48%, #8f5a2e 100%);
+}
+.sc-prata {
+    --ink: #1c2230;
+    --edge: #fff;
+    --metal-base: linear-gradient(160deg, #fbfcfe 0%, #d3d8e1 48%, #9aa2b0 100%);
+}
+.sc-ouro {
+    --ink: #2c2000;
+    --edge: #fff6c9;
+    --metal-base: linear-gradient(160deg, #fff3b8 0%, #e8c24a 48%, #b48a18 100%);
+}
+/* brilhante (raro/épico): o mesmo metal com textura de foil */
+.slot.sc.sc-brilhante {
+    background-image:
+        repeating-linear-gradient(115deg, rgb(255 255 255 / 24%) 0 1px, transparent 1px 7px), var(--metal-base);
+}
+.slot.sc.sc-lendario {
+    --ink: #3a2a00;
+    --edge: #d9b23c;
+    background:
+        radial-gradient(ellipse 80% 50% at 50% 0%, rgb(255 255 255 / 90%), transparent 70%),
+        linear-gradient(160deg, #fffaf0 0%, #f2e7c8 50%, #dcc58c 100%);
+    box-shadow:
+        inset 0 0 0 2px #d9b23c,
+        0 0 12px rgb(217 178 60 / 45%);
+}
+.slot.sc.sc-shiny {
+    --ink: #2a2140;
+    --edge: #fff;
+    background: linear-gradient(135deg, #ffe3f3 0%, #e3f1ff 30%, #e9ffe9 55%, #fff4dc 80%, #f3e3ff 100%);
+}
+.slot.sc.sc-destaque {
+    --ink: #fff;
+    --edge: #d9b23c;
+    background:
+        repeating-linear-gradient(135deg, rgb(255 215 90 / 8%) 0 1px, transparent 1px 8px),
+        linear-gradient(160deg, #2b2b30 0%, #111114 60%, #000 100%);
+}
+.slot.sc.sc-icone {
+    --ink: #fff;
+    --edge: #b48cff;
+    background:
+        radial-gradient(ellipse 70% 45% at 20% 25%, rgb(120 80 255 / 55%), transparent 70%),
+        radial-gradient(ellipse 80% 40% at 60% 110%, rgb(255 80 190 / 45%), transparent 70%), #0b0726;
+}
+.slot.sc.sc-evento {
+    --ink: #fff;
+    --edge: #fff;
+    background:
+        radial-gradient(circle at 70% 30%, rgb(255 255 255 / 45%), transparent 55%),
+        repeating-conic-gradient(
+            from 0deg at 70% 30%,
+            var(--t1) 0deg 8deg,
+            color-mix(in srgb, var(--t1) 70%, #000) 8deg 16deg
+        );
+    text-shadow: 0 1px 0 rgb(0 0 0 / 45%);
+}
+/* projeção (joga bem / fora de posição) e seleção continuam valendo por cima da carta */
+.slot.sc.proj-good {
+    background: rgba(40, 120, 60, 0.82);
+}
+.slot.sc.proj-bad {
+    background: rgba(120, 30, 35, 0.82);
+}
+.slot.sc.selected {
+    box-shadow:
+        inset 0 0 0 2px var(--edge),
+        0 0 0 3px rgba(255, 203, 5, 0.45);
 }
 .slot-edition {
     position: absolute;
@@ -3962,6 +4232,9 @@ button,
     gap: 10px;
 }
 .home-court {
+    /* chão e altura dos sprites das cenas (HomeCourt.tsx); menores no celular */
+    --ground: 44px;
+    --mon: 56px;
     position: relative;
     width: 100%;
     height: 170px;
@@ -4028,13 +4301,9 @@ button,
     position: absolute;
     bottom: 2px;
     left: 100%;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background:
-        radial-gradient(circle at 35% 35%, #fff 0 35%, transparent 36%),
-        conic-gradient(#fff 0 25%, #222 0 30%, #fff 0 55%, #222 0 60%, #fff 0 85%, #222 0 90%, #fff 0);
-    border: 2px solid #222;
+    width: 20px;
+    height: 20px;
+    background: url("/assets/ui/ball.svg") center / contain no-repeat;
     animation:
         hp-run 9s -0.45s linear infinite,
         hp-roll 0.5s linear infinite;
@@ -4056,6 +4325,255 @@ button,
     to {
         rotate: -360deg;
     }
+}
+
+/* ---------- cenas da quadra da Home (HomeCourt.tsx) ---------- */
+.hc-scene {
+    position: absolute;
+    inset: 0;
+    animation: hc-in 0.5s ease-out;
+}
+@keyframes hc-in {
+    from {
+        opacity: 0;
+    }
+}
+.hc-mon {
+    position: absolute;
+    bottom: var(--ground);
+    height: var(--mon);
+    translate: -50% 0;
+    filter: drop-shadow(0 4px 0 rgb(0 0 0 / 30%));
+}
+.hc-ball {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    translate: -50% 0;
+    background: url("/assets/ui/ball.svg") center / contain no-repeat;
+}
+@keyframes hc-kick {
+    0%,
+    14%,
+    100% {
+        translate: -50% 0;
+        rotate: 0deg;
+    }
+    5% {
+        translate: -50% -8px;
+        rotate: -6deg;
+    }
+}
+@keyframes hc-hop {
+    to {
+        translate: -50% -6px;
+    }
+}
+
+/* tabelinha: esquerda → meio → direita → meio; cada um chuta quando a bola chega */
+.hc-passes .p0 {
+    left: 16%;
+    scale: -1 1;
+    animation: hc-kick 4s infinite;
+}
+.hc-passes .p1 {
+    left: 50%;
+    animation: hc-kick 2s 1s infinite;
+}
+.hc-passes .p2 {
+    left: 84%;
+    animation: hc-kick 4s 2s infinite;
+}
+.hc-passes .hc-ball {
+    bottom: calc(var(--ground) + 2px);
+    animation:
+        hc-pass-x 4s linear infinite,
+        hc-pass-y 0.5s ease-out infinite alternate,
+        hp-roll 0.5s linear infinite;
+}
+@keyframes hc-pass-x {
+    0%,
+    100% {
+        left: 22%;
+    }
+    25%,
+    75% {
+        left: 46%;
+    }
+    50% {
+        left: 78%;
+    }
+}
+@keyframes hc-pass-y {
+    to {
+        bottom: calc(var(--ground) + 40px);
+    }
+}
+
+/* gol: conduz, chuta no ângulo, o goleiro pula atrasado */
+.hc-net {
+    position: absolute;
+    right: -3px;
+    bottom: calc(var(--ground) - 4px);
+    width: 26px;
+    height: calc(var(--mon) + 18px);
+    border: 3px solid #fff;
+    border-right: none;
+    background:
+        repeating-linear-gradient(0deg, rgb(255 255 255 / 35%) 0 1px, transparent 1px 6px),
+        repeating-linear-gradient(90deg, rgb(255 255 255 / 35%) 0 1px, transparent 1px 6px);
+    animation: hc-net 6s forwards;
+}
+@keyframes hc-net {
+    0%,
+    60%,
+    72%,
+    100% {
+        translate: 0;
+    }
+    63% {
+        translate: 4px 0;
+    }
+    66% {
+        translate: -2px 0;
+    }
+    69% {
+        translate: 2px 0;
+    }
+}
+.hc-goal .striker {
+    scale: -1 1;
+    animation:
+        hc-dribble 6s ease-in-out forwards,
+        hc-hop 0.3s ease-in-out 10 alternate;
+}
+@keyframes hc-dribble {
+    0% {
+        left: 6%;
+    }
+    50%,
+    100% {
+        left: 58%;
+    }
+}
+.hc-goal .keeper {
+    left: 86%;
+    transform-origin: 50% 100%;
+    animation: hc-dive 6s ease-out forwards;
+}
+@keyframes hc-dive {
+    0%,
+    56% {
+        translate: -50% 0;
+        rotate: 0deg;
+    }
+    68%,
+    100% {
+        translate: -40% -26px;
+        rotate: -50deg;
+    }
+}
+.hc-goal .hc-ball {
+    animation:
+        hc-shot 6s linear forwards,
+        hp-roll 0.5s linear 12;
+}
+@keyframes hc-shot {
+    0% {
+        left: 12%;
+        bottom: calc(var(--ground) + 2px);
+    }
+    50% {
+        left: 64%;
+        bottom: calc(var(--ground) + 2px);
+    }
+    60% {
+        left: 95%;
+        bottom: calc(var(--ground) + var(--mon) - 6px);
+    }
+    68%,
+    100% {
+        left: 97%;
+        bottom: calc(var(--ground) + 4px);
+    }
+}
+.hc-gol {
+    position: absolute;
+    left: 28%;
+    top: 8px;
+    translate: -50% 0;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 34px;
+    color: var(--yellow);
+    text-shadow:
+        3px 3px 0 #2a4ea0,
+        6px 6px 0 #0e1430;
+    opacity: 0;
+    animation: hc-gol 6s forwards;
+}
+@keyframes hc-gol {
+    0%,
+    62% {
+        opacity: 0;
+        scale: 0.4;
+    }
+    70% {
+        opacity: 1;
+        scale: 1.25;
+    }
+    76%,
+    92% {
+        opacity: 1;
+        scale: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+/* embaixadinhas: a bola quica na cabeça; a torcida pula dos lados */
+.hc-juggle .star {
+    left: 50%;
+    animation: hc-head 0.9s infinite;
+}
+@keyframes hc-head {
+    0%,
+    100% {
+        translate: -50% -5px;
+    }
+    20%,
+    80% {
+        translate: -50% 0;
+    }
+}
+.hc-juggle .hc-ball {
+    left: 50%;
+    animation:
+        hc-juggle 0.9s infinite,
+        hp-roll 0.9s linear infinite;
+}
+@keyframes hc-juggle {
+    0%,
+    100% {
+        bottom: calc(var(--ground) + var(--mon) - 2px);
+        animation-timing-function: ease-out;
+    }
+    50% {
+        bottom: calc(var(--ground) + var(--mon) + 28px);
+        animation-timing-function: ease-in;
+    }
+}
+.hc-juggle .fan {
+    height: calc(var(--mon) - 8px);
+    animation: hc-hop 0.35s ease-in-out infinite alternate;
+}
+.hc-juggle .f1 {
+    left: 18%;
+    scale: -1 1;
+}
+.hc-juggle .f2 {
+    left: 82%;
+    animation-delay: 0.17s;
 }
 .home-hero .logo {
     margin-top: -34px;
@@ -4284,6 +4802,8 @@ button,
     }
     .home-court {
         height: 130px;
+        --ground: 30px;
+        --mon: 44px;
     }
     .home-parade {
         bottom: 30px;

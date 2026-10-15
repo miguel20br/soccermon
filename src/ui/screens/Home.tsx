@@ -1,8 +1,9 @@
-import { type CSSProperties, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CUP_STAGES } from '../../engine/cup';
 import { weeklyEventType } from '../../engine/specials';
 import { seedFromUrl, useGame } from '../../store/game-store';
 import { AccountBar } from '../components/AccountBar';
+import { HomeCourt } from '../components/HomeCourt';
 import { MenuIcon } from '../components/MenuIcon';
 import { cardSprite } from '../components/PokeCard';
 import { Trophy } from '../components/Trophy';
@@ -11,7 +12,6 @@ import { PATCH_NOTES } from '../patch-notes';
 import { TYPE_PT } from '../type-colors';
 
 /** Quem corre pela quadra do topo (atrás da bola). */
-const PARADE = [25, 4, 7, 1, 133, 143, 150];
 
 /** O que vem por aí (só vitrine: nada disso é clicável ainda). */
 const SOON = [
@@ -75,24 +75,7 @@ export function Home() {
             </div>
 
             <section className="home-hero">
-                <div className="home-court" aria-hidden>
-                    <i className="hc-mid" />
-                    <i className="hc-circle" />
-                    <i className="hc-area left" />
-                    <i className="hc-area right" />
-                    <div className="home-parade">
-                        <span className="hp-ball" />
-                        {PARADE.map((id, i) => (
-                            <img
-                                key={id}
-                                className="pixel"
-                                src={`assets/cards/${id}.gif`}
-                                alt=""
-                                style={{ '--i': i } as CSSProperties}
-                            />
-                        ))}
-                    </div>
-                </div>
+                <HomeCourt />
                 <h1 className="logo">SOCCERMON</h1>
                 <p className="tagline">
                     Monte seu time com os 151 de Kanto num draft “escolha 1 de 3” e dispute a Copa de Futsal contra os

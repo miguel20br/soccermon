@@ -259,11 +259,13 @@ export class MatchScene extends Phaser.Scene {
         EventBus.on('match:resume', this.onResume, this);
         EventBus.on('match:evolution-done', this.onEvolutionDone, this);
         EventBus.on('match:inspect-close', this.onInspectClose, this);
+        EventBus.on('match:inspect-request', this.onInspectRequest, this);
         this.unbind = () => {
             EventBus.off('match:seek-fulltime', this.onSeekFulltime, this);
             EventBus.off('match:resume', this.onResume, this);
             EventBus.off('match:evolution-done', this.onEvolutionDone, this);
             EventBus.off('match:inspect-close', this.onInspectClose, this);
+            EventBus.off('match:inspect-request', this.onInspectRequest, this);
             EventBus.off('match:set-speed', this.onSpeed, this);
             EventBus.off('match:skip', this.onSkip, this);
             EventBus.off('match:hold', this.onHold, this);
@@ -331,6 +333,13 @@ export class MatchScene extends Phaser.Scene {
 
     private onInspectClose() {
         this.inspecting = false;
+    }
+
+    /** Painel do time (TeamPanel.tsx) pediu o painel de um jogador: pausa igual ao toque no sprite. */
+    private onInspectRequest(idx: number) {
+        if (this.ended || this.holdReal > this.time.now) return;
+        this.inspecting = true;
+        EventBus.emit('match:inspect', { idx, tick: this.playTick });
     }
 
     private onResume() {

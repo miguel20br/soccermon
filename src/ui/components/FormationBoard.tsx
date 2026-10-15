@@ -6,8 +6,9 @@ import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { editionOf } from '../../engine/specials';
 import type { SlotRef } from '../../store/game-store';
-import { EDITION, METAL, metalOf } from '../rarity';
+import { EDITION, finishOf, METAL, metalOf } from '../rarity';
 import { ratingAt } from '../rating';
+import { TYPE_COLOR } from '../type-colors';
 import { cardSprite } from './PokeCard';
 
 export type SlotState = 'idle' | 'selected' | 'target' | 'locked';
@@ -68,12 +69,21 @@ export function FormationBoard({
                 ? '#f2d878'
                 : METAL[metalOf(viewInstance(inst).overall)].color
             : null;
-        const rarStyle = ring ? ({ ...style, '--rar': ring } as CSSProperties) : style;
+        // visual da carta (metal pela nota, lendário, edições especiais), sem os atributos
+        const look = inst
+            ? edition
+                ? `sc sc-${edition}`
+                : tier === 'legendary'
+                  ? 'sc sc-lendario'
+                  : `sc sc-${metalOf(viewInstance(inst).overall)}${tier && finishOf(tier) === 'brilhante' ? ' sc-brilhante' : ''}`
+            : '';
+        const t1 = inst ? TYPE_COLOR[species(inst.speciesId).types[0]] : undefined;
+        const rarStyle = ring ? ({ ...style, '--rar': ring, '--t1': t1 } as CSSProperties) : style;
         return (
             <button
                 type="button"
                 key={`${ref.zone}-${ref.index}`}
-                className={`slot ${inst ? 'filled' : 'empty'} ${state}${projClass}${tier ? ` rar-${tier}` : ''}`}
+                className={`slot ${inst ? 'filled' : 'empty'} ${state}${projClass}${tier ? ` rar-${tier}` : ''} ${look}`}
                 style={rarStyle}
                 disabled={!clickable}
                 onClick={() => onSlot?.(ref, uid)}
