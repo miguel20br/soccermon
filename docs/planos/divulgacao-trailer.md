@@ -2,7 +2,7 @@
 
 Plano pra gravar um trailer curto e postar o lançamento em dois tons diferentes: LinkedIn como projeto
 pessoal (ângulo de engenharia) e X como fan game (ângulo de comunidade Pokémon). Ligado ao
-[roadmap](roadmap.md).
+[roadmap](roadmap.md). Pesquisa de como o Claude (Opus 5.5) produz o vídeo: [trailer-pesquisa.md](trailer-pesquisa.md).
 
 ## 1. Onde gravar: os atalhos de dev já são o material
 
