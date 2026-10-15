@@ -22,7 +22,7 @@ abertura) passa por ele em rascunho antes do final.
 | 1 | 4,0–6,5 | **Gancho** (testar 3 versões no rascunho): evolução no meio da partida / golpe virando gol / a abertura emendando direto no lance | — | — | grito do Pokémon |
 | 2 | 6,5–9,5 | Draft: 3 cartas viram, uma voa pra vaga | **Escolha seu time entre os 151 Pokémon de Kanto** | Pick your team from all 151 Kanto Pokémon | batida |
 | 3 | 9,5–12,5 | VERSUS na diagonal | **Monte seu time e enfrente batalhas** | Build your squad and take on battles | impacto no corte |
-| 4 | 12,5–16,5 | Partida: tabela, drible, chute, gol | **Modo futsal 5x5** | 5v5 futsal mode | ritmo cheio |
+| 4 | 12,5–16,5 | Partida: tabela, drible, chute, gol | **Modo futsal 5x5** | 5v5 indoor soccer | ritmo cheio |
 | 5 | 16,5–19,5 | Montagem de golpes (Flamethrower, Thunderbolt, Hydro Pump, Psychic) | **Mais de 100 movimentos** | 100+ moves | efeitos dos golpes |
 | 6 | 19,5–22,0 | Ditto se transforma + combo Gênese (Mew + Mewtwo) | — | — | — |
 | 7 | 22,0–25,0 | Painel do time, tática, substituição | **Seja o técnico do seu próprio time** | Be the manager of your own team | respiro na batida |
@@ -87,10 +87,18 @@ português; dá pra (a) aceitar, (b) priorizar cenas com pouco texto de interfac
 | Lance raro não aparece na caça | Montar o cenário direto, como os `?demo=` |
 | Música silenciada pelas redes | Trocar por royalty-free (a montagem segue igual) |
 
-## Pra decidir
+## Decidido com o Miguel (15/10/2026)
 
-1. **Música:** qual faixa (ou royalty-free)?
-2. **Quem voa pra formar o título:** Charizard, Dragonite, Mew ou outro?
-3. **Quem se encara na abertura:** Pikachu × Mewtwo, Charmander × Squirtle, ou outra dupla?
-4. **Textos em inglês** da tabela: ok ou ajusta?
-5. **Interface em português no trailer EN:** (a), (b) ou (c)?
+1. **Música:** uma de Pokémon (sugestão: tema de batalha de Líder de Ginásio ou do Campeão, Gen 1); o Miguel
+   manda o arquivo. Se a rede silenciar, troca a faixa e re-renderiza.
+2. **Quem voa pra formar o título:** Charizard (o rastro de fogo acende as letras).
+3. **Abertura:** Pikachu × Mewtwo (retratos "determinado").
+4. **Inglês:** textos da tabela, com "5v5 indoor soccer" no lugar de "futsal".
+5. **Interface em português no trailer EN:** fica assim; traduzir o jogo vem depois.
+
+## Caça de lances (feito)
+
+`scripts/trailer-hunt.ts` simula a 1ª partida de N copas com o time de cada cena (`src/ui/trailer-scenes.ts`)
+e pontua os lances; `?demo=trailer&cena=<cena>&seed=<seed>` abre a mesma partida no navegador (paridade
+testada: `ditto`/`trailer9` deu 7x0 nas duas pontas). Gol de golpe é raro (chute com golpe ~2% dos chutes):
+precisa de muitas seeds.

@@ -55,6 +55,9 @@ Plano do trailer e dos posts de lançamento (LinkedIn como projeto pessoal, X co
 - **Nuzlocke opcional**.
 - Ranking.
 
+### Tradução
+- **Jogo em inglês** (o trailer EN sai com a interface em português; depois traduzir menus, cartas e narração).
+
 ### Mais adiante (vitrine "Em breve" do menu)
 - **Modo história**: ginásios, insígnias e a Liga Índigo contados como história.
 - **Multiplayer**: desafiar o time de um amigo (o desafio por seed já existe como primeiro passo).

@@ -5,24 +5,52 @@ import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
 import { EventBus } from '../game/EventBus';
 import { playerTeam, useGame } from '../store/game-store';
+import { isTrailerScene, trailerPicks } from './trailer-scenes';
 
 /**
  * Atalhos de desenvolvimento (só em `npm run dev`): `?demo=penaltis` monta uma copa cuja primeira
  * partida termina empatada e vai para os pênaltis, já na tela de escalação. `?demo=ditto` monta um time
  * com Ditto e Mew + Mewtwo (sinergia Gênese) cuja primeira partida tem combo. `?demo=evolucao` monta um time
  * de iniciais cuja primeira partida tem evolução do seu time logo no começo. `?demo=campeao` joga uma copa
- * inteira com um time forte e para na tela do título.
+ * inteira com um time forte e para na tela do título. `?demo=trailer&cena=<cena>&seed=<seed>` abre na escalação a
+ * partida que a caça de lances (scripts/trailer-hunt.ts) escolheu para o trailer.
  */
 let started = false;
 
 export function runDevDemo() {
     if (!import.meta.env.DEV || started) return;
     const demo = new URLSearchParams(window.location.search).get('demo');
-    if (demo !== 'penaltis' && demo !== 'ditto' && demo !== 'evolucao' && demo !== 'campeao') return;
+    if (demo !== 'penaltis' && demo !== 'ditto' && demo !== 'evolucao' && demo !== 'campeao' && demo !== 'trailer')
+        return;
     started = true;
     // permite aos testes pular direto para o fim do tempo normal
     (window as unknown as { __soccermonBus?: typeof EventBus }).__soccermonBus = EventBus;
     const store = useGame.getState();
+    if (demo === 'trailer') {
+        const params = new URLSearchParams(window.location.search);
+        const cena = params.get('cena');
+        const seed = params.get('seed');
+        if (!isTrailerScene(cena) || !seed || !/^[a-z0-9-]{1,32}$/i.test(seed)) return;
+        // mesma montagem do trailer-hunt: mesma seed da copa, mesmo time, então a mesma partida
+        store.newRun('Pallet FC', seed);
+        const run = useGame.getState().run!;
+        const { lineup, bench, captainUid } = trailerPicks(cena, seed);
+        useGame.setState({
+            run: {
+                ...run,
+                formation: '1-2-1',
+                picks: [...lineup, ...bench],
+                lineup: lineup.map((p) => p.uid),
+                bench: bench.map((p) => p.uid),
+                captainUid,
+                draftRound: 7,
+                status: 'lineup',
+            },
+            screen: 'lineup',
+        });
+        console.info(`[demo] trailer: cena ${cena}, copa ${seed}`);
+        return;
+    }
     if (demo === 'ditto') {
         for (let k = 0; k < 80; k++) {
             store.newRun('Demo FC', `ditto${k}`);
