@@ -1,0 +1,104 @@
+<!doctype html>
+<!--
+  Peças de marketing do Soccermon (cada <section> é uma imagem no tamanho final). Render: node render.mjs
+  (gera ../*.png e public/og-image.jpg). ?lang=en troca os textos.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Soccermon · arte de marketing</title>
+<style>
+@font-face { font-family: "Galmuri11"; src: url("src/Galmuri11-Bold.woff2") format("woff2"); font-weight: 700; }
+body { margin: 0; background: #333; font-family: "Galmuri11", monospace; }
+section { position: relative; overflow: hidden; margin: 0 0 40px; color: #fff;
+  background: radial-gradient(circle at 50% 45%, #2a3a7a, #070a18 72%); }
+img { image-rendering: pixelated; }
+.raios { position: absolute; left: 50%; top: 45%; width: 4000px; height: 4000px; margin: -2000px 0 0 -2000px;
+  background: repeating-conic-gradient(rgb(255 255 255 / 7%) 0 6deg, transparent 6deg 13deg); }
+.halo { position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%); background: radial-gradient(rgb(255 255 255 / 40%), transparent 65%); }
+.logo { position: absolute; image-rendering: auto; }
+.tag { position: absolute; left: 0; right: 0; text-align: center; color: #ffcb05; text-shadow: 5px 6px 0 #0e1430; letter-spacing: 6px; }
+.selo { position: absolute; left: 0; right: 0; width: fit-content; margin: 0 auto; background: #e8423f; color: #fff;
+  border-radius: 12px; box-shadow: 0 6px 0 #8c1d1b; letter-spacing: 2px; white-space: nowrap; }
+.linha { position: absolute; left: 0; right: 0; text-align: center; letter-spacing: 2px; }
+.time { position: absolute; display: flex; align-items: flex-end; justify-content: center; left: 0; right: 0; }
+.time img { filter: drop-shadow(0 8px 0 rgb(0 0 0 / 35%)); }
+.jogo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(0.45) saturate(1.1); }
+.escuro { position: absolute; inset: 0; background: linear-gradient(transparent 30%, rgb(7 10 24 / 85%)); }
+.golpe { position: absolute; display: flex; align-items: center; gap: 22px; white-space: nowrap; color: #fff;
+  padding: 16px 80px 16px 22px; clip-path: polygon(0 0, 100% 0, calc(100% - 50px) 100%, 0 100%);
+  background: linear-gradient(90deg, #c63a3a, #4a1830); box-shadow: 0 8px 0 rgb(0 0 0 / 35%); }
+.golpe .face { width: 140px; height: 140px; border: 6px solid #fff; border-radius: 12px; background: #10162e; overflow: hidden; }
+.golpe .face img { width: 100%; height: 100%; display: block; }
+.golpe .quem { font-size: 34px; letter-spacing: 2px; }
+.golpe .nome { font-size: 84px; line-height: 1; color: #f7d02c; -webkit-text-stroke: 11px #0e1430; paint-order: stroke fill; text-shadow: 0 7px 0 #0e1430; }
+.pill { position: absolute; background: #ffcb05; color: #0e1430; border-radius: 999px; letter-spacing: 4px; box-shadow: 0 6px 0 #9c7208; }
+</style>
+</head>
+<body>
+
+<!-- prévia do link (WhatsApp, Discord, X): 1200x630 -->
+<section id="og" style="width:1200px;height:630px">
+  <div class="raios"></div><div class="halo" style="width:1100px;height:500px"></div>
+  <img class="logo" src="src/logo.svg" style="left:100px;top:70px;width:1000px" alt="" />
+  <div class="tag" data-t="tag" style="top:290px;font-size:46px"></div>
+  <div class="time" style="top:340px;gap:6px">
+    <img src="src/c-143.png" style="height:150px" alt="" /><img src="src/c-25.png" style="height:150px" alt="" />
+    <img src="src/c-6.png" style="height:170px" alt="" /><img src="src/c-150.png" style="height:170px" alt="" />
+    <img src="src/c-132.png" style="height:150px" alt="" /><img src="src/c-94.png" style="height:150px" alt="" />
+  </div>
+  <div class="linha" data-t="og" style="top:530px;font-size:30px"></div>
+  <div class="linha" style="top:574px;font-size:26px;color:#ffcb05">soccermon.com</div>
+</section>
+
+<!-- capa 16:9 (thumbnail do YouTube/X): 1920x1080 -->
+<section id="capa16" style="width:1920px;height:1080px">
+  <img class="jogo" src="src/quadro-raio.png" alt="" />
+  <div class="escuro"></div>
+  <div class="golpe" style="left:0;top:90px"><div class="face"><img src="src/25-determined.png" alt="" /></div><div><div class="quem" data-t="usou"></div><div class="nome">Thunderbolt!</div></div></div>
+  <img class="logo" src="src/logo.svg" style="left:210px;top:420px;width:1500px" alt="" />
+  <div class="tag" data-t="tag" style="top:760px;font-size:72px"></div>
+  <div class="pill" data-t="trailer" style="right:90px;top:120px;font-size:60px;padding:18px 44px"></div>
+  <div class="selo" data-t="selo" style="top:900px;font-size:44px;padding:16px 36px"></div>
+</section>
+
+<!-- capa 9:16 (Reels/TikTok/Shorts): 1080x1920 -->
+<section id="capa9" style="width:1080px;height:1920px">
+  <div class="raios"></div><div class="halo" style="width:1000px;height:800px;top:40%"></div>
+  <img src="src/quadro-raio.png" style="position:absolute;left:0;top:300px;width:1080px;height:833px;object-fit:cover;object-position:92% 50%;filter:brightness(.6);box-shadow:0 0 0 6px #0e1430" alt="" />
+  <div class="golpe" style="left:0;top:220px"><div class="face"><img src="src/25-determined.png" alt="" /></div><div><div class="quem" data-t="usou"></div><div class="nome">Thunderbolt!</div></div></div>
+  <img class="logo" src="src/logo.svg" style="left:30px;top:1180px;width:1020px" alt="" />
+  <div class="tag" data-t="tag" style="top:1430px;font-size:62px"></div>
+  <div class="pill" data-t="trailer" style="left:0;right:0;width:fit-content;margin:0 auto;top:1560px;font-size:56px;padding:16px 44px"></div>
+  <div class="linha" style="top:1720px;font-size:54px">soccermon.com</div>
+</section>
+
+<!-- avatar das contas: 1080x1080 (a carta holográfica com a bola) -->
+<section id="avatar" style="width:1080px;height:1080px;background:none">
+  <img src="src/icone.svg" style="width:1080px;height:1080px;image-rendering:auto" alt="" />
+</section>
+
+<!-- banner do X: 1500x500 -->
+<section id="banner" style="width:1500px;height:500px">
+  <div class="raios" style="top:50%"></div><div class="halo" style="width:1200px;height:420px;top:50%"></div>
+  <img class="logo" src="src/logo.svg" style="left:330px;top:90px;width:840px" alt="" />
+  <div class="tag" data-t="tag" style="top:280px;font-size:40px"></div>
+  <div class="time" style="top:330px;gap:4px">
+    <img src="src/c-1.png" style="height:120px" alt="" /><img src="src/c-25.png" style="height:120px" alt="" />
+    <img src="src/c-7.png" style="height:120px" alt="" /><img src="src/c-6.png" style="height:140px" alt="" />
+    <img src="src/c-150.png" style="height:140px" alt="" /><img src="src/c-149.png" style="height:130px" alt="" />
+  </div>
+</section>
+
+<script>
+const TEXTOS = {
+  pt: { tag: "TEMOS QUE CHUTAR!", og: "Draft dos 151 de Kanto + futsal 5x5 · Beta aberta", usou: "Pikachu usou",
+        trailer: "TRAILER", selo: "BETA ABERTA · JOGUE GRÁTIS NO NAVEGADOR" },
+  en: { tag: "GOTTA KICK 'EM ALL!", og: "Draft all 151 Kanto Pokémon + 5v5 soccer · Open beta", usou: "Pikachu used",
+        trailer: "TRAILER", selo: "OPEN BETA · PLAY FREE IN YOUR BROWSER" },
+};
+const T = TEXTOS[new URLSearchParams(location.search).get("lang")] ?? TEXTOS.pt;
+for (const el of document.querySelectorAll("[data-t]")) el.textContent = T[el.dataset.t];
+</script>
+</body>
+</html>

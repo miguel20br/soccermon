@@ -1,5 +1,11 @@
 # Plano do trailer de lançamento (15/10/2026, revisado com o Miguel)
 
+> **Estado (15/10/2026, fim do dia):** trailer aprovado pelo Miguel ("ta ótimo, gostei demais"), 44 s, em
+> `trailer/montagem/` (16:9) e `trailer/vertical/` (9:16). Estrutura final: abertura faroeste em silêncio,
+> gancho da evolução, draft, versus, jogada, 4 golpes (Fire Blast, Thunderbolt, Flamethrower, Psychic) com
+> letreiro colado em quem usa, Ditto, técnico, cartas raras, pênaltis, campeão, Charizard (PMD batendo as asas)
+> formando o logo. Peças de divulgação em `docs/marketing/`. O que está abaixo é o plano original.
+
 Baseado em [trailer-pesquisa.md](trailer-pesquisa.md) (o Miguel chegou nas mesmas conclusões) e no roteiro de
 [divulgacao-trailer.md](divulgacao-trailer.md). Textos e estrutura aprovados pelo Miguel; o visual (título,
 abertura) passa por ele em rascunho antes do final.

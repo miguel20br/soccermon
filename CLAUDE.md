@@ -105,8 +105,10 @@ Plano do trailer e dos posts de lançamento: [docs/planos/divulgacao-trailer.md]
    e o site do repo no GitHub. Sem o Supabase atualizado, o login no domínio novo volta pro vercel.app.
 3. **Polimento antes de divulgar** (lista em `docs/planos/roadmap.md`, seção "Agora"): testar pênaltis/campeão/
    substituição, "Como jogar", botão de feedback, Home com celular deitado, nomes embolados na quadra.
-4. **Trailer de lançamento:** plano em `docs/planos/trailer-plano.md`; composição em `trailer/montagem/` (HyperFrames).
-   Mídia e música ficam fora do git (gerar com `trailer/montagem/preparar.sh` e os scripts de recorte).
+4. **Trailer e marketing prontos (15/10/2026):** 16:9 em `trailer/montagem/`, 9:16 em `trailer/vertical/`
+   (HyperFrames, PT/EN por variável); mídia e música fora do git (`trailer/montagem/preparar.sh` + scripts de
+   recorte). Vídeos finais no celular em `Filmes/Soccermon-trailer/final/`. Capas, prévia do link, avatar,
+   banner e textos dos posts em `docs/marketing/` (`node docs/marketing/arte/render.mjs` refaz as imagens).
 5. Ideias combinadas para depois: melhores momentos/replay (os snapshots já existem), quadras temáticas e
    treinadores, modo carreira (0.8+).
 
