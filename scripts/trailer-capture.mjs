@@ -8,7 +8,8 @@
  *   node scripts/trailer-capture.mjs --cena golpe --seed trailer26 --de 126 --ate 134 --out trailer/clips/golpe
  *
  * --de/--ate: segundos de partida (os da caça). --vel: velocidade de reprodução (1 = normal; 0.25 = câmera lenta
- * lisa). --largura: px. --modo canvas|pagina. --nomes: mantém os nomes em cima dos Pokémon (padrão: sem).
+ * lisa). --largura: px. --modo canvas|pagina. --nomes / --textos: mantêm os nomes em cima dos Pokémon e os
+ * textos do jogo (padrão: sem os dois).
  * CHROME_PATH aponta o Chromium/Chrome; BASE_URL o servidor de dev (padrão http://localhost:8080).
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -28,6 +29,9 @@ const out = arg('--out', `trailer/clips/${cena}-${seed}`);
 const modo = arg('--modo', 'canvas');
 // trailer sem os nomes em cima dos Pokémon (quadra mais limpa); --nomes mantém
 const semNomes = !args.includes('--nomes');
+// sem os textos do jogo (letreiros de golpe, GOOOOL, caixa de narração): o zoom do trailer cortaria; o texto do
+// trailer vem da composição. --textos mantém
+const semTextos = !args.includes('--textos');
 if (!cena || !seed) throw new Error('use --cena e --seed (veja scripts/trailer-hunt.ts)');
 
 const TICK_RATE = 20; // FUTSAL_5.tickRate
@@ -97,8 +101,22 @@ await page.evaluate(() => {
 });
 const ended = () => page.evaluate(() => window.__fim);
 const tick = () => page.evaluate(() => window.__tick);
-await page.evaluate(() => {
+await page.evaluate((semTextos) => {
     const g = window.__soccermonGame;
+    if (semTextos) {
+        // tudo que for texto (ou contêiner com texto) já nasce invisível; a caixa de narração some
+        const sc = g.scene.getScene('Match');
+        const temTexto = (o) => o?.type === 'Text' || (Array.isArray(o?.list) && o.list.some(temTexto));
+        const addText = sc.add.text.bind(sc.add);
+        sc.add.text = (...a) => addText(...a).setVisible(false);
+        const addContainer = sc.add.container.bind(sc.add);
+        sc.add.container = (...a) => {
+            const c = addContainer(...a);
+            if (temTexto(c)) c.setVisible(false);
+            return c;
+        };
+        sc.battleBox?.container?.setVisible(false);
+    }
     g.loop.sleep();
     window.__t = g.loop.now || performance.now();
     // relógio falso pra parte em HTML (tela de evolução, faixas): setTimeout e animações CSS andam com o jogo
@@ -189,7 +207,7 @@ await page.evaluate(() => {
             }),
         );
     };
-});
+}, semTextos);
 await click('^Começar');
 const step = (dt) =>
     page.evaluate(
@@ -257,6 +275,7 @@ while ((await tick()) < to * TICK_RATE) {
                 tick: window.__tick,
                 bx: (sc.ball.x - v.x) / v.width,
                 by: (sc.ball.y - v.y) / v.height,
+                zoom: cam.zoom,
             };
         }),
     );

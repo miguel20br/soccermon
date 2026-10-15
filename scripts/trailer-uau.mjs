@@ -14,7 +14,7 @@ const normalDir = arg('--normal');
 const lentoDir = arg('--lento');
 const nome = arg('--nome');
 const out = arg('--out', `${nome}-uau.mp4`);
-const ZOOM = Number(arg('--zoom', 1.4));
+const ZOOM_MAX = Number(arg('--zoom', 1.2));
 const pico = JSON.parse(readFileSync(arg('--picos', 'trailer/picos.json'), 'utf8')).find((c) => c.nome === nome);
 if (!normalDir || !lentoDir || !pico) throw new Error('use --normal, --lento e --nome (um nome de trailer/picos.json)');
 
@@ -40,11 +40,16 @@ const flash = seq.findIndex((m, i) => i >= s0 && m.tick >= pico.flash);
 // mira do zoom: o meio do caminho da bola durante a câmera lenta (pega quem chuta e o gol)
 const lentos = seq.slice(s0, s1);
 const media = (k) => lentos.reduce((t, m) => t + m[k], 0) / Math.max(1, lentos.length);
-const bx = Math.min(0.8, Math.max(0.2, media('bx')));
-const by = Math.min(0.75, Math.max(0.25, media('by')));
+const bx = Math.min(0.65, Math.max(0.35, media('bx')));
+const by = Math.min(0.65, Math.max(0.35, media('by')));
+// a câmera do jogo já dá zoom nos gols e golpes: aí o nosso não entra (zoom duplo mostrava a área fora da quadra)
+const zoomJogo = media('zoom') || 1;
+const ZOOM = zoomJogo > 1.05 ? 1 : ZOOM_MAX;
+console.log(`${nome}: zoom do jogo ${zoomJogo.toFixed(2)} → nosso ${ZOOM}`);
 console.log(`${nome}: ${s0} normais + ${s1 - s0} lentos + ${seq.length - s1} normais; flash no quadro ${flash}`);
 
-const list = `${out}.txt`;
+// lista de quadros fica junto da gravação lenta (fora da pasta de saída, que pode ser a galeria)
+const list = `${lentoDir}/sequencia.txt`;
 writeFileSync(list, seq.map((m) => `file '${m.f}'\nduration ${(1 / normal.fps).toFixed(6)}`).join('\n'));
 
 // zoom: sobe em 10 quadros no começo da câmera lenta, desce em 12 no fim (suave)

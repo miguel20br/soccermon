@@ -76,6 +76,8 @@ function rate(scene: TrailerScene, seed: string): Hit | null {
         const evo = ev.find((e) => e.type === 'evolve' && e.team === 0);
         if (!evo || evo.type !== 'evolve') return null;
         score += 1000 - evo.tick / 10;
+        // os mais icônicos no gancho: Charmander e Pikachu
+        if (evo.from === 4 || evo.from === 25) score += 400;
         lances.push(`${sec(evo.tick)} ${species(evo.from).name} evolui pra ${species(evo.into).name}`);
         const g = goals.find((x) => x.tick > evo.tick && x.tick < evo.tick + 400 && m.roster[x.by].uid === evo.uid);
         if (g) {
