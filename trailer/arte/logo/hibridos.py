@@ -138,7 +138,9 @@ def evolucao():
         x = x0 + i * 6.9 * u
         # da esquerda pra direita: silhueta branca → colorida (metade da evolução)
         if i == 1:
-            corpo += f'<g transform="translate({x + 3 * u:.0f} {380:.0f})">{bola_cor(0, 0, 3.9 * u)}</g>'
+            # o O é uma carta holográfica com a bola dentro (pedido do Miguel), levemente inclinada
+            corpo += (f'<g transform="translate({x + 3 * u:.0f} {380:.0f}) rotate(-6)">'
+                      f'<g transform="scale({u / 21:.3f})">{carta(150, 214, "url(#holo)", 10)}{bola_cor(0, -4, 52)}</g></g>')
             continue
         if i < 4:
             est = 'fill="none" stroke-linejoin="round" stroke-linecap="round"'
