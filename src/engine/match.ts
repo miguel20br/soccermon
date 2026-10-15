@@ -2,7 +2,7 @@ import { abilityEffect, isStatusImmune } from './abilities';
 import { type AttrKey, computeAttributes, type Position, positionRating } from './attributes';
 import type { Command } from './commands';
 import type { MatchConfig } from './config';
-import { MOVES, species } from './data';
+import { MOVES, species, type TypeName } from './data';
 import { eff, fatigueFactor, isIncapacitated, TACTIC_MODS } from './effective';
 import { EVO_THRESHOLD, evolutionTarget, evolveInstance, evoScore } from './evolution';
 import { formationOf } from './formations';
@@ -10,19 +10,28 @@ import type { PokemonInstance } from './instance';
 import { ITEMS } from './items';
 import { type ActiveLink, computeLinks } from './links';
 import { applyModifiers, attributeModifiers, captainFactor } from './modifiers';
-import { DRAIN, DRAWBACK, moveProfile, OHKO, type StatusKind, TRAP } from './moves';
+import { DRAIN, DRAWBACK, hasTrait, moveProfile, OHKO, type StatusKind, MOVE_TUNING as T, TRAP } from './moves';
 import { Rng } from './rng';
 import {
     Action,
     FLAG_BUFF,
     FLAG_CHARGED,
+    FLAG_CHARGING,
+    FLAG_CLONES,
     FLAG_DEBUFF,
+    FLAG_DIG,
+    FLAG_FLY,
+    FLAG_GUARD,
+    FLAG_MINI,
+    FLAG_RAGE,
     type MatchEvent,
     type MatchSnapshot,
     type MatchState,
     type PlayerState,
     STATUS_CODE,
     type TeamSetup,
+    type TraitFx,
+    type TraitState,
 } from './state';
 import { typeMultiplier } from './types';
 import { add, clamp, dir8, dist, len, norm, pointSegment, rotate, scale, sub, truncate, type Vec2, v } from './vec';
@@ -54,6 +63,32 @@ export const ownGoalX = (s: MatchState, team: 0 | 1) => (team === 0 ? 0 : s.cfg.
 export const toWorld = (s: MatchState, team: 0 | 1, xr: number, y: number): Vec2 =>
     team === 0 ? v(xr, y) : v(s.cfg.pitch.length - xr, y);
 export const toRel = (s: MatchState, team: 0 | 1, p: Vec2): Vec2 => (team === 0 ? p : v(s.cfg.pitch.length - p.x, p.y));
+
+/** Estado inicial dos traços de golpe de um jogador. */
+export function freshTraits(): TraitState {
+    return {
+        focus: false,
+        charging: null,
+        air: null,
+        aim: null,
+        toxic: 0,
+        rage: null,
+        bide: null,
+        decoys: 0,
+        mini: 0,
+        guard: 0,
+        guardMove: '',
+        curl: 0,
+        typeCopy: null,
+        flee: null,
+    };
+}
+
+/** Tipos com que o jogador joga agora (Conversion copia o do rival por um tempo). */
+const typesOf = (p: PlayerState): readonly TypeName[] => p.fx.typeCopy?.types ?? p.sp.types;
+
+/** Fora do alcance de todo mundo (voando com Fly ou cavando com Dig). */
+const hidden = (p: PlayerState) => p.fx.air !== null;
 
 export function minuteOf(s: MatchState): number {
     const perHalf = s.cfg.displayHalfMinutes;
@@ -141,6 +176,7 @@ function createPlayer(
         evolved: false,
         seeded: null,
         substitute: 0,
+        fx: freshTraits(),
         ai: { nextDecision: 0, holdUntil: 0 },
         stats: {
             goals: 0,
@@ -207,6 +243,7 @@ export function createMatch(cfg: MatchConfig, home: TeamSetup, away: TeamSetup, 
         subbedOut: [],
         pendingSubs: [],
         lastMove: [null, null],
+        zones: [],
         nextMoveTick: 0,
         ball: {
             pos: v(cfg.pitch.length / 2, cfg.pitch.width / 2),
@@ -305,7 +342,12 @@ function setupKickoff(s: MatchState, team: 0 | 1) {
         p.stun = 0;
         p.kickCooldown = 0;
         p.ai.nextDecision = 0;
+        // bola parada: carga, voo e fuga não atravessam a saída de bola
+        p.fx.charging = null;
+        p.fx.air = null;
+        p.fx.flee = null;
     }
+    s.zones = [];
     // quem dá a saída: o pivô vai para o círculo central
     const kicker =
         s.players.find((p) => p.team === team && p.role === 'PIVO') ??
@@ -362,6 +404,7 @@ export function checkEvolutions(s: MatchState) {
             buffs: p.buffs,
             seeded: p.seeded,
             substitute: p.substitute,
+            fx: p.fx,
             stun: p.stun,
             evade: p.evade,
             moveCooldown: p.moveCooldown,
@@ -418,18 +461,34 @@ export function step(s: MatchState, commands: (Command | Command[])[]) {
 
     for (const p of s.players) {
         tickTimers(s, p, dt);
+        // voando/cavando (Fly/Dig) e fugindo (Roar): o golpe manda no movimento
+        if (p.fx.air) {
+            updateAir(s, p, dt);
+            continue;
+        }
+        if (p.fx.flee) {
+            applyMovement(s, p, p.fx.flee.dir, true, dt);
+            continue;
+        }
         const cmds = commands[p.idx];
         const list = Array.isArray(cmds) ? cmds : cmds ? [cmds] : [];
         let moved = false;
-        if (!isIncapacitated(p)) {
+        // carregando um golpe (Solar Beam, Skull Bash...): parado até soltar
+        if (!isIncapacitated(p) && !p.fx.charging) {
             for (const c of list) {
                 if (c.type === 'move' || c.type === 'skill') moved = true;
                 applyCommand(s, p, c, dt);
+                // o golpe começou a carga ou decolou (Fly/Dig): o resto das ordens do tick não vale
+                if (p.fx.charging || p.fx.air) {
+                    moved = true;
+                    break;
+                }
             }
         }
         if (!moved) applyMovement(s, p, v(0, 0), false, dt);
     }
 
+    tickZones(s, dt);
     updateBall(s, dt);
     if (s.phase === 'play') checkPossession(s);
     if (s.ball.owner !== null) s.teams[s.players[s.ball.owner].team].possessionTicks++;
@@ -496,7 +555,9 @@ function tickTimers(s: MatchState, p: PlayerState, dt: number) {
     }
     if (p.status) {
         p.status.timer -= dt;
-        if (p.status.kind === 'psn' || p.status.kind === 'brn') p.energy = Math.max(0, p.energy - 0.004 * dt);
+        // Toxic: o veneno piora com o tempo (×1 → ×toxicMax)
+        const toxic = p.fx.toxic > 0 ? 1 + (T.toxicMax - 1) * Math.min(1, p.fx.toxic / T.toxicTime) : 1;
+        if (p.status.kind === 'psn' || p.status.kind === 'brn') p.energy = Math.max(0, p.energy - 0.004 * toxic * dt);
         if (p.status.timer <= 0) p.status = null;
     }
     // fôlego: gasto proporcional ao esforço, menor para quem tem muito HP
@@ -514,6 +575,258 @@ function tickTimers(s: MatchState, p: PlayerState, dt: number) {
         p.clutchAnnounced = true;
         emit(s, { type: 'ability', by: p.idx, ability: p.inst.ability, target: null });
     }
+    tickTraits(s, p, dt);
+}
+
+// ---------------------------------------------------------------- traços de golpe (moves.ts → MOVE_TRAITS)
+function traitFx(
+    s: MatchState,
+    by: number,
+    fx: TraitFx,
+    moveId: string,
+    target: number | null = null,
+    extra: { n?: number; x?: number; y?: number; r?: number; dur?: number } = {},
+) {
+    emit(s, { type: 'trait', by, fx, moveId, target, ...extra });
+}
+
+function tickTraits(s: MatchState, p: PlayerState, dt: number) {
+    const fx = p.fx;
+    fx.mini = Math.max(0, fx.mini - dt);
+    fx.guard = Math.max(0, fx.guard - dt);
+    fx.curl = Math.max(0, fx.curl - dt);
+    if (fx.aim) {
+        fx.aim.t -= dt;
+        if (fx.aim.t <= 0) fx.aim = null;
+    }
+    if (fx.typeCopy) {
+        fx.typeCopy.t -= dt;
+        if (fx.typeCopy.t <= 0) fx.typeCopy = null;
+    }
+    if (fx.flee) {
+        fx.flee.t -= dt;
+        if (fx.flee.t <= 0) fx.flee = null;
+    }
+    if (fx.rage) {
+        fx.rage.t -= dt;
+        if (fx.rage.t <= 0) fx.rage = null;
+    }
+    if (p.status?.kind === 'psn' && fx.toxic > 0) fx.toxic += dt;
+    else fx.toxic = 0;
+    if (fx.charging) {
+        const c = fx.charging;
+        c.t -= dt;
+        if (s.phase !== 'play') fx.charging = null;
+        else if (p.stun > 0 && !c.armor) {
+            // levou um tranco carregando: perdeu o golpe
+            fx.charging = null;
+            traitFx(s, p.idx, 'chargeLost', c.moveId);
+        } else if (c.t <= 0) {
+            fx.charging = null;
+            releaseCharge(s, p, c.moveId);
+        }
+    }
+    if (fx.bide) {
+        fx.bide.t -= dt;
+        if (s.phase !== 'play') fx.bide = null;
+        else if (fx.bide.t <= 0) {
+            const hits = fx.bide.hits;
+            fx.bide = null;
+            releaseBide(s, p, hits);
+        }
+    }
+}
+
+/** Zonas no chão: o anel de fogo queima e deixa lento quem passa; fumaça e muro só contam o tempo. */
+function tickZones(s: MatchState, dt: number) {
+    if (!s.zones.length) return;
+    const pulse = s.tick % 10 === 0;
+    for (const z of s.zones) {
+        z.t -= dt;
+        if (z.kind !== 'fire' || !pulse || z.t <= 0) continue;
+        for (const o of s.players) {
+            if (o.team === z.team || hidden(o) || dist(o.pos, z.pos) > z.r) continue;
+            o.buffs.push({ attr: 'pace', factor: 0.75, timer: 0.6 });
+            if (s.rng.chance(0.12)) applyStatus(s, o, 'brn', z.by, 'firespin');
+        }
+    }
+    s.zones = s.zones.filter((z) => z.t > 0);
+}
+
+/** Alvo de chute automático (fim da carga, pouso do Fly/Dig): o canto longe do goleiro. */
+function autoShotTarget(s: MatchState, p: PlayerState): Vec2 {
+    const { width, goalWidth } = s.cfg.pitch;
+    const gy = width / 2;
+    const gk = s.players.find((o) => o.team !== p.team && o.role === 'GK');
+    const side = gk ? (gk.pos.y > gy ? -1 : 1) : 1;
+    return v(goalXFor(s, p.team), gy + side * 0.6 * (goalWidth / 2));
+}
+
+/** F3: a carga terminou, o golpe sai (com a bola: chute na hora). */
+function releaseCharge(s: MatchState, p: PlayerState, moveId: string) {
+    moveEffect(s, p, moveId, 0, true);
+    if (s.ball.owner === p.idx && p.shotBonus?.moveId === moveId) {
+        p.kickCooldown = 0;
+        kick(s, p, 'shot', autoShotTarget(s, p), 1);
+    }
+}
+
+/** F4: decola (Fly) ou entra no chão (Dig). Com a bola leva para a frente; sem a bola cai em cima de quem conduz. */
+function takeOff(s: MatchState, p: PlayerState, moveId: string, hasBall: boolean): PlayerState | null {
+    const kind = hasTrait(moveId, 'fly') ? 'fly' : 'dig';
+    const { length, width } = s.cfg.pitch;
+    const rel = toRel(s, p.team, p.pos);
+    let to: Vec2;
+    let prey: PlayerState | null = null;
+    if (hasBall) {
+        // por cima/por baixo da marcação, rumo ao gol e puxando para o meio
+        to = toWorld(s, p.team, clamp(rel.x + T.airCarry, 2, length - 2.5), p.pos.y + (width / 2 - p.pos.y) * 0.4);
+    } else {
+        const c = s.ball.owner !== null ? s.players[s.ball.owner] : null;
+        if (c && c.team !== p.team && !hidden(c) && dist(c.pos, p.pos) < T.airPounceRange) prey = c;
+        to = prey ? prey.pos : toWorld(s, p.team, clamp(rel.x + T.airCarry, 2, length - 2), p.pos.y);
+    }
+    p.fx.air = { kind, moveId, t: T.airTime, from: p.pos, to, prey: prey?.idx ?? null };
+    p.fx.charging = null;
+    setAction(p, Action.Charge, T.airTime);
+    traitFx(s, p.idx, kind, moveId, prey?.idx ?? null, { dur: T.airTime });
+    return prey;
+}
+
+function updateAir(s: MatchState, p: PlayerState, dt: number) {
+    const air = p.fx.air!;
+    air.t -= dt;
+    // a presa continua andando: o voo acompanha (chega colado nela)
+    if (air.prey !== null) {
+        const prey = s.players[air.prey];
+        if (prey && dist(prey.pos, air.from) > 0.8) air.to = sub(prey.pos, scale(norm(sub(prey.pos, air.from)), 0.7));
+    }
+    const k = clamp(1 - air.t / T.airTime, 0, 1);
+    const pos = add(air.from, scale(sub(air.to, air.from), k));
+    p.vel = scale(sub(pos, p.pos), 1 / dt);
+    p.pos = pos;
+    if (len(p.vel) > 0.3) {
+        p.heading = norm(p.vel);
+        p.facing = dir8(p.heading, p.facing);
+    }
+    if (air.t > 0) return;
+    p.fx.air = null;
+    p.vel = v(0, 0);
+    traitFx(s, p.idx, 'land', air.moveId, air.prey);
+    if (s.phase !== 'play') return;
+    const prof = moveProfile(air.moveId);
+    const k2 = Math.min(1.25, prof.strength);
+    if (s.ball.owner === p.idx) {
+        p.shotBonus = {
+            power: 1 + 0.3 * k2,
+            accuracy: 1 + 0.2 * k2,
+            moveType: prof.data.type,
+            moveId: air.moveId,
+            timer: 1.5,
+        };
+        p.kickCooldown = 0;
+        kick(s, p, 'shot', autoShotTarget(s, p), 1);
+        return;
+    }
+    p.tackleBonus = { power: 1 + 0.4 * k2, accuracy: 1, moveType: prof.data.type, moveId: air.moveId, timer: 1.5 };
+    const prey = air.prey ?? s.ball.owner;
+    if (prey !== null && s.players[prey].team !== p.team) {
+        p.tackleCooldown = 0;
+        tryTackle(s, p, prey);
+    }
+}
+
+/** F10: Bide solta a onda guardada (mais forte quanto mais apanhou). */
+function releaseBide(s: MatchState, p: PlayerState, hits: number) {
+    const power = Math.min(1 + hits, 4);
+    const near = s.players.filter((o) => o.team !== p.team && !hidden(o) && dist(o.pos, p.pos) < T.bideRadius);
+    for (const o of near) {
+        if (protect(s, o, p, 'physical')) continue;
+        knockback(s, o, p, 0.8 + 0.4 * power, 'bide');
+        o.stun = Math.max(o.stun, 0.3 + 0.25 * power);
+        if (s.ball.owner === o.idx) popBall(s, o, p);
+    }
+    setAction(p, Action.Tackle, 0.4);
+    traitFx(s, p.idx, 'bide', 'bide', near[0]?.idx ?? null, { n: hits, r: T.bideRadius });
+}
+
+/** Quem conduz levou um golpe em cheio: a bola escapa do pé. */
+function popBall(s: MatchState, victim: PlayerState, from: PlayerState) {
+    const ball = s.ball;
+    if (ball.owner !== victim.idx) return;
+    ball.owner = null;
+    ball.lastTouch = from.idx;
+    ball.assistCandidate = null;
+    ball.vel = scale(norm(sub(victim.pos, from.pos)), 3);
+    ball.lastKick = { by: from.idx, kind: 'clear', tick: s.tick };
+    victim.kickCooldown = Math.max(victim.kickCooldown, 0.4);
+}
+
+/** Whirlwind/Gust: a ventania sopra a bola solta para longe. */
+function blowBall(s: MatchState, p: PlayerState, moveId: string) {
+    const ball = s.ball;
+    if (ball.owner !== null || ball.shot || dist(ball.pos, p.pos) > 7) return;
+    ball.vel = scale(norm(sub(ball.pos, p.pos)), T.blowSpeed);
+    ball.z = 0;
+    ball.vz = 0;
+    ball.lastTouch = p.idx;
+    ball.lastKick = { by: p.idx, kind: 'clear', tick: s.tick };
+    traitFx(s, p.idx, 'blowBall', moveId);
+}
+
+/** Rage e Bide contam cada pancada sofrida. */
+function onHurt(s: MatchState, target: PlayerState) {
+    const fx = target.fx;
+    if (fx.bide) fx.bide.hits++;
+    if (fx.rage && fx.rage.stacks < T.rageMax) {
+        fx.rage.stacks++;
+        const f = 1 + T.rageStep;
+        target.buffs.push(
+            { attr: 'shooting', factor: f, timer: fx.rage.t },
+            { attr: 'strength', factor: f, timer: fx.rage.t },
+        );
+        traitFx(s, target.idx, 'rageUp', 'rage', null, { n: fx.rage.stacks });
+    }
+}
+
+/** F2: chance de crítico (cresce com o pace, como a Speed da Gen 1). */
+const critChance = (s: MatchState, p: PlayerState) => T.critChance + (T.critPace * eff(s, p, 'pace')) / 99;
+
+/** F8: quantas tentativas o golpe dá (2–5 com a distribuição da Gen 1: 2 e 3 são o mais comum). */
+function multiHits(s: MatchState, moveId: string): number {
+    if (hasTrait(moveId, 'multi2')) return 2;
+    if (hasTrait(moveId, 'multi25')) return s.rng.pick([2, 2, 2, 3, 3, 3, 4, 5]);
+    return 1;
+}
+
+/** Erro do chute/passe: areia no olho, Kinesis, Flash e fumaça no chão. */
+function aimFactor(s: MatchState, p: PlayerState, kind: 'pass' | 'shot'): number {
+    let f = 1;
+    const aim = p.fx.aim;
+    if (aim && (kind === 'shot' || !aim.once)) {
+        f *= aim.factor;
+        if (aim.once) p.fx.aim = null;
+    }
+    for (const z of s.zones) if (z.kind === 'smoke' && dist(z.pos, p.pos) < z.r) f *= T.smokeAim;
+    return f;
+}
+
+function addZone(
+    s: MatchState,
+    p: PlayerState,
+    kind: 'smoke' | 'fire' | 'wall',
+    pos: Vec2,
+    r: number,
+    t: number,
+    moveId: string,
+) {
+    s.zones.push({ kind, pos, r, t, team: p.team, by: p.idx });
+    traitFx(s, p.idx, kind === 'wall' ? 'wall' : 'zone', moveId, null, {
+        x: Math.round(pos.x * 100) / 100,
+        y: Math.round(pos.y * 100) / 100,
+        r,
+        dur: t,
+    });
 }
 
 export function maxSpeed(s: MatchState, p: PlayerState): number {
@@ -589,7 +902,8 @@ function kick(s: MatchState, p: PlayerState, kind: 'pass' | 'shot', target: Vec2
     let speed: number;
     let sigma: number;
     let moveId: string | null = null;
-    let moveType = p.sp.types[0];
+    let moveType = typesOf(p)[0];
+    let lob = false;
 
     if (kind === 'pass') {
         const passing = eff(s, p, 'passing');
@@ -603,7 +917,14 @@ function kick(s: MatchState, p: PlayerState, kind: 'pass' | 'shot', target: Vec2
         const shooting = eff(s, p, 'shooting');
         const bonus = p.shotBonus;
         // Scope Lens: chute crítico
-        const crit = p.item === 'scopelens' && s.rng.chance(0.15);
+        const scope = p.item === 'scopelens' && s.rng.chance(0.15);
+        // golpe de crítico fácil (Slash, Karate Chop...) e Focus Energy (crítico garantido no próximo)
+        const moveCrit = !scope && !!bonus && hasTrait(bonus.moveId, 'crit') && s.rng.chance(critChance(s, p));
+        const focusCrit = p.fx.focus;
+        p.fx.focus = false;
+        const crit = scope || moveCrit || focusCrit;
+        const fixed = bonus?.fixedSpeed;
+        lob = !!bonus && hasTrait(bonus.moveId, 'lob');
         // combo de sinergia: chute mais forte e mais preciso
         const combo = comboLink(s, p);
         const comboMult = combo ? 1.2 : 1;
@@ -611,14 +932,24 @@ function kick(s: MatchState, p: PlayerState, kind: 'pass' | 'shot', target: Vec2
             s.teams[p.team].combosUsed.push(combo.link);
             emit(s, { type: 'combo', by: p.idx, partner: combo.partner, link: combo.link });
         }
-        speed =
-            (10 + (15 * shooting) / 99) * clamp(power, 0.5, 1.1) * (bonus?.power ?? 1) * (crit ? 1.25 : 1) * comboMult;
+        // dano fixo (Sonic Boom, Dragon Rage...): velocidade fixa, não depende do atributo
+        speed = fixed
+            ? fixed
+            : (10 + (15 * shooting) / 99) *
+              clamp(power, 0.5, 1.1) *
+              (bonus?.power ?? 1) *
+              (crit ? T.critSpeed : 1) *
+              comboMult;
         sigma =
             (0.07 * (1.3 - shooting / 99) * (1 + distance / 15)) /
             (bonus?.accuracy ?? 1) /
-            (crit ? 1.4 : 1) /
+            (crit ? T.critAim : 1) /
             (combo ? 1.5 : 1);
-        if (crit) emit(s, { type: 'item', by: p.idx, item: 'scopelens', effect: 'crit' });
+        // Swift nunca erra: chute bem mais certeiro
+        if (bonus && hasTrait(bonus.moveId, 'sureHit')) sigma *= T.sureHitAim;
+        if (scope) emit(s, { type: 'item', by: p.idx, item: 'scopelens', effect: 'crit' });
+        else if (crit) traitFx(s, p.idx, 'crit', bonus?.moveId ?? 'focusenergy');
+        if (bonus && fixed) traitFx(s, p.idx, 'fixed', bonus.moveId, null, { n: Math.round(fixed) });
         if (bonus) {
             moveId = bonus.moveId;
             moveType = bonus.moveType;
@@ -631,11 +962,19 @@ function kick(s: MatchState, p: PlayerState, kind: 'pass' | 'shot', target: Vec2
         emit(s, { type: 'shot', by: p.idx, xg, moveId });
     }
 
+    sigma *= aimFactor(s, p, kind);
     const dir = rotate(norm(toTarget), s.rng.gauss() * sigma);
     ball.vel = scale(dir, speed);
     ball.z = 0;
     ball.vz = 0;
-    if (kind === 'pass' && distance >= LOB_MIN) {
+    if (lob) {
+        // Egg Bomb: cobertura, a bola sobe por cima dos bloqueios e cai perto do gol
+        const flight = clamp(distance / 10, 1.1, 1.6);
+        ball.vel = scale(dir, (0.95 * distance) / flight);
+        ball.vz = (GRAVITY * flight) / 2;
+        ball.z = 0.05;
+        traitFx(s, p.idx, 'lob', moveId ?? 'eggbomb');
+    } else if (kind === 'pass' && distance >= LOB_MIN) {
         // bola cruzada: voa por ~85% do caminho e quica perto do alvo
         const flight = clamp(distance / 13, 0.85, 1.45);
         ball.vel = scale(dir, (0.85 * distance) / flight);
@@ -664,46 +1003,90 @@ function kick(s: MatchState, p: PlayerState, kind: 'pass' | 'shot', target: Vec2
 function tryTackle(s: MatchState, p: PlayerState, targetId: number) {
     const ball = s.ball;
     const carrier = s.players[targetId];
-    if (!carrier || carrier.team === p.team || ball.owner !== targetId) return;
-    if (p.tackleCooldown > 0 || dist(p.pos, carrier.pos) > TACKLE_RANGE) return;
+    // voando/cavando ninguém alcança
+    if (!carrier || carrier.team === p.team || ball.owner !== targetId || hidden(carrier)) return;
+    const bonus = p.tackleBonus;
+    // chicote, pedra, osso, Wrap/Bind: desarme de longe
+    const range = hasTrait(bonus?.moveId, 'reach') ? T.reachRange : TACKLE_RANGE;
+    const gap = dist(p.pos, carrier.pos);
+    if (p.tackleCooldown > 0 || gap > range) return;
 
     p.tackleCooldown = 1.1;
     p.stats.tackles++;
     setAction(p, Action.Tackle, 0.35);
     p.heading = norm(sub(carrier.pos, p.pos));
     p.facing = dir8(p.heading, p.facing);
-    // Counter devolve / o boneco do Substitute aguenta o carrinho
+    if (bonus && gap > TACKLE_RANGE) traitFx(s, p.idx, 'reach', bonus.moveId, carrier.idx);
+    // Counter devolve / um clone do Double Team ou o boneco do Substitute aguenta o carrinho
     if (protect(s, carrier, p, 'physical')) {
         p.tackleBonus = null;
         emit(s, { type: 'tackle', by: p.idx, victim: carrier.idx, success: false });
         return;
     }
+    // ninguém tira a bola dele (Skull Bash carregando, Clamp, Withdraw, Acid Armor); Defense Curl segura um carrinho
+    const curl = carrier.fx.curl > 0;
+    if (carrier.fx.guard > 0 || curl) {
+        if (curl) carrier.fx.curl = 0;
+        p.tackleBonus = null;
+        emit(s, { type: 'tackle', by: p.idx, victim: carrier.idx, success: false });
+        traitFx(
+            s,
+            carrier.idx,
+            curl ? 'curl' : 'guard',
+            curl ? 'defensecurl' : carrier.fx.guardMove || 'withdraw',
+            p.idx,
+        );
+        p.stun = 0.55;
+        setAction(p, Action.Hurt, 0.55);
+        return;
+    }
 
-    const bonus = p.tackleBonus;
-    const atkTypes = bonus ? [bonus.moveType] : p.sp.types;
-    const tackleTypeMult = typeMultiplier(atkTypes, carrier.sp.types) ** (p.ability.typeBoost ?? 1);
-    const keepTypeMult = typeMultiplier(carrier.sp.types, p.sp.types) ** (carrier.ability.typeBoost ?? 1);
-    // desarme por trás é mais difícil
-    const behind = carrier.heading.x * (p.pos.x - carrier.pos.x) + carrier.heading.y * (p.pos.y - carrier.pos.y) < 0;
-    const attack =
-        (0.75 * eff(s, p, 'tackling') + 0.25 * eff(s, p, 'strength')) *
-        tackleTypeMult *
-        (bonus?.power ?? 1) *
-        (p.item === 'quickclaw' ? 1.1 : 1) *
-        (behind ? 0.85 : 1) *
-        // Reflect do time de quem tem a bola: carrinho mais fraco
-        (s.teams[carrier.team].screens.reflect > 0 ? 0.7 : 1) *
-        s.rng.range(0.72, 1.28);
-    const defend =
-        (0.65 * eff(s, carrier, 'dribble') + 0.35 * eff(s, carrier, 'strength')) *
-        keepTypeMult *
-        (carrier.evade > 0 ? 1.3 : 1) *
-        (carrier.item === 'quickclaw' ? 1.1 : 1) *
-        s.rng.range(0.72, 1.28);
+    const atkTypes = bonus ? [bonus.moveType] : typesOf(p);
+    const tackleTypeMult = typeMultiplier(atkTypes, typesOf(carrier)) ** (p.ability.typeBoost ?? 1);
+    const keepTypeMult = typeMultiplier(typesOf(carrier), typesOf(p)) ** (carrier.ability.typeBoost ?? 1);
+    // desarme por trás é mais difícil (o Cut corta de qualquer lado)
+    const behind =
+        carrier.heading.x * (p.pos.x - carrier.pos.x) + carrier.heading.y * (p.pos.y - carrier.pos.y) < 0 &&
+        !hasTrait(bonus?.moveId, 'pierce');
+    // Minimize: pequenininho, difícil de pegar (Stomp ignora)
+    const dodge = carrier.fx.mini > 0 && !hasTrait(bonus?.moveId, 'stompMini') ? T.minimizeDodge : 1;
+    // crítico: golpe de crítico fácil ou Focus Energy ganham a dividida direto
+    const focusCrit = p.fx.focus;
+    p.fx.focus = false;
+    const crit = focusCrit || (!!bonus && hasTrait(bonus.moveId, 'crit') && s.rng.chance(critChance(s, p)));
+    // multi-acerto: várias tentativas seguidas, cada uma mais fraca
+    const hits = bonus ? multiHits(s, bonus.moveId) : 1;
+    let success = false;
+    let tries = 0;
+    for (let i = 0; i < hits && !success; i++) {
+        tries++;
+        const attack =
+            (0.75 * eff(s, p, 'tackling') + 0.25 * eff(s, p, 'strength')) *
+            tackleTypeMult *
+            (bonus?.power ?? 1) *
+            T.multiFalloff ** i *
+            (p.item === 'quickclaw' ? 1.1 : 1) *
+            (behind ? 0.85 : 1) *
+            dodge *
+            // Reflect do time de quem tem a bola: carrinho mais fraco
+            (s.teams[carrier.team].screens.reflect > 0 ? 0.7 : 1) *
+            s.rng.range(0.72, 1.28);
+        const defend =
+            (0.65 * eff(s, carrier, 'dribble') + 0.35 * eff(s, carrier, 'strength')) *
+            keepTypeMult *
+            (carrier.evade > 0 ? 1.3 : 1) *
+            (carrier.item === 'quickclaw' ? 1.1 : 1) *
+            s.rng.range(0.72, 1.28);
+        success = crit || attack > defend;
+        // cada tentativa que não levou a bola ainda pode deixar o secundário (Twineedle envenena)
+        if (!success && hits > 1 && bonus) applySecondary(s, p, carrier, bonus.moveId);
+    }
     if (bonus) p.tackleBonus = null;
 
-    const success = attack > defend;
     emit(s, { type: 'tackle', by: p.idx, victim: carrier.idx, success });
+    if (crit && bonus) traitFx(s, p.idx, 'crit', bonus.moveId, carrier.idx);
+    else if (crit) traitFx(s, p.idx, 'crit', 'focusenergy', carrier.idx);
+    if (bonus && hits > 1) traitFx(s, p.idx, 'multi', bonus.moveId, carrier.idx, { n: tries });
 
     // habilidades de contato do portador (Static, Poison Point, Cute Charm…)
     const contact = carrier.ability.onTackled;
@@ -717,17 +1100,50 @@ function tryTackle(s: MatchState, p: PlayerState, targetId: number) {
         p.stats.tacklesWon++;
         setAction(carrier, Action.Hurt, 0.45);
         carrier.stun = 0.35;
+        // carregando um golpe e levou o carrinho: perdeu o golpe
+        if (carrier.fx.charging && !carrier.fx.charging.armor) {
+            traitFx(s, carrier.idx, 'chargeLost', carrier.fx.charging.moveId, p.idx);
+            carrier.fx.charging = null;
+        }
         if (bonus) {
+            const id = bonus.moveId;
             // carrinho com golpe: derruba, empurra e pode aplicar o efeito secundário
-            knockback(s, carrier, p, OHKO.has(bonus.moveId) ? 2.6 : 1.4, bonus.moveId);
-            applySecondary(s, p, carrier, bonus.moveId);
-            if (TRAP.has(bonus.moveId)) trap(carrier);
+            const push = OHKO.has(id)
+                ? 2.6
+                : hasTrait(id, 'throw')
+                  ? T.throwMeters
+                  : hasTrait(id, 'bulldoze')
+                    ? T.bulldoze
+                    : 1.4;
+            knockback(s, carrier, p, push, id);
+            applySecondary(s, p, carrier, id);
+            if (TRAP.has(id)) trap(carrier, id);
             // nocaute (Fissure, Guillotine, Horn Drill): fica um bom tempo no chão
-            if (OHKO.has(bonus.moveId)) {
+            if (OHKO.has(id)) {
                 carrier.stun = Math.max(carrier.stun, 2.2);
                 setAction(carrier, Action.Hurt, 2.2);
             }
-        }
+            // Seismic Toss: arremesso de tempo fixo, sem depender da força
+            if (hasTrait(id, 'throw')) {
+                const t = T.fixedStun[id] ?? 1;
+                carrier.stun = Math.max(carrier.stun, t);
+                setAction(carrier, Action.Hurt, t);
+                traitFx(s, p.idx, 'throw', id, carrier.idx);
+            }
+            // Low Kick: quanto mais pesado, mais tempo no chão
+            if (hasTrait(id, 'heavyTrip')) {
+                const t = clamp(0.4 + carrier.sp.weightkg * T.tripPerKg, 0.5, T.tripMax);
+                carrier.stun = Math.max(carrier.stun, t);
+                setAction(carrier, Action.Hurt, t);
+                traitFx(s, p.idx, 'trip', id, carrier.idx, { n: Math.round(carrier.sp.weightkg) });
+            }
+            // Super Fang: metade do fôlego
+            if (hasTrait(id, 'halfEnergy')) {
+                carrier.energy *= 1 - T.superFang;
+                traitFx(s, p.idx, 'halfEnergy', id, carrier.idx);
+            }
+            if (hasTrait(id, 'bulldoze')) traitFx(s, p.idx, 'bulldoze', id, carrier.idx);
+        } else onHurt(s, carrier);
         carrier.kickCooldown = 0.4;
         if (carrier.ability.onTackledBoost) {
             for (const [k, f] of Object.entries(carrier.ability.onTackledBoost)) {
@@ -735,11 +1151,29 @@ function tryTackle(s: MatchState, p: PlayerState, targetId: number) {
             }
             emit(s, { type: 'ability', by: carrier.idx, ability: carrier.inst.ability, target: null });
         }
-        if (s.rng.chance(0.55)) {
+        if (bonus && hasTrait(bonus.moveId, 'wrap')) {
+            // Wrap/Bind: os dois ficam presos e a bola sobra para quem chegar
+            carrier.stun = Math.max(carrier.stun, T.wrapTime);
+            p.stun = Math.max(p.stun, T.wrapTime);
+            setAction(carrier, Action.Hurt, T.wrapTime);
+            setAction(p, Action.Hurt, T.wrapTime);
+            ball.owner = null;
+            ball.lastTouch = p.idx;
+            ball.assistCandidate = null;
+            ball.vel = scale(norm(sub(carrier.pos, p.pos)), 2);
+            ball.lastKick = { by: p.idx, kind: 'clear', tick: s.tick };
+            traitFx(s, p.idx, 'wrap', bonus.moveId, carrier.idx, { dur: T.wrapTime });
+        } else if ((bonus && hasTrait(bonus.moveId, 'clamp')) || s.rng.chance(0.55)) {
             ball.owner = p.idx;
             ball.lastTouch = p.idx;
             ball.assistCandidate = null;
             ball.vel = v(0, 0);
+            // Clamp: fecha a concha com a bola dentro
+            if (bonus && hasTrait(bonus.moveId, 'clamp')) {
+                p.fx.guard = Math.max(p.fx.guard, T.clampHold);
+                p.fx.guardMove = bonus.moveId;
+                traitFx(s, p.idx, 'clampHold', bonus.moveId, carrier.idx, { dur: T.clampHold });
+            }
         } else {
             const away = rotate(norm(sub(carrier.pos, p.pos)), s.rng.range(-1.2, 1.2));
             ball.owner = null;
@@ -763,7 +1197,7 @@ export function nearestOpponent(
     let best: PlayerState | null = null;
     let bestD = maxDist;
     for (const o of s.players) {
-        if (o.team === p.team || !filter(o)) continue;
+        if (o.team === p.team || hidden(o) || !filter(o)) continue;
         const d = dist(o.pos, p.pos);
         if (d < bestD) {
             bestD = d;
@@ -833,6 +1267,7 @@ function knockback(s: MatchState, target: PlayerState, from: PlayerState, meters
     target.stun = Math.max(target.stun, 0.35);
     setAction(target, Action.Hurt, 0.45);
     emit(s, { type: 'knockback', target: target.idx, by: from.idx, moveId });
+    if (from.team !== target.team) onHurt(s, target);
 }
 
 const SECONDARY_STATUS: Record<string, StatusKind> = {
@@ -905,6 +1340,12 @@ function protect(s: MatchState, target: PlayerState, attacker: PlayerState, kind
         });
         return true;
     }
+    // Double Team: o golpe acerta um clone
+    if (target.fx.decoys > 0) {
+        target.fx.decoys--;
+        traitFx(s, target.idx, 'clone', 'doubleteam', attacker.idx, { n: target.fx.decoys });
+        return true;
+    }
     if (target.substitute > 0) {
         target.substitute = 0;
         emit(s, { type: 'decoy', by: target.idx, attacker: attacker.idx });
@@ -931,20 +1372,39 @@ function performMove(s: MatchState, p: PlayerState, slot: number) {
 }
 
 /** Efeito de um golpe (também usado por Metronome e Mirror Move/Mimic, que disparam outro golpe). */
-function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0) {
+function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0, charged = false) {
     const prof = moveProfile(moveId);
+    const hasBall = s.ball.owner === p.idx;
+    // F3 carga: fica parado brilhando e o golpe só sai quando a carga termina (tickTraits → releaseCharge)
+    if (hasTrait(moveId, 'charge') && !charged) {
+        const armor = hasTrait(moveId, 'chargeArmor');
+        p.fx.charging = { moveId, t: T.chargeTime, armor };
+        if (armor) {
+            p.fx.guard = Math.max(p.fx.guard, T.chargeTime);
+            p.fx.guardMove = moveId;
+        }
+        p.vel = v(0, 0);
+        setAction(p, Action.Charge, T.chargeTime);
+        traitFx(s, p.idx, 'charge', moveId, null, { dur: T.chargeTime });
+        return;
+    }
     const technician =
         p.ability.weakMoveBoost && prof.data.power > 0 && prof.data.power <= 60 ? p.ability.weakMoveBoost : 1;
     const typeItem = p.item && ITEMS[p.item]?.type === prof.data.type ? 1.2 : 1;
-    const k = Math.min(1.25, prof.strength * technician * typeItem);
-    const hasBall = s.ball.owner === p.idx;
+    const k = charged
+        ? Math.min(1.6, prof.strength * technician * typeItem * T.chargePower)
+        : Math.min(1.25, prof.strength * technician * typeItem);
     let target: PlayerState | null = null;
     let effectiveness: number | null = null;
     let hit = true;
     let after: (() => void) | null = null;
+    const area = hasTrait(moveId, 'area') || hasTrait(moveId, 'areaAll');
 
-    // golpe físico e chute com golpe também podem errar (precisão do golpe; nocaute só 30%)
-    const landed = (prof.kind !== 'strike' && prof.kind !== 'blast') || s.rng.chance(prof.data.accuracy / 100);
+    // golpe físico e chute com golpe também podem errar (precisão do golpe; nocaute só 30%). Swift nunca erra.
+    const landed =
+        hasTrait(moveId, 'sureHit') ||
+        (prof.kind !== 'strike' && prof.kind !== 'blast') ||
+        s.rng.chance(prof.data.accuracy / 100);
 
     switch (prof.kind) {
         case 'strike':
@@ -958,6 +1418,11 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0) {
                 }
                 break;
             }
+            if (hasTrait(moveId, 'fly') || hasTrait(moveId, 'dig')) {
+                // F4: some do mapa e reaparece à frente (com a bola) ou em cima de quem conduz
+                target = takeOff(s, p, moveId, hasBall);
+                break;
+            }
             if (hasBall) {
                 p.shotBonus = {
                     power: 1 + 0.3 * k,
@@ -965,8 +1430,15 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0) {
                     moveType: prof.data.type,
                     moveId,
                     timer: 1.5,
+                    fixedSpeed: T.fixedShot[moveId],
                 };
                 setAction(p, Action.Charge, 0.25);
+            } else if (area) {
+                // F1: tremor, pedras, giro: pega todo mundo em volta na hora
+                const victims = areaHit(s, p, moveId, k, false);
+                target = victims[0] ?? null;
+                hit = victims.length > 0;
+                setAction(p, Action.Tackle, 0.3);
             } else {
                 p.tackleBonus = { power: 1 + 0.4 * k, accuracy: 1, moveType: prof.data.type, moveId, timer: 1.5 };
                 setAction(p, Action.Tackle, 0.3);
@@ -982,12 +1454,30 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0) {
                 hit = false;
             } else if (hasBall && moveId !== 'dreameater') {
                 p.shotBonus = {
-                    power: 1 + 0.15 * k,
+                    // Psywave: força sorteada (bomba ou bola murcha)
+                    power: hasTrait(moveId, 'randomPower') ? s.rng.range(T.psywaveMin, T.psywaveMax) : 1 + 0.15 * k,
                     accuracy: 1 + 0.45 * k,
                     moveType: prof.data.type,
                     moveId,
                     timer: 1.5,
+                    fixedSpeed: T.fixedShot[moveId],
                 };
+            } else if (hasTrait(moveId, 'coins')) {
+                // Pay Day: chuva de moedas, os rivais perto param para olhar
+                const near = s.players.filter(
+                    (o) => o.team !== p.team && !hidden(o) && dist(o.pos, p.pos) < T.coinRadius,
+                );
+                for (const o of near) {
+                    o.stun = Math.max(o.stun, T.coinStun);
+                    setAction(o, Action.Hurt, T.coinStun);
+                }
+                target = near[0] ?? null;
+                hit = near.length > 0;
+                traitFx(s, p.idx, 'coins', moveId, target?.idx ?? null, { n: near.length });
+            } else if (area) {
+                const victims = areaHit(s, p, moveId, k, true);
+                target = victims[0] ?? null;
+                hit = victims.length > 0;
             } else {
                 // sem bola: rajada atrapalha o rival mais próximo (perde fôlego e atrasa).
                 // Dream Eater só funciona em quem está dormindo
@@ -999,26 +1489,46 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0) {
                 else if (protect(s, target, p, 'special')) {
                     hit = false;
                 } else {
-                    const mult = typeMultiplier([prof.data.type], target.sp.types) * screenFactor(s, target, true);
-                    hit = s.rng.chance(prof.data.accuracy / 100);
+                    // dano fixo ignora atributo e tipo (Night Shade pega até Normal; Sonic Boom não pega Fantasma)
+                    const fixed = hasTrait(moveId, 'fixed');
+                    let mult = fixed
+                        ? 1
+                        : typeMultiplier([prof.data.type], typesOf(target)) * screenFactor(s, target, true);
+                    if (hasTrait(moveId, 'randomPower')) mult *= s.rng.range(T.psywaveMin, T.psywaveMax);
+                    const immune = moveId === 'sonicboom' && target.sp.types.includes('Ghost');
+                    hit = !immune && s.rng.chance(prof.data.accuracy / 100);
                     if (hit) {
-                        target.stun = Math.max(target.stun, 0.4 * k * mult);
-                        target.energy = Math.max(0, target.energy - 0.05 * k * mult);
+                        target.stun = Math.max(target.stun, fixed ? (T.fixedStun[moveId] ?? 0.7) : 0.4 * k * mult);
+                        target.energy = Math.max(0, target.energy - (fixed ? 0.04 : 0.05 * k * mult));
                         knockback(s, target, p, 0.8 * mult, moveId);
                         applySecondary(s, p, target, moveId);
                         if (DRAIN[moveId]) drainEnergy(p, target, DRAIN[moveId] * mult);
-                        if (TRAP.has(moveId)) trap(target);
+                        if (TRAP.has(moveId)) trap(target, moveId);
+                        if (fixed) traitFx(s, p.idx, 'fixed', moveId, target.idx);
+                        // Fire Spin: deixa um anel de fogo no chão
+                        if (hasTrait(moveId, 'fireRing'))
+                            addZone(s, p, 'fire', target.pos, T.fireRadius, T.fireTime, moveId);
                     }
                 }
+                // Gust: a rajada também sopra a bola solta
+                if (hasTrait(moveId, 'blowBall')) blowBall(s, p, moveId);
             }
             setAction(p, Action.Shoot, 0.35);
             break;
         case 'burst':
-            p.buffs.push(
-                { attr: 'pace', factor: 1.18 + 0.1 * k, timer: 2.5 },
-                { attr: 'dribble', factor: 1.1, timer: 2.5 },
-            );
-            setAction(p, Action.Charge, 0.2);
+            if (hasTrait(moveId, 'priority')) {
+                target = quickAttack(s, p, moveId, k, hasBall);
+                break;
+            }
+            {
+                // Agility: arrancada longa; o resto, curta
+                const time = hasTrait(moveId, 'longBurst') ? T.agilityTime : T.burstTime;
+                p.buffs.push(
+                    { attr: 'pace', factor: 1.18 + 0.1 * k, timer: time },
+                    { attr: 'dribble', factor: 1.1, timer: time },
+                );
+                setAction(p, Action.Charge, 0.2);
+            }
             break;
         case 'buff':
             for (const [stat, stages] of Object.entries(prof.data.selfBoosts ?? { atk: 1 })) {
@@ -1029,63 +1539,118 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0) {
             // paredes valem para o time inteiro
             if (moveId === 'lightscreen') s.teams[p.team].screens.light = 15;
             if (moveId === 'reflect') s.teams[p.team].screens.reflect = 15;
-            if (moveId === 'focusenergy') p.buffs.push({ attr: 'shooting', factor: 1.12, timer: 12 });
+            buffTraits(s, p, moveId);
             setAction(p, Action.Charge, 0.5);
             break;
         case 'debuff': {
-            // Flash: clarão pega todos os rivais em volta; o resto, o mais perto
-            const victims =
-                moveId === 'flash'
-                    ? s.players.filter((o) => o.team !== p.team && dist(o.pos, p.pos) < 7)
-                    : [nearestOpponent(s, p, 6)].filter((o): o is PlayerState => o !== null);
+            if (hasTrait(moveId, 'smoke')) {
+                // Smokescreen: nuvem no chão onde está o rival mais perto (ou na frente dele)
+                target = nearestOpponent(s, p, 8);
+                const at = target ? target.pos : add(p.pos, scale(p.heading, 2));
+                addZone(s, p, 'smoke', at, T.smokeRadius, T.smokeTime, moveId);
+                setAction(p, Action.Charge, 0.4);
+                break;
+            }
+            // área (Growl, Leer, Flash...): todos os rivais em volta; o resto, o mais perto
+            const victims = area
+                ? s.players.filter(
+                      (o) =>
+                          o.team !== p.team &&
+                          !hidden(o) &&
+                          dist(o.pos, p.pos) < (moveId === 'flash' ? T.flashRadius : T.areaRadius),
+                  )
+                : [nearestOpponent(s, p, 6)].filter((o): o is PlayerState => o !== null);
             target = victims[0] ?? null;
             setAction(p, Action.Charge, 0.4);
             hit = false;
+            let landedOn = 0;
+            const blind = T.blind[moveId];
             for (const v of victims) {
                 if (protect(s, v, p, 'special') || s.teams[v.team].screens.mist > 0) continue;
                 if (!s.rng.chance(prof.data.accuracy / 100) || v.ability.immuneDebuff) continue;
                 hit = true;
+                landedOn++;
                 for (const [stat, stages] of Object.entries(prof.data.targetBoosts ?? {})) {
                     for (const attr of BOOST_TO_ATTR[stat] ?? []) {
                         v.buffs.push({ attr, factor: 1 + 0.08 * (stages ?? -1), timer: 10 });
                     }
                 }
+                // Leer: a encarada trava um instante
+                if (moveId === 'leer') v.stun = Math.max(v.stun, T.leerFreeze);
+                // areia no olho, colher torta, clarão: chute e passe saem tortos
+                if (blind) v.fx.aim = { ...blind };
+            }
+            if (landedOn && blind) traitFx(s, p.idx, 'blind', moveId, target?.idx ?? null, { n: landedOn });
+            else if (landedOn && area) traitFx(s, p.idx, 'area', moveId, target?.idx ?? null, { n: landedOn });
+            break;
+        }
+        case 'status': {
+            setAction(p, Action.Charge, 0.4);
+            if (!prof.status) break;
+            // Poison Gas: nuvem que pega todos os rivais perto
+            const victims = area
+                ? s.players.filter((o) => o.team !== p.team && !hidden(o) && dist(o.pos, p.pos) < T.gasRadius)
+                : [nearestOpponent(s, p, 6.5)].filter((o): o is PlayerState => o !== null);
+            target = victims[0] ?? null;
+            if (!target) break;
+            let landedOn = 0;
+            for (const v of victims) {
+                if (protect(s, v, p, 'special')) {
+                    if (v === target) hit = false;
+                    continue;
+                }
+                const eff = typeMultiplier([prof.data.type], v.sp.types);
+                if (v === target) effectiveness = eff;
+                const chance =
+                    (prof.data.accuracy / 100) * (p.ability.statusChanceBoost ? 1.15 : 1) * screenFactor(s, v, true);
+                // Thunder Wave não afeta Ground; pós de planta não afetam Grass
+                const immuneByType =
+                    (prof.data.type === 'Electric' && v.sp.types.includes('Ground')) ||
+                    (moveId.endsWith('powder') || moveId === 'spore' ? v.sp.types.includes('Grass') : false);
+                let ok = !immuneByType && s.rng.chance(chance);
+                if (ok) {
+                    const itemBefore = v.itemUsed;
+                    const applied = applyStatus(s, v, prof.status, p.idx, moveId);
+                    ok = applied || v.itemUsed !== itemBefore;
+                    // Toxic: veneno que piora com o tempo
+                    if (applied && hasTrait(moveId, 'toxic') && v.status) {
+                        v.status.timer = T.toxicTime;
+                        v.fx.toxic = 1e-3;
+                        traitFx(s, p.idx, 'toxic', moveId, v.idx);
+                    }
+                }
+                if (ok) landedOn++;
+                if (v === target) hit = ok;
+            }
+            if (area) {
+                hit = landedOn > 0;
+                traitFx(s, p.idx, 'area', moveId, target.idx, { n: landedOn });
             }
             break;
         }
-        case 'status':
-            target = nearestOpponent(s, p, 6.5);
-            setAction(p, Action.Charge, 0.4);
-            if (target && prof.status) {
-                if (protect(s, target, p, 'special')) {
-                    hit = false;
-                    break;
-                }
-                effectiveness = typeMultiplier([prof.data.type], target.sp.types);
-                const chance =
-                    (prof.data.accuracy / 100) *
-                    (p.ability.statusChanceBoost ? 1.15 : 1) *
-                    screenFactor(s, target, true);
-                // Thunder Wave não afeta Ground; pós de planta não afetam Grass
-                const immuneByType =
-                    (prof.data.type === 'Electric' && target.sp.types.includes('Ground')) ||
-                    (moveId.endsWith('powder') || moveId === 'spore' ? target.sp.types.includes('Grass') : false);
-                hit = !immuneByType && s.rng.chance(chance);
-                if (hit) {
-                    const itemBefore = target.itemUsed;
-                    hit = applyStatus(s, target, prof.status, p.idx, moveId) || target.itemUsed !== itemBefore;
-                }
-            }
-            break;
-        case 'heal':
+        case 'heal': {
+            const gain = moveId === 'rest' ? 1 : 0.3 * k + 0.1;
             if (moveId === 'rest') {
                 p.energy = 1;
                 applyStatus(s, p, 'slp', p.idx, 'rest');
             } else {
-                p.energy = Math.min(1, p.energy + 0.3 * k + 0.1);
+                p.energy = Math.min(1, p.energy + gain);
+            }
+            // Soft-Boiled: cura também o companheiro mais cansado por perto
+            if (hasTrait(moveId, 'teamHeal')) {
+                let mate: PlayerState | null = null;
+                for (const o of s.players) {
+                    if (o.team !== p.team || o === p || dist(o.pos, p.pos) > T.teamHealRadius) continue;
+                    if (!mate || o.energy < mate.energy) mate = o;
+                }
+                if (mate) {
+                    mate.energy = Math.min(1, mate.energy + gain);
+                    traitFx(s, p.idx, 'teamHeal', moveId, mate.idx);
+                }
             }
             setAction(p, Action.Charge, 0.5);
             break;
+        }
         case 'special': {
             const res = specialMove(s, p, moveId, depth);
             target = res.target;
@@ -1099,7 +1664,7 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0) {
             break;
     }
     if (target && effectiveness === null && prof.data.category !== 'Status') {
-        effectiveness = typeMultiplier([prof.data.type], target.sp.types);
+        effectiveness = typeMultiplier([prof.data.type], typesOf(target));
     }
     emit(s, {
         type: 'move',
@@ -1116,8 +1681,109 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0) {
     after?.();
 }
 
-/** Preso (Bind, Wrap, Clamp, Fire Spin, Constrict): lento e atordoado um instante. */
-function trap(target: PlayerState) {
+/** F1: golpe em área sem bola (Earthquake, Surf, Rock Slide, Blizzard, Swift...): pega todo mundo no raio. */
+function areaHit(s: MatchState, p: PlayerState, moveId: string, k: number, special: boolean): PlayerState[] {
+    const prof = moveProfile(moveId);
+    // Earthquake e Surf pegam os companheiros também
+    const all = hasTrait(moveId, 'areaAll');
+    const r = moveId === 'rollingkick' ? T.spinRadius : T.areaRadius;
+    const sure = hasTrait(moveId, 'sureHit');
+    const near = s.players
+        .filter((o) => o !== p && (all || o.team !== p.team) && !hidden(o) && dist(o.pos, p.pos) < r)
+        .sort((a, b) => dist(a.pos, p.pos) - dist(b.pos, p.pos) || a.idx - b.idx);
+    const hits: PlayerState[] = [];
+    for (const o of near) {
+        const foe = o.team !== p.team;
+        if (foe && protect(s, o, p, special ? 'special' : 'physical')) continue;
+        if (!sure && !s.rng.chance(prof.data.accuracy / 100)) continue;
+        const mult =
+            typeMultiplier([prof.data.type], typesOf(o)) * (foe ? screenFactor(s, o, special) : 1) * T.areaShare;
+        o.stun = Math.max(o.stun, 0.5 * k * mult);
+        o.energy = Math.max(0, o.energy - 0.05 * k * mult);
+        knockback(s, o, p, 0.9 * mult, moveId);
+        if (foe) applySecondary(s, p, o, moveId);
+        if (s.ball.owner === o.idx) popBall(s, o, p);
+        hits.push(o);
+    }
+    traitFx(s, p.idx, 'area', moveId, hits[0]?.idx ?? null, {
+        n: hits.length,
+        x: Math.round(p.pos.x * 100) / 100,
+        y: Math.round(p.pos.y * 100) / 100,
+        r,
+    });
+    return hits;
+}
+
+/** F5: Quick Attack. Sem a bola: avança e desarma na hora, sem esperar; com a bola: arrancada e chute de primeira. */
+function quickAttack(s: MatchState, p: PlayerState, moveId: string, k: number, hasBall: boolean): PlayerState | null {
+    const prof = moveProfile(moveId);
+    const carrier = s.ball.owner !== null ? s.players[s.ball.owner] : null;
+    if (!hasBall && carrier && carrier.team !== p.team && !hidden(carrier)) {
+        const gap = dist(carrier.pos, p.pos);
+        if (gap < T.quickRange) {
+            const step = Math.min(T.quickDash, Math.max(0, gap - 0.9));
+            p.pos = add(p.pos, scale(norm(sub(carrier.pos, p.pos)), step));
+            p.tackleBonus = { power: 1 + 0.4 * k, accuracy: 1, moveType: prof.data.type, moveId, timer: 1.5 };
+            p.tackleCooldown = 0;
+            traitFx(s, p.idx, 'priority', moveId, carrier.idx);
+            tryTackle(s, p, carrier.idx);
+            return carrier;
+        }
+    }
+    p.buffs.push(
+        { attr: 'pace', factor: 1.18 + 0.1 * k, timer: T.burstTime },
+        { attr: 'dribble', factor: 1.1, timer: T.burstTime },
+    );
+    if (hasBall) {
+        p.kickCooldown = 0;
+        p.ai.nextDecision = 0;
+        traitFx(s, p.idx, 'priority', moveId);
+    }
+    setAction(p, Action.Charge, 0.2);
+    return null;
+}
+
+/** F2/F11: o que os golpes de reforço fazem além do atributo (Focus Energy, clones, casco, muro...). */
+function buffTraits(s: MatchState, p: PlayerState, moveId: string) {
+    if (hasTrait(moveId, 'focus')) {
+        // Focus Energy "bugado" da Gen 1: às vezes não funciona
+        if (s.rng.chance(T.focusBugChance)) traitFx(s, p.idx, 'focusBug', moveId);
+        else p.fx.focus = true;
+    }
+    if (hasTrait(moveId, 'clones')) {
+        p.fx.decoys = T.decoys;
+        traitFx(s, p.idx, 'clones', moveId, null, { n: T.decoys });
+    }
+    if (hasTrait(moveId, 'minimize')) {
+        p.fx.mini = T.minimizeTime;
+        traitFx(s, p.idx, 'mini', moveId, null, { dur: T.minimizeTime });
+    }
+    if (hasTrait(moveId, 'melt') || hasTrait(moveId, 'shell')) {
+        const t = hasTrait(moveId, 'melt') ? T.meltTime : T.shellTime;
+        p.fx.guard = Math.max(p.fx.guard, t);
+        p.fx.guardMove = moveId;
+        // Withdraw: dentro do casco anda devagar
+        if (hasTrait(moveId, 'shell')) p.buffs.push({ attr: 'pace', factor: T.shellSlow, timer: t });
+        traitFx(s, p.idx, 'guard', moveId, null, { dur: t });
+    }
+    if (hasTrait(moveId, 'curl')) {
+        p.fx.curl = T.curlTime;
+        traitFx(s, p.idx, 'curl', moveId, null, { dur: T.curlTime });
+    }
+    if (hasTrait(moveId, 'wall')) {
+        // Barrier: muro invisível entre ele e o próprio gol
+        const ownGoal = v(ownGoalX(s, p.team), s.cfg.pitch.width / 2);
+        const at = add(p.pos, scale(norm(sub(ownGoal, p.pos)), 1.5));
+        addZone(s, p, 'wall', at, T.wallRadius, T.wallTime, moveId);
+    }
+}
+
+/** Preso (Bind, Wrap, Clamp, Fire Spin, Constrict): lento e atordoado um instante. Constrict só aperta (lento). */
+function trap(target: PlayerState, moveId: string) {
+    if (hasTrait(moveId, 'squeeze')) {
+        target.buffs.push({ attr: 'pace', factor: T.squeezeSlow, timer: T.squeezeTime });
+        return;
+    }
     target.stun = Math.max(target.stun, 0.6);
     target.buffs.push({ attr: 'pace', factor: 0.6, timer: 3 }, { attr: 'dribble', factor: 0.8, timer: 3 });
 }
@@ -1128,7 +1794,7 @@ function drawback(s: MatchState, p: PlayerState, moveId: string) {
         case 'faint':
             // explode em área: empurra quem estiver perto e fica no chão sem fôlego
             for (const o of s.players) {
-                if (o.idx !== p.idx && dist(o.pos, p.pos) < 3) {
+                if (o.idx !== p.idx && !hidden(o) && dist(o.pos, p.pos) < 3) {
                     o.stun = Math.max(o.stun, 0.8);
                     knockback(s, o, p, 1.8, moveId);
                 }
@@ -1183,18 +1849,40 @@ function specialMove(
             s.teams[p.team].screens.mist = 12;
             return { target: null, hit: true, after: null };
         case 'bide':
-            p.buffs.push({ attr: 'strength', factor: 1.2, timer: 10 }, { attr: 'tackling', factor: 1.15, timer: 10 });
-            p.tackleBonus = { power: 1.6, accuracy: 1, moveType: 'Normal', moveId, timer: 6 };
-            return { target: null, hit: true, after: null };
+            // F10: aguenta firme e conta as pancadas; depois solta a onda (tickTraits → releaseBide)
+            p.fx.bide = { t: T.bideTime, hits: 0 };
+            p.buffs.push(
+                { attr: 'strength', factor: 1.3, timer: T.bideTime },
+                { attr: 'dribble', factor: 1.15, timer: T.bideTime },
+            );
+            return {
+                target: null,
+                hit: true,
+                after: () => traitFx(s, p.idx, 'charge', moveId, null, { dur: T.bideTime }),
+            };
         case 'rage':
-            p.buffs.push({ attr: 'shooting', factor: 1.15, timer: 12 }, { attr: 'strength', factor: 1.15, timer: 12 });
+            // F10: fúria que cresce a cada pancada sofrida (onHurt)
+            p.fx.rage = { t: T.rageTime, stacks: 0 };
+            p.buffs.push(
+                { attr: 'shooting', factor: 1.1, timer: T.rageTime },
+                { attr: 'strength', factor: 1.1, timer: T.rageTime },
+            );
             return { target: null, hit: true, after: null };
-        case 'conversion':
+        case 'conversion': {
+            // F12 (Gen 1): vira o tipo do rival mais perto
             p.buffs = p.buffs.filter((b) => b.factor >= 1);
             for (const attr of ['pace', 'dribble', 'shooting', 'passing', 'tackling'] as AttrKey[]) {
                 p.buffs.push({ attr, factor: 1.08, timer: 10 });
             }
-            return { target: null, hit: true, after: null };
+            const target = nearestOpponent(s, p, 12);
+            if (target) p.fx.typeCopy = { types: [...target.sp.types], t: T.typeCopyTime };
+            return {
+                target,
+                hit: true,
+                after: target ? () => traitFx(s, p.idx, 'typeCopy', moveId, target.idx) : null,
+            };
+        }
+
         case 'disable': {
             const target = nearestOpponent(s, p, 6);
             if (!target) return { target, hit: false, after: null };
@@ -1208,16 +1896,26 @@ function specialMove(
             target.moveUses[slots[0].i] = 0;
             return { target, hit: true, after: null };
         }
-        case 'roar':
+        case 'roar': {
+            // F12: o rival mais perto foge de volta para o campo dele (Gen 1: força a troca) e larga a bola
+            const target = nearestOpponent(s, p, T.fleeRange);
+            if (!target || protect(s, target, p, 'special')) return { target, hit: false, after: null };
+            target.fx.flee = { dir: v(-attackSign(target.team), 0), t: T.fleeTime };
+            target.fx.charging = null;
+            if (s.ball.owner === target.idx) popBall(s, target, p);
+            return { target, hit: true, after: () => traitFx(s, p.idx, 'flee', moveId, target.idx) };
+        }
         case 'whirlwind': {
-            const near = s.players.filter((o) => o.team !== p.team && dist(o.pos, p.pos) < 4.5);
+            const near = s.players.filter((o) => o.team !== p.team && !hidden(o) && dist(o.pos, p.pos) < 4.5);
             for (const o of near) {
                 if (protect(s, o, p, 'special')) continue;
-                knockback(s, o, p, moveId === 'roar' ? 2 : 2.8, moveId);
-                if (moveId === 'roar') o.stun = Math.max(o.stun, 0.6);
+                knockback(s, o, p, 2.8, moveId);
             }
+            // a ventania também sopra a bola solta para longe
+            blowBall(s, p, moveId);
             return { target: near[0] ?? null, hit: near.length > 0, after: null };
         }
+
         case 'splash':
             // só um pulinho... mas difícil de desarmar por um instante
             p.evade = Math.max(p.evade, 1.5);
@@ -1361,24 +2059,51 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
         const t = (lineX - prev.x) / (end.x - prev.x || 1e-9);
         end = v(lineX, prev.y + (end.y - prev.y) * clamp(t, 0, 1));
     }
+    const moveId = shot.moveId;
+    // Swift nunca erra (jogador de linha não bloqueia); Egg Bomb vai por cima dos bloqueios
+    const sure = hasTrait(moveId, 'sureHit');
+    const lob = hasTrait(moveId, 'lob');
+    // dano fixo: sem vantagem de tipo para nenhum lado
+    const fixed = hasTrait(moveId, 'fixed');
+    // Barrier: o muro invisível segura o próximo chute que passar perto
+    for (const z of s.zones) {
+        if (z.kind !== 'wall' || z.team === shooter.team || z.t <= 0) continue;
+        const seg = pointSegment(z.pos, prev, end);
+        if (seg.d > z.r) continue;
+        z.t = 0;
+        emit(s, { type: 'block', by: z.by, shooter: shooter.idx });
+        traitFx(s, z.by, 'wallBlock', 'barrier', shooter.idx);
+        ball.shot = null;
+        ball.pos = add(prev, scale(sub(end, prev), seg.t));
+        ball.lastTouch = z.by;
+        ball.lastKick = { by: z.by, kind: 'clear', tick: s.tick };
+        ball.vel = rotate(scale(ball.vel, -0.3), s.rng.range(-1, 1));
+        ball.z = 0;
+        ball.vz = 0;
+        return;
+    }
     for (const p of s.players) {
-        if (p.team === shooter.team || isIncapacitated(p)) continue;
+        if (p.team === shooter.team || isIncapacitated(p) || hidden(p)) continue;
         const seg = pointSegment(p.pos, prev, end);
         const d = seg.d;
         const contact = add(prev, scale(sub(end, prev), seg.t));
         if (p.role === 'GK') {
             // chute que ia para fora não vira "defesa" (era 1/3 das defesas e gerava "QUE DEFESA!" à toa)
             if (shot.gkChecked || !shot.onTarget) continue;
-            const reach = 0.55 + (1.0 * eff(s, p, 'goalkeeping')) / 99;
+            const reach = (0.55 + (1.0 * eff(s, p, 'goalkeeping')) / 99) * (lob ? T.lobGkReach : 1);
             if (d > reach) continue;
             shot.gkChecked = true;
-            const gkTypeMult = typeMultiplier(p.sp.types, [shot.moveType]);
-            const shotTypeMult = typeMultiplier([shot.moveType], p.sp.types) ** (shooter.ability.typeBoost ?? 1);
+            const gkTypeMult = fixed ? 1 : typeMultiplier(typesOf(p), [shot.moveType]);
+            const shotTypeMult = fixed
+                ? 1
+                : typeMultiplier([shot.moveType], typesOf(p)) ** (shooter.ability.typeBoost ?? 1);
             const gk = eff(s, p, 'goalkeeping') * gkTypeMult;
             // chute no corpo do goleiro (d pequeno) é mais fácil de pegar
             const placement = clamp(d / reach, 0, 1);
+            // cobertura vem devagar, mas caindo: o goleiro "sente" um chute normal
+            const felt = lob ? Math.max(speed, T.lobFeel) : speed;
             const pSave = clamp(
-                (0.34 + (0.65 * gk) / 99 - 0.028 * (speed - 14) - 0.3 * placement) / shotTypeMult,
+                (0.34 + (0.65 * gk) / 99 - 0.028 * (felt - 14) - 0.3 * placement) / shotTypeMult,
                 0.05,
                 0.95,
             );
@@ -1390,19 +2115,21 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
             }
             if (sash || s.rng.chance(pSave)) {
                 p.stats.saves++;
-                const caught = speed < 17 && s.rng.chance(0.55 + (0.3 * gk) / 99);
+                const caught = felt < 17 && s.rng.chance(0.55 + (0.3 * gk) / 99);
                 emit(s, { type: 'save', by: p.idx, shooter: shooter.idx, caught });
                 ball.shot = null;
                 ball.pos = contact;
+                ball.z = 0;
+                ball.vz = 0;
                 // defender um Thunderbolt tem preço
-                if (shot.moveId) applySecondary(s, shooter, p, shot.moveId);
+                if (moveId) applySecondary(s, shooter, p, moveId);
                 if (caught) {
                     ball.owner = p.idx;
                     ball.vel = v(0, 0);
                     ball.lastTouch = p.idx;
                     ball.assistCandidate = null;
                     p.ai.holdUntil = s.tick + Math.round(0.8 * s.cfg.tickRate);
-                } else {
+                } else if (!tryRebound(s, shooter, moveId, contact)) {
                     // espalma para o lado
                     const outward = v(attackSign(p.team) * s.rng.range(0.3, 1), s.rng.chance(0.5) ? 1 : -1);
                     ball.vel = scale(norm(outward), speed * s.rng.range(0.25, 0.45));
@@ -1411,17 +2138,24 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
                 }
                 return;
             }
-        } else if (d < 0.5 && !shot.blockedBy.includes(p.idx)) {
+        } else if (!sure && !lob && d < 0.5 && !shot.blockedBy.includes(p.idx)) {
             shot.blockedBy.push(p.idx);
             const pBlock = 0.12 + (0.25 * eff(s, p, 'positioning')) / 99;
             if (s.rng.chance(pBlock)) {
+                // Drill Peck/Cut: fura o primeiro bloqueio
+                if (hasTrait(moveId, 'pierce') && !shot.pierced) {
+                    shot.pierced = true;
+                    traitFx(s, shooter.idx, 'pierce', moveId!, p.idx);
+                    continue;
+                }
                 emit(s, { type: 'block', by: p.idx, shooter: shooter.idx });
                 ball.shot = null;
                 ball.pos = contact;
-                if (shot.moveId) {
-                    knockback(s, p, shooter, 1, shot.moveId);
-                    applySecondary(s, shooter, p, shot.moveId);
+                if (moveId) {
+                    knockback(s, p, shooter, 1, moveId);
+                    applySecondary(s, shooter, p, moveId);
                 }
+                if (tryRebound(s, shooter, moveId, contact)) return;
                 ball.lastTouch = p.idx;
                 ball.lastKick = { by: p.idx, kind: 'clear', tick: s.tick };
                 ball.vel = rotate(scale(ball.vel, -0.3), s.rng.range(-1, 1));
@@ -1431,6 +2165,24 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
     }
 }
 
+/** F8: chute de rebote (Bonemerang, Pin Missile...): defendido ou bloqueado, a bola volta para o pé de quem chutou. */
+function tryRebound(s: MatchState, shooter: PlayerState, moveId: string | null, contact: Vec2): boolean {
+    if (!moveId || !hasTrait(moveId, 'rebound')) return false;
+    if (!T.reboundAlways.includes(moveId) && !s.rng.chance(T.reboundChance)) return false;
+    const ball = s.ball;
+    const to = sub(shooter.pos, contact);
+    const d = len(to);
+    ball.shot = null;
+    ball.pos = contact;
+    ball.z = 0;
+    ball.vz = 0;
+    ball.vel = scale(norm(to), clamp(Math.sqrt(2 * FRICTION * d) * 1.1 + 1.5, 4, 14));
+    ball.lastTouch = shooter.idx;
+    ball.lastKick = { by: shooter.idx, kind: 'pass', tick: s.tick, receiverId: shooter.idx };
+    traitFx(s, shooter.idx, 'rebound', moveId);
+    return true;
+}
+
 function checkPossession(s: MatchState) {
     const ball = s.ball;
     if (ball.owner !== null) return;
@@ -1438,7 +2190,7 @@ function checkPossession(s: MatchState) {
     let best: PlayerState | null = null;
     let bestD = Infinity;
     for (const p of s.players) {
-        if (p.kickCooldown > 0 || isIncapacitated(p)) continue;
+        if (p.kickCooldown > 0 || isIncapacitated(p) || hidden(p)) continue;
         const inOwnArea = p.role === 'GK' && isInOwnArea(s, p, ball.pos);
         // bola cruzada passa por cima de quem não alcança
         if (ball.z > (inOwnArea ? GK_REACH_Z : REACH_Z)) continue;
@@ -1493,6 +2245,7 @@ export function isInOwnArea(s: MatchState, p: PlayerState, pos: Vec2): boolean {
 
 function scoreGoal(s: MatchState, team: 0 | 1) {
     const ball = s.ball;
+    const shot = ball.shot;
     const toucher = ball.lastTouch !== null ? s.players[ball.lastTouch] : null;
     const ownGoal = !!toucher && toucher.team !== team;
     const scorer = ownGoal ? toucher : (toucher ?? s.players.find((p) => p.team === team)!);
@@ -1509,6 +2262,11 @@ function scoreGoal(s: MatchState, team: 0 | 1) {
             s.players[assist].stats.assists++;
         }
         setAction(scorer, Action.Celebrate, 2.5);
+        // Hyper Beam que vira gol não recarrega (como na Gen 1 quando nocauteava)
+        if (shot?.moveId && hasTrait(shot.moveId, 'noRechargeOnGoal') && shot.by === scorer.idx) {
+            scorer.stun = 0;
+            traitFx(s, scorer.idx, 'noRecharge', shot.moveId);
+        }
     }
     emit(s, { type: 'goal', by: scorer.idx, assist, team, score: [s.score[0], s.score[1]], ownGoal });
     ball.vel = v(0, 0);
@@ -1684,6 +2442,13 @@ export function snapshot(s: MatchState): MatchSnapshot {
         let flags = 0;
         for (const b of pl.buffs) flags |= b.factor > 1 ? FLAG_BUFF : FLAG_DEBUFF;
         if (pl.shotBonus || pl.tackleBonus) flags |= FLAG_CHARGED;
+        const fx = pl.fx;
+        if (fx.air) flags |= fx.air.kind === 'fly' ? FLAG_FLY : FLAG_DIG;
+        if (fx.charging || fx.bide) flags |= FLAG_CHARGING;
+        if (fx.decoys > 0) flags |= FLAG_CLONES;
+        if (fx.mini > 0) flags |= FLAG_MINI;
+        if (fx.guard > 0) flags |= FLAG_GUARD;
+        if (fx.rage) flags |= FLAG_RAGE;
         p.push(
             Math.round(pl.pos.x * 100) / 100,
             Math.round(pl.pos.y * 100) / 100,

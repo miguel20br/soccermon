@@ -117,6 +117,7 @@ const eventCounts = new Map<MatchEventType, number>();
 const typeRecord = new Map<string, { w: number; g: number }>();
 const tacticRecord = new Map<Tactic, { w: number; g: number }>();
 const moveKinds = new Map<string, number>();
+const traitFx = new Map<string, number>();
 const rows: string[] = ['seed,home,away,strHome,strAway,tactHome,tactAway,shootout'];
 const t0 = performance.now();
 
@@ -136,6 +137,7 @@ for (let i = 0; i < N; i++) {
     for (const e of r.events) {
         eventCounts.set(e.type, (eventCounts.get(e.type) ?? 0) + 1);
         if (e.type === 'move') moveKinds.set(e.kind, (moveKinds.get(e.kind) ?? 0) + 1);
+        if (e.type === 'trait') traitFx.set(e.fx, (traitFx.get(e.fx) ?? 0) + 1);
     }
 
     const sh = strength(home);
@@ -196,6 +198,13 @@ console.log(
         .join(' '),
 );
 console.log('golpes/jogo por tipo:', [...moveKinds.entries()].map(([k, c]) => `${k}=${per(c)}`).join(' '));
+console.log(
+    'traços de golpe/jogo:',
+    [...traitFx.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .map(([k, c]) => `${k}=${per(c)}`)
+        .join(' '),
+);
 console.log(
     'vitórias por tática:',
     [...tacticRecord.entries()].map(([t, r]) => `${t}=${((r.w / r.g) * 100).toFixed(0)}%`).join(' '),

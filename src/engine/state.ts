@@ -1,7 +1,7 @@
 import type { AbilityEffect } from './abilities';
 import type { Attributes, AttrKey, Position } from './attributes';
 import type { MatchConfig } from './config';
-import type { Species } from './data';
+import type { Species, TypeName } from './data';
 import type { Formation, FormationId } from './formations';
 import type { PokemonInstance } from './instance';
 import type { MoveKind, StatusKind } from './moves';
@@ -78,6 +78,50 @@ export interface PendingBonus {
     moveType: string;
     moveId: string;
     timer: number;
+    /** Dano fixo (Sonic Boom, Dragon Rage...): velocidade do chute em m/s, sem depender do atributo. */
+    fixedSpeed?: number;
+    /** Golpe carregado (Solar Beam, Sky Attack...): já passou pela carga. */
+    charged?: boolean;
+}
+
+/** Estado dos traços de golpe (src/engine/moves.ts → MOVE_TRAITS) em cada jogador. */
+export interface TraitState {
+    /** Focus Energy: próximo chute/carrinho crítico garantido. */
+    focus: boolean;
+    /** Carregando um golpe (Solar Beam, Skull Bash...): parado até soltar. */
+    charging: { moveId: string; t: number; armor: boolean } | null;
+    /** Voando (Fly) ou cavando (Dig): fora do alcance de todo mundo. */
+    air: { kind: 'fly' | 'dig'; moveId: string; t: number; from: Vec2; to: Vec2; prey: number | null } | null;
+    /** Mira atrapalhada (Sand Attack, Kinesis, Flash): erro do chute/passe multiplicado. */
+    aim: { factor: number; t: number; once: boolean } | null;
+    /** Toxic: segundos desde o envenenamento (o dreno cresce). */
+    toxic: number;
+    rage: { t: number; stacks: number } | null;
+    bide: { t: number; hits: number } | null;
+    /** Double Team: clones que ainda aguentam um carrinho/golpe. */
+    decoys: number;
+    /** Minimize: segundos pequenininho. */
+    mini: number;
+    /** Ninguém tira a bola dele (Skull Bash carregando, Clamp, Withdraw, Acid Armor). */
+    guard: number;
+    /** Golpe que deu a proteção (para a narração). */
+    guardMove: string;
+    /** Defense Curl: o próximo carrinho sofrido não tira a bola. */
+    curl: number;
+    /** Conversion: tipo copiado por um tempo. */
+    typeCopy: { types: TypeName[]; t: number } | null;
+    /** Roar: fugindo para o próprio campo. */
+    flee: { dir: Vec2; t: number } | null;
+}
+
+/** Zona no chão (Smokescreen, Fire Spin, muro do Barrier). */
+export interface Zone {
+    kind: 'smoke' | 'fire' | 'wall';
+    pos: Vec2;
+    r: number;
+    t: number;
+    team: 0 | 1;
+    by: number;
 }
 
 export interface PlayerStats {
@@ -132,6 +176,8 @@ export interface PlayerState {
     seeded: { by: number; timer: number } | null;
     /** Substitute: segundos em que o boneco ainda aguenta um golpe/carrinho. */
     substitute: number;
+    /** Traços de golpe ativos (crítico, carga, voo, clones...). */
+    fx: TraitState;
     /** Item segurado e se o efeito de uso único já foi gasto. */
     item: string | null;
     itemUsed: boolean;
@@ -148,6 +194,8 @@ export interface ShotInfo {
     gkChecked: boolean;
     blockedBy: number[];
     onTarget: boolean;
+    /** Drill Peck/Cut: já furou o primeiro bloqueio. */
+    pierced?: boolean;
 }
 
 export interface BallState {
@@ -234,6 +282,23 @@ export type MatchEvent = MatchEventBase &
         | { type: 'haze'; by: number; cleared: number[] }
         /** Teleport: `by` sumiu de um ponto e apareceu em outro. */
         | { type: 'teleport'; by: number }
+        /**
+         * Efeito de um traço de golpe (src/engine/moves.ts → MOVE_TRAITS) para a cena e a narração mostrarem:
+         * crítico, carga, voo, clones, muro... `n` é um número do efeito (acertos, vítimas); `x/y/r/dur` são a
+         * zona no chão.
+         */
+        | {
+              type: 'trait';
+              by: number;
+              fx: TraitFx;
+              moveId: string;
+              target: number | null;
+              n?: number;
+              x?: number;
+              y?: number;
+              r?: number;
+              dur?: number;
+          }
         | { type: 'halftime'; score: [number, number] }
         | {
               type: 'sub';
@@ -254,6 +319,48 @@ export type MatchEvent = MatchEventBase &
 
 export type MatchEventType = MatchEvent['type'];
 
+export type TraitFx =
+    | 'crit'
+    | 'focusBug'
+    | 'charge'
+    | 'chargeLost'
+    | 'noRecharge'
+    | 'fly'
+    | 'dig'
+    | 'land'
+    | 'priority'
+    | 'area'
+    | 'pierce'
+    | 'sureHit'
+    | 'lob'
+    | 'blind'
+    | 'fixed'
+    | 'halfEnergy'
+    | 'throw'
+    | 'trip'
+    | 'multi'
+    | 'rebound'
+    | 'reach'
+    | 'wrap'
+    | 'clampHold'
+    | 'zone'
+    | 'toxic'
+    | 'rageUp'
+    | 'bide'
+    | 'clones'
+    | 'clone'
+    | 'mini'
+    | 'guard'
+    | 'curl'
+    | 'wall'
+    | 'wallBlock'
+    | 'flee'
+    | 'blowBall'
+    | 'bulldoze'
+    | 'typeCopy'
+    | 'teamHeal'
+    | 'coins';
+
 /** Valores por jogador em `MatchSnapshot.p`: x, y, facing, action, status, flags, fôlego (0..1). */
 export const SNAP_STRIDE = 7;
 export const STATUS_CODE: Record<string, number> = {
@@ -269,6 +376,14 @@ export const STATUS_CODE: Record<string, number> = {
 export const FLAG_BUFF = 1;
 export const FLAG_DEBUFF = 2;
 export const FLAG_CHARGED = 4;
+/** Traços de golpe visíveis no sprite: voando, cavando, carregando, clones, pequenininho, protegido, fúria. */
+export const FLAG_FLY = 8;
+export const FLAG_DIG = 16;
+export const FLAG_CHARGING = 32;
+export const FLAG_CLONES = 64;
+export const FLAG_MINI = 128;
+export const FLAG_GUARD = 256;
+export const FLAG_RAGE = 512;
 
 /** Snapshot compacto para o render. `p` = SNAP_STRIDE valores por jogador. */
 export interface MatchSnapshot {
@@ -309,6 +424,8 @@ export interface MatchState {
     pendingSubs: SubOrder[];
     /** Último golpe usado por cada time (Mirror Move/Mimic copiam o do rival). */
     lastMove: [string | null, string | null];
+    /** Zonas no chão (fumaça, anel de fogo, muro). */
+    zones: Zone[];
     ball: BallState;
     score: [number, number];
     shootout: [number, number] | null;

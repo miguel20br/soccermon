@@ -1,7 +1,7 @@
 import type { Command, Controller } from '../commands';
 import { eff } from '../effective';
 import { FRICTION, goalXFor, isInOwnArea, maxSpeed, ownGoalX, toRel, toWorld } from '../match';
-import { moveProfile } from '../moves';
+import { hasTrait, MOVE_TUNING, moveProfile, type Trait } from '../moves';
 import type { MatchState, PlayerState, Tactic } from '../state';
 import { add, clamp, dist, len, norm, pointSegment, scale, sub, type Vec2, v } from '../vec';
 import { expectedGoals } from '../xg';
@@ -180,7 +180,13 @@ export class AIController implements Controller {
         if (distGoal < 17 && xg > shootThreshold && s.rng.chance(0.9)) {
             const cmds: Command[] = [];
             // golpe no chute só em chance clara: é o grande momento do lance
-            const slot = this.pickMoveSlot(p, ['strike', 'blast'], xg > 0.22 ? 0.55 : xg > 0.14 ? 0.2 : 0);
+            // golpe de carga (Solar Beam, Sky Attack) só com espaço: marcado, perderia o golpe
+            const slot = this.pickMoveSlot(
+                p,
+                ['strike', 'blast'],
+                xg > 0.22 ? 0.55 : xg > 0.14 ? 0.2 : 0,
+                (m) => pressure < 0.35 || !hasTrait(m, 'charge'),
+            );
             if (slot !== null) cmds.push({ type: 'useMove', slot });
             cmds.push({ type: 'shoot', target: this.shotTarget(p), power: 1 });
             return cmds;
@@ -190,7 +196,12 @@ export class AIController implements Controller {
         if (this.leadFixo(p) && distGoal >= 10 && distGoal < 22 && pressure < 0.45) {
             if (s.rng.chance(0.3 + shootingSkill * 0.25)) {
                 const cmds: Command[] = [];
-                const slot = this.pickMoveSlot(p, ['blast', 'strike'], 0.3);
+                const slot = this.pickMoveSlot(
+                    p,
+                    ['blast', 'strike'],
+                    0.3,
+                    (m) => pressure < 0.35 || !hasTrait(m, 'charge'),
+                );
                 if (slot !== null) cmds.push({ type: 'useMove', slot });
                 cmds.push({ type: 'shoot', target: this.shotTarget(p), power: 1.1 });
                 return cmds;
@@ -201,6 +212,12 @@ export class AIController implements Controller {
         if (pressure > 0.7) {
             const tp = this.pickSpecial(p, ['teleport'], 0.3);
             if (tp !== null) return { type: 'useMove', slot: tp };
+        }
+
+        // 1d) Fly/Dig: marcado perto do gol, passa por cima/por baixo da marcação e finaliza
+        if (pressure > 0.45 && distGoal < 22) {
+            const air = this.pickTraitSlot(p, ['fly', 'dig'], 0.3);
+            if (air !== null) return { type: 'useMove', slot: air };
         }
 
         // 2) passe
@@ -214,7 +231,11 @@ export class AIController implements Controller {
         const cmds: Command[] = [];
         if (pressure > 0.55) {
             const burst = this.pickMoveSlot(p, ['burst'], 0.2);
+            // casco, clones, Minimize, Acid Armor, Defense Curl: protege a bola
+            const guard =
+                burst === null ? this.pickTraitSlot(p, ['shell', 'clones', 'minimize', 'melt', 'curl'], 0.15) : null;
             if (burst !== null) cmds.push({ type: 'useMove', slot: burst });
+            else if (guard !== null) cmds.push({ type: 'useMove', slot: guard });
             else if (s.rng.chance(0.12 + (0.2 * eff(s, p, 'dribble')) / 99)) {
                 cmds.push({ type: 'skill', dir: this.evadeDir(p, goal) });
                 return cmds;
@@ -357,8 +378,30 @@ export class AIController implements Controller {
         let near = Infinity;
         for (const o of s.players) if (o.team !== p.team) near = Math.min(near, dist(o.pos, p.pos));
         if (p.energy < 0.4) {
-            const heal = this.pickMoveSlot(p, ['heal'], 0.04);
+            // Rest dorme: nunca no goleiro com a bola perto
+            const restOk = p.role !== 'GK' || dist(s.ball.pos, p.pos) > 14;
+            const heal = this.pickMoveSlot(p, ['heal'], 0.04, (m) => restOk || m !== 'rest');
             if (heal !== null) return heal;
+        }
+        // golpes de área (Growl, Leer, Poison Gas...) quando tem 2+ rivais em volta
+        let crowd = 0;
+        for (const o of s.players) if (o.team !== p.team && dist(o.pos, p.pos) < MOVE_TUNING.areaRadius) crowd++;
+        if (crowd >= 2) {
+            const area = this.pickMoveSlot(p, ['debuff', 'status'], 0.05, (m) => hasTrait(m, 'area'));
+            if (area !== null) return area;
+        }
+        // rival com a bola chegando no nosso gol: areia no olho, fumaça, muro, rugido
+        const carrier = s.ball.owner !== null ? s.players[s.ball.owner] : null;
+        if (carrier && carrier.team !== p.team && toRel(s, p.team, carrier.pos).x < 16) {
+            const d = dist(carrier.pos, p.pos);
+            if (d < 7) {
+                const hex = this.pickTraitSlot(p, ['blind', 'smoke', 'wall'], 0.05);
+                if (hex !== null) return hex;
+            }
+            if (d < MOVE_TUNING.fleeRange) {
+                const roar = this.pickSpecial(p, ['roar'], 0.04);
+                if (roar !== null) return roar;
+            }
         }
         if (near < 6) {
             const hex = this.pickMoveSlot(p, ['status', 'debuff'], 0.006);
@@ -421,6 +464,15 @@ export class AIController implements Controller {
                     if (strike !== null) cmds.push({ type: 'useMove', slot: strike });
                     cmds.push({ type: 'tackle', targetId: carrier.idx });
                 }
+            } else if (d < MOVE_TUNING.quickRange && p.tackleCooldown <= 0 && this.hasTraitMove(p, 'priority')) {
+                // Quick Attack: bote de longe, sem esperar
+                const quick = this.pickTraitSlot(p, ['priority'], 0.08);
+                if (quick !== null) cmds.push({ type: 'useMove', slot: quick });
+            } else if (d < MOVE_TUNING.reachRange && p.tackleCooldown <= 0 && this.hasTraitMove(p, 'reach')) {
+                // chicote, pedra, osso, Wrap: desarme de longe
+                const reach = this.pickTraitSlot(p, ['reach'], 0.08);
+                if (reach !== null)
+                    cmds.push({ type: 'useMove', slot: reach }, { type: 'tackle', targetId: carrier.idx });
             } else if (d < 6.5) {
                 const slot = this.pickMoveSlot(p, ['blast', 'status', 'debuff'], 0.005);
                 if (slot !== null) cmds.push({ type: 'useMove', slot });
@@ -537,8 +589,27 @@ export class AIController implements Controller {
         return slot >= 0 ? slot : null;
     }
 
+    /** Tem um golpe com o traço e ainda pode usar (sem gastar sorteio). */
+    private hasTraitMove(p: PlayerState, trait: Trait): boolean {
+        if (p.moveCooldown > 0 || this.s.tick < this.s.nextMoveTick) return false;
+        return p.inst.moves.some((m, i) => p.moveUses[i] > 0 && hasTrait(m, trait));
+    }
+
+    /** Golpe com algum dos traços (Fly, Quick Attack, Withdraw...), se tiver e puder usar agora. */
+    private pickTraitSlot(p: PlayerState, traits: Trait[], chance: number): number | null {
+        if (p.moveCooldown > 0 || this.s.tick < this.s.nextMoveTick) return null;
+        const slot = p.inst.moves.findIndex((m, i) => p.moveUses[i] > 0 && traits.some((t) => hasTrait(m, t)));
+        if (slot < 0 || !this.s.rng.chance(chance)) return null;
+        return slot;
+    }
+
     /** Escolhe um golpe disponível dos tipos pedidos, com probabilidade `chance`. */
-    private pickMoveSlot(p: PlayerState, kinds: string[], chance: number): number | null {
+    private pickMoveSlot(
+        p: PlayerState,
+        kinds: string[],
+        chance: number,
+        ok: (moveId: string) => boolean = () => true,
+    ): number | null {
         if (chance <= 0 || p.moveCooldown > 0 || this.s.tick < this.s.nextMoveTick || !this.s.rng.chance(chance)) {
             return null;
         }
@@ -549,7 +620,8 @@ export class AIController implements Controller {
         const slots = p.inst.moves
             .map((m, i) => ({ i, m, prof: moveProfile(m) }))
             .filter(
-                ({ i, m, prof }) => p.moveUses[i] > 0 && kinds.includes(prof.kind) && (m !== 'dreameater' || sleeper),
+                ({ i, m, prof }) =>
+                    p.moveUses[i] > 0 && kinds.includes(prof.kind) && (m !== 'dreameater' || sleeper) && ok(m),
             );
         if (!slots.length) return null;
         return this.s.rng.pick(slots).i;
