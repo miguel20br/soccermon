@@ -21,6 +21,17 @@ As memórias de preferência do Miguel (cópia das do Claude no PC) estão em [.
 - [x] Repositório público + descrição, site e tópicos; Discussions ligado (15/10/2026, v0.7.3 · Beta aberta)
 - [x] Ditto no painel da partida mostrando a forma copiada (14/10/2026)
 
+Polimento combinado em 15/10/2026 (antes de divulgar):
+- [ ] Testar pênaltis, tela de campeão e substituição com o robô (`?demo=penaltis`, `?demo=campeao`)
+- [ ] "Como jogar" curto na primeira copa (3–4 dicas que dá pra fechar e não voltam)
+- [ ] Botão "Dar feedback / reportar bug" na Home e no resultado, apontando pro Discussions
+- [ ] Celular deitado: "Nova copa" fica abaixo da dobra (diminuir quadra/logo; visual: decidir com o Miguel)
+- [ ] Quadra em pé: nomes dos Pokémon se embolam (esconder quando juntos ou só os do seu time; decidir)
+
+Depois do lançamento: contador anônimo de jogadores (Vercel Analytics + página de privacidade), Phaser
+carregado só na partida (Home mais rápida; JS hoje ~600 KB gzip), monitoramento de erros, melhores momentos
+como clipe compartilhável.
+
 Plano do trailer e dos posts de lançamento (LinkedIn como projeto pessoal, X como fan game):
 [divulgacao-trailer.md](divulgacao-trailer.md).
 

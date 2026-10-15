@@ -102,7 +102,10 @@ Plano do trailer e dos posts de lançamento: [docs/planos/divulgacao-trailer.md]
 2. **Domínio próprio** (Miguel compra no Cloudflare, pelo PC): depois trocar as menções de
    `soccermon.vercel.app` (README, SECURITY.md, index.html, share.ts, template de issue, docs), o Site URL e as
    Redirect URLs do Supabase, as origens do Client ID do Google e o site do repo.
-3. Ideias combinadas para depois: melhores momentos/replay (os snapshots já existem), quadras temáticas e
+3. **Polimento antes de divulgar** (lista em `docs/planos/roadmap.md`, seção "Agora"): testar pênaltis/campeão/
+   substituição, "Como jogar", botão de feedback, Home com celular deitado, nomes embolados na quadra.
+4. **Trailer de lançamento:** plano em `docs/planos/trailer-plano.md` (HyperFrames + captura determinística).
+5. Ideias combinadas para depois: melhores momentos/replay (os snapshots já existem), quadras temáticas e
    treinadores, modo carreira (0.8+).
 
 ### Riscos que ele já conhece
