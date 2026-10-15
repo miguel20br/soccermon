@@ -7,7 +7,8 @@
  *
  *   node scripts/trailer-capture.mjs --cena golpe --seed trailer26 --de 126 --ate 134 --out trailer/clips/golpe
  *
- * --de/--ate: segundos de partida (os da caça). --vel: velocidade de reprodução (1 = normal). --largura: px.
+ * --de/--ate: segundos de partida (os da caça). --vel: velocidade de reprodução (1 = normal; 0.25 = câmera lenta
+ * lisa). --largura: px. --modo canvas|pagina. --nomes: mantém os nomes em cima dos Pokémon (padrão: sem).
  * CHROME_PATH aponta o Chromium/Chrome; BASE_URL o servidor de dev (padrão http://localhost:8080).
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -25,6 +26,8 @@ const width = Number(arg('--largura', 1920));
 const out = arg('--out', `trailer/clips/${cena}-${seed}`);
 // canvas: só o jogo, resolução nativa (rápido). pagina: a área da quadra com o HTML por cima (tela de evolução).
 const modo = arg('--modo', 'canvas');
+// trailer sem os nomes em cima dos Pokémon (quadra mais limpa); --nomes mantém
+const semNomes = !args.includes('--nomes');
 if (!cena || !seed) throw new Error('use --cena e --seed (veja scripts/trailer-hunt.ts)');
 
 const TICK_RATE = 20; // FUTSAL_5.tickRate
@@ -190,14 +193,17 @@ await page.evaluate(() => {
 await click('^Começar');
 const step = (dt) =>
     page.evaluate(
-        async (d, gif) => {
+        async (d, gif, semNomes) => {
             window.__t += d;
+            // nomes transparentes ANTES de desenhar (o jogo religa o setVisible a cada quadro; o alpha ele não mexe)
+            if (semNomes) for (const v of window.__soccermonGame.scene.getScene('Match').players) v.label?.setAlpha(0);
             window.__soccermonGame.step(window.__t, d);
             window.__vadvance(d);
             if (gif) await window.__gifTick();
         },
         dt,
         modo === 'pagina',
+        semNomes,
     );
 
 // 1) avança rápido até o começo do lance (8x, sem gravar)

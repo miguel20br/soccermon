@@ -1154,38 +1154,106 @@ export class MatchScene extends Phaser.Scene {
                 const view = this.players[e.by];
                 if (!view) break;
                 const into = species(e.into).name;
+                const sp = view.sprite;
+                const cam = this.cameras.main;
                 playSfx('status');
-                // como a evolução, só que rápido: o Ditto pisca em branco, acelerando, e aí vira a cópia.
-                // Os atrasos também deixam as posições do tick 0 serem aplicadas antes do zoom mirar nele.
-                const blinks = [180, 150, 120, 100, 80, 70, 60, 60];
-                let at = 0;
+                // Transformar, como nos jogos mas em versão "uau": zoom no Ditto, ele amassa e estica como gelatina,
+                // pisca em branco acelerando e explode num anel roxo já como a cópia. A partida segura enquanto isso.
+                // Os atrasos também deixam as posições do tick 0 serem aplicadas antes de a câmera mirar nele.
+                const wobble = cinematic ? 640 : 0;
+                if (cinematic) {
+                    this.holdReal = Math.max(this.holdReal, this.time.now + 1900);
+                    this.time.delayedCall(30, () => {
+                        cam.pan(sp.x, sp.y - 14, 300, 'Sine.easeOut', true);
+                        cam.zoomTo(1.5, 300, 'Sine.easeOut', true);
+                    });
+                    const squash = (x: number, y: number, at: number, ms: number) =>
+                        this.time.delayedCall(at, () =>
+                            this.tweens.add({
+                                targets: sp,
+                                scaleX: SPRITE_SCALE * x,
+                                scaleY: SPRITE_SCALE * y,
+                                duration: ms,
+                                yoyo: true,
+                                ease: 'Sine.easeInOut',
+                            }),
+                        );
+                    squash(1.3, 0.72, 40, 150);
+                    squash(0.78, 1.28, 340, 140);
+                }
+                const blinks = [150, 120, 100, 85, 70, 60, 50, 50];
+                let at = wobble;
                 blinks.forEach((ms, i) => {
                     at += ms;
                     this.time.delayedCall(at, () => {
-                        if (i % 2 === 0) view.sprite.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL);
-                        else view.sprite.setTintMode(Phaser.TintModes.MULTIPLY).clearTint();
+                        if (i % 2 === 0) sp.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL);
+                        else sp.setTintMode(Phaser.TintModes.MULTIPLY).clearTint();
                     });
                 });
-                if (cinematic) {
-                    this.time.delayedCall(60, () =>
-                        this.cine.drama('TRANSFORMAR!', {
-                            color: '#d9a7ff',
-                            stroke: '#2a0b4a',
-                            at: { x: view.sprite.x, y: view.sprite.y },
-                            sub: `${view.name} virou ${into}`,
-                        }),
-                    );
-                }
                 this.time.delayedCall(at + 60, () => {
-                    view.sprite.setTintMode(Phaser.TintModes.MULTIPLY);
+                    sp.setTintMode(Phaser.TintModes.MULTIPLY);
                     this.becomeCopy(e.by, e.into, e.target);
                     this.refreshTint(view);
                     playCry(e.into, cries, 0.8);
-                    this.impact(view.sprite.x, view.sprite.y - 16, 'Normal');
-                    view.sprite.setScale(SPRITE_SCALE * 0.2);
-                    this.tweens.add({ targets: view.sprite, scale: SPRITE_SCALE, duration: 420, ease: 'Back.easeOut' });
+                    this.impact(sp.x, sp.y - 16, 'Psychic');
+                    sp.setScale(SPRITE_SCALE * 0.2);
+                    this.tweens.add({ targets: sp, scale: SPRITE_SCALE, duration: 420, ease: 'Back.easeOut' });
                     this.battleBox.push(`${view.name} se transformou em ${into}!`);
-                    if (!cinematic) this.popText(e.by, `→ ${into}`, '#d9a7ff');
+                    if (!cinematic) {
+                        this.popText(e.by, `→ ${into}`, '#d9a7ff');
+                        return;
+                    }
+                    // explosão: anel roxo duplo, clarão e faíscas de pixel saindo do Ditto
+                    const cx = sp.x;
+                    const cy = sp.y - 16;
+                    const flash = this.add.circle(cx, cy, 26, 0xf3e6ff, 0.9).setDepth(FOCUS_DEPTH + 79);
+                    this.tweens.add({
+                        targets: flash,
+                        scale: 2.2,
+                        alpha: 0,
+                        duration: 260,
+                        onComplete: () => flash.destroy(),
+                    });
+                    for (const [delay, width] of [
+                        [0, 6],
+                        [90, 3],
+                    ]) {
+                        const ring = this.add
+                            .circle(cx, cy, 14)
+                            .setStrokeStyle(width, 0xb07cff, 1)
+                            .setDepth(FOCUS_DEPTH + 80);
+                        this.tweens.add({
+                            targets: ring,
+                            scale: 5,
+                            alpha: 0,
+                            delay,
+                            duration: 560,
+                            ease: 'Cubic.easeOut',
+                            onComplete: () => ring.destroy(),
+                        });
+                    }
+                    for (let k = 0; k < 14; k++) {
+                        const ang = (k / 14) * Math.PI * 2;
+                        const bit = this.add
+                            .rectangle(cx, cy, 4, 4, k % 3 === 0 ? 0xffffff : 0xc89bff)
+                            .setDepth(FOCUS_DEPTH + 81);
+                        this.tweens.add({
+                            targets: bit,
+                            x: cx + Math.cos(ang) * 70,
+                            y: cy + Math.sin(ang) * 46,
+                            alpha: 0,
+                            duration: 520,
+                            ease: 'Quad.easeOut',
+                            onComplete: () => bit.destroy(),
+                        });
+                    }
+                    cam.shake(260, 0.008);
+                    this.cine.drama('TRANSFORMAR!', {
+                        color: '#d9a7ff',
+                        stroke: '#2a0b4a',
+                        at: { x: sp.x, y: sp.y },
+                        sub: `${view.name} virou ${into}`,
+                    });
                 });
                 break;
             }
