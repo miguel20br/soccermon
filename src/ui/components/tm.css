@@ -1,0 +1,183 @@
+/* ---------- MT do ginásio (recompensa) ---------- */
+.tm-card {
+    border-color: var(--tc, var(--line));
+    background:
+        radial-gradient(circle at 50% 28%, color-mix(in srgb, var(--tc, var(--line)) 26%, transparent), transparent 62%),
+        linear-gradient(180deg, var(--panel-2), var(--panel));
+}
+.tm-card .tier-label {
+    color: var(--yellow);
+}
+.tm-card .tm-disc {
+    filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.35));
+    animation: tm-spin 7s linear infinite;
+}
+.tm-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+}
+.tm-learners {
+    font-size: 12px;
+    color: var(--green);
+    font-weight: 700;
+}
+.tm-mark {
+    display: inline-block;
+    margin-left: 4px;
+    padding: 0 4px;
+    border-radius: 4px;
+    background: var(--yellow);
+    color: #141a33;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    vertical-align: middle;
+    line-height: 14px;
+}
+@keyframes tm-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.tm-panel .target-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    border-style: dashed;
+}
+.tm-panel .target-btn:disabled:hover {
+    border-color: var(--line);
+}
+.tm-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.tm-head img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+}
+.tm-head h2 {
+    margin: 0;
+}
+.tm-new {
+    margin: 6px 0 10px;
+}
+.tm-moves {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+.tm-move {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 52px;
+    padding: 6px 10px;
+    background: var(--bg-2);
+    border: 2px solid var(--tc, var(--line));
+    border-left-width: 6px;
+    border-radius: 8px;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.tm-move:hover:not(:disabled) {
+    box-shadow: 0 0 0 2px var(--yellow);
+}
+.tm-move.selected,
+.tm-move.selected:hover:not(:disabled) {
+    box-shadow: 0 0 0 3px var(--red);
+    background: color-mix(in srgb, var(--red) 18%, var(--bg-2));
+}
+.tm-move.selected .tm-move-name b {
+    text-decoration: line-through;
+    text-decoration-color: var(--red);
+    text-decoration-thickness: 2px;
+}
+.tm-move.free.selected .tm-move-name b {
+    text-decoration: none;
+}
+.tm-move:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    border-style: dashed;
+}
+.tm-move.free {
+    border-style: dashed;
+    border-color: var(--green);
+}
+.tm-move-name {
+    display: grid;
+    min-width: 0;
+}
+.tm-move-name b {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.tm-move-name small {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    color: var(--muted);
+    font-size: 11px;
+}
+.tm-confirm {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 12px;
+}
+.tm-confirm > span {
+    flex: 1 1 200px;
+}
+
+.tm-done-box {
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    width: min(360px, 100%);
+    text-align: center;
+}
+.tm-done-box .tm-disc {
+    animation: tm-spin 1s linear infinite;
+}
+.tm-count {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--yellow);
+}
+.tm-done-text {
+    margin: 0;
+    min-height: 2.6em;
+    opacity: 0;
+    transition: opacity 0.25s;
+}
+.tm-done-text.show {
+    opacity: 1;
+}
+
+/* no celular a MT ocupa a linha inteira (o texto do golpe precisa de largura) */
+@media (max-width: 700px) {
+    .reward-grid .option-tm {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+}
+@media (max-width: 420px) {
+    .tm-moves {
+        grid-template-columns: 1fr;
+    }
+    .tm-move {
+        min-height: 44px;
+    }
+}

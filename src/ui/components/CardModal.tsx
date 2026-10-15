@@ -14,6 +14,7 @@ import { TYPE_COLOR } from '../type-colors';
 import { ATTR_SHORT, FutCard } from './FutCard';
 import { LinkChip } from './LinkChips';
 import { TIER_PT, TypeBadge } from './PokeCard';
+import { TaughtMark } from './TmTeach';
 
 /** O que cada tipo de golpe faz no futsal (explicação para o jogador). */
 const KIND_EXPLAIN: Record<string, string> = {
@@ -247,7 +248,10 @@ export function CardModal() {
                                 return (
                                     <div key={m} className="move-detail" style={{ borderColor: TYPE_COLOR[data.type] }}>
                                         <div className="row" style={{ gap: 6, justifyContent: 'space-between' }}>
-                                            <b>{data.name}</b>
+                                            <b>
+                                                {data.name}
+                                                <TaughtMark inst={inst} move={m} />
+                                            </b>
                                             <span className="row" style={{ gap: 4 }}>
                                                 <TypeBadge type={data.type} />
                                                 <span className="pos-chip">{KIND_NAME[prof.kind]}</span>
