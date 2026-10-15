@@ -1,7 +1,16 @@
+import { t } from '../../i18n';
+
 /** Taça da Copa de Kanto desenhada em SVG (dourada, com a pokébola no centro). */
 export function Trophy({ size = 140 }: { size?: number }) {
     return (
-        <svg className="trophy-svg" width={size} height={size} viewBox="0 0 120 120" role="img" aria-label="Taça">
+        <svg
+            className="trophy-svg"
+            width={size}
+            height={size}
+            viewBox="0 0 120 120"
+            role="img"
+            aria-label={t('match.trophy')}
+        >
             <defs>
                 <linearGradient id="tg-gold" x1="0" x2="1" y1="0" y2="1">
                     <stop offset="0" stopColor="#fff3b0" />

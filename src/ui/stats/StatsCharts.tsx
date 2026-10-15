@@ -1,6 +1,8 @@
 import { type ReactNode, useState } from 'react';
 import { FUTSAL_5 } from '../../engine/config';
-import type { ShotOutcome, ShotPoint } from '../../engine/match-stats';
+import type { Leader, ShotOutcome, ShotPoint } from '../../engine/match-stats';
+import { getLang, t, tn } from '../../i18n';
+import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { clubColorHex, colorDistance } from '../../store/profile';
 
@@ -19,6 +21,30 @@ export const awayC = () => {
     const club = clubColorHex(useGame.getState().profile.clubColor);
     return css(colorDistance(club, CHART_AWAY) < 150 ? CHART_ALT : CHART_AWAY);
 };
+/** Título do destaque da partida (Melhor nota, Artilheiro...) no idioma do jogo. */
+export const leaderTitle = (l: Leader) => (getLang() === 'pt' ? l.title : t(`stats.leader.${l.id}`));
+
+/** Valor do destaque ("2 gols", "3 desarmes · 1 intercep.") no idioma do jogo. */
+export function leaderValue(l: Leader): string {
+    if (getLang() === 'pt') return l.value;
+    const s = l.line.stats;
+    switch (l.id) {
+        case 'scorer':
+            return tn('common.count.goals', s.goals);
+        case 'runner':
+            return t('stats.leaderValue.meters', { n: l.line.distance });
+        case 'tackler':
+            return t('stats.leaderValue.tackler', {
+                tackles: tn('common.count.tackles', s.tacklesWon),
+                n: s.interceptions,
+            });
+        case 'keeper':
+            return tn('common.count.saves', s.saves);
+        default:
+            return l.value;
+    }
+}
+
 const GRID = '#3a4680';
 const TEXT = 'var(--text)';
 const MUTED = 'var(--muted)';
@@ -113,6 +139,7 @@ export function DangerChart({
     data: { home: number; away: number; goals: [number, number] }[];
     names: [string, string];
 }) {
+    const { t } = useT();
     const { tip, show, hide } = useTip();
     const W = 560;
     const H = 220;
@@ -124,12 +151,12 @@ export function DangerChart({
     const bw = Math.min(24, band * 0.5);
     return (
         <div className="st-chart">
-            <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Perigo de cada time por período" onMouseLeave={hide}>
+            <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t('stats.chart.dangerAria')} onMouseLeave={hide}>
                 <line x1={pad.l} x2={W - pad.r} y1={mid} y2={mid} stroke={GRID} strokeWidth={1} />
                 {/* intervalo */}
                 <line x1={W / 2} x2={W / 2} y1={pad.t - 10} y2={H - pad.b} stroke={GRID} strokeWidth={1} />
                 <text x={W / 2} y={pad.t - 14} fill={MUTED} fontSize={10} textAnchor="middle">
-                    intervalo
+                    {t('stats.chart.halfTime')}
                 </text>
                 {data.map((d, i) => {
                     const cx = pad.l + band * i + band / 2;
@@ -150,9 +177,17 @@ export function DangerChart({
                                                 {PERIOD_LABEL[i]}–{i === 7 ? "40'" : PERIOD_LABEL[i + 1]}
                                             </b>
                                             <br />
-                                            {names[0]}: perigo {d.home.toFixed(2)} · {d.goals[0]} gol(s)
+                                            {t('stats.chart.danger', {
+                                                team: names[0],
+                                                v: d.home.toFixed(2),
+                                                n: d.goals[0],
+                                            })}
                                             <br />
-                                            {names[1]}: perigo {d.away.toFixed(2)} · {d.goals[1]} gol(s)
+                                            {t('stats.chart.danger', {
+                                                team: names[1],
+                                                v: d.away.toFixed(2),
+                                                n: d.goals[1],
+                                            })}
                                         </>
                                     ),
                                 })
@@ -193,6 +228,7 @@ export function DangerChart({
 
 /** Posse por período: coluna 100% (seu time embaixo, rival em cima) com a sua porcentagem. */
 export function PossessionChart({ data, names }: { data: { home: number; away: number }[]; names: [string, string] }) {
+    const { t } = useT();
     const { tip, show, hide } = useTip();
     const W = 560;
     const H = 170;
@@ -202,7 +238,7 @@ export function PossessionChart({ data, names }: { data: { home: number; away: n
     const ph = H - pad.t - pad.b;
     return (
         <div className="st-chart">
-            <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Posse de bola por período" onMouseLeave={hide}>
+            <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t('stats.chart.possessionAria')} onMouseLeave={hide}>
                 <line x1={pad.l} x2={W - pad.r} y1={pad.t + ph / 2} y2={pad.t + ph / 2} stroke={GRID} strokeWidth={1} />
                 {data.map((d, i) => {
                     const cx = pad.l + band * i + band / 2;
@@ -257,14 +293,6 @@ export function PossessionChart({ data, names }: { data: { home: number; away: n
     );
 }
 
-const OUTCOME_PT: Record<ShotOutcome, string> = {
-    gol: 'Gol',
-    defesa: 'Defesa',
-    trave: 'Trave',
-    fora: 'Fora',
-    bloqueado: 'Bloqueado',
-};
-
 function ShotMark({ s, x, y, color }: { s: ShotPoint; x: number; y: number; color?: string }) {
     const c = color ?? (s.team === 0 ? homeC() : awayC());
     switch (s.outcome) {
@@ -296,6 +324,8 @@ function ShotMark({ s, x, y, color }: { s: ShotPoint; x: number; y: number; colo
 
 /** Mapa de chutes na mini quadra: de onde saiu cada chute; o formato diz como terminou. */
 export function ShotMapChart({ shots }: { shots: ShotPoint[] }) {
+    const { t, d } = useT();
+    const outcome = (o: ShotOutcome) => d.stats.chart.outcome[o] ?? o;
     const { tip, show, hide } = useTip();
     const { length, width, goalWidth, penaltyAreaDepth } = FUTSAL_5.pitch;
     const k = 13;
@@ -306,7 +336,7 @@ export function ShotMapChart({ shots }: { shots: ShotPoint[] }) {
     const py = (y: number) => pad + y * k;
     return (
         <div className="st-chart">
-            <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Mapa de chutes" onMouseLeave={hide}>
+            <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={t('stats.chart.shotMapAria')} onMouseLeave={hide}>
                 <rect x={px(0)} y={py(0)} width={length * k} height={width * k} rx={4} fill="#1b244a" stroke={GRID} />
                 <line x1={px(length / 2)} x2={px(length / 2)} y1={py(0)} y2={py(width)} stroke={GRID} />
                 <circle cx={px(length / 2)} cy={py(width / 2)} r={3 * k} fill="none" stroke={GRID} />
@@ -342,8 +372,9 @@ export function ShotMapChart({ shots }: { shots: ShotPoint[] }) {
                                             {s.minute}' {s.name}
                                         </b>
                                         <br />
-                                        {OUTCOME_PT[s.outcome]} · chance {Math.round(s.xg * 100)}%
-                                        {s.move ? ' · com golpe' : ''}
+                                        {outcome(s.outcome)}
+                                        {t('stats.chart.chance', { n: Math.round(s.xg * 100) })}
+                                        {s.move ? t('stats.chart.withMove') : ''}
                                     </>
                                 ),
                             })
@@ -360,7 +391,7 @@ export function ShotMapChart({ shots }: { shots: ShotPoint[] }) {
                         <svg width={16} height={16} viewBox="-8 -8 16 16" aria-hidden>
                             <ShotMark s={{ outcome: o, team: 0 } as ShotPoint} x={0} y={0} color="#c8cde8" />
                         </svg>
-                        {OUTCOME_PT[o]}
+                        {outcome(o)}
                     </span>
                 ))}
             </div>

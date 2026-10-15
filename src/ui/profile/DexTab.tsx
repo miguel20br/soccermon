@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import { SPECIES } from '../../engine/data';
+import { typeName } from '../../i18n';
+import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { type DexEntry, isPlayed } from '../../store/profile';
 import { TypeIcon } from '../components/TypeIcon';
-import { TYPE_PT } from '../type-colors';
 import { speciesGif } from './club';
 import { BallMark } from './icons';
 import { dexNo, SpeciesSheet } from './SpeciesSheet';
@@ -11,12 +12,7 @@ import { dexNo, SpeciesSheet } from './SpeciesSheet';
 type Status = 'played' | 'seen' | 'unseen';
 type Filter = 'all' | Status;
 
-const FILTERS: { id: Filter; label: string }[] = [
-    { id: 'all', label: 'Todos' },
-    { id: 'played', label: 'Jogaram' },
-    { id: 'seen', label: 'Só vistos' },
-    { id: 'unseen', label: 'Faltam' },
-];
+const FILTERS: Filter[] = ['all', 'played', 'seen', 'unseen'];
 
 const statusOf = (e: DexEntry | undefined): Status => (!e ? 'unseen' : isPlayed(e) ? 'played' : 'seen');
 
@@ -30,6 +26,7 @@ export function DexTab() {
     const [filter, setFilter] = useState<Filter>('all');
     const [type, setType] = useState<string | null>(null);
     const [open, setOpen] = useState<number | null>(null);
+    const { t, d, lang } = useT();
 
     const counts = useMemo(() => {
         const c = { all: TOTAL, played: 0, seen: 0, unseen: 0 };
@@ -56,16 +53,16 @@ export function DexTab() {
             <div className="pf-dex-progress">
                 <div className="pf-dex-counts">
                     <span>
-                        Vistos <b>{seenCount}</b>/{TOTAL}
+                        {t('profile.dex.seen')} <b>{seenCount}</b>/{TOTAL}
                     </span>
                     <span>
-                        <BallMark /> Jogaram <b>{counts.played}</b>/{TOTAL}
+                        <BallMark /> {t('profile.dex.played')} <b>{counts.played}</b>/{TOTAL}
                     </span>
                 </div>
                 <div
                     className="pf-bar"
                     role="img"
-                    aria-label={`${seenCount} de ${TOTAL} vistos, ${counts.played} jogaram pelo seu time`}
+                    aria-label={t('profile.dex.barAria', { seen: seenCount, total: TOTAL, played: counts.played })}
                 >
                     <i className="seen" style={{ width: `${(seenCount / TOTAL) * 100}%` }} />
                     <i className="played" style={{ width: `${(counts.played / TOTAL) * 100}%` }} />
@@ -73,32 +70,32 @@ export function DexTab() {
             </div>
 
             <fieldset className="pf-filters">
-                <legend className="pf-sr">Filtrar por situação</legend>
+                <legend className="pf-sr">{t('profile.dex.filterStatus')}</legend>
                 {FILTERS.map((f) => (
                     <button
                         type="button"
-                        key={f.id}
-                        className={`pf-chip${filter === f.id ? ' active' : ''}`}
-                        aria-pressed={filter === f.id}
-                        onClick={() => setFilter(f.id)}
+                        key={f}
+                        className={`pf-chip${filter === f ? ' active' : ''}`}
+                        aria-pressed={filter === f}
+                        onClick={() => setFilter(f)}
                     >
-                        {f.label} <small>{counts[f.id]}</small>
+                        {d.profile.dex.filters[f]} <small>{counts[f]}</small>
                     </button>
                 ))}
             </fieldset>
             <fieldset className="pf-types">
-                <legend className="pf-sr">Filtrar por tipo</legend>
-                {TYPES.map((t) => (
+                <legend className="pf-sr">{t('profile.dex.filterType')}</legend>
+                {TYPES.map((ty) => (
                     <button
                         type="button"
-                        key={t}
-                        className={`pf-type${type === t ? ' active' : ''}`}
-                        aria-pressed={type === t}
-                        aria-label={`Tipo ${TYPE_PT[t] ?? t}`}
-                        title={TYPE_PT[t] ?? t}
-                        onClick={() => setType(type === t ? null : t)}
+                        key={ty}
+                        className={`pf-type${type === ty ? ' active' : ''}`}
+                        aria-pressed={type === ty}
+                        aria-label={t('profile.dex.typeAria', { type: typeName(ty, lang) })}
+                        title={typeName(ty, lang)}
+                        onClick={() => setType(type === ty ? null : ty)}
                     >
-                        <TypeIcon type={t} size={22} label={type === t} />
+                        <TypeIcon type={ty} size={22} label={type === ty} />
                     </button>
                 ))}
             </fieldset>
@@ -114,7 +111,7 @@ export function DexTab() {
                                     type="button"
                                     className={`pf-cell ${st}`}
                                     onClick={() => setOpen(sp.id)}
-                                    aria-label={`Nº ${dexNo(sp.id)} ${known ? sp.name : 'não visto'}${st === 'played' ? ', jogou pelo seu time' : ''}`}
+                                    aria-label={`${t('profile.dex.cellAria', { no: dexNo(sp.id), name: known ? sp.name : t('profile.dex.notSeenLower') })}${st === 'played' ? t('profile.dex.playedForYou') : ''}`}
                                 >
                                     <span className="pf-cell-no">{dexNo(sp.id)}</span>
                                     <img
@@ -135,10 +132,10 @@ export function DexTab() {
             ) : (
                 <p className="pf-empty">
                     {filter === 'unseen' && type
-                        ? 'O tipo de quem falta fica escondido até você ver o Pokémon.'
+                        ? t('profile.dex.emptyUnseenType')
                         : filter === 'played'
-                          ? 'Ninguém jogou pelo seu time ainda. Comece uma copa!'
-                          : 'Nenhum Pokémon por aqui ainda.'}
+                          ? t('profile.dex.emptyPlayed')
+                          : t('profile.dex.empty')}
                 </p>
             )}
 

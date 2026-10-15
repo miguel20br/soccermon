@@ -14,6 +14,7 @@ import { Rng } from '../engine/rng';
 import type { MatchResult } from '../engine/runners/batch-runner';
 import { rollSpecial as roll, SPECIALS_LIVE, weeklyEventType } from '../engine/specials';
 import { teachMove } from '../engine/tm';
+import { detectLang, type Lang } from '../i18n/lang';
 import {
     type Career,
     clubColorHex,
@@ -160,6 +161,8 @@ export interface Settings {
     confirmLeave: boolean;
     /** Enviar estatísticas anônimas do jogo (sem conta, sem cookie). */
     stats: boolean;
+    /** Idioma (o padrão segue o navegador). */
+    lang: Lang;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -174,6 +177,7 @@ export const DEFAULT_SETTINGS: Settings = {
     tips: true,
     confirmLeave: true,
     stats: true,
+    lang: detectLang(),
 };
 
 export interface Records {

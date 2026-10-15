@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import { useCloud } from '../../cloud/cloud';
+import { t } from '../../i18n';
 import { useGame } from '../../store/game-store';
 import { type Avatar, clubColorHex, type Profile, rivalColor } from '../../store/profile';
 import './club.css';
@@ -18,7 +19,7 @@ export function clubVars(club: number, rival?: number): CSSProperties {
 
 /** Nome que aparece para o treinador: o escolhido, senão o da conta Google, senão "Treinador". */
 export function trainerLabel(profile: Profile, googleName?: string | null): string {
-    return profile.trainerName.trim() || googleName?.trim() || 'Treinador';
+    return profile.trainerName.trim() || googleName?.trim() || t('profile.trainer');
 }
 
 export const speciesGif = (id: number) => `assets/cards/${id}.gif`;

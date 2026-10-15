@@ -1,26 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
-import { type AttrKey, POSITION_LABEL, POSITIONS, type Position } from '../../engine/attributes';
+import { type AttrKey, POSITIONS, type Position } from '../../engine/attributes';
 import { MOVES, type Tier } from '../../engine/data';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { editionOf } from '../../engine/specials';
+import { dict, moveName } from '../../i18n';
+import { useT } from '../../i18n/react';
 import { type CardAction, useCardModal } from '../card-modal';
-import { EDITION } from '../rarity';
+import { editionLabel } from '../rarity';
 import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
-import { TIER_PT, TypeBadge } from './PokeCard';
+import { TypeBadge } from './PokeCard';
 import { PokeCard2 } from './PokeCard2';
 
-export const ATTR_SHORT: Record<AttrKey, string> = {
-    pace: 'Velocidade',
-    dribble: 'Drible',
-    shooting: 'Chute',
-    passing: 'Passe',
-    tackling: 'Desarme',
-    strength: 'Força',
-    positioning: 'Leitura',
-    stamina: 'Fôlego',
-    goalkeeping: 'Goleiro',
-};
+/** Nomes dos atributos em português (no idioma do jogo: `dict().common.attr`). */
+export const ATTR_SHORT: Record<AttrKey, string> = dict('pt').common.attr;
 
 const LONG_PRESS_MS = 420;
 
@@ -59,6 +52,7 @@ export function FutCard({
     inModal = false,
 }: FutCardProps) {
     const open = useCardModal((s) => s.open);
+    const { t, d } = useT();
     const [peek, setPeek] = useState(false);
     const hoverTimer = useRef<number | undefined>(undefined);
     const pressTimer = useRef<number | undefined>(undefined);
@@ -130,34 +124,39 @@ export function FutCard({
                 onPointerCancel={onPointerLeave}
                 onContextMenu={(e) => e.preventDefault()}
                 tabIndex={inModal ? -1 : undefined}
-                aria-label={`${view.displayName}, ${display} de ${POSITION_LABEL[pos]}${edition ? `, edição ${EDITION[edition].label}` : ''}. Abrir carta completa`}
+                aria-label={t('team.card.aria', {
+                    name: view.displayName,
+                    rating: display,
+                    pos: d.common.pos[pos],
+                    edition: edition ? t('team.card.editionAria', { label: editionLabel(edition) }) : '',
+                })}
             >
                 <PokeCard2 inst={inst} variant="metal" position={pos} captain={captain} />
                 {ribbon && <span className="fut-ribbon">{ribbon}</span>}
 
                 {peek && (
                     <span className="fut-peek" aria-hidden>
-                        <span className="peek-title">Posições</span>
+                        <span className="peek-title">{t('team.card.positions')}</span>
                         {positions.map((x) => (
                             <span key={x.p} className={`peek-row ${x.fit}`}>
-                                {POSITION_LABEL[x.p]} <b>{x.display}</b>
+                                {d.common.pos[x.p]} <b>{x.display}</b>
                             </span>
                         ))}
-                        <span className="peek-title">Destaques</span>
+                        <span className="peek-title">{t('team.card.highlights')}</span>
                         {best.map((b) => (
                             <span key={b.k} className="peek-row">
-                                {ATTR_SHORT[b.k]} <b>{b.v}</b>
+                                {d.common.attr[b.k]} <b>{b.v}</b>
                             </span>
                         ))}
-                        <span className="peek-title">Golpes</span>
+                        <span className="peek-title">{t('team.card.moves')}</span>
                         <span className="peek-moves">
                             {inst.moves.map((m) => (
                                 <i key={m} style={{ borderColor: TYPE_COLOR[MOVES[m].type] }}>
-                                    {MOVES[m].name}
+                                    {moveName(m)}
                                 </i>
                             ))}
                         </span>
-                        <span className="peek-hint">toque para ver a carta completa</span>
+                        <span className="peek-hint">{t('team.card.peekHint')}</span>
                     </span>
                 )}
             </button>
@@ -175,5 +174,5 @@ export function FutCard({
 }
 
 /** Rótulo curto da raridade (para a carta completa). */
-export const tierLabel = (tier: Tier) => TIER_PT[tier];
+export const tierLabel = (tier: Tier) => dict().common.tier[tier];
 export { TypeBadge };

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { t } from '../i18n';
 import { GAME_H, GAME_W } from './court';
 
 /**
@@ -268,7 +269,14 @@ export class Cinematics {
                 ),
             );
         } else {
-            parts.push(this.scene.add.text(0, 0, opts.withBall ? ' no chute' : ' usou', lineStyle('#ffffff')));
+            parts.push(
+                this.scene.add.text(
+                    0,
+                    0,
+                    opts.withBall ? t('match.castShot') : t('match.castUsed'),
+                    lineStyle('#ffffff'),
+                ),
+            );
         }
         let cursor = 0;
         for (const t of parts) {

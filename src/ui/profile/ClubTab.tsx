@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useCloud } from '../../cloud/cloud';
 import { species } from '../../engine/data';
+import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { CLUB_COLORS, DEFAULT_PROFILE, isPlayed, type Profile, rivalColor, tagFromName } from '../../store/profile';
 import { hexCss, speciesGif } from './club';
@@ -37,6 +38,7 @@ export function ClubTab() {
     const run = useGame((s) => s.run);
     const user = useCloud((s) => s.user);
     const [saved, flash] = useSavedFlash();
+    const { t, d } = useT();
     const save = (patch: Partial<Profile>) => {
         updateProfile(patch);
         flash();
@@ -62,20 +64,20 @@ export function ClubTab() {
             <div className={`pf-saved${saved ? ' on' : ''}`} aria-live="polite">
                 {saved && (
                     <>
-                        <CheckIcon /> Salvo
+                        <CheckIcon /> {t('profile.club.saved')}
                     </>
                 )}
             </div>
 
             <section className="panel pf-card">
-                <h2>Treinador</h2>
+                <h2>{t('profile.club.trainerTitle')}</h2>
                 <label className="pf-field">
-                    <span>Seu nome</span>
+                    <span>{t('profile.club.yourName')}</span>
                     <input
                         className="pf-input"
                         value={profile.trainerName}
                         maxLength={20}
-                        placeholder={user?.name || 'Treinador'}
+                        placeholder={user?.name || t('profile.trainer')}
                         autoComplete="nickname"
                         onChange={(e) => save({ trainerName: e.target.value })}
                         onBlur={(e) => {
@@ -85,7 +87,7 @@ export function ClubTab() {
                     />
                 </label>
                 <fieldset className="pf-field">
-                    <legend>Avatar</legend>
+                    <legend>{t('profile.club.avatar')}</legend>
                     <div className="pf-avatars">
                         {user?.avatar && (
                             <button
@@ -93,9 +95,13 @@ export function ClubTab() {
                                 aria-pressed={av.kind === 'google'}
                                 className={`pf-av${av.kind === 'google' ? ' active' : ''}`}
                                 onClick={() => save({ avatar: { kind: 'google' } })}
-                                title="Foto da conta Google"
+                                title={t('profile.club.googlePhoto')}
                             >
-                                <img src={user.avatar} alt="Foto da conta Google" referrerPolicy="no-referrer" />
+                                <img
+                                    src={user.avatar}
+                                    alt={t('profile.club.googlePhoto')}
+                                    referrerPolicy="no-referrer"
+                                />
                             </button>
                         )}
                         {avatars.map((id) => {
@@ -114,15 +120,15 @@ export function ClubTab() {
                             );
                         })}
                     </div>
-                    <small className="muted">Os Pokémon que jogarem pelo seu time viram opção de avatar.</small>
+                    <small className="muted">{t('profile.club.avatarHelp')}</small>
                 </fieldset>
             </section>
 
             <section className="panel pf-card">
-                <h2>Clube</h2>
+                <h2>{t('profile.club.clubTitle')}</h2>
                 <div className="pf-row">
                     <label className="pf-field grow">
-                        <span>Nome do clube</span>
+                        <span>{t('profile.club.clubName')}</span>
                         <input
                             className="pf-input"
                             value={profile.clubName}
@@ -143,7 +149,7 @@ export function ClubTab() {
                         />
                     </label>
                     <label className="pf-field pf-tag-field">
-                        <span>Sigla</span>
+                        <span>{t('profile.club.tag')}</span>
                         <input
                             className="pf-input pf-tag-input"
                             value={tag}
@@ -167,12 +173,12 @@ export function ClubTab() {
                     </label>
                 </div>
                 <small id="pf-tag-help" className="muted">
-                    O nome já vem preenchido na Nova copa. A sigla (3 letras ou números) aparece no placar do celular.
-                    {runOld && ` A copa em andamento continua como ${run?.teamName}.`}
+                    {t('profile.club.tagHelp')}
+                    {runOld && t('profile.club.runOld', { team: run?.teamName ?? '' })}
                 </small>
 
                 <fieldset className="pf-field">
-                    <legend>Cor do clube</legend>
+                    <legend>{t('profile.club.color')}</legend>
                     <div className="pf-colors">
                         {CLUB_COLORS.map((c) => {
                             const on = c.id === profile.clubColor;
@@ -186,7 +192,7 @@ export function ClubTab() {
                                     onClick={() => save({ clubColor: c.id })}
                                 >
                                     <i />
-                                    <span>{c.name}</span>
+                                    <span>{d.common.color[c.id] ?? c.name}</span>
                                 </button>
                             );
                         })}
@@ -194,8 +200,12 @@ export function ClubTab() {
                 </fieldset>
 
                 <div className="pf-field">
-                    <span>Prévia do placar</span>
-                    <div className="pf-preview" role="img" aria-label={`Prévia: ${profile.clubTag} 2 x 1 rival`}>
+                    <span>{t('profile.club.preview')}</span>
+                    <div
+                        className="pf-preview"
+                        role="img"
+                        aria-label={t('profile.club.previewAria', { tag: profile.clubTag })}
+                    >
                         <span className="pf-pv-team" style={{ ['--c' as string]: hexCss(club) }}>
                             <i />
                             {profile.clubTag}
@@ -206,9 +216,7 @@ export function ClubTab() {
                             <i />
                         </span>
                     </div>
-                    {rival !== PREVIEW_RIVAL && (
-                        <small className="muted">Rival com cor parecida com a sua usa o uniforme reserva.</small>
-                    )}
+                    {rival !== PREVIEW_RIVAL && <small className="muted">{t('profile.club.awayKit')}</small>}
                 </div>
             </section>
         </div>

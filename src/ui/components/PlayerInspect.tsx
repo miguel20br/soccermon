@@ -4,31 +4,15 @@ import { EVO_THRESHOLD, evolutionTarget, evoScore } from '../../engine/evolution
 import { attributeModifiers, moveModifiers } from '../../engine/modifiers';
 import { moveProfile } from '../../engine/moves';
 import type { MatchResult } from '../../engine/runners/batch-runner';
-import {
-    FLAG_BUFF,
-    FLAG_CHARGED,
-    FLAG_DEBUFF,
-    SNAP_STRIDE,
-    TACTIC_LABEL,
-    type Tactic,
-    type TeamSetup,
-} from '../../engine/state';
+import { FLAG_BUFF, FLAG_CHARGED, FLAG_DEBUFF, SNAP_STRIDE, type Tactic, type TeamSetup } from '../../engine/state';
 import { EventBus } from '../../game/EventBus';
+import { modLabel, moveModLabel, moveName } from '../../i18n';
+import { useT } from '../../i18n/react';
 import { useCardModal } from '../card-modal';
 import { lineupAt, snapAt, statsUntil, whoAt } from '../match-view';
 import { TYPE_COLOR } from '../type-colors';
 import { FutCard } from './FutCard';
 import { TaughtMark } from './TmTeach';
-
-const STATUS_PT: Record<number, string> = {
-    1: 'Paralisado: mais lento',
-    2: 'Dormindo: não joga',
-    3: 'Envenenado: perde fôlego',
-    4: 'Queimado: chuta e tromba mais fraco',
-    5: 'Congelado: não joga',
-    6: 'Confuso: erra passe e chute',
-    7: 'Apaixonado: não joga',
-};
 
 /**
  * Painel de um jogador em campo (tocar no Pokémon): carta, fôlego, status, bônus/penalidades agora,
@@ -45,6 +29,7 @@ export function PlayerInspect({
     tactics: [Tactic, Tactic];
 }) {
     const [open, setOpen] = useState<{ idx: number; tick: number } | null>(null);
+    const { t, d, lang } = useT();
     const close = useCallback(() => {
         setOpen(null);
         EventBus.emit('match:inspect-close');
@@ -96,14 +81,16 @@ export function PlayerInspect({
     const evoPct = Math.min(100, Math.round((evoScore(stats, who.role) / EVO_THRESHOLD) * 100));
     const moveMods = moveModifiers(inst);
 
+    // status: o que ele faz agora (Apaixonado só aparece aqui)
+    const statusText = status === 7 ? t('team.inspect.infatuated') : d.common.statusEffect[status];
     const live: { up: boolean; text: string }[] = [];
-    if (flags & FLAG_BUFF) live.push({ up: true, text: 'Reforçado por um golpe (atributos acima do normal)' });
-    if (flags & FLAG_DEBUFF) live.push({ up: false, text: 'Enfraquecido por um golpe do rival' });
-    if (flags & FLAG_CHARGED) live.push({ up: true, text: 'Golpe carregado para o próximo chute ou desarme' });
-    if (STATUS_PT[status]) live.push({ up: false, text: STATUS_PT[status] });
-    if (fatigue > 0) live.push({ up: false, text: `Cansaço: −${fatigue}% em tudo` });
-    if (behind >= 3) live.push({ up: true, text: `Garra (perdendo por ${behind}): cresce no jogo` });
-    live.push({ up: true, text: `Tática: ${TACTIC_LABEL[tactics[who.team]]}` });
+    if (flags & FLAG_BUFF) live.push({ up: true, text: t('team.inspect.buffed') });
+    if (flags & FLAG_DEBUFF) live.push({ up: false, text: t('team.inspect.debuffed') });
+    if (flags & FLAG_CHARGED) live.push({ up: true, text: t('team.inspect.charged') });
+    if (statusText) live.push({ up: false, text: statusText });
+    if (fatigue > 0) live.push({ up: false, text: t('team.inspect.fatigue', { n: fatigue }) });
+    if (behind >= 3) live.push({ up: true, text: t('team.inspect.grit', { n: behind }) });
+    live.push({ up: true, text: t('team.inspect.tactic', { tactic: d.common.tactic[tactics[who.team]] }) });
 
     return (
         // biome-ignore lint/a11y/noStaticElementInteractions: clicar fora fecha; Esc e o botão cobrem o teclado
@@ -113,14 +100,14 @@ export function PlayerInspect({
                 className="modal panel inspect-panel"
                 role="dialog"
                 aria-modal="true"
-                aria-label={`Jogador ${inst.nickname ?? species(inst.speciesId).name}`}
+                aria-label={t('team.inspect.aria', { name: inst.nickname ?? species(inst.speciesId).name })}
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="inspect-grid">
                     <div className="inspect-left">
                         <FutCard inst={inst} position={who.role} captain={inst.uid === setup.captainUid} />
                         <div className="inspect-energy">
-                            <span>Fôlego</span>
+                            <span>{t('team.inspect.stamina')}</span>
                             <span className="bar">
                                 <i
                                     style={{
@@ -133,7 +120,7 @@ export function PlayerInspect({
                         </div>
                         {target && !who.evolved && !who.transformed && (
                             <div className="inspect-energy evo">
-                                <span>Evolução</span>
+                                <span>{t('team.inspect.evolution')}</span>
                                 <span className="bar">
                                     <i style={{ width: `${evoPct}%` }} />
                                 </span>
@@ -142,19 +129,19 @@ export function PlayerInspect({
                         )}
                         {target && !who.evolved && !who.transformed && (
                             <div className="muted inspect-note">
-                                Jogando bem para a posição, evolui para {species(target).name} na próxima bola parada.
+                                {t('team.inspect.evolveNote', { name: species(target).name })}
                             </div>
                         )}
-                        {who.evolved && <div className="muted inspect-note">Já evoluiu nesta partida.</div>}
+                        {who.evolved && <div className="muted inspect-note">{t('team.inspect.evolved')}</div>}
                         {who.transformed && !who.evolved && (
                             <div className="muted inspect-note">
-                                Ditto (Transformar): virou {species(inst.speciesId).name} nesta partida e não evolui.
+                                {t('team.inspect.ditto', { name: species(inst.speciesId).name })}
                             </div>
                         )}
                     </div>
                     <div className="inspect-right">
                         <h2>{inst.nickname ?? species(inst.speciesId).name}</h2>
-                        <h3>Agora</h3>
+                        <h3>{t('team.inspect.now')}</h3>
                         <div className="mod-list">
                             {live.map((l) => (
                                 <div key={l.text} className={`mod-row ${l.up ? 'up' : 'down'}`}>
@@ -167,23 +154,23 @@ export function PlayerInspect({
                                 return (
                                     <div key={m.label} className={`mod-row ${up ? 'up' : 'down'}`}>
                                         <span>{up ? '▲' : '▼'}</span>
-                                        {m.label}
+                                        {modLabel(m, lang)}
                                     </div>
                                 );
                             })}
                         </div>
-                        <h3>Na partida</h3>
+                        <h3>{t('team.inspect.inMatch')}</h3>
                         <div className="inspect-stats">
                             {(
                                 [
-                                    ['Gols', stats.goals],
-                                    ['Assist.', stats.assists],
-                                    ['Chutes', stats.shots],
-                                    ['Passes', stats.passes],
-                                    ['Desarmes', `${stats.tacklesWon}/${stats.tackles}`],
-                                    ['Intercept.', stats.interceptions],
-                                    ['Defesas', stats.saves],
-                                    ['Golpes', stats.movesUsed],
+                                    [d.team.inspect.stats.goals, stats.goals],
+                                    [d.team.inspect.stats.assists, stats.assists],
+                                    [d.team.inspect.stats.shots, stats.shots],
+                                    [d.team.inspect.stats.passes, stats.passes],
+                                    [d.team.inspect.stats.tackles, `${stats.tacklesWon}/${stats.tackles}`],
+                                    [d.team.inspect.stats.interceptions, stats.interceptions],
+                                    [d.team.inspect.stats.saves, stats.saves],
+                                    [d.team.inspect.stats.moves, stats.movesUsed],
                                 ] as [string, string | number][]
                             ).map(([label, v]) => (
                                 <div key={label}>
@@ -192,7 +179,7 @@ export function PlayerInspect({
                                 </div>
                             ))}
                         </div>
-                        <h3>Golpes</h3>
+                        <h3>{t('team.inspect.moves')}</h3>
                         <div className="inspect-moves">
                             {inst.moves.map((m) => {
                                 const data = MOVES[m];
@@ -207,17 +194,23 @@ export function PlayerInspect({
                                         style={{ borderColor: TYPE_COLOR[data.type] }}
                                     >
                                         <b>
-                                            {data.name}
+                                            {moveName(m)}
                                             <TaughtMark inst={inst} move={m} />
                                         </b>
-                                        <span>{locked ? 'travado' : left === 0 ? 'já usado' : `${left}x`}</span>
-                                        {boost && <em className="attr-mod up">▲ {boost.label}</em>}
+                                        <span>
+                                            {locked
+                                                ? t('team.inspect.locked')
+                                                : left === 0
+                                                  ? t('team.inspect.used')
+                                                  : `${left}x`}
+                                        </span>
+                                        {boost && <em className="attr-mod up">▲ {moveModLabel(boost, lang)}</em>}
                                     </div>
                                 );
                             })}
                         </div>
                         <button type="button" className="btn primary" onClick={close}>
-                            Voltar à partida
+                            {t('team.inspect.back')}
                         </button>
                     </div>
                 </div>

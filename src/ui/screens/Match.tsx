@@ -13,8 +13,10 @@ import {
 import { setVolume } from '../../game/audio';
 import { EventBus } from '../../game/EventBus';
 import type { MatchSceneData } from '../../game/scenes/MatchScene';
+import { clubName, stageName } from '../../i18n';
+import { rich, useT } from '../../i18n/react';
 import { PhaserGame } from '../../PhaserGame';
-import { type PlaybackSpeed, playerTeam, stageLabel, useGame } from '../../store/game-store';
+import { type PlaybackSpeed, playerTeam, useGame } from '../../store/game-store';
 import { rivalColor, tagFromName } from '../../store/profile';
 import { Commentator, type CommentLine } from '../commentary';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
@@ -27,14 +29,14 @@ import { LeaveConfirm } from '../leave-guard';
 import { useClubColor } from '../profile/club';
 import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
-import { plural } from '../text';
 
+/** Velocidades (o rótulo de 'highlights' vem do dicionário: "Lances"). */
 const SPEEDS: { value: PlaybackSpeed; label: string }[] = [
     { value: 1, label: '1x' },
     { value: 2, label: '2x' },
     { value: 4, label: '4x' },
     { value: 8, label: '8x' },
-    { value: 'highlights', label: 'Lances' },
+    { value: 'highlights', label: '' },
 ];
 
 const MAX_TACTIC_CHANGES = 3;
@@ -57,6 +59,7 @@ interface Clock {
 
 export function Match() {
     const { run, match, settings, updateSettings, recordResult, setMatch, go, saveLive } = useGame();
+    const { t, tn, d } = useT();
     // retomando uma partida que ficou no meio: mesmo ponto e mesmas ordens
     const resume = useRef(run?.live?.stage === run?.stage ? (run?.live ?? null) : null).current;
     const [fontsReady, setFontsReady] = useState(false);
@@ -91,7 +94,10 @@ export function Match() {
     // cor do seu clube (Perfil); o rival troca para o uniforme reserva se a cor dele for parecida
     const clubColor = useClubColor();
     const colors: [number, number] = [clubColor, rivalColor(clubColor, opponent?.color ?? 0x3a7bd5)];
-    const teamNames: [string, string] = [run?.teamName ?? 'Casa', opponent?.name ?? 'Fora'];
+    const teamNames: [string, string] = [
+        run?.teamName ?? t('match.home'),
+        opponent ? clubName(opponent.name) : t('match.away'),
+    ];
     // sigla no placar do celular: a do perfil se a copa tem o nome do clube, senão a tirada do nome
     const profileClub = useGame((s) => s.profile);
     const homeTag = teamNames[0] === profileClub.clubName ? profileClub.clubTag : tagFromName(teamNames[0]);
@@ -259,7 +265,7 @@ export function Match() {
         } catch {
             // libera o playback com a partida que já estava valendo
             if (alive.current && latest.current) EventBus.emit('match:replace', latest.current);
-            if (alive.current) setTacticError('Não deu para mandar a ordem agora.');
+            if (alive.current) setTacticError(t('match.orderFailed'));
         } finally {
             if (alive.current) setPending(false);
         }
@@ -296,12 +302,16 @@ export function Match() {
 
     const clockLabel =
         clock.phase === 'halftime'
-            ? 'Intervalo'
+            ? t('match.halftime')
             : clock.phase === 'fulltime' || fulltime || ended
               ? shootout
-                  ? `Pênaltis ${shootout[0]} x ${shootout[1]}`
-                  : 'Fim de jogo'
-              : `${Math.min(40, Math.floor(clock.minute))}' · ${clock.half}º tempo`;
+                  ? t('match.penalties', { a: shootout[0], b: shootout[1] })
+                  : t('match.fulltime')
+              : t('match.clock', {
+                    min: Math.min(40, Math.floor(clock.minute)),
+                    half: d.match.half[clock.half - 1] ?? '',
+                });
+    const stage = stageName(run.stage) || t('match.cup');
 
     const finishIntro = () => {
         if (introDoneRef.current) return;
@@ -313,13 +323,7 @@ export function Match() {
     return (
         <>
             {!introDone && (
-                <VersusIntro
-                    home={lockedSetup}
-                    away={opponent}
-                    stage={stageLabel(run.stage)}
-                    ready={sceneReady}
-                    onDone={finishIntro}
-                />
+                <VersusIntro home={lockedSetup} away={opponent} stage={stage} ready={sceneReady} onDone={finishIntro} />
             )}
             <div className="scoreboard">
                 <div className="sb-team">
@@ -334,7 +338,7 @@ export function Match() {
                 <div className="sb-score">
                     {clock.score[0]} x {clock.score[1]}
                     <span className="sb-clock">
-                        <span className="sb-stage">{stageLabel(run.stage)} · </span>
+                        <span className="sb-stage">{stage} · </span>
                         {clockLabel}
                     </span>
                 </div>
@@ -363,20 +367,22 @@ export function Match() {
                     </div>
                     {pendingSub && (
                         <div className="sub-pending">
-                            Substituição na próxima saída de bola: sai <b>{nameOf(pendingSub.outUid)}</b>, entra{' '}
-                            <b>{nameOf(pendingSub.inUid)}</b>
+                            {rich(t('match.subPending'), {
+                                out: <b>{nameOf(pendingSub.outUid)}</b>,
+                                in: <b>{nameOf(pendingSub.inUid)}</b>,
+                            })}
                         </div>
                     )}
                     {subOpen && canSub && (
                         <div className="panel sub-panel">
                             <div className="sub-head">
-                                <b>{subOut ? `Quem entra no lugar de ${nameOf(subOut)}?` : 'Quem sai?'}</b>
+                                <b>{subOut ? t('match.whoIn', { name: nameOf(subOut) }) : t('match.whoOut')}</b>
                                 <button
                                     type="button"
                                     className="btn small ghost"
                                     onClick={() => (subOut ? setSubOut(null) : setSubOpen(false))}
                                 >
-                                    {subOut ? 'Voltar' : 'Fechar'}
+                                    {subOut ? t('common.ui.back') : t('common.ui.close')}
                                 </button>
                             </div>
                             <div className="sub-list">
@@ -401,36 +407,36 @@ export function Match() {
                     )}
                     {sceneSlow && !sceneReady && (
                         <button type="button" className="btn yellow" onClick={() => setSceneKey((k) => k + 1)}>
-                            A quadra não carregou — recarregar
+                            {t('match.reload')}
                         </button>
                     )}
                     <div className="controls">
                         <div className="control-group">
                             {SPEEDS.map((s) => (
                                 <button
-                                    key={s.label}
+                                    key={String(s.value)}
                                     type="button"
                                     className={`btn small${settings.speed === s.value ? ' active' : ''}`}
                                     disabled={!sceneReady}
                                     onClick={() => setSpeed(s.value)}
                                 >
-                                    {s.label}
+                                    {s.label || t('match.highlights')}
                                 </button>
                             ))}
                         </div>
                         <div className="control-group">
-                            {(Object.keys(TACTIC_LABEL) as Tactic[]).map((t) => (
+                            {(Object.keys(TACTIC_LABEL) as Tactic[]).map((tc) => (
                                 <button
-                                    key={t}
+                                    key={tc}
                                     type="button"
-                                    className={`btn small${currentTactic === t ? ' active' : ''}`}
+                                    className={`btn small${currentTactic === tc ? ' active' : ''}`}
                                     disabled={
                                         !canChangeTactic ||
-                                        (changes.length >= MAX_TACTIC_CHANGES && currentTactic !== t)
+                                        (changes.length >= MAX_TACTIC_CHANGES && currentTactic !== tc)
                                     }
-                                    onClick={() => changeTactic(t)}
+                                    onClick={() => changeTactic(tc)}
                                 >
-                                    {TACTIC_LABEL[t]}
+                                    {d.common.tactic[tc]}
                                 </button>
                             ))}
                             <button
@@ -439,17 +445,13 @@ export function Match() {
                                 disabled={!canSub}
                                 onClick={() => setSubOpen((v) => !v)}
                             >
-                                Substituir
+                                {t('match.substitute')}
                             </button>
                             {tacticError && <span className="error-text tactic-left">{tacticError}</span>}
                             <span className="muted tactic-left">
                                 {pending
-                                    ? 'mudando…'
-                                    : plural(
-                                          MAX_TACTIC_CHANGES - changes.length,
-                                          'mudança de tática',
-                                          'mudanças de tática',
-                                      )}
+                                    ? t('match.changing')
+                                    : tn('match.tacticChanges', MAX_TACTIC_CHANGES - changes.length)}
                             </span>
                         </div>
                         <div className="control-group">
@@ -460,11 +462,11 @@ export function Match() {
                                     disabled={pending || !sceneReady}
                                     onClick={() => EventBus.emit('match:skip')}
                                 >
-                                    Pular para o fim
+                                    {t('match.skip')}
                                 </button>
                             ) : (
                                 <button type="button" className="btn primary" onClick={() => go('result')}>
-                                    Ver resultado
+                                    {t('match.seeResult')}
                                 </button>
                             )}
                         </div>
@@ -479,9 +481,9 @@ export function Match() {
                 </div>
                 <div className={`panel feed${feedOpen ? '' : ' collapsed'}`} aria-live="polite">
                     <button type="button" className="feed-toggle" onClick={() => setFeedOpen((v) => !v)}>
-                        Narração {feedOpen ? '▲' : '▼'}
+                        {t('match.feed')} {feedOpen ? '▲' : '▼'}
                     </button>
-                    {lines.length === 0 && <span className="muted">Os times entram em quadra…</span>}
+                    {lines.length === 0 && <span className="muted">{t('match.feedEmpty')}</span>}
                     {lines.map((l) => (
                         <div
                             key={l.id}

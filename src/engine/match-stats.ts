@@ -201,7 +201,11 @@ export function shotMap(m: MatchResult, nameAt: (idx: number, tick: number) => s
     return shots;
 }
 
+export type LeaderId = 'rating' | 'scorer' | 'runner' | 'passer' | 'tackler' | 'keeper';
+
 export interface Leader {
+    /** Id estável para a tela traduzir o título e o valor. */
+    id: LeaderId;
     title: string;
     line: PlayerLine;
     value: string;
@@ -214,19 +218,34 @@ export function leaders(lines: PlayerLine[]): Leader[] {
         return list.length ? list.reduce((a, b) => (score(b) > score(a) ? b : a)) : null;
     };
     const out: Leader[] = [];
-    const push = (title: string, p: PlayerLine | null, value: (p: PlayerLine) => string, min = 0, sc?: number) => {
-        if (p && (sc ?? 1) > min) out.push({ title, line: p, value: value(p) });
+    const push = (
+        id: LeaderId,
+        title: string,
+        p: PlayerLine | null,
+        value: (p: PlayerLine) => string,
+        min = 0,
+        sc?: number,
+    ) => {
+        if (p && (sc ?? 1) > min) out.push({ id, title, line: p, value: value(p) });
     };
     const top = best((p) => p.rating);
-    push('Melhor nota', top, (p) => p.rating.toFixed(1));
+    push('rating', 'Melhor nota', top, (p) => p.rating.toFixed(1));
     const scorer = best((p) => p.stats.goals * 10 + p.stats.assists);
-    push('Artilheiro', scorer, (p) => `${p.stats.goals} gol${p.stats.goals === 1 ? '' : 's'}`, 0, scorer?.stats.goals);
+    push(
+        'scorer',
+        'Artilheiro',
+        scorer,
+        (p) => `${p.stats.goals} gol${p.stats.goals === 1 ? '' : 's'}`,
+        0,
+        scorer?.stats.goals,
+    );
     const runner = best((p) => p.distance);
-    push('Mais correu', runner, (p) => `${p.distance} m`);
+    push('runner', 'Mais correu', runner, (p) => `${p.distance} m`);
     const passer = best((p) => p.stats.passesCompleted);
-    push('Mais passes certos', passer, (p) => `${p.stats.passesCompleted}`);
+    push('passer', 'Mais passes certos', passer, (p) => `${p.stats.passesCompleted}`);
     const tackler = best((p) => p.stats.tacklesWon + p.stats.interceptions * 0.5);
     push(
+        'tackler',
         'Mais roubadas',
         tackler,
         (p) =>
@@ -236,7 +255,14 @@ export function leaders(lines: PlayerLine[]): Leader[] {
         (p) => p.stats.saves,
         (p) => p.role === 'GK',
     );
-    push('Paredão', keeper, (p) => `${p.stats.saves} defesa${p.stats.saves === 1 ? '' : 's'}`, 0, keeper?.stats.saves);
+    push(
+        'keeper',
+        'Paredão',
+        keeper,
+        (p) => `${p.stats.saves} defesa${p.stats.saves === 1 ? '' : 's'}`,
+        0,
+        keeper?.stats.saves,
+    );
     return out;
 }
 

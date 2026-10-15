@@ -1,12 +1,12 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { POSITION_LABEL } from '../../engine/attributes';
 import { species } from '../../engine/data';
 import { type FormationId, formationOf } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { editionOf } from '../../engine/specials';
+import { useT } from '../../i18n/react';
 import type { SlotRef } from '../../store/game-store';
-import { EDITION, finishOf, METAL, metalOf } from '../rarity';
+import { editionLabel, finishOf, METAL, metalOf } from '../rarity';
 import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
 import { cardSprite } from './PokeCard';
@@ -43,14 +43,17 @@ export function FormationBoard({
     projection,
     stateOf,
     onSlot,
-    emptyLabel = 'vaga',
+    emptyLabel: emptyProp,
     footer,
 }: Props) {
     const f = formationOf(formation);
+    const { t, d } = useT();
+    const emptyLabel = emptyProp ?? t('team.board.empty');
 
     const slot = (ref: SlotRef, uid: string, style?: CSSProperties) => {
         const role = ref.zone === 'bench' ? 'ANY' : f.slots[ref.index];
-        const label = ref.zone === 'bench' ? 'Banco' : POSITION_LABEL[f.slots[ref.index]];
+        const label = ref.zone === 'bench' ? t('common.ui.bench') : d.team.board.slot[f.slots[ref.index]];
+        const fullLabel = ref.zone === 'bench' ? label : d.common.pos[f.slots[ref.index]];
         const state = stateOf?.(ref, uid) ?? 'idle';
         const inst = uid ? byUid.get(uid) : undefined;
         const ghost = !inst && state === 'target' ? preview : null;
@@ -87,7 +90,7 @@ export function FormationBoard({
                 style={rarStyle}
                 disabled={!clickable}
                 onClick={() => onSlot?.(ref, uid)}
-                aria-label={`${label}${inst ? `: ${viewInstance(inst).displayName}` : ` (${emptyLabel})`}`}
+                aria-label={`${fullLabel}${inst ? `: ${viewInstance(inst).displayName}` : ` (${emptyLabel})`}`}
             >
                 <span className="pos-badge">{label}</span>
                 {inst?.uid === captainUid && inst && <span className="captain-badge">C</span>}
@@ -101,12 +104,12 @@ export function FormationBoard({
                         {r && (
                             <span className={`slot-rating ${r.fit}`}>
                                 {r.display}
-                                {r.fit === 'off' && ' · fora'}
+                                {r.fit === 'off' && t('team.board.off')}
                             </span>
                         )}
                         {inst?.item && <img className="pixel slot-item" src={itemSprite(inst.item)} alt="" />}
                         {edition && (
-                            <span className={`slot-edition ed-${edition}`} title={EDITION[edition].label}>
+                            <span className={`slot-edition ed-${edition}`} title={editionLabel(edition)}>
                                 ★
                             </span>
                         )}

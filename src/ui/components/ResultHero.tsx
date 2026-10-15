@@ -3,10 +3,11 @@ import { CUP_STAGES } from '../../engine/cup';
 import { viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import type { TeamSetup } from '../../engine/state';
+import { clubName, stageName } from '../../i18n';
+import { useT } from '../../i18n/react';
 import type { RunState } from '../../store/game-store';
 import { rivalColor } from '../../store/profile';
 import { useClubColor } from '../profile/club';
-import { STAGE_IN, STAGE_WON } from '../text';
 import { cardSprite } from './PokeCard';
 
 const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
@@ -52,16 +53,17 @@ export function ResultHero({
     actions: ReactNode;
 }) {
     const won = match.winner === 0;
+    const { t, d } = useT();
     const champion = run.status === 'champion';
     const mood = champion ? 'champ' : won ? 'win' : 'loss';
-    const title = champion ? 'CAMPEÕES!' : won ? 'VITÓRIA!' : 'FIM DA LINHA';
+    const title = champion ? t('result.hero.champions') : won ? t('result.hero.win') : t('result.hero.loss');
     const sub = champion
-        ? 'Copa de Kanto conquistada!'
+        ? t('result.hero.cupWon')
         : won
-          ? STAGE_WON[run.stage]
+          ? d.common.stageWon[run.stage]
           : run.stage === CUP_STAGES.length - 1
-            ? 'Vice-campeão da Copa de Kanto'
-            : `Eliminado ${STAGE_IN[run.stage]}`;
+            ? t('result.hero.runnerUp')
+            : t('result.hero.eliminated', { stage: d.common.stageIn[run.stage] ?? '' });
     const squad = match.finalRoster.filter((p) => p.team === 0);
     const next = won && !champion ? run.opponents[run.stage + 1] : null;
     // seu time na cor do clube (Perfil); o rival no uniforme reserva se as cores baterem
@@ -69,9 +71,9 @@ export function ResultHero({
     const style = { '--home': hex(homeColor), '--away': hex(rivalColor(homeColor, opponent.color)) } as CSSProperties;
 
     return (
-        <section className={`panel rh rh-${mood}`} style={style} aria-label="Resultado da partida">
+        <section className={`panel rh rh-${mood}`} style={style} aria-label={t('result.hero.aria')}>
             {mood !== 'loss' && <Confetti count={mood === 'champ' ? 60 : 36} />}
-            <div className="rh-stage">{CUP_STAGES[run.stage]}</div>
+            <div className="rh-stage">{stageName(run.stage)}</div>
             <h1 className="rh-title" aria-label={title}>
                 {[...title].map((ch, i) => (
                     // biome-ignore lint/suspicious/noArrayIndexKey: letras do título
@@ -96,9 +98,7 @@ export function ResultHero({
                 </div>
             </div>
             {match.shootout && (
-                <div className="rh-pens">
-                    Pênaltis {match.shootout[0]} x {match.shootout[1]}
-                </div>
+                <div className="rh-pens">{t('result.hero.pens', { a: match.shootout[0], b: match.shootout[1] })}</div>
             )}
 
             <div className="rh-squad">
@@ -108,7 +108,7 @@ export function ResultHero({
                         className={`rh-mon${p.uid === mvpUid ? ' mvp' : ''}`}
                         style={{ '--i': i } as CSSProperties}
                     >
-                        {p.uid === mvpUid && <span className="rh-star">★ craque</span>}
+                        {p.uid === mvpUid && <span className="rh-star">{t('result.hero.star')}</span>}
                         <img
                             className="pixel"
                             src={cardSprite({ speciesId: p.speciesId, shiny: p.shiny })}
@@ -118,14 +118,14 @@ export function ResultHero({
                 ))}
             </div>
 
-            <ol className="rh-path" aria-label="Caminho da copa">
+            <ol className="rh-path" aria-label={t('result.hero.path')}>
                 {CUP_STAGES.map((label, i) => {
                     const res = run.results.find((r) => r.stage === i);
                     const state = res ? (res.won ? 'won' : 'lost') : i === run.stage + 1 && won ? 'next' : 'todo';
                     return (
                         <li key={label} className={state}>
                             <span className="rh-dot">{state === 'won' ? '✓' : state === 'lost' ? '✗' : i + 1}</span>
-                            <span>{label.replace(' de final', '')}</span>
+                            <span>{d.result.hero.stageShort[i] ?? label}</span>
                             {res && (
                                 <small>
                                     {res.score[0]}x{res.score[1]}
@@ -138,8 +138,8 @@ export function ResultHero({
 
             {next && (
                 <div className="rh-next">
-                    <span className="muted">Próximo: {CUP_STAGES[run.stage + 1]} contra</span>
-                    <b>{next.name}</b>
+                    <span className="muted">{t('result.hero.next', { stage: stageName(run.stage + 1) })}</span>
+                    <b>{clubName(next.name)}</b>
                     <div className="rh-next-squad">
                         {next.lineup.map((p) => (
                             <img key={p.uid} className="pixel" src={cardSprite(p)} alt={viewInstance(p).displayName} />

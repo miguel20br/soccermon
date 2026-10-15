@@ -1,4 +1,5 @@
 import { species } from '../../engine/data';
+import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import type { Dex, DexEntry } from '../../store/profile';
 import { speciesGif } from './club';
@@ -12,23 +13,26 @@ function top(dex: Dex, key: keyof DexEntry, tie: keyof DexEntry) {
         .slice(0, 5);
 }
 
-const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
-
 /** Números: a carreira do treinador, os recordes e os Pokémon que mais marcaram e mais jogaram. */
 export function NumbersTab({ onOpenDex }: { onOpenDex: () => void }) {
     const career = useGame((s) => s.career);
     const records = useGame((s) => s.records);
     const dex = useGame((s) => s.dex);
     const go = useGame((s) => s.go);
+    const { t, tn } = useT();
+    const unit = (key: 'profile.numbers.goalUnit' | 'profile.numbers.gameUnit', n: number) => {
+        const [one, many = one] = t(key).split('|');
+        return n === 1 ? one : many;
+    };
 
     if (career.matches === 0 && records.cups === 0) {
         return (
             <div className="pf-empty-state panel">
                 <img className="pixel" src={speciesGif(25)} alt="" />
-                <b>Sua história começa na primeira copa</b>
-                <p>Jogue uma partida e os seus números, artilheiros e recordes aparecem aqui.</p>
+                <b>{t('profile.numbers.emptyTitle')}</b>
+                <p>{t('profile.numbers.emptyText')}</p>
                 <button type="button" className="btn primary" onClick={() => go('home')}>
-                    Ir para a Nova copa
+                    {t('profile.numbers.emptyCta')}
                 </button>
             </div>
         );
@@ -42,39 +46,39 @@ export function NumbersTab({ onOpenDex }: { onOpenDex: () => void }) {
     return (
         <div className="pf-numbers">
             <section className="panel pf-card">
-                <h2>Carreira</h2>
+                <h2>{t('profile.numbers.career')}</h2>
                 <div className="pf-career wide">
-                    <Num label="Partidas" v={career.matches} />
-                    <Num label="Vitórias" v={career.wins} />
-                    <Num label="Derrotas" v={career.losses} />
-                    <Num label="Aproveitamento" v={`${pct}%`} />
-                    <Num label="Gols pró" v={career.goalsFor} />
-                    <Num label="Gols contra" v={career.goalsAgainst} />
-                    <Num label="Saldo" v={diff > 0 ? `+${diff}` : diff} />
-                    <Num label="Vitórias nos pênaltis" v={career.shootoutWins} />
+                    <Num label={t('profile.numbers.matches')} v={career.matches} />
+                    <Num label={t('profile.numbers.wins')} v={career.wins} />
+                    <Num label={t('profile.numbers.losses')} v={career.losses} />
+                    <Num label={t('profile.numbers.winRate')} v={`${pct}%`} />
+                    <Num label={t('profile.numbers.goalsFor')} v={career.goalsFor} />
+                    <Num label={t('profile.numbers.goalsAgainst')} v={career.goalsAgainst} />
+                    <Num label={t('profile.numbers.goalDiff')} v={diff > 0 ? `+${diff}` : diff} />
+                    <Num label={t('profile.numbers.shootoutWins')} v={career.shootoutWins} />
                 </div>
                 {career.matches > 0 && (
-                    <div className="pf-winbar" role="img" aria-label={`${pct}% de vitórias`}>
+                    <div className="pf-winbar" role="img" aria-label={t('profile.numbers.winBarAria', { pct })}>
                         <i style={{ width: `${pct}%` }} />
                     </div>
                 )}
             </section>
 
             <section className="panel pf-card">
-                <h2>Recordes</h2>
+                <h2>{t('profile.numbers.records')}</h2>
                 <div className="pf-career wide three">
-                    <Num label="Copas" v={records.cups} />
-                    <Num label="Títulos" v={records.titles} />
-                    <Num label="Copas perfeitas" v={records.perfect} />
-                    <Num label="Destaques" v={records.destaques ?? 0} />
-                    <Num label="Evoluções" v={records.evolucoes ?? 0} />
-                    <Num label="Ícones" v={records.icones ?? 0} />
+                    <Num label={t('profile.numbers.cups')} v={records.cups} />
+                    <Num label={t('profile.numbers.titles')} v={records.titles} />
+                    <Num label={t('profile.numbers.perfect')} v={records.perfect} />
+                    <Num label={t('profile.numbers.destaques')} v={records.destaques ?? 0} />
+                    <Num label={t('profile.numbers.evolutions')} v={records.evolucoes ?? 0} />
+                    <Num label={t('profile.numbers.icons')} v={records.icones ?? 0} />
                 </div>
             </section>
 
             <div className="pf-tops">
                 <section className="panel pf-card">
-                    <h2>Artilheiros</h2>
+                    <h2>{t('profile.numbers.scorers')}</h2>
                     {scorers.length ? (
                         <ol className="pf-rank">
                             {scorers.map(({ id, e }, i) => (
@@ -84,23 +88,23 @@ export function NumbersTab({ onOpenDex }: { onOpenDex: () => void }) {
                                     <span className="pf-rank-name">
                                         <b>{species(id).name}</b>
                                         <small>
-                                            {plural(e.matches, 'partida', 'partidas')} ·{' '}
-                                            {plural(e.assists, 'assistência', 'assistências')}
+                                            {tn('profile.numbers.matchesN', e.matches)} ·{' '}
+                                            {tn('profile.numbers.assistsN', e.assists)}
                                         </small>
                                     </span>
                                     <b className="pf-rank-v">
                                         {e.goals}
-                                        <small>{e.goals === 1 ? 'gol' : 'gols'}</small>
+                                        <small>{unit('profile.numbers.goalUnit', e.goals)}</small>
                                     </b>
                                 </li>
                             ))}
                         </ol>
                     ) : (
-                        <p className="pf-note">Ninguém do seu time marcou ainda.</p>
+                        <p className="pf-note">{t('profile.numbers.noScorers')}</p>
                     )}
                 </section>
                 <section className="panel pf-card">
-                    <h2>Mais escalados</h2>
+                    <h2>{t('profile.numbers.regulars')}</h2>
                     {regulars.length ? (
                         <ol className="pf-rank">
                             {regulars.map(({ id, e }, i) => (
@@ -110,24 +114,24 @@ export function NumbersTab({ onOpenDex }: { onOpenDex: () => void }) {
                                     <span className="pf-rank-name">
                                         <b>{species(id).name}</b>
                                         <small>
-                                            {plural(e.minutes, 'minuto', 'minutos')} ·{' '}
-                                            {plural(e.wins, 'vitória', 'vitórias')}
+                                            {tn('profile.numbers.minutesN', e.minutes)} ·{' '}
+                                            {tn('profile.numbers.winsN', e.wins)}
                                         </small>
                                     </span>
                                     <b className="pf-rank-v">
                                         {e.matches}
-                                        <small>{e.matches === 1 ? 'jogo' : 'jogos'}</small>
+                                        <small>{unit('profile.numbers.gameUnit', e.matches)}</small>
                                     </b>
                                 </li>
                             ))}
                         </ol>
                     ) : (
-                        <p className="pf-note">Ninguém jogou pelo seu time ainda.</p>
+                        <p className="pf-note">{t('profile.numbers.noRegulars')}</p>
                     )}
                 </section>
             </div>
             <button type="button" className="btn ghost pf-to-dex" onClick={onOpenDex}>
-                Ver todos na Pokédex
+                {t('profile.numbers.toDex')}
             </button>
         </div>
     );

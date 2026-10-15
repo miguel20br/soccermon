@@ -2,18 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import portraits from '../../data/portraits.json';
 import { EventBus } from '../../game/EventBus';
 import type { MatchHighlight as Highlight } from '../../game/scenes/MatchScene';
+import { useT } from '../../i18n/react';
 
 const EMOTIONS = portraits as Record<string, string[]>;
 /** Quanto tempo (real) a faixa fica na tela. */
 const SHOW_MS = 2600;
-
-const KIND_LABEL: Record<Highlight['kind'], string> = {
-    goal: 'GOL!',
-    owngoal: 'GOL CONTRA',
-    save: 'DEFESA!',
-    sub: 'SUBSTITUIÇÃO',
-    evolve: 'EVOLUIU!',
-};
 
 /** Rostinho do PMDCollab: comemorando no gol, concentrado na defesa (cai no normal se não tiver). */
 function portraitOf(speciesId: number, kind: Highlight['kind']): string {
@@ -25,6 +18,7 @@ function portraitOf(speciesId: number, kind: Highlight['kind']): string {
 /** Faixa diagonal no canto do time com o rosto, o nome e o time de quem fez o gol ou a defesa. */
 export function MatchHighlight({ teamNames, colors }: { teamNames: [string, string]; colors: [string, string] }) {
     const [shown, setShown] = useState<(Highlight & { id: number }) | null>(null);
+    const { t, d } = useT();
     const nextId = useRef(0);
 
     useEffect(() => {
@@ -65,13 +59,15 @@ export function MatchHighlight({ teamNames, colors }: { teamNames: [string, stri
                 {shown.shiny && <span className="mh-shiny">✦</span>}
             </div>
             <div className="mh-text">
-                <span className="mh-kind">{KIND_LABEL[shown.kind]}</span>
-                <strong className="mh-name">{shown.kind === 'sub' ? `Entra ${shown.name}` : shown.name}</strong>
+                <span className="mh-kind">{d.match.highlight[shown.kind]}</span>
+                <strong className="mh-name">
+                    {shown.kind === 'sub' ? t('match.subIn', { name: shown.name }) : shown.name}
+                </strong>
                 <span className="mh-team">
                     {shown.kind === 'sub'
-                        ? `sai ${shown.outName}`
+                        ? t('match.subOut', { name: shown.outName ?? '' })
                         : shown.kind === 'evolve'
-                          ? `${shown.outName} evoluiu`
+                          ? t('match.evolved', { name: shown.outName ?? '' })
                           : teamNames[shown.team]}
                 </span>
             </div>
