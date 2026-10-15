@@ -118,7 +118,7 @@ def explosao_cartas():
 
 
 # ============ I: Evolução (ideia nova) ============
-def evolucao(tagline=None, nome="i-evolucao.svg"):
+def evolucao(tagline=None, nome="i-evolucao.svg", com_fundo=True):
     W, H = 1600, 760
     raios = "".join(
         f'<polygon points="800,380 {800 + math.cos(a - .05) * 1200:.0f},{380 + math.sin(a - .05) * 1200:.0f} '
@@ -148,7 +148,7 @@ def evolucao(tagline=None, nome="i-evolucao.svg"):
             g = (f'<path d="{ESQ[l]}" {est} stroke="{NAVY}" stroke-width="{TRACO + 1.6}"/>'
                  f'<path d="{ESQ[l]}" {est} stroke="#fff" stroke-width="{TRACO}"/>')
             corpo += (f'<g transform="translate({x:.0f} {380 - 4 * u:.0f}) scale({u})">'
-                      f'<g filter="url(#brilho)" opacity=".55">{brilho}</g>{g}</g>')
+                      + (f'<g filter="url(#brilho)" opacity=".55">{brilho}</g>' if com_fundo else '') + f'{g}</g>')
         else:
             corpo += f'<g transform="translate({x:.0f} {380 - 4 * u:.0f}) scale({u})">{letra_3d(l, u, 7, 2.2)}</g>'
     brilhos = "".join(
@@ -164,7 +164,28 @@ def evolucao(tagline=None, nome="i-evolucao.svg"):
                f'font-size="54" fill="{NAVY}" letter-spacing="6" transform="translate(5 6)">{tagline}</text>'
                f'<text x="800" y="650" text-anchor="middle" font-family="Galmuri11, monospace" font-weight="700" '
                f'font-size="54" fill="{AMARELO}" letter-spacing="6">{tagline}</text>')
-    salvar(nome, W, H, fundo + corpo + brilhos + sub, defs)
+    if com_fundo:
+        salvar(nome, W, H, fundo + corpo + brilhos + sub, defs)
+    else:
+        # versão sem fundo (Home, por cima de vídeo): caixa justa em volta das letras, da carta e da tagline
+        y0, h = 236, (300 if not tagline else 440)
+        with open(os.path.join(AQUI, nome), "w") as f:
+            f.write(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="66 {y0} 1468 {h}"><defs>{FONTE if tagline else ""}{GRAD}{defs}</defs>'
+                    f'{corpo}{sub}</svg>\n')
+
+
+def icone():
+    raios = "".join(
+        f'<polygon points="128,128 {128 + math.cos(a - .09) * 260:.0f},{128 + math.sin(a - .09) * 260:.0f} '
+        f'{128 + math.cos(a + .09) * 260:.0f},{128 + math.sin(a + .09) * 260:.0f}" fill="#fff" opacity=".1"/>'
+        for a in [k * math.pi / 8 for k in range(16)])
+    corpo = (f'<rect width="256" height="256" rx="48" fill="url(#noite)"/><g clip-path="url(#cantos)">{raios}</g>'
+             f'<g transform="translate(128 132) rotate(-8) scale(.95)">{carta(150, 214, "url(#holo)", 10)}{bola_cor(0, -4, 52)}</g>')
+    defs = ('<radialGradient id="noite" cx=".5" cy=".45" r=".75"><stop offset="0" stop-color="#2a3a7a"/>'
+            '<stop offset="1" stop-color="#070a18"/></radialGradient>'
+            '<clipPath id="cantos"><rect width="256" height="256" rx="48"/></clipPath>')
+    with open(os.path.join(AQUI, "icone.svg"), "w") as f:
+        f.write(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><defs>{GRAD}{defs}</defs>{corpo}</svg>\n')
 
 
 arena_cartas()
@@ -172,4 +193,8 @@ explosao_cartas()
 evolucao()
 evolucao("TEMOS QUE CHUTAR!", "i-evolucao-pt.svg")
 evolucao("GOTTA KICK 'EM ALL!", "i-evolucao-en.svg")
+evolucao(None, "logo.svg", com_fundo=False)
+evolucao("TEMOS QUE CHUTAR!", "logo-pt.svg", com_fundo=False)
+evolucao("GOTTA KICK 'EM ALL!", "logo-en.svg", com_fundo=False)
+icone()
 print("ok: g-arena-cartas, h-explosao-cartas, i-evolucao")

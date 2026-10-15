@@ -74,7 +74,10 @@ export function Home() {
 
             <section className="home-hero">
                 <HomeCourt />
-                <h1 className="logo">SOCCERMON</h1>
+                {/* logo da beta (trailer/arte/logo: "Evolução", o O é uma carta holográfica com a bola) */}
+                <h1 className="logo logo-img">
+                    <img src="assets/ui/logo.svg" alt="Soccermon" width="1468" height="300" />
+                </h1>
                 <p className="tagline">
                     Monte seu time com os 151 de Kanto num draft “escolha 1 de 3” e dispute a Copa de Futsal contra os
                     ginásios.

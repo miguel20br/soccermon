@@ -4580,6 +4580,17 @@ button,
     position: relative;
     font-size: clamp(46px, 11vw, 96px);
 }
+/* logo em imagem (SVG): ocupa a largura do texto antigo e sobrepõe a borda da quadra igual */
+.home-hero .logo-img {
+    width: min(720px, 94%);
+    line-height: 0;
+    text-shadow: none;
+}
+.home-hero .logo-img img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
 
 /* área de jogar */
 .home .menu {
