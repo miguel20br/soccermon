@@ -1,3 +1,11 @@
+<p align="center">
+  <a href="https://soccermon.com"><img src="public/assets/ui/logo.svg" alt="Soccermon" width="520" /></a>
+</p>
+
+<p align="center">
+  <a href="https://soccermon.com"><img src="docs/marketing/teaser.gif" alt="Trecho do trailer: VERSUS, partida de futsal e o Charizard usando Flamethrower" width="720" /></a>
+</p>
+
 # Soccermon
 
 **Jogue agora: [soccermon.com](https://soccermon.com)**
