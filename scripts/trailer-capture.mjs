@@ -117,6 +117,12 @@ await page.evaluate((semTextos) => {
         };
         sc.battleBox?.container?.setVisible(false);
     }
+    // a câmera do jogo vai até o gol no GOOOOL e passa da borda da quadra (aparece o fundo de fora): prende ela
+    // dentro do mundo do jogo; ela segue indo atrás do lance, só que para na borda
+    {
+        const cam = g.scene.getScene('Match').cameras.main;
+        cam.setBounds(0, 0, cam.width, cam.height);
+    }
     g.loop.sleep();
     window.__t = g.loop.now || performance.now();
     // relógio falso pra parte em HTML (tela de evolução, faixas): setTimeout e animações CSS andam com o jogo
