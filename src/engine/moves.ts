@@ -215,11 +215,11 @@ export const MOVE_TUNING = {
     spinRadius: 2,
     gasRadius: 3,
     /** Cada vítima de golpe em área leva esta fração do efeito de um golpe num alvo só. */
-    areaShare: 0.75,
+    areaShare: 0.6,
     /** Leer: a encarada trava os rivais um instante. */
     leerFreeze: 0.3,
     // F2 crítico
-    critChance: 0.25,
+    critChance: 0.2,
     /** Chance extra por pace (Gen 1: o crítico vinha da Speed). */
     critPace: 0.15,
     critSpeed: 1.25,
