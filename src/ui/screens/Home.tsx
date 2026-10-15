@@ -3,8 +3,9 @@ import { CUP_STAGES } from '../../engine/cup';
 import { weeklyEventType } from '../../engine/specials';
 import { fmt, stageName, typeName } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
-import { seedFromUrl, useGame } from '../../store/game-store';
+import { isCupInProgress, seedFromUrl, useGame } from '../../store/game-store';
 import { AccountBar } from '../components/AccountBar';
+import { cupStep } from '../components/AccountLink';
 import { HomeCourt } from '../components/HomeCourt';
 import { MenuIcon } from '../components/MenuIcon';
 import { cardSprite } from '../components/PokeCard';
@@ -40,7 +41,7 @@ function LangToggle() {
 }
 
 export function Home() {
-    const { run, newRun, go, records, profile, setOnboarded } = useGame();
+    const { run, newRun, go, records, profile, setOnboarded, parkedRuns, resumeParked, discardParked } = useGame();
     const { t, tn, d, lang } = useT();
     const notes = patchNotes(lang);
     const [teamName, setTeamName] = useState(profile.clubName || 'Pallet FC');
@@ -70,6 +71,15 @@ export function Home() {
     const start = (seed?: string) => {
         if (inProgress && confirm === undefined) setConfirm(seed ?? null);
         else newRun(name(), seed);
+    };
+    /** Copas guardadas (vieram de um conflito entre aparelho e conta): retomar troca de lugar com a atual. */
+    const parked = parkedRuns.filter(isCupInProgress);
+    const [parkedAsk, setParkedAsk] = useState<{ kind: 'swap' | 'discard'; seed: string } | null>(null);
+    const parkedTarget = parkedAsk ? parked.find((p) => p.seed === parkedAsk.seed) : undefined;
+    const resume = (seed: string) => {
+        // sem copa em andamento não há o que guardar no lugar: retoma direto
+        if (inProgress) setParkedAsk({ kind: 'swap', seed });
+        else resumeParked(seed);
     };
     const eventType = weeklyEventType(new Date());
     const byUid = new Map(run?.picks.map((p) => [p.uid, p]) ?? []);
@@ -125,7 +135,36 @@ export function Home() {
             </section>
 
             <div className="menu panel">
-                {confirm !== undefined ? (
+                {parkedAsk && parkedTarget ? (
+                    <div className="confirm-new">
+                        <p>
+                            {parkedAsk.kind === 'swap'
+                                ? rich(t('account.confirmSwap'), {
+                                      team: <b>{parkedTarget.teamName}</b>,
+                                      current: <b>{run?.teamName}</b>,
+                                  })
+                                : rich(t('account.confirmDiscard'), { team: <b>{parkedTarget.teamName}</b> })}
+                        </p>
+                        <div className="row" style={{ justifyContent: 'center' }}>
+                            <button
+                                type="button"
+                                className="btn primary"
+                                onClick={() => {
+                                    if (parkedAsk.kind === 'swap') resumeParked(parkedAsk.seed);
+                                    else discardParked(parkedAsk.seed);
+                                    setParkedAsk(null);
+                                }}
+                            >
+                                {parkedAsk.kind === 'swap'
+                                    ? t('account.confirmSwapYes')
+                                    : t('account.confirmDiscardYes')}
+                            </button>
+                            <button type="button" className="btn ghost" onClick={() => setParkedAsk(null)}>
+                                {t('common.ui.cancel')}
+                            </button>
+                        </div>
+                    </div>
+                ) : confirm !== undefined ? (
                     <div className="confirm-new">
                         <p>{rich(t('home.confirmNew'), { team: <b>{run?.teamName}</b> })}</p>
                         <div className="row" style={{ justifyContent: 'center' }}>
@@ -165,6 +204,26 @@ export function Home() {
                                 <span className="btn primary rc-go">{t('home.resume')}</span>
                             </button>
                         )}
+                        {parked.map((p) => (
+                            <div key={p.seed} className="parked-row">
+                                <span className="pr-text">
+                                    <span className="pr-label">{t('account.parkedLabel')}</span>
+                                    <span>
+                                        <b>{p.teamName}</b> <span className="pr-step">· {cupStep(p)}</span>
+                                    </span>
+                                </span>
+                                <button type="button" className="btn small" onClick={() => resume(p.seed)}>
+                                    {t('account.resumeParked')}
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn ghost small"
+                                    onClick={() => setParkedAsk({ kind: 'discard', seed: p.seed })}
+                                >
+                                    {t('account.discardParked')}
+                                </button>
+                            </div>
+                        ))}
                         <label className="muted" htmlFor="team-name">
                             {inProgress ? t('home.orNew') : t('home.teamName')}
                         </label>

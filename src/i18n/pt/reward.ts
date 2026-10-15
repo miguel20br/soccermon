@@ -23,6 +23,17 @@ export const reward = {
     yourTeam: 'Seu time',
     positionsHint: 'Verde: posições em que {name} joga bem · vermelho: fora de posição.',
     compare: 'Compare com o seu elenco antes de escolher.',
+    openCard: 'Toque num Pokémon pra ver a carta completa (golpes e atributos).',
+    /** Sufixo do aria-label de cada vaga do time. */
+    openAria: ', abrir carta completa',
+    /** Item que depende dos golpes de quem segura (tipo, King's Rock): src/ui/item-fit.ts. */
+    fit: {
+        typeCount: '{n} golpe {type}|{n} golpes {type}',
+        hitCount: '{n} golpe que acerta|{n} golpes que acertam',
+        typeLegend: 'Com {item}: o número é quantos golpes {type} cada um tem (apagado: nenhum).',
+        hitLegend:
+            'Com {item}: o número é quantos golpes que acertam (fora os de Status) cada um tem (apagado: nenhum).',
+    },
     /** MT do ginásio. */
     tm: {
         /** Prefixo do disco: "MT34" (Máquina Técnica) / "MO02" (Máquina Oculta). */

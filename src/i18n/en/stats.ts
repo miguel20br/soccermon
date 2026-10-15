@@ -133,6 +133,7 @@ export const stats: typeof pt = {
             flavor: 'Flavor',
             special: 'Special',
         },
+        styleChip: 'Animation: {s}',
         style: {
             projectile: 'Projectile',
             beam: 'Beam',

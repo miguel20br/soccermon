@@ -1,3 +1,4 @@
+import { account } from './pt/account';
 import { battle } from './pt/battle';
 import { commentary } from './pt/commentary';
 import { common } from './pt/common';
@@ -30,6 +31,7 @@ export const pt = {
     settings,
     profile,
     stats,
+    account,
 };
 
 export type Dict = typeof pt;

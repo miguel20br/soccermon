@@ -22,6 +22,14 @@ export const reward: typeof pt = {
     replacesItem: ' (replaces {item})',
     yourTeam: 'Your team',
     positionsHint: 'Green: positions where {name} plays well · red: out of position.',
+    openCard: 'Tap a Pokémon to see its full card (moves and stats).',
+    openAria: ', open full card',
+    fit: {
+        typeCount: '{n} {type} move|{n} {type} moves',
+        hitCount: '{n} damaging move|{n} damaging moves',
+        typeLegend: 'With {item}: the number is how many {type} moves each one has (faded: none).',
+        hitLegend: 'With {item}: the number is how many damaging (non-Status) moves each one has (faded: none).',
+    },
     compare: 'Compare with your squad before choosing.',
     tm: {
         tm: 'TM',

@@ -1,3 +1,4 @@
+import { account } from './en/account';
 import { battle } from './en/battle';
 import { commentary } from './en/commentary';
 import { common } from './en/common';
@@ -26,4 +27,5 @@ export const en: Dict = {
     settings,
     profile,
     stats,
+    account,
 };

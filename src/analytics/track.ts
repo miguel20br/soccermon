@@ -97,7 +97,8 @@ function onChange(s: GameState, prev: GameState) {
 
     const run = s.run;
     const old = prev.run;
-    if (run && run.seed !== old?.seed)
+    // retomar uma copa guardada não é começar copa nova
+    if (run && run.seed !== old?.seed && !(prev.parkedRuns ?? []).some((p) => p.seed === run.seed))
         track('run_start', { challenge: new URLSearchParams(location.search).has('seed') });
     if (run && old && run.seed === old.seed) {
         if (old.status === 'formation' && run.status === 'captain') track('formation', { formation: run.formation });
@@ -173,8 +174,9 @@ export function startAnalytics() {
     if (useGame.persist.hasHydrated()) begin();
     else useGame.persist.onFinishHydration(begin);
     useCloud.subscribe((s, prev) => {
-        // só o login que a pessoa pediu agora (abrir o jogo já logado não conta)
-        if (s.user && !prev.user && takeLoginPending()) track('login');
+        // só o login que a pessoa pediu agora (abrir o jogo já logado não conta), contado quando termina:
+        // merged = o progresso do aparelho foi junto para a conta; choice = qual copa continuou (se houve escolha)
+        if (s.lastLink && s.lastLink !== prev.lastLink && takeLoginPending()) track('login', { ...s.lastLink });
     });
     window.addEventListener('error', (e) => track('error', { msg: errorText(e.message ?? e.error) }));
     window.addEventListener('unhandledrejection', (e) => track('error', { msg: errorText(e.reason) }));

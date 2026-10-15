@@ -1,0 +1,46 @@
+import type { account as pt } from '../pt/account';
+
+/** Account: the question after signing in (bring or combine this device's progress) and saved cups. */
+export const account: typeof pt = {
+    bring: {
+        title: 'Bring your progress to your account?',
+        text: 'You signed in with Google. This device has guest progress:',
+        after: 'It will be saved to the cloud, and you can pick up where you left off on any device.',
+        yes: 'Bring to my account',
+    },
+    merge: {
+        title: 'Combine with your account?',
+        text: 'Your account already has a save, and this device has guest progress.',
+        yes: 'Combine and sign in',
+    },
+    cup: {
+        title: 'Two cups in progress',
+        text: "This device has a cup that isn't in the cloud yet, and your account has another one.",
+    },
+    best: 'Records and Pokédex keep the best of both.',
+    continues: "You'll continue the {team} cup ({step}).",
+    which: 'Which cup do you want to continue?',
+    pickDevice: "Continue this device's cup",
+    pickCloud: "Continue the account's cup",
+    parkedNote: 'The other one is kept on the home screen so you can resume it whenever you want.',
+    notNow: 'Not now',
+    notNowHint: 'Signs you out and leaves this device exactly as it is.',
+    device: 'On this device',
+    cloud: 'In your account',
+    club: 'Club',
+    cupNow: 'Cup in progress',
+    noCup: 'No cup in progress',
+    cups: '{n} cup|{n} cups',
+    titles: '{n} title|{n} titles',
+    seen: 'Pokédex: {n} seen|Pokédex: {n} seen',
+    parked: '{n} saved cup|{n} saved cups',
+    otherAccount: "This device had another account's save; it's still kept in that account.",
+    ok: 'OK',
+    parkedLabel: 'Saved cup',
+    resumeParked: 'Resume',
+    discardParked: 'Discard',
+    confirmSwap: 'Resume the {team} cup? The {current} cup will be kept in its place.',
+    confirmSwapYes: 'Yes, resume',
+    confirmDiscard: 'Discard the saved {team} cup? It will be gone for good.',
+    confirmDiscardYes: 'Yes, discard',
+};

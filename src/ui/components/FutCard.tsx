@@ -33,6 +33,28 @@ interface FutCardProps {
     modalNote?: string;
     /** Já está dentro da carta completa: tocar não reabre (senão perde as ações do modal). */
     inModal?: boolean;
+    /** Botão "Ver carta completa" embaixo (painel da partida, escalação): deixa claro que tocar abre mais. */
+    fullButton?: boolean;
+}
+
+/** Ícone de "abrir/expandir" (quatro cantos), desenhado em SVG. */
+export function ExpandIcon({ size = 14 }: { size?: number }) {
+    return (
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            focusable="false"
+        >
+            <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+        </svg>
+    );
 }
 
 /**
@@ -50,6 +72,7 @@ export function FutCard({
     modalActions,
     modalNote,
     inModal = false,
+    fullButton = false,
 }: FutCardProps) {
     const open = useCardModal((s) => s.open);
     const { t, d } = useT();
@@ -115,7 +138,7 @@ export function FutCard({
         <div className={`fut-wrap ${size}${selected ? ' selected' : ''}`}>
             <button
                 type="button"
-                className="fut-card2"
+                className={`fut-card2${inModal ? ' static' : ''}`}
                 onClick={openFull}
                 onPointerEnter={onPointerEnter}
                 onPointerLeave={onPointerLeave}
@@ -160,6 +183,20 @@ export function FutCard({
                     </span>
                 )}
             </button>
+            {fullButton && !inModal && (
+                <button
+                    type="button"
+                    className="fut-full"
+                    onClick={openFull}
+                    aria-label={t('team.card.fullAria', { name: view.displayName })}
+                >
+                    <ExpandIcon />
+                    <span>
+                        <b>{t('team.card.full')}</b>
+                        <small>{t('team.card.fullSub')}</small>
+                    </span>
+                </button>
+            )}
             {action && (
                 <button
                     type="button"

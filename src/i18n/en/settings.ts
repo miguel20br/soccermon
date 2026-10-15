@@ -98,7 +98,7 @@ export const settings: typeof pt = {
         error: "Couldn't save to the cloud (the game is still saved on this device)",
         signIn: 'Sign in with Google',
         signInFailed: "Couldn't open the Google sign-in. Check your connection and try again.",
-        pitch: 'Save your cup and records to the cloud and play on any device.',
+        pitch: 'Sign in with Google to save to the cloud and play on any device. Your progress on this device can come along.',
         privacy: 'Privacy',
         openProfile: 'Open profile',
         signOut: 'Sign out',

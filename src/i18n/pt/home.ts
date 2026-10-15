@@ -18,7 +18,7 @@ export const home = {
     confirmYes: 'Sim, começar outra',
     inProgress: 'Copa em andamento',
     cupPath: 'Fases da copa',
-    resume: 'Continuar ▶',
+    resume: 'Continuar',
     orNew: 'Ou comece outra copa',
     teamName: 'Nome do seu time',
     newCup: 'Nova copa',

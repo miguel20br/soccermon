@@ -1,5 +1,5 @@
 import { migrateSave, type PersistedSave, SAVE_VERSION, useGame } from '../store/game-store';
-import { mergeCareer, mergeDex, mergeMoves } from '../store/profile';
+import { mergeSaves } from './reconcile-plan';
 
 /**
  * Mudança de endereço: soccermon.vercel.app → soccermon.com. O save de quem joga sem conta fica no navegador
@@ -21,8 +21,8 @@ const hasProgress = (s: Partial<PersistedSave>) =>
     !!s.run || (s.records?.cups ?? 0) > 0 || Object.keys(s.dex ?? {}).length > 0;
 
 function snapshot(): PersistedSave {
-    const { run, settings, records, profile, dex, moves, career, onboarded } = useGame.getState();
-    return { run, settings, records, profile, dex, moves, career, onboarded };
+    const { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns } = useGame.getState();
+    return { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns };
 }
 
 const toB64 = (bytes: Uint8Array) => {
@@ -90,19 +90,10 @@ export async function importFromOldDomain() {
             useGame.setState(incoming);
             return;
         }
-        // os dois têm progresso: fica a copa e o perfil daqui; recordes, Pokédex e carreira somam o melhor
-        const records = { ...local.records };
-        for (const [k, v] of Object.entries(incoming.records) as [keyof typeof records, number | undefined][]) {
-            if (typeof v === 'number') records[k] = Math.max(records[k] ?? 0, v);
-        }
-        useGame.setState({
-            run: local.run ?? incoming.run,
-            records,
-            dex: mergeDex(local.dex, incoming.dex),
-            moves: mergeMoves(local.moves, incoming.moves),
-            career: mergeCareer(local.career, incoming.career),
-            onboarded: local.onboarded || incoming.onboarded,
-        });
+        // os dois têm progresso: fica a copa e o perfil daqui; recordes, Pokédex e carreira somam o melhor, e a
+        // copa em andamento que veio do endereço antigo (se for outra) fica guardada em vez de sumir
+        const merged = mergeSaves(local, incoming, 'device');
+        useGame.setState({ ...merged, settings: local.settings });
     } catch {
         // link quebrado ou cortado: segue com o save daqui
     }

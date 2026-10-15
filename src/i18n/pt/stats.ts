@@ -135,6 +135,7 @@ export const stats = {
             flavor: 'Narração',
             special: 'Especial',
         } as Record<string, string>,
+        styleChip: 'Animação: {s}',
         style: {
             projectile: 'Projétil',
             beam: 'Raio',

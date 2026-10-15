@@ -11,8 +11,9 @@ export const team: typeof pt = {
         chooseForSlot: 'Choose your {pos}',
         chooseSlot: 'Choose a position to fill',
         hintCaptainSlot: 'Tap a slot: the number is its rating there.',
-        hintCaptain: 'The captain gives +3% to the team and +6% to teammates who share a type with it.',
-        hintOptions: '3 Pokémon who play in that position came up.',
+        hintCaptain:
+            'The captain gives +3% to the team and +6% to teammates who share a type with it. Tap a card to see its moves and stats.',
+        hintOptions: '3 Pokémon who play in that position came up. Tap a card to see its moves and stats.',
         hintSlot: 'Tap an empty slot on the court or on the bench.',
         pickOf: 'Pick {n} of {total}',
         progress: 'Draft progress',
@@ -58,7 +59,6 @@ export const team: typeof pt = {
         storySynergies: 'Story synergies',
         storySynEmpty:
             'Famous duos and groups (Mew + Mewtwo, Legendary Birds, Team Rocket…) get a bonus together and can pull off a combo: a pass from one, a shot from the other.',
-        detailHint: 'Tap the card to see everything about the Pokémon.',
         giveTo: 'Give to',
         swapWith: ' (swap with {item})',
         abandonConfirm: 'Abandon this cup? The team will be lost.',
@@ -77,6 +77,9 @@ export const team: typeof pt = {
         highlights: 'Highlights',
         moves: 'Moves',
         peekHint: 'tap to see the full card',
+        full: 'See full card',
+        fullSub: 'moves and stats',
+        fullAria: 'See the full card of {name}: moves, stats and Ability',
         legendary: 'Legendary',
         metalRare: 'Rare {metal}',
         metalCommon: 'Common {metal}',
@@ -191,6 +194,8 @@ export const team: typeof pt = {
         moves: 'Moves',
         locked: 'locked',
         used: 'used',
+        movesHint: 'tap to see what they do',
+        moveAria: '{move}: see what the move does on the full card',
         back: 'Back to the match',
     },
     panel: {

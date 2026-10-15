@@ -82,7 +82,7 @@ export const itemName = (id: string): string => ITEMS[id]?.name ?? id;
 export function itemDesc(id: string, lang: Lang = current): string {
     const d = DICTS[lang].common;
     const item = ITEMS[id];
-    if (item?.kind === 'type' && item.type) return fmt(d.typeItemDesc, { type: item.type });
+    if (item?.kind === 'type' && item.type) return fmt(d.typeItemDesc, { type: typeName(item.type, lang) });
     return d.itemDesc[id] ?? item?.desc ?? '';
 }
 

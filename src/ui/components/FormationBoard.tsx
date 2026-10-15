@@ -30,6 +30,12 @@ interface Props {
     onSlot?: (slot: SlotRef, uid: string) => void;
     emptyLabel?: string;
     footer?: ReactNode;
+    /** Selo extra no canto da vaga (ex.: quantos golpes o item da recompensa aproveita). */
+    badgeOf?: (inst: PokemonInstance) => ReactNode;
+    /** Vaga apagada (ex.: o item da recompensa não serve pra ele). */
+    dimOf?: (inst: PokemonInstance) => boolean;
+    /** Sufixo do aria-label de cada vaga ocupada (ex.: "abrir carta completa"). */
+    slotAria?: (inst: PokemonInstance) => string;
 }
 
 /** Mini-quadra vertical com as vagas da formação + banco. Usada no draft, na escalação e nas recompensas. */
@@ -45,6 +51,9 @@ export function FormationBoard({
     onSlot,
     emptyLabel: emptyProp,
     footer,
+    badgeOf,
+    dimOf,
+    slotAria,
 }: Props) {
     const f = formationOf(formation);
     const { t, d } = useT();
@@ -82,18 +91,20 @@ export function FormationBoard({
             : '';
         const t1 = inst ? TYPE_COLOR[species(inst.speciesId).types[0]] : undefined;
         const rarStyle = ring ? ({ ...style, '--rar': ring, '--t1': t1 } as CSSProperties) : style;
+        const dim = inst && dimOf?.(inst) ? ' dim' : '';
         return (
             <button
                 type="button"
                 key={`${ref.zone}-${ref.index}`}
-                className={`slot ${inst ? 'filled' : 'empty'} ${state}${projClass}${tier ? ` rar-${tier}` : ''} ${look}`}
+                className={`slot ${inst ? 'filled' : 'empty'} ${state}${projClass}${tier ? ` rar-${tier}` : ''}${dim} ${look}`}
                 style={rarStyle}
                 disabled={!clickable}
                 onClick={() => onSlot?.(ref, uid)}
-                aria-label={`${fullLabel}${inst ? `: ${viewInstance(inst).displayName}` : ` (${emptyLabel})`}`}
+                aria-label={`${fullLabel}${inst ? `: ${viewInstance(inst).displayName}${slotAria ? slotAria(inst) : ''}` : ` (${emptyLabel})`}`}
             >
                 <span className="pos-badge">{label}</span>
                 {inst?.uid === captainUid && inst && <span className="captain-badge">C</span>}
+                {inst && badgeOf?.(inst)}
                 {proj && (inst || !ghost) && (
                     <span className={`proj-badge ${proj.fit === 'off' ? 'bad' : 'good'}`}>{proj.display}</span>
                 )}

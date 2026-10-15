@@ -208,6 +208,11 @@ export interface GameStore {
     career: Career;
     /** Já viu o passo a passo de boas-vindas. */
     onboarded: boolean;
+    /**
+     * Copas em andamento guardadas para depois (a mais recente primeiro). Nascem quando o save do aparelho e o
+     * da conta têm copas diferentes: a escolhida continua e a outra fica aqui, nunca some sem aviso.
+     */
+    parkedRuns: RunState[];
     /** Partida atual (não persistida — snapshots são grandes). */
     match: MatchResult | null;
     go(screen: Screen): void;
@@ -235,7 +240,18 @@ export interface GameStore {
     updateSettings(patch: Partial<Settings>): void;
     updateProfile(patch: Partial<Profile>): void;
     setOnboarded(done: boolean): void;
+    /** Retoma uma copa guardada; a atual, se estiver em andamento, vai para o lugar dela. */
+    resumeParked(seed: string): void;
+    /** Joga fora uma copa guardada (o jogador confirmou). */
+    discardParked(seed: string): void;
 }
+
+/** Quantas copas guardadas cabem no save (passou disso, sai a mais antiga). */
+export const MAX_PARKED = 3;
+
+/** Copa ainda em jogo (não terminou em título nem em eliminação). */
+export const isCupInProgress = (run: RunState | null | undefined): run is RunState =>
+    !!run && run.status !== 'eliminated' && run.status !== 'champion';
 
 const idbStorage: StateStorage = {
     getItem: async (name) => (await get(name)) ?? null,
@@ -301,8 +317,19 @@ export function seedFromUrl(): string | null {
 /** O que vai para o IndexedDB (e para a nuvem). */
 export type PersistedSave = Pick<
     GameStore,
-    'run' | 'settings' | 'records' | 'profile' | 'dex' | 'moves' | 'career' | 'onboarded'
+    'run' | 'settings' | 'records' | 'profile' | 'dex' | 'moves' | 'career' | 'onboarded' | 'parkedRuns'
 >;
+
+/** Copa salva com formato aceitável (save importado ou da nuvem): senão é descartada, não trava o jogo. */
+const runShapeOk = (r: unknown): r is RunState => {
+    const o = r as Partial<RunState> | null;
+    return (
+        !!o &&
+        typeof o === 'object' &&
+        typeof o.seed === 'string' &&
+        [o.picks, o.lineup, o.bench, o.opponents, o.results].every(Array.isArray)
+    );
+};
 
 /** Versão atual do save (a mesma do `persist`). */
 export const SAVE_VERSION = 5;
@@ -351,6 +378,14 @@ export function migrateSave(old: Partial<PersistedSave>, version: number): Persi
         moves: old.moves ?? {},
         career: { ...EMPTY_CAREER, ...old.career },
         onboarded: old.onboarded ?? (version < 5 && (records.cups > 0 || !!run)),
+        // campo opcional (saves e versões anteriores não têm): copas guardadas válidas, no máximo MAX_PARKED
+        parkedRuns:
+            version < 3 || !Array.isArray(old.parkedRuns)
+                ? []
+                : old.parkedRuns
+                      .filter(runShapeOk)
+                      .map((r) => ({ ...r, lockedTeam: r.lockedTeam ?? null }))
+                      .slice(0, MAX_PARKED),
     };
 }
 
@@ -378,6 +413,7 @@ export const useGame = create<GameStore>()(
                 moves: {},
                 career: EMPTY_CAREER,
                 onboarded: false,
+                parkedRuns: [],
                 match: null,
 
                 go: (screen) => setState({ screen }),
@@ -692,6 +728,17 @@ export const useGame = create<GameStore>()(
                 updateSettings: (patch) => setState({ settings: { ...getState().settings, ...patch } }),
                 updateProfile: (patch) => setState({ profile: { ...getState().profile, ...patch } }),
                 setOnboarded: (onboarded) => setState({ onboarded }),
+
+                resumeParked: (seed) => {
+                    const { run, parkedRuns } = getState();
+                    const target = parkedRuns.find((r) => r.seed === seed);
+                    if (!target) return;
+                    const rest = parkedRuns.filter((r) => r.seed !== seed);
+                    // a copa atual não some: se ainda está em jogo, troca de lugar com a guardada
+                    const next = isCupInProgress(run) ? [run, ...rest] : rest;
+                    setState({ run: target, parkedRuns: next.slice(0, MAX_PARKED), match: null });
+                },
+                discardParked: (seed) => setState({ parkedRuns: getState().parkedRuns.filter((r) => r.seed !== seed) }),
             };
         },
         {
@@ -709,6 +756,7 @@ export const useGame = create<GameStore>()(
                 moves: s.moves,
                 career: s.career,
                 onboarded: s.onboarded,
+                parkedRuns: s.parkedRuns,
             }),
             // versões antigas tinham outro formato de draft: descarta a run, mantém configurações
             migrate: (persisted, version) => {

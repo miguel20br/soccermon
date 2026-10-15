@@ -13,10 +13,12 @@ interface CardModalState {
     position?: Position;
     captain?: boolean;
     note?: string;
+    /** Abre já rolada até essa parte (ex.: tocar num golpe no painel da partida). */
+    section?: 'moves';
     actions: CardAction[];
     open(
         inst: PokemonInstance,
-        opts?: { position?: Position; captain?: boolean; note?: string; actions?: CardAction[] },
+        opts?: { position?: Position; captain?: boolean; note?: string; actions?: CardAction[]; section?: 'moves' },
     ): void;
     close(): void;
 }
@@ -26,6 +28,13 @@ export const useCardModal = create<CardModalState>((set) => ({
     inst: null,
     actions: [],
     open: (inst, opts = {}) =>
-        set({ inst, actions: opts.actions ?? [], position: opts.position, captain: opts.captain, note: opts.note }),
-    close: () => set({ inst: null, actions: [], note: undefined }),
+        set({
+            inst,
+            actions: opts.actions ?? [],
+            position: opts.position,
+            captain: opts.captain,
+            note: opts.note,
+            section: opts.section,
+        }),
+    close: () => set({ inst: null, actions: [], note: undefined, section: undefined }),
 }));

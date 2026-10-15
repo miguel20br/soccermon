@@ -347,7 +347,7 @@
     }
     .vsp-band {
         top: 6.5%;
-        width: 46%;
+        width: 44%;
         max-width: none;
         box-sizing: border-box;
         padding: 4px 12px;
@@ -366,6 +366,11 @@
     }
     .vsp-name {
         font-size: 16px;
+    }
+    @media (max-width: 400px) {
+        .vsp-name {
+            font-size: 14px;
+        }
     }
     .vsp-form {
         display: none;

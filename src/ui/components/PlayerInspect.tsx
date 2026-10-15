@@ -14,9 +14,31 @@ import { TYPE_COLOR } from '../type-colors';
 import { FutCard } from './FutCard';
 import { TaughtMark } from './TmTeach';
 
+/** Setinha "abre mais" nos golpes, desenhada em SVG. */
+function ChevronIcon() {
+    return (
+        <svg
+            className="inspect-move-go"
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            focusable="false"
+        >
+            <path d="M9 5l7 7-7 7" />
+        </svg>
+    );
+}
+
 /**
  * Painel de um jogador em campo (tocar no Pokémon): carta, fôlego, status, bônus/penalidades agora,
  * golpes restantes, o que fez na partida e quanto falta para evoluir. A partida espera até fechar.
+ * Tocar na carta (ou no botão embaixo) ou num golpe abre a carta completa.
  */
 export function PlayerInspect({
     match,
@@ -80,6 +102,10 @@ export function PlayerInspect({
     const target = evolutionTarget(inst.speciesId, inst.uid);
     const evoPct = Math.min(100, Math.round((evoScore(stats, who.role) / EVO_THRESHOLD) * 100));
     const moveMods = moveModifiers(inst);
+    const captainHere = inst.uid === setup.captainUid;
+    // tocar num golpe abre a carta completa já nos golpes (o que cada um faz)
+    const openMoves = () =>
+        useCardModal.getState().open(inst, { position: who.role, captain: captainHere, section: 'moves' });
 
     // status: o que ele faz agora (Apaixonado só aparece aqui)
     const statusText = status === 7 ? t('team.inspect.infatuated') : d.common.statusEffect[status];
@@ -105,7 +131,7 @@ export function PlayerInspect({
             >
                 <div className="inspect-grid">
                     <div className="inspect-left">
-                        <FutCard inst={inst} position={who.role} captain={inst.uid === setup.captainUid} />
+                        <FutCard inst={inst} position={who.role} captain={captainHere} fullButton />
                         <div className="inspect-energy">
                             <span>{t('team.inspect.stamina')}</span>
                             <span className="bar">
@@ -179,7 +205,10 @@ export function PlayerInspect({
                                 </div>
                             ))}
                         </div>
-                        <h3>{t('team.inspect.moves')}</h3>
+                        <h3>
+                            {t('team.inspect.moves')}
+                            <small className="inspect-h3-hint">{t('team.inspect.movesHint')}</small>
+                        </h3>
                         <div className="inspect-moves">
                             {inst.moves.map((m) => {
                                 const data = MOVES[m];
@@ -188,10 +217,13 @@ export function PlayerInspect({
                                 const locked = moveMods.some((mm) => mm.moveId === m && mm.factor === 0);
                                 const boost = moveMods.find((mm) => mm.moveId === m && mm.factor > 1);
                                 return (
-                                    <div
+                                    <button
+                                        type="button"
                                         key={m}
                                         className={`inspect-move${left === 0 || locked ? ' spent' : ''}`}
                                         style={{ borderColor: TYPE_COLOR[data.type] }}
+                                        onClick={openMoves}
+                                        aria-label={t('team.inspect.moveAria', { move: moveName(m) })}
                                     >
                                         <b>
                                             {moveName(m)}
@@ -205,7 +237,8 @@ export function PlayerInspect({
                                                   : `${left}x`}
                                         </span>
                                         {boost && <em className="attr-mod up">▲ {moveModLabel(boost, lang)}</em>}
-                                    </div>
+                                        <ChevronIcon />
+                                    </button>
                                 );
                             })}
                         </div>

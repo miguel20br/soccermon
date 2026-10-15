@@ -10,8 +10,9 @@ export const team = {
         chooseForSlot: 'Escolha quem vai para a vaga de {pos}',
         chooseSlot: 'Escolha uma posição para preencher',
         hintCaptainSlot: 'Toque numa vaga: o número é a nota dele ali.',
-        hintCaptain: 'O capitão dá +3% ao time e +6% a quem divide tipo com ele.',
-        hintOptions: 'Saíram 3 Pokémon que jogam nessa posição.',
+        hintCaptain:
+            'O capitão dá +3% ao time e +6% a quem divide tipo com ele. Toque na carta pra ver golpes e atributos.',
+        hintOptions: 'Saíram 3 Pokémon que jogam nessa posição. Toque na carta pra ver golpes e atributos.',
         hintSlot: 'Toque numa vaga livre na quadra ou no banco.',
         pickOf: 'Escolha {n} de {total}',
         progress: 'Progresso do draft',
@@ -57,7 +58,6 @@ export const team = {
         storySynergies: 'Sinergias de história',
         storySynEmpty:
             'Duplas e grupos famosos (Mew + Mewtwo, Pássaros Lendários, Equipe Rocket…) ganham bônus juntos e podem soltar um combo: passe de um, chute do outro.',
-        detailHint: 'Toque na carta para ver tudo sobre o Pokémon.',
         giveTo: 'Passar para',
         swapWith: ' (troca com {item})',
         abandonConfirm: 'Abandonar esta copa? O time será perdido.',
@@ -77,6 +77,10 @@ export const team = {
         highlights: 'Destaques',
         moves: 'Golpes',
         peekHint: 'toque para ver a carta completa',
+        /** Botão embaixo da carta (painel da partida, escalação). */
+        full: 'Ver carta completa',
+        fullSub: 'golpes e atributos',
+        fullAria: 'Ver a carta completa de {name}: golpes, atributos e habilidade',
         legendary: 'Lendário',
         metalRare: '{metal} raro',
         metalCommon: '{metal} comum',
@@ -193,6 +197,8 @@ export const team = {
         moves: 'Golpes',
         locked: 'travado',
         used: 'já usado',
+        movesHint: 'toque pra ver o que fazem',
+        moveAria: '{move}: ver o que o golpe faz na carta completa',
         back: 'Voltar à partida',
     },
     panel: {

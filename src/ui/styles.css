@@ -1225,6 +1225,77 @@ button,
     border-color: var(--yellow);
 }
 
+/* recompensa: quantos golpes o item aproveita (src/ui/item-fit.ts) e quem não aproveita fica apagado */
+.target-btn > span {
+    display: grid;
+    justify-items: start;
+    gap: 2px;
+}
+.target-btn.dim,
+.formation-board .slot.dim {
+    opacity: 0.45;
+}
+.target-btn.dim:hover,
+.formation-board .slot.dim:hover {
+    opacity: 0.8;
+}
+.fit-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 6px 1px 3px;
+    border-radius: 999px;
+    background: var(--yellow);
+    color: #2a2a2a;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+.fit-badge.none {
+    background: #0e1430;
+    color: var(--muted);
+}
+.fit-badge img {
+    width: 14px;
+    height: 14px;
+}
+.slot .fit-badge {
+    position: absolute;
+    top: -12px;
+    left: -14px;
+    z-index: 2;
+    padding: 0 5px 0 2px;
+    border: 2px solid #0e1430;
+    font-size: 11px;
+}
+.slot .fit-badge img {
+    width: 12px;
+    height: 12px;
+}
+.fit-badge.full {
+    font-size: 11px;
+    font-weight: 600;
+}
+.reward-open-hint,
+.reward-fit-legend {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 8px;
+    font-size: 12px;
+}
+.reward-open-hint svg {
+    flex: none;
+    color: var(--yellow);
+}
+.reward-fit-legend {
+    color: var(--text);
+}
+.reward-fit-legend .fit-badge {
+    flex: none;
+}
+
 /* ---------- resultado / home ---------- */
 .perfect-badge {
     font-weight: 700;
@@ -1921,7 +1992,7 @@ button,
 @media (max-width: 700px) {
     .draft-options .options,
     .reward-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 10px;
     }
     .fut-wrap {
@@ -2452,6 +2523,64 @@ button,
 .fut-card2 .fut-ribbon {
     z-index: 12;
 }
+/* tocar na carta abre a carta completa: levanta no hover e ganha anel amarelo no foco do teclado */
+.fut-card2 {
+    transition: transform 0.15s ease;
+}
+.fut-card2:not(.static):hover {
+    transform: translateY(-3px);
+}
+.fut-card2:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 3px;
+}
+.fut-card2.static {
+    cursor: default;
+}
+/* botão "Ver carta completa" embaixo da carta (painel da partida, escalação) */
+.fut-full {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 100%;
+    min-height: 40px;
+    padding: 6px 12px;
+    border: 2px solid var(--yellow);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--yellow) 12%, transparent);
+    color: var(--yellow);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition:
+        background 0.15s ease,
+        transform 0.06s ease;
+}
+.fut-full:hover {
+    background: color-mix(in srgb, var(--yellow) 22%, transparent);
+}
+.fut-full:active {
+    transform: translateY(1px);
+}
+.fut-full:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+}
+.fut-full svg {
+    flex: none;
+}
+.fut-full span {
+    display: grid;
+    line-height: 1.2;
+}
+.fut-full b {
+    font-size: 13px;
+}
+.fut-full small {
+    font-size: 11px;
+    color: var(--text);
+    opacity: 0.8;
+}
 
 /* ---------- vaga da formação: anel na cor da raridade + edição especial ---------- */
 .slot.filled {
@@ -2642,6 +2771,8 @@ button,
 .pitch-wrap {
     position: relative;
     min-width: 0;
+    /* o banner de lance (.mh) entra deslizando de fora: não pode alargar a página no celular */
+    overflow-x: clip;
 }
 .mh {
     --team: #e94b4b;
@@ -3363,13 +3494,38 @@ button,
     gap: 6px;
 }
 .inspect-move {
+    position: relative;
     display: grid;
     gap: 2px;
-    padding: 6px 8px;
+    padding: 6px 22px 6px 8px;
+    border: 0;
     border-left: 4px solid;
     border-radius: 6px;
     background: var(--bg-2);
+    color: var(--text);
+    font: inherit;
     font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+}
+.inspect-move:hover {
+    background: color-mix(in srgb, var(--bg-2) 80%, #fff);
+}
+.inspect-move:focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: 2px;
+}
+.inspect-move-go {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    transform: translateY(-50%);
+    color: var(--muted);
+}
+.inspect-h3-hint {
+    margin-left: 8px;
+    font-size: 11px;
+    font-weight: 400;
 }
 .inspect-move span {
     color: var(--muted);

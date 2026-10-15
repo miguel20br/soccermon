@@ -1,15 +1,29 @@
 import { useState } from 'react';
-import { viewInstance } from '../../engine/instance';
+import { formationOf } from '../../engine/formations';
+import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { playSfx } from '../../game/audio';
-import { clubName, itemDesc, itemName, stageName } from '../../i18n';
+import { clubName, itemDesc, itemName, stageName, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
+import { useCardModal } from '../card-modal';
 import { FormationBoard } from '../components/FormationBoard';
-import { FutCard } from '../components/FutCard';
+import { ExpandIcon, FutCard } from '../components/FutCard';
 import { cardSprite } from '../components/PokeCard';
 import { TmCard, TmTeachPanel } from '../components/TmTeach';
+import { TypeIcon } from '../components/TypeIcon';
 import { Tip } from '../help/Tip';
+import { type ItemFit, itemFit } from '../item-fit';
+
+/** Selo "quantos golpes este item aproveita": ícone do tipo (ou do item) + número; `full` mostra o texto. */
+function FitBadge({ fit, item, text, full }: { fit: ItemFit; item: string; text: string; full?: boolean }) {
+    return (
+        <span className={`fit-badge${fit.count === 0 ? ' none' : ''}${full ? ' full' : ''}`} title={text}>
+            {fit.type ? <TypeIcon type={fit.type} /> : <img className="pixel" src={itemSprite(item)} alt="" />}
+            {full ? text : fit.count}
+        </span>
+    );
+}
 
 /**
  * Recompensa após vitória (estilo Slay the Spire): 1 de 3 — reforço para o banco, item ou MT do ginásio —,
@@ -18,7 +32,7 @@ import { Tip } from '../help/Tip';
 export function Reward() {
     const { run, claimReward, skipReward, rerollReward } = useGame();
     const [chosen, setChosen] = useState<number | null>(null);
-    const { lang, t } = useT();
+    const { lang, t, tn } = useT();
     if (run?.status !== 'reward') return null;
 
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
@@ -32,6 +46,16 @@ export function Reward() {
         playSfx('select');
         setChosen(chosen === i ? null : i);
     };
+    // item que depende dos golpes (tipo, King's Rock): quantos golpes de cada um ele aproveita
+    const fitItem = reward?.kind === 'item' ? reward.item : null;
+    const fitOf = (p: PokemonInstance) => (fitItem ? itemFit(fitItem, p) : null);
+    const fitText = (f: ItemFit) =>
+        f.type
+            ? tn('reward.fit.typeCount', f.count, { type: typeName(f.type, lang) })
+            : tn('reward.fit.hitCount', f.count);
+    const sampleFit = fitItem && squad[0] ? fitOf(squad[0]) : null;
+    const slots = formationOf(run.formation).slots;
+    const openCard = useCardModal.getState().open;
 
     return (
         <>
@@ -137,7 +161,7 @@ export function Reward() {
                             <button
                                 key={p.uid}
                                 type="button"
-                                className="mini target-btn"
+                                className={`mini target-btn${fitOf(p)?.count === 0 ? ' dim' : ''}`}
                                 onClick={() => {
                                     playSfx('select');
                                     claimReward(chosen!, p.uid);
@@ -146,6 +170,9 @@ export function Reward() {
                                 <img className="pixel" src={cardSprite(p)} alt="" />
                                 <span>
                                     <b>{viewInstance(p).displayName}</b>
+                                    {fitItem && fitOf(p) && (
+                                        <FitBadge fit={fitOf(p)!} item={fitItem} text={fitText(fitOf(p)!)} full />
+                                    )}
                                     {p.item && (
                                         <span className="muted">
                                             {t(
@@ -171,6 +198,21 @@ export function Reward() {
                         ? t('reward.positionsHint', { name: viewInstance(reward.inst).displayName })
                         : t('reward.compare')}
                 </p>
+                <p className="muted reward-open-hint">
+                    <ExpandIcon />
+                    {t('reward.openCard')}
+                </p>
+                {fitItem && sampleFit && (
+                    <p className="reward-fit-legend">
+                        <FitBadge fit={{ ...sampleFit, count: 1 }} item={fitItem} text="" />
+                        {sampleFit.type
+                            ? t('reward.fit.typeLegend', {
+                                  item: itemName(fitItem),
+                                  type: typeName(sampleFit.type, lang),
+                              })
+                            : t('reward.fit.hitLegend', { item: itemName(fitItem) })}
+                    </p>
+                )}
                 <FormationBoard
                     formation={run.formation}
                     lineup={run.lineup}
@@ -178,6 +220,25 @@ export function Reward() {
                     byUid={byUid}
                     captainUid={run.captainUid}
                     projection={reward?.kind === 'pokemon' ? reward.inst : null}
+                    onSlot={(ref, uid) => {
+                        const inst = byUid.get(uid);
+                        if (!inst) return;
+                        playSfx('select');
+                        openCard(inst, {
+                            position: ref.zone === 'lineup' ? slots[ref.index] : undefined,
+                            captain: inst.uid === run.captainUid,
+                        });
+                    }}
+                    badgeOf={(p) => {
+                        const f = fitOf(p);
+                        // na quadra só quem aproveita ganha o selo (quem não aproveita já fica apagado)
+                        return f?.count && fitItem ? <FitBadge fit={f} item={fitItem} text={fitText(f)} /> : null;
+                    }}
+                    dimOf={(p) => fitOf(p)?.count === 0}
+                    slotAria={(p) => {
+                        const f = fitOf(p);
+                        return `${f ? `, ${fitText(f)}` : ''}${t('reward.openAria')}`;
+                    }}
                 />
             </div>
         </>

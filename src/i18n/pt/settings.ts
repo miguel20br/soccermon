@@ -96,7 +96,7 @@ export const settings = {
         error: 'Não deu para salvar na nuvem (o jogo continua salvo neste aparelho)',
         signIn: 'Entrar com Google',
         signInFailed: 'Não deu para abrir o login do Google. Confira a internet e tente de novo.',
-        pitch: 'Salve sua copa e seus recordes na nuvem e jogue em qualquer aparelho.',
+        pitch: 'Entre com Google pra salvar na nuvem e jogar em qualquer aparelho. Seu progresso deste aparelho pode ir junto.',
         privacy: 'Privacidade',
         openProfile: 'Abrir o perfil',
         signOut: 'Sair',

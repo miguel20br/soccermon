@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { abilityEffect } from '../../engine/abilities';
 import { type AttrKey, computeAttributes, POSITIONS, physiqueOf } from '../../engine/attributes';
 import { MOVES, species } from '../../engine/data';
@@ -54,9 +54,10 @@ function secondaryText(moveId: string, d: Dict): string | null {
 
 /** Carta completa: tudo sobre o Pokémon, com ações (escolher, pegar…). */
 export function CardModal() {
-    const { inst, position, captain, note, actions, close } = useCardModal();
+    const { inst, position, captain, note, section, actions, close } = useCardModal();
     const run = useGame((s) => s.run);
     const { t, tn, d, lang } = useT();
+    const movesRef = useRef<HTMLHeadingElement>(null);
 
     useEffect(() => {
         if (!inst) return;
@@ -64,6 +65,11 @@ export function CardModal() {
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
     }, [inst, close]);
+
+    // aberta a partir de um golpe: já mostra a parte dos golpes
+    useEffect(() => {
+        if (inst && section === 'moves') movesRef.current?.scrollIntoView({ block: 'start' });
+    }, [inst, section]);
 
     if (!inst) return null;
     const view = viewInstance(inst);
@@ -232,7 +238,7 @@ export function CardModal() {
                             })}
                         </div>
 
-                        <h3>{t('team.modal.moves')}</h3>
+                        <h3 ref={movesRef}>{t('team.modal.moves')}</h3>
                         <div className="move-details">
                             {inst.moves.map((m) => {
                                 const data = MOVES[m];

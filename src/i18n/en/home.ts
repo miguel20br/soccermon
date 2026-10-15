@@ -19,7 +19,7 @@ export const home: typeof pt = {
     confirmYes: 'Yes, start a new one',
     inProgress: 'Cup in progress',
     cupPath: 'Cup stages',
-    resume: 'Continue ▶',
+    resume: 'Continue',
     orNew: 'Or start a new cup',
     teamName: 'Your team name',
     newCup: 'New cup',

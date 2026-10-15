@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { setVolume } from './game/audio';
 import { useT } from './i18n/react';
 import { useGame } from './store/game-store';
+import { AccountLink } from './ui/components/AccountLink';
 import { CardModal } from './ui/components/CardModal';
 import { Onboarding } from './ui/components/Onboarding';
 import { runDevDemo } from './ui/dev-demo';
@@ -26,7 +27,12 @@ export default function App() {
     const { t } = useT();
     // passo a passo de boas-vindas: só depois de o save carregar (senão aparece para quem já jogou)
     const [hydrated, setHydrated] = useState(() => useGame.persist.hasHydrated());
-    useEffect(() => useGame.persist.onFinishHydration(() => setHydrated(true)), []);
+    useEffect(() => {
+        const off = useGame.persist.onFinishHydration(() => setHydrated(true));
+        // o save pode ter terminado de carregar entre o primeiro render e este efeito
+        if (useGame.persist.hasHydrated()) setHydrated(true);
+        return off;
+    }, []);
     // ?demo=crash (só no dev): quebra a renderização para conferir a tela do ErrorBoundary
     if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('demo') === 'crash') {
         throw new Error('Teste do aviso de erro (?demo=crash)');
@@ -99,6 +105,7 @@ export default function App() {
             {screen === 'profile' && <Profile />}
             {screen === 'help' && <Help />}
             <CardModal />
+            <AccountLink />
             {hydrated && !onboarded && screen === 'home' && <Onboarding />}
         </div>
     );

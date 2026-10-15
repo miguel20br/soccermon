@@ -294,8 +294,8 @@ interface BackupFile {
 }
 
 function currentSave(): PersistedSave {
-    const { run, settings, records, profile, dex, moves, career, onboarded } = useGame.getState();
-    return { run, settings, records, profile, dex, moves, career, onboarded };
+    const { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns } = useGame.getState();
+    return { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns };
 }
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -426,6 +426,7 @@ function DataSettings() {
             moves: {},
             career: EMPTY_CAREER,
             onboarded: false,
+            parkedRuns: [],
             screen: 'home',
         });
     };
@@ -495,7 +496,10 @@ function DataSettings() {
                             titles: summary.records.titles,
                             seen,
                         })}
-                        {summary.run ? t('settings.data.withRun') : ''}.
+                        {summary.run && !['eliminated', 'champion'].includes(summary.run.status)
+                            ? t('settings.data.withRun')
+                            : ''}
+                        .
                     </span>
                     <span>
                         {t('settings.data.replaces')}

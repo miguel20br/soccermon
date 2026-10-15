@@ -1,3 +1,5 @@
+import { type LinkAsk, useCloud } from '../cloud/cloud';
+import type { SaveSummary } from '../cloud/reconcile-plan';
 import { FUTSAL_5 } from '../engine/config';
 import { aiDraftTeam } from '../engine/draft';
 import { createInstance } from '../engine/instance';
@@ -14,7 +16,8 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * com Ditto e Mew + Mewtwo (sinergia Gênese) cuja primeira partida tem combo. `?demo=evolucao` monta um time
  * de iniciais cuja primeira partida tem evolução do seu time logo no começo. `?demo=campeao` joga uma copa
  * inteira com um time forte e para na tela do título. `?demo=mt` abre a recompensa depois das oitavas com
- * uma MT do ginásio entre as 3 cartas (Charmeleon, Caterpie e cia. para testar quem aprende). `?demo=trailer&cena=<cena>&seed=<seed>` abre na escalação a
+ * uma MT do ginásio entre as 3 cartas (Charmeleon, Caterpie e cia. para testar quem aprende). `?demo=conta&tipo=levar|juntar|juntar1|copa|outra|guardada`
+ * mostra a pergunta depois do login (com resumos de mentira; os botões só fecham) ou a copa guardada na tela inicial. `?demo=trailer&cena=<cena>&seed=<seed>` abre na escalação a
  * partida que a caça de lances (scripts/trailer-hunt.ts) escolheu para o trailer.
  */
 let started = false;
@@ -28,13 +31,18 @@ export function runDevDemo() {
         demo !== 'evolucao' &&
         demo !== 'campeao' &&
         demo !== 'trailer' &&
-        demo !== 'mt'
+        demo !== 'mt' &&
+        demo !== 'conta'
     )
         return;
     started = true;
     // permite aos testes pular direto para o fim do tempo normal
     (window as unknown as { __soccermonBus?: typeof EventBus }).__soccermonBus = EventBus;
     const store = useGame.getState();
+    if (demo === 'conta') {
+        demoAccount(new URLSearchParams(window.location.search).get('tipo') ?? 'juntar');
+        return;
+    }
     if (demo === 'trailer') {
         const params = new URLSearchParams(window.location.search);
         const cena = params.get('cena');
@@ -216,4 +224,47 @@ export function runDevDemo() {
             return;
         }
     }
+}
+
+/** `?demo=conta`: a pergunta do login sem login de verdade (os botões só fecham, nada sobe nem muda). */
+function demoAccount(tipo: string) {
+    const store = useGame.getState();
+    if (tipo === 'guardada') {
+        // uma copa guardada e outra em andamento: confere a linha "Copa guardada" e a troca
+        store.newRun('Cerulean Stars', 'demo-guardada');
+        const parked = useGame.getState().run!;
+        store.newRun('Pallet FC', 'demo-atual');
+        useGame.setState({ parkedRuns: [parked], onboarded: true, screen: 'home' });
+        return;
+    }
+    useGame.setState({ onboarded: true, screen: 'home' });
+    if (tipo === 'outra') {
+        useCloud.setState({ notice: 'other-account' });
+        return;
+    }
+    const device: SaveSummary = {
+        club: 'Pallet FC',
+        cup: { team: 'Pallet FC', status: 'lineup', stage: 2, draftRound: 7 },
+        cups: 3,
+        titles: 1,
+        seen: 42,
+        parked: 0,
+    };
+    const cloud: SaveSummary = {
+        club: 'Viridian United',
+        cup: { team: 'Viridian United', status: 'drafting', stage: 0, draftRound: 3 },
+        cups: 12,
+        titles: 4,
+        seen: 118,
+        parked: 1,
+    };
+    const ask: LinkAsk =
+        tipo === 'levar'
+            ? { kind: 'bring', device, cloud: null, cupChoice: false, keep: 'device' }
+            : tipo === 'copa'
+              ? { kind: 'cup', device, cloud, cupChoice: true, keep: 'device' }
+              : tipo === 'juntar1'
+                ? { kind: 'merge', device, cloud: { ...cloud, cup: null }, cupChoice: false, keep: 'device' }
+                : { kind: 'merge', device, cloud, cupChoice: true, keep: 'device' };
+    useCloud.setState({ ask });
 }

@@ -402,7 +402,9 @@ export function MoveLab({ onExit }: { onExit: () => void }) {
                                 <TypeIcon type={row.type} size={26} />
                                 <h2 style={{ color: TYPE_COLOR[row.type] }}>{row.name}</h2>
                                 <span className="ml-chip">{typeName(row.type)}</span>
-                                <span className="ml-chip">{L.style[row.style] ?? row.style}</span>
+                                <span className="ml-chip">
+                                    {t('stats.lab.styleChip', { s: L.style[row.style] ?? row.style })}
+                                </span>
                             </div>
                             <p className="gdx-seen">{times > 0 ? tn('stats.lab.seenField', times) : L.notSeenField}</p>
                             <div className="gdx-controls">

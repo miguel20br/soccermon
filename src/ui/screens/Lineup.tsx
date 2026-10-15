@@ -244,8 +244,7 @@ export function Lineup() {
                     {detailInst && (
                         <>
                             <div className="detail-card">
-                                <FutCard inst={detailInst} captain={detailInst.uid === run.captainUid} />
-                                <p className="tactic-desc center">{t('team.lineup.detailHint')}</p>
+                                <FutCard inst={detailInst} captain={detailInst.uid === run.captainUid} fullButton />
                             </div>
                             {detailInst.item && (
                                 <div className="panel item-move">
