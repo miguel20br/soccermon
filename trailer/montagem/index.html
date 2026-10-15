@@ -77,13 +77,13 @@ img { image-rendering: pixelated; }
 .halo { position: absolute; left: 50%; top: 45%; width: 1300px; height: 620px; transform: translate(-50%, -50%);
   background: radial-gradient(rgb(255 255 255 / 45%), transparent 65%); }
 .voo { position: absolute; left: 50%; top: 45%; }
-#zard { width: 220px; margin: -110px 0 0 -110px; display: block; }
+#zard { position: absolute; left: 0; top: 0; width: 300px; display: block; }
 .brasa { position: absolute; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%;
   background: radial-gradient(#fff6c0, #ffb347 35%, rgb(255 90 31 / 0%) 70%); mix-blend-mode: screen; }
-.logo { position: absolute; left: 50%; top: 40%; width: 1500px; transform: translate(-50%, -50%); image-rendering: auto; }
+.logo { position: absolute; left: 210px; top: 279px; width: 1500px; height: 306px; image-rendering: auto; }
 #logo-branco { filter: brightness(0) invert(1) drop-shadow(0 0 30px #fff); }
 .tag { position: absolute; left: 0; right: 0; top: 60%; text-align: center; font-size: 64px; letter-spacing: 8px; color: #ffcb05; text-shadow: 6px 7px 0 #0e1430; }
-.selo { position: absolute; left: 50%; top: 73%; transform: translateX(-50%); padding: 16px 34px; border-radius: 14px; white-space: nowrap;
+.selo { position: absolute; left: 0; right: 0; width: fit-content; margin: 0 auto; top: 73%; padding: 16px 34px; border-radius: 14px; white-space: nowrap;
   background: #e8423f; color: #fff; font-size: 40px; letter-spacing: 3px; box-shadow: 0 7px 0 #8c1d1b; }
 .site { position: absolute; left: 0; right: 0; top: 84%; text-align: center; font-size: 38px; color: #fff; letter-spacing: 2px; }
 .credito { position: absolute; left: 0; right: 0; bottom: 22px; text-align: center; font-size: 20px; color: rgb(255 255 255 / 60%); letter-spacing: 1px; }
@@ -377,7 +377,10 @@ img { image-rendering: pixelated; }
     ];
     tl.set("#voo", caminho[0], F);
     tl.to("#voo", { keyframes: caminho.slice(1), duration: V, ease: "none" }, F);
-    tl.to("#voo", { keyframes: { y: ["+=0", "-=14", "+=14"] }, duration: 0.5, repeat: 2, ease: "sine.inOut" }, F);
+    // balanço do bater de asas no sprite (dentro do #voo, pra não brigar com a curva)
+    // o centro do sprite fica no ponto da curva (o GIF não é quadrado: margem fixa tirava ele do eixo ao crescer)
+    tl.set("#zard", { xPercent: -50, yPercent: -50 }, 0);
+    tl.to("#zard", { keyframes: { y: [0, -16, 0] }, duration: 0.4, repeat: 3, ease: "sine.inOut" }, F);
     // rastro: brasas que seguem o mesmo caminho com atraso e vão sumindo
     const rastro = document.getElementById("rastro");
     for (let k = 0; k < 14; k++) {
