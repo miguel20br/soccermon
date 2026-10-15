@@ -33,6 +33,10 @@ Plano do trailer e dos posts de lançamento (LinkedIn como projeto pessoal, X co
   assinatura + golpes de nível).
 - Evento semanal vindo do servidor (hoje é calculado no aparelho pela semana).
 
+### Meu clube e Pokédex (brainstorm)
+- Personalização do clube (nome, sigla, cores, escudo, mascote, quadra, títulos) ligada a uma Pokédex com
+  carreira por espécie, edições e medalhas: [personalizacao-e-pokedex.md](personalizacao-e-pokedex.md).
+
 ### 0.8+: modo carreira
 - Temporadas com ginásios, **insígnias** e a **Liga Índigo**.
 - XP, nível e evolução ao longo da carreira (o motor já usa `PokemonInstance` com nível e evolução).

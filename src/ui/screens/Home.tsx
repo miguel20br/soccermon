@@ -11,8 +11,6 @@ import { TypeIcon } from '../components/TypeIcon';
 import { PATCH_NOTES } from '../patch-notes';
 import { TYPE_PT } from '../type-colors';
 
-/** Quem corre pela quadra do topo (atrás da bola). */
-
 /** O que vem por aí (só vitrine: nada disso é clicável ainda). */
 const SOON = [
     { title: 'Modo história', text: 'Ginásios, insígnias e a Liga Índigo', img: 'assets/cards/25.gif' },
