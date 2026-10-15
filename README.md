@@ -1,6 +1,6 @@
 # Soccermon
 
-**Jogue agora: [soccermon.vercel.app](https://soccermon.vercel.app)**
+**Jogue agora: [soccermon.com](https://soccermon.com)**
 
 Criado por **Miguel Cunha** ([@miguel20br](https://github.com/miguel20br)).
 
@@ -89,4 +89,4 @@ segurança? Siga [SECURITY.md](SECURITY.md) em vez de abrir uma issue pública.
 - **Pokémon** e todos os nomes, imagens e sons relacionados são © Nintendo, Game Freak, Creatures Inc. e
   The Pokémon Company. Este projeto não é afiliado nem endossado por eles e não tem fins lucrativos.
 
-Privacidade e termos de uso: [soccermon.vercel.app/privacidade.html](https://soccermon.vercel.app/privacidade.html).
+Privacidade e termos de uso: [soccermon.com/privacidade.html](https://soccermon.com/privacidade.html).

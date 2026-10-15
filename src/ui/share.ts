@@ -1,7 +1,7 @@
 import { viewInstance } from '../engine/instance';
 import { isPerfectCup, type RunState } from '../store/game-store';
 
-export const SITE_URL = 'https://soccermon.vercel.app';
+export const SITE_URL = 'https://soccermon.com';
 
 const ELIMINATED_AT = ['nas oitavas de final', 'nas quartas de final', 'na semifinal', 'na final'];
 

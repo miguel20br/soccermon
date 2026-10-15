@@ -44,7 +44,8 @@ você é o Claude e `git log` mostrar commits com `miguelcunhabr@`, avise o Migu
 ## O projeto
 
 Fan game de navegador **sem fins lucrativos** (AGPL-3.0): draft roguelike "escolha 1 de 3" com os 151 de Kanto
-+ copa de futsal 5v5 simulada. No ar em https://soccermon.vercel.app. Repo: github.com/miguel20br/soccermon.
++ copa de futsal 5v5 simulada. No ar em https://soccermon.com (domínio próprio desde 15/10/2026; o soccermon.vercel.app continua
+respondendo). Repo: github.com/miguel20br/soccermon.
 
 - Stack: Vite 8, React 19, TypeScript, Phaser 4, Zustand (save em IndexedDB), Vitest, Biome.
 - Motor em `src/engine/` é **determinístico** (20 Hz, mesma seed + mesmas ordens = mesma partida): nada de
@@ -93,18 +94,19 @@ Plano do trailer e dos posts de lançamento: [docs/planos/divulgacao-trailer.md]
    Falta: (a) colocar o Client ID (termina em `.apps.googleusercontent.com`; é público) como valor padrão de
    `GOOGLE_CLIENT_ID` em `src/cloud/google-button.ts` ou na variável `VITE_GOOGLE_CLIENT_ID` da Vercel;
    (b) no Google Cloud Console → Clients → esse client → **Authorized JavaScript origins**:
-   `https://soccermon.vercel.app` e `http://localhost:8080`; (c) escopo `openid` em Data Access. No Supabase
+   `https://soccermon.com`, `https://soccermon.vercel.app` e `http://localhost:8080`; (c) escopo `openid` em Data Access. No Supabase
    (Google provider) o mesmo Client ID precisa estar em "Client IDs" e "Skip Nonce Check" desligado. Sem o
    Client ID o jogo usa o login antigo por redirecionamento.
 1. **Tela de consentimento OAuth do Google (Google Cloud Console):** passar de "Teste" para "Em produção",
-   com nome Soccermon, logo e link de privacidade `https://soccermon.vercel.app/privacidade.html`. Em modo
+   com nome Soccermon, logo e link de privacidade `https://soccermon.com/privacidade.html`. Em modo
    teste só os e-mails cadastrados conseguem entrar. Só o Miguel faz (no navegador).
-2. **Domínio próprio** (Miguel compra no Cloudflare, pelo PC): depois trocar as menções de
-   `soccermon.vercel.app` (README, SECURITY.md, index.html, share.ts, template de issue, docs), o Site URL e as
-   Redirect URLs do Supabase, as origens do Client ID do Google e o site do repo.
+2. **Domínio soccermon.com no ar (15/10/2026)**; as menções no repo já foram trocadas. Conferir fora do código
+   (painéis): Site URL e Redirect URLs do Supabase com `https://soccermon.com/**`, origens do Client ID do Google
+   e o site do repo no GitHub. Sem o Supabase atualizado, o login no domínio novo volta pro vercel.app.
 3. **Polimento antes de divulgar** (lista em `docs/planos/roadmap.md`, seção "Agora"): testar pênaltis/campeão/
    substituição, "Como jogar", botão de feedback, Home com celular deitado, nomes embolados na quadra.
-4. **Trailer de lançamento:** plano em `docs/planos/trailer-plano.md` (HyperFrames + captura determinística).
+4. **Trailer de lançamento:** plano em `docs/planos/trailer-plano.md`; composição em `trailer/montagem/` (HyperFrames).
+   Mídia e música ficam fora do git (gerar com `trailer/montagem/preparar.sh` e os scripts de recorte).
 5. Ideias combinadas para depois: melhores momentos/replay (os snapshots já existem), quadras temáticas e
    treinadores, modo carreira (0.8+).
 

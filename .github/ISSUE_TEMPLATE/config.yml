@@ -4,5 +4,5 @@ contact_links:
     url: https://github.com/miguel20br/soccermon/security/advisories/new
     about: Reporte em particular, não em uma issue pública.
   - name: Jogar o Soccermon
-    url: https://soccermon.vercel.app
+    url: https://soccermon.com
     about: O jogo publicado.
