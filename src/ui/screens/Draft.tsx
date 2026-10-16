@@ -1,20 +1,61 @@
-import { useEffect, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import { DRAFT_PICKS } from '../../engine/draft';
 import { FORMATIONS, type FormationId, formationOf } from '../../engine/formations';
-import { viewInstance } from '../../engine/instance';
+import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { computeLinks } from '../../engine/links';
+import { editionOf } from '../../engine/specials';
 import { computeSynergies } from '../../engine/synergy';
 import { playSfx } from '../../game/audio';
 import { formationText } from '../../i18n';
-import { useT } from '../../i18n/react';
+import { rich, useT } from '../../i18n/react';
 import { type SlotRef, slotRole, useGame } from '../../store/game-store';
+import { CountUp } from '../components/CountUp';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
 import { LinkChip, LinkChips, newLinks } from '../components/LinkChips';
 import { TypeBadge } from '../components/PokeCard';
 import { Tip } from '../help/Tip';
+import { metalOf } from '../rarity';
 import { ratingAt } from '../rating';
 import { reduceMotionOn } from '../settings-sync';
+
+/** Carta que segura a revelação um pouco mais: ouro (75+), Shiny ou edição especial. */
+const isBigCard = (o: PokemonInstance) => metalOf(viewInstance(o).overall) === 'ouro' || !!editionOf(o);
+
+/** Quando cada opção vira (ms): 120 entre elas, +250 depois de uma carta grande. */
+function revealDelays(options: readonly PokemonInstance[]): number[] {
+    let at = 0;
+    return options.map((o) => {
+        const d = at;
+        at += 120 + (isBigCard(o) ? 250 : 0);
+        return d;
+    });
+}
+
+/** "Média dos titulares" que rola até o valor novo e mostra o quanto a escolha mudou (+4 / −2) por 1,5 s. */
+function TeamAvg({ avg }: { avg: number }) {
+    const { t } = useT();
+    const prev = useRef(avg);
+    const [delta, setDelta] = useState(0);
+    useEffect(() => {
+        const diff = avg - prev.current;
+        prev.current = avg;
+        if (!diff) return;
+        setDelta(diff);
+        const id = window.setTimeout(() => setDelta(0), 1500);
+        return () => clearTimeout(id);
+    }, [avg]);
+    return (
+        <span className="muted team-avg">
+            {rich(t('team.draft.avg'), { n: <CountUp to={avg} className="team-avg-n" /> })}
+            {delta !== 0 && (
+                <b key={avg} className={`avg-delta ${delta > 0 ? 'up' : 'down'}`}>
+                    {delta > 0 ? `+${delta}` : `−${-delta}`}
+                </b>
+            )}
+        </span>
+    );
+}
 
 /** Desenho mini da formação (bolinhas nas posições da UI). */
 function FormationDiagram({ id }: { id: FormationId }) {
@@ -56,6 +97,16 @@ export function Draft() {
         if (top >= 0 && top < window.innerHeight * 0.5) return;
         el.scrollIntoView({ behavior: reduceMotionOn() ? 'auto' : 'smooth', block: 'start' });
     }, [focus, run?.draftRound]);
+    // as 3 opções viram uma de cada vez (CSS, com o atraso de revealDelays) e cada uma faz um clique
+    const optionsKey = run?.options.map((o) => o.uid).join() ?? '';
+    // biome-ignore lint/correctness/useExhaustiveDependencies: toca de novo só quando saem opções novas
+    useEffect(() => {
+        if (!run?.options.length) return;
+        const ids = revealDelays(run.options).map((ms) => window.setTimeout(() => playSfx('select'), ms));
+        return () => {
+            for (const id of ids) clearTimeout(id);
+        };
+    }, [optionsKey]);
     if (!run) return null;
 
     if (run.status === 'formation') {
@@ -142,6 +193,7 @@ export function Draft() {
     };
 
     const showOptions = isCaptain || !!run.draftSlot;
+    const delays = revealDelays(run.options);
 
     return (
         <>
@@ -186,7 +238,7 @@ export function Draft() {
                         onSlot={onSlot}
                         footer={
                             <div className="row" style={{ marginTop: 12, gap: 8 }}>
-                                {filled.length > 0 && <span className="muted">{t('team.draft.avg', { n: avg })}</span>}
+                                {filled.length > 0 && <TeamAvg avg={avg} />}
                                 {synergies.map((s) => (
                                     <span key={s.type} className="row" style={{ gap: 4 }}>
                                         <TypeBadge type={s.type} />
@@ -223,8 +275,12 @@ export function Draft() {
                             </button>
                         </div>
                         <div className="options">
-                            {run.options.map((o) => (
-                                <div key={o.uid} className="option">
+                            {run.options.map((o, i) => (
+                                <div
+                                    key={o.uid}
+                                    className={`option reveal${isBigCard(o) ? ' reveal-big' : ''}`}
+                                    style={{ '--rd': `${delays[i]}ms` } as CSSProperties}
+                                >
                                     {!isCaptain && role !== 'ANY' && newLinks(filled, o).length > 0 && (
                                         <div className="option-links">
                                             {t('team.draft.activates')}{' '}

@@ -8,6 +8,10 @@ export const home: typeof pt = {
         { title: 'Generation 2', text: 'The Pokémon of Johto' },
     ],
     draftStep: 'Draft · pick {n} of 7',
+    dex: {
+        label: 'Pokédex',
+        new: '+{n} new',
+    },
     choosingReward: 'Choosing the reward',
     eventWeek: '{type}-type week',
     eventText: '{type}-type Event cards may show up in the draft.',

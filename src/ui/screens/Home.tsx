@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { type CSSProperties, useEffect, useState } from 'react';
 import { CUP_STAGES } from '../../engine/cup';
 import { weeklyEventType } from '../../engine/specials';
 import { fmt, stageName, typeName } from '../../i18n';
@@ -6,16 +6,53 @@ import { rich, useT } from '../../i18n/react';
 import { isCupInProgress, seedFromUrl, useGame } from '../../store/game-store';
 import { AccountBar } from '../components/AccountBar';
 import { cupStep } from '../components/AccountLink';
+import { CountUp } from '../components/CountUp';
 import { HomeCourt } from '../components/HomeCourt';
 import { MenuIcon } from '../components/MenuIcon';
 import { cardSprite } from '../components/PokeCard';
 import { Trophy } from '../components/Trophy';
 import { TypeIcon } from '../components/TypeIcon';
 import { FEEDBACK_URL, privacyUrl } from '../links';
+import { readCount, writeCount } from '../local-count';
 import { patchNotes } from '../patch-notes';
 
 /** O que vem por aí (só vitrine: nada disso é clicável ainda). Os textos ficam em i18n (home.soon). */
 const SOON_IMG = ['assets/cards/25.gif', 'assets/cards/68.gif', 'assets/cards/143.gif', 'assets/ui/poke-ball.png'];
+
+const DEX_KEY = 'soccermon-dex-last';
+const DEX_TOTAL = 151;
+
+/**
+ * Pokédex cresceu desde a última visita à Home (em geral: voltou de uma copa): a barra enche de 47 até 50/151
+ * com "+3 novos". O último número visto fica no navegador. Antes do save carregar a Pokédex vem vazia: só
+ * grava quando o número sobe, pra não zerar a referência.
+ */
+function DexProgress() {
+    const { t, tn } = useT();
+    const seen = useGame((s) => Object.keys(s.dex).length);
+    const [from] = useState(() => readCount(DEX_KEY));
+    useEffect(() => {
+        if (seen > (readCount(DEX_KEY) ?? -1)) writeCount(DEX_KEY, seen);
+    }, [seen]);
+    if (from === null || seen <= from) return null;
+    const pct = (n: number) => `${Math.min(100, (n / DEX_TOTAL) * 100)}%`;
+    return (
+        <div className="dex-progress" role="status">
+            <span className="dp-label">
+                {t('home.dex.label')} {from} → <CountUp from={from} to={seen} ms={900} />/{DEX_TOTAL}
+            </span>
+            <span
+                className="dp-bar"
+                style={
+                    { '--from': pct(from), '--to': pct(seen), '--split': `${(from / seen) * 100}%` } as CSSProperties
+                }
+            >
+                <i />
+            </span>
+            <b className="dp-new">{tn('home.dex.new', seen - from)}</b>
+        </div>
+    );
+}
 
 /** Troca rápida de idioma no topo da tela inicial (as Configurações também têm). */
 function LangToggle() {
@@ -133,6 +170,8 @@ export function Home() {
                 </h1>
                 <p className="tagline">{t('home.tagline')}</p>
             </section>
+
+            <DexProgress />
 
             <div className="menu panel">
                 {parkedAsk && parkedTarget ? (

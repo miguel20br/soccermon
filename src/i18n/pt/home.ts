@@ -7,6 +7,11 @@ export const home = {
         { title: 'Geração 2', text: 'Os Pokémon de Johto' },
     ],
     draftStep: 'Draft · escolha {n} de 7',
+    /** Barra da Pokédex que enche ao voltar de uma copa. */
+    dex: {
+        label: 'Pokédex',
+        new: '+{n} novo|+{n} novos',
+    },
     choosingReward: 'Escolhendo a recompensa',
     eventWeek: 'Semana do tipo {type}',
     eventText: 'Cartas Evento do tipo {type} podem aparecer no draft.',
