@@ -102,7 +102,10 @@ export function Draft() {
     // biome-ignore lint/correctness/useExhaustiveDependencies: toca de novo só quando saem opções novas
     useEffect(() => {
         if (!run?.options.length) return;
-        const ids = revealDelays(run.options).map((ms) => window.setTimeout(() => playSfx('select'), ms));
+        // tom sobe carta a carta (dó, mi, sol), como a contagem do Balatro
+        const ids = revealDelays(run.options).map((ms, i) =>
+            window.setTimeout(() => playSfx('select', 2 ** ([0, 4, 7][i] / 12)), ms),
+        );
         return () => {
             for (const id of ids) clearTimeout(id);
         };

@@ -79,7 +79,8 @@ export function ResultHero({
         const id = window.setTimeout(
             () => {
                 const next = step + 1;
-                if (next < lines) playSfx('select');
+                // cada linha um semitom acima: o número "sobe" também no som
+                if (next < lines) playSfx('select', 2 ** ((next * 2) / 12));
                 else if (mvpUid) playSfx('kick');
                 setStep(next);
             },
