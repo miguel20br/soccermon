@@ -13,6 +13,7 @@ import {
     TACTIC_LABEL,
     type Tactic,
 } from '../../engine/state';
+import { skinOf } from '../../game/animation-manager';
 import { setVolume } from '../../game/audio';
 import { EventBus } from '../../game/EventBus';
 import type { MatchSceneData } from '../../game/scenes/MatchScene';
@@ -144,7 +145,9 @@ export function Match() {
                       cinematic: settings.cinematic,
                       namesOnField: settings.namesOnField,
                       reduceMotion: reduceMotionOn(settings.reduceMotion),
-                      extraSpecies: [...(run?.picks ?? []), ...(opponent?.bench ?? [])].map((p) => p.speciesId),
+                      extraSpecies: [...(run?.picks ?? []), ...(opponent?.bench ?? [])].map((p) =>
+                          skinOf(p.speciesId, p.shiny),
+                      ),
                       startPaused: true,
                       startTick: resume?.tick || undefined,
                       final: run?.stage === CUP_STAGES.length - 1,

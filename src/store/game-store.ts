@@ -330,6 +330,12 @@ const defeatedOf = (run: RunState) => {
     const opp = run.opponents[run.stage];
     return opp ? { name: opp.name, players: [...opp.lineup, ...opp.bench] } : undefined;
 };
+/** Posição em que ele está escalado (titular), para a carta mostrar os números daquela vaga. */
+export const lineupPosition = (run: RunState, uid: string): Position | undefined => {
+    const i = run.lineup.indexOf(uid);
+    return i >= 0 ? formationOf(run.formation).slots[i] : undefined;
+};
+
 export const isPerfectCup = (run: RunState) =>
     run.status === 'champion' && run.results.every((r) => r.won && r.score[1] === 0);
 

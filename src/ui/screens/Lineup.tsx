@@ -8,7 +8,7 @@ import { computeSynergies } from '../../engine/synergy';
 import { playSfx } from '../../game/audio';
 import { clubName, dict, formationText, itemDesc, itemName, stageName } from '../../i18n';
 import { useT } from '../../i18n/react';
-import { playerTeam, type SlotRef, useGame } from '../../store/game-store';
+import { lineupPosition, playerTeam, type SlotRef, useGame } from '../../store/game-store';
 import { useCardModal } from '../card-modal';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
@@ -245,7 +245,12 @@ export function Lineup() {
                     {detailInst && (
                         <>
                             <div className="detail-card">
-                                <FutCard inst={detailInst} captain={detailInst.uid === run.captainUid} fullButton />
+                                <FutCard
+                                    inst={detailInst}
+                                    captain={detailInst.uid === run.captainUid}
+                                    position={lineupPosition(run, detailInst.uid)}
+                                    fullButton
+                                />
                             </div>
                             {detailInst.item && (
                                 <div className="panel item-move">

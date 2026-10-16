@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { computeAttributes } from '../../engine/attributes';
 import { FUTSAL_5 } from '../../engine/config';
 import { MOVES, species } from '../../engine/data';
 import { ITEMS } from '../../engine/items';
@@ -29,12 +30,15 @@ import { hexToNumber, TYPE_COLOR } from '../../ui/type-colors';
 import {
     animForAction,
     atlasKey,
+    baseOf,
     createSpeciesAnims,
     footOrigin,
     headTop,
+    isShinySkin,
     preloadSpecies,
     resolveAnim,
     shadowSize,
+    skinOf,
 } from '../animation-manager';
 import { playCry, playSfx } from '../audio';
 import { trailParticle, typeBurst } from '../ball-trail';
@@ -56,7 +60,7 @@ export interface MatchSceneData {
     namesOnField?: NamesOnField;
     /** Reduzir movimento (já resolvido): câmera parada, sem tremida, clarão nem zoom. */
     reduceMotion?: boolean;
-    /** Espécies que podem entrar em campo (bancos inteiros): pré-carregadas para substituições. */
+    /** Folhas (skinOf) que podem entrar em campo (bancos inteiros): pré-carregadas para substituições. */
     extraSpecies?: number[];
     /** Começa parada (tela de VERSUS); a partida só rola depois de 'match:resume'. */
     startPaused?: boolean;
@@ -77,9 +81,6 @@ const IMPACT: Record<ImpactLevel, { stop: number; shake: [number, number]; flash
     hit: { stop: 90, shake: [320, 0.007], flash: 180 },
     boom: { stop: 170, shake: [480, 0.012], flash: 260 },
 };
-/** Distância (px) corrida entre dois toques na bola ao conduzir (~1,4 m). */
-const TOUCH_PX = 1.4 * PPM;
-
 /** Catmull-Rom: passa por p1 (t=0) e p2 (t=1) usando os vizinhos para a curva. */
 const catmull = (p0: number, p1: number, p2: number, p3: number, t: number) =>
     0.5 * (2 * p1 + (p2 - p0) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (3 * p1 - p0 - 3 * p2 + p3) * t * t * t);
@@ -282,6 +283,8 @@ interface ZoneView {
 
 interface PlayerView {
     speciesId: number;
+    /** Folha do sprite em campo (espécie, ou a shiny de verdade: animation-manager `skinOf`). */
+    skin: number;
     team: 0 | 1;
     name: string;
     shiny: boolean;
@@ -335,7 +338,9 @@ export class MatchScene extends Phaser.Scene {
     private lastBall = { x: 0, y: 0 };
     private dives: DiveInfo[] = [];
     /** Deslocamento suavizado da bola em relação a quem conduz. */
-    private dribble = { owner: -1, x: 0, y: 0, tick: 0, cx: 0, cy: 0, travel: 0 };
+    private dribble = { owner: -1, x: 0, y: 0, tick: 0, cx: 0, cy: 0, travel: 0, reach: 1 };
+    /** Drible (0..1) de cada espécie, para o tamanho dos toques de condução. */
+    private dribbleSkill = new Map<number, number>();
     /** Até quando (tempo real) a partida fica parada (evolução, substituição). */
     private holdReal = 0;
     private evoQueue: { view: PlayerView; from: number; into: number; newName: string }[] = [];
@@ -379,7 +384,7 @@ export class MatchScene extends Phaser.Scene {
         drawCourt(this);
         ensureBallTexture(this);
         for (const p of result.roster) {
-            createSpeciesAnims(this, p.speciesId);
+            createSpeciesAnims(this, skinOf(p.speciesId, p.shiny));
             this.players.push(this.createPlayerView(p.speciesId, p.team, p.name, p.shiny, p.captain));
         }
         for (const id of this.allSpecies()) createSpeciesAnims(this, id);
@@ -435,9 +440,12 @@ export class MatchScene extends Phaser.Scene {
         EventBus.emit('current-scene-ready', this);
     }
 
+    /** Folhas de sprite que a partida pode usar (escalações, bancos; shiny com a folha shiny). */
     private allSpecies(): Set<number> {
         const { result, extraSpecies = [] } = this.md;
-        return new Set([...result.roster, ...result.finalRoster].map((p) => p.speciesId).concat(extraSpecies));
+        return new Set(
+            [...result.roster, ...result.finalRoster].map((p) => skinOf(p.speciesId, p.shiny)).concat(extraSpecies),
+        );
     }
 
     /**
@@ -446,9 +454,10 @@ export class MatchScene extends Phaser.Scene {
      */
     private preloadEvolutions() {
         const next = new Set<number>();
-        for (const id of this.allSpecies()) {
-            for (const e of species(id).evolvesTo) {
-                if (e.id <= 151 && !this.textures.exists(atlasKey(e.id))) next.add(e.id);
+        for (const skin of this.allSpecies()) {
+            for (const e of species(baseOf(skin)).evolvesTo) {
+                const into = skinOf(e.id, isShinySkin(skin));
+                if (e.id <= 151 && !this.textures.exists(atlasKey(into))) next.add(into);
             }
         }
         if (!next.size) return;
@@ -507,7 +516,8 @@ export class MatchScene extends Phaser.Scene {
         // a substituição do intervalo pode mudar com a nova tática: o finalRoster novo é o que vale
         this.md = { ...this.md, result };
         for (const p of result.finalRoster) {
-            if (this.textures.exists(atlasKey(p.speciesId))) createSpeciesAnims(this, p.speciesId);
+            const skin = skinOf(p.speciesId, p.shiny);
+            if (this.textures.exists(atlasKey(skin))) createSpeciesAnims(this, skin);
         }
         this.setTimeline(result);
         this.holdAt = Number.POSITIVE_INFINITY;
@@ -566,13 +576,14 @@ export class MatchScene extends Phaser.Scene {
         captain: boolean,
     ): PlayerView {
         const color = this.md.colors[team];
-        const size = shadowSize(speciesId);
+        const skin = this.loadedSkin(speciesId, shiny);
+        const size = shadowSize(skin);
         const shadow = this.add.ellipse(0, 0, 14 + size * 6, 6 + size * 2, 0x000000, 0.3);
         const ring = this.add.ellipse(0, 0, 22 + size * 6, 9 + size * 2).setStrokeStyle(2.5, color, 0.95);
         const sprite = this.add
-            .sprite(0, 0, atlasKey(speciesId))
+            .sprite(0, 0, atlasKey(skin))
             .setScale(SPRITE_SCALE)
-            .setOrigin(0.5, footOrigin(speciesId, 'Idle'));
+            .setOrigin(0.5, footOrigin(skin, 'Idle'));
         // seu time (casa) ganha uma setinha vermelha discreta na cabeça
         const arrow =
             team === 0
@@ -596,6 +607,7 @@ export class MatchScene extends Phaser.Scene {
             .setResolution(2);
         const view: PlayerView = {
             speciesId,
+            skin,
             team,
             name,
             shiny,
@@ -677,7 +689,7 @@ export class MatchScene extends Phaser.Scene {
     private placeArrow(view: PlayerView, x: number, y: number, depth: number) {
         if (!view.arrow) return;
         const h = view.sprite.frame.realHeight * view.sprite.scaleY;
-        const head = y - (view.sprite.originY - headTop(view.speciesId)) * h;
+        const head = y - (view.sprite.originY - headTop(view.skin)) * h;
         view.arrow.setPosition(x, head - 7).setDepth(depth);
     }
 
@@ -692,12 +704,19 @@ export class MatchScene extends Phaser.Scene {
         if (captain) view.label.setText(`C·${view.name}`).setColor('#ffd447');
     }
 
+    /** Folha shiny se já carregou; senão a normal (a tinta amarelada marca o shiny). */
+    private loadedSkin(speciesId: number, shiny: boolean) {
+        const skin = skinOf(speciesId, shiny);
+        return this.textures.exists(atlasKey(skin)) ? skin : speciesId;
+    }
+
     private swapSpecies(view: PlayerView, speciesId: number, name: string, shiny: boolean) {
         view.speciesId = speciesId;
+        view.skin = this.loadedSkin(speciesId, shiny);
         view.name = name;
         view.shiny = shiny;
         view.captain = false;
-        view.sprite.setTexture(atlasKey(speciesId)).setOrigin(0.5, footOrigin(speciesId, 'Idle'));
+        view.sprite.setTexture(atlasKey(view.skin)).setOrigin(0.5, footOrigin(view.skin, 'Idle'));
         view.label.setText(name).setColor('#ffffff');
         view.currentKey = '';
         view.status = -1;
@@ -710,7 +729,7 @@ export class MatchScene extends Phaser.Scene {
         // casco/concha/derretido: azulado; fúria: avermelhado
         else if (flags & FLAG_GUARD) view.sprite.setTint(0x9fc4e8);
         else if (flags & FLAG_RAGE) view.sprite.setTint(0xff8a8a);
-        else if (view.shiny) view.sprite.setTint(0xfff3b0);
+        else if (view.shiny && !isShinySkin(view.skin)) view.sprite.setTint(0xfff3b0);
         else view.sprite.clearTint();
     }
 
@@ -825,10 +844,10 @@ export class MatchScene extends Phaser.Scene {
         view.badge.setPosition(px.x, px.y + 6 + this.nameHeight(view)).setDepth(5001);
         this.placeArrow(view, px.x, px.y, 4999);
         if (anim !== undefined && facing !== undefined) {
-            const resolved = resolveAnim(view.speciesId, anim);
-            const key = `${view.speciesId}/${resolved}/${facing}`;
+            const resolved = resolveAnim(view.skin, anim);
+            const key = `${view.skin}/${resolved}/${facing}`;
             if (key !== view.currentKey) {
-                view.sprite.play(key).setOrigin(0.5, footOrigin(view.speciesId, resolved));
+                view.sprite.play(key).setOrigin(0.5, footOrigin(view.skin, resolved));
                 view.currentKey = key;
             }
         }
@@ -1051,17 +1070,17 @@ export class MatchScene extends Phaser.Scene {
             this.applyIndicators(view, near.p[o + 4], near.p[o + 5]);
             this.applyTraitPose(view, near.p[o + 5]);
 
-            const anim = resolveAnim(view.speciesId, dive ? 'Attack' : animForAction(action));
-            const key = `${view.speciesId}/${anim}/${dive ? dive.facing : facing}`;
+            const anim = resolveAnim(view.skin, dive ? 'Attack' : animForAction(action));
+            const key = `${view.skin}/${anim}/${dive ? dive.facing : facing}`;
             if (entering !== null) {
-                const walk = resolveAnim(view.speciesId, 'Walk');
-                const wkey = `${view.speciesId}/${walk}/${entering}`;
+                const walk = resolveAnim(view.skin, 'Walk');
+                const wkey = `${view.skin}/${walk}/${entering}`;
                 if (wkey !== view.currentKey) {
-                    view.sprite.play(wkey).setOrigin(0.5, footOrigin(view.speciesId, walk));
+                    view.sprite.play(wkey).setOrigin(0.5, footOrigin(view.skin, walk));
                     view.currentKey = wkey;
                 }
             } else if (key !== view.currentKey && !view.evolving) {
-                view.sprite.play(key).setOrigin(0.5, footOrigin(view.speciesId, anim));
+                view.sprite.play(key).setOrigin(0.5, footOrigin(view.skin, anim));
                 view.currentKey = key;
             }
             const dx = (b.p[o] - a.p[o]) * PPM;
@@ -1101,13 +1120,11 @@ export class MatchScene extends Phaser.Scene {
             }
             d.cx = c.x;
             d.cy = c.y;
-            // toques de condução: no motor a bola fica colada a 45 cm do pé; aqui ele empurra a bola pra frente
-            // (sai rápido até ~1 m) e alcança de novo, a cada ~1,4 m corridos. Parado, ela fica no pé.
-            const f = (d.travel % TOUCH_PX) / TOUCH_PX;
-            const push = f < 0.18 ? f / 0.18 : 1 - (f - 0.18) / 0.82;
-            const reach = d.travel > 4 ? 0.8 + 1.4 * push * push : 1;
-            bp.x = c.x + d.x * reach;
-            bp.y = c.y + d.y * reach;
+            const target = this.touchReach(carrier, a, b, d.travel);
+            // mola amortecida: muda de toque/parada sem tranco
+            d.reach += (target - d.reach) * (1 - Math.exp(-Math.max(0, this.playTick - d.tick) / 0.6));
+            bp.x = c.x + d.x * d.reach;
+            bp.y = c.y + d.y * d.reach;
         }
         d.owner = carrier;
         d.tick = this.playTick;
@@ -1260,7 +1277,7 @@ export class MatchScene extends Phaser.Scene {
             const view = this.players[e.outIdx];
             if (view) {
                 const at = { x: view.sprite.x, y: view.sprite.y };
-                createSpeciesAnims(this, e.inSpeciesId);
+                createSpeciesAnims(this, skinOf(e.inSpeciesId, e.inShiny));
                 this.swapSpecies(view, e.inSpeciesId, e.in, e.inShiny);
                 this.updateUiScale();
                 if (!silent) {
@@ -1284,8 +1301,9 @@ export class MatchScene extends Phaser.Scene {
         if (e.type === 'evolve') {
             const view = this.players[e.by];
             if (view) {
-                const ready = this.textures.exists(atlasKey(e.into));
-                if (ready) createSpeciesAnims(this, e.into);
+                const skin = this.loadedSkin(e.into, view.shiny);
+                const ready = this.textures.exists(atlasKey(skin));
+                if (ready) createSpeciesAnims(this, skin);
                 const newName = view.name === species(e.from).name ? species(e.into).name : view.name;
                 // sem a forma nova carregada (rede lenta), troca direto sem a animação
                 if (silent || !ready) this.finishEvolution(view, e.into, newName);
@@ -1847,6 +1865,38 @@ export class MatchScene extends Phaser.Scene {
             .setDepth(FOCUS_DEPTH + 80);
         this.tweens.add({ targets: ring, scale: 2.6, alpha: 0, duration: 420, onComplete: () => ring.destroy() });
         this.punch('touch');
+    }
+
+    /**
+     * Condução (só no desenho; no motor a bola fica a 0,45 m do pé): quanto mais rápido, mais longe a bola vai
+     * entre os toques; quanto mais drible, toques mais curtos e frequentes (EA FC, Football Manager). A bola sai
+     * do pé, rola à frente desacelerando e o pé alcança (curva sin(π·φ^0,6), sem ir e voltar como serra).
+     * Marcador perto: toques curtos, bola protegida. Parado: no pé. Devolve o múltiplo dos 0,45 m do motor.
+     */
+    private touchReach(carrier: number, a: MatchSnapshot, b: MatchSnapshot, travelPx: number): number {
+        const view = this.players[carrier];
+        const o = carrier * SNAP_STRIDE;
+        const speed = Math.hypot(b.p[o] - a.p[o], b.p[o + 1] - a.p[o + 1]) / (Math.max(1, b.tick - a.tick) / TICK_RATE);
+        const u = Phaser.Math.Clamp(speed / 6, 0, 1);
+        if (u < 0.15) return 0.35 / 0.45;
+        let dr = this.dribbleSkill.get(view.speciesId);
+        if (dr === undefined) {
+            dr = Phaser.Math.Clamp(computeAttributes(species(view.speciesId), 50).dribble / 99, 0, 1);
+            this.dribbleSkill.set(view.speciesId, dr);
+        }
+        const k = 1.3 - 0.6 * dr;
+        // marcador a menos de 2 m: toque curto e bola colada
+        let near = 99;
+        for (let i = 0; i < this.players.length; i++) {
+            if (this.players[i].team === view.team) continue;
+            const q = i * SNAP_STRIDE;
+            near = Math.min(near, Math.hypot(b.p[q] - b.p[o], b.p[q + 1] - b.p[o + 1]));
+        }
+        const press = Phaser.Math.Clamp((2 - near) / 1.5, 0, 1);
+        const D = (0.8 + 1.8 * u * u) * k * (1 - 0.4 * press);
+        const L = (0.12 + 0.9 * u * u * k) * (1 - 0.7 * press);
+        const phi = (travelPx / PPM / D) % 1;
+        return (0.35 + L * Math.sin(Math.PI * phi ** 0.6)) / 0.45;
     }
 
     /** Contato com a bola: ela "estala" (cresce e volta) e levanta poeira no chão. */

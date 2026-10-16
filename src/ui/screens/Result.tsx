@@ -12,7 +12,7 @@ import {
 import { matchMvp } from '../../engine/mvp';
 import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
-import { useGame } from '../../store/game-store';
+import { lineupPosition, useGame } from '../../store/game-store';
 import { ChampionView } from '../components/ChampionView';
 import { CupGains } from '../components/CupGains';
 import { FutCard } from '../components/FutCard';
@@ -236,7 +236,7 @@ export function Result() {
                                         <span className="muted">
                                             {species(from).name} → {species(inst.speciesId).name}
                                         </span>
-                                        <FutCard inst={inst} size="sm" />
+                                        <FutCard inst={inst} size="sm" position={lineupPosition(run, inst.uid)} />
                                     </div>
                                 ))}
                             </div>
@@ -250,7 +250,7 @@ export function Result() {
                                     name: destaque.nickname ?? species(destaque.speciesId).name,
                                 })}
                             </p>
-                            <FutCard inst={destaque} size="sm" />
+                            <FutCard inst={destaque} size="sm" position={lineupPosition(run, destaque.uid)} />
                         </div>
                     )}
                     {mvp && (
