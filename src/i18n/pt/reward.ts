@@ -26,11 +26,14 @@ export const reward = {
     openCard: 'Toque num Pokémon pra ver a carta completa (golpes e atributos).',
     /** Sufixo do aria-label de cada vaga do time. */
     openAria: ', abrir carta completa',
-    /** Recompensa como pacote fechado: um toque revela (src/ui/screens/Reward.tsx). */
+    /** Pacote de cartas (src/ui/components/CardPack.tsx): recompensa (um toque abre) e draft (abre sozinho). */
     pack: {
         open: 'Abrir pacote',
         tap: 'Toque pra abrir',
-        revealAll: 'Revelar tudo',
+        /** Rótulo do botão enquanto as cartas saem: um toque pula a animação. */
+        skip: 'Mostrar as cartas',
+        /** Escrito no pacote da recompensa, embaixo do logo. */
+        label: 'Pacote da vitória',
     },
     /** Item que depende dos golpes de quem segura (tipo, King's Rock): src/ui/item-fit.ts. */
     fit: {

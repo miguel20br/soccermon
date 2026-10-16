@@ -5745,20 +5745,7 @@ a.home-tile {
     color: var(--yellow);
 }
 
-/* draft: as 3 opções viram uma de cada vez (--rd = atraso); carta grande (ouro, Shiny, edição) acende */
-.option.reveal {
-    animation: opt-flip 0.34s var(--rd, 0ms) cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
-}
-@keyframes opt-flip {
-    from {
-        opacity: 0;
-        visibility: hidden;
-        transform: perspective(900px) rotateY(80deg) scale(0.88);
-    }
-}
-.option.reveal-big .fut-wrap {
-    animation: opt-glow 0.9s calc(var(--rd, 0ms) + 0.25s) ease-out;
-}
+/* carta grande (ouro, Shiny, edição) acende ao sair do pacote (CardPack, no fim do arquivo) */
 @keyframes opt-glow {
     0%,
     100% {
@@ -5923,175 +5910,6 @@ a.home-tile {
     }
 }
 
-/* recompensa: pacote fechado → cor do tipo → silhueta → carta; Shiny/edição sobe com luz atrás */
-.pack {
-    position: relative;
-    isolation: isolate;
-    display: grid;
-    justify-items: center;
-}
-.pack-s0 .pack-card,
-.pack-s1 .pack-card,
-.pack-s2 .pack-card {
-    visibility: hidden;
-}
-.pack-face {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    display: grid;
-    place-items: center;
-    padding: 0;
-    overflow: hidden;
-    border: 2px solid var(--line);
-    border-radius: 14px;
-    background-color: var(--panel-2);
-    box-shadow: var(--shadow);
-    color: var(--text);
-    font: inherit;
-    cursor: pointer;
-    transition:
-        background-color 0.25s,
-        border-color 0.25s,
-        box-shadow 0.25s;
-}
-.pack-face:hover,
-.pack-face:focus-visible {
-    border-color: var(--yellow);
-}
-.pack-s1 .pack-face,
-.pack-s2 .pack-face {
-    background-color: color-mix(in srgb, var(--pc) 65%, var(--bg));
-    border-color: var(--pc);
-    box-shadow: 0 0 22px color-mix(in srgb, var(--pc) 55%, transparent);
-}
-/* o desenho do pacote: faixas na diagonal, lacre em cima e embaixo e a bola no meio */
-.pack-foil {
-    position: absolute;
-    inset: 0;
-    background:
-        radial-gradient(circle at 50% 42%, transparent 0 26px, rgb(255 255 255 / 45%) 26px 30px, transparent 31px),
-        linear-gradient(
-            transparent calc(42% - 2px),
-            rgb(255 255 255 / 30%) calc(42% - 2px) calc(42% + 2px),
-            transparent 0
-        )
-        50% 0 / 60px 100% no-repeat,
-        repeating-linear-gradient(135deg, rgb(255 255 255 / 6%) 0 10px, transparent 10px 22px),
-        linear-gradient(180deg, rgb(255 255 255 / 12%), transparent 30%, transparent 70%, rgb(0 0 0 / 25%));
-}
-.pack-foil::before,
-.pack-foil::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 12px;
-    background: repeating-linear-gradient(90deg, rgb(0 0 0 / 30%) 0 6px, rgb(255 255 255 / 10%) 6px 12px);
-}
-.pack-foil::before {
-    top: 0;
-}
-.pack-foil::after {
-    bottom: 0;
-}
-.pack-hint {
-    position: absolute;
-    bottom: 24px;
-    left: 8px;
-    right: 8px;
-    color: var(--muted);
-    font-size: 12px;
-}
-.pack-shadow {
-    position: relative;
-    width: 58%;
-    max-width: 120px;
-    filter: brightness(0) drop-shadow(0 0 6px rgb(255 255 255 / 35%));
-    animation: delta-in 0.2s ease-out both;
-}
-.pack-s3 .pack-card {
-    animation: pack-in 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
-}
-@keyframes pack-in {
-    from {
-        opacity: 0;
-        transform: perspective(900px) rotateY(70deg) scale(0.9);
-    }
-}
-.walkout .pack-card {
-    filter: drop-shadow(0 0 12px rgb(255 230 140 / 60%));
-    animation: walkout-rise 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
-@keyframes walkout-rise {
-    0% {
-        opacity: 0;
-        transform: translateY(48px) scale(0.7);
-    }
-    35% {
-        opacity: 1;
-    }
-    70% {
-        transform: translateY(-6px) scale(1.04);
-    }
-    100% {
-        transform: none;
-    }
-}
-.pack-rays {
-    position: absolute;
-    inset: -8% -4%;
-    z-index: -1;
-    pointer-events: none;
-    background: repeating-conic-gradient(from 0deg, rgb(255 230 140 / 45%) 0 6deg, transparent 6deg 18deg);
-    mask: radial-gradient(closest-side, #000 25%, transparent 100%);
-    animation: pack-rays 1.2s ease-out both;
-}
-@keyframes pack-rays {
-    0% {
-        opacity: 0;
-        transform: scale(0.4) rotate(0deg);
-    }
-    30% {
-        opacity: 1;
-    }
-    100% {
-        opacity: 0.35;
-        transform: scale(1) rotate(60deg);
-    }
-}
-
-/* pacote que já dá pista: ouro com borda dourada; edição especial (Shiny, Destaque…) com brilho que passa */
-.pack-gold .pack-face {
-    border-color: #e8c24a;
-    box-shadow: 0 0 16px rgb(232 194 74 / 45%);
-}
-.pack-special .pack-face {
-    border-color: #ffe9a8;
-    background-image: linear-gradient(135deg, #3b2d6b, #1d4a6b 45%, #6b2d5a);
-    box-shadow: 0 0 22px rgb(255 214 120 / 55%);
-}
-.pack-special .pack-face::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background:
-        linear-gradient(110deg, transparent 35%, rgb(255 255 255 / 35%) 50%, transparent 65%) -150% 0 / 250% 100%
-        no-repeat;
-    animation: pack-sheen 2.2s ease-in-out infinite;
-}
-@keyframes pack-sheen {
-    to {
-        background-position: 150% 0;
-    }
-}
-@media (prefers-reduced-motion: reduce) {
-    .pack-special .pack-face::after {
-        animation: none;
-        background-position: 50% 0;
-    }
-}
-
 /* links no meio do texto (privacidade, créditos, detalhes): área de toque maior sem mexer na linha */
 .account-bar a,
 .credits-card a,
@@ -6123,4 +5941,307 @@ p.muted.center a {
     background: #c8352a;
     border-color: #ff6b4c;
     color: #fff;
+}
+
+/* ---------- Pacote de cartas (CardPack.tsx): recompensa e draft ----------
+ * Um pacote só, azul-noite com o logo e lacres metálicos. Pista do conteúdo: .cpack-gold (carta ouro 75+) tem
+ * lacre e borda dourados; .cpack-special (Shiny, edição) é holográfico. Abrindo: o pacote treme, a tampa rasga,
+ * sai luz e as cartas voam do centro até o lugar (--fx/--fy/--rd vêm do componente; --o = tempo até a 1ª carta).
+ * Com "reduzir movimento" o componente pula direto pras cartas. */
+.cpack-stage {
+    position: relative;
+}
+.cpack-stage.is-closed .cpack-card {
+    visibility: hidden;
+}
+.cpack-btn {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    container-type: size;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+.cpack-btn:focus-visible {
+    outline: none;
+}
+.cpack-btn:focus-visible .cpack {
+    outline: 3px solid var(--yellow);
+    outline-offset: 4px;
+}
+.cpack {
+    --seal: linear-gradient(180deg, #eef1f7, #a9b0be 55%, #6d7486);
+    --edge: #5b6aa8;
+    --glow: rgb(120 150 255 / 28%);
+    --holo: linear-gradient(transparent, transparent);
+    position: relative;
+    display: block;
+    container-type: inline-size;
+    height: min(300px, calc(100cqh - 44px));
+    aspect-ratio: 5 / 7;
+    border-radius: 10px;
+    filter: drop-shadow(0 16px 20px rgb(0 0 0 / 55%)) drop-shadow(0 0 18px var(--glow));
+    animation: cpack-float 3.2s ease-in-out infinite;
+}
+.cpack-compact .cpack {
+    height: min(176px, 86cqh);
+    animation: cpack-pop 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+}
+.cpack-gold {
+    --seal: linear-gradient(180deg, #fff3b8, #e8c24a 50%, #b48a18);
+    --edge: #e8c24a;
+    --glow: rgb(255 203 5 / 50%);
+}
+.cpack-special {
+    --seal: linear-gradient(90deg, #ff9ad5, #9ae6ff, #b6ffa0, #fff29a, #d7a6ff);
+    --edge: #fff3b8;
+    --glow: rgb(255 214 120 / 65%);
+    --holo: linear-gradient(
+        135deg,
+        rgb(255 154 213 / 40%),
+        rgb(154 230 255 / 32%) 30%,
+        rgb(182 255 160 / 26%) 55%,
+        rgb(255 242 154 / 32%) 75%,
+        rgb(215 166 255 / 40%)
+    );
+}
+.cpack-body {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5cqw;
+    overflow: hidden;
+    border: 2px solid var(--edge);
+    border-radius: inherit;
+    background:
+        linear-gradient(115deg, transparent 35%, rgb(255 255 255 / 22%) 48%, transparent 60%) -160% 0 / 300% 100%
+        no-repeat,
+        var(--holo),
+        repeating-conic-gradient(from 0deg at 50% 50%, rgb(255 255 255 / 6%) 0 6deg, transparent 6deg 22.5deg),
+        radial-gradient(circle at 50% 50%, #33489a 0%, #172156 50%, #070a18 100%);
+    animation: cpack-sheen 3.2s ease-in-out infinite;
+}
+.cpack-special .cpack-body {
+    animation-duration: 1.8s;
+}
+/* halo dourado atrás do logo */
+.cpack-body::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 92%;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgb(255 203 5 / 24%), transparent);
+}
+/* lacres de cima (a tampa, que rasga) e de baixo: metal com vincos */
+.cpack-body::after,
+.cpack-top {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 11%;
+    background: repeating-linear-gradient(90deg, rgb(0 0 0 / 22%) 0 2px, transparent 2px 6px), var(--seal);
+}
+.cpack-body::after {
+    bottom: 0;
+}
+.cpack-top {
+    top: 0;
+    z-index: 2;
+    border: 2px solid var(--edge);
+    border-bottom: 2px dashed rgb(255 255 255 / 70%);
+    border-radius: 10px 10px 0 0;
+}
+.cpack-logo {
+    position: relative;
+    width: 86%;
+    height: auto;
+    filter: drop-shadow(0 2px 6px rgb(0 0 0 / 60%));
+}
+.cpack-label {
+    position: relative;
+    max-width: 90%;
+    color: var(--yellow);
+    font-size: 6.4cqw;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-shadow: 0 1px 3px rgb(0 0 0 / 70%);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.cpack-burst {
+    position: absolute;
+    inset: -40% -30% 50%;
+    z-index: 3;
+    opacity: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse 50% 40% at 50% 60%, #fff 0%, rgb(255 230 140 / 75%) 30%, transparent 70%);
+}
+.cpack-hint {
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    animation: cpack-hint 1.6s ease-in-out infinite;
+}
+@keyframes cpack-float {
+    50% {
+        transform: translateY(-6px) rotate(-1.5deg);
+    }
+}
+@keyframes cpack-pop {
+    from {
+        opacity: 0;
+        transform: scale(0.6);
+    }
+}
+@keyframes cpack-sheen {
+    60%,
+    100% {
+        background-position:
+            160% 0,
+            0 0,
+            0 0,
+            0 0;
+    }
+}
+@keyframes cpack-hint {
+    50% {
+        opacity: 0.45;
+    }
+}
+
+/* abrindo: treme, a tampa sai voando, a luz escapa e o pacote cai enquanto as cartas saem */
+.is-opening .cpack {
+    animation: cpack-shake calc(var(--o) * 0.4) ease-in-out both;
+}
+.is-opening .cpack-top {
+    animation: cpack-tear calc(var(--o) * 0.6) calc(var(--o) * 0.3) cubic-bezier(0.5, 0, 0.8, 0.4) forwards;
+}
+.is-opening .cpack-burst {
+    animation: cpack-burst calc(var(--o) * 0.9) calc(var(--o) * 0.35) ease-out forwards;
+}
+.is-opening .cpack-body {
+    animation: cpack-drop 0.32s var(--o) ease-in forwards;
+}
+@keyframes cpack-shake {
+    25% {
+        transform: rotate(-3deg) scale(1.03);
+    }
+    75% {
+        transform: rotate(3deg) scale(1.05);
+    }
+}
+@keyframes cpack-tear {
+    to {
+        opacity: 0;
+        transform: translate(45%, -170%) rotate(20deg);
+    }
+}
+@keyframes cpack-burst {
+    0% {
+        opacity: 0;
+        transform: scale(0.4);
+    }
+    30% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(1.6);
+    }
+}
+@keyframes cpack-drop {
+    to {
+        opacity: 0;
+        transform: translateY(30%) scale(0.92);
+    }
+}
+
+/* cartas saindo do pacote (ou só virando, no "Sortear de novo" da recompensa) */
+.cpack-card {
+    position: relative;
+    isolation: isolate;
+}
+.is-revealing .cpack-card {
+    animation: cpack-out 0.46s var(--rd, 0ms) cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+}
+.cpack-compact.is-revealing .cpack-card {
+    animation-duration: 0.34s;
+}
+@keyframes cpack-out {
+    from {
+        opacity: 0;
+        transform: translate(var(--fx, 0), var(--fy, 0)) perspective(900px) rotateY(100deg) scale(0.3);
+    }
+    45% {
+        opacity: 1;
+    }
+    to {
+        transform: translate(0, 0) perspective(900px) rotateY(0) scale(1);
+    }
+}
+.is-revealing .cpack-card.big .fut-wrap {
+    animation: opt-glow 0.9s calc(var(--rd, 0ms) + 0.25s) ease-out;
+}
+/* Shiny e edição especial: sobe com luz atrás (walkout, 1,2 s) */
+.is-revealing .cpack-card.walk {
+    filter: drop-shadow(0 0 12px rgb(255 230 140 / 60%));
+    animation: cpack-walk 1.2s var(--rd, 0ms) cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.is-revealing .cpack-card.walk::before {
+    content: "";
+    position: absolute;
+    inset: -8% -4%;
+    z-index: -1;
+    pointer-events: none;
+    background: repeating-conic-gradient(from 0deg, rgb(255 230 140 / 45%) 0 6deg, transparent 6deg 18deg);
+    mask: radial-gradient(closest-side, #000 25%, transparent 100%);
+    animation: cpack-rays 1.2s var(--rd, 0ms) ease-out both;
+}
+@keyframes cpack-walk {
+    0% {
+        opacity: 0;
+        transform: translateY(48px) scale(0.7);
+    }
+    35% {
+        opacity: 1;
+    }
+    70% {
+        transform: translateY(-6px) scale(1.04);
+    }
+    100% {
+        transform: none;
+    }
+}
+@keyframes cpack-rays {
+    0% {
+        opacity: 0;
+        transform: scale(0.4) rotate(0deg);
+    }
+    30% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(1) rotate(60deg);
+    }
 }
