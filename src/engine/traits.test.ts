@@ -409,6 +409,18 @@ describe('traços de golpe: bola parada, intervalo e fim', () => {
         expect(setup(true)).toBeNull();
     });
 
+    it('Mimic: copia o último golpe do rival e ele fica no lugar até o fim da partida', () => {
+        const s = scene({ 0: ['mimic'] });
+        s.lastMove[1] = 'thunderbolt';
+        const p = s.players[0];
+        const original = p.inst;
+        run(s, { 0: { type: 'useMove', slot: 0 } });
+        expect(p.inst.moves).toEqual(['thunderbolt']);
+        expect(p.moveUses[0]).toBe(moveProfile('thunderbolt').uses);
+        // a instância do time (save/copa) não muda: só a da partida
+        expect(original.moves).toEqual(['mimic']);
+    });
+
     it('evolução: golpe que muda de vaga mantém os usos gastos (conta pelo golpe, não pela vaga)', () => {
         const s = scene();
         const p = s.players[1];

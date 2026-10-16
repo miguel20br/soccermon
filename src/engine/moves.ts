@@ -21,7 +21,7 @@ export type MoveKind = 'strike' | 'blast' | 'burst' | 'buff' | 'debuff' | 'statu
  * - haze: névoa que tira status e reforços/enfraquecimentos de todo mundo em volta
  * - mist: o time fica imune a enfraquecimentos por um tempo
  * - teleport: some e reaparece em outro ponto da quadra (foge da marcação)
- * - mirrormove/mimic: repete o último golpe que o rival usou
+ * - mirrormove: repete o último golpe que o rival usou; mimic: copia e fica com ele até o fim da partida
  * - metronome: um golpe aleatório
  * - substitute: um boneco aguenta o próximo carrinho ou golpe no lugar dele
  * - leechseed: semente que suga o fôlego do rival aos poucos para quem usou
@@ -318,7 +318,7 @@ const EXPLAIN = {
     mist: 'O time fica imune a enfraquecimentos por 12 segundos.',
     teleport: 'Some e reaparece em outro ponto da quadra: foge da marcação.',
     mirrormove: 'Repete o último golpe que o rival usou.',
-    mimic: 'Copia o último golpe que o rival usou.',
+    mimic: 'Copia o último golpe que o rival usou e fica com ele até o fim da partida.',
     metronome: 'Balança o dedo e solta um golpe aleatório!',
     substitute: 'Cria um boneco que aguenta o próximo golpe ou carrinho no lugar dele (custa um pouco de fôlego).',
     leechseed: 'Planta uma semente no rival: o fôlego dele escorre aos poucos para quem usou (Planta é imune).',

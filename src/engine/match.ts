@@ -1994,6 +1994,12 @@ function specialMove(
             const pool = Object.keys(MOVES).filter((m) => m !== 'counter' && moveProfile(m).kind !== 'flavor');
             const copied = moveId === 'metronome' ? s.rng.pick(pool) : s.lastMove[p.team === 0 ? 1 : 0];
             if (!copied || copied === moveId) return { target: null, hit: false, after: null };
+            // Mimic (Gen 1): o golpe copiado fica no lugar dele até o fim da partida, com os usos do golpe
+            const slot = moveId === 'mimic' ? p.inst.moves.indexOf('mimic') : -1;
+            if (slot >= 0) {
+                p.inst = { ...p.inst, moves: p.inst.moves.map((m, i) => (i === slot ? copied : m)) };
+                p.moveUses[slot] = moveProfile(copied).uses;
+            }
             return { target: null, hit: true, after: () => moveEffect(s, p, copied, depth + 1) };
         }
         default:

@@ -11,7 +11,7 @@ export const moveExplainEn: Record<ExplainMoveId, string> = {
     mist: "The team is shrouded in Mist: its stats can't be lowered for 12 seconds.",
     teleport: 'Vanishes and reappears elsewhere on the court: shakes off its marker.',
     mirrormove: 'Uses the last move the rival used.',
-    mimic: 'Copies the last move the rival used.',
+    mimic: 'Copies the last move the rival used and keeps it for the rest of the match.',
     metronome: 'Waggles a finger and uses a random move!',
     substitute: 'Puts in a substitute that takes the next move or slide tackle in its place (costs a little stamina).',
     leechseed: "Plants a seed on the rival: its stamina slowly drains to the user (Grass types can't be seeded).",

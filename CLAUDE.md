@@ -157,7 +157,7 @@ Plano do trailer e dos posts de lançamento: [docs/planos/divulgacao-trailer.md]
 8. **Repo no Midgar:** o Miguel quer mover para a org `midgar-hq` (vault em `midgar-hq/midgar-vault`: microsaas
    em série + construir em público). Transferir com calma (reconectar a Vercel à org). Lá ele entra como projeto
    de distribuição/marca, não como aposta de microsaas (o Soccermon nunca pode cobrar).
-9. Pequenos: Mimic copia só uma vez (devia ficar no slot até o fim); Fly quase não aparece fora da MT; GitHub do
+9. Pequenos: Fly quase não aparece fora da MT; GitHub do
    Miguel arrumado em 16/10 (perfil, bio, Soccermon fixado) — pendente decidir o repo `portfolio` (site antigo no
    ar) e README do `Jogo-Oficina`.
 10. Ideias combinadas para depois: melhores momentos/replay (os snapshots já existem), quadras temáticas e
