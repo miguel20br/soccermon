@@ -88,7 +88,14 @@ npm run stats [-- --dias 7 | --md]   # placar do jogo no ar
   em cada aparelho.
 - Antes de fechar uma mudança visual, confira no celular (320 e 390 px), deitado e no desktop.
 
-## Estado atual (16/10/2026, v0.8.1 · Perfil, Pokédex e golpes novos)
+## Estado atual (16/10/2026, v0.8.2 · Hall da Fama e o título do jeito que merece)
+
+**Plano de lançamento e próximas versões (0.8.3 → 1.0): [docs/planos/lancamento.md](docs/planos/lancamento.md).** O Miguel
+quer seguir na 0.8.x por enquanto. Na 0.8.2: Hall da Fama (`hall` no save v6, desfile em `HallParade.tsx`, aba no
+Perfil), prêmios/seleção/recordes/gols da campanha (`ChampionExtras.tsx`, `matchDigest` em `match-stats.ts` guarda
+gols/golpes/evoluções de cada partida), card do título 9:16/1:1 (`share-card.ts`) e raridade dos campeões
+(`npm run stats -- --raridade` grava `public/data/raridade.json`; a tela só mostra com 20+ campeões).
+
 
 No ar: contas e save na nuvem, evolução no meio da partida, substituição pelo técnico, painel ao tocar no
 Pokémon, estatísticas da partida e da copa, 6 formações, tela de campeão, menus novos, golpes revisados com

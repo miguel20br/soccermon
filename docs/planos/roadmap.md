@@ -1,4 +1,6 @@
-# Roadmap do Soccermon (atualizado em 14/10/2026)
+# Roadmap do Soccermon (atualizado em 16/10/2026)
+
+**Plano de lançamento e versões 0.8.3 → 1.0: [lancamento.md](lancamento.md).** Tela de campeão: [tela-campeao.md](tela-campeao.md).
 
 Planos para o futuro combinados com o Miguel. O que já saiu está no [CHANGELOG](../../CHANGELOG.md); o
 plano detalhado da 0.6 (cartas) e o roadmap original estão em [v0.6-cartas-e-roadmap.md](v0.6-cartas-e-roadmap.md).
@@ -13,6 +15,8 @@ As memórias de preferência do Miguel (cópia das do Claude no PC) estão em [.
 | 0.7 | Contas Google + save na nuvem, evolução no meio da partida, substituição pelo técnico, painel do Pokémon em campo, estatísticas, golpes revisados com animação própria, 6 formações, tela de campeão, menus novos |
 | 0.7.1 | Revisão completa: bugs, textos, celular |
 | 0.7.2 | Bônus de time recalculados nas trocas e evoluções, privacidade e "Apagar minha conta", preparação para abrir o repo |
+| 0.8 | Perfil, Pokédex, Golpedex, golpes da Gen 1, MT do ginásio, jogo em inglês, estatísticas anônimas |
+| 0.8.2 | Hall da Fama com desfile, prêmios e seleção da copa, recordes, gols da campanha, card do título 9:16/1:1, celular deitado, Mimic |
 
 ## Agora (antes de divulgar)
 
@@ -22,10 +26,10 @@ As memórias de preferência do Miguel (cópia das do Claude no PC) estão em [.
 - [x] Ditto no painel da partida mostrando a forma copiada (14/10/2026)
 
 Polimento combinado em 15/10/2026 (antes de divulgar):
-- [ ] Testar pênaltis, tela de campeão e substituição com o robô (`?demo=penaltis`, `?demo=campeao`)
-- [ ] "Como jogar" curto na primeira copa (3–4 dicas que dá pra fechar e não voltam)
-- [ ] Botão "Dar feedback / reportar bug" na Home e no resultado, apontando pro Discussions
-- [ ] Celular deitado: "Nova copa" fica abaixo da dobra (diminuir quadra/logo; visual: decidir com o Miguel)
+- [x] Testar pênaltis, tela de campeão e substituição com o robô (16/10/2026, headless)
+- [x] "Como jogar" curto na primeira copa (3–4 dicas que dá pra fechar e não voltam)
+- [x] Botão "Dar feedback / reportar bug" na Home e no resultado, apontando pro Discussions
+- [x] Celular deitado: "Nova copa" fica abaixo da dobra (diminuir quadra/logo; visual: decidir com o Miguel)
 - [ ] Quadra em pé: nomes dos Pokémon se embolam (esconder quando juntos ou só os do seu time; decidir)
 
 Depois do lançamento: contador anônimo de jogadores (Vercel Analytics + página de privacidade), Phaser
