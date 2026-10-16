@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { DRAFT_PICKS } from '../../engine/draft';
 import { FORMATIONS, type FormationId } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
@@ -14,6 +14,7 @@ import { LinkChip, LinkChips, newLinks } from '../components/LinkChips';
 import { TypeBadge } from '../components/PokeCard';
 import { Tip } from '../help/Tip';
 import { ratingAt } from '../rating';
+import { reduceMotionOn } from '../settings-sync';
 
 /** Desenho mini da formação (bolinhas nas posições da UI). */
 function FormationDiagram({ id }: { id: FormationId }) {
@@ -37,6 +38,24 @@ export function Draft() {
     const { run, chooseFormation, chooseSlot, pick, reroll } = useGame();
     const [selected, setSelected] = useState<string | null>(null);
     const { t, d, lang } = useT();
+    // celular em pé: a quadra ocupa a tela e as cartas ficam lá embaixo. Leva até as cartas quando elas saem e
+    // volta pra quadra quando é hora de tocar numa vaga (só rola se o alvo não está à vista; no PC não mexe)
+    const boardRef = useRef<HTMLDivElement>(null);
+    const optionsRef = useRef<HTMLDivElement>(null);
+    const focus = run?.status === 'captain' ? (selected ? 'board' : 'options') : run?.draftSlot ? 'options' : 'board';
+    const firstFocus = useRef(true);
+    // biome-ignore lint/correctness/useExhaustiveDependencies: rola a cada troca de foco ou rodada
+    useEffect(() => {
+        if (firstFocus.current) {
+            firstFocus.current = false;
+            return;
+        }
+        const el = (focus === 'options' ? optionsRef : boardRef).current;
+        if (!el) return;
+        const top = el.getBoundingClientRect().top;
+        if (top >= 0 && top < window.innerHeight * 0.5) return;
+        el.scrollIntoView({ behavior: reduceMotionOn() ? 'auto' : 'smooth', block: 'start' });
+    }, [focus, run?.draftRound]);
     if (!run) return null;
 
     if (run.status === 'formation') {
@@ -150,7 +169,7 @@ export function Draft() {
             {run.status === 'drafting' && <Tip id="draft-slot">{t('team.draft.tip')}</Tip>}
 
             <div className="draft-grid">
-                <div className="panel board-panel">
+                <div className="panel board-panel" ref={boardRef}>
                     <h2>{run.teamName}</h2>
                     <FormationBoard
                         formation={run.formation}
@@ -180,7 +199,7 @@ export function Draft() {
                 </div>
 
                 {showOptions && (
-                    <div className="draft-options">
+                    <div className="draft-options" ref={optionsRef}>
                         <div className="row options-bar">
                             <span className="muted">
                                 {isCaptain
