@@ -66,6 +66,7 @@ npm run lint     # Biome
 npm test         # Vitest (~1 min; o teste de evolução é o mais lento)
 npm run build    # tsc + Vite
 npm run calibrate -- --n 400 [--formations|--tactics]   # equilíbrio headless
+npm run stats [-- --dias 7 | --md]   # placar do jogo no ar
 ```
 
 - **Deploy:** push na `main` publica sozinho em produção (Vercel ligada ao GitHub). O CI do GitHub roda lint,
