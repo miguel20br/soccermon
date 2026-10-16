@@ -23,6 +23,7 @@ export const TACTIC_DESC: Record<Tactic, string> = dict('pt').team.lineup.tactic
 export function Lineup() {
     const { run, swapSlots, setTactic, setFormation, moveItem, setMatch, go, abandonRun, lockMatch } = useGame();
     const [error, setError] = useState<string | null>(null);
+    const [askAbandon, setAskAbandon] = useState(false);
     const openCard = useCardModal((s) => s.open);
     const [selected, setSelected] = useState<SlotRef | null>(null);
     const [detail, setDetail] = useState<string | null>(null);
@@ -275,15 +276,22 @@ export function Lineup() {
                         </>
                     )}
 
-                    <button
-                        type="button"
-                        className="btn ghost small"
-                        onClick={() => {
-                            if (confirm(t('team.lineup.abandonConfirm'))) abandonRun();
-                        }}
-                    >
-                        {t('team.lineup.abandon')}
-                    </button>
+                    {/* sem o confirm() do navegador: o 1º toque pergunta aqui mesmo, o 2º confirma */}
+                    {askAbandon ? (
+                        <div className="abandon-ask" role="alert">
+                            <span>{t('team.lineup.abandonConfirm')}</span>
+                            <button type="button" className="btn small danger" onClick={abandonRun}>
+                                {t('team.lineup.abandon')}
+                            </button>
+                            <button type="button" className="btn ghost small" onClick={() => setAskAbandon(false)}>
+                                {t('common.ui.cancel')}
+                            </button>
+                        </div>
+                    ) : (
+                        <button type="button" className="btn ghost small" onClick={() => setAskAbandon(true)}>
+                            {t('team.lineup.abandon')}
+                        </button>
+                    )}
                 </div>
             </div>
         </>

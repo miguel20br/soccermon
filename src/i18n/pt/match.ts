@@ -16,7 +16,7 @@ export const match = {
     reload: 'A quadra não carregou — recarregar',
     substitute: 'Substituir',
     changing: 'mudando…',
-    tacticChanges: '{n} mudança de tática|{n} mudanças de tática',
+    tacticChanges: 'resta {n} mudança de tática|restam {n} mudanças de tática',
     skip: 'Pular para o fim',
     seeResult: 'Ver resultado',
     feed: 'Narração',

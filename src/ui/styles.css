@@ -6091,3 +6091,36 @@ a.home-tile {
         background-position: 50% 0;
     }
 }
+
+/* links no meio do texto (privacidade, créditos, detalhes): área de toque maior sem mexer na linha */
+.account-bar a,
+.credits-card a,
+.set-label a,
+p.muted.center a {
+    padding-block: 12px;
+}
+/* nome comprido no card da quadra encolhe um pouco antes de cortar (Charmeleon, Kangaskhan) */
+.slot .slot-name {
+    font-size: clamp(8.5px, 2.4vw, 11px);
+}
+/* gols da campanha: rival com nome longo quebra em vez de cortar */
+.ce-tl-label small {
+    white-space: normal;
+}
+
+/* abandonar copa: confirmação no lugar, sem o diálogo do navegador */
+.abandon-ask {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px;
+    border: 2px solid #ff6b4c;
+    border-radius: 10px;
+}
+.btn.danger {
+    background: #c8352a;
+    border-color: #ff6b4c;
+    color: #fff;
+}

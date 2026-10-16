@@ -535,3 +535,24 @@ button.gdx-cell:hover {
     font-weight: 800;
     line-height: 13px;
 }
+
+/* golpes que faltam: azulejos pequenos com o número (o "???" gigante ocupava 10 mil px no celular) */
+.gdx-locked-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+    gap: 4px;
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+}
+.gdx-locked-grid li {
+    display: grid;
+    place-items: center;
+    gap: 1px;
+    padding: 4px 0;
+    border: 1px dashed var(--line);
+    border-radius: 6px;
+    background: rgb(14 20 48 / 55%);
+    color: var(--muted);
+    font-size: 11px;
+}

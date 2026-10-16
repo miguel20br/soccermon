@@ -640,7 +640,27 @@ export function MoveLab({ onExit }: { onExit: () => void }) {
                                 </p>
                             )}
                             {shown.length ? (
-                                <ul className="gdx-grid">{shown.map((r) => moveCell(r))}</ul>
+                                <>
+                                    {/* descobertos em linhas; os que faltam viram azulejos pequenos (antes era um
+                                        paredão de 164 "???" no celular) */}
+                                    {shown.some((r) => isOpen(r.id)) && (
+                                        <ul className="gdx-grid">
+                                            {shown.filter((r) => isOpen(r.id)).map((r) => moveCell(r))}
+                                        </ul>
+                                    )}
+                                    {shown.some((r) => !isOpen(r.id)) && (
+                                        <ul className="gdx-locked-grid">
+                                            {shown
+                                                .filter((r) => !isOpen(r.id))
+                                                .map((r) => (
+                                                    <li key={r.id} title={L.lockedHint}>
+                                                        <GdxIcon kind="lock" size={11} />
+                                                        {r.num ? pad3(r.num) : '?'}
+                                                    </li>
+                                                ))}
+                                        </ul>
+                                    )}
+                                </>
                             ) : (
                                 <p className="muted gdx-pick">{L.noMoves}</p>
                             )}
