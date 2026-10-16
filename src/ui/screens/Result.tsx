@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { track } from '../../analytics/track';
 import { species } from '../../engine/data';
 import {
     dangerByPeriod,
@@ -18,7 +19,6 @@ import { cardSprite } from '../components/PokeCard';
 import { ResultHero } from '../components/ResultHero';
 import { FEEDBACK_URL } from '../links';
 import { useClubColor } from '../profile/club';
-import { track } from '../../analytics/track';
 import { shareRun } from '../share';
 import { type CardFormat, downloadBlob, shareCardBlob } from '../share-card';
 import { CupStats } from '../stats/CupStats';
