@@ -133,8 +133,7 @@ Plano do trailer e dos posts de lançamento: [docs/planos/divulgacao-trailer.md]
    www → 308), Supabase Site URL/Redirect, origens do Client ID e site do repo no GitHub.
 3. **Polimento antes de divulgar** (lista em `docs/planos/roadmap.md`, seção "Agora"): "Como jogar" e botão de
    feedback feitos na 0.8.0; nomes na quadra viraram opção em Configurações. Home, draft e Movedex no celular
-   deitado arrumados em 16/10 (teste headless); partida, pênaltis e substituição também. Falta decidir: tela de
-   campeão deitada (botões 3 a 8 telas abaixo do troféu).
+   deitado arrumados em 16/10 (teste headless); partida, pênaltis, substituição e campeão também.
 4. **Trailer e marketing prontos (15/10/2026):** 16:9 em `trailer/montagem/`, 9:16 em `trailer/vertical/`
    (HyperFrames, PT/EN por variável); mídia e música fora do git (`trailer/montagem/preparar.sh` + scripts de
    recorte). Vídeos finais no celular em `Filmes/Soccermon-trailer/final/`. Capas, prévia do link, avatar,

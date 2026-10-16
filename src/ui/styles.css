@@ -5276,6 +5276,25 @@ a.home-tile {
     .draft-options .fut-wrap {
         --fut-w: min(150px, 17vw);
     }
+    /* campeão deitado: taça e título menores e os botões logo abaixo do "CAMPEÕES!" */
+    .champ-trophy .trophy-svg {
+        width: 72px;
+        height: auto;
+    }
+    .champ-title {
+        font-size: 34px;
+    }
+    .champ > .champ-trophy,
+    .champ > .champ-title,
+    .champ > .champ-sub,
+    .champ > .perfect-badge {
+        order: -2;
+    }
+    .champ > .rh-actions {
+        order: -1;
+        grid-auto-flow: column;
+        margin-top: 0;
+    }
 }
 /* topo do resultado: a coluna do grid não cresce além da tela (nomes longos e o time inteiro em 320px) */
 .rh {
