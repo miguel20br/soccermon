@@ -90,6 +90,7 @@ img.pixel {
     background: none;
     border: 0;
     cursor: pointer;
+    min-height: 40px;
     padding: 0;
 }
 .brand img {
@@ -246,6 +247,10 @@ img.pixel {
     max-width: 640px;
     margin: 0 auto;
     opacity: 0.8;
+}
+/* links do rodapé: área de toque maior sem mexer na linha */
+.disclaimer a {
+    padding-block: 12px;
 }
 
 /* ---------- tipo / badges ---------- */
@@ -4391,8 +4396,8 @@ button,
     background: var(--panel);
 }
 .lang-toggle button {
-    min-width: 36px;
-    height: 36px;
+    min-width: 40px;
+    height: 40px;
     padding: 0 8px;
     border: 0;
     background: transparent;
@@ -5225,6 +5230,47 @@ a.home-tile {
     .pitch-wrap {
         width: min(100%, calc((100svh - 64px) * 968 / 528));
         margin-inline: auto;
+    }
+    /* Home deitada: sem a quadra e com logo menor, pro "Nova copa" caber na primeira tela */
+    .home {
+        gap: 10px;
+    }
+    .home-court,
+    .event-banner span {
+        display: none;
+    }
+    .home-hero .logo {
+        margin-top: 0;
+    }
+    .home-hero .logo-img {
+        width: min(380px, 60%);
+    }
+    .tagline {
+        margin: 0;
+        font-size: 13px;
+    }
+    /* draft deitado: time e cartas lado a lado, quadra do tamanho da tela */
+    .draft-grid {
+        grid-template-columns: minmax(220px, 34%) minmax(0, 1fr);
+    }
+    .draft-grid .board-panel {
+        position: sticky;
+        top: 6px;
+    }
+    .formation-board .court {
+        width: min(100%, calc((100svh - 90px) * 0.72));
+    }
+    .formation-board .slot {
+        width: 84px;
+    }
+    .formation-board .slot img {
+        height: 28px;
+    }
+    .draft-options .options {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .draft-options .fut-wrap {
+        --fut-w: min(150px, 17vw);
     }
 }
 /* topo do resultado: a coluna do grid não cresce além da tela (nomes longos e o time inteiro em 320px) */

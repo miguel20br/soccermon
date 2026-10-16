@@ -138,7 +138,7 @@
 }
 .gdx-tabs button,
 .gdx-seg button {
-    min-height: 34px;
+    min-height: 40px;
     padding: 4px 6px;
     border: 0;
     border-radius: 7px;
@@ -150,7 +150,7 @@
 }
 .gdx-seg button {
     font-size: 12px;
-    min-height: 30px;
+    min-height: 40px;
 }
 .gdx-seg button {
     display: grid;
@@ -211,8 +211,8 @@
     flex: none;
     display: grid;
     place-items: center;
-    width: 34px;
-    height: 34px;
+    width: 40px;
+    height: 40px;
     padding: 0;
     border: 2px solid transparent;
     border-radius: 8px;
@@ -419,7 +419,8 @@ button.gdx-cell:hover {
 }
 
 /* celular e tablet: o palco vira uma gaveta que sobe de baixo ao tocar num golpe */
-@media (max-width: 899px) {
+/* também no celular grande deitado (932x430): com pouca altura o painel fixo não cabia */
+@media (max-width: 899px), (orientation: landscape) and (max-height: 520px) {
     .gdx-layout {
         grid-template-columns: minmax(0, 1fr);
     }
@@ -452,8 +453,8 @@ button.gdx-cell:hover {
         display: inline-grid;
         place-items: center;
         justify-self: end;
-        width: 36px;
-        height: 32px;
+        width: 40px;
+        height: 40px;
         padding: 0;
         margin-bottom: -4px;
     }
@@ -475,7 +476,7 @@ button.gdx-cell:hover {
 }
 
 /* celular deitado: palco e texto lado a lado na gaveta */
-@media (max-width: 899px) and (orientation: landscape) and (max-height: 520px) {
+@media (orientation: landscape) and (max-height: 520px) {
     .gdx-detail {
         grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
         align-items: start;
