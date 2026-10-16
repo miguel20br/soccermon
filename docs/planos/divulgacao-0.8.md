@@ -41,7 +41,7 @@ horas (é o que faz o post crescer).
 
 | Dia | O quê |
 |---|---|
-| sex 16/10 | LinkedIn (o X saiu em 15/10). Clipe 1 no TikTok/Reels/Shorts (sugestão: 04-terremoto) |
+| sex 16/10 | ~~LinkedIn~~ (sem acesso à conta, adiado). **Feito:** TikTok @soccermongame criado, 1º post = trailer PT 9:16 (o clipe 04-terremoto ficou no PC, vai no próximo) |
 | sáb 17/10 | Reddit r/WebGames |
 | dom 18/10 | Clipe 2. Post no TabNews |
 | seg 19/10 | **Placar 1** (`npm run stats -- --md`), escolher a mudança da semana. Clipe 3 |

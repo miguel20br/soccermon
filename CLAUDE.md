@@ -23,7 +23,13 @@ você é o Claude e `git log` mostrar commits com `miguelcunhabr@`, avise o Migu
   sem explicar. Nada de alerta jurídico alarmista: ele sabe que é fan game.
 - **Navegador:** teste do jogo sempre headless (Playwright `headless: true`); janela visível rouba o foco
   dele. Contas pessoais (TikTok, LinkedIn…) ficam no Brave, que o Claude não controla; para o Claude in Chrome
-  ele vai criar um perfil pessoal no Chrome (16/10/2026). Pergunte qual navegador antes de usar.
+  ele criou um perfil pessoal no Chrome (Linux) que só aparece com o Claude Code logado na conta pessoal dele
+  (não na da Bowe). Pergunte qual navegador antes de usar.
+- **Social media do TikTok (16/10/2026):** o Miguel quer o Claude cuidando do TikTok @soccermongame (pelo perfil
+  pessoal do Chrome): preparar clipe, legenda (textos em `docs/marketing/textos-divulgacao.md` §6), capa e
+  hashtags, e postar. Antes de clicar em Post, confirme numa linha com ele. Upload pela extensão só até 10 MB:
+  comprimir com ffmpeg 2 passes (~1,45 Mbps de vídeo, 1080x1920). Link clicável na bio só com 1000 seguidores:
+  `soccermon.com` vai escrito na legenda.
 - Antes de planejar algo grande e novo, ele gosta de uma pesquisa ampla de referências (repos do GitHub, libs,
   assets, skills de game design).
 
