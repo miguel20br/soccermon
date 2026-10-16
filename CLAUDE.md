@@ -78,7 +78,7 @@ npm run stats [-- --dias 7 | --md]   # placar do jogo no ar
   em cada aparelho.
 - Antes de fechar uma mudança visual, confira no celular (320 e 390 px), deitado e no desktop.
 
-## Estado atual (15/10/2026, v0.8.0 · Perfil, Pokédex e golpes novos)
+## Estado atual (16/10/2026, v0.8.1 · Perfil, Pokédex e golpes novos)
 
 No ar: contas e save na nuvem, evolução no meio da partida, substituição pelo técnico, painel ao tocar no
 Pokémon, estatísticas da partida e da copa, 6 formações, tela de campeão, menus novos, golpes revisados com
@@ -131,8 +131,27 @@ Plano do trailer e dos posts de lançamento: [docs/planos/divulgacao-trailer.md]
    **Pra criar qualquer asset novo (vídeo, logo, imagem, post), leia antes a skill
    `.claude/skills/soccermon-assets/SKILL.md`** (pipeline, armadilhas do HyperFrames e o gosto do Miguel). Cópia de
    tudo no Drive dele, pasta "Soccermon trailer".
-5. Ideias combinadas para depois: melhores momentos/replay (os snapshots já existem), quadras temáticas e
-   treinadores, modo carreira (0.8+).
+5. **Divulgação da 0.8 (16 a 22/10/2026):** plano em `docs/planos/divulgacao-0.8.md` (um canal por dia, UTM por
+   canal, placar toda segunda com `npm run stats -- --md`); textos prontos em `docs/marketing/textos-divulgacao.md`;
+   clipes verticais e imagens do itch.io em `Downloads/Soccermon trailer/Divulgacao-0.8/`. Feito em 15/10: X,
+   release v0.8.0/v0.8.1 com trailers, Social preview, Discussion #1 fixada ("Feedback do lançamento"). Falta:
+   LinkedIn (texto em `docs/marketing/textos-divulgacao.md` §7), itch.io (o Miguel cria a conta), clipes, Reddit,
+   TabNews, Show HN. Posts nas contas dele: o Claude prepara e para antes de publicar.
+6. **Sinais do 1º dia para olhar no placar:** maior vazamento entre "começou copa" e "jogou partida" (draft longo
+   no celular?); 73% jogam em 8x (começar mais rápido?); Dragonite capitão em 50% das copas (forte demais? decidir
+   junto, com calibragem).
+7. **Ambiente de dev** (`docs/planos/ambiente-dev.md`): branch `staging` + staging.soccermon.com protegido,
+   variáveis do Supabase só em Production, regra de CI na `main`, `ignoreCommand` no vercel.json. Depois do
+   lançamento. O vercel.app hoje leva o save por JS (`src/cloud/domain-move.ts`): trocar por 308 no painel da
+   Vercel só daqui a ~1 mês (novembro/2026).
+8. **Repo no Midgar:** o Miguel quer mover para a org `midgar-hq` (vault em `midgar-hq/midgar-vault`: microsaas
+   em série + construir em público). Transferir com calma (reconectar a Vercel à org). Lá ele entra como projeto
+   de distribuição/marca, não como aposta de microsaas (o Soccermon nunca pode cobrar).
+9. Pequenos: Mimic copia só uma vez (devia ficar no slot até o fim); Fly quase não aparece fora da MT; GitHub do
+   Miguel arrumado em 16/10 (perfil, bio, Soccermon fixado) — pendente decidir o repo `portfolio` (site antigo no
+   ar) e README do `Jogo-Oficina`.
+10. Ideias combinadas para depois: melhores momentos/replay (os snapshots já existem), quadras temáticas e
+   treinadores, modo carreira (0.9+).
 
 ### Riscos que ele já conhece
 
