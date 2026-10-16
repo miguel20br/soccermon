@@ -1,40 +1,251 @@
 /* =====================================================================
-   VERSUS estilo pôster de confronto: a tela partida por uma linha diagonal de
-   luz, cada time numa fila diagonal com profundidade (o capitão grande na
-   frente, os outros subindo rumo à linha) e o VS no alto da linha, onde a luz
-   nasce. Tudo anima uma vez só e não há filtro em nada que se mexe.
-   Paisagem: linha de (60%, 0) a (40%, 100%). Retrato: de (64%, 0) a (36%, 100%).
+   VERSUS estilo jogo de luta: a tela partida ao meio por uma linha de luz
+   (deitado: esquerda x direita; em pé: rival em cima, você embaixo), cada
+   lado na cor do clube com escudo, média e a foto dos 5 titulares, e o VS
+   batendo exatamente no centro da tela. Tudo anima uma vez só e não há
+   filtro em nada que se mexe.
+   Linha de luz deitado: (54%, 0) a (46%, 100%). Em pé: (0, 53%) a (100%, 47%).
+   As duas passam pelo centro, onde fica o VS.
    ===================================================================== */
 .vs-overlay.vsp {
     display: block;
     padding: 0;
     overflow: hidden;
     background: #05060f;
-    /* ponto de luz / VS (em cima da linha) */
-    --vs-x: 55.6%;
-    --vs-y: 20%;
+    /* tamanho do VS; o vão que ele ocupa no meio sai dele */
+    --F: clamp(84px, 28vmin, 250px);
+    --gx: calc(var(--F) * 0.74);
+    --gy: calc(var(--F) * 0.55);
+    /* espaço do botão embaixo */
+    --btn: 70px;
+}
+.vsp-scene {
+    position: absolute;
+    inset: 0;
+    animation: vsp-shake 0.32s 1s linear both;
+    --amp: 1;
+}
+.vsp.is-final .vsp-scene {
+    --amp: 1.7;
 }
 
-/* ---------- metades ---------- */
+/* ---------- lados ---------- */
+.vsp-side {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    animation: vsp-side-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+.vsp-side.is-home {
+    --c: var(--home);
+    --fx: -100%;
+    --fy: 0;
+}
+.vsp-side.is-away {
+    --c: var(--away);
+    --fx: 100%;
+    --fy: 0;
+}
 .vsp-half {
     position: absolute;
     inset: 0;
-}
-.vsp-half.home {
-    clip-path: polygon(0 0, 60% 0, 40% 100%, 0 100%);
+    overflow: hidden;
     background:
-        radial-gradient(ellipse 55% 45% at 48% 22%, color-mix(in srgb, var(--home) 55%, transparent), transparent 70%),
-        radial-gradient(ellipse 80% 70% at 10% 100%, color-mix(in srgb, var(--home) 45%, transparent), transparent 70%),
-        linear-gradient(180deg, color-mix(in srgb, var(--home) 22%, #0a0d22), #05060f 85%);
-    animation: vsp-in-home 0.45s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+        radial-gradient(ellipse 46% 62% at 50% 50%, color-mix(in srgb, var(--c) 62%, transparent), transparent 75%),
+        repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.035) 0 2px, transparent 2px 16px),
+        linear-gradient(180deg, color-mix(in srgb, var(--c) 34%, #0a0d22), color-mix(in srgb, var(--c) 12%, #05060f));
 }
-.vsp-half.away {
-    clip-path: polygon(60% 0, 100% 0, 100% 100%, 40% 100%);
-    background:
-        radial-gradient(ellipse 55% 45% at 62% 22%, color-mix(in srgb, var(--away) 55%, transparent), transparent 70%),
-        radial-gradient(ellipse 80% 70% at 90% 100%, color-mix(in srgb, var(--away) 45%, transparent), transparent 70%),
-        linear-gradient(180deg, color-mix(in srgb, var(--away) 22%, #0a0d22), #05060f 85%);
-    animation: vsp-in-away 0.45s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+.is-home .vsp-half {
+    clip-path: polygon(0 0, 54% 0, 46% 100%, 0 100%);
+}
+.is-away .vsp-half {
+    clip-path: polygon(54% 0, 100% 0, 100% 100%, 46% 100%);
+}
+/* ---------- conteúdo de cada time: cabeçalho + foto ---------- */
+.vsp-team {
+    position: absolute;
+    top: 0;
+    bottom: var(--btn);
+    width: calc(50% - var(--gx));
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 14px;
+    box-sizing: border-box;
+}
+.is-home .vsp-team {
+    left: 0;
+    padding-left: 16px;
+}
+.is-away .vsp-team {
+    right: 0;
+    padding-right: 16px;
+}
+.vsp-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: vsp-head-in 0.4s 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+}
+.is-home .vsp-head {
+    --hx: -28px;
+}
+.is-away .vsp-head {
+    --hx: 28px;
+    flex-direction: row-reverse;
+    text-align: right;
+}
+.vsp-info {
+    flex: 0 1 auto;
+    min-width: 0;
+}
+.vsp-who {
+    display: inline-block;
+    max-width: 100%;
+    margin-bottom: 3px;
+    padding: 1px 8px;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--c) 80%, #000);
+    color: #fff;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: clamp(10px, 2.6vmin, 13px);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+    vertical-align: top;
+}
+.vsp-name {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: clamp(16px, 4.4vmin, 36px);
+    line-height: 1.1;
+    color: #fff;
+    text-shadow: 2px 2px 0 color-mix(in srgb, var(--c) 55%, #000);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.vsp-meta {
+    font-size: clamp(11px, 2.8vmin, 14px);
+    color: rgba(255, 255, 255, 0.72);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* escudo: borda clara + miolo na cor do clube, com a sigla */
+.vsp-crest {
+    --s: clamp(38px, 10vmin, 76px);
+    flex: none;
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: var(--s);
+    height: calc(var(--s) * 1.15);
+    clip-path: polygon(0 0, 100% 0, 100% 62%, 50% 100%, 0 62%);
+    background: rgba(255, 255, 255, 0.92);
+}
+.vsp-crest::before {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    clip-path: inherit;
+    background: linear-gradient(
+        160deg,
+        color-mix(in srgb, var(--c) 70%, #fff),
+        var(--c) 45%,
+        color-mix(in srgb, var(--c) 60%, #000)
+    );
+}
+.vsp-crest span {
+    position: relative;
+    margin-top: -18%;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: calc(var(--s) * 0.3);
+    color: #fff;
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* média do time, na faixa das cartas (bronze/prata/ouro) */
+.vsp-avg {
+    flex: none;
+    display: grid;
+    justify-items: center;
+    padding: 4px 8px 3px;
+    border-radius: 8px;
+    border: 2px solid var(--tier);
+    background: rgba(5, 6, 15, 0.7);
+    line-height: 1;
+}
+.vsp-avg.gold {
+    --tier: #f4c542;
+}
+.vsp-avg.silver {
+    --tier: #c9d3df;
+}
+.vsp-avg.bronze {
+    --tier: #c98a4b;
+}
+.vsp-avg b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: clamp(22px, 6.4vmin, 48px);
+    color: var(--tier);
+}
+.vsp-avg small {
+    font-size: clamp(9px, 2.2vmin, 12px);
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+/* ---------- foto do time ---------- */
+.vsp-squad {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    container-type: size;
+    /* altura do capitão: cabe na altura e na largura da área (a foto tem ~2,4 capitães de largura) */
+    --spread: 0.9;
+    --u: min(80cqh, 100cqw / 2.4);
+    --base: max(0px, (100cqh - 1.12 * var(--u)) / 2);
+}
+/* chão iluminado na cor do clube */
+.vsp-squad::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: calc(var(--base) - 0.1 * var(--u));
+    width: calc(2.8 * var(--spread) * var(--u));
+    height: calc(0.4 * var(--u));
+    translate: -50% 0;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--c) 60%, #fff 10%), transparent);
+    opacity: 0.55;
+}
+.vsp-mon {
+    position: absolute;
+    left: calc(50% + var(--dx) * var(--spread) * var(--u));
+    bottom: calc(var(--base) + var(--dy) * var(--u));
+    height: calc(var(--h) * var(--u));
+    width: auto;
+    max-width: none;
+    translate: -50% 0;
+    image-rendering: pixelated;
+    pointer-events: none;
+    user-select: none;
+    animation: vsp-pop 0.4s var(--d) cubic-bezier(0.2, 0.85, 0.3, 1.25) both;
+}
+/* sprites olham pra esquerda: o seu time vira pra direita, encarando o rival */
+.is-home .vsp-mon {
+    scale: -1 1;
+}
+.vsp-mon.row-1 {
+    filter: brightness(0.86) saturate(0.95);
+}
+.vsp-mon.row-2 {
+    filter: brightness(0.72) saturate(0.88);
 }
 
 /* ---------- linha de luz ---------- */
@@ -43,257 +254,226 @@
     inset: 0;
     width: 100%;
     height: 100%;
-    z-index: 10;
     pointer-events: none;
     overflow: visible;
-    transform-origin: var(--vs-x) var(--vs-y);
-    animation: vsp-beam 0.4s 0.15s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+    transform-origin: 50% 50%;
+    animation: vsp-beam 0.4s 0.25s cubic-bezier(0.2, 0.9, 0.3, 1) both;
 }
 .vsp-beam line {
     vector-effect: non-scaling-stroke;
     stroke-linecap: round;
 }
-.vsp-beam .glow-3 {
-    stroke: rgba(190, 220, 255, 0.1);
-    stroke-width: 90px;
-}
 .vsp-beam .glow-2 {
-    stroke: rgba(210, 232, 255, 0.18);
-    stroke-width: 36px;
+    stroke: rgba(210, 232, 255, 0.14);
+    stroke-width: 34px;
 }
 .vsp-beam .glow-1 {
-    stroke: rgba(235, 245, 255, 0.55);
-    stroke-width: 12px;
+    stroke: rgba(235, 245, 255, 0.5);
+    stroke-width: 10px;
 }
 .vsp-beam .core {
     stroke: #fff;
-    stroke-width: 4px;
+    stroke-width: 3px;
 }
 .vsp-beam .port {
     display: none;
 }
-/* clarão onde a luz nasce (atrás do VS) */
-.vsp-light {
+
+/* ---------- VS no centro ---------- */
+.vsp-burst {
     position: absolute;
-    left: var(--vs-x);
-    top: var(--vs-y);
-    z-index: 11;
-    width: 70vmin;
-    height: 70vmin;
+    left: 50%;
+    top: 50%;
+    width: calc(var(--F) * 3.2);
+    height: calc(var(--F) * 3.2);
     translate: -50% -50%;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.75) 0%, rgba(200, 225, 255, 0.28) 22%, transparent 62%);
+    background: repeating-conic-gradient(rgba(255, 244, 210, 0.2) 0deg 5deg, transparent 5deg 15deg);
+    mask-image: radial-gradient(circle, #000 18%, transparent 68%);
     pointer-events: none;
-    animation: vsp-fade 0.5s 0.3s ease-out both;
+    animation: vsp-burst 0.5s 0.98s cubic-bezier(0.2, 0.9, 0.3, 1) both;
 }
-
-/* ---------- Pokémon ---------- */
-.vsp-mon {
-    position: absolute;
-    left: var(--lx);
-    top: var(--ly);
-    height: var(--lh);
-    width: auto;
-    max-width: none;
-    translate: -50% -100%;
-    image-rendering: pixelated;
-    pointer-events: none;
-    user-select: none;
-    animation: vsp-land 0.5s var(--d) cubic-bezier(0.2, 0.85, 0.3, 1.08) both;
-}
-/* sprites olham pra esquerda: a casa vira pra direita, encarando o rival */
-.vsp-crowd.home .vsp-mon {
-    transform: scaleX(-1);
-    --from: -60vw;
-}
-.vsp-crowd.away .vsp-mon {
-    --from: 60vw;
-}
-/* profundidade: os de trás ficam mais escuros (só nos pequenos, que pesam pouco) */
-.vsp-mon.depth-2 {
-    filter: brightness(0.82) saturate(0.92);
-}
-.vsp-mon.depth-3 {
-    filter: brightness(0.7) saturate(0.85);
-}
-.vsp-mon.depth-4 {
-    filter: brightness(0.6) saturate(0.8);
-}
-/* escurece a base pra os da frente "saírem" da tela e o texto/botão lerem bem */
-.vsp-shade {
-    position: absolute;
-    inset: auto 0 0;
-    height: 26%;
-    z-index: 35;
-    background: linear-gradient(180deg, transparent, rgba(5, 6, 15, 0.7));
-    pointer-events: none;
-}
-
-/* ---------- faixas dos times ---------- */
-/* .home também é a classe da tela inicial (grid centralizado): aqui vale bloco normal */
-.vsp .vsp-band,
-.vsp .vsp-crowd {
-    display: block;
-    place-items: normal;
-    gap: 0;
-    flex: none;
-}
-.vsp-band {
-    position: absolute;
-    top: 9%;
-    z-index: 40;
-    max-width: 34%;
-    padding: 8px 22px;
-    background: linear-gradient(90deg, rgba(5, 6, 15, 0.88), rgba(5, 6, 15, 0.6));
-    transform: skewX(-12deg);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
-}
-.vsp-band > * {
-    transform: skewX(12deg);
-}
-.vsp-band.home {
-    --team-c: var(--home);
-    left: 3%;
-    text-align: left;
-    border-left: 6px solid var(--team-c);
-    animation: vsp-band-home 0.4s 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
-}
-.vsp-band.away {
-    --team-c: var(--away);
-    right: 3%;
-    text-align: right;
-    border-right: 6px solid var(--team-c);
-    animation: vsp-band-away 0.4s 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
-}
-.vsp-who {
-    display: inline-block;
-    margin-bottom: 3px;
-    padding: 2px 10px;
-    border-radius: 4px;
-    background: var(--team-c);
-    color: #fff;
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 12px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
-}
-.vsp-band.away .vsp-who {
-    background: rgba(255, 255, 255, 0.14);
-    color: rgba(255, 255, 255, 0.85);
-}
-.vsp-name {
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 28px;
-    line-height: 1.1;
-    color: #fff;
-    text-shadow: 3px 3px 0 color-mix(in srgb, var(--team-c) 70%, #000);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.vsp-meta {
-    font-size: 13px;
-    color: var(--muted);
-}
-.vsp-meta b {
-    color: var(--yellow);
-}
-
-/* ---------- VS ---------- */
 .vsp-vs {
     position: absolute;
-    left: var(--vs-x);
-    top: var(--vs-y);
-    z-index: 50;
+    left: 50%;
+    top: 50%;
     transform: translate(-50%, -50%) rotate(-8deg);
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: clamp(170px, 36vmin, 400px);
+    font-size: var(--F);
     font-weight: 700;
     line-height: 1;
     letter-spacing: -0.05em;
+    white-space: nowrap;
     color: #fffbe6;
     -webkit-text-stroke: 0.035em #d91f1c;
     paint-order: stroke fill;
     text-shadow:
         0.04em 0.04em 0 #a11512,
         0.08em 0.08em 0 #4a0806;
-    animation: vsp-slam 0.42s 0.75s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
+    pointer-events: none;
+    animation: vsp-slam 0.37s 0.78s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
 }
-.vsp-stage {
+.vsp .vsp-stage {
     position: absolute;
-    left: 50%;
-    /* embaixo, acima do botão: o VS grandão ocupa o alto da tela */
-    bottom: 13%;
-    z-index: 45;
-    transform: translateX(-50%);
+    left: 0;
+    right: 0;
+    top: calc(50% + var(--F) * 0.62);
+    width: fit-content;
+    max-width: calc(100% - 32px);
+    margin: 0 auto;
     padding: 4px 16px;
     border-radius: 999px;
-    background: rgba(5, 6, 15, 0.85);
+    background: rgba(5, 6, 15, 0.88);
     border: 2px solid var(--yellow);
+    font-size: clamp(12px, 3vmin, 18px);
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+    animation: vsp-stage-in 0.3s 1.15s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
 }
+
+/* ---------- final (Liga Índigo): VS dourado, raios maiores, tremor mais forte ---------- */
+.vsp.is-final .vsp-vs {
+    color: #ffe58a;
+    -webkit-text-stroke-color: #6b3d00;
+    text-shadow:
+        0.04em 0.04em 0 #b07a12,
+        0.08em 0.08em 0 #3a2200;
+}
+.vsp.is-final .vsp-burst {
+    width: calc(var(--F) * 4.4);
+    height: calc(var(--F) * 4.4);
+    background: repeating-conic-gradient(rgba(255, 206, 60, 0.4) 0deg 6deg, transparent 6deg 14deg);
+}
+.vsp.is-final .vsp-beam .core {
+    stroke: #fff2c2;
+}
+.vsp.is-final .vsp-stage {
+    background: linear-gradient(180deg, #ffe58a, #e0a526);
+    border-color: #fff2c2;
+    color: #2a1800;
+}
+
 .vsp-flash {
     position: absolute;
     inset: 0;
-    z-index: 60;
-    background: radial-gradient(circle at var(--vs-x) var(--vs-y), #fff 0%, #fff6c8 35%, rgba(255, 255, 255, 0.8) 70%);
+    background: radial-gradient(circle at 50% 50%, #fff 0%, #fff6c8 30%, rgba(255, 255, 255, 0.7) 70%);
     opacity: 0;
     pointer-events: none;
-    animation: vsp-flash 0.45s 0.8s ease-out both;
+    animation: vsp-flash 0.45s 1s ease-out both;
+}
+.vsp.is-final .vsp-flash {
+    background: radial-gradient(circle at 50% 50%, #fff 0%, #ffe58a 35%, rgba(255, 214, 90, 0.75) 75%);
+    animation-duration: 0.7s;
 }
 .vsp .vs-start {
     position: absolute;
-    left: 50%;
-    bottom: 4.5%;
-    z-index: 70;
-    transform: translateX(-50%);
-    min-width: 220px;
+    left: 0;
+    right: 0;
+    bottom: 16px;
+    width: fit-content;
+    min-width: 200px;
+    margin: 0 auto;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+    animation: vs-fade 0.4s 1.2s ease both;
 }
-.vsp .vs-progress {
-    z-index: 71;
+
+/* ---------- celular em pé: rival em cima, você embaixo ---------- */
+@media (max-aspect-ratio: 1 / 1) {
+    .vs-overlay.vsp {
+        --F: clamp(76px, 25vw, 150px);
+        --btn: 66px;
+    }
+    .vsp-side.is-home {
+        --fx: 0;
+        --fy: 100%;
+    }
+    .vsp-side.is-away {
+        --fx: 0;
+        --fy: -100%;
+    }
+    .is-away .vsp-half {
+        clip-path: polygon(0 0, 100% 0, 100% 47%, 0 53%);
+    }
+    .is-home .vsp-half {
+        clip-path: polygon(0 53%, 100% 47%, 100% 100%, 0 100%);
+    }
+    .vsp-team {
+        left: 0;
+        right: 0;
+        width: auto;
+        padding: 0 12px;
+    }
+    /* rival: chip da fase no topo, cabeçalho, foto encostando no VS */
+    .is-away .vsp-team {
+        top: 46px;
+        bottom: calc(50% + var(--gy));
+        padding-top: 0;
+    }
+    /* você: foto logo abaixo do VS, cabeçalho embaixo, perto do botão */
+    .is-home .vsp-team {
+        top: calc(50% + var(--gy));
+        bottom: var(--btn);
+        flex-direction: column-reverse;
+    }
+    .vsp-squad {
+        --spread: 0.82;
+        --u: min(84cqh, 100cqw / 2.3);
+    }
+    .vsp-beam .land {
+        display: none;
+    }
+    .vsp-beam .port {
+        display: inline;
+    }
+    .vsp .vsp-stage {
+        top: 10px;
+    }
+    .vsp .vs-start {
+        bottom: 12px;
+        min-width: 180px;
+    }
+}
+
+/* celular deitado pequeno: metade estreita, o nome do clube vale mais que o escudo */
+@media (min-aspect-ratio: 1 / 1) and (max-width: 640px) {
+    .vsp-crest {
+        display: none;
+    }
 }
 
 /* ---------- animações (todas de uma vez só) ---------- */
-@keyframes vsp-in-home {
+@keyframes vsp-side-in {
     from {
-        translate: -30% 0;
+        translate: var(--fx) var(--fy);
+    }
+}
+@keyframes vsp-head-in {
+    from {
+        transform: translateX(var(--hx));
         opacity: 0;
     }
 }
-@keyframes vsp-in-away {
-    from {
-        translate: 30% 0;
+@keyframes vsp-pop {
+    0% {
+        transform: translateY(30%) scale(0.6);
         opacity: 0;
+    }
+    70% {
+        transform: translateY(-4%) scale(1.04);
+        opacity: 1;
     }
 }
 @keyframes vsp-beam {
     from {
-        transform: scaleY(0);
+        transform: scale(0);
         opacity: 0;
     }
 }
-@keyframes vsp-fade {
+@keyframes vsp-burst {
     from {
-        opacity: 0;
-    }
-}
-@keyframes vsp-land {
-    from {
-        translate: calc(-50% + var(--from)) -100%;
-        opacity: 0;
-    }
-}
-@keyframes vsp-band-home {
-    from {
-        transform: skewX(-12deg) translateX(-60px);
-        opacity: 0;
-    }
-}
-@keyframes vsp-band-away {
-    from {
-        transform: skewX(-12deg) translateX(60px);
+        transform: scale(0.2) rotate(-20deg);
         opacity: 0;
     }
 }
@@ -302,13 +482,38 @@
         transform: translate(-50%, -50%) rotate(-8deg) scale(3.2);
         opacity: 0;
     }
-    55% {
+    60% {
         transform: translate(-50%, -50%) rotate(-8deg) scale(0.88);
         opacity: 1;
     }
     100% {
         transform: translate(-50%, -50%) rotate(-8deg) scale(1);
         opacity: 1;
+    }
+}
+/* tremor curto que decai (o VS batendo na tela) */
+@keyframes vsp-shake {
+    0%,
+    100% {
+        translate: 0 0;
+    }
+    15% {
+        translate: calc(var(--amp) * -7px) calc(var(--amp) * 4px);
+    }
+    35% {
+        translate: calc(var(--amp) * 5px) calc(var(--amp) * -3px);
+    }
+    55% {
+        translate: calc(var(--amp) * -3px) calc(var(--amp) * 2px);
+    }
+    75% {
+        translate: calc(var(--amp) * 1px) calc(var(--amp) * -1px);
+    }
+}
+@keyframes vsp-stage-in {
+    from {
+        transform: scale(0.6);
+        opacity: 0;
     }
 }
 @keyframes vsp-flash {
@@ -323,84 +528,15 @@
     }
 }
 
-/* ---------- celular (retrato) ---------- */
-@media (max-width: 760px), (max-aspect-ratio: 4 / 5) {
-    .vs-overlay.vsp {
-        --vs-y: 27%;
-    }
-    .vsp-half.home {
-        clip-path: polygon(0 0, 64% 0, 36% 100%, 0 100%);
-    }
-    .vsp-half.away {
-        clip-path: polygon(64% 0, 100% 0, 100% 100%, 36% 100%);
-    }
-    .vsp-beam .land {
-        display: none;
-    }
-    .vsp-beam .port {
-        display: inline;
-    }
-    .vsp-mon {
-        left: var(--px);
-        top: var(--py);
-        height: var(--ph);
-    }
-    .vsp-band {
-        top: 6.5%;
-        width: 44%;
-        max-width: none;
-        box-sizing: border-box;
-        padding: 4px 12px;
-    }
-    .vsp-band.home {
-        left: 3%;
-        padding-left: 16px;
-    }
-    .vsp-band.away {
-        right: 3%;
-        padding-right: 16px;
-    }
-    .vsp-who {
-        font-size: 10px;
-        padding: 1px 7px;
-    }
-    .vsp-name {
-        font-size: 16px;
-    }
-    @media (max-width: 400px) {
-        .vsp-name {
-            font-size: 14px;
-        }
-    }
-    .vsp-form {
-        display: none;
-    }
-    .vsp-meta {
-        font-size: 11px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    .vsp-vs {
-        font-size: clamp(130px, 42vw, 230px);
-    }
-    .vsp-stage {
-        bottom: 11%;
-        font-size: 13px;
-    }
-    .vsp .vs-start {
-        bottom: 3.5%;
-        min-width: 180px;
-    }
-}
-
 @media (prefers-reduced-motion: reduce) {
-    .vsp-half,
-    .vsp-beam,
-    .vsp-light,
+    .vsp-scene,
+    .vsp-side,
+    .vsp-head,
     .vsp-mon,
-    .vsp-band,
+    .vsp-beam,
+    .vsp-burst,
     .vsp-vs,
+    .vsp-stage,
     .vsp-flash {
         animation: none !important;
     }
