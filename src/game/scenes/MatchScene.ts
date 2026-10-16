@@ -1200,6 +1200,8 @@ export class MatchScene extends Phaser.Scene {
                 const newName = view.name === species(e.from).name ? species(e.into).name : view.name;
                 // sem a forma nova carregada (rede lenta), troca direto sem a animação
                 if (silent || !ready) this.finishEvolution(view, e.into, newName);
+                // a tela cheia ("Parabéns!") é só do seu time; a do rival é na quadra, sem parar a partida
+                else if (view.team === 1) this.evolveOnField(view, e.into, newName);
                 else this.evolveAnimation(view, e.from, e.into, newName);
             }
         }
@@ -1641,18 +1643,23 @@ export class MatchScene extends Phaser.Scene {
         this.evoTimer = this.time.delayedCall(20000, () => this.onEvolutionDone());
     }
 
+    /** Troca para a forma nova na quadra: cresce, volta ao tamanho e solta o impacto do tipo. */
+    private evolveOnField(view: PlayerView, into: number, newName: string) {
+        const oldName = view.name;
+        this.finishEvolution(view, into, newName);
+        view.sprite.setScale(SPRITE_SCALE * 1.3);
+        this.tweens.add({ targets: view.sprite, scale: SPRITE_SCALE, duration: 420, ease: 'Back.easeOut' });
+        this.impact(view.sprite.x, view.sprite.y - 16, species(into).types[0]);
+        this.battleBox.push(
+            tr(view.team === 1 ? 'battle.evolvedRival' : 'battle.evolved', { x: oldName, y: species(into).name }),
+        );
+    }
+
     private onEvolutionDone() {
         const done = this.evoQueue.shift();
         this.evoTimer?.remove();
         this.evoTimer = undefined;
-        if (done) {
-            const oldName = done.view.name;
-            this.finishEvolution(done.view, done.into, done.newName);
-            done.view.sprite.setScale(SPRITE_SCALE * 1.3);
-            this.tweens.add({ targets: done.view.sprite, scale: SPRITE_SCALE, duration: 420, ease: 'Back.easeOut' });
-            this.impact(done.view.sprite.x, done.view.sprite.y - 16, species(done.into).types[0]);
-            this.battleBox.push(tr('battle.evolved', { x: oldName, y: species(done.into).name }));
-        }
+        if (done) this.evolveOnField(done.view, done.into, done.newName);
         this.showNextEvolution();
     }
 

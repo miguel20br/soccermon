@@ -655,7 +655,8 @@ export const useGame = create<GameStore>()(
                     // carta Destaque: o craque do seu time vira edição especial (se ainda não tiver uma)
                     const star = matchMvp(m, 0);
                     const starInst = star && mvpScore(star) > 0 ? run.picks.find((p) => p.uid === star.uid) : null;
-                    const destaqueUid = SPECIALS_LIVE && starInst && !starInst.special ? starInst.uid : null;
+                    // só na vitória: na eliminação a copa acaba e a carta não teria onde jogar
+                    const destaqueUid = won && SPECIALS_LIVE && starInst && !starInst.special ? starInst.uid : null;
                     // quem evoluiu no meio da partida continua evoluído pelo resto da copa
                     const evolved = new Map(
                         m.events.flatMap((e) =>

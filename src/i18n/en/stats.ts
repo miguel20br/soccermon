@@ -36,7 +36,7 @@ export const stats: typeof pt = {
         totalPossession: 'avg. possession',
         campaign: 'Campaign',
         shootout: ' (pens {score})',
-        star: 'Star: {name} ({rating})',
+        star: 'Top rating: {name} ({rating})',
         goalsPerMatch: 'Goals per match',
         highlights: 'Cup highlights',
         yourTeam: 'Your team in the cup',

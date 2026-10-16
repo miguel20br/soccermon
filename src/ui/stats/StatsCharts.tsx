@@ -4,7 +4,7 @@ import type { Leader, ShotOutcome, ShotPoint } from '../../engine/match-stats';
 import { getLang, t, tn } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { clubColorHex, colorDistance } from '../../store/profile';
+import { clubColorHex, colorDistance, rivalColor } from '../../store/profile';
 
 /**
  * Gráficos da tela de estatísticas (SVG puro). Seu time usa a cor do clube (Perfil); o rival fica sempre no
@@ -16,9 +16,12 @@ const CHART_AWAY = 0x3a8ee6;
 const CHART_ALT = 0xe8423f;
 /** Cor do seu time nos gráficos (a do clube). */
 export const homeC = () => css(clubColorHex(useGame.getState().profile.clubColor));
-/** Cor do rival nos gráficos: azul, ou vermelho quando o seu clube é parecido com o azul. */
+/** Cor do rival nos gráficos: o uniforme dele na partida (o mesmo do placar); sem rival, azul ou vermelho. */
 export const awayC = () => {
-    const club = clubColorHex(useGame.getState().profile.clubColor);
+    const { profile, run } = useGame.getState();
+    const club = clubColorHex(profile.clubColor);
+    const opp = run?.opponents[run.stage];
+    if (opp?.color !== undefined) return css(rivalColor(club, opp.color));
     return css(colorDistance(club, CHART_AWAY) < 150 ? CHART_ALT : CHART_AWAY);
 };
 /** Título do destaque da partida (Melhor nota, Artilheiro...) no idioma do jogo. */

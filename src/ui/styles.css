@@ -3694,6 +3694,12 @@ button,
 }
 .st-table-scroll {
     overflow-x: auto;
+    /* sombra na borda que ainda tem coluna escondida: avisa que dá pra rolar pro lado */
+    background:
+        linear-gradient(90deg, var(--panel) 30%, transparent) left / 24px 100% no-repeat local,
+        linear-gradient(270deg, var(--panel) 30%, transparent) right / 24px 100% no-repeat local,
+        radial-gradient(farthest-side at 0 50%, rgb(0 0 0 / 45%), transparent) left / 12px 100% no-repeat scroll,
+        radial-gradient(farthest-side at 100% 50%, rgb(0 0 0 / 45%), transparent) right / 12px 100% no-repeat scroll;
 }
 .st-table {
     width: 100%;

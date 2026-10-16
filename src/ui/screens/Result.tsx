@@ -89,9 +89,8 @@ export function Result() {
     const totals = [teamTotals(lines, 0), teamTotals(lines, 1)] as const;
     const danger = dangerByPeriod(match);
     const leaderList = leaders(lines);
-    const ourStar = lines
-        .filter((l) => l.team === 0)
-        .reduce<(typeof lines)[number] | null>((best, l) => (!best || l.rating > best.rating ? l : best), null);
+    // o craque do seu time é o mesmo critério da carta Destaque (matchMvp), não só a maior nota
+    const ourStar = matchMvp(match, 0);
 
     const champion = run.status === 'champion';
     const eliminated = run.status === 'eliminated';

@@ -37,7 +37,7 @@ export const stats = {
         totalPossession: 'posse média',
         campaign: 'Campanha',
         shootout: ' (pên. {score})',
-        star: 'Craque: {name} ({rating})',
+        star: 'Melhor nota: {name} ({rating})',
         goalsPerMatch: 'Gols por partida',
         highlights: 'Destaques da copa',
         yourTeam: 'Seu time na copa',

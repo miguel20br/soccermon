@@ -47,6 +47,7 @@ export const battle: typeof pt = {
     penScore: '{a}–{b}',
     evolving: 'What? {x} is evolving!',
     evolved: 'Congratulations! {x} evolved into {y}!',
+    evolvedRival: 'Watch out! Their {x} evolved into {y}!',
     pop: {
         crit: 'CRITICAL HIT!',
         focusBug: 'IT FAILED!',
