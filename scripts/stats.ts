@@ -3,9 +3,10 @@
  * supabase/migrations/20261015150000_estatisticas.sql e src/analytics/track.ts) e imprime um resumo.
  *
  * Uso: npm run stats [-- --dias 7 | --desde 2026-10-15] [--canal reddit] [--md]
+ *      npm run stats -- --raridade   (grava public/data/raridade.json para a tela do título; commitar)
  * Conexão: POSTGRES_URL_NON_POOLING do .env.local (nunca é impresso).
  */
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import pg from 'pg';
 import pokemon from '../src/data/pokemon.json' with { type: 'json' };
 
@@ -510,6 +511,35 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
     line(MD ? `> ${foco}` : `  → ${foco}`);
 }
 
-const { evs, starts } = await load();
-relatorio(evs, starts);
-console.log(out.join('\n'));
+/** % dos times campeões (desde sempre) com cada espécie no elenco. Vai como JSON estático, sem API nova. */
+async function raridade() {
+    const client = new pg.Client({ connectionString: dbUrl(), ssl: { rejectUnauthorized: false } });
+    await client.connect();
+    try {
+        const { rows } = await client.query<{ props: Props }>(
+            `select props from public.game_events where name = 'run_end' and props->>'champion' = 'true' and props ? 'squad'`,
+        );
+        const count = new Map<string, number>();
+        for (const r of rows)
+            for (const id of new Set(
+                String(r.props.squad ?? '')
+                    .split(',')
+                    .filter(Boolean),
+            ))
+                count.set(id, (count.get(id) ?? 0) + 1);
+        const species = Object.fromEntries(
+            [...count].map(([id, n]) => [id, Math.round((n / Math.max(1, rows.length)) * 1000) / 10]),
+        );
+        writeFileSync('public/data/raridade.json', `${JSON.stringify({ champions: rows.length, species })}\n`);
+        console.log(`public/data/raridade.json: ${rows.length} times campeões, ${count.size} espécies`);
+    } finally {
+        await client.end();
+    }
+}
+
+if (args.includes('--raridade')) await raridade();
+else {
+    const { evs, starts } = await load();
+    relatorio(evs, starts);
+    console.log(out.join('\n'));
+}

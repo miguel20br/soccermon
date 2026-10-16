@@ -7,6 +7,38 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.8.2',
+        title: 'Hall da Fama e o título do jeito que merece',
+        sections: [
+            {
+                title: 'Tela de campeão',
+                lines: [
+                    'Hall da Fama: no título, o elenco desfila um por um com o grito, como no Red/Blue, e a copa fica guardada para sempre na aba Hall da Fama do Perfil',
+                    'Prêmios da copa: Bola de Ouro, Chuteira de Ouro, Luva de Ouro, Garçom, Muralha, Pulmão e Mestre dos Golpes',
+                    'Seleção da copa na quadra, na formação que você usou',
+                    'Recordes do título: o número do título e da copa perfeita, a melhor nota de cada Pokémon, o primeiro título de cada espécie e quanto tempo levou',
+                    'Gols da campanha minuto a minuto, mapa de onde saíram os gols, golpes mais usados, a final lado a lado e a nota de cada Pokémon jogo a jogo',
+                    'Compartilhar agora leva uma imagem do título pronta para os Stories, e dá para baixar em 9:16 ou 1:1',
+                ],
+            },
+            {
+                title: 'Celular deitado',
+                lines: [
+                    'Nova copa, draft, partida, pênaltis, substituição, Movedex e campeão cabem na tela',
+                    'A partida abre com o placar e a quadra inteiros (antes abria rolada lá embaixo)',
+                    'Botões pequenos ficaram maiores para o dedo',
+                ],
+            },
+            {
+                title: 'Corrigido',
+                lines: [
+                    'Mimic como na Gen 1: o golpe copiado fica no lugar dele até o fim da partida',
+                    'Movedex não passa mais da largura da tela no celular',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.8.1',
         title: 'Ajustes do lançamento',
         sections: [
@@ -205,6 +237,38 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.8.2',
+        title: 'Hall of Fame and a title screen worth the trophy',
+        sections: [
+            {
+                title: 'Champion screen',
+                lines: [
+                    'Hall of Fame: when you win, your squad parades one by one with their cries, like in Red/Blue, and the cup is saved forever in the Hall of Fame tab of your Profile',
+                    'Cup awards: Golden Ball, Golden Boot, Golden Glove, Playmaker, The Wall, Engine and Move Master',
+                    'Team of the Cup on the court, in the formation you used',
+                    'Title records: title number, perfect cup number, each Pokémon’s best rating, each species’ first title and how long it took',
+                    'Goals of the run minute by minute, where the goals came from, most used moves, the final side by side and each Pokémon’s rating per match',
+                    'Share now sends a title image ready for Stories, and you can download it in 9:16 or 1:1',
+                ],
+            },
+            {
+                title: 'Landscape phones',
+                lines: [
+                    'New cup, draft, match, penalties, substitutions, Movedex and the champion screen fit the screen',
+                    'Matches open with the scoreboard and the whole court in view (they used to open scrolled down)',
+                    'Small buttons got bigger for your thumb',
+                ],
+            },
+            {
+                title: 'Fixed',
+                lines: [
+                    'Mimic works like in Gen 1: the copied move stays in its slot for the rest of the match',
+                    'The Movedex no longer overflows the screen width on phones',
+                ],
+            },
+        ],
+    },
     {
         version: '0.8.1',
         title: 'Launch fixes',

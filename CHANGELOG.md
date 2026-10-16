@@ -1,5 +1,24 @@
 # Novidades
 
+## 0.8.2 · Hall da Fama e o título do jeito que merece
+
+### Tela de campeão
+- Hall da Fama: no título, o elenco desfila um por um com o grito, como no Red/Blue, e a copa fica guardada para sempre na aba Hall da Fama do Perfil
+- Prêmios da copa: Bola de Ouro, Chuteira de Ouro, Luva de Ouro, Garçom, Muralha, Pulmão e Mestre dos Golpes
+- Seleção da copa na quadra, na formação que você usou
+- Recordes do título: o número do título e da copa perfeita, a melhor nota de cada Pokémon, o primeiro título de cada espécie e quanto tempo levou
+- Gols da campanha minuto a minuto, mapa de onde saíram os gols, golpes mais usados, a final lado a lado e a nota de cada Pokémon jogo a jogo
+- Compartilhar agora leva uma imagem do título pronta para os Stories, e dá para baixar em 9:16 ou 1:1
+
+### Celular deitado
+- Nova copa, draft, partida, pênaltis, substituição, Movedex e campeão cabem na tela
+- A partida abre com o placar e a quadra inteiros (antes abria rolada lá embaixo)
+- Botões pequenos ficaram maiores para o dedo
+
+### Corrigido
+- Mimic como na Gen 1: o golpe copiado fica no lugar dele até o fim da partida
+- Movedex não passa mais da largura da tela no celular
+
 ## 0.8.1 · Ajustes do lançamento
 
 ### Corrigido

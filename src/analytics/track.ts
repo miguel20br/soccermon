@@ -131,6 +131,12 @@ function onChange(s: GameState, prev: GameState) {
                 champion: run.status === 'champion',
                 stage: r?.stage ?? 0,
                 perfect: run.status === 'champion' && run.results.every((x) => x.won && x.score[1] === 0),
+                // raridade na tela do título ("só 3% dos campeões tinham..."): espécies do elenco e o capitão
+                squad: [...run.lineup, ...run.bench]
+                    .map((u) => run.picks.find((p) => p.uid === u)?.speciesId)
+                    .filter(Boolean)
+                    .join(','),
+                captain: run.picks.find((p) => p.uid === run.captainUid)?.speciesId ?? null,
             });
         }
         if (old.status === 'reward' && run.status === 'lineup') {
