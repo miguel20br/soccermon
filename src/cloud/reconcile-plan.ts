@@ -1,5 +1,5 @@
 import { isCupInProgress, MAX_PARKED, type PersistedSave, type Records, type RunState } from '../store/game-store';
-import { DEFAULT_PROFILE, mergeCareer, mergeDex, mergeMoves } from '../store/profile';
+import { DEFAULT_PROFILE, mergeCareer, mergeDex, mergeHall, mergeMoves } from '../store/profile';
 
 /**
  * O que fazer com o save do aparelho e o da conta quando alguém entra com Google. Funções puras (sem
@@ -167,6 +167,7 @@ export function mergeSaves(
         career: mergeCareer(local.career, cloud?.career),
         onboarded: local.onboarded || !!cloud?.onboarded,
         parkedRuns: parked.slice(0, MAX_PARKED),
+        hall: mergeHall(local.hall, cloud?.hall),
     };
 }
 

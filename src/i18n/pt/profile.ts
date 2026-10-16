@@ -2,7 +2,7 @@
 export const profile = {
     title: 'Perfil',
     trainer: 'Treinador',
-    tabs: { clube: 'Meu clube', dex: 'Pokédex', numeros: 'Números' },
+    tabs: { clube: 'Meu clube', dex: 'Pokédex', hall: 'Hall da Fama', numeros: 'Números' },
     quick: { cups: 'Copas', titles: 'Títulos', goals: 'Gols' },
     club: {
         saved: 'Salvo',

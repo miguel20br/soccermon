@@ -21,8 +21,8 @@ const hasProgress = (s: Partial<PersistedSave>) =>
     !!s.run || (s.records?.cups ?? 0) > 0 || Object.keys(s.dex ?? {}).length > 0;
 
 function snapshot(): PersistedSave {
-    const { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns } = useGame.getState();
-    return { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns };
+    const { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns, hall } = useGame.getState();
+    return { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns, hall };
 }
 
 const toB64 = (bytes: Uint8Array) => {

@@ -4303,6 +4303,206 @@ button,
     font-size: 12px;
     color: var(--yellow);
 }
+/* extras do título (0.8.2): recordes, prêmios, seleção, gols da campanha, golpes, a final */
+.ce-records {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.ce-records li {
+    padding: 4px 12px;
+    border: 2px solid var(--yellow);
+    border-radius: 999px;
+    color: var(--yellow);
+    font-size: 13px;
+    font-weight: 700;
+}
+.ce-awards {
+    width: min(860px, 100%);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+    gap: 8px;
+}
+.ce-award {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    padding: 10px 6px;
+    border-radius: 10px;
+    background: var(--bg-2);
+    text-align: center;
+}
+.ce-award img {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+}
+.ce-award b {
+    color: var(--yellow);
+    font-size: 13px;
+}
+.ce-award small {
+    color: var(--muted);
+}
+.ce-ball {
+    box-shadow: inset 0 0 0 2px var(--yellow);
+}
+.ce-xi {
+    width: min(380px, 100%);
+}
+.ce-xi .bench {
+    display: none;
+}
+.ce-xi-r {
+    padding: 0 5px;
+    border-radius: 6px;
+    background: var(--yellow);
+    color: #1c2447;
+    font-size: 11px;
+    font-weight: 800;
+}
+.ce-timeline {
+    width: min(860px, 100%);
+    display: grid;
+    gap: 10px;
+}
+.ce-tl-row {
+    display: grid;
+    grid-template-columns: minmax(0, 150px) minmax(0, 1fr);
+    align-items: center;
+    gap: 4px 10px;
+}
+.ce-tl-label {
+    display: grid;
+    font-weight: 700;
+    font-size: 13px;
+}
+.ce-tl-label small {
+    color: var(--muted);
+    font-weight: 400;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ce-tl-bar {
+    position: relative;
+    height: 30px;
+    border-radius: 8px;
+    background: var(--bg-2);
+}
+.ce-tl-half {
+    position: absolute;
+    left: 50%;
+    top: 4px;
+    bottom: 4px;
+    border-left: 2px dashed var(--line);
+}
+.ce-tl-goal {
+    position: absolute;
+    top: 50%;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #0e1430;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+}
+.ce-tl-goal.mine {
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    z-index: 1;
+}
+.ce-tl-goal img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+}
+.ce-tl-ht {
+    grid-column: 2;
+    font-size: 11px;
+}
+.ce-moves {
+    width: min(460px, 100%);
+    border-collapse: collapse;
+    font-size: 14px;
+}
+.ce-moves th,
+.ce-moves td {
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--line);
+    text-align: right;
+}
+.ce-moves th:first-child,
+.ce-moves td:first-child {
+    text-align: left;
+}
+.ce-moves th {
+    color: var(--muted);
+    font-weight: 400;
+}
+.ce-moves tr.top td {
+    color: var(--yellow);
+    font-weight: 700;
+}
+.ce-final {
+    width: min(860px, 100%);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+}
+.ce-final-side {
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    text-align: center;
+}
+.ce-final-side > div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.ce-final-side span {
+    color: var(--muted);
+    font-size: 12px;
+}
+.ce-final-side span b {
+    color: var(--text);
+    font-size: 20px;
+}
+.ce-final-score {
+    font-size: 30px;
+}
+.ce-mini {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+}
+.ce-evo {
+    margin: 0;
+    font-size: 13px;
+}
+.ce-spark {
+    width: 80px;
+    height: 24px;
+}
+@media (max-width: 420px) {
+    .ce-tl-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .ce-tl-ht {
+        grid-column: 1;
+    }
+    .ce-mini {
+        width: 26px;
+        height: 26px;
+    }
+}
 .champ-squad {
     width: 100%;
     display: flex;
@@ -5332,4 +5532,117 @@ a.home-tile {
 .gsi-slot[aria-busy="true"] {
     opacity: 0.5;
     pointer-events: none;
+}
+
+/* Hall da Fama: desfile (estilo Red/Blue) e lista no Perfil */
+.hall-parade {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: grid;
+    place-items: center;
+    padding: 24px 16px;
+    border: 0;
+    background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--club) 35%, #0b1024) 0, #05070f 70%);
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+}
+.hp-mon,
+.hp-end {
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    text-align: center;
+    animation: hp-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.hp-mon img {
+    width: min(46vmin, 240px);
+    height: min(46vmin, 240px);
+    object-fit: contain;
+    filter: drop-shadow(0 0 22px rgb(255 212 71 / 45%));
+}
+.hp-mon b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: clamp(28px, 7vw, 48px);
+    color: var(--yellow);
+}
+.hp-mon span {
+    font-size: 18px;
+    color: var(--muted);
+}
+.hp-no {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    color: var(--yellow);
+    font-size: clamp(22px, 5vw, 34px);
+}
+.hp-club {
+    font-size: clamp(26px, 6vw, 42px);
+}
+.hp-squad {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+}
+.hp-squad img {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+}
+.hp-skip {
+    position: absolute;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    color: var(--muted);
+}
+@keyframes hp-in {
+    from {
+        opacity: 0;
+        transform: translateY(24px) scale(0.85);
+    }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .hp-mon img {
+        width: 40vh;
+        height: 40vh;
+    }
+}
+.hall-list {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.hall-card {
+    display: grid;
+    gap: 4px;
+    padding: 12px;
+    border-left: 4px solid var(--club);
+    border-radius: 10px;
+    background: var(--panel);
+}
+.hall-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+.hall-head b {
+    color: var(--yellow);
+}
+.hall-club {
+    font-weight: 700;
+}
+.hall-squad {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+}
+.hall-squad img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+.hall-scores {
+    font-size: 12px;
 }

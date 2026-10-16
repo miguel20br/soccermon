@@ -294,8 +294,8 @@ interface BackupFile {
 }
 
 function currentSave(): PersistedSave {
-    const { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns } = useGame.getState();
-    return { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns };
+    const { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns, hall } = useGame.getState();
+    return { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns, hall };
 }
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);

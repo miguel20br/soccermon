@@ -51,6 +51,7 @@ function save(patch: Partial<PersistedSave> = {}): PersistedSave {
         career: EMPTY_CAREER,
         onboarded: false,
         parkedRuns: [],
+        hall: [],
         ...patch,
     };
 }

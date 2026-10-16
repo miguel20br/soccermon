@@ -3,7 +3,7 @@ import type { profile as pt } from '../pt/profile';
 export const profile: typeof pt = {
     title: 'Profile',
     trainer: 'Trainer',
-    tabs: { clube: 'My club', dex: 'Pokédex', numeros: 'Numbers' },
+    tabs: { clube: 'My club', dex: 'Pokédex', hall: 'Hall of Fame', numeros: 'Numbers' },
     quick: { cups: 'Cups', titles: 'Titles', goals: 'Goals' },
     club: {
         saved: 'Saved',

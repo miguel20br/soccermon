@@ -1,6 +1,6 @@
 import { FUTSAL_5 } from './config';
 import type { MatchResult, PlayerSummary } from './runners/batch-runner';
-import { type MatchSnapshot, type PlayerStats, SNAP_STRIDE } from './state';
+import { type MatchEvent, type MatchSnapshot, type PlayerStats, SNAP_STRIDE } from './state';
 
 /**
  * Estatísticas da partida a partir do que o motor já grava (eventos + snapshots a cada 2 ticks):
@@ -281,4 +281,75 @@ export function teamTotals(lines: PlayerLine[], team: 0 | 1) {
         movesUsed: sum('movesUsed'),
         distance: t.reduce((s, p) => s + p.distance, 0),
     };
+}
+
+/** Gol guardado no resumo da copa: quando, quem, com qual golpe e de onde saiu o chute. */
+export interface GoalNote {
+    minute: number;
+    team: 0 | 1;
+    uid: string;
+    speciesId: number;
+    name: string;
+    assistUid: string | null;
+    moveId: string | null;
+    /** De onde saiu o chute (metros na quadra); gol contra usa a posição no gol. */
+    x: number;
+    y: number;
+    ownGoal: boolean;
+}
+
+/** Resumo leve dos eventos de uma partida (cabe no save; o MatchResult inteiro não). */
+export interface MatchDigest {
+    goals: GoalNote[];
+    /** Placar no intervalo. */
+    half: [number, number] | null;
+    /** Golpes usados pelo seu time (id → vezes). */
+    moves: Record<string, number>;
+    evolutions: { uid: string; from: number; into: number }[];
+}
+
+export function matchDigest(m: MatchResult): MatchDigest {
+    const snaps = m.snapshots;
+    const st = stints(m);
+    const all = [...m.roster, ...m.finalRoster, ...(m.subbedOut ?? [])];
+    const byUid = new Map(all.map((p) => [p.uid, p]));
+    const uidAt = (idx: number, tick: number) =>
+        st.filter((s) => s.idx === idx && s.from <= tick).at(-1)?.uid ?? m.roster[idx]?.uid ?? '';
+    const team0 = new Set(m.roster.filter((p) => p.team === 0).map((p) => p.idx));
+    const goals: GoalNote[] = [];
+    const moves: Record<string, number> = {};
+    let half: [number, number] | null = null;
+    const evolutions: MatchDigest['evolutions'] = [];
+    m.events.forEach((e, i) => {
+        if (e.type === 'halftime') half = [e.score[0], e.score[1]];
+        else if (e.type === 'evolve' && e.team === 0) evolutions.push({ uid: e.uid, from: e.from, into: e.into });
+        else if (e.type === 'move' && team0.has(e.by)) moves[e.moveId] = (moves[e.moveId] ?? 0) + 1;
+        else if (e.type === 'goal') {
+            // o chute que virou gol: o último do mesmo jogador logo antes
+            let shot: Extract<MatchEvent, { type: 'shot' }> | null = null;
+            for (let j = i - 1; j >= 0 && e.tick - m.events[j].tick <= 80; j--) {
+                const p = m.events[j];
+                if (p.type === 'shot' && p.by === e.by) {
+                    shot = p;
+                    break;
+                }
+            }
+            const s = snaps[snapIndexAt(snaps, shot?.tick ?? e.tick)];
+            const uid = uidAt(e.by, e.tick);
+            const who = byUid.get(uid);
+            goals.push({
+                minute: Math.floor(clockMin(s)),
+                team: e.team,
+                uid,
+                speciesId: who?.speciesId ?? 0,
+                name: who?.name ?? '',
+                assistUid: e.assist === null ? null : uidAt(e.assist, e.tick),
+                moveId: shot?.moveId ?? null,
+                x: Math.round(s.p[e.by * SNAP_STRIDE] * 10) / 10,
+                y: Math.round(s.p[e.by * SNAP_STRIDE + 1] * 10) / 10,
+                ownGoal: e.ownGoal,
+            });
+        }
+    });
+    return { goals, half, moves, evolutions };
 }

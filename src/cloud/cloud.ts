@@ -143,8 +143,8 @@ const writeOwner = (id: string) => {
 };
 
 function snapshot(): PersistedSave {
-    const { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns } = useGame.getState();
-    return { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns };
+    const { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns, hall } = useGame.getState();
+    return { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns, hall };
 }
 
 /** Sobe o save; devolve false se a nuvem recusou (pausada, fora do ar, sem espaço). */
@@ -205,7 +205,7 @@ async function onSignedIn(session: Session) {
 }
 
 /** Partes do save que importam para saber se a junção mudou algo em relação à nuvem. */
-const SYNC_KEYS = ['run', 'records', 'profile', 'dex', 'moves', 'career', 'onboarded', 'parkedRuns'] as const;
+const SYNC_KEYS = ['run', 'records', 'profile', 'dex', 'moves', 'career', 'onboarded', 'parkedRuns', 'hall'] as const;
 /** JSON com as chaves em ordem (a ordem de inserção não conta como diferença). */
 const stable = (v: unknown): unknown =>
     Array.isArray(v)
@@ -284,6 +284,7 @@ async function reconcile(uid: string): Promise<boolean> {
                 career: { ...EMPTY_CAREER, ...cloud?.career },
                 onboarded: local.onboarded || !!cloud?.onboarded,
                 parkedRuns: cloud?.parkedRuns ?? [],
+                hall: cloud?.hall ?? [],
                 screen: 'home',
                 match: null,
             });
@@ -386,6 +387,7 @@ export function startCloudSync() {
             'career',
             'onboarded',
             'parkedRuns',
+            'hall',
         ] as const;
         if (keys.every((k) => s[k] === prev[k])) return;
         // o carregamento do save do IndexedDB não é "mudança": senão o local parece sempre mais novo que a nuvem

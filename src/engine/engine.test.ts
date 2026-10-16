@@ -9,7 +9,7 @@ import { FORMATIONS } from './formations';
 import { createInstance, viewInstance } from './instance';
 import { computeLinks } from './links';
 import { applyPendingSubs, captainFactor, createMatch } from './match';
-import { playerLines, possessionByPeriod, shotMap } from './match-stats';
+import { matchDigest, playerLines, possessionByPeriod, shotMap } from './match-stats';
 import { applyModifiers, attributeModifiers } from './modifiers';
 import { defaultMoveset, moveProfile } from './moves';
 import { rewardOptions } from './rewards';
@@ -621,6 +621,19 @@ describe('bônus e penalidades (carta = campo)', () => {
 });
 
 describe('estatísticas da partida', () => {
+    it('resumo da partida: um gol anotado por gol do placar, com autor e minuto', () => {
+        const r = runMatch(FUTSAL_5, team('dg-a', 'A'), team('dg-b', 'B'), 'dg');
+        const d = matchDigest(r);
+        expect(d.goals.filter((g) => g.team === 0)).toHaveLength(r.score[0]);
+        expect(d.goals.filter((g) => g.team === 1)).toHaveLength(r.score[1]);
+        for (const g of d.goals) {
+            expect(g.uid).toBeTruthy();
+            expect(g.minute).toBeGreaterThanOrEqual(0);
+            expect(g.minute).toBeLessThanOrEqual(40);
+        }
+        expect(d.half).not.toBeNull();
+    });
+
     it('notas entre 3 e 10, todo mundo correu, cada chute tem desfecho e a posse por período soma 100%', () => {
         const r = runMatch(FUTSAL_5, team('st-a', 'A'), team('st-b', 'B'), 'st');
         const lines = playerLines(r);

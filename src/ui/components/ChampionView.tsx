@@ -1,12 +1,16 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { useCloud } from '../../cloud/cloud';
 import { CUP_STAGES } from '../../engine/cup';
 import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
 import { clubName, stageName } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
-import { isPerfectCup, type RunState } from '../../store/game-store';
+import { isPerfectCup, type RunState, useGame } from '../../store/game-store';
+import { trainerLabel } from '../profile/club';
 import { aggregate, avg } from '../stats/CupStats';
+import { CupAwards, CupFinal, CupGoals, CupXI, FormSpark, TitleRecords, useRarity } from './ChampionExtras';
 import { FutCard } from './FutCard';
+import { HallParade } from './HallParade';
 import { cardSprite } from './PokeCard';
 import { Confetti } from './ResultHero';
 import { Trophy } from './Trophy';
@@ -17,6 +21,11 @@ import { Trophy } from './Trophy';
  */
 export function ChampionView({ run, actions }: { run: RunState; actions: ReactNode }) {
     const { t, tn } = useT();
+    const rarity = useRarity();
+    const hallEntry = useGame((s) => s.hall.find((h) => h.id === run.seed));
+    const profile = useGame((s) => s.profile);
+    const googleName = useCloud((s) => s.user?.name ?? null);
+    const markParaded = useGame((s) => s.markParaded);
     const stats = new Map(aggregate(run.results).map((a) => [a.uid, a]));
     const slots = formationOf(run.formation).slots;
     // partidas jogadas antes da 0.7 não guardaram estatísticas
@@ -37,147 +46,161 @@ export function ChampionView({ run, actions }: { run: RunState; actions: ReactNo
         .reduce<(typeof players)[number] | null>((best, a) => (!best || avg(a) > avg(best) ? a : best), null);
 
     return (
-        <section className="panel rh rh-champ champ" aria-label={t('result.champ.aria')}>
-            <Confetti count={70} />
-            <div className="champ-trophy">
-                <Trophy size={150} />
-            </div>
-            <h1 className="rh-title champ-title" aria-label={t('result.champ.titleAria')}>
-                {[...t('result.champ.title')].map((ch, i) => (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: letras do título
-                    <span key={i} style={{ '--i': i } as CSSProperties}>
-                        {ch}
-                    </span>
-                ))}
-            </h1>
-            <div className="champ-sub">{rich(t('result.champ.sub'), { team: <b>{run.teamName}</b> })}</div>
-            {isPerfectCup(run) && <div className="perfect-badge">{t('result.champ.perfect')}</div>}
-
-            <div className="cup-totals champ-totals">
-                <div>
-                    <b>
-                        {run.results.filter((r) => r.won).length}/{CUP_STAGES.length}
-                    </b>
-                    <span>{t('result.champ.wins')}</span>
+        <>
+            {hallEntry && run.champ && !run.champ.paraded && (
+                <HallParade entry={hallEntry} trainer={trainerLabel(profile, googleName)} onDone={markParaded} />
+            )}
+            <section className="panel rh rh-champ champ" aria-label={t('result.champ.aria')}>
+                <Confetti count={70} />
+                <div className="champ-trophy">
+                    <Trophy size={150} />
                 </div>
-                <div>
-                    <b>{gf}</b>
-                    <span>{t('result.champ.gf')}</span>
-                </div>
-                <div>
-                    <b>{ga}</b>
-                    <span>{t('result.champ.ga')}</span>
-                </div>
-                {poss !== null && (
-                    <div>
-                        <b>{poss}%</b>
-                        <span>{t('result.champ.poss')}</span>
-                    </div>
-                )}
-                {topScorer && topScorer.goals > 0 && (
-                    <div>
-                        <b>{topScorer.goals}</b>
-                        <span>
-                            {t('result.champ.topScorer', {
-                                goals: tn('result.champ.goalWord', topScorer.goals),
-                                name: topScorer.name,
-                            })}
+                <h1 className="rh-title champ-title" aria-label={t('result.champ.titleAria')}>
+                    {[...t('result.champ.title')].map((ch, i) => (
+                        // biome-ignore lint/suspicious/noArrayIndexKey: letras do título
+                        <span key={i} style={{ '--i': i } as CSSProperties}>
+                            {ch}
                         </span>
-                    </div>
-                )}
-                {star && (
+                    ))}
+                </h1>
+                <div className="champ-sub">{rich(t('result.champ.sub'), { team: <b>{run.teamName}</b> })}</div>
+                {isPerfectCup(run) && <div className="perfect-badge">{t('result.champ.perfect')}</div>}
+                <TitleRecords run={run} rarity={rarity} />
+
+                <div className="cup-totals champ-totals">
                     <div>
-                        <b>{avg(star).toFixed(1)}</b>
-                        <span>{t('result.champ.star', { name: star.name })}</span>
+                        <b>
+                            {run.results.filter((r) => r.won).length}/{CUP_STAGES.length}
+                        </b>
+                        <span>{t('result.champ.wins')}</span>
                     </div>
-                )}
-            </div>
-
-            <h2 className="champ-h">{t('result.champ.path')}</h2>
-            <ol className="champ-path">
-                {run.results.map((r) => {
-                    const opp = run.opponents[r.stage];
-                    const best = r.stats?.players.reduce((a, b) => (b.rating > a.rating ? b : a));
-                    return (
-                        <li key={r.stage} className="champ-step">
-                            <span className="champ-stage">{stageName(r.stage)}</span>
-                            <b className="champ-score">
-                                {r.score[0]} x {r.score[1]}
-                            </b>
-                            {r.shootout && <small>{t('result.champ.pens', { score: r.shootout.join(' x ') })}</small>}
-                            <span className="muted">{t('result.champ.vs', { team: clubName(r.opponent) })}</span>
-                            {opp && (
-                                <div className="champ-opp">
-                                    {opp.lineup.map((p) => (
-                                        <img
-                                            key={p.uid}
-                                            className="pixel"
-                                            src={cardSprite(p)}
-                                            alt={viewInstance(p).displayName}
-                                        />
-                                    ))}
-                                </div>
-                            )}
-                            {best && (
-                                <span className="champ-best">
-                                    ★ {best.name} ({best.rating.toFixed(1)})
-                                </span>
-                            )}
-                        </li>
-                    );
-                })}
-            </ol>
-
-            <h2 className="champ-h">{t('result.champ.squad')}</h2>
-            <div className="champ-squad">
-                {squad.map((p) => {
-                    const a = stats.get(p.uid);
-                    // titular aparece na posição em que jogou; banco, na de origem
-                    const slot = run.lineup.indexOf(p.uid);
-                    return (
-                        <div key={p.uid} className="champ-player">
-                            <FutCard
-                                inst={p}
-                                size="sm"
-                                captain={p.uid === run.captainUid}
-                                position={slot >= 0 ? slots[slot] : undefined}
-                            />
-                            {a ? (
-                                <dl className="champ-stats">
-                                    <dt>{t('result.champ.stats.games')}</dt>
-                                    <dd>{a.games}</dd>
-                                    <dt>{t('result.champ.stats.rating')}</dt>
-                                    <dd>{avg(a).toFixed(1)}</dd>
-                                    <dt>{t('result.champ.stats.goals')}</dt>
-                                    <dd>{a.goals}</dd>
-                                    <dt>{t('result.champ.stats.assists')}</dt>
-                                    <dd>{a.assists}</dd>
-                                    <dt>{t('result.champ.stats.shots')}</dt>
-                                    <dd>{a.shots}</dd>
-                                    <dt>{t('result.champ.stats.passes')}</dt>
-                                    <dd>
-                                        {a.passesCompleted}/{a.passes}
-                                    </dd>
-                                    <dt>{t('result.champ.stats.steals')}</dt>
-                                    <dd>{a.tacklesWon + a.interceptions}</dd>
-                                    <dt>{t('result.champ.stats.saves')}</dt>
-                                    <dd>{a.saves}</dd>
-                                    <dt>{t('result.champ.stats.moves')}</dt>
-                                    <dd>{a.movesUsed}</dd>
-                                    <dt>{t('result.champ.stats.ran')}</dt>
-                                    <dd>{(a.distance / 1000).toFixed(1)} km</dd>
-                                </dl>
-                            ) : (
-                                <span className="muted champ-nostats">
-                                    {oldSave ? t('result.champ.noStats') : t('result.champ.bench')}
-                                </span>
-                            )}
+                    <div>
+                        <b>{gf}</b>
+                        <span>{t('result.champ.gf')}</span>
+                    </div>
+                    <div>
+                        <b>{ga}</b>
+                        <span>{t('result.champ.ga')}</span>
+                    </div>
+                    {poss !== null && (
+                        <div>
+                            <b>{poss}%</b>
+                            <span>{t('result.champ.poss')}</span>
                         </div>
-                    );
-                })}
-            </div>
+                    )}
+                    {topScorer && topScorer.goals > 0 && (
+                        <div>
+                            <b>{topScorer.goals}</b>
+                            <span>
+                                {t('result.champ.topScorer', {
+                                    goals: tn('result.champ.goalWord', topScorer.goals),
+                                    name: topScorer.name,
+                                })}
+                            </span>
+                        </div>
+                    )}
+                    {star && (
+                        <div>
+                            <b>{avg(star).toFixed(1)}</b>
+                            <span>{t('result.champ.star', { name: star.name })}</span>
+                        </div>
+                    )}
+                </div>
 
-            <div className="rh-actions">{actions}</div>
-        </section>
+                <h2 className="champ-h">{t('result.champ.path')}</h2>
+                <ol className="champ-path">
+                    {run.results.map((r) => {
+                        const opp = run.opponents[r.stage];
+                        const best = r.stats?.players.reduce((a, b) => (b.rating > a.rating ? b : a));
+                        return (
+                            <li key={r.stage} className="champ-step">
+                                <span className="champ-stage">{stageName(r.stage)}</span>
+                                <b className="champ-score">
+                                    {r.score[0]} x {r.score[1]}
+                                </b>
+                                {r.shootout && (
+                                    <small>{t('result.champ.pens', { score: r.shootout.join(' x ') })}</small>
+                                )}
+                                <span className="muted">{t('result.champ.vs', { team: clubName(r.opponent) })}</span>
+                                {opp && (
+                                    <div className="champ-opp">
+                                        {opp.lineup.map((p) => (
+                                            <img
+                                                key={p.uid}
+                                                className="pixel"
+                                                src={cardSprite(p)}
+                                                alt={viewInstance(p).displayName}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                                {best && (
+                                    <span className="champ-best">
+                                        ★ {best.name} ({best.rating.toFixed(1)})
+                                    </span>
+                                )}
+                            </li>
+                        );
+                    })}
+                </ol>
+
+                <CupAwards run={run} />
+                <CupXI run={run} />
+                <CupGoals run={run} />
+                <CupFinal run={run} />
+
+                <h2 className="champ-h">{t('result.champ.squad')}</h2>
+                <div className="champ-squad">
+                    {squad.map((p) => {
+                        const a = stats.get(p.uid);
+                        // titular aparece na posição em que jogou; banco, na de origem
+                        const slot = run.lineup.indexOf(p.uid);
+                        return (
+                            <div key={p.uid} className="champ-player">
+                                <FutCard
+                                    inst={p}
+                                    size="sm"
+                                    captain={p.uid === run.captainUid}
+                                    position={slot >= 0 ? slots[slot] : undefined}
+                                />
+                                {a ? (
+                                    <dl className="champ-stats">
+                                        <dt>{t('result.champ.stats.games')}</dt>
+                                        <dd>{a.games}</dd>
+                                        <dt>{t('result.champ.stats.rating')}</dt>
+                                        <dd>{avg(a).toFixed(1)}</dd>
+                                        <dt>{t('result.champ.stats.goals')}</dt>
+                                        <dd>{a.goals}</dd>
+                                        <dt>{t('result.champ.stats.assists')}</dt>
+                                        <dd>{a.assists}</dd>
+                                        <dt>{t('result.champ.stats.shots')}</dt>
+                                        <dd>{a.shots}</dd>
+                                        <dt>{t('result.champ.stats.passes')}</dt>
+                                        <dd>
+                                            {a.passesCompleted}/{a.passes}
+                                        </dd>
+                                        <dt>{t('result.champ.stats.steals')}</dt>
+                                        <dd>{a.tacklesWon + a.interceptions}</dd>
+                                        <dt>{t('result.champ.stats.saves')}</dt>
+                                        <dd>{a.saves}</dd>
+                                        <dt>{t('result.champ.stats.moves')}</dt>
+                                        <dd>{a.movesUsed}</dd>
+                                        <dt>{t('result.champ.stats.ran')}</dt>
+                                        <dd>{(a.distance / 1000).toFixed(1)} km</dd>
+                                    </dl>
+                                ) : (
+                                    <span className="muted champ-nostats">
+                                        {oldSave ? t('result.champ.noStats') : t('result.champ.bench')}
+                                    </span>
+                                )}
+                                <FormSpark run={run} uid={p.uid} />
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <div className="rh-actions">{actions}</div>
+            </section>
+        </>
     );
 }

@@ -3,6 +3,7 @@ import { useCloud } from '../../cloud/cloud';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { clubColorHex } from '../../store/profile';
+import { HallList } from '../components/HallParade';
 import { MenuHead } from '../components/MenuHead';
 import { ClubTab } from '../profile/ClubTab';
 import { clubVars, trainerLabel, useAvatar } from '../profile/club';
@@ -10,8 +11,8 @@ import { DexTab } from '../profile/DexTab';
 import { NumbersTab } from '../profile/NumbersTab';
 import '../profile/profile.css';
 
-type Tab = 'clube' | 'dex' | 'numeros';
-const TABS: Tab[] = ['clube', 'dex', 'numeros'];
+type Tab = 'clube' | 'dex' | 'hall' | 'numeros';
+const TABS: Tab[] = ['clube', 'dex', 'hall', 'numeros'];
 
 /** Perfil: seu clube, a Pokédex e os números da carreira. */
 export function Profile() {
@@ -78,6 +79,7 @@ export function Profile() {
             <div role="tabpanel" id={`pf-panel-${tab}`} aria-labelledby={`pf-tab-${tab}`}>
                 {tab === 'clube' && <ClubTab />}
                 {tab === 'dex' && <DexTab />}
+                {tab === 'hall' && <HallList />}
                 {tab === 'numeros' && <NumbersTab onOpenDex={() => setTab('dex')} />}
             </div>
         </div>

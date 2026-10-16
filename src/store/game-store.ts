@@ -7,7 +7,7 @@ import { evolveInstance } from '../engine/evolution';
 import { DEFAULT_FORMATION, type FormationId, formationOf } from '../engine/formations';
 import type { PokemonInstance } from '../engine/instance';
 import { viewInstance } from '../engine/instance';
-import { type PlayerLine, playerLines, teamTotals } from '../engine/match-stats';
+import { type MatchDigest, matchDigest, type PlayerLine, playerLines, teamTotals } from '../engine/match-stats';
 import { matchMvp, mvpScore } from '../engine/mvp';
 import { type Reward, rewardOptions } from '../engine/rewards';
 import { Rng } from '../engine/rng';
@@ -21,6 +21,8 @@ import {
     DEFAULT_PROFILE,
     type Dex,
     EMPTY_CAREER,
+    type HallEntry,
+    MAX_HALL,
     type MoveDex,
     markOvr,
     markSeen,
@@ -90,6 +92,21 @@ export interface StageStats {
         saves: number;
         movesUsed: number;
     }[];
+    /** Gols, golpes, evoluções e intervalo (partidas antes da 0.8.2 não têm). */
+    digest?: MatchDigest;
+}
+
+/** O que o título trouxe de novo, calculado no apito final (antes de somar no perfil). */
+export interface ChampMemo {
+    titleNo: number;
+    /** Nº da copa perfeita (null se não foi perfeita). */
+    perfectNo: number | null;
+    /** Espécies que bateram a melhor nota de partida delas nesta copa. */
+    newBests: { speciesId: number; name: string; rating: number }[];
+    /** Espécies que ganharam o primeiro título. */
+    firstTitles: number[];
+    /** O desfile do Hall da Fama já passou (só aparece uma vez). */
+    paraded?: boolean;
 }
 
 export type RunStatus = 'formation' | 'captain' | 'drafting' | 'lineup' | 'reward' | 'eliminated' | 'champion';
@@ -131,6 +148,10 @@ export interface RunState {
      * com as mesmas ordens (antes dava para sair e tentar de novo até ganhar).
      */
     live?: LiveMatch | null;
+    /** Começo e fim da copa (ms), para a duração na tela do título. */
+    startedAt?: number;
+    endedAt?: number;
+    champ?: ChampMemo;
 }
 
 export interface LiveMatch {
@@ -213,6 +234,8 @@ export interface GameStore {
      * da conta têm copas diferentes: a escolhida continua e a outra fica aqui, nunca some sem aviso.
      */
     parkedRuns: RunState[];
+    /** Hall da Fama: os títulos, do mais recente ao mais antigo. */
+    hall: HallEntry[];
     /** Partida atual (não persistida — snapshots são grandes). */
     match: MatchResult | null;
     go(screen: Screen): void;
@@ -232,6 +255,8 @@ export interface GameStore {
     /** Guarda as ordens e o ponto da partida em andamento. */
     saveLive(patch: Partial<Omit<LiveMatch, 'stage'>>): void;
     recordResult(m: MatchResult): void;
+    /** O desfile do Hall da Fama já passou nesta copa. */
+    markParaded(): void;
     /** Pega a recompensa. MT: `forgetSlot` é a vaga do golpe esquecido (ou o tamanho do moveset, se há vaga). */
     claimReward(index: number, targetUid: string, forgetSlot?: number): void;
     skipReward(): void;
@@ -304,6 +329,63 @@ const defeatedOf = (run: RunState) => {
 export const isPerfectCup = (run: RunState) =>
     run.status === 'champion' && run.results.every((r) => r.won && r.score[1] === 0);
 
+/** O que o título trouxe de novo, comparando com os recordes e a Pokédex de antes dele. */
+export function champMemo(run: RunState, records: Records, dexBefore: Dex): ChampMemo {
+    const best = new Map<number, { name: string; rating: number }>();
+    for (const r of run.results)
+        for (const p of r.stats?.players ?? []) {
+            if (p.minutes < 1) continue;
+            const cur = best.get(p.speciesId);
+            if (!cur || p.rating > cur.rating) best.set(p.speciesId, { name: p.name, rating: p.rating });
+        }
+    const newBests = [...best]
+        // recorde que vale festa: nota alta (7,5+) acima da melhor que ele já teve pelo seu time
+        .filter(
+            ([id, b]) =>
+                b.rating >= 7.5 && (dexBefore[id]?.matches ?? 0) > 0 && b.rating > (dexBefore[id]?.bestRating ?? 0),
+        )
+        .map(([speciesId, b]) => ({ speciesId, ...b }))
+        .sort((a, b) => b.rating - a.rating);
+    return {
+        titleNo: records.titles + 1,
+        perfectNo: isPerfectCup(run) ? records.perfect + 1 : null,
+        newBests,
+        firstTitles: [...best.keys()].filter((id) => (dexBefore[id]?.titles ?? 0) === 0),
+    };
+}
+
+/** Entrada do Hall da Fama: o elenco campeão com nota de carta e gols na copa. */
+export function hallEntry(run: RunState, clubColor: Profile['clubColor']): HallEntry {
+    const goals = new Map<string, number>();
+    for (const r of run.results)
+        for (const p of r.stats?.players ?? []) goals.set(p.uid, (goals.get(p.uid) ?? 0) + p.goals);
+    const squad = [...run.lineup, ...run.bench]
+        .map((uid) => run.picks.find((p) => p.uid === uid))
+        .filter((p): p is PokemonInstance => !!p)
+        .map((p) => {
+            const v = viewInstance(p);
+            return {
+                speciesId: p.speciesId,
+                shiny: p.shiny,
+                name: v.displayName,
+                ovr: v.overall,
+                goals: goals.get(p.uid) ?? 0,
+                captain: p.uid === run.captainUid,
+            };
+        });
+    return {
+        id: run.seed,
+        date: run.endedAt ?? Date.now(),
+        club: run.teamName,
+        clubColor,
+        formation: run.formation,
+        titleNo: run.champ?.titleNo ?? 1,
+        perfect: isPerfectCup(run),
+        scores: run.results.map((r) => [r.score[0], r.score[1]]),
+        squad,
+    };
+}
+
 /** Lê `?seed=` da URL (desafio compartilhado). */
 export function seedFromUrl(): string | null {
     try {
@@ -317,7 +399,7 @@ export function seedFromUrl(): string | null {
 /** O que vai para o IndexedDB (e para a nuvem). */
 export type PersistedSave = Pick<
     GameStore,
-    'run' | 'settings' | 'records' | 'profile' | 'dex' | 'moves' | 'career' | 'onboarded' | 'parkedRuns'
+    'run' | 'settings' | 'records' | 'profile' | 'dex' | 'moves' | 'career' | 'onboarded' | 'parkedRuns' | 'hall'
 >;
 
 /** Copa salva com formato aceitável (save importado ou da nuvem): senão é descartada, não trava o jogo. */
@@ -332,7 +414,7 @@ const runShapeOk = (r: unknown): r is RunState => {
 };
 
 /** Versão atual do save (a mesma do `persist`). */
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 /**
  * Atualiza um save antigo (ou importado de um arquivo) para o formato atual. Versões antigas tinham outro
@@ -386,6 +468,8 @@ export function migrateSave(old: Partial<PersistedSave>, version: number): Persi
                       .filter(runShapeOk)
                       .map((r) => ({ ...r, lockedTeam: r.lockedTeam ?? null }))
                       .slice(0, MAX_PARKED),
+        // v6: Hall da Fama
+        hall: Array.isArray(old.hall) ? old.hall.slice(0, MAX_HALL) : [],
     };
 }
 
@@ -414,6 +498,7 @@ export const useGame = create<GameStore>()(
                 career: EMPTY_CAREER,
                 onboarded: false,
                 parkedRuns: [],
+                hall: [],
                 match: null,
 
                 go: (screen) => setState({ screen }),
@@ -443,6 +528,7 @@ export const useGame = create<GameStore>()(
                         lockedTeam: null,
                         live: null,
                         eventType: weeklyEventType(new Date()),
+                        startedAt: Date.now(),
                     };
                     setState({ run, match: null, screen: 'draft' });
                 },
@@ -616,6 +702,7 @@ export const useGame = create<GameStore>()(
                                     saves: l.stats.saves,
                                     movesUsed: l.stats.movesUsed,
                                 })),
+                            digest: matchDigest(m),
                         },
                     };
                     const last = run.stage === CUP_STAGES.length - 1;
@@ -645,6 +732,15 @@ export const useGame = create<GameStore>()(
                         dex = recordTitleInDex(dex, played);
                     }
                     const ended = status === 'eliminated' || status === 'champion';
+                    if (ended) next.endedAt = Date.now();
+                    let hall = getState().hall;
+                    if (status === 'champion') {
+                        next.champ = champMemo(next, records, getState().dex);
+                        hall = [
+                            hallEntry(next, getState().profile.clubColor),
+                            ...hall.filter((h) => h.id !== next.seed),
+                        ].slice(0, MAX_HALL);
+                    }
                     const withStar = {
                         ...records,
                         destaques: (records.destaques ?? 0) + (destaqueUid ? 1 : 0),
@@ -652,6 +748,7 @@ export const useGame = create<GameStore>()(
                     };
                     setState({
                         run: next,
+                        hall,
                         dex,
                         moves: recordMovesSeen(moves, m),
                         career: recordMatchInCareer(career, m.score, won, !!m.shootout),
@@ -664,6 +761,11 @@ export const useGame = create<GameStore>()(
                               }
                             : withStar,
                     });
+                },
+
+                markParaded: () => {
+                    const run = getState().run;
+                    if (run?.champ && !run.champ.paraded) updateRun({ champ: { ...run.champ, paraded: true } });
                 },
 
                 claimReward: (index, targetUid, forgetSlot) => {
@@ -745,7 +847,8 @@ export const useGame = create<GameStore>()(
             name: 'soccermon-save',
             // v4: cartas especiais (campo opcional `special`, `eventType` na run, recordes novos)
             // v5: perfil, Pokédex, golpes descobertos, carreira e configurações novas
-            version: 5,
+            // v6: Hall da Fama e resumo dos eventos de cada partida
+            version: 6,
             storage: createJSONStorage(() => idbStorage),
             partialize: (s): PersistedSave => ({
                 run: s.run,
@@ -757,6 +860,7 @@ export const useGame = create<GameStore>()(
                 career: s.career,
                 onboarded: s.onboarded,
                 parkedRuns: s.parkedRuns,
+                hall: s.hall,
             }),
             // versões antigas tinham outro formato de draft: descarta a run, mantém configurações
             migrate: (persisted, version) => {

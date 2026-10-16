@@ -248,3 +248,29 @@ export function mergeCareer(a: Career = EMPTY_CAREER, b: Career = EMPTY_CAREER):
     // a carreira é um contador só: fica a que tem mais partidas (somar duplicaria o que já subiu)
     return (b.matches ?? 0) > (a.matches ?? 0) ? { ...EMPTY_CAREER, ...b } : { ...EMPTY_CAREER, ...a };
 }
+
+/** Um título no Hall da Fama (como o da Gen 1: o time campeão, guardado para sempre). */
+export interface HallEntry {
+    /** seed da copa (uma copa só entra uma vez). */
+    id: string;
+    /** Quando o título saiu (ms). */
+    date: number;
+    club: string;
+    clubColor: ClubColorId;
+    formation: string;
+    titleNo: number;
+    perfect: boolean;
+    /** Placares das 4 partidas (pênaltis à parte). */
+    scores: [number, number][];
+    squad: { speciesId: number; shiny: boolean; name: string; ovr: number; goals: number; captain: boolean }[];
+}
+
+/** Guarda os últimos 50 títulos, como o Hall of Fame do Red/Blue. */
+export const MAX_HALL = 50;
+
+/** Junta o Hall da nuvem com o do aparelho: união pela copa, mais recentes primeiro. */
+export function mergeHall(a: HallEntry[] = [], b: HallEntry[] = []): HallEntry[] {
+    const byId = new Map<string, HallEntry>();
+    for (const e of [...a, ...b]) if (!byId.has(e.id)) byId.set(e.id, e);
+    return [...byId.values()].sort((x, y) => y.date - x.date).slice(0, MAX_HALL);
+}
