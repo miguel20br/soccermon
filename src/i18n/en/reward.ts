@@ -27,7 +27,8 @@ export const reward: typeof pt = {
     pack: {
         open: 'Open pack',
         tap: 'Tap to open',
-        revealAll: 'Reveal all',
+        skip: 'Show the cards',
+        label: 'Victory pack',
     },
     fit: {
         typeCount: '{n} {type} move|{n} {type} moves',

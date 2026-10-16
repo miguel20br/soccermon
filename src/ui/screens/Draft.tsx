@@ -1,36 +1,22 @@
-import { type CSSProperties, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { DRAFT_PICKS } from '../../engine/draft';
 import { FORMATIONS, type FormationId, formationOf } from '../../engine/formations';
-import { type PokemonInstance, viewInstance } from '../../engine/instance';
+import { viewInstance } from '../../engine/instance';
 import { computeLinks } from '../../engine/links';
-import { editionOf } from '../../engine/specials';
 import { computeSynergies } from '../../engine/synergy';
 import { playSfx } from '../../game/audio';
 import { formationText } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { type SlotRef, slotRole, useGame } from '../../store/game-store';
+import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { CountUp } from '../components/CountUp';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
 import { LinkChip, LinkChips, newLinks } from '../components/LinkChips';
 import { TypeBadge } from '../components/PokeCard';
 import { Tip } from '../help/Tip';
-import { metalOf } from '../rarity';
 import { ratingAt } from '../rating';
 import { reduceMotionOn } from '../settings-sync';
-
-/** Carta que segura a revelação um pouco mais: ouro (75+), Shiny ou edição especial. */
-const isBigCard = (o: PokemonInstance) => metalOf(viewInstance(o).overall) === 'ouro' || !!editionOf(o);
-
-/** Quando cada opção vira (ms): 120 entre elas, +250 depois de uma carta grande. */
-function revealDelays(options: readonly PokemonInstance[]): number[] {
-    let at = 0;
-    return options.map((o) => {
-        const d = at;
-        at += 120 + (isBigCard(o) ? 250 : 0);
-        return d;
-    });
-}
 
 /** "Média dos titulares" que rola até o valor novo e mostra o quanto a escolha mudou (+4 / −2) por 1,5 s. */
 function TeamAvg({ avg }: { avg: number }) {
@@ -97,19 +83,6 @@ export function Draft() {
         if (top >= 0 && top < window.innerHeight * 0.5) return;
         el.scrollIntoView({ behavior: reduceMotionOn() ? 'auto' : 'smooth', block: 'start' });
     }, [focus, run?.draftRound]);
-    // as 3 opções viram uma de cada vez (CSS, com o atraso de revealDelays) e cada uma faz um clique
-    const optionsKey = run?.options.map((o) => o.uid).join() ?? '';
-    // biome-ignore lint/correctness/useExhaustiveDependencies: toca de novo só quando saem opções novas
-    useEffect(() => {
-        if (!run?.options.length) return;
-        // tom sobe carta a carta (dó, mi, sol), como a contagem do Balatro
-        const ids = revealDelays(run.options).map((ms, i) =>
-            window.setTimeout(() => playSfx('select', 2 ** ([0, 4, 7][i] / 12)), ms),
-        );
-        return () => {
-            for (const id of ids) clearTimeout(id);
-        };
-    }, [optionsKey]);
     if (!run) return null;
 
     if (run.status === 'formation') {
@@ -196,7 +169,6 @@ export function Draft() {
     };
 
     const showOptions = isCaptain || !!run.draftSlot;
-    const delays = revealDelays(run.options);
 
     return (
         <>
@@ -277,66 +249,70 @@ export function Draft() {
                                 {t('team.draft.reroll', { n: run.rerolls })}
                             </button>
                         </div>
-                        <div className="options">
-                            {run.options.map((o, i) => (
-                                <div
-                                    key={o.uid}
-                                    className={`option reveal${isBigCard(o) ? ' reveal-big' : ''}`}
-                                    style={{ '--rd': `${delays[i]}ms` } as CSSProperties}
-                                >
-                                    {!isCaptain && role !== 'ANY' && newLinks(filled, o).length > 0 && (
-                                        <div className="option-links">
-                                            {t('team.draft.activates')}{' '}
-                                            {newLinks(filled, o).map((l) => (
-                                                <LinkChip key={l.id} def={l} fresh />
-                                            ))}
-                                        </div>
-                                    )}
-                                    {!isCaptain &&
-                                        role &&
-                                        role !== 'ANY' &&
-                                        (() => {
-                                            // a carta mostra a posição principal; aqui o aviso de que ele também joga na vaga
-                                            const r = ratingAt(o, role);
-                                            return (
-                                                <div className={`option-fit ${r.fit}`}>
-                                                    {r.fit === 'main'
-                                                        ? t('team.draft.fitMain', { pos: d.common.pos[role] })
-                                                        : t(
-                                                              r.fit === 'alt'
-                                                                  ? 'team.draft.fitAlt'
-                                                                  : 'team.draft.fitOff',
-                                                              {
-                                                                  pos: d.common.pos[role],
-                                                                  r: r.display,
-                                                              },
-                                                          )}
-                                                </div>
-                                            );
-                                        })()}
-                                    <FutCard
-                                        inst={o}
-                                        captain={isCaptain}
-                                        selected={selected === o.uid}
-                                        action={{
-                                            label: isCaptain
-                                                ? selected === o.uid
-                                                    ? t('team.draft.chosen')
-                                                    : t('team.draft.pickCaptain')
-                                                : roleLabel
-                                                  ? t('team.draft.signAs', { pos: roleLabel })
-                                                  : t('team.draft.sign'),
-                                            primary: true,
-                                            onClick: () => {
-                                                playSfx('select');
-                                                if (isCaptain) setSelected(selected === o.uid ? null : o.uid);
-                                                else pick(o.uid);
-                                            },
-                                        }}
-                                    />
-                                </div>
-                            ))}
-                        </div>
+                        {/* as 3 opções saem de um pacote compacto, uma de cada vez (um toque pula) */}
+                        <CardPack
+                            compact
+                            look={packLookOf(run.options)}
+                            label={isCaptain ? t('common.ui.captain') : roleLabel}
+                            revealKey={run.options.map((o) => o.uid).join()}
+                        >
+                            <div className="options">
+                                {run.options.map((o) => (
+                                    <div key={o.uid} className={`option cpack-card${isBigCard(o) ? ' big' : ''}`}>
+                                        {!isCaptain && role !== 'ANY' && newLinks(filled, o).length > 0 && (
+                                            <div className="option-links">
+                                                {t('team.draft.activates')}{' '}
+                                                {newLinks(filled, o).map((l) => (
+                                                    <LinkChip key={l.id} def={l} fresh />
+                                                ))}
+                                            </div>
+                                        )}
+                                        {!isCaptain &&
+                                            role &&
+                                            role !== 'ANY' &&
+                                            (() => {
+                                                // a carta mostra a posição principal; aqui o aviso de que ele também joga na vaga
+                                                const r = ratingAt(o, role);
+                                                return (
+                                                    <div className={`option-fit ${r.fit}`}>
+                                                        {r.fit === 'main'
+                                                            ? t('team.draft.fitMain', { pos: d.common.pos[role] })
+                                                            : t(
+                                                                  r.fit === 'alt'
+                                                                      ? 'team.draft.fitAlt'
+                                                                      : 'team.draft.fitOff',
+                                                                  {
+                                                                      pos: d.common.pos[role],
+                                                                      r: r.display,
+                                                                  },
+                                                              )}
+                                                    </div>
+                                                );
+                                            })()}
+                                        <FutCard
+                                            inst={o}
+                                            captain={isCaptain}
+                                            selected={selected === o.uid}
+                                            action={{
+                                                label: isCaptain
+                                                    ? selected === o.uid
+                                                        ? t('team.draft.chosen')
+                                                        : t('team.draft.pickCaptain')
+                                                    : roleLabel
+                                                      ? t('team.draft.signAs', { pos: roleLabel })
+                                                      : t('team.draft.sign'),
+                                                primary: true,
+                                                onClick: () => {
+                                                    playSfx('select');
+                                                    if (isCaptain) setSelected(selected === o.uid ? null : o.uid);
+                                                    else pick(o.uid);
+                                                },
+                                            }}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </CardPack>
                     </div>
                 )}
             </div>
