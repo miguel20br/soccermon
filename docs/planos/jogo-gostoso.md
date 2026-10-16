@@ -69,3 +69,5 @@ Dados que guiam: 81% jogam em 8x; o maior vazamento é entre começar a copa e j
 | **Piso de nota por rodada do draft** (evitar 3 opções ruins) | — | decidir |
 | **Rivais que são times de outros jogadores** | Super Auto Pets, Backpack Battles | pensar melhor (0.10) |
 | Replay por link | Pokémon Showdown | entra com os melhores momentos (0.8.5) |
+| **Escanteio** (bola pela linha de fundo tocada por último pela defesa): cobrança, disputa no alto pela força, cabeçada/voleio; sem jogo aéreo no resto (futsal é de chão) | futsal real | aprovado a ideia (16/10); calibragem antes/depois |
+| Defesa "jockey" (marcador freia a ~1,5 m e acompanha de lado) | futsal real | **aplicada em 16/10** (táticas equilibradas, 6,95 gols/jogo) |
