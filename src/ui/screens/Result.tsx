@@ -18,6 +18,7 @@ import { cardSprite } from '../components/PokeCard';
 import { ResultHero } from '../components/ResultHero';
 import { FEEDBACK_URL } from '../links';
 import { useClubColor } from '../profile/club';
+import { track } from '../../analytics/track';
 import { shareRun } from '../share';
 import { type CardFormat, downloadBlob, shareCardBlob } from '../share-card';
 import { CupStats } from '../stats/CupStats';
@@ -96,6 +97,7 @@ export function Result() {
     const eliminated = run.status === 'eliminated';
     const share = async () => {
         const res = await shareRun(run, card);
+        track('share', { kind: card ? 'image' : 'text', result: res, champion });
         setShared(
             res === 'copied' ? t('result.copied') : res === 'shared' ? t('result.shared') : t('result.shareFailed'),
         );
@@ -103,6 +105,7 @@ export function Result() {
     const download = async (format: CardFormat) => {
         const blob = await shareCardBlob(run, format, clubColor);
         downloadBlob(blob, `soccermon-${format === 'story' ? '9x16' : '1x1'}.png`);
+        track('share', { kind: `download-${format}`, result: 'shared', champion });
     };
 
     const actions = (
