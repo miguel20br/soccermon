@@ -457,7 +457,7 @@ export class AIController implements Controller {
         if (ctx.presser[team] === p.idx) {
             const d = dist(p.pos, carrier.pos);
             const cmds: Command[] = [];
-            if (d < 1.3 && p.tackleCooldown <= 0) {
+            if (d < 1.7 && p.tackleCooldown <= 0) {
                 const danger = toRel(s, team, carrier.pos).x < 14 ? 0.12 : 0;
                 if (s.rng.chance(0.14 + danger + tactic.pressBias)) {
                     const strike = this.pickMoveSlot(p, ['strike'], 0.3);
@@ -477,10 +477,12 @@ export class AIController implements Controller {
                 const slot = this.pickMoveSlot(p, ['blast', 'status', 'debuff'], 0.005);
                 if (slot !== null) cmds.push({ type: 'useMove', slot });
             }
-            // persegue a posição futura do portador, pelo lado do gol
+            // chega rápido e, perto, freia e acompanha de lado (jockey) a ~1,5 m pelo lado do gol, esperando a hora
+            // do bote (antes colava a 0,5 m em velocidade máxima e os dois andavam grudados)
             const ownGoal = v(ownGoalX(s, team), s.cfg.pitch.width / 2);
-            const target = add(add(carrier.pos, scale(carrier.vel, 0.3)), scale(norm(sub(ownGoal, carrier.pos)), 0.5));
-            cmds.push(this.moveTo(p, target, true));
+            const gap = d > 3 ? 0.5 : 1.5;
+            const target = add(add(carrier.pos, scale(carrier.vel, 0.3)), scale(norm(sub(ownGoal, carrier.pos)), gap));
+            cmds.push(this.moveTo(p, target, d > 2.5));
             return cmds;
         }
         if (ctx.cover[team] === p.idx) {
