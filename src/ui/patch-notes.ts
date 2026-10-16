@@ -7,6 +7,16 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.8.1',
+        title: 'Ajustes do lançamento',
+        sections: [
+            {
+                title: 'Corrigido',
+                lines: ['As marcas de tipo no fundo das cartas voltaram a aparecer (a imagem não carregava no site)'],
+            },
+        ],
+    },
+    {
         version: '0.8.0',
         title: 'Perfil, Pokédex e golpes novos',
         sections: [
@@ -195,6 +205,16 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.8.1',
+        title: 'Launch fixes',
+        sections: [
+            {
+                title: 'Fixed',
+                lines: ['The type marks on card backgrounds show up again (the image failed to load on the site)'],
+            },
+        ],
+    },
     {
         version: '0.8.0',
         title: 'Profile, Pokédex and new moves',

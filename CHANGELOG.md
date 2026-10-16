@@ -1,5 +1,10 @@
 # Novidades
 
+## 0.8.1 · Ajustes do lançamento
+
+### Corrigido
+- As marcas de tipo no fundo das cartas voltaram a aparecer (a imagem não carregava no site)
+
 ## 0.8.0 · Perfil, Pokédex e golpes novos
 
 ### Golpes novos
