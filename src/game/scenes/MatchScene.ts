@@ -37,6 +37,7 @@ import {
     shadowSize,
 } from '../animation-manager';
 import { playCry, playSfx } from '../audio';
+import { trailParticle, typeBurst } from '../ball-trail';
 import { BattleBox } from '../battle-box';
 import { Cinematics, FOCUS_DEPTH } from '../cinematics';
 import { drawCourt, ensureBallTexture, GAME_H, GAME_W, PPM, toPx } from '../court';
@@ -76,6 +77,9 @@ const IMPACT: Record<ImpactLevel, { stop: number; shake: [number, number]; flash
     hit: { stop: 90, shake: [320, 0.007], flash: 180 },
     boom: { stop: 170, shake: [480, 0.012], flash: 260 },
 };
+/** Distância (px) corrida entre dois toques na bola ao conduzir (~1,4 m). */
+const TOUCH_PX = 1.4 * PPM;
+
 /** Catmull-Rom: passa por p1 (t=0) e p2 (t=1) usando os vizinhos para a curva. */
 const catmull = (p0: number, p1: number, p2: number, p3: number, t: number) =>
     0.5 * (2 * p1 + (p2 - p0) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (3 * p1 - p0 - 3 * p2 + p3) * t * t * t);
@@ -325,10 +329,13 @@ export class MatchScene extends Phaser.Scene {
     private ballPop = { v: 1 };
     private lastBz = 0;
     private ballColor = 0xffffff;
+    /** Tipo do golpe na bola agora ('' sem golpe) e quando saiu a última partícula do rastro. */
+    private ballType = '';
+    private lastTrailAt = 0;
     private lastBall = { x: 0, y: 0 };
     private dives: DiveInfo[] = [];
     /** Deslocamento suavizado da bola em relação a quem conduz. */
-    private dribble = { owner: -1, x: 0, y: 0, tick: 0 };
+    private dribble = { owner: -1, x: 0, y: 0, tick: 0, cx: 0, cy: 0, travel: 0 };
     /** Até quando (tempo real) a partida fica parada (evolução, substituição). */
     private holdReal = 0;
     private evoQueue: { view: PlayerView; from: number; into: number; newName: string }[] = [];
@@ -458,7 +465,8 @@ export class MatchScene extends Phaser.Scene {
         this.lastEventTick = this.matchEvents.at(-1)?.tick ?? 0;
         this.importantTicks = this.matchEvents.filter((e) => IMPORTANT.has(e.type)).map((e) => e.tick);
         this.dramaTicks = this.matchEvents.filter((e) => DRAMA.has(e.type)).map((e) => e.tick);
-        this.goalTicks = this.matchEvents.filter((e) => e.type === 'goal').map((e) => e.tick);
+        // gol, trave e defesa desaceleram igual: a câmera lenta não pode entregar que vai ser gol
+        this.goalTicks = this.dramaTicks;
         this.penalties = this.matchEvents.filter((e): e is PenaltyEvent => e.type === 'penalty');
         this.dives = this.matchEvents.flatMap((e) => (e.type === 'save' ? [{ tick: e.tick, gk: e.by, at: null }] : []));
         this.fulltimeTick = this.matchEvents.find((e) => e.type === 'fulltime')?.tick ?? Number.POSITIVE_INFINITY;
@@ -956,7 +964,7 @@ export class MatchScene extends Phaser.Scene {
         }
         // a disputa de pênaltis sempre em ritmo assistível, em qualquer velocidade
         if (this.penalties.length > 0 && this.playTick >= this.fulltimeTick) base = Math.min(base, 1.25);
-        // gol chegando: cai para 1x mesmo em 8x (81% jogam em 8x e perdiam o lance)
+        // lance de gol chegando (gol, trave ou defesa): cai para 1x mesmo em 8x (81% jogam em 8x e perdiam o lance)
         const goal = this.goalTicks.find((t) => t >= this.playTick);
         if (goal !== undefined && goal - this.playTick <= GOAL_LEAD) base = Math.min(base, 1);
         if (!this.md.cinematic) return base;
@@ -1084,13 +1092,22 @@ export class MatchScene extends Phaser.Scene {
             if (d.owner !== carrier) {
                 d.x = tx;
                 d.y = ty;
+                d.travel = 0;
             } else {
                 const alpha = 1 - Math.exp(-Math.max(0, this.playTick - d.tick) / 1.5);
                 d.x += (tx - d.x) * alpha;
                 d.y += (ty - d.y) * alpha;
+                d.travel += Math.min(30, Math.hypot(c.x - d.cx, c.y - d.cy));
             }
-            bp.x = c.x + d.x;
-            bp.y = c.y + d.y;
+            d.cx = c.x;
+            d.cy = c.y;
+            // toques de condução: no motor a bola fica colada a 45 cm do pé; aqui ele empurra a bola pra frente
+            // (sai rápido até ~1 m) e alcança de novo, a cada ~1,4 m corridos. Parado, ela fica no pé.
+            const f = (d.travel % TOUCH_PX) / TOUCH_PX;
+            const push = f < 0.18 ? f / 0.18 : 1 - (f - 0.18) / 0.82;
+            const reach = d.travel > 4 ? 0.8 + 1.4 * push * push : 1;
+            bp.x = c.x + d.x * reach;
+            bp.y = c.y + d.y * reach;
         }
         d.owner = carrier;
         d.tick = this.playTick;
@@ -1199,15 +1216,24 @@ export class MatchScene extends Phaser.Scene {
         if (!type) {
             this.ballGlow.setAlpha(0);
             this.ballColor = 0xffffff;
+            this.ballType = '';
             return;
         }
         const color = hexToNumber(TYPE_COLOR[type] ?? '#ffffff');
         this.ballColor = color;
+        this.ballType = type;
+        // brilho pulsando + partícula do tipo a cada ~30 ms (fogo sobe, água pinga, elétrico faísca…)
+        const pulse = 0.45 + 0.2 * Math.sin(this.time.now / 60);
         this.ballGlow
             .setPosition(x, y)
-            .setFillStyle(color, 0.55)
+            .setFillStyle(color, pulse)
+            .setScale(1.1 + 0.15 * Math.sin(this.time.now / 45))
             .setAlpha(1)
             .setDepth(this.ball.depth - 1);
+        if (this.time.now - this.lastTrailAt > 30 && this.ballFree) {
+            this.lastTrailAt = this.time.now;
+            trailParticle(this, type, x, y, this.ball.depth - 2);
+        }
     }
 
     private emitTick(snap: MatchSnapshot) {
@@ -1332,6 +1358,8 @@ export class MatchScene extends Phaser.Scene {
                     this.highlight(e.ownGoal ? 'owngoal' : 'goal', scorer);
                 }
                 this.punch(this.goalLevel(e));
+                // gol de golpe: explosão do tipo no gol (o golaço de Flamethrower pega fogo)
+                if (this.ballType) typeBurst(this, this.ballType, this.ball.x, this.ball.y, BALL_DEPTH + 1);
                 const color = Phaser.Display.Color.IntegerToColor(this.md.colors[e.team]).rgba;
                 if (cinematic) {
                     this.cine.drama(e.ownGoal ? tr('battle.ownGoal') : tr('battle.goal'), {
