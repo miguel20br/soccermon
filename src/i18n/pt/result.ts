@@ -97,4 +97,13 @@ export const result = {
         team: 'Time: {squad}',
         challenge: 'Desafie a mesma copa: {url}',
     },
+    /** Card de imagem do título (canvas: sem emoji). */
+    card: {
+        topScorer: 'ARTILHEIRO',
+        perfect: 'COPA PERFEITA · 0 gols sofridos',
+        pens: 'pên. {a}x{b}',
+        download: 'Baixar:',
+        story: 'Imagem 9:16',
+        square: 'Imagem 1:1',
+    },
 };
