@@ -91,7 +91,8 @@ npm run stats [-- --dias 7 | --md]   # placar do jogo no ar
 ## Estado atual (16/10/2026, v0.8.2 · Hall da Fama e o título do jeito que merece)
 
 **Plano de lançamento e próximas versões (0.8.3 → 1.0): [docs/planos/lancamento.md](docs/planos/lancamento.md).** O Miguel
-quer seguir na 0.8.x por enquanto. Na 0.8.2: Hall da Fama (`hall` no save v6, desfile em `HallParade.tsx`, aba no
+quer seguir na 0.8.x por enquanto. **1.0 = lançamento oficial com tudo do "Em breve"** (Modo história, Multiplayer,
+Futebol de campo, Gen 2); modo jogável, Gens 3 a 9, personalização absurda e Ultimate Team ficam para depois da 1.0. Na 0.8.2: Hall da Fama (`hall` no save v6, desfile em `HallParade.tsx`, aba no
 Perfil), prêmios/seleção/recordes/gols da campanha (`ChampionExtras.tsx`, `matchDigest` em `match-stats.ts` guarda
 gols/golpes/evoluções de cada partida), card do título 9:16/1:1 (`share-card.ts`) e raridade dos campeões
 (`npm run stats -- --raridade` grava `public/data/raridade.json`; a tela só mostra com 20+ campeões).

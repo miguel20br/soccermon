@@ -71,8 +71,8 @@ Plano do trailer e dos posts de lançamento (LinkedIn como projeto pessoal, X co
 - **Multiplayer**: desafiar o time de um amigo (o desafio por seed já existe como primeiro passo).
 - **Futebol de campo 11x11** (`MatchConfig` já é paramétrico para 7v7/11v11).
 - **Geração 2**: os Pokémon de Johto.
-- **Modo jogável**: controlar um Pokémon ou o time inteiro, estilo FC (o motor já tem `HumanController` e
-  `LiveRunner`).
+- **1.0 = lançamento oficial** com tudo do "Em breve" (decisão do Miguel, 16/10/2026). Depois da 1.0: modo jogável,
+  Gens 3 a 9, personalização absurda e modo Ultimate Team (detalhes em [lancamento.md](lancamento.md)).
 
 ## Decisões que continuam valendo
 

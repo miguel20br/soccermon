@@ -28,6 +28,9 @@ link circular sozinho.
    Geração 2) e o modo jogável.
 5. **Distribuição**: um canal por vez, medindo com UTM, sem queimar comunidade.
 
+A **1.0 é o lançamento oficial**, com tudo o que o "Em breve" promete. O que vem depois (modo jogável, Gens 3 a 9,
+personalização, Ultimate Team) está em "Depois da 1.0".
+
 ## Versões (seguimos na 0.8.x)
 
 | Versão | Tema | O que entra | Por quê |
@@ -40,9 +43,21 @@ link circular sozinho.
 | **0.8.7** | Medalhas | Conquistas (marcar com Ditto, copa perfeita, 151 vistos, golpe X decidindo final…), raridade dos campeões já ligada | metas de longo prazo |
 | **0.9** | **Modo história** | Kanto em capítulos: 8 ginásios em sequência com insígnias, rival recorrente, Liga Índigo e Elite 4, time que evolui e ganha XP ao longo da campanha, save por capítulo | primeira promessa do "Em breve" |
 | **0.10** | **Multiplayer** | Desafiar o time salvo de um amigo por link (assíncrono: o motor determinístico roda a partida dos dois lados), depois liga semanal entre amigos | segunda promessa |
-| **0.11** | **Futebol de campo** | 7v7 primeiro, 11v11 depois (o `MatchConfig` já é paramétrico): formações novas, quadra/campo maiores, câmera | terceira promessa |
+| **0.11** | **Futebol de campo** | 7v7 primeiro, 11v11 depois (o `MatchConfig` já é paramétrico): formações novas, campo maior, câmera | terceira promessa |
 | **0.12** | **Geração 2** | Os 100 de Johto, tipos Dark/Steel, golpes novos, Copa de Johto | quarta promessa |
-| **1.0** | Modo jogável | Controlar um Pokémon ou o time inteiro, estilo FC (o `HumanController` e o `LiveRunner` já existem) | o "uau" final |
+| **1.0** | **Lançamento** | Tudo o que o "Em breve" prometeu, junto e polido: Copa, Modo história, Multiplayer, Futebol de campo e Gen 1 + Gen 2. Revisão completa (celular, inglês, desempenho, acessibilidade), trailer novo e divulgação grande | a versão "de verdade" |
+
+### Depois da 1.0 (planos futuros)
+
+- **Modo jogável:** controlar um Pokémon ou o time inteiro, estilo FC (o `HumanController` e o `LiveRunner` já existem).
+- **Gerações 3 a 9:** uma região por vez (Hoenn, Sinnoh, Unova, Kalos, Alola, Galar, Paldea), cada uma com a sua copa,
+  líderes e golpes; habilidades e tipos novos entram junto (Fairy na Gen 6).
+- **Personalização absurda:** escudo desenhado, uniforme (cores, listras, número), mascote, quadra/estádio do clube,
+  torcida, música e grito de gol, cartas e molduras próprias, apelido dos Pokémon.
+- **Modo Ultimate Team:** montar o clube com as cartas que você ganha (edições especiais, Shiny, Ícones, Eventos),
+  química por tipo e sinergia, desafios de montagem (SBC) e temporadas. Sem dinheiro nenhum: tudo se ganha jogando.
+- Mais ideias que já surgiram: Nuzlocke opcional, ranking por temporada, quadras temáticas extras, torneios da
+  comunidade.
 
 Regras de sempre em todas as versões: nada automático no time do jogador, equilíbrio decidido junto com
 números, carta muda primeiro na galeria `?cards=1`, sem emoji na interface, conferir em 320/390 em pé,
