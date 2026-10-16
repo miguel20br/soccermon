@@ -18,6 +18,7 @@ import { TypeIcon } from '../components/TypeIcon';
 import { Tip } from '../help/Tip';
 import { type ItemFit, itemFit } from '../item-fit';
 import { readCount, writeCount } from '../local-count';
+import { metalOf } from '../rarity';
 import { TYPE_COLOR } from '../type-colors';
 
 /** Quantas telas de recompensa a pessoa já abriu (neste navegador): da 7ª em diante, um toque revela tudo. */
@@ -29,6 +30,15 @@ const STAGE_MS = 300;
 const rewardKey = (r: RewardDef) => (r.kind === 'item' ? r.item : r.kind === 'tm' ? `tm-${r.move}` : r.inst.uid);
 /** Shiny e edições especiais (Destaque, Ícone, Evento) entram com walkout. */
 const isSpecial = (r: RewardDef) => r.kind === 'pokemon' && !!editionOf(r.inst);
+/** O pacote fechado já dá uma pista (como o walkout do FIFA): edição especial brilha, carta ouro tem borda dourada. */
+const packLook = (r: RewardDef) =>
+    r.kind !== 'pokemon'
+        ? ''
+        : editionOf(r.inst)
+          ? ' pack-special'
+          : metalOf(viewInstance(r.inst).overall) === 'ouro'
+            ? ' pack-gold'
+            : '';
 const packColor = (r: RewardDef) =>
     r.kind === 'pokemon'
         ? TYPE_COLOR[species(r.inst.speciesId).types[0]]
@@ -81,7 +91,7 @@ function Pack({
     const shadow = packShadow(reward);
     return (
         <div
-            className={`pack pack-s${stage}${walk ? ' walkout' : ''}`}
+            className={`pack pack-s${stage}${walk ? ' walkout' : ''}${packLook(reward)}`}
             style={{ '--pc': packColor(reward) } as CSSProperties}
         >
             <div className="pack-card">{children}</div>
