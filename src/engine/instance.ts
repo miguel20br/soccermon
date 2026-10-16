@@ -28,6 +28,11 @@ export interface PokemonInstance {
      * (se a forma nova aprende). Saves antigos não têm o campo.
      */
     taught?: string[];
+    /**
+     * Barra de evolução acumulada na copa (pontos de `evoScore`): sobe a cada partida e zera quando ele evolui.
+     * Só o seu time acumula; o rival começa do zero a cada jogo. Saves antigos não têm o campo.
+     */
+    evo?: number;
 }
 
 export const DEFAULT_LEVEL = 50;

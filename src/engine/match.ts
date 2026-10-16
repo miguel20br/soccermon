@@ -4,7 +4,7 @@ import type { Command } from './commands';
 import type { MatchConfig } from './config';
 import { MOVES, species, type TypeName } from './data';
 import { eff, fatigueFactor, isIncapacitated, TACTIC_MODS } from './effective';
-import { EVO_THRESHOLD, evolutionTarget, evolveInstance, evoScore } from './evolution';
+import { evolutionTarget, evolveInstance, evoNeeded, evoProgress } from './evolution';
 import { formationOf } from './formations';
 import type { PokemonInstance } from './instance';
 import { ITEMS } from './items';
@@ -385,8 +385,8 @@ export function checkEvolutions(s: MatchState) {
     for (const p of s.players) {
         if (p.evolved || p.origin || p.inst.ability === 'imposter') continue;
         const into = evolutionTarget(p.inst.speciesId, p.inst.uid);
-        if (into === null || evoScore(p.stats, p.role) < EVO_THRESHOLD) continue;
-        const inst = evolveInstance(p.inst, into);
+        if (into === null || evoProgress(p.inst, p.stats, p.role) < evoNeeded(p.team)) continue;
+        const inst = { ...evolveInstance(p.inst, into), evo: 0 };
         // a forma nova entra na escalação (tipo novo pode ligar ou desligar sinergias)
         s.teams[p.team].lineup[p.slot] = inst;
         changed.add(p.team);

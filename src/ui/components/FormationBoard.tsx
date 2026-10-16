@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { species } from '../../engine/data';
+import { EVO_THRESHOLD } from '../../engine/evolution';
 import { type FormationId, formationOf } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
@@ -119,6 +120,15 @@ export function FormationBoard({
                             </span>
                         )}
                         {inst?.item && <img className="pixel slot-item" src={itemSprite(inst.item)} alt="" />}
+                        {inst?.evo ? (
+                            <i
+                                className="slot-evo"
+                                title={t('team.board.evo', {
+                                    n: Math.min(100, Math.round((inst.evo / EVO_THRESHOLD) * 100)),
+                                })}
+                                style={{ '--evo': Math.min(1, inst.evo / EVO_THRESHOLD) } as CSSProperties}
+                            />
+                        ) : null}
                         {edition && (
                             <span className={`slot-edition ed-${edition}`} title={editionLabel(edition)}>
                                 ★

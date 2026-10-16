@@ -26,8 +26,18 @@ const POINTS: Partial<Record<keyof PlayerStats, number>> = {
 /** Normaliza pelo que cada posição costuma produzir numa partida (scripts/evo-report.ts). */
 const ROLE_SCALE: Record<Position, number> = { GK: 1.5, FIXO: 3.5, ALA: 0.7, PIVO: 0.5 };
 
-/** Pontos para evoluir: só ~1 em cada 4 que podem evoluir (os que mais jogam para a posição) chega lá numa partida. */
-export const EVO_THRESHOLD = 10;
+/**
+ * Pontos para evoluir. O seu time acumula a barra entre as partidas da copa (`PokemonInstance.evo`), então o
+ * limiar é mais alto (decidido com o Miguel em 16/10/2026: ~1,24 evolução por copa, era ~1). O rival não acumula
+ * e continua com o limiar de uma partida só (~1 em cada 4 que podem evoluir chega lá).
+ */
+export const EVO_THRESHOLD = 15;
+export const RIVAL_EVO_THRESHOLD = 10;
+
+/** Barra de evolução agora: o que ele trouxe das partidas anteriores + o que fez nesta. */
+export const evoProgress = (inst: PokemonInstance, stats: PlayerStats, role: Position) =>
+    (inst.evo ?? 0) + evoScore(stats, role);
+export const evoNeeded = (team: 0 | 1) => (team === 0 ? EVO_THRESHOLD : RIVAL_EVO_THRESHOLD);
 
 export function evoScore(stats: PlayerStats, role: Position): number {
     let total = 0;

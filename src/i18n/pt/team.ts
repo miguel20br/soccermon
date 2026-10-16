@@ -64,6 +64,7 @@ export const team = {
         abandon: 'Abandonar copa',
     },
     board: {
+        evo: 'Barra de evolução: {n}%',
         empty: 'vaga',
         off: ' · fora',
         /** Selo da posição na vaga (curto o bastante para o celular). */

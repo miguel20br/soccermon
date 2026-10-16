@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { MOVES, species } from '../../engine/data';
-import { EVO_THRESHOLD, evolutionTarget, evoScore } from '../../engine/evolution';
+import { evolutionTarget, evoNeeded, evoProgress } from '../../engine/evolution';
 import { attributeModifiers, moveModifiers } from '../../engine/modifiers';
 import { moveProfile } from '../../engine/moves';
 import type { MatchResult } from '../../engine/runners/batch-runner';
@@ -100,7 +100,7 @@ export function PlayerInspect({
     // mesma conta do motor (effective.ts: 0.72 + 0.28 × fôlego)
     const fatigue = Math.round(0.28 * (1 - energy) * 100);
     const target = evolutionTarget(inst.speciesId, inst.uid);
-    const evoPct = Math.min(100, Math.round((evoScore(stats, who.role) / EVO_THRESHOLD) * 100));
+    const evoPct = Math.min(100, Math.round((evoProgress(inst, stats, who.role) / evoNeeded(who.team)) * 100));
     const moveMods = moveModifiers(inst);
     const captainHere = inst.uid === setup.captainUid;
     // tocar num golpe abre a carta completa já nos golpes (o que cada um faz)

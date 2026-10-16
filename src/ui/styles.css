@@ -5724,3 +5724,13 @@ a.home-tile {
 .hall-scores {
     font-size: 12px;
 }
+
+/* barra de evolução acumulada na copa (some quando zera; enche até o Pokémon evoluir) */
+.slot-evo {
+    width: 80%;
+    height: 4px;
+    margin-top: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #7dd3fc calc(var(--evo) * 100%), transparent 0), rgb(0 0 0 / 40%);
+    box-shadow: 0 0 6px rgb(125 211 252 / calc(var(--evo) * 70%));
+}

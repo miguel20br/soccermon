@@ -65,6 +65,7 @@ export const team: typeof pt = {
         abandon: 'Abandon cup',
     },
     board: {
+        evo: 'Evolution bar: {n}%',
         empty: 'empty',
         off: ' · off',
         slot: { GK: 'Keeper', FIXO: 'Defender', ALA: 'Winger', PIVO: 'Pivot' },

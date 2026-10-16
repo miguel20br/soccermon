@@ -421,6 +421,18 @@ describe('traços de golpe: bola parada, intervalo e fim', () => {
         expect(original.moves).toEqual(['mimic']);
     });
 
+    it('evolução: a barra acumulada da copa conta e zera quando ele evolui', () => {
+        const s = scene();
+        const p = s.players[1];
+        expect(p.inst.speciesId).toBe(4);
+        checkEvolutions(s);
+        expect(s.players[1].inst.speciesId).toBe(4); // sem nada feito, não evolui
+        p.inst = { ...p.inst, evo: 15 };
+        checkEvolutions(s);
+        expect(s.players[1].inst.speciesId).toBe(5);
+        expect(s.players[1].inst.evo).toBe(0);
+    });
+
     it('evolução: golpe que muda de vaga mantém os usos gastos (conta pelo golpe, não pela vaga)', () => {
         const s = scene();
         const p = s.players[1];

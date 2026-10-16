@@ -1,9 +1,10 @@
 import { del, get, set } from 'idb-keyval';
 import { create } from 'zustand';
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
+import type { Position } from '../engine/attributes';
 import { buildCupOpponents, CUP_STAGES } from '../engine/cup';
 import { BENCH_SIZE, captainOptions, DRAFT_PICKS, draftOptions } from '../engine/draft';
-import { evolveInstance } from '../engine/evolution';
+import { evolutionTarget, evolveInstance, evoProgress } from '../engine/evolution';
 import { DEFAULT_FORMATION, type FormationId, formationOf } from '../engine/formations';
 import type { PokemonInstance } from '../engine/instance';
 import { viewInstance } from '../engine/instance';
@@ -664,14 +665,23 @@ export const useGame = create<GameStore>()(
                             e.type === 'evolve' && e.team === 0 ? [[e.uid, e.into] as const] : [],
                         ),
                     );
+                    const lines = playerLines(m);
                     const picks = run.picks.map((p) => {
                         let out = p;
                         const into = evolved.get(p.uid);
-                        if (into) out = evolveInstance(out, into);
+                        if (into) out = { ...evolveInstance(out, into), evo: 0 };
+                        else {
+                            // barra de evolução da copa: soma o que ele fez nesta partida (quem ainda pode evoluir)
+                            const line = lines.find((l) => l.team === 0 && l.uid === p.uid && l.minutes > 0);
+                            if (line && evolutionTarget(p.speciesId, p.uid) !== null)
+                                out = {
+                                    ...out,
+                                    evo: Math.round(evoProgress(p, line.stats, line.role as Position) * 10) / 10,
+                                };
+                        }
                         if (p.uid === destaqueUid) out = { ...out, special: { kind: 'destaque' as const } };
                         return out;
                     });
-                    const lines = playerLines(m);
                     const totals = [teamTotals(lines, 0), teamTotals(lines, 1)];
                     const result: StageResult = {
                         stage: run.stage,
