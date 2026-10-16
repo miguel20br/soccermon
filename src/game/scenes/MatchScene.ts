@@ -636,6 +636,30 @@ export class MatchScene extends Phaser.Scene {
         return mode === 'all' || (mode === 'mine' && team === 0);
     }
 
+    /**
+     * Nomes não se embolam: quando dois Pokémon ficam lado a lado (fila dos pênaltis, saída de bola), o nome de
+     * baixo desce até sair de cima do outro, e o status acompanha.
+     */
+    private declutterLabels() {
+        const placed: { x0: number; x1: number; y0: number; y1: number }[] = [];
+        const views = this.players
+            .filter((v) => v.label.visible && v.label.alpha > 0)
+            .sort((a, b) => a.label.y - b.label.y);
+        for (const v of views) {
+            const w = v.label.width;
+            const h = v.label.height;
+            const x0 = v.label.x - w / 2;
+            const x1 = x0 + w;
+            let y = v.label.y;
+            for (const r of placed) if (x0 < r.x1 && x1 > r.x0 && y < r.y1 && y + h > r.y0) y = r.y1;
+            if (y !== v.label.y) {
+                v.badge.y += y - v.label.y;
+                v.label.y = y;
+            }
+            placed.push({ x0, x1, y0: y, y1: y + h });
+        }
+    }
+
     /** Altura ocupada pelo nome (zero quando escondido): o status sobe para o lugar dele. */
     private nameHeight(view: PlayerView) {
         return view.label.alpha > 0 ? view.label.height : 0;
@@ -1044,6 +1068,7 @@ export class MatchScene extends Phaser.Scene {
             for (const o of [view.label, view.badge, view.ring, view.shadow, view.arrow]) o?.setVisible(!arriving);
             if (view.status === 1) view.sprite.x += Math.sin(this.time.now / 40) * 1.2; // paralisia: tremidinha
         }
+        this.declutterLabels();
         if (focusPos.size) this.cine.followSpots(focusPos);
         const bx = a.bx + (b.bx - a.bx) * k;
         const by = a.by + (b.by - a.by) * k;
