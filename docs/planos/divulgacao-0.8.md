@@ -30,7 +30,7 @@ O Soccermon é fan game sem fins lucrativos: nada de dinheiro, doação ou anún
 | Comunidades de Pokémon e Discords BR | texto curto onde fan game é permitido | quando houver canal de projetos | §2 |
 | TabNews | "como eu fiz", técnico | 1 agora, depois a cada versão grande | §3 |
 | Hacker News (Show HN) | título + comentário do criador | 1 vez | §4 |
-| itch.io | página do jogo com link externo para o site | 1 vez (fica de vitrine) | §5; imagens em `Divulgacao-0.8/` |
+| ~~itch.io~~ | **descartado em 16/10**: trabalho de manter a página atualizada não compensa o tráfego | — | §5 fica de referência |
 | X / LinkedIn | construir em público: números da semana, lance, bastidor, correção que veio de feedback | 1–2 por semana | §7 |
 
 Cuidados: ler as regras de cada subreddit e servidor antes (autopromoção, flair, dia certo); nunca prometer data
@@ -41,7 +41,7 @@ horas (é o que faz o post crescer).
 
 | Dia | O quê |
 |---|---|
-| sex 16/10 | LinkedIn (o X saiu em 15/10). Clipe 1 no TikTok/Reels/Shorts. Página do itch.io no ar |
+| sex 16/10 | LinkedIn (o X saiu em 15/10). Clipe 1 no TikTok/Reels/Shorts (sugestão: 04-terremoto) |
 | sáb 17/10 | Reddit r/WebGames |
 | dom 18/10 | Clipe 2. Post no TabNews |
 | seg 19/10 | **Placar 1** (`npm run stats -- --md`), escolher a mudança da semana. Clipe 3 |

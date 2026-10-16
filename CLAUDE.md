@@ -135,8 +135,8 @@ Plano do trailer e dos posts de lançamento: [docs/planos/divulgacao-trailer.md]
    canal, placar toda segunda com `npm run stats -- --md`); textos prontos em `docs/marketing/textos-divulgacao.md`;
    clipes verticais e imagens do itch.io em `Downloads/Soccermon trailer/Divulgacao-0.8/`. Feito em 15/10: X,
    release v0.8.0/v0.8.1 com trailers, Social preview, Discussion #1 fixada ("Feedback do lançamento"). Falta:
-   LinkedIn (texto em `docs/marketing/textos-divulgacao.md` §7), itch.io (o Miguel cria a conta), clipes, Reddit,
-   TabNews, Show HN. Posts nas contas dele: o Claude prepara e para antes de publicar.
+   LinkedIn (texto em `docs/marketing/textos-divulgacao.md` §7), clipes, Reddit, TabNews, Show HN. itch.io
+   descartado (16/10: dá trabalho manter e traz pouca gente). Posts nas contas dele: o Claude prepara e para antes de publicar.
 6. **Sinais do 1º dia para olhar no placar:** maior vazamento entre "começou copa" e "jogou partida" (draft longo
    no celular?); 73% jogam em 8x (começar mais rápido?); Dragonite capitão em 50% das copas (forte demais? decidir
    junto, com calibragem).
