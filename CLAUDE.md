@@ -30,7 +30,7 @@ você é o Claude e `git log` mostrar commits com `miguelcunhabr@`, avise o Migu
   hashtags, e postar. Antes de clicar em Post, confirme numa linha com ele. Upload pela extensão só até 10 MB:
   comprimir com ffmpeg 2 passes (~1,45 Mbps de vídeo, 1080x1920). Link clicável na bio só com 1000 seguidores:
   `soccermon.com` vai escrito na legenda. Todo post ganha um comentário com o link; fixar comentário só pelo app
-  (o site não tem a opção). Em 16/10 o site não salvou foto/bio do perfil (2 tentativas): fazer pelo app.
+  (o site não tem a opção). Mudança de perfil (foto/bio) demora uns minutos pra aparecer: não repetir.
 - Antes de planejar algo grande e novo, ele gosta de uma pesquisa ampla de referências (repos do GitHub, libs,
   assets, skills de game design).
 
