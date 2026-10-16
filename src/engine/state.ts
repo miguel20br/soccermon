@@ -254,6 +254,8 @@ export type MatchEvent = MatchEventBase &
         | { type: 'block'; by: number; shooter: number }
         | { type: 'post'; shooter: number }
         | { type: 'wide'; shooter: number }
+        /** Bola saiu pela linha de fundo: tiro de meta do goleiro `by` (time `team`). */
+        | { type: 'goalkick'; team: 0 | 1; by: number }
         | { type: 'goal'; by: number; assist: number | null; team: 0 | 1; score: [number, number]; ownGoal: boolean }
         | {
               type: 'move';

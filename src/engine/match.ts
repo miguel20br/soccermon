@@ -2153,7 +2153,10 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
                 const caught = felt < 17 && s.rng.chance(0.55 + (0.3 * gk) / 99);
                 emit(s, { type: 'save', by: p.idx, shooter: shooter.idx, caught });
                 ball.shot = null;
-                ball.pos = contact;
+                // o contato nunca fica atrás do goleiro (entre ele e o gol): a bola parecia ter passado e virava
+                // "QUE DEFESA" com a bola na linha. Fica na frente das mãos dele.
+                const front = attackSign(p.team);
+                ball.pos = (contact.x - p.pos.x) * front < 0.2 ? v(p.pos.x + front * 0.2, contact.y) : contact;
                 ball.z = 0;
                 ball.vz = 0;
                 // defender um Thunderbolt tem preço
@@ -2164,7 +2167,7 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
                     ball.lastTouch = p.idx;
                     ball.assistCandidate = null;
                     p.ai.holdUntil = s.tick + Math.round(0.8 * s.cfg.tickRate);
-                } else if (!tryRebound(s, shooter, moveId, contact)) {
+                } else if (!tryRebound(s, shooter, moveId, ball.pos)) {
                     // espalma para o lado
                     const outward = v(attackSign(p.team) * s.rng.range(0.3, 1), s.rng.chance(0.5) ? 1 : -1);
                     ball.vel = scale(norm(outward), speed * s.rng.range(0.25, 0.45));
@@ -2321,6 +2324,7 @@ function goalClearance(s: MatchState, team: 0 | 1) {
     gk.pos = toWorld(s, team, 1.5, s.cfg.pitch.width / 2 + s.rng.range(-2, 2));
     gk.vel = v(0, 0);
     gk.heading = v(attackSign(team), 0);
+    emit(s, { type: 'goalkick', team, by: gk.idx });
     s.ball.owner = gk.idx;
     s.ball.lastTouch = gk.idx;
     // a bola já vai para o pé do goleiro (antes ficava atrás da linha durante o reinício)

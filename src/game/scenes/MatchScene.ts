@@ -1120,11 +1120,24 @@ export class MatchScene extends Phaser.Scene {
             }
             d.cx = c.x;
             d.cy = c.y;
-            const target = this.touchReach(carrier, a, b, d.travel);
-            // mola amortecida: muda de toque/parada sem tranco
-            d.reach += (target - d.reach) * (1 - Math.exp(-Math.max(0, this.playTick - d.tick) / 0.6));
-            bp.x = c.x + d.x * d.reach;
-            bp.y = c.y + d.y * d.reach;
+            // goleiro com a bola na área: ela fica nas mãos, do lado da quadra (no motor fica no "pé", às vezes
+            // virado para o gol, e parecia que a bola tinha passado dele)
+            const o = carrier * SNAP_STRIDE;
+            const gkX = b.p[o];
+            const L = FUTSAL_5.pitch.length;
+            if (this.md.result.roster[carrier]?.role === 'GK' && Math.min(gkX, L - gkX) < 6) {
+                const front = gkX < L / 2 ? 1 : -1;
+                const hands = toPx(gkX + front * 0.35, b.p[o + 1]);
+                bp.x = c.x + (hands.x - toPx(gkX, b.p[o + 1]).x);
+                bp.y = c.y - 6;
+                d.reach = 1;
+            } else {
+                const target = this.touchReach(carrier, a, b, d.travel);
+                // mola amortecida: muda de toque/parada sem tranco
+                d.reach += (target - d.reach) * (1 - Math.exp(-Math.max(0, this.playTick - d.tick) / 0.6));
+                bp.x = c.x + d.x * d.reach;
+                bp.y = c.y + d.y * d.reach;
+            }
         }
         d.owner = carrier;
         d.tick = this.playTick;
@@ -1346,14 +1359,36 @@ export class MatchScene extends Phaser.Scene {
                 playSfx('save');
                 const gk = this.players[e.by];
                 if (gk) this.highlight('save', gk);
+                // agarrou x espalmou: dá pra ver o que aconteceu com a bola
+                const how = gk ? tr(e.caught ? 'battle.caught' : 'battle.parried', { x: gk.name }) : undefined;
                 if (cinematic && gk) {
                     this.cine.drama(tr('battle.bigSave'), {
                         color: '#9be7ff',
                         stroke: '#0b2a4a',
                         at: { x: gk.sprite.x, y: gk.sprite.y },
-                        sub: gk.name,
+                        sub: how,
                     });
                 } else this.popText(e.by, tr('battle.save'), '#9be7ff');
+                if (gk) this.kickPop(this.ball.x, this.ball.y + 4, e.caught ? 0.8 : 1.35, e.caught ? 0 : 5);
+                this.punch('touch');
+                break;
+            }
+            case 'tackle': {
+                // desarme certo: texto na cor do time de quem roubou, estalo e poeira na bola
+                if (!e.success) break;
+                const color = Phaser.Display.Color.IntegerToColor(this.md.colors[this.players[e.by]?.team ?? 0]).rgba;
+                this.popText(e.by, tr('battle.tackleWon'), color);
+                this.kickPop(this.ball.x, this.ball.y + 4, 1.2, 4);
+                playSfx('kick', 0.8);
+                break;
+            }
+            case 'interception': {
+                this.popText(e.by, tr('battle.intercept'), '#c8f7c5');
+                break;
+            }
+            case 'goalkick': {
+                this.popText(e.by, tr('battle.goalKick'), '#ffffff');
+                this.battleBox.push(tr('battle.goalKick'));
                 break;
             }
             case 'post': {
