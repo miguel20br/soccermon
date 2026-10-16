@@ -5,6 +5,7 @@ export const match: typeof pt = {
     away: 'Away',
     cup: 'Cup',
     highlights: 'Highlights',
+    highlightsHint: 'Highlights: 1x on shots, goals and saves; fast the rest of the time',
     orderFailed: "Couldn't send the order right now.",
     halftime: 'Half-time',
     penalties: 'Penalties {a} x {b}',

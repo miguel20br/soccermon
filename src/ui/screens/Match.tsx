@@ -49,8 +49,8 @@ const SPEEDS: { value: PlaybackSpeed; label: string }[] = [
 const MAX_TACTIC_CHANGES = 3;
 /** A mudança vale ~2 s de jogo à frente (dá tempo de resimular sem pular nada). */
 const CHANGE_LEAD_TICKS = 40;
-/** No modo "Lances" o ritmo varia (1x perto dos lances, 10x no resto): usa uma média. */
-const HIGHLIGHTS_MULT = 6;
+/** No modo "Lances" o ritmo varia (1x perto dos lances, 16x no resto): na média fica perto de 4x. */
+const HIGHLIGHTS_MULT = 4;
 
 const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 /** De quanto em quanto tempo (real) o ponto da partida é salvo para poder retomar. */
@@ -144,6 +144,7 @@ export function Match() {
                       speed: settings.speed,
                       cinematic: settings.cinematic,
                       namesOnField: settings.namesOnField,
+                      arrowSize: settings.arrowSize,
                       reduceMotion: reduceMotionOn(settings.reduceMotion),
                       extraSpecies: [...(run?.picks ?? []), ...(opponent?.bench ?? [])].map((p) =>
                           skinOf(p.speciesId, p.shiny),
@@ -492,6 +493,7 @@ export function Match() {
                                     className={`btn small${settings.speed === s.value ? ' active' : ''}`}
                                     disabled={!sceneReady}
                                     onClick={() => setSpeed(s.value)}
+                                    title={s.value === 'highlights' ? t('match.highlightsHint') : undefined}
                                 >
                                     {s.label || t('match.highlights')}
                                 </button>

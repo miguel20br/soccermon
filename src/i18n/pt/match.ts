@@ -4,6 +4,7 @@ export const match = {
     away: 'Fora',
     cup: 'Copa',
     highlights: 'Lances',
+    highlightsHint: 'Lances: 1x nos chutes, gols e defesas; rápido no resto',
     orderFailed: 'Não deu para mandar a ordem agora.',
     halftime: 'Intervalo',
     penalties: 'Pênaltis {a} x {b}',

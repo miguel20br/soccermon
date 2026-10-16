@@ -164,6 +164,7 @@ export interface LiveMatch {
 }
 
 export type NamesOnField = 'all' | 'mine' | 'none';
+export type ArrowSize = 'small' | 'medium' | 'large';
 export type ReduceMotion = 'system' | 'on' | 'off';
 
 export interface Settings {
@@ -177,6 +178,8 @@ export interface Settings {
     cinematic: boolean;
     /** Nomes dos Pokémon na quadra. */
     namesOnField: NamesOnField;
+    /** Setinha na cabeça dos Pokémon do seu time. */
+    arrowSize: ArrowSize;
     /** Menos tremida, flash e zoom ('system' segue o "reduzir movimento" do aparelho). */
     reduceMotion: ReduceMotion;
     /** Dicas do "Como jogar" nas telas. */
@@ -198,6 +201,7 @@ export const DEFAULT_SETTINGS: Settings = {
     speed: 4,
     cinematic: true,
     namesOnField: 'all',
+    arrowSize: 'medium',
     reduceMotion: 'system',
     tips: true,
     confirmLeave: true,

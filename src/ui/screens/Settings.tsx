@@ -5,6 +5,7 @@ import { getLang, type Lang, t as tr } from '../../i18n';
 import { htmlLang } from '../../i18n/lang';
 import { rich, useLang, useT } from '../../i18n/react';
 import {
+    type ArrowSize,
     DEFAULT_SETTINGS,
     migrateSave,
     type NamesOnField,
@@ -110,6 +111,11 @@ const speedOptions = (t: T): { value: PlaybackSpeed; label: string }[] => [
     { value: 8, label: '8x' },
     { value: 'highlights', label: t('settings.screen.highlights') },
 ];
+const arrowOptions = (t: T): { value: ArrowSize; label: string }[] => [
+    { value: 'small', label: t('settings.screen.arrowSmall') },
+    { value: 'medium', label: t('settings.screen.arrowMedium') },
+    { value: 'large', label: t('settings.screen.arrowLarge') },
+];
 const namesOptions = (t: T): { value: NamesOnField; label: string }[] => [
     { value: 'all', label: t('settings.screen.namesAll') },
     { value: 'mine', label: t('settings.screen.namesMine') },
@@ -212,6 +218,14 @@ export function Settings() {
                         value={settings.namesOnField}
                         options={namesOptions(t)}
                         onPick={(namesOnField) => set({ namesOnField })}
+                    />
+                </Row>
+                <Row title={t('settings.screen.arrow')} hint={t('settings.screen.arrowHint')}>
+                    <Segmented
+                        label={t('settings.screen.arrow')}
+                        value={settings.arrowSize}
+                        options={arrowOptions(t)}
+                        onPick={(arrowSize) => set({ arrowSize })}
                     />
                 </Row>
                 <Row title={t('settings.screen.confirmLeave')} hint={t('settings.screen.confirmLeaveHint')}>

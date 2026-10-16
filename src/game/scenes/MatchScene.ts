@@ -25,7 +25,7 @@ import {
 } from '../../engine/state';
 import { dir8 } from '../../engine/vec';
 import { dict, linkText, t as tr } from '../../i18n';
-import type { CryStyle, NamesOnField, PlaybackSpeed } from '../../store/game-store';
+import type { ArrowSize, CryStyle, NamesOnField, PlaybackSpeed } from '../../store/game-store';
 import { hexToNumber, TYPE_COLOR } from '../../ui/type-colors';
 import {
     animForAction,
@@ -58,6 +58,8 @@ export interface MatchSceneData {
     cinematic: boolean;
     /** Nomes na quadra: todos, só do seu time (time 0) ou nenhum. Padrão: todos. */
     namesOnField?: NamesOnField;
+    /** Tamanho da setinha do seu time (Configurações). Padrão: média. */
+    arrowSize?: ArrowSize;
     /** Reduzir movimento (já resolvido): câmera parada, sem tremida, clarão nem zoom. */
     reduceMotion?: boolean;
     /** Folhas (skinOf) que podem entrar em campo (bancos inteiros): pré-carregadas para substituições. */
@@ -81,6 +83,9 @@ const IMPACT: Record<ImpactLevel, { stop: number; shake: [number, number]; flash
     hit: { stop: 90, shake: [320, 0.007], flash: 180 },
     boom: { stop: 170, shake: [480, 0.012], flash: 260 },
 };
+/** Setinha do seu time: pequena era o tamanho antigo; o padrão (média) ficou um pouco maior. */
+const ARROW_SCALE: Record<ArrowSize, number> = { small: 1, medium: 1.45, large: 2 };
+
 /** Catmull-Rom: passa por p1 (t=0) e p2 (t=1) usando os vizinhos para a curva. */
 const catmull = (p0: number, p1: number, p2: number, p3: number, t: number) =>
     0.5 * (2 * p1 + (p2 - p0) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (3 * p1 - p0 - 3 * p2 + p3) * t * t * t);
@@ -137,23 +142,9 @@ interface DiveInfo {
     at: { x: number; y: number } | null;
 }
 
-const IMPORTANT = new Set([
-    'transform',
-    'combo',
-    'shot',
-    'goal',
-    'save',
-    'post',
-    'penalty',
-    'status',
-    'move',
-    'item',
-    'tactic',
-    'halftime',
-    'fulltime',
-    'kickoff',
-]);
 const DRAMA = new Set(['goal', 'post', 'save']);
+/** O que o modo "Lances" mostra em 1x. */
+const HIGHLIGHT = new Set(['shot', 'goal', 'save', 'post', 'penalty', 'transform', 'combo', 'evolve']);
 
 /** Status por código do snapshot: rótulo, cor do rótulo e tinta do sprite. */
 const STATUS_VIEW: Record<number, { label: string; color: string; tint: number }> = {
@@ -349,10 +340,9 @@ export class MatchScene extends Phaser.Scene {
     private cine!: Cinematics;
     private ended = false;
     private lastEmit = 0;
-    private recentImportantTick = Number.NEGATIVE_INFINITY;
-    private importantTicks: number[] = [];
     private dramaTicks: number[] = [];
     private goalTicks: number[] = [];
+    private highlightTicks: number[] = [];
 
     /** Disputa de pênaltis (acontece depois do último snapshot: a cena anima sozinha). */
     private penalties: PenaltyEvent[] = [];
@@ -472,10 +462,10 @@ export class MatchScene extends Phaser.Scene {
         this.snaps = result.snapshots;
         this.matchEvents = result.events;
         this.lastEventTick = this.matchEvents.at(-1)?.tick ?? 0;
-        this.importantTicks = this.matchEvents.filter((e) => IMPORTANT.has(e.type)).map((e) => e.tick);
         this.dramaTicks = this.matchEvents.filter((e) => DRAMA.has(e.type)).map((e) => e.tick);
         // gol, trave e defesa desaceleram igual: a câmera lenta não pode entregar que vai ser gol
         this.goalTicks = this.dramaTicks;
+        this.highlightTicks = this.matchEvents.filter((e) => HIGHLIGHT.has(e.type)).map((e) => e.tick);
         this.penalties = this.matchEvents.filter((e): e is PenaltyEvent => e.type === 'penalty');
         this.dives = this.matchEvents.flatMap((e) => (e.type === 'save' ? [{ tick: e.tick, gk: e.by, at: null }] : []));
         this.fulltimeTick = this.matchEvents.find((e) => e.type === 'fulltime')?.tick ?? Number.POSITIVE_INFINITY;
@@ -587,7 +577,10 @@ export class MatchScene extends Phaser.Scene {
         // seu time (casa) ganha uma setinha vermelha discreta na cabeça
         const arrow =
             team === 0
-                ? this.add.triangle(0, 0, 0, 0, 9, 0, 4.5, 6, 0xff3b3b).setStrokeStyle(1.5, 0x000000, 0.8)
+                ? this.add
+                      .triangle(0, 0, 0, 0, 9, 0, 4.5, 6, 0xff3b3b)
+                      .setStrokeStyle(1.5, 0x000000, 0.8)
+                      .setScale(ARROW_SCALE[this.md.arrowSize ?? 'medium'])
                 : null;
         const textStyle = {
             fontFamily: 'Galmuri11, monospace',
@@ -690,7 +683,7 @@ export class MatchScene extends Phaser.Scene {
         if (!view.arrow) return;
         const h = view.sprite.frame.realHeight * view.sprite.scaleY;
         const head = y - (view.sprite.originY - headTop(view.skin)) * h;
-        view.arrow.setPosition(x, head - 7).setDepth(depth);
+        view.arrow.setPosition(x, head - 4 - 3 * view.arrow.scaleY).setDepth(depth);
     }
 
     /** Ditto (Transformar) vira a cópia de quem escolheu: mantém o nome e o "capitão". */
@@ -974,12 +967,16 @@ export class MatchScene extends Phaser.Scene {
         let base: number;
         if (this.speed !== 'highlights') base = this.speed;
         else {
-            // "só os lances": devagar perto de lances importantes, rápido no resto
-            const ahead = this.importantTicks.find((t) => t >= this.playTick);
+            // "só os lances": 1x perto de chute, gol, defesa, trave, pênalti, Transform, combo e evolução; o resto
+            // passa a 16x. Antes também parava em todo golpe, status e saída de bola e a partida em Lances levava
+            // ~270 s, mais devagar que em 4x (~100 s); agora ~120 s.
+            const ahead = this.highlightTicks.find((t) => t >= this.playTick);
+            let last: number | undefined;
+            for (const t of this.highlightTicks) if (t <= this.playTick) last = t;
             const near =
-                (ahead !== undefined && ahead - this.playTick < TICK_RATE * 2.5) ||
-                this.playTick - this.recentImportantTick < TICK_RATE * 1.5;
-            base = near ? 1 : 10;
+                (ahead !== undefined && ahead - this.playTick < TICK_RATE * 1.5) ||
+                (last !== undefined && this.playTick - last < TICK_RATE);
+            base = near ? 1 : 16;
         }
         // a disputa de pênaltis sempre em ritmo assistível, em qualquer velocidade
         if (this.penalties.length > 0 && this.playTick >= this.fulltimeTick) base = Math.min(base, 1.25);
@@ -1285,7 +1282,6 @@ export class MatchScene extends Phaser.Scene {
     // ------------------------------------------------------------------ eventos
     private handleEvent(e: MatchEvent, silent: boolean) {
         EventBus.emit('match:event', e);
-        if (IMPORTANT.has(e.type)) this.recentImportantTick = e.tick;
         if (e.type === 'sub') {
             const view = this.players[e.outIdx];
             if (view) {
