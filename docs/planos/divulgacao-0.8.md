@@ -41,13 +41,15 @@ horas (é o que faz o post crescer).
 
 | Dia | O quê |
 |---|---|
-| 16/10 (qui) | X (feito, 15/10). LinkedIn quando der. Clipe 1 no TikTok/Reels/Shorts |
-| 17/10 (sex) | Reddit r/WebGames. Página do itch.io no ar |
-| 18/10 (sáb) | Clipe 2. Post no TabNews |
-| 19/10 (dom) | Reddit r/indiegames. Discords que aceitam divulgação |
-| 20/10 (seg) | **Placar 1** (`npm run stats -- --md`), escolher a mudança da semana. Clipe 3 |
-| 21/10 (ter) | Show HN (manhã nos EUA, ~11h no Brasil) |
-| 22/10 (qua) | Post de construir em público no X/LinkedIn com o placar e a mudança escolhida |
+| sex 16/10 | LinkedIn (o X saiu em 15/10). Clipe 1 no TikTok/Reels/Shorts. Página do itch.io no ar |
+| sáb 17/10 | Reddit r/WebGames |
+| dom 18/10 | Clipe 2. Post no TabNews |
+| seg 19/10 | **Placar 1** (`npm run stats -- --md`), escolher a mudança da semana. Clipe 3 |
+| ter 20/10 | Show HN (manhã nos EUA, ~11h no Brasil) |
+| qua 21/10 | Reddit r/indiegames (com clipe). Discords que aceitam divulgação |
+| qui 22/10 | Post de construir em público no X/LinkedIn com o placar e a mudança escolhida |
+
+Calendário detalhado, com o texto de cada post: `docs/marketing/textos-divulgacao.md` §8.
 
 ## Placar
 
