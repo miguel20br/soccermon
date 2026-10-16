@@ -298,7 +298,7 @@ function Metal({
             <span className="m-top">
                 <span
                     className="m-mark"
-                    style={{ '--type-icon': `url(assets/types/${theme.toLowerCase()}.png)` } as CSSProperties}
+                    style={{ '--type-icon': `url(/assets/types/${theme.toLowerCase()}.png)` } as CSSProperties}
                 />
                 <span className="m-left">
                     <b className="m-ovr">{d.display}</b>
