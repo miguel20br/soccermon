@@ -153,6 +153,8 @@ export interface RunState {
     startedAt?: number;
     endedAt?: number;
     champ?: ChampMemo;
+    /** Pokédex (vistos) e golpes descobertos quando a copa começou: o fim da copa mostra quanto cresceu. */
+    startCounts?: { seen: number; moves: number };
 }
 
 export interface LiveMatch {
@@ -531,6 +533,10 @@ export const useGame = create<GameStore>()(
                         live: null,
                         eventType: weeklyEventType(new Date()),
                         startedAt: Date.now(),
+                        startCounts: {
+                            seen: Object.keys(getState().dex).length,
+                            moves: Object.keys(getState().moves).length,
+                        },
                     };
                     setState({ run, match: null, screen: 'draft' });
                 },

@@ -55,6 +55,12 @@ export const result = {
         stageShort: ['Oitavas', 'Quartas', 'Semifinal', 'Final'],
         next: 'Próximo: {stage} contra',
     },
+    /** Fim da copa (eliminado ou campeão): o que a Pokédex e a Movedex ganharam desde o começo dela. */
+    gains: {
+        title: 'Nesta copa',
+        seen: '{n} visto na Pokédex|{n} vistos na Pokédex',
+        moves: '{n} golpe descoberto|{n} golpes descobertos',
+    },
     champ: {
         aria: 'Campeões da Copa de Kanto',
         titleAria: 'Campeões!',

@@ -24,6 +24,11 @@ export const reward: typeof pt = {
     positionsHint: 'Green: positions where {name} plays well · red: out of position.',
     openCard: 'Tap a Pokémon to see its full card (moves and stats).',
     openAria: ', open full card',
+    pack: {
+        open: 'Open pack',
+        tap: 'Tap to open',
+        revealAll: 'Reveal all',
+    },
     fit: {
         typeCount: '{n} {type} move|{n} {type} moves',
         hitCount: '{n} damaging move|{n} damaging moves',

@@ -54,6 +54,11 @@ export const result: typeof pt = {
         stageShort: ['R16', 'QF', 'SF', 'Final'],
         next: 'Next: {stage} against',
     },
+    gains: {
+        title: 'This cup',
+        seen: '{n} seen in the Pokédex',
+        moves: '{n} move discovered|{n} moves discovered',
+    },
     champ: {
         aria: 'Kanto Cup champions',
         titleAria: 'Champions!',

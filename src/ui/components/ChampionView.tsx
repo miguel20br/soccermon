@@ -9,6 +9,7 @@ import { isPerfectCup, type RunState, useGame } from '../../store/game-store';
 import { trainerLabel } from '../profile/club';
 import { aggregate, avg } from '../stats/CupStats';
 import { CupAwards, CupFinal, CupGoals, CupXI, FormSpark, TitleRecords, useRarity } from './ChampionExtras';
+import { CupGains } from './CupGains';
 import { FutCard } from './FutCard';
 import { HallParade } from './HallParade';
 import { cardSprite } from './PokeCard';
@@ -66,6 +67,7 @@ export function ChampionView({ run, actions }: { run: RunState; actions: ReactNo
                 <div className="champ-sub">{rich(t('result.champ.sub'), { team: <b>{run.teamName}</b> })}</div>
                 {isPerfectCup(run) && <div className="perfect-badge">{t('result.champ.perfect')}</div>}
                 <TitleRecords run={run} rarity={rarity} />
+                <CupGains run={run} />
 
                 <div className="cup-totals champ-totals">
                     <div>

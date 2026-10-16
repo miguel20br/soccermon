@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
+import { MOVES, species } from '../../engine/data';
 import { formationOf } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
+import type { Reward as RewardDef } from '../../engine/rewards';
+import { editionOf } from '../../engine/specials';
 import { playSfx } from '../../game/audio';
 import { clubName, itemDesc, itemName, stageName, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
@@ -14,6 +17,85 @@ import { TmCard, TmTeachPanel } from '../components/TmTeach';
 import { TypeIcon } from '../components/TypeIcon';
 import { Tip } from '../help/Tip';
 import { type ItemFit, itemFit } from '../item-fit';
+import { readCount, writeCount } from '../local-count';
+import { TYPE_COLOR } from '../type-colors';
+
+/** Quantas telas de recompensa a pessoa já abriu (neste navegador): da 7ª em diante, um toque revela tudo. */
+const PACKS_KEY = 'soccermon-packs-opened';
+const FAST_AFTER = 6;
+/** Cada etapa da revelação (cor → silhueta → carta): ~900 ms no total, com a carta entrando. */
+const STAGE_MS = 300;
+
+const rewardKey = (r: RewardDef) => (r.kind === 'item' ? r.item : r.kind === 'tm' ? `tm-${r.move}` : r.inst.uid);
+/** Shiny e edições especiais (Destaque, Ícone, Evento) entram com walkout. */
+const isSpecial = (r: RewardDef) => r.kind === 'pokemon' && !!editionOf(r.inst);
+const packColor = (r: RewardDef) =>
+    r.kind === 'pokemon'
+        ? TYPE_COLOR[species(r.inst.speciesId).types[0]]
+        : r.kind === 'tm'
+          ? TYPE_COLOR[MOVES[r.move]?.type]
+          : '#8a94b8';
+const packShadow = (r: RewardDef) =>
+    r.kind === 'pokemon' ? cardSprite(r.inst) : r.kind === 'item' ? itemSprite(r.item) : null;
+
+/**
+ * Recompensa como pacote fechado (desenhado em CSS). Aberto, revela em etapas: a cor do tipo, a silhueta e a
+ * carta. Shiny e edição especial sobem com luz atrás (walkout, 1,2 s). `instant` pula as etapas.
+ */
+function Pack({
+    reward,
+    open,
+    instant,
+    onOpen,
+    children,
+}: {
+    reward: RewardDef;
+    open: boolean;
+    instant: boolean;
+    onOpen: () => void;
+    children: ReactNode;
+}) {
+    const { t } = useT();
+    const [stage, setStage] = useState(open ? 3 : 0);
+    const [walk, setWalk] = useState(false);
+    const special = isSpecial(reward);
+    // biome-ignore lint/correctness/useExhaustiveDependencies: a sequência só depende de abrir (ou pular)
+    useEffect(() => {
+        if (!open) return;
+        if (instant) {
+            setStage(3);
+            return;
+        }
+        setStage(1);
+        const a = window.setTimeout(() => setStage(2), STAGE_MS);
+        const b = window.setTimeout(() => {
+            setStage(3);
+            setWalk(special);
+            playSfx(special ? 'goal' : 'select');
+        }, STAGE_MS * 2);
+        return () => {
+            clearTimeout(a);
+            clearTimeout(b);
+        };
+    }, [open, instant]);
+    const shadow = packShadow(reward);
+    return (
+        <div
+            className={`pack pack-s${stage}${walk ? ' walkout' : ''}`}
+            style={{ '--pc': packColor(reward) } as CSSProperties}
+        >
+            <div className="pack-card">{children}</div>
+            {walk && <span className="pack-rays" aria-hidden />}
+            {stage < 3 && (
+                <button type="button" className="pack-face" onClick={onOpen} aria-label={t('reward.pack.open')}>
+                    <span className="pack-foil" aria-hidden />
+                    {stage >= 2 && shadow && <img className="pixel pack-shadow" src={shadow} alt="" />}
+                    {stage === 0 && <span className="pack-hint">{t('reward.pack.tap')}</span>}
+                </button>
+            )}
+        </div>
+    );
+}
 
 /** Selo "quantos golpes este item aproveita": ícone do tipo (ou do item) + número; `full` mostra o texto. */
 function FitBadge({ fit, item, text, full }: { fit: ItemFit; item: string; text: string; full?: boolean }) {
@@ -33,7 +115,29 @@ export function Reward() {
     const { run, claimReward, skipReward, rerollReward } = useGame();
     const [chosen, setChosen] = useState<number | null>(null);
     const { lang, t, tn } = useT();
+    // a festa encurta: da 7ª tela de recompensa em diante, um toque abre todos os pacotes de uma vez
+    const [fast] = useState(() => (readCount(PACKS_KEY) ?? 0) >= FAST_AFTER);
+    const [opened, setOpened] = useState<ReadonlySet<string>>(() => new Set());
+    const [all, setAll] = useState(false);
+    const counted = useRef(false);
     if (run?.status !== 'reward') return null;
+    const countOpen = () => {
+        if (counted.current) return;
+        counted.current = true;
+        writeCount(PACKS_KEY, (readCount(PACKS_KEY) ?? 0) + 1);
+    };
+    const openAll = () => {
+        countOpen();
+        setAll(true);
+        playSfx(run.rewards.some((r) => isSpecial(r) && !opened.has(rewardKey(r))) ? 'goal' : 'select');
+    };
+    const openPack = (key: string) => {
+        if (fast) return openAll();
+        countOpen();
+        playSfx('select');
+        setOpened((s) => new Set(s).add(key));
+    };
+    const closed = all ? 0 : run.rewards.filter((r) => !opened.has(rewardKey(r))).length;
 
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
     const reward = chosen !== null ? run.rewards[chosen] : null;
@@ -75,6 +179,11 @@ export function Reward() {
                     </h1>
                 </div>
                 <div className="row">
+                    {closed > 0 && (
+                        <button type="button" className="btn small primary" onClick={openAll}>
+                            {t('reward.pack.revealAll')}
+                        </button>
+                    )}
                     <button
                         type="button"
                         className="btn small"
@@ -97,49 +206,56 @@ export function Reward() {
 
             <div className="reward-grid">
                 {run.rewards.map((r, i) => (
-                    <div
-                        key={r.kind === 'item' ? r.item : r.kind === 'tm' ? `tm-${r.move}` : r.inst.uid}
-                        className={`option${r.kind === 'tm' ? ' option-tm' : ''}`}
+                    <Pack
+                        key={rewardKey(r)}
+                        reward={r}
+                        open={all || opened.has(rewardKey(r))}
+                        instant={all}
+                        onOpen={() => openPack(rewardKey(r))}
                     >
-                        {r.kind === 'pokemon' ? (
-                            <FutCard
-                                inst={r.inst}
-                                selected={chosen === i}
-                                ribbon={
-                                    r.from
-                                        ? t('reward.fromClub', { club: clubName(r.from, lang) })
-                                        : t('reward.reinforcement')
-                                }
-                                action={{
-                                    label: t(chosen === i ? 'reward.chosen' : r.from ? 'reward.sign' : 'reward.pick'),
-                                    primary: true,
-                                    onClick: () => {
-                                        playSfx('select');
-                                        setChosen(chosen === i ? null : i);
-                                    },
-                                }}
-                            />
-                        ) : r.kind === 'tm' ? (
-                            <TmCard
-                                move={r.move}
-                                leader={r.leader}
-                                team={squad}
-                                selected={chosen === i}
-                                onClick={() => pick(i)}
-                            />
-                        ) : (
-                            <button
-                                type="button"
-                                className={`card item-card${chosen === i ? ' selected' : ''}`}
-                                onClick={() => pick(i)}
-                            >
-                                <span className="tier-label">{t('reward.item')}</span>
-                                <img className="pixel item-art" src={itemSprite(r.item)} alt="" />
-                                <b className="card-name">{itemName(r.item)}</b>
-                                <span className="tactic-desc">{itemDesc(r.item, lang)}</span>
-                            </button>
-                        )}
-                    </div>
+                        <div className={`option${r.kind === 'tm' ? ' option-tm' : ''}`}>
+                            {r.kind === 'pokemon' ? (
+                                <FutCard
+                                    inst={r.inst}
+                                    selected={chosen === i}
+                                    ribbon={
+                                        r.from
+                                            ? t('reward.fromClub', { club: clubName(r.from, lang) })
+                                            : t('reward.reinforcement')
+                                    }
+                                    action={{
+                                        label: t(
+                                            chosen === i ? 'reward.chosen' : r.from ? 'reward.sign' : 'reward.pick',
+                                        ),
+                                        primary: true,
+                                        onClick: () => {
+                                            playSfx('select');
+                                            setChosen(chosen === i ? null : i);
+                                        },
+                                    }}
+                                />
+                            ) : r.kind === 'tm' ? (
+                                <TmCard
+                                    move={r.move}
+                                    leader={r.leader}
+                                    team={squad}
+                                    selected={chosen === i}
+                                    onClick={() => pick(i)}
+                                />
+                            ) : (
+                                <button
+                                    type="button"
+                                    className={`card item-card${chosen === i ? ' selected' : ''}`}
+                                    onClick={() => pick(i)}
+                                >
+                                    <span className="tier-label">{t('reward.item')}</span>
+                                    <img className="pixel item-art" src={itemSprite(r.item)} alt="" />
+                                    <b className="card-name">{itemName(r.item)}</b>
+                                    <span className="tactic-desc">{itemDesc(r.item, lang)}</span>
+                                </button>
+                            )}
+                        </div>
+                    </Pack>
                 ))}
             </div>
 

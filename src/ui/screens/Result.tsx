@@ -14,6 +14,7 @@ import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { ChampionView } from '../components/ChampionView';
+import { CupGains } from '../components/CupGains';
 import { FutCard } from '../components/FutCard';
 import { cardSprite } from '../components/PokeCard';
 import { ResultHero } from '../components/ResultHero';
@@ -109,6 +110,7 @@ export function Result() {
 
     const actions = (
         <>
+            {eliminated && <CupGains run={run} />}
             <div className="row" style={{ justifyContent: 'center' }}>
                 {eliminated || champion ? (
                     <>
@@ -167,6 +169,16 @@ export function Result() {
                     opponent={opponent}
                     names={names}
                     mvpUid={ourStar?.uid ?? null}
+                    stats={[
+                        {
+                            label: t('result.rows.possession'),
+                            home: Math.round(match.possession[0] * 100),
+                            away: Math.round(match.possession[1] * 100),
+                            fmt: (v) => `${v}%`,
+                        },
+                        { label: t('result.rows.shots'), home: totals[0].shots, away: totals[1].shots },
+                        { label: t('result.rows.moves'), home: totals[0].movesUsed, away: totals[1].movesUsed },
+                    ]}
                     actions={actions}
                 />
             )}
