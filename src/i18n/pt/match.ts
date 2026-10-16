@@ -50,7 +50,10 @@ export const match = {
     vs: {
         yourTeam: 'Seu time',
         rival: 'Rival',
-        avg: 'média {n}',
+        avgShort: 'média',
+        leader: 'Líder {leader} · {city}',
+        elite: 'Elite dos Quatro',
+        final: 'Grande final',
         aria: '{home} contra {away}',
         start: 'Começar!',
         loading: 'Carregando a quadra…',

@@ -1,89 +1,62 @@
 import { type CSSProperties, useEffect, useRef } from 'react';
+import { CLUBS } from '../../engine/cup';
 import { species } from '../../engine/data';
 import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
 import type { TeamSetup } from '../../engine/state';
+import { GYM_TM } from '../../engine/tm';
 import { playSfx } from '../../game/audio';
 import { clubName, formationText } from '../../i18n';
-import { rich, useT } from '../../i18n/react';
-import { rivalColor } from '../../store/profile';
+import { useT } from '../../i18n/react';
+import { useGame } from '../../store/game-store';
+import { rivalColor, tagFromName } from '../../store/profile';
 import { useClubColor } from '../profile/club';
+import { reduceMotionOn } from '../settings-sync';
 import { cardSprite } from './PokeCard';
 import './versus.css';
 
 const AUTO_START_MS = 4500;
+/** Quando o VS bate na tela (casa com o atraso + 60% de `vsp-slam` no versus.css). */
+const SLAM_MS = 1000;
 const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 /** Tamanho natural moderado: o Pikachu fica um pouco menor que o Dragonite, sem sumir. */
 const sizeOf = (heightm: number) => Math.min(1.1, Math.max(0.86, 0.94 + 0.1 * Math.log2(Math.max(0.1, heightm))));
+/** Faixa da média igual à das cartas: bronze ≤64, prata 65–74, ouro 75+. */
+const tierOf = (n: number) => (n >= 75 ? 'gold' : n >= 65 ? 'silver' : 'bronze');
 
 /**
- * Onde cada Pokémon fica, do da frente (0, o capitão) ao do fundo: x/y = centro do pé em % da tela, h = altura.
- * Cada fila sobe rumo à linha sem cruzá-la (a linha é inclinada, então os lados não são espelho um do outro).
- * Paisagem: h em vh. Retrato (celular): h em vw; os da frente ficam cortados pela borda, como num pôster.
+ * Foto do time: o capitão na frente e no meio, os outros dois a dois atrás dele, cada fileira um pouco
+ * mais alta e menor. dx/dy/h em unidades da altura do capitão (`--u` no CSS).
  */
-type Spot = { x: number; y: number; h: number };
-const LAND: Record<'home' | 'away', Spot[]> = {
-    home: [
-        { x: 19, y: 110, h: 58 },
-        { x: 28, y: 85, h: 40 },
-        { x: 35, y: 67, h: 30 },
-        { x: 41, y: 55, h: 23 },
-        { x: 45, y: 44, h: 18 },
-    ],
-    away: [
-        { x: 81, y: 110, h: 58 },
-        { x: 70, y: 85, h: 40 },
-        { x: 64, y: 67, h: 30 },
-        { x: 60, y: 55, h: 23 },
-        { x: 58, y: 44, h: 18 },
-    ],
-};
-const PORT: Record<'home' | 'away', Spot[]> = {
-    home: [
-        { x: 10, y: 104, h: 62 },
-        { x: 16, y: 84, h: 44 },
-        { x: 24, y: 70, h: 34 },
-        { x: 30, y: 58, h: 27 },
-        { x: 36, y: 48, h: 21 },
-    ],
-    away: [
-        { x: 90, y: 104, h: 62 },
-        { x: 82, y: 84, h: 44 },
-        { x: 74, y: 70, h: 34 },
-        { x: 68, y: 58, h: 27 },
-        { x: 63, y: 48, h: 21 },
-    ],
-};
+const SLOTS = [
+    { dx: 0, dy: 0, h: 1 },
+    { dx: -0.62, dy: 0.14, h: 0.72 },
+    { dx: 0.62, dy: 0.14, h: 0.72 },
+    { dx: -1.08, dy: 0.3, h: 0.56 },
+    { dx: 1.08, dy: 0.3, h: 0.56 },
+];
 
-/**
- * Um time em fila diagonal com profundidade, como num pôster de filme: o capitão grande na frente
- * (cortado pela borda de baixo), os outros subindo rumo à linha e diminuindo. Todos encaram o rival.
- */
-function Crowd({ team, side }: { team: TeamSetup; side: 'home' | 'away' }) {
+function Squad({ team }: { team: TeamSetup }) {
     const order = team.lineup
         .map((p) => ({ p, ovr: viewInstance(p).overall }))
         .sort((a, b) => Number(b.p.uid === team.captainUid) - Number(a.p.uid === team.captainUid) || b.ovr - a.ovr)
         .map(({ p }) => p);
     return (
-        <div className={`vsp-crowd ${side}`}>
+        <div className="vsp-squad">
             {order.map((p, i) => {
-                const land = LAND[side][Math.min(i, 4)];
-                const port = PORT[side][Math.min(i, 4)];
-                const sz = sizeOf(species(p.speciesId).heightm);
+                const s = SLOTS[Math.min(i, SLOTS.length - 1)];
                 const style = {
-                    '--lx': `${land.x}%`,
-                    '--ly': `${land.y}%`,
-                    '--lh': `${land.h * sz}vh`,
-                    '--px': `${port.x}%`,
-                    '--py': `${port.y}%`,
-                    '--ph': `${port.h * sz}vw`,
-                    '--d': `${0.12 + (order.length - 1 - i) * 0.07}s`,
-                    zIndex: 30 - i,
+                    '--dx': s.dx,
+                    '--dy': s.dy,
+                    '--h': s.h * sizeOf(species(p.speciesId).heightm),
+                    // os de trás chegam primeiro, o capitão por último
+                    '--d': `${0.3 + (order.length - 1 - i) * 0.08}s`,
+                    zIndex: 10 - i,
                 } as CSSProperties;
                 return (
                     <img
                         key={p.uid}
-                        className={`vsp-mon pixel depth-${i}`}
+                        className={`vsp-mon pixel row-${Math.ceil(i / 2)}`}
                         style={style}
                         src={cardSprite(p)}
                         alt={viewInstance(p).displayName}
@@ -95,28 +68,52 @@ function Crowd({ team, side }: { team: TeamSetup; side: 'home' | 'away' }) {
     );
 }
 
-function Band({ team, side }: { team: TeamSetup; side: 'home' | 'away' }) {
-    const formation = formationOf(team.formation);
-    const avg = Math.round(team.lineup.reduce((s, p) => s + viewInstance(p).overall, 0) / team.lineup.length);
+function Side({
+    team,
+    side,
+    name,
+    tag,
+    label,
+}: {
+    team: TeamSetup;
+    side: 'home' | 'away';
+    name: string;
+    tag: string;
+    label: string;
+}) {
     const { t, d } = useT();
+    const avg = Math.round(team.lineup.reduce((s, p) => s + viewInstance(p).overall, 0) / team.lineup.length);
     return (
-        <div className={`vsp-band ${side}`}>
-            <div className="vsp-who">{side === 'home' ? t('match.vs.yourTeam') : t('match.vs.rival')}</div>
-            <div className="vsp-name">{side === 'home' ? team.name : clubName(team.name)}</div>
-            <div className="vsp-meta">
-                <span className="vsp-form">
-                    {formationText(formation.id).name} · {d.common.tactic[team.tactic]} ·{' '}
-                </span>
-                {rich(t('match.vs.avg'), { n: <b>{avg}</b> })}
+        <div className={`vsp-side is-${side}`}>
+            <div className="vsp-half" />
+            <div className="vsp-team">
+                <div className="vsp-head">
+                    <div className="vsp-crest" aria-hidden>
+                        <span>{tag}</span>
+                    </div>
+                    <div className="vsp-info">
+                        <div className="vsp-who">{label}</div>
+                        <div className="vsp-name">{name}</div>
+                        <div className="vsp-meta">
+                            {formationText(formationOf(team.formation).id).name} · {d.common.tactic[team.tactic]}
+                        </div>
+                    </div>
+                    <div className={`vsp-avg ${tierOf(avg)}`}>
+                        <b>{avg}</b>
+                        <small>{t('match.vs.avgShort')}</small>
+                    </div>
+                </div>
+                <Squad team={team} />
             </div>
         </div>
     );
 }
 
 /**
- * Tela de VERSUS antes de cada partida, estilo pôster de confronto: a tela partida por uma linha diagonal
- * de luz, cada time numa fila diagonal com profundidade encarando o outro, e o VS no alto da linha.
- * Tudo anima uma vez só (sem brilho infinito nem filtros pesados). Começa sozinha ou ao tocar.
+ * Tela de VERSUS antes de cada partida, estilo jogo de luta: a tela partida ao meio por uma linha de luz
+ * (lado a lado deitado, em cima e embaixo em pé), cada lado na cor do clube com escudo, média e os cinco
+ * titulares, e o VS batendo bem no centro (escala, tremor curto, clarão e som). A final contra a Liga
+ * Índigo ganha VS dourado e raios. Tudo anima uma vez só. Começa sozinha ou ao tocar.
  */
 export function VersusIntro({
     home,
@@ -136,9 +133,23 @@ export function VersusIntro({
     const done = useRef(onDone);
     done.current = onDone;
 
+    const club = CLUBS.find((c) => c.name === away.name);
+    const final = club?.city === 'Indigo Plateau';
+
+    // som do VS batendo; com "reduzir movimento" o VS já aparece no lugar, então o som vem junto
     useEffect(() => {
         playSfx('select');
-    }, []);
+        const slam = () => {
+            playSfx('shot', final ? 0.5 : 0.7);
+            if (final) playSfx('post', 0.6);
+        };
+        if (reduceMotionOn()) {
+            slam();
+            return;
+        }
+        const timer = window.setTimeout(slam, SLAM_MS);
+        return () => clearTimeout(timer);
+    }, [final]);
 
     useEffect(() => {
         if (!ready) return;
@@ -155,7 +166,10 @@ export function VersusIntro({
 
     // seu time sempre na cor do clube (Perfil); o rival no uniforme reserva se as cores baterem
     const homeColor = useClubColor();
+    const profile = useGame((s) => s.profile);
     const { t } = useT();
+    const awayName = clubName(away.name);
+    const leader = GYM_TM[away.name]?.leader;
     const style = {
         '--home': hex(homeColor),
         '--away': hex(rivalColor(homeColor, away.color)),
@@ -163,38 +177,53 @@ export function VersusIntro({
 
     return (
         <div
-            className="vs-overlay vsp"
+            className={`vs-overlay vsp${final ? ' is-final' : ''}`}
             style={style}
             role="dialog"
             aria-modal="true"
-            aria-label={t('match.vs.aria', { home: home.name, away: clubName(away.name) })}
+            aria-label={t('match.vs.aria', { home: home.name, away: awayName })}
         >
-            <div className="vsp-half home" />
-            <div className="vsp-half away" />
-            {/* a linha de luz: traços sobrepostos do largo/transparente ao fino/branco (brilho sem filtro) */}
-            <svg className="vsp-beam" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
-                {(
-                    [
-                        ['land', 60, 40],
-                        ['port', 64, 36],
-                    ] as const
-                ).map(([cls, x0, x1]) => (
-                    <g key={cls} className={cls}>
-                        {['glow-3', 'glow-2', 'glow-1', 'core'].map((c) => (
-                            <line key={c} className={c} x1={x0} y1={-2} x2={x1} y2={102} />
-                        ))}
-                    </g>
-                ))}
-            </svg>
-            <div className="vsp-light" />
-            <Crowd team={away} side="away" />
-            <Crowd team={home} side="home" />
-            <div className="vsp-shade" />
-            <Band team={home} side="home" />
-            <Band team={away} side="away" />
-            <div className="vs-stage vsp-stage">{stage}</div>
-            <div className="vsp-vs" aria-hidden>
-                VS
+            <div className="vsp-scene">
+                <Side
+                    team={away}
+                    side="away"
+                    name={awayName}
+                    tag={tagFromName(awayName)}
+                    label={
+                        final
+                            ? t('match.vs.elite')
+                            : leader && club
+                              ? t('match.vs.leader', { leader, city: club.city })
+                              : t('match.vs.rival')
+                    }
+                />
+                <Side
+                    team={home}
+                    side="home"
+                    name={home.name}
+                    tag={home.name === profile.clubName ? profile.clubTag : tagFromName(home.name)}
+                    label={t('match.vs.yourTeam')}
+                />
+                {/* a linha de luz: traços sobrepostos do largo/transparente ao fino/branco (brilho sem filtro) */}
+                <svg className="vsp-beam" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
+                    {(
+                        [
+                            ['land', 54, -2, 46, 102],
+                            ['port', -2, 53, 102, 47],
+                        ] as const
+                    ).map(([cls, x1, y1, x2, y2]) => (
+                        <g key={cls} className={cls}>
+                            {['glow-2', 'glow-1', 'core'].map((c) => (
+                                <line key={c} className={c} x1={x1} y1={y1} x2={x2} y2={y2} />
+                            ))}
+                        </g>
+                    ))}
+                </svg>
+                <div className="vsp-burst" aria-hidden />
+                <div className="vsp-vs" aria-hidden>
+                    VS
+                </div>
+                <div className="vs-stage vsp-stage">{final ? t('match.vs.final') : stage}</div>
             </div>
             <div className="vsp-flash" />
             <button type="button" className="btn primary vs-start" onClick={onDone}>

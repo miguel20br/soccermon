@@ -50,7 +50,10 @@ export const match: typeof pt = {
     vs: {
         yourTeam: 'Your team',
         rival: 'Rival',
-        avg: 'avg {n}',
+        avgShort: 'avg',
+        leader: 'Leader {leader} · {city}',
+        elite: 'Elite Four',
+        final: 'Grand final',
         aria: '{home} vs {away}',
         start: 'Kick off!',
         loading: 'Loading the court…',
