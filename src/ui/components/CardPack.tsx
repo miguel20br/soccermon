@@ -67,10 +67,22 @@ export function CardPack({
     const stageRef = useRef<HTMLDivElement>(null);
     const btnFocused = useRef(false);
     const tm = fast ? TIMING.fast : compact ? TIMING.compact : TIMING.full;
+    // só abre quando o pacote está à vista (no celular o draft ainda está rolando até as cartas)
+    const [inView, setInView] = useState(false);
+    useEffect(() => {
+        const el = stageRef.current;
+        if (!el || typeof IntersectionObserver === 'undefined') return setInView(true);
+        const io = new IntersectionObserver(([e]) => setInView(e.intersectionRatio >= 0.35), {
+            threshold: [0, 0.35, 1],
+        });
+        io.observe(el);
+        return () => io.disconnect();
+    }, []);
 
     // biome-ignore lint/correctness/useExhaustiveDependencies: a sequência roda a cada abertura (fase ou cartas novas)
     useLayoutEffect(() => {
         if (phase !== 'opening' && phase !== 'flip') return;
+        if (!inView) return;
         const stage = stageRef.current;
         if (!stage) return;
         const cards = [...stage.querySelectorAll<HTMLElement>('.cpack-card')];
@@ -106,7 +118,7 @@ export function CardPack({
         return () => {
             for (const id of timers) clearTimeout(id);
         };
-    }, [phase, revealKey]);
+    }, [phase, revealKey, inView]);
 
     // quem abriu pelo teclado continua no lugar: o foco passa pra 1ª carta
     useEffect(() => {
