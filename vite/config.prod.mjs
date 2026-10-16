@@ -3,7 +3,8 @@ import { defineConfig } from 'vite';
 import pkg from '../package.json' with { type: 'json' };
 
 export default defineConfig({
-    base: './',
+    // raiz do site (soccermon.com): com './' as URLs absolutas do CSS viravam assets/assets/...
+    base: '/',
     plugins: [react()],
     // NEXT_PUBLIC_*: variáveis públicas que a integração Supabase da Vercel cria (URL e chave publicável)
     envPrefix: ['VITE_', 'NEXT_PUBLIC_'],
