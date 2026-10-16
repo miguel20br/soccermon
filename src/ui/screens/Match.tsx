@@ -89,6 +89,18 @@ export function Match() {
     const latest = useRef<MatchResult | null>(match);
     const recorded = useRef(false);
     const tickRef = useRef(0);
+    const scoreboardRef = useRef<HTMLDivElement>(null);
+    const subPanelRef = useRef<HTMLDivElement>(null);
+    // celular deitado: placar no topo da tela pra quadra caber inteira (depois do scrollTo(0) do App)
+    useEffect(() => {
+        if (!window.matchMedia('(orientation: landscape) and (max-height: 520px)').matches) return;
+        const id = requestAnimationFrame(() => scoreboardRef.current?.scrollIntoView({ block: 'start' }));
+        return () => cancelAnimationFrame(id);
+    }, []);
+    // painel de substituição pode abrir abaixo da dobra (deitado): traz pra tela
+    useEffect(() => {
+        if (subOpen) subPanelRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }, [subOpen]);
 
     const opponent = run?.opponents[run.stage];
     // cor do seu clube (Perfil); o rival troca para o uniforme reserva se a cor dele for parecida
@@ -325,7 +337,7 @@ export function Match() {
             {!introDone && (
                 <VersusIntro home={lockedSetup} away={opponent} stage={stage} ready={sceneReady} onDone={finishIntro} />
             )}
-            <div className="scoreboard">
+            <div className="scoreboard" ref={scoreboardRef}>
                 <div className="sb-team">
                     <i style={{ background: hex(colors[0]) }} />
                     <span className={`sb-name${teamNames[0].length > 10 ? ' has-tag' : ''}`}>{teamNames[0]}</span>
@@ -374,7 +386,7 @@ export function Match() {
                         </div>
                     )}
                     {subOpen && canSub && (
-                        <div className="panel sub-panel">
+                        <div className="panel sub-panel" ref={subPanelRef}>
                             <div className="sub-head">
                                 <b>{subOut ? t('match.whoIn', { name: nameOf(subOut) }) : t('match.whoOut')}</b>
                                 <button

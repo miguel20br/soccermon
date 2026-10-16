@@ -1,4 +1,4 @@
-import { Fragment, type ReactNode, useEffect, useMemo, useState } from 'react';
+import { Fragment, type ReactNode, useMemo, useState } from 'react';
 import { fmt } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
@@ -72,9 +72,6 @@ export function Help() {
     const index = useMemo(() => searchIndex(lang), [lang]);
     const [query, setQuery] = useState('');
     const [tipsReset, setTipsReset] = useState(false);
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, []);
     const q = normalize(query.trim());
     const terms = q.split(/\s+/).filter(Boolean);
     const match = (text: string) => terms.every((t) => text.includes(t));

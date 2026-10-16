@@ -704,6 +704,7 @@ img.pixel {
 }
 .tp-tab {
     min-width: 0;
+    min-height: 40px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -721,6 +722,8 @@ img.pixel {
     color: var(--yellow);
 }
 .tp-toggle {
+    min-width: 40px;
+    min-height: 40px;
     padding: 4px 6px;
     border: 0;
     background: none;
@@ -1341,6 +1344,7 @@ button,
 }
 .feed-toggle {
     display: none;
+    min-height: 40px;
     background: none;
     border: 0;
     color: var(--muted);
@@ -5228,7 +5232,7 @@ a.home-tile {
         padding: 4px 12px;
     }
     .pitch-wrap {
-        width: min(100%, calc((100svh - 64px) * 968 / 528));
+        width: min(100%, calc((100svh - 80px) * 968 / 528));
         margin-inline: auto;
     }
     /* Home deitada: sem a quadra e com logo menor, pro "Nova copa" caber na primeira tela */

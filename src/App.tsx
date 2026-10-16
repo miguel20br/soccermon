@@ -50,6 +50,12 @@ export default function App() {
         setVolume(settings.volume);
     }, [settings.volume]);
 
+    // tela nova abre no topo (sem isso a partida abria rolada lá embaixo, onde ficava o "Jogar")
+    // biome-ignore lint/correctness/useExhaustiveDependencies: roda a cada troca de tela
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [screen]);
+
     useEffect(() => {
         // espera o save do IndexedDB carregar antes de montar a demo
         const unsub = useGame.persist.onFinishHydration(() => runDevDemo());
