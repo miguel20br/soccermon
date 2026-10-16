@@ -76,6 +76,10 @@ const IMPACT: Record<ImpactLevel, { stop: number; shake: [number, number]; flash
     hit: { stop: 90, shake: [320, 0.007], flash: 180 },
     boom: { stop: 170, shake: [480, 0.012], flash: 260 },
 };
+/** Catmull-Rom: passa por p1 (t=0) e p2 (t=1) usando os vizinhos para a curva. */
+const catmull = (p0: number, p1: number, p2: number, p3: number, t: number) =>
+    0.5 * (2 * p1 + (p2 - p0) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (3 * p1 - p0 - 3 * p2 + p3) * t * t * t);
+
 /** Ticks antes de um gol em que a partida cai para no máximo 1x (o gol é assistido em qualquer velocidade). */
 const GOAL_LEAD = 16;
 
@@ -317,6 +321,9 @@ export class MatchScene extends Phaser.Scene {
     private trailG!: Phaser.GameObjects.Graphics;
     private trail: { x: number; y: number; tick: number }[] = [];
     private ballFree = false;
+    /** Escala extra da bola no chute/quique (o "peso" do contato), animada por tween. */
+    private ballPop = { v: 1 };
+    private lastBz = 0;
     private ballColor = 0xffffff;
     private lastBall = { x: 0, y: 0 };
     private dives: DiveInfo[] = [];
@@ -963,11 +970,17 @@ export class MatchScene extends Phaser.Scene {
         const focusPos = new Map<number, { x: number; y: number }>();
         const diveOf = new Map<number, { x: number; y: number; facing: number }>();
         const pxOf: { x: number; y: number }[] = [];
+        // curva suave (Catmull-Rom) entre os snapshots vizinhos: sem os "quinas" da reta a cada 2 ticks
+        const prev = this.snaps[Math.max(0, index - 1)];
+        const next = this.snaps[Math.min(index + 2, this.snaps.length - 1)];
+        const smooth = lerpOk && prev.phase === a.phase && next.phase === b.phase;
         for (let i = 0; i < this.players.length; i++) {
             const view = this.players[i];
             const o = i * SNAP_STRIDE;
-            const x = a.p[o] + (b.p[o] - a.p[o]) * k;
-            const y = a.p[o + 1] + (b.p[o + 1] - a.p[o + 1]) * k;
+            const x = smooth ? catmull(prev.p[o], a.p[o], b.p[o], next.p[o], k) : a.p[o] + (b.p[o] - a.p[o]) * k;
+            const y = smooth
+                ? catmull(prev.p[o + 1], a.p[o + 1], b.p[o + 1], next.p[o + 1], k)
+                : a.p[o + 1] + (b.p[o + 1] - a.p[o + 1]) * k;
             const { facing, action } = this.steadyPose(index + (k < 0.5 ? 0 : 1), o);
             const px = toPx(x, y);
             pxOf[i] = px;
@@ -1065,7 +1078,10 @@ export class MatchScene extends Phaser.Scene {
         // bola cruzada: sobe (afasta da sombra) e cresce, como se viesse na direção da câmera
         const bz = Math.max(0, (a.bz ?? 0) + ((b.bz ?? 0) - (a.bz ?? 0)) * k);
         const lift = bz * PPM * 0.9;
-        this.ball.setPosition(bp.x, bp.y - 4 - lift).setScale(1 + bz * 0.3);
+        // quique: a bola que vinha no alto e toca o chão amassa um instante e solta poeira
+        if (this.lastBz > 0.25 && bz < 0.03) this.kickPop(bp.x, bp.y, 0.75, 4);
+        this.lastBz = bz;
+        this.ball.setPosition(bp.x, bp.y - 4 - lift).setScale((1 + bz * 0.3) * this.ballPop.v);
         this.ballShadow
             .setPosition(bp.x + 2, bp.y + 2)
             .setDepth(bp.y - 3)
@@ -1249,9 +1265,13 @@ export class MatchScene extends Phaser.Scene {
                 break;
             case 'pass':
                 playSfx('kick');
+                this.kickPop(this.ball.x, this.ball.y + 4, 1.25, 3);
                 break;
             case 'shot':
                 playSfx('shot');
+                // chute: estalo maior, mais poeira e um toque na câmera quando é chute forte
+                this.kickPop(this.ball.x, this.ball.y + 4, 1.45, 6);
+                if (e.xg >= 0.25) this.punch('touch');
                 break;
             case 'save': {
                 playSfx('save');
@@ -1774,6 +1794,27 @@ export class MatchScene extends Phaser.Scene {
             .setDepth(FOCUS_DEPTH + 80);
         this.tweens.add({ targets: ring, scale: 2.6, alpha: 0, duration: 420, onComplete: () => ring.destroy() });
         this.punch('touch');
+    }
+
+    /** Contato com a bola: ela "estala" (cresce e volta) e levanta poeira no chão. */
+    private kickPop(x: number, y: number, scale: number, dust: number) {
+        this.tweens.killTweensOf(this.ballPop);
+        this.ballPop.v = scale;
+        this.tweens.add({ targets: this.ballPop, v: 1, duration: 160, ease: 'Quad.easeOut' });
+        for (let i = 0; i < dust; i++) {
+            const ang = (i / dust) * Math.PI * 2 + Math.random() * 0.6;
+            const puff = this.add.circle(x, y, 1.5 + Math.random() * 1.5, 0xe8d8b8, 0.7).setDepth(y - 2);
+            this.tweens.add({
+                targets: puff,
+                x: x + Math.cos(ang) * (8 + Math.random() * 6),
+                y: y + Math.sin(ang) * 3.5,
+                alpha: 0,
+                scale: 1.8,
+                duration: 260 + Math.random() * 120,
+                ease: 'Quad.easeOut',
+                onComplete: () => puff.destroy(),
+            });
+        }
     }
 
     /** Aplica um nível de impacto: pausa curta (tempo real), tremida que decai e clarão. */
