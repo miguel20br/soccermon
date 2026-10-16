@@ -1,0 +1,32 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(0.2, 0.9, 0.3, 1.2)",
+        "createdAt": "2026-10-16T21:24:50.940Z",
+        "reason": "Claude: overshoot curto intencional (juice de jogo: carta virando, +N do draft, selo do craque, pacote), do plano docs/planos/jogo-gostoso.md aprovado pelo Miguel"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(0.2, 0.9, 0.3, 1.3)",
+        "createdAt": "2026-10-16T21:24:50.947Z",
+        "reason": "Claude: overshoot curto intencional (juice de jogo: carta virando, +N do draft, selo do craque, pacote), do plano docs/planos/jogo-gostoso.md aprovado pelo Miguel"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(0.2, 0.9, 0.3, 1.4)",
+        "createdAt": "2026-10-16T21:24:50.956Z",
+        "reason": "Claude: overshoot curto intencional (juice de jogo: carta virando, +N do draft, selo do craque, pacote), do plano docs/planos/jogo-gostoso.md aprovado pelo Miguel"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(0.2, 0.9, 0.3, 1.5)",
+        "createdAt": "2026-10-16T21:24:50.963Z",
+        "reason": "Claude: overshoot curto intencional (juice de jogo: carta virando, +N do draft, selo do craque, pacote), do plano docs/planos/jogo-gostoso.md aprovado pelo Miguel"
+      }
+    ]
+  }
+}
