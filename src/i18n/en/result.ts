@@ -95,4 +95,12 @@ export const result: typeof pt = {
         team: 'Team: {squad}',
         challenge: 'Take on the same cup: {url}',
     },
+    card: {
+        topScorer: 'TOP SCORER',
+        perfect: 'PERFECT CUP · 0 goals conceded',
+        pens: 'pens {a}x{b}',
+        download: 'Download:',
+        story: 'Image 9:16',
+        square: 'Image 1:1',
+    },
 };

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { species } from '../../engine/data';
 import {
     dangerByPeriod,
@@ -17,7 +17,9 @@ import { FutCard } from '../components/FutCard';
 import { cardSprite } from '../components/PokeCard';
 import { ResultHero } from '../components/ResultHero';
 import { FEEDBACK_URL } from '../links';
+import { useClubColor } from '../profile/club';
 import { shareRun } from '../share';
+import { type CardFormat, downloadBlob, shareCardBlob } from '../share-card';
 import { CupStats } from '../stats/CupStats';
 import { PlayerTable } from '../stats/PlayerTable';
 import {
@@ -41,6 +43,21 @@ export function Result() {
     const { run, match, advance, newRun } = useGame();
     const { t, tn, d } = useT();
     const [shared, setShared] = useState<string | null>(null);
+    const clubColor = useClubColor();
+    // card do título pronto antes do toque: o menu de compartilhar exige o gesto recente do jogador
+    const [card, setCard] = useState<Blob | null>(null);
+    useEffect(() => {
+        setCard(null);
+        if (run?.status !== 'champion') return;
+        let live = true;
+        shareCardBlob(run, 'story', clubColor).then(
+            (b) => live && setCard(b),
+            () => {}, // sem imagem, o Compartilhar segue só com o texto
+        );
+        return () => {
+            live = false;
+        };
+    }, [run, clubColor]);
     // fim da copa: abre direto no resumo da copa
     const [tab, setTab] = useState<Tab>(() =>
         run && ['eliminated', 'champion'].includes(run.status) ? 'copa' : 'times',
@@ -78,10 +95,14 @@ export function Result() {
     const champion = run.status === 'champion';
     const eliminated = run.status === 'eliminated';
     const share = async () => {
-        const res = await shareRun(run);
+        const res = await shareRun(run, card);
         setShared(
             res === 'copied' ? t('result.copied') : res === 'shared' ? t('result.shared') : t('result.shareFailed'),
         );
+    };
+    const download = async (format: CardFormat) => {
+        const blob = await shareCardBlob(run, format, clubColor);
+        downloadBlob(blob, `soccermon-${format === 'story' ? '9x16' : '1x1'}.png`);
     };
 
     const actions = (
@@ -106,6 +127,17 @@ export function Result() {
                 )}
             </div>
             {shared && <div className="muted">{shared}</div>}
+            {champion && (
+                <div className="row" style={{ justifyContent: 'center', alignItems: 'center' }}>
+                    <span className="muted">{t('result.card.download')}</span>
+                    <button type="button" className="btn ghost small" onClick={() => download('story')}>
+                        {t('result.card.story')}
+                    </button>
+                    <button type="button" className="btn ghost small" onClick={() => download('square')}>
+                        {t('result.card.square')}
+                    </button>
+                </div>
+            )}
             {(eliminated || champion) && (
                 <div className="row" style={{ justifyContent: 'center' }}>
                     <a
