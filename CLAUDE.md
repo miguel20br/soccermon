@@ -21,6 +21,9 @@ você é o Claude e `git log` mostrar commits com `miguelcunhabr@`, avise o Migu
   começar assim, é sinal de contexto degradado.
 - Português do Brasil, informal. Ele é fã enorme de Pokémon: pode usar jargão (BST, learnset, cries, Gen 1, PMD)
   sem explicar. Nada de alerta jurídico alarmista: ele sabe que é fan game.
+- **Navegador:** teste do jogo sempre headless (Playwright `headless: true`); janela visível rouba o foco
+  dele. Contas pessoais (TikTok, LinkedIn…) ficam no Brave, que o Claude não controla; para o Claude in Chrome
+  ele vai criar um perfil pessoal no Chrome (16/10/2026). Pergunte qual navegador antes de usar.
 - Antes de planejar algo grande e novo, ele gosta de uma pesquisa ampla de referências (repos do GitHub, libs,
   assets, skills de game design).
 
