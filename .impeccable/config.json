@@ -26,6 +26,12 @@
         "value": "cubic-bezier(0.2, 0.9, 0.3, 1.5)",
         "createdAt": "2026-10-16T21:24:50.963Z",
         "reason": "Claude: overshoot curto intencional (juice de jogo: carta virando, +N do draft, selo do craque, pacote), do plano docs/planos/jogo-gostoso.md aprovado pelo Miguel"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(0.2, 0.9, 0.3, 1.15)",
+        "createdAt": "2026-10-16T23:57:51.473Z",
+        "reason": "Claude: overshoot curto das cartas saindo do pacote, mesma família das exceções já registradas (plano jogo-gostoso aprovado pelo Miguel)"
       }
     ]
   }
