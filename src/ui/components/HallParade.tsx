@@ -71,11 +71,7 @@ export function HallList() {
     return (
         <ol className="hall-list">
             {hall.map((h) => (
-                <li
-                    key={h.id}
-                    className="hall-card"
-                    style={clubVars(clubColorHex(h.clubColor))}
-                >
+                <li key={h.id} className="hall-card" style={clubVars(clubColorHex(h.clubColor))}>
                     <div className="hall-head">
                         <b>{t('title.hall.entry', { n: h.titleNo })}</b>
                         <span className="muted">
