@@ -191,7 +191,8 @@ export const DEFAULT_SETTINGS: Settings = {
     volume: 0.6,
     criesVolume: 1,
     sfxVolume: 1,
-    speed: 1,
+    // 1x deixava a partida com ~13 min; 4x é o ritmo de quem chega (cada um muda na partida ou em Configurações)
+    speed: 4,
     cinematic: true,
     namesOnField: 'all',
     reduceMotion: 'system',

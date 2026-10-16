@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FUTSAL_5 } from '../../engine/config';
+import { CUP_STAGES } from '../../engine/cup';
+import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import {
@@ -7,6 +9,7 @@ import {
     type MatchEvent,
     type MatchOrder,
     type Phase,
+    SNAP_STRIDE,
     TACTIC_LABEL,
     type Tactic,
 } from '../../engine/state';
@@ -20,13 +23,16 @@ import { type PlaybackSpeed, playerTeam, useGame } from '../../store/game-store'
 import { rivalColor, tagFromName } from '../../store/profile';
 import { Commentator, type CommentLine } from '../commentary';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
+import { HalftimePanel } from '../components/HalftimePanel';
 import { MatchHighlight } from '../components/MatchHighlight';
 import { PlayerInspect } from '../components/PlayerInspect';
 import { cardSprite } from '../components/PokeCard';
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
 import { LeaveConfirm } from '../leave-guard';
+import { snapAt } from '../match-view';
 import { useClubColor } from '../profile/club';
+import { ratingAt } from '../rating';
 import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
 
@@ -72,6 +78,9 @@ export function Match() {
     /** Substituições que já aconteceram em campo (uid de quem entrou). */
     const [subsDone, setSubsDone] = useState<string[]>([]);
     const [subOpen, setSubOpen] = useState(false);
+    /** A partida está parada no intervalo esperando o técnico. */
+    const [halftime, setHalftime] = useState(false);
+    const halftimeRef = useRef<HTMLDivElement>(null);
     const [subOut, setSubOut] = useState<string | null>(null);
     const [pending, setPending] = useState(false);
     /** A cena Phaser só escuta comandos depois de carregar; até lá os controles ficam travados. */
@@ -97,6 +106,9 @@ export function Match() {
         const id = requestAnimationFrame(() => scoreboardRef.current?.scrollIntoView({ block: 'start' }));
         return () => cancelAnimationFrame(id);
     }, []);
+    useEffect(() => {
+        if (halftime) halftimeRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }, [halftime]);
     // painel de substituição pode abrir abaixo da dobra (deitado): traz pra tela
     useEffect(() => {
         if (subOpen) subPanelRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -135,6 +147,7 @@ export function Match() {
                       extraSpecies: [...(run?.picks ?? []), ...(opponent?.bench ?? [])].map((p) => p.speciesId),
                       startPaused: true,
                       startTick: resume?.tick || undefined,
+                      final: run?.stage === CUP_STAGES.length - 1,
                   }
                 : null,
         [match?.seed],
@@ -213,7 +226,11 @@ export function Match() {
                 useGame.getState().saveLive({ tick: Math.floor(t.tick) });
             }
         };
-        const onEnded = () => setEnded(true);
+        const onEnded = () => {
+            setEnded(true);
+            setHalftime(false);
+        };
+        const onHalftime = () => setHalftime(true);
         const onReady = () => {
             setSceneReady(true);
             // VERSUS já foi embora antes de a quadra carregar: começa direto
@@ -225,7 +242,9 @@ export function Match() {
         EventBus.on('match:event', onEvent);
         EventBus.on('match:tick', onTick);
         EventBus.on('match:ended', onEnded);
+        EventBus.on('match:halftime', onHalftime);
         return () => {
+            EventBus.off('match:halftime', onHalftime);
             EventBus.off('match:event', onEvent);
             EventBus.off('match:tick', onTick);
             EventBus.off('match:ended', onEnded);
@@ -299,6 +318,9 @@ export function Match() {
         const j = benchNow.indexOf(o.inUid);
         if (j >= 0) benchNow.splice(j, 1);
     }
+    const slots = formationOf(lockedSetup.formation).slots;
+    /** Fôlego (0..1) agora de quem está na vaga `i` do seu time. */
+    const energyAt = (i: number) => snapAt(match.snapshots, tickRef.current).p[i * SNAP_STRIDE + 6] ?? 1;
     const pendingSub = subOrders.find((o) => !subsDone.includes(o.inUid)) ?? null;
     const canSub = canChangeTactic && !pendingSub && subOrders.length < lockedSetup.bench.length && benchNow.length > 0;
     const orderSub = (outUid: string, inUid: string) => {
@@ -377,6 +399,27 @@ export function Match() {
                             tactics={[currentTactic, opponent.tactic]}
                         />
                     </div>
+                    {halftime && (
+                        <div ref={halftimeRef}>
+                            <HalftimePanel
+                                match={match}
+                                names={teamNames}
+                                nameOf={(idx) => {
+                                    const ht = match.events.find((e) => e.type === 'halftime')?.tick ?? 0;
+                                    const sub = match.events
+                                        .filter((e) => e.type === 'sub' && e.outIdx === idx && e.tick <= ht)
+                                        .at(-1);
+                                    return sub && sub.type === 'sub' ? sub.in : match.roster[idx].name;
+                                }}
+                                canSub={canSub}
+                                onSub={() => setSubOpen(true)}
+                                onContinue={() => {
+                                    setHalftime(false);
+                                    EventBus.emit('match:resume');
+                                }}
+                            />
+                        </div>
+                    )}
                     {pendingSub && (
                         <div className="sub-pending">
                             {rich(t('match.subPending'), {
@@ -401,6 +444,11 @@ export function Match() {
                                 {(subOut ? benchNow : onField).map((uid) => {
                                     const p = byUid.get(uid);
                                     if (!p) return null;
+                                    // quem sai: posição e fôlego agora; quem entra: a nota na vaga de quem sai
+                                    const slot = onField.indexOf(subOut ?? uid);
+                                    const role = slots[slot];
+                                    const r = role ? ratingAt(p, role) : null;
+                                    const energy = subOut ? null : energyAt(slot);
                                     return (
                                         <button
                                             key={uid}
@@ -410,7 +458,17 @@ export function Match() {
                                         >
                                             <img className="pixel" src={cardSprite(p)} alt="" />
                                             <span>{nameOf(uid)}</span>
-                                            <small>{viewInstance(p).overall}</small>
+                                            <small className={`slot-rating ${r?.fit ?? ''}`}>
+                                                {role && `${d.common.pos[role]} `}
+                                                {r?.display ?? viewInstance(p).overall}
+                                            </small>
+                                            {energy !== null && (
+                                                <i
+                                                    className="sub-energy"
+                                                    title={t('team.panel.staminaPct', { n: Math.round(energy * 100) })}
+                                                    style={{ '--e': energy } as React.CSSProperties}
+                                                />
+                                            )}
                                         </button>
                                     );
                                 })}

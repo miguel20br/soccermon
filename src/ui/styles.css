@@ -1511,6 +1511,10 @@ button,
     .control-group:last-child {
         grid-template-columns: 1fr;
     }
+    /* velocidades (1x 2x 4x 8x Lances) numa linha só */
+    .control-group:first-child {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
     .result-hero .big-score {
         font-size: 40px;
     }
@@ -3041,6 +3045,74 @@ button,
 }
 .sub-pick small {
     color: var(--yellow);
+}
+.sub-pick small.alt {
+    color: #ffcb05;
+}
+.sub-pick small.off {
+    color: #ff6b4c;
+}
+/* fôlego de quem pode sair: barra que esvazia e muda de cor */
+.sub-energy {
+    width: 100%;
+    height: 5px;
+    border-radius: 3px;
+    background:
+        linear-gradient(
+            90deg,
+            color-mix(in srgb, #58c26b calc(var(--e) * 100%), #ff6b4c) calc(var(--e) * 100%),
+            transparent 0
+        ),
+        rgb(0 0 0 / 35%);
+}
+
+/* intervalo: o técnico decide antes do 2º tempo */
+.ht-panel {
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 14px;
+    border: 2px solid var(--yellow);
+    border-radius: 12px;
+    background: var(--panel);
+    text-align: center;
+}
+.ht-title {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    color: var(--yellow);
+    letter-spacing: 1px;
+}
+.ht-score {
+    font-size: 20px;
+}
+.ht-stats {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 16px;
+    margin: 0;
+}
+.ht-stats div {
+    display: grid;
+}
+.ht-stats dt {
+    color: var(--muted);
+    font-size: 11px;
+}
+.ht-stats dd {
+    margin: 0;
+    font-weight: 700;
+}
+.ht-tip {
+    margin: 0;
+    max-width: 46ch;
+}
+.ht-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
 }
 .evolved-card {
     display: grid;

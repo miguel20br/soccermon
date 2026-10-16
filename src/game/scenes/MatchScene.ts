@@ -61,7 +61,23 @@ export interface MatchSceneData {
     startPaused?: boolean;
     /** Retomando uma partida: começa deste tick (os eventos anteriores são aplicados sem animação). */
     startTick?: number;
+    /** Final da copa: gol vale "explosão". */
+    final?: boolean;
 }
+
+/**
+ * Impacto, a régua única de "peso" dos lances (docs/planos/jogo-gostoso.md): todo efeito escolhe um nível em vez de
+ * inventar tremida própria. Pausa (hit-stop, tempo real), tremida que decai e clarão crescem com a importância.
+ */
+export type ImpactLevel = 'whisper' | 'touch' | 'hit' | 'boom';
+const IMPACT: Record<ImpactLevel, { stop: number; shake: [number, number]; flash: number }> = {
+    whisper: { stop: 0, shake: [0, 0], flash: 0 },
+    touch: { stop: 0, shake: [140, 0.003], flash: 0 },
+    hit: { stop: 90, shake: [320, 0.007], flash: 180 },
+    boom: { stop: 170, shake: [480, 0.012], flash: 260 },
+};
+/** Ticks antes de um gol em que a partida cai para no máximo 1x (o gol é assistido em qualquer velocidade). */
+const GOAL_LEAD = 16;
 
 type PenaltyEvent = Extract<MatchEvent, { type: 'penalty' }>;
 
@@ -317,6 +333,8 @@ export class MatchScene extends Phaser.Scene {
     private recentImportantTick = Number.NEGATIVE_INFINITY;
     private importantTicks: number[] = [];
     private dramaTicks: number[] = [];
+    private goalTicks: number[] = [];
+
     /** Disputa de pênaltis (acontece depois do último snapshot: a cena anima sozinha). */
     private penalties: PenaltyEvent[] = [];
     private fulltimeTick = Number.POSITIVE_INFINITY;
@@ -433,6 +451,7 @@ export class MatchScene extends Phaser.Scene {
         this.lastEventTick = this.matchEvents.at(-1)?.tick ?? 0;
         this.importantTicks = this.matchEvents.filter((e) => IMPORTANT.has(e.type)).map((e) => e.tick);
         this.dramaTicks = this.matchEvents.filter((e) => DRAMA.has(e.type)).map((e) => e.tick);
+        this.goalTicks = this.matchEvents.filter((e) => e.type === 'goal').map((e) => e.tick);
         this.penalties = this.matchEvents.filter((e): e is PenaltyEvent => e.type === 'penalty');
         this.dives = this.matchEvents.flatMap((e) => (e.type === 'save' ? [{ tick: e.tick, gk: e.by, at: null }] : []));
         this.fulltimeTick = this.matchEvents.find((e) => e.type === 'fulltime')?.tick ?? Number.POSITIVE_INFINITY;
@@ -906,6 +925,9 @@ export class MatchScene extends Phaser.Scene {
         }
         // a disputa de pênaltis sempre em ritmo assistível, em qualquer velocidade
         if (this.penalties.length > 0 && this.playTick >= this.fulltimeTick) base = Math.min(base, 1.25);
+        // gol chegando: cai para 1x mesmo em 8x (81% jogam em 8x e perdiam o lance)
+        const goal = this.goalTicks.find((t) => t >= this.playTick);
+        if (goal !== undefined && goal - this.playTick <= GOAL_LEAD) base = Math.min(base, 1);
         if (!this.md.cinematic) return base;
         // câmera lenta chegando no gol/trave/defesa
         const next = this.dramaTicks.find((t) => t >= this.playTick);
@@ -1208,6 +1230,11 @@ export class MatchScene extends Phaser.Scene {
         // Ditto vira a cópia; ao vivo quem troca é a animação de Transformar (pisca em branco antes, ver abaixo)
         if (e.type === 'transform' && silent) this.becomeCopy(e.by, e.into, e.target);
         if (silent) return;
+        // intervalo: a partida para e o técnico decide (tática, substituição) antes do 2º tempo
+        if (e.type === 'halftime') {
+            this.paused = true;
+            EventBus.emit('match:halftime');
+        }
         const cries = this.md.cries;
         const cinematic = this.md.cinematic;
         switch (e.type) {
@@ -1252,13 +1279,14 @@ export class MatchScene extends Phaser.Scene {
                 break;
             }
             case 'goal': {
-                playSfx('goal');
+                // seu gol: sobe um semitom a cada gol no jogo (o 3º soa mais alto que o 1º)
+                playSfx('goal', e.team === 0 ? 2 ** ((e.score[0] - 1) / 12) : 0.9);
                 const scorer = this.players[e.by];
                 if (scorer) {
                     playCry(scorer.speciesId, cries, 1.2);
                     this.highlight(e.ownGoal ? 'owngoal' : 'goal', scorer);
                 }
-                this.cameras.main.flash(250, 255, 255, 255);
+                this.punch(this.goalLevel(e));
                 const color = Phaser.Display.Color.IntegerToColor(this.md.colors[e.team]).rgba;
                 if (cinematic) {
                     this.cine.drama(e.ownGoal ? tr('battle.ownGoal') : tr('battle.goal'), {
@@ -1267,10 +1295,7 @@ export class MatchScene extends Phaser.Scene {
                         at: { x: this.ball.x, y: this.ball.y },
                         sub: scorer ? scorer.name : undefined,
                     });
-                } else {
-                    this.cameras.main.shake(350, 0.006);
-                    this.goalBanner(color);
-                }
+                } else this.goalBanner(color);
                 break;
             }
             case 'move': {
@@ -1323,6 +1348,7 @@ export class MatchScene extends Phaser.Scene {
                 else if (e.effectiveness !== null && e.effectiveness >= 1.12) {
                     this.battleBox.push(tr('battle.superEffective'));
                     if (e.target !== null) this.popText(e.target, tr('battle.superPop'), '#ffd447');
+                    this.punch('touch');
                 } else if (e.effectiveness !== null && e.effectiveness < 1)
                     this.battleBox.push(tr('battle.notVeryEffective'));
                 break;
@@ -1443,7 +1469,7 @@ export class MatchScene extends Phaser.Scene {
                             onComplete: () => bit.destroy(),
                         });
                     }
-                    cam.shake(260, 0.008);
+                    this.punch('hit');
                     this.cine.drama(tr('battle.transformBig'), {
                         color: '#d9a7ff',
                         stroke: '#2a0b4a',
@@ -1516,7 +1542,7 @@ export class MatchScene extends Phaser.Scene {
                 if ((e.fx === 'fly' || e.fx === 'dig' || e.fx === 'land' || e.fx === 'bide') && view) {
                     this.impact(view.sprite.x, view.sprite.y - 8, type);
                 }
-                if (e.fx === 'crit' || e.fx === 'wallBlock' || e.fx === 'bide') this.cameras.main.shake(180, 0.004);
+                if (e.fx === 'crit' || e.fx === 'wallBlock' || e.fx === 'bide') this.punch('touch');
                 break;
             }
             case 'decoy': {
@@ -1747,7 +1773,28 @@ export class MatchScene extends Phaser.Scene {
             .setStrokeStyle(4, color, 1)
             .setDepth(FOCUS_DEPTH + 80);
         this.tweens.add({ targets: ring, scale: 2.6, alpha: 0, duration: 420, onComplete: () => ring.destroy() });
-        this.cameras.main.shake(120, 0.003);
+        this.punch('touch');
+    }
+
+    /** Aplica um nível de impacto: pausa curta (tempo real), tremida que decai e clarão. */
+    private punch(level: ImpactLevel) {
+        const fx = IMPACT[level];
+        const cam = this.cameras.main;
+        if (fx.stop) this.holdReal = Math.max(this.holdReal, this.time.now + fx.stop);
+        if (fx.shake[0]) cam.shake(fx.shake[0], fx.shake[1]);
+        if (fx.flash) cam.flash(fx.flash, 255, 255, 255);
+    }
+
+    /** Peso do gol: do rival = toque; seu = batida; virada, empate no fim ou gol na final = explosão. */
+    private goalLevel(e: Extract<MatchEvent, { type: 'goal' }>): ImpactLevel {
+        if (e.team !== 0) return 'touch';
+        const [mine, theirs] = e.score;
+        const late = e.minute >= 35;
+        // virada: passou à frente depois de ter estado atrás em algum momento
+        const wasBehind = this.matchEvents.some((g) => g.type === 'goal' && g.tick < e.tick && g.score[1] > g.score[0]);
+        const turned = mine === theirs + 1 && wasBehind;
+        if (this.md.final || turned || (late && mine >= theirs)) return 'boom';
+        return 'hit';
     }
 
     /** Animação do golpe (src/game/move-fx.ts): estilo do golpe na cor e partícula do tipo. */

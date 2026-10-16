@@ -39,10 +39,13 @@ export function setVolumes(v: { master?: number; cries?: number; sfx?: number })
     applyZzfx();
 }
 
-export function playSfx(name: SfxName) {
+/** `pitch` multiplica a frequência (1 = normal; 2^(1/12) ≈ 1,06 = um semitom acima). */
+export function playSfx(name: SfxName, pitch = 1) {
     if (vol.master * vol.sfx <= 0) return;
     try {
-        zzfx(...SFX[name]);
+        const p = [...SFX[name]] as number[];
+        p[2] *= pitch;
+        zzfx(...p);
     } catch {
         // contexto de áudio ainda bloqueado pelo navegador (antes da primeira interação)
     }

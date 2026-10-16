@@ -22,6 +22,18 @@ export const match: typeof pt = {
     seeResult: 'See result',
     feed: 'Commentary',
     feedEmpty: 'The teams walk onto the court…',
+    ht: {
+        shots: 'Shots',
+        possession: 'Possession',
+        tired: 'Most tired',
+        continue: 'Start the 2nd half',
+        tacticHint: 'You can also change tactics down below, in the match controls.',
+        tipTired: '{name} is at {p}% stamina: maybe it is time to sub.',
+        tipShots: 'They shot {a} times to your {b}: a more defensive tactic holds the game.',
+        tipPossession: 'Lots of possession, few shots: the attacking tactic takes more risks.',
+        tipAhead: 'Ahead on the scoreboard: hold on or push for more? Your call.',
+        tipEven: 'Open game. Keep it up or try a change.',
+    },
     highlight: {
         goal: 'GOAL!',
         owngoal: 'OWN GOAL',

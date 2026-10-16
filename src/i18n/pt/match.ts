@@ -21,6 +21,18 @@ export const match = {
     seeResult: 'Ver resultado',
     feed: 'Narração',
     feedEmpty: 'Os times entram em quadra…',
+    ht: {
+        shots: 'Chutes',
+        possession: 'Posse',
+        tired: 'Mais cansado',
+        continue: 'Começar o 2º tempo',
+        tacticHint: 'A tática também muda aqui embaixo, nos controles da partida.',
+        tipTired: '{name} está com {p}% de fôlego: talvez seja hora de trocar.',
+        tipShots: 'Eles chutaram {a} vezes contra {b} suas: uma tática mais defensiva segura o jogo.',
+        tipPossession: 'Muita posse e pouco chute: a tática ofensiva arrisca mais.',
+        tipAhead: 'Na frente no placar: segurar ou ampliar? A escolha é sua.',
+        tipEven: 'Jogo aberto. Siga assim ou arrisque uma mudança.',
+    },
     highlight: {
         goal: 'GOL!',
         owngoal: 'GOL CONTRA',
