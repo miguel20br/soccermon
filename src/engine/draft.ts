@@ -124,8 +124,8 @@ function speciesSlotRating(sp: Species, need: Position | 'ANY'): number {
 
 /** "Promessa": evolui para ouro (75+) na vaga. */
 export const PROMISE = 75;
-/** Chance de a rodada ganhar uma promessa quando nenhuma das 3 é (passo pequeno; meta ~1,2 evolução por copa). */
-export const PROMISE_CHANCE = 0.5;
+/** Chance de a rodada ganhar uma promessa quando nenhuma das 3 é (0,5 deu 0,97 evolução por copa; meta ~1,2). */
+export const PROMISE_CHANCE = 1;
 
 const MAX_ID = SPECIES.length;
 /** Nota da forma evoluída na vaga; com várias evoluções (Eevee), a pior delas. null se não evolui. */
@@ -138,8 +138,7 @@ function speciesEvolvedRating(sp: Species, need: Position | 'ANY'): number | nul
  * As 3 opções do draft do jogador (Bloco 2 do balanceamento, 17/10/2026): as de `draftOptions` com duas garantias,
  * sempre trocando a opção mais fraca. A IA e as recompensas seguem com `draftOptions` puro.
  * - piso de prata: se as 3 saem bronze na vaga, entra uma prata que joga ali (de preferência uma promessa);
- * - promessa: se nenhuma evolui para ouro na vaga, em metade das rodadas entra uma que evolui (a carta mostra
- *   a nota depois de evoluir).
+ * - promessa: se nenhuma evolui para ouro na vaga, entra uma que evolui (a carta mostra a nota depois de evoluir).
  */
 export function playerDraftOptions(
     rng: Rng,
