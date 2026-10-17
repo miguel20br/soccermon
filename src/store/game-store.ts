@@ -46,7 +46,7 @@ import {
 const rollSpecial: typeof roll = (inst, ev) => (SPECIALS_LIVE ? roll(inst, ev) : inst);
 
 import { ENGINE_VERSION } from '../engine/config';
-import type { MatchOrder, Tactic, TeamSetup } from '../engine/state';
+import type { CornerPlan, MatchOrder, Tactic, TeamSetup } from '../engine/state';
 
 export type Screen =
     | 'home'
@@ -141,6 +141,9 @@ export interface RunState {
     bench: string[];
     captainUid: string | null;
     tactic: Tactic;
+    /** Instrução de escanteio (padrão: Variar) e quem cobra (padrão: automático). Saves antigos não têm. */
+    cornerPlan?: CornerPlan;
+    cornerTakerUid?: string | null;
     opponents: TeamSetup[];
     stage: number;
     results: StageResult[];
@@ -282,6 +285,7 @@ export interface GameStore {
     swapSlots(a: SlotRef, b: SlotRef): void;
     setFormation(id: FormationId): void;
     setTactic(t: Tactic): void;
+    setCorner(patch: { cornerPlan?: CornerPlan; cornerTakerUid?: string | null }): void;
     moveItem(fromUid: string, toUid: string): void;
     setMatch(m: MatchResult | null): void;
     lockMatch(team: TeamSetup): void;
@@ -351,6 +355,8 @@ export function playerTeam(run: RunState, color = clubColorHex(useGame.getState(
         formation: run.formation,
         captainUid: run.captainUid,
         manualSubs: true,
+        corner: run.cornerPlan ?? 'mixed',
+        cornerTakerUid: run.cornerTakerUid ?? null,
     };
 }
 
@@ -676,6 +682,7 @@ export const useGame = create<GameStore>()(
 
                 setFormation: (formation) => updateRun({ formation }),
                 setTactic: (tactic) => updateRun({ tactic }),
+                setCorner: (patch) => updateRun(patch),
 
                 moveItem: (fromUid, toUid) => {
                     const run = getState().run;

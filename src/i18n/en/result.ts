@@ -35,6 +35,7 @@ export const result: typeof pt = {
         interceptions: 'Interceptions',
         saves: 'Saves',
         moves: 'Moves used',
+        corners: 'Corners',
         distance: 'Distance covered',
     },
     dangerTitle: 'Danger by period',

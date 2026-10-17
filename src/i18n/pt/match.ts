@@ -16,6 +16,8 @@ export const match = {
     whoOut: 'Quem sai?',
     reload: 'A quadra não carregou — recarregar',
     substitute: 'Substituir',
+    corner: 'Escanteio',
+    cornerHint: 'Instrução de escanteio: a jogada que o time mais tenta (dá para mudar 3 vezes)',
     changing: 'mudando…',
     tacticChanges: 'resta {n} mudança de tática|restam {n} mudanças de tática',
     skip: 'Pular para o fim',

@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { FUTSAL_5 } from '../../engine/config';
+import { FUTSAL_5, MAX_TACTIC_CHANGES } from '../../engine/config';
 import { CUP_STAGES } from '../../engine/cup';
 import { species } from '../../engine/data';
 import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import {
+    type CornerPlan,
+    isCornerOrder,
     isSubOrder,
+    isTacticOrder,
     type MatchEvent,
     type MatchOrder,
     type Phase,
@@ -37,6 +40,7 @@ import { useClubColor } from '../profile/club';
 import { ratingAt } from '../rating';
 import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
+import { CORNER_PLANS } from './Lineup';
 
 /** Velocidades (o rótulo de 'highlights' vem do dicionário: "Lances"). */
 const SPEEDS: { value: PlaybackSpeed; label: string }[] = [
@@ -47,7 +51,6 @@ const SPEEDS: { value: PlaybackSpeed; label: string }[] = [
     { value: 'highlights', label: '' },
 ];
 
-const MAX_TACTIC_CHANGES = 3;
 /** A mudança vale ~2 s de jogo à frente (dá tempo de resimular sem pular nada). */
 const CHANGE_LEAD_TICKS = 40;
 /** No modo "Lances" o ritmo varia (1x perto dos lances, 16x no resto): na média fica perto de 4x. */
@@ -127,7 +130,7 @@ export function Match() {
     // sigla no placar do celular: a do perfil se a copa tem o nome do clube, senão a tirada do nome
     const profileClub = useGame((s) => s.profile);
     const homeTag = teamNames[0] === profileClub.clubName ? profileClub.clubTag : tagFromName(teamNames[0]);
-    const tacticOrders = orders.filter((o) => !isSubOrder(o));
+    const tacticOrders = orders.filter(isTacticOrder);
     const subOrders = orders.filter(isSubOrder);
     const changes = tacticOrders;
     const currentTactic: Tactic = tacticOrders.at(-1)?.tactic ?? run?.tactic ?? 'balanced';
@@ -261,6 +264,9 @@ export function Match() {
     if (!run || !match || !sceneData || !opponent) return null;
 
     const lockedSetup = run.lockedTeam ? { ...run.lockedTeam, manualSubs: true } : playerTeam(run);
+    // instrução de escanteio: trocável como a tática (ordem com o mesmo limite, contado à parte)
+    const cornerOrders = orders.filter(isCornerOrder);
+    const currentCorner = cornerOrders.at(-1)?.corner ?? lockedSetup.corner ?? 'mixed';
     // a troca vale um pouco à frente do que está na tela (mais à frente em velocidades altas)
     const speedMult = typeof settings.speed === 'number' ? settings.speed : HIGHLIGHTS_MULT;
     const leadTicks = CHANGE_LEAD_TICKS * speedMult;
@@ -309,6 +315,11 @@ export function Match() {
         } finally {
             if (alive.current) setPending(false);
         }
+    };
+
+    const changeCorner = (corner: CornerPlan) => {
+        if (!canChangeTactic || corner === currentCorner || cornerOrders.length >= MAX_TACTIC_CHANGES) return;
+        sendOrder((tick) => ({ tick, team: 0, kind: 'corner', corner }));
     };
 
     const changeTactic = (tactic: Tactic) => {
@@ -555,6 +566,23 @@ export function Match() {
                                     ? t('match.changing')
                                     : tn('match.tacticChanges', MAX_TACTIC_CHANGES - changes.length)}
                             </span>
+                        </div>
+                        <div className="control-group corner-group" title={t('match.cornerHint')}>
+                            <span className="corner-label">{t('match.corner')}</span>
+                            {CORNER_PLANS.map((pl) => (
+                                <button
+                                    key={pl}
+                                    type="button"
+                                    className={`btn small${currentCorner === pl ? ' active' : ''}`}
+                                    disabled={
+                                        !canChangeTactic ||
+                                        (cornerOrders.length >= MAX_TACTIC_CHANGES && currentCorner !== pl)
+                                    }
+                                    onClick={() => changeCorner(pl)}
+                                >
+                                    {d.common.cornerPlan[pl]}
+                                </button>
+                            ))}
                         </div>
                         <div className="control-group">
                             {!ended ? (

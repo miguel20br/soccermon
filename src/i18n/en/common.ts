@@ -120,6 +120,9 @@ export const common: typeof pt = {
         defensive: 'Defensive',
         counter: 'Counter-attack',
     },
+    cornerPlan: { area: 'In the box', short: 'Short', mixed: 'Mix it up' },
+    cornerPlay: { area: 'In the box', short: 'Short', near: 'Near post' },
+    aerial: { high: 'high', mid: 'medium', low: 'low' },
     formation: {
         '1-2-1': {
             name: 'Diamond (1-2-1)',

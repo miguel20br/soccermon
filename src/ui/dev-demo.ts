@@ -18,7 +18,8 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * inteira com um time forte e para na tela do título. `?demo=mt` abre a recompensa depois das oitavas com
  * uma MT do ginásio entre as 3 cartas (Charmeleon, Caterpie e cia. para testar quem aprende). `?demo=conta&tipo=levar|juntar|juntar1|copa|outra|guardada`
  * mostra a pergunta depois do login (com resumos de mentira; os botões só fecham) ou a copa guardada na tela inicial. `?demo=trailer&cena=<cena>&seed=<seed>` abre na escalação a
- * partida que a caça de lances (scripts/trailer-hunt.ts) escolheu para o trailer.
+ * partida que a caça de lances (scripts/trailer-hunt.ts) escolheu para o trailer. `?demo=escanteio` monta um time de
+ * grandalhões cuja primeira partida tem escanteio seu com disputa no alto logo no começo.
  */
 let started = false;
 
@@ -32,6 +33,7 @@ export function runDevDemo() {
         demo !== 'campeao' &&
         demo !== 'trailer' &&
         demo !== 'mt' &&
+        demo !== 'escanteio' &&
         demo !== 'conta'
     )
         return;
@@ -167,6 +169,37 @@ export function runDevDemo() {
             if (useGame.getState().run!.status === 'champion') {
                 useGame.setState({ match: m, screen: 'result' });
                 console.info(`[demo] copa camp${k}: campeão`);
+                return;
+            }
+        }
+        return;
+    }
+    if (demo === 'escanteio') {
+        for (let k = 0; k < 200; k++) {
+            store.newRun('Demo FC', `esc${k}`);
+            const run = useGame.getState().run!;
+            const rng = new Rng(`esc${k}`, 'demo');
+            // goleiro Snorlax, fixo Machamp, alas Gyarados e Pidgeot, pivô Dragonite; banco Onix e Pikachu
+            const lineup = [143, 68, 130, 18, 149].map((id) => createInstance(id, rng));
+            const bench = [95, 25].map((id) => createInstance(id, rng));
+            const ready = {
+                ...run,
+                formation: '1-2-1' as const,
+                picks: [...lineup, ...bench],
+                lineup: lineup.map((p) => p.uid),
+                bench: bench.map((p) => p.uid),
+                captainUid: lineup[4].uid,
+                cornerPlan: 'area' as const,
+                draftRound: 7,
+                status: 'lineup' as const,
+            };
+            const r = runMatch(FUTSAL_5, playerTeam(ready), ready.opponents[0], `${ready.seed}-stage-0`, {
+                snapshots: false,
+            });
+            const aerial = r.events.find((e) => e.type === 'aerial' && e.high && e.team === 0);
+            if (aerial && aerial.tick < 1500) {
+                useGame.setState({ run: ready, screen: 'lineup' });
+                console.info(`[demo] copa ${ready.seed}: escanteio com disputa no alto no tick ${aerial.tick}`);
                 return;
             }
         }

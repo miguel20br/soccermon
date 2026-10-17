@@ -24,6 +24,20 @@ export const battle = {
     caught: '{x} segurou firme',
     parried: '{x} espalmou',
     goalKick: 'Tiro de meta',
+    /** Faixa do escanteio: título e "Cobrador · jogada". */
+    corner: 'ESCANTEIO',
+    cornerSub: '{x} · {play}',
+    cornerLine: 'Escanteio! {x} cobra: {play}',
+    /** Disputa da bola do escanteio. */
+    aerialHigh: 'NO ALTO!',
+    aerial: {
+        header: 'CABEÇADA!',
+        volley: 'VOLEIO!',
+        flick: 'DESVIO!',
+        clear: 'AFASTOU!',
+        catch: 'SEGUROU!',
+        punch: 'SOCOU!',
+    },
     fulltime: 'FIM DE JOGO',
     bigSave: 'QUE DEFESA!',
     save: 'DEFESA!',

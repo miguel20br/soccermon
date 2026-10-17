@@ -34,6 +34,7 @@ export const result = {
         interceptions: 'Interceptações',
         saves: 'Defesas',
         moves: 'Golpes usados',
+        corners: 'Escanteios',
         distance: 'Distância percorrida',
     },
     dangerTitle: 'Perigo por período',

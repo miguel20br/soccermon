@@ -146,7 +146,18 @@ interface DiveInfo {
 
 const DRAMA = new Set(['goal', 'post', 'save', 'fulltime']);
 /** O que o modo "Lances" mostra em 1x. */
-const HIGHLIGHT = new Set(['shot', 'goal', 'save', 'post', 'penalty', 'transform', 'combo', 'evolve']);
+const HIGHLIGHT = new Set([
+    'shot',
+    'goal',
+    'save',
+    'post',
+    'penalty',
+    'transform',
+    'combo',
+    'evolve',
+    'corner',
+    'aerial',
+]);
 
 /** Status por código do snapshot: rótulo, cor do rótulo e tinta do sprite. */
 const STATUS_VIEW: Record<number, { label: string; color: string; tint: number }> = {
@@ -1404,6 +1415,27 @@ export class MatchScene extends Phaser.Scene {
             case 'goalkick': {
                 this.popText(e.by, tr('battle.goalKick'), '#ffffff');
                 this.battleBox.push(tr('battle.goalKick'));
+                break;
+            }
+            case 'corner': {
+                // escanteio: apito curto e a faixa com quem cobra e a jogada (sem câmera lenta)
+                playSample('apito-curto');
+                const taker = this.players[e.by];
+                const play = dict().common.cornerPlay[e.play];
+                this.cine.setPieceBanner(
+                    tr('battle.corner'),
+                    tr('battle.cornerSub', { x: taker?.name ?? '?', play }),
+                    this.md.colors[e.team],
+                );
+                this.battleBox.push(tr('battle.cornerLine', { x: taker?.name ?? '?', play }));
+                break;
+            }
+            case 'aerial': {
+                // disputa do escanteio: "NO ALTO!" em quem ganhou lá em cima; na rasteira, só o que ele fez
+                const color = Phaser.Display.Color.IntegerToColor(this.md.colors[e.team]).rgba;
+                const what = dict().battle.aerial[e.kind];
+                this.popText(e.by, e.high ? `${tr('battle.aerialHigh')} ${what}` : what, color);
+                if (e.high) this.punch('touch');
                 break;
             }
             case 'post': {

@@ -345,6 +345,11 @@ export function Result() {
                                 away: totals[1].interceptions,
                             },
                             { label: t('result.rows.saves'), home: totals[0].saves, away: totals[1].saves },
+                            {
+                                label: t('result.rows.corners'),
+                                home: match.events.filter((e) => e.type === 'corner' && e.team === 0).length,
+                                away: match.events.filter((e) => e.type === 'corner' && e.team === 1).length,
+                            },
                             { label: t('result.rows.moves'), home: totals[0].movesUsed, away: totals[1].movesUsed },
                             {
                                 label: t('result.rows.distance'),

@@ -16,6 +16,11 @@ export const TACTIC_LABEL: Record<Tactic, string> = {
     counter: 'Contra-ataque',
 };
 
+/** Instrução de escanteio do técnico: muda o peso do sorteio da jogada, nunca trava uma só. */
+export type CornerPlan = 'area' | 'short' | 'mixed';
+/** Jogada de escanteio: bola alta na área (2ª trave), curta pro chute de fora ou rasteira forte na 1ª trave. */
+export type CornerPlay = 'area' | 'short' | 'near';
+
 export interface TeamSetup {
     name: string;
     /** Exatamente `teamSize` jogadores, na ordem das vagas da formação. */
@@ -29,12 +34,18 @@ export interface TeamSetup {
     captainUid?: string | null;
     /** Só o técnico troca (time do jogador): sem substituição automática no intervalo. */
     manualSubs?: boolean;
+    /** Instrução de escanteio (padrão: Variar). */
+    corner?: CornerPlan;
+    /** uid de quem cobra os escanteios (padrão: o melhor passe fora do pivô). */
+    cornerTakerUid?: string | null;
 }
 
 /** Mudança de tática agendada (tática ao vivo: a partida é resimulada com a agenda). */
 export interface TacticChange {
     tick: number;
     team: 0 | 1;
+    /** Contagem por time (duelo ao vivo): desempata ordens do mesmo tick. Ordens antigas da copa não têm. */
+    seq?: number;
     kind?: 'tactic';
     tactic: Tactic;
 }
@@ -43,14 +54,26 @@ export interface TacticChange {
 export interface SubOrder {
     tick: number;
     team: 0 | 1;
+    seq?: number;
     kind: 'sub';
     outUid: string;
     inUid: string;
 }
 
+/** Troca da instrução de escanteio durante a partida (vale no início do tick, como a tática). */
+export interface CornerOrder {
+    tick: number;
+    team: 0 | 1;
+    seq?: number;
+    kind: 'corner';
+    corner: CornerPlan;
+}
+
 /** Ordens do técnico durante a partida (a partida é resimulada com a agenda inteira). */
-export type MatchOrder = TacticChange | SubOrder;
+export type MatchOrder = TacticChange | SubOrder | CornerOrder;
 export const isSubOrder = (o: MatchOrder): o is SubOrder => o.kind === 'sub';
+export const isCornerOrder = (o: MatchOrder): o is CornerOrder => o.kind === 'corner';
+export const isTacticOrder = (o: MatchOrder): o is TacticChange => !o.kind || o.kind === 'tactic';
 
 /** Códigos de ação para o render escolher a animação. */
 export const Action = {
@@ -216,7 +239,38 @@ export interface BallState {
     assistCandidate: number | null;
 }
 
-export type Phase = 'kickoff' | 'play' | 'goal' | 'restart' | 'halftime' | 'fulltime';
+export type Phase = 'kickoff' | 'play' | 'goal' | 'restart' | 'corner' | 'halftime' | 'fulltime';
+
+/** Escanteio em andamento: a jogada sorteada e a disputa que vem quando a bola chega. */
+export interface SetPiece {
+    team: 0 | 1;
+    play: CornerPlay;
+    taker: number;
+    /** Onde a bola chega (já com o erro da cobrança). */
+    at: Vec2;
+    /** Tick da disputa (bola chegando); 0 = sem disputa (curta). */
+    contestTick: number;
+    /** Quem corre pro ponto da disputa. */
+    runners: number[];
+    /**
+     * Papéis do molde (índices dos jogadores): 2ª trave, 1ª trave e marca dos 10 m (recebe a curta e chuta de
+     * primeira) no ataque; quem marca cada um, quem fica na 1ª trave e o goleiro na defesa.
+     */
+    roles: {
+        far: number | null;
+        near: number | null;
+        outside: number | null;
+        markFar: number | null;
+        markNear: number | null;
+        post: number | null;
+        closer: number | null;
+        gk: number | null;
+    };
+    /** Golpe do cobrador (Swift, Egg Bomb, Gust, Whirlwind). */
+    moveId: string | null;
+    /** A jogada acaba aqui (a curta não fica valendo pra sempre). */
+    until: number;
+}
 
 export interface TeamRuntime {
     setup: TeamSetup;
@@ -233,6 +287,8 @@ export interface TeamRuntime {
     combosUsed: string[];
     /** Paredes do time (segundos restantes): Light Screen (golpes especiais), Reflect (físicos), Mist (enfraquecer). */
     screens: { light: number; reflect: number; mist: number };
+    /** Instrução de escanteio agora (muda com a ordem do técnico). */
+    corner: CornerPlan;
 }
 
 export interface MatchEventBase {
@@ -256,6 +312,21 @@ export type MatchEvent = MatchEventBase &
         | { type: 'wide'; shooter: number }
         /** Bola saiu pela linha de fundo: tiro de meta do goleiro `by` (time `team`). */
         | { type: 'goalkick'; team: 0 | 1; by: number }
+        /** Último toque da defesa pela linha de fundo: escanteio do time `team`, cobrado por `by`. */
+        | { type: 'corner'; team: 0 | 1; by: number; play: CornerPlay }
+        /**
+         * Disputa da bola do escanteio (`high`: no alto). `by` ganhou: cabeçada/voleio/desvio (ataque), afastou
+         * (defesa) ou segurou/socou (goleiro). `moveId`: golpe usado na disputa.
+         */
+        | {
+              type: 'aerial';
+              by: number;
+              team: 0 | 1;
+              high: boolean;
+              kind: 'header' | 'volley' | 'flick' | 'clear' | 'catch' | 'punch';
+              moveId: string | null;
+          }
+        | { type: 'cornerPlan'; team: 0 | 1; plan: CornerPlan }
         | { type: 'goal'; by: number; assist: number | null; team: 0 | 1; score: [number, number]; ownGoal: boolean }
         | {
               type: 'move';
@@ -415,6 +486,13 @@ export interface MatchSnapshot {
 export interface MatchState {
     cfg: MatchConfig;
     rng: Rng;
+    /**
+     * Seed de cada trecho de 2 minutos (duelo ao vivo: compromisso e revelação). Com elas, o `rng` é recriado no
+     * começo de cada trecho; sem elas (null), é um stream só desde o apito. Seed que falta = segue o stream atual.
+     */
+    segmentSeeds: readonly string[] | null;
+    /** Trecho atual (ver `segmentTicks` em config.ts). */
+    segment: number;
     tick: number;
     half: 1 | 2;
     /** Segundos de simulação dentro do tempo atual. */
@@ -436,6 +514,8 @@ export interface MatchState {
     lastMove: [string | null, string | null];
     /** Zonas no chão (fumaça, anel de fogo, muro). */
     zones: Zone[];
+    /** Escanteio em andamento (cobrança e disputa). */
+    setPiece: SetPiece | null;
     ball: BallState;
     score: [number, number];
     shootout: [number, number] | null;

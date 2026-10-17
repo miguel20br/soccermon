@@ -1,10 +1,17 @@
 import { abilityEffect, isStatusImmune } from './abilities';
-import { type AttrKey, computeAttributes, type Position, positionRating } from './attributes';
+import {
+    type AttrKey,
+    aerialScore,
+    computeAttributes,
+    type Position,
+    positionRating,
+    sizePercentile,
+} from './attributes';
 import type { Command } from './commands';
-import type { MatchConfig } from './config';
+import { type MatchConfig, segmentTicks } from './config';
 import { MOVES, species, type TypeName } from './data';
 import { dpow } from './dmath';
-import { eff, fatigueFactor, isIncapacitated, TACTIC_MODS } from './effective';
+import { compressed, eff, fatigueFactor, isIncapacitated, TACTIC_MODS } from './effective';
 import { evolutionTarget, evolveInstance, evoNeeded, evoProgress } from './evolution';
 import { formationOf } from './formations';
 import type { PokemonInstance } from './instance';
@@ -15,6 +22,8 @@ import { DRAIN, DRAWBACK, hasTrait, moveProfile, OHKO, type StatusKind, MOVE_TUN
 import { Rng } from './rng';
 import {
     Action,
+    type CornerPlan,
+    type CornerPlay,
     FLAG_BUFF,
     FLAG_CHARGED,
     FLAG_CHARGING,
@@ -29,6 +38,7 @@ import {
     type MatchSnapshot,
     type MatchState,
     type PlayerState,
+    type SetPiece,
     STATUS_CODE,
     type TeamSetup,
     type TraitFx,
@@ -196,7 +206,13 @@ function createPlayer(
     };
 }
 
-export function createMatch(cfg: MatchConfig, home: TeamSetup, away: TeamSetup, seed: number | string): MatchState {
+export function createMatch(
+    cfg: MatchConfig,
+    home: TeamSetup,
+    away: TeamSetup,
+    seed: number | string,
+    segmentSeeds: readonly string[] | null = null,
+): MatchState {
     if (home.lineup.length !== cfg.teamSize || away.lineup.length !== cfg.teamSize) {
         throw new Error(`Cada time precisa de ${cfg.teamSize} titulares`);
     }
@@ -211,7 +227,9 @@ export function createMatch(cfg: MatchConfig, home: TeamSetup, away: TeamSetup, 
     });
     const s: MatchState = {
         cfg,
-        rng: new Rng(seed, 'match'),
+        rng: new Rng(segmentSeeds?.[0] ?? seed, 'match'),
+        segmentSeeds,
+        segment: 0,
         tick: 0,
         half: 1,
         time: 0,
@@ -223,6 +241,7 @@ export function createMatch(cfg: MatchConfig, home: TeamSetup, away: TeamSetup, 
                 setup: home,
                 formation: formations[0],
                 tactic: home.tactic,
+                corner: home.corner ?? 'mixed',
                 lineup: [...home.lineup],
                 bench: [...home.bench],
                 possessionTicks: 0,
@@ -233,6 +252,7 @@ export function createMatch(cfg: MatchConfig, home: TeamSetup, away: TeamSetup, 
                 setup: away,
                 formation: formations[1],
                 tactic: away.tactic,
+                corner: away.corner ?? 'mixed',
                 lineup: [...away.lineup],
                 bench: [...away.bench],
                 possessionTicks: 0,
@@ -246,6 +266,7 @@ export function createMatch(cfg: MatchConfig, home: TeamSetup, away: TeamSetup, 
         pendingSubs: [],
         lastMove: [null, null],
         zones: [],
+        setPiece: null,
         nextMoveTick: 0,
         ball: {
             pos: v(cfg.pitch.length / 2, cfg.pitch.width / 2),
@@ -350,6 +371,7 @@ function setupKickoff(s: MatchState, team: 0 | 1) {
         p.fx.flee = null;
     }
     s.zones = [];
+    s.setPiece = null;
     // quem dá a saída: o pivô vai para o círculo central
     const kicker =
         s.players.find((p) => p.team === team && p.role === 'PIVO') ??
@@ -495,11 +517,30 @@ export function step(s: MatchState, commands: (Command | Command[])[]) {
 
     tickZones(s, dt);
     updateBall(s, dt);
+    if (s.setPiece && s.phase === 'play') updateSetPiece(s);
     if (s.phase === 'play') checkPossession(s);
     if (s.ball.owner !== null) s.teams[s.players[s.ball.owner].team].possessionTicks++;
 
     s.time += dt;
     if (s.time >= s.cfg.halfSeconds && s.phase === 'play') endHalf(s);
+    enterSegment(s);
+}
+
+/** Trecho do relógio de jogo em que a partida está (0–19 no tempo normal; 20 = pênaltis). */
+export function segmentOf(s: MatchState): number {
+    const halfTicks = Math.round(s.cfg.halfSeconds * s.cfg.tickRate);
+    const played = (s.half - 1) * halfTicks + Math.round(s.time * s.cfg.tickRate);
+    return Math.floor(played / segmentTicks(s.cfg));
+}
+
+/** Entrou num trecho novo: o `rng` recomeça da seed dele (duelo ao vivo). Sem seeds por trecho, nada muda. */
+function enterSegment(s: MatchState) {
+    if (!s.segmentSeeds) return;
+    const k = segmentOf(s);
+    if (k === s.segment) return;
+    s.segment = k;
+    const seed = s.segmentSeeds[k];
+    if (seed !== undefined) s.rng = new Rng(seed, 'match');
 }
 
 function updatePhase(s: MatchState, dt: number, commands: (Command | Command[])[]) {
@@ -520,6 +561,8 @@ function updatePhase(s: MatchState, dt: number, commands: (Command | Command[])[
         setupKickoff(s, s.kickoffTeam);
     } else if (s.phase === 'restart' && s.phaseTimer <= 0) {
         s.phase = 'play';
+    } else if (s.phase === 'corner' && s.phaseTimer <= 0) {
+        takeCorner(s);
     } else if (s.phase === 'halftime' && s.phaseTimer <= 0) {
         s.half = 2;
         s.time = 0;
@@ -920,8 +963,22 @@ function applyMovement(s: MatchState, p: PlayerState, dir: Vec2, sprint: boolean
     }
 }
 
-function kick(s: MatchState, p: PlayerState, kind: 'pass' | 'shot', target: Vec2, power: number, receiverId?: number) {
+function kick(
+    s: MatchState,
+    p: PlayerState,
+    kind: 'pass' | 'shot',
+    target: Vec2,
+    power: number,
+    receiverId?: number,
+    /** Erro extra do chute (cabeçada e voleio do escanteio). */
+    aim = 1,
+) {
     const ball = s.ball;
+    // a curta do escanteio acaba no chute de primeira (que sai menos preciso)
+    if (kind === 'shot' && s.setPiece?.play === 'short' && s.setPiece.roles.outside === p.idx) {
+        s.setPiece = null;
+        aim *= CORNER_TUNING.firstTimeAim;
+    }
     const toTarget = sub(target, p.pos);
     const distance = len(toTarget);
     let speed: number;
@@ -987,7 +1044,7 @@ function kick(s: MatchState, p: PlayerState, kind: 'pass' | 'shot', target: Vec2
         emit(s, { type: 'shot', by: p.idx, xg, moveId });
     }
 
-    sigma *= aimFactor(s, p, kind);
+    sigma *= aimFactor(s, p, kind) * aim;
     const dir = rotate(norm(toTarget), s.rng.gauss() * sigma);
     ball.vel = scale(dir, speed);
     ball.z = 0;
@@ -2085,7 +2142,11 @@ function updateBall(s: MatchState, dt: number) {
             scoreGoal(s, scoringTeam);
         } else {
             if (ball.shot) emit(s, { type: 'wide', shooter: ball.shot.by });
-            goalClearance(s, scoringTeam === 0 ? 1 : 0);
+            const defending: 0 | 1 = scoringTeam === 0 ? 1 : 0;
+            // último toque da defesa (espalmada, desvio, bola recuada): escanteio; do ataque: tiro de meta
+            const toucher = ball.lastTouch !== null ? s.players[ball.lastTouch] : null;
+            if (toucher?.team === defending) setupCorner(s, scoringTeam, yCross);
+            else goalClearance(s, defending);
         }
         return;
     }
@@ -2189,11 +2250,14 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
                     ball.assistCandidate = null;
                     p.ai.holdUntil = s.tick + Math.round(0.8 * s.cfg.tickRate);
                 } else if (!tryRebound(s, shooter, moveId, ball.pos)) {
-                    // espalma para o lado
-                    const outward = v(attackSign(p.team) * s.rng.range(0.3, 1), s.rng.chance(0.5) ? 1 : -1);
-                    ball.vel = scale(norm(outward), speed * s.rng.range(0.25, 0.45));
                     ball.lastTouch = p.idx;
                     ball.lastKick = { by: p.idx, kind: 'clear', tick: s.tick };
+                    // chute no canto às vezes vai pra fora (escanteio); senão espalma para o lado, pra frente
+                    const out = s.rng.chance(CORNER_TUNING.parryOut + CORNER_TUNING.parryOutPlacement * placement);
+                    if (!out || !deflectOut(s, p, ball.pos)) {
+                        const outward = v(attackSign(p.team) * s.rng.range(0.3, 1), s.rng.chance(0.5) ? 1 : -1);
+                        ball.vel = scale(norm(outward), speed * s.rng.range(0.25, 0.45));
+                    }
                 }
                 return;
             }
@@ -2218,7 +2282,9 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
                 if (tryRebound(s, shooter, moveId, contact)) return;
                 ball.lastTouch = p.idx;
                 ball.lastKick = { by: p.idx, kind: 'clear', tick: s.tick };
-                ball.vel = rotate(scale(ball.vel, -0.3), s.rng.range(-1, 1));
+                // o desvio às vezes vai pela linha de fundo (escanteio); senão a bola volta
+                if (!s.rng.chance(CORNER_TUNING.blockOut) || !deflectOut(s, p, contact))
+                    ball.vel = rotate(scale(ball.vel, -0.3), s.rng.range(-1, 1));
                 return;
             }
         }
@@ -2246,6 +2312,8 @@ function tryRebound(s: MatchState, shooter: PlayerState, moveId: string | null, 
 function checkPossession(s: MatchState) {
     const ball = s.ball;
     if (ball.owner !== null) return;
+    // bola do escanteio a caminho: quem fica com ela é a disputa (updateSetPiece), não o mais perto
+    if (s.setPiece && s.setPiece.contestTick > s.tick) return;
     const speed = len(ball.vel);
     let best: PlayerState | null = null;
     let bestD = Infinity;
@@ -2275,6 +2343,8 @@ function checkPossession(s: MatchState) {
         }
     }
     if (!best) return;
+    // a curta do escanteio só continua se quem dominou foi o chutador de fora
+    if (s.setPiece && !(s.setPiece.play === 'short' && s.setPiece.roles.outside === best.idx)) s.setPiece = null;
     const prevTouch = ball.lastTouch !== null ? s.players[ball.lastTouch] : null;
     if (prevTouch && prevTouch.team !== best.team && ball.lastKick?.kind === 'pass') {
         best.stats.interceptions++;
@@ -2336,10 +2406,12 @@ function scoreGoal(s: MatchState, team: 0 | 1) {
     ball.pos = v(clamp(ball.pos.x, -0.5, s.cfg.pitch.length + 0.5), ball.pos.y);
     s.phase = 'goal';
     s.phaseTimer = 3;
+    s.setPiece = null;
     s.kickoffTeam = team === 0 ? 1 : 0;
 }
 
 function goalClearance(s: MatchState, team: 0 | 1) {
+    s.setPiece = null;
     const subbed = s.pendingSubs.length > 0;
     applyPendingSubs(s);
     const gk = s.players.find((p) => p.team === team && p.role === 'GK') ?? s.players.find((p) => p.team === team)!;
@@ -2361,8 +2433,500 @@ function goalClearance(s: MatchState, team: 0 | 1) {
     checkEvolutions(s);
 }
 
+// ---------------------------------------------------------------- escanteio (docs/planos/escanteio.md, opção B)
+/** Números do escanteio num lugar só (ajustar olhando a calibragem: meta 3–4 por jogo e ~10% de gol). */
+export const CORNER_TUNING = {
+    /** Espalmada que vai pela linha de fundo: base + quanto mais no canto foi o chute (placement 0..1). */
+    parryOut: 0.2,
+    parryOutPlacement: 0.3,
+    /** Bloqueio que desvia pela linha de fundo. */
+    blockOut: 0.3,
+    /** Segundos parado montando a cobrança (o relógio não corre). */
+    setTime: 1.2,
+    /** Peso de cada jogada no "Variar" e quanto a instrução do técnico multiplica a escolhida. */
+    playWeight: { area: 1, short: 0.35, near: 0.5 } as Record<CornerPlay, number>,
+    planBoost: 3,
+    /** Distância da linha de fundo (m) do ponto da disputa no alto. */
+    crossDepth: 5.5,
+    /** Voo do cruzamento (s); Egg Bomb sobe mais. */
+    crossFlight: 1.15,
+    eggFlight: 1.5,
+    /** Erro do cruzamento (m) com passe 0 (cai com o passe); Swift não erra; a curva no vento erra menos. */
+    crossError: 1.3,
+    windAim: 0.7,
+    /** Rasteira forte na 1ª trave: segundos até chegar. */
+    nearTime: 0.55,
+    /** Raio da disputa (m), no alto e na rasteira; o goleiro na área alcança mais. */
+    aerialRadius: 1.8,
+    nearRadius: 1.4,
+    gkExtra: 1.6,
+    /** Chance de usar o golpe de bola parada quando tem: cobrador e quem disputa no alto. */
+    takerMove: 0.6,
+    headerMove: 0.6,
+    /** Fly e Sky Attack sobem mais; os outros golpes dão 1 + headerBoost × força do golpe na disputa. */
+    flyBoost: 1.6,
+    headerBoost: 0.4,
+    /** Erro extra da finalização: cabeçada, voleio e desvio de primeira na rasteira (× o erro de um chute). */
+    headerAim: 2.6,
+    /** Chute de primeira da curta. */
+    firstTimeAim: 1.6,
+    volleyAim: 2.8,
+    flickAim: 2.6,
+    /** Gol olímpico: chance de a curva no vento (Gust/Whirlwind) ir direto pro gol. */
+    olympic: 0.3,
+    /** Rasteira: o defensor ganha a dividida, mas desvia pro próprio gol. */
+    ownDeflect: 0.06,
+    /** Velocidade vertical (m/s) da bola afastada: sobe por cima da área. */
+    clearLift: 4,
+    /** Quem defende está do lado do gol, marcando: peso extra na disputa. */
+    defenseEdge: 1.3,
+    /** Goleiro segura o cruzamento (+ até 0,3 pelo goalkeeping); senão soca. */
+    gkCatch: 0.45,
+};
+
+/** Golpes de bola parada (gastam o uso normal). Cobrador: Swift não erra, Egg Bomb sobe, vento faz curva. */
+const TAKER_MOVES: Record<CornerPlay, readonly string[]> = {
+    area: ['swift', 'eggbomb', 'gust', 'whirlwind'],
+    near: ['swift', 'gust', 'whirlwind'],
+    short: [],
+};
+const WIND = new Set(['gust', 'whirlwind']);
+/** Na disputa no alto: cabeçada (Headbutt, Skull Bash sem a carga), voleio (Jump Kick), sobe mais (Fly...). */
+const AERIAL_MOVES = ['headbutt', 'skullbash', 'jumpkick', 'highjumpkick', 'fly', 'skyattack', 'drillpeck', 'bodyslam'];
+const VOLLEY_MOVES = new Set(['jumpkick', 'highjumpkick']);
+const HIGH_FLYERS = new Set(['fly', 'skyattack']);
+
+/** Jogo aéreo em campo: a conta do selo (attributes.ts) com os atributos de agora e o tamanho comprimido igual. */
+export function aerialEff(s: MatchState, p: PlayerState): number {
+    return aerialScore(eff(s, p, 'strength'), eff(s, p, 'positioning'), compressed(sizePercentile(p.sp) * 99) / 99);
+}
+
+/** Cobrador padrão: o melhor passe entre os jogadores de linha, fora o pivô (ele fica na área). */
+export function pickCornerTaker<T extends { role: Position; passing: number }>(field: readonly T[]): T | undefined {
+    const pool = field.filter((p) => p.role !== 'GK' && p.role !== 'PIVO');
+    const from = pool.length ? pool : field.filter((p) => p.role !== 'GK');
+    return from.reduce<T | undefined>((b, p) => (!b || p.passing > b.passing ? p : b), undefined);
+}
+
+/** Quem cobra: o escolhido na escalação, se estiver em quadra (e não for o goleiro); senão o padrão. */
+function cornerTaker(s: MatchState, team: 0 | 1, field: PlayerState[]): PlayerState {
+    const uid = s.teams[team].setup.cornerTakerUid;
+    const chosen = uid ? field.find((p) => (p.origin ?? p.inst).uid === uid) : undefined;
+    if (chosen) return chosen;
+    const pick = pickCornerTaker(field.map((p) => ({ p, role: p.role, passing: p.attr.passing })));
+    return pick?.p ?? field[0];
+}
+
+/** Sorteio da jogada: o "Variar" pesa pelo time que tem; a instrução multiplica a jogada pedida (não trava). */
+function pickCornerPlay(s: MatchState, team: 0 | 1, others: PlayerState[]): CornerPlay {
+    const C = CORNER_TUNING;
+    const top = (f: (p: PlayerState) => number) => others.reduce((m, p) => Math.max(m, f(p)), 0) / 60;
+    const air = top((p) => aerialEff(s, p));
+    const shot = top((p) => eff(s, p, 'shooting'));
+    const w: Record<CornerPlay, number> = {
+        area: C.playWeight.area * air * air,
+        short: C.playWeight.short * shot * shot,
+        near: C.playWeight.near,
+    };
+    const plan: CornerPlan = s.teams[team].corner;
+    if (plan !== 'mixed') w[plan] *= C.planBoost;
+    return s.rng.weighted(['area', 'short', 'near'] as const, (k) => w[k]);
+}
+
+/**
+ * Desvio pela linha de fundo (espalmada, bloqueio): a bola rola até um ponto da linha fora das traves, do lado em
+ * que estava. Bola colada na linha não desvia (cruzaria dentro do gol): devolve false e a jogada segue como antes.
+ */
+function deflectOut(s: MatchState, p: PlayerState, from: Vec2): boolean {
+    const { width, goalWidth } = s.cfg.pitch;
+    const gy = width / 2;
+    const lineX = ownGoalX(s, p.team);
+    if (Math.abs(from.x - lineX) < 0.3) return false;
+    const side = from.y > gy ? 1 : from.y < gy ? -1 : s.rng.chance(0.5) ? 1 : -1;
+    const cross = v(lineX, gy + side * (goalWidth / 2 + s.rng.range(0.6, 3)));
+    const d = dist(from, cross);
+    s.ball.vel = scale(norm(sub(cross, from)), Math.sqrt(2 * FRICTION * d) + 2.5);
+    s.ball.z = 0;
+    s.ball.vz = 0;
+    // quem desviou não domina a própria sobra
+    p.kickCooldown = Math.max(p.kickCooldown, 0.4);
+    return true;
+}
+
+/**
+ * Escanteio: monta o molde (triângulo do ataque, marcação da defesa a 5 m da bola), sorteia a jogada e para a
+ * partida um instante. A cobrança sai no fim da fase `corner` (takeCorner).
+ */
+function setupCorner(s: MatchState, team: 0 | 1, yCross: number) {
+    const subbed = s.pendingSubs.length > 0;
+    applyPendingSubs(s);
+    const { length, width } = s.cfg.pitch;
+    const gy = width / 2;
+    const side = yCross < gy ? -1 : 1;
+    // molde: profundidade rumo ao gol atacado (length = linha de fundo) e lado (+ = lado do canto)
+    const at = (xr: number, u: number) => toWorld(s, team, xr, gy + side * u);
+    const def: 0 | 1 = team === 0 ? 1 : 0;
+    const field = (t: 0 | 1) => s.players.filter((p) => p.team === t && p.role !== 'GK');
+    const taker = cornerTaker(s, team, field(team));
+    const others = field(team).filter((p) => p !== taker);
+    const play = pickCornerPlay(s, team, others);
+    const byAir = (a: PlayerState, b: PlayerState) => aerialEff(s, b) - aerialEff(s, a) || a.idx - b.idx;
+    const byShot = (a: PlayerState, b: PlayerState) => eff(s, b, 'shooting') - eff(s, a, 'shooting') || a.idx - b.idx;
+    // papéis: na curta o melhor chute fica na marca dos 10 m; nas outras, o melhor no alto vai na 2ª trave
+    let far: PlayerState | undefined;
+    let near: PlayerState | undefined;
+    let outside: PlayerState | undefined;
+    if (play === 'short') {
+        outside = [...others].sort(byShot)[0];
+        [far, near] = others.filter((p) => p !== outside).sort(byAir);
+    } else {
+        const air = [...others].sort(byAir);
+        far = air[0];
+        [outside, near] = air.slice(1).sort(byShot);
+    }
+    const [markFar, markNear, post, closer] = field(def).sort(byAir);
+    const gk = s.players.find((p) => p.team === def && p.role === 'GK');
+    const ownGk = s.players.find((p) => p.team === team && p.role === 'GK');
+    const ballPos = at(length - 0.35, gy - 0.35);
+    const spots: [PlayerState | undefined, Vec2][] = [
+        [far, at(length - 7, -1)],
+        [near, at(length - 6.5, 1.6)],
+        [outside, at(length - 11.5, 0.3)],
+        [ownGk, at(5, 0)],
+        [markFar, at(length - 5.8, -0.8)],
+        [markNear, at(length - 5.4, 1.3)],
+        [post, at(length - 0.6, 2.2)],
+        [closer, at(length - 9.8, 0.4)],
+        [gk, at(length - 0.5, 0.4)],
+    ];
+    const toBall = norm(sub(at(length - 3, -1), ballPos));
+    spots.push([taker, sub(ballPos, scale(toBall, DRIBBLE_OFFSET))]);
+    for (const [p, pos] of spots) {
+        if (!p) continue;
+        p.pos = pos;
+        p.vel = v(0, 0);
+        p.heading = p === taker ? toBall : norm(sub(ballPos, pos));
+        p.facing = dir8(p.heading, p.facing);
+        p.action = Action.Idle;
+        p.kickCooldown = 0;
+        p.ai.nextDecision = 0;
+        p.fx.charging = null;
+        p.fx.air = null;
+        p.fx.flee = null;
+    }
+    s.ball = {
+        pos: ballPos,
+        vel: v(0, 0),
+        z: 0,
+        vz: 0,
+        owner: taker.idx,
+        lastTouch: taker.idx,
+        lastKick: null,
+        shot: null,
+        assistCandidate: null,
+    };
+    s.setPiece = {
+        team,
+        play,
+        taker: taker.idx,
+        at: ballPos,
+        contestTick: 0,
+        runners: [],
+        roles: {
+            far: far?.idx ?? null,
+            near: near?.idx ?? null,
+            outside: outside?.idx ?? null,
+            markFar: markFar?.idx ?? null,
+            markNear: markNear?.idx ?? null,
+            post: post?.idx ?? null,
+            closer: closer?.idx ?? null,
+            gk: gk?.idx ?? null,
+        },
+        moveId: null,
+        until: 0,
+    };
+    emit(s, { type: 'corner', team, by: taker.idx, play });
+    s.phase = 'corner';
+    // tempo extra para a substituição aparecer na tela
+    s.phaseTimer = subbed ? 2 : CORNER_TUNING.setTime;
+    checkEvolutions(s);
+}
+
+/**
+ * Golpe na bola parada (cobrador ou quem disputa no alto): gasta o uso como sempre. Jump Kick/Hi Jump Kick podem
+ * errar (e quem erra se machuca, como no `crash`).
+ */
+function setPieceMove(
+    s: MatchState,
+    p: PlayerState,
+    ids: readonly string[],
+    chance: number,
+): { moveId: string; hit: boolean } | null {
+    if (!ids.length || p.moveCooldown > 0) return null;
+    const slot = p.inst.moves.findIndex((m, i) => ids.includes(m) && p.moveUses[i] > 0);
+    if (slot < 0 || !s.rng.chance(chance)) return null;
+    const moveId = p.inst.moves[slot];
+    const prof = moveProfile(moveId);
+    p.moveUses[slot]--;
+    p.moveCooldown = MOVE_COOLDOWN;
+    s.nextMoveTick = s.tick + Math.round(MOVE_GAP * s.cfg.tickRate);
+    p.stats.movesUsed++;
+    const hit = DRAWBACK[moveId] !== 'crash' || s.rng.chance(prof.data.accuracy / 100);
+    if (!hit) {
+        p.energy = Math.max(0, p.energy - 0.08);
+        p.stun = Math.max(p.stun, 0.6);
+        setAction(p, Action.Hurt, 0.6);
+    }
+    emit(s, {
+        type: 'move',
+        by: p.idx,
+        moveId,
+        kind: prof.kind,
+        target: null,
+        effectiveness: null,
+        hit,
+        withBall: true,
+    });
+    s.lastMove[p.team] = moveId;
+    return { moveId, hit };
+}
+
+/** A cobrança: golpe do cobrador, gol olímpico (raro, só no vento) e a bola indo pro ponto da jogada. */
+function takeCorner(s: MatchState) {
+    s.phase = 'play';
+    const sp = s.setPiece;
+    if (!sp) return;
+    const C = CORNER_TUNING;
+    const p = s.players[sp.taker];
+    const ball = s.ball;
+    const { length, width, goalWidth } = s.cfg.pitch;
+    const gy = width / 2;
+    const side = ball.pos.y > gy ? 1 : -1;
+    const at = (xr: number, u: number) => toWorld(s, sp.team, xr, gy + side * u);
+    const used = setPieceMove(s, p, TAKER_MOVES[sp.play], C.takerMove);
+    const moveId = used?.moveId ?? null;
+    sp.moveId = moveId;
+    // gol olímpico: a curva no vento vai direto no canto de lá
+    if (moveId && WIND.has(moveId) && s.rng.chance(C.olympic)) {
+        const prof = moveProfile(moveId);
+        const k = Math.min(1.25, prof.strength);
+        p.shotBonus = { power: 1 + 0.15 * k, accuracy: 1 + 0.45 * k, moveType: prof.data.type, moveId, timer: 1.5 };
+        traitFx(s, p.idx, 'blowBall', moveId);
+        s.setPiece = null;
+        kick(s, p, 'shot', at(length, (-0.7 * goalWidth) / 2), 1);
+        return;
+    }
+    if (sp.play === 'short') {
+        const r = sp.roles.outside !== null ? s.players[sp.roles.outside] : null;
+        if (!r) {
+            s.setPiece = null;
+            return;
+        }
+        kick(s, p, 'pass', r.pos, 1, r.idx);
+        sp.until = s.tick + 3 * s.cfg.tickRate;
+        return;
+    }
+    // na área (bola alta entre a marca do pênalti e a 2ª trave) ou rasteira forte na 1ª trave. O alvo é o ponto
+    // da disputa: no alto a bola passa por ele a ~1,2 m (altura de cabeça) um pouco antes de cair
+    const high = sp.play === 'area';
+    const aimAt = high ? at(length - C.crossDepth, -0.3) : at(length - 1.3, 1.8);
+    const err =
+        moveId === 'swift'
+            ? 0
+            : C.crossError *
+              (1.3 - eff(s, p, 'passing') / 99) *
+              (moveId && WIND.has(moveId) ? C.windAim : 1) *
+              aimFactor(s, p, 'pass');
+    const target = v(
+        clamp(aimAt.x + s.rng.gauss() * err, 0.6, length - 0.6),
+        clamp(aimAt.y + s.rng.gauss() * err, 0.6, width - 0.6),
+    );
+    const flight = high ? (moveId === 'eggbomb' ? C.eggFlight : C.crossFlight) : C.nearTime;
+    const ticks = Math.max(1, Math.round((flight - (high ? 0.25 : 0.05)) * s.cfg.tickRate));
+    const t = ticks / s.cfg.tickRate;
+    if (high) {
+        ball.vel = scale(sub(target, ball.pos), 1 / t);
+        ball.vz = (GRAVITY * flight) / 2;
+        ball.z = 0.05;
+        if (moveId === 'eggbomb') traitFx(s, p.idx, 'lob', moveId);
+    } else {
+        const d = dist(target, ball.pos);
+        ball.vel = scale(norm(sub(target, ball.pos)), d / t + (FRICTION * t) / 2);
+    }
+    const receiverId = (high ? sp.roles.far : sp.roles.near) ?? undefined;
+    ball.owner = null;
+    ball.lastTouch = p.idx;
+    ball.assistCandidate = p.idx;
+    ball.lastKick = { by: p.idx, kind: 'pass', tick: s.tick, receiverId };
+    p.stats.passes++;
+    emit(s, { type: 'pass', by: p.idx, to: receiverId ?? null });
+    setAction(p, Action.Kick, 0.3);
+    p.kickCooldown = 0.35;
+    p.heading = norm(sub(target, p.pos));
+    p.facing = dir8(p.heading, p.facing);
+    p.energy = Math.max(0, p.energy - 0.002);
+    sp.at = target;
+    sp.contestTick = s.tick + ticks;
+    sp.until = sp.contestTick;
+    const r = sp.roles;
+    const runners = high ? [r.far, r.near, r.markFar, r.markNear] : [r.near, r.markNear, r.post];
+    // o goleiro sai do gol no cruzamento que cai na área dele; na rasteira ele já está na 1ª trave
+    const keeper = r.gk !== null ? s.players[r.gk] : null;
+    if (keeper && (high ? isInOwnArea(s, keeper, target) : dist(keeper.pos, target) < 2)) runners.push(keeper.idx);
+    sp.runners = runners.filter((i): i is number => i !== null);
+}
+
+/** Escanteio em andamento: na hora, a disputa; a curta expira se ninguém chutou. */
+function updateSetPiece(s: MatchState) {
+    const sp = s.setPiece!;
+    if (sp.contestTick > 0 && s.tick >= sp.contestTick) {
+        s.setPiece = null;
+        contest(s, sp);
+    } else if (s.tick > sp.until) s.setPiece = null;
+}
+
+/**
+ * Bola afastada (defensor ganhou a disputa, goleiro socou): pelo alto, pra frente e pro lado do canto, por cima de
+ * quem está na área (senão a sobra caía no pé de quem cobrou e virava gol toda hora).
+ */
+function clearBall(s: MatchState, p: PlayerState, speed: number) {
+    const ball = s.ball;
+    const toSide = ball.pos.y > s.cfg.pitch.width / 2 ? 1 : -1;
+    const dir = norm(v(attackSign(p.team), toSide * s.rng.range(0.3, 1.2)));
+    ball.owner = null;
+    ball.shot = null;
+    ball.vel = scale(dir, speed);
+    // sai já acima do alcance de quem está em volta (REACH_Z)
+    ball.z = REACH_Z + 0.1;
+    ball.vz = CORNER_TUNING.clearLift;
+    ball.lastTouch = p.idx;
+    ball.assistCandidate = null;
+    ball.lastKick = { by: p.idx, kind: 'clear', tick: s.tick };
+    p.kickCooldown = 0.35;
+    p.heading = dir;
+    p.facing = dir8(dir, p.facing);
+    setAction(p, Action.Kick, 0.3);
+}
+
+/**
+ * Disputa da bola do escanteio. No alto: força 45%, tamanho 35%, posicionamento 20% (`aerialEff`), golpe de quem
+ * sobe e o goleiro saindo; na rasteira da 1ª trave, posicionamento e velocidade. Sorteio com peso entre quem está
+ * perto (o peso é a nota ao quadrado, e quem está mais perto do ponto leva vantagem).
+ */
+function contest(s: MatchState, sp: SetPiece) {
+    const C = CORNER_TUNING;
+    const ball = s.ball;
+    if (ball.owner !== null || ball.shot) return;
+    const high = sp.play === 'area';
+    const R = high ? C.aerialRadius : C.nearRadius;
+    const egg = sp.moveId === 'eggbomb';
+    const inReach = (o: PlayerState) => {
+        if (o.idx === sp.taker || hidden(o) || isIncapacitated(o)) return false;
+        const keeper = o.role === 'GK' && o.team !== sp.team && isInOwnArea(s, o, ball.pos);
+        if (o.role === 'GK' && !keeper) return false;
+        return dist(o.pos, ball.pos) < R + (keeper ? C.gkExtra : 0);
+    };
+    const cands = s.players.filter(inReach);
+    if (!cands.length) return;
+    // golpe na disputa no alto: o atacante mais forte no alto que tiver um (no máximo um por escanteio)
+    let mover: PlayerState | null = null;
+    let moveId: string | null = null;
+    if (high) {
+        const attackers = cands.filter((o) => o.team === sp.team).sort((a, b) => aerialEff(s, b) - aerialEff(s, a));
+        for (const o of attackers) {
+            const used = setPieceMove(s, o, AERIAL_MOVES, C.headerMove);
+            if (!used) continue;
+            if (used.hit) {
+                mover = o;
+                moveId = used.moveId;
+            }
+            break;
+        }
+    }
+    // quem errou o Jump Kick caiu e sai da disputa
+    const live = cands.filter((o) => !isIncapacitated(o));
+    if (!live.length) return;
+    const weight = (o: PlayerState) => {
+        let sc: number;
+        if (o.role === 'GK') sc = eff(s, o, 'goalkeeping') * (egg ? 1.15 : 1);
+        else if (high) sc = aerialEff(s, o) * (egg ? 0.5 + sizePercentile(o.sp) : 1);
+        else sc = 0.6 * eff(s, o, 'positioning') + 0.4 * eff(s, o, 'pace');
+        if (o === mover && moveId) {
+            sc *= HIGH_FLYERS.has(moveId)
+                ? C.flyBoost
+                : 1 + C.headerBoost * Math.min(1.25, moveProfile(moveId).strength);
+        }
+        const close = clamp(1.3 - (0.6 * dist(o.pos, ball.pos)) / R, 0.5, 1.3);
+        return sc * sc * close * (o.team === sp.team ? 1 : C.defenseEdge);
+    };
+    const w = s.rng.weighted(live, weight);
+    const usedMove = w === mover ? moveId : null;
+    if (w.team === sp.team) {
+        // ataque: cabeçada ou voleio (no alto), desvio de primeira (rasteira)
+        const kind: 'header' | 'volley' | 'flick' = !high
+            ? 'flick'
+            : usedMove
+              ? VOLLEY_MOVES.has(usedMove)
+                  ? 'volley'
+                  : 'header'
+              : s.rng.chance(0.35 + 0.5 * sizePercentile(w.sp))
+                ? 'header'
+                : 'volley';
+        emit(s, { type: 'aerial', by: w.idx, team: w.team, high, kind, moveId: usedMove });
+        if (usedMove) {
+            const prof = moveProfile(usedMove);
+            const k = Math.min(1.25, prof.strength);
+            w.shotBonus = {
+                power: 1 + 0.3 * k,
+                accuracy: 1 + 0.2 * k,
+                moveType: prof.data.type,
+                moveId: usedMove,
+                timer: 1.5,
+            };
+        }
+        const power = kind === 'header' ? 0.65 + (0.35 * eff(s, w, 'strength')) / 99 : kind === 'volley' ? 0.95 : 0.8;
+        const aim = kind === 'header' ? C.headerAim : kind === 'volley' ? C.volleyAim : C.flickAim;
+        w.kickCooldown = 0;
+        kick(s, w, 'shot', autoShotTarget(s, w), power, undefined, aim);
+        return;
+    }
+    if (w.role === 'GK') {
+        // a rasteira forte não dá pra segurar: espalma/soca
+        const caught = high && s.rng.chance(C.gkCatch + (0.3 * eff(s, w, 'goalkeeping')) / 99);
+        emit(s, { type: 'aerial', by: w.idx, team: w.team, high, kind: caught ? 'catch' : 'punch', moveId: null });
+        setAction(w, Action.Dive, 0.5);
+        if (caught) {
+            ball.owner = w.idx;
+            ball.vel = v(0, 0);
+            ball.z = 0;
+            ball.vz = 0;
+            ball.lastTouch = w.idx;
+            ball.assistCandidate = null;
+            w.ai.holdUntil = s.tick + Math.round(1.5 * s.cfg.tickRate);
+            w.ai.nextDecision = 0;
+        } else clearBall(s, w, s.rng.range(8, 11));
+        return;
+    }
+    emit(s, { type: 'aerial', by: w.idx, team: w.team, high, kind: 'clear', moveId: null });
+    if (!high && s.rng.chance(C.ownDeflect)) {
+        // desvio contra: a dividida na 1ª trave escapa pro próprio gol
+        const { width, goalWidth } = s.cfg.pitch;
+        const into = v(ownGoalX(s, w.team), width / 2 + s.rng.range(-0.6, 0.6) * goalWidth * 0.5);
+        ball.vel = scale(norm(sub(into, ball.pos)), s.rng.range(8, 10));
+        ball.z = 0;
+        ball.vz = 0;
+        ball.lastTouch = w.idx;
+        ball.assistCandidate = null;
+        ball.lastKick = { by: w.idx, kind: 'clear', tick: s.tick };
+        w.kickCooldown = 0.35;
+        return;
+    }
+    clearBall(s, w, s.rng.range(10, 14));
+}
+
 // ---------------------------------------------------------------- tempos, substituições e pênaltis
 function endHalf(s: MatchState) {
+    s.setPiece = null;
     if (s.half === 1) {
         emit(s, { type: 'halftime', score: [s.score[0], s.score[1]] });
         for (const p of s.players) {
@@ -2461,6 +3025,8 @@ function halftimeSubs(s: MatchState) {
 }
 
 function penaltyShootout(s: MatchState) {
+    // os pênaltis são o trecho seguinte ao último do tempo normal
+    enterSegment(s);
     const takers = [0, 1].map((t) =>
         s.players.filter((p) => p.team === t && p.role !== 'GK').sort((a, b) => b.attr.shooting - a.attr.shooting),
     );

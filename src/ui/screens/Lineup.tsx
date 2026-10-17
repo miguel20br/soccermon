@@ -1,9 +1,13 @@
 import { useState } from 'react';
+import { computeAttributes } from '../../engine/attributes';
+import { species } from '../../engine/data';
 import { FORMATIONS } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { computeLinks } from '../../engine/links';
-import { TACTIC_LABEL, type Tactic } from '../../engine/state';
+import { pickCornerTaker } from '../../engine/match';
+import { applyModifiers, attributeModifiers } from '../../engine/modifiers';
+import { type CornerPlan, TACTIC_LABEL, type Tactic } from '../../engine/state';
 import { computeSynergies } from '../../engine/synergy';
 import { playSfx } from '../../game/audio';
 import { clubName, dict, formationText, itemDesc, itemName, stageName } from '../../i18n';
@@ -20,8 +24,12 @@ import { simulateMatch } from '../sim-client';
 /** Descrição das táticas em português (o texto de cada idioma está em i18n: team.lineup.tacticDesc). */
 export const TACTIC_DESC: Record<Tactic, string> = dict('pt').team.lineup.tacticDesc;
 
+/** Instruções de escanteio na ordem da tela. */
+export const CORNER_PLANS: CornerPlan[] = ['area', 'short', 'mixed'];
+
 export function Lineup() {
-    const { run, swapSlots, setTactic, setFormation, moveItem, setMatch, go, abandonRun, lockMatch } = useGame();
+    const { run, swapSlots, setTactic, setCorner, setFormation, moveItem, setMatch, go, abandonRun, lockMatch } =
+        useGame();
     const [error, setError] = useState<string | null>(null);
     const [askAbandon, setAskAbandon] = useState(false);
     const openCard = useCardModal((s) => s.open);
@@ -39,6 +47,22 @@ export function Lineup() {
     const holders = run.picks.filter((p) => p.uid !== detailInst?.uid);
 
     const locked = !!run.lockedTeam;
+    // escanteio: quem pode cobrar (jogadores de linha) e o automático (a mesma regra do motor)
+    const slotsNow = FORMATIONS[run.formation].slots;
+    const lineupNow = run.lineup.map((u) => byUid.get(u)!);
+    const captainNow = lineupNow.find((p) => p.uid === run.captainUid) ?? null;
+    const cornerField = lineupNow
+        .map((inst, i) => {
+            const role = slotsNow[i];
+            const mods = attributeModifiers(inst, { lineup: lineupNow, captain: captainNow, role });
+            const passing = applyModifiers(computeAttributes(species(inst.speciesId), inst.level), mods, role).passing;
+            return { inst, role, passing };
+        })
+        .filter((f) => f.role !== 'GK');
+    const autoTaker = pickCornerTaker(cornerField)?.inst;
+    const cornerPlan = run.cornerPlan ?? 'mixed';
+    const chosenTaker = run.cornerTakerUid ? byUid.get(run.cornerTakerUid) : undefined;
+    const takerOff = !!chosenTaker && !cornerField.some((f) => f.inst.uid === chosenTaker.uid);
     const captainBenched = !!run.captainUid && run.bench.includes(run.captainUid);
 
     const onSlot = (ref: SlotRef, uid: string) => {
@@ -216,6 +240,54 @@ export function Lineup() {
                             {d.team.lineup.tacticDesc[run.tactic]} {t('team.lineup.canChange')}
                         </p>
                         {captainBenched && <p className="error-text">{t('team.lineup.captainBenched')}</p>}
+                        <h3 style={{ marginTop: 12 }}>{t('team.lineup.corner')}</h3>
+                        <div className="tactics">
+                            {CORNER_PLANS.map((pl) => (
+                                <button
+                                    key={pl}
+                                    type="button"
+                                    className={`btn small${cornerPlan === pl ? ' active' : ''}`}
+                                    disabled={locked}
+                                    onClick={() => setCorner({ cornerPlan: pl })}
+                                >
+                                    {d.common.cornerPlan[pl]}
+                                </button>
+                            ))}
+                        </div>
+                        <p className="tactic-desc">
+                            {d.team.lineup.cornerDesc[cornerPlan]} {t('team.lineup.canChange')}
+                        </p>
+                        <label className="corner-taker">
+                            <span>{t('team.lineup.cornerTaker')}</span>
+                            <select
+                                value={run.cornerTakerUid ?? ''}
+                                disabled={locked}
+                                onChange={(e) => setCorner({ cornerTakerUid: e.target.value || null })}
+                            >
+                                <option value="">
+                                    {t('team.lineup.cornerAuto', {
+                                        name: autoTaker ? viewInstance(autoTaker).displayName : '?',
+                                    })}
+                                </option>
+                                {cornerField.map((f) => (
+                                    <option key={f.inst.uid} value={f.inst.uid}>
+                                        {t('team.lineup.cornerTakerOpt', {
+                                            name: viewInstance(f.inst).displayName,
+                                            pos: d.common.pos[f.role],
+                                            n: Math.round(f.passing),
+                                        })}
+                                    </option>
+                                ))}
+                                {chosenTaker && takerOff && (
+                                    <option value={chosenTaker.uid}>{viewInstance(chosenTaker).displayName}</option>
+                                )}
+                            </select>
+                        </label>
+                        {chosenTaker && takerOff && (
+                            <p className="tactic-desc">
+                                {t('team.lineup.cornerTakerOff', { name: viewInstance(chosenTaker).displayName })}
+                            </p>
+                        )}
                         <h3 style={{ marginTop: 12 }}>{t('team.lineup.typeSynergies')}</h3>
                         {synergies.length === 0 ? (
                             <p className="tactic-desc">{t('team.lineup.typeSynEmpty')}</p>

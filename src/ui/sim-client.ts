@@ -40,6 +40,7 @@ export function simulateMatch(
     away: TeamSetup,
     seed: string,
     orders: MatchOrder[] = [],
+    segmentSeeds?: string[],
 ): Promise<MatchResult> {
     const id = nextId++;
     return new Promise((resolve, reject) => {
@@ -48,7 +49,7 @@ export function simulateMatch(
             reject(new Error('A simulação demorou demais'));
         }, TIMEOUT_MS);
         pending.set(id, { resolve, reject, timer });
-        const req: SimRequest = { id, home, away, seed, orders };
+        const req: SimRequest = { id, home, away, seed, orders, segmentSeeds };
         try {
             getWorker().postMessage(req);
         } catch (err) {

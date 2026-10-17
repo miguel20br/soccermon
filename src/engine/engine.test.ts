@@ -1,15 +1,16 @@
 import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { computeAttributes, eligiblePositions, positionFactor, positionRating } from './attributes';
-import { FUTSAL_5, withConfig } from './config';
+import { FUTSAL_5, segmentTicks, withConfig } from './config';
 import { HumanController } from './controllers/human-controller';
 import { effectiveness, MOVES, SPECIES, species } from './data';
+import { matchHash } from './determinism';
 import { aiDraftTeam, DRAFT_ROUNDS, draftOptions, playerDraftOptions, SILVER } from './draft';
 import { evolvedRating } from './evolution';
 import { FORMATIONS } from './formations';
 import { createInstance, slotRating, viewInstance } from './instance';
 import { computeLinks } from './links';
-import { applyPendingSubs, captainFactor, createMatch } from './match';
+import { applyPendingSubs, captainFactor, createMatch, step } from './match';
 import { matchDigest, playerLines, possessionByPeriod, shotMap } from './match-stats';
 import { applyModifiers, attributeModifiers } from './modifiers';
 import { defaultMoveset, moveProfile } from './moves';
@@ -19,7 +20,7 @@ import { runMatch } from './runners/batch-runner';
 import { LiveRunner } from './runners/live-runner';
 import { SIGNATURE } from './signature-moves';
 import { EVENT_TYPES, rollSpecial, SPECIAL_BONUS, weeklyEventType } from './specials';
-import { SNAP_STRIDE, type TeamSetup } from './state';
+import { type MatchOrder, SNAP_STRIDE, type Tactic, type TeamSetup } from './state';
 import { computeSynergies } from './synergy';
 import { dir8, v } from './vec';
 
@@ -751,5 +752,144 @@ describe('golpes especiais', () => {
         });
         // antes do Bloco 3 só saía com rival dormindo (0 usos em 6.639 jogos)
         expect(dreams).toBeGreaterThan(0);
+    });
+});
+
+describe('seed por trecho (duelo ao vivo)', () => {
+    const home = team('seg-a', 'A');
+    const away = team('seg-b', 'B');
+    const seeds = Array.from({ length: 21 }, (_, k) => `trecho-${k}`);
+    const play = (segmentSeeds?: string[]) => runMatch(FUTSAL_5, home, away, 'seg', { segmentSeeds });
+
+    it('mesmas seeds dão a mesma partida, e o trecho dura 2 minutos (360 ticks de jogo)', () => {
+        expect(segmentTicks(FUTSAL_5)).toBe(360);
+        const a = play(seeds);
+        expect(matchHash(play([...seeds]))).toBe(matchHash(a));
+        // sem seeds por trecho é a partida de sempre (um stream só)
+        expect(matchHash(play())).not.toBe(matchHash(a));
+    });
+
+    it('mudar só a seed do trecho 3 não muda nada antes dele', () => {
+        const a = play(seeds);
+        const b = play(seeds.map((x, k) => (k === 3 ? 'outra' : x)));
+        // o trecho 3 começa no minuto 6 do relógio (ele para nas bolas paradas)
+        const start = a.snapshots.find((sn) => sn.minute >= 6)!.tick;
+        expect(b.snapshots.find((sn) => sn.minute >= 6)!.tick).toBe(start);
+        const earlier = (r: typeof a) => ({
+            events: r.events.filter((e) => e.tick < start),
+            snaps: r.snapshots.filter((sn) => sn.tick < start),
+        });
+        expect(earlier(b)).toEqual(earlier(a));
+        expect(matchHash(b)).not.toBe(matchHash(a));
+    });
+});
+
+describe('ordens do técnico validadas no motor (duelo)', () => {
+    const home = { ...team('ord-a', 'A'), manualSubs: true };
+    const away = team('ord-b', 'B');
+    const tactics = (r: ReturnType<typeof runMatch>) => r.events.filter((e) => e.type === 'tactic');
+
+    it('a ordem do array não importa: vale (tick, time, seq)', () => {
+        const orders: MatchOrder[] = [
+            { tick: 600, team: 1, tactic: 'counter', seq: 0 },
+            { tick: 600, team: 0, tactic: 'offensive', seq: 0 },
+            { tick: 600, team: 0, tactic: 'defensive', seq: 1 },
+            { tick: 900, team: 0, kind: 'sub', outUid: home.lineup[2].uid, inUid: home.bench[0].uid, seq: 2 },
+        ];
+        const a = runMatch(FUTSAL_5, home, away, 'ord', { orders });
+        const b = runMatch(FUTSAL_5, home, away, 'ord', { orders: [...orders].reverse() });
+        expect(matchHash(b)).toBe(matchHash(a));
+        // no mesmo tick: time 0 antes do 1, e seq 0 antes do 1 (a última do time 0 é Retranca)
+        expect(tactics(a).map((e) => (e.type === 'tactic' ? `${e.team}:${e.tactic}` : ''))).toEqual([
+            '0:offensive',
+            '0:defensive',
+            '1:counter',
+        ]);
+    });
+
+    it('ordem com o tick já passado é ignorada', () => {
+        const live = new LiveRunner(FUTSAL_5, home, away, 'ord');
+        for (let i = 0; i < 500; i++) live.step();
+        expect(live.addOrder({ tick: 450, team: 0, tactic: 'offensive' })).toBe(false);
+        expect(live.addOrder({ tick: live.state.tick, team: 0, tactic: 'offensive' })).toBe(true);
+        live.step();
+        expect(live.state.teams[0].tactic).toBe('offensive');
+        // ordem inválida também não entra (time ou tática que não existem)
+        expect(live.addOrder({ tick: 900, team: 2 as 0, tactic: 'offensive' })).toBe(false);
+        expect(live.addOrder({ tick: 900, team: 0, tactic: 'parking' as 'offensive' })).toBe(false);
+    });
+
+    it('a 4ª troca de tática é ignorada, e quem já entrou não entra de novo', () => {
+        const seq: Tactic[] = ['offensive', 'defensive', 'counter', 'balanced'];
+        const orders: MatchOrder[] = seq.map((tactic, i) => ({ tick: 300 + 300 * i, team: 0, tactic }));
+        const [outA, outB] = [home.lineup[1].uid, home.lineup[2].uid];
+        orders.push(
+            { tick: 400, team: 0, kind: 'sub', outUid: outA, inUid: home.bench[0].uid },
+            { tick: 2000, team: 0, kind: 'sub', outUid: outB, inUid: home.bench[0].uid },
+        );
+        const r = runMatch(FUTSAL_5, home, away, 'ord4', { orders });
+        expect(tactics(r).map((e) => (e.type === 'tactic' ? e.tactic : ''))).toEqual(seq.slice(0, 3));
+        expect(r.events.filter((e) => e.type === 'sub' && e.team === 0)).toHaveLength(1);
+    });
+});
+
+describe('escanteio (0.8.5)', () => {
+    const home = team('esc-a', 'A');
+    const away = team('esc-b', 'B');
+    /** Bola rolando pela linha de fundo do time 1 (x = comprimento), fora das traves, tocada por último por `by`. */
+    const ballOut = (by: number) => {
+        const s = createMatch(FUTSAL_5, home, away, 'esc');
+        s.phase = 'play';
+        s.ball = { ...s.ball, owner: null, pos: v(39.8, 3), vel: v(8, 0), lastTouch: by, shot: null };
+        step(s, []);
+        return s;
+    };
+
+    it('último toque da defesa pela linha de fundo vira escanteio; do ataque, tiro de meta', () => {
+        const defender = ballOut(7); // time 1 defende o gol em x = 40
+        expect(defender.events.at(-1)).toMatchObject({ type: 'corner', team: 0 });
+        expect(defender.phase).toBe('corner');
+        const attacker = ballOut(2);
+        expect(attacker.events.at(-1)).toMatchObject({ type: 'goalkick', team: 1 });
+    });
+
+    it('o relógio não corre enquanto monta a cobrança, e a cobrança sai sozinha', () => {
+        const s = ballOut(7);
+        const time = s.time;
+        let ticks = 0;
+        while (s.phase === 'corner' && ticks < 200) {
+            step(s, []);
+            ticks++;
+        }
+        expect(ticks).toBeGreaterThan(10);
+        expect(s.phase).toBe('play');
+        expect(s.time).toBe(time);
+        expect(s.ball.owner).toBeNull();
+    });
+
+    it('acontece nas partidas, com o cobrador escolhido e a instrução trocada por ordem', () => {
+        let corners = 0;
+        let aerials = 0;
+        for (let i = 0; i < 6; i++) {
+            const a = team(`esc-a${i}`, 'A');
+            const taker = a.lineup[2];
+            const r = runMatch(
+                FUTSAL_5,
+                { ...a, cornerTakerUid: taker.uid, corner: 'area' },
+                team(`esc-b${i}`, 'B'),
+                i,
+                {
+                    snapshots: false,
+                    orders: [{ tick: 3000, team: 0, kind: 'corner', corner: 'short' }],
+                },
+            );
+            const mine = r.events.filter((e) => e.type === 'corner' && e.team === 0);
+            for (const e of mine) if (e.type === 'corner') expect(r.roster[e.by].uid).toBe(taker.uid);
+            corners += r.events.filter((e) => e.type === 'corner').length;
+            aerials += r.events.filter((e) => e.type === 'aerial').length;
+            expect(r.events.filter((e) => e.type === 'cornerPlan')).toMatchObject([{ team: 0, plan: 'short' }]);
+        }
+        expect(corners).toBeGreaterThan(6);
+        expect(aerials).toBeGreaterThan(2);
     });
 });

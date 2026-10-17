@@ -1190,6 +1190,28 @@ button,
 .item-move label {
     grid-column: 1 / -1;
 }
+/* Escalação: quem cobra os escanteios */
+.corner-taker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+    margin-top: 6px;
+    font-size: 12px;
+}
+.corner-taker select {
+    flex: 1 1 200px;
+    min-width: 0;
+    max-width: 100%;
+    background: var(--bg-2);
+    color: var(--text);
+    border: 2px solid var(--line);
+    border-radius: 6px;
+    padding: 8px 6px;
+    font: inherit;
+    /* 16px: o iPhone não dá zoom na página ao abrir a lista */
+    font-size: 16px;
+}
 .item-move select {
     background: var(--bg-2);
     color: var(--text);
@@ -1344,6 +1366,11 @@ button,
 }
 .tactic-left {
     font-size: 11px;
+}
+.corner-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
 }
 .feed-toggle {
     display: none;
@@ -3693,6 +3720,23 @@ button,
 .inspect-note {
     font-size: 11px;
     text-align: center;
+}
+/* selo "Jogo aéreo" (disputa no alto do escanteio) */
+.inspect-aerial {
+    align-self: center;
+    margin-top: 4px;
+    padding: 2px 8px;
+    border: 2px solid var(--line);
+    border-radius: 999px;
+    font-size: 11px;
+    text-align: center;
+}
+.inspect-aerial.high {
+    border-color: #58c26b;
+    color: #9be7a6;
+}
+.inspect-aerial.low {
+    color: var(--muted);
 }
 .inspect-stats {
     display: grid;

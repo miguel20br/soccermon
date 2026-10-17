@@ -160,6 +160,21 @@ export function sizePercentile(sp: Species): number {
     return 0.5 * w + 0.5 * percentile(REFERENCE.height, dln(sp.heightm + 0.1));
 }
 
+/**
+ * Jogo aéreo (disputa no alto do escanteio, docs/planos/escanteio.md): força 45%, tamanho 35%, posicionamento 20%.
+ * `size` é o `sizePercentile` (0..1). A disputa no motor e o selo "Jogo aéreo" do painel usam esta mesma conta.
+ */
+export function aerialScore(strength: number, positioning: number, size: number): number {
+    return 0.45 * strength + 0.35 * size * 99 + 0.2 * positioning;
+}
+
+/** Selo do painel: alto/médio/baixo (terços aproximados dos 151 no nível 50). */
+export function aerialLevel(score: number): 'high' | 'mid' | 'low' {
+    return score >= AERIAL_HIGH ? 'high' : score >= AERIAL_MID ? 'mid' : 'low';
+}
+const AERIAL_HIGH = 68;
+const AERIAL_MID = 49;
+
 /** Físico pra mostrar na carta: porte + formato do corpo. */
 export function physiqueOf(sp: Species): { size: string; body: string; note: string } {
     const s = sizePercentile(sp);

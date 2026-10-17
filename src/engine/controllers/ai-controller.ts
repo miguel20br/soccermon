@@ -42,6 +42,11 @@ export class AIController implements Controller {
         const ctx = this.context();
         const p = s.players[idx];
         if (s.ball.owner === idx) return p.role === 'GK' ? this.goalkeeperWithBall(p) : this.carrier(p);
+        // escanteio: quem disputa a bola corre pro ponto onde ela cai
+        const sp = s.setPiece;
+        if (sp && s.ball.owner === null && sp.contestTick > s.tick && sp.runners.includes(idx)) {
+            return this.moveTo(p, sp.at, true);
+        }
         // goleiro também usa golpe de suporte (Sing, Soft-Boiled, Barrier...) fora do lance
         if (p.role === 'GK') return this.withUtility(p, this.goalkeeper(p, ctx));
         return this.withUtility(p, this.offBallMovement(p, ctx));
@@ -168,6 +173,15 @@ export class AIController implements Controller {
         const goal = v(gx, gy);
         const pressure = this.pressureOn(p);
 
+        // curta do escanteio: quem está na marca dos 10 m chuta de primeira
+        const sp = s.setPiece;
+        if (sp?.play === 'short' && sp.roles.outside === p.idx) {
+            const cmds: Command[] = [];
+            const slot = this.pickMoveSlot(p, ['strike', 'blast'], 0.45, gkSaveMove);
+            if (slot !== null) cmds.push({ type: 'useMove', slot });
+            cmds.push({ type: 'shoot', target: this.shotTarget(p), power: 0.9 });
+            return cmds;
+        }
         // segura a bola um instante depois de dominar (e na saída de bola)
         if (s.tick < p.ai.holdUntil) return this.dribbleCommand(p, goal, false);
         // decisões a cada ~0.3s, ou já se estiver sob pressão

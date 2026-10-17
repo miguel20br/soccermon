@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
+import { aerialLevel, aerialScore, computeAttributes, sizePercentile } from '../../engine/attributes';
 import { MOVES, species } from '../../engine/data';
 import { evolutionTarget, evoNeeded, evoProgress } from '../../engine/evolution';
-import { attributeModifiers, moveModifiers } from '../../engine/modifiers';
+import { applyModifiers, attributeModifiers, moveModifiers } from '../../engine/modifiers';
 import { moveProfile } from '../../engine/moves';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { FLAG_BUFF, FLAG_CHARGED, FLAG_DEBUFF, SNAP_STRIDE, type Tactic, type TeamSetup } from '../../engine/state';
@@ -117,6 +118,11 @@ export function PlayerInspect({
     if (fatigue > 0) live.push({ up: false, text: t('team.inspect.fatigue', { n: fatigue }) });
     if (behind >= 3) live.push({ up: true, text: t('team.inspect.grit', { n: behind }) });
     live.push({ up: true, text: t('team.inspect.tactic', { tactic: d.common.tactic[tactics[who.team]] }) });
+    // selo "Jogo aéreo": a mesma conta da disputa no alto do escanteio (carta = campo)
+    const fieldAttr = applyModifiers(computeAttributes(species(inst.speciesId), inst.level), mods, who.role);
+    const aerial = aerialLevel(
+        aerialScore(fieldAttr.strength, fieldAttr.positioning, sizePercentile(species(inst.speciesId))),
+    );
 
     return (
         // biome-ignore lint/a11y/noStaticElementInteractions: clicar fora fecha; Esc e o botão cobrem o teclado
@@ -158,6 +164,9 @@ export function PlayerInspect({
                                 {t('team.inspect.evolveNote', { name: species(target).name })}
                             </div>
                         )}
+                        <div className={`inspect-aerial ${aerial}`} title={t('team.inspect.aerialHint')}>
+                            {t('team.inspect.aerial', { level: d.common.aerial[aerial] })}
+                        </div>
                         {who.evolved && <div className="muted inspect-note">{t('team.inspect.evolved')}</div>}
                         {who.transformed && !who.evolved && (
                             <div className="muted inspect-note">
