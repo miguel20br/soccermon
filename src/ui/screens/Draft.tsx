@@ -284,19 +284,27 @@ export function Draft() {
                                                 const r = ratingAt(o, role);
                                                 // fora da posição de origem, o selo da carta não vale pra vaga: a faixa mostra a nota evoluída ali
                                                 const evo = r.fit === 'main' ? null : evolvedRating(o, role);
+                                                const full =
+                                                    r.fit === 'main'
+                                                        ? t('team.draft.fitMain', { pos: d.common.pos[role] })
+                                                        : t(
+                                                              r.fit === 'alt'
+                                                                  ? 'team.draft.fitAlt'
+                                                                  : 'team.draft.fitOff',
+                                                              {
+                                                                  pos: d.common.pos[role],
+                                                                  r: r.display,
+                                                              },
+                                                          );
+                                                // coluna estreita (celular deitado, 2 colunas em pé): só "Pivô · 55", a cor diz o resto
                                                 return (
-                                                    <div className={`option-fit ${r.fit}`}>
-                                                        {r.fit === 'main'
-                                                            ? t('team.draft.fitMain', { pos: d.common.pos[role] })
-                                                            : t(
-                                                                  r.fit === 'alt'
-                                                                      ? 'team.draft.fitAlt'
-                                                                      : 'team.draft.fitOff',
-                                                                  {
-                                                                      pos: d.common.pos[role],
-                                                                      r: r.display,
-                                                                  },
-                                                              )}
+                                                    <div className={`option-fit ${r.fit}`} title={full}>
+                                                        <span className="fit-long">{full}</span>
+                                                        {r.fit !== 'main' && (
+                                                            <span className="fit-short">
+                                                                {d.common.pos[role]} · {r.display}
+                                                            </span>
+                                                        )}
                                                         {evo && <EvoBadge evo={evo} now={r.rating} tr={tr} />}
                                                     </div>
                                                 );
