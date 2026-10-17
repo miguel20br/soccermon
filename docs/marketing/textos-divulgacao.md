@@ -448,6 +448,30 @@ por print), terminando no "1, 2 e… Pronto!" / "1, 2 and… Poof!" e num lance 
 
 ---
 
+## Atualização 0.8.4 + 0.8.5 (rascunho)
+
+Post "combo" no TikTok (@soccermongame): a parte da 0.8.4 já tem rascunho (`trailer/atualizacao/`, vídeo em
+`~/Videos/Soccermon trailer/Atualizacao-0.8.4-0.8.5/0.8.4/`); a da 0.8.5 (escanteio + duelo ao vivo) entra
+depois e a legenda final junta as duas. Música do rascunho é provisória (Trainer Battle Remix, Bliitzit): se
+ficar outra, trocar o crédito. Antes de clicar em Post, confirmar com o Miguel numa linha.
+
+Textos na tela da parte 0.8.4 (PT): "Agora você tem treinador. O Brock? Só ganhando dele" · "Red ou Leaf? Eu
+escolho você!" · "Títulos novos. Esse aqui só tem um no mundo" (o Criador do Soccermon, holográfico) · "Pacote do
+tamanho da carta: dá pra ver abrir" · "Item e MT agora vêm em carta" · "Goleiro agora defende com golpe" (Mr. Mime
+usou Thunder!) · "Paralisar o Pikachu? Ele é o para-raios" · "Mr. Mime foi pro gol. Parede invisível" · "Onix
+virou muralha" · "Hitmonlee lembrou que chuta" · "Seta verde: evolui pra 84. Seta vermelha: vira Metapod" ·
+"Troca no intervalo: volta do vestiário jogando".
+
+- Legenda PT: "Atualização dupla no Soccermon ⚽ Agora você escolhe seu treinador (o Brock você tem que vencer
+  primeiro), o goleiro defende com golpe e o Mr. Mime finalmente foi pro gol. Na 0.8.5: [escanteio + duelo ao
+  vivo, completar]. Grátis no navegador: soccermon.com 🎵 Trainer Battle Remix por Bliitzit · fan game sem fins
+  lucrativos"
+- Legenda EN: "Double update in Soccermon ⚽ Pick your trainer (you have to beat Brock before he joins you), keepers
+  save with moves and Mr. Mime finally went in goal. In 0.8.5: [corners + live duel, fill in]. Free in your
+  browser: soccermon.com 🎵 Trainer Battle Remix by Bliitzit · non-profit fan game"
+- Hashtags: `#pokemon #fangame #futsal #mrmime #pokemonfan`
+- Comentário com o link (fixar pelo app): "Joga aqui: https://soccermon.com/?utm_source=tiktok"
+
 ## 7. X: seguimento (construir em público)
 
 Cada post com menos de 280 caracteres (link conta como 23). Um por dia, como resposta ao post de lançamento ou

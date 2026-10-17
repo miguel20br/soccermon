@@ -1,0 +1,358 @@
+<!doctype html>
+<!--
+  Clipe de atualização 0.8.4 do Soccermon (TikTok/Reels/Shorts 9:16). Rascunho: depois vira a 1ª metade do post
+  "combo" 0.8.4 + 0.8.5. Mesma linguagem do trailer vertical (../vertical): jogo numa faixa no meio, legenda em
+  cima, menus recortados do DOM em corte seco sobre o fundo de marca, letreiro do golpe colado em quem usa.
+  Mídia em midia/ (fora do git): ./recortes.mjs + scripts/trailer-capture.mjs + ./preparar.sh.
+  Música PROVISÓRIA (o Miguel escolhe): 2 trechos do Trainer Battle Remix (Bliitzit) tirados do trailer, emendados
+  no compasso. Grade de corte: G(k) = 0,968 + k·1,348 s. Inglês: --variables '{"lang":"en"}'.
+-->
+<html lang="pt-BR" data-composition-variables='[{"id":"lang","type":"string","label":"Idioma (pt/en)","default":"pt"}]'>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920" />
+<title>Soccermon · atualização 0.8.4</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+@font-face { font-family: "Galmuri11"; src: url("midia/Galmuri11-Bold.woff2") format("woff2"); font-weight: 700; }
+html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+#root { position: relative; width: 1080px; height: 1920px; overflow: hidden; font-family: "Galmuri11", monospace;
+  background: radial-gradient(circle at 50% 50%, #2a3a7a, #070a18 75%); }
+.clip { position: absolute; inset: 0; width: 1080px; height: 1920px; overflow: hidden; }
+img { image-rendering: pixelated; }
+.palco { background: radial-gradient(circle at 50% 45%, #2a3a7a, #070a18 72%); }
+.raios { position: absolute; left: 50%; top: 45%; width: 3400px; height: 3400px; margin: -1700px 0 0 -1700px;
+  background: repeating-conic-gradient(rgb(255 255 255 / 7%) 0 6deg, transparent 6deg 13deg); }
+/* faixa do jogo: 1080x1056 (lance já ampliado sem suavizar no preparar.sh) */
+.jogo { position: absolute; left: 0; top: 470px; width: 1080px; height: 1056px; box-shadow: 0 0 0 6px #0e1430, 0 20px 60px rgb(0 0 0 / 60%); }
+.vinheta { position: absolute; left: 0; top: 470px; width: 1080px; height: 1056px; z-index: 20; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgb(0 0 0 / 50%) 100%); }
+.marca { position: absolute; left: 280px; top: 1600px; width: 520px; opacity: 0.9; image-rendering: auto; }
+.legenda { position: absolute; left: 0; right: 0; top: 150px; height: 300px; display: flex; align-items: center; justify-content: center;
+  text-align: center; z-index: 40; font-size: 64px; line-height: 1.2; letter-spacing: 2px; padding: 0 60px; color: #fff;
+  -webkit-text-stroke: 14px #0e1430; paint-order: stroke fill; text-shadow: 0 8px 0 #0e1430; }
+.legenda b { color: #ffcb05; font-weight: 700; }
+.legenda.baixo { top: auto; bottom: 120px; }
+.flash { position: absolute; inset: 0; background: #fff; opacity: 0; z-index: 60; pointer-events: none; }
+/* recorte de menu: posicionado por left/top (o GSAP só mexe em escala/opacidade) */
+.recorte { position: absolute; opacity: 0; filter: drop-shadow(0 18px 40px rgb(0 0 0 / 55%)); }
+.selo-nota { position: absolute; left: 0; right: 0; top: 1380px; width: fit-content; margin: 0 auto; padding: 16px 34px; border-radius: 16px;
+  background: #0e1430; color: #fff; font-size: 70px; letter-spacing: 3px; box-shadow: 0 0 0 6px #ffcb05, 0 12px 0 6px rgb(0 0 0 / 40%); opacity: 0; z-index: 30; }
+.selo-nota s { color: #9aa3c7; text-decoration-thickness: 6px; }
+.selo-nota b { color: #5be37a; }
+.selo-nota i { font-style: normal; color: #ffcb05; font-size: 44px; margin-right: 16px; }
+/* letreiro do golpe colado em quem usa (o do trailer) */
+.golpe { position: absolute; z-index: 30; display: flex; align-items: center; gap: 18px; white-space: nowrap;
+  padding: 14px 64px 14px 18px; color: #fff; clip-path: polygon(0 0, 100% 0, calc(100% - 40px) 100%, 0 100%);
+  background: linear-gradient(90deg, #c63a3a, #4a1830); box-shadow: 0 8px 0 rgb(0 0 0 / 35%); }
+.golpe.dir { padding: 14px 18px 14px 64px; flex-direction: row-reverse; text-align: right; clip-path: polygon(0 0, 100% 0, 100% 100%, 40px 100%);
+  background: linear-gradient(270deg, #c63a3a, #4a1830); }
+.golpe .face { width: 116px; height: 116px; border: 5px solid #fff; border-radius: 10px; background: #10162e; overflow: hidden; flex: none; }
+.golpe .face img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.golpe .quem { font-size: 30px; letter-spacing: 2px; text-shadow: 0 4px 0 rgb(0 0 0 / 55%); }
+.golpe .nome { font-size: 64px; line-height: 1; letter-spacing: 2px; -webkit-text-stroke: 10px #0e1430; paint-order: stroke fill; text-shadow: 0 6px 0 #0e1430; }
+.mira { position: absolute; z-index: 25; width: 190px; height: 190px; margin: -95px 0 0 -95px; border-radius: 50%;
+  border: 7px solid #fff; box-shadow: 0 0 40px #fff, inset 0 0 30px rgb(255 255 255 / 60%); }
+/* nome da habilidade subindo em amarelo, como no jogo, só que grande */
+.habil { position: absolute; z-index: 30; width: 800px; margin-left: -400px; text-align: center; font-size: 66px; color: #ffd447; letter-spacing: 2px;
+  -webkit-text-stroke: 12px #0e1430; paint-order: stroke fill; text-shadow: 0 6px 0 #0e1430; }
+.entrou { position: absolute; z-index: 30; width: 400px; margin-left: -200px; text-align: center; font-size: 52px; color: #5be37a;
+  -webkit-text-stroke: 10px #0e1430; paint-order: stroke fill; text-shadow: 0 6px 0 #0e1430; }
+.titulo { position: absolute; left: 0; right: 0; text-align: center; color: #ffcb05; font-size: 120px; letter-spacing: 6px;
+  -webkit-text-stroke: 18px #0e1430; paint-order: stroke fill; text-shadow: 0 12px 0 #0e1430; }
+.logo { position: absolute; left: 30px; top: 640px; width: 1020px; image-rendering: auto; }
+.site { position: absolute; left: 0; right: 0; top: 1240px; text-align: center; font-size: 60px; color: #fff; letter-spacing: 2px; }
+.credito { position: absolute; left: 60px; right: 60px; bottom: 70px; text-align: center; font-size: 24px; line-height: 1.5; color: rgb(255 255 255 / 60%); }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="28.5">
+
+  <!-- ===== 0 · abertura: "ATUALIZAÇÃO 0.8.4" ===== -->
+  <div id="abertura" class="clip palco" data-start="0" data-duration="0.968">
+    <div class="raios" id="raios0"></div>
+    <img class="logo" id="logo0" src="midia/logo-pt.svg" style="top:560px" alt="" />
+    <div class="titulo" id="ab-tit" style="top:900px"></div>
+  </div>
+
+  <!-- ===== 1 · seu treinador (G0–G4) ===== -->
+  <div id="treinador" class="clip palco" data-start="0.968" data-duration="5.392">
+    <div class="raios"></div>
+    <img class="recorte" id="tr1" src="midia/t-grade.png" style="left:30px;top:480px;width:1020px" alt="" />
+    <img class="recorte" id="tr2" src="midia/t-antes.png" style="left:30px;top:760px;width:1020px" alt="" />
+    <img class="recorte" id="tr3" src="midia/t-depois.png" style="left:30px;top:760px;width:1020px" alt="" />
+  </div>
+  <video id="v-holo" class="recorte" src="midia/holo.mp4" muted playsinline data-start="3.664" data-duration="1.348" style="left:20px;top:760px;width:1040px;opacity:1"></video>
+  <div id="vs-fundo" class="clip palco" data-start="5.012" data-duration="1.348"><div class="raios"></div></div>
+  <video id="v-versus" src="midia/versus.mp4" muted playsinline data-start="5.012" data-duration="1.348" data-media-start="0.6"
+    style="position:absolute;left:90px;top:-10px;width:900px;height:1935px"></video>
+
+  <!-- ===== 2 · pacote do tamanho da carta (G4–G6) e item/MT em carta (G6–G7) ===== -->
+  <div id="pacote-fundo" class="clip palco" data-start="6.36" data-duration="4.044"><div class="raios"></div></div>
+  <video id="v-pacote" src="midia/pacote.mp4" muted playsinline data-start="6.36" data-duration="2.696"
+    style="position:absolute;left:60px;top:470px;width:960px;height:1588px"></video>
+  <video id="v-mt" src="midia/mt.mp4" muted playsinline data-start="9.056" data-duration="1.348" data-media-start="0.1"
+    style="position:absolute;left:90px;top:500px;width:900px;height:1255px"></video>
+
+  <!-- ===== 3 · goleiro usa golpe (G7–G10): Mr. Mime de Thunder, Snorlax de Body Slam ===== -->
+  <div class="clip palco" data-start="10.404" data-duration="5.392"><div class="raios"></div></div>
+  <img class="marca" src="midia/logo.svg" data-start="10.404" data-duration="5.392" alt="" />
+  <video id="v-mime" class="jogo" src="midia/mime.mp4" muted playsinline data-start="10.404" data-duration="2.696" data-media-start="0.1"></video>
+  <video id="v-snorlax" class="jogo" src="midia/snorlax.mp4" muted playsinline data-start="13.1" data-duration="1.348" data-media-start="0.2"></video>
+  <div class="mira" id="mira1" data-start="11.6" data-duration="0.9"></div>
+  <div class="golpe" id="golpe1" data-start="11.6" data-duration="1.2"><div class="face"><img src="midia/retrato-122.png" alt="" /></div><div><div class="quem"></div><div class="nome"></div></div></div>
+  <div class="mira" id="mira2" data-start="13.5" data-duration="0.7"></div>
+  <div class="golpe" id="golpe2" data-start="13.5" data-duration="0.8"><div class="face"><img src="midia/retrato-143.png" alt="" /></div><div><div class="quem"></div><div class="nome"></div></div></div>
+
+  <!-- ===== 4 · habilidade segura status (G10–G12): o Pikachu com Lightning Rod ===== -->
+  <video id="v-pika" class="jogo" src="midia/pika.mp4" muted playsinline data-start="14.448" data-duration="2.696" data-media-start="0.1"></video>
+  <div class="mira" id="mira3" data-start="15.3" data-duration="1.0"></div>
+  <div class="habil" id="habil" data-start="15.3" data-duration="1.5"></div>
+  <div class="vinheta" data-start="10.404" data-duration="6.74"></div>
+
+  <!-- ===== 5 · buffs (G12–G15) ===== -->
+  <div id="buffs" class="clip palco" data-start="17.144" data-duration="4.044">
+    <div class="raios"></div>
+    <img class="recorte" id="b1" src="midia/c-mrmime.png" style="left:165px;top:440px;height:1000px" alt="" />
+    <img class="recorte" id="b2" src="midia/c-onix.png" style="left:165px;top:440px;height:1000px" alt="" />
+    <img class="recorte" id="b3" src="midia/c-hitmonlee.png" style="left:165px;top:440px;height:1000px" alt="" />
+    <img class="recorte" id="b4" src="midia/c-wigglytuff.png" style="left:165px;top:440px;height:1000px" alt="" />
+    <img class="recorte" id="b5" src="midia/c-vaporeon.png" style="left:165px;top:440px;height:1000px" alt="" />
+    <div class="selo-nota" id="n1"></div>
+    <div class="selo-nota" id="n2"></div>
+    <div class="selo-nota" id="n3"></div>
+    <div class="selo-nota" id="n4"></div>
+    <div class="selo-nota" id="n5"></div>
+  </div>
+
+  <!-- ===== 6 · a carta mostra a nota depois de evoluir (G15–G16) ===== -->
+  <div id="evo" class="clip palco" data-start="21.188" data-duration="1.348">
+    <div class="raios"></div>
+    <div id="evo-caixa" style="position:absolute;left:30px;top:520px;width:1020px;height:880px;overflow:hidden;filter:drop-shadow(0 18px 40px rgb(0 0 0 / 55%))">
+      <img id="evo-img" src="midia/d-opcoes-2.png" style="position:absolute;left:0;top:-122px;width:1020px;transform-origin:250px 350px" alt="" />
+    </div>
+  </div>
+
+  <!-- ===== 7 · troca no intervalo (G16–G19) ===== -->
+  <div id="intervalo" class="clip palco" data-start="22.536" data-duration="1.348">
+    <div class="raios"></div>
+    <img class="recorte" id="i1" src="midia/i-intervalo.png" style="left:30px;top:660px;width:1020px" alt="" />
+    <img class="recorte" id="i2" src="midia/i-quem-entra.png" style="left:30px;top:740px;width:1020px" alt="" />
+  </div>
+  <div class="clip palco" data-start="23.884" data-duration="2.696"><div class="raios"></div></div>
+  <img class="marca" src="midia/logo.svg" data-start="23.884" data-duration="2.696" alt="" />
+  <video id="v-entra" class="jogo" src="midia/entra.mp4" muted playsinline data-start="23.884" data-duration="2.696" data-media-start="0.1"></video>
+  <div class="vinheta" data-start="23.884" data-duration="2.696"></div>
+  <div class="mira" id="mira4" data-start="23.884" data-duration="2.696" style="left:506px;top:520px;opacity:0"></div>
+  <div class="entrou" id="entrou" data-start="23.884" data-duration="2.696" style="left:506px;top:560px;opacity:0"></div>
+
+  <!-- ===== 8 · final (G19–fim) ===== -->
+  <div id="final" class="clip palco" data-start="26.58" data-duration="1.92">
+    <div class="raios" id="raios9"></div>
+    <img class="logo" id="logo9" src="midia/logo-pt.svg" alt="" />
+    <div class="titulo" id="fim-tit" style="top:1000px;font-size:80px"></div>
+    <div class="site" id="site">soccermon.com</div>
+    <div class="credito" id="credito"></div>
+  </div>
+
+  <!-- legendas -->
+  <div class="legenda" id="leg-treinador" data-start="0.968" data-duration="1.348"></div>
+  <div class="legenda" id="leg-escolha" data-start="2.316" data-duration="1.348"></div>
+  <div class="legenda" id="leg-titulo" data-start="3.664" data-duration="1.348"></div>
+  <div class="legenda" id="leg-pacote" data-start="6.36" data-duration="2.696" style="top:120px"></div>
+  <div class="legenda" id="leg-mt" data-start="9.056" data-duration="1.348" style="top:150px"></div>
+  <div class="legenda" id="leg-goleiro" data-start="10.404" data-duration="4.044"></div>
+  <div class="legenda" id="leg-habil" data-start="14.448" data-duration="2.696"></div>
+  <div class="legenda" id="leg-b1" data-start="17.144" data-duration="1.348"></div>
+  <div class="legenda" id="leg-b2" data-start="18.492" data-duration="0.674"></div>
+  <div class="legenda" id="leg-b3" data-start="19.166" data-duration="0.674"></div>
+  <div class="legenda" id="leg-b4" data-start="19.84" data-duration="1.348"></div>
+  <div class="legenda" id="leg-evo" data-start="21.188" data-duration="1.348"></div>
+  <div class="legenda" id="leg-intervalo" data-start="22.536" data-duration="4.044"></div>
+  <div class="flash" id="flash"></div>
+
+  <audio id="a-musica" class="clip" src="midia/musica.wav" data-start="0" data-duration="27.93" data-media-start="0"></audio>
+
+  <script>
+    const TEXTOS = {
+      pt: {
+        abertura: "ATUALIZAÇÃO<br>0.8.4",
+        treinador: "Agora você tem <b>treinador</b>. O Brock? Só ganhando dele",
+        escolha: "Red ou Leaf? <b>Eu escolho você!</b>",
+        titulo: "Títulos novos. Esse aqui só tem <b>um</b> no mundo",
+        pacote: "Pacote do tamanho da carta: dá pra <b>ver abrir</b>",
+        mt: "Item e MT agora vêm em <b>carta</b>",
+        goleiro: "Goleiro agora defende com <b>golpe</b>",
+        habil: "Paralisar o Pikachu? Ele <b>é</b> o para-raios",
+        b1: "Mr. Mime foi pro gol. <b>Parede invisível</b>",
+        b2: "Onix virou <b>muralha</b>",
+        b3: "Hitmonlee lembrou que <b>chuta</b>",
+        b4: "E mais um monte de <b>buff</b>",
+        evo: "Seta verde: <b>evolui pra 84</b>. Seta vermelha: vira Metapod",
+        intervalo: "Troca no intervalo: volta do vestiário <b>jogando</b>",
+        usou: "usou",
+        entrou: "ENTROU!",
+        notas: [["ALA", 78, 80, "GOL 75"], ["FIXO", 63, 70], ["PIVÔ", 70, 75], ["", 66, 71], ["", 76, 79]],
+        fim: "JÁ NO AR",
+        credito: "Música (provisória): Trainer Battle Remix por Bliitzit · Fan game sem fins lucrativos · Pokémon © Nintendo, Game Freak, Creatures, TPC",
+      },
+      en: {
+        abertura: "UPDATE<br>0.8.4",
+        treinador: "Now you get a <b>trainer</b>. Brock? Beat him first",
+        escolha: "Red or Leaf? <b>I choose you!</b>",
+        titulo: "New titles. There's only <b>one</b> of this one",
+        pacote: "Card-sized packs: you get to <b>watch them open</b>",
+        mt: "Items and TMs come as <b>cards</b> now",
+        goleiro: "Keepers save with <b>moves</b> now",
+        habil: "Paralyze Pikachu? He <b>is</b> the lightning rod",
+        b1: "Mr. Mime went in goal. <b>Invisible wall</b>",
+        b2: "Onix is a <b>wall</b> now",
+        b3: "Hitmonlee remembered he <b>kicks</b>",
+        b4: "And a whole lot more <b>buffs</b>",
+        evo: "Green arrow: <b>evolves into an 84</b>. Red arrow: becomes Metapod",
+        intervalo: "Halftime sub: back from the locker room <b>playing</b>",
+        usou: "used",
+        entrou: "IN!",
+        notas: [["ALA", 78, 80, "GK 75"], ["FIXO", 63, 70], ["PIVÔ", 70, 75], ["", 66, 71], ["", 76, 79]],
+        fim: "OUT NOW",
+        credito: "Music (placeholder): Trainer Battle Remix by Bliitzit · Non-profit fan game · Pokémon © Nintendo, Game Freak, Creatures, TPC",
+      },
+    };
+    const vars = window.__hyperframes?.getVariables?.() ?? {};
+    const lang = vars.lang === "en" ? "en" : "pt";
+    const T = TEXTOS[lang];
+    for (const k of ["treinador", "escolha", "titulo", "pacote", "mt", "goleiro", "habil", "b1", "b2", "b3", "b4", "evo", "intervalo"])
+      document.getElementById(`leg-${k}`).innerHTML = `<span>${T[k]}</span>`;
+    document.getElementById("ab-tit").innerHTML = T.abertura;
+    document.getElementById("fim-tit").textContent = T.fim;
+    document.getElementById("credito").textContent = T.credito;
+    document.getElementById("entrou").textContent = T.entrou;
+    document.getElementById("habil").textContent = "Lightning Rod!";
+    for (const id of ["logo0", "logo9"]) document.getElementById(id).src = `midia/logo-${lang}.svg`;
+    T.notas.forEach(([pos, a, d, extra], i) => {
+      document.getElementById(`n${i + 1}`).innerHTML = `${pos ? `<i>${pos}</i>` : ""}<s>${a}</s> ⇒ <b>${d}</b>${extra ? ` <i style="margin:0 0 0 16px">${extra}</i>` : ""}`;
+    });
+
+    // quem usa o golpe, já em coordenadas da tela (faixa do jogo em top 470; lance 1080x1056)
+    const GOLPES = [
+      { quem: "Mr. Mime", golpe: "Thunder", cor: "#F7D02C", x: 820, y: 1010 },
+      { quem: "Snorlax", golpe: "Body Slam", cor: "#C6C6A7", x: 80, y: 1010 },
+    ];
+    GOLPES.forEach((g, i) => {
+      const el = document.getElementById(`golpe${i + 1}`);
+      el.querySelector(".quem").textContent = `${g.quem} ${T.usou}`;
+      el.querySelector(".nome").textContent = `${g.golpe}!`;
+      el.querySelector(".nome").style.color = g.cor;
+      const mira = document.getElementById(`mira${i + 1}`);
+      mira.style.left = `${g.x}px`;
+      mira.style.top = `${g.y}px`;
+      if (g.x > 540) { el.classList.add("dir"); el.style.right = `${Math.max(20, 1080 - g.x - 110)}px`; }
+      else el.style.left = `${Math.max(20, g.x - 110)}px`;
+      el.style.top = `${g.y - 290}px`;
+    });
+    // Pikachu no instante da habilidade
+    const PIKA = { x: 560, y: 970 };
+    Object.assign(document.getElementById("mira3").style, { left: `${PIKA.x}px`, top: `${PIKA.y}px` });
+    Object.assign(document.getElementById("habil").style, { left: `${PIKA.x}px`, top: `${PIKA.y - 200}px` });
+
+    const B = 1.348, b = B / 4, G = (k) => 0.968 + k * B;
+    const tl = gsap.timeline({ paused: true });
+    const flash = (t, o = 0.9, d = 0.3) => tl.fromTo("#flash", { opacity: o }, { opacity: 0, duration: d, ease: "power2.out", immediateRender: false }, t);
+    const corte = (sel, t, dur) => {
+      tl.set(sel, { opacity: 1 }, t);
+      tl.fromTo(sel, { scale: 1.06 }, { scale: 1, duration: 0.16, ease: "power2.out", immediateRender: false }, t);
+      tl.set(sel, { opacity: 0 }, t + dur);
+    };
+    const legenda = (id, t) => tl.from(`#leg-${id}`, { y: 60, scale: 0.8, opacity: 0, duration: 0.22, ease: "back.out(2.5)" }, t + 0.05);
+    const impacto = (sel, t) => {
+      tl.set(sel, { filter: "invert(1) contrast(1.6)" }, t);
+      tl.set(sel, { filter: "none" }, t + 0.067);
+      flash(t + 0.067, 0.85, 0.3);
+      tl.to(sel, { keyframes: { x: [22, -18, 13, -8, 4, 0], y: [-10, 9, -6, 4, -2, 0] }, duration: 0.3, ease: "none" }, t);
+    };
+    const golpe = (n, t, dir) => {
+      tl.from(`#mira${n}`, { scale: 2.4, opacity: 0, duration: 0.2, ease: "power2.out" }, t);
+      tl.to(`#mira${n}`, { scale: 0.9, duration: 0.15, yoyo: true, repeat: 3, ease: "sine.inOut" }, t + 0.2);
+      tl.from(`#golpe${n}`, { x: 120 * -dir, scale: 0.3, opacity: 0, duration: 0.18, ease: "back.out(2)", transformOrigin: dir > 0 ? "100% 100%" : "0% 100%" }, t + 0.04);
+      tl.from(`#golpe${n} .nome`, { scale: 1.8, opacity: 0, duration: 0.16, ease: "back.out(2.5)", transformOrigin: dir > 0 ? "100% 50%" : "0% 50%" }, t + 0.2);
+    };
+
+    // abertura: raios girando, logo e o número da versão batendo
+    tl.to("#raios0", { rotation: 20, duration: 0.968, ease: "none" }, 0);
+    tl.from("#logo0", { scale: 0.85, opacity: 0, duration: 0.3, ease: "back.out(3)" }, 0);
+    tl.from("#ab-tit", { scale: 2.2, opacity: 0, duration: 0.2, ease: "power4.in" }, 0.35);
+    flash(0.55, 0.6, 0.25);
+
+    // treinador
+    flash(G(0), 0.7, 0.25);
+    corte("#tr1", G(0), B);
+    corte("#tr2", G(1), 2 * b);
+    corte("#tr3", G(1) + 2 * b, 2 * b);
+    flash(G(1) + 2 * b, 0.35, 0.15);
+    tl.fromTo("#v-holo", { scale: 1.08 }, { scale: 1, duration: 0.2, ease: "power2.out", immediateRender: false }, G(2));
+    flash(G(3), 0.6, 0.2);
+    ["treinador", "escolha", "titulo"].forEach((id, i) => legenda(id, G(i)));
+
+    // pacote e MT
+    flash(G(4), 0.5, 0.2);
+    flash(G(6), 0.5, 0.2);
+    legenda("pacote", G(4));
+    legenda("mt", G(6));
+
+    // goleiro: Mr. Mime (o trovão cai ~1,4 s depois do corte), Snorlax
+    flash(G(7), 0.6, 0.18);
+    tl.fromTo("#v-mime", { scale: 1.08 }, { scale: 1, duration: 0.4, ease: "power3.out", immediateRender: false }, G(7));
+    golpe(1, 11.6, 1);
+    tl.to("#golpe1", { opacity: 0, duration: 0.1 }, 12.7);
+    golpe(2, 13.5, -1);
+    tl.to("#golpe2", { opacity: 0, duration: 0.1 }, 14.3);
+    flash(G(9), 0.6, 0.18);
+    legenda("goleiro", G(7));
+
+    // habilidade: o nome sobe em amarelo em cima do Pikachu
+    flash(G(10), 0.6, 0.18);
+    tl.from("#mira3", { scale: 2.4, opacity: 0, duration: 0.2, ease: "power2.out" }, 15.3);
+    tl.fromTo("#habil", { y: 60, opacity: 0, scale: 0.6 }, { y: 0, opacity: 1, scale: 1, duration: 0.25, ease: "back.out(2.5)", immediateRender: false }, 15.3);
+    tl.to("#habil", { y: -80, opacity: 0, duration: 0.5, ease: "power1.in" }, 16.3);
+    legenda("habil", G(10));
+
+    // buffs: carta + selo "antes ⇒ depois"
+    const buffs = [[1, G(12), B], [2, G(13), 2 * b], [3, G(13) + 2 * b, 2 * b], [4, G(14), 2 * b], [5, G(14) + 2 * b, 2 * b + 0.01]];
+    for (const [n, t, d] of buffs) {
+      corte(`#b${n}`, t, d);
+      tl.set(`#n${n}`, { opacity: 1 }, t + 0.12);
+      tl.from(`#n${n}`, { scale: 1.8, duration: 0.18, ease: "back.out(2)" }, t + 0.12);
+      tl.set(`#n${n}`, { opacity: 0 }, t + d);
+      flash(t, 0.35, 0.15);
+    }
+    ["b1", "b2", "b3", "b4"].forEach((id, i) => legenda(id, [G(12), G(13), G(13) + 2 * b, G(14)][i]));
+
+    // evolução: zoom no Pikachu e na seta
+    tl.fromTo("#evo-img", { scale: 1 }, { scale: 1.35, duration: B, ease: "power1.inOut", immediateRender: false }, G(15));
+    flash(G(15), 0.5, 0.2);
+    legenda("evo", G(15));
+
+    // intervalo: placar, quem entra, e o Pikachu entrando na quadra do 2º tempo
+    corte("#i1", G(16), 2 * b);
+    corte("#i2", G(16) + 2 * b, 2 * b + 0.01);
+    legenda("intervalo", G(16));
+    flash(G(17), 0.5, 0.2);
+    // Pikachu entra pela lateral de cima (posições medidas no lance)
+    tl.to("#mira4", { opacity: 1, duration: 0.15 }, G(17) + 0.2);
+    tl.to("#mira4", { x: -80, y: 454, duration: 0.7, ease: "none" }, G(17) + 0.25);
+    tl.to("#entrou", { opacity: 1, duration: 0.15 }, G(17) + 0.4);
+    tl.to("#entrou", { x: -80, y: 540, duration: 0.55, ease: "none" }, G(17) + 0.4);
+
+    // final
+    tl.to("#raios9", { rotation: 20, duration: 1.92, ease: "none" }, G(19));
+    flash(G(19), 0.8, 0.35);
+    tl.from("#logo9", { scale: 0.85, duration: 0.4, ease: "back.out(3)" }, G(19));
+    tl.from("#fim-tit", { scale: 1.6, opacity: 0, duration: 0.25, ease: "back.out(2)" }, G(19) + b);
+    tl.from(["#site", "#credito"], { opacity: 0, duration: 0.3 }, G(19) + 2 * b);
+
+    window.__timelines = window.__timelines || {};
+    window.__timelines.root = tl;
+  </script>
+</div>
+</body>
+</html>
