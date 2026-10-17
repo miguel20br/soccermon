@@ -1235,6 +1235,25 @@ fieldset.pf-field,
 .pf-chip:has(> .title-shine) {
     border-color: #ffd84a;
 }
+/* título do criador: holográfico (as cores da carta Shiny/edição especial correndo), único no jogo */
+.title-holo {
+    background: linear-gradient(90deg, #ff9ad5, #9ae6ff, #b6ffa0, #fff29a, #d7a6ff, #ff9ad5) 0 0 / 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: none;
+    filter: drop-shadow(0 0 5px rgb(215 166 255 / 55%));
+    animation: title-holo 4s linear infinite;
+}
+.pf-chip:has(> .title-holo) {
+    border-color: #d7a6ff;
+    box-shadow: 0 0 10px rgb(154 230 255 / 35%);
+}
+@keyframes title-holo {
+    to {
+        background-position: 300% 0;
+    }
+}
 @keyframes title-shine {
     from {
         background-position: 100% 0;
@@ -1244,10 +1263,12 @@ fieldset.pf-field,
     }
 }
 @media (prefers-reduced-motion: reduce) {
-    .title-shine {
+    .title-shine,
+    .title-holo {
         animation: none;
     }
 }
-:root[data-reduce-motion="true"] .title-shine {
+:root[data-reduce-motion="true"] .title-shine,
+:root[data-reduce-motion="true"] .title-holo {
     animation: none;
 }

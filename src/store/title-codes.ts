@@ -7,22 +7,29 @@
  *   1. Escolha o código (o jogo ignora espaços nas pontas e maiúsculas/minúsculas: guarde em MAIÚSCULAS).
  *   2. Gere o hash:  node -e "console.log(require('crypto').createHash('sha256').update('MEU-CODIGO').digest('hex'))"
  *   3. Ponha `'<hash>': '<id do título>'` em CODE_TITLES e o nome do título em CUSTOM_TITLES (pt e en).
- * Vários códigos podem dar o mesmo título. `shine: true` deixa o título dourado e brilhando.
+ * Vários códigos podem dar o mesmo título. `look` dá um visual próprio: 'shine' (dourado brilhando) ou 'holo'
+ * (holográfico, só o do criador).
  * ========================================================================================================
  */
 export const CODE_TITLES: Readonly<Record<string, string>> = {
+    // Miguel, o criador (17/10/2026)
+    cffbb440db026334b04a1ed02f5b3ee98078cbc0c4d1302cf5809d430c38b93a: 'criador',
     // Davi, 1º gametester (17/10/2026)
     '3ad01be87b2c8319fcd8ebebfb5f701dd2c7bef673d3bcd5ba1dce42b3953776': 'goat',
 };
 
 /** Nome dos títulos de código (o resto dos títulos fica no dicionário: profile.titles). */
-export const CUSTOM_TITLES: Readonly<Record<string, { pt: string; en: string; shine?: boolean }>> = {
+export const CUSTOM_TITLES: Readonly<Record<string, { pt: string; en: string; look?: 'shine' | 'holo' }>> = {
     gametester: { pt: 'Gametester', en: 'Gametester' },
-    goat: { pt: 'GOAT', en: 'GOAT', shine: true },
+    goat: { pt: 'GOAT', en: 'GOAT', look: 'shine' },
+    criador: { pt: 'Criador do Soccermon', en: 'Soccermon Creator', look: 'holo' },
 };
 
-/** Classe do título na tela: os especiais brilham em dourado. */
-export const titleClass = (id: string) => (CUSTOM_TITLES[id]?.shine ? ' title-shine' : '');
+/** Classe do título na tela: os especiais têm visual próprio (dourado ou holográfico). */
+export const titleClass = (id: string) => {
+    const look = CUSTOM_TITLES[id]?.look;
+    return look ? ` title-${look}` : '';
+};
 
 /** Normaliza o que a pessoa digitou (espaços nas pontas e caixa não contam). */
 export const normalizeCode = (code: string) => code.trim().toUpperCase();
