@@ -1,4 +1,5 @@
 import { SPECIES, type Species, type StatKey } from './data';
+import { dln } from './dmath';
 
 /** Atributos de futsal, todos em 1..99. */
 export interface Attributes {
@@ -111,8 +112,8 @@ const REFERENCE: Record<StatKey | 'weight' | 'height', number[]> = (() => {
     for (const k of STAT_KEYS) {
         ref[k] = SPECIES.map((s) => statAtLevel(s.baseStats[k], REF_LEVEL, k)).sort((a, b) => a - b);
     }
-    ref.weight = SPECIES.map((s) => Math.log(s.weightkg + 1)).sort((a, b) => a - b);
-    ref.height = SPECIES.map((s) => Math.log(s.heightm + 0.1)).sort((a, b) => a - b);
+    ref.weight = SPECIES.map((s) => dln(s.weightkg + 1)).sort((a, b) => a - b);
+    ref.height = SPECIES.map((s) => dln(s.heightm + 0.1)).sort((a, b) => a - b);
     return ref;
 })();
 
@@ -154,9 +155,9 @@ function weighted<K extends string>(values: Record<K, number>, weights: Partial<
  * comprimento (Ekans tem 2 m e 7 kg; auditoria de posições, 17/10/2026).
  */
 export function sizePercentile(sp: Species): number {
-    const w = percentile(REFERENCE.weight, Math.log(sp.weightkg + 1));
+    const w = percentile(REFERENCE.weight, dln(sp.weightkg + 1));
     if (sp.shape === 'squiggle') return w;
-    return 0.5 * w + 0.5 * percentile(REFERENCE.height, Math.log(sp.heightm + 0.1));
+    return 0.5 * w + 0.5 * percentile(REFERENCE.height, dln(sp.heightm + 0.1));
 }
 
 /** Físico pra mostrar na carta: porte + formato do corpo. */
@@ -210,7 +211,7 @@ export function computeAttributes(
 ): Attributes {
     const p = {} as Record<StatKey, number>;
     for (const k of STAT_KEYS) p[k] = percentile(REFERENCE[k], statAtLevel(sp.baseStats[k], level, k));
-    const w = percentile(REFERENCE.weight, Math.log(sp.weightkg + 1));
+    const w = percentile(REFERENCE.weight, dln(sp.weightkg + 1));
     const size = sizePercentile(sp);
 
     const attr: Attributes = {

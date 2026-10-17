@@ -2,6 +2,8 @@
  * RNG determinístico (sfc32) com estado serializável. Nada no motor usa Math.random.
  * Cada subsistema (draft, partida, narração) recebe seu próprio stream derivado da seed da run.
  */
+import { dcos, dln } from './dmath';
+
 export class Rng {
     private a: number;
     private b: number;
@@ -63,7 +65,7 @@ export class Rng {
     gauss(): number {
         const u = Math.max(this.next(), 1e-12);
         const w = this.next();
-        return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * w);
+        return Math.sqrt(-2 * dln(u)) * dcos(2 * Math.PI * w);
     }
 
     shuffle<T>(items: T[]): T[] {

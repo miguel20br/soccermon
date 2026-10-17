@@ -24,7 +24,7 @@ export function computeSynergies(lineup: readonly PokemonInstance[]): Synergy[] 
     return [...counts.entries()]
         .filter(([, c]) => c >= 2)
         .map(([type, count]) => ({ type, count, bonus: TYPE_BONUS[Math.min(count, 5)] }))
-        .sort((a, b) => b.count - a.count || a.type.localeCompare(b.type));
+        .sort((a, b) => b.count - a.count || (a.type < b.type ? -1 : a.type > b.type ? 1 : 0));
 }
 
 /** Multiplicador para um jogador: a melhor sinergia entre os tipos dele (não acumula). */

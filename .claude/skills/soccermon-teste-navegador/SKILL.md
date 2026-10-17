@@ -51,3 +51,20 @@ npx vite --config vite/config.dev.mjs --port 8096 --strictPort   # em background
 
 Bom delegar o roteiro inteiro a um agente em background e só ler o relatório. Prints no scratchpad; olhe os
 relevantes com Read antes de dizer que ficou bom.
+
+## Mesma partida em todo navegador (determinismo)
+
+`npm run determinismo` (ou `-- firefox webkit` pra escolher) empacota `src/engine/determinism.ts` com o Vite, roda
+5 partidas fixas (uma com ordens, uma nos pênaltis) no Node e no Chromium, Firefox e WebKit headless e compara os
+hashes; sai com erro se algum diferir. Os hashes esperados ficam em `src/engine/determinism.test.ts` (roda no
+`npm test`, junto com o teste que barra `Math.sin/cos/atan2/exp/log/pow/hypot/random`, `**`, `localeCompare` e
+`Date.now` no motor: use `src/engine/dmath.ts`). Mudou o motor de propósito: atualize os hashes e suba
+`ENGINE_VERSION`.
+
+- Navegadores: `node /home/bartolomeu/.npm/_npx/9833c18b2d85bc59/node_modules/playwright/cli.js install firefox webkit`.
+- **WebKit no Omarchy/Arch** falta `libicu74`, `libxml2.so.2` e `libflite1` (o Playwright pede `sudo apt`). Sem sudo:
+  baixe os `.deb` do Ubuntu 24.04 (`archive.ubuntu.com/ubuntu/pool/...`), extraia com
+  `bsdtar -xOf x.deb data.tar.zst | bsdtar -x -C <pasta>` e copie `usr/lib/x86_64-linux-gnu/*` pra
+  `~/.cache/ms-playwright/webkit-<versão>/minibrowser-wpe/sys/lib/` (o `LD_LIBRARY_PATH` de fora não vale: o
+  wrapper do MiniBrowser sobrescreve).
+- O WebKit do Playwright no Linux não é o Safari do iPhone, mas depois do `dmath.ts` só sobra conta exata do IEEE.
