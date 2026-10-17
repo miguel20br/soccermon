@@ -76,3 +76,15 @@ Scripts e tabelas brutas ficaram fora do repo (scratchpad da sessão); números 
 10. **Draft:** 22% dos drafts têm uma rodada com 3 bronzes; sobram 1,66 rerolls por copa.
 
 Limites: o jogador simulado escolhe sempre a maior nota, joga na equilibrada e não usa MT.
+
+## O patch (aprovado como estrutura em 17/10)
+
+A parte de balanceamento do próximo patch são 3 blocos, nessa ordem, cada um com tabela de antes e depois pro ok
+do Miguel:
+
+1. **Regras:** as 4 táticas entre 47% e 53%; curva da copa crescente (oitavas ~75–80%, final ~50–55%, Liga Índigo
+   como chefe final); a nota do Fixo contando em campo; 3-1 e ferrolho viáveis.
+2. **Economia:** evolução que aparece (carta mostra a nota depois de evoluir; draft oferece mais quem evolui); piso
+   de nota (cada rodada com pelo menos uma prata).
+3. **Cartas e golpes:** ~8 Pokémon fora da curva (quase tudo buff; Tauros e Aerodactyl descem um pouco), golpes
+   que nunca saem passam a sair, itens e habilidades com efeito visível.
