@@ -88,3 +88,20 @@ do Miguel:
    de nota (cada rodada com pelo menos uma prata).
 3. **Cartas e golpes:** ~8 Pokémon fora da curva (quase tudo buff; Tauros e Aerodactyl descem um pouco), golpes
    que nunca saem passam a sair, itens e habilidades com efeito visível.
+
+## Bloco 1 (regras): aprovado pelo Miguel em 17/10
+
+Branch `teste-084` (vai pro ar junto com a 0.8.4). Fixo vira a cobertura (fica entre atacante e gol) e o
+posicionamento pesa 5x mais em corte e bloqueio; bônus das táticas refeitos; 3-1 e ferrolho marcam mais à frente,
+1-1-2 recua; copa com rival "estreante" nas oitavas e itens do rival 0/1/1/3.
+
+| | Antes | Depois |
+|---|---|---|
+| Táticas (equil./ofens./defens./contra) | 45,6 / 51,6 / 50,4 / 52,4% | 48,9 / 48,7 / 50,6 / 51,8% |
+| Saldo por ponto de nota do Fixo | 0,000 | 0,015 (Ala 0,013) |
+| Copa por fase (oitavas → final) | 60 / 59 / 53 / 68% | 74 / 67 / 55 / 50% |
+| Título | 13% | 14% |
+| Formações (1-2-1, 2-2, 3-1, 1-1-2, ferrolho, 4-0) | 47 / 53 / 49 / 58 / 42 / 50% | 50 / 48 / 52 / 54 / 50 / 46% |
+| Gols por jogo / favorito vence / goleadas | 7,16 / 65,3% / 2,8% | 6,80 / 64,2% / 1,8% |
+
+Na borda, aceito: contra-ataque × equilibrada 57%, 4-0 em 46%, semifinal 55% (meta 58%).
