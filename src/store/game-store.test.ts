@@ -105,3 +105,16 @@ describe('partida no meio', () => {
         expect(liveOf({ stage: 2, live: { ...live, engine: ENGINE_VERSION } })).toBeNull();
     });
 });
+
+describe('backup antigo (scripts/fixtures)', () => {
+    it('save v6 de verdade vira o save atual sem perder Hall da Fama', async () => {
+        const { readFileSync } = await import('node:fs');
+        for (const lang of ['pt', 'en']) {
+            const backup = JSON.parse(readFileSync(`scripts/fixtures/backup-v6-${lang}.json`, 'utf8'));
+            const save = migrateSave(backup.save, backup.version);
+            expect(save.hall.length).toBe(backup.save.hall.length);
+            expect(Array.isArray(save.profile.missionsDone)).toBe(true);
+            expect(save.profile.trainer).toBeTruthy();
+        }
+    });
+});

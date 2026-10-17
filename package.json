@@ -20,6 +20,7 @@
     "assets:items": "tsx scripts/fetch-items.ts",
     "assets:types": "tsx scripts/fetch-type-icons.ts",
     "assets:portraits": "tsx scripts/fetch-portraits.ts",
+    "changelog": "tsx scripts/changelog.ts",
     "calibrate": "tsx scripts/calibrate.ts",
     "stats": "tsx scripts/stats.ts"
   },

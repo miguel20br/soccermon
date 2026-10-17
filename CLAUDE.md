@@ -88,6 +88,36 @@ npm run stats [-- --dias 7 | --md]   # placar do jogo no ar
   em cada aparelho.
 - Antes de fechar uma mudança visual, confira no celular (320 e 390 px), deitado e no desktop.
 
+## Skills do projeto (`.claude/skills/`)
+
+Leia a skill antes de começar a tarefa dela:
+
+| Skill | Quando |
+|---|---|
+| `soccermon-pesquisa` | feature grande nova: pesquisa de referências → opções → decisões do Miguel → código |
+| `soccermon-balanceamento` | qualquer mudança de nota, posição, atributo, golpe, item, tática, copa ou draft |
+| `soccermon-teste-navegador` | teste headless (fluxo da copa, celular/desktop, save antigo, prints) |
+| `soccermon-lancamento` | versão nova: checklist, "pode subir", merge, tag, release, conferir o ar |
+| `soccermon-titulos` | título por código pra gametester/amigo |
+| `soccermon-assets` | vídeo, logo, imagem e texto de divulgação |
+
+## Regras de desenvolvimento (17/10/2026)
+
+- **`main` = produção.** Nada vai pra `main` sem o "pode subir" do Miguel naquela conversa. Prévia: push numa
+  branch (`soccermon-git-<branch>-miguel20brs-projects.vercel.app`, atrás do login da Vercel).
+- **Trabalho em paralelo em worktrees** (`.claude/worktrees/<nome>`, ignorado pelo git): um agente por worktree, cada
+  um na sua branch; `node_modules` pode ser symlink. Junte numa branch de integração, teste, e depois do lançamento
+  remova os worktrees e apague as branches já juntadas (locais e remotas).
+- **Mudou o resultado de partidas** (motor, balanceamento, contas)? Suba `ENGINE_VERSION` em `src/engine/config.ts`.
+  Mudou o formato do save? Migração em `src/store/` + teste com `scripts/fixtures/backup-v6-*.json`.
+- **A máquina tem 7,5 GB:** uma simulação pesada por vez, `npx vitest run --maxWorkers=2`, um navegador por vez.
+- **Dev server:** `npx vite --config vite/config.dev.mjs --port <porta> --strictPort` (sem o `--config` a Home quebra).
+- **Antes de dizer que está pronto:** `npx tsc --noEmit -p .`, `npm run lint` sem erro, testes, e print headless de
+  tudo que é visual (olhe o print).
+- Scripts de análise vão em `scripts/` (os de balanceamento em `scripts/balance/`, com lint relaxado); saídas e
+  rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
+- Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
+
 ## Estado atual (17/10/2026, v0.8.4 · Balanceamento geral e o seu treinador)
 
 Na 0.8.4: balanceamento geral em 3 blocos + auditoria de posições (tudo em

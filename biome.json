@@ -1,12 +1,39 @@
 {
     "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
-    "files": { "includes": ["src/**", "scripts/**", "!src/data/**"] },
-    "formatter": { "indentStyle": "space", "indentWidth": 4, "lineWidth": 120 },
-    "javascript": { "formatter": { "quoteStyle": "single" } },
+    "files": {
+        "includes": ["src/**", "scripts/**", "!src/data/**"]
+    },
+    "formatter": {
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineWidth": 120
+    },
+    "javascript": {
+        "formatter": {
+            "quoteStyle": "single"
+        }
+    },
     "linter": {
         "rules": {
             "recommended": true,
-            "style": { "noNonNullAssertion": "off", "noDescendingSpecificity": "off" }
+            "style": {
+                "noNonNullAssertion": "off",
+                "noDescendingSpecificity": "off"
+            }
         }
-    }
+    },
+    "overrides": [
+        {
+            "includes": ["scripts/balance/**"],
+            "linter": {
+                "rules": {
+                    "suspicious": {
+                        "noExplicitAny": "off",
+                        "noAssignInExpressions": "off",
+                        "useIterableCallbackReturn": "off"
+                    }
+                }
+            }
+        }
+    ]
 }
