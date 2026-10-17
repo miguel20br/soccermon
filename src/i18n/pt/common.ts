@@ -131,6 +131,12 @@ export const common = {
         defensive: 'Retranca',
         counter: 'Contra-ataque',
     },
+    /** Instrução de escanteio do técnico. */
+    cornerPlan: { area: 'Na área', short: 'Curta', mixed: 'Variar' },
+    /** Jogada de escanteio que saiu (faixa na quadra e narração). */
+    cornerPlay: { area: 'Na área', short: 'Curta', near: '1ª trave' },
+    /** Selo "Jogo aéreo" do painel do Pokémon. */
+    aerial: { high: 'alto', mid: 'médio', low: 'baixo' },
     formation: {
         '1-2-1': {
             name: 'Losango (1-2-1)',

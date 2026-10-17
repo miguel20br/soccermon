@@ -232,6 +232,48 @@ export class Cinematics {
         obj.setScale(pin.scale / z);
     }
 
+    /**
+     * Faixa curta de bola parada (escanteio): título grande e linha de baixo, no mesmo canto da faixa do golpe. Sem
+     * câmera lenta nem tremida (a câmera lenta fica pra quando vira chance) e só aparece/some no alfa.
+     */
+    setPieceBanner(title: string, sub: string, color: number, duration = 1600) {
+        this.banner?.destroy();
+        const s = Math.min(this.uiScale, 1.3);
+        const style = (size: number, c: string) => ({
+            fontFamily: 'Galmuri11, monospace',
+            fontSize: `${Math.round(size * s)}px`,
+            fontStyle: 'bold',
+            color: c,
+            stroke: '#000000',
+            strokeThickness: 4,
+        });
+        const small = this.scene.add.text(0, 0, sub.toUpperCase(), style(13, '#ffffff')).setOrigin(0, 0.5);
+        const big = this.scene.add.text(0, 0, title, style(22, '#ffffff')).setOrigin(0, 0.5);
+        small.setResolution(2);
+        big.setResolution(2);
+        const pad = 12 * s;
+        const w = Math.max(small.width, big.width) + pad * 2;
+        const h = 54 * s;
+        big.setPosition(pad, h * 0.36);
+        small.setPosition(pad, h * 0.74);
+        const g = this.scene.add.graphics();
+        g.fillStyle(0x0d1024, 0.92).fillRoundedRect(-3, -3, w + 6, h + 6, 10);
+        g.fillStyle(color, 1).fillRoundedRect(0, 0, w, h, 8);
+        g.fillStyle(0xffffff, 0.18).fillRoundedRect(0, 0, w, h / 2, { tl: 8, tr: 8, bl: 0, br: 0 });
+        const inner = this.scene.add.container(0, 0, [g, big, small]).setAlpha(0);
+        const banner = this.scene.add.container(0, 0, [inner]).setDepth(9500);
+        this.banner = banner;
+        this.pin(banner, 14, 14);
+        this.scene.tweens.add({ targets: inner, alpha: 1, duration: 180 });
+        this.scene.tweens.add({
+            targets: inner,
+            alpha: 0,
+            delay: Math.max(400, duration - 200),
+            duration: 220,
+            onComplete: () => banner.destroy(),
+        });
+    }
+
     /** Faixa compacta com o nome do golpe, no canto superior esquerdo (não cobre o lance). */
     private showBanner(
         opts: {

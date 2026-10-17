@@ -17,6 +17,8 @@ export const match: typeof pt = {
     whoOut: 'Who comes off?',
     reload: "The court didn't load — reload",
     substitute: 'Substitute',
+    corner: 'Corners',
+    cornerHint: 'Corner instruction: the routine your team tries most (you can change it 3 times)',
     changing: 'changing…',
     tacticChanges: '{n} tactic change left|{n} tactic changes left',
     skip: 'Skip to the end',

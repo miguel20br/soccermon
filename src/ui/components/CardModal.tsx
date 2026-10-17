@@ -1,6 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { abilityEffect } from '../../engine/abilities';
-import { type AttrKey, computeAttributes, POSITIONS, physiqueOf } from '../../engine/attributes';
+import {
+    type AttrKey,
+    aerialLevel,
+    aerialScore,
+    computeAttributes,
+    POSITIONS,
+    physiqueOf,
+    sizePercentile,
+} from '../../engine/attributes';
 import { MOVES, species } from '../../engine/data';
 import { EVO_THRESHOLD, evolutionTarget } from '../../engine/evolution';
 import { viewInstance } from '../../engine/instance';
@@ -179,6 +187,12 @@ export function CardModal() {
                         <p className="tactic-desc physique-line">
                             <b>{d.common.size[physique.size] ?? physique.size}</b> · {body.label}
                             {body.note && ` · ${body.note}`}
+                            {' · '}
+                            {t('team.modal.aerial', {
+                                level: d.common.aerial[
+                                    aerialLevel(aerialScore(inField.strength, inField.positioning, sizePercentile(sp)))
+                                ],
+                            })}
                         </p>
 
                         {linksOf(sp.id).length > 0 && (

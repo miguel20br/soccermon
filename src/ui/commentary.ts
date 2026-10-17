@@ -91,6 +91,9 @@ export class Commentator {
     private captains: boolean[];
     private teamNames: [string, string];
     private rng: Rng;
+    /** Último escanteio (gol olímpico: o cobrador chuta direto e marca). */
+    private corner: { tick: number; by: number; team: 0 | 1 } | null = null;
+    private olympicShot = false;
 
     constructor(result: MatchResult, teamNames: [string, string]) {
         this.names = result.roster.map((p) => p.name);
@@ -118,6 +121,12 @@ export class Commentator {
             team,
         });
         const c = C();
+        // gol olímpico: o primeiro chute depois do escanteio é do cobrador, na hora da cobrança
+        if (e.type === 'shot') {
+            const k = this.corner;
+            this.olympicShot = !!k && k.by === e.by && e.tick - k.tick < 40;
+            this.corner = null;
+        }
         switch (e.type) {
             case 'kickoff':
                 return e.tick < 30 || e.minute < 0.5 || Math.abs(e.minute - 20) < 0.2
@@ -125,6 +134,10 @@ export class Commentator {
                     : null;
             case 'goal': {
                 const team = this.teamNames[e.team];
+                if (this.olympicShot && !e.ownGoal) {
+                    this.olympicShot = false;
+                    return line(say(c.olympic, { x: this.n(e.by), score: this.score(e.score) }), 'goal', e.team);
+                }
                 if (e.ownGoal) {
                     return line(say(c.ownGoal, { x: this.n(e.by), score: this.score(e.score) }), 'goal', e.team);
                 }
@@ -284,6 +297,41 @@ export class Commentator {
                 return this.rng.chance(0.12)
                     ? line(say(c.skill, { x: this.n(e.by) }), 'minor', this.teams[e.by])
                     : null;
+            case 'corner':
+                this.corner = { tick: e.tick, by: e.by, team: e.team };
+                this.olympicShot = false;
+                return line(
+                    say(c.corner, {
+                        team: this.teamNames[e.team],
+                        x: this.n(e.by),
+                        play: dict().common.cornerPlay[e.play],
+                    }),
+                    'normal',
+                    e.team,
+                );
+            case 'aerial': {
+                const x = { x: this.n(e.by) };
+                const text =
+                    e.kind === 'header'
+                        ? this.pick(c.aerialHeader, x)
+                        : say(
+                              {
+                                  volley: c.aerialVolley,
+                                  flick: c.aerialFlick,
+                                  clear: c.aerialClear,
+                                  catch: c.aerialCatch,
+                                  punch: c.aerialPunch,
+                              }[e.kind],
+                              x,
+                          );
+                return line(text, e.kind === 'clear' ? 'minor' : 'big', e.team);
+            }
+            case 'cornerPlan':
+                return line(
+                    say(c.cornerPlan, { team: this.teamNames[e.team], plan: dict().common.cornerPlan[e.plan] }),
+                    'whistle',
+                    e.team,
+                );
             case 'tactic':
                 return line(
                     say(c.tactic, { team: this.teamNames[e.team], tactic: dict().common.tactic[e.tactic] }),
