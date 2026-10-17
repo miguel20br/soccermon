@@ -35,6 +35,8 @@ export interface TeamSetup {
 export interface TacticChange {
     tick: number;
     team: 0 | 1;
+    /** Contagem por time (duelo ao vivo): desempata ordens do mesmo tick. Ordens antigas da copa não têm. */
+    seq?: number;
     kind?: 'tactic';
     tactic: Tactic;
 }
@@ -43,6 +45,7 @@ export interface TacticChange {
 export interface SubOrder {
     tick: number;
     team: 0 | 1;
+    seq?: number;
     kind: 'sub';
     outUid: string;
     inUid: string;

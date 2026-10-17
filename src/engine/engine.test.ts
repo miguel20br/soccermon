@@ -20,7 +20,7 @@ import { runMatch } from './runners/batch-runner';
 import { LiveRunner } from './runners/live-runner';
 import { SIGNATURE } from './signature-moves';
 import { EVENT_TYPES, rollSpecial, SPECIAL_BONUS, weeklyEventType } from './specials';
-import { SNAP_STRIDE, type TeamSetup } from './state';
+import { type MatchOrder, SNAP_STRIDE, type Tactic, type TeamSetup } from './state';
 import { computeSynergies } from './synergy';
 import { dir8, v } from './vec';
 
@@ -781,5 +781,54 @@ describe('seed por trecho (duelo ao vivo)', () => {
         });
         expect(earlier(b)).toEqual(earlier(a));
         expect(matchHash(b)).not.toBe(matchHash(a));
+    });
+});
+
+describe('ordens do técnico validadas no motor (duelo)', () => {
+    const home = { ...team('ord-a', 'A'), manualSubs: true };
+    const away = team('ord-b', 'B');
+    const tactics = (r: ReturnType<typeof runMatch>) => r.events.filter((e) => e.type === 'tactic');
+
+    it('a ordem do array não importa: vale (tick, time, seq)', () => {
+        const orders: MatchOrder[] = [
+            { tick: 600, team: 1, tactic: 'counter', seq: 0 },
+            { tick: 600, team: 0, tactic: 'offensive', seq: 0 },
+            { tick: 600, team: 0, tactic: 'defensive', seq: 1 },
+            { tick: 900, team: 0, kind: 'sub', outUid: home.lineup[2].uid, inUid: home.bench[0].uid, seq: 2 },
+        ];
+        const a = runMatch(FUTSAL_5, home, away, 'ord', { orders });
+        const b = runMatch(FUTSAL_5, home, away, 'ord', { orders: [...orders].reverse() });
+        expect(matchHash(b)).toBe(matchHash(a));
+        // no mesmo tick: time 0 antes do 1, e seq 0 antes do 1 (a última do time 0 é Retranca)
+        expect(tactics(a).map((e) => (e.type === 'tactic' ? `${e.team}:${e.tactic}` : ''))).toEqual([
+            '0:offensive',
+            '0:defensive',
+            '1:counter',
+        ]);
+    });
+
+    it('ordem com o tick já passado é ignorada', () => {
+        const live = new LiveRunner(FUTSAL_5, home, away, 'ord');
+        for (let i = 0; i < 500; i++) live.step();
+        expect(live.addOrder({ tick: 450, team: 0, tactic: 'offensive' })).toBe(false);
+        expect(live.addOrder({ tick: live.state.tick, team: 0, tactic: 'offensive' })).toBe(true);
+        live.step();
+        expect(live.state.teams[0].tactic).toBe('offensive');
+        // ordem inválida também não entra (time ou tática que não existem)
+        expect(live.addOrder({ tick: 900, team: 2 as 0, tactic: 'offensive' })).toBe(false);
+        expect(live.addOrder({ tick: 900, team: 0, tactic: 'parking' as 'offensive' })).toBe(false);
+    });
+
+    it('a 4ª troca de tática é ignorada, e quem já entrou não entra de novo', () => {
+        const seq: Tactic[] = ['offensive', 'defensive', 'counter', 'balanced'];
+        const orders: MatchOrder[] = seq.map((tactic, i) => ({ tick: 300 + 300 * i, team: 0, tactic }));
+        const [outA, outB] = [home.lineup[1].uid, home.lineup[2].uid];
+        orders.push(
+            { tick: 400, team: 0, kind: 'sub', outUid: outA, inUid: home.bench[0].uid },
+            { tick: 2000, team: 0, kind: 'sub', outUid: outB, inUid: home.bench[0].uid },
+        );
+        const r = runMatch(FUTSAL_5, home, away, 'ord4', { orders });
+        expect(tactics(r).map((e) => (e.type === 'tactic' ? e.tactic : ''))).toEqual(seq.slice(0, 3));
+        expect(r.events.filter((e) => e.type === 'sub' && e.team === 0)).toHaveLength(1);
     });
 });

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { FUTSAL_5 } from '../../engine/config';
+import { FUTSAL_5, MAX_TACTIC_CHANGES } from '../../engine/config';
 import { CUP_STAGES } from '../../engine/cup';
 import { species } from '../../engine/data';
 import { formationOf } from '../../engine/formations';
@@ -47,7 +47,6 @@ const SPEEDS: { value: PlaybackSpeed; label: string }[] = [
     { value: 'highlights', label: '' },
 ];
 
-const MAX_TACTIC_CHANGES = 3;
 /** A mudança vale ~2 s de jogo à frente (dá tempo de resimular sem pular nada). */
 const CHANGE_LEAD_TICKS = 40;
 /** No modo "Lances" o ritmo varia (1x perto dos lances, 16x no resto): na média fica perto de 4x. */
