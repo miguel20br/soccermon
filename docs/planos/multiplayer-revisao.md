@@ -329,3 +329,13 @@ tabela `duelos` e a Edge Function (0.8.6+).
   [Cloudflare Workers: limites (10 ms de CPU no grátis)](https://developers.cloudflare.com/workers/platform/limits) ·
   [RFC 8828: IP no WebRTC](https://www.rfc-editor.org/rfc/rfc8828.html) ·
   [Trystero](https://github.com/dmotz/trystero)
+
+## Decidido com o Miguel (17/10)
+
+Todas as recomendações:
+1. Time pronto vale qualquer time que uma copa poderia dar, conferido por `validarTimeDuelo`, e fica fora do ranqueado.
+2. Sem IA técnica pra quem caiu (substitui a decisão anterior).
+3. W.O. no amistoso só pelo botão de quem ficou (substitui o W.O. automático em 60 s).
+4. "Cada um com seus pacotes" anda rodada a rodada junto com o rival.
+5. Team preview lacrado: os dois revelam juntos.
+6. O host carimba o tick e o convidado confere as próprias ordens.
