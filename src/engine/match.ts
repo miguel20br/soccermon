@@ -3,6 +3,7 @@ import { type AttrKey, computeAttributes, type Position, positionRating } from '
 import type { Command } from './commands';
 import type { MatchConfig } from './config';
 import { MOVES, species, type TypeName } from './data';
+import { dpow } from './dmath';
 import { eff, fatigueFactor, isIncapacitated, TACTIC_MODS } from './effective';
 import { evolutionTarget, evolveInstance, evoNeeded, evoProgress } from './evolution';
 import { formationOf } from './formations';
@@ -1066,8 +1067,8 @@ function tryTackle(s: MatchState, p: PlayerState, targetId: number) {
     }
 
     const atkTypes = bonus ? [bonus.moveType] : typesOf(p);
-    const tackleTypeMult = typeMultiplier(atkTypes, typesOf(carrier)) ** (p.ability.typeBoost ?? 1);
-    const keepTypeMult = typeMultiplier(typesOf(carrier), typesOf(p)) ** (carrier.ability.typeBoost ?? 1);
+    const tackleTypeMult = dpow(typeMultiplier(atkTypes, typesOf(carrier)), p.ability.typeBoost ?? 1);
+    const keepTypeMult = dpow(typeMultiplier(typesOf(carrier), typesOf(p)), carrier.ability.typeBoost ?? 1);
     // desarme por trás é mais difícil (o Cut corta de qualquer lado)
     const behind =
         carrier.heading.x * (p.pos.x - carrier.pos.x) + carrier.heading.y * (p.pos.y - carrier.pos.y) < 0 &&
@@ -1088,7 +1089,7 @@ function tryTackle(s: MatchState, p: PlayerState, targetId: number) {
             (0.75 * eff(s, p, 'tackling') + 0.25 * eff(s, p, 'strength')) *
             tackleTypeMult *
             (bonus?.power ?? 1) *
-            T.multiFalloff ** i *
+            dpow(T.multiFalloff, i) *
             (p.item === 'quickclaw' ? 1.15 : 1) *
             (behind ? 0.85 : 1) *
             dodge *
@@ -2151,7 +2152,7 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
             const gkTypeMult = fixed ? 1 : typeMultiplier(typesOf(p), [shot.moveType]);
             const shotTypeMult = fixed
                 ? 1
-                : typeMultiplier([shot.moveType], typesOf(p)) ** (shooter.ability.typeBoost ?? 1);
+                : dpow(typeMultiplier([shot.moveType], typesOf(p)), shooter.ability.typeBoost ?? 1);
             const gk = eff(s, p, 'goalkeeping') * gkTypeMult;
             // chute no corpo do goleiro (d pequeno) é mais fácil de pegar
             const placement = clamp(d / reach, 0, 1);

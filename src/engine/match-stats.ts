@@ -98,7 +98,9 @@ export function playerLines(m: MatchResult): PlayerLine[] {
             for (let i = snapIndexAt(snaps, st.from) + 1; i < snaps.length && snaps[i].tick <= st.to; i++) {
                 const a = snaps[i - 1].p;
                 const b = snaps[i].p;
-                const d = Math.hypot(b[o] - a[o], b[o + 1] - a[o + 1]);
+                const dx = b[o] - a[o];
+                const dy = b[o + 1] - a[o + 1];
+                const d = Math.sqrt(dx * dx + dy * dy);
                 if (d < 3) distance += d; // ignora "teleportes" (saída de bola)
             }
             const first = snaps[snapIndexAt(snaps, st.from)];

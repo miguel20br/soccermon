@@ -22,7 +22,8 @@
     "assets:portraits": "tsx scripts/fetch-portraits.ts",
     "changelog": "tsx scripts/changelog.ts",
     "calibrate": "tsx scripts/calibrate.ts",
-    "stats": "tsx scripts/stats.ts"
+    "stats": "tsx scripts/stats.ts",
+    "determinismo": "tsx scripts/determinismo.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.117.2",
