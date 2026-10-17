@@ -126,3 +126,19 @@ Simulado "Nota" escolhe a maior nota; "Evo" escolhe pela nota depois de evoluir.
 
 Raro, épico e lendário não evoluem porque nenhum tem evolução no jogo. Quem só pega a maior nota continua quase
 sem evoluir: o selo é o que mostra que vale apostar.
+
+## Bloco 3 (cartas e golpes) e auditoria de posições: aprovados pelo Miguel em 17/10
+
+- A lista de cartas fora da curva da 1ª auditoria era quase toda ruído (128 jogos por espécie: correlação 0,27 com a
+  antiga). Cada carta mexida foi confirmada com 384 jogos (erro ±0,16).
+- Goleiro passa a usar golpe (defesa com o golpe de ataque, suporte); Dream Eater, Soft-Boiled e Bone Club com regra
+  nova. Usos por jogo dos golpes mortos: 0–0,05 → 0,19–0,60.
+- `SPECIES_TUNING` (`src/engine/attributes.ts`): pontos em atributo que a nota da posição não usa (Pinsir, Flareon,
+  Electrode, Jynx, Pikachu); nerf leve em Tauros e Aerodactyl (sem efeito medível: fica, olhar os dados no ar).
+- Habilidades 1,5x (+5% → +8%), as sem efeito ganharam um; nome da habilidade sobe na quadra. Fica assim.
+- Auditoria de posições: 28 suspeitos revisados em `?lab=posicoes&revisao=1` (25 ok, Mr. Mime/Beedrill/Onix mais
+  fortes que a sugestão), Metapod goleiro +1, regra da serpente (porte só pelo peso) e **a evolução herda a vaga**
+  (`PokemonInstance.inherited`).
+- Calibrate com tudo junto: 6,64 gols/jogo, favorito 67,5% (meta 60–65; ±3 de erro), goleadas 2,8%.
+- **Para um patch próprio:** a nota do Ala não conta chute e a do Pivô não conta velocidade, mas o motor usa os dois.
+  É a causa da maioria dos fora da curva; mexer nas fórmulas muda a nota de todo mundo.
