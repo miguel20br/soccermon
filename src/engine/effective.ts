@@ -14,10 +14,10 @@ const STATUS_MODS: Record<string, Partial<Record<AttrKey, number>>> = {
 
 /** Efeito da tática no motor (além do posicionamento da IA): toda escolha tem custo e benefício. */
 export const TACTIC_MODS: Record<Tactic, { attrs: Partial<Record<AttrKey, number>>; drain: number }> = {
-    balanced: { attrs: { passing: 1.03, positioning: 1.03 }, drain: 1 },
-    offensive: { attrs: { shooting: 1.03, positioning: 0.92, tackling: 0.95 }, drain: 1.3 },
-    defensive: { attrs: { positioning: 1.15, tackling: 1.12, goalkeeping: 1.06 }, drain: 0.8 },
-    counter: { attrs: { pace: 1.02, passing: 1.02, positioning: 1.02 }, drain: 1 },
+    balanced: { attrs: { passing: 1.04, positioning: 1.04, tackling: 1.03 }, drain: 1 },
+    offensive: { attrs: { shooting: 1.05, positioning: 0.98, tackling: 0.97 }, drain: 1.3 },
+    defensive: { attrs: { positioning: 1.07, tackling: 1.08, goalkeeping: 1.06, shooting: 0.97 }, drain: 0.8 },
+    counter: { attrs: { pace: 1.02, passing: 1.02 }, drain: 1 },
 };
 
 /**

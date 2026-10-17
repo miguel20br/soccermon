@@ -129,7 +129,7 @@ export function aiPick(rng: Rng, options: PokemonInstance[], need: Position | 'A
 
 /**
  * Monta um time da IA completo (adversários da copa), vaga por vaga da formação.
- * Dificuldade: 0 = escolhe meio no chute · 1 = melhor de 3 · 2 = melhor de 4 · 3 = melhor de 5 com raridade antecipada.
+ * Dificuldade: -1 = estreante (raridade de começo de draft, escolhe sempre no chute) · 0 = escolhe meio no chute · 1 = melhor de 3 · 2 = melhor de 4 · 3 = melhor de 5 com raridade antecipada.
  */
 export function aiDraftTeam(
     rng: Rng,
@@ -142,8 +142,11 @@ export function aiDraftTeam(
     const picks: PokemonInstance[] = [];
     const extra = Math.max(0, difficulty - 1);
     needs.forEach((need, round) => {
-        const options = draftOptions(rng, Math.min(6, round + extra), taken, 3 + extra, preferTypes, need);
-        const pick = difficulty === 0 && rng.chance(0.6) ? rng.pick(options) : aiPick(rng, options, need);
+        // estreante: raridade de começo de draft em todas as vagas
+        const r = difficulty < 0 ? 0 : Math.min(6, round + extra);
+        const options = draftOptions(rng, r, taken, 3 + extra, preferTypes, need);
+        const random = difficulty < 0 || (difficulty === 0 && rng.chance(0.6));
+        const pick = random ? rng.pick(options) : aiPick(rng, options, need);
         taken.add(pick.speciesId);
         picks.push(pick);
     });

@@ -83,7 +83,9 @@ export class AIController implements Controller {
                     ctx.cover[team] = (fixo2 ?? sorted.find((p) => p.idx !== fixo.idx))?.idx ?? null;
                 } else {
                     ctx.presser[team] = sorted[0]?.idx ?? null;
-                    ctx.cover[team] = sorted[1]?.idx ?? null;
+                    // no nosso campo, o Fixo é a cobertura: fica entre o portador e o gol (bloqueia, intercepta)
+                    const cover = danger && fixo && fixo.idx !== sorted[0]?.idx ? fixo : sorted[1];
+                    ctx.cover[team] = cover?.idx ?? null;
                 }
             }
         }

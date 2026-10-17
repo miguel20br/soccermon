@@ -102,10 +102,10 @@ export const FORMATIONS: Record<FormationId, Formation> = {
         ],
         defend: [
             [1, 10],
-            [8, 4],
+            [10, 4],
             [6, 10],
-            [8, 16],
-            [16, 10],
+            [10, 16],
+            [17, 10],
         ],
         kickoff: [
             [1, 10],
@@ -173,8 +173,8 @@ export const FORMATIONS: Record<FormationId, Formation> = {
             [1, 10],
             [7, 10],
             [11, 12],
-            [10, 5],
-            [15, 14],
+            [9, 5],
+            [13.5, 14],
         ],
         kickoff: [
             [1, 10],
@@ -206,9 +206,9 @@ export const FORMATIONS: Record<FormationId, Formation> = {
         ],
         defend: [
             [1, 10],
-            [9.5, 10],
-            [8, 4],
-            [8, 16],
+            [11, 10],
+            [10, 5],
+            [10, 15],
             [18, 10],
         ],
         kickoff: [
