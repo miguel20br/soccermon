@@ -477,6 +477,21 @@ describe('traços de golpe: bola parada, intervalo e fim', () => {
         expect(s.players[3].shotBonus?.moveId).toBe('dreameater');
     });
 
+    it('Dream Eater sem a bola prefere quem está dormindo e suga o dobro', () => {
+        const s = scene({ 3: ['dreameater'] });
+        const [user, near, sleeper] = [s.players[3], s.players[5], s.players[6]];
+        for (const p of s.players) p.pos = v(p.pos.x, p.pos.y < 10 ? 1 : 19);
+        user.pos = v(20, 10);
+        near.pos = v(21, 10);
+        sleeper.pos = v(24, 10);
+        sleeper.status = { kind: 'slp', timer: 2 };
+        const before = sleeper.energy;
+        const ev = run(s, { 3: { type: 'useMove', slot: 0 } });
+        const mv = ev.find((e) => e.type === 'move');
+        expect(mv?.type === 'move' && mv.target).toBe(6);
+        expect(sleeper.energy).toBeLessThan(before);
+    });
+
     it('habilidade que segura o status aparece na partida (Limber contra Thunder Wave)', () => {
         const s = scene({}, { 0: ['thunderwave'] });
         const [target, user] = [s.players[3], s.players[5]];

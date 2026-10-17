@@ -697,7 +697,7 @@ describe('estatísticas da partida', () => {
 });
 
 describe('golpes especiais', () => {
-    it('Counter devolve o golpe, Haze limpa status, Teleport move, Leech Seed suga e Dream Eater só em quem dorme', () => {
+    it('Counter devolve o golpe, Haze limpa status, Teleport move, Leech Seed suga e Dream Eater sai', () => {
         const rng = new Rng('esp-golpes', 'x');
         const mk = (id: number, moves: string[]) => ({ ...createInstance(id, rng), moves });
         const home: TeamSetup = {
@@ -717,7 +717,7 @@ describe('golpes especiais', () => {
         let hazes = 0;
         let teleports = 0;
         let seeds = 0;
-        let dreamOk = true;
+        let dreams = 0;
         for (let i = 0; i < 12; i++) {
             const r = runMatch(FUTSAL_5, home, team(`esp-b${i}`, 'B'), `esp-${i}`, { snapshots: false });
             for (const e of r.events) {
@@ -726,15 +726,7 @@ describe('golpes especiais', () => {
                 if (e.type === 'teleport') teleports++;
                 if (e.type === 'status' && e.status === 'seed') seeds++;
             }
-            // Dream Eater: todo acerto foi num alvo dormindo (status de sono aplicado antes, ainda valendo)
-            const sleepTick = new Map<number, number>();
-            for (const e of r.events) {
-                if (e.type === 'status' && e.status === 'slp') sleepTick.set(e.target, e.tick);
-                if (e.type === 'move' && e.moveId === 'dreameater' && e.hit && e.target !== null) {
-                    const t = sleepTick.get(e.target);
-                    if (t === undefined || e.tick - t > 4 * FUTSAL_5.tickRate) dreamOk = false;
-                }
-            }
+            dreams += r.events.filter((e) => e.type === 'move' && e.moveId === 'dreameater').length;
         }
         expect({ counters: counters > 0, hazes: hazes > 0, teleports: teleports > 0, seeds: seeds > 0 }).toEqual({
             counters: true,
@@ -742,6 +734,7 @@ describe('golpes especiais', () => {
             teleports: true,
             seeds: true,
         });
-        expect(dreamOk).toBe(true);
+        // antes do Bloco 3 só saía com rival dormindo (0 usos em 6.639 jogos)
+        expect(dreams).toBeGreaterThan(0);
     });
 });

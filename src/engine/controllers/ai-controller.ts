@@ -381,7 +381,7 @@ export class AIController implements Controller {
         for (const o of s.players) if (o.team !== p.team) near = Math.min(near, dist(o.pos, p.pos));
         // Soft-Boiled cura também o companheiro: vale usar quando alguém cansado está perto
         const tiredMate = s.players.some(
-            (o) => o.team === p.team && o !== p && o.energy < 0.5 && dist(o.pos, p.pos) < MOVE_TUNING.teamHealRadius,
+            (o) => o.team === p.team && o !== p && o.energy < 0.7 && dist(o.pos, p.pos) < MOVE_TUNING.teamHealRadius,
         );
         if (p.energy < 0.4 || tiredMate) {
             // Rest dorme: nunca no goleiro com a bola perto
@@ -632,16 +632,9 @@ export class AIController implements Controller {
         if (chance <= 0 || p.moveCooldown > 0 || this.s.tick < this.s.nextMoveTick || !this.s.rng.chance(chance)) {
             return null;
         }
-        // Dream Eater sem a bola só vale com um rival dormindo por perto (com a bola é chute)
-        const sleeper =
-            this.s.ball.owner === p.idx ||
-            this.s.players.some((o) => o.team !== p.team && o.status?.kind === 'slp' && dist(o.pos, p.pos) < 7);
         const slots = p.inst.moves
             .map((m, i) => ({ i, m, prof: moveProfile(m) }))
-            .filter(
-                ({ i, m, prof }) =>
-                    p.moveUses[i] > 0 && kinds.includes(prof.kind) && (m !== 'dreameater' || sleeper) && ok(m),
-            );
+            .filter(({ i, prof, m }) => p.moveUses[i] > 0 && kinds.includes(prof.kind) && ok(m));
         if (!slots.length) return null;
         return this.s.rng.pick(slots).i;
     }
