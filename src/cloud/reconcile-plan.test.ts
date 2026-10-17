@@ -52,6 +52,7 @@ function save(patch: Partial<PersistedSave> = {}): PersistedSave {
         onboarded: false,
         parkedRuns: [],
         hall: [],
+        duels: [],
         ...patch,
     };
 }

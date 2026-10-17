@@ -9,6 +9,7 @@ import { createInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { SIGNATURE } from '../engine/signature-moves';
 import { teachMove } from '../engine/tm';
+import { type DuelRecord, mergeDuels } from './duels';
 import { liveOf, migrateSave, type RunState, SAVE_VERSION, useGame } from './game-store';
 
 describe('save', () => {
@@ -97,6 +98,34 @@ describe('save', () => {
     });
 });
 
+describe('duelos (save v8)', () => {
+    const rec = (id: string, date: number): DuelRecord => ({
+        id,
+        date,
+        mode: 'ready',
+        rival: 'Bia',
+        rivalClub: 'Cerulean',
+        score: [3, 2],
+        shootout: null,
+        result: 'win',
+    });
+
+    it('v7 sem histórico vira v8 com lista vazia; lista estragada também', () => {
+        expect(migrateSave({}, 7).duels).toEqual([]);
+        expect(migrateSave({ duels: 'x' } as never, 7).duels).toEqual([]);
+        expect(migrateSave({ duels: [rec('A-1', 1), null] } as never, 8).duels).toHaveLength(1);
+    });
+
+    it('mesma partida não entra duas vezes e a nuvem junta com o aparelho', () => {
+        useGame.setState({ duels: [] });
+        useGame.getState().recordDuel(rec('A-1', 1));
+        useGame.getState().recordDuel(rec('A-1', 1));
+        useGame.getState().recordDuel(rec('A-2', 2));
+        expect(useGame.getState().duels.map((d) => d.id)).toEqual(['A-2', 'A-1']);
+        expect(mergeDuels([rec('A-1', 1)], [rec('B-1', 5), rec('A-1', 1)]).map((d) => d.id)).toEqual(['B-1', 'A-1']);
+    });
+});
+
 describe('partida no meio', () => {
     it('só retoma se for do mesmo motor (save de antes da 0.8.4 recomeça do 0 a 0)', () => {
         const live = { stage: 1, orders: [], tick: 900 };
@@ -113,6 +142,8 @@ describe('backup antigo (scripts/fixtures)', () => {
             const backup = JSON.parse(readFileSync(`scripts/fixtures/backup-v6-${lang}.json`, 'utf8'));
             const save = migrateSave(backup.save, backup.version);
             expect(save.hall.length).toBe(backup.save.hall.length);
+            // v8: histórico de duelos nasce vazio
+            expect(save.duels).toEqual([]);
             expect(Array.isArray(save.profile.missionsDone)).toBe(true);
             expect(save.profile.trainer).toBeTruthy();
         }
