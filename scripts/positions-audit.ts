@@ -2,7 +2,8 @@
  * Auditoria de posições e atributos dos 151 (balanceamento, 17/10/2026): aplica cada sugestão num "e se" (pontos
  * nos atributos e posições extras, como SPECIES_TUNING e POSITION_OVERRIDES fariam) e grava as notas de antes e
  * depois em src/ui/screens/position-review.ts, que a ferramenta ?lab=posicoes&revisao=1 mostra pro Miguel.
- * Nada aqui muda os dados do jogo.
+ * Nada aqui muda os dados do jogo. As sugestões já foram aplicadas (SPECIES_TUNING/POSITION_OVERRIDES, 17/10/2026):
+ * rodar de novo soma os pontos em dobro; o position-review.ts guarda o antes e depois daquela revisão.
  *
  * Uso: npx tsx scripts/positions-audit.ts && npx biome format --write src/ui/screens/position-review.ts
  */

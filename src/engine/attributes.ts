@@ -149,9 +149,13 @@ function weighted<K extends string>(values: Record<K, number>, weights: Partial<
     return total > 0 ? sum / total : 0;
 }
 
-/** "Tamanho" (0..1, peso + altura entre os 151): goleiro grande fecha o gol. */
+/**
+ * "Tamanho" (0..1, peso + altura entre os 151): goleiro grande fecha o gol. Serpente só pelo peso: a altura dela é
+ * comprimento (Ekans tem 2 m e 7 kg; auditoria de posições, 17/10/2026).
+ */
 export function sizePercentile(sp: Species): number {
     const w = percentile(REFERENCE.weight, Math.log(sp.weightkg + 1));
+    if (sp.shape === 'squiggle') return w;
     return 0.5 * w + 0.5 * percentile(REFERENCE.height, Math.log(sp.heightm + 0.1));
 }
 
@@ -172,13 +176,31 @@ export const SPECIES_TUNING: Record<number, Partial<Record<AttrKey, number>>> = 
     // rendiam abaixo da nota
     25: { shooting: 4 }, // Pikachu (Ala): chute 47
     97: { pace: 5 }, // Hypno (Goleiro): lento pra chegar na bola
-    101: { shooting: 5 }, // Electrode (Ala): chute 54
+    101: { shooting: 5, pace: 3 }, // Electrode (Ala): chute 54; velocidade 99, a maior base da Gen 1 (150)
     124: { shooting: 5 }, // Jynx (Ala): chute 62
     127: { pace: 6 }, // Pinsir (Pivô): o Pivô não conta velocidade
     136: { pace: 6 }, // Flareon (Pivô): idem
     // rendiam acima da nota
     128: { tackling: -6 }, // Tauros (Pivô): Fixo 76 → 74, Pivô e Ala ficam
     142: { shooting: -3 }, // Aerodactyl (Ala): Pivô 77 → 76, Ala fica 82
+    // auditoria de posições (17/10/2026, aprovada pelo Miguel): identidade Gen 1 e quem não tinha lugar bom
+    15: { shooting: 8, strength: 5 }, // Beedrill: o ferrão vira Pivô 65 (era Ala 63)
+    28: { positioning: 6, strength: 2 }, // Sandslash: raro prata, Fixo 73 → 75
+    30: { tackling: 3, positioning: 2 }, // Nidorina: linha ♀ defensiva, vira Fixo 58 (Nidoqueen tem Fixo)
+    33: { shooting: 3, strength: 3 }, // Nidorino: linha do Nidoking, vira Pivô 58 (era Ala 59)
+    40: { goalkeeping: 5 }, // Wigglytuff: o balão infla e fecha o gol, 66 → 71
+    59: { pace: 4 }, // Arcanine: ExtremeSpeed, velocidade 85 → 89 (Pivô fica 87)
+    78: { pace: 3 }, // Rapidash: o cavalo de corrida vira Ala 83 (era Pivô 81 pelo bônus do Pivô)
+    95: { strength: 10, tackling: 8, positioning: 8 }, // Onix: 210 kg de pedra, Fixo 63 → 70
+    103: { strength: 3, shooting: 2 }, // Exeggutor: o épico mais fraco, Pivô 80 → 82
+    106: { shooting: 10, strength: 4 }, // Hitmonlee: o chutador tinha chute 69, Pivô 70 → 75
+    113: { goalkeeping: 3 }, // Chansey: rara prata (Defesa 5), Goleiro 73 → 76
+    119: { shooting: 4, strength: 3 }, // Seaking: raro prata, Pivô 70 → 72
+    122: { goalkeeping: 5, stamina: 8, pace: 4 }, // Mr. Mime: a parede invisível, Goleiro 75 e Ala 80
+    130: { shooting: 6 }, // Gyarados: épico abaixo dos raros, Pivô 81 → 83
+    131: { strength: 5, positioning: 4 }, // Lapras: a balsa de 220 kg, Fixo 81 → 83
+    134: { pace: 4, dribble: 4 }, // Vaporeon: lenta na Ala pros 525 de BST, 76 → 79
+    143: { strength: 6, goalkeeping: -2 }, // Snorlax: o mais pesado de Kanto tinha força 83; rendia acima no gol (93 → 91)
 };
 
 export function computeAttributes(
@@ -233,8 +255,16 @@ export function outOfPositionFactor(natural: Position, playing: Position): numbe
 
 /** Casos icônicos que a regra automática não pega (espécie → posições extras). */
 export const POSITION_OVERRIDES: Record<number, Position[]> = {
+    11: ['ALA'], // Metapod: a linha do Caterpie pode ficar na Ala até o Butterfree
+    14: ['ALA'], // Kakuna: idem, do Weedle ao Beedrill
+    48: ['ALA'], // Venonat: dá pra apostar no Venomoth (Ala 80) desde o draft
+    62: ['ALA'], // Poliwrath: o Poliwhirl que evolui na Ala não cai pra 53
+    76: ['PIVO'], // Golem: a pedra rolando (o Graveler jogava de Pivô)
     95: ['GK'], // Onix: a muralha de pedra
+    112: ['FIXO', 'PIVO'], // Rhydon: o rinoceronte de broca também tromba na linha
+    122: ['GK'], // Mr. Mime: a parede invisível (Barrier, Reflect)
     132: ['GK', 'FIXO', 'ALA', 'PIVO'], // Ditto: joga em qualquer posição (vira o melhor dela em campo)
+    151: ['FIXO', 'PIVO', 'GK'], // Mew: aprende todas as MTs, joga em qualquer lugar
 };
 
 /**
