@@ -126,10 +126,17 @@ export function VersusIntro({
     stage,
     ready,
     onDone,
+    awayTrainer,
+    awayLabel,
+    awayTag,
 }: {
     home: TeamSetup;
     away: TeamSetup;
     stage: string;
+    /** Duelo: treinador, rótulo e sigla do rival (na copa saem do ginásio). */
+    awayTrainer?: TrainerId;
+    awayLabel?: string;
+    awayTag?: string;
     /** A quadra terminou de carregar: só então começa a contagem para iniciar sozinho. */
     ready: boolean;
     onDone: () => void;
@@ -192,15 +199,16 @@ export function VersusIntro({
                 <Side
                     team={away}
                     side="away"
-                    trainer={leaderTrainerOf(away.name)}
+                    trainer={awayTrainer ?? leaderTrainerOf(away.name)}
                     name={awayName}
-                    tag={tagFromName(awayName)}
+                    tag={awayTag ?? tagFromName(awayName)}
                     label={
-                        final
+                        awayLabel ??
+                        (final
                             ? t('match.vs.elite')
                             : leader && club
                               ? t('match.vs.leader', { leader, city: club.city })
-                              : t('match.vs.rival')
+                              : t('match.vs.rival'))
                     }
                 />
                 <Side

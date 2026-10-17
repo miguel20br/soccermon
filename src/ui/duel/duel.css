@@ -1,0 +1,549 @@
+/* Duelo ao vivo: sala, lobby, draft, prévia, partida e resultado. */
+
+/* Home: cartões de modo (Copa e Duelo) lado a lado no desktop, um embaixo do outro no celular */
+.home .mode-cards {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    width: min(460px, 100%);
+}
+@media (min-width: 900px) {
+    .home .mode-cards {
+        grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+        width: min(820px, 100%);
+        align-items: stretch;
+    }
+}
+.home .mode-cards .menu {
+    width: 100%;
+}
+.mode-head {
+    display: grid;
+    gap: 2px;
+    text-align: left;
+}
+.mode-head b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 20px;
+    color: var(--yellow);
+}
+.mode-head span {
+    color: var(--muted);
+    font-size: 13px;
+}
+.duel-card {
+    display: grid;
+    gap: 12px;
+    padding: 16px;
+    align-content: space-between;
+}
+.duel-card-art {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 64px;
+}
+.duel-card-art img {
+    height: 56px;
+}
+.duel-card-art .flip {
+    transform: scaleX(-1);
+}
+.duel-card-art b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 22px;
+    color: var(--red);
+    text-shadow: 2px 2px 0 #0e1430;
+}
+
+/* tela do duelo */
+.duel {
+    width: min(1100px, 100%);
+    margin: 0 auto;
+    display: grid;
+    gap: 14px;
+}
+.duel-top {
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.duel-leave-ask {
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 13px;
+}
+.duel-center {
+    display: grid;
+    gap: 12px;
+    justify-items: center;
+    text-align: center;
+    padding: 24px 16px;
+    width: min(560px, 100%);
+    margin: 0 auto;
+}
+.duel-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 3px solid var(--line);
+    border-top-color: var(--yellow);
+    border-radius: 50%;
+    animation: duel-spin 0.9s linear infinite;
+    vertical-align: middle;
+}
+@keyframes duel-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .duel-spinner {
+        animation: none;
+    }
+}
+.duel .small {
+    font-size: 12px;
+}
+
+/* criar sala */
+.duel-create {
+    display: grid;
+    gap: 14px;
+    width: min(640px, 100%);
+    margin: 0 auto;
+}
+.duel-create h1,
+.duel-teams h1,
+.duel-result h1 {
+    margin: 0;
+}
+.duel-modes,
+.duel-speeds {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 8px;
+}
+.duel-mode {
+    display: grid;
+    gap: 4px;
+    text-align: left;
+    padding: 12px 14px;
+    color: var(--text);
+    cursor: pointer;
+    border: 3px solid transparent;
+    font: inherit;
+}
+.duel-mode span {
+    color: var(--muted);
+    font-size: 13px;
+}
+.duel-mode.on {
+    border-color: var(--yellow);
+    background: var(--panel-2);
+}
+.duel-speeds .row {
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* lobby */
+.duel-lobby {
+    display: grid;
+    gap: 14px;
+    width: min(720px, 100%);
+    margin: 0 auto;
+    justify-items: center;
+}
+.duel-code {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+}
+.duel-code b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: clamp(32px, 9vw, 48px);
+    letter-spacing: 6px;
+    color: var(--yellow);
+}
+.duel-rule {
+    font-size: 13px;
+    color: var(--yellow);
+}
+.duel-share {
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.duel-peers {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 10px;
+    width: 100%;
+}
+.duel-peer {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: center;
+    gap: 4px 10px;
+    padding: 12px;
+    /* a cor do clube contorna o cartão inteiro (antes era uma faixa grossa só na esquerda) */
+    border: 2px solid var(--club, var(--line));
+    text-align: left;
+}
+.duel-peer.empty {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    min-height: 96px;
+    border-color: var(--line);
+}
+.duel-peer.away {
+    opacity: 0.6;
+}
+.duel-trainer {
+    height: 64px;
+    grid-row: span 2;
+}
+.duel-peer .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--bg-2);
+    grid-row: span 2;
+}
+.duel-peer-who {
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+}
+.duel-peer-who b {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.duel-title {
+    color: var(--yellow);
+    font-size: 12px;
+}
+.duel-club {
+    font-size: 12px;
+    color: var(--muted);
+}
+.duel-club i {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    background: var(--club);
+    vertical-align: middle;
+}
+.duel-ready {
+    grid-column: 3;
+    justify-self: start;
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: var(--bg-2);
+    color: var(--muted);
+}
+.duel-ready.on {
+    background: var(--green);
+    color: #0e1430;
+    font-weight: bold;
+}
+.duel-banner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius);
+    background: var(--panel-2);
+    border: 2px solid var(--line);
+    font-size: 14px;
+    margin: 0;
+}
+.duel-banner.warn {
+    border-color: var(--yellow);
+    color: var(--yellow);
+}
+
+/* time pronto */
+.duel-teams {
+    display: grid;
+    gap: 12px;
+    width: min(720px, 100%);
+    margin: 0 auto;
+}
+.duel-team-list {
+    display: grid;
+    gap: 8px;
+}
+.duel-team-opt {
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+    text-align: left;
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+    border: 3px solid transparent;
+}
+.duel-team-opt:not(:disabled):hover,
+.duel-team-opt:focus-visible {
+    border-color: var(--yellow);
+}
+.duel-team-opt:disabled {
+    cursor: not-allowed;
+}
+.duel-team-opt:disabled .dto-head,
+.duel-team-opt:disabled .dto-squad {
+    opacity: 0.5;
+}
+.dto-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    align-items: baseline;
+}
+.dto-squad {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+.dto-squad img {
+    height: 40px;
+}
+
+/* draft */
+.duel-draft,
+.duel-preview {
+    display: grid;
+    gap: 12px;
+}
+.duel-timer {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 28px;
+    min-width: 56px;
+    text-align: center;
+    padding: 6px 10px;
+    border-radius: var(--radius);
+    background: var(--panel);
+    border: 3px solid var(--line);
+}
+.duel-timer.low {
+    border-color: var(--red);
+    color: var(--red);
+}
+.duel-draft-teams {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 8px;
+}
+.duel-progress {
+    align-self: center;
+}
+.duel-strip {
+    display: grid;
+    gap: 4px;
+}
+.duel-strip-row {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+.duel-strip-mon {
+    display: grid;
+    justify-items: center;
+    width: 42px;
+    padding: 2px;
+    border-radius: 6px;
+    background: var(--panel);
+}
+.duel-strip-mon img {
+    height: 34px;
+}
+.duel-strip-mon b {
+    font-size: 11px;
+}
+.duel-strip-mon.empty {
+    min-height: 50px;
+    border: 2px dashed var(--line);
+    background: transparent;
+}
+.duel-options.four {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+.duel-locked {
+    opacity: 0.75;
+}
+
+/* prévia */
+.duel-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 12px;
+}
+.duel-chips {
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+/* partida */
+.duel-wait {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+}
+.duel-board {
+    position: relative;
+}
+.duel-ht {
+    margin: 4px 0;
+}
+.emote-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+}
+.emote-btn {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    padding: 4px;
+    border-radius: 10px;
+    border: 2px solid var(--line);
+    background: var(--panel);
+    cursor: pointer;
+}
+.emote-btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+.emote-btn.mute.on {
+    border-color: var(--red);
+}
+.emote-svg {
+    width: 28px;
+    height: 28px;
+}
+.emote-zzz {
+    position: relative;
+    display: inline-block;
+    width: 32px;
+    height: 30px;
+}
+.emote-zzz img {
+    height: 30px;
+}
+.emote-z {
+    position: absolute;
+    right: -8px;
+    top: -8px;
+    width: 18px;
+    height: 18px;
+}
+.emote-bubble {
+    position: absolute;
+    top: calc(100% + 6px);
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 12px;
+    background: #fff;
+    color: #141a33;
+    box-shadow: var(--shadow);
+    animation: emote-pop 0.25s var(--ease-pop) both;
+    pointer-events: none;
+}
+.emote-bubble.left {
+    left: 8px;
+}
+.emote-bubble.right {
+    right: 8px;
+}
+@keyframes emote-pop {
+    from {
+        transform: scale(0.6);
+        opacity: 0;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .emote-bubble {
+        animation: none;
+    }
+}
+
+/* resultado */
+.duel-result {
+    display: grid;
+    gap: 14px;
+    justify-items: center;
+    text-align: center;
+    width: min(640px, 100%);
+    margin: 0 auto;
+}
+.duel-result h1.won {
+    color: var(--yellow);
+}
+.duel-final {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    width: 100%;
+}
+.duel-final b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 40px;
+}
+.duel-final small {
+    grid-column: 1 / -1;
+}
+.duel-history {
+    display: grid;
+    gap: 4px;
+    width: 100%;
+    padding: 12px;
+    text-align: left;
+}
+.duel-history h2 {
+    margin: 0 0 4px;
+    font-size: 16px;
+}
+.duel-hrow {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+    font-size: 14px;
+}
+.duel-hrow i {
+    font-style: normal;
+    font-weight: bold;
+    text-align: center;
+    border-radius: 4px;
+    background: var(--bg-2);
+}
+.duel-hrow i.win {
+    background: var(--green);
+    color: #0e1430;
+}
+.duel-hrow i.loss {
+    background: var(--red);
+}

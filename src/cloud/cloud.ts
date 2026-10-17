@@ -33,8 +33,22 @@ export const cloudEnabled = Boolean(URL && KEY);
 export const cloudApi = URL && KEY ? { url: URL, key: KEY } : null;
 const supabase =
     URL && KEY
-        ? createClient(URL, KEY, { auth: { flowType: 'pkce', persistSession: true, detectSessionInUrl: true } })
+        ? createClient(URL, KEY, {
+              auth: { flowType: 'pkce', persistSession: true, detectSessionInUrl: true },
+              // duelo (Realtime): batida num Web Worker (aba em segundo plano não congela o socket) e, se o socket cair
+              // em silêncio, reconecta. O socket só abre quando a tela do duelo assina o canal da sala.
+              realtime: {
+                  worker: true,
+                  heartbeatCallback: (status) => {
+                      if (status === 'disconnected' || status === 'timeout') supabaseRef?.realtime.connect();
+                  },
+              },
+          })
         : null;
+const supabaseRef = supabase;
+
+/** Cliente do Supabase pro Realtime do duelo (null sem as variáveis de ambiente). */
+export const realtimeClient = () => supabase;
 
 /** Quando o save local mudou pela última vez (para comparar com a nuvem). */
 const LOCAL_TS = 'soccermon-local-updated';
@@ -143,8 +157,9 @@ const writeOwner = (id: string) => {
 };
 
 function snapshot(): PersistedSave {
-    const { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns, hall } = useGame.getState();
-    return { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns, hall };
+    const { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns, hall, duels } =
+        useGame.getState();
+    return { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns, hall, duels };
 }
 
 /** Sobe o save; devolve false se a nuvem recusou (pausada, fora do ar, sem espaço). */
@@ -205,7 +220,18 @@ async function onSignedIn(session: Session) {
 }
 
 /** Partes do save que importam para saber se a junção mudou algo em relação à nuvem. */
-const SYNC_KEYS = ['run', 'records', 'profile', 'dex', 'moves', 'career', 'onboarded', 'parkedRuns', 'hall'] as const;
+const SYNC_KEYS = [
+    'run',
+    'records',
+    'profile',
+    'dex',
+    'moves',
+    'career',
+    'onboarded',
+    'parkedRuns',
+    'hall',
+    'duels',
+] as const;
 /** JSON com as chaves em ordem (a ordem de inserção não conta como diferença). */
 const stable = (v: unknown): unknown =>
     Array.isArray(v)
@@ -285,6 +311,7 @@ async function reconcile(uid: string): Promise<boolean> {
                 onboarded: local.onboarded || !!cloud?.onboarded,
                 parkedRuns: cloud?.parkedRuns ?? [],
                 hall: cloud?.hall ?? [],
+                duels: cloud?.duels ?? [],
                 screen: 'home',
                 match: null,
             });
@@ -388,6 +415,7 @@ export function startCloudSync() {
             'onboarded',
             'parkedRuns',
             'hall',
+            'duels',
         ] as const;
         if (keys.every((k) => s[k] === prev[k])) return;
         // o carregamento do save do IndexedDB não é "mudança": senão o local parece sempre mais novo que a nuvem
@@ -410,6 +438,9 @@ export function startCloudSync() {
         }
     });
 }
+
+/** Id da conta logada (o duelo usa como id do jogador na sala). */
+export const cloudUserId = () => userId;
 
 export async function signInWithGoogle() {
     if (!supabase) return;

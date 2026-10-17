@@ -22,6 +22,7 @@ import {
 } from '../engine/specials';
 import { teachMove } from '../engine/tm';
 import { detectLang, type Lang } from '../i18n/lang';
+import { addDuel, type DuelRecord, MAX_DUELS } from './duels';
 import { activeTitle, activeTrainer, matchView, newMissions, stageView } from './missions';
 import {
     type Career,
@@ -58,7 +59,8 @@ export type Screen =
     | 'settings'
     | 'credits'
     | 'profile'
-    | 'help';
+    | 'help'
+    | 'duel';
 export type CryStyle = 'legacy' | 'latest';
 export type PlaybackSpeed = 1 | 2 | 4 | 8 | 'highlights';
 
@@ -268,6 +270,9 @@ export interface GameStore {
     parkedRuns: RunState[];
     /** Hall da Fama: os títulos, do mais recente ao mais antigo. */
     hall: HallEntry[];
+    /** Duelos amistosos (só no save), do mais recente ao mais antigo. */
+    duels: DuelRecord[];
+    recordDuel(rec: DuelRecord): void;
     /** Partida atual (não persistida — snapshots são grandes). */
     match: MatchResult | null;
     /** Missões cumpridas agora há pouco, na fila do aviso (não persistida: o aviso é só na hora). */
@@ -446,7 +451,17 @@ export function seedFromUrl(): string | null {
 /** O que vai para o IndexedDB (e para a nuvem). */
 export type PersistedSave = Pick<
     GameStore,
-    'run' | 'settings' | 'records' | 'profile' | 'dex' | 'moves' | 'career' | 'onboarded' | 'parkedRuns' | 'hall'
+    | 'run'
+    | 'settings'
+    | 'records'
+    | 'profile'
+    | 'dex'
+    | 'moves'
+    | 'career'
+    | 'onboarded'
+    | 'parkedRuns'
+    | 'hall'
+    | 'duels'
 >;
 
 /** Copa salva com formato aceitável (save importado ou da nuvem): senão é descartada, não trava o jogo. */
@@ -461,7 +476,7 @@ const runShapeOk = (r: unknown): r is RunState => {
 };
 
 /** Versão atual do save (a mesma do `persist`). */
-export const SAVE_VERSION = 7;
+export const SAVE_VERSION = 8;
 
 /**
  * Missões que o save já garante (sem aviso: é retroativo). Feitos de partida contam pelas partidas guardadas nas
@@ -535,6 +550,10 @@ export function migrateSave(old: Partial<PersistedSave>, version: number): Persi
                       .slice(0, MAX_PARKED),
         // v6: Hall da Fama
         hall: Array.isArray(old.hall) ? old.hall.slice(0, MAX_HALL) : [],
+        // v8: histórico dos duelos amistosos
+        duels: Array.isArray(old.duels)
+            ? old.duels.filter((x) => x && typeof x.id === 'string').slice(0, MAX_DUELS)
+            : [],
     });
 }
 
@@ -564,6 +583,8 @@ export const useGame = create<GameStore>()(
                 onboarded: false,
                 parkedRuns: [],
                 hall: [],
+                duels: [],
+                recordDuel: (rec) => setState({ duels: addDuel(getState().duels, rec) }),
                 match: null,
                 unlockQueue: [],
 
@@ -967,6 +988,7 @@ export const useGame = create<GameStore>()(
             // v5: perfil, Pokédex, golpes descobertos, carreira e configurações novas
             // v6: Hall da Fama e resumo dos eventos de cada partida
             // v7: treinador, títulos e desbloqueios (retroativos: títulos, copa perfeita, Pokédex, líderes vencidos)
+            // v8: histórico dos duelos amistosos
             version: SAVE_VERSION,
             storage: createJSONStorage(() => idbStorage),
             partialize: (s): PersistedSave => ({
@@ -980,6 +1002,7 @@ export const useGame = create<GameStore>()(
                 onboarded: s.onboarded,
                 parkedRuns: s.parkedRuns,
                 hall: s.hall,
+                duels: s.duels,
             }),
             // versões antigas tinham outro formato de draft: descarta a run, mantém configurações
             migrate: (persisted, version) => {

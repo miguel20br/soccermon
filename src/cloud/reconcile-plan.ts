@@ -1,3 +1,4 @@
+import { mergeDuels } from '../store/duels';
 import {
     isCupInProgress,
     MAX_PARKED,
@@ -180,6 +181,7 @@ export function mergeSaves(
         onboarded: local.onboarded || !!cloud?.onboarded,
         parkedRuns: parked.slice(0, MAX_PARKED),
         hall: mergeHall(local.hall, cloud?.hall),
+        duels: mergeDuels(local.duels, cloud?.duels),
     });
 }
 
