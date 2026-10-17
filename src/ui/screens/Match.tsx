@@ -21,7 +21,6 @@ import { clubName, stageName } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { PhaserGame } from '../../PhaserGame';
 import { type PlaybackSpeed, playerTeam, useGame } from '../../store/game-store';
-import { activeTrainer } from '../../store/missions';
 import { rivalColor, tagFromName } from '../../store/profile';
 import { Commentator, type CommentLine } from '../commentary';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
@@ -154,7 +153,6 @@ export function Match() {
                       startPaused: true,
                       startTick: resume?.tick || undefined,
                       final: run?.stage === CUP_STAGES.length - 1,
-                      trainer: activeTrainer(profileClub),
                   }
                 : null,
         [match?.seed],

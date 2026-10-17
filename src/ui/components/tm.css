@@ -172,13 +172,6 @@
     opacity: 1;
 }
 
-/* no celular a MT ocupa a linha inteira (o texto do golpe precisa de largura) */
-@media (max-width: 700px) {
-    .reward-grid .option-tm {
-        grid-column: 1 / -1;
-        width: 100%;
-    }
-}
 @media (max-width: 420px) {
     .tm-moves {
         grid-template-columns: 1fr;

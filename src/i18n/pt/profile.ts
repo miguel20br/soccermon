@@ -107,15 +107,15 @@ export const profile = {
         toDex: 'Ver todos na Pokédex',
     },
 
-    /** Treinadores (sprite no Perfil, VERSUS, Hall da Fama e beira da quadra). */
+    /** Treinadores (sprite no Perfil, VERSUS, Hall da Fama e card). Nome traduzido quando existe em português; Red e Blue ficam. */
     trainers: {
         red: 'Red',
         leaf: 'Leaf',
-        youngster: 'Youngster',
-        lass: 'Lass',
+        youngster: 'Jovem',
+        lass: 'Garota',
         brock: 'Brock',
         misty: 'Misty',
-        ltsurge: 'Lt. Surge',
+        ltsurge: 'Tenente Surge',
         erika: 'Erika',
         koga: 'Koga',
         sabrina: 'Sabrina',
@@ -126,7 +126,7 @@ export const profile = {
         agatha: 'Agatha',
         lance: 'Lance',
         blue: 'Blue (Campeão)',
-        acetrainer: 'Ace Trainer',
+        acetrainer: 'Treinador Ás',
         ash: 'Ash',
         bugcatcher: 'Caçador de Insetos',
         swimmer: 'Nadador',
@@ -145,7 +145,7 @@ export const profile = {
         gentleman: 'Cavalheiro',
         beauty: 'Beldade',
         oak: 'Prof. Carvalho',
-        supernerd: 'Supernerd',
+        supernerd: 'Nerd',
         scientist: 'Cientista',
     } as Record<string, string>,
     /** Títulos embaixo do nome do treinador. */

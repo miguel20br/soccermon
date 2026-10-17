@@ -67,6 +67,7 @@ export function TmCard({
         <button
             type="button"
             className={`card item-card tm-card${selected ? ' selected' : ''}`}
+            title={desc ?? undefined}
             style={{ '--tc': TYPE_COLOR[data.type] } as CSSProperties}
             onClick={onClick}
         >
