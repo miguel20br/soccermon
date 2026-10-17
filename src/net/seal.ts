@@ -9,8 +9,18 @@ import { FUTSAL_5 } from '../engine/config';
 
 /** Trecho de 2 minutos de jogo (FUTSAL_5: 20 min por tempo = 3600 ticks → 360 ticks). */
 export const SEG_TICKS = ((FUTSAL_5.tickRate * FUTSAL_5.halfSeconds) / FUTSAL_5.displayHalfMinutes) * 2;
-/** Trechos na corrente: 20 da partida + pênaltis e acréscimos com folga. */
-export const CHAIN_LEN = 40;
+/** Trechos da partida na corrente: 20 + pênaltis e acréscimos com folga. */
+export const SEG_COUNT = 40;
+/** Rodadas de draft na corrente (os 2 drafts do duelo têm 7 escolhas). */
+export const DRAFT_ROUND_COUNT = 7;
+/**
+ * Uma corrente só por partida: x[1..7] abrem as rodadas do draft e x[8..47] os trechos da partida (docs/planos/
+ * multiplayer-revisao.md, §3.2). Assim ninguém vê os pacotes futuros nem o futuro da partida.
+ */
+export const CHAIN_LEN = DRAFT_ROUND_COUNT + SEG_COUNT;
+/** Posição na corrente do segredo da rodada r (0..6) e do trecho k (1..40). */
+export const roundIdx = (r: number) => r + 1;
+export const segIdx = (k: number) => DRAFT_ROUND_COUNT + k;
 
 const toHex = (buf: ArrayBuffer) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
 
@@ -42,23 +52,37 @@ export async function checkReveal(commit: string, k: number, x: string): Promise
 }
 
 /** Trecho (1, 2, …) em que cai um tick da partida. */
-export const segmentOf = (tick: number) => Math.min(CHAIN_LEN, Math.floor(Math.max(0, tick) / SEG_TICKS) + 1);
+export const segmentOf = (tick: number) => Math.min(SEG_COUNT, Math.floor(Math.max(0, tick) / SEG_TICKS) + 1);
 
 /** Quantos trechos seguidos (a partir do 1) os dois já abriram. */
 export function openedSegments(host: (string | null | undefined)[], guest: (string | null | undefined)[]): number {
     let k = 0;
-    while (k < CHAIN_LEN && host[k + 1] && guest[k + 1]) k++;
+    while (k < SEG_COUNT && host[k + 1] && guest[k + 1]) k++;
     return k;
 }
 
 /** Até onde a partida pode ser assistida: o fim do último trecho aberto pelos dois (sem limite depois do último). */
 export function playableUntil(opened: number): number {
-    return opened >= CHAIN_LEN ? Number.POSITIVE_INFINITY : opened * SEG_TICKS;
+    return opened >= SEG_COUNT ? Number.POSITIVE_INFINITY : opened * SEG_TICKS;
 }
 
 /** Seed de um trecho: sala, trecho e as duas metades. */
 export const segmentSeed = (room: string, k: number, xHost: string, xGuest: string) =>
     sha256Hex(`${room}|${k}|${xHost}|${xGuest}`);
+
+/** Seed de uma rodada do draft (os pacotes saem só dela: ninguém calcula as rodadas seguintes). */
+export const roundSeed = (room: string, r: number, xHost: string, xGuest: string) =>
+    sha256Hex(`${room}|draft|${r}|${xHost}|${xGuest}`);
+
+/** Lacre de uma escolha escondida (pacote, time pronto, prévia): só abre junto com o sal. */
+export async function lacrar(value: unknown, salt = randomSecret()): Promise<{ seal: string; salt: string }> {
+    return { seal: await sha256Hex(`${salt}|${JSON.stringify(value)}`), salt };
+}
+
+/** Confere que `value` + `salt` dão o lacre mandado antes. */
+export async function abrir(value: unknown, salt: string, seal: string): Promise<boolean> {
+    return typeof salt === 'string' && (await sha256Hex(`${salt}|${JSON.stringify(value)}`)) === seal;
+}
 
 /**
  * Ponto de encaixe com a trilha do motor: `seeds[k]` é a seed do trecho k (índice 0 vazio). Quando o motor aceitar

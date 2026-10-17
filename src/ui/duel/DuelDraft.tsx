@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DRAFT_PICKS } from '../../engine/draft';
+import { teamRecipe, validarTimeDuelo } from '../../engine/duel-validate';
 import { FORMATIONS, type FormationId } from '../../engine/formations';
 import { createInstance, type PokemonInstance, viewInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
@@ -7,8 +8,16 @@ import { TACTIC_LABEL, type Tactic, type TeamSetup } from '../../engine/state';
 import { playSfx } from '../../game/audio';
 import { formationText } from '../../i18n';
 import { useT } from '../../i18n/react';
-import { DUEL_ROUNDS, optionsFor, other, type Role, type Shared } from '../../net/duel-state';
-import { duel } from '../../net/session';
+import {
+    autoLineup,
+    DUEL_ROUNDS,
+    other,
+    type PreviewCfg,
+    packOptions,
+    type Role,
+    type Shared,
+} from '../../net/duel-state';
+import { duel, useDuel } from '../../net/session';
 import { isDraftComplete, playerTeam, useGame } from '../../store/game-store';
 import { clubColorHex, type HallEntry } from '../../store/profile';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
@@ -59,23 +68,25 @@ export function SquadStrip({ picks, label }: { picks: PokemonInstance[]; label?:
     );
 }
 
-/** Time pronto: a copa atual (com o draft completo) ou um campeão do Hall da Fama. */
+/** Time pronto: a copa atual (com o draft completo) ou um campeão do Hall da Fama. Vai lacrado: os dois abrem juntos. */
 export function TeamPick({ s, role }: { s: Shared; role: Role }) {
     const { t } = useT();
     const run = useGame((g) => g.run);
     const hall = useGame((g) => g.hall);
     const color = useGame((g) => clubColorHex(g.profile.clubColor));
-    const chosen = !!s.teams[role];
+    const sealed = useDuel((v) => v.choiceSealed);
     const rival = s.peers[other(role)]?.name ?? '';
+    const [chosen, setChosen] = useState<TeamSetup | null>(null);
     const options: { key: string; label: string; team: TeamSetup }[] = [];
     if (run && isDraftComplete(run) && run.lineup.length)
         options.push({ key: 'run', label: t('duel.team.current'), team: playerTeam(run, color) });
     for (const h of hall) options.push({ key: h.id, label: t('duel.team.hall', { n: h.titleNo }), team: hallTeam(h) });
-    if (chosen) {
+    if (sealed) {
         return (
             <div className="panel duel-center">
                 <h2>{t('duel.team.chosen')}</h2>
-                <SquadStrip picks={[...s.teams[role]!.lineup, ...s.teams[role]!.bench]} />
+                {chosen && <SquadStrip picks={[...chosen.lineup, ...chosen.bench]} />}
+                <p className="muted">{t('duel.team.sealed')}</p>
                 <p className="muted">
                     <span className="duel-spinner" aria-hidden /> {t('duel.team.waiting', { name: rival })}
                 </p>
@@ -87,59 +98,79 @@ export function TeamPick({ s, role }: { s: Shared; role: Role }) {
             <h1>{t('duel.team.title')}</h1>
             {options.length === 0 && <p className="panel muted">{t('duel.team.none')}</p>}
             <div className="duel-team-list">
-                {options.map((o) => (
-                    <button
-                        key={o.key}
-                        type="button"
-                        className="panel duel-team-opt"
-                        onClick={() => {
-                            playSfx('select');
-                            duel.dispatch({ k: 'team', team: o.team });
-                        }}
-                    >
-                        <span className="dto-head">
-                            <b>{o.team.name}</b>
-                            <span className="muted">
-                                {o.label} · {t('duel.team.avg', { n: avgOf(o.team) })}
+                {options.map((o) => {
+                    // só a receita vai pela rede, e só se for um time que uma copa poderia dar
+                    const recipe = teamRecipe(o.team);
+                    const problems = validarTimeDuelo(recipe);
+                    return (
+                        <button
+                            key={o.key}
+                            type="button"
+                            className="panel duel-team-opt"
+                            disabled={problems.length > 0}
+                            onClick={() => {
+                                playSfx('select');
+                                setChosen(o.team);
+                                void duel.chooseTeam(recipe);
+                            }}
+                        >
+                            <span className="dto-head">
+                                <b>{o.team.name}</b>
+                                <span className="muted">
+                                    {o.label} · {t('duel.team.avg', { n: avgOf(o.team) })}
+                                </span>
                             </span>
-                        </span>
-                        <span className="dto-squad">
-                            {[...o.team.lineup, ...o.team.bench].map((p) => (
-                                <img key={p.uid} className="pixel" src={cardSprite(p)} alt="" />
-                            ))}
-                        </span>
-                    </button>
-                ))}
+                            <span className="dto-squad">
+                                {[...o.team.lineup, ...o.team.bench].map((p) => (
+                                    <img key={p.uid} className="pixel" src={cardSprite(p)} alt="" />
+                                ))}
+                            </span>
+                            {problems.length > 0 && (
+                                <span className="error-text small">
+                                    {t('duel.team.invalid', { why: problems.slice(0, 3).join(', ') })}
+                                </span>
+                            )}
+                        </button>
+                    );
+                })}
             </div>
             {hall.length > 0 && <p className="muted small">{t('duel.team.hallNote')}</p>}
         </div>
     );
 }
 
-/** Draft do duelo (Disputa ou cada um com seus pacotes). */
+/**
+ * Draft do duelo: os dois andam rodada a rodada. A rodada abre quando os dois abrem o segredo dela (a seed dos
+ * pacotes sai daí). Disputa: 4 cartas abertas, um tira e o outro tira. Cada um com seus pacotes: 3 cartas pra cada,
+ * a escolha vai lacrada e só abre no fim.
+ */
 export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
     const { t, d } = useT();
     const draft = s.draft!;
     const rivalRole = other(role);
     const rival = s.peers[rivalRole]?.name ?? '';
-    const mine = draft.picks[role];
+    const packPicks = useDuel((v) => v.packPicks);
     const disputa = s.mode === 'disputa';
-    const round = disputa ? draft.round : mine.length;
-    const myTurn = disputa ? draft.turn === role : mine.length < DRAFT_PICKS;
-    const options = disputa ? draft.options : optionsFor(s, role);
-    const left = useCountdown(myTurn || disputa ? draft.deadline[disputa ? (draft.turn ?? role) : role] : undefined);
+    const round = Math.min(draft.round, DRAFT_PICKS - 1);
+    const seed = draft.seeds[draft.round];
+    const mine = disputa ? draft.picks[role] : packPicks;
+    const sealedNow = !disputa && !!draft.seals[role][draft.round];
+    const myTurn = disputa ? draft.turn === role : !!seed && !sealedNow && packPicks.length === draft.round;
+    const options = disputa ? draft.options : myTurn && seed ? packOptions(seed, draft.round, packPicks) : [];
+    const left = useCountdown(seed ? draft.deadline[disputa ? (draft.turn ?? role) : role] : undefined);
     const need = DUEL_ROUNDS[round];
     const slotLabel =
         round === 0 ? t('duel.draft.captain') : need === 'ANY' ? t('duel.draft.bench') : d.common.pos[need];
+    const rivalCount = disputa ? draft.picks[rivalRole].length : draft.seals[rivalRole].filter(Boolean).length;
 
-    if (!disputa && mine.length >= DRAFT_PICKS) {
+    if (draft.round >= DRAFT_PICKS || !seed) {
         return (
             <div className="panel duel-center">
                 <SquadStrip picks={mine} label={t('duel.draft.yourTeam')} />
                 <p className="muted">
-                    <span className="duel-spinner" aria-hidden /> {t('duel.draft.doneWait', { name: rival })}
+                    <span className="duel-spinner" aria-hidden />{' '}
+                    {draft.round >= DRAFT_PICKS ? t('duel.draft.opening') : t('duel.draft.openingRound')}
                 </p>
-                <p>{t('duel.draft.progress', { name: rival, n: draft.picks[rivalRole].length })}</p>
             </div>
         );
     }
@@ -156,7 +187,9 @@ export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
                             ? myTurn
                                 ? t('duel.draft.yourTurn')
                                 : t('duel.draft.rivalTurn', { name: rival })
-                            : slotLabel}
+                            : sealedNow
+                              ? t('duel.draft.sealedWait', { name: rival })
+                              : slotLabel}
                     </h1>
                     <p className="muted" style={{ margin: '4px 0 0' }}>
                         {disputa ? t('duel.draft.burn') : t('duel.draft.hidden')}
@@ -175,61 +208,86 @@ export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
                 {disputa ? (
                     <SquadStrip picks={draft.picks[rivalRole]} label={t('duel.draft.rivalTeam', { name: rival })} />
                 ) : (
-                    <p className="muted duel-progress">
-                        {t('duel.draft.progress', { name: rival, n: draft.picks[rivalRole].length })}
-                    </p>
+                    <p className="muted duel-progress">{t('duel.draft.progress', { name: rival, n: rivalCount })}</p>
                 )}
             </div>
-            <CardPack
-                compact
-                look={packLookOf(options)}
-                label={slotLabel}
-                revealKey={`${s.game}-${round}-${options.length === 4 ? 'a' : 'b'}-${disputa ? '' : role}`}
-            >
-                <div className={`options duel-options${disputa ? ' four' : ''}`}>
-                    {options.map((o) => (
-                        <div
-                            key={o.uid}
-                            className={`option cpack-card${isBigCard(o) ? ' big' : ''}${myTurn ? '' : ' duel-locked'}`}
-                        >
-                            <FutCard
-                                inst={o}
-                                captain={round === 0}
-                                position={need === 'ANY' ? undefined : need}
-                                action={
-                                    myTurn
-                                        ? {
-                                              label: disputa ? t('duel.draft.take') : t('duel.draft.pick'),
-                                              primary: true,
-                                              onClick: () => {
-                                                  playSfx('select');
-                                                  duel.dispatch({ k: 'pick', uid: o.uid });
-                                              },
-                                          }
-                                        : undefined
-                                }
-                            />
-                        </div>
-                    ))}
-                </div>
-            </CardPack>
+            {options.length > 0 && (
+                <CardPack
+                    compact
+                    look={packLookOf(options)}
+                    label={slotLabel}
+                    revealKey={`${s.game}-${draft.round}-${disputa ? options.length : role}`}
+                >
+                    <div className={`options duel-options${disputa ? ' four' : ''}`}>
+                        {options.map((o) => (
+                            <div
+                                key={o.uid}
+                                className={`option cpack-card${isBigCard(o) ? ' big' : ''}${myTurn ? '' : ' duel-locked'}`}
+                            >
+                                <FutCard
+                                    inst={o}
+                                    captain={round === 0}
+                                    position={need === 'ANY' ? undefined : need}
+                                    action={
+                                        myTurn
+                                            ? {
+                                                  label: disputa ? t('duel.draft.take') : t('duel.draft.pick'),
+                                                  primary: true,
+                                                  onClick: () => {
+                                                      playSfx('select');
+                                                      if (disputa) duel.dispatch({ k: 'pick', uid: o.uid });
+                                                      else void duel.packPick(o.uid);
+                                                  },
+                                              }
+                                            : undefined
+                                    }
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </CardPack>
+            )}
         </div>
     );
 }
 
-/** Prévia de 30 s: os dois times à vista, e cada um ajusta formação, tática e escalação. */
+/**
+ * Prévia de 30 s: os dois times à vista. Cada um ajusta formação, tática e escalação aqui na tela, e o que vale vai
+ * lacrado: os dois abrem juntos (quem confirma por último não ajusta contra o outro).
+ */
 export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
     const { t, d, lang } = useT();
     const team = s.teams[role]!;
     const rivalRole = other(role);
     const rivalTeam = s.teams[rivalRole]!;
     const rival = s.peers[rivalRole]?.name ?? '';
-    const left = useCountdown(s.previewUntil);
+    const left = useCountdown(s.choice?.until);
+    const sealed = useDuel((v) => v.choiceSealed);
+    const all = [...team.lineup, ...team.bench];
+    const [cfg, setCfg] = useState<PreviewCfg>(() => ({
+        formation: team.formation ?? '1-2-1',
+        tactic: team.tactic,
+        order: all.map((p) => p.uid),
+    }));
+    useEffect(() => {
+        duel.previewDraft = cfg;
+    }, [cfg]);
     const [sel, setSel] = useState<number | null>(null);
-    const byUid = new Map([...team.lineup, ...team.bench].map((p) => [p.uid, p]));
+    const byUid = new Map(all.map((p) => [p.uid, p]));
     const rivalBy = new Map([...rivalTeam.lineup, ...rivalTeam.bench].map((p) => [p.uid, p]));
-    const ready = s.previewReady[role];
     const idxOf = (zone: 'lineup' | 'bench', index: number) => (zone === 'lineup' ? index : 5 + index);
+    const setFormation = (formation: FormationId) => {
+        const picks = cfg.order.map((u) => byUid.get(u)!);
+        const { lineup, bench } = autoLineup(picks, formation, team.captainUid ?? null);
+        setCfg({ ...cfg, formation, order: [...lineup, ...bench].map((p) => p.uid) });
+    };
+    const swap = (a: number, b: number) => {
+        const order = [...cfg.order];
+        [order[a], order[b]] = [order[b], order[a]];
+        // o capitão não vai pro banco
+        if (team.captainUid && !order.slice(0, 5).includes(team.captainUid)) return;
+        setCfg({ ...cfg, order });
+    };
     return (
         <div className="duel-preview">
             <div className="draft-head">
@@ -252,9 +310,9 @@ export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
                             <button
                                 key={f}
                                 type="button"
-                                className={`btn small${team.formation === f ? ' active' : ''}`}
-                                disabled={ready}
-                                onClick={() => duel.dispatch({ k: 'formation', formation: f })}
+                                className={`btn small${cfg.formation === f ? ' active' : ''}`}
+                                disabled={sealed}
+                                onClick={() => setFormation(f)}
                             >
                                 {formationText(f, lang).name}
                             </button>
@@ -266,27 +324,29 @@ export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
                             <button
                                 key={tc}
                                 type="button"
-                                className={`btn small${team.tactic === tc ? ' active' : ''}`}
-                                disabled={ready}
-                                onClick={() => duel.dispatch({ k: 'tactic', tactic: tc })}
+                                className={`btn small${cfg.tactic === tc ? ' active' : ''}`}
+                                disabled={sealed}
+                                onClick={() => setCfg({ ...cfg, tactic: tc })}
                             >
                                 {d.common.tactic[tc]}
                             </button>
                         ))}
                     </div>
                     <FormationBoard
-                        formation={team.formation ?? '1-2-1'}
-                        lineup={team.lineup.map((p) => p.uid)}
-                        bench={team.bench.map((p) => p.uid)}
+                        formation={cfg.formation}
+                        lineup={cfg.order.slice(0, 5)}
+                        bench={cfg.order.slice(5)}
                         byUid={byUid}
                         captainUid={team.captainUid}
-                        stateOf={(ref) => (sel === idxOf(ref.zone, ref.index) ? 'selected' : ready ? 'locked' : 'idle')}
+                        stateOf={(ref) =>
+                            sel === idxOf(ref.zone, ref.index) ? 'selected' : sealed ? 'locked' : 'idle'
+                        }
                         onSlot={(ref) => {
-                            if (ready) return;
+                            if (sealed) return;
                             const i = idxOf(ref.zone, ref.index);
                             if (sel === null) setSel(i);
                             else {
-                                if (sel !== i) duel.dispatch({ k: 'swap', a: sel, b: i });
+                                if (sel !== i) swap(sel, i);
                                 setSel(null);
                             }
                         }}
@@ -294,11 +354,12 @@ export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
                     <button
                         type="button"
                         className="btn primary big"
-                        disabled={ready}
-                        onClick={() => duel.dispatch({ k: 'previewReady' })}
+                        disabled={sealed}
+                        onClick={() => void duel.sealChoice(cfg)}
                     >
-                        {ready ? t('duel.preview.waiting', { name: rival }) : t('duel.preview.ready')}
+                        {sealed ? t('duel.preview.waiting', { name: rival }) : t('duel.preview.ready')}
                     </button>
+                    {sealed && <p className="muted small">{t('duel.preview.sealed')}</p>}
                 </div>
                 <div className="panel board-panel">
                     <h2>{t('duel.draft.rivalTeam', { name: rival })}</h2>

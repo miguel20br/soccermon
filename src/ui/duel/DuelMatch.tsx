@@ -19,8 +19,6 @@ import {
     ordersOf,
     other,
     SIDE,
-    WO_WAIT_MS,
-    waitingFor,
 } from '../../net/duel-state';
 import { openedSegments, playableUntil } from '../../net/seal';
 import { duel, roomNow, useDuel } from '../../net/session';
@@ -73,6 +71,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const role = useDuel((st) => st.role)!;
     const matchSeed = useDuel((st) => st.matchSeed);
     const online = useDuel((st) => st.online);
+    const suspect = useDuel((st) => st.suspect);
     const { settings } = useGame();
     const { t, tn, d } = useT();
     const side = SIDE[role];
@@ -259,7 +258,6 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     }, [halftime, s.secondHalf, simCount, s.log.length]);
 
     const htLeft = useCountdown(halftime ? s.halftime?.until : undefined);
-    const woLeft = useCountdown(s.waitSince !== undefined ? s.waitSince + WO_WAIT_MS : undefined);
     const askLeft = useCountdown(s.speedAsk?.until);
 
     if (!match || !sceneData) {
@@ -290,7 +288,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         clock.minute + leadMinutes < FUTSAL_5.displayHalfMinutes * 2 - 1;
 
     const order = (o: { kind: 'tactic'; tactic: Tactic } | { kind: 'sub'; outUid: string; inUid: string }) =>
-        duel.dispatch({ k: 'order', order: o, tick: tickRef.current, ht: halftime });
+        duel.order(o, halftime);
 
     // quem está em quadra e no banco agora (escalação + trocas que já aconteceram)
     const byUid = new Map([...myTeam.lineup, ...myTeam.bench].map((p) => [p.uid, p]));
@@ -323,7 +321,6 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                       half: d.match.half[clock.half - 1] ?? '',
                   });
     const speedLabel = (sp: PlaybackSpeed) => (sp === 'highlights' ? t('match.highlights') : `${sp}x`);
-    const wait = waitingFor(s);
     const htReady = s.halftime?.ready;
     const awayRival = !online[rivalRole];
 
@@ -401,17 +398,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                     )}
                 </div>
             )}
-            {s.waitSince !== undefined && wait && wait !== role && (
-                <div className="duel-banner warn" role="status">
-                    {t('duel.match.waiting', { name: rivalName, s: woLeft })}
-                </div>
-            )}
-            {awayRival && s.waitSince === undefined && !ended && (
-                <div className="duel-banner" role="status">
-                    {t('duel.match.away', { name: rivalName })}
-                </div>
-            )}
-            {s.desync && <div className="duel-banner warn">{t('duel.match.desync')}</div>}
+            {suspect && <div className="duel-banner warn">{t('duel.match.suspect')}</div>}
 
             <div className="match-layout">
                 <div className="match-main">

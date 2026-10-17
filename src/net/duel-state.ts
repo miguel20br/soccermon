@@ -1,5 +1,6 @@
 import type { Position } from '../engine/attributes';
 import { captainOptions, DRAFT_PICKS, draftOptions, playerDraftOptions } from '../engine/draft';
+import { type DuelTeamRecipe, teamFromRecipe, validarTimeDuelo } from '../engine/duel-validate';
 import { DEFAULT_FORMATION, FORMATIONS, type FormationId, formationOf } from '../engine/formations';
 import { type PokemonInstance, slotRating } from '../engine/instance';
 import { Rng } from '../engine/rng';
@@ -10,15 +11,17 @@ import { openedSegments, playableUntil } from './seal';
 /**
  * Estado compartilhado do duelo e as regras dele, sem rede nem tela (dá pra testar tudo aqui). Um lado só aplica as
  * intenções (o host; se ele sumir, o convidado) e manda o estado inteiro pros dois, com `rev` subindo. Quem recebe um
- * estado de `rev` maior fica com ele. Prazos (draft, intervalo, pedido de velocidade, W.O.) estão no relógio da sala:
- * o `Date.now()` do host, que o convidado acompanha pela diferença (`offset`).
+ * estado de `rev` maior fica com ele. Prazos (draft, intervalo, pedido de velocidade, espera) estão no relógio da
+ * sala: o `Date.now()` do host, que o convidado acompanha pela diferença (`offset`).
+ *
+ * Regra de segurança (docs/planos/multiplayer-revisao.md): intenção inválida devolve o mesmo estado e não acusa
+ * ninguém. O Broadcast não autentica quem mandou; só o tempo esgotado (com o botão de quem ficou) dá W.O.
  */
 
 export type Role = 'host' | 'guest';
 export const ROLES: Role[] = ['host', 'guest'];
 export const SIDE: Record<Role, 0 | 1> = { host: 0, guest: 1 };
 export const other = (r: Role): Role => (r === 'host' ? 'guest' : 'host');
-export const roleOfSide = (side: 0 | 1): Role => (side === 0 ? 'host' : 'guest');
 
 /** Os 3 modos (o host escolhe ao criar a sala). */
 export type DuelMode = 'ready' | 'disputa' | 'pacotes';
@@ -30,7 +33,9 @@ export const CAPTAIN_PICK_MS = 30_000;
 export const PREVIEW_MS = 30_000;
 export const HALFTIME_MS = 20_000;
 export const SPEED_ASK_MS = 5_000;
-/** Depois do fim do trecho aberto, quanto a sala espera quem não abriu o próximo antes do W.O. */
+/** Folga pra mensagem chegar antes de a sala considerar que alguém está travando o jogo. */
+export const GRACE_MS = 5_000;
+/** Quanto quem ficou espera antes de poder encerrar por W.O. (o botão; nunca automático no amistoso). */
 export const WO_WAIT_MS = 60_000;
 /** A tela do VERSUS fica esse tempo antes do apito (igual pros dois). */
 export const KICKOFF_MS = 7_000;
@@ -57,26 +62,45 @@ export interface Peer {
     app: string;
 }
 
+/** Ordem do duelo: a de sempre + `seq` do time (quem deu a ordem numera; o host só põe o tick). */
 export type StampedOrder = MatchOrder & { seq: number };
 export const isSubStamped = (o: StampedOrder): o is StampedOrder & SubOrder => isSubOrder(o);
 
 export interface DraftState {
-    /** Disputa: rodada, de quem é a vez, as 4 cartas abertas e as que queimaram. */
+    /** Rodada dos dois (andam juntos); 7 = abrindo as escolhas lacradas de "cada um com seus pacotes". */
     round: number;
+    /** Desde quando a rodada está aberta (pra saber quem trava). */
+    since: number;
+    /** Seed de cada rodada, quando os dois já abriram o segredo dela. */
+    seeds: string[];
+    /** Disputa: de quem é a vez, as 4 cartas abertas e as que queimaram. */
     turn: Role | null;
     options: PokemonInstance[];
     burned: number[];
+    /** Disputa: aberto a cada escolha. Pacotes: vazio até abrir tudo no fim. */
     picks: Record<Role, PokemonInstance[]>;
-    /** Prazo de cada um (na Disputa só vale o de quem está na vez). */
+    /** Pacotes: lacre da escolha de cada rodada. */
+    seals: Record<Role, string[]>;
+    /** Prazo de cada um na rodada (0 = a rodada ainda não abriu). */
     deadline: Record<Role, number>;
+}
+
+/** Escolha lacrada dos dois (time pronto e prévia): cada um lacra, e só abrem quando os dois lacraram. */
+export interface ChoiceState {
+    /** Lacre de cada um; '-' = ficou com o padrão (o tempo da prévia acabou sem lacre). */
+    seal: Record<Role, string | null>;
+    opened: Record<Role, boolean>;
+    until?: number;
 }
 
 export interface DuelResult {
     score: [number, number];
     shootout: [number, number] | null;
     winner: Role | null;
-    /** Vitória por W.O. (o outro caiu e não voltou). */
+    /** Vitória por W.O. (quem ficou apertou o botão depois da espera). */
     wo?: boolean;
+    /** As duas telas se separaram (hash de trecho diferente): partida anulada. */
+    desync?: boolean;
 }
 
 export interface Shared {
@@ -86,29 +110,29 @@ export interface Shared {
     game: number;
     mode: DuelMode;
     speed: PlaybackSpeed;
-    /** Seed dos pacotes (sorteada pelo host a cada partida). */
+    /** Seed pública da sala (só decide quem abre a Disputa); os pacotes saem das seeds das rodadas. */
     seed: string;
     phase: 'lobby' | 'team' | 'draft' | 'preview' | 'match' | 'done';
     peers: Partial<Record<Role, Peer>>;
     ready: Record<Role, boolean>;
     /** Lacre (x[0] da corrente) de cada um, mandado junto com o "pronto". */
     commits: Partial<Record<Role, string>>;
-    /** reveals[role][k] = x[k] aberto (já conferido por quem aplicou). */
+    /** Segredos abertos das rodadas do draft (índice = rodada). */
+    roundReveals: Record<Role, (string | null)[]>;
+    /** Segredos abertos dos trechos da partida (índice = trecho, a partir de 1). */
     reveals: Record<Role, (string | null)[]>;
     teams: Partial<Record<Role, TeamSetup>>;
     draft?: DraftState;
-    previewUntil?: number;
-    previewReady: Record<Role, boolean>;
+    choice?: ChoiceState;
     /** Hora do apito inicial (relógio da sala). */
     kickoffAt?: number;
     log: StampedOrder[];
     speedAsk?: { by: Role; speed: PlaybackSpeed; until: number };
     halftime?: { until: number; ready: Record<Role, boolean> };
     secondHalf: boolean;
-    /** Desde quando a sala espera alguém abrir o trecho seguinte. */
+    /** Quem está travando a sala e desde quando (a espera do W.O.). */
+    waitFor?: Role;
     waitSince?: number;
-    /** As partidas se separaram (hash de trecho diferente). */
-    desync?: boolean;
     segHash: Record<Role, Record<number, string>>;
     result?: DuelResult;
     rematch: Record<Role, boolean>;
@@ -128,9 +152,9 @@ export function newShared(room: string, host: Peer, mode: DuelMode, speed: Playb
         peers: { host },
         ready: both(false),
         commits: {},
+        roundReveals: { host: [], guest: [] },
         reveals: { host: [], guest: [] },
         teams: {},
-        previewReady: both(false),
         log: [],
         secondHalf: false,
         segHash: { host: {}, guest: {} },
@@ -138,28 +162,38 @@ export function newShared(room: string, host: Peer, mode: DuelMode, speed: Playb
     };
 }
 
+/** Configuração da prévia (o que vai lacrado): formação, tática e a ordem do elenco (5 titulares, depois o banco). */
+export interface PreviewCfg {
+    formation: FormationId;
+    tactic: Tactic;
+    order: string[];
+}
+
+export type OrderBody = { kind: 'tactic'; tactic: Tactic } | { kind: 'sub'; outUid: string; inUid: string };
+
 export type Intent =
     | { k: 'join'; peer: Peer }
     | { k: 'ready'; ready: boolean; commit?: string }
-    | { k: 'team'; team: TeamSetup }
+    | { k: 'roundReveal'; round: number; x: string }
     | { k: 'pick'; uid: string }
-    | { k: 'formation'; formation: FormationId }
-    | { k: 'tactic'; tactic: Tactic }
-    | { k: 'swap'; a: number; b: number }
-    | { k: 'previewReady' }
+    | { k: 'seal'; round: number; seal: string }
+    | { k: 'choiceSeal'; seal: string }
+    | { k: 'choiceOpen'; value: unknown; salt: string }
     | { k: 'reveal'; seg: number; x: string; hash?: string }
-    | {
-          k: 'order';
-          order: { kind: 'tactic'; tactic: Tactic } | { kind: 'sub'; outUid: string; inUid: string };
-          tick: number;
-          ht?: boolean;
-      }
+    | { k: 'order'; order: OrderBody; tick: number; seq: number; ht?: boolean }
     | { k: 'speed'; speed: PlaybackSpeed }
     | { k: 'speedAnswer'; yes: boolean }
     | { k: 'atHalftime' }
     | { k: 'htReady' }
     | { k: 'ended'; score: [number, number]; shootout: [number, number] | null; winner: 0 | 1 | null }
-    | { k: 'rematch' };
+    | { k: 'claimWO' }
+    | { k: 'rematch' }
+    // só locais (quem aplica gera depois de conferir; nunca aceitas da rede)
+    | { k: 'roundSeed'; round: number; seed: string }
+    | { k: 'picksOpened'; cards: PokemonInstance[] };
+
+/** Intenções que só quem aplica gera (depois de conferir os lacres): da rede, são ignoradas. */
+export const LOCAL_ONLY = new Set<Intent['k']>(['roundSeed', 'picksOpened']);
 
 /** O que quem aplica sabe na hora (relógio, presença e a partida que está rodando na tela dele). */
 export interface Ctx {
@@ -169,8 +203,6 @@ export interface Ctx {
     tick: number;
     /** Tick do intervalo na partida atual (troca no intervalo vale no tick seguinte). */
     htTick?: number;
-    /** Troca da IA técnica por quem está fora no intervalo (o mais cansado, como os times da copa). */
-    aiSub?: (side: 0 | 1) => { outUid: string; inUid: string } | null;
     /** Seed nova pra revanche. */
     newSeed?: string;
 }
@@ -183,16 +215,16 @@ export const versionsOk = (s: Shared) =>
 
 // ------------------------------------------------------------------ draft
 
-/** As 4 cartas da rodada da Disputa (mesma vaga pros dois; ninguém repete espécie já tirada ou queimada). */
-export function disputaOptions(seed: string, round: number, taken: ReadonlySet<number>): PokemonInstance[] {
-    const rng = new Rng(seed, `disputa-${round}`);
+/** As 4 cartas da rodada da Disputa: função só da seed da rodada e do que já saiu. */
+export function disputaOptions(roundSeed: string, round: number, taken: ReadonlySet<number>): PokemonInstance[] {
+    const rng = new Rng(roundSeed, 'disputa');
     return round === 0 ? captainOptions(rng, taken, 4) : draftOptions(rng, round, taken, 4, [], DUEL_ROUNDS[round]);
 }
 
-/** As 3 cartas de "cada um com seus pacotes": mesma sorte pros dois, divergindo só pelo que cada um já tirou. */
-export function packOptions(seed: string, round: number, picks: PokemonInstance[]): PokemonInstance[] {
+/** As 3 cartas de "cada um com seus pacotes": mesma seed pros dois, divergindo só pelo que cada um já tirou. */
+export function packOptions(roundSeed: string, round: number, picks: PokemonInstance[]): PokemonInstance[] {
     const taken = new Set(picks.map((p) => p.speciesId));
-    const rng = new Rng(seed, `pacotes-${round}`);
+    const rng = new Rng(roundSeed, 'pacotes');
     return round === 0 ? captainOptions(rng, taken, 3) : playerDraftOptions(rng, round, taken, DUEL_ROUNDS[round]);
 }
 
@@ -202,18 +234,13 @@ export function bestFor(options: PokemonInstance[], round: number): PokemonInsta
     return options.reduce((b, o) => (slotRating(o, need) > slotRating(b, need) ? o : b));
 }
 
-const pickMs = (round: number) => (round === 0 ? CAPTAIN_PICK_MS : PICK_MS);
-/** Quem abre a Disputa sai da seed; depois alterna a cada rodada. */
+export const pickMs = (round: number) => (round === 0 ? CAPTAIN_PICK_MS : PICK_MS);
+/** Quem abre a Disputa sai da seed da sala; depois alterna a cada rodada. */
 export const disputaFirst = (seed: string, round: number): Role =>
     (new Rng(seed, 'disputa-first').chance(0.5) ? 0 : 1) === round % 2 ? 'host' : 'guest';
 
-export function optionsFor(s: Shared, role: Role): PokemonInstance[] {
-    const d = s.draft;
-    if (!d) return [];
-    if (s.mode === 'disputa') return d.turn === role ? d.options : [];
-    const round = d.picks[role].length;
-    return round < DRAFT_PICKS ? packOptions(s.seed, round, d.picks[role]) : [];
-}
+/** O que vai lacrado em cada escolha de pacote (rodada + carta). */
+export const packSealValue = (round: number, uid: string) => ({ round, uid });
 
 /**
  * Escalação automática do fim do draft: os 5 que mais rendem nas vagas da formação (o capitão sempre começa) e o
@@ -263,27 +290,38 @@ function draftTeam(s: Shared, role: Role, picks: PokemonInstance[], formation = 
     };
 }
 
-/** Uids com o lado no fim: os dois times podem ter o mesmo Pokémon (mesmo save, mesmo pacote). */
+/** Uids com o lado no fim: os dois times podem ter o mesmo Pokémon (mesmo pacote). */
 export function tagTeam(team: TeamSetup, role: Role): TeamSetup {
     const suf = role === 'host' ? '~h' : '~g';
-    const tag = (p: PokemonInstance) =>
-        p.uid.endsWith(suf) ? p : { ...p, uid: `${p.uid.replace(/~[hg]$/, '')}${suf}` };
-    const capBase = team.captainUid?.replace(/~[hg]$/, '');
+    const base = (uid: string) => uid.replace(/~[hg]$/, '');
+    const tag = (p: PokemonInstance) => (p.uid.endsWith(suf) ? p : { ...p, uid: `${base(p.uid)}${suf}` });
     const lineup = team.lineup.map(tag);
     const bench = team.bench.map(tag);
-    const cap = [...lineup, ...bench].find((p) => p.uid.replace(/~[hg]$/, '') === capBase);
+    const capBase = team.captainUid ? base(team.captainUid) : null;
+    const cap = [...lineup, ...bench].find((p) => base(p.uid) === capBase);
     return { ...team, lineup, bench, captainUid: cap?.uid ?? null, manualSubs: true };
 }
 
-function validTeam(t: TeamSetup | undefined): t is TeamSetup {
-    return (
-        !!t &&
-        Array.isArray(t.lineup) &&
-        Array.isArray(t.bench) &&
-        t.lineup.length === 5 &&
-        t.bench.length <= 2 &&
-        [...t.lineup, ...t.bench].every((p) => p && typeof p.uid === 'string' && typeof p.speciesId === 'number')
-    );
+const TACTICS: Tactic[] = ['balanced', 'offensive', 'defensive', 'counter'];
+
+/** Aplica a prévia aberta (mesmo elenco, formação e tática válidas, capitão em quadra). */
+export function applyPreview(team: TeamSetup, cfg: PreviewCfg): TeamSetup | null {
+    if (!cfg || !FORMATIONS[cfg.formation] || !TACTICS.includes(cfg.tactic)) return null;
+    const all = [...team.lineup, ...team.bench];
+    if (!Array.isArray(cfg.order) || cfg.order.length !== all.length || new Set(cfg.order).size !== all.length)
+        return null;
+    const byUid = new Map(all.map((p) => [p.uid, p]));
+    const order = cfg.order.map((u) => byUid.get(u));
+    if (order.some((p) => !p)) return null;
+    const lineup = order.slice(0, 5) as PokemonInstance[];
+    if (team.captainUid && !lineup.some((p) => p.uid === team.captainUid)) return null;
+    return {
+        ...team,
+        formation: cfg.formation,
+        tactic: cfg.tactic,
+        lineup,
+        bench: order.slice(5) as PokemonInstance[],
+    };
 }
 
 // ------------------------------------------------------------------ ordens
@@ -300,8 +338,9 @@ export function onFieldAfter(team: TeamSetup, log: StampedOrder[], side: 0 | 1):
 }
 
 /**
- * Carimba a ordem com o tick e o número: `max(tick dos dois) + leadTicks` (no intervalo, o tick seguinte a ele),
- * sempre depois da última do log. Mesmo limite pros dois: 3 mudanças de tática e as trocas do banco.
+ * Carimba a ordem com o tick: `max(tick dos dois) + leadTicks` (no intervalo, o tick seguinte a ele), sempre depois
+ * da última do log. O número (`seq`) é de quem deu a ordem: repetida não entra de novo. Mesmo limite pros dois: 3
+ * mudanças de tática e as trocas do banco.
  */
 export function stampOrder(
     s: Shared,
@@ -311,34 +350,35 @@ export function stampOrder(
 ): StampedOrder | null {
     const side = SIDE[by];
     const team = s.teams[by];
-    if (!team) return null;
+    if (!team || !Number.isInteger(i.seq) || i.seq < 1 || !i.order) return null;
     const mine = s.log.filter((o) => o.team === side);
+    if (mine.some((o) => o.seq >= i.seq)) return null;
     if (i.order.kind === 'tactic') {
         const tactics = mine.filter((o) => !isSubOrder(o));
         const current = (tactics.at(-1) as { tactic?: Tactic } | undefined)?.tactic ?? team.tactic;
-        if (tactics.length >= MAX_TACTIC_CHANGES || current === i.order.tactic) return null;
-    } else {
+        if (!TACTICS.includes(i.order.tactic) || tactics.length >= MAX_TACTIC_CHANGES || current === i.order.tactic)
+            return null;
+    } else if (i.order.kind === 'sub') {
         const subs = mine.filter(isSubStamped);
         const field = onFieldAfter(team, s.log, side);
         const usedIn = new Set(subs.map((o) => o.inUid));
         const { outUid, inUid } = i.order;
         if (subs.length >= team.bench.length) return null;
         if (!field.includes(outUid) || usedIn.has(inUid) || !team.bench.some((p) => p.uid === inUid)) return null;
-    }
+    } else return null;
     const base =
         i.ht && ctx.htTick !== undefined
             ? ctx.htTick + 1
             : Math.ceil(Math.max(ctx.tick, Number(i.tick) || 0)) + leadTicks(s.speed);
     const tick = Math.max(base, (s.log.at(-1)?.tick ?? 0) + 1);
-    const seq = s.log.length + 1;
     return i.order.kind === 'tactic'
-        ? { tick, team: side, tactic: i.order.tactic, seq }
-        : { tick, team: side, kind: 'sub', outUid: i.order.outUid, inUid: i.order.inUid, seq };
+        ? { tick, team: side, tactic: i.order.tactic, seq: i.seq }
+        : { tick, team: side, kind: 'sub', outUid: i.order.outUid, inUid: i.order.inUid, seq: i.seq };
 }
 
-/** As ordens na ordem do motor (tick, depois número): o log já nasce assim, mas quem reconecta pode juntar. */
+/** As ordens na ordem do motor: (tick, time, seq). */
 export const ordersOf = (log: StampedOrder[]): MatchOrder[] =>
-    [...log].sort((a, b) => a.tick - b.tick || a.seq - b.seq);
+    [...log].sort((a, b) => a.tick - b.tick || a.team - b.team || a.seq - b.seq);
 
 // ------------------------------------------------------------------ reducer
 
@@ -346,6 +386,7 @@ function startPlay(s: Shared, now: number): Shared {
     return {
         ...s,
         phase: 'match',
+        choice: undefined,
         teams: { host: tagTeam(s.teams.host!, 'host'), guest: tagTeam(s.teams.guest!, 'guest') },
         kickoffAt: now + KICKOFF_MS,
         log: [],
@@ -354,72 +395,81 @@ function startPlay(s: Shared, now: number): Shared {
         halftime: undefined,
         secondHalf: false,
         speedAsk: undefined,
+        waitFor: undefined,
         waitSince: undefined,
         result: undefined,
     };
 }
 
+const emptyChoice = (until?: number): ChoiceState => ({ seal: both(null), opened: both(false), until });
+
 function startDraftOrTeam(s: Shared, now: number): Shared {
-    if (s.mode === 'ready') return { ...s, phase: 'team', teams: {} };
-    const first = disputaFirst(s.seed, 0);
-    const deadline = now + CAPTAIN_PICK_MS;
+    if (s.mode === 'ready') return { ...s, phase: 'team', teams: {}, choice: emptyChoice() };
     return {
         ...s,
         phase: 'draft',
         teams: {},
+        roundReveals: { host: [], guest: [] },
         draft: {
             round: 0,
-            turn: s.mode === 'disputa' ? first : null,
-            options: s.mode === 'disputa' ? disputaOptions(s.seed, 0, new Set()) : [],
+            since: now,
+            seeds: [],
+            turn: null,
+            options: [],
             burned: [],
             picks: { host: [], guest: [] },
-            deadline: both(deadline),
+            seals: { host: [], guest: [] },
+            deadline: both(0),
         },
     };
 }
 
+function toPreview(s: Shared, now: number): Shared {
+    const d = s.draft!;
+    return {
+        ...s,
+        phase: 'preview',
+        teams: { host: draftTeam(s, 'host', d.picks.host), guest: draftTeam(s, 'guest', d.picks.guest) },
+        choice: emptyChoice(now + PREVIEW_MS),
+    };
+}
+
+/** Rodada nova: espera os dois abrirem o segredo dela (a seed sai disso). */
+function nextRound(s: Shared, d: DraftState, now: number): Shared {
+    const round = d.round + 1;
+    const draft: DraftState = { ...d, round, since: now, turn: null, options: [], deadline: both(0) };
+    if (round < DRAFT_PICKS || s.mode === 'pacotes') return { ...s, draft };
+    return toPreview({ ...s, draft }, now);
+}
+
 function applyPick(s: Shared, by: Role, uid: string, now: number): Shared {
     const d = s.draft;
-    if (!d || s.phase !== 'draft') return s;
-    const opts = optionsFor(s, by);
-    const card = opts.find((o) => o.uid === uid);
+    if (!d || s.phase !== 'draft' || s.mode !== 'disputa' || d.turn !== by) return s;
+    const card = d.options.find((o) => o.uid === uid);
     if (!card) return s;
     const picks = { ...d.picks, [by]: [...d.picks[by], card] };
-    let draft: DraftState;
-    if (s.mode === 'disputa') {
-        const rest = d.options.filter((o) => o.uid !== uid);
-        const firstOfRound = disputaFirst(s.seed, d.round);
-        if (by === firstOfRound) {
-            draft = { ...d, picks, options: rest, turn: other(by), deadline: both(now + pickMs(d.round)) };
-        } else {
-            // as 2 que sobram queimam; a próxima rodada abre com quem não abriu esta
-            const round = d.round + 1;
-            const burned = [...d.burned, ...rest.map((o) => o.speciesId)];
-            const taken = new Set([...burned, ...[...picks.host, ...picks.guest].map((p) => p.speciesId)]);
-            const done = round >= DRAFT_PICKS;
-            draft = {
-                round,
-                burned,
-                picks,
-                turn: done ? null : disputaFirst(s.seed, round),
-                options: done ? [] : disputaOptions(s.seed, round, taken),
-                deadline: both(now + pickMs(round)),
-            };
-        }
-    } else {
-        draft = { ...d, picks, deadline: { ...d.deadline, [by]: now + pickMs(picks[by].length) } };
-    }
-    const next = { ...s, draft };
-    if (ROLES.every((r) => draft.picks[r].length >= DRAFT_PICKS)) {
+    const rest = d.options.filter((o) => o.uid !== uid);
+    if (by === disputaFirst(s.seed, d.round))
         return {
-            ...next,
-            phase: 'preview',
-            teams: { host: draftTeam(s, 'host', draft.picks.host), guest: draftTeam(s, 'guest', draft.picks.guest) },
-            previewUntil: now + PREVIEW_MS,
-            previewReady: both(false),
+            ...s,
+            draft: { ...d, picks, options: rest, turn: other(by), deadline: both(now + pickMs(d.round)) },
         };
-    }
-    return next;
+    // as 2 que sobram queimam
+    return nextRound(s, { ...d, picks, burned: [...d.burned, ...rest.map((o) => o.speciesId)] }, now);
+}
+
+function applyChoice(s: Shared, by: Role, value: unknown, now: number): Shared {
+    const c = s.choice;
+    if (!c || c.opened[by] || !c.seal[by] || c.seal[by] === '-' || !ROLES.every((r) => c.seal[r])) return s;
+    let team: TeamSetup | null = null;
+    if (s.phase === 'team') {
+        if (validarTimeDuelo(value).length) return s;
+        team = teamFromRecipe(value as DuelTeamRecipe, '');
+    } else if (s.phase === 'preview' && s.teams[by]) team = applyPreview(s.teams[by]!, value as PreviewCfg);
+    if (!team) return s;
+    const choice = { ...c, opened: { ...c.opened, [by]: true } };
+    const next = { ...s, choice, teams: { ...s.teams, [by]: team } };
+    return ROLES.every((r) => choice.opened[r] || choice.seal[r] === '-') ? startPlay(next, now) : next;
 }
 
 /** Aplica uma intenção de `by`. Devolve o mesmo objeto quando não vale (sem subir `rev`). */
@@ -428,67 +478,94 @@ export function reduce(s: Shared, i: Intent, by: Role, ctx: Ctx): Shared {
     return next === s ? s : { ...next, rev: s.rev + 1 };
 }
 
+const isHex64 = (v: unknown) => typeof v === 'string' && /^[0-9a-f]{64}$/.test(v);
+
 function apply(s: Shared, i: Intent, by: Role, ctx: Ctx): Shared {
     const { now } = ctx;
+    if (!i || typeof i !== 'object') return s;
     switch (i.k) {
         case 'join': {
             const cur = s.peers[by];
-            if (cur && cur.id !== i.peer.id) return s;
+            if (!i.peer || (cur && cur.id !== i.peer.id)) return s;
             return { ...s, peers: { ...s.peers, [by]: i.peer } };
         }
         case 'ready': {
             if (s.phase !== 'lobby') return s;
-            if (i.ready && !/^[0-9a-f]{64}$/.test(i.commit ?? '')) return s;
-            const ready = { ...s.ready, [by]: i.ready };
+            if (i.ready && !isHex64(i.commit)) return s;
+            const ready = { ...s.ready, [by]: !!i.ready };
             const commits = { ...s.commits, [by]: i.ready ? i.commit : undefined };
             const next = { ...s, ready, commits };
             return ready.host && ready.guest && versionsOk(next) ? startDraftOrTeam(next, now) : next;
         }
-        case 'team': {
-            if (s.phase !== 'team' || !validTeam(i.team)) return s;
-            const teams = { ...s.teams, [by]: { ...i.team, manualSubs: true } };
-            const next = { ...s, teams };
-            return teams.host && teams.guest ? startPlay(next, now) : next;
+        case 'roundReveal': {
+            const d = s.draft;
+            if (s.phase !== 'draft' || !d || i.round !== d.round || s.roundReveals[by][i.round] || !isHex64(i.x))
+                return s;
+            const mine = [...s.roundReveals[by]];
+            mine[i.round] = i.x;
+            return { ...s, roundReveals: { ...s.roundReveals, [by]: mine } };
+        }
+        case 'roundSeed': {
+            const d = s.draft;
+            if (s.phase !== 'draft' || !d || i.round !== d.round || d.seeds[i.round]) return s;
+            const seeds = [...d.seeds];
+            seeds[i.round] = i.seed;
+            const deadline = both(now + pickMs(d.round));
+            if (s.mode === 'pacotes') return { ...s, draft: { ...d, seeds, deadline } };
+            const taken = new Set([...d.burned, ...[...d.picks.host, ...d.picks.guest].map((p) => p.speciesId)]);
+            return {
+                ...s,
+                draft: {
+                    ...d,
+                    seeds,
+                    deadline,
+                    options: disputaOptions(i.seed, d.round, taken),
+                    turn: disputaFirst(s.seed, d.round),
+                },
+            };
         }
         case 'pick':
             return applyPick(s, by, i.uid, now);
-        case 'formation':
-        case 'tactic':
-        case 'swap': {
-            const team = s.teams[by];
-            if (s.phase !== 'preview' || !team) return s;
-            let t: TeamSetup = team;
-            if (i.k === 'formation') {
-                if (!FORMATIONS[i.formation]) return s;
-                t = draftTeam(s, by, s.draft?.picks[by] ?? [...team.lineup, ...team.bench], i.formation);
-                t = { ...t, tactic: team.tactic };
-            } else if (i.k === 'tactic') t = { ...team, tactic: i.tactic };
-            else {
-                const all = [...team.lineup, ...team.bench];
-                if (!all[i.a] || !all[i.b] || i.a === i.b) return s;
-                [all[i.a], all[i.b]] = [all[i.b], all[i.a]];
-                const lineup = all.slice(0, 5);
-                // o capitão não vai pro banco
-                if (team.captainUid && !lineup.some((p) => p.uid === team.captainUid)) return s;
-                t = { ...team, lineup, bench: all.slice(5) };
-            }
-            return { ...s, teams: { ...s.teams, [by]: t } };
+        case 'seal': {
+            const d = s.draft;
+            if (s.mode !== 'pacotes' || s.phase !== 'draft' || !d || i.round !== d.round || !d.seeds[d.round]) return s;
+            if (d.seals[by][d.round] || !isHex64(i.seal)) return s;
+            const seals = { ...d.seals, [by]: [...d.seals[by]] };
+            seals[by][d.round] = i.seal;
+            const draft = { ...d, seals };
+            return ROLES.every((r) => seals[r][d.round]) ? nextRound(s, draft, now) : { ...s, draft };
         }
-        case 'previewReady': {
-            if (s.phase !== 'preview') return s;
-            const previewReady = { ...s.previewReady, [by]: true };
-            const next = { ...s, previewReady };
-            return previewReady.host && previewReady.guest ? startPlay(next, now) : next;
+        case 'picksOpened': {
+            const d = s.draft;
+            if (s.mode !== 'pacotes' || !d || d.round < DRAFT_PICKS || d.picks[by].length) return s;
+            if (!Array.isArray(i.cards) || i.cards.length !== DRAFT_PICKS) return s;
+            const draft = { ...d, picks: { ...d.picks, [by]: i.cards } };
+            const next = { ...s, draft };
+            return ROLES.every((r) => draft.picks[r].length) ? toPreview(next, now) : next;
         }
+        case 'choiceSeal': {
+            const c = s.choice;
+            if (!c || (s.phase !== 'team' && s.phase !== 'preview') || c.seal[by] || !isHex64(i.seal)) return s;
+            return { ...s, choice: { ...c, seal: { ...c.seal, [by]: i.seal } } };
+        }
+        case 'choiceOpen':
+            return applyChoice(s, by, i.value, now);
         case 'reveal': {
-            if (s.phase !== 'match' || i.seg < 1) return s;
+            if (s.phase !== 'match' || !Number.isInteger(i.seg) || i.seg < 1 || !isHex64(i.x)) return s;
             const mine = [...s.reveals[by]];
             if (mine[i.seg] === i.x && (!i.hash || s.segHash[by][i.seg] === i.hash)) return s;
             mine[i.seg] = i.x;
             const segHash = i.hash ? { ...s.segHash, [by]: { ...s.segHash[by], [i.seg]: i.hash } } : s.segHash;
             const otherHash = segHash[other(by)][i.seg];
-            const desync = s.desync || (!!i.hash && !!otherHash && otherHash !== i.hash);
-            return { ...s, reveals: { ...s.reveals, [by]: mine }, segHash, desync };
+            const next = { ...s, reveals: { ...s.reveals, [by]: mine }, segHash };
+            // as duas telas se separaram: anula em vez de seguir com placares diferentes
+            if (i.hash && otherHash && otherHash !== i.hash)
+                return {
+                    ...next,
+                    phase: 'done',
+                    result: { score: [0, 0], shootout: null, winner: null, desync: true },
+                };
+            return next;
         }
         case 'order': {
             if (s.phase !== 'match' || s.result) return s;
@@ -514,9 +591,13 @@ function apply(s: Shared, i: Intent, by: Role, ctx: Ctx): Shared {
             return { ...s, halftime: { ...s.halftime, ready: { ...s.halftime.ready, [by]: true } } };
         }
         case 'ended': {
-            if (s.phase !== 'match' || s.result) return s;
+            if (s.phase !== 'match' || s.result || !Array.isArray(i.score)) return s;
             const winner = i.winner === null ? null : i.winner === 0 ? 'host' : 'guest';
             return { ...s, phase: 'done', result: { score: i.score, shootout: i.shootout, winner } };
+        }
+        case 'claimWO': {
+            if (!canClaimWO(s, by, now)) return s;
+            return { ...s, phase: 'done', result: { score: [0, 0], shootout: null, winner: by, wo: true } };
         }
         case 'rematch': {
             if (s.phase !== 'done') return s;
@@ -532,9 +613,48 @@ function apply(s: Shared, i: Intent, by: Role, ctx: Ctx): Shared {
     return s;
 }
 
+/** Quem ficou pode encerrar por W.O.: o outro está travando a sala há pelo menos `WO_WAIT_MS`. */
+export const canClaimWO = (s: Shared, by: Role, now: number) =>
+    s.phase !== 'lobby' &&
+    s.phase !== 'done' &&
+    s.waitFor === other(by) &&
+    s.waitSince !== undefined &&
+    now - s.waitSince >= WO_WAIT_MS;
+
 /**
- * Prazos e a IA técnica (quem aplica chama a cada meio segundo): carta de maior nota quando o tempo do draft acaba,
- * fim da prévia, pedido de velocidade sem resposta, fim do intervalo e W.O. de quem não abre o trecho seguinte.
+ * Quem está travando a sala agora (null = ninguém): não abriu o segredo da rodada ou do trecho, não lacrou a escolha
+ * no prazo ou não abriu o lacre depois que os dois lacraram. Só tempo esgotado conta: mensagem estranha não.
+ */
+export function blocker(s: Shared, ctx: Pick<Ctx, 'now' | 'tick'>): Role | null {
+    const { now } = ctx;
+    const one = (missing: Role[]) => (missing.length === 1 ? missing[0] : null);
+    if (s.phase === 'draft' && s.draft) {
+        const d = s.draft;
+        if (now < d.since + GRACE_MS) return null;
+        if (d.round >= DRAFT_PICKS) return one(ROLES.filter((r) => !d.picks[r].length));
+        if (!d.seeds[d.round]) return one(ROLES.filter((r) => !s.roundReveals[r][d.round]));
+        if (s.mode === 'pacotes')
+            return one(ROLES.filter((r) => !d.seals[r][d.round] && now >= d.deadline[r] + GRACE_MS));
+        return null;
+    }
+    if ((s.phase === 'team' || s.phase === 'preview') && s.choice) {
+        const c = s.choice;
+        if (!ROLES.every((r) => c.seal[r])) return null;
+        if (s.phase === 'preview' && now < (c.until ?? 0) + GRACE_MS) return null;
+        return one(ROLES.filter((r) => c.seal[r] !== '-' && !c.opened[r]));
+    }
+    if (s.phase === 'match' && !s.result) {
+        const opened = openedSegments(s.reveals.host, s.reveals.guest);
+        // antes do apito ninguém trava; sem o trecho 1 aberto, trava no 0
+        const stuck = now >= (s.kickoffAt ?? 0) + GRACE_MS && ctx.tick >= playableUntil(opened) - 1;
+        return stuck ? one(ROLES.filter((r) => !s.reveals[r][opened + 1])) : null;
+    }
+    return null;
+}
+
+/**
+ * Prazos (quem aplica chama a cada meio segundo): carta de maior nota quando o tempo da Disputa acaba, prévia que
+ * acaba sem lacre fica com o padrão, pedido de velocidade sem resposta, fim do intervalo e a espera de quem trava.
  */
 export function tickTimers(s: Shared, ctx: Ctx): Shared {
     const next = timers(s, ctx);
@@ -544,86 +664,53 @@ export function tickTimers(s: Shared, ctx: Ctx): Shared {
 function timers(s: Shared, ctx: Ctx): Shared {
     const { now, present } = ctx;
     let out = s;
-    if (out.phase === 'draft' && out.draft) {
-        for (const r of ROLES) {
-            const d = out.draft;
-            if (!d) break;
-            const due = out.mode === 'disputa' ? d.turn === r : d.picks[r].length < DRAFT_PICKS;
-            if (!due || now < d.deadline[r]) continue;
-            const opts = optionsFor(out, r);
-            if (opts.length)
-                out = applyPick(out, r, bestFor(opts, out.mode === 'disputa' ? d.round : d.picks[r].length).uid, now);
-        }
+    const d = out.draft;
+    if (
+        out.phase === 'draft' &&
+        d &&
+        out.mode === 'disputa' &&
+        d.turn &&
+        d.deadline[d.turn] &&
+        now >= d.deadline[d.turn]
+    ) {
+        if (d.options.length) out = applyPick(out, d.turn, bestFor(d.options, d.round).uid, now);
     }
-    if (out.phase === 'preview' && out.previewUntil !== undefined && now >= out.previewUntil) out = startPlay(out, now);
+    // prévia: quem não lacrou no tempo fica com o time como saiu do draft
+    const c = out.choice;
+    if (
+        out.phase === 'preview' &&
+        c?.until !== undefined &&
+        now >= c.until + GRACE_MS &&
+        ROLES.some((r) => !c.seal[r])
+    ) {
+        const seal = { ...c.seal };
+        for (const r of ROLES) if (!seal[r]) seal[r] = '-';
+        out = { ...out, choice: { ...c, seal } };
+        if (ROLES.every((r) => seal[r] === '-' || c.opened[r])) out = startPlay(out, now);
+    }
     if (out.speedAsk && now >= out.speedAsk.until) out = { ...out, speedAsk: undefined };
     if (out.phase === 'match' && out.halftime && !out.secondHalf) {
         const ht = out.halftime;
-        const done = now >= ht.until || ROLES.every((r) => ht.ready[r] || !present[r]);
-        if (done) {
-            // IA técnica: quem está fora da sala não fica com o cansado em quadra
-            for (const r of ROLES) {
-                if (present[r] || !ctx.aiSub) continue;
-                const side = SIDE[r];
-                if (
-                    out.log.some(
-                        (o) => o.team === side && isSubOrder(o) && ctx.htTick !== undefined && o.tick > ctx.htTick,
-                    )
-                )
-                    continue;
-                const sub = ctx.aiSub(side);
-                if (!sub) continue;
-                const o = stampOrder(
-                    out,
-                    r,
-                    { k: 'order', order: { kind: 'sub', ...sub }, tick: ctx.tick, ht: true },
-                    ctx,
-                );
-                if (o) out = { ...out, log: [...out.log, o] };
-            }
-            out = { ...out, secondHalf: true };
-        }
+        if (now >= ht.until || ROLES.every((r) => ht.ready[r] || !present[r])) out = { ...out, secondHalf: true };
     }
-    if (out.phase === 'match' && !out.result) {
-        const opened = openedSegments(out.reveals.host, out.reveals.guest);
-        // antes do apito ninguém trava; sem o trecho 1 aberto, trava no 0
-        const stuck = now >= (out.kickoffAt ?? 0) && ctx.tick >= playableUntil(opened) - 1;
-        if (!stuck) {
-            if (out.waitSince !== undefined) out = { ...out, waitSince: undefined };
-        } else if (out.waitSince === undefined) {
-            out = { ...out, waitSince: now };
-        } else if (now - out.waitSince >= WO_WAIT_MS) {
-            const missing = ROLES.filter((r) => !out.reveals[r][opened + 1]);
-            if (missing.length === 1) {
-                const winner = other(missing[0]);
-                out = {
-                    ...out,
-                    phase: 'done',
-                    result: { score: [0, 0], shootout: null, winner, wo: true },
-                };
-            }
-        }
-    }
+    const b = blocker(out, ctx);
+    if (!b) {
+        if (out.waitFor) out = { ...out, waitFor: undefined, waitSince: undefined };
+    } else if (out.waitFor !== b) out = { ...out, waitFor: b, waitSince: now };
     return out;
-}
-
-/** Quem está esperando quem na trava do trecho (pra tela dizer "esperando Fulano…"). */
-export function waitingFor(s: Shared): Role | null {
-    const opened = openedSegments(s.reveals.host, s.reveals.guest);
-    const missing = ROLES.filter((r) => !s.reveals[r][opened + 1]);
-    return missing.length === 1 ? missing[0] : null;
 }
 
 // ------------------------------------------------------------------ relógio e emotes
 
 /**
  * Correção do relógio do convidado: `drift` = tick do host − o meu (positivo = estou atrás). Até meio segundo de
- * diferença, nada; até 3 s, 10% mais rápido ou mais devagar; mais que isso, pula pra frente (ou espera parado).
+ * diferença, nada; até 3 s, 10% mais rápido ou mais devagar; mais que isso, pula pra frente (ou espera parado). Em
+ * Lances a velocidade dá saltos: aí pula já com 1 s de diferença em vez de acelerar.
  */
 export function clockAdjust(drift: number, speed: PlaybackSpeed): { rate: number; seek?: boolean } {
     const perSec = 20 * speedMult(speed);
     const soft = 0.5 * perSec;
-    const hard = 3 * perSec;
+    const hard = (speed === 'highlights' ? 1 : 3) * perSec;
     if (drift > hard) return { rate: 1, seek: true };
     if (drift < -hard) return { rate: 0 };
     if (drift > soft) return { rate: 1.1 };
@@ -638,7 +725,7 @@ export const SHOUT_GAP_MS = 10_000;
 
 /** Limite dos emotes (vale no envio e no recebimento): 1 a cada 3 s, e o grito do capitão 1 a cada 10 s. */
 export function emoteAllowed(last: { any: number; grito: number }, kind: EmoteKind, now: number): boolean {
-    if (now - last.any < EMOTE_GAP_MS) return false;
+    if (!EMOTES.includes(kind) || now - last.any < EMOTE_GAP_MS) return false;
     return kind !== 'grito' || now - last.grito >= SHOUT_GAP_MS;
 }
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { cloudEnabled, cloudUserId, useCloud } from '../../cloud/cloud';
+import { ENGINE_VERSION } from '../../engine/config';
 import { playSfx } from '../../game/audio';
 import { useT } from '../../i18n/react';
 import {
@@ -10,9 +11,12 @@ import {
     other,
     type Peer,
     type Role,
+    type Shared,
     SIDE,
     versionsOk,
+    WO_WAIT_MS,
 } from '../../net/duel-state';
+import { buildRegistro } from '../../net/record';
 import { duel, localId, makePeer, useDuel } from '../../net/session';
 import { type PlaybackSpeed, useGame } from '../../store/game-store';
 import { activeTitle, activeTrainer, trainerSrc } from '../../store/missions';
@@ -21,7 +25,7 @@ import { AccountBar } from '../components/AccountBar';
 import { LeaveConfirm } from '../leave-guard';
 import { avatarImage, hexCss, titleName, trainerLabel } from '../profile/club';
 import { DuelDraft, DuelPreview, TeamPick } from './DuelDraft';
-import { DuelMatch } from './DuelMatch';
+import { DuelMatch, useCountdown } from './DuelMatch';
 import './duel.css';
 
 const PENDING = 'soccermon-duel-pending';
@@ -261,6 +265,31 @@ function Lobby() {
     );
 }
 
+/**
+ * Alguém está travando a sala (caiu, não abriu o lacre, não escolheu no prazo): conta o tempo e, depois de 1 minuto,
+ * deixa quem ficou encerrar por W.O. Nunca automático: o caso comum é o amigo que foi no WhatsApp.
+ */
+function WaitBanner({ s, role }: { s: Shared; role: Role }) {
+    const { t } = useT();
+    const left = useCountdown(s.waitSince !== undefined ? s.waitSince + WO_WAIT_MS : undefined);
+    if (!s.waitFor || s.waitFor === role || s.waitSince === undefined) return null;
+    const name = s.peers[s.waitFor]?.name ?? '';
+    return (
+        <div className="duel-banner warn" role="status" data-testid="duel-wait">
+            {left > 0 ? (
+                t('duel.wait.text', { name, s: left })
+            ) : (
+                <>
+                    <span>{t('duel.wait.can', { name })}</span>
+                    <button type="button" className="btn small primary" onClick={() => duel.dispatch({ k: 'claimWO' })}>
+                        {t('duel.wait.claim')}
+                    </button>
+                </>
+            )}
+        </div>
+    );
+}
+
 function DuelResultView({ onHome }: { onHome: () => void }) {
     const { t } = useT();
     const s = useDuel((st) => st.shared)!;
@@ -268,15 +297,17 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
     const history = useGame((g) => g.duels);
     const r = s.result!;
     const rival = s.peers[other(role)]?.name ?? '';
-    const head = r.wo
-        ? r.winner === role
-            ? t('duel.result.wo', { name: rival })
-            : t('duel.result.woLost')
-        : r.winner === role
-          ? t('duel.result.won')
-          : r.winner
-            ? t('duel.result.lost', { name: rival })
-            : t('duel.result.draw');
+    const head = r.desync
+        ? t('duel.result.desync')
+        : r.wo
+          ? r.winner === role
+              ? t('duel.result.wo', { name: rival })
+              : t('duel.result.woLost')
+          : r.winner === role
+            ? t('duel.result.won')
+            : r.winner
+              ? t('duel.result.lost', { name: rival })
+              : t('duel.result.draw');
     const home = s.teams.host;
     const away = s.teams.guest;
     return (
@@ -284,7 +315,7 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
             <h1 className={r.winner === role ? 'won' : r.winner ? 'lost' : ''} data-testid="duel-result">
                 {head}
             </h1>
-            {!r.wo && (
+            {!r.wo && !r.desync && (
                 <div className="panel duel-final">
                     <span>{home?.name}</span>
                     <b data-testid="duel-final">
@@ -323,7 +354,9 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
                                     ? t('duel.result.win')
                                     : h.result === 'loss'
                                       ? t('duel.result.loss')
-                                      : t('duel.result.drawShort')}
+                                      : h.result === 'void'
+                                        ? t('duel.result.voidShort')
+                                        : t('duel.result.drawShort')}
                             </i>
                             <span>{t('duel.result.vs', { name: h.rival })}</span>
                             <b>{h.wo ? 'W.O.' : `${h.score[0]} x ${h.score[1]}`}</b>
@@ -365,6 +398,8 @@ export function Duel() {
         const mine = SIDE[role];
         const r = s.result;
         const rival = s.peers[other(role)];
+        const secret = duel.topOf(s.game);
+        const top = secret ? { side: mine, top: secret } : undefined;
         recordDuel({
             id: `${s.room}-${s.game}`,
             date: Date.now(),
@@ -373,8 +408,11 @@ export function Duel() {
             rivalClub: rival?.clubName ?? '',
             score: mine === 0 ? r.score : [r.score[1], r.score[0]],
             shootout: r.shootout ? (mine === 0 ? r.shootout : [r.shootout[1], r.shootout[0]]) : null,
-            result: r.winner === role ? 'win' : r.winner ? 'loss' : 'draw',
+            result: r.desync ? 'void' : r.winner === role ? 'win' : r.winner ? 'loss' : 'draw',
             wo: r.wo,
+            // tudo pra refazer a partida (dessincronização, replay; no futuro, a entrada do ranqueado)
+            registro:
+                s.teams.host && s.teams.guest ? buildRegistro(s, ENGINE_VERSION, __APP_VERSION__, top) : undefined,
         });
     }, [s?.phase, s?.game, role]);
 
@@ -414,7 +452,7 @@ export function Duel() {
     else if (s.phase === 'team') body = <TeamPick s={s} role={role} />;
     else if (s.phase === 'draft') body = <DuelDraft s={s} role={role} />;
     else if (s.phase === 'preview') body = <DuelPreview s={s} role={role} />;
-    else if (s.phase === 'match' || (s.phase === 'done' && !s.result?.wo && seen !== s.game))
+    else if (s.phase === 'match' || (s.phase === 'done' && !s.result?.wo && !s.result?.desync && seen !== s.game))
         body = <DuelMatch key={s.game} onSeeResult={() => setSeen(s.game)} />;
     else body = <DuelResultView onHome={home} />;
 
@@ -444,6 +482,7 @@ export function Duel() {
                     )}
                 </div>
             )}
+            {s && role && <WaitBanner s={s} role={role} />}
             {body}
             <LeaveConfirm />
         </div>

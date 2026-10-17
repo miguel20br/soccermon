@@ -111,7 +111,8 @@ export function supabaseTransport(client: SupabaseClient, room: string, me: stri
         if (channel) await client.removeChannel(channel);
         await client.realtime.setAuth();
         const ch = client.channel(`duel:${room}`, {
-            config: { private: true, broadcast: { self: false }, presence: { key: me } },
+            // ack: o servidor confirma cada envio (sem confirmação, tenta de novo uma vez)
+            config: { private: true, broadcast: { self: false, ack: true }, presence: { key: me } },
         });
         channel = ch;
         ch.on('broadcast', { event: 'm' }, ({ payload }) => base.deliver(payload as NetMsg));
@@ -143,7 +144,11 @@ export function supabaseTransport(client: SupabaseClient, room: string, me: stri
                 if (queue.length > 20) queue.shift();
                 return;
             }
-            void channel.send({ type: 'broadcast', event: 'm', payload: { ...m, from: me } });
+            const ch = channel;
+            const payload = { ...m, from: me };
+            void ch.send({ type: 'broadcast', event: 'm', payload }).then((r) => {
+                if (r !== 'ok' && !closed) void ch.send({ type: 'broadcast', event: 'm', payload });
+            });
         },
         onMessage: base.onMessage,
         onPeers: base.onPeers,

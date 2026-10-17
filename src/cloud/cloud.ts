@@ -33,8 +33,19 @@ export const cloudEnabled = Boolean(URL && KEY);
 export const cloudApi = URL && KEY ? { url: URL, key: KEY } : null;
 const supabase =
     URL && KEY
-        ? createClient(URL, KEY, { auth: { flowType: 'pkce', persistSession: true, detectSessionInUrl: true } })
+        ? createClient(URL, KEY, {
+              auth: { flowType: 'pkce', persistSession: true, detectSessionInUrl: true },
+              // duelo (Realtime): batida num Web Worker (aba em segundo plano não congela o socket) e, se o socket cair
+              // em silêncio, reconecta. O socket só abre quando a tela do duelo assina o canal da sala.
+              realtime: {
+                  worker: true,
+                  heartbeatCallback: (status) => {
+                      if (status === 'disconnected' || status === 'timeout') supabaseRef?.realtime.connect();
+                  },
+              },
+          })
         : null;
+const supabaseRef = supabase;
 
 /** Cliente do Supabase pro Realtime do duelo (null sem as variáveis de ambiente). */
 export const realtimeClient = () => supabase;
