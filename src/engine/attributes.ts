@@ -163,6 +163,24 @@ export function physiqueOf(sp: Species): { size: string; body: string; note: str
     return { size, body: b?.label ?? sp.shape, note: b?.note ?? '' };
 }
 
+/**
+ * Ajuste fino por espécie (balanceamento, Bloco 3): pontos num atributo de quem rendia em campo bem diferente
+ * da nota. Mexe de preferência num atributo que a nota da posição não usa (o Pivô não conta velocidade, o Ala não
+ * conta chute), então a nota fica a mesma e o campo chega perto dela. Aparece na carta como qualquer atributo.
+ */
+export const SPECIES_TUNING: Record<number, Partial<Record<AttrKey, number>>> = {
+    // rendiam abaixo da nota
+    25: { shooting: 4 }, // Pikachu (Ala): chute 47
+    97: { pace: 5 }, // Hypno (Goleiro): lento pra chegar na bola
+    101: { shooting: 5 }, // Electrode (Ala): chute 54
+    124: { shooting: 5 }, // Jynx (Ala): chute 62
+    127: { pace: 6 }, // Pinsir (Pivô): o Pivô não conta velocidade
+    136: { pace: 6 }, // Flareon (Pivô): idem
+    // rendiam acima da nota
+    128: { tackling: -6 }, // Tauros (Pivô): Fixo 76 → 74, Pivô e Ala ficam
+    142: { shooting: -3 }, // Aerodactyl (Ala): Pivô 77 → 76, Ala fica 82
+};
+
 export function computeAttributes(
     sp: Species,
     level: number,
@@ -194,6 +212,9 @@ export function computeAttributes(
         for (const [k, b] of Object.entries(bonus) as [AttrKey, number][]) {
             attr[k] = Math.round(Math.min(99, Math.max(1, attr[k] + b)));
         }
+    }
+    for (const [k, b] of Object.entries(SPECIES_TUNING[sp.id] ?? {}) as [AttrKey, number][]) {
+        attr[k] = Math.round(Math.min(99, Math.max(1, attr[k] + b)));
     }
     return attr;
 }
