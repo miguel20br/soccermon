@@ -364,3 +364,55 @@ partida inteira a cada ordem do rival (0,5 s) num celular fraco (hoje só aconte
   3. **Cada um com seus pacotes:** mesma sorte de pacotes, escolhas do rival escondidas; no fim, 30 s vendo o time
      do outro pra ajustar escalação e tática.
   Tempo por escolha 20 s (capitão 30 s); acabou o tempo, sai a carta de maior nota pra vaga.
+
+## Escolhas da implementação (17/10, trilha de rede e telas do duelo)
+
+O que não estava escrito e foi decidido no código, do jeito mais simples coerente com as decisões acima e com a
+revisão de segurança (`multiplayer-revisao.md`). Código em `src/net/` (regras puras em `duel-state.ts`, lacres em
+`seal.ts`, rede em `transport.ts`, sala em `session.ts`, registro em `record.ts`) e telas em `src/ui/duel/`.
+
+- **Estado replicado, não só ordens.** Um lado aplica as regras (o host; se ele sumir, o convidado) e manda o estado
+  inteiro da sala (`Shared`, com `rev`). Quem recebe fica com o de `rev` maior, desde que não mexa no que é seu (lacre
+  e segredos abertos). Intenção inválida devolve o mesmo estado: nunca acusa ninguém nem dá W.O.
+- **Uma corrente de lacres por partida:** x[1..7] abrem as rodadas do draft, x[8..47] os trechos de 2 min. O lacre
+  (x[0]) vai junto com o "pronto" do lobby.
+- **Seed única pra rodar (TODO do motor):** enquanto o motor não renova a seed por trecho, a partida usa a seed do
+  trecho 1 (`matchSeedOf` em `seal.ts`; o ponto de encaixe é `segmentSeeds`). Os trechos seguintes já abrem, são
+  conferidos e seguram a tela do mesmo jeito; só não mudam a sorte ainda.
+- **Abre o trecho seguinte meio trecho antes** (não ao entrar no trecho): dá pra prever no máximo 1 minuto de jogo.
+- **Drafts num laço só:** capitão (qualquer posição, 30 s), Goleiro, Fixo, Ala, Ala, Pivô e 1 reserva (20 s cada) =
+  7 escolhas pros dois. A escalação sai automática (`autoLineup`, capitão sempre em quadra) e vem a prévia de 30 s
+  nos dois modos. Quem abre a Disputa sai da seed pública da sala e alterna por rodada.
+- **Prévia:** quem não confirma no tempo fica com o time como saiu do draft.
+- **Time do Hall da Fama** volta com as espécies e a escalação do título (o Hall não guarda golpes, itens nem
+  edições); a copa atual vai inteira. Os dois viram receita e passam por `validarTimeDuelo`
+  (`src/engine/duel-validate.ts`). Limite de edições especiais ainda sem número (nenhum por enquanto).
+- **Guest é o time 1** (a partida não pode ser espelhada sem mudar o resultado). A cena ganhou `mine` (setinha,
+  torcida e evolução em tela cheia do lado certo) e `duel` (painel sem pausa; evolução do rival segura a quadra ~10 s,
+  o tempo da tela cheia do outro lado).
+- **Chance de gol na velocidade da sala:** no duelo a queda pessoal ("velocidade nas chances de gol") não vale; os
+  efeitos cinematográficos ficam ligados pros dois.
+- **Relógio:** o host manda o tick a cada 2,5 s; o convidado corrige ±10%, pula se passar de 3 s (1 s em Lances) e
+  espera parado se estiver 3 s à frente. O apito inicial é marcado no relógio da sala (7 s de VERSUS).
+- **Entrega:** toda mensagem numerada por quem mandou; buraco → `resend`; as importantes ficam guardadas pra repetir;
+  a batida leva o número da última e o relógio leva o `rev`. No Supabase: canal privado com `ack`, `worker: true` +
+  `heartbeatCallback` no cliente, reabre o canal na volta pra aba. O socket só abre na tela do duelo.
+- **Ordens:** cada um numera as suas (`seq` por time); o host só carimba o tick; repetida não entra. O convidado
+  confere (sumiu → reenvia; atrasada, inventada ou no passado → aviso na tela). Limite de 3 táticas e das trocas do
+  banco valem pros dois.
+- **Checagem:** hash curto do snapshot no começo de cada trecho, junto com a abertura do segredo. Diferente → a
+  partida é anulada ("as duas telas se separaram") e fica no histórico como anulada.
+- **Registro do duelo** (`RegistroDuelo`): receitas, uids, seeds das rodadas e escolhas, lacres e segredos abertos,
+  o topo da corrente de quem salvou, ordens por autor e os hashes. Fica no save junto do histórico nos 3 duelos mais
+  recentes (o histórico guarda 30). `registroInputs` refaz as entradas da partida.
+- **Sala local** (`?duelo=XXXXXX&local=1`, ou sem Supabase configurado): BroadcastChannel entre duas abas, sem login.
+  É o que os testes headless usam.
+
+### Decidido com o Miguel depois da revisão (17/10)
+
+- **Sem IA técnica pra quem caiu:** quem caiu fica com a tática que tinha (o código da IA técnica saiu).
+- **W.O. no amistoso só pelo botão de quem ficou**, nunca automático: depois de 1 minuto de espera aparece "Encerrar
+  com vitória por W.O." (dá pra seguir esperando).
+- **"Cada um com seus pacotes" anda rodada a rodada** junto com o rival (cada rodada com seed nova, escolha lacrada).
+- **Team preview lacrado:** formação, tática e escalação abrem juntas pros dois.
+- **Time pronto** = qualquer time que uma copa poderia dar, conferido por `validarTimeDuelo`.
