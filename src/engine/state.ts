@@ -267,6 +267,8 @@ export type MatchEvent = MatchEventBase &
               hit: boolean;
               /** Golpe usado com a bola (vira chute) ou sem (dividida/rajada). */
               withBall: boolean;
+              /** Goleiro usou o golpe pra defender o chute que vinha (vira bônus de goleiro por um instante). */
+              save?: boolean;
           }
         | {
               type: 'status';
@@ -278,7 +280,8 @@ export type MatchEvent = MatchEventBase &
         | { type: 'knockback'; target: number; by: number; moveId: string }
         | { type: 'tactic'; team: 0 | 1; tactic: Tactic }
         | { type: 'item'; by: number; item: string; effect: 'save' | 'cure' | 'crit' | 'endure' }
-        | { type: 'ability'; by: number; ability: string; target: number | null }
+        /** `blocked`: a habilidade de `by` segurou o status que `target` tentou passar (Limber, Insomnia...). */
+        | { type: 'ability'; by: number; ability: string; target: number | null; blocked?: boolean }
         | { type: 'transform'; by: number; into: number; target: number }
         | { type: 'combo'; by: number; partner: number; link: string }
         | { type: 'evolve'; by: number; team: 0 | 1; uid: string; from: number; into: number }

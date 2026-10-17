@@ -207,9 +207,9 @@ export const common = {
     itemDesc: {
         leftovers: 'Recupera fôlego aos poucos durante o jogo.',
         choiceband: 'Chute +15%, mas só o primeiro golpe pode ser usado.',
-        quickclaw: '+10% nas divididas (desarmes e proteção de bola).',
+        quickclaw: '+15% nas divididas (desarmes e proteção de bola).',
         focussash: 'Goleiro: segura o primeiro chute certo de gol. Linha: ignora o primeiro status.',
-        scopelens: '15% de chance de chute crítico (mais forte e preciso).',
+        scopelens: '20% de chance de chute crítico (mais forte e preciso).',
         lumberry: 'Cura o primeiro status sofrido na partida.',
         kingsrock: 'Golpes que acertam podem fazer o rival hesitar.',
     } as Record<string, string>,

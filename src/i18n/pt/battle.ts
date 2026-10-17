@@ -50,6 +50,7 @@ export const battle = {
     cleared: 'limpo!',
     haze: 'A névoa do Haze limpa tudo em volta!',
     teleport: '{x} se teleportou!',
+    abilityBlock: 'A habilidade de {x} segurou o efeito!',
     ability: 'Habilidade de {x} ativada!',
     itemCrit: 'Chute crítico de {x}!',
     item: '{item} de {x} entrou em ação!',

@@ -1,7 +1,7 @@
 import type { Command, Controller } from '../commands';
 import { eff } from '../effective';
 import { FRICTION, goalXFor, isInOwnArea, maxSpeed, ownGoalX, TACKLE_RANGE, toRel, toWorld } from '../match';
-import { hasTrait, MOVE_TUNING, moveProfile, type Trait } from '../moves';
+import { DRAWBACK, hasTrait, MOVE_TUNING, moveProfile, type Trait } from '../moves';
 import type { MatchState, PlayerState, Tactic } from '../state';
 import { add, clamp, dist, len, norm, pointSegment, scale, sub, type Vec2, v } from '../vec';
 import { expectedGoals } from '../xg';
@@ -42,8 +42,9 @@ export class AIController implements Controller {
         const ctx = this.context();
         const p = s.players[idx];
         if (s.ball.owner === idx) return p.role === 'GK' ? this.goalkeeperWithBall(p) : this.carrier(p);
-        if (p.role === 'GK') return this.goalkeeper(p, ctx);
-        return this.offBall(p, ctx);
+        // goleiro também usa golpe de suporte (Sing, Soft-Boiled, Barrier...) fora do lance
+        if (p.role === 'GK') return this.withUtility(p, this.goalkeeper(p, ctx));
+        return this.withUtility(p, this.offBallMovement(p, ctx));
     }
 
     // ------------------------------------------------------------ contexto compartilhado por tick
@@ -364,9 +365,8 @@ export class AIController implements Controller {
     }
 
     // ------------------------------------------------------------ sem bola
-    private offBall(p: PlayerState, ctx: TeamContext): Command | Command[] {
+    private withUtility(p: PlayerState, cmd: Command | Command[]): Command | Command[] {
         const utility = this.utilityMove(p);
-        const cmd = this.offBallMovement(p, ctx);
         if (utility === null) return cmd;
         return [{ type: 'useMove', slot: utility }, ...(Array.isArray(cmd) ? cmd : [cmd])];
     }
@@ -379,10 +379,19 @@ export class AIController implements Controller {
         if (p.moveCooldown > 0 || (s.tick + p.idx) % 5 !== 0 || s.time < 6) return null;
         let near = Infinity;
         for (const o of s.players) if (o.team !== p.team) near = Math.min(near, dist(o.pos, p.pos));
-        if (p.energy < 0.4) {
+        // Soft-Boiled cura também o companheiro: vale usar quando alguém cansado está perto
+        const tiredMate = s.players.some(
+            (o) => o.team === p.team && o !== p && o.energy < 0.5 && dist(o.pos, p.pos) < MOVE_TUNING.teamHealRadius,
+        );
+        if (p.energy < 0.4 || tiredMate) {
             // Rest dorme: nunca no goleiro com a bola perto
             const restOk = p.role !== 'GK' || dist(s.ball.pos, p.pos) > 14;
-            const heal = this.pickMoveSlot(p, ['heal'], 0.04, (m) => restOk || m !== 'rest');
+            const heal = this.pickMoveSlot(
+                p,
+                ['heal'],
+                0.04,
+                (m) => (restOk || m !== 'rest') && (p.energy < 0.4 || hasTrait(m, 'teamHeal')),
+            );
             if (heal !== null) return heal;
         }
         // golpes de área (Growl, Leer, Poison Gas...) quando tem 2+ rivais em volta
@@ -508,7 +517,7 @@ export class AIController implements Controller {
         return this.moveTo(p, home, false);
     }
 
-    private goalkeeper(p: PlayerState, ctx: TeamContext): Command {
+    private goalkeeper(p: PlayerState, ctx: TeamContext): Command | Command[] {
         const s = this.s;
         const team = p.team;
         const { width, goalWidth } = s.cfg.pitch;
@@ -522,7 +531,13 @@ export class AIController implements Controller {
             if (t > 0) {
                 const yCross = clamp(ball.pos.y + ball.vel.y * t, gy - goalWidth / 2 - 0.3, gy + goalWidth / 2 + 0.3);
                 const lineDepth = toWorld(s, team, 0.5, yCross);
-                return this.moveTo(p, lineDepth, true);
+                const run = this.moveTo(p, lineDepth, true);
+                // defesa com golpe: o goleiro fecha o gol com o golpe de ataque dele (Body Slam, Submission...)
+                if (ball.shot.onTarget && dist(ball.pos, p.pos) < 10) {
+                    const slot = this.pickMoveSlot(p, ['strike', 'blast'], 0.05, gkSaveMove);
+                    if (slot !== null) return [{ type: 'useMove', slot }, run];
+                }
+                return run;
             }
         }
         if (ball.owner === null && ctx.chaser[team] === p.idx) return this.moveTo(p, this.ballInterceptPoint(p), true);
@@ -617,10 +632,10 @@ export class AIController implements Controller {
         if (chance <= 0 || p.moveCooldown > 0 || this.s.tick < this.s.nextMoveTick || !this.s.rng.chance(chance)) {
             return null;
         }
-        // Dream Eater só vale com um rival dormindo por perto
-        const sleeper = this.s.players.some(
-            (o) => o.team !== p.team && o.status?.kind === 'slp' && dist(o.pos, p.pos) < 7,
-        );
+        // Dream Eater sem a bola só vale com um rival dormindo por perto (com a bola é chute)
+        const sleeper =
+            this.s.ball.owner === p.idx ||
+            this.s.players.some((o) => o.team !== p.team && o.status?.kind === 'slp' && dist(o.pos, p.pos) < 7);
         const slots = p.inst.moves
             .map((m, i) => ({ i, m, prof: moveProfile(m) }))
             .filter(
@@ -631,6 +646,12 @@ export class AIController implements Controller {
         return this.s.rng.pick(slots).i;
     }
 }
+
+/** Golpe que o goleiro usa pra defender: nada que carregue, voe/cave, exploda ou deixe recarregando. */
+function gkSaveMove(m: string): boolean {
+    return !hasTrait(m, 'charge') && !hasTrait(m, 'fly') && !hasTrait(m, 'dig') && !GK_UNSAFE.has(DRAWBACK[m] ?? '');
+}
+const GK_UNSAFE = new Set(['faint', 'recharge']);
 
 function closestTo(players: PlayerState[], target: Vec2): PlayerState | null {
     let best: PlayerState | null = null;

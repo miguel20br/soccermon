@@ -277,11 +277,11 @@ export const help: typeof pt = {
                         ['Speed', 'Swift Swim, Chlorophyll, Run Away, Quick Feet.'],
                         [
                             'Attack',
-                            'Hustle (Shooting +10%, Passing −5%), Sniper, Iron Fist, Technician (weak moves +50%).',
+                            'Hustle (Shooting +15%, Passing −8%), Sniper, Iron Fist, Technician (weak moves +50%).',
                         ],
                         [
                             'Final stretch',
-                            'Overgrow, Blaze, Torrent and Swarm: +10% Shooting and Dribbling on low stamina.',
+                            'Overgrow, Blaze, Torrent and Swarm: +15% Shooting and Dribbling on low stamina.',
                         ],
                         [
                             'Aura',

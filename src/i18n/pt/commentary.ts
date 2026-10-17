@@ -109,11 +109,13 @@ export const commentary = {
     debuffHit: '{w} usa {m} em {tg}!',
     debuffMiss: '{w} usa {m}, mas não surte efeito.',
     statusMiss: '{w} usa {m}... errou!',
+    gkSaveMove: '{w} fecha o gol com {m}!',
     strikeBall: '{w} carrega {m} no pé!',
     /** `{eff}` = " É super efetivo!" / " Não é muito efetivo..." / "". */
     strike: '{w} chega com {m} na dividida!{eff}',
     blast: '{w} dispara {m} em {tg}!{eff}',
     blastMissed: ' Errou!',
+    abilityBlock: '{ab} de {x} segura o efeito!',
     abilityHit: '{ab} de {x} pega {y}!',
     ability: '{ab} de {x} é ativada!',
     transform: '{x} se transforma em {sp}, o melhor da posição em campo!',

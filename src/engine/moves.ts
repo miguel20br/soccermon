@@ -303,6 +303,9 @@ export const MOVE_TUNING = {
     bulldoze: 2.5,
     typeCopyTime: 12,
     teamHealRadius: 5,
+    // goleiro defende com golpe de ataque: goleiro +25% × força do golpe por 1,2 s
+    gkSaveBoost: 0.25,
+    gkSaveTime: 1.2,
     coinRadius: 3,
     coinStun: 0.4,
 };
@@ -424,6 +427,8 @@ const EXPLAIN = {
     gust: 'Com a bola: chute colocado. Sem a bola: rajada que empurra o rival e sopra a bola solta para longe.',
     strength: 'Carrinho-trator: quando ganha a dividida, empurra o rival 2,5 m.',
     softboiled: 'Cura o fôlego dele e o do companheiro mais cansado a 5 m.',
+    dreameater:
+        'Com a bola: chute colocado. Sem a bola: devora o sonho de um rival dormindo perto e suga o fôlego dele.',
     payday: 'Chuva de moedas: com a bola, chute; sem a bola, os rivais a 3 m param um instante para olhar.',
 };
 

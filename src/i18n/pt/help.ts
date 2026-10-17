@@ -304,8 +304,8 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
             {
                 list: [
                     ['Velocidade', 'Swift Swim, Chlorophyll, Run Away, Quick Feet.'],
-                    ['Ataque', 'Hustle (Chute +10%, Passe −5%), Sniper, Iron Fist, Technician (golpes fracos +50%).'],
-                    ['Reta final', 'Overgrow, Blaze, Torrent e Swarm: +10% em Chute e Drible com o fôlego baixo.'],
+                    ['Ataque', 'Hustle (Chute +15%, Passe −8%), Sniper, Iron Fist, Technician (golpes fracos +50%).'],
+                    ['Reta final', 'Overgrow, Blaze, Torrent e Swarm: +15% em Chute e Drible com o fôlego baixo.'],
                     [
                         'Aura',
                         'Intimidate (rivais perto chutam pior), Unnerve, Stench, Pressure (rivais perto cansam mais).',

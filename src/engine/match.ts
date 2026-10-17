@@ -941,7 +941,7 @@ function kick(s: MatchState, p: PlayerState, kind: 'pass' | 'shot', target: Vec2
         const shooting = eff(s, p, 'shooting');
         const bonus = p.shotBonus;
         // Scope Lens: chute crítico
-        const scope = p.item === 'scopelens' && s.rng.chance(0.15);
+        const scope = p.item === 'scopelens' && s.rng.chance(0.2);
         // golpe de crítico fácil (Slash, Karate Chop...) e Focus Energy (crítico garantido no próximo)
         const moveCrit = !scope && !!bonus && hasTrait(bonus.moveId, 'crit') && s.rng.chance(critChance(s, p));
         const focusCrit = p.fx.focus;
@@ -1089,7 +1089,7 @@ function tryTackle(s: MatchState, p: PlayerState, targetId: number) {
             tackleTypeMult *
             (bonus?.power ?? 1) *
             T.multiFalloff ** i *
-            (p.item === 'quickclaw' ? 1.1 : 1) *
+            (p.item === 'quickclaw' ? 1.15 : 1) *
             (behind ? 0.85 : 1) *
             dodge *
             // Reflect do time de quem tem a bola: carrinho mais fraco
@@ -1099,7 +1099,7 @@ function tryTackle(s: MatchState, p: PlayerState, targetId: number) {
             (0.65 * eff(s, carrier, 'dribble') + 0.35 * eff(s, carrier, 'strength')) *
             keepTypeMult *
             (carrier.evade > 0 ? 1.3 : 1) *
-            (carrier.item === 'quickclaw' ? 1.1 : 1) *
+            (carrier.item === 'quickclaw' ? 1.15 : 1) *
             s.rng.range(0.72, 1.28);
         success = crit || attack > defend;
         // cada tentativa que não levou a bola ainda pode deixar o secundário (Twineedle envenena)
@@ -1258,7 +1258,13 @@ export function applyStatus(
     by: number | null,
     source: string,
 ): boolean {
-    if (target.status || isStatusImmune(target.ability, status)) return false;
+    if (target.status) return false;
+    if (isStatusImmune(target.ability, status)) {
+        // a habilidade segura o status: aparece na tela (só golpe ou contato de rival; o anel de fogo pega toda hora)
+        if (by !== null && by !== target.idx && source !== 'firespin')
+            emit(s, { type: 'ability', by: target.idx, ability: target.inst.ability, target: by, blocked: true });
+        return false;
+    }
     const selfInflicted = by === target.idx;
     if (
         !selfInflicted &&
@@ -1309,7 +1315,7 @@ const SECONDARY_STATUS: Record<string, StatusKind> = {
  */
 function applySecondary(s: MatchState, user: PlayerState, target: PlayerState, moveId: string): boolean {
     const move = MOVES[moveId];
-    if (user.item === 'kingsrock' && move?.category !== 'Status' && s.rng.chance(0.25)) {
+    if (user.item === 'kingsrock' && move?.category !== 'Status' && s.rng.chance(0.3)) {
         target.stun = Math.max(target.stun, 0.7);
         setAction(target, Action.Hurt, 0.7);
         emit(s, { type: 'status', target: target.idx, status: 'flinch', by: user.idx, source: 'kingsrock' });
@@ -1430,7 +1436,20 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0, ch
         (prof.kind !== 'strike' && prof.kind !== 'blast') ||
         s.rng.chance(prof.data.accuracy / 100);
 
-    switch (prof.kind) {
+    // goleiro: o golpe de ataque vira defesa (Body Slam, Submission, Petal Dance...) no chute que vem
+    const incoming = s.ball.shot;
+    const gkSave =
+        p.role === 'GK' &&
+        !hasBall &&
+        (prof.kind === 'strike' || prof.kind === 'blast') &&
+        incoming !== null &&
+        s.players[incoming.by].team !== p.team;
+
+    switch (gkSave ? 'gkSave' : prof.kind) {
+        case 'gkSave':
+            hit = landed;
+            if (landed) p.buffs.push({ attr: 'goalkeeping', factor: 1 + T.gkSaveBoost * k, timer: T.gkSaveTime });
+            break;
         case 'strike':
             if (!landed) {
                 hit = false;
@@ -1474,9 +1493,9 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0, ch
             }
             break;
         case 'blast':
-            if (hasBall && moveId !== 'dreameater' && !landed) {
+            if (hasBall && !landed) {
                 hit = false;
-            } else if (hasBall && moveId !== 'dreameater') {
+            } else if (hasBall) {
                 p.shotBonus = {
                     // Psywave: força sorteada (bomba ou bola murcha)
                     power: hasTrait(moveId, 'randomPower') ? s.rng.range(T.psywaveMin, T.psywaveMax) : 1 + 0.15 * k,
@@ -1699,6 +1718,7 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0, ch
         effectiveness,
         hit,
         withBall: hasBall,
+        ...(gkSave ? { save: true } : {}),
     });
     if (moveId !== 'metronome' && moveId !== 'mirrormove' && moveId !== 'mimic') s.lastMove[p.team] = moveId;
     if (landed) drawback(s, p, moveId);

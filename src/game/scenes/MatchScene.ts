@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { computeAttributes } from '../../engine/attributes';
 import { FUTSAL_5 } from '../../engine/config';
-import { MOVES, species } from '../../engine/data';
+import { ABILITIES, MOVES, species } from '../../engine/data';
 import { ITEMS } from '../../engine/items';
 import { LINKS } from '../../engine/links';
 import { moveProfile } from '../../engine/moves';
@@ -1751,8 +1751,10 @@ export class MatchScene extends Phaser.Scene {
             }
             case 'ability': {
                 const view = this.players[e.by];
-                this.popText(e.by, '★', '#ffd447');
-                if (view) this.battleBox.push(tr('battle.ability', { x: view.name }));
+                // nome da habilidade subindo em amarelo (como o item, em verde): dá pra ver o efeito disparar
+                this.popText(e.by, ABILITIES[e.ability]?.name ?? '★', '#ffd447');
+                if (view)
+                    this.battleBox.push(tr(e.blocked ? 'battle.abilityBlock' : 'battle.ability', { x: view.name }));
                 break;
             }
             case 'item': {

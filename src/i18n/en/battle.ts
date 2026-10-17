@@ -45,6 +45,7 @@ export const battle: typeof pt = {
     cleared: 'cleared!',
     haze: 'All stat changes were eliminated!',
     teleport: '{x} teleported!',
+    abilityBlock: "{x}'s ability blocked it!",
     ability: "{x}'s Ability activated!",
     itemCrit: 'A critical shot from {x}!',
     item: "{x}'s {item} kicked in!",

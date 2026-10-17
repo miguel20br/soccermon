@@ -65,7 +65,7 @@ export const ITEMS: Record<string, ItemData> = {
         name: 'Quick Claw',
         kind: 'quickclaw',
         sprite: 'quick-claw',
-        desc: '+10% nas divididas (desarmes e proteção de bola).',
+        desc: '+15% nas divididas (desarmes e proteção de bola).',
     },
     focussash: {
         id: 'focussash',
@@ -79,7 +79,7 @@ export const ITEMS: Record<string, ItemData> = {
         name: 'Scope Lens',
         kind: 'scopelens',
         sprite: 'scope-lens',
-        desc: '15% de chance de chute crítico (mais forte e preciso).',
+        desc: '20% de chance de chute crítico (mais forte e preciso).',
     },
     lumberry: {
         id: 'lumberry',

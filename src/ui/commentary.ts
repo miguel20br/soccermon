@@ -184,6 +184,7 @@ export class Commentator {
                         : null;
                 const suffix = eff === 'super' ? c.superEffective : eff === 'weak' ? c.notVeryEffective : '';
                 const v = { w, m, tg };
+                if (e.save) return e.hit ? line(say(c.gkSaveMove, v), 'big', team) : null;
                 switch (e.kind) {
                     case 'special':
                         return e.moveId === 'counter'
@@ -235,9 +236,11 @@ export class Commentator {
             case 'ability': {
                 const ab = ABILITIES[e.ability]?.name ?? e.ability;
                 return line(
-                    e.target !== null
-                        ? say(c.abilityHit, { ab, x: this.n(e.by), y: this.n(e.target) })
-                        : say(c.ability, { ab, x: this.n(e.by) }),
+                    e.blocked
+                        ? say(c.abilityBlock, { ab, x: this.n(e.by) })
+                        : e.target !== null
+                          ? say(c.abilityHit, { ab, x: this.n(e.by), y: this.n(e.target) })
+                          : say(c.ability, { ab, x: this.n(e.by) }),
                     'normal',
                     this.teams[e.by],
                 );

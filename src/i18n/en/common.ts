@@ -207,9 +207,9 @@ export const common: typeof pt = {
     itemDesc: {
         leftovers: 'Slowly restores stamina during the match.',
         choiceband: 'Shooting +15%, but only the first move can be used.',
-        quickclaw: '+10% in 50-50 challenges (tackles and shielding the ball).',
+        quickclaw: '+15% in 50-50 challenges (tackles and shielding the ball).',
         focussash: 'Goalkeeper: stops the first shot on target. Outfield: ignores the first status condition.',
-        scopelens: '15% chance of a critical shot (harder and more accurate).',
+        scopelens: '20% chance of a critical shot (harder and more accurate).',
         lumberry: 'Cures the first status condition suffered in the match.',
         kingsrock: 'Moves that hit may make the rival flinch.',
     },

@@ -118,5 +118,7 @@ export const moveExplainEn: Record<ExplainMoveId, string> = {
     gust: 'With the ball: a placed shot. Without it: a gust that pushes the rival and blows a loose ball far away.',
     strength: 'A bulldozer slide tackle: when it wins the challenge, it pushes the rival 2.5 m.',
     softboiled: 'Restores its own stamina and that of the most tired teammate within 5 m.',
+    dreameater:
+        'With the ball: a placed shot. Without it: eats the dream of a sleeping rival nearby and drains their stamina.',
     payday: 'Coins scattered everywhere: with the ball, a shot; without it, rivals within 3 m stop for a moment to look.',
 };

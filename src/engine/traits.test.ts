@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import { abilityEffect } from './abilities';
 import type { Command } from './commands';
 import { FUTSAL_5 } from './config';
 import { species } from './data';
 import { createInstance } from './instance';
-import { checkEvolutions, createMatch, step } from './match';
+import { checkEvolutions, createMatch, ownGoalX, step } from './match';
 import { defaultMoveset, MOVE_EXPLAIN, MOVE_TRAITS, MOVE_TUNING, moveProfile } from './moves';
 import { Rng } from './rng';
 import type { MatchEvent, MatchState, TeamSetup } from './state';
@@ -451,5 +452,41 @@ describe('traços de golpe: bola parada, intervalo e fim', () => {
         q.inst.moves.forEach((m, i) => {
             expect(q.moveUses[i], m).toBe(m === next.at(-1) ? 0 : moveProfile(m).uses);
         });
+    });
+
+    it('goleiro defende com golpe de ataque: Body Slam vira bônus de goleiro no chute que vem', () => {
+        const s = scene({ 0: ['bodyslam'] });
+        const gk = s.players[0];
+        expect(gk.role).toBe('GK');
+        const gx = ownGoalX(s, 0);
+        gk.pos = v(Math.abs(gx - 1), 10);
+        s.players[7].pos = v(Math.abs(gx - 9), 10);
+        giveBall(s, 7);
+        run(s, { 7: { type: 'shoot', target: v(gx, 10), power: 1 } }, 2);
+        expect(s.ball.shot).not.toBeNull();
+        const ev = run(s, { 0: { type: 'useMove', slot: 0 } });
+        const mv = ev.find((e) => e.type === 'move');
+        expect(mv?.type === 'move' && mv.save).toBe(true);
+        expect(gk.buffs.some((b) => b.attr === 'goalkeeping' && b.factor > 1)).toBe(true);
+    });
+
+    it('Dream Eater com a bola vira chute (antes só saía com rival dormindo)', () => {
+        const s = scene({ 3: ['dreameater'] });
+        giveBall(s, 3);
+        run(s, { 3: { type: 'useMove', slot: 0 } });
+        expect(s.players[3].shotBonus?.moveId).toBe('dreameater');
+    });
+
+    it('habilidade que segura o status aparece na partida (Limber contra Thunder Wave)', () => {
+        const s = scene({}, { 0: ['thunderwave'] });
+        const [target, user] = [s.players[3], s.players[5]];
+        target.inst = { ...target.inst, ability: 'limber' };
+        target.ability = abilityEffect('limber');
+        target.pos = v(20, 10);
+        user.pos = v(22, 10);
+        for (const p of s.players) if (p !== target && p !== user) p.pos = v(p.pos.x, p.pos.y < 10 ? 1 : 19);
+        const ev = run(s, { 5: { type: 'useMove', slot: 0 } });
+        expect(target.status).toBeNull();
+        expect(ev.some((e) => e.type === 'ability' && e.by === 3 && e.blocked)).toBe(true);
     });
 });
