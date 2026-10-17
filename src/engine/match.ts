@@ -1,7 +1,7 @@
 import { abilityEffect, isStatusImmune } from './abilities';
 import { type AttrKey, computeAttributes, type Position, positionRating } from './attributes';
 import type { Command } from './commands';
-import type { MatchConfig } from './config';
+import { type MatchConfig, segmentTicks } from './config';
 import { MOVES, species, type TypeName } from './data';
 import { dpow } from './dmath';
 import { eff, fatigueFactor, isIncapacitated, TACTIC_MODS } from './effective';
@@ -196,7 +196,13 @@ function createPlayer(
     };
 }
 
-export function createMatch(cfg: MatchConfig, home: TeamSetup, away: TeamSetup, seed: number | string): MatchState {
+export function createMatch(
+    cfg: MatchConfig,
+    home: TeamSetup,
+    away: TeamSetup,
+    seed: number | string,
+    segmentSeeds: readonly string[] | null = null,
+): MatchState {
     if (home.lineup.length !== cfg.teamSize || away.lineup.length !== cfg.teamSize) {
         throw new Error(`Cada time precisa de ${cfg.teamSize} titulares`);
     }
@@ -211,7 +217,9 @@ export function createMatch(cfg: MatchConfig, home: TeamSetup, away: TeamSetup, 
     });
     const s: MatchState = {
         cfg,
-        rng: new Rng(seed, 'match'),
+        rng: new Rng(segmentSeeds?.[0] ?? seed, 'match'),
+        segmentSeeds,
+        segment: 0,
         tick: 0,
         half: 1,
         time: 0,
@@ -500,6 +508,24 @@ export function step(s: MatchState, commands: (Command | Command[])[]) {
 
     s.time += dt;
     if (s.time >= s.cfg.halfSeconds && s.phase === 'play') endHalf(s);
+    enterSegment(s);
+}
+
+/** Trecho do relógio de jogo em que a partida está (0–19 no tempo normal; 20 = pênaltis). */
+export function segmentOf(s: MatchState): number {
+    const halfTicks = Math.round(s.cfg.halfSeconds * s.cfg.tickRate);
+    const played = (s.half - 1) * halfTicks + Math.round(s.time * s.cfg.tickRate);
+    return Math.floor(played / segmentTicks(s.cfg));
+}
+
+/** Entrou num trecho novo: o `rng` recomeça da seed dele (duelo ao vivo). Sem seeds por trecho, nada muda. */
+function enterSegment(s: MatchState) {
+    if (!s.segmentSeeds) return;
+    const k = segmentOf(s);
+    if (k === s.segment) return;
+    s.segment = k;
+    const seed = s.segmentSeeds[k];
+    if (seed !== undefined) s.rng = new Rng(seed, 'match');
 }
 
 function updatePhase(s: MatchState, dt: number, commands: (Command | Command[])[]) {
@@ -2461,6 +2487,8 @@ function halftimeSubs(s: MatchState) {
 }
 
 function penaltyShootout(s: MatchState) {
+    // os pênaltis são o trecho seguinte ao último do tempo normal
+    enterSegment(s);
     const takers = [0, 1].map((t) =>
         s.players.filter((p) => p.team === t && p.role !== 'GK').sort((a, b) => b.attr.shooting - a.attr.shooting),
     );

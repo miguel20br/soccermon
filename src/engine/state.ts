@@ -415,6 +415,13 @@ export interface MatchSnapshot {
 export interface MatchState {
     cfg: MatchConfig;
     rng: Rng;
+    /**
+     * Seed de cada trecho de 2 minutos (duelo ao vivo: compromisso e revelação). Com elas, o `rng` é recriado no
+     * começo de cada trecho; sem elas (null), é um stream só desde o apito. Seed que falta = segue o stream atual.
+     */
+    segmentSeeds: readonly string[] | null;
+    /** Trecho atual (ver `segmentTicks` em config.ts). */
+    segment: number;
     tick: number;
     half: 1 | 2;
     /** Segundos de simulação dentro do tempo atual. */

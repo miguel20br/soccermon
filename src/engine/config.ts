@@ -44,6 +44,15 @@ export const FUTSAL_5: MatchConfig = {
     halftimeRecovery: 0.3,
 };
 
+/**
+ * Trecho da seed do duelo: 2 minutos do relógio exibido (no futsal 5: 18 s de jogo = 360 ticks). O relógio para
+ * fora da fase `play`, então o trecho k vai do minuto 2k ao 2k+2 (o 1º tempo tem os trechos 0–9, o 2º os 10–19 e
+ * os pênaltis são o 20). A tela acha o trecho pelo snapshot: `floor(minute / 2)`.
+ */
+export const SEGMENT_MINUTES = 2;
+export const segmentTicks = (cfg: MatchConfig) =>
+    Math.round(((SEGMENT_MINUTES * cfg.halfSeconds) / cfg.displayHalfMinutes) * cfg.tickRate);
+
 export function withConfig(overrides: Partial<MatchConfig>): MatchConfig {
     return { ...FUTSAL_5, ...overrides, pitch: { ...FUTSAL_5.pitch, ...overrides.pitch } };
 }

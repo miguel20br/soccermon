@@ -17,10 +17,18 @@ export class LiveRunner {
 
     /**
      * `orders`: ordens do técnico agendadas (tática ao vivo e substituições). A tática vale no início do tick
-     * indicado; a substituição espera a próxima saída de bola depois dele.
+     * indicado; a substituição espera a próxima saída de bola depois dele. `segmentSeeds`: seed de cada trecho de
+     * 2 minutos (duelo ao vivo; ver `MatchState.segmentSeeds`).
      */
-    constructor(cfg: MatchConfig, home: TeamSetup, away: TeamSetup, seed: number | string, orders: MatchOrder[] = []) {
-        this.state = createMatch(cfg, home, away, seed);
+    constructor(
+        cfg: MatchConfig,
+        home: TeamSetup,
+        away: TeamSetup,
+        seed: number | string,
+        orders: MatchOrder[] = [],
+        segmentSeeds: readonly string[] | null = null,
+    ) {
+        this.state = createMatch(cfg, home, away, seed, segmentSeeds);
         this.ai = new AIController(this.state);
         this.schedule = [...orders].sort((a, b) => a.tick - b.tick);
     }

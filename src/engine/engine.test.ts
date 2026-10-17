@@ -1,9 +1,10 @@
 import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { computeAttributes, eligiblePositions, positionFactor, positionRating } from './attributes';
-import { FUTSAL_5, withConfig } from './config';
+import { FUTSAL_5, segmentTicks, withConfig } from './config';
 import { HumanController } from './controllers/human-controller';
 import { effectiveness, MOVES, SPECIES, species } from './data';
+import { matchHash } from './determinism';
 import { aiDraftTeam, DRAFT_ROUNDS, draftOptions, playerDraftOptions, SILVER } from './draft';
 import { evolvedRating } from './evolution';
 import { FORMATIONS } from './formations';
@@ -751,5 +752,34 @@ describe('golpes especiais', () => {
         });
         // antes do Bloco 3 só saía com rival dormindo (0 usos em 6.639 jogos)
         expect(dreams).toBeGreaterThan(0);
+    });
+});
+
+describe('seed por trecho (duelo ao vivo)', () => {
+    const home = team('seg-a', 'A');
+    const away = team('seg-b', 'B');
+    const seeds = Array.from({ length: 21 }, (_, k) => `trecho-${k}`);
+    const play = (segmentSeeds?: string[]) => runMatch(FUTSAL_5, home, away, 'seg', { segmentSeeds });
+
+    it('mesmas seeds dão a mesma partida, e o trecho dura 2 minutos (360 ticks de jogo)', () => {
+        expect(segmentTicks(FUTSAL_5)).toBe(360);
+        const a = play(seeds);
+        expect(matchHash(play([...seeds]))).toBe(matchHash(a));
+        // sem seeds por trecho é a partida de sempre (um stream só)
+        expect(matchHash(play())).not.toBe(matchHash(a));
+    });
+
+    it('mudar só a seed do trecho 3 não muda nada antes dele', () => {
+        const a = play(seeds);
+        const b = play(seeds.map((x, k) => (k === 3 ? 'outra' : x)));
+        // o trecho 3 começa no minuto 6 do relógio (ele para nas bolas paradas)
+        const start = a.snapshots.find((sn) => sn.minute >= 6)!.tick;
+        expect(b.snapshots.find((sn) => sn.minute >= 6)!.tick).toBe(start);
+        const earlier = (r: typeof a) => ({
+            events: r.events.filter((e) => e.tick < start),
+            snaps: r.snapshots.filter((sn) => sn.tick < start),
+        });
+        expect(earlier(b)).toEqual(earlier(a));
+        expect(matchHash(b)).not.toBe(matchHash(a));
     });
 });

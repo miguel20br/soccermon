@@ -57,9 +57,9 @@ export function runMatch(
     home: TeamSetup,
     away: TeamSetup,
     seed: number | string,
-    opts: { snapshots?: boolean; orders?: MatchOrder[] } = {},
+    opts: { snapshots?: boolean; orders?: MatchOrder[]; segmentSeeds?: readonly string[] } = {},
 ): MatchResult {
-    const runner = new LiveRunner(cfg, home, away, seed, opts.orders);
+    const runner = new LiveRunner(cfg, home, away, seed, opts.orders, opts.segmentSeeds ?? null);
     const s = runner.state;
     const roster = summarize(s);
     const snapshots: MatchSnapshot[] = [];
