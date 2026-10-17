@@ -2472,8 +2472,8 @@ export const CORNER_TUNING = {
     firstTimeAim: 1.6,
     volleyAim: 2.8,
     flickAim: 2.6,
-    /** Gol olímpico: chance de a curva no vento (Gust/Whirlwind) ir direto pro gol. */
-    olympic: 0.3,
+    /** Gol olímpico: chance de a curva no vento (Gust/Whirlwind) ir direto pro gol (0,3 → 0,6: Miguel, 17/10/2026). */
+    olympic: 0.6,
     /** Rasteira: o defensor ganha a dividida, mas desvia pro próprio gol. */
     ownDeflect: 0.06,
     /** Velocidade vertical (m/s) da bola afastada: sobe por cima da área. */

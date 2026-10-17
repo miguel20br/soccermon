@@ -196,12 +196,13 @@ export class AIController implements Controller {
         const shootThreshold = (pressure > 0.5 ? 0.04 : 0.075) + tactic.shootBias - shootingSkill * 0.03;
         if (distGoal < 17 && xg > shootThreshold && s.rng.chance(0.9)) {
             const cmds: Command[] = [];
-            // golpe no chute só em chance clara: é o grande momento do lance
+            // golpe no chute na chance boa: é o grande momento do lance (a IA chuta com xG ~0,07–0,09, então os
+            // limites antigos 0,14/0,22 quase nunca saíam: 0,17 chute com golpe por jogo → ~1,5; Miguel, 17/10/2026)
             // golpe de carga (Solar Beam, Sky Attack) só com espaço: marcado, perderia o golpe
             const slot = this.pickMoveSlot(
                 p,
                 ['strike', 'blast'],
-                xg > 0.22 ? 0.55 : xg > 0.14 ? 0.2 : 0,
+                xg > 0.09 ? 0.55 : xg > 0.075 ? 0.2 : 0,
                 (m) => pressure < 0.35 || !hasTrait(m, 'charge'),
             );
             if (slot !== null) cmds.push({ type: 'useMove', slot });

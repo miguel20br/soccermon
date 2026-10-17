@@ -291,7 +291,7 @@ describe('iteração 3: posições, formações, capitão, itens, tática ao viv
         }
         let saves = 0;
         let cures = 0;
-        for (const seed of [1, 2, 3, 4]) {
+        for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
             const r = runMatch(FUTSAL_5, home, withItems(away, seed % 2 ? 'focussash' : 'lumberry'), seed, {
                 snapshots: false,
             });
