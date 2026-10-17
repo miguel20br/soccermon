@@ -184,6 +184,7 @@ export const SPECIES_TUNING: Record<number, Partial<Record<AttrKey, number>>> = 
     128: { tackling: -6 }, // Tauros (Pivô): Fixo 76 → 74, Pivô e Ala ficam
     142: { shooting: -3 }, // Aerodactyl (Ala): Pivô 77 → 76, Ala fica 82
     // auditoria de posições (17/10/2026, aprovada pelo Miguel): identidade Gen 1 e quem não tinha lugar bom
+    11: { goalkeeping: 1 }, // Metapod: só Harden, fica no gol com 38 (a regra da serpente tirava)
     15: { shooting: 8, strength: 5 }, // Beedrill: o ferrão vira Pivô 65 (era Ala 63)
     28: { positioning: 6, strength: 2 }, // Sandslash: raro prata, Fixo 73 → 75
     30: { tackling: 3, positioning: 2 }, // Nidorina: linha ♀ defensiva, vira Fixo 58 (Nidoqueen tem Fixo)
