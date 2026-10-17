@@ -40,6 +40,11 @@ export interface PokemonInstance {
      * Só o seu time acumula; o rival começa do zero a cada jogo. Saves antigos não têm o campo.
      */
     evo?: number;
+    /**
+     * Posições herdadas na evolução: a vaga em que ele jogava quando evoluiu vira secundária da forma nova (o
+     * Poliwhirl que evolui na Ala continua Ala). Saves antigos não têm o campo.
+     */
+    inherited?: Position[];
 }
 
 export const DEFAULT_LEVEL = 50;
@@ -80,7 +85,7 @@ export interface InstanceView {
 export function viewInstance(inst: PokemonInstance): InstanceView {
     const sp = species(inst.speciesId);
     const base = computeAttributes(sp, inst.level);
-    const positions = eligiblePositions(base, sp.id);
+    const positions = instancePositions(inst, base);
     const attributes = withBonus(base, specialBonus(inst));
     return {
         instance: inst,
@@ -91,6 +96,13 @@ export function viewInstance(inst: PokemonInstance): InstanceView {
         overall: positionRating(attributes, positions[0]),
         displayName: inst.nickname ?? sp.name,
     };
+}
+
+/** Posições em que joga bem: as da espécie (a principal primeiro) + as herdadas na evolução. */
+export function instancePositions(inst: PokemonInstance, base: Attributes): Position[] {
+    const list = eligiblePositions(base, inst.speciesId);
+    for (const p of inst.inherited ?? []) if (!list.includes(p)) list.push(p);
+    return list;
 }
 
 /** Nota na vaga, a mesma da carta (`ratingAt` na UI): fora da posição principal entra o fator de posição. */

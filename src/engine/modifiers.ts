@@ -1,14 +1,7 @@
 import { abilityEffect } from './abilities';
-import {
-    type Attributes,
-    type AttrKey,
-    computeAttributes,
-    eligiblePositions,
-    type Position,
-    positionFactor,
-} from './attributes';
+import { type Attributes, type AttrKey, computeAttributes, type Position, positionFactor } from './attributes';
 import { ABILITIES, MOVES, species } from './data';
-import type { PokemonInstance } from './instance';
+import { instancePositions, type PokemonInstance } from './instance';
 import { ITEMS } from './items';
 import { computeLinks, linkFactor } from './links';
 import { moveProfile } from './moves';
@@ -145,7 +138,7 @@ export function attributeModifiers(inst: PokemonInstance, ctx: TeamContext = {})
     }
     if (ctx.role) {
         const base = computeAttributes(sp, inst.level);
-        const f = positionFactor(eligiblePositions(base, sp.id), ctx.role, base);
+        const f = positionFactor(instancePositions(inst, base), ctx.role, base);
         if (f !== 1) mods.push({ source: 'posicao', label: `Fora da posição: ${pct(f)}`, attrs: 'role', factor: f });
     }
     return mods;

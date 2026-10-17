@@ -728,14 +728,12 @@ export const useGame = create<GameStore>()(
                     const destaqueLevel = levelUp ? (star.special?.level ?? 1) + 1 : 1;
                     // quem evoluiu no meio da partida continua evoluído pelo resto da copa
                     const evolved = new Map(
-                        m.events.flatMap((e) =>
-                            e.type === 'evolve' && e.team === 0 ? [[e.uid, e.into] as const] : [],
-                        ),
+                        m.events.flatMap((e) => (e.type === 'evolve' && e.team === 0 ? [[e.uid, e] as const] : [])),
                     );
                     const picks = run.picks.map((p) => {
                         let out = p;
-                        const into = evolved.get(p.uid);
-                        if (into) out = { ...evolveInstance(out, into), evo: 0 };
+                        const evo = evolved.get(p.uid);
+                        if (evo) out = { ...evolveInstance(out, evo.into, evo.role), evo: 0 };
                         else {
                             // barra de evolução da copa: soma o que ele fez nesta partida (quem ainda pode evoluir)
                             const line = lines.find((l) => l.team === 0 && l.uid === p.uid && l.minutes > 0);
@@ -804,7 +802,10 @@ export const useGame = create<GameStore>()(
                     // Pokédex: seu time (1+ minuto) "jogou", o rival e as recompensas ficam "vistos";
                     // quem evoluiu em campo também entra (a forma nova jogou o resto da partida)
                     let dex = recordMatchInDex(getState().dex, lines, won);
-                    dex = markSeen(dex, [...evolved.values()]);
+                    dex = markSeen(
+                        dex,
+                        [...evolved.values()].map((e) => e.into),
+                    );
                     dex = markSeen(
                         dex,
                         next.rewards.flatMap((r) => (r.kind === 'pokemon' ? [r.inst.speciesId] : [])),

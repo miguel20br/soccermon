@@ -284,7 +284,8 @@ export type MatchEvent = MatchEventBase &
         | { type: 'ability'; by: number; ability: string; target: number | null; blocked?: boolean }
         | { type: 'transform'; by: number; into: number; target: number }
         | { type: 'combo'; by: number; partner: number; link: string }
-        | { type: 'evolve'; by: number; team: 0 | 1; uid: string; from: number; into: number }
+        /** `role`: a vaga em que ele evoluiu (a forma nova herda como secundária). */
+        | { type: 'evolve'; by: number; team: 0 | 1; uid: string; from: number; into: number; role: Position }
         /** O boneco do Substitute aguentou o golpe/carrinho no lugar de `by`. */
         | { type: 'decoy'; by: number; attacker: number }
         /** Haze: tirou status e reforços de quem estava em volta. */

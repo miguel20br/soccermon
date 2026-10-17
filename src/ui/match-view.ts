@@ -50,7 +50,7 @@ export function whoAt(m: MatchResult, setups: [TeamSetup, TeamSetup], idx: numbe
     for (const e of m.events) {
         if (e.tick > tick) break;
         if (e.type === 'evolve' && e.uid === uid && inst) {
-            inst = evolveInstance(inst, e.into);
+            inst = evolveInstance(inst, e.into, e.role);
             evolved = true;
         }
         // Ditto (Transformar): mesma espécie, nível, golpes e habilidade de quem ele copiou naquele momento

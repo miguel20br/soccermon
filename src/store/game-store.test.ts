@@ -55,6 +55,15 @@ describe('save', () => {
         expect(evolveInstance(taught, 6).moves).toContain('bide');
     });
 
+    it('posição herdada na evolução sobrevive a salvar e carregar', () => {
+        useGame.getState().newRun('Pallet FC', 'teste-heranca-save');
+        const rng = new Rng('teste-heranca-save', 'team');
+        const nidoqueen = evolveInstance(createInstance(30, rng), 31, 'ALA');
+        const run = { ...(useGame.getState().run as RunState), picks: [nidoqueen] };
+        const json = JSON.parse(JSON.stringify({ run, records: { cups: 1, titles: 0, perfect: 0 } }));
+        expect(migrateSave(json, SAVE_VERSION).run?.picks[0].inherited).toEqual(['ALA']);
+    });
+
     it('pegar a MT na recompensa ensina o golpe; a assinatura não sai', () => {
         useGame.getState().newRun('Pallet FC', 'teste-mt-claim');
         const rng = new Rng('teste-mt-claim', 'team');

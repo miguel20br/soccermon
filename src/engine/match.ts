@@ -386,7 +386,7 @@ export function checkEvolutions(s: MatchState) {
         if (p.evolved || p.origin || p.inst.ability === 'imposter') continue;
         const into = evolutionTarget(p.inst.speciesId, p.inst.uid);
         if (into === null || evoProgress(p.inst, p.stats, p.role) < evoNeeded(p.team)) continue;
-        const inst = { ...evolveInstance(p.inst, into), evo: 0 };
+        const inst = { ...evolveInstance(p.inst, into, p.role), evo: 0 };
         // a forma nova entra na escalação (tipo novo pode ligar ou desligar sinergias)
         s.teams[p.team].lineup[p.slot] = inst;
         changed.add(p.team);
@@ -422,7 +422,7 @@ export function checkEvolutions(s: MatchState) {
             evolved: true,
         });
         s.players[p.idx] = fresh;
-        emit(s, { type: 'evolve', by: p.idx, team: p.team, uid: inst.uid, from: p.inst.speciesId, into });
+        emit(s, { type: 'evolve', by: p.idx, team: p.team, uid: inst.uid, from: p.inst.speciesId, into, role: p.role });
         any = true;
     }
     for (const team of changed) refreshTeamBonuses(s, team);

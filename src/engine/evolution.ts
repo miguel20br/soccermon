@@ -64,19 +64,22 @@ export function evolutionTarget(speciesId: number, uid: string): number | null {
 export function evolvedRating(inst: PokemonInstance, role: Position | 'ANY'): { into: number; rating: number } | null {
     if (inst.ability === 'imposter') return null;
     const into = evolutionTarget(inst.speciesId, inst.uid);
-    return into === null ? null : { into, rating: slotRating(evolveInstance(inst, into), role) };
+    if (into === null) return null;
+    return { into, rating: slotRating(evolveInstance(inst, into, role === 'ANY' ? undefined : role), role) };
 }
 
 /**
  * A instância depois de evoluir: golpes da nova forma (mantendo os ensinados por MT, se a forma nova aprende),
- * habilidade mantida se a nova forma tiver.
+ * habilidade mantida se a nova forma tiver. `role`: a vaga em que ele jogava, que a forma nova herda como
+ * secundária (auditoria de posições, 17/10/2026).
  */
-export function evolveInstance(inst: PokemonInstance, into: number): PokemonInstance {
+export function evolveInstance(inst: PokemonInstance, into: number, role?: Position): PokemonInstance {
     const sp = species(into);
     const ability = inst.ability === 'imposter' || sp.abilities.includes(inst.ability) ? inst.ability : sp.abilities[0];
     const { moves, taught } = movesAfterEvolution(inst, sp);
     const out: PokemonInstance = { ...inst, speciesId: into, moves, ability };
     if (taught.length) out.taught = taught;
     else delete out.taught;
+    if (role && !inst.inherited?.includes(role)) out.inherited = [...(inst.inherited ?? []), role];
     return out;
 }
