@@ -171,13 +171,12 @@ export function physiqueOf(sp: Species): { size: string; body: string; note: str
 export const SPECIES_TUNING: Record<number, Partial<Record<AttrKey, number>>> = {
     // rendiam abaixo da nota
     25: { shooting: 4 }, // Pikachu (Ala): chute 47
-    97: { pace: 5 }, // Hypno (Goleiro): lento pra chegar na bola
     101: { shooting: 5 }, // Electrode (Ala): chute 54
     124: { shooting: 5 }, // Jynx (Ala): chute 62
     127: { pace: 6 }, // Pinsir (Pivô): o Pivô não conta velocidade
     136: { pace: 6 }, // Flareon (Pivô): idem
     // rendiam acima da nota
-    128: { tackling: -6 }, // Tauros (Pivô): Fixo 76 → 74, Pivô e Ala ficam
+    128: { tackling: -6, strength: -3 }, // Tauros (Pivô): Pivô 76 → 75, Fixo 76 → 73, Ala fica 74
     142: { shooting: -3 }, // Aerodactyl (Ala): Pivô 77 → 76, Ala fica 82
 };
 
