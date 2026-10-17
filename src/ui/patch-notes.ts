@@ -7,6 +7,80 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.8.4',
+        title: 'Balanceamento geral e o seu treinador',
+        sections: [
+            {
+                title: 'Seu treinador',
+                lines: [
+                    '38 treinadores de Kanto (Red, Leaf, líderes de ginásio, Elite 4, Prof. Carvalho, Equipe Rocket...) destravados por 42 missões',
+                    'Títulos embaixo do nome, também ganhos nas missões',
+                    'O treinador aparece no Perfil, no VERSUS, no Hall da Fama e no card de compartilhar',
+                    'Bloqueado mostra a silhueta, o nome e como conseguir',
+                ],
+            },
+            {
+                title: 'Regras do jogo',
+                lines: [
+                    'O Fixo vira a cobertura: fica entre o atacante e o gol, e quem posiciona bem corta e bloqueia mais. A nota do Fixo agora pesa em campo',
+                    'Táticas reequilibradas: as 4 vencem entre 49% e 52%; a ofensiva volta a ter mais gols e a defensiva menos',
+                    '3-1 e ferrolho marcam mais à frente; a 1-1-2 recua um pouco',
+                    'Copa com clímax: rival estreante nas oitavas, rival com itens mais cedo (1 nas quartas, 3 na final) e a Liga Índigo como chefe final',
+                ],
+            },
+            {
+                title: 'Draft e evolução',
+                lines: [
+                    'Toda rodada do draft tem pelo menos uma prata na vaga',
+                    'Toda rodada tem uma opção que vira ouro naquela vaga ao evoluir',
+                    'A carta mostra a nota depois de evoluir, com seta verde (sobe) ou vermelha (cai)',
+                    'Evoluir ficou um pouco mais fácil (barra 15 ⇒ 14)',
+                    'A evolução herda a vaga: quem evolui jogando de Ala continua podendo jogar de Ala',
+                    'Barra de evolução com nome na carta completa; na escalação ficou roxa, com setinha',
+                ],
+            },
+            {
+                title: 'Golpes, habilidades e itens',
+                lines: [
+                    'Goleiro usa golpe: defende com o golpe de ataque e usa golpes de suporte. Body Slam, Submission, Petal Dance, Horn Drill e Soft-Boiled finalmente saem',
+                    'Dream Eater: com a bola é chute; sem a bola suga o fôlego do rival mais perto (o dobro se ele estiver dormindo)',
+                    'Soft-Boiled alcança 5 ⇒ 8 m; Bone Club desarma de longe',
+                    'Habilidades mais fortes (+5% ⇒ +8%), e Cursed Body, Flash Fire, Drought, Sand Veil, Arena Trap, Sand Force, Soundproof, Aftermath, Dry Skin e Lightning Rod ganharam efeito. O nome sobe na quadra quando ela segura um status',
+                    "Quick Claw 10% ⇒ 15%, Scope Lens 15% ⇒ 20%, King's Rock 25% ⇒ 30%",
+                ],
+            },
+            {
+                title: 'Pokémon: buff',
+                lines: [
+                    'Mr. Mime: joga no gol (75) e Ala 78 ⇒ 80',
+                    'Mew: joga em todas as posições (Goleiro 79, Fixo 84, Pivô 81)',
+                    'Onix: Fixo 63 ⇒ 70 · Hitmonlee: Pivô 70 ⇒ 75 · Beedrill: vira Pivô 65 (era Ala 63)',
+                    'Rhydon ganha Fixo (74) e Pivô (72), Golem ganha Pivô (75), Poliwrath ganha Ala (70); Venonat, Metapod e Kakuna ganham Ala',
+                    'Chansey 73 ⇒ 76, Sandslash 73 ⇒ 75, Wigglytuff 66 ⇒ 71, Vaporeon 76 ⇒ 79, Seaking 70 ⇒ 72, Gyarados 81 ⇒ 83, Lapras 81 ⇒ 83, Exeggutor 80 ⇒ 82, Electrode 83 ⇒ 84',
+                    'Mesma nota, rendem mais em campo: Pinsir e Flareon (velocidade), Electrode, Jynx e Pikachu (chute)',
+                ],
+            },
+            {
+                title: 'Pokémon: nerf e ajuste',
+                lines: [
+                    'Tauros: Pivô 76 ⇒ 75, Fixo 76 ⇒ 73 · Aerodactyl: Pivô 77 ⇒ 76 · Snorlax: Goleiro 93 ⇒ 91 (ganha força)',
+                    'Rapidash vira Ala 83 (era Pivô 81) · Nidorina vira Fixo 58 · Nidorino vira Pivô 58',
+                    'Serpentes (Ekans, Dratini, Dragonair) medem o porte pelo peso, não pelo comprimento',
+                ],
+            },
+            {
+                title: 'Visual e corrigido',
+                lines: [
+                    'Pacote do tamanho da carta: no draft ficou maior e dá pra ver abrir',
+                    'Item e MT da recompensa no formato da carta',
+                    'Substituição no intervalo entra no vestiário (não mais na 1ª bola parada do 2º tempo)',
+                    'Draft no celular deitado: faixa numa linha só e cartas alinhadas',
+                    'Partida que estava no meio na hora da atualização recomeça do 0 a 0 (a copa e o time ficam)',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.8.3',
         title: 'Partida com peso, pacote de cartas e torcida',
         sections: [
@@ -302,6 +376,80 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.8.4',
+        title: 'Full rebalance and your trainer',
+        sections: [
+            {
+                title: 'Your trainer',
+                lines: [
+                    '38 Kanto trainers (Red, Leaf, Gym Leaders, Elite Four, Prof. Oak, Team Rocket...) unlocked through 42 missions',
+                    'Titles under your name, also earned from missions',
+                    'Your trainer shows up in the Profile, the VERSUS screen, the Hall of Fame and the share card',
+                    'Locked trainers show their silhouette, name and how to unlock them',
+                ],
+            },
+            {
+                title: 'Game rules',
+                lines: [
+                    "The Fixo is now the cover: it stays between the attacker and the goal, and good positioning means more cuts and blocks. The Fixo's rating now matters on the court",
+                    'Tactics rebalanced: all 4 win between 49% and 52%; offensive brings more goals again and defensive fewer',
+                    '3-1 and the lock defend higher up the court; 1-1-2 drops back a little',
+                    'A cup with a climax: a rookie rival in the round of 16, rivals get items sooner (1 in the quarterfinals, 3 in the final) and the Indigo League is the final boss',
+                ],
+            },
+            {
+                title: 'Draft and evolution',
+                lines: [
+                    'Every draft round has at least one silver card for the slot',
+                    'Every round has an option that turns gold in that slot when it evolves',
+                    'Cards show their rating after evolving, with a green (up) or red (down) arrow',
+                    'Evolving is a bit easier (bar 15 ⇒ 14)',
+                    'Evolutions keep the slot: a Pokémon that evolves while playing Ala can still play Ala',
+                    'The evolution bar is labeled on the full card; in the lineup it is purple with a small arrow',
+                ],
+            },
+            {
+                title: 'Moves, abilities and items',
+                lines: [
+                    'Goalkeepers use moves: they save with their attacking move and use support moves. Body Slam, Submission, Petal Dance, Horn Drill and Soft-Boiled finally show up',
+                    'Dream Eater: with the ball it is a shot; without it, it drains the stamina of the closest rival (double if they are asleep)',
+                    'Soft-Boiled reaches 5 ⇒ 8 m; Bone Club tackles from range',
+                    'Stronger abilities (+5% ⇒ +8%), and Cursed Body, Flash Fire, Drought, Sand Veil, Arena Trap, Sand Force, Soundproof, Aftermath, Dry Skin and Lightning Rod now do something. The name pops up on the court when it blocks a status',
+                    "Quick Claw 10% ⇒ 15%, Scope Lens 15% ⇒ 20%, King's Rock 25% ⇒ 30%",
+                ],
+            },
+            {
+                title: 'Pokémon: buffs',
+                lines: [
+                    'Mr. Mime: plays in goal (75) and Ala 78 ⇒ 80',
+                    'Mew: plays every position (Goalkeeper 79, Fixo 84, Pivô 81)',
+                    'Onix: Fixo 63 ⇒ 70 · Hitmonlee: Pivô 70 ⇒ 75 · Beedrill: now a Pivô 65 (was Ala 63)',
+                    'Rhydon gains Fixo (74) and Pivô (72), Golem gains Pivô (75), Poliwrath gains Ala (70); Venonat, Metapod and Kakuna gain Ala',
+                    'Chansey 73 ⇒ 76, Sandslash 73 ⇒ 75, Wigglytuff 66 ⇒ 71, Vaporeon 76 ⇒ 79, Seaking 70 ⇒ 72, Gyarados 81 ⇒ 83, Lapras 81 ⇒ 83, Exeggutor 80 ⇒ 82, Electrode 83 ⇒ 84',
+                    'Same rating, better on the court: Pinsir and Flareon (speed), Electrode, Jynx and Pikachu (shooting)',
+                ],
+            },
+            {
+                title: 'Pokémon: nerfs and tweaks',
+                lines: [
+                    'Tauros: Pivô 76 ⇒ 75, Fixo 76 ⇒ 73 · Aerodactyl: Pivô 77 ⇒ 76 · Snorlax: Goalkeeper 93 ⇒ 91 (gains strength)',
+                    'Rapidash becomes an Ala 83 (was Pivô 81) · Nidorina becomes a Fixo 58 · Nidorino becomes a Pivô 58',
+                    'Serpents (Ekans, Dratini, Dragonair) measure their size by weight, not length',
+                ],
+            },
+            {
+                title: 'Visuals and fixes',
+                lines: [
+                    'Card packs are card-sized: in the draft the pack is bigger and you can watch it open',
+                    'Items and TMs in rewards look like cards',
+                    'Halftime substitutions happen in the locker room (no longer at the first stoppage of the 2nd half)',
+                    'Draft on a phone in landscape: the banner fits in one line and cards line up',
+                    'A match that was in progress during the update restarts at 0-0 (your cup and team stay)',
+                ],
+            },
+        ],
+    },
     {
         version: '0.8.3',
         title: 'Weighty matches, card packs and a crowd',
