@@ -112,7 +112,7 @@ export function buildCupOpponents(seed: number | string): TeamSetup[] {
     const clubs = [gyms[0], gyms[1], gyms[2], CLUBS[CLUBS.length - 1]];
     return clubs.map((club, stage) => {
         const d = aiDraftTeam(rng, STAGE_DIFFICULTY[stage], club.types, club.formation);
-        // das quartas em diante os adversários também chegam com itens (1 nas quartas e na semi, 2 na final)
+        // das quartas em diante os adversários também chegam com itens (1 nas quartas e na semi, 3 na final)
         const itemCount = stage >= 3 ? 3 : stage >= 1 ? 1 : 0;
         const holders = rng.shuffle([...d.lineup]).slice(0, itemCount);
         // item que serve: um geral ou o do tipo dele (antes saía Metal Coat, de tipo que nem existe na Gen 1)
