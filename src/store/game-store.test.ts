@@ -3,12 +3,13 @@ import { describe, expect, it, vi } from 'vitest';
 // sem IndexedDB no Node: o save fica só na memória
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
+import { ENGINE_VERSION } from '../engine/config';
 import { evolveInstance } from '../engine/evolution';
 import { createInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { SIGNATURE } from '../engine/signature-moves';
 import { teachMove } from '../engine/tm';
-import { migrateSave, type RunState, SAVE_VERSION, useGame } from './game-store';
+import { liveOf, migrateSave, type RunState, SAVE_VERSION, useGame } from './game-store';
 
 describe('save', () => {
     it('v4 → v5: perfil com o nome do time, Pokédex com a copa em andamento e sem boas-vindas', () => {
@@ -93,5 +94,14 @@ describe('save', () => {
         const p = after.picks.find((x) => x.uid === charmeleon.uid)!;
         expect(p.moves[1]).toBe('bide');
         expect(p.taught).toEqual(['bide']);
+    });
+});
+
+describe('partida no meio', () => {
+    it('só retoma se for do mesmo motor (save de antes da 0.8.4 recomeça do 0 a 0)', () => {
+        const live = { stage: 1, orders: [], tick: 900 };
+        expect(liveOf({ stage: 1, live })).toBeNull();
+        expect(liveOf({ stage: 1, live: { ...live, engine: ENGINE_VERSION } })?.tick).toBe(900);
+        expect(liveOf({ stage: 2, live: { ...live, engine: ENGINE_VERSION } })).toBeNull();
     });
 });

@@ -45,6 +45,7 @@ import {
 /** Edição especial só quando as cartas novas estão no jogo. */
 const rollSpecial: typeof roll = (inst, ev) => (SPECIALS_LIVE ? roll(inst, ev) : inst);
 
+import { ENGINE_VERSION } from '../engine/config';
 import type { MatchOrder, Tactic, TeamSetup } from '../engine/state';
 
 export type Screen =
@@ -168,7 +169,13 @@ export interface LiveMatch {
     stage: number;
     orders: MatchOrder[];
     tick: number;
+    /** `ENGINE_VERSION` de quando a partida começou (sem = antes da 0.8.4). */
+    engine?: number;
 }
+
+/** Partida em andamento desta fase, se ainda for do mesmo motor (senão recomeça do 0 a 0). */
+export const liveOf = (run: { stage: number; live?: LiveMatch | null } | null | undefined): LiveMatch | null =>
+    run?.live && run.live.stage === run.stage && run.live.engine === ENGINE_VERSION ? run.live : null;
 
 export type NamesOnField = 'all' | 'mine' | 'none';
 export type ArrowSize = 'small' | 'medium' | 'large';
@@ -691,7 +698,11 @@ export const useGame = create<GameStore>()(
                     if (run?.status === 'lineup' && !run.lockedTeam) {
                         const opp = run.opponents[run.stage];
                         setState({
-                            run: { ...run, lockedTeam: team, live: { stage: run.stage, orders: [], tick: 0 } },
+                            run: {
+                                ...run,
+                                lockedTeam: team,
+                                live: { stage: run.stage, orders: [], tick: 0, engine: ENGINE_VERSION },
+                            },
                             dex: opp ? seenDex([...opp.lineup, ...opp.bench]) : getState().dex,
                         });
                     }
@@ -700,7 +711,7 @@ export const useGame = create<GameStore>()(
                 saveLive: (patch) => {
                     const run = getState().run;
                     if (run?.status !== 'lineup' || !run.lockedTeam) return;
-                    const live = run.live?.stage === run.stage ? run.live : { stage: run.stage, orders: [], tick: 0 };
+                    const live = liveOf(run) ?? { stage: run.stage, orders: [], tick: 0, engine: ENGINE_VERSION };
                     updateRun({ live: { ...live, ...patch } });
                 },
 

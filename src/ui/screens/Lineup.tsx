@@ -8,7 +8,7 @@ import { computeSynergies } from '../../engine/synergy';
 import { playSfx } from '../../game/audio';
 import { clubName, dict, formationText, itemDesc, itemName, stageName } from '../../i18n';
 import { useT } from '../../i18n/react';
-import { lineupPosition, playerTeam, type SlotRef, useGame } from '../../store/game-store';
+import { lineupPosition, liveOf, playerTeam, type SlotRef, useGame } from '../../store/game-store';
 import { useCardModal } from '../card-modal';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
@@ -66,8 +66,7 @@ export function Lineup() {
         setError(null);
         try {
             // retomando: as mesmas ordens do técnico (tática/substituições) dão a mesma partida
-            const live = useGame.getState().run?.live;
-            const orders = live?.stage === stage ? live.orders : [];
+            const orders = liveOf(useGame.getState().run)?.orders ?? [];
             const result = await simulateMatch(team, opponent, `${seed}-stage-${stage}`, orders);
             // só abre a partida se o jogador ainda está nesta tela, nesta run e nesta fase
             const now = useGame.getState();

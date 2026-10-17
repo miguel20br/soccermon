@@ -20,7 +20,7 @@ import type { MatchSceneData } from '../../game/scenes/MatchScene';
 import { clubName, stageName } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { PhaserGame } from '../../PhaserGame';
-import { type PlaybackSpeed, playerTeam, useGame } from '../../store/game-store';
+import { liveOf, type PlaybackSpeed, playerTeam, useGame } from '../../store/game-store';
 import { rivalColor, tagFromName } from '../../store/profile';
 import { Commentator, type CommentLine } from '../commentary';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
@@ -68,7 +68,7 @@ export function Match() {
     const { run, match, settings, updateSettings, recordResult, setMatch, go, saveLive } = useGame();
     const { t, tn, d } = useT();
     // retomando uma partida que ficou no meio: mesmo ponto e mesmas ordens
-    const resume = useRef(run?.live?.stage === run?.stage ? (run?.live ?? null) : null).current;
+    const resume = useRef(liveOf(run)).current;
     const [fontsReady, setFontsReady] = useState(false);
     const [lines, setLines] = useState<(CommentLine & { id: number })[]>([]);
     const lineId = useRef(0);
