@@ -67,6 +67,15 @@ Regras de sempre em todas as versões: nada automático no time do jogador, equi
 números, carta muda primeiro na galeria `?cards=1`, sem emoji na interface, conferir em 320/390 em pé,
 deitado e no desktop.
 
+## Nomes dos modos (decidido com o Miguel em 17/10)
+
+- **Copa:** o modo de hoje (draft do zero, 4 jogos mata-mata, Liga Índigo na final). Copa do Dia, Copa Semanal,
+  Copa entre amigos e, com a Gen 2, Copa Kanto/Copa Johto são variações dela.
+- **Modo história** (0.9): campanha com um time só que cresce, 8 ginásios em ordem, rival recorrente e Elite 4.
+- **Duelo** (0.8.5): multiplayer.
+
+Quando o Duelo chegar, a Home vira cartões de modo ("Copa" e "Duelo", cada um com uma linha do que é).
+
 ## Calendário de divulgação (próximas 4 semanas)
 
 | Semana | Canais | Gancho |
