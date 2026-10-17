@@ -20,6 +20,7 @@ export const battle: typeof pt = {
     caught: '{x} holds on',
     parried: '{x} parries it',
     goalKick: 'Goal kick',
+    fulltime: 'FULL TIME',
     bigSave: 'WHAT A SAVE!',
     save: 'SAVE!',
     bigPost: 'OFF THE POOOST!',

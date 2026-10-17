@@ -374,7 +374,22 @@ export function Match() {
                     )}
                 </div>
                 <div className="sb-score">
-                    {clock.score[0]} x {clock.score[1]}
+                    {/* key muda no gol: o número remonta e dá o pulo com o brilho da cor do time (sb-pop) */}
+                    <b
+                        key={`h${clock.score[0]}`}
+                        className="sb-n"
+                        style={{ '--tc': hex(colors[0]) } as React.CSSProperties}
+                    >
+                        {clock.score[0]}
+                    </b>{' '}
+                    x{' '}
+                    <b
+                        key={`a${clock.score[1]}`}
+                        className="sb-n"
+                        style={{ '--tc': hex(colors[1]), '--pop': 1.2 } as React.CSSProperties}
+                    >
+                        {clock.score[1]}
+                    </b>
                     <span className="sb-clock">
                         <span className="sb-stage">{stage} · </span>
                         {clockLabel}

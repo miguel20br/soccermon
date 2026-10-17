@@ -17,6 +17,9 @@
 }
 
 :root {
+    /* curvas do jogo: --ease-out para tudo; --ease-pop só para "pop" de jogo (carta, número, selo) */
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-pop: cubic-bezier(0.2, 0.9, 0.3, 1.4);
     --bg: #141a33;
     --bg-2: #1c2447;
     --panel: #232d57;
@@ -6244,4 +6247,129 @@ p.muted.center a {
         opacity: 0;
         transform: scale(1) rotate(60deg);
     }
+}
+
+/* ---------- tecido entre os momentos (varredura de animação, 16/10) ---------- */
+/* tela nova entra com um fade curto (só opacidade: transform num pai quebraria os modais "fixed") */
+.app > *:not(.topbar) {
+    animation: screen-in 0.18s var(--ease-out) both;
+}
+@keyframes screen-in {
+    from {
+        opacity: 0;
+    }
+}
+/* modais: fundo escurece e a caixa cresce um pouco; a saída é instantânea */
+.modal-backdrop {
+    animation: screen-in 0.18s var(--ease-out) both;
+}
+.modal {
+    animation: modal-in 0.22s var(--ease-out) both;
+}
+@keyframes modal-in {
+    from {
+        opacity: 0;
+        scale: 0.96;
+    }
+}
+/* trocar a formação: as vagas andam até o lugar novo em vez de teleportar */
+.formation-board .slot {
+    transition:
+        left 0.28s var(--ease-out),
+        top 0.28s var(--ease-out),
+        border-color 0.15s,
+        scale 0.12s ease-out;
+}
+/* resposta ao toque em tudo que é tocável (scale separado: a vaga já usa transform para centralizar) */
+.slot,
+.target-btn,
+.sub-pick,
+.tm-move,
+.scout-btn {
+    transition: scale 0.12s ease-out;
+}
+/* estes já tinham transição própria: soma o scale sem perder a dela */
+.formation-option,
+.resume-card,
+.card.clickable {
+    transition:
+        transform 0.12s ease,
+        box-shadow 0.12s ease,
+        border-color 0.12s ease,
+        scale 0.12s ease-out;
+}
+.slot:active,
+.target-btn:active,
+.sub-pick:active,
+.tm-move:active,
+.formation-option:active,
+.scout-btn:active,
+.resume-card:active,
+.card.clickable:active {
+    scale: 0.96;
+}
+/* celular: o "hover" fica grudado depois do toque; sem mouse, nada levanta */
+@media (hover: none) {
+    .card.clickable:hover,
+    .home-tile:hover {
+        transform: none;
+    }
+    .btn:hover {
+        filter: none;
+    }
+}
+/* intervalo e substituição chegam deslizando de leve */
+.ht-panel,
+.sub-panel {
+    animation: panel-in 0.24s var(--ease-out) both;
+}
+@keyframes panel-in {
+    from {
+        opacity: 0;
+        translate: 0 10px;
+    }
+}
+/* derrota: as letras caem sem o pulo alegre da vitória */
+.rh-loss .rh-title span {
+    animation: rh-fall 0.36s calc(var(--i) * 0.04s) cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+@keyframes rh-fall {
+    from {
+        opacity: 0;
+        translate: 0 -14px;
+    }
+}
+/* placar: o número que mudou dá um pulo e brilha na cor do time que marcou */
+.sb-n {
+    display: inline-block;
+    animation: sb-pop 0.42s var(--ease-pop) both;
+}
+@keyframes sb-pop {
+    from {
+        scale: var(--pop, 1.45);
+        opacity: 0.4;
+        text-shadow: 0 0 18px var(--tc, #fff);
+    }
+}
+
+/* aviso curto (Copiado!, Compartilhado!): pílula no rodapé que some sozinha */
+.toast-pill {
+    position: fixed;
+    left: 50%;
+    bottom: max(18px, env(safe-area-inset-bottom));
+    z-index: 120;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: var(--panel-2);
+    border: 2px solid var(--yellow);
+    color: var(--text);
+    font-weight: 700;
+    transform: translateX(-50%);
+    animation: panel-in 0.2s var(--ease-out) both;
+}
+
+/* brilho e raios de efeitos (pacote, VERSUS) podem passar da borda: nunca viram rolagem para o lado */
+html,
+body {
+    overflow-x: clip;
 }

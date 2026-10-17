@@ -101,6 +101,8 @@ export function Result() {
         setShared(
             res === 'copied' ? t('result.copied') : res === 'shared' ? t('result.shared') : t('result.shareFailed'),
         );
+        // aviso em pílula que some sozinho (antes ficava como texto cinza para sempre)
+        window.setTimeout(() => setShared(null), 2200);
     };
     const download = async (format: CardFormat) => {
         const blob = await shareCardBlob(run, format, clubColor);
@@ -130,7 +132,11 @@ export function Result() {
                     </button>
                 )}
             </div>
-            {shared && <div className="muted">{shared}</div>}
+            {shared && (
+                <div className="toast-pill" role="status">
+                    {shared}
+                </div>
+            )}
             {champion && (
                 <div className="row" style={{ justifyContent: 'center', alignItems: 'center' }}>
                     <span className="muted">{t('result.card.download')}</span>

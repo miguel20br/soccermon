@@ -142,7 +142,7 @@ interface DiveInfo {
     at: { x: number; y: number } | null;
 }
 
-const DRAMA = new Set(['goal', 'post', 'save']);
+const DRAMA = new Set(['goal', 'post', 'save', 'fulltime']);
 /** O que o modo "Lances" mostra em 1x. */
 const HIGHLIGHT = new Set(['shot', 'goal', 'save', 'post', 'penalty', 'transform', 'combo', 'evolve']);
 
@@ -1338,9 +1338,18 @@ export class MatchScene extends Phaser.Scene {
                 this.endZoneViews(e.tick);
                 playSfx('whistle');
                 break;
-            case 'fulltime':
+            case 'fulltime': {
                 playSfx('whistle');
+                // fim de jogo: faixa grande; vitória dá um toque, derrota fica no sussurro
+                const [mine, theirs] = this.snaps[this.locate(e.tick).index]?.score ?? [0, 0];
+                this.cine.drama(tr('battle.fulltime'), {
+                    color: '#ffffff',
+                    stroke: '#000000',
+                    sub: `${mine} x ${theirs}`,
+                });
+                if (mine > theirs) this.punch('touch');
                 break;
+            }
             case 'pass':
                 playSfx('kick');
                 this.kickPop(this.ball.x, this.ball.y + 4, 1.25, 3);
@@ -1707,8 +1716,12 @@ export class MatchScene extends Phaser.Scene {
             case 'tactic':
                 playSfx('whistle');
                 break;
-            case 'penalty':
+            case 'penalty': {
                 playSfx(e.scored ? 'goal' : 'save');
+                // a cobrança que decide a disputa pesa: explosão se você ganha, toque se perde
+                const last = this.penalties.at(-1);
+                if (last && last.tick === e.tick && last.by === e.by)
+                    this.punch(this.md.result.winner === 0 ? 'boom' : 'touch');
                 if (this.shootoutOn) {
                     const mid = FUTSAL_5.pitch.width / 2;
                     const shooter = this.viewPos.get(e.by) ?? { x: 33.4, y: mid };
@@ -1725,6 +1738,7 @@ export class MatchScene extends Phaser.Scene {
                     });
                 }
                 break;
+            }
         }
     }
 

@@ -24,6 +24,7 @@ export const battle = {
     caught: '{x} segurou firme',
     parried: '{x} espalmou',
     goalKick: 'Tiro de meta',
+    fulltime: 'FIM DE JOGO',
     bigSave: 'QUE DEFESA!',
     save: 'DEFESA!',
     bigPost: 'NA TRAAAVE!',
