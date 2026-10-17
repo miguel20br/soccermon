@@ -1628,6 +1628,10 @@ button,
     gap: 8px;
     --fut-w: 190px;
 }
+/* o pacote e as cartas de item/MT têm o tamanho da carta do Pokémon */
+.cpack-stage {
+    --fut-w: 190px;
+}
 .fut-wrap.sm {
     --fut-w: 140px;
 }
@@ -2014,7 +2018,8 @@ button,
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 10px;
     }
-    .fut-wrap {
+    .fut-wrap,
+    .cpack-stage {
         --fut-w: min(44vw, 170px);
     }
     .card-modal-grid {
@@ -5562,7 +5567,8 @@ a.home-tile {
     .draft-options .options {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
-    .draft-options .fut-wrap {
+    .draft-options .fut-wrap,
+    .draft-options .cpack-stage {
         --fut-w: min(150px, 17vw);
     }
     /* campeão deitado: taça e título menores e os botões logo abaixo do "CAMPEÕES!" */
@@ -6030,14 +6036,13 @@ p.muted.center a {
     position: relative;
     display: block;
     container-type: inline-size;
-    height: min(300px, calc(100cqh - 44px));
-    aspect-ratio: 5 / 7;
+    width: calc(var(--fut-w) * 1.08);
+    aspect-ratio: 63 / 88;
     border-radius: 10px;
     filter: drop-shadow(0 16px 20px rgb(0 0 0 / 55%)) drop-shadow(0 0 18px var(--glow));
     animation: cpack-float 3.2s ease-in-out infinite;
 }
 .cpack-compact .cpack {
-    height: min(176px, 86cqh);
     animation: cpack-pop 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
 }
 .cpack-gold {
@@ -6607,4 +6612,51 @@ body {
 :root[data-reduce-motion="true"] .home-enter .home-hero,
 :root[data-reduce-motion="true"] .home-enter .home-tile {
     animation: none;
+}
+
+/* item e MT da recompensa no formato da carta do Pokémon (63:88, mesma largura) */
+.reward-grid .item-card {
+    box-sizing: border-box;
+    width: var(--fut-w);
+    min-height: 0;
+    aspect-ratio: 63 / 88;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    align-content: center;
+    gap: 0.35em;
+    padding: 0.7em 0.6em;
+    border-radius: 0.75em;
+    overflow: hidden;
+    text-align: center;
+    font-size: calc(var(--fut-w) / 15);
+}
+.reward-grid .item-card > * {
+    grid-column: auto;
+    grid-row: auto;
+}
+.reward-grid .item-card .item-art {
+    width: 3.8em;
+    height: 3.8em;
+}
+.reward-grid .item-card .tm-meta {
+    gap: 0.3em;
+    font-size: 0.8em;
+}
+.reward-grid .item-card .tm-meta .pos-chip {
+    white-space: nowrap;
+}
+.reward-grid .item-card .tier-label,
+.reward-grid .item-card .tm-learners {
+    font-size: 0.8em;
+}
+.reward-grid .item-card .card-name {
+    font-size: 1.15em;
+}
+.reward-grid .item-card .tactic-desc {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+    font-size: 0.85em;
 }

@@ -22,7 +22,7 @@ export const packLookOf = (cards: readonly PokemonInstance[]): PackLook =>
  */
 const TIMING = {
     full: { open: 560, gap: 220, hold: 380, card: 460 },
-    compact: { open: 240, gap: 110, hold: 160, card: 340 },
+    compact: { open: 480, gap: 120, hold: 160, card: 360 },
     fast: { open: 200, gap: 50, hold: 0, card: 320 },
 };
 const WALKOUT_MS = 1200;
