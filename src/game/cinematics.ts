@@ -25,6 +25,8 @@ export class Cinematics {
     private pair: { attacker: number; target: number | null; color: number } | null = null;
     private dramaUntil = 0;
     private dramaHolder: Phaser.GameObjects.Container | null = null;
+    /** Até quando (tempo real) o texto de drama fica na tela. */
+    private dramaTextUntil = 0;
     private spotlightUntil = 0;
     private slowFrom = 0;
     private slowUntil = 0;
@@ -236,6 +238,11 @@ export class Cinematics {
      * Faixa curta de bola parada (escanteio): título grande e linha de baixo, no mesmo canto da faixa do golpe. Sem
      * câmera lenta nem tremida (a câmera lenta fica pra quando vira chance) e só aparece/some no alfa.
      */
+    /** Quanto falta (ms, tempo real) pro texto de drama sair da tela (0 = já saiu). */
+    dramaTextLeft(): number {
+        return Math.max(0, this.dramaTextUntil - this.scene.time.now);
+    }
+
     setPieceBanner(title: string, sub: string, color: number, duration = 1600) {
         this.banner?.destroy();
         const s = Math.min(this.uiScale, 1.3);
@@ -364,7 +371,17 @@ export class Cinematics {
     }
 
     /** Texto grande de drama no alto da tela (a câmera centraliza o lance; o texto não o cobre). */
-    drama(text: string, opts: { color: string; stroke: string; at?: { x: number; y: number }; sub?: string }) {
+    drama(
+        text: string,
+        opts: {
+            color: string;
+            stroke: string;
+            at?: { x: number; y: number };
+            sub?: string;
+            /** Curto: sai mais cedo (a defesa que vira escanteio dá a vez pra faixa do escanteio). */
+            short?: boolean;
+        },
+    ) {
         const now = this.scene.time.now;
         this.slowMotion(now, 0.25, 1100);
         this.dramaUntil = now + 1500;
@@ -421,10 +438,12 @@ export class Cinematics {
         // entra esticado na horizontal e "assenta"
         this.scene.tweens.add({ targets: t, scaleX: 1.12, scaleY: 1, duration: 240, ease: 'Back.easeOut' });
         this.scene.tweens.add({ targets: t, scaleX: 1, delay: 240, duration: 280, ease: 'Sine.easeInOut' });
+        const fadeAt = opts.short ? 700 : 1250;
+        this.dramaTextUntil = now + fadeAt + 330;
         this.scene.tweens.add({
             targets: children,
             alpha: 0,
-            delay: 1250,
+            delay: fadeAt,
             duration: 330,
             onComplete: () => holder.destroy(),
         });

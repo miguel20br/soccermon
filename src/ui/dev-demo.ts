@@ -196,7 +196,16 @@ export function runDevDemo() {
             const r = runMatch(FUTSAL_5, playerTeam(ready), ready.opponents[0], `${ready.seed}-stage-0`, {
                 snapshots: false,
             });
-            const aerial = r.events.find((e) => e.type === 'aerial' && e.high && e.team === 0);
+            // &defesa=1: em vez da disputa no alto, uma espalmada do goleiro que vira escanteio
+            const parry = new URLSearchParams(window.location.search).get('defesa') === '1';
+            const aerial = parry
+                ? r.events.find(
+                      (e, i) =>
+                          e.type === 'save' &&
+                          !e.caught &&
+                          r.events.slice(i + 1).some((c) => c.type === 'corner' && c.tick - e.tick <= 80),
+                  )
+                : r.events.find((e) => e.type === 'aerial' && e.high && e.team === 0);
             if (aerial && aerial.tick < 1500) {
                 useGame.setState({ run: ready, screen: 'lineup' });
                 console.info(`[demo] copa ${ready.seed}: escanteio com disputa no alto no tick ${aerial.tick}`);

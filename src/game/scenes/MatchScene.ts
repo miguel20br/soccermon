@@ -81,6 +81,9 @@ export interface MatchSceneData {
     duel?: boolean;
 }
 
+/** Defesa seguida de escanteio até esse tanto de ticks depois: as duas faixas saem uma de cada vez. */
+const CORNER_AFTER_SAVE_TICKS = 80;
+
 /** Duelo: quanto a evolução do rival segura a quadra (a tela cheia do outro lado dura ~10 s). */
 const DUEL_EVO_HOLD_MS = 9500;
 
@@ -1431,12 +1434,17 @@ export class MatchScene extends Phaser.Scene {
                 if (gk) this.highlight('save', gk);
                 // agarrou x espalmou: dá pra ver o que aconteceu com a bola
                 const how = gk ? tr(e.caught ? 'battle.caught' : 'battle.parried', { x: gk.name }) : undefined;
+                // espalmou pra escanteio: a defesa sai mais cedo e a faixa do escanteio entra depois (uma de cada vez)
+                const toCorner = this.matchEvents.some(
+                    (c) => c.type === 'corner' && c.tick >= e.tick && c.tick - e.tick <= CORNER_AFTER_SAVE_TICKS,
+                );
                 if (cinematic && gk) {
                     this.cine.drama(tr('battle.bigSave'), {
                         color: '#9be7ff',
                         stroke: '#0b2a4a',
                         at: { x: gk.sprite.x, y: gk.sprite.y },
                         sub: how,
+                        short: toCorner,
                     });
                 } else this.popText(e.by, tr('battle.save'), '#9be7ff');
                 if (gk) this.kickPop(this.ball.x, this.ball.y + 4, e.caught ? 0.8 : 1.35, e.caught ? 0 : 5);
@@ -1466,11 +1474,16 @@ export class MatchScene extends Phaser.Scene {
                 playSample('apito-curto');
                 const taker = this.players[e.by];
                 const play = dict().common.cornerPlay[e.play];
-                this.cine.setPieceBanner(
-                    tr('battle.corner'),
-                    tr('battle.cornerSub', { x: taker?.name ?? '?', play }),
-                    this.md.colors[e.team],
-                );
+                const show = () =>
+                    this.cine.setPieceBanner(
+                        tr('battle.corner'),
+                        tr('battle.cornerSub', { x: taker?.name ?? '?', play }),
+                        this.md.colors[e.team],
+                    );
+                // a defesa que mandou pra escanteio ainda está na tela: a faixa espera ela sair
+                const wait = this.cine.dramaTextLeft();
+                if (wait > 0) this.time.delayedCall(wait, show);
+                else show();
                 this.battleBox.push(tr('battle.cornerLine', { x: taker?.name ?? '?', play }));
                 break;
             }

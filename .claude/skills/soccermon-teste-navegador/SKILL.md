@@ -26,6 +26,7 @@ npx vite --config vite/config.dev.mjs --port 8096 --strictPort   # em background
 |---|---|
 | `?demo=mt` | tela de recompensa com MT (pacote fechado) |
 | `?demo=penaltis`, `?demo=ditto`, `?demo=evolucao`, `?demo=campeao` | cenas prontas |
+| `?demo=escanteio` | time de grandalhões com escanteio seu e disputa no alto logo no começo (`&defesa=1`: uma espalmada que vira escanteio) |
 | `?cards=1` | galeria de cartas (mudança visual de carta: mostrar aqui antes) |
 | `?lab=golpes` / `?lab=posicoes` / `&revisao=1` | laboratórios e ferramentas de revisão do Miguel |
 | `?demo=crash` | aviso de erro |
