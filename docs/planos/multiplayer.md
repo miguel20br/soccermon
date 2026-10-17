@@ -64,9 +64,14 @@ por ele. Abandono conta como derrota no ranqueado.
 O servidor (Edge Function do Supabase) sorteia as seeds, recebe só as escolhas e as ordens, roda a partida de
 novo (~0,5 s, cabe no limite de 2 s) e grava o placar. O cliente nunca informa o resultado.
 
-## Perguntas para o Miguel
+## Decidido com o Miguel (17/10)
 
-1. Draft do duelo: snake (disputa pela carta) ou cada um com seus pacotes?
-2. Velocidade: fixa na sala ou dá pra pedir troca no meio?
-3. Duelo amistoso precisa de conta (Google) ou entra qualquer um pelo link?
-4. Emotes no duelo: quais (comemorar, provocar, "boa!")? Sempre desenhados, sem emoji.
+1. **Draft:** os dois formatos, como modos separados: **Disputa** (snake: um tira, o outro tira, a carta some) e
+   **Cada um com seus pacotes** (mesma seed pros dois).
+2. **Velocidade:** começa numa velocidade fixa da sala; no meio, qualquer um toca numa velocidade e o outro
+   recebe o pedido ("Fulano quer 4x") pra aceitar ou recusar. Sem resposta em ~5 s, fica como está.
+3. **Quem joga:** qualquer um com o link, mas logado (conta com save na nuvem), pra ter nome, avatar e histórico.
+4. **Emotes (decidido pelo Claude):** 6, desenhados (sem emoji), no máximo 1 a cada 3 s, e dá pra silenciar os do
+   rival:
+   - **Boa!** (palmas), **Golaço!** (bola em chamas), **Ops** (gota de suor), **Zzz** (Snorlax dormindo, a
+     provocação), **GG** (aperto de mão) e **Grito do capitão** (toca o grito do seu capitão).
