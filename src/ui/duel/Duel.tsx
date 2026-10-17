@@ -25,6 +25,7 @@ import { activeTitle, activeTrainer, trainerSrc } from '../../store/missions';
 import { clubColorHex } from '../../store/profile';
 import { AccountBar } from '../components/AccountBar';
 import { LeaveConfirm } from '../leave-guard';
+import { FEEDBACK_URL } from '../links';
 import { avatarImage, hexCss, titleName, trainerLabel } from '../profile/club';
 import { DuelDraft, DuelPreview, specialRuleText, TeamPick } from './DuelDraft';
 import { DuelMatch, useCountdown } from './DuelMatch';
@@ -86,6 +87,19 @@ function usePeer(local: boolean): Peer | null {
 
 const speedLabel = (sp: PlaybackSpeed, lances: string) => (sp === 'highlights' ? lances : `${sp}x`);
 
+/** Duelo em beta: uma linha com o link do feedback (o mesmo do botão da Home). */
+function BetaNote() {
+    const { t } = useT();
+    return (
+        <p className="duel-beta">
+            <span className="duel-beta-tag">{t('duel.beta')}</span> {t('duel.betaNote')}{' '}
+            <a href={FEEDBACK_URL} target="_blank" rel="noopener">
+                {t('duel.betaLink')}
+            </a>
+        </p>
+    );
+}
+
 /** Criar sala: o host escolhe o modo e a velocidade. */
 function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
     const { t, d } = useT();
@@ -98,6 +112,7 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
         <div className="duel-create">
             <h1>{t('duel.newDuel')}</h1>
             <p className="muted">{t('duel.newHint')}</p>
+            <BetaNote />
             <fieldset className="duel-modes">
                 <legend className="muted">{t('duel.modeLabel')}</legend>
                 {DUEL_MODES.map((m) => (
@@ -271,6 +286,7 @@ function Lobby() {
                 )}
             </div>
             {local && <p className="muted small">{t('duel.lobby.local')}</p>}
+            <BetaNote />
             <div className="duel-peers">
                 {(['host', 'guest'] as Role[]).map((r) => (
                     <PeerCard key={r} p={s.peers[r]} role={r} me={r === role} online={online[r]} ready={s.ready[r]} />

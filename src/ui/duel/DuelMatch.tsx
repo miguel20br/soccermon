@@ -143,8 +143,8 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         let alive = true;
         const seeds = segSeeds;
         const last = s.log.at(-1);
-        // não passa da ordem nova enquanto a partida nova não chega
-        if (last && match) EventBus.emit('match:hold', last.tick);
+        // ordem nova: não passa dela enquanto a partida nova não chega (trecho novo não precisa: a trava do trecho segura)
+        if (last && match && logLen > simLog.current) EventBus.emit('match:hold', last.tick);
         // seed por trecho: cada trecho aberto pelos dois muda a sorte dali pra frente (o passado não muda)
         simulateMatch(home, away, baseSeedOf(s.room, s.game), ordersOf(s.log), seeds)
             .then((r) => {

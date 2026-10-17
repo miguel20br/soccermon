@@ -305,7 +305,7 @@ export function Home() {
                         </>
                     )}
                 </div>
-                <div className="panel mode-card duel-card">
+                <div className="panel mode-card duel-card beta-ribbon" data-ribbon={t('duel.beta')}>
                     <div className="mode-head">
                         <b>{t('duel.title')}</b>
                         <span>{t('duel.line')}</span>

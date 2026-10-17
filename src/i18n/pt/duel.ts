@@ -1,6 +1,9 @@
 /** Duelo ao vivo por link (docs/planos/multiplayer.md). */
 export const duel = {
     title: 'Duelo',
+    beta: 'BETA',
+    betaNote: 'Duelo em beta: se algo estranho acontecer,',
+    betaLink: 'conta pra gente.',
     cupTitle: 'Copa',
     cupLine: 'Draft de 7 Pokémon e 4 partidas até o título',
     line: 'Desafie um amigo ao vivo: mande o link e joguem juntos',

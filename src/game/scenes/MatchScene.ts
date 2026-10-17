@@ -847,7 +847,8 @@ export class MatchScene extends Phaser.Scene {
         const factor = time < this.holdReal ? 0 : this.currentSpeedFactor(time) * this.rate;
         this.playTick = Math.min(
             this.playTick + (delta / 1000) * TICK_RATE * factor,
-            this.holdAt - 1e-3,
+            // as travas seguram, nunca voltam a partida (trava atrás da tela = para onde está)
+            Math.max(this.playTick, this.holdAt - 1e-3),
             Math.max(this.playTick, this.segHold - 1e-3),
         );
 

@@ -2,6 +2,9 @@ import type { duel as pt } from '../pt/duel';
 
 export const duel: typeof pt = {
     title: 'Duel',
+    beta: 'BETA',
+    betaNote: 'Duels are in beta: if anything weird happens,',
+    betaLink: 'let us know.',
     cupTitle: 'Cup',
     cupLine: 'Draft 7 Pokémon and win 4 matches for the title',
     line: 'Challenge a friend live: send the link and play together',

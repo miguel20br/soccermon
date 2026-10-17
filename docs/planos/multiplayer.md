@@ -374,12 +374,19 @@ revisão de segurança (`multiplayer-revisao.md`). Código em `src/net/` (regras
 - **Estado replicado, não só ordens.** Um lado aplica as regras (o host; se ele sumir, o convidado) e manda o estado
   inteiro da sala (`Shared`, com `rev`). Quem recebe fica com o de `rev` maior, desde que não mexa no que é seu (lacre
   e segredos abertos). Intenção inválida devolve o mesmo estado: nunca acusa ninguém nem dá W.O.
-- **Uma corrente de lacres por partida:** x[1..7] abrem as rodadas do draft, x[8..47] os trechos de 2 min. O lacre
-  (x[0]) vai junto com o "pronto" do lobby.
-- **Seed única pra rodar (TODO do motor):** enquanto o motor não renova a seed por trecho, a partida usa a seed do
-  trecho 1 (`matchSeedOf` em `seal.ts`; o ponto de encaixe é `segmentSeeds`). Os trechos seguintes já abrem, são
-  conferidos e seguram a tela do mesmo jeito; só não mudam a sorte ainda.
-- **Abre o trecho seguinte meio trecho antes** (não ao entrar no trecho): dá pra prever no máximo 1 minuto de jogo.
+- **Uma corrente de lacres por partida:** x[1..7] abrem as rodadas do draft e x[8..28] os trechos 0–20 do motor
+  (2 min de relógio cada; o 20 são os pênaltis). O lacre (x[0]) vai junto com o "pronto" do lobby.
+- **Seed por trecho de verdade (0.8.5, com o motor novo):** cada trecho aberto pelos dois vira uma seed
+  (`segmentSeeds` em `seal.ts`) e vai pro `segmentSeeds` do motor. A tela resimula a cada trecho aberto e não passa
+  do primeiro snapshot do trecho que a partida na tela ainda não tem (`holdTick`): o passado é o mesmo em toda versão
+  provisória, então a trava cai sempre no mesmo tick. Outro lacre = outra partida (teste em `src/net/duel.test.ts`).
+- **Abre o trecho seguinte meio trecho antes** (minuto 2k+1 abre o trecho k+1): dá pra prever no máximo 1 minuto de
+  jogo. Os pênaltis (trecho 20) abrem no minuto 39.
+- **Escanteio no duelo:** a instrução (Na área / Curta / Variar) vai pelo mesmo caminho das ordens (seq, carimbo,
+  conferência), com o limite do motor (`MAX_TACTIC_CHANGES`, contado à parte da tática). Instrução e cobrador vão na
+  receita do Time pronto e na prévia dos drafts (padrão: Variar e o automático do motor); `validarTimeDuelo` confere
+  que o cobrador é alguém do time. O duelo usa as regras do próprio motor (`validOrder`, `CORNER_PLANS`,
+  `MAX_TACTIC_CHANGES`), sem cópia.
 - **Drafts num laço só:** capitão (qualquer posição, 30 s), Goleiro, Fixo, Ala, Ala, Pivô e 1 reserva (20 s cada) =
   7 escolhas pros dois. A escalação sai automática (`autoLineup`, capitão sempre em quadra) e vem a prévia de 30 s
   nos dois modos. Quem abre a Disputa sai da seed pública da sala e alterna por rodada.
