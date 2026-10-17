@@ -2178,7 +2178,8 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
             }
         } else if (!sure && !lob && d < 0.5 && !shot.blockedBy.includes(p.idx)) {
             shot.blockedBy.push(p.idx);
-            const pBlock = 0.12 + (0.25 * eff(s, p, 'positioning')) / 99;
+            // leitura de jogo: quem se posiciona bem fecha o chute bem mais vezes
+            const pBlock = clamp(0.3 + (eff(s, p, 'positioning') - 62) * 0.012, 0.08, 0.6);
             if (s.rng.chance(pBlock)) {
                 // Drill Peck/Cut: fura o primeiro bloqueio
                 if (hasTrait(moveId, 'pierce') && !shot.pierced) {
@@ -2243,7 +2244,7 @@ function checkPossession(s: MatchState) {
         // chute em andamento: ninguém domina — goleiro e bloqueios resolvem em checkShotInteractions
         if (ball.shot) chance = 0;
         else if (isOpponent && ball.lastKick?.kind === 'pass' && speed > 4) {
-            chance = 0.18 + (0.35 * eff(s, p, 'positioning')) / 99 + (p.ability.interceptBonus ?? 0);
+            chance = clamp(0.4 + (eff(s, p, 'positioning') - 62) * 0.012, 0.15, 0.7) + (p.ability.interceptBonus ?? 0);
         } else if (!intended && speed > 12) chance = 0.4;
         else if (intended && speed > 16) chance = 0.6;
         if (chance < 1 && !s.rng.chance(chance)) continue;
