@@ -88,7 +88,16 @@ npm run stats [-- --dias 7 | --md]   # placar do jogo no ar
   em cada aparelho.
 - Antes de fechar uma mudança visual, confira no celular (320 e 390 px), deitado e no desktop.
 
-## Estado atual (16/10/2026, v0.8.3 · Partida com peso, pacote de cartas e torcida)
+## Estado atual (17/10/2026, v0.8.4 · Balanceamento geral e o seu treinador)
+
+Na 0.8.4: balanceamento geral em 3 blocos + auditoria de posições (tudo em
+[docs/planos/balanceamento-geral.md](docs/planos/balanceamento-geral.md); ajuste por espécie em `SPECIES_TUNING`,
+`src/engine/attributes.ts`; a evolução herda a vaga em `PokemonInstance.inherited`), treinador e missões
+(`src/store/missions.ts`, códigos de título em `src/store/title-codes.ts`) e `ENGINE_VERSION`
+(`src/engine/config.ts`: suba a cada mudança que altera partidas). Próxima (0.8.5): escanteio + duelo ao vivo, com
+a divulgação das duas juntas. O modo de hoje se chama **Copa** (Modo história e Duelo são outros modos).
+
+### 0.8.3 · Partida com peso, pacote de cartas e torcida
 
 Na 0.8.3 (plano em [docs/planos/jogo-gostoso.md](docs/planos/jogo-gostoso.md)): impacto em 4 níveis (`punch()` no
 `MatchScene`), câmera lenta igual pra gol/trave/defesa, rastro do tipo na bola (`src/game/ball-trail.ts`), condução
