@@ -183,9 +183,8 @@ button.pf-trainer:active {
 }
 .pf-trainer b {
     max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
 }
 .pf-trainer.active {
     border-color: var(--yellow);
@@ -193,31 +192,21 @@ button.pf-trainer:active {
     background: var(--panel-2);
 }
 .pf-trainer.locked {
-    grid-column: span 2;
-    grid-template-columns: 64px minmax(0, 1fr);
-    grid-template-rows: auto 1fr;
-    justify-items: start;
-    align-items: center;
-    column-gap: 8px;
-    padding: 6px 10px 6px 4px;
-    text-align: left;
+    /* bloqueado: mesmo tamanho dos liberados (grade compacta), silhueta + nome + como conseguir */
+    text-align: center;
     border: 2px dashed var(--line);
     background: transparent;
 }
-.pf-trainer.locked .trainer-sprite {
-    grid-row: 1 / span 3;
-    width: 64px;
-    height: 64px;
-}
 .pf-trainer.locked b {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 4px;
+    justify-content: center;
+    gap: 3px;
     color: var(--text);
 }
 .pf-trainer.locked .pf-mission-text {
-    font-size: 12px;
-    line-height: 1.35;
+    font-size: 10.5px;
+    line-height: 1.3;
     color: var(--muted);
 }
 button.pf-trainer:focus-visible,
