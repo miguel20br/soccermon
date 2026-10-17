@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FUTSAL_5 } from '../../engine/config';
 import { CUP_STAGES } from '../../engine/cup';
+import { species } from '../../engine/data';
 import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
@@ -285,8 +286,9 @@ export function Match() {
     const sendOrder = async (make: (tick: number) => MatchOrder) => {
         // sempre depois da ordem anterior, para a ordem do motor bater com a da tela; no intervalo a partida
         // está parada, então vale já no tick seguinte (a troca acontece no vestiário)
-        const lead = halftime ? 1 : leadTicks;
-        const tick = Math.max(Math.ceil(tickRef.current + lead), (orders.at(-1)?.tick ?? 0) + 1);
+        const htTick = match.events.find((e) => e.type === 'halftime')?.tick;
+        const base = halftime && htTick !== undefined ? htTick + 1 : Math.ceil(tickRef.current + leadTicks);
+        const tick = Math.max(base, (orders.at(-1)?.tick ?? 0) + 1);
         const schedule = [...orders, make(tick)];
         const seed = match.seed;
         setPending(true);
@@ -338,7 +340,11 @@ export function Match() {
     };
     const nameOf = (uid: string) => {
         const p = byUid.get(uid);
-        return p ? viewInstance(p).displayName : '?';
+        if (!p) return '?';
+        const name = viewInstance(p).displayName;
+        // quem já evoluiu nesta partida aparece com o nome novo (Graveler → Golem), como na quadra
+        const evo = match.events.find((e) => e.type === 'evolve' && e.uid === uid && e.tick <= tickRef.current);
+        return evo?.type === 'evolve' && name === species(evo.from).name ? species(evo.into).name : name;
     };
 
     const clockLabel =

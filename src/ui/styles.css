@@ -1824,6 +1824,8 @@ button,
     position: absolute;
     inset: 0;
     z-index: 3;
+    /* carta pequena (celular deitado): a prévia não vaza por cima do botão */
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     gap: 2px;

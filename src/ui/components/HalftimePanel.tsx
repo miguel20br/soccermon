@@ -33,7 +33,9 @@ export function HalftimePanel({
     const first = possessionByPeriod(match).slice(0, 4);
     const poss = first.length ? Math.round((first.reduce((s, p) => s + p.home, 0) / first.length) * 100) : 50;
     // quem do seu time está mais cansado agora
-    const snap = snapAt(match.snapshots, ht.tick);
+    // fôlego de quem vai começar o 2º tempo (com as trocas feitas no intervalo)
+    const ko = match.events.find((e) => e.type === 'kickoff' && e.tick > ht.tick)?.tick ?? ht.tick;
+    const snap = snapAt(match.snapshots, ko);
     const mine = match.roster.filter((p) => p.team === 0).map((p) => p.idx);
     const tired = mine
         .map((idx) => ({ idx, energy: snap.p[idx * SNAP_STRIDE + 6] ?? 1 }))

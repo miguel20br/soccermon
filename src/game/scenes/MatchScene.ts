@@ -1332,6 +1332,9 @@ export class MatchScene extends Phaser.Scene {
         // intervalo: a partida para e o técnico decide (tática, substituição) antes do 2º tempo
         if (e.type === 'halftime') {
             this.paused = true;
+            // em 8x a reprodução passa do apito no mesmo quadro: volta pro apito, senão a troca pedida no
+            // intervalo (marcada no lance seguinte a ele) ficaria para trás da reprodução e seria pulada
+            this.playTick = e.tick;
             EventBus.emit('match:halftime');
         }
         const cries = this.md.cries;

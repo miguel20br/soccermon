@@ -184,7 +184,9 @@ button.pf-trainer:active {
 .pf-trainer b {
     max-width: 100%;
     line-height: 1.2;
-    overflow-wrap: anywhere;
+    /* "Montanhista" quebra com hífen em vez de "Montanhist / a" */
+    overflow-wrap: break-word;
+    hyphens: auto;
 }
 .pf-trainer.active {
     border-color: var(--yellow);
