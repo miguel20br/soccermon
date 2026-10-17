@@ -27,7 +27,7 @@ const TIMING = {
 };
 const WALKOUT_MS = 1200;
 /** Tom sobe carta a carta (dó, mi, sol, dó), como a contagem do Balatro. */
-const pitchOf = (i: number) => 2 ** ([0, 4, 7, 12][i] ?? 12) / 12;
+const pitchOf = (i: number) => 2 ** (([0, 4, 7, 12][i] ?? 12) / 12);
 
 type Phase = 'closed' | 'opening' | 'flip' | 'done';
 
@@ -69,12 +69,20 @@ export function CardPack({
     const tm = fast ? TIMING.fast : compact ? TIMING.compact : TIMING.full;
     // só abre quando o pacote está à vista (no celular o draft ainda está rolando até as cartas)
     const [inView, setInView] = useState(false);
+    // abertura já rodando não para se o pacote sair da tela (senão travava e repetia tudo ao voltar)
+    const running = useRef(false);
     useEffect(() => {
         const el = stageRef.current;
         if (!el || typeof IntersectionObserver === 'undefined') return setInView(true);
-        const io = new IntersectionObserver(([e]) => setInView(e.intersectionRatio >= 0.35), {
-            threshold: [0, 0.35, 1],
-        });
+        const io = new IntersectionObserver(
+            ([e]) => {
+                const v = e.intersectionRatio >= 0.35;
+                if (v || !running.current) setInView(v);
+            },
+            {
+                threshold: [0, 0.35, 1],
+            },
+        );
         io.observe(el);
         return () => io.disconnect();
     }, []);
@@ -92,6 +100,7 @@ export function CardPack({
             return;
         }
         const timers: number[] = [];
+        running.current = true;
         const lead = phase === 'opening' ? tm.open : 0;
         if (phase === 'opening' && !compact) playSfx('kick', 1.7);
         // cada carta sai do centro do pacote (que fica no centro da grade) até o seu lugar
@@ -116,6 +125,7 @@ export function CardPack({
         });
         timers.push(window.setTimeout(() => setPhase('done'), end));
         return () => {
+            running.current = false;
             for (const id of timers) clearTimeout(id);
         };
     }, [phase, revealKey, inView]);
