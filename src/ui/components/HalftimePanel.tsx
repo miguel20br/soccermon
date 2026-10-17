@@ -15,10 +15,16 @@ export function HalftimePanel({
     onContinue,
     onSub,
     canSub,
+    side = 0,
+    footer,
 }: {
     match: MatchResult;
     names: [string, string];
-    /** Nome de quem está na vaga `idx` (time 0) no intervalo. */
+    /** Lado do jogador (no duelo, o convidado é o 1). */
+    side?: 0 | 1;
+    /** No duelo: cronômetro e quem já está pronto. */
+    footer?: React.ReactNode;
+    /** Nome de quem está na vaga `idx` (do seu time) no intervalo. */
     nameOf: (idx: number) => string;
     onContinue: () => void;
     onSub: () => void;
@@ -31,12 +37,14 @@ export function HalftimePanel({
     const shots = [0, 0];
     for (const e of match.events) if (e.type === 'shot' && e.tick <= ht.tick) shots[team(e.by)]++;
     const first = possessionByPeriod(match).slice(0, 4);
-    const poss = first.length ? Math.round((first.reduce((s, p) => s + p.home, 0) / first.length) * 100) : 50;
+    const homePoss = first.length ? Math.round((first.reduce((s, p) => s + p.home, 0) / first.length) * 100) : 50;
+    const poss = side === 0 ? homePoss : 100 - homePoss;
+    const rival = side === 0 ? 1 : 0;
     // quem do seu time está mais cansado agora
     // fôlego de quem vai começar o 2º tempo (com as trocas feitas no intervalo)
     const ko = match.events.find((e) => e.type === 'kickoff' && e.tick > ht.tick)?.tick ?? ht.tick;
     const snap = snapAt(match.snapshots, ko);
-    const mine = match.roster.filter((p) => p.team === 0).map((p) => p.idx);
+    const mine = match.roster.filter((p) => p.team === side).map((p) => p.idx);
     const tired = mine
         .map((idx) => ({ idx, energy: snap.p[idx * SNAP_STRIDE + 6] ?? 1 }))
         .sort((a, b) => a.energy - b.energy)[0];
@@ -44,11 +52,11 @@ export function HalftimePanel({
     const tip =
         tired && tired.energy < 0.4
             ? t('match.ht.tipTired', { name: nameOf(tired.idx), p: Math.round(tired.energy * 100) })
-            : shots[1] >= shots[0] + 3
-              ? t('match.ht.tipShots', { a: shots[1], b: shots[0] })
-              : poss >= 60 && shots[0] <= shots[1]
+            : shots[rival] >= shots[side] + 3
+              ? t('match.ht.tipShots', { a: shots[rival], b: shots[side] })
+              : poss >= 60 && shots[side] <= shots[rival]
                 ? t('match.ht.tipPossession')
-                : ht.score[0] > ht.score[1]
+                : ht.score[side] > ht.score[rival]
                   ? t('match.ht.tipAhead')
                   : t('match.ht.tipEven');
 
@@ -62,7 +70,7 @@ export function HalftimePanel({
                 <div>
                     <dt>{t('match.ht.shots')}</dt>
                     <dd>
-                        {shots[0]} x {shots[1]}
+                        {shots[side]} x {shots[rival]}
                     </dd>
                 </div>
                 <div>
@@ -87,6 +95,7 @@ export function HalftimePanel({
                     {t('match.ht.continue')}
                 </button>
             </div>
+            {footer}
             <small className="muted">{t('match.ht.tacticHint')}</small>
         </div>
     );

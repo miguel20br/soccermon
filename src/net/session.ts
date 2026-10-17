@@ -317,7 +317,10 @@ class DuelSession {
         if (cur && (s.room !== cur.room || s.rev <= cur.rev)) return;
         const me = this.view.me;
         const role = ROLES.find((r) => s.peers[r]?.id === me) ?? null;
-        this.set({ shared: s, role, status: role ? 'live' : this.view.status });
+        // quem está na sala: a lista de presentes pode ter chegado antes de o estado dizer quem é quem
+        const online = { host: false, guest: false };
+        for (const r of ROLES) online[r] = r === role || (!!s.peers[r] && this.peerIds.includes(s.peers[r]!.id));
+        this.set({ shared: s, role, online, status: role ? 'live' : this.view.status });
         if (role) {
             this.kept = { ...(this.kept ?? { tops: {} }), role, shared: s };
             writeKept(s.room, me, this.kept);
@@ -372,7 +375,10 @@ class DuelSession {
         this.set({ muted });
     }
 
+    private peerIds: string[] = [];
+
     private onPeers(ids: string[]) {
+        this.peerIds = ids;
         const s = this.view.shared;
         const online = { host: false, guest: false };
         for (const r of ROLES) online[r] = r === this.view.role || (!!s?.peers[r] && ids.includes(s.peers[r]!.id));

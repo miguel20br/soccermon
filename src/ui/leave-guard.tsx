@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { create } from 'zustand';
 import { useT } from '../i18n/react';
+import { useDuel } from '../net/session';
 import { useGame } from '../store/game-store';
 import './leave-guard.css';
 
@@ -14,6 +15,8 @@ const useLeave = create<{ pending: (() => void) | null }>(() => ({ pending: null
 /** Partida rolando: tela da partida, time travado e sem resultado gravado. */
 function matchInProgress() {
     const { screen, run } = useGame.getState();
+    if (screen === 'duel')
+        return ['team', 'draft', 'preview', 'match'].includes(useDuel.getState().shared?.phase ?? '');
     return screen === 'match' && run?.status === 'lineup' && !!run.lockedTeam;
 }
 

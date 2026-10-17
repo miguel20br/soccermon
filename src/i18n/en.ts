@@ -2,6 +2,7 @@ import { account } from './en/account';
 import { battle } from './en/battle';
 import { commentary } from './en/commentary';
 import { common } from './en/common';
+import { duel } from './en/duel';
 import { help } from './en/help';
 import { home } from './en/home';
 import { match } from './en/match';
@@ -30,4 +31,5 @@ export const en: Dict = {
     stats,
     account,
     title,
+    duel,
 };

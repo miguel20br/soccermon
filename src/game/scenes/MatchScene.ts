@@ -72,7 +72,17 @@ export interface MatchSceneData {
     startTick?: number;
     /** Final da copa: gol vale "explosão". */
     final?: boolean;
+    /** Lado do jogador (setinha, torcida, evolução em tela cheia). Padrão: 0; no duelo o convidado é o 1. */
+    mine?: 0 | 1;
+    /**
+     * Duelo ao vivo: tocar no Pokémon abre o painel sem pausar, e a evolução do rival segura a quadra o mesmo tempo
+     * que a tela cheia segura a do outro lado (as duas telas seguem juntas).
+     */
+    duel?: boolean;
 }
+
+/** Duelo: quanto a evolução do rival segura a quadra (a tela cheia do outro lado dura ~10 s). */
+const DUEL_EVO_HOLD_MS = 9500;
 
 /**
  * Impacto, a régua única de "peso" dos lances (docs/planos/jogo-gostoso.md): todo efeito escolhe um nível em vez de
@@ -313,7 +323,14 @@ export class MatchScene extends Phaser.Scene {
     private lastEventTick = 0;
     /** Playback não passa deste tick enquanto a partida é resimulada (tática ao vivo). */
     private holdAt = Number.POSITIVE_INFINITY;
+    /** Duelo: não passa do fim do último trecho aberto pelos dois (lacres). */
+    private segHold = Number.POSITIVE_INFINITY;
+    /** Duelo: correção do relógio do convidado (0,9–1,1; 0 = espera o host). */
+    private rate = 1;
     private speed: PlaybackSpeed = 1;
+    private get mine(): 0 | 1 {
+        return this.md.mine ?? 0;
+    }
     private players: PlayerView[] = [];
     private ball!: Phaser.GameObjects.Image;
     private ballGlow!: Phaser.GameObjects.Arc;
@@ -401,7 +418,13 @@ export class MatchScene extends Phaser.Scene {
         EventBus.on('match:evolution-done', this.onEvolutionDone, this);
         EventBus.on('match:inspect-close', this.onInspectClose, this);
         EventBus.on('match:inspect-request', this.onInspectRequest, this);
+        EventBus.on('match:rate', this.onRate, this);
+        EventBus.on('match:seek', this.onSeek, this);
+        EventBus.on('match:seg-hold', this.onSegHold, this);
         this.unbind = () => {
+            EventBus.off('match:rate', this.onRate, this);
+            EventBus.off('match:seek', this.onSeek, this);
+            EventBus.off('match:seg-hold', this.onSegHold, this);
             EventBus.off('match:seek-fulltime', this.onSeekFulltime, this);
             EventBus.off('match:resume', this.onResume, this);
             EventBus.off('match:evolution-done', this.onEvolutionDone, this);
@@ -485,7 +508,7 @@ export class MatchScene extends Phaser.Scene {
     /** Painel do time (TeamPanel.tsx) pediu o painel de um jogador: pausa igual ao toque no sprite. */
     private onInspectRequest(idx: number) {
         if (this.ended || this.holdReal > this.time.now) return;
-        this.inspecting = true;
+        this.inspecting = !this.md.duel;
         EventBus.emit('match:inspect', { idx, tick: this.playTick });
     }
 
@@ -497,6 +520,20 @@ export class MatchScene extends Phaser.Scene {
 
     private onSpeed(speed: PlaybackSpeed) {
         this.speed = speed;
+    }
+
+    private onRate(rate: number) {
+        this.rate = Number.isFinite(rate) ? Math.max(0, rate) : 1;
+    }
+
+    /** Duelo: muito atrás do host, pula pro tick dele (os eventos do caminho valem, sem animação). */
+    private onSeek(tick: number) {
+        if (this.ended || this.paused || tick <= this.playTick) return;
+        this.seekTo(Math.min(tick, this.holdAt - 1e-3, this.segHold - 1e-3));
+    }
+
+    private onSegHold(tick: number) {
+        this.segHold = tick;
     }
 
     private onHold(tick: number) {
@@ -578,7 +615,7 @@ export class MatchScene extends Phaser.Scene {
             .setOrigin(0.5, footOrigin(skin, 'Idle'));
         // seu time (casa) ganha uma setinha vermelha discreta na cabeça
         const arrow =
-            team === 0
+            team === this.mine
                 ? this.add
                       .triangle(0, 0, 0, 0, 9, 0, 4.5, 6, 0xff3b3b)
                       .setStrokeStyle(1.5, 0x000000, 0.8)
@@ -626,7 +663,8 @@ export class MatchScene extends Phaser.Scene {
         // tocar no Pokémon abre o painel dele (src/ui/components/PlayerInspect.tsx) e pausa a partida
         sprite.setInteractive({ useHandCursor: true }).on('pointerdown', () => {
             if (this.ended || this.holdReal > this.time.now) return;
-            this.inspecting = true;
+            // no duelo a partida não para (o painel abre por cima)
+            this.inspecting = !this.md.duel;
             EventBus.emit('match:inspect', { idx: this.players.indexOf(view), tick: this.playTick });
         });
         return view;
@@ -648,7 +686,7 @@ export class MatchScene extends Phaser.Scene {
     /** Nome acima do Pokémon conforme "Nomes na quadra" (o status e a setinha continuam). */
     private showsName(team: 0 | 1) {
         const mode = this.md.namesOnField ?? 'all';
-        return mode === 'all' || (mode === 'mine' && team === 0);
+        return mode === 'all' || (mode === 'mine' && team === this.mine);
     }
 
     /**
@@ -792,8 +830,12 @@ export class MatchScene extends Phaser.Scene {
     update(time: number, delta: number) {
         if (this.ended || !this.snaps.length || this.paused || this.inspecting) return;
         // evolução: a partida para enquanto o Pokémon evolui, como nos jogos
-        const factor = time < this.holdReal ? 0 : this.currentSpeedFactor(time);
-        this.playTick = Math.min(this.playTick + (delta / 1000) * TICK_RATE * factor, this.holdAt - 1e-3);
+        const factor = time < this.holdReal ? 0 : this.currentSpeedFactor(time) * this.rate;
+        this.playTick = Math.min(
+            this.playTick + (delta / 1000) * TICK_RATE * factor,
+            this.holdAt - 1e-3,
+            Math.max(this.playTick, this.segHold - 1e-3),
+        );
 
         while (this.eventCursor < this.matchEvents.length && this.matchEvents[this.eventCursor].tick <= this.playTick) {
             this.handleEvent(this.matchEvents[this.eventCursor++], false);
@@ -1322,8 +1364,10 @@ export class MatchScene extends Phaser.Scene {
                 // sem a forma nova carregada (rede lenta), troca direto sem a animação
                 if (silent || !ready) this.finishEvolution(view, e.into, newName);
                 // a tela cheia ("Parabéns!") é só do seu time; a do rival é na quadra, sem parar a partida
-                else if (view.team === 1) this.evolveOnField(view, e.into, newName);
-                else this.evolveAnimation(view, e.from, e.into, newName);
+                else if (view.team !== this.mine) {
+                    this.evolveOnField(view, e.into, newName);
+                    if (this.md.duel) this.holdReal = Math.max(this.holdReal, this.time.now + DUEL_EVO_HOLD_MS);
+                } else this.evolveAnimation(view, e.from, e.into, newName);
             }
         }
         // Ditto vira a cópia; ao vivo quem troca é a animação de Transformar (pisca em branco antes, ver abaixo)
@@ -1371,7 +1415,7 @@ export class MatchScene extends Phaser.Scene {
             case 'save': {
                 playSfx('save');
                 // a torcida é sua: "uuuh" quando o goleiro rival pega o seu chute
-                if (this.players[e.by]?.team === 1) playCrowd('uuh', 0.8);
+                if (this.players[e.by]?.team !== this.mine) playCrowd('uuh', 0.8);
                 const gk = this.players[e.by];
                 if (gk) this.highlight('save', gk);
                 // agarrou x espalmou: dá pra ver o que aconteceu com a bola
@@ -1408,7 +1452,7 @@ export class MatchScene extends Phaser.Scene {
             }
             case 'post': {
                 playSfx('post');
-                if (this.players[e.shooter]?.team === 0) playCrowd('uuh');
+                if (this.players[e.shooter]?.team === this.mine) playCrowd('uuh');
                 if (cinematic) {
                     this.cine.drama(tr('battle.bigPost'), {
                         color: '#ffffff',
@@ -1420,8 +1464,8 @@ export class MatchScene extends Phaser.Scene {
             }
             case 'goal': {
                 // seu gol: sobe um semitom a cada gol no jogo (o 3º soa mais alto que o 1º)
-                playSfx('goal', e.team === 0 ? 2 ** ((e.score[0] - 1) / 12) : 0.9);
-                playCrowd(e.team === 0 ? 'gol' : 'vaia');
+                playSfx('goal', e.team === this.mine ? 2 ** ((e.score[this.mine] - 1) / 12) : 0.9);
+                playCrowd(e.team === this.mine ? 'gol' : 'vaia');
                 const scorer = this.players[e.by];
                 if (scorer) {
                     playCry(scorer.speciesId, cries, 1.2);
@@ -1748,7 +1792,7 @@ export class MatchScene extends Phaser.Scene {
             case 'penalty': {
                 playSfx(e.scored ? 'goal' : 'save');
                 // pênalti: comemora o seu e a defesa do seu goleiro, vaia o do rival, "uuuh" no seu perdido
-                const mine = this.players[e.by]?.team === 0;
+                const mine = this.players[e.by]?.team === this.mine;
                 playCrowd(e.scored ? (mine ? 'gol' : 'vaia') : mine ? 'uuh' : 'gol', 0.7);
                 // a cobrança que decide a disputa pesa: explosão se você ganha, toque se perde
                 const last = this.penalties.at(-1);
@@ -1845,7 +1889,10 @@ export class MatchScene extends Phaser.Scene {
         this.tweens.add({ targets: view.sprite, scale: SPRITE_SCALE, duration: 420, ease: 'Back.easeOut' });
         this.impact(view.sprite.x, view.sprite.y - 16, species(into).types[0]);
         this.battleBox.push(
-            tr(view.team === 1 ? 'battle.evolvedRival' : 'battle.evolved', { x: oldName, y: species(into).name }),
+            tr(view.team !== this.mine ? 'battle.evolvedRival' : 'battle.evolved', {
+                x: oldName,
+                y: species(into).name,
+            }),
         );
     }
 
@@ -2008,11 +2055,14 @@ export class MatchScene extends Phaser.Scene {
 
     /** Peso do gol: do rival = toque; seu = batida; virada, empate no fim ou gol na final = explosão. */
     private goalLevel(e: Extract<MatchEvent, { type: 'goal' }>): ImpactLevel {
-        if (e.team !== 0) return 'touch';
-        const [mine, theirs] = e.score;
+        if (e.team !== this.mine) return 'touch';
+        const mine = e.score[this.mine];
+        const theirs = e.score[this.mine === 0 ? 1 : 0];
         const late = e.minute >= 35;
         // virada: passou à frente depois de ter estado atrás em algum momento
-        const wasBehind = this.matchEvents.some((g) => g.type === 'goal' && g.tick < e.tick && g.score[1] > g.score[0]);
+        const wasBehind = this.matchEvents.some(
+            (g) => g.type === 'goal' && g.tick < e.tick && g.score[this.mine === 0 ? 1 : 0] > g.score[this.mine],
+        );
         const turned = mine === theirs + 1 && wasBehind;
         if (this.md.final || turned || (late && mine >= theirs)) return 'boom';
         return 'hit';

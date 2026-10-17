@@ -58,6 +58,7 @@ export interface Peer {
 }
 
 export type StampedOrder = MatchOrder & { seq: number };
+export const isSubStamped = (o: StampedOrder): o is StampedOrder & SubOrder => isSubOrder(o);
 
 export interface DraftState {
     /** Disputa: rodada, de quem é a vez, as 4 cartas abertas e as que queimaram. */
@@ -317,7 +318,7 @@ export function stampOrder(
         const current = (tactics.at(-1) as { tactic?: Tactic } | undefined)?.tactic ?? team.tactic;
         if (tactics.length >= MAX_TACTIC_CHANGES || current === i.order.tactic) return null;
     } else {
-        const subs = mine.filter((o): o is StampedOrder & SubOrder => isSubOrder(o));
+        const subs = mine.filter(isSubStamped);
         const field = onFieldAfter(team, s.log, side);
         const usedIn = new Set(subs.map((o) => o.inUid));
         const { outUid, inUid } = i.order;

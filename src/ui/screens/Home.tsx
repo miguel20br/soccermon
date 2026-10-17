@@ -180,125 +180,145 @@ export function Home() {
 
             <DexProgress />
 
-            <div className="menu panel">
-                {parkedAsk && parkedTarget ? (
-                    <div className="confirm-new">
-                        <p>
-                            {parkedAsk.kind === 'swap'
-                                ? rich(t('account.confirmSwap'), {
-                                      team: <b>{parkedTarget.teamName}</b>,
-                                      current: <b>{run?.teamName}</b>,
-                                  })
-                                : rich(t('account.confirmDiscard'), { team: <b>{parkedTarget.teamName}</b> })}
-                        </p>
-                        <div className="row" style={{ justifyContent: 'center' }}>
-                            <button
-                                type="button"
-                                className="btn primary"
-                                onClick={() => {
-                                    if (parkedAsk.kind === 'swap') resumeParked(parkedAsk.seed);
-                                    else discardParked(parkedAsk.seed);
-                                    setParkedAsk(null);
-                                }}
-                            >
+            <div className="mode-cards">
+                <div className="menu panel mode-card">
+                    <div className="mode-head">
+                        <b>{t('duel.cupTitle')}</b>
+                        <span>{t('duel.cupLine')}</span>
+                    </div>
+                    {parkedAsk && parkedTarget ? (
+                        <div className="confirm-new">
+                            <p>
                                 {parkedAsk.kind === 'swap'
-                                    ? t('account.confirmSwapYes')
-                                    : t('account.confirmDiscardYes')}
-                            </button>
-                            <button type="button" className="btn ghost" onClick={() => setParkedAsk(null)}>
-                                {t('common.ui.cancel')}
-                            </button>
-                        </div>
-                    </div>
-                ) : confirm !== undefined ? (
-                    <div className="confirm-new">
-                        <p>{rich(t('home.confirmNew'), { team: <b>{run?.teamName}</b> })}</p>
-                        <div className="row" style={{ justifyContent: 'center' }}>
-                            <button
-                                type="button"
-                                className="btn primary"
-                                onClick={() => newRun(name(), confirm ?? undefined)}
-                            >
-                                {t('home.confirmYes')}
-                            </button>
-                            <button type="button" className="btn ghost" onClick={() => setConfirm(undefined)}>
-                                {t('common.ui.cancel')}
-                            </button>
-                        </div>
-                    </div>
-                ) : (
-                    <>
-                        {inProgress && run && (
-                            <button type="button" className="resume-card" onClick={() => go(resumeScreen)}>
-                                <span className="rc-label">{t('home.inProgress')}</span>
-                                <b className="rc-team">{run.teamName}</b>
-                                <span className="rc-step">{runStep}</span>
-                                <span className="rc-path" title={t('home.cupPath')}>
-                                    {CUP_STAGES.map((st, i) => {
-                                        const r = run.results.find((x) => x.stage === i);
-                                        const cls = r ? (r.won ? 'won' : 'lost') : i === run.stage ? 'now' : '';
-                                        return <i key={st} className={cls} />;
-                                    })}
-                                </span>
-                                {squad.length > 0 && (
-                                    <span className="rc-squad">
-                                        {squad.map((p) => (
-                                            <img key={p.uid} className="pixel" src={cardSprite(p)} alt="" />
-                                        ))}
-                                    </span>
-                                )}
-                                <span className="btn primary rc-go">{t('home.resume')}</span>
-                            </button>
-                        )}
-                        {parked.map((p) => (
-                            <div key={p.seed} className="parked-row">
-                                <span className="pr-text">
-                                    <span className="pr-label">{t('account.parkedLabel')}</span>
-                                    <span>
-                                        <b>{p.teamName}</b> <span className="pr-step">· {cupStep(p)}</span>
-                                    </span>
-                                </span>
-                                <button type="button" className="btn small" onClick={() => resume(p.seed)}>
-                                    {t('account.resumeParked')}
-                                </button>
+                                    ? rich(t('account.confirmSwap'), {
+                                          team: <b>{parkedTarget.teamName}</b>,
+                                          current: <b>{run?.teamName}</b>,
+                                      })
+                                    : rich(t('account.confirmDiscard'), { team: <b>{parkedTarget.teamName}</b> })}
+                            </p>
+                            <div className="row" style={{ justifyContent: 'center' }}>
                                 <button
                                     type="button"
-                                    className="btn ghost small"
-                                    onClick={() => setParkedAsk({ kind: 'discard', seed: p.seed })}
+                                    className="btn primary"
+                                    onClick={() => {
+                                        if (parkedAsk.kind === 'swap') resumeParked(parkedAsk.seed);
+                                        else discardParked(parkedAsk.seed);
+                                        setParkedAsk(null);
+                                    }}
                                 >
-                                    {t('account.discardParked')}
+                                    {parkedAsk.kind === 'swap'
+                                        ? t('account.confirmSwapYes')
+                                        : t('account.confirmDiscardYes')}
+                                </button>
+                                <button type="button" className="btn ghost" onClick={() => setParkedAsk(null)}>
+                                    {t('common.ui.cancel')}
                                 </button>
                             </div>
-                        ))}
-                        <label className="muted" htmlFor="team-name">
-                            {inProgress ? t('home.orNew') : t('home.teamName')}
-                        </label>
-                        <div className="new-run">
-                            <input
-                                id="team-name"
-                                className="team-name-input"
-                                value={teamName}
-                                maxLength={22}
-                                onChange={(e) => {
-                                    setTyped(true);
-                                    setTeamName(e.target.value);
-                                }}
-                            />
-                            <button
-                                type="button"
-                                className={`btn ${inProgress ? 'ghost' : 'primary'} big`}
-                                onClick={() => start()}
-                            >
-                                {t('home.newCup')}
-                            </button>
                         </div>
-                        {challengeSeed && (
-                            <button type="button" className="btn yellow" onClick={() => start(challengeSeed)}>
-                                {t('home.challenge', { seed: challengeSeed })}
-                            </button>
-                        )}
-                    </>
-                )}
+                    ) : confirm !== undefined ? (
+                        <div className="confirm-new">
+                            <p>{rich(t('home.confirmNew'), { team: <b>{run?.teamName}</b> })}</p>
+                            <div className="row" style={{ justifyContent: 'center' }}>
+                                <button
+                                    type="button"
+                                    className="btn primary"
+                                    onClick={() => newRun(name(), confirm ?? undefined)}
+                                >
+                                    {t('home.confirmYes')}
+                                </button>
+                                <button type="button" className="btn ghost" onClick={() => setConfirm(undefined)}>
+                                    {t('common.ui.cancel')}
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            {inProgress && run && (
+                                <button type="button" className="resume-card" onClick={() => go(resumeScreen)}>
+                                    <span className="rc-label">{t('home.inProgress')}</span>
+                                    <b className="rc-team">{run.teamName}</b>
+                                    <span className="rc-step">{runStep}</span>
+                                    <span className="rc-path" title={t('home.cupPath')}>
+                                        {CUP_STAGES.map((st, i) => {
+                                            const r = run.results.find((x) => x.stage === i);
+                                            const cls = r ? (r.won ? 'won' : 'lost') : i === run.stage ? 'now' : '';
+                                            return <i key={st} className={cls} />;
+                                        })}
+                                    </span>
+                                    {squad.length > 0 && (
+                                        <span className="rc-squad">
+                                            {squad.map((p) => (
+                                                <img key={p.uid} className="pixel" src={cardSprite(p)} alt="" />
+                                            ))}
+                                        </span>
+                                    )}
+                                    <span className="btn primary rc-go">{t('home.resume')}</span>
+                                </button>
+                            )}
+                            {parked.map((p) => (
+                                <div key={p.seed} className="parked-row">
+                                    <span className="pr-text">
+                                        <span className="pr-label">{t('account.parkedLabel')}</span>
+                                        <span>
+                                            <b>{p.teamName}</b> <span className="pr-step">· {cupStep(p)}</span>
+                                        </span>
+                                    </span>
+                                    <button type="button" className="btn small" onClick={() => resume(p.seed)}>
+                                        {t('account.resumeParked')}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="btn ghost small"
+                                        onClick={() => setParkedAsk({ kind: 'discard', seed: p.seed })}
+                                    >
+                                        {t('account.discardParked')}
+                                    </button>
+                                </div>
+                            ))}
+                            <label className="muted" htmlFor="team-name">
+                                {inProgress ? t('home.orNew') : t('home.teamName')}
+                            </label>
+                            <div className="new-run">
+                                <input
+                                    id="team-name"
+                                    className="team-name-input"
+                                    value={teamName}
+                                    maxLength={22}
+                                    onChange={(e) => {
+                                        setTyped(true);
+                                        setTeamName(e.target.value);
+                                    }}
+                                />
+                                <button
+                                    type="button"
+                                    className={`btn ${inProgress ? 'ghost' : 'primary'} big`}
+                                    onClick={() => start()}
+                                >
+                                    {t('home.newCup')}
+                                </button>
+                            </div>
+                            {challengeSeed && (
+                                <button type="button" className="btn yellow" onClick={() => start(challengeSeed)}>
+                                    {t('home.challenge', { seed: challengeSeed })}
+                                </button>
+                            )}
+                        </>
+                    )}
+                </div>
+                <div className="panel mode-card duel-card">
+                    <div className="mode-head">
+                        <b>{t('duel.title')}</b>
+                        <span>{t('duel.line')}</span>
+                    </div>
+                    <span className="duel-card-art" aria-hidden>
+                        <img className="pixel" src="assets/cards/25.gif" alt="" />
+                        <b>VS</b>
+                        <img className="pixel flip" src="assets/cards/133.gif" alt="" />
+                    </span>
+                    <button type="button" className="btn primary big" onClick={() => go('duel')}>
+                        {t('duel.createRoom')}
+                    </button>
+                </div>
             </div>
 
             {records.cups > 0 && (

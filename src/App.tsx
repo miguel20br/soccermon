@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { setVolume } from './game/audio';
 import { useT } from './i18n/react';
+import { duel } from './net/session';
 import { useGame } from './store/game-store';
 import { AccountLink } from './ui/components/AccountLink';
 import { CardModal } from './ui/components/CardModal';
 import { Onboarding } from './ui/components/Onboarding';
 import { UnlockNotice } from './ui/components/UnlockNotice';
 import { runDevDemo } from './ui/dev-demo';
+import { Duel, duelCodeFromUrl } from './ui/duel/Duel';
 import { requestLeave } from './ui/leave-guard';
 import { CardGallery } from './ui/screens/CardGallery';
 import { Credits } from './ui/screens/Credits';
@@ -66,6 +68,16 @@ export default function App() {
         return unsub;
     }, []);
 
+    // link de duelo (?duelo=K7M2QX): abre a sala depois que o save carrega
+    useEffect(() => {
+        const open = () => {
+            if (duelCodeFromUrl()) useGame.getState().go('duel');
+        };
+        const unsub = useGame.persist.onFinishHydration(open);
+        if (useGame.persist.hasHydrated()) open();
+        return unsub;
+    }, []);
+
     if (cards) {
         const exit = () => {
             window.history.replaceState(null, '', window.location.pathname);
@@ -95,7 +107,21 @@ export default function App() {
                     <button
                         type="button"
                         className="brand"
-                        onClick={() => requestLeave(() => go('home'))}
+                        onClick={() =>
+                            requestLeave(() => {
+                                // sair do duelo pelo logo: a sala fica guardada (dá pra voltar pelo link)
+                                if (screen === 'duel') {
+                                    duel.leave();
+                                    window.history.replaceState(null, '', window.location.pathname);
+                                    try {
+                                        sessionStorage.removeItem('soccermon-duel-pending');
+                                    } catch {
+                                        // nada
+                                    }
+                                }
+                                go('home');
+                            })
+                        }
                         aria-label={t('common.ui.backHome')}
                     >
                         <img className="pixel" src="assets/ui/poke-ball.png" alt="" />
@@ -113,6 +139,7 @@ export default function App() {
             {screen === 'credits' && <Credits />}
             {screen === 'profile' && <Profile />}
             {screen === 'help' && <Help />}
+            {screen === 'duel' && <Duel />}
             <CardModal />
             <AccountLink />
             <UnlockNotice />
