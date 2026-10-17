@@ -172,6 +172,7 @@ export const MOVE_TRAITS: Record<string, Trait[]> = {
     pinmissile: ['multi25', 'rebound'],
     spikecannon: ['multi25', 'rebound'],
     vinewhip: ['reach'],
+    boneclub: ['reach'],
     rockthrow: ['reach'],
     // F9
     wrap: ['wrap', 'reach'],
@@ -302,7 +303,7 @@ export const MOVE_TUNING = {
     blowSpeed: 9,
     bulldoze: 2.5,
     typeCopyTime: 12,
-    teamHealRadius: 5,
+    teamHealRadius: 8,
     // goleiro defende com golpe de ataque: goleiro +25% × força do golpe por 1,2 s
     gkSaveBoost: 0.25,
     gkSaveTime: 1.2,
@@ -406,6 +407,7 @@ const EXPLAIN = {
     pinmissile: 'De 2 a 5 tentativas de desarme; o chute pode voltar para o pé dele se for defendido.',
     spikecannon: 'De 2 a 5 tentativas de desarme; o chute pode voltar para o pé dele se for defendido.',
     vinewhip: 'Chicote: desarme de longe (2,8 m).',
+    boneclub: 'Osso na mão: desarme de longe (2,8 m), que pode fazer o rival hesitar.',
     rockthrow: 'Pedrada: desarme de longe (2,8 m).',
     // F9 prender
     wrap: 'Enrola de longe (2,8 m): quem conduz e quem usou ficam presos 1,2 s e a bola sobra.',
@@ -426,9 +428,9 @@ const EXPLAIN = {
     // F12 controle de campo
     gust: 'Com a bola: chute colocado. Sem a bola: rajada que empurra o rival e sopra a bola solta para longe.',
     strength: 'Carrinho-trator: quando ganha a dividida, empurra o rival 2,5 m.',
-    softboiled: 'Cura o fôlego dele e o do companheiro mais cansado a 5 m.',
+    softboiled: 'Cura o fôlego dele e o do companheiro mais cansado a 8 m.',
     dreameater:
-        'Com a bola: chute colocado. Sem a bola: devora o sonho de um rival dormindo perto e suga o fôlego dele.',
+        'Com a bola: chute colocado. Sem a bola: suga o fôlego do rival mais perto; se tiver alguém dormindo, devora o sonho dele e suga o dobro.',
     payday: 'Chuva de moedas: com a bola, chute; sem a bola, os rivais a 3 m param um instante para olhar.',
 };
 

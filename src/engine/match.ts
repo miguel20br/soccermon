@@ -1523,11 +1523,10 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0, ch
                 hit = victims.length > 0;
             } else {
                 // sem bola: rajada atrapalha o rival mais próximo (perde fôlego e atrasa).
-                // Dream Eater só funciona em quem está dormindo
+                // Dream Eater prefere quem está dormindo (suga o dobro); se ninguém dorme, pega o mais perto
                 target =
-                    moveId === 'dreameater'
-                        ? nearestOpponent(s, p, 7, (o) => o.status?.kind === 'slp')
-                        : nearestOpponent(s, p, 7);
+                    (moveId === 'dreameater' ? nearestOpponent(s, p, 7, (o) => o.status?.kind === 'slp') : null) ??
+                    nearestOpponent(s, p, 7);
                 if (!target) hit = false;
                 else if (protect(s, target, p, 'special')) {
                     hit = false;
@@ -1545,7 +1544,8 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0, ch
                         target.energy = Math.max(0, target.energy - (fixed ? 0.04 : 0.05 * k * mult));
                         knockback(s, target, p, 0.8 * mult, moveId);
                         applySecondary(s, p, target, moveId);
-                        if (DRAIN[moveId]) drainEnergy(p, target, DRAIN[moveId] * mult);
+                        const dream = moveId === 'dreameater' && target.status?.kind === 'slp' ? 2 : 1;
+                        if (DRAIN[moveId]) drainEnergy(p, target, DRAIN[moveId] * mult * dream);
                         if (TRAP.has(moveId)) trap(target, moveId);
                         if (fixed) traitFx(s, p.idx, 'fixed', moveId, target.idx);
                         // Fire Spin: deixa um anel de fogo no chão
