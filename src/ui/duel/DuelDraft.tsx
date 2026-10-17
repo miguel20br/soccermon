@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { DRAFT_PICKS } from '../../engine/draft';
-import { teamRecipe, validarTimeDuelo } from '../../engine/duel-validate';
+import { countSpecials, type SpecialLimit, teamRecipe, validarTimeDuelo } from '../../engine/duel-validate';
 import { FORMATIONS, type FormationId } from '../../engine/formations';
 import { createInstance, type PokemonInstance, viewInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
@@ -16,6 +16,7 @@ import {
     packOptions,
     type Role,
     type Shared,
+    specialLimitOf,
 } from '../../net/duel-state';
 import { duel, useDuel } from '../../net/session';
 import { isDraftComplete, playerTeam, useGame } from '../../store/game-store';
@@ -45,6 +46,14 @@ export function hallTeam(h: HallEntry): TeamSetup {
     };
 }
 
+/** A regra de cartas especiais da sala, numa linha. */
+export function specialRuleText(limit: SpecialLimit, t: ReturnType<typeof useT>['t']): string {
+    return t('duel.specials.rule', {
+        rule:
+            limit === 0 ? t('duel.specials.none') : limit === null ? t('duel.specials.free') : t('duel.specials.upTo3'),
+    });
+}
+
 /** Fileira de sprites do time (draft e lobby). */
 export function SquadStrip({ picks, label }: { picks: PokemonInstance[]; label?: string }) {
     return (
@@ -70,7 +79,7 @@ export function SquadStrip({ picks, label }: { picks: PokemonInstance[]; label?:
 
 /** Time pronto: a copa atual (com o draft completo) ou um campeão do Hall da Fama. Vai lacrado: os dois abrem juntos. */
 export function TeamPick({ s, role }: { s: Shared; role: Role }) {
-    const { t } = useT();
+    const { t, tn } = useT();
     const run = useGame((g) => g.run);
     const hall = useGame((g) => g.hall);
     const color = useGame((g) => clubColorHex(g.profile.clubColor));
@@ -96,18 +105,22 @@ export function TeamPick({ s, role }: { s: Shared; role: Role }) {
     return (
         <div className="duel-teams">
             <h1>{t('duel.team.title')}</h1>
+            <p className="muted">{specialRuleText(specialLimitOf(s), t)}</p>
             {options.length === 0 && <p className="panel muted">{t('duel.team.none')}</p>}
             <div className="duel-team-list">
                 {options.map((o) => {
                     // só a receita vai pela rede, e só se for um time que uma copa poderia dar
                     const recipe = teamRecipe(o.team);
+                    const limit = specialLimitOf(s);
                     const problems = validarTimeDuelo(recipe);
+                    const specials = countSpecials(recipe);
+                    const tooMany = limit !== null && specials > limit;
                     return (
                         <button
                             key={o.key}
                             type="button"
                             className="panel duel-team-opt"
-                            disabled={problems.length > 0}
+                            disabled={problems.length > 0 || tooMany}
                             onClick={() => {
                                 playSfx('select');
                                 setChosen(o.team);
@@ -125,6 +138,13 @@ export function TeamPick({ s, role }: { s: Shared; role: Role }) {
                                     <img key={p.uid} className="pixel" src={cardSprite(p)} alt="" />
                                 ))}
                             </span>
+                            {tooMany && (
+                                <span className="error-text small">
+                                    {limit === 0
+                                        ? tn('duel.team.noSpecials', specials)
+                                        : tn('duel.team.tooManySpecials', specials, { max: limit })}
+                                </span>
+                            )}
                             {problems.length > 0 && (
                                 <span className="error-text small">
                                     {t('duel.team.invalid', { why: problems.slice(0, 3).join(', ') })}

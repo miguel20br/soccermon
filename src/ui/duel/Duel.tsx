@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { cloudEnabled, cloudUserId, useCloud } from '../../cloud/cloud';
 import { ENGINE_VERSION } from '../../engine/config';
+import { DEFAULT_SPECIAL_LIMIT, SPECIAL_LIMITS, type SpecialLimit } from '../../engine/duel-validate';
 import { playSfx } from '../../game/audio';
 import { useT } from '../../i18n/react';
 import {
@@ -13,6 +14,7 @@ import {
     type Role,
     type Shared,
     SIDE,
+    specialLimitOf,
     versionsOk,
     WO_WAIT_MS,
 } from '../../net/duel-state';
@@ -24,7 +26,7 @@ import { clubColorHex } from '../../store/profile';
 import { AccountBar } from '../components/AccountBar';
 import { LeaveConfirm } from '../leave-guard';
 import { avatarImage, hexCss, titleName, trainerLabel } from '../profile/club';
-import { DuelDraft, DuelPreview, TeamPick } from './DuelDraft';
+import { DuelDraft, DuelPreview, specialRuleText, TeamPick } from './DuelDraft';
 import { DuelMatch, useCountdown } from './DuelMatch';
 import './duel.css';
 
@@ -91,6 +93,7 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
     const [mode, setMode] = useState<DuelMode>('ready');
     const [speed, setSpeed] = useState<PlaybackSpeed>(startSpeed === 8 ? 4 : startSpeed);
     const [busy, setBusy] = useState(false);
+    const [specialLimit, setSpecialLimit] = useState<SpecialLimit>(DEFAULT_SPECIAL_LIMIT);
     return (
         <div className="duel-create">
             <h1>{t('duel.newDuel')}</h1>
@@ -110,6 +113,29 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
                     </button>
                 ))}
             </fieldset>
+            {mode === 'ready' && (
+                <fieldset className="duel-speeds">
+                    <legend className="muted">{t('duel.specials.label')}</legend>
+                    <div className="row">
+                        {SPECIAL_LIMITS.map((l) => (
+                            <button
+                                key={String(l)}
+                                type="button"
+                                className={`btn small${specialLimit === l ? ' active' : ''}`}
+                                aria-pressed={specialLimit === l}
+                                onClick={() => setSpecialLimit(l)}
+                            >
+                                {l === 0
+                                    ? t('duel.specials.none')
+                                    : l === null
+                                      ? t('duel.specials.free')
+                                      : t('duel.specials.upTo3')}
+                            </button>
+                        ))}
+                    </div>
+                    <small className="muted">{t('duel.specials.hint')}</small>
+                </fieldset>
+            )}
             <fieldset className="duel-speeds">
                 <legend className="muted">{t('duel.speedLabel')}</legend>
                 <div className="row">
@@ -134,7 +160,7 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
                 onClick={async () => {
                     setBusy(true);
                     playSfx('select');
-                    const code = await duel.create(peer, mode, speed, local);
+                    const code = await duel.create(peer, mode, speed, local, specialLimit);
                     setUrl(code, local);
                 }}
             >
@@ -214,6 +240,11 @@ function Lobby() {
                 <span className="muted">
                     {d.duel.modes[s.mode][0]} · {speedLabel(s.speed, t('match.highlights'))}
                 </span>
+                {s.mode === 'ready' && (
+                    <span className="duel-rule" data-testid="duel-rule">
+                        {specialRuleText(specialLimitOf(s), t)}
+                    </span>
+                )}
             </div>
             <div className="row duel-share">
                 <button

@@ -386,7 +386,7 @@ revisão de segurança (`multiplayer-revisao.md`). Código em `src/net/` (regras
 - **Prévia:** quem não confirma no tempo fica com o time como saiu do draft.
 - **Time do Hall da Fama** volta com as espécies e a escalação do título (o Hall não guarda golpes, itens nem
   edições); a copa atual vai inteira. Os dois viram receita e passam por `validarTimeDuelo`
-  (`src/engine/duel-validate.ts`). Limite de edições especiais ainda sem número (nenhum por enquanto).
+  (`src/engine/duel-validate.ts`). Cartas especiais (Shiny, Destaque, Ícone, Evento) têm limite escolhido por quem cria a sala: Nenhuma, Até 3 (padrão) ou Livre; o convidado vê a regra no lobby, o "pronto" leva a regra que ele viu e ela entra no registro. Nos drafts a regra não vale.
 - **Guest é o time 1** (a partida não pode ser espelhada sem mudar o resultado). A cena ganhou `mine` (setinha,
   torcida e evolução em tela cheia do lado certo) e `duel` (painel sem pausa; evolução do rival segura a quadra ~10 s,
   o tempo da tela cheia do outro lado).

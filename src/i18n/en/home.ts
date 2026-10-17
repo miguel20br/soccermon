@@ -3,7 +3,6 @@ import type { home as pt } from '../pt/home';
 export const home: typeof pt = {
     soon: [
         { title: 'Story mode', text: 'Gyms, badges and the Indigo League' },
-        { title: 'Multiplayer', text: "Challenge a friend's team" },
         { title: 'Full-size football', text: '11-a-side matches' },
         { title: 'Generation 2', text: 'The Pokémon of Johto' },
     ],

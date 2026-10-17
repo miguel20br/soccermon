@@ -3091,7 +3091,7 @@ button,
 }
 .soon-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
 }
 .soon-card {
@@ -3118,7 +3118,7 @@ button,
 }
 @media (max-width: 640px) {
     .soon-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
     }
 }
 .mh-out {

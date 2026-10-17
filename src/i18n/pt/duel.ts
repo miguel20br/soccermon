@@ -18,6 +18,14 @@ export const duel = {
             'Mesma sorte de pacotes pros dois, escolhas escondidas e 30 s vendo o time do outro no fim.',
         ],
     },
+    specials: {
+        label: 'Cartas especiais (Shiny, Destaque, Ícone, Evento)',
+        hint: 'Só no Time pronto: nos drafts as especiais saem como no draft normal.',
+        none: 'Nenhuma',
+        upTo3: 'Até 3',
+        free: 'Livre',
+        rule: 'Cartas especiais: {rule}',
+    },
     leave: 'Sair da sala',
     leaveAsk: 'Sair no meio do duelo? Se não voltar até o fim do trecho e mais 1 minuto, o rival vence por W.O.',
     leaveYes: 'Sair',
@@ -58,6 +66,8 @@ export const duel = {
         avg: 'média {n}',
         sealed: 'Time lacrado: os dois abrem juntos quando o rival escolher.',
         invalid: 'Time inválido ({why})',
+        tooManySpecials: '{n} carta especial: a sala deixa até {max}|{n} cartas especiais: a sala deixa até {max}',
+        noSpecials: '{n} carta especial: a sala não deixa nenhuma|{n} cartas especiais: a sala não deixa nenhuma',
     },
     draft: {
         round: 'Escolha {n} de 7',

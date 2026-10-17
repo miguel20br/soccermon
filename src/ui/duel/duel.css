@@ -169,6 +169,10 @@
     letter-spacing: 6px;
     color: var(--yellow);
 }
+.duel-rule {
+    font-size: 13px;
+    color: var(--yellow);
+}
 .duel-share {
     gap: 8px;
     justify-content: center;
@@ -292,9 +296,16 @@
     cursor: pointer;
     border: 3px solid transparent;
 }
-.duel-team-opt:hover,
+.duel-team-opt:not(:disabled):hover,
 .duel-team-opt:focus-visible {
     border-color: var(--yellow);
+}
+.duel-team-opt:disabled {
+    cursor: not-allowed;
+}
+.duel-team-opt:disabled .dto-head,
+.duel-team-opt:disabled .dto-squad {
+    opacity: 0.5;
 }
 .dto-head {
     display: flex;

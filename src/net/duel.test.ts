@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { aiDraftTeam, DRAFT_PICKS } from '../engine/draft';
-import { type DuelTeamRecipe, teamFromRecipe, teamRecipe, validarTimeDuelo } from '../engine/duel-validate';
+import {
+    countSpecials,
+    type DuelTeamRecipe,
+    teamFromRecipe,
+    teamRecipe,
+    validarTimeDuelo,
+} from '../engine/duel-validate';
 import { Rng } from '../engine/rng';
 import type { TeamSetup } from '../engine/state';
 import {
@@ -73,8 +79,8 @@ const H = (c: string) => c.repeat(64);
 function lobby(mode: Shared['mode']): Shared {
     let s = newShared('ABCDEF', peer('ana'), mode, 4, 'seed-teste');
     s = reduce(s, { k: 'join', peer: peer('bia') }, 'guest', ctx());
-    s = reduce(s, { k: 'ready', ready: true, commit: H('a') }, 'host', ctx());
-    return reduce(s, { k: 'ready', ready: true, commit: H('b') }, 'guest', ctx());
+    s = reduce(s, { k: 'ready', ready: true, commit: H('a'), specialLimit: 3 }, 'host', ctx());
+    return reduce(s, { k: 'ready', ready: true, commit: H('b'), specialLimit: 3 }, 'guest', ctx());
 }
 
 /** Time pronto: os dois lacram e abrem (a sessão confere o sal; aqui é a regra do estado). */
@@ -153,6 +159,54 @@ describe('validarTimeDuelo (time pronto)', () => {
     });
 });
 
+describe('limite de cartas especiais (regra da sala no Time pronto)', () => {
+    const base = teamRecipe(team('especiais'));
+    const withSpecials = (n: number): DuelTeamRecipe => {
+        const r = structuredClone(base);
+        [...r.lineup, ...r.bench].forEach((m, i) => {
+            m.shiny = false;
+            m.special = i < n ? { kind: 'destaque', level: 1 } : null;
+        });
+        return r;
+    };
+
+    it('conta Shiny, Destaque, Ícone e Evento; nenhuma, até 3 e livre', () => {
+        const four = withSpecials(4);
+        four.bench[1].special = null;
+        four.bench[1].shiny = true;
+        expect(countSpecials(four)).toBe(5);
+        expect(validarTimeDuelo(withSpecials(0), 0)).toEqual([]);
+        expect(validarTimeDuelo(withSpecials(1), 0).join()).toContain('cartas especiais: 1');
+        expect(validarTimeDuelo(withSpecials(3), 3)).toEqual([]);
+        expect(validarTimeDuelo(withSpecials(4), 3).join()).toContain('cartas especiais: 4 (a sala deixa 3)');
+        expect(validarTimeDuelo(withSpecials(7), null)).toEqual([]);
+    });
+
+    it('a sala recusa time acima do limite e o pronto com outra regra na tela', () => {
+        let s = newShared('ABCDEF', peer('ana'), 'ready', 4, 'x', 0);
+        s = reduce(s, { k: 'join', peer: peer('bia') }, 'guest', ctx());
+        // o convidado viu "até 3" (sala antiga, jogo diferente): não vale
+        expect(reduce(s, { k: 'ready', ready: true, commit: H('b'), specialLimit: 3 }, 'guest', ctx())).toBe(s);
+        s = reduce(s, { k: 'ready', ready: true, commit: H('a'), specialLimit: 0 }, 'host', ctx());
+        s = reduce(s, { k: 'ready', ready: true, commit: H('b'), specialLimit: 0 }, 'guest', ctx());
+        expect(s.phase).toBe('team');
+        s = reduce(s, { k: 'choiceSeal', seal: H('1') }, 'host', ctx());
+        s = reduce(s, { k: 'choiceSeal', seal: H('2') }, 'guest', ctx());
+        expect(reduce(s, { k: 'choiceOpen', value: withSpecials(1), salt: 'x' }, 'host', ctx())).toBe(s);
+        expect(
+            reduce(s, { k: 'choiceOpen', value: withSpecials(0), salt: 'x' }, 'host', ctx()).choice?.opened.host,
+        ).toBe(true);
+    });
+
+    it('a regra entra no registro do duelo', () => {
+        const s = newShared('ABCDEF', peer('ana'), 'ready', 4, 'x', null);
+        expect(s.specialLimit).toBeNull();
+        expect(
+            buildRegistro({ ...s, teams: { host: team('a'), guest: team('b') } }, 1, '0.8.5').specialLimit,
+        ).toBeNull();
+    });
+});
+
 describe('sala', () => {
     it('código fácil de ditar', () => {
         const c = roomCode((n) => Math.floor(Math.random() * n));
@@ -163,8 +217,8 @@ describe('sala', () => {
     it('versões diferentes: os dois prontos e não começa', () => {
         let s = newShared('ABCDEF', peer('ana'), 'ready', 4, 'x');
         s = reduce(s, { k: 'join', peer: { ...peer('bia'), engine: 2 } }, 'guest', ctx());
-        s = reduce(s, { k: 'ready', ready: true, commit: H('a') }, 'host', ctx());
-        s = reduce(s, { k: 'ready', ready: true, commit: H('b') }, 'guest', ctx());
+        s = reduce(s, { k: 'ready', ready: true, commit: H('a'), specialLimit: 3 }, 'host', ctx());
+        s = reduce(s, { k: 'ready', ready: true, commit: H('b'), specialLimit: 3 }, 'guest', ctx());
         expect(s.phase).toBe('lobby');
     });
 

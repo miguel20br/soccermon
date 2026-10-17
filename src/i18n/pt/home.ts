@@ -2,7 +2,6 @@
 export const home = {
     soon: [
         { title: 'Modo história', text: 'Ginásios, insígnias e a Liga Índigo' },
-        { title: 'Multiplayer', text: 'Desafie o time de um amigo' },
         { title: 'Futebol de campo', text: 'Partidas 11 contra 11' },
         { title: 'Geração 2', text: 'Os Pokémon de Johto' },
     ],

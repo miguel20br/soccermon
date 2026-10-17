@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { realtimeClient } from '../cloud/cloud';
 import { ENGINE_VERSION } from '../engine/config';
 import { DRAFT_PICKS } from '../engine/draft';
-import type { DuelTeamRecipe } from '../engine/duel-validate';
+import { DEFAULT_SPECIAL_LIMIT, type DuelTeamRecipe, type SpecialLimit } from '../engine/duel-validate';
 import type { PokemonInstance } from '../engine/instance';
 import type { MatchResult } from '../engine/runners/batch-runner';
 import { EventBus } from '../game/EventBus';
@@ -30,6 +30,7 @@ import {
     roomCode,
     type Shared,
     SIDE,
+    specialLimitOf,
     tickTimers,
 } from './duel-state';
 import {
@@ -214,13 +215,19 @@ class DuelSession {
     }
 
     /** Cria a sala (quem cria é o host e escolhe modo e velocidade). */
-    async create(peer: Peer, mode: DuelMode, speed: PlaybackSpeed, local: boolean): Promise<string> {
+    async create(
+        peer: Peer,
+        mode: DuelMode,
+        speed: PlaybackSpeed,
+        local: boolean,
+        specialLimit: SpecialLimit = DEFAULT_SPECIAL_LIMIT,
+    ): Promise<string> {
         const room = roomCode((n) => {
             const b = new Uint32Array(1);
             crypto.getRandomValues(b);
             return b[0] % n;
         });
-        const shared = newShared(room, peer, mode, speed, randomSecret().slice(0, 16));
+        const shared = newShared(room, peer, mode, speed, randomSecret().slice(0, 16), specialLimit);
         this.kept = { role: 'host', shared, tops: {} };
         writeKept(room, peer.id, this.kept);
         this.open(room, peer, local, 'host', shared);
@@ -475,7 +482,7 @@ class DuelSession {
         const s = this.view.shared;
         if (!s) return;
         if (this.chainGame !== s.game || !this.chain.length) await this.afterState(s);
-        this.dispatch({ k: 'ready', ready, commit: this.chain[0] });
+        this.dispatch({ k: 'ready', ready, commit: this.chain[0], specialLimit: specialLimitOf(s) });
     }
 
     /** Escolha de pacote: guarda a carta e o sal aqui e manda só o lacre. */

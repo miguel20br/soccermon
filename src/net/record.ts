@@ -1,7 +1,7 @@
-import { type DuelTeamRecipe, teamFromRecipe, teamRecipe } from '../engine/duel-validate';
+import { type DuelTeamRecipe, type SpecialLimit, teamFromRecipe, teamRecipe } from '../engine/duel-validate';
 import type { MatchOrder, TeamSetup } from '../engine/state';
 import type { PlaybackSpeed } from '../store/game-store';
-import { type DuelMode, type DuelResult, ordersOf, type Shared, type StampedOrder } from './duel-state';
+import { type DuelMode, type DuelResult, ordersOf, type Shared, type StampedOrder, specialLimitOf } from './duel-state';
 import { matchSeedOf, segmentSeeds } from './seal';
 
 /**
@@ -17,6 +17,8 @@ export interface RegistroDuelo {
     game: number;
     mode: DuelMode;
     speed: PlaybackSpeed;
+    /** Time pronto: limite de cartas especiais da sala (null = livre). */
+    specialLimit: SpecialLimit;
     /** Receitas dos dois times como entraram em campo (host, convidado) e os uids de cada um (as ordens usam). */
     teams: [DuelTeamRecipe, DuelTeamRecipe];
     uids: [string[], string[]];
@@ -48,6 +50,7 @@ export function buildRegistro(s: Shared, engineVersion: number, app: string, sec
         game: s.game,
         mode: s.mode,
         speed: s.speed,
+        specialLimit: specialLimitOf(s),
         teams: [teamRecipe(teams[0]), teamRecipe(teams[1])],
         uids: [teams[0], teams[1]].map((t) => [...t.lineup, ...t.bench].map((p) => p.uid)) as [string[], string[]],
         roundSeeds: s.draft?.seeds,

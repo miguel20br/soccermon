@@ -17,7 +17,7 @@ import { readCount, writeCount } from '../local-count';
 import { patchNotes } from '../patch-notes';
 
 /** O que vem por aí (só vitrine: nada disso é clicável ainda). Os textos ficam em i18n (home.soon). */
-const SOON_IMG = ['assets/cards/25.gif', 'assets/cards/68.gif', 'assets/cards/143.gif', 'assets/ui/poke-ball.png'];
+const SOON_IMG = ['assets/cards/25.gif', 'assets/cards/143.gif', 'assets/ui/poke-ball.png'];
 
 const DEX_KEY = 'soccermon-dex-last';
 const DEX_TOTAL = 151;

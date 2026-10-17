@@ -37,6 +37,18 @@ export interface DuelTeamRecipe {
     captain: number;
 }
 
+/**
+ * Limite de cartas especiais no Time pronto, regra da sala escolhida por quem cria: nenhuma, até 3 ou livre (null).
+ * Conta como especial toda carta com edição: Shiny, Destaque, Ícone ou Evento.
+ */
+export type SpecialLimit = 0 | 3 | null;
+export const SPECIAL_LIMITS: SpecialLimit[] = [0, 3, null];
+export const DEFAULT_SPECIAL_LIMIT: SpecialLimit = 3;
+
+/** Quantas cartas especiais (Shiny, Destaque, Ícone, Evento) o time tem. */
+export const countSpecials = (r: Pick<DuelTeamRecipe, 'lineup' | 'bench'>): number =>
+    [...r.lineup, ...r.bench].filter((m) => !!m?.special || !!m?.shiny).length;
+
 const TACTICS: Tactic[] = ['balanced', 'offensive', 'defensive', 'counter'];
 /** Barra de evolução guardada entre partidas (a copa zera ao evoluir; folga generosa). */
 const MAX_EVO = 60;
@@ -115,9 +127,9 @@ function monProblems(m: DuelMonRecipe, where: string): string[] {
 /**
  * Confere se o time é "qualquer time que uma copa poderia dar": 5 titulares e até 2 reservas, espécies da Gen 1 sem
  * repetir, nível padrão, habilidade da espécie, golpes do moveset dela ou de MT que ela aprende, item que existe e
- * edições possíveis. Devolve a lista de problemas (vazia = time válido).
+ * edições possíveis, dentro do limite de cartas especiais da sala. Devolve a lista de problemas (vazia = válido).
  */
-export function validarTimeDuelo(r: unknown): string[] {
+export function validarTimeDuelo(r: unknown, specialLimit: SpecialLimit = null): string[] {
     const t = r as DuelTeamRecipe;
     if (!t || typeof t !== 'object') return ['time vazio'];
     const out: string[] = [];
@@ -133,6 +145,9 @@ export function validarTimeDuelo(r: unknown): string[] {
     });
     if (new Set(all.map((m) => m?.speciesId)).size !== all.length) out.push('espécie repetida');
     if (!Number.isInteger(t.captain) || t.captain < -1 || t.captain >= 5) out.push('capitão');
+    const specials = countSpecials(t);
+    if (specialLimit !== null && specials > specialLimit)
+        out.push(`cartas especiais: ${specials} (a sala deixa ${specialLimit})`);
     return out;
 }
 

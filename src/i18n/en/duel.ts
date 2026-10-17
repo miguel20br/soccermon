@@ -19,6 +19,14 @@ export const duel: typeof pt = {
         disputa: ['Snake draft', '4 cards for the same slot each round: one takes, the other takes, the last 2 burn.'],
         pacotes: ['Own packs', 'Same pack luck for both, hidden picks and 30 s looking at the rival team at the end.'],
     },
+    specials: {
+        label: 'Special cards (Shiny, Star Player, Icon, Event)',
+        hint: 'Ready team only: in the drafts specials show up like in the normal draft.',
+        none: 'None',
+        upTo3: 'Up to 3',
+        free: 'Free',
+        rule: 'Special cards: {rule}',
+    },
     leave: 'Leave room',
     leaveAsk:
         "Leave mid-duel? If you're not back by the end of the segment plus 1 minute, your rival wins by walkover.",
@@ -60,6 +68,9 @@ export const duel: typeof pt = {
         avg: 'avg {n}',
         sealed: 'Team sealed: both open together once your rival picks.',
         invalid: 'Invalid team ({why})',
+        tooManySpecials:
+            '{n} special card: this room allows up to {max}|{n} special cards: this room allows up to {max}',
+        noSpecials: '{n} special card: this room allows none|{n} special cards: this room allows none',
     },
     draft: {
         round: 'Pick {n} of 7',

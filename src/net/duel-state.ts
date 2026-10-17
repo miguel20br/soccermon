@@ -1,6 +1,13 @@
 import type { Position } from '../engine/attributes';
 import { captainOptions, DRAFT_PICKS, draftOptions, playerDraftOptions } from '../engine/draft';
-import { type DuelTeamRecipe, teamFromRecipe, validarTimeDuelo } from '../engine/duel-validate';
+import {
+    DEFAULT_SPECIAL_LIMIT,
+    type DuelTeamRecipe,
+    SPECIAL_LIMITS,
+    type SpecialLimit,
+    teamFromRecipe,
+    validarTimeDuelo,
+} from '../engine/duel-validate';
 import { DEFAULT_FORMATION, FORMATIONS, type FormationId, formationOf } from '../engine/formations';
 import { type PokemonInstance, slotRating } from '../engine/instance';
 import { Rng } from '../engine/rng';
@@ -110,6 +117,8 @@ export interface Shared {
     game: number;
     mode: DuelMode;
     speed: PlaybackSpeed;
+    /** Time pronto: limite de cartas especiais (0, 3 ou null = livre). Nos drafts não vale. */
+    specialLimit: SpecialLimit;
     /** Seed pública da sala (só decide quem abre a Disputa); os pacotes saem das seeds das rodadas. */
     seed: string;
     phase: 'lobby' | 'team' | 'draft' | 'preview' | 'match' | 'done';
@@ -140,13 +149,21 @@ export interface Shared {
 
 const both = <T>(v: T): Record<Role, T> => ({ host: v, guest: v });
 
-export function newShared(room: string, host: Peer, mode: DuelMode, speed: PlaybackSpeed, seed: string): Shared {
+export function newShared(
+    room: string,
+    host: Peer,
+    mode: DuelMode,
+    speed: PlaybackSpeed,
+    seed: string,
+    specialLimit: SpecialLimit = DEFAULT_SPECIAL_LIMIT,
+): Shared {
     return {
         rev: 1,
         room,
         game: 1,
         mode,
         speed,
+        specialLimit: SPECIAL_LIMITS.includes(specialLimit) ? specialLimit : DEFAULT_SPECIAL_LIMIT,
         seed,
         phase: 'lobby',
         peers: { host },
@@ -173,7 +190,8 @@ export type OrderBody = { kind: 'tactic'; tactic: Tactic } | { kind: 'sub'; outU
 
 export type Intent =
     | { k: 'join'; peer: Peer }
-    | { k: 'ready'; ready: boolean; commit?: string }
+    /** O "pronto" leva a regra de cartas especiais que a pessoa viu no lobby (o aperto de mão da regra). */
+    | { k: 'ready'; ready: boolean; commit?: string; specialLimit?: SpecialLimit }
     | { k: 'roundReveal'; round: number; x: string }
     | { k: 'pick'; uid: string }
     | { k: 'seal'; round: number; seal: string }
@@ -206,6 +224,10 @@ export interface Ctx {
     /** Seed nova pra revanche. */
     newSeed?: string;
 }
+
+/** Limite de cartas especiais da sala (sala guardada antes da regra existir fica no padrão). */
+export const specialLimitOf = (s: Pick<Shared, 'specialLimit'>): SpecialLimit =>
+    s.specialLimit === undefined ? DEFAULT_SPECIAL_LIMIT : s.specialLimit;
 
 export const versionsOk = (s: Shared) =>
     !!s.peers.host &&
@@ -463,7 +485,7 @@ function applyChoice(s: Shared, by: Role, value: unknown, now: number): Shared {
     if (!c || c.opened[by] || !c.seal[by] || c.seal[by] === '-' || !ROLES.every((r) => c.seal[r])) return s;
     let team: TeamSetup | null = null;
     if (s.phase === 'team') {
-        if (validarTimeDuelo(value).length) return s;
+        if (validarTimeDuelo(value, specialLimitOf(s)).length) return s;
         team = teamFromRecipe(value as DuelTeamRecipe, '');
     } else if (s.phase === 'preview' && s.teams[by]) team = applyPreview(s.teams[by]!, value as PreviewCfg);
     if (!team) return s;
@@ -492,6 +514,8 @@ function apply(s: Shared, i: Intent, by: Role, ctx: Ctx): Shared {
         case 'ready': {
             if (s.phase !== 'lobby') return s;
             if (i.ready && !isHex64(i.commit)) return s;
+            // pronto com outra regra na tela (a sala mudou ou o jogo é outro): não vale
+            if (i.ready && (i.specialLimit ?? null) !== specialLimitOf(s)) return s;
             const ready = { ...s.ready, [by]: !!i.ready };
             const commits = { ...s.commits, [by]: i.ready ? i.commit : undefined };
             const next = { ...s, ready, commits };
@@ -604,7 +628,7 @@ function apply(s: Shared, i: Intent, by: Role, ctx: Ctx): Shared {
             const rematch = { ...s.rematch, [by]: true };
             if (!(rematch.host && rematch.guest)) return { ...s, rematch };
             return {
-                ...newShared(s.room, s.peers.host!, s.mode, s.speed, ctx.newSeed ?? `${s.seed}-r`),
+                ...newShared(s.room, s.peers.host!, s.mode, s.speed, ctx.newSeed ?? `${s.seed}-r`, specialLimitOf(s)),
                 peers: s.peers,
                 game: s.game + 1,
             };
