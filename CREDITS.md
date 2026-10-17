@@ -15,6 +15,9 @@ Soccermon é um fan project sem fins lucrativos criado por **Miguel Cunha** ([@m
 | Partículas de efeito | [Pokémon Showdown](https://play.pokemonshowdown.com/fx/) | uso não comercial, com crédito |
 | Fonte Galmuri | [quiple/galmuri](https://github.com/quiple/galmuri) | SIL OFL 1.1 (`public/fonts/OFL-Galmuri.md`) |
 | Efeitos sonoros procedurais | [ZzFX](https://github.com/KilledByAPixel/ZzFX) | MIT |
+| Apito (`public/assets/sfx/apito*.mp3`) | "Referee whistle blow, gymnasium", SpliceSound ([freesound 218318](https://freesound.org/people/SpliceSound/sounds/218318/)) | CC0 |
+| Torcida (`public/assets/sfx/torcida*.mp3`), recortes de "Football Austria vs. Sweden" | [Work With Sounds](https://commons.wikimedia.org/wiki/File:WWS_FootballAustriavs.Sweden.ogg) (Wikimedia Commons) | CC BY 4.0 |
+| Palmas (`public/assets/sfx/palmas.mp3`), recorte de "applause-I" | thore ([Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Applause_i.ogg)) | domínio público |
 
 ## Dados
 

@@ -51,6 +51,77 @@ export function playSfx(name: SfxName, pitch = 1) {
     }
 }
 
+/** Sons gravados (apito do trailer, torcida): `public/assets/sfx/{nome}.mp3`, no canal de efeitos. */
+export type SampleName = 'apito' | 'apito-curto' | 'torcida' | 'torcida-gol' | 'torcida-uuh' | 'palmas';
+const buffers = new Map<SampleName, Promise<AudioBuffer | null>>();
+
+function sample(name: SampleName) {
+    let b = buffers.get(name);
+    if (!b) {
+        b = fetch(`assets/sfx/${name}.mp3`)
+            .then((r) => r.arrayBuffer())
+            .then((data) => ZZFX.audioContext.decodeAudioData(data))
+            .catch(() => null);
+        buffers.set(name, b);
+    }
+    return b;
+}
+
+export function playSample(name: SampleName, gain = 1) {
+    const level = vol.master * vol.sfx * gain;
+    if (level <= 0) return;
+    void sample(name).then((buf) => {
+        const ctx = ZZFX.audioContext;
+        if (!buf || ctx.state !== 'running') return;
+        const g = ctx.createGain();
+        g.gain.value = 0.7 * level;
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        src.connect(g).connect(ctx.destination);
+        src.start();
+    });
+}
+
+/** Murmúrio da torcida em loop; `crowdLevel(0)` cala (pausa, fim, saiu da tela). */
+let crowd: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
+let crowdTarget = 0;
+
+export function crowdLevel(level: number) {
+    const ctx = ZZFX.audioContext;
+    const target = level * vol.master * vol.sfx * 0.5;
+    if (Math.abs(target - crowdTarget) < 0.01) return;
+    crowdTarget = target;
+    if (crowd) crowd.gain.gain.setTargetAtTime(target, ctx.currentTime, 0.4);
+    else if (target > 0) {
+        void sample('torcida').then((buf) => {
+            if (!buf || crowd || crowdTarget <= 0) return;
+            const gain = ctx.createGain();
+            gain.gain.value = 0;
+            gain.gain.setTargetAtTime(crowdTarget, ctx.currentTime, 0.8);
+            const src = ctx.createBufferSource();
+            src.buffer = buf;
+            src.loop = true;
+            src.connect(gain).connect(ctx.destination);
+            src.start();
+            crowd = { src, gain };
+        });
+    }
+}
+
+export function crowdStop() {
+    crowdTarget = 0;
+    crowd?.src.stop();
+    crowd = null;
+}
+
+// aba escondida: o WebAudio seguiria tocando a torcida no fundo
+if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) void ZZFX.audioContext.suspend();
+        else void ZZFX.audioContext.resume();
+    });
+}
+
 const cryCache = new Map<string, HTMLAudioElement>();
 
 export function cryUrl(speciesId: number, style: CryStyle) {

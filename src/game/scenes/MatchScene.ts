@@ -40,7 +40,7 @@ import {
     shadowSize,
     skinOf,
 } from '../animation-manager';
-import { playCry, playSfx } from '../audio';
+import { crowdLevel, crowdStop, playCry, playSample, playSfx } from '../audio';
 import { trailParticle, typeBurst } from '../ball-trail';
 import { BattleBox } from '../battle-box';
 import { Cinematics, FOCUS_DEPTH } from '../cinematics';
@@ -400,6 +400,7 @@ export class MatchScene extends Phaser.Scene {
         EventBus.on('match:inspect-close', this.onInspectClose, this);
         EventBus.on('match:inspect-request', this.onInspectRequest, this);
         this.unbind = () => {
+            crowdStop();
             EventBus.off('match:seek-fulltime', this.onSeekFulltime, this);
             EventBus.off('match:resume', this.onResume, this);
             EventBus.off('match:evolution-done', this.onEvolutionDone, this);
@@ -415,7 +416,7 @@ export class MatchScene extends Phaser.Scene {
         this.sys.events.once('destroy', () => this.unbind?.());
 
         this.paused = !!this.md.startPaused;
-        if (!this.paused) playSfx('whistle');
+        if (!this.paused) playSample('apito');
         this.applySnapshot(0, 0);
         if (this.md.startTick) this.seekTo(this.md.startTick);
         this.preloadEvolutions();
@@ -490,7 +491,7 @@ export class MatchScene extends Phaser.Scene {
     private onResume() {
         if (!this.paused) return;
         this.paused = false;
-        playSfx('whistle');
+        playSample('apito');
     }
 
     private onSpeed(speed: PlaybackSpeed) {
@@ -788,7 +789,11 @@ export class MatchScene extends Phaser.Scene {
 
     // ------------------------------------------------------------------ playback
     update(time: number, delta: number) {
-        if (this.ended || !this.snaps.length || this.paused || this.inspecting) return;
+        if (this.ended || !this.snaps.length || this.paused || this.inspecting) {
+            // torcida: cala no fim, fica no murmúrio baixo com a partida parada
+            crowdLevel(this.ended || !this.snaps.length ? 0 : 0.3);
+            return;
+        }
         // evolução: a partida para enquanto o Pokémon evolui, como nos jogos
         const factor = time < this.holdReal ? 0 : this.currentSpeedFactor(time);
         this.playTick = Math.min(this.playTick + (delta / 1000) * TICK_RATE * factor, this.holdAt - 1e-3);
@@ -798,6 +803,10 @@ export class MatchScene extends Phaser.Scene {
         }
 
         const { index, t } = this.locate(this.playTick);
+        // a torcida cresce com a bola chegando perto de um dos gols
+        const half = FUTSAL_5.pitch.length / 2;
+        const near = Math.abs(this.snaps[index].bx - half) / half;
+        crowdLevel(factor === 0 ? 0.3 : 0.6 + 0.7 * near ** 3);
         const inShootout = this.penalties.length > 0 && this.playTick >= this.fulltimeTick + TICK_RATE;
         if (inShootout) {
             if (!this.shootoutOn) this.startShootout();
@@ -1291,7 +1300,7 @@ export class MatchScene extends Phaser.Scene {
                 this.updateUiScale();
                 if (!silent) {
                     // quem sai anda até a lateral (perto do banco do time); quem entra sai de lá e vai para a quadra
-                    playSfx('whistle');
+                    playSample('apito-curto');
                     this.walkSub(view, e.outSpeciesId, at);
                     this.popText(e.outIdx, '⇅', '#7dff8a');
                     const h: MatchHighlight = {
@@ -1336,10 +1345,11 @@ export class MatchScene extends Phaser.Scene {
             case 'halftime':
                 // saída de bola e intervalo: o motor limpa as zonas do chão (setupKickoff)
                 this.endZoneViews(e.tick);
-                playSfx('whistle');
+                playSample('apito');
                 break;
             case 'fulltime': {
-                playSfx('whistle');
+                playSample('apito');
+                playSample('palmas', 0.8);
                 // fim de jogo: faixa grande; vitória dá um toque, derrota fica no sussurro
                 const [mine, theirs] = this.snaps[this.locate(e.tick).index]?.score ?? [0, 0];
                 this.cine.drama(tr('battle.fulltime'), {
@@ -1362,6 +1372,7 @@ export class MatchScene extends Phaser.Scene {
                 break;
             case 'save': {
                 playSfx('save');
+                playSample('torcida-uuh', 0.5);
                 const gk = this.players[e.by];
                 if (gk) this.highlight('save', gk);
                 // agarrou x espalmou: dá pra ver o que aconteceu com a bola
@@ -1398,6 +1409,7 @@ export class MatchScene extends Phaser.Scene {
             }
             case 'post': {
                 playSfx('post');
+                playSample('torcida-uuh');
                 if (cinematic) {
                     this.cine.drama(tr('battle.bigPost'), {
                         color: '#ffffff',
@@ -1410,6 +1422,7 @@ export class MatchScene extends Phaser.Scene {
             case 'goal': {
                 // seu gol: sobe um semitom a cada gol no jogo (o 3º soa mais alto que o 1º)
                 playSfx('goal', e.team === 0 ? 2 ** ((e.score[0] - 1) / 12) : 0.9);
+                playSample('torcida-gol', e.team === 0 ? 1 : 0.6);
                 const scorer = this.players[e.by];
                 if (scorer) {
                     playCry(scorer.speciesId, cries, 1.2);
@@ -1714,10 +1727,11 @@ export class MatchScene extends Phaser.Scene {
                 break;
             }
             case 'tactic':
-                playSfx('whistle');
+                playSample('apito-curto', 0.7);
                 break;
             case 'penalty': {
                 playSfx(e.scored ? 'goal' : 'save');
+                playSample(e.scored ? 'torcida-gol' : 'torcida-uuh', 0.7);
                 // a cobrança que decide a disputa pesa: explosão se você ganha, toque se perde
                 const last = this.penalties.at(-1);
                 if (last && last.tick === e.tick && last.by === e.by)
