@@ -48,6 +48,8 @@ const browser = await puppeteer.launch({
         '--autoplay-policy=no-user-gesture-required',
     ],
     protocolTimeout: 600000,
+    // jogo em português: os botões que o script procura (Jogar, Começar) são os de PT (o --lang não vale no headless)
+    env: { ...process.env, LANG: 'pt_BR.UTF-8', LANGUAGE: 'pt_BR' },
 });
 const page = await browser.newPage();
 await page.setViewport(
@@ -215,19 +217,22 @@ await page.evaluate((semTextos) => {
     };
 }, semTextos);
 await click('^Começar');
-const step = (dt) =>
+// grab: lê o canvas na mesma chamada do step (WebGL sem preserveDrawingBuffer: lido depois, às vezes sai preto)
+const step = (dt, grab = false) =>
     page.evaluate(
-        async (d, gif, semNomes) => {
+        async (d, gif, semNomes, grab) => {
             window.__t += d;
             // nomes transparentes ANTES de desenhar (o jogo religa o setVisible a cada quadro; o alpha ele não mexe)
             if (semNomes) for (const v of window.__soccermonGame.scene.getScene('Match').players) v.label?.setAlpha(0);
             window.__soccermonGame.step(window.__t, d);
             window.__vadvance(d);
             if (gif) await window.__gifTick();
+            return grab ? document.querySelector('.pitch-wrap canvas').toDataURL('image/png') : null;
         },
         dt,
         modo === 'pagina',
         semNomes,
+        grab,
     );
 
 // 1) avança rápido até o começo do lance (8x, sem gravar)
@@ -263,12 +268,11 @@ while ((await tick()) < to * TICK_RATE) {
         console.log(`o relógio parou no tick ${agora.toFixed(0)}; parando`);
         break;
     }
-    await step(DT);
+    const url = await step(DT, modo !== 'pagina');
     let b64;
     if (modo === 'pagina') {
         ({ data: b64 } = await cdp.send('Page.captureScreenshot', { format: 'png', clip: box }));
     } else {
-        const url = await page.evaluate(() => document.querySelector('.pitch-wrap canvas').toDataURL('image/png'));
         b64 = url.split(',')[1];
     }
     writeFileSync(`${out}/${String(++n).padStart(5, '0')}.png`, Buffer.from(b64, 'base64'));
