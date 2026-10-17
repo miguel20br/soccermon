@@ -1,5 +1,41 @@
 # Novidades
 
+## 0.8.3 · Partida com peso, pacote de cartas e torcida
+
+### Partida
+- Torcida de verdade: murmúrio que cresce quando a bola chega perto do gol, grito no gol, "uuuh" na trave e na defesa e palmas no fim; o apito é de juiz de verdade
+- Bola e Pokémon com peso: movimento suave, estalo e poeira no chute, quique, e a condução refeita (quanto melhor o drible, mais colada no pé)
+- Gol, trave e defesa ficam em câmera lenta igual, até no 8x: não dá mais pra adivinhar o gol
+- Rastro na bola com a cor e o efeito do tipo do golpe, e uma explosão do tipo quando o golpe vira gol
+- Dá pra ler o lance: "DESARME!", "CORTOU!", defesa agarrada ou espalmada e aviso de tiro de meta
+- Goleiro segura a bola nas mãos, e a bola não aparece mais atrás dele numa defesa
+- Marcação mais esperta: o defensor chega rápido, freia perto e acompanha de lado
+- Intervalo de verdade: a partida para com placar, fôlego e uma dica; tática e substituição a um toque
+- Substituição mostra a posição, a nota na vaga e o fôlego de cada um
+- Lances: só os lances importantes em velocidade normal, o resto passa voando
+- Shiny aparece shiny em campo (149 dos 151)
+- Placar pula na cor do time no gol, faixa de fim de jogo e pênalti decisivo com peso
+
+### Cartas e evolução
+- Pacote de cartas com o logo: na recompensa e no draft as cartas saem uma a uma com o tom subindo; ouro e Shiny seguram mais, edição especial tem entrada própria
+- O pacote dá pista do que tem dentro: borda dourada pra carta ouro, brilho holográfico pra edição especial
+- Barra de evolução não zera mais entre partidas: evolui quem joga bem a copa toda
+- A carta mostra a nota na posição em que o Pokémon joga
+- Números contam subindo no draft e no resultado
+
+### Visual
+- VERSUS novo, estilo jogo de luta, com o VS no meio da tela
+- Setinha em cima do seu time maior, com tamanho a escolher em Configurações
+- Nomes na quadra não se embolam mais
+- Janelas, telas e botões com transições e resposta ao toque
+
+### Corrigido
+- Evolução do rival não é mais comemorada como se fosse sua
+- Média do time no draft conta a nota na vaga
+- Carta Destaque só vem com vitória
+- Rival sem itens que não existem na Gen 1
+- Telas que ganhavam rolagem pro lado no celular
+
 ## 0.8.2 · Hall da Fama e o título do jeito que merece
 
 ### Tela de campeão

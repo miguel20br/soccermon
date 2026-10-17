@@ -7,6 +7,58 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.8.3',
+        title: 'Partida com peso, pacote de cartas e torcida',
+        sections: [
+            {
+                title: 'Partida',
+                lines: [
+                    'Torcida de verdade: murmúrio que cresce quando a bola chega perto do gol, grito no gol, "uuuh" na trave e na defesa e palmas no fim; o apito é de juiz de verdade',
+                    'Bola e Pokémon com peso: movimento suave, estalo e poeira no chute, quique, e a condução refeita (quanto melhor o drible, mais colada no pé)',
+                    'Gol, trave e defesa ficam em câmera lenta igual, até no 8x: não dá mais pra adivinhar o gol',
+                    'Rastro na bola com a cor e o efeito do tipo do golpe, e uma explosão do tipo quando o golpe vira gol',
+                    'Dá pra ler o lance: "DESARME!", "CORTOU!", defesa agarrada ou espalmada e aviso de tiro de meta',
+                    'Goleiro segura a bola nas mãos, e a bola não aparece mais atrás dele numa defesa',
+                    'Marcação mais esperta: o defensor chega rápido, freia perto e acompanha de lado',
+                    'Intervalo de verdade: a partida para com placar, fôlego e uma dica; tática e substituição a um toque',
+                    'Substituição mostra a posição, a nota na vaga e o fôlego de cada um',
+                    'Lances: só os lances importantes em velocidade normal, o resto passa voando',
+                    'Shiny aparece shiny em campo (149 dos 151)',
+                    'Placar pula na cor do time no gol, faixa de fim de jogo e pênalti decisivo com peso',
+                ],
+            },
+            {
+                title: 'Cartas e evolução',
+                lines: [
+                    'Pacote de cartas com o logo: na recompensa e no draft as cartas saem uma a uma com o tom subindo; ouro e Shiny seguram mais, edição especial tem entrada própria',
+                    'O pacote dá pista do que tem dentro: borda dourada pra carta ouro, brilho holográfico pra edição especial',
+                    'Barra de evolução não zera mais entre partidas: evolui quem joga bem a copa toda',
+                    'A carta mostra a nota na posição em que o Pokémon joga',
+                    'Números contam subindo no draft e no resultado',
+                ],
+            },
+            {
+                title: 'Visual',
+                lines: [
+                    'VERSUS novo, estilo jogo de luta, com o VS no meio da tela',
+                    'Setinha em cima do seu time maior, com tamanho a escolher em Configurações',
+                    'Nomes na quadra não se embolam mais',
+                    'Janelas, telas e botões com transições e resposta ao toque',
+                ],
+            },
+            {
+                title: 'Corrigido',
+                lines: [
+                    'Evolução do rival não é mais comemorada como se fosse sua',
+                    'Média do time no draft conta a nota na vaga',
+                    'Carta Destaque só vem com vitória',
+                    'Rival sem itens que não existem na Gen 1',
+                    'Telas que ganhavam rolagem pro lado no celular',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.8.2',
         title: 'Hall da Fama e o título do jeito que merece',
         sections: [
@@ -237,6 +289,58 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.8.3',
+        title: 'Weighty matches, card packs and a crowd',
+        sections: [
+            {
+                title: 'Matches',
+                lines: [
+                    'A real crowd: a murmur that grows as the ball nears the goal, a roar on goals, an "oooh" on posts and saves and applause at the end; the whistle is a real referee’s',
+                    'Ball and Pokémon with weight: smooth movement, a pop and dust on kicks, bounces, and reworked dribbling (better dribblers keep it closer to the foot)',
+                    'Goals, posts and saves all get the same slow motion, even at 8x: no more guessing the goal',
+                    'The ball leaves a trail in the move’s type, and bursts in that type when the move becomes a goal',
+                    'Plays you can read: "TACKLE!", "CUT OUT!", caught or parried saves and goal kick calls',
+                    'Keepers hold the ball in their hands, and the ball no longer shows up behind them on a save',
+                    'Smarter marking: defenders close in fast, brake near the ball carrier and shadow them',
+                    'A real halftime: the match stops with the score, stamina and a tip; tactics and subs one tap away',
+                    'Subs show position, rating in that slot and stamina',
+                    'Highlights: only the big moments at normal speed, the rest flies by',
+                    'Shinies are shiny on the court (149 of 151)',
+                    'The score pops in the team color on goals, a full-time banner and a decisive penalty that hits hard',
+                ],
+            },
+            {
+                title: 'Cards and evolution',
+                lines: [
+                    'Card pack with the logo: in rewards and the draft, cards come out one by one with a rising tone; gold and Shiny hold longer, special editions get their own walkout',
+                    'The pack hints at what’s inside: gold edge for a gold card, holo shine for a special edition',
+                    'The evolution bar no longer resets between matches: whoever plays well all cup evolves',
+                    'Cards show the rating in the position the Pokémon plays',
+                    'Numbers count up in the draft and on the result screen',
+                ],
+            },
+            {
+                title: 'Visuals',
+                lines: [
+                    'New fighting-game VERSUS screen, with the VS in the middle',
+                    'Bigger arrow over your team, with a size option in Settings',
+                    'Names on the court no longer overlap',
+                    'Windows, screens and buttons with transitions and tap feedback',
+                ],
+            },
+            {
+                title: 'Fixed',
+                lines: [
+                    'A rival evolution is no longer celebrated as if it were yours',
+                    'Draft team average uses the rating in each slot',
+                    'Star Player cards only come with a win',
+                    'Rivals no longer hold items that don’t exist in Gen 1',
+                    'Screens that scrolled sideways on phones',
+                ],
+            },
+        ],
+    },
     {
         version: '0.8.2',
         title: 'Hall of Fame and a title screen worth the trophy',
