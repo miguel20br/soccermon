@@ -343,3 +343,14 @@ partida inteira a cada ordem do rival (0,5 s) num celular fraco (hoje só aconte
   [FM em rede: forçar continuar](https://www.fmscout.com/a-how-to-play-football-manager-online-without-hamachi.html) ·
   [Clash Royale ganha o silenciar emotes](https://toucharcade.com/2016/09/19/clash-royale-update-adds-emote-mutenew-tournaments-cards-and-more/) ·
   [Rocket League: "Chat disabled for 3 seconds"](https://knowyourmeme.com/memes/chat-disabled-for-3-seconds)
+
+## Decidido com o Miguel (17/10, depois da pesquisa)
+
+- **Tudo na 0.8.5, completo:** duelo com os dois drafts (Disputa e cada um com seus pacotes) e todas as velocidades,
+  inclusive Lances. Nada fatiado pra 0.8.6.
+- Tocar num Pokémon abre o painel **sem pausar** a partida.
+- Se alguém cair, a IA técnica decide por ele até voltar.
+- Grito do capitão no máximo a cada 10 s.
+- Histórico do amistoso só no save de cada um (sem tabela nova).
+- Seed por trecho e W.O.: o Miguel pediu explicação. O que ele quer: as duas telas vendo a partida ao mesmo tempo e
+  nenhum jeito de burlar.

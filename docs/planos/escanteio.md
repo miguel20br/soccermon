@@ -327,3 +327,13 @@ Jogos:
 Simuladores:
 - [Google Research Football: `academy_corner.py`](https://github.com/google-research/football/blob/master/gfootball/scenarios/academy_corner.py) e [artigo (arXiv 1907.11180)](https://arxiv.org/pdf/1907.11180)
 - [RoboCup Soccer Simulator: visão geral (juiz e modos de jogo)](https://rcsoccersim.readthedocs.io/en/latest/overview.html)
+
+## Decidido com o Miguel (17/10)
+
+Opção B completa na 0.8.5, com todas as recomendações das decisões 1 a 12 acima: 3–4 escanteios por jogo e ~10% de
+conversão (corta na quantidade se passar de 7 gols por jogo); nasce da espalmada pra fora e do desvio no bloqueio;
+disputa no alto força 45% / tamanho 35% / posicionamento 20% (Voador sem bônus próprio); golpe na bola parada
+gastando PP; gol olímpico raro, só com golpe de vento; técnico escolhe a instrução (Na área / Curta / Variar,
+trocável como a tática) e o cobrador na escalação, sem pausa; lateral continua nas paredes; faixa "ESCANTEIO",
+"NO ALTO!", câmera lenta só quando vira chance e conta no modo Lances; selo "Jogo aéreo" só no painel. Números de
+antes e depois pro ok do Miguel antes de lançar (skill `soccermon-balanceamento`).
