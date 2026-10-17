@@ -36,6 +36,16 @@
 - Rival sem itens que não existem na Gen 1
 - Telas que ganhavam rolagem pro lado no celular
 
+### Ajustes (17/10)
+- Torcida do seu lado: grito no seu gol, vaia no gol do rival e "uuuh" quando você quase marca, com sons variados; volume próprio em Configurações
+- Nova opção: velocidade nas chances de gol (1x, 2x, 4x ou não muda)
+- Sinergia de tipo continua subindo: 4 do mesmo tipo dão +8% e 5 dão +10%
+- Sinergias especiais completas brilham juntas na formação: os 3 Pássaros Lendários dão +10%, os 3 iniciais +8%, Mew + Mewtwo +8% (tipo + história somam até +15%)
+- Destaque com nível: o craque que já é Destaque sobe de nível com nota 8+ (até +4); senão o prêmio vai pro próximo craque
+- A nota numa posição secundária não passa mais da posição principal
+- Marcador não gasta mais golpe dando bote de longe
+- Som das cartas saindo do pacote corrigido
+
 ## 0.8.2 · Hall da Fama e o título do jeito que merece
 
 ### Tela de campeão
