@@ -2,17 +2,19 @@ import { useState } from 'react';
 import { useCloud } from '../../cloud/cloud';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
+import { activeTitle, activeTrainer } from '../../store/missions';
 import { clubColorHex } from '../../store/profile';
 import { HallList } from '../components/HallParade';
 import { MenuHead } from '../components/MenuHead';
 import { ClubTab } from '../profile/ClubTab';
-import { clubVars, trainerLabel, useAvatar } from '../profile/club';
+import { clubVars, titleName, trainerLabel, useAvatar } from '../profile/club';
 import { DexTab } from '../profile/DexTab';
 import { NumbersTab } from '../profile/NumbersTab';
+import { MissionsTab, TrainerSprite } from '../profile/TrainerTab';
 import '../profile/profile.css';
 
-type Tab = 'clube' | 'dex' | 'hall' | 'numeros';
-const TABS: Tab[] = ['clube', 'dex', 'hall', 'numeros'];
+type Tab = 'clube' | 'missoes' | 'dex' | 'hall' | 'numeros';
+const TABS: Tab[] = ['clube', 'missoes', 'dex', 'hall', 'numeros'];
 
 /** Perfil: seu clube, a Pokédex e os números da carreira. */
 export function Profile() {
@@ -30,14 +32,18 @@ export function Profile() {
             <MenuHead title={t('profile.title')} icon="profile" onBack={() => go('home')} />
 
             <header className="panel pf-head">
-                <img
-                    className={`pf-avatar${avatar.google ? '' : ' pixel'}`}
-                    src={avatar.src}
-                    alt=""
-                    referrerPolicy="no-referrer"
-                />
+                <div className="pf-duo">
+                    <TrainerSprite id={activeTrainer(profile)} className="pf-duo-trainer" />
+                    <img
+                        className={`pf-avatar${avatar.google ? '' : ' pixel'}`}
+                        src={avatar.src}
+                        alt=""
+                        referrerPolicy="no-referrer"
+                    />
+                </div>
                 <div className="pf-who">
                     <h2>{trainerLabel(profile, googleName)}</h2>
+                    <span className="pf-title-line">{titleName(activeTitle(profile))}</span>
                     <span className="pf-clubline">
                         <i aria-hidden />
                         {profile.clubName || 'Pallet FC'} · <b>{profile.clubTag}</b>
@@ -78,6 +84,7 @@ export function Profile() {
 
             <div role="tabpanel" id={`pf-panel-${tab}`} aria-labelledby={`pf-tab-${tab}`}>
                 {tab === 'clube' && <ClubTab />}
+                {tab === 'missoes' && <MissionsTab />}
                 {tab === 'dex' && <DexTab />}
                 {tab === 'hall' && <HallList />}
                 {tab === 'numeros' && <NumbersTab onOpenDex={() => setTab('dex')} />}

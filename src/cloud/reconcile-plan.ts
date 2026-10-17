@@ -1,4 +1,12 @@
-import { isCupInProgress, MAX_PARKED, type PersistedSave, type Records, type RunState } from '../store/game-store';
+import {
+    isCupInProgress,
+    MAX_PARKED,
+    type PersistedSave,
+    type Records,
+    type RunState,
+    withUnlocks,
+} from '../store/game-store';
+import { mergeProfileUnlocks } from '../store/missions';
 import { DEFAULT_PROFILE, mergeCareer, mergeDex, mergeHall, mergeMoves } from '../store/profile';
 
 /**
@@ -157,18 +165,22 @@ export function mergeSaves(
     }
 
     const profileSrc = k.profile ?? o.profile;
-    return {
+    // o perfil é o de `keep`, mas treinadores e títulos liberados nos dois lados continuam liberados
+    return withUnlocks({
         run: run ?? null,
         settings: mergeSettings(local.settings, cloud?.settings, keep),
         records: mergeRecords(local.records, cloud?.records),
-        profile: { ...DEFAULT_PROFILE, ...(profileSrc ?? local.profile) },
+        profile: mergeProfileUnlocks(
+            { ...DEFAULT_PROFILE, ...(profileSrc ?? local.profile) },
+            profileSrc === local.profile ? cloud?.profile : local.profile,
+        ),
         dex: mergeDex(local.dex, cloud?.dex),
         moves: mergeMoves(local.moves, cloud?.moves),
         career: mergeCareer(local.career, cloud?.career),
         onboarded: local.onboarded || !!cloud?.onboarded,
         parkedRuns: parked.slice(0, MAX_PARKED),
         hall: mergeHall(local.hall, cloud?.hall),
-    };
+    });
 }
 
 // ------------------------------------------------------------------------------------- resumo na tela

@@ -1,5 +1,6 @@
 import type { PlayerLine } from '../engine/match-stats';
 import type { MatchResult } from '../engine/runners/batch-runner';
+import { DEFAULT_TITLE, DEFAULT_TRAINER, type TrainerId } from './missions';
 
 /**
  * Perfil, Pokédex e golpes descobertos (save v5). Tudo cosmético ou de registro: nada daqui mexe em
@@ -54,6 +55,13 @@ export interface Profile {
     /** Sigla de 3 letras (placar no celular). */
     clubTag: string;
     clubColor: ClubColorId;
+    /** Sprite do treinador e título embaixo do nome (missions.ts). */
+    trainer: TrainerId;
+    title: string;
+    /** Missões cumpridas: liberam treinadores e títulos. */
+    missionsDone: string[];
+    /** Títulos resgatados com código (title-codes.ts). */
+    redeemedTitles: string[];
 }
 
 export const DEFAULT_PROFILE: Profile = {
@@ -62,6 +70,10 @@ export const DEFAULT_PROFILE: Profile = {
     clubName: 'Pallet FC',
     clubTag: 'PAL',
     clubColor: 'vermelho',
+    trainer: DEFAULT_TRAINER,
+    title: DEFAULT_TITLE,
+    missionsDone: [],
+    redeemedTitles: [],
 };
 
 /** Sigla a partir do nome: "Pallet FC" → "PAL". */
@@ -263,6 +275,9 @@ export interface HallEntry {
     /** Placares das 4 partidas (pênaltis à parte). */
     scores: [number, number][];
     squad: { speciesId: number; shiny: boolean; name: string; ovr: number; goals: number; captain: boolean }[];
+    /** Treinador e título de quem ganhou (títulos antes da 0.8.3 não têm). */
+    trainer?: TrainerId;
+    trainerTitle?: string;
 }
 
 /** Guarda os últimos 50 títulos, como o Hall of Fame do Red/Blue. */

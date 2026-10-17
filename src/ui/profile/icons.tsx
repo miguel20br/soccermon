@@ -61,6 +61,21 @@ export function EvoArrow() {
     );
 }
 
+/** Medalha com fita: prêmio de título (missões). */
+export function MedalIcon() {
+    return (
+        <svg className="pf-medal" viewBox="0 0 24 24" aria-hidden>
+            <path d="M7 2 H11 L13 9 H9 Z" fill="#e8423f" />
+            <path d="M13 2 H17 L15 9 H11 Z" fill="#3a7bd5" />
+            <circle cx="12" cy="15" r="6.5" fill="#ffcb05" stroke="#0e1430" strokeWidth="1.5" />
+            <path
+                d="M12 11.6 L13 14 L15.4 14.2 L13.6 15.8 L14.1 18.2 L12 17 L9.9 18.2 L10.4 15.8 L8.6 14.2 L11 14 Z"
+                fill="#b07a12"
+            />
+        </svg>
+    );
+}
+
 /** Visto de "salvo". */
 export function CheckIcon() {
     return (

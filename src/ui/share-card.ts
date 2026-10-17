@@ -3,9 +3,11 @@ import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import { viewInstance } from '../engine/instance';
 import { clubName, dict, fmt, getLang, type Lang, tn } from '../i18n';
-import { isPerfectCup, type RunState } from '../store/game-store';
+import { isPerfectCup, type RunState, useGame } from '../store/game-store';
+import { type TrainerId, trainerSrc } from '../store/missions';
 import { cardSprite } from './components/PokeCard';
 import { Trophy } from './components/Trophy';
+import { titleName, trainerLabel } from './profile/club';
 import { SITE_URL } from './share';
 import { aggregate } from './stats/CupStats';
 
@@ -24,13 +26,20 @@ export interface ShareCardData {
     games: { stage: string; score: string; pens: string | null; opponent: string; won: boolean }[];
     squad: { sprite: string; name: string; captain: boolean }[];
     scorer: { label: string; text: string; sprite: string } | null;
+    /** Treinador campeão (só no formato Stories, ao lado da taça). */
+    trainer: { sprite: string; name: string; title: string } | null;
     site: string;
 }
 
 const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 
 /** Tudo o que vai no card, a partir do run (função pura: dá para testar sem canvas). */
-export function shareCardData(run: RunState, color: number, lang: Lang = getLang()): ShareCardData {
+export function shareCardData(
+    run: RunState,
+    color: number,
+    lang: Lang = getLang(),
+    trainer: { id: TrainerId; name: string; title: string } | null = null,
+): ShareCardData {
     const d = dict(lang).result;
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
     const top = aggregate(run.results).reduce<ReturnType<typeof aggregate>[number] | null>(
@@ -67,6 +76,7 @@ export function shareCardData(run: RunState, color: number, lang: Lang = getLang
                       sprite: cardSprite(topPick ?? { speciesId: top.speciesId, shiny: false }),
                   }
                 : null,
+        trainer: trainer && { sprite: trainerSrc(trainer.id), name: trainer.name, title: trainer.title },
         site: SITE_URL.replace(/^https?:\/\//, ''),
     };
 }
@@ -153,11 +163,12 @@ export async function drawShareCard(data: ShareCardData, format: CardFormat): Pr
     await Promise.all([document.fonts.load(`700 40px ${FONT}`), document.fonts.load(`400 40px ${FONT}`)]).catch(
         () => {},
     );
-    const [logo, trophy, sprites, scorerImg] = await Promise.all([
+    const [logo, trophy, sprites, scorerImg, trainerImg] = await Promise.all([
         logoImage(),
         trophyImage(400),
         Promise.all(data.squad.map((p) => loadImage(p.sprite))),
         data.scorer ? loadImage(data.scorer.sprite) : null,
+        data.trainer && !sq ? loadImage(data.trainer.sprite).catch(() => null) : null,
     ]);
 
     const canvas = document.createElement('canvas');
@@ -208,6 +219,21 @@ export async function drawShareCard(data: ShareCardData, format: CardFormat): Pr
         // com o selo da copa perfeita a taça encolhe para tudo caber
         const ts = data.perfect ? 280 : 380;
         ctx.drawImage(trophy, cx - ts / 2, y, ts, ts);
+        // treinador campeão ao lado da taça (olhando para ela), com o nome e o título em cima
+        if (trainerImg && data.trainer) {
+            const k = data.perfect ? 2.5 : 3;
+            const tx = cx - ts / 2 - 130;
+            ctx.save();
+            ctx.translate(tx * 2, 0);
+            ctx.scale(-1, 1);
+            sprite(ctx, trainerImg, tx, y + ts + 0.1 * 80 * k, k);
+            ctx.restore();
+            const top = y + ts - 0.8 * 80 * k;
+            fitFont(ctx, data.trainer.name, 36, 260);
+            text(ctx, data.trainer.name, tx, top - 44, '#ffffff', 3);
+            fitFont(ctx, data.trainer.title, 28, 260, false);
+            text(ctx, data.trainer.title, tx, top - 8, GOLD, 3);
+        }
         y += ts + 20;
         const s = fitFont(ctx, data.title, 136, W - 120);
         text(ctx, data.title, cx, y + s * 0.85, GOLD, 10);
@@ -316,7 +342,16 @@ export async function drawShareCard(data: ShareCardData, format: CardFormat): Pr
 
 /** PNG do card do título. */
 export async function shareCardBlob(run: RunState, format: CardFormat, color: number): Promise<Blob> {
-    const canvas = await drawShareCard(shareCardData(run, color), format);
+    const { profile, hall } = useGame.getState();
+    const won = hall.find((h) => h.id === run.seed);
+    const trainer = won?.trainer
+        ? {
+              id: won.trainer,
+              name: trainerLabel(profile),
+              title: won.trainerTitle ? titleName(won.trainerTitle) : '',
+          }
+        : null;
+    const canvas = await drawShareCard(shareCardData(run, color, getLang(), trainer), format);
     return new Promise((ok, fail) => canvas.toBlob((b) => (b ? ok(b) : fail(new Error('toBlob'))), 'image/png'));
 }
 

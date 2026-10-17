@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
-import { DEFAULT_SETTINGS, type PersistedSave, type RunState } from '../store/game-store';
+import { DEFAULT_SETTINGS, type PersistedSave, type RunState, withUnlocks } from '../store/game-store';
 import { DEFAULT_PROFILE, type Dex, EMPTY_CAREER } from '../store/profile';
 import { hasProgress, mergeSaves, type PlanInput, planReconcile, summarize } from './reconcile-plan';
 
@@ -225,7 +225,10 @@ describe('mergeSaves: junção sem perder copa', () => {
     });
 
     it('levar para a conta sem save na nuvem: o save do aparelho vai inteiro', () => {
-        const local = save({ run: cup('a'), records: { cups: 2, titles: 1, perfect: 0 }, onboarded: true });
+        // save de verdade já passou pela migração (o título já liberou o Blue)
+        const local = withUnlocks(
+            save({ run: cup('a'), records: { cups: 2, titles: 1, perfect: 0 }, onboarded: true }),
+        );
         expect(mergeSaves(local, undefined, 'device')).toEqual(local);
     });
 });

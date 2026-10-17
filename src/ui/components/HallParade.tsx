@@ -3,7 +3,8 @@ import { playCry } from '../../game/audio';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { clubColorHex, type HallEntry } from '../../store/profile';
-import { clubVars } from '../profile/club';
+import { clubVars, titleName } from '../profile/club';
+import { TrainerSprite } from '../profile/TrainerTab';
 import { reduceMotionOn } from '../settings-sync';
 import { cardSprite } from './PokeCard';
 
@@ -49,7 +50,13 @@ export function HallParade({ entry, trainer, onDone }: { entry: HallEntry; train
                 <div className="hp-end">
                     <span className="hp-no">{t('title.hall.entry', { n: entry.titleNo })}</span>
                     <b className="hp-club">{entry.club}</b>
-                    <span>{trainer}</span>
+                    <div className="hp-trainer">
+                        {entry.trainer && <TrainerSprite id={entry.trainer} />}
+                        <span>
+                            {trainer}
+                            {entry.trainerTitle && <small>{titleName(entry.trainerTitle)}</small>}
+                        </span>
+                    </div>
                     <div className="hp-squad">
                         {entry.squad.map((m) => (
                             <img key={`${m.speciesId}-${m.name}`} className="pixel" src={cardSprite(m)} alt={m.name} />
@@ -78,7 +85,13 @@ export function HallList() {
                             {new Date(h.date).toLocaleDateString(lang === 'pt' ? 'pt-BR' : 'en-US')}
                         </span>
                     </div>
-                    <span className="hall-club">{h.club}</span>
+                    <div className="hall-club-row">
+                        {h.trainer && <TrainerSprite id={h.trainer} className="hall-trainer" />}
+                        <span className="hall-club">
+                            {h.club}
+                            {h.trainerTitle && <small>{titleName(h.trainerTitle)}</small>}
+                        </span>
+                    </div>
                     <div className="hall-squad">
                         {h.squad.map((m) => (
                             <img
