@@ -3,6 +3,7 @@ import { playCry } from '../../game/audio';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { clubColorHex, type HallEntry } from '../../store/profile';
+import { titleClass } from '../../store/title-codes';
 import { clubVars, titleName } from '../profile/club';
 import { TrainerSprite } from '../profile/TrainerTab';
 import { reduceMotionOn } from '../settings-sync';
@@ -54,7 +55,11 @@ export function HallParade({ entry, trainer, onDone }: { entry: HallEntry; train
                         {entry.trainer && <TrainerSprite id={entry.trainer} />}
                         <span>
                             {trainer}
-                            {entry.trainerTitle && <small>{titleName(entry.trainerTitle)}</small>}
+                            {entry.trainerTitle && (
+                                <small className={titleClass(entry.trainerTitle).trim() || undefined}>
+                                    {titleName(entry.trainerTitle)}
+                                </small>
+                            )}
                         </span>
                     </div>
                     <div className="hp-squad">
@@ -89,7 +94,11 @@ export function HallList() {
                         {h.trainer && <TrainerSprite id={h.trainer} className="hall-trainer" />}
                         <span className="hall-club">
                             {h.club}
-                            {h.trainerTitle && <small>{titleName(h.trainerTitle)}</small>}
+                            {h.trainerTitle && (
+                                <small className={titleClass(h.trainerTitle).trim() || undefined}>
+                                    {titleName(h.trainerTitle)}
+                                </small>
+                            )}
                         </span>
                     </div>
                     <div className="hall-squad">

@@ -17,7 +17,7 @@ import {
     unlockedTrainers,
 } from '../../store/missions';
 import type { Profile } from '../../store/profile';
-import { redeemCode } from '../../store/title-codes';
+import { redeemCode, titleClass } from '../../store/title-codes';
 import { missionText, titleName, trainerName } from './club';
 import { CheckIcon, LockIcon, MedalIcon } from './icons';
 
@@ -134,7 +134,7 @@ export function TrainerCard({ save }: { save: (patch: Partial<Profile>) => void 
                             className={`pf-chip pf-title-chip${id === title ? ' active' : ''}`}
                             onClick={() => save({ title: id })}
                         >
-                            {titleName(id)}
+                            <span className={titleClass(id).trim() || undefined}>{titleName(id)}</span>
                         </button>
                     ))}
                 </div>

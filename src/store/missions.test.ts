@@ -18,7 +18,7 @@ import {
     unlockedTrainers,
 } from './missions';
 import { DEFAULT_PROFILE, type HallEntry } from './profile';
-import { redeemCode } from './title-codes';
+import { normalizeCode, redeemCode } from './title-codes';
 
 const mon = (speciesId: number) => createInstance(speciesId, new Rng('m', String(speciesId)));
 const goal = (team: 0 | 1, uid: string, speciesId = 25): GoalNote =>
@@ -155,8 +155,8 @@ describe('save antigo (v6)', () => {
 });
 
 describe('códigos', () => {
-    it('o código de exemplo vale (espaços e caixa não contam); código errado não', async () => {
-        expect(await redeemCode('  soccermon-teste ')).toBe('gametester');
+    it('espaços e caixa não contam; código errado não vale (os de verdade não ficam no repositório)', async () => {
+        expect(normalizeCode('  goat-x ')).toBe('GOAT-X');
         expect(await redeemCode('SOCCERMON')).toBeNull();
         expect(await redeemCode('')).toBeNull();
     });

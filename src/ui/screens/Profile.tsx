@@ -4,6 +4,7 @@ import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { activeTitle, activeTrainer } from '../../store/missions';
 import { clubColorHex } from '../../store/profile';
+import { titleClass } from '../../store/title-codes';
 import { HallList } from '../components/HallParade';
 import { MenuHead } from '../components/MenuHead';
 import { ClubTab } from '../profile/ClubTab';
@@ -43,7 +44,9 @@ export function Profile() {
                 </div>
                 <div className="pf-who">
                     <h2>{trainerLabel(profile, googleName)}</h2>
-                    <span className="pf-title-line">{titleName(activeTitle(profile))}</span>
+                    <span className={`pf-title-line${titleClass(activeTitle(profile))}`}>
+                        {titleName(activeTitle(profile))}
+                    </span>
                     <span className="pf-clubline">
                         <i aria-hidden />
                         {profile.clubName || 'Pallet FC'} · <b>{profile.clubTag}</b>

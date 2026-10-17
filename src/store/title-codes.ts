@@ -7,19 +7,22 @@
  *   1. Escolha o código (o jogo ignora espaços nas pontas e maiúsculas/minúsculas: guarde em MAIÚSCULAS).
  *   2. Gere o hash:  node -e "console.log(require('crypto').createHash('sha256').update('MEU-CODIGO').digest('hex'))"
  *   3. Ponha `'<hash>': '<id do título>'` em CODE_TITLES e o nome do título em CUSTOM_TITLES (pt e en).
- * Vários códigos podem dar o mesmo título. O exemplo abaixo ('SOCCERMON-TESTE') é só para testar: apague antes
- * de distribuir os de verdade.
+ * Vários códigos podem dar o mesmo título. `shine: true` deixa o título dourado e brilhando.
  * ========================================================================================================
  */
 export const CODE_TITLES: Readonly<Record<string, string>> = {
-    // SOCCERMON-TESTE (exemplo)
-    '2f17e719b34d4ab491a7029424f64fa217b151bcc642fe569093d1fd84d80a04': 'gametester',
+    // Davi, 1º gametester (17/10/2026)
+    '3ad01be87b2c8319fcd8ebebfb5f701dd2c7bef673d3bcd5ba1dce42b3953776': 'goat',
 };
 
 /** Nome dos títulos de código (o resto dos títulos fica no dicionário: profile.titles). */
-export const CUSTOM_TITLES: Readonly<Record<string, { pt: string; en: string }>> = {
+export const CUSTOM_TITLES: Readonly<Record<string, { pt: string; en: string; shine?: boolean }>> = {
     gametester: { pt: 'Gametester', en: 'Gametester' },
+    goat: { pt: 'GOAT', en: 'GOAT', shine: true },
 };
+
+/** Classe do título na tela: os especiais brilham em dourado. */
+export const titleClass = (id: string) => (CUSTOM_TITLES[id]?.shine ? ' title-shine' : '');
 
 /** Normaliza o que a pessoa digitou (espaços nas pontas e caixa não contam). */
 export const normalizeCode = (code: string) => code.trim().toUpperCase();
