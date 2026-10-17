@@ -26,6 +26,7 @@ import {
 import { dir8 } from '../../engine/vec';
 import { dict, linkText, t as tr } from '../../i18n';
 import type { ArrowSize, ChanceSpeed, CryStyle, NamesOnField, PlaybackSpeed } from '../../store/game-store';
+import { type TrainerId, trainerSrc } from '../../store/missions';
 import { hexToNumber, TYPE_COLOR } from '../../ui/type-colors';
 import {
     animForAction,
@@ -72,7 +73,33 @@ export interface MatchSceneData {
     startTick?: number;
     /** Final da copa: gol vale "explosão". */
     final?: boolean;
+    /** Seu treinador, em pé do lado de fora da quadra (Perfil). */
+    trainer?: TrainerId;
 }
+
+/**
+ * Treinador na beira da quadra: na faixa de fora da linha de fundo do seu gol (x 0..44), entre o canto e a
+ * trave, olhando para a quadra. A faixa tem 44 px de largura, então a escala é limitada pela largura do
+ * sprite (Equipe Rocket e Lance são mais largos) para nunca pisar na linha.
+ */
+const TRAINER_FEET = { x: 22, y: toPx(0, 3.4).y };
+const TRAINER_MAX_W = 40;
+/** Largura do desenho dentro do quadro de 80 px (os outros têm ~40). */
+const TRAINER_WIDE: Partial<Record<TrainerId, number>> = {
+    rocket: 80,
+    biker: 62,
+    lance: 60,
+    hiker: 55,
+    bruno: 53,
+    blackbelt: 52,
+    pokemaniac: 52,
+    birdkeeper: 51,
+    fisherman: 51,
+    juggler: 51,
+    scientist: 49,
+    rocker: 48,
+    koga: 46,
+};
 
 /**
  * Impacto, a régua única de "peso" dos lances (docs/planos/jogo-gostoso.md): todo efeito escolhe um nível em vez de
@@ -316,6 +343,8 @@ export class MatchScene extends Phaser.Scene {
     private speed: PlaybackSpeed = 1;
     private players: PlayerView[] = [];
     private ball!: Phaser.GameObjects.Image;
+    private trainer?: Phaser.GameObjects.Image;
+    private trainerScale = 1;
     private ballGlow!: Phaser.GameObjects.Arc;
     private ballShadow!: Phaser.GameObjects.Ellipse;
     private trailG!: Phaser.GameObjects.Graphics;
@@ -364,6 +393,8 @@ export class MatchScene extends Phaser.Scene {
         this.md = this.registry.get('matchData') as MatchSceneData;
         for (const id of this.allSpecies()) preloadSpecies(this, id);
         preloadMoveFx(this);
+        const tr = this.md.trainer;
+        if (tr && !this.textures.exists(`trainer-${tr}`)) this.load.image(`trainer-${tr}`, trainerSrc(tr));
     }
 
     create() {
@@ -386,6 +417,14 @@ export class MatchScene extends Phaser.Scene {
         this.ballGlow = this.add.circle(0, 0, 13, 0xffffff, 0).setBlendMode(Phaser.BlendModes.ADD);
         this.ball = this.add.image(0, 0, 'ball').setDepth(BALL_DEPTH);
         this.battleBox = new BattleBox(this, GAME_W / 2, GAME_H - 30, 560);
+        if (this.md.trainer && this.textures.exists(`trainer-${this.md.trainer}`)) {
+            // sprites de treinador olham pra esquerda: vira para a quadra
+            this.trainer = this.add
+                .image(TRAINER_FEET.x, TRAINER_FEET.y, `trainer-${this.md.trainer}`)
+                .setOrigin(0.5, 0.87)
+                .setFlipX(true)
+                .setDepth(-900);
+        }
         this.cine = new Cinematics(this);
 
         const onResize = () => this.updateUiScale();
@@ -553,6 +592,12 @@ export class MatchScene extends Phaser.Scene {
         for (const v of this.players) {
             v.label.setFontSize(Math.round(10 * s));
             v.badge.setFontSize(Math.round(11 * s));
+        }
+        // treinador: cresce no celular até o limite da faixa de fora da quadra
+        if (this.trainer && this.md.trainer) {
+            const fit = TRAINER_MAX_W / (TRAINER_WIDE[this.md.trainer] ?? 40);
+            this.trainerScale = Math.min(fit, Math.min(this.uiScale, 1.4));
+            this.trainer.setScale(this.trainerScale);
         }
         // caixa de batalha presa à base da tela (no celular cresce só um pouco)
         const bs = Math.min(this.uiScale, 1.3);
@@ -1419,6 +1464,7 @@ export class MatchScene extends Phaser.Scene {
                 // seu gol: sobe um semitom a cada gol no jogo (o 3º soa mais alto que o 1º)
                 playSfx('goal', e.team === 0 ? 2 ** ((e.score[0] - 1) / 12) : 0.9);
                 playCrowd(e.team === 0 ? 'gol' : 'vaia');
+                this.trainerReact(e.team === 0);
                 const scorer = this.players[e.by];
                 if (scorer) {
                     playCry(scorer.speciesId, cries, 1.2);
@@ -1766,6 +1812,43 @@ export class MatchScene extends Phaser.Scene {
                 }
                 break;
             }
+        }
+    }
+
+    /** Treinador comemora o seu gol (pulinho) ou murcha no do rival (cabeça baixa, balança). Só visual. */
+    private trainerReact(happy: boolean) {
+        const t = this.trainer;
+        if (!t || this.md.reduceMotion) return;
+        this.tweens.killTweensOf(t);
+        const s = this.trainerScale;
+        t.setPosition(TRAINER_FEET.x, TRAINER_FEET.y).setScale(s).setAngle(0);
+        if (happy) {
+            this.tweens.add({
+                targets: t,
+                y: TRAINER_FEET.y - 10 * s,
+                duration: 160,
+                ease: 'Quad.easeOut',
+                yoyo: true,
+                repeat: 2,
+            });
+        } else {
+            this.tweens.add({
+                targets: t,
+                scaleY: s * 0.9,
+                duration: 260,
+                ease: 'Sine.easeOut',
+                yoyo: true,
+                hold: 700,
+            });
+            this.tweens.add({
+                targets: t,
+                angle: { from: -4, to: 4 },
+                duration: 110,
+                ease: 'Sine.easeInOut',
+                yoyo: true,
+                repeat: 3,
+                onComplete: () => t.setAngle(0),
+            });
         }
     }
 

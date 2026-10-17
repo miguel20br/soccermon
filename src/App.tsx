@@ -5,6 +5,7 @@ import { useGame } from './store/game-store';
 import { AccountLink } from './ui/components/AccountLink';
 import { CardModal } from './ui/components/CardModal';
 import { Onboarding } from './ui/components/Onboarding';
+import { UnlockNotice } from './ui/components/UnlockNotice';
 import { runDevDemo } from './ui/dev-demo';
 import { requestLeave } from './ui/leave-guard';
 import { CardGallery } from './ui/screens/CardGallery';
@@ -112,6 +113,7 @@ export default function App() {
             {screen === 'help' && <Help />}
             <CardModal />
             <AccountLink />
+            <UnlockNotice />
             {hydrated && !onboarded && screen === 'home' && <Onboarding />}
         </div>
     );

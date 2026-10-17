@@ -6,6 +6,7 @@ import { useGame } from '../../store/game-store';
 import { CLUB_COLORS, DEFAULT_PROFILE, isPlayed, type Profile, rivalColor, tagFromName } from '../../store/profile';
 import { hexCss, speciesGif } from './club';
 import { CheckIcon } from './icons';
+import { TrainerCard } from './TrainerTab';
 
 /** Rival da prévia do placar (Cerulean): azul, troca de uniforme se bater com a sua cor. */
 const PREVIEW_RIVAL = 0x2f6fde;
@@ -123,6 +124,8 @@ export function ClubTab() {
                     <small className="muted">{t('profile.club.avatarHelp')}</small>
                 </fieldset>
             </section>
+
+            <TrainerCard save={save} />
 
             <section className="panel pf-card">
                 <h2>{t('profile.club.clubTitle')}</h2>

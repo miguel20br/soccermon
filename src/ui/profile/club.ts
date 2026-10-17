@@ -1,8 +1,10 @@
 import type { CSSProperties } from 'react';
 import { useCloud } from '../../cloud/cloud';
-import { t } from '../../i18n';
+import { dict, fmt, getLang, t } from '../../i18n';
 import { useGame } from '../../store/game-store';
+import type { Mission, TrainerId } from '../../store/missions';
 import { type Avatar, clubColorHex, type Profile, rivalColor } from '../../store/profile';
+import { CUSTOM_TITLES } from '../../store/title-codes';
 import './club.css';
 
 export const hexCss = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
@@ -35,4 +37,17 @@ export function useAvatar() {
     const avatar = useGame((s) => s.profile.avatar);
     const photo = useCloud((s) => s.user?.avatar ?? null);
     return avatarImage(avatar, photo);
+}
+
+export const trainerName = (id: TrainerId) => dict().profile.trainers[id] ?? id;
+
+/** Nome do título (das missões ou de código). */
+export function titleName(id: string): string {
+    return dict().profile.titles[id] ?? CUSTOM_TITLES[id]?.[getLang()] ?? id;
+}
+
+/** Texto de uma missão (as de ginásio usam o mesmo modelo com o líder e a cidade). */
+export function missionText(m: Mission): string {
+    const d = dict().profile.missions;
+    return m.vars ? fmt(d.gym, m.vars) : (d.text[m.id] ?? m.id);
 }

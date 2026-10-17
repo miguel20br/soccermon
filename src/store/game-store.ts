@@ -22,6 +22,7 @@ import {
 } from '../engine/specials';
 import { teachMove } from '../engine/tm';
 import { detectLang, type Lang } from '../i18n/lang';
+import { activeTitle, activeTrainer, matchView, newMissions, stageView } from './missions';
 import {
     type Career,
     clubColorHex,
@@ -259,6 +260,10 @@ export interface GameStore {
     hall: HallEntry[];
     /** Partida atual (não persistida — snapshots são grandes). */
     match: MatchResult | null;
+    /** Missões cumpridas agora há pouco, na fila do aviso (não persistida: o aviso é só na hora). */
+    unlockQueue: string[];
+    /** O aviso do primeiro da fila já passou. */
+    shiftUnlock(): void;
     go(screen: Screen): void;
     newRun(teamName?: string, seed?: string): void;
     abandonRun(): void;
@@ -382,7 +387,7 @@ export function champMemo(run: RunState, records: Records, dexBefore: Dex): Cham
 }
 
 /** Entrada do Hall da Fama: o elenco campeão com nota de carta e gols na copa. */
-export function hallEntry(run: RunState, clubColor: Profile['clubColor']): HallEntry {
+export function hallEntry(run: RunState, profile: Profile): HallEntry {
     const goals = new Map<string, number>();
     for (const r of run.results)
         for (const p of r.stats?.players ?? []) goals.set(p.uid, (goals.get(p.uid) ?? 0) + p.goals);
@@ -404,12 +409,14 @@ export function hallEntry(run: RunState, clubColor: Profile['clubColor']): HallE
         id: run.seed,
         date: run.endedAt ?? Date.now(),
         club: run.teamName,
-        clubColor,
+        clubColor: profile.clubColor,
         formation: run.formation,
         titleNo: run.champ?.titleNo ?? 1,
         perfect: isPerfectCup(run),
         scores: run.results.map((r) => [r.score[0], r.score[1]]),
         squad,
+        trainer: activeTrainer(profile),
+        trainerTitle: activeTitle(profile),
     };
 }
 
@@ -441,7 +448,22 @@ const runShapeOk = (r: unknown): r is RunState => {
 };
 
 /** Versão atual do save (a mesma do `persist`). */
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
+
+/**
+ * Missões que o save já garante (sem aviso: é retroativo). Feitos de partida contam pelas partidas guardadas nas
+ * copas do save (o resumo de cada uma); o resto sai de recordes, Pokédex, golpes, carreira e Hall da Fama.
+ */
+export function withUnlocks(save: PersistedSave): PersistedSave {
+    const runs = [save.run, ...save.parkedRuns];
+    const fresh = newMissions(
+        { ...save, runs, done: save.profile.missionsDone },
+        runs.flatMap((r) => r?.results ?? []).map(stageView),
+    );
+    return fresh.length
+        ? { ...save, profile: { ...save.profile, missionsDone: [...save.profile.missionsDone, ...fresh] } }
+        : save;
+}
 
 /**
  * Atualiza um save antigo (ou importado de um arquivo) para o formato atual. Versões antigas tinham outro
@@ -457,6 +479,9 @@ export function migrateSave(old: Partial<PersistedSave>, version: number): Persi
         ...(version < 5 && run ? { clubName: run.teamName, clubTag: tagFromName(run.teamName) } : {}),
         ...old.profile,
     };
+    // v7: treinador e títulos (saves e nuvem antigos não têm; listas estragadas viram vazias)
+    if (!Array.isArray(profile.missionsDone)) profile.missionsDone = [];
+    if (!Array.isArray(profile.redeemedTitles)) profile.redeemedTitles = [];
     let dex: Dex = old.dex ?? {};
     if (version < 5 && run) {
         dex = markSeen(
@@ -478,7 +503,7 @@ export function migrateSave(old: Partial<PersistedSave>, version: number): Persi
             run.picks.map((p): [number, number] => [p.speciesId, viewInstance(p).overall]),
         );
     }
-    return {
+    return withUnlocks({
         run,
         settings,
         records,
@@ -497,7 +522,7 @@ export function migrateSave(old: Partial<PersistedSave>, version: number): Persi
                       .slice(0, MAX_PARKED),
         // v6: Hall da Fama
         hall: Array.isArray(old.hall) ? old.hall.slice(0, MAX_HALL) : [],
-    };
+    });
 }
 
 export const useGame = create<GameStore>()(
@@ -527,6 +552,7 @@ export const useGame = create<GameStore>()(
                 parkedRuns: [],
                 hall: [],
                 match: null,
+                unlockQueue: [],
 
                 go: (screen) => setState({ screen }),
 
@@ -795,17 +821,17 @@ export const useGame = create<GameStore>()(
                     let hall = getState().hall;
                     if (status === 'champion') {
                         next.champ = champMemo(next, records, getState().dex);
-                        hall = [
-                            hallEntry(next, getState().profile.clubColor),
-                            ...hall.filter((h) => h.id !== next.seed),
-                        ].slice(0, MAX_HALL);
+                        hall = [hallEntry(next, getState().profile), ...hall.filter((h) => h.id !== next.seed)].slice(
+                            0,
+                            MAX_HALL,
+                        );
                     }
                     const withStar = {
                         ...records,
                         destaques: (records.destaques ?? 0) + (destaqueUid ? 1 : 0),
                         evolucoes: (records.evolucoes ?? 0) + evolved.size,
                     };
-                    setState({
+                    const saved = {
                         run: next,
                         hall,
                         dex,
@@ -819,6 +845,19 @@ export const useGame = create<GameStore>()(
                                   perfect: records.perfect + (isPerfectCup(next) ? 1 : 0),
                               }
                             : withStar,
+                    };
+                    // missões: esta partida (com os titulares do apito inicial) e o save depois dela
+                    const profile = getState().profile;
+                    const fresh = newMissions(
+                        { ...saved, runs: [next, ...getState().parkedRuns], done: profile.missionsDone },
+                        [matchView(m, result.stats?.digest ?? matchDigest(m), run.lockedTeam)],
+                    );
+                    setState({
+                        ...saved,
+                        ...(fresh.length && {
+                            profile: { ...profile, missionsDone: [...profile.missionsDone, ...fresh] },
+                        }),
+                        unlockQueue: [...getState().unlockQueue, ...fresh],
                     });
                 },
 
@@ -889,6 +928,7 @@ export const useGame = create<GameStore>()(
                 updateSettings: (patch) => setState({ settings: { ...getState().settings, ...patch } }),
                 updateProfile: (patch) => setState({ profile: { ...getState().profile, ...patch } }),
                 setOnboarded: (onboarded) => setState({ onboarded }),
+                shiftUnlock: () => setState({ unlockQueue: getState().unlockQueue.slice(1) }),
 
                 resumeParked: (seed) => {
                     const { run, parkedRuns } = getState();
@@ -907,7 +947,8 @@ export const useGame = create<GameStore>()(
             // v4: cartas especiais (campo opcional `special`, `eventType` na run, recordes novos)
             // v5: perfil, Pokédex, golpes descobertos, carreira e configurações novas
             // v6: Hall da Fama e resumo dos eventos de cada partida
-            version: 6,
+            // v7: treinador, títulos e desbloqueios (retroativos: títulos, copa perfeita, Pokédex, líderes vencidos)
+            version: SAVE_VERSION,
             storage: createJSONStorage(() => idbStorage),
             partialize: (s): PersistedSave => ({
                 run: s.run,
