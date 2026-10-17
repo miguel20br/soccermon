@@ -97,6 +97,7 @@ export const duel: typeof pt = {
         ready: 'Ready to play',
         waiting: 'Waiting for {name}…',
         sealed: 'Sealed! Opens together with your rival.',
+        autoTaker: 'Automatic',
         formation: 'Formation',
         tactic: 'Tactic',
     },

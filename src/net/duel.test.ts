@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { FUTSAL_5, MAX_TACTIC_CHANGES } from '../engine/config';
 import { aiDraftTeam, DRAFT_PICKS } from '../engine/draft';
 import {
     countSpecials,
@@ -8,6 +9,7 @@ import {
     validarTimeDuelo,
 } from '../engine/duel-validate';
 import { Rng } from '../engine/rng';
+import { runMatch } from '../engine/runners/batch-runner';
 import type { TeamSetup } from '../engine/state';
 import {
     autoLineup,
@@ -29,6 +31,7 @@ import {
     reduce,
     roomCode,
     type Shared,
+    tagTeam,
     tickTimers,
     WO_WAIT_MS,
 } from './duel-state';
@@ -37,15 +40,14 @@ import {
     abrir,
     CHAIN_LEN,
     checkReveal,
+    holdTick,
     lacrar,
     makeChain,
-    matchSeedOf,
     openedSegments,
-    playableUntil,
     randomSecret,
-    SEG_TICKS,
+    SEG_COUNT,
     segIdx,
-    segmentOf,
+    segmentOfMinute,
     segmentSeeds,
 } from './seal';
 import { localTransport, type NetMsg } from './transport';
@@ -104,23 +106,27 @@ describe('lacres (seed por trecho e por rodada)', () => {
     it('uma corrente cobre as 7 rodadas do draft e os trechos da partida', async () => {
         const chain = await makeChain(randomSecret());
         expect(chain).toHaveLength(CHAIN_LEN + 1);
-        expect(await checkReveal(chain[0], segIdx(1), chain[segIdx(1)])).toBe(true);
-        expect(segIdx(1)).toBe(8);
+        expect(await checkReveal(chain[0], segIdx(20), chain[segIdx(20)])).toBe(true);
+        expect(segIdx(0)).toBe(8);
+        expect(segIdx(SEG_COUNT - 1)).toBe(CHAIN_LEN);
     });
 
-    it('trechos de 2 min, trava no fim do último aberto pelos dois e seed igual pros dois lados', async () => {
-        expect(SEG_TICKS).toBe(360);
-        expect(segmentOf(0)).toBe(1);
-        expect(segmentOf(359)).toBe(1);
-        expect(segmentOf(360)).toBe(2);
-        const h = ['', 'a1', 'a2', 'a3'];
-        const g = ['', 'b1', 'b2'];
+    it('trechos do motor: 2 min de relógio (0–19) e os pênaltis (20); seed igual pros dois lados', async () => {
+        expect(segmentOfMinute(0)).toBe(0);
+        expect(segmentOfMinute(1.99)).toBe(0);
+        expect(segmentOfMinute(2)).toBe(1);
+        expect(segmentOfMinute(39.9)).toBe(19);
+        expect(segmentOfMinute(40)).toBe(20);
+        const h = ['a0', 'a1', 'a2'];
+        const g = ['b0', 'b1'];
         expect(openedSegments(h, g)).toBe(2);
-        expect(playableUntil(2)).toBe(720);
         const s1 = await segmentSeeds('SALA', h, g);
+        expect(s1).toHaveLength(2);
         expect(s1).toEqual(await segmentSeeds('SALA', h, g));
-        expect(s1[1]).not.toBe(s1[2]);
-        expect(matchSeedOf(s1)).toBe(s1[1]);
+        expect(s1[0]).not.toBe(s1[1]);
+        const snaps = [0, 2, 4, 6].map((m, i) => ({ tick: i * 100, minute: m }));
+        expect(holdTick(snaps, 2)).toBe(200);
+        expect(holdTick(snaps, SEG_COUNT)).toBe(Number.POSITIVE_INFINITY);
     });
 
     it('lacre de escolha só abre com o mesmo valor e o mesmo sal', async () => {
@@ -324,23 +330,25 @@ describe('intervalo, velocidade, W.O. e dessincronização', () => {
     it('quem não abre o trecho seguinte trava a sala; W.O. só pelo botão de quem ficou, depois de 60 s', () => {
         let s = inMatch();
         const k0 = s.kickoffAt ?? 0;
-        s = reduce(s, { k: 'reveal', seg: 1, x: H('1') }, 'host', ctx(k0));
-        s = reduce(s, { k: 'reveal', seg: 1, x: H('2') }, 'guest', ctx(k0));
-        s = reduce(s, { k: 'reveal', seg: 2, x: H('3') }, 'host', ctx(k0));
-        expect(blocker(s, { now: k0 + 9000, tick: 200 })).toBeNull();
-        s = tickTimers(s, ctx(k0 + 9000, { tick: SEG_TICKS - 0.5 }));
+        s = reduce(s, { k: 'reveal', seg: 0, x: H('1') }, 'host', ctx(k0));
+        s = reduce(s, { k: 'reveal', seg: 0, x: H('2') }, 'guest', ctx(k0));
+        s = reduce(s, { k: 'reveal', seg: 1, x: H('3') }, 'host', ctx(k0));
+        // tela no meio do trecho 0: não trava
+        expect(blocker(s, { now: k0 + 9000, atHold: false })).toBeNull();
+        // chegou no fim do trecho 0 sem o convidado abrir o 1
+        s = tickTimers(s, ctx(k0 + 9000, { atHold: true }));
         expect(s.waitFor).toBe('guest');
         expect(s.waitSince).toBe(k0 + 9000);
         // nunca automático
-        expect(tickTimers(s, ctx(k0 + 9000 + WO_WAIT_MS * 3, { tick: SEG_TICKS })).phase).toBe('match');
+        expect(tickTimers(s, ctx(k0 + 9000 + WO_WAIT_MS * 3, { atHold: true })).phase).toBe('match');
         expect(reduce(s, { k: 'claimWO' }, 'host', ctx(k0 + 9000 + WO_WAIT_MS - 1))).toBe(s);
         // quem está travando não pede W.O. contra o outro
         expect(canClaimWO(s, 'guest', k0 + 9000 + WO_WAIT_MS)).toBe(false);
         const wo = reduce(s, { k: 'claimWO' }, 'host', ctx(k0 + 9000 + WO_WAIT_MS));
         expect(wo.result).toMatchObject({ winner: 'host', wo: true });
         // voltou e abriu a tempo: a espera some
-        const back = reduce(s, { k: 'reveal', seg: 2, x: H('4') }, 'guest', ctx(k0 + 9500));
-        expect(tickTimers(back, ctx(k0 + 9600, { tick: SEG_TICKS })).waitFor).toBeUndefined();
+        const back = reduce(s, { k: 'reveal', seg: 1, x: H('4') }, 'guest', ctx(k0 + 9500));
+        expect(tickTimers(back, ctx(k0 + 9600, { atHold: false })).waitFor).toBeUndefined();
     });
 
     it('hash de trecho diferente anula a partida em vez de seguir com placares diferentes', () => {
@@ -450,18 +458,89 @@ describe('registro do duelo', () => {
     it('guarda receitas, uids, lacres e ordens por autor; refaz as entradas da partida', async () => {
         let s = inMatch();
         const x = [randomSecret(), randomSecret()];
-        s = reduce(s, { k: 'reveal', seg: 1, x: x[0] }, 'host', ctx());
-        s = reduce(s, { k: 'reveal', seg: 1, x: x[1] }, 'guest', ctx());
+        s = reduce(s, { k: 'reveal', seg: 0, x: x[0] }, 'host', ctx());
+        s = reduce(s, { k: 'reveal', seg: 0, x: x[1] }, 'guest', ctx());
         s = reduce(s, { k: 'order', order: { kind: 'tactic', tactic: 'counter' }, tick: 0, seq: 1 }, 'guest', ctx());
+        s = reduce(s, { k: 'order', order: { kind: 'corner', corner: 'area' }, tick: 0, seq: 2 }, 'guest', ctx());
         s = reduce(s, { k: 'order', order: { kind: 'tactic', tactic: 'offensive' }, tick: 0, seq: 1 }, 'host', ctx());
         const reg = JSON.parse(JSON.stringify(buildRegistro(s, 1, '0.8.5')));
         expect(reg.orders[0]).toHaveLength(1);
-        expect(reg.orders[1]).toHaveLength(1);
+        expect(reg.orders[1]).toHaveLength(2);
         const inp = await registroInputs(reg);
         expect(inp.home.lineup.map((p) => p.uid)).toEqual(s.teams.host!.lineup.map((p) => p.uid));
         expect(inp.away.captainUid).toBe(s.teams.guest!.captainUid);
         expect(inp.orders.map((o) => o.team)).toEqual(ordersOf(s.log).map((o) => o.team));
-        expect(inp.seed).toBe(matchSeedOf(await segmentSeeds('ABCDEF', ['', x[0]], ['', x[1]])));
+        expect(inp.segmentSeeds).toEqual(await segmentSeeds('ABCDEF', [x[0]], [x[1]]));
+        // o registro refaz a mesma partida
+        const live = runMatch(FUTSAL_5, s.teams.host!, s.teams.guest!, inp.seed, {
+            orders: ordersOf(s.log),
+            segmentSeeds: inp.segmentSeeds,
+            snapshots: false,
+        });
+        const again = runMatch(FUTSAL_5, inp.home, inp.away, inp.seed, {
+            orders: inp.orders,
+            segmentSeeds: inp.segmentSeeds,
+            snapshots: false,
+        });
+        expect(again.score).toEqual(live.score);
+        expect(again.events.length).toBe(live.events.length);
+    });
+});
+
+describe('seed por trecho de verdade (motor)', () => {
+    const home = tagTeam(team('casa'), 'host');
+    const away = tagTeam(team('fora'), 'guest');
+    const chainOf = (tag: string) => Array.from({ length: SEG_COUNT }, (_, k) => H(String((k + tag.length) % 10)));
+
+    it('outros lacres dão outra partida; o mesmo trecho aberto não muda o que veio antes', async () => {
+        const a = await segmentSeeds('SALA1', chainOf('a'), chainOf('b'));
+        const b = await segmentSeeds('SALA1', chainOf('a'), chainOf('bb'));
+        expect(a).toHaveLength(SEG_COUNT);
+        const ra = runMatch(FUTSAL_5, home, away, 'base', { segmentSeeds: a });
+        const ra2 = runMatch(FUTSAL_5, home, away, 'base', { segmentSeeds: a });
+        const rb = runMatch(FUTSAL_5, home, away, 'base', { segmentSeeds: b });
+        expect(ra2.events).toEqual(ra.events);
+        expect(JSON.stringify(rb.events)).not.toBe(JSON.stringify(ra.events));
+        // trava: a partida só com os 3 primeiros trechos é igual à inteira até o fim do trecho 2
+        const part = runMatch(FUTSAL_5, home, away, 'base', { segmentSeeds: a.slice(0, 3) });
+        const cut = holdTick(part.snapshots, 3);
+        expect(cut).toBeGreaterThan(0);
+        expect(part.events.filter((e) => e.tick < cut)).toEqual(ra.events.filter((e) => e.tick < cut));
+    });
+});
+
+describe('escanteio no duelo', () => {
+    it('ordem de escanteio passa pelo mesmo carimbo e pelo limite do motor (3, à parte da tática)', () => {
+        let s = inMatch();
+        const corner = (c: 'area' | 'short' | 'mixed', seq: number): Intent => ({
+            k: 'order',
+            order: { kind: 'corner', corner: c },
+            tick: 0,
+            seq,
+        });
+        // a instrução atual (Variar) não gasta troca
+        expect(reduce(s, corner('mixed', 1), 'guest', ctx())).toBe(s);
+        s = reduce(s, corner('area', 1), 'guest', ctx(0, { tick: 100 }));
+        s = reduce(s, corner('short', 2), 'guest', ctx(0, { tick: 200 }));
+        s = reduce(s, corner('area', 3), 'guest', ctx(0, { tick: 300 }));
+        expect(s.log.filter((o) => o.team === 1)).toHaveLength(MAX_TACTIC_CHANGES);
+        expect(reduce(s, corner('mixed', 4), 'guest', ctx(0, { tick: 400 }))).toBe(s);
+        // tática continua com as 3 dela
+        s = reduce(s, { k: 'order', order: { kind: 'tactic', tactic: 'counter' }, tick: 0, seq: 4 }, 'guest', ctx());
+        expect(s.log.filter((o) => o.team === 1)).toHaveLength(4);
+        // instrução que não existe não entra
+        expect(reduce(s, corner('nada' as never, 5), 'guest', ctx())).toBe(s);
+    });
+
+    it('o cobrador vai na receita e tem que ser alguém do time', () => {
+        const t = team('cobra');
+        const r = teamRecipe({ ...t, corner: 'short', cornerTakerUid: t.lineup[3].uid });
+        expect(r.cornerTaker).toBe(3);
+        expect(validarTimeDuelo(r)).toEqual([]);
+        expect(teamFromRecipe(r, '').cornerTakerUid).toBe(teamFromRecipe(r, '').lineup[3].uid);
+        expect(validarTimeDuelo({ ...r, cornerTaker: 9 }).join()).toContain('cobrador');
+        expect(validarTimeDuelo({ ...r, corner: 'nada' as never }).join()).toContain('escanteio');
+        expect(tagTeam(teamFromRecipe(r, ''), 'guest').cornerTakerUid?.endsWith('~g')).toBe(true);
     });
 });
 

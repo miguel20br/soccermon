@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { DRAFT_PICKS } from '../../engine/draft';
 import { countSpecials, type SpecialLimit, teamRecipe, validarTimeDuelo } from '../../engine/duel-validate';
-import { FORMATIONS, type FormationId } from '../../engine/formations';
+import { FORMATIONS, type FormationId, formationOf } from '../../engine/formations';
 import { createInstance, type PokemonInstance, viewInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
+import { CORNER_PLANS } from '../../engine/runners/live-runner';
 import { TACTIC_LABEL, type Tactic, type TeamSetup } from '../../engine/state';
 import { playSfx } from '../../game/audio';
 import { formationText } from '../../i18n';
@@ -288,6 +289,8 @@ export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
         formation: team.formation ?? '1-2-1',
         tactic: team.tactic,
         order: all.map((p) => p.uid),
+        corner: team.corner ?? 'mixed',
+        cornerTaker: team.cornerTakerUid ?? null,
     }));
     useEffect(() => {
         duel.previewDraft = cfg;
@@ -351,6 +354,37 @@ export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
                                 {d.common.tactic[tc]}
                             </button>
                         ))}
+                    </div>
+                    <div className="row duel-chips">
+                        <span className="muted">{t('team.lineup.corner')}</span>
+                        {CORNER_PLANS.map((pl) => (
+                            <button
+                                key={pl}
+                                type="button"
+                                className={`btn small${cfg.corner === pl ? ' active' : ''}`}
+                                disabled={sealed}
+                                onClick={() => setCfg({ ...cfg, corner: pl })}
+                            >
+                                {d.common.cornerPlan[pl]}
+                            </button>
+                        ))}
+                        <label className="duel-taker">
+                            <span className="muted">{t('team.lineup.cornerTaker')}</span>
+                            <select
+                                value={cfg.cornerTaker ?? ''}
+                                disabled={sealed}
+                                onChange={(e) => setCfg({ ...cfg, cornerTaker: e.target.value || null })}
+                            >
+                                <option value="">{t('duel.preview.autoTaker')}</option>
+                                {cfg.order.slice(0, 5).map((u, i) =>
+                                    formationOf(cfg.formation).slots[i] === 'GK' ? null : (
+                                        <option key={u} value={u}>
+                                            {viewInstance(byUid.get(u)!).displayName}
+                                        </option>
+                                    ),
+                                )}
+                            </select>
+                        </label>
                     </div>
                     <FormationBoard
                         formation={cfg.formation}

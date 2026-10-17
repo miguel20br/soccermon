@@ -2,7 +2,7 @@ import { type DuelTeamRecipe, type SpecialLimit, teamFromRecipe, teamRecipe } fr
 import type { MatchOrder, TeamSetup } from '../engine/state';
 import type { PlaybackSpeed } from '../store/game-store';
 import { type DuelMode, type DuelResult, ordersOf, type Shared, type StampedOrder, specialLimitOf } from './duel-state';
-import { matchSeedOf, segmentSeeds } from './seal';
+import { baseSeedOf, segmentSeeds } from './seal';
 
 /**
  * Registro do duelo (docs/planos/multiplayer-revisao.md): tudo que a partida precisa pra ser refeita, num objeto que
@@ -68,22 +68,24 @@ export function buildRegistro(s: Shared, engineVersion: number, app: string, sec
 /** As entradas da partida a partir do registro: times com os mesmos uids, seed e ordens na ordem do motor. */
 export async function registroInputs(
     r: RegistroDuelo,
-): Promise<{ home: TeamSetup; away: TeamSetup; seed: string | null; orders: MatchOrder[] }> {
+): Promise<{ home: TeamSetup; away: TeamSetup; seed: string; segmentSeeds: string[]; orders: MatchOrder[] }> {
     const withUids = (recipe: DuelTeamRecipe, uids: string[]): TeamSetup => {
         const t = teamFromRecipe(recipe, '');
         const all = [...t.lineup, ...t.bench].map((p, i) => ({ ...p, uid: uids[i] ?? p.uid }));
+        const at = (i: number | undefined) => (i !== undefined && i >= 0 ? (uids[i] ?? null) : null);
         return {
             ...t,
             lineup: all.slice(0, 5),
             bench: all.slice(5),
-            captainUid: recipe.captain >= 0 ? (uids[recipe.captain] ?? null) : null,
+            captainUid: at(recipe.captain),
+            cornerTakerUid: at(recipe.cornerTaker),
         };
     };
-    const seeds = await segmentSeeds(r.room, r.reveals[0] as string[], r.reveals[1] as string[]);
     return {
         home: withUids(r.teams[0], r.uids[0]),
         away: withUids(r.teams[1], r.uids[1]),
-        seed: matchSeedOf(seeds),
+        seed: baseSeedOf(r.room, r.game),
+        segmentSeeds: await segmentSeeds(r.room, r.reveals[0], r.reveals[1]),
         orders: ordersOf([...r.orders[0], ...r.orders[1]]),
     };
 }

@@ -1,10 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { FUTSAL_5 } from '../../engine/config';
+import { FUTSAL_5, MAX_TACTIC_CHANGES } from '../../engine/config';
 import { species } from '../../engine/data';
 import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
-import { isSubOrder, type MatchEvent, type Phase, SNAP_STRIDE, TACTIC_LABEL, type Tactic } from '../../engine/state';
+import { CORNER_PLANS } from '../../engine/runners/live-runner';
+import {
+    type CornerOrder,
+    type CornerPlan,
+    isCornerOrder,
+    isTacticOrder,
+    type MatchEvent,
+    type Phase,
+    SNAP_STRIDE,
+    TACTIC_LABEL,
+    type Tactic,
+    type TacticChange,
+} from '../../engine/state';
 import { skinOf } from '../../game/animation-manager';
 import { setVolume } from '../../game/audio';
 import { EventBus } from '../../game/EventBus';
@@ -14,13 +26,13 @@ import {
     DUEL_SPEEDS,
     isSubStamped,
     leadTicks,
-    MAX_TACTIC_CHANGES,
+    type OrderBody,
     onFieldAfter,
     ordersOf,
     other,
     SIDE,
 } from '../../net/duel-state';
-import { openedSegments, playableUntil } from '../../net/seal';
+import { baseSeedOf, holdTick, openedSegments } from '../../net/seal';
 import { duel, roomNow, useDuel } from '../../net/session';
 import { PhaserGame } from '../../PhaserGame';
 import type { ChanceSpeed, PlaybackSpeed } from '../../store/game-store';
@@ -69,7 +81,9 @@ export function useCountdown(at: number | undefined): number {
 export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const s = useDuel((st) => st.shared)!;
     const role = useDuel((st) => st.role)!;
-    const matchSeed = useDuel((st) => st.matchSeed);
+    const segSeeds = useDuel((st) => st.segSeeds);
+    /** Quantas seeds de trecho a partida na tela já usa (a tela não passa do fim do último). */
+    const [simSeeds, setSimSeeds] = useState(0);
     const online = useDuel((st) => st.online);
     const suspect = useDuel((st) => st.suspect);
     const { settings } = useGame();
@@ -125,17 +139,20 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const logLen = s.log.length;
     // biome-ignore lint/correctness/useExhaustiveDependencies: o log só cresce; o tamanho diz quando mudou
     useEffect(() => {
-        if (!matchSeed) return;
+        if (!segSeeds?.length) return;
         let alive = true;
+        const seeds = segSeeds;
         const last = s.log.at(-1);
         // não passa da ordem nova enquanto a partida nova não chega
         if (last && match) EventBus.emit('match:hold', last.tick);
-        simulateMatch(home, away, matchSeed, ordersOf(s.log))
+        // seed por trecho: cada trecho aberto pelos dois muda a sorte dali pra frente (o passado não muda)
+        simulateMatch(home, away, baseSeedOf(s.room, s.game), ordersOf(s.log), seeds)
             .then((r) => {
                 if (!alive) return;
                 duel.result = r;
                 simLog.current = logLen;
                 setSimCount(logLen);
+                setSimSeeds(seeds.length);
                 setMatch((prev) => {
                     if (prev) EventBus.emit('match:replace', r);
                     return r;
@@ -147,7 +164,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         return () => {
             alive = false;
         };
-    }, [matchSeed, logLen]);
+    }, [segSeeds, logLen]);
 
     // biome-ignore lint/correctness/useExhaustiveDependencies: a cena só lê os dados na montagem; o resto vem por eventos
     const sceneData = useMemo<MatchSceneData | null>(
@@ -186,6 +203,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         const onTick = (c: Clock) => {
             tickRef.current = c.tick;
             duel.tick = c.tick;
+            duel.minute = c.minute;
             setClock(c);
         };
         const onEnded = () => {
@@ -237,11 +255,11 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         [],
     );
 
-    // trava no fim do último trecho aberto pelos dois
-    const opened = openedSegments(s.reveals.host, s.reveals.guest);
+    // trava no fim do último trecho que a partida na tela já simulou com a seed dos dois (aberto e resimulado)
+    const opened = Math.min(simSeeds, openedSegments(s.reveals.host, s.reveals.guest));
     useEffect(() => {
-        if (sceneReady) EventBus.emit('match:seg-hold', playableUntil(opened));
-    }, [sceneReady, opened]);
+        if (sceneReady && match) EventBus.emit('match:seg-hold', holdTick(match.snapshots, opened));
+    }, [sceneReady, opened, match]);
 
     // velocidade da sala
     useEffect(() => {
@@ -271,13 +289,13 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
 
     const pendingOrder = simCount < s.log.length;
     const mineLog = s.log.filter((o) => o.team === side);
-    const tacticOrders = mineLog.filter((o) => !isSubOrder(o));
+    const tacticOrders = mineLog.filter((o) => isTacticOrder(o)) as TacticChange[];
+    const cornerOrders = mineLog.filter((o) => isCornerOrder(o)) as CornerOrder[];
+    const currentCorner: CornerPlan = cornerOrders.at(-1)?.corner ?? myTeam.corner ?? 'mixed';
     const subOrders = mineLog.filter(isSubStamped);
-    const currentTactic: Tactic =
-        (tacticOrders.at(-1) as { tactic?: Tactic } | undefined)?.tactic ?? myTeam.tactic ?? 'balanced';
-    const rivalTactics = s.log.filter((o) => o.team !== side && !isSubOrder(o));
-    const rivalTactic: Tactic =
-        (rivalTactics.at(-1) as { tactic?: Tactic } | undefined)?.tactic ?? setups[side === 0 ? 1 : 0].tactic;
+    const currentTactic: Tactic = tacticOrders.at(-1)?.tactic ?? myTeam.tactic ?? 'balanced';
+    const rivalTactics = s.log.filter((o) => o.team !== side && isTacticOrder(o)) as TacticChange[];
+    const rivalTactic: Tactic = rivalTactics.at(-1)?.tactic ?? setups[side === 0 ? 1 : 0].tactic;
     const lead = leadTicks(s.speed);
     const leadMinutes = (lead / (FUTSAL_5.tickRate * FUTSAL_5.halfSeconds)) * FUTSAL_5.displayHalfMinutes;
     const canChange =
@@ -287,12 +305,11 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         !ended &&
         clock.minute + leadMinutes < FUTSAL_5.displayHalfMinutes * 2 - 1;
 
-    const order = (o: { kind: 'tactic'; tactic: Tactic } | { kind: 'sub'; outUid: string; inUid: string }) =>
-        duel.order(o, halftime);
+    const order = (o: OrderBody) => duel.order(o, halftime);
 
     // quem está em quadra e no banco agora (escalação + trocas que já aconteceram)
     const byUid = new Map([...myTeam.lineup, ...myTeam.bench].map((p) => [p.uid, p]));
-    const done = s.log.filter((o) => !isSubOrder(o) || subsDone.includes(o.inUid));
+    const done = s.log.filter((o) => !isSubStamped(o) || subsDone.includes(o.inUid));
     const onField = onFieldAfter(myTeam, done, side);
     const usedIn = new Set(subOrders.map((o) => o.inUid));
     const benchNow = myTeam.bench.map((p) => p.uid).filter((u) => !usedIn.has(u));
@@ -544,6 +561,23 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                                     ? t('match.changing')
                                     : tn('match.tacticChanges', MAX_TACTIC_CHANGES - tacticOrders.length)}
                             </span>
+                        </div>
+                        <div className="control-group corner-group" title={t('match.cornerHint')}>
+                            <span className="corner-label">{t('match.corner')}</span>
+                            {CORNER_PLANS.map((pl) => (
+                                <button
+                                    key={pl}
+                                    type="button"
+                                    className={`btn small${currentCorner === pl ? ' active' : ''}`}
+                                    disabled={
+                                        !canChange ||
+                                        (cornerOrders.length >= MAX_TACTIC_CHANGES && currentCorner !== pl)
+                                    }
+                                    onClick={() => pl !== currentCorner && order({ kind: 'corner', corner: pl })}
+                                >
+                                    {d.common.cornerPlan[pl]}
+                                </button>
+                            ))}
                         </div>
                         {ended && (
                             <div className="control-group">

@@ -94,6 +94,7 @@ export const duel = {
         ready: 'Pronto pro jogo',
         waiting: 'Esperando {name}…',
         sealed: 'Lacrado! Abre junto com o do rival.',
+        autoTaker: 'Automático',
         formation: 'Formação',
         tactic: 'Tática',
     },

@@ -391,6 +391,20 @@
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 12px;
 }
+.duel-taker {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.duel-taker select {
+    background: var(--bg-2);
+    color: var(--text);
+    border: 2px solid var(--line);
+    border-radius: 6px;
+    padding: 4px 6px;
+    font: inherit;
+    max-width: 100%;
+}
 .duel-chips {
     gap: 6px;
     flex-wrap: wrap;

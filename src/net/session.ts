@@ -36,15 +36,15 @@ import {
 import {
     abrir,
     checkReveal,
+    holdTick,
     lacrar,
     makeChain,
-    matchSeedOf,
+    openedSegments,
     randomSecret,
     roundIdx,
     roundSeed,
-    SEG_TICKS,
     segIdx,
-    segmentOf,
+    segmentOfMinute,
     segmentSeeds,
 } from './seal';
 import { type DuelTransport, localTransport, type NetMsg, supabaseTransport } from './transport';
@@ -71,8 +71,8 @@ export interface DuelView {
     online: Record<Role, boolean>;
     /** Relógio da sala − o meu (ms). */
     offset: number;
-    /** Seed da partida (sai dos lacres do trecho 1 dos dois). */
-    matchSeed: string | null;
+    /** Seeds dos trechos abertos pelos dois (vão pro `segmentSeeds` do motor); null antes do trecho 0. */
+    segSeeds: string[] | null;
     /** Minhas escolhas de "cada um com seus pacotes" (só aqui até abrir no fim). */
     packPicks: PokemonInstance[];
     /** Já lacrei a escolha da fase atual (time pronto / prévia). */
@@ -93,7 +93,7 @@ export const useDuel = create<DuelView>(() => ({
     shared: null,
     online: { host: false, guest: false },
     offset: 0,
-    matchSeed: null,
+    segSeeds: null,
     packPicks: [],
     choiceSealed: false,
     suspect: null,
@@ -193,8 +193,9 @@ class DuelSession {
     private outbox: NetMsg[] = [];
     private got = new Map<string, { b: string; last: number; seen: Set<number> }>();
     private knownRival = new Set<string>();
-    /** O que a tela da partida informa (tick na tela e a partida que está rodando). */
+    /** O que a tela da partida informa (tick e minuto na tela e a partida que está rodando). */
     tick = 0;
+    minute = 0;
     result: MatchResult | null = null;
     /** Tela de partida rodando (o relógio só corrige com a bola rolando). */
     playing = false;
@@ -261,7 +262,7 @@ class DuelSession {
             role,
             shared,
             online: { host: role === 'host', guest: role === 'guest' },
-            matchSeed: null,
+            segSeeds: null,
             packPicks: this.packsFor(shared)?.picks ?? [],
             choiceSealed: false,
             suspect: null,
@@ -305,7 +306,7 @@ class DuelSession {
         }
         this.playing = false;
         this.result = null;
-        this.set({ status: 'idle', room: null, role: null, shared: null, matchSeed: null, emote: null });
+        this.set({ status: 'idle', room: null, role: null, shared: null, segSeeds: null, emote: null });
     }
 
     /** Eu aplico as regras agora? (host; o convidado só quando o host está fora). */
@@ -322,6 +323,7 @@ class DuelSession {
             tick: this.tick,
             htTick: m?.events.find((e) => e.type === 'halftime')?.tick,
             newSeed: randomSecret().slice(0, 16),
+            atHold: this.atHold(),
         };
     }
 
@@ -456,15 +458,15 @@ class DuelSession {
             this.chain = await makeChain(top);
             this.retry.clear();
         }
-        const h = s.reveals.host[1];
-        const g = s.reveals.guest[1];
-        const key = `${s.game}|${h}|${g}`;
-        if (s.phase === 'match' && h && g && this.seedFor !== key) {
+        // seeds dos trechos: muda a cada trecho aberto pelos dois (a tela resimula com elas)
+        const opened = openedSegments(s.reveals.host, s.reveals.guest);
+        const key = `${s.game}|${opened}`;
+        if (s.phase === 'match' && opened > 0 && this.seedFor !== key) {
             this.seedFor = key;
-            const seeds = await segmentSeeds(s.room, s.reveals.host as string[], s.reveals.guest as string[]);
-            this.set({ matchSeed: matchSeedOf(seeds) });
+            const seeds = await segmentSeeds(s.room, s.reveals.host, s.reveals.guest);
+            if (this.seedFor === key) this.set({ segSeeds: seeds });
         }
-        if (s.phase !== 'match') this.set({ matchSeed: null });
+        if (s.phase !== 'match') this.set({ segSeeds: null });
         const c = this.kept.choice;
         this.set({
             packPicks: this.packsFor(s)?.picks ?? [],
@@ -764,11 +766,12 @@ class DuelSession {
      * trecho 1 abre logo no começo da partida (dele sai a seed).
      */
     private revealSegments(s: Shared, role: Role) {
-        const upTo = s.reveals[role][1] ? segmentOf(this.tick + SEG_TICKS / 2) : 1;
-        for (let k = 1; k <= upTo; k++) {
+        const upTo = s.reveals[role][0] ? segmentOfMinute(this.minute + 1) : 0;
+        for (let k = 0; k <= upTo; k++) {
             const x = this.chain[segIdx(k)];
-            const boundary = (k - 1) * SEG_TICKS;
-            const hash = this.result && k > 1 && this.tick >= boundary ? snapHash(this.result, boundary) : undefined;
+            // o hash do começo do trecho (o 1º snapshot dele) confere que as duas telas têm a mesma partida
+            const boundary = this.result && k > 0 ? holdTick(this.result.snapshots, k) : Number.POSITIVE_INFINITY;
+            const hash = this.result && this.tick >= boundary ? snapHash(this.result, boundary) : undefined;
             const have = s.reveals[role][k] === x && (!hash || s.segHash[role][k] === hash);
             if (!have && this.due(`seg-${s.game}-${k}-${hash ?? ''}`)) this.dispatch({ k: 'reveal', seg: k, x, hash });
         }
@@ -784,6 +787,14 @@ class DuelSession {
             if (Date.now() - o.at < RETRY_MS || !this.due(`ord-${s.game}-${seq}`)) continue;
             this.dispatch({ k: 'order', order: o.body, tick: o.tick, seq, ht: o.ht });
         }
+    }
+
+    /** A tela parou no fim do último trecho aberto pelos dois. */
+    atHold(): boolean {
+        const s = this.view.shared;
+        if (!s || !this.result) return false;
+        const opened = openedSegments(s.reveals.host, s.reveals.guest);
+        return this.tick >= holdTick(this.result.snapshots, opened) - 1;
     }
 
     /** Partida terminou na minha tela: quem aplica grava o resultado. */

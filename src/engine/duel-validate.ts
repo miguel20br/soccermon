@@ -4,8 +4,9 @@ import { FORMATIONS, type FormationId } from './formations';
 import { DEFAULT_LEVEL, type PokemonInstance } from './instance';
 import { ITEMS } from './items';
 import { defaultMoveset } from './moves';
+import { CORNER_PLANS } from './runners/live-runner';
 import { DESTAQUE_MAX_LEVEL, EVENT_TYPES, type Special } from './specials';
-import type { Tactic, TeamSetup } from './state';
+import type { CornerPlan, Tactic, TeamSetup } from './state';
 
 /**
  * Time do duelo (modo "Time pronto") como receita: só o que o jogador escolheu ou ganhou na copa. Atributos, nota e
@@ -35,6 +36,9 @@ export interface DuelTeamRecipe {
     bench: DuelMonRecipe[];
     /** Índice do capitão em [...lineup, ...bench] (-1 = sem capitão). */
     captain: number;
+    /** Instrução de escanteio (padrão: Variar) e o cobrador, índice em [...lineup, ...bench] (-1 = automático). */
+    corner?: CornerPlan;
+    cornerTaker?: number;
 }
 
 /**
@@ -77,6 +81,8 @@ export function teamRecipe(t: TeamSetup): DuelTeamRecipe {
         lineup: t.lineup.map(monRecipe),
         bench: t.bench.map(monRecipe),
         captain: all.findIndex((p) => p.uid === t.captainUid),
+        corner: t.corner ?? 'mixed',
+        cornerTaker: t.cornerTakerUid ? all.findIndex((p) => p.uid === t.cornerTakerUid) : -1,
     };
 }
 
@@ -145,6 +151,13 @@ export function validarTimeDuelo(r: unknown, specialLimit: SpecialLimit = null):
     });
     if (new Set(all.map((m) => m?.speciesId)).size !== all.length) out.push('espécie repetida');
     if (!Number.isInteger(t.captain) || t.captain < -1 || t.captain >= 5) out.push('capitão');
+    if (t.corner !== undefined && !CORNER_PLANS.includes(t.corner)) out.push('escanteio');
+    // o cobrador tem que ser alguém do time (ou o automático do motor)
+    if (
+        t.cornerTaker !== undefined &&
+        !(Number.isInteger(t.cornerTaker) && t.cornerTaker >= -1 && t.cornerTaker < all.length)
+    )
+        out.push('cobrador do escanteio');
     const specials = countSpecials(t);
     if (specialLimit !== null && specials > specialLimit)
         out.push(`cartas especiais: ${specials} (a sala deixa ${specialLimit})`);
@@ -182,5 +195,7 @@ export function teamFromRecipe(r: DuelTeamRecipe, suffix: string): TeamSetup {
         formation: r.formation,
         captainUid: all[r.captain]?.uid ?? null,
         manualSubs: true,
+        corner: r.corner ?? 'mixed',
+        cornerTakerUid: r.cornerTaker !== undefined && r.cornerTaker >= 0 ? (all[r.cornerTaker]?.uid ?? null) : null,
     };
 }

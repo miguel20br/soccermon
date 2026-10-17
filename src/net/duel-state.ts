@@ -1,4 +1,5 @@
 import type { Position } from '../engine/attributes';
+import { MAX_TACTIC_CHANGES } from '../engine/config';
 import { captainOptions, DRAFT_PICKS, draftOptions, playerDraftOptions } from '../engine/draft';
 import {
     DEFAULT_SPECIAL_LIMIT,
@@ -11,9 +12,21 @@ import {
 import { DEFAULT_FORMATION, FORMATIONS, type FormationId, formationOf } from '../engine/formations';
 import { type PokemonInstance, slotRating } from '../engine/instance';
 import { Rng } from '../engine/rng';
-import { isSubOrder, type MatchOrder, type SubOrder, type Tactic, type TeamSetup } from '../engine/state';
+import { CORNER_PLANS, validOrder } from '../engine/runners/live-runner';
+import {
+    type CornerOrder,
+    type CornerPlan,
+    isCornerOrder,
+    isSubOrder,
+    isTacticOrder,
+    type MatchOrder,
+    type SubOrder,
+    type Tactic,
+    type TacticChange,
+    type TeamSetup,
+} from '../engine/state';
 import type { PlaybackSpeed } from '../store/game-store';
-import { openedSegments, playableUntil } from './seal';
+import { openedSegments } from './seal';
 
 /**
  * Estado compartilhado do duelo e as regras dele, sem rede nem tela (dá pra testar tudo aqui). Um lado só aplica as
@@ -46,7 +59,8 @@ export const GRACE_MS = 5_000;
 export const WO_WAIT_MS = 60_000;
 /** A tela do VERSUS fica esse tempo antes do apito (igual pros dois). */
 export const KICKOFF_MS = 7_000;
-export const MAX_TACTIC_CHANGES = 3;
+/** Limite de trocas (tática e, à parte, escanteio): o mesmo do motor. */
+export { MAX_TACTIC_CHANGES };
 /** Igual à partida da copa: a ordem vale ~2 s de jogo à frente, mais em velocidade alta. */
 export const CHANGE_LEAD_TICKS = 40;
 export const speedMult = (s: PlaybackSpeed) => (typeof s === 'number' ? s : 4);
@@ -184,9 +198,15 @@ export interface PreviewCfg {
     formation: FormationId;
     tactic: Tactic;
     order: string[];
+    /** Instrução de escanteio e cobrador (null = o automático do motor). */
+    corner?: CornerPlan;
+    cornerTaker?: string | null;
 }
 
-export type OrderBody = { kind: 'tactic'; tactic: Tactic } | { kind: 'sub'; outUid: string; inUid: string };
+export type OrderBody =
+    | { kind: 'tactic'; tactic: Tactic }
+    | { kind: 'sub'; outUid: string; inUid: string }
+    | { kind: 'corner'; corner: CornerPlan };
 
 export type Intent =
     | { k: 'join'; peer: Peer }
@@ -223,6 +243,8 @@ export interface Ctx {
     htTick?: number;
     /** Seed nova pra revanche. */
     newSeed?: string;
+    /** A tela de quem aplica parou no fim do último trecho aberto pelos dois (`holdTick` em seal.ts). */
+    atHold?: boolean;
 }
 
 /** Limite de cartas especiais da sala (sala guardada antes da regra existir fica no padrão). */
@@ -309,6 +331,8 @@ function draftTeam(s: Shared, role: Role, picks: PokemonInstance[], formation = 
         formation,
         captainUid,
         manualSubs: true,
+        corner: 'mixed',
+        cornerTakerUid: null,
     };
 }
 
@@ -319,9 +343,16 @@ export function tagTeam(team: TeamSetup, role: Role): TeamSetup {
     const tag = (p: PokemonInstance) => (p.uid.endsWith(suf) ? p : { ...p, uid: `${base(p.uid)}${suf}` });
     const lineup = team.lineup.map(tag);
     const bench = team.bench.map(tag);
-    const capBase = team.captainUid ? base(team.captainUid) : null;
-    const cap = [...lineup, ...bench].find((p) => base(p.uid) === capBase);
-    return { ...team, lineup, bench, captainUid: cap?.uid ?? null, manualSubs: true };
+    const find = (uid: string | null | undefined) =>
+        uid ? ([...lineup, ...bench].find((p) => base(p.uid) === base(uid))?.uid ?? null) : null;
+    return {
+        ...team,
+        lineup,
+        bench,
+        captainUid: find(team.captainUid),
+        cornerTakerUid: find(team.cornerTakerUid),
+        manualSubs: true,
+    };
 }
 
 const TACTICS: Tactic[] = ['balanced', 'offensive', 'defensive', 'counter'];
@@ -337,12 +368,16 @@ export function applyPreview(team: TeamSetup, cfg: PreviewCfg): TeamSetup | null
     if (order.some((p) => !p)) return null;
     const lineup = order.slice(0, 5) as PokemonInstance[];
     if (team.captainUid && !lineup.some((p) => p.uid === team.captainUid)) return null;
+    if (cfg.corner !== undefined && !CORNER_PLANS.includes(cfg.corner)) return null;
+    if (cfg.cornerTaker != null && !byUid.has(cfg.cornerTaker)) return null;
     return {
         ...team,
         formation: cfg.formation,
         tactic: cfg.tactic,
         lineup,
         bench: order.slice(5) as PokemonInstance[],
+        corner: cfg.corner ?? team.corner ?? 'mixed',
+        cornerTakerUid: cfg.cornerTaker ?? null,
     };
 }
 
@@ -376,10 +411,13 @@ export function stampOrder(
     const mine = s.log.filter((o) => o.team === side);
     if (mine.some((o) => o.seq >= i.seq)) return null;
     if (i.order.kind === 'tactic') {
-        const tactics = mine.filter((o) => !isSubOrder(o));
-        const current = (tactics.at(-1) as { tactic?: Tactic } | undefined)?.tactic ?? team.tactic;
-        if (!TACTICS.includes(i.order.tactic) || tactics.length >= MAX_TACTIC_CHANGES || current === i.order.tactic)
-            return null;
+        const tactics = mine.filter((o) => isTacticOrder(o)) as TacticChange[];
+        const current = tactics.at(-1)?.tactic ?? team.tactic;
+        if (tactics.length >= MAX_TACTIC_CHANGES || current === i.order.tactic) return null;
+    } else if (i.order.kind === 'corner') {
+        const corners = mine.filter((o) => isCornerOrder(o)) as CornerOrder[];
+        const current = corners.at(-1)?.corner ?? team.corner ?? 'mixed';
+        if (corners.length >= MAX_TACTIC_CHANGES || current === i.order.corner) return null;
     } else if (i.order.kind === 'sub') {
         const subs = mine.filter(isSubStamped);
         const field = onFieldAfter(team, s.log, side);
@@ -393,9 +431,15 @@ export function stampOrder(
             ? ctx.htTick + 1
             : Math.ceil(Math.max(ctx.tick, Number(i.tick) || 0)) + leadTicks(s.speed);
     const tick = Math.max(base, (s.log.at(-1)?.tick ?? 0) + 1);
-    return i.order.kind === 'tactic'
-        ? { tick, team: side, tactic: i.order.tactic, seq: i.seq }
-        : { tick, team: side, kind: 'sub', outUid: i.order.outUid, inUid: i.order.inUid, seq: i.seq };
+    const o = i.order;
+    const out: StampedOrder =
+        o.kind === 'tactic'
+            ? { tick, team: side, tactic: o.tactic, seq: i.seq }
+            : o.kind === 'corner'
+              ? { tick, team: side, kind: 'corner', corner: o.corner, seq: i.seq }
+              : { tick, team: side, kind: 'sub', outUid: o.outUid, inUid: o.inUid, seq: i.seq };
+    // a mesma regra que o motor usa pra aceitar a ordem na agenda
+    return validOrder(out) ? out : null;
 }
 
 /** As ordens na ordem do motor: (tick, time, seq). */
@@ -575,7 +619,7 @@ function apply(s: Shared, i: Intent, by: Role, ctx: Ctx): Shared {
         case 'choiceOpen':
             return applyChoice(s, by, i.value, now);
         case 'reveal': {
-            if (s.phase !== 'match' || !Number.isInteger(i.seg) || i.seg < 1 || !isHex64(i.x)) return s;
+            if (s.phase !== 'match' || !Number.isInteger(i.seg) || i.seg < 0 || !isHex64(i.x)) return s;
             const mine = [...s.reveals[by]];
             if (mine[i.seg] === i.x && (!i.hash || s.segHash[by][i.seg] === i.hash)) return s;
             mine[i.seg] = i.x;
@@ -649,7 +693,7 @@ export const canClaimWO = (s: Shared, by: Role, now: number) =>
  * Quem está travando a sala agora (null = ninguém): não abriu o segredo da rodada ou do trecho, não lacrou a escolha
  * no prazo ou não abriu o lacre depois que os dois lacraram. Só tempo esgotado conta: mensagem estranha não.
  */
-export function blocker(s: Shared, ctx: Pick<Ctx, 'now' | 'tick'>): Role | null {
+export function blocker(s: Shared, ctx: Pick<Ctx, 'now' | 'atHold'>): Role | null {
     const { now } = ctx;
     const one = (missing: Role[]) => (missing.length === 1 ? missing[0] : null);
     if (s.phase === 'draft' && s.draft) {
@@ -669,9 +713,9 @@ export function blocker(s: Shared, ctx: Pick<Ctx, 'now' | 'tick'>): Role | null 
     }
     if (s.phase === 'match' && !s.result) {
         const opened = openedSegments(s.reveals.host, s.reveals.guest);
-        // antes do apito ninguém trava; sem o trecho 1 aberto, trava no 0
-        const stuck = now >= (s.kickoffAt ?? 0) + GRACE_MS && ctx.tick >= playableUntil(opened) - 1;
-        return stuck ? one(ROLES.filter((r) => !s.reveals[r][opened + 1])) : null;
+        // antes do apito ninguém trava; parado no fim do último trecho aberto, trava quem não abriu o seguinte
+        const stuck = now >= (s.kickoffAt ?? 0) + GRACE_MS && (opened === 0 || !!ctx.atHold);
+        return stuck ? one(ROLES.filter((r) => !s.reveals[r][opened])) : null;
     }
     return null;
 }

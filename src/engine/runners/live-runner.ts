@@ -20,13 +20,16 @@ import {
 const byTickTeamSeq = (a: MatchOrder, b: MatchOrder) =>
     a.tick - b.tick || a.team - b.team || (a.seq ?? 0) - (b.seq ?? 0);
 
-/** Ordem que nem dá pra aplicar (time, tick ou tática inválidos) é ignorada antes de entrar na agenda. */
-const validOrder = (o: MatchOrder) =>
+/**
+ * Ordem que nem dá pra aplicar (time, tick ou tática inválidos) é ignorada antes de entrar na agenda. O duelo usa
+ * a mesma regra antes de carimbar (src/net/duel-state.ts).
+ */
+export const validOrder = (o: MatchOrder) =>
     (o.team === 0 || o.team === 1) &&
     Number.isFinite(o.tick) &&
     o.tick >= 0 &&
     (isSubOrder(o) || (isCornerOrder(o) ? CORNER_PLANS.includes(o.corner) : Object.hasOwn(TACTIC_MODS, o.tactic)));
-const CORNER_PLANS: readonly CornerPlan[] = ['area', 'short', 'mixed'];
+export const CORNER_PLANS: readonly CornerPlan[] = ['area', 'short', 'mixed'];
 
 /**
  * Roda a partida tick a tick. Cada jogador tem um Controller — por padrão a IA; o modo jogável futuro
