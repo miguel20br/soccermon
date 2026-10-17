@@ -26,6 +26,8 @@ export const TACTIC_MODS: Record<Tactic, { attrs: Partial<Record<AttrKey, number
  */
 const COMPRESS = 0.42;
 const COMPRESS_MID = 60;
+/** A mesma compressão para um número de 0 a 99 que não é atributo (o tamanho na disputa no alto). */
+export const compressed = (v: number) => COMPRESS_MID + (v - COMPRESS_MID) * COMPRESS;
 
 /** Garra: quem perde por 3 ou mais cresce no jogo até diminuir a diferença (menos goleada, mais virada). */
 export function comebackFactor(s: MatchState, team: 0 | 1): number {
@@ -44,7 +46,7 @@ export function clutchActive(p: PlayerState): boolean {
 
 /** Atributo efetivo neste instante: base × fadiga × buffs × status × habilidade × auras rivais. */
 export function eff(s: MatchState, p: PlayerState, key: AttrKey): number {
-    const base = COMPRESS_MID + (p.attr[key] - COMPRESS_MID) * COMPRESS;
+    const base = compressed(p.attr[key]);
     let v = base * fatigueFactor(p) * (TACTIC_MODS[s.teams[p.team].tactic].attrs[key] ?? 1) * comebackFactor(s, p.team);
     for (const b of p.buffs) if (b.attr === key) v *= b.factor;
     if (p.status) {

@@ -7,6 +7,7 @@ import { viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import {
     isSubOrder,
+    isTacticOrder,
     type MatchEvent,
     type MatchOrder,
     type Phase,
@@ -126,7 +127,7 @@ export function Match() {
     // sigla no placar do celular: a do perfil se a copa tem o nome do clube, senão a tirada do nome
     const profileClub = useGame((s) => s.profile);
     const homeTag = teamNames[0] === profileClub.clubName ? profileClub.clubTag : tagFromName(teamNames[0]);
-    const tacticOrders = orders.filter((o) => !isSubOrder(o));
+    const tacticOrders = orders.filter(isTacticOrder);
     const subOrders = orders.filter(isSubOrder);
     const changes = tacticOrders;
     const currentTactic: Tactic = tacticOrders.at(-1)?.tactic ?? run?.tactic ?? 'balanced';

@@ -26,7 +26,7 @@ export interface MatchConfig {
 /**
  * Versão do motor: sobe a cada mudança que altera partidas já jogadas (mesma seed + mesmas ordens dando outro
  * jogo). Partida salva no meio com outra versão recomeça do 0 a 0, em vez de virar outro jogo ao retomar.
- * 1 = 0.8.4 (balanceamento geral). 2 = 0.8.5 (contas próprias: sin/cos/atan2/exp/log/pow do `dmath.ts`).
+ * 1 = 0.8.4 (balanceamento geral). 2 = 0.8.5 (contas próprias: sin/cos/atan2/exp/log/pow do `dmath.ts`; escanteio).
  */
 export const ENGINE_VERSION = 2;
 

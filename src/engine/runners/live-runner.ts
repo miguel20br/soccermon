@@ -3,7 +3,15 @@ import { MAX_TACTIC_CHANGES, type MatchConfig } from '../config';
 import { AIController } from '../controllers/ai-controller';
 import { TACTIC_MODS } from '../effective';
 import { applyPendingSubs, createMatch, emit, snapshot, step } from '../match';
-import { isSubOrder, type MatchOrder, type MatchState, type Tactic, type TeamSetup } from '../state';
+import {
+    type CornerPlan,
+    isCornerOrder,
+    isSubOrder,
+    type MatchOrder,
+    type MatchState,
+    type Tactic,
+    type TeamSetup,
+} from '../state';
 
 /**
  * Ordem das ordens: (tick, time, seq), estável. Assim o resultado não depende da ordem do array nem de quem
@@ -17,7 +25,8 @@ const validOrder = (o: MatchOrder) =>
     (o.team === 0 || o.team === 1) &&
     Number.isFinite(o.tick) &&
     o.tick >= 0 &&
-    (isSubOrder(o) || Object.hasOwn(TACTIC_MODS, o.tactic));
+    (isSubOrder(o) || (isCornerOrder(o) ? CORNER_PLANS.includes(o.corner) : Object.hasOwn(TACTIC_MODS, o.tactic)));
+const CORNER_PLANS: readonly CornerPlan[] = ['area', 'short', 'mixed'];
 
 /**
  * Roda a partida tick a tick. Cada jogador tem um Controller — por padrão a IA; o modo jogável futuro
@@ -31,6 +40,8 @@ export class LiveRunner {
     private readonly schedule: MatchOrder[];
     /** Trocas de tática que já valeram, por time (limite `MAX_TACTIC_CHANGES`). */
     private readonly tacticChanges: [number, number] = [0, 0];
+    /** Trocas da instrução de escanteio, por time (mesmo limite da tática, contado à parte). */
+    private readonly cornerChanges: [number, number] = [0, 0];
 
     /**
      * `orders`: ordens do técnico agendadas (tática ao vivo e substituições). A tática vale no início do tick
@@ -41,7 +52,8 @@ export class LiveRunner {
      * - aplicadas por (tick, time, seq);
      * - a ordem do tick T vale no começo do tick T (quando `state.tick` chega a T); ordem que chega com o tick já
      *   passado (`addOrder` com T < `state.tick`) é ignorada;
-     * - a 4ª troca de tática de um time é ignorada (`MAX_TACTIC_CHANGES`); repetir a tática atual não conta;
+     * - a 4ª troca de tática de um time é ignorada (`MAX_TACTIC_CHANGES`); repetir a tática atual não conta; a
+     *   instrução de escanteio tem o mesmo limite, contado à parte;
      * - substituição só com quem está no banco agora e em quadra agora (quem entrou não entra de novo; a que não
      *   der certo na hora da bola parada é ignorada em `applyPendingSubs`).
      */
@@ -82,6 +94,14 @@ export class LiveRunner {
         else this.overrides.delete(playerIdx);
     }
 
+    /** Muda a instrução de escanteio agora (Na área / Curta / Variar). */
+    changeCorner(team: 0 | 1, plan: CornerPlan) {
+        if (this.state.teams[team].corner === plan || this.cornerChanges[team] >= MAX_TACTIC_CHANGES) return;
+        this.cornerChanges[team]++;
+        this.state.teams[team].corner = plan;
+        emit(this.state, { type: 'cornerPlan', team, plan });
+    }
+
     /** Um tick de simulação (1/tickRate s). */
     step() {
         const s = this.state;
@@ -89,6 +109,7 @@ export class LiveRunner {
             const order = this.schedule.shift()!;
             if (s.phase === 'fulltime') continue;
             if (isSubOrder(order)) s.pendingSubs.push(order);
+            else if (isCornerOrder(order)) this.changeCorner(order.team, order.corner);
             else this.changeTactic(order.team, order.tactic);
         }
         // troca pedida no intervalo entra no vestiário, não na 1ª bola parada do 2º tempo
