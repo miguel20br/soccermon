@@ -6,8 +6,17 @@
  * Nonce: o Google recebe o hash SHA-256 (hex); o Supabase recebe o valor cru e confere com o que veio no token.
  */
 
+/**
+ * Origens cadastradas no Google Cloud (Authorized JavaScript origins). O Google não aceita curinga, então o link de
+ * teste da Vercel (soccermon-git-<branch>-…) daria "origin_mismatch": lá o jogo usa o login por redirecionamento.
+ */
+const GSI_ORIGINS = ['https://soccermon.com', 'https://soccermon.vercel.app', 'http://localhost:8080'];
+
 /** Client ID do OAuth (Web) do Google. É público por natureza (vai no HTML de qualquer site com o botão). */
-export const GOOGLE_CLIENT_ID: string = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '';
+export const GOOGLE_CLIENT_ID: string =
+    typeof location !== 'undefined' && GSI_ORIGINS.includes(location.origin)
+        ? (import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '')
+        : '';
 
 interface GsiButtonOptions {
     theme?: 'outline' | 'filled_blue' | 'filled_black';
