@@ -47,6 +47,7 @@ img.pf-avatar:not(.pixel) {
 .pf-who h2 {
     margin: 0;
     font-size: 20px;
+    line-height: 1.1;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -121,6 +122,9 @@ img.pf-avatar:not(.pixel) {
     box-shadow: 0 2px 0 #0e1430;
 }
 .pf-title-line {
+    /* o título cola no nome (como no Showdown); o clube fica com o respiro normal abaixo */
+    margin-top: -3px;
+    line-height: 1.15;
     color: var(--yellow);
     font-size: 13px;
     font-weight: 700;
