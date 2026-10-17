@@ -115,6 +115,7 @@ export const team: typeof pt = {
         noEffect: ' (no effect in futsal)',
     },
     modal: {
+        evoNote: 'Fills up by playing well for its position. When full, it evolves into {name} at the next set piece.',
         aria: "{name}'s card",
         dexLine: '#{id} · {tier} · level {level}',
         positions: 'Positions',

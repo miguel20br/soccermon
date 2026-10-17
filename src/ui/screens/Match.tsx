@@ -283,8 +283,10 @@ export function Match() {
      * resimula a partida com a agenda inteira. As ordens ficam salvas para retomar a partida igual.
      */
     const sendOrder = async (make: (tick: number) => MatchOrder) => {
-        // sempre depois da ordem anterior, para a ordem do motor bater com a da tela
-        const tick = Math.max(Math.ceil(tickRef.current + leadTicks), (orders.at(-1)?.tick ?? 0) + 1);
+        // sempre depois da ordem anterior, para a ordem do motor bater com a da tela; no intervalo a partida
+        // está parada, então vale já no tick seguinte (a troca acontece no vestiário)
+        const lead = halftime ? 1 : leadTicks;
+        const tick = Math.max(Math.ceil(tickRef.current + lead), (orders.at(-1)?.tick ?? 0) + 1);
         const schedule = [...orders, make(tick)];
         const seed = match.seed;
         setPending(true);
@@ -426,8 +428,11 @@ export function Match() {
                                 names={teamNames}
                                 nameOf={(idx) => {
                                     const ht = match.events.find((e) => e.type === 'halftime')?.tick ?? 0;
+                                    // trocas até a saída de bola do 2º tempo (as feitas no intervalo entram)
+                                    const ko =
+                                        match.events.find((e) => e.type === 'kickoff' && e.tick > ht)?.tick ?? ht;
                                     const sub = match.events
-                                        .filter((e) => e.type === 'sub' && e.outIdx === idx && e.tick <= ht)
+                                        .filter((e) => e.type === 'sub' && e.outIdx === idx && e.tick <= ko)
                                         .at(-1);
                                     return sub && sub.type === 'sub' ? sub.in : match.roster[idx].name;
                                 }}

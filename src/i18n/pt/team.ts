@@ -118,6 +118,7 @@ export const team = {
         noEffect: ' (sem efeito no futsal)',
     },
     modal: {
+        evoNote: 'Enche jogando bem pela posição. Cheia, evolui para {name} na próxima bola parada.',
         aria: 'Carta de {name}',
         dexLine: '#{id} · {tier} · nível {level}',
         positions: 'Posições',

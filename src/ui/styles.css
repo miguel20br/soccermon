@@ -5930,13 +5930,25 @@ a.home-tile {
 }
 
 /* barra de evolução acumulada na copa (some quando zera; enche até o Pokémon evoluir) */
+/* barra de evolução da vaga: roxa como a da partida e com a setinha de evoluir, pra não parecer fôlego */
 .slot-evo {
-    width: 80%;
+    position: relative;
+    width: calc(80% - 8px);
     height: 4px;
-    margin-top: 2px;
+    margin: 2px 0 0 8px;
     border-radius: 2px;
-    background: linear-gradient(90deg, #7dd3fc calc(var(--evo) * 100%), transparent 0), rgb(0 0 0 / 40%);
-    box-shadow: 0 0 6px rgb(125 211 252 / calc(var(--evo) * 70%));
+    background: linear-gradient(90deg, #a48bff calc(var(--evo) * 100%), transparent 0), rgb(0 0 0 / 40%);
+    box-shadow: 0 0 6px rgb(164 139 255 / calc(var(--evo) * 70%));
+}
+.slot-evo::before {
+    content: "";
+    position: absolute;
+    left: -8px;
+    top: -2px;
+    width: 6px;
+    height: 8px;
+    background: #a48bff;
+    clip-path: polygon(50% 0, 100% 50%, 70% 50%, 70% 100%, 30% 100%, 30% 50%, 0 50%);
 }
 
 /* ---------- Fase 3: number go up ----------
@@ -6814,4 +6826,12 @@ body {
     line-clamp: 3;
     overflow: hidden;
     font-size: 0.85em;
+}
+
+/* barra de evolução na carta completa, na largura da carta */
+.card-modal-left .inspect-energy,
+.card-modal-left .inspect-note {
+    box-sizing: border-box;
+    max-width: 230px;
+    padding: 0 4px;
 }

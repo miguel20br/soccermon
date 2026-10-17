@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { abilityEffect } from '../../engine/abilities';
 import { type AttrKey, computeAttributes, POSITIONS, physiqueOf } from '../../engine/attributes';
 import { MOVES, species } from '../../engine/data';
+import { EVO_THRESHOLD, evolutionTarget } from '../../engine/evolution';
 import { viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { linksOf } from '../../engine/links';
@@ -74,6 +75,8 @@ export function CardModal() {
     if (!inst) return null;
     const view = viewInstance(inst);
     const sp = view.species;
+    const evoTarget = evolutionTarget(inst.speciesId, inst.uid);
+    const evoPct = Math.min(100, Math.round(((inst.evo ?? 0) / EVO_THRESHOLD) * 100));
     const abilityWorks = Object.keys(abilityEffect(inst.ability)).length > 0;
     const item = inst.item ?? null;
     // bônus/penalidades: os da carta + os do time (se ela está no seu elenco), a mesma regra do motor
@@ -120,6 +123,21 @@ export function CardModal() {
                                 level: inst.level,
                             })}
                         </div>
+                        {evoTarget && (
+                            <>
+                                {/* a mesma barra da partida, com nome: a do quadro da escalação parecia fôlego */}
+                                <div className="inspect-energy evo">
+                                    <span>{t('team.inspect.evolution')}</span>
+                                    <span className="bar">
+                                        <i style={{ width: `${evoPct}%` }} />
+                                    </span>
+                                    <b>{evoPct}%</b>
+                                </div>
+                                <div className="muted inspect-note">
+                                    {t('team.modal.evoNote', { name: species(evoTarget).name })}
+                                </div>
+                            </>
+                        )}
                         {note && <div className="card-note">{note}</div>}
                         {actions.length > 0 && (
                             <div className="modal-actions">

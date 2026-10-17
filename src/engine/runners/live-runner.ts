@@ -1,7 +1,7 @@
 import type { Command, Controller } from '../commands';
 import type { MatchConfig } from '../config';
 import { AIController } from '../controllers/ai-controller';
-import { createMatch, emit, snapshot, step } from '../match';
+import { applyPendingSubs, createMatch, emit, snapshot, step } from '../match';
 import { isSubOrder, type MatchOrder, type MatchState, type Tactic, type TeamSetup } from '../state';
 
 /**
@@ -46,6 +46,8 @@ export class LiveRunner {
             if (isSubOrder(order)) s.pendingSubs.push(order);
             else this.changeTactic(order.team, order.tactic);
         }
+        // troca pedida no intervalo entra no vestiário, não na 1ª bola parada do 2º tempo
+        if (s.phase === 'halftime') applyPendingSubs(s);
         const commands: (Command | Command[])[] = s.players.map((p) =>
             (this.overrides.get(p.idx) ?? this.ai).decide(p.idx),
         );

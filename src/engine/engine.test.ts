@@ -568,6 +568,21 @@ describe('substituição pedida pelo técnico', () => {
         expect(before).toEqual(base.events.filter((e) => e.tick < T));
         expect(r.finalRoster.some((p) => p.uid === inn.uid)).toBe(true);
     });
+
+    it('troca pedida no intervalo entra no vestiário, antes da saída de bola do 2º tempo', () => {
+        const base = runMatch(FUTSAL_5, home, away, 5, { snapshots: false });
+        const ht = base.events.find((e) => e.type === 'halftime')?.tick ?? 0;
+        const out = home.lineup[2];
+        const inn = home.bench[0];
+        const r = runMatch(FUTSAL_5, home, away, 5, {
+            snapshots: false,
+            orders: [{ tick: ht + 1, team: 0, kind: 'sub', outUid: out.uid, inUid: inn.uid }],
+        });
+        const sub = r.events.find((e) => e.type === 'sub' && e.team === 0);
+        const ko = r.events.find((e) => e.type === 'kickoff' && e.tick > ht)?.tick ?? 0;
+        expect(sub?.tick).toBe(ht + 1);
+        expect(sub && sub.tick < ko).toBe(true);
+    });
 });
 
 describe('evolução no meio da partida', () => {
