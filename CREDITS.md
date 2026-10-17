@@ -16,8 +16,9 @@ Soccermon é um fan project sem fins lucrativos criado por **Miguel Cunha** ([@m
 | Fonte Galmuri | [quiple/galmuri](https://github.com/quiple/galmuri) | SIL OFL 1.1 (`public/fonts/OFL-Galmuri.md`) |
 | Efeitos sonoros procedurais | [ZzFX](https://github.com/KilledByAPixel/ZzFX) | MIT |
 | Apito (`public/assets/sfx/apito*.mp3`) | "Referee whistle blow, gymnasium", SpliceSound ([freesound 218318](https://freesound.org/people/SpliceSound/sounds/218318/)) | CC0 |
-| Torcida (`public/assets/sfx/torcida*.mp3`), recortes de "Football Austria vs. Sweden" | [Work With Sounds](https://commons.wikimedia.org/wiki/File:WWS_FootballAustriavs.Sweden.ogg) (Wikimedia Commons) | CC BY 4.0 |
-| Palmas (`public/assets/sfx/palmas.mp3`), recorte de "applause-I" | thore ([Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Applause_i.ogg)) | domínio público |
+| Torcida comemorando (`torcida-gol-*.mp3`), recortes de "Free Crowd Cheering Sounds" | Gregor Quendel ([OpenGameArt](https://opengameart.org/content/free-crowd-cheering-sounds)) | CC BY 4.0 |
+| Vaia (`torcida-vaia-*.mp3`), "Audience Booing" | Soundgoats ([Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Soundgoats_-_Audience_Booing.wav)) | domínio público |
+| "Uuuh" da torcida (`torcida-uuh-*.mp3`), coro montado com "oooooooooooooo" | AuraVoice ([OpenGameArt](https://opengameart.org/content/oooooooooooooo)) | CC0 |
 
 ## Dados
 

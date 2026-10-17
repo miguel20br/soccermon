@@ -1,11 +1,12 @@
 import { type ReactNode, useRef, useState } from 'react';
 import { cloudEnabled, deleteAccount, signOut, useCloud } from '../../cloud/cloud';
-import { playCry, playSfx } from '../../game/audio';
+import { playCrowd, playCry, playSfx } from '../../game/audio';
 import { getLang, type Lang, t as tr } from '../../i18n';
 import { htmlLang } from '../../i18n/lang';
 import { rich, useLang, useT } from '../../i18n/react';
 import {
     type ArrowSize,
+    type ChanceSpeed,
     DEFAULT_SETTINGS,
     migrateSave,
     type NamesOnField,
@@ -111,6 +112,12 @@ const speedOptions = (t: T): { value: PlaybackSpeed; label: string }[] => [
     { value: 8, label: '8x' },
     { value: 'highlights', label: t('settings.screen.highlights') },
 ];
+const chanceOptions = (t: T): { value: ChanceSpeed; label: string }[] => [
+    { value: 1, label: '1x' },
+    { value: 2, label: '2x' },
+    { value: 4, label: '4x' },
+    { value: 0, label: t('settings.screen.chanceOff') },
+];
 const arrowOptions = (t: T): { value: ArrowSize; label: string }[] => [
     { value: 'small', label: t('settings.screen.arrowSmall') },
     { value: 'medium', label: t('settings.screen.arrowMedium') },
@@ -179,6 +186,14 @@ export function Settings() {
                         preview={() => playSfx('kick')}
                     />
                 </Row>
+                <Row title={t('settings.screen.crowd')} hint={t('settings.screen.crowdHint')}>
+                    <VolumeSlider
+                        label={t('settings.screen.crowdVolume')}
+                        value={settings.crowdVolume}
+                        onChange={(crowdVolume) => set({ crowdVolume })}
+                        preview={() => playCrowd('gol')}
+                    />
+                </Row>
                 <Row title={t('settings.screen.criesStyle')}>
                     <Segmented
                         label={t('settings.screen.criesStyle')}
@@ -210,6 +225,14 @@ export function Settings() {
                         value={settings.cinematic}
                         options={onOff(t('settings.screen.cinematicOn'), t('settings.screen.cinematicOff'))}
                         onPick={(cinematic) => set({ cinematic })}
+                    />
+                </Row>
+                <Row title={t('settings.screen.chance')} hint={t('settings.screen.chanceHint')}>
+                    <Segmented
+                        label={t('settings.screen.chance')}
+                        value={settings.chanceSpeed}
+                        options={chanceOptions(t)}
+                        onPick={(chanceSpeed) => set({ chanceSpeed })}
                     />
                 </Row>
                 <Row title={t('settings.screen.names')}>

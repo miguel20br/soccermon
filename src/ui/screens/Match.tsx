@@ -145,6 +145,7 @@ export function Match() {
                       cinematic: settings.cinematic,
                       namesOnField: settings.namesOnField,
                       arrowSize: settings.arrowSize,
+                      chanceSpeed: settings.chanceSpeed,
                       reduceMotion: reduceMotionOn(settings.reduceMotion),
                       extraSpecies: [...(run?.picks ?? []), ...(opponent?.bench ?? [])].map((p) =>
                           skinOf(p.speciesId, p.shiny),

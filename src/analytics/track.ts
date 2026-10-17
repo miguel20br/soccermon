@@ -147,7 +147,13 @@ function onChange(s: GameState, prev: GameState) {
 
     if (s.profile.clubColor !== prev.profile.clubColor) track('club_color', { color: s.profile.clubColor });
     for (const k of Object.keys(s.settings) as (keyof GameState['settings'])[]) {
-        if (k !== 'volume' && k !== 'criesVolume' && k !== 'sfxVolume' && s.settings[k] !== prev.settings[k]) {
+        if (
+            k !== 'volume' &&
+            k !== 'criesVolume' &&
+            k !== 'sfxVolume' &&
+            k !== 'crowdVolume' &&
+            s.settings[k] !== prev.settings[k]
+        ) {
             track('setting', { key: k, value: String(s.settings[k]) });
         }
     }

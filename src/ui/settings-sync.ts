@@ -27,7 +27,12 @@ function apply(settings: Settings) {
     document.title =
         lang === 'en' ? 'Soccermon · Pokémon draft and futsal cup' : 'Soccermon · Draft de Pokémon e copa de futsal';
     document.documentElement.dataset.reduceMotion = String(reduceMotionOn(settings.reduceMotion));
-    setVolumes({ master: settings.volume, cries: settings.criesVolume, sfx: settings.sfxVolume });
+    setVolumes({
+        master: settings.volume,
+        cries: settings.criesVolume,
+        sfx: settings.sfxVolume,
+        crowd: settings.crowdVolume,
+    });
 }
 
 /** Liga as configurações globais (uma vez, no início do app): movimento reduzido e volume por canal. */

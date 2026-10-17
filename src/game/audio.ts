@@ -21,7 +21,7 @@ const SFX = {
 export type SfxName = keyof typeof SFX;
 
 /** Volume geral e de cada canal (0..1). Gritos e efeitos tocam com `geral × canal`. */
-const vol = { master: 0.6, cries: 1, sfx: 1 };
+const vol = { master: 0.6, cries: 1, sfx: 1, crowd: 1 };
 
 const applyZzfx = () => {
     ZZFX.volume = 0.35 * vol.master * vol.sfx;
@@ -34,7 +34,7 @@ export function setVolume(v: number) {
 }
 
 /** Volume geral e dos canais (gritos, efeitos) de uma vez. */
-export function setVolumes(v: { master?: number; cries?: number; sfx?: number }) {
+export function setVolumes(v: { master?: number; cries?: number; sfx?: number; crowd?: number }) {
     Object.assign(vol, Object.fromEntries(Object.entries(v).filter(([, x]) => typeof x === 'number')));
     applyZzfx();
 }
@@ -51,8 +51,11 @@ export function playSfx(name: SfxName, pitch = 1) {
     }
 }
 
-/** Sons gravados (apito do trailer, torcida): `public/assets/sfx/{nome}.mp3`, no canal de efeitos. */
-export type SampleName = 'apito' | 'apito-curto' | 'torcida' | 'torcida-gol' | 'torcida-uuh' | 'palmas';
+/** Sons gravados (apito do trailer, torcida): `public/assets/sfx/{nome}.mp3`. */
+type SampleName = 'apito' | 'apito-curto' | `torcida-${CrowdCall}-${number}`;
+/** O que a torcida (que torce por você) faz: gol seu, gol do rival, quase. */
+export type CrowdCall = 'gol' | 'vaia' | 'uuh';
+const CROWD_VARIANTS: Record<CrowdCall, number> = { gol: 3, vaia: 2, uuh: 2 };
 const buffers = new Map<SampleName, Promise<AudioBuffer | null>>();
 
 function sample(name: SampleName) {
@@ -67,8 +70,7 @@ function sample(name: SampleName) {
     return b;
 }
 
-export function playSample(name: SampleName, gain = 1) {
-    const level = vol.master * vol.sfx * gain;
+function play(name: SampleName, level: number) {
     if (level <= 0) return;
     void sample(name).then((buf) => {
         const ctx = ZZFX.audioContext;
@@ -82,44 +84,20 @@ export function playSample(name: SampleName, gain = 1) {
     });
 }
 
-/** Murmúrio da torcida em loop; `crowdLevel(0)` cala (pausa, fim, saiu da tela). */
-let crowd: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
-let crowdTarget = 0;
-
-export function crowdLevel(level: number) {
-    const ctx = ZZFX.audioContext;
-    const target = level * vol.master * vol.sfx * 0.5;
-    if (Math.abs(target - crowdTarget) < 0.01) return;
-    crowdTarget = target;
-    if (crowd) crowd.gain.gain.setTargetAtTime(target, ctx.currentTime, 0.4);
-    else if (target > 0) {
-        void sample('torcida').then((buf) => {
-            if (!buf || crowd || crowdTarget <= 0) return;
-            const gain = ctx.createGain();
-            gain.gain.value = 0;
-            gain.gain.setTargetAtTime(crowdTarget, ctx.currentTime, 0.8);
-            const src = ctx.createBufferSource();
-            src.buffer = buf;
-            src.loop = true;
-            src.connect(gain).connect(ctx.destination);
-            src.start();
-            crowd = { src, gain };
-        });
-    }
+/** Apito (canal de efeitos). */
+export function playSample(name: 'apito' | 'apito-curto', gain = 1) {
+    play(name, vol.master * vol.sfx * gain);
 }
 
-export function crowdStop() {
-    crowdTarget = 0;
-    crowd?.src.stop();
-    crowd = null;
-}
+const lastCrowd: Partial<Record<CrowdCall, number>> = {};
 
-// aba escondida: o WebAudio seguiria tocando a torcida no fundo
-if (typeof document !== 'undefined') {
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden) void ZZFX.audioContext.suspend();
-        else void ZZFX.audioContext.resume();
-    });
+/** Torcida (canal próprio): sorteia uma das gravações, nunca a mesma duas vezes seguidas. */
+export function playCrowd(call: CrowdCall, gain = 1) {
+    const n = CROWD_VARIANTS[call];
+    let i = 1 + Math.floor(Math.random() * n);
+    if (n > 1 && i === lastCrowd[call]) i = (i % n) + 1;
+    lastCrowd[call] = i;
+    play(`torcida-${call}-${i}`, vol.master * vol.crowd * gain);
 }
 
 const cryCache = new Map<string, HTMLAudioElement>();

@@ -166,6 +166,8 @@ export interface LiveMatch {
 export type NamesOnField = 'all' | 'mine' | 'none';
 export type ArrowSize = 'small' | 'medium' | 'large';
 export type ReduceMotion = 'system' | 'on' | 'off';
+/** Velocidade a que a partida cai na chance de gol (0 = não cai). */
+export type ChanceSpeed = 0 | 1 | 2 | 4;
 
 export interface Settings {
     cries: CryStyle;
@@ -173,9 +175,12 @@ export interface Settings {
     volume: number;
     criesVolume: number;
     sfxVolume: number;
+    crowdVolume: number;
     /** Velocidade com que a partida começa. */
     speed: PlaybackSpeed;
     cinematic: boolean;
+    /** Velocidade nas chances de gol (gol, trave, defesa), mesmo no 8x. */
+    chanceSpeed: ChanceSpeed;
     /** Nomes dos Pokémon na quadra. */
     namesOnField: NamesOnField;
     /** Setinha na cabeça dos Pokémon do seu time. */
@@ -197,9 +202,11 @@ export const DEFAULT_SETTINGS: Settings = {
     volume: 0.6,
     criesVolume: 1,
     sfxVolume: 1,
+    crowdVolume: 1,
     // 1x deixava a partida com ~13 min; 4x é o ritmo de quem chega (cada um muda na partida ou em Configurações)
     speed: 4,
     cinematic: true,
+    chanceSpeed: 1,
     namesOnField: 'all',
     arrowSize: 'medium',
     reduceMotion: 'system',

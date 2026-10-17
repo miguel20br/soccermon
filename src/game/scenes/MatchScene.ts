@@ -25,7 +25,7 @@ import {
 } from '../../engine/state';
 import { dir8 } from '../../engine/vec';
 import { dict, linkText, t as tr } from '../../i18n';
-import type { ArrowSize, CryStyle, NamesOnField, PlaybackSpeed } from '../../store/game-store';
+import type { ArrowSize, ChanceSpeed, CryStyle, NamesOnField, PlaybackSpeed } from '../../store/game-store';
 import { hexToNumber, TYPE_COLOR } from '../../ui/type-colors';
 import {
     animForAction,
@@ -40,7 +40,7 @@ import {
     shadowSize,
     skinOf,
 } from '../animation-manager';
-import { crowdLevel, crowdStop, playCry, playSample, playSfx } from '../audio';
+import { playCrowd, playCry, playSample, playSfx } from '../audio';
 import { trailParticle, typeBurst } from '../ball-trail';
 import { BattleBox } from '../battle-box';
 import { Cinematics, FOCUS_DEPTH } from '../cinematics';
@@ -60,6 +60,8 @@ export interface MatchSceneData {
     namesOnField?: NamesOnField;
     /** Tamanho da setinha do seu time (Configurações). Padrão: média. */
     arrowSize?: ArrowSize;
+    /** Velocidade nas chances de gol (Configurações; 0 = não cai). Padrão: 1x. */
+    chanceSpeed?: ChanceSpeed;
     /** Reduzir movimento (já resolvido): câmera parada, sem tremida, clarão nem zoom. */
     reduceMotion?: boolean;
     /** Folhas (skinOf) que podem entrar em campo (bancos inteiros): pré-carregadas para substituições. */
@@ -400,7 +402,6 @@ export class MatchScene extends Phaser.Scene {
         EventBus.on('match:inspect-close', this.onInspectClose, this);
         EventBus.on('match:inspect-request', this.onInspectRequest, this);
         this.unbind = () => {
-            crowdStop();
             EventBus.off('match:seek-fulltime', this.onSeekFulltime, this);
             EventBus.off('match:resume', this.onResume, this);
             EventBus.off('match:evolution-done', this.onEvolutionDone, this);
@@ -789,11 +790,7 @@ export class MatchScene extends Phaser.Scene {
 
     // ------------------------------------------------------------------ playback
     update(time: number, delta: number) {
-        if (this.ended || !this.snaps.length || this.paused || this.inspecting) {
-            // torcida: cala no fim, fica no murmúrio baixo com a partida parada
-            crowdLevel(this.ended || !this.snaps.length ? 0 : 0.3);
-            return;
-        }
+        if (this.ended || !this.snaps.length || this.paused || this.inspecting) return;
         // evolução: a partida para enquanto o Pokémon evolui, como nos jogos
         const factor = time < this.holdReal ? 0 : this.currentSpeedFactor(time);
         this.playTick = Math.min(this.playTick + (delta / 1000) * TICK_RATE * factor, this.holdAt - 1e-3);
@@ -803,10 +800,6 @@ export class MatchScene extends Phaser.Scene {
         }
 
         const { index, t } = this.locate(this.playTick);
-        // a torcida cresce com a bola chegando perto de um dos gols
-        const half = FUTSAL_5.pitch.length / 2;
-        const near = Math.abs(this.snaps[index].bx - half) / half;
-        crowdLevel(factor === 0 ? 0.3 : 0.6 + 0.7 * near ** 3);
         const inShootout = this.penalties.length > 0 && this.playTick >= this.fulltimeTick + TICK_RATE;
         if (inShootout) {
             if (!this.shootoutOn) this.startShootout();
@@ -985,13 +978,16 @@ export class MatchScene extends Phaser.Scene {
             const near =
                 (ahead !== undefined && ahead - this.playTick < TICK_RATE * 1.5) ||
                 (last !== undefined && this.playTick - last < TICK_RATE);
-            base = near ? 1 : 16;
+            base = near ? this.md.chanceSpeed || 1 : 16;
         }
         // a disputa de pênaltis sempre em ritmo assistível, em qualquer velocidade
         if (this.penalties.length > 0 && this.playTick >= this.fulltimeTick) base = Math.min(base, 1.25);
         // lance de gol chegando (gol, trave ou defesa): cai para 1x mesmo em 8x (81% jogam em 8x e perdiam o lance)
+        // (Configurações: 1x, 2x, 4x ou não cair)
+        const slow = this.md.chanceSpeed ?? 1;
+        if (!slow) return base;
         const goal = this.goalTicks.find((t) => t >= this.playTick);
-        if (goal !== undefined && goal - this.playTick <= GOAL_LEAD) base = Math.min(base, 1);
+        if (goal !== undefined && goal - this.playTick <= GOAL_LEAD) base = Math.min(base, slow);
         if (!this.md.cinematic) return base;
         // câmera lenta chegando no gol/trave/defesa
         const next = this.dramaTicks.find((t) => t >= this.playTick);
@@ -1349,7 +1345,6 @@ export class MatchScene extends Phaser.Scene {
                 break;
             case 'fulltime': {
                 playSample('apito');
-                playSample('palmas', 0.8);
                 // fim de jogo: faixa grande; vitória dá um toque, derrota fica no sussurro
                 const [mine, theirs] = this.snaps[this.locate(e.tick).index]?.score ?? [0, 0];
                 this.cine.drama(tr('battle.fulltime'), {
@@ -1372,7 +1367,8 @@ export class MatchScene extends Phaser.Scene {
                 break;
             case 'save': {
                 playSfx('save');
-                playSample('torcida-uuh', 0.5);
+                // a torcida é sua: "uuuh" quando o goleiro rival pega o seu chute
+                if (this.players[e.by]?.team === 1) playCrowd('uuh', 0.8);
                 const gk = this.players[e.by];
                 if (gk) this.highlight('save', gk);
                 // agarrou x espalmou: dá pra ver o que aconteceu com a bola
@@ -1409,7 +1405,7 @@ export class MatchScene extends Phaser.Scene {
             }
             case 'post': {
                 playSfx('post');
-                playSample('torcida-uuh');
+                if (this.players[e.shooter]?.team === 0) playCrowd('uuh');
                 if (cinematic) {
                     this.cine.drama(tr('battle.bigPost'), {
                         color: '#ffffff',
@@ -1422,7 +1418,7 @@ export class MatchScene extends Phaser.Scene {
             case 'goal': {
                 // seu gol: sobe um semitom a cada gol no jogo (o 3º soa mais alto que o 1º)
                 playSfx('goal', e.team === 0 ? 2 ** ((e.score[0] - 1) / 12) : 0.9);
-                playSample('torcida-gol', e.team === 0 ? 1 : 0.6);
+                playCrowd(e.team === 0 ? 'gol' : 'vaia');
                 const scorer = this.players[e.by];
                 if (scorer) {
                     playCry(scorer.speciesId, cries, 1.2);
@@ -1731,7 +1727,9 @@ export class MatchScene extends Phaser.Scene {
                 break;
             case 'penalty': {
                 playSfx(e.scored ? 'goal' : 'save');
-                playSample(e.scored ? 'torcida-gol' : 'torcida-uuh', 0.7);
+                // pênalti: comemora o seu e a defesa do seu goleiro, vaia o do rival, "uuuh" no seu perdido
+                const mine = this.players[e.by]?.team === 0;
+                playCrowd(e.scored ? (mine ? 'gol' : 'vaia') : mine ? 'uuh' : 'gol', 0.7);
                 // a cobrança que decide a disputa pesa: explosão se você ganha, toque se perde
                 const last = this.penalties.at(-1);
                 if (last && last.tick === e.tick && last.by === e.by)

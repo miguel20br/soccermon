@@ -94,7 +94,7 @@ Na 0.8.3 (plano em [docs/planos/jogo-gostoso.md](docs/planos/jogo-gostoso.md)): 
 `MatchScene`), câmera lenta igual pra gol/trave/defesa, rastro do tipo na bola (`src/game/ball-trail.ts`), condução
 refeita, shiny em campo (`scripts/build-pmd-shiny.ts`), defesa jockey, intervalo com decisão, pacote de cartas
 (`CardPack.tsx`), VERSUS novo, barra de evolução que não zera (limiar 15) e sons gravados (`public/assets/sfx/`:
-apito do trailer, torcida e palmas, créditos no CREDITS.md; `playSample`/`crowdLevel` em `src/game/audio.ts`).
+apito do trailer e torcida do lado do jogador: gol, vaia e "uuuh" com variações, créditos no CREDITS.md; `playSample`/`playCrowd` em `src/game/audio.ts`).
 
 
 **Plano de lançamento e próximas versões (0.8.3 → 1.0): [docs/planos/lancamento.md](docs/planos/lancamento.md).** O Miguel
