@@ -354,3 +354,13 @@ partida inteira a cada ordem do rival (0,5 s) num celular fraco (hoje só aconte
 - Histórico do amistoso só no save de cada um (sem tabela nova).
 - Seed por trecho e W.O.: o Miguel pediu explicação. O que ele quer: as duas telas vendo a partida ao mesmo tempo e
   nenhum jeito de burlar.
+- **Seed por trecho e W.O. (aprovado):** dado em trechos de 2 min, cada lado põe metade com lacre (hash) trocado antes
+  da partida e aberto sozinho no começo de cada trecho. Queda: a IA técnica decide por quem caiu, a partida vai até
+  o fim do trecho e espera mais até 60 s; não voltou, vitória por W.O. pra quem ficou.
+- **3 modos de duelo, separados (o jogador escolhe ao criar a sala):**
+  1. **Time pronto:** cada um entra com um time que já tem (copa atual ou campeão do Hall da Fama).
+  2. **Disputa:** 4 cartas da mesma vaga por rodada; um tira, o outro tira, as 2 que sobram queimam; quem escolhe
+     primeiro alterna.
+  3. **Cada um com seus pacotes:** mesma sorte de pacotes, escolhas do rival escondidas; no fim, 30 s vendo o time
+     do outro pra ajustar escalação e tática.
+  Tempo por escolha 20 s (capitão 30 s); acabou o tempo, sai a carta de maior nota pra vaga.
