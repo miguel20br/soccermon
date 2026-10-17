@@ -187,7 +187,8 @@
     align-items: center;
     gap: 4px 10px;
     padding: 12px;
-    border-left: 6px solid var(--club, var(--line));
+    /* a cor do clube contorna o cartão inteiro (antes era uma faixa grossa só na esquerda) */
+    border: 2px solid var(--club, var(--line));
     text-align: left;
 }
 .duel-peer.empty {
@@ -195,7 +196,7 @@
     justify-content: center;
     gap: 10px;
     min-height: 96px;
-    border-left-color: var(--line);
+    border-color: var(--line);
 }
 .duel-peer.away {
     opacity: 0.6;
