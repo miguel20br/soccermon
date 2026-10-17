@@ -50,6 +50,29 @@ Amostra pequena (lendários aparecem pouco: exigir N mínimo), viés de seleçã
 outro: sinergia, aura e item empilham), power creep ou achatamento, público diferente (iniciante × veterano, 8x),
 e simulação não é diversão (conferir olhando partidas).
 
-## Dados
+## Dados (17/10/2026: ~32 mil partidas simuladas + 74 copas no ar)
 
-A auditoria por simulação e os dados ao vivo entram aqui quando chegarem.
+Scripts e tabelas brutas ficaram fora do repo (scratchpad da sessão); números principais:
+
+1. **Táticas:** equilibrada 44%, ofensiva 56%, contra-ataque 53%, defensiva 48%. 85% das partidas no ar são na
+   equilibrada (o padrão).
+2. **Curva da copa invertida no fim:** vitória por fase na simulação 60 / 59 / **53** / **68**%; no ar 70 / 71 /
+   58 / **90**%. A Liga Índigo joga na equilibrada e vira o rival mais fácil (68%) mesmo com a maior nota (83,4).
+   Títulos: 26% no ar; 31% das copas acabam nas oitavas.
+3. **Nota pesa pouco:** vantagem média +3 → 54%, +6 → 62%, +9 → 61%, +12 → 59%. Efeito de cada ponto no saldo:
+   Pivô 0,038, Goleiro 0,016, Ala 0,014, **Fixo 0,000** (a nota do Fixo não muda o jogo).
+4. **Formações:** 1-1-2 62%, 2-2 53%, 1-2-1 51%, 4-0 50%, ferrolho 42%, 3-1 42% (títulos: 3-1 só 5%).
+5. **Evolução:** quem drafta pela nota quase não evolui (0,16 por copa; meta ~1,2): nenhum raro, épico ou
+   lendário evolui.
+6. **Cartas fora da curva** (rende acima/abaixo da nota): Tauros +0,89, Aerodactyl +0,71, Mewtwo +0,56, Scyther
+   +0,51, Snorlax GK +0,48; Electrode −0,56, Kingler −0,56, Jynx −0,53, Gengar −0,41, Dragonair −0,35. Dragonite
+   joga o que a nota promete (−0,06); capitão em 13% no ar (os 50% eram do 1º dia). Ditto (carta 44) joga como
+   Ala ~85. Lendário 89,6 de média contra épico 81,0 e raro 81,2.
+7. **Golpes mortos:** Dream Eater 0 usos em 6.639 jogos; Softboiled, Bone Club, Petal Dance, Horn Drill,
+   Submission, Body Slam quase nunca. Hitmonlee: time vence 37%.
+8. **Itens e habilidades quase não aparecem em campo:** habilidades ~0 no saldo; só Leftovers dá algo.
+9. **Sinergias de história:** Gênese +0,86 e Pássaros +0,76; Brock, Rocket e Hitmon ~0. Tipo: Rock melhor,
+   Dragon pior (−0,63).
+10. **Draft:** 22% dos drafts têm uma rodada com 3 bronzes; sobram 1,66 rerolls por copa.
+
+Limites: o jogador simulado escolhe sempre a maior nota, joga na equilibrada e não usa MT.
