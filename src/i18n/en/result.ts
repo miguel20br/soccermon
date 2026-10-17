@@ -20,7 +20,9 @@ export const result: typeof pt = {
     evolvedOne: 'Evolved during the match!',
     evolvedNote: 'The evolution lasts for the rest of the cup.',
     destaqueTitle: 'Earned a Star Player card!',
-    destaqueText: '{name} was your best player and earned the Star Player edition: +2 to every attribute.',
+    destaqueText: '{name} was one of your best players and earned the Star Player edition: +2 to every attribute.',
+    destaqueLevelTitle: 'Star Player level {n}!',
+    destaqueLevelText: '{name} kept starring and leveled up: +{bonus} to every attribute.',
     mvp: 'Player of the match',
     rows: {
         possession: 'Possession',

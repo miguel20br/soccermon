@@ -3,13 +3,18 @@ import type { PokemonInstance } from './instance';
 
 /**
  * Sinergia de tipo (estilo Pokémon Auto Chess, adaptada ao 5v5): titulares que compartilham um tipo
- * ganham um bônus pequeno em todos os atributos. 2 do mesmo tipo = +3%, 3 ou mais = +6%.
+ * ganham um bônus pequeno em todos os atributos. 2 do mesmo tipo = +3%, 3 = +6%, 4 = +8%, 5 = +10%.
  */
 export interface Synergy {
     type: string;
     count: number;
     bonus: number;
 }
+
+const TYPE_BONUS: Record<number, number> = { 2: 1.03, 3: 1.06, 4: 1.08, 5: 1.1 };
+
+/** Teto de sinergia (tipo × história) por Pokémon: time de um tipo só com sinergia especial não passa de +15%. */
+export const SYNERGY_CAP = 1.15;
 
 export function computeSynergies(lineup: readonly PokemonInstance[]): Synergy[] {
     const counts = new Map<string, number>();
@@ -18,7 +23,7 @@ export function computeSynergies(lineup: readonly PokemonInstance[]): Synergy[] 
     }
     return [...counts.entries()]
         .filter(([, c]) => c >= 2)
-        .map(([type, count]) => ({ type, count, bonus: count >= 3 ? 1.06 : 1.03 }))
+        .map(([type, count]) => ({ type, count, bonus: TYPE_BONUS[Math.min(count, 5)] }))
         .sort((a, b) => b.count - a.count || a.type.localeCompare(b.type));
 }
 

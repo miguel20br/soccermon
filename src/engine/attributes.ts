@@ -240,10 +240,13 @@ export function eligiblePositions(
     return list;
 }
 
-/** Multiplicador para jogar em `playing`: principal 1, secundária 0,98, fora das elegíveis penaliza. */
-export function positionFactor(eligible: readonly Position[], playing: Position): number {
+/**
+ * Multiplicador para jogar em `playing`: principal 1, secundária 0,98, fora das elegíveis penaliza. Com os
+ * atributos, a secundária nunca passa da nota da principal (Dragonite Pivô 90 não vira Goleiro 91).
+ */
+export function positionFactor(eligible: readonly Position[], playing: Position, a?: Attributes): number {
     const idx = eligible.indexOf(playing);
     if (idx === 0) return 1;
-    if (idx > 0) return 0.98;
+    if (idx > 0) return a ? Math.min(0.98, positionRating(a, eligible[0]) / positionRating(a, playing)) : 0.98;
     return outOfPositionFactor(eligible[0], playing);
 }

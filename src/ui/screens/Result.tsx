@@ -10,6 +10,7 @@ import {
     teamTotals,
 } from '../../engine/match-stats';
 import { matchMvp } from '../../engine/mvp';
+import { specialBonus } from '../../engine/specials';
 import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { lineupPosition, useGame } from '../../store/game-store';
@@ -250,11 +251,20 @@ export function Result() {
                     )}
                     {destaque && (
                         <div className="destaque-box">
-                            <h2>{t('result.destaqueTitle')}</h2>
+                            <h2>
+                                {(destaque.special?.level ?? 1) > 1
+                                    ? t('result.destaqueLevelTitle', { n: destaque.special?.level ?? 1 })
+                                    : t('result.destaqueTitle')}
+                            </h2>
                             <p className="tactic-desc">
-                                {t('result.destaqueText', {
-                                    name: destaque.nickname ?? species(destaque.speciesId).name,
-                                })}
+                                {(destaque.special?.level ?? 1) > 1
+                                    ? t('result.destaqueLevelText', {
+                                          name: destaque.nickname ?? species(destaque.speciesId).name,
+                                          bonus: specialBonus(destaque),
+                                      })
+                                    : t('result.destaqueText', {
+                                          name: destaque.nickname ?? species(destaque.speciesId).name,
+                                      })}
                             </p>
                             <FutCard inst={destaque} size="sm" position={lineupPosition(run, destaque.uid)} />
                         </div>

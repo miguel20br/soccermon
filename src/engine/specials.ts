@@ -17,6 +17,8 @@ export interface Special {
     type?: string;
     /** Ícone: título temático ("Pikachu do Ash"). */
     title?: string;
+    /** Destaque: nível 1–3 (o craque que segue jogando muito sobe de nível: +2, +3, +4). */
+    level?: number;
 }
 
 /** Edições no jogo (draft, recompensa, Destaque). Desligar aqui some com elas do jogo (a galeria continua). */
@@ -57,9 +59,14 @@ export function editionOf(inst: PokemonInstance): Edition | null {
     return inst.special?.kind ?? (inst.shiny ? 'shiny' : null);
 }
 
-/** +2 em tudo pra qualquer edição (inclusive shiny). */
+export const DESTAQUE_MAX_LEVEL = 3;
+/** Nota mínima na partida pra um Destaque subir de nível (senão o prêmio vai pro próximo craque). */
+export const DESTAQUE_LEVEL_UP_RATING = 8;
+
+/** +2 em tudo pra qualquer edição (inclusive shiny); Destaque nível 2 e 3 dão +3 e +4. */
 export function specialBonus(inst: PokemonInstance): number {
-    return editionOf(inst) ? SPECIAL_BONUS : 0;
+    if (!editionOf(inst)) return 0;
+    return SPECIAL_BONUS + (inst.special?.kind === 'destaque' ? (inst.special.level ?? 1) - 1 : 0);
 }
 
 /** Número da semana ISO (1..53) e o ano dela. */

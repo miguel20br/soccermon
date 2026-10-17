@@ -267,13 +267,13 @@ const metalLabel = (tr: Translator, m: keyof typeof METAL, f: keyof typeof FINIS
         ? tr.t('team.card.legendary')
         : tr.t(f === 'brilhante' ? 'team.card.metalRare' : 'team.card.metalCommon', { metal: tr.d.common.metal[m] });
 
-/** Etiqueta da edição especial ("Evento · Fogo", "Ícone"...). */
-const editionTag = (tr: Translator, inst: PokemonInstance, edition: Edition | null) =>
-    edition === 'evento'
-        ? tr.t('team.card.event', { type: typeName(inst.special?.type ?? '', tr.lang) })
-        : edition
-          ? tr.d.common.edition[edition]
-          : null;
+/** Etiqueta da edição especial ("Evento · Fogo", "Ícone", "Destaque II"...). */
+function editionTag(tr: Translator, inst: PokemonInstance, edition: Edition | null) {
+    if (edition === 'evento') return tr.t('team.card.event', { type: typeName(inst.special?.type ?? '', tr.lang) });
+    if (!edition) return null;
+    const level = inst.special?.level ?? 1;
+    return `${tr.d.common.edition[edition]}${level > 1 ? ` ${'I'.repeat(level)}` : ''}`;
+}
 
 /** Título da carta Ícone no idioma do jogo (só quando a carta tem título salvo). */
 const specialTitle = (inst: PokemonInstance, tr: Translator) =>

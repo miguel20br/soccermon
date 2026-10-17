@@ -1,6 +1,6 @@
 import type { Command, Controller } from '../commands';
 import { eff } from '../effective';
-import { FRICTION, goalXFor, isInOwnArea, maxSpeed, ownGoalX, toRel, toWorld } from '../match';
+import { FRICTION, goalXFor, isInOwnArea, maxSpeed, ownGoalX, TACKLE_RANGE, toRel, toWorld } from '../match';
 import { hasTrait, MOVE_TUNING, moveProfile, type Trait } from '../moves';
 import type { MatchState, PlayerState, Tactic } from '../state';
 import { add, clamp, dist, len, norm, pointSegment, scale, sub, type Vec2, v } from '../vec';
@@ -457,7 +457,7 @@ export class AIController implements Controller {
         if (ctx.presser[team] === p.idx) {
             const d = dist(p.pos, carrier.pos);
             const cmds: Command[] = [];
-            if (d < 1.7 && p.tackleCooldown <= 0) {
+            if (d < TACKLE_RANGE && p.tackleCooldown <= 0) {
                 const danger = toRel(s, team, carrier.pos).x < 14 ? 0.12 : 0;
                 if (s.rng.chance(0.14 + danger + tactic.pressBias)) {
                     const strike = this.pickMoveSlot(p, ['strike'], 0.3);

@@ -6373,3 +6373,56 @@ html,
 body {
     overflow-x: clip;
 }
+
+/* Sinergia especial completa (os 3 pássaros, os 3 iniciais, Mew + Mewtwo): as cartas brilham juntas na formação */
+.aura-passaros {
+    --a1: #8fd8ff;
+    --a2: #ffe14a;
+    --a3: #ff8a3d;
+}
+.aura-iniciais {
+    --a1: #6fdc7a;
+    --a2: #ff7a4a;
+    --a3: #5aa8ff;
+}
+.aura-genese {
+    --a1: #ff9ad5;
+    --a2: #c9a2ff;
+    --a3: #ff9ad5;
+}
+.slot.aura {
+    border-color: var(--a1);
+    animation: aura-glow 2.4s linear infinite;
+}
+@keyframes aura-glow {
+    0%,
+    100% {
+        box-shadow: 0 0 18px 4px var(--a1);
+        border-color: var(--a1);
+    }
+    33% {
+        box-shadow: 0 0 18px 4px var(--a2);
+        border-color: var(--a2);
+    }
+    66% {
+        box-shadow: 0 0 18px 4px var(--a3);
+        border-color: var(--a3);
+    }
+}
+.link-chip.special {
+    border-color: transparent;
+    background:
+        linear-gradient(135deg, #3b2a6b, #5a3a8a) padding-box,
+        linear-gradient(90deg, var(--a1), var(--a2), var(--a3)) border-box;
+    box-shadow: 0 0 8px rgba(255, 225, 120, 0.45);
+}
+@media (prefers-reduced-motion: reduce) {
+    .slot.aura {
+        animation: none;
+        box-shadow: 0 0 12px 2px var(--a2);
+    }
+}
+:root[data-reduce-motion="true"] .slot.aura {
+    animation: none;
+    box-shadow: 0 0 12px 2px var(--a2);
+}

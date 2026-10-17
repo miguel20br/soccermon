@@ -14,6 +14,10 @@ export interface LinkDef {
     groups: number[][];
     need: number;
     bonus: number;
+    /** Bônus com todas as famílias juntas (degrau de cima), quando passa do `need`. */
+    full?: number;
+    /** Sinergia especial: completa, as cartas ganham aura na formação. */
+    special?: boolean;
     /** Nome do combo que aparece na tela. */
     combo: string;
 }
@@ -26,6 +30,7 @@ export const LINKS: LinkDef[] = [
         groups: [[150], [151]],
         need: 2,
         bonus: 1.08,
+        special: true,
         combo: 'Psíquico Duplo',
     },
     {
@@ -35,6 +40,9 @@ export const LINKS: LinkDef[] = [
         groups: [[144], [145], [146]],
         need: 2,
         bonus: 1.06,
+        // os 3 juntos são raríssimos: degrau especial
+        full: 1.1,
+        special: true,
         combo: 'Tempestade Lendária',
     },
     {
@@ -47,7 +55,8 @@ export const LINKS: LinkDef[] = [
             [7, 8, 9],
         ],
         need: 3,
-        bonus: 1.06,
+        bonus: 1.08,
+        special: true,
         combo: 'Triângulo Elemental',
     },
     {
@@ -181,6 +190,10 @@ export interface ActiveLink {
     def: LinkDef;
     /** uids dos titulares que fazem parte da sinergia. */
     members: string[];
+    /** Bônus do degrau atingido. */
+    bonus: number;
+    /** Todas as famílias juntas (sinergia especial completa = aura). */
+    full: boolean;
 }
 
 /** Sinergias de história ativas entre os titulares. */
@@ -194,7 +207,8 @@ export function computeLinks(lineup: readonly PokemonInstance[]): ActiveLink[] {
             if (inGroup.length > 0) families++;
             members.push(...inGroup.map((p) => p.uid));
         }
-        if (families >= def.need) active.push({ def, members });
+        const full = families === def.groups.length;
+        if (families >= def.need) active.push({ def, members, full, bonus: full && def.full ? def.full : def.bonus });
     }
     return active;
 }
@@ -206,5 +220,5 @@ export function linksOf(speciesId: number): LinkDef[] {
 
 /** Multiplicador de atributos de um titular: o maior bônus entre as sinergias de que participa. */
 export function linkFactor(links: readonly ActiveLink[], uid: string): number {
-    return links.filter((l) => l.members.includes(uid)).reduce((best, l) => Math.max(best, l.def.bonus), 1);
+    return links.filter((l) => l.members.includes(uid)).reduce((best, l) => Math.max(best, l.bonus), 1);
 }

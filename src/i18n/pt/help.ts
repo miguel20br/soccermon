@@ -143,7 +143,10 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
                         '{iconCount} Pokémon famosos com título (Pikachu do Ash, Onix do Brock, Psyduck da Misty…). 1 em {iconOdds} quando um deles sai no draft ou na recompensa.',
                     ],
                     ['Evento', 'o tipo da semana: 1 em 8 cartas desse tipo. Muda toda semana.'],
-                    ['Destaque', 'o craque do seu time na partida vira Destaque (se ainda não tiver edição).'],
+                    [
+                        'Destaque',
+                        'o craque do seu time na vitória vira Destaque. Se já é, sobe de nível com nota 8+ (até o nível 3: +3, +4); senão o prêmio vai pro próximo craque sem edição.',
+                    ],
                 ],
             },
         ],
@@ -341,11 +344,11 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
                     ],
                     [
                         'Sinergia de tipo',
-                        '2 titulares do mesmo tipo ganham +3%; 3 ou mais, +6%. Vale a melhor sinergia de cada um (não acumula).',
+                        '2 titulares do mesmo tipo ganham +3%; 3, +6%; 4, +8%; 5, +10%. Vale a melhor sinergia de tipo de cada um.',
                     ],
                     [
                         'Sinergia de história',
-                        'duplas e grupos famosos de Kanto ganham bônus juntos em quadra e podem soltar um **combo**: passe de um, chute do outro, 20% mais forte e mais preciso (1 vez por tempo).',
+                        'duplas e grupos famosos de Kanto ganham bônus juntos em quadra e podem soltar um **combo**: passe de um, chute do outro, 20% mais forte e mais preciso (1 vez por tempo). As **especiais** (os 3 Pássaros Lendários, os 3 iniciais, Mew + Mewtwo) completas dão mais e as cartas brilham juntas. Tipo + história somam até +15%.',
                     ],
                 ],
             },

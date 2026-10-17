@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { computeAttributes, eligiblePositions, positionFactor } from './attributes';
+import { computeAttributes, eligiblePositions, positionFactor, positionRating } from './attributes';
 import { FUTSAL_5, withConfig } from './config';
 import { HumanController } from './controllers/human-controller';
 import { effectiveness, MOVES, SPECIES, species } from './data';
@@ -8,6 +8,7 @@ import { aiDraftTeam, DRAFT_ROUNDS, draftOptions } from './draft';
 import { FORMATIONS } from './formations';
 import { createInstance, viewInstance } from './instance';
 import { computeLinks } from './links';
+import { computeSynergies } from './synergy';
 import { applyPendingSubs, captainFactor, createMatch } from './match';
 import { matchDigest, playerLines, possessionByPeriod, shotMap } from './match-stats';
 import { applyModifiers, attributeModifiers } from './modifiers';
@@ -204,6 +205,14 @@ describe('iteração 3: posições, formações, capitão, itens, tática ao viv
         expect(positionFactor(['FIXO', 'GK'], 'GK')).toBe(0.98);
         expect(positionFactor(['FIXO', 'GK'], 'ALA')).toBe(0.93);
         expect(positionFactor(['ALA'], 'GK')).toBe(0.75);
+        // secundária nunca passa da principal (Dragonite: Pivô principal, Goleiro com nota crua maior)
+        const dragonite = computeAttributes(species(149), 50);
+        const pos = eligiblePositions(dragonite, 149);
+        expect(pos[0]).toBe('PIVO');
+        const main = positionRating(dragonite, 'PIVO');
+        expect(Math.round(positionRating(dragonite, 'GK') * positionFactor(pos, 'GK', dragonite))).toBeLessThanOrEqual(
+            main,
+        );
     });
 
     it('opções do draft para uma posição sempre jogam nela', () => {
@@ -365,6 +374,17 @@ describe('v0.5: físico, sinergias de história e Ditto', () => {
         );
         expect(ids(computeLinks(lineupOf([3, 6, 9, 19, 20])))).toContain('iniciais');
         expect(ids(computeLinks(lineupOf([150, 19, 20, 21, 22])))).not.toContain('genese');
+    });
+
+    it('sinergias em degraus: tipo sobe até +10% e os 3 pássaros dão +10% com aura', () => {
+        const bonusOf = (ids: number[], type: string) =>
+            computeSynergies(lineupOf(ids)).find((x) => x.type === type)?.bonus;
+        expect(bonusOf([7, 54, 60, 19, 20], 'Water')).toBe(1.06);
+        expect(bonusOf([7, 54, 60, 72, 20], 'Water')).toBe(1.08);
+        expect(bonusOf([7, 54, 60, 72, 79], 'Water')).toBe(1.1);
+        const birds = (ids: number[]) => computeLinks(lineupOf(ids)).find((l) => l.def.id === 'passaros');
+        expect(birds([144, 145, 19, 20, 21])).toMatchObject({ bonus: 1.06, full: false });
+        expect(birds([144, 145, 146, 20, 21])).toMatchObject({ bonus: 1.1, full: true });
     });
 
     it('Ditto vira o melhor da posição em campo (de qualquer time) e continua Ditto no elenco', () => {

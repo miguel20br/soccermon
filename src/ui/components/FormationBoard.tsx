@@ -4,6 +4,7 @@ import { EVO_THRESHOLD } from '../../engine/evolution';
 import { type FormationId, formationOf } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
+import { computeLinks } from '../../engine/links';
 import { editionOf } from '../../engine/specials';
 import { useT } from '../../i18n/react';
 import type { SlotRef } from '../../store/game-store';
@@ -59,6 +60,11 @@ export function FormationBoard({
     const f = formationOf(formation);
     const { t, d } = useT();
     const emptyLabel = emptyProp ?? t('team.board.empty');
+    // sinergia especial completa (os 3 pássaros, os 3 iniciais, Mew + Mewtwo): as cartas brilham juntas
+    const aura = new Map<string, string>();
+    for (const l of computeLinks(lineup.flatMap((u) => byUid.get(u) ?? []))) {
+        if (l.full && l.def.special) for (const uid of l.members) aura.set(uid, l.def.id);
+    }
 
     const slot = (ref: SlotRef, uid: string, style?: CSSProperties) => {
         const role = ref.zone === 'bench' ? 'ANY' : f.slots[ref.index];
@@ -93,11 +99,12 @@ export function FormationBoard({
         const t1 = inst ? TYPE_COLOR[species(inst.speciesId).types[0]] : undefined;
         const rarStyle = ring ? ({ ...style, '--rar': ring, '--t1': t1 } as CSSProperties) : style;
         const dim = inst && dimOf?.(inst) ? ' dim' : '';
+        const glow = inst && ref.zone === 'lineup' && aura.has(inst.uid) ? ` aura aura-${aura.get(inst.uid)}` : '';
         return (
             <button
                 type="button"
                 key={`${ref.zone}-${ref.index}`}
-                className={`slot ${inst ? 'filled' : 'empty'} ${state}${projClass}${tier ? ` rar-${tier}` : ''}${dim} ${look}`}
+                className={`slot ${inst ? 'filled' : 'empty'} ${state}${projClass}${tier ? ` rar-${tier}` : ''}${dim}${glow} ${look}`}
                 style={rarStyle}
                 disabled={!clickable}
                 onClick={() => onSlot?.(ref, uid)}

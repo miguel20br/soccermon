@@ -113,7 +113,7 @@ export const help: typeof pt = {
                         ['Event', 'the type of the week: 1 in 8 cards of that type. Changes every week.'],
                         [
                             'Star Player',
-                            "your team's best player in the match becomes a Star Player card (if it has no edition yet).",
+                            "your team's best player in a win becomes a Star Player card. If it already is one, it levels up with a rating of 8+ (up to level 3: +3, +4); otherwise the prize goes to the next best player without an edition.",
                         ],
                     ],
                 },
@@ -321,11 +321,11 @@ export const help: typeof pt = {
                         ],
                         [
                             'Type synergy',
-                            "2 starters of the same type get +3%; 3 or more, +6%. Each player's best synergy counts (they don't stack).",
+                            "2 starters of the same type get +3%; 3, +6%; 4, +8%; 5, +10%. Each player's best type synergy counts.",
                         ],
                         [
                             'Story synergy',
-                            'famous Kanto duos and groups get a bonus together on the court and can pull off a **combo**: a pass from one, a shot from the other, 20% stronger and more accurate (once per half).',
+                            'famous Kanto duos and groups get a bonus together on the court and can pull off a **combo**: a pass from one, a shot from the other, 20% stronger and more accurate (once per half). **Special** ones (all 3 Legendary Birds, all 3 starters, Mew + Mewtwo) give more when complete and the cards glow together. Type + story add up to +15%.',
                         ],
                     ],
                 },

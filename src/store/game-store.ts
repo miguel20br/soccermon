@@ -9,11 +9,17 @@ import { DEFAULT_FORMATION, type FormationId, formationOf } from '../engine/form
 import type { PokemonInstance } from '../engine/instance';
 import { viewInstance } from '../engine/instance';
 import { type MatchDigest, matchDigest, type PlayerLine, playerLines, teamTotals } from '../engine/match-stats';
-import { matchMvp, mvpScore } from '../engine/mvp';
+import { everyoneIn, mvpScore } from '../engine/mvp';
 import { type Reward, rewardOptions } from '../engine/rewards';
 import { Rng } from '../engine/rng';
 import type { MatchResult } from '../engine/runners/batch-runner';
-import { rollSpecial as roll, SPECIALS_LIVE, weeklyEventType } from '../engine/specials';
+import {
+    DESTAQUE_LEVEL_UP_RATING,
+    DESTAQUE_MAX_LEVEL,
+    rollSpecial as roll,
+    SPECIALS_LIVE,
+    weeklyEventType,
+} from '../engine/specials';
 import { teachMove } from '../engine/tm';
 import { detectLang, type Lang } from '../i18n/lang';
 import {
@@ -677,18 +683,29 @@ export const useGame = create<GameStore>()(
                     // só registra partidas da fase atual de uma run em escalação (evita resultado "fantasma")
                     if (run?.status !== 'lineup' || run.results.some((r) => r.stage === run.stage)) return;
                     const won = m.winner === 0;
-                    // carta Destaque: o craque do seu time vira edição especial (se ainda não tiver uma)
-                    const star = matchMvp(m, 0);
-                    const starInst = star && mvpScore(star) > 0 ? run.picks.find((p) => p.uid === star.uid) : null;
-                    // só na vitória: na eliminação a copa acaba e a carta não teria onde jogar
-                    const destaqueUid = won && SPECIALS_LIVE && starInst && !starInst.special ? starInst.uid : null;
+                    // carta Destaque (só na vitória: na eliminação a copa acaba e a carta não teria onde jogar).
+                    // O craque vira Destaque; se já é, sobe de nível jogando muito (nota 8+, até o 3); senão o
+                    // prêmio vai pro melhor do time que ainda não tem edição.
+                    const lines = playerLines(m);
+                    const ranked = everyoneIn(m)
+                        .filter((p) => p.team === 0 && mvpScore(p) > 0)
+                        .sort((a, b) => mvpScore(b) - mvpScore(a))
+                        .flatMap((p) => run.picks.filter((i) => i.uid === p.uid));
+                    const star = ranked[0];
+                    const starRating = lines.find((l) => l.team === 0 && l.uid === star?.uid)?.rating ?? 0;
+                    const levelUp =
+                        star?.special?.kind === 'destaque' &&
+                        (star.special.level ?? 1) < DESTAQUE_MAX_LEVEL &&
+                        starRating >= DESTAQUE_LEVEL_UP_RATING;
+                    const winner = levelUp ? star : ranked.find((p) => !p.special);
+                    const destaqueUid = won && SPECIALS_LIVE && winner ? winner.uid : null;
+                    const destaqueLevel = levelUp ? (star.special?.level ?? 1) + 1 : 1;
                     // quem evoluiu no meio da partida continua evoluído pelo resto da copa
                     const evolved = new Map(
                         m.events.flatMap((e) =>
                             e.type === 'evolve' && e.team === 0 ? [[e.uid, e.into] as const] : [],
                         ),
                     );
-                    const lines = playerLines(m);
                     const picks = run.picks.map((p) => {
                         let out = p;
                         const into = evolved.get(p.uid);
@@ -702,7 +719,14 @@ export const useGame = create<GameStore>()(
                                     evo: Math.round(evoProgress(p, line.stats, line.role as Position) * 10) / 10,
                                 };
                         }
-                        if (p.uid === destaqueUid) out = { ...out, special: { kind: 'destaque' as const } };
+                        if (p.uid === destaqueUid)
+                            out = {
+                                ...out,
+                                special: {
+                                    kind: 'destaque' as const,
+                                    ...(destaqueLevel > 1 && { level: destaqueLevel }),
+                                },
+                            };
                         return out;
                     });
                     const totals = [teamTotals(lines, 0), teamTotals(lines, 1)];

@@ -13,7 +13,7 @@ import { ITEMS } from './items';
 import { computeLinks, linkFactor } from './links';
 import { moveProfile } from './moves';
 import { SPECIAL_BONUS, specialBonus } from './specials';
-import { computeSynergies, synergyFactor } from './synergy';
+import { computeSynergies, SYNERGY_CAP, synergyFactor } from './synergy';
 
 /**
  * De onde vêm os bônus e penalidades de um Pokémon. É a MESMA regra que o motor usa para montar o jogador
@@ -138,12 +138,14 @@ export function attributeModifiers(inst: PokemonInstance, ctx: TeamContext = {})
         const syn = synergyFactor(computeSynergies(lineup), sp.types);
         if (syn > 1)
             mods.push({ source: 'sinergia', label: `Sinergia de tipo: ${pct(syn)}`, attrs: 'all', factor: syn });
-        const link = linkFactor(computeLinks(lineup), inst.uid);
+        // tipo × história com teto: um time montado pra isso não passa de +15%
+        const link = Math.min(linkFactor(computeLinks(lineup), inst.uid), SYNERGY_CAP / syn);
         if (link > 1)
             mods.push({ source: 'historia', label: `Sinergia de história: ${pct(link)}`, attrs: 'all', factor: link });
     }
     if (ctx.role) {
-        const f = positionFactor(eligiblePositions(computeAttributes(sp, inst.level), sp.id), ctx.role);
+        const base = computeAttributes(sp, inst.level);
+        const f = positionFactor(eligiblePositions(base, sp.id), ctx.role, base);
         if (f !== 1) mods.push({ source: 'posicao', label: `Fora da posição: ${pct(f)}`, attrs: 'role', factor: f });
     }
     return mods;

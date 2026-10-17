@@ -19,7 +19,9 @@ export const result = {
     evolvedOne: 'Evoluiu na partida!',
     evolvedNote: 'A evolução vale para o resto da copa.',
     destaqueTitle: 'Virou carta Destaque!',
-    destaqueText: '{name} foi o craque do seu time e ganhou a edição Destaque: +2 em todos os atributos.',
+    destaqueText: '{name} foi um dos craques do seu time e ganhou a edição Destaque: +2 em todos os atributos.',
+    destaqueLevelTitle: 'Destaque nível {n}!',
+    destaqueLevelText: '{name} seguiu jogando muito e subiu de nível: +{bonus} em todos os atributos.',
     mvp: 'Craque da partida',
     rows: {
         possession: 'Posse de bola',

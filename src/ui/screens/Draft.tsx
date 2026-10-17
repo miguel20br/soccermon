@@ -263,7 +263,13 @@ export function Draft() {
                                             <div className="option-links">
                                                 {t('team.draft.activates')}{' '}
                                                 {newLinks(filled, o).map((l) => (
-                                                    <LinkChip key={l.id} def={l} fresh />
+                                                    <LinkChip
+                                                        key={l.def.id}
+                                                        def={l.def}
+                                                        bonus={l.bonus}
+                                                        special={l.full && l.def.special}
+                                                        fresh
+                                                    />
                                                 ))}
                                             </div>
                                         )}
