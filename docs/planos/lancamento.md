@@ -33,19 +33,23 @@ personalização, Ultimate Team) está em "Depois da 1.0".
 
 ## Versões (seguimos na 0.8.x)
 
+Ainda pendente do antigo "Primeiro minuto" (o maior vazamento é entre começar a copa e jogar a 1ª partida): Copa rápida, draft mais curto no celular. Encaixar quando couber.
+
 | Versão | Tema | O que entra | Por quê |
 |---|---|---|---|
 | **0.8.2** ✓ | Título | Hall da Fama com desfile, prêmios, seleção, recordes, gols da campanha, card 9:16/1:1, celular deitado | momento de orgulho + compartilhar |
-| **0.8.3** | Primeiro minuto | Draft mais curto no celular (cartas menores, 3 opções sem rolar, "escolher e já ir pra próxima vaga"), dica de "toque na vaga" mais clara, botão "Copa rápida" que **você** escolhe (draft com 3 rerolls e sem perguntas extras), Home deitada mais enxuta, botão oficial do Google | tapar o vazamento de 25% |
-| **0.8.4** | Desafio diário | Copa do dia (mesma seed pra todo mundo, sorteada pela data), **ranking do dia** (Supabase: tabela só INSERT com placar e tempo, uma entrada por conta), card "Desafio do dia" estilo Wordle | motivo diário pra voltar + competição |
-| **0.8.5** | Melhores momentos | Replay dos gols e golpes (os snapshots já existem), "gol da copa" com câmera lenta, **exportar clipe** (WebM/GIF curto) pro TikTok | conteúdo que se espalha sozinho |
-| **0.8.6** | Treinadores e quadras | Líderes de ginásio com sprite e fala no VERSUS, quadra temática por ginásio (pedra, água, elétrica…), insígnias ganhas na copa | identidade Pokémon e base do Modo história |
-| **0.8.7** | Medalhas | Conquistas (marcar com Ditto, copa perfeita, 151 vistos, golpe X decidindo final…), raridade dos campeões já ligada | metas de longo prazo |
+| **0.8.3** ✓ | Jogo gostoso | Impacto em 4 níveis, bola e Pokémon com peso, câmera lenta em gol/trave/defesa, rastro do tipo na bola, shiny em campo, intervalo com decisão, pacote de cartas, VERSUS novo, torcida e apito; ajustes de 17/10 (sinergias com degraus e aura, Destaque com nível) | a partida e as recompensas com sabor |
+| **0.8.4** | Balanceamento geral | Os 3 blocos de `balanceamento-geral.md` (regras, economia, cartas e golpes) + escanteio + polimento que ficou (carta pousando na vaga, aviso de troca de tática, Pokédex deslizando, entrada da Home) + base invisível do multiplayer (mesma partida em todo navegador, `engineVersion`) | o jogo justo e variado antes de abrir pra duelo |
+| **0.8.5** | **Duelo ao vivo** | Desafiar um amigo por link (logado): draft em Disputa ou cada um com seus pacotes, partida sincronizada com velocidade da sala, trocas que o rival vê, emotes. Regras em `multiplayer.md` | a primeira vez que dá pra jogar contra alguém |
+| **0.8.6** | Liga ranqueada | Times "fantasma", Elo com divisões nas cores das cartas, temporada mensal, **Copa do Dia** (mesma seed pra todo mundo, ranking do dia; era o "Desafio diário"), replay por link | motivo diário pra voltar + competição |
+| **0.8.7** | Melhores momentos | Replay dos gols e golpes, "gol da copa" com câmera lenta, **exportar clipe** (WebM/GIF curto) pro TikTok | conteúdo que se espalha sozinho |
+| **0.8.8** | Treinadores e quadras | Líderes de ginásio com sprite e fala no VERSUS, quadra temática por ginásio, insígnias ganhas na copa | identidade Pokémon e base do Modo história |
+| **0.8.9** | Medalhas | Conquistas (marcar com Ditto, copa perfeita, 151 vistos…), raridade dos campeões já ligada | metas de longo prazo |
 | **0.9** | **Modo história** | Kanto em capítulos: 8 ginásios em sequência com insígnias, rival recorrente, Liga Índigo e Elite 4, time que evolui e ganha XP ao longo da campanha, save por capítulo | primeira promessa do "Em breve" |
-| **0.10** | **Multiplayer** | Desafiar o time salvo de um amigo por link (assíncrono: o motor determinístico roda a partida dos dois lados), depois liga semanal entre amigos | segunda promessa |
+| **0.10** | **Copas entre amigos** | Copa privada de 4 a 8 treinadores e Copa Semanal oficial (chave no domingo, troféu no Hall da Fama) | multiplayer social |
 | **0.11** | **Futebol de campo** | 7v7 primeiro, 11v11 depois (o `MatchConfig` já é paramétrico): formações novas, campo maior, câmera | terceira promessa |
 | **0.12** | **Geração 2** | Os 100 de Johto, tipos Dark/Steel, golpes novos, Copa de Johto | quarta promessa |
-| **1.0** | **Lançamento** | Tudo o que o "Em breve" prometeu, junto e polido: Copa, Modo história, Multiplayer, Futebol de campo e Gen 1 + Gen 2. Revisão completa (celular, inglês, desempenho, acessibilidade), trailer novo e divulgação grande | a versão "de verdade" |
+| **1.0** | **Lançamento** | Tudo o que o "Em breve" prometeu, junto e polido: Copa, Modo história, Multiplayer, Futebol de campo e Gen 1 + Gen 2. Duelo ranqueado e espectador. Revisão completa (celular, inglês, desempenho, acessibilidade), trailer novo e divulgação grande | a versão "de verdade" |
 
 ### Depois da 1.0 (planos futuros)
 
