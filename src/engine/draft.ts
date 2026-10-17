@@ -1,7 +1,14 @@
-import { computeAttributes, eligiblePositions, type Position, positionRating } from './attributes';
-import { SPECIES, type Species, type Tier } from './data';
+import {
+    type Attributes,
+    computeAttributes,
+    eligiblePositions,
+    type Position,
+    positionFactor,
+    positionRating,
+} from './attributes';
+import { SPECIES, type Species, species, type Tier } from './data';
 import { type FormationId, formationOf } from './formations';
-import { createInstance, DEFAULT_LEVEL, type PokemonInstance } from './instance';
+import { createInstance, DEFAULT_LEVEL, type PokemonInstance, slotRating } from './instance';
 import type { Rng } from './rng';
 
 /**
@@ -43,6 +50,7 @@ const TIER_ODDS: number[][] = [
 const CAPTAIN_ODDS = [0, 0, 0.62, 0.3, 0.08];
 
 interface SpeciesProfile {
+    attributes: Attributes;
     eligible: Position[];
     ratings: Record<Position, number>;
 }
@@ -52,6 +60,7 @@ export function speciesProfile(sp: Species): SpeciesProfile {
     if (!v) {
         const a = computeAttributes(sp, DEFAULT_LEVEL);
         v = {
+            attributes: a,
             eligible: eligiblePositions(a, sp.id),
             ratings: {
                 GK: positionRating(a, 'GK'),
@@ -101,6 +110,71 @@ export function draftOptions(
         chosen.push(pick);
     }
     return chosen.map((sp) => createInstance(sp.id, rng));
+}
+
+/** Nota de prata (cartas: bronze até 64, prata 65–74, ouro 75+). */
+export const SILVER = 65;
+
+/** Nota da espécie na vaga, como a carta mostra (sem edição especial). */
+function speciesSlotRating(sp: Species, need: Position | 'ANY'): number {
+    const prof = speciesProfile(sp);
+    if (need === 'ANY') return prof.ratings[prof.eligible[0]];
+    return Math.round(prof.ratings[need] * positionFactor(prof.eligible, need, prof.attributes));
+}
+
+/** "Promessa": evolui para ouro (75+) na vaga. */
+export const PROMISE = 75;
+/** Chance de a rodada ganhar uma promessa quando nenhuma das 3 é (passo pequeno; meta ~1,2 evolução por copa). */
+export const PROMISE_CHANCE = 0.5;
+
+const MAX_ID = SPECIES.length;
+/** Nota da forma evoluída na vaga; com várias evoluções (Eevee), a pior delas. null se não evolui. */
+function speciesEvolvedRating(sp: Species, need: Position | 'ANY'): number | null {
+    const into = sp.evolvesTo.filter((e) => e.id <= MAX_ID);
+    return into.length ? Math.min(...into.map((e) => speciesSlotRating(SPECIES[e.id - 1], need))) : null;
+}
+
+/**
+ * As 3 opções do draft do jogador (Bloco 2 do balanceamento, 17/10/2026): as de `draftOptions` com duas garantias,
+ * sempre trocando a opção mais fraca. A IA e as recompensas seguem com `draftOptions` puro.
+ * - piso de prata: se as 3 saem bronze na vaga, entra uma prata que joga ali (de preferência uma promessa);
+ * - promessa: se nenhuma evolui para ouro na vaga, em metade das rodadas entra uma que evolui (a carta mostra
+ *   a nota depois de evoluir).
+ */
+export function playerDraftOptions(
+    rng: Rng,
+    round: number,
+    taken: ReadonlySet<number>,
+    need: Position | 'ANY',
+): PokemonInstance[] {
+    const out = draftOptions(rng, round, taken, 3, [], need);
+    if (!out.length) return out;
+    const rating = (o: PokemonInstance) => slotRating(o, need);
+    const promise = (sp: Species) => (speciesEvolvedRating(sp, need) ?? 0) >= PROMISE;
+    const candidates = (min: number) =>
+        SPECIES.filter(
+            (sp) =>
+                !taken.has(sp.id) &&
+                !out.some((o) => o.speciesId === sp.id) &&
+                canPlay(sp, need) &&
+                sp.tier !== 'epic' &&
+                sp.tier !== 'legendary' &&
+                speciesSlotRating(sp, need) >= min,
+        );
+    const replaceWeakest = (pool: Species[]) => {
+        if (!pool.length) return;
+        const weakest = out.reduce((w, o, i) => (rating(o) < rating(out[w]) ? i : w), 0);
+        out[weakest] = createInstance(rng.pick(pool).id, rng);
+    };
+    if (!out.some((o) => rating(o) >= SILVER)) {
+        const silver = candidates(SILVER);
+        const promising = silver.filter(promise);
+        replaceWeakest(promising.length ? promising : silver);
+    }
+    if (!out.some((o) => promise(species(o.speciesId))) && rng.chance(PROMISE_CHANCE)) {
+        replaceWeakest(candidates(0).filter(promise));
+    }
+    return out;
 }
 
 /** 3 opções de capitão: raros, épicos ou lendários, de qualquer posição. */

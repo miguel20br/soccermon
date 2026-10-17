@@ -1,4 +1,11 @@
-import { type Attributes, computeAttributes, eligiblePositions, type Position, positionRating } from './attributes';
+import {
+    type Attributes,
+    computeAttributes,
+    eligiblePositions,
+    type Position,
+    positionFactor,
+    positionRating,
+} from './attributes';
 import { type Species, species } from './data';
 import { defaultMoveset } from './moves';
 import type { Rng } from './rng';
@@ -84,6 +91,13 @@ export function viewInstance(inst: PokemonInstance): InstanceView {
         overall: positionRating(attributes, positions[0]),
         displayName: inst.nickname ?? sp.name,
     };
+}
+
+/** Nota na vaga, a mesma da carta (`ratingAt` na UI): fora da posição principal entra o fator de posição. */
+export function slotRating(inst: PokemonInstance, role: Position | 'ANY'): number {
+    const view = viewInstance(inst);
+    if (role === 'ANY') return view.overall;
+    return Math.round(positionRating(view.attributes, role) * positionFactor(view.positions, role, view.attributes));
 }
 
 /** Soma `bonus` pontos em todos os atributos (edição especial), sem passar de 99. */

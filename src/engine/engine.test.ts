@@ -4,9 +4,10 @@ import { computeAttributes, eligiblePositions, positionFactor, positionRating } 
 import { FUTSAL_5, withConfig } from './config';
 import { HumanController } from './controllers/human-controller';
 import { effectiveness, MOVES, SPECIES, species } from './data';
-import { aiDraftTeam, DRAFT_ROUNDS, draftOptions } from './draft';
+import { aiDraftTeam, DRAFT_ROUNDS, draftOptions, playerDraftOptions, SILVER } from './draft';
+import { evolvedRating } from './evolution';
 import { FORMATIONS } from './formations';
-import { createInstance, viewInstance } from './instance';
+import { createInstance, slotRating, viewInstance } from './instance';
 import { computeLinks } from './links';
 import { applyPendingSubs, captainFactor, createMatch } from './match';
 import { matchDigest, playerLines, possessionByPeriod, shotMap } from './match-stats';
@@ -123,6 +124,31 @@ describe('draft', () => {
         const a = draftOptions(new Rng('x'), 0, new Set()).map((o) => o.speciesId);
         const b = draftOptions(new Rng('x'), 0, new Set()).map((o) => o.speciesId);
         expect(a).toEqual(b);
+    });
+
+    it('draft do jogador: toda rodada tem pelo menos uma prata na vaga, sem repetir espécie', () => {
+        for (const need of ['GK', 'FIXO', 'ALA', 'PIVO', 'ANY'] as const) {
+            for (let i = 0; i < 150; i++) {
+                const taken = new Set([25, 6]);
+                const opts = playerDraftOptions(new Rng(`piso-${i}`, need), i % 7, taken, need);
+                expect(opts).toHaveLength(3);
+                expect(Math.max(...opts.map((o) => slotRating(o, need)))).toBeGreaterThanOrEqual(SILVER);
+                expect(new Set(opts.map((o) => o.speciesId)).size).toBe(3);
+                for (const o of opts) {
+                    expect(taken.has(o.speciesId)).toBe(false);
+                    if (need !== 'ANY') expect(viewInstance(o).positions).toContain(need);
+                }
+            }
+        }
+    });
+
+    it('selo de evolução: nota da forma nova na mesma vaga; quem não evolui não tem selo', () => {
+        const charmander = createInstance(4, new Rng('evo'));
+        const evo = evolvedRating(charmander, 'ALA');
+        expect(evo?.into).toBe(5);
+        expect(evo?.rating).toBe(slotRating({ ...charmander, speciesId: 5 }, 'ALA'));
+        expect(evolvedRating(createInstance(6, new Rng('evo')), 'ALA')).toBeNull();
+        expect(evolvedRating(createInstance(132, new Rng('evo')), 'ALA')).toBeNull();
     });
 });
 

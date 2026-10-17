@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 import type { Position } from '../engine/attributes';
 import { buildCupOpponents, CUP_STAGES } from '../engine/cup';
-import { BENCH_SIZE, captainOptions, DRAFT_PICKS, draftOptions } from '../engine/draft';
+import { BENCH_SIZE, captainOptions, DRAFT_PICKS, playerDraftOptions } from '../engine/draft';
 import { evolutionTarget, evolveInstance, evoProgress } from '../engine/evolution';
 import { DEFAULT_FORMATION, type FormationId, formationOf } from '../engine/formations';
 import type { PokemonInstance } from '../engine/instance';
@@ -323,7 +323,7 @@ function rollOptions(run: RunState, slot: SlotRef): PokemonInstance[] {
     const taken = new Set(run.picks.map((p) => p.speciesId));
     const role = slotRole(run, slot);
     const rng = new Rng(run.seed, `draft-${run.draftRound}-${role}-r${run.rerollsUsed}`);
-    return draftOptions(rng, run.draftRound, taken, 3, [], role).map((o) => rollSpecial(o, run.eventType ?? null));
+    return playerDraftOptions(rng, run.draftRound, taken, role).map((o) => rollSpecial(o, run.eventType ?? null));
 }
 
 /** Recompensas da fase; o reforço sorteado (não o contratado do adversário) pode vir com edição especial. */

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { DRAFT_PICKS } from '../../engine/draft';
+import { evolvedRating } from '../../engine/evolution';
 import { FORMATIONS, type FormationId, formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
 import { computeLinks } from '../../engine/links';
@@ -14,6 +15,7 @@ import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
 import { LinkChip, LinkChips, newLinks } from '../components/LinkChips';
 import { TypeBadge } from '../components/PokeCard';
+import { EvoBadge } from '../components/PokeCard2';
 import { Tip } from '../help/Tip';
 import { ratingAt } from '../rating';
 import { reduceMotionOn } from '../settings-sync';
@@ -64,7 +66,8 @@ function FormationDiagram({ id }: { id: FormationId }) {
 export function Draft() {
     const { run, chooseFormation, chooseSlot, pick, reroll } = useGame();
     const [selected, setSelected] = useState<string | null>(null);
-    const { t, d, lang } = useT();
+    const tr = useT();
+    const { t, d, lang } = tr;
     // celular em pé: a quadra ocupa a tela e as cartas ficam lá embaixo. Leva até as cartas quando elas saem e
     // volta pra quadra quando é hora de tocar numa vaga (só rola se o alvo não está à vista; no PC não mexe)
     const boardRef = useRef<HTMLDivElement>(null);
@@ -279,6 +282,8 @@ export function Draft() {
                                             (() => {
                                                 // a carta mostra a posição principal; aqui o aviso de que ele também joga na vaga
                                                 const r = ratingAt(o, role);
+                                                // fora da posição de origem, o selo da carta não vale pra vaga: a faixa mostra a nota evoluída ali
+                                                const evo = r.fit === 'main' ? null : evolvedRating(o, role);
                                                 return (
                                                     <div className={`option-fit ${r.fit}`}>
                                                         {r.fit === 'main'
@@ -292,6 +297,7 @@ export function Draft() {
                                                                       r: r.display,
                                                                   },
                                                               )}
+                                                        {evo && <EvoBadge evo={evo} now={r.rating} tr={tr} />}
                                                     </div>
                                                 );
                                             })()}

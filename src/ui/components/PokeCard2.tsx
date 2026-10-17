@@ -1,6 +1,7 @@
 import { type CSSProperties, useRef } from 'react';
 import { type AttrKey, computeAttributes, type Position } from '../../engine/attributes';
-import { MOVES, type Tier } from '../../engine/data';
+import { MOVES, SPECIES, type Tier } from '../../engine/data';
+import { evolvedRating } from '../../engine/evolution';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { applyModifiers, attributeModifiers } from '../../engine/modifiers';
@@ -107,6 +108,8 @@ function cardData(inst: PokemonInstance, tr: Translator, position?: Position) {
         v: Math.round(view.attributes[k]),
         delta: Math.round(final[k] - base[k]),
     }));
+    // selo de evolução: a nota que ele vira na mesma vaga se evoluir (carta = campo)
+    const evo = evolvedRating(inst, pos);
     const t1 = TYPE_COLOR[sp.types[0]] ?? '#888';
     const t2 = TYPE_COLOR[sp.types[1] ?? sp.types[0]] ?? t1;
     return {
@@ -117,6 +120,7 @@ function cardData(inst: PokemonInstance, tr: Translator, position?: Position) {
         display,
         fit,
         stats,
+        evo,
         dex: String(sp.id).padStart(3, '0'),
         tr,
         item: inst.item ? { id: inst.item, name: itemName(inst.item) } : null,
@@ -186,6 +190,7 @@ export function PokeCard2({ inst, variant, position, captain, onClick, weak, sho
         pos: tr.d.common.pos[d.pos],
         tier: tr.d.common.tier[d.sp.tier],
         edition: edition ? tr.t('team.card.editionAria', { label: tr.d.common.edition[edition] }) : '',
+        evo: d.evo ? tr.t('team.card.evoAria', { name: SPECIES[d.evo.into - 1].name, r: d.evo.rating }) : '',
     });
     const base = metal ? (
         <Metal
@@ -307,6 +312,7 @@ function Metal({
                         <TypeIcons types={d.sp.types} />
                     </span>
                     {captain && <span className="pc2-captain">C</span>}
+                    {d.evo && <EvoBadge evo={d.evo} now={d.rating} tr={d.tr} />}
                 </span>
                 <img className="pixel m-art" src={cardSprite(inst)} alt="" loading="lazy" draggable={false} />
                 {d.item && <img className="pixel m-item" src={itemSprite(d.item.id)} alt={d.item.name} />}
@@ -331,6 +337,22 @@ function Metal({
             </span>
             <HoloLayer />
         </>
+    );
+}
+
+/** Selo "vira 85": seta desenhada + a nota depois de evoluir (para baixo se a forma nova joga pior na vaga). */
+export function EvoBadge({ evo, now, tr }: { evo: { into: number; rating: number }; now: number; tr: Translator }) {
+    const down = evo.rating < now;
+    return (
+        <span
+            className={`m-evo${down ? ' down' : ''}`}
+            title={tr.t('team.card.evoTitle', { name: SPECIES[evo.into - 1].name, r: evo.rating })}
+        >
+            <svg viewBox="0 0 10 10" aria-hidden="true" focusable="false">
+                <path d={down ? 'M5 9 1 4.5h2.5V1h3v3.5H9z' : 'M5 1 9 5.5H6.5V9h-3V5.5H1z'} />
+            </svg>
+            <b>{evo.rating}</b>
+        </span>
     );
 }
 

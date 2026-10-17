@@ -1844,6 +1844,9 @@ button,
 .peek-row.alt b {
     color: #b6d94c;
 }
+.peek-row.up b {
+    color: #4ad46f;
+}
 .peek-moves {
     display: flex;
     flex-wrap: wrap;
@@ -4272,6 +4275,11 @@ button,
 .option-fit.off {
     background: #c9302c;
     color: #fff;
+}
+.option-fit .m-evo {
+    margin: 0 0 0 5px;
+    font-size: 1em;
+    vertical-align: -1px;
 }
 
 /* ---------- tela do título (Copa de Kanto) ---------- */

@@ -1,6 +1,6 @@
 import type { Position } from './attributes';
 import { SPECIES, species } from './data';
-import type { PokemonInstance } from './instance';
+import { type PokemonInstance, slotRating } from './instance';
 import type { PlayerStats } from './state';
 import { movesAfterEvolution } from './tm';
 
@@ -54,6 +54,16 @@ export function evolutionTarget(speciesId: number, uid: string): number | null {
     let h = 0;
     for (const c of uid) h = (h * 31 + c.charCodeAt(0)) >>> 0;
     return options[h % options.length].id;
+}
+
+/**
+ * Nota na vaga depois de evoluir: o que o selo da carta mostra ("vira 85"). Carta = campo: a forma nova
+ * continua na mesma vaga, com a mesma edição especial. null se não evolui (ou é o Ditto).
+ */
+export function evolvedRating(inst: PokemonInstance, role: Position | 'ANY'): { into: number; rating: number } | null {
+    if (inst.ability === 'imposter') return null;
+    const into = evolutionTarget(inst.speciesId, inst.uid);
+    return into === null ? null : { into, rating: slotRating(evolveInstance(inst, into), role) };
 }
 
 /**

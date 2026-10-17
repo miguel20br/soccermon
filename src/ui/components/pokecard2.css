@@ -3306,6 +3306,30 @@ button.pc2.pc2-fx:hover {
 .pc2-metal .pc2-captain {
     margin-top: 0.15em;
 }
+/* selo de evolução: a nota depois de evoluir (mesmo verde/vermelho das setinhas de bônus) */
+.m-evo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.1em;
+    margin-top: 0.2em;
+    padding: 0.1em 0.3em 0.1em 0.2em;
+    border-radius: 0.35em;
+    background: #1f9d45;
+    color: #fff;
+    font-family: "Galmuri14", monospace;
+    font-size: 0.95em;
+    line-height: 1.1;
+    text-shadow: none;
+    box-shadow: 0 0.1em 0 rgba(0, 0, 0, 0.4);
+}
+.m-evo.down {
+    background: #c9302c;
+}
+.m-evo svg {
+    width: 0.8em;
+    height: 0.8em;
+    fill: currentColor;
+}
 .m-art {
     position: absolute;
     right: -0.2em;

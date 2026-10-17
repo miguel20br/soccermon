@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { type AttrKey, POSITIONS, type Position } from '../../engine/attributes';
-import { MOVES, type Tier } from '../../engine/data';
+import { MOVES, SPECIES, type Tier } from '../../engine/data';
+import { evolvedRating } from '../../engine/evolution';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { editionOf } from '../../engine/specials';
 import { dict, moveName } from '../../i18n';
@@ -84,6 +85,7 @@ export function FutCard({
     const pos = position ?? view.naturalPosition;
     const { display } = ratingAt(inst, pos);
     const edition = editionOf(inst);
+    const evo = evolvedRating(inst, pos);
 
     useEffect(
         () => () => {
@@ -152,6 +154,7 @@ export function FutCard({
                     rating: display,
                     pos: d.common.pos[pos],
                     edition: edition ? t('team.card.editionAria', { label: editionLabel(edition) }) : '',
+                    evo: evo ? t('team.card.evoAria', { name: SPECIES[evo.into - 1].name, r: evo.rating }) : '',
                 })}
             >
                 <PokeCard2 inst={inst} variant="metal" position={pos} captain={captain} />
@@ -165,6 +168,11 @@ export function FutCard({
                                 {d.common.pos[x.p]} <b>{x.display}</b>
                             </span>
                         ))}
+                        {evo && (
+                            <span className="peek-row up">
+                                {t('team.card.evoPeek', { name: SPECIES[evo.into - 1].name })} <b>{evo.rating}</b>
+                            </span>
+                        )}
                         <span className="peek-title">{t('team.card.highlights')}</span>
                         {best.map((b) => (
                             <span key={b.k} className="peek-row">

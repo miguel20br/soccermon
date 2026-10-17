@@ -1,5 +1,5 @@
-import { type Position, positionFactor, positionRating } from '../engine/attributes';
-import { type PokemonInstance, viewInstance } from '../engine/instance';
+import type { Position } from '../engine/attributes';
+import { type PokemonInstance, slotRating, viewInstance } from '../engine/instance';
 
 export interface SlotRating {
     rating: number;
@@ -15,8 +15,7 @@ export function ratingAt(inst: PokemonInstance, role: Position | 'ANY'): SlotRat
     const ditto = inst.speciesId === 132;
     if (role === 'ANY') return { rating: view.overall, display: ditto ? '?' : String(view.overall), fit: 'main' };
     const idx = view.positions.indexOf(role);
-    const factor = positionFactor(view.positions, role, view.attributes);
-    const rating = Math.round(positionRating(view.attributes, role) * factor);
+    const rating = slotRating(inst, role);
     return {
         rating,
         display: ditto ? '?' : String(rating),
