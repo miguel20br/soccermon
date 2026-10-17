@@ -105,3 +105,24 @@ posicionamento pesa 5x mais em corte e bloqueio; bônus das táticas refeitos; 3
 | Gols por jogo / favorito vence / goleadas | 7,16 / 65,3% / 2,8% | 6,80 / 64,2% / 1,8% |
 
 Na borda, aceito: contra-ataque × equilibrada 57%, 4-0 em 46%, semifinal 55% (meta 58%).
+
+## Bloco 2 (economia): aprovado pelo Miguel em 17/10
+
+Draft do jogador (`playerDraftOptions` em `src/engine/draft.ts`; rival e recompensas sem mudança): piso de prata
+(3 bronzes na vaga → a mais fraca vira uma prata que joga ali) e promessa em toda rodada (nenhuma opção vira ouro
+ao evoluir → entra uma que vira). Limiar de evolução 15 → 14. A carta mostra a nota depois de evoluir naquela vaga
+(seta desenhada, verde ou vermelha; `evolvedRating` em `src/engine/evolution.ts`).
+
+Simulado "Nota" escolhe a maior nota; "Evo" escolhe pela nota depois de evoluir.
+
+| | Antes | Depois |
+|---|---|---|
+| Evoluções por copa (Evo / Nota) | 0,82 / 0,20 | 1,21 / 0,25 |
+| Copas com 1+ evolução (Evo) | 56% | 68% |
+| Drafts com uma rodada só de bronze | 22% | 0% |
+| Copa por fase, Nota (oitavas → final) | 74 / 67 / 55 / 50% | 74 / 67 / 57 / 52% |
+| Título (Nota / Evo) | 14% / 13% | 15% / 13% |
+| Gols por jogo / favorito vence | 6,80 / 64,2% | 6,83 / 64,2% |
+
+Raro, épico e lendário não evoluem porque nenhum tem evolução no jogo. Quem só pega a maior nota continua quase
+sem evoluir: o selo é o que mostra que vale apostar.
