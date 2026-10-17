@@ -38,10 +38,12 @@ export default function App() {
     if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('demo') === 'crash') {
         throw new Error('Teste do aviso de erro (?demo=crash)');
     }
-    // laboratórios: ?lab=golpes (animação de todos os golpes, público); ?lab=posicoes e ?cards=1 só no dev
+    // laboratórios: ?lab=golpes (animação de todos os golpes, público); ?lab=posicoes e ?cards=1 só no dev, menos
+    // a revisão dos suspeitos de posição (?lab=posicoes&revisao=1), que o Miguel abre no celular
     const [lab, setLab] = useState(() => {
-        const q = new URLSearchParams(window.location.search).get('lab');
-        return q === 'golpes' || (import.meta.env.DEV && q === 'posicoes') ? q : null;
+        const params = new URLSearchParams(window.location.search);
+        const q = params.get('lab');
+        return q === 'golpes' || ((import.meta.env.DEV || params.has('revisao')) && q === 'posicoes') ? q : null;
     });
     const [cards, setCards] = useState(
         () => import.meta.env.DEV && new URLSearchParams(window.location.search).get('cards') === '1',
