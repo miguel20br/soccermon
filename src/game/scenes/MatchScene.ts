@@ -127,7 +127,7 @@ export interface MatchEvolution {
 
 /** Faixa de gol/defesa que a tela React mostra no canto do time. */
 export interface MatchHighlight {
-    kind: 'goal' | 'owngoal' | 'save' | 'sub' | 'evolve';
+    kind: 'goal' | 'owngoal' | 'save' | 'sub' | 'evolve' | 'tactic';
     team: 0 | 1;
     speciesId: number;
     shiny: boolean;
@@ -1722,9 +1722,24 @@ export class MatchScene extends Phaser.Scene {
                 }
                 break;
             }
-            case 'tactic':
+            case 'tactic': {
                 playSample('apito-curto', 0.7);
+                // troca de tática: faixa no canto do time com o capitão (ou quem estiver em quadra) e a tática nova
+                const face =
+                    this.players.find((v) => v.team === e.team && v.captain) ??
+                    this.players.find((v) => v.team === e.team);
+                if (face) {
+                    const h: MatchHighlight = {
+                        kind: 'tactic',
+                        team: e.team,
+                        speciesId: face.speciesId,
+                        shiny: face.shiny,
+                        name: dict().common.tactic[e.tactic],
+                    };
+                    EventBus.emit('match:highlight', h);
+                }
                 break;
+            }
             case 'penalty': {
                 playSfx(e.scored ? 'goal' : 'save');
                 // pênalti: comemora o seu e a defesa do seu goleiro, vaia o do rival, "uuuh" no seu perdido

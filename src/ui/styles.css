@@ -6426,3 +6426,102 @@ body {
     animation: none;
     box-shadow: 0 0 12px 2px var(--a2);
 }
+
+/* Carta chegando na vaga (draft, recompensa, troca de lugar): cai de cima com um pulinho */
+.slot img.slot-pop {
+    animation: slot-pop 0.36s var(--ease-pop) both;
+}
+@keyframes slot-pop {
+    from {
+        opacity: 0;
+        transform: translateY(-14px) scale(1.25);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .slot img.slot-pop {
+        animation: none;
+    }
+}
+:root[data-reduce-motion="true"] .slot img.slot-pop {
+    animation: none;
+}
+
+/* Pokédex: anterior/próximo desliza do lado certo */
+.pf-sheet-hero.pf-slide-next {
+    animation: pf-in-next 0.24s var(--ease-out) both;
+}
+.pf-sheet-hero.pf-slide-prev {
+    animation: pf-in-prev 0.24s var(--ease-out) both;
+}
+@keyframes pf-in-next {
+    from {
+        opacity: 0;
+        transform: translateX(28px);
+    }
+}
+@keyframes pf-in-prev {
+    from {
+        opacity: 0;
+        transform: translateX(-28px);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .pf-sheet-hero.pf-slide-next,
+    .pf-sheet-hero.pf-slide-prev {
+        animation: none;
+    }
+}
+:root[data-reduce-motion="true"] .pf-sheet-hero.pf-slide-next,
+:root[data-reduce-motion="true"] .pf-sheet-hero.pf-slide-prev {
+    animation: none;
+}
+
+/* Entrada da Home na 1ª abertura: o topo sobe e os botões do menu chegam em cascata */
+.home-enter .home-hero {
+    animation: home-rise 0.5s var(--ease-out) both;
+}
+.home-enter .home-tile {
+    animation: home-rise 0.4s var(--ease-out) both;
+    animation-delay: calc(0.25s + var(--i, 0) * 0.05s);
+}
+.home-enter .home-tile:nth-child(1) {
+    --i: 0;
+}
+.home-enter .home-tile:nth-child(2) {
+    --i: 1;
+}
+.home-enter .home-tile:nth-child(3) {
+    --i: 2;
+}
+.home-enter .home-tile:nth-child(4) {
+    --i: 3;
+}
+.home-enter .home-tile:nth-child(5) {
+    --i: 4;
+}
+.home-enter .home-tile:nth-child(6) {
+    --i: 5;
+}
+.home-enter .home-tile:nth-child(n + 7) {
+    --i: 6;
+}
+@keyframes home-rise {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .home-enter .home-hero,
+    .home-enter .home-tile {
+        animation: none;
+    }
+}
+:root[data-reduce-motion="true"] .home-enter .home-hero,
+:root[data-reduce-motion="true"] .home-enter .home-tile {
+    animation: none;
+}

@@ -40,6 +40,7 @@ export const match = {
         save: 'DEFESA!',
         sub: 'SUBSTITUIÇÃO',
         evolve: 'EVOLUIU!',
+        tactic: 'NOVA TÁTICA',
     },
     subIn: 'Entra {name}',
     subOut: 'sai {name}',

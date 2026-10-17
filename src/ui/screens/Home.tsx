@@ -77,7 +77,14 @@ function LangToggle() {
     );
 }
 
+/** A entrada da Home (título sobe, botões em cascata) só na 1ª vez que o jogo abre; voltar pra Home é na hora. */
+let homeEntered = false;
+
 export function Home() {
+    const [entering] = useState(() => !homeEntered);
+    useEffect(() => {
+        homeEntered = true;
+    }, []);
     const { run, newRun, go, records, profile, setOnboarded, parkedRuns, resumeParked, discardParked } = useGame();
     const { t, tn, d, lang } = useT();
     const notes = patchNotes(lang);
@@ -140,7 +147,7 @@ export function Home() {
     );
 
     return (
-        <div className="home">
+        <div className={`home${entering ? ' home-enter' : ''}`}>
             <div className="home-top">
                 <div className="event-banner">
                     <TypeIcon type={eventType} size={28} />

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { MOVES, SPECIES_BY_ID, type Species, type StatKey, species } from '../../engine/data';
 import { DEFAULT_LEVEL, type PokemonInstance, viewInstance } from '../../engine/instance';
 import { defaultMoveset } from '../../engine/moves';
@@ -77,6 +77,12 @@ export function SpeciesSheet({
     const idx = order.indexOf(id);
     const prev = idx > 0 ? order[idx - 1] : null;
     const next = idx >= 0 && idx < order.length - 1 ? order[idx + 1] : null;
+    // anterior/próximo: a ficha nova entra deslizando do lado de onde veio
+    const last = useRef(id);
+    const slide = last.current === id ? '' : idx > order.indexOf(last.current) ? ' pf-slide-next' : ' pf-slide-prev';
+    useEffect(() => {
+        last.current = id;
+    }, [id]);
 
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
@@ -114,7 +120,7 @@ export function SpeciesSheet({
                     ×
                 </button>
 
-                <div className="pf-sheet-hero">
+                <div key={id} className={`pf-sheet-hero${slide}`}>
                     <div className="pf-sheet-art">
                         <img
                             className={`pixel${seen ? '' : ' pf-silhouette'}`}

@@ -118,7 +118,13 @@ export function FormationBoard({
                 )}
                 {shown ? (
                     <>
-                        <img className={`pixel${ghost ? ' ghost' : ''}`} src={cardSprite(shown)} alt="" />
+                        {/* chave pelo uid: carta nova na vaga (contratou, ganhou, trocou de lugar) cai com um pulinho */}
+                        <img
+                            key={inst?.uid ?? 'ghost'}
+                            className={`pixel${ghost ? ' ghost' : ' slot-pop'}`}
+                            src={cardSprite(shown)}
+                            alt=""
+                        />
                         {inst && <span className="slot-name">{viewInstance(inst).displayName}</span>}
                         {r && (
                             <span className={`slot-rating ${r.fit}`}>

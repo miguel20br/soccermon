@@ -8,7 +8,6 @@ import { aiDraftTeam, DRAFT_ROUNDS, draftOptions } from './draft';
 import { FORMATIONS } from './formations';
 import { createInstance, viewInstance } from './instance';
 import { computeLinks } from './links';
-import { computeSynergies } from './synergy';
 import { applyPendingSubs, captainFactor, createMatch } from './match';
 import { matchDigest, playerLines, possessionByPeriod, shotMap } from './match-stats';
 import { applyModifiers, attributeModifiers } from './modifiers';
@@ -20,6 +19,7 @@ import { LiveRunner } from './runners/live-runner';
 import { SIGNATURE } from './signature-moves';
 import { EVENT_TYPES, rollSpecial, SPECIAL_BONUS, weeklyEventType } from './specials';
 import { SNAP_STRIDE, type TeamSetup } from './state';
+import { computeSynergies } from './synergy';
 import { dir8, v } from './vec';
 
 function team(seed: string, name: string): TeamSetup {

@@ -41,6 +41,7 @@ export const match: typeof pt = {
         save: 'SAVE!',
         sub: 'SUBSTITUTION',
         evolve: 'EVOLVED!',
+        tactic: 'NEW TACTIC',
     },
     subIn: '{name} on',
     subOut: '{name} off',
