@@ -239,7 +239,7 @@ draft (`draft.ts`) tem 7 escolhas: capitão, depois você escolhe a vaga e saem 
   e quem começa sai da seed. Tudo é visível: o legal é "roubar" o Pokémon que o rival queria. 20 s por escolha;
   acabou, sai a melhor pra vaga (`aiPick`, que já existe). Mostrar em cima o time do rival se montando.
 - **Cada um com seus pacotes:** mesma seed, mas as opções divergem conforme as escolhas (vaga escolhida e
-  `taken`), então é "mesma sorte", não "mesmo pacote". Os dois escolhem ao mesmo tempo; do rival só aparece o
+  `taken`), então é "mesma sorte", não "mesmo pacote". **Mudou em 17/10/2026 (Miguel):** a seed leva também quem abre (`pacotes-host`/`pacotes-guest`), então cada um recebe pacotes diferentes; a regra do draft (prata na vaga, ouro ao evoluir) segue igual pros dois. Os dois escolhem ao mesmo tempo; do rival só aparece o
   progresso ("Fulano 4/7"). No fim vem **um team preview de 30 s**: os dois times aparecem, e cada um escolhe
   formação, tática e capitão sabendo contra quem joga. Pode dar Pokémon repetido dos dois lados (espelho: tudo
   bem).

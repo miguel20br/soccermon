@@ -405,7 +405,7 @@ class DuelSession {
             const seed = d.seeds[r];
             const p = picks[r];
             if (!seed || !p || !(await abrir(packSealValue(r, p.uid), p.salt, d.seals[by][r]))) return null;
-            const card = packOptions(seed, r, cards).find((o) => o.uid === p.uid);
+            const card = packOptions(seed, r, cards, by).find((o) => o.uid === p.uid);
             if (!card) return null;
             cards.push(card);
         }
@@ -495,7 +495,7 @@ class DuelSession {
             return;
         const packs = this.packsFor(s) ?? { game: s.game, picks: [], salts: [] };
         if (packs.picks.length !== d.round) return;
-        const card = packOptions(d.seeds[d.round], d.round, packs.picks).find((o) => o.uid === uid);
+        const card = packOptions(d.seeds[d.round], d.round, packs.picks, this.view.role!).find((o) => o.uid === uid);
         if (!card) return;
         const { seal, salt } = await lacrar(packSealValue(d.round, uid));
         this.kept.packs = { game: s.game, picks: [...packs.picks, card], salts: [...packs.salts, salt] };
@@ -721,7 +721,7 @@ class DuelSession {
                             (x) => this.dispatch({ k: 'seal', round: d.round, seal: x.seal }),
                         );
                 } else if (d.deadline[role] && now >= d.deadline[role] && this.due(`auto-${s.game}-${d.round}`)) {
-                    const opts = packOptions(d.seeds[d.round], d.round, packs?.picks ?? []);
+                    const opts = packOptions(d.seeds[d.round], d.round, packs?.picks ?? [], role);
                     void this.packPick(bestFor(opts, d.round).uid);
                 }
             }

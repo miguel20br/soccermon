@@ -5,7 +5,7 @@
 ### Duelo ao vivo (BETA)
 - Desafie um amigo por link: os dois veem a mesma partida ao mesmo tempo
 - Não precisa de conta: quem recebe o link digita o nome e toca em Jogar agora (com Google, o histórico fica guardado na nuvem)
-- 3 modos: Disputa (draft alternado, 4 cartas por vaga, uma pra cada e 2 queimam), Cada um com seus pacotes (mesma sorte pros dois, escolhas escondidas) e Time pronto (o time da copa ou um campeão do Hall, com limite de cartas especiais escolhido por quem cria a sala)
+- 3 modos: Disputa (draft alternado, 4 cartas por vaga, uma pra cada e 2 queimam), Cada um com seus pacotes (pacotes próprios, escolhas escondidas) e Time pronto (o time da copa ou um campeão do Hall, com limite de cartas especiais escolhido por quem cria a sala)
 - Convite com Compartilhar, WhatsApp, QR code e código da sala
 - O mesmo caminho da copa: escalação, VERSUS com os dois treinadores, partida e resultado
 - Velocidade da sala: um pede, o outro aceita ou recusa

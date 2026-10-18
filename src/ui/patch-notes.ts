@@ -15,7 +15,7 @@ export const PATCH_NOTES: PatchNotes[] = [
                 lines: [
                     'Desafie um amigo por link: os dois veem a mesma partida ao mesmo tempo',
                     'Não precisa de conta: quem recebe o link digita o nome e toca em Jogar agora (com Google, o histórico fica guardado na nuvem)',
-                    '3 modos: Disputa (draft alternado, 4 cartas por vaga, uma pra cada e 2 queimam), Cada um com seus pacotes (mesma sorte pros dois, escolhas escondidas) e Time pronto (o time da copa ou um campeão do Hall, com limite de cartas especiais escolhido por quem cria a sala)',
+                    '3 modos: Disputa (draft alternado, 4 cartas por vaga, uma pra cada e 2 queimam), Cada um com seus pacotes (pacotes próprios, escolhas escondidas) e Time pronto (o time da copa ou um campeão do Hall, com limite de cartas especiais escolhido por quem cria a sala)',
                     'Convite com Compartilhar, WhatsApp, QR code e código da sala',
                     'O mesmo caminho da copa: escalação, VERSUS com os dois treinadores, partida e resultado',
                     'Velocidade da sala: um pede, o outro aceita ou recusa',
@@ -424,7 +424,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 lines: [
                     'Challenge a friend with a link: both of you watch the same match at the same time',
                     'No account needed: whoever gets the link types a name and taps Play now (sign in with Google to keep your history in the cloud)',
-                    '3 modes: Snake draft (4 cards per slot, one each and 2 burn), Own packs (same luck for both, hidden picks) and Ready team (your cup team or a Hall of Fame champion, with a special card limit set by the host)',
+                    '3 modes: Snake draft (4 cards per slot, one each and 2 burn), Own packs (your own packs, hidden picks) and Ready team (your cup team or a Hall of Fame champion, with a special card limit set by the host)',
                     'Invite with Share, WhatsApp, QR code and room code',
                     'Same path as the cup: lineup, VERSUS with both trainers, match and result',
                     'Room speed: one asks, the other accepts or declines',

@@ -190,7 +190,13 @@ export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
     const mine = disputa ? draft.picks[role] : packPicks;
     const sealedNow = !disputa && !!draft.seals[role][draft.round];
     const myTurn = open && (disputa ? draft.turn === role : !sealedNow && packPicks.length === draft.round);
-    const options = !open ? [] : disputa ? draft.options : myTurn ? packOptions(seed, draft.round, packPicks) : [];
+    const options = !open
+        ? []
+        : disputa
+          ? draft.options
+          : myTurn
+            ? packOptions(seed, draft.round, packPicks, role)
+            : [];
     const left = useCountdown(open ? draft.deadline[disputa ? (draft.turn ?? role) : role] : undefined);
     const need = DUEL_ROUNDS[round];
     const slotLabel =

@@ -18,7 +18,7 @@ export const duel = {
         disputa: ['Disputa', '4 cartas da mesma vaga por rodada: um tira, o outro tira e as 2 que sobram queimam.'],
         pacotes: [
             'Cada um com seus pacotes',
-            'Mesma sorte de pacotes pros dois, escolhas escondidas e 30 s vendo o time do outro no fim.',
+            'Cada um abre os próprios pacotes, escolhas escondidas e 30 s vendo o time do outro no fim.',
         ],
     },
     specials: {

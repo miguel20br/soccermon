@@ -267,10 +267,10 @@ export function disputaOptions(roundSeed: string, round: number, taken: Readonly
     return round === 0 ? captainOptions(rng, taken, 4) : draftOptions(rng, round, taken, 4, [], DUEL_ROUNDS[round]);
 }
 
-/** As 3 cartas de "cada um com seus pacotes": mesma seed pros dois, divergindo só pelo que cada um já tirou. */
-export function packOptions(roundSeed: string, round: number, picks: PokemonInstance[]): PokemonInstance[] {
+/** As 3 cartas de "cada um com seus pacotes": seed da rodada + quem abre (cada um recebe um pacote diferente). */
+export function packOptions(roundSeed: string, round: number, picks: PokemonInstance[], role: Role): PokemonInstance[] {
     const taken = new Set(picks.map((p) => p.speciesId));
-    const rng = new Rng(roundSeed, 'pacotes');
+    const rng = new Rng(roundSeed, `pacotes-${role}`);
     return round === 0 ? captainOptions(rng, taken, 3) : playerDraftOptions(rng, round, taken, DUEL_ROUNDS[round]);
 }
 

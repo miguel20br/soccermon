@@ -20,7 +20,10 @@ export const duel: typeof pt = {
             'Each of you brings a team you already have: the current cup or a Hall of Fame champion.',
         ],
         disputa: ['Snake draft', '4 cards for the same slot each round: one takes, the other takes, the last 2 burn.'],
-        pacotes: ['Own packs', 'Same pack luck for both, hidden picks and 30 s looking at the rival team at the end.'],
+        pacotes: [
+            'Own packs',
+            'Each of you opens your own packs, hidden picks and 30 s looking at the rival team at the end.',
+        ],
     },
     specials: {
         label: 'Special cards (Shiny, Star Player, Icon, Event)',

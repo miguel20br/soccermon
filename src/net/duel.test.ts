@@ -428,15 +428,15 @@ describe('drafts', () => {
         for (let r = 0; r < DRAFT_PICKS; r++) {
             s = openRound(s, r);
             for (const role of ['host', 'guest'] as Role[]) {
-                const opts = packOptions(s.draft!.seeds[r], r, picks[role]);
+                const opts = packOptions(s.draft!.seeds[r], r, picks[role], role);
                 expect(opts.length).toBeGreaterThan(0);
                 picks[role].push(opts[0]);
                 s = reduce(s, { k: 'seal', round: r, seal: H(role === 'host' ? 'e' : 'f') }, role, ctx(r));
             }
             expect(s.draft?.round).toBe(r + 1);
         }
-        // mesma sorte: a 1ª rodada dá as mesmas cartas pros dois
-        expect(picks.host[0].speciesId).toBe(picks.guest[0].speciesId);
+        // cada um abre o próprio pacote: os dois não recebem as mesmas cartas
+        expect(picks.host.map((p) => p.speciesId)).not.toEqual(picks.guest.map((p) => p.speciesId));
         s = reduce(s, { k: 'picksOpened', cards: picks.host }, 'host', ctx());
         expect(s.phase).toBe('draft');
         s = reduce(s, { k: 'picksOpened', cards: picks.guest }, 'guest', ctx(100));
