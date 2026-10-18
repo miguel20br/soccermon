@@ -29,6 +29,10 @@ export const team = {
         pickCaptain: 'Escolher capitão',
         sign: 'Escalar',
         signAs: 'Escalar ({pos})',
+        auto: 'Monta pra mim',
+        autoAsk: 'Montar o resto do time ({formation}) com a melhor carta pra cada vaga? Na escalação dá pra trocar.',
+        autoGo: 'Montar',
+        autoBack: 'Voltar',
     },
     lineup: {
         tacticDesc: {

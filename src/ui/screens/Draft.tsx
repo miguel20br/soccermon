@@ -14,6 +14,7 @@ import { CountUp } from '../components/CountUp';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
 import { LinkChip, LinkChips, newLinks } from '../components/LinkChips';
+import { HudIcon } from '../components/MatchHud';
 import { TypeBadge } from '../components/PokeCard';
 import { EvoBadge } from '../components/PokeCard2';
 import { Tip } from '../help/Tip';
@@ -42,6 +43,44 @@ function TeamAvg({ avg }: { avg: number }) {
                 </b>
             )}
         </span>
+    );
+}
+
+/**
+ * "Monta pra mim": completa o draft com a melhor carta pra cada vaga (escolha do jogador, pede confirmação).
+ * No celular fica na barra do polegar (à vista o draft inteiro); no PC, no cabeçalho.
+ */
+function AutoDraft({ captainUid }: { captainUid?: string }) {
+    const { run, autoDraft } = useGame();
+    const { t, lang } = useT();
+    const [ask, setAsk] = useState(false);
+    if (!run) return null;
+    return (
+        <div className={`bc-thumbbar draft-auto${ask ? ' ask' : ''}`}>
+            {ask ? (
+                <>
+                    <p>{t('team.draft.autoAsk', { formation: formationText(run.formation, lang).name })}</p>
+                    <button type="button" className="btn ghost" onClick={() => setAsk(false)}>
+                        {t('team.draft.autoBack')}
+                    </button>
+                    <button
+                        type="button"
+                        className="btn yellow"
+                        onClick={() => {
+                            playSfx('select');
+                            autoDraft(captainUid);
+                        }}
+                    >
+                        {t('team.draft.autoGo')}
+                    </button>
+                </>
+            ) : (
+                <button type="button" className="btn" onClick={() => setAsk(true)}>
+                    <HudIcon kind="skip" />
+                    {t('team.draft.auto')}
+                </button>
+            )}
+        </div>
     );
 }
 
@@ -94,6 +133,7 @@ export function Draft() {
                 <div className="draft-head bc-screenhead">
                     <span className="bc-tag">{t('team.draft.beforeDraft')}</span>
                     <h1>{t('team.draft.chooseFormation')}</h1>
+                    <AutoDraft />
                 </div>
                 <div className="formation-picker">
                     {Object.values(FORMATIONS).map((f) => (
@@ -193,6 +233,7 @@ export function Draft() {
                         />
                     ))}
                 </div>
+                <AutoDraft captainUid={chosen?.uid} />
             </div>
 
             {run.status === 'drafting' && <Tip id="draft-slot">{t('team.draft.tip')}</Tip>}

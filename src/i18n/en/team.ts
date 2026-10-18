@@ -30,6 +30,11 @@ export const team: typeof pt = {
         pickCaptain: 'Pick as captain',
         sign: 'Sign',
         signAs: 'Sign ({pos})',
+        auto: 'Auto-draft',
+        autoAsk:
+            'Fill the rest of the team ({formation}) with the best card for each slot? You can still swap in the lineup.',
+        autoGo: 'Draft it',
+        autoBack: 'Back',
     },
     lineup: {
         tacticDesc: {
