@@ -31,7 +31,7 @@ export const duel = {
     },
     leave: 'Sair da sala',
     leaveAsk:
-        'Sair no meio do duelo? A partida para te esperando; depois de 1 minuto, o rival pode encerrar com vitória por W.O.',
+        'Sair no meio do duelo? A partida para e espera você voltar; depois de 1 minuto, o rival pode encerrar com vitória por W.O.',
     leaveYes: 'Sair',
     room: 'Sala {code}',
     noTeam: 'Jogue uma copa ou escolha Disputa / Cada um com seus pacotes.',

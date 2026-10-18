@@ -169,6 +169,10 @@ img.pixel {
     border-color: #c79c00;
     box-shadow: 0 3px 0 #7d6200;
 }
+/* amarelo apagado ainda parecia ligado (Substituir depois do apito final) */
+.btn.yellow:disabled {
+    filter: grayscale(0.9);
+}
 .btn.ghost {
     background: transparent;
     border-color: var(--line);

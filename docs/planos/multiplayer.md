@@ -456,3 +456,21 @@ revisão de segurança (`multiplayer-revisao.md`). Código em `src/net/` (regras
   code do link (gerador próprio em `src/ui/qr.ts`, ~150 linhas, sem dependência: modo byte, correção M, versões 1–6;
   conferido com o `zbarimg`). O link leva `&de=Nome` pra tela de quem abre sem conta. Na criação da sala tem "Tem um
   código de sala?" pra quem prefere digitar.
+
+### Conserto da auditoria (18/10, aprovado pelo Miguel)
+
+- **Estado só de quem aplica as regras.** O convidado fica com o estado do host (o `rev` comparado é o último aceito do
+  host, então o host manda mesmo que o convidado tenha andado sozinho). O host só aceita o estado do convidado logo
+  depois de voltar (recarregou, aba congelada mais de 6 s, canal do Supabase caiu e voltou) e se nada do host mudou
+  (`acceptTakeover`: lacre, segredos, hashes, ordens e time do host; resultado novo só W.O. do convidado com o host fora
+  60 s pela conta do próprio host). Terceiro na sala não manda estado. O convidado que recarrega espera 6 s pelo host
+  antes de assumir.
+- **Placar do apito final** sai da partida que quem aplica simulou, depois do apito na tela dele (`ctx.final`); a
+  mensagem `ended` não leva placar.
+- **Anular** só com hash diferente em 2 trechos seguidos (com as mesmas ordens).
+- **Host que volta** pula pro minuto do convidado (o convidado manda `where` com o tick dele a cada 2,5 s; o host
+  voltando não manda o tick dele no relógio até pular). Tela parada esperando o outro por mais de 3 s mostra
+  "Esperando Fulano…" (`stall`), inclusive com o host em segundo plano.
+- **Revanche de um toque:** o pedido leva o lacre da partida seguinte; com os dois, vai direto pro draft/time do mesmo
+  modo. Sem lacre (versão antiga) ou versões diferentes, volta pro lobby como antes. Rival fora da sala desliga a revanche.
+- Ordem recusada pela regra para de ser reenviada; Time pronto com barra de evolução abaixo do limiar (13,9).
