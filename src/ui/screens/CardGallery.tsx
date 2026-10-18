@@ -127,7 +127,7 @@ const SEAL_SPOTS: { spot: SealSpot; title: string; desc: string }[] = [
     {
         spot: 'arte',
         title: 'A · Canto da arte',
-        desc: 'Pequeno, embaixo da coluna da nota e do tipo. Fica dentro da carta, longe da etiqueta da edição.',
+        desc: 'Pequeno, no pé da coluna da nota e do tipo, logo acima do nome. Dentro da carta, longe da etiqueta da edição.',
     },
     {
         spot: 'nome',

@@ -3569,10 +3569,10 @@ button.pc2.pc2-fx:hover {
     pointer-events: none;
     height: auto;
 }
-/* A: embaixo da coluna da nota/posição/tipo */
+/* A: no pé da coluna da nota/posição/tipo, logo acima do nome (abaixo da seta de evolução) */
 .cg-seal-arte .cg-seal-mark {
     left: 7.5%;
-    top: 37%;
+    top: 50.5%;
     width: 11%;
 }
 /* B: na ponta direita da faixa do nome */
