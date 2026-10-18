@@ -7012,6 +7012,15 @@ body {
 }
 /* celular e tablet: logo embaixo da quadra (a tela da partida vira uma coluna só) */
 @media (max-width: 1050px) {
+    /* com o match-main "contents", quadra, controles e tabela viram itens da grade: sem o minmax(0) e o
+       min-width: 0, um nome comprido na tabela alargava a coluna e a tela passava da borda no 320 */
+    .match-layout.has-board {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .match-layout.has-board > *,
+    .match-layout.has-board > .match-main > * {
+        min-width: 0;
+    }
     .match-layout.has-board > .match-main {
         display: contents;
     }
