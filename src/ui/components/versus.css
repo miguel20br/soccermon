@@ -576,19 +576,22 @@
     }
 }
 
-/* duelo: o treinador de cada lado (avatar, nome e título) */
+/* duelo: o treinador de cada lado (avatar, nome e título em selo, pra ler quem você enfrenta) */
 .vsp-coach {
     display: flex;
     align-items: center;
-    gap: 6px;
-    margin-top: 4px;
+    gap: 8px;
+    margin-top: 6px;
     min-width: 0;
-    font-size: clamp(10px, 2.4vmin, 13px);
+    font-size: clamp(12px, 3vmin, 18px);
     color: #fff;
 }
+.is-away .vsp-coach {
+    flex-direction: row-reverse;
+}
 .vsp-coach img {
-    width: clamp(20px, 5vmin, 30px);
-    height: clamp(20px, 5vmin, 30px);
+    width: clamp(26px, 6.5vmin, 44px);
+    height: clamp(26px, 6.5vmin, 44px);
     border-radius: 50%;
     object-fit: cover;
     background: rgb(0 0 0 / 35%);
@@ -596,16 +599,28 @@
 }
 .vsp-coach span {
     display: grid;
+    gap: 3px;
     min-width: 0;
+    justify-items: start;
+}
+.is-away .vsp-coach span {
+    justify-items: end;
 }
 .vsp-coach b,
 .vsp-coach small {
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    box-sizing: border-box;
 }
 .vsp-coach small {
+    padding: 2px 10px;
+    border-radius: 999px;
+    border: 2px solid var(--yellow);
+    background: rgba(5, 6, 15, 0.88);
     color: var(--yellow);
+    font-size: clamp(11px, 2.7vmin, 16px);
 }
 .vs-countdown {
     pointer-events: none;
