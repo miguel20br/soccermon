@@ -17,7 +17,7 @@ import { defaultMoveset, moveProfile } from './moves';
 import { rewardOptions } from './rewards';
 import { Rng } from './rng';
 import { runMatch } from './runners/batch-runner';
-import { LiveRunner } from './runners/live-runner';
+import { LiveRunner, validOrder } from './runners/live-runner';
 import { SIGNATURE } from './signature-moves';
 import { EVENT_TYPES, rollSpecial, SPECIAL_BONUS, weeklyEventType } from './specials';
 import { type MatchOrder, SNAP_STRIDE, type Tactic, type TeamSetup } from './state';
@@ -583,6 +583,91 @@ describe('substituição pedida pelo técnico', () => {
         const ko = r.events.find((e) => e.type === 'kickoff' && e.tick > ht)?.tick ?? 0;
         expect(sub?.tick).toBe(ht + 1);
         expect(sub && sub.tick < ko).toBe(true);
+    });
+});
+
+describe('prancheta no meio da partida', () => {
+    const home = { ...team('line-a', 'A'), manualSubs: true, formation: '1-2-1' as const };
+    const away = team('line-b', 'B');
+    const u = home.lineup.map((p) => p.uid);
+    // goleiro vira pivô e o pivô vai pro gol, em 2-2
+    const swap = [u[4], u[1], u[2], u[3], u[0]];
+
+    it('entra na próxima bola parada: formação, vaga, posição e nota pela posição nova', () => {
+        const base = runMatch(FUTSAL_5, home, away, 7, { snapshots: false });
+        const T = 1200;
+        const orders: MatchOrder[] = [{ tick: T, team: 0, kind: 'lineup', formation: '2-2', order: swap }];
+        const runner = new LiveRunner(FUTSAL_5, home, away, 7, orders);
+        const s = runner.state;
+        while (!runner.finished && !s.events.some((e) => e.type === 'lineup')) runner.step();
+        const ev = s.events.find((e) => e.type === 'lineup');
+        expect(ev?.type === 'lineup' && ev.tick >= T).toBe(true);
+        if (ev?.type !== 'lineup') return;
+        // só na bola parada: até ela a partida é igual à sem a ordem
+        expect(s.events.filter((e) => e.tick < T)).toEqual(base.events.filter((e) => e.tick < T));
+        expect(['kickoff', 'restart', 'corner', 'halftime']).toContain(s.phase);
+        expect(ev).toMatchObject({ formation: '2-2', idx: [4, 1, 2, 3, 0] });
+        expect(s.teams[0].formation.id).toBe('2-2');
+        expect(s.teams[0].lineup.map((p) => p.uid)).toEqual(swap);
+        const gk = s.players[4];
+        expect([gk.slot, gk.role]).toEqual([0, 'GK']);
+        expect([s.players[0].slot, s.players[0].role]).toEqual([4, 'PIVO']);
+        expect(s.players[2].role).toBe('FIXO');
+        // nota (atributos) recalculada pela posição nova, com a mesma regra da carta
+        const mods = attributeModifiers(gk.inst, {
+            lineup: s.teams[0].lineup,
+            captain: s.teams[0].lineup.find((p) => p.uid === home.captainUid) ?? null,
+            role: 'GK',
+        });
+        expect(gk.attr).toEqual(applyModifiers(computeAttributes(gk.sp, gk.inst.level), mods, 'GK'));
+    });
+
+    it('ordem inválida é recusada e não muda a partida', () => {
+        const base = matchHash(runMatch(FUTSAL_5, home, away, 7, { snapshots: false }));
+        const bad: MatchOrder[][] = [
+            [{ tick: 900, team: 0, kind: 'lineup', formation: '2-2', order: [u[0], u[0], u[2], u[3], u[4]] }],
+            [{ tick: 900, team: 0, kind: 'lineup', formation: '2-2', order: u.slice(0, 4) }],
+            [{ tick: 900, team: 0, kind: 'lineup', formation: '9-9' as never, order: swap }],
+            // quem não está em quadra (o reserva) não entra pela prancheta
+            [{ tick: 900, team: 0, kind: 'lineup', formation: '2-2', order: [home.bench[0].uid, ...u.slice(1)] }],
+        ];
+        for (const orders of bad) {
+            const r = runMatch(FUTSAL_5, home, away, 7, { snapshots: false, orders });
+            expect(r.events.some((e) => e.type === 'lineup')).toBe(false);
+            expect(matchHash(r)).toBe(base);
+        }
+        expect(validOrder(bad[0][0])).toBe(false);
+        expect(validOrder(bad[2][0])).toBe(false);
+        expect(validOrder({ tick: 900, team: 0, kind: 'lineup', formation: '2-2', order: swap })).toBe(true);
+    });
+
+    it('a nova substitui a pendente; troca pendente com quem saiu vale pra quem entrou', () => {
+        const T = 1200;
+        const inn = home.bench[0].uid;
+        const r = runMatch(FUTSAL_5, home, away, 7, {
+            snapshots: false,
+            orders: [
+                { tick: T, team: 0, kind: 'lineup', formation: '2-2', order: swap },
+                { tick: T + 1, team: 0, kind: 'sub', outUid: u[2], inUid: inn },
+                { tick: T + 2, team: 0, kind: 'lineup', formation: '3-1', order: [u[0], u[2], u[1], u[3], u[4]] },
+            ],
+        });
+        const lineups = r.events.filter((e) => e.type === 'lineup');
+        expect(lineups).toHaveLength(1);
+        const sub = r.events.find((e) => e.type === 'sub' && e.team === 0);
+        expect(sub?.tick).toBe(lineups[0].tick);
+        // quem entrou no lugar do u[2] foi pra vaga 1 (Ala do 3-1)
+        expect(lineups[0]).toMatchObject({ formation: '3-1', idx: [0, 2, 1, 3, 4] });
+        expect(r.finalRoster[2]).toMatchObject({ uid: inn, role: 'ALA' });
+    });
+
+    it('determinismo: mesma seed + mesmas ordens = mesma partida', () => {
+        const orders: MatchOrder[] = [{ tick: 700, team: 0, kind: 'lineup', formation: 'ferrolho', order: swap }];
+        const a = runMatch(FUTSAL_5, home, away, 'line-det', { orders });
+        const b = runMatch(FUTSAL_5, home, away, 'line-det', { orders: [...orders] });
+        expect(a.events.some((e) => e.type === 'lineup')).toBe(true);
+        expect(matchHash(a)).toBe(matchHash(b));
+        expect(matchHash(a)).not.toBe(matchHash(runMatch(FUTSAL_5, home, away, 'line-det')));
     });
 });
 

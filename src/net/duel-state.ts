@@ -208,7 +208,8 @@ export interface PreviewCfg {
 export type OrderBody =
     | { kind: 'tactic'; tactic: Tactic }
     | { kind: 'sub'; outUid: string; inUid: string }
-    | { kind: 'corner'; corner: CornerPlan };
+    | { kind: 'corner'; corner: CornerPlan }
+    | { kind: 'lineup'; formation: FormationId; order: string[] };
 
 export type Intent =
     | { k: 'join'; peer: Peer }
@@ -402,7 +403,7 @@ const sameInputs = (a: string, b: string) => a.slice(0, a.indexOf(':') + 1) === 
 /**
  * Carimba a ordem com o tick: `max(tick dos dois) + leadTicks` (no intervalo, o tick seguinte a ele), sempre depois
  * da última do log. O número (`seq`) é de quem deu a ordem: repetida não entra de novo. Mesmo limite pros dois: 3
- * mudanças de tática e as trocas do banco.
+ * mudanças de tática e as trocas do banco; a prancheta não tem limite.
  */
 export function stampOrder(
     s: Shared,
@@ -430,6 +431,16 @@ export function stampOrder(
         const { outUid, inUid } = i.order;
         if (subs.length >= team.bench.length) return null;
         if (!field.includes(outUid) || usedIn.has(inUid) || !team.bench.some((p) => p.uid === inUid)) return null;
+    } else if (i.order.kind === 'lineup') {
+        // prancheta sem limite: só quem está em quadra (quem sai numa troca do log vale como quem entra)
+        const order: unknown = i.order.order;
+        if (!Array.isArray(order) || !order.every((u) => typeof u === 'string')) return null;
+        const field = onFieldAfter(team, s.log, side);
+        const resolved = order.map((u: string) => {
+            for (const o of s.log) if (o.team === side && isSubOrder(o) && o.outUid === u) u = o.inUid;
+            return u;
+        });
+        if (resolved.length !== field.length || !field.every((u) => resolved.includes(u))) return null;
     } else return null;
     const base =
         i.ht && ctx.htTick !== undefined
@@ -442,7 +453,9 @@ export function stampOrder(
             ? { tick, team: side, tactic: o.tactic, seq: i.seq }
             : o.kind === 'corner'
               ? { tick, team: side, kind: 'corner', corner: o.corner, seq: i.seq }
-              : { tick, team: side, kind: 'sub', outUid: o.outUid, inUid: o.inUid, seq: i.seq };
+              : o.kind === 'lineup'
+                ? { tick, team: side, kind: 'lineup', formation: o.formation, order: [...o.order], seq: i.seq }
+                : { tick, team: side, kind: 'sub', outUid: o.outUid, inUid: o.inUid, seq: i.seq };
     // a mesma regra que o motor usa pra aceitar a ordem na agenda
     return validOrder(out) ? out : null;
 }

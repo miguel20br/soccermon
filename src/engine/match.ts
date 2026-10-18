@@ -13,7 +13,7 @@ import { MOVES, species, type TypeName } from './data';
 import { dpow } from './dmath';
 import { compressed, eff, fatigueFactor, isIncapacitated, TACTIC_MODS } from './effective';
 import { evolutionTarget, evolveInstance, evoNeeded, evoProgress } from './evolution';
-import { formationOf } from './formations';
+import { FORMATIONS, formationOf } from './formations';
 import type { PokemonInstance } from './instance';
 import { ITEMS } from './items';
 import { type ActiveLink, computeLinks } from './links';
@@ -34,6 +34,7 @@ import {
     FLAG_GUARD,
     FLAG_MINI,
     FLAG_RAGE,
+    type LineupOrder,
     type MatchEvent,
     type MatchSnapshot,
     type MatchState,
@@ -2412,8 +2413,7 @@ function scoreGoal(s: MatchState, team: 0 | 1) {
 
 function goalClearance(s: MatchState, team: 0 | 1) {
     s.setPiece = null;
-    const subbed = s.pendingSubs.length > 0;
-    applyPendingSubs(s);
+    const subbed = applyPendingSubs(s);
     const gk = s.players.find((p) => p.team === team && p.role === 'GK') ?? s.players.find((p) => p.team === team)!;
     gk.pos = toWorld(s, team, 1.5, s.cfg.pitch.width / 2 + s.rng.range(-2, 2));
     gk.vel = v(0, 0);
@@ -2558,8 +2558,7 @@ function deflectOut(s: MatchState, p: PlayerState, from: Vec2): boolean {
  * partida um instante. A cobrança sai no fim da fase `corner` (takeCorner).
  */
 function setupCorner(s: MatchState, team: 0 | 1, yCross: number) {
-    const subbed = s.pendingSubs.length > 0;
-    applyPendingSubs(s);
+    const subbed = applyPendingSubs(s);
     const { length, width } = s.cfg.pitch;
     const gy = width / 2;
     const side = yCross < gy ? -1 : 1;
@@ -2994,15 +2993,56 @@ function substitute(s: MatchState, out: PlayerState, inst: PokemonInstance) {
     refreshTeamBonuses(s, out.team);
 }
 
-/** Bola parada (saída de bola, tiro de meta, intervalo): entram as substituições pedidas pelo técnico. */
-export function applyPendingSubs(s: MatchState) {
-    if (!s.pendingSubs.length) return;
+/**
+ * Mudança de prancheta: cada um vai pra vaga nova (posição, alvo da IA e saída de bola mudam juntos) e os atributos
+ * são recalculados pela posição; fôlego, status, reforços e estatísticas continuam. Quem saiu numa troca vale como
+ * quem entrou no lugar dele. Lista que não for exatamente quem está em quadra é ignorada.
+ */
+function applyLineup(s: MatchState, o: LineupOrder): boolean {
+    const f = FORMATIONS[o.formation];
+    const rt = s.teams[o.team];
+    const resolve = (uid: string) => {
+        for (const e of s.events) if (e.type === 'sub' && e.team === o.team && e.outUid === uid) uid = e.inUid;
+        return uid;
+    };
+    const moved = o.order.map((u) => {
+        const uid = resolve(u);
+        return s.players.find((p) => p.team === o.team && (p.origin ?? p.inst).uid === uid);
+    });
+    if (!f || moved.length !== s.cfg.teamSize || new Set(moved).size !== moved.length || !moved.every((p) => p))
+        return false;
+    const players = moved as PlayerState[];
+    const lineup = players.map((p) => rt.lineup[p.slot]);
+    players.forEach((p, slot) => {
+        p.slot = slot;
+        p.role = f.slots[slot];
+    });
+    rt.formation = f;
+    rt.lineup = lineup;
+    emit(s, { type: 'lineup', team: o.team, formation: f.id, idx: players.map((p) => p.idx) });
+    refreshTeamBonuses(s, o.team);
+    return true;
+}
+
+/**
+ * Bola parada (saída de bola, tiro de meta, escanteio, intervalo): entram as trocas e a prancheta do técnico.
+ * Devolve se teve troca pedida ou prancheta que valeu (a bola parada espera um pouco mais pra tela mostrar).
+ */
+export function applyPendingSubs(s: MatchState): boolean {
+    if (!s.pendingSubs.length) return false;
+    let changed = false;
     for (const order of s.pendingSubs.splice(0)) {
+        if (order.kind === 'lineup') {
+            changed = applyLineup(s, order) || changed;
+            continue;
+        }
+        changed = true;
         const out = s.players.find((p) => p.team === order.team && (p.origin ?? p.inst).uid === order.outUid);
         const inst = s.teams[order.team].bench.find((b) => b.uid === order.inUid);
         if (out && inst) substitute(s, out, inst);
     }
     refreshAuras(s);
+    return changed;
 }
 
 /** No intervalo, o time da IA tira o mais cansado se ele estiver bem abaixo do resto. */

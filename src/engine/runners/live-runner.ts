@@ -2,10 +2,12 @@ import type { Command, Controller } from '../commands';
 import { MAX_TACTIC_CHANGES, type MatchConfig } from '../config';
 import { AIController } from '../controllers/ai-controller';
 import { TACTIC_MODS } from '../effective';
+import { FORMATIONS } from '../formations';
 import { applyPendingSubs, createMatch, emit, snapshot, step } from '../match';
 import {
     type CornerPlan,
     isCornerOrder,
+    isLineupOrder,
     isSubOrder,
     type MatchOrder,
     type MatchState,
@@ -20,15 +22,29 @@ import {
 const byTickTeamSeq = (a: MatchOrder, b: MatchOrder) =>
     a.tick - b.tick || a.team - b.team || (a.seq ?? 0) - (b.seq ?? 0);
 
+/** Prancheta que dá pra aplicar: formação que existe e 5 uids diferentes (quem está em quadra confere o motor). */
+const validLineup = (o: MatchOrder) =>
+    isLineupOrder(o) &&
+    Object.hasOwn(FORMATIONS, o.formation) &&
+    Array.isArray(o.order) &&
+    o.order.length === FORMATIONS[o.formation].slots.length &&
+    o.order.every((u) => typeof u === 'string') &&
+    new Set(o.order).size === o.order.length;
+
 /**
- * Ordem que nem dá pra aplicar (time, tick ou tática inválidos) é ignorada antes de entrar na agenda. O duelo usa
- * a mesma regra antes de carimbar (src/net/duel-state.ts).
+ * Ordem que nem dá pra aplicar (time, tick, tática ou prancheta inválidos) é ignorada antes de entrar na agenda. O
+ * duelo usa a mesma regra antes de carimbar (src/net/duel-state.ts).
  */
 export const validOrder = (o: MatchOrder) =>
     (o.team === 0 || o.team === 1) &&
     Number.isFinite(o.tick) &&
     o.tick >= 0 &&
-    (isSubOrder(o) || (isCornerOrder(o) ? CORNER_PLANS.includes(o.corner) : Object.hasOwn(TACTIC_MODS, o.tactic)));
+    (isSubOrder(o) ||
+        (isLineupOrder(o)
+            ? validLineup(o)
+            : isCornerOrder(o)
+              ? CORNER_PLANS.includes(o.corner)
+              : Object.hasOwn(TACTIC_MODS, o.tactic)));
 export const CORNER_PLANS: readonly CornerPlan[] = ['area', 'short', 'mixed'];
 
 /**
@@ -58,7 +74,9 @@ export class LiveRunner {
      * - a 4ª troca de tática de um time é ignorada (`MAX_TACTIC_CHANGES`); repetir a tática atual não conta; a
      *   instrução de escanteio tem o mesmo limite, contado à parte;
      * - substituição só com quem está no banco agora e em quadra agora (quem entrou não entra de novo; a que não
-     *   der certo na hora da bola parada é ignorada em `applyPendingSubs`).
+     *   der certo na hora da bola parada é ignorada em `applyPendingSubs`);
+     * - prancheta (formação + vagas) sem limite, na próxima bola parada como a substituição; uma nova do mesmo time
+     *   substitui a que ainda está esperando.
      */
     constructor(
         cfg: MatchConfig,
@@ -112,10 +130,13 @@ export class LiveRunner {
             const order = this.schedule.shift()!;
             if (s.phase === 'fulltime') continue;
             if (isSubOrder(order)) s.pendingSubs.push(order);
-            else if (isCornerOrder(order)) this.changeCorner(order.team, order.corner);
+            else if (isLineupOrder(order)) {
+                s.pendingSubs = s.pendingSubs.filter((o) => !(isLineupOrder(o) && o.team === order.team));
+                s.pendingSubs.push(order);
+            } else if (isCornerOrder(order)) this.changeCorner(order.team, order.corner);
             else this.changeTactic(order.team, order.tactic);
         }
-        // troca pedida no intervalo entra no vestiário, não na 1ª bola parada do 2º tempo
+        // troca (e prancheta) pedida no intervalo entra no vestiário, não na 1ª bola parada do 2º tempo
         if (s.phase === 'halftime') applyPendingSubs(s);
         const commands: (Command | Command[])[] = s.players.map((p) =>
             (this.overrides.get(p.idx) ?? this.ai).decide(p.idx),
