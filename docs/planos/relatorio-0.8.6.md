@@ -111,6 +111,10 @@ título da tela. Ficou assim porque cobrir o botão de seguir é pior. Ele não 
 
 ## 4. Decisões que são suas (recomendação primeiro)
 
+> **18/10/2026: o Miguel aprovou todas as decisões abaixo, valendo a recomendação de cada uma.** As que mexem em
+> equilíbrio (agência, partida curta) ainda passam pelo antes/depois com números antes de ir pro ar. Antes de subir a
+> 0.8.6 ele pediu o site inteiro no visual da partida-transmissão (branch `site-revamp`). Roadmap: conversar depois.
+
 ### Pra subir a 0.8.6
 1. **A ou B?** Decidido em 18/10: **B**, com tática e escanteio sem limite de mudanças e o banco à vista no Substituir
    (dá pra começar por quem entra). A branch `int-086` sai de cena.
