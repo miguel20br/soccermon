@@ -19,6 +19,7 @@ import { FutCard } from '../components/FutCard';
 import { LinkChips } from '../components/LinkChips';
 import { cardSprite, TypeBadge } from '../components/PokeCard';
 import { Tip } from '../help/Tip';
+import { lineupAverage } from '../rating';
 import { simulateMatch } from '../sim-client';
 
 /** Descrição das táticas em português (o texto de cada idioma está em i18n: team.lineup.tacticDesc). */
@@ -135,10 +136,7 @@ export function Lineup() {
                             {t('team.lineup.oppLine', {
                                 formation: formationText(opponent.formation ?? '1-2-1', lang).name,
                                 tactic: d.common.tactic[opponent.tactic],
-                                n: Math.round(
-                                    opponent.lineup.reduce((s, p) => s + viewInstance(p).overall, 0) /
-                                        opponent.lineup.length,
-                                ),
+                                n: lineupAverage(opponent.lineup, opponent.formation),
                             })}
                         </p>
                         <button type="button" className="btn primary wide" onClick={play} disabled={loading}>

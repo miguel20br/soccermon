@@ -12,6 +12,7 @@ import { useGame } from '../../store/game-store';
 import { activeTrainer, isGoldTrainer, leaderTrainerOf, type TrainerId, trainerSrc } from '../../store/missions';
 import { rivalColor, tagFromName } from '../../store/profile';
 import { useClubColor } from '../profile/club';
+import { lineupAverage } from '../rating';
 import { reduceMotionOn } from '../settings-sync';
 import { cardSprite } from './PokeCard';
 import './versus.css';
@@ -106,7 +107,7 @@ function Side({
     coach?: VsCoach;
 }) {
     const { t, d } = useT();
-    const avg = Math.round(team.lineup.reduce((s, p) => s + viewInstance(p).overall, 0) / team.lineup.length);
+    const avg = lineupAverage(team.lineup, team.formation);
     return (
         <div className={`vsp-side is-${side}`}>
             <div className="vsp-half" />
