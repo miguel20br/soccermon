@@ -2,12 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { FUTSAL_5, MAX_TACTIC_CHANGES } from '../../engine/config';
 import { CUP_STAGES } from '../../engine/cup';
 import { species } from '../../engine/data';
-import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import {
     type CornerPlan,
     isCornerOrder,
+    isLineupOrder,
     isSubOrder,
     isTacticOrder,
     type MatchEvent,
@@ -19,7 +19,7 @@ import { skinOf } from '../../game/animation-manager';
 import { setVolume } from '../../game/audio';
 import { EventBus } from '../../game/EventBus';
 import type { MatchSceneData } from '../../game/scenes/MatchScene';
-import { clubName, stageName } from '../../i18n';
+import { clubName, formationText, stageName } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { PhaserGame } from '../../PhaserGame';
 import { liveOf, type PlaybackSpeed, playerTeam, useGame } from '../../store/game-store';
@@ -38,11 +38,11 @@ import {
     useClockLabel,
 } from '../components/MatchHud';
 import { PlayerInspect } from '../components/PlayerInspect';
-import { boardBeside, Prancheta } from '../components/Prancheta';
+import { type BoardPlan, boardBeside, Prancheta } from '../components/Prancheta';
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
 import { LeaveConfirm } from '../leave-guard';
-import { snapAt } from '../match-view';
+import { roleAt, snapAt } from '../match-view';
 import { useClubColor } from '../profile/club';
 import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
@@ -84,6 +84,8 @@ export function Match() {
     const halftimeRef = useRef<HTMLDivElement>(null);
     const [subOut, setSubOut] = useState<string | null>(null);
     const [pending, setPending] = useState(false);
+    /** Muda a cada "Mudar prancheta" do intervalo (a prancheta rola até a tela). */
+    const [boardFocus, setBoardFocus] = useState(0);
     /** A cena Phaser só escuta comandos depois de carregar; até lá os controles ficam travados. */
     const [sceneReady, setSceneReady] = useState(false);
     /** Se a quadra demorar demais (celular fraco, aba em segundo plano), oferece recarregar. */
@@ -335,7 +337,8 @@ export function Match() {
         const j = benchNow.indexOf(o.inUid);
         if (j >= 0) benchNow.splice(j, 1);
     }
-    const slots = formationOf(lockedSetup.formation).slots;
+    // posição agora de quem está em cada vaga (a prancheta pode ter mudado)
+    const slots = onField.map((_, i) => roleAt(match, [lockedSetup, opponent], i, tickRef.current));
     /** Fôlego (0..1) agora de quem está na vaga `i` do seu time. */
     const energyAt = (i: number) => snapAt(match.snapshots, tickRef.current).p[i * SNAP_STRIDE + 6] ?? 1;
     const pendingSub = subOrders.find((o) => !subsDone.includes(o.inUid)) ?? null;
@@ -345,6 +348,18 @@ export function Match() {
         setSubOut(null);
         if (!canSub) return;
         sendOrder((tick) => ({ tick, team: 0, kind: 'sub', outUid, inUid }));
+    };
+    // prancheta: sem limite, a última mandada vale na próxima bola parada (pendente até o evento passar na tela)
+    const lastBoard = orders.filter(isLineupOrder).at(-1);
+    const boardEv =
+        lastBoard && match.events.find((e) => e.type === 'lineup' && e.team === 0 && e.tick >= lastBoard.tick);
+    const pendingBoard: BoardPlan | null =
+        lastBoard && boardEv && boardEv.tick > clock.tick
+            ? { formation: lastBoard.formation, order: lastBoard.order }
+            : null;
+    const orderBoard = ({ formation, order }: BoardPlan) => {
+        if (!canChangeTactic) return;
+        sendOrder((tick) => ({ tick, team: 0, kind: 'lineup', formation, order }));
     };
     const nameOf = (uid: string) => {
         const p = byUid.get(uid);
@@ -413,6 +428,7 @@ export function Match() {
                                 }}
                                 canSub={canSub}
                                 onSub={() => setSubOpen(true)}
+                                onBoard={() => setBoardFocus((k) => k + 1)}
                                 onContinue={() => {
                                     setHalftime(false);
                                     EventBus.emit('match:resume');
@@ -426,6 +442,11 @@ export function Match() {
                                 out: <b>{nameOf(pendingSub.outUid)}</b>,
                                 in: <b>{nameOf(pendingSub.inUid)}</b>,
                             })}
+                        </div>
+                    )}
+                    {pendingBoard && (
+                        <div className="sub-pending">
+                            {t('match.boardPending', { formation: formationText(pendingBoard.formation).name })}
                         </div>
                     )}
                     {subOpen && canSub && (
@@ -510,12 +531,14 @@ export function Match() {
                     tick={clock.tick}
                     names={teamNames}
                     selectedUid={subOpen ? subOut : null}
-                    onMine={(uid, idx) => {
+                    onMine={(uid, idx, outUid) => {
                         if (canSub) {
-                            setSubOut(onField.includes(uid) ? uid : null);
+                            setSubOut(outUid ?? (onField.includes(uid) ? uid : null));
                             setSubOpen(true);
                         } else if (idx !== null) EventBus.emit('match:inspect-request', idx);
                     }}
+                    edit={{ enabled: canChangeTactic, pending: pendingBoard, onConfirm: orderBoard }}
+                    focusKey={boardFocus}
                 />
                 <MatchFeed lines={lines} colors={colors} open={feedOpen} onToggle={() => setFeedOpen((v) => !v)} />
             </div>

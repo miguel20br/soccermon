@@ -5,7 +5,7 @@ import { Rng } from '../engine/rng';
 import type { MatchResult } from '../engine/runners/batch-runner';
 import type { MatchEvent, TraitFx } from '../engine/state';
 import { effectivenessLabel } from '../engine/types';
-import { type Dict, dict, fmt, linkText, type Vars } from '../i18n';
+import { type Dict, dict, fmt, formationText, linkText, type Vars } from '../i18n';
 
 export type Tone = 'goal' | 'big' | 'normal' | 'minor' | 'whistle';
 
@@ -335,6 +335,12 @@ export class Commentator {
             case 'tactic':
                 return line(
                     say(c.tactic, { team: this.teamNames[e.team], tactic: dict().common.tactic[e.tactic] }),
+                    'whistle',
+                    e.team,
+                );
+            case 'lineup':
+                return line(
+                    say(c.lineup, { team: this.teamNames[e.team], formation: formationText(e.formation).name }),
                     'whistle',
                     e.team,
                 );

@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FUTSAL_5 } from '../../engine/config';
 import { species } from '../../engine/data';
-import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import {
     type CornerOrder,
     type CornerPlan,
     isCornerOrder,
+    isLineupOrder,
     isTacticOrder,
+    type LineupOrder,
     type MatchEvent,
     SNAP_STRIDE,
     type Tactic,
@@ -18,6 +19,7 @@ import { skinOf } from '../../game/animation-manager';
 import { setVolume } from '../../game/audio';
 import { EventBus } from '../../game/EventBus';
 import type { MatchSceneData } from '../../game/scenes/MatchScene';
+import { formationText } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import {
     DUEL_SPEEDS,
@@ -52,10 +54,10 @@ import {
     useClockLabel,
 } from '../components/MatchHud';
 import { PlayerInspect } from '../components/PlayerInspect';
-import { boardBeside, Prancheta } from '../components/Prancheta';
+import { type BoardPlan, boardBeside, Prancheta } from '../components/Prancheta';
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
-import { snapAt } from '../match-view';
+import { roleAt, snapAt } from '../match-view';
 import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
 import { EmoteBar, EmoteBubbles } from './Emotes';
@@ -106,6 +108,8 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const [subsDone, setSubsDone] = useState<string[]>([]);
     const [subOpen, setSubOpen] = useState(false);
     const [subOut, setSubOut] = useState<string | null>(null);
+    /** Muda a cada "Mudar prancheta" do intervalo (a prancheta rola até a tela). */
+    const [boardFocus, setBoardFocus] = useState(0);
     const [lines, setLines] = useState<(CommentLine & { id: number })[]>([]);
     const lineId = useRef(0);
     const [feedOpen, setFeedOpen] = useState(true);
@@ -334,8 +338,17 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const benchNow = myTeam.bench.map((p) => p.uid).filter((u) => !usedIn.has(u));
     const pendingSub = subOrders.find((o) => !subsDone.includes(o.inUid)) ?? null;
     const canSub = canChange && !pendingSub && subOrders.length < myTeam.bench.length && benchNow.length > 0;
-    const slots = formationOf(myTeam.formation).slots;
     const myIdx = match.roster.filter((r) => r.team === side).map((r) => r.idx);
+    // posição agora de quem está em cada vaga (a prancheta pode ter mudado)
+    const slots = myIdx.map((idx) => roleAt(match, setups, idx, tickRef.current));
+    // prancheta: sem limite, a última mandada vale na próxima bola parada (pendente até o evento passar na tela)
+    const lastBoard = (mineLog.filter((o) => isLineupOrder(o)) as LineupOrder[]).at(-1);
+    const boardEv =
+        lastBoard && match.events.find((e) => e.type === 'lineup' && e.team === side && e.tick >= lastBoard.tick);
+    const pendingBoard: BoardPlan | null =
+        lastBoard && boardEv && boardEv.tick > clock.tick
+            ? { formation: lastBoard.formation, order: lastBoard.order }
+            : null;
     const energyAt = (i: number) => snapAt(match.snapshots, tickRef.current).p[(myIdx[i] ?? 0) * SNAP_STRIDE + 6] ?? 1;
     const nameOf = (uid: string) => {
         const p = byUid.get(uid);
@@ -352,9 +365,9 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const myPeer = s.peers[role];
     const coach = (p?: typeof myPeer) =>
         p && { name: p.name, title: p.title, avatar: p.avatar, avatarGoogle: p.avatarGoogle };
-    const onMine = (uid: string, idx: number | null) => {
+    const onMine = (uid: string, idx: number | null, outUid?: string) => {
         if (canSub) {
-            setSubOut(onField.includes(uid) ? uid : null);
+            setSubOut(outUid ?? (onField.includes(uid) ? uid : null));
             setSubOpen(true);
         } else if (idx !== null) EventBus.emit('match:inspect-request', idx);
     };
@@ -424,6 +437,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                                 }}
                                 canSub={canSub}
                                 onSub={() => setSubOpen(true)}
+                                onBoard={() => setBoardFocus((k) => k + 1)}
                                 onContinue={() => duel.dispatch({ k: 'htReady' })}
                                 footer={
                                     <p className="duel-ht" data-testid="duel-ht">
@@ -444,6 +458,11 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                                 out: <b>{nameOf(pendingSub.outUid)}</b>,
                                 in: <b>{nameOf(pendingSub.inUid)}</b>,
                             })}
+                        </div>
+                    )}
+                    {pendingBoard && (
+                        <div className="sub-pending">
+                            {t('match.boardPending', { formation: formationText(pendingBoard.formation).name })}
                         </div>
                     )}
                     {subOpen && canSub && (
@@ -526,6 +545,13 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                     names={teamNames}
                     selectedUid={subOpen ? subOut : null}
                     onMine={onMine}
+                    edit={{
+                        enabled: canChange,
+                        pending: pendingBoard,
+                        onConfirm: ({ formation, order: o }) =>
+                            canChange && order({ kind: 'lineup', formation, order: o }),
+                    }}
+                    focusKey={boardFocus}
                 />
                 <MatchFeed lines={lines} colors={colors} open={feedOpen} onToggle={() => setFeedOpen((v) => !v)} />
             </div>

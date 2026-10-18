@@ -1184,7 +1184,7 @@ export class MatchScene extends Phaser.Scene {
             const o = carrier * SNAP_STRIDE;
             const gkX = b.p[o];
             const L = FUTSAL_5.pitch.length;
-            if (this.md.result.roster[carrier]?.role === 'GK' && Math.min(gkX, L - gkX) < 6) {
+            if (Math.min(gkX, L - gkX) < 6 && this.isKeeper(carrier)) {
                 const front = gkX < L / 2 ? 1 : -1;
                 const hands = toPx(gkX + front * 0.35, b.p[o + 1]);
                 bp.x = c.x + (hands.x - toPx(gkX, b.p[o + 1]).x);
@@ -2043,6 +2043,17 @@ export class MatchScene extends Phaser.Scene {
      * do pé, rola à frente desacelerando e o pé alcança (curva sin(π·φ^0,6), sem ir e voltar como serra).
      * Marcador perto: toques curtos, bola protegida. Parado: no pé. Devolve o múltiplo dos 0,45 m do motor.
      */
+    /** Está no gol agora? A mudança de prancheta (evento `lineup`) pode trocar o goleiro; a vaga 0 é sempre o gol. */
+    private isKeeper(idx: number): boolean {
+        const r = this.md.result;
+        let gk = r.roster[idx]?.role === 'GK';
+        for (const e of r.events) {
+            if (e.tick > this.playTick) break;
+            if (e.type === 'lineup' && e.team === r.roster[idx]?.team) gk = e.idx[0] === idx;
+        }
+        return gk;
+    }
+
     private touchReach(carrier: number, a: MatchSnapshot, b: MatchSnapshot, travelPx: number): number {
         const view = this.players[carrier];
         const o = carrier * SNAP_STRIDE;
