@@ -85,6 +85,52 @@ export function createSpeciesAnims(scene: Phaser.Scene, skin: number) {
     }
 }
 
+const bodyShifts = new Map<string, { x: number; y: number }>();
+let probe: CanvasRenderingContext2D | null = null;
+
+/** Centro dos pixels visíveis do quadro (px do quadro). */
+function bodyCenter(frame: Phaser.Textures.Frame): { x: number; y: number } {
+    const w = frame.cutWidth;
+    const h = frame.cutHeight;
+    probe ??= document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+    if (!probe) return { x: w / 2, y: h / 2 };
+    probe.canvas.width = w;
+    probe.canvas.height = h;
+    probe.drawImage(frame.source.image as CanvasImageSource, frame.cutX, frame.cutY, w, h, 0, 0, w, h);
+    const px = probe.getImageData(0, 0, w, h).data;
+    let sx = 0;
+    let sy = 0;
+    let n = 0;
+    for (let i = 3; i < px.length; i += 4) {
+        if (px[i] <= 20) continue;
+        const k = (i - 3) / 4;
+        sx += k % w;
+        sy += Math.floor(k / w);
+        n++;
+    }
+    return n ? { x: sx / n, y: sy / n } : { x: w / 2, y: h / 2 };
+}
+
+/**
+ * Quanto o corpo andou dentro do quadro atual em relação ao 1º quadro da mesma animação e direção (px do quadro,
+ * sem escala). O Attack do PMD dá um bote de 1 a 3 m dentro do próprio quadro; quem já posiciona o sprite (o
+ * mergulho do goleiro) desconta isso pra o corpo ficar onde a cena mandou. Calculado uma vez por quadro.
+ */
+export function bodyShift(sprite: Phaser.GameObjects.Sprite): { x: number; y: number } {
+    const f = sprite.frame;
+    const key = `${f.texture.key}|${f.name}`;
+    let s = bodyShifts.get(key);
+    if (!s) {
+        const [anim, dir] = String(f.name).split('/');
+        const first = f.texture.has(`${anim}/${dir}/0`) ? f.texture.get(`${anim}/${dir}/0`) : f;
+        const a = bodyCenter(f);
+        const b = first === f ? a : bodyCenter(first);
+        s = { x: a.x - b.x, y: a.y - b.y };
+        bodyShifts.set(key, s);
+    }
+    return s;
+}
+
 export function shadowSize(skin: number): number {
     return PMD[baseOf(skin)]?.shadowSize ?? 1;
 }
