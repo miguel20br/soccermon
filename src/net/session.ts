@@ -199,6 +199,8 @@ class DuelSession {
     result: MatchResult | null = null;
     /** Quantas ordens do log a `result` já tem (o hash do trecho diz com quantas foi feito). */
     resultLog = 0;
+    /** Quantas seeds de trecho a `result` já tem (o hash do trecho k precisa das seeds 0..k-1). */
+    resultSeeds = 0;
     /** Tela de partida rodando (o relógio só corrige com a bola rolando). */
     playing = false;
     /** Rascunho da prévia (lacrado sozinho se o tempo acabar). */
@@ -440,6 +442,7 @@ class DuelSession {
             this.minute = 0;
             this.result = null;
             this.resultLog = 0;
+            this.resultSeeds = 0;
         }
         const online = { host: false, guest: false };
         for (const r of ROLES) online[r] = r === role || (!!s.peers[r] && this.peerIds.includes(s.peers[r]!.id));
@@ -784,7 +787,9 @@ class DuelSession {
             // número (ordem que chegou atrasada não anula; a tela refaz e manda de novo)
             const before = s.log.slice(0, this.resultLog).filter((o) => o.tick < boundary).length;
             const hash =
-                this.result && this.tick >= boundary ? `${before}:${snapHash(this.result, boundary)}` : undefined;
+                this.result && this.resultSeeds >= k && this.tick >= boundary
+                    ? `${before}:${snapHash(this.result, boundary)}`
+                    : undefined;
             const have = s.reveals[role][k] === x && (!hash || s.segHash[role][k] === hash);
             if (!have && this.due(`seg-${s.game}-${k}-${hash ?? ''}`)) this.dispatch({ k: 'reveal', seg: k, x, hash });
         }
