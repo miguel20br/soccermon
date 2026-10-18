@@ -25,6 +25,16 @@ export const match: typeof pt = {
     seeResult: 'See result',
     feed: 'Commentary',
     feedEmpty: 'The teams walk onto the court…',
+    board: {
+        title: 'Tactics board',
+        mine: 'My team',
+        rival: 'Rival',
+        evolved: 'EVO',
+        tapMine: ', tap to sub or view',
+        tapRival: ', tap to view',
+        hintMine: 'Tap a player to sub him out (or see his panel).',
+        hintRival: "Rival's team: view only.",
+    },
     ht: {
         shots: 'Shots',
         possession: 'Possession',
@@ -60,6 +70,7 @@ export const match: typeof pt = {
         final: 'Grand final',
         aria: '{home} vs {away}',
         start: 'Kick off!',
+        startsIn: 'Kick-off in {s} s',
         loading: 'Loading the court…',
     },
 };

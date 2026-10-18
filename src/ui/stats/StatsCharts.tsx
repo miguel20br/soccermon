@@ -14,10 +14,23 @@ import { clubColorHex, colorDistance, rivalColor } from '../../store/profile';
 const css = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 const CHART_AWAY = 0x3a8ee6;
 const CHART_ALT = 0xe8423f;
-/** Cor do seu time nos gráficos (a do clube). */
-export const homeC = () => css(clubColorHex(useGame.getState().profile.clubColor));
-/** Cor do rival nos gráficos: o uniforme dele na partida (o mesmo do placar); sem rival, azul ou vermelho. */
+/**
+ * Duelo: as cores do placar (seu time, rival) e o seu lado. Os gráficos falam em time 0 (casa) e 1 (fora); no duelo o
+ * convidado é o 1, então as cores trocam de lado com ele.
+ * ponytail: estado de módulo, uma tela de resultado por vez; vira contexto se um dia houver duas.
+ */
+let duelColors: { mine: number; theirs: number; side: 0 | 1 } | null = null;
+export function setChartColors(c: [number, number] | null, side: 0 | 1) {
+    duelColors = c ? { mine: c[0], theirs: c[1], side } : null;
+}
+/** Cor do time 0 nos gráficos (na copa, a do clube). */
+export const homeC = () => {
+    if (duelColors) return css(duelColors.side === 0 ? duelColors.mine : duelColors.theirs);
+    return css(clubColorHex(useGame.getState().profile.clubColor));
+};
+/** Cor do time 1 nos gráficos: o uniforme do rival na partida (o mesmo do placar); sem rival, azul ou vermelho. */
 export const awayC = () => {
+    if (duelColors) return css(duelColors.side === 0 ? duelColors.theirs : duelColors.mine);
     const { profile, run } = useGame.getState();
     const club = clubColorHex(profile.clubColor);
     const opp = run?.opponents[run.stage];

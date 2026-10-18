@@ -81,6 +81,8 @@ export interface Peer {
     clubColor: number;
     engine: number;
     app: string;
+    /** Entrou sem conta ("Jogar agora", login anônimo): o lobby mostra o selo "Convidado". */
+    anon?: boolean;
 }
 
 /** Ordem do duelo: a de sempre + `seq` do time (quem deu a ordem numera; o host só põe o tick). */
@@ -535,7 +537,11 @@ function applyChoice(s: Shared, by: Role, value: unknown, now: number): Shared {
     if (!team) return s;
     const choice = { ...c, opened: { ...c.opened, [by]: true } };
     const next = { ...s, choice, teams: { ...s.teams, [by]: team } };
-    return ROLES.every((r) => choice.opened[r] || choice.seal[r] === '-') ? startPlay(next, now) : next;
+    if (!ROLES.every((r) => choice.opened[r] || choice.seal[r] === '-')) return next;
+    // time pronto: os dois times abertos vão pra mesma escalação lacrada dos drafts (30 s vendo o rival)
+    return s.phase === 'team'
+        ? { ...next, phase: 'preview', choice: emptyChoice(now + PREVIEW_MS) }
+        : startPlay(next, now);
 }
 
 /** Aplica uma intenção de `by`. Devolve o mesmo objeto quando não vale (sem subir `rev`). */

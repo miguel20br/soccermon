@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { track } from '../../analytics/track';
 import { species } from '../../engine/data';
 import {
@@ -10,6 +10,7 @@ import {
     teamTotals,
 } from '../../engine/match-stats';
 import { matchMvp } from '../../engine/mvp';
+import type { MatchResult } from '../../engine/runners/batch-runner';
 import { specialBonus } from '../../engine/specials';
 import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
@@ -18,7 +19,7 @@ import { ChampionView } from '../components/ChampionView';
 import { CupGains } from '../components/CupGains';
 import { FutCard } from '../components/FutCard';
 import { cardSprite } from '../components/PokeCard';
-import { ResultHero } from '../components/ResultHero';
+import { type HeroStat, ResultHero } from '../components/ResultHero';
 import { FEEDBACK_URL } from '../links';
 import { useClubColor } from '../profile/club';
 import { shareRun } from '../share';
@@ -44,7 +45,7 @@ const pctOf = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 
 export function Result() {
     const { run, match, advance, newRun } = useGame();
-    const { t, tn, d } = useT();
+    const { t } = useT();
     const [shared, setShared] = useState<string | null>(null);
     const clubColor = useClubColor();
     // card do título pronto antes do toque: o menu de compartilhar exige o gesto recente do jogador
@@ -61,15 +62,14 @@ export function Result() {
             live = false;
         };
     }, [run, clubColor]);
-    // fim da copa: abre direto no resumo da copa
-    const [tab, setTab] = useState<Tab>(() =>
-        run && ['eliminated', 'champion'].includes(run.status) ? 'copa' : 'times',
-    );
     if (!run || !match) return null;
+    // fim da copa: abre direto no resumo da copa
+    const tab: Tab = ['eliminated', 'champion'].includes(run.status) ? 'copa' : 'times';
     const opponent = run.opponents[run.stage];
     const names: [string, string] = [run.teamName, clubName(opponent.name)];
 
-    const mvp = matchMvp(match);
+    // o craque do seu time é o mesmo critério da carta Destaque (matchMvp), não só a maior nota
+    const ourStar = matchMvp(match, 0);
     const stageResult = run.results.find((r) => r.stage === run.stage);
     const destaque = stageResult?.destaqueUid ? run.picks.find((p) => p.uid === stageResult.destaqueUid) : null;
     // quem evoluiu no meio da partida (o run já guarda a forma nova)
@@ -78,21 +78,6 @@ export function Result() {
         const inst = run.picks.find((p) => p.uid === e.uid);
         return inst ? [{ inst, from: e.from }] : [];
     });
-
-    const goals = match.events.filter((e) => e.type === 'goal');
-    const nameAt = (idx: number, tick: number) => {
-        // a vaga pode ter tido mais de uma troca: vale a última antes do lance
-        const sub = match.events.filter((e) => e.type === 'sub' && e.outIdx === idx && e.tick <= tick).at(-1);
-        return sub && sub.type === 'sub' ? sub.in : match.roster[idx].name;
-    };
-
-    // estatísticas detalhadas (src/ui/stats/match-stats.ts)
-    const lines = playerLines(match);
-    const totals = [teamTotals(lines, 0), teamTotals(lines, 1)] as const;
-    const danger = dangerByPeriod(match);
-    const leaderList = leaders(lines);
-    // o craque do seu time é o mesmo critério da carta Destaque (matchMvp), não só a maior nota
-    const ourStar = matchMvp(match, 0);
 
     const champion = run.status === 'champion';
     const eliminated = run.status === 'eliminated';
@@ -176,21 +161,113 @@ export function Result() {
                     opponent={opponent}
                     names={names}
                     mvpUid={ourStar?.uid ?? null}
-                    stats={[
-                        {
-                            label: t('result.rows.possession'),
-                            home: Math.round(match.possession[0] * 100),
-                            away: Math.round(match.possession[1] * 100),
-                            fmt: (v) => `${v}%`,
-                        },
-                        { label: t('result.rows.shots'), home: totals[0].shots, away: totals[1].shots },
-                        { label: t('result.rows.moves'), home: totals[0].movesUsed, away: totals[1].movesUsed },
-                    ]}
+                    stats={heroStats(match, t)}
                     actions={actions}
                 />
             )}
             {champion && <h2 className="champ-h champ-final-h">{t('result.finalDetails')}</h2>}
 
+            <MatchDetails
+                match={match}
+                names={names}
+                initialTab={tab}
+                cupTab={<CupStats results={run.results} />}
+                goalsExtra={
+                    <>
+                        {evolutions.length > 0 && (
+                            <div className="destaque-box">
+                                <h2>{evolutions.length > 1 ? t('result.evolvedMany') : t('result.evolvedOne')}</h2>
+                                <p className="tactic-desc">{t('result.evolvedNote')}</p>
+                                <div className="row" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
+                                    {evolutions.map(({ inst, from }) => (
+                                        <div key={inst.uid} className="evolved-card">
+                                            <span className="muted">
+                                                {species(from).name} → {species(inst.speciesId).name}
+                                            </span>
+                                            <FutCard inst={inst} size="sm" position={lineupPosition(run, inst.uid)} />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        {destaque && (
+                            <div className="destaque-box">
+                                <h2>
+                                    {(destaque.special?.level ?? 1) > 1
+                                        ? t('result.destaqueLevelTitle', { n: destaque.special?.level ?? 1 })
+                                        : t('result.destaqueTitle')}
+                                </h2>
+                                <p className="tactic-desc">
+                                    {(destaque.special?.level ?? 1) > 1
+                                        ? t('result.destaqueLevelText', {
+                                              name: destaque.nickname ?? species(destaque.speciesId).name,
+                                              bonus: specialBonus(destaque),
+                                          })
+                                        : t('result.destaqueText', {
+                                              name: destaque.nickname ?? species(destaque.speciesId).name,
+                                          })}
+                                </p>
+                                <FutCard inst={destaque} size="sm" position={lineupPosition(run, destaque.uid)} />
+                            </div>
+                        )}
+                    </>
+                }
+            />
+        </>
+    );
+}
+
+/** As 3 linhas do topo do resultado (posse, chutes e golpes), copa e duelo. */
+export function heroStats(match: MatchResult, t: ReturnType<typeof useT>['t']): HeroStat[] {
+    const lines = playerLines(match);
+    const totals = [teamTotals(lines, 0), teamTotals(lines, 1)] as const;
+    return [
+        {
+            label: t('result.rows.possession'),
+            home: Math.round(match.possession[0] * 100),
+            away: Math.round(match.possession[1] * 100),
+            fmt: (v) => `${v}%`,
+        },
+        { label: t('result.rows.shots'), home: totals[0].shots, away: totals[1].shots },
+        { label: t('result.rows.moves'), home: totals[0].movesUsed, away: totals[1].movesUsed },
+    ];
+}
+
+/**
+ * Detalhes da partida (destaques, gols, craque e as abas de estatística): os mesmos na copa e no duelo. O que é só
+ * da copa (evoluções, carta Destaque, aba da copa) entra por `goalsExtra` e `cupTab`.
+ */
+export function MatchDetails({
+    match,
+    names,
+    goalsExtra,
+    cupTab,
+    initialTab = 'times',
+}: {
+    match: MatchResult;
+    names: [string, string];
+    goalsExtra?: ReactNode;
+    cupTab?: ReactNode;
+    initialTab?: Tab;
+}) {
+    const { t, tn, d } = useT();
+    const [tab, setTab] = useState<Tab>(initialTab);
+    const mvp = matchMvp(match);
+    const goals = match.events.filter((e) => e.type === 'goal');
+    const nameAt = (idx: number, tick: number) => {
+        // a vaga pode ter tido mais de uma troca: vale a última antes do lance
+        const sub = match.events.filter((e) => e.type === 'sub' && e.outIdx === idx && e.tick <= tick).at(-1);
+        return sub && sub.type === 'sub' ? sub.in : match.roster[idx].name;
+    };
+
+    // estatísticas detalhadas (src/ui/stats/match-stats.ts)
+    const lines = playerLines(match);
+    const totals = [teamTotals(lines, 0), teamTotals(lines, 1)] as const;
+    const danger = dangerByPeriod(match);
+    const leaderList = leaders(lines);
+
+    return (
+        <>
             <div className="two-col">
                 <div className="panel">
                     <h2>{t('result.highlights')}</h2>
@@ -233,42 +310,7 @@ export function Result() {
                                 ),
                         )}
                     </div>
-                    {evolutions.length > 0 && (
-                        <div className="destaque-box">
-                            <h2>{evolutions.length > 1 ? t('result.evolvedMany') : t('result.evolvedOne')}</h2>
-                            <p className="tactic-desc">{t('result.evolvedNote')}</p>
-                            <div className="row" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
-                                {evolutions.map(({ inst, from }) => (
-                                    <div key={inst.uid} className="evolved-card">
-                                        <span className="muted">
-                                            {species(from).name} → {species(inst.speciesId).name}
-                                        </span>
-                                        <FutCard inst={inst} size="sm" position={lineupPosition(run, inst.uid)} />
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                    {destaque && (
-                        <div className="destaque-box">
-                            <h2>
-                                {(destaque.special?.level ?? 1) > 1
-                                    ? t('result.destaqueLevelTitle', { n: destaque.special?.level ?? 1 })
-                                    : t('result.destaqueTitle')}
-                            </h2>
-                            <p className="tactic-desc">
-                                {(destaque.special?.level ?? 1) > 1
-                                    ? t('result.destaqueLevelText', {
-                                          name: destaque.nickname ?? species(destaque.speciesId).name,
-                                          bonus: specialBonus(destaque),
-                                      })
-                                    : t('result.destaqueText', {
-                                          name: destaque.nickname ?? species(destaque.speciesId).name,
-                                      })}
-                            </p>
-                            <FutCard inst={destaque} size="sm" position={lineupPosition(run, destaque.uid)} />
-                        </div>
-                    )}
+                    {goalsExtra}
                     {mvp && (
                         <>
                             <h2 style={{ marginTop: 16 }}>{t('result.mvp')}</h2>
@@ -291,7 +333,7 @@ export function Result() {
 
             <div className="panel st-panel">
                 <div className="st-tabs" role="tablist">
-                    {TABS.map((id) => (
+                    {TABS.filter((id) => id !== 'copa' || cupTab).map((id) => (
                         <button
                             key={id}
                             type="button"
@@ -305,7 +347,7 @@ export function Result() {
                     ))}
                 </div>
                 {tab !== 'copa' && <TeamLegend names={names} />}
-                {tab === 'copa' && <CupStats results={run.results} />}
+                {tab === 'copa' && cupTab}
                 {tab === 'times' && (
                     <CompareRows
                         rows={[

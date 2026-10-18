@@ -58,8 +58,11 @@ export function ResultHero({
     mvpUid,
     stats = [],
     actions,
+    duel,
 }: {
-    run: RunState;
+    /** Duelo: sem copa (nem caminho, nem próximo rival); o título, o lado e as cores vêm daqui. */
+    duel?: { side: 0 | 1; stage: string; title: string; sub: string; colors: [number, number] };
+    run?: RunState;
     match: MatchResult;
     opponent: TeamSetup;
     names: [string, string];
@@ -93,29 +96,39 @@ export function ResultHero({
         setStep(lines);
     };
     const mvpOn = step >= lines;
-    const won = match.winner === 0;
+    const side = duel?.side ?? 0;
+    const won = match.winner === side;
     const { t, d } = useT();
-    const champion = run.status === 'champion';
+    const champion = run?.status === 'champion';
     const mood = champion ? 'champ' : won ? 'win' : 'loss';
-    const title = champion ? t('result.hero.champions') : won ? t('result.hero.win') : t('result.hero.loss');
-    const sub = champion
-        ? t('result.hero.cupWon')
-        : won
-          ? d.common.stageWon[run.stage]
-          : run.stage === CUP_STAGES.length - 1
-            ? t('result.hero.runnerUp')
-            : t('result.hero.eliminated', { stage: d.common.stageIn[run.stage] ?? '' });
-    const squad = match.finalRoster.filter((p) => p.team === 0);
-    const next = won && !champion ? run.opponents[run.stage + 1] : null;
+    const title =
+        duel?.title ?? (champion ? t('result.hero.champions') : won ? t('result.hero.win') : t('result.hero.loss'));
+    const sub =
+        duel?.sub ??
+        (!run
+            ? ''
+            : champion
+              ? t('result.hero.cupWon')
+              : won
+                ? d.common.stageWon[run.stage]
+                : run.stage === CUP_STAGES.length - 1
+                  ? t('result.hero.runnerUp')
+                  : t('result.hero.eliminated', { stage: d.common.stageIn[run.stage] ?? '' }));
+    const squad = match.finalRoster.filter((p) => p.team === side);
+    const next = run && won && !champion ? run.opponents[run.stage + 1] : null;
     // seu time na cor do clube (Perfil); o rival no uniforme reserva se as cores baterem
     const homeColor = useClubColor();
-    const style = { '--home': hex(homeColor), '--away': hex(rivalColor(homeColor, opponent.color)) } as CSSProperties;
+    const style = (
+        duel
+            ? { '--home': hex(duel.colors[0]), '--away': hex(duel.colors[1]) }
+            : { '--home': hex(homeColor), '--away': hex(rivalColor(homeColor, opponent.color)) }
+    ) as CSSProperties;
 
     return (
         // biome-ignore lint/a11y/useKeyWithClickEvents: toque pra pular a contagem; o teclado chega aos botões, que também completam
         <section className={`panel rh rh-${mood}`} style={style} aria-label={t('result.hero.aria')} onClick={finish}>
             {mood !== 'loss' && <Confetti count={mood === 'champ' ? 60 : 36} />}
-            <div className="rh-stage">{stageName(run.stage)}</div>
+            <div className="rh-stage">{duel ? duel.stage : run ? stageName(run.stage) : ''}</div>
             <h1 className="rh-title" aria-label={title}>
                 {[...title].map((ch, i) => (
                     // biome-ignore lint/suspicious/noArrayIndexKey: letras do título
@@ -180,25 +193,27 @@ export function ResultHero({
                 ))}
             </div>
 
-            <ol className="rh-path" aria-label={t('result.hero.path')}>
-                {CUP_STAGES.map((label, i) => {
-                    const res = run.results.find((r) => r.stage === i);
-                    const state = res ? (res.won ? 'won' : 'lost') : i === run.stage + 1 && won ? 'next' : 'todo';
-                    return (
-                        <li key={label} className={state}>
-                            <span className="rh-dot">{state === 'won' ? '✓' : state === 'lost' ? '✗' : i + 1}</span>
-                            <span>{d.result.hero.stageShort[i] ?? label}</span>
-                            {res && (
-                                <small>
-                                    {res.score[0]}x{res.score[1]}
-                                </small>
-                            )}
-                        </li>
-                    );
-                })}
-            </ol>
+            {run && (
+                <ol className="rh-path" aria-label={t('result.hero.path')}>
+                    {CUP_STAGES.map((label, i) => {
+                        const res = run.results.find((r) => r.stage === i);
+                        const state = res ? (res.won ? 'won' : 'lost') : i === run.stage + 1 && won ? 'next' : 'todo';
+                        return (
+                            <li key={label} className={state}>
+                                <span className="rh-dot">{state === 'won' ? '✓' : state === 'lost' ? '✗' : i + 1}</span>
+                                <span>{d.result.hero.stageShort[i] ?? label}</span>
+                                {res && (
+                                    <small>
+                                        {res.score[0]}x{res.score[1]}
+                                    </small>
+                                )}
+                            </li>
+                        );
+                    })}
+                </ol>
+            )}
 
-            {next && (
+            {run && next && (
                 <div className="rh-next">
                     <span className="muted">{t('result.hero.next', { stage: stageName(run.stage + 1) })}</span>
                     <b>{clubName(next.name)}</b>

@@ -67,7 +67,7 @@ respondendo). Repo: github.com/miguel20br/soccermon.
   Regras de acesso em `supabase/migrations/` (cada um só lê e escreve o próprio save). Sem as variáveis de
   ambiente o jogo roda 100% local.
 - Atalhos de dev (`npm run dev`, porta 8080): `?demo=penaltis|ditto|evolucao|campeao|escanteio` (`escanteio&defesa=1`: espalmada que vira escanteio), `?cards=1`,
-  `?lab=posicoes`, `?demo=crash` (força o aviso de erro do `ErrorBoundary`). Público: `?lab=golpes` (com `&revisao=1` mostra a ferramenta de revisão ok/mudar).
+  `?lab=posicoes`, `?prancheta=1` (prancheta do time na partida da copa), `?demo=crash` (força o aviso de erro do `ErrorBoundary`). Público: `?lab=golpes` (com `&revisao=1` mostra a ferramenta de revisão ok/mudar).
 
 ## Rotina de trabalho
 

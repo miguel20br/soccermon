@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { computeAttributes } from '../../engine/attributes';
 import { species } from '../../engine/data';
-import { FORMATIONS } from '../../engine/formations';
-import { viewInstance } from '../../engine/instance';
+import { FORMATIONS, type FormationId } from '../../engine/formations';
+import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { computeLinks } from '../../engine/links';
 import { pickCornerTaker } from '../../engine/match';
@@ -12,7 +12,7 @@ import { computeSynergies } from '../../engine/synergy';
 import { playSfx } from '../../game/audio';
 import { clubName, dict, formationText, itemDesc, itemName, stageName } from '../../i18n';
 import { useT } from '../../i18n/react';
-import { lineupPosition, liveOf, playerTeam, type SlotRef, useGame } from '../../store/game-store';
+import { liveOf, playerTeam, type SlotRef, useGame } from '../../store/game-store';
 import { useCardModal } from '../card-modal';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
@@ -33,51 +33,13 @@ export function Lineup() {
     const [error, setError] = useState<string | null>(null);
     const [askAbandon, setAskAbandon] = useState(false);
     const openCard = useCardModal((s) => s.open);
-    const [selected, setSelected] = useState<SlotRef | null>(null);
-    const [detail, setDetail] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const { t, d, lang } = useT();
     if (!run) return null;
 
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
     const opponent = run.opponents[run.stage];
-    const detailInst = byUid.get(detail ?? run.lineup[0]) ?? run.picks[0];
-    const synergies = computeSynergies(run.lineup.map((u) => byUid.get(u)!));
-    const links = computeLinks(run.lineup.map((u) => byUid.get(u)!));
-    const holders = run.picks.filter((p) => p.uid !== detailInst?.uid);
-
     const locked = !!run.lockedTeam;
-    // escanteio: quem pode cobrar (jogadores de linha) e o automático (a mesma regra do motor)
-    const slotsNow = FORMATIONS[run.formation].slots;
-    const lineupNow = run.lineup.map((u) => byUid.get(u)!);
-    const captainNow = lineupNow.find((p) => p.uid === run.captainUid) ?? null;
-    const cornerField = lineupNow
-        .map((inst, i) => {
-            const role = slotsNow[i];
-            const mods = attributeModifiers(inst, { lineup: lineupNow, captain: captainNow, role });
-            const passing = applyModifiers(computeAttributes(species(inst.speciesId), inst.level), mods, role).passing;
-            return { inst, role, passing };
-        })
-        .filter((f) => f.role !== 'GK');
-    const autoTaker = pickCornerTaker(cornerField)?.inst;
-    const cornerPlan = run.cornerPlan ?? 'mixed';
-    const chosenTaker = run.cornerTakerUid ? byUid.get(run.cornerTakerUid) : undefined;
-    const takerOff = !!chosenTaker && !cornerField.some((f) => f.inst.uid === chosenTaker.uid);
-    const captainBenched = !!run.captainUid && run.bench.includes(run.captainUid);
-
-    const onSlot = (ref: SlotRef, uid: string) => {
-        setDetail(uid);
-        if (locked) return;
-        if (!selected) {
-            setSelected(ref);
-            return;
-        }
-        if (selected.zone !== ref.zone || selected.index !== ref.index) {
-            playSfx('select');
-            swapSlots(selected, ref);
-        }
-        setSelected(null);
-    };
 
     const play = async () => {
         const seed = run.seed;
@@ -129,49 +91,23 @@ export function Lineup() {
                 </div>
             </div>
 
-            <div className="lineup-grid">
-                <div className="panel">
-                    <h2>{t('team.lineup.title', { team: run.teamName })}</h2>
-                    <div className="formation-tabs">
-                        {Object.values(FORMATIONS).map((f) => (
-                            <button
-                                key={f.id}
-                                type="button"
-                                className={`btn small${run.formation === f.id ? ' active' : ''}`}
-                                disabled={locked}
-                                onClick={() => setFormation(f.id)}
-                            >
-                                {formationText(f.id, lang).name}
-                            </button>
-                        ))}
-                    </div>
-                    <p className="muted" style={{ marginTop: 8 }}>
-                        {t('team.lineup.swapHint')}
-                    </p>
-                    <FormationBoard
-                        formation={run.formation}
-                        lineup={run.lineup}
-                        bench={run.bench}
-                        byUid={byUid}
-                        captainUid={run.captainUid}
-                        projection={
-                            selected
-                                ? byUid.get((selected.zone === 'lineup' ? run.lineup : run.bench)[selected.index])
-                                : null
-                        }
-                        stateOf={(ref) =>
-                            selected?.zone === ref.zone && selected.index === ref.index ? 'selected' : 'idle'
-                        }
-                        onSlot={onSlot}
-                        footer={
-                            <p className="muted center" style={{ fontSize: 11, marginBottom: 0 }}>
-                                {t('team.lineup.subHint')}
-                            </p>
-                        }
-                    />
-                </div>
-
-                <div className="side-stack">
+            <LineupEditor
+                title={t('team.lineup.title', { team: run.teamName })}
+                formation={run.formation}
+                lineup={run.lineup}
+                bench={run.bench}
+                byUid={byUid}
+                captainUid={run.captainUid}
+                tactic={run.tactic}
+                cornerPlan={run.cornerPlan ?? 'mixed'}
+                cornerTakerUid={run.cornerTakerUid ?? null}
+                locked={locked}
+                onFormation={setFormation}
+                onSwap={swapSlots}
+                onTactic={setTactic}
+                onCorner={setCorner}
+                onMoveItem={moveItem}
+                side={
                     <div className="panel">
                         <h2>
                             {stageName(run.stage, lang)}: {clubName(opponent.name, lang)}
@@ -220,140 +156,10 @@ export function Lineup() {
                         {locked && <p className="tactic-desc">{t('team.lineup.lockedNote')}</p>}
                         {error && <p className="error-text">{error}</p>}
                     </div>
-
-                    <div className="panel">
-                        <h2>{t('team.lineup.tactic')}</h2>
-                        <div className="tactics">
-                            {(Object.keys(TACTIC_LABEL) as Tactic[]).map((tc) => (
-                                <button
-                                    key={tc}
-                                    type="button"
-                                    className={`btn small${run.tactic === tc ? ' active' : ''}`}
-                                    disabled={locked}
-                                    onClick={() => setTactic(tc)}
-                                >
-                                    {d.common.tactic[tc]}
-                                </button>
-                            ))}
-                        </div>
-                        <p className="tactic-desc">
-                            {d.team.lineup.tacticDesc[run.tactic]} {t('team.lineup.canChange')}
-                        </p>
-                        {captainBenched && <p className="error-text">{t('team.lineup.captainBenched')}</p>}
-                        <h3 style={{ marginTop: 12 }}>{t('team.lineup.corner')}</h3>
-                        <div className="tactics">
-                            {CORNER_PLANS.map((pl) => (
-                                <button
-                                    key={pl}
-                                    type="button"
-                                    className={`btn small${cornerPlan === pl ? ' active' : ''}`}
-                                    disabled={locked}
-                                    onClick={() => setCorner({ cornerPlan: pl })}
-                                >
-                                    {d.common.cornerPlan[pl]}
-                                </button>
-                            ))}
-                        </div>
-                        <p className="tactic-desc">
-                            {d.team.lineup.cornerDesc[cornerPlan]} {t('team.lineup.canChange')}
-                        </p>
-                        <label className="corner-taker">
-                            <span>{t('team.lineup.cornerTaker')}</span>
-                            <select
-                                value={run.cornerTakerUid ?? ''}
-                                disabled={locked}
-                                onChange={(e) => setCorner({ cornerTakerUid: e.target.value || null })}
-                            >
-                                <option value="">
-                                    {t('team.lineup.cornerAuto', {
-                                        name: autoTaker ? viewInstance(autoTaker).displayName : '?',
-                                    })}
-                                </option>
-                                {cornerField.map((f) => (
-                                    <option key={f.inst.uid} value={f.inst.uid}>
-                                        {t('team.lineup.cornerTakerOpt', {
-                                            name: viewInstance(f.inst).displayName,
-                                            pos: d.common.pos[f.role],
-                                            n: Math.round(f.passing),
-                                        })}
-                                    </option>
-                                ))}
-                                {chosenTaker && takerOff && (
-                                    <option value={chosenTaker.uid}>{viewInstance(chosenTaker).displayName}</option>
-                                )}
-                            </select>
-                        </label>
-                        {chosenTaker && takerOff && (
-                            <p className="tactic-desc">
-                                {t('team.lineup.cornerTakerOff', { name: viewInstance(chosenTaker).displayName })}
-                            </p>
-                        )}
-                        <h3 style={{ marginTop: 12 }}>{t('team.lineup.typeSynergies')}</h3>
-                        {synergies.length === 0 ? (
-                            <p className="tactic-desc">{t('team.lineup.typeSynEmpty')}</p>
-                        ) : (
-                            <div className="row" style={{ gap: 8 }}>
-                                {synergies.map((s) => (
-                                    <span key={s.type} className="row" style={{ gap: 4 }}>
-                                        <TypeBadge type={s.type} />
-                                        <span className="tactic-desc">
-                                            ×{s.count} · +{Math.round((s.bonus - 1) * 100)}%
-                                        </span>
-                                    </span>
-                                ))}
-                            </div>
-                        )}
-                        <h3 style={{ marginTop: 12 }}>{t('team.lineup.storySynergies')}</h3>
-                        {links.length === 0 ? (
-                            <p className="tactic-desc">{t('team.lineup.storySynEmpty')}</p>
-                        ) : (
-                            <div className="row" style={{ gap: 6 }}>
-                                <LinkChips links={links} />
-                            </div>
-                        )}
-                    </div>
-
-                    {detailInst && (
-                        <>
-                            <div className="detail-card">
-                                <FutCard
-                                    inst={detailInst}
-                                    captain={detailInst.uid === run.captainUid}
-                                    position={lineupPosition(run, detailInst.uid)}
-                                    fullButton
-                                />
-                            </div>
-                            {detailInst.item && (
-                                <div className="panel item-move">
-                                    <img className="pixel" src={itemSprite(detailInst.item)} alt="" />
-                                    <span>
-                                        <b>{itemName(detailInst.item)}</b> — {itemDesc(detailInst.item, lang)}
-                                    </span>
-                                    <label className="muted">
-                                        {t('team.lineup.giveTo')}{' '}
-                                        <select
-                                            value=""
-                                            disabled={locked}
-                                            onChange={(e) => e.target.value && moveItem(detailInst.uid, e.target.value)}
-                                        >
-                                            <option value="">…</option>
-                                            {holders.map((h) => (
-                                                <option key={h.uid} value={h.uid}>
-                                                    {viewInstance(h).displayName}
-                                                    {h.item
-                                                        ? t('team.lineup.swapWith', { item: itemName(h.item) })
-                                                        : ''}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </label>
-                                </div>
-                            )}
-                        </>
-                    )}
-
-                    {/* sem o confirm() do navegador: o 1º toque pergunta aqui mesmo, o 2º confirma */}
-                    {askAbandon ? (
+                }
+                footer={
+                    /* sem o confirm() do navegador: o 1º toque pergunta aqui mesmo, o 2º confirma */
+                    askAbandon ? (
                         <div className="abandon-ask" role="alert">
                             <span>{t('team.lineup.abandonConfirm')}</span>
                             <button type="button" className="btn small danger" onClick={abandonRun}>
@@ -367,9 +173,275 @@ export function Lineup() {
                         <button type="button" className="btn ghost small" onClick={() => setAskAbandon(true)}>
                             {t('team.lineup.abandon')}
                         </button>
+                    )
+                }
+            />
+        </>
+    );
+}
+
+/**
+ * Escalação (a mesma da copa e do duelo): formação, quadra com as vagas (toque em dois pra trocar), tática,
+ * instrução e cobrador de escanteio, sinergias e a carta de quem foi tocado. O que muda de um modo pro outro
+ * (rival, botão de jogar, abandonar) entra por `side` e `footer`.
+ */
+export function LineupEditor({
+    title,
+    formation,
+    lineup,
+    bench,
+    byUid,
+    captainUid,
+    tactic,
+    cornerPlan,
+    cornerTakerUid,
+    locked,
+    onFormation,
+    onSwap,
+    onTactic,
+    onCorner,
+    onMoveItem,
+    side,
+    footer,
+}: {
+    title: string;
+    formation: FormationId;
+    lineup: string[];
+    bench: string[];
+    byUid: Map<string, PokemonInstance>;
+    captainUid: string | null;
+    tactic: Tactic;
+    cornerPlan: CornerPlan;
+    cornerTakerUid: string | null;
+    locked: boolean;
+    onFormation: (f: FormationId) => void;
+    onSwap: (a: SlotRef, b: SlotRef) => void;
+    onTactic: (t: Tactic) => void;
+    onCorner: (patch: { cornerPlan?: CornerPlan; cornerTakerUid?: string | null }) => void;
+    /** Só na copa (o item vai junto do time do duelo, lacrado). */
+    onMoveItem?: (fromUid: string, toUid: string) => void;
+    side: ReactNode;
+    footer?: ReactNode;
+}) {
+    const [selected, setSelected] = useState<SlotRef | null>(null);
+    const [detail, setDetail] = useState<string | null>(null);
+    const { t, d, lang } = useT();
+    const picks = [...lineup, ...bench].flatMap((u) => byUid.get(u) ?? []);
+    const detailInst = byUid.get(detail ?? lineup[0]) ?? picks[0];
+    const synergies = computeSynergies(lineup.map((u) => byUid.get(u)!));
+    const links = computeLinks(lineup.map((u) => byUid.get(u)!));
+    const holders = picks.filter((p) => p.uid !== detailInst?.uid);
+    const slotsNow = FORMATIONS[formation].slots;
+    const positionOf = (uid: string) => {
+        const i = lineup.indexOf(uid);
+        return i >= 0 ? slotsNow[i] : undefined;
+    };
+
+    // escanteio: quem pode cobrar (jogadores de linha) e o automático (a mesma regra do motor)
+    const lineupNow = lineup.map((u) => byUid.get(u)!);
+    const captainNow = lineupNow.find((p) => p.uid === captainUid) ?? null;
+    const cornerField = lineupNow
+        .map((inst, i) => {
+            const role = slotsNow[i];
+            const mods = attributeModifiers(inst, { lineup: lineupNow, captain: captainNow, role });
+            const passing = applyModifiers(computeAttributes(species(inst.speciesId), inst.level), mods, role).passing;
+            return { inst, role, passing };
+        })
+        .filter((f) => f.role !== 'GK');
+    const autoTaker = pickCornerTaker(cornerField)?.inst;
+    const chosenTaker = cornerTakerUid ? byUid.get(cornerTakerUid) : undefined;
+    const takerOff = !!chosenTaker && !cornerField.some((f) => f.inst.uid === chosenTaker.uid);
+    const captainBenched = !!captainUid && bench.includes(captainUid);
+
+    const onSlot = (ref: SlotRef, uid: string) => {
+        setDetail(uid);
+        if (locked) return;
+        if (!selected) {
+            setSelected(ref);
+            return;
+        }
+        if (selected.zone !== ref.zone || selected.index !== ref.index) {
+            playSfx('select');
+            onSwap(selected, ref);
+        }
+        setSelected(null);
+    };
+
+    return (
+        <div className="lineup-grid">
+            <div className="panel">
+                <h2>{title}</h2>
+                <div className="formation-tabs">
+                    {Object.values(FORMATIONS).map((f) => (
+                        <button
+                            key={f.id}
+                            type="button"
+                            className={`btn small${formation === f.id ? ' active' : ''}`}
+                            disabled={locked}
+                            onClick={() => onFormation(f.id)}
+                        >
+                            {formationText(f.id, lang).name}
+                        </button>
+                    ))}
+                </div>
+                <p className="muted" style={{ marginTop: 8 }}>
+                    {t('team.lineup.swapHint')}
+                </p>
+                <FormationBoard
+                    formation={formation}
+                    lineup={lineup}
+                    bench={bench}
+                    byUid={byUid}
+                    captainUid={captainUid}
+                    projection={
+                        selected ? byUid.get((selected.zone === 'lineup' ? lineup : bench)[selected.index]) : null
+                    }
+                    stateOf={(ref) =>
+                        selected?.zone === ref.zone && selected.index === ref.index ? 'selected' : 'idle'
+                    }
+                    onSlot={onSlot}
+                    footer={
+                        <p className="muted center" style={{ fontSize: 11, marginBottom: 0 }}>
+                            {t('team.lineup.subHint')}
+                        </p>
+                    }
+                />
+            </div>
+
+            <div className="side-stack">
+                {side}
+
+                <div className="panel">
+                    <h2>{t('team.lineup.tactic')}</h2>
+                    <div className="tactics">
+                        {(Object.keys(TACTIC_LABEL) as Tactic[]).map((tc) => (
+                            <button
+                                key={tc}
+                                type="button"
+                                className={`btn small${tactic === tc ? ' active' : ''}`}
+                                disabled={locked}
+                                onClick={() => onTactic(tc)}
+                            >
+                                {d.common.tactic[tc]}
+                            </button>
+                        ))}
+                    </div>
+                    <p className="tactic-desc">
+                        {d.team.lineup.tacticDesc[tactic]} {t('team.lineup.canChange')}
+                    </p>
+                    {captainBenched && <p className="error-text">{t('team.lineup.captainBenched')}</p>}
+                    <h3 style={{ marginTop: 12 }}>{t('team.lineup.corner')}</h3>
+                    <div className="tactics">
+                        {CORNER_PLANS.map((pl) => (
+                            <button
+                                key={pl}
+                                type="button"
+                                className={`btn small${cornerPlan === pl ? ' active' : ''}`}
+                                disabled={locked}
+                                onClick={() => onCorner({ cornerPlan: pl })}
+                            >
+                                {d.common.cornerPlan[pl]}
+                            </button>
+                        ))}
+                    </div>
+                    <p className="tactic-desc">
+                        {d.team.lineup.cornerDesc[cornerPlan]} {t('team.lineup.canChange')}
+                    </p>
+                    <label className="corner-taker">
+                        <span>{t('team.lineup.cornerTaker')}</span>
+                        <select
+                            value={cornerTakerUid ?? ''}
+                            disabled={locked}
+                            onChange={(e) => onCorner({ cornerTakerUid: e.target.value || null })}
+                        >
+                            <option value="">
+                                {t('team.lineup.cornerAuto', {
+                                    name: autoTaker ? viewInstance(autoTaker).displayName : '?',
+                                })}
+                            </option>
+                            {cornerField.map((f) => (
+                                <option key={f.inst.uid} value={f.inst.uid}>
+                                    {t('team.lineup.cornerTakerOpt', {
+                                        name: viewInstance(f.inst).displayName,
+                                        pos: d.common.pos[f.role],
+                                        n: Math.round(f.passing),
+                                    })}
+                                </option>
+                            ))}
+                            {chosenTaker && takerOff && (
+                                <option value={chosenTaker.uid}>{viewInstance(chosenTaker).displayName}</option>
+                            )}
+                        </select>
+                    </label>
+                    {chosenTaker && takerOff && (
+                        <p className="tactic-desc">
+                            {t('team.lineup.cornerTakerOff', { name: viewInstance(chosenTaker).displayName })}
+                        </p>
+                    )}
+                    <h3 style={{ marginTop: 12 }}>{t('team.lineup.typeSynergies')}</h3>
+                    {synergies.length === 0 ? (
+                        <p className="tactic-desc">{t('team.lineup.typeSynEmpty')}</p>
+                    ) : (
+                        <div className="row" style={{ gap: 8 }}>
+                            {synergies.map((s) => (
+                                <span key={s.type} className="row" style={{ gap: 4 }}>
+                                    <TypeBadge type={s.type} />
+                                    <span className="tactic-desc">
+                                        ×{s.count} · +{Math.round((s.bonus - 1) * 100)}%
+                                    </span>
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                    <h3 style={{ marginTop: 12 }}>{t('team.lineup.storySynergies')}</h3>
+                    {links.length === 0 ? (
+                        <p className="tactic-desc">{t('team.lineup.storySynEmpty')}</p>
+                    ) : (
+                        <div className="row" style={{ gap: 6 }}>
+                            <LinkChips links={links} />
+                        </div>
                     )}
                 </div>
+
+                {detailInst && (
+                    <>
+                        <div className="detail-card">
+                            <FutCard
+                                inst={detailInst}
+                                captain={detailInst.uid === captainUid}
+                                position={positionOf(detailInst.uid)}
+                                fullButton
+                            />
+                        </div>
+                        {detailInst.item && onMoveItem && (
+                            <div className="panel item-move">
+                                <img className="pixel" src={itemSprite(detailInst.item)} alt="" />
+                                <span>
+                                    <b>{itemName(detailInst.item)}</b> — {itemDesc(detailInst.item, lang)}
+                                </span>
+                                <label className="muted">
+                                    {t('team.lineup.giveTo')}{' '}
+                                    <select
+                                        value=""
+                                        disabled={locked}
+                                        onChange={(e) => e.target.value && onMoveItem(detailInst.uid, e.target.value)}
+                                    >
+                                        <option value="">…</option>
+                                        {holders.map((h) => (
+                                            <option key={h.uid} value={h.uid}>
+                                                {viewInstance(h).displayName}
+                                                {h.item ? t('team.lineup.swapWith', { item: itemName(h.item) }) : ''}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </label>
+                            </div>
+                        )}
+                    </>
+                )}
+
+                {footer}
             </div>
-        </>
+        </div>
     );
 }

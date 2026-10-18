@@ -81,6 +81,11 @@ interface CloudState {
     notice: 'other-account' | null;
     /** Como terminou o último login (para a estatística `login`). */
     lastLink: { merged: boolean; choice: Side | null } | null;
+    /**
+     * Sessão anônima do duelo ("Jogar agora", sem conta): só serve pro canal da sala. Não sobe nem mexe no save da
+     * nuvem; o `user` continua null (pro resto do jogo, visitante).
+     */
+    anonId: string | null;
 }
 
 export const useCloud = create<CloudState>(() => ({
@@ -89,6 +94,7 @@ export const useCloud = create<CloudState>(() => ({
     ask: null,
     notice: null,
     lastLink: null,
+    anonId: null,
 }));
 
 let userId: string | null = null;
@@ -425,6 +431,12 @@ export function startCloudSync() {
     });
     if (!supabase) return;
     supabase.auth.onAuthStateChange((event, session) => {
+        // duelo sem conta: a sessão anônima só abre o canal da sala (nada de reconciliar, subir ou juntar save)
+        if (session?.user.is_anonymous) {
+            if (useCloud.getState().anonId !== session.user.id) useCloud.setState({ anonId: session.user.id });
+            return;
+        }
+        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') useCloud.setState({ anonId: null });
         if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN') && session && session.user.id !== userId) {
             // fora do callback: o supabase-js pede para não esperar outras chamadas dentro dele
             setTimeout(() => void onSignedIn(session), 0);
@@ -434,16 +446,44 @@ export function startCloudSync() {
             pending = null;
             reconciling = false;
             clearTimeout(uploadTimer);
-            useCloud.setState({ status: 'guest', user: null, ask: null });
+            useCloud.setState({ status: 'guest', user: null, ask: null, anonId: null });
         }
     });
 }
 
-/** Id da conta logada (o duelo usa como id do jogador na sala). */
+/** Id da conta logada. */
 export const cloudUserId = () => userId;
+/** Id do jogador na sala do duelo: a conta, ou a sessão anônima do "Jogar agora". */
+export const duelUserId = () => userId ?? useCloud.getState().anonId;
+
+/**
+ * "Jogar agora" do duelo, sem conta: login anônimo do Supabase (o papel continua `authenticated`, então a regra do
+ * canal privado `duel:%` vale igual). Devolve 'disabled' se o painel ainda não liga "Allow anonymous sign-ins".
+ */
+export async function signInAnon(): Promise<'ok' | 'disabled' | 'error'> {
+    if (!supabase) return 'error';
+    const { data, error } = await supabase.auth.signInAnonymously();
+    if (error) {
+        const code = (error as { code?: string }).code;
+        return code === 'anonymous_provider_disabled' || /anonymous sign-ins are disabled/i.test(error.message)
+            ? 'disabled'
+            : 'error';
+    }
+    if (data.user) useCloud.setState({ anonId: data.user.id });
+    return 'ok';
+}
+
+/** Antes do login de verdade: a sessão anônima do duelo sai (o histórico dela já está no save local). */
+async function dropAnon() {
+    if (!supabase || !useCloud.getState().anonId) return;
+    // ponytail: sem linkIdentity (pede "manual linking" no painel); o duelo seguinte usa o id da conta
+    await supabase.auth.signOut({ scope: 'local' });
+    useCloud.setState({ anonId: null });
+}
 
 export async function signInWithGoogle() {
     if (!supabase) return;
+    await dropAnon();
     markLoginPending();
     const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -455,6 +495,7 @@ export async function signInWithGoogle() {
 /** Login pelo botão oficial do Google (google-button.ts): o Supabase confere o token e abre a sessão. */
 export async function signInWithGoogleToken(idToken: string, rawNonce: string) {
     if (!supabase) return;
+    await dropAnon();
     markLoginPending();
     const { error } = await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken, nonce: rawNonce });
     if (error) throw error;

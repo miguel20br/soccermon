@@ -71,6 +71,14 @@ function Squad({ team, trainer }: { team: TeamSetup; trainer?: TrainerId }) {
     );
 }
 
+/** Treinador de verdade do lado (duelo): avatar e título embaixo do nome do clube. */
+export interface VsCoach {
+    name: string;
+    title?: string;
+    avatar?: string;
+    avatarGoogle?: boolean;
+}
+
 function Side({
     team,
     side,
@@ -78,6 +86,7 @@ function Side({
     tag,
     label,
     trainer,
+    coach,
 }: {
     team: TeamSetup;
     side: 'home' | 'away';
@@ -85,6 +94,7 @@ function Side({
     tag: string;
     label: string;
     trainer?: TrainerId;
+    coach?: VsCoach;
 }) {
     const { t, d } = useT();
     const avg = Math.round(team.lineup.reduce((s, p) => s + viewInstance(p).overall, 0) / team.lineup.length);
@@ -102,6 +112,22 @@ function Side({
                         <div className="vsp-meta">
                             {formationText(formationOf(team.formation).id).name} · {d.common.tactic[team.tactic]}
                         </div>
+                        {coach && (
+                            <div className="vsp-coach">
+                                {coach.avatar && (
+                                    <img
+                                        className={coach.avatarGoogle ? '' : 'pixel'}
+                                        src={coach.avatar}
+                                        alt=""
+                                        referrerPolicy="no-referrer"
+                                    />
+                                )}
+                                <span>
+                                    <b>{coach.name}</b>
+                                    {coach.title && <small>{coach.title}</small>}
+                                </span>
+                            </div>
+                        )}
                     </div>
                     <div className={`vsp-avg ${tierOf(avg)}`}>
                         <b>{avg}</b>
@@ -129,6 +155,9 @@ export function VersusIntro({
     awayTrainer,
     awayLabel,
     awayTag,
+    homeCoach,
+    awayCoach,
+    startsIn,
 }: {
     home: TeamSetup;
     away: TeamSetup;
@@ -137,6 +166,11 @@ export function VersusIntro({
     awayTrainer?: TrainerId;
     awayLabel?: string;
     awayTag?: string;
+    /** Duelo: os dois treinadores (nome, avatar e título). */
+    homeCoach?: VsCoach;
+    awayCoach?: VsCoach;
+    /** Duelo: o apito é marcado pela sala (segundos que faltam); sem botão de começar. */
+    startsIn?: number;
     /** A quadra terminou de carregar: só então começa a contagem para iniciar sozinho. */
     ready: boolean;
     onDone: () => void;
@@ -163,8 +197,9 @@ export function VersusIntro({
         return () => clearTimeout(timer);
     }, [final]);
 
+    const timed = startsIn !== undefined;
     useEffect(() => {
-        if (!ready) return;
+        if (!ready || timed) return;
         const timer = window.setTimeout(() => done.current(), AUTO_START_MS);
         const onKey = (e: KeyboardEvent) => {
             if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') done.current();
@@ -174,7 +209,7 @@ export function VersusIntro({
             clearTimeout(timer);
             window.removeEventListener('keydown', onKey);
         };
-    }, [ready]);
+    }, [ready, timed]);
 
     // seu time sempre na cor do clube (Perfil); o rival no uniforme reserva se as cores baterem
     const homeColor = useClubColor();
@@ -201,6 +236,7 @@ export function VersusIntro({
                     side="away"
                     trainer={awayTrainer ?? leaderTrainerOf(away.name)}
                     name={awayName}
+                    coach={awayCoach}
                     tag={awayTag ?? tagFromName(awayName)}
                     label={
                         awayLabel ??
@@ -216,6 +252,7 @@ export function VersusIntro({
                     side="home"
                     trainer={activeTrainer(profile)}
                     name={home.name}
+                    coach={homeCoach}
                     tag={home.name === profile.clubName ? profile.clubTag : tagFromName(home.name)}
                     label={t('match.vs.yourTeam')}
                 />
@@ -241,10 +278,18 @@ export function VersusIntro({
                 <div className="vs-stage vsp-stage">{final ? t('match.vs.final') : stage}</div>
             </div>
             <div className="vsp-flash" />
-            <button type="button" className="btn primary vs-start" onClick={onDone}>
-                {ready ? t('match.vs.start') : t('match.vs.loading')}
-            </button>
-            {ready && <div className="vs-progress" style={{ animationDuration: `${AUTO_START_MS}ms` }} />}
+            {startsIn !== undefined ? (
+                <div className="btn primary vs-start vs-countdown" role="status">
+                    {ready ? t('match.vs.startsIn', { s: startsIn }) : t('match.vs.loading')}
+                </div>
+            ) : (
+                <button type="button" className="btn primary vs-start" onClick={onDone}>
+                    {ready ? t('match.vs.start') : t('match.vs.loading')}
+                </button>
+            )}
+            {ready && startsIn === undefined && (
+                <div className="vs-progress" style={{ animationDuration: `${AUTO_START_MS}ms` }} />
+            )}
         </div>
     );
 }

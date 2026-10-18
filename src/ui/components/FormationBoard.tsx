@@ -38,6 +38,10 @@ interface Props {
     dimOf?: (inst: PokemonInstance) => boolean;
     /** Sufixo do aria-label de cada vaga ocupada (ex.: "abrir carta completa"). */
     slotAria?: (inst: PokemonInstance) => string;
+    /** Quadra deitada (prancheta embaixo da partida no celular): o gol do time à esquerda, o ataque pra direita. */
+    horizontal?: boolean;
+    /** Quadra deitada espelhada: o gol do time à direita (o time 1 na quadra da partida). */
+    mirror?: boolean;
 }
 
 /** Mini-quadra vertical com as vagas da formação + banco. Usada no draft, na escalação e nas recompensas. */
@@ -56,6 +60,8 @@ export function FormationBoard({
     badgeOf,
     dimOf,
     slotAria,
+    horizontal,
+    mirror,
 }: Props) {
     const f = formationOf(formation);
     const { t, d } = useT();
@@ -156,10 +162,16 @@ export function FormationBoard({
     };
 
     return (
-        <div className="formation-board">
+        <div className={`formation-board${horizontal ? ' horizontal' : ''}`}>
             <div className="court">
                 {lineup.map((uid, i) =>
-                    slot({ zone: 'lineup', index: i }, uid, { left: `${f.ui[i][0]}%`, top: `${f.ui[i][1]}%` }),
+                    slot(
+                        { zone: 'lineup', index: i },
+                        uid,
+                        horizontal
+                            ? { left: `${mirror ? f.ui[i][1] : 100 - f.ui[i][1]}%`, top: `${f.ui[i][0]}%` }
+                            : { left: `${f.ui[i][0]}%`, top: `${f.ui[i][1]}%` },
+                    ),
                 )}
             </div>
             <div className="bench">{bench.map((uid, i) => slot({ zone: 'bench', index: i }, uid))}</div>

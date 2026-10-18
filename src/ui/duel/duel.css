@@ -59,7 +59,7 @@
 
 /* tela do duelo */
 .duel {
-    width: min(1100px, 100%);
+    width: 100%;
     margin: 0 auto;
     display: grid;
     gap: 14px;
@@ -543,13 +543,12 @@
 .duel-result {
     display: grid;
     gap: 14px;
-    justify-items: center;
-    text-align: center;
+    width: 100%;
+}
+.duel-result > .duel-history,
+.duel-result > .duel-beta {
     width: min(640px, 100%);
     margin: 0 auto;
-}
-.duel-result h1.won {
-    color: var(--yellow);
 }
 .duel-final {
     display: grid;
@@ -597,4 +596,269 @@
 }
 .duel-hrow i.loss {
     background: var(--red);
+}
+
+/* pedido de velocidade: em cima da quadra, pros dois (quem pede, quem responde e o resultado) */
+.speed-ask {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 8;
+    width: min(92%, 420px);
+    display: grid;
+    gap: 6px;
+    justify-items: center;
+    text-align: center;
+    padding: 8px 12px;
+    border-radius: var(--radius);
+    background: rgb(14 20 48 / 94%);
+    border: 3px solid var(--line);
+    box-shadow: var(--shadow);
+    font-size: 13px;
+    animation: emote-pop 0.25s var(--ease-pop) both;
+}
+.speed-ask.theirs {
+    border-color: var(--yellow);
+}
+.speed-ask.theirs b {
+    color: var(--yellow);
+    font-size: 15px;
+}
+.speed-ask.done.yes {
+    border-color: var(--green);
+}
+.sa-actions {
+    gap: 8px;
+    justify-content: center;
+}
+.sa-bar {
+    display: block;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--yellow) calc(var(--p) * 100%), rgb(255 255 255 / 15%) 0);
+}
+.duel-speed .btn.asking {
+    border-color: var(--yellow);
+    color: var(--yellow);
+}
+@media (max-width: 700px) {
+    .control-group.duel-speed .corner-label {
+        grid-column: 1 / -1;
+    }
+    .speed-ask {
+        top: 4px;
+        padding: 6px 8px;
+        font-size: 12px;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .speed-ask {
+        animation: none;
+    }
+}
+
+/* draft do duelo: o mesmo do draft da copa + o que é do duelo (vez de quem, cronômetro, queimadas) */
+.duel-draft-clock {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.duel-board-tabs {
+    margin-bottom: 10px;
+}
+.duel-turn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    border: 2px solid var(--line);
+    font-size: 12px;
+    color: var(--muted);
+}
+.duel-turn.mine {
+    border-color: var(--yellow);
+    color: var(--yellow);
+    font-weight: 700;
+}
+.duel-draft-news {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 13px;
+}
+.duel-draft-news span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius);
+    background: var(--panel-2);
+}
+.duel-draft-news img {
+    height: 30px;
+}
+.duel-draft-news img.burned {
+    filter: grayscale(1) brightness(0.7);
+    opacity: 0.8;
+}
+
+/* convite: código grande, compartilhar, WhatsApp e QR */
+.duel-lobby-head {
+    display: grid;
+    gap: 2px;
+    justify-items: center;
+    text-align: center;
+}
+.duel-lobby-head h1 {
+    margin: 0;
+}
+.duel-invite {
+    position: relative;
+    display: grid;
+    gap: 10px;
+    justify-items: center;
+    width: 100%;
+    padding: 16px 12px;
+    text-align: center;
+    border: 3px solid var(--yellow);
+}
+.duel-invite.compact {
+    border-color: var(--line);
+    padding: 10px 12px;
+    gap: 8px;
+}
+.duel-invite.compact .duel-code b {
+    font-size: 26px;
+}
+.duel-invite-hint {
+    margin: 0;
+    max-width: 420px;
+    font-size: 13px;
+}
+.duel-share .btn {
+    text-decoration: none;
+}
+.btn.whatsapp {
+    background: #1faa59;
+    border-color: #13773d;
+    color: #fff;
+}
+.duel-qr {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    font-size: 13px;
+}
+.duel-qr summary {
+    cursor: pointer;
+    color: var(--muted);
+    min-height: 32px;
+    line-height: 32px;
+}
+.duel-qr-svg {
+    width: min(200px, 60vw);
+    height: auto;
+    border-radius: 8px;
+    margin: 0 auto;
+    display: block;
+}
+.duel-anon {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 0 6px;
+    border-radius: 4px;
+    border: 1px solid var(--muted);
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 400;
+    vertical-align: 2px;
+}
+.duel-mode:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+.duel-mode-off {
+    color: var(--yellow);
+    font-size: 12px;
+}
+.duel-join {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 12px;
+}
+.duel-join label,
+.duel-name {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+    text-align: left;
+}
+.duel-join label {
+    flex: 1 1 160px;
+    max-width: 320px;
+}
+.duel-name {
+    width: min(320px, 100%);
+}
+.duel-join input,
+.duel-name input {
+    font: inherit;
+    font-size: 16px;
+    min-height: 44px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 2px solid var(--line);
+    background: var(--bg-2);
+    color: var(--text);
+}
+.duel-join input {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+}
+.duel-entry h1 {
+    margin: 0;
+    font-size: 22px;
+}
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+.duel-final-box {
+    display: grid;
+    gap: 12px;
+    justify-items: center;
+    width: 100%;
+    padding: 16px;
+}
+.duel-final-box h1 {
+    margin: 0;
+}
+.duel-final-box h1.won {
+    color: var(--yellow);
+}
+.duel-join input,
+.duel-name input {
+    width: 100%;
+    box-sizing: border-box;
+}
+.duel-google {
+    background: none;
+    border: 0;
+    padding: 6px 4px;
+    min-height: 40px;
+    color: #7cc8ff;
+    font: inherit;
+    font-size: 13px;
+    text-decoration: underline;
+    cursor: pointer;
 }

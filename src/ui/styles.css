@@ -1538,11 +1538,11 @@ button,
         grid-column: 1 / -1;
         text-align: center;
     }
-    .control-group:last-child {
+    .control-group.end-group {
         grid-template-columns: 1fr;
     }
     /* velocidades (1x 2x 4x 8x Lances) numa linha só */
-    .control-group:first-child {
+    .control-group.speed-group {
         grid-template-columns: repeat(5, minmax(0, 1fr));
     }
     .result-hero .big-score {
@@ -6880,4 +6880,204 @@ body {
     box-sizing: border-box;
     max-width: 230px;
     padding: 0 4px;
+}
+
+/* ---------------------------------------------------------------- prancheta do time (Prancheta.tsx) */
+.prancheta {
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+    align-content: start;
+    min-width: 0;
+}
+.prancheta .formation-board {
+    max-width: none;
+    margin: 0;
+}
+.prancheta .court {
+    aspect-ratio: 3 / 3.6;
+    max-height: none;
+}
+.prancheta .horizontal .court {
+    aspect-ratio: 2.3 / 1;
+    background: repeating-linear-gradient(0deg, #c98a4f 0 24px, #cf9358 24px 48px);
+}
+.prancheta .horizontal .court::before {
+    left: 50%;
+    right: auto;
+    top: 0;
+    bottom: 0;
+    border-top: 0;
+    border-left: 3px solid rgba(255, 255, 255, 0.9);
+}
+.prancheta .slot {
+    width: 72px;
+    min-height: 0;
+    padding: 3px 2px 4px;
+    border-width: 2px;
+    border-radius: 8px;
+}
+.prancheta .slot img {
+    height: 28px;
+}
+.prancheta .slot .slot-name {
+    font-size: 9px;
+}
+.prancheta .slot .slot-rating {
+    font-size: 10px;
+    line-height: 1.1;
+}
+.prancheta .slot .pos-badge,
+.prancheta .slot .slot-item,
+.prancheta .slot .slot-evo {
+    display: none;
+}
+.prancheta .slot .captain-badge {
+    top: -7px;
+    right: -7px;
+    width: 15px;
+    height: 15px;
+    font-size: 9px;
+}
+.prancheta .bench {
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+.prancheta .bench .slot {
+    width: 64px;
+}
+.pr-energy {
+    order: 9;
+    display: block;
+    width: 84%;
+    height: 4px;
+    margin-top: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #58c26b calc(var(--e) * 100%), rgb(0 0 0 / 45%) 0);
+}
+.pr-energy.mid {
+    background: linear-gradient(90deg, #ffcb05 calc(var(--e) * 100%), rgb(0 0 0 / 45%) 0);
+}
+.pr-energy.low {
+    background: linear-gradient(90deg, #ff6b4c calc(var(--e) * 100%), rgb(0 0 0 / 45%) 0);
+}
+.pr-status,
+.pr-evo {
+    position: absolute;
+    top: -8px;
+    left: -6px;
+    max-width: 64px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0 4px;
+    border-radius: 4px;
+    font-size: 8px;
+    line-height: 13px;
+    background: #7a4fd6;
+    color: #fff;
+}
+.pr-evo {
+    top: auto;
+    bottom: -7px;
+    left: auto;
+    right: -6px;
+    background: #a48bff;
+    color: #141a33;
+    font-weight: 700;
+}
+.pr-hint {
+    font-size: 11px;
+    text-align: center;
+}
+/* desktop: a prancheta na coluna da direita, em cima da narração (a quadra não encolhe) */
+@media (min-width: 1051px) {
+    .match-layout.has-board {
+        grid-template-rows: auto 1fr;
+    }
+    .match-layout.has-board > .match-main {
+        grid-row: 1 / span 2;
+    }
+    .match-layout.has-board > .prancheta {
+        grid-column: 2;
+        grid-row: 1;
+    }
+    .match-layout.has-board > .feed {
+        grid-column: 2;
+        grid-row: 2;
+        min-height: 160px;
+        max-height: 320px;
+    }
+}
+/* celular e tablet: logo embaixo da quadra (a tela da partida vira uma coluna só) */
+@media (max-width: 1050px) {
+    .match-layout.has-board > .match-main {
+        display: contents;
+    }
+    .match-layout.has-board > .match-main > .pitch-wrap {
+        order: -2;
+    }
+    .match-layout.has-board > .prancheta {
+        order: -1;
+    }
+}
+/* celular deitado: ao lado da quadra */
+@media (orientation: landscape) and (max-height: 520px) {
+    .match-layout.has-board {
+        grid-template-columns: minmax(0, 1fr) 236px;
+    }
+    .match-layout.has-board > .match-main > *,
+    .match-layout.has-board > .feed {
+        grid-column: 1 / -1;
+    }
+    .match-layout.has-board > .match-main > .pitch-wrap {
+        grid-column: 1;
+    }
+    .match-layout.has-board > .prancheta {
+        grid-column: 2;
+        align-self: start;
+    }
+    .prancheta {
+        padding: 8px;
+        gap: 6px;
+    }
+    .prancheta .tp-tab {
+        min-height: 32px;
+        padding: 2px 10px;
+    }
+    .prancheta .court {
+        aspect-ratio: 3 / 2.7;
+    }
+    .prancheta .slot {
+        width: 58px;
+    }
+    .prancheta .slot img {
+        height: 22px;
+    }
+    .prancheta .slot .slot-name,
+    .pr-hint {
+        display: none;
+    }
+    .prancheta .bench .slot {
+        width: 54px;
+    }
+}
+/* celular estreito (320): vagas menores pra caber o losango deitado */
+@media (max-width: 380px) {
+    .prancheta .horizontal .court {
+        aspect-ratio: 1.9 / 1;
+    }
+    .prancheta .slot {
+        width: 56px;
+    }
+    .prancheta .slot img {
+        height: 22px;
+    }
+    .prancheta .slot .slot-name {
+        display: none;
+    }
+    .prancheta .bench .slot {
+        width: 52px;
+    }
 }

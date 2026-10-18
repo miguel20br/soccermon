@@ -1,19 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { FUTSAL_5, MAX_TACTIC_CHANGES } from '../../engine/config';
+import { FUTSAL_5 } from '../../engine/config';
 import { species } from '../../engine/data';
 import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
-import { CORNER_PLANS } from '../../engine/runners/live-runner';
 import {
     type CornerOrder,
     type CornerPlan,
     isCornerOrder,
     isTacticOrder,
     type MatchEvent,
-    type Phase,
     SNAP_STRIDE,
-    TACTIC_LABEL,
     type Tactic,
     type TacticChange,
 } from '../../engine/state';
@@ -30,7 +27,9 @@ import {
     onFieldAfter,
     ordersOf,
     other,
+    type Role,
     SIDE,
+    SPEED_ASK_MS,
 } from '../../net/duel-state';
 import { baseSeedOf, holdTick, openedSegments } from '../../net/seal';
 import { duel, roomNow, useDuel } from '../../net/session';
@@ -43,25 +42,23 @@ import { Commentator, type CommentLine } from '../commentary';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
 import { HalftimePanel } from '../components/HalftimePanel';
 import { MatchHighlight } from '../components/MatchHighlight';
+import {
+    type Clock,
+    hex,
+    MatchFeed,
+    Scoreboard,
+    SubPanel,
+    TacticControls,
+    useClockLabel,
+} from '../components/MatchHud';
 import { PlayerInspect } from '../components/PlayerInspect';
-import { cardSprite } from '../components/PokeCard';
+import { Prancheta } from '../components/Prancheta';
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
 import { snapAt } from '../match-view';
-import { ratingAt } from '../rating';
 import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
 import { EmoteBar, EmoteBubbles } from './Emotes';
-
-const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
-
-interface Clock {
-    tick: number;
-    minute: number;
-    half: number;
-    score: [number, number];
-    phase: Phase;
-}
 
 /** Segundos que faltam até `at` (relógio da sala), atualizando sozinho. */
 export function useCountdown(at: number | undefined): number {
@@ -87,7 +84,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const online = useDuel((st) => st.online);
     const suspect = useDuel((st) => st.suspect);
     const { settings } = useGame();
-    const { t, tn, d } = useT();
+    const { t } = useT();
     const side = SIDE[role];
     const rivalRole = other(role);
     const rivalPeer = s.peers[rivalRole];
@@ -111,9 +108,19 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const [subOut, setSubOut] = useState<string | null>(null);
     const [lines, setLines] = useState<(CommentLine & { id: number })[]>([]);
     const lineId = useRef(0);
-    const [feedOpen, setFeedOpen] = useState(false);
+    const [feedOpen, setFeedOpen] = useState(true);
+    const [fulltime, setFulltime] = useState(false);
     const [shootout, setShootout] = useState<[number, number] | null>(null);
     const tickRef = useRef(0);
+    const scoreboardRef = useRef<HTMLDivElement>(null);
+    const halftimeRef = useRef<HTMLDivElement>(null);
+    const subPanelRef = useRef<HTMLDivElement>(null);
+    // como na copa: celular deitado deixa o placar no topo (a quadra cabe inteira) e o intervalo vem pra tela
+    useEffect(() => {
+        if (!window.matchMedia('(orientation: landscape) and (max-height: 520px)').matches) return;
+        const id = requestAnimationFrame(() => scoreboardRef.current?.scrollIntoView({ block: 'start' }));
+        return () => cancelAnimationFrame(id);
+    }, []);
 
     // cores: o seu clube no seu lado, o rival no uniforme reserva se bater
     const mine = myTeam.color;
@@ -197,6 +204,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         const onEvent = (e: MatchEvent) => {
             if (e.type === 'sub' && e.team === side) setSubsDone((prev) => [...prev, e.inUid]);
             if (e.type === 'penalty') setShootout(e.shootout);
+            if (e.type === 'fulltime') setFulltime(true);
             const line = commentator.lineFor(e);
             if (line) setLines((prev) => [{ ...line, id: lineId.current++ }, ...prev].slice(0, 200));
         };
@@ -275,8 +283,16 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         }
     }, [halftime, s.secondHalf, simCount, s.log.length]);
 
+    useEffect(() => {
+        if (halftime) halftimeRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }, [halftime]);
+    // painel de substituição (aberto pela prancheta ou pelo botão) pode abrir abaixo da dobra: traz pra tela
+    useEffect(() => {
+        if (subOpen) subPanelRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }, [subOpen]);
     const htLeft = useCountdown(halftime ? s.halftime?.until : undefined);
-    const askLeft = useCountdown(s.speedAsk?.until);
+    const kickLeft = useCountdown(kicked ? undefined : s.kickoffAt);
+    const clockLabel = useClockLabel(clock, fulltime || ended, shootout);
 
     if (!match || !sceneData) {
         return (
@@ -303,6 +319,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         kicked &&
         !pendingOrder &&
         !ended &&
+        !fulltime &&
         clock.minute + leadMinutes < FUTSAL_5.displayHalfMinutes * 2 - 1;
 
     const order = (o: OrderBody) => duel.order(o, halftime);
@@ -326,20 +343,19 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         return evo?.type === 'evolve' && name === species(evo.from).name ? species(evo.into).name : name;
     };
 
-    const clockLabel =
-        clock.phase === 'halftime'
-            ? t('match.halftime')
-            : shootout
-              ? t('match.penalties', { a: shootout[0], b: shootout[1] })
-              : clock.phase === 'fulltime' || ended
-                ? t('match.fulltime')
-                : t('match.clock', {
-                      min: Math.min(40, Math.floor(clock.minute)),
-                      half: d.match.half[clock.half - 1] ?? '',
-                  });
     const speedLabel = (sp: PlaybackSpeed) => (sp === 'highlights' ? t('match.highlights') : `${sp}x`);
     const htReady = s.halftime?.ready;
     const awayRival = !online[rivalRole];
+
+    const myPeer = s.peers[role];
+    const coach = (p?: typeof myPeer) =>
+        p && { name: p.name, title: p.title, avatar: p.avatar, avatarGoogle: p.avatarGoogle };
+    const onMine = (uid: string, idx: number | null) => {
+        if (canSub) {
+            setSubOut(onField.includes(uid) ? uid : null);
+            setSubOpen(true);
+        } else if (idx !== null) EventBus.emit('match:inspect-request', idx);
+    };
 
     return (
         <>
@@ -352,72 +368,27 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                     onDone={() => {}}
                     awayTrainer={rivalPeer?.trainer as TrainerId | undefined}
                     awayTag={rivalPeer?.clubTag}
-                    awayLabel={rivalName}
+                    awayLabel={t('duel.match.vsRival')}
+                    homeCoach={coach(myPeer)}
+                    awayCoach={coach(rivalPeer)}
+                    startsIn={kickLeft}
                 />
             )}
-            <div className="scoreboard duel-board">
-                <div className="sb-team">
-                    <i style={{ background: hex(colors[0]) }} />
-                    <span className="sb-name">{teamNames[0]}</span>
-                </div>
-                <div className="sb-score">
-                    <b
-                        key={`h${clock.score[0]}`}
-                        className="sb-n"
-                        style={{ '--tc': hex(colors[0]) } as React.CSSProperties}
-                    >
-                        {clock.score[0]}
-                    </b>{' '}
-                    x{' '}
-                    <b
-                        key={`a${clock.score[1]}`}
-                        className="sb-n"
-                        style={{ '--tc': hex(colors[1]), '--pop': 1.2 } as React.CSSProperties}
-                    >
-                        {clock.score[1]}
-                    </b>
-                    <span className="sb-clock" data-testid="duel-clock">
-                        {clockLabel}
-                    </span>
-                </div>
-                <div className="sb-team away">
-                    <span>{teamNames[1]}</span>
-                    <i style={{ background: hex(colors[1]) }} />
-                </div>
+            <Scoreboard
+                boardRef={scoreboardRef}
+                className=" duel-board"
+                names={teamNames}
+                colors={colors}
+                score={clock.score}
+                clockLabel={clockLabel}
+                stage={t('duel.title')}
+                homeTag={s.peers.host?.clubTag ?? ''}
+            >
                 <EmoteBubbles mySide={side === 0 ? 'left' : 'right'} />
-            </div>
-
-            {s.speedAsk && (
-                <div className="duel-banner" role="status">
-                    {s.speedAsk.by === role ? (
-                        t('duel.match.asked', { speed: speedLabel(s.speedAsk.speed) })
-                    ) : (
-                        <>
-                            <span>
-                                {t('duel.match.speedAsk', { name: rivalName, speed: speedLabel(s.speedAsk.speed) })} (
-                                {askLeft})
-                            </span>
-                            <button
-                                type="button"
-                                className="btn small primary"
-                                onClick={() => duel.dispatch({ k: 'speedAnswer', yes: true })}
-                            >
-                                {t('duel.match.accept')}
-                            </button>
-                            <button
-                                type="button"
-                                className="btn small ghost"
-                                onClick={() => duel.dispatch({ k: 'speedAnswer', yes: false })}
-                            >
-                                {t('duel.match.decline')}
-                            </button>
-                        </>
-                    )}
-                </div>
-            )}
+            </Scoreboard>
             {suspect && <div className="duel-banner warn">{t('duel.match.suspect')}</div>}
 
-            <div className="match-layout">
+            <div className="match-layout has-board">
                 <div className="match-main">
                     <div className="pitch-wrap">
                         {fontsReady ? (
@@ -432,34 +403,38 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                             setups={setups}
                             tactics={side === 0 ? [currentTactic, rivalTactic] : [rivalTactic, currentTactic]}
                         />
+                        <SpeedAsk rivalName={rivalName} />
                     </div>
                     {halftime && (
-                        <HalftimePanel
-                            match={match}
-                            names={teamNames}
-                            side={side}
-                            nameOf={(idx) => {
-                                const ht = match.events.find((e) => e.type === 'halftime')?.tick ?? 0;
-                                const ko = match.events.find((e) => e.type === 'kickoff' && e.tick > ht)?.tick ?? ht;
-                                const sub = match.events
-                                    .filter((e) => e.type === 'sub' && e.outIdx === idx && e.tick <= ko)
-                                    .at(-1);
-                                return sub && sub.type === 'sub' ? sub.in : match.roster[idx].name;
-                            }}
-                            canSub={canSub}
-                            onSub={() => setSubOpen(true)}
-                            onContinue={() => duel.dispatch({ k: 'htReady' })}
-                            footer={
-                                <p className="duel-ht" data-testid="duel-ht">
-                                    <b>{t('duel.match.htTimer', { s: htLeft })}</b> ·{' '}
-                                    {htReady?.[role] && (htReady?.[rivalRole] || awayRival)
-                                        ? t('duel.match.htBoth')
-                                        : htReady?.[role]
-                                          ? t('duel.match.htWaiting', { name: rivalName })
-                                          : ''}
-                                </p>
-                            }
-                        />
+                        <div ref={halftimeRef}>
+                            <HalftimePanel
+                                match={match}
+                                names={teamNames}
+                                side={side}
+                                nameOf={(idx) => {
+                                    const ht = match.events.find((e) => e.type === 'halftime')?.tick ?? 0;
+                                    const ko =
+                                        match.events.find((e) => e.type === 'kickoff' && e.tick > ht)?.tick ?? ht;
+                                    const sub = match.events
+                                        .filter((e) => e.type === 'sub' && e.outIdx === idx && e.tick <= ko)
+                                        .at(-1);
+                                    return sub && sub.type === 'sub' ? sub.in : match.roster[idx].name;
+                                }}
+                                canSub={canSub}
+                                onSub={() => setSubOpen(true)}
+                                onContinue={() => duel.dispatch({ k: 'htReady' })}
+                                footer={
+                                    <p className="duel-ht" data-testid="duel-ht">
+                                        <b>{t('duel.match.htTimer', { s: htLeft })}</b> ·{' '}
+                                        {htReady?.[role] && (htReady?.[rivalRole] || awayRival)
+                                            ? t('duel.match.htBoth')
+                                            : htReady?.[role]
+                                              ? t('duel.match.htWaiting', { name: rivalName })
+                                              : ''}
+                                    </p>
+                                }
+                            />
+                        </div>
                     )}
                     {pendingSub && (
                         <div className="sub-pending">
@@ -470,117 +445,60 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                         </div>
                     )}
                     {subOpen && canSub && (
-                        <div className="panel sub-panel">
-                            <div className="sub-head">
-                                <b>{subOut ? t('match.whoIn', { name: nameOf(subOut) }) : t('match.whoOut')}</b>
-                                <button
-                                    type="button"
-                                    className="btn small ghost"
-                                    onClick={() => (subOut ? setSubOut(null) : setSubOpen(false))}
-                                >
-                                    {subOut ? t('common.ui.back') : t('common.ui.close')}
-                                </button>
-                            </div>
-                            <div className="sub-list">
-                                {(subOut ? benchNow : onField).map((uid) => {
-                                    const p = byUid.get(uid);
-                                    if (!p) return null;
-                                    const slot = onField.indexOf(subOut ?? uid);
-                                    const role2 = slots[slot];
-                                    const r = role2 ? ratingAt(p, role2) : null;
-                                    const energy = subOut ? null : energyAt(slot);
-                                    return (
-                                        <button
-                                            key={uid}
-                                            type="button"
-                                            className="sub-pick"
-                                            onClick={() => {
-                                                if (!subOut) return setSubOut(uid);
-                                                setSubOpen(false);
-                                                setSubOut(null);
-                                                order({ kind: 'sub', outUid: subOut, inUid: uid });
-                                            }}
-                                        >
-                                            <img className="pixel" src={cardSprite(p)} alt="" />
-                                            <span>{nameOf(uid)}</span>
-                                            <small className={`slot-rating ${r?.fit ?? ''}`}>
-                                                {role2 && `${d.common.pos[role2]} `}
-                                                {r?.display ?? viewInstance(p).overall}
-                                            </small>
-                                            {energy !== null && (
-                                                <i
-                                                    className="sub-energy"
-                                                    style={{ '--e': energy } as React.CSSProperties}
-                                                />
-                                            )}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
+                        <SubPanel
+                            panelRef={subPanelRef}
+                            subOut={subOut}
+                            setSubOut={setSubOut}
+                            onClose={() => setSubOpen(false)}
+                            onField={onField}
+                            benchNow={benchNow}
+                            byUid={byUid}
+                            slots={slots}
+                            energyAt={energyAt}
+                            nameOf={nameOf}
+                            onPick={(outUid, inUid) => {
+                                setSubOpen(false);
+                                setSubOut(null);
+                                order({ kind: 'sub', outUid, inUid });
+                            }}
+                        />
                     )}
                     <div className="controls">
-                        <div className="control-group">
+                        <div className="control-group speed-group duel-speed">
+                            <span className="corner-label">{t('duel.match.askSpeed')}</span>
                             {DUEL_SPEEDS.map((sp) => (
                                 <button
                                     key={String(sp)}
                                     type="button"
-                                    className={`btn small${s.speed === sp ? ' active' : ''}`}
-                                    disabled={!sceneReady || ended || !!s.speedAsk}
+                                    className={`btn small${s.speed === sp ? ' active' : ''}${s.speedAsk?.speed === sp ? ' asking' : ''}`}
+                                    data-testid={`speed-ask-${sp}`}
+                                    title={
+                                        s.speed === sp
+                                            ? t('duel.match.speedNow')
+                                            : t('duel.match.askHint', { name: rivalName, speed: speedLabel(sp) })
+                                    }
+                                    disabled={!sceneReady || ended || !!s.speedAsk || s.speed === sp}
                                     onClick={() => duel.dispatch({ k: 'speed', speed: sp })}
                                 >
                                     {speedLabel(sp)}
                                 </button>
                             ))}
                         </div>
-                        <div className="control-group">
-                            {(Object.keys(TACTIC_LABEL) as Tactic[]).map((tc) => (
-                                <button
-                                    key={tc}
-                                    type="button"
-                                    className={`btn small${currentTactic === tc ? ' active' : ''}`}
-                                    disabled={
-                                        !canChange ||
-                                        (tacticOrders.length >= MAX_TACTIC_CHANGES && currentTactic !== tc)
-                                    }
-                                    onClick={() => tc !== currentTactic && order({ kind: 'tactic', tactic: tc })}
-                                >
-                                    {d.common.tactic[tc]}
-                                </button>
-                            ))}
-                            <button
-                                type="button"
-                                className={`btn small yellow${subOpen ? ' active' : ''}`}
-                                disabled={!canSub}
-                                onClick={() => setSubOpen((v) => !v)}
-                            >
-                                {t('match.substitute')}
-                            </button>
-                            <span className="muted tactic-left">
-                                {pendingOrder
-                                    ? t('match.changing')
-                                    : tn('match.tacticChanges', MAX_TACTIC_CHANGES - tacticOrders.length)}
-                            </span>
-                        </div>
-                        <div className="control-group corner-group" title={t('match.cornerHint')}>
-                            <span className="corner-label">{t('match.corner')}</span>
-                            {CORNER_PLANS.map((pl) => (
-                                <button
-                                    key={pl}
-                                    type="button"
-                                    className={`btn small${currentCorner === pl ? ' active' : ''}`}
-                                    disabled={
-                                        !canChange ||
-                                        (cornerOrders.length >= MAX_TACTIC_CHANGES && currentCorner !== pl)
-                                    }
-                                    onClick={() => pl !== currentCorner && order({ kind: 'corner', corner: pl })}
-                                >
-                                    {d.common.cornerPlan[pl]}
-                                </button>
-                            ))}
-                        </div>
+                        <TacticControls
+                            tactic={currentTactic}
+                            tacticsUsed={tacticOrders.length}
+                            corner={currentCorner}
+                            cornersUsed={cornerOrders.length}
+                            canChange={canChange}
+                            pending={pendingOrder}
+                            onTactic={(tc) => tc !== currentTactic && order({ kind: 'tactic', tactic: tc })}
+                            onCorner={(pl) => pl !== currentCorner && order({ kind: 'corner', corner: pl })}
+                            subOpen={subOpen}
+                            canSub={canSub}
+                            onToggleSub={() => setSubOpen((v) => !v)}
+                        />
                         {ended && (
-                            <div className="control-group">
+                            <div className="control-group end-group">
                                 <button type="button" className="btn primary" onClick={onSeeResult}>
                                     {t('duel.match.seeResult')}
                                 </button>
@@ -594,25 +512,98 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                         tick={clock.tick}
                         teamNames={teamNames}
                         interactive={sceneReady && !ended}
+                        side={side}
                     />
                 </div>
-                <div className={`panel feed${feedOpen ? '' : ' collapsed'}`} aria-live="polite">
-                    <button type="button" className="feed-toggle" onClick={() => setFeedOpen((v) => !v)}>
-                        {t('match.feed')} {feedOpen ? '▲' : '▼'}
-                    </button>
-                    {lines.length === 0 && <span className="muted">{t('match.feedEmpty')}</span>}
-                    {lines.map((l) => (
-                        <div
-                            key={l.id}
-                            className={`feed-line ${l.tone}`}
-                            style={{ ['--team-color' as string]: l.team !== null ? hex(colors[l.team]) : undefined }}
-                        >
-                            <span className="min">{Math.floor(l.minute)}'</span>
-                            {l.text}
-                        </div>
-                    ))}
-                </div>
+                <Prancheta
+                    match={match}
+                    setups={setups}
+                    side={side}
+                    tick={clock.tick}
+                    names={teamNames}
+                    selectedUid={subOpen ? subOut : null}
+                    onMine={onMine}
+                />
+                <MatchFeed lines={lines} colors={colors} open={feedOpen} onToggle={() => setFeedOpen((v) => !v)} />
             </div>
         </>
+    );
+}
+
+type AskOutcome = { by: Role; speed: PlaybackSpeed; how: 'yes' | 'no' | 'timeout' };
+
+/**
+ * Pedido de velocidade explícito: quem pede vê "Pedido enviado: 4x · esperando Fulano (5 s)"; quem recebe vê o
+ * nome, a velocidade, o tempo correndo e Aceitar/Recusar; no fim os dois veem o que aconteceu.
+ */
+function SpeedAsk({ rivalName }: { rivalName: string }) {
+    const { t } = useT();
+    const ask = useDuel((st) => st.shared?.speedAsk);
+    const speed = useDuel((st) => st.shared?.speed);
+    const role = useDuel((st) => st.role);
+    const left = useCountdown(ask?.until);
+    const prev = useRef(ask);
+    const [outcome, setOutcome] = useState<AskOutcome | null>(null);
+    useEffect(() => {
+        const was = prev.current;
+        prev.current = ask;
+        if (!was || ask) return;
+        const how = speed === was.speed ? 'yes' : roomNow() >= was.until - 250 ? 'timeout' : 'no';
+        setOutcome({ by: was.by, speed: was.speed, how });
+        const id = window.setTimeout(() => setOutcome(null), 3500);
+        return () => clearTimeout(id);
+    }, [ask, speed]);
+    const label = (sp: PlaybackSpeed) => (sp === 'highlights' ? t('match.highlights') : `${sp}x`);
+    if (ask) {
+        const total = SPEED_ASK_MS / 1000;
+        const bar = <i className="sa-bar" style={{ '--p': Math.min(1, left / total) } as React.CSSProperties} />;
+        if (ask.by === role)
+            return (
+                <div className="speed-ask mine" role="status" data-testid="speed-asked">
+                    <span>{t('duel.match.asked', { speed: label(ask.speed), name: rivalName, s: left })}</span>
+                    {bar}
+                </div>
+            );
+        return (
+            <div className="speed-ask theirs" role="alertdialog" aria-live="assertive" data-testid="speed-asked">
+                <span>
+                    <b>{t('duel.match.speedAsk', { name: rivalName, speed: label(ask.speed) })}</b>{' '}
+                    <small>({left} s)</small>
+                </span>
+                <span className="row sa-actions">
+                    <button
+                        type="button"
+                        className="btn small primary"
+                        data-testid="speed-yes"
+                        onClick={() => duel.dispatch({ k: 'speedAnswer', yes: true })}
+                    >
+                        {t('duel.match.accept')}
+                    </button>
+                    <button
+                        type="button"
+                        className="btn small ghost"
+                        data-testid="speed-no"
+                        onClick={() => duel.dispatch({ k: 'speedAnswer', yes: false })}
+                    >
+                        {t('duel.match.decline')}
+                    </button>
+                </span>
+                {bar}
+            </div>
+        );
+    }
+    if (!outcome) return null;
+    // quem respondeu é o outro de quem pediu
+    const answerer = outcome.by === role ? rivalName : t('duel.match.you');
+    const text =
+        outcome.how === 'yes'
+            ? t('duel.match.askYes', { name: answerer, speed: label(outcome.speed) })
+            : outcome.how === 'no'
+              ? t('duel.match.askNo', { name: answerer, speed: label(speed ?? 2) })
+              : t('duel.match.askTimeout', { speed: label(speed ?? 2) });
+    return (
+        <div className={`speed-ask done ${outcome.how}`} role="status" data-testid="speed-outcome">
+            {text}
+        </div>
     );
 }

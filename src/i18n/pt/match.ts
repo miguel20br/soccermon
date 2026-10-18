@@ -24,6 +24,16 @@ export const match = {
     seeResult: 'Ver resultado',
     feed: 'Narração',
     feedEmpty: 'Os times entram em quadra…',
+    board: {
+        title: 'Prancheta',
+        mine: 'Meu time',
+        rival: 'Rival',
+        evolved: 'EVO',
+        tapMine: ', tocar pra substituir ou ver',
+        tapRival: ', tocar pra ver',
+        hintMine: 'Toque num jogador pra substituir (ou ver o painel dele).',
+        hintRival: 'Time do rival: só pra ver.',
+    },
     ht: {
         shots: 'Chutes',
         possession: 'Posse',
@@ -60,6 +70,7 @@ export const match = {
         final: 'Grande final',
         aria: '{home} contra {away}',
         start: 'Começar!',
+        startsIn: 'Apito em {s} s',
         loading: 'Carregando a quadra…',
     },
 };

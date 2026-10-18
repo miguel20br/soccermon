@@ -575,3 +575,38 @@
         opacity: 0;
     }
 }
+
+/* duelo: o treinador de cada lado (avatar, nome e título) */
+.vsp-coach {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    min-width: 0;
+    font-size: clamp(10px, 2.4vmin, 13px);
+    color: #fff;
+}
+.vsp-coach img {
+    width: clamp(20px, 5vmin, 30px);
+    height: clamp(20px, 5vmin, 30px);
+    border-radius: 50%;
+    object-fit: cover;
+    background: rgb(0 0 0 / 35%);
+    flex: none;
+}
+.vsp-coach span {
+    display: grid;
+    min-width: 0;
+}
+.vsp-coach b,
+.vsp-coach small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.vsp-coach small {
+    color: var(--yellow);
+}
+.vs-countdown {
+    pointer-events: none;
+}

@@ -1,16 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { DRAFT_PICKS } from '../../engine/draft';
 import { countSpecials, type SpecialLimit, teamRecipe, validarTimeDuelo } from '../../engine/duel-validate';
-import { FORMATIONS, type FormationId, formationOf } from '../../engine/formations';
+import { FORMATIONS, type FormationId } from '../../engine/formations';
 import { createInstance, type PokemonInstance, viewInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
-import { CORNER_PLANS } from '../../engine/runners/live-runner';
-import { TACTIC_LABEL, type Tactic, type TeamSetup } from '../../engine/state';
+import type { TeamSetup } from '../../engine/state';
 import { playSfx } from '../../game/audio';
 import { formationText } from '../../i18n';
 import { useT } from '../../i18n/react';
 import {
-    autoLineup,
     DUEL_ROUNDS,
     other,
     type PreviewCfg,
@@ -20,12 +18,15 @@ import {
     specialLimitOf,
 } from '../../net/duel-state';
 import { duel, useDuel } from '../../net/session';
-import { isDraftComplete, playerTeam, useGame } from '../../store/game-store';
+import { isDraftComplete, playerTeam, type SlotRef, useGame } from '../../store/game-store';
 import { clubColorHex, type HallEntry } from '../../store/profile';
+import { useCardModal } from '../card-modal';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
 import { cardSprite } from '../components/PokeCard';
+import { LineupEditor } from '../screens/Lineup';
+import { reduceMotionOn } from '../settings-sync';
 import { useCountdown } from './DuelMatch';
 
 const avgOf = (t: TeamSetup) => Math.round(t.lineup.reduce((s, p) => s + viewInstance(p).overall, 0) / t.lineup.length);
@@ -160,10 +161,20 @@ export function TeamPick({ s, role }: { s: Shared; role: Role }) {
     );
 }
 
+/** Vaga da quadra (losango 1-2-1) de cada rodada: Goleiro, Fixo, Ala, Ala e Pivô; capitão e reserva no banco. */
+function boardOf(picks: PokemonInstance[]) {
+    const lineup = [1, 2, 3, 4, 5].map((r) => picks[r]?.uid ?? '');
+    const bench = [0, 6].map((r) => picks[r]?.uid ?? '');
+    return { lineup, bench };
+}
+const slotOfRound = (round: number): SlotRef =>
+    round >= 1 && round <= 5 ? { zone: 'lineup', index: round - 1 } : { zone: 'bench', index: round === 0 ? 0 : 1 };
+
 /**
- * Draft do duelo: os dois andam rodada a rodada. A rodada abre quando os dois abrem o segredo dela (a seed dos
- * pacotes sai daí). Disputa: 4 cartas abertas, um tira e o outro tira. Cada um com seus pacotes: 3 cartas pra cada,
- * a escolha vai lacrada e só abre no fim.
+ * Draft do duelo, no visual do draft da copa (quadra com as vagas + pacote com as cartas): os dois andam rodada a
+ * rodada. A rodada abre quando os dois abrem o segredo dela (a seed dos pacotes sai daí). Disputa: 4 cartas abertas,
+ * um tira e o outro tira (as 2 que sobram queimam). Cada um com seus pacotes: 3 cartas pra cada, a escolha vai
+ * lacrada e só abre no fim.
  */
 export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
     const { t, d } = useT();
@@ -171,30 +182,50 @@ export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
     const rivalRole = other(role);
     const rival = s.peers[rivalRole]?.name ?? '';
     const packPicks = useDuel((v) => v.packPicks);
+    const [view, setView] = useState<Role>(role);
     const disputa = s.mode === 'disputa';
     const round = Math.min(draft.round, DRAFT_PICKS - 1);
     const seed = draft.seeds[draft.round];
+    const open = draft.round < DRAFT_PICKS && !!seed;
     const mine = disputa ? draft.picks[role] : packPicks;
     const sealedNow = !disputa && !!draft.seals[role][draft.round];
-    const myTurn = disputa ? draft.turn === role : !!seed && !sealedNow && packPicks.length === draft.round;
-    const options = disputa ? draft.options : myTurn && seed ? packOptions(seed, draft.round, packPicks) : [];
-    const left = useCountdown(seed ? draft.deadline[disputa ? (draft.turn ?? role) : role] : undefined);
+    const myTurn = open && (disputa ? draft.turn === role : !sealedNow && packPicks.length === draft.round);
+    const options = !open ? [] : disputa ? draft.options : myTurn ? packOptions(seed, draft.round, packPicks) : [];
+    const left = useCountdown(open ? draft.deadline[disputa ? (draft.turn ?? role) : role] : undefined);
     const need = DUEL_ROUNDS[round];
     const slotLabel =
         round === 0 ? t('duel.draft.captain') : need === 'ANY' ? t('duel.draft.bench') : d.common.pos[need];
-    const rivalCount = disputa ? draft.picks[rivalRole].length : draft.seals[rivalRole].filter(Boolean).length;
+    const rivalPicks = draft.picks[rivalRole];
+    const rivalCount = disputa ? rivalPicks.length : draft.seals[rivalRole].filter(Boolean).length;
+    // Disputa: o que o rival tirou nesta rodada e o que queimou na anterior
+    const rivalTook = disputa && rivalPicks.length > round ? rivalPicks[round] : null;
+    const burned = disputa && round > 0 ? draft.burned.slice(-2) : [];
+    const shown = view === role || !disputa ? mine : rivalPicks;
+    const board = boardOf(shown);
+    const byUid = new Map(shown.map((p) => [p.uid, p]));
+    const target = slotOfRound(round);
+    // celular em pé: as cartas ficam embaixo da quadra; na sua vez a tela desce até elas (como no draft da copa)
+    const optionsRef = useRef<HTMLDivElement>(null);
+    // biome-ignore lint/correctness/useExhaustiveDependencies: desce a cada rodada nova em que é a sua vez
+    useEffect(() => {
+        const el = optionsRef.current;
+        if (!myTurn || !el) return;
+        const top = el.getBoundingClientRect().top;
+        if (top >= 0 && top < window.innerHeight * 0.5) return;
+        el.scrollIntoView({ behavior: reduceMotionOn() ? 'auto' : 'smooth', block: 'start' });
+    }, [myTurn, draft.round]);
 
-    if (draft.round >= DRAFT_PICKS || !seed) {
-        return (
-            <div className="panel duel-center">
-                <SquadStrip picks={mine} label={t('duel.draft.yourTeam')} />
-                <p className="muted">
-                    <span className="duel-spinner" aria-hidden />{' '}
-                    {draft.round >= DRAFT_PICKS ? t('duel.draft.opening') : t('duel.draft.openingRound')}
-                </p>
-            </div>
-        );
-    }
+    const title = !open
+        ? draft.round >= DRAFT_PICKS
+            ? t('duel.draft.opening')
+            : t('duel.draft.openingRound')
+        : disputa
+          ? myTurn
+              ? t('duel.draft.yourTurn', { pos: slotLabel })
+              : t('duel.draft.rivalTurn', { name: rival })
+          : sealedNow
+            ? t('duel.draft.sealedWait', { name: rival })
+            : t('duel.draft.choose', { pos: slotLabel });
 
     return (
         <div className="duel-draft">
@@ -203,81 +234,183 @@ export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
                     <div className="muted">
                         {t('duel.draft.round', { n: round + 1 })} · {slotLabel}
                     </div>
-                    <h1>
-                        {disputa
-                            ? myTurn
-                                ? t('duel.draft.yourTurn')
-                                : t('duel.draft.rivalTurn', { name: rival })
-                            : sealedNow
-                              ? t('duel.draft.sealedWait', { name: rival })
-                              : slotLabel}
-                    </h1>
+                    <h1>{title}</h1>
                     <p className="muted" style={{ margin: '4px 0 0' }}>
                         {disputa ? t('duel.draft.burn') : t('duel.draft.hidden')}
                     </p>
                 </div>
-                <div
-                    className={`duel-timer${left <= 5 ? ' low' : ''}`}
-                    data-testid="duel-timer"
-                    title={t('duel.draft.timeout')}
-                >
-                    {left}
-                </div>
-            </div>
-            <div className="duel-draft-teams">
-                <SquadStrip picks={mine} label={t('duel.draft.yourTeam')} />
-                {disputa ? (
-                    <SquadStrip picks={draft.picks[rivalRole]} label={t('duel.draft.rivalTeam', { name: rival })} />
-                ) : (
-                    <p className="muted duel-progress">{t('duel.draft.progress', { name: rival, n: rivalCount })}</p>
-                )}
-            </div>
-            {options.length > 0 && (
-                <CardPack
-                    compact
-                    look={packLookOf(options)}
-                    label={slotLabel}
-                    revealKey={`${s.game}-${draft.round}-${disputa ? options.length : role}`}
-                >
-                    <div className={`options duel-options${disputa ? ' four' : ''}`}>
-                        {options.map((o) => (
-                            <div
-                                key={o.uid}
-                                className={`option cpack-card${isBigCard(o) ? ' big' : ''}${myTurn ? '' : ' duel-locked'}`}
-                            >
-                                <FutCard
-                                    inst={o}
-                                    captain={round === 0}
-                                    position={need === 'ANY' ? undefined : need}
-                                    action={
-                                        myTurn
-                                            ? {
-                                                  label: disputa ? t('duel.draft.take') : t('duel.draft.pick'),
-                                                  primary: true,
-                                                  onClick: () => {
-                                                      playSfx('select');
-                                                      if (disputa) duel.dispatch({ k: 'pick', uid: o.uid });
-                                                      else void duel.packPick(o.uid);
-                                                  },
-                                              }
-                                            : undefined
-                                    }
-                                />
-                            </div>
+                <div className="duel-draft-clock">
+                    <div className="steps" role="img" aria-label={t('team.draft.progress')}>
+                        {Array.from({ length: DRAFT_PICKS }, (_, i) => (
+                            <span
+                                // biome-ignore lint/suspicious/noArrayIndexKey: posições fixas do progresso
+                                key={i}
+                                className={i < draft.round ? 'done' : i === draft.round ? 'now' : ''}
+                            />
                         ))}
                     </div>
-                </CardPack>
-            )}
+                    <div
+                        className={`duel-timer${open && left <= 5 ? ' low' : ''}`}
+                        data-testid="duel-timer"
+                        title={t('duel.draft.timeout')}
+                    >
+                        {open ? left : '…'}
+                    </div>
+                </div>
+            </div>
+
+            <div className="draft-grid">
+                <div className="panel board-panel">
+                    {disputa ? (
+                        <div className="tp-tabs duel-board-tabs" role="tablist">
+                            {([role, rivalRole] as Role[]).map((r) => (
+                                <button
+                                    key={r}
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={view === r}
+                                    className={`tp-tab${view === r ? ' active' : ''}`}
+                                    onClick={() => setView(r)}
+                                >
+                                    {r === role ? t('duel.draft.yourTeam') : t('duel.draft.rivalTeam', { name: rival })}
+                                </button>
+                            ))}
+                        </div>
+                    ) : (
+                        <h2>{s.peers[role]?.clubName ?? t('duel.draft.yourTeam')}</h2>
+                    )}
+                    <FormationBoard
+                        formation="1-2-1"
+                        lineup={board.lineup}
+                        bench={board.bench}
+                        byUid={byUid}
+                        captainUid={shown[0]?.uid ?? null}
+                        emptyLabel={t('duel.draft.empty')}
+                        stateOf={(ref, uid) =>
+                            !uid && open && ref.zone === target.zone && ref.index === target.index
+                                ? 'selected'
+                                : 'locked'
+                        }
+                        footer={
+                            <p className="muted center" style={{ fontSize: 11, marginBottom: 0 }}>
+                                {disputa && view !== role
+                                    ? t('duel.draft.rivalCount', { name: rival, n: rivalCount })
+                                    : t('duel.draft.boardHint')}
+                            </p>
+                        }
+                    />
+                    {!disputa && (
+                        <p className="muted duel-progress" data-testid="duel-rival-progress">
+                            {t('duel.draft.progress', { name: rival, n: rivalCount })}
+                        </p>
+                    )}
+                </div>
+
+                <div className="draft-options" ref={optionsRef}>
+                    <div className="row options-bar">
+                        <span className="muted">
+                            {round === 0
+                                ? t('team.draft.captainCandidates')
+                                : t('team.draft.optionsFor', { pos: slotLabel })}
+                        </span>
+                        {open && disputa && !myTurn && (
+                            <span className="duel-turn" role="status">
+                                <span className="duel-spinner" aria-hidden />{' '}
+                                {t('duel.draft.rivalPicking', { name: rival, s: left })}
+                            </span>
+                        )}
+                        {open && myTurn && (
+                            <span className="duel-turn mine" role="status">
+                                {t('duel.draft.yourClock', { s: left })}
+                            </span>
+                        )}
+                    </div>
+                    {(rivalTook || burned.length > 0) && (
+                        <div className="duel-draft-news">
+                            {rivalTook && (
+                                <span>
+                                    <img className="pixel" src={cardSprite(rivalTook)} alt="" />
+                                    {t('duel.draft.rivalTook', {
+                                        name: rival,
+                                        mon: viewInstance(rivalTook).displayName,
+                                    })}
+                                </span>
+                            )}
+                            {!rivalTook && burned.length > 0 && (
+                                <span>
+                                    {burned.map((id) => (
+                                        <img
+                                            key={id}
+                                            className="pixel burned"
+                                            src={cardSprite({ speciesId: id, shiny: false })}
+                                            alt=""
+                                        />
+                                    ))}
+                                    {t('duel.draft.burnedLast')}
+                                </span>
+                            )}
+                        </div>
+                    )}
+                    {options.length > 0 ? (
+                        <CardPack
+                            compact
+                            look={packLookOf(options)}
+                            label={slotLabel}
+                            revealKey={`${s.game}-${draft.round}-${disputa ? 'd' : role}`}
+                        >
+                            <div className={`options duel-options${disputa ? ' four' : ''}`}>
+                                {options.map((o) => (
+                                    <div
+                                        key={o.uid}
+                                        className={`option cpack-card${isBigCard(o) ? ' big' : ''}${myTurn ? '' : ' duel-locked'}`}
+                                    >
+                                        <FutCard
+                                            inst={o}
+                                            captain={round === 0}
+                                            position={need === 'ANY' ? undefined : need}
+                                            action={
+                                                myTurn
+                                                    ? {
+                                                          label: disputa
+                                                              ? t('duel.draft.take')
+                                                              : round === 0
+                                                                ? t('team.draft.pickCaptain')
+                                                                : t('team.draft.signAs', { pos: slotLabel }),
+                                                          primary: true,
+                                                          onClick: () => {
+                                                              playSfx('select');
+                                                              if (disputa) duel.dispatch({ k: 'pick', uid: o.uid });
+                                                              else void duel.packPick(o.uid);
+                                                          },
+                                                      }
+                                                    : undefined
+                                            }
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </CardPack>
+                    ) : (
+                        <div className="panel duel-center">
+                            <span className="duel-spinner" aria-hidden />
+                            <p className="muted">
+                                {sealedNow ? t('duel.draft.sealedWait', { name: rival }) : t('duel.draft.openingRound')}
+                            </p>
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }
 
 /**
- * Prévia de 30 s: os dois times à vista. Cada um ajusta formação, tática e escalação aqui na tela, e o que vale vai
- * lacrado: os dois abrem juntos (quem confirma por último não ajusta contra o outro).
+ * Escalação do duelo (30 s, depois do draft ou do time pronto): a mesma tela de escalação da copa, com o time do
+ * rival à vista. O que vale vai lacrado: os dois abrem juntos (quem confirma por último não ajusta contra o outro).
  */
 export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
     const { t, d, lang } = useT();
+    const openCard = useCardModal((v) => v.open);
     const team = s.teams[role]!;
     const rivalRole = other(role);
     const rivalTeam = s.teams[rivalRole]!;
@@ -292,31 +425,30 @@ export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
         corner: team.corner ?? 'mixed',
         cornerTaker: team.cornerTakerUid ?? null,
     }));
+    const [captainNote, setCaptainNote] = useState(false);
     useEffect(() => {
         duel.previewDraft = cfg;
     }, [cfg]);
-    const [sel, setSel] = useState<number | null>(null);
     const byUid = new Map(all.map((p) => [p.uid, p]));
-    const rivalBy = new Map([...rivalTeam.lineup, ...rivalTeam.bench].map((p) => [p.uid, p]));
-    const idxOf = (zone: 'lineup' | 'bench', index: number) => (zone === 'lineup' ? index : 5 + index);
-    const setFormation = (formation: FormationId) => {
-        const picks = cfg.order.map((u) => byUid.get(u)!);
-        const { lineup, bench } = autoLineup(picks, formation, team.captainUid ?? null);
-        setCfg({ ...cfg, formation, order: [...lineup, ...bench].map((p) => p.uid) });
-    };
-    const swap = (a: number, b: number) => {
+    const idxOf = (r: SlotRef) => (r.zone === 'lineup' ? r.index : 5 + r.index);
+    const swap = (a: SlotRef, b: SlotRef) => {
         const order = [...cfg.order];
-        [order[a], order[b]] = [order[b], order[a]];
-        // o capitão não vai pro banco
-        if (team.captainUid && !order.slice(0, 5).includes(team.captainUid)) return;
-        setCfg({ ...cfg, order });
+        const [i, j] = [idxOf(a), idxOf(b)];
+        [order[i], order[j]] = [order[j], order[i]];
+        // o capitão começa jogando (a regra do lacre: sem isso a escalação não abre)
+        const benched = !!team.captainUid && !order.slice(0, 5).includes(team.captainUid);
+        setCaptainNote(benched);
+        if (!benched) setCfg({ ...cfg, order });
     };
+    const rivalAvg = Math.round(
+        rivalTeam.lineup.reduce((n, p) => n + viewInstance(p).overall, 0) / rivalTeam.lineup.length,
+    );
     return (
         <div className="duel-preview">
             <div className="draft-head">
                 <div>
-                    <div className="muted">{t('duel.preview.title')}</div>
-                    <h1>{team.name}</h1>
+                    <div className="muted">{t('duel.preview.kicker')}</div>
+                    <h1>{t('duel.preview.title')}</h1>
                     <p className="muted" style={{ margin: '4px 0 0' }}>
                         {t('duel.preview.hint')}
                     </p>
@@ -325,108 +457,67 @@ export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
                     {left}
                 </div>
             </div>
-            <div className="duel-preview-grid">
-                <div className="panel board-panel">
-                    <div className="row duel-chips">
-                        <span className="muted">{t('duel.preview.formation')}</span>
-                        {(Object.keys(FORMATIONS) as FormationId[]).map((f) => (
-                            <button
-                                key={f}
-                                type="button"
-                                className={`btn small${cfg.formation === f ? ' active' : ''}`}
-                                disabled={sealed}
-                                onClick={() => setFormation(f)}
-                            >
-                                {formationText(f, lang).name}
-                            </button>
-                        ))}
+            <LineupEditor
+                title={t('team.lineup.title', { team: team.name })}
+                formation={cfg.formation}
+                lineup={cfg.order.slice(0, 5)}
+                bench={cfg.order.slice(5)}
+                byUid={byUid}
+                captainUid={team.captainUid ?? null}
+                tactic={cfg.tactic}
+                cornerPlan={cfg.corner ?? 'mixed'}
+                cornerTakerUid={cfg.cornerTaker ?? null}
+                locked={sealed}
+                onFormation={(formation) => setCfg({ ...cfg, formation })}
+                onSwap={swap}
+                onTactic={(tactic) => setCfg({ ...cfg, tactic })}
+                onCorner={(p) =>
+                    setCfg({
+                        ...cfg,
+                        corner: p.cornerPlan ?? cfg.corner,
+                        cornerTaker: p.cornerTakerUid !== undefined ? p.cornerTakerUid : cfg.cornerTaker,
+                    })
+                }
+                side={
+                    <div className="panel">
+                        <h2>{t('duel.preview.rival', { name: rival })}</h2>
+                        <div className="opponent-strip">
+                            {[...rivalTeam.lineup, ...rivalTeam.bench].map((p) => (
+                                <button
+                                    key={p.uid}
+                                    type="button"
+                                    className="scout-btn"
+                                    onClick={() => openCard(p, { note: t('duel.draft.rivalTeam', { name: rival }) })}
+                                    aria-label={t('team.lineup.seeCard', { name: viewInstance(p).displayName })}
+                                >
+                                    <img className="pixel" src={cardSprite(p)} alt="" />
+                                </button>
+                            ))}
+                        </div>
+                        <p className="muted" style={{ fontSize: 11 }}>
+                            {t('team.lineup.oppLine', {
+                                formation: formationText(rivalTeam.formation ?? '1-2-1', lang).name,
+                                tactic: d.common.tactic[rivalTeam.tactic],
+                                n: rivalAvg,
+                            })}
+                        </p>
+                        <button
+                            type="button"
+                            className="btn primary wide"
+                            data-testid="duel-ready-btn"
+                            disabled={sealed}
+                            onClick={() => {
+                                playSfx('select');
+                                void duel.sealChoice(cfg);
+                            }}
+                        >
+                            {sealed ? t('duel.preview.waiting', { name: rival }) : t('duel.preview.ready')}
+                        </button>
+                        <p className="tactic-desc">{sealed ? t('duel.preview.sealed') : t('duel.preview.lockNote')}</p>
+                        {captainNote && <p className="error-text">{t('duel.preview.captainStays')}</p>}
                     </div>
-                    <div className="row duel-chips">
-                        <span className="muted">{t('duel.preview.tactic')}</span>
-                        {(Object.keys(TACTIC_LABEL) as Tactic[]).map((tc) => (
-                            <button
-                                key={tc}
-                                type="button"
-                                className={`btn small${cfg.tactic === tc ? ' active' : ''}`}
-                                disabled={sealed}
-                                onClick={() => setCfg({ ...cfg, tactic: tc })}
-                            >
-                                {d.common.tactic[tc]}
-                            </button>
-                        ))}
-                    </div>
-                    <div className="row duel-chips">
-                        <span className="muted">{t('team.lineup.corner')}</span>
-                        {CORNER_PLANS.map((pl) => (
-                            <button
-                                key={pl}
-                                type="button"
-                                className={`btn small${cfg.corner === pl ? ' active' : ''}`}
-                                disabled={sealed}
-                                onClick={() => setCfg({ ...cfg, corner: pl })}
-                            >
-                                {d.common.cornerPlan[pl]}
-                            </button>
-                        ))}
-                        <label className="duel-taker">
-                            <span className="muted">{t('team.lineup.cornerTaker')}</span>
-                            <select
-                                value={cfg.cornerTaker ?? ''}
-                                disabled={sealed}
-                                onChange={(e) => setCfg({ ...cfg, cornerTaker: e.target.value || null })}
-                            >
-                                <option value="">{t('duel.preview.autoTaker')}</option>
-                                {cfg.order.slice(0, 5).map((u, i) =>
-                                    formationOf(cfg.formation).slots[i] === 'GK' ? null : (
-                                        <option key={u} value={u}>
-                                            {viewInstance(byUid.get(u)!).displayName}
-                                        </option>
-                                    ),
-                                )}
-                            </select>
-                        </label>
-                    </div>
-                    <FormationBoard
-                        formation={cfg.formation}
-                        lineup={cfg.order.slice(0, 5)}
-                        bench={cfg.order.slice(5)}
-                        byUid={byUid}
-                        captainUid={team.captainUid}
-                        stateOf={(ref) =>
-                            sel === idxOf(ref.zone, ref.index) ? 'selected' : sealed ? 'locked' : 'idle'
-                        }
-                        onSlot={(ref) => {
-                            if (sealed) return;
-                            const i = idxOf(ref.zone, ref.index);
-                            if (sel === null) setSel(i);
-                            else {
-                                if (sel !== i) swap(sel, i);
-                                setSel(null);
-                            }
-                        }}
-                    />
-                    <button
-                        type="button"
-                        className="btn primary big"
-                        disabled={sealed}
-                        onClick={() => void duel.sealChoice(cfg)}
-                    >
-                        {sealed ? t('duel.preview.waiting', { name: rival }) : t('duel.preview.ready')}
-                    </button>
-                    {sealed && <p className="muted small">{t('duel.preview.sealed')}</p>}
-                </div>
-                <div className="panel board-panel">
-                    <h2>{t('duel.draft.rivalTeam', { name: rival })}</h2>
-                    <FormationBoard
-                        formation={rivalTeam.formation ?? '1-2-1'}
-                        lineup={rivalTeam.lineup.map((p) => p.uid)}
-                        bench={rivalTeam.bench.map((p) => p.uid)}
-                        byUid={rivalBy}
-                        captainUid={rivalTeam.captainUid}
-                        stateOf={() => 'locked'}
-                    />
-                </div>
-            </div>
+                }
+            />
         </div>
     );
 }

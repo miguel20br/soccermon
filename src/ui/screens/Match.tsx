@@ -12,9 +12,7 @@ import {
     isTacticOrder,
     type MatchEvent,
     type MatchOrder,
-    type Phase,
     SNAP_STRIDE,
-    TACTIC_LABEL,
     type Tactic,
 } from '../../engine/state';
 import { skinOf } from '../../game/animation-manager';
@@ -30,17 +28,24 @@ import { Commentator, type CommentLine } from '../commentary';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
 import { HalftimePanel } from '../components/HalftimePanel';
 import { MatchHighlight } from '../components/MatchHighlight';
+import {
+    type Clock,
+    hex,
+    MatchFeed,
+    Scoreboard,
+    SubPanel,
+    TacticControls,
+    useClockLabel,
+} from '../components/MatchHud';
 import { PlayerInspect } from '../components/PlayerInspect';
-import { cardSprite } from '../components/PokeCard';
+import { Prancheta } from '../components/Prancheta';
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
 import { LeaveConfirm } from '../leave-guard';
 import { snapAt } from '../match-view';
 import { useClubColor } from '../profile/club';
-import { ratingAt } from '../rating';
 import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
-import { CORNER_PLANS } from './Lineup';
 
 /** Velocidades (o rótulo de 'highlights' vem do dicionário: "Lances"). */
 const SPEEDS: { value: PlaybackSpeed; label: string }[] = [
@@ -56,21 +61,20 @@ const CHANGE_LEAD_TICKS = 40;
 /** No modo "Lances" o ritmo varia (1x perto dos lances, 16x no resto): na média fica perto de 4x. */
 const HIGHLIGHTS_MULT = 4;
 
-const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
+/**
+ * Prancheta do time ao vivo (src/ui/components/Prancheta.tsx), que o duelo já usa. Na copa é decisão do Miguel:
+ * fica desligada; no dev, `?prancheta=1` mostra como ficaria.
+ */
+const PRANCHETA_NA_COPA = false;
+const showPrancheta = () =>
+    PRANCHETA_NA_COPA || (import.meta.env.DEV && new URLSearchParams(window.location.search).has('prancheta'));
+
 /** De quanto em quanto tempo (real) o ponto da partida é salvo para poder retomar. */
 const SAVE_EVERY_MS = 1500;
 
-interface Clock {
-    tick: number;
-    minute: number;
-    half: number;
-    score: [number, number];
-    phase: Phase;
-}
-
 export function Match() {
     const { run, match, settings, updateSettings, recordResult, setMatch, go, saveLive } = useGame();
-    const { t, tn, d } = useT();
+    const { t } = useT();
     // retomando uma partida que ficou no meio: mesmo ponto e mesmas ordens
     const resume = useRef(liveOf(run)).current;
     const [fontsReady, setFontsReady] = useState(false);
@@ -100,6 +104,7 @@ export function Match() {
     const [tacticError, setTacticError] = useState<string | null>(null);
     const alive = useRef(true);
     const [feedOpen, setFeedOpen] = useState(true);
+    const [board] = useState(showPrancheta);
     const latest = useRef<MatchResult | null>(match);
     const recorded = useRef(false);
     const tickRef = useRef(0);
@@ -261,6 +266,7 @@ export function Match() {
         };
     }, [match?.seed]);
 
+    const clockLabel = useClockLabel(clock, fulltime || ended, shootout);
     if (!run || !match || !sceneData || !opponent) return null;
 
     const lockedSetup = run.lockedTeam ? { ...run.lockedTeam, manualSubs: true } : playerTeam(run);
@@ -358,17 +364,6 @@ export function Match() {
         return evo?.type === 'evolve' && name === species(evo.from).name ? species(evo.into).name : name;
     };
 
-    const clockLabel =
-        clock.phase === 'halftime'
-            ? t('match.halftime')
-            : clock.phase === 'fulltime' || fulltime || ended
-              ? shootout
-                  ? t('match.penalties', { a: shootout[0], b: shootout[1] })
-                  : t('match.fulltime')
-              : t('match.clock', {
-                    min: Math.min(40, Math.floor(clock.minute)),
-                    half: d.match.half[clock.half - 1] ?? '',
-                });
     const stage = stageName(run.stage) || t('match.cup');
 
     const finishIntro = () => {
@@ -383,45 +378,17 @@ export function Match() {
             {!introDone && (
                 <VersusIntro home={lockedSetup} away={opponent} stage={stage} ready={sceneReady} onDone={finishIntro} />
             )}
-            <div className="scoreboard" ref={scoreboardRef}>
-                <div className="sb-team">
-                    <i style={{ background: hex(colors[0]) }} />
-                    <span className={`sb-name${teamNames[0].length > 10 ? ' has-tag' : ''}`}>{teamNames[0]}</span>
-                    {teamNames[0].length > 10 && (
-                        <span className="sb-tag" title={teamNames[0]}>
-                            {homeTag}
-                        </span>
-                    )}
-                </div>
-                <div className="sb-score">
-                    {/* key muda no gol: o número remonta e dá o pulo com o brilho da cor do time (sb-pop) */}
-                    <b
-                        key={`h${clock.score[0]}`}
-                        className="sb-n"
-                        style={{ '--tc': hex(colors[0]) } as React.CSSProperties}
-                    >
-                        {clock.score[0]}
-                    </b>{' '}
-                    x{' '}
-                    <b
-                        key={`a${clock.score[1]}`}
-                        className="sb-n"
-                        style={{ '--tc': hex(colors[1]), '--pop': 1.2 } as React.CSSProperties}
-                    >
-                        {clock.score[1]}
-                    </b>
-                    <span className="sb-clock">
-                        <span className="sb-stage">{stage} · </span>
-                        {clockLabel}
-                    </span>
-                </div>
-                <div className="sb-team away">
-                    <span>{teamNames[1]}</span>
-                    <i style={{ background: hex(colors[1]) }} />
-                </div>
-            </div>
+            <Scoreboard
+                boardRef={scoreboardRef}
+                names={teamNames}
+                colors={colors}
+                score={clock.score}
+                clockLabel={clockLabel}
+                stage={stage}
+                homeTag={homeTag}
+            />
 
-            <div className="match-layout">
+            <div className={`match-layout${board ? ' has-board' : ''}`}>
                 <div className="match-main">
                     <div className="pitch-wrap">
                         {fontsReady ? (
@@ -471,51 +438,19 @@ export function Match() {
                         </div>
                     )}
                     {subOpen && canSub && (
-                        <div className="panel sub-panel" ref={subPanelRef}>
-                            <div className="sub-head">
-                                <b>{subOut ? t('match.whoIn', { name: nameOf(subOut) }) : t('match.whoOut')}</b>
-                                <button
-                                    type="button"
-                                    className="btn small ghost"
-                                    onClick={() => (subOut ? setSubOut(null) : setSubOpen(false))}
-                                >
-                                    {subOut ? t('common.ui.back') : t('common.ui.close')}
-                                </button>
-                            </div>
-                            <div className="sub-list">
-                                {(subOut ? benchNow : onField).map((uid) => {
-                                    const p = byUid.get(uid);
-                                    if (!p) return null;
-                                    // quem sai: posição e fôlego agora; quem entra: a nota na vaga de quem sai
-                                    const slot = onField.indexOf(subOut ?? uid);
-                                    const role = slots[slot];
-                                    const r = role ? ratingAt(p, role) : null;
-                                    const energy = subOut ? null : energyAt(slot);
-                                    return (
-                                        <button
-                                            key={uid}
-                                            type="button"
-                                            className="sub-pick"
-                                            onClick={() => (subOut ? orderSub(subOut, uid) : setSubOut(uid))}
-                                        >
-                                            <img className="pixel" src={cardSprite(p)} alt="" />
-                                            <span>{nameOf(uid)}</span>
-                                            <small className={`slot-rating ${r?.fit ?? ''}`}>
-                                                {role && `${d.common.pos[role]} `}
-                                                {r?.display ?? viewInstance(p).overall}
-                                            </small>
-                                            {energy !== null && (
-                                                <i
-                                                    className="sub-energy"
-                                                    title={t('team.panel.staminaPct', { n: Math.round(energy * 100) })}
-                                                    style={{ '--e': energy } as React.CSSProperties}
-                                                />
-                                            )}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
+                        <SubPanel
+                            panelRef={subPanelRef}
+                            subOut={subOut}
+                            setSubOut={setSubOut}
+                            onClose={() => setSubOpen(false)}
+                            onField={onField}
+                            benchNow={benchNow}
+                            byUid={byUid}
+                            slots={slots}
+                            energyAt={energyAt}
+                            nameOf={nameOf}
+                            onPick={orderSub}
+                        />
                     )}
                     {sceneSlow && !sceneReady && (
                         <button type="button" className="btn yellow" onClick={() => setSceneKey((k) => k + 1)}>
@@ -523,7 +458,7 @@ export function Match() {
                         </button>
                     )}
                     <div className="controls">
-                        <div className="control-group">
+                        <div className="control-group speed-group">
                             {SPEEDS.map((s) => (
                                 <button
                                     key={String(s.value)}
@@ -537,54 +472,21 @@ export function Match() {
                                 </button>
                             ))}
                         </div>
-                        <div className="control-group">
-                            {(Object.keys(TACTIC_LABEL) as Tactic[]).map((tc) => (
-                                <button
-                                    key={tc}
-                                    type="button"
-                                    className={`btn small${currentTactic === tc ? ' active' : ''}`}
-                                    disabled={
-                                        !canChangeTactic ||
-                                        (changes.length >= MAX_TACTIC_CHANGES && currentTactic !== tc)
-                                    }
-                                    onClick={() => changeTactic(tc)}
-                                >
-                                    {d.common.tactic[tc]}
-                                </button>
-                            ))}
-                            <button
-                                type="button"
-                                className={`btn small yellow${subOpen ? ' active' : ''}`}
-                                disabled={!canSub}
-                                onClick={() => setSubOpen((v) => !v)}
-                            >
-                                {t('match.substitute')}
-                            </button>
-                            {tacticError && <span className="error-text tactic-left">{tacticError}</span>}
-                            <span className="muted tactic-left">
-                                {pending
-                                    ? t('match.changing')
-                                    : tn('match.tacticChanges', MAX_TACTIC_CHANGES - changes.length)}
-                            </span>
-                        </div>
-                        <div className="control-group corner-group" title={t('match.cornerHint')}>
-                            <span className="corner-label">{t('match.corner')}</span>
-                            {CORNER_PLANS.map((pl) => (
-                                <button
-                                    key={pl}
-                                    type="button"
-                                    className={`btn small${currentCorner === pl ? ' active' : ''}`}
-                                    disabled={
-                                        !canChangeTactic ||
-                                        (cornerOrders.length >= MAX_TACTIC_CHANGES && currentCorner !== pl)
-                                    }
-                                    onClick={() => changeCorner(pl)}
-                                >
-                                    {d.common.cornerPlan[pl]}
-                                </button>
-                            ))}
-                        </div>
-                        <div className="control-group">
+                        <TacticControls
+                            tactic={currentTactic}
+                            tacticsUsed={changes.length}
+                            corner={currentCorner}
+                            cornersUsed={cornerOrders.length}
+                            canChange={canChangeTactic}
+                            pending={pending}
+                            error={tacticError}
+                            onTactic={changeTactic}
+                            onCorner={changeCorner}
+                            subOpen={subOpen}
+                            canSub={canSub}
+                            onToggleSub={() => setSubOpen((v) => !v)}
+                        />
+                        <div className="control-group end-group">
                             {!ended ? (
                                 <button
                                     type="button"
@@ -609,22 +511,23 @@ export function Match() {
                         interactive={sceneReady && !ended}
                     />
                 </div>
-                <div className={`panel feed${feedOpen ? '' : ' collapsed'}`} aria-live="polite">
-                    <button type="button" className="feed-toggle" onClick={() => setFeedOpen((v) => !v)}>
-                        {t('match.feed')} {feedOpen ? '▲' : '▼'}
-                    </button>
-                    {lines.length === 0 && <span className="muted">{t('match.feedEmpty')}</span>}
-                    {lines.map((l) => (
-                        <div
-                            key={l.id}
-                            className={`feed-line ${l.tone}`}
-                            style={{ ['--team-color' as string]: l.team !== null ? hex(colors[l.team]) : undefined }}
-                        >
-                            <span className="min">{Math.floor(l.minute)}'</span>
-                            {l.text}
-                        </div>
-                    ))}
-                </div>
+                {board && (
+                    <Prancheta
+                        match={match}
+                        setups={[lockedSetup, opponent]}
+                        side={0}
+                        tick={clock.tick}
+                        names={teamNames}
+                        selectedUid={subOpen ? subOut : null}
+                        onMine={(uid, idx) => {
+                            if (canSub) {
+                                setSubOut(onField.includes(uid) ? uid : null);
+                                setSubOpen(true);
+                            } else if (idx !== null) EventBus.emit('match:inspect-request', idx);
+                        }}
+                    />
+                )}
+                <MatchFeed lines={lines} colors={colors} open={feedOpen} onToggle={() => setFeedOpen((v) => !v)} />
             </div>
         </>
     );

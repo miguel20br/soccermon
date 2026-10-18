@@ -24,6 +24,7 @@ export function TeamPanel({
     tick,
     teamNames,
     interactive,
+    side = 0,
 }: {
     match: MatchResult;
     setups: [TeamSetup, TeamSetup];
@@ -31,8 +32,10 @@ export function TeamPanel({
     teamNames: [string, string];
     /** Falso depois do apito final (a quadra não abre mais o painel do jogador). */
     interactive: boolean;
+    /** Aba que abre primeiro: o seu time (no duelo o convidado é o 1). */
+    side?: 0 | 1;
 }) {
-    const [team, setTeam] = useState<0 | 1>(0);
+    const [team, setTeam] = useState<0 | 1>(side);
     const [open, setOpen] = useState(true);
     const { t, d, lang } = useT();
     const at = Math.floor(tick / STEP_TICKS) * STEP_TICKS;

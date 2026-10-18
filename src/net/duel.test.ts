@@ -91,7 +91,21 @@ function inMatch(): Shared {
     s = reduce(s, { k: 'choiceSeal', seal: H('1') }, 'host', ctx());
     s = reduce(s, { k: 'choiceSeal', seal: H('2') }, 'guest', ctx());
     s = reduce(s, { k: 'choiceOpen', value: teamRecipe(team('a')), salt: 'x' }, 'host', ctx());
-    return reduce(s, { k: 'choiceOpen', value: teamRecipe(team('b')), salt: 'y' }, 'guest', ctx());
+    s = reduce(s, { k: 'choiceOpen', value: teamRecipe(team('b')), salt: 'y' }, 'guest', ctx());
+    // depois do time, a mesma escalação lacrada dos drafts
+    expect(s.phase).toBe('preview');
+    const cfg = (r: 'host' | 'guest') => {
+        const tm = s.teams[r]!;
+        return {
+            formation: tm.formation ?? '1-2-1',
+            tactic: tm.tactic,
+            order: [...tm.lineup, ...tm.bench].map((p) => p.uid),
+        };
+    };
+    s = reduce(s, { k: 'choiceSeal', seal: H('3') }, 'host', ctx());
+    s = reduce(s, { k: 'choiceSeal', seal: H('4') }, 'guest', ctx());
+    s = reduce(s, { k: 'choiceOpen', value: cfg('host'), salt: 'z' }, 'host', ctx());
+    return reduce(s, { k: 'choiceOpen', value: cfg('guest'), salt: 'w' }, 'guest', ctx());
 }
 
 describe('lacres (seed por trecho e por rodada)', () => {

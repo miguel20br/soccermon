@@ -423,3 +423,36 @@ revisão de segurança (`multiplayer-revisao.md`). Código em `src/net/` (regras
 - **"Cada um com seus pacotes" anda rodada a rodada** junto com o rival (cada rodada com seed nova, escolha lacrada).
 - **Team preview lacrado:** formação, tática e escalação abrem juntas pros dois.
 - **Time pronto** = qualquer time que uma copa poderia dar, conferido por `validarTimeDuelo`.
+
+### Decidido com o Miguel (17/10, depois de jogar um duelo de verdade)
+
+- **Duelo sem conta (login anônimo).** Substitui o "quem joga precisa estar logado". Quem abre o link (ou cria a sala)
+  sem conta vê "Fulano te chamou pra um duelo", o nome do treinador (já preenchido com o do perfil local) e **Jogar
+  agora**, que faz `supabase.auth.signInAnonymously()`. O usuário anônimo tem o papel `authenticated`, então as regras
+  de `realtime.messages` (`to authenticated`, tópicos `duel:%`) continuam valendo sem migração nova. "Entrar com Google
+  (guarda seu histórico na nuvem)" fica de link secundário.
+  - A sessão anônima **não mexe no save da nuvem**: nada de reconciliar, subir ou juntar (`cloud.ts` ignora sessão
+    `is_anonymous`; o `user` continua null e o jogo trata como visitante). O histórico do duelo fica no save local.
+  - Entrar com Google depois: a sessão anônima sai (`signOut` local) e o login normal segue (o save local, com o
+    histórico, passa pela pergunta de sempre). **Pendente:** `linkIdentity` pra manter o mesmo id (pede "Manual
+    linking" ligado no painel).
+  - Nome, avatar, treinador e título saem do perfil local; no lobby o anônimo ganha o selo "Convidado".
+  - Erro "anonymous sign-ins are disabled" vira uma mensagem clara ("ainda não está ligado no servidor").
+  - **Anti-abuso:** o Supabase já limita logins anônimos por IP (o limite fica em Auth → Rate Limits). Sem captcha por enquanto; se
+    aparecer abuso, liga o Turnstile/hCaptcha do próprio Supabase Auth.
+- **Time pronto pra quem não tem time:** o modo fica desabilitado ao criar a sala ("Jogue uma copa ou escolha Disputa /
+  Cada um com seus pacotes"). O padrão da sala passa a ser **Disputa**.
+- **Mesmo caminho do Copa:** depois do time pronto (ou do draft) vem a **mesma Escalação** da copa (`LineupEditor` em
+  `Lineup.tsx`), lacrada e com o rival à vista, nos 3 modos (o time pronto também passa pela prévia de 30 s:
+  `applyChoice` em `duel-state.ts`). A partida usa as mesmas peças da copa (`components/MatchHud.tsx`: placar, relógio,
+  substituição, tática, escanteio e narração), o mesmo VERSUS (com os dois treinadores, avatares e títulos) e o mesmo
+  resultado (`ResultHero` + `MatchDetails`). O que é só do duelo fica por cima: pedido de velocidade explícito (quem pede,
+  quem responde com Aceitar/Recusar e o resultado pros dois), emotes, "esperando Fulano", W.O. e o selo BETA.
+- **Prancheta do time** (`components/Prancheta.tsx`): a formação ao vivo (nota na vaga, fôlego, status, forma
+  evoluída) e o banco; tocar num jogador seu abre a substituição já com ele (ou o painel dele); "Meu time / Rival", o
+  rival só leitura. Embaixo da quadra no celular em pé, ao lado deitado e na coluna da direita no desktop. No duelo já
+  vale; na copa está pronta atrás de `PRANCHETA_NA_COPA = false` (`Match.tsx`; no dev, `?prancheta=1` mostra).
+- **Convidar:** código grande, Compartilhar (`navigator.share`, cai pra copiar), "Mandar no WhatsApp" (`wa.me`) e QR
+  code do link (gerador próprio em `src/ui/qr.ts`, ~150 linhas, sem dependência: modo byte, correção M, versões 1–6;
+  conferido com o `zbarimg`). O link leva `&de=Nome` pra tela de quem abre sem conta. Na criação da sala tem "Tem um
+  código de sala?" pra quem prefere digitar.
