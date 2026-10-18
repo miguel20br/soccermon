@@ -86,6 +86,13 @@ describe('missões', () => {
         expect(newMissions({ ...empty, done: [...gyms, 'giovanni'] })).toContain('kanto');
     });
 
+    it('Ash: campeão sofrendo no máximo 5 gols na copa (6 não vale)', () => {
+        const entry = (conceded: number[]) =>
+            ({ perfect: false, scores: conceded.map((c) => [3, c]), squad: [] }) as unknown as HallEntry;
+        expect(newMissions({ ...empty, done: [], hall: [entry([2, 1, 0, 2])] })).toContain('ash');
+        expect(newMissions({ ...empty, done: [], hall: [entry([2, 1, 1, 2])] })).not.toContain('ash');
+    });
+
     it('treinador e título só valem se a missão foi cumprida', () => {
         const p = { ...DEFAULT_PROFILE, trainer: 'giovanni' as const, title: 'virada' };
         expect(activeTrainer(p)).toBe('red');

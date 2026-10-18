@@ -61,6 +61,9 @@ export const FREE_TRAINERS: readonly TrainerId[] = ['red', 'leaf', 'youngster', 
 export const DEFAULT_TRAINER: TrainerId = 'red';
 export const trainerSrc = (id: TrainerId) => `assets/trainers/${id}.png`;
 
+/** Missão do Ash: ser campeão sofrendo no máximo isso de gols na copa inteira. */
+export const ASH_MAX_CONCEDED = 5;
+
 /** Títulos das missões (o de Pallet todo mundo tem; os de código ficam em title-codes.ts). */
 export const TITLE_IDS = [
     'pallet',
@@ -221,7 +224,9 @@ export const MISSIONS: Mission[] = [
         group: 'elite',
         trainer: 'ash',
         title: 'perfeita',
-        has: (s) => s.records.perfect > 0 || s.hall.some((h) => h.perfect),
+        // copa perfeita (zero gol) não saía nunca: 700 copas simuladas, nenhuma; ≤ 5 gols ≈ 1 em 120 copas (18/10/2026)
+        has: (s) =>
+            s.records.perfect > 0 || s.hall.some((h) => h.scores.reduce((n, x) => n + x[1], 0) <= ASH_MAX_CONCEDED),
     },
     // Treinadores de Kanto
     { id: 'bugcatcher', group: 'classes', trainer: 'bugcatcher', match: (m) => m.won && ofType(m.lineup, 'Bug') >= 3 },
