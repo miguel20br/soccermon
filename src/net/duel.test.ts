@@ -373,6 +373,18 @@ describe('intervalo, velocidade, W.O. e dessincronização', () => {
         expect(bad.phase).toBe('done');
         expect(bad.result?.desync).toBe(true);
     });
+
+    it('hash feito com menos ordens (ordem atrasada) não anula: a tela refaz e manda de novo', () => {
+        let s = inMatch();
+        s = reduce(s, { k: 'reveal', seg: 2, x: H('1'), hash: '1:aaa' }, 'host', ctx());
+        // o convidado ainda não tinha a ordem: hash diferente, mas com 0 ordens antes da divisa
+        s = reduce(s, { k: 'reveal', seg: 2, x: H('2'), hash: '0:bbb' }, 'guest', ctx());
+        expect(s.phase).toBe('match');
+        // refez com a ordem: igual, segue
+        expect(reduce(s, { k: 'reveal', seg: 2, x: H('2'), hash: '1:aaa' }, 'guest', ctx()).phase).toBe('match');
+        // mesmas ordens e hash diferente: separou de verdade
+        expect(reduce(s, { k: 'reveal', seg: 2, x: H('2'), hash: '1:ccc' }, 'guest', ctx()).result?.desync).toBe(true);
+    });
 });
 
 /** Abre a rodada atual dos dois (segredo + seed, como a sessão faz). */

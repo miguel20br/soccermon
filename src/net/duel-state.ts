@@ -396,6 +396,9 @@ export function onFieldAfter(team: TeamSetup, log: StampedOrder[], side: 0 | 1):
     return field;
 }
 
+/** Os dois hashes do trecho saíram do mesmo número de ordens (o prefixo antes do ":"). */
+const sameInputs = (a: string, b: string) => a.slice(0, a.indexOf(':') + 1) === b.slice(0, b.indexOf(':') + 1);
+
 /**
  * Carimba a ordem com o tick: `max(tick dos dois) + leadTicks` (no intervalo, o tick seguinte a ele), sempre depois
  * da última do log. O número (`seq`) é de quem deu a ordem: repetida não entra de novo. Mesmo limite pros dois: 3
@@ -632,8 +635,9 @@ function apply(s: Shared, i: Intent, by: Role, ctx: Ctx): Shared {
             const segHash = i.hash ? { ...s.segHash, [by]: { ...s.segHash[by], [i.seg]: i.hash } } : s.segHash;
             const otherHash = segHash[other(by)][i.seg];
             const next = { ...s, reveals: { ...s.reveals, [by]: mine }, segHash };
-            // as duas telas se separaram: anula em vez de seguir com placares diferentes
-            if (i.hash && otherHash && otherHash !== i.hash)
+            // as duas telas se separaram: anula em vez de seguir com placares diferentes. O hash vem como
+            // "<ordens antes da divisa>:<hash>": com números diferentes uma das telas ainda não tem a ordem (ela refaz)
+            if (i.hash && otherHash && otherHash !== i.hash && sameInputs(otherHash, i.hash))
                 return {
                     ...next,
                     phase: 'done',

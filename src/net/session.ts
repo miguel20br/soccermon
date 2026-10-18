@@ -197,6 +197,8 @@ class DuelSession {
     tick = 0;
     minute = 0;
     result: MatchResult | null = null;
+    /** Quantas ordens do log a `result` já tem (o hash do trecho diz com quantas foi feito). */
+    resultLog = 0;
     /** Tela de partida rodando (o relógio só corrige com a bola rolando). */
     playing = false;
     /** Rascunho da prévia (lacrado sozinho se o tempo acabar). */
@@ -431,6 +433,13 @@ class DuelSession {
                 s.reveals[role].some((x, k) => x && x !== c[segIdx(k)]) ||
                 s.roundReveals[role].some((x, r) => x && x !== c[roundIdx(r)]);
             if (forged) return;
+        }
+        // partida nova (revanche): nada da anterior vale (relógio, minuto e partida simulada)
+        if (s.game !== this.view.shared?.game) {
+            this.tick = 0;
+            this.minute = 0;
+            this.result = null;
+            this.resultLog = 0;
         }
         const online = { host: false, guest: false };
         for (const r of ROLES) online[r] = r === role || (!!s.peers[r] && this.peerIds.includes(s.peers[r]!.id));
@@ -771,7 +780,11 @@ class DuelSession {
             const x = this.chain[segIdx(k)];
             // o hash do começo do trecho (o 1º snapshot dele) confere que as duas telas têm a mesma partida
             const boundary = this.result && k > 0 ? holdTick(this.result.snapshots, k) : Number.POSITIVE_INFINITY;
-            const hash = this.result && this.tick >= boundary ? snapHash(this.result, boundary) : undefined;
+            // leva quantas ordens antes da divisa a partida simulada tinha: só compara com o outro se for o mesmo
+            // número (ordem que chegou atrasada não anula; a tela refaz e manda de novo)
+            const before = s.log.slice(0, this.resultLog).filter((o) => o.tick < boundary).length;
+            const hash =
+                this.result && this.tick >= boundary ? `${before}:${snapHash(this.result, boundary)}` : undefined;
             const have = s.reveals[role][k] === x && (!hash || s.segHash[role][k] === hash);
             if (!have && this.due(`seg-${s.game}-${k}-${hash ?? ''}`)) this.dispatch({ k: 'reveal', seg: k, x, hash });
         }

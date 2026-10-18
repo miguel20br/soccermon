@@ -157,6 +157,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
             .then((r) => {
                 if (!alive) return;
                 duel.result = r;
+                duel.resultLog = logLen;
                 simLog.current = logLen;
                 setSimCount(logLen);
                 setSimSeeds(seeds.length);
