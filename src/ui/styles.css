@@ -5659,11 +5659,18 @@ a.home-tile {
         margin-top: 0;
     }
     .home-hero .logo-img {
-        width: min(380px, 60%);
+        width: min(340px, 50%);
     }
     .tagline {
         margin: 0;
-        font-size: 13px;
+        font-size: 12px;
+    }
+    /* o placar da Copa fica só com o título; a linha de explicação volta em pé */
+    .cup-card .mode-head span:not(.bc-tag) {
+        display: none;
+    }
+    .home .menu {
+        padding-block: 12px;
     }
     /* draft deitado: time e cartas lado a lado, quadra do tamanho da tela */
     .draft-grid {
