@@ -225,6 +225,12 @@ Plano do trailer e dos posts de lançamento: [docs/planos/divulgacao-trailer.md]
    ar) e README do `Jogo-Oficina`.
 10. Ideias combinadas para depois: melhores momentos/replay (os snapshots já existem), quadras temáticas e
    treinadores, modo carreira (0.9+).
+11. **Depois da 0.8.5 (18/10/2026):** clipe combo 0.8.4 + 0.8.5 pro TikTok (rascunho da 0.8.4 em
+   `trailer/atualizacao/`; falta gravar escanteio e duelo e o Miguel escolher a música; confirmar antes de postar).
+   Duelo: confirmar no ar que o "Partida anulada" sumiu (corrigido na 0.8.5; só testado em duas abas no PC).
+   Pequenos: prancheta mostra quem saiu por 1–3 s depois do intervalo (celular); barra "Escanteios 0 x 0" do gráfico
+   com um risco vermelho; vincular conta anônima ao Google (precisa ligar "manual linking" no Supabase). Ideia
+   solta: patch da fórmula (Ala contando chute, Pivô contando velocidade), com antes/depois pro ok dele.
 
 ### Riscos que ele já conhece
 

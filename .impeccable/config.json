@@ -32,6 +32,15 @@
         "value": "cubic-bezier(0.2, 0.9, 0.3, 1.15)",
         "createdAt": "2026-10-16T23:57:51.473Z",
         "reason": "Claude: overshoot curto das cartas saindo do pacote, mesma família das exceções já registradas (plano jogo-gostoso aprovado pelo Miguel)"
+      },
+      {
+        "rule": "buried-raster",
+        "value": "*",
+        "files": [
+          "trailer/atualizacao/index.html"
+        ],
+        "createdAt": "2026-10-17T22:43:19.725Z",
+        "reason": "Claude: composição de vídeo HyperFrames; os recortes começam em opacity 0 e o GSAP os mostra (folha de contato do render confere que aparecem)"
       }
     ]
   }
