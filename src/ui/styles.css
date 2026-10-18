@@ -7090,3 +7090,14 @@ body {
         width: 52px;
     }
 }
+
+/* treinador dourado (missões lendárias): brilho no sprite e moldura de ouro onde ele aparece */
+.trainer-gold {
+    filter: drop-shadow(0 0 2px #ffd84a) drop-shadow(0 0 7px rgb(255 203 5 / 55%));
+}
+.gold-frame.gold-frame {
+    border-color: #ffd84a;
+    box-shadow:
+        0 0 0 2px rgb(184 134 11 / 70%),
+        0 0 16px rgb(255 203 5 / 35%);
+}

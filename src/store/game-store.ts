@@ -244,6 +244,9 @@ export interface Records {
     icones?: number;
     /** Evoluções no meio da partida (do seu time). */
     evolucoes?: number;
+    /** Títulos seguidos (copa perdida ou abandonada zera) e a melhor sequência. */
+    streak?: number;
+    bestStreak?: number;
 }
 
 export type SlotRef = { zone: 'lineup' | 'bench'; index: number };
@@ -375,6 +378,12 @@ export const lineupPosition = (run: RunState, uid: string): Position | undefined
     const i = run.lineup.indexOf(uid);
     return i >= 0 ? formationOf(run.formation).slots[i] : undefined;
 };
+
+/** Sequência de títulos depois de uma copa que acabou (ganha soma; perdida ou abandonada zera). */
+export function streakAfter(r: Records, won: boolean): Pick<Records, 'streak' | 'bestStreak'> {
+    const streak = won ? (r.streak ?? 0) + 1 : 0;
+    return { streak, bestStreak: Math.max(r.bestStreak ?? 0, streak) };
+}
 
 export const isPerfectCup = (run: RunState) =>
     run.status === 'champion' && run.results.every((r) => r.won && r.score[1] === 0);
@@ -624,7 +633,13 @@ export const useGame = create<GameStore>()(
                     setState({ run, match: null, screen: 'draft' });
                 },
 
-                abandonRun: () => setState({ run: null, match: null, screen: 'home' }),
+                abandonRun: () =>
+                    setState({
+                        run: null,
+                        match: null,
+                        screen: 'home',
+                        records: { ...getState().records, ...streakAfter(getState().records, false) },
+                    }),
 
                 chooseFormation: (formation) => {
                     const run = getState().run;
@@ -883,6 +898,7 @@ export const useGame = create<GameStore>()(
                                   cups: records.cups + 1,
                                   titles: records.titles + (status === 'champion' ? 1 : 0),
                                   perfect: records.perfect + (isPerfectCup(next) ? 1 : 0),
+                                  ...streakAfter(records, status === 'champion'),
                               }
                             : withStar,
                     };
@@ -890,7 +906,7 @@ export const useGame = create<GameStore>()(
                     const profile = getState().profile;
                     const fresh = newMissions(
                         { ...saved, runs: [next, ...getState().parkedRuns], done: profile.missionsDone },
-                        [matchView(m, result.stats?.digest ?? matchDigest(m), run.lockedTeam)],
+                        [matchView(m, result.stats?.digest ?? matchDigest(m), run.lockedTeam, last)],
                     );
                     setState({
                         ...saved,

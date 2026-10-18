@@ -1,5 +1,5 @@
 import { species } from '../engine/data';
-import type { PokemonInstance } from '../engine/instance';
+import { type PokemonInstance, viewInstance } from '../engine/instance';
 import { type ActiveLink, computeLinks } from '../engine/links';
 import type { GoalNote, MatchDigest } from '../engine/match-stats';
 import type { MatchResult } from '../engine/runners/batch-runner';
@@ -54,12 +54,32 @@ export const TRAINERS = [
     'oak',
     'supernerd',
     'scientist',
+    // lendários: versões douradas, por feitos absurdos (18/10/2026)
+    'ashGold',
+    'lanceGold',
+    'youngsterGold',
+    'redGold',
+    'blueGold',
+    'oakGold',
 ] as const;
 export type TrainerId = (typeof TRAINERS)[number];
 
 export const FREE_TRAINERS: readonly TrainerId[] = ['red', 'leaf', 'youngster', 'lass'];
 export const DEFAULT_TRAINER: TrainerId = 'red';
 export const trainerSrc = (id: TrainerId) => `assets/trainers/${id}.png`;
+
+/** Treinador de origem → versão dourada (sprite gerado por scripts/build-gold-trainers.ts). */
+export const GOLD_TRAINERS = {
+    ash: 'ashGold',
+    lance: 'lanceGold',
+    youngster: 'youngsterGold',
+    red: 'redGold',
+    blue: 'blueGold',
+    oak: 'oakGold',
+} as const satisfies Partial<Record<TrainerId, TrainerId>>;
+const GOLD_SET = new Set<string>(Object.values(GOLD_TRAINERS));
+/** Treinador dourado: sprite com brilho e moldura dourada no perfil, VERSUS, duelo e card do título. */
+export const isGoldTrainer = (id: string | null | undefined) => !!id && GOLD_SET.has(id);
 
 /** Missão do Ash: ser campeão sofrendo no máximo isso de gols na copa inteira. */
 export const ASH_MAX_CONCEDED = 5;
@@ -92,13 +112,22 @@ export const TITLE_IDS = [
     'golpes',
     'evoluidor',
     'artilheiro',
+    'copaPerfeita',
+    'senhorCeus',
+    'originalClone',
+    'topPercentage',
+    'lendaKanto',
+    'artilheiroLendario',
+    'viradaHistorica',
+    'todosJogaram',
+    'zeNinguem',
 ] as const;
 export type TitleId = (typeof TITLE_IDS)[number];
 export const DEFAULT_TITLE: TitleId = 'pallet';
 
 /** O que o save guarda e que vale para as missões. */
 export interface SaveView {
-    records: Pick<Records, 'titles' | 'perfect' | 'evolucoes'>;
+    records: Pick<Records, 'titles' | 'perfect' | 'evolucoes' | 'bestStreak'>;
     dex: Dex;
     moves: MoveDex;
     career: Pick<Career, 'goalsFor'>;
@@ -123,10 +152,12 @@ export interface MatchView {
     timeline: [number, number][];
     evolutions: { from: number; into: number }[];
     links: ActiveLink[];
+    /** A final da copa. */
+    final: boolean;
 }
 
-export type MissionGroup = 'ginasios' | 'elite' | 'classes' | 'feitos' | 'colecao';
-export const MISSION_GROUPS: MissionGroup[] = ['ginasios', 'elite', 'classes', 'feitos', 'colecao'];
+export type MissionGroup = 'ginasios' | 'elite' | 'classes' | 'feitos' | 'colecao' | 'lendas';
+export const MISSION_GROUPS: MissionGroup[] = ['ginasios', 'elite', 'classes', 'feitos', 'colecao', 'lendas'];
 
 export interface Mission {
     id: string;
@@ -160,6 +191,21 @@ const bestCupGoals = (s: SaveView) =>
         ...s.runs.map((r) => (r?.results ?? []).reduce((n, x) => n + x.score[0], 0)),
         ...s.hall.map((h) => h.scores.reduce((n, x) => n + x[0], 0)),
     );
+
+/** Mais gols de um Pokémon só numa copa (resumos das copas guardadas e Hall da Fama). */
+const bestScorerCup = (s: SaveView) =>
+    Math.max(
+        0,
+        ...s.runs.flatMap((r) => {
+            const by = new Map<string, number>();
+            for (const x of r?.results ?? [])
+                for (const p of x.stats?.players ?? []) by.set(p.uid, (by.get(p.uid) ?? 0) + p.goals);
+            return [...by.values()];
+        }),
+        ...s.hall.flatMap((h) => h.squad.map((p) => p.goals)),
+    );
+/** Campeão: a final vencida, com os titulares do apito inicial. */
+const champion = (m: MatchView) => m.final && m.won;
 
 /** Os 8 ginásios da copa (clube → treinador). */
 const GYMS: [TrainerId, string][] = [
@@ -330,6 +376,64 @@ export const MISSIONS: Mission[] = [
         count: (s) => s.records.evolucoes ?? 0,
     },
     { id: 'artilheiro', group: 'colecao', title: 'artilheiro', goal: 100, count: (s) => s.career.goalsFor },
+    // Lendárias: feitos absurdos, treinadores dourados e títulos brilhando
+    {
+        id: 'ashGold',
+        group: 'lendas',
+        trainer: 'ashGold',
+        title: 'copaPerfeita',
+        has: (s) => s.records.perfect > 0 || s.hall.some((h) => h.perfect),
+    },
+    {
+        id: 'lanceGold',
+        group: 'lendas',
+        trainer: 'lanceGold',
+        title: 'senhorCeus',
+        match: (m) => champion(m) && fullLink(m, 'passaros'),
+    },
+    {
+        id: 'originalClone',
+        group: 'lendas',
+        title: 'originalClone',
+        match: (m) => champion(m) && fullLink(m, 'genese'),
+    },
+    {
+        id: 'youngsterGold',
+        group: 'lendas',
+        trainer: 'youngsterGold',
+        title: 'topPercentage',
+        match: (m) => champion(m) && hasSpecies(m.lineup, [19]),
+    },
+    {
+        id: 'redGold',
+        group: 'lendas',
+        trainer: 'redGold',
+        title: 'lendaKanto',
+        goal: 5,
+        count: (s) => s.records.bestStreak ?? 0,
+    },
+    { id: 'artilheiroLendario', group: 'lendas', title: 'artilheiroLendario', goal: 12, count: bestScorerCup },
+    {
+        id: 'blueGold',
+        group: 'lendas',
+        trainer: 'blueGold',
+        title: 'viradaHistorica',
+        match: (m) => champion(m) && m.timeline.some(([a, b]) => b - a >= 3),
+    },
+    {
+        id: 'oakGold',
+        group: 'lendas',
+        trainer: 'oakGold',
+        title: 'todosJogaram',
+        goal: 151,
+        count: (s) => Object.values(s.dex).filter((d) => (d?.minutes ?? 0) > 0).length,
+    },
+    {
+        id: 'zeNinguem',
+        group: 'lendas',
+        title: 'zeNinguem',
+        match: (m) => champion(m) && m.lineup.length > 0 && m.lineup.every((p) => viewInstance(p).overall <= 64),
+    },
 ];
 
 const BY_ID = new Map(MISSIONS.map((m) => [m.id, m]));
@@ -352,6 +456,7 @@ export function matchView(
     m: Pick<MatchResult, 'score' | 'shootout' | 'winner'>,
     digest: MatchDigest,
     team: TeamSetup | null,
+    final = false,
 ): MatchView {
     const lineup = team?.lineup ?? [];
     const squad = [...lineup, ...(team?.bench ?? [])];
@@ -366,13 +471,14 @@ export function matchView(
         timeline: timelineOf(digest.goals),
         evolutions: digest.evolutions,
         links: computeLinks(lineup),
+        final,
     };
 }
 
 /** Partida guardada no save (sem os titulares: vale só para os feitos de gol, placar, pênaltis e evolução). */
 export function stageView(r: StageResult): MatchView {
     const digest = r.stats?.digest ?? { goals: [], half: null, moves: {}, evolutions: [] };
-    return matchView({ score: r.score, shootout: r.shootout, winner: r.won ? 0 : 1 }, digest, null);
+    return matchView({ score: r.score, shootout: r.shootout, winner: r.won ? 0 : 1 }, digest, null, r.stage === 3);
 }
 
 // ------------------------------------------------------------------------------------------- progresso

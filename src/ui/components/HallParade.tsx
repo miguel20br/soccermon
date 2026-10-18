@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { playCry } from '../../game/audio';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
+import { isGoldTrainer } from '../../store/missions';
 import { clubColorHex, type HallEntry } from '../../store/profile';
 import { titleClass } from '../../store/title-codes';
 import { clubVars, titleName } from '../profile/club';
@@ -83,7 +84,11 @@ export function HallList() {
     return (
         <ol className="hall-list">
             {hall.map((h) => (
-                <li key={h.id} className="hall-card" style={clubVars(clubColorHex(h.clubColor))}>
+                <li
+                    key={h.id}
+                    className={`hall-card${isGoldTrainer(h.trainer) ? ' gold-frame' : ''}`}
+                    style={clubVars(clubColorHex(h.clubColor))}
+                >
                     <div className="hall-head">
                         <b>{t('title.hall.entry', { n: h.titleNo })}</b>
                         <span className="muted">

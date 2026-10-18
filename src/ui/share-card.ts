@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { viewInstance } from '../engine/instance';
 import { clubName, dict, fmt, getLang, type Lang, tn } from '../i18n';
 import { isPerfectCup, type RunState, useGame } from '../store/game-store';
-import { type TrainerId, trainerSrc } from '../store/missions';
+import { isGoldTrainer, type TrainerId, trainerSrc } from '../store/missions';
 import { cardSprite } from './components/PokeCard';
 import { Trophy } from './components/Trophy';
 import { titleName, trainerLabel } from './profile/club';
@@ -27,7 +27,7 @@ export interface ShareCardData {
     squad: { sprite: string; name: string; captain: boolean }[];
     scorer: { label: string; text: string; sprite: string } | null;
     /** Treinador campeão (só no formato Stories, ao lado da taça). */
-    trainer: { sprite: string; name: string; title: string } | null;
+    trainer: { sprite: string; name: string; title: string; gold: boolean } | null;
     site: string;
 }
 
@@ -76,7 +76,12 @@ export function shareCardData(
                       sprite: cardSprite(topPick ?? { speciesId: top.speciesId, shiny: false }),
                   }
                 : null,
-        trainer: trainer && { sprite: trainerSrc(trainer.id), name: trainer.name, title: trainer.title },
+        trainer: trainer && {
+            sprite: trainerSrc(trainer.id),
+            name: trainer.name,
+            title: trainer.title,
+            gold: isGoldTrainer(trainer.id),
+        },
         site: SITE_URL.replace(/^https?:\/\//, ''),
     };
 }
@@ -197,6 +202,22 @@ export async function drawShareCard(data: ShareCardData, format: CardFormat): Pr
         ctx.fill();
     }
 
+    // treinador dourado: moldura de ouro em volta do card
+    if (data.trainer?.gold) {
+        const g = ctx.createLinearGradient(0, 0, W, H);
+        g.addColorStop(0, '#b8860b');
+        g.addColorStop(0.35, '#ffd84a');
+        g.addColorStop(0.5, '#fff6c8');
+        g.addColorStop(0.65, '#ffd84a');
+        g.addColorStop(1, '#b8860b');
+        ctx.strokeStyle = g;
+        ctx.lineWidth = 22;
+        ctx.strokeRect(11, 11, W - 22, H - 22);
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = 'rgba(255, 246, 200, 0.7)';
+        ctx.strokeRect(30, 30, W - 60, H - 60);
+    }
+
     let y = sq ? 36 : 70;
     // logo
     const lw = sq ? 480 : 720;
@@ -226,6 +247,10 @@ export async function drawShareCard(data: ShareCardData, format: CardFormat): Pr
             ctx.save();
             ctx.translate(tx * 2, 0);
             ctx.scale(-1, 1);
+            if (data.trainer.gold) {
+                ctx.shadowColor = 'rgba(255, 216, 74, 0.9)';
+                ctx.shadowBlur = 40;
+            }
             sprite(ctx, trainerImg, tx, y + ts + 0.1 * 80 * k, k);
             ctx.restore();
             const top = y + ts - 0.8 * 80 * k;

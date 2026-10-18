@@ -9,7 +9,7 @@ import { playSfx } from '../../game/audio';
 import { clubName, formationText } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { activeTrainer, leaderTrainerOf, type TrainerId, trainerSrc } from '../../store/missions';
+import { activeTrainer, isGoldTrainer, leaderTrainerOf, type TrainerId, trainerSrc } from '../../store/missions';
 import { rivalColor, tagFromName } from '../../store/profile';
 import { useClubColor } from '../profile/club';
 import { reduceMotionOn } from '../settings-sync';
@@ -45,7 +45,14 @@ function Squad({ team, trainer }: { team: TeamSetup; trainer?: TrainerId }) {
     return (
         <div className={`vsp-squad${trainer ? ' has-trainer' : ''}`}>
             {/* o treinador fica na ponta de fora da foto, atrás dos Pokémon */}
-            {trainer && <img className="vsp-trainer" src={trainerSrc(trainer)} alt="" draggable={false} />}
+            {trainer && (
+                <img
+                    className={`vsp-trainer${isGoldTrainer(trainer) ? ' trainer-gold' : ''}`}
+                    src={trainerSrc(trainer)}
+                    alt=""
+                    draggable={false}
+                />
+            )}
             {order.map((p, i) => {
                 const s = SLOTS[Math.min(i, SLOTS.length - 1)];
                 const style = {

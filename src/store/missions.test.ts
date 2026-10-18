@@ -6,7 +6,7 @@ import { mergeSaves } from '../cloud/reconcile-plan';
 import { createInstance } from '../engine/instance';
 import type { GoalNote } from '../engine/match-stats';
 import { Rng } from '../engine/rng';
-import { migrateSave, type PersistedSave } from './game-store';
+import { migrateSave, type PersistedSave, type Records, streakAfter } from './game-store';
 import {
     activeTitle,
     activeTrainer,
@@ -34,6 +34,7 @@ const view = (p: Partial<MatchView>): MatchView => ({
     timeline: [],
     evolutions: [],
     links: [],
+    final: false,
     ...p,
 });
 const empty = { records: { titles: 0, perfect: 0 }, dex: {}, moves: {}, career: { goalsFor: 0 }, hall: [], runs: [] };
@@ -91,6 +92,49 @@ describe('missões', () => {
             ({ perfect: false, scores: conceded.map((c) => [3, c]), squad: [] }) as unknown as HallEntry;
         expect(newMissions({ ...empty, done: [], hall: [entry([2, 1, 0, 2])] })).toContain('ash');
         expect(newMissions({ ...empty, done: [], hall: [entry([2, 1, 1, 2])] })).not.toContain('ash');
+    });
+
+    it('lendárias: só valem como campeão (na final) e cada uma com a sua regra', () => {
+        const birds = [mon(144), mon(145), mon(146), mon(25), mon(1)];
+        const full = [{ def: { id: 'passaros' }, members: [], bonus: 1.1, full: true }] as never;
+        const fresh = (m: Partial<MatchView>) => newMissions({ ...empty, done: [] }, [view(m)]);
+        expect(fresh({ final: true, lineup: birds, links: full })).toContain('lanceGold');
+        expect(fresh({ final: false, lineup: birds, links: full })).not.toContain('lanceGold');
+        expect(fresh({ final: true, won: false, lineup: birds, links: full })).not.toContain('lanceGold');
+        expect(fresh({ final: true, lineup: [mon(19), mon(1), mon(4), mon(7), mon(25)] })).toContain('youngsterGold');
+        const back = {
+            score: [4, 3] as [number, number],
+            timeline: [
+                [0, 1],
+                [0, 2],
+                [0, 3],
+                [4, 3],
+            ] as [number, number][],
+        };
+        expect(fresh({ final: true, ...back })).toContain('blueGold');
+        expect(fresh({ final: false, ...back })).not.toContain('blueGold');
+        // time de carta bronze (Caterpie, Weedle, Rattata, Pidgey, Magikarp) contra um com Mewtwo
+        expect(fresh({ final: true, lineup: [mon(10), mon(13), mon(19), mon(16), mon(129)] })).toContain('zeNinguem');
+        expect(fresh({ final: true, lineup: [mon(10), mon(13), mon(19), mon(16), mon(150)] })).not.toContain(
+            'zeNinguem',
+        );
+    });
+
+    it('lendárias do save: copa perfeita, 5 títulos seguidos e 12 gols de um Pokémon numa copa', () => {
+        const entry = (p: Partial<HallEntry>) =>
+            ({ perfect: false, scores: [], squad: [], ...p }) as unknown as HallEntry;
+        expect(newMissions({ ...empty, done: [], hall: [entry({ perfect: true })] })).toContain('ashGold');
+        expect(newMissions({ ...empty, done: [], hall: [entry({})] })).not.toContain('ashGold');
+        let rec = { cups: 0, titles: 0, perfect: 0 } as Records;
+        for (const won of [true, true, true, true, false, true, true, true, true])
+            rec = { ...rec, ...streakAfter(rec, won) };
+        expect(rec.bestStreak).toBe(4);
+        expect(newMissions({ ...empty, done: [], records: { ...empty.records, ...rec } })).not.toContain('redGold');
+        rec = { ...rec, ...streakAfter(rec, true) };
+        expect(newMissions({ ...empty, done: [], records: { ...empty.records, ...rec } })).toContain('redGold');
+        const scorer = (goals: number) => entry({ squad: [{ speciesId: 25, goals }] as never });
+        expect(newMissions({ ...empty, done: [], hall: [scorer(12)] })).toContain('artilheiroLendario');
+        expect(newMissions({ ...empty, done: [], hall: [scorer(11)] })).not.toContain('artilheiroLendario');
     });
 
     it('treinador e título só valem se a missão foi cumprida', () => {

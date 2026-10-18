@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useCloud } from '../../cloud/cloud';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { activeTitle, activeTrainer } from '../../store/missions';
+import { activeTitle, activeTrainer, isGoldTrainer } from '../../store/missions';
 import { clubColorHex } from '../../store/profile';
 import { titleClass } from '../../store/title-codes';
 import { HallList } from '../components/HallParade';
@@ -32,7 +32,7 @@ export function Profile() {
         <div className="menu-screen pf" style={clubVars(clubColorHex(profile.clubColor))}>
             <MenuHead title={t('profile.title')} icon="profile" onBack={() => go('home')} />
 
-            <header className="panel pf-head">
+            <header className={`panel pf-head${isGoldTrainer(activeTrainer(profile)) ? ' gold-frame' : ''}`}>
                 <div className="pf-duo">
                     <TrainerSprite id={activeTrainer(profile)} className="pf-duo-trainer" />
                     <img

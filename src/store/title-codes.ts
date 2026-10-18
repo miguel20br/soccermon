@@ -26,8 +26,21 @@ export const CUSTOM_TITLES: Readonly<Record<string, { pt: string; en: string; lo
 };
 
 /** Classe do título na tela: os especiais têm visual próprio (dourado ou holográfico). */
+/** Títulos das missões lendárias: dourados brilhando, como o GOAT. */
+const LEGEND_TITLES = new Set([
+    'copaPerfeita',
+    'senhorCeus',
+    'originalClone',
+    'topPercentage',
+    'lendaKanto',
+    'artilheiroLendario',
+    'viradaHistorica',
+    'todosJogaram',
+    'zeNinguem',
+]);
+
 export const titleClass = (id: string) => {
-    const look = CUSTOM_TITLES[id]?.look;
+    const look = CUSTOM_TITLES[id]?.look ?? (LEGEND_TITLES.has(id) ? 'shine' : undefined);
     return look ? ` title-${look}` : '';
 };
 

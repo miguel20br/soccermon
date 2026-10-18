@@ -5,6 +5,7 @@ import {
     activeTitle,
     activeTrainer,
     earnedTitles,
+    isGoldTrainer,
     MISSION_GROUPS,
     MISSIONS,
     type Mission,
@@ -41,7 +42,7 @@ function useSaveView(): SaveView {
 export function TrainerSprite({ id, locked, className = '' }: { id: TrainerId; locked?: boolean; className?: string }) {
     return (
         <img
-            className={`trainer-sprite${locked ? ' locked' : ''} ${className}`}
+            className={`trainer-sprite${locked ? ' locked' : isGoldTrainer(id) ? ' trainer-gold' : ''} ${className}`}
             src={trainerSrc(id)}
             alt=""
             draggable={false}
