@@ -52,7 +52,7 @@ import {
     useClockLabel,
 } from '../components/MatchHud';
 import { PlayerInspect } from '../components/PlayerInspect';
-import { Prancheta } from '../components/Prancheta';
+import { boardBeside, Prancheta } from '../components/Prancheta';
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
 import { snapAt } from '../match-view';
@@ -513,6 +513,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                         teamNames={teamNames}
                         interactive={sceneReady && !ended}
                         side={side}
+                        startOpen={!boardBeside()}
                     />
                 </div>
                 <Prancheta

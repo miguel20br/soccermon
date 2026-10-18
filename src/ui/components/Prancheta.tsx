@@ -139,3 +139,6 @@ export function Prancheta({
         </div>
     );
 }
+
+/** Desktop: a prancheta fica na coluna da direita (mesmo corte do styles.css). */
+export const boardBeside = () => window.matchMedia('(min-width: 1051px)').matches;

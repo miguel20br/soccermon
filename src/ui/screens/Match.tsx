@@ -38,7 +38,7 @@ import {
     useClockLabel,
 } from '../components/MatchHud';
 import { PlayerInspect } from '../components/PlayerInspect';
-import { Prancheta } from '../components/Prancheta';
+import { boardBeside, Prancheta } from '../components/Prancheta';
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
 import { LeaveConfirm } from '../leave-guard';
@@ -60,14 +60,6 @@ const SPEEDS: { value: PlaybackSpeed; label: string }[] = [
 const CHANGE_LEAD_TICKS = 40;
 /** No modo "Lances" o ritmo varia (1x perto dos lances, 16x no resto): na média fica perto de 4x. */
 const HIGHLIGHTS_MULT = 4;
-
-/**
- * Prancheta do time ao vivo (src/ui/components/Prancheta.tsx), que o duelo já usa. Na copa é decisão do Miguel:
- * fica desligada; no dev, `?prancheta=1` mostra como ficaria.
- */
-const PRANCHETA_NA_COPA = false;
-const showPrancheta = () =>
-    PRANCHETA_NA_COPA || (import.meta.env.DEV && new URLSearchParams(window.location.search).has('prancheta'));
 
 /** De quanto em quanto tempo (real) o ponto da partida é salvo para poder retomar. */
 const SAVE_EVERY_MS = 1500;
@@ -104,7 +96,6 @@ export function Match() {
     const [tacticError, setTacticError] = useState<string | null>(null);
     const alive = useRef(true);
     const [feedOpen, setFeedOpen] = useState(true);
-    const [board] = useState(showPrancheta);
     const latest = useRef<MatchResult | null>(match);
     const recorded = useRef(false);
     const tickRef = useRef(0);
@@ -388,7 +379,7 @@ export function Match() {
                 homeTag={homeTag}
             />
 
-            <div className={`match-layout${board ? ' has-board' : ''}`}>
+            <div className="match-layout has-board">
                 <div className="match-main">
                     <div className="pitch-wrap">
                         {fontsReady ? (
@@ -509,24 +500,23 @@ export function Match() {
                         tick={clock.tick}
                         teamNames={teamNames}
                         interactive={sceneReady && !ended}
+                        startOpen={!boardBeside()}
                     />
                 </div>
-                {board && (
-                    <Prancheta
-                        match={match}
-                        setups={[lockedSetup, opponent]}
-                        side={0}
-                        tick={clock.tick}
-                        names={teamNames}
-                        selectedUid={subOpen ? subOut : null}
-                        onMine={(uid, idx) => {
-                            if (canSub) {
-                                setSubOut(onField.includes(uid) ? uid : null);
-                                setSubOpen(true);
-                            } else if (idx !== null) EventBus.emit('match:inspect-request', idx);
-                        }}
-                    />
-                )}
+                <Prancheta
+                    match={match}
+                    setups={[lockedSetup, opponent]}
+                    side={0}
+                    tick={clock.tick}
+                    names={teamNames}
+                    selectedUid={subOpen ? subOut : null}
+                    onMine={(uid, idx) => {
+                        if (canSub) {
+                            setSubOut(onField.includes(uid) ? uid : null);
+                            setSubOpen(true);
+                        } else if (idx !== null) EventBus.emit('match:inspect-request', idx);
+                    }}
+                />
                 <MatchFeed lines={lines} colors={colors} open={feedOpen} onToggle={() => setFeedOpen((v) => !v)} />
             </div>
         </>

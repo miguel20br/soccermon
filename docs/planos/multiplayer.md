@@ -451,7 +451,7 @@ revisão de segurança (`multiplayer-revisao.md`). Código em `src/net/` (regras
 - **Prancheta do time** (`components/Prancheta.tsx`): a formação ao vivo (nota na vaga, fôlego, status, forma
   evoluída) e o banco; tocar num jogador seu abre a substituição já com ele (ou o painel dele); "Meu time / Rival", o
   rival só leitura. Embaixo da quadra no celular em pé, ao lado deitado e na coluna da direita no desktop. No duelo já
-  vale; na copa está pronta atrás de `PRANCHETA_NA_COPA = false` (`Match.tsx`; no dev, `?prancheta=1` mostra).
+  vale; na copa também, ligada pelo Miguel em 17/10/2026 (no desktop a tabela do time começa recolhida).
 - **Convidar:** código grande, Compartilhar (`navigator.share`, cai pra copiar), "Mandar no WhatsApp" (`wa.me`) e QR
   code do link (gerador próprio em `src/ui/qr.ts`, ~150 linhas, sem dependência: modo byte, correção M, versões 1–6;
   conferido com o `zbarimg`). O link leva `&de=Nome` pra tela de quem abre sem conta. Na criação da sala tem "Tem um

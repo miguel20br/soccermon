@@ -25,6 +25,7 @@ export function TeamPanel({
     teamNames,
     interactive,
     side = 0,
+    startOpen = true,
 }: {
     match: MatchResult;
     setups: [TeamSetup, TeamSetup];
@@ -34,9 +35,11 @@ export function TeamPanel({
     interactive: boolean;
     /** Aba que abre primeiro: o seu time (no duelo o convidado é o 1). */
     side?: 0 | 1;
+    /** Começa recolhida (no desktop com a prancheta ao lado, a tabela repetiria o time). */
+    startOpen?: boolean;
 }) {
     const [team, setTeam] = useState<0 | 1>(side);
-    const [open, setOpen] = useState(true);
+    const [open, setOpen] = useState(startOpen);
     const { t, d, lang } = useT();
     const at = Math.floor(tick / STEP_TICKS) * STEP_TICKS;
 
