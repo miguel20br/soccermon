@@ -21,6 +21,7 @@ import {
     clockAdjust,
     disputaOptions,
     duelNames,
+    duelTags,
     emoteAllowed,
     HALFTIME_MS,
     type Intent,
@@ -507,6 +508,19 @@ describe('trapaça: placar, estado e revanche', () => {
         expect(duelNames(same)).toEqual(['ana', 'bia']);
         const twins = { ...same, peers: { host: peer('Ash'), guest: peer('Ash') } };
         expect(duelNames(twins)).toEqual(['Ash', 'Ash 2']);
+    });
+
+    it('siglas do placar nunca repetem (dois clubes padrão eram "PAL x PAL" no celular)', () => {
+        const s = inMatch();
+        const pal = (id: string) => ({ ...peer(id), clubName: 'Pallet FC', clubTag: 'PAL' });
+        const same = {
+            ...s,
+            teams: { host: { ...s.teams.host!, name: 'Pallet FC' }, guest: { ...s.teams.guest!, name: 'Pallet FC' } },
+            peers: { host: pal('ana'), guest: pal('bia') },
+        };
+        expect(duelTags(same)).toEqual(['ANA', 'BIA']);
+        expect(duelTags({ ...same, peers: { host: pal('Ash'), guest: pal('Ash') } })).toEqual(['PAL', 'PA2']);
+        expect(duelTags({ ...s, peers: { host: peer('ana'), guest: peer('bia') } })).toEqual(['ANA', 'BIA']);
     });
 
     it('treinador com o nome padrão ("Treinador"/"Trainer") aparece pelo nome do clube, não "Treinador 2"', () => {

@@ -24,6 +24,7 @@ import { rich, useT } from '../../i18n/react';
 import {
     DUEL_SPEEDS,
     duelNames,
+    duelTags,
     isSubStamped,
     leadTicks,
     type OrderBody,
@@ -41,7 +42,7 @@ import { PhaserGame } from '../../PhaserGame';
 import type { ChanceSpeed, PlaybackSpeed } from '../../store/game-store';
 import { useGame } from '../../store/game-store';
 import type { TrainerId } from '../../store/missions';
-import { rivalColor, tagFromName } from '../../store/profile';
+import { rivalColor } from '../../store/profile';
 import { Commentator, type CommentLine } from '../commentary';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
 import { HalftimePanel } from '../components/HalftimePanel';
@@ -434,7 +435,6 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
             tired={tired}
         />
     );
-    const tagOf = (p: typeof myPeer, i: 0 | 1) => p?.clubTag || tagFromName(teamNames[i]);
 
     return (
         <>
@@ -458,7 +458,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                     <Scoreboard
                         className=" duel-board"
                         names={teamNames}
-                        tags={[tagOf(s.peers.host, 0), tagOf(s.peers.guest, 1)]}
+                        tags={duelTags(s)}
                         colors={colors}
                         score={clock.score}
                         clock={clockParts}

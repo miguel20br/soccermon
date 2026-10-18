@@ -27,6 +27,7 @@ import {
 } from '../engine/state';
 import { dict } from '../i18n';
 import type { PlaybackSpeed } from '../store/game-store';
+import { tagFromName } from '../store/profile';
 import { openedSegments } from './seal';
 
 /**
@@ -275,6 +276,18 @@ export const specialLimitOf = (s: Pick<Shared, 'specialLimit'>): SpecialLimit =>
 export function duelNames(s: Pick<Shared, 'teams' | 'peers'>): [string, string] {
     const club = ROLES.map((r) => s.teams[r]?.name ?? s.peers[r]?.clubName ?? '');
     return sameName(club[0], club[1]) ? trainerNames(s) : [club[0], club[1]];
+}
+
+/**
+ * Siglas do placar (no celular ele só mostra a sigla): a do clube de cada um; se repetem (dois "PAL" do clube
+ * padrão), as dos nomes do placar e, se até elas repetem, a do convidado ganha um "2".
+ */
+export function duelTags(s: Pick<Shared, 'teams' | 'peers'>): [string, string] {
+    const names = duelNames(s);
+    const [a, b] = ROLES.map((r, i) => s.peers[r]?.clubTag || tagFromName(names[i]));
+    if (a !== b) return [a, b];
+    const [na, nb] = names.map(tagFromName);
+    return na !== nb ? [na, nb] : [a, `${b.slice(0, 2)}2`];
 }
 
 const sameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
