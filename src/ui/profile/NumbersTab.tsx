@@ -5,7 +5,8 @@ import type { Dex, DexEntry } from '../../store/profile';
 import { speciesGif } from './club';
 
 /** Top 5 da Dex por um número (só quem jogou e tem esse número > 0). */
-function top(dex: Dex, key: keyof DexEntry, tie: keyof DexEntry) {
+type Stat = Exclude<keyof DexEntry, 'editions'>;
+function top(dex: Dex, key: Stat, tie: Stat) {
     return Object.entries(dex)
         .map(([id, e]) => ({ id: Number(id), e }))
         .filter(({ e }) => e.matches > 0 && e[key] > 0)

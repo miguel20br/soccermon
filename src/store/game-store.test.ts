@@ -11,6 +11,7 @@ import { SIGNATURE } from '../engine/signature-moves';
 import { teachMove } from '../engine/tm';
 import { type DuelRecord, mergeDuels } from './duels';
 import { liveOf, migrateSave, type RunState, SAVE_VERSION, useGame } from './game-store';
+import { EDITION_BIT } from './profile';
 
 describe('save', () => {
     it('v4 → v5: perfil com o nome do time, Pokédex com a copa em andamento e sem boas-vindas', () => {
@@ -146,7 +147,57 @@ describe('backup antigo (scripts/fixtures)', () => {
             expect(save.duels).toEqual([]);
             expect(Array.isArray(save.profile.missionsDone)).toBe(true);
             expect(save.profile.trainer).toBeTruthy();
+            // v9: quem jogou já entra no álbum com a figurinha Normal; visto não ganha nada
+            const played = Object.values(save.dex).filter((e) => e.matches > 0);
+            expect(played.length).toBeGreaterThan(0);
+            for (const e of played) expect((e.editions ?? 0) & EDITION_BIT.normal).toBeTruthy();
+            for (const e of Object.values(save.dex).filter((x) => x.matches === 0)) expect(e.editions).toBeUndefined();
+            expect(save.settings.goalCry).toBe(true);
         }
+    });
+
+    it('v8 → v9: álbum retroativo pelo Hall (shiny) e pelas copas guardadas (Destaque só depois de virar)', () => {
+        useGame.getState().newRun('Pallet FC', 'album');
+        const rng = new Rng('album', 'team');
+        const star = { ...createInstance(25, rng), special: { kind: 'destaque' as const } };
+        const ev = { ...createInstance(4, rng), special: { kind: 'evento' as const, type: 'Fire' } };
+        const line = (uid: string, speciesId: number) => ({ uid, speciesId, minutes: 20 });
+        const result = (stage: number, players: ReturnType<typeof line>[], destaqueUid: string | null = null) =>
+            ({
+                stage,
+                opponent: 'X',
+                score: [1, 0],
+                shootout: null,
+                won: true,
+                destaqueUid,
+                stats: { players },
+            }) as never;
+        const run = {
+            ...(useGame.getState().run as RunState),
+            seed: 'album',
+            picks: [star, ev],
+            // Pikachu virou Destaque na fase 0 e jogou a 1 já como Destaque; o Charmander Evento só jogou a 0
+            results: [result(0, [line(star.uid, 25), line(ev.uid, 4)], star.uid), result(1, [line(star.uid, 25)])],
+        };
+        const entry = { matches: 2, minutes: 40, goals: 0, assists: 0, wins: 2, titles: 0, bestRating: 7, bestOvr: 70 };
+        const mate = (speciesId: number, shiny: boolean) => ({
+            speciesId,
+            shiny,
+            name: '',
+            ovr: 70,
+            goals: 0,
+            captain: false,
+        });
+        const hall = [{ id: 'h', date: 1, perfect: false, scores: [[1, 0]], squad: [mate(7, true), mate(1, false)] }];
+        const old = { run, dex: { 25: entry, 4: entry, 7: entry, 1: entry, 150: { ...entry, matches: 0 } }, hall };
+        const dex = migrateSave(JSON.parse(JSON.stringify(old)), 8).dex;
+        expect(dex[25].editions).toBe(EDITION_BIT.normal | EDITION_BIT.destaque);
+        expect(dex[4].editions).toBe(EDITION_BIT.normal | EDITION_BIT.evento);
+        expect(dex[7].editions).toBe(EDITION_BIT.normal | EDITION_BIT.shiny);
+        expect(dex[1].editions).toBe(EDITION_BIT.normal);
+        expect(dex[150].editions).toBeUndefined();
+        // save já na v9 não refaz o retroativo
+        expect(migrateSave(JSON.parse(JSON.stringify(old)), 9).dex[25].editions).toBeUndefined();
     });
 
     it('item novo pra quem já segura um: o antigo vai pra quem o jogador escolher', () => {

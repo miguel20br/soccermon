@@ -702,9 +702,9 @@ fieldset.pf-field,
 .pf-cell {
     position: relative;
     width: 100%;
-    height: 92px;
+    height: 100px;
     display: grid;
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: auto 1fr auto auto;
     justify-items: center;
     align-items: center;
     padding: 4px 2px 5px;
@@ -1292,6 +1292,56 @@ fieldset.pf-field,
     height: 28px;
     object-fit: contain;
 }
+
+/* álbum de edições: o número grande, as bolinhas de cada espécie e a fita de campeão */
+.pf-album {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 4px 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: repeating-linear-gradient(135deg, rgb(255 255 255 / 3%) 0 2px, transparent 2px 10px), var(--bg-2);
+    border: 2px solid var(--line);
+}
+.pf-album-label {
+    font-weight: 700;
+    color: var(--muted);
+    font-size: 13px;
+}
+.pf-album-n {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 28px;
+    line-height: 1;
+    color: var(--yellow);
+}
+.pf-album-n small {
+    font-size: 14px;
+    color: var(--muted);
+}
+.pf-album .pf-bar,
+.pf-album > small {
+    grid-column: 1 / -1;
+}
+.pf-album > small {
+    font-size: 12px;
+    line-height: 1.35;
+}
+.pf-pips {
+    display: flex;
+    gap: 3px;
+    height: 6px;
+    margin-top: 2px;
+}
+.pf-pips i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 12%);
+}
+.pf-pips i.on.ed-normal {
+    background: #f4f1e6;
+}
 .pf-ribbon {
     width: 18px;
     height: 22px;
@@ -1309,6 +1359,75 @@ fieldset.pf-field,
     font-size: 12px;
     font-weight: 700;
     color: #ffe680;
+}
+.pf-stickers {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+    gap: 6px;
+}
+.pf-sticker {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    padding: 6px 2px 5px;
+    border-radius: 9px;
+    border: 2px dashed #364275;
+    background: var(--bg-2);
+    min-width: 0;
+}
+.pf-sticker img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+.pf-sticker small {
+    max-width: 100%;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.1;
+    text-align: center;
+    color: #5d679a;
+}
+/* colada: borda branca de figurinha e o fundo da edição (os mesmos da carta na prancheta) */
+.pf-sticker.got {
+    border: 3px solid #f4f1e6;
+    box-shadow: 0 2px 0 #0e1430;
+    background: linear-gradient(160deg, var(--panel-2), var(--panel));
+}
+.pf-sticker.got small {
+    color: var(--text);
+    text-shadow: 0 1px 0 rgb(0 0 0 / 55%);
+}
+.pf-sticker.sk-shiny {
+    background: linear-gradient(135deg, #ffe3f3 0%, #e3f1ff 30%, #e9ffe9 55%, #fff4dc 80%, #f3e3ff 100%);
+}
+.pf-sticker.sk-shiny small {
+    color: #2a2140;
+    text-shadow: none;
+}
+.pf-sticker.sk-destaque {
+    background:
+        repeating-linear-gradient(135deg, rgb(255 215 90 / 8%) 0 1px, transparent 1px 8px),
+        linear-gradient(160deg, #2b2b30 0%, #111114 60%, #000 100%);
+    border-color: #d9b23c;
+}
+.pf-sticker.sk-icone {
+    background:
+        radial-gradient(ellipse 70% 45% at 20% 25%, rgb(120 80 255 / 55%), transparent 70%),
+        radial-gradient(ellipse 80% 40% at 60% 110%, rgb(255 80 190 / 45%), transparent 70%), #0b0726;
+    border-color: #b48cff;
+}
+.pf-sticker.sk-evento {
+    background:
+        radial-gradient(circle at 70% 30%, rgb(255 255 255 / 45%), transparent 55%),
+        repeating-conic-gradient(
+            from 0deg at 70% 30%,
+            var(--t1) 0deg 8deg,
+            color-mix(in srgb, var(--t1) 70%, #000) 8deg 16deg
+        );
 }
 .pf-champ .pf-ribbon {
     width: 22px;

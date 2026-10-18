@@ -1,5 +1,6 @@
 import type { PlayerLine } from '../engine/match-stats';
 import type { MatchResult } from '../engine/runners/batch-runner';
+import { EVENT_TYPES, ICONS, type SpecialKind } from '../engine/specials';
 import { DEFAULT_TITLE, DEFAULT_TRAINER, type TrainerId } from './missions';
 
 /**
@@ -101,6 +102,8 @@ export interface DexEntry {
     /** Melhor nota de partida (0–10) e maior nota de carta que já passou pelo seu time. */
     bestRating: number;
     bestOvr: number;
+    /** Álbum: edições que já jogaram por você (bits de EDITION_BIT). Saves antes da v9 não têm. */
+    editions?: number;
 }
 
 export type Dex = Record<number, DexEntry>;
@@ -231,7 +234,39 @@ export function recordMatchInCareer(c: Career, score: [number, number], won: boo
     };
 }
 
-/** Junta duas Dex (nuvem + aparelho): fica o maior de cada número. */
+/** Álbum de edições: uma figurinha por edição de cada espécie. */
+export type AlbumEdition = 'normal' | 'shiny' | SpecialKind;
+export const ALBUM_EDITIONS: AlbumEdition[] = ['normal', 'shiny', 'evento', 'icone', 'destaque'];
+export const EDITION_BIT: Record<AlbumEdition, number> = { normal: 1, shiny: 2, evento: 4, icone: 8, destaque: 16 };
+
+/** Edições que existem para a espécie: Ícone só para os 20 da lista, Evento só com um tipo que entra em evento. */
+export function albumSlots(sp: { id: number; types: readonly string[] }): AlbumEdition[] {
+    return ALBUM_EDITIONS.filter(
+        (e) => (e !== 'icone' || sp.id in ICONS) && (e !== 'evento' || sp.types.some((t) => EVENT_TYPES.includes(t))),
+    );
+}
+
+export const hasSticker = (e: DexEntry | undefined, ed: AlbumEdition) => !!((e?.editions ?? 0) & EDITION_BIT[ed]);
+
+/** Bits da carta: a edição especial e o shiny (sem nenhum dos dois = Normal). */
+export function editionBits(card: { shiny: boolean; special?: { kind: SpecialKind } | null }): number {
+    const bits = (card.shiny ? EDITION_BIT.shiny : 0) | (card.special ? EDITION_BIT[card.special.kind] : 0);
+    return bits || EDITION_BIT.normal;
+}
+
+/** Cola figurinhas: cada (espécie, bits) de quem jogou. Só vale para espécie que já "jogou" na Dex. */
+export function recordEditions(dex: Dex, played: Iterable<[number, number]>): Dex {
+    let out: Dex | null = null;
+    for (const [id, bits] of played) {
+        const cur = (out ?? dex)[id];
+        if (!cur || cur.matches <= 0 || ((cur.editions ?? 0) | bits) === (cur.editions ?? 0)) continue;
+        out ??= { ...dex };
+        out[id] = { ...cur, editions: (cur.editions ?? 0) | bits };
+    }
+    return out ?? dex;
+}
+
+/** Junta duas Dex (nuvem + aparelho): fica o maior de cada número, e as figurinhas dos dois lados. */
 export function mergeDex(a: Dex = {}, b: Dex = {}): Dex {
     const out: Dex = { ...a };
     for (const [k, eb] of Object.entries(b)) {
@@ -245,6 +280,9 @@ export function mergeDex(a: Dex = {}, b: Dex = {}): Dex {
         for (const key of Object.keys(EMPTY_ENTRY) as (keyof DexEntry)[]) {
             merged[key] = Math.max(ea[key] ?? 0, eb[key] ?? 0);
         }
+        // figurinha é bitmask: o maior perderia a de um lado (Shiny 2 contra Normal+Evento 5)
+        const editions = (ea.editions ?? 0) | (eb.editions ?? 0);
+        if (editions) merged.editions = editions;
         out[id] = merged;
     }
     return out;

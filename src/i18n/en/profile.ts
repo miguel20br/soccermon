@@ -24,7 +24,7 @@ export const profile: typeof pt = {
         awayKit: 'A rival with a color close to yours wears its away kit.',
     },
     dex: {
-        filters: { all: 'All', played: 'Played', seen: 'Seen only', unseen: 'Missing' },
+        filters: { all: 'All', played: 'Played', seen: 'Seen only', unseen: 'Missing', missing: 'Missing stickers' },
         seen: 'Seen',
         played: 'Played',
         barAria: '{seen} of {total} seen, {played} played for your team',
@@ -37,6 +37,10 @@ export const profile: typeof pt = {
         emptyUnseenType: "The type of missing Pokémon stays hidden until you've seen them.",
         emptyPlayed: 'Nobody has played for your team yet. Start a cup!',
         empty: 'No Pokémon here yet.',
+        stickers: 'Stickers',
+        stickersAria: '{n} of {total} album stickers',
+        stickersHelp: 'Field a card of each edition in a match to stick its sticker.',
+        emptyMissing: 'Album complete here. What a collection!',
         ribbonAria: ', champion {n} time with you|, champion {n} times with you',
     },
     sheet: {
@@ -73,6 +77,12 @@ export const profile: typeof pt = {
         titles: 'Titles',
         bestRating: 'Best rating',
         bestCard: 'Best card',
+        album: 'Album',
+        albumCount: '{n}/{total} stickers',
+        albumHelp: 'Every edition that plays for your team (at least 1 minute) sticks a sticker.',
+        normal: 'Normal',
+        stickerGot: '{edition}: stuck',
+        stickerMissing: '{edition}: missing',
         ribbon: 'Champion {n} time with you|Champion {n} times with you',
         notPlayed:
             "Hasn't played for your team yet. Put it in your lineup in a cup (at least 1 minute on the court) to start its career.",

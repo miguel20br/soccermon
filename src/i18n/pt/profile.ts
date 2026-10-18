@@ -22,7 +22,7 @@ export const profile = {
         awayKit: 'Rival com cor parecida com a sua usa o uniforme reserva.',
     },
     dex: {
-        filters: { all: 'Todos', played: 'Jogaram', seen: 'Só vistos', unseen: 'Faltam' },
+        filters: { all: 'Todos', played: 'Jogaram', seen: 'Só vistos', unseen: 'Faltam', missing: 'Falta figurinha' },
         seen: 'Vistos',
         played: 'Jogaram',
         barAria: '{seen} de {total} vistos, {played} jogaram pelo seu time',
@@ -35,6 +35,10 @@ export const profile = {
         emptyUnseenType: 'O tipo de quem falta fica escondido até você ver o Pokémon.',
         emptyPlayed: 'Ninguém jogou pelo seu time ainda. Comece uma copa!',
         empty: 'Nenhum Pokémon por aqui ainda.',
+        stickers: 'Figurinhas',
+        stickersAria: '{n} de {total} figurinhas do álbum',
+        stickersHelp: 'Escale uma carta de cada edição numa partida para colar a figurinha.',
+        emptyMissing: 'Álbum completo por aqui. Que coleção!',
         ribbonAria: ', campeão {n} vez com você|, campeão {n} vezes com você',
     },
     sheet: {
@@ -71,6 +75,12 @@ export const profile = {
         titles: 'Títulos',
         bestRating: 'Melhor nota',
         bestCard: 'Maior carta',
+        album: 'Álbum',
+        albumCount: '{n}/{total} figurinhas',
+        albumHelp: 'Cada edição que jogar pelo seu time (pelo menos 1 minuto) cola uma figurinha.',
+        normal: 'Normal',
+        stickerGot: '{edition}: colada',
+        stickerMissing: '{edition}: falta',
         ribbon: 'Campeão {n} vez com você|Campeão {n} vezes com você',
         notPlayed:
             'Ainda não jogou pelo seu time. Escale ele numa copa (pelo menos 1 minuto em quadra) para começar a carreira dele.',

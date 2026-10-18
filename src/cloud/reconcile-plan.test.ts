@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
 import { DEFAULT_SETTINGS, type PersistedSave, type RunState, withUnlocks } from '../store/game-store';
-import { DEFAULT_PROFILE, type Dex, EMPTY_CAREER } from '../store/profile';
+import { DEFAULT_PROFILE, type Dex, EDITION_BIT, EMPTY_CAREER } from '../store/profile';
 import { hasProgress, mergeSaves, type PlanInput, planReconcile, summarize } from './reconcile-plan';
 
 /** Copa mínima para as regras (o motor não roda aqui). */
@@ -161,6 +161,15 @@ describe('mergeSaves: junção sem perder copa', () => {
                 .sort((a, b) => a - b),
         ).toEqual([1, 4, 7]);
         expect(m.moves).toEqual({ tackle: 3, ember: 2 });
+    });
+
+    it('figurinhas do álbum juntam com OU nos dois sentidos', () => {
+        const withEd = (editions: number) => ({ 25: { ...dex(25)[25], editions } });
+        const local = save({ dex: withEd(EDITION_BIT.shiny) });
+        const cloud = save({ dex: withEd(EDITION_BIT.normal | EDITION_BIT.icone) });
+        const all = EDITION_BIT.shiny | EDITION_BIT.normal | EDITION_BIT.icone;
+        expect(mergeSaves(local, cloud, 'cloud').dex[25].editions).toBe(all);
+        expect(mergeSaves(local, cloud, 'device').dex[25].editions).toBe(all);
     });
 
     it('copa que não continua fica guardada', () => {
