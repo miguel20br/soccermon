@@ -152,6 +152,10 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const colors: [number, number] = side === 0 ? [mine, theirs] : [theirs, mine];
     // clubes com o mesmo nome: o placar e a narração usam o nome do treinador
     const teamNames = duelNames(s);
+    // o capitão de cada lado é a cara dos emotes
+    const captainOf = (t: typeof home) =>
+        [...t.lineup, ...t.bench].find((p) => p.uid === t.captainUid)?.speciesId ?? t.lineup[0].speciesId;
+    const captains: [number, number] = [captainOf(home), captainOf(away)];
 
     useEffect(() => {
         setVolume(settings.volume);
@@ -463,7 +467,11 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                         stage={t('duel.title')}
                         coaches={[badge(s.peers.host), badge(s.peers.guest)]}
                     >
-                        <EmoteBubbles mySide={side === 0 ? 'left' : 'right'} />
+                        <EmoteBubbles
+                            mySide={side === 0 ? 'left' : 'right'}
+                            captains={captains}
+                            colors={[hex(colors[0]), hex(colors[1])]}
+                        />
                     </Scoreboard>
                     <PressureBar match={match} tick={clock.tick} minute={clock.minute} colors={colors} over={over} />
                 </div>
@@ -607,7 +615,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                 <div className="bc-thumb">
                     {!wide && emotesOpen && (
                         <div className="bc-emotes">
-                            <EmoteBar />
+                            <EmoteBar captain={captains[side]} />
                         </div>
                     )}
                     {!ended ? (
@@ -643,7 +651,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                         </button>
                     )}
                     {wide ? (
-                        <EmoteBar />
+                        <EmoteBar captain={captains[side]} />
                     ) : (
                         <button
                             type="button"

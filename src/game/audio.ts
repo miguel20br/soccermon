@@ -112,8 +112,9 @@ export function cryUrl(speciesId: number, style: CryStyle) {
     return `assets/cries/${style}/${speciesId}.ogg`;
 }
 
-export function playCry(speciesId: number, style: CryStyle, gain = 1) {
-    cry(speciesId, style, vol.master * vol.cries * gain);
+/** `rate` muda o tom (e a duração): emote feliz sai mais agudo, triste mais grave. */
+export function playCry(speciesId: number, style: CryStyle, gain = 1, rate = 1) {
+    cry(speciesId, style, vol.master * vol.cries * gain, rate);
 }
 
 /** Grito de gol: o cry do capitão junto com a torcida, no volume de efeitos (desliga em Configurações). */
@@ -121,7 +122,7 @@ export function playGoalCry(speciesId: number, style: CryStyle) {
     if (goalCryOn) cry(speciesId, style, vol.master * vol.sfx);
 }
 
-function cry(speciesId: number, style: CryStyle, volume: number) {
+function cry(speciesId: number, style: CryStyle, volume: number, rate = 1) {
     if (volume <= 0) return;
     const url = cryUrl(speciesId, style);
     let audio = cryCache.get(url);
@@ -131,5 +132,9 @@ function cry(speciesId: number, style: CryStyle, volume: number) {
     }
     const node = audio.cloneNode(true) as HTMLAudioElement;
     node.volume = Math.min(1, 0.55 * volume);
+    if (rate !== 1) {
+        node.preservesPitch = false;
+        node.playbackRate = rate;
+    }
     node.play().catch(() => {});
 }

@@ -827,7 +827,18 @@
         text-transform: uppercase;
         letter-spacing: 1px;
     }
+    /* desktop: os 8 numa linha só, sem a frase (fica no title) */
     .bc-thumb .emote-bar {
-        flex-wrap: nowrap;
+        grid-template-columns: repeat(9, auto);
+    }
+    .bc-thumb .emote-btn {
+        width: 46px;
+    }
+    .bc-thumb .emote-btn span {
+        display: none;
+    }
+    .bc-thumb .emote-btn.mute {
+        grid-column: auto;
+        grid-row: auto;
     }
 }
