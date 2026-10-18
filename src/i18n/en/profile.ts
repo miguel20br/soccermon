@@ -316,6 +316,7 @@ export const profile: typeof pt = {
         trainer: 'Your trainer',
         trainerCount: '{n} of {total} unlocked',
         trainerHelp: 'The others come from missions (Missions tab).',
+        legendary: 'Legendary',
         lockedAria: '{name}, locked: {mission}',
         title: 'Title',
         titleHelp: 'Shown under your name. Missions and codes give new titles.',

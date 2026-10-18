@@ -316,6 +316,7 @@ export const profile = {
         trainer: 'Seu treinador',
         trainerCount: '{n} de {total} liberados',
         trainerHelp: 'Os outros saem das missões (aba Missões).',
+        legendary: 'Lendária',
         lockedAria: '{name}, bloqueado: {mission}',
         title: 'Título',
         titleHelp: 'Aparece embaixo do seu nome. Missões e códigos dão títulos novos.',
