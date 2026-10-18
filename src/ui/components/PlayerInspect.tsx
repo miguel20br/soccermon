@@ -101,7 +101,10 @@ export function PlayerInspect({
     // mesma conta do motor (effective.ts: 0.72 + 0.28 × fôlego)
     const fatigue = Math.round(0.28 * (1 - energy) * 100);
     const target = evolutionTarget(inst.speciesId, inst.uid);
-    const evoPct = Math.min(100, Math.round((evoProgress(inst, stats, who.role) / evoNeeded(who.team)) * 100));
+    const evoPct = Math.min(
+        100,
+        Math.round((evoProgress(inst, stats, who.role) / evoNeeded(who.team, setup?.manualSubs)) * 100),
+    );
     const moveMods = moveModifiers(inst);
     const captainHere = inst.uid === setup.captainUid;
     // tocar num golpe abre a carta completa já nos golpes (o que cada um faz)

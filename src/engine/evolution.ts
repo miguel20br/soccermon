@@ -38,7 +38,9 @@ export const RIVAL_EVO_THRESHOLD = 10;
 /** Barra de evolução agora: o que ele trouxe das partidas anteriores + o que fez nesta. */
 export const evoProgress = (inst: PokemonInstance, stats: PlayerStats, role: Position) =>
     (inst.evo ?? 0) + evoScore(stats, role);
-export const evoNeeded = (team: 0 | 1) => (team === 0 ? EVO_THRESHOLD : RIVAL_EVO_THRESHOLD);
+/** Limiar de quem evolui: o seu time e todo time de técnico humano (os dois lados do Duelo, decidido em 18/10) usam o alto. */
+export const evoNeeded = (team: 0 | 1, humanCoach = false) =>
+    team === 0 || humanCoach ? EVO_THRESHOLD : RIVAL_EVO_THRESHOLD;
 
 export function evoScore(stats: PlayerStats, role: Position): number {
     let total = 0;

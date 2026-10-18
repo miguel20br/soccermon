@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { evolvedRating, evolveInstance } from './evolution';
+import { EVO_THRESHOLD, evolvedRating, evolveInstance, evoNeeded, RIVAL_EVO_THRESHOLD } from './evolution';
 import { createInstance, slotRating, viewInstance } from './instance';
 import { attributeModifiers } from './modifiers';
 import { Rng } from './rng';
@@ -40,5 +40,13 @@ describe('carta que evolui vale mais que a pronta', () => {
             expect(view.attributes[k]).toBe(Math.min(99, ready.attributes[k] + 4));
         expect(view.overall).toBeGreaterThan(ready.overall);
         expect(attributeModifiers(grown).some((m) => m.source === 'evolucao' && m.add === 4)).toBe(true);
+    });
+});
+
+describe('limiar de evolução', () => {
+    it('no Duelo os dois lados (técnico humano) precisam do mesmo; o rival da IA continua com o dele', () => {
+        expect(evoNeeded(0)).toBe(EVO_THRESHOLD);
+        expect(evoNeeded(1, true)).toBe(EVO_THRESHOLD);
+        expect(evoNeeded(1)).toBe(RIVAL_EVO_THRESHOLD);
     });
 });
