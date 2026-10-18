@@ -136,12 +136,14 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const scoreboardRef = useRef<HTMLDivElement>(null);
     const halftimeRef = useRef<HTMLDivElement>(null);
     const subPanelRef = useRef<HTMLDivElement>(null);
-    // como na copa: celular deitado deixa o placar no topo (a quadra cabe inteira) e o intervalo vem pra tela
+    // como na copa: celular deitado deixa o placar no topo (a quadra cabe inteira) e o intervalo vem pra tela;
+    // o placar só existe depois que a partida chega (antes é o "preparando")
+    const hasMatch = !!match;
     useEffect(() => {
-        if (!window.matchMedia('(orientation: landscape) and (max-height: 520px)').matches) return;
+        if (!hasMatch || !window.matchMedia('(orientation: landscape) and (max-height: 520px)').matches) return;
         const id = requestAnimationFrame(() => scoreboardRef.current?.scrollIntoView({ block: 'start' }));
         return () => cancelAnimationFrame(id);
-    }, []);
+    }, [hasMatch]);
 
     // cores: o seu clube no seu lado, o rival no uniforme reserva se bater
     const mine = myTeam.color;

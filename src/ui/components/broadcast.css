@@ -853,6 +853,17 @@
     .bc-ticker-wrap {
         height: 24px;
     }
+    /* duelo: o Sair da sala fica na linha do logo, em cima das abas */
+    .duel:has(.bc) > .duel-top:not(:has(.duel-leave-ask)) {
+        top: 4px;
+    }
+    .duel .panel.bc-coach {
+        margin-top: 8px;
+    }
+    /* o placar do duelo tem a linha dos títulos (~22 px) */
+    .duel .bc-stage > .pitch-wrap {
+        width: min(100%, calc((100svh - 200px - env(safe-area-inset-bottom)) * 968 / 528));
+    }
 }
 
 /* ---------- desktop: abas na coluna da direita, tática e velocidade embaixo da quadra ---------- */
