@@ -47,7 +47,7 @@ gh release create vX.Y.Z --title "X.Y.Z · <título>" --notes-file notas.md
 Confira que foi pro ar:
 - deploy de produção `success`: `gh api "repos/miguel20br/soccermon/deployments?per_page=10"` e depois os statuses
   do deploy daquele sha;
-- o site serve a versão nova: baixe o `assets/index-*.js` de `https://soccermon.com/` e procure `X.Y.Z`;
+- o site serve a versão nova: baixe o `bundle/index-*.js` (era `assets/` até a 0.8.5) de `https://soccermon.com/` e procure `X.Y.Z`;
 - CI verde: `gh run list --branch main --limit 1`.
 
 Arrume a casa: `git merge --ff-only origin/main` no checkout principal, `git worktree remove` dos worktrees já

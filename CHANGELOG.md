@@ -1,5 +1,53 @@
 # Novidades
 
+## 0.8.6 · Lendas douradas e prancheta ao vivo
+
+### Missões lendárias
+- 6 treinadores dourados por feitos absurdos: Ash (copa perfeita, sem sofrer gol), Lance (campeão com os 3 pássaros na final), Joey (campeão com um Rattata), Red (5 copas seguidas), Blue (virar a final depois de perder por 3) e Prof. Carvalho (jogar com os 151)
+- 9 títulos lendários brilhando, como Senhor dos Céus, Original e Clone, Artilheiro Lendário (12 gols de um Pokémon numa copa) e Zé Ninguém (campeão com 5 titulares bronze)
+- Treinador dourado brilha e ganha moldura de ouro no perfil, VERSUS, duelo, Hall da Fama e card do título
+- A missão do Ash ficou possível: ser campeão sofrendo até 5 gols na copa (título Muralha). A copa perfeita, sem sofrer gol, agora dá o Ash dourado
+
+### Coleção
+- Estojo de insígnias de Kanto no Perfil: cada uma sai quando você vence o clube do líder numa copa (vale pro que você já venceu)
+- Álbum de figurinhas na Pokédex: Normal, Shiny, Evento, Ícone e Destaque de cada espécie (622 no total), colando quando a carta joga
+- Fita de campeão na Pokédex com quantas vezes cada espécie foi campeã com você
+- 9 coleções temáticas com título próprio: Iniciais, Pássaros, Fósseis, Eeveelutions, Lendários, Hitmons, Nidos e os times do Brock e da Misty
+- Grito de gol: o capitão grita junto com a torcida no seu gol (dá pra desligar em Configurações)
+
+### Prancheta no meio da partida
+- Mude a formação e troque Pokémon de vaga durante o jogo, na Copa e no Duelo
+- A mudança entra na próxima bola parada, como a substituição; sem limite
+- Qualquer um pode ir pro gol (fora de posição perde nota)
+
+### Evolução
+- Carta que evolui ganha +2 em todos os atributos por evolução: Charmander que vira Charizard fica 89, o Charizard pronto é 85
+- Evolução do rival com animação e faixa próprias (RIVAL EVOLUIU!), diferente da sua
+- No Duelo os dois lados evoluem com a mesma barra (antes quem entrava pelo link evoluía mais fácil)
+
+### Duelo
+- Revanche de um toque: os dois aceitam e já vão pro draft, sem voltar pra sala
+- Placar geral contra o mesmo amigo no resultado
+- Quem recarrega a página volta pro minuto certo, e a tela avisa quando está esperando o rival
+- Rival que sai na tela de resultado aparece como saiu (a revanche não fica esperando pra sempre)
+- Clubes com o mesmo nome aparecem com o nome do treinador
+- Mais proteção contra placar e time trocados por quem mexe no navegador
+- Ícone próprio pro grito do capitão e textos mais claros
+
+### Partida
+- Defesa do goleiro: a bola defendida não passa mais por trás dele, e a espalmada pra escanteio sai pelo lado da mão
+- Recompensa: item novo pra quem já segura um pergunta pra quem vai o antigo (antes ele sumia)
+- Título do treinador em selo no VERSUS, no saguão e no placar do duelo
+- O relógio mostra Intervalo no intervalo
+- Partida que estava no meio na hora da atualização recomeça do 0 a 0 (a copa e o time ficam)
+
+### Mais leve e mais claro
+- O jogo abre bem mais rápido no celular: o primeiro acesso caiu de 2,5 MB pra 0,4 MB
+- Média do time no VERSUS igual à da escalação (pela nota de cada um na vaga)
+- Item e MT da recompensa com botão Escolher, como o Pokémon
+- Ajuda sem cortar no celular, aviso de desbloqueio sem cobrir o topo e botões maiores pra tocar
+- Treinadores lendários bloqueados com brilho dourado, pra dar vontade de caçar
+
 ## 0.8.5 · Escanteio e duelo ao vivo
 
 ### Duelo ao vivo (BETA)
