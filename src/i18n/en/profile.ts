@@ -92,7 +92,7 @@ export const profile: typeof pt = {
             folha: '{n}/10 matches',
             holo: '{n}/25 goals',
             prisma: '{n}/5 titles',
-            ouro: 'Prism and Kanto complete ({n}/151 played)',
+            ouro: 'Prism + Kanto complete ({n}/151)',
         },
         sealGot: '{name}: earned',
         sealMissing: '{name}: missing ({goal})',

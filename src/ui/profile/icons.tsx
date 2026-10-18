@@ -125,9 +125,9 @@ const facet = (i: number) => {
 };
 /** Cor de cada faceta (a partir da de cima à direita, no sentido do relógio). */
 const SEAL_FACETS: Record<CareerSeal, string[]> = {
-    folha: ['#f4f7fb', '#c9d1de', '#9aa5ba', '#b3bccc', '#dde3ec', '#ffffff'],
+    folha: ['#e6ebf3', '#aeb8ca', '#7f8aa2', '#97a2b7', '#c9d1de', '#f7f9fc'],
     holo: ['#ff9ad5', '#ffd36b', '#a6f08a', '#7fe0ff', '#a99bff', '#ffb3a3'],
-    prisma: ['#232c5e', '#1b2350', '#141a3e', '#1b2350', '#232c5e', '#2b3570'],
+    prisma: ['#7a6cd6', '#5f53b8', '#483e98', '#5a4fb0', '#6c5fc8', '#8d7fe6'],
     ouro: ['#4a3a17', '#33280f', '#211907', '#2c220c', '#3d3013', '#5a4719'],
 };
 
@@ -146,10 +146,10 @@ export function CareerSealIcon({ seal, className = 'pf-seal' }: { seal: CareerSe
             )}
             {seal === 'prisma' && (
                 <>
-                    <path d="M3.4 13.6 L9.6 11.8" stroke="#fff" strokeWidth="1.3" strokeLinecap="round" />
-                    <path d="M12 12.7 L12 6 L17.6 16 Z" fill="#ff6ad5" />
-                    <path d="M12 12.7 L17.6 16 L6.4 16 Z" fill="#ffe066" />
-                    <path d="M12 12.7 L6.4 16 L12 6 Z" fill="#5fe3ff" />
+                    <path d="M3.2 13.8 L9 12.2" stroke="#fff" strokeWidth="1.4" strokeLinecap="round" />
+                    <path d="M12 12.8 L12 4.8 L18.6 16.8 Z" fill="#ff6ad5" />
+                    <path d="M12 12.8 L18.6 16.8 L5.4 16.8 Z" fill="#ffe066" />
+                    <path d="M12 12.8 L5.4 16.8 L12 4.8 Z" fill="#5fe3ff" />
                 </>
             )}
             {seal === 'ouro' && (

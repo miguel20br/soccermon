@@ -90,7 +90,7 @@ export const profile = {
             folha: '{n}/10 partidas',
             holo: '{n}/25 gols',
             prisma: '{n}/5 títulos',
-            ouro: 'Prisma e Kanto completo ({n}/151 jogaram)',
+            ouro: 'Prisma + Kanto completo ({n}/151)',
         },
         sealGot: '{name}: conquistado',
         sealMissing: '{name}: falta ({goal})',
