@@ -118,14 +118,23 @@ Leia a skill antes de começar a tarefa dela:
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (17/10/2026, v0.8.4 · Balanceamento geral e o seu treinador)
+## Estado atual (17/10/2026, v0.8.5 · Escanteio e duelo ao vivo)
+
+Na 0.8.5: escanteio (opção B de [docs/planos/escanteio.md](docs/planos/escanteio.md), `CORNER_TUNING` em
+`src/engine/match.ts`), motor com contas próprias (`src/engine/dmath.ts`; `npm run determinismo` compara Node,
+Chromium, Firefox e WebKit), seed por trecho de 2 minutos e o **Duelo ao vivo (BETA)** (regras e decisões em
+[docs/planos/multiplayer.md](docs/planos/multiplayer.md); `src/net/` e `src/ui/duel/`): sala por link, Supabase
+Realtime em canal privado `duel:<código>` (migração `20261017200000_duelo_realtime.sql` já aplicada), 3 modos
+(Disputa, Cada um com seus pacotes, Time pronto), mesmo caminho e telas do Copa, prancheta do time (`Prancheta.tsx`,
+também no Copa) e duelo sem conta (login anônimo). **No painel do Supabase:** Realtime com "Allow public access"
+desligado e Auth com "Allow anonymous sign-ins" ligado (17/10/2026); não desfazer sem trocar o código.
 
 Na 0.8.4: balanceamento geral em 3 blocos + auditoria de posições (tudo em
 [docs/planos/balanceamento-geral.md](docs/planos/balanceamento-geral.md); ajuste por espécie em `SPECIES_TUNING`,
 `src/engine/attributes.ts`; a evolução herda a vaga em `PokemonInstance.inherited`), treinador e missões
 (`src/store/missions.ts`, códigos de título em `src/store/title-codes.ts`) e `ENGINE_VERSION`
-(`src/engine/config.ts`: suba a cada mudança que altera partidas). Próxima (0.8.5): escanteio + duelo ao vivo, com
-a divulgação das duas juntas. O modo de hoje se chama **Copa** (Modo história e Duelo são outros modos).
+(`src/engine/config.ts`: suba a cada mudança que altera partidas). Divulgação da 0.8.4 e da 0.8.5 juntas (clipe
+combo no TikTok). O modo de hoje se chama **Copa** (Modo história e Duelo são outros modos).
 
 ### 0.8.3 · Partida com peso, pacote de cartas e torcida
 

@@ -1,5 +1,31 @@
 # Novidades
 
+## 0.8.5 · Escanteio e duelo ao vivo
+
+### Duelo ao vivo (BETA)
+- Desafie um amigo por link: os dois veem a mesma partida ao mesmo tempo
+- Não precisa de conta: quem recebe o link digita o nome e toca em Jogar agora (com Google, o histórico fica guardado na nuvem)
+- 3 modos: Disputa (draft alternado, 4 cartas por vaga, uma pra cada e 2 queimam), Cada um com seus pacotes (mesma sorte pros dois, escolhas escondidas) e Time pronto (o time da copa ou um campeão do Hall, com limite de cartas especiais escolhido por quem cria a sala)
+- Convite com Compartilhar, WhatsApp, QR code e código da sala
+- O mesmo caminho da copa: escalação, VERSUS com os dois treinadores, partida e resultado
+- Velocidade da sala: um pede, o outro aceita ou recusa
+- Trocas e tática que o rival vê na hora, emotes e revanche
+- Escalações e escolhas lacradas: ninguém vê a jogada do outro antes da hora
+
+### Escanteio
+- Nasce da espalmada pra fora e do desvio no bloqueio: 3 a 4 por jogo
+- Disputa no alto pela força, pelo tamanho e pelo posicionamento, com faixa ESCANTEIO e NO ALTO!
+- Instrução do técnico (Na área, Curta, Variar), trocável como a tática, e o cobrador na escalação
+- Golpe na bola parada (gasta PP) e gol olímpico raro, só com golpe de vento
+- Selo Jogo aéreo no painel do Pokémon
+
+### Partida
+- Prancheta do time ao vivo: formação com nota, fôlego e banco; toque num jogador pra substituir
+- No desktop a prancheta fica ao lado da quadra e a tabela do time começa recolhida
+- Golpe no chute aparece mais (de quase nunca pra ~1,5 por jogo)
+- A mesma partida em todo navegador (contas próprias no motor)
+- Partida que estava no meio na hora da atualização recomeça do 0 a 0 (a copa e o time ficam)
+
 ## 0.8.4 · Balanceamento geral e o seu treinador
 
 ### Seu treinador

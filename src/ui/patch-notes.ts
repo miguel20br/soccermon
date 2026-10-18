@@ -7,6 +7,45 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.8.5',
+        title: 'Escanteio e duelo ao vivo',
+        sections: [
+            {
+                title: 'Duelo ao vivo (BETA)',
+                lines: [
+                    'Desafie um amigo por link: os dois veem a mesma partida ao mesmo tempo',
+                    'Não precisa de conta: quem recebe o link digita o nome e toca em Jogar agora (com Google, o histórico fica guardado na nuvem)',
+                    '3 modos: Disputa (draft alternado, 4 cartas por vaga, uma pra cada e 2 queimam), Cada um com seus pacotes (mesma sorte pros dois, escolhas escondidas) e Time pronto (o time da copa ou um campeão do Hall, com limite de cartas especiais escolhido por quem cria a sala)',
+                    'Convite com Compartilhar, WhatsApp, QR code e código da sala',
+                    'O mesmo caminho da copa: escalação, VERSUS com os dois treinadores, partida e resultado',
+                    'Velocidade da sala: um pede, o outro aceita ou recusa',
+                    'Trocas e tática que o rival vê na hora, emotes e revanche',
+                    'Escalações e escolhas lacradas: ninguém vê a jogada do outro antes da hora',
+                ],
+            },
+            {
+                title: 'Escanteio',
+                lines: [
+                    'Nasce da espalmada pra fora e do desvio no bloqueio: 3 a 4 por jogo',
+                    'Disputa no alto pela força, pelo tamanho e pelo posicionamento, com faixa ESCANTEIO e NO ALTO!',
+                    'Instrução do técnico (Na área, Curta, Variar), trocável como a tática, e o cobrador na escalação',
+                    'Golpe na bola parada (gasta PP) e gol olímpico raro, só com golpe de vento',
+                    'Selo Jogo aéreo no painel do Pokémon',
+                ],
+            },
+            {
+                title: 'Partida',
+                lines: [
+                    'Prancheta do time ao vivo: formação com nota, fôlego e banco; toque num jogador pra substituir',
+                    'No desktop a prancheta fica ao lado da quadra e a tabela do time começa recolhida',
+                    'Golpe no chute aparece mais (de quase nunca pra ~1,5 por jogo)',
+                    'A mesma partida em todo navegador (contas próprias no motor)',
+                    'Partida que estava no meio na hora da atualização recomeça do 0 a 0 (a copa e o time ficam)',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.8.4',
         title: 'Balanceamento geral e o seu treinador',
         sections: [
@@ -376,6 +415,45 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.8.5',
+        title: 'Corners and live duels',
+        sections: [
+            {
+                title: 'Live duel (BETA)',
+                lines: [
+                    'Challenge a friend with a link: both of you watch the same match at the same time',
+                    'No account needed: whoever gets the link types a name and taps Play now (sign in with Google to keep your history in the cloud)',
+                    '3 modes: Snake draft (4 cards per slot, one each and 2 burn), Own packs (same luck for both, hidden picks) and Ready team (your cup team or a Hall of Fame champion, with a special card limit set by the host)',
+                    'Invite with Share, WhatsApp, QR code and room code',
+                    'Same path as the cup: lineup, VERSUS with both trainers, match and result',
+                    'Room speed: one asks, the other accepts or declines',
+                    'Subs and tactics the rival sees right away, emotes and rematch',
+                    'Sealed lineups and picks: nobody sees the other move early',
+                ],
+            },
+            {
+                title: 'Corners',
+                lines: [
+                    'They come from saves pushed wide and blocked shots: 3 to 4 per match',
+                    'Aerial duels by strength, size and positioning, with CORNER and IN THE AIR! banners',
+                    'Coach instruction (In the box, Short, Mix it up), changeable like tactics, and the taker in the lineup',
+                    'Moves on set pieces (they spend PP) and a rare olympic goal, only with a wind move',
+                    'Aerial game badge on the player panel',
+                ],
+            },
+            {
+                title: 'Match',
+                lines: [
+                    'Live team board: formation with rating, stamina and bench; tap a player to sub',
+                    'On desktop the board sits beside the pitch and the team table starts collapsed',
+                    'Moves on shots show up more (from almost never to ~1.5 per match)',
+                    'The same match in every browser (the engine does its own math)',
+                    'A match left halfway when the update lands restarts at 0-0 (the cup and the team stay)',
+                ],
+            },
+        ],
+    },
     {
         version: '0.8.4',
         title: 'Full rebalance and your trainer',
