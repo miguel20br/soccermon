@@ -32,7 +32,7 @@ export const match: typeof pt = {
         evolved: 'EVO',
         tapMine: ', tap to sub or view',
         tapRival: ', tap to view',
-        hintMine: 'Tap a player to sub him out (or see his panel).',
+        hintMine: 'Tap a player to sub them out (or see their panel).',
         hintRival: "Rival's team: view only.",
     },
     ht: {
