@@ -7,6 +7,46 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.8.6',
+        title: 'Lendas douradas e prancheta ao vivo',
+        sections: [
+            {
+                title: 'Missões lendárias',
+                lines: [
+                    '6 treinadores dourados por feitos absurdos: Ash (copa perfeita, sem sofrer gol), Lance (campeão com os 3 pássaros na final), Joey (campeão com um Rattata), Red (5 copas seguidas), Blue (virar a final depois de perder por 3) e Prof. Carvalho (jogar com os 151)',
+                    '9 títulos lendários brilhando, como Senhor dos Céus, Original e Clone, Artilheiro Lendário (12 gols de um Pokémon numa copa) e Zé Ninguém (campeão com 5 titulares bronze)',
+                    'Treinador dourado brilha e ganha moldura de ouro no perfil, VERSUS, duelo, Hall da Fama e card do título',
+                    'Missão do Ash: copa perfeita ⇒ campeão sofrendo no máximo 5 gols (a perfeita virou a do Ash dourado). O título dela virou Muralha',
+                ],
+            },
+            {
+                title: 'Prancheta no meio da partida',
+                lines: [
+                    'Mude a formação e troque Pokémon de vaga durante o jogo, na Copa e no Duelo',
+                    'A mudança entra na próxima bola parada, como a substituição; sem limite',
+                    'Qualquer um pode ir pro gol (fora de posição perde nota)',
+                ],
+            },
+            {
+                title: 'Evolução',
+                lines: [
+                    'Carta que evolui ganha +2 em todos os atributos por evolução: Charmander que vira Charizard fica 89, o Charizard pronto é 85',
+                    'Evolução do rival com animação e faixa próprias (RIVAL EVOLUIU!), diferente da sua',
+                    'No Duelo os dois lados evoluem com a mesma barra (antes quem entrava pelo link evoluía mais fácil)',
+                ],
+            },
+            {
+                title: 'Partida',
+                lines: [
+                    'Defesa do goleiro: a bola defendida não passa mais por trás dele, e a espalmada pra escanteio sai pelo lado da mão',
+                    'Recompensa: item novo pra quem já segura um pergunta pra quem vai o antigo (antes ele sumia)',
+                    'Título do treinador em selo no VERSUS, no saguão e no placar do duelo',
+                    'Partida que estava no meio na hora da atualização recomeça do 0 a 0 (a copa e o time ficam)',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.8.5',
         title: 'Escanteio e duelo ao vivo',
         sections: [
@@ -415,6 +455,46 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.8.6',
+        title: 'Golden legends and live tactics board',
+        sections: [
+            {
+                title: 'Legendary missions',
+                lines: [
+                    '6 golden trainers for absurd feats: Ash (perfect cup, no goals conceded), Lance (win with the 3 legendary birds starting the final), Joey (win with a Rattata), Red (5 cups in a row), Blue (come back from 3 down in the final) and Prof. Oak (play with all 151)',
+                    '9 shining legendary titles, like Lord of the Skies, Original and Clone, Legendary Striker (12 goals from one Pokémon in a cup) and Underdog (win with 5 bronze starters)',
+                    'A golden trainer glows and gets a gold frame on the profile, VERSUS, duel, Hall of Fame and title card',
+                    "Ash's mission: perfect cup ⇒ win conceding 5 goals or fewer (the perfect cup is now Golden Ash's). Its title is now The Wall",
+                ],
+            },
+            {
+                title: 'Tactics board mid-match',
+                lines: [
+                    'Change formation and swap Pokémon between spots during the match, in the Cup and in Duels',
+                    'The change happens at the next restart, like a substitution; no limit',
+                    'Anyone can go in goal (out of position costs rating)',
+                ],
+            },
+            {
+                title: 'Evolution',
+                lines: [
+                    'A card that evolves gets +2 to every stat per evolution: a Charmander that becomes Charizard is 89, a ready-made Charizard is 85',
+                    'Rival evolution has its own animation and banner (RIVAL EVOLVED!), different from yours',
+                    'In Duels both sides need the same evolution bar (the player who joined by link used to evolve faster)',
+                ],
+            },
+            {
+                title: 'Match',
+                lines: [
+                    "Goalkeeper saves: a saved ball no longer goes behind the keeper, and a parry for a corner goes out on the hand's side",
+                    'Rewards: giving an item to someone already holding one asks who gets the old one (it used to vanish)',
+                    'Trainer title as a badge on the VERSUS, in the lobby and on the duel scoreboard',
+                    'A match in progress during the update restarts at 0-0 (your cup and team stay)',
+                ],
+            },
+        ],
+    },
     {
         version: '0.8.5',
         title: 'Corners and live duels',
