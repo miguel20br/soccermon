@@ -334,6 +334,12 @@ h3.bc-lbl {
     .app:has(.bc-thumbbar) {
         padding-bottom: calc(var(--bc-thumb-h) + 16px + env(safe-area-inset-bottom));
     }
+    /* cada tela entra com fade (.app > *): a opacidade animada cria um contexto de empilhamento, e os blocos
+       seguintes pintariam por cima da barra. O bloco que tem a barra sobe acima dos irmãos (abaixo dos modais). */
+    .app > :has(.bc-thumbbar) {
+        position: relative;
+        z-index: 31;
+    }
 }
 @media (orientation: landscape) and (max-height: 520px) {
     .bc-thumbbar {

@@ -4355,9 +4355,13 @@ button,
     width: min(620px, 100%);
     text-align: left;
 }
+/* título da versão é comprido: plaquinha sem caixa alta */
 .patch-notes h2.bc-caption {
     max-width: calc(100% - 52px);
     margin: 0 0 8px;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    text-transform: none;
 }
 /* separa uma versão da outra (o título da anterior colava na última linha da seguinte) */
 .patch-version + .patch-version {
