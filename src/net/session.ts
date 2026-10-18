@@ -9,11 +9,13 @@ import { EventBus } from '../game/EventBus';
 import type { PlaybackSpeed } from '../store/game-store';
 import { snapAt } from '../ui/match-view';
 import {
+    acceptTakeover,
     bestFor,
     clockAdjust,
     type DuelMode,
     type EmoteKind,
     emoteAllowed,
+    type FinalScore,
     type Intent,
     LOCAL_ONLY,
     leadTicks,
@@ -31,6 +33,7 @@ import {
     type Shared,
     SIDE,
     specialLimitOf,
+    stampOrder,
     tickTimers,
 } from './duel-state';
 import {
@@ -82,6 +85,8 @@ export interface DuelView {
     /** Último emote do rival (some sozinho). */
     emote: { kind: EmoteKind; role: Role; at: number } | null;
     muted: boolean;
+    /** A minha tela está parada esperando o outro há mais de `STALL_MS` (relógio do host ou trecho que ele não abriu). */
+    stall: Role | null;
 }
 
 export const useDuel = create<DuelView>(() => ({
@@ -99,6 +104,7 @@ export const useDuel = create<DuelView>(() => ({
     suspect: null,
     emote: null,
     muted: false,
+    stall: null,
 }));
 
 export const roomNow = () => Date.now() + useDuel.getState().offset;
@@ -110,6 +116,12 @@ const RETRY_MS = 2000;
 const OUTBOX = 120;
 /** Folga do carimbo do host (ticks) antes de achar estranho. */
 const STAMP_SLACK = 60;
+/** Quem (re)abre a sala espera esse tempo pelo outro antes de assumir as regras (o convidado que recarrega). */
+const TAKEOVER_MS = 6000;
+/** O host que volta aceita o estado do convidado (que pode ter assumido) por esse tempo. */
+const CATCHUP_MS = 20_000;
+/** A tela parada esperando o outro por mais que isso mostra "Esperando Fulano…". */
+export const STALL_MS = 3000;
 
 type NetIntent = Intent | { k: 'openPicks'; picks: { uid: string; salt: string }[] };
 
@@ -126,7 +138,13 @@ interface Kept {
     /** Escolha lacrada da fase (time pronto ou prévia). */
     choice?: { game: number; phase: string; value: unknown; salt: string; seal: string };
     /** Ordens que eu dei (seq → tick pedido), pra conferir o carimbo do host. */
-    sent?: { game: number; orders: Record<number, { tick: number; at: number; body: OrderBody; ht?: boolean }> };
+    sent?: {
+        game: number;
+        /** `refused`: a regra não aceita mais (limite, outra ordem na frente): para de reenviar. */
+        orders: Record<number, { tick: number; at: number; body: OrderBody; ht?: boolean; refused?: boolean }>;
+    };
+    /** Última vez que esta aba gravou (quem volta sabe quanto tempo ficou fora). */
+    at?: number;
 }
 const keptKey = (room: string, me: string) => `soccermon-duel:${room}:${me}`;
 function readKept(room: string, me: string): Kept | null {
@@ -139,7 +157,7 @@ function readKept(room: string, me: string): Kept | null {
 }
 function writeKept(room: string, me: string, k: Kept) {
     try {
-        localStorage.setItem(keptKey(room, me), JSON.stringify(k));
+        localStorage.setItem(keptKey(room, me), JSON.stringify({ ...k, at: Date.now() }));
     } catch {
         // sem localStorage: quem recarregar a página perde os lacres (e quem ficou pode pedir o W.O.)
     }
@@ -205,6 +223,22 @@ class DuelSession {
     playing = false;
     /** Rascunho da prévia (lacrado sozinho se o tempo acabar). */
     previewDraft: PreviewCfg | null = null;
+    /** Placar da partida na minha tela depois do apito final (é o que vale quando eu aplico as regras). */
+    final: FinalScore | null = null;
+    /** Último `rev` aceito do host (o convidado fica com o estado do host mesmo se o dele andou sozinho). */
+    private hostRev = 0;
+    private openedAt = 0;
+    private lastLoopAt = 0;
+    /** Host que voltou: até quando aceita o estado do convidado e desde quando estava fora. */
+    private catchUpUntil = 0;
+    private awaySince = 0;
+    /** Host que voltou: até quando pula pro minuto do convidado (0 = já pulou). */
+    private seekUntil = 0;
+    /** Convidado parado esperando o relógio do host desde (0 = andando). */
+    private rateZeroSince = 0;
+    private lastRate = 1;
+    private holdSince = 0;
+    private lastKeptAt = 0;
 
     get view() {
         return useDuel.getState();
@@ -235,7 +269,7 @@ class DuelSession {
         const shared = newShared(room, peer, mode, speed, randomSecret().slice(0, 16), specialLimit);
         this.kept = { role: 'host', shared, tops: {} };
         writeKept(room, peer.id, this.kept);
-        this.open(room, peer, local, 'host', shared);
+        this.open(room, peer, local, 'host', shared, false);
         return room;
     }
 
@@ -246,12 +280,29 @@ class DuelSession {
             return;
         }
         this.kept = readKept(room, peer.id);
-        this.open(room, peer, local, this.kept?.role ?? null, this.kept?.shared ?? null);
+        this.open(room, peer, local, this.kept?.role ?? null, this.kept?.shared ?? null, true);
     }
 
-    private open(room: string, peer: Peer, local: boolean, role: Role | null, shared: Shared | null) {
+    private open(
+        room: string,
+        peer: Peer,
+        local: boolean,
+        role: Role | null,
+        shared: Shared | null,
+        returning: boolean,
+    ) {
         this.close();
         this.myPeer = peer;
+        this.hostRev = 0;
+        this.openedAt = Date.now();
+        this.lastLoopAt = Date.now();
+        this.final = null;
+        this.rateZeroSince = 0;
+        this.holdSince = 0;
+        this.catchUpUntil = 0;
+        this.seekUntil = 0;
+        // host que volta (recarregou a página): o convidado pode ter assumido; aceita o estado dele e pula pro minuto
+        if (role === 'host' && returning) this.startCatchUp(this.kept?.at ?? Date.now());
         this.retry.clear();
         this.chain = [];
         this.chainGame = 0;
@@ -271,6 +322,7 @@ class DuelSession {
             choiceSealed: false,
             suspect: null,
             emote: null,
+            stall: null,
             offset: role === 'host' ? 0 : this.view.offset,
         });
         let t: DuelTransport;
@@ -286,6 +338,10 @@ class DuelSession {
         this.transport = t;
         t.onMessage((m) => this.onRaw(m));
         t.onPeers((ids) => this.onPeers(ids));
+        // o canal caiu e voltou: o host estava fora (o convidado pode ter assumido)
+        t.onRejoin?.((lostAt) => {
+            if (this.view.role === 'host') this.startCatchUp(lostAt);
+        });
         this.send({ t: 'hello', peer, rev: shared?.rev ?? 0 });
         this.loop = window.setInterval(() => this.onLoop(), LOOP_MS);
         if (shared) void this.afterState(shared);
@@ -313,10 +369,21 @@ class DuelSession {
         this.set({ status: 'idle', room: null, role: null, shared: null, segSeeds: null, emote: null });
     }
 
-    /** Eu aplico as regras agora? (host; o convidado só quando o host está fora). */
+    /**
+     * Eu aplico as regras agora? (host; o convidado só quando o host está fora, e não logo depois de abrir a sala:
+     * quem recarrega espera o host aparecer antes de assumir).
+     */
     get authority(): boolean {
         const { role, online } = this.view;
-        return role === 'host' || (role === 'guest' && !online.host);
+        if (role === 'host') return true;
+        return role === 'guest' && !online.host && Date.now() - this.openedAt > TAKEOVER_MS;
+    }
+
+    /** O host estava fora desde `since`: por um tempo aceita o estado do convidado e pula pro minuto dele. */
+    private startCatchUp(since: number) {
+        this.awaySince = Math.min(since, Date.now());
+        this.catchUpUntil = Date.now() + CATCHUP_MS;
+        this.seekUntil = Date.now() + CATCHUP_MS;
     }
 
     private ctx() {
@@ -328,6 +395,7 @@ class DuelSession {
             htTick: m?.events.find((e) => e.type === 'halftime')?.tick,
             newSeed: randomSecret().slice(0, 16),
             atHold: this.atHold(),
+            final: this.final,
         };
     }
 
@@ -421,11 +489,30 @@ class DuelSession {
         this.send({ t: 'state', shared: s });
     }
 
-    /** Estado novo: fica com ele se for mais novo e não mexer no que é meu (lacre, segredos abertos). */
-    private adopt(s: Shared) {
+    /**
+     * Estado novo: fica com ele se veio de quem aplica as regras, é mais novo e não mexe no que é meu (lacre, segredos
+     * abertos). `from` = quem mandou (sem `from`, é o meu). O convidado fica com o estado do host (mesmo que o dele
+     * tenha andado sozinho enquanto o host estava fora); o host só aceita o do convidado logo depois de voltar e se
+     * nada do host mudou (`acceptTakeover`). Estado de qualquer outro (terceiro na sala) não vale.
+     */
+    private adopt(s: Shared, from?: string) {
         const cur = this.view.shared;
-        if (!s || typeof s !== 'object' || !s.peers || !s.reveals) return;
-        if (cur && (s.room !== cur.room || s.rev <= cur.rev)) return;
+        if (!s || typeof s !== 'object' || !s.peers || !s.reveals || typeof s.rev !== 'number') return;
+        if (cur && s.room !== cur.room) return;
+        const fromHost = from !== undefined && from === (cur ?? s).peers.host?.id;
+        if (from === undefined) {
+            if (cur && s.rev <= cur.rev) return;
+        } else if (fromHost) {
+            if (s.rev <= this.hostRev) return;
+        } else {
+            const okGuest =
+                this.view.role === 'host' &&
+                !!cur &&
+                from === cur.peers.guest?.id &&
+                Date.now() < this.catchUpUntil &&
+                acceptTakeover(cur, s, Date.now() - this.awaySince);
+            if (!okGuest) return;
+        }
         const me = this.view.me;
         const role = ROLES.find((r) => s.peers[r]?.id === me) ?? null;
         if (role && this.chain.length && this.chainGame === s.game) {
@@ -436,6 +523,8 @@ class DuelSession {
                 s.roundReveals[role].some((x, r) => x && x !== c[roundIdx(r)]);
             if (forged) return;
         }
+        if (fromHost) this.hostRev = s.rev;
+        else if (from !== undefined) this.catchUpUntil = 0;
         // partida nova (revanche): nada da anterior vale (relógio, minuto e partida simulada)
         if (s.game !== this.view.shared?.game) {
             this.tick = 0;
@@ -443,6 +532,9 @@ class DuelSession {
             this.result = null;
             this.resultLog = 0;
             this.resultSeeds = 0;
+            this.final = null;
+            this.rateZeroSince = 0;
+            this.holdSince = 0;
         }
         const online = { host: false, guest: false };
         for (const r of ROLES) online[r] = r === role || (!!s.peers[r] && this.peerIds.includes(s.peers[r]!.id));
@@ -593,7 +685,11 @@ class DuelSession {
         this.set({ online });
         // alguém voltou: manda o estado (quem tiver o mais novo fica com ele)
         const back = ROLES.some((r) => online[r] && !was[r] && r !== this.view.role);
-        if (back && s) this.send({ t: 'state', shared: s });
+        if (back && s) {
+            this.send({ t: 'state', shared: s });
+            // relógio e minuto já na próxima volta (o host que voltou pula pro minuto do convidado)
+            this.lastClock = 0;
+        }
     }
 
     private onMessage(m: NetMsg) {
@@ -629,7 +725,7 @@ class DuelSession {
             }
             case 'state': {
                 const next = m.shared as Shared | undefined;
-                if (next && typeof next.rev === 'number') this.adopt(next);
+                if (next && typeof next.rev === 'number') this.adopt(next, m.from);
                 return;
             }
             case 'intent': {
@@ -641,15 +737,24 @@ class DuelSession {
             case 'clock': {
                 if (this.authority) return;
                 // o estado mais novo se perdeu: pede de novo
-                if (s && Number(m.rev) > s.rev) this.send({ t: 'hello', peer: this.myPeer, rev: s.rev });
+                if (s && Number(m.rev) > this.hostRev) this.send({ t: 'hello', peer: this.myPeer, rev: s.rev });
                 const now = Number(m.now);
                 if (Number.isFinite(now)) this.set({ offset: now - Date.now() });
                 const tick = Number(m.tick);
                 if (s?.phase === 'match' && this.playing && Number.isFinite(tick)) {
                     const adj = clockAdjust(tick - this.tick, s.speed);
                     if (adj.seek) EventBus.emit('match:seek', tick);
-                    EventBus.emit('match:rate', adj.rate);
+                    this.setRate(adj.rate);
                 }
+                return;
+            }
+            case 'where': {
+                // host que voltou (recarregou a página): pula pro minuto em que o convidado está
+                const tick = Number(m.tick);
+                if (this.view.role !== 'host' || !s || s.phase !== 'match' || !this.playing) return;
+                if (!Number.isFinite(tick) || Date.now() > this.seekUntil) return;
+                if (clockAdjust(tick - this.tick, s.speed).seek) EventBus.emit('match:seek', tick);
+                else this.seekUntil = 0;
                 return;
             }
             case 'emote': {
@@ -689,21 +794,64 @@ class DuelSession {
             }
             return;
         }
+        // o host ficou parado (aba congelada em segundo plano): estava fora, o convidado pode ter assumido
+        if (role === 'host' && now - this.lastLoopAt > TAKEOVER_MS) this.startCatchUp(this.lastLoopAt);
+        this.lastLoopAt = now;
+        // quem volta sabe quanto tempo ficou fora (a última gravação)
+        if (this.kept && now - this.lastKeptAt > 5000) {
+            this.lastKeptAt = now;
+            writeKept(s.room, this.view.me, this.kept);
+        }
         const otherOn = this.view.online[other(role)];
         if (this.authority) {
+            // quem assumiu as regras não espera o relógio de ninguém
+            this.setRate(1);
             const next = tickTimers(s, this.ctx());
             if (next !== s) this.publish(next);
             void this.computeRoundSeed(this.view.shared!);
+            const cur = this.view.shared!;
+            // apito final na minha tela: grava o placar da partida que eu simulei
+            if (this.final && cur.phase === 'match' && !cur.result && this.due(`ended-${cur.game}`))
+                this.dispatch({ k: 'ended' });
         }
-        // batida com o número da última mensagem (quem perdeu alguma percebe) e, de quem aplica, o relógio
+        // batida com o número da última mensagem (quem perdeu alguma percebe): de quem aplica, o relógio; do outro, o
+        // minuto da tela dele (o host que voltou pula pra ele). O host ainda voltando não manda o minuto dele
         if (otherOn && now - this.lastClock >= CLOCK_MS) {
             this.lastClock = now;
             const cur = this.view.shared!;
-            if (this.authority) this.send({ t: 'clock', tick: this.tick, now: roomNow(), rev: cur.rev });
-            else this.send({ t: 'beat' });
+            const tick = this.playing ? this.tick : undefined;
+            if (this.authority)
+                this.send({ t: 'clock', tick: now < this.seekUntil ? undefined : tick, now: roomNow(), rev: cur.rev });
+            else this.send({ t: 'where', tick });
         }
+        this.updateStall(this.view.shared!, role, now);
         if (this.chainGame !== s.game || !this.chain.length) return;
         this.selfDuties(this.view.shared!, role);
+    }
+
+    /** Velocidade da minha tela em relação à da sala (o convidado corrigindo o relógio). `force`: manda mesmo igual. */
+    setRate(rate: number, force = false) {
+        this.rateZeroSince = rate === 0 ? this.rateZeroSince || Date.now() : 0;
+        if (rate === this.lastRate && !force) return;
+        this.lastRate = rate;
+        EventBus.emit('match:rate', rate);
+    }
+
+    /**
+     * A tela parada esperando o outro há mais de `STALL_MS`: o convidado esperando o relógio do host (host em segundo
+     * plano ou recarregando) ou qualquer um parado no fim do trecho que o outro ainda não abriu.
+     */
+    private updateStall(s: Shared, role: Role, now: number) {
+        const rival = other(role);
+        let stall: Role | null = null;
+        if (s.phase === 'match' && !s.result && this.playing) {
+            if (!this.authority && this.rateZeroSince && now - this.rateZeroSince > STALL_MS) stall = 'host';
+            const opened = openedSegments(s.reveals.host, s.reveals.guest);
+            const held = this.atHold() && !s.reveals[rival][opened];
+            this.holdSince = held ? this.holdSince || now : 0;
+            if (this.holdSince && now - this.holdSince > STALL_MS) stall = rival;
+        } else this.holdSince = 0;
+        if (stall !== this.view.stall) this.set({ stall });
     }
 
     /** Quem aplica calcula a seed da rodada quando os dois abriram o segredo dela. */
@@ -795,15 +943,24 @@ class DuelSession {
         }
     }
 
-    /** Ordem minha que ainda não entrou no log: manda de novo (mesmo seq: repetida não entra duas vezes). */
+    /**
+     * Ordem minha que ainda não entrou no log: manda de novo (mesmo seq: repetida não entra duas vezes). Ordem que a
+     * regra não aceita mais (limite de trocas, outra ordem minha na frente, fim da partida) para de ir.
+     */
     private resendOrders(s: Shared, role: Role) {
         const sent = this.kept?.sent?.game === s.game ? this.kept.sent.orders : {};
         const side = SIDE[role];
         for (const [seqStr, o] of Object.entries(sent)) {
             const seq = Number(seqStr);
-            if (s.log.some((x) => x.team === side && x.seq === seq)) continue;
-            if (Date.now() - o.at < RETRY_MS || !this.due(`ord-${s.game}-${seq}`)) continue;
-            this.dispatch({ k: 'order', order: o.body, tick: o.tick, seq, ht: o.ht });
+            if (o.refused || s.log.some((x) => x.team === side && x.seq === seq)) continue;
+            if (Date.now() - o.at < RETRY_MS) continue;
+            const intent = { k: 'order', order: o.body, tick: o.tick, seq, ht: o.ht } as const;
+            if (!stampOrder(s, role, intent, this.ctx())) {
+                o.refused = true;
+                if (this.kept) writeKept(s.room, this.view.me, this.kept);
+                continue;
+            }
+            if (this.due(`ord-${s.game}-${seq}`)) this.dispatch(intent);
         }
     }
 
@@ -815,9 +972,25 @@ class DuelSession {
         return this.tick >= holdTick(this.result.snapshots, opened) - 1;
     }
 
-    /** Partida terminou na minha tela: quem aplica grava o resultado. */
+    /**
+     * Partida terminou na minha tela: guardo o placar da partida que eu simulei. Quem aplica as regras grava com ele
+     * (o outro não manda placar nenhum; o host termina a dele no mesmo minuto).
+     */
     ended(m: MatchResult) {
-        this.dispatch({ k: 'ended', score: m.score, shootout: m.shootout, winner: m.winner });
+        this.final = { score: [m.score[0], m.score[1]], shootout: m.shootout, winner: m.winner };
+        if (this.authority) this.dispatch({ k: 'ended' });
+    }
+
+    /** Revanche de um toque: já manda o lacre da partida seguinte (com os dois, vai direto pro draft/time). */
+    async rematch() {
+        const s = this.view.shared;
+        if (!s || !this.kept || s.phase !== 'done') return;
+        const g = s.game + 1;
+        const top = this.kept.tops[g] ?? randomSecret();
+        this.kept.tops = { [s.game]: this.kept.tops[s.game], [g]: top };
+        writeKept(s.room, this.view.me, this.kept);
+        const chain = await makeChain(top);
+        this.dispatch({ k: 'rematch', commit: chain[0] });
     }
 
     /** Já gravei o histórico desta partida? (marca na hora). */

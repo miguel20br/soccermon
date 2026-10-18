@@ -21,6 +21,8 @@ export interface DuelTransport {
     onMessage(cb: (msg: NetMsg) => void): () => void;
     /** Ids dos outros que estão na sala agora (muda quando alguém entra, sai ou some). */
     onPeers(cb: (ids: string[]) => void): () => void;
+    /** O canal caiu e voltou (`lostAt` = quando caiu): quem aplica as regras sabe que esteve fora. */
+    onRejoin?(cb: (lostAt: number) => void): void;
     close(): void;
 }
 
@@ -104,9 +106,14 @@ export function supabaseTransport(client: SupabaseClient, room: string, me: stri
     let closed = false;
     const queue: Omit<NetMsg, 'from'>[] = [];
     let joined = false;
+    /** Quando o canal caiu (0 = nunca entrou ou está no ar). */
+    let lostAt = 0;
+    let everJoined = false;
+    const rejoin = new Set<(lostAt: number) => void>();
 
     const open = async () => {
         if (closed) return;
+        if (joined) lostAt = Date.now();
         joined = false;
         if (channel) await client.removeChannel(channel);
         await client.realtime.setAuth();
@@ -120,10 +127,14 @@ export function supabaseTransport(client: SupabaseClient, room: string, me: stri
         ch.subscribe(async (status) => {
             if (status === 'SUBSCRIBED') {
                 joined = true;
+                if (everJoined) for (const cb of rejoin) cb(lostAt || Date.now());
+                everJoined = true;
+                lostAt = 0;
                 await ch.track({ at: Date.now() });
                 for (const m of queue.splice(0))
                     void ch.send({ type: 'broadcast', event: 'm', payload: { ...m, from: me } });
             } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+                if (joined) lostAt = Date.now();
                 joined = false;
                 if (!closed && status !== 'CLOSED') setTimeout(() => void open(), 2000);
             }
@@ -152,6 +163,9 @@ export function supabaseTransport(client: SupabaseClient, room: string, me: stri
         },
         onMessage: base.onMessage,
         onPeers: base.onPeers,
+        onRejoin(cb) {
+            rejoin.add(cb);
+        },
         close() {
             closed = true;
             document.removeEventListener('visibilitychange', onVisible);

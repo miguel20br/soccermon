@@ -1,5 +1,6 @@
 import { POSITIONS, type Position } from './attributes';
 import { MOVES, SPECIES_BY_ID } from './data';
+import { EVO_THRESHOLD } from './evolution';
 import { FORMATIONS, type FormationId } from './formations';
 import { DEFAULT_LEVEL, type PokemonInstance } from './instance';
 import { ITEMS } from './items';
@@ -54,8 +55,11 @@ export const countSpecials = (r: Pick<DuelTeamRecipe, 'lineup' | 'bench'>): numb
     [...r.lineup, ...r.bench].filter((m) => !!m?.special || !!m?.shiny).length;
 
 const TACTICS: Tactic[] = ['balanced', 'offensive', 'defensive', 'counter'];
-/** Barra de evolução guardada entre partidas (a copa zera ao evoluir; folga generosa). */
-const MAX_EVO = 60;
+/**
+ * Barra de evolução guardada entre partidas: abaixo do limiar (com a barra cheia ele já teria evoluído). A copa pode
+ * guardar um pouco acima quando o limiar passa no fim da partida, sem bola parada: a receita leva no máximo isto.
+ */
+export const MAX_EVO = EVO_THRESHOLD - 0.1;
 
 const monRecipe = (p: PokemonInstance): DuelMonRecipe => ({
     speciesId: p.speciesId,
@@ -65,7 +69,7 @@ const monRecipe = (p: PokemonInstance): DuelMonRecipe => ({
     item: p.item ?? null,
     special: p.special ?? null,
     taught: p.taught ? [...p.taught] : undefined,
-    evo: p.evo,
+    evo: p.evo === undefined ? undefined : Math.min(p.evo, MAX_EVO),
     inherited: p.inherited ? [...p.inherited] : undefined,
     nickname: p.nickname ?? null,
 });
