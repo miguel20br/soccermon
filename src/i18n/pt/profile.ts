@@ -40,6 +40,7 @@ export const profile = {
         stickersHelp: 'Escale uma carta de cada edição numa partida para colar a figurinha.',
         emptyMissing: 'Álbum completo por aqui. Que coleção!',
         ribbonAria: ', campeão {n} vez com você|, campeão {n} vezes com você',
+        sealAria: ', selo {name}',
     },
     sheet: {
         no: 'Nº {no}',
@@ -82,6 +83,18 @@ export const profile = {
         stickerGot: '{edition}: colada',
         stickerMissing: '{edition}: falta',
         ribbon: 'Campeão {n} vez com você|Campeão {n} vezes com você',
+        seal: 'Selo {name}',
+        seals: 'Selos de carreira',
+        sealNames: { folha: 'Folha', holo: 'Holo', prisma: 'Prisma', ouro: 'Ouro escuro' },
+        sealGoal: {
+            folha: '{n}/10 partidas',
+            holo: '{n}/25 gols',
+            prisma: '{n}/5 títulos',
+            ouro: 'Prisma e Kanto completo ({n}/151 jogaram)',
+        },
+        sealGot: '{name}: conquistado',
+        sealMissing: '{name}: falta ({goal})',
+        sealsHelp: 'O selo é da sua carreira com a espécie: fica na Pokédex e não muda a carta.',
         notPlayed:
             'Ainda não jogou pelo seu time. Escale ele numa copa (pelo menos 1 minuto em quadra) para começar a carreira dele.',
     },

@@ -1480,3 +1480,77 @@ fieldset.pf-field,
     width: 22px;
     height: 27px;
 }
+
+/* ---------- selo de carreira (Folha, Holo, Prisma, Ouro escuro) ---------- */
+.pf-seal {
+    width: 20px;
+    height: 21px;
+    flex: none;
+}
+.pf-cell .pf-seal.pf-cell-mark {
+    top: 2px;
+    right: 2px;
+    width: 16px;
+    height: 17px;
+}
+.pf-seal-line {
+    color: var(--text);
+}
+.pf-seal-line.seal-holo {
+    color: #b9f0ff;
+}
+.pf-seal-line.seal-prisma {
+    color: #ffb3ec;
+}
+.pf-seal-line.seal-ouro {
+    color: #f2c230;
+}
+.pf-seals {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+}
+.pf-seal-slot {
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 3px;
+    padding: 8px 2px 6px;
+    border-radius: 6px;
+    background: var(--bc-ink-3);
+    border-bottom: 2px solid var(--bc-edge);
+    min-width: 0;
+    text-align: center;
+}
+.pf-seal-slot .pf-seal {
+    width: 30px;
+    height: 31px;
+    filter: grayscale(1) brightness(0.55);
+    opacity: 0.6;
+}
+.pf-seal-slot.got {
+    background: var(--bc-ink-2);
+    box-shadow: inset 0 3px 0 var(--yellow);
+}
+.pf-seal-slot.got .pf-seal {
+    filter: none;
+    opacity: 1;
+}
+.pf-seal-slot b {
+    font-size: 11px;
+    line-height: 1.1;
+    color: var(--muted);
+}
+.pf-seal-slot.got b {
+    color: var(--text);
+}
+.pf-seal-slot small {
+    max-width: 100%;
+    font-size: 10px;
+    line-height: 1.2;
+    color: #8a93c4;
+    overflow-wrap: anywhere;
+}

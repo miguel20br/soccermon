@@ -42,6 +42,7 @@ export const profile: typeof pt = {
         stickersHelp: 'Field a card of each edition in a match to stick its sticker.',
         emptyMissing: 'Album complete here. What a collection!',
         ribbonAria: ', champion {n} time with you|, champion {n} times with you',
+        sealAria: ', {name} seal',
     },
     sheet: {
         no: 'No. {no}',
@@ -84,6 +85,19 @@ export const profile: typeof pt = {
         stickerGot: '{edition}: stuck',
         stickerMissing: '{edition}: missing',
         ribbon: 'Champion {n} time with you|Champion {n} times with you',
+        seal: '{name} seal',
+        seals: 'Career seals',
+        sealNames: { folha: 'Foil', holo: 'Holo', prisma: 'Prism', ouro: 'Dark Gold' },
+        sealGoal: {
+            folha: '{n}/10 matches',
+            holo: '{n}/25 goals',
+            prisma: '{n}/5 titles',
+            ouro: 'Prism and Kanto complete ({n}/151 played)',
+        },
+        sealGot: '{name}: earned',
+        sealMissing: '{name}: missing ({goal})',
+        sealsHelp:
+            'The seal tracks your career with this species: it lives in the Pokédex and does not change the card.',
         notPlayed:
             "Hasn't played for your team yet. Put it in your lineup in a cup (at least 1 minute on the court) to start its career.",
     },

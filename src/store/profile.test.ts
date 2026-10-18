@@ -9,6 +9,7 @@ import {
     editionBits,
     hasSticker,
     isPlayed,
+    kantoComplete,
     markSeen,
     mergeDex,
     recordEditions,
@@ -16,7 +17,9 @@ import {
     recordMovesSeen,
     recordTitleInDex,
     rivalColor,
+    sealsOf,
     tagFromName,
+    topSeal,
 } from './profile';
 
 const line = (p: Partial<PlayerLine> & { speciesId: number }): PlayerLine =>
@@ -143,5 +146,39 @@ describe('clube', () => {
             expect(colorDistance(c.hex, rivalColor(c.hex, c.hex))).toBeGreaterThanOrEqual(110);
         }
         expect(rivalColor(0xe8423f, 0x3a8ee6)).toBe(0x3a8ee6);
+    });
+});
+
+describe('selo de carreira', () => {
+    const e = (matches: number, goals: number, titles: number) => ({
+        matches,
+        minutes: matches * 20,
+        goals,
+        assists: 0,
+        wins: 0,
+        titles,
+        bestRating: 0,
+        bestOvr: 0,
+    });
+
+    it('cada degrau olha o próprio número e vale o mais alto', () => {
+        expect(sealsOf(undefined, false)).toEqual([]);
+        expect(sealsOf(e(9, 24, 4), false)).toEqual([]);
+        expect(topSeal(e(10, 0, 0), false)).toBe('folha');
+        expect(sealsOf(e(30, 25, 0), false)).toEqual(['folha', 'holo']);
+        // goleiro campeão sem gol: Prisma sem Holo
+        expect(sealsOf(e(20, 2, 5), false)).toEqual(['folha', 'prisma']);
+        expect(topSeal(e(20, 2, 5), true)).toBe('ouro');
+        // Kanto completo sozinho não dá Ouro escuro
+        expect(sealsOf(e(10, 0, 4), true)).toEqual(['folha']);
+    });
+
+    it('é retroativo: sai da Dex de um save antigo, e Kanto completo pede os 151 jogando', () => {
+        const dex = Object.fromEntries(SPECIES.map((sp) => [sp.id, e(1, 0, 0)]));
+        expect(kantoComplete(dex)).toBe(true);
+        dex[SPECIES[0].id] = e(0, 0, 0); // só visto
+        expect(kantoComplete(dex)).toBe(false);
+        delete dex[SPECIES[0].id];
+        expect(kantoComplete(dex)).toBe(false);
     });
 });
