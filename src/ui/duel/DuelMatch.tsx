@@ -303,7 +303,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     }, [halftime]);
     // painel de substituição (aberto pela prancheta ou pelo botão) pode abrir abaixo da dobra: traz pra tela
     useEffect(() => {
-        if (subOpen) subPanelRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        if (subOpen) subPanelRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
     }, [subOpen]);
     const htLeft = useCountdown(halftime ? s.halftime?.until : undefined);
     const kickLeft = useCountdown(kicked ? undefined : s.kickoffAt);

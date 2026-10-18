@@ -6686,7 +6686,8 @@ p.muted.center a {
 .unlock-notice {
     position: fixed;
     left: 50%;
-    bottom: max(16px, env(safe-area-inset-bottom));
+    /* em cima: embaixo ficam os botões de seguir ("Ver resultado", "Fechar") e no celular ele cobria */
+    top: max(12px, env(safe-area-inset-top));
     z-index: 260;
     display: flex;
     align-items: center;
@@ -6705,11 +6706,6 @@ p.muted.center a {
     transform: translateX(-50%);
     animation: unlock-in 0.32s var(--ease-pop) both;
 }
-/* no desfile do Hall o rodapé é do "Fechar" e o topo está vazio: lá o aviso fica em cima */
-body:has(.hall-parade) .unlock-notice {
-    top: max(12px, env(safe-area-inset-top));
-    bottom: auto;
-}
 .unlock-notice img {
     width: 48px;
     height: 48px;
@@ -6725,7 +6721,7 @@ body:has(.hall-parade) .unlock-notice {
 @keyframes unlock-in {
     from {
         opacity: 0;
-        translate: 0 12px;
+        translate: 0 -12px;
         scale: 0.9;
     }
 }
