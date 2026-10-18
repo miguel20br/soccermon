@@ -1,0 +1,83 @@
+/* ---------- Estojo de insígnias de Kanto ---------- */
+.kb-case {
+    display: grid;
+    gap: 10px;
+}
+.kb-case h2 {
+    margin: 0;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.kb-count {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 16px;
+    color: var(--yellow);
+}
+.kb-grid {
+    list-style: none;
+    margin: 0;
+    padding: 10px 8px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px 6px;
+    border-radius: 12px;
+    /* o "veludo" do estojo */
+    background:
+        radial-gradient(ellipse 80% 70% at 50% 0%, rgb(255 255 255 / 6%), transparent 70%),
+        linear-gradient(180deg, #2a1838, #1b0f26);
+    border: 2px solid #0e1430;
+    box-shadow: inset 0 2px 6px rgb(0 0 0 / 45%);
+}
+@media (min-width: 560px) {
+    .kb-grid {
+        grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
+}
+.kb-slot {
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    min-width: 0;
+}
+.kb-socket {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 40%, #120a1a, #070409);
+    box-shadow:
+        inset 0 2px 4px rgb(0 0 0 / 70%),
+        0 1px 0 rgb(255 255 255 / 8%);
+}
+.kb-badge {
+    width: 40px;
+    height: 40px;
+}
+.kb-slot.got .kb-badge {
+    filter: drop-shadow(0 0 4px rgb(255 230 128 / 35%));
+}
+.kb-badge.off {
+    filter: grayscale(1) brightness(0.4);
+    opacity: 0.55;
+}
+.kb-slot small {
+    max-width: 100%;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--muted);
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.kb-slot.got small {
+    color: var(--text);
+}
+.kb-help {
+    font-size: 12px;
+}

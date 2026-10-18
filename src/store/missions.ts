@@ -222,6 +222,9 @@ const GYMS: [TrainerId, string][] = [
 /** Sprite do líder do clube rival (todos os 8 ginásios têm), ou nada (Lavender, Liga Índigo). */
 export const leaderTrainerOf = (clubName: string): TrainerId | undefined => GYMS.find(([, c]) => c === clubName)?.[0];
 
+/** As 8 insígnias de Kanto, na ordem dos ginásios: cada uma é do líder (e sai da missão dele, então é retroativa). */
+export const KANTO_BADGES = GYMS.map(([leader]) => leader);
+
 export const MISSIONS: Mission[] = [
     // Ginásios: vencer o clube do líder numa copa
     ...GYMS.map(

@@ -11,6 +11,7 @@ import {
     activeTitle,
     activeTrainer,
     earnedTitles,
+    KANTO_BADGES,
     type MatchView,
     MISSIONS,
     newMissions,
@@ -85,6 +86,15 @@ describe('missões', () => {
         const gyms = ['brock', 'misty', 'ltsurge', 'erika', 'koga', 'sabrina', 'blaine'];
         expect(newMissions({ ...empty, done: gyms })).not.toContain('kanto');
         expect(newMissions({ ...empty, done: [...gyms, 'giovanni'] })).toContain('kanto');
+    });
+
+    it('insígnias: uma por ginásio, saem da missão do líder (retroativa pelos resultados guardados)', () => {
+        expect(KANTO_BADGES).toEqual(['brock', 'misty', 'ltsurge', 'erika', 'koga', 'sabrina', 'blaine', 'giovanni']);
+        for (const id of KANTO_BADGES) expect(MISSIONS.find((m) => m.id === id)?.group).toBe('ginasios');
+        const res = (won: boolean, opponent: string) => ({ won, opponent, score: [won ? 1 : 0, won ? 0 : 1] });
+        const runs = [{ results: [res(true, 'Cerulean Cascata'), res(false, 'Pewter Rochedo')] }];
+        const done = newMissions({ ...empty, runs: runs as never, done: [] });
+        expect(KANTO_BADGES.filter((id) => done.includes(id))).toEqual(['misty']);
     });
 
     it('Ash: campeão sofrendo no máximo 5 gols na copa (6 não vale)', () => {
