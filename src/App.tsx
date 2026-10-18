@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { setVolume } from './game/audio';
 import { useT } from './i18n/react';
 import { duel } from './net/session';
+import { preloadGame } from './PhaserGame';
 import { useGame } from './store/game-store';
 import { AccountLink } from './ui/components/AccountLink';
 import { CardModal } from './ui/components/CardModal';
@@ -17,12 +18,14 @@ import { Help } from './ui/screens/Help';
 import { Home } from './ui/screens/Home';
 import { Lineup } from './ui/screens/Lineup';
 import { Match } from './ui/screens/Match';
-import { MoveLab } from './ui/screens/MoveLab';
 import { PositionLab } from './ui/screens/PositionLab';
 import { Profile } from './ui/screens/Profile';
 import { Result } from './ui/screens/Result';
 import { Reward } from './ui/screens/Reward';
 import { Settings } from './ui/screens/Settings';
+
+// Movedex (?lab=golpes) usa o Phaser: vem num pedaço à parte, como a partida
+const MoveLab = lazy(() => import('./ui/screens/MoveLab').then((m) => ({ default: m.MoveLab })));
 
 export default function App() {
     const { screen, go, settings, onboarded } = useGame();
@@ -54,6 +57,16 @@ export default function App() {
     useEffect(() => {
         setVolume(settings.volume);
     }, [settings.volume]);
+
+    // com a primeira tela já carregada (imagens inclusive), baixa a partida (Phaser) em segundo plano: o "Jogar" não
+    // espera a rede e o pedaço não disputa banda com a Home
+    useEffect(() => {
+        const idle = () =>
+            (window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 300)))(preloadGame);
+        if (document.readyState === 'complete') idle();
+        else window.addEventListener('load', idle, { once: true });
+        return () => window.removeEventListener('load', idle);
+    }, []);
 
     // tela nova abre no topo (sem isso a partida abria rolada lá embaixo, onde ficava o "Jogar")
     // biome-ignore lint/correctness/useExhaustiveDependencies: roda a cada troca de tela
@@ -96,7 +109,15 @@ export default function App() {
             setLab(null);
         };
         return (
-            <div className="app">{lab === 'golpes' ? <MoveLab onExit={exit} /> : <PositionLab onExit={exit} />}</div>
+            <div className="app">
+                {lab === 'golpes' ? (
+                    <Suspense fallback={<p className="muted">{t('common.ui.loading')}</p>}>
+                        <MoveLab onExit={exit} />
+                    </Suspense>
+                ) : (
+                    <PositionLab onExit={exit} />
+                )}
+            </div>
         );
     }
 

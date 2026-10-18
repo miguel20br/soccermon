@@ -21,6 +21,7 @@
     "assets:types": "tsx scripts/fetch-type-icons.ts",
     "assets:portraits": "tsx scripts/fetch-portraits.ts",
     "changelog": "tsx scripts/changelog.ts",
+    "fonts": "tsx scripts/build-fonts.ts",
     "calibrate": "tsx scripts/calibrate.ts",
     "stats": "tsx scripts/stats.ts",
     "determinismo": "tsx scripts/determinismo.ts"

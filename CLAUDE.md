@@ -77,6 +77,7 @@ npm test         # Vitest (~1 min; o teste de evolução é o mais lento)
 npm run build    # tsc + Vite
 npm run calibrate -- --n 400 [--formations|--tactics]   # equilíbrio headless
 npm run stats [-- --dias 7 | --md]   # placar do jogo no ar
+npm run fonts    # refaz o subset das Galmuri (public/fonts) quando o teste das fontes acusar caractere novo
 ```
 
 - **Deploy:** push na `main` publica sozinho em produção (Vercel ligada ao GitHub). O CI do GitHub roda lint,
@@ -87,6 +88,11 @@ npm run stats [-- --dias 7 | --md]   # placar do jogo no ar
   (repo público desde 15/10/2026; o e-mail pessoal foi tirado do histórico). Confira `git config user.email`
   em cada aparelho.
 - Antes de fechar uma mudança visual, confira no celular (320 e 390 px), deitado e no desktop.
+- **Primeiro carregamento leve:** Phaser (`src/PhaserGame.tsx`, pré-carregado depois do `load` da Home) e Supabase
+  (`loadCloud()` em `src/cloud/cloud.ts`) vêm em pedaços à parte. Módulo que a Home usa (`EventBus`, `audio`,
+  `animation-manager`…) não pode importar `phaser` em tempo de execução, e `@supabase/supabase-js` fora do
+  `loadCloud` só com `import type`. Confira no build: o `index-*.js` não pode ter `WebGLRenderer` nem `GoTrueClient`.
+  Pedaços com hash ficam em `/bundle` (cache de 1 ano no `vercel.json`).
 
 ## Skills do projeto (`.claude/skills/`)
 
