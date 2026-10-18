@@ -28,3 +28,17 @@ describe('evolução herda a vaga', () => {
         );
     });
 });
+
+describe('carta que evolui vale mais que a pronta', () => {
+    it('Charmander que vira Charizard tem +2 por evolução em todos os atributos (carta e campo)', () => {
+        const rng = new Rng('evo-bonus');
+        const ready = viewInstance(createInstance(6, rng));
+        const grown = evolveInstance(evolveInstance(createInstance(4, rng), 5), 6);
+        expect(grown.evolved).toBe(2);
+        const view = viewInstance(grown);
+        for (const k of Object.keys(ready.attributes) as (keyof typeof ready.attributes)[])
+            expect(view.attributes[k]).toBe(Math.min(99, ready.attributes[k] + 4));
+        expect(view.overall).toBeGreaterThan(ready.overall);
+        expect(attributeModifiers(grown).some((m) => m.source === 'evolucao' && m.add === 4)).toBe(true);
+    });
+});

@@ -1,7 +1,7 @@
 import { abilityEffect } from './abilities';
 import { type Attributes, type AttrKey, computeAttributes, type Position, positionFactor } from './attributes';
 import { ABILITIES, MOVES, species } from './data';
-import { instancePositions, type PokemonInstance } from './instance';
+import { evolutionBonus, instancePositions, type PokemonInstance } from './instance';
 import { ITEMS } from './items';
 import { computeLinks, linkFactor } from './links';
 import { moveProfile } from './moves';
@@ -15,7 +15,16 @@ import { computeSynergies, SYNERGY_CAP, synergyFactor } from './synergy';
  * - intrínsecos (vão com a carta): edição especial (+2 em tudo), habilidade, item, tipo Fada
  * - do time (dependem da escalação): capitão, sinergia de tipo, sinergia de história, posição em que joga
  */
-export type ModSource = 'edicao' | 'habilidade' | 'item' | 'tipo' | 'capitao' | 'sinergia' | 'historia' | 'posicao';
+export type ModSource =
+    | 'edicao'
+    | 'evolucao'
+    | 'habilidade'
+    | 'item'
+    | 'tipo'
+    | 'capitao'
+    | 'sinergia'
+    | 'historia'
+    | 'posicao';
 
 export interface AttrModifier {
     source: ModSource;
@@ -85,6 +94,8 @@ export function attributeModifiers(inst: PokemonInstance, ctx: TeamContext = {})
     const bonus = specialBonus(inst);
     if (bonus)
         mods.push({ source: 'edicao', label: `Edição especial: +${SPECIAL_BONUS} em tudo`, attrs: 'all', add: bonus });
+    const evo = evolutionBonus(inst);
+    if (evo) mods.push({ source: 'evolucao', label: `Evoluiu: +${evo} em tudo`, attrs: 'all', add: evo });
 
     const ability = abilityEffect(inst.ability);
     for (const [k, f] of Object.entries(ability.mods ?? {}) as [AttrKey, number][]) {

@@ -77,7 +77,7 @@ export function evolveInstance(inst: PokemonInstance, into: number, role?: Posit
     const sp = species(into);
     const ability = inst.ability === 'imposter' || sp.abilities.includes(inst.ability) ? inst.ability : sp.abilities[0];
     const { moves, taught } = movesAfterEvolution(inst, sp);
-    const out: PokemonInstance = { ...inst, speciesId: into, moves, ability };
+    const out: PokemonInstance = { ...inst, speciesId: into, moves, ability, evolved: (inst.evolved ?? 0) + 1 };
     if (taught.length) out.taught = taught;
     else delete out.taught;
     if (role && !inst.inherited?.includes(role)) out.inherited = [...(inst.inherited ?? []), role];

@@ -45,7 +45,16 @@ export interface PokemonInstance {
      * Poliwhirl que evolui na Ala continua Ala). Saves antigos não têm o campo.
      */
     inherited?: Position[];
+    /**
+     * Quantas vezes esta carta evoluiu (Charmander → Charizard = 2): cada evolução dá +EVOLUTION_BONUS em todos os
+     * atributos, pra valer a pena pegar uma carta pra evoluir em vez de uma pronta. Saves antigos não têm o campo.
+     */
+    evolved?: number;
 }
+
+/** Pontos em todos os atributos por evolução da carta (18/10/2026). */
+export const EVOLUTION_BONUS = 2;
+export const evolutionBonus = (inst: PokemonInstance) => EVOLUTION_BONUS * (inst.evolved ?? 0);
 
 export const DEFAULT_LEVEL = 50;
 const SHINY_CHANCE = 1 / 64; // bem mais generoso que os jogos — é um fan game, deixa a alegria acontecer
@@ -86,7 +95,7 @@ export function viewInstance(inst: PokemonInstance): InstanceView {
     const sp = species(inst.speciesId);
     const base = computeAttributes(sp, inst.level);
     const positions = instancePositions(inst, base);
-    const attributes = withBonus(base, specialBonus(inst));
+    const attributes = withBonus(base, specialBonus(inst) + evolutionBonus(inst));
     return {
         instance: inst,
         species: sp,

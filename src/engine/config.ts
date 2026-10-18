@@ -28,7 +28,7 @@ export interface MatchConfig {
  * jogo). Partida salva no meio com outra versão recomeça do 0 a 0, em vez de virar outro jogo ao retomar.
  * 1 = 0.8.4 (balanceamento geral). 2 = 0.8.5 (contas próprias: sin/cos/atan2/exp/log/pow do `dmath.ts`; escanteio).
  */
-export const ENGINE_VERSION = 2;
+export const ENGINE_VERSION = 3;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',

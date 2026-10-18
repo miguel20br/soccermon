@@ -147,7 +147,7 @@ describe('draft', () => {
         const charmander = createInstance(4, new Rng('evo'));
         const evo = evolvedRating(charmander, 'ALA');
         expect(evo?.into).toBe(5);
-        expect(evo?.rating).toBe(slotRating({ ...charmander, speciesId: 5 }, 'ALA'));
+        expect(evo?.rating).toBe(slotRating({ ...charmander, speciesId: 5, evolved: 1 }, 'ALA'));
         expect(evolvedRating(createInstance(6, new Rng('evo')), 'ALA')).toBeNull();
         expect(evolvedRating(createInstance(132, new Rng('evo')), 'ALA')).toBeNull();
     });

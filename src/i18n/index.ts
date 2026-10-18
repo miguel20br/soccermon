@@ -162,6 +162,8 @@ export function modLabel(m: AttrModifier, lang: Lang = current): string {
     switch (m.source) {
         case 'edicao':
             return fmt(c.mod.edition, { n: SPECIAL_BONUS });
+        case 'evolucao':
+            return fmt(c.mod.evolved, { n: m.add ?? 0 });
         case 'habilidade': {
             const k = Array.isArray(m.attrs) ? m.attrs[0] : undefined;
             return fmt(c.mod.ability, {

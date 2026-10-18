@@ -293,6 +293,7 @@ export const common: typeof pt = {
     },
     mod: {
         edition: 'Special edition: +{n} to everything',
+        evolved: 'Evolved: +{n} to everything',
         ability: '{name}: {attr} {pct}',
         choiceBand: 'Choice Band: Shooting +15% (1st move only)',
         fairy: 'Charm (Fairy): +8%',

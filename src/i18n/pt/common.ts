@@ -303,6 +303,7 @@ export const common = {
     /** Linhas de bônus da carta (engine/modifiers.ts); {pct} já vem com sinal ("+5%"). */
     mod: {
         edition: 'Edição especial: +{n} em tudo',
+        evolved: 'Evoluiu: +{n} em tudo',
         ability: '{name}: {attr} {pct}',
         choiceBand: 'Choice Band: chute +15% (só o 1º golpe)',
         fairy: 'Encanto (Fada): +8%',
