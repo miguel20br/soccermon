@@ -862,3 +862,17 @@
     text-decoration: underline;
     cursor: pointer;
 }
+
+/* o rival saiu na tela de resultado: a revanche fica desligada */
+.duel-left-note {
+    flex-basis: 100%;
+    margin: 0;
+    text-align: center;
+    color: var(--muted);
+}
+/* placar contra o mesmo amigo (do histórico do save) */
+.duel-h2h {
+    margin: 0 0 6px;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}

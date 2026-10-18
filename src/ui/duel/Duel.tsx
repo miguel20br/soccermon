@@ -9,6 +9,7 @@ import {
     DUEL_MODES,
     DUEL_SPEEDS,
     type DuelMode,
+    duelNames,
     isRoomCode,
     other,
     type Peer,
@@ -16,6 +17,7 @@ import {
     type Shared,
     SIDE,
     specialLimitOf,
+    trainerNames,
     versionsOk,
     WO_WAIT_MS,
 } from '../../net/duel-state';
@@ -497,7 +499,7 @@ function WaitBanner({ s, role }: { s: Shared; role: Role }) {
     const { t } = useT();
     const left = useCountdown(s.waitSince !== undefined ? s.waitSince + WO_WAIT_MS : undefined);
     if (!s.waitFor || s.waitFor === role || s.waitSince === undefined) return null;
-    const name = s.peers[s.waitFor]?.name ?? '';
+    const name = trainerNames(s)[SIDE[s.waitFor]];
     return (
         <div className="duel-banner warn" role="status" data-testid="duel-wait">
             {left > 0 ? (
@@ -515,17 +517,26 @@ function WaitBanner({ s, role }: { s: Shared; role: Role }) {
 }
 
 function DuelResultView({ onHome }: { onHome: () => void }) {
-    const { t } = useT();
+    const { t, tn } = useT();
     const s = useDuel((st) => st.shared)!;
     const role = useDuel((st) => st.role)!;
+    const online = useDuel((st) => st.online);
     const history = useGame((g) => g.duels);
     const r = s.result!;
-    const rival = s.peers[other(role)]?.name ?? '';
+    const rival = trainerNames(s)[SIDE[other(role)]];
+    // o rival saiu da sala: revanche não tem quem aceite
+    const rivalGone = !online[other(role)];
+    // placar contra esse amigo (pelo nome dele no histórico do save)
+    const rivalSaved = s.peers[other(role)]?.name ?? '';
+    const vsRival = history.filter((h) => h.rival === rivalSaved && h.result !== 'void');
+    const h2h = {
+        w: vsRival.filter((h) => h.result === 'win').length,
+        l: vsRival.filter((h) => h.result === 'loss').length,
+        d: vsRival.filter((h) => h.result === 'draw').length,
+    };
     const side = SIDE[role];
     // a partida que esta tela simulou (recarregou a página no resultado: fica só o placar)
     const m = !r.wo && !r.desync ? duel.result : null;
-    const home = s.teams.host;
-    const away = s.teams.guest;
     const myTeam = s.teams[role];
     const rivalTeam = s.teams[other(role)];
     const mine = myTeam?.color ?? 0;
@@ -547,25 +558,36 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
               : t('duel.result.draw');
     const actions = (
         <div className="row duel-share">
+            {rivalGone && (
+                <p className="duel-left-note" role="status" data-testid="duel-rival-left">
+                    {t('duel.result.rivalLeft', { name: rival })}
+                </p>
+            )}
             <button
                 type="button"
                 className="btn primary big"
                 data-testid="duel-rematch"
-                disabled={s.rematch[role]}
-                onClick={() => duel.dispatch({ k: 'rematch' })}
+                disabled={s.rematch[role] || rivalGone}
+                onClick={() => {
+                    playSfx('select');
+                    void duel.rematch();
+                }}
             >
-                {s.rematch[role]
-                    ? t('duel.result.rematchWait', { name: rival })
-                    : s.rematch[other(role)]
-                      ? t('duel.result.rematchAsk', { name: rival })
-                      : t('duel.result.rematch')}
+                {rivalGone
+                    ? t('duel.result.rematch')
+                    : s.rematch[role]
+                      ? t('duel.result.rematchWait', { name: rival })
+                      : s.rematch[other(role)]
+                        ? t('duel.result.rematchAsk', { name: rival })
+                        : t('duel.result.rematch')}
             </button>
             <button type="button" className="btn ghost" onClick={onHome}>
                 {t('duel.result.home')}
             </button>
         </div>
     );
-    const names: [string, string] = [home?.name ?? '', away?.name ?? ''];
+    // clubes com o mesmo nome: o nome do treinador
+    const names = duelNames(s);
     return (
         <div className="duel-result">
             <span className="sr-only" data-testid="duel-result">
@@ -600,11 +622,11 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
                     <h1 className={r.winner === role ? 'won' : r.winner ? 'lost' : ''}>{head}</h1>
                     {!r.wo && !r.desync && (
                         <div className="duel-final">
-                            <span>{home?.name}</span>
+                            <span>{names[0]}</span>
                             <b data-testid="duel-final">
                                 {r.score[0]} x {r.score[1]}
                             </b>
-                            <span>{away?.name}</span>
+                            <span>{names[1]}</span>
                             {r.shootout && (
                                 <small className="muted">
                                     {t('match.penalties', { a: r.shootout[0], b: r.shootout[1] })}
@@ -618,6 +640,13 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
             {history.length > 0 && (
                 <div className="panel duel-history">
                     <h2>{t('duel.result.history')}</h2>
+                    {vsRival.length > 0 && (
+                        <p className="duel-h2h" data-testid="duel-h2h">
+                            <span className="muted">{t('duel.result.h2hLabel', { name: rival })}</span>{' '}
+                            <b>{t('duel.result.h2h', { w: h2h.w, l: h2h.l, name: rival })}</b>
+                            {h2h.d > 0 && <span className="muted"> · {tn('duel.result.h2hDraws', h2h.d)}</span>}
+                        </p>
+                    )}
                     {history.slice(0, 8).map((h) => (
                         <div key={h.id} className="duel-hrow">
                             <i className={h.result}>
@@ -694,6 +723,15 @@ export function Duel() {
         go('home');
     };
 
+    // etapa nova (lobby, draft, escalação, partida, resultado) abre no topo, como as telas do Copa
+    const showMatch =
+        !!s && (s.phase === 'match' || (s.phase === 'done' && !s.result?.wo && !s.result?.desync && seen !== s.game));
+    const step = !s ? 'none' : showMatch ? 'match' : s.phase;
+    // biome-ignore lint/correctness/useExhaustiveDependencies: roda a cada troca de etapa
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [step, s?.game]);
+
     let body: React.ReactNode;
     if (!peer) {
         body = <DuelEntry code={code} />;
@@ -718,8 +756,7 @@ export function Duel() {
     else if (s.phase === 'team') body = <TeamPick s={s} role={role} />;
     else if (s.phase === 'draft') body = <DuelDraft s={s} role={role} />;
     else if (s.phase === 'preview') body = <DuelPreview s={s} role={role} />;
-    else if (s.phase === 'match' || (s.phase === 'done' && !s.result?.wo && !s.result?.desync && seen !== s.game))
-        body = <DuelMatch key={s.game} onSeeResult={() => setSeen(s.game)} />;
+    else if (showMatch) body = <DuelMatch key={s.game} onSeeResult={() => setSeen(s.game)} />;
     else body = <DuelResultView onHome={home} />;
 
     return (
