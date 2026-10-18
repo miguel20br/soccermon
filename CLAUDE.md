@@ -124,7 +124,23 @@ Leia a skill antes de começar a tarefa dela:
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (17/10/2026, v0.8.5 · Escanteio e duelo ao vivo)
+## Estado atual (19/10/2026, v0.8.6 · Lendas douradas e prancheta ao vivo)
+
+Na 0.8.6 (versão "cheia de ajustes desse gênero", decidido em 18/10; a liga ranqueada foi pra 0.8.7): missões
+lendárias (6 treinadores dourados `*Gold`, sprites por `scripts/build-gold-trainers.ts`, `isGoldTrainer` dá brilho
+e moldura; 9 títulos com `title-shine`), missão do Ash = campeão com até 5 gols sofridos (`ASH_MAX_CONCEDED`),
+recorde de títulos seguidos (`Records.streak/bestStreak`), prancheta no meio da partida (ordem `lineup` na próxima
+bola parada, sem limite), +2 por evolução da carta (`EVOLUTION_BONUS`, `PokemonInstance.evolved`; aprovado com
+antes/depois em `balanceamento-geral.md`), Duelo com o mesmo limiar de evolução nos dois lados (`evoNeeded` por
+técnico humano), evolução do rival com animação própria (`src/game/evolution-view.ts`, `?demo=evolucao&rival=1`),
+defesa do goleiro sem bola atrás dele, coleção (estojo de insígnias `BadgeCase`, álbum de edições
+`DexEntry.editions` no save v9, fita de campeão, 9 coleções temáticas, grito de gol do capitão), consertos de
+trapaça e reconexão do Duelo, item antigo na recompensa vai pra quem você escolher, e primeiro acesso de ~2,5 MB
+pra ~0,4 MB (fontes Galmuri em subset por `npm run fonts`; Phaser e Supabase sob demanda; bundles com hash em
+`/bundle`, cache immutable). `ENGINE_VERSION` 3. Atalhos de divulgação `soccermon.com/tt|yt|ig` (utm). O revamp
+"Transmissão" da tela de partida ficou numa branch à parte (`int-086-revamp`) pro Miguel comparar.
+
+### 0.8.5 · Escanteio e duelo ao vivo
 
 Na 0.8.5: escanteio (opção B de [docs/planos/escanteio.md](docs/planos/escanteio.md), `CORNER_TUNING` em
 `src/engine/match.ts`), motor com contas próprias (`src/engine/dmath.ts`; `npm run determinismo` compara Node,
