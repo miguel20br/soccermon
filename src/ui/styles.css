@@ -3891,6 +3891,12 @@ button,
     border-radius: 4px;
     min-width: 2px;
 }
+/* 0 x 0: só a trilha neutra (o valor 0 não desenha barra) */
+.st-split:empty {
+    background: var(--line);
+    border-radius: 4px;
+    opacity: 0.5;
+}
 .st-charts {
     display: grid;
     gap: 18px;
@@ -5593,6 +5599,8 @@ a.home-tile {
     width: min(720px, 100%);
     margin: 0 auto;
     display: grid;
+    /* sem isto a coluna cresce até o filho mais largo (a busca da Ajuda passava da tela no celular) */
+    grid-template-columns: minmax(0, 1fr);
     gap: 14px;
 }
 .menu-head {

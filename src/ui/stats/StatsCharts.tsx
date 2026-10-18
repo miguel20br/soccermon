@@ -108,8 +108,8 @@ export function CompareRows({
                         <span>{r.label}</span>
                         <b>{fmt(r.away)}</b>
                         <div className="st-split" title={`${r.label}: ${fmt(r.home)} x ${fmt(r.away)}`}>
-                            <i style={{ width: `${(r.home / total) * 100}%`, background: homeC() }} />
-                            <i style={{ width: `${(r.away / total) * 100}%`, background: awayC() }} />
+                            {r.home > 0 && <i style={{ width: `${(r.home / total) * 100}%`, background: homeC() }} />}
+                            {r.away > 0 && <i style={{ width: `${(r.away / total) * 100}%`, background: awayC() }} />}
                         </div>
                     </div>
                 );
