@@ -125,7 +125,7 @@ export function Match() {
     }, [halftime]);
     // painel de substituição pode abrir abaixo da dobra (deitado): traz pra tela
     useEffect(() => {
-        if (subOpen) subPanelRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        if (subOpen) subPanelRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
     }, [subOpen]);
 
     const opponent = run?.opponents[run.stage];
