@@ -149,25 +149,39 @@ export function Reward() {
                                         },
                                     }}
                                 />
-                            ) : r.kind === 'tm' ? (
-                                <TmCard
-                                    move={r.move}
-                                    leader={r.leader}
-                                    team={squad}
-                                    selected={chosen === i}
-                                    onClick={() => pick(i)}
-                                />
                             ) : (
-                                <button
-                                    type="button"
-                                    className={`card item-card${chosen === i ? ' selected' : ''}`}
-                                    onClick={() => pick(i)}
-                                >
-                                    <span className="tier-label">{t('reward.item')}</span>
-                                    <img className="pixel item-art" src={itemSprite(r.item)} alt="" />
-                                    <b className="card-name">{itemName(r.item)}</b>
-                                    <span className="tactic-desc">{itemDesc(r.item, lang)}</span>
-                                </button>
+                                // item e MT com o mesmo botão "Escolher" da carta do Pokémon (antes parecia que só o
+                                // Pokémon dava pra escolher)
+                                <div className="fut-wrap">
+                                    {r.kind === 'tm' ? (
+                                        <TmCard
+                                            move={r.move}
+                                            leader={r.leader}
+                                            team={squad}
+                                            selected={chosen === i}
+                                            onClick={() => pick(i)}
+                                        />
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            className={`card item-card${chosen === i ? ' selected' : ''}`}
+                                            onClick={() => pick(i)}
+                                        >
+                                            <span className="tier-label">{t('reward.item')}</span>
+                                            <img className="pixel item-art" src={itemSprite(r.item)} alt="" />
+                                            <b className="card-name">{itemName(r.item)}</b>
+                                            <span className="tactic-desc">{itemDesc(r.item, lang)}</span>
+                                        </button>
+                                    )}
+                                    <button
+                                        type="button"
+                                        className="btn small primary fut-action"
+                                        aria-pressed={chosen === i}
+                                        onClick={() => pick(i)}
+                                    >
+                                        {t(chosen === i ? 'reward.chosen' : 'reward.pick')}
+                                    </button>
+                                </div>
                             )}
                         </div>
                     ))}
