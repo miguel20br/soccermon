@@ -194,6 +194,8 @@
 }
 .duel-beta a {
     color: #7cc8ff;
+    /* área de toque de 44 px sem mexer na linha */
+    padding-block: 15px;
 }
 .duel-beta-tag {
     display: inline-block;

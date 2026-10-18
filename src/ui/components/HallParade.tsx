@@ -71,7 +71,9 @@ export function HallParade({ entry, trainer, onDone }: { entry: HallEntry; train
                     {entry.perfect && <span className="perfect-badge">{t('title.hall.perfect')}</span>}
                 </div>
             )}
-            <small className="hp-skip">{i < total ? t('title.hall.skip') : t('common.ui.close')}</small>
+            <small className={`hp-skip${i < total ? '' : ' done'}`}>
+                {i < total ? t('title.hall.skip') : t('common.ui.close')}
+            </small>
         </button>
     );
 }

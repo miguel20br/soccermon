@@ -75,6 +75,16 @@ export function CardModal() {
         return () => window.removeEventListener('keydown', onKey);
     }, [inst, close]);
 
+    // foco entra na carta ao abrir (leitor de tela e teclado começam nela) e volta pra quem abriu ao fechar
+    const dialogRef = useRef<HTMLDivElement>(null);
+    const open = !!inst;
+    useEffect(() => {
+        if (!open) return;
+        const back = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        dialogRef.current?.focus({ preventScroll: true });
+        return () => back?.focus({ preventScroll: true });
+    }, [open]);
+
     // aberta a partir de um golpe: já mostra a parte dos golpes
     useEffect(() => {
         if (inst && section === 'moves') movesRef.current?.scrollIntoView({ block: 'start' });
@@ -107,6 +117,8 @@ export function CardModal() {
         <div className="modal-backdrop" onClick={close} role="presentation">
             {/* biome-ignore lint/a11y/useKeyWithClickEvents: só impede que o clique dentro feche o modal */}
             <div
+                ref={dialogRef}
+                tabIndex={-1}
                 className="modal panel card-modal"
                 role="dialog"
                 aria-modal="true"

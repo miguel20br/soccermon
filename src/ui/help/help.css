@@ -267,6 +267,8 @@
     display: grid;
     gap: 8px;
     justify-items: start;
+    /* em 320 a quadra + o chip "Iniciais de Kanto" passavam da caixa: o chip quebra em duas linhas */
+    min-width: 0;
 }
 .ob-chip {
     display: inline-flex;
@@ -278,7 +280,6 @@
     border: 2px solid var(--line);
     font-size: 12px;
     font-weight: 700;
-    white-space: nowrap;
 }
 .ob-chip:last-child {
     border-color: var(--yellow);
