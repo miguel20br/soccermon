@@ -15,12 +15,6 @@
 .bc-stage > * {
     min-width: 0;
 }
-.hud-icon {
-    width: 18px;
-    height: 18px;
-    flex: none;
-}
-
 /* prancheta na partida: Ditto transformado ganha o selinho dele no canto da vaga; depois do apito o seletor de
    formação fica apagado de verdade */
 .pr-ditto {
@@ -165,21 +159,12 @@
     height: 100%;
     background: var(--yellow);
 }
-.bc-phase {
+.bc-bug .bc-phase {
     position: absolute;
     left: 50%;
     top: 0;
     transform: translate(-50%, -100%);
-    padding: 2px 10px 1px;
     border-radius: 4px 4px 0 0;
-    background: var(--yellow);
-    color: #0e1430;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    line-height: 14px;
-    text-transform: uppercase;
-    white-space: nowrap;
 }
 
 /* ---------- barra de pressão ---------- */
@@ -304,37 +289,6 @@
     padding: 0;
     overflow: hidden;
 }
-.bc-tabs {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(0, 1fr);
-    background: var(--bg-2);
-}
-.bc-tabs button {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    min-height: 50px;
-    padding: 7px 2px 6px;
-    border: 0;
-    border-bottom: 3px solid transparent;
-    background: none;
-    color: var(--muted);
-    font-size: 11px;
-    cursor: pointer;
-}
-.bc-tabs button span {
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-.bc-tabs button.on {
-    color: var(--yellow);
-    border-bottom-color: var(--yellow);
-    background: var(--panel);
-}
 .bc-pane {
     display: grid;
     gap: 12px;
@@ -378,109 +332,14 @@
     align-items: center;
     gap: 8px;
 }
-.bc-lbl {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    letter-spacing: 1px;
-    color: var(--muted);
-    text-transform: uppercase;
-}
-.bc-lbl .hud-icon {
-    width: 16px;
-    height: 16px;
-}
 .bc-styles {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
 }
-.bc-tile {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-height: 52px;
-    min-width: 0;
-    padding: 6px 10px;
-    border: 3px solid #0e1430;
-    border-radius: 8px;
-    background: var(--panel-2);
-    box-shadow: 0 3px 0 #0e1430;
-    color: var(--text);
-    text-align: left;
-    cursor: pointer;
-    transition: transform 0.06s ease;
-}
-.bc-tile > span {
-    min-width: 0;
-}
-.bc-tile b {
-    display: block;
-    font-size: 13px;
-    overflow-wrap: anywhere;
-}
-.bc-tile small {
-    display: block;
-    font-size: 10px;
-    color: var(--muted);
-}
-.bc-tile.on {
-    border-color: var(--yellow);
-    background: #3a3f5f;
-}
-.bc-tile.on .hud-icon {
-    color: var(--yellow);
-}
-.bc-tile:active:not(:disabled),
 .bc-subbtn:active:not(:disabled),
 .bc-skip:active:not(:disabled) {
     transform: translateY(2px);
-}
-.bc-tile:disabled {
-    cursor: not-allowed;
-    opacity: 0.45;
-}
-.bc-tile.on:disabled {
-    opacity: 0.85;
-}
-.bc-seg {
-    display: flex;
-    gap: 3px;
-    min-width: 0;
-    margin: 0;
-    padding: 3px;
-    border: 0;
-    border-radius: 8px;
-    background: #0e1430;
-}
-.bc-seg button {
-    flex: 1;
-    min-width: 0;
-    min-height: 38px;
-    padding: 6px 2px;
-    border: 0;
-    border-radius: 6px;
-    background: none;
-    color: var(--muted);
-    font-size: 12px;
-    font-weight: 700;
-    white-space: nowrap;
-    cursor: pointer;
-}
-.bc-seg button.on {
-    background: var(--yellow);
-    color: #0e1430;
-}
-.bc-seg button.asking {
-    box-shadow: inset 0 0 0 2px var(--yellow);
-    color: var(--yellow);
-}
-.bc-seg button:disabled {
-    cursor: not-allowed;
-}
-.bc-seg button:disabled:not(.on) {
-    opacity: 0.45;
 }
 .bc-subbtn {
     display: flex;
@@ -672,12 +531,12 @@
         border-inline: 0;
     }
     /* abas e peças um pouco mais baixas: no 390x844 o Substituir aparece sem rolar (no duelo também) */
-    .bc-tabs button {
+    .bc .bc-tabs button {
         min-height: 44px;
         padding-block: 5px 4px;
         gap: 2px;
     }
-    .bc-tile {
+    .bc .bc-tile {
         min-height: 46px;
     }
     .bc-pane,
@@ -690,11 +549,11 @@
 }
 /* 320: peças da tática mais justas */
 @media (max-width: 380px) {
-    .bc-tile {
+    .bc .bc-tile {
         gap: 6px;
         padding: 6px;
     }
-    .bc-tile b {
+    .bc .bc-tile b {
         font-size: 12px;
     }
     .bc-sc {
@@ -709,7 +568,7 @@
         min-width: 84px;
         padding: 4px 8px;
     }
-    .bc-seg button {
+    .bc .bc-seg button {
         font-size: 11px;
     }
 }
@@ -776,18 +635,18 @@
         overflow-y: auto;
         align-content: start;
     }
-    .bc-tabs {
+    .bc .bc-tabs {
         position: sticky;
         top: 0;
         z-index: 2;
     }
-    .bc-tabs button {
+    .bc .bc-tabs button {
         min-height: 40px;
         padding: 4px 2px;
         font-size: 10px;
         gap: 1px;
     }
-    .bc-tabs .hud-icon {
+    .bc .bc-tabs .hud-icon {
         width: 16px;
         height: 16px;
     }
@@ -798,18 +657,18 @@
     .bc-tactic {
         gap: 7px;
     }
-    .bc-tile {
+    .bc .bc-tile {
         min-height: 40px;
         padding: 4px 6px;
         gap: 6px;
     }
-    .bc-tile small {
+    .bc .bc-tile small {
         display: none;
     }
-    .bc-tile b {
+    .bc .bc-tile b {
         font-size: 12px;
     }
-    .bc-seg button {
+    .bc .bc-seg button {
         min-height: 32px;
     }
     .bc-subbtn {

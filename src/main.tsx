@@ -9,6 +9,7 @@ import { importFromOldDomain, moveToNewDomain } from './cloud/domain-move';
 import { ErrorBoundary } from './ui/components/ErrorBoundary';
 import { startSettingsSync } from './ui/settings-sync';
 import './ui/styles.css';
+import './ui/broadcast-kit.css';
 
 // erros fora do React (eventos, timers, promessas): só registra no console com prefixo claro, sem esconder nada
 window.addEventListener('error', (e) => {

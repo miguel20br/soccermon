@@ -124,7 +124,7 @@ export function Scoreboard({
     );
     return (
         <div className={`scoreboard bc-bug${coaches ? ' has-coaches' : ''}${className}`} ref={boardRef}>
-            <span className="bc-phase">{stage}</span>
+            <span className="bc-phase bc-tag">{stage}</span>
             {team(0)}
             <div className="bc-mid">
                 <span className={`bc-clock${clock.text ? ' txt' : ''}`}>{clock.main}</span>
@@ -238,6 +238,12 @@ const ICONS = {
     team: 'M4 6h16M4 12h16M4 18h16',
     feed: 'M4 5h16v11H10l-6 4z',
     smile: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM8 14c1 2 2.4 3 4 3s3-1 4-3M9 9.5v.5M15 9.5v.5',
+    // abas de fora da partida (resultado, perfil)
+    players:
+        'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 4.5a3.5 3.5 0 0 1 0 6.5M18 14c2 .6 3.5 2.8 3.5 6',
+    chart: 'M5 20V11M11 20V5M17 20v-7M2 20h20',
+    cup: 'M7 4h10v5a5 5 0 0 1-10 0zM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 21h8',
+    dex: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM3 12h6.5M14.5 12H21M12 9.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5z',
 } as const;
 export type HudIconKind = keyof typeof ICONS;
 

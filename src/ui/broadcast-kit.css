@@ -1,0 +1,346 @@
+/*
+ * Kit "Transmissão": as peças da tela de partida (MatchHud.tsx, broadcast.css) que o site inteiro usa.
+ * - superfície de placar (.bc-surface): fundo sólido escuro, borda de baixo preta, faixa lateral na cor do time ou
+ *   do destaque (--tc, amarelo por padrão)
+ * - cabeçalho de tela (.bc-screenhead): o título num placar com a etiqueta da fase/seção (.bc-tag) em cima
+ * - rótulo de seção (.bc-lbl), peça com ícone (.bc-tile), abas com ícone (.bc-tabs), seletor segmentado (.bc-seg)
+ * - barra do polegar (.bc-thumbbar): a ação principal fixa embaixo no celular, no lugar de sempre no desktop
+ * Só o que é da partida (placar, pressão, narração, abas do técnico) fica em broadcast.css.
+ */
+:root {
+    /* superfície do placar */
+    --bc-ink: #0e1430;
+    /* miolo do placar (relógio) e faixas de baixo */
+    --bc-ink-2: #1b2350;
+    --bc-ink-3: #10173a;
+    /* caixa clara dos números */
+    --bc-paper: #f4f1e6;
+    --bc-edge: #000;
+    /* altura da barra do polegar (o fim da página não fica embaixo dela) */
+    --bc-thumb-h: 68px;
+}
+
+.hud-icon {
+    width: 18px;
+    height: 18px;
+    flex: none;
+}
+
+/* ---------- superfície de placar ---------- */
+.bc-surface {
+    position: relative;
+    background: var(--bc-ink);
+    border: 0;
+    border-bottom: 2px solid var(--bc-edge);
+    border-radius: 6px;
+    box-shadow: none;
+}
+/* faixa lateral na cor do time (ou amarela) */
+.bc-stripe {
+    padding-left: 18px;
+}
+.bc-stripe::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    background: var(--tc, var(--yellow));
+    border-radius: 6px 0 0 6px;
+}
+
+/* ---------- etiqueta da fase / seção (a pílula amarela do placar) ---------- */
+.bc-tag {
+    display: inline-block;
+    padding: 2px 10px 1px;
+    border-radius: 4px;
+    background: var(--yellow);
+    color: var(--bc-ink);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    line-height: 14px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* ---------- cabeçalho de tela em forma de placar ---------- */
+.bc-screenhead {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    margin: 0;
+    padding: 10px 14px 10px 18px;
+    background: var(--bc-ink);
+    border-bottom: 2px solid var(--bc-edge);
+    border-radius: 6px;
+}
+.bc-screenhead::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    background: var(--tc, var(--yellow));
+    border-radius: 6px 0 0 6px;
+}
+/* a etiqueta senta em cima do placar, como a fase na partida */
+.bc-screenhead > .bc-tag {
+    position: absolute;
+    left: 18px;
+    top: 0;
+    transform: translateY(-100%);
+    max-width: calc(100% - 24px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-radius: 4px 4px 0 0;
+}
+.bc-screenhead:has(> .bc-tag) {
+    margin-top: 16px;
+}
+.bc-screenhead h1,
+.bc-screenhead h2 {
+    min-width: 0;
+    margin: 0;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 1.2;
+    color: var(--text);
+    letter-spacing: 1px;
+}
+
+/* ---------- título de painel: plaquinha escura com a faixa amarela (o "lower third" da TV) ----------
+   Vale pra todo painel de fora da partida (.bc tem o desenho dela) e pros títulos das telas de campeão. */
+.bc-caption,
+:where(.panel:not(.bc *, .modal)) > h2:first-child,
+.champ-h {
+    position: relative;
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 0 12px;
+    padding: 5px 12px 4px 16px;
+    background: var(--bc-ink);
+    border-bottom: 2px solid var(--bc-edge);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: "Galmuri11", monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    line-height: 1.35;
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+}
+.bc-caption::before,
+:where(.panel:not(.bc *, .modal)) > h2:first-child::before,
+.champ-h::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    background: var(--tc, var(--yellow));
+    border-radius: 4px 0 0 4px;
+}
+
+/* ---------- rótulo de seção ("ESTILO DE JOGO") ---------- */
+.bc-lbl {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-transform: uppercase;
+}
+/* rótulo usado como título de bloco dentro de painel */
+h2.bc-lbl,
+h3.bc-lbl {
+    margin: 14px 0 6px;
+    font-size: 11px;
+    font-weight: 400;
+}
+.bc-lbl .hud-icon {
+    width: 16px;
+    height: 16px;
+}
+
+/* ---------- abas com ícone ---------- */
+.bc-tabs {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    background: var(--bg-2);
+}
+.bc-tabs button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-height: 50px;
+    padding: 7px 2px 6px;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    background: none;
+    color: var(--muted);
+    font-size: 11px;
+    cursor: pointer;
+}
+.bc-tabs button span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.bc-tabs button.on,
+.bc-tabs button[aria-selected="true"] {
+    color: var(--yellow);
+    border-bottom-color: var(--yellow);
+    background: var(--panel);
+}
+.bc-tabs button:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: -3px;
+}
+
+/* ---------- peça: ícone + título + subtítulo ---------- */
+.bc-tile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 52px;
+    min-width: 0;
+    padding: 6px 10px;
+    border: 3px solid var(--bc-ink);
+    border-radius: 8px;
+    background: var(--panel-2);
+    box-shadow: 0 3px 0 var(--bc-ink);
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.06s ease;
+}
+.bc-tile > span {
+    min-width: 0;
+}
+.bc-tile b {
+    display: block;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+.bc-tile small {
+    display: block;
+    font-size: 10px;
+    color: var(--muted);
+}
+.bc-tile.on {
+    border-color: var(--yellow);
+    background: #3a3f5f;
+}
+.bc-tile.on .hud-icon {
+    color: var(--yellow);
+}
+.bc-tile:active:not(:disabled) {
+    transform: translateY(2px);
+}
+.bc-tile:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+}
+.bc-tile:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+.bc-tile.on:disabled {
+    opacity: 0.85;
+}
+
+/* ---------- seletor segmentado ---------- */
+.bc-seg {
+    display: flex;
+    gap: 3px;
+    min-width: 0;
+    margin: 0;
+    padding: 3px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--bc-ink);
+}
+.bc-seg button {
+    flex: 1;
+    min-width: 0;
+    min-height: 38px;
+    padding: 6px 2px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.bc-seg button.on,
+.bc-seg button[aria-pressed="true"],
+.bc-seg button[aria-checked="true"] {
+    background: var(--yellow);
+    color: var(--bc-ink);
+}
+.bc-seg button.asking {
+    box-shadow: inset 0 0 0 2px var(--yellow);
+    color: var(--yellow);
+}
+.bc-seg button:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: -1px;
+}
+.bc-seg button:disabled {
+    cursor: not-allowed;
+}
+.bc-seg button:disabled:not(.on) {
+    opacity: 0.45;
+}
+
+/* ---------- barra do polegar: a ação principal fixa embaixo no celular ---------- */
+@media (max-width: 700px), (orientation: landscape) and (max-height: 520px) {
+    .bc-thumbbar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 30;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        padding: 8px max(12px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom))
+            max(12px, env(safe-area-inset-left));
+        background: var(--bc-ink);
+        border-top: 3px solid var(--line);
+    }
+    .bc-thumbbar > * {
+        flex: 1;
+        min-width: 0;
+        margin: 0;
+    }
+    .app:has(.bc-thumbbar) {
+        padding-bottom: calc(var(--bc-thumb-h) + 16px + env(safe-area-inset-bottom));
+    }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .bc-thumbbar {
+        padding-block: 6px calc(6px + env(safe-area-inset-bottom));
+    }
+    .bc-thumbbar > * {
+        flex: 0 1 420px;
+        margin-inline: auto;
+    }
+}
