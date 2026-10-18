@@ -3092,6 +3092,9 @@ button,
         animation: none;
     }
 }
+:root[data-reduce-motion="true"] .mh {
+    animation: none;
+}
 
 .confirm-new {
     display: grid;
@@ -3166,8 +3169,16 @@ button,
     color: #7dff8a;
     font-size: clamp(13px, 2vw, 20px);
 }
-.mh-evolve .mh-kind {
+.mh-rivalEvolve .mh-kind {
     color: #ffe14d;
+    font-size: clamp(13px, 2vw, 20px);
+}
+.mh-rivalEvolve .mh-arrow {
+    color: #ffe14d;
+}
+/* "O Charmeleon do rival evoluiu!" quebra a linha em vez de cortar no celular */
+.mh-rivalEvolve .mh-team {
+    white-space: normal;
 }
 
 /* ---------- substituição ao vivo ---------- */
@@ -5706,9 +5717,11 @@ a.home-tile {
     width: min(70vw, 360px, 45vh);
 }
 @media (max-width: 480px) {
-    /* faixa de substituição: no celular sobra pouco espaço; fica só quem entra */
+    /* faixa de substituição e de evolução do rival: no celular sobra pouco espaço; fica só quem entra / a forma nova */
     .mh-sub .mh-out,
-    .mh-sub .mh-arrow {
+    .mh-sub .mh-arrow,
+    .mh-rivalEvolve .mh-out,
+    .mh-rivalEvolve .mh-arrow {
         display: none;
     }
 }

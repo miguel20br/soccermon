@@ -73,6 +73,7 @@ export const battle = {
     penScore: '{a} x {b}',
     evolving: 'O quê? {x} está evoluindo!',
     evolved: 'Parabéns! {x} evoluiu para {y}!',
+    evolvingRival: 'O quê? {x} deles está evoluindo!',
     evolvedRival: 'Cuidado! {x} deles evoluiu para {y}!',
     /** Traços de golpe (evento 'trait'): texto que sobe da cabeça. */
     pop: {

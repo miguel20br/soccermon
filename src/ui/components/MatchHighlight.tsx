@@ -10,7 +10,7 @@ const SHOW_MS = 2600;
 
 /** Rostinho do PMDCollab: comemorando no gol, concentrado na defesa (cai no normal se não tiver). */
 function portraitOf(speciesId: number, kind: Highlight['kind']): string {
-    const want = kind === 'save' ? 'determined' : kind === 'goal' || kind === 'evolve' ? 'happy' : null;
+    const want = kind === 'save' ? 'determined' : kind === 'goal' || kind === 'rivalEvolve' ? 'happy' : null;
     const has = want && EMOTIONS[speciesId]?.includes(want);
     return `assets/portraits/${speciesId}${has ? `-${want}` : ''}.png`;
 }
@@ -66,8 +66,8 @@ export function MatchHighlight({ teamNames, colors }: { teamNames: [string, stri
                 <span className="mh-team">
                     {shown.kind === 'sub'
                         ? t('match.subOut', { name: shown.outName ?? '' })
-                        : shown.kind === 'evolve'
-                          ? t('match.evolved', { name: shown.outName ?? '' })
+                        : shown.kind === 'rivalEvolve'
+                          ? t('match.evolvedRival', { name: shown.outName ?? '' })
                           : teamNames[shown.team]}
                 </span>
             </div>

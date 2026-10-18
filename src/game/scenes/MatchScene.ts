@@ -46,6 +46,7 @@ import { BattleBox } from '../battle-box';
 import { Cinematics, FOCUS_DEPTH } from '../cinematics';
 import { drawCourt, ensureBallTexture, GAME_H, GAME_W, PPM, toPx } from '../court';
 import { EventBus } from '../EventBus';
+import { blinkSchedule, evolutionView, RIVAL_EVO_MS } from '../evolution-view';
 import { castMove, preloadMoveFx } from '../move-fx';
 
 export { GAME_H, GAME_W } from '../court';
@@ -84,7 +85,7 @@ export interface MatchSceneData {
 /** Defesa seguida de escanteio até esse tanto de ticks depois: as duas faixas saem uma de cada vez. */
 const CORNER_AFTER_SAVE_TICKS = 80;
 
-/** Duelo: quanto a evolução do rival segura a quadra (a tela cheia do outro lado dura ~10 s). */
+/** Duelo: quanto a evolução do rival segura a quadra (a tela cheia do outro lado dura ~10 s). Copa: RIVAL_EVO_MS. */
 const DUEL_EVO_HOLD_MS = 9500;
 
 /**
@@ -140,12 +141,12 @@ export interface MatchEvolution {
 
 /** Faixa de gol/defesa que a tela React mostra no canto do time. */
 export interface MatchHighlight {
-    kind: 'goal' | 'owngoal' | 'save' | 'sub' | 'evolve' | 'tactic';
+    kind: 'goal' | 'owngoal' | 'save' | 'sub' | 'rivalEvolve' | 'tactic';
     team: 0 | 1;
     speciesId: number;
     shiny: boolean;
     name: string;
-    /** Substituição: quem saiu. Evolução: a forma anterior. */
+    /** Substituição: quem saiu. Evolução do rival: a forma anterior. */
     outSpeciesId?: number;
     outName?: string;
 }
@@ -1376,13 +1377,11 @@ export class MatchScene extends Phaser.Scene {
                 const ready = this.textures.exists(atlasKey(skin));
                 if (ready) createSpeciesAnims(this, skin);
                 const newName = view.name === species(e.from).name ? species(e.into).name : view.name;
-                // sem a forma nova carregada (rede lenta), troca direto sem a animação
-                if (silent || !ready) this.finishEvolution(view, e.into, newName);
-                // a tela cheia ("Parabéns!") é só do seu time; a do rival é na quadra, sem parar a partida
-                else if (view.team !== this.mine) {
-                    this.evolveOnField(view, e.into, newName);
-                    if (this.md.duel) this.holdReal = Math.max(this.holdReal, this.time.now + DUEL_EVO_HOLD_MS);
-                } else this.evolveAnimation(view, e.from, e.into, newName);
+                // a tela cheia ("Parabéns!") é só do seu time; a do rival é na quadra, curta e com faixa própria
+                const how = evolutionView(view.team, this.mine, silent, ready);
+                if (how === 'rival') this.rivalEvolution(view, e.from, e.into, newName, ready);
+                else if (how === 'mine') this.evolveAnimation(view, e.from, e.into, newName);
+                else this.finishEvolution(view, e.into, newName);
             }
         }
         // Ditto vira a cópia; ao vivo quem troca é a animação de Transformar (pisca em branco antes, ver abaixo)
@@ -1940,6 +1939,72 @@ export class MatchScene extends Phaser.Scene {
                 y: species(into).name,
             }),
         );
+    }
+
+    /**
+     * Evolução do rival: diferente da sua de propósito. Sem tela cheia: a quadra segura um instante (no duelo, o
+     * tempo da tela cheia do outro lado), o Pokémon pisca em silhueta branca acelerando com um brilho na cor do time
+     * dele e, na troca, sobe a faixa "RIVAL EVOLUIU!" no canto do rival. Reduzir movimento: troca direto, sem piscar.
+     */
+    private rivalEvolution(view: PlayerView, from: number, into: number, newName: string, ready: boolean) {
+        const oldName = view.name;
+        const hold = this.md.duel ? DUEL_EVO_HOLD_MS : RIVAL_EVO_MS;
+        this.holdReal = Math.max(this.holdReal, this.time.now + hold);
+        const reveal = () => {
+            if (ready && !this.md.reduceMotion) this.evolveOnField(view, into, newName);
+            else {
+                this.finishEvolution(view, into, newName);
+                this.battleBox.push(tr('battle.evolvedRival', { x: oldName, y: species(into).name }));
+            }
+            playCry(into, this.md.cries, 1);
+            const h: MatchHighlight = {
+                kind: 'rivalEvolve',
+                team: view.team,
+                speciesId: into,
+                shiny: view.shiny,
+                name: newName,
+                outSpeciesId: from,
+                outName: oldName,
+            };
+            EventBus.emit('match:highlight', h);
+        };
+        if (!ready || this.md.reduceMotion) {
+            reveal();
+            return;
+        }
+        playSfx('status');
+        this.battleBox.push(tr('battle.evolvingRival', { x: oldName }));
+        view.evolving = true;
+        // no duelo a faixa sobe ~2,6 s antes de a quadra voltar; na copa, quando ela volta
+        const morph = this.md.duel ? hold - 2600 : hold;
+        const sp = view.sprite;
+        const glow = this.add
+            .circle(sp.x, sp.y - 14, 22, this.md.colors[view.team], 0.55)
+            .setBlendMode(Phaser.BlendModes.ADD)
+            .setDepth(sp.depth - 0.1);
+        this.tweens.add({
+            targets: glow,
+            scale: 1.6,
+            alpha: 0.2,
+            duration: 380,
+            yoyo: true,
+            repeat: -1,
+            onUpdate: () => glow.setPosition(sp.x, sp.y - 14).setDepth(sp.depth - 0.1),
+        });
+        let at = 0;
+        blinkSchedule(morph).forEach((dt, i) => {
+            at += dt;
+            this.time.delayedCall(at, () => {
+                if (i % 2 === 0) sp.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL);
+                else sp.setTintMode(Phaser.TintModes.MULTIPLY).clearTint();
+            });
+        });
+        this.time.delayedCall(morph, () => {
+            this.tweens.killTweensOf(glow);
+            glow.destroy();
+            sp.setTintMode(Phaser.TintModes.MULTIPLY);
+            reveal();
+        });
     }
 
     private onEvolutionDone() {

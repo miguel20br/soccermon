@@ -14,7 +14,7 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * Atalhos de desenvolvimento (só em `npm run dev`): `?demo=penaltis` monta uma copa cuja primeira
  * partida termina empatada e vai para os pênaltis, já na tela de escalação. `?demo=ditto` monta um time
  * com Ditto e Mew + Mewtwo (sinergia Gênese) cuja primeira partida tem combo. `?demo=evolucao` monta um time
- * de iniciais cuja primeira partida tem evolução do seu time logo no começo. `?demo=campeao` joga uma copa
+ * de iniciais cuja primeira partida tem evolução do seu time logo no começo (`&rival=1`: do rival). `?demo=campeao` joga uma copa
  * inteira com um time forte e para na tela do título. `?demo=mt` abre a recompensa depois das oitavas com
  * uma MT do ginásio entre as 3 cartas (Charmeleon, Caterpie e cia. para testar quem aprende). `?demo=conta&tipo=levar|juntar|juntar1|copa|outra|guardada`
  * mostra a pergunta depois do login (com resumos de mentira; os botões só fecham) ou a copa guardada na tela inicial. `?demo=trailer&cena=<cena>&seed=<seed>` abre na escalação a
@@ -215,6 +215,7 @@ export function runDevDemo() {
         return;
     }
     if (demo === 'evolucao') {
+        const team = new URLSearchParams(window.location.search).get('rival') === '1' ? 1 : 0;
         for (let k = 0; k < 120; k++) {
             store.newRun('Demo FC', `evo${k}`);
             const run = useGame.getState().run!;
@@ -234,10 +235,10 @@ export function runDevDemo() {
             const r = runMatch(FUTSAL_5, playerTeam(ready), ready.opponents[0], `${ready.seed}-stage-0`, {
                 snapshots: false,
             });
-            const evo = r.events.find((e) => e.type === 'evolve' && e.team === 0);
+            const evo = r.events.find((e) => e.type === 'evolve' && e.team === team);
             if (evo && evo.tick < 2400) {
                 useGame.setState({ run: ready, screen: 'lineup' });
-                console.info(`[demo] copa ${ready.seed}: evolução no tick ${evo.tick}`);
+                console.info(`[demo] copa ${ready.seed}: evolução do time ${team} no tick ${evo.tick}`);
                 return;
             }
         }
