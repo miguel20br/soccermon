@@ -1,4 +1,5 @@
 import type { Position } from '../engine/attributes';
+import { FUTSAL_5 } from '../engine/config';
 import { evolveInstance } from '../engine/evolution';
 import { DEFAULT_FORMATION, type FormationId, formationOf } from '../engine/formations';
 import type { PokemonInstance } from '../engine/instance';
@@ -45,7 +46,7 @@ export function boardAt(
     let formation = setups[team].formation ?? DEFAULT_FORMATION;
     let idx = m.roster.filter((r) => r.team === team).map((r) => r.idx);
     for (const e of m.events) {
-        if (e.tick > tick) break;
+        if (e.tick > tick) continue;
         if (e.type === 'lineup' && e.team === team) {
             formation = e.formation;
             idx = e.idx;
@@ -66,7 +67,7 @@ export function whoAt(m: MatchResult, setups: [TeamSetup, TeamSetup], idx: numbe
     let uid = m.roster[idx].uid;
     let since = 0;
     for (const e of m.events) {
-        if (e.tick > tick) break;
+        if (e.tick > tick) continue;
         if (e.type === 'sub' && e.outIdx === idx) {
             uid = e.inUid;
             since = e.tick;
@@ -77,7 +78,7 @@ export function whoAt(m: MatchResult, setups: [TeamSetup, TeamSetup], idx: numbe
     let evolved = false;
     let transformed = false;
     for (const e of m.events) {
-        if (e.tick > tick) break;
+        if (e.tick > tick) continue;
         if (e.type === 'evolve' && e.uid === uid && inst) {
             inst = evolveInstance(inst, e.into, e.role);
             evolved = true;
@@ -124,7 +125,7 @@ export function statsUntil(m: MatchResult, idx: number, from: number, tick: numb
     const used = new Map<string, number>();
     let wide = 0;
     for (const e of m.events) {
-        if (e.tick > tick) break;
+        if (e.tick > tick) continue;
         if (e.tick < from) continue;
         if (e.type === 'goal' && e.by === idx && !e.ownGoal) s.goals++;
         if (e.type === 'goal' && e.assist === idx) s.assists++;
@@ -146,4 +147,33 @@ export function statsUntil(m: MatchResult, idx: number, from: number, tick: numb
     s.passesCompleted = Math.round(s.passes * 0.85);
     s.shotsOnTarget = Math.max(0, s.shots - wide);
     return { stats: s, used };
+}
+
+/** Colunas da barra de pressão: uma a cada 2' (dois tempos de 20'). */
+export const PRESSURE_BINS = 20;
+
+export interface PressureBin {
+    /** Chance de gol (xG) somada dos chutes de cada time na coluna. */
+    xg: [number, number];
+    goals: [number, number];
+}
+
+/**
+ * Barra de pressão do placar: o perigo (xG dos chutes) de cada time a cada 2'. Só conta o que já passou na tela
+ * (`tick`): a partida da copa vem calculada inteira e a barra não pode contar o futuro.
+ */
+export function pressureUntil(m: MatchResult, tick: number, bins = PRESSURE_BINS): PressureBin[] {
+    const out = Array.from({ length: bins }, () => ({ xg: [0, 0], goals: [0, 0] }) as PressureBin);
+    const total = FUTSAL_5.displayHalfMinutes * 2;
+    const binOf = (minute: number) => Math.min(bins - 1, Math.max(0, Math.floor((minute / total) * bins)));
+    for (const e of m.events) {
+        if (e.tick > tick) continue;
+        // pênaltis depois do apito final não são pressão de jogo
+        if (e.type === 'fulltime') break;
+        if (e.type === 'shot') {
+            const team = m.roster[e.by]?.team;
+            if (team !== undefined) out[binOf(e.minute)].xg[team] += e.xg;
+        } else if (e.type === 'goal') out[binOf(e.minute)].goals[e.team]++;
+    }
+    return out;
 }

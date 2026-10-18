@@ -479,8 +479,8 @@
     position: relative;
     row-gap: 4px;
 }
-/* o placar ocupa as duas linhas; embaixo de cada time, o título do treinador */
-.duel-board .sb-score {
+/* o relógio ocupa as duas linhas; embaixo de cada time, o título do treinador */
+.duel-board .bc-mid {
     grid-row: 1 / span 2;
 }
 .sb-coach {
@@ -687,14 +687,7 @@
     border-radius: 2px;
     background: linear-gradient(90deg, var(--yellow) calc(var(--p) * 100%), rgb(255 255 255 / 15%) 0);
 }
-.duel-speed .btn.asking {
-    border-color: var(--yellow);
-    color: var(--yellow);
-}
 @media (max-width: 700px) {
-    .control-group.duel-speed .corner-label {
-        grid-column: 1 / -1;
-    }
     .speed-ask {
         top: 4px;
         padding: 6px 8px;

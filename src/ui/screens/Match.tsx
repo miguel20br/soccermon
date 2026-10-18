@@ -30,15 +30,23 @@ import { HalftimePanel } from '../components/HalftimePanel';
 import { MatchHighlight } from '../components/MatchHighlight';
 import {
     type Clock,
+    type CoachTab,
+    CoachTabs,
+    HudIcon,
     hex,
     MatchFeed,
+    PressureBar,
     Scoreboard,
     SubPanel,
     TacticControls,
-    useClockLabel,
+    TIRED_HINT,
+    Ticker,
+    useClockParts,
+    useCoachTab,
 } from '../components/MatchHud';
 import { PlayerInspect } from '../components/PlayerInspect';
-import { type BoardPlan, boardBeside, Prancheta } from '../components/Prancheta';
+import { cardSprite } from '../components/PokeCard';
+import { type BoardPlan, Prancheta, useMedia, WIDE } from '../components/Prancheta';
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
 import { LeaveConfirm } from '../leave-guard';
@@ -66,7 +74,7 @@ const SAVE_EVERY_MS = 1500;
 
 export function Match() {
     const { run, match, settings, updateSettings, recordResult, setMatch, go, saveLive } = useGame();
-    const { t } = useT();
+    const { t, d } = useT();
     // retomando uma partida que ficou no meio: mesmo ponto e mesmas ordens
     const resume = useRef(liveOf(run)).current;
     const [fontsReady, setFontsReady] = useState(false);
@@ -97,7 +105,10 @@ export function Match() {
     const [fulltime, setFulltime] = useState(false);
     const [tacticError, setTacticError] = useState<string | null>(null);
     const alive = useRef(true);
-    const [feedOpen, setFeedOpen] = useState(true);
+    // painel do técnico: no desktop a Tática fica embaixo da quadra e as abas abrem na Prancheta
+    const wide = useMedia(WIDE);
+    const tabs: CoachTab[] = wide ? ['board', 'team', 'feed'] : ['tactic', 'board', 'team', 'feed'];
+    const [tab, setTab] = useCoachTab(tabs, wide ? 'board' : 'tactic');
     const latest = useRef<MatchResult | null>(match);
     const recorded = useRef(false);
     const tickRef = useRef(0);
@@ -259,7 +270,7 @@ export function Match() {
         };
     }, [match?.seed]);
 
-    const clockLabel = useClockLabel(clock, fulltime || ended, shootout, halftime);
+    const clockParts = useClockParts(clock, fulltime || ended, shootout, halftime);
     if (!run || !match || !sceneData || !opponent) return null;
 
     const lockedSetup = run.lockedTeam ? { ...run.lockedTeam, manualSubs: true } : playerTeam(run);
@@ -378,30 +389,59 @@ export function Match() {
         setIntroDone(true);
         EventBus.emit('match:resume');
     };
+    // quem está mais cansado em quadra: o botão Substituir avisa (só avisa; a troca é sempre do técnico)
+    const tiredSlot = onField.map((uid, i) => ({ uid, energy: energyAt(i) })).sort((a, b) => a.energy - b.energy)[0];
+    const tiredInst = tiredSlot && byUid.get(tiredSlot.uid);
+    const tired =
+        canSub && tiredSlot && tiredInst && tiredSlot.energy < TIRED_HINT
+            ? { name: nameOf(tiredSlot.uid), energy: tiredSlot.energy, sprite: cardSprite(tiredInst) }
+            : null;
+
+    const over = fulltime || ended;
+    const tactics = (
+        <TacticControls
+            tactic={currentTactic}
+            tacticsUsed={changes.length}
+            corner={currentCorner}
+            cornersUsed={cornerOrders.length}
+            canChange={canChangeTactic}
+            pending={pending}
+            error={tacticError}
+            onTactic={changeTactic}
+            onCorner={changeCorner}
+            subOpen={subOpen}
+            canSub={canSub}
+            onToggleSub={() => setSubOpen((v) => !v)}
+            tired={tired}
+        />
+    );
 
     return (
         <>
             {!introDone && (
                 <VersusIntro home={lockedSetup} away={opponent} stage={stage} ready={sceneReady} onDone={finishIntro} />
             )}
-            <Scoreboard
-                boardRef={scoreboardRef}
-                names={teamNames}
-                colors={colors}
-                score={clock.score}
-                clockLabel={clockLabel}
-                stage={stage}
-                homeTag={homeTag}
-            />
+            <div className="bc">
+                <div className="bc-head" ref={scoreboardRef}>
+                    <Scoreboard
+                        names={teamNames}
+                        tags={[homeTag, tagFromName(teamNames[1])]}
+                        colors={colors}
+                        score={clock.score}
+                        clock={clockParts}
+                        stage={d.match.stageShort[run.stage] ?? stage}
+                    />
+                    <PressureBar match={match} tick={clock.tick} minute={clock.minute} colors={colors} over={over} />
+                </div>
 
-            <div className="match-layout has-board">
-                <div className="match-main">
+                <div className="bc-stage">
                     <div className="pitch-wrap">
                         {fontsReady ? (
                             <PhaserGame key={`${match.seed}-${sceneKey}`} data={sceneData} />
                         ) : (
                             <div className="phaser-container" />
                         )}
+                        <Ticker lines={lines} colors={colors} />
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
                         <LeaveConfirm />
@@ -411,8 +451,13 @@ export function Match() {
                             tactics={[currentTactic, opponent.tactic]}
                         />
                     </div>
+                    {sceneSlow && !sceneReady && (
+                        <button type="button" className="btn yellow" onClick={() => setSceneKey((k) => k + 1)}>
+                            {t('match.reload')}
+                        </button>
+                    )}
                     {halftime && (
-                        <div ref={halftimeRef}>
+                        <div className="ht-wrap" ref={halftimeRef}>
                             <HalftimePanel
                                 match={match}
                                 names={teamNames}
@@ -428,7 +473,10 @@ export function Match() {
                                 }}
                                 canSub={canSub}
                                 onSub={() => setSubOpen(true)}
-                                onBoard={() => setBoardFocus((k) => k + 1)}
+                                onBoard={() => {
+                                    setTab('board');
+                                    setBoardFocus((k) => k + 1);
+                                }}
                                 onContinue={() => {
                                     setHalftime(false);
                                     EventBus.emit('match:resume');
@@ -464,83 +512,85 @@ export function Match() {
                             onPick={orderSub}
                         />
                     )}
-                    {sceneSlow && !sceneReady && (
-                        <button type="button" className="btn yellow" onClick={() => setSceneKey((k) => k + 1)}>
-                            {t('match.reload')}
+                    {wide && <div className="bc-deskbar">{tactics}</div>}
+                </div>
+
+                <div className="panel bc-coach">
+                    <CoachTabs tabs={tabs} active={tab} onPick={setTab} />
+                    <div className={`bc-pane pane-${tab}`} role="tabpanel">
+                        {tab === 'tactic' && tactics}
+                        {tab === 'board' && (
+                            <Prancheta
+                                match={match}
+                                setups={[lockedSetup, opponent]}
+                                side={0}
+                                tick={clock.tick}
+                                names={teamNames}
+                                selectedUid={subOpen ? subOut : null}
+                                onMine={(uid, idx, outUid) => {
+                                    if (canSub) {
+                                        setSubOut(outUid ?? (onField.includes(uid) ? uid : null));
+                                        setSubOpen(true);
+                                    } else if (idx !== null) EventBus.emit('match:inspect-request', idx);
+                                }}
+                                edit={{ enabled: canChangeTactic, pending: pendingBoard, onConfirm: orderBoard, over }}
+                                focusKey={boardFocus}
+                            />
+                        )}
+                        {tab === 'team' && (
+                            <TeamPanel
+                                match={match}
+                                setups={[lockedSetup, opponent]}
+                                tick={clock.tick}
+                                teamNames={teamNames}
+                                interactive={sceneReady && !ended}
+                            />
+                        )}
+                        {tab === 'feed' && <MatchFeed lines={lines} colors={colors} />}
+                    </div>
+                    {wide && tab !== 'feed' && lines.length > 0 && (
+                        <div className="bc-recent">
+                            <MatchFeed lines={lines.slice(0, 3)} colors={colors} />
+                        </div>
+                    )}
+                </div>
+
+                <div className="bc-thumb">
+                    {!ended ? (
+                        <>
+                            <fieldset className="bc-seg speed-seg" aria-label={t('match.coach.speed')}>
+                                {SPEEDS.map((s) => (
+                                    <button
+                                        key={String(s.value)}
+                                        type="button"
+                                        className={settings.speed === s.value ? 'on' : undefined}
+                                        aria-pressed={settings.speed === s.value}
+                                        disabled={!sceneReady}
+                                        onClick={() => setSpeed(s.value)}
+                                        title={s.value === 'highlights' ? t('match.highlightsHint') : undefined}
+                                    >
+                                        {s.label || t('match.highlights')}
+                                    </button>
+                                ))}
+                            </fieldset>
+                            <button
+                                type="button"
+                                className="bc-skip"
+                                disabled={pending || !sceneReady}
+                                aria-label={t('match.skip')}
+                                title={t('match.skip')}
+                                onClick={() => EventBus.emit('match:skip')}
+                            >
+                                <HudIcon kind="skip" />
+                                <span>{t('match.skip')}</span>
+                            </button>
+                        </>
+                    ) : (
+                        <button type="button" className="btn primary bc-result" onClick={() => go('result')}>
+                            {t('match.seeResult')}
                         </button>
                     )}
-                    <div className="controls">
-                        <div className="control-group speed-group">
-                            {SPEEDS.map((s) => (
-                                <button
-                                    key={String(s.value)}
-                                    type="button"
-                                    className={`btn small${settings.speed === s.value ? ' active' : ''}`}
-                                    disabled={!sceneReady}
-                                    onClick={() => setSpeed(s.value)}
-                                    title={s.value === 'highlights' ? t('match.highlightsHint') : undefined}
-                                >
-                                    {s.label || t('match.highlights')}
-                                </button>
-                            ))}
-                        </div>
-                        <TacticControls
-                            tactic={currentTactic}
-                            tacticsUsed={changes.length}
-                            corner={currentCorner}
-                            cornersUsed={cornerOrders.length}
-                            canChange={canChangeTactic}
-                            pending={pending}
-                            error={tacticError}
-                            onTactic={changeTactic}
-                            onCorner={changeCorner}
-                            subOpen={subOpen}
-                            canSub={canSub}
-                            onToggleSub={() => setSubOpen((v) => !v)}
-                        />
-                        <div className="control-group end-group">
-                            {!ended ? (
-                                <button
-                                    type="button"
-                                    className="btn small ghost"
-                                    disabled={pending || !sceneReady}
-                                    onClick={() => EventBus.emit('match:skip')}
-                                >
-                                    {t('match.skip')}
-                                </button>
-                            ) : (
-                                <button type="button" className="btn primary" onClick={() => go('result')}>
-                                    {t('match.seeResult')}
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                    <TeamPanel
-                        match={match}
-                        setups={[lockedSetup, opponent]}
-                        tick={clock.tick}
-                        teamNames={teamNames}
-                        interactive={sceneReady && !ended}
-                        startOpen={!boardBeside()}
-                    />
                 </div>
-                <Prancheta
-                    match={match}
-                    setups={[lockedSetup, opponent]}
-                    side={0}
-                    tick={clock.tick}
-                    names={teamNames}
-                    selectedUid={subOpen ? subOut : null}
-                    onMine={(uid, idx, outUid) => {
-                        if (canSub) {
-                            setSubOut(outUid ?? (onField.includes(uid) ? uid : null));
-                            setSubOpen(true);
-                        } else if (idx !== null) EventBus.emit('match:inspect-request', idx);
-                    }}
-                    edit={{ enabled: canChangeTactic, pending: pendingBoard, onConfirm: orderBoard }}
-                    focusKey={boardFocus}
-                />
-                <MatchFeed lines={lines} colors={colors} open={feedOpen} onToggle={() => setFeedOpen((v) => !v)} />
             </div>
         </>
     );

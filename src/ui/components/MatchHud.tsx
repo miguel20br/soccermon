@@ -1,19 +1,23 @@
-import type { CSSProperties, ReactNode, Ref } from 'react';
+import { type CSSProperties, type ReactNode, type Ref, useMemo, useState } from 'react';
 import type { Position } from '../../engine/attributes';
 import { MAX_TACTIC_CHANGES } from '../../engine/config';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
+import type { MatchResult } from '../../engine/runners/batch-runner';
 import { CORNER_PLANS } from '../../engine/runners/live-runner';
 import { type CornerPlan, type Phase, TACTIC_LABEL, type Tactic } from '../../engine/state';
 import { dict, t } from '../../i18n';
 import { useT } from '../../i18n/react';
 import type { CommentLine } from '../commentary';
+import { PRESSURE_BINS, pressureUntil } from '../match-view';
 import { ratingAt } from '../rating';
 import { cardSprite } from './PokeCard';
+import './broadcast.css';
 
 /**
- * Peças da tela de partida que a copa e o duelo dividem (placar, relógio, substituição, tática, escanteio e
- * narração): o mesmo DOM e o mesmo CSS nos dois modos. O que é só de um modo (velocidades, "pular pro fim",
- * emotes, pedido de velocidade) fica na tela dele.
+ * Peças da tela de partida que a copa e o duelo dividem (placar de transmissão, barra de pressão, narração por
+ * cima da quadra, painel do técnico em abas, tática, escanteio, substituição e narração): o mesmo DOM e o mesmo
+ * CSS nos dois modos. O que é só de um modo (velocidades, "pular pro fim", emotes, pedido de velocidade) fica na
+ * tela dele.
  */
 
 export const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
@@ -26,92 +30,111 @@ export interface Clock {
     phase: Phase;
 }
 
-/** Texto do relógio: intervalo, fim (ou a disputa de pênaltis) ou "12' · 1º tempo". */
-export function useClockLabel(
+const MATCH_MIN = 40;
+
+/** Relógio do placar em duas linhas: o minuto (ou Intervalo/Fim/Pênaltis) e o tempo; `text` = não é minuto. */
+export interface ClockParts {
+    main: string;
+    sub: string;
+    text: boolean;
+    /** Quanto da partida já passou (0..1), pra barrinha embaixo do relógio. */
+    progress: number;
+}
+
+export function clockParts(
     clock: Clock,
     over: boolean,
     shootout: [number, number] | null,
     /** A cena parou no intervalo (o último tick ainda chega com a fase de jogo). */
     halftime = false,
-): string {
-    useT(); // reage à troca de idioma
-    return clockLabel(clock, over, shootout, halftime);
+): ClockParts {
+    if (halftime || clock.phase === 'halftime')
+        return { main: t('match.halftime'), sub: '', text: true, progress: 0.5 };
+    if (clock.phase === 'fulltime' || over)
+        return {
+            main: shootout ? t('match.penalties', { a: shootout[0], b: shootout[1] }) : t('match.fulltime'),
+            sub: '',
+            text: true,
+            progress: 1,
+        };
+    return {
+        main: `${Math.min(MATCH_MIN, Math.floor(clock.minute))}'`,
+        sub: dict().match.half[clock.half - 1] ?? '',
+        text: false,
+        progress: Math.min(1, Math.max(0, clock.minute / MATCH_MIN)),
+    };
 }
 
-/** Texto do relógio: intervalo, fim/pênaltis ou "19' · 1º tempo". */
+/** Texto do relógio numa linha: intervalo, fim/pênaltis ou "19' · 1º tempo". */
 export function clockLabel(clock: Clock, over: boolean, shootout: [number, number] | null, halftime = false): string {
-    const d = dict();
-    return halftime || clock.phase === 'halftime'
-        ? t('match.halftime')
-        : clock.phase === 'fulltime' || over
-          ? shootout
-              ? t('match.penalties', { a: shootout[0], b: shootout[1] })
-              : t('match.fulltime')
-          : t('match.clock', {
-                min: Math.min(40, Math.floor(clock.minute)),
-                half: d.match.half[clock.half - 1] ?? '',
-            });
+    const p = clockParts(clock, over, shootout, halftime);
+    return p.text ? p.main : t('match.clock', { min: Math.min(MATCH_MIN, Math.floor(clock.minute)), half: p.sub });
 }
 
-/** Placar com o relógio. Nome comprido (mais de 10 letras) ganha a sigla no celular. */
+/** Relógio do placar (reage à troca de idioma). */
+export function useClockParts(
+    clock: Clock,
+    over: boolean,
+    shootout: [number, number] | null,
+    halftime = false,
+): ClockParts {
+    useT();
+    return clockParts(clock, over, shootout, halftime);
+}
+
+/**
+ * Placar de transmissão: faixa na cor de cada time, sigla (o nome inteiro só no desktop), gols em caixa clara,
+ * relógio no meio com a barrinha do tempo e a fase numa etiqueta em cima.
+ */
 export function Scoreboard({
     names,
+    tags,
     colors,
     score,
-    clockLabel,
+    clock,
     stage,
-    homeTag,
     boardRef,
     className = '',
     coaches,
     children,
 }: {
     names: [string, string];
+    /** Siglas (3 letras) de cada time. */
+    tags: [string, string];
     colors: [number, number];
     score: [number, number];
-    clockLabel: string;
+    clock: ClockParts;
     stage: string;
-    homeTag: string;
     boardRef?: Ref<HTMLDivElement>;
     className?: string;
     /** Duelo: o título de cada treinador embaixo do time (é pra se exibir). */
     coaches?: [ReactNode, ReactNode];
     children?: ReactNode;
 }) {
-    const long = names[0].length > 10;
+    const team = (i: 0 | 1) => (
+        <div className={`bc-tm${i ? ' away' : ''}`} style={{ '--tc': hex(colors[i]) } as CSSProperties}>
+            <span className="bc-sig" title={names[i]}>
+                {tags[i]}
+            </span>
+            <span className="bc-full">{names[i]}</span>
+            {/* key muda no gol: o número remonta e dá o pulo com o brilho da cor do time (sb-pop) */}
+            <b key={`${i}-${score[i]}`} className="bc-sc sb-n">
+                {score[i]}
+            </b>
+        </div>
+    );
     return (
-        <div className={`scoreboard${className}`} ref={boardRef}>
-            <div className="sb-team">
-                <i style={{ background: hex(colors[0]) }} />
-                <span className={`sb-name${long ? ' has-tag' : ''}`}>{names[0]}</span>
-                {long && (
-                    <span className="sb-tag" title={names[0]}>
-                        {homeTag}
-                    </span>
-                )}
-            </div>
-            <div className="sb-score">
-                {/* key muda no gol: o número remonta e dá o pulo com o brilho da cor do time (sb-pop) */}
-                <b key={`h${score[0]}`} className="sb-n" style={{ '--tc': hex(colors[0]) } as CSSProperties}>
-                    {score[0]}
-                </b>{' '}
-                x{' '}
-                <b
-                    key={`a${score[1]}`}
-                    className="sb-n"
-                    style={{ '--tc': hex(colors[1]), '--pop': 1.2 } as CSSProperties}
-                >
-                    {score[1]}
-                </b>
-                <span className="sb-clock">
-                    <span className="sb-stage">{stage} · </span>
-                    {clockLabel}
+        <div className={`scoreboard bc-bug${coaches ? ' has-coaches' : ''}${className}`} ref={boardRef}>
+            <span className="bc-phase">{stage}</span>
+            {team(0)}
+            <div className="bc-mid">
+                <span className={`bc-clock${clock.text ? ' txt' : ''}`}>{clock.main}</span>
+                {clock.sub && <span className="bc-half">{clock.sub}</span>}
+                <span className="bc-prog">
+                    <i style={{ width: `${Math.round(clock.progress * 100)}%` }} />
                 </span>
             </div>
-            <div className="sb-team away">
-                <span>{names[1]}</span>
-                <i style={{ background: hex(colors[1]) }} />
-            </div>
+            {team(1)}
             {coaches && (
                 <>
                     <div className="sb-coach">{coaches[0]}</div>
@@ -119,6 +142,178 @@ export function Scoreboard({
                 </>
             )}
             {children}
+        </div>
+    );
+}
+
+/**
+ * Barra de pressão embaixo do placar (estilo "attack momentum"): o perigo de cada time a cada 2', o da esquerda
+ * pra cima e o da direita pra baixo. Só até o minuto da tela: o que ainda não passou fica vazio.
+ */
+export function PressureBar({
+    match,
+    tick,
+    minute,
+    colors,
+    over,
+}: {
+    match: MatchResult;
+    tick: number;
+    minute: number;
+    colors: [number, number];
+    over: boolean;
+}) {
+    const { t } = useT();
+    // recalcula a cada ~1 s de jogo (o relógio da tela anda bem mais rápido)
+    const step = Math.floor(tick / 20) * 20;
+    const bins = useMemo(() => pressureUntil(match, step), [match, step]);
+    const now = over ? PRESSURE_BINS : Math.floor((Math.min(minute, MATCH_MIN - 0.01) / MATCH_MIN) * PRESSURE_BINS);
+    const top = Math.max(0.6, ...bins.flatMap((b) => b.xg));
+    // raiz: um chute bom ainda aparece do lado de um gol feito (a barra conta o jogo, não mede xG)
+    const h = (v: number) => (v > 0 ? Math.max(0.2, Math.sqrt(v / top)) : 0);
+    return (
+        <div
+            className="bc-pressure"
+            role="img"
+            aria-label={t('match.pressure')}
+            title={t('match.pressure')}
+            style={{ '--c0': hex(colors[0]), '--c1': hex(colors[1]) } as CSSProperties}
+        >
+            {bins.map((b, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: colunas fixas (uma a cada 2')
+                <span key={i} className={`pb${i > now ? ' fut' : ''}`}>
+                    <b className={b.goals[0] ? 'g' : undefined} style={{ '--v': h(b.xg[0]) } as CSSProperties} />
+                    <u className={b.goals[1] ? 'g' : undefined} style={{ '--v': h(b.xg[1]) } as CSSProperties} />
+                </span>
+            ))}
+            {!over && (
+                <i
+                    className="pb-now"
+                    style={{ '--x': Math.min(minute, MATCH_MIN) / MATCH_MIN } as CSSProperties}
+                    aria-hidden
+                />
+            )}
+        </div>
+    );
+}
+
+/**
+ * Última frase da narração numa faixa colada embaixo da quadra (fora dela: a caixa de texto do golpe e as faixas de
+ * gol ficam livres). Passe e jogada miúda não trocam a faixa (em 8x ela piscaria sem parar).
+ */
+export function Ticker({ lines, colors }: { lines: (CommentLine & { id: number })[]; colors: [number, number] }) {
+    const { t } = useT();
+    const shown = lines.find((l) => l.tone !== 'minor');
+    return (
+        <div className="bc-ticker-wrap" aria-hidden>
+            {shown ? (
+                <div
+                    key={shown.id}
+                    className={`bc-ticker ${shown.tone}`}
+                    style={
+                        { '--team-color': shown.team !== null ? hex(colors[shown.team]) : undefined } as CSSProperties
+                    }
+                >
+                    <span className="min">{Math.floor(shown.minute)}'</span>
+                    <span className="txt">{shown.text}</span>
+                </div>
+            ) : (
+                <div className="bc-ticker">
+                    <span className="txt muted">{t('match.feedEmpty')}</span>
+                </div>
+            )}
+        </div>
+    );
+}
+
+/** Ícones desenhados do painel da partida (nada de emoji). */
+const ICONS = {
+    balanced: 'M12 4v16M6 20h12M4 8h16M4 8l-2.5 6h5zM20 8l-2.5 6h5z',
+    offensive: 'M6 13l6-6 6 6M6 19l6-6 6 6',
+    defensive: 'M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z',
+    counter: 'M13 2L5 13h6l-1 9 8-12h-6z',
+    sub: 'M7 4v15M3 15l4 4 4-4M17 20V5M13 9l4-4 4 4',
+    flag: 'M6 21V3M6 4h11l-3 4 3 4H6',
+    skip: 'M4 5l8 7-8 7zM12 5l8 7-8 7z',
+    board: 'M7 4h10a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM9 3h6v3H9zM9 11h6M9 15h4',
+    team: 'M4 6h16M4 12h16M4 18h16',
+    feed: 'M4 5h16v11H10l-6 4z',
+    smile: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM8 14c1 2 2.4 3 4 3s3-1 4-3M9 9.5v.5M15 9.5v.5',
+} as const;
+export type HudIconKind = keyof typeof ICONS;
+
+export function HudIcon({ kind }: { kind: HudIconKind }) {
+    return (
+        <svg
+            className="hud-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+        >
+            <path d={ICONS[kind]} />
+        </svg>
+    );
+}
+
+/** Abas do painel do técnico. */
+export type CoachTab = 'tactic' | 'board' | 'team' | 'feed';
+const TAB_KEY = 'soccermon-match-tab';
+const TAB_ICON: Record<CoachTab, HudIconKind> = { tactic: 'balanced', board: 'board', team: 'team', feed: 'feed' };
+
+/** A aba guardada, se ela existe neste layout (no desktop a Tática fica embaixo da quadra, sem aba). */
+export function pickTab(stored: string | null, tabs: readonly CoachTab[], fallback: CoachTab): CoachTab {
+    return tabs.includes(stored as CoachTab) ? (stored as CoachTab) : fallback;
+}
+
+/** Aba aberta do painel do técnico, lembrada entre as partidas (sem localStorage, só nesta tela). */
+export function useCoachTab(tabs: readonly CoachTab[], fallback: CoachTab): [CoachTab, (tab: CoachTab) => void] {
+    const [tab, setTab] = useState<string | null>(() => {
+        try {
+            return localStorage.getItem(TAB_KEY);
+        } catch {
+            return null;
+        }
+    });
+    const pick = (next: CoachTab) => {
+        setTab(next);
+        try {
+            localStorage.setItem(TAB_KEY, next);
+        } catch {
+            // aba anônima ou armazenamento bloqueado: lembra só nesta partida
+        }
+    };
+    return [pickTab(tab, tabs, fallback), pick];
+}
+
+export function CoachTabs({
+    tabs,
+    active,
+    onPick,
+}: {
+    tabs: readonly CoachTab[];
+    active: CoachTab;
+    onPick: (tab: CoachTab) => void;
+}) {
+    const { t } = useT();
+    return (
+        <div className="bc-tabs" role="tablist" aria-label={t('match.coach.title')}>
+            {tabs.map((tab) => (
+                <button
+                    key={tab}
+                    type="button"
+                    role="tab"
+                    aria-selected={tab === active}
+                    className={tab === active ? 'on' : undefined}
+                    onClick={() => onPick(tab)}
+                >
+                    <HudIcon kind={TAB_ICON[tab]} />
+                    <span>{t(`match.coach.${tab}`)}</span>
+                </button>
+            ))}
         </div>
     );
 }
@@ -200,7 +395,29 @@ export function SubPanel({
     );
 }
 
-/** Tática (com o botão Substituir e as trocas que restam) e instrução de escanteio. */
+/** Quem do seu time está mais cansado (só avisa no botão Substituir; nada troca sozinho). */
+export interface TiredHint {
+    name: string;
+    energy: number;
+    sprite: string;
+}
+
+/** Abaixo disso o botão Substituir avisa quem está cansado. */
+export const TIRED_HINT = 0.5;
+
+/** Bolinhas das mudanças que restam (amarela = ainda dá). */
+function Pips({ left, label }: { left: number; label: string }) {
+    return (
+        <span className="bc-pips" role="img" aria-label={label} title={label}>
+            {Array.from({ length: MAX_TACTIC_CHANGES }, (_, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: bolinhas fixas
+                <i key={i} className={i < left ? undefined : 'off'} />
+            ))}
+        </span>
+    );
+}
+
+/** Tática (estilos em peças com ícone e as mudanças que restam), escanteio e o botão Substituir. */
 export function TacticControls({
     tactic,
     tacticsUsed,
@@ -214,6 +431,7 @@ export function TacticControls({
     subOpen,
     canSub,
     onToggleSub,
+    tired,
 }: {
     tactic: Tactic;
     tacticsUsed: number;
@@ -227,71 +445,87 @@ export function TacticControls({
     subOpen: boolean;
     canSub: boolean;
     onToggleSub: () => void;
+    tired?: TiredHint | null;
 }) {
     const { t, tn, d } = useT();
+    const tacticsLeft = MAX_TACTIC_CHANGES - tacticsUsed;
+    const cornersLeft = MAX_TACTIC_CHANGES - cornersUsed;
     return (
-        <>
-            <div className="control-group">
+        <div className="bc-tactic">
+            <div className="bc-row row-style">
+                <span className="bc-lbl">{t('match.coach.style')}</span>
+                {pending ? (
+                    <span className="bc-lbl">{t('match.changing')}</span>
+                ) : (
+                    <Pips left={tacticsLeft} label={tn('match.tacticChanges', tacticsLeft)} />
+                )}
+            </div>
+            <div className="bc-styles">
                 {(Object.keys(TACTIC_LABEL) as Tactic[]).map((tc) => (
                     <button
                         key={tc}
                         type="button"
-                        className={`btn small${tactic === tc ? ' active' : ''}`}
-                        disabled={!canChange || (tacticsUsed >= MAX_TACTIC_CHANGES && tactic !== tc)}
+                        className={`bc-tile${tactic === tc ? ' on' : ''}`}
+                        aria-pressed={tactic === tc}
+                        title={d.team.lineup.tacticDesc[tc]}
+                        disabled={!canChange || (tacticsLeft <= 0 && tactic !== tc)}
                         onClick={() => onTactic(tc)}
                     >
-                        {d.common.tactic[tc]}
+                        <HudIcon kind={tc} />
+                        <span>
+                            <b>{d.common.tactic[tc]}</b>
+                            <small>{d.match.coach.styleShort[tc]}</small>
+                        </span>
                     </button>
                 ))}
-                <button
-                    type="button"
-                    className={`btn small yellow${subOpen ? ' active' : ''}`}
-                    disabled={!canSub}
-                    onClick={onToggleSub}
-                >
-                    {t('match.substitute')}
-                </button>
-                {error && <span className="error-text tactic-left">{error}</span>}
-                <span className="muted tactic-left">
-                    {pending ? t('match.changing') : tn('match.tacticChanges', MAX_TACTIC_CHANGES - tacticsUsed)}
-                </span>
             </div>
-            <div className="control-group corner-group" title={t('match.cornerHint')}>
-                <span className="corner-label">{t('match.corner')}</span>
+            {error && <span className="error-text">{error}</span>}
+            <div className="bc-row row-corner" title={t('match.cornerHint')}>
+                <span className="bc-lbl">
+                    <HudIcon kind="flag" />
+                    {t('match.corner')}
+                </span>
+                <Pips left={cornersLeft} label={tn('match.coach.cornerChanges', cornersLeft)} />
+            </div>
+            <div className="bc-seg corner-seg">
                 {CORNER_PLANS.map((pl) => (
                     <button
                         key={pl}
                         type="button"
-                        className={`btn small${corner === pl ? ' active' : ''}`}
-                        disabled={!canChange || (cornersUsed >= MAX_TACTIC_CHANGES && corner !== pl)}
+                        className={corner === pl ? 'on' : undefined}
+                        aria-pressed={corner === pl}
+                        disabled={!canChange || (cornersLeft <= 0 && corner !== pl)}
                         onClick={() => onCorner(pl)}
                     >
                         {d.common.cornerPlan[pl]}
                     </button>
                 ))}
             </div>
-        </>
+            <button
+                type="button"
+                className={`bc-subbtn${subOpen ? ' on' : ''}`}
+                aria-expanded={subOpen}
+                disabled={!canSub}
+                onClick={onToggleSub}
+            >
+                <HudIcon kind="sub" />
+                <b>{t('match.substitute')}</b>
+                {tired && (
+                    <span className="bc-warn">
+                        {t('match.coach.tired', { name: tired.name, p: Math.round(tired.energy * 100) })}
+                        <img className="pixel" src={tired.sprite} alt="" />
+                    </span>
+                )}
+            </button>
+        </div>
     );
 }
 
-/** Narração da partida (recolhível no celular). */
-export function MatchFeed({
-    lines,
-    colors,
-    open,
-    onToggle,
-}: {
-    lines: (CommentLine & { id: number })[];
-    colors: [number, number];
-    open: boolean;
-    onToggle: () => void;
-}) {
+/** Narração completa (aba Lances; no celular sem abas ela recolhe). */
+export function MatchFeed({ lines, colors }: { lines: (CommentLine & { id: number })[]; colors: [number, number] }) {
     const { t } = useT();
     return (
-        <div className={`panel feed${open ? '' : ' collapsed'}`} aria-live="polite">
-            <button type="button" className="feed-toggle" onClick={onToggle}>
-                {t('match.feed')} {open ? '▲' : '▼'}
-            </button>
+        <div className="feed" aria-live="polite">
             {lines.length === 0 && <span className="muted">{t('match.feedEmpty')}</span>}
             {lines.map((l) => (
                 <div

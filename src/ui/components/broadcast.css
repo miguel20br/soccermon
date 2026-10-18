@@ -1,0 +1,977 @@
+/*
+ * Tela da partida "Transmissão" (Copa e Duelo, MatchHud.tsx): placar de TV com a barra de pressão, a quadra com a
+ * última frase da narração por cima, o painel do técnico em abas e a barra do polegar (velocidade e pular).
+ * Celular em pé: tudo numa coluna, a quadra de ponta a ponta e a barra fixa embaixo. Deitado: quadra à esquerda,
+ * abas à direita. Desktop: abas na coluna da direita e a tática embaixo da quadra.
+ */
+.bc {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    /* a barra do polegar é fixa: o fim da página não fica embaixo dela */
+    padding-bottom: calc(68px + env(safe-area-inset-bottom));
+}
+.bc > *,
+.bc-stage > * {
+    min-width: 0;
+}
+.hud-icon {
+    width: 18px;
+    height: 18px;
+    flex: none;
+}
+
+/* prancheta na partida: Ditto transformado ganha o selinho dele no canto da vaga; depois do apito o seletor de
+   formação fica apagado de verdade */
+.pr-ditto {
+    position: absolute;
+    left: -7px;
+    bottom: -7px;
+    width: 22px;
+    height: 22px;
+    padding: 1px;
+    border: 2px solid #141a33;
+    border-radius: 50%;
+    background: #e4c9ff;
+    object-fit: contain;
+}
+.pr-formation select:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    filter: grayscale(1);
+}
+
+/* ---------- placar de transmissão ---------- */
+.bc-head {
+    /* espaço da etiqueta da fase, que fica em cima do placar */
+    padding-top: 17px;
+}
+.bc .bc-bug {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: stretch;
+    gap: 0;
+    padding: 0;
+    background: #0e1430;
+    border: 0;
+    border-bottom: 2px solid #000;
+    border-radius: 6px 6px 0 0;
+}
+.bc-tm {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    padding: 0 10px 0 16px;
+}
+.bc-tm::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    background: var(--tc);
+    border-radius: 6px 0 0 0;
+}
+.bc-tm.away {
+    flex-direction: row-reverse;
+    padding: 0 16px 0 10px;
+}
+.bc-tm.away::before {
+    left: auto;
+    right: 0;
+    border-radius: 0 6px 0 0;
+}
+.bc-sig {
+    flex: none;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 18px;
+    letter-spacing: 1px;
+}
+.bc-full {
+    display: none;
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.bc-tm.away .bc-full {
+    text-align: right;
+}
+.bc-sc {
+    flex: none;
+    margin: 6px 0 6px auto;
+    min-width: 38px;
+    padding: 0 4px;
+    border-radius: 4px;
+    background: #f4f1e6;
+    color: #0e1430;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 28px;
+    font-weight: 400;
+    line-height: 42px;
+    text-align: center;
+}
+.bc-tm.away .bc-sc {
+    margin: 6px auto 6px 0;
+}
+.bc-mid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 96px;
+    padding: 4px 12px;
+    background: #1b2350;
+}
+.bc-clock {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 20px;
+    line-height: 1;
+    color: var(--yellow);
+    white-space: nowrap;
+}
+.bc-clock.txt {
+    font-family: "Galmuri11", monospace;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.bc-half {
+    margin-top: 3px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.bc-prog {
+    display: block;
+    width: 100%;
+    height: 3px;
+    margin-top: 5px;
+    border-radius: 2px;
+    overflow: hidden;
+    background: rgb(255 255 255 / 14%);
+}
+.bc-prog i {
+    display: block;
+    height: 100%;
+    background: var(--yellow);
+}
+.bc-phase {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translate(-50%, -100%);
+    padding: 2px 10px 1px;
+    border-radius: 4px 4px 0 0;
+    background: var(--yellow);
+    color: #0e1430;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    line-height: 14px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* ---------- barra de pressão ---------- */
+.bc-pressure {
+    position: relative;
+    display: flex;
+    gap: 2px;
+    height: 30px;
+    padding: 3px 10px;
+    background: #10173a;
+    border-bottom: 2px solid #000;
+}
+.bc-pressure::after {
+    content: "";
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    top: 50%;
+    height: 1px;
+    background: rgb(255 255 255 / 18%);
+}
+.bc-pressure .pb {
+    flex: 1;
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    row-gap: 1px;
+}
+.bc-pressure .pb.fut {
+    opacity: 0.25;
+}
+.bc-pressure b,
+.bc-pressure u {
+    display: block;
+    height: calc(var(--v) * 100%);
+    text-decoration: none;
+    transition: height 0.4s var(--ease-out);
+}
+.bc-pressure b {
+    align-self: end;
+    background: var(--c0);
+    border-radius: 1px 1px 0 0;
+}
+.bc-pressure u {
+    align-self: start;
+    background: var(--c1);
+    border-radius: 0 0 1px 1px;
+}
+/* coluna com gol: risquinho amarelo na ponta */
+.bc-pressure b.g {
+    box-shadow: inset 0 3px 0 var(--yellow);
+}
+.bc-pressure u.g {
+    box-shadow: inset 0 -3px 0 var(--yellow);
+}
+.bc-pressure .pb-now {
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    left: calc(10px + var(--x) * (100% - 20px));
+    width: 2px;
+    background: var(--yellow);
+}
+
+/* ---------- quadra e narração por cima ---------- */
+.bc-stage {
+    display: grid;
+    gap: 10px;
+}
+/* intervalo e painel de troca rolam pra tela sem ficar embaixo da barra fixa */
+.bc .ht-wrap,
+.bc .sub-panel {
+    scroll-margin-bottom: calc(76px + env(safe-area-inset-bottom));
+}
+.bc .ht-panel {
+    margin-top: 0;
+}
+/* faixa da narração colada embaixo da quadra (fora do canvas: não tampa a caixa do golpe nem as faixas de gol) */
+.bc .pitch-wrap .phaser-container {
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+.bc-ticker-wrap {
+    height: 28px;
+    overflow: hidden;
+    background: #0e1430;
+    border-radius: 0 0 var(--radius) var(--radius);
+}
+.bc-ticker {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 100%;
+    min-width: 0;
+    padding: 0 10px;
+    border-left: 4px solid var(--team-color, var(--line));
+    font-size: 11px;
+    animation: ticker-in 0.25s var(--ease-out) both;
+}
+.bc-ticker .min {
+    flex: none;
+    color: var(--yellow);
+}
+.bc-ticker .txt {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.bc-ticker.goal {
+    background: rgb(74 64 22);
+    font-weight: 700;
+}
+@keyframes ticker-in {
+    from {
+        opacity: 0;
+        translate: -12px 0;
+    }
+}
+
+/* ---------- painel do técnico em abas ---------- */
+.panel.bc-coach {
+    display: grid;
+    margin-top: 10px;
+    padding: 0;
+    overflow: hidden;
+}
+.bc-tabs {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    background: var(--bg-2);
+}
+.bc-tabs button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    min-height: 50px;
+    padding: 7px 2px 6px;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    background: none;
+    color: var(--muted);
+    font-size: 11px;
+    cursor: pointer;
+}
+.bc-tabs button span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.bc-tabs button.on {
+    color: var(--yellow);
+    border-bottom-color: var(--yellow);
+    background: var(--panel);
+}
+.bc-pane {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+    padding: 12px;
+}
+/* os painéis de sempre (prancheta, time, narração) entram sem a moldura própria */
+.bc-pane > .panel,
+.bc-recent .feed {
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+}
+.bc-pane .tp-toggle {
+    display: none;
+}
+.bc .feed {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: min(60svh, 520px);
+    overflow-y: auto;
+}
+.bc-recent {
+    padding: 0 12px 12px;
+}
+.bc-recent .feed {
+    max-height: none;
+    overflow: visible;
+}
+
+/* ---------- tática ---------- */
+.bc-tactic {
+    display: grid;
+    gap: 10px;
+}
+.bc-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+.bc-lbl {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-transform: uppercase;
+}
+.bc-lbl .hud-icon {
+    width: 16px;
+    height: 16px;
+}
+.bc-pips {
+    display: flex;
+    gap: 4px;
+}
+.bc-pips i {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--yellow);
+}
+.bc-pips i.off {
+    background: rgb(255 255 255 / 16%);
+}
+.bc-styles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+.bc-tile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 52px;
+    min-width: 0;
+    padding: 6px 10px;
+    border: 3px solid #0e1430;
+    border-radius: 8px;
+    background: var(--panel-2);
+    box-shadow: 0 3px 0 #0e1430;
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.06s ease;
+}
+.bc-tile > span {
+    min-width: 0;
+}
+.bc-tile b {
+    display: block;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+.bc-tile small {
+    display: block;
+    font-size: 10px;
+    color: var(--muted);
+}
+.bc-tile.on {
+    border-color: var(--yellow);
+    background: #3a3f5f;
+}
+.bc-tile.on .hud-icon {
+    color: var(--yellow);
+}
+.bc-tile:active:not(:disabled),
+.bc-subbtn:active:not(:disabled),
+.bc-skip:active:not(:disabled) {
+    transform: translateY(2px);
+}
+.bc-tile:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+.bc-tile.on:disabled {
+    opacity: 0.85;
+}
+.bc-seg {
+    display: flex;
+    gap: 3px;
+    min-width: 0;
+    margin: 0;
+    padding: 3px;
+    border: 0;
+    border-radius: 8px;
+    background: #0e1430;
+}
+.bc-seg button {
+    flex: 1;
+    min-width: 0;
+    min-height: 38px;
+    padding: 6px 2px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.bc-seg button.on {
+    background: var(--yellow);
+    color: #0e1430;
+}
+.bc-seg button.asking {
+    box-shadow: inset 0 0 0 2px var(--yellow);
+    color: var(--yellow);
+}
+.bc-seg button:disabled {
+    cursor: not-allowed;
+}
+.bc-seg button:disabled:not(.on) {
+    opacity: 0.45;
+}
+.bc-subbtn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 48px;
+    min-width: 0;
+    padding: 4px 12px;
+    border: 3px solid #0e1430;
+    border-radius: 8px;
+    background: var(--yellow);
+    box-shadow: 0 3px 0 #0e1430;
+    color: #1d1d1d;
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+}
+.bc-subbtn.on {
+    outline: 3px solid #f4f1e6;
+    outline-offset: 1px;
+}
+.bc-subbtn:disabled {
+    filter: grayscale(0.9);
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.bc-warn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    margin-left: auto;
+    font-size: 11px;
+    white-space: nowrap;
+}
+.bc-warn img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+/* ---------- barra do polegar (fixa embaixo no celular) ---------- */
+.bc-thumb {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px max(12px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom))
+        max(12px, env(safe-area-inset-left));
+    background: #0e1430;
+    border-top: 3px solid var(--line);
+}
+.bc-thumb .speed-seg {
+    flex: 1;
+    background: var(--bg-2);
+}
+/* "Lances/Highlights" é mais comprido que "1x": cada botão do tamanho do texto */
+.bc-thumb .speed-seg button {
+    flex: 1 1 auto;
+    padding-inline: 4px;
+}
+.bc-skip {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 50px;
+    height: 44px;
+    border: 3px solid #000;
+    border-radius: 8px;
+    background: var(--panel-2);
+    color: var(--text);
+    cursor: pointer;
+}
+.bc-skip.on {
+    border-color: var(--yellow);
+    color: var(--yellow);
+}
+.bc-skip:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+.bc-skip span {
+    display: none;
+}
+.bc-result {
+    flex: 1;
+}
+.bc-speed-ask {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+/* "Pedir velocidade": só pro leitor de tela no celular (os botões explicam no título) */
+.bc-speed-ask legend {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+.bc-speed-ask .speed-seg {
+    flex: 1;
+    background: var(--bg-2);
+}
+.bc-emotes {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    padding: 8px 12px;
+    background: #0e1430;
+    border-top: 3px solid var(--line);
+    animation: ticker-in 0.18s var(--ease-out) both;
+}
+
+/* o logo fica menor durante a partida (sobra quadra no celular) */
+.app:has(.bc) {
+    gap: 6px;
+}
+.app:has(.bc) > .topbar .brand {
+    min-height: 30px;
+}
+.app:has(.bc) > .topbar .brand span {
+    font-size: 16px;
+}
+.app:has(.bc) > .topbar .brand img {
+    width: 22px;
+    height: 22px;
+}
+/* duelo: a linha da sala (código e Sair) sobe pra linha do logo durante a partida (sobra quadra no celular);
+   a pergunta "Sair no meio do duelo?" volta pro lugar de sempre */
+.app:has(.bc) {
+    position: relative;
+}
+.duel:has(.bc) {
+    gap: 6px;
+}
+.duel:has(.bc) > .duel-top:not(:has(.duel-leave-ask)) {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 12px;
+}
+.duel:has(.bc) > .duel-top .btn {
+    padding: 3px 10px;
+    font-size: 11px;
+}
+@media (max-width: 400px) {
+    .duel:has(.bc) > .duel-top:not(:has(.duel-leave-ask)) > .muted {
+        display: none;
+    }
+}
+@media (min-width: 701px) {
+    .duel:has(.bc) > .duel-top:not(:has(.duel-leave-ask)) {
+        top: 16px;
+        right: 16px;
+    }
+}
+
+/* ---------- celular em pé: quadra, placar e abas de ponta a ponta ---------- */
+@media (max-width: 700px) {
+    .bc-head,
+    .bc-stage > .pitch-wrap,
+    .panel.bc-coach {
+        margin-inline: -12px;
+    }
+    .bc .bc-bug {
+        border-radius: 0;
+    }
+    .bc-tm::before {
+        border-radius: 0;
+    }
+    .bc-stage > .pitch-wrap .phaser-container {
+        border-radius: 0;
+        border-inline: 0;
+    }
+    .panel.bc-coach {
+        border-radius: 0;
+        border-inline: 0;
+    }
+    /* abas e peças um pouco mais baixas: no 390x844 o Substituir aparece sem rolar (no duelo também) */
+    .bc-tabs button {
+        min-height: 44px;
+        padding-block: 5px 4px;
+        gap: 2px;
+    }
+    .bc-tile {
+        min-height: 46px;
+    }
+    .bc-pane,
+    .bc-tactic {
+        gap: 9px;
+    }
+    .bc-ticker-wrap {
+        border-radius: 0;
+    }
+}
+/* 320: peças da tática mais justas */
+@media (max-width: 380px) {
+    .bc-tile {
+        gap: 6px;
+        padding: 6px;
+    }
+    .bc-tile b {
+        font-size: 12px;
+    }
+    .bc-sc {
+        font-size: 24px;
+        line-height: 36px;
+        min-width: 32px;
+    }
+    .bc-sig {
+        font-size: 15px;
+    }
+    .bc-mid {
+        min-width: 84px;
+        padding: 4px 8px;
+    }
+    .bc-seg button {
+        font-size: 11px;
+    }
+}
+
+/* ---------- celular deitado: quadra à esquerda, abas à direita ---------- */
+@media (orientation: landscape) and (max-height: 520px) {
+    .bc {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 300px;
+        grid-template-areas:
+            "head coach"
+            "stage coach";
+        column-gap: 12px;
+        align-items: start;
+        padding-bottom: calc(60px + env(safe-area-inset-bottom));
+    }
+    .bc-head {
+        grid-area: head;
+        padding-top: 15px;
+    }
+    .bc-stage {
+        grid-area: stage;
+    }
+    .bc-stage > .pitch-wrap {
+        /* placar (~92 px), faixa da narração (24 px) e barra de baixo (~58 px) fora: a quadra inteira na tela */
+        width: min(100%, calc((100svh - 178px - env(safe-area-inset-bottom)) * 968 / 528));
+        margin-inline: auto;
+    }
+    /* intervalo por cima da quadra parada (embaixo dela não caberia na altura da tela) */
+    .bc-stage > .pitch-wrap,
+    .bc-stage > .ht-wrap {
+        grid-area: 1 / 1;
+    }
+    .bc-stage > .ht-wrap {
+        z-index: 6;
+        align-self: center;
+        justify-self: center;
+        width: min(calc(100% - 16px), 470px);
+    }
+    .bc .ht-panel {
+        gap: 4px;
+        padding: 8px 12px;
+        background: rgb(35 45 87 / 96%);
+        box-shadow: var(--shadow);
+        font-size: 12px;
+    }
+    .bc .ht-score {
+        font-size: 15px;
+    }
+    .bc .ht-tip {
+        font-size: 11px;
+    }
+    .bc .ht-actions .btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+    .bc .ht-panel > small {
+        display: none;
+    }
+    .panel.bc-coach {
+        grid-area: coach;
+        margin-top: 0;
+        max-height: calc(100svh - 64px - env(safe-area-inset-bottom));
+        overflow-y: auto;
+        align-content: start;
+    }
+    .bc-tabs {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+    .bc-tabs button {
+        min-height: 40px;
+        padding: 4px 2px;
+        font-size: 10px;
+        gap: 1px;
+    }
+    .bc-tabs .hud-icon {
+        width: 16px;
+        height: 16px;
+    }
+    .bc-pane {
+        padding: 8px;
+        gap: 8px;
+    }
+    .bc-tactic {
+        gap: 7px;
+    }
+    .bc-tile {
+        min-height: 40px;
+        padding: 4px 6px;
+        gap: 6px;
+    }
+    .bc-tile small {
+        display: none;
+    }
+    .bc-tile b {
+        font-size: 12px;
+    }
+    .bc-seg button {
+        min-height: 32px;
+    }
+    .bc-subbtn {
+        min-height: 40px;
+    }
+    .bc-sc {
+        font-size: 22px;
+        line-height: 32px;
+        margin-block: 4px;
+    }
+    .bc-sig {
+        font-size: 15px;
+    }
+    .bc-pressure {
+        height: 22px;
+        padding-block: 2px;
+    }
+    .bc-thumb {
+        padding-block: 6px calc(6px + env(safe-area-inset-bottom));
+    }
+    .bc-thumb .bc-seg button {
+        min-height: 34px;
+    }
+    .bc-skip {
+        height: 40px;
+    }
+    .bc-ticker-wrap {
+        height: 24px;
+    }
+}
+
+/* ---------- desktop: abas na coluna da direita, tática e velocidade embaixo da quadra ---------- */
+@media (min-width: 1051px) {
+    .bc {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 380px;
+        grid-template-areas:
+            "head coach"
+            "stage coach"
+            "thumb coach";
+        /* as abas podem ser mais altas que a quadra: a sobra vai pra última linha, não entre placar e quadra */
+        grid-template-rows: auto auto 1fr;
+        gap: 12px 18px;
+        align-items: start;
+        padding-bottom: 0;
+    }
+    .bc-head {
+        grid-area: head;
+        justify-self: center;
+        width: min(640px, 100%);
+    }
+    .bc-head .bc-pressure {
+        border-radius: 0 0 6px 6px;
+    }
+    .bc-full {
+        display: block;
+    }
+    .bc-stage {
+        grid-area: stage;
+    }
+    .panel.bc-coach {
+        grid-area: coach;
+        grid-row: 1 / span 3;
+        margin-top: 0;
+        align-self: start;
+    }
+    .bc-ticker-wrap {
+        height: 32px;
+    }
+    .bc-ticker {
+        padding: 0 14px;
+        font-size: 13px;
+    }
+    .bc-deskbar .bc-tactic {
+        grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+        grid-template-areas:
+            "sl cl"
+            "st cs"
+            "st sb"
+            "er er";
+        gap: 6px 18px;
+        align-items: start;
+    }
+    .bc-deskbar .row-style {
+        grid-area: sl;
+    }
+    .bc-deskbar .bc-styles {
+        grid-area: st;
+    }
+    .bc-deskbar .row-corner {
+        grid-area: cl;
+    }
+    .bc-deskbar .corner-seg {
+        grid-area: cs;
+    }
+    .bc-deskbar .bc-subbtn {
+        grid-area: sb;
+        align-self: end;
+    }
+    .bc-deskbar .error-text {
+        grid-area: er;
+    }
+    .bc-thumb {
+        grid-area: thumb;
+        position: static;
+        justify-content: space-between;
+        padding: 0;
+        background: none;
+        border: 0;
+    }
+    .bc-thumb .speed-seg {
+        flex: 0 1 440px;
+    }
+    .bc-skip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        width: auto;
+        padding: 0 14px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+    .bc-skip span {
+        display: inline;
+    }
+    .bc-thumb .bc-result {
+        flex: 0 1 320px;
+        margin-left: auto;
+    }
+    .bc-speed-ask {
+        flex: 0 1 520px;
+    }
+    .bc-speed-ask {
+        display: block;
+    }
+    .bc-speed-ask legend {
+        position: static;
+        width: auto;
+        height: auto;
+        clip-path: none;
+        margin-bottom: 4px;
+        padding: 0;
+        font-size: 11px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .bc-thumb .emote-bar {
+        flex-wrap: nowrap;
+    }
+}

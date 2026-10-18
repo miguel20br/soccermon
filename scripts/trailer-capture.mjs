@@ -77,7 +77,7 @@ if (!(await click('^Jogar '))) throw new Error('não achei o botão Jogar (o ata
 // quadra ocupando a largura toda (sem barra lateral), pra gravar na resolução pedida
 await page.addStyleTag({
     content:
-        '.app{max-width:none!important;padding:0!important}.match-layout{grid-template-columns:1fr!important}.scoreboard,.controls,.team-panel,.feed,.topbar{display:none!important}',
+        '.app{max-width:none!important;padding:0!important}.bc{display:block!important;padding:0!important}.bc-head,.bc-coach,.bc-thumb,.bc-deskbar,.bc-ticker,.topbar{display:none!important}',
 });
 // pausa o jogo ANTES do "Começar!" (o Ditto se transforma no tick 0)
 for (let i = 0; i < 90; i++) {

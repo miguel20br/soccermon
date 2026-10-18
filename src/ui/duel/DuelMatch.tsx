@@ -41,22 +41,30 @@ import { PhaserGame } from '../../PhaserGame';
 import type { ChanceSpeed, PlaybackSpeed } from '../../store/game-store';
 import { useGame } from '../../store/game-store';
 import type { TrainerId } from '../../store/missions';
-import { rivalColor } from '../../store/profile';
+import { rivalColor, tagFromName } from '../../store/profile';
 import { Commentator, type CommentLine } from '../commentary';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
 import { HalftimePanel } from '../components/HalftimePanel';
 import { MatchHighlight } from '../components/MatchHighlight';
 import {
     type Clock,
+    type CoachTab,
+    CoachTabs,
+    HudIcon,
     hex,
     MatchFeed,
+    PressureBar,
     Scoreboard,
     SubPanel,
     TacticControls,
-    useClockLabel,
+    TIRED_HINT,
+    Ticker,
+    useClockParts,
+    useCoachTab,
 } from '../components/MatchHud';
 import { PlayerInspect } from '../components/PlayerInspect';
-import { type BoardPlan, boardBeside, Prancheta } from '../components/Prancheta';
+import { cardSprite } from '../components/PokeCard';
+import { type BoardPlan, Prancheta, useMedia, WIDE } from '../components/Prancheta';
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
 import { roleAt, snapAt } from '../match-view';
@@ -116,7 +124,12 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const [boardFocus, setBoardFocus] = useState(0);
     const [lines, setLines] = useState<(CommentLine & { id: number })[]>([]);
     const lineId = useRef(0);
-    const [feedOpen, setFeedOpen] = useState(true);
+    // painel do técnico: no desktop a Tática fica embaixo da quadra e as abas abrem na Prancheta
+    const wide = useMedia(WIDE);
+    const tabs: CoachTab[] = wide ? ['board', 'team', 'feed'] : ['tactic', 'board', 'team', 'feed'];
+    const [tab, setTab] = useCoachTab(tabs, wide ? 'board' : 'tactic');
+    /** Celular: os emotes abrem por cima da barra de baixo. */
+    const [emotesOpen, setEmotesOpen] = useState(false);
     const [fulltime, setFulltime] = useState(false);
     const [shootout, setShootout] = useState<[number, number] | null>(null);
     const tickRef = useRef(0);
@@ -307,7 +320,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     }, [subOpen]);
     const htLeft = useCountdown(halftime ? s.halftime?.until : undefined);
     const kickLeft = useCountdown(kicked ? undefined : s.kickoffAt);
-    const clockLabel = useClockLabel(clock, fulltime || ended, shootout, halftime);
+    const clockParts = useClockParts(clock, fulltime || ended, shootout, halftime);
 
     if (!match || !sceneData) {
         return (
@@ -395,6 +408,32 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         } else if (idx !== null) EventBus.emit('match:inspect-request', idx);
     };
 
+    // quem está mais cansado em quadra: o botão Substituir avisa (só avisa; a troca é sempre do técnico)
+    const tiredSlot = onField.map((uid, i) => ({ uid, energy: energyAt(i) })).sort((a, b) => a.energy - b.energy)[0];
+    const tiredInst = tiredSlot && byUid.get(tiredSlot.uid);
+    const tired =
+        canSub && tiredSlot && tiredInst && tiredSlot.energy < TIRED_HINT
+            ? { name: nameOf(tiredSlot.uid), energy: tiredSlot.energy, sprite: cardSprite(tiredInst) }
+            : null;
+    const over = fulltime || ended;
+    const tactics = (
+        <TacticControls
+            tactic={currentTactic}
+            tacticsUsed={tacticOrders.length}
+            corner={currentCorner}
+            cornersUsed={cornerOrders.length}
+            canChange={canChange}
+            pending={pendingOrder}
+            onTactic={(tc) => tc !== currentTactic && order({ kind: 'tactic', tactic: tc })}
+            onCorner={(pl) => pl !== currentCorner && order({ kind: 'corner', corner: pl })}
+            subOpen={subOpen}
+            canSub={canSub}
+            onToggleSub={() => setSubOpen((v) => !v)}
+            tired={tired}
+        />
+    );
+    const tagOf = (p: typeof myPeer, i: 0 | 1) => p?.clubTag || tagFromName(teamNames[i]);
+
     return (
         <>
             {!kicked && (
@@ -412,35 +451,38 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                     startsIn={kickLeft}
                 />
             )}
-            <Scoreboard
-                boardRef={scoreboardRef}
-                className=" duel-board"
-                names={teamNames}
-                colors={colors}
-                score={clock.score}
-                clockLabel={clockLabel}
-                stage={t('duel.title')}
-                homeTag={s.peers.host?.clubTag ?? ''}
-                coaches={[badge(s.peers.host), badge(s.peers.guest)]}
-            >
-                <EmoteBubbles mySide={side === 0 ? 'left' : 'right'} />
-            </Scoreboard>
-            {suspect && <div className="duel-banner warn">{t('duel.match.suspect')}</div>}
-            {/* tela parada esperando o rival (a faixa da espera do W.O., quando vale, já diz isso) */}
-            {stall && stall !== role && s.waitFor !== stall && !ended && (
-                <div className="duel-banner warn" role="status" data-testid="duel-stall">
-                    {t('duel.match.waitingFor', { name: trainerNames(s)[SIDE[stall]] })}
+            <div className="bc duel">
+                <div className="bc-head" ref={scoreboardRef}>
+                    <Scoreboard
+                        className=" duel-board"
+                        names={teamNames}
+                        tags={[tagOf(s.peers.host, 0), tagOf(s.peers.guest, 1)]}
+                        colors={colors}
+                        score={clock.score}
+                        clock={clockParts}
+                        stage={t('duel.title')}
+                        coaches={[badge(s.peers.host), badge(s.peers.guest)]}
+                    >
+                        <EmoteBubbles mySide={side === 0 ? 'left' : 'right'} />
+                    </Scoreboard>
+                    <PressureBar match={match} tick={clock.tick} minute={clock.minute} colors={colors} over={over} />
                 </div>
-            )}
 
-            <div className="match-layout has-board">
-                <div className="match-main">
+                <div className="bc-stage">
+                    {suspect && <div className="duel-banner warn">{t('duel.match.suspect')}</div>}
+                    {/* tela parada esperando o rival (a faixa da espera do W.O., quando vale, já diz isso) */}
+                    {stall && stall !== role && s.waitFor !== stall && !ended && (
+                        <div className="duel-banner warn" role="status" data-testid="duel-stall">
+                            {t('duel.match.waitingFor', { name: trainerNames(s)[SIDE[stall]] })}
+                        </div>
+                    )}
                     <div className="pitch-wrap">
                         {fontsReady ? (
                             <PhaserGame key={String(match.seed)} data={sceneData} />
                         ) : (
                             <div className="phaser-container" />
                         )}
+                        <Ticker lines={lines} colors={colors} />
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
                         <PlayerInspect
@@ -451,7 +493,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                         <SpeedAsk rivalName={rivalName} />
                     </div>
                     {halftime && (
-                        <div ref={halftimeRef}>
+                        <div className="ht-wrap" ref={halftimeRef}>
                             <HalftimePanel
                                 match={match}
                                 names={teamNames}
@@ -467,7 +509,10 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                                 }}
                                 canSub={canSub}
                                 onSub={() => setSubOpen(true)}
-                                onBoard={() => setBoardFocus((k) => k + 1)}
+                                onBoard={() => {
+                                    setTab('board');
+                                    setBoardFocus((k) => k + 1);
+                                }}
                                 onContinue={() => duel.dispatch({ k: 'htReady' })}
                                 footer={
                                     <p className="duel-ht" data-testid="duel-ht">
@@ -514,76 +559,104 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                             }}
                         />
                     )}
-                    <div className="controls">
-                        <div className="control-group speed-group duel-speed">
-                            <span className="corner-label">{t('duel.match.askSpeed')}</span>
-                            {DUEL_SPEEDS.map((sp) => (
-                                <button
-                                    key={String(sp)}
-                                    type="button"
-                                    className={`btn small${s.speed === sp ? ' active' : ''}${s.speedAsk?.speed === sp ? ' asking' : ''}`}
-                                    data-testid={`speed-ask-${sp}`}
-                                    title={
-                                        s.speed === sp
-                                            ? t('duel.match.speedNow')
-                                            : t('duel.match.askHint', { name: rivalName, speed: speedLabel(sp) })
-                                    }
-                                    disabled={!sceneReady || ended || fulltime || !!s.speedAsk || s.speed === sp}
-                                    onClick={() => duel.dispatch({ k: 'speed', speed: sp })}
-                                >
-                                    {speedLabel(sp)}
-                                </button>
-                            ))}
-                        </div>
-                        <TacticControls
-                            tactic={currentTactic}
-                            tacticsUsed={tacticOrders.length}
-                            corner={currentCorner}
-                            cornersUsed={cornerOrders.length}
-                            canChange={canChange}
-                            pending={pendingOrder}
-                            onTactic={(tc) => tc !== currentTactic && order({ kind: 'tactic', tactic: tc })}
-                            onCorner={(pl) => pl !== currentCorner && order({ kind: 'corner', corner: pl })}
-                            subOpen={subOpen}
-                            canSub={canSub}
-                            onToggleSub={() => setSubOpen((v) => !v)}
-                        />
-                        {ended && (
-                            <div className="control-group end-group">
-                                <button type="button" className="btn primary" onClick={onSeeResult}>
-                                    {t('duel.match.seeResult')}
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                    <EmoteBar />
-                    <TeamPanel
-                        match={match}
-                        setups={setups}
-                        tick={clock.tick}
-                        teamNames={teamNames}
-                        interactive={sceneReady && !ended}
-                        side={side}
-                        startOpen={!boardBeside()}
-                    />
+                    {wide && <div className="bc-deskbar">{tactics}</div>}
                 </div>
-                <Prancheta
-                    match={match}
-                    setups={setups}
-                    side={side}
-                    tick={clock.tick}
-                    names={teamNames}
-                    selectedUid={subOpen ? subOut : null}
-                    onMine={onMine}
-                    edit={{
-                        enabled: canChange,
-                        pending: pendingBoard,
-                        onConfirm: ({ formation, order: o }) =>
-                            canChange && order({ kind: 'lineup', formation, order: o }),
-                    }}
-                    focusKey={boardFocus}
-                />
-                <MatchFeed lines={lines} colors={colors} open={feedOpen} onToggle={() => setFeedOpen((v) => !v)} />
+
+                <div className="panel bc-coach">
+                    <CoachTabs tabs={tabs} active={tab} onPick={setTab} />
+                    <div className={`bc-pane pane-${tab}`} role="tabpanel">
+                        {tab === 'tactic' && tactics}
+                        {tab === 'board' && (
+                            <Prancheta
+                                match={match}
+                                setups={setups}
+                                side={side}
+                                tick={clock.tick}
+                                names={teamNames}
+                                selectedUid={subOpen ? subOut : null}
+                                onMine={onMine}
+                                edit={{
+                                    enabled: canChange,
+                                    pending: pendingBoard,
+                                    over,
+                                    onConfirm: ({ formation, order: o }) =>
+                                        canChange && order({ kind: 'lineup', formation, order: o }),
+                                }}
+                                focusKey={boardFocus}
+                            />
+                        )}
+                        {tab === 'team' && (
+                            <TeamPanel
+                                match={match}
+                                setups={setups}
+                                tick={clock.tick}
+                                teamNames={teamNames}
+                                interactive={sceneReady && !ended}
+                                side={side}
+                            />
+                        )}
+                        {tab === 'feed' && <MatchFeed lines={lines} colors={colors} />}
+                    </div>
+                    {wide && tab !== 'feed' && lines.length > 0 && (
+                        <div className="bc-recent">
+                            <MatchFeed lines={lines.slice(0, 3)} colors={colors} />
+                        </div>
+                    )}
+                </div>
+
+                <div className="bc-thumb">
+                    {!wide && emotesOpen && (
+                        <div className="bc-emotes">
+                            <EmoteBar />
+                        </div>
+                    )}
+                    {!ended ? (
+                        <fieldset className="bc-speed-ask">
+                            <legend className="bc-lbl">{t('duel.match.askSpeed')}</legend>
+                            <div className="bc-seg speed-seg duel-speed">
+                                {DUEL_SPEEDS.map((sp) => (
+                                    <button
+                                        key={String(sp)}
+                                        type="button"
+                                        className={`${s.speed === sp ? 'on' : ''}${s.speedAsk?.speed === sp ? ' asking' : ''}`}
+                                        aria-pressed={s.speed === sp}
+                                        data-testid={`speed-ask-${sp}`}
+                                        title={
+                                            s.speed === sp
+                                                ? t('duel.match.speedNow')
+                                                : t('duel.match.askHint', {
+                                                      name: rivalName,
+                                                      speed: speedLabel(sp),
+                                                  })
+                                        }
+                                        disabled={!sceneReady || ended || fulltime || !!s.speedAsk || s.speed === sp}
+                                        onClick={() => duel.dispatch({ k: 'speed', speed: sp })}
+                                    >
+                                        {speedLabel(sp)}
+                                    </button>
+                                ))}
+                            </div>
+                        </fieldset>
+                    ) : (
+                        <button type="button" className="btn primary bc-result" onClick={onSeeResult}>
+                            {t('duel.match.seeResult')}
+                        </button>
+                    )}
+                    {wide ? (
+                        <EmoteBar />
+                    ) : (
+                        <button
+                            type="button"
+                            className={`bc-skip${emotesOpen ? ' on' : ''}`}
+                            aria-expanded={emotesOpen}
+                            aria-label={t('match.coach.emotes')}
+                            title={t('match.coach.emotes')}
+                            onClick={() => setEmotesOpen((v) => !v)}
+                        >
+                            <HudIcon kind="smile" />
+                        </button>
+                    )}
+                </div>
             </div>
         </>
     );

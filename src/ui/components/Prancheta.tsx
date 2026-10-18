@@ -8,13 +8,17 @@ import { formationText, statusName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { boardAt, snapAt, whoAt } from '../match-view';
 import { FormationBoard } from './FormationBoard';
+import { cardSprite } from './PokeCard';
+
+/** Ditto: na vaga ele aparece com a forma copiada; o selinho no canto diz que é ele. */
+const DITTO = 132;
 
 /** Recalcula a cada meio segundo de jogo (igual ao painel do time). */
 const STEP_TICKS = 10;
 /** Celular em pé: a prancheta fica embaixo da quadra, deitada (o ataque pra direita). */
 const PORTRAIT = '(max-width: 1050px) and (orientation: portrait)';
 
-function useMedia(query: string): boolean {
+export function useMedia(query: string): boolean {
     return useSyncExternalStore(
         (cb) => {
             const m = window.matchMedia(query);
@@ -74,6 +78,8 @@ export function Prancheta({
         /** A última prancheta mandada que ainda não entrou em quadra. */
         pending: BoardPlan | null;
         onConfirm: (plan: BoardPlan) => void;
+        /** Apito final (e pênaltis): nada mais muda; a dica só oferece ver o painel do jogador. */
+        over?: boolean;
     };
     /** Mudou: mostra o seu time e rola até a prancheta (botão "Mudar prancheta" do intervalo). */
     focusKey?: number;
@@ -99,7 +105,7 @@ export function Prancheta({
         const all = [...setup.lineup, ...setup.bench];
         const byUid = new Map<string, PokemonInstance>(all.map((p) => [p.uid, p]));
         const idxOf = new Map<string, number>();
-        const live = new Map<string, { energy: number; status: string | null; evolved: boolean }>();
+        const live = new Map<string, { energy: number; status: string | null; evolved: boolean; ditto: boolean }>();
         const lineup: string[] = [];
         // a prancheta de agora: formação e quem está em cada vaga (depois das mudanças de prancheta)
         const board = boardAt(match, setups, team, at);
@@ -114,6 +120,7 @@ export function Prancheta({
                 energy: snap.p[o + 6] ?? 1,
                 status: snap.p[o + 4] ? statusName(snap.p[o + 4], lang) : null,
                 evolved: who.evolved,
+                ditto: who.transformed,
             });
             lineup.push(who.inst.uid);
         }
@@ -223,6 +230,14 @@ export function Prancheta({
                             />
                             {l.status && <span className="pr-status">{l.status}</span>}
                             {l.evolved && <span className="pr-evo">{t('match.board.evolved')}</span>}
+                            {l.ditto && (
+                                <img
+                                    className="pr-ditto pixel"
+                                    src={cardSprite({ speciesId: DITTO, shiny: false })}
+                                    alt={t('match.board.ditto')}
+                                    title={t('match.board.ditto')}
+                                />
+                            )}
                         </>
                     );
                 }}
@@ -255,11 +270,13 @@ export function Prancheta({
                       ? t('match.board.hintSwap', { name: viewInstance(pickedInst).displayName })
                       : canEdit
                         ? t('match.board.hintEdit')
-                        : t('match.board.hintMine')}
+                        : edit?.over
+                          ? t('match.board.hintOver')
+                          : t('match.board.hintMine')}
             </small>
         </div>
     );
 }
 
-/** Desktop: a prancheta fica na coluna da direita (mesmo corte do styles.css). */
-export const boardBeside = () => window.matchMedia('(min-width: 1051px)').matches;
+/** Desktop: o painel do técnico fica na coluna da direita (mesmo corte do styles.css). */
+export const WIDE = '(min-width: 1051px)';

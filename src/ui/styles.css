@@ -594,57 +594,6 @@ img.pixel {
     height: 44px;
 }
 
-/* ---------- partida ---------- */
-.scoreboard {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    gap: 12px;
-    background: #0e1430;
-    border: 3px solid var(--line);
-    border-radius: var(--radius);
-    padding: 10px 16px;
-}
-.sb-team {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 700;
-    font-size: 15px;
-    min-width: 0;
-}
-.sb-team.away {
-    justify-content: flex-end;
-}
-.sb-team i {
-    width: 14px;
-    height: 14px;
-    border-radius: 4px;
-    flex: none;
-}
-.sb-team span {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.sb-score {
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 30px;
-    text-align: center;
-    line-height: 1;
-}
-.sb-clock {
-    display: block;
-    font-size: 12px;
-    color: var(--yellow);
-    margin-top: 4px;
-}
-.match-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 300px;
-    gap: var(--gap);
-    align-items: start;
-}
 .phaser-container {
     width: 100%;
     aspect-ratio: 968 / 528;
@@ -655,16 +604,6 @@ img.pixel {
 }
 .phaser-container canvas {
     display: block;
-}
-.feed {
-    height: 100%;
-    max-height: 528px;
-    min-height: 300px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 12px;
 }
 .feed-line {
     font-size: 12px;
@@ -695,6 +634,8 @@ img.pixel {
 /* ---------- painel do time na partida (TeamPanel.tsx) ---------- */
 .team-panel {
     display: grid;
+    /* nome de clube comprido nas abas não alarga a coluna (no 320 a NOTA ficava cortada) */
+    grid-template-columns: minmax(0, 1fr);
     gap: 4px;
     padding: 10px 12px;
 }
@@ -863,12 +804,6 @@ img.pixel {
     .tp-row {
         grid-template-columns: 34px minmax(0, 1fr) 160px 26px 26px 46px;
     }
-}
-.controls {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    align-items: center;
 }
 
 /* ---------- resultado ---------- */
@@ -1353,46 +1288,10 @@ button,
     color: var(--yellow);
 }
 
-/* ---------- partida ---------- */
-.match-main {
-    display: grid;
-    gap: 12px;
-    min-width: 0;
-}
-.control-group {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    align-items: center;
-}
-.controls {
-    gap: 12px;
-}
-.tactic-left {
-    font-size: 11px;
-}
-.corner-label {
-    font-size: 11px;
-    color: var(--muted);
-    text-align: center;
-}
-.feed-toggle {
-    display: none;
-    min-height: 40px;
-    background: none;
-    border: 0;
-    color: var(--muted);
-    font: inherit;
-    text-align: left;
-    padding: 0 0 6px;
-    cursor: pointer;
-}
-
 /* ---------- tablet ---------- */
 @media (max-width: 1050px) {
     .draft-grid,
     .lineup-grid,
-    .match-layout,
     .two-col {
         grid-template-columns: 1fr;
     }
@@ -1400,20 +1299,6 @@ button,
         max-width: 480px;
         width: 100%;
         margin: 0 auto;
-    }
-    .feed {
-        max-height: 260px;
-        min-height: 140px;
-    }
-    .feed-toggle {
-        display: block;
-    }
-    .feed.collapsed {
-        min-height: 0;
-        max-height: none;
-    }
-    .feed.collapsed > :not(.feed-toggle) {
-        display: none;
     }
 }
 
@@ -1503,51 +1388,6 @@ button,
     }
     .tactics {
         grid-template-columns: 1fr 1fr;
-    }
-    .scoreboard {
-        padding: 8px 10px;
-        gap: 6px;
-    }
-    .sb-team {
-        font-size: 12px;
-        gap: 6px;
-    }
-    .sb-team i {
-        width: 10px;
-        height: 10px;
-    }
-    .sb-score {
-        font-size: 26px;
-    }
-    .sb-clock {
-        font-size: 10px;
-    }
-    .sb-stage {
-        display: none;
-    }
-    .controls {
-        display: grid;
-        gap: 8px;
-    }
-    .control-group {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-    }
-    .control-group .btn {
-        min-height: 44px;
-        padding: 6px 4px;
-        font-size: 11px;
-    }
-    .control-group .tactic-left {
-        grid-column: 1 / -1;
-        text-align: center;
-    }
-    .control-group.end-group {
-        grid-template-columns: 1fr;
-    }
-    /* velocidades (1x 2x 4x 8x Lances) numa linha só */
-    .control-group.speed-group {
-        grid-template-columns: repeat(5, minmax(0, 1fr));
     }
     .result-hero .big-score {
         font-size: 40px;
@@ -5740,13 +5580,6 @@ a.home-tile {
         padding: 6px 12px;
         gap: 8px;
     }
-    .scoreboard {
-        padding: 4px 12px;
-    }
-    .pitch-wrap {
-        width: min(100%, calc((100svh - 80px) * 968 / 528));
-        margin-inline: auto;
-    }
     /* Home deitada: sem a quadra e com logo menor, pro "Nova copa" caber na primeira tela */
     .home {
         gap: 10px;
@@ -7045,62 +6878,8 @@ body {
 .pr-actions .btn {
     white-space: normal;
 }
-/* desktop: a prancheta na coluna da direita, em cima da narração (a quadra não encolhe) */
-@media (min-width: 1051px) {
-    .match-layout.has-board {
-        grid-template-rows: auto 1fr;
-    }
-    .match-layout.has-board > .match-main {
-        grid-row: 1 / span 2;
-    }
-    .match-layout.has-board > .prancheta {
-        grid-column: 2;
-        grid-row: 1;
-    }
-    .match-layout.has-board > .feed {
-        grid-column: 2;
-        grid-row: 2;
-        min-height: 160px;
-        max-height: 320px;
-    }
-}
-/* celular e tablet: logo embaixo da quadra (a tela da partida vira uma coluna só) */
-@media (max-width: 1050px) {
-    /* com o match-main "contents", quadra, controles e tabela viram itens da grade: sem o minmax(0) e o
-       min-width: 0, um nome comprido na tabela alargava a coluna e a tela passava da borda no 320 */
-    .match-layout.has-board {
-        grid-template-columns: minmax(0, 1fr);
-    }
-    .match-layout.has-board > *,
-    .match-layout.has-board > .match-main > * {
-        min-width: 0;
-    }
-    .match-layout.has-board > .match-main {
-        display: contents;
-    }
-    .match-layout.has-board > .match-main > .pitch-wrap {
-        order: -2;
-    }
-    .match-layout.has-board > .prancheta {
-        order: -1;
-    }
-}
-/* celular deitado: ao lado da quadra */
+/* celular deitado: prancheta na coluna das abas, ao lado da quadra */
 @media (orientation: landscape) and (max-height: 520px) {
-    .match-layout.has-board {
-        grid-template-columns: minmax(0, 1fr) 236px;
-    }
-    .match-layout.has-board > .match-main > *,
-    .match-layout.has-board > .feed {
-        grid-column: 1 / -1;
-    }
-    .match-layout.has-board > .match-main > .pitch-wrap {
-        grid-column: 1;
-    }
-    .match-layout.has-board > .prancheta {
-        grid-column: 2;
-        align-self: start;
-    }
     .prancheta {
         padding: 8px;
         gap: 6px;
