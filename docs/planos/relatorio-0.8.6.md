@@ -112,12 +112,15 @@ título da tela. Ficou assim porque cobrir o botão de seguir é pior. Ele não 
 ## 4. Decisões que são suas (recomendação primeiro)
 
 ### Pra subir a 0.8.6
-1. **A ou B?** Recomendo B.
+1. **A ou B?** Decidido em 18/10: **B**, com tática e escanteio sem limite de mudanças e o banco à vista no Substituir
+   (dá pra começar por quem entra). A branch `int-086` sai de cena.
 2. **"Pode subir"?** Depois disso eu sigo a skill de lançamento (fast-forward da `main`, tag v0.8.6, release, conferir
    o ar, apagar worktrees e branches).
 
 ### Tela e jogo (pequenas, podem entrar na 0.8.7)
-3. **Metal da carta fora de posição.** Hoje um Machamp com "61" na vaga sai em ouro, e o capitão "52 GOL" também.
+3. **Bote da animação Attack.** Ele já é descontado no mergulho do goleiro. Descontar também no chute e no carrinho?
+   Recomendo não: ali o bote dá impacto ao lance.
+3b. **Metal da carta fora de posição.** Hoje um Machamp com "61" na vaga sai em ouro, e o capitão "52 GOL" também.
    Recomendo o metal pela nota mostrada, com a marca "fora". Mostro antes em `?cards=1`.
 4. **Home no celular a 320.** "Nova copa" acima da dobra (faixa do evento menor) e a Copa com destaque maior que o
    Duelo. Recomendo sim.
