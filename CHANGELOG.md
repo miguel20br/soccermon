@@ -45,6 +45,7 @@
 - Recompensa: item novo pra quem já segura um pergunta pra quem vai o antigo (antes ele sumia)
 - Título do treinador em selo no VERSUS, no saguão e no placar do duelo
 - O relógio mostra Intervalo no intervalo
+- Quem joga pela primeira vez começa em 1x; a velocidade que você escolher fica salva
 - Partida que estava no meio na hora da atualização recomeça do 0 a 0 (a copa e o time ficam)
 
 ### Mais leve e mais claro

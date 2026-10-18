@@ -111,6 +111,30 @@ título da tela. Ficou assim porque cobrir o botão de seguir é pior. Ele não 
 
 ## 4. Decisões que são suas (recomendação primeiro)
 
+> **18/10/2026, respostas do Miguel (questionário):**
+> - **Bote:** manter no chute e no carrinho.
+> - **Metal da carta fora de posição:** fica pela nota natural (como está).
+> - **Home a 320:** "Nova copa" acima da dobra e Copa com mais destaque que o Duelo (vai junto do visual novo).
+> - **Velocidade:** quem nunca jogou começa em 1x; a escolhida fica salva em Configurações (na 0.8.6).
+> - **Copa rápida:** testar na 0.8.7.
+> - **Nomes na quadra:** continua opção do jogador, padrão os dois times.
+> - **Agência, só pra testar se orna (nada confirmado):** Pedido de tempo + Gritos (3 por jogo, 4 opções; tempo dá
+>   +5% de fôlego), Goleiro-linha (liberado o jogo todo), Golpe máximo do capitão (lances do time, mais rápido
+>   perdendo) e a ordem dos pênaltis. Copa e Duelo juntos. **Segurar a evolução: não.**
+> - **Rival que reage:** sim, com os líderes. **Plano de jogo:** em dúvida (medo de complexidade), fica parado.
+> - **Emotes:** deixar bem mais legais, inspirados no Clash Royale.
+> - **Coleção:** medalhas com degraus, vitrine (borda + cartão) e escudo + uniforme. Mascote: não. Faixa da
+>   torcida: lista fechada, mas ele duvida do visual (mockup antes). Acabamentos de carta: viram **selo de carreira
+>   na Pokédex** (Folha, Holo, Prisma, Ouro escuro, como a fita de campeão), sem mudar o acabamento da carta pra não
+>   competir com a raridade e as edições. Talvez um selinho na carta também: só depois de mostrar em `?cards=1`.
+> - **Duelo:** mandar só o que mudou na 0.8.7; partida curta antes do espectador.
+> - **Desafio Dourado:** nome nas Novidades + título por código.
+> - **Música Bliitzit:** fora dos clipes novos.
+> - **Missões não simuladas:** olhar no placar em 2 semanas.
+> - **Fonte:** nomes fora do alfabeto latino na fonte do sistema, aceito.
+>
+> Antes de subir a 0.8.6 ele pediu o site inteiro no visual da partida-transmissão (branch `site-revamp`). Roadmap: conversar depois.
+
 ### Pra subir a 0.8.6
 1. **A ou B?** Decidido em 18/10: **B**, com tática e escanteio sem limite de mudanças e o banco à vista no Substituir
    (dá pra começar por quem entra). A branch `int-086` sai de cena.

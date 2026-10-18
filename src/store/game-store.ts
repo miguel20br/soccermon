@@ -228,8 +228,9 @@ export const DEFAULT_SETTINGS: Settings = {
     sfxVolume: 1,
     crowdVolume: 1,
     goalCry: true,
-    // 1x deixava a partida com ~13 min; 4x é o ritmo de quem chega (cada um muda na partida ou em Configurações)
-    speed: 4,
+    // quem nunca jogou começa em 1x pra ver a partida (decidido em 18/10/2026); a velocidade que a pessoa escolher na
+    // partida ou em Configurações fica salva e vira a dela
+    speed: 1,
     cinematic: true,
     chanceSpeed: 1,
     namesOnField: 'all',
