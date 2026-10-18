@@ -20,6 +20,16 @@ export const PATCH_NOTES: PatchNotes[] = [
                 ],
             },
             {
+                title: 'Coleção',
+                lines: [
+                    'Estojo de insígnias de Kanto no Perfil: cada uma sai quando você vence o clube do líder numa copa (vale pro que você já venceu)',
+                    'Álbum de figurinhas na Pokédex: Normal, Shiny, Evento, Ícone e Destaque de cada espécie (622 no total), colando quando a carta joga',
+                    'Fita de campeão na Pokédex com quantas vezes cada espécie foi campeã com você',
+                    '9 coleções temáticas com título próprio: Iniciais, Pássaros, Fósseis, Eeveelutions, Lendários, Hitmons, Nidos e os times do Brock e da Misty',
+                    'Grito de gol: o capitão grita junto com a torcida no seu gol (dá pra desligar em Configurações)',
+                ],
+            },
+            {
                 title: 'Prancheta no meio da partida',
                 lines: [
                     'Mude a formação e troque Pokémon de vaga durante o jogo, na Copa e no Duelo',
@@ -33,6 +43,18 @@ export const PATCH_NOTES: PatchNotes[] = [
                     'Carta que evolui ganha +2 em todos os atributos por evolução: Charmander que vira Charizard fica 89, o Charizard pronto é 85',
                     'Evolução do rival com animação e faixa próprias (RIVAL EVOLUIU!), diferente da sua',
                     'No Duelo os dois lados evoluem com a mesma barra (antes quem entrava pelo link evoluía mais fácil)',
+                ],
+            },
+            {
+                title: 'Duelo',
+                lines: [
+                    'Revanche de um toque: os dois aceitam e já vão pro draft, sem voltar pra sala',
+                    'Placar geral contra o mesmo amigo no resultado',
+                    'Quem recarrega a página volta pro minuto certo, e a tela avisa quando está esperando o rival',
+                    'Rival que sai na tela de resultado aparece como saiu (a revanche não fica esperando pra sempre)',
+                    'Clubes com o mesmo nome aparecem com o nome do treinador',
+                    'Mais proteção contra placar e time trocados por quem mexe no navegador',
+                    'Ícone próprio pro grito do capitão e textos mais claros',
                 ],
             },
             {
@@ -469,6 +491,16 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 ],
             },
             {
+                title: 'Collection',
+                lines: [
+                    "Kanto badge case on your Profile: each badge comes from beating that leader's club in a cup (counts what you already won)",
+                    'Sticker album in the Pokédex: Normal, Shiny, Event, Icon and Star Player for each species (622 in all), stuck when the card plays',
+                    'Champion ribbon in the Pokédex showing how many times each species won with you',
+                    '9 themed collections with their own title: Starters, Birds, Fossils, Eeveelutions, Legendaries, Hitmons, Nidos and the Brock and Misty teams',
+                    'Goal cry: your captain cries out with the crowd when you score (turn it off in Settings)',
+                ],
+            },
+            {
                 title: 'Tactics board mid-match',
                 lines: [
                     'Change formation and swap Pokémon between spots during the match, in the Cup and in Duels',
@@ -482,6 +514,18 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'A card that evolves gets +2 to every stat per evolution: a Charmander that becomes Charizard is 89, a ready-made Charizard is 85',
                     'Rival evolution has its own animation and banner (RIVAL EVOLVED!), different from yours',
                     'In Duels both sides need the same evolution bar (the player who joined by link used to evolve faster)',
+                ],
+            },
+            {
+                title: 'Duel',
+                lines: [
+                    'One-tap rematch: both accept and go straight to the draft, no lobby',
+                    'Head-to-head record against the same friend on the result screen',
+                    'Reloading the page takes you back to the right minute, and the screen tells you when it is waiting for your rival',
+                    'A rival who leaves on the result screen shows as gone (the rematch no longer waits forever)',
+                    'Clubs with the same name show the trainer name instead',
+                    'More protection against scores and teams being swapped by someone tampering in the browser',
+                    'Its own icon for the captain shout and clearer texts',
                 ],
             },
             {
