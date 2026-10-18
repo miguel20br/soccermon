@@ -123,6 +123,8 @@ function onChange(s: GameState, prev: GameState) {
                 speed: String(s.settings.speed),
                 formation: run.formation,
                 tactic: run.tactic,
+                // quanto o técnico mexe ao vivo (base pra decidir as mecânicas de agência)
+                ...ordersCount(old.live?.orders ?? []),
             });
         }
         if (run.status !== old.status && (run.status === 'champion' || run.status === 'eliminated')) {
@@ -193,4 +195,16 @@ export function startAnalytics() {
     window.addEventListener('error', (e) => track('error', { msg: errorText(e.message ?? e.error) }));
     window.addEventListener('unhandledrejection', (e) => track('error', { msg: errorText(e.reason) }));
     document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && flush(true));
+}
+
+/** Ordens que o técnico deu na partida, por tipo (tática, troca, escanteio, prancheta). */
+function ordersCount(orders: readonly { kind?: string }[]) {
+    const n = (k: string) => orders.filter((o) => (o.kind ?? 'tactic') === k).length;
+    return {
+        orders: orders.length,
+        o_tactic: n('tactic'),
+        o_sub: n('sub'),
+        o_corner: n('corner'),
+        o_lineup: n('lineup'),
+    };
 }
