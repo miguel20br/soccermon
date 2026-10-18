@@ -116,6 +116,11 @@ export function Match() {
     useEffect(() => {
         if (subOpen) subPanelRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
     }, [subOpen]);
+    // fim de jogo: no celular em pé o "Ver resultado" fica abaixo das táticas; traz pra tela
+    const seeResultRef = useRef<HTMLButtonElement>(null);
+    useEffect(() => {
+        if (ended) seeResultRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }, [ended]);
 
     const opponent = run?.opponents[run.stage];
     // cor do seu clube (Perfil); o rival troca para o uniforme reserva se a cor dele for parecida
@@ -509,7 +514,12 @@ export function Match() {
                                     {t('match.skip')}
                                 </button>
                             ) : (
-                                <button type="button" className="btn primary" onClick={() => go('result')}>
+                                <button
+                                    ref={seeResultRef}
+                                    type="button"
+                                    className="btn primary"
+                                    onClick={() => go('result')}
+                                >
                                     {t('match.seeResult')}
                                 </button>
                             )}
