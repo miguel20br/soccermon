@@ -342,7 +342,7 @@ export const help: typeof pt = {
                 {
                     list: [
                         ['Speed', '1x, 2x, 4x, 8x or Highlights (only the best moments). Or skip to the end.'],
-                        ['Tactic', 'up to 3 changes per match (see below).'],
+                        ['Tactic', 'change it as often as you like during the match (see below).'],
                         [
                             'Substitute',
                             'choose who comes off and who comes on. The swap happens at the next dead ball (kick-off, goal kick or half-time). Nothing on your team is automatic.',

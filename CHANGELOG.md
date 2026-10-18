@@ -20,6 +20,12 @@
 - A mudança entra na próxima bola parada, como a substituição; sem limite
 - Qualquer um pode ir pro gol (fora de posição perde nota)
 
+### Partida com cara de transmissão
+- Placar de TV com a cor dos times, barra de pressão a cada 2 minutos e a narração numa faixa em cima da quadra
+- Painel do técnico em abas (Tática, Prancheta, Time, Lances) e, no celular, velocidade e Pular numa barra fixa embaixo
+- Tática e escanteio sem limite de mudanças
+- Substituir já mostra o banco: dá pra começar por quem entra ou por quem sai
+
 ### Evolução
 - Carta que evolui ganha +2 em todos os atributos por evolução: Charmander que vira Charizard fica 89, o Charizard pronto é 85
 - Evolução do rival com animação e faixa próprias (RIVAL EVOLUIU!), diferente da sua

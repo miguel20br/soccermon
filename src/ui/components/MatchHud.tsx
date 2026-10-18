@@ -1,6 +1,5 @@
 import { type CSSProperties, type ReactNode, type Ref, useMemo, useState } from 'react';
 import type { Position } from '../../engine/attributes';
-import { MAX_TACTIC_CHANGES } from '../../engine/config';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { CORNER_PLANS } from '../../engine/runners/live-runner';
@@ -318,7 +317,10 @@ export function CoachTabs({
     );
 }
 
-/** Painel da substituição: primeiro quem sai (posição e fôlego), depois quem entra (nota na vaga de quem sai). */
+/**
+ * Painel da substituição: quem está em quadra (posição e fôlego) e o banco à vista desde o começo. Dá pra começar por
+ * quem sai (depois quem entra, com a nota na vaga dele) ou por quem entra (depois quem sai).
+ */
 export function SubPanel({
     panelRef,
     subOut,
@@ -346,16 +348,25 @@ export function SubPanel({
     onPick: (outUid: string, inUid: string) => void;
 }) {
     const { t, d } = useT();
+    /** Quem entra, quando o técnico começa pelo banco. */
+    const [inFirst, setInFirst] = useState<string | null>(null);
+    const picking = subOut ?? inFirst;
     return (
         <div className="panel sub-panel" ref={panelRef}>
             <div className="sub-head">
-                <b>{subOut ? t('match.whoIn', { name: nameOf(subOut) }) : t('match.whoOut')}</b>
+                <b>
+                    {subOut
+                        ? t('match.whoIn', { name: nameOf(subOut) })
+                        : inFirst
+                          ? t('match.whoOutFor', { name: nameOf(inFirst) })
+                          : t('match.whoOut')}
+                </b>
                 <button
                     type="button"
                     className="btn small ghost"
-                    onClick={() => (subOut ? setSubOut(null) : onClose())}
+                    onClick={() => (subOut ? setSubOut(null) : inFirst ? setInFirst(null) : onClose())}
                 >
-                    {subOut ? t('common.ui.back') : t('common.ui.close')}
+                    {picking ? t('common.ui.back') : t('common.ui.close')}
                 </button>
             </div>
             <div className="sub-list">
@@ -372,7 +383,9 @@ export function SubPanel({
                             key={uid}
                             type="button"
                             className="sub-pick"
-                            onClick={() => (subOut ? onPick(subOut, uid) : setSubOut(uid))}
+                            onClick={() =>
+                                subOut ? onPick(subOut, uid) : inFirst ? onPick(uid, inFirst) : setSubOut(uid)
+                            }
                         >
                             <img className="pixel" src={cardSprite(p)} alt="" />
                             <span>{nameOf(uid)}</span>
@@ -391,6 +404,33 @@ export function SubPanel({
                     );
                 })}
             </div>
+            {!subOut && benchNow.length > 0 && (
+                <>
+                    <span className="sub-bench-lbl">{t('common.ui.bench')}</span>
+                    <div className="sub-list">
+                        {benchNow.map((uid) => {
+                            const p = byUid.get(uid);
+                            if (!p) return null;
+                            const v = viewInstance(p);
+                            return (
+                                <button
+                                    key={uid}
+                                    type="button"
+                                    className={`sub-pick bench${inFirst === uid ? ' on' : ''}`}
+                                    aria-pressed={inFirst === uid}
+                                    onClick={() => setInFirst(inFirst === uid ? null : uid)}
+                                >
+                                    <img className="pixel" src={cardSprite(p)} alt="" />
+                                    <span>{nameOf(uid)}</span>
+                                    <small className="slot-rating">
+                                        {`${d.common.pos[v.naturalPosition]} ${v.overall}`}
+                                    </small>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </>
+            )}
         </div>
     );
 }
@@ -405,24 +445,10 @@ export interface TiredHint {
 /** Abaixo disso o botão Substituir avisa quem está cansado. */
 export const TIRED_HINT = 0.5;
 
-/** Bolinhas das mudanças que restam (amarela = ainda dá). */
-function Pips({ left, label }: { left: number; label: string }) {
-    return (
-        <span className="bc-pips" role="img" aria-label={label} title={label}>
-            {Array.from({ length: MAX_TACTIC_CHANGES }, (_, i) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: bolinhas fixas
-                <i key={i} className={i < left ? undefined : 'off'} />
-            ))}
-        </span>
-    );
-}
-
-/** Tática (estilos em peças com ícone e as mudanças que restam), escanteio e o botão Substituir. */
+/** Tática (estilos em peças com ícone, sem limite de trocas), escanteio e o botão Substituir. */
 export function TacticControls({
     tactic,
-    tacticsUsed,
     corner,
-    cornersUsed,
     canChange,
     pending,
     error,
@@ -434,9 +460,7 @@ export function TacticControls({
     tired,
 }: {
     tactic: Tactic;
-    tacticsUsed: number;
     corner: CornerPlan;
-    cornersUsed: number;
     canChange: boolean;
     pending: boolean;
     error?: string | null;
@@ -447,18 +471,12 @@ export function TacticControls({
     onToggleSub: () => void;
     tired?: TiredHint | null;
 }) {
-    const { t, tn, d } = useT();
-    const tacticsLeft = MAX_TACTIC_CHANGES - tacticsUsed;
-    const cornersLeft = MAX_TACTIC_CHANGES - cornersUsed;
+    const { t, d } = useT();
     return (
         <div className="bc-tactic">
             <div className="bc-row row-style">
                 <span className="bc-lbl">{t('match.coach.style')}</span>
-                {pending ? (
-                    <span className="bc-lbl">{t('match.changing')}</span>
-                ) : (
-                    <Pips left={tacticsLeft} label={tn('match.tacticChanges', tacticsLeft)} />
-                )}
+                {pending && <span className="bc-lbl">{t('match.changing')}</span>}
             </div>
             <div className="bc-styles">
                 {(Object.keys(TACTIC_LABEL) as Tactic[]).map((tc) => (
@@ -468,7 +486,7 @@ export function TacticControls({
                         className={`bc-tile${tactic === tc ? ' on' : ''}`}
                         aria-pressed={tactic === tc}
                         title={d.team.lineup.tacticDesc[tc]}
-                        disabled={!canChange || (tacticsLeft <= 0 && tactic !== tc)}
+                        disabled={!canChange}
                         onClick={() => onTactic(tc)}
                     >
                         <HudIcon kind={tc} />
@@ -485,7 +503,6 @@ export function TacticControls({
                     <HudIcon kind="flag" />
                     {t('match.corner')}
                 </span>
-                <Pips left={cornersLeft} label={tn('match.coach.cornerChanges', cornersLeft)} />
             </div>
             <div className="bc-seg corner-seg">
                 {CORNER_PLANS.map((pl) => (
@@ -494,7 +511,7 @@ export function TacticControls({
                         type="button"
                         className={corner === pl ? 'on' : undefined}
                         aria-pressed={corner === pl}
-                        disabled={!canChange || (cornersLeft <= 0 && corner !== pl)}
+                        disabled={!canChange}
                         onClick={() => onCorner(pl)}
                     >
                         {d.common.cornerPlan[pl]}

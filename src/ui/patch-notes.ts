@@ -38,6 +38,15 @@ export const PATCH_NOTES: PatchNotes[] = [
                 ],
             },
             {
+                title: 'Partida com cara de transmissão',
+                lines: [
+                    'Placar de TV com a cor dos times, barra de pressão a cada 2 minutos e a narração numa faixa em cima da quadra',
+                    'Painel do técnico em abas (Tática, Prancheta, Time, Lances) e, no celular, velocidade e Pular numa barra fixa embaixo',
+                    'Tática e escanteio sem limite de mudanças',
+                    'Substituir já mostra o banco: dá pra começar por quem entra ou por quem sai',
+                ],
+            },
+            {
                 title: 'Evolução',
                 lines: [
                     'Carta que evolui ganha +2 em todos os atributos por evolução: Charmander que vira Charizard fica 89, o Charizard pronto é 85',
@@ -517,6 +526,15 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'Change formation and swap Pokémon between spots during the match, in the Cup and in Duels',
                     'The change happens at the next restart, like a substitution; no limit',
                     'Anyone can go in goal (out of position costs rating)',
+                ],
+            },
+            {
+                title: 'Match as a broadcast',
+                lines: [
+                    'TV scoreboard in team colors, a pressure bar every 2 minutes and the commentary in a strip above the pitch',
+                    'Coach panel in tabs (Tactics, Board, Team, Plays) and, on phones, speed and Skip in a bar fixed at the bottom',
+                    'No limit on tactic and corner changes',
+                    'Substitute shows the bench right away: start with who comes on or who comes off',
                 ],
             },
             {

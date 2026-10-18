@@ -3081,6 +3081,15 @@ button,
 .sub-pick small {
     color: var(--yellow);
 }
+/* banco à vista no "Quem sai?": tocar escolhe quem entra primeiro */
+.sub-bench-lbl {
+    color: var(--muted);
+    font-size: 12px;
+}
+.sub-pick.bench.on {
+    border-color: #7dff8a;
+    background: color-mix(in srgb, #7dff8a 14%, var(--bg-2));
+}
 .sub-pick small.alt {
     color: #ffcb05;
 }

@@ -55,9 +55,6 @@ export const SEGMENT_MINUTES = 2;
 export const segmentTicks = (cfg: MatchConfig) =>
     Math.round(((SEGMENT_MINUTES * cfg.halfSeconds) / cfg.displayHalfMinutes) * cfg.tickRate);
 
-/** Trocas de tática por time na partida (validado no motor: a 4ª é ignorada). */
-export const MAX_TACTIC_CHANGES = 3;
-
 export function withConfig(overrides: Partial<MatchConfig>): MatchConfig {
     return { ...FUTSAL_5, ...overrides, pitch: { ...FUTSAL_5.pitch, ...overrides.pitch } };
 }

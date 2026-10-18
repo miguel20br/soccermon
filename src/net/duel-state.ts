@@ -1,5 +1,4 @@
 import type { Position } from '../engine/attributes';
-import { MAX_TACTIC_CHANGES } from '../engine/config';
 import { captainOptions, DRAFT_PICKS, draftOptions, playerDraftOptions } from '../engine/draft';
 import {
     DEFAULT_SPECIAL_LIMIT,
@@ -62,7 +61,6 @@ export const WO_WAIT_MS = 60_000;
 /** A tela do VERSUS fica esse tempo antes do apito (igual pros dois). */
 export const KICKOFF_MS = 7_000;
 /** Limite de trocas (tática e, à parte, escanteio): o mesmo do motor. */
-export { MAX_TACTIC_CHANGES };
 /** Igual à partida da copa: a ordem vale ~2 s de jogo à frente, mais em velocidade alta. */
 export const CHANGE_LEAD_TICKS = 40;
 export const speedMult = (s: PlaybackSpeed) => (typeof s === 'number' ? s : 4);
@@ -465,8 +463,8 @@ const segMismatch = (h: Shared['segHash'], k: number) => {
 
 /**
  * Carimba a ordem com o tick: `max(tick dos dois) + leadTicks` (no intervalo, o tick seguinte a ele), sempre depois
- * da última do log. O número (`seq`) é de quem deu a ordem: repetida não entra de novo. Mesmo limite pros dois: 3
- * mudanças de tática e as trocas do banco; a prancheta não tem limite.
+ * da última do log. O número (`seq`) é de quem deu a ordem: repetida não entra de novo. Tática, escanteio e prancheta
+ * sem limite; as trocas, até acabar o banco.
  */
 export function stampOrder(
     s: Shared,
@@ -482,11 +480,11 @@ export function stampOrder(
     if (i.order.kind === 'tactic') {
         const tactics = mine.filter((o) => isTacticOrder(o)) as TacticChange[];
         const current = tactics.at(-1)?.tactic ?? team.tactic;
-        if (tactics.length >= MAX_TACTIC_CHANGES || current === i.order.tactic) return null;
+        if (current === i.order.tactic) return null;
     } else if (i.order.kind === 'corner') {
         const corners = mine.filter((o) => isCornerOrder(o)) as CornerOrder[];
         const current = corners.at(-1)?.corner ?? team.corner ?? 'mixed';
-        if (corners.length >= MAX_TACTIC_CHANGES || current === i.order.corner) return null;
+        if (current === i.order.corner) return null;
     } else if (i.order.kind === 'sub') {
         const subs = mine.filter(isSubStamped);
         const field = onFieldAfter(team, s.log, side);

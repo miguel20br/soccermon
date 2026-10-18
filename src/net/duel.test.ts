@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FUTSAL_5, MAX_TACTIC_CHANGES } from '../engine/config';
+import { FUTSAL_5 } from '../engine/config';
 import { aiDraftTeam, DRAFT_PICKS } from '../engine/draft';
 import {
     countSpecials,
@@ -305,14 +305,15 @@ describe('log de ordens', () => {
         expect(ordersOf([s.log[1], s.log[0]]).map((o) => o.team)).toEqual([1, 0]);
     });
 
-    it('mesmo limite pros dois: 3 táticas, e a mesma tática de agora não gasta troca', () => {
+    it('tática sem limite pros dois, e a mesma tática de agora não entra', () => {
         let s = inMatch();
         expect(reduce(s, tactic('balanced', 1), 'guest', ctx())).toBe(s);
         s = reduce(s, tactic('offensive', 1), 'guest', ctx(0, { tick: 100 }));
         s = reduce(s, tactic('defensive', 2), 'guest', ctx(0, { tick: 900 }));
         s = reduce(s, tactic('counter', 3), 'guest', ctx(0, { tick: 1000 }));
-        expect(s.log.filter((o) => o.team === 1)).toHaveLength(3);
-        expect(reduce(s, tactic('balanced', 4), 'guest', ctx(0, { tick: 1100 }))).toBe(s);
+        s = reduce(s, tactic('balanced', 4), 'guest', ctx(0, { tick: 1100 }));
+        expect(s.log.filter((o) => o.team === 1)).toHaveLength(4);
+        expect(reduce(s, tactic('balanced', 5), 'guest', ctx(0, { tick: 1200 }))).toBe(s);
     });
 
     it('troca: só quem está em quadra sai, só quem está no banco entra, e no intervalo vale no tick seguinte', () => {
@@ -702,12 +703,12 @@ describe('prancheta no duelo', () => {
             tick: 0,
             seq,
         });
-        for (let seq = 1; seq <= MAX_TACTIC_CHANGES + 1; seq++) {
+        for (let seq = 1; seq <= 4; seq++) {
             s = reduce(s, board([u[4], u[1], u[2], u[3], u[0]], seq), 'guest', ctx(0, { tick: seq * 100 }));
         }
-        expect(s.log.filter((o) => o.team === 1)).toHaveLength(MAX_TACTIC_CHANGES + 1);
+        expect(s.log.filter((o) => o.team === 1)).toHaveLength(4);
         const last = s.log.at(-1);
-        expect(last).toMatchObject({ kind: 'lineup', team: 1, formation: '2-2', seq: MAX_TACTIC_CHANGES + 1 });
+        expect(last).toMatchObject({ kind: 'lineup', team: 1, formation: '2-2', seq: 4 });
         // reserva, repetido, faltando gente, formação que não existe ou lista que não é lista: não entra
         expect(reduce(s, board([t.bench[0].uid, ...u.slice(1)], 6), 'guest', ctx())).toBe(s);
         expect(reduce(s, board([u[0], u[0], u[2], u[3], u[4]], 6), 'guest', ctx())).toBe(s);
@@ -729,7 +730,7 @@ describe('prancheta no duelo', () => {
 });
 
 describe('escanteio no duelo', () => {
-    it('ordem de escanteio passa pelo mesmo carimbo e pelo limite do motor (3, à parte da tática)', () => {
+    it('ordem de escanteio passa pelo mesmo carimbo, sem limite de trocas', () => {
         let s = inMatch();
         const corner = (c: 'area' | 'short' | 'mixed', seq: number): Intent => ({
             k: 'order',
@@ -742,13 +743,14 @@ describe('escanteio no duelo', () => {
         s = reduce(s, corner('area', 1), 'guest', ctx(0, { tick: 100 }));
         s = reduce(s, corner('short', 2), 'guest', ctx(0, { tick: 200 }));
         s = reduce(s, corner('area', 3), 'guest', ctx(0, { tick: 300 }));
-        expect(s.log.filter((o) => o.team === 1)).toHaveLength(MAX_TACTIC_CHANGES);
-        expect(reduce(s, corner('mixed', 4), 'guest', ctx(0, { tick: 400 }))).toBe(s);
-        // tática continua com as 3 dela
-        s = reduce(s, { k: 'order', order: { kind: 'tactic', tactic: 'counter' }, tick: 0, seq: 4 }, 'guest', ctx());
-        expect(s.log.filter((o) => o.team === 1)).toHaveLength(4);
+        // sem limite: a 4ª troca de escanteio e as de tática entram
+        s = reduce(s, corner('mixed', 4), 'guest', ctx(0, { tick: 400 }));
+        for (const [i, tactic] of (['counter', 'offensive', 'defensive', 'balanced'] as const).entries()) {
+            s = reduce(s, { k: 'order', order: { kind: 'tactic', tactic }, tick: 0, seq: 5 + i }, 'guest', ctx());
+        }
+        expect(s.log.filter((o) => o.team === 1)).toHaveLength(8);
         // instrução que não existe não entra
-        expect(reduce(s, corner('nada' as never, 5), 'guest', ctx())).toBe(s);
+        expect(reduce(s, corner('nada' as never, 9), 'guest', ctx())).toBe(s);
     });
 
     it('o cobrador vai na receita e tem que ser alguém do time', () => {

@@ -904,7 +904,7 @@ describe('ordens do técnico validadas no motor (duelo)', () => {
         expect(live.addOrder({ tick: 900, team: 0, tactic: 'parking' as 'offensive' })).toBe(false);
     });
 
-    it('a 4ª troca de tática é ignorada, e quem já entrou não entra de novo', () => {
+    it('tática sem limite de trocas (a 4ª vale), e quem já entrou não entra de novo', () => {
         const seq: Tactic[] = ['offensive', 'defensive', 'counter', 'balanced'];
         const orders: MatchOrder[] = seq.map((tactic, i) => ({ tick: 300 + 300 * i, team: 0, tactic }));
         const [outA, outB] = [home.lineup[1].uid, home.lineup[2].uid];
@@ -913,7 +913,7 @@ describe('ordens do técnico validadas no motor (duelo)', () => {
             { tick: 2000, team: 0, kind: 'sub', outUid: outB, inUid: home.bench[0].uid },
         );
         const r = runMatch(FUTSAL_5, home, away, 'ord4', { orders });
-        expect(tactics(r).map((e) => (e.type === 'tactic' ? e.tactic : ''))).toEqual(seq.slice(0, 3));
+        expect(tactics(r).map((e) => (e.type === 'tactic' ? e.tactic : ''))).toEqual(seq);
         expect(r.events.filter((e) => e.type === 'sub' && e.team === 0)).toHaveLength(1);
     });
 });

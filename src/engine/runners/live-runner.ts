@@ -1,5 +1,5 @@
 import type { Command, Controller } from '../commands';
-import { MAX_TACTIC_CHANGES, type MatchConfig } from '../config';
+import type { MatchConfig } from '../config';
 import { AIController } from '../controllers/ai-controller';
 import { TACTIC_MODS } from '../effective';
 import { FORMATIONS } from '../formations';
@@ -57,10 +57,6 @@ export class LiveRunner {
     private readonly overrides = new Map<number, Controller>();
 
     private readonly schedule: MatchOrder[];
-    /** Trocas de tática que já valeram, por time (limite `MAX_TACTIC_CHANGES`). */
-    private readonly tacticChanges: [number, number] = [0, 0];
-    /** Trocas da instrução de escanteio, por time (mesmo limite da tática, contado à parte). */
-    private readonly cornerChanges: [number, number] = [0, 0];
 
     /**
      * `orders`: ordens do técnico agendadas (tática ao vivo e substituições). A tática vale no início do tick
@@ -71,8 +67,7 @@ export class LiveRunner {
      * - aplicadas por (tick, time, seq);
      * - a ordem do tick T vale no começo do tick T (quando `state.tick` chega a T); ordem que chega com o tick já
      *   passado (`addOrder` com T < `state.tick`) é ignorada;
-     * - a 4ª troca de tática de um time é ignorada (`MAX_TACTIC_CHANGES`); repetir a tática atual não conta; a
-     *   instrução de escanteio tem o mesmo limite, contado à parte;
+     * - tática e instrução de escanteio sem limite de trocas (decidido em 18/10/2026); repetir a atual é ignorada;
      * - substituição só com quem está no banco agora e em quadra agora (quem entrou não entra de novo; a que não
      *   der certo na hora da bola parada é ignorada em `applyPendingSubs`);
      * - prancheta (formação + vagas) sem limite, na próxima bola parada como a substituição; uma nova do mesmo time
@@ -102,10 +97,9 @@ export class LiveRunner {
         return true;
     }
 
-    /** Muda a tática agora (modo jogável/tempo real). Respeita o limite de trocas por partida. */
+    /** Muda a tática agora (modo jogável/tempo real). */
     changeTactic(team: 0 | 1, tactic: Tactic) {
-        if (this.state.teams[team].tactic === tactic || this.tacticChanges[team] >= MAX_TACTIC_CHANGES) return;
-        this.tacticChanges[team]++;
+        if (this.state.teams[team].tactic === tactic) return;
         this.state.teams[team].tactic = tactic;
         emit(this.state, { type: 'tactic', team, tactic });
     }
@@ -117,8 +111,7 @@ export class LiveRunner {
 
     /** Muda a instrução de escanteio agora (Na área / Curta / Variar). */
     changeCorner(team: 0 | 1, plan: CornerPlan) {
-        if (this.state.teams[team].corner === plan || this.cornerChanges[team] >= MAX_TACTIC_CHANGES) return;
-        this.cornerChanges[team]++;
+        if (this.state.teams[team].corner === plan) return;
         this.state.teams[team].corner = plan;
         emit(this.state, { type: 'cornerPlan', team, plan });
     }

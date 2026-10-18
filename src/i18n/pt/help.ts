@@ -365,7 +365,7 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
             {
                 list: [
                     ['Velocidade', '1x, 2x, 4x, 8x ou Lances (só os melhores momentos). Ou pule para o fim.'],
-                    ['Tática', 'até 3 mudanças por partida (veja abaixo).'],
+                    ['Tática', 'mude quantas vezes quiser durante a partida (veja abaixo).'],
                     [
                         'Substituir',
                         'escolha quem sai e quem entra. A troca acontece na próxima bola parada (saída de bola, tiro de meta ou intervalo). Nada é automático no seu time.',

@@ -422,9 +422,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const tactics = (
         <TacticControls
             tactic={currentTactic}
-            tacticsUsed={tacticOrders.length}
             corner={currentCorner}
-            cornersUsed={cornerOrders.length}
             canChange={canChange}
             pending={pendingOrder}
             onTactic={(tc) => tc !== currentTactic && order({ kind: 'tactic', tactic: tc })}

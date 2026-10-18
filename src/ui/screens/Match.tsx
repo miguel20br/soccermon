@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { FUTSAL_5, MAX_TACTIC_CHANGES } from '../../engine/config';
+import { FUTSAL_5 } from '../../engine/config';
 import { CUP_STAGES } from '../../engine/cup';
 import { species } from '../../engine/data';
 import { viewInstance } from '../../engine/instance';
@@ -141,7 +141,6 @@ export function Match() {
     const homeTag = teamNames[0] === profileClub.clubName ? profileClub.clubTag : tagFromName(teamNames[0]);
     const tacticOrders = orders.filter(isTacticOrder);
     const subOrders = orders.filter(isSubOrder);
-    const changes = tacticOrders;
     const currentTactic: Tactic = tacticOrders.at(-1)?.tactic ?? run?.tactic ?? 'balanced';
 
     latest.current = match;
@@ -274,7 +273,7 @@ export function Match() {
     if (!run || !match || !sceneData || !opponent) return null;
 
     const lockedSetup = run.lockedTeam ? { ...run.lockedTeam, manualSubs: true } : playerTeam(run);
-    // instrução de escanteio: trocável como a tática (ordem com o mesmo limite, contado à parte)
+    // instrução de escanteio: trocável como a tática, sem limite
     const cornerOrders = orders.filter(isCornerOrder);
     const currentCorner = cornerOrders.at(-1)?.corner ?? lockedSetup.corner ?? 'mixed';
     // a troca vale um pouco à frente do que está na tela (mais à frente em velocidades altas)
@@ -328,12 +327,12 @@ export function Match() {
     };
 
     const changeCorner = (corner: CornerPlan) => {
-        if (!canChangeTactic || corner === currentCorner || cornerOrders.length >= MAX_TACTIC_CHANGES) return;
+        if (!canChangeTactic || corner === currentCorner) return;
         sendOrder((tick) => ({ tick, team: 0, kind: 'corner', corner }));
     };
 
     const changeTactic = (tactic: Tactic) => {
-        if (!canChangeTactic || tactic === currentTactic || changes.length >= MAX_TACTIC_CHANGES) return;
+        if (!canChangeTactic || tactic === currentTactic) return;
         sendOrder((tick) => ({ tick, team: 0, tactic }));
     };
 
@@ -401,9 +400,7 @@ export function Match() {
     const tactics = (
         <TacticControls
             tactic={currentTactic}
-            tacticsUsed={changes.length}
             corner={currentCorner}
-            cornersUsed={cornerOrders.length}
             canChange={canChangeTactic}
             pending={pending}
             error={tacticError}
