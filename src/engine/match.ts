@@ -2536,15 +2536,32 @@ function pickCornerPlay(s: MatchState, team: 0 | 1, others: PlayerState[]): Corn
 
 /**
  * Desvio pela linha de fundo (espalmada, bloqueio): a bola rola até um ponto da linha fora das traves, do lado em
- * que estava. Bola colada na linha não desvia (cruzaria dentro do gol): devolve false e a jogada segue como antes.
+ * que estava (goleiro: do lado da mão). Bola colada na linha não desvia (cruzaria dentro do gol): devolve false e a
+ * jogada segue como antes. Exportada só pro teste.
  */
-function deflectOut(s: MatchState, p: PlayerState, from: Vec2): boolean {
+export function deflectOut(s: MatchState, p: PlayerState, from: Vec2): boolean {
     const { width, goalWidth } = s.cfg.pitch;
     const gy = width / 2;
     const lineX = ownGoalX(s, p.team);
-    if (Math.abs(from.x - lineX) < 0.3) return false;
-    const side = from.y > gy ? 1 : from.y < gy ? -1 : s.rng.chance(0.5) ? 1 : -1;
-    const cross = v(lineX, gy + side * (goalWidth / 2 + s.rng.range(0.6, 3)));
+    const back = Math.abs(from.x - lineX);
+    if (back < 0.3) return false;
+    const gk = p.role === 'GK';
+    const dy = from.y - p.pos.y;
+    // goleiro espalma para o lado da mão, sem cruzar o próprio corpo
+    const side =
+        gk && Math.abs(dy) > 0.05 ? Math.sign(dy) : from.y > gy ? 1 : from.y < gy ? -1 : s.rng.chance(0.5) ? 1 : -1;
+    let y = gy + side * (goalWidth / 2 + s.rng.range(0.6, 3));
+    if (gk) {
+        // a bola sai de lado e só depois vai para a linha: passa do corpo dele (0,7 m) antes de ficar entre ele e o
+        // gol, e já está fora da trave quando chega perto da linha (0,6 m), em vez de rolar por trás dele rente ao gol
+        const ahead = Math.max(0, (from.x - p.pos.x) * attackSign(p.team));
+        const body = (Math.max(0, 0.7 - dy * side) / (ahead + 0.1)) * back;
+        const post = ((gy + side * (goalWidth / 2 + 0.4) - from.y) * side * back) / Math.max(back - 0.6, 0.1);
+        const minLat = Math.max(body, post);
+        if ((y - from.y) * side < minLat) y = from.y + side * minLat;
+        y = clamp(y, 0.5, width - 0.5);
+    }
+    const cross = v(lineX, y);
     const d = dist(from, cross);
     s.ball.vel = scale(norm(sub(cross, from)), Math.sqrt(2 * FRICTION * d) + 2.5);
     s.ball.z = 0;

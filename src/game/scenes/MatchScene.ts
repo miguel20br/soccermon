@@ -31,6 +31,7 @@ import {
     animForAction,
     atlasKey,
     baseOf,
+    bodyShift,
     createSpeciesAnims,
     footOrigin,
     headTop,
@@ -964,7 +965,8 @@ export class MatchScene extends Phaser.Scene {
     }
 
     private updateShootout(factor: number) {
-        this.penalties.forEach((pen, i) => {
+        let gkIdx = -1;
+        for (const [i, pen] of this.penalties.entries()) {
             if (this.penaltyStage[i] < 1 && this.playTick >= pen.tick - 48) {
                 this.penaltyStage[i] = 1;
                 this.preparePenalty(i, factor);
@@ -973,7 +975,26 @@ export class MatchScene extends Phaser.Scene {
                 this.penaltyStage[i] = 2;
                 this.kickPenalty(pen, factor);
             }
-        });
+            if (this.penaltyStage[i] >= 2) gkIdx = pen.gk;
+        }
+        // goleiro do último pênalti: o mergulho é o tween; o bote do Attack não leva o corpo além da bola
+        const gk = this.players[gkIdx];
+        const at = this.viewPos.get(gkIdx);
+        if (gk && at && gk.currentKey.includes('/Attack/')) {
+            const px = toPx(at.x, at.y);
+            gk.sprite.setPosition(px.x, px.y);
+            this.holdBody(gk);
+        }
+    }
+
+    /**
+     * Desconta do sprite o bote que o Attack do PMD dá dentro do próprio quadro (1 a 3 m). No mergulho do goleiro
+     * ele levava o corpo além da bola, rumo a quem chutou, e a bola defendida parecia passar por trás dele.
+     */
+    private holdBody(view: PlayerView) {
+        const s = bodyShift(view.sprite);
+        view.sprite.x -= s.x * view.sprite.scaleX;
+        view.sprite.y -= s.y * view.sprite.scaleY;
     }
 
     private preparePenalty(i: number, factor: number) {
@@ -1143,6 +1164,7 @@ export class MatchScene extends Phaser.Scene {
                 view.sprite.play(key).setOrigin(0.5, footOrigin(view.skin, anim));
                 view.currentKey = key;
             }
+            if (dive && entering === null && !view.evolving) this.holdBody(view);
             const dx = (b.p[o] - a.p[o]) * PPM;
             const dy = (b.p[o + 1] - a.p[o + 1]) * PPM;
             const pxPerTick = Math.hypot(dx, dy) / Math.max(1, b.tick - a.tick);
