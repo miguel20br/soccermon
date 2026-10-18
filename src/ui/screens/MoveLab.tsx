@@ -527,6 +527,7 @@ export function MoveLab({ onExit }: { onExit: () => void }) {
                                     <input
                                         type="search"
                                         placeholder={L.searchMove}
+                                        aria-label={L.searchMoveAria}
                                         value={query}
                                         onChange={(e) => setQuery(e.target.value)}
                                     />
@@ -623,6 +624,7 @@ export function MoveLab({ onExit }: { onExit: () => void }) {
                                     <input
                                         type="search"
                                         placeholder={L.searchMon}
+                                        aria-label={L.searchMonAria}
                                         value={spQuery}
                                         onChange={(e) => setSpQuery(e.target.value)}
                                     />

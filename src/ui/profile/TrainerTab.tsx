@@ -111,9 +111,12 @@ export function TrainerCard({ save }: { save: (patch: Partial<Profile>) => void 
                                     </button>
                                 </li>
                             );
+                        // dourado bloqueado: silhueta com brilho de ouro e o selo, pra dar gosto de caçar
+                        const gold = isGoldTrainer(id);
                         return (
-                            <li key={id} className="pf-trainer locked">
-                                <TrainerSprite id={id} locked />
+                            <li key={id} className={`pf-trainer locked${gold ? ' gold' : ''}`}>
+                                {gold && <span className="pf-gold-seal">{t('profile.picker.legendary')}</span>}
+                                <TrainerSprite id={id} locked className={gold ? 'locked-gold' : ''} />
                                 <b>
                                     <LockIcon /> {trainerName(id)}
                                 </b>
@@ -184,15 +187,18 @@ function MissionHow({ m, view }: { m: Mission; view: SaveView }) {
         <>
             <span className="pf-mission-text">{missionText(m)}</span>
             {n !== null && m.goal && (
+                // o número fica ao lado da barra (por cima do amarelo ele sumia)
                 <span
-                    className="pf-mission-bar"
+                    className="pf-mission-progress"
                     role="progressbar"
                     aria-valuemin={0}
                     aria-valuemax={m.goal}
                     aria-valuenow={n}
                     aria-label={t('profile.missions.progressAria', { n, goal: m.goal })}
                 >
-                    <i style={{ width: `${(n / m.goal) * 100}%` }} />
+                    <span className="pf-mission-bar">
+                        <i style={{ width: `${(n / m.goal) * 100}%` }} />
+                    </span>
                     <small>
                         {n}/{m.goal}
                     </small>

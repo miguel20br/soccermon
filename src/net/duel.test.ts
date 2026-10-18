@@ -36,6 +36,7 @@ import {
     type Shared,
     tagTeam,
     tickTimers,
+    trainerNames,
     WO_WAIT_MS,
 } from './duel-state';
 import { buildRegistro, registroInputs } from './record';
@@ -506,6 +507,25 @@ describe('trapaça: placar, estado e revanche', () => {
         expect(duelNames(same)).toEqual(['ana', 'bia']);
         const twins = { ...same, peers: { host: peer('Ash'), guest: peer('Ash') } };
         expect(duelNames(twins)).toEqual(['Ash', 'Ash 2']);
+    });
+
+    it('treinador com o nome padrão ("Treinador"/"Trainer") aparece pelo nome do clube, não "Treinador 2"', () => {
+        const peers = {
+            host: { ...peer('a'), name: 'Treinador', clubName: 'Cerulean Ondas' },
+            guest: { ...peer('b'), name: 'Trainer', clubName: 'Vermilion Voltagem' },
+        };
+        expect(trainerNames({ peers })).toEqual(['Cerulean Ondas', 'Vermilion Voltagem']);
+        // só um no padrão: o outro segue com o nome dele
+        expect(trainerNames({ peers: { ...peers, host: { ...peers.host, name: 'Ash' } } })).toEqual([
+            'Ash',
+            'Vermilion Voltagem',
+        ]);
+        // tudo padrão dos dois lados (clube "Pallet FC" também): ainda dá pra distinguir
+        const all = {
+            host: { ...peers.host, clubName: 'Pallet FC' },
+            guest: { ...peers.guest, clubName: 'Pallet FC' },
+        };
+        expect(trainerNames({ peers: all })).toEqual(['Pallet FC', 'Pallet FC 2']);
     });
 });
 

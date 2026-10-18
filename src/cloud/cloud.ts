@@ -1,4 +1,4 @@
-import { createClient, type Session } from '@supabase/supabase-js';
+import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import { create } from 'zustand';
 import { migrateSave, type PersistedSave, SAVE_VERSION, useGame } from '../store/game-store';
 import { DEFAULT_PROFILE, EMPTY_CAREER } from '../store/profile';
@@ -31,23 +31,41 @@ const KEY: string | undefined =
 export const cloudEnabled = Boolean(URL && KEY);
 /** Endereço e chave pública do Supabase (as estatísticas anônimas usam a mesma API). */
 export const cloudApi = URL && KEY ? { url: URL, key: KEY } : null;
-const supabase =
-    URL && KEY
-        ? createClient(URL, KEY, {
-              auth: { flowType: 'pkce', persistSession: true, detectSessionInUrl: true },
-              // duelo (Realtime): batida num Web Worker (aba em segundo plano não congela o socket) e, se o socket cair
-              // em silêncio, reconecta. O socket só abre quando a tela do duelo assina o canal da sala.
-              realtime: {
-                  worker: true,
-                  heartbeatCallback: (status) => {
-                      if (status === 'disconnected' || status === 'timeout') supabaseRef?.realtime.connect();
-                  },
-              },
-          })
-        : null;
-const supabaseRef = supabase;
+/**
+ * Cliente do Supabase (~200 KB): fica fora da Home. Carrega já no início só se houver sessão guardada ou volta do login
+ * (loadCloud em startCloudSync); senão, quando a pessoa entra com Google ou abre o duelo sem conta. As estatísticas
+ * anônimas não dependem dele (POST direto na API, em analytics/track.ts).
+ */
+let supabase: SupabaseClient | null = null;
+let loading: Promise<SupabaseClient | null> | null = null;
 
-/** Cliente do Supabase pro Realtime do duelo (null sem as variáveis de ambiente). */
+export function loadCloud(): Promise<SupabaseClient | null> {
+    if (!URL || !KEY) return Promise.resolve(null);
+    if (loading) return loading;
+    loading = import('@supabase/supabase-js').then(({ createClient }) => {
+        const client = createClient(URL, KEY, {
+            auth: { flowType: 'pkce', persistSession: true, detectSessionInUrl: true },
+            // duelo (Realtime): batida num Web Worker (aba em segundo plano não congela o socket) e, se o socket cair
+            // em silêncio, reconecta. O socket só abre quando a tela do duelo assina o canal da sala.
+            realtime: {
+                worker: true,
+                heartbeatCallback: (status) => {
+                    if (status === 'disconnected' || status === 'timeout') client.realtime.connect();
+                },
+            },
+        });
+        supabase = client;
+        client.auth.onAuthStateChange(onAuthChange);
+        return client;
+    });
+    // sem rede agora: a próxima chamada tenta de novo
+    loading.catch(() => {
+        loading = null;
+    });
+    return loading;
+}
+
+/** Cliente do Supabase pro Realtime do duelo (null sem as variáveis de ambiente). Quem tem id na sala já o carregou. */
 export const realtimeClient = () => supabase;
 
 /** Quando o save local mudou pela última vez (para comparar com a nuvem). */
@@ -104,6 +122,21 @@ let applying = false;
 export const isApplyingCloud = () => applying;
 /** Marca que o jogador clicou em entrar (o redirecionamento volta na mesma aba). */
 const LOGIN_PENDING = 'soccermon-login-pending';
+/** Sessão guardada (Google ou duelo sem conta) ou volta do login: o Supabase carrega logo no início. */
+function hasAuthTrace(): boolean {
+    try {
+        if (sessionStorage.getItem(LOGIN_PENDING)) return true;
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            // sb-<projeto>-auth-token (sessão) e sb-<projeto>-auth-token-code-verifier (login no meio)
+            if (k?.startsWith('sb-') && k.includes('-auth-token')) return true;
+        }
+    } catch {
+        // sem storage não dá pra saber: carrega, como antes
+        return true;
+    }
+    return /[?&#](code|error_description|access_token)=/.test(window.location.search + window.location.hash);
+}
 const markLoginPending = () => {
     try {
         sessionStorage.setItem(LOGIN_PENDING, '1');
@@ -429,26 +462,27 @@ export function startCloudSync() {
         writeLocalTs(Date.now());
         if (userId && !reconciling) scheduleUpload();
     });
-    if (!supabase) return;
-    supabase.auth.onAuthStateChange((event, session) => {
-        // duelo sem conta: a sessão anônima só abre o canal da sala (nada de reconciliar, subir ou juntar save)
-        if (session?.user.is_anonymous) {
-            if (useCloud.getState().anonId !== session.user.id) useCloud.setState({ anonId: session.user.id });
-            return;
-        }
-        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') useCloud.setState({ anonId: null });
-        if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN') && session && session.user.id !== userId) {
-            // fora do callback: o supabase-js pede para não esperar outras chamadas dentro dele
-            setTimeout(() => void onSignedIn(session), 0);
-        }
-        if (event === 'SIGNED_OUT') {
-            userId = null;
-            pending = null;
-            reconciling = false;
-            clearTimeout(uploadTimer);
-            useCloud.setState({ status: 'guest', user: null, ask: null, anonId: null });
-        }
-    });
+    if (cloudEnabled && hasAuthTrace()) void loadCloud();
+}
+
+function onAuthChange(event: string, session: Session | null) {
+    // duelo sem conta: a sessão anônima só abre o canal da sala (nada de reconciliar, subir ou juntar save)
+    if (session?.user.is_anonymous) {
+        if (useCloud.getState().anonId !== session.user.id) useCloud.setState({ anonId: session.user.id });
+        return;
+    }
+    if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') useCloud.setState({ anonId: null });
+    if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN') && session && session.user.id !== userId) {
+        // fora do callback: o supabase-js pede para não esperar outras chamadas dentro dele
+        setTimeout(() => void onSignedIn(session), 0);
+    }
+    if (event === 'SIGNED_OUT') {
+        userId = null;
+        pending = null;
+        reconciling = false;
+        clearTimeout(uploadTimer);
+        useCloud.setState({ status: 'guest', user: null, ask: null, anonId: null });
+    }
 }
 
 /** Id da conta logada. */
@@ -461,8 +495,9 @@ export const duelUserId = () => userId ?? useCloud.getState().anonId;
  * canal privado `duel:%` vale igual). Devolve 'disabled' se o painel ainda não liga "Allow anonymous sign-ins".
  */
 export async function signInAnon(): Promise<'ok' | 'disabled' | 'error'> {
-    if (!supabase) return 'error';
-    const { data, error } = await supabase.auth.signInAnonymously();
+    const sb = await loadCloud().catch(() => null);
+    if (!sb) return 'error';
+    const { data, error } = await sb.auth.signInAnonymously();
     if (error) {
         const code = (error as { code?: string }).code;
         return code === 'anonymous_provider_disabled' || /anonymous sign-ins are disabled/i.test(error.message)
@@ -482,10 +517,11 @@ async function dropAnon() {
 }
 
 export async function signInWithGoogle() {
-    if (!supabase) return;
+    const sb = await loadCloud();
+    if (!sb) return;
     await dropAnon();
     markLoginPending();
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { error } = await sb.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo: `${window.location.origin}${window.location.pathname}` },
     });
@@ -494,10 +530,11 @@ export async function signInWithGoogle() {
 
 /** Login pelo botão oficial do Google (google-button.ts): o Supabase confere o token e abre a sessão. */
 export async function signInWithGoogleToken(idToken: string, rawNonce: string) {
-    if (!supabase) return;
+    const sb = await loadCloud();
+    if (!sb) return;
     await dropAnon();
     markLoginPending();
-    const { error } = await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken, nonce: rawNonce });
+    const { error } = await sb.auth.signInWithIdToken({ provider: 'google', token: idToken, nonce: rawNonce });
     if (error) throw error;
 }
 

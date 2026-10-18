@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { DRAFT_PICKS } from '../../engine/draft';
 import { evolvedRating } from '../../engine/evolution';
-import { FORMATIONS, type FormationId, formationOf } from '../../engine/formations';
+import { FORMATIONS, type FormationId } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
 import { computeLinks } from '../../engine/links';
 import { computeSynergies } from '../../engine/synergy';
@@ -17,7 +17,7 @@ import { LinkChip, LinkChips, newLinks } from '../components/LinkChips';
 import { TypeBadge } from '../components/PokeCard';
 import { EvoBadge } from '../components/PokeCard2';
 import { Tip } from '../help/Tip';
-import { ratingAt } from '../rating';
+import { lineupAverage, ratingAt } from '../rating';
 import { reduceMotionOn } from '../settings-sync';
 
 /** "Média dos titulares" que rola até o valor novo e mostra o quanto a escolha mudou (+4 / −2) por 1,5 s. */
@@ -125,10 +125,10 @@ export function Draft() {
     const filled = run.lineup.filter(Boolean).map((u) => byUid.get(u)!);
     const synergies = computeSynergies(filled);
     const links = computeLinks(filled);
-    // média pela nota na vaga (quem está fora de posição puxa a média pra baixo, como em campo)
-    const slots = formationOf(run.formation).slots;
-    const slotRatings = run.lineup.flatMap((u, i) => (u ? [ratingAt(byUid.get(u)!, slots[i]).rating] : []));
-    const avg = slotRatings.length ? Math.round(slotRatings.reduce((s, r) => s + r, 0) / slotRatings.length) : 0;
+    const avg = lineupAverage(
+        run.lineup.map((u) => (u ? byUid.get(u) : null)),
+        run.formation,
+    );
     const role = run.draftSlot ? slotRole(run, run.draftSlot) : null;
     const roleLabel = role === 'ANY' ? t('team.draft.theBench') : role ? d.common.pos[role] : '';
 

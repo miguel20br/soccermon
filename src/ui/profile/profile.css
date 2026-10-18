@@ -188,9 +188,9 @@ button.pf-trainer:active {
 .pf-trainer b {
     max-width: 100%;
     line-height: 1.2;
-    /* "Montanhista" quebra com hífen em vez de "Montanhist / a" */
-    overflow-wrap: break-word;
-    hyphens: auto;
+    /* quebra só entre palavras ("Prof. / Carvalho"), nunca no meio ("Car-valho") */
+    overflow-wrap: normal;
+    hyphens: manual;
 }
 .pf-trainer.active {
     border-color: var(--yellow);
@@ -205,10 +205,48 @@ button.pf-trainer:active {
 }
 .pf-trainer.locked b {
     display: inline-flex;
+    /* nome comprido ("Pokémaníaco") não cabe com o cadeado: o cadeado sobe, a palavra fica inteira */
+    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
     gap: 3px;
     color: var(--text);
+}
+/* dourado bloqueado: moldura e silhueta com brilho de ouro + selo "Lendária" */
+.pf-trainer.locked.gold {
+    position: relative;
+    border: 2px solid rgb(255 216 74 / 60%);
+    background: radial-gradient(ellipse at 50% 30%, rgb(255 203 5 / 14%), transparent 70%);
+    box-shadow: inset 0 0 12px rgb(255 203 5 / 12%);
+}
+.trainer-sprite.locked.locked-gold {
+    filter: brightness(0) drop-shadow(0 0 1px #ffd84a) drop-shadow(0 0 5px rgb(255 203 5 / 55%));
+    opacity: 1;
+    animation: pf-gold-glow 2.8s ease-in-out infinite alternate;
+}
+@keyframes pf-gold-glow {
+    to {
+        filter: brightness(0) drop-shadow(0 0 1px #ffe98a) drop-shadow(0 0 9px rgb(255 203 5 / 75%));
+    }
+}
+:root[data-reduce-motion="true"] .trainer-sprite.locked.locked-gold {
+    animation: none;
+}
+.pf-gold-seal {
+    position: absolute;
+    top: -7px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #ffe066, #d4a017);
+    color: #3a2a00;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    box-shadow: 0 1px 0 rgb(0 0 0 / 40%);
 }
 .pf-trainer.locked .pf-mission-text {
     font-size: 10.5px;
@@ -320,15 +358,22 @@ button.pf-trainer:focus-visible,
     background: linear-gradient(90deg, var(--yellow), #ffe066);
     border-radius: 6px;
 }
-.pf-mission-bar small {
-    position: relative;
-    display: block;
-    padding: 0 6px;
+.pf-mission-progress {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+}
+.pf-mission-progress .pf-mission-bar {
+    flex: 1;
+    min-width: 0;
+}
+.pf-mission-progress small {
+    flex: none;
     font-size: 10px;
     line-height: 12px;
-    text-align: right;
-    color: #fff;
-    text-shadow: 0 1px 0 #0e1430;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
 }
 .pf-mission-done {
     display: grid;
@@ -642,6 +687,10 @@ fieldset.pf-field,
     flex-wrap: wrap;
 }
 .pf-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
     padding: 7px 12px;
     border-radius: 999px;
     border: 2px solid var(--line);
@@ -669,8 +718,9 @@ fieldset.pf-field,
 }
 .pf-type {
     flex: none;
-    min-width: 36px;
-    height: 36px;
+    /* 44 px: alvo de toque confortável (a fileira rola de lado) */
+    min-width: 44px;
+    height: 44px;
     padding: 0 6px;
     border-radius: 999px;
     border: 2px solid transparent;

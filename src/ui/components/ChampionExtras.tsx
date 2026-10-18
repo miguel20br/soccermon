@@ -6,6 +6,7 @@ import type { ShotPoint } from '../../engine/match-stats';
 import { clubName, moveName, stageName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import type { RunState } from '../../store/game-store';
+import { lineupAverage } from '../rating';
 import { type Agg, aggregate, avg } from '../stats/CupStats';
 import { awayC, homeC, ShotMapChart } from '../stats/StatsCharts';
 import { FormationBoard } from './FormationBoard';
@@ -237,9 +238,8 @@ export function CupFinal({ run }: { run: RunState }) {
     const final = run.results.at(-1);
     const opp = final && run.opponents[final.stage];
     if (!final || !opp) return null;
-    const mine = run.lineup.map((u) => run.picks.find((p) => p.uid === u)).filter((p): p is PokemonInstance => !!p);
-    const mean = (l: PokemonInstance[]) =>
-        l.length ? Math.round(l.reduce((s, p) => s + viewInstance(p).overall, 0) / l.length) : 0;
+    const mineSlots = run.lineup.map((u) => run.picks.find((p) => p.uid === u));
+    const mine = mineSlots.filter((p): p is PokemonInstance => !!p);
     const evolutions = run.results.flatMap((r) => r.stats?.digest?.evolutions ?? []);
     return (
         <>
@@ -253,7 +253,7 @@ export function CupFinal({ run }: { run: RunState }) {
                         ))}
                     </div>
                     <span>
-                        <b>{mean(mine)}</b> {t('title.final.avg')}
+                        <b>{lineupAverage(mineSlots, run.formation)}</b> {t('title.final.avg')}
                     </span>
                 </div>
                 <b className="ce-final-score">
@@ -267,7 +267,7 @@ export function CupFinal({ run }: { run: RunState }) {
                         ))}
                     </div>
                     <span>
-                        <b>{mean(opp.lineup)}</b> {t('title.final.avg')}
+                        <b>{lineupAverage(opp.lineup, opp.formation)}</b> {t('title.final.avg')}
                     </span>
                 </div>
             </div>

@@ -11,5 +11,10 @@ export default defineConfig({
     define: { __APP_VERSION__: JSON.stringify(pkg.version) },
     logLevel: 'warning',
     worker: { format: 'es' },
-    build: { chunkSizeWarningLimit: 2000 },
+    build: {
+        chunkSizeWarningLimit: 2000,
+        // pedaços com hash numa pasta só deles (public/assets tem sprites e sons sem hash): o vercel.json dá cache de
+        // 1 ano (immutable) só pra /bundle
+        assetsDir: 'bundle',
+    },
 });

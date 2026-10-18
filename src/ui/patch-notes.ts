@@ -16,7 +16,7 @@ export const PATCH_NOTES: PatchNotes[] = [
                     '6 treinadores dourados por feitos absurdos: Ash (copa perfeita, sem sofrer gol), Lance (campeão com os 3 pássaros na final), Joey (campeão com um Rattata), Red (5 copas seguidas), Blue (virar a final depois de perder por 3) e Prof. Carvalho (jogar com os 151)',
                     '9 títulos lendários brilhando, como Senhor dos Céus, Original e Clone, Artilheiro Lendário (12 gols de um Pokémon numa copa) e Zé Ninguém (campeão com 5 titulares bronze)',
                     'Treinador dourado brilha e ganha moldura de ouro no perfil, VERSUS, duelo, Hall da Fama e card do título',
-                    'Missão do Ash: copa perfeita ⇒ campeão sofrendo no máximo 5 gols (a perfeita virou a do Ash dourado). O título dela virou Muralha',
+                    'A missão do Ash ficou possível: ser campeão sofrendo até 5 gols na copa (título Muralha). A copa perfeita, sem sofrer gol, agora dá o Ash dourado',
                 ],
             },
             {
@@ -487,7 +487,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     '6 golden trainers for absurd feats: Ash (perfect cup, no goals conceded), Lance (win with the 3 legendary birds starting the final), Joey (win with a Rattata), Red (5 cups in a row), Blue (come back from 3 down in the final) and Prof. Oak (play with all 151)',
                     '9 shining legendary titles, like Lord of the Skies, Original and Clone, Legendary Striker (12 goals from one Pokémon in a cup) and Underdog (win with 5 bronze starters)',
                     'A golden trainer glows and gets a gold frame on the profile, VERSUS, duel, Hall of Fame and title card',
-                    "Ash's mission: perfect cup ⇒ win conceding 5 goals or fewer (the perfect cup is now Golden Ash's). Its title is now The Wall",
+                    "Ash's mission is now doable: win the cup conceding 5 goals or fewer (title: The Wall). The perfect cup, without conceding, now gives Golden Ash",
                 ],
             },
             {

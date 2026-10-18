@@ -186,6 +186,11 @@ img.pixel {
     outline: 3px solid var(--yellow);
     outline-offset: 1px;
 }
+/* foco do teclado: branco e mais afastado, pra não confundir com o selecionado (.active, amarelo) */
+.btn:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+}
 
 .row {
     display: flex;
@@ -255,9 +260,9 @@ img.pixel {
     margin: 0 auto;
     opacity: 0.8;
 }
-/* links do rodapé: área de toque maior sem mexer na linha */
+/* links do rodapé: área de toque de 44 px sem mexer na linha (padding de inline não muda a altura da linha) */
 .disclaimer a {
-    padding-block: 12px;
+    padding-block: 16px;
 }
 
 /* ---------- tipo / badges ---------- */
@@ -1800,6 +1805,10 @@ button,
     cursor: pointer;
     width: 44px;
     height: 44px;
+}
+/* a carta recebe o foco ao abrir (tabIndex -1): sem anel em volta do painel inteiro */
+.card-modal:focus {
+    outline: none;
 }
 .card-modal-grid {
     display: grid;
@@ -3731,6 +3740,12 @@ button,
     border-radius: 4px;
     min-width: 2px;
 }
+/* 0 x 0: só a trilha neutra (o valor 0 não desenha barra) */
+.st-split:empty {
+    background: var(--line);
+    border-radius: 4px;
+    opacity: 0.5;
+}
 .st-charts {
     display: grid;
     gap: 18px;
@@ -4146,6 +4161,13 @@ button,
 }
 .rh-loss .rh-mon img {
     filter: grayscale(0.7) brightness(0.8);
+}
+/* no desktop o craque chega a 100 px (a altura mínima da fileira) e o selo encostava em "Golpes usados"
+   (34 px: folga até no pulinho da vitória, que sobe 16 px) */
+@media (min-width: 700px) {
+    .rh-squad {
+        margin-top: 34px;
+    }
 }
 .rh-star {
     position: absolute;
@@ -5433,6 +5455,8 @@ a.home-tile {
     width: min(720px, 100%);
     margin: 0 auto;
     display: grid;
+    /* sem isto a coluna cresce até o filho mais largo (a busca da Ajuda passava da tela no celular) */
+    grid-template-columns: minmax(0, 1fr);
     gap: 14px;
 }
 .menu-head {
@@ -5772,6 +5796,20 @@ a.home-tile {
     position: absolute;
     bottom: calc(14px + env(safe-area-inset-bottom));
     color: var(--muted);
+}
+/* fim do desfile: o "Fechar" vira um botão de verdade (antes era um texto apagado no rodapé) */
+.hp-skip.done {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 28px;
+    border: 3px solid var(--yellow);
+    border-radius: 999px;
+    background: var(--panel-2);
+    color: var(--yellow);
+    font-size: 15px;
+    font-weight: 700;
+    box-shadow: var(--shadow);
 }
 @keyframes hp-in {
     from {
@@ -6476,11 +6514,12 @@ p.muted.center a {
     animation: panel-in 0.2s var(--ease-out) both;
 }
 
-/* missão cumprida (treinador ou título novo): pílula no topo, uma de cada vez, sem pegar toque */
+/* missão cumprida (treinador ou título novo): pílula no rodapé (no topo cobria o logo e o título da tela), uma de
+   cada vez, sem pegar toque */
 .unlock-notice {
     position: fixed;
     left: 50%;
-    top: max(12px, env(safe-area-inset-top));
+    bottom: max(16px, env(safe-area-inset-bottom));
     z-index: 260;
     display: flex;
     align-items: center;
@@ -6499,6 +6538,11 @@ p.muted.center a {
     transform: translateX(-50%);
     animation: unlock-in 0.32s var(--ease-pop) both;
 }
+/* no desfile do Hall o rodapé é do "Fechar" e o topo está vazio: lá o aviso fica em cima */
+body:has(.hall-parade) .unlock-notice {
+    top: max(12px, env(safe-area-inset-top));
+    bottom: auto;
+}
 .unlock-notice img {
     width: 48px;
     height: 48px;
@@ -6514,7 +6558,7 @@ p.muted.center a {
 @keyframes unlock-in {
     from {
         opacity: 0;
-        translate: 0 -12px;
+        translate: 0 12px;
         scale: 0.9;
     }
 }

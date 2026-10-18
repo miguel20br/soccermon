@@ -25,11 +25,12 @@ import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
 import { cardSprite } from '../components/PokeCard';
+import { lineupAverage } from '../rating';
 import { LineupEditor } from '../screens/Lineup';
 import { reduceMotionOn } from '../settings-sync';
 import { useCountdown } from './DuelMatch';
 
-const avgOf = (t: TeamSetup) => Math.round(t.lineup.reduce((s, p) => s + viewInstance(p).overall, 0) / t.lineup.length);
+const avgOf = (t: TeamSetup) => lineupAverage(t.lineup, t.formation);
 
 /** Time do Hall da Fama de volta pro campo: as espécies e a escalação do título (o Hall guarda só isso). */
 export function hallTeam(h: HallEntry): TeamSetup {
@@ -446,9 +447,7 @@ export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
         setCaptainNote(benched);
         if (!benched) setCfg({ ...cfg, order });
     };
-    const rivalAvg = Math.round(
-        rivalTeam.lineup.reduce((n, p) => n + viewInstance(p).overall, 0) / rivalTeam.lineup.length,
-    );
+    const rivalAvg = avgOf(rivalTeam);
     return (
         <div className="duel-preview">
             <div className="draft-head">
