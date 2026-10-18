@@ -66,7 +66,7 @@ respondendo). Repo: github.com/miguel20br/soccermon.
 - Contas: login Google + save na nuvem via Supabase (projeto `vszcxacbcabohhdwxfpb`, integração da Vercel).
   Regras de acesso em `supabase/migrations/` (cada um só lê e escreve o próprio save). Sem as variáveis de
   ambiente o jogo roda 100% local.
-- Atalhos de dev (`npm run dev`, porta 8080): `?demo=penaltis|ditto|evolucao|campeao|escanteio` (`escanteio&defesa=1`: espalmada que vira escanteio), `?cards=1`,
+- Atalhos de dev (`npm run dev`, porta 8080): `?demo=penaltis|ditto|evolucao|campeao|escanteio` (`escanteio&defesa=1`: espalmada que vira escanteio; `evolucao&rival=1`: evolução do rival), `?cards=1`,
   `?lab=posicoes`, `?demo=crash` (força o aviso de erro do `ErrorBoundary`). Público: `?lab=golpes` (com `&revisao=1` mostra a ferramenta de revisão ok/mudar).
 
 ## Rotina de trabalho
