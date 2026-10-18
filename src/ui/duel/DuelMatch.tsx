@@ -23,6 +23,7 @@ import { formationText } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import {
     DUEL_SPEEDS,
+    duelNames,
     isSubStamped,
     leadTicks,
     type OrderBody,
@@ -32,6 +33,7 @@ import {
     type Role,
     SIDE,
     SPEED_ASK_MS,
+    trainerNames,
 } from '../../net/duel-state';
 import { baseSeedOf, holdTick, openedSegments } from '../../net/seal';
 import { duel, roomNow, useDuel } from '../../net/session';
@@ -86,12 +88,13 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const [simSeeds, setSimSeeds] = useState(0);
     const online = useDuel((st) => st.online);
     const suspect = useDuel((st) => st.suspect);
+    const stall = useDuel((st) => st.stall);
     const { settings } = useGame();
     const { t } = useT();
     const side = SIDE[role];
     const rivalRole = other(role);
     const rivalPeer = s.peers[rivalRole];
-    const rivalName = rivalPeer?.name ?? '';
+    const rivalName = trainerNames(s)[SIDE[rivalRole]];
     const home = s.teams.host!;
     const away = s.teams.guest!;
     const setups: [typeof home, typeof away] = [home, away];
@@ -131,7 +134,8 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const mine = myTeam.color;
     const theirs = rivalColor(mine, setups[side === 0 ? 1 : 0].color);
     const colors: [number, number] = side === 0 ? [mine, theirs] : [theirs, mine];
-    const teamNames: [string, string] = [home.name, away.name];
+    // clubes com o mesmo nome: o placar e a narração usam o nome do treinador
+    const teamNames = duelNames(s);
 
     useEffect(() => {
         setVolume(settings.volume);
@@ -211,7 +215,11 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         const onEvent = (e: MatchEvent) => {
             if (e.type === 'sub' && e.team === side) setSubsDone((prev) => [...prev, e.inUid]);
             if (e.type === 'penalty') setShootout(e.shootout);
-            if (e.type === 'fulltime') setFulltime(true);
+            if (e.type === 'fulltime') {
+                // apito final: nada de velocidade nem troca (o painel aberto fecha)
+                setFulltime(true);
+                setSubOpen(false);
+            }
             const line = commentator.lineFor(e);
             if (line) setLines((prev) => [{ ...line, id: lineId.current++ }, ...prev].slice(0, 200));
         };
@@ -261,7 +269,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     // o relógio do host só corrige com a bola rolando
     useEffect(() => {
         duel.playing = sceneReady && kicked && !halftime && !ended;
-        if (!duel.playing) EventBus.emit('match:rate', 1);
+        if (!duel.playing) duel.setRate(1, true);
     }, [sceneReady, kicked, halftime, ended]);
     useEffect(
         () => () => {
@@ -305,7 +313,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         return (
             <div className="panel duel-wait">
                 <span className="duel-spinner" aria-hidden />
-                {t('duel.match.sealing')}
+                {t('duel.match.preparing')}
             </div>
         );
     }
@@ -418,6 +426,12 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                 <EmoteBubbles mySide={side === 0 ? 'left' : 'right'} />
             </Scoreboard>
             {suspect && <div className="duel-banner warn">{t('duel.match.suspect')}</div>}
+            {/* tela parada esperando o rival (a faixa da espera do W.O., quando vale, já diz isso) */}
+            {stall && stall !== role && s.waitFor !== stall && !ended && (
+                <div className="duel-banner warn" role="status" data-testid="duel-stall">
+                    {t('duel.match.waitingFor', { name: trainerNames(s)[SIDE[stall]] })}
+                </div>
+            )}
 
             <div className="match-layout has-board">
                 <div className="match-main">
@@ -514,7 +528,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                                             ? t('duel.match.speedNow')
                                             : t('duel.match.askHint', { name: rivalName, speed: speedLabel(sp) })
                                     }
-                                    disabled={!sceneReady || ended || !!s.speedAsk || s.speed === sp}
+                                    disabled={!sceneReady || ended || fulltime || !!s.speedAsk || s.speed === sp}
                                     onClick={() => duel.dispatch({ k: 'speed', speed: sp })}
                                 >
                                     {speedLabel(sp)}

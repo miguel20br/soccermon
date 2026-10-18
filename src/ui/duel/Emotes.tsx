@@ -5,7 +5,7 @@ import { EMOTES, type EmoteKind, type Role } from '../../net/duel-state';
 import { duel, useDuel } from '../../net/session';
 import { useGame } from '../../store/game-store';
 
-/** Ícones desenhados dos 6 emotes (sem emoji): palmas, bola em chamas, gota de suor, Snorlax dormindo, aperto de mão, megafone. */
+/** Ícones desenhados dos 6 emotes (sem emoji): palmas, bola em chamas, gota de suor, Snorlax dormindo, aperto de mão e a braçadeira de capitão gritando. */
 export function EmoteIcon({ kind }: { kind: EmoteKind }) {
     switch (kind) {
         case 'boa':
@@ -76,19 +76,20 @@ export function EmoteIcon({ kind }: { kind: EmoteKind }) {
             );
         case 'grito':
             return (
+                // braçadeira de capitão com o "C" e o grito saindo (o alto-falante fica só pro silenciar)
                 <svg viewBox="0 0 32 32" aria-hidden className="emote-svg">
+                    <rect x="3" y="9" width="18" height="14" rx="3" fill="#ffd447" stroke="#5a3b00" strokeWidth="1.6" />
                     <path
-                        d="M4 13 H9 L20 6 V26 L9 19 H4 Z"
-                        fill="#ffd447"
+                        d="M16 13 Q12.5 11 10.2 13.4 Q8.6 16 10.2 18.6 Q12.5 21 16 19"
                         stroke="#5a3b00"
-                        strokeWidth="1.6"
-                        strokeLinejoin="round"
+                        strokeWidth="2.4"
+                        fill="none"
+                        strokeLinecap="round"
                     />
                     <path
-                        d="M23 11 Q26 16 23 21 M26 8 Q31 16 26 24"
+                        d="M24 10.5 L29 7.5 M25 16 H30.5 M24 21.5 L29 24.5"
                         stroke="#ff4d4d"
-                        strokeWidth="2"
-                        fill="none"
+                        strokeWidth="2.2"
                         strokeLinecap="round"
                     />
                 </svg>

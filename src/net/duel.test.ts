@@ -8,16 +8,19 @@ import {
     teamRecipe,
     validarTimeDuelo,
 } from '../engine/duel-validate';
+import { EVO_THRESHOLD } from '../engine/evolution';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
 import type { TeamSetup } from '../engine/state';
 import {
+    acceptTakeover,
     autoLineup,
     blocker,
     type Ctx,
     canClaimWO,
     clockAdjust,
     disputaOptions,
+    duelNames,
     emoteAllowed,
     HALFTIME_MS,
     type Intent,
@@ -176,6 +179,17 @@ describe('validarTimeDuelo (time pronto)', () => {
         expect(edit((r) => (r.lineup[1] = { ...r.lineup[0] })).length).toBeGreaterThan(0);
         expect(edit((r) => r.lineup.pop()).length).toBeGreaterThan(0);
         expect(validarTimeDuelo(null)).toEqual(['time vazio']);
+    });
+
+    it('barra de evolução abaixo do limiar (com 60 ele evoluía na primeira bola parada)', () => {
+        expect(edit((r) => (r.lineup[0].evo = 60)).length).toBeGreaterThan(0);
+        expect(edit((r) => (r.lineup[0].evo = EVO_THRESHOLD)).length).toBeGreaterThan(0);
+        expect(edit((r) => (r.lineup[0].evo = EVO_THRESHOLD - 1))).toEqual([]);
+        // a copa pode guardar um pouco acima (limiar no fim da partida, sem bola parada): a receita leva abaixo
+        const t = team('evo');
+        const r = teamRecipe({ ...t, lineup: t.lineup.map((p) => ({ ...p, evo: EVO_THRESHOLD + 2 })) });
+        expect(r.lineup[0].evo).toBeLessThan(EVO_THRESHOLD);
+        expect(validarTimeDuelo(r)).toEqual([]);
     });
 });
 
@@ -365,25 +379,133 @@ describe('intervalo, velocidade, W.O. e dessincronização', () => {
         expect(tickTimers(back, ctx(k0 + 9600, { atHold: false })).waitFor).toBeUndefined();
     });
 
-    it('hash de trecho diferente anula a partida em vez de seguir com placares diferentes', () => {
+    it('hash diferente em 2 trechos seguidos anula a partida em vez de seguir com placares diferentes', () => {
         let s = inMatch();
         s = reduce(s, { k: 'reveal', seg: 2, x: H('1'), hash: 'aaa' }, 'host', ctx());
         expect(reduce(s, { k: 'reveal', seg: 2, x: H('2'), hash: 'aaa' }, 'guest', ctx()).phase).toBe('match');
-        const bad = reduce(s, { k: 'reveal', seg: 2, x: H('2'), hash: 'bbb' }, 'guest', ctx());
+        s = reduce(s, { k: 'reveal', seg: 2, x: H('2'), hash: 'bbb' }, 'guest', ctx());
+        expect(s.phase).toBe('match');
+        s = reduce(s, { k: 'reveal', seg: 3, x: H('3'), hash: 'ccc' }, 'host', ctx());
+        const bad = reduce(s, { k: 'reveal', seg: 3, x: H('4'), hash: 'ddd' }, 'guest', ctx());
         expect(bad.phase).toBe('done');
         expect(bad.result?.desync).toBe(true);
     });
 
-    it('hash feito com menos ordens (ordem atrasada) não anula: a tela refaz e manda de novo', () => {
+    it('trapaça: um hash falso sozinho (ou um trecho diferente seguido de um igual) não anula', () => {
+        let s = inMatch();
+        s = reduce(s, { k: 'reveal', seg: 4, x: H('1'), hash: '0:aaa' }, 'host', ctx());
+        // o "0:deadbeef" da auditoria anulava na hora
+        s = reduce(s, { k: 'reveal', seg: 4, x: H('2'), hash: '0:deadbeef' }, 'guest', ctx());
+        expect(s.phase).toBe('match');
+        s = reduce(s, { k: 'reveal', seg: 5, x: H('3'), hash: '0:eee' }, 'host', ctx());
+        s = reduce(s, { k: 'reveal', seg: 5, x: H('4'), hash: '0:eee' }, 'guest', ctx());
+        s = reduce(s, { k: 'reveal', seg: 6, x: H('5'), hash: '0:fff' }, 'host', ctx());
+        s = reduce(s, { k: 'reveal', seg: 6, x: H('6'), hash: '0:bad' }, 'guest', ctx());
+        expect(s.phase).toBe('match');
+        expect(s.result).toBeUndefined();
+    });
+
+    it('hash feito com menos ordens (ordem atrasada) não conta: a tela refaz e manda de novo', () => {
         let s = inMatch();
         s = reduce(s, { k: 'reveal', seg: 2, x: H('1'), hash: '1:aaa' }, 'host', ctx());
-        // o convidado ainda não tinha a ordem: hash diferente, mas com 0 ordens antes da divisa
+        s = reduce(s, { k: 'reveal', seg: 3, x: H('3'), hash: '1:ccc' }, 'host', ctx());
+        // o convidado ainda não tinha a ordem: hashes diferentes, mas com 0 ordens antes da divisa
         s = reduce(s, { k: 'reveal', seg: 2, x: H('2'), hash: '0:bbb' }, 'guest', ctx());
+        s = reduce(s, { k: 'reveal', seg: 3, x: H('4'), hash: '0:ddd' }, 'guest', ctx());
         expect(s.phase).toBe('match');
         // refez com a ordem: igual, segue
-        expect(reduce(s, { k: 'reveal', seg: 2, x: H('2'), hash: '1:aaa' }, 'guest', ctx()).phase).toBe('match');
-        // mesmas ordens e hash diferente: separou de verdade
-        expect(reduce(s, { k: 'reveal', seg: 2, x: H('2'), hash: '1:ccc' }, 'guest', ctx()).result?.desync).toBe(true);
+        s = reduce(s, { k: 'reveal', seg: 2, x: H('2'), hash: '1:aaa' }, 'guest', ctx());
+        expect(s.phase).toBe('match');
+        // mesmas ordens e hashes diferentes em 2 trechos seguidos: separou de verdade
+        s = reduce(s, { k: 'reveal', seg: 2, x: H('2'), hash: '1:xxx' }, 'guest', ctx());
+        expect(reduce(s, { k: 'reveal', seg: 3, x: H('4'), hash: '1:yyy' }, 'guest', ctx()).result?.desync).toBe(true);
+    });
+});
+
+describe('trapaça: placar, estado e revanche', () => {
+    const final = { score: [2, 1] as [number, number], shootout: null, winner: 0 as const };
+
+    it('apito final: o placar é o da partida que quem aplica simulou, nunca o da mensagem', () => {
+        const s = inMatch();
+        // o convidado manda "ended" com placar inventado e a tela de quem aplica ainda não acabou: nada muda
+        const forged = { k: 'ended', score: [0, 9], shootout: null, winner: 1 } as unknown as Intent;
+        expect(reduce(s, forged, 'guest', ctx(0, { final: null }))).toBe(s);
+        expect(reduce(s, forged, 'guest', ctx())).toBe(s);
+        // a tela de quem aplica chegou ao apito: vale o placar dela, mesmo com a mensagem dizendo outro
+        const done = reduce(s, forged, 'guest', ctx(0, { final }));
+        expect(done.phase).toBe('done');
+        expect(done.result).toMatchObject({ score: [2, 1], winner: 'host' });
+    });
+
+    const away = 70_000;
+    const takeoverBase = () => {
+        const s = inMatch();
+        return reduce(s, { k: 'reveal', seg: 0, x: H('1') }, 'host', ctx(s.kickoffAt ?? 0));
+    };
+
+    it('o host que volta só aceita o estado do convidado se nada do host mudou', () => {
+        const cur = takeoverBase();
+        // progresso de verdade do convidado (ele assumiu as regras): aceito
+        const legit = reduce(cur, { k: 'reveal', seg: 0, x: H('2') }, 'guest', ctx(cur.kickoffAt ?? 0));
+        expect(acceptTakeover(cur, legit, 2000)).toBe(true);
+        // titulares do host trocados por Magikarp (a auditoria mandou isso e o host aceitou)
+        const h = cur.teams.host!;
+        const magikarp = { ...h, lineup: h.lineup.map((p) => ({ ...p, speciesId: 129 })) };
+        expect(acceptTakeover(cur, { ...legit, teams: { ...legit.teams, host: magikarp } }, 2000)).toBe(false);
+        // fim de jogo inventado: 0 x 10
+        const fake = { ...legit, phase: 'done' as const, result: { score: [0, 10], shootout: null, winner: 'guest' } };
+        expect(acceptTakeover(cur, fake as Shared, away)).toBe(false);
+        // ordem do host que ele não deu, hash do host, segredo do host e rev velho
+        const order = { tick: 99, team: 0 as const, tactic: 'defensive' as const, seq: 1 };
+        expect(acceptTakeover(cur, { ...legit, log: [order] }, 2000)).toBe(false);
+        expect(acceptTakeover(cur, { ...legit, segHash: { host: { 1: '0:x' }, guest: {} } }, 2000)).toBe(false);
+        expect(acceptTakeover(cur, { ...legit, reveals: { ...legit.reveals, host: [H('9')] } }, 2000)).toBe(false);
+        expect(acceptTakeover(cur, { ...legit, rev: cur.rev }, 2000)).toBe(false);
+    });
+
+    it('W.O. do convidado só vale se o host ficou fora o tempo da espera', () => {
+        const cur = takeoverBase();
+        const wo = {
+            ...cur,
+            rev: cur.rev + 3,
+            phase: 'done' as const,
+            result: { score: [0, 0] as [number, number], shootout: null, winner: 'guest' as const, wo: true },
+        };
+        expect(acceptTakeover(cur, wo, 3000)).toBe(false);
+        expect(acceptTakeover(cur, wo, away)).toBe(true);
+        expect(acceptTakeover(cur, { ...wo, result: { ...wo.result, winner: 'host' as const } }, away)).toBe(false);
+    });
+
+    it('revanche de um toque: os dois aceitam com o lacre novo e vão direto pro draft, sem lobby', () => {
+        let s = inMatch();
+        s = reduce(s, { k: 'ended' }, 'host', ctx(0, { final }));
+        s = reduce(s, { k: 'rematch', commit: H('e') }, 'guest', ctx(100));
+        expect(s.phase).toBe('done');
+        s = reduce(s, { k: 'rematch', commit: H('f') }, 'host', ctx(200, { newSeed: 'nova' }));
+        expect(s.game).toBe(2);
+        expect(s.mode).toBe('ready');
+        // mesmo modo: o Time pronto vai pra escolha do time, sem o "Estou pronto" de novo
+        expect(s.phase).toBe('team');
+        expect(s.commits).toEqual({ host: H('f'), guest: H('e') });
+        expect(s.seed).toBe('nova');
+        // sem o lacre (versão antiga): volta pro lobby, como antes
+        let old = reduce(inMatch(), { k: 'ended' }, 'host', ctx(0, { final }));
+        old = reduce(old, { k: 'rematch' }, 'guest', ctx());
+        old = reduce(old, { k: 'rematch' }, 'host', ctx());
+        expect(old.phase).toBe('lobby');
+        expect(old.game).toBe(2);
+    });
+
+    it('placar, narração e resultado: clubes com o mesmo nome viram o nome do treinador', () => {
+        const s = inMatch();
+        expect(duelNames(s)).toEqual(['a', 'b']);
+        const same = {
+            ...s,
+            teams: { host: { ...s.teams.host!, name: 'Pallet FC' }, guest: { ...s.teams.guest!, name: 'pallet fc ' } },
+        };
+        expect(duelNames(same)).toEqual(['ana', 'bia']);
+        const twins = { ...same, peers: { host: peer('Ash'), guest: peer('Ash') } };
+        expect(duelNames(twins)).toEqual(['Ash', 'Ash 2']);
     });
 });
 

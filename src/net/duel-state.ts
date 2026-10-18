@@ -163,6 +163,8 @@ export interface Shared {
     segHash: Record<Role, Record<number, string>>;
     result?: DuelResult;
     rematch: Record<Role, boolean>;
+    /** Lacre (x[0]) da partida seguinte, mandado junto com o pedido de revanche (a revanche pula o lobby). */
+    rematchCommits?: Partial<Record<Role, string>>;
 }
 
 const both = <T>(v: T): Record<Role, T> => ({ host: v, guest: v });
@@ -228,9 +230,10 @@ export type Intent =
     | { k: 'speedAnswer'; yes: boolean }
     | { k: 'atHalftime' }
     | { k: 'htReady' }
-    | { k: 'ended'; score: [number, number]; shootout: [number, number] | null; winner: 0 | 1 | null }
+    /** Apito final na tela de quem manda (o placar sai da partida que quem aplica simulou, nunca da mensagem). */
+    | { k: 'ended' }
     | { k: 'claimWO' }
-    | { k: 'rematch' }
+    | { k: 'rematch'; commit?: string }
     // só locais (quem aplica gera depois de conferir; nunca aceitas da rede)
     | { k: 'roundSeed'; round: number; seed: string }
     | { k: 'picksOpened'; cards: PokemonInstance[] };
@@ -250,11 +253,37 @@ export interface Ctx {
     newSeed?: string;
     /** A tela de quem aplica parou no fim do último trecho aberto pelos dois (`holdTick` em seal.ts). */
     atHold?: boolean;
+    /** Placar da partida que quem aplica simulou, só depois do apito final na tela dele (null = ainda não acabou). */
+    final?: FinalScore | null;
+}
+
+export interface FinalScore {
+    score: [number, number];
+    shootout: [number, number] | null;
+    winner: 0 | 1 | null;
 }
 
 /** Limite de cartas especiais da sala (sala guardada antes da regra existir fica no padrão). */
 export const specialLimitOf = (s: Pick<Shared, 'specialLimit'>): SpecialLimit =>
     s.specialLimit === undefined ? DEFAULT_SPECIAL_LIMIT : s.specialLimit;
+
+/**
+ * Nomes do placar, da narração e do resultado: o clube de cada um; se os dois clubes têm o mesmo nome ("Pallet FC" x
+ * "Pallet FC"), o nome do treinador (e, se até ele repete, o do convidado ganha um "2").
+ */
+export function duelNames(s: Pick<Shared, 'teams' | 'peers'>): [string, string] {
+    const club = ROLES.map((r) => s.teams[r]?.name ?? s.peers[r]?.clubName ?? '');
+    return sameName(club[0], club[1]) ? trainerNames(s) : [club[0], club[1]];
+}
+
+const sameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+
+/** Nome de cada treinador nos textos ("Fulano venceu"); com o mesmo nome dos dois lados, o do convidado ganha um "2". */
+export function trainerNames(s: Pick<Shared, 'peers'>): [string, string] {
+    const host = s.peers.host?.name ?? '';
+    const guest = s.peers.guest?.name ?? '';
+    return [host, guest && sameName(host, guest) ? `${guest} 2` : guest];
+}
 
 export const versionsOk = (s: Shared) =>
     !!s.peers.host &&
@@ -401,6 +430,13 @@ export function onFieldAfter(team: TeamSetup, log: StampedOrder[], side: 0 | 1):
 
 /** Os dois hashes do trecho saíram do mesmo número de ordens (o prefixo antes do ":"). */
 const sameInputs = (a: string, b: string) => a.slice(0, a.indexOf(':') + 1) === b.slice(0, b.indexOf(':') + 1);
+
+/** As duas telas mandaram hashes diferentes do trecho k, feitos com as mesmas ordens. */
+const segMismatch = (h: Shared['segHash'], k: number) => {
+    const a = h.host[k];
+    const b = h.guest[k];
+    return !!a && !!b && a !== b && sameInputs(a, b);
+};
 
 /**
  * Carimba a ordem com o tick: `max(tick dos dois) + leadTicks` (no intervalo, o tick seguinte a ele), sempre depois
@@ -648,11 +684,12 @@ function apply(s: Shared, i: Intent, by: Role, ctx: Ctx): Shared {
             if (mine[i.seg] === i.x && (!i.hash || s.segHash[by][i.seg] === i.hash)) return s;
             mine[i.seg] = i.x;
             const segHash = i.hash ? { ...s.segHash, [by]: { ...s.segHash[by], [i.seg]: i.hash } } : s.segHash;
-            const otherHash = segHash[other(by)][i.seg];
             const next = { ...s, reveals: { ...s.reveals, [by]: mine }, segHash };
             // as duas telas se separaram: anula em vez de seguir com placares diferentes. O hash vem como
-            // "<ordens antes da divisa>:<hash>": com números diferentes uma das telas ainda não tem a ordem (ela refaz)
-            if (i.hash && otherHash && otherHash !== i.hash && sameInputs(otherHash, i.hash))
+            // "<ordens antes da divisa>:<hash>": com números diferentes uma das telas ainda não tem a ordem (ela
+            // refaz). Só anula com 2 trechos SEGUIDOS diferentes: um hash errado sozinho (ou inventado) não anula
+            const k = i.seg;
+            if (i.hash && segMismatch(segHash, k) && (segMismatch(segHash, k - 1) || segMismatch(segHash, k + 1)))
                 return {
                     ...next,
                     phase: 'done',
@@ -684,9 +721,15 @@ function apply(s: Shared, i: Intent, by: Role, ctx: Ctx): Shared {
             return { ...s, halftime: { ...s.halftime, ready: { ...s.halftime.ready, [by]: true } } };
         }
         case 'ended': {
-            if (s.phase !== 'match' || s.result || !Array.isArray(i.score)) return s;
-            const winner = i.winner === null ? null : i.winner === 0 ? 'host' : 'guest';
-            return { ...s, phase: 'done', result: { score: i.score, shootout: i.shootout, winner } };
+            // o placar é o da partida que quem aplica simulou, e só depois do apito final na tela dele
+            const f = ctx.final;
+            if (s.phase !== 'match' || s.result || !f) return s;
+            const winner = f.winner === null ? null : f.winner === 0 ? 'host' : 'guest';
+            return {
+                ...s,
+                phase: 'done',
+                result: { score: [f.score[0], f.score[1]], shootout: f.shootout, winner },
+            };
         }
         case 'claimWO': {
             if (!canClaimWO(s, by, now)) return s;
@@ -695,15 +738,67 @@ function apply(s: Shared, i: Intent, by: Role, ctx: Ctx): Shared {
         case 'rematch': {
             if (s.phase !== 'done') return s;
             const rematch = { ...s.rematch, [by]: true };
-            if (!(rematch.host && rematch.guest)) return { ...s, rematch };
-            return {
+            const commits = { ...s.rematchCommits, [by]: isHex64(i.commit) ? i.commit : undefined };
+            if (!(rematch.host && rematch.guest)) return { ...s, rematch, rematchCommits: commits };
+            const fresh: Shared = {
                 ...newShared(s.room, s.peers.host!, s.mode, s.speed, ctx.newSeed ?? `${s.seed}-r`, specialLimitOf(s)),
                 peers: s.peers,
                 game: s.game + 1,
             };
+            // revanche de um toque: mesmo modo, os dois já mandaram o lacre da partida nova, direto pro draft/time.
+            // Sem lacre (versão antiga) ou com versões diferentes: volta pro lobby, como antes
+            if (!isHex64(commits.host) || !isHex64(commits.guest) || !versionsOk(fresh)) return fresh;
+            return startDraftOrTeam(
+                { ...fresh, ready: both(true), commits: { host: commits.host, guest: commits.guest } },
+                now,
+            );
         }
     }
     return s;
+}
+
+/** O que identifica um time (uid sem o lado, espécie, golpes, item, formação, tática e capitão). */
+function teamKey(t: TeamSetup | undefined): string {
+    if (!t) return '';
+    const base = (uid: string | null | undefined) => (uid ?? '').replace(/~[hg]$/, '');
+    const mon = (p: PokemonInstance) => [base(p.uid), p.speciesId, p.moves.join('/'), p.item ?? ''].join(':');
+    return JSON.stringify([t.lineup.map(mon), t.bench.map(mon), t.formation ?? '', t.tactic, base(t.captainUid)]);
+}
+
+/**
+ * O host volta (recarregou a página, ficou em segundo plano, caiu) e o convidado, que aplicou as regras enquanto ele
+ * estava fora, manda o estado. O host só fica com ele se nada do que é do host mudou: lacre, segredos abertos,
+ * hashes, ordens e time do host. Resultado novo só se for W.O. do convidado depois de o host ficar fora o tempo da
+ * espera (`awayMs`, medido pelo próprio host). Fora disso o host segue com o dele, e o convidado manda de novo o que
+ * fez (as intenções se repetem sozinhas).
+ */
+export function acceptTakeover(cur: Shared, next: Shared, awayMs: number): boolean {
+    if (!next?.peers || !next.reveals || !next.roundReveals || !next.segHash || !Array.isArray(next.log)) return false;
+    if (next.room !== cur.room || next.rev <= cur.rev || next.peers.host?.id !== cur.peers.host?.id) return false;
+    const same = next.game === cur.game;
+    // revanche sem o host: só se ele já tinha pedido (e com o lacre que ele mandou)
+    const rematchOk =
+        next.game === cur.game + 1 &&
+        cur.phase === 'done' &&
+        cur.rematch.host &&
+        next.commits?.host === cur.rematchCommits?.host;
+    if (!same && !rematchOk) return false;
+    const hostOrders = (s: Shared) => JSON.stringify(s.log.filter((o) => o.team === 0));
+    const hostHashes = (s: Shared) => JSON.stringify(s.segHash.host ?? {});
+    if (same) {
+        if (next.commits?.host !== cur.commits.host) return false;
+        if (next.reveals.host.some((x, k) => x && x !== cur.reveals.host[k])) return false;
+        if (next.roundReveals.host.some((x, r) => x && x !== cur.roundReveals.host[r])) return false;
+        if (hostOrders(next) !== hostOrders(cur) || hostHashes(next) !== hostHashes(cur)) return false;
+        // o time do host só muda pelas escolhas dele: não pode mudar nem aparecer enquanto ele estava fora
+        if (teamKey(next.teams.host) !== teamKey(cur.teams.host)) return false;
+        // no lobby a partida só começa com o "pronto" do host
+        if (cur.phase === 'lobby' && next.phase !== 'lobby' && !cur.ready.host) return false;
+        if (cur.result) return JSON.stringify(next.result) === JSON.stringify(cur.result);
+    } else if (next.teams.host || next.log.some((o) => o.team === 0) || Object.keys(next.segHash.host ?? {}).length)
+        return false;
+    const r = next.result;
+    return !r || (!!r.wo && r.winner === 'guest' && awayMs >= WO_WAIT_MS - GRACE_MS);
 }
 
 /** Quem ficou pode encerrar por W.O.: o outro está travando a sala há pelo menos `WO_WAIT_MS`. */
