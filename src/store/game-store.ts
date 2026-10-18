@@ -195,6 +195,8 @@ export interface Settings {
     criesVolume: number;
     sfxVolume: number;
     crowdVolume: number;
+    /** Grito de gol: o cry do capitão toca junto com a torcida no seu gol. */
+    goalCry: boolean;
     /** Velocidade com que a partida começa. */
     speed: PlaybackSpeed;
     cinematic: boolean;
@@ -222,6 +224,7 @@ export const DEFAULT_SETTINGS: Settings = {
     criesVolume: 1,
     sfxVolume: 1,
     crowdVolume: 1,
+    goalCry: true,
     // 1x deixava a partida com ~13 min; 4x é o ritmo de quem chega (cada um muda na partida ou em Configurações)
     speed: 4,
     cinematic: true,

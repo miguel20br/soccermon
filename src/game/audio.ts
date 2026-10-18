@@ -22,6 +22,8 @@ export type SfxName = keyof typeof SFX;
 
 /** Volume geral e de cada canal (0..1). Gritos e efeitos tocam com `geral × canal`. */
 const vol = { master: 0.6, cries: 1, sfx: 1, crowd: 1 };
+/** Grito de gol do capitão ligado (Configurações). */
+let goalCryOn = true;
 
 const applyZzfx = () => {
     ZZFX.volume = 0.35 * vol.master * vol.sfx;
@@ -37,6 +39,10 @@ export function setVolume(v: number) {
 export function setVolumes(v: { master?: number; cries?: number; sfx?: number; crowd?: number }) {
     Object.assign(vol, Object.fromEntries(Object.entries(v).filter(([, x]) => typeof x === 'number')));
     applyZzfx();
+}
+
+export function setGoalCry(on: boolean) {
+    goalCryOn = on;
 }
 
 /** `pitch` multiplica a frequência (1 = normal; 2^(1/12) ≈ 1,06 = um semitom acima). */
@@ -107,7 +113,15 @@ export function cryUrl(speciesId: number, style: CryStyle) {
 }
 
 export function playCry(speciesId: number, style: CryStyle, gain = 1) {
-    const volume = vol.master * vol.cries;
+    cry(speciesId, style, vol.master * vol.cries * gain);
+}
+
+/** Grito de gol: o cry do capitão junto com a torcida, no volume de efeitos (desliga em Configurações). */
+export function playGoalCry(speciesId: number, style: CryStyle) {
+    if (goalCryOn) cry(speciesId, style, vol.master * vol.sfx);
+}
+
+function cry(speciesId: number, style: CryStyle, volume: number) {
     if (volume <= 0) return;
     const url = cryUrl(speciesId, style);
     let audio = cryCache.get(url);
@@ -116,6 +130,6 @@ export function playCry(speciesId: number, style: CryStyle, gain = 1) {
         cryCache.set(url, audio);
     }
     const node = audio.cloneNode(true) as HTMLAudioElement;
-    node.volume = Math.min(1, 0.55 * volume * gain);
+    node.volume = Math.min(1, 0.55 * volume);
     node.play().catch(() => {});
 }
