@@ -37,6 +37,7 @@ export const profile: typeof pt = {
         emptyUnseenType: "The type of missing Pokémon stays hidden until you've seen them.",
         emptyPlayed: 'Nobody has played for your team yet. Start a cup!',
         empty: 'No Pokémon here yet.',
+        ribbonAria: ', champion {n} time with you|, champion {n} times with you',
     },
     sheet: {
         no: 'No. {no}',
@@ -72,6 +73,7 @@ export const profile: typeof pt = {
         titles: 'Titles',
         bestRating: 'Best rating',
         bestCard: 'Best card',
+        ribbon: 'Champion {n} time with you|Champion {n} times with you',
         notPlayed:
             "Hasn't played for your team yet. Put it in your lineup in a cup (at least 1 minute on the court) to start its career.",
     },

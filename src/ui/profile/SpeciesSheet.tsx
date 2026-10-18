@@ -12,7 +12,7 @@ import { TypeIcon } from '../components/TypeIcon';
 import { METAL, metalOf } from '../rarity';
 import { TYPE_COLOR } from '../type-colors';
 import { speciesGif } from './club';
-import { BallMark, Chevron, EvoArrow, LockIcon, SpeakerIcon } from './icons';
+import { BallMark, ChampionRibbon, Chevron, EvoArrow, LockIcon, SpeakerIcon } from './icons';
 
 const STATS: StatKey[] = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'];
 
@@ -69,7 +69,7 @@ export function SpeciesSheet({
     const dex = useGame((s) => s.dex);
     const moves = useGame((s) => s.moves);
     const cries = useGame((s) => s.settings.cries);
-    const { t } = useT();
+    const { t, tn } = useT();
     const sp = species(id);
     const entry = dex[id];
     const seen = !!entry;
@@ -152,6 +152,11 @@ export function SpeciesSheet({
                                 </>
                             )}
                         </span>
+                        {(entry?.titles ?? 0) > 0 && (
+                            <span className="pf-champ">
+                                <ChampionRibbon n={entry.titles} /> {tn('profile.sheet.ribbon', entry.titles)}
+                            </span>
+                        )}
                         {seen && (
                             <button
                                 type="button"

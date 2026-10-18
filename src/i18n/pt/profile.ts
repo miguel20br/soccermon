@@ -35,6 +35,7 @@ export const profile = {
         emptyUnseenType: 'O tipo de quem falta fica escondido até você ver o Pokémon.',
         emptyPlayed: 'Ninguém jogou pelo seu time ainda. Comece uma copa!',
         empty: 'Nenhum Pokémon por aqui ainda.',
+        ribbonAria: ', campeão {n} vez com você|, campeão {n} vezes com você',
     },
     sheet: {
         no: 'Nº {no}',
@@ -70,6 +71,7 @@ export const profile = {
         titles: 'Títulos',
         bestRating: 'Melhor nota',
         bestCard: 'Maior carta',
+        ribbon: 'Campeão {n} vez com você|Campeão {n} vezes com você',
         notPlayed:
             'Ainda não jogou pelo seu time. Escale ele numa copa (pelo menos 1 minuto em quadra) para começar a carreira dele.',
     },

@@ -6,7 +6,7 @@ import { useGame } from '../../store/game-store';
 import { type DexEntry, isPlayed } from '../../store/profile';
 import { TypeIcon } from '../components/TypeIcon';
 import { speciesGif } from './club';
-import { BallMark } from './icons';
+import { BallMark, ChampionRibbon } from './icons';
 import { dexNo, SpeciesSheet } from './SpeciesSheet';
 
 type Status = 'played' | 'seen' | 'unseen';
@@ -26,7 +26,7 @@ export function DexTab() {
     const [filter, setFilter] = useState<Filter>('all');
     const [type, setType] = useState<string | null>(null);
     const [open, setOpen] = useState<number | null>(null);
-    const { t, d, lang } = useT();
+    const { t, tn, d, lang } = useT();
 
     const counts = useMemo(() => {
         const c = { all: TOTAL, played: 0, seen: 0, unseen: 0 };
@@ -105,13 +105,14 @@ export function DexTab() {
                     {list.map((sp) => {
                         const st = statusOf(dex[sp.id]);
                         const known = st !== 'unseen';
+                        const titles = dex[sp.id]?.titles ?? 0;
                         return (
                             <li key={sp.id}>
                                 <button
                                     type="button"
                                     className={`pf-cell ${st}`}
                                     onClick={() => setOpen(sp.id)}
-                                    aria-label={`${t('profile.dex.cellAria', { no: dexNo(sp.id), name: known ? sp.name : t('profile.dex.notSeenLower') })}${st === 'played' ? t('profile.dex.playedForYou') : ''}`}
+                                    aria-label={`${t('profile.dex.cellAria', { no: dexNo(sp.id), name: known ? sp.name : t('profile.dex.notSeenLower') })}${st === 'played' ? t('profile.dex.playedForYou') : ''}${titles ? tn('profile.dex.ribbonAria', titles) : ''}`}
                                 >
                                     <span className="pf-cell-no">{dexNo(sp.id)}</span>
                                     <img
@@ -124,6 +125,7 @@ export function DexTab() {
                                     />
                                     <span className="pf-cell-name">{known ? sp.name : '???'}</span>
                                     {st === 'played' && <BallMark className="pf-ball pf-cell-mark" />}
+                                    {titles > 0 && <ChampionRibbon n={titles} className="pf-ribbon pf-cell-ribbon" />}
                                 </button>
                             </li>
                         );
