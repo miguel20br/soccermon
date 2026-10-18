@@ -26,6 +26,7 @@ import {
 import { dir8 } from '../../engine/vec';
 import { dict, linkText, t as tr } from '../../i18n';
 import type { ArrowSize, ChanceSpeed, CryStyle, NamesOnField, PlaybackSpeed } from '../../store/game-store';
+import { halftimeEnd } from '../../ui/match-view';
 import { hexToNumber, TYPE_COLOR } from '../../ui/type-colors';
 import {
     animForAction,
@@ -339,6 +340,8 @@ export class MatchScene extends Phaser.Scene {
     private lastEventTick = 0;
     /** Playback não passa deste tick enquanto a partida é resimulada (tática ao vivo). */
     private holdAt = Number.POSITIVE_INFINITY;
+    /** Parada no apito do intervalo (tick dele) até o técnico mandar começar o 2º tempo. */
+    private halftimeAt: number | null = null;
     /** Duelo: não passa do fim do último trecho aberto pelos dois (lacres). */
     private segHold = Number.POSITIVE_INFINITY;
     /** Duelo: correção do relógio do convidado (0,9–1,1; 0 = espera o host). */
@@ -531,6 +534,11 @@ export class MatchScene extends Phaser.Scene {
     private onResume() {
         if (!this.paused) return;
         this.paused = false;
+        // saindo do intervalo: o técnico já decidiu, então o 2º tempo começa armado (sem os ~2 s parados)
+        if (this.halftimeAt !== null) {
+            this.playTick = Math.max(this.playTick, halftimeEnd(this.snaps, this.halftimeAt));
+            this.halftimeAt = null;
+        }
         playSample('apito');
     }
 
@@ -1415,6 +1423,7 @@ export class MatchScene extends Phaser.Scene {
             // em 8x a reprodução passa do apito no mesmo quadro: volta pro apito, senão a troca pedida no
             // intervalo (marcada no lance seguinte a ele) ficaria para trás da reprodução e seria pulada
             this.playTick = e.tick;
+            this.halftimeAt = e.tick;
             EventBus.emit('match:halftime');
         }
         const cries = this.md.cries;

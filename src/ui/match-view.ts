@@ -33,6 +33,14 @@ export function snapAt(snaps: MatchSnapshot[], tick: number): MatchSnapshot {
 }
 
 /**
+ * Fim do intervalo (o 2º tempo já está armado pra saída de bola): o "Começar o 2º tempo" pula pra cá, senão a
+ * reprodução ainda passava ~2 s de jogo parado com "Intervalo" no placar e quem saiu na prancheta.
+ */
+export function halftimeEnd(snaps: MatchSnapshot[], htTick: number): number {
+    return snaps.find((s) => s.tick > htTick && s.phase !== 'halftime')?.tick ?? htTick;
+}
+
+/**
  * Prancheta do time no tick: a formação e o jogador (`idx` da partida) em cada vaga, na ordem das vagas. Muda com a
  * mudança de prancheta (evento `lineup`); antes dela, a escalação inicial.
  */
