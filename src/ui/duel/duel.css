@@ -264,9 +264,28 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-.duel-title {
+/* título do treinador em selo (saguão e placar do duelo): é pra se exibir */
+.duel-title,
+.sb-title {
+    justify-self: start;
+    max-width: 100%;
+    padding: 1px 8px;
+    border: 2px solid var(--yellow);
+    border-radius: 999px;
+    background: rgba(5, 6, 15, 0.88);
     color: var(--yellow);
     font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+}
+:is(.duel-title, .sb-title, .vsp-coach small):has(> .title-shine) {
+    border-color: #ffd84a;
+}
+:is(.duel-title, .sb-title, .vsp-coach small):has(> .title-holo) {
+    border-color: #d7a6ff;
+    box-shadow: 0 0 10px rgb(154 230 255 / 35%);
 }
 .duel-club {
     font-size: 12px;
@@ -458,6 +477,35 @@
 }
 .duel-board {
     position: relative;
+    row-gap: 4px;
+}
+/* o placar ocupa as duas linhas; embaixo de cada time, o título do treinador */
+.duel-board .sb-score {
+    grid-row: 1 / span 2;
+}
+.sb-coach {
+    grid-row: 2;
+    grid-column: 1;
+    display: flex;
+    min-width: 0;
+}
+.sb-coach.away {
+    grid-column: 3;
+    justify-content: flex-end;
+}
+/* celular: o título quebra em duas linhas em vez de cortar */
+@media (max-width: 420px) {
+    .duel-title,
+    .sb-title {
+        white-space: normal;
+        font-size: 10px;
+        line-height: 1.2;
+        border-radius: 10px;
+        padding: 1px 6px;
+    }
+    .sb-coach.away .sb-title {
+        text-align: right;
+    }
 }
 .duel-ht {
     margin: 4px 0;

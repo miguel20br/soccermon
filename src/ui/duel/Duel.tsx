@@ -27,7 +27,7 @@ import { clubColorHex, rivalColor } from '../../store/profile';
 import { ResultHero } from '../components/ResultHero';
 import { LeaveConfirm } from '../leave-guard';
 import { FEEDBACK_URL } from '../links';
-import { avatarImage, hexCss, titleName, trainerLabel } from '../profile/club';
+import { avatarImage, hexCss, peerTitle, titleName, trainerLabel } from '../profile/club';
 import { qrPath } from '../qr';
 import { heroStats, MatchDetails } from '../screens/Result';
 import { setChartColors } from '../stats/StatsCharts';
@@ -99,6 +99,7 @@ function usePeer(local: boolean): Peer | null {
         avatarGoogle: av.google,
         trainer: activeTrainer(profile),
         title: titleName(activeTitle(profile)),
+        titleId: activeTitle(profile),
         clubName: profile.clubName || 'Pallet FC',
         clubTag: profile.clubTag || 'PAL',
         clubColor: clubColorHex(profile.clubColor),
@@ -355,7 +356,9 @@ function PeerCard({
                     {p.name}
                     {p.anon && <span className="duel-anon">{t('duel.lobby.anon')}</span>}
                 </b>
-                <span className="duel-title">{p.title}</span>
+                <span className="duel-title">
+                    <span className={peerTitle(p).look || undefined}>{peerTitle(p).name}</span>
+                </span>
                 <span className="duel-club">
                     <i /> {p.clubName}
                 </span>

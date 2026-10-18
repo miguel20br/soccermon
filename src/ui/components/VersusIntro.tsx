@@ -75,6 +75,8 @@ function Squad({ team, trainer }: { team: TeamSetup; trainer?: TrainerId }) {
 export interface VsCoach {
     name: string;
     title?: string;
+    /** Visual do título especial (classe title-shine/title-holo). */
+    titleLook?: string;
     avatar?: string;
     avatarGoogle?: boolean;
 }
@@ -124,7 +126,11 @@ function Side({
                                 )}
                                 <span>
                                     <b>{coach.name}</b>
-                                    {coach.title && <small>{coach.title}</small>}
+                                    {coach.title && (
+                                        <small>
+                                            <span className={coach.titleLook || undefined}>{coach.title}</span>
+                                        </small>
+                                    )}
                                 </span>
                             </div>
                         )}

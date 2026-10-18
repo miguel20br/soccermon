@@ -56,6 +56,7 @@ import { boardBeside, Prancheta } from '../components/Prancheta';
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
 import { snapAt } from '../match-view';
+import { peerTitle } from '../profile/club';
 import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
 import { EmoteBar, EmoteBubbles } from './Emotes';
@@ -351,7 +352,21 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
 
     const myPeer = s.peers[role];
     const coach = (p?: typeof myPeer) =>
-        p && { name: p.name, title: p.title, avatar: p.avatar, avatarGoogle: p.avatarGoogle };
+        p && {
+            name: p.name,
+            title: peerTitle(p).name,
+            titleLook: peerTitle(p).look,
+            avatar: p.avatar,
+            avatarGoogle: p.avatarGoogle,
+        };
+    const badge = (p?: typeof myPeer) => {
+        const tt = p && peerTitle(p);
+        return tt?.name ? (
+            <span className="sb-title">
+                <span className={tt.look || undefined}>{tt.name}</span>
+            </span>
+        ) : null;
+    };
     const onMine = (uid: string, idx: number | null) => {
         if (canSub) {
             setSubOut(onField.includes(uid) ? uid : null);
@@ -385,6 +400,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                 clockLabel={clockLabel}
                 stage={t('duel.title')}
                 homeTag={s.peers.host?.clubTag ?? ''}
+                coaches={[badge(s.peers.host), badge(s.peers.guest)]}
             >
                 <EmoteBubbles mySide={side === 0 ? 'left' : 'right'} />
             </Scoreboard>

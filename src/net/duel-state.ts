@@ -76,6 +76,8 @@ export interface Peer {
     avatarGoogle: boolean;
     trainer: string;
     title: string;
+    /** Id do título: o rival mostra no idioma dele e com o visual do título (dourado, holográfico). Sala antiga manda só o nome. */
+    titleId?: string;
     clubName: string;
     clubTag: string;
     clubColor: number;

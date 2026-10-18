@@ -50,6 +50,7 @@ export function Scoreboard({
     homeTag,
     boardRef,
     className = '',
+    coaches,
     children,
 }: {
     names: [string, string];
@@ -60,6 +61,8 @@ export function Scoreboard({
     homeTag: string;
     boardRef?: Ref<HTMLDivElement>;
     className?: string;
+    /** Duelo: o título de cada treinador embaixo do time (é pra se exibir). */
+    coaches?: [ReactNode, ReactNode];
     children?: ReactNode;
 }) {
     const long = names[0].length > 10;
@@ -96,6 +99,12 @@ export function Scoreboard({
                 <span>{names[1]}</span>
                 <i style={{ background: hex(colors[1]) }} />
             </div>
+            {coaches && (
+                <>
+                    <div className="sb-coach">{coaches[0]}</div>
+                    <div className="sb-coach away">{coaches[1]}</div>
+                </>
+            )}
             {children}
         </div>
     );

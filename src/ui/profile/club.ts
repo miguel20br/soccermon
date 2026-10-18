@@ -4,7 +4,7 @@ import { dict, fmt, getLang, t } from '../../i18n';
 import { useGame } from '../../store/game-store';
 import type { Mission, TrainerId } from '../../store/missions';
 import { type Avatar, clubColorHex, type Profile, rivalColor } from '../../store/profile';
-import { CUSTOM_TITLES } from '../../store/title-codes';
+import { CUSTOM_TITLES, titleClass } from '../../store/title-codes';
 import './club.css';
 
 export const hexCss = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
@@ -45,6 +45,12 @@ export const trainerName = (id: TrainerId) => dict().profile.trainers[id] ?? id;
 export function titleName(id: string): string {
     return dict().profile.titles[id] ?? CUSTOM_TITLES[id]?.[getLang()] ?? id;
 }
+
+/** Título de quem está na sala do duelo: pelo id quando vem (idioma de quem vê + visual), senão o nome que veio. */
+export const peerTitle = (p: { title: string; titleId?: string }) => ({
+    name: p.titleId ? titleName(p.titleId) : p.title,
+    look: titleClass(p.titleId ?? '').trim(),
+});
 
 /** Texto de uma missão (as de ginásio usam o mesmo modelo com o líder e a cidade). */
 export function missionText(m: Mission): string {
