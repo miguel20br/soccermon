@@ -205,6 +205,8 @@ button.pf-trainer:active {
 }
 .pf-trainer.locked b {
     display: inline-flex;
+    /* nome comprido ("Pokémaníaco") não cabe com o cadeado: o cadeado sobe, a palavra fica inteira */
+    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
     gap: 3px;
