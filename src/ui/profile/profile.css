@@ -1276,3 +1276,19 @@ fieldset.pf-field,
 :root[data-reduce-motion="true"] .title-holo {
     animation: none;
 }
+
+/* coleções temáticas: quem já jogou aparece, quem falta fica em silhueta */
+.pf-collection {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+}
+.pf-collection img {
+    display: block;
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
