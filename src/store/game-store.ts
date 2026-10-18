@@ -302,8 +302,11 @@ export interface GameStore {
     recordResult(m: MatchResult): void;
     /** O desfile do Hall da Fama já passou nesta copa. */
     markParaded(): void;
-    /** Pega a recompensa. MT: `forgetSlot` é a vaga do golpe esquecido (ou o tamanho do moveset, se há vaga). */
-    claimReward(index: number, targetUid: string, forgetSlot?: number): void;
+    /**
+     * Pega a recompensa. MT: `forgetSlot` é a vaga do golpe esquecido (ou o tamanho do moveset, se há vaga).
+     * Item: se quem recebe já segura um, `passTo` é quem fica com o antigo (sem `passTo`, o antigo é descartado).
+     */
+    claimReward(index: number, targetUid: string, forgetSlot?: number, passTo?: string): void;
     skipReward(): void;
     rerollReward(): void;
     advance(): void;
@@ -922,7 +925,7 @@ export const useGame = create<GameStore>()(
                     if (run?.champ && !run.champ.paraded) updateRun({ champ: { ...run.champ, paraded: true } });
                 },
 
-                claimReward: (index, targetUid, forgetSlot) => {
+                claimReward: (index, targetUid, forgetSlot, passTo) => {
                     const run = getState().run;
                     const reward = run?.rewards[index];
                     if (run?.status !== 'reward' || !reward) return;
@@ -944,7 +947,15 @@ export const useGame = create<GameStore>()(
                         if (!taught) return;
                         picks = run.picks.map((p) => (p.uid === targetUid ? taught : p));
                     } else {
-                        picks = run.picks.map((p) => (p.uid === targetUid ? { ...p, item: reward.item } : p));
+                        // o item antigo de quem recebe vai pra quem o jogador escolheu (se escolheu)
+                        const old = run.picks.find((p) => p.uid === targetUid)?.item ?? null;
+                        picks = run.picks.map((p) =>
+                            p.uid === targetUid
+                                ? { ...p, item: reward.item }
+                                : old && passTo && p.uid === passTo
+                                  ? { ...p, item: old }
+                                  : p,
+                        );
                     }
                     setState({
                         run: { ...run, picks, bench, rewards: [], status: 'lineup', stage: run.stage + 1 },

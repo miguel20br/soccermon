@@ -148,4 +148,29 @@ describe('backup antigo (scripts/fixtures)', () => {
             expect(save.profile.trainer).toBeTruthy();
         }
     });
+
+    it('item novo pra quem já segura um: o antigo vai pra quem o jogador escolher', () => {
+        useGame.getState().newRun('Pallet FC', 'teste-item-passa');
+        const rng = new Rng('teste-item-passa', 'team');
+        const lineup = [95, 7, 5, 25, 74].map((id) => createInstance(id, rng));
+        lineup[1].item = 'leftovers';
+        lineup[3].item = 'choiceband';
+        const base = useGame.getState().run as RunState;
+        const ready: RunState = {
+            ...base,
+            picks: lineup,
+            lineup: lineup.map((p) => p.uid),
+            bench: [],
+            captainUid: lineup[0].uid,
+            status: 'reward',
+            rewards: [{ kind: 'item', item: 'scopelens' }],
+        };
+        useGame.setState({ run: ready });
+        useGame.getState().claimReward(0, lineup[1].uid, undefined, lineup[2].uid);
+        const after = useGame.getState().run!;
+        const itemOf = (i: number) => after.picks.find((p) => p.uid === lineup[i].uid)?.item;
+        expect(itemOf(1)).toBe('scopelens');
+        expect(itemOf(2)).toBe('leftovers');
+        expect(itemOf(3)).toBe('choiceband');
+    });
 });
