@@ -493,8 +493,9 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
 
     // 8. Foco da semana
     titulo('8. Foco da semana');
+    // vercel.app é o endereço antigo (e as prévias), não um canal de divulgação
     const melhor = canais
-        .filter(([, ss]) => ss.length >= 5)
+        .filter(([c, ss]) => ss.length >= 5 && c !== 'vercel.app' && c !== 'vercel')
         .map(([c, ss]) => ({ c, n: ss.length, conv: funil(ss)[2] / ss.length }))
         .sort((a, b) => b.conv - a.conv)[0];
     const foco =

@@ -3,6 +3,11 @@
     "framework": "vite",
     "buildCommand": "npm run build",
     "outputDirectory": "dist",
+    "redirects": [
+        { "source": "/tt", "destination": "/?utm_source=tiktok", "permanent": false },
+        { "source": "/yt", "destination": "/?utm_source=youtube", "permanent": false },
+        { "source": "/ig", "destination": "/?utm_source=instagram", "permanent": false }
+    ],
     "headers": [
         {
             "source": "/assets/(.*)",
