@@ -22,7 +22,6 @@ export const PATCH_NOTES: PatchNotes[] = [
             {
                 title: 'Coleção',
                 lines: [
-                    'Estojo de insígnias de Kanto no Perfil: cada uma sai quando você vence o clube do líder numa copa (vale pro que você já venceu)',
                     'Álbum de figurinhas na Pokédex: Normal, Shiny, Evento, Ícone e Destaque de cada espécie (622 no total), colando quando a carta joga',
                     'Fita de campeão na Pokédex com quantas vezes cada espécie foi campeã com você',
                     '9 coleções temáticas com título próprio: Iniciais, Pássaros, Fósseis, Eeveelutions, Lendários, Hitmons, Nidos e os times do Brock e da Misty',
@@ -514,7 +513,6 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
             {
                 title: 'Collection',
                 lines: [
-                    "Kanto badge case on your Profile: each badge comes from beating that leader's club in a cup (counts what you already won)",
                     'Sticker album in the Pokédex: Normal, Shiny, Event, Icon and Star Player for each species (622 in all), stuck when the card plays',
                     'Champion ribbon in the Pokédex showing how many times each species won with you',
                     '9 themed collections with their own title: Starters, Birds, Fossils, Eeveelutions, Legendaries, Hitmons, Nidos and the Brock and Misty teams',

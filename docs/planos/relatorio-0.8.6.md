@@ -60,7 +60,7 @@ adiantadas da 0.8.7.
 ### 3.2 O que eu fiz sozinho (julguei que você aceitaria)
 
 **Coleção (nada de motor, tudo retroativo pelo save):**
-- estojo das 8 insígnias de Kanto na aba Missões;
+- estojo das 8 insígnias de Kanto: tirado antes de subir (o Miguel prefere guardar as insígnias pro Modo história; o `BadgeCase` fica pronto pra lá);
 - álbum de edições na Pokédex (Normal, Shiny, Evento, Ícone, Destaque; save v9);
 - fita de campeão por espécie;
 - 9 coleções temáticas (iniciais, pássaros, fósseis, Eevee...), cada uma com título.

@@ -19,7 +19,6 @@ import {
 } from '../../store/missions';
 import type { Profile } from '../../store/profile';
 import { redeemCode, titleClass } from '../../store/title-codes';
-import { BadgeCase } from '../components/BadgeCase';
 import { missionText, speciesGif, titleName, trainerName } from './club';
 import { CheckIcon, LockIcon, MedalIcon } from './icons';
 
@@ -263,7 +262,6 @@ export function MissionsTab() {
     const done = MISSIONS.filter((m) => view.done.has(m.id)).length;
     return (
         <div className="pf-missions">
-            <BadgeCase earned={[...view.done]} />
             <div
                 className="pf-mission-summary"
                 role="progressbar"

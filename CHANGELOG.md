@@ -9,7 +9,6 @@
 - A missão do Ash ficou possível: ser campeão sofrendo até 5 gols na copa (título Muralha). A copa perfeita, sem sofrer gol, agora dá o Ash dourado
 
 ### Coleção
-- Estojo de insígnias de Kanto no Perfil: cada uma sai quando você vence o clube do líder numa copa (vale pro que você já venceu)
 - Álbum de figurinhas na Pokédex: Normal, Shiny, Evento, Ícone e Destaque de cada espécie (622 no total), colando quando a carta joga
 - Fita de campeão na Pokédex com quantas vezes cada espécie foi campeã com você
 - 9 coleções temáticas com título próprio: Iniciais, Pássaros, Fósseis, Eeveelutions, Lendários, Hitmons, Nidos e os times do Brock e da Misty
