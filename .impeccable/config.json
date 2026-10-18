@@ -50,6 +50,15 @@
         ],
         "createdAt": "2026-10-18T10:22:38.759Z",
         "reason": "Claude: faixa na cor do time no placar e no letreiro da narração é o desenho de placar de TV da direção A (mockup aprovado pelo Claude, pendente de revisão do Miguel na prévia); os de L231/234 são marcadores de gol inset na barra de pressão, não card"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/ui/broadcast-kit.css"
+        ],
+        "createdAt": "2026-10-18T21:01:51.866Z",
+        "reason": "Miguel escolheu a opção B (placar de transmissão com faixa na cor do time) e pediu o site inteiro nesse visual: a faixa lateral é a linguagem do placar, não enfeite de card"
       }
     ]
   }
