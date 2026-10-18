@@ -14,7 +14,7 @@ Soccermon é um fan project sem fins lucrativos criado por **Miguel Cunha** ([@m
 | Técnicas de carta holográfica (reimplementadas, sem texturas copiadas) | [simeydotme/pokemon-cards-css](https://github.com/simeydotme/pokemon-cards-css) | GPL-3.0 |
 | Sprites de treinador | [Pokémon Showdown](https://play.pokemonshowdown.com/sprites/trainers) | imagens © The Pokémon Company; uso não comercial, com crédito |
 | Partículas de efeito | [Pokémon Showdown](https://play.pokemonshowdown.com/fx/) | uso não comercial, com crédito |
-| Fonte Galmuri | [quiple/galmuri](https://github.com/quiple/galmuri) | SIL OFL 1.1 (`public/fonts/OFL-Galmuri.md`) |
+| Fonte Galmuri (subset só com latim e os símbolos do jogo, gerado por `npm run fonts` a partir do pacote npm `galmuri`) | [quiple/galmuri](https://github.com/quiple/galmuri) | SIL OFL 1.1 (`public/fonts/OFL-Galmuri.md`) |
 | Efeitos sonoros procedurais | [ZzFX](https://github.com/KilledByAPixel/ZzFX) | MIT |
 | Apito (`public/assets/sfx/apito*.mp3`) | "Referee whistle blow, gymnasium", SpliceSound ([freesound 218318](https://freesound.org/people/SpliceSound/sounds/218318/)) | CC0 |
 | Torcida comemorando (`torcida-gol-*.mp3`), recortes de "Free Crowd Cheering Sounds" | Gregor Quendel ([OpenGameArt](https://opengameart.org/content/free-crowd-cheering-sounds)) | CC BY 4.0 |
