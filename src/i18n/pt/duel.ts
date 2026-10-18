@@ -13,6 +13,9 @@ export const duel = {
     modeLabel: 'Modo',
     speedLabel: 'Velocidade inicial',
     speedHint: 'No meio da partida qualquer um pode pedir outra; o rival aceita ou recusa.',
+    durationLabel: 'Duração',
+    durations: { normal: 'Normal', short: 'Curta' },
+    durationHint: 'Curta: metade do tempo, o relógio anda em dobro.',
     modes: {
         ready: ['Time pronto', 'Cada um entra com um time que já tem: a copa atual ou um campeão do Hall da Fama.'],
         disputa: ['Disputa', '4 cartas da mesma vaga por rodada: um tira, o outro tira e as 2 que sobram queimam.'],

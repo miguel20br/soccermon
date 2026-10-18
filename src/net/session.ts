@@ -12,6 +12,7 @@ import {
     acceptTakeover,
     bestFor,
     clockAdjust,
+    type DuelDuration,
     type DuelMode,
     type EmoteKind,
     emoteAllowed,
@@ -36,6 +37,7 @@ import {
     stampOrder,
     tickTimers,
 } from './duel-state';
+import { applyPatch, diff } from './patch';
 import {
     abrir,
     checkReveal,
@@ -57,8 +59,12 @@ import { type DuelTransport, localTransport, type NetMsg, supabaseTransport } fr
  * lacres, o relógio, as escolhas escondidas e os emotes. A tela lê tudo pelo `useDuel`. Uma sala por vez.
  *
  * Entrega (o Broadcast é "melhor esforço"): toda mensagem leva o número de quem mandou (`n`, com `b` = id desta
- * abertura da página). Quem vê um buraco pede de novo (`resend`) e quem mandou repete as importantes guardadas. O
- * estado inteiro vai a cada mudança e o relógio leva o `rev`, então um estado perdido se cura sozinho.
+ * abertura da página). Quem vê um buraco pede de novo (`resend`) e quem mandou repete as importantes guardadas.
+ *
+ * Estado: só o que mudou (`patch`, src/net/patch.ts) em cima do estado anterior de quem mandou (`base` = rev, `bo` =
+ * quem fez aquele estado). Quem não tem essa base (entrou agora, perdeu uma mensagem, voltou) pede o inteiro
+ * (`need`); o estado inteiro também vai pra quem entra ou volta pra sala. O relógio leva o `rev`: o último patch
+ * perdido também se cura sozinho.
  */
 
 export type DuelStatus = 'idle' | 'connecting' | 'live' | 'full' | 'left';
@@ -227,6 +233,8 @@ class DuelSession {
     final: FinalScore | null = null;
     /** Último `rev` aceito do host (o convidado fica com o estado do host mesmo se o dele andou sozinho). */
     private hostRev = 0;
+    /** Quem fez o estado que eu tenho (um patch só vale em cima do mesmo estado de quem mandou). */
+    private origin = '';
     private openedAt = 0;
     private lastLoopAt = 0;
     /** Host que voltou: até quando aceita o estado do convidado e desde quando estava fora. */
@@ -260,13 +268,14 @@ class DuelSession {
         speed: PlaybackSpeed,
         local: boolean,
         specialLimit: SpecialLimit = DEFAULT_SPECIAL_LIMIT,
+        duration: DuelDuration = 'normal',
     ): Promise<string> {
         const room = roomCode((n) => {
             const b = new Uint32Array(1);
             crypto.getRandomValues(b);
             return b[0] % n;
         });
-        const shared = newShared(room, peer, mode, speed, randomSecret().slice(0, 16), specialLimit);
+        const shared = newShared(room, peer, mode, speed, randomSecret().slice(0, 16), specialLimit, duration);
         this.kept = { role: 'host', shared, tops: {} };
         writeKept(room, peer.id, this.kept);
         this.open(room, peer, local, 'host', shared, false);
@@ -294,6 +303,7 @@ class DuelSession {
         this.close();
         this.myPeer = peer;
         this.hostRev = 0;
+        this.origin = shared ? peer.id : '';
         this.openedAt = Date.now();
         this.lastLoopAt = Date.now();
         this.final = null;
@@ -484,9 +494,18 @@ class DuelSession {
         return { k: 'picksOpened', cards };
     }
 
+    /** Estado novo meu: manda só o que mudou desde o anterior (ou inteiro, se não havia anterior). */
     private publish(s: Shared) {
+        const prev = this.view.shared;
+        const bo = this.origin;
         this.adopt(s);
-        this.send({ t: 'state', shared: s });
+        if (prev && bo) this.send({ t: 'patch', base: prev.rev, bo, rev: s.rev, d: diff(prev, s) });
+        else this.sendState(s);
+    }
+
+    /** O estado inteiro (pra quem entra, volta ou pediu: `to`). */
+    private sendState(s: Shared, to?: string) {
+        this.send({ t: 'state', shared: s, o: this.origin || this.view.me, ...(to ? { to } : {}) });
     }
 
     /**
@@ -495,7 +514,7 @@ class DuelSession {
      * tenha andado sozinho enquanto o host estava fora); o host só aceita o do convidado logo depois de voltar e se
      * nada do host mudou (`acceptTakeover`). Estado de qualquer outro (terceiro na sala) não vale.
      */
-    private adopt(s: Shared, from?: string) {
+    private adopt(s: Shared, from?: string, origin?: string) {
         const cur = this.view.shared;
         if (!s || typeof s !== 'object' || !s.peers || !s.reveals || typeof s.rev !== 'number') return;
         if (cur && s.room !== cur.room) return;
@@ -525,6 +544,7 @@ class DuelSession {
         }
         if (fromHost) this.hostRev = s.rev;
         else if (from !== undefined) this.catchUpUntil = 0;
+        this.origin = origin ?? from ?? me;
         // partida nova (revanche): nada da anterior vale (relógio, minuto e partida simulada)
         if (s.game !== this.view.shared?.game) {
             this.tick = 0;
@@ -686,7 +706,7 @@ class DuelSession {
         // alguém voltou: manda o estado (quem tiver o mais novo fica com ele)
         const back = ROLES.some((r) => online[r] && !was[r] && r !== this.view.role);
         if (back && s) {
-            this.send({ t: 'state', shared: s });
+            this.sendState(s);
             // relógio e minuto já na próxima volta (o host que voltou pula pro minuto do convidado)
             this.lastClock = 0;
         }
@@ -698,7 +718,7 @@ class DuelSession {
             case 'hello': {
                 const peer = m.peer as Peer | undefined;
                 if (!peer || peer.id !== m.from) return;
-                if (s) this.send({ t: 'state', shared: s });
+                if (s) this.sendState(s);
                 if (!s || !this.authority) return;
                 const known = ROLES.find((r) => s.peers[r]?.id === peer.id);
                 if (known) {
@@ -725,7 +745,19 @@ class DuelSession {
             }
             case 'state': {
                 const next = m.shared as Shared | undefined;
-                if (next && typeof next.rev === 'number') this.adopt(next, m.from);
+                if (next && typeof next.rev === 'number') this.adopt(next, m.from, String(m.o ?? m.from));
+                return;
+            }
+            case 'patch': {
+                // só em cima do mesmo estado de quem mandou; senão (perdi um, acabei de entrar) peço o inteiro
+                const fits = !!s && m.base === s.rev && m.bo === this.origin;
+                const next = fits ? applyPatch(s, m.d) : null;
+                if (next && next.rev === m.rev) this.adopt(next, m.from, m.from);
+                else if (this.due(`need-${m.from}`)) this.send({ t: 'need', to: m.from });
+                return;
+            }
+            case 'need': {
+                if (s) this.sendState(s, m.from);
                 return;
             }
             case 'intent': {
@@ -737,7 +769,8 @@ class DuelSession {
             case 'clock': {
                 if (this.authority) return;
                 // o estado mais novo se perdeu: pede de novo
-                if (s && Number(m.rev) > this.hostRev) this.send({ t: 'hello', peer: this.myPeer, rev: s.rev });
+                if (s && Number(m.rev) > this.hostRev && this.due(`need-${m.from}`))
+                    this.send({ t: 'need', to: m.from });
                 const now = Number(m.now);
                 if (Number.isFinite(now)) this.set({ offset: now - Date.now() });
                 const tick = Number(m.tick);

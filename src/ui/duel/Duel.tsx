@@ -6,10 +6,13 @@ import { matchMvp } from '../../engine/mvp';
 import { playSfx } from '../../game/audio';
 import { useT } from '../../i18n/react';
 import {
+    DUEL_DURATIONS,
     DUEL_MODES,
     DUEL_SPEEDS,
+    type DuelDuration,
     type DuelMode,
     duelNames,
+    durationOf,
     isRoomCode,
     other,
     type Peer,
@@ -211,6 +214,7 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
     const [busy, setBusy] = useState(false);
     const [joinCode, setJoinCode] = useState('');
     const [specialLimit, setSpecialLimit] = useState<SpecialLimit>(DEFAULT_SPECIAL_LIMIT);
+    const [duration, setDuration] = useState<DuelDuration>('normal');
     return (
         <div className="duel-create">
             <header className="bc-screenhead">
@@ -277,6 +281,24 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
                 </div>
                 <small className="muted">{t('duel.speedHint')}</small>
             </fieldset>
+            <fieldset className="duel-speeds">
+                <legend className="bc-lbl">{t('duel.durationLabel')}</legend>
+                <div className="bc-seg segmented">
+                    {DUEL_DURATIONS.map((du) => (
+                        <button
+                            key={du}
+                            type="button"
+                            className={duration === du ? 'on' : undefined}
+                            aria-pressed={duration === du}
+                            data-testid={`duel-length-${du}`}
+                            onClick={() => setDuration(du)}
+                        >
+                            {d.duel.durations[du]}
+                        </button>
+                    ))}
+                </div>
+                <small className="muted">{t('duel.durationHint')}</small>
+            </fieldset>
             <button
                 type="button"
                 className="btn primary big"
@@ -284,7 +306,7 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
                 onClick={async () => {
                     setBusy(true);
                     playSfx('select');
-                    const code = await duel.create(peer, mode, speed, local, specialLimit);
+                    const code = await duel.create(peer, mode, speed, local, specialLimit, duration);
                     setUrl(code, local);
                 }}
             >
@@ -462,6 +484,7 @@ function Lobby() {
                 <h1>{rivalIn ? t('duel.lobby.title') : t('duel.lobby.inviteTitle')}</h1>
                 <span className="bc-tag">
                     {d.duel.modes[s.mode][0]} · {speedLabel(s.speed, t('match.highlights'))}
+                    {durationOf(s) === 'short' && ` · ${d.duel.durations.short}`}
                     {s.mode === 'ready' && (
                         <>
                             {' · '}

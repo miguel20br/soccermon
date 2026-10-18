@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { FUTSAL_5 } from '../../engine/config';
 import { species } from '../../engine/data';
 import { viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
@@ -23,6 +22,7 @@ import { formationText } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import {
     DUEL_SPEEDS,
+    duelConfig,
     duelNames,
     duelTags,
     isSubStamped,
@@ -178,7 +178,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         // ordem nova: não passa dela enquanto a partida nova não chega (trecho novo não precisa: a trava do trecho segura)
         if (last && match && logLen > simLog.current) EventBus.emit('match:hold', last.tick);
         // seed por trecho: cada trecho aberto pelos dois muda a sorte dali pra frente (o passado não muda)
-        simulateMatch(home, away, baseSeedOf(s.room, s.game), ordersOf(s.log), seeds)
+        simulateMatch(home, away, baseSeedOf(s.room, s.game), ordersOf(s.log), seeds, duelConfig(s))
             .then((r) => {
                 if (!alive) return;
                 duel.result = r;
@@ -344,14 +344,15 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const rivalTactics = s.log.filter((o) => o.team !== side && isTacticOrder(o)) as TacticChange[];
     const rivalTactic: Tactic = rivalTactics.at(-1)?.tactic ?? setups[side === 0 ? 1 : 0].tactic;
     const lead = leadTicks(s.speed);
-    const leadMinutes = (lead / (FUTSAL_5.tickRate * FUTSAL_5.halfSeconds)) * FUTSAL_5.displayHalfMinutes;
+    const cfg = duelConfig(s);
+    const leadMinutes = (lead / (cfg.tickRate * cfg.halfSeconds)) * cfg.displayHalfMinutes;
     const canChange =
         sceneReady &&
         kicked &&
         !pendingOrder &&
         !ended &&
         !fulltime &&
-        clock.minute + leadMinutes < FUTSAL_5.displayHalfMinutes * 2 - 1;
+        clock.minute + leadMinutes < cfg.displayHalfMinutes * 2 - 1;
 
     const order = (o: OrderBody) => duel.order(o, halftime);
 

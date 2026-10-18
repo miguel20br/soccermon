@@ -1,4 +1,5 @@
 import type { Position } from '../engine/attributes';
+import { FUTSAL_5, type MatchConfig, withConfig } from '../engine/config';
 import { captainOptions, DRAFT_PICKS, draftOptions, playerDraftOptions } from '../engine/draft';
 import {
     DEFAULT_SPECIAL_LIMIT,
@@ -48,6 +49,18 @@ export const other = (r: Role): Role => (r === 'host' ? 'guest' : 'host');
 export type DuelMode = 'ready' | 'disputa' | 'pacotes';
 export const DUEL_MODES: DuelMode[] = ['ready', 'disputa', 'pacotes'];
 export const DUEL_SPEEDS: PlaybackSpeed[] = [1, 2, 4, 8, 'highlights'];
+
+/**
+ * Duração da partida (o host escolhe ao criar a sala): normal (2 tempos de 3 min de jogo) ou curta (metade). O relógio
+ * da tela continua de 0 a 40 (anda 2x mais rápido na curta), então intervalo, trechos da seed e pênaltis não mudam.
+ */
+export type DuelDuration = 'normal' | 'short';
+export const DUEL_DURATIONS: DuelDuration[] = ['normal', 'short'];
+/** Sala de antes da opção existir é normal. */
+export const durationOf = (s: Pick<Shared, 'duration'>): DuelDuration => (s.duration === 'short' ? 'short' : 'normal');
+const SHORT_MATCH = withConfig({ halfSeconds: FUTSAL_5.halfSeconds / 2 });
+export const duelConfig = (s: Pick<Shared, 'duration'>): MatchConfig =>
+    durationOf(s) === 'short' ? SHORT_MATCH : FUTSAL_5;
 
 export const PICK_MS = 20_000;
 export const CAPTAIN_PICK_MS = 30_000;
@@ -137,6 +150,8 @@ export interface Shared {
     speed: PlaybackSpeed;
     /** Time pronto: limite de cartas especiais (0, 3 ou null = livre). Nos drafts não vale. */
     specialLimit: SpecialLimit;
+    /** Duração da partida (sem = normal: sala guardada antes da opção). */
+    duration?: DuelDuration;
     /** Seed pública da sala (só decide quem abre a Disputa); os pacotes saem das seeds das rodadas. */
     seed: string;
     phase: 'lobby' | 'team' | 'draft' | 'preview' | 'match' | 'done';
@@ -176,6 +191,7 @@ export function newShared(
     speed: PlaybackSpeed,
     seed: string,
     specialLimit: SpecialLimit = DEFAULT_SPECIAL_LIMIT,
+    duration: DuelDuration = 'normal',
 ): Shared {
     return {
         rev: 1,
@@ -184,6 +200,7 @@ export function newShared(
         mode,
         speed,
         specialLimit: SPECIAL_LIMITS.includes(specialLimit) ? specialLimit : DEFAULT_SPECIAL_LIMIT,
+        duration: durationOf({ duration }),
         seed,
         phase: 'lobby',
         peers: { host },
@@ -764,7 +781,15 @@ function apply(s: Shared, i: Intent, by: Role, ctx: Ctx): Shared {
             const commits = { ...s.rematchCommits, [by]: isHex64(i.commit) ? i.commit : undefined };
             if (!(rematch.host && rematch.guest)) return { ...s, rematch, rematchCommits: commits };
             const fresh: Shared = {
-                ...newShared(s.room, s.peers.host!, s.mode, s.speed, ctx.newSeed ?? `${s.seed}-r`, specialLimitOf(s)),
+                ...newShared(
+                    s.room,
+                    s.peers.host!,
+                    s.mode,
+                    s.speed,
+                    ctx.newSeed ?? `${s.seed}-r`,
+                    specialLimitOf(s),
+                    durationOf(s),
+                ),
                 peers: s.peers,
                 game: s.game + 1,
             };
