@@ -170,7 +170,9 @@ export function Help() {
 
             {faq.length > 0 && (
                 <section className="help-faq" aria-labelledby="help-faq-title">
-                    <h2 id="help-faq-title">{tx.faq}</h2>
+                    <h2 id="help-faq-title" className="bc-caption">
+                        {tx.faq}
+                    </h2>
                     <div className="help-list">
                         {faq.map(({ faq: f }) => (
                             <details

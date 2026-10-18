@@ -22,7 +22,7 @@ import { privacyUrl } from '../links';
 import { reduceMotionOn } from '../settings-sync';
 import '../settings.css';
 
-/** Uma escolha de botões lado a lado (o ativo fica amarelo). */
+/** Seletor segmentado do kit da transmissão (o ativo fica amarelo). */
 function Segmented<T extends string | number | boolean>({
     label,
     value,
@@ -35,13 +35,13 @@ function Segmented<T extends string | number | boolean>({
     onPick: (v: T) => void;
 }) {
     return (
-        <div className="segmented" title={label}>
+        <div className="bc-seg segmented" title={label}>
             {options.map((o) => (
                 <button
                     key={String(o.value)}
                     type="button"
                     aria-pressed={value === o.value}
-                    className={`btn small${value === o.value ? ' active' : ''}`}
+                    className={value === o.value ? 'on' : undefined}
                     onClick={() => onPick(o.value)}
                 >
                     {o.label}

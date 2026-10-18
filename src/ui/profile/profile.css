@@ -16,16 +16,17 @@
 }
 
 /* cabeçalho */
+/* cabeçalho em placar (.bc-surface.bc-stripe): faixa na cor do clube */
 .pf-head {
+    --tc: var(--club);
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     gap: 14px;
     padding: 14px 16px;
-    border-color: color-mix(in srgb, var(--club) 70%, var(--line));
     background:
-        radial-gradient(ellipse 70% 120% at 0% 0%, color-mix(in srgb, var(--club) 30%, transparent), transparent 70%),
-        var(--panel);
+        radial-gradient(ellipse 70% 120% at 0% 0%, color-mix(in srgb, var(--club) 22%, transparent), transparent 70%),
+        var(--bc-ink);
 }
 .pf-avatar {
     width: 64px;
@@ -83,22 +84,29 @@ img.pf-avatar:not(.pixel) {
 .pf-quick div {
     display: grid;
     justify-items: center;
+    gap: 3px;
     min-width: 54px;
     padding: 6px 8px;
-    border-radius: 8px;
-    background: var(--bg-2);
+    border-radius: 4px;
+    background: var(--bc-ink-2);
 }
 .pf-quick dt {
     font-size: 10px;
     color: var(--muted);
     order: 2;
 }
+/* número na caixa clara, como os gols do placar */
 .pf-quick dd {
+    min-width: 34px;
     margin: 0;
+    padding: 1px 6px 0;
+    border-radius: 4px;
+    background: var(--bc-paper);
+    color: var(--bc-ink);
     font-family: "Galmuri14", "Galmuri11", monospace;
     font-size: 20px;
-    color: var(--yellow);
-    line-height: 1.1;
+    line-height: 1.2;
+    text-align: center;
 }
 
 /* treinador + parceiro (avatar pequeno no pé do treinador) */
@@ -386,32 +394,20 @@ button.pf-trainer:focus-visible,
 }
 
 /* abas */
+/* abas com ícone (.bc-tabs do kit); "Hall da Fama" pode quebrar em duas linhas no celular */
 .pf-tabs {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-    padding: 4px;
-    border-radius: 12px;
-    background: var(--bg-2);
+    border-radius: 6px;
+    overflow: hidden;
 }
-.pf-tab {
-    padding: 10px 6px;
-    border: 2px solid transparent;
-    border-radius: 9px;
-    background: transparent;
-    color: var(--muted);
-    font-weight: 700;
-    cursor: pointer;
+.pf-tabs.bc-tabs button span {
+    white-space: normal;
+    text-align: center;
+    line-height: 1.2;
 }
 .pf-tab:hover {
     color: var(--text);
 }
-.pf-tab.active {
-    background: var(--panel-2);
-    border-color: var(--yellow);
-    color: var(--yellow);
-}
-.pf-tab:focus-visible,
+.pf-chip:focus-visible,
 .pf-chip:focus-visible,
 .pf-type:focus-visible,
 .pf-cell:focus-visible,
@@ -1244,9 +1240,6 @@ fieldset.pf-field,
     }
     .pf-moves {
         grid-template-columns: minmax(0, 1fr);
-    }
-    .pf-tab {
-        font-size: 13px;
     }
     .pf-grid {
         grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));

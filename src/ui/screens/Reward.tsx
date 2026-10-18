@@ -77,11 +77,11 @@ export function Reward() {
 
     return (
         <>
-            <div className="draft-head">
-                <div>
-                    <div className="muted">
-                        {t('reward.nextStage', { stage: stageName(run.stage + 1, lang) || t('reward.cup') })}
-                    </div>
+            <div className="draft-head bc-screenhead">
+                <span className="bc-tag">
+                    {t('reward.nextStage', { stage: stageName(run.stage + 1, lang) || t('reward.cup') })}
+                </span>
+                <div className="draft-title">
                     <h1>
                         {reward
                             ? reward.kind === 'pokemon'

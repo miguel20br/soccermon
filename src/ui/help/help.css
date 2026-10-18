@@ -32,12 +32,12 @@
     gap: 8px;
 }
 .ob-count {
-    font-size: 12px;
-    color: var(--muted);
-    letter-spacing: 0.5px;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .ob-skip {
-    height: 34px;
+    min-height: 44px;
 }
 
 .ob-viewport {
@@ -72,9 +72,9 @@
     height: 200px;
     display: grid;
     place-items: center;
-    border-radius: 8px;
-    background: radial-gradient(120% 90% at 50% 100%, rgba(88, 194, 107, 0.18), transparent 60%), var(--bg-2);
-    border: 2px solid var(--line);
+    border-radius: 6px;
+    background: radial-gradient(120% 90% at 50% 100%, rgba(88, 194, 107, 0.18), transparent 60%), var(--bc-ink);
+    border-bottom: 2px solid var(--bc-edge);
     overflow: hidden;
     position: relative;
 }
@@ -614,9 +614,7 @@
     text-decoration: none;
 }
 .help-faq h2 {
-    margin: 8px 0 8px;
-    font-size: 16px;
-    color: var(--yellow);
+    margin: 8px 0;
 }
 .help-empty p {
     margin: 0 0 6px;
@@ -629,14 +627,12 @@
 }
 
 /* ---------- dica contextual ---------- */
+/* dica: superfície de placar com a faixa amarela (.bc-surface.bc-stripe do kit) */
 .tip {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 6px 6px 10px;
-    border-radius: 8px;
-    border: 2px solid rgba(255, 203, 5, 0.55);
-    background: rgba(255, 203, 5, 0.1);
+    padding: 6px 6px 6px 18px;
     font-size: 12px;
     line-height: 1.4;
     margin: 8px 0;
@@ -656,8 +652,8 @@
 }
 .tip-close {
     flex: none;
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     padding: 0;
     border: 0;
     border-radius: 6px;

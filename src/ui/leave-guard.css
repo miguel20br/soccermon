@@ -8,10 +8,9 @@
     gap: 12px;
     text-align: center;
 }
-.leave-confirm h2 {
-    margin: 0;
-    font-size: 18px;
-    color: var(--yellow);
+/* o título é a plaquinha do kit (.panel > h2): aqui só centra */
+.panel.leave-confirm > h2 {
+    margin: 0 auto;
 }
 .leave-confirm p {
     margin: 0;

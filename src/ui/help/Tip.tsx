@@ -44,7 +44,7 @@ export function Tip({ id, children }: { id: string; children: ReactNode }) {
     const { d } = useT();
     if (!enabled || hidden) return null;
     return (
-        <div className="tip" role="note">
+        <div className="tip bc-surface bc-stripe" role="note">
             <svg className="tip-icon" viewBox="0 0 16 16" aria-hidden="true">
                 <path d="M8 1.5a4.5 4.5 0 0 0-2.6 8.2c.4.3.6.7.6 1.1V12h4v-1.2c0-.4.2-.8.6-1.1A4.5 4.5 0 0 0 8 1.5Z" />
                 <rect x="6" y="13" width="4" height="1.6" rx=".6" />

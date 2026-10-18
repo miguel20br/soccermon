@@ -419,16 +419,22 @@ img.pixel {
 }
 
 /* ---------- draft ---------- */
+/* cabeçalho do draft em placar (.bc-screenhead): título, dica e o progresso das 7 escolhas */
 .draft-head {
-    display: flex;
     justify-content: space-between;
-    align-items: flex-end;
-    gap: 12px;
     flex-wrap: wrap;
+    row-gap: 8px;
 }
 .draft-head h1 {
-    margin: 0;
-    font-size: 22px;
+    font-size: 20px;
+}
+.draft-title {
+    flex: 1 1 280px;
+    min-width: 0;
+}
+.draft-title p {
+    margin: 4px 0 0;
+    font-size: 12px;
 }
 .steps {
     display: flex;
@@ -438,7 +444,7 @@ img.pixel {
     width: 26px;
     height: 8px;
     border-radius: 4px;
-    background: #0e1430;
+    background: var(--panel-2);
 }
 .steps span.done {
     background: var(--green);
@@ -565,30 +571,48 @@ img.pixel {
     font-size: 11px;
     color: var(--muted);
 }
+/* caminho da copa numa faixa de placar: cada fase com o risco da cor do resultado embaixo */
+.cup-bug {
+    padding: 4px;
+}
 .cup-path {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
+    gap: 4px;
 }
 .cup-step {
-    background: var(--bg-2);
-    border: 2px solid var(--line);
-    border-radius: 8px;
-    padding: 8px;
+    --c: transparent;
+    min-width: 0;
+    padding: 6px 8px 7px;
+    border-radius: 4px;
+    background: var(--bc-ink-2);
+    box-shadow: inset 0 -3px 0 var(--c);
     font-size: 11px;
 }
 .cup-step.now {
-    border-color: var(--yellow);
+    --c: var(--yellow);
+    background: #3a3f5f;
 }
 .cup-step.won {
-    border-color: var(--green);
+    --c: var(--green);
 }
 .cup-step.lost {
-    border-color: var(--red);
+    --c: var(--red);
 }
 .cup-step b {
     display: block;
     font-size: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+.cup-step.now b {
+    color: var(--yellow);
+}
+.cup-step span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .opponent-strip {
     display: flex;
@@ -1003,13 +1027,14 @@ button,
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--gap);
 }
-.formation-option {
+/* formações: peças do kit (.bc-tile) com o desenho da quadra */
+.formation-option.bc-tile {
     display: grid;
     justify-items: center;
+    align-content: start;
     gap: 8px;
+    padding: 14px 12px;
     text-align: center;
-    cursor: pointer;
-    color: inherit;
     font: inherit;
     transition: transform 0.12s ease;
 }
@@ -1111,9 +1136,10 @@ button,
 
 /* ---------- escalação ---------- */
 .formation-tabs {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
+    margin-bottom: 4px;
+}
+.side-stack .bc-styles {
+    margin: 2px 0 8px;
 }
 .side-stack {
     display: grid;
@@ -1329,7 +1355,7 @@ button,
     .formation-picker {
         grid-template-columns: 1fr;
     }
-    .formation-option {
+    .formation-option.bc-tile {
         grid-template-columns: 70px 1fr;
         justify-items: start;
         text-align: left;
@@ -1794,17 +1820,32 @@ button,
     max-height: calc(100vh - 32px);
     overflow-y: auto;
 }
+/* fechar: botão quadrado escuro, como as peças do placar */
 .modal-close {
     position: absolute;
     top: 8px;
-    right: 10px;
-    background: none;
-    border: 0;
-    color: var(--text);
-    font-size: 26px;
-    cursor: pointer;
+    right: 8px;
+    z-index: 2;
+    display: grid;
+    place-items: center;
     width: 44px;
     height: 44px;
+    padding: 0;
+    border: 0;
+    border-bottom: 2px solid var(--bc-edge);
+    border-radius: 6px;
+    background: var(--bc-ink);
+    color: var(--text);
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+.modal-close:hover {
+    color: var(--yellow);
+}
+.modal-close:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
 }
 /* a carta recebe o foco ao abrir (tabIndex -1): sem anel em volta do painel inteiro */
 .card-modal:focus {
@@ -2765,10 +2806,7 @@ button,
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px 14px;
-    border-radius: 12px;
-    background: linear-gradient(90deg, rgba(255, 138, 28, 0.25), rgba(164, 92, 255, 0.25));
-    border: 2px solid rgba(255, 255, 255, 0.25);
+    padding: 7px 12px 7px 18px;
     max-width: 420px;
     margin: 0 auto;
 }
@@ -2964,13 +3002,8 @@ button,
     display: grid;
     gap: 10px;
 }
-.soon h2 {
-    margin: 0;
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 16px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--yellow);
+.soon h2.bc-caption {
+    margin: 0 auto;
 }
 .soon-grid {
     display: grid;
@@ -3176,9 +3209,9 @@ button,
 }
 .account-bar.signed {
     padding: 6px 10px;
-    border-radius: 999px;
-    background: var(--panel);
-    border: 2px solid var(--line);
+    border-radius: 6px;
+    background: var(--bc-ink);
+    border-bottom: 2px solid var(--bc-edge);
 }
 .google-btn {
     display: inline-flex;
@@ -3698,9 +3731,8 @@ button,
     min-width: 0;
 }
 .st-tabs {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
+    border-radius: 6px;
+    overflow: hidden;
 }
 .st-legend {
     display: flex;
@@ -4034,13 +4066,7 @@ button,
     animation: rh-pop 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
 }
 .rh-stage {
-    padding: 3px 14px;
-    border-radius: 999px;
-    border: 2px solid var(--yellow);
-    color: var(--yellow);
-    font-size: 13px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-size: 12px;
 }
 .rh-title {
     margin: 0;
@@ -4080,22 +4106,51 @@ button,
 .rh-sub {
     color: var(--muted);
 }
+/* placar de transmissão: faixa na cor de cada time nas pontas, gols em caixa clara */
 .rh-score {
+    position: relative;
     display: grid;
     grid-template-columns: 1fr auto auto auto 1fr;
     align-items: center;
-    gap: 10px 14px;
+    gap: 10px 12px;
     width: min(720px, 100%);
     margin-top: 4px;
+    padding: 8px 18px;
+    border-radius: 6px;
+    background: var(--bc-ink);
+    border-bottom: 2px solid var(--bc-edge);
+}
+.rh-score::before,
+.rh-score::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    background: var(--home);
+}
+.rh-score::before {
+    left: 0;
+    border-radius: 6px 0 0 6px;
+}
+.rh-score::after {
+    right: 0;
+    background: var(--away);
+    border-radius: 0 6px 6px 0;
 }
 .rh-score b {
+    min-width: 1.15em;
+    padding: 0.08em 0.12em 0.04em;
+    border-radius: 4px;
+    background: #b9bccf;
+    color: var(--bc-ink);
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: clamp(40px, 8vw, 72px);
+    font-size: clamp(36px, 7vw, 64px);
+    font-weight: 400;
     line-height: 1;
-    color: var(--muted);
 }
 .rh-score b.lead {
-    color: #fff;
+    background: var(--bc-paper);
 }
 .rh-x {
     color: var(--muted);
@@ -4119,15 +4174,9 @@ button,
 .rh-team.home {
     justify-content: flex-end;
 }
+/* a cor do time é a faixa da ponta do placar */
 .rh-team i {
-    flex: none;
-    width: 14px;
-    height: 14px;
-    border-radius: 4px;
-    background: var(--home);
-}
-.rh-team.away i {
-    background: var(--away);
+    display: none;
 }
 .rh-pens {
     font-size: 14px;
@@ -4297,9 +4346,9 @@ button,
     width: min(620px, 100%);
     text-align: left;
 }
-.patch-notes h2 {
+.patch-notes h2.bc-caption {
+    max-width: calc(100% - 52px);
     margin: 0 0 8px;
-    padding-right: 30px;
 }
 /* separa uma versão da outra (o título da anterior colava na última linha da seguinte) */
 .patch-version + .patch-version {
@@ -4751,75 +4800,46 @@ button,
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
 }
 .home-top .event-banner {
+    flex: 0 1 auto;
+    min-width: 0;
     margin: 0;
     text-align: left;
 }
-.home-top .account-bar {
+.home-top .lang-toggle {
     margin-left: auto;
-    justify-content: flex-end;
-    text-align: right;
-    max-width: 360px;
 }
-.home-top .account-bar:not(.signed) .muted {
-    flex-basis: 100%;
-    font-size: 11px;
-}
-/* PT | EN: troca rápida de idioma (as Configurações também têm) */
+/* PT | EN: troca rápida de idioma (as Configurações também têm); o .bc-seg do kit */
 .lang-toggle {
     flex: none;
-    margin: 0;
-    padding: 0;
     min-width: 0;
-    display: flex;
-    border: 2px solid var(--line);
-    border-radius: 999px;
-    overflow: hidden;
-    background: var(--panel);
 }
-.lang-toggle button {
-    min-width: 40px;
-    height: 40px;
-    padding: 0 8px;
-    border: 0;
-    background: transparent;
-    color: var(--muted);
-    font: inherit;
+.lang-toggle.bc-seg button {
+    min-width: 44px;
+    min-height: 38px;
     font-size: 12px;
-    font-weight: 800;
     letter-spacing: 0.04em;
-    cursor: pointer;
-}
-.lang-toggle button + button {
-    border-left: 2px solid var(--line);
-}
-.lang-toggle button.on {
-    background: var(--yellow);
-    color: #1c2447;
-}
-.lang-toggle button:not(.on):hover,
-.lang-toggle button:focus-visible {
-    color: var(--text);
 }
 /* "?" do Como jogar: rever o passo a passo de boas-vindas */
 .help-fab {
     flex: none;
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     padding: 4px;
-    border-radius: 50%;
-    border: 2px solid var(--line);
-    background: var(--panel);
+    border-radius: 8px;
+    border: 0;
+    border-bottom: 2px solid var(--bc-edge);
+    background: var(--bc-ink);
     cursor: pointer;
     display: grid;
     place-items: center;
 }
 .help-fab:hover,
 .help-fab:focus-visible {
-    border-color: var(--yellow);
+    outline: 3px solid var(--yellow);
+    outline-offset: 1px;
 }
 .help-fab .menu-icon {
     width: 28px;
@@ -5218,10 +5238,7 @@ a.home-tile {
     grid-template-columns: 1fr auto;
     align-items: center;
     gap: 4px 12px;
-    padding: 14px;
-    border-radius: 12px;
-    border: 3px solid var(--yellow);
-    background: linear-gradient(120deg, rgb(255 203 5 / 16%), transparent 60%), var(--bg-2);
+    padding: 14px 14px 14px 20px;
     color: var(--text);
     font: inherit;
     text-align: left;
@@ -5238,10 +5255,7 @@ a.home-tile {
     grid-column: 1;
 }
 .rc-label {
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--yellow);
+    justify-self: start;
 }
 .rc-team {
     font-size: 20px;
@@ -5299,77 +5313,78 @@ a.home-tile {
     align-items: center;
     gap: 6px;
 }
+/* recordes em placas de placar: o número na caixa clara */
 .home .records span {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 4px 12px;
-    border-radius: 999px;
-    background: var(--panel);
-    border: 2px solid var(--line);
+    gap: 6px;
+    padding: 4px 10px 4px 4px;
+    border-radius: 6px;
+    background: var(--bc-ink);
+    border-bottom: 2px solid var(--bc-edge);
     font-size: 12px;
     color: var(--muted);
 }
 .home .records b {
-    color: var(--text);
-    font-size: 15px;
-}
-.home .records .rec-titles {
-    border-color: #ffd447;
-    padding: 2px 12px 2px 4px;
+    min-width: 26px;
+    padding: 0 5px;
+    border-radius: 4px;
+    background: var(--bc-paper);
+    color: var(--bc-ink);
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 26px;
+    text-align: center;
 }
 .home .records .rec-titles b {
-    color: #ffd447;
+    background: var(--yellow);
 }
 
-/* blocos do menu */
+/* blocos do menu: peças do kit (.bc-tile), ícone à esquerda */
 .home-tiles {
     width: 100%;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
     gap: 10px;
 }
 .home-tile {
     position: relative;
-    display: grid;
-    justify-items: center;
-    align-content: start;
-    gap: 4px;
-    padding: 14px 10px 12px;
-    border-radius: 12px;
-    border: 3px solid var(--line);
-    background: linear-gradient(180deg, var(--panel-2), var(--panel));
-    box-shadow: var(--shadow);
-    color: var(--text);
+    min-height: 60px;
     font: inherit;
-    cursor: pointer;
     transition:
         transform 0.12s ease,
         border-color 0.12s ease;
 }
-.home-tile:hover,
-.home-tile:focus-visible {
-    transform: translateY(-3px);
+.home-tile:hover {
+    transform: translateY(-2px);
     border-color: var(--yellow);
 }
-.home-tile:active {
-    transform: translateY(1px);
-}
 .home-tile .menu-icon {
-    width: 34px;
-    height: 34px;
+    flex: none;
+    width: 30px;
+    height: 30px;
 }
 .home-tile b {
     font-size: 14px;
 }
-.home-tile span {
+.home-tile small {
     font-size: 11px;
-    color: var(--muted);
     line-height: 1.3;
 }
 .home-tile.dev {
     border-style: dashed;
     opacity: 0.8;
+}
+/* celular estreito: ícone em cima, texto centrado (lado a lado o nome quebrava no meio) */
+@media (max-width: 420px) {
+    .home-tile {
+        flex-direction: column;
+        justify-content: flex-start;
+        gap: 4px;
+        padding: 10px 6px 9px;
+        text-align: center;
+    }
 }
 .tile-badge {
     position: absolute;
@@ -5410,27 +5425,52 @@ a.home-tile {
 }
 
 @media (max-width: 640px) {
-    .home-top {
-        justify-content: center;
+    /* celular: faixa do evento numa linha e quadra baixa, pro "Nova copa" ficar na primeira tela (até 320x568) */
+    .home {
+        gap: 12px;
     }
-    .home-top .account-bar {
-        margin: 0 auto;
-        justify-content: center;
-        text-align: center;
+    .home-top .event-banner {
+        padding: 5px 10px 5px 14px;
+        gap: 8px;
+    }
+    .home-top .event-banner span {
+        display: none;
+    }
+    .home-top .event-banner b {
+        font-size: 12px;
+        line-height: 1.25;
+    }
+    .home-top .event-banner .type-icon {
+        width: 22px;
+        height: 22px;
     }
     .home-court {
-        height: 130px;
-        --ground: 30px;
-        --mon: 44px;
+        height: 96px;
+        --ground: 18px;
+        --mon: 38px;
+    }
+    .home-court .hc-circle {
+        width: 54px;
+        height: 54px;
     }
     .home-parade {
-        bottom: 30px;
+        bottom: 18px;
     }
     .home-parade img {
-        height: 46px;
+        height: 40px;
+    }
+    .home-hero {
+        gap: 6px;
     }
     .home-hero .logo {
-        margin-top: -24px;
+        margin-top: -22px;
+    }
+    .home-hero .logo-img {
+        width: min(330px, 88%);
+    }
+    .tagline {
+        font-size: 12px;
+        line-height: 1.35;
     }
     .home-tiles {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -5468,27 +5508,22 @@ a.home-tile {
     grid-template-columns: minmax(0, 1fr);
     gap: 14px;
 }
-.menu-head {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
+/* cabeçalho em placar (.bc-screenhead do kit): aqui só o tamanho do título, do ícone e do voltar */
 .menu-head h1 {
-    margin: 0;
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: clamp(24px, 5vw, 34px);
-    color: var(--yellow);
-    text-shadow: 3px 3px 0 #0e1430;
+    font-size: clamp(20px, 4.6vw, 26px);
+    overflow-wrap: anywhere;
 }
 .menu-head .menu-icon {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
+    flex: none;
 }
 .back-btn {
     display: inline-grid;
     place-items: center;
-    width: 42px;
-    height: 42px;
+    flex: none;
+    width: 44px;
+    height: 44px;
     padding: 0;
 }
 .back-btn .menu-icon {
@@ -5509,26 +5544,16 @@ a.home-tile {
     color: var(--muted);
     font-size: 12px;
 }
+/* seletor das Configurações: o .bc-seg do kit, do tamanho do texto e quebrando linha se precisar */
 .segmented {
-    display: flex;
     flex-wrap: wrap;
-    gap: 6px;
-    padding: 4px;
-    border-radius: 12px;
-    background: var(--bg-2);
     width: fit-content;
     max-width: 100%;
 }
-.segmented .btn {
-    box-shadow: none;
-    border-color: transparent;
-    background: transparent;
-}
-.segmented .btn.active {
-    outline: none;
-    background: var(--panel-2);
-    border-color: var(--yellow);
-    color: var(--yellow);
+.bc-seg.segmented button {
+    flex: 1 0 auto;
+    min-height: 44px;
+    padding-inline: 12px;
 }
 .volume-row {
     display: flex;

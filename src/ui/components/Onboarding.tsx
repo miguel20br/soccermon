@@ -275,7 +275,7 @@ export function Onboarding() {
                 onKeyDown={onKeyDown}
             >
                 <div className="ob-top">
-                    <span className="ob-count">{fmt(o.count, { n: index + 1, total: SLIDES.length })}</span>
+                    <span className="ob-count bc-tag">{fmt(o.count, { n: index + 1, total: SLIDES.length })}</span>
                     <button type="button" className="btn ghost small ob-skip" onClick={close}>
                         {o.skip}
                     </button>

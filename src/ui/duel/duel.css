@@ -1,15 +1,16 @@
 /* Duelo ao vivo: sala, lobby, draft, prévia, partida e resultado. */
 
-/* Home: cartões de modo (Copa e Duelo) lado a lado no desktop, um embaixo do outro no celular */
+/* Home: a Copa é o modo principal (placar com etiqueta, botão vermelho); o Duelo vem do lado/embaixo, compacto e
+   com botão secundário */
 .home .mode-cards {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
+    gap: 12px;
     width: min(460px, 100%);
 }
 @media (min-width: 900px) {
     .home .mode-cards {
-        grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
         width: min(820px, 100%);
         align-items: stretch;
     }
@@ -17,42 +18,77 @@
 .home .mode-cards .menu {
     width: 100%;
 }
-.mode-head {
+.home .cup-card {
+    border-color: var(--yellow);
+    text-align: left;
+}
+.cup-card .mode-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+}
+.cup-card .mode-head b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 22px;
+    line-height: 1.15;
+    color: var(--text);
+}
+.cup-card .mode-head span:not(.bc-tag) {
+    color: var(--muted);
+    font-size: 12px;
+}
+.duel-card .mode-head {
     display: grid;
     gap: 2px;
     text-align: left;
 }
-.mode-head b {
+.duel-card .mode-head b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 20px;
-    color: var(--yellow);
+    font-size: 18px;
+    color: var(--text);
 }
-.mode-head span {
+.duel-card .mode-head span {
     color: var(--muted);
-    font-size: 13px;
+    font-size: 12px;
 }
-.duel-card {
+.home .duel-card {
     display: grid;
-    gap: 12px;
-    padding: 16px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+        "head art"
+        "go go";
     align-content: space-between;
+    gap: 8px 10px;
+    padding: 12px 14px;
+    background: var(--bg-2);
+    border-color: var(--line);
+    box-shadow: none;
+}
+.duel-card .mode-head {
+    grid-area: head;
+}
+.duel-card .duel-go {
+    grid-area: go;
+    min-height: 44px;
 }
 .duel-card-art {
+    grid-area: art;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    min-height: 64px;
+    gap: 4px;
+    /* a faixa BETA fica no canto de cima: a arte desce um pouco */
+    padding-top: 14px;
 }
 .duel-card-art img {
-    height: 56px;
+    height: 40px;
 }
 .duel-card-art .flip {
     transform: scaleX(-1);
 }
 .duel-card-art b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 22px;
+    font-size: 16px;
     color: var(--red);
     text-shadow: 2px 2px 0 #0e1430;
 }

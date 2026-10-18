@@ -18,6 +18,7 @@ import { lineupPosition, useGame } from '../../store/game-store';
 import { ChampionView } from '../components/ChampionView';
 import { CupGains } from '../components/CupGains';
 import { FutCard } from '../components/FutCard';
+import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { cardSprite } from '../components/PokeCard';
 import { type HeroStat, ResultHero } from '../components/ResultHero';
 import { FEEDBACK_URL } from '../links';
@@ -41,6 +42,7 @@ import {
 type Tab = 'times' | 'jogadores' | 'graficos' | 'copa';
 /** Abas (o rótulo vem do dicionário: result.tabs). */
 const TABS: Tab[] = ['times', 'jogadores', 'graficos', 'copa'];
+const TAB_ICON: Record<Tab, HudIconKind> = { times: 'team', jogadores: 'players', graficos: 'chart', copa: 'cup' };
 const pctOf = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 
 export function Result() {
@@ -113,9 +115,11 @@ export function Result() {
                         </button>
                     </>
                 ) : (
-                    <button type="button" className="btn primary big" onClick={advance}>
-                        {t('result.chooseReward')}
-                    </button>
+                    <div className="bc-thumbbar">
+                        <button type="button" className="btn primary big" onClick={advance}>
+                            {t('result.chooseReward')}
+                        </button>
+                    </div>
                 )}
             </div>
             {shared && (
@@ -332,17 +336,11 @@ export function MatchDetails({
             </div>
 
             <div className="panel st-panel">
-                <div className="st-tabs" role="tablist">
+                <div className="st-tabs bc-tabs" role="tablist">
                     {TABS.filter((id) => id !== 'copa' || cupTab).map((id) => (
-                        <button
-                            key={id}
-                            type="button"
-                            role="tab"
-                            aria-selected={tab === id}
-                            className={`btn small${tab === id ? ' active' : ''}`}
-                            onClick={() => setTab(id)}
-                        >
-                            {d.result.tabs[id]}
+                        <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => setTab(id)}>
+                            <HudIcon kind={TAB_ICON[id]} />
+                            <span>{d.result.tabs[id]}</span>
                         </button>
                     ))}
                 </div>

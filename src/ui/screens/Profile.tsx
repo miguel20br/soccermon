@@ -6,6 +6,7 @@ import { activeTitle, activeTrainer, isGoldTrainer } from '../../store/missions'
 import { clubColorHex } from '../../store/profile';
 import { titleClass } from '../../store/title-codes';
 import { HallList } from '../components/HallParade';
+import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { ClubTab } from '../profile/ClubTab';
 import { clubVars, titleName, trainerLabel, useAvatar } from '../profile/club';
@@ -16,6 +17,13 @@ import '../profile/profile.css';
 
 type Tab = 'clube' | 'missoes' | 'dex' | 'hall' | 'numeros';
 const TABS: Tab[] = ['clube', 'missoes', 'dex', 'hall', 'numeros'];
+const TAB_ICON: Record<Tab, HudIconKind> = {
+    clube: 'defensive',
+    missoes: 'flag',
+    dex: 'dex',
+    hall: 'cup',
+    numeros: 'chart',
+};
 
 /** Perfil: seu clube, a Pokédex e os números da carreira. */
 export function Profile() {
@@ -32,7 +40,9 @@ export function Profile() {
         <div className="menu-screen pf" style={clubVars(clubColorHex(profile.clubColor))}>
             <MenuHead title={t('profile.title')} icon="profile" onBack={() => go('home')} />
 
-            <header className={`panel pf-head${isGoldTrainer(activeTrainer(profile)) ? ' gold-frame' : ''}`}>
+            <header
+                className={`panel pf-head bc-surface bc-stripe${isGoldTrainer(activeTrainer(profile)) ? ' gold-frame' : ''}`}
+            >
                 <div className="pf-duo">
                     <TrainerSprite id={activeTrainer(profile)} className="pf-duo-trainer" />
                     <img
@@ -68,7 +78,7 @@ export function Profile() {
                 </dl>
             </header>
 
-            <div className="pf-tabs" role="tablist" aria-label={t('profile.title')}>
+            <div className="pf-tabs bc-tabs" role="tablist" aria-label={t('profile.title')}>
                 {TABS.map((id) => (
                     <button
                         type="button"
@@ -80,7 +90,8 @@ export function Profile() {
                         className={`pf-tab${tab === id ? ' active' : ''}`}
                         onClick={() => setTab(id)}
                     >
-                        {d.profile.tabs[id]}
+                        <HudIcon kind={TAB_ICON[id]} />
+                        <span>{d.profile.tabs[id]}</span>
                     </button>
                 ))}
             </div>

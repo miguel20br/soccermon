@@ -17,6 +17,7 @@ import { useCardModal } from '../card-modal';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
 import { LinkChips } from '../components/LinkChips';
+import { HudIcon } from '../components/MatchHud';
 import { cardSprite, TypeBadge } from '../components/PokeCard';
 import { Tip } from '../help/Tip';
 import { lineupAverage } from '../rating';
@@ -70,7 +71,7 @@ export function Lineup() {
     return (
         <>
             <Tip id="lineup-coach">{t('team.lineup.tip')}</Tip>
-            <div className="panel">
+            <div className="cup-bug bc-surface">
                 <div className="cup-path">
                     {d.common.stage.map((label, i) => {
                         const res = run.results.find((r) => r.stage === i);
@@ -139,18 +140,20 @@ export function Lineup() {
                                 n: lineupAverage(opponent.lineup, opponent.formation),
                             })}
                         </p>
-                        <button type="button" className="btn primary wide" onClick={play} disabled={loading}>
-                            {loading
-                                ? t('team.lineup.warming')
-                                : locked
-                                  ? t('team.lineup.backToMatch')
-                                  : t('team.lineup.play', {
-                                        stage:
-                                            lang === 'pt'
-                                                ? stageName(run.stage, lang).toLowerCase()
-                                                : stageName(run.stage, lang),
-                                    })}
-                        </button>
+                        <div className="bc-thumbbar">
+                            <button type="button" className="btn primary wide" onClick={play} disabled={loading}>
+                                {loading
+                                    ? t('team.lineup.warming')
+                                    : locked
+                                      ? t('team.lineup.backToMatch')
+                                      : t('team.lineup.play', {
+                                            stage:
+                                                lang === 'pt'
+                                                    ? stageName(run.stage, lang).toLowerCase()
+                                                    : stageName(run.stage, lang),
+                                        })}
+                            </button>
+                        </div>
                         {locked && <p className="tactic-desc">{t('team.lineup.lockedNote')}</p>}
                         {error && <p className="error-text">{error}</p>}
                     </div>
@@ -269,12 +272,13 @@ export function LineupEditor({
         <div className="lineup-grid">
             <div className="panel">
                 <h2>{title}</h2>
-                <div className="formation-tabs">
+                <div className="formation-tabs bc-seg segmented">
                     {Object.values(FORMATIONS).map((f) => (
                         <button
                             key={f.id}
                             type="button"
-                            className={`btn small${formation === f.id ? ' active' : ''}`}
+                            className={formation === f.id ? 'on' : undefined}
+                            aria-pressed={formation === f.id}
                             disabled={locked}
                             onClick={() => onFormation(f.id)}
                         >
@@ -311,16 +315,22 @@ export function LineupEditor({
 
                 <div className="panel">
                     <h2>{t('team.lineup.tactic')}</h2>
-                    <div className="tactics">
+                    <span className="bc-lbl">{t('match.coach.style')}</span>
+                    <div className="bc-styles">
                         {(Object.keys(TACTIC_LABEL) as Tactic[]).map((tc) => (
                             <button
                                 key={tc}
                                 type="button"
-                                className={`btn small${tactic === tc ? ' active' : ''}`}
+                                className={`bc-tile${tactic === tc ? ' on' : ''}`}
+                                aria-pressed={tactic === tc}
                                 disabled={locked}
                                 onClick={() => onTactic(tc)}
                             >
-                                {d.common.tactic[tc]}
+                                <HudIcon kind={tc} />
+                                <span>
+                                    <b>{d.common.tactic[tc]}</b>
+                                    <small>{d.match.coach.styleShort[tc]}</small>
+                                </span>
                             </button>
                         ))}
                     </div>
@@ -328,13 +338,17 @@ export function LineupEditor({
                         {d.team.lineup.tacticDesc[tactic]} {t('team.lineup.canChange')}
                     </p>
                     {captainBenched && <p className="error-text">{t('team.lineup.captainBenched')}</p>}
-                    <h3 style={{ marginTop: 12 }}>{t('team.lineup.corner')}</h3>
-                    <div className="tactics">
+                    <h3 className="bc-lbl">
+                        <HudIcon kind="flag" />
+                        {t('team.lineup.corner')}
+                    </h3>
+                    <div className="bc-seg">
                         {CORNER_PLANS.map((pl) => (
                             <button
                                 key={pl}
                                 type="button"
-                                className={`btn small${cornerPlan === pl ? ' active' : ''}`}
+                                className={cornerPlan === pl ? 'on' : undefined}
+                                aria-pressed={cornerPlan === pl}
                                 disabled={locked}
                                 onClick={() => onCorner({ cornerPlan: pl })}
                             >
@@ -376,7 +390,7 @@ export function LineupEditor({
                             {t('team.lineup.cornerTakerOff', { name: viewInstance(chosenTaker).displayName })}
                         </p>
                     )}
-                    <h3 style={{ marginTop: 12 }}>{t('team.lineup.typeSynergies')}</h3>
+                    <h3 className="bc-lbl">{t('team.lineup.typeSynergies')}</h3>
                     {synergies.length === 0 ? (
                         <p className="tactic-desc">{t('team.lineup.typeSynEmpty')}</p>
                     ) : (
@@ -391,7 +405,7 @@ export function LineupEditor({
                             ))}
                         </div>
                     )}
-                    <h3 style={{ marginTop: 12 }}>{t('team.lineup.storySynergies')}</h3>
+                    <h3 className="bc-lbl">{t('team.lineup.storySynergies')}</h3>
                     {links.length === 0 ? (
                         <p className="tactic-desc">{t('team.lineup.storySynEmpty')}</p>
                     ) : (

@@ -15,6 +15,7 @@ import { TypeIcon } from '../components/TypeIcon';
 import { FEEDBACK_URL, privacyUrl } from '../links';
 import { readCount, writeCount } from '../local-count';
 import { patchNotes } from '../patch-notes';
+import { TYPE_COLOR } from '../type-colors';
 
 /** O que vem por aí (só vitrine: nada disso é clicável ainda). Os textos ficam em i18n (home.soon). */
 const SOON_IMG = ['assets/cards/25.gif', 'assets/cards/143.gif', 'assets/ui/poke-ball.png'];
@@ -59,7 +60,7 @@ function LangToggle() {
     const { lang, t } = useT();
     const updateSettings = useGame((s) => s.updateSettings);
     return (
-        <fieldset className="lang-toggle" aria-label={t('home.langAria')}>
+        <fieldset className="lang-toggle bc-seg" aria-label={t('home.langAria')}>
             {(['pt', 'en'] as const).map((l) => (
                 <button
                     key={l}
@@ -141,22 +142,26 @@ export function Home() {
     };
     const tile = (k: keyof typeof d.home.tiles, vars?: Record<string, string>) => (
         <>
-            <b>{d.home.tiles[k][0]}</b>
-            <span>{fmt(d.home.tiles[k][1], vars)}</span>
+            <span>
+                <b>{d.home.tiles[k][0]}</b>
+                <small>{fmt(d.home.tiles[k][1], vars)}</small>
+            </span>
         </>
     );
 
     return (
         <div className={`home${entering ? ' home-enter' : ''}`}>
             <div className="home-top">
-                <div className="event-banner">
+                <div
+                    className="event-banner bc-surface bc-stripe"
+                    style={{ '--tc': TYPE_COLOR[eventType] } as CSSProperties}
+                >
                     <TypeIcon type={eventType} size={28} />
                     <div>
                         <b>{t('home.eventWeek', { type: typeName(eventType) })}</b>
                         <span>{t('home.eventText', { type: typeName(eventType) })}</span>
                     </div>
                 </div>
-                <AccountBar />
                 <LangToggle />
                 <button
                     type="button"
@@ -181,8 +186,9 @@ export function Home() {
             <DexProgress />
 
             <div className="mode-cards">
-                <div className="menu panel mode-card">
-                    <div className="mode-head">
+                <div className="menu panel mode-card cup-card">
+                    <div className="mode-head bc-screenhead">
+                        <span className="bc-tag">{t('home.cupTag')}</span>
                         <b>{t('duel.cupTitle')}</b>
                         <span>{t('duel.cupLine')}</span>
                     </div>
@@ -234,8 +240,12 @@ export function Home() {
                     ) : (
                         <>
                             {inProgress && run && (
-                                <button type="button" className="resume-card" onClick={() => go(resumeScreen)}>
-                                    <span className="rc-label">{t('home.inProgress')}</span>
+                                <button
+                                    type="button"
+                                    className="resume-card bc-surface bc-stripe"
+                                    onClick={() => go(resumeScreen)}
+                                >
+                                    <span className="rc-label bc-tag">{t('home.inProgress')}</span>
                                     <b className="rc-team">{run.teamName}</b>
                                     <span className="rc-step">{runStep}</span>
                                     <span className="rc-path" title={t('home.cupPath')}>
@@ -275,7 +285,7 @@ export function Home() {
                                     </button>
                                 </div>
                             ))}
-                            <label className="muted" htmlFor="team-name">
+                            <label className="bc-lbl" htmlFor="team-name">
                                 {inProgress ? t('home.orNew') : t('home.teamName')}
                             </label>
                             <div className="new-run">
@@ -315,11 +325,14 @@ export function Home() {
                         <b>VS</b>
                         <img className="pixel flip" src="assets/cards/133.gif" alt="" />
                     </span>
-                    <button type="button" className="btn primary big" onClick={() => go('duel')}>
+                    <button type="button" className="btn duel-go" onClick={() => go('duel')}>
                         {t('duel.createRoom')}
                     </button>
                 </div>
             </div>
+
+            {/* entrar com o Google: embaixo dos modos, pro "Nova copa" ficar na primeira tela do celular */}
+            <AccountBar />
 
             {records.cups > 0 && (
                 <div className="records">
@@ -352,37 +365,37 @@ export function Home() {
             )}
 
             <nav className="home-tiles" aria-label={t('common.ui.menu')}>
-                <button type="button" className="home-tile" onClick={() => go('profile')}>
+                <button type="button" className="home-tile bc-tile" onClick={() => go('profile')}>
                     <MenuIcon kind="profile" />
                     {tile('profile')}
                 </button>
-                <button type="button" className="home-tile" onClick={() => openLab('?lab=golpes')}>
+                <button type="button" className="home-tile bc-tile" onClick={() => openLab('?lab=golpes')}>
                     <MenuIcon kind="moves" />
                     {tile('moves')}
                 </button>
-                <button type="button" className="home-tile" onClick={() => go('help')}>
+                <button type="button" className="home-tile bc-tile" onClick={() => go('help')}>
                     <MenuIcon kind="help" />
                     {tile('help')}
                 </button>
-                <button type="button" className="home-tile" onClick={() => setNotesOpen(true)}>
+                <button type="button" className="home-tile bc-tile" onClick={() => setNotesOpen(true)}>
                     <MenuIcon kind="news" />
                     {tile('news', { v: notes[0].version })}
                     <em className="tile-badge">v{notes[0].version}</em>
                 </button>
-                <button type="button" className="home-tile" onClick={() => go('settings')}>
+                <button type="button" className="home-tile bc-tile" onClick={() => go('settings')}>
                     <MenuIcon kind="settings" />
                     {tile('settings')}
                 </button>
-                <button type="button" className="home-tile" onClick={() => go('credits')}>
+                <button type="button" className="home-tile bc-tile" onClick={() => go('credits')}>
                     <MenuIcon kind="credits" />
                     {tile('credits')}
                 </button>
-                <a className="home-tile" href={FEEDBACK_URL} target="_blank" rel="noopener">
+                <a className="home-tile bc-tile" href={FEEDBACK_URL} target="_blank" rel="noopener">
                     <MenuIcon kind="feedback" />
                     {tile('feedback')}
                 </a>
                 {import.meta.env.DEV && (
-                    <button type="button" className="home-tile dev" onClick={() => openLab('?cards=1')}>
+                    <button type="button" className="home-tile bc-tile dev" onClick={() => openLab('?cards=1')}>
                         <MenuIcon kind="cards" />
                         {tile('cards')}
                     </button>
@@ -411,7 +424,7 @@ export function Home() {
                         </button>
                         {notes.map((n) => (
                             <div key={n.version} className="patch-version">
-                                <h2>{t('home.version', { v: n.version, title: n.title })}</h2>
+                                <h2 className="bc-caption">{t('home.version', { v: n.version, title: n.title })}</h2>
                                 {n.sections.map((sec) => (
                                     <div key={sec.title}>
                                         <h3>{sec.title}</h3>
@@ -428,7 +441,7 @@ export function Home() {
                 </div>
             )}
             <section className="soon" aria-label={t('home.soonTitle')}>
-                <h2>{t('home.soonTitle')}</h2>
+                <h2 className="bc-caption">{t('home.soonTitle')}</h2>
                 <div className="soon-grid">
                     {d.home.soon.map((c, i) => (
                         <div key={SOON_IMG[i]} className="soon-card" data-ribbon={t('home.soonRibbon')}>

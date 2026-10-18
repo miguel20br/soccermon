@@ -128,7 +128,7 @@ export function ResultHero({
         // biome-ignore lint/a11y/useKeyWithClickEvents: toque pra pular a contagem; o teclado chega aos botões, que também completam
         <section className={`panel rh rh-${mood}`} style={style} aria-label={t('result.hero.aria')} onClick={finish}>
             {mood !== 'loss' && <Confetti count={mood === 'champ' ? 60 : 36} />}
-            <div className="rh-stage">{duel ? duel.stage : run ? stageName(run.stage) : ''}</div>
+            <div className="rh-stage bc-tag">{duel ? duel.stage : run ? stageName(run.stage) : ''}</div>
             <h1 className="rh-title" aria-label={title}>
                 {[...title].map((ch, i) => (
                     // biome-ignore lint/suspicious/noArrayIndexKey: letras do título

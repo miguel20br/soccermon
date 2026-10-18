@@ -12,6 +12,7 @@ export const home: typeof pt = {
         new: '+{n} new',
     },
     choosingReward: 'Choosing the reward',
+    cupTag: 'Main mode',
     eventWeek: '{type}-type week',
     eventText: '{type}-type Event cards may show up in the draft.',
     helpAria: 'How to play (see the walkthrough again)',

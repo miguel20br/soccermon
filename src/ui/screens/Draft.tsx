@@ -91,18 +91,16 @@ export function Draft() {
     if (run.status === 'formation') {
         return (
             <>
-                <div className="draft-head">
-                    <div>
-                        <div className="muted">{t('team.draft.beforeDraft')}</div>
-                        <h1>{t('team.draft.chooseFormation')}</h1>
-                    </div>
+                <div className="draft-head bc-screenhead">
+                    <span className="bc-tag">{t('team.draft.beforeDraft')}</span>
+                    <h1>{t('team.draft.chooseFormation')}</h1>
                 </div>
                 <div className="formation-picker">
                     {Object.values(FORMATIONS).map((f) => (
                         <button
                             key={f.id}
                             type="button"
-                            className="panel formation-option"
+                            className="bc-tile formation-option"
                             onClick={() => {
                                 playSfx('select');
                                 chooseFormation(f.id);
@@ -175,18 +173,16 @@ export function Draft() {
 
     return (
         <>
-            <div className="draft-head">
-                <div>
-                    <div className="muted">
-                        {isCaptain
-                            ? t('common.ui.captain')
-                            : t('team.draft.pickOf', { n: run.draftRound + 1, total: DRAFT_PICKS })}{' '}
-                        · {formationText(run.formation, lang).name}
-                    </div>
+            <div className="draft-head bc-screenhead">
+                <span className="bc-tag">
+                    {isCaptain
+                        ? t('common.ui.captain')
+                        : t('team.draft.pickOf', { n: run.draftRound + 1, total: DRAFT_PICKS })}{' '}
+                    · {formationText(run.formation, lang).name}
+                </span>
+                <div className="draft-title">
                     <h1>{title}</h1>
-                    <p className="muted" style={{ margin: '4px 0 0' }}>
-                        {hint}
-                    </p>
+                    <p className="muted">{hint}</p>
                 </div>
                 <div className="steps" role="img" aria-label={t('team.draft.progress')}>
                     {Array.from({ length: DRAFT_PICKS }, (_, i) => (
@@ -234,7 +230,7 @@ export function Draft() {
                 {showOptions && (
                     <div className="draft-options" ref={optionsRef}>
                         <div className="row options-bar">
-                            <span className="muted">
+                            <span className="bc-lbl">
                                 {isCaptain
                                     ? t('team.draft.captainCandidates')
                                     : t('team.draft.optionsFor', { pos: roleLabel })}
