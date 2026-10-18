@@ -215,7 +215,6 @@
     display: block;
     height: calc(var(--v) * 100%);
     text-decoration: none;
-    transition: height 0.4s var(--ease-out);
 }
 .bc-pressure b {
     align-self: end;
