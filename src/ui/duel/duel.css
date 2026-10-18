@@ -163,27 +163,17 @@
     display: grid;
     gap: 8px;
 }
-.duel-mode {
-    display: grid;
+/* modos: peças do kit (.bc-tile), título em cima e a explicação embaixo */
+.duel-mode.bc-tile {
+    flex-direction: column;
+    align-items: flex-start;
     gap: 4px;
-    text-align: left;
-    padding: 12px 14px;
-    color: var(--text);
-    cursor: pointer;
-    border: 3px solid transparent;
+    padding: 10px 14px;
     font: inherit;
 }
 .duel-mode span {
     color: var(--muted);
     font-size: 13px;
-}
-.duel-mode.on {
-    border-color: var(--yellow);
-    background: var(--panel-2);
-}
-.duel-speeds .row {
-    gap: 6px;
-    flex-wrap: wrap;
 }
 
 /* lobby */
@@ -199,11 +189,16 @@
     justify-items: center;
     gap: 2px;
 }
+/* o código da sala na caixa clara, como os gols do placar */
 .duel-code b {
+    padding: 2px 6px 0 12px;
+    border-radius: 4px;
+    background: var(--bc-paper);
+    color: var(--bc-ink);
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: clamp(32px, 9vw, 48px);
+    font-size: clamp(30px, 9vw, 46px);
+    font-weight: 400;
     letter-spacing: 6px;
-    color: var(--yellow);
 }
 /* selo BETA: a mesma faixa do "Em breve", em azul */
 .home .beta-ribbon {
@@ -786,13 +781,7 @@
 
 /* convite: código grande, compartilhar, WhatsApp e QR */
 .duel-lobby-head {
-    display: grid;
-    gap: 2px;
-    justify-items: center;
-    text-align: center;
-}
-.duel-lobby-head h1 {
-    margin: 0;
+    justify-self: stretch;
 }
 .duel-invite {
     position: relative;

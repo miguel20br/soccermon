@@ -891,9 +891,13 @@ fieldset.pf-field,
     display: grid;
     gap: 8px;
 }
+/* rótulo de seção da transmissão (como "ESTILO DE JOGO") */
 .pf-block h3 {
     margin: 0;
-    font-size: 13px;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 1px;
+    text-transform: uppercase;
     color: var(--muted);
     display: flex;
     justify-content: space-between;

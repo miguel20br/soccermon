@@ -213,16 +213,19 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
     const [specialLimit, setSpecialLimit] = useState<SpecialLimit>(DEFAULT_SPECIAL_LIMIT);
     return (
         <div className="duel-create">
-            <h1>{t('duel.newDuel')}</h1>
+            <header className="bc-screenhead">
+                <span className="bc-tag">{t('duel.title')}</span>
+                <h1>{t('duel.newDuel')}</h1>
+            </header>
             <p className="muted">{t('duel.newHint')}</p>
             <BetaNote />
             <fieldset className="duel-modes">
-                <legend className="muted">{t('duel.modeLabel')}</legend>
+                <legend className="bc-lbl">{t('duel.modeLabel')}</legend>
                 {DUEL_MODES.map((m) => (
                     <button
                         key={m}
                         type="button"
-                        className={`panel duel-mode${mode === m ? ' on' : ''}`}
+                        className={`bc-tile duel-mode${mode === m ? ' on' : ''}`}
                         aria-pressed={mode === m}
                         data-mode={m}
                         disabled={m === 'ready' && !hasTeam}
@@ -236,13 +239,13 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
             </fieldset>
             {mode === 'ready' && (
                 <fieldset className="duel-speeds">
-                    <legend className="muted">{t('duel.specials.label')}</legend>
-                    <div className="row">
+                    <legend className="bc-lbl">{t('duel.specials.label')}</legend>
+                    <div className="bc-seg segmented">
                         {SPECIAL_LIMITS.map((l) => (
                             <button
                                 key={String(l)}
                                 type="button"
-                                className={`btn small${specialLimit === l ? ' active' : ''}`}
+                                className={specialLimit === l ? 'on' : undefined}
                                 aria-pressed={specialLimit === l}
                                 onClick={() => setSpecialLimit(l)}
                             >
@@ -258,13 +261,13 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
                 </fieldset>
             )}
             <fieldset className="duel-speeds">
-                <legend className="muted">{t('duel.speedLabel')}</legend>
-                <div className="row">
+                <legend className="bc-lbl">{t('duel.speedLabel')}</legend>
+                <div className="bc-seg segmented">
                     {DUEL_SPEEDS.map((sp) => (
                         <button
                             key={String(sp)}
                             type="button"
-                            className={`btn small${speed === sp ? ' active' : ''}`}
+                            className={speed === sp ? 'on' : undefined}
                             aria-pressed={speed === sp}
                             onClick={() => setSpeed(sp)}
                         >
@@ -455,9 +458,9 @@ function Lobby() {
     const rivalIn = !!s.peers[other(role)];
     return (
         <div className="duel-lobby">
-            <div className="duel-lobby-head">
+            <div className="duel-lobby-head bc-screenhead">
                 <h1>{rivalIn ? t('duel.lobby.title') : t('duel.lobby.inviteTitle')}</h1>
-                <span className="muted">
+                <span className="bc-tag">
                     {d.duel.modes[s.mode][0]} · {speedLabel(s.speed, t('match.highlights'))}
                     {s.mode === 'ready' && (
                         <>

@@ -107,7 +107,10 @@ export function TeamPick({ s, role }: { s: Shared; role: Role }) {
     }
     return (
         <div className="duel-teams">
-            <h1>{t('duel.team.title')}</h1>
+            <header className="bc-screenhead">
+                <span className="bc-tag">{t('duel.title')}</span>
+                <h1>{t('duel.team.title')}</h1>
+            </header>
             <p className="muted">{specialRuleText(specialLimitOf(s), t)}</p>
             {options.length === 0 && <p className="panel muted">{t('duel.team.none')}</p>}
             <div className="duel-team-list">
@@ -236,15 +239,13 @@ export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
 
     return (
         <div className="duel-draft">
-            <div className="draft-head">
-                <div>
-                    <div className="muted">
-                        {t('duel.draft.round', { n: round + 1 })} · {slotLabel}
-                    </div>
+            <div className="draft-head bc-screenhead">
+                <span className="bc-tag">
+                    {t('duel.draft.round', { n: round + 1 })} · {slotLabel}
+                </span>
+                <div className="draft-title">
                     <h1>{title}</h1>
-                    <p className="muted" style={{ margin: '4px 0 0' }}>
-                        {disputa ? t('duel.draft.burn') : t('duel.draft.hidden')}
-                    </p>
+                    <p className="muted">{disputa ? t('duel.draft.burn') : t('duel.draft.hidden')}</p>
                 </div>
                 <div className="duel-draft-clock">
                     <div className="steps" role="img" aria-label={t('team.draft.progress')}>
@@ -450,13 +451,11 @@ export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
     const rivalAvg = avgOf(rivalTeam);
     return (
         <div className="duel-preview">
-            <div className="draft-head">
-                <div>
-                    <div className="muted">{t('duel.preview.kicker')}</div>
+            <div className="draft-head bc-screenhead">
+                <span className="bc-tag">{t('duel.preview.kicker')}</span>
+                <div className="draft-title">
                     <h1>{t('duel.preview.title')}</h1>
-                    <p className="muted" style={{ margin: '4px 0 0' }}>
-                        {t('duel.preview.hint')}
-                    </p>
+                    <p className="muted">{t('duel.preview.hint')}</p>
                 </div>
                 <div className={`duel-timer${left <= 5 ? ' low' : ''}`} data-testid="duel-timer">
                     {left}
