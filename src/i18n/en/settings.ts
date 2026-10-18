@@ -17,6 +17,8 @@ export const settings: typeof pt = {
         crowd: 'Crowd',
         crowdHint: 'Cheers on your goals, boos on the rival’s and an "oooh" when you nearly score.',
         crowdVolume: 'Crowd volume',
+        goalCry: 'Goal cry',
+        goalCryHint: 'On your goals, the captain cries along with the crowd (at the effects volume).',
         criesStyle: 'Cry style',
         criesLegacy: 'Classic 8-bit (Gen 1)',
         criesLatest: 'Modern',

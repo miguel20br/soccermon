@@ -41,7 +41,7 @@ import {
     shadowSize,
     skinOf,
 } from '../animation-manager';
-import { playCrowd, playCry, playSample, playSfx } from '../audio';
+import { playCrowd, playCry, playGoalCry, playSample, playSfx } from '../audio';
 import { trailParticle, typeBurst } from '../ball-trail';
 import { BattleBox } from '../battle-box';
 import { Cinematics, FOCUS_DEPTH } from '../cinematics';
@@ -1534,6 +1534,12 @@ export class MatchScene extends Phaser.Scene {
                 playSfx('goal', e.team === this.mine ? 2 ** ((e.score[this.mine] - 1) / 12) : 0.9);
                 playCrowd(e.team === this.mine ? 'gol' : 'vaia');
                 const scorer = this.players[e.by];
+                // grito de gol: o capitão grita junto com a torcida (se não foi ele quem marcou: esse já gritou)
+                const captain = this.players.find((v) => v.team === this.mine && v.captain);
+                if (e.team === this.mine && captain && captain !== scorer) {
+                    const id = captain.speciesId;
+                    this.time.delayedCall(450, () => playGoalCry(id, cries));
+                }
                 if (scorer) {
                     playCry(scorer.speciesId, cries, 1.2);
                     this.highlight(e.ownGoal ? 'owngoal' : 'goal', scorer);

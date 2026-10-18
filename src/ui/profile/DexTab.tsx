@@ -3,22 +3,27 @@ import { SPECIES } from '../../engine/data';
 import { typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { type DexEntry, isPlayed } from '../../store/profile';
+import { albumSlots, type DexEntry, hasSticker, isPlayed } from '../../store/profile';
 import { TypeIcon } from '../components/TypeIcon';
 import { speciesGif } from './club';
-import { BallMark } from './icons';
+import { BallMark, ChampionRibbon } from './icons';
 import { dexNo, SpeciesSheet } from './SpeciesSheet';
 
 type Status = 'played' | 'seen' | 'unseen';
-type Filter = 'all' | Status;
+type Filter = 'all' | Status | 'missing';
 
-const FILTERS: Filter[] = ['all', 'played', 'seen', 'unseen'];
+const FILTERS: Filter[] = ['all', 'played', 'seen', 'unseen', 'missing'];
 
 const statusOf = (e: DexEntry | undefined): Status => (!e ? 'unseen' : isPlayed(e) ? 'played' : 'seen');
 
 /** Tipos que existem nos 151, na ordem da tabela de tipos. */
 const TYPES = [...new Set(SPECIES.flatMap((s) => s.types))];
 const TOTAL = SPECIES.length;
+/** Álbum: as edições que existem de cada espécie (Ícone só nos 20 da lista). */
+const SLOTS = new Map(SPECIES.map((sp) => [sp.id, albumSlots(sp)]));
+const STICKERS = [...SLOTS.values()].reduce((n, s) => n + s.length, 0);
+const stickersGot = (id: number, e: DexEntry | undefined) =>
+    SLOTS.get(id)?.filter((ed) => hasSticker(e, ed)).length ?? 0;
 
 /** Pokédex: os 151 com o que você já viu e quem já jogou pelo seu time. */
 export function DexTab() {
@@ -26,11 +31,16 @@ export function DexTab() {
     const [filter, setFilter] = useState<Filter>('all');
     const [type, setType] = useState<string | null>(null);
     const [open, setOpen] = useState<number | null>(null);
-    const { t, d, lang } = useT();
+    const { t, tn, d, lang } = useT();
 
     const counts = useMemo(() => {
-        const c = { all: TOTAL, played: 0, seen: 0, unseen: 0 };
-        for (const sp of SPECIES) c[statusOf(dex[sp.id])]++;
+        const c = { all: TOTAL, played: 0, seen: 0, unseen: 0, missing: 0, stickers: 0 };
+        for (const sp of SPECIES) {
+            c[statusOf(dex[sp.id])]++;
+            const got = stickersGot(sp.id, dex[sp.id]);
+            c.stickers += got;
+            if (got < (SLOTS.get(sp.id)?.length ?? 0)) c.missing++;
+        }
         return c;
     }, [dex]);
     const seenCount = counts.played + counts.seen;
@@ -39,7 +49,9 @@ export function DexTab() {
         () =>
             SPECIES.filter((sp) => {
                 const st = statusOf(dex[sp.id]);
-                if (filter !== 'all' && st !== filter) return false;
+                if (filter === 'missing') {
+                    if (stickersGot(sp.id, dex[sp.id]) >= (SLOTS.get(sp.id)?.length ?? 0)) return false;
+                } else if (filter !== 'all' && st !== filter) return false;
                 // o tipo de quem você ainda não viu fica escondido (como nos jogos)
                 if (type && (st === 'unseen' || !sp.types.includes(type))) return false;
                 return true;
@@ -67,6 +79,23 @@ export function DexTab() {
                     <i className="seen" style={{ width: `${(seenCount / TOTAL) * 100}%` }} />
                     <i className="played" style={{ width: `${(counts.played / TOTAL) * 100}%` }} />
                 </div>
+            </div>
+
+            <div className="pf-album">
+                <span className="pf-album-label">{t('profile.dex.stickers')}</span>
+                <b className="pf-album-n">
+                    <span aria-hidden>
+                        {counts.stickers}
+                        <small>/{STICKERS}</small>
+                    </span>
+                    <span className="pf-sr">
+                        {t('profile.dex.stickersAria', { n: counts.stickers, total: STICKERS })}
+                    </span>
+                </b>
+                <div className="pf-bar" aria-hidden>
+                    <i className="played" style={{ width: `${(counts.stickers / STICKERS) * 100}%` }} />
+                </div>
+                <small className="muted">{t('profile.dex.stickersHelp')}</small>
             </div>
 
             <fieldset className="pf-filters">
@@ -105,13 +134,14 @@ export function DexTab() {
                     {list.map((sp) => {
                         const st = statusOf(dex[sp.id]);
                         const known = st !== 'unseen';
+                        const titles = dex[sp.id]?.titles ?? 0;
                         return (
                             <li key={sp.id}>
                                 <button
                                     type="button"
                                     className={`pf-cell ${st}`}
                                     onClick={() => setOpen(sp.id)}
-                                    aria-label={`${t('profile.dex.cellAria', { no: dexNo(sp.id), name: known ? sp.name : t('profile.dex.notSeenLower') })}${st === 'played' ? t('profile.dex.playedForYou') : ''}`}
+                                    aria-label={`${t('profile.dex.cellAria', { no: dexNo(sp.id), name: known ? sp.name : t('profile.dex.notSeenLower') })}${st === 'played' ? t('profile.dex.playedForYou') : ''}${titles ? tn('profile.dex.ribbonAria', titles) : ''}`}
                                 >
                                     <span className="pf-cell-no">{dexNo(sp.id)}</span>
                                     <img
@@ -124,6 +154,12 @@ export function DexTab() {
                                     />
                                     <span className="pf-cell-name">{known ? sp.name : '???'}</span>
                                     {st === 'played' && <BallMark className="pf-ball pf-cell-mark" />}
+                                    {titles > 0 && <ChampionRibbon n={titles} className="pf-ribbon pf-cell-ribbon" />}
+                                    <span className="pf-pips" aria-hidden>
+                                        {SLOTS.get(sp.id)?.map((ed) => (
+                                            <i key={ed} className={hasSticker(dex[sp.id], ed) ? `on ed-${ed}` : ''} />
+                                        ))}
+                                    </span>
                                 </button>
                             </li>
                         );
@@ -131,11 +167,13 @@ export function DexTab() {
                 </ul>
             ) : (
                 <p className="pf-empty">
-                    {filter === 'unseen' && type
-                        ? t('profile.dex.emptyUnseenType')
-                        : filter === 'played'
-                          ? t('profile.dex.emptyPlayed')
-                          : t('profile.dex.empty')}
+                    {filter === 'missing'
+                        ? t('profile.dex.emptyMissing')
+                        : filter === 'unseen' && type
+                          ? t('profile.dex.emptyUnseenType')
+                          : filter === 'played'
+                            ? t('profile.dex.emptyPlayed')
+                            : t('profile.dex.empty')}
                 </p>
             )}
 

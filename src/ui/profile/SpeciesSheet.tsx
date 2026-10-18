@@ -3,16 +3,17 @@ import { MOVES, SPECIES_BY_ID, type Species, type StatKey, species } from '../..
 import { DEFAULT_LEVEL, type PokemonInstance, viewInstance } from '../../engine/instance';
 import { defaultMoveset } from '../../engine/moves';
 import { SIGNATURE } from '../../engine/signature-moves';
+import { EVENT_TYPES } from '../../engine/specials';
 import { playCry } from '../../game/audio';
 import { getLang, moveName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { type Dex, isPlayed, type MoveDex } from '../../store/profile';
+import { albumSlots, type Dex, hasSticker, isPlayed, type MoveDex } from '../../store/profile';
 import { TypeIcon } from '../components/TypeIcon';
 import { METAL, metalOf } from '../rarity';
 import { TYPE_COLOR } from '../type-colors';
 import { speciesGif } from './club';
-import { BallMark, Chevron, EvoArrow, LockIcon, SpeakerIcon } from './icons';
+import { BallMark, ChampionRibbon, Chevron, EvoArrow, LockIcon, SpeakerIcon } from './icons';
 
 const STATS: StatKey[] = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'];
 
@@ -69,7 +70,7 @@ export function SpeciesSheet({
     const dex = useGame((s) => s.dex);
     const moves = useGame((s) => s.moves);
     const cries = useGame((s) => s.settings.cries);
-    const { t } = useT();
+    const { t, tn } = useT();
     const sp = species(id);
     const entry = dex[id];
     const seen = !!entry;
@@ -152,6 +153,11 @@ export function SpeciesSheet({
                                 </>
                             )}
                         </span>
+                        {(entry?.titles ?? 0) > 0 && (
+                            <span className="pf-champ">
+                                <ChampionRibbon n={entry.titles} /> {tn('profile.sheet.ribbon', entry.titles)}
+                            </span>
+                        )}
                         {seen && (
                             <button
                                 type="button"
@@ -324,6 +330,8 @@ function SeenBody({ sp, dex, moves, onNav }: { sp: Species; dex: Dex; moves: Mov
                 {found < moveIds.length && <p className="pf-note">{t('profile.sheet.movesHelp')}</p>}
             </section>
 
+            <Album sp={sp} dex={dex} />
+
             <section className="pf-block">
                 <h3>{t('profile.sheet.career')}</h3>
                 {entry && isPlayed(entry) ? (
@@ -361,6 +369,48 @@ function SeenBody({ sp, dex, moves, onNav }: { sp: Species; dex: Dex; moves: Mov
                 )}
             </section>
         </div>
+    );
+}
+
+/** Álbum da espécie: uma figurinha por edição (colada = já jogou por você com uma carta dessa edição). */
+function Album({ sp, dex }: { sp: Species; dex: Dex }) {
+    const { t, d } = useT();
+    const entry = dex[sp.id];
+    const slots = albumSlots(sp);
+    const got = slots.filter((ed) => hasSticker(entry, ed)).length;
+    const eventColor = TYPE_COLOR[sp.types.find((ty) => EVENT_TYPES.includes(ty)) ?? sp.types[0]];
+    return (
+        <section className="pf-block">
+            <h3>
+                {t('profile.sheet.album')}{' '}
+                <span className="pf-bst">{t('profile.sheet.albumCount', { n: got, total: slots.length })}</span>
+            </h3>
+            <ul className="pf-stickers" style={{ ['--t1' as string]: eventColor }}>
+                {slots.map((ed) => {
+                    const on = hasSticker(entry, ed);
+                    const label = ed === 'normal' ? t('profile.sheet.normal') : d.common.edition[ed];
+                    return (
+                        <li
+                            key={ed}
+                            className={`pf-sticker${on ? ` got sk-${ed}` : ''}`}
+                            aria-label={t(on ? 'profile.sheet.stickerGot' : 'profile.sheet.stickerMissing', {
+                                edition: label,
+                            })}
+                        >
+                            <img
+                                className={`pixel${on ? '' : ' pf-silhouette'}`}
+                                src={speciesGif(sp.id)}
+                                alt=""
+                                loading="lazy"
+                                draggable={false}
+                            />
+                            <small>{label}</small>
+                        </li>
+                    );
+                })}
+            </ul>
+            {got < slots.length && <p className="pf-note">{t('profile.sheet.albumHelp')}</p>}
+        </section>
     );
 }
 

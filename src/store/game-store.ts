@@ -29,13 +29,16 @@ import {
     clubColorHex,
     DEFAULT_PROFILE,
     type Dex,
+    EDITION_BIT,
     EMPTY_CAREER,
+    editionBits,
     type HallEntry,
     MAX_HALL,
     type MoveDex,
     markOvr,
     markSeen,
     type Profile,
+    recordEditions,
     recordMatchInCareer,
     recordMatchInDex,
     recordMovesSeen,
@@ -195,6 +198,8 @@ export interface Settings {
     criesVolume: number;
     sfxVolume: number;
     crowdVolume: number;
+    /** Grito de gol: o cry do capitão toca junto com a torcida no seu gol. */
+    goalCry: boolean;
     /** Velocidade com que a partida começa. */
     speed: PlaybackSpeed;
     cinematic: boolean;
@@ -222,6 +227,7 @@ export const DEFAULT_SETTINGS: Settings = {
     criesVolume: 1,
     sfxVolume: 1,
     crowdVolume: 1,
+    goalCry: true,
     // 1x deixava a partida com ~13 min; 4x é o ritmo de quem chega (cada um muda na partida ou em Configurações)
     speed: 4,
     cinematic: true,
@@ -488,7 +494,30 @@ const runShapeOk = (r: unknown): r is RunState => {
 };
 
 /** Versão atual do save (a mesma do `persist`). */
-export const SAVE_VERSION = 8;
+export const SAVE_VERSION = 9;
+
+/**
+ * Álbum de edições pra quem já jogava (v9): o que dá pra saber do save. Quem jogou ganha a Normal (quase toda carta
+ * é Normal); o Hall da Fama dá a Shiny; as copas guardadas dão a edição de cada carta que jogou (a Destaque só se
+ * jogou depois de virar Destaque).
+ */
+export function backfillEditions(dex: Dex, hall: HallEntry[], runs: (RunState | null | undefined)[]): Dex {
+    const got: [number, number][] = Object.keys(dex).map((id) => [Number(id), EDITION_BIT.normal]);
+    for (const h of hall) for (const p of h.squad) if (p.shiny) got.push([p.speciesId, EDITION_BIT.shiny]);
+    for (const r of runs) {
+        if (!r) continue;
+        for (const res of r.results)
+            for (const line of res.stats?.players ?? []) {
+                const card = r.picks.find((p) => p.uid === line.uid);
+                if (!card || line.minutes < 1) continue;
+                const starAt = r.results.find((x) => x.destaqueUid === card.uid)?.stage ?? Infinity;
+                const asPlayed =
+                    card.special?.kind === 'destaque' && res.stage <= starAt ? { ...card, special: null } : card;
+                got.push([line.speciesId, editionBits(asPlayed)]);
+            }
+    }
+    return recordEditions(dex, got);
+}
 
 /**
  * Missões que o save já garante (sem aviso: é retroativo). Feitos de partida contam pelas partidas guardadas nas
@@ -543,6 +572,16 @@ export function migrateSave(old: Partial<PersistedSave>, version: number): Persi
             run.picks.map((p): [number, number] => [p.speciesId, viewInstance(p).overall]),
         );
     }
+    // v9: álbum de edições (retroativo)
+    const hall = Array.isArray(old.hall) ? old.hall.slice(0, MAX_HALL) : [];
+    const parkedRuns =
+        version < 3 || !Array.isArray(old.parkedRuns)
+            ? []
+            : old.parkedRuns
+                  .filter(runShapeOk)
+                  .map((r) => ({ ...r, lockedTeam: r.lockedTeam ?? null }))
+                  .slice(0, MAX_PARKED);
+    if (version < 9) dex = backfillEditions(dex, hall, [run, ...parkedRuns]);
     return withUnlocks({
         run,
         settings,
@@ -553,15 +592,9 @@ export function migrateSave(old: Partial<PersistedSave>, version: number): Persi
         career: { ...EMPTY_CAREER, ...old.career },
         onboarded: old.onboarded ?? (version < 5 && (records.cups > 0 || !!run)),
         // campo opcional (saves e versões anteriores não têm): copas guardadas válidas, no máximo MAX_PARKED
-        parkedRuns:
-            version < 3 || !Array.isArray(old.parkedRuns)
-                ? []
-                : old.parkedRuns
-                      .filter(runShapeOk)
-                      .map((r) => ({ ...r, lockedTeam: r.lockedTeam ?? null }))
-                      .slice(0, MAX_PARKED),
+        parkedRuns,
         // v6: Hall da Fama
-        hall: Array.isArray(old.hall) ? old.hall.slice(0, MAX_HALL) : [],
+        hall,
         // v8: histórico dos duelos amistosos
         duels: Array.isArray(old.duels)
             ? old.duels.filter((x) => x && typeof x.id === 'string').slice(0, MAX_DUELS)
@@ -859,6 +892,14 @@ export const useGame = create<GameStore>()(
                     // Pokédex: seu time (1+ minuto) "jogou", o rival e as recompensas ficam "vistos";
                     // quem evoluiu em campo também entra (a forma nova jogou o resto da partida)
                     let dex = recordMatchInDex(getState().dex, lines, won);
+                    // álbum: a edição de cada carta que jogou (como ela entrou: o Destaque desta partida conta na próxima)
+                    dex = recordEditions(
+                        dex,
+                        lines.flatMap((l) => {
+                            const card = l.team === 0 && l.minutes >= 1 && run.picks.find((p) => p.uid === l.uid);
+                            return card ? [[l.speciesId, editionBits(card)] as [number, number]] : [];
+                        }),
+                    );
                     dex = markSeen(
                         dex,
                         [...evolved.values()].map((e) => e.into),
@@ -1016,6 +1057,7 @@ export const useGame = create<GameStore>()(
             // v6: Hall da Fama e resumo dos eventos de cada partida
             // v7: treinador, títulos e desbloqueios (retroativos: títulos, copa perfeita, Pokédex, líderes vencidos)
             // v8: histórico dos duelos amistosos
+            // v9: álbum de edições na Pokédex (`DexEntry.editions`, retroativo pelo Hall e pelas copas guardadas)
             version: SAVE_VERSION,
             storage: createJSONStorage(() => idbStorage),
             partialize: (s): PersistedSave => ({

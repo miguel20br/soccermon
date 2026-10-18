@@ -19,7 +19,8 @@ import {
 } from '../../store/missions';
 import type { Profile } from '../../store/profile';
 import { redeemCode, titleClass } from '../../store/title-codes';
-import { missionText, titleName, trainerName } from './club';
+import { BadgeCase } from '../components/BadgeCase';
+import { missionText, speciesGif, titleName, trainerName } from './club';
 import { CheckIcon, LockIcon, MedalIcon } from './icons';
 
 /** O save do jeito que as missões leem (para as barras de progresso). */
@@ -211,6 +212,21 @@ function MissionRow({ m, view }: { m: Mission; view: SaveView }) {
             </div>
             <div className="pf-mission-body">
                 <MissionHow m={m} view={view} />
+                {m.species && (
+                    <ul className="pf-collection" aria-hidden>
+                        {m.species.map((id) => (
+                            <li key={id}>
+                                <img
+                                    className={`pixel${(view.dex[id]?.matches ?? 0) > 0 ? '' : ' pf-silhouette'}`}
+                                    src={speciesGif(id)}
+                                    alt=""
+                                    loading="lazy"
+                                    draggable={false}
+                                />
+                            </li>
+                        ))}
+                    </ul>
+                )}
                 <span className="pf-mission-reward">
                     {m.trainer && (
                         <span>
@@ -241,6 +257,7 @@ export function MissionsTab() {
     const done = MISSIONS.filter((m) => view.done.has(m.id)).length;
     return (
         <div className="pf-missions">
+            <BadgeCase earned={[...view.done]} />
             <div
                 className="pf-mission-summary"
                 role="progressbar"
@@ -256,6 +273,7 @@ export function MissionsTab() {
             {MISSION_GROUPS.map((g) => (
                 <section key={g} className="panel pf-card">
                     <h2>{d.profile.missions.groups[g]}</h2>
+                    {g === 'colecoes' && <small className="muted">{t('profile.missions.collectionHelp')}</small>}
                     <ul className="pf-mission-list">
                         {MISSIONS.filter((m) => m.group === g).map((m) => (
                             <MissionRow key={m.id} m={m} view={view} />

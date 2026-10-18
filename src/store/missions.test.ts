@@ -11,7 +11,9 @@ import {
     activeTitle,
     activeTrainer,
     earnedTitles,
+    KANTO_BADGES,
     type MatchView,
+    MISSION_GROUPS,
     MISSIONS,
     newMissions,
     TRAINERS,
@@ -85,6 +87,34 @@ describe('missões', () => {
         const gyms = ['brock', 'misty', 'ltsurge', 'erika', 'koga', 'sabrina', 'blaine'];
         expect(newMissions({ ...empty, done: gyms })).not.toContain('kanto');
         expect(newMissions({ ...empty, done: [...gyms, 'giovanni'] })).toContain('kanto');
+    });
+
+    it('insígnias: uma por ginásio, saem da missão do líder (retroativa pelos resultados guardados)', () => {
+        expect(KANTO_BADGES).toEqual(['brock', 'misty', 'ltsurge', 'erika', 'koga', 'sabrina', 'blaine', 'giovanni']);
+        for (const id of KANTO_BADGES) expect(MISSIONS.find((m) => m.id === id)?.group).toBe('ginasios');
+        const res = (won: boolean, opponent: string) => ({ won, opponent, score: [won ? 1 : 0, won ? 0 : 1] });
+        const runs = [{ results: [res(true, 'Cerulean Cascata'), res(false, 'Pewter Rochedo')] }];
+        const done = newMissions({ ...empty, runs: runs as never, done: [] });
+        expect(KANTO_BADGES.filter((id) => done.includes(id))).toEqual(['misty']);
+    });
+
+    it('coleções temáticas: contam quem jogou (visto não vale) e dão título', () => {
+        const cols = MISSIONS.filter((m) => m.group === 'colecoes');
+        expect(MISSION_GROUPS).toContain('colecoes');
+        expect(cols).toHaveLength(9);
+        for (const c of cols) {
+            expect(c.title).toBe(c.id);
+            expect(c.goal).toBe(c.species?.length);
+        }
+        const entry = (matches: number) => ({ matches }) as never;
+        const dex = { 106: entry(3), 107: entry(0), 144: entry(1), 145: entry(1), 146: entry(2) };
+        const fresh = newMissions({ ...empty, dex, done: [] });
+        expect(fresh).toContain('colPassaros');
+        expect(fresh).not.toContain('colHitmons');
+        expect(fresh).not.toContain('colLendarios');
+        const hit = cols.find((c) => c.id === 'colHitmons')!;
+        expect(hit.count?.({ ...empty, dex, done: new Set() } as never)).toBe(1);
+        expect(earnedTitles({ missionsDone: fresh, redeemedTitles: [] })).toContain('colPassaros');
     });
 
     it('Ash: campeão sofrendo no máximo 5 gols na copa (6 não vale)', () => {

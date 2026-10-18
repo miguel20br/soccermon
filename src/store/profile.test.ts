@@ -1,11 +1,17 @@
 import { describe, expect, it } from 'vitest';
+import { SPECIES } from '../engine/data';
 import type { PlayerLine } from '../engine/match-stats';
 import {
+    albumSlots,
     CLUB_COLORS,
     colorDistance,
+    EDITION_BIT,
+    editionBits,
+    hasSticker,
     isPlayed,
     markSeen,
     mergeDex,
+    recordEditions,
     recordMatchInDex,
     recordMovesSeen,
     recordTitleInDex,
@@ -83,6 +89,45 @@ describe('Pokédex', () => {
             ],
         } as never);
         expect(moves).toEqual({ ember: 2, thunderbolt: 1, transform: 1 });
+    });
+});
+
+describe('álbum de edições', () => {
+    it('carta sem edição é Normal; shiny e edição especial somam as duas figurinhas', () => {
+        expect(editionBits({ shiny: false })).toBe(EDITION_BIT.normal);
+        expect(editionBits({ shiny: true })).toBe(EDITION_BIT.shiny);
+        expect(editionBits({ shiny: true, special: { kind: 'evento' } })).toBe(EDITION_BIT.shiny | EDITION_BIT.evento);
+        expect(editionBits({ shiny: false, special: { kind: 'destaque' } })).toBe(EDITION_BIT.destaque);
+    });
+
+    it('cola só em quem jogou e nunca descola', () => {
+        let dex = markSeen(recordMatchInDex({}, [line({ speciesId: 25 })], true), [26]);
+        dex = recordEditions(dex, [
+            [25, EDITION_BIT.shiny],
+            [26, EDITION_BIT.normal],
+        ]);
+        dex = recordEditions(dex, [[25, EDITION_BIT.normal]]);
+        expect(dex[25].editions).toBe(EDITION_BIT.shiny | EDITION_BIT.normal);
+        expect(hasSticker(dex[26], 'normal')).toBe(false);
+        // nada novo: devolve o mesmo objeto
+        expect(recordEditions(dex, [[25, EDITION_BIT.shiny]])).toBe(dex);
+    });
+
+    it('Ícone só nos 20 da lista e Evento só com tipo de evento: o álbum não tem figurinha impossível', () => {
+        expect(albumSlots({ id: 25, types: ['Electric'] })).toEqual(['normal', 'shiny', 'evento', 'icone', 'destaque']);
+        expect(albumSlots({ id: 147, types: ['Dragon'] })).toEqual(['normal', 'shiny', 'destaque']);
+        const total = SPECIES.reduce((n, sp) => n + albumSlots(sp).length, 0);
+        expect(total).toBeGreaterThan(151 * 3);
+        expect(total).toBeLessThan(151 * 5);
+    });
+
+    it('nuvem junta as figurinhas com OU (o maior perderia a de um lado)', () => {
+        const base = recordMatchInDex({}, [line({ speciesId: 1 })], true);
+        const a = recordEditions(base, [[1, EDITION_BIT.shiny]]); // 2
+        const b = recordEditions(base, [[1, EDITION_BIT.normal | EDITION_BIT.evento]]); // 5
+        expect(mergeDex(a, b)[1].editions).toBe(EDITION_BIT.shiny | EDITION_BIT.normal | EDITION_BIT.evento);
+        expect(mergeDex(base, b)[1].editions).toBe(b[1].editions);
+        expect(mergeDex(base, base)[1].editions).toBeUndefined();
     });
 });
 

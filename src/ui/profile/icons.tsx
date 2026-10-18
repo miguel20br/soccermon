@@ -76,6 +76,38 @@ export function MedalIcon() {
     );
 }
 
+/** Fita de campeão (roseta dourada com as fitas vermelhas) com o número de títulos da espécie. */
+export function ChampionRibbon({ n, className = 'pf-ribbon' }: { n: number; className?: string }) {
+    return (
+        <svg className={className} viewBox="0 0 24 30" aria-hidden>
+            <path d="M7 15 L3 29 L8 26 L11 29 L12 17 Z" fill="#c8323a" stroke="#0e1430" strokeWidth="1.2" />
+            <path d="M17 15 L21 29 L16 26 L13 29 L12 17 Z" fill="#e8423f" stroke="#0e1430" strokeWidth="1.2" />
+            <circle
+                cx="12"
+                cy="11"
+                r="10.5"
+                fill="#f2c230"
+                stroke="#0e1430"
+                strokeWidth="1.4"
+                strokeDasharray="2.2 1.1"
+            />
+            <circle cx="12" cy="11" r="7.2" fill="#c8323a" stroke="#ffe680" strokeWidth="1.2" />
+            <text
+                x="12"
+                y="11"
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize={n >= 10 ? 8 : 10}
+                fontWeight="700"
+                fill="#fff"
+                fontFamily="Galmuri11, monospace"
+            >
+                {n}
+            </text>
+        </svg>
+    );
+}
+
 /** Visto de "salvo". */
 export function CheckIcon() {
     return (

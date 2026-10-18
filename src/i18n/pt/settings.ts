@@ -16,6 +16,8 @@ export const settings = {
         crowd: 'Torcida',
         crowdHint: 'Grito no seu gol, vaia no gol do rival e "uuuh" quando você quase marca.',
         crowdVolume: 'Volume da torcida',
+        goalCry: 'Grito de gol',
+        goalCryHint: 'No seu gol, o capitão grita junto com a torcida (no volume dos efeitos).',
         criesStyle: 'Estilo dos gritos',
         criesLegacy: 'Clássicos 8-bit (Gen 1)',
         criesLatest: 'Modernos',

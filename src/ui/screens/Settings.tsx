@@ -194,6 +194,14 @@ export function Settings() {
                         preview={() => playCrowd('gol')}
                     />
                 </Row>
+                <Row title={t('settings.screen.goalCry')} hint={t('settings.screen.goalCryHint')}>
+                    <Segmented
+                        label={t('settings.screen.goalCry')}
+                        value={settings.goalCry}
+                        options={onOff(t('settings.screen.on'), t('settings.screen.off'))}
+                        onPick={(goalCry) => set({ goalCry })}
+                    />
+                </Row>
                 <Row title={t('settings.screen.criesStyle')}>
                     <Segmented
                         label={t('settings.screen.criesStyle')}

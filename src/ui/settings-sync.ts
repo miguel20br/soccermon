@@ -1,4 +1,4 @@
-import { setVolumes } from '../game/audio';
+import { setGoalCry, setVolumes } from '../game/audio';
 import { setLang } from '../i18n';
 import { detectLang, htmlLang } from '../i18n/lang';
 import { type ReduceMotion, type Settings, useGame } from '../store/game-store';
@@ -33,6 +33,7 @@ function apply(settings: Settings) {
         sfx: settings.sfxVolume,
         crowd: settings.crowdVolume,
     });
+    setGoalCry(settings.goalCry !== false);
 }
 
 /** Liga as configurações globais (uma vez, no início do app): movimento reduzido e volume por canal. */

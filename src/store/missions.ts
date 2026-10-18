@@ -121,6 +121,16 @@ export const TITLE_IDS = [
     'viradaHistorica',
     'todosJogaram',
     'zeNinguem',
+    // coleções temáticas (0.8.6)
+    'colIniciais',
+    'colPassaros',
+    'colFosseis',
+    'colEevee',
+    'colLendarios',
+    'colHitmons',
+    'colNidos',
+    'colBrock',
+    'colMisty',
 ] as const;
 export type TitleId = (typeof TITLE_IDS)[number];
 export const DEFAULT_TITLE: TitleId = 'pallet';
@@ -156,8 +166,16 @@ export interface MatchView {
     final: boolean;
 }
 
-export type MissionGroup = 'ginasios' | 'elite' | 'classes' | 'feitos' | 'colecao' | 'lendas';
-export const MISSION_GROUPS: MissionGroup[] = ['ginasios', 'elite', 'classes', 'feitos', 'colecao', 'lendas'];
+export type MissionGroup = 'ginasios' | 'elite' | 'classes' | 'feitos' | 'colecao' | 'colecoes' | 'lendas';
+export const MISSION_GROUPS: MissionGroup[] = [
+    'ginasios',
+    'elite',
+    'classes',
+    'feitos',
+    'colecao',
+    'colecoes',
+    'lendas',
+];
 
 export interface Mission {
     id: string;
@@ -173,6 +191,8 @@ export interface Mission {
     match?: (m: MatchView) => boolean;
     /** Texto com valores (missões de ginásio). */
     vars?: Record<string, string>;
+    /** Coleção temática: as espécies da lista (a barra conta quem já jogou pelo seu time). */
+    species?: number[];
 }
 
 // ------------------------------------------------------------------------------------------- ajudantes
@@ -221,6 +241,24 @@ const GYMS: [TrainerId, string][] = [
 
 /** Sprite do líder do clube rival (todos os 8 ginásios têm), ou nada (Lavender, Liga Índigo). */
 export const leaderTrainerOf = (clubName: string): TrainerId | undefined => GYMS.find(([, c]) => c === clubName)?.[0];
+
+/** As 8 insígnias de Kanto, na ordem dos ginásios: cada uma é do líder (e sai da missão dele, então é retroativa). */
+export const KANTO_BADGES = GYMS.map(([leader]) => leader);
+
+/** Coleções temáticas: jogar (1+ minuto pelo seu time) com todos da lista dá o título. */
+const COLLECTIONS: [string, number[]][] = [
+    ['colIniciais', [1, 2, 3, 4, 5, 6, 7, 8, 9]],
+    ['colPassaros', [144, 145, 146]],
+    ['colFosseis', [138, 139, 140, 141, 142]],
+    ['colEevee', [133, 134, 135, 136]],
+    ['colLendarios', [144, 145, 146, 150, 151]],
+    ['colHitmons', [106, 107]],
+    ['colNidos', [29, 30, 31, 32, 33, 34]],
+    // os times do anime (as mesmas famílias das sinergias em links.ts)
+    ['colBrock', [95, 74, 75, 76, 37, 38, 41, 42]],
+    ['colMisty', [120, 121, 54, 55, 118, 119, 116, 117]],
+];
+const playedIn = (s: SaveView, ids: number[]) => ids.filter((id) => (s.dex[id]?.matches ?? 0) > 0).length;
 
 export const MISSIONS: Mission[] = [
     // Ginásios: vencer o clube do líder numa copa
@@ -376,6 +414,17 @@ export const MISSIONS: Mission[] = [
         count: (s) => s.records.evolucoes ?? 0,
     },
     { id: 'artilheiro', group: 'colecao', title: 'artilheiro', goal: 100, count: (s) => s.career.goalsFor },
+    // Coleções temáticas
+    ...COLLECTIONS.map(
+        ([id, ids]): Mission => ({
+            id,
+            group: 'colecoes',
+            title: id as TitleId,
+            species: ids,
+            goal: ids.length,
+            count: (s) => playedIn(s, ids),
+        }),
+    ),
     // Lendárias: feitos absurdos, treinadores dourados e títulos brilhando
     {
         id: 'ashGold',
