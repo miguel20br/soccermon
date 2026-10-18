@@ -124,8 +124,9 @@ título da tela. Ficou assim porque cobrir o botão de seguir é pior. Ele não 
 > - **Rival que reage:** sim, com os líderes. **Plano de jogo:** em dúvida (medo de complexidade), fica parado.
 > - **Emotes:** deixar bem mais legais, inspirados no Clash Royale.
 > - **Coleção:** medalhas com degraus, vitrine (borda + cartão) e escudo + uniforme. Mascote: não. Faixa da
->   torcida: lista fechada, mas ele duvida do visual (mockup antes). Acabamentos de carta: em dúvida, porque podem
->   competir com a raridade e as edições.
+>   torcida: lista fechada, mas ele duvida do visual (mockup antes). Acabamentos de carta: viram **selo de carreira
+>   na Pokédex** (Folha, Holo, Prisma, Ouro escuro, como a fita de campeão), sem mudar o acabamento da carta pra não
+>   competir com a raridade e as edições. Talvez um selinho na carta também: só depois de mostrar em `?cards=1`.
 > - **Duelo:** mandar só o que mudou na 0.8.7; partida curta antes do espectador.
 > - **Desafio Dourado:** nome nas Novidades + título por código.
 > - **Música Bliitzit:** fora dos clipes novos.
