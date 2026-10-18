@@ -130,6 +130,7 @@ export const commentary: typeof pt = {
     teleport: '{x} uses Teleport and pops up on the other side!',
     skill: '{x} pulls off a dazzling dribble!',
     tactic: '{team} switch to {tactic}!',
+    lineup: '{team} reshuffle the board: {formation}.',
     itemSave: "{x}'s {item} stops a sure goal!",
     itemCure: '{x} ate its {item} and was cured!',
     itemCrit: "A critical shot! {x}'s {item}!",

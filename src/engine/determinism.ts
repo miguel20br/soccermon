@@ -38,11 +38,20 @@ export function determinismHashes(): string[] {
         { tick: 1500, team: 0, kind: 'sub', outUid: subHome.lineup[2].uid, inUid: subHome.bench[0].uid },
         { tick: 2600, team: 1, tactic: 'counter' },
     ];
+    // prancheta no meio: goleiro vira pivô e muda a formação; depois uma troca e uma prancheta com quem saiu nela
+    const lineHome = team('det-line-a', 'A', 2, { manualSubs: true });
+    const u = lineHome.lineup.map((p) => p.uid);
+    const lineOrders: MatchOrder[] = [
+        { tick: 600, team: 0, kind: 'lineup', formation: '2-2', order: [u[4], u[1], u[2], u[3], u[0]] },
+        { tick: 1300, team: 0, kind: 'sub', outUid: u[2], inUid: lineHome.bench[0].uid },
+        { tick: 1310, team: 0, kind: 'lineup', formation: '3-1', order: [u[0], u[2], u[1], u[3], u[4]] },
+    ];
     const games: [TeamSetup, TeamSetup, string, MatchOrder[]?][] = [
         [team('det-a', 'A', 0), team('det-b', 'B', 0), 'det-1'],
         [team('det-c', 'A', 2, { formation: '2-2' }), team('det-d', 'B', 3, { formation: 'ferrolho' }), 'det-2'],
         [team('det-e', 'A', 4, { tactic: 'offensive' }), team('det-f', 'B', 4, { tactic: 'defensive' }), 'det-3'],
         [subHome, team('det-sub-b', 'B', 1), 'det-orders', subOrders],
+        [lineHome, team('det-line-b', 'B', 2), 'det-lineup', lineOrders],
     ];
     const hashes = games.map(([home, away, seed, orders]) =>
         matchHash(runMatch(FUTSAL_5, home, away, seed, { orders })),

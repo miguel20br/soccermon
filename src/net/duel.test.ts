@@ -535,6 +535,43 @@ describe('seed por trecho de verdade (motor)', () => {
     });
 });
 
+describe('prancheta no duelo', () => {
+    it('sem limite, só com quem está em quadra (quem sai numa troca do log vale como quem entra)', () => {
+        let s = inMatch();
+        const t = s.teams.guest!;
+        const u = t.lineup.map((p) => p.uid);
+        const board = (order: string[], seq: number, formation = '2-2'): Intent => ({
+            k: 'order',
+            order: { kind: 'lineup', formation: formation as never, order },
+            tick: 0,
+            seq,
+        });
+        for (let seq = 1; seq <= MAX_TACTIC_CHANGES + 1; seq++) {
+            s = reduce(s, board([u[4], u[1], u[2], u[3], u[0]], seq), 'guest', ctx(0, { tick: seq * 100 }));
+        }
+        expect(s.log.filter((o) => o.team === 1)).toHaveLength(MAX_TACTIC_CHANGES + 1);
+        const last = s.log.at(-1);
+        expect(last).toMatchObject({ kind: 'lineup', team: 1, formation: '2-2', seq: MAX_TACTIC_CHANGES + 1 });
+        // reserva, repetido, faltando gente, formação que não existe ou lista que não é lista: não entra
+        expect(reduce(s, board([t.bench[0].uid, ...u.slice(1)], 6), 'guest', ctx())).toBe(s);
+        expect(reduce(s, board([u[0], u[0], u[2], u[3], u[4]], 6), 'guest', ctx())).toBe(s);
+        expect(reduce(s, board(u.slice(0, 4), 6), 'guest', ctx())).toBe(s);
+        expect(reduce(s, board(u, 6, '9-9'), 'guest', ctx())).toBe(s);
+        expect(reduce(s, board('abc' as never, 6), 'guest', ctx())).toBe(s);
+        // troca no log: a prancheta pode citar quem sai (vale pra quem entra) ou quem entra
+        s = reduce(
+            s,
+            { k: 'order', order: { kind: 'sub', outUid: u[2], inUid: t.bench[0].uid }, tick: 0, seq: 6 },
+            'guest',
+            ctx(),
+        );
+        const n = s.log.length;
+        s = reduce(s, board([u[0], u[2], u[1], u[3], u[4]], 7, '3-1'), 'guest', ctx(0, { tick: 900 }));
+        s = reduce(s, board([u[0], t.bench[0].uid, u[1], u[3], u[4]], 8, '3-1'), 'guest', ctx(0, { tick: 1000 }));
+        expect(s.log).toHaveLength(n + 2);
+    });
+});
+
 describe('escanteio no duelo', () => {
     it('ordem de escanteio passa pelo mesmo carimbo e pelo limite do motor (3, à parte da tática)', () => {
         let s = inMatch();

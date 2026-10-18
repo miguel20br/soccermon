@@ -27,7 +27,8 @@ export interface MatchConfig {
  * Versão do motor: sobe a cada mudança que altera partidas já jogadas (mesma seed + mesmas ordens dando outro
  * jogo). Partida salva no meio com outra versão recomeça do 0 a 0, em vez de virar outro jogo ao retomar.
  * 1 = 0.8.4 (balanceamento geral). 2 = 0.8.5 (contas próprias: sin/cos/atan2/exp/log/pow do `dmath.ts`; escanteio).
- * 3 = espalmada pra escanteio sai de lado (não passa por trás do goleiro nem rente à linha dentro do gol).
+ * 3 = 0.8.6 (carta que evolui ganha +2 por evolução; Duelo com o mesmo limiar de evolução nos dois lados; espalmada
+ *     pra escanteio sai de lado; prancheta no meio da partida: ordem `lineup` na próxima bola parada).
  */
 export const ENGINE_VERSION = 3;
 

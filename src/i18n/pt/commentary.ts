@@ -138,6 +138,7 @@ export const commentary = {
     teleport: '{x} usa Teleport e aparece do outro lado!',
     skill: '{x} dá um drible desconcertante!',
     tactic: '{team} muda para {tactic}!',
+    lineup: '{team} mexe na prancheta: {formation}.',
     itemSave: '{item} de {x} segura o gol certo!',
     itemCure: '{x} come a {item} e se cura!',
     itemCrit: 'Chute crítico! {item} de {x}!',

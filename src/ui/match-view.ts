@@ -1,5 +1,6 @@
 import type { Position } from '../engine/attributes';
 import { evolveInstance } from '../engine/evolution';
+import { DEFAULT_FORMATION, type FormationId, formationOf } from '../engine/formations';
 import type { PokemonInstance } from '../engine/instance';
 import type { MatchResult } from '../engine/runners/batch-runner';
 import type { MatchSnapshot, PlayerStats, TeamSetup } from '../engine/state';
@@ -29,6 +30,34 @@ export function snapAt(snaps: MatchSnapshot[], tick: number): MatchSnapshot {
         else hi = mid;
     }
     return snaps[lo];
+}
+
+/**
+ * Prancheta do time no tick: a formação e o jogador (`idx` da partida) em cada vaga, na ordem das vagas. Muda com a
+ * mudança de prancheta (evento `lineup`); antes dela, a escalação inicial.
+ */
+export function boardAt(
+    m: MatchResult,
+    setups: [TeamSetup, TeamSetup],
+    team: 0 | 1,
+    tick: number,
+): { formation: FormationId; idx: number[] } {
+    let formation = setups[team].formation ?? DEFAULT_FORMATION;
+    let idx = m.roster.filter((r) => r.team === team).map((r) => r.idx);
+    for (const e of m.events) {
+        if (e.tick > tick) break;
+        if (e.type === 'lineup' && e.team === team) {
+            formation = e.formation;
+            idx = e.idx;
+        }
+    }
+    return { formation, idx };
+}
+
+/** Posição de quem está na vaga `idx` no tick (pela prancheta de agora). */
+export function roleAt(m: MatchResult, setups: [TeamSetup, TeamSetup], idx: number, tick: number): Position {
+    const b = boardAt(m, setups, m.roster[idx].team, tick);
+    return formationOf(b.formation).slots[b.idx.indexOf(idx)] ?? (m.roster[idx].role as Position);
 }
 
 /** Quem está na vaga `idx` no tick, com a forma atual (trocas, evoluções e Transformar do Ditto até ali). */
@@ -69,7 +98,7 @@ export function whoAt(m: MatchResult, setups: [TeamSetup, TeamSetup], idx: numbe
             }
         }
     }
-    return { team, inst, since, evolved, transformed, role: m.roster[idx].role as Position };
+    return { team, inst, since, evolved, transformed, role: roleAt(m, setups, idx, tick) };
 }
 
 /** Escalação do time no tick (trocas e evoluções até ali): é por ela que o motor conta sinergias e capitão. */

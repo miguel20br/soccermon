@@ -6898,6 +6898,8 @@ body {
 /* ---------------------------------------------------------------- prancheta do time (Prancheta.tsx) */
 .prancheta {
     display: grid;
+    /* o seletor de formação não alarga a coluna (deitado ela tem 236px) */
+    grid-template-columns: minmax(0, 1fr);
     gap: 8px;
     padding: 10px;
     align-content: start;
@@ -6912,7 +6914,7 @@ body {
     max-height: none;
 }
 .prancheta .horizontal .court {
-    aspect-ratio: 2.3 / 1;
+    aspect-ratio: 1.7 / 1;
     background: repeating-linear-gradient(0deg, #c98a4f 0 24px, #cf9358 24px 48px);
 }
 .prancheta .horizontal .court::before {
@@ -7004,6 +7006,41 @@ body {
     font-size: 11px;
     text-align: center;
 }
+/* mudança de prancheta: formação e Confirmar/Desfazer em cima da quadra */
+.pr-edit {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+    font-size: 12px;
+}
+.pr-formation {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1 1 180px;
+    min-width: 0;
+}
+.pr-formation select {
+    flex: 1 1 auto;
+    min-width: 0;
+    background: var(--bg-2);
+    color: var(--text);
+    border: 2px solid var(--line);
+    border-radius: 6px;
+    padding: 5px 6px;
+    font: inherit;
+    /* 16px: o iPhone não dá zoom na página ao abrir a lista */
+    font-size: 16px;
+}
+.pr-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.pr-actions .btn {
+    white-space: normal;
+}
 /* desktop: a prancheta na coluna da direita, em cima da narração (a quadra não encolhe) */
 @media (min-width: 1051px) {
     .match-layout.has-board {
@@ -7088,7 +7125,7 @@ body {
 /* celular estreito (320): vagas menores pra caber o losango deitado */
 @media (max-width: 380px) {
     .prancheta .horizontal .court {
-        aspect-ratio: 1.9 / 1;
+        aspect-ratio: 1.6 / 1;
     }
     .prancheta .slot {
         width: 56px;

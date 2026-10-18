@@ -15,9 +15,12 @@ export function HalftimePanel({
     onContinue,
     onSub,
     canSub,
+    onBoard,
     side = 0,
     footer,
 }: {
+    /** "Mudar prancheta": leva até a prancheta (a mudança vale no vestiário). */
+    onBoard?: () => void;
     match: MatchResult;
     names: [string, string];
     /** Lado do jogador (no duelo, o convidado é o 1). */
@@ -91,6 +94,11 @@ export function HalftimePanel({
                 <button type="button" className="btn yellow" disabled={!canSub} onClick={onSub}>
                     {t('match.substitute')}
                 </button>
+                {onBoard && (
+                    <button type="button" className="btn" onClick={onBoard}>
+                        {t('match.ht.board')}
+                    </button>
+                )}
                 <button type="button" className="btn primary" onClick={onContinue}>
                     {t('match.ht.continue')}
                 </button>

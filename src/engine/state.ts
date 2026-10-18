@@ -69,9 +69,25 @@ export interface CornerOrder {
     corner: CornerPlan;
 }
 
+/**
+ * Mudança de prancheta: formação nova e quem joga em cada vaga (`order[i]` = uid de quem vai pra vaga i, uma
+ * permutação de quem está em quadra). Entra na próxima bola parada depois de `tick`, como a substituição; sem limite,
+ * mas só uma pendente por time (a nova substitui a que ainda não entrou). Quem saiu numa troca vale como quem entrou
+ * no lugar dele (troca e prancheta na mesma bola parada dão o mesmo resultado em qualquer ordem).
+ */
+export interface LineupOrder {
+    tick: number;
+    team: 0 | 1;
+    seq?: number;
+    kind: 'lineup';
+    formation: FormationId;
+    order: string[];
+}
+
 /** Ordens do técnico durante a partida (a partida é resimulada com a agenda inteira). */
-export type MatchOrder = TacticChange | SubOrder | CornerOrder;
+export type MatchOrder = TacticChange | SubOrder | CornerOrder | LineupOrder;
 export const isSubOrder = (o: MatchOrder): o is SubOrder => o.kind === 'sub';
+export const isLineupOrder = (o: MatchOrder): o is LineupOrder => o.kind === 'lineup';
 export const isCornerOrder = (o: MatchOrder): o is CornerOrder => o.kind === 'corner';
 export const isTacticOrder = (o: MatchOrder): o is TacticChange => !o.kind || o.kind === 'tactic';
 
@@ -393,6 +409,8 @@ export type MatchEvent = MatchEventBase &
               inSpeciesId: number;
               inShiny: boolean;
           }
+        /** Mudança de prancheta: a formação nova e o jogador (`idx`) em cada vaga, na ordem das vagas. */
+        | { type: 'lineup'; team: 0 | 1; formation: FormationId; idx: number[] }
         | { type: 'fulltime'; score: [number, number] }
         | { type: 'penalty'; by: number; gk: number; scored: boolean; round: number; shootout: [number, number] }
         | { type: 'end'; winner: 0 | 1 | null; score: [number, number]; shootout: [number, number] | null }
@@ -508,8 +526,8 @@ export interface MatchState {
     nextMoveTick: number;
     /** Jogadores substituídos (com as estatísticas que fizeram antes de sair). */
     subbedOut: PlayerState[];
-    /** Substituições pedidas esperando a próxima saída de bola. */
-    pendingSubs: SubOrder[];
+    /** Substituições e mudanças de prancheta pedidas esperando a próxima bola parada. */
+    pendingSubs: (SubOrder | LineupOrder)[];
     /** Último golpe usado por cada time (Mirror Move/Mimic copiam o do rival). */
     lastMove: [string | null, string | null];
     /** Zonas no chão (fumaça, anel de fogo, muro). */
