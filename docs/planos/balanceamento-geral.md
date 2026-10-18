@@ -142,3 +142,17 @@ sem evoluir: o selo é o que mostra que vale apostar.
 - Calibrate com tudo junto: 6,64 gols/jogo, favorito 67,5% (meta 60–65; ±3 de erro), goleadas 2,8%.
 - **Para um patch próprio:** a nota do Ala não conta chute e a do Pivô não conta velocidade, mas o motor usa os dois.
   É a causa da maioria dos fora da curva; mexer nas fórmulas muda a nota de todo mundo.
+
+## Bônus de evolução: aprovado pelo Miguel em 18/10
+
+Pedido dele: pegar carta pra evoluir tem que valer mais que pegar a pronta. Cada evolução da carta dá **+2 em todos
+os atributos** (`EVOLUTION_BONUS` em `src/engine/instance.ts`, campo `PokemonInstance.evolved`, linha "Evoluiu: +N
+em tudo" na regra única de `modifiers.ts`). Charmander que vira Charizard: 89 contra 85 do Charizard pronto.
+
+| Draft (copa simulada, 300 copas cada) | Títulos antes | Títulos depois |
+|---|---|---|
+| Pela nota de agora | 18% | 17% (ruído ±2) |
+| Mirando evolução | 14% | 17% |
+
+Quem draftou mirando evolução: oitavas 66% → 62%, semi 55% → 66%, final 60% → 68%. O rival que evolui no meio da
+partida também ganha o bônus. `ENGINE_VERSION` 3.
