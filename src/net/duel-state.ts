@@ -25,6 +25,7 @@ import {
     type TacticChange,
     type TeamSetup,
 } from '../engine/state';
+import { dict } from '../i18n';
 import type { PlaybackSpeed } from '../store/game-store';
 import { openedSegments } from './seal';
 
@@ -278,10 +279,21 @@ export function duelNames(s: Pick<Shared, 'teams' | 'peers'>): [string, string] 
 
 const sameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
-/** Nome de cada treinador nos textos ("Fulano venceu"); com o mesmo nome dos dois lados, o do convidado ganha um "2". */
+/** Nome padrão de quem não escolheu nome (em qualquer idioma: o rival pode jogar em outro). */
+const DEFAULT_TRAINER = (['pt', 'en'] as const).map((l) => dict(l).profile.trainer);
+const isDefaultTrainer = (name: string) => !name.trim() || DEFAULT_TRAINER.some((d) => sameName(d, name));
+
+/**
+ * Nome de cada treinador nos textos ("Fulano venceu"). Quem ficou com o nome padrão ("Treinador") aparece pelo
+ * nome do clube (dois "Treinador" viravam "Treinador" x "Treinador 2"); se ainda assim os dois repetem, o do
+ * convidado ganha um "2".
+ */
 export function trainerNames(s: Pick<Shared, 'peers'>): [string, string] {
-    const host = s.peers.host?.name ?? '';
-    const guest = s.peers.guest?.name ?? '';
+    const [host, guest] = ROLES.map((r) => {
+        const p = s.peers[r];
+        if (!p) return '';
+        return isDefaultTrainer(p.name) && p.clubName.trim() ? p.clubName : p.name;
+    });
     return [host, guest && sameName(host, guest) ? `${guest} 2` : guest];
 }
 
