@@ -4,6 +4,7 @@ import { MAX_TACTIC_CHANGES } from '../../engine/config';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { CORNER_PLANS } from '../../engine/runners/live-runner';
 import { type CornerPlan, type Phase, TACTIC_LABEL, type Tactic } from '../../engine/state';
+import { dict, t } from '../../i18n';
 import { useT } from '../../i18n/react';
 import type { CommentLine } from '../commentary';
 import { ratingAt } from '../rating';
@@ -26,9 +27,21 @@ export interface Clock {
 }
 
 /** Texto do relógio: intervalo, fim (ou a disputa de pênaltis) ou "12' · 1º tempo". */
-export function useClockLabel(clock: Clock, over: boolean, shootout: [number, number] | null): string {
-    const { t, d } = useT();
-    return clock.phase === 'halftime'
+export function useClockLabel(
+    clock: Clock,
+    over: boolean,
+    shootout: [number, number] | null,
+    /** A cena parou no intervalo (o último tick ainda chega com a fase de jogo). */
+    halftime = false,
+): string {
+    useT(); // reage à troca de idioma
+    return clockLabel(clock, over, shootout, halftime);
+}
+
+/** Texto do relógio: intervalo, fim/pênaltis ou "19' · 1º tempo". */
+export function clockLabel(clock: Clock, over: boolean, shootout: [number, number] | null, halftime = false): string {
+    const d = dict();
+    return halftime || clock.phase === 'halftime'
         ? t('match.halftime')
         : clock.phase === 'fulltime' || over
           ? shootout

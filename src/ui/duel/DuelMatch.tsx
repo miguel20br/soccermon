@@ -307,7 +307,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     }, [subOpen]);
     const htLeft = useCountdown(halftime ? s.halftime?.until : undefined);
     const kickLeft = useCountdown(kicked ? undefined : s.kickoffAt);
-    const clockLabel = useClockLabel(clock, fulltime || ended, shootout);
+    const clockLabel = useClockLabel(clock, fulltime || ended, shootout, halftime);
 
     if (!match || !sceneData) {
         return (

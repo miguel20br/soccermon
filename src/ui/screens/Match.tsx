@@ -259,7 +259,7 @@ export function Match() {
         };
     }, [match?.seed]);
 
-    const clockLabel = useClockLabel(clock, fulltime || ended, shootout);
+    const clockLabel = useClockLabel(clock, fulltime || ended, shootout, halftime);
     if (!run || !match || !sceneData || !opponent) return null;
 
     const lockedSetup = run.lockedTeam ? { ...run.lockedTeam, manualSubs: true } : playerTeam(run);
