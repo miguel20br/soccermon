@@ -9,6 +9,7 @@ import { moveProfile } from '../../engine/moves';
 import { type Edition, editionOf } from '../../engine/specials';
 import { abilityName, iconTitle, itemName, moveName, typeName } from '../../i18n';
 import { type Translator, useT } from '../../i18n/react';
+import { ShinySpark } from '../profile/icons';
 import { EDITION, type FINISH_LABEL, finishOf, type METAL, metalOf, RARITY } from '../rarity';
 import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
@@ -77,6 +78,12 @@ interface PokeCard2Props {
     finish?: HoloFinish | 'none';
     /** Tamanho da carta (o layout todo é em em). */
     size?: 'lg' | 'md' | 'sm';
+    /**
+     * Proposta de combos de edição (só a galeria ?cards=1 passa; o jogo não): shiny vira camada por cima de
+     * qualquer edição, selo MVP 1–3 em Destaque/Ícone/Evento, Destaque mais bonito por nível e Evento com
+     * fundo do tipo. Só na carta Metal.
+     */
+    proposta?: boolean;
 }
 
 /**
@@ -137,7 +144,18 @@ function cardData(inst: PokemonInstance, tr: Translator, position?: Position) {
 type Data = ReturnType<typeof cardData>;
 type VariantProps = { inst: PokemonInstance; d: Data; captain?: boolean };
 
-export function PokeCard2({ inst, variant, position, captain, onClick, weak, showcase, finish, size }: PokeCard2Props) {
+export function PokeCard2({
+    inst,
+    variant,
+    position,
+    captain,
+    onClick,
+    weak,
+    showcase,
+    finish,
+    size,
+    proposta,
+}: PokeCard2Props) {
     const tr = useT();
     const d = cardData(inst, tr, position);
     const holo = isHolo(variant);
@@ -172,6 +190,12 @@ export function PokeCard2({ inst, variant, position, captain, onClick, weak, sho
         classes.push(edition ? `ed-${edition}` : metalFinish === 'lendario' ? 'm-lendario' : `m-${metalTier}`);
         classes.push(`m-${metalFinish}`);
         if (edition) classes.push('is-special');
+        if (proposta) {
+            classes.push('pr');
+            if (inst.shiny) classes.push('pr-shiny');
+            if (edition === 'destaque') classes.push(`pr-d${inst.special?.level ?? 1}`);
+            if (edition === 'evento') classes.push(`pr-ev-${(inst.special?.type ?? '').toLowerCase()}`);
+        }
     }
     if (fig) {
         // tema do fundo: o 1º tipo, mas Normal cede pro 2º (Pidgey/Normal-Voador ganha o céu)
@@ -192,6 +216,11 @@ export function PokeCard2({ inst, variant, position, captain, onClick, weak, sho
         edition: edition ? tr.t('team.card.editionAria', { label: tr.d.common.edition[edition] }) : '',
         evo: d.evo ? tr.t('team.card.evoAria', { name: SPECIES[d.evo.into - 1].name, r: d.evo.rating }) : '',
     });
+    // Evento da proposta: a cor é a do tipo do evento (hoje é a do 1º tipo do Pokémon)
+    const style =
+        proposta && edition === 'evento'
+            ? ({ ...d.style, '--t1': TYPE_COLOR[inst.special?.type ?? ''] ?? '#888' } as CSSProperties)
+            : d.style;
     const base = metal ? (
         <Metal
             inst={inst}
@@ -199,6 +228,7 @@ export function PokeCard2({ inst, variant, position, captain, onClick, weak, sho
             captain={captain}
             edition={edition}
             metalLabel={metalLabel(tr, metalTier, metalFinish)}
+            proposta={proposta}
         />
     ) : fig ? (
         <Figurinha inst={inst} d={d} captain={captain} edition={edition} />
@@ -226,7 +256,7 @@ export function PokeCard2({ inst, variant, position, captain, onClick, weak, sho
                 }}
                 type="button"
                 className={classes.join(' ')}
-                style={d.style}
+                style={style}
                 onClick={onClick}
                 aria-label={label}
             >
@@ -240,7 +270,7 @@ export function PokeCard2({ inst, variant, position, captain, onClick, weak, sho
                 ref.current = el;
             }}
             className={classes.join(' ')}
-            style={d.style}
+            style={style}
             role="img"
             aria-label={label}
         >
@@ -298,11 +328,28 @@ function Metal({
     captain,
     edition,
     metalLabel: label,
-}: VariantProps & { edition: Edition | null; metalLabel: string }) {
-    const theme = d.sp.types[0] === 'Normal' && d.sp.types[1] ? d.sp.types[1] : d.sp.types[0];
-    const tag = editionTag(d.tr, inst, edition);
+    proposta,
+}: VariantProps & { edition: Edition | null; metalLabel: string; proposta?: boolean }) {
+    const theme =
+        proposta && edition === 'evento' && inst.special?.type
+            ? inst.special.type
+            : d.sp.types[0] === 'Normal' && d.sp.types[1]
+              ? d.sp.types[1]
+              : d.sp.types[0];
+    const tag = proposta ? propostaTag(d.tr, inst, edition) : editionTag(d.tr, inst, edition);
+    // selo MVP: o Destaque já nasce MVP 1; Ícone e Evento contam os MVPs no level
+    const mvp = !proposta ? 0 : edition === 'destaque' ? (inst.special?.level ?? 1) : (inst.special?.level ?? 0);
+    const dLevel = edition === 'destaque' ? (inst.special?.level ?? 1) : 0;
     return (
         <>
+            {proposta && edition === 'evento' && <span className="pr-ev" />}
+            {proposta && dLevel === 3 && (
+                <>
+                    <span className="pr-rays" />
+                    <span className="pr-dust" />
+                </>
+            )}
+            {proposta && dLevel >= 2 && <span className="pr-sweep" />}
             <span className="m-top">
                 <span
                     className="m-mark"
@@ -320,6 +367,7 @@ function Metal({
                 <img className="pixel m-art" src={cardSprite(inst)} alt="" loading="lazy" draggable={false} />
                 {d.item && <img className="pixel m-item" src={itemSprite(d.item.id)} alt={d.item.name} />}
                 {tag && <span className="m-tag">{tag}</span>}
+                {mvp > 0 && <MvpStamp level={mvp} />}
             </span>
             <span className="m-name">
                 {d.view.displayName}
@@ -339,7 +387,58 @@ function Metal({
                 ))}
             </span>
             <HoloLayer />
+            {proposta && inst.shiny && <span className="pr-sparkles" />}
         </>
+    );
+}
+
+/** Proposta: a etiqueta só diz a edição base (o nível vai no selo MVP) e ganha a estrelinha quando é shiny. */
+function propostaTag(tr: Translator, inst: PokemonInstance, edition: Edition | null) {
+    if (!edition) return null;
+    const name =
+        edition === 'evento'
+            ? tr.t('team.card.event', { type: typeName(inst.special?.type ?? '', tr.lang) })
+            : tr.d.common.edition[edition];
+    return (
+        <>
+            {inst.shiny && <ShinySpark className="pr-spark" />}
+            {name}
+        </>
+    );
+}
+
+/** Pontas do selo (roseta de 16 pontas), calculadas uma vez. */
+const ROSETTE = Array.from({ length: 32 }, (_, i) => {
+    const a = (i * Math.PI) / 16 - Math.PI / 2;
+    const r = i % 2 ? 16.6 : 19.4;
+    return `${(20 + r * Math.cos(a)).toFixed(2)},${(20 + r * Math.sin(a)).toFixed(2)}`;
+}).join(' ');
+const STAR = 'M12 2l2.9 6.2 6.6.8-4.9 4.6 1.3 6.6L12 16.9l-5.9 3.3 1.3-6.6L2.5 9l6.6-.8z';
+
+/** Selo MVP (proposta): 1 bronze simples, 2 prata com brilho correndo, 3 ouro com raios girando. */
+function MvpStamp({ level }: { level: number }) {
+    const n = Math.min(3, level);
+    return (
+        <span className={`pr-stamp lv-${n}`} aria-hidden>
+            {n === 3 && <i className="pr-stamp-rays" />}
+            <svg viewBox="0 0 40 40" aria-hidden>
+                <polygon className="pr-stamp-out" points={ROSETTE} />
+                <circle className="pr-stamp-in" cx="20" cy="20" r="13.2" />
+                <path className="pr-stamp-hi" d="M9.5 17a11 11 0 0 1 21 0" />
+                <text x="20" y="21.6" textAnchor="middle">
+                    MVP
+                </text>
+                {Array.from({ length: n }, (_, i) => (
+                    <path
+                        // biome-ignore lint/suspicious/noArrayIndexKey: estrelas iguais, só a quantidade importa
+                        key={i}
+                        d={STAR}
+                        transform={`translate(${20 - n * 2.6 + i * 5.2 + 0.32} 24.6) scale(0.19)`}
+                    />
+                ))}
+            </svg>
+            {n >= 2 && <i className="pr-stamp-shine" />}
+        </span>
     );
 }
 
