@@ -132,7 +132,7 @@ export const common = {
         counter: 'Contra-ataque',
     },
     /** Instrução de escanteio do técnico. */
-    cornerPlan: { area: 'Na área', short: 'Curta', mixed: 'Variar' },
+    cornerPlan: { area: 'Bola alta', short: 'Curta', mixed: 'Varia' },
     /** Jogada de escanteio que saiu (faixa na quadra e narração). */
     cornerPlay: { area: 'Na área', short: 'Curta', near: '1ª trave' },
     /** Selo "Jogo aéreo" do painel do Pokémon. */
@@ -148,20 +148,19 @@ export const common = {
         },
         '3-1': {
             name: 'Linha de 3 (3-1)',
-            description: 'Fixo e alas formam uma linha recuada; o pivô segura a bola sozinho lá na frente.',
+            description: 'Linha recuada de três e um pivô sozinho lá na frente.',
         },
         '4-0': {
             name: 'Rodízio (4-0)',
-            description:
-                'Sem pivô: quatro na linha trocando de lugar o tempo todo. Muita posse e passe, pouca referência na área.',
+            description: 'Sem pivô: quatro trocando de lugar. Muita posse e passe.',
         },
         '1-1-2': {
             name: 'Dois pivôs (1-1-2)',
-            description: 'Ataque pesado: dois pivôs dentro da área rival, um ala de ligação e um fixo segurando atrás.',
+            description: 'Ataque pesado: dois pivôs na área rival e um fixo atrás.',
         },
         ferrolho: {
             name: 'Ferrolho (3 fixos)',
-            description: 'Retranca de três fixos na frente do goleiro e um pivô sozinho para o contra-ataque.',
+            description: 'Três fixos na frente do goleiro e um pivô pro contra-ataque.',
         },
     } as Record<string, { name: string; description: string }>,
     /** Sinergias de história (engine/links.ts). */
@@ -214,7 +213,7 @@ export const common = {
         leftovers: 'Recupera fôlego aos poucos durante o jogo.',
         choiceband: 'Chute +15%, mas só o primeiro golpe pode ser usado.',
         quickclaw: '+15% nas divididas (desarmes e proteção de bola).',
-        focussash: 'Goleiro: segura o primeiro chute certo de gol. Linha: ignora o primeiro status.',
+        focussash: 'Goleiro: segura o 1º chute no gol. Linha: ignora o 1º status.',
         scopelens: '20% de chance de chute crítico (mais forte e preciso).',
         lumberry: 'Cura o primeiro status sofrido na partida.',
         kingsrock: 'Golpes que acertam podem fazer o rival hesitar.',

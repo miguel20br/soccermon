@@ -590,25 +590,12 @@ export const help = {
         next: 'Próximo',
         go: 'Bora jogar',
         welcomeTitle: 'Bem-vindo ao Soccermon',
-        welcomeText:
-            'Os **151 de Kanto** num futsal 5 contra 5. Monte o time, comande da beira da quadra e leve a copa.',
+        welcomeText: 'Os **151 de Kanto** num futsal 5 contra 5. Monte o time e ganhe a copa.',
         draftTitle: 'Draft: 1 de 3',
-        draftText:
-            'Escolha a formação e o capitão. Depois toque numa vaga: saem 3 Pokémon pra ela e você leva 1. Não gostou? **Sorteie de novo**.',
-        lineupTitle: 'Escalação e tática',
-        lineupText:
-            'Toque em dois jogadores pra trocar de vaga, inclusive com o banco. Mesmo tipo e duplas famosas dão **sinergia**; itens ajudam também.',
+        draftText: 'Toque numa vaga: saem 3 Pokémon e você leva 1. Não gostou? **Sorteie de novo**.',
         coachTitle: 'Você é o técnico',
-        coachText:
-            'A partida é simulada. Mude a tática, faça substituições e toque num Pokémon pra ver o painel. Golpes saem em campo e quem joga muito **evolui no meio do jogo**!',
+        coachText: 'Mude a tática e troque quem cansar. Quem joga muito **evolui no meio do jogo**!',
         tactic: 'Tática',
         sub: 'Substituir',
-        cupTitle: 'A Copa',
-        cupText:
-            'Oitavas, quartas, semi e final contra os ginásios de Kanto e a Liga Índigo. Venceu? Escolha um **reforço** (dá pra contratar do rival), um item ou a **MT do ginásio**. Empate vai pros pênaltis.',
-        cupPath: ['Oitavas', 'Quartas', 'Semi', 'Final'],
-        dexTitle: 'Pokédex e conta',
-        dexText:
-            'Quem você vê e escala entra na Pokédex; os golpes vistos, na Golpedex. **Entre com Google** pra salvar na nuvem e jogar em outro aparelho.',
     },
 };

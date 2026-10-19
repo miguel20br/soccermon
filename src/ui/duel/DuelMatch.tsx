@@ -54,15 +54,19 @@ import {
     type Clock,
     type CoachTab,
     CoachTabs,
+    FinalBanner,
     HudIcon,
     hex,
     MatchFeed,
     PressureBar,
+    ResultButton,
     Scoreboard,
     SubPanel,
+    subSuggestion,
     TacticControls,
     TIRED_HINT,
     Ticker,
+    useAutoResult,
     useClockParts,
     useCoachTab,
 } from '../components/MatchHud';
@@ -125,8 +129,6 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const [subsDone, setSubsDone] = useState<string[]>([]);
     const [subOpen, setSubOpen] = useState(false);
     const [subOut, setSubOut] = useState<string | null>(null);
-    /** Muda a cada "Mudar prancheta" do intervalo (a prancheta rola até a tela). */
-    const [boardFocus, setBoardFocus] = useState(0);
     const [lines, setLines] = useState<(CommentLine & { id: number })[]>([]);
     const lineId = useRef(0);
     // painel do técnico: no desktop a Tática fica embaixo da quadra e as abas abrem na Prancheta
@@ -339,6 +341,13 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const htLeft = useCountdown(halftime ? s.halftime?.until : undefined);
     const kickLeft = useCountdown(kicked ? undefined : s.kickoffAt);
     const clockParts = useClockParts(clock, fulltime || ended, shootout, halftime);
+    // fim de jogo: vai sozinho pro resultado; um toque na quadra ou no painel segura
+    const auto = useAutoResult(ended, onSeeResult);
+    // fim de jogo: a quadra volta pra tela (no celular a página pode ter ficado rolada desde o intervalo)
+    useEffect(() => {
+        if (ended)
+            scoreboardRef.current?.scrollIntoView({ block: 'nearest', behavior: reduceMotionOn() ? 'auto' : 'smooth' });
+    }, [ended]);
 
     if (!match || !sceneData) {
         return (
@@ -399,7 +408,8 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         lastBoard && boardEv && boardEv.tick > clock.tick
             ? { formation: lastBoard.formation, order: lastBoard.order }
             : null;
-    const energyAt = (i: number) => snapAt(match.snapshots, tickRef.current).p[(myIdx[i] ?? 0) * SNAP_STRIDE + 6] ?? 1;
+    const energyAt = (i: number, tick = tickRef.current) =>
+        snapAt(match.snapshots, tick).p[(myIdx[i] ?? 0) * SNAP_STRIDE + 6] ?? 1;
     const nameOf = (uid: string) => {
         const p = byUid.get(uid);
         if (!p) return '?';
@@ -440,6 +450,21 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
 
     // quem está mais cansado em quadra: o botão Substituir avisa (só avisa; a troca é sempre do técnico)
     const tiredSlot = onField.map((uid, i) => ({ uid, energy: energyAt(i) })).sort((a, b) => a.energy - b.energy)[0];
+    // intervalo: sugere trocar o mais cansado (só abre o Substituir com ele marcado), pelo fôlego com que ele
+    // começaria o 2º tempo (o mesmo número do "Mais cansado" do painel)
+    const ko2 = match.events.find((e) => e.type === 'kickoff' && e.half === 2)?.tick;
+    const htSuggest = halftime
+        ? subSuggestion(
+              onField.map((uid, i) => ({ uid, energy: energyAt(i, ko2) })),
+              canSub,
+          )
+        : null;
+    const pendingSubText = pendingSub
+        ? rich(t(halftime ? 'match.subPendingHt' : 'match.subPending'), {
+              out: <b>{nameOf(pendingSub.outUid)}</b>,
+              in: <b>{nameOf(pendingSub.inUid)}</b>,
+          })
+        : null;
     const tiredInst = tiredSlot && byUid.get(tiredSlot.uid);
     const tired =
         canSub && tiredSlot && tiredInst && tiredSlot.energy < TIRED_HINT
@@ -523,7 +548,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                     {agency && <MaxBars events={match.events} tick={clock.tick} colors={colors} />}
                 </div>
 
-                <div className="bc-stage">
+                <div className="bc-stage" onPointerDownCapture={auto.hold}>
                     {suspect && <div className="duel-banner warn">{t('duel.match.suspect')}</div>}
                     {/* tela parada esperando o rival (a faixa da espera do W.O., quando vale, já diz isso) */}
                     {stall && stall !== role && s.waitFor !== stall && !ended && (
@@ -548,6 +573,9 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                         )}
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
+                        {ended && !auto.held && (
+                            <FinalBanner score={clock.score} shootout={shootout} side={side} names={teamNames} />
+                        )}
                         <PlayerInspect
                             match={match}
                             setups={setups}
@@ -572,19 +600,33 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                                 }}
                                 canSub={canSub}
                                 onSub={() => setSubOpen(true)}
-                                onBoard={() => {
-                                    setTab('board');
-                                    setBoardFocus((k) => k + 1);
-                                }}
+                                pending={pendingSubText}
+                                suggest={
+                                    htSuggest && {
+                                        text: t('match.ht.suggest', {
+                                            name: nameOf(htSuggest.uid),
+                                            p: Math.round(htSuggest.energy * 100),
+                                        }),
+                                        onPick: () => {
+                                            setSubOut(htSuggest.uid);
+                                            setSubOpen(true);
+                                        },
+                                    }
+                                }
                                 onContinue={() => duel.dispatch({ k: 'htReady' })}
+                                readyText={
+                                    htReady?.[role] && !htReady?.[rivalRole] && !awayRival
+                                        ? t('duel.match.htMeReady', { name: rivalName })
+                                        : htReady?.[role]
+                                          ? t('duel.match.htBoth')
+                                          : null
+                                }
                                 footer={
                                     <p className="duel-ht" data-testid="duel-ht">
-                                        <b>{t('duel.match.htTimer', { s: htLeft })}</b> ·{' '}
-                                        {htReady?.[role] && (htReady?.[rivalRole] || awayRival)
-                                            ? t('duel.match.htBoth')
-                                            : htReady?.[role]
-                                              ? t('duel.match.htWaiting', { name: rivalName })
-                                              : ''}
+                                        <b>{t('duel.match.htTimer', { s: htLeft })}</b>
+                                        {!htReady?.[role] && htReady?.[rivalRole] && (
+                                            <> · {t('duel.match.htRivalReady', { name: rivalName })}</>
+                                        )}
                                     </p>
                                 }
                             />
@@ -610,14 +652,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                             />
                         </div>
                     )}
-                    {pendingSub && (
-                        <div className="sub-pending">
-                            {rich(t('match.subPending'), {
-                                out: <b>{nameOf(pendingSub.outUid)}</b>,
-                                in: <b>{nameOf(pendingSub.inUid)}</b>,
-                            })}
-                        </div>
-                    )}
+                    {pendingSub && !halftime && <div className="sub-pending">{pendingSubText}</div>}
                     {pendingBoard && (
                         <div className="sub-pending">
                             {t('match.boardPending', { formation: formationText(pendingBoard.formation).name })}
@@ -645,7 +680,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                     {wide && <div className="bc-deskbar">{tactics}</div>}
                 </div>
 
-                <div className="panel bc-coach">
+                <div className="panel bc-coach" onPointerDownCapture={auto.hold}>
                     <CoachTabs tabs={tabs} active={tab} onPick={setTab} />
                     <div className={`bc-pane pane-${tab}`} role="tabpanel">
                         {tab === 'tactic' && tactics}
@@ -665,7 +700,6 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                                     onConfirm: ({ formation, order: o }) =>
                                         canChange && order({ kind: 'lineup', formation, order: o }),
                                 }}
-                                focusKey={boardFocus}
                             />
                         )}
                         {tab === 'team' && (
@@ -721,9 +755,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                             </div>
                         </fieldset>
                     ) : (
-                        <button type="button" className="btn primary bc-result" onClick={onSeeResult}>
-                            {t('duel.match.seeResult')}
-                        </button>
+                        <ResultButton label={t('duel.match.seeResult')} onGo={onSeeResult} auto={auto} />
                     )}
                     {wide ? (
                         <EmoteBar captain={captains[side]} />

@@ -33,15 +33,19 @@ import {
     type Clock,
     type CoachTab,
     CoachTabs,
+    FinalBanner,
     HudIcon,
     hex,
     MatchFeed,
     PressureBar,
+    ResultButton,
     Scoreboard,
     SubPanel,
+    subSuggestion,
     TacticControls,
     TIRED_HINT,
     Ticker,
+    useAutoResult,
     useClockParts,
     useCoachTab,
 } from '../components/MatchHud';
@@ -104,8 +108,6 @@ export function Match() {
     const halftimeRef = useRef<HTMLDivElement>(null);
     const [subOut, setSubOut] = useState<string | null>(null);
     const [pending, setPending] = useState(false);
-    /** Muda a cada "Mudar prancheta" do intervalo (a prancheta rola até a tela). */
-    const [boardFocus, setBoardFocus] = useState(0);
     /** A cena Phaser só escuta comandos depois de carregar; até lá os controles ficam travados. */
     const [sceneReady, setSceneReady] = useState(false);
     /** Se a quadra demorar demais (celular fraco, aba em segundo plano), oferece recarregar. */
@@ -307,6 +309,13 @@ export function Match() {
     const clockParts = useClockParts(clock, fulltime || ended, shootout, halftime);
     // o capitão do líder rival reage aos gols (emote do Duelo, só na tela)
     const rivalPlan = useMemo(() => (match ? rivalEmotes(match.events, 1) : []), [match]);
+    // fim de jogo: vai sozinho pro resultado; um toque na quadra ou no painel segura
+    const auto = useAutoResult(ended, () => go('result'));
+    // fim de jogo: a quadra volta pra tela (no celular a página pode ter ficado rolada desde o intervalo)
+    useEffect(() => {
+        if (ended)
+            scoreboardRef.current?.scrollIntoView({ block: 'nearest', behavior: reduceMotionOn() ? 'auto' : 'smooth' });
+    }, [ended]);
     if (!run || !match || !sceneData || !opponent) return null;
 
     const lockedSetup = run.lockedTeam ? { ...run.lockedTeam, manualSubs: true } : playerTeam(run);
@@ -416,7 +425,7 @@ export function Match() {
     // posição agora de quem está em cada vaga (a prancheta pode ter mudado)
     const slots = onField.map((_, i) => roleAt(match, [lockedSetup, opponent], i, tickRef.current));
     /** Fôlego (0..1) agora de quem está na vaga `i` do seu time. */
-    const energyAt = (i: number) => snapAt(match.snapshots, tickRef.current).p[i * SNAP_STRIDE + 6] ?? 1;
+    const energyAt = (i: number, tick = tickRef.current) => snapAt(match.snapshots, tick).p[i * SNAP_STRIDE + 6] ?? 1;
     const pendingSub = subOrders.find((o) => !subsDone.includes(o.inUid)) ?? null;
     const canSub = canChangeTactic && !pendingSub && subOrders.length < lockedSetup.bench.length && benchNow.length > 0;
     const orderSub = (outUid: string, inUid: string) => {
@@ -456,6 +465,21 @@ export function Match() {
     };
     // quem está mais cansado em quadra: o botão Substituir avisa (só avisa; a troca é sempre do técnico)
     const tiredSlot = onField.map((uid, i) => ({ uid, energy: energyAt(i) })).sort((a, b) => a.energy - b.energy)[0];
+    // intervalo: sugere trocar o mais cansado (só abre o Substituir com ele marcado), pelo fôlego com que ele
+    // começaria o 2º tempo (o mesmo número do "Mais cansado" do painel)
+    const ko2 = match.events.find((e) => e.type === 'kickoff' && e.half === 2)?.tick;
+    const htSuggest = halftime
+        ? subSuggestion(
+              onField.map((uid, i) => ({ uid, energy: energyAt(i, ko2) })),
+              canSub,
+          )
+        : null;
+    const pendingSubText = pendingSub
+        ? rich(t(halftime ? 'match.subPendingHt' : 'match.subPending'), {
+              out: <b>{nameOf(pendingSub.outUid)}</b>,
+              in: <b>{nameOf(pendingSub.inUid)}</b>,
+          })
+        : null;
     const tiredInst = tiredSlot && byUid.get(tiredSlot.uid);
     const tired =
         canSub && tiredSlot && tiredInst && tiredSlot.energy < TIRED_HINT
@@ -538,7 +562,7 @@ export function Match() {
                     {agency && <MaxBars events={match.events} tick={clock.tick} colors={colors} />}
                 </div>
 
-                <div className="bc-stage">
+                <div className="bc-stage" onPointerDownCapture={auto.hold}>
                     <div className="pitch-wrap">
                         {fontsReady ? (
                             <PhaserGame key={`${match.seed}-${sceneKey}`} data={sceneData} />
@@ -556,6 +580,9 @@ export function Match() {
                         )}
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
+                        {ended && !auto.held && (
+                            <FinalBanner score={clock.score} shootout={shootout} side={0} names={teamNames} />
+                        )}
                         <LeaveConfirm />
                         <PlayerInspect
                             match={match}
@@ -585,10 +612,19 @@ export function Match() {
                                 }}
                                 canSub={canSub}
                                 onSub={() => setSubOpen(true)}
-                                onBoard={() => {
-                                    setTab('board');
-                                    setBoardFocus((k) => k + 1);
-                                }}
+                                pending={pendingSubText}
+                                suggest={
+                                    htSuggest && {
+                                        text: t('match.ht.suggest', {
+                                            name: nameOf(htSuggest.uid),
+                                            p: Math.round(htSuggest.energy * 100),
+                                        }),
+                                        onPick: () => {
+                                            setSubOut(htSuggest.uid);
+                                            setSubOpen(true);
+                                        },
+                                    }
+                                }
                                 onContinue={() => {
                                     setHalftime(false);
                                     EventBus.emit('match:resume');
@@ -601,10 +637,6 @@ export function Match() {
                             <TimeoutPanel
                                 canSub={canSub}
                                 onSub={() => setSubOpen(true)}
-                                onBoard={() => {
-                                    setTab('board');
-                                    setBoardFocus((k) => k + 1);
-                                }}
                                 onBack={() => {
                                     setTimeoutAt(null);
                                     EventBus.emit('match:resume');
@@ -638,14 +670,7 @@ export function Match() {
                             />
                         </div>
                     )}
-                    {pendingSub && (
-                        <div className="sub-pending">
-                            {rich(t('match.subPending'), {
-                                out: <b>{nameOf(pendingSub.outUid)}</b>,
-                                in: <b>{nameOf(pendingSub.inUid)}</b>,
-                            })}
-                        </div>
-                    )}
+                    {pendingSub && !halftime && <div className="sub-pending">{pendingSubText}</div>}
                     {pendingBoard && (
                         <div className="sub-pending">
                             {t('match.boardPending', { formation: formationText(pendingBoard.formation).name })}
@@ -669,7 +694,7 @@ export function Match() {
                     {wide && <div className="bc-deskbar">{tactics}</div>}
                 </div>
 
-                <div className="panel bc-coach">
+                <div className="panel bc-coach" onPointerDownCapture={auto.hold}>
                     <CoachTabs tabs={tabs} active={tab} onPick={setTab} />
                     <div className={`bc-pane pane-${tab}`} role="tabpanel">
                         {tab === 'tactic' && tactics}
@@ -688,7 +713,6 @@ export function Match() {
                                     } else if (idx !== null) EventBus.emit('match:inspect-request', idx);
                                 }}
                                 edit={{ enabled: canChangeTactic, pending: pendingBoard, onConfirm: orderBoard, over }}
-                                focusKey={boardFocus}
                             />
                         )}
                         {tab === 'team' && (
@@ -740,9 +764,7 @@ export function Match() {
                             </button>
                         </>
                     ) : (
-                        <button type="button" className="btn primary bc-result" onClick={() => go('result')}>
-                            {t('match.seeResult')}
-                        </button>
+                        <ResultButton label={t('match.seeResult')} onGo={() => go('result')} auto={auto} />
                     )}
                 </div>
             </div>

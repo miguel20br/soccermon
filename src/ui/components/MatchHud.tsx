@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, type Ref, useMemo, useState } from 'react';
+import { type CSSProperties, type ReactNode, type Ref, useEffect, useMemo, useRef, useState } from 'react';
 import type { Position } from '../../engine/attributes';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
@@ -271,6 +271,10 @@ const ICONS = {
     medal: 'M8 2l3 7M16 2l-3 7M12 9a6 6 0 1 1 0 12 6 6 0 0 1 0-12zM12 12.5l1 2 2.2.3-1.6 1.5.4 2.2-2-1-2 1 .4-2.2-1.6-1.5 2.2-.3z',
     up: 'M6 15l6-6 6 6',
     down: 'M6 9l6 6 6-6',
+    // instrução de escanteio: bola alta, curta, varia
+    cornerArea: 'M4 18c2-9 14-9 16 0M18 15l2 3 2-3',
+    cornerShort: 'M3 14h11M10 10l4 4-4 4M19 7a2 2 0 1 1 0 .1',
+    cornerMixed: 'M3 7h4l10 10h4M3 17h4l10-10h4M18 4l3 3-3 3M18 14l3 3-3 3',
 } as const;
 export type HudIconKind = keyof typeof ICONS;
 
@@ -478,7 +482,41 @@ export interface TiredHint {
 /** Abaixo disso o botão Substituir avisa quem está cansado. */
 export const TIRED_HINT = 0.5;
 
-/** Tática (estilos em peças com ícone, sem limite de trocas), escanteio e o botão Substituir. */
+/** No intervalo, abaixo disso o painel sugere trocar quem está mais cansado. */
+export const HT_SUGGEST = 0.8;
+
+/** Sugestão de troca do intervalo: o mais cansado em quadra, se dá pra trocar e ele está abaixo de HT_SUGGEST. */
+export function subSuggestion<T extends { energy: number }>(field: T[], canSub: boolean): T | null {
+    if (!canSub) return null;
+    const most = [...field].sort((a, b) => a.energy - b.energy)[0];
+    return most && most.energy < HT_SUGGEST ? most : null;
+}
+
+/** Régua da peça (ataque, defesa) de 0 a 3: só pra ler rápido, o efeito de verdade fica no motor. */
+export const TACTIC_METER: Record<Tactic, [number, number]> = {
+    balanced: [2, 2],
+    offensive: [3, 1],
+    defensive: [1, 3],
+    counter: [2, 2],
+};
+const CORNER_ICON: Record<CornerPlan, HudIconKind> = { area: 'cornerArea', short: 'cornerShort', mixed: 'cornerMixed' };
+/** Quanto tempo o aviso da tática nova fica embaixo das peças. */
+const TACTIC_NOTE_MS = 3500;
+
+function Dots({ n, cls }: { n: number; cls: string }) {
+    return (
+        <span className={`bc-dots ${cls}`} aria-hidden>
+            {[0, 1, 2].map((i) => (
+                <i key={i} className={i < n ? 'on' : undefined} />
+            ))}
+        </span>
+    );
+}
+
+/**
+ * Tática (estilos em peças com ícone, sem limite de trocas), escanteio e o botão Substituir. Cada peça diz em
+ * palavras simples o que muda, com a régua ATQ/DEF e o selo "Valendo" na ativa; ao tocar sobe um aviso curto.
+ */
 export function TacticControls({
     tactic,
     corner,
@@ -505,6 +543,12 @@ export function TacticControls({
     tired?: TiredHint | null;
 }) {
     const { t, d } = useT();
+    const [note, setNote] = useState<Tactic | null>(null);
+    useEffect(() => {
+        if (!note) return;
+        const id = window.setTimeout(() => setNote(null), TACTIC_NOTE_MS);
+        return () => clearTimeout(id);
+    }, [note]);
     return (
         <div className="bc-tactic">
             <div className="bc-row row-style">
@@ -512,32 +556,53 @@ export function TacticControls({
                 {pending && <span className="bc-lbl">{t('match.changing')}</span>}
             </div>
             <div className="bc-styles">
-                {(Object.keys(TACTIC_LABEL) as Tactic[]).map((tc) => (
-                    <button
-                        key={tc}
-                        type="button"
-                        className={`bc-tile${tactic === tc ? ' on' : ''}`}
-                        aria-pressed={tactic === tc}
-                        title={d.team.lineup.tacticDesc[tc]}
-                        disabled={!canChange}
-                        onClick={() => onTactic(tc)}
-                    >
-                        <HudIcon kind={tc} />
-                        <span>
-                            <b>{d.common.tactic[tc]}</b>
+                {(Object.keys(TACTIC_LABEL) as Tactic[]).map((tc) => {
+                    const [atk, def] = TACTIC_METER[tc];
+                    return (
+                        <button
+                            key={tc}
+                            type="button"
+                            className={`bc-tile tac-tile${tactic === tc ? ' on' : ''}`}
+                            aria-pressed={tactic === tc}
+                            disabled={!canChange}
+                            onClick={() => {
+                                if (tc !== tactic) setNote(tc);
+                                onTactic(tc);
+                            }}
+                        >
+                            {tactic === tc && <span className="tac-on">{t('match.coach.active')}</span>}
+                            <span className="tac-head">
+                                <HudIcon kind={tc} />
+                                <b>{d.common.tactic[tc]}</b>
+                            </span>
                             <small>{d.match.coach.styleShort[tc]}</small>
-                        </span>
-                    </button>
-                ))}
+                            <span
+                                className="tac-meter"
+                                role="img"
+                                aria-label={t('match.coach.meter', { a: atk, d: def })}
+                            >
+                                {t('match.coach.atk')}
+                                <Dots n={atk} cls="atk" />
+                                {t('match.coach.def')}
+                                <Dots n={def} cls="def" />
+                            </span>
+                        </button>
+                    );
+                })}
             </div>
+            {note && (
+                <p key={note} className="tac-note" role="status">
+                    <b>{d.common.tactic[note]}!</b> {t('match.coach.changed')}
+                </p>
+            )}
             {error && <span className="error-text">{error}</span>}
-            <div className="bc-row row-corner" title={t('match.cornerHint')}>
+            <div className="bc-row row-corner">
                 <span className="bc-lbl">
                     <HudIcon kind="flag" />
                     {t('match.corner')}
                 </span>
             </div>
-            <div className="bc-seg corner-seg">
+            <div className="bc-seg corner-seg" title={t('match.cornerHint')}>
                 {CORNER_PLANS.map((pl) => (
                     <button
                         key={pl}
@@ -547,7 +612,9 @@ export function TacticControls({
                         disabled={!canChange}
                         onClick={() => onCorner(pl)}
                     >
-                        {d.common.cornerPlan[pl]}
+                        <HudIcon kind={CORNER_ICON[pl]} />
+                        <span>{d.common.cornerPlan[pl]}</span>
+                        <small>{d.match.coach.cornerSub[pl]}</small>
                     </button>
                 ))}
             </div>
@@ -568,6 +635,106 @@ export function TacticControls({
                 )}
             </button>
         </div>
+    );
+}
+
+/** Fim de jogo: quanto tempo a quadra espera antes de ir sozinha pro resultado. */
+export const AUTO_RESULT_MS = 3000;
+
+/** Passo da ida automática pro resultado: esperando, já pode ir, ou o técnico segurou (fica na quadra). */
+export function autoResultStep(elapsedMs: number, held: boolean): 'wait' | 'go' | 'held' {
+    if (held) return 'held';
+    return elapsedMs >= AUTO_RESULT_MS ? 'go' : 'wait';
+}
+
+/**
+ * Depois do apito final vai sozinho pro resultado em AUTO_RESULT_MS; `hold()` (um toque na quadra ou no painel)
+ * segura e a tela fica esperando o "Ver resultado". `left` = fração do tempo que falta (1 → 0), pro botão encher.
+ */
+export function useAutoResult(ended: boolean, onGo: () => void): { held: boolean; hold: () => void; left: number } {
+    const [held, setHeld] = useState(false);
+    const [left, setLeft] = useState(1);
+    const go = useRef(onGo);
+    go.current = onGo;
+    useEffect(() => {
+        if (!ended || held) return;
+        const start = performance.now();
+        let gone = false;
+        const id = window.setInterval(() => {
+            const elapsed = performance.now() - start;
+            setLeft(Math.max(0, 1 - elapsed / AUTO_RESULT_MS));
+            if (!gone && autoResultStep(elapsed, false) === 'go') {
+                gone = true;
+                go.current();
+            }
+        }, 100);
+        return () => clearInterval(id);
+    }, [ended, held]);
+    return { held, hold: () => ended && setHeld(true), left };
+}
+
+/** Resultado da partida do ponto de vista de `side` (pênaltis desempatam). */
+export function finalOutcome(score: [number, number], shootout: [number, number] | null, side: 0 | 1) {
+    const [a, b] = shootout && score[0] === score[1] ? shootout : score;
+    const diff = side === 0 ? a - b : b - a;
+    return diff > 0 ? 'win' : diff < 0 ? 'loss' : 'draw';
+}
+
+/** Faixa grande do fim de jogo por cima da quadra: VITÓRIA!/DERROTA/EMPATE e o placar. */
+export function FinalBanner({
+    score,
+    shootout,
+    side,
+    names,
+}: {
+    score: [number, number];
+    shootout: [number, number] | null;
+    side: 0 | 1;
+    names: [string, string];
+}) {
+    const { t } = useT();
+    const outcome = finalOutcome(score, shootout, side);
+    return (
+        <div className={`final-banner ${outcome}`} role="status">
+            <b>{t(`match.final.${outcome}`)}</b>
+            <span>
+                {names[side]} {score[side]} x {score[side === 0 ? 1 : 0]}
+                {shootout && ` (${t('match.penalties', { a: shootout[side], b: shootout[side === 0 ? 1 : 0] })})`}
+            </span>
+        </div>
+    );
+}
+
+/** Botão do fim de jogo: enche enquanto conta os segundos pra ir sozinho; segurado, vira o botão de sempre. */
+export function ResultButton({
+    label,
+    onGo,
+    auto,
+}: {
+    label: string;
+    onGo: () => void;
+    auto: { held: boolean; hold: () => void; left: number };
+}) {
+    const { t } = useT();
+    const counting = !auto.held;
+    return (
+        <>
+            <button
+                type="button"
+                className={`btn primary bc-result${counting ? ' counting' : ''}`}
+                style={{ '--fill': 1 - auto.left } as CSSProperties}
+                onClick={onGo}
+            >
+                {counting
+                    ? t('match.goingResult', { s: Math.max(1, Math.ceil((auto.left * AUTO_RESULT_MS) / 1000)) })
+                    : label}
+            </button>
+            {counting && (
+                <button type="button" className="btn ghost bc-stay" onClick={auto.hold}>
+                    {t('match.stay')}
+                </button>
+            )}
+        </>
     );
 }
 

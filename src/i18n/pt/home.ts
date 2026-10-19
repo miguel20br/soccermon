@@ -17,8 +17,7 @@ export const home = {
     eventText: 'Cartas Evento do tipo {type} podem aparecer no draft.',
     helpAria: 'Como jogar (ver o passo a passo de novo)',
     helpTitle: 'Como jogar',
-    tagline:
-        'Monte seu time com os 151 de Kanto num draft “escolha 1 de 3” e dispute a Copa de Futsal contra os ginásios.',
+    tagline: 'Monte seu time com os 151 de Kanto e ganhe a Copa de Futsal.',
     confirmNew: 'Começar outra copa apaga a do {team}. Tem certeza?',
     confirmYes: 'Sim, começar outra',
     inProgress: 'Copa em andamento',

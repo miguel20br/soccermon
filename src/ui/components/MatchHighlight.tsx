@@ -5,8 +5,9 @@ import type { MatchHighlight as Highlight } from '../../game/scenes/MatchScene';
 import { useT } from '../../i18n/react';
 
 const EMOTIONS = portraits as Record<string, string[]>;
-/** Quanto tempo (real) a faixa fica na tela. */
+/** Quanto tempo (real) a faixa fica na tela; a evolução do rival fica mais (era 2,6 s). */
 const SHOW_MS = 2600;
+const RIVAL_EVO_SHOW_MS = 3500;
 
 /** Rostinho do PMDCollab: comemorando no gol, concentrado na defesa (cai no normal se não tiver). */
 function portraitOf(speciesId: number, kind: Highlight['kind']): string {
@@ -26,7 +27,7 @@ export function MatchHighlight({ teamNames, colors }: { teamNames: [string, stri
         const onHighlight = (h: Highlight) => {
             setShown({ ...h, id: nextId.current++ });
             clearTimeout(timer);
-            timer = window.setTimeout(() => setShown(null), SHOW_MS);
+            timer = window.setTimeout(() => setShown(null), h.kind === 'rivalEvolve' ? RIVAL_EVO_SHOW_MS : SHOW_MS);
         };
         EventBus.on('match:highlight', onHighlight);
         return () => {
@@ -59,15 +60,22 @@ export function MatchHighlight({ teamNames, colors }: { teamNames: [string, stri
                 {shown.shiny && <span className="mh-shiny">✦</span>}
             </div>
             <div className="mh-text">
-                <span className="mh-kind">{d.match.highlight[shown.kind]}</span>
+                {/* evolução do rival: o nome do time (na cor dele) no lugar de "RIVAL" */}
+                <span className="mh-kind">
+                    {shown.kind === 'rivalEvolve' ? teamNames[shown.team] : d.match.highlight[shown.kind]}
+                </span>
                 <strong className="mh-name">
-                    {shown.kind === 'sub' ? t('match.subIn', { name: shown.name }) : shown.name}
+                    {shown.kind === 'sub'
+                        ? t('match.subIn', { name: shown.name })
+                        : shown.kind === 'rivalEvolve'
+                          ? t('match.rivalEvolved', { name: shown.outName ?? '' })
+                          : shown.name}
                 </strong>
                 <span className="mh-team">
                     {shown.kind === 'sub'
                         ? t('match.subOut', { name: shown.outName ?? '' })
                         : shown.kind === 'rivalEvolve'
-                          ? t('match.evolvedRival', { name: shown.outName ?? '' })
+                          ? t('match.evolvedRival', { name: shown.name })
                           : teamNames[shown.team]}
                 </span>
             </div>

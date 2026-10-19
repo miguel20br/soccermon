@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { type CSSProperties, useMemo, useState, useSyncExternalStore } from 'react';
 import { FORMATIONS, type FormationId } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
@@ -57,7 +57,6 @@ export function Prancheta({
     selectedUid,
     onMine,
     edit,
-    focusKey,
 }: {
     match: MatchResult;
     setups: [TeamSetup, TeamSetup];
@@ -81,8 +80,6 @@ export function Prancheta({
         /** Apito final (e pênaltis): nada mais muda; a dica só oferece ver o painel do jogador. */
         over?: boolean;
     };
-    /** Mudou: mostra o seu time e rola até a prancheta (botão "Mudar prancheta" do intervalo). */
-    focusKey?: number;
 }) {
     const { t, lang } = useT();
     const [team, setTeam] = useState<0 | 1>(side);
@@ -90,12 +87,6 @@ export function Prancheta({
     const [draft, setDraft] = useState<BoardPlan | null>(null);
     const [pick, setPick] = useState<string | null>(null);
     const horizontal = useMedia(PORTRAIT);
-    const rootRef = useRef<HTMLDivElement>(null);
-    useEffect(() => {
-        if (!focusKey) return;
-        setTeam(side);
-        rootRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    }, [focusKey, side]);
     const at = Math.floor(tick / STEP_TICKS) * STEP_TICKS;
     const mine = team === side;
 
@@ -145,7 +136,7 @@ export function Prancheta({
     const pickedInst = picked ? view.byUid.get(picked) : undefined;
 
     return (
-        <div ref={rootRef} className={`panel prancheta${horizontal ? ' horizontal' : ''}`}>
+        <div className={`panel prancheta${horizontal ? ' horizontal' : ''}`}>
             <div className="tp-tabs" role="tablist" aria-label={t('match.board.title')}>
                 {([side, side === 0 ? 1 : 0] as const).map((tm) => (
                     <button

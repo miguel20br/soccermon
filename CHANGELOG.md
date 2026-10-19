@@ -7,6 +7,16 @@
 - Gol da copa: no fim da copa, o seu gol mais bonito ganha replay e o porquê da escolha
 - Exporte um clipe vertical (9:16) do lance pra mandar ou postar no TikTok
 
+### Mais fácil de jogar
+- Aba Tática com textos simples e uma régua de ataque e defesa em cada estilo
+- A aba Prancheta virou Posições, sem o botão "Mudar prancheta"
+- No intervalo, o jogo sugere uma troca pelo fôlego do 2º tempo (a escolha é sua)
+- Fim de jogo: vai sozinho pro resultado em 3 s; um toque na quadra segura
+- Evolução do rival mais clara: mais longa, com zoom, nome e cor do time e um lembrete no Resultado
+- Gritos dos Pokémon: os Modernos viraram o padrão, com o mesmo volume pra todos (os Clássicos 8-bit continuam em Configurações)
+- Textos mais simples no jogo todo e boas-vindas em 3 páginas, com dicas na hora certa
+- Experimento beira da quadra: o grito "Pra cima!" virou "Ataca!"
+
 ### Medalhas e clube
 - 20 medalhas com degraus (bronze, prata, ouro e platina) em Perfil → Medalhas. Já contam tudo o que você jogou
 - Vitrine: escolha até 3 destaques (medalha, coleção completa ou selo); aparecem no seu cartão e no VERSUS do Duelo, e o melhor vira a moldura do avatar

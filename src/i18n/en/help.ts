@@ -561,25 +561,12 @@ export const help: typeof pt = {
         next: 'Next',
         go: "Let's play",
         welcomeTitle: 'Welcome to Soccermon',
-        welcomeText:
-            'The **151 of Kanto** in 5-a-side futsal. Build your team, coach from the touchline and win the cup.',
+        welcomeText: 'The **151 of Kanto** in 5-a-side futsal. Build your team and win the cup.',
         draftTitle: 'Draft: 1 of 3',
-        draftText:
-            "Pick a formation and a captain. Then tap a slot: 3 Pokémon show up for it and you take 1. Don't like them? **Reroll**.",
-        lineupTitle: 'Lineup and tactics',
-        lineupText:
-            'Tap two players to swap their slots, bench included. Same type and famous duos give **synergy**; items help too.',
+        draftText: "Tap a slot: 3 Pokémon show up and you take 1. Don't like them? **Reroll**.",
         coachTitle: "You're the coach",
-        coachText:
-            'The match is simulated. Change the tactic, make substitutions and tap a Pokémon to see its panel. Moves fire off on the court and whoever plays great **evolves mid-match**!',
+        coachText: 'Change the tactic and sub whoever gets tired. Players who shine **evolve mid-match**!',
         tactic: 'Tactic',
         sub: 'Substitute',
-        cupTitle: 'The Cup',
-        cupText:
-            "Round of 16, quarters, semi and final against Kanto's Gyms and the Indigo League. Won? Pick a **reinforcement** (you can sign one from the rival), an item or the **Gym TM**. A draw goes to penalties.",
-        cupPath: ['R16', 'QF', 'SF', 'Final'],
-        dexTitle: 'Pokédex and account',
-        dexText:
-            'Whoever you see and field goes into the Pokédex; the moves you see, into the Movedex. **Sign in with Google** to save in the cloud and play on another device.',
     },
 };

@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+import { species } from '../../engine/data';
 import { possessionByPeriod } from '../../engine/match-stats';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { SNAP_STRIDE } from '../../engine/state';
@@ -15,18 +17,24 @@ export function HalftimePanel({
     onContinue,
     onSub,
     canSub,
-    onBoard,
     side = 0,
     footer,
+    pending,
+    suggest,
+    readyText,
 }: {
-    /** "Mudar prancheta": leva até a prancheta (a mudança vale no vestiário). */
-    onBoard?: () => void;
+    /** Duelo: você já deu pronto (o botão vira "Pronto! Esperando…" e trava). */
+    readyText?: string | null;
+    /** Troca já marcada pro 2º tempo (aparece dentro do painel, perto dos botões). */
+    pending?: ReactNode;
+    /** Sugestão de troca: só abre o Substituir com quem está cansado marcado (nada troca sozinho). */
+    suggest?: { text: string; onPick: () => void } | null;
     match: MatchResult;
     names: [string, string];
     /** Lado do jogador (no duelo, o convidado é o 1). */
     side?: 0 | 1;
     /** No duelo: cronômetro e quem já está pronto. */
-    footer?: React.ReactNode;
+    footer?: ReactNode;
     /** Nome de quem está na vaga `idx` (do seu time) no intervalo. */
     nameOf: (idx: number) => string;
     onContinue: () => void;
@@ -48,6 +56,12 @@ export function HalftimePanel({
     const ko = match.events.find((e) => e.type === 'kickoff' && e.tick > ht.tick)?.tick ?? ht.tick;
     const snap = snapAt(match.snapshots, ko);
     const mine = match.roster.filter((p) => p.team === side).map((p) => p.idx);
+    // evoluções do rival no 1º tempo: lembrete pra quem piscou
+    const rivalEvos = match.events.flatMap((e) =>
+        e.type === 'evolve' && e.team !== side && e.tick <= ht.tick
+            ? [`${species(e.from).name} → ${species(e.into).name}`]
+            : [],
+    );
     const tired = mine
         .map((idx) => ({ idx, energy: snap.p[idx * SNAP_STRIDE + 6] ?? 1 }))
         .sort((a, b) => a.energy - b.energy)[0];
@@ -88,19 +102,26 @@ export function HalftimePanel({
                         </dd>
                     </div>
                 )}
+                {rivalEvos.length > 0 && (
+                    <div className="ht-rival-evo">
+                        <dt>{t('match.ht.rivalEvo')}</dt>
+                        <dd>{rivalEvos.join(', ')}</dd>
+                    </div>
+                )}
             </dl>
             <p className="ht-tip">{tip}</p>
+            {suggest && (
+                <button type="button" className="ht-suggest" onClick={suggest.onPick}>
+                    {suggest.text}
+                </button>
+            )}
+            {pending && <p className="ht-pending">{pending}</p>}
             <div className="ht-actions">
                 <button type="button" className="btn yellow" disabled={!canSub} onClick={onSub}>
                     {t('match.substitute')}
                 </button>
-                {onBoard && (
-                    <button type="button" className="btn" onClick={onBoard}>
-                        {t('match.ht.board')}
-                    </button>
-                )}
-                <button type="button" className="btn primary" onClick={onContinue}>
-                    {t('match.ht.continue')}
+                <button type="button" className="btn primary" disabled={!!readyText} onClick={onContinue}>
+                    {readyText || t('match.ht.continue')}
                 </button>
             </div>
             {footer}

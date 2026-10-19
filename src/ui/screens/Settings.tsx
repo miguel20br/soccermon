@@ -211,7 +211,7 @@ export function Settings() {
                             { value: 'latest', label: t('settings.screen.criesLatest') },
                         ]}
                         onPick={(cries) => {
-                            set({ cries });
+                            set({ cries, criesChosen: true });
                             playCry(25, cries);
                         }}
                     />

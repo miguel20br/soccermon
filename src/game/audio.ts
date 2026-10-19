@@ -1,5 +1,6 @@
 import { ZZFX, zzfx } from 'zzfx';
 import type { CryStyle } from '../store/game-store';
+import { CRY_FADE_AT, CRY_MAX_MS, cryGain, cryPlayMs } from './cry-level';
 
 /**
  * Áudio da partida: gritos dos Pokémon (arquivos .ogg do PokeAPI/cries) + efeitos procedurais (ZzFX).
@@ -108,6 +109,9 @@ export function playCrowd(call: CrowdCall, gain = 1) {
 
 const cryCache = new Map<string, HTMLAudioElement>();
 
+/** Até quando (performance.now) o último grito ainda soa: o grito de gol do capitão espera ele acabar. */
+let cryBusyUntil = 0;
+
 export function cryUrl(speciesId: number, style: CryStyle) {
     return `assets/cries/${style}/${speciesId}.ogg`;
 }
@@ -117,9 +121,14 @@ export function playCry(speciesId: number, style: CryStyle, gain = 1, rate = 1) 
     cry(speciesId, style, vol.master * vol.cries * gain, rate);
 }
 
-/** Grito de gol: o cry do capitão junto com a torcida, no volume de efeitos (desliga em Configurações). */
+/**
+ * Grito de gol: o cry do capitão junto com a torcida, no volume de efeitos (desliga em Configurações). Não toca por
+ * cima de um grito que ainda está soando (o de quem marcou): espera ele acabar.
+ */
 export function playGoalCry(speciesId: number, style: CryStyle) {
-    if (goalCryOn) cry(speciesId, style, vol.master * vol.sfx);
+    if (!goalCryOn) return;
+    const wait = Math.max(0, cryBusyUntil - performance.now());
+    window.setTimeout(() => cry(speciesId, style, vol.master * vol.sfx), wait);
 }
 
 function cry(speciesId: number, style: CryStyle, volume: number, rate = 1) {
@@ -131,10 +140,25 @@ function cry(speciesId: number, style: CryStyle, volume: number, rate = 1) {
         cryCache.set(url, audio);
     }
     const node = audio.cloneNode(true) as HTMLAudioElement;
-    node.volume = Math.min(1, 0.55 * volume);
+    const level = Math.min(1, 0.55 * volume * cryGain(speciesId, style));
+    node.volume = level;
     if (rate !== 1) {
         node.preservesPitch = false;
         node.playbackRate = rate;
     }
+    const ms = cryPlayMs(speciesId, style, rate);
+    cryBusyUntil = Math.max(cryBusyUntil, performance.now() + ms);
     node.play().catch(() => {});
+    // longo: some aos poucos de CRY_FADE_AT até CRY_MAX_MS e para
+    if (ms >= CRY_MAX_MS) {
+        const start = performance.now() + CRY_FADE_AT;
+        const id = window.setInterval(() => {
+            const k = (performance.now() - start) / (CRY_MAX_MS - CRY_FADE_AT);
+            if (k < 0) return;
+            if (k >= 1) {
+                node.pause();
+                clearInterval(id);
+            } else node.volume = level * (1 - k);
+        }, 50);
+    }
 }

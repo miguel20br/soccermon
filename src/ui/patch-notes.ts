@@ -19,6 +19,19 @@ export const PATCH_NOTES: PatchNotes[] = [
                 ],
             },
             {
+                title: 'Mais fácil de jogar',
+                lines: [
+                    'Aba Tática com textos simples e uma régua de ataque e defesa em cada estilo',
+                    'A aba Prancheta virou Posições, sem o botão "Mudar prancheta"',
+                    'No intervalo, o jogo sugere uma troca pelo fôlego do 2º tempo (a escolha é sua)',
+                    'Fim de jogo: vai sozinho pro resultado em 3 s; um toque na quadra segura',
+                    'Evolução do rival mais clara: mais longa, com zoom, nome e cor do time e um lembrete no Resultado',
+                    'Gritos dos Pokémon: os Modernos viraram o padrão, com o mesmo volume pra todos (os Clássicos 8-bit continuam em Configurações)',
+                    'Textos mais simples no jogo todo e boas-vindas em 3 páginas, com dicas na hora certa',
+                    'Experimento beira da quadra: o grito "Pra cima!" virou "Ataca!"',
+                ],
+            },
+            {
                 title: 'Medalhas e clube',
                 lines: [
                     '20 medalhas com degraus (bronze, prata, ouro e platina) em Perfil → Medalhas. Já contam tudo o que você jogou',
@@ -600,6 +613,19 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'After the match, rewatch the goals and big plays in slow motion on the court itself',
                     'Goal of the cup: at the end of the cup, your best goal gets a replay and the reason it was picked',
                     'Export a vertical clip (9:16) of the play to send or post on TikTok',
+                ],
+            },
+            {
+                title: 'Easier to play',
+                lines: [
+                    'Tactics tab with plain texts and an attack and defense meter on each style',
+                    'The Board tab is now Positions, without the "Change board" button',
+                    'At halftime the game suggests a sub based on second-half stamina (your call)',
+                    'Full time: goes to the result on its own in 3 s; one tap on the court holds it',
+                    "The rival's evolution is clearer: longer, with zoom, the team's name and color and a reminder on the Result",
+                    'Pokémon cries: Modern is now the default, with the same volume for all (Classic 8-bit is still in Settings)',
+                    'Simpler texts across the game and a 3-page welcome, with tips at the right time',
+                    'Touchline experiment: the "Push up!" shout is now "Attack!"',
                 ],
             },
             {

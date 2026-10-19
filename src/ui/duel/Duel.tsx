@@ -666,7 +666,7 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
                         }}
                         actions={actions}
                     />
-                    <MatchDetails match={m} names={names} />
+                    <MatchDetails match={m} names={names} side={side} />
                 </>
             ) : (
                 <div className="panel duel-final-box">

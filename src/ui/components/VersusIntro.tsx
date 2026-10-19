@@ -327,11 +327,11 @@ export function VersusIntro({
             </div>
             <div className="vsp-flash" />
             {startsIn !== undefined ? (
-                <div className="btn primary vs-start vs-countdown" role="status">
+                <div className={`btn primary vs-start vs-countdown${ready ? '' : ' loading'}`} role="status">
                     {ready ? t('match.vs.startsIn', { s: startsIn }) : t('match.vs.loading')}
                 </div>
             ) : (
-                <button type="button" className="btn primary vs-start" onClick={onDone}>
+                <button type="button" className={`btn primary vs-start${ready ? '' : ' loading'}`} onClick={onDone}>
                     {ready ? t('match.vs.start') : t('match.vs.loading')}
                 </button>
             )}

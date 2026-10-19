@@ -3089,10 +3089,60 @@ button,
 }
 .mh-rivalEvolve .mh-arrow {
     color: #ffe14d;
+    transform: none;
 }
-/* "O Charmeleon do rival evoluiu!" quebra a linha em vez de cortar no celular */
+/* evolução do rival: caixa no alto e no meio (não é o canto do gol), borda e selo na cor do time dele */
+.mh.mh-rivalEvolve {
+    top: 6%;
+    bottom: auto;
+    /* left/right 0 + margin auto: centraliza sem limitar a largura à metade da quadra */
+    left: 0;
+    right: 0;
+    width: fit-content;
+    margin-inline: auto;
+    flex-direction: row;
+    max-width: 92%;
+    padding: 8px 14px;
+    border: 3px solid var(--team);
+    border-radius: 10px;
+    background: rgb(14 20 48 / 95%);
+    text-align: left;
+    clip-path: none;
+    animation: mh-evo 3.5s ease-out both;
+}
+.mh.mh-rivalEvolve::after {
+    display: none;
+}
+.mh-rivalEvolve .mh-kind {
+    justify-self: start;
+    margin-bottom: 3px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--team);
+    color: #fff;
+    font-size: clamp(11px, 1.6vw, 15px);
+    text-transform: uppercase;
+}
+.mh-rivalEvolve .mh-name {
+    color: #ffe14d;
+    font-size: clamp(14px, 2vw, 20px);
+}
 .mh-rivalEvolve .mh-team {
     white-space: normal;
+}
+@keyframes mh-evo {
+    0% {
+        opacity: 0;
+        transform: scale(0.85);
+    }
+    8%,
+    90% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0;
+    }
 }
 
 /* ---------- substituição ao vivo ---------- */
@@ -3218,6 +3268,34 @@ button,
     flex-wrap: wrap;
     justify-content: center;
     gap: 8px;
+}
+.ht-rival-evo dd {
+    color: var(--yellow);
+}
+/* sugestão de troca: um toque abre o Substituir com o cansado marcado */
+.ht-suggest {
+    min-height: 40px;
+    padding: 6px 12px;
+    border: 2px dashed var(--yellow);
+    border-radius: 8px;
+    background: rgb(255 212 71 / 8%);
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+.ht-suggest:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+}
+/* troca marcada pro 2º tempo, dentro do painel */
+.ht-pending {
+    margin: 0;
+    padding: 6px 10px;
+    border-left: 4px solid #7dff8a;
+    border-radius: 0 6px 6px 0;
+    background: var(--bg-2);
+    font-size: 13px;
 }
 .evolved-card {
     display: grid;
@@ -5652,11 +5730,9 @@ a.home-tile {
     width: min(70vw, 360px, 45vh);
 }
 @media (max-width: 480px) {
-    /* faixa de substituição e de evolução do rival: no celular sobra pouco espaço; fica só quem entra / a forma nova */
+    /* faixa de substituição: no celular sobra pouco espaço; fica só quem entra (a da evolução do rival mostra as duas formas) */
     .mh-sub .mh-out,
-    .mh-sub .mh-arrow,
-    .mh-rivalEvolve .mh-out,
-    .mh-rivalEvolve .mh-arrow {
+    .mh-sub .mh-arrow {
         display: none;
     }
 }

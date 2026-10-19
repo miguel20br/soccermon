@@ -25,6 +25,7 @@ import { CupGoalCard, MomentsButton } from '../components/Moments';
 import { cardSprite } from '../components/PokeCard';
 import { type HeroStat, ResultHero } from '../components/ResultHero';
 import { UnlockStrip } from '../components/UnlockNotice';
+import { Tip } from '../help/Tip';
 import { FEEDBACK_URL } from '../links';
 import { useClubColor } from '../profile/club';
 import { shareRun } from '../share';
@@ -186,6 +187,8 @@ export function Result() {
                 />
             )}
             <UnlockStrip />
+            {/* dica na hora certa (era uma página do passo a passo de boas-vindas) */}
+            <Tip id="result-dex">{t('result.dexTip')}</Tip>
             {champion && <h2 className="champ-h champ-final-h">{t('result.finalDetails')}</h2>}
 
             <MatchDetails
@@ -271,9 +274,12 @@ export function MatchDetails({
     goalsExtra,
     cupTab,
     initialTab = 'times',
+    side = 0,
 }: {
     match: MatchResult;
     names: [string, string];
+    /** Seu lado (no duelo o convidado é o 1): a lista "O rival evoluiu" é do outro. */
+    side?: 0 | 1;
     goalsExtra?: ReactNode;
     cupTab?: ReactNode;
     initialTab?: Tab;
@@ -282,6 +288,8 @@ export function MatchDetails({
     const [tab, setTab] = useState<Tab>(initialTab);
     const mvp = matchMvp(match);
     const goals = match.events.filter((e) => e.type === 'goal');
+    // evoluções do rival: lembrete pra quem não viu na quadra
+    const rivalEvos = match.events.flatMap((e) => (e.type === 'evolve' && e.team !== side ? [e] : []));
     const nameAt = (idx: number, tick: number) => {
         // a vaga pode ter tido mais de uma troca: vale a última antes do lance
         const sub = match.events.filter((e) => e.type === 'sub' && e.outIdx === idx && e.tick <= tick).at(-1);
@@ -339,6 +347,28 @@ export function MatchDetails({
                         )}
                     </div>
                     {goalsExtra}
+                    {rivalEvos.length > 0 && (
+                        <>
+                            <h2 style={{ marginTop: 16 }}>{t('result.rivalEvolved')}</h2>
+                            {rivalEvos.map((e) => (
+                                <div key={`${e.tick}-${e.uid}`} className="mini rival-evo">
+                                    <img
+                                        className="pixel"
+                                        src={cardSprite({ speciesId: e.into, shiny: false })}
+                                        alt=""
+                                    />
+                                    <div>
+                                        <b>
+                                            {species(e.from).name} → {species(e.into).name}
+                                        </b>{' '}
+                                        <span className="muted">
+                                            ({names[e.team]}, {Math.floor(e.minute)}')
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </>
+                    )}
                     {mvp && (
                         <>
                             <h2 style={{ marginTop: 16 }}>{t('result.mvp')}</h2>
