@@ -1,0 +1,114 @@
+/* Melhores momentos (Moments.tsx) e o cartão do gol da copa (CupGoalCard). */
+.moments-modal {
+    width: min(980px, 100%);
+    display: grid;
+    gap: 12px;
+    padding: 14px;
+}
+.moments-head {
+    margin-right: 52px;
+}
+.moments-head h2 {
+    font-size: 16px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.moments-court .phaser-container {
+    border-radius: 6px;
+}
+.moments-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.moments-rec {
+    display: grid;
+    gap: 6px;
+    justify-items: center;
+    text-align: center;
+}
+.moments-bar {
+    width: min(420px, 100%);
+    height: 10px;
+    border-radius: 5px;
+    background: var(--bc-ink-2);
+    overflow: hidden;
+}
+.moments-bar i {
+    display: block;
+    height: 100%;
+    background: var(--yellow);
+    transition: width 0.2s linear;
+}
+.moments-clip {
+    display: grid;
+    gap: 10px;
+    justify-items: center;
+}
+.moments-clip video {
+    display: block;
+    height: min(62vh, 640px);
+    max-width: 100%;
+    aspect-ratio: 9 / 16;
+    border-radius: 8px;
+    background: #070a18;
+}
+.moments-clip p {
+    margin: 0;
+}
+.moments-error {
+    margin: 0;
+    text-align: center;
+}
+/* celular deitado: a quadra ocupa a altura e os botões ficam do lado de baixo, compactos */
+@media (orientation: landscape) and (max-height: 520px) {
+    .moments-backdrop {
+        padding: 6px;
+    }
+    .moments-modal {
+        gap: 6px;
+        padding: 8px;
+        max-height: calc(100vh - 12px);
+    }
+    .moments-head {
+        margin-top: 14px;
+        padding-block: 4px;
+    }
+    .moments-court {
+        width: min(100%, calc((100vh - 130px) * 968 / 528));
+        justify-self: center;
+    }
+    .moments-clip video {
+        height: calc(100vh - 140px);
+    }
+}
+
+/* cartão do gol da copa (campeão e eliminado) */
+.cupgoal {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 6px 12px;
+    align-items: center;
+    padding: 12px 14px 12px 18px;
+    margin: 12px 0;
+    text-align: left;
+}
+.cupgoal > img {
+    width: 56px;
+    height: 56px;
+    grid-row: span 3;
+}
+.cupgoal-line {
+    font-weight: 700;
+}
+.cupgoal-why,
+.cupgoal-rule {
+    font-size: 12px;
+}
+.cupgoal-rule {
+    grid-column: 1 / -1;
+}
+.cupgoal .btn {
+    grid-column: 1 / -1;
+    justify-self: start;
+}

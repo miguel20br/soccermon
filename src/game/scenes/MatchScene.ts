@@ -92,7 +92,24 @@ export interface MatchSceneData {
      * da disputa de pênaltis (pra escolher a ordem). No duelo nada para (as duas telas seguem juntas).
      */
     agency?: boolean;
+    /**
+     * Melhores momentos (src/ui/moments.ts): toca só esses trechos da partida, em sequência, com câmera lenta no
+     * clímax. Nada para a quadra (intervalo, evolução em tela cheia, painel do jogador). Avisa 'replay:clip' (índice)
+     * no começo de cada trecho e 'replay:done' no fim do último; 'replay:next' pula pro próximo.
+     */
+    replay?: { clips: ReplayClip[] };
 }
+
+/** Trecho do replay (ticks): toca [from, to] e fica em câmera lenta em [slowFrom, slowTo]. */
+export interface ReplayClip {
+    from: number;
+    to: number;
+    slowFrom: number;
+    slowTo: number;
+}
+
+/** Velocidade da câmera lenta do replay no clímax (chute até o gol). */
+const REPLAY_SLOW = 0.35;
 
 /** Janela do golpe máximo e período do goleiro-linha (pra aura na quadra). */
 interface AgencySpan {
@@ -466,7 +483,9 @@ export class MatchScene extends Phaser.Scene {
         EventBus.on('match:rate', this.onRate, this);
         EventBus.on('match:seek', this.onSeek, this);
         EventBus.on('match:seg-hold', this.onSegHold, this);
+        EventBus.on('replay:next', this.nextClip, this);
         this.unbind = () => {
+            EventBus.off('replay:next', this.nextClip, this);
             EventBus.off('match:rate', this.onRate, this);
             EventBus.off('match:seek', this.onSeek, this);
             EventBus.off('match:seg-hold', this.onSegHold, this);
@@ -485,9 +504,14 @@ export class MatchScene extends Phaser.Scene {
         this.sys.events.once('destroy', () => this.unbind?.());
 
         this.paused = !!this.md.startPaused;
-        if (!this.paused) playSample('apito');
+        if (!this.paused && !this.md.replay) playSample('apito');
         this.applySnapshot(0, 0);
         if (this.md.startTick) this.seekTo(this.md.startTick);
+        const firstClip = this.md.replay?.clips[0];
+        if (firstClip) {
+            this.seekTo(firstClip.from);
+            EventBus.emit('replay:clip', 0);
+        }
         this.preloadEvolutions();
         // (dev) testes visuais disparam golpes direto: __soccermonFx('thunder', 0, 6)
         if (import.meta.env.DEV) {
@@ -685,6 +709,34 @@ export class MatchScene extends Phaser.Scene {
         this.finish();
     }
 
+    /** Replay: trecho atual e o próximo (pula pra frente; voltar é remontar a cena). */
+    private clip = 0;
+    private nextClip() {
+        const clips = this.md.replay?.clips;
+        if (!clips || this.paused) return;
+        if (this.clip + 1 >= clips.length) {
+            this.paused = true;
+            EventBus.emit('replay:done');
+            return;
+        }
+        this.clip++;
+        // o que segurava a quadra no trecho anterior não vale no próximo
+        this.holdReal = 0;
+        this.seekTo(clips[this.clip].from);
+        if (!this.md.reduceMotion) this.cameras.main.fadeIn(220, 7, 10, 24);
+        EventBus.emit('replay:clip', this.clip);
+    }
+
+    /** Bola na tela (px do canvas, com pan e zoom da câmera): o clipe 9:16 segue o lance. */
+    ballOnScreen(): { x: number; y: number } {
+        const cam = this.cameras.main;
+        const z = cam.zoom || 1;
+        return {
+            x: (this.ball.x - cam.midPoint.x) * z + cam.width / 2,
+            y: (this.ball.y - cam.midPoint.y) * z + cam.height / 2,
+        };
+    }
+
     /** Em telas pequenas o canvas encolhe: textos crescem no mundo para continuarem legíveis. */
     private updateUiScale() {
         const shown = this.scale.displaySize.width || GAME_W;
@@ -765,8 +817,8 @@ export class MatchScene extends Phaser.Scene {
         };
         this.refreshTint(view);
         // tocar no Pokémon abre o painel dele (src/ui/components/PlayerInspect.tsx) e pausa a partida
-        sprite.setInteractive({ useHandCursor: true }).on('pointerdown', () => {
-            if (this.ended || this.holdReal > this.time.now) return;
+        sprite.setInteractive({ useHandCursor: !this.md.replay }).on('pointerdown', () => {
+            if (this.ended || this.md.replay || this.holdReal > this.time.now) return;
             // no duelo a partida não para (o painel abre por cima)
             this.inspecting = !this.md.duel;
             EventBus.emit('match:inspect', { idx: this.players.indexOf(view), tick: this.playTick });
@@ -933,6 +985,11 @@ export class MatchScene extends Phaser.Scene {
     // ------------------------------------------------------------------ playback
     update(time: number, delta: number) {
         if (this.ended || !this.snaps.length || this.paused || this.inspecting) return;
+        const clip = this.md.replay?.clips[this.clip];
+        if (clip && this.playTick >= clip.to) {
+            this.nextClip();
+            if (this.paused) return;
+        }
         // evolução: a partida para enquanto o Pokémon evolui, como nos jogos
         const factor = time < this.holdReal ? 0 : this.currentSpeedFactor(time) * this.rate * (this.md.pace ?? 1);
         this.playTick = Math.min(
@@ -1133,6 +1190,11 @@ export class MatchScene extends Phaser.Scene {
     }
 
     private currentSpeedFactor(now: number): number {
+        const clip = this.md.replay?.clips[this.clip];
+        if (clip) {
+            const slow = this.playTick >= clip.slowFrom && this.playTick <= clip.slowTo ? REPLAY_SLOW : 1;
+            return Math.min(slow, this.cine.speedFactor(now));
+        }
         let base: number;
         if (this.speed !== 'highlights') base = this.speed;
         else {
@@ -1489,7 +1551,9 @@ export class MatchScene extends Phaser.Scene {
                 if (ready) createSpeciesAnims(this, skin);
                 const newName = view.name === species(e.from).name ? species(e.into).name : view.name;
                 // a tela cheia ("Parabéns!") é só do seu time; a do rival é na quadra, curta e com faixa própria
-                const how = evolutionView(view.team, this.mine, silent, ready);
+                let how = evolutionView(view.team, this.mine, silent, ready);
+                // replay: nada de tela cheia (não tem quem feche); a sua evolução sai na quadra, como a do rival
+                if (how === 'mine' && this.md.replay) how = 'rival';
                 if (how === 'rival') this.rivalEvolution(view, e.from, e.into, newName, ready);
                 else if (how === 'mine') this.evolveAnimation(view, e.from, e.into, newName);
                 else this.finishEvolution(view, e.into, newName);
@@ -1499,7 +1563,7 @@ export class MatchScene extends Phaser.Scene {
         if (e.type === 'transform' && silent) this.becomeCopy(e.by, e.into, e.target);
         if (silent) return;
         // intervalo: a partida para e o técnico decide (tática, substituição) antes do 2º tempo
-        if (e.type === 'halftime') {
+        if (e.type === 'halftime' && !this.md.replay) {
             this.paused = true;
             // em 8x a reprodução passa do apito no mesmo quadro: volta pro apito, senão a troca pedida no
             // intervalo (marcada no lance seguinte a ele) ficaria para trás da reprodução e seria pulada
@@ -2146,7 +2210,8 @@ export class MatchScene extends Phaser.Scene {
             if (ready && !this.md.reduceMotion) this.evolveOnField(view, into, newName);
             else {
                 this.finishEvolution(view, into, newName);
-                this.battleBox.push(tr('battle.evolvedRival', { x: oldName, y: species(into).name }));
+                const key = view.team !== this.mine ? 'battle.evolvedRival' : 'battle.evolved';
+                this.battleBox.push(tr(key, { x: oldName, y: species(into).name }));
             }
             playCry(into, this.md.cries, 1);
             const h: MatchHighlight = {
@@ -2165,7 +2230,7 @@ export class MatchScene extends Phaser.Scene {
             return;
         }
         playSfx('status');
-        this.battleBox.push(tr('battle.evolvingRival', { x: oldName }));
+        this.battleBox.push(tr(view.team !== this.mine ? 'battle.evolvingRival' : 'battle.evolving', { x: oldName }));
         view.evolving = true;
         // no duelo a faixa sobe ~2,6 s antes de a quadra voltar; na copa, quando ela volta
         const morph = this.md.duel ? hold - 2600 : hold;

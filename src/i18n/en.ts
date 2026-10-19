@@ -6,6 +6,7 @@ import { duel } from './en/duel';
 import { help } from './en/help';
 import { home } from './en/home';
 import { match } from './en/match';
+import { moments } from './en/moments';
 import { profile } from './en/profile';
 import { result } from './en/result';
 import { reward } from './en/reward';
@@ -32,4 +33,5 @@ export const en: Dict = {
     account,
     title,
     duel,
+    moments,
 };

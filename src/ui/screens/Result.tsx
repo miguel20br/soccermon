@@ -19,6 +19,7 @@ import { ChampionView } from '../components/ChampionView';
 import { CupGains } from '../components/CupGains';
 import { FutCard } from '../components/FutCard';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
+import { CupGoalCard, MomentsButton } from '../components/Moments';
 import { cardSprite } from '../components/PokeCard';
 import { type HeroStat, ResultHero } from '../components/ResultHero';
 import { FEEDBACK_URL } from '../links';
@@ -101,6 +102,10 @@ export function Result() {
     const actions = (
         <>
             {eliminated && <CupGains run={run} />}
+            {(eliminated || champion) && <CupGoalCard run={run} match={match} />}
+            <div className="row" style={{ justifyContent: 'center' }}>
+                <MomentsButton run={run} match={match} />
+            </div>
             <div className="row" style={{ justifyContent: 'center' }}>
                 {eliminated || champion ? (
                     <>
