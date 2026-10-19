@@ -73,6 +73,8 @@ export const PATCH_NOTES: PatchNotes[] = [
                 lines: [
                     '20 medalhas com degraus (bronze, prata, ouro e platina) em Perfil → Medalhas. Já contam tudo o que você jogou',
                     'Vitrine: escolha até 3 destaques (medalha, coleção completa ou selo); aparecem no seu cartão e no VERSUS do Duelo, e o melhor vira a moldura do avatar',
+                    'Fichário: todas as cartas raras que você tirou, num lugar só',
+                    'Vitrine de cartas no Perfil e no Duelo',
                     'Escudo montável (formato, símbolo e duas cores) e uniforme com padrão, no placar, no VERSUS e na quadra. Símbolos e padrões novos saem com coleções e medalhas',
                     'Avatares por geração, e o Pokémon que você já jogou shiny vira avatar shiny',
                 ],
@@ -723,6 +725,8 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 lines: [
                     '20 tiered medals (bronze, silver, gold and platinum) in Profile → Medals. Everything you already played counts',
                     'Showcase: pick up to 3 highlights (medal, completed collection or seal); they show on your card and on the Duel VERSUS, and the best one becomes your avatar frame',
+                    'Binder: every rare card you pulled, all in one place',
+                    'Card showcase on your Profile and in the Duel',
                     'Build your crest (shape, symbol and two colors) and a kit with a pattern, on the scoreboard, the VERSUS and the court. New symbols and patterns unlock with collections and medals',
                     'Avatars by generation, and any Pokémon you have played shiny becomes a shiny avatar',
                 ],
