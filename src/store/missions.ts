@@ -594,10 +594,20 @@ export const activeTitle = (p: Pick<Profile, 'title' | 'missionsDone' | 'redeeme
 
 const union = (a: readonly string[], b: readonly string[] = []) => [...new Set([...a, ...b])];
 
-/** Junta o perfil da nuvem com o do aparelho: vale o de `keep`, mas missão cumprida e título resgatado não se perdem. */
+/** Peças opcionais do clube (faixa, escudo, uniforme, vitrine): o lado que não tem herda do outro. */
+const OPTIONAL_LOOK = ['banner', 'clubColor2', 'kitPattern', 'crestShape', 'crestSymbol', 'showcase'] as const;
+
+/**
+ * Junta o perfil da nuvem com o do aparelho: vale o de `keep`, mas missão cumprida e título resgatado não se perdem,
+ * e escudo/uniforme/vitrine escolhidos num aparelho que o outro lado ainda não tem também ficam.
+ */
 export function mergeProfileUnlocks(keep: Profile, other: Partial<Profile> | undefined): Profile {
+    const filled: Partial<Profile> = {};
+    for (const k of OPTIONAL_LOOK)
+        if (keep[k] === undefined && other?.[k] !== undefined) Object.assign(filled, { [k]: other[k] });
     return {
         ...keep,
+        ...filled,
         missionsDone: union(keep.missionsDone, other?.missionsDone),
         redeemedTitles: union(keep.redeemedTitles, other?.redeemedTitles),
     };

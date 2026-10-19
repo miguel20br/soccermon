@@ -46,3 +46,122 @@
         display: inline;
     }
 }
+
+/* ---------- escudo e uniforme (Crest.tsx) ---------- */
+.crest {
+    display: inline-block;
+    flex: none;
+    width: 1.4em;
+    height: 1.54em;
+    vertical-align: middle;
+    overflow: visible;
+}
+.pf-crest {
+    width: 18px;
+    height: 20px;
+}
+.pf-showcase {
+    margin-top: 2px;
+}
+/* camisa: silhueta recortada com o padrão do uniforme por baixo */
+.kit-shirt {
+    display: block;
+    width: 34px;
+    height: 32px;
+    clip-path: polygon(32% 0, 68% 0, 100% 20%, 88% 42%, 78% 36%, 78% 100%, 22% 100%, 22% 36%, 12% 42%, 0 20%);
+    filter: drop-shadow(0 2px 0 #0e1430);
+}
+
+/* editor no Perfil → Meu clube */
+.kit-editor {
+    display: grid;
+    gap: 12px;
+}
+.kit-title {
+    font-weight: 700;
+}
+.kit-hero {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    padding: 12px 16px;
+    width: fit-content;
+    border-radius: var(--radius, 8px);
+    background: #0e1430;
+}
+.kit-hero-crest {
+    width: 64px;
+    height: 70px;
+}
+.kit-hero-shirt {
+    width: 62px;
+    height: 58px;
+}
+.kit-group {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+}
+.kit-group legend {
+    padding: 0;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: var(--muted);
+}
+.kit-opts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
+    gap: 6px;
+}
+.kit-opt {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 4px;
+    min-height: 64px;
+    padding: 8px 2px 6px;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background: var(--bg-2);
+    color: var(--muted);
+    font: inherit;
+    cursor: pointer;
+}
+.kit-opt small {
+    font-size: 10px;
+    line-height: 1.15;
+    text-align: center;
+}
+.kit-opt.active {
+    border-color: var(--yellow);
+    color: var(--yellow);
+    background: var(--panel-2);
+}
+.kit-opt:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+.kit-opt.locked > :is(.crest, .kit-shirt) {
+    filter: grayscale(1) brightness(0.45);
+}
+.kit-crest {
+    width: 30px;
+    height: 33px;
+}
+.kit-lock {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    color: var(--muted);
+}
+.kit-hint {
+    color: var(--yellow);
+}
+
+/* prévia do placar: escudo ao lado da sigla */
+.pf-pv-crest {
+    width: 20px;
+    height: 22px;
+}

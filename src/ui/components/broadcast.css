@@ -70,6 +70,18 @@
     background: var(--tc);
     border-radius: 6px 0 0 0;
 }
+.bc-tm.has-kit::before {
+    width: 8px;
+    background: var(--kit);
+}
+.bc-crest {
+    width: 22px;
+    height: 24px;
+    margin-right: -2px;
+}
+.bc-tm.away .bc-crest {
+    margin: 0 0 0 -2px;
+}
 .bc-tm.away {
     flex-direction: row-reverse;
     padding: 0 16px 0 10px;

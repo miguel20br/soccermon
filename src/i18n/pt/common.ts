@@ -277,6 +277,7 @@ export const common = {
     } as Record<string, string>,
     /** Cores do clube (store/profile.ts). */
     color: {
+        branco: 'Branco',
         vermelho: 'Vermelho',
         azul: 'Azul',
         verde: 'Verde',

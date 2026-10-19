@@ -6,8 +6,10 @@ import { CORNER_PLANS } from '../../engine/runners/live-runner';
 import { type CornerPlan, type Phase, TACTIC_LABEL, type Tactic } from '../../engine/state';
 import { dict, t } from '../../i18n';
 import { useT } from '../../i18n/react';
+import type { ClubLook } from '../../store/club-kit';
 import type { CommentLine } from '../commentary';
 import { PRESSURE_BINS, pressureUntil } from '../match-view';
+import { Crest, kitBackground } from '../profile/Crest';
 import { ratingAt } from '../rating';
 import { cardSprite } from './PokeCard';
 import './broadcast.css';
@@ -95,6 +97,7 @@ export function Scoreboard({
     boardRef,
     className = '',
     coaches,
+    looks,
     children,
 }: {
     names: [string, string];
@@ -108,10 +111,23 @@ export function Scoreboard({
     className?: string;
     /** Duelo: o título de cada treinador embaixo do time (é pra se exibir). */
     coaches?: [ReactNode, ReactNode];
+    /** Escudo e uniforme de cada time (a faixa do lado ganha o padrão; o escudo vai antes da sigla). */
+    looks?: [ClubLook, ClubLook];
     children?: ReactNode;
 }) {
     const team = (i: 0 | 1) => (
-        <div className={`bc-tm${i ? ' away' : ''}`} style={{ '--tc': hex(colors[i]) } as CSSProperties}>
+        <div
+            className={`bc-tm${i ? ' away' : ''}${looks ? ' has-kit' : ''}`}
+            style={
+                {
+                    '--tc': hex(colors[i]),
+                    ...(looks && {
+                        '--kit': kitBackground(looks[i].color, looks[i].color2, looks[i].pattern, '5px', '180deg'),
+                    }),
+                } as CSSProperties
+            }
+        >
+            {looks && <Crest look={looks[i]} className="crest bc-crest" />}
             <span className="bc-sig" title={names[i]}>
                 {tags[i]}
             </span>
@@ -251,6 +267,8 @@ const ICONS = {
     timeout: 'M4 5h16M12 5v15M8 20h8',
     flyGk: 'M12 21V8M7 13l5-5 5 5M5 4h14',
     max: 'M12 2l2.9 6.2 6.6.8-4.9 4.6 1.3 6.6L12 16.9l-5.9 3.3 1.3-6.6L2.5 9l6.6-.8z',
+    // medalha com fita (aba Medalhas do Perfil)
+    medal: 'M8 2l3 7M16 2l-3 7M12 9a6 6 0 1 1 0 12 6 6 0 0 1 0-12zM12 12.5l1 2 2.2.3-1.6 1.5.4 2.2-2-1-2 1 .4-2.2-1.6-1.5 2.2-.3z',
     up: 'M6 15l6-6 6 6',
     down: 'M6 9l6 6 6-6',
 } as const;

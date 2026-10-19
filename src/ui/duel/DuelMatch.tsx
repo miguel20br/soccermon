@@ -40,8 +40,10 @@ import {
 import { baseSeedOf, holdTick, openedSegments } from '../../net/seal';
 import { duel, roomNow, useDuel } from '../../net/session';
 import { PhaserGame } from '../../PhaserGame';
+import { fieldKit, lookOfPeer, matchLooks } from '../../store/club-kit';
 import type { ChanceSpeed, PlaybackSpeed } from '../../store/game-store';
 import { useGame } from '../../store/game-store';
+import { frameTier, parseShowcase } from '../../store/medals';
 import type { TrainerId } from '../../store/missions';
 import { rivalColor } from '../../store/profile';
 import { Commentator, type CommentLine } from '../commentary';
@@ -154,6 +156,9 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const mine = myTeam.color;
     const theirs = rivalColor(mine, setups[side === 0 ? 1 : 0].color);
     const colors: [number, number] = side === 0 ? [mine, theirs] : [theirs, mine];
+    // escudo e uniforme de cada um (vêm no perfil da sala); o rival no reserva se as cores baterem, como na copa
+    const myLook = { ...lookOfPeer(s.peers[role] ?? { clubColor: mine }), color: mine };
+    const looks = matchLooks(myLook, lookOfPeer(rivalPeer ?? { clubColor: theirs }), side);
     // clubes com o mesmo nome: o placar e a narração usam o nome do treinador
     const teamNames = duelNames(s);
     // o capitão de cada lado é a cara dos emotes
@@ -222,6 +227,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                       banners: [s.peers.host, s.peers.guest].map((p) =>
                           p ? bannerText(p.banner, p.clubName) : null,
                       ) as [string | null, string | null],
+                      kits: [fieldKit(looks[0]), fieldKit(looks[1])],
                       // efeitos e a queda nas chances iguais pros dois: a chance de gol fica na velocidade da sala
                       cinematic: true,
                       namesOnField: settings.namesOnField,
@@ -409,6 +415,8 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
             titleLook: peerTitle(p).look,
             avatar: p.avatar,
             avatarGoogle: p.avatarGoogle,
+            showcase: parseShowcase(p.showcase),
+            frame: frameTier(parseShowcase(p.showcase)),
         };
     const badge = (p?: typeof myPeer) => {
         const tt = p && peerTitle(p);
@@ -481,6 +489,8 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                     awayLabel={t('duel.match.vsRival')}
                     homeCoach={coach(myPeer)}
                     awayCoach={coach(rivalPeer)}
+                    homeLook={looks[side]}
+                    awayLook={looks[side === 0 ? 1 : 0]}
                     startsIn={kickLeft}
                 />
             )}
@@ -491,6 +501,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                         names={teamNames}
                         tags={duelTags(s)}
                         colors={colors}
+                        looks={looks}
                         score={clock.score}
                         clock={clockParts}
                         stage={t('duel.title')}

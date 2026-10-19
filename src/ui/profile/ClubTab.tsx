@@ -2,7 +2,21 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useCloud } from '../../cloud/cloud';
 import { species } from '../../engine/data';
 import { useT } from '../../i18n/react';
+import {
+    againstLook,
+    CREST_SHAPES,
+    CREST_SYMBOLS,
+    type CrestSymbol,
+    isUnlocked,
+    KIT_PATTERNS,
+    type KitPattern,
+    lookOfCupClub,
+    lookOfProfile,
+    SECOND_COLORS,
+    UNLOCK,
+} from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
+import { medalTiers, TIER_NAMES } from '../../store/medals';
 import {
     bannerInk,
     bannerOf,
@@ -13,8 +27,10 @@ import {
     rivalColor,
     tagFromName,
 } from '../../store/profile';
-import { bannerText, hexCss, speciesGif } from './club';
-import { CheckIcon } from './icons';
+import { Crest, KitShirt, kitBackground } from './Crest';
+import { bannerText, hexCss, speciesGif, titleName } from './club';
+import { CheckIcon, LockIcon } from './icons';
+import { useMedalView } from './Medals';
 import { TrainerCard } from './TrainerTab';
 
 /** Rival da prévia do placar (Cerulean): azul, troca de uniforme se bater com a sua cor. */
@@ -66,6 +82,8 @@ export function ClubTab() {
 
     const club = CLUB_COLORS.find((c) => c.id === profile.clubColor)?.hex ?? CLUB_COLORS[0].hex;
     const rival = rivalColor(club, PREVIEW_RIVAL);
+    const look = lookOfProfile(profile);
+    const rivalLook = againstLook(look, lookOfCupClub('Cerulean Cascata', PREVIEW_RIVAL));
     const runOld = run && !['eliminated', 'champion'].includes(run.status) && run.teamName !== profile.clubName;
     const av = profile.avatar;
 
@@ -211,6 +229,8 @@ export function ClubTab() {
                     </div>
                 </fieldset>
 
+                <KitEditor save={save} />
+
                 <div className="pf-field">
                     <span id="pf-banner-label">{t('profile.club.banner')}</span>
                     <select
@@ -243,19 +263,172 @@ export function ClubTab() {
                         role="img"
                         aria-label={t('profile.club.previewAria', { tag: profile.clubTag })}
                     >
-                        <span className="pf-pv-team" style={{ ['--c' as string]: hexCss(club) }}>
+                        <span
+                            className="pf-pv-team"
+                            style={{ ['--kit' as string]: kitBackground(look.color, look.color2, look.pattern, '3px') }}
+                        >
                             <i />
+                            <Crest look={look} className="crest pf-pv-crest" />
                             {profile.clubTag}
                         </span>
                         <b>2 x 1</b>
-                        <span className="pf-pv-team away" style={{ ['--c' as string]: hexCss(rival) }}>
+                        <span
+                            className="pf-pv-team away"
+                            style={{
+                                ['--kit' as string]: kitBackground(
+                                    rivalLook.color,
+                                    rivalLook.color2,
+                                    rivalLook.pattern,
+                                    '3px',
+                                ),
+                            }}
+                        >
                             CER
+                            <Crest look={rivalLook} className="crest pf-pv-crest" />
                             <i />
                         </span>
                     </div>
                     {rival !== PREVIEW_RIVAL && <small className="muted">{t('profile.club.awayKit')}</small>}
                 </div>
             </section>
+        </div>
+    );
+}
+
+/** Escudo (formato, símbolo) e uniforme (cor secundária, padrão). Peça bloqueada mostra como liberar. */
+function KitEditor({ save }: { save: (patch: Partial<Profile>) => void }) {
+    const profile = useGame((s) => s.profile);
+    const view = useMedalView();
+    const tiers = useMemo(() => medalTiers(view), [view]);
+    const { t, d } = useT();
+    const [hint, setHint] = useState<string | null>(null);
+    const look = lookOfProfile(profile);
+    const open = (piece: CrestSymbol | KitPattern) => isUnlocked(piece, view.done, tiers);
+    const how = (piece: CrestSymbol | KitPattern) => {
+        const u = UNLOCK[piece];
+        if (!u) return '';
+        return 'collection' in u
+            ? t('profile.club.unlockCollection', { name: titleName(u.collection) })
+            : t('profile.club.unlockMedal', {
+                  name: d.profile.medals.names[u.medal] ?? u.medal,
+                  tier: d.profile.medals.tiers[TIER_NAMES[u.tier]],
+              });
+    };
+    const lockedBtn = (piece: CrestSymbol | KitPattern, name: string, art: React.ReactNode) => (
+        <button
+            type="button"
+            key={piece}
+            className="kit-opt locked"
+            aria-label={`${name}: ${how(piece)}`}
+            onClick={() => setHint(`${name}: ${how(piece)}`)}
+        >
+            {art}
+            <span className="kit-lock">
+                <LockIcon />
+            </span>
+            <small>{name}</small>
+        </button>
+    );
+
+    return (
+        <div className="pf-field kit-editor" data-testid="kit-editor">
+            <span className="kit-title">{t('profile.club.kitTitle')}</span>
+            <div className="kit-hero" aria-hidden>
+                <Crest look={look} className="crest kit-hero-crest" />
+                <KitShirt look={look} className="kit-shirt kit-hero-shirt" />
+            </div>
+
+            <fieldset className="kit-group">
+                <legend>{t('profile.club.crestShape')}</legend>
+                <div className="kit-opts">
+                    {CREST_SHAPES.map((shape) => (
+                        <button
+                            type="button"
+                            key={shape}
+                            aria-pressed={look.shape === shape}
+                            className={`kit-opt${look.shape === shape ? ' active' : ''}`}
+                            onClick={() => save({ crestShape: shape })}
+                        >
+                            <Crest look={{ ...look, shape }} className="crest kit-crest" />
+                            <small>{d.profile.club.shapes[shape]}</small>
+                        </button>
+                    ))}
+                </div>
+            </fieldset>
+
+            <fieldset className="kit-group">
+                <legend>{t('profile.club.crestSymbol')}</legend>
+                <div className="kit-opts">
+                    {CREST_SYMBOLS.map((symbol) => {
+                        const name = d.profile.club.symbols[symbol] ?? symbol;
+                        const art = <Crest look={{ ...look, symbol }} className="crest kit-crest" />;
+                        if (!open(symbol)) return lockedBtn(symbol, name, art);
+                        return (
+                            <button
+                                type="button"
+                                key={symbol}
+                                aria-pressed={look.symbol === symbol}
+                                className={`kit-opt${look.symbol === symbol ? ' active' : ''}`}
+                                onClick={() => save({ crestSymbol: symbol })}
+                            >
+                                {art}
+                                <small>{name}</small>
+                            </button>
+                        );
+                    })}
+                </div>
+            </fieldset>
+
+            <fieldset className="kit-group">
+                <legend>{t('profile.club.color2')}</legend>
+                <div className="pf-colors">
+                    {SECOND_COLORS.map((c) => {
+                        const on = c.hex === look.color2;
+                        return (
+                            <button
+                                type="button"
+                                aria-pressed={on}
+                                key={c.id}
+                                className={`pf-color${on ? ' active' : ''}`}
+                                style={{ ['--sw' as string]: hexCss(c.hex) }}
+                                onClick={() => save({ clubColor2: c.id })}
+                            >
+                                <i />
+                                <span>{d.common.color[c.id] ?? c.name}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+            </fieldset>
+
+            <fieldset className="kit-group">
+                <legend>{t('profile.club.kitPattern')}</legend>
+                <div className="kit-opts">
+                    {KIT_PATTERNS.map((pattern) => {
+                        const name = d.profile.club.patterns[pattern] ?? pattern;
+                        const art = <KitShirt look={{ ...look, pattern }} />;
+                        if (!open(pattern)) return lockedBtn(pattern, name, art);
+                        return (
+                            <button
+                                type="button"
+                                key={pattern}
+                                aria-pressed={look.pattern === pattern}
+                                className={`kit-opt${look.pattern === pattern ? ' active' : ''}`}
+                                onClick={() => save({ kitPattern: pattern })}
+                            >
+                                {art}
+                                <small>{name}</small>
+                            </button>
+                        );
+                    })}
+                </div>
+            </fieldset>
+            {hint && (
+                <small className="kit-hint" role="status">
+                    <LockIcon /> {hint}
+                </small>
+            )}
+            <small className="muted">{t('profile.club.kitHelp')}</small>
         </div>
     );
 }
