@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import { FUTSAL_5 } from './config';
 import { EVO_THRESHOLD, evolvedRating, evolveInstance, evoNeeded, RIVAL_EVO_THRESHOLD } from './evolution';
 import { createInstance, slotRating, viewInstance } from './instance';
 import { attributeModifiers } from './modifiers';
 import { Rng } from './rng';
+import { runMatch } from './runners/batch-runner';
 
 describe('evolução herda a vaga', () => {
     it('Nidorina que evolui jogando de Ala: a Nidoqueen fica com Ala nas posições (carta e campo)', () => {
@@ -48,5 +50,28 @@ describe('limiar de evolução', () => {
         expect(evoNeeded(0)).toBe(EVO_THRESHOLD);
         expect(evoNeeded(1, true)).toBe(EVO_THRESHOLD);
         expect(evoNeeded(1)).toBe(RIVAL_EVO_THRESHOLD);
+    });
+});
+
+describe('barra cheia de partidas anteriores', () => {
+    it('não evolui no apito inicial: a forma de antes aparece e evolui depois de fazer algo', () => {
+        const rng = new Rng('barra-cheia');
+        const mk = (ids: number[], evo: number) => {
+            const ps = ids.map((id) => ({ ...createInstance(id, rng), evo }));
+            return {
+                name: 'Time',
+                lineup: ps,
+                bench: [],
+                tactic: 'balanced' as const,
+                color: 0x3a7bd5,
+                formation: '1-2-1' as const,
+                captainUid: ps[0].uid,
+                manualSubs: true,
+            };
+        };
+        const m = runMatch(FUTSAL_5, mk([74, 16, 4, 7, 1], EVO_THRESHOLD), mk([95, 111, 27, 50, 66], 0), 'barra-cheia');
+        const evos = m.events.filter((e) => e.type === 'evolve' && e.team === 0);
+        expect(evos.length).toBeGreaterThan(0);
+        expect(evos.every((e) => e.tick > 0)).toBe(true);
     });
 });

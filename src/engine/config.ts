@@ -31,8 +31,9 @@ export interface MatchConfig {
  *     pra escanteio sai de lado; prancheta no meio da partida: ordem `lineup` na próxima bola parada).
  * 4 = 0.8.8 (fórmula A: Ala conta chute e Pivô conta velocidade; Dragonite segue Pivô; Eevee no duelo evolui
  *     pra forma da carta).
+ * 5 = 0.8.8 (barra cheia de antes só evolui depois de ele fazer algo na partida: nada de evoluir no apito inicial).
  */
-export const ENGINE_VERSION = 4;
+export const ENGINE_VERSION = 5;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',

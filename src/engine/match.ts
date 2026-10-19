@@ -13,7 +13,7 @@ import { type MatchConfig, segmentTicks } from './config';
 import { MOVES, species, type TypeName } from './data';
 import { dpow } from './dmath';
 import { compressed, eff, fatigueFactor, isIncapacitated, TACTIC_MODS } from './effective';
-import { evolutionTarget, evolveInstance, evoNeeded, evoProgress } from './evolution';
+import { evolutionTarget, evolveInstance, evoNeeded, evoProgress, evoScore } from './evolution';
 import { FORMATIONS, formationOf } from './formations';
 import type { PokemonInstance } from './instance';
 import { ITEMS } from './items';
@@ -415,6 +415,9 @@ export function checkEvolutions(s: MatchState) {
     const changed = new Set<0 | 1>();
     for (const p of s.players) {
         if (p.evolved || p.origin || p.inst.ability === 'imposter') continue;
+        // a barra cheia de partidas anteriores espera ele fazer algo nesta: evoluir no apito inicial (ou na bola
+        // parada em que entra) escondia a forma de antes (a quadra já abria com a nova, sem a tela de evolução)
+        if (evoScore(p.stats, p.role) <= 0) continue;
         const into = evolutionTarget(p.inst.speciesId, p.inst.uid);
         if (into === null || evoProgress(p.inst, p.stats, p.role) < evoNeeded(p.team, s.teams[p.team].setup.manualSubs))
             continue;
