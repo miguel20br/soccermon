@@ -10,6 +10,7 @@ import type { PlaybackSpeed } from '../store/game-store';
 import { snapAt } from '../ui/match-view';
 import {
     acceptTakeover,
+    applyPreview,
     bestFor,
     clockAdjust,
     type DuelDuration,
@@ -34,6 +35,7 @@ import {
     roomCode,
     type Shared,
     SIDE,
+    type StampedOrder,
     specialLimitOf,
     stampOrder,
     tickTimers,
@@ -145,8 +147,13 @@ interface Kept {
     recorded?: number[];
     /** Escolhas lacradas de "cada um com seus pacotes" (partida, cartas e sais). */
     packs?: { game: number; picks: PokemonInstance[]; salts: string[] };
-    /** Escolha lacrada da fase (time pronto ou prévia). */
-    choice?: { game: number; phase: string; value: unknown; salt: string; seal: string };
+    /** Escolha lacrada da fase (time pronto ou prévia); sem ela = desfiz o pronto (ou ainda não dei). */
+    choice?: KeptChoice;
+    /**
+     * Todas as escolhas que lacrei na fase: se o "desfazer" perdeu a corrida pro pronto do rival, a sala segue com o
+     * lacre de antes e eu abro o valor dele.
+     */
+    choices?: KeptChoice[];
     /** Ordens que eu dei (seq → tick pedido), pra conferir o carimbo do host. */
     sent?: {
         game: number;
@@ -155,6 +162,13 @@ interface Kept {
     };
     /** Última vez que esta aba gravou (quem volta sabe quanto tempo ficou fora). */
     at?: number;
+}
+interface KeptChoice {
+    game: number;
+    phase: string;
+    value: unknown;
+    salt: string;
+    seal: string;
 }
 const keptKey = (room: string, me: string) => `soccermon-duel:${room}:${me}`;
 function readKept(room: string, me: string): Kept | null {
@@ -225,8 +239,8 @@ class DuelSession {
     tick = 0;
     minute = 0;
     result: MatchResult | null = null;
-    /** Quantas ordens do log a `result` já tem (o hash do trecho diz com quantas foi feito). */
-    resultLog = 0;
+    /** As ordens do log que a `result` já tem (o hash do trecho diz com quantas foi feito). */
+    resultOrders: StampedOrder[] = [];
     /** Quantas seeds de trecho a `result` já tem (o hash do trecho k precisa das seeds 0..k-1). */
     resultSeeds = 0;
     /** Tela de partida rodando (o relógio só corrige com a bola rolando). */
@@ -555,7 +569,7 @@ class DuelSession {
             this.tick = 0;
             this.minute = 0;
             this.result = null;
-            this.resultLog = 0;
+            this.resultOrders = [];
             this.resultSeeds = 0;
             this.final = null;
             this.rateZeroSince = 0;
@@ -638,10 +652,32 @@ class DuelSession {
         const s = this.view.shared;
         if (!s || !this.kept || this.view.choiceSealed) return;
         const { seal, salt } = await lacrar(value);
-        this.kept.choice = { game: s.game, phase: s.phase, value, salt, seal };
+        const choice = { game: s.game, phase: s.phase, value, salt, seal };
+        const same = (c: KeptChoice) => c.game === s.game && c.phase === s.phase;
+        this.kept.choice = choice;
+        this.kept.choices = [...(this.kept.choices ?? []).filter(same), choice];
         writeKept(s.room, this.view.me, this.kept);
         this.set({ choiceSealed: true });
+        // o lacre de antes ainda está na sala (o desfazer não chegou): o `selfDuties` tira e manda este
+        if (s.choice?.seal[this.view.role!]) return;
         this.dispatch({ k: 'choiceSeal', seal });
+    }
+
+    /**
+     * Desfaz o "pronto" da escolha (time pronto e escalação): a tela destrava na hora. A sala só aceita se o rival
+     * ainda não lacrou; se ele lacrou antes, vale o lacre de antes (o `selfDuties` abre ele).
+     */
+    unsealChoice() {
+        const s = this.view.shared;
+        const role = this.view.role;
+        const seal = role && s?.choice?.seal[role];
+        if (!s || !role || !this.kept?.choice) return;
+        this.kept.choice = undefined;
+        writeKept(s.room, this.view.me, this.kept);
+        this.set({ choiceSealed: false });
+        // marca a tentativa: o `selfDuties` só repete se o desfazer não chegar
+        if (seal && seal !== '-' && this.due(`cu-${s.game}-${s.phase}-${seal}`))
+            this.dispatch({ k: 'choiceUnseal', seal });
     }
 
     chooseTeam(recipe: DuelTeamRecipe) {
@@ -936,15 +972,26 @@ class DuelSession {
         if (c && (s.phase === 'team' || s.phase === 'preview')) {
             const kc = this.kept?.choice;
             const mineOk = kc && kc.game === s.game && kc.phase === s.phase;
-            if (mineOk && !c.seal[role] && this.due(`cs-${s.game}-${s.phase}`))
+            const there = c.seal[role];
+            if (ROLES.every((r) => c.seal[r])) {
+                // os dois lacrados: abre o que está na sala (o atual, ou o de antes se o desfazer perdeu a corrida)
+                const open = this.kept?.choices?.find(
+                    (x) => x.game === s.game && x.phase === s.phase && x.seal === there,
+                );
+                if (open && !c.opened[role] && this.due(`co-${s.game}-${s.phase}`))
+                    this.dispatch({ k: 'choiceOpen', value: open.value, salt: open.salt });
+            } else if (there && there !== '-' && there !== (mineOk ? kc.seal : null)) {
+                // desfiz (ou troquei o que lacrei): tira o lacre que está lá; o novo vai na volta seguinte
+                if (this.due(`cu-${s.game}-${s.phase}-${there}`)) this.dispatch({ k: 'choiceUnseal', seal: there });
+            } else if (mineOk && !there && this.due(`cs-${s.game}-${s.phase}`))
                 this.dispatch({ k: 'choiceSeal', seal: kc.seal });
-            if (mineOk && ROLES.every((r) => c.seal[r]) && !c.opened[role] && this.due(`co-${s.game}-${s.phase}`))
-                this.dispatch({ k: 'choiceOpen', value: kc.value, salt: kc.salt });
-            // prévia: o tempo acabou e eu não confirmei: lacra o que estava na tela
+            // prévia: o tempo acabou e eu não confirmei: lacra o que estava na tela (vale o que eu mexi, não o padrão)
             if (s.phase === 'preview' && !mineOk && c.until !== undefined && now >= c.until && this.due('pv-auto')) {
                 const team = s.teams[role];
+                const draft =
+                    this.previewDraft && team && applyPreview(team, this.previewDraft) ? this.previewDraft : null;
                 const cfg =
-                    this.previewDraft ??
+                    draft ??
                     (team && {
                         formation: team.formation ?? '1-2-1',
                         tactic: team.tactic,
@@ -971,7 +1018,7 @@ class DuelSession {
             const boundary = this.result && k > 0 ? holdTick(this.result.snapshots, k) : Number.POSITIVE_INFINITY;
             // leva quantas ordens antes da divisa a partida simulada tinha: só compara com o outro se for o mesmo
             // número (ordem que chegou atrasada não anula; a tela refaz e manda de novo)
-            const before = s.log.slice(0, this.resultLog).filter((o) => o.tick < boundary).length;
+            const before = this.resultOrders.filter((o) => o.tick < boundary).length;
             const hash =
                 this.result && this.resultSeeds >= k && this.tick >= boundary
                     ? `${before}:${snapHash(this.result, boundary)}`

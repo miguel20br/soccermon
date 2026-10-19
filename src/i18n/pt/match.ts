@@ -77,6 +77,12 @@ export const match = {
         tipPossession: 'Muita posse e pouco chute: a tática ofensiva arrisca mais.',
         tipAhead: 'Na frente no placar: segurar ou ampliar? A escolha é sua.',
         tipEven: 'Jogo aberto. Siga assim ou arrisque uma mudança.',
+        mySubs: 'Suas trocas pro 2º tempo',
+        subRow: '{in} entra no lugar de {out}',
+        undo: 'desfazer',
+        rivalSubs: 'O rival trocou',
+        rivalRow: '{in} entrou, {out} saiu',
+        subMore: 'Trocar mais',
     },
     highlight: {
         goal: 'GOL!',

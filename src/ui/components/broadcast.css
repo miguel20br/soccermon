@@ -628,6 +628,15 @@
     .bc .ht-panel > small {
         display: none;
     }
+    /* vestiário com várias trocas: rola dentro do painel em vez de sair da tela */
+    .bc .ht-panel {
+        max-height: calc(100svh - 24px);
+        overflow-y: auto;
+    }
+    .bc .ht-subs li {
+        min-height: 26px;
+        font-size: 12px;
+    }
     .panel.bc-coach {
         grid-area: coach;
         margin-top: 0;

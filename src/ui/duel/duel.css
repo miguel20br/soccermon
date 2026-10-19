@@ -1071,3 +1071,80 @@
     font-size: 14px;
     overflow-wrap: anywhere;
 }
+/* pronto do duelo (escolha do time, escalação, intervalo): quem está pronto e o botão em 3 estados */
+.ready-bar {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    width: 100%;
+}
+.ready-chips {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    width: 100%;
+}
+.ready-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: var(--bc-ink-2);
+    color: var(--muted);
+    font-size: 12px;
+    white-space: nowrap;
+}
+.ready-chip b {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text);
+    font-weight: 400;
+}
+.ready-chip i {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--line);
+}
+.ready-chip.on {
+    color: var(--green);
+}
+.ready-chip.on i {
+    background: var(--green);
+}
+.ready-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.ready-btn.done {
+    border: 2px solid var(--green);
+    background: rgb(88 194 107 / 15%);
+    color: var(--green);
+    cursor: default;
+}
+.ready-btn.starting {
+    opacity: 1;
+    color: var(--muted);
+}
+.ready-undo {
+    min-height: 36px;
+    padding: 0 10px;
+    border: 0;
+    background: none;
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    text-decoration: underline;
+    cursor: pointer;
+}
+.ready-bar.compact {
+    gap: 4px;
+}
+.ready-bar.compact .ready-chips {
+    max-width: 46ch;
+}

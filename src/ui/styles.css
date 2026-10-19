@@ -3219,6 +3219,65 @@ button,
     justify-content: center;
     gap: 8px;
 }
+/* vestiário: as trocas pro 2º tempo (com desfazer) e as do rival */
+.ht-subs {
+    width: 100%;
+    max-width: 46ch;
+    padding: 6px 10px 8px;
+    border-radius: 8px;
+    background: var(--bc-ink-2);
+    text-align: left;
+}
+.ht-subs.rival {
+    border-left: 4px solid var(--yellow);
+}
+.ht-subs h3 {
+    margin: 0 0 4px;
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.ht-subs ul {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.ht-subs li {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+    font-size: 13px;
+}
+.ht-subs li img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+.ht-subs li b {
+    color: #7dff8a;
+}
+.ht-subs.rival li b {
+    color: var(--yellow);
+}
+.ht-undo {
+    min-height: 32px;
+    padding: 0 6px;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    font: inherit;
+    font-size: 12px;
+    text-decoration: underline;
+    cursor: pointer;
+}
+.ht-undo:hover {
+    color: var(--text);
+}
 .evolved-card {
     display: grid;
     justify-items: center;

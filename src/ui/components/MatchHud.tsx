@@ -253,6 +253,9 @@ const ICONS = {
     max: 'M12 2l2.9 6.2 6.6.8-4.9 4.6 1.3 6.6L12 16.9l-5.9 3.3 1.3-6.6L2.5 9l6.6-.8z',
     up: 'M6 15l6-6 6 6',
     down: 'M6 9l6 6 6-6',
+    // pronto do duelo
+    check: 'M5 12.5l4.5 4.5L19 7.5',
+    lock: 'M8 11V8a4 4 0 0 1 8 0v3M5 11h14v10H5z',
 } as const;
 export type HudIconKind = keyof typeof ICONS;
 
@@ -348,7 +351,10 @@ export function SubPanel({
     energyAt,
     nameOf,
     onPick,
+    busy,
 }: {
+    /** Quem já vai sair numa troca marcada (vestiário): não aparece de novo. */
+    busy?: ReadonlySet<string>;
     panelRef?: Ref<HTMLDivElement>;
     subOut: string | null;
     setSubOut: (uid: string | null) => void;
@@ -387,7 +393,7 @@ export function SubPanel({
             <div className="sub-list">
                 {(subOut ? benchNow : onField).map((uid) => {
                     const p = byUid.get(uid);
-                    if (!p) return null;
+                    if (!p || (!subOut && busy?.has(uid))) return null;
                     // quem sai: posição e fôlego agora; quem entra: a nota na vaga de quem sai
                     const slot = onField.indexOf(subOut ?? uid);
                     const role = slots[slot];

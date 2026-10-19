@@ -76,6 +76,12 @@ export const match: typeof pt = {
         tipPossession: 'Lots of possession, few shots: the attacking tactic takes more risks.',
         tipAhead: 'Ahead on the scoreboard: hold on or push for more? Your call.',
         tipEven: 'Open game. Keep it up or try a change.',
+        mySubs: 'Your subs for the 2nd half',
+        subRow: '{in} comes on for {out}',
+        undo: 'undo',
+        rivalSubs: 'The rival changed',
+        rivalRow: '{in} on, {out} off',
+        subMore: 'Another sub',
     },
     highlight: {
         goal: 'GOAL!',
