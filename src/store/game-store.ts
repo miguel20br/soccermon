@@ -30,6 +30,7 @@ import {
     clubColorHex,
     DEFAULT_PROFILE,
     type Dex,
+    type DexLine,
     EDITION_BIT,
     EMPTY_CAREER,
     EMPTY_ENTRY,
@@ -41,6 +42,7 @@ import {
     markPlayed,
     markSeen,
     type Profile,
+    playedLine,
     recordEditions,
     recordMatchInCareer,
     recordMatchInDex,
@@ -561,19 +563,30 @@ export function backfillEditions(dex: Dex, hall: HallEntry[], runs: (RunState | 
  * linha já vem com a forma nova; a de antes entra com os minutos até a evolução e a nova fica só com o resto, sem
  * dobrar a passagem). Copa e Duelo passam por aqui.
  */
-export function dexLines(m: MatchResult, side: 0 | 1 = 0, all: PlayerLine[] = playerLines(m)): PlayerLine[] {
+export function dexLines(m: MatchResult, side: 0 | 1 = 0, all: PlayerLine[] = playerLines(m)): DexLine[] {
     const lines = side === 0 ? all : all.map((l) => ({ ...l, team: (1 - l.team) as 0 | 1 }));
     const preEvo = m.events.flatMap((e) => {
         if (e.type !== 'evolve' || e.team !== side) return [];
         const line = lines.find((l) => l.team === 0 && l.uid === e.uid);
         const inAt = m.events.find((x) => x.type === 'sub' && x.inUid === e.uid)?.minute ?? 0;
         if (!line) return [];
-        const minutes = Math.min(line.minutes, Math.round(e.minute - inAt));
-        return [{ ...line, speciesId: e.from, minutes, rating: 0, stats: { ...line.stats, goals: 0, assists: 0 } }];
+        const minutes = Math.max(0, Math.min(line.minutes, Math.round(e.minute - inAt)));
+        // evoluiu no apito inicial ou no último minuto: a forma que ficou segundos em quadra também jogou
+        const evoForm = playedLine(line);
+        return [
+            {
+                ...line,
+                speciesId: e.from,
+                minutes,
+                rating: 0,
+                stats: { ...line.stats, goals: 0, assists: 0 },
+                evoForm,
+            },
+        ];
     });
     const rest = lines.map((l) => {
         const pre = l.team === 0 && preEvo.find((x) => x.uid === l.uid);
-        return pre ? { ...l, minutes: l.minutes - pre.minutes } : l;
+        return pre ? { ...l, minutes: l.minutes - pre.minutes, evoForm: pre.evoForm } : l;
     });
     return [...rest, ...preEvo];
 }
@@ -720,7 +733,7 @@ export const useGame = create<GameStore>()(
                     const lines = dexLines(m, side);
                     let dex = markPlayed(
                         getState().dex,
-                        lines.filter((l) => l.team === 0 && l.minutes >= 1).map((l) => l.speciesId),
+                        lines.filter(playedLine).map((l) => l.speciesId),
                     );
                     dex = markSeen(
                         dex,
@@ -1052,7 +1065,7 @@ export const useGame = create<GameStore>()(
                     dex = recordEditions(
                         dex,
                         forDex.flatMap((l) => {
-                            const card = l.team === 0 && l.minutes >= 1 && run.picks.find((p) => p.uid === l.uid);
+                            const card = playedLine(l) && run.picks.find((p) => p.uid === l.uid);
                             return card ? [[l.speciesId, editionBits(card)] as [number, number]] : [];
                         }),
                     );

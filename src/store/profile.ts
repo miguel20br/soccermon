@@ -149,6 +149,16 @@ export const EMPTY_ENTRY: DexEntry = {
 
 export const isPlayed = (e: DexEntry | undefined) => !!e && e.matches > 0;
 
+/**
+ * Linha de partida pra Pokédex (`dexLines` em game-store.ts): `evoForm` = uma das duas formas de quem evoluiu em
+ * quadra numa passagem de 1+ minuto (as duas jogaram, mesmo que uma tenha ficado só segundos).
+ */
+export type DexLine = PlayerLine & { evoForm?: boolean };
+
+/** A regra única do "jogou" numa partida: seu time, 1+ minuto em quadra (ou uma das formas de quem evoluiu). */
+export const playedLine = (l: Pick<DexLine, 'team' | 'minutes' | 'evoForm'>) =>
+    l.team === 0 && (l.minutes >= 1 || !!l.evoForm);
+
 /** Marca espécies como vistas (não mexe em quem já está na Dex). Devolve o mesmo objeto se nada mudou. */
 export function markSeen(dex: Dex, ids: Iterable<number>): Dex {
     let out: Dex | null = null;
@@ -182,17 +192,13 @@ export function markOvr(dex: Dex, entries: Iterable<[number, number]>): Dex {
     return out ?? dex;
 }
 
-/** Soma uma partida na Dex: seu time (team 0) com 1+ minuto conta como "jogou"; o rival fica "visto". */
-export function recordMatchInDex(dex: Dex, lines: PlayerLine[], won: boolean): Dex {
+/** Soma uma partida na Dex: quem `playedLine` aceita conta como "jogou"; o resto (rival, menos de 1 minuto) fica "visto". */
+export function recordMatchInDex(dex: Dex, lines: DexLine[], won: boolean): Dex {
     const out: Dex = { ...dex };
     // o mesmo Pokémon pode ter duas "passagens" (saiu e voltou): soma tudo numa partida só
     const mine = new Map<number, { minutes: number; goals: number; assists: number; rating: number }>();
     for (const l of lines) {
-        if (l.team !== 0) {
-            out[l.speciesId] ??= { ...EMPTY_ENTRY };
-            continue;
-        }
-        if (l.minutes < 1) {
+        if (!playedLine(l)) {
             out[l.speciesId] ??= { ...EMPTY_ENTRY };
             continue;
         }

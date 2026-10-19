@@ -18,6 +18,7 @@ import { profile as ptProfile } from '../i18n/pt/profile';
 import { type DuelRecord, mergeDuels } from './duels';
 import {
     DEFAULT_SETTINGS,
+    dexLines,
     liveOf,
     markEvolvedPlayed,
     migrateSave,
@@ -28,7 +29,7 @@ import {
     slotRole,
     useGame,
 } from './game-store';
-import { BANNER_COUNT, bannerOf, EDITION_BIT, EMPTY_ENTRY } from './profile';
+import { BANNER_COUNT, bannerOf, EDITION_BIT, EMPTY_ENTRY, recordMatchInDex } from './profile';
 
 describe('save', () => {
     it('v4 → v5: perfil com o nome do time, Pokédex com a copa em andamento e sem boas-vindas', () => {
@@ -427,6 +428,34 @@ describe('Pokédex com evolução no meio da partida', () => {
         // a passagem em quadra se divide entre as duas formas (sem dobrar)
         const line = playerLines(m).find((l) => l.team === 0 && l.uid === ev.uid)!;
         expect(g().dex[ev.from].minutes + g().dex[ev.into].minutes).toBe(line.minutes);
+    });
+
+    it('evoluiu no apito inicial ou no último minuto: as duas formas jogaram (a de segundos também)', () => {
+        const rng = new Rng('dex-evo-borda', 'team');
+        const picks = [16, 4, 7, 60, 66].map((id) => ({ ...createInstance(id, rng), evo: 13.5 }));
+        const team = {
+            name: 'Pallet FC',
+            lineup: picks,
+            bench: [],
+            tactic: 'balanced' as const,
+            color: 0xe8423f,
+            formation: '1-2-1' as const,
+            captainUid: picks[0].uid,
+            manualSubs: true,
+        };
+        const m = runMatch(FUTSAL_5, team, useGame.getState().run!.opponents[0], 'dex-evo-borda');
+        const ev = m.events.find((e) => e.type === 'evolve' && e.team === 0);
+        expect(ev?.type).toBe('evolve');
+        if (ev?.type !== 'evolve') return;
+        // a mesma partida com a evolução no minuto 0,2 (barra cheia de antes) e no 39,8 (antes do apito final)
+        for (const minute of [0.2, 39.8]) {
+            const moved = { ...m, events: m.events.map((e) => (e === ev ? { ...e, minute } : e)) };
+            const dex = recordMatchInDex({}, dexLines(moved), true);
+            expect(dex[ev.from].matches, `minuto ${minute}`).toBe(1);
+            expect(dex[ev.into].matches, `minuto ${minute}`).toBe(1);
+            const line = playerLines(m).find((l) => l.team === 0 && l.uid === ev.uid)!;
+            expect(dex[ev.from].minutes + dex[ev.into].minutes).toBe(line.minutes);
+        }
     });
 });
 
