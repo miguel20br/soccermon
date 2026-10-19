@@ -13,6 +13,7 @@ metade disto são armadilhas que custaram horas.
 | Peça | Fonte (no repo) | Como gerar |
 |---|---|---|
 | Trailer 16:9 | `trailer/montagem/index.html` (HyperFrames + GSAP) | `trailer/.logs/render.sh` (ver "Render") |
+| Storyboard (antes de qualquer render) | `trailer/v2/storyboard/` (branch `trailer-2`) | `PRINTS=<pasta> node trailer/v2/storyboard/montar.mjs` (ver "Storyboard antes de renderizar") |
 | Trailer 9:16 | `trailer/vertical/index.html` (pasta própria; `midia/` é link pra `../montagem/midia`) | `PROJ=vertical` no render |
 | Mídia do trailer (fora do git) | `trailer/montagem/midia/` | `trailer/montagem/preparar.sh` + `node quadra-vazia.mjs` + `node recortes.mjs` + `node recortes2.mjs` (com `npm run dev` ligado) |
 | Sons gerados da abertura | `trailer/montagem/abertura-sons.sh` | chamado pelo `preparar.sh` |
@@ -54,6 +55,35 @@ Fora do git (pesado ou com direito de terceiros): música, clipes, vídeos finai
 - **Música:** ele escolhe (foi o "Trainer Battle Remix" do Bliitzit). Sempre creditar no fim do vídeo e nos posts.
   Cortes caem na batida.
 - Iteração: render de rascunho → ele assiste no celular → ajusta. Ele avalia vendo o vídeo, não lendo a descrição.
+
+## Storyboard antes de renderizar (obrigatório pra vídeo novo)
+
+Aprendido no trailer 2 (19/10/2026; o Miguel aprovou de primeira: "achei perfeito"). **Nenhum vídeo novo é gravado
+nem renderizado antes de ele aprovar o storyboard.** Modelo: `trailer/v2/storyboard/` (branch `trailer-2`):
+`quadros.html` (um quadro por plano, em HTML), `index.html` (a página que ele abre) e `montar.mjs`
+(`PRINTS=<pasta> node trailer/v2/storyboard/montar.mjs` tira PNG de cada quadro e monta tudo em
+`~/Downloads/soccermon-<nome>-storyboard/`; abra com `xdg-open` no notebook dele).
+
+1. **Roteiro em texto primeiro** (5 blocos: abertura com "molho", draft, partida, extras, final com logo e tagline),
+   aprovado por ele numa mensagem. Depois o storyboard.
+2. **Cada plano tem:** número, tempo em **segundos e em batidas** da música (compasso e trecho; reancorar fica fácil
+   se a música mudar), um **quadro de referência real** no formato final (9:16 ou 16:9), o texto na tela, o som
+   (bipe, apito, golpe, torcida), a transição e de onde veio a imagem.
+3. **Quadro real, não desenho:** print headless do jogo de hoje, recortando o componente certo do DOM (3x, como no
+   vídeo final), ou um quadro da partida achada com `scripts/trailer-hunt.ts` + `scripts/trailer-capture.mjs`.
+   Abertura, final e o que não existe no jogo viram **mock em HTML** com o mesmo visual (caixa do Red/Blue, pacote
+   do `CardPack.tsx`), marcado "mock".
+4. **No topo:** a duração total e a linha do tempo com os planos em tamanho proporcional (clicáveis).
+   **Embaixo:** a tabela dos lances a gravar (plano, cena, seed, trecho em segundos de partida, onde vai câmera
+   lenta), os recortes do DOM (atalho `?demo=`/`?lab=` + seletor de cada um) e a lista do que falta decidir, cada
+   item com a recomendação.
+5. Confira a página no celular (390) e no desktop, sem rolagem lateral. As decisões vão pra ele **em texto**, sem
+   travar a sessão (ver `docs/planos/pesquisas/velocidade.md`).
+6. Só depois do ok: gravar os lances da tabela e montar no HyperFrames seguindo os tempos do storyboard.
+
+**Pra vertical (Reels/TikTok):** o gancho tem que estar nos primeiros 1–2 s (a abertura não pode demorar a mostrar
+algo que se mexe), e textos e logo ficam na área segura: fora dos ~15% de baixo (legenda e botões do app) e da
+faixa da direita (curtir/comentar).
 
 ## Gravar lances do jogo
 
