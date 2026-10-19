@@ -50,7 +50,7 @@ describe('agência do técnico (experimento)', () => {
         expect(shoutAt(r.events, 0, 100 + AGENCY.shoutTicks)).toBeNull();
     });
 
-    it('pedido de tempo: na bola parada seguinte, +5% de fôlego pra quem pediu e a bola espera', () => {
+    it('pedido de tempo: na bola parada seguinte, +5% de fôlego pra quem pediu, +3% pro rival e a bola espera', () => {
         const T = 900;
         const base = new LiveRunner(FUTSAL_5, A, B, 'ag');
         const live = new LiveRunner(FUTSAL_5, A, B, 'ag', [{ tick: T, team: 0, kind: 'timeout' }]);
@@ -64,7 +64,7 @@ describe('agência do técnico (experimento)', () => {
         for (let i = 0; i < 10; i++) {
             const gain = live.state.players[i].energy - base.state.players[i].energy;
             if (i < 5) expect(gain).toBeCloseTo(Math.min(AGENCY.timeoutEnergy, 1 - base.state.players[i].energy), 6);
-            else expect(gain).toBe(0);
+            else expect(gain).toBeCloseTo(Math.min(AGENCY.timeoutRivalEnergy, 1 - base.state.players[i].energy), 6);
         }
         // a bola parada fica parada durante a conversa
         const phase = live.state.phase;

@@ -3221,7 +3221,10 @@ function applyDeadBallAgency(s: MatchState): boolean {
         if (ag.timeoutPending) {
             ag.timeoutPending = false;
             ag.timeouts[s.half - 1] = true;
-            for (const p of s.players) if (p.team === team) p.energy = Math.min(1, p.energy + AGENCY.timeoutEnergy);
+            for (const p of s.players) {
+                const gain = p.team === team ? AGENCY.timeoutEnergy : AGENCY.timeoutRivalEnergy;
+                p.energy = Math.min(1, p.energy + gain);
+            }
             s.pauseUntil = Math.max(s.pauseUntil, s.tick + AGENCY.timeoutTicks);
             emit(s, { type: 'timeout', team });
             changed = true;

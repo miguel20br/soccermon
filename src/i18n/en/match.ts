@@ -103,7 +103,7 @@ export const match: typeof pt = {
             press: 'high press for 2.5 min; tires 2x',
         },
         timeout: 'Time-out',
-        timeoutHint: '1 per half: stops at the next restart, +5% stamina and subs happen right away',
+        timeoutHint: '1 per half: stops at the next restart, +5% stamina (+3% for the rival) and subs happen right away',
         timeoutUsed: 'Time-out used',
         timeoutPerHalf: '1 per half',
         timeoutPending: 'at the next restart',
@@ -120,7 +120,7 @@ export const match: typeof pt = {
         maxUsed: 'Used',
         timeoutPanel: {
             title: 'Time-out',
-            sub: '+5% stamina for your team. Subs, board and shouts happen now.',
+            sub: '+5% stamina for your team (+3% for the rival). Subs, board and shouts happen now.',
             back: 'Back to the game',
         },
         pens: {

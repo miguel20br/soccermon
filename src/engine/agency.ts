@@ -72,8 +72,9 @@ export const AGENCY = {
     shoutLimit: 3,
     shoutTicks: 450,
     shoutCooldownTicks: 540,
-    /** Pedido de tempo: 1 por tempo, fôlego +5% pra quem pediu (Miguel, 18/10/2026), parada de 3 s. */
+    /** Pedido de tempo: 1 por tempo, fôlego +5% pra quem pediu e +3% pro rival (Miguel, 18/10/2026), parada de 3 s. */
     timeoutEnergy: 0.05,
+    timeoutRivalEnergy: 0.03,
     timeoutTicks: 60,
     /** Golpe máximo: janela de 10 s pra sair; se passar, a barra volta pela metade. */
     maxTicks: 200,
