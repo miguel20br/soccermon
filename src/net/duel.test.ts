@@ -179,6 +179,23 @@ describe('validarTimeDuelo (time pronto)', () => {
         expect(back.captainUid).toBe([...back.lineup, ...back.bench][ok.captain].uid);
     });
 
+    it('combos de edição: shiny + Evento/Ícone/Destaque com MVP passam; nível fora da conta não', () => {
+        const combo = (special: unknown, shiny = true) =>
+            edit((r) => {
+                r.lineup[0].shiny = shiny;
+                r.lineup[0].special = special as DuelTeamRecipe['lineup'][0]['special'];
+            });
+        expect(combo({ kind: 'evento', type: 'Fire', level: 3 })).toEqual([]);
+        expect(combo({ kind: 'evento', type: 'Fire' })).toEqual([]);
+        expect(combo({ kind: 'icone', level: 3 })).toEqual([]);
+        expect(combo({ kind: 'destaque', level: 3 })).toEqual([]);
+        expect(combo({ kind: 'evento', type: 'Fire', level: 4 }).join()).toContain('edição');
+        expect(combo({ kind: 'evento', type: 'Fire', level: 1.5 }).join()).toContain('edição');
+        expect(combo({ kind: 'evento', type: 'Fire', level: '2' }).join()).toContain('edição');
+        expect(combo({ kind: 'evento', type: 'Dark', level: 1 }).join()).toContain('edição');
+        expect(combo({ kind: 'mega' }).join()).toContain('edição');
+    });
+
     it('save editado não passa: espécie, golpe, habilidade, item, edição, repetido, elenco', () => {
         expect(edit((r) => (r.lineup[0].speciesId = 152)).length).toBeGreaterThan(0);
         expect(edit((r) => (r.lineup[0].moves = ['hyper-beam-x'])).length).toBeGreaterThan(0);

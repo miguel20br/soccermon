@@ -32,8 +32,9 @@ export interface MatchConfig {
  * 4 = 0.8.8 (fórmula A: Ala conta chute e Pivô conta velocidade; Dragonite segue Pivô; Eevee no duelo evolui
  *     pra forma da carta).
  * 5 = 0.8.8 (barra cheia de antes só evolui depois de ele fazer algo na partida: nada de evoluir no apito inicial).
+ * 6 = 0.8.8 (edições em camadas: shiny +1 junto de outra edição, Evento leva MVP, MVP +1 por nível; sem teto além do 99 do atributo).
  */
-export const ENGINE_VERSION = 5;
+export const ENGINE_VERSION = 6;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',

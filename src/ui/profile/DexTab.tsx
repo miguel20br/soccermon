@@ -13,11 +13,13 @@ import {
     topSeal,
 } from '../../store/profile';
 import { HudIcon } from '../components/MatchHud';
+import { Tip } from '../components/Tip';
 import { TypeIcon } from '../components/TypeIcon';
 import { AlbumView } from './Album';
 import { speciesGif } from './club';
 import { BallMark, CareerSealIcon, ChampionRibbon } from './icons';
 import { dexNo, SpeciesSheet } from './SpeciesSheet';
+import { sealTip } from './seal-tip';
 
 type Status = 'played' | 'seen' | 'unseen';
 type Filter = 'all' | Status | 'missing';
@@ -187,7 +189,6 @@ export function DexTab({ initial = 'dex' }: { initial?: DexView }) {
                         const seal = topSeal(dex[sp.id], kanto);
                         const slots = SLOTS.get(sp.id) ?? [];
                         const stk = stickersGot(sp.id, dex[sp.id]);
-                        // TODO(combos-edicao): trocar o title pela dica de passar o mouse/segurar quando ela chegar
                         const stkTip = t('profile.dex.stickersTip', {
                             got:
                                 slots
@@ -220,20 +221,25 @@ export function DexTab({ initial = 'dex' }: { initial?: DexView }) {
                                     <span className="pf-cell-name">{known ? sp.name : '???'}</span>
                                     {/* o selo (10+ partidas) já diz que jogou: fica no lugar da bolinha */}
                                     {seal ? (
-                                        <CareerSealIcon seal={seal} className={`pf-seal pf-cell-mark seal-${seal}`} />
+                                        <Tip
+                                            className="pf-cell-mark pf-cell-tip"
+                                            focusable={false}
+                                            text={sealTip(t, seal, sp.name, dex[sp.id], counts.played)}
+                                        >
+                                            <CareerSealIcon seal={seal} className={`pf-seal seal-${seal}`} />
+                                        </Tip>
                                     ) : (
                                         st === 'played' && <BallMark className="pf-ball pf-cell-mark" />
                                     )}
                                     {titles > 0 && <ChampionRibbon n={titles} className="pf-ribbon pf-cell-ribbon" />}
                                     {/* figurinhas da espécie: "3/5" com o ícone de carta (a dica diz quais) */}
                                     {known && (
-                                        <span
-                                            className={`pf-cell-stk${stk === slots.length ? ' full' : ''}`}
-                                            title={stkTip}
-                                        >
-                                            <HudIcon kind="cards" />
-                                            {stk}/{slots.length}
-                                        </span>
+                                        <Tip className="pf-cell-stk-tip" focusable={false} text={stkTip}>
+                                            <span className={`pf-cell-stk${stk === slots.length ? ' full' : ''}`}>
+                                                <HudIcon kind="cards" />
+                                                {stk}/{slots.length}
+                                            </span>
+                                        </Tip>
                                     )}
                                 </button>
                             </li>

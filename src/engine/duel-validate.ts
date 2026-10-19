@@ -125,7 +125,11 @@ export function monProblems(m: DuelMonRecipe, where: string): string[] {
                 (s.title === undefined || isStr(s.title, 60)) &&
                 (s.level === undefined ||
                     (Number.isInteger(s.level) && s.level >= 0 && s.level <= DESTAQUE_MAX_LEVEL))) ||
-                (s.kind === 'evento' && isStr(s.type) && EVENT_TYPES.includes(s.type)) ||
+                (s.kind === 'evento' &&
+                    isStr(s.type) &&
+                    EVENT_TYPES.includes(s.type) &&
+                    (s.level === undefined ||
+                        (Number.isInteger(s.level) && s.level >= 0 && s.level <= DESTAQUE_MAX_LEVEL))) ||
                 (s.kind === 'destaque' &&
                     (s.level === undefined ||
                         (Number.isInteger(s.level) && s.level >= 1 && s.level <= DESTAQUE_MAX_LEVEL))));

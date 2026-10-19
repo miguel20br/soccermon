@@ -133,7 +133,7 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
                 p: 'Passe o mouse (ou segure o dedo) na carta pra ver o resumo; toque pra abrir a carta completa com atributos, golpes, habilidade e bônus.',
             },
             {
-                p: '**Edições especiais** dão +{bonus} em todos os atributos (não acumulam) e têm visual próprio:',
+                p: '**Edições especiais** dão +{bonus} em todos os atributos e têm visual próprio. O shiny vai por cima de qualquer uma (+1) e o selo MVP soma +1 por nível (até o 3). Atributo nenhum passa de 99:',
             },
             {
                 list: [
@@ -145,7 +145,7 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
                     ['Evento', 'o tipo da semana: 1 em 8 cartas desse tipo. Muda toda semana.'],
                     [
                         'Destaque',
-                        'o craque do seu time na vitória vira Destaque. Se já é, sobe de nível com nota 8+ (até o nível 3: +3, +4); senão o prêmio vai pro próximo craque sem edição.',
+                        'o craque do seu time na vitória ganha o selo MVP: carta comum vira Destaque; Ícone e Evento continuam e ganham o selo. Com nota 8+ o selo sobe, até o MVP 3.',
                     ],
                 ],
             },

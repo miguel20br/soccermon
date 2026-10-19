@@ -11,6 +11,17 @@ export const PATCH_NOTES: PatchNotes[] = [
         title: 'Ícone MVP, melhores momentos, medalhas e treinadores',
         sections: [
             {
+                title: 'Cartas em camadas',
+                lines: [
+                    'O shiny vai por cima de qualquer edição e soma +1: Shiny Ícone, Shiny Evento, Shiny Destaque',
+                    'Selo MVP no canto da carta, em bronze, prata e ouro. Ícone e Evento também levam, e cada nível soma +1 em tudo',
+                    'Carta Destaque mais bonita a cada nível: filete e brilho no 2, raios e pó dourado no 3',
+                    'Evento com o desenho do tipo, na cor dele: chamas no Fogo, ondas na Água, raios no Elétrico e mais 11 tipos',
+                    'Passe o mouse ou segure o dedo nos selos, na etiqueta da edição, na Pokédex e nas medalhas pra ver o que cada um quer dizer',
+                    'Atributo nenhum passa de 99: o bônus que sobra sobe só os que ainda estão abaixo',
+                ],
+            },
+            {
                 title: 'Copa do Dia',
                 lines: [
                     'Copa do Dia: a mesma copa pra todo mundo (mesmo draft, mesmos rivais), uma tentativa por dia e ranking do dia. Sem conta, você joga fora do ranking',
@@ -107,7 +118,6 @@ export const PATCH_NOTES: PatchNotes[] = [
                     'Faixas da torcida novas: "Aqui é {clube}", "ABAIXA QUE É HYPER BEAM", "Hoje Magikarp, amanhã Gyarados", "Sua insígnia é minha!" e outras',
                     'Prof. Carvalho agora pede ver os 151 Pokémon na Pokédex (era 100); quem já tinha ganhado continua com ele',
                     'O Prof. Carvalho dourado conta "jogou" igual à Pokédex (quem tinha 151 jogados e via 150/151 agora ganha)',
-                    'Carta Ícone agora pode ser o craque da partida: continua Ícone (com o fundo de galáxia), ganha o selo "MVP", "MVP 2" e "MVP 3" e +1 em todos os atributos por selo (até +5). Antes o prêmio pulava pro próximo jogador',
                     'Quem foi campeão com Mew e Mewtwo, com os 3 pássaros lendários ou com um Rattata antes dessas missões existirem agora ganha a conquista ao abrir o jogo (sai do Hall da Fama)',
                     'Pokémon que evolui em quadra conta como "jogou" nas duas formas na Pokédex (a de antes até a evolução, a nova depois)',
                     'A sequência de títulos zera ao começar uma copa nova por cima de outra em andamento',
@@ -663,6 +673,17 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
         title: 'Icon MVP, highlights, medals and coaches',
         sections: [
             {
+                title: 'Layered cards',
+                lines: [
+                    'Shiny goes on top of any edition and adds +1: Shiny Icon, Shiny Event, Shiny Star Player',
+                    'MVP seal on the corner of the card, in bronze, silver and gold. Icon and Event cards get it too, and each level adds +1 to everything',
+                    'Star Player cards look better at each level: trim and shine at 2, gold rays and dust at 3',
+                    'Event cards show their type, in its color: flames for Fire, waves for Water, bolts for Electric and 11 more types',
+                    'Hover or hold your finger on the seals, the edition tag, the Pokédex and the medals to see what each one means',
+                    'No attribute goes past 99: the leftover bonus only raises the ones still below',
+                ],
+            },
+            {
                 title: 'Daily Cup',
                 lines: [
                     'Daily Cup: the same cup for everyone (same draft, same rivals), one try per day and a daily ranking. Without an account, you play outside the ranking',
@@ -759,7 +780,6 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'New fan banners: "This is {club}", "DUCK, IT\'S HYPER BEAM", "Magikarp today, Gyarados tomorrow", "Your badge is mine!" and more',
                     'Prof. Oak now asks you to see all 151 Pokémon in the Pokédex (was 100); anyone who already earned him keeps him',
                     'Golden Prof. Oak counts "played" the same way as the Pokédex (players at 151 played who saw 150/151 now get it)',
-                    'Icon cards can now be the star player: they stay Icons (galaxy background), get the "MVP", "MVP 2" and "MVP 3" seal and +1 to every attribute per seal (up to +5). Before, the award skipped to the next player',
                     'Anyone who won the cup with Mew and Mewtwo, the 3 legendary birds or a Rattata before those missions existed now gets the achievement when opening the game (it comes from the Hall of Fame)',
                     'A Pokémon that evolves on court counts as "played" in both forms in the Pokédex (the old one until it evolves, the new one after)',
                     'The title streak resets when you start a new cup over one in progress',

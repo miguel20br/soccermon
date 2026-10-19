@@ -4,6 +4,14 @@ import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 vi.mock('../../game/audio', () => ({ playCry: () => {} }));
+// a dica abre num portal (precisa do document): aqui ela vira um atributo pra conferir o texto
+vi.mock('../components/Tip', async () => {
+    const { createElement: h } = await import('react');
+    return {
+        Tip: ({ text, children }: { text: string; children: unknown }) =>
+            h('span', { 'data-tip': text }, children as never),
+    };
+});
 // o render do servidor lê o estado inicial da store (zustand): aqui as telas leem o estado do teste
 const state: Record<string, unknown> = {};
 vi.mock('../../store/game-store', async (orig) => ({

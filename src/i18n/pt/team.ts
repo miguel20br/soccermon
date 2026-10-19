@@ -101,6 +101,13 @@ export const team = {
         metalRare: '{metal} raro',
         metalCommon: '{metal} comum',
         event: 'Evento · {type}',
+        tipShiny: 'Shiny: 1 em 64 cartas. +2 em tudo.',
+        tipShinyOn: 'Shiny por cima: +1 em tudo.',
+        tipIcone: 'Ícone: 1 em {odds} quando ele sai no draft. +2 em tudo.',
+        tipEvento: 'Evento da semana do tipo {type}. +2 em tudo.',
+        tipDestaque: 'Destaque: o craque de uma vitória. +2 em tudo.',
+        tipMvpOne: 'MVP 1: craque da partida 1 vez. Carta com +{bonus} em tudo.',
+        tipMvp: 'MVP {n}: craque da partida {n} vezes. Carta com +{bonus} em tudo.',
         /** Estilos da galeria (TCG, Pokédex, figurinha). */
         basic: 'Básico',
         evolved: 'Evoluído',

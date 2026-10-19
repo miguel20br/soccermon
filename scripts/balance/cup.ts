@@ -10,7 +10,13 @@ import { ITEMS } from '../../src/engine/items';
 import { ratePlayer } from '../../src/engine/match-stats';
 import { everyoneIn, mvpScore } from '../../src/engine/mvp';
 import { rewardOptions } from '../../src/engine/rewards';
-import { DESTAQUE_LEVEL_UP_RATING, DESTAQUE_MAX_LEVEL, rollSpecial, weeklyEventType } from '../../src/engine/specials';
+import {
+    DESTAQUE_LEVEL_UP_RATING,
+    DESTAQUE_MAX_LEVEL,
+    mvpOpen,
+    rollSpecial,
+    weeklyEventType,
+} from '../../src/engine/specials';
 import { FUTSAL_5, type PokemonInstance, Rng, ratingAt, runMatch, slotAvg, type TeamSetup, viewInstance } from './lib';
 
 const [shard, nshards] = [Number(process.argv[2]), Number(process.argv[3])];
@@ -142,7 +148,10 @@ function cup(seed: string, formation: FormationId) {
             star?.special?.kind === 'destaque' &&
             (star.special.level ?? 1) < DESTAQUE_MAX_LEVEL &&
             starRating >= DESTAQUE_LEVEL_UP_RATING;
-        const winner = levelUp ? star : ranked.find((p) => !p.special);
+        // mesma regra do game-store (recordResult): Ícone e Evento levam o selo MVP
+        const mvpTaker = (p: PokemonInstance) =>
+            mvpOpen(p) && (!p.special?.level || (p === star && starRating >= DESTAQUE_LEVEL_UP_RATING));
+        const winner = levelUp ? star : ranked.find((p) => !p.special || mvpTaker(p));
         const destaqueUid = won && winner ? winner.uid : null;
         const destaqueLevel = levelUp ? (star.special?.level ?? 1) + 1 : 1;
         if (destaqueUid) destaques++;
@@ -157,7 +166,13 @@ function cup(seed: string, formation: FormationId) {
                     o = { ...o, evo: Math.round(evoProgress(p, line.stats, line.role as Position) * 10) / 10 };
             }
             if (p.uid === destaqueUid)
-                o = { ...o, special: { kind: 'destaque', ...(destaqueLevel > 1 && { level: destaqueLevel }) } };
+                o = {
+                    ...o,
+                    special:
+                        p.special && p.special.kind !== 'destaque'
+                            ? { ...p.special, level: (p.special.level ?? 0) + 1 }
+                            : { kind: 'destaque', ...(destaqueLevel > 1 && { level: destaqueLevel }) },
+                };
             picks[k] = o;
         }
         const oppRating = slotAvg(opp);
@@ -243,6 +258,8 @@ function cup(seed: string, formation: FormationId) {
         evoTiers,
         evolvers: picks.filter((p) => evolutionTarget(p.speciesId, p.uid) !== null).length,
         destaques,
+        // cartas no fim da copa (combos de edição)
+        cards: picks.map((p) => ({ shiny: p.shiny, kind: p.special?.kind ?? null, level: p.special?.level ?? 0 })),
         captain: cap.speciesId,
         rounds,
         stages,

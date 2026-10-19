@@ -162,6 +162,13 @@ export const profile = {
             ouro: 'Prisma + Kanto completo ({n}/151)',
         },
         sealGot: '{name}: conquistado',
+        sealTip: {
+            folha: 'Folha: 10 partidas com o {name}.',
+            holo: 'Holo: 25 gols com o {name}.',
+            prisma: 'Prisma: 5 títulos com o {name}.',
+            ouro: 'Ouro escuro: Prisma com o {name} e Kanto completo.',
+        },
+        sealHave: 'Você tem {n}.',
         sealMissing: '{name}: falta ({goal})',
         sealsHelp: 'O selo é da sua carreira com a espécie. Não muda a carta.',
         notPlayed: 'Ainda não jogou pelo seu time. Escale numa copa pra começar a carreira.',
