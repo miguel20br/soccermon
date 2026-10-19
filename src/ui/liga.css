@@ -468,3 +468,43 @@
         grid-column: 1 / -1;
     }
 }
+
+/* Liga fechada até LIGA_OPENS_AT: a linha vira um botão que conta o porquê */
+.dc-liga {
+    display: grid;
+    gap: 8px;
+}
+.dc-locked {
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    /* o cadeado fica na mesma linha até em 320 px (a linha aberta joga o botão pra baixo) */
+    grid-template-columns: auto minmax(0, 1fr) auto;
+}
+.dc-locked .dc-icon {
+    opacity: 0.55;
+    filter: grayscale(0.6);
+}
+.daily-card .dc-locked .mode-head .bc-tag {
+    margin-left: 4px;
+    color: var(--bc-ink);
+    font-size: 10px;
+    vertical-align: 2px;
+}
+.dc-locked .mode-head > span {
+    font-variant-numeric: tabular-nums;
+}
+.dc-lock {
+    margin-right: 6px;
+    color: var(--muted);
+}
+.dc-locked:focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: 4px;
+    border-radius: 6px;
+}
