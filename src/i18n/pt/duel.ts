@@ -176,7 +176,17 @@ export const duel = {
         bravo: 'Grrr!',
         mute: 'Silenciar emotes do rival',
         unmute: 'Ver emotes do rival',
-        lab: { mine: 'Seu capitão', theirs: 'Capitão rival', auto: 'Rival manda sozinho' },
+        tapMute: 'Tocar silencia os emotes do rival',
+        muted: 'Rival silenciado',
+        undo: 'Desfazer',
+        lab: {
+            mine: 'Seu capitão',
+            theirs: 'Capitão rival',
+            auto: 'Rival manda sozinho',
+            mode: 'Modo',
+            duel: 'Duelo',
+            cup: 'Copa (o líder reage aos gols)',
+        },
     },
     result: {
         lossTitle: 'DERROTA',

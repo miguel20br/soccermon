@@ -1,0 +1,245 @@
+.emote-bar {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+    gap: 6px;
+}
+.emote-btn {
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 2px;
+    min-width: 0;
+    min-height: 44px;
+    padding: 4px 2px;
+    border-radius: 10px;
+    border: 2px solid var(--line);
+    background: var(--panel);
+    color: var(--text);
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.emote-btn img {
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+}
+.emote-btn span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.emote-btn:not(:disabled):active img {
+    transform: scale(0.92);
+}
+.emote-btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+/* o silenciar ocupa as duas linhas, no fim */
+.emote-btn.mute {
+    grid-column: 5;
+    grid-row: 1 / span 2;
+    width: 44px;
+}
+.emote-btn.mute.on {
+    border-color: var(--red);
+}
+.emote-svg {
+    width: 28px;
+    height: 28px;
+}
+
+/* o emote: o capitão grandão saindo do lado de quem mandou, embaixo do placar */
+.emote-pop {
+    position: absolute;
+    top: calc(100% + 8px);
+    z-index: 20;
+    display: grid;
+    justify-items: center;
+    pointer-events: none;
+    animation:
+        emote-in 0.32s var(--ease-pop) both,
+        emote-out 0.22s ease-in 2.35s forwards;
+}
+.emote-pop.left {
+    left: 10px;
+    transform-origin: top left;
+}
+.emote-pop.right {
+    right: 10px;
+    transform-origin: top right;
+}
+.emote-face {
+    width: 80px;
+    height: 80px;
+    border: 3px solid #000;
+    border-radius: 14px;
+    background: var(--tc);
+    box-shadow:
+        0 0 0 3px var(--tc),
+        0 6px 0 3px #000;
+}
+.emote-pop b {
+    position: relative;
+    margin-top: -10px;
+    padding: 3px 10px;
+    border: 3px solid #000;
+    border-radius: 999px;
+    background: #fff;
+    color: #141a33;
+    font-size: 15px;
+    white-space: nowrap;
+    transform: rotate(-4deg);
+}
+.emote-pop.right b {
+    transform: rotate(4deg);
+}
+.emote-pop.hop .emote-face {
+    animation: emote-hop 0.5s ease-in-out 0.3s 3;
+}
+.emote-pop.shake .emote-face {
+    animation: emote-shake 0.12s linear 0.3s 8;
+}
+.emote-pop.droop .emote-face {
+    animation: emote-droop 1.6s ease-in-out 0.3s both;
+}
+.emote-pop.wobble .emote-face {
+    animation: emote-wobble 0.6s ease-in-out 0.3s 2;
+}
+/* também o pop do pedido de velocidade */
+@keyframes emote-pop {
+    from {
+        transform: scale(0.6);
+        opacity: 0;
+    }
+}
+@keyframes emote-in {
+    from {
+        transform: scale(0.3) translateY(-12px);
+        opacity: 0;
+    }
+}
+@keyframes emote-out {
+    to {
+        transform: scale(0.6);
+        opacity: 0;
+    }
+}
+@keyframes emote-hop {
+    50% {
+        transform: translateY(-10px);
+    }
+}
+@keyframes emote-shake {
+    25% {
+        transform: translateX(-3px) rotate(-5deg);
+    }
+    75% {
+        transform: translateX(3px) rotate(5deg);
+    }
+}
+@keyframes emote-droop {
+    40%,
+    100% {
+        transform: translateY(5px) rotate(-6deg) scale(0.96);
+    }
+}
+@keyframes emote-wobble {
+    25% {
+        transform: rotate(-9deg);
+    }
+    75% {
+        transform: rotate(9deg);
+    }
+}
+@media (min-width: 900px) {
+    .emote-face {
+        width: 112px;
+        height: 112px;
+    }
+    .emote-pop b {
+        font-size: 18px;
+    }
+}
+/* celular deitado: a gaveta numa linha só, sem a frase (senão tampa a quadra inteira) */
+@media (orientation: landscape) and (max-height: 520px) {
+    .bc-emotes .emote-bar {
+        grid-template-columns: repeat(9, minmax(0, 1fr));
+    }
+    .bc-emotes .emote-btn span {
+        display: none;
+    }
+    .bc-emotes .emote-btn.mute {
+        grid-column: auto;
+        grid-row: auto;
+        width: auto;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .emote-pop,
+    .emote-pop .emote-face {
+        animation: none;
+    }
+}
+/* "Reduzir movimento" das Configurações: o emote aparece parado (sem isto, o fim da animação o escondia na hora) */
+[data-reduce-motion="true"] .emote-pop,
+[data-reduce-motion="true"] .emote-pop .emote-face {
+    animation: none;
+}
+
+/* o emote do rival: tocar silencia (como no Clash Royale) */
+.emote-tap {
+    all: unset;
+    display: grid;
+    justify-items: center;
+    cursor: pointer;
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
+}
+.emote-tap:focus-visible .emote-face {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+}
+.emote-muted {
+    position: absolute;
+    top: calc(100% + 8px);
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 4px 4px 8px;
+    border: 3px solid #000;
+    border-radius: 999px;
+    background: #fff;
+    color: #141a33;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.emote-muted.left {
+    left: 10px;
+}
+.emote-muted.right {
+    right: 10px;
+}
+.emote-muted .emote-svg {
+    width: 22px;
+    height: 22px;
+}
+.emote-muted .emote-undo {
+    all: unset;
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: #141a33;
+    color: #fff;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+.emote-muted .emote-undo:focus-visible {
+    outline: 3px solid var(--tc, #3b6dff);
+    outline-offset: 2px;
+}

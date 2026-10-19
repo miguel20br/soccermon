@@ -56,6 +56,10 @@ export function loadCloud(): Promise<SupabaseClient | null> {
         });
         supabase = client;
         client.auth.onAuthStateChange(onAuthChange);
+        // ligar o Google na conta anônima voltou com "esse Google já tem conta": entra nela do jeito normal
+        if (linkConflict(window.location.search + window.location.hash, takeLinkPending())) {
+            void client.auth.initialize().then(() => signInWithGoogle(false));
+        }
         return client;
     });
     // sem rede agora: a próxima chamada tenta de novo
@@ -471,8 +475,10 @@ function onAuthChange(event: string, session: Session | null) {
         if (useCloud.getState().anonId !== session.user.id) useCloud.setState({ anonId: session.user.id });
         return;
     }
-    if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') useCloud.setState({ anonId: null });
-    if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN') && session && session.user.id !== userId) {
+    // USER_UPDATED: a conta anônima do duelo acabou de ganhar o Google (linkIdentity com o botão oficial)
+    const signedIn = event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'USER_UPDATED';
+    if (signedIn) useCloud.setState({ anonId: null });
+    if (signedIn && session && session.user.id !== userId) {
         // fora do callback: o supabase-js pede para não esperar outras chamadas dentro dele
         setTimeout(() => void onSignedIn(session), 0);
     }
@@ -511,20 +517,50 @@ export async function signInAnon(): Promise<'ok' | 'disabled' | 'error'> {
 /** Antes do login de verdade: a sessão anônima do duelo sai (o histórico dela já está no save local). */
 async function dropAnon() {
     if (!supabase || !useCloud.getState().anonId) return;
-    // ponytail: sem linkIdentity (pede "manual linking" no painel); o duelo seguinte usa o id da conta
     await supabase.auth.signOut({ scope: 'local' });
     useCloud.setState({ anonId: null });
 }
 
-export async function signInWithGoogle() {
+/**
+ * Quem jogou Duelo sem conta e entra com o Google: a conta anônima ganha o Google (`linkIdentity`) e continua a
+ * mesma (o mesmo id na sala do duelo; o save do aparelho sobe como em qualquer conta nova). Precisa de "Manual
+ * linking" ligado no painel do Supabase: desligado (ou qualquer erro), o login segue do jeito de antes (a sessão
+ * anônima sai e entra a conta do Google). Google que já tem conta só dá erro na volta do Google: `linkConflict`.
+ */
+const LINK_PENDING = 'soccermon-link-pending';
+const redirectTo = () => `${window.location.origin}${window.location.pathname}`;
+
+/** Voltou do Google com "esse Google já tem conta": entra nela (a sessão anônima sai). */
+export function linkConflict(url: string, pending: boolean): boolean {
+    return pending && /[?&#]error_code=identity_already_exists\b/.test(url);
+}
+
+function takeLinkPending(): boolean {
+    try {
+        const v = sessionStorage.getItem(LINK_PENDING) === '1';
+        sessionStorage.removeItem(LINK_PENDING);
+        return v;
+    } catch {
+        return false;
+    }
+}
+
+export async function signInWithGoogle(link = true) {
     const sb = await loadCloud();
     if (!sb) return;
-    await dropAnon();
     markLoginPending();
-    const { error } = await sb.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: `${window.location.origin}${window.location.pathname}` },
-    });
+    if (link && useCloud.getState().anonId) {
+        try {
+            sessionStorage.setItem(LINK_PENDING, '1');
+        } catch {
+            // sem sessionStorage: se o Google já tiver conta, a pessoa só precisa tocar em Entrar de novo
+        }
+        const { error } = await sb.auth.linkIdentity({ provider: 'google', options: { redirectTo: redirectTo() } });
+        if (!error) return;
+        takeLinkPending();
+    }
+    await dropAnon();
+    const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: redirectTo() } });
     if (error) throw error;
 }
 
@@ -532,8 +568,12 @@ export async function signInWithGoogle() {
 export async function signInWithGoogleToken(idToken: string, rawNonce: string) {
     const sb = await loadCloud();
     if (!sb) return;
-    await dropAnon();
     markLoginPending();
+    if (useCloud.getState().anonId) {
+        const { error } = await sb.auth.linkIdentity({ provider: 'google', token: idToken, nonce: rawNonce });
+        if (!error) return;
+    }
+    await dropAnon();
     const { error } = await sb.auth.signInWithIdToken({ provider: 'google', token: idToken, nonce: rawNonce });
     if (error) throw error;
 }

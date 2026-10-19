@@ -182,7 +182,17 @@ export const duel: typeof pt = {
         bravo: 'Grrr!',
         mute: "Mute rival's emotes",
         unmute: "Show rival's emotes",
-        lab: { mine: 'Your captain', theirs: 'Rival captain', auto: 'Rival sends on its own' },
+        tapMute: "Tap to mute the rival's emotes",
+        muted: 'Rival muted',
+        undo: 'Undo',
+        lab: {
+            mine: 'Your captain',
+            theirs: 'Rival captain',
+            auto: 'Rival sends on its own',
+            mode: 'Mode',
+            duel: 'Duel',
+            cup: 'Cup (the leader reacts to goals)',
+        },
     },
     result: {
         lossTitle: 'DEFEAT',

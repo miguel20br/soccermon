@@ -59,8 +59,10 @@ import {
 } from '../components/Sideline';
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
+import { RivalEmotes } from '../duel/Emotes';
+import { rivalEmotes } from '../duel/emote-faces';
 import { LeaveConfirm } from '../leave-guard';
-import { roleAt, snapAt } from '../match-view';
+import { captainAt, roleAt, snapAt } from '../match-view';
 import { bannerText, useClubColor } from '../profile/club';
 import { agencyOn, reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
@@ -303,6 +305,8 @@ export function Match() {
     }, [match?.seed]);
 
     const clockParts = useClockParts(clock, fulltime || ended, shootout, halftime);
+    // o capitão do líder rival reage aos gols (emote do Duelo, só na tela)
+    const rivalPlan = useMemo(() => (match ? rivalEmotes(match.events, 1) : []), [match]);
     if (!run || !match || !sceneData || !opponent) return null;
 
     const lockedSetup = run.lockedTeam ? { ...run.lockedTeam, manualSubs: true } : playerTeam(run);
@@ -517,7 +521,19 @@ export function Match() {
                         score={clock.score}
                         clock={clockParts}
                         stage={d.match.stageShort[run.stage] ?? stage}
-                    />
+                    >
+                        <RivalEmotes
+                            plan={rivalPlan}
+                            tick={clock.tick}
+                            side={1}
+                            speciesId={captainAt(match, [lockedSetup, opponent], 1, clock.tick).speciesId}
+                            color={hex(colors[1])}
+                            onPose={() => {
+                                const idx = captainAt(match, [lockedSetup, opponent], 1, tickRef.current).idx;
+                                if (idx !== null) EventBus.emit('match:captain-pose', idx);
+                            }}
+                        />
+                    </Scoreboard>
                     <PressureBar match={match} tick={clock.tick} minute={clock.minute} colors={colors} over={over} />
                     {agency && <MaxBars events={match.events} tick={clock.tick} colors={colors} />}
                 </div>
