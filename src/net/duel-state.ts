@@ -1,6 +1,5 @@
 import { AGENCY, SHOUT_KINDS, type Shout } from '../engine/agency';
 import type { Position } from '../engine/attributes';
-import { FUTSAL_5, type MatchConfig, withConfig } from '../engine/config';
 import { captainOptions, DRAFT_PICKS, draftOptions, playerDraftOptions } from '../engine/draft';
 import {
     DEFAULT_SPECIAL_LIMIT,
@@ -52,16 +51,15 @@ export const DUEL_MODES: DuelMode[] = ['ready', 'disputa', 'pacotes'];
 export const DUEL_SPEEDS: PlaybackSpeed[] = [1, 2, 4, 8, 'highlights'];
 
 /**
- * Duração da partida (o host escolhe ao criar a sala): normal (2 tempos de 3 min de jogo) ou curta (metade). O relógio
- * da tela continua de 0 a 40 (anda 2x mais rápido na curta), então intervalo, trechos da seed e pênaltis não mudam.
+ * Duração da partida (o host escolhe ao criar a sala): normal ou curta. As duas são a MESMA partida (`FUTSAL_5`, mesmos
+ * gols, golpes e evolução; decisão do Miguel): a curta só toca 2x mais rápido no tempo real (`duelPace`).
  */
 export type DuelDuration = 'normal' | 'short';
 export const DUEL_DURATIONS: DuelDuration[] = ['normal', 'short'];
 /** Sala de antes da opção existir é normal. */
 export const durationOf = (s: Pick<Shared, 'duration'>): DuelDuration => (s.duration === 'short' ? 'short' : 'normal');
-const SHORT_MATCH = withConfig({ halfSeconds: FUTSAL_5.halfSeconds / 2 });
-export const duelConfig = (s: Pick<Shared, 'duration'>): MatchConfig =>
-    durationOf(s) === 'short' ? SHORT_MATCH : FUTSAL_5;
+/** Quantas vezes a sala toca mais rápido que a velocidade escolhida (a cena e as contas em ticks por segundo real). */
+export const duelPace = (s: Pick<Shared, 'duration'>): number => (durationOf(s) === 'short' ? 2 : 1);
 
 export const PICK_MS = 20_000;
 export const CAPTAIN_PICK_MS = 30_000;
@@ -78,7 +76,7 @@ export const KICKOFF_MS = 7_000;
 /** Igual à partida da copa: a ordem vale ~2 s de jogo à frente, mais em velocidade alta. */
 export const CHANGE_LEAD_TICKS = 40;
 export const speedMult = (s: PlaybackSpeed) => (typeof s === 'number' ? s : 4);
-export const leadTicks = (s: PlaybackSpeed) => CHANGE_LEAD_TICKS * speedMult(s);
+export const leadTicks = (s: PlaybackSpeed, pace = 1) => CHANGE_LEAD_TICKS * speedMult(s) * pace;
 
 /** Rodadas dos drafts do duelo: capitão (qualquer posição) e as vagas do losango, mais 1 reserva = 7 escolhas. */
 export const DUEL_ROUNDS: (Position | 'ANY')[] = ['ANY', 'GK', 'FIXO', 'ALA', 'ALA', 'PIVO', 'ANY'];
@@ -534,7 +532,7 @@ export function stampOrder(
     const base =
         i.ht && ctx.htTick !== undefined
             ? ctx.htTick + 1
-            : Math.ceil(Math.max(ctx.tick, Number(i.tick) || 0)) + leadTicks(s.speed);
+            : Math.ceil(Math.max(ctx.tick, Number(i.tick) || 0)) + leadTicks(s.speed, duelPace(s));
     const tick = Math.max(base, (s.log.at(-1)?.tick ?? 0) + 1);
     const o = i.order;
     const agency = agencyStamp(o, tick, side, i.seq);
@@ -1009,8 +1007,8 @@ function timers(s: Shared, ctx: Ctx): Shared {
  * diferença, nada; até 3 s, 10% mais rápido ou mais devagar; mais que isso, pula pra frente (ou espera parado). Em
  * Lances a velocidade dá saltos: aí pula já com 1 s de diferença em vez de acelerar.
  */
-export function clockAdjust(drift: number, speed: PlaybackSpeed): { rate: number; seek?: boolean } {
-    const perSec = 20 * speedMult(speed);
+export function clockAdjust(drift: number, speed: PlaybackSpeed, pace = 1): { rate: number; seek?: boolean } {
+    const perSec = 20 * speedMult(speed) * pace;
     const soft = 0.5 * perSec;
     const hard = (speed === 'highlights' ? 1 : 3) * perSec;
     if (drift > hard) return { rate: 1, seek: true };

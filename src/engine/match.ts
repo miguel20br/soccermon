@@ -416,8 +416,8 @@ export function checkEvolutions(s: MatchState) {
     for (const p of s.players) {
         if (p.evolved || p.origin || p.inst.ability === 'imposter') continue;
         const into = evolutionTarget(p.inst.speciesId, p.inst.uid);
-        const progress = evoProgress(p.inst, p.stats, p.role, s.cfg.evoGain);
-        if (into === null || progress < evoNeeded(p.team, s.teams[p.team].setup.manualSubs)) continue;
+        if (into === null || evoProgress(p.inst, p.stats, p.role) < evoNeeded(p.team, s.teams[p.team].setup.manualSubs))
+            continue;
         const inst = { ...evolveInstance(p.inst, into, p.role), evo: 0 };
         // a forma nova entra na escalação (tipo novo pode ligar ou desligar sinergias)
         s.teams[p.team].lineup[p.slot] = inst;

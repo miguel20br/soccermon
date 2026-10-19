@@ -69,6 +69,8 @@ export interface MatchSceneData {
     reduceMotion?: boolean;
     /** Folhas (skinOf) que podem entrar em campo (bancos inteiros): pré-carregadas para substituições. */
     extraSpecies?: number[];
+    /** Duelo curto: toca N vezes mais rápido que a velocidade escolhida (a partida é a mesma). Padrão: 1. */
+    pace?: number;
     /** Começa parada (tela de VERSUS); a partida só rola depois de 'match:resume'. */
     startPaused?: boolean;
     /** Retomando uma partida: começa deste tick (os eventos anteriores são aplicados sem animação). */
@@ -925,7 +927,7 @@ export class MatchScene extends Phaser.Scene {
     update(time: number, delta: number) {
         if (this.ended || !this.snaps.length || this.paused || this.inspecting) return;
         // evolução: a partida para enquanto o Pokémon evolui, como nos jogos
-        const factor = time < this.holdReal ? 0 : this.currentSpeedFactor(time) * this.rate;
+        const factor = time < this.holdReal ? 0 : this.currentSpeedFactor(time) * this.rate * (this.md.pace ?? 1);
         this.playTick = Math.min(
             this.playTick + (delta / 1000) * TICK_RATE * factor,
             // as travas seguram, nunca voltam a partida (trava atrás da tela = para onde está)

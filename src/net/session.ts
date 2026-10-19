@@ -13,6 +13,7 @@ import {
     bestFor,
     clockAdjust,
     type DuelDuration,
+    duelPace,
     type DuelMode,
     type EmoteKind,
     emoteAllowed,
@@ -668,13 +669,13 @@ class DuelSession {
         const role = this.view.role;
         if (!role || this.authority) return;
         const side = SIDE[role];
-        const lead = leadTicks(s.speed);
+        const lead = leadTicks(s.speed, duelPace(s));
         const sent = this.kept?.sent?.game === s.game ? this.kept.sent.orders : {};
         for (const o of s.log) {
             if (o.team === side) {
                 const mine = sent[o.seq];
                 if (!mine) this.set({ suspect: 'invented' });
-                else if (!mine.ht && o.tick > mine.tick + lead + STAMP_SLACK * speedMultOf(s.speed))
+                else if (!mine.ht && o.tick > mine.tick + lead + STAMP_SLACK * speedMultOf(s.speed) * duelPace(s))
                     this.set({ suspect: 'late' });
             } else {
                 const key = `${s.game}:${o.seq}`;
@@ -776,7 +777,7 @@ class DuelSession {
                 if (Number.isFinite(now)) this.set({ offset: now - Date.now() });
                 const tick = Number(m.tick);
                 if (s?.phase === 'match' && this.playing && Number.isFinite(tick)) {
-                    const adj = clockAdjust(tick - this.tick, s.speed);
+                    const adj = clockAdjust(tick - this.tick, s.speed, duelPace(s));
                     if (adj.seek) EventBus.emit('match:seek', tick);
                     this.setRate(adj.rate);
                 }
@@ -787,7 +788,7 @@ class DuelSession {
                 const tick = Number(m.tick);
                 if (this.view.role !== 'host' || !s || s.phase !== 'match' || !this.playing) return;
                 if (!Number.isFinite(tick) || Date.now() > this.seekUntil) return;
-                if (clockAdjust(tick - this.tick, s.speed).seek) EventBus.emit('match:seek', tick);
+                if (clockAdjust(tick - this.tick, s.speed, duelPace(s)).seek) EventBus.emit('match:seek', tick);
                 else this.seekUntil = 0;
                 return;
             }

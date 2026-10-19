@@ -492,10 +492,9 @@ revisão de segurança (`multiplayer-revisao.md`). Código em `src/net/` (regras
   o tempo real). Antes: ~3.100 duelos/mês a 4x (~1.400 a 1x) pelas mensagens e ~4.500 pelo egress. Depois: as mesmas
   mensagens, mas o egress passa de ~1,1 MB pra ~0,12 MB por duelo (~40 mil duelos): o teto agora é só o de
   mensagens. Pra subir ele, o próximo passo é o relógio mais espaçado fora da partida (decisão do Miguel).
-- **Partida curta** (o host escolhe na criação da sala, `Shared.duration`; sala antiga = normal): metade de
-  `halfSeconds` com o mesmo relógio de 0 a 40 (`duelConfig`), então intervalo, trechos da seed (o trecho vira 180
-  ticks), pênaltis e escanteio funcionam igual; a revanche continua curta e o registro leva a duração. A normal é a
-  `FUTSAL_5` de sempre (sem `ENGINE_VERSION` novo). Equilíbrio (`npx tsx scripts/balance/duel-curta.ts 300`): metade
-  dos gols, chutes e escanteios, 62% dos golpes, pênaltis em 26% (eram 14%), fôlego no fim 0,82 (era 0,56) e
-  **evolução em 4% das partidas (era 25%)**. Interruptor pronto e desligado: `MatchConfig.evoGain` (peso da barra na
-  partida; x1,5 dá 18%, x2 dá 31%), à espera do ok do Miguel.
+- **Partida curta** (o host escolhe na criação da sala, `Shared.duration`; sala antiga = normal): decisão do Miguel
+  (18/10/2026) de ter **os mesmos números da normal** (gols, golpes, evolução, escanteios). Então a curta é a MESMA
+  partida (`FUTSAL_5`, mesma simulação, mesma seed = mesmo placar), só tocada 2x mais rápido no tempo real
+  (`duelPace`: a cena multiplica a velocidade escolhida, e a antecedência das ordens e a correção do relógio contam
+  em ticks por segundo real). A 1ª tentativa (metade de `halfSeconds`) dava metade dos gols e evolução em 4% das
+  partidas (era 25%): saiu, junto com o `MatchConfig.evoGain`.

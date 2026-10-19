@@ -20,7 +20,7 @@ import {
     canClaimWO,
     clockAdjust,
     disputaOptions,
-    duelConfig,
+    duelPace,
     duelNames,
     duelTags,
     emoteAllowed,
@@ -922,27 +922,20 @@ describe('partida curta', () => {
     const home = tagTeam(team('casa'), 'host');
     const away = tagTeam(team('fora'), 'guest');
 
-    it('normal é a partida de sempre; curta tem metade do tempo, o mesmo relógio e é determinística', async () => {
-        expect(duelConfig({})).toBe(FUTSAL_5);
-        expect(duelConfig(newShared('ABCDEF', peer('ana'), 'disputa', 4, 'x'))).toBe(FUTSAL_5);
+    it('curta é a mesma partida da normal (mesma seed, mesmo placar), só tocada 2x mais rápido', async () => {
+        const normal = newShared('ABCDEF', peer('ana'), 'disputa', 4, 'x');
         const short = newShared('ABCDEF', peer('ana'), 'disputa', 4, 'x', 3, 'short');
-        const cfg = duelConfig(short);
-        expect(cfg.halfSeconds).toBe(FUTSAL_5.halfSeconds / 2);
-        expect(cfg.displayHalfMinutes).toBe(FUTSAL_5.displayHalfMinutes);
+        expect([duelPace({}), duelPace(normal), duelPace(short)]).toEqual([1, 1, 2]);
+        // a antecedência da ordem e a correção do relógio contam em ticks por segundo real: o dobro na curta
+        expect(leadTicks(4, duelPace(short))).toBe(2 * leadTicks(4, duelPace(normal)));
+        expect(clockAdjust(70, 4, duelPace(normal)).rate).toBe(1.1);
+        expect(clockAdjust(70, 4, duelPace(short)).rate).toBe(1);
+        // a simulação não depende da duração: a do duelo é sempre FUTSAL_5
         const seeds = await segmentSeeds('ABCDEF', Array(SEG_COUNT).fill(H('1')), Array(SEG_COUNT).fill(H('2')));
-        const a = runMatch(cfg, home, away, 'base', { segmentSeeds: seeds });
-        const b = runMatch(cfg, home, away, 'base', { segmentSeeds: seeds });
-        const n = runMatch(FUTSAL_5, home, away, 'base', { segmentSeeds: seeds });
-        expect(b.events).toEqual(a.events);
+        const a = runMatch(FUTSAL_5, home, away, 'base', { segmentSeeds: seeds });
+        const b = runMatch(FUTSAL_5, home, away, 'base', { segmentSeeds: seeds });
         expect(b.score).toEqual(a.score);
-        // metade dos ticks, relógio até os 40 e intervalo no 20
-        const end = (m: typeof a) => m.events.find((e) => e.type === 'fulltime')?.tick ?? 0;
-        expect(end(a)).toBeGreaterThan(0);
-        expect(Math.abs(end(a) / end(n) - 0.5)).toBeLessThan(0.05);
-        expect(a.snapshots.at(-1)!.minute).toBeGreaterThanOrEqual(40);
-        expect(a.events.some((e) => e.type === 'halftime')).toBe(true);
-        // os 20 trechos da seed cabem na partida curta (trava no fim de cada um, como na normal)
-        expect(holdTick(a.snapshots, 19)).toBeLessThan(end(a));
+        expect(b.events).toEqual(a.events);
         // a revanche continua curta
         let s: Shared = { ...short, peers: { host: peer('ana'), guest: peer('bia') }, phase: 'done' };
         s = reduce(s, { k: 'rematch', commit: H('c') }, 'host', ctx());

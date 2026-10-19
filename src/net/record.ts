@@ -28,7 +28,7 @@ export interface RegistroDuelo {
     speed: PlaybackSpeed;
     /** Time pronto: limite de cartas especiais da sala (null = livre). */
     specialLimit: SpecialLimit;
-    /** Duração da partida (sem = normal: registro de antes da partida curta). `duelConfig` dá a configuração. */
+    /** Duração da partida (sem = normal: registro de antes da partida curta). A partida é a mesma: só tocou mais rápido. */
     duration?: DuelDuration;
     /** Receitas dos dois times como entraram em campo (host, convidado) e os uids de cada um (as ordens usam). */
     teams: [DuelTeamRecipe, DuelTeamRecipe];

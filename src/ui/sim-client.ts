@@ -1,4 +1,3 @@
-import type { MatchConfig } from '../engine/config';
 import type { MatchResult } from '../engine/runners/batch-runner';
 import type { SimRequest } from '../engine/sim.worker';
 import type { MatchOrder, TeamSetup } from '../engine/state';
@@ -42,7 +41,6 @@ export function simulateMatch(
     seed: string,
     orders: MatchOrder[] = [],
     segmentSeeds?: string[],
-    cfg?: MatchConfig,
 ): Promise<MatchResult> {
     const id = nextId++;
     return new Promise((resolve, reject) => {
@@ -51,7 +49,7 @@ export function simulateMatch(
             reject(new Error('A simulação demorou demais'));
         }, TIMEOUT_MS);
         pending.set(id, { resolve, reject, timer });
-        const req: SimRequest = { id, home, away, seed, orders, segmentSeeds, cfg };
+        const req: SimRequest = { id, home, away, seed, orders, segmentSeeds };
         try {
             getWorker().postMessage(req);
         } catch (err) {
