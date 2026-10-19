@@ -392,7 +392,7 @@ function Metal({
                 )}
             </span>
             <span className="m-name">
-                {d.view.displayName}
+                <span className="m-nm">{d.view.displayName}</span>
                 <small>{specialTitle(inst, d.tr) ?? label}</small>
                 {seal && (
                     <Tip className="m-seal" text={seal.tip} focusable={tipFocus}>
