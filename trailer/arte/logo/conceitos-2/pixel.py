@@ -250,7 +250,7 @@ def bola(cx, cy, R, inclina=-18, k=1.0):
 
 
 # ---------------- carta ----------------
-def carta(cx, cy, w, h, graus, metal=OURO, holo=True, k=1.0):
+def carta(cx, cy, w, h, graus, metal=OURO, holo=True, k=1.0, cores=HOLO, faixa=0.16):
     """Carta com borda de metal (luz em cima/esq, sombra embaixo/dir), filete escuro e miolo holográfico em faixas."""
     aro = max(2.0 / k, w * 0.07)
     filete = max(1.0 / k, w * 0.03)
@@ -272,7 +272,7 @@ def carta(cx, cy, w, h, graus, metal=OURO, holo=True, k=1.0):
         if not holo:
             return metal[1]
         # faixas diagonais com uma linha de dither na troca de cor, e dois reflexos brancos
-        t = (lx * 0.75 + ly * 0.65) / (m * 0.16) + 2.2
+        t = (lx * 0.75 + ly * 0.65) / (m * faixa) + 2.2
         i = math.floor(t)
         px, py = int(x * k), int(y * k)
         if t - i < 0.18 and (px + py) % 2:
@@ -282,7 +282,7 @@ def carta(cx, cy, w, h, graus, metal=OURO, holo=True, k=1.0):
             return BR
         if abs(s + 0.24 * m) < max(0.5 / k, 0.018 * m) and (px + py) % 2:
             return BR
-        return HOLO[i % len(HOLO)]
+        return cores[i % len(cores)]
     raio_caixa = math.hypot(w, h) / 2
     return f, (cx - raio_caixa, cy - raio_caixa, cx + raio_caixa, cy + raio_caixa)
 
@@ -524,8 +524,21 @@ def emblema_c(tela, v, simples=False):
             tela.px.update(sprite(arte, x * k + v.ox, y * k + v.oy, BR, esc))
 
 
-EMBLEMAS = {"a": emblema_a, "b": emblema_b, "c": emblema_c}
-ZOOM = {"a": 1.0, "b": 0.88, "c": 1.0}  # B tem mais coisa: um pouco menor pra respirar no quadrado
+def emblema_p(tela, v, simples=False):
+    """Rodada 2b: a carta do Miguel limpa (só borda dourada fina e holo em 4 faixas largas) + a bola."""
+    k = v.k
+    cx, cy, w, h, g = 32, 32, 38, 52, -8
+    fc, cc = carta(cx, cy, w, h, g, k=k, cores=HOLO[:4], faixa=0.3)
+    cam = rast(tela.w, tela.h, v, fc, cc)
+    tela.sombra(cam, max(1, round(2 * k)), max(1, round(3 * k)))
+    tela.por(cam)
+    bx, by = para_tela(0, 0, cx, cy, g)
+    fb, cb = bola(bx, by, 13.5 if not simples else 14.5, k=k)
+    tela.por(rast(tela.w, tela.h, v, fb, cb))
+
+
+EMBLEMAS = {"a": emblema_a, "b": emblema_b, "c": emblema_c, "p": emblema_p}
+ZOOM = {"a": 1.0, "b": 0.88, "c": 1.0, "p": 1.0}  # B tem mais coisa: um pouco menor pra respirar no quadrado
 
 
 # ---------------- letras do logo atual em pixel ----------------
@@ -632,15 +645,15 @@ def horizontal(conceito, com_fundo=True):
     tela = Tela(W, H)
     if com_fundo:
         tela.px.update(rast(W, H, View(1), fundo(W, H, W / 2, H / 2, W * 0.55, 28)))
-    if conceito == "a":
+    if conceito in ("a", "p"):
         s = 5
         larg = (8 * 6.9 + 6 + 1.4) * s
         x0, y0 = (W - larg) / 2, (H - 8 * s) / 2 - 4
 
         def carta_o(t, cx, cy, alt):
-            k = alt * 1.32 / 48
+            k = alt * 1.32 / (52 if conceito == "p" else 48)
             vv = View(k, cx - 32 * k, cy - 33 * k)
-            emblema_a(t, vv)
+            EMBLEMAS[conceito](t, vv)
         palavra(tela, x0, y0, s, 4, carta_o)
     else:
         s = 4
@@ -655,6 +668,14 @@ def horizontal(conceito, com_fundo=True):
 
 
 def main():
+    # rodada 2b (estilo 2 da carta): pixel art
+    gravar(icone("p", 64), "2-pixel-icone-1024", 16)
+    gravar(icone("p", 64, com_fundo=False), "2-pixel-simbolo-1024", 16)
+    for n in (48, 32, 16):
+        gravar(icone("p", n), f"2-pixel-icone-{n}", 1)
+    gravar(horizontal("p"), "2-pixel-horizontal", 5, svg=False)
+    gravar(horizontal("p", com_fundo=False), "2-pixel-horizontal-transparente", 5)
+    print("ok 2-pixel")
     for c in "abc":
         gravar(icone(c, 64), f"{c}-icone-1024", 16)
         gravar(icone(c, 64, com_fundo=False), f"{c}-simbolo-1024", 16)
