@@ -4,6 +4,7 @@
  *
  *   PRINTS=<pasta dos prints> node trailer/v2/storyboard/montar.mjs
  *
+ * A versão anterior do storyboard fica em v1/ (não é apagada).
  * PRINTS tem shots/ (recortes do DOM) e cap/ (quadros da partida, scripts/trailer-capture.mjs).
  */
 import { copyFileSync, mkdirSync } from 'node:fs';
@@ -19,6 +20,8 @@ const PRINTS = process.env.PRINTS;
 if (!PRINTS) throw new Error('PRINTS=<pasta dos prints>');
 const SAIDA = join(homedir(), 'Downloads/soccermon-trailer2-storyboard');
 const PUB = join(AQUI, '../../../public');
+// logo final (fora do git até entrar no repo)
+const LOGO = process.env.LOGO ?? join(homedir(), 'Downloads/soccermon-logo-final');
 mkdirSync(join(SAIDA, 'ref'), { recursive: true });
 mkdirSync(join(SAIDA, 'quadros'), { recursive: true });
 
@@ -38,6 +41,10 @@ const REF = {
     'gol-2.png': 'escolhidos/gol-2.png',
     'p-vira.png': 'escolhidos/p-vira.png',
     'p-fechado.png': 'shots/p-fechado.png',
+    'defesa-lanca.png': 'cap/defesa/00007.png',
+    'defesa-gol.png': 'cap/defesa/00014.png',
+    'logo-horizontal.svg': join(LOGO, 'logo-horizontal.svg'),
+    'logo-simbolo.svg': join(LOGO, 'logo-simbolo.svg'),
     'h-placar.png': 'shots/h-placar.png',
     'bronze.png': 'shots/s-mewtwo-1.png',
     'campeao.png': 'escolhidos/campeao.png',

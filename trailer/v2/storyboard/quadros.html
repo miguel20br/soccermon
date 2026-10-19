@@ -1,7 +1,8 @@
 <!doctype html>
 <!--
-  Quadros do storyboard do trailer 2 (9:16, 1080x1920). Cada <section class="q" id> vira um PNG (montar.mjs).
+  Quadros do storyboard do trailer 2 (9:16, 1080x1920), versão 2. Cada <section class="q" id> vira um PNG (montar.mjs).
   Os prints do jogo ficam em ref/ (tirados headless do jogo de hoje); a abertura e o final são mock em HTML.
+  A linha tracejada é a área segura do Reels/TikTok (fora dos 15% de baixo e da faixa dos botões à direita).
   Não é o trailer: é só referência visual pra aprovar os planos.
 -->
 <html lang="pt-BR">
@@ -16,11 +17,22 @@ img { image-rendering: pixelated; }
   background: radial-gradient(circle at 50% 45%, #2a3a7a, #070a18 72%); color: #fff; }
 .raios { position: absolute; left: 50%; top: 45%; width: 3400px; height: 3400px; margin: -1700px 0 0 -1700px;
   background: repeating-conic-gradient(rgb(255 255 255 / 7%) 0 6deg, transparent 6deg 13deg); }
-.legenda { position: absolute; left: 0; right: 0; top: 200px; height: 290px; display: flex; align-items: center; justify-content: center;
-  text-align: center; z-index: 40; font-size: 66px; line-height: 1.2; letter-spacing: 2px; padding: 0 60px;
+
+/* área segura: x 60–920, y 130–1632 (botões à direita, legenda/descrição embaixo) */
+.segura { position: absolute; left: 60px; top: 130px; width: 860px; height: 1502px; z-index: 90; pointer-events: none;
+  border: 5px dashed rgb(255 80 80 / 85%); border-radius: 8px; }
+.fora { position: absolute; z-index: 89; pointer-events: none; background: rgb(255 60 60 / 13%); }
+.fora.baixo { left: 0; right: 0; top: 1632px; bottom: 0; }
+.fora.dir { left: 920px; right: 0; top: 0; height: 1632px; }
+.fora-txt { position: absolute; z-index: 91; right: 14px; bottom: 14px; font-size: 26px; color: rgb(255 120 120); letter-spacing: 1px; }
+
+.legenda { position: absolute; left: 160px; right: 160px; top: 190px; height: 300px; display: flex; align-items: center; justify-content: center;
+  text-align: center; z-index: 40; font-size: 70px; line-height: 1.2; letter-spacing: 2px;
   -webkit-text-stroke: 14px #0e1430; paint-order: stroke fill; text-shadow: 0 8px 0 #0e1430; }
 .legenda b { color: #ffcb05; }
-.legenda.baixo { top: auto; bottom: 170px; }
+.legenda.baixo { top: 1390px; height: 230px; }
+.nota { position: absolute; left: 60px; right: 60px; top: 30px; z-index: 92; font-size: 26px; line-height: 1.3; color: rgb(255 255 255 / 55%); }
+.gb .nota { color: #888; }
 .recorte { position: absolute; filter: drop-shadow(0 18px 40px rgb(0 0 0 / 55%)); image-rendering: auto; }
 .faixa { position: absolute; left: 0; top: 520px; width: 1080px; height: 860px; object-fit: cover; image-rendering: pixelated;
   box-shadow: 0 0 0 6px #0e1430, 0 20px 60px rgb(0 0 0 / 60%); }
@@ -28,60 +40,51 @@ img { image-rendering: pixelated; }
   background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgb(0 0 0 / 55%) 100%); }
 .mira { position: absolute; z-index: 25; width: 190px; height: 190px; margin: -95px 0 0 -95px; border-radius: 50%;
   border: 7px solid #fff; box-shadow: 0 0 40px #fff, inset 0 0 30px rgb(255 255 255 / 60%); }
-.golpe { position: absolute; z-index: 30; display: flex; align-items: center; gap: 18px; white-space: nowrap;
-  padding: 14px 64px 14px 18px; clip-path: polygon(0 0, 100% 0, calc(100% - 40px) 100%, 0 100%);
+.golpe { position: absolute; z-index: 30; display: flex; align-items: center; gap: 16px; white-space: nowrap;
+  padding: 12px 56px 12px 16px; clip-path: polygon(0 0, 100% 0, calc(100% - 36px) 100%, 0 100%);
   background: linear-gradient(90deg, #c63a3a, #4a1830); box-shadow: 0 8px 0 rgb(0 0 0 / 35%); }
-.golpe .face { width: 116px; height: 116px; border: 5px solid #fff; border-radius: 10px; background: #10162e; overflow: hidden; flex: none; }
+.golpe .face { width: 104px; height: 104px; border: 5px solid #fff; border-radius: 10px; background: #10162e; overflow: hidden; flex: none; }
 .golpe .face img { width: 100%; height: 100%; display: block; }
-.golpe .quem { font-size: 30px; letter-spacing: 2px; }
-.golpe .nome { font-size: 64px; line-height: 1; letter-spacing: 2px; color: #ffb347; -webkit-text-stroke: 10px #0e1430; paint-order: stroke fill; text-shadow: 0 6px 0 #0e1430; }
+.golpe .quem { font-size: 28px; letter-spacing: 2px; }
+.golpe .nome { font-size: 60px; line-height: 1; letter-spacing: 2px; color: #ffb347; -webkit-text-stroke: 10px #0e1430; paint-order: stroke fill; text-shadow: 0 6px 0 #0e1430; }
 .flash { position: absolute; inset: 0; background: #fff; z-index: 60; }
 .invert { filter: invert(1) contrast(1.6); }
 
 /* ===== abertura estilo Red/Blue: Game Boy em 4 tons ===== */
 .gb { background: #f8f8f0; color: #181818; }
-.gb .tela { position: absolute; left: 0; right: 0; top: 0; height: 1360px; display: flex; align-items: center; justify-content: center; }
-.gb .sprite { width: 720px; filter: url(#gb4); }
-.gb .caixa { position: absolute; left: 30px; right: 30px; top: 1400px; height: 440px; box-sizing: border-box; padding: 70px 70px;
-  background: #f8f8f0; border: 14px solid #181818; border-radius: 6px; outline: 8px solid #f8f8f0; outline-offset: -36px;
-  box-shadow: inset 0 0 0 30px #f8f8f0, inset 0 0 0 38px #181818;
-  font-size: 56px; line-height: 1.5; letter-spacing: 2px; }
-.gb .caixa .seta { position: absolute; right: 70px; bottom: 50px; font-size: 44px; }
-.gb .caixa b { color: #181818; }
-.gb .caixa .cursor { opacity: 0.25; }
-.gb .esmaecer .sprite { opacity: 0.35; }
-.bipe { position: absolute; left: 50px; top: 60px; font-size: 34px; color: #585858; letter-spacing: 2px; }
-.gb .bola-gb { position: absolute; width: 150px; left: 620px; top: 1080px; filter: url(#gb4); }
+.gb .tela { position: absolute; left: 0; right: 0; top: 160px; height: 920px; display: flex; align-items: center; justify-content: center; }
+.gb .sprite { width: 660px; filter: url(#gb4); }
+.gb .caixa { position: absolute; left: 40px; width: 900px; top: 1130px; height: 470px; box-sizing: border-box; padding: 76px 70px;
+  background: #f8f8f0; border: 14px solid #181818; border-radius: 6px;
+  box-shadow: inset 0 0 0 26px #f8f8f0, inset 0 0 0 34px #181818;
+  font-size: 60px; line-height: 1.5; letter-spacing: 2px; }
+.gb .caixa .seta { position: absolute; right: 64px; bottom: 50px; font-size: 42px; }
+.gb .caixa .falta { opacity: 0.18; }
+.gb .bola-gb { position: absolute; width: 140px; left: 610px; top: 880px; filter: url(#gb4); }
+.gb .relogio { position: absolute; right: 180px; top: 1060px; font-size: 30px; color: #585858; }
 
 /* ===== final: pacote ===== */
-.pacote { position: absolute; left: 50%; top: 980px; width: 600px; height: 840px; margin: -420px 0 0 -300px; }
+.pacote { position: absolute; left: 240px; top: 600px; width: 600px; height: 820px; }
 .pacote .corpo { position: absolute; inset: 0; border-radius: 26px; background: radial-gradient(circle at 50% 40%, #2c3d86, #10183d 75%);
   border: 10px solid #f2c94c; box-shadow: 0 0 80px rgb(255 203 5 / 45%), 0 30px 60px rgb(0 0 0 / 60%); overflow: hidden; }
 .pacote .corpo::before { content: ""; position: absolute; inset: -40%; background: repeating-conic-gradient(rgb(255 255 255 / 8%) 0 7deg, transparent 7deg 15deg); }
-.pacote .lacre { position: absolute; left: -10px; right: -10px; height: 92px; background: repeating-linear-gradient(90deg, #f2c94c 0 14px, #c9962a 14px 22px);
-  border: 6px solid #8a6416; }
+.lacre { position: absolute; height: 92px; background: repeating-linear-gradient(90deg, #f2c94c 0 14px, #c9962a 14px 22px); border: 6px solid #8a6416; }
+.pacote .lacre { left: -10px; right: -10px; }
 .pacote .lacre.cima { top: -10px; border-radius: 26px 26px 0 0; }
 .pacote .lacre.baixo { bottom: -10px; border-radius: 0 0 26px 26px; }
-.pacote .estrela { position: absolute; left: 50%; top: 52%; transform: translate(-50%, -50%); font-size: 220px; color: #ffcb05; text-shadow: 0 0 40px #ffcb05; }
-.pacote .rotulo { position: absolute; left: 0; right: 0; top: 64%; text-align: center; font-size: 46px; color: #ffcb05; letter-spacing: 3px;
-  -webkit-text-stroke: 8px #0e1430; paint-order: stroke fill; }
-.leque { position: absolute; left: 50%; top: 600px; width: 3000px; height: 3000px; margin: -1500px 0 0 -1500px;
+.pacote .estrela { position: absolute; left: 0; right: 0; top: 34%; text-align: center; font-size: 220px; line-height: 1; color: #ffcb05; text-shadow: 0 0 40px #ffcb05; }
+.leque { position: absolute; left: 540px; top: 700px; width: 3000px; height: 3000px; margin: -1500px 0 0 -1500px;
   background: conic-gradient(from -50deg at 50% 50%, transparent 0deg, rgb(255 236 150 / 85%) 6deg, transparent 12deg, rgb(255 255 255 / 80%) 20deg, transparent 27deg,
   rgb(255 236 150 / 85%) 36deg, transparent 43deg, rgb(255 255 255 / 80%) 52deg, transparent 58deg, rgb(255 236 150 / 85%) 66deg, transparent 72deg,
   rgb(255 255 255 / 80%) 82deg, transparent 90deg, transparent 360deg);
   -webkit-mask-image: radial-gradient(circle, #000 15%, transparent 55%); mask-image: radial-gradient(circle, #000 15%, transparent 55%); }
-.logo-reservado { position: absolute; left: 90px; right: 90px; top: 560px; height: 420px; border: 8px dashed #ffcb05; border-radius: 30px;
-  display: flex; align-items: center; justify-content: center; font-size: 150px; letter-spacing: 16px; color: #ffcb05;
-  background: rgb(14 20 48 / 55%); -webkit-text-stroke: 12px #0e1430; paint-order: stroke fill; }
-.logo-reservado small { position: absolute; bottom: 24px; font-size: 30px; letter-spacing: 2px; -webkit-text-stroke: 0; color: #c9d3ff; }
-.tagline { position: absolute; left: 0; right: 0; top: 1050px; text-align: center; font-size: 84px; letter-spacing: 4px; color: #ffcb05;
-  text-shadow: 7px 8px 0 #0e1430; }
-.site { position: absolute; left: 0; right: 0; top: 1260px; text-align: center; font-size: 60px; letter-spacing: 2px; }
-.selo { position: absolute; left: 0; right: 0; width: fit-content; margin: 0 auto; top: 1400px; padding: 18px 30px; border-radius: 14px;
+.simbolo { position: absolute; image-rendering: auto; filter: drop-shadow(0 0 50px rgb(255 240 180 / 80%)); }
+.horizontal { position: absolute; left: 90px; width: 800px; image-rendering: auto; filter: drop-shadow(0 16px 30px rgb(0 0 0 / 55%)); }
+.tagline { position: absolute; left: 60px; right: 160px; text-align: center; font-size: 66px; white-space: nowrap; letter-spacing: 3px; color: #ffcb05; text-shadow: 7px 8px 0 #0e1430; }
+.site { position: absolute; left: 60px; right: 160px; text-align: center; font-size: 62px; letter-spacing: 2px; }
+.selo { position: absolute; left: 0; right: 100px; width: fit-content; margin: 0 auto; padding: 18px 30px; border-radius: 14px;
   background: #e8423f; font-size: 38px; line-height: 1.3; letter-spacing: 2px; box-shadow: 0 7px 0 #8c1d1b; text-align: center; }
-.credito { position: absolute; left: 0; right: 0; bottom: 90px; text-align: center; font-size: 30px; color: #9aa6d8; letter-spacing: 1px; }
-.nota-mock { position: absolute; left: 0; right: 0; bottom: 24px; text-align: center; font-size: 26px; color: rgb(255 255 255 / 45%); }
-.gb .nota-mock { color: #a8a8a8; }
+.credito { position: absolute; left: 60px; right: 160px; text-align: center; font-size: 30px; color: #9aa6d8; letter-spacing: 1px; }
 </style>
 </head>
 <body>
@@ -97,43 +100,36 @@ img { image-rendering: pixelated; }
   </filter>
 </svg>
 
-<!-- ===================== ABERTURA ===================== -->
-<section class="q gb esmaecer" id="q01">
+<!-- ===================== ABERTURA (sem música) ===================== -->
+<section class="q gb" id="q01">
+  <div class="nota">mock · 0,0 s: o Carvalho já na tela e a caixa já digitando (bipe por letra)</div>
   <div class="tela"><img class="sprite" src="ref/oak.png" alt="" /></div>
-  <div class="nota-mock">mock: tela branca, o Carvalho surge em 4 passos de paleta (como no Red/Blue)</div>
+  <div class="relogio">0,8 s</div>
+  <div class="caixa">Olá! Bem-vin<span class="falta">do ao<br />SOCCERMON!</span></div>
 </section>
 
 <section class="q gb" id="q02">
-  <div class="bipe">♪ bipe a cada letra</div>
+  <div class="nota">mock · 2,24 s: caixa completa, 0,8 s parada pra ler</div>
   <div class="tela"><img class="sprite" src="ref/oak.png" alt="" /></div>
-  <div class="caixa">Olá! Bem-vindo ao<br />mundo do SOCCERMON!<span class="seta">▼</span></div>
-  <div class="nota-mock">mock da caixa do Red/Blue (texto digitando)</div>
+  <div class="caixa">Olá! Bem-vindo ao<br />SOCCERMON!<span class="seta">▼</span></div>
 </section>
 
 <section class="q gb" id="q03">
-  <div class="bipe">♪ grito do Nidorino + bipes</div>
-  <div class="tela"><img class="sprite" src="ref/nidorino.png" alt="" style="width:640px" /></div>
-  <div class="caixa">Este mundo é habitado<br />por criaturas chamadas<br />POKÉMON!<span class="seta">▼</span></div>
-  <div class="nota-mock">mock: o Nidorino entra como no Red/Blue (animado, não deslizando parado)</div>
+  <div class="nota">mock · 3,04 s: o Nidorino entra (grito dele) e a 2ª caixa começa</div>
+  <div class="tela"><img class="sprite" src="ref/nidorino.png" alt="" style="width:600px" /></div>
+  <div class="caixa">Aqui os POKÉMON<br /><span class="falta">JOGAM FUTSAL.</span></div>
 </section>
 
 <section class="q gb" id="q04">
-  <div class="bipe">♪ bipes mais lentos · "tum" da bola</div>
-  <div class="tela"><img class="sprite" src="ref/nidorino.png" alt="" style="width:640px" /></div>
+  <div class="nota">mock · 5,36 s: o twist completo; a bola cai no pé do Nidorino; 0,8 s parado</div>
+  <div class="tela"><img class="sprite" src="ref/nidorino.png" alt="" style="width:600px" /></div>
   <img class="bola-gb" src="ref/ball.svg" alt="" />
-  <div class="caixa">...e elas<br /><b style="font-size:88px">JOGAM FUTSAL.</b></div>
-  <div class="nota-mock">mock: o twist. A bola cai no pé do Nidorino na palavra FUTSAL</div>
+  <div class="caixa">Aqui os POKÉMON<br /><b style="font-size:80px">JOGAM FUTSAL.</b></div>
 </section>
 
 <section class="q" id="q05" style="background:#000">
+  <div class="nota">6,16 s: corte seco pra bola parada · APITO · a música entra por baixo em 6,60 s e a câmera abre</div>
   <img class="faixa" src="ref/quadra.png" alt="" style="top:0;height:1920px;object-position:50% 50%;transform:scale(2.6);transform-origin:50% 50%" />
-  <div class="legenda baixo" style="font-size:44px;color:#c9d3ff"><span>(silêncio · bola parada)</span></div>
-</section>
-
-<section class="q" id="q06">
-  <div class="raios" style="opacity:.6"></div>
-  <img class="faixa" src="ref/quadra.png" alt="" style="object-position:50% 50%" />
-  <div class="vinheta"></div>
 </section>
 
 <!-- ===================== DRAFT ===================== -->
@@ -145,71 +141,64 @@ img { image-rendering: pixelated; }
   <img class="recorte" src="ref/s-draft-3.png" alt="" style="left:700px;top:700px;width:380px;opacity:.55" />
 </section>
 
-<section class="q" id="q08a">
-  <div class="raios"></div>
-  <img class="recorte" src="ref/p-fechado.png" alt="" style="left:90px;top:330px;width:900px" />
-</section>
-<section class="q" id="q08b">
-  <div class="raios"></div>
-  <img class="recorte" src="ref/p-vira.png" alt="" style="left:190px;top:560px;width:700px" />
-</section>
+<section class="q" id="q08a"><div class="raios"></div>
+  <img class="recorte" src="ref/p-fechado.png" alt="" style="left:90px;top:300px;width:900px" /></section>
+<section class="q" id="q08b"><div class="raios"></div>
+  <img class="recorte" src="ref/p-vira.png" alt="" style="left:190px;top:480px;width:700px" /></section>
 
 <section class="q" id="q09">
   <div class="raios"></div>
-  <div class="legenda"><span>ÍCONE: <b>1 EM 80</b></span></div>
-  <img class="recorte" src="ref/s-edicao-3.png" alt="" style="left:190px;top:560px;width:700px" />
+  <div class="legenda"><span>ÍCONES <b>RAROS</b></span></div>
+  <img class="recorte" src="ref/s-edicao-3.png" alt="" style="left:190px;top:540px;width:700px" />
 </section>
 
-<section class="q" id="q10a"><div class="raios"></div><div class="legenda"><span>OS <b>151</b> DE KANTO</span></div>
-  <img class="recorte" src="ref/s-edicao-1.png" alt="" style="left:190px;top:560px;width:700px" /></section>
-<section class="q" id="q10b"><div class="raios"></div><div class="legenda"><span>OS <b>151</b> DE KANTO</span></div>
-  <img class="recorte" src="ref/s-edicao-2.png" alt="" style="left:190px;top:560px;width:700px" /></section>
-<section class="q" id="q10c"><div class="raios"></div><div class="legenda"><span>OS <b>151</b> DE KANTO</span></div>
-  <img class="recorte" src="ref/s-edicao-5.png" alt="" style="left:190px;top:560px;width:700px" /></section>
-<section class="q" id="q10d"><div class="raios"></div><div class="legenda"><span>OS <b>151</b> DE KANTO</span></div>
-  <img class="recorte" src="ref/bronze.png" alt="" style="left:190px;top:560px;width:700px" /></section>
+<section class="q" id="q10a"><div class="raios"></div><img class="recorte" src="ref/s-edicao-1.png" alt="" style="left:190px;top:440px;width:700px" /></section>
+<section class="q" id="q10b"><div class="raios"></div><img class="recorte" src="ref/s-edicao-2.png" alt="" style="left:190px;top:440px;width:700px" /></section>
+<section class="q" id="q10c"><div class="raios"></div><img class="recorte" src="ref/s-edicao-5.png" alt="" style="left:190px;top:440px;width:700px" /></section>
+<section class="q" id="q10d"><div class="raios"></div><img class="recorte" src="ref/bronze.png" alt="" style="left:190px;top:440px;width:700px" /></section>
 
 <!-- ===================== PARTIDA ===================== -->
 <section class="q" id="q11">
   <div class="raios" style="opacity:.6"></div>
-  <img class="recorte" src="ref/h-placar.png" alt="" style="left:0;top:330px;width:1080px;z-index:30" />
+  <img class="recorte" src="ref/h-placar.png" alt="" style="left:60px;top:350px;width:860px;z-index:30" />
   <img class="faixa" src="ref/golpe-1.png" alt="" style="object-position:45% 50%" />
   <div class="vinheta"></div>
-  <div class="legenda baixo"><span>COPA DE <b>FUTSAL</b> 5 CONTRA 5</span></div>
+  <div class="legenda baixo"><span><b>FUTSAL</b><br />5 CONTRA 5</span></div>
 </section>
 
 <section class="q" id="q12a">
   <div class="raios" style="opacity:.6"></div>
-  <img class="faixa" src="ref/golpe-lanca.png" alt="" style="object-position:47% 50%" />
+  <img class="faixa" src="ref/defesa-lanca.png" alt="" style="object-position:47% 50%" />
   <div class="vinheta"></div>
-  <div class="mira" style="left:540px;top:870px"></div>
-  <div class="golpe" style="left:250px;top:620px"><div class="face"><img src="ref/6.png" alt="" /></div><div><div class="quem">CHARIZARD usou</div><div class="nome">FLAMETHROWER!</div></div></div>
+  <div class="mira" style="left:526px;top:950px"></div>
+  <div class="golpe" style="left:110px;top:700px"><div class="face"><img src="ref/6.png" alt="" /></div><div><div class="quem">CHARIZARD usou</div><div class="nome">FIRE BLAST!</div></div></div>
 </section>
 
 <section class="q" id="q12b">
   <div class="raios" style="opacity:.6"></div>
-  <img class="faixa invert" src="ref/golpe-gol.png" alt="" style="object-position:95% 50%" />
+  <img class="faixa" src="ref/defesa-gol.png" alt="" style="object-position:100% 50%" />
   <div class="vinheta"></div>
+  <div class="nota" style="top:1400px">o goleiro espalma (quadro de impacto + tremida, sem flash de gol)</div>
 </section>
 
 <section class="q" id="q13a">
   <div class="raios" style="opacity:.6"></div>
   <img class="faixa" src="ref/evo-1.png" alt="" style="object-position:50% 50%" />
   <div class="vinheta"></div>
-  <div class="legenda"><span>EVOLUI <b>NO MEIO</b> DO JOGO</span></div>
+  <div class="legenda"><span><b>EVOLUÇÕES</b> NO MEIO DO JOGO</span></div>
 </section>
 <section class="q" id="q13b">
   <div class="raios" style="opacity:.6"></div>
   <img class="faixa" src="ref/evo-2.png" alt="" style="object-position:50% 30%" />
   <div class="vinheta"></div>
-  <div class="legenda"><span>EVOLUI <b>NO MEIO</b> DO JOGO</span></div>
+  <div class="legenda"><span><b>EVOLUÇÕES</b> NO MEIO DO JOGO</span></div>
 </section>
 
 <section class="q" id="q14">
   <div class="raios" style="opacity:.6"></div>
   <img class="faixa" src="ref/gol-1.png" alt="" style="object-position:80% 50%" />
   <div class="vinheta"></div>
-  <div class="legenda baixo" style="font-size:44px;color:#c9d3ff"><span>(câmera lenta 0,5x a partir daqui)</span></div>
+  <div class="nota" style="top:1400px">câmera lenta 0,5x no 2º compasso</div>
 </section>
 
 <section class="q" id="q15">
@@ -222,68 +211,71 @@ img { image-rendering: pixelated; }
 <!-- ===================== EXTRAS ===================== -->
 <section class="q" id="q16">
   <div class="raios"></div>
-  <div class="legenda"><span>DUELO COM AMIGO, <b>POR LINK</b></span></div>
+  <div class="legenda"><span><b>MULTIPLAYER</b> ONLINE</span></div>
   <img class="recorte" src="ref/s-emote-1.png" alt="" style="left:240px;top:620px;width:600px" />
 </section>
 
 <section class="q" id="q17">
   <div class="raios"></div>
-  <div class="legenda"><span>A MESMA COPA <b>PRA TODO MUNDO</b></span></div>
-  <img class="recorte" src="ref/dia.png" alt="" style="left:40px;top:560px;width:1000px" />
+  <div class="legenda"><span>COPA <b>RANKEADA</b></span></div>
+  <img class="recorte" src="ref/dia.png" alt="" style="left:60px;top:540px;width:860px" />
 </section>
 
 <section class="q" id="q18">
   <div class="raios"></div>
-  <img class="recorte" src="ref/campeao.png" alt="" style="left:40px;top:420px;width:1000px" />
+  <img class="recorte" src="ref/campeao.png" alt="" style="left:60px;top:300px;width:860px" />
 </section>
 
 <section class="q" id="q19">
   <div class="raios"></div>
-  <img class="recorte" src="ref/s-vitrine-1.png" alt="" style="left:40px;top:470px;width:1000px" />
-  <img class="recorte" src="ref/s-edicao-4.png" alt="" style="left:610px;top:1180px;width:400px;transform:rotate(6deg)" />
+  <img class="recorte" src="ref/s-vitrine-1.png" alt="" style="left:60px;top:300px;width:860px" />
+  <img class="recorte" src="ref/s-edicao-4.png" alt="" style="left:520px;top:1010px;width:380px;transform:rotate(6deg)" />
 </section>
 
 <!-- ===================== FINAL: O PACOTE ESTOURA ===================== -->
 <section class="q" id="q20">
+  <div class="nota">mock: o pacote do jogo (CardPack) cai e treme nas batidas 3 e 4, luz vazando pelo lacre</div>
   <div class="raios"></div>
   <div class="pacote" style="transform:rotate(-3deg)">
-    <div class="corpo"><div class="estrela">★</div><div class="rotulo">SOCCERMON</div></div>
+    <div class="corpo"><div class="estrela">★</div></div>
     <div class="lacre cima"></div><div class="lacre baixo"></div>
   </div>
-  <div class="nota-mock">mock: pacote do jogo (CardPack) cai e treme nas batidas 3 e 4; luz vazando pelo lacre</div>
 </section>
 
 <section class="q" id="q21">
+  <div class="nota">mock: o lacre rasga, luz em leque, e a carta holo (símbolo do logo) sobe girando</div>
   <div class="raios"></div>
   <div class="leque"></div>
-  <div class="pacote" style="top:1180px">
-    <div class="corpo"><div class="estrela">★</div><div class="rotulo">SOCCERMON</div></div>
+  <div class="pacote" style="top:900px;height:700px">
+    <div class="corpo"><div class="estrela" style="top:42%">★</div></div>
     <div class="lacre baixo"></div>
   </div>
-  <div class="lacre" style="position:absolute;left:250px;width:620px;top:690px;height:92px;transform:rotate(-24deg);
-    background:repeating-linear-gradient(90deg,#f2c94c 0 14px,#c9962a 14px 22px);border:6px solid #8a6416;border-radius:26px 26px 0 0"></div>
-  <img src="ref/ball.svg" alt="" style="position:absolute;left:440px;top:500px;width:200px;filter:drop-shadow(0 0 40px #fff)" />
-  <div class="flash" style="opacity:.25"></div>
-  <div class="nota-mock">mock: o lacre rasga, sai luz em leque e a bola sobe girando</div>
+  <div class="lacre" style="left:230px;width:620px;top:820px;transform:rotate(-22deg);border-radius:26px 26px 0 0"></div>
+  <img class="simbolo" src="ref/logo-simbolo.svg" alt="" style="left:400px;top:420px;width:280px;transform:rotate(-12deg)" />
+  <div class="flash" style="opacity:.2"></div>
 </section>
 
 <section class="q" id="q22">
+  <div class="nota">mock: a carta para no alto, vira o O do logo e as letras entram dos lados</div>
   <div class="raios"></div>
-  <div class="leque" style="opacity:.6"></div>
-  <div class="pacote" style="top:1450px;opacity:.85">
-    <div class="corpo"><div class="estrela">★</div></div>
-    <div class="lacre baixo"></div>
-  </div>
-  <div class="logo-reservado">LOGO<small>carta holo com a bola-pokébola (em redesenho)</small></div>
+  <div class="leque" style="opacity:.55;top:820px"></div>
+  <img class="simbolo" src="ref/logo-simbolo.svg" alt="" style="left:300px;top:360px;width:380px" />
+  <img class="horizontal" src="ref/logo-horizontal.svg" alt="" style="top:980px;opacity:.35" />
 </section>
 
 <section class="q" id="q23">
   <div class="raios"></div>
-  <div class="logo-reservado" style="top:420px">LOGO<small>carta holo com a bola-pokébola (em redesenho)</small></div>
-  <div class="tagline">Temos que chutar!</div>
-  <div class="site">soccermon.com</div>
-  <div class="selo">grátis no navegador<br />fan game sem fins lucrativos</div>
-  <div class="credito">Música: Trainer Battle Remix · Bliitzit</div>
+  <img class="horizontal" src="ref/logo-horizontal.svg" alt="" style="top:430px" />
+  <div class="tagline" style="top:760px">Temos que chutar!</div>
+  <div class="site" style="top:1010px">soccermon.com</div>
+  <div class="selo" style="top:1130px">grátis no navegador<br />fan game sem fins lucrativos</div>
+  <div class="credito" style="top:1500px">Música: (a decidir)</div>
 </section>
+
+<script>
+  // área segura desenhada por cima de cada quadro
+  for (const q of document.querySelectorAll('section.q'))
+    q.insertAdjacentHTML('beforeend', '<div class="fora baixo"></div><div class="fora dir"></div><div class="segura"></div><div class="fora-txt">fora da área segura</div>');
+</script>
 </body>
 </html>

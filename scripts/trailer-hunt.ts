@@ -120,6 +120,25 @@ function rate(scene: TrailerScene, seed: string): Hit | null {
         }
         if (!lances.length) return null;
     }
+    if (scene === 'defesa') {
+        // chute com golpe do Charizard que acaba em defesa (espalmada vale mais que agarrada) ou na trave
+        for (const sh of ev) {
+            if (sh.type !== 'shot' || !mine(sh) || m.roster[sh.by].speciesId !== 6 || !sh.moveId) continue;
+            const fim = ev.find(
+                (e) =>
+                    e.tick >= sh.tick &&
+                    e.tick <= sh.tick + 40 &&
+                    ((e.type === 'save' && e.shooter === sh.by) || (e.type === 'post' && e.shooter === sh.by)),
+            );
+            if (!fim) continue;
+            const pts = fim.type === 'post' ? 500 : fim.type === 'save' && !fim.caught ? 450 : 300;
+            score += pts + (SHOWY.has(sh.moveId) ? 300 : 0) - sh.tick / 100;
+            lances.push(
+                `${sec(sh.tick)} Charizard chuta com ${sh.moveId} → ${fim.type === 'post' ? 'trave' : fim.type === 'save' && fim.caught ? 'goleiro agarra' : 'goleiro espalma'}`,
+            );
+        }
+        if (!lances.length) return null;
+    }
     if (scene === 'jogada') {
         for (const g of goals) {
             if (g.assist === null) continue;

@@ -12,6 +12,8 @@ export const TRAILER_SCENES = {
     evolucao: { lineup: [74, 7, 4, 1, 25], bench: [] },
     // golpes especiais virando gol: Snorlax no gol, Charizard, Jolteon, Gyarados, Mewtwo
     golpe: { lineup: [143, 6, 135, 130, 150], bench: [] },
+    // golpe do Charizard que para numa defesaça ou na trave (o time da cena golpe)
+    defesa: { lineup: [143, 6, 135, 130, 150], bench: [] },
     // jogada trabalhada (troca de passes até o gol)
     jogada: { lineup: [143, 68, 25, 136, 150], bench: [] },
     // Ditto copia o melhor em campo + combo Gênese (Mew + Mewtwo)
