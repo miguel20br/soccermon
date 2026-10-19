@@ -5,6 +5,7 @@
 ### Consertos
 - Carta Ícone agora pode ser o craque da partida: continua Ícone (com o fundo de galáxia), ganha o selo "MVP", "MVP 2" e "MVP 3" e +1 em todos os atributos por selo (até +5). Antes o prêmio pulava pro próximo jogador
 - Quem foi campeão com Mew e Mewtwo, com os 3 pássaros lendários ou com um Rattata antes dessas missões existirem agora ganha a conquista ao abrir o jogo (sai do Hall da Fama)
+- Pokémon que evolui em quadra agora conta como "jogou" na Pokédex na forma nova (Meowth que vira Persian marca os dois); copas guardadas corrigem isso ao abrir o jogo
 
 ## 0.8.7 · Emotes, selos e faixa da torcida
 

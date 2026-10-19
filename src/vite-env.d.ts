@@ -6,6 +6,7 @@ declare module 'zzfx' {
 }
 
 declare const __APP_VERSION__: string;
+declare const __APP_BUILD__: string;
 
 interface ImportMetaEnv {
     /** Supabase (contas e save na nuvem): opcionais; sem elas o jogo é só local. */

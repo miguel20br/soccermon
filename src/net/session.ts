@@ -1047,5 +1047,5 @@ export const duel = new DuelSession();
 
 /** Perfil do jogador pra sala (nome, avatar, título, clube e as versões). */
 export function makePeer(p: Omit<Peer, 'engine' | 'app'>): Peer {
-    return { ...p, engine: ENGINE_VERSION, app: __APP_VERSION__ };
+    return { ...p, engine: ENGINE_VERSION, app: `${__APP_VERSION__}+${__APP_BUILD__}` };
 }
