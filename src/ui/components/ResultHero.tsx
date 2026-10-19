@@ -10,6 +10,7 @@ import type { RunState } from '../../store/game-store';
 import { rivalColor } from '../../store/profile';
 import { useClubColor } from '../profile/club';
 import { CountUp } from './CountUp';
+import { LeaderQuote } from './LeaderQuote';
 import { cardSprite } from './PokeCard';
 
 /** Linha de número do topo do resultado (seu time x rival). */
@@ -158,6 +159,10 @@ export function ResultHero({
             </div>
             {match.shootout && (
                 <div className="rh-pens">{t('result.hero.pens', { a: match.shootout[0], b: match.shootout[1] })}</div>
+            )}
+
+            {run && !duel && (
+                <LeaderQuote club={opponent.name} won={won} color={hex(rivalColor(homeColor, opponent.color))} />
             )}
 
             {stats.length > 0 && (

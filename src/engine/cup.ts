@@ -2,6 +2,7 @@ import { species } from './data';
 import { aiDraftTeam } from './draft';
 import type { FormationId } from './formations';
 import { ITEM_IDS, ITEMS, TYPE_ITEM_FOR } from './items';
+import type { LeaderId } from './rival-coach';
 import { Rng } from './rng';
 import type { Tactic, TeamSetup } from './state';
 import { equipRivalTms, RIVAL_GYM_TM_MAX } from './tm';
@@ -14,12 +15,15 @@ export interface ClubTemplate {
     tactic: Tactic;
     color: number;
     formation: FormationId;
+    /** Treinador do clube (sprite, falas, quadra e o técnico IA da beira da quadra). */
+    leader: LeaderId;
 }
 
 export const CLUBS: ClubTemplate[] = [
     {
         name: 'Pewter Rochedo',
         city: 'Pewter',
+        leader: 'brock',
         types: ['Rock', 'Ground'],
         tactic: 'defensive',
         color: 0x9c7b4a,
@@ -28,6 +32,7 @@ export const CLUBS: ClubTemplate[] = [
     {
         name: 'Cerulean Cascata',
         city: 'Cerulean',
+        leader: 'misty',
         types: ['Water'],
         tactic: 'balanced',
         color: 0x3a8ee6,
@@ -36,6 +41,7 @@ export const CLUBS: ClubTemplate[] = [
     {
         name: 'Vermilion Voltagem',
         city: 'Vermilion',
+        leader: 'ltsurge',
         types: ['Electric'],
         tactic: 'counter',
         color: 0xf2c53d,
@@ -44,6 +50,7 @@ export const CLUBS: ClubTemplate[] = [
     {
         name: 'Celadon Arco-Íris',
         city: 'Celadon',
+        leader: 'erika',
         types: ['Grass'],
         tactic: 'balanced',
         color: 0x58b85c,
@@ -52,6 +59,7 @@ export const CLUBS: ClubTemplate[] = [
     {
         name: 'Fuchsia Ninjas',
         city: 'Fuchsia',
+        leader: 'koga',
         types: ['Poison'],
         tactic: 'counter',
         color: 0xb15fc4,
@@ -60,6 +68,7 @@ export const CLUBS: ClubTemplate[] = [
     {
         name: 'Saffron Mentes',
         city: 'Saffron',
+        leader: 'sabrina',
         types: ['Psychic'],
         tactic: 'offensive',
         color: 0xe85d9e,
@@ -68,6 +77,7 @@ export const CLUBS: ClubTemplate[] = [
     {
         name: 'Cinnabar Vulcão',
         city: 'Cinnabar',
+        leader: 'blaine',
         types: ['Fire'],
         tactic: 'offensive',
         color: 0xe8553a,
@@ -76,6 +86,7 @@ export const CLUBS: ClubTemplate[] = [
     {
         name: 'Viridian Terra',
         city: 'Viridian',
+        leader: 'giovanni',
         types: ['Ground'],
         tactic: 'balanced',
         color: 0x6b8f3a,
@@ -84,6 +95,7 @@ export const CLUBS: ClubTemplate[] = [
     {
         name: 'Lavender Assombro',
         city: 'Lavender',
+        leader: 'agatha',
         types: ['Ghost', 'Poison'],
         tactic: 'defensive',
         color: 0x7a5fb0,
@@ -92,6 +104,7 @@ export const CLUBS: ClubTemplate[] = [
     {
         name: 'Liga Índigo',
         city: 'Indigo Plateau',
+        leader: 'lance',
         types: ['Dragon', 'Ice', 'Fighting', 'Ghost'],
         tactic: 'balanced',
         color: 0x3d3f8f,
@@ -133,3 +146,15 @@ export function buildCupOpponents(seed: number | string): TeamSetup[] {
         };
     });
 }
+
+/**
+ * Rival da Copa como entra na partida: com a beira da quadra ligada, o treinador do clube vira o técnico IA que reage
+ * (src/engine/rival-coach.ts). Desligada, o mesmo time de sempre (a partida não muda nada).
+ */
+export function cupRival(opponent: TeamSetup, agency: boolean): TeamSetup {
+    const coach = agency ? clubLeader(opponent.name) : undefined;
+    return coach ? { ...opponent, coach } : opponent;
+}
+
+/** Treinador do clube pelo nome (undefined fora da copa: Duelo, times de teste). */
+export const clubLeader = (clubName: string): LeaderId | undefined => CLUBS.find((c) => c.name === clubName)?.leader;

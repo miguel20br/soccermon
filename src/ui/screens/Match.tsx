@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FUTSAL_5 } from '../../engine/config';
-import { CUP_STAGES } from '../../engine/cup';
+import { CUP_STAGES, clubLeader, cupRival } from '../../engine/cup';
 import { species } from '../../engine/data';
 import { viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
@@ -187,6 +187,8 @@ export function Match() {
                       startTick: resume?.tick || undefined,
                       final: run?.stage === CUP_STAGES.length - 1,
                       agency,
+                      // o rival joga em casa: a quadra do ginásio dele
+                      court: opponent ? clubLeader(opponent.name) : undefined,
                       // a faixa da torcida é só a sua (o rival da copa não tem torcida organizada)
                       banners: [bannerText(profileClub.banner, run?.teamName || profileClub.clubName), null],
                       kits: [fieldKit(looks[0]), fieldKit(looks[1])],
@@ -347,7 +349,12 @@ export function Match() {
         setTacticError(null);
         EventBus.emit('match:hold', tick);
         try {
-            const result = await simulateMatch(lockedSetup, opponent, `${run.seed}-stage-${run.stage}`, schedule);
+            const result = await simulateMatch(
+                lockedSetup,
+                cupRival(opponent, agency),
+                `${run.seed}-stage-${run.stage}`,
+                schedule,
+            );
             if (!alive.current || useGame.getState().match?.seed !== seed) return;
             setOrders(schedule);
             saveLive({ orders: schedule });

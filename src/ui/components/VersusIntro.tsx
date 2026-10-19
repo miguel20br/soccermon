@@ -1,5 +1,5 @@
 import { type CSSProperties, useEffect, useRef } from 'react';
-import { CLUBS } from '../../engine/cup';
+import { CLUBS, clubLeader } from '../../engine/cup';
 import { species } from '../../engine/data';
 import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
@@ -105,6 +105,7 @@ function Side({
     trainer,
     coach,
     look,
+    quote,
 }: {
     team: TeamSetup;
     side: 'home' | 'away';
@@ -114,6 +115,8 @@ function Side({
     label: string;
     trainer?: TrainerId;
     coach?: VsCoach;
+    /** Fala do treinador antes do jogo (líder do clube na Copa). */
+    quote?: string;
 }) {
     const { t, d } = useT();
     const avg = lineupAverage(team.lineup, team.formation);
@@ -156,6 +159,11 @@ function Side({
                         <small>{t('match.vs.avgShort')}</small>
                     </div>
                 </div>
+                {quote && (
+                    <p className="vsp-quote">
+                        <span>{quote}</span>
+                    </p>
+                )}
                 <Squad team={team} trainer={trainer} />
             </div>
         </div>
@@ -241,7 +249,7 @@ export function VersusIntro({
     // seu time sempre na cor do clube (Perfil); o rival no uniforme reserva se as cores baterem
     const homeColor = useClubColor();
     const profile = useGame((s) => s.profile);
-    const { t } = useT();
+    const { t, d } = useT();
     const awayName = clubName(away.name);
     const leader = GYM_TM[away.name]?.leader;
     const [home0, away0] = matchLooks(
@@ -249,6 +257,9 @@ export function VersusIntro({
         awayLook ?? lookOfCupClub(away.name, away.color),
     );
     const looks = { home: homeLook ?? home0, away: awayLook ?? away0 };
+    // Copa: o treinador do clube fala antes do jogo (no Duelo o rival é gente: sem fala)
+    const host = awayTrainer || awayCoach ? undefined : clubLeader(away.name);
+    const hostText = host ? d.match.leaders[host] : undefined;
     const style = {
         '--home': hex(looks.home.color),
         '--away': hex(looks.away.color),
@@ -277,8 +288,11 @@ export function VersusIntro({
                             ? t('match.vs.elite')
                             : leader && club
                               ? t('match.vs.leader', { leader, city: club.city })
-                              : t('match.vs.rival'))
+                              : hostText && club
+                                ? t('match.vs.host', { leader: hostText.name, city: club.city })
+                                : t('match.vs.rival'))
                     }
+                    quote={hostText?.pre}
                 />
                 <Side
                     team={home}

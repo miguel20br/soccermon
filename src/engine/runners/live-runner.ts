@@ -5,6 +5,7 @@ import { AIController } from '../controllers/ai-controller';
 import { TACTIC_MODS } from '../effective';
 import { FORMATIONS } from '../formations';
 import { applyAgencyOrder, applyPendingSubs, createMatch, emit, snapshot, step } from '../match';
+import { RIVAL_COACH, RivalCoach } from '../rival-coach';
 import {
     type AgencyOrder,
     type CornerPlan,
@@ -81,6 +82,8 @@ export class LiveRunner {
     private readonly overrides = new Map<number, Controller>();
 
     private readonly schedule: MatchOrder[];
+    /** Técnico IA de cada time que tem `TeamSetup.coach` (o rival da Copa com a beira da quadra ligada). */
+    private readonly coaches: RivalCoach[];
 
     /**
      * `orders`: ordens do técnico agendadas (tática ao vivo e substituições). A tática vale no início do tick
@@ -108,6 +111,9 @@ export class LiveRunner {
         this.state = createMatch(cfg, home, away, seed, segmentSeeds);
         this.ai = new AIController(this.state);
         this.schedule = orders.filter(validOrder).sort(byTickTeamSeq);
+        this.coaches = ([home, away] as const).flatMap((t, team) =>
+            t.coach ? [new RivalCoach(t.coach, team as 0 | 1, seed, t.tactic)] : [],
+        );
     }
 
     /**
@@ -143,6 +149,9 @@ export class LiveRunner {
     /** Um tick de simulação (1/tickRate s). */
     step() {
         const s = this.state;
+        // o técnico IA manda as ordens dele pela mesma agenda (valem um pouco à frente, como as do jogador)
+        if (this.coaches.length && s.tick % RIVAL_COACH.everyTicks === 0)
+            for (const c of this.coaches) for (const o of c.decide(s)) this.addOrder(o);
         while (this.schedule.length && this.schedule[0].tick <= s.tick) {
             const order = this.schedule.shift()!;
             if (s.phase === 'fulltime') continue;

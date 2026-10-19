@@ -8,7 +8,7 @@ export interface PatchNotes {
 export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.8.8',
-        title: 'Ícone MVP, melhores momentos e medalhas',
+        title: 'Ícone MVP, melhores momentos, medalhas e treinadores',
         sections: [
             {
                 title: 'Melhores momentos',
@@ -24,6 +24,13 @@ export const PATCH_NOTES: PatchNotes[] = [
                     '20 medalhas com degraus (bronze, prata, ouro e platina) em Perfil → Medalhas. Já contam tudo o que você jogou',
                     'Vitrine: escolha até 3 destaques (medalha, coleção completa ou selo); aparecem no seu cartão e no VERSUS do Duelo, e o melhor vira a moldura do avatar',
                     'Escudo montável (formato, símbolo e duas cores) e uniforme com padrão, no placar, no VERSUS e na quadra. Símbolos e padrões novos saem com coleções e medalhas',
+                ],
+            },
+            {
+                title: 'Treinadores e quadras',
+                lines: [
+                    'Os líderes de ginásio agora falam antes e depois do jogo, e cada clube joga na quadra do seu ginásio',
+                    'Com o experimento beira da quadra ligado, o técnico rival reage do jeito dele: grita, pede tempo, sobe o goleiro, chama o golpe máximo e muda a tática. A narração avisa 10 s antes de valer',
                 ],
             },
             {
@@ -571,7 +578,7 @@ export const PATCH_NOTES: PatchNotes[] = [
 export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.8.8',
-        title: 'Icon MVP, highlights and medals',
+        title: 'Icon MVP, highlights, medals and coaches',
         sections: [
             {
                 title: 'Highlights',
@@ -587,6 +594,13 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     '20 tiered medals (bronze, silver, gold and platinum) in Profile → Medals. Everything you already played counts',
                     'Showcase: pick up to 3 highlights (medal, completed collection or seal); they show on your card and on the Duel VERSUS, and the best one becomes your avatar frame',
                     'Build your crest (shape, symbol and two colors) and a kit with a pattern, on the scoreboard, the VERSUS and the court. New symbols and patterns unlock with collections and medals',
+                ],
+            },
+            {
+                title: 'Coaches and courts',
+                lines: [
+                    'Gym leaders now talk before and after the match, and each club plays on its own gym court',
+                    'With the touchline experiment on, the rival coach reacts in their own style: yells, calls time-outs, sends the keeper up, calls the max move and changes tactics. The commentary warns you 10 s before it kicks in',
                 ],
             },
             {

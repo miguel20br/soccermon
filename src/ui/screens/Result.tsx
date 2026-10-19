@@ -15,9 +15,11 @@ import { specialBonus } from '../../engine/specials';
 import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { lineupPosition, useGame } from '../../store/game-store';
+import { rivalColor } from '../../store/profile';
 import { ChampionView } from '../components/ChampionView';
 import { CupGains } from '../components/CupGains';
 import { FutCard } from '../components/FutCard';
+import { LeaderQuote } from '../components/LeaderQuote';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { CupGoalCard, MomentsButton } from '../components/Moments';
 import { cardSprite } from '../components/PokeCard';
@@ -172,6 +174,14 @@ export function Result() {
                     mvpUid={ourStar?.uid ?? null}
                     stats={heroStats(match, t)}
                     actions={actions}
+                />
+            )}
+            {/* fora do título a fala vem no topo do resultado (ResultHero) */}
+            {champion && (
+                <LeaderQuote
+                    club={opponent.name}
+                    won
+                    color={`#${rivalColor(clubColor, opponent.color).toString(16).padStart(6, '0')}`}
                 />
             )}
             {champion && <h2 className="champ-h champ-final-h">{t('result.finalDetails')}</h2>}

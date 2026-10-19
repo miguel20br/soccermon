@@ -142,11 +142,86 @@ export const match = {
     castUsed: ' usou',
     castShot: ' no chute',
     trophy: 'Taça',
+    /**
+     * Treinadores da copa (os 8 líderes, Agatha e Lance): fala no VERSUS (`pre`) e depois do jogo (`win` = o líder
+     * ganhou, `lose` = você ganhou). Sem emoji.
+     */
+    leaders: {
+        brock: {
+            name: 'Brock',
+            pre: 'Minha defesa é de pedra. Quero ver você passar.',
+            win: 'Firme como rocha. Treina mais e volta.',
+            lose: 'Você furou a muralha. Mereceu.',
+        },
+        misty: {
+            name: 'Misty',
+            pre: 'Vai chorar quando meu time te afogar em gol!',
+            win: 'Eu avisei! Na água ninguém me segura.',
+            lose: 'Tá, tá... foi sorte. Na próxima eu te afundo.',
+        },
+        ltsurge: {
+            name: 'Lt. Surge',
+            pre: 'Ei, recruta! Aqui a quadra dá choque!',
+            win: 'HA! Eletrocutado! Volta pro quartel!',
+            lose: 'Raios! Você tem energia, recruta!',
+        },
+        erika: {
+            name: 'Erika',
+            pre: 'Respire... meu time joga sem pressa.',
+            win: 'Ah... cochilei e já acabou? Que tranquilo.',
+            lose: 'Que elegância. Você jogou com o coração.',
+        },
+        koga: {
+            name: 'Koga',
+            pre: 'Fu fu fu! Na casa do ninja ninguém vê o gol chegar.',
+            win: 'Paciência e veneno: o jogo é meu.',
+            lose: 'Hmm! Você enxergou através das minhas sombras.',
+        },
+        sabrina: {
+            name: 'Sabrina',
+            pre: 'Eu já vi o placar desta partida.',
+            win: 'Exatamente como eu previ.',
+            lose: 'Isto... eu não tinha visto.',
+        },
+        blaine: {
+            name: 'Blaine',
+            pre: 'Ho! Preparado pra jogar dentro do vulcão?',
+            win: 'Queimou a largada! Volte quando estiver fervendo!',
+            lose: 'Ho! Você apagou o meu fogo!',
+        },
+        giovanni: {
+            name: 'Giovanni',
+            pre: 'Este ginásio é meu. A quadra também.',
+            win: 'Previsível. Volte quando for um técnico de verdade.',
+            lose: 'Hm. Admito: você tem talento.',
+        },
+        agatha: {
+            name: 'Agatha',
+            pre: 'No meu tempo os técnicos tinham fibra. Vamos ver a sua.',
+            win: 'Hehe. Esta velha ainda dá trabalho, né?',
+            lose: 'Hmph! O Carvalho ia gostar de você.',
+        },
+        lance: {
+            name: 'Lance',
+            pre: 'Você chegou longe. Agora encare os dragões.',
+            win: 'Ainda falta para virar campeão.',
+            lose: 'É isso! Você é o novo campeão de Kanto!',
+        },
+    },
+    courtLab: {
+        title: 'Treinadores e quadras',
+        intro: 'Cada clube da copa joga em casa, na quadra do ginásio. As falas aparecem no VERSUS e no fim do jogo.',
+        alt: 'Quadra do {club}',
+        pre: 'Antes',
+        win: 'Se ganhar',
+        lose: 'Se perder',
+    },
     vs: {
         yourTeam: 'Seu time',
         rival: 'Rival',
         avgShort: 'média',
         leader: 'Líder {leader} · {city}',
+        host: '{leader} · {city}',
         elite: 'Elite dos Quatro',
         final: 'Grande final',
         aria: '{home} contra {away}',

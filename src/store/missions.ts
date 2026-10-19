@@ -1,3 +1,4 @@
+import { clubLeader } from '../engine/cup';
 import { species } from '../engine/data';
 import { type PokemonInstance, viewInstance } from '../engine/instance';
 import { type ActiveLink, computeLinks } from '../engine/links';
@@ -242,8 +243,8 @@ const GYMS: [TrainerId, string][] = [
     ['giovanni', 'Viridian Terra'],
 ];
 
-/** Sprite do líder do clube rival (todos os 8 ginásios têm), ou nada (Lavender, Liga Índigo). */
-export const leaderTrainerOf = (clubName: string): TrainerId | undefined => GYMS.find(([, c]) => c === clubName)?.[0];
+/** Sprite do treinador do clube rival (os 8 líderes, Agatha em Lavender e Lance na Liga Índigo), ou nada fora da copa. */
+export const leaderTrainerOf = (clubName: string): TrainerId | undefined => clubLeader(clubName);
 
 /** As 8 insígnias de Kanto, na ordem dos ginásios: cada uma é do líder (e sai da missão dele, então é retroativa). */
 export const KANTO_BADGES = GYMS.map(([leader]) => leader);

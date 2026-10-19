@@ -190,6 +190,40 @@
     letter-spacing: 0.08em;
 }
 
+/* fala do treinador do clube (Copa): balão claro com a ponta pro lado do treinador, entra depois do VS */
+.vsp-quote {
+    position: relative;
+    align-self: flex-end;
+    max-width: min(100%, 30ch);
+    margin: 2px 0 6px;
+    padding: 6px 10px 7px;
+    border-radius: 10px;
+    background: #f6f3ea;
+    color: #11131f;
+    font-family: "Galmuri11", monospace;
+    font-size: clamp(11px, 2.4vmin, 15px);
+    line-height: 1.35;
+    text-align: left;
+    box-shadow: 3px 3px 0 color-mix(in srgb, var(--c) 70%, #000);
+    animation: vsp-quote-in 0.35s 1.3s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.vsp-quote::after {
+    content: "";
+    position: absolute;
+    right: 18px;
+    bottom: -7px;
+    border: 7px solid transparent;
+    border-bottom: 0;
+    border-top-color: #f6f3ea;
+}
+@keyframes vsp-quote-in {
+    from {
+        opacity: 0;
+        translate: 0 6px;
+        scale: 0.9;
+    }
+}
+
 /* ---------- foto do time ---------- */
 .vsp-squad {
     position: relative;
@@ -554,6 +588,7 @@
     .vsp-head,
     .vsp-mon,
     .vsp-trainer,
+    .vsp-quote,
     .vsp-beam,
     .vsp-burst,
     .vsp-vs,
