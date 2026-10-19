@@ -1,6 +1,6 @@
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import { create } from 'zustand';
-import { migrateSave, type PersistedSave, SAVE_VERSION, useGame } from '../store/game-store';
+import { migrateSave, type PersistedSave, SAVE_VERSION, savePart, useGame } from '../store/game-store';
 import { DEFAULT_PROFILE, EMPTY_CAREER } from '../store/profile';
 import {
     hasProgress,
@@ -196,9 +196,7 @@ const writeOwner = (id: string) => {
 };
 
 function snapshot(): PersistedSave {
-    const { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns, hall, duels } =
-        useGame.getState();
-    return { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns, hall, duels };
+    return savePart(useGame.getState());
 }
 
 /** Sobe o save; devolve false se a nuvem recusou (pausada, fora do ar, sem espaço). */
@@ -270,6 +268,7 @@ const SYNC_KEYS = [
     'parkedRuns',
     'hall',
     'duels',
+    'daily',
 ] as const;
 /** JSON com as chaves em ordem (a ordem de inserção não conta como diferença). */
 const stable = (v: unknown): unknown =>
@@ -351,6 +350,7 @@ async function reconcile(uid: string): Promise<boolean> {
                 parkedRuns: cloud?.parkedRuns ?? [],
                 hall: cloud?.hall ?? [],
                 duels: cloud?.duels ?? [],
+                daily: cloud?.daily ?? [],
                 screen: 'home',
                 match: null,
             });
@@ -455,6 +455,7 @@ export function startCloudSync() {
             'parkedRuns',
             'hall',
             'duels',
+            'daily',
         ] as const;
         if (keys.every((k) => s[k] === prev[k])) return;
         // o carregamento do save do IndexedDB não é "mudança": senão o local parece sempre mais novo que a nuvem
