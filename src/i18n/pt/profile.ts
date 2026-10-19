@@ -9,6 +9,7 @@ export const profile = {
         numeros: 'Números',
         missoes: 'Missões',
         medalhas: 'Medalhas',
+        amigos: 'Amigos',
     },
     quick: { cups: 'Copas', titles: 'Títulos', goals: 'Gols' },
     club: {

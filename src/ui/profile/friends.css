@@ -1,0 +1,212 @@
+/* Amigos (Perfil → Amigos, botão do cartão do treinador e o convite na Home). Kit da transmissão: placar escuro, faixa
+   na cor do clube, etiqueta amarela. */
+.fr {
+    display: grid;
+    gap: 12px;
+}
+.fr .panel {
+    padding: 14px 16px;
+}
+.fr-code {
+    display: grid;
+    gap: 8px;
+    justify-items: start;
+}
+.fr-code-num {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: clamp(26px, 9vw, 36px);
+    letter-spacing: 0.08em;
+    color: var(--yellow);
+    font-variant-numeric: tabular-nums;
+    user-select: all;
+}
+.fr-code-btns,
+.fr-confirm-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.fr-hint {
+    display: block;
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
+}
+.fr-add {
+    display: grid;
+    gap: 8px;
+}
+.fr-add-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+}
+.fr-add input {
+    min-width: 0;
+    min-height: 44px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 2px solid var(--line);
+    background: var(--bg-2);
+    color: var(--text);
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 18px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+.fr-msg,
+.fr-note {
+    margin: 0;
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.45;
+}
+.fr-note {
+    display: grid;
+    gap: 10px;
+    justify-items: start;
+}
+.fr-block {
+    display: grid;
+    gap: 10px;
+}
+.fr-block h2 small {
+    color: var(--muted);
+    font-size: 12px;
+}
+.fr-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 6px;
+}
+.fr-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px 8px 16px;
+    border-radius: 6px;
+    background: var(--bc-ink-2);
+}
+.fr-row::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    border-radius: 6px 0 0 6px;
+    background: var(--tc, var(--yellow));
+}
+.fr-row.dim .fr-who {
+    opacity: 0.7;
+}
+.fr-who {
+    display: grid;
+    min-width: 0;
+}
+.fr-who b,
+.fr-who small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.fr-who small {
+    color: var(--muted);
+    font-size: 12px;
+}
+.fr-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+.fr-actions .btn,
+.fr-row > .btn {
+    min-height: 40px;
+    padding: 0 12px;
+    font-size: 13px;
+}
+.fr-actions .btn.fr-more {
+    width: 40px;
+    padding: 0;
+    justify-content: center;
+}
+.fr-confirm {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 8px;
+    padding-top: 6px;
+    border-top: 1px solid rgb(255 255 255 / 8%);
+}
+.fr-confirm p {
+    margin: 0;
+    font-size: 13px;
+}
+.fr-invites .fr-row {
+    outline: 2px solid var(--yellow);
+}
+.fr-blocked summary {
+    cursor: pointer;
+}
+/* 320 px: os botões descem pra baixo do nome */
+@media (max-width: 360px) {
+    .fr-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .fr-actions {
+        justify-content: flex-end;
+    }
+}
+
+/* botão do cartão do treinador */
+.fr-addbtn {
+    display: grid;
+    gap: 6px;
+    justify-items: center;
+    text-align: center;
+}
+
+/* convite na Home, dentro do cartão do Duelo (a linha inteira, embaixo do "Criar sala") */
+.fr-home {
+    grid-column: 1 / -1;
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px 8px 14px;
+    border-radius: 6px;
+    background: var(--bc-ink-2);
+    outline: 2px solid var(--yellow);
+    font-size: 13px;
+    text-align: left;
+}
+.fr-home::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    border-radius: 6px 0 0 6px;
+    background: var(--tc, var(--yellow));
+}
+.fr-home .hud-icon {
+    color: var(--yellow);
+}
+.fr-home .btn {
+    min-height: 36px;
+    padding: 0 12px;
+}
+
+/* no Duelo, antes de criar a sala */
+.fr-challenging {
+    margin: 0;
+    padding: 10px 12px;
+    font-size: 13px;
+    outline: 2px solid var(--yellow);
+}

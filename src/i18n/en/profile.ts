@@ -10,6 +10,7 @@ export const profile: typeof pt = {
         numeros: 'Numbers',
         missoes: 'Missions',
         medalhas: 'Medals',
+        amigos: 'Friends',
     },
     quick: { cups: 'Cups', titles: 'Titles', goals: 'Goals' },
     club: {

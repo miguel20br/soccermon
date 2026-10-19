@@ -14,18 +14,20 @@ import { ClubTab } from '../profile/ClubTab';
 import { Crest } from '../profile/Crest';
 import { clubVars, titleName, trainerLabel, useAvatar } from '../profile/club';
 import { DexTab } from '../profile/DexTab';
+import { FriendsTab } from '../profile/FriendsTab';
 import { frameClass, MedalsTab, ShowcaseRow, useShowcase } from '../profile/Medals';
 import { NumbersTab } from '../profile/NumbersTab';
 import { MissionsTab, TrainerSprite } from '../profile/TrainerTab';
 import '../profile/profile.css';
 
-type Tab = 'clube' | 'medalhas' | 'missoes' | 'dex' | 'hall' | 'numeros';
-const TABS: Tab[] = ['clube', 'medalhas', 'missoes', 'dex', 'hall', 'numeros'];
+type Tab = 'clube' | 'medalhas' | 'missoes' | 'dex' | 'amigos' | 'hall' | 'numeros';
+const TABS: Tab[] = ['clube', 'medalhas', 'missoes', 'dex', 'amigos', 'hall', 'numeros'];
 const TAB_ICON: Record<Tab, HudIconKind> = {
     clube: 'defensive',
     medalhas: 'medal',
     missoes: 'flag',
     dex: 'dex',
+    amigos: 'friends',
     hall: 'cup',
     numeros: 'chart',
 };
@@ -113,6 +115,7 @@ export function Profile() {
                 {tab === 'medalhas' && <MedalsTab save={updateProfile} />}
                 {tab === 'missoes' && <MissionsTab />}
                 {tab === 'dex' && <DexTab initial={albumQ ? 'album' : 'dex'} />}
+                {tab === 'amigos' && <FriendsTab />}
                 {tab === 'hall' && <HallList />}
                 {tab === 'numeros' && <NumbersTab onOpenDex={() => setTab('dex')} />}
             </div>

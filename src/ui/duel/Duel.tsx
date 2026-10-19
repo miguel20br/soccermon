@@ -3,6 +3,7 @@ import { cloudEnabled, duelUserId, signInAnon, signInWithGoogle, useCloud } from
 import { ENGINE_VERSION } from '../../engine/config';
 import { DEFAULT_SPECIAL_LIMIT, SPECIAL_LIMITS, type SpecialLimit } from '../../engine/duel-validate';
 import { matchMvp } from '../../engine/mvp';
+import { sendPendingChallenge, useFriends } from '../../friends/api';
 import { playSfx } from '../../game/audio';
 import { useT } from '../../i18n/react';
 import {
@@ -225,6 +226,8 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
     const [joinCode, setJoinCode] = useState('');
     const [specialLimit, setSpecialLimit] = useState<SpecialLimit>(DEFAULT_SPECIAL_LIMIT);
     const [duration, setDuration] = useState<DuelDuration>('normal');
+    // "Desafiar" na lista de amigos: a sala que nascer aqui chama esse amigo
+    const challenging = useFriends((s) => s.challenging);
     return (
         <div className="duel-create">
             <header className="bc-screenhead">
@@ -232,6 +235,9 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
                 <h1>{t('duel.newDuel')}</h1>
             </header>
             <p className="muted">{t('duel.newHint')}</p>
+            {challenging && (
+                <p className="panel fr-challenging">{t('friends.challengingNote', { name: challenging.trainer })}</p>
+            )}
             <BetaNote />
             <fieldset className="duel-modes">
                 <legend className="bc-lbl">{t('duel.modeLabel')}</legend>
@@ -318,6 +324,7 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
                     playSfx('select');
                     const code = await duel.create(peer, mode, speed, local, specialLimit, duration, agencyOn());
                     setUrl(code, local);
+                    void sendPendingChallenge(code);
                 }}
             >
                 {t('duel.createRoom')}
