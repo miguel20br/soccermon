@@ -1,9 +1,9 @@
-# Medalhas com degraus, vitrine, escudo e uniforme (proposta, 19/10/2026)
+# Medalhas com degraus, vitrine, escudo e uniforme (aprovado em 19/10/2026, na 0.8.8)
 
 Itens 12–14 do `relatorio-0.8.6.md` (decididos pelo Miguel em 18/10: medalhas com degraus, vitrine com borda e
 cartão, escudo + uniforme; mascote e insígnias não). Tudo **só cosmético**, nada mexe no motor nem em
-`ENGINE_VERSION`. **Os números abaixo são proposta**: estão no código (`src/store/medals.ts`, `src/store/club-kit.ts`)
-e mudam com uma linha cada, depois do ok do Miguel.
+`ENGINE_VERSION`. **Números aprovados pelo Miguel em 19/10/2026**: estão no código (`src/store/medals.ts`, `src/store/club-kit.ts`)
+e mudam com uma linha cada.
 
 ## Como funciona
 
@@ -15,7 +15,7 @@ e mudam com uma linha cada, depois do ok do Miguel.
 - **Onde ver:** Perfil → aba **Medalhas** (atalho `?perfil=medalhas`). Cada medalha mostra o degrau, a barra até o
   próximo e os 4 números.
 
-## As 20 medalhas (proposta)
+## As 20 medalhas
 
 | Medalha | O que conta | Bronze | Prata | Ouro | Platina |
 |---|---|---:|---:|---:|---:|
@@ -51,7 +51,7 @@ absurdo. Pelo placar de 11 a 18/10 (134 copas, 28 títulos no total) quase ningu
 - Aparece no cartão de treinador (cabeçalho do Perfil) e no **VERSUS do Duelo**, dos dois lados (vai no perfil da
   sala, como a faixa da torcida; o rival manda já com o degrau, e ids desconhecidos são ignorados).
 - **Moldura do avatar** = o melhor degrau entre os 3: medalha pelo degrau; selo Folha = bronze, Holo = prata,
-  Prisma = ouro, Ouro escuro = platina; **coleção completa = prata** (proposta).
+  Prisma = ouro, Ouro escuro = platina; **coleção completa = prata**.
 
 ## Escudo e uniforme
 
@@ -66,7 +66,7 @@ absurdo. Pelo placar de 11 a 18/10 (134 copas, 28 títulos no total) quase ningu
 - **Rival:** se a cor bater, entra de reserva **liso** (como já era só com a cor). Os clubes da copa ganham escudo
   com o símbolo do ginásio (Pewter rocha, Cerulean gota, Vermilion raio, Celadon folha, Cinnabar chama, Liga coroa).
 
-### O que libera cada peça (proposta)
+### O que libera cada peça
 
 | Peça | Libera com |
 |---|---|

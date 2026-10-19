@@ -1,11 +1,16 @@
 # Novidades
 
-## 0.8.8 · Ícone MVP e melhores momentos
+## 0.8.8 · Ícone MVP, melhores momentos e medalhas
 
 ### Melhores momentos
 - Depois da partida, reveja os gols e lances em câmera lenta na própria quadra
 - Gol da copa: no fim da copa, o seu gol mais bonito ganha replay e o porquê da escolha
 - Exporte um clipe vertical (9:16) do lance pra mandar ou postar no TikTok
+
+### Medalhas e clube
+- 20 medalhas com degraus (bronze, prata, ouro e platina) em Perfil → Medalhas. Já contam tudo o que você jogou
+- Vitrine: escolha até 3 destaques (medalha, coleção completa ou selo); aparecem no seu cartão e no VERSUS do Duelo, e o melhor vira a moldura do avatar
+- Escudo montável (formato, símbolo e duas cores) e uniforme com padrão, no placar, no VERSUS e na quadra. Símbolos e padrões novos saem com coleções e medalhas
 
 ### Consertos
 - Carta Ícone agora pode ser o craque da partida: continua Ícone (com o fundo de galáxia), ganha o selo "MVP", "MVP 2" e "MVP 3" e +1 em todos os atributos por selo (até +5). Antes o prêmio pulava pro próximo jogador

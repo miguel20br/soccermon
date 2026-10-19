@@ -8,7 +8,7 @@ export interface PatchNotes {
 export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.8.8',
-        title: 'Ícone MVP e melhores momentos',
+        title: 'Ícone MVP, melhores momentos e medalhas',
         sections: [
             {
                 title: 'Melhores momentos',
@@ -16,6 +16,14 @@ export const PATCH_NOTES: PatchNotes[] = [
                     'Depois da partida, reveja os gols e lances em câmera lenta na própria quadra',
                     'Gol da copa: no fim da copa, o seu gol mais bonito ganha replay e o porquê da escolha',
                     'Exporte um clipe vertical (9:16) do lance pra mandar ou postar no TikTok',
+                ],
+            },
+            {
+                title: 'Medalhas e clube',
+                lines: [
+                    '20 medalhas com degraus (bronze, prata, ouro e platina) em Perfil → Medalhas. Já contam tudo o que você jogou',
+                    'Vitrine: escolha até 3 destaques (medalha, coleção completa ou selo); aparecem no seu cartão e no VERSUS do Duelo, e o melhor vira a moldura do avatar',
+                    'Escudo montável (formato, símbolo e duas cores) e uniforme com padrão, no placar, no VERSUS e na quadra. Símbolos e padrões novos saem com coleções e medalhas',
                 ],
             },
             {
@@ -563,7 +571,7 @@ export const PATCH_NOTES: PatchNotes[] = [
 export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.8.8',
-        title: 'Icon MVP and highlights',
+        title: 'Icon MVP, highlights and medals',
         sections: [
             {
                 title: 'Highlights',
@@ -571,6 +579,14 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'After the match, rewatch the goals and big plays in slow motion on the court itself',
                     'Goal of the cup: at the end of the cup, your best goal gets a replay and the reason it was picked',
                     'Export a vertical clip (9:16) of the play to send or post on TikTok',
+                ],
+            },
+            {
+                title: 'Medals and club',
+                lines: [
+                    '20 tiered medals (bronze, silver, gold and platinum) in Profile → Medals. Everything you already played counts',
+                    'Showcase: pick up to 3 highlights (medal, completed collection or seal); they show on your card and on the Duel VERSUS, and the best one becomes your avatar frame',
+                    'Build your crest (shape, symbol and two colors) and a kit with a pattern, on the scoreboard, the VERSUS and the court. New symbols and patterns unlock with collections and medals',
                 ],
             },
             {
