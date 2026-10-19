@@ -16,6 +16,16 @@ export const CODE_TITLES: Readonly<Record<string, string>> = {
     cffbb440db026334b04a1ed02f5b3ee98078cbc0c4d1302cf5809d430c38b93a: 'criador',
     // Davi, 1º gametester (17/10/2026)
     '3ad01be87b2c8319fcd8ebebfb5f701dd2c7bef673d3bcd5ba1dce42b3953776': 'goat',
+    // Tio Fail: código da audiência do canal (kit dos creators, 19/10/2026)
+    a37716f67feb879c4cb2a4fa42d0c2d4b4581715023b9014536c5c471e08a512: 'torcidaTioFail',
+    // Moracci: código da audiência do canal (kit dos creators, 19/10/2026)
+    '93093503d5a89c3eccfba913897207ebc058517a4aaa328e0f2654ad103f8539': 'torcidaMoracci',
+    // Farmando Dungeons: código da audiência do canal (kit dos creators, 19/10/2026)
+    c1e10ebfb89b1fb1798f20e63e30250e3992e50920fb76a07f5a9f2d243059ec: 'torcidaFarmando',
+    // Breno Menezes: código da audiência do canal (kit dos creators, 19/10/2026)
+    '6d2ea5093108bf15709f80a91e5a9a7dc33845d236d77fd9df98d29c2dc54594': 'torcidaBreno',
+    // LeeGengar: código da audiência do canal (kit dos creators, 19/10/2026)
+    ace5d6b207e92e9543d5f58befc7f82ee5efb6bbd5e55491efee9d446f99d701: 'torcidaLeeGengar',
 };
 
 /**
@@ -32,6 +42,11 @@ export const CUSTOM_TITLES: Readonly<Record<string, { pt: string; en: string; lo
     gametester: { pt: 'Gametester', en: 'Gametester' },
     goat: { pt: 'GOAT', en: 'GOAT', look: 'shine' },
     criador: { pt: 'Criador do Soccermon', en: 'Soccermon Creator', look: 'holo' },
+    torcidaTioFail: { pt: 'Torcida do Tio Fail', en: 'Tio Fail Supporter' },
+    torcidaMoracci: { pt: 'Torcida do Moracci', en: 'Moracci Supporter' },
+    torcidaFarmando: { pt: 'Torcida do Farmando Dungeons', en: 'Farmando Dungeons Supporter' },
+    torcidaBreno: { pt: 'Torcida do Breno Menezes', en: 'Breno Menezes Supporter' },
+    torcidaLeeGengar: { pt: 'Torcida do LeeGengar', en: 'LeeGengar Supporter' },
 };
 
 /** Classe do título na tela: os especiais têm visual próprio (dourado ou holográfico). */
