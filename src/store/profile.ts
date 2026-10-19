@@ -28,6 +28,12 @@ export type ClubColorId = (typeof CLUB_COLORS)[number]['id'];
 export const clubColorHex = (id: ClubColorId | string | undefined) =>
     (CLUB_COLORS.find((c) => c.id === id) ?? CLUB_COLORS[0]).hex;
 
+/** Letra da faixa da torcida em cima da cor do clube: escura nas cores claras (amarelo, uniforme branco), branca no resto. */
+export function bannerInk(color: number): number {
+    const luma = ((color >> 16) & 255) * 0.299 + ((color >> 8) & 255) * 0.587 + (color & 255) * 0.114;
+    return luma > 150 ? 0x0e1430 : 0xffffff;
+}
+
 /** Distância simples entre duas cores RGB (0..~441). */
 export function colorDistance(a: number, b: number): number {
     const dr = ((a >> 16) & 255) - ((b >> 16) & 255);
@@ -57,6 +63,8 @@ export interface Profile {
     /** Sigla de 3 letras (placar no celular). */
     clubTag: string;
     clubColor: ClubColorId;
+    /** Frase da faixa da torcida (índice em `profile.club.banners` do i18n). Sem o campo = a 1ª, "Vai, {clube}!". */
+    banner?: number;
     /** Sprite do treinador e título embaixo do nome (missions.ts). */
     trainer: TrainerId;
     title: string;
@@ -77,6 +85,12 @@ export const DEFAULT_PROFILE: Profile = {
     missionsDone: [],
     redeemedTitles: [],
 };
+
+/** Quantas frases a faixa da torcida tem (lista fechada, todas liberadas por enquanto). */
+export const BANNER_COUNT = 12;
+/** Frase da faixa: número fora da lista (save estragado, peer de outra versão) vira a 1ª. */
+export const bannerOf = (n: unknown): number =>
+    typeof n === 'number' && Number.isInteger(n) && n >= 0 && n < BANNER_COUNT ? n : 0;
 
 /** Sigla a partir do nome: "Pallet FC" → "PAL". */
 export function tagFromName(name: string): string {

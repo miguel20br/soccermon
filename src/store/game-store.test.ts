@@ -11,9 +11,11 @@ import { createInstance, slotRating } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { SIGNATURE } from '../engine/signature-moves';
 import { teachMove } from '../engine/tm';
+import { profile as enProfile } from '../i18n/en/profile';
+import { profile as ptProfile } from '../i18n/pt/profile';
 import { type DuelRecord, mergeDuels } from './duels';
 import { liveOf, migrateSave, type RunState, SAVE_VERSION, type SlotRef, slotRole, useGame } from './game-store';
-import { EDITION_BIT } from './profile';
+import { BANNER_COUNT, bannerOf, EDITION_BIT } from './profile';
 
 describe('save', () => {
     it('v4 → v5: perfil com o nome do time, Pokédex com a copa em andamento e sem boas-vindas', () => {
@@ -155,7 +157,22 @@ describe('backup antigo (scripts/fixtures)', () => {
             for (const e of played) expect((e.editions ?? 0) & EDITION_BIT.normal).toBeTruthy();
             for (const e of Object.values(save.dex).filter((x) => x.matches === 0)) expect(e.editions).toBeUndefined();
             expect(save.settings.goalCry).toBe(true);
+            // faixa da torcida (0.8.7): campo opcional, save antigo fica com a 1ª frase
+            expect(save.profile.banner).toBeUndefined();
+            expect(bannerOf(save.profile.banner)).toBe(0);
         }
+    });
+
+    it('faixa da torcida: a escolhida sobrevive a salvar e carregar; número estragado vira a 1ª', () => {
+        const keep = migrateSave(JSON.parse(JSON.stringify({ profile: { banner: 4 } })), SAVE_VERSION);
+        expect(bannerOf(keep.profile.banner)).toBe(4);
+        expect(keep.profile.clubName).toBe('Pallet FC');
+        for (const bad of [99, -1, 2.5, '3', null]) expect(bannerOf(bad)).toBe(0);
+        // a lista fechada tem as mesmas 12 frases nos dois idiomas, e a 1ª leva o nome do clube
+        expect(ptProfile.club.banners).toHaveLength(BANNER_COUNT);
+        expect(enProfile.club.banners).toHaveLength(BANNER_COUNT);
+        expect(ptProfile.club.banners[0]).toContain('{club}');
+        expect(enProfile.club.banners[0]).toContain('{club}');
     });
 
     it('v8 → v9: álbum retroativo pelo Hall (shiny) e pelas copas guardadas (Destaque só depois de virar)', () => {

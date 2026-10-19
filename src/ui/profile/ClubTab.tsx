@@ -3,8 +3,17 @@ import { useCloud } from '../../cloud/cloud';
 import { species } from '../../engine/data';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { CLUB_COLORS, DEFAULT_PROFILE, isPlayed, type Profile, rivalColor, tagFromName } from '../../store/profile';
-import { hexCss, speciesGif } from './club';
+import {
+    bannerInk,
+    bannerOf,
+    CLUB_COLORS,
+    DEFAULT_PROFILE,
+    isPlayed,
+    type Profile,
+    rivalColor,
+    tagFromName,
+} from '../../store/profile';
+import { bannerText, hexCss, speciesGif } from './club';
 import { CheckIcon } from './icons';
 import { TrainerCard } from './TrainerTab';
 
@@ -201,6 +210,31 @@ export function ClubTab() {
                         })}
                     </div>
                 </fieldset>
+
+                <div className="pf-field">
+                    <span id="pf-banner-label">{t('profile.club.banner')}</span>
+                    <select
+                        aria-labelledby="pf-banner-label"
+                        className="pf-input"
+                        value={bannerOf(profile.banner)}
+                        data-testid="pf-banner"
+                        onChange={(e) => save({ banner: Number(e.target.value) })}
+                    >
+                        {d.profile.club.banners.map((_, i) => (
+                            // biome-ignore lint/suspicious/noArrayIndexKey: a lista é fixa e o índice é o que salva
+                            <option key={i} value={i}>
+                                {bannerText(i, profile.clubName)}
+                            </option>
+                        ))}
+                    </select>
+                    <div
+                        className="pf-banner"
+                        style={{ ['--c' as string]: hexCss(club), ['--ink' as string]: hexCss(bannerInk(club)) }}
+                    >
+                        {bannerText(profile.banner, profile.clubName)}
+                    </div>
+                    <small className="muted">{t('profile.club.bannerHelp')}</small>
+                </div>
 
                 <div className="pf-field">
                     <span>{t('profile.club.preview')}</span>

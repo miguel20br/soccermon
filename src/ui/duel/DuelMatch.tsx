@@ -71,7 +71,7 @@ import { agencyView, MaxBars, PenaltyOrderPanel, SidelineControls, SidelineOverl
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
 import { roleAt, snapAt } from '../match-view';
-import { peerTitle } from '../profile/club';
+import { bannerText, peerTitle } from '../profile/club';
 import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
 import { EmoteBar, EmoteBubbles } from './Emotes';
@@ -218,6 +218,10 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                       cries: settings.cries,
                       speed: s.speed,
                       pace: duelPace(s),
+                      // cada um com a sua faixa (vem no perfil de quem entrou na sala)
+                      banners: [s.peers.host, s.peers.guest].map((p) =>
+                          p ? bannerText(p.banner, p.clubName) : null,
+                      ) as [string | null, string | null],
                       // efeitos e a queda nas chances iguais pros dois: a chance de gol fica na velocidade da sala
                       cinematic: true,
                       namesOnField: settings.namesOnField,

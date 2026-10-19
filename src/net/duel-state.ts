@@ -95,6 +95,8 @@ export interface Peer {
     clubColor: number;
     engine: number;
     app: string;
+    /** Frase da faixa da torcida (`bannerOf`; peer de antes da faixa não tem = a 1ª). */
+    banner?: number;
     /** Entrou sem conta ("Jogar agora", login anônimo): o lobby mostra o selo "Convidado". */
     anon?: boolean;
 }

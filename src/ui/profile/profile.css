@@ -598,6 +598,24 @@ fieldset.pf-field,
         0 0 0 4px #fff;
 }
 
+/* faixa da torcida (o pano da beira da quadra) */
+.pf-banner {
+    width: fit-content;
+    max-width: 100%;
+    padding: 5px 14px 4px;
+    border-left: 4px solid #2b1a0e;
+    border-right: 4px solid #2b1a0e;
+    background: var(--c);
+    color: var(--ink);
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 16px;
+    line-height: 1.2;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+}
+
 /* prévia do placar */
 .pf-preview {
     display: inline-flex;

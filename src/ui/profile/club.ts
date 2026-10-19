@@ -3,7 +3,7 @@ import { useCloud } from '../../cloud/cloud';
 import { dict, fmt, getLang, t } from '../../i18n';
 import { useGame } from '../../store/game-store';
 import type { Mission, TrainerId } from '../../store/missions';
-import { type Avatar, clubColorHex, type Profile, rivalColor } from '../../store/profile';
+import { type Avatar, bannerOf, clubColorHex, type Profile, rivalColor } from '../../store/profile';
 import { CUSTOM_TITLES, titleClass } from '../../store/title-codes';
 import './club.css';
 
@@ -23,6 +23,10 @@ export function clubVars(club: number, rival?: number): CSSProperties {
 export function trainerLabel(profile: Profile, googleName?: string | null): string {
     return profile.trainerName.trim() || googleName?.trim() || t('profile.trainer');
 }
+
+/** Texto da faixa da torcida (no idioma da tela, com o nome do clube). */
+export const bannerText = (banner: unknown, club: string) =>
+    fmt(dict().profile.club.banners[bannerOf(banner)], { club });
 
 export const speciesGif = (id: number) => `assets/cards/${id}.gif`;
 

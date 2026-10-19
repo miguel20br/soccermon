@@ -26,6 +26,7 @@ import {
 import { dir8 } from '../../engine/vec';
 import { dict, linkText, t as tr } from '../../i18n';
 import type { ArrowSize, ChanceSpeed, CryStyle, NamesOnField, PlaybackSpeed } from '../../store/game-store';
+import { bannerInk } from '../../store/profile';
 import { halftimeEnd } from '../../ui/match-view';
 import { hexToNumber, TYPE_COLOR } from '../../ui/type-colors';
 import {
@@ -46,7 +47,7 @@ import { playCrowd, playCry, playGoalCry, playSample, playSfx } from '../audio';
 import { trailParticle, typeBurst } from '../ball-trail';
 import { BattleBox } from '../battle-box';
 import { Cinematics, FOCUS_DEPTH } from '../cinematics';
-import { drawCourt, ensureBallTexture, GAME_H, GAME_W, PPM, toPx } from '../court';
+import { drawBanner, drawCourt, ensureBallTexture, GAME_H, GAME_W, PPM, toPx } from '../court';
 import { EventBus } from '../EventBus';
 import { blinkSchedule, evolutionView, RIVAL_EVO_MS } from '../evolution-view';
 import { castMove, preloadMoveFx } from '../move-fx';
@@ -69,6 +70,8 @@ export interface MatchSceneData {
     reduceMotion?: boolean;
     /** Folhas (skinOf) que podem entrar em campo (bancos inteiros): pré-carregadas para substituições. */
     extraSpecies?: number[];
+    /** Faixa da torcida de cada time (texto pronto; null = sem faixa). Copa: só a sua; Duelo: a de cada um. */
+    banners?: [string | null, string | null];
     /** Duelo curto: toca N vezes mais rápido que a velocidade escolhida (a partida é a mesma). Padrão: 1. */
     pace?: number;
     /** Começa parada (tela de VERSUS); a partida só rola depois de 'match:resume'. */
@@ -429,6 +432,10 @@ export class MatchScene extends Phaser.Scene {
         if (this.md.reduceMotion) this.steadyCamera();
 
         drawCourt(this);
+        for (const team of [0, 1] as const) {
+            const text = this.md.banners?.[team];
+            if (text) drawBanner(this, team, text, this.md.colors[team], bannerInk(this.md.colors[team]));
+        }
         ensureBallTexture(this);
         for (const p of result.roster) {
             createSpeciesAnims(this, skinOf(p.speciesId, p.shiny));

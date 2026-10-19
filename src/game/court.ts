@@ -55,6 +55,43 @@ export function drawCourt(scene: Phaser.Scene) {
     g.setDepth(-1000);
 }
 
+/**
+ * Faixa da torcida (pano com dois paus) na beira de cima da quadra, no meio da metade do time (o time 0 defende a
+ * esquerda). Grande o bastante pra ler a 390 px: ocupa a margem e a sobra do piso, sem passar da linha lateral.
+ */
+export function drawBanner(scene: Phaser.Scene, team: 0 | 1, text: string, color: number, ink: number) {
+    const h = 34;
+    const y = 8;
+    const half = (L * PPM) / 2;
+    const label = scene.add
+        .text(0, 0, text, {
+            fontFamily: 'Galmuri11, monospace',
+            fontSize: '30px',
+            color: `#${ink.toString(16).padStart(6, '0')}`,
+        })
+        .setOrigin(0.5)
+        .setResolution(3)
+        .setDepth(-998);
+    const w = Math.min(half - 20, label.width + 28);
+    label.setScale(Math.min(1, (w - 16) / label.width));
+    const x = MARGIN + team * half + (half - w) / 2;
+    label.setPosition(x + w / 2, y + h / 2 + 1);
+    const g = scene.add.graphics().setDepth(-999);
+    g.fillStyle(0x2b1a0e, 1)
+        .fillRect(x - 4, y - 3, 4, h + 8)
+        .fillRect(x + w, y - 3, 4, h + 8);
+    // pano: bordas em onda e dobras
+    const n = 14;
+    // fillPoints só lê x e y (o tipo pede Vector2)
+    type Pts = Phaser.Math.Vector2[];
+    const pts: { x: number; y: number }[] = [];
+    for (let i = 0; i <= n; i++) pts.push({ x: x + (i * w) / n, y: y + Math.sin(i * 0.9 + team * 2) * 1.6 });
+    for (let i = n; i >= 0; i--) pts.push({ x: x + (i * w) / n, y: y + h + Math.sin(i * 0.9 + team * 2 + 1) * 1.6 });
+    g.fillStyle(0x000000, 0.35).fillPoints(pts.map((p) => ({ x: p.x, y: p.y + 3 })) as Pts, true);
+    g.fillStyle(color, 1).fillPoints(pts as Pts, true);
+    for (let i = 1; i < 6; i++) g.fillStyle(0x000000, 0.1).fillRect(x + (i * w) / 6 - 3, y, 6, h);
+}
+
 /** Área do futsal: dois quartos de círculo de 6 m a partir das traves, unidos por um segmento. */
 function areaPath(g: Phaser.GameObjects.Graphics, side: 0 | 1, fill: boolean) {
     const r = 6 * PPM;

@@ -20,6 +20,23 @@ export const profile = {
         preview: 'Prévia do placar',
         previewAria: 'Prévia: {tag} 2 x 1 rival',
         awayKit: 'Rival com cor parecida com a sua usa o uniforme reserva.',
+        banner: 'Faixa da torcida',
+        bannerHelp: 'Aparece na beira da quadra, do lado do seu time, na cor do clube.',
+        /** Frases da faixa (lista fechada; a ordem é o número guardado no perfil: não mude, só acrescente). */
+        banners: [
+            'Vai, {club}!',
+            'Aqui é Kanto',
+            'Raça e PP',
+            'É super efetivo!',
+            'Hoje tem Hiper Raio',
+            'Até o Magikarp acredita',
+            'Treinador, confia!',
+            'Do Pallet pro mundo',
+            'Sem medo de Mewtwo',
+            'Ninguém tira o Snorlax',
+            'Golpe crítico!',
+            'Insígnia nenhuma é longe',
+        ],
     },
     dex: {
         filters: { all: 'Todos', played: 'Jogaram', seen: 'Só vistos', unseen: 'Faltam', missing: 'Falta figurinha' },

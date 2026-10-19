@@ -60,7 +60,7 @@ import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
 import { LeaveConfirm } from '../leave-guard';
 import { roleAt, snapAt } from '../match-view';
-import { useClubColor } from '../profile/club';
+import { bannerText, useClubColor } from '../profile/club';
 import { agencyOn, reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
 
@@ -181,6 +181,8 @@ export function Match() {
                       startTick: resume?.tick || undefined,
                       final: run?.stage === CUP_STAGES.length - 1,
                       agency,
+                      // a faixa da torcida é só a sua (o rival da copa não tem torcida organizada)
+                      banners: [bannerText(profileClub.banner, run?.teamName || profileClub.clubName), null],
                   }
                 : null,
         [match?.seed],

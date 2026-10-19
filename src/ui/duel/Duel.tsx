@@ -28,7 +28,7 @@ import { buildRegistro } from '../../net/record';
 import { duel, localId, makePeer, useDuel } from '../../net/session';
 import { isDraftComplete, type PlaybackSpeed, useGame } from '../../store/game-store';
 import { activeTitle, activeTrainer, isGoldTrainer, trainerSrc } from '../../store/missions';
-import { clubColorHex, rivalColor } from '../../store/profile';
+import { bannerOf, clubColorHex, rivalColor } from '../../store/profile';
 import { ResultHero } from '../components/ResultHero';
 import { LeaveConfirm } from '../leave-guard';
 import { FEEDBACK_URL } from '../links';
@@ -109,6 +109,7 @@ function usePeer(local: boolean): Peer | null {
         clubName: profile.clubName || 'Pallet FC',
         clubTag: profile.clubTag || 'PAL',
         clubColor: clubColorHex(profile.clubColor),
+        banner: bannerOf(profile.banner),
         anon: !local && !user,
     });
 }
