@@ -35,9 +35,12 @@ const ROLE_SCALE: Record<Position, number> = { GK: 1.5, FIXO: 3.5, ALA: 0.7, PIV
 export const EVO_THRESHOLD = 14;
 export const RIVAL_EVO_THRESHOLD = 10;
 
-/** Barra de evolução agora: o que ele trouxe das partidas anteriores + o que fez nesta. */
-export const evoProgress = (inst: PokemonInstance, stats: PlayerStats, role: Position) =>
-    (inst.evo ?? 0) + evoScore(stats, role);
+/**
+ * Barra de evolução agora: o que ele trouxe das partidas anteriores + o que fez nesta (`gain`: peso do que fez nesta,
+ * `MatchConfig.evoGain`; a partida curta do duelo poderia usar 2).
+ */
+export const evoProgress = (inst: PokemonInstance, stats: PlayerStats, role: Position, gain = 1) =>
+    (inst.evo ?? 0) + evoScore(stats, role) * gain;
 /** Limiar de quem evolui: o seu time e todo time de técnico humano (os dois lados do Duelo, decidido em 18/10) usam o alto. */
 export const evoNeeded = (team: 0 | 1, humanCoach = false) =>
     team === 0 || humanCoach ? EVO_THRESHOLD : RIVAL_EVO_THRESHOLD;
