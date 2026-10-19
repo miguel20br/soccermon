@@ -544,7 +544,8 @@
     margin: 4px 0;
 }
 /* ?lab=emotes */
-.emote-lab-ctl {
+.panel.emote-lab-ctl {
+    padding: 12px 14px;
     display: grid;
     gap: 10px;
 }
