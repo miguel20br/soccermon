@@ -226,6 +226,9 @@ const bestScorerCup = (s: SaveView) =>
     );
 /** Campeão: a final vencida, com os titulares do apito inicial. */
 const champion = (m: MatchView) => m.final && m.won;
+/** Título no Hall da Fama com todas essas espécies no elenco (retroativo: copas de antes da missão existir). */
+const hallWith = (s: SaveView, ids: number[]) =>
+    s.hall.some((h) => ids.every((id) => h.squad.some((p) => p.speciesId === id)));
 
 /** Os 8 ginásios da copa (clube → treinador). */
 const GYMS: [TrainerId, string][] = [
@@ -399,7 +402,13 @@ export const MISSIONS: Mission[] = [
     },
     { id: 'goleada', group: 'feitos', title: 'goleada', match: (m) => m.won && m.score[0] - m.score[1] >= 5 },
     { id: 'triangulo', group: 'feitos', title: 'triangulo', match: (m) => m.won && fullLink(m, 'iniciais') },
-    { id: 'genese', group: 'feitos', title: 'genese', match: (m) => m.won && fullLink(m, 'genese') },
+    {
+        id: 'genese',
+        group: 'feitos',
+        title: 'genese',
+        match: (m) => m.won && fullLink(m, 'genese'),
+        has: (s) => hallWith(s, [150, 151]),
+    },
     // Coleção
     { id: 'oak', group: 'colecao', trainer: 'oak', title: 'colecionador', goal: 100, count: seen },
     { id: 'mestrePokemon', group: 'colecao', title: 'mestrePokemon', goal: 151, count: seen },
@@ -439,12 +448,14 @@ export const MISSIONS: Mission[] = [
         trainer: 'lanceGold',
         title: 'senhorCeus',
         match: (m) => champion(m) && fullLink(m, 'passaros'),
+        has: (s) => hallWith(s, [144, 145, 146]),
     },
     {
         id: 'originalClone',
         group: 'lendas',
         title: 'originalClone',
         match: (m) => champion(m) && fullLink(m, 'genese'),
+        has: (s) => hallWith(s, [150, 151]),
     },
     {
         id: 'youngsterGold',
@@ -452,6 +463,7 @@ export const MISSIONS: Mission[] = [
         trainer: 'youngsterGold',
         title: 'topPercentage',
         match: (m) => champion(m) && hasSpecies(m.lineup, [19]),
+        has: (s) => hallWith(s, [19]),
     },
     {
         id: 'redGold',

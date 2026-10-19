@@ -276,6 +276,9 @@ const metalLabel = (tr: Translator, m: keyof typeof METAL, f: keyof typeof FINIS
 function editionTag(tr: Translator, inst: PokemonInstance, edition: Edition | null) {
     if (edition === 'evento') return tr.t('team.card.event', { type: typeName(inst.special?.type ?? '', tr.lang) });
     if (!edition) return null;
+    // Ícone que levou MVP: selo "MVP n" (a carta continua Ícone, com o fundo de galáxia)
+    if (edition === 'icone' && inst.special?.level)
+        return `${tr.d.common.edition.icone} · MVP${inst.special.level > 1 ? ` ${inst.special.level}` : ''}`;
     const level = inst.special?.level ?? 1;
     return `${tr.d.common.edition[edition]}${level > 1 ? ` ${'I'.repeat(level)}` : ''}`;
 }

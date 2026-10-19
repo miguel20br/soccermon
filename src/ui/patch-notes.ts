@@ -7,6 +7,19 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.8.8',
+        title: 'Ícone MVP e conquistas retroativas',
+        sections: [
+            {
+                title: 'Consertos',
+                lines: [
+                    'Carta Ícone agora pode ser o craque da partida: continua Ícone (com o fundo de galáxia), ganha o selo "MVP", "MVP 2" e "MVP 3" e +1 em todos os atributos por selo (até +5). Antes o prêmio pulava pro próximo jogador',
+                    'Quem foi campeão com Mew e Mewtwo, com os 3 pássaros lendários ou com um Rattata antes dessas missões existirem agora ganha a conquista ao abrir o jogo (sai do Hall da Fama)',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.8.7',
         title: 'Emotes, selos e faixa da torcida',
         sections: [
@@ -534,6 +547,19 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.8.8',
+        title: 'Icon MVP and retroactive achievements',
+        sections: [
+            {
+                title: 'Fixes',
+                lines: [
+                    'Icon cards can now be the star player: they stay Icons (galaxy background), get the "MVP", "MVP 2" and "MVP 3" seal and +1 to every attribute per seal (up to +5). Before, the award skipped to the next player',
+                    'Anyone who won the cup with Mew and Mewtwo, the 3 legendary birds or a Rattata before those missions existed now gets the achievement when opening the game (it comes from the Hall of Fame)',
+                ],
+            },
+        ],
+    },
     {
         version: '0.8.7',
         title: 'Emotes, seals and supporter banners',

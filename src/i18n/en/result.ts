@@ -23,6 +23,8 @@ export const result: typeof pt = {
     destaqueText: '{name} was one of your best players and earned the Star Player edition: +2 to every attribute.',
     destaqueLevelTitle: 'Star Player level {n}!',
     destaqueLevelText: '{name} kept starring and leveled up: +{bonus} to every attribute.',
+    iconMvpTitle: 'Icon MVP {n}!',
+    iconMvpText: '{name} was your star player: still an Icon, now with the MVP seal and +{bonus} to every attribute.',
     mvp: 'Player of the match',
     rows: {
         possession: 'Possession',

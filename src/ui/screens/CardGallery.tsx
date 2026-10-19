@@ -112,10 +112,14 @@ const METAL_ROWS: { key: string; label: string; inst: PokemonInstance }[] = (
     const label = f === 'lendario' ? 'Lendário' : `${METAL[m].label} · ${FINISH_LABEL[f]}`;
     return inst ? [{ key: `${m}-${f}`, label, inst }] : [];
 });
+/** Ícone que levou MVP: continua Ícone, com o selo "MVP n". */
+const withMvp = (inst: PokemonInstance, level: number): PokemonInstance =>
+    inst.special ? { ...inst, special: { ...inst.special, level } } : inst;
 const EDITION_SAMPLES: { ed: Edition; inst: PokemonInstance }[] = [
     { ed: 'shiny', inst: withEdition(sample(6), 'shiny') },
     { ed: 'destaque', inst: withEdition(sample(68), 'destaque') },
     { ed: 'icone', inst: withEdition(sample(25), 'icone') },
+    { ed: 'icone', inst: withMvp(withEdition(sample(25), 'icone'), 2) },
     { ed: 'evento', inst: withEdition(sample(59), 'evento') },
 ];
 /**
@@ -329,7 +333,7 @@ export function CardGallery({ onExit }: { onExit: () => void }) {
                         <h2>Edições especiais (+2 em todos os atributos)</h2>
                         <div className="cg-row">
                             {EDITION_SAMPLES.map((s) => (
-                                <figure key={s.ed} className="cg-item">
+                                <figure key={`${s.ed}-${s.inst.special?.level ?? 0}`} className="cg-item">
                                     <PokeCard2
                                         inst={customInst ? withEdition(customInst, s.ed) : s.inst}
                                         variant="metal"

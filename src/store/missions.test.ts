@@ -42,6 +42,19 @@ const view = (p: Partial<MatchView>): MatchView => ({
 const empty = { records: { titles: 0, perfect: 0 }, dex: {}, moves: {}, career: { goalsFor: 0 }, hall: [], runs: [] };
 
 describe('missões', () => {
+    it('Original e Clone sai pelo Hall da Fama (campeão com Mew e Mewtwo antes da missão existir)', () => {
+        const entry = (ids: number[]) =>
+            ({
+                squad: ids.map((speciesId) => ({ speciesId, goals: 0 })),
+                scores: [[2, 1]],
+                perfect: false,
+            }) as unknown as HallEntry;
+        const got = newMissions({ ...empty, hall: [entry([150, 151, 25])], done: [] });
+        expect(got).toContain('originalClone');
+        expect(got).toContain('genese');
+        expect(newMissions({ ...empty, hall: [entry([150, 25])], done: [] })).not.toContain('originalClone');
+    });
+
     it('cada treinador bloqueado tem uma missão e os ids não se repetem', () => {
         const ids = MISSIONS.map((m) => m.id);
         expect(new Set(ids).size).toBe(ids.length);

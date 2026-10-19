@@ -19,7 +19,7 @@ import { Rng } from './rng';
 import { runMatch } from './runners/batch-runner';
 import { LiveRunner, validOrder } from './runners/live-runner';
 import { SIGNATURE } from './signature-moves';
-import { EVENT_TYPES, rollSpecial, SPECIAL_BONUS, weeklyEventType } from './specials';
+import { EVENT_TYPES, iconMvpOpen, rollSpecial, SPECIAL_BONUS, specialBonus, weeklyEventType } from './specials';
 import { type MatchOrder, SNAP_STRIDE, type Tactic, type TeamSetup } from './state';
 import { computeSynergies } from './synergy';
 import { dir8, v } from './vec';
@@ -976,5 +976,16 @@ describe('escanteio (0.8.5)', () => {
         }
         expect(corners).toBeGreaterThan(6);
         expect(aerials).toBeGreaterThan(2);
+    });
+});
+
+describe('Ícone com MVP', () => {
+    it('continua Ícone e ganha +1 por selo de MVP, até 3', () => {
+        const base = createInstance(25, new Rng('icone', 'mvp'));
+        const icon = (level?: number) => ({ ...base, special: { kind: 'icone' as const, ...(level && { level }) } });
+        expect(specialBonus(icon())).toBe(SPECIAL_BONUS);
+        expect([1, 2, 3].map((n) => specialBonus(icon(n)))).toEqual([3, 4, 5]);
+        expect(iconMvpOpen(icon(2))).toBe(true);
+        expect(iconMvpOpen(icon(3))).toBe(false);
     });
 });

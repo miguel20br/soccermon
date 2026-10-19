@@ -124,7 +124,16 @@ Leia a skill antes de começar a tarefa dela:
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (19/10/2026, v0.8.7 · Emotes, selos e faixa da torcida)
+## Estado atual (19/10/2026, v0.8.8 · Ícone MVP e conquistas retroativas)
+
+Na 0.8.8 (conserto rápido): Ícone pode levar o MVP da partida e continua Ícone, com selo "MVP n" e +1 por selo
+(`special.level` no Ícone = MVPs, `specialBonus`/`iconMvpOpen` em `src/engine/specials.ts`); missões lendárias de
+campeão (Original e Clone, Gênese, Lance, Youngster) também saem do Hall da Fama, e `withUnlocks` roda a cada vez
+que o jogo abre (`merge` do persist), não só na migração. O pacotão de 6 frentes que estava previsto como 0.8.8 vira
+a 0.8.9.
+
+### 0.8.7 · Emotes, selos e faixa da torcida
+
 
 Na 0.8.7 (5 frentes em paralelo + integração `int-087`; decisões em `docs/planos/relatorio-0.8.6.md`): emotes do Duelo
 com retratos PMD do capitão (`src/ui/duel/Emotes.tsx`, `?lab=emotes`, plano em `docs/planos/emotes.md`), selos de

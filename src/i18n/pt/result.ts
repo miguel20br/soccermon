@@ -22,6 +22,9 @@ export const result = {
     destaqueText: '{name} foi um dos craques do seu time e ganhou a edição Destaque: +2 em todos os atributos.',
     destaqueLevelTitle: 'Destaque nível {n}!',
     destaqueLevelText: '{name} seguiu jogando muito e subiu de nível: +{bonus} em todos os atributos.',
+    iconMvpTitle: 'Ícone MVP {n}!',
+    iconMvpText:
+        '{name} foi o craque do seu time: continua Ícone, ganha o selo de MVP e fica com +{bonus} em todos os atributos.',
     mvp: 'Craque da partida',
     rows: {
         possession: 'Posse de bola',

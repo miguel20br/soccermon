@@ -17,7 +17,10 @@ export interface Special {
     type?: string;
     /** Ícone: título temático ("Pikachu do Ash"). */
     title?: string;
-    /** Destaque: nível 1–3 (o craque que segue jogando muito sobe de nível: +2, +3, +4). */
+    /**
+     * Destaque: nível 1–3 (o craque que segue jogando muito sobe de nível: +2, +3, +4).
+     * Ícone: quantos MVPs a carta já levou (0–3, selo "MVP n"): +1 por MVP em cima dos +2 da edição.
+     */
     level?: number;
 }
 
@@ -63,11 +66,18 @@ export const DESTAQUE_MAX_LEVEL = 3;
 /** Nota mínima na partida pra um Destaque subir de nível (senão o prêmio vai pro próximo craque). */
 export const DESTAQUE_LEVEL_UP_RATING = 8;
 
-/** +2 em tudo pra qualquer edição (inclusive shiny); Destaque nível 2 e 3 dão +3 e +4. */
+/** +2 em tudo pra qualquer edição (inclusive shiny); Destaque nível 2 e 3 dão +3 e +4; Ícone +1 por MVP (até +5). */
 export function specialBonus(inst: PokemonInstance): number {
     if (!editionOf(inst)) return 0;
-    return SPECIAL_BONUS + (inst.special?.kind === 'destaque' ? (inst.special.level ?? 1) - 1 : 0);
+    const s = inst.special;
+    if (s?.kind === 'destaque') return SPECIAL_BONUS + (s.level ?? 1) - 1;
+    if (s?.kind === 'icone') return SPECIAL_BONUS + (s.level ?? 0);
+    return SPECIAL_BONUS;
 }
+
+/** Ícone que ainda pode ganhar selo de MVP (até 3, como o Destaque). */
+export const iconMvpOpen = (inst: PokemonInstance) =>
+    inst.special?.kind === 'icone' && (inst.special.level ?? 0) < DESTAQUE_MAX_LEVEL;
 
 /** Número da semana ISO (1..53) e o ano dela. */
 function isoWeek(date: Date): { year: number; week: number } {

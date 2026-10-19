@@ -197,19 +197,26 @@ export function Result() {
                         {destaque && (
                             <div className="destaque-box">
                                 <h2>
-                                    {(destaque.special?.level ?? 1) > 1
-                                        ? t('result.destaqueLevelTitle', { n: destaque.special?.level ?? 1 })
-                                        : t('result.destaqueTitle')}
+                                    {destaque.special?.kind === 'icone'
+                                        ? t('result.iconMvpTitle', { n: destaque.special.level ?? 1 })
+                                        : (destaque.special?.level ?? 1) > 1
+                                          ? t('result.destaqueLevelTitle', { n: destaque.special?.level ?? 1 })
+                                          : t('result.destaqueTitle')}
                                 </h2>
                                 <p className="tactic-desc">
-                                    {(destaque.special?.level ?? 1) > 1
-                                        ? t('result.destaqueLevelText', {
+                                    {destaque.special?.kind === 'icone'
+                                        ? t('result.iconMvpText', {
                                               name: destaque.nickname ?? species(destaque.speciesId).name,
                                               bonus: specialBonus(destaque),
                                           })
-                                        : t('result.destaqueText', {
-                                              name: destaque.nickname ?? species(destaque.speciesId).name,
-                                          })}
+                                        : (destaque.special?.level ?? 1) > 1
+                                          ? t('result.destaqueLevelText', {
+                                                name: destaque.nickname ?? species(destaque.speciesId).name,
+                                                bonus: specialBonus(destaque),
+                                            })
+                                          : t('result.destaqueText', {
+                                                name: destaque.nickname ?? species(destaque.speciesId).name,
+                                            })}
                                 </p>
                                 <FutCard inst={destaque} size="sm" position={lineupPosition(run, destaque.uid)} />
                             </div>
