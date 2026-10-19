@@ -725,6 +725,7 @@ export function Duel() {
     const { t } = useT();
     const go = useGame((g) => g.go);
     const recordDuel = useGame((g) => g.recordDuel);
+    const recordDuelDex = useGame((g) => g.recordDuelDex);
     const [local] = useState(isLocalDuel);
     const peer = usePeer(local);
     const [code] = useState(duelCodeFromUrl);
@@ -766,6 +767,8 @@ export function Duel() {
             registro:
                 s.teams.host && s.teams.guest ? buildRegistro(s, ENGINE_VERSION, __APP_VERSION__, top) : undefined,
         });
+        // Pokédex: quem jogou pelo seu lado vira "jogou" (partida anulada ou W.O. não conta)
+        if (duel.result && !r.desync && !r.wo) recordDuelDex(duel.result, mine);
     }, [s?.phase, s?.game, role]);
 
     const home = () => {

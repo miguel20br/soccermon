@@ -38,6 +38,7 @@ import {
     MAX_HALL,
     type MoveDex,
     markOvr,
+    markPlayed,
     markSeen,
     type Profile,
     recordEditions,
@@ -306,6 +307,8 @@ export interface GameStore {
     /** Duelos amistosos (só no save), do mais recente ao mais antigo. */
     duels: DuelRecord[];
     recordDuel(rec: DuelRecord): void;
+    /** Duelo na Pokédex: quem jogou 1+ minuto pelo seu lado vira "jogou" (só isso), o rival fica "visto". */
+    recordDuelDex(m: MatchResult, side: 0 | 1): void;
     /** Partida atual (não persistida — snapshots são grandes). */
     match: MatchResult | null;
     /** Missões cumpridas agora há pouco, na fila do aviso (não persistida: o aviso é só na hora). */
@@ -554,6 +557,28 @@ export function backfillEditions(dex: Dex, hall: HallEntry[], runs: (RunState | 
 }
 
 /**
+ * Linhas da partida pra Pokédex, com o lado `side` como time 0: quem evoluiu em campo jogou com as duas formas (a
+ * linha já vem com a forma nova; a de antes entra com os minutos até a evolução e a nova fica só com o resto, sem
+ * dobrar a passagem). Copa e Duelo passam por aqui.
+ */
+export function dexLines(m: MatchResult, side: 0 | 1 = 0, all: PlayerLine[] = playerLines(m)): PlayerLine[] {
+    const lines = side === 0 ? all : all.map((l) => ({ ...l, team: (1 - l.team) as 0 | 1 }));
+    const preEvo = m.events.flatMap((e) => {
+        if (e.type !== 'evolve' || e.team !== side) return [];
+        const line = lines.find((l) => l.team === 0 && l.uid === e.uid);
+        const inAt = m.events.find((x) => x.type === 'sub' && x.inUid === e.uid)?.minute ?? 0;
+        if (!line) return [];
+        const minutes = Math.min(line.minutes, Math.round(e.minute - inAt));
+        return [{ ...line, speciesId: e.from, minutes, rating: 0, stats: { ...line.stats, goals: 0, assists: 0 } }];
+    });
+    const rest = lines.map((l) => {
+        const pre = l.team === 0 && preEvo.find((x) => x.uid === l.uid);
+        return pre ? { ...l, minutes: l.minutes - pre.minutes } : l;
+    });
+    return [...rest, ...preEvo];
+}
+
+/**
  * Quem evoluiu em quadra numa versão antiga ficou com só uma das formas como "jogou" na Pokédex: a carta evoluída
  * (`evolved`) das copas guardadas prova que a forma nova jogou, e as evoluções do resumo de cada partida provam que a
  * forma de antes também (ela jogou até evoluir). Só copas que estão no save (a atual e as guardadas), não o Hall.
@@ -690,6 +715,18 @@ export const useGame = create<GameStore>()(
                         duels: addDuel(duels, rec),
                         ...(fresh ? { records: { ...records, duelWins: duelWins(records, duels) + 1 } } : {}),
                     });
+                },
+                recordDuelDex: (m, side) => {
+                    const lines = dexLines(m, side);
+                    let dex = markPlayed(
+                        getState().dex,
+                        lines.filter((l) => l.team === 0 && l.minutes >= 1).map((l) => l.speciesId),
+                    );
+                    dex = markSeen(
+                        dex,
+                        lines.map((l) => l.speciesId),
+                    );
+                    setState({ dex });
                 },
                 match: null,
                 unlockQueue: [],
@@ -1008,33 +1045,13 @@ export const useGame = create<GameStore>()(
                         live: null,
                     };
                     if (status === 'reward') next.rewards = rollRewards(next, 0);
-                    // Pokédex: seu time (1+ minuto) "jogou", o rival e as recompensas ficam "vistos";
-                    // quem evoluiu em campo jogou com as duas formas (a linha da partida já vem com a forma nova:
-                    // a de antes entra com os minutos até a evolução e a nova fica só com o resto, sem dobrar a passagem)
-                    const preEvo = [...evolved.values()].flatMap((e) => {
-                        const line = lines.find((l) => l.team === 0 && l.uid === e.uid);
-                        const inAt = m.events.find((x) => x.type === 'sub' && x.inUid === e.uid)?.minute ?? 0;
-                        if (!line) return [];
-                        const minutes = Math.min(line.minutes, Math.round(e.minute - inAt));
-                        return [
-                            {
-                                ...line,
-                                speciesId: e.from,
-                                minutes,
-                                rating: 0,
-                                stats: { ...line.stats, goals: 0, assists: 0 },
-                            },
-                        ];
-                    });
-                    const dexLines = lines.map((l) => {
-                        const pre = l.team === 0 && preEvo.find((x) => x.uid === l.uid);
-                        return pre ? { ...l, minutes: l.minutes - pre.minutes } : l;
-                    });
-                    let dex = recordMatchInDex(getState().dex, [...dexLines, ...preEvo], won);
+                    // Pokédex: seu time (1+ minuto) "jogou", o rival e as recompensas ficam "vistos"
+                    const forDex = dexLines(m, 0, lines);
+                    let dex = recordMatchInDex(getState().dex, forDex, won);
                     // álbum: a edição de cada carta que jogou (como ela entrou: o Destaque desta partida conta na próxima)
                     dex = recordEditions(
                         dex,
-                        [...dexLines, ...preEvo].flatMap((l) => {
+                        forDex.flatMap((l) => {
                             const card = l.team === 0 && l.minutes >= 1 && run.picks.find((p) => p.uid === l.uid);
                             return card ? [[l.speciesId, editionBits(card)] as [number, number]] : [];
                         }),
