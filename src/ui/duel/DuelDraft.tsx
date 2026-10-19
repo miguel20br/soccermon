@@ -168,11 +168,7 @@ export function TeamPick({ s, role }: { s: Shared; role: Role }) {
                                         : tn('duel.team.tooManySpecials', specials, { max: limit })}
                                 </span>
                             )}
-                            {problems.length > 0 && (
-                                <span className="error-text small">
-                                    {t('duel.team.invalid', { why: problems.slice(0, 3).join(', ') })}
-                                </span>
-                            )}
+                            {problems.length > 0 && <span className="error-text small">{t('duel.team.invalid')}</span>}
                         </button>
                     );
                 })}

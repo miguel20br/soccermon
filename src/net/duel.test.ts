@@ -13,6 +13,7 @@ import { createInstance, viewInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
 import type { TeamSetup } from '../engine/state';
+import { duel as enDuel } from '../i18n/en/duel';
 import {
     acceptTakeover,
     applyPreview,
@@ -187,6 +188,11 @@ describe('validarTimeDuelo (time pronto)', () => {
         expect(edit((r) => (r.lineup[1] = { ...r.lineup[0] })).length).toBeGreaterThan(0);
         expect(edit((r) => r.lineup.pop()).length).toBeGreaterThan(0);
         expect(validarTimeDuelo(null)).toEqual(['time vazio']);
+    });
+
+    it('o aviso de time inválido não mostra os motivos do validador (em português) no jogo em inglês', () => {
+        expect(validarTimeDuelo({ ...ok, name: 7 })).toEqual(['nome']);
+        expect(enDuel.team.invalid).not.toContain('{why}');
     });
 
     it('capitão no banco passa (a copa deixa) e a prévia aceita deixar ele no banco', () => {

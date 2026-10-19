@@ -87,7 +87,7 @@ export const duel: typeof pt = {
         none: "You don't have a ready team yet. Finish a cup draft or win a title.",
         chosen: 'Your team is set.',
         avg: 'avg {n}',
-        invalid: 'Invalid team ({why})',
+        invalid: "Invalid team: this team can't be used in a duel.",
         tooManySpecials:
             '{n} special card: this room allows up to {max}|{n} special cards: this room allows up to {max}',
         noSpecials: '{n} special card: this room allows none|{n} special cards: this room allows none',

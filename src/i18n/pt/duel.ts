@@ -86,7 +86,7 @@ export const duel = {
         none: 'Você ainda não tem time pronto. Termine o draft de uma copa ou ganhe um título.',
         chosen: 'Seu time está escolhido.',
         avg: 'média {n}',
-        invalid: 'Time inválido ({why})',
+        invalid: 'Time inválido: este time não pode ir pro duelo.',
         tooManySpecials: '{n} carta especial: a sala deixa até {max}|{n} cartas especiais: a sala deixa até {max}',
         noSpecials: '{n} carta especial: a sala não deixa nenhuma|{n} cartas especiais: a sala não deixa nenhuma',
     },
