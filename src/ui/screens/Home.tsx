@@ -181,9 +181,9 @@ export function Home() {
 
             <section className="home-hero">
                 <HomeCourt />
-                {/* logo da beta (trailer/arte/logo: "Evolução", o O é uma carta holográfica com a bola) */}
+                {/* logo (trailer/arte/logo/final: o O é a carta holo com a bola; publicar.mjs copia pra cá) */}
                 <h1 className="logo logo-img">
-                    <img src="assets/ui/logo.svg" alt="Soccermon" width="1468" height="300" />
+                    <img src="assets/ui/logo.svg" alt="Soccermon" width="1441" height="300" />
                 </h1>
                 <p className="tagline">{t('home.tagline')}</p>
             </section>

@@ -100,7 +100,7 @@ export class ClipRecorder {
                 img.onload = () => {
                     this.logo = img;
                 };
-                img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg.replace('<svg ', '<svg width="1468" height="300" '))}`;
+                img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg.replace('<svg ', '<svg width="1441" height="300" '))}`;
             })
             .catch(() => {});
     }
@@ -251,7 +251,7 @@ export class ClipRecorder {
         ctx.globalAlpha = k;
         if (this.logo) {
             const w = 560;
-            const h = (w * 300) / 1468;
+            const h = (w * 300) / 1441;
             ctx.drawImage(this.logo, (CLIP_W - w) / 2, CLIP_H / 2 - h - 20, w, h);
         }
         ctx.textAlign = 'center';

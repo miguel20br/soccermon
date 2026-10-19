@@ -96,16 +96,10 @@ img.pixel {
     min-height: 40px;
     padding: 0;
 }
+/* o logo inteiro (wordmark com a carta), na altura de um botão */
 .brand img {
-    width: 28px;
-    height: 28px;
-}
-.brand span {
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 20px;
-    letter-spacing: 1px;
-    color: var(--yellow);
-    text-shadow: 2px 2px 0 #2a4ea0;
+    width: auto;
+    height: 30px;
 }
 
 /* ---------- painéis e botões ---------- */
