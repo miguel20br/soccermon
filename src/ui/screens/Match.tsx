@@ -402,7 +402,7 @@ export function Match() {
     // posição agora de quem está em cada vaga (a prancheta pode ter mudado)
     const slots = onField.map((_, i) => roleAt(match, [lockedSetup, opponent], i, tickRef.current));
     /** Fôlego (0..1) agora de quem está na vaga `i` do seu time. */
-    const energyAt = (i: number) => snapAt(match.snapshots, tickRef.current).p[i * SNAP_STRIDE + 6] ?? 1;
+    const energyAt = (i: number, tick = tickRef.current) => snapAt(match.snapshots, tick).p[i * SNAP_STRIDE + 6] ?? 1;
     const pendingSub = subOrders.find((o) => !subsDone.includes(o.inUid)) ?? null;
     const canSub = canChangeTactic && !pendingSub && subOrders.length < lockedSetup.bench.length && benchNow.length > 0;
     const orderSub = (outUid: string, inUid: string) => {
@@ -441,10 +441,16 @@ export function Match() {
         EventBus.emit('match:resume');
     };
     // quem está mais cansado em quadra: o botão Substituir avisa (só avisa; a troca é sempre do técnico)
-    const fieldEnergy = onField.map((uid, i) => ({ uid, energy: energyAt(i) }));
-    const tiredSlot = [...fieldEnergy].sort((a, b) => a.energy - b.energy)[0];
-    // intervalo: sugere trocar o mais cansado (só abre o Substituir com ele marcado)
-    const htSuggest = halftime ? subSuggestion(fieldEnergy, canSub) : null;
+    const tiredSlot = onField.map((uid, i) => ({ uid, energy: energyAt(i) })).sort((a, b) => a.energy - b.energy)[0];
+    // intervalo: sugere trocar o mais cansado (só abre o Substituir com ele marcado), pelo fôlego com que ele
+    // começaria o 2º tempo (o mesmo número do "Mais cansado" do painel)
+    const ko2 = match.events.find((e) => e.type === 'kickoff' && e.half === 2)?.tick;
+    const htSuggest = halftime
+        ? subSuggestion(
+              onField.map((uid, i) => ({ uid, energy: energyAt(i, ko2) })),
+              canSub,
+          )
+        : null;
     const pendingSubText = pendingSub
         ? rich(t(halftime ? 'match.subPendingHt' : 'match.subPending'), {
               out: <b>{nameOf(pendingSub.outUid)}</b>,

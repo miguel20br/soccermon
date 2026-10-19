@@ -392,7 +392,8 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         lastBoard && boardEv && boardEv.tick > clock.tick
             ? { formation: lastBoard.formation, order: lastBoard.order }
             : null;
-    const energyAt = (i: number) => snapAt(match.snapshots, tickRef.current).p[(myIdx[i] ?? 0) * SNAP_STRIDE + 6] ?? 1;
+    const energyAt = (i: number, tick = tickRef.current) =>
+        snapAt(match.snapshots, tick).p[(myIdx[i] ?? 0) * SNAP_STRIDE + 6] ?? 1;
     const nameOf = (uid: string) => {
         const p = byUid.get(uid);
         if (!p) return '?';
@@ -430,10 +431,16 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     };
 
     // quem está mais cansado em quadra: o botão Substituir avisa (só avisa; a troca é sempre do técnico)
-    const fieldEnergy = onField.map((uid, i) => ({ uid, energy: energyAt(i) }));
-    const tiredSlot = [...fieldEnergy].sort((a, b) => a.energy - b.energy)[0];
-    // intervalo: sugere trocar o mais cansado (só abre o Substituir com ele marcado)
-    const htSuggest = halftime ? subSuggestion(fieldEnergy, canSub) : null;
+    const tiredSlot = onField.map((uid, i) => ({ uid, energy: energyAt(i) })).sort((a, b) => a.energy - b.energy)[0];
+    // intervalo: sugere trocar o mais cansado (só abre o Substituir com ele marcado), pelo fôlego com que ele
+    // começaria o 2º tempo (o mesmo número do "Mais cansado" do painel)
+    const ko2 = match.events.find((e) => e.type === 'kickoff' && e.half === 2)?.tick;
+    const htSuggest = halftime
+        ? subSuggestion(
+              onField.map((uid, i) => ({ uid, energy: energyAt(i, ko2) })),
+              canSub,
+          )
+        : null;
     const pendingSubText = pendingSub
         ? rich(t(halftime ? 'match.subPendingHt' : 'match.subPending'), {
               out: <b>{nameOf(pendingSub.outUid)}</b>,

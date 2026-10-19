@@ -42,7 +42,7 @@ export const match: typeof pt = {
         styleShort: {
             balanced: 'Attacks and defends evenly',
             offensive: 'More shots, tires faster',
-            defensive: 'Everyone guards the goal',
+            defensive: 'All guard the goal',
             counter: 'Steal it and run',
         },
         active: 'On',

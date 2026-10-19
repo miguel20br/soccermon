@@ -3095,8 +3095,11 @@ button,
 .mh.mh-rivalEvolve {
     top: 6%;
     bottom: auto;
-    left: 50%;
-    right: auto;
+    /* left/right 0 + margin auto: centraliza sem limitar a largura à metade da quadra */
+    left: 0;
+    right: 0;
+    width: fit-content;
+    margin-inline: auto;
     flex-direction: row;
     max-width: 92%;
     padding: 8px 14px;
@@ -3105,7 +3108,6 @@ button,
     background: rgb(14 20 48 / 95%);
     text-align: left;
     clip-path: none;
-    translate: -50% 0;
     animation: mh-evo 3.5s ease-out both;
 }
 .mh.mh-rivalEvolve::after {

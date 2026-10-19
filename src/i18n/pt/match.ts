@@ -46,7 +46,7 @@ export const match = {
         styleShort: {
             balanced: 'Ataca e defende igual',
             offensive: 'Mais chutes, cansa mais',
-            defensive: 'Todo mundo protege o gol',
+            defensive: 'Todos protegem o gol',
             counter: 'Rouba e sai correndo',
         },
         /** Selo na tática que está valendo. */

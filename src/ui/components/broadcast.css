@@ -705,8 +705,8 @@
         border-radius: 0;
     }
 }
-/* celular baixo (320x568): o Substituir vem primeiro na aba Tática, senão fica abaixo da dobra */
-@media (max-width: 480px) and (max-height: 700px) {
+/* celular em pé: o Substituir vem primeiro na aba Tática (com o texto das peças ele ficava abaixo da dobra) */
+@media (max-width: 480px) {
     .bc-pane .bc-subbtn {
         order: -1;
     }
