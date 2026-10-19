@@ -84,8 +84,11 @@ nunca).
 - **Peso:** `npm run assets:portraits` agora também baixa Joyous, Surprised, Sigh, Inspired, Shouting, Crying e
   Angry (`scripts/fetch-portraits.ts`): +796 arquivos, ~1,35 MB no repo, `public/assets/portraits` foi de 0,6 para
   1,9 MB. Nada disso entra no primeiro acesso: a partida do Duelo pré-carrega só os 16 rostos dos dois capitães.
-- **Celular:** gaveta 4 x 2 com a frase embaixo de cada rosto, silenciar na ponta. **Desktop:** os 8 numa linha na
-  barra de baixo, sem a frase (fica no `title`).
+- **Celular:** gaveta 4 x 2 com a frase embaixo de cada rosto, silenciar na ponta; fecha sozinha ao mandar (como no
+  Clash Royale), pra o emote aparecer. **Deitado:** a gaveta vira uma linha só, sem a frase. **Desktop:** os 8 numa
+  linha na barra de baixo, sem a frase (fica no `title`).
+- **Sincronia:** a mensagem `emote` que já existia (Broadcast, sem `ack`); testado em duas abas (sala local), cada
+  lado vê o próprio capitão e o do rival.
 - **`?lab=emotes`** (público, como o `?lab=golpes`): placar de mentira, o rival manda um emote a cada 3,5 s, e dá pra
   escolher o capitão de cada lado (pra ver quem cai no rosto normal).
 
