@@ -2424,6 +2424,11 @@ button.pc2.pc2-fx:hover {
 }
 
 /* ---------- galeria v0.6 ---------- */
+.cg-footer {
+    text-align: center;
+    font-size: 12px;
+    padding: 8px 0 4px;
+}
 .cg-v06 {
     display: flex;
     flex-direction: column;
