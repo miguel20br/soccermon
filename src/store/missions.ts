@@ -291,7 +291,7 @@ const COLLECTIONS: [string, number[]][] = [
     ['colBrock', [95, 74, 75, 76, 37, 38, 41, 42]],
     ['colMisty', [120, 121, 54, 55, 118, 119, 116, 117]],
 ];
-const playedIn = (s: SaveView, ids: number[]) => ids.filter((id) => (s.dex[id]?.matches ?? 0) > 0).length;
+const playedIn = (s: SaveView, ids: number[]) => ids.filter((id) => isPlayed(s.dex[id])).length;
 
 // ------------------------------------------------------------------------------------------- platina
 /**
@@ -573,7 +573,7 @@ export const MISSIONS: Mission[] = [
         trainer: 'oakGold',
         title: 'todosJogaram',
         goal: 151,
-        count: (s) => Object.values(s.dex).filter((d) => (d?.minutes ?? 0) > 0).length,
+        count: (s) => Object.values(s.dex).filter(isPlayed).length,
     },
     {
         id: 'zeNinguem',

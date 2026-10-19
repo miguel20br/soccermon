@@ -24,7 +24,7 @@ import {
     TRAINERS,
     unlockedTrainers,
 } from './missions';
-import { DEFAULT_PROFILE, type Dex, gameMoveIds, type HallEntry } from './profile';
+import { DEFAULT_PROFILE, type Dex, EMPTY_ENTRY, gameMoveIds, type HallEntry } from './profile';
 import { normalizeCode, redeemCode } from './title-codes';
 
 const mon = (speciesId: number) => createInstance(speciesId, new Rng('m', String(speciesId)));
@@ -47,6 +47,11 @@ const view = (p: Partial<MatchView>): MatchView => ({
 const empty = { records: { titles: 0, perfect: 0 }, dex: {}, moves: {}, career: { goalsFor: 0 }, hall: [], runs: [] };
 
 describe('missões', () => {
+    it('Carvalho dourado conta "jogou" igual à Pokédex (inclusive quem veio por código, sem minutos)', () => {
+        const dex = Object.fromEntries(Array.from({ length: 151 }, (_, i) => [i + 1, { ...EMPTY_ENTRY, matches: 1 }]));
+        expect(newMissions({ ...empty, dex, done: [] })).toContain('oakGold');
+    });
+
     it('Original e Clone sai pelo Hall da Fama (campeão com Mew e Mewtwo antes da missão existir)', () => {
         const entry = (ids: number[]) =>
             ({
