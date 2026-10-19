@@ -8,7 +8,7 @@ import {
     teamRecipe,
     validarTimeDuelo,
 } from '../engine/duel-validate';
-import { EVO_THRESHOLD } from '../engine/evolution';
+import { EVO_THRESHOLD, evolutionTarget } from '../engine/evolution';
 import { createInstance, viewInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
@@ -1163,5 +1163,17 @@ describe('partida curta', () => {
         expect(s.game).toBe(2);
         expect(s.duration).toBe('short');
         expect(buildRegistro({ ...s, teams: inMatch().teams }, 1, '0.8.7').duration).toBe('short');
+    });
+});
+
+describe('Eevee no duelo', () => {
+    it('evolui pra mesma forma da carta: o lado da sala (~h/~g no uid) não muda o sorteio', () => {
+        const uids = Array.from({ length: 12 }, (_, i) => `133-${i}-eevee`);
+        for (const uid of uids) {
+            const card = evolutionTarget(133, uid);
+            expect(evolutionTarget(133, `${uid}~h`)).toBe(card);
+            expect(evolutionTarget(133, `${uid}~g`)).toBe(card);
+        }
+        expect(new Set(uids.map((u) => evolutionTarget(133, u))).size).toBeGreaterThan(1);
     });
 });
