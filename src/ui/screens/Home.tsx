@@ -16,6 +16,7 @@ import { FEEDBACK_URL, privacyUrl } from '../links';
 import { readCount, writeCount } from '../local-count';
 import { patchNotes } from '../patch-notes';
 import { TYPE_COLOR } from '../type-colors';
+import '../home-motion.css';
 
 /** O que vem por aí (só vitrine: nada disso é clicável ainda). Os textos ficam em i18n (home.soon). */
 const SOON_IMG = ['assets/cards/25.gif', 'assets/cards/143.gif', 'assets/ui/poke-ball.png'];
@@ -77,6 +78,9 @@ function LangToggle() {
         </fieldset>
     );
 }
+
+/** `?home=forte`: enfeites da Home (logo, brilho, pulos) com o dobro da intensidade, pra comparar. */
+const HOME_FORTE = new URLSearchParams(window.location.search).get('home') === 'forte';
 
 /** A entrada da Home (título sobe, botões em cascata) só na 1ª vez que o jogo abre; voltar pra Home é na hora. */
 let homeEntered = false;
@@ -150,7 +154,7 @@ export function Home() {
     );
 
     return (
-        <div className={`home${entering ? ' home-enter' : ''}`}>
+        <div className={`home${entering ? ' home-enter' : ''}${HOME_FORTE ? ' home-forte' : ''}`}>
             <div className="home-top">
                 <div
                     className="event-banner bc-surface bc-stripe"

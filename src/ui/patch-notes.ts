@@ -40,6 +40,13 @@ export const PATCH_NOTES: PatchNotes[] = [
                 ],
             },
             {
+                title: 'Tela inicial',
+                lines: [
+                    'Tela inicial com mais vida: selo AO VIVO na quadra, logo respirando e os blocos entrando em cascata (para com "reduzir movimento")',
+                    'Página de erro nova: o Psyduck perdeu a bola pra fora da quadra',
+                ],
+            },
+            {
                 title: 'Medalhas e clube',
                 lines: [
                     '20 medalhas com degraus (bronze, prata, ouro e platina) em Perfil → Medalhas. Já contam tudo o que você jogou',
@@ -642,6 +649,13 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'Halftime becomes a locker room: several subs at once, each with undo, and a note on who the rival subbed',
                     'Duel: you can undo ready when picking the team, in the lineup and at halftime',
                     'Halftime stamina is the same everywhere: the stamina each player starts the 2nd half with',
+                ],
+            },
+            {
+                title: 'Home screen',
+                lines: [
+                    'A livelier home screen: LIVE badge on the court, a breathing logo and blocks that cascade in (stops with "reduce motion")',
+                    'New error page: Psyduck kicked the ball off the court',
                 ],
             },
             {

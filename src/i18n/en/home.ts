@@ -17,6 +17,7 @@ export const home: typeof pt = {
     eventText: '{type}-type Event cards may show up in the draft.',
     helpAria: 'How to play (see the walkthrough again)',
     helpTitle: 'How to play',
+    live: 'LIVE',
     tagline: 'Build your team from the 151 of Kanto and win the Futsal Cup.',
     confirmNew: 'Starting a new cup erases the {team} one. Are you sure?',
     confirmYes: 'Yes, start a new one',

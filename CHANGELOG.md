@@ -22,6 +22,10 @@
 - Duelo: o pronto dá pra desfazer na escolha do time, na escalação e no intervalo
 - O fôlego do intervalo é o mesmo em todo lugar: o com que cada um começa o 2º tempo
 
+### Tela inicial
+- Tela inicial com mais vida: selo AO VIVO na quadra, logo respirando e os blocos entrando em cascata (para com "reduzir movimento")
+- Página de erro nova: o Psyduck perdeu a bola pra fora da quadra
+
 ### Medalhas e clube
 - 20 medalhas com degraus (bronze, prata, ouro e platina) em Perfil → Medalhas. Já contam tudo o que você jogou
 - Vitrine: escolha até 3 destaques (medalha, coleção completa ou selo); aparecem no seu cartão e no VERSUS do Duelo, e o melhor vira a moldura do avatar
