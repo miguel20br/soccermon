@@ -9,7 +9,7 @@ export const reward = {
     choose: 'Escolha uma recompensa',
     reroll: '↻ Sortear de novo ({n})',
     skip: 'Pular (+1 reroll)',
-    tip: 'Ganhou! Pegue um Pokémon do rival, um item ou uma MT. Pular dá +1 sorteio.',
+    tip: 'Ganhou! Pegue um Pokémon do rival, um item ou uma MT. Pular dá +1 reroll.',
     fromClub: 'Do {club}',
     reinforcement: 'Reforço',
     chosen: 'Escolhido',
