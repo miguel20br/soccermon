@@ -899,8 +899,8 @@ export function acceptTakeover(cur: Shared, next: Shared, awayMs: number): boole
     const hostHashes = (s: Shared) => JSON.stringify(s.segHash.host ?? {});
     if (same) {
         if (next.commits?.host !== cur.commits.host) return false;
-        // o experimento é do host: o convidado não liga nem desliga
-        if (!!next.agency !== !!cur.agency) return false;
+        // as regras da sala são do host: o convidado não liga nem desliga o experimento nem troca a duração
+        if (!!next.agency !== !!cur.agency || durationOf(next) !== durationOf(cur)) return false;
         if (next.reveals.host.some((x, k) => x && x !== cur.reveals.host[k])) return false;
         if (next.roundReveals.host.some((x, r) => x && x !== cur.roundReveals.host[r])) return false;
         if (hostOrders(next) !== hostOrders(cur) || hostHashes(next) !== hostHashes(cur)) return false;

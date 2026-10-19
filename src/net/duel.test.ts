@@ -371,6 +371,7 @@ describe('log de ordens', () => {
         // o convidado não liga nem desliga o experimento quando assume a sala
         expect(acceptTakeover(s, { ...s, rev: s.rev + 1 }, 0)).toBe(true);
         expect(acceptTakeover(s, { ...s, rev: s.rev + 1, agency: false }, 0)).toBe(false);
+        expect(acceptTakeover(s, { ...s, rev: s.rev + 1, duration: 'short' }, 0)).toBe(false);
     });
 });
 
