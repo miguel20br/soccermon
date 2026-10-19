@@ -404,6 +404,18 @@ button.pf-trainer:focus-visible,
     text-align: center;
     line-height: 1.2;
 }
+/* 6 abas não cabem numa fileira no celular estreito: duas de 3 */
+@media (max-width: 480px) {
+    .pf-tabs.bc-tabs {
+        grid-auto-flow: row;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .pf-tabs.bc-tabs button {
+        min-height: 44px;
+        flex-direction: row;
+        gap: 5px;
+    }
+}
 .pf-tab:hover {
     color: var(--text);
 }

@@ -22,14 +22,18 @@ const RIVAL = {
 
 /**
  * `?lab=versus` (só no dev): o VERSUS do Duelo com o seu perfil (escudo, uniforme, vitrine e moldura) contra um rival
- * de mentira, e o placar com os dois uniformes embaixo. `&clash=1`: o rival com a sua cor (entra de reserva).
+ * de mentira, e o placar com os dois uniformes embaixo (`&placar=1`: só o placar). `&clash=1`: o rival com a sua cor
+ * (entra de reserva).
  */
 export function VersusLab({ onExit }: { onExit: () => void }) {
     const profile = useGame((s) => s.profile);
     const avatar = useAvatar();
     const mine = useShowcase();
     const { t } = useT();
-    const clash = new URLSearchParams(window.location.search).get('clash') === '1';
+    const params = new URLSearchParams(window.location.search);
+    const clash = params.get('clash') === '1';
+    // &placar=1: só o placar (sem a tela de VERSUS por cima)
+    const board = params.get('placar') === '1';
     const [home, away] = useMemo(() => {
         const [a, b] = buildCupOpponents('versus-lab');
         return [
@@ -41,32 +45,34 @@ export function VersusLab({ onExit }: { onExit: () => void }) {
     const rivalShow = parseShowcase(RIVAL.showcase);
     return (
         <div className="bc duel">
-            <VersusIntro
-                home={home}
-                away={away}
-                stage={t('duel.title')}
-                ready
-                onDone={onExit}
-                awayTrainer="blue"
-                awayTag="RIV"
-                awayLabel={t('duel.match.vsRival')}
-                homeCoach={{
-                    name: trainerLabel(profile),
-                    avatar: avatar.src,
-                    avatarGoogle: avatar.google,
-                    showcase: mine.items,
-                    frame: mine.frame,
-                }}
-                awayCoach={{
-                    name: 'Gary',
-                    avatar: 'assets/cards/6.gif',
-                    showcase: rivalShow,
-                    frame: frameTier(rivalShow),
-                }}
-                homeLook={looks[0]}
-                awayLook={looks[1]}
-                startsIn={9}
-            />
+            {!board && (
+                <VersusIntro
+                    home={home}
+                    away={away}
+                    stage={t('duel.title')}
+                    ready
+                    onDone={onExit}
+                    awayTrainer="blue"
+                    awayTag="RIV"
+                    awayLabel={t('duel.match.vsRival')}
+                    homeCoach={{
+                        name: trainerLabel(profile),
+                        avatar: avatar.src,
+                        avatarGoogle: avatar.google,
+                        showcase: mine.items,
+                        frame: mine.frame,
+                    }}
+                    awayCoach={{
+                        name: 'Gary',
+                        avatar: 'assets/cards/6.gif',
+                        showcase: rivalShow,
+                        frame: frameTier(rivalShow),
+                    }}
+                    homeLook={looks[0]}
+                    awayLook={looks[1]}
+                    startsIn={9}
+                />
+            )}
             <div className="bc-head">
                 <Scoreboard
                     names={[profile.clubName, 'Rival FC']}

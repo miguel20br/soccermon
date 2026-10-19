@@ -168,6 +168,17 @@
     outline-offset: 2px;
 }
 
+@media (max-width: 420px) {
+    .md-card {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+    .md-show {
+        grid-column: 2;
+        grid-row: auto;
+        justify-self: start;
+    }
+}
+
 /* vitrine: as 3 vagas */
 .md-slots {
     display: grid;

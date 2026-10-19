@@ -1,5 +1,9 @@
 import { readFileSync } from 'node:fs';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+// sem IndexedDB no Node: o save fica só na memória
+vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
+
 import { mergeSaves } from '../cloud/reconcile-plan';
 import { againstLook, DEFAULT_LOOK, isUnlocked, lookOfCupClub, lookOfPeer, lookOfProfile } from './club-kit';
 import { duelWins } from './duels';
@@ -86,7 +90,7 @@ describe('medalhas', () => {
             result,
         });
         for (let i = 0; i < 35; i++) useGame.getState().recordDuel(rec(`s-${i}`, 'win'));
-        useGame.getState().recordDuel(rec('s-0', 'win')); // a mesma partida de novo
+        useGame.getState().recordDuel(rec('s-34', 'win')); // a mesma partida de novo (a sala grava uma vez; isto é o seguro)
         useGame.getState().recordDuel(rec('s-x', 'loss'));
         const g = useGame.getState();
         expect(g.duels.length).toBe(30);
@@ -119,7 +123,10 @@ describe('vitrine', () => {
         expect(parseShowcase(encodeShowcase(items))).toEqual(items);
         expect(
             parseShowcase(['m:campeao:9', 'm:x:2', 'c:nada', 's:0:holo', 's:25:arco', 42, 'c:colNidos', 's:25:holo']),
-        ).toEqual([{ kind: 'c', id: 'colNidos' }]);
+        ).toEqual([
+            { kind: 'c', id: 'colNidos' },
+            { kind: 's', speciesId: 25, seal: 'holo' },
+        ]);
         expect(parseShowcase(['m:campeao:4', 's:25:holo'])).toEqual([
             { kind: 'm', id: 'campeao', tier: 4 },
             { kind: 's', speciesId: 25, seal: 'holo' },

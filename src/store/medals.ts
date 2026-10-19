@@ -160,7 +160,9 @@ const SEALS = Object.keys(SEAL_TIER);
 export function parseShowcase(raw: unknown): ShowItem[] {
     if (!Array.isArray(raw)) return [];
     const out: ShowItem[] = [];
-    for (const s of raw.slice(0, SHOWCASE_MAX)) {
+    // lixo na frente não ocupa vaga: olha até 10 e fica com os 3 primeiros que valem
+    for (const s of raw.slice(0, 10)) {
+        if (out.length >= SHOWCASE_MAX) break;
         if (typeof s !== 'string' || s.length > 40) continue;
         const [kind, id, extra] = s.split(':');
         const tier = Number(extra);
