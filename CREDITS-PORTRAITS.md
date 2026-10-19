@@ -31,10 +31,10 @@ Retratos de [PMDCollab/SpriteCollab](https://github.com/PMDCollab/SpriteCollab),
 - #26 Raichu: CHUNSOFT, C_Pariah, 3Monika4, G〜
 - #27 Sandshrew: CHUNSOFT, Vex, ShyStarryRain
 - #28 Sandslash: CHUNSOFT, XModxGodX, Okami
-- #29 Nidoran-F: CHUNSOFT, JFain, Fearless-Quit
+- #29 Nidoran♀: CHUNSOFT, JFain, Fearless-Quit
 - #30 Nidorina: CHUNSOFT, TawnySoup
 - #31 Nidoqueen: CHUNSOFT, Emboarger, TawnySoup
-- #32 Nidoran-M: CHUNSOFT, JFain
+- #32 Nidoran♂: CHUNSOFT, JFain
 - #33 Nidorino: CHUNSOFT, JustAGunk
 - #34 Nidoking: CHUNSOFT, JFain, Emboarger
 - #35 Clefairy: CHUNSOFT, estelstarlight

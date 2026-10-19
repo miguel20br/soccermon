@@ -782,6 +782,7 @@ describe('relógio e emotes', () => {
         expect(emoteAllowed({ any: 0, grito: 0 }, 'grito', 9000)).toBe(false);
         expect(emoteAllowed({ any: 0, grito: -10_000 }, 'grito', 3000)).toBe(true);
         expect(emoteAllowed({ any: 0, grito: 0 }, 'xss' as never, 99_000)).toBe(false);
+        expect(emoteAllowed({ any: 0, grito: 0 }, 'bravo', 3000)).toBe(true);
     });
 });
 

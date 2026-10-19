@@ -1,9 +1,9 @@
 /**
- * Retratos (o "rostinho" 40×40) do PMDCollab/SpriteCollab (CC BY-NC 4.0), usados na faixa de gol/defesa da partida.
- * Baixa o Normal e, quando existe, o Happy (comemoração do gol) e o Determined (defesa).
+ * Retratos (o "rostinho" 40×40) do PMDCollab/SpriteCollab (CC BY-NC 4.0), usados na faixa de gol/defesa da partida e
+ * nos emotes do Duelo (o capitão com a cara do emote). Baixa o Normal e, quando existe, cada emoção abaixo.
  *
  * Saídas:
- *   public/assets/portraits/{id}.png, {id}-happy.png, {id}-determined.png
+ *   public/assets/portraits/{id}.png, {id}-happy.png, {id}-determined.png, {id}-joyous.png...
  *   src/data/portraits.json   quais emoções existem por espécie
  *   CREDITS-PORTRAITS.md      autores por Pokémon (crédito obrigatório da licença)
  *
@@ -19,6 +19,14 @@ const OUT = 'public/assets/portraits';
 const EMOTIONS = [
     ['Happy', 'happy'],
     ['Determined', 'determined'],
+    // emotes do Duelo (src/ui/duel/Emotes.tsx)
+    ['Joyous', 'joyous'],
+    ['Surprised', 'surprised'],
+    ['Sigh', 'sigh'],
+    ['Inspired', 'inspired'],
+    ['Shouting', 'shouting'],
+    ['Crying', 'crying'],
+    ['Angry', 'angry'],
 ] as const;
 
 await mkdir(OUT, { recursive: true });

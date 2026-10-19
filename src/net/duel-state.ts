@@ -929,8 +929,9 @@ export function clockAdjust(drift: number, speed: PlaybackSpeed): { rate: number
     return { rate: 1 };
 }
 
-export type EmoteKind = 'boa' | 'golaco' | 'ops' | 'zzz' | 'gg' | 'grito';
-export const EMOTES: EmoteKind[] = ['boa', 'golaco', 'ops', 'zzz', 'gg', 'grito'];
+export type EmoteKind = 'boa' | 'golaco' | 'gg' | 'grito' | 'ops' | 'zzz' | 'choro' | 'bravo';
+/** Ordem da gaveta (4 x 2, como o deck de emotes do Clash Royale): os de festa em cima, os de lamento embaixo. */
+export const EMOTES: EmoteKind[] = ['boa', 'golaco', 'gg', 'grito', 'ops', 'zzz', 'choro', 'bravo'];
 export const EMOTE_GAP_MS = 3_000;
 export const SHOUT_GAP_MS = 10_000;
 
