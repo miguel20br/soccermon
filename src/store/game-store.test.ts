@@ -8,6 +8,7 @@ import { bestFit, DRAFT_PICKS } from '../engine/draft';
 import { evolveInstance } from '../engine/evolution';
 import { formationOf } from '../engine/formations';
 import { createInstance, slotRating } from '../engine/instance';
+import { playerLines } from '../engine/match-stats';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
 import { SIGNATURE } from '../engine/signature-moves';
@@ -381,5 +382,75 @@ describe('gol da copa: replay guardado no save', () => {
             expect(saved.run?.results[0].replay?.team.lineup).toHaveLength(5);
         }
         expect(found).toBe(true);
+    });
+});
+
+describe('Pokédex com evolução no meio da partida', () => {
+    it('a forma de antes também jogou (a linha da partida já vem com a forma nova)', () => {
+        const g = () => useGame.getState();
+        useGame.setState({ dex: {} });
+        g().newRun('Pallet FC', 'dex-evo');
+        const base = g().run!;
+        // time de quem evolui, com a barra quase cheia: evolui na primeira bola parada depois de fazer algo
+        const rng = new Rng('dex-evo', 'team');
+        const picks = [1, 4, 7, 60, 66, 92, 147].map((id) => ({ ...createInstance(id, rng), evo: 13.5 }));
+        const run: RunState = {
+            ...base,
+            status: 'lineup',
+            picks,
+            lineup: picks.slice(0, 5).map((p) => p.uid),
+            bench: picks.slice(5).map((p) => p.uid),
+            captainUid: picks[0].uid,
+        };
+        useGame.setState({ run });
+        const team = playerTeam(g().run!, 0xe8423f);
+        g().lockMatch(team);
+        const m = runMatch(FUTSAL_5, team, run.opponents[0], 'dex-evo-0');
+        const ev = m.events.find((e) => e.type === 'evolve' && e.team === 0 && e.minute >= 2);
+        expect(ev?.type).toBe('evolve');
+        if (ev?.type !== 'evolve') return;
+        g().recordResult(m);
+        expect(g().dex[ev.into].matches).toBe(1);
+        expect(g().dex[ev.from].matches).toBe(1);
+        expect(g().dex[ev.from].minutes).toBeGreaterThan(0);
+        // a passagem em quadra se divide entre as duas formas (sem dobrar)
+        const line = playerLines(m).find((l) => l.team === 0 && l.uid === ev.uid)!;
+        expect(g().dex[ev.from].minutes + g().dex[ev.into].minutes).toBe(line.minutes);
+    });
+});
+
+describe('Ícones escalados', () => {
+    it('Ícone que chega como reforço na recompensa também conta (antes só o do draft)', () => {
+        useGame.getState().newRun('Pallet FC', 'icone-reforco');
+        const rng = new Rng('icone-reforco', 'team');
+        const team = [95, 7, 5, 25, 74, 1, 4].map((id) => createInstance(id, rng));
+        const mew = { ...createInstance(151, rng), special: { kind: 'icone' as const, title: 'Mew Ancestral' } };
+        const ready: RunState = {
+            ...(useGame.getState().run as RunState),
+            picks: team,
+            lineup: team.slice(0, 5).map((p) => p.uid),
+            bench: team.slice(5).map((p) => p.uid),
+            captainUid: team[0].uid,
+            status: 'reward',
+            rewards: [{ kind: 'pokemon', inst: mew, from: null }],
+        };
+        useGame.setState({ run: ready, records: { cups: 0, titles: 0, perfect: 0, icones: 2 } });
+        useGame.getState().claimReward(0, team[6].uid);
+        expect(useGame.getState().run!.bench).toContain(mew.uid);
+        expect(useGame.getState().records.icones).toBe(3);
+    });
+});
+
+describe('sequência de títulos', () => {
+    it('nova copa por cima de uma em andamento zera a sequência (como abandonar); depois do fim, não', () => {
+        const records = { cups: 3, titles: 3, perfect: 0, streak: 3, bestStreak: 3 };
+        useGame.setState({ records });
+        useGame.getState().newRun('Pallet FC', 'seq-a');
+        useGame.getState().newRun('Pallet FC', 'seq-b');
+        expect(useGame.getState().records.streak).toBe(0);
+        expect(useGame.getState().records.bestStreak).toBe(3);
+        useGame.setState({ records, run: { ...useGame.getState().run!, status: 'champion' } });
+        useGame.getState().newRun('Pallet FC', 'seq-c');
+        expect(useGame.getState().records.streak).toBe(3);
     });
 });

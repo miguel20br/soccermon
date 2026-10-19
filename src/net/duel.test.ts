@@ -9,6 +9,7 @@ import {
     validarTimeDuelo,
 } from '../engine/duel-validate';
 import { EVO_THRESHOLD } from '../engine/evolution';
+import { createInstance, viewInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
 import type { TeamSetup } from '../engine/state';
@@ -185,6 +186,30 @@ describe('validarTimeDuelo (time pronto)', () => {
         expect(validarTimeDuelo(null)).toEqual(['time vazio']);
     });
 
+    it('carta que evoluiu na copa leva o bônus de evolução pro duelo (carta = campo)', () => {
+        const t = team('evoluiu-2');
+        const charizard = { ...createInstance(6, new Rng('evoluiu', 'x')), evolved: 2 };
+        expect([...t.lineup, ...t.bench].some((p) => p.speciesId === 6)).toBe(false);
+        const r = teamRecipe({ ...t, lineup: [charizard, ...t.lineup.slice(1)] });
+        expect(validarTimeDuelo(r)).toEqual([]);
+        const back = teamFromRecipe(r, '~h').lineup[0];
+        expect(viewInstance(back).overall).toBe(viewInstance(charizard).overall);
+        // mais evoluções do que a linha deixa: save editado
+        expect(edit((x) => (x.lineup[0] = { ...r.lineup[0], evolved: 3 })).length).toBeGreaterThan(0);
+        expect(edit((x) => (x.lineup[0] = { ...r.lineup[0], speciesId: 4, evolved: 1 })).length).toBeGreaterThan(0);
+    });
+
+    it('espécie repetida só vale quando a cópia a mais evoluiu (Charmander que virou o Charmeleon do time)', () => {
+        const t = team('evoluiu-2');
+        const rng = new Rng('repetida', 'x');
+        const drafted = createInstance(5, rng);
+        const grown = { ...createInstance(5, rng), evolved: 1 };
+        const r = teamRecipe({ ...t, lineup: [drafted, grown, ...t.lineup.slice(2)] });
+        expect(validarTimeDuelo(r)).toEqual([]);
+        const twice = teamRecipe({ ...t, lineup: [drafted, { ...grown, evolved: 0 }, ...t.lineup.slice(2)] });
+        expect(validarTimeDuelo(twice)).toContain('espécie repetida');
+    });
+
     it('barra de evolução abaixo do limiar (com 60 ele evoluía na primeira bola parada)', () => {
         expect(edit((r) => (r.lineup[0].evo = 60)).length).toBeGreaterThan(0);
         expect(edit((r) => (r.lineup[0].evo = EVO_THRESHOLD)).length).toBeGreaterThan(0);
@@ -335,6 +360,24 @@ describe('log de ordens', () => {
         expect(reduce(s, sub(t.lineup[3].uid, t.bench[0].uid, 2), 'host', ctx())).toBe(s);
         s = reduce(s, sub(t.bench[0].uid, t.bench[1].uid, 2), 'host', ctx(0, { tick: 4000 }));
         expect(s.log).toHaveLength(2);
+    });
+
+    it('troca do intervalo que chega com o 2º tempo já andando não é carimbada no passado', () => {
+        const s: Shared = {
+            ...inMatch(),
+            halftime: { until: 0, ready: { host: true, guest: true } },
+            secondHalf: true,
+        };
+        const t = s.teams.host!;
+        const late: Intent = {
+            k: 'order',
+            order: { kind: 'sub', outUid: t.lineup[2].uid, inUid: t.bench[0].uid },
+            tick: 0,
+            seq: 1,
+            ht: true,
+        };
+        const out = reduce(s, late, 'host', ctx(0, { tick: 3900, htTick: 3600 }));
+        expect(out.log[0].tick).toBeGreaterThan(3900);
     });
 
     it('beira da quadra: só com o experimento do host ligado na sala, 3 gritos, pênaltis só com quem é do time', () => {

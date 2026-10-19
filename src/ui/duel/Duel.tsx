@@ -494,6 +494,9 @@ function Lobby() {
     const local = useDuel((st) => st.local);
     const mismatch = s.peers.host && s.peers.guest && !versionsOk(s);
     const rivalIn = !!s.peers[other(role)];
+    // Time pronto sem time pra levar (quem entrou pelo link num save novo): o Pronto travaria a sala na escolha do time
+    const hasTeam = useHasReadyTeam();
+    const noTeam = s.mode === 'ready' && !hasTeam;
     return (
         <div className="duel-lobby">
             <div className="duel-lobby-head bc-screenhead">
@@ -524,7 +527,7 @@ function Lobby() {
                 type="button"
                 className={`btn big ${s.ready[role] ? 'ghost' : 'primary'}`}
                 data-testid="duel-ready"
-                disabled={!rivalIn || !!mismatch}
+                disabled={!rivalIn || !!mismatch || (noTeam && !s.ready[role])}
                 onClick={() => {
                     playSfx('select');
                     void duel.setReady(!s.ready[role]);
@@ -532,6 +535,7 @@ function Lobby() {
             >
                 {s.ready[role] ? t('duel.lobby.unready') : t('duel.lobby.imReady')}
             </button>
+            {noTeam && <p className="error-text small">{t('duel.noTeam')}</p>}
             <BetaNote />
         </div>
     );
