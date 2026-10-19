@@ -9,6 +9,7 @@ import {
     validarTimeDuelo,
 } from '../engine/duel-validate';
 import { EVO_THRESHOLD } from '../engine/evolution';
+import { createInstance, viewInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
 import type { TeamSetup } from '../engine/state';
@@ -183,6 +184,19 @@ describe('validarTimeDuelo (time pronto)', () => {
         expect(edit((r) => (r.lineup[1] = { ...r.lineup[0] })).length).toBeGreaterThan(0);
         expect(edit((r) => r.lineup.pop()).length).toBeGreaterThan(0);
         expect(validarTimeDuelo(null)).toEqual(['time vazio']);
+    });
+
+    it('carta que evoluiu na copa leva o bônus de evolução pro duelo (carta = campo)', () => {
+        const t = team('evoluiu-2');
+        const charizard = { ...createInstance(6, new Rng('evoluiu', 'x')), evolved: 2 };
+        expect([...t.lineup, ...t.bench].some((p) => p.speciesId === 6)).toBe(false);
+        const r = teamRecipe({ ...t, lineup: [charizard, ...t.lineup.slice(1)] });
+        expect(validarTimeDuelo(r)).toEqual([]);
+        const back = teamFromRecipe(r, '~h').lineup[0];
+        expect(viewInstance(back).overall).toBe(viewInstance(charizard).overall);
+        // mais evoluções do que a linha deixa: save editado
+        expect(edit((x) => (x.lineup[0] = { ...r.lineup[0], evolved: 3 })).length).toBeGreaterThan(0);
+        expect(edit((x) => (x.lineup[0] = { ...r.lineup[0], speciesId: 4, evolved: 1 })).length).toBeGreaterThan(0);
     });
 
     it('barra de evolução abaixo do limiar (com 60 ele evoluía na primeira bola parada)', () => {

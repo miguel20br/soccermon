@@ -24,6 +24,8 @@ export interface DuelMonRecipe {
     taught?: string[];
     evo?: number;
     inherited?: Position[];
+    /** Quantas vezes a carta evoluiu (+2 em tudo por evolução): sem isso o Charizard da copa jogava com 4 a menos. */
+    evolved?: number;
     nickname?: string | null;
 }
 
@@ -71,6 +73,7 @@ const monRecipe = (p: PokemonInstance): DuelMonRecipe => ({
     taught: p.taught ? [...p.taught] : undefined,
     evo: p.evo === undefined ? undefined : Math.min(p.evo, MAX_EVO),
     inherited: p.inherited ? [...p.inherited] : undefined,
+    evolved: p.evolved || undefined,
     nickname: p.nickname ?? null,
 });
 
@@ -133,6 +136,11 @@ function monProblems(m: DuelMonRecipe, where: string): string[] {
         !(Array.isArray(m.inherited) && m.inherited.length <= 3 && m.inherited.every((x) => POSITIONS.includes(x)))
     )
         bad('posição herdada');
+    // evoluiu no máximo quantas vezes a linha dela deixa (Charizard: 2, Charmander: 0)
+    let depth = 0;
+    for (let id = sp.prevo; id; id = SPECIES_BY_ID.get(id)?.prevo ?? null) depth++;
+    if (m.evolved !== undefined && !(Number.isInteger(m.evolved) && m.evolved >= 0 && m.evolved <= depth))
+        bad('evoluções');
     if (m.nickname != null && !isStr(m.nickname, 20)) bad('apelido');
     return out;
 }
@@ -190,6 +198,7 @@ export function teamFromRecipe(r: DuelTeamRecipe, suffix: string): TeamSetup {
         if (m.taught?.length) p.taught = [...m.taught];
         if (m.evo !== undefined) p.evo = m.evo;
         if (m.inherited?.length) p.inherited = [...m.inherited];
+        if (m.evolved) p.evolved = m.evolved;
         return p;
     };
     const all = [...r.lineup, ...r.bench].map(make);
