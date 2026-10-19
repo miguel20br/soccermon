@@ -14,8 +14,17 @@ import { teachMove } from '../engine/tm';
 import { profile as enProfile } from '../i18n/en/profile';
 import { profile as ptProfile } from '../i18n/pt/profile';
 import { type DuelRecord, mergeDuels } from './duels';
-import { liveOf, migrateSave, type RunState, SAVE_VERSION, type SlotRef, slotRole, useGame } from './game-store';
-import { BANNER_COUNT, bannerOf, EDITION_BIT } from './profile';
+import {
+    liveOf,
+    markEvolvedPlayed,
+    migrateSave,
+    type RunState,
+    SAVE_VERSION,
+    type SlotRef,
+    slotRole,
+    useGame,
+} from './game-store';
+import { BANNER_COUNT, bannerOf, EDITION_BIT, EMPTY_ENTRY } from './profile';
 
 describe('save', () => {
     it('v4 → v5: perfil com o nome do time, Pokédex com a copa em andamento e sem boas-vindas', () => {
@@ -312,5 +321,17 @@ describe('Monta pra mim (draft automático, escolha do jogador)', () => {
         expect(run.autoFrom).toBe(2);
         expect(run.bench[0]).toBe(benchPick.uid);
         expect(new Set(run.picks.map((p) => p.speciesId)).size).toBe(DRAFT_PICKS);
+    });
+});
+
+describe('evolução em quadra na Pokédex', () => {
+    it('a forma evoluída de copas antigas conta como "jogou"', () => {
+        const meowth = createInstance(52, new Rng('evo', 'dex'));
+        const persian = { ...meowth, speciesId: 53, evolved: 1 };
+        const dex = markEvolvedPlayed({ 52: { ...EMPTY_ENTRY, matches: 2 } }, [
+            { picks: [persian] } as unknown as RunState,
+        ]);
+        expect(dex[53].matches).toBe(1);
+        expect(markEvolvedPlayed(dex, [{ picks: [persian] } as unknown as RunState])).toBe(dex);
     });
 });

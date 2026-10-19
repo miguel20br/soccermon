@@ -123,7 +123,7 @@ export interface DexEntry {
 
 export type Dex = Record<number, DexEntry>;
 
-const EMPTY_ENTRY: DexEntry = {
+export const EMPTY_ENTRY: DexEntry = {
     matches: 0,
     minutes: 0,
     goals: 0,

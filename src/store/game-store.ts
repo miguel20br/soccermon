@@ -32,6 +32,7 @@ import {
     type Dex,
     EDITION_BIT,
     EMPTY_CAREER,
+    EMPTY_ENTRY,
     editionBits,
     type HallEntry,
     MAX_HALL,
@@ -532,6 +533,21 @@ export function backfillEditions(dex: Dex, hall: HallEntry[], runs: (RunState | 
 }
 
 /**
+ * Quem evoluiu em quadra numa versão antiga ficou só com a forma de origem como "jogou" na Pokédex: a carta
+ * evoluída (`evolved`) das copas guardadas prova que a forma nova jogou.
+ */
+export function markEvolvedPlayed(dex: Dex, runs: (RunState | null | undefined)[]): Dex {
+    let out: Dex | null = null;
+    for (const r of runs)
+        for (const p of r?.picks ?? []) {
+            if (!p.evolved || (dex[p.speciesId]?.matches ?? 0) > 0) continue;
+            out ??= { ...dex };
+            out[p.speciesId] = { ...(out[p.speciesId] ?? EMPTY_ENTRY), matches: 1 };
+        }
+    return out ?? dex;
+}
+
+/**
  * Missões que o save já garante (sem aviso: é retroativo). Feitos de partida contam pelas partidas guardadas nas
  * copas do save (o resumo de cada uma); o resto sai de recordes, Pokédex, golpes, carreira e Hall da Fama.
  */
@@ -945,7 +961,12 @@ export const useGame = create<GameStore>()(
                     if (status === 'reward') next.rewards = rollRewards(next, 0);
                     // Pokédex: seu time (1+ minuto) "jogou", o rival e as recompensas ficam "vistos";
                     // quem evoluiu em campo também entra (a forma nova jogou o resto da partida)
-                    let dex = recordMatchInDex(getState().dex, lines, won);
+                    // a forma nova entra com a mesma passagem em quadra (gols e assistências ficam com a forma de origem)
+                    const evoLines = lines.flatMap((l) => {
+                        const evo = l.team === 0 ? evolved.get(l.uid) : undefined;
+                        return evo ? [{ ...l, speciesId: evo.into, stats: { ...l.stats, goals: 0, assists: 0 } }] : [];
+                    });
+                    let dex = recordMatchInDex(getState().dex, [...lines, ...evoLines], won);
                     // álbum: a edição de cada carta que jogou (como ela entrou: o Destaque desta partida conta na próxima)
                     dex = recordEditions(
                         dex,
@@ -1134,7 +1155,9 @@ export const useGame = create<GameStore>()(
             // missão nova (ou que virou retroativa) sai já ao abrir o jogo, sem esperar a próxima partida
             merge: (persisted, current) => {
                 const p = persisted as PersistedSave | undefined;
-                return { ...current, ...(p?.profile ? withUnlocks(p) : p) };
+                if (!p?.profile) return { ...current, ...p };
+                const dex = markEvolvedPlayed(p.dex ?? {}, [p.run, ...(p.parkedRuns ?? [])]);
+                return { ...current, ...withUnlocks({ ...p, dex }) };
             },
         },
     ),
