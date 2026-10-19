@@ -196,6 +196,11 @@ export type ChanceSpeed = 0 | 1 | 2 | 4;
 
 export interface Settings {
     cries: CryStyle;
+    /**
+     * Escolheu o estilo dos gritos em Configurações. Sem isso vale o padrão, que virou o Novo ('latest') na 0.8.9:
+     * o save antigo não separava "escolheu Gen 1" de "ficou no padrão", então o Gen 1 antigo conta como padrão.
+     */
+    criesChosen?: boolean;
     /** Volume geral (0..1); gritos e efeitos têm o próprio volume por cima dele. */
     volume: number;
     criesVolume: number;
@@ -227,7 +232,8 @@ export interface Settings {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-    cries: 'legacy',
+    // gritos modernos por padrão desde a 0.8.9 (o Gen 1 continua em Configurações)
+    cries: 'latest',
     volume: 0.6,
     criesVolume: 1,
     sfxVolume: 1,
@@ -505,6 +511,11 @@ const runShapeOk = (r: unknown): r is RunState => {
     );
 };
 
+/** Estilo dos gritos: quem nunca escolheu em Configurações fica no padrão (o Novo). */
+export function withCryDefault(settings: Settings): Settings {
+    return settings.criesChosen ? settings : { ...settings, cries: DEFAULT_SETTINGS.cries };
+}
+
 /** Versão atual do save (a mesma do `persist`). */
 export const SAVE_VERSION = 9;
 
@@ -552,7 +563,7 @@ export function withUnlocks(save: PersistedSave): PersistedSave {
  * em andamento, e quem já jogava não vê o passo a passo de boas-vindas de novo.
  */
 export function migrateSave(old: Partial<PersistedSave>, version: number): PersistedSave {
-    const settings: Settings = { ...DEFAULT_SETTINGS, ...old.settings };
+    const settings = withCryDefault({ ...DEFAULT_SETTINGS, ...old.settings });
     const records = old.records ?? { cups: 0, titles: 0, perfect: 0 };
     const run = version < 3 || !old.run ? null : { ...old.run, lockedTeam: old.run.lockedTeam ?? null };
     const profile: Profile = {
@@ -1133,7 +1144,8 @@ export const useGame = create<GameStore>()(
             },
             // missão nova (ou que virou retroativa) sai já ao abrir o jogo, sem esperar a próxima partida
             merge: (persisted, current) => {
-                const p = persisted as PersistedSave | undefined;
+                const saved = persisted as PersistedSave | undefined;
+                const p = saved?.settings ? { ...saved, settings: withCryDefault(saved.settings) } : saved;
                 return { ...current, ...(p?.profile ? withUnlocks(p) : p) };
             },
         },

@@ -14,7 +14,16 @@ import { teachMove } from '../engine/tm';
 import { profile as enProfile } from '../i18n/en/profile';
 import { profile as ptProfile } from '../i18n/pt/profile';
 import { type DuelRecord, mergeDuels } from './duels';
-import { liveOf, migrateSave, type RunState, SAVE_VERSION, type SlotRef, slotRole, useGame } from './game-store';
+import {
+    DEFAULT_SETTINGS,
+    liveOf,
+    migrateSave,
+    type RunState,
+    SAVE_VERSION,
+    type SlotRef,
+    slotRole,
+    useGame,
+} from './game-store';
 import { BANNER_COUNT, bannerOf, EDITION_BIT } from './profile';
 
 describe('save', () => {
@@ -312,5 +321,19 @@ describe('Monta pra mim (draft automático, escolha do jogador)', () => {
         expect(run.autoFrom).toBe(2);
         expect(run.bench[0]).toBe(benchPick.uid);
         expect(new Set(run.picks.map((p) => p.speciesId)).size).toBe(DRAFT_PICKS);
+    });
+});
+
+describe('estilo dos gritos: o padrão virou o Novo (0.8.9)', () => {
+    it('save antigo no Gen 1 sem ter escolhido conta como padrão e vai pro Novo', () => {
+        const old = { ...DEFAULT_SETTINGS, cries: 'legacy' as const, criesChosen: undefined };
+        expect(migrateSave({ settings: old }, SAVE_VERSION).settings.cries).toBe('latest');
+    });
+    it('quem escolheu em Configurações fica com o que escolheu', () => {
+        const chosen = { ...DEFAULT_SETTINGS, cries: 'legacy' as const, criesChosen: true };
+        expect(migrateSave({ settings: chosen }, SAVE_VERSION).settings.cries).toBe('legacy');
+    });
+    it('jogador novo começa no Novo', () => {
+        expect(DEFAULT_SETTINGS.cries).toBe('latest');
     });
 });
