@@ -400,6 +400,7 @@ export function SheetCards({ sp, anchor }: { sp: Species; anchor: RefObject<HTML
                         <div className="al-best-info">
                             <b>{combo(best.inst)}</b>
                             <small className="muted">{note(best.c)}</small>
+                            {best.c && !on && full && <small className="muted">{t('profile.binder.full')}</small>}
                             {best.c && (
                                 <button
                                     type="button"

@@ -56,9 +56,13 @@ export function cardSlots(card: { shiny: boolean; special?: { kind: CardSlot } |
 /** A carta pra desenhar (o uid de origem fica: a evolução do Eevee sai dele). */
 export const binderInst = (c: BinderCard): PokemonInstance => monFromRecipe(c.card, c.uid.split('>')[0]);
 
-/** Ordem da "melhor": mais edições juntas (Shiny Ícone), maior nível (MVP/Destaque), campeã, maior nota. */
+/** Edição mais rara primeiro (na "melhor" da espécie): Ícone, Destaque, Evento. */
+const RARITY = { icone: 3, destaque: 2, evento: 1 } as const;
+
+/** Ordem da "melhor": mais edições juntas (Shiny Ícone), edição mais rara, maior nível (MVP/Destaque), campeã, nota. */
 const rank = (c: Pick<BinderCard, 'card' | 'champ' | 'uid'>) => [
     cardSlots(c.card).length,
+    c.card.special ? RARITY[c.card.special.kind] : 0,
     c.card.special?.level ?? (c.card.special?.kind === 'destaque' ? 1 : 0),
     c.champ ? 1 : 0,
     viewInstance(monFromRecipe(c.card, c.uid.split('>')[0])).overall,
@@ -244,7 +248,8 @@ export function resolveCardShowcase(
     for (const id of choice) {
         if (typeof id !== 'string') continue;
         const c = binder.find((x) => x.id === id) ?? binder.find((x) => x.uid === id || x.seen.includes(id));
-        if (c && ok(c) && !out.includes(c)) out.push(c);
+        // o Shiny Ícone ocupa 2 espaços: na vitrine aparece uma vez
+        if (c && ok(c) && !out.some((x) => x.uid === c.uid)) out.push(c);
     }
     return out.slice(0, CARD_SHOWCASE_MAX);
 }

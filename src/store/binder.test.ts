@@ -83,6 +83,9 @@ describe('álbum de cartas: uma figurinha por espécie × edição', () => {
         // Ícone MVP 3 sozinho perde pro Shiny Ícone MVP (mais edições juntas)
         expect(b.find((c) => c.id === '6:icone')).toMatchObject({ uid: 'combo', n: 2 });
         expect(bestOfSpecies(b, 6)?.uid).toBe('combo');
+        // sem combo: o Ícone ganha do Destaque III (edição mais rara antes do nível)
+        const star = add(add([], icon('ic')), mon(6, 'd3', { special: { kind: 'destaque', level: 3 } }));
+        expect(bestOfSpecies(star, 6)?.uid).toBe('ic');
         // só entre as figurinhas coladas
         expect(bestOfSpecies(b, 6, (c) => c.id === '6:nada')).toBeNull();
     });
@@ -272,6 +275,9 @@ describe('vitrine de cartas', () => {
             '94:shiny',
         ]);
         expect(resolveCardShowcase('lixo', b)).toEqual([]);
+        // o Shiny Ícone ocupa os dois espaços: na vitrine aparece uma vez
+        const combo = add([], { ...icon('combo', 1), shiny: true });
+        expect(resolveCardShowcase(['6:icone', '6:shiny'], combo)).toHaveLength(1);
     });
 
     it('a do rival no Duelo: carta inventada e lixo são ignorados, no máximo 3', () => {
