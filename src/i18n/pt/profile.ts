@@ -474,6 +474,7 @@ export const profile = {
         codeSubmit: 'Resgatar',
         codeOk: 'Título liberado: {title}',
         codeBad: 'Esse código não vale.',
+        codeDex: 'Pokédex corrigida: {names} agora conta como jogou.',
         codeHave: 'Você já tem o título {title}.',
         fromStart: 'Desde o começo',
         byCode: 'Código',

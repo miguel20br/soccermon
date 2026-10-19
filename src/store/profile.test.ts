@@ -182,3 +182,12 @@ describe('selo de carreira', () => {
         expect(kantoComplete(dex)).toBe(false);
     });
 });
+
+describe('código de conserto da Pokédex', () => {
+    it('marca como jogou sem mexer em quem já jogou', async () => {
+        const { markPlayed, EMPTY_ENTRY } = await import('./profile');
+        const dex = markPlayed({ 16: { ...EMPTY_ENTRY }, 25: { ...EMPTY_ENTRY, matches: 7 } }, [16, 25]);
+        expect(dex[16].matches).toBe(1);
+        expect(dex[25].matches).toBe(7);
+    });
+});
