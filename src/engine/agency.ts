@@ -76,8 +76,8 @@ export const AGENCY = {
     timeoutEnergy: 0.05,
     timeoutRivalEnergy: 0.03,
     timeoutTicks: 60,
-    /** Golpe máximo: janela de 10 s pra sair; se passar, a barra volta pela metade. */
-    maxTicks: 200,
+    /** Golpe máximo: janela de 20 s pra sair (Miguel, 18/10/2026); se passar, a barra volta pela metade. */
+    maxTicks: 400,
     maxRefund: 0.5,
     /** Pontos pra encher a barra (lances do time; ver `MAX_POINTS`). */
     maxFull: 22,

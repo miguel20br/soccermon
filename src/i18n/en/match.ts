@@ -114,7 +114,7 @@ export const match: typeof pt = {
         flyGkOff: 'Off',
         max: 'Max move',
         maxHint:
-            "Fills with your team's plays (faster when losing). When full, the captain unleashes their move at max power (10 s to land it).",
+            "Fills with your team's plays (faster when losing). When full, the captain unleashes their move at max power (20 s to land it).",
         maxReady: 'Unleash!',
         maxActive: 'Live!',
         maxUsed: 'Used',

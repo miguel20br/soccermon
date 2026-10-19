@@ -115,7 +115,7 @@ export const match = {
         flyGkOff: 'Desligado',
         max: 'Golpe máximo',
         maxHint:
-            'Enche com os lances do time (mais rápido perdendo). Cheia: o capitão solta o golpe dele no máximo (10 s pra sair).',
+            'Enche com os lances do time (mais rápido perdendo). Cheia: o capitão solta o golpe dele no máximo (20 s pra sair).',
         maxReady: 'Soltar!',
         maxActive: 'No ar!',
         maxUsed: 'Já saiu',
