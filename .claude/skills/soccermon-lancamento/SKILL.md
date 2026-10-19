@@ -31,6 +31,11 @@ então **nada vai pra `main` sem o "pode subir" do Miguel** na conversa, mesmo c
    - Pokémon em "buff" e "nerf e ajuste";
    - nada de emoji.
 7. `npm run changelog` (gera o `CHANGELOG.md`) e `npm version X.Y.Z --no-git-tag-version`.
+   **Número com 4 partes** (0.8.8.1, 0.8.8.2…; usado em 19/10 pra separar o que subiu no mesmo dia): o npm só aceita
+   semver em `"version"`, então ela fica no último X.Y.Z e o número de 4 partes vai em `"displayVersion"` no
+   `package.json` (`__APP_VERSION__` = `displayVersion ?? version` em `vite/config.prod.mjs` e `config.dev.mjs`:
+   Home, Novidades, Duelo e estatísticas mostram esse). Na próxima X.Y.Z, apague o `displayVersion`. A `version` das
+   Novidades é o mesmo número de 4 partes.
 8. Atualize o "Estado atual" do `CLAUDE.md` e a tabela de versões de `docs/planos/lancamento.md` (✓ na versão).
 9. Confira os e-mails dos commits: `git log --format=%ae origin/main..HEAD | sort -u` tem que dar só
    `105948884+miguel20br@users.noreply.github.com`.
@@ -47,6 +52,10 @@ awk '/^## X.Y.Z/{f=1;next} /^## /{if(f)exit} f' CHANGELOG.md > notas.md   # nota
 printf '\nJogue em https://soccermon.com\n' >> notas.md
 gh release create vX.Y.Z --title "X.Y.Z · <título>" --notes-file notas.md
 ```
+
+Tag de 4 partes é igual (`v0.8.8.3`, o awk acha `## 0.8.8.3`). Várias versões de uma vez: uma tag anotada e uma
+release por versão, cada tag no primeiro commit da `main` em que tudo daquela versão já estava no ar (as tags
+`v0.8.8.1`…`v0.8.8.3` foram assim) e a mais nova por último (vira a "Latest" do GitHub).
 
 Confira que foi pro ar:
 - deploy de produção `success`: `gh api "repos/miguel20br/soccermon/deployments?per_page=10"` e depois os statuses

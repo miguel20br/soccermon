@@ -125,13 +125,22 @@ Leia a skill antes de começar a tarefa dela:
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (19/10/2026, v0.8.8 · Ícone MVP, melhores momentos, medalhas e treinadores)
+## Estado atual (19/10/2026, v0.8.8.3 · Cartas em camadas e álbum de figurinhas)
 
-A 0.8.8 vai crescendo no ar sem mudar o número (o Miguel, 19/10: "à medida que for fazendo o que já foi aprovado, vá
-upando na 0.8.8"); o Duelo junta só telas do mesmo deploy (versão + `__APP_BUILD__`). Começou como conserto rápido:
+Tudo que subiu em 19/10 foi separado nas Novidades em 4 números (decisão do Miguel, 19/10): **0.8.8** Ícone MVP e
+conquistas retroativas (o conserto da manhã); **0.8.8.1** Melhores momentos, Copa do Dia e medalhas (o pacotão:
+momentos, coleção, treinadores, UX, consertos, fórmula A, Copa do Dia); **0.8.8.2** Logo novo e faixas da torcida
+(marca, ícones, pacote com o logo, Liga fechada com timer); **0.8.8.3** Cartas em camadas e álbum de figurinhas.
+Número de 4 partes: o npm só aceita semver em `"version"` (fica `0.8.8`), então o número da Home, das Novidades e do
+Duelo sai de `"displayVersion"` no `package.json` (`__APP_VERSION__` = `displayVersion ?? version` nos dois
+`vite/config.*.mjs`); tags `v0.8.8.1`…`v0.8.8.3`. O Duelo junta só telas do mesmo deploy (versão + `__APP_BUILD__`).
+
+**0.8.8.** Começou como conserto rápido:
 Ícone pode levar o MVP e continua Ícone, com selo "MVP n" e +1 por selo (`special.level` no Ícone = MVPs,
 `specialBonus`/`iconMvpOpen` em `src/engine/specials.ts`); missões lendárias de campeão também saem do Hall da Fama, e
-`withUnlocks` + `markEvolvedPlayed` rodam a cada vez que o jogo abre (`merge` do persist). Entraram depois:
+`withUnlocks` + `markEvolvedPlayed` rodam a cada vez que o jogo abre (`merge` do persist).
+
+**0.8.8.1** (o pacotão):
 - **Melhores momentos** (`src/ui/moments.ts`, `Moments.tsx`, `clip-recorder.ts`; `?demo=momentos`): replay dos lances
   na quadra, gol da copa (replay guardado em `StageResult.replay`, some se o `ENGINE_VERSION` mudar) e clipe 9:16.
 - **8 consertos** (sequência de títulos, nuvem, Ícone da recompensa, Duelo Time pronto e troca do intervalo); a
@@ -169,6 +178,16 @@ upando na 0.8.8"); o Duelo junta só telas do mesmo deploy (versão + `__APP_BUI
   "Em breve", contagem e um aviso no toque. Abre sozinha na data de `LIGA_OPENS_AT` (`src/league/rules.ts`, hoje
   **01/12/2026 00:00 de Brasília, provisória**). Reabrir antes ou adiar: trocar só essa linha e publicar. Código,
   tabelas e Edge Function `liga` continuam (o `?demo=liga` entra mesmo fechada).
+
+**0.8.8.2:** logo novo (a carta holo com a bola, `public/assets/ui/logo.svg`), título chapado, ícones no traço do
+`HudIcon`, brand guide em `docs/marca/` (skill `soccermon-marca`), faixas da torcida escritas pelo Miguel, pacote de
+cartas com o logo, bola original na Home e a Liga fechada com contagem.
+
+**0.8.8.3:** cartas em camadas (shiny +1 por cima de outra edição, selo MVP 1 a 3 no Ícone e no Evento, Destaque por
+nível, Evento com o desenho do tipo, bônus que passa de 99 vai pros outros atributos; `src/engine/specials.ts`,
+`ENGINE_VERSION` 6), dicas ao passar o mouse/segurar (`Tip.tsx`) e o Álbum de figurinhas dentro da Pokédex
+(`src/store/binder.ts`, `src/ui/profile/Album.tsx`; o Fichário do Perfil virou o álbum), com vitrine de cartas no
+Perfil e no Duelo.
 
 ### 0.8.7 · Emotes, selos e faixa da torcida
 
