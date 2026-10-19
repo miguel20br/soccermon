@@ -111,15 +111,6 @@
     border-color: var(--red-dark);
     box-shadow: 0 3px 0 #6e1615;
 }
-.ob-chevron {
-    width: 18px;
-    height: 18px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2.4;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
 .ob-go {
     height: 44px;
     padding: 10px 14px;
@@ -516,13 +507,7 @@
     color: var(--muted);
 }
 .help-search-icon {
-    flex: none;
-    width: 18px;
-    height: 18px;
-    fill: none;
-    stroke: var(--muted);
-    stroke-width: 2;
-    stroke-linecap: round;
+    color: var(--muted);
 }
 .help-sr-only {
     position: absolute;
@@ -572,14 +557,7 @@
     object-fit: contain;
 }
 .help-caret {
-    flex: none;
-    width: 16px;
-    height: 16px;
-    fill: none;
-    stroke: var(--muted);
-    stroke-width: 2.2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+    color: var(--muted);
     transition: transform 0.2s ease;
 }
 .help-section[open] .help-caret {
@@ -638,10 +616,7 @@
     margin: 8px 0;
 }
 .tip-icon {
-    flex: none;
-    width: 16px;
-    height: 16px;
-    fill: var(--yellow);
+    color: var(--yellow);
 }
 .tip-text {
     flex: 1;
@@ -668,11 +643,7 @@
     color: var(--text);
     background: rgba(255, 255, 255, 0.08);
 }
-.tip-close svg {
-    width: 12px;
-    height: 12px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2;
-    stroke-linecap: round;
+.tip-close .hud-icon {
+    width: 16px;
+    height: 16px;
 }

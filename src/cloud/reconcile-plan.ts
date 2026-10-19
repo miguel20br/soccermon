@@ -1,3 +1,4 @@
+import { mergeDaily } from '../store/daily';
 import { mergeDuels } from '../store/duels';
 import {
     isCupInProgress,
@@ -185,6 +186,7 @@ export function mergeSaves(
         parkedRuns: parked.slice(0, MAX_PARKED),
         hall: mergeHall(local.hall, cloud?.hall),
         duels: mergeDuels(local.duels, cloud?.duels),
+        daily: mergeDaily(local.daily, cloud?.daily),
     });
 }
 

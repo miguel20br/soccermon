@@ -11,6 +11,7 @@ import type { SlotRef } from '../../store/game-store';
 import { editionLabel, finishOf, METAL, metalOf } from '../rarity';
 import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
+import { HudIcon } from './MatchHud';
 import { cardSprite } from './PokeCard';
 
 export type SlotState = 'idle' | 'selected' | 'target' | 'locked';
@@ -150,7 +151,7 @@ export function FormationBoard({
                         ) : null}
                         {edition && (
                             <span className={`slot-edition ed-${edition}`} title={editionLabel(edition)}>
-                                ★
+                                <HudIcon kind="max" />
                             </span>
                         )}
                     </>

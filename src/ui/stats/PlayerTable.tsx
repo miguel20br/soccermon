@@ -3,6 +3,7 @@ import type { Position } from '../../engine/attributes';
 import type { PlayerLine } from '../../engine/match-stats';
 import type { Dict } from '../../i18n';
 import { useT } from '../../i18n/react';
+import { HudIcon } from '../components/MatchHud';
 import { cardSprite } from '../components/PokeCard';
 import { awayC, homeC } from './StatsCharts';
 
@@ -112,7 +113,9 @@ export function PlayerTable({ lines, names }: { lines: PlayerLine[]; names: [str
                                         }
                                     >
                                         {c.label}
-                                        {sort.key === c.key ? (sort.desc ? ' ▼' : ' ▲') : ''}
+                                        {sort.key === c.key && (
+                                            <HudIcon kind={sort.desc ? 'down' : 'up'} className="st-sort" />
+                                        )}
                                     </button>
                                 </th>
                             ))}

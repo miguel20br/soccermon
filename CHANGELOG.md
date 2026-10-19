@@ -2,6 +2,12 @@
 
 ## 0.8.8 · Ícone MVP, melhores momentos, medalhas e treinadores
 
+### Copa do Dia e Liga
+- Copa do Dia: a mesma copa pra todo mundo (mesmo draft, mesmos rivais), uma tentativa por dia e ranking do dia. Sem conta, você joga fora do ranking
+- Compartilhe a sua Copa do Dia com os quadradinhos de cada partida e acompanhe os dias jogados na semana
+- Liga ranqueada: o time da sua copa vira um fantasma que outros enfrentam; você joga contra os deles e sobe no Elo, com divisões (Bronze, Prata, Ouro e Lenda) e temporada mensal (precisa de conta Google)
+- Na Liga o placar que vale é o do servidor: ele refaz a partida com as suas ordens
+
 ### Balanceamento: Ala e Pivô
 - A nota do Ala agora conta o chute e a do Pivô, a velocidade (o jogo já usava os dois em quadra)
 - Nerf e ajuste: Jolteon Ala 92 ⇒ 88, Alakazam Ala 87 ⇒ 83, Electrode Ala 84 ⇒ 80, Gengar Ala 86 ⇒ 83, Pikachu Ala 66 ⇒ 63, Dragonite Pivô 90 ⇒ 89
@@ -33,6 +39,8 @@
 ### Tela inicial
 - Tela inicial com mais vida: selo AO VIVO na quadra, logo respirando e os blocos entrando em cascata (para com "reduzir movimento")
 - Página de erro nova: o Psyduck perdeu a bola pra fora da quadra
+- Logo novo: a carta holo com a bola (também na aba do navegador, no ícone do celular e na prévia do link)
+- Ícones padronizados: fechar, setas, estrela, sortear e o resto desenhados no mesmo traço em todo o jogo
 
 ### Medalhas e clube
 - 20 medalhas com degraus (bronze, prata, ouro e platina) em Perfil → Medalhas. Já contam tudo o que você jogou

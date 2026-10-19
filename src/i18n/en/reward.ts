@@ -7,7 +7,7 @@ export const reward: typeof pt = {
     whoLearns: 'Who learns the move?',
     whoHolds: 'Who will hold the item?',
     choose: 'Choose a reward',
-    reroll: '↻ Reroll ({n})',
+    reroll: 'Reroll ({n})',
     skip: 'Skip (+1 reroll)',
     tip: 'You won! Take a rival Pokémon, an item or a TM. Skipping gives +1 reroll.',
     fromClub: 'From {club}',

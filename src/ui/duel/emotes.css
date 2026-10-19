@@ -45,10 +45,11 @@
 }
 .emote-btn.mute.on {
     border-color: var(--red);
+    color: #ff7a7a;
 }
 .emote-svg {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
 }
 
 /* o emote: o capitão grandão saindo do lado de quem mandou, embaixo do placar */

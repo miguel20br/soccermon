@@ -3,6 +3,8 @@ import portraits from '../../data/portraits.json';
 import { EventBus } from '../../game/EventBus';
 import type { MatchHighlight as Highlight } from '../../game/scenes/MatchScene';
 import { useT } from '../../i18n/react';
+import { ShinySpark } from '../profile/icons';
+import { HudIcon } from './MatchHud';
 
 const EMOTIONS = portraits as Record<string, string[]>;
 /** Quanto tempo (real) a faixa fica na tela; a evolução do rival fica mais (era 2,6 s). */
@@ -51,13 +53,13 @@ export function MatchHighlight({ teamNames, colors }: { teamNames: [string, stri
                         <img className="pixel" src={portraitOf(shown.outSpeciesId, 'sub')} alt="" />
                     </div>
                     <span className="mh-arrow" aria-hidden>
-                        ➜
+                        <HudIcon kind="next" />
                     </span>
                 </>
             )}
             <div className="mh-face">
                 <img className="pixel" src={portraitOf(shown.speciesId, shown.kind)} alt="" />
-                {shown.shiny && <span className="mh-shiny">✦</span>}
+                {shown.shiny && <ShinySpark className="mh-shiny" />}
             </div>
             <div className="mh-text">
                 {/* evolução do rival: o nome do time (na cor dele) no lugar de "RIVAL" */}

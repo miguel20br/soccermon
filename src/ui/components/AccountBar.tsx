@@ -6,6 +6,7 @@ import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { privacyUrl } from '../links';
 import { trainerLabel, useAvatar } from '../profile/club';
+import { HudIcon } from './MatchHud';
 
 const STATUS_KEY = {
     off: null,
@@ -131,6 +132,7 @@ export function AccountBar() {
                     <b>{trainerLabel(profile, user.name)}</b>
                     <span className={`muted${status === 'error' ? ' error-text' : ''}`}>
                         {STATUS_KEY[status] ? t(STATUS_KEY[status]) : ''}
+                        {status === 'saved' && <HudIcon kind="check" className="acc-ok" />}
                     </span>
                 </span>
             </button>

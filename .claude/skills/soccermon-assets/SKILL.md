@@ -19,10 +19,11 @@ metade disto são armadilhas que custaram horas.
 | Sons gerados da abertura | `trailer/montagem/abertura-sons.sh` | chamado pelo `preparar.sh` |
 | Sons gravados (CC0) | `trailer/sons/` + `CREDITOS.md` | — |
 | Clipes de gameplay | `scripts/trailer-hunt.ts`, `scripts/trailer-capture.mjs`, `scripts/trailer-peaks.ts`, `scripts/trailer-uau.mjs`, cenas em `src/ui/trailer-scenes.ts` | ver "Gravar lances" |
-| Logo | `trailer/arte/logo/hibridos.py` (função `evolucao`), letras de `gerar.py`/`titulos.py` | `python3 hibridos.py`; PNG com `node render-svg.mjs <svg>` (`FUNDO=`, `ESCALA=`) |
+| Logo (final, 19/10/2026) | `trailer/arte/logo/final/logo.py` (letras de `gerar.py`) | `python3 trailer/arte/logo/final/logo.py && node trailer/arte/logo/final/publicar.mjs` (copia pro `public/` e pras artes); PNG de conferência com `node trailer/arte/logo/final/render.mjs` |
 | Capas, prévia do link, avatar, banner | `docs/marketing/arte/arte.html` (+ `src/`) | `node docs/marketing/arte/render.mjs` → `docs/marketing/*.png` e `public/og-image.jpg` |
 | Textos dos posts | `docs/marketing/posts.md` | à mão |
-| Ícones do jogo / favicon | `public/assets/ui/icone.svg`, `icon-*.png`, `apple-touch-icon.png` | a partir do `icone.svg` do logo |
+| Ícones do jogo / favicon | `public/assets/ui/icone.svg`, `favicon.svg`, `simbolo.svg`, `icon-*.png`, `apple-touch-icon.png`, `public/favicon.ico` | `publicar.mjs` (o 16 px é desenhado à mão na grade, `arq_icone_16` do `logo.py`) |
+| Brand guide | `docs/marca/brand-guide.md` + `docs/marca/index.html` | `node docs/marca/montar.mjs --copiar` (galeria de ícones + cópia em `~/Downloads/soccermon-brand-guide/`) |
 
 Fora do git (pesado ou com direito de terceiros): música, clipes, vídeos finais. No celular ficam em
 `/sdcard/Movies/Soccermon-trailer/` (clipes `1-…` a `8-…` e `final/`); cópia no Drive do Miguel, pasta
@@ -30,11 +31,19 @@ Fora do git (pesado ou com direito de terceiros): música, clipes, vídeos finai
 
 ## O gosto do Miguel (decidido com ele; respeite)
 
-- **Identidade:** logo "Evolução": SOCC em silhueta branca, ERMON dourado 3D, o O é uma **carta holográfica com a
-  bola**, raios da tela de evolução atrás. Tagline **"Temos que chutar!" / "Gotta kick 'em all!"**. Fonte de texto
+- **Identidade:** logo final (19/10/2026, "sobre a logo, perfeito"): SOCC branco, ERMON dourado com bloco 3D azul,
+  o O é a **carta holo com a bola** (bola de futebol de verdade com faixa e botão dourado). **Vetor limpo:** contorno
+  azul-noite firme, cores chapadas, sem degradê nem brilho borrado (o título também). Regras de uso em
+  `docs/marca/brand-guide.md`; checklist em `.claude/skills/soccermon-marca/SKILL.md`. Tagline **"Temos que chutar!" / "Gotta kick 'em all!"**. Fonte de texto
   dos vídeos: Galmuri11 Bold (pixel). Fundo de marca: azul-noite radial `#2a3a7a → #070a18` + raios cônicos.
-- **Taglines/textos:** ele detesta frase "de IA" (tricolon tipo "Monte. Escale. Evolua."). Quer humor de fã,
-  paródia de bordão, piada com Pokémon ("O Snorlax fecha o gol", "O Ditto joga em todas as posições").
+- **Taglines/textos:** ele detesta frase "de IA" (tricolon tipo "Monte. Escale. Evolua."). **Legenda de vídeo =
+  2 a 5 palavras em caixa alta dizendo a feature, sem gracinha:** "ESCOLHA 1 DE 3", "ÍCONES RAROS", "FUTSAL 5 CONTRA
+  5", "EVOLUÇÕES NO MEIO DO JOGO", "MULTIPLAYER ONLINE", "COPA RANKEADA". No trailer 2 ele cortou as irônicas
+  ("CHAMA AQUELE AMIGO QUE DIZ QUE É MESTRE POKÉMON", "ELE EVOLUIU NO MEIO DO JOGO?!": "feitas com IA, irônicas
+  demais e com muito texto"). O humor de fã fica pra momentos pontuais (o twist da abertura "…e elas JOGAM
+  FUTSAL.", a tagline "Temos que chutar!") e pros posts, nunca empilhado, de preferência paródia de coisa real
+  ("ABAIXA QUE É HYPER BEAM"). Método completo: `docs/marca/brand-guide.md`, seção 4. Conferir:
+  `python3 -I .claude/skills/soccermon-marca/copy_ia.py --legenda <arquivo>`.
 - **Logo:** mostrar 3 conceitos bem diferentes, depois misturas; ele escolhe. Minimalista demais foi rejeitado
   ("tão simples, queria um negócio mais criativo").
 - **Clipes de jogo:** sem nomes em cima dos Pokémon e sem textos do jogo (o texto vem da edição). Versão "uau":

@@ -7,6 +7,7 @@ import { blockText, faqEntries, type HelpBlock, helpSections, normalize } from '
 import { resetTips } from '../help/Tip';
 import { FEEDBACK_URL } from '../links';
 import '../help/help.css';
+import { HudIcon } from '../components/MatchHud';
 
 /** `**negrito**` → <b>. */
 function rich(text: string): ReactNode {
@@ -39,15 +40,6 @@ function Block({ block }: { block: HelpBlock }) {
                 ),
             )}
         </ul>
-    );
-}
-
-function SearchIcon() {
-    return (
-        <svg viewBox="0 0 16 16" className="help-search-icon" aria-hidden="true">
-            <circle cx="6.8" cy="6.8" r="4.6" />
-            <path d="M10.3 10.3L14 14" />
-        </svg>
     );
 }
 
@@ -112,7 +104,7 @@ export function Help() {
             </div>
 
             <label className="help-search">
-                <SearchIcon />
+                <HudIcon kind="search" className="help-search-icon" />
                 <span className="help-sr-only">{tx.searchLabel}</span>
                 <input
                     type="search"
@@ -153,9 +145,7 @@ export function Help() {
                                     loading="lazy"
                                 />
                                 <span>{section.title}</span>
-                                <svg viewBox="0 0 16 16" className="help-caret" aria-hidden="true">
-                                    <path d="M4 6l4 4 4-4" />
-                                </svg>
+                                <HudIcon kind="down" className="help-caret" />
                             </summary>
                             <div className="help-body">
                                 {section.blocks.map((b, i) => (
@@ -182,9 +172,7 @@ export function Help() {
                             >
                                 <summary>
                                     <span>{f.q}</span>
-                                    <svg viewBox="0 0 16 16" className="help-caret" aria-hidden="true">
-                                        <path d="M4 6l4 4 4-4" />
-                                    </svg>
+                                    <HudIcon kind="down" className="help-caret" />
                                 </summary>
                                 <div className="help-body">
                                     {f.a.map((b, i) => (

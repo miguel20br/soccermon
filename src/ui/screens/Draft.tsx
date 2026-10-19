@@ -286,6 +286,7 @@ export function Draft() {
                                     setSelected(null);
                                 }}
                             >
+                                <HudIcon kind="reroll" />
                                 {t('team.draft.reroll', { n: run.rerolls })}
                             </button>
                         </div>

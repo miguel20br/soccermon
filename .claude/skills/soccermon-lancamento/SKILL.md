@@ -15,6 +15,10 @@ então **nada vai pra `main` sem o "pode subir" do Miguel** na conversa, mesmo c
    minutos; o link fixo de cada deploy sai em `gh api repos/miguel20br/soccermon/deployments?per_page=5`.
 2. **Motor mudou?** (mesma seed + mesmas ordens dão outro jogo: balanceamento, regra, golpe, contas) → suba
    `ENGINE_VERSION` em `src/engine/config.ts`. Partida salva no meio com outra versão recomeça do 0 a 0.
+   **E refaça a Edge Function da Liga** (ela leva o motor empacotado e recusa partida de outra versão):
+   `npm run edge:liga` e, junto com o push na `main`,
+   `npx -y supabase@latest functions deploy liga --project-ref vszcxacbcabohhdwxfpb --use-api` (token
+   `SUPABASE_ACCESS_TOKEN` do `.env.local`). Confira com uma partida da Liga no ar.
 3. **Save mudou de formato?** → migração em `src/store/` (`migrateSave`, `SAVE_VERSION`) + teste.
 4. **Checagens:** `npx tsc --noEmit -p .`, `npm run lint` (0 erro), `npx vitest run --maxWorkers=2` (a máquina tem
    7,5 GB), `npm run build`. Se o equilíbrio mudou, `npm run calibrate -- --n 400` (ver skill
