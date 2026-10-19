@@ -27,7 +27,7 @@ SOMBRA_BOLA = "#dbe2f2"
 MONO = {"branco": "#ffffff", "azul": "#0b1030"}
 CW, CH = 150, 210  # carta, em unidades locais
 R = 56  # raio da bola
-INCLINA = -2  # faixa quase reta: com a carta girada -8°, fica a -10° na tela
+INCLINA = -2  # a bola inteira (gomos e faixa juntos) gira isso: com a carta a -8°, fica a -10° na tela
 
 
 def n(v):
@@ -58,9 +58,13 @@ def _girar(v, eixo, ang):
     return tuple(v[i] * c + cruz[i] * s + eixo[i] * d * (1 - c) for i in range(3))
 
 
-def _bola_3d(alvo, giro):
+def _bola_3d(alvo=None, giro=0.0):
     """Centros dos 12 pentágonos (vértices do icosaedro) e os vértices do icosaedro truncado, girados de modo que um
-    pentágono olhe pra `alvo` (direção na tela: x direita, y baixo, z pra quem olha)."""
+    pentágono olhe pra `alvo` (direção na tela: x direita, y baixo, z pra quem olha).
+
+    alvo=None: sem giro. Aí quem olha está no eixo de ordem 2 do icosaedro (z, o meio da costura entre dois
+    hexágonos, que fica atrás do botão): o desenho é simétrico em cima/embaixo e esquerda/direita, porque trocar o
+    sinal de x ou de y leva o icosaedro nele mesmo. Pentágono inteiro em cima e embaixo da faixa, meios nas bordas."""
     ico = []
     for a, b in itertools.product((-1, 1), repeat=2):
         ico += [(0, a, b * FI), (a, b * FI, 0), (b * FI, 0, a)]
@@ -69,12 +73,17 @@ def _bola_3d(alvo, giro):
            for i in range(12)}
     # rotação que leva o pentágono 0 até o alvo, depois giro em torno do alvo
     a = ico[0]
+    sem_giro = alvo is None
+    alvo = alvo or (0.0, 0.0, 1.0)
     eixo = (a[1] * alvo[2] - a[2] * alvo[1], a[2] * alvo[0] - a[0] * alvo[2], a[0] * alvo[1] - a[1] * alvo[0])
     ang = math.acos(max(-1, min(1, sum(x * y for x, y in zip(a, alvo)))))
     eixo = _norm(eixo)
 
     def rot(v):
         return _girar(_girar(v, eixo, ang), alvo, giro)
+    if sem_giro:
+        def rot(v):  # noqa: F811
+            return v
     vert = {}  # (i, j): vértice do truncado na aresta i->j, perto de i
     for i in range(12):
         for j in viz[i]:
@@ -97,7 +106,7 @@ def _bola_3d(alvo, giro):
 
 def bola(cor=None, borda=6.0, detalhe=True):
     """Bola na origem, raio R. cor=None: colorida; cor='#…': uma cor só (o branco fica vazado)."""
-    pent, pontes = _bola_3d(_norm((0.0, -0.6, 0.8)), math.radians(36))  # pentágono inteiro logo acima da faixa, simétrico
+    pent, pontes = _bola_3d()  # simétrica em relação à faixa e ao botão
     t = cor or NAVY
 
     def tela(v):  # projeção ortográfica; o que está atrás vai pra borda
@@ -114,17 +123,18 @@ def bola(cor=None, borda=6.0, detalhe=True):
     meia, folga = 0.16 * R, borda * 0.7
 
     def faixa(cor_folga, cor_faixa):  # a faixa com um respiro branco em volta: separa dos gomos e lê como pokébola
-        return (f'<g transform="rotate({INCLINA})"><rect x="{n(-R * 1.2)}" y="{n(-meia - folga)}" width="{n(R * 2.4)}" '
+        return (f'<rect x="{n(-R * 1.2)}" y="{n(-meia - folga)}" width="{n(R * 2.4)}" '
                 f'height="{n(2 * (meia + folga))}" fill="{cor_folga}"/>'
-                f'<rect x="{n(-R * 1.2)}" y="{n(-meia)}" width="{n(R * 2.4)}" height="{n(2 * meia)}" fill="{cor_faixa}"/></g>')
+                f'<rect x="{n(-R * 1.2)}" y="{n(-meia)}" width="{n(R * 2.4)}" height="{n(2 * meia)}" fill="{cor_faixa}"/>')
     rb = 0.35 * R
     sid = (cor or "").lstrip("#")
     clip = f'<clipPath id="bc{sid}"><circle r="{R}"/></clipPath>'
 
     def padrao(t, fundo):
-        return (f'<g clip-path="url(#bc{sid})"><g fill="{t}">{poli}</g>'
+        # o conjunto todo (gomos, costuras e faixa) gira junto: a simetria fica
+        return (f'<g clip-path="url(#bc{sid})"><g transform="rotate({INCLINA})"><g fill="{t}">{poli}</g>'
                 + (f'<g stroke="{t}" stroke-width="{n(costura)}" stroke-linecap="round" fill="none">{linhas}</g>' if detalhe else "")
-                + faixa(fundo, t) + '</g>')
+                + faixa(fundo, t) + '</g></g>')
     if cor:
         # uma cor só: tudo que é tinta numa máscara; o miolo do botão vaza e sobra o ponto do meio
         return (clip + f'<mask id="bm{sid}">{padrao("#fff", "#000")}'
@@ -262,6 +272,11 @@ def arq_icone_16():
     return gravar("logo-icone-16.svg", "0 0 16 16", f'<g shape-rendering="crispEdges">{rects}</g>')
 
 
+def arq_bola():
+    """Só a bola do logo (a da página 404)."""
+    return gravar("logo-bola.svg", f"{-R - 1} {-R - 1} {2 * R + 2} {2 * R + 2}", bola())
+
+
 def letra(ch, i, u, cor):
     d = ESQ[ch]
     est = 'fill="none" stroke-linejoin="round" stroke-linecap="round"'
@@ -301,7 +316,7 @@ def arq_horizontal(cor=None, sufixo=""):
 
 
 def main():
-    feitos = [arq_simbolo(), arq_icone(), arq_icone_pequeno(), arq_icone_16(), arq_horizontal()]
+    feitos = [arq_simbolo(), arq_icone(), arq_icone_pequeno(), arq_icone_16(), arq_bola(), arq_horizontal()]
     for nome, cor in MONO.items():
         feitos += [arq_simbolo(cor, f"-mono-{nome}"), arq_icone(cor, f"-mono-{nome}"), arq_horizontal(cor, f"-mono-{nome}")]
     pedidos = []

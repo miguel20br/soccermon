@@ -17,6 +17,7 @@ const copias = [
     ['logo-icone.svg', join(ui, 'icone.svg')],
     ['logo-icone-pequeno.svg', join(ui, 'favicon.svg')],
     ['logo-simbolo.svg', join(ui, 'simbolo.svg')],
+    ['logo-bola.svg', join(ui, 'bola.svg')],
     ['logo-horizontal.svg', join(arte, 'logo.svg')],
     ['logo-icone.svg', join(arte, 'icone.svg')],
 ];
