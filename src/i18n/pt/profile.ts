@@ -350,7 +350,7 @@ export const profile = {
             goleada: 'Vença por 5 gols de diferença ou mais',
             triangulo: 'Vença com Bulbasaur, Charmander e Squirtle (ou evoluções) titulares',
             genese: 'Vença com Mew e Mewtwo titulares',
-            oak: 'Veja 100 Pokémon na Pokédex',
+            oak: 'Veja os 151 Pokémon na Pokédex',
             mestrePokemon: 'Veja os 151 Pokémon na Pokédex',
             supernerd: 'Descubra 50 golpes na Golpedex',
             golpes: 'Descubra 100 golpes na Golpedex',

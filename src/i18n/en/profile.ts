@@ -348,7 +348,7 @@ export const profile: typeof pt = {
             goleada: 'Win by 5 goals or more',
             triangulo: 'Win with Bulbasaur, Charmander and Squirtle (or evolutions) starting',
             genese: 'Win with Mew and Mewtwo starting',
-            oak: 'See 100 Pokémon in the Pokédex',
+            oak: 'See all 151 Pokémon in the Pokédex',
             mestrePokemon: 'See all 151 Pokémon in the Pokédex',
             supernerd: 'Discover 50 moves in the Movedex',
             golpes: 'Discover 100 moves in the Movedex',

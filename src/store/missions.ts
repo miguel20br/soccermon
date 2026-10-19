@@ -496,7 +496,7 @@ export const MISSIONS: Mission[] = [
         has: (s) => hallWith(s, [150, 151]),
     },
     // Coleção
-    { id: 'oak', group: 'colecao', trainer: 'oak', title: 'colecionador', goal: 100, count: seen },
+    { id: 'oak', group: 'colecao', trainer: 'oak', title: 'colecionador', goal: 151, count: seen },
     { id: 'mestrePokemon', group: 'colecao', title: 'mestrePokemon', goal: 151, count: seen },
     { id: 'supernerd', group: 'colecao', trainer: 'supernerd', goal: 50, count: (s) => Object.keys(s.moves).length },
     { id: 'golpes', group: 'colecao', title: 'golpes', goal: 100, count: (s) => Object.keys(s.moves).length },

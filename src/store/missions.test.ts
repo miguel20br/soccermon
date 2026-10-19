@@ -239,10 +239,10 @@ describe('save antigo (v6)', () => {
         expect(out.profile.trainer).toBe('red');
         expect(out.profile.title).toBe('pallet');
         expect(out.profile.redeemedTitles).toEqual([]);
-        // título → Blue; copa perfeita → Ash; Dragonite campeão → Lance; 100 vistos → Prof. Carvalho; 11 gols → Biker
-        expect(out.profile.missionsDone).toEqual(expect.arrayContaining(['blue', 'ash', 'lance', 'oak', 'biker']));
+        // título → Blue; copa perfeita → Ash; Dragonite campeão → Lance; 11 gols → Biker (o Carvalho pede os 151 vistos)
+        expect(out.profile.missionsDone).toEqual(expect.arrayContaining(['blue', 'ash', 'lance', 'biker']));
         expect(earnedTitles(out.profile)).toEqual(
-            expect.arrayContaining(['pallet', 'campeao', 'perfeita', 'dragao', 'colecionador']),
+            expect.arrayContaining(['pallet', 'campeao', 'perfeita', 'dragao']),
         );
     });
 
