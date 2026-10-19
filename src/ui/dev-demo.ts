@@ -2,12 +2,15 @@ import { type LinkAsk, useCloud } from '../cloud/cloud';
 import type { SaveSummary } from '../cloud/reconcile-plan';
 import { ENGINE_VERSION, FUTSAL_5 } from '../engine/config';
 import { clubLeader, cupRival } from '../engine/cup';
+import { species } from '../engine/data';
 import { aiDraftTeam } from '../engine/draft';
-import { createInstance } from '../engine/instance';
+import { createInstance, type PokemonInstance } from '../engine/instance';
 import { rewardOptions } from '../engine/rewards';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
+import { EVENT_TYPES, ICONS, type Special } from '../engine/specials';
 import { EventBus } from '../game/EventBus';
+import { type BinderCard, binderAdd } from '../store/binder';
 import { playerTeam, useGame } from '../store/game-store';
 import { agencyOn } from './settings-sync';
 import { isTrailerScene, trailerPicks } from './trailer-scenes';
@@ -23,7 +26,8 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * partida que a caça de lances (scripts/trailer-hunt.ts) escolheu para o trailer. `?demo=escanteio` monta um time de
  * grandalhões cuja primeira partida tem escanteio seu com disputa no alto logo no começo. `?demo=colecao` põe no save uma
  * carreira de mentira (medalhas em vários degraus, coleções, selos, escudo e uniforme listrado, vitrine cheia) e abre o
- * Perfil (`&perfil=medalhas` abre na aba); `&novo=1` deixa o clube no padrão (pra ver o editor do zero).
+ * Perfil (`&perfil=medalhas` abre na aba); `&novo=1` deixa o clube no padrão (pra ver o editor do zero). `?demo=fichario`
+ * enche o fichário (edições, Shiny, campeãs, cartas comuns), escolhe 3 pra vitrine e abre o Perfil na aba Fichário.
  * `?demo=lider&clube=<id>` (brock,
  * misty, ltsurge, erika, koga, sabrina, blaine, giovanni, agatha, lance) põe o clube desse treinador na primeira
  * partida (VERSUS com a fala, a quadra do ginásio); com `&agencia=1`, uma partida em que o rival reage cedo.
@@ -50,6 +54,7 @@ export function runDevDemo() {
         demo !== 'conta' &&
         demo !== 'lider' &&
         demo !== 'colecao' &&
+        demo !== 'fichario' &&
         demo !== 'dia' &&
         demo !== 'liga' &&
         demo !== 'platina' &&
@@ -62,6 +67,10 @@ export function runDevDemo() {
     const store = useGame.getState();
     if (demo === 'colecao') {
         demoCollection();
+        return;
+    }
+    if (demo === 'fichario') {
+        demoBinder();
         return;
     }
     // Copa do Dia e Liga com um servidor de mentira (src/league/demo.ts): `?demo=dia[&estado=feito]`, `?demo=liga`
@@ -489,5 +498,45 @@ function demoCollection() {
                   }),
         },
     });
+    g.go('profile');
+}
+
+/** `?demo=fichario`: fichário cheio (edições, Shiny, nota alta, campeãs e comuns) e vitrine com 3 cartas. */
+function demoBinder() {
+    const rng = new Rng('demo-fichario');
+    const ICON_IDS = [25, 6, 150, 94, 143, 149, 131, 65];
+    let binder: BinderCard[] = [];
+    const now = Date.now();
+    for (let i = 0; i < 90; i++) {
+        const id = i < 8 ? ICON_IDS[i] : 1 + Math.floor(rng.next() * 151);
+        let p: PokemonInstance = { ...createInstance(id, rng), uid: `demo-${i}` };
+        const type = species(id).types[0];
+        const special: Special | null =
+            i < 8
+                ? { kind: 'icone', title: ICONS[id], ...(i % 3 === 0 && { level: 2 }) }
+                : i % 7 === 0 && EVENT_TYPES.includes(type)
+                  ? { kind: 'evento', type }
+                  : i % 11 === 0
+                    ? { kind: 'destaque', level: 2 }
+                    : i % 13 === 0
+                      ? { kind: 'destaque' }
+                      : null;
+        if (special) p = { ...p, special };
+        if (i % 9 === 4) p = { ...p, shiny: true };
+        binder = binderAdd(binder, [p], {
+            from: (['draft', 'recompensa', 'evolucao', 'hall'] as const)[i % 4],
+            at: now - i * 3_600_000,
+            cup: `demo-${Math.floor(i / 7)}`,
+            champ: i % 5 === 0,
+        });
+    }
+    const g = useGame.getState();
+    const pick = [...binder].sort((a, b) => Number(!!b.card.special) - Number(!!a.card.special)).slice(0, 3);
+    useGame.setState({ binder, profile: { ...g.profile, cardShowcase: pick.map((c) => c.id) } });
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has('perfil')) {
+        url.searchParams.set('perfil', 'fichario');
+        window.history.replaceState(null, '', url);
+    }
     g.go('profile');
 }

@@ -1,14 +1,35 @@
 import { useMemo } from 'react';
 import { buildCupOpponents } from '../../engine/cup';
+import { species } from '../../engine/data';
+import { monRecipe } from '../../engine/duel-validate';
+import { defaultMoveset } from '../../engine/moves';
+import type { Special } from '../../engine/specials';
 import { useT } from '../../i18n/react';
+import { parseCardShowcase } from '../../store/binder';
 import { lookOfPeer, lookOfProfile, matchLooks } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
 import { frameTier, parseShowcase } from '../../store/medals';
 import { clubColorHex } from '../../store/profile';
+import { useCardShowcase } from '../profile/BinderTab';
 import { trainerLabel, useAvatar } from '../profile/club';
 import { useShowcase } from '../profile/Medals';
 import { Scoreboard } from './MatchHud';
 import { VersusIntro } from './VersusIntro';
+
+/** Carta de mentira do rival, como viria da sala (receita). */
+const fake = (id: number, special: Special | null, shiny = false) =>
+    monRecipe({
+        uid: `lab-${id}`,
+        speciesId: id,
+        level: 50,
+        xp: 0,
+        moves: defaultMoveset(species(id)),
+        ability: id === 132 ? 'imposter' : species(id).abilities[0],
+        shiny,
+        nickname: null,
+        condition: 1,
+        special,
+    });
 
 /** Rival de mentira do Duelo: vem como viria da sala (ids e vitrine já com o degrau). */
 const RIVAL = {
@@ -18,6 +39,14 @@ const RIVAL = {
     crestShape: 'hexagono',
     crestSymbol: 'chama',
     showcase: ['m:campeao:4', 'c:colPassaros', 's:6:holo'],
+    // lixo na frente (espécie que não existe, texto) é ignorado: ficam as 3 cartas de verdade
+    cards: [
+        { speciesId: 999 },
+        'lixo',
+        fake(6, { kind: 'icone', title: 'Charizard Rebelde', level: 2 }),
+        fake(150, null, true),
+        fake(59, { kind: 'evento', type: 'Fire' }),
+    ],
 };
 
 /**
@@ -29,6 +58,7 @@ export function VersusLab({ onExit }: { onExit: () => void }) {
     const profile = useGame((s) => s.profile);
     const avatar = useAvatar();
     const mine = useShowcase();
+    const myCards = useCardShowcase().insts;
     const { t } = useT();
     const params = new URLSearchParams(window.location.search);
     const clash = params.get('clash') === '1';
@@ -61,11 +91,13 @@ export function VersusLab({ onExit }: { onExit: () => void }) {
                         avatarGoogle: avatar.google,
                         showcase: mine.items,
                         frame: mine.frame,
+                        cards: myCards,
                     }}
                     awayCoach={{
                         name: 'Gary',
                         avatar: 'assets/avatars/6.gif',
                         showcase: rivalShow,
+                        cards: parseCardShowcase(RIVAL.cards),
                         frame: frameTier(rivalShow),
                     }}
                     homeLook={looks[0]}

@@ -2,7 +2,7 @@ import { type CSSProperties, useEffect, useRef } from 'react';
 import { CLUBS, clubLeader } from '../../engine/cup';
 import { species } from '../../engine/data';
 import { formationOf } from '../../engine/formations';
-import { viewInstance } from '../../engine/instance';
+import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import type { TeamSetup } from '../../engine/state';
 import { GYM_TM } from '../../engine/tm';
 import { playSfx } from '../../game/audio';
@@ -13,6 +13,7 @@ import { useGame } from '../../store/game-store';
 import type { ShowItem, Tier } from '../../store/medals';
 import { activeTrainer, leaderTrainerOf, type TrainerId, trainerFx, trainerSrc } from '../../store/missions';
 import { tagFromName } from '../../store/profile';
+import { CardShowcaseRow } from '../profile/BinderTab';
 import { Crest, kitOverlay } from '../profile/Crest';
 import { useClubColor } from '../profile/club';
 import { frameClass, ShowcaseRow } from '../profile/Medals';
@@ -94,6 +95,8 @@ export interface VsCoach {
     /** Vitrine de 3 destaques e a moldura do avatar (o melhor degrau dela). */
     showcase?: ShowItem[];
     frame?: Tier;
+    /** Vitrine de cartas (até 3, já validadas). */
+    cards?: PokemonInstance[];
 }
 
 function Side({
@@ -149,8 +152,14 @@ function Side({
                                             <span className={coach.titleLook || undefined}>{coach.title}</span>
                                         </small>
                                     )}
-                                    {coach.showcase && <ShowcaseRow items={coach.showcase} className="vsp-showcase" />}
                                 </span>
+                            </div>
+                        )}
+                        {/* vitrine: medalhas e cartas na mesma fileira, embaixo do treinador */}
+                        {(!!coach?.showcase?.length || !!coach?.cards?.length) && (
+                            <div className="vsp-shows">
+                                {coach.showcase && <ShowcaseRow items={coach.showcase} className="vsp-showcase" />}
+                                {coach.cards && <CardShowcaseRow insts={coach.cards} className="vsp-cards" />}
                             </div>
                         )}
                     </div>
