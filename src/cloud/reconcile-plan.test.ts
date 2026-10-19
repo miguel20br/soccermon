@@ -163,6 +163,13 @@ describe('mergeSaves: junção sem perder copa', () => {
         expect(m.moves).toEqual({ tackle: 3, ember: 2 });
     });
 
+    it('sequência de títulos em curso vem do lado que vale (perdeu no celular, o PC não ressuscita); a melhor junta', () => {
+        const pc = save({ records: { cups: 3, titles: 3, perfect: 0, streak: 3, bestStreak: 3 } });
+        const phone = save({ records: { cups: 4, titles: 3, perfect: 0, streak: 0, bestStreak: 3 } });
+        expect(mergeSaves(pc, phone, 'cloud').records).toMatchObject({ streak: 0, bestStreak: 3, cups: 4 });
+        expect(mergeSaves(pc, phone, 'device').records).toMatchObject({ streak: 3, bestStreak: 3 });
+    });
+
     it('figurinhas do álbum juntam com OU nos dois sentidos', () => {
         const withEd = (editions: number) => ({ 25: { ...dex(25)[25], editions } });
         const local = save({ dex: withEd(EDITION_BIT.shiny) });

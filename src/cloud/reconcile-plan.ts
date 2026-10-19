@@ -165,12 +165,15 @@ export function mergeSaves(
         parked.push(v);
     }
 
+    const records = mergeRecords(local.records, cloud?.records);
+    // a sequência de títulos em curso é a do lado que vale: perder num aparelho zera, e o maior dos dois a ressuscitava
+    if (k.records) records.streak = k.records.streak;
     const profileSrc = k.profile ?? o.profile;
     // o perfil é o de `keep`, mas treinadores e títulos liberados nos dois lados continuam liberados
     return withUnlocks({
         run: run ?? null,
         settings: mergeSettings(local.settings, cloud?.settings, keep),
-        records: mergeRecords(local.records, cloud?.records),
+        records,
         profile: mergeProfileUnlocks(
             { ...DEFAULT_PROFILE, ...(profileSrc ?? local.profile) },
             profileSrc === local.profile ? cloud?.profile : local.profile,
