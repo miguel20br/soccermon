@@ -273,8 +273,9 @@ def arq_icone_16():
 
 
 def arq_bola():
-    """Só a bola do logo (a da página 404)."""
+    """Só a bola do logo: 404 e a bolinha que rola na quadra da Home (lê bem até 12 px girando)."""
     return gravar("logo-bola.svg", f"{-R - 1} {-R - 1} {2 * R + 2} {2 * R + 2}", bola())
+
 
 
 def letra(ch, i, u, cor):
