@@ -21,6 +21,7 @@ import { FutCard } from '../components/FutCard';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { cardSprite } from '../components/PokeCard';
 import { type HeroStat, ResultHero } from '../components/ResultHero';
+import { UnlockStrip } from '../components/UnlockNotice';
 import { FEEDBACK_URL } from '../links';
 import { useClubColor } from '../profile/club';
 import { shareRun } from '../share';
@@ -169,6 +170,7 @@ export function Result() {
                     actions={actions}
                 />
             )}
+            <UnlockStrip />
             {champion && <h2 className="champ-h champ-final-h">{t('result.finalDetails')}</h2>}
 
             <MatchDetails

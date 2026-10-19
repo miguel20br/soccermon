@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react';
 import { useCloud } from '../../cloud/cloud';
 import { dict, fmt, getLang, t } from '../../i18n';
 import { useGame } from '../../store/game-store';
-import type { Mission, TrainerId } from '../../store/missions';
+import { DEFAULT_TITLE, MISSIONS, type Mission, missionOfTrainer, type TrainerId } from '../../store/missions';
 import { type Avatar, bannerOf, clubColorHex, type Profile, rivalColor } from '../../store/profile';
 import { CUSTOM_TITLES, titleClass } from '../../store/title-codes';
 import './club.css';
@@ -60,4 +60,20 @@ export const peerTitle = (p: { title: string; titleId?: string }) => ({
 export function missionText(m: Mission): string {
     const d = dict().profile.missions;
     return m.vars ? fmt(d.gym, m.vars) : (d.text[m.id] ?? m.id);
+}
+
+/** Missão que dá este título (os de Pallet e de código não têm). */
+export const missionOfTitle = (id: string) => MISSIONS.find((m) => m.title === id);
+
+/** Como se ganha o treinador: a tarefa da missão, ou "Desde o começo" (os 4 livres). */
+export function trainerHow(id: TrainerId): string {
+    const m = missionOfTrainer(id);
+    return m ? missionText(m) : t('profile.picker.fromStart');
+}
+
+/** Como se ganha o título: a tarefa da missão, "Desde o começo" (Pallet) ou "Código". */
+export function titleHow(id: string): string {
+    if (id === DEFAULT_TITLE) return t('profile.picker.fromStart');
+    const m = missionOfTitle(id);
+    return m ? missionText(m) : t('profile.picker.byCode');
 }
