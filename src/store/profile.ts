@@ -347,12 +347,20 @@ export function avatarOptions(dex: Dex, g: { from: number; to: number }): { spec
     return out;
 }
 
-/** Álbum de uma lista de espécies: figurinhas coladas e quantas existem. */
-export function albumCount(dex: Dex, list: readonly { id: number; types: readonly string[] }[] = SPECIES) {
+/**
+ * Álbum de uma lista de espécies: figurinhas coladas e quantas existem. A conta única do álbum (Pokédex, ficha,
+ * medalha, platina e as seções do Álbum de cartas, que passam `eds`).
+ */
+export function albumCount(
+    dex: Dex,
+    list: readonly { id: number; types: readonly string[] }[] = SPECIES,
+    eds: readonly AlbumEdition[] = ALBUM_EDITIONS,
+) {
     let got = 0;
     let total = 0;
     for (const sp of list)
         for (const ed of albumSlots(sp)) {
+            if (!eds.includes(ed)) continue;
             total++;
             if (hasSticker(dex[sp.id], ed)) got++;
         }

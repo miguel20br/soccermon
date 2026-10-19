@@ -1,0 +1,258 @@
+/* Álbum de cartas (visão da Pokédex), "Suas cartas" e "Melhor carta" na ficha, e a vitrine de cartas. */
+.al {
+    display: grid;
+    gap: 12px;
+}
+
+/* Pokédex | Álbum */
+.pf-dexview {
+    margin-bottom: 10px;
+}
+.pf-dexview button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+.pf-dexview svg {
+    width: 16px;
+    height: 16px;
+}
+/* o contador de figurinhas da Pokédex leva pro Álbum */
+.pf-album-link {
+    width: 100%;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.pf-album-link:hover {
+    border-color: var(--yellow);
+}
+.pf-album-go {
+    color: var(--yellow);
+    white-space: nowrap;
+}
+
+/* figurinhas da espécie na grade da Pokédex: "3/5" com o ícone de carta */
+.pf-cell-stk {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--muted);
+}
+.pf-cell-stk svg {
+    width: 11px;
+    height: 11px;
+    stroke-width: 3;
+}
+.pf-cell-stk.full {
+    color: var(--yellow);
+}
+
+/* seções do álbum */
+.al-tabs button {
+    display: grid;
+    gap: 1px;
+    line-height: 1.1;
+}
+.al-tabs small {
+    font-size: 10px;
+    opacity: 0.85;
+}
+.al-group {
+    display: grid;
+    gap: 6px;
+}
+.al-group h3 {
+    margin: 4px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+}
+.al-group .pf-count {
+    margin-left: auto;
+}
+
+/* grade de figurinhas: 4 por linha no celular, mais no desktop */
+.al-grid,
+.al-row {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px 6px;
+}
+.al-grid {
+    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+}
+.al-row {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    align-items: start;
+}
+.al-cell {
+    position: relative;
+    width: 100%;
+    display: grid;
+    justify-items: center;
+    gap: 3px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    container-type: inline-size;
+}
+.al-cell .pc2 {
+    font-size: calc(100cqi / 15);
+}
+.al-cell:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+.al-empty {
+    width: 100%;
+    aspect-ratio: 63 / 88;
+    display: grid;
+    place-items: center;
+    border: 2px dashed #364275;
+    border-radius: 6px;
+    background: var(--bg-2);
+}
+.al-empty img,
+.al-empty b {
+    grid-area: 1 / 1;
+}
+.al-empty img {
+    width: 70%;
+    height: auto;
+}
+.al-empty b {
+    font-family: "Galmuri14", monospace;
+    font-size: 18px;
+    color: #5d679a;
+}
+.al-cell small {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+}
+.al-cell.got small {
+    color: var(--text);
+}
+.al-n {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    background: var(--yellow);
+    color: var(--bc-ink);
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: 0 2px 0 #000;
+}
+.al-commons {
+    margin: 0;
+}
+
+/* ficha: a Normal fica como figurinha pequena, do tamanho das cartas */
+.al-normal {
+    width: 100%;
+    aspect-ratio: 63 / 88;
+    align-content: center;
+    padding: 4px 2px;
+    box-sizing: border-box;
+}
+.al-normal img {
+    width: 70%;
+    height: auto;
+}
+
+/* ficha: atalho do topo pras cartas */
+.pf-tocards {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.pf-tocards svg {
+    width: 16px;
+    height: 16px;
+}
+.pf-tocards small {
+    opacity: 0.8;
+}
+.al-yours {
+    scroll-margin-top: 8px;
+}
+
+/* Melhor carta: a carta grande e quando/como veio */
+.al-best-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+}
+.al-best-row .pc2 {
+    font-size: 9px;
+}
+.al-best-info {
+    display: grid;
+    gap: 6px;
+    justify-items: start;
+}
+.al-best-info b {
+    font-family: "Galmuri14", monospace;
+    font-size: 16px;
+}
+@media (min-width: 720px) {
+    .al-best-row .pc2 {
+        font-size: 11px;
+    }
+}
+
+/* vitrine: 3 vagas do tamanho da carta pequena */
+.bd-slots {
+    --fut-w: min(110px, calc((100vw - 76px) / 3));
+    display: grid;
+    grid-template-columns: repeat(3, var(--fut-w));
+    justify-content: center;
+    gap: 8px;
+}
+.bd-slot {
+    width: var(--fut-w);
+    aspect-ratio: 63 / 88;
+    border: 2px dashed var(--line);
+    border-radius: 10px;
+}
+
+/* fileira da vitrine: cartas em miniatura */
+.cardshow {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+.cardshow .fut-wrap.sm {
+    --fut-w: 76px;
+}
+.cardshow .pc2 {
+    font-size: calc(var(--cs-w, 44px) / 15);
+}
+.pf-cardshow {
+    grid-column: 1 / -1;
+}
+@media (min-width: 720px) {
+    .pf-cardshow .fut-wrap.sm {
+        --fut-w: 96px;
+    }
+}

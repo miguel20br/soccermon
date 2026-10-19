@@ -7,97 +7,135 @@ import { readFileSync } from 'node:fs';
 import { mergeSaves } from '../cloud/reconcile-plan';
 import { FUTSAL_5 } from '../engine/config';
 import { CUP_STAGES } from '../engine/cup';
+import { SPECIES } from '../engine/data';
 import { monRecipe } from '../engine/duel-validate';
 import { evolveInstance } from '../engine/evolution';
-import { createInstance, type PokemonInstance, viewInstance } from '../engine/instance';
+import { createInstance, type PokemonInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
 import {
-    BINDER_MAX,
-    BINDER_RECENT,
     type BinderCard,
+    bestOfSpecies,
     binderAdd,
     binderBackfill,
     binderInst,
-    binderKey,
     binderOf,
+    CARD_SLOTS,
+    cardSlots,
     cleanBinder,
-    isNotable,
     mergeBinder,
     parseCardShowcase,
     resolveCardShowcase,
 } from './binder';
-import { migrateSave, playerTeam, type RunState, SAVE_VERSION, useGame } from './game-store';
+import { backfillEditions, migrateSave, playerTeam, type RunState, SAVE_VERSION, useGame } from './game-store';
+import { MEDALS, type MedalView } from './medals';
+import { PLATINUM, platinumItems } from './missions';
+import { ALBUM_EDITIONS, albumCount, type Dex, EDITION_BIT } from './profile';
 
 const rng = new Rng('binder-test');
-/** Carta comum (sem edição, nota baixa): Caterpie, Weedle, Pidgey, Rattata… */
-const COMMON = [10, 13, 16, 19, 21, 129];
-const plain = (i: number): PokemonInstance => ({
-    ...createInstance(COMMON[i % COMMON.length], rng),
-    uid: `p${i}`,
+const mon = (id: number, uid: string, extra: Partial<PokemonInstance> = {}): PokemonInstance => ({
+    ...createInstance(id, rng),
+    uid,
     shiny: false,
+    ...extra,
 });
-const add = (list: BinderCard[], p: PokemonInstance, at: number, champ = false) =>
+const icon = (uid: string, level?: number) =>
+    mon(6, uid, { special: { kind: 'icone', title: 'Charizard Rebelde', ...(level && { level }) } });
+const add = (list: BinderCard[], p: PokemonInstance, at = 1, champ = false) =>
     binderAdd(list, [p], { from: 'draft', at, cup: 'c', champ });
 
-describe('fichário: guardar e limitar', () => {
-    it('cartas comuns: só as últimas 50 ficam', () => {
-        let b: BinderCard[] = [];
-        for (let i = 0; i < 80; i++) b = add(b, plain(i), i);
-        expect(b).toHaveLength(BINDER_RECENT);
-        expect(b.every((c) => !isNotable(c))).toBe(true);
-        // as mais novas primeiro, as 30 mais antigas saíram
-        expect(b[0].id).toBe('p79');
-        expect(b.some((c) => c.id === 'p29')).toBe(false);
+describe('álbum de cartas: uma figurinha por espécie × edição', () => {
+    it('carta comum não entra', () => {
+        expect(add([], mon(10, 'a'))).toEqual([]);
     });
 
-    it('notáveis (edição, Shiny, campeã) ficam mesmo fora das últimas 50', () => {
+    it('5 Charizard Ícone = 1 figurinha ×5, com a melhor (maior MVP)', () => {
         let b: BinderCard[] = [];
-        b = add(b, { ...plain(0), uid: 'shiny', shiny: true }, 0);
-        b = add(b, { ...plain(1), uid: 'evento', special: { kind: 'evento', type: 'Bug' } }, 1);
-        b = add(b, { ...plain(2), uid: 'campea' }, 2, true);
-        b = add(b, { ...createInstance(150, rng), uid: 'nota' }, 3);
-        for (let i = 0; i < 60; i++) b = add(b, plain(i), 100 + i);
-        expect(b.map((c) => c.id)).toEqual(expect.arrayContaining(['shiny', 'evento', 'campea', 'nota']));
-        expect(b).toHaveLength(BINDER_RECENT + 4);
-    });
-
-    it('acima de 300: saem primeiro as não notáveis, depois a notável mais antiga', () => {
-        let b: BinderCard[] = [];
-        for (let i = 0; i < BINDER_MAX; i++) b = add(b, { ...plain(i), uid: `s${i}`, shiny: true }, 1000 + i);
-        for (let i = 0; i < 10; i++) b = add(b, plain(i), 5000 + i);
-        // cheio de notáveis: as comuns (mesmo as mais novas) saem primeiro
-        expect(b).toHaveLength(BINDER_MAX);
-        expect(b.every((c) => isNotable(c))).toBe(true);
-        // notável nova: sai a notável mais antiga
-        b = add(b, { ...plain(0), uid: 'nova', shiny: true }, 9000);
-        expect(b).toHaveLength(BINDER_MAX);
-        expect(b[0].id).toBe('nova');
-        expect(b.some((c) => c.id === 's0')).toBe(false);
-        expect(b.some((c) => c.id === 's1')).toBe(true);
-    });
-
-    it('a mesma carta atualiza (Destaque), a evolução vira outra entrada', () => {
-        const p = { ...createInstance(4, rng), uid: 'charm' };
-        let b = add([], p, 10);
-        b = binderAdd(b, [{ ...p, special: { kind: 'destaque' } }], { from: 'evolucao', at: 20 });
+        b = add(b, icon('a'), 1);
+        b = add(b, icon('b', 2), 2);
+        b = add(b, icon('c'), 3);
+        b = add(b, icon('d', 1), 4);
+        b = add(b, icon('e'), 5);
         expect(b).toHaveLength(1);
-        expect(b[0]).toMatchObject({ at: 10, from: 'draft', card: { special: { kind: 'destaque' } } });
+        expect(b[0]).toMatchObject({ id: '6:icone', uid: 'b', n: 5, at: 2, card: { special: { level: 2 } } });
+    });
+
+    it('campeã ganha da não campeã de mesmo nível', () => {
+        let b = add([], icon('a'), 1);
+        b = add(b, icon('b'), 2, true);
+        expect(b[0]).toMatchObject({ uid: 'b', champ: true, n: 2 });
+    });
+
+    it('a mesma carta de novo (ganhou MVP, foi campeã) atualiza sem contar 2 vezes', () => {
+        let b = add([], icon('a'), 10);
+        b = binderAdd(b, [icon('a', 1)], { from: 'evolucao', at: 20 });
+        b = binderAdd(b, [icon('a', 1)], { from: 'draft', at: 30, champ: true });
+        expect(b).toHaveLength(1);
+        expect(b[0]).toMatchObject({ n: 1, at: 10, from: 'draft', champ: true, card: { special: { level: 1 } } });
+    });
+
+    it('Shiny Ícone ocupa os dois espaços; a melhor da espécie é o combo', () => {
+        let b = add([], icon('a', 3));
+        b = add(b, mon(6, 'sh', { shiny: true }));
+        b = add(b, { ...icon('combo', 1), shiny: true });
+        expect(b.map((c) => c.id).sort()).toEqual(['6:icone', '6:shiny']);
+        expect(b.find((c) => c.id === '6:shiny')).toMatchObject({ uid: 'combo', n: 2 });
+        // Ícone MVP 3 sozinho perde pro Shiny Ícone MVP (mais edições juntas)
+        expect(b.find((c) => c.id === '6:icone')).toMatchObject({ uid: 'combo', n: 2 });
+        expect(bestOfSpecies(b, 6)?.uid).toBe('combo');
+        // só entre as figurinhas coladas
+        expect(bestOfSpecies(b, 6, (c) => c.id === '6:nada')).toBeNull();
+    });
+
+    it('a evolução vai pro espaço da forma nova', () => {
+        const p = mon(4, 'charm', { shiny: true });
         const evo = evolveInstance(p, 5);
-        b = binderAdd(b, [evo], { from: 'evolucao', at: 30 });
-        expect(b.map((c) => c.id).sort()).toEqual(['charm', 'charm>5']);
-        expect(binderKey(evo)).toBe('charm>5');
-        // a carta desenhada é a mesma (nota, edição, evoluções)
-        const back = binderInst(b.find((c) => c.id === 'charm>5')!);
-        expect(viewInstance(back).overall).toBe(viewInstance(evo).overall);
-        expect(back.uid).toBe('charm');
+        const b = binderAdd(add([], p), [evo], { from: 'evolucao', at: 2 });
+        expect(b.map((c) => c.id).sort()).toEqual(['4:shiny', '5:shiny']);
+        const c5 = b.find((c) => c.id === '5:shiny')!;
+        expect(c5.uid).toBe('charm>5');
+        expect(binderInst(c5)).toMatchObject({ uid: 'charm', speciesId: 5, shiny: true });
     });
 });
 
-describe('fichário: retroativo, migração e nuvem', () => {
+describe('álbum: migração do fichário, retroativo e nuvem', () => {
+    /** Fichário da 0.8.8: uma entrada por carta, comuns inclusive. */
+    const legacy = (p: PokemonInstance, at: number, champ = false) => ({
+        id: p.uid,
+        card: monRecipe(p),
+        at,
+        from: 'draft',
+        cup: 'x',
+        ...(champ && { champ }),
+    });
+
+    it('fichário antigo vira álbum: comuns saem, cada especial conta no espaço dela', () => {
+        const old = [
+            legacy(mon(10, 'comum'), 1),
+            legacy(icon('i1'), 2),
+            legacy(icon('i2', 1), 3, true),
+            legacy(icon('i3'), 4),
+            legacy(mon(25, 'pk', { shiny: true }), 5),
+        ];
+        const b = binderOf({ binder: old });
+        expect(b.map((c) => c.id).sort()).toEqual(['25:shiny', '6:icone']);
+        expect(b.find((c) => c.id === '6:icone')).toMatchObject({ uid: 'i2', n: 3, champ: true, at: 3 });
+        // a vitrine antiga (guardava a carta) acha o espaço dela
+        expect(resolveCardShowcase(['i3', 'pk', 'comum'], b).map((c) => c.id)).toEqual(['6:icone', '25:shiny']);
+        // e o save novo lê de volta igual
+        expect(cleanBinder(JSON.parse(JSON.stringify(b)))).toEqual(b);
+    });
+
     const run = (seed: string, status: RunState['status']): RunState => {
-        const picks = [0, 1, 2, 3, 4, 5, 6].map((i) => ({ ...plain(i), uid: `${seed}-${i}` }));
-        picks[6] = { ...picks[6], uid: `${seed}-6-c1` };
+        const picks = [
+            mon(10, `${seed}-0`),
+            mon(25, `${seed}-1`, { shiny: true }),
+            mon(6, `${seed}-2`, { special: { kind: 'evento', type: 'Fire' } }),
+            mon(13, `${seed}-3`),
+            mon(16, `${seed}-4`),
+            mon(19, `${seed}-5`),
+            mon(94, `${seed}-6-c1`, { special: { kind: 'destaque' } }),
+        ];
         return {
             seed,
             status,
@@ -120,82 +158,118 @@ describe('fichário: retroativo, migração e nuvem', () => {
         scores: [],
         squad: [
             { speciesId: 25, shiny: true, name: 'Pikachu', ovr: 70, goals: 3, captain: true },
-            { speciesId: 999, shiny: false, name: '?', ovr: 0, goals: 0, captain: false },
+            { speciesId: 26, shiny: false, name: 'Raichu', ovr: 70, goals: 3, captain: false },
+            { speciesId: 999, shiny: true, name: '?', ovr: 0, goals: 0, captain: false },
         ],
     });
 
     it('copas guardadas e Hall entram; copa que já está nas guardadas não repete pelo Hall', () => {
         const b = binderBackfill([run('a', 'champion'), run('b', 'drafting')], [hallOf('a'), hallOf('h')]);
-        const a = b.filter((c) => c.cup === 'a');
-        expect(a).toHaveLength(7);
-        expect(a.filter((c) => c.champ)).toHaveLength(6);
-        expect(a.find((c) => c.id === 'a-6-c1')?.from).toBe('recompensa');
-        expect(b.filter((c) => c.cup === 'b' && c.champ)).toHaveLength(0);
-        // Hall: espécie que não existe fica de fora, o Pikachu Shiny entra campeão
-        const h = b.filter((c) => c.cup === 'h');
-        expect(h).toHaveLength(1);
-        expect(h[0]).toMatchObject({ from: 'hall', champ: true, card: { speciesId: 25, shiny: true } });
+        expect(b.map((c) => c.id).sort()).toEqual(['25:shiny', '6:evento', '94:destaque']);
+        // Pikachu Shiny: copa a (campeã), copa b e o Hall h = 3 cartas; a do Hall a não repete
+        expect(b.find((c) => c.id === '25:shiny')).toMatchObject({ n: 3, champ: true });
+        expect(b.find((c) => c.id === '94:destaque')).toMatchObject({ from: 'recompensa', n: 2 });
     });
 
-    it('save sem fichário nasce dele; com fichário, não refaz', () => {
+    it('save sem álbum nasce dele; com álbum, não refaz', () => {
         const save = { run: run('a', 'champion'), parkedRuns: [], hall: [] };
-        expect(binderOf(save)).toHaveLength(7);
+        expect(binderOf(save)).toHaveLength(3);
         expect(binderOf({ ...save, binder: [] })).toEqual([]);
     });
 
-    it('backup v6 de verdade: o Hall vira fichário de campeãs; o save atual guarda e lê de volta', () => {
+    it('backup v6 de verdade: migra e lê de volta igual', () => {
         for (const lang of ['pt', 'en']) {
             const backup = JSON.parse(readFileSync(`scripts/fixtures/backup-v6-${lang}.json`, 'utf8'));
             const save = migrateSave(backup.save, backup.version);
-            expect(save.binder.length).toBeGreaterThan(0);
-            expect(save.binder.filter((c) => c.from === 'hall').every((c) => c.champ)).toBe(true);
+            expect(save.binder.every((c) => c.n >= 1 && c.id.includes(':'))).toBe(true);
             const again = migrateSave(JSON.parse(JSON.stringify(save)), SAVE_VERSION);
             expect(again.binder).toEqual(save.binder);
         }
     });
 
-    it('lixo no fichário (backup editado) sai, o resto fica', () => {
-        const good = add([], plain(1), 5);
+    it('lixo no álbum (backup editado) sai, o resto fica', () => {
+        const good = add([], icon('a'));
         const out = cleanBinder([
             ...good,
             null,
-            {
-                id: 'x',
-                at: 1,
-                from: 'draft',
-                card: { speciesId: 25, moves: ['hyperbeam'], ability: 'x', shiny: false },
-            },
             { ...good[0] },
-            { ...good[0], id: 'y', from: 'loja' },
+            { ...good[0], id: '7:icone' },
+            { ...good[0], id: '6:shiny' },
+            { ...good[0], n: 0 },
+            { ...good[0], card: { ...good[0].card, special: { kind: 'icone', level: 9 } } },
+            { ...good[0], from: 'loja' },
         ]);
         expect(out).toEqual(good);
         expect(cleanBinder('lixo')).toEqual([]);
     });
 
-    it('nuvem: união pela carta, sem duplicar; o elenco refeito do Hall sai se o outro lado tem o de verdade', () => {
-        const a = add(add([], plain(1), 1), plain(2), 2);
-        const b = binderAdd(add([], plain(2), 9, true), [{ ...plain(3), uid: 'hall-a-0' }], {
-            from: 'hall',
-            at: 0,
-            cup: 'c',
-            champ: true,
-        });
-        const m = mergeBinder(a, b);
-        expect(m.map((c) => c.id).sort()).toEqual(['p1', 'p2']);
-        expect(m.find((c) => c.id === 'p2')).toMatchObject({ at: 2, champ: true });
+    it('nuvem: o mesmo save dos dois lados não duplica; aparelhos diferentes somam', () => {
+        let a = add([], icon('a'));
+        a = add(a, icon('b', 2));
+        expect(mergeBinder(a, a)[0]).toMatchObject({ n: 2, uid: 'b' });
+        const other = add([], icon('z', 3));
+        expect(mergeBinder(a, other)[0]).toMatchObject({ n: 3, uid: 'z' });
+        // o fichário antigo de um lado também entra
+        const old = [legacy(icon('q'), 9)];
+        expect(mergeBinder(old, a)[0]).toMatchObject({ n: 3, uid: 'b' });
         const local = migrateSave({ binder: a }, SAVE_VERSION);
-        expect(mergeSaves(local, { binder: b }, 'device').binder).toHaveLength(2);
+        expect(mergeSaves(local, { binder: other }, 'device').binder[0].n).toBe(3);
+    });
+});
+
+describe('fonte única: a conta do Álbum é a da medalha e da platina', () => {
+    const dex: Dex = {};
+    SPECIES.forEach((sp, i) => {
+        dex[sp.id] = {
+            matches: 1,
+            minutes: 1,
+            goals: 0,
+            assists: 0,
+            wins: 0,
+            titles: 0,
+            bestRating: 0,
+            bestOvr: 0,
+            editions: Object.values(EDITION_BIT)
+                .filter((_, k) => (i + k) % 3 === 0)
+                .reduce((x, y) => x | y, 0),
+        };
+    });
+
+    it('seções (Ícones, Shiny, Evento, Destaque) + Comuns = o total; Kanto tem 622', () => {
+        expect(albumCount({}).total).toBe(622);
+        const parts = ALBUM_EDITIONS.map((ed) => albumCount(dex, SPECIES, [ed]));
+        expect(parts.reduce((n, p) => n + p.total, 0)).toBe(622);
+        expect(parts.reduce((n, p) => n + p.got, 0)).toBe(albumCount(dex).got);
+        expect(CARD_SLOTS.map((ed) => albumCount({}, SPECIES, [ed]).total)).toEqual([20, 151, 149, 151]);
+    });
+
+    it('medalha Figurinhas e item Álbum da platina usam a mesma conta', () => {
+        const got = albumCount(dex).got;
+        const medal = MEDALS.find((m) => m.id === 'figurinhas')!;
+        expect(medal.value({ dex } as unknown as MedalView)).toBe(got);
+        const view = {
+            dex,
+            moves: {},
+            done: new Set<string>(),
+            records: {},
+            career: {},
+            hall: [],
+            runs: [],
+        } as unknown as Parameters<typeof platinumItems>[1];
+        expect(platinumItems(PLATINUM[0], view).find((i) => i.id === 'album')).toMatchObject({ n: got, goal: 622 });
     });
 });
 
 describe('vitrine de cartas', () => {
-    it('só cartas do fichário, no máximo 3', () => {
+    it('só figurinhas do álbum (coladas), no máximo 3, sem repetir', () => {
         let b: BinderCard[] = [];
-        for (let i = 0; i < 5; i++) b = add(b, plain(i), i);
-        expect(resolveCardShowcase(['p4', 'nao-existe', 'p1', 'p2', 'p3'], b).map((c) => c.id)).toEqual([
-            'p4',
-            'p1',
-            'p2',
+        for (const id of [6, 25, 94, 143, 150]) b = add(b, mon(id, `s${id}`, { shiny: true }));
+        const ids = ['150:shiny', 'nao-existe', '6:shiny', 's6', '25:shiny', '94:shiny'];
+        expect(resolveCardShowcase(ids, b).map((c) => c.id)).toEqual(['150:shiny', '6:shiny', '25:shiny']);
+        expect(resolveCardShowcase(ids, b, (c) => c.id !== '6:shiny').map((c) => c.id)).toEqual([
+            '150:shiny',
+            '25:shiny',
+            '94:shiny',
         ]);
         expect(resolveCardShowcase('lixo', b)).toEqual([]);
     });
@@ -211,20 +285,15 @@ describe('vitrine de cartas', () => {
     });
 });
 
-describe('fichário no jogo', () => {
+describe('álbum no jogo', () => {
     const g = () => useGame.getState();
 
-    it('o draft guarda a carta escolhida', () => {
+    it('o draft guarda só as cartas especiais escolhidas', () => {
         useGame.setState({ binder: [] });
         g().newRun('Pallet FC', 'fichario-draft');
         g().autoDraft();
-        const run = g().run!;
-        expect(
-            g()
-                .binder.map((c) => c.id)
-                .sort(),
-        ).toEqual(run.picks.map((p) => p.uid).sort());
-        expect(g().binder.every((c) => c.from === 'draft' && c.cup === 'fichario-draft')).toBe(true);
+        const special = g().run!.picks.filter((p) => cardSlots(p).length);
+        expect(g().binder.reduce((n, c) => n + c.n, 0)).toBe(special.reduce((n, p) => n + cardSlots(p).length, 0));
     });
 
     it('o título marca o elenco campeão', () => {
@@ -234,7 +303,7 @@ describe('fichário no jogo', () => {
             useGame.setState({ binder: [] });
             g().newRun('Pallet FC', seed);
             const r = new Rng(seed, 'demo');
-            const lineup = [143, 68, 151, 142, 150].map((id) => createInstance(id, r));
+            const lineup = [143, 68, 151, 142, 150].map((id) => ({ ...createInstance(id, r), shiny: true }));
             const bench = [149, 25].map((id) => createInstance(id, r));
             const last = CUP_STAGES.length - 1;
             useGame.setState({
@@ -256,10 +325,61 @@ describe('fichário no jogo', () => {
             g().recordResult(m);
             if (g().run!.status !== 'champion') continue;
             won = true;
-            const squad = [...g().run!.lineup, ...g().run!.bench];
-            const champs = g().binder.filter((c) => c.champ);
-            expect(champs.map((c) => c.id.split('>')[0]).sort()).toEqual(squad.sort());
+            const shiny = g().binder.filter((c) => c.id.endsWith(':shiny'));
+            expect(shiny.map((c) => c.card.speciesId).sort()).toEqual(expect.arrayContaining([68, 142, 143, 150, 151]));
+            expect(shiny.filter((c) => [143, 68, 151, 142, 150].includes(c.card.speciesId)).every((c) => c.champ)).toBe(
+                true,
+            );
         }
         expect(won).toBe(true);
+    });
+
+    it('partida da copa cola as figurinhas de edição de quem jogou (Shiny, Ícone, Evento) na Pokédex', () => {
+        const seed = 'album-e2e';
+        useGame.setState({ binder: [], dex: {} });
+        g().newRun('Pallet FC', seed);
+        const r = new Rng(seed, 'demo');
+        const lineup = [
+            { ...createInstance(143, r), shiny: true },
+            { ...createInstance(150, r), special: { kind: 'icone' as const, title: 'Mewtwo Contra-Ataca' } },
+            { ...createInstance(131, r), special: { kind: 'evento' as const, type: 'Ice' } },
+            createInstance(68, r),
+            createInstance(142, r),
+        ];
+        useGame.setState({
+            run: {
+                ...g().run!,
+                formation: '1-2-1',
+                picks: lineup,
+                lineup: lineup.map((p) => p.uid),
+                bench: [],
+                captainUid: lineup[0].uid,
+                draftRound: 7,
+                status: 'lineup',
+                stage: 0,
+            },
+        });
+        const team = playerTeam(g().run!);
+        g().lockMatch(team);
+        g().recordResult(runMatch(FUTSAL_5, team, g().run!.opponents[0], `${seed}-stage-0`));
+        const dex = g().dex;
+        expect(dex[143].editions).toBe(EDITION_BIT.shiny);
+        expect(dex[150].editions).toBe(EDITION_BIT.icone);
+        expect(dex[131].editions).toBe(EDITION_BIT.evento);
+        expect(dex[68].editions).toBe(EDITION_BIT.normal);
+    });
+
+    it('ao abrir o jogo: as copas guardadas colam as edições de quem jogou, sem dar a Normal', () => {
+        const ev = { ...createInstance(131, rng), uid: 'ev', special: { kind: 'evento' as const, type: 'Ice' } };
+        const bench = { ...createInstance(25, rng), uid: 'banco', shiny: true };
+        const run = {
+            picks: [ev, bench],
+            results: [{ stage: 0, stats: { players: [{ uid: 'ev', speciesId: 131, minutes: 12 }] } }],
+        } as unknown as RunState;
+        const entry = { matches: 1, minutes: 12, goals: 0, assists: 0, wins: 1, titles: 0, bestRating: 7, bestOvr: 70 };
+        const dex = backfillEditions({ 131: entry, 25: entry }, [], [run], false);
+        expect(dex[131].editions).toBe(EDITION_BIT.evento);
+        // ficou no banco: não colou
+        expect(dex[25].editions).toBeUndefined();
     });
 });

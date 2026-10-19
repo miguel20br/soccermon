@@ -12,6 +12,7 @@ import { EVENT_TYPES, ICONS, type Special } from '../engine/specials';
 import { EventBus } from '../game/EventBus';
 import { type BinderCard, binderAdd } from '../store/binder';
 import { playerTeam, useGame } from '../store/game-store';
+import { EDITION_BIT, editionBits } from '../store/profile';
 import { agencyOn } from './settings-sync';
 import { isTrailerScene, trailerPicks } from './trailer-scenes';
 
@@ -55,6 +56,7 @@ export function runDevDemo() {
         demo !== 'lider' &&
         demo !== 'colecao' &&
         demo !== 'fichario' &&
+        demo !== 'album' &&
         demo !== 'dia' &&
         demo !== 'liga' &&
         demo !== 'platina' &&
@@ -69,7 +71,7 @@ export function runDevDemo() {
         demoCollection();
         return;
     }
-    if (demo === 'fichario') {
+    if (demo === 'fichario' || demo === 'album') {
         demoBinder();
         return;
     }
@@ -501,41 +503,72 @@ function demoCollection() {
     g.go('profile');
 }
 
-/** `?demo=fichario`: fichário cheio (edições, Shiny, nota alta, campeãs e comuns) e vitrine com 3 cartas. */
+/**
+ * `?demo=album` (ou `fichario`): álbum de cartas cheio (Ícones, Shiny, Evento por tipo, Destaque, combos, ×N), a
+ * Pokédex com as figurinhas dessas cartas (Lapras com Normal, Shiny e Evento; uma figurinha de antes do álbum, sem
+ * carta) e a vitrine com 3 cartas.
+ */
 function demoBinder() {
     const rng = new Rng('demo-fichario');
-    const ICON_IDS = [25, 6, 150, 94, 143, 149, 131, 65];
+    const ICON_IDS = [25, 6, 150, 94, 143, 149, 131, 65, 6, 6];
     let binder: BinderCard[] = [];
     const now = Date.now();
-    for (let i = 0; i < 90; i++) {
-        const id = i < 8 ? ICON_IDS[i] : 1 + Math.floor(rng.next() * 151);
-        let p: PokemonInstance = { ...createInstance(id, rng), uid: `demo-${i}` };
-        const type = species(id).types[0];
+    const cards: PokemonInstance[] = [];
+    for (let i = 0; i < 140; i++) {
+        const id = i < ICON_IDS.length ? ICON_IDS[i] : 1 + Math.floor(rng.next() * 151);
+        let p: PokemonInstance = { ...createInstance(id, rng), uid: `demo-${i}`, shiny: false };
+        const type = species(id).types.find((t) => EVENT_TYPES.includes(t));
         const special: Special | null =
-            i < 8
-                ? { kind: 'icone', title: ICONS[id], ...(i % 3 === 0 && { level: 2 }) }
-                : i % 7 === 0 && EVENT_TYPES.includes(type)
+            i < ICON_IDS.length
+                ? { kind: 'icone', title: ICONS[id], ...(i % 3 === 0 && { level: 1 + (i % 3) + (i === 9 ? 1 : 0) }) }
+                : i % 4 === 0 && type
                   ? { kind: 'evento', type }
-                  : i % 11 === 0
-                    ? { kind: 'destaque', level: 2 }
-                    : i % 13 === 0
-                      ? { kind: 'destaque' }
-                      : null;
+                  : i % 5 === 0
+                    ? { kind: 'destaque', level: 1 + (i % 3) }
+                    : null;
         if (special) p = { ...p, special };
-        if (i % 9 === 4) p = { ...p, shiny: true };
+        if (i % 6 === 1 || i === 9) p = { ...p, shiny: true };
+        cards.push(p);
+    }
+    // Lapras (Água/Gelo): Shiny e Evento de Gelo
+    cards.push({ ...createInstance(131, rng), uid: 'demo-lapras-s', shiny: true });
+    cards.push({
+        ...createInstance(131, rng),
+        uid: 'demo-lapras-e',
+        shiny: false,
+        special: { kind: 'evento', type: 'Ice' },
+    });
+    cards.forEach((p, i) => {
         binder = binderAdd(binder, [p], {
             from: (['draft', 'recompensa', 'evolucao', 'hall'] as const)[i % 4],
             at: now - i * 3_600_000,
             cup: `demo-${Math.floor(i / 7)}`,
             champ: i % 5 === 0,
         });
-    }
+    });
+    // Pokédex: as cartas jogaram (figurinha colada) + a Normal de quem jogou; Snorlax Destaque de antes do álbum
     const g = useGame.getState();
-    const pick = [...binder].sort((a, b) => Number(!!b.card.special) - Number(!!a.card.special)).slice(0, 3);
-    useGame.setState({ binder, profile: { ...g.profile, cardShowcase: pick.map((c) => c.id) } });
+    const dex = { ...g.dex };
+    const stick = (id: number, bits: number) => {
+        const e = dex[id] ?? {
+            matches: 3,
+            minutes: 30,
+            goals: 1,
+            assists: 0,
+            wins: 2,
+            titles: 0,
+            bestRating: 7,
+            bestOvr: 70,
+        };
+        dex[id] = { ...e, matches: Math.max(1, e.matches), editions: (e.editions ?? 0) | bits };
+    };
+    for (const p of cards) stick(p.speciesId, editionBits(p) | EDITION_BIT.normal);
+    stick(143, EDITION_BIT.destaque);
+    const pick = [...binder].sort((a, b) => b.n - a.n).slice(0, 3);
+    useGame.setState({ binder, dex, profile: { ...g.profile, cardShowcase: pick.map((c) => c.id) } });
     const url = new URL(window.location.href);
     if (!url.searchParams.has('perfil')) {
-        url.searchParams.set('perfil', 'fichario');
+        url.searchParams.set('perfil', 'album');
         window.history.replaceState(null, '', url);
     }
     g.go('profile');

@@ -1628,21 +1628,6 @@ fieldset.pf-field,
     font-size: 12px;
     line-height: 1.35;
 }
-.pf-pips {
-    display: flex;
-    gap: 3px;
-    height: 6px;
-    margin-top: 2px;
-}
-.pf-pips i {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: rgb(255 255 255 / 12%);
-}
-.pf-pips i.on.ed-normal {
-    background: #f4f1e6;
-}
 .pf-ribbon {
     width: 18px;
     height: 22px;

@@ -1,20 +1,17 @@
-import { useEffect, useRef } from 'react';
+import { type RefObject, useEffect, useRef } from 'react';
 import { MOVES, SPECIES_BY_ID, type Species, type StatKey, species } from '../../engine/data';
-import { DEFAULT_LEVEL, type PokemonInstance, viewInstance } from '../../engine/instance';
-import { defaultMoveset } from '../../engine/moves';
+import { viewInstance } from '../../engine/instance';
 import { SIGNATURE } from '../../engine/signature-moves';
-import { EVENT_TYPES } from '../../engine/specials';
 import { playCry } from '../../game/audio';
 import { getLang, moveName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import {
-    albumSlots,
+    albumCount,
     CAREER_SEALS,
     type CareerSeal,
     type Dex,
     type DexEntry,
-    hasSticker,
     isPlayed,
     kantoComplete,
     type MoveDex,
@@ -27,6 +24,7 @@ import { HudIcon } from '../components/MatchHud';
 import { TypeIcon } from '../components/TypeIcon';
 import { METAL, metalOf } from '../rarity';
 import { TYPE_COLOR } from '../type-colors';
+import { defaultCard, SheetCards } from './Album';
 import { speciesGif } from './club';
 import { BallMark, CareerSealIcon, ChampionRibbon, Chevron, EvoArrow, LockIcon, SpeakerIcon } from './icons';
 
@@ -34,21 +32,6 @@ const STATS: StatKey[] = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'];
 
 export const dexNo = (id: number) => String(id).padStart(3, '0');
 const fmt1 = (n: number) => (getLang() === 'pt' ? n.toFixed(1).replace('.', ',') : n.toFixed(1));
-
-/** Um Pokémon "de vitrine" (nível 50, golpes padrão) só para ler posições e golpes. */
-function showcase(sp: Species): PokemonInstance {
-    return {
-        uid: `dex-${sp.id}`,
-        speciesId: sp.id,
-        level: DEFAULT_LEVEL,
-        xp: 0,
-        moves: defaultMoveset(sp),
-        ability: sp.abilities[0] ?? '',
-        shiny: false,
-        nickname: null,
-        condition: 1,
-    };
-}
 
 /** Linha evolutiva por estágio (só espécies do jogo): [[Eevee], [Vaporeon, Jolteon, Flareon]]. */
 function evolutionStages(sp: Species): number[][] {
@@ -75,8 +58,11 @@ export function SpeciesSheet({
     order,
     onNav,
     onClose,
+    focus,
 }: {
     id: number;
+    /** Abre já rolada nas cartas (tocar numa figurinha do Álbum). */
+    focus?: 'cards';
     /** Ordem da lista atual (para anterior/próximo). */
     order: number[];
     onNav: (id: number) => void;
@@ -110,6 +96,15 @@ export function SpeciesSheet({
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
     }, [prev, next, onNav, onClose]);
+
+    // "Suas cartas" e a "Melhor carta" ficam no meio da ficha: o atalho do topo (e o Álbum) rolam até lá
+    const cardsRef = useRef<HTMLElement | null>(null);
+    const toCards = () => cardsRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    // biome-ignore lint/correctness/useExhaustiveDependencies: rola de novo a cada espécie aberta pelo Álbum
+    useEffect(() => {
+        if (focus === 'cards') cardsRef.current?.scrollIntoView({ block: 'start' });
+    }, [focus, id]);
+    const stickers = albumCount(dex, [sp]);
 
     const name = seen ? sp.name : '???';
     const accent = TYPE_COLOR[sp.types[0]] ?? '#4b5a9a';
@@ -181,6 +176,14 @@ export function SpeciesSheet({
                             </span>
                         )}
                         {seen && (
+                            <button type="button" className="btn small pf-tocards" onClick={toCards}>
+                                <HudIcon kind="cards" /> {t('profile.album.jump')}{' '}
+                                <small>
+                                    {stickers.got}/{stickers.total}
+                                </small>
+                            </button>
+                        )}
+                        {seen && (
                             <button
                                 type="button"
                                 className="btn ghost small pf-cry"
@@ -193,7 +196,7 @@ export function SpeciesSheet({
                     </div>
                 </div>
 
-                {seen ? <SeenBody sp={sp} dex={dex} moves={moves} onNav={onNav} /> : <LockedBody />}
+                {seen ? <SeenBody sp={sp} dex={dex} moves={moves} onNav={onNav} cardsRef={cardsRef} /> : <LockedBody />}
 
                 <div className="pf-sheet-nav">
                     <button
@@ -231,8 +234,20 @@ function LockedBody() {
     );
 }
 
-function SeenBody({ sp, dex, moves, onNav }: { sp: Species; dex: Dex; moves: MoveDex; onNav: (id: number) => void }) {
-    const inst = showcase(sp);
+function SeenBody({
+    sp,
+    dex,
+    moves,
+    onNav,
+    cardsRef,
+}: {
+    sp: Species;
+    dex: Dex;
+    moves: MoveDex;
+    onNav: (id: number) => void;
+    cardsRef: RefObject<HTMLElement | null>;
+}) {
+    const inst = defaultCard(sp);
     const view = viewInstance(inst);
     const entry = dex[sp.id];
     const stages = evolutionStages(sp);
@@ -352,7 +367,7 @@ function SeenBody({ sp, dex, moves, onNav }: { sp: Species; dex: Dex; moves: Mov
                 {found < moveIds.length && <p className="pf-note">{t('profile.sheet.movesHelp')}</p>}
             </section>
 
-            <Album sp={sp} dex={dex} />
+            <SheetCards sp={sp} anchor={cardsRef} />
 
             {entry && isPlayed(entry) && <Seals entry={entry} dex={dex} />}
 
@@ -393,48 +408,6 @@ function SeenBody({ sp, dex, moves, onNav }: { sp: Species; dex: Dex; moves: Mov
                 )}
             </section>
         </div>
-    );
-}
-
-/** Álbum da espécie: uma figurinha por edição (colada = já jogou por você com uma carta dessa edição). */
-function Album({ sp, dex }: { sp: Species; dex: Dex }) {
-    const { t, d } = useT();
-    const entry = dex[sp.id];
-    const slots = albumSlots(sp);
-    const got = slots.filter((ed) => hasSticker(entry, ed)).length;
-    const eventColor = TYPE_COLOR[sp.types.find((ty) => EVENT_TYPES.includes(ty)) ?? sp.types[0]];
-    return (
-        <section className="pf-block">
-            <h3>
-                {t('profile.sheet.album')}{' '}
-                <span className="pf-bst">{t('profile.sheet.albumCount', { n: got, total: slots.length })}</span>
-            </h3>
-            <ul className="pf-stickers" style={{ ['--t1' as string]: eventColor }}>
-                {slots.map((ed) => {
-                    const on = hasSticker(entry, ed);
-                    const label = ed === 'normal' ? t('profile.sheet.normal') : d.common.edition[ed];
-                    return (
-                        <li
-                            key={ed}
-                            className={`pf-sticker${on ? ` got sk-${ed}` : ''}`}
-                            aria-label={t(on ? 'profile.sheet.stickerGot' : 'profile.sheet.stickerMissing', {
-                                edition: label,
-                            })}
-                        >
-                            <img
-                                className={`pixel${on ? '' : ' pf-silhouette'}`}
-                                src={speciesGif(sp.id)}
-                                alt=""
-                                loading="lazy"
-                                draggable={false}
-                            />
-                            <small>{label}</small>
-                        </li>
-                    );
-                })}
-            </ul>
-            {got < slots.length && <p className="pf-note">{t('profile.sheet.albumHelp')}</p>}
-        </section>
     );
 }
 

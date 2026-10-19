@@ -315,7 +315,7 @@ export interface GameStore {
     parkedRuns: RunState[];
     /** Hall da Fama: os títulos, do mais recente ao mais antigo. */
     hall: HallEntry[];
-    /** Fichário: as cartas notáveis que passaram pelo seu time e as últimas 50 (binder.ts). */
+    /** Álbum de cartas: a melhor carta especial de cada espécie × edição, com quantas você tirou (binder.ts). */
     binder: BinderCard[];
     /** Duelos amistosos (só no save), do mais recente ao mais antigo. */
     duels: DuelRecord[];
@@ -600,10 +600,16 @@ export const SAVE_VERSION = 9;
 /**
  * Álbum de edições pra quem já jogava (v9): o que dá pra saber do save. Quem jogou ganha a Normal (quase toda carta
  * é Normal); o Hall da Fama dá a Shiny; as copas guardadas dão a edição de cada carta que jogou (a Destaque só se
- * jogou depois de virar Destaque).
+ * jogou depois de virar Destaque). `normal` = false (ao abrir o jogo): só as edições especiais, sem dar a Normal a quem
+ * só jogou com carta especial.
  */
-export function backfillEditions(dex: Dex, hall: HallEntry[], runs: (RunState | null | undefined)[]): Dex {
-    const got: [number, number][] = Object.keys(dex).map((id) => [Number(id), EDITION_BIT.normal]);
+export function backfillEditions(
+    dex: Dex,
+    hall: HallEntry[],
+    runs: (RunState | null | undefined)[],
+    normal = true,
+): Dex {
+    const got: [number, number][] = normal ? Object.keys(dex).map((id) => [Number(id), EDITION_BIT.normal]) : [];
     for (const h of hall) for (const p of h.squad) if (p.shiny) got.push([p.speciesId, EDITION_BIT.shiny]);
     for (const r of runs) {
         if (!r) continue;
@@ -778,7 +784,7 @@ export function migrateSave(old: Partial<PersistedSave>, version: number): Persi
             : [],
         // Copa do Dia (campo novo, opcional: saves antigos não têm)
         daily: mergeDaily(Array.isArray(old.daily) ? old.daily : []),
-        // Fichário (0.8.8, opcional): save de antes dele nasce com as cartas das copas guardadas e do Hall
+        // Álbum de cartas (opcional): o fichário da 0.8.8 vira álbum; save de antes dele nasce das copas e do Hall
         binder: binderOf({ ...old, run, parkedRuns, hall }),
     });
 }
@@ -1386,9 +1392,11 @@ export const useGame = create<GameStore>()(
                 const saved = persisted as PersistedSave | undefined;
                 const p = saved?.settings ? { ...saved, settings: withCryDefault(saved.settings) } : saved;
                 if (!p?.profile) return { ...current, ...p };
-                const dex = markEvolvedPlayed(p.dex ?? {}, [p.run, ...(p.parkedRuns ?? [])]);
-                // fichário (0.8.8): o save de antes dele ganha as cartas das copas guardadas e do Hall ao abrir o jogo
-                const binder = Array.isArray(p.binder) ? p.binder : binderOf(p);
+                const runs = [p.run, ...(p.parkedRuns ?? [])];
+                // figurinhas de edição das copas guardadas (quem jogou 1+ minuto) e do Hall: sempre, não só na v9
+                const dex = backfillEditions(markEvolvedPlayed(p.dex ?? {}, runs), p.hall ?? [], runs, false);
+                // álbum de cartas: o fichário da 0.8.8 vira álbum; o save de antes dele ganha as copas guardadas e o Hall
+                const binder = binderOf(p);
                 const next = withUnlocks({ ...p, dex, binder });
                 // as que saíram agora ganham o aviso (na Home)
                 const fresh = (next.profile.missionsDone ?? []).slice(p.profile.missionsDone?.length ?? 0);

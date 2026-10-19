@@ -33,7 +33,7 @@ import { bannerOf, clubColorHex, rivalColor } from '../../store/profile';
 import { ResultHero } from '../components/ResultHero';
 import { LeaveConfirm } from '../leave-guard';
 import { FEEDBACK_URL } from '../links';
-import { useCardShowcase } from '../profile/BinderTab';
+import { useCardShowcase } from '../profile/Album';
 import { avatarImage, avatarWire, hexCss, peerAvatar, peerTitle, titleName, trainerLabel } from '../profile/club';
 import { useShowcase } from '../profile/Medals';
 import { qrPath } from '../qr';

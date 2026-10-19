@@ -3,44 +3,79 @@ import { type DuelMonRecipe, monFromRecipe, monProblems, monRecipe } from '../en
 import { type PokemonInstance, viewInstance } from '../engine/instance';
 import { defaultMoveset } from '../engine/moves';
 import type { RunState } from './game-store';
-import type { HallEntry } from './profile';
+import type { AlbumEdition, HallEntry } from './profile';
 
 /**
- * Fichário: as cartas que entraram no seu time (draft, recompensa, evolução). Pro save não crescer sem limite, guarda
- * todas as notáveis (edição, Shiny, nota 85+, campeã) e as últimas 50 quaisquer, até 300 no total (passou, saem
- * primeiro as não notáveis mais antigas). Cada carta vai como receita (a mesma do Duelo), que o motor desenha de novo.
+ * Álbum de cartas (as figurinhas da Pokédex): só as cartas especiais (Shiny, Evento, Ícone, Destaque), uma por
+ * espécie × edição, nunca repetida. Cada espaço guarda a melhor versão que você já tirou (combo, nível de MVP/
+ * Destaque, campeã, nota) e quantas cartas diferentes daquela edição já passaram pelo seu time. A carta vai como
+ * receita (a mesma do Duelo), que o motor desenha de novo. Carta Shiny com edição (Shiny Ícone) ocupa os dois espaços.
+ *
+ * Se a figurinha está colada ou não é a Pokédex que diz (`DexEntry.editions`, a mesma conta da medalha e da platina):
+ * aqui fica só a carta que aparece nela.
  */
 export type BinderFrom = 'draft' | 'recompensa' | 'evolucao' | 'hall';
 const FROMS: BinderFrom[] = ['draft', 'recompensa', 'evolucao', 'hall'];
 
+/** Edições que viram figurinha no álbum de cartas (a Normal não entra). */
+export type CardSlot = Exclude<AlbumEdition, 'normal'>;
+export const CARD_SLOTS: CardSlot[] = ['icone', 'shiny', 'evento', 'destaque'];
+
 export interface BinderCard {
-    /** uid da carta; a forma evoluída ganha `>espécie` (o Charmander e o Charmeleon da mesma carta são duas). */
+    /** Espaço do álbum: `espécie:edição` ("6:icone"). */
     id: string;
+    /** A melhor carta desse espaço: uid (a forma evoluída ganha `>espécie`). */
+    uid: string;
     card: DuelMonRecipe;
-    /** Quando entrou (ms). */
+    /** Quando a melhor chegou (ms). */
     at: number;
     from: BinderFrom;
     /** Seed da copa de onde veio. */
     cup?: string;
     /** Estava no elenco campeão. */
     champ?: boolean;
+    /** Quantas cartas diferentes dessa espécie × edição você já tirou. */
+    n: number;
+    /** As últimas cartas contadas: a mesma carta de novo (virou Destaque, foi campeã) não conta 2 vezes. */
+    seen: string[];
 }
 
-export const BINDER_RECENT = 50;
-export const BINDER_MAX = 300;
-export const NOTABLE_OVR = 85;
+/** ponytail: guarda só as últimas 30 contadas; a mesma carta só volta dentro da própria copa. */
+const SEEN_MAX = 30;
 /** Vitrine de cartas no Perfil e no VERSUS do Duelo. */
 export const CARD_SHOWCASE_MAX = 3;
 
 export const binderKey = (p: PokemonInstance) => (p.evolved ? `${p.uid}>${p.speciesId}` : p.uid);
+export const slotId = (speciesId: number, ed: CardSlot) => `${speciesId}:${ed}`;
+
+/** Os espaços que a carta ocupa: o Shiny e a edição especial (nenhum = carta comum). */
+export function cardSlots(card: { shiny: boolean; special?: { kind: CardSlot } | null }): CardSlot[] {
+    return [...(card.shiny ? (['shiny'] as const) : []), ...(card.special ? [card.special.kind] : [])];
+}
 
 /** A carta pra desenhar (o uid de origem fica: a evolução do Eevee sai dele). */
-export const binderInst = (c: BinderCard): PokemonInstance => monFromRecipe(c.card, c.id.split('>')[0]);
+export const binderInst = (c: BinderCard): PokemonInstance => monFromRecipe(c.card, c.uid.split('>')[0]);
 
-export const binderOvr = (c: BinderCard) => viewInstance(binderInst(c)).overall;
+/** Ordem da "melhor": mais edições juntas (Shiny Ícone), maior nível (MVP/Destaque), campeã, maior nota. */
+const rank = (c: Pick<BinderCard, 'card' | 'champ' | 'uid'>) => [
+    cardSlots(c.card).length,
+    c.card.special?.level ?? (c.card.special?.kind === 'destaque' ? 1 : 0),
+    c.champ ? 1 : 0,
+    viewInstance(monFromRecipe(c.card, c.uid.split('>')[0])).overall,
+];
+export function betterCard(a: BinderCard, b: BinderCard): boolean {
+    const ra = rank(a);
+    const rb = rank(b);
+    for (let i = 0; i < ra.length; i++) if (ra[i] !== rb[i]) return ra[i] > rb[i];
+    return false;
+}
 
-export const isNotable = (c: BinderCard) =>
-    !!c.champ || !!c.card.special || c.card.shiny || binderOvr(c) >= NOTABLE_OVR;
+/** A melhor carta que você já teve da espécie (a "Melhor carta" da ficha), entre os espaços `got`. */
+export function bestOfSpecies(binder: BinderCard[], speciesId: number, got: (c: BinderCard) => boolean = () => true) {
+    let best: BinderCard | null = null;
+    for (const c of binder) if (c.card.speciesId === speciesId && got(c) && (!best || betterCard(c, best))) best = c;
+    return best;
+}
 
 /** A barra de evolução da copa não é da carta: fica de fora. */
 const recipeOf = (p: PokemonInstance): DuelMonRecipe => {
@@ -48,98 +83,96 @@ const recipeOf = (p: PokemonInstance): DuelMonRecipe => {
     return r;
 };
 
-/** Últimas 50 + notáveis, no máximo 300 (sai primeiro a não notável mais antiga, depois a notável mais antiga). */
-export function pruneBinder(list: BinderCard[]): BinderCard[] {
-    const sorted = [...list].sort((a, b) => b.at - a.at);
-    const notable = new Map(sorted.map((c) => [c, isNotable(c)]));
-    const kept = sorted.filter((c, i) => i < BINDER_RECENT || notable.get(c));
-    let extra = kept.length - BINDER_MAX;
-    if (extra <= 0) return kept;
-    const drop = new Set<BinderCard>();
-    for (const pass of [false, true])
-        for (let i = kept.length - 1; i >= 0 && extra > 0; i--)
-            if (notable.get(kept[i]) === pass) {
-                drop.add(kept[i]);
-                extra--;
-            }
-    return kept.filter((c) => !drop.has(c));
-}
+type Meta = { from: BinderFrom; at: number; cup?: string; champ?: boolean };
 
-/**
- * Põe cartas no fichário. A mesma carta de novo (virou Destaque, ganhou selo de MVP, foi campeã) atualiza a entrada:
- * fica a data e a origem de quando chegou.
- */
-export function binderAdd(
-    list: BinderCard[],
-    cards: PokemonInstance[],
-    meta: { from: BinderFrom; at: number; cup?: string; champ?: boolean },
-): BinderCard[] {
-    if (!cards.length) return list;
-    const byId = new Map(list.map((c) => [c.id, c]));
-    upsert(byId, cards, meta);
-    return pruneBinder([...byId.values()]);
-}
-
-function upsert(
-    byId: Map<string, BinderCard>,
-    cards: PokemonInstance[],
-    meta: { from: BinderFrom; at: number; cup?: string; champ?: boolean },
-) {
-    for (const p of cards) {
-        const id = binderKey(p);
-        const prev = byId.get(id);
-        const champ = !!prev?.champ || !!meta.champ;
-        const cup = prev?.cup ?? meta.cup;
-        byId.set(id, {
+function put(bySlot: Map<string, BinderCard>, p: PokemonInstance, uid: string, meta: Meta) {
+    const card = recipeOf(p);
+    for (const ed of cardSlots(card)) {
+        const id = slotId(p.speciesId, ed);
+        const prev = bySlot.get(id);
+        const seen = [...(prev?.seen.filter((x) => x !== uid) ?? []), uid].slice(-SEEN_MAX);
+        const n = (prev?.n ?? 0) + (prev?.seen.includes(uid) ? 0 : 1);
+        // a mesma carta de novo (virou Destaque, ganhou MVP, foi campeã): fica a data e a origem de quando chegou
+        const same = prev?.uid === uid ? prev : undefined;
+        const champ = !!meta.champ || !!same?.champ;
+        const cup = same?.cup ?? meta.cup;
+        const cand: BinderCard = {
             id,
-            card: recipeOf(p),
-            at: prev?.at ?? meta.at,
-            from: prev?.from ?? meta.from,
+            uid,
+            card,
+            at: same?.at ?? meta.at,
+            from: same?.from ?? meta.from,
             ...(cup && { cup }),
             ...(champ && { champ }),
-        });
+            n,
+            seen,
+        };
+        bySlot.set(id, !prev || same || betterCard(cand, prev) ? cand : { ...prev, n, seen });
     }
 }
 
-/** Junta o fichário da nuvem com o do aparelho: união pela carta (a versão de nota maior), sem duplicar. */
-export function mergeBinder(a: BinderCard[] = [], b: BinderCard[] = []): BinderCard[] {
-    const byId = new Map<string, BinderCard>();
-    for (const c of [...a, ...b]) {
-        const prev = byId.get(c.id);
+/** Põe cartas no álbum (as comuns não entram). */
+export function binderAdd(list: BinderCard[], cards: PokemonInstance[], meta: Meta): BinderCard[] {
+    if (!cards.some((p) => cardSlots(p).length)) return list;
+    const bySlot = new Map(list.map((c) => [c.id, c]));
+    for (const p of cards) put(bySlot, p, binderKey(p), meta);
+    return [...bySlot.values()];
+}
+
+/** Junta o álbum da nuvem com o do aparelho: por espaço fica a melhor carta, e a contagem não duplica. */
+export function mergeBinder(a: unknown = [], b: unknown = []): BinderCard[] {
+    const bySlot = new Map<string, BinderCard>();
+    for (const c of [...cleanBinder(a), ...cleanBinder(b)]) {
+        const prev = bySlot.get(c.id);
         if (!prev) {
-            byId.set(c.id, c);
+            bySlot.set(c.id, c);
             continue;
         }
-        const first = c.at < prev.at ? c : prev;
-        const best = binderOvr(c) > binderOvr(prev) ? c : prev;
-        const champ = !!prev.champ || !!c.champ;
-        byId.set(c.id, { ...first, card: best.card, ...(champ && { champ }) });
+        const seen = [...new Set([...prev.seen, ...c.seen])];
+        // o mesmo save dos dois lados: fica a contagem maior; dois aparelhos com cartas diferentes: soma
+        const n = Math.max(prev.n, c.n, seen.length);
+        const best = betterCard(c, prev) ? c : prev;
+        bySlot.set(c.id, { ...best, n, seen: seen.slice(-SEEN_MAX) });
     }
-    // o elenco refeito do Hall (save antigo de um lado) sai quando o outro lado tem as cartas de verdade da copa
-    const real = new Set([...byId.values()].flatMap((c) => (c.from !== 'hall' && c.cup ? [c.cup] : [])));
-    return pruneBinder([...byId.values()].filter((c) => c.from !== 'hall' || !real.has(c.cup ?? '')));
+    return [...bySlot.values()];
 }
 
-/** Fichário vindo de fora do aparelho (backup, nuvem): só entradas que são cartas de verdade; o resto sai. */
+const okRecipe = (card: unknown): card is DuelMonRecipe =>
+    !!card && typeof card === 'object' && !monProblems(card as DuelMonRecipe, '').length;
+
+/**
+ * Álbum vindo de fora do aparelho (backup, nuvem) ou do save: só entradas que são cartas de verdade. O fichário da
+ * 0.8.8 (uma entrada por carta, comuns inclusive) vira álbum: cada carta especial conta no espaço dela.
+ */
 export function cleanBinder(raw: unknown): BinderCard[] {
     if (!Array.isArray(raw)) return [];
-    const seen = new Set<string>();
-    const out: BinderCard[] = [];
+    const bySlot = new Map<string, BinderCard>();
+    const legacy: { uid: string; card: DuelMonRecipe; meta: Meta }[] = [];
     for (const c of raw as Partial<BinderCard>[]) {
-        if (!c || typeof c !== 'object' || typeof c.id !== 'string' || c.id.length > 80 || seen.has(c.id)) continue;
+        if (!c || typeof c !== 'object' || typeof c.id !== 'string' || c.id.length > 80) continue;
         if (typeof c.at !== 'number' || !Number.isFinite(c.at) || !FROMS.includes(c.from as BinderFrom)) continue;
-        if (!c.card || monProblems(c.card, '').length) continue;
-        seen.add(c.id);
-        out.push({
-            id: c.id,
-            card: c.card,
-            at: c.at,
+        const card = c.card;
+        if (!okRecipe(card)) continue;
+        const meta: Meta = {
             from: c.from as BinderFrom,
+            at: c.at,
             ...(typeof c.cup === 'string' && { cup: c.cup }),
             ...(c.champ === true && { champ: true }),
-        });
+        };
+        if (c.n === undefined && c.seen === undefined) {
+            legacy.push({ uid: c.id, card, meta });
+            continue;
+        }
+        const slots = cardSlots(card).map((ed) => slotId(card.speciesId, ed));
+        if (!slots.includes(c.id) || bySlot.has(c.id) || typeof c.uid !== 'string' || c.uid.length > 80) continue;
+        if (typeof c.n !== 'number' || !Number.isInteger(c.n) || c.n < 1 || !Array.isArray(c.seen)) continue;
+        const seen = c.seen.filter((x): x is string => typeof x === 'string' && x.length <= 80).slice(-SEEN_MAX);
+        bySlot.set(c.id, { id: c.id, uid: c.uid, card, ...meta, n: c.n, seen });
     }
-    return pruneBinder(out);
+    // fichário antigo: na ordem de chegada, como se cada carta entrasse agora
+    for (const l of legacy.sort((x, y) => x.meta.at - y.meta.at))
+        put(bySlot, monFromRecipe(l.card, l.uid.split('>')[0]), l.uid, l.meta);
+    return [...bySlot.values()];
 }
 
 const fromOf = (p: PokemonInstance): BinderFrom =>
@@ -164,8 +197,8 @@ function hallCard(h: HallEntry, i: number): PokemonInstance | null {
 }
 
 /**
- * Save de antes do fichário: as cartas das copas guardadas (a atual e as paradas) e os elencos do Hall da Fama (o
- * que dá pra refazer: espécie e Shiny). Copa que já veio das copas guardadas não entra de novo pelo Hall.
+ * Save de antes do álbum: as cartas das copas guardadas (a atual e as paradas) e os elencos do Hall da Fama (o que
+ * dá pra refazer: espécie e Shiny). Copa que já veio das copas guardadas não entra de novo pelo Hall.
  */
 export function binderBackfill(runs: (RunState | null | undefined)[], hall: HallEntry[]): BinderCard[] {
     const b = new Map<string, BinderCard>();
@@ -174,21 +207,20 @@ export function binderBackfill(runs: (RunState | null | undefined)[], hall: Hall
         if (!r || !Array.isArray(r.picks)) continue;
         const at = r.startedAt ?? r.endedAt ?? 0;
         cups.add(r.seed);
-        for (const p of r.picks) upsert(b, [p], { from: fromOf(p), at, cup: r.seed });
-        if (r.status === 'champion') {
-            const squad = [...r.lineup, ...r.bench].flatMap((uid) => r.picks.filter((p) => p.uid === uid));
-            upsert(b, squad, { from: 'draft', at, cup: r.seed, champ: true });
-        }
+        const squad = new Set(r.status === 'champion' ? [...r.lineup, ...r.bench] : []);
+        for (const p of r.picks) put(b, p, binderKey(p), { from: fromOf(p), at, cup: r.seed, champ: squad.has(p.uid) });
     }
     for (const h of hall) {
         if (cups.has(h.id) || !Array.isArray(h.squad)) continue;
-        const cards = h.squad.map((_, i) => hallCard(h, i)).filter((p): p is PokemonInstance => !!p);
-        upsert(b, cards, { from: 'hall', at: h.date, cup: h.id, champ: true });
+        h.squad.forEach((_, i) => {
+            const p = hallCard(h, i);
+            if (p) put(b, p, p.uid, { from: 'hall', at: h.date, cup: h.id, champ: true });
+        });
     }
-    return pruneBinder([...b.values()]);
+    return [...b.values()];
 }
 
-/** O fichário do save: o que já tem, ou (save de antes dele) o que dá pra tirar das copas e do Hall. */
+/** O álbum do save: o que já tem (o fichário antigo convertido), ou (save de antes dele) as copas e o Hall. */
 export const binderOf = (s: {
     binder?: unknown;
     run?: RunState | null;
@@ -198,11 +230,23 @@ export const binderOf = (s: {
     Array.isArray(s.binder) ? cleanBinder(s.binder) : binderBackfill([s.run, ...(s.parkedRuns ?? [])], s.hall ?? []);
 
 // ------------------------------------------------------------------------------------------- vitrine
-/** A vitrine do seu save: só as cartas que ainda estão no fichário, no máximo 3. */
-export function resolveCardShowcase(choice: unknown, binder: BinderCard[]): BinderCard[] {
+/**
+ * A vitrine do seu save: só cartas do álbum (`ok`: figurinha colada), no máximo 3. A escolha guarda o espaço
+ * ("6:icone"); a do fichário antigo guardava a carta, que ainda acha o espaço dela.
+ */
+export function resolveCardShowcase(
+    choice: unknown,
+    binder: BinderCard[],
+    ok: (c: BinderCard) => boolean = () => true,
+): BinderCard[] {
     if (!Array.isArray(choice)) return [];
-    const byId = new Map(binder.map((c) => [c.id, c]));
-    return choice.flatMap((id) => (typeof id === 'string' && byId.get(id)) || []).slice(0, CARD_SHOWCASE_MAX);
+    const out: BinderCard[] = [];
+    for (const id of choice) {
+        if (typeof id !== 'string') continue;
+        const c = binder.find((x) => x.id === id) ?? binder.find((x) => x.uid === id || x.seen.includes(id));
+        if (c && ok(c) && !out.includes(c)) out.push(c);
+    }
+    return out.slice(0, CARD_SHOWCASE_MAX);
 }
 
 /**

@@ -10,7 +10,7 @@ import { lookOfPeer, lookOfProfile, matchLooks } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
 import { frameTier, parseShowcase } from '../../store/medals';
 import { clubColorHex } from '../../store/profile';
-import { useCardShowcase } from '../profile/BinderTab';
+import { useCardShowcase } from '../profile/Album';
 import { trainerLabel, useAvatar } from '../profile/club';
 import { useShowcase } from '../profile/Medals';
 import { Scoreboard } from './MatchHud';
