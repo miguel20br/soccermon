@@ -16,6 +16,7 @@ import { FEEDBACK_URL, privacyUrl } from '../links';
 import { readCount, writeCount } from '../local-count';
 import { patchNotes } from '../patch-notes';
 import { TYPE_COLOR } from '../type-colors';
+import { HomeDailyCard } from './Daily';
 
 /** O que vem por aí (só vitrine: nada disso é clicável ainda). Os textos ficam em i18n (home.soon). */
 const SOON_IMG = ['assets/cards/25.gif', 'assets/cards/143.gif', 'assets/ui/poke-ball.png'];
@@ -329,6 +330,7 @@ export function Home() {
                         {t('duel.createRoom')}
                     </button>
                 </div>
+                <HomeDailyCard />
             </div>
 
             {/* entrar com o Google: embaixo dos modos, pro "Nova copa" ficar na primeira tela do celular */}

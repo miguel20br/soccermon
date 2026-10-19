@@ -1,0 +1,470 @@
+/* Copa do Dia e Liga ranqueada (kit da transmissão: placar escuro, faixa na cor, etiqueta amarela). */
+:root {
+    /* divisões nas cores das cartas (src/ui/rarity.ts) e a lendária, creme e dourado */
+    --div-bronze: #c98a52;
+    --div-prata: #c9ced8;
+    --div-ouro: #e8c24a;
+    --div-lenda: #f6e7b0;
+}
+
+.lg .panel {
+    padding: 14px 16px;
+}
+.lg-hero {
+    display: grid;
+    gap: 10px;
+}
+.lg-date {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 18px;
+    color: var(--yellow);
+    text-transform: capitalize;
+}
+.lg-line {
+    margin: 0;
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.45;
+}
+.lg-hint {
+    display: block;
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
+}
+.lg-note {
+    margin: 0;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: var(--bc-ink-2);
+    color: var(--text);
+    font-size: 12px;
+    line-height: 1.45;
+}
+.lg-start {
+    display: grid;
+    gap: 6px;
+    justify-items: start;
+}
+.lg-start .btn {
+    width: 100%;
+}
+
+/* resultado do dia: as 4 fases como no "Copa em andamento" da Home */
+.lg-done {
+    display: grid;
+    gap: 8px;
+}
+.lg-path {
+    display: flex;
+    gap: 6px;
+}
+.lg-path i {
+    width: 34px;
+    height: 9px;
+    border-radius: 4px;
+    background: var(--line);
+}
+.lg-path i.won {
+    background: var(--green);
+}
+.lg-path i.lost {
+    background: var(--red);
+}
+.lg-verdict {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 22px;
+    line-height: 1.15;
+    color: var(--text);
+}
+.lg-chip {
+    justify-self: start;
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 11px;
+}
+.lg-scores {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--muted);
+}
+.lg-scores li b {
+    display: inline-block;
+    min-width: 42px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+}
+.lg-scores li.won b {
+    color: var(--green);
+}
+.lg-scores li.lost b {
+    color: var(--red);
+}
+.lg-actions {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+.lg-next {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+/* semana: 7 quadradinhos, segunda a domingo */
+.lg-week {
+    display: grid;
+    gap: 8px;
+}
+.lg-week small {
+    color: var(--muted);
+    font-size: 12px;
+}
+.lg-days {
+    display: flex;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.lg-days li {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 5px;
+    border: 2px solid var(--line);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+}
+.lg-days li.on {
+    border-color: var(--bc-edge);
+    background: var(--green);
+    color: var(--bc-ink);
+}
+.lg-days.small {
+    gap: 4px;
+    margin-top: 4px;
+}
+.lg-days.small li {
+    width: 20px;
+    height: 20px;
+    border-width: 1px;
+    font-size: 10px;
+}
+
+/* ranking */
+.lg-rank-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 4px;
+}
+.lg-rank-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px 7px 16px;
+    border-radius: 6px;
+    background: var(--bc-ink-2);
+}
+.lg-rank-row::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    border-radius: 6px 0 0 6px;
+    background: var(--tc, var(--yellow));
+}
+.lg-rank-row.me {
+    outline: 2px solid var(--yellow);
+}
+.lg-pos {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 16px;
+    color: var(--yellow);
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+.lg-who {
+    display: grid;
+    min-width: 0;
+}
+.lg-who b,
+.lg-who small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.lg-who b {
+    color: var(--text);
+    font-size: 13px;
+}
+.lg-who small {
+    color: var(--muted);
+    font-size: 11px;
+}
+.lg-you {
+    margin-left: 6px;
+    padding: 0 5px;
+    border-radius: 3px;
+    background: var(--yellow);
+    color: var(--bc-ink);
+    font-size: 10px;
+    font-style: normal;
+    text-transform: uppercase;
+}
+.lg-num {
+    display: grid;
+    justify-items: end;
+    font-variant-numeric: tabular-nums;
+}
+.lg-num b {
+    color: var(--text);
+    font-size: 15px;
+}
+.lg-num small {
+    color: var(--muted);
+    font-size: 11px;
+}
+.lg-trophy {
+    width: 20px;
+    height: 20px;
+}
+
+/* divisão: escudo na cor do metal */
+.lg-div {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--dc);
+    --dc: var(--div-bronze);
+}
+.lg-div svg {
+    width: 34px;
+    height: 34px;
+}
+.lg-div svg path:first-child {
+    fill: var(--dc);
+    stroke: var(--bc-edge);
+    stroke-width: 2;
+}
+.lg-div-mark {
+    fill: none;
+    stroke: var(--bc-ink);
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.lg-div b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 16px;
+}
+.lg-div-prata {
+    --dc: var(--div-prata);
+}
+.lg-div-ouro {
+    --dc: var(--div-ouro);
+}
+.lg-div-lenda {
+    --dc: var(--div-lenda);
+}
+.lg-div-lenda svg path:first-child {
+    stroke: var(--div-ouro);
+}
+
+.lg-season-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+.lg-season-top small {
+    color: var(--muted);
+    font-size: 12px;
+}
+.lg-elo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.lg-elo-num {
+    display: grid;
+    justify-items: end;
+}
+.lg-elo-num b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 34px;
+    line-height: 1;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+}
+.lg-elo-num small {
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.lg-bar {
+    height: 8px;
+    border-radius: 4px;
+    background: var(--bc-ink-2);
+    overflow: hidden;
+}
+.lg-bar i {
+    display: block;
+    height: 100%;
+    background: var(--tc, var(--yellow));
+}
+
+.lg-result {
+    display: grid;
+    gap: 8px;
+    justify-items: start;
+}
+.lg-result.won {
+    --tc: var(--green);
+}
+.lg-result.lost {
+    --tc: var(--red);
+}
+.lg-elo-change {
+    color: var(--muted);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+.lg-elo-change em {
+    font-style: normal;
+    font-weight: 700;
+}
+.lg-elo-change .up {
+    color: var(--green);
+}
+.lg-elo-change .down {
+    color: var(--red);
+}
+
+/* próximo fantasma e o seu time */
+.lg-ghost,
+.lg-team {
+    display: grid;
+    gap: 10px;
+}
+.lg-ghost-head {
+    display: grid;
+}
+.lg-ghost-head b,
+.lg-team-row b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 20px;
+    line-height: 1.15;
+    color: var(--text);
+    overflow-wrap: anywhere;
+}
+.lg-ghost-head small {
+    color: var(--muted);
+    font-size: 12px;
+}
+.lg-squad {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+}
+.lg-squad img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+}
+.lg-ghost-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 14px;
+    color: var(--muted);
+    font-size: 12px;
+}
+.lg-ghost-meta .lg-div svg {
+    width: 24px;
+    height: 24px;
+}
+.lg-ghost-meta .lg-div b {
+    font-size: 13px;
+}
+.lg-team-row {
+    display: grid;
+    gap: 4px;
+}
+.lg-team-row small {
+    color: var(--muted);
+    font-size: 12px;
+}
+.lg .btn.big {
+    width: 100%;
+}
+
+/* Home: Copa do Dia e Liga, um cartão de duas linhas embaixo da Copa e do Duelo */
+.home .daily-card {
+    display: grid;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--bg-2);
+    border-color: var(--line);
+    box-shadow: none;
+    text-align: left;
+}
+@media (min-width: 900px) {
+    .home .daily-card {
+        grid-column: 1 / -1;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+    }
+}
+.dc-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+}
+.dc-icon .menu-icon {
+    width: 34px;
+    height: 34px;
+}
+.daily-card .mode-head {
+    display: grid;
+    gap: 2px;
+}
+.daily-card .mode-head b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 16px;
+    color: var(--text);
+}
+.daily-card .mode-head span {
+    color: var(--muted);
+    font-size: 12px;
+}
+.dc-go {
+    min-height: 44px;
+    white-space: nowrap;
+}
+@media (max-width: 360px) {
+    .dc-row {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+    .dc-go {
+        grid-column: 1 / -1;
+    }
+}

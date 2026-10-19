@@ -44,7 +44,9 @@ export function runDevDemo() {
         demo !== 'escanteio' &&
         demo !== 'conta' &&
         demo !== 'lider' &&
-        demo !== 'colecao'
+        demo !== 'colecao' &&
+        demo !== 'dia' &&
+        demo !== 'liga'
     )
         return;
     started = true;
@@ -53,6 +55,12 @@ export function runDevDemo() {
     const store = useGame.getState();
     if (demo === 'colecao') {
         demoCollection();
+        return;
+    }
+    // Copa do Dia e Liga com um servidor de mentira (src/league/demo.ts): `?demo=dia[&estado=feito]`, `?demo=liga`
+    if (demo === 'dia' || demo === 'liga') {
+        const estado = new URLSearchParams(window.location.search).get('estado');
+        void import('../league/demo').then((m) => m.startLeagueDemo(demo, estado));
         return;
     }
     if (demo === 'conta') {

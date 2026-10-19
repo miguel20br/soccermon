@@ -23,6 +23,7 @@ import {
 } from '../engine/specials';
 import { teachMove } from '../engine/tm';
 import { detectLang, type Lang } from '../i18n/lang';
+import { type DailyEntry, dailyDay, dailyEventType, dailySeed, isDailySeed, mergeDaily, putDaily } from './daily';
 import { addDuel, type DuelRecord, duelWins, MAX_DUELS } from './duels';
 import { activeTitle, activeTrainer, matchView, newMissions, stageView } from './missions';
 import {
@@ -65,7 +66,10 @@ export type Screen =
     | 'credits'
     | 'profile'
     | 'help'
-    | 'duel';
+    | 'duel'
+    | 'daily'
+    | 'liga'
+    | 'liga-match';
 export type CryStyle = 'legacy' | 'latest';
 export type PlaybackSpeed = 1 | 2 | 4 | 8 | 'highlights';
 
@@ -181,6 +185,8 @@ export interface RunState {
     startCounts?: { seen: number; moves: number };
     /** Rodada do draft em que o jogador tocou em "Monta pra mim" (sem = montou tudo na mão). */
     autoFrom?: number;
+    /** Copa do Dia: o dia ('2026-10-19'). Sem = copa normal. */
+    daily?: string;
 }
 
 export interface LiveMatch {
@@ -298,6 +304,15 @@ export interface GameStore {
     /** Duelos amistosos (só no save), do mais recente ao mais antigo. */
     duels: DuelRecord[];
     recordDuel(rec: DuelRecord): void;
+    /** Copas do Dia jogadas (do dia mais recente ao mais antigo). */
+    daily: DailyEntry[];
+    /**
+     * Começa a Copa do Dia de hoje (1 tentativa: a entrada do dia nasce agora, recarregar não dá outra). A copa em
+     * andamento, se houver, vai pras copas guardadas. `ranked`: o servidor registrou a tentativa.
+     */
+    startDaily(ranked: boolean): void;
+    /** O servidor já recebeu até a partida `n` da Copa do Dia de `day`. */
+    markDailyReported(day: string, n: number): void;
     /** Partida atual (não persistida — snapshots são grandes). */
     match: MatchResult | null;
     /** Missões cumpridas agora há pouco, na fila do aviso (não persistida: o aviso é só na hora). */
@@ -305,7 +320,7 @@ export interface GameStore {
     /** O aviso do primeiro da fila já passou. */
     shiftUnlock(): void;
     go(screen: Screen): void;
-    newRun(teamName?: string, seed?: string): void;
+    newRun(teamName?: string, seed?: string, daily?: string): void;
     abandonRun(): void;
     chooseFormation(id: FormationId): void;
     chooseSlot(slot: SlotRef): void;
@@ -477,11 +492,34 @@ export function hallEntry(run: RunState, profile: Profile): HallEntry {
     };
 }
 
-/** Lê `?seed=` da URL (desafio compartilhado). */
+/** A Copa do Dia em andamento acabou (a copa saiu do lugar): a tentativa do dia fecha com o que tinha. */
+function closeDaily(s: Pick<GameStore, 'run' | 'daily'>): DailyEntry[] {
+    const day = s.run?.daily;
+    if (!day || !isCupInProgress(s.run)) return s.daily;
+    return s.daily.map((e) => (e.day === day ? { ...e, done: true } : e));
+}
+
+/** Copa do Dia depois de uma partida: placar no histórico do dia; acabou no título ou na eliminação. */
+export function dailyAfter(list: DailyEntry[], run: RunState, day: string): DailyEntry[] {
+    const cur = list.find((e) => e.day === day) ?? { day, results: [], done: false, champion: false };
+    return putDaily(list, {
+        ...cur,
+        results: run.results.map((r) => ({
+            score: [r.score[0], r.score[1]],
+            shootout: r.shootout,
+            won: r.won,
+            opponent: r.opponent,
+        })),
+        done: !isCupInProgress(run),
+        champion: run.status === 'champion',
+    });
+}
+
+/** Lê `?seed=` da URL (desafio compartilhado). A seed da Copa do Dia não vale aqui (seria treino da tentativa). */
 export function seedFromUrl(): string | null {
     try {
         const seed = new URLSearchParams(window.location.search).get('seed');
-        return seed && /^[a-z0-9-]{1,32}$/i.test(seed) ? seed : null;
+        return seed && /^[a-z0-9-]{1,32}$/i.test(seed) && !isDailySeed(seed) ? seed : null;
     } catch {
         return null;
     }
@@ -501,7 +539,24 @@ export type PersistedSave = Pick<
     | 'parkedRuns'
     | 'hall'
     | 'duels'
+    | 'daily'
 >;
+
+/** A parte do estado que é save (IndexedDB, nuvem, backup). */
+export const savePart = (s: PersistedSave): PersistedSave => ({
+    run: s.run,
+    settings: s.settings,
+    records: s.records,
+    profile: s.profile,
+    dex: s.dex,
+    moves: s.moves,
+    career: s.career,
+    onboarded: s.onboarded,
+    parkedRuns: s.parkedRuns,
+    hall: s.hall,
+    duels: s.duels,
+    daily: s.daily,
+});
 
 /** Copa salva com formato aceitável (save importado ou da nuvem): senão é descartada, não trava o jogo. */
 const runShapeOk = (r: unknown): r is RunState => {
@@ -635,6 +690,8 @@ export function migrateSave(old: Partial<PersistedSave>, version: number): Persi
         duels: Array.isArray(old.duels)
             ? old.duels.filter((x) => x && typeof x.id === 'string').slice(0, MAX_DUELS)
             : [],
+        // Copa do Dia (campo novo, opcional: saves antigos não têm)
+        daily: mergeDaily(Array.isArray(old.daily) ? old.daily : []),
     });
 }
 
@@ -674,12 +731,28 @@ export const useGame = create<GameStore>()(
                         ...(fresh ? { records: { ...records, duelWins: duelWins(records, duels) + 1 } } : {}),
                     });
                 },
+                daily: [],
+                startDaily: (ranked) => {
+                    const s = getState();
+                    const day = dailyDay();
+                    if (s.daily.some((e) => e.day === day)) return;
+                    // a copa em andamento não some: fica guardada (volta pela Home)
+                    const parkedRuns =
+                        isCupInProgress(s.run) && !s.run.daily
+                            ? [s.run, ...s.parkedRuns].slice(0, MAX_PARKED)
+                            : s.parkedRuns;
+                    const daily = putDaily(closeDaily(s), { day, results: [], done: false, champion: false, ranked });
+                    setState({ run: null, parkedRuns, daily });
+                    getState().newRun(s.profile.clubName || 'Pallet FC', dailySeed(day), day);
+                },
+                markDailyReported: (day, n) =>
+                    setState({ daily: getState().daily.map((e) => (e.day === day ? { ...e, reported: n } : e)) }),
                 match: null,
                 unlockQueue: [],
 
                 go: (screen) => setState({ screen }),
 
-                newRun: (teamName = getState().profile.clubName || 'Pallet FC', seed) => {
+                newRun: (teamName = getState().profile.clubName || 'Pallet FC', seed, daily) => {
                     const runSeed = seed ?? Math.floor(Math.random() * 1e9).toString(36);
                     const run: RunState = {
                         schemaVersion: 3,
@@ -703,19 +776,22 @@ export const useGame = create<GameStore>()(
                         rewards: [],
                         lockedTeam: null,
                         live: null,
-                        eventType: weeklyEventType(new Date()),
+                        eventType: daily ? dailyEventType(daily) : weeklyEventType(new Date()),
                         startedAt: Date.now(),
+                        ...(daily && { daily }),
                         startCounts: {
                             seen: Object.keys(getState().dex).length,
                             moves: Object.keys(getState().moves).length,
                         },
                     };
-                    // começar outra por cima de uma copa em jogo é abandonar a atual: a sequência de títulos zera
+                    // começar outra por cima de uma copa em jogo é abandonar a atual: a sequência de títulos zera;
+                    // trocar uma Copa do Dia no meio por outra copa encerra a tentativa do dia
                     const { records } = getState();
                     setState({
                         run,
                         match: null,
                         screen: 'draft',
+                        daily: closeDaily(getState()),
                         ...(isCupInProgress(getState().run) && {
                             records: { ...records, ...streakAfter(records, false) },
                         }),
@@ -724,6 +800,7 @@ export const useGame = create<GameStore>()(
 
                 abandonRun: () =>
                     setState({
+                        daily: closeDaily(getState()),
                         run: null,
                         match: null,
                         screen: 'home',
@@ -1076,6 +1153,7 @@ export const useGame = create<GameStore>()(
                     );
                     setState({
                         ...saved,
+                        ...(run.daily && { daily: dailyAfter(getState().daily, next, run.daily) }),
                         ...(fresh.length && {
                             profile: { ...profile, missionsDone: [...profile.missionsDone, ...fresh] },
                         }),
@@ -1186,19 +1264,7 @@ export const useGame = create<GameStore>()(
             // v9: álbum de edições na Pokédex (`DexEntry.editions`, retroativo pelo Hall e pelas copas guardadas)
             version: SAVE_VERSION,
             storage: createJSONStorage(() => idbStorage),
-            partialize: (s): PersistedSave => ({
-                run: s.run,
-                settings: s.settings,
-                records: s.records,
-                profile: s.profile,
-                dex: s.dex,
-                moves: s.moves,
-                career: s.career,
-                onboarded: s.onboarded,
-                parkedRuns: s.parkedRuns,
-                hall: s.hall,
-                duels: s.duels,
-            }),
+            partialize: (s): PersistedSave => savePart(s),
             // versões antigas tinham outro formato de draft: descarta a run, mantém configurações
             migrate: (persisted, version) => {
                 return migrateSave((persisted ?? {}) as Partial<PersistedSave>, version);

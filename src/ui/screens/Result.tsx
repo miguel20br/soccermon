@@ -49,7 +49,7 @@ const TAB_ICON: Record<Tab, HudIconKind> = { times: 'team', jogadores: 'players'
 const pctOf = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 
 export function Result() {
-    const { run, match, advance, newRun } = useGame();
+    const { run, match, advance, newRun, go } = useGame();
     const { t } = useT();
     const [shared, setShared] = useState<string | null>(null);
     const clubColor = useClubColor();
@@ -111,9 +111,16 @@ export function Result() {
             <div className="row" style={{ justifyContent: 'center' }}>
                 {eliminated || champion ? (
                     <>
-                        <button type="button" className="btn yellow" onClick={share}>
-                            {t('result.share')}
-                        </button>
+                        {run.daily ? (
+                            // Copa do Dia: o ranking e o compartilhar (estilo Wordle) ficam na tela do dia
+                            <button type="button" className="btn yellow" onClick={() => go('daily')}>
+                                {t('liga.daily.rankingTitle')}
+                            </button>
+                        ) : (
+                            <button type="button" className="btn yellow" onClick={share}>
+                                {t('result.share')}
+                            </button>
+                        )}
                         <button type="button" className="btn primary" onClick={() => newRun(run.teamName)}>
                             {t('result.newCup')}
                         </button>

@@ -6,6 +6,7 @@ import App from './App';
 import { startAnalytics } from './analytics/track';
 import { startCloudSync } from './cloud/cloud';
 import { importFromOldDomain, moveToNewDomain } from './cloud/domain-move';
+import { startLeagueSync } from './league/sync';
 import { ErrorBoundary } from './ui/components/ErrorBoundary';
 import { startSettingsSync } from './ui/settings-sync';
 import './ui/styles.css';
@@ -25,6 +26,8 @@ void importFromOldDomain();
 
 // contas e save na nuvem (só liga se o Supabase estiver configurado)
 startCloudSync();
+// Copa do Dia: cada partida vai pro ranking do dia (só com conta Google)
+startLeagueSync();
 // volume por canal e "reduzir movimento" (Configurações)
 startSettingsSync();
 // visitas e velocidade (Vercel, sem cookie) e estatísticas anônimas do jogo (Supabase)
