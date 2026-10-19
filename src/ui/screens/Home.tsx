@@ -20,6 +20,7 @@ import { TYPE_COLOR } from '../type-colors';
 import { HomeDailyCard } from './Daily';
 import '../home-motion.css';
 import { HudIcon } from '../components/MatchHud';
+import { ProfileChip } from '../profile/PlayerCard';
 
 /** O que vem por aí (só vitrine: nada disso é clicável ainda). Os textos ficam em i18n (home.soon). */
 const SOON_IMG = ['assets/cards/25.gif', 'assets/cards/143.gif', 'assets/ui/poke-ball.png'];
@@ -179,6 +180,7 @@ export function Home() {
                 >
                     <MenuIcon kind="help" />
                 </button>
+                <ProfileChip />
             </div>
 
             <section className="home-hero">
@@ -373,10 +375,6 @@ export function Home() {
             )}
 
             <nav className="home-tiles" aria-label={t('common.ui.menu')}>
-                <button type="button" className="home-tile bc-tile" onClick={() => go('profile')}>
-                    <MenuIcon kind="profile" />
-                    {tile('profile')}
-                </button>
                 <button type="button" className="home-tile bc-tile" onClick={() => openLab('?lab=golpes')}>
                     <MenuIcon kind="moves" />
                     {tile('moves')}

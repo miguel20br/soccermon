@@ -38,7 +38,6 @@ export const home = {
         icones: 'ícone|ícones',
     },
     tiles: {
-        profile: ['Perfil', 'Seu clube, Pokédex e números'],
         moves: ['Golpedex', 'Os golpes que você já viu em campo'],
         help: ['Ajuda', 'Como jogar e todas as mecânicas'],
         news: ['Novidades', 'O que mudou na versão {v}'],

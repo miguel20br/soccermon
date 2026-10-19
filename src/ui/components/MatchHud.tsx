@@ -293,6 +293,8 @@ export const ICONS = {
     stop: 'M6.5 6.5h11v11h-11z',
     mute: 'M3 10v4h4l7 5V5L7 10zM17 9.5l5 5M22 9.5l-5 5',
     bulb: 'M9.5 18h5M10.5 21h3M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3z',
+    person: 'M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4.4 3.6-8 8-8s8 3.6 8 8',
+    addFriend: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21c0-4 3-7 7-7s7 3 7 7M19 8v6M16 11h6',
 } as const;
 export type HudIconKind = keyof typeof ICONS;
 

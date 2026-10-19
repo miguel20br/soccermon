@@ -232,27 +232,3 @@
     border: 2px dashed var(--line);
     border-radius: 10px;
 }
-
-/* fileira da vitrine: cartas em miniatura */
-.cardshow {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-}
-.cardshow .fut-wrap.sm {
-    --fut-w: 76px;
-}
-.cardshow .pc2 {
-    font-size: calc(var(--cs-w, 44px) / 15);
-}
-.pf-cardshow {
-    grid-column: 1 / -1;
-}
-@media (min-width: 720px) {
-    .pf-cardshow .fut-wrap.sm {
-        --fut-w: 96px;
-    }
-}

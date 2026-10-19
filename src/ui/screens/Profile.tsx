@@ -9,13 +9,13 @@ import { titleClass } from '../../store/title-codes';
 import { HallList } from '../components/HallParade';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
-import { CardShowcaseRow, useCardShowcase } from '../profile/Album';
 import { ClubTab } from '../profile/ClubTab';
 import { Crest } from '../profile/Crest';
 import { clubVars, titleName, trainerLabel, useAvatar } from '../profile/club';
 import { DexTab } from '../profile/DexTab';
 import { frameClass, MedalsTab, ShowcaseRow, useShowcase } from '../profile/Medals';
 import { NumbersTab } from '../profile/NumbersTab';
+import { useMyInfo, usePlayerCard } from '../profile/PlayerCard';
 import { MissionsTab, TrainerSprite } from '../profile/TrainerTab';
 import '../profile/profile.css';
 
@@ -40,7 +40,8 @@ export function Profile() {
     const avatar = useAvatar();
     const updateProfile = useGame((s) => s.updateProfile);
     const showcase = useShowcase();
-    const cardShow = useCardShowcase();
+    const myInfo = useMyInfo();
+    const openCard = usePlayerCard((s) => s.open);
     // ?perfil=medalhas abre direto na aba (atalho pros prints e pro Miguel); ?perfil=album (ou o fichario de antes)
     // abre o Álbum na Pokédex
     const q = new URLSearchParams(window.location.search).get('perfil');
@@ -87,7 +88,10 @@ export function Profile() {
                         <dd>{career.goalsFor}</dd>
                     </div>
                 </dl>
-                <CardShowcaseRow insts={cardShow.insts} className="pf-cardshow" open />
+                <button type="button" className="btn small pf-public" onClick={() => openCard(myInfo)}>
+                    <HudIcon kind="person" />
+                    {t('profile.card.open')}
+                </button>
             </header>
 
             <div className="pf-tabs bc-tabs" role="tablist" aria-label={t('profile.title')}>

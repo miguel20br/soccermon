@@ -11,6 +11,7 @@ import { UnlockNotice } from './ui/components/UnlockNotice';
 import { runDevDemo } from './ui/dev-demo';
 import { Duel, duelCodeFromUrl } from './ui/duel/Duel';
 import { requestLeave } from './ui/leave-guard';
+import { PlayerCardModal, ProfileChip } from './ui/profile/PlayerCard';
 import { CardGallery } from './ui/screens/CardGallery';
 import { Credits } from './ui/screens/Credits';
 import { Daily } from './ui/screens/Daily';
@@ -133,6 +134,8 @@ export default function App() {
                 ) : (
                     <PositionLab onExit={exit} />
                 )}
+                <PlayerCardModal />
+                <CardModal />
             </div>
         );
     }
@@ -163,6 +166,8 @@ export default function App() {
                     >
                         <img src="assets/ui/logo.svg" alt="" width="1441" height="300" />
                     </button>
+                    {/* telas de menu: o Perfil no canto, como na Home */}
+                    {(screen === 'settings' || screen === 'credits' || screen === 'help') && <ProfileChip />}
                 </header>
             )}
             {screen === 'home' && <Home />}
@@ -179,6 +184,7 @@ export default function App() {
             {screen === 'daily' && <Daily />}
             {screen === 'liga' && <Liga />}
             {screen === 'liga-match' && <Match liga />}
+            <PlayerCardModal />
             <CardModal />
             <AccountLink />
             <UnlockNotice />

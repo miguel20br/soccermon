@@ -11,6 +11,16 @@ export const profile = {
         medalhas: 'Medalhas',
     },
     quick: { cups: 'Copas', titles: 'Títulos', goals: 'Gols' },
+    /** Cartão do treinador: o perfil que os outros veem (Duelo) e o seu, pelo botão do Perfil. */
+    card: {
+        open: 'Ver meu perfil público',
+        aria: 'Perfil de {name}',
+        openAria: 'Ver o perfil de {name}',
+        cards: 'Cartas da vitrine',
+        noCards: 'Nenhuma carta na vitrine ainda.',
+        addFriend: 'Adicionar amigo',
+        soon: 'Em breve',
+    },
     club: {
         saved: 'Salvo',
         trainerTitle: 'Treinador',
@@ -419,7 +429,7 @@ export const profile = {
     binder: {
         from: { draft: 'Draft', recompensa: 'Recompensa', evolucao: 'Evolução', hall: 'Hall da Fama' },
         showcase: 'Vitrine de cartas',
-        showcaseHelp: 'Até 3 cartas no topo do Perfil e no VERSUS do Duelo. Toque numa figurinha do álbum.',
+        showcaseHelp: 'Até 3 cartas no seu perfil público (o rival vê no Duelo). Toque numa figurinha do álbum.',
         add: 'Pôr na vitrine',
         remove: 'Tirar da vitrine',
         full: 'Vitrine cheia: tire uma antes',

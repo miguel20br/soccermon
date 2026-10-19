@@ -42,7 +42,6 @@ import {
 import { baseSeedOf, holdTick, openedSegments } from '../../net/seal';
 import { duel, roomNow, useDuel } from '../../net/session';
 import { PhaserGame } from '../../PhaserGame';
-import { parseCardShowcase } from '../../store/binder';
 import { fieldKit, lookOfPeer, matchLooks } from '../../store/club-kit';
 import type { ChanceSpeed, PlaybackSpeed } from '../../store/game-store';
 import { useGame } from '../../store/game-store';
@@ -81,6 +80,7 @@ import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
 import { captainAt, roleAt, snapAt } from '../match-view';
 import { bannerText, peerAvatar, peerTitle } from '../profile/club';
+import { peerInfo, usePlayerCard } from '../profile/PlayerCard';
 import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
 import { EmoteBar, EmoteBubbles } from './Emotes';
@@ -441,6 +441,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const awayRival = !online[rivalRole];
 
     const myPeer = s.peers[role];
+    const openCard = usePlayerCard.getState().open;
     const coach = (p?: typeof myPeer) =>
         p && {
             name: p.name,
@@ -450,14 +451,19 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
             avatarGoogle: peerAvatar(p).google,
             showcase: parseShowcase(p.showcase),
             frame: frameTier(parseShowcase(p.showcase)),
-            cards: parseCardShowcase(p.cards),
+            onOpen: () => openCard(peerInfo(p, p !== myPeer)),
         };
     const badge = (p?: typeof myPeer) => {
         const tt = p && peerTitle(p);
-        return tt?.name ? (
-            <span className="sb-title">
+        return p && tt?.name ? (
+            <button
+                type="button"
+                className="sb-title is-btn"
+                onClick={() => openCard(peerInfo(p, p !== myPeer))}
+                aria-label={t('profile.card.openAria', { name: p.name })}
+            >
                 <span className={tt.look || undefined}>{tt.name}</span>
-            </span>
+            </button>
         ) : null;
     };
     const onMine = (uid: string, idx: number | null, outUid?: string) => {
