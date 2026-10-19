@@ -1,9 +1,10 @@
-import { type CSSProperties, useEffect, useMemo, useState } from 'react';
+import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
 import { useT } from '../../i18n/react';
 
 /**
  * Quadra animada da Home: alterna cenas curtas (corrida atrás da bola, tabelinha, gol, embaixadinhas), cada
- * uma com Pokémon sorteados. Só CSS (styles.css, `hc-*`); com "reduzir movimento" fica a corrida parada.
+ * uma com Pokémon sorteados. Só CSS (styles.css e home-motion.css, `hc-*`); com "reduzir movimento" fica a corrida
+ * parada. Com a aba escondida ou a quadra fora da tela, as cenas param (nem o relógio das cenas corre).
  */
 type Scene = 'parade' | 'passes' | 'goal' | 'juggle';
 
@@ -30,22 +31,55 @@ function castFor(scene: Scene, step: number): number[] {
     return [...pick(PASSERS, 1), ...pick(FANS, 2)];
 }
 
-const reduced = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+/** "Reduzir movimento" resolvido pelo settings-sync (Configurações ou o aparelho), não só o do aparelho. */
+const reduced = () =>
+    document.documentElement.dataset.reduceMotion === 'true' ||
+    (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false);
+
+/** A quadra está na tela e a aba visível? Fora disso as cenas param. */
+function useOnScreen(ref: React.RefObject<HTMLElement | null>) {
+    const [on, setOn] = useState(true);
+    useEffect(() => {
+        let visible = true;
+        const sync = () => setOn(visible && !document.hidden);
+        const io =
+            typeof IntersectionObserver === 'undefined'
+                ? null
+                : new IntersectionObserver(([e]) => {
+                      visible = e.isIntersecting;
+                      sync();
+                  });
+        if (ref.current && io) io.observe(ref.current);
+        document.addEventListener('visibilitychange', sync);
+        sync();
+        return () => {
+            io?.disconnect();
+            document.removeEventListener('visibilitychange', sync);
+        };
+    }, [ref]);
+    return on;
+}
 
 export function HomeCourt() {
     const { t } = useT();
     const [step, setStep] = useState(0);
     const scene = SCENES[step % SCENES.length];
     const ids = useMemo(() => castFor(scene.id, step), [scene.id, step]);
+    const ref = useRef<HTMLDivElement>(null);
+    const live = useOnScreen(ref);
 
     useEffect(() => {
-        if (reduced()) return;
+        if (!live || reduced()) return;
         const t = window.setTimeout(() => setStep(step + 1), SCENES[step % SCENES.length].ms);
         return () => window.clearTimeout(t);
-    }, [step]);
+    }, [step, live]);
 
     return (
-        <div className="home-court" aria-hidden>
+        <div ref={ref} className={`home-court${live ? '' : ' paused'}`} aria-hidden>
+            <span className="hc-live">
+                <i />
+                {t('home.live')}
+            </span>
             <i className="hc-mid" />
             <i className="hc-circle" />
             <i className="hc-area left" />
