@@ -15,6 +15,8 @@ export interface PlayerLine {
     idx: number;
     team: 0 | 1;
     speciesId: number;
+    /** Carta shiny (o sprite das telas de estatística sai na cor shiny). */
+    shiny: boolean;
     name: string;
     role: string;
     stats: PlayerStats;
@@ -115,6 +117,7 @@ export function playerLines(m: MatchResult): PlayerLine[] {
                 idx: st.idx,
                 team: sum.team,
                 speciesId: sum.speciesId,
+                shiny: !!sum.shiny,
                 name: sum.name,
                 role: sum.role,
                 stats: sum.stats,

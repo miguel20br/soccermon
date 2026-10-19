@@ -312,7 +312,7 @@ export function MatchDetails({
                             <div key={l.id} className="st-leader">
                                 <img
                                     className="pixel"
-                                    src={cardSprite({ speciesId: l.line.speciesId, shiny: false })}
+                                    src={cardSprite({ speciesId: l.line.speciesId, shiny: l.line.shiny })}
                                     alt=""
                                 />
                                 <div>
@@ -354,7 +354,10 @@ export function MatchDetails({
                                 <div key={`${e.tick}-${e.uid}`} className="mini rival-evo">
                                     <img
                                         className="pixel"
-                                        src={cardSprite({ speciesId: e.into, shiny: false })}
+                                        src={cardSprite({
+                                            speciesId: e.into,
+                                            shiny: !!lines.find((x) => x.uid === e.uid)?.shiny,
+                                        })}
                                         alt=""
                                     />
                                     <div>

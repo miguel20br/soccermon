@@ -17,10 +17,10 @@ import { cardSprite } from './PokeCard';
  * nota jogo a jogo. Tudo sai do resumo que cada partida guarda no run (`results[].stats`).
  */
 
-const sprite = (speciesId: number) => cardSprite({ speciesId, shiny: false });
+const sprite = (speciesId: number, shiny = false) => cardSprite({ speciesId, shiny });
 
-function Mini({ speciesId, name }: { speciesId: number; name: string }) {
-    return <img className="pixel ce-mini" src={sprite(speciesId)} alt={name} title={name} />;
+function Mini({ speciesId, shiny, name }: { speciesId: number; shiny?: boolean; name: string }) {
+    return <img className="pixel ce-mini" src={sprite(speciesId, shiny)} alt={name} title={name} />;
 }
 
 /** Recordes que o título trouxe (calculados no apito final, antes de somar no perfil). */
@@ -77,7 +77,7 @@ export function CupAwards({ run }: { run: RunState }) {
             <div className="ce-awards">
                 {list.map((x) => (
                     <div key={x.id} className={`ce-award ce-${x.id}`}>
-                        <img className="pixel" src={sprite(x.who.speciesId)} alt="" />
+                        <img className="pixel" src={sprite(x.who.speciesId, x.who.shiny)} alt="" />
                         <b>{t(`title.awards.${x.id}` as 'title.awards.ball')}</b>
                         <span>{x.who.name}</span>
                         <small>{t(`title.awards.${x.id}V` as 'title.awards.ballV', { v: x.v })}</small>
@@ -186,7 +186,13 @@ export function CupGoals({ run }: { run: RunState }) {
                                         }}
                                         title={`${g.minute}' ${g.name}${g.ownGoal ? ` (${t('title.timeline.own')})` : ''}${g.moveId ? ` · ${moveName(g.moveId)}` : ''}`}
                                     >
-                                        {g.team === 0 && <img className="pixel" src={sprite(g.speciesId)} alt="" />}
+                                        {g.team === 0 && (
+                                            <img
+                                                className="pixel"
+                                                src={sprite(g.speciesId, run.picks.find((p) => p.uid === g.uid)?.shiny)}
+                                                alt=""
+                                            />
+                                        )}
                                     </span>
                                 ))}
                             </div>
@@ -249,7 +255,12 @@ export function CupFinal({ run }: { run: RunState }) {
                     <b>{run.teamName}</b>
                     <div>
                         {mine.map((p) => (
-                            <Mini key={p.uid} speciesId={p.speciesId} name={viewInstance(p).displayName} />
+                            <Mini
+                                key={p.uid}
+                                speciesId={p.speciesId}
+                                shiny={p.shiny}
+                                name={viewInstance(p).displayName}
+                            />
                         ))}
                     </div>
                     <span>
@@ -263,7 +274,12 @@ export function CupFinal({ run }: { run: RunState }) {
                     <b>{clubName(opp.name)}</b>
                     <div>
                         {opp.lineup.map((p) => (
-                            <Mini key={p.uid} speciesId={p.speciesId} name={viewInstance(p).displayName} />
+                            <Mini
+                                key={p.uid}
+                                speciesId={p.speciesId}
+                                shiny={p.shiny}
+                                name={viewInstance(p).displayName}
+                            />
                         ))}
                     </div>
                     <span>

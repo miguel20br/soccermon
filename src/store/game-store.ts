@@ -99,6 +99,8 @@ export interface StageStats {
     players: {
         uid: string;
         speciesId: number;
+        /** Carta shiny (partidas antes da 0.8.8 não têm: ficam com o sprite normal). */
+        shiny?: boolean;
         name: string;
         role: string;
         rating: number;
@@ -966,6 +968,7 @@ export const useGame = create<GameStore>()(
                                 .map((l) => ({
                                     uid: l.uid,
                                     speciesId: l.speciesId,
+                                    ...(l.shiny && { shiny: true }),
                                     name: l.name,
                                     role: l.role,
                                     rating: l.rating,

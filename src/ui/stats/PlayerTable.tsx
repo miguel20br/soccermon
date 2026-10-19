@@ -125,7 +125,7 @@ export function PlayerTable({ lines, names }: { lines: PlayerLine[]; names: [str
                                     <i style={{ background: p.team === 0 ? homeC() : awayC() }} />
                                     <img
                                         className="pixel"
-                                        src={cardSprite({ speciesId: p.speciesId, shiny: false })}
+                                        src={cardSprite({ speciesId: p.speciesId, shiny: p.shiny })}
                                         alt=""
                                     />
                                     <span>
