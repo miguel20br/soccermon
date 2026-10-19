@@ -1,0 +1,388 @@
+<!doctype html>
+<!--
+  Trailer 2 do Soccermon, VERTICAL 9:16 (Instagram, TikTok, Reels, Shorts), seguindo o storyboard v3
+  (trailer/v2/storyboard/, aprovado pelo Miguel em 19/10/2026). midia/ vem do preparar.sh (fora do git).
+  Grade: a música entra em 7,96 s (começando 0,5 s dentro da faixa); 1ª batida em 8,428 s; 178 BPM (batida 0,3371 s,
+  compasso 1,3483 s). Os tempos dos planos estão em batidas: B(n) = 8,428 + n × 0,3371.
+  Área segura: textos e logo entre x 60–920 e y 130–1632 (fora dos 15% de baixo e da faixa dos botões à direita).
+  Inglês: --variables '{"lang":"en"}'.
+-->
+<html lang="pt-BR" data-composition-variables='[{"id":"lang","type":"string","label":"Idioma (pt/en)","default":"pt"}]'>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920" />
+<title>Soccermon · trailer 2 vertical</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+@font-face { font-family: "Galmuri11"; src: url("midia/Galmuri11-Bold.woff2") format("woff2"); font-weight: 700; }
+html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+#root { position: relative; width: 1080px; height: 1920px; overflow: hidden; font-family: "Galmuri11", monospace; background: #070a18; }
+.clip { position: absolute; inset: 0; width: 1080px; height: 1920px; overflow: hidden; }
+img { image-rendering: pixelated; }
+.palco { background: radial-gradient(circle at 50% 45%, #2a3a7a, #070a18 72%); }
+.raios { position: absolute; left: 50%; top: 45%; width: 3400px; height: 3400px; margin: -1700px 0 0 -1700px;
+  background: repeating-conic-gradient(rgb(255 255 255 / 7%) 0 6deg, transparent 6deg 13deg); }
+.flash { position: absolute; inset: 0; background: #fff; opacity: 0; z-index: 80; pointer-events: none; }
+
+/* legendas: dentro da área segura (centro em x 540, largura 760) */
+.legenda { position: absolute; left: 160px; width: 760px; top: 190px; height: 300px; display: flex; align-items: center; justify-content: center;
+  text-align: center; z-index: 40; font-size: 70px; line-height: 1.2; letter-spacing: 2px; color: #fff;
+  -webkit-text-stroke: 14px #0e1430; paint-order: stroke fill; text-shadow: 0 8px 0 #0e1430; }
+.legenda b { color: #ffcb05; font-weight: 700; }
+.legenda.baixo { top: 1390px; height: 230px; }
+.recorte { position: absolute; image-rendering: auto; filter: drop-shadow(0 18px 40px rgb(0 0 0 / 55%)); }
+
+/* faixa do jogo: 1080x860 no meio da tela */
+.jogo { position: absolute; left: 0; top: 520px; width: 1080px; height: 860px; object-fit: cover; object-position: 50% 50%;
+  box-shadow: 0 0 0 6px #0e1430, 0 20px 60px rgb(0 0 0 / 60%); }
+.vinheta { position: absolute; left: 0; top: 520px; width: 1080px; height: 860px; z-index: 20; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgb(0 0 0 / 55%) 100%); }
+.mira { position: absolute; z-index: 25; width: 190px; height: 190px; margin: -95px 0 0 -95px; border-radius: 50%;
+  border: 7px solid #fff; box-shadow: 0 0 40px #fff, inset 0 0 30px rgb(255 255 255 / 60%); }
+.golpe { position: absolute; z-index: 30; width: auto; height: auto; right: auto; bottom: auto; display: flex; align-items: center; gap: 16px; white-space: nowrap; color: #fff;
+  padding: 12px 56px 12px 16px; clip-path: polygon(0 0, 100% 0, calc(100% - 36px) 100%, 0 100%);
+  background: linear-gradient(90deg, #c63a3a, #4a1830); box-shadow: 0 8px 0 rgb(0 0 0 / 35%); }
+.golpe .face { width: 104px; height: 104px; border: 5px solid #fff; border-radius: 10px; background: #10162e; overflow: hidden; flex: none; }
+.golpe .face img { width: 100%; height: 100%; display: block; }
+.golpe .quem { font-size: 28px; letter-spacing: 2px; text-shadow: 0 4px 0 rgb(0 0 0 / 55%); }
+.golpe .nome { font-size: 60px; line-height: 1; letter-spacing: 2px; color: #ffb347; -webkit-text-stroke: 10px #0e1430; paint-order: stroke fill; text-shadow: 0 6px 0 #0e1430; }
+
+/* abertura: Game Boy em 4 tons */
+.gb { background: #f8f8f0; }
+.gb .sprite { position: absolute; filter: url(#gb4); }
+.caixa { position: absolute; left: 40px; width: 900px; top: 1130px; height: 470px; box-sizing: border-box; padding: 76px 70px;
+  background: #f8f8f0; border: 14px solid #181818; border-radius: 6px; box-shadow: inset 0 0 0 26px #f8f8f0, inset 0 0 0 34px #181818;
+  color: #181818; font-size: 50px; line-height: 1.55; letter-spacing: 1px; z-index: 10; }
+.caixa .seta { position: absolute; right: 64px; bottom: 50px; font-size: 42px; opacity: 0; }
+.caixa .grande { font-size: 80px; }
+#bola-gb { position: absolute; width: 140px; left: 610px; top: 880px; filter: url(#gb4); z-index: 5; }
+
+/* final: o pacote */
+.pacote { position: absolute; left: 240px; top: 600px; width: 600px; height: 820px; }
+.pacote .corpo { position: absolute; inset: 0; border-radius: 26px; background: radial-gradient(circle at 50% 40%, #2c3d86, #10183d 75%);
+  border: 10px solid #f2c94c; box-shadow: 0 0 80px rgb(255 203 5 / 45%), 0 30px 60px rgb(0 0 0 / 60%); overflow: hidden; }
+.pacote .corpo::before { content: ""; position: absolute; inset: -40%; background: repeating-conic-gradient(rgb(255 255 255 / 8%) 0 7deg, transparent 7deg 15deg); }
+.lacre { position: absolute; height: 92px; background: repeating-linear-gradient(90deg, #f2c94c 0 14px, #c9962a 14px 22px); border: 6px solid #8a6416; }
+.pacote .lacre { left: -10px; right: -10px; }
+.pacote .estrela { position: absolute; left: 0; right: 0; top: 34%; text-align: center; font-size: 220px; line-height: 1; color: #ffcb05; text-shadow: 0 0 40px #ffcb05; }
+.leque { position: absolute; left: 540px; top: 700px; width: 3000px; height: 3000px; margin: -1500px 0 0 -1500px; opacity: 0;
+  background: conic-gradient(from -50deg at 50% 50%, transparent 0deg, rgb(255 236 150 / 85%) 6deg, transparent 12deg, rgb(255 255 255 / 80%) 20deg, transparent 27deg,
+  rgb(255 236 150 / 85%) 36deg, transparent 43deg, rgb(255 255 255 / 80%) 52deg, transparent 58deg, rgb(255 236 150 / 85%) 66deg, transparent 72deg,
+  rgb(255 255 255 / 80%) 82deg, transparent 90deg, transparent 360deg);
+  -webkit-mask-image: radial-gradient(circle, #000 15%, transparent 55%); mask-image: radial-gradient(circle, #000 15%, transparent 55%); }
+#simbolo { position: absolute; left: 400px; top: 860px; width: 280px; image-rendering: auto; filter: drop-shadow(0 0 50px rgb(255 240 180 / 80%)); opacity: 0; }
+#logo { position: absolute; left: 90px; top: 430px; width: 800px; image-rendering: auto; filter: drop-shadow(0 16px 30px rgb(0 0 0 / 55%)); opacity: 0; }
+.tag { position: absolute; left: 60px; width: 860px; top: 760px; text-align: center; font-size: 66px; letter-spacing: 3px; color: #ffcb05; text-shadow: 7px 8px 0 #0e1430; white-space: nowrap; opacity: 0; }
+.site { position: absolute; left: 60px; width: 860px; top: 1010px; text-align: center; font-size: 62px; letter-spacing: 2px; color: #fff; opacity: 0; }
+.selo { position: absolute; left: 60px; width: 860px; top: 1130px; display: flex; justify-content: center; opacity: 0; }
+.selo span { padding: 18px 30px; border-radius: 14px; background: #e8423f; color: #fff; font-size: 38px; line-height: 1.3; letter-spacing: 2px; box-shadow: 0 7px 0 #8c1d1b; text-align: center; }
+.credito { position: absolute; left: 60px; width: 860px; top: 1500px; text-align: center; font-size: 30px; color: #9aa6d8; letter-spacing: 1px; opacity: 0; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <!-- Game Boy: luminância em 4 tons -->
+  <filter id="gb4" color-interpolation-filters="sRGB">
+    <feColorMatrix type="matrix" values="0.3 0.59 0.11 0 0  0.3 0.59 0.11 0 0  0.3 0.59 0.11 0 0  0 0 0 1 0" />
+    <feComponentTransfer>
+      <feFuncR type="discrete" tableValues="0.094 0.345 0.659 0.973" />
+      <feFuncG type="discrete" tableValues="0.094 0.345 0.659 0.973" />
+      <feFuncB type="discrete" tableValues="0.094 0.345 0.659 0.941" />
+    </feComponentTransfer>
+  </filter>
+</svg>
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="32.698">
+
+  <!-- ===== planos 1–2 · abertura Red/Blue (sem música) ===== -->
+  <div id="abertura" class="clip gb" data-start="0" data-duration="7.52">
+    <img class="sprite" id="oak" src="midia/oak.png" style="left:210px;top:180px;width:660px" alt="" />
+    <img class="sprite" id="pika" src="midia/pika/00.png" style="left:265px;top:330px;width:550px;opacity:0" alt="" />
+    <img id="bola-gb" src="midia/ball.svg" style="opacity:0" alt="" />
+    <div class="caixa" id="caixa1"><span id="cx1"></span><span class="seta" id="seta1">▼</span></div>
+    <div class="caixa" id="caixa2" style="opacity:0"><span id="cx2"></span></div>
+  </div>
+
+  <!-- ===== plano 3 · bola parada, apito, a música entra e a câmera abre ===== -->
+  <div id="bola" class="clip" data-start="7.52" data-duration="0.908" style="background:#000">
+    <div id="fundo-bola" class="clip palco" style="opacity:0"><div class="raios"></div></div>
+    <div style="position:absolute;left:0;top:520px;width:1080px;height:860px;overflow:hidden">
+      <div id="zoom-bola" style="position:absolute;inset:0;transform-origin:540px 430px">
+        <img class="jogo" src="midia/saida-vazia.png" style="top:0;box-shadow:none" alt="" />
+        <img class="jogo" id="com-times" src="midia/saida.png" style="top:0;box-shadow:none;opacity:0" alt="" />
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== planos 4–7 · draft (B0–B12) ===== -->
+  <div id="draft" class="clip palco" data-start="8.428" data-duration="4.045">
+    <div class="raios"></div>
+    <div id="d-cartas" class="clip">
+      <img class="recorte" id="d1" src="midia/s-draft-1.png" style="left:0;top:700px;width:380px" alt="" />
+      <img class="recorte" id="d3" src="midia/s-draft-3.png" style="left:700px;top:700px;width:380px" alt="" />
+      <img class="recorte" id="d2" src="midia/s-draft-2.png" style="left:270px;top:560px;width:540px" alt="" />
+    </div>
+    <img class="recorte" id="pk1" src="midia/p-fechado.png" style="left:210px;top:420px;width:660px;opacity:0" alt="" />
+    <img class="recorte" id="pk2" src="midia/p-vira.png" style="left:220px;top:480px;width:640px;opacity:0" alt="" />
+    <img class="recorte" id="ic" src="midia/s-edicao-3.png" style="left:210px;top:520px;width:660px;opacity:0" alt="" />
+    <img class="recorte" id="e1" src="midia/s-edicao-1.png" style="left:210px;top:440px;width:660px;opacity:0" alt="" />
+    <img class="recorte" id="e2" src="midia/s-edicao-2.png" style="left:210px;top:440px;width:660px;opacity:0" alt="" />
+    <img class="recorte" id="e3" src="midia/s-edicao-5.png" style="left:210px;top:440px;width:660px;opacity:0" alt="" />
+    <img class="recorte" id="e4" src="midia/bronze.png" style="left:210px;top:440px;width:660px;opacity:0" alt="" />
+  </div>
+  <div class="clip legenda" id="leg-escolha" data-start="8.428" data-duration="1.348"></div>
+  <div class="clip legenda" id="leg-icones" data-start="10.45" data-duration="0.675"></div>
+
+  <!-- ===== planos 8–13 · partida (B12–B44) ===== -->
+  <div class="clip palco" data-start="12.473" data-duration="10.786"><div class="raios" style="opacity:.6"></div></div>
+  <video id="v-saida" class="jogo" src="midia/saida.mp4" muted playsinline data-start="12.473" data-duration="1.348"></video>
+  <img class="recorte" id="placar" src="midia/h-placar.png" data-start="12.473" data-duration="1.348" style="left:60px;top:350px;width:860px;z-index:30" alt="" />
+  <video id="v-golpe" class="jogo" src="midia/golpe.mp4" muted playsinline data-start="13.821" data-duration="1.349"></video>
+  <div class="clip mira" id="mira" data-start="13.821" data-duration="0.9" style="left:516px;top:973px"></div>
+  <div class="clip golpe" id="golpe" data-start="13.821" data-duration="1.1" style="left:110px;top:700px"><div class="face"><img src="midia/retrato-6.png" alt="" /></div><div><div class="quem" id="golpe-quem"></div><div class="nome">FIRE BLAST!</div></div></div>
+  <video id="v-defesa" class="jogo" src="midia/defesa.mp4" muted playsinline data-start="15.17" data-duration="1.348" style="object-position:85% 50%"></video>
+  <video id="v-evo-zoom" class="jogo" src="midia/evo-zoom.mp4" muted playsinline data-start="16.518" data-duration="0.674" style="object-position:70% 50%"></video>
+  <video id="v-evo-silhueta" class="jogo" src="midia/evo-silhueta.mp4" muted playsinline data-start="17.192" data-duration="0.674"></video>
+  <video id="v-evo-raichu" class="jogo" src="midia/evo-raichu.mp4" muted playsinline data-start="17.866" data-duration="1.349"></video>
+  <video id="v-corrida-n" class="jogo" src="midia/corrida-n.mp4" muted playsinline data-start="19.215" data-duration="1.348" style="object-position:70% 50%"></video>
+  <video id="v-corrida-l" class="jogo" src="midia/corrida-l.mp4" muted playsinline data-start="20.563" data-duration="1.348" style="object-position:85% 50%"></video>
+  <video id="v-gol" class="jogo" src="midia/gol.mp4" muted playsinline data-start="21.911" data-duration="1.348" style="object-position:90% 50%"></video>
+  <div class="clip vinheta" data-start="12.473" data-duration="10.786"></div>
+  <div class="clip legenda baixo" id="leg-futsal" data-start="12.473" data-duration="1.348"></div>
+  <div class="clip legenda" id="leg-evo" data-start="16.518" data-duration="2.697"></div>
+
+  <!-- ===== planos 14–17 · extras (B44–B52) ===== -->
+  <div id="extras" class="clip palco" data-start="23.259" data-duration="2.697">
+    <div class="raios"></div>
+    <img class="recorte" id="em1" src="midia/s-emote-1.png" style="left:120px;top:620px;width:440px;image-rendering:pixelated" alt="" />
+    <img class="recorte" id="em2" src="midia/s-emote-2.png" style="left:500px;top:900px;width:380px;image-rendering:pixelated;opacity:0" alt="" />
+    <img class="recorte" id="lg1" src="midia/liga-elo.png" style="left:60px;top:520px;width:860px;opacity:0" alt="" />
+    <img class="recorte" id="lg2" src="midia/liga-ranking.png" style="left:60px;top:900px;width:860px;opacity:0" alt="" />
+    <img class="recorte" id="camp" src="midia/campeao.png" style="left:60px;top:300px;width:860px;opacity:0" alt="" />
+    <img class="recorte" id="vit" src="midia/s-vitrine-1.png" style="left:60px;top:300px;width:860px;opacity:0" alt="" />
+    <img class="recorte" id="mvp" src="midia/s-edicao-4.png" style="left:520px;top:1010px;width:380px;opacity:0" alt="" />
+  </div>
+  <div class="clip legenda" id="leg-multi" data-start="23.259" data-duration="0.675"></div>
+  <div class="clip legenda" id="leg-copa" data-start="23.934" data-duration="0.674"></div>
+
+  <!-- ===== planos 18–21 · o pacote estoura e vira o logo (B52–B72) ===== -->
+  <div id="final" class="clip palco" data-start="25.956" data-duration="6.742">
+    <div class="raios" id="raios-final"></div>
+    <div class="leque" id="leque"></div>
+    <div class="pacote" id="pacote">
+      <div class="corpo"><div class="estrela">★</div></div>
+      <div class="lacre" id="lacre-cima" style="left:-10px;right:-10px;top:-10px;border-radius:26px 26px 0 0"></div>
+      <div class="lacre" style="left:-10px;right:-10px;bottom:-10px;border-radius:0 0 26px 26px"></div>
+    </div>
+    <img id="simbolo" src="midia/logo-simbolo.svg" alt="" />
+    <img id="logo" src="midia/logo-horizontal.svg" alt="" />
+    <div class="tag" id="tag"></div>
+    <div class="site" id="site">soccermon.com</div>
+    <div class="selo" id="selo"><span id="selo-txt"></span></div>
+    <div class="credito" id="credito"></div>
+  </div>
+  <div class="flash" id="flash"></div>
+
+  <!-- ===== som ===== -->
+  <audio id="a-bipes1" class="clip" src="midia/bipes1.wav" data-start="0" data-duration="4.3" data-volume="0.45"></audio>
+  <audio id="a-pika1" class="clip" src="midia/grito-25.ogg" data-start="5.04" data-duration="1.2" data-volume="0.7"></audio>
+  <audio id="a-bipes2" class="clip" src="midia/bipes2.wav" data-start="5.04" data-duration="1.7" data-volume="0.45"></audio>
+  <audio id="a-tum1" class="clip" src="midia/tum.wav" data-start="6.4" data-duration="0.35" data-volume="0.9"></audio>
+  <audio id="a-apito" class="clip" src="midia/apito.wav" data-start="7.52" data-duration="1.5" data-volume="1.6"></audio>
+  <audio id="a-musica" class="clip" src="midia/musica.wav" data-start="7.96" data-duration="24.738" data-media-start="0" data-fade-out="1.6"></audio>
+  <audio id="a-zard" class="clip" src="midia/grito-6.ogg" data-start="14.09" data-duration="1.2" data-volume="0.45"></audio>
+  <audio id="a-imp1" class="clip" src="midia/impacto.wav" data-start="15.17" data-duration="0.6" data-volume="0.7"></audio>
+  <audio id="a-uuh" class="clip" src="midia/torcida-uuh-1.mp3" data-start="15.2" data-duration="1.3" data-volume="0.6"></audio>
+  <audio id="a-pika2" class="clip" src="midia/grito-25.ogg" data-start="16.52" data-duration="1.0" data-volume="0.45"></audio>
+  <audio id="a-raichu" class="clip" src="midia/grito-26.ogg" data-start="17.9" data-duration="1.3" data-volume="0.5"></audio>
+  <audio id="a-imp2" class="clip" src="midia/impacto.wav" data-start="21.911" data-duration="0.6" data-volume="0.8"></audio>
+  <audio id="a-gol" class="clip" src="midia/torcida-gol-1.mp3" data-start="21.93" data-duration="1.33" data-volume="0.65" data-fade-out="0.3"></audio>
+  <audio id="a-pop1" class="clip" src="midia/pop.wav" data-start="23.259" data-duration="0.25" data-volume="0.6"></audio>
+  <audio id="a-pop2" class="clip" src="midia/pop.wav" data-start="23.597" data-duration="0.25" data-volume="0.6"></audio>
+  <audio id="a-tum2" class="clip" src="midia/tum.wav" data-start="26.2" data-duration="0.35" data-volume="0.9"></audio>
+  <audio id="a-rasgo" class="clip" src="midia/rasgo.wav" data-start="27.304" data-duration="0.45" data-volume="0.7"></audio>
+  <audio id="a-brilho" class="clip" src="midia/brilho.wav" data-start="27.4" data-duration="0.9" data-volume="0.5"></audio>
+  <audio id="a-pika3" class="clip" src="midia/grito-25.ogg" data-start="31.4" data-duration="1.2" data-volume="0.45"></audio>
+
+  <script>
+    const b = 60 / 178, G0 = 8.428, B = (n) => G0 + n * b;
+    const LETRA = 0.08;
+    const TEXTOS = {
+      pt: {
+        cx1: "Este mundo é habitado<br>por criaturas chamadas<br>POKÉMON!",
+        cx2: "…e elas<br><b class=\"grande\">JOGAM FUTSAL.</b>",
+        escolha: "ESCOLHA <b>1</b> DE <b>3</b>",
+        icones: "ÍCONES <b>RAROS</b>",
+        futsal: "<b>FUTSAL</b><br>5 CONTRA 5",
+        evo: "<b>EVOLUÇÕES</b> NO MEIO DO JOGO",
+        multi: "<b>MULTIPLAYER</b> ONLINE",
+        copa: "COPA <b>RANKEADA</b>",
+        usou: "CHARIZARD usou",
+        tag: "Temos que chutar!",
+        selo: "grátis no navegador<br>fan game sem fins lucrativos",
+        credito: "Música: Trainer Battle Remix · Bliitzit",
+      },
+      en: {
+        cx1: "This world is inhabited<br>by creatures called<br>POKéMON!",
+        cx2: "…and they<br><b class=\"grande\">PLAY FUTSAL.</b>",
+        escolha: "PICK <b>1</b> OF <b>3</b>",
+        icones: "RARE <b>ICONS</b>",
+        futsal: "<b>FUTSAL</b><br>5 VS 5",
+        evo: "<b>EVOLUTIONS</b> MID-MATCH",
+        multi: "ONLINE <b>MULTIPLAYER</b>",
+        copa: "RANKED <b>CUP</b>",
+        usou: "CHARIZARD used",
+        tag: "Gotta kick 'em all!",
+        selo: "free in your browser<br>non-profit fan game",
+        credito: "Music: Trainer Battle Remix · Bliitzit",
+      },
+    };
+    const vars = window.__hyperframes?.getVariables?.() ?? {};
+    const T = TEXTOS[vars.lang] ?? TEXTOS.pt;
+    // o texto vai num <span>: a legenda é flex e sem o span cada <b> virava uma coluna
+    for (const [id, k] of [["escolha", "escolha"], ["icones", "icones"], ["futsal", "futsal"], ["evo", "evo"], ["multi", "multi"], ["copa", "copa"]])
+      document.getElementById(`leg-${id}`).innerHTML = `<span>${T[k]}</span>`;
+    document.getElementById("golpe-quem").textContent = T.usou;
+    document.getElementById("tag").textContent = T.tag;
+    document.getElementById("selo-txt").innerHTML = T.selo;
+    document.getElementById("credito").textContent = T.credito;
+
+    const tl = gsap.timeline({ paused: true });
+    const flash = (t, o = 0.9, d = 0.3) => tl.fromTo("#flash", { opacity: o }, { opacity: 0, duration: d, ease: "power2.out", immediateRender: false }, t);
+    const impacto = (sel, t, comFlash = true) => {
+      tl.set(sel, { filter: "invert(1) contrast(1.6)" }, t);
+      tl.set(sel, { filter: "none" }, t + 0.067);
+      if (comFlash) flash(t + 0.067, 0.85, 0.3);
+      tl.to(sel, { keyframes: { x: [22, -18, 13, -8, 4, 0], y: [-10, 9, -6, 4, -2, 0] }, duration: 0.3, ease: "none" }, t);
+    };
+    const corte = (sel, t, dur) => {
+      tl.set(sel, { opacity: 1 }, t);
+      tl.fromTo(sel, { scale: 1.06 }, { scale: 1, duration: 0.16, ease: "power2.out", immediateRender: false }, t);
+      if (dur) tl.set(sel, { opacity: 0 }, t + dur);
+    };
+    const legenda = (id, t) => tl.from(`#leg-${id}`, { y: 60, scale: 0.8, opacity: 0, duration: 0.22, ease: "back.out(2.5)" }, t + 0.03);
+
+    // ===== abertura: a caixa digita letra por letra (0,08 s), como no Game Boy =====
+    const digitar = (id, html, t0) => {
+      const el = document.getElementById(id);
+      const tmp = document.createElement("div");
+      tmp.innerHTML = html;
+      let n = 0;
+      const out = [];
+      const walk = (node, wrapB) => {
+        for (const no of node.childNodes) {
+          if (no.nodeName === "BR") out.push("<br>");
+          else if (no.nodeType === 3) for (const c of no.textContent) out.push(`<span id="${id}-${n++}" style="visibility:hidden">${c}</span>`);
+          else { out.push(`<b class="${no.className}">`); walk(no); out.push("</b>"); }
+        }
+      };
+      walk(tmp);
+      el.innerHTML = out.join("");
+      for (let i = 0; i < n; i++) tl.set(`#${id}-${i}`, { visibility: "visible" }, t0 + i * LETRA);
+      return t0 + n * LETRA;
+    };
+    // o Carvalho surge em 3 passos de paleta (como no Red/Blue), já com a caixa digitando
+    tl.fromTo("#oak", { opacity: 0.25 }, { opacity: 1, duration: 0.3, ease: "steps(3)", immediateRender: false }, 0);
+    const fim1 = digitar("cx1", T.cx1, 0); // 4,24 s
+    tl.to("#seta1", { opacity: 1, duration: 0.01, repeat: 3, yoyo: true, repeatDelay: 0.18 }, fim1 + 0.05);
+    // caixa 2: o Carvalho sai, o Pikachu entra animado
+    tl.set("#caixa1", { opacity: 0 }, 5.04);
+    tl.set("#caixa2", { opacity: 1 }, 5.04);
+    tl.to("#oak", { x: -700, duration: 0.25, ease: "power2.in" }, 5.04);
+    tl.fromTo("#pika", { x: 700, opacity: 1 }, { x: 0, opacity: 1, duration: 0.3, ease: "power2.out", immediateRender: false }, 5.04);
+    for (let k = 0, t = 5.04; t < 7.52; k++, t += 0.1) tl.set("#pika", { attr: { src: `midia/pika/${String(k % 60).padStart(2, "0")}.png` } }, t);
+    const fim2 = digitar("cx2", T.cx2, 5.04);
+    // a bola cai no pé do Pikachu na palavra FUTSAL
+    tl.fromTo("#bola-gb", { y: -900, opacity: 1 }, { y: 0, opacity: 1, duration: 0.24, ease: "power2.in", immediateRender: false }, 6.16);
+    tl.to("#bola-gb", { keyframes: { y: [-60, 0, -18, 0] }, duration: 0.35, ease: "none" }, 6.4);
+
+    // ===== bola parada → apito → a música entra e a câmera abre =====
+    tl.set("#zoom-bola", { scale: 3.2 }, 7.52);
+    tl.to("#zoom-bola", { scale: 3.35, duration: 0.44, ease: "none" }, 7.52);
+    tl.to("#zoom-bola", { scale: 1, duration: G0 - 7.96, ease: "power3.in" }, 7.96);
+    tl.to("#com-times", { opacity: 1, duration: 0.3 }, 8.1);
+    tl.to("#fundo-bola", { opacity: 1, duration: 0.3 }, 8.1);
+
+    // ===== draft =====
+    tl.set(["#d1", "#d2", "#d3"], { opacity: 0 }, 0);
+    corte("#d1", B(0)); corte("#d2", B(1)); corte("#d3", B(2));
+    tl.to(["#d1", "#d3"], { opacity: 0.35, duration: 0.12 }, B(3));
+    tl.fromTo("#d2", { scale: 1 }, { scale: 1.1, duration: 0.15, ease: "back.out(3)", immediateRender: false }, B(3));
+    flash(B(3), 0.4, 0.2);
+    tl.set("#d-cartas", { opacity: 0 }, B(4));
+    legenda("escolha", B(0));
+    corte("#pk1", B(4), b);
+    corte("#pk2", B(5), b);
+    flash(B(5), 0.6, 0.2);
+    corte("#ic", B(6), 2 * b);
+    flash(B(6), 0.7, 0.25);
+    legenda("icones", B(6));
+    ["#e1", "#e2", "#e3", "#e4"].forEach((s, i) => corte(s, B(8 + i), i === 3 ? b + 0.01 : b));
+
+    // ===== partida =====
+    tl.from("#placar", { y: -200, opacity: 0, duration: 0.25, ease: "back.out(2)" }, B(12));
+    legenda("futsal", B(12));
+    // golpe: anel em quem usa e a faixa do jogo saindo dele
+    tl.from("#mira", { scale: 2.4, opacity: 0, duration: 0.2, ease: "power2.out" }, B(16));
+    tl.to("#mira", { scale: 0.9, duration: 0.15, yoyo: true, repeat: 3, ease: "sine.inOut" }, B(16) + 0.2);
+    tl.from("#golpe", { x: -120, scale: 0.3, opacity: 0, duration: 0.18, ease: "back.out(2)", transformOrigin: "0% 100%" }, B(16) + 0.04);
+    tl.from("#golpe .nome", { scale: 1.8, opacity: 0, duration: 0.16, ease: "back.out(2.5)", transformOrigin: "0% 50%" }, B(16) + 0.2);
+    tl.to("#golpe", { opacity: 0, duration: 0.1 }, B(16) + 1.0);
+    flash(B(16) + 0.27, 0.5, 0.2);
+    // defesa: quadro invertido e tremida, sem o clarão de gol
+    impacto("#v-defesa", B(20), false);
+    // evolução
+    legenda("evo", B(24));
+    tl.fromTo("#v-evo-zoom", { scale: 1 }, { scale: 1.12, duration: 2 * b, ease: "power1.in", immediateRender: false }, B(24));
+    flash(B(28), 1, 0.35);
+    // a corrida do Raichu: a câmera fecha devagar na câmera lenta
+    tl.fromTo("#v-corrida-l", { scale: 1 }, { scale: 1.12, duration: 4 * b, ease: "power1.in", immediateRender: false }, B(36));
+    impacto("#v-gol", B(40));
+
+    // ===== extras =====
+    tl.from("#em1", { scale: 0.2, opacity: 0, duration: 0.2, ease: "back.out(2.5)", transformOrigin: "50% 100%" }, B(44));
+    tl.set("#em2", { opacity: 1 }, B(45));
+    tl.from("#em2", { scale: 0.2, duration: 0.2, ease: "back.out(2.5)", transformOrigin: "50% 100%" }, B(45));
+    tl.set(["#em1", "#em2"], { opacity: 0 }, B(46));
+    legenda("multi", B(44));
+    corte("#lg1", B(46), 2 * b);
+    corte("#lg2", B(47), b);
+    legenda("copa", B(46));
+    corte("#camp", B(48), 2 * b);
+    flash(B(48), 0.6, 0.25);
+    corte("#vit", B(50), 2 * b + 0.01);
+    tl.set("#mvp", { opacity: 1 }, B(51));
+    tl.from("#mvp", { x: 300, rotation: 20, duration: 0.2, ease: "back.out(2)" }, B(51));
+
+    // ===== final: o pacote cai, treme, rasga; a carta holo sobe e vira o logo =====
+    tl.to("#raios-final", { rotation: 40, duration: 6.742, ease: "none" }, B(52));
+    tl.from("#pacote", { y: -1400, rotation: -12, duration: 0.25, ease: "power2.in" }, B(52));
+    tl.to("#pacote", { keyframes: { y: [0, 26, 0] }, duration: 0.18, ease: "none" }, B(52) + 0.25);
+    for (const n of [54, 55]) tl.to("#pacote", { keyframes: { rotation: [-5, 5, -3, 3, 0] }, duration: 0.25, ease: "none" }, B(n));
+    tl.to("#pacote .corpo", { boxShadow: "0 0 160px rgba(255,220,90,0.95), 0 30px 60px rgba(0,0,0,0.6)", duration: 4 * b, ease: "power2.in" }, B(52));
+    // B56: rasga
+    flash(B(56), 0.9, 0.3);
+    tl.to("#lacre-cima", { x: 160, y: -260, rotation: 28, opacity: 0, duration: 0.45, ease: "power2.out" }, B(56));
+    tl.to("#leque", { opacity: 1, duration: 0.15 }, B(56));
+    tl.to("#leque", { rotation: 25, duration: 8 * b, ease: "none" }, B(56));
+    tl.set("#simbolo", { opacity: 1 }, B(56) + 0.1);
+    tl.fromTo("#simbolo", { y: 0, scale: 0.6, rotationY: 0 }, { y: -560, scale: 1.25, rotationY: 720, duration: 3 * b + 0.1, ease: "power2.out", immediateRender: false }, B(56) + 0.1);
+    tl.to("#pacote", { y: 700, opacity: 0, duration: 0.6, ease: "power2.in" }, B(58));
+    // B60: a carta vira o O do logo
+    flash(B(60), 1, 0.35);
+    tl.set("#simbolo", { opacity: 0 }, B(60));
+    tl.set("#logo", { opacity: 1 }, B(60));
+    tl.fromTo("#logo", { scale: 0.7 }, { scale: 1, duration: 0.45, ease: "back.out(3)", immediateRender: false }, B(60));
+    tl.to("#leque", { opacity: 0.45, y: -140, duration: 0.4 }, B(60));
+    // B64: tagline; B68: site, selo e crédito
+    tl.set("#tag", { opacity: 1 }, B(64));
+    tl.from("#tag", { scale: 1.6, duration: 0.25, ease: "back.out(2)" }, B(64));
+    tl.to(["#site", "#selo"], { opacity: 1, duration: 0.2 }, B(68));
+    tl.from("#selo", { y: 40, duration: 0.25, ease: "back.out(2)" }, B(68));
+    tl.to("#credito", { opacity: 1, duration: 0.3 }, B(68));
+
+    window.__timelines = window.__timelines || {};
+    window.__timelines.root = tl;
+  </script>
+</div>
+</body>
+</html>

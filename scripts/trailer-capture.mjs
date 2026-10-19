@@ -118,6 +118,8 @@ await page.evaluate((semTextos) => {
             return c;
         };
         sc.battleBox?.container?.setVisible(false);
+        // a faixa da torcida ("Vai, Pallet FC!", court.ts drawBanner: profundidade -999/-998) nasce antes deste filtro
+        for (const o of sc.children.list) if (o.depth === -999 || o.depth === -998) o.willRender = () => false;
     }
     // a câmera do jogo vai até o gol no GOOOOL e passa da borda da quadra (aparece o fundo de fora): prende ela
     // dentro do mundo do jogo; ela segue indo atrás do lance, só que para na borda
