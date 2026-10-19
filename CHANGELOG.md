@@ -53,6 +53,10 @@
 - Duelo (Time pronto): cartas evoluídas levam o bônus de evolução, espécie repetida por evolução é aceita e quem não tem time não trava a sala
 - Duelo: a troca feita no fim do intervalo não volta mais no tempo
 - Conserto de um erro raro da quadra quando a animação de um Pokémon ainda não tinha carregado
+- O Duelo agora conta na Pokédex: quem joga pelo seu time vira 'jogou'
+- Copas guardadas dão o "jogou" da forma de antes de quem evoluiu em quadra
+- Pokémon shiny aparecem shiny nas estatísticas: destaques, tabela, prêmios e final
+- Duelo (Time pronto): capitão no banco é aceito, e o aviso de time inválido sai no idioma do jogo
 
 ## 0.8.7 · Emotes, selos e faixa da torcida
 
