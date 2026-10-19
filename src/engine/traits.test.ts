@@ -430,6 +430,10 @@ describe('traços de golpe: bola parada, intervalo e fim', () => {
         expect(s.players[1].inst.speciesId).toBe(4); // sem nada feito, não evolui
         p.inst = { ...p.inst, evo: 15 };
         checkEvolutions(s);
+        // barra cheia de antes espera ele fazer algo nesta partida (nada de evoluir no apito inicial)
+        expect(s.players[1].inst.speciesId).toBe(4);
+        p.stats.passesCompleted = 1;
+        checkEvolutions(s);
         expect(s.players[1].inst.speciesId).toBe(5);
         expect(s.players[1].inst.evo).toBe(0);
     });
