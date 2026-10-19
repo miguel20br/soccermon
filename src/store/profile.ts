@@ -65,6 +65,13 @@ export interface Profile {
     clubColor: ClubColorId;
     /** Frase da faixa da torcida (índice em `profile.club.banners` do i18n). Sem o campo = a 1ª, "Vai, {clube}!". */
     banner?: number;
+    /** Escudo e uniforme (club-kit.ts): ids opcionais; sem o campo = o padrão (escudo, pokébola, branco, liso). */
+    clubColor2?: string;
+    kitPattern?: string;
+    crestShape?: string;
+    crestSymbol?: string;
+    /** Vitrine: até 3 destaques escolhidos (medals.ts: `m:<medalha>`, `c:<coleção>`, `s:<espécie>`). */
+    showcase?: string[];
     /** Sprite do treinador e título embaixo do nome (missions.ts). */
     trainer: TrainerId;
     title: string;

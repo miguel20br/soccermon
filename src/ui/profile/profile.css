@@ -639,10 +639,11 @@ fieldset.pf-field,
     letter-spacing: 1px;
 }
 .pf-pv-team i {
-    width: 14px;
-    height: 14px;
-    border-radius: 4px;
-    background: var(--c);
+    /* a faixa do uniforme (padrão nas duas cores), como a do placar */
+    width: 8px;
+    height: 22px;
+    border-radius: 2px;
+    background: var(--kit);
 }
 
 /* ---------- Pokédex ---------- */

@@ -269,6 +269,7 @@ export const common: typeof pt = {
         'Liga Índigo': 'Indigo League',
     },
     color: {
+        branco: 'White',
         vermelho: 'Red',
         azul: 'Blue',
         verde: 'Green',

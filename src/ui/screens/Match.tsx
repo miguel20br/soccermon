@@ -22,6 +22,7 @@ import type { MatchSceneData } from '../../game/scenes/MatchScene';
 import { clubName, formationText, stageName } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { PhaserGame } from '../../PhaserGame';
+import { fieldKit, lookOfCupClub, lookOfProfile, matchLooks } from '../../store/club-kit';
 import { liveOf, type PlaybackSpeed, playerTeam, useGame } from '../../store/game-store';
 import { rivalColor, tagFromName } from '../../store/profile';
 import { Commentator, type CommentLine } from '../commentary';
@@ -154,6 +155,11 @@ export function Match() {
     // sigla no placar do celular: a do perfil se a copa tem o nome do clube, senão a tirada do nome
     const profileClub = useGame((s) => s.profile);
     const homeTag = teamNames[0] === profileClub.clubName ? profileClub.clubTag : tagFromName(teamNames[0]);
+    // escudo e uniforme: o seu (Perfil) e o do ginásio (no reserva, se bater)
+    const looks = matchLooks(
+        { ...lookOfProfile(profileClub), color: clubColor },
+        lookOfCupClub(opponent?.name ?? '', opponent?.color ?? 0x3a7bd5),
+    );
     const tacticOrders = orders.filter(isTacticOrder);
     const subOrders = orders.filter(isSubOrder);
     const currentTactic: Tactic = tacticOrders.at(-1)?.tactic ?? run?.tactic ?? 'balanced';
@@ -183,6 +189,7 @@ export function Match() {
                       agency,
                       // a faixa da torcida é só a sua (o rival da copa não tem torcida organizada)
                       banners: [bannerText(profileClub.banner, run?.teamName || profileClub.clubName), null],
+                      kits: [fieldKit(looks[0]), fieldKit(looks[1])],
                   }
                 : null,
         [match?.seed],
@@ -499,6 +506,7 @@ export function Match() {
                         names={teamNames}
                         tags={[homeTag, tagFromName(teamNames[1])]}
                         colors={colors}
+                        looks={looks}
                         score={clock.score}
                         clock={clockParts}
                         stage={d.match.stageShort[run.stage] ?? stage}

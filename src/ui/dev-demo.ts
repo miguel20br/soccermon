@@ -19,7 +19,9 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * uma MT do ginásio entre as 3 cartas (Charmeleon, Caterpie e cia. para testar quem aprende). `?demo=conta&tipo=levar|juntar|juntar1|copa|outra|guardada`
  * mostra a pergunta depois do login (com resumos de mentira; os botões só fecham) ou a copa guardada na tela inicial. `?demo=trailer&cena=<cena>&seed=<seed>` abre na escalação a
  * partida que a caça de lances (scripts/trailer-hunt.ts) escolheu para o trailer. `?demo=escanteio` monta um time de
- * grandalhões cuja primeira partida tem escanteio seu com disputa no alto logo no começo.
+ * grandalhões cuja primeira partida tem escanteio seu com disputa no alto logo no começo. `?demo=colecao` põe no save uma
+ * carreira de mentira (medalhas em vários degraus, coleções, selos, escudo e uniforme listrado, vitrine cheia) e abre o
+ * Perfil (`&perfil=medalhas` abre na aba); `&novo=1` deixa o clube no padrão (pra ver o editor do zero).
  */
 let started = false;
 
@@ -34,13 +36,18 @@ export function runDevDemo() {
         demo !== 'trailer' &&
         demo !== 'mt' &&
         demo !== 'escanteio' &&
-        demo !== 'conta'
+        demo !== 'conta' &&
+        demo !== 'colecao'
     )
         return;
     started = true;
     // permite aos testes pular direto para o fim do tempo normal
     (window as unknown as { __soccermonBus?: typeof EventBus }).__soccermonBus = EventBus;
     const store = useGame.getState();
+    if (demo === 'colecao') {
+        demoCollection();
+        return;
+    }
     if (demo === 'conta') {
         demoAccount(new URLSearchParams(window.location.search).get('tipo') ?? 'juntar');
         return;
@@ -310,4 +317,64 @@ function demoAccount(tipo: string) {
                 ? { kind: 'merge', device, cloud: { ...cloud, cup: null }, cupChoice: false, keep: 'device' }
                 : { kind: 'merge', device, cloud, cupChoice: true, keep: 'device' };
     useCloud.setState({ ask });
+}
+
+/** Carreira de mentira pra ver medalhas, vitrine, escudo e uniforme (só no dev: sobrescreve o save do navegador). */
+function demoCollection() {
+    const g = useGame.getState();
+    const dex: Record<number, import('../store/profile').DexEntry> = {};
+    for (let id = 1; id <= 151; id++) {
+        if (id % 5 === 4) continue; // ~120 vistos
+        const played = id % 3 !== 0 || id <= 9 || [144, 145, 146, 133, 134, 135, 136].includes(id);
+        dex[id] = {
+            matches: played ? 4 + (id % 17) : 0,
+            minutes: played ? 40 : 0,
+            goals: played ? (id * 7) % 31 : 0,
+            assists: 0,
+            wins: played ? 3 : 0,
+            titles: played && id % 4 === 1 ? 1 + (id % 6) : 0,
+            bestRating: played ? 7 : 0,
+            bestOvr: 70,
+            editions: played ? 1 | (id % 9 === 0 ? 2 : 0) | (id % 4 === 0 ? 4 : 0) : undefined,
+        };
+    }
+    const novo = new URLSearchParams(window.location.search).get('novo') === '1';
+    useGame.setState({
+        dex,
+        records: {
+            ...g.records,
+            cups: 40,
+            titles: 7,
+            perfect: 0,
+            evolucoes: 31,
+            bestStreak: 3,
+            icones: 2,
+            destaques: 6,
+            duelWins: 12,
+        },
+        career: { matches: 160, wins: 104, losses: 56, shootoutWins: 6, goalsFor: 640, goalsAgainst: 300 },
+        profile: {
+            ...g.profile,
+            missionsDone: [
+                ...new Set([...g.profile.missionsDone, 'colIniciais', 'colPassaros', 'colEevee', 'blue', 'acetrainer']),
+            ],
+            ...(novo
+                ? {
+                      clubColor2: undefined,
+                      kitPattern: undefined,
+                      crestShape: undefined,
+                      crestSymbol: undefined,
+                      showcase: [],
+                  }
+                : {
+                      clubColor: 'azul',
+                      clubColor2: 'branco',
+                      kitPattern: 'listras',
+                      crestShape: 'escudo',
+                      crestSymbol: 'coroa',
+                      showcase: ['m:campeao', 'c:colPassaros', 's:6'],
+                  }),
+        },
+    });
+    g.go('profile');
 }

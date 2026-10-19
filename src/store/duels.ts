@@ -42,3 +42,7 @@ export function mergeDuels(a: DuelRecord[] = [], b: DuelRecord[] = []): DuelReco
     for (const d of [...a, ...b]) if (d && typeof d.id === 'string' && !byId.has(d.id)) byId.set(d.id, d);
     return trim([...byId.values()].sort((x, y) => y.date - x.date));
 }
+
+/** Vitórias no Duelo: o contador (o histórico guarda só os 30 últimos) ou o histórico, o que for maior. */
+export const duelWins = (records: { duelWins?: number }, duels: DuelRecord[]) =>
+    Math.max(records.duelWins ?? 0, duels.filter((d) => d.result === 'win').length);

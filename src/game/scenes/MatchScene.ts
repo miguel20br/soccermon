@@ -72,6 +72,8 @@ export interface MatchSceneData {
     extraSpecies?: number[];
     /** Faixa da torcida de cada time (texto pronto; null = sem faixa). Copa: só a sua; Duelo: a de cada um. */
     banners?: [string | null, string | null];
+    /** Uniforme em quadra: cor secundária no disco embaixo do Pokémon (null = liso, só o anel na cor do time). */
+    kits?: [{ color2: number } | null, { color2: number } | null];
     /** Duelo curto: toca N vezes mais rápido que a velocidade escolhida (a partida é a mesma). Padrão: 1. */
     pace?: number;
     /** Começa parada (tela de VERSUS); a partida só rola depois de 'match:resume'. */
@@ -712,7 +714,9 @@ export class MatchScene extends Phaser.Scene {
         const skin = this.loadedSkin(speciesId, shiny);
         const size = shadowSize(skin);
         const shadow = this.add.ellipse(0, 0, 14 + size * 6, 6 + size * 2, 0x000000, 0.3);
+        const kit = this.md.kits?.[team];
         const ring = this.add.ellipse(0, 0, 22 + size * 6, 9 + size * 2).setStrokeStyle(2.5, color, 0.95);
+        if (kit) ring.setFillStyle(kit.color2, 0.55);
         const sprite = this.add
             .sprite(0, 0, atlasKey(skin))
             .setScale(SPRITE_SCALE)

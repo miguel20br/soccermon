@@ -26,6 +26,7 @@ import { Settings } from './ui/screens/Settings';
 
 // Movedex (?lab=golpes) usa o Phaser: vem num pedaço à parte, como a partida
 const MoveLab = lazy(() => import('./ui/screens/MoveLab').then((m) => ({ default: m.MoveLab })));
+const VersusLab = lazy(() => import('./ui/components/VersusLab').then((m) => ({ default: m.VersusLab })));
 const EmoteLab = lazy(() => import('./ui/duel/EmoteLab').then((m) => ({ default: m.EmoteLab })));
 
 export default function App() {
@@ -50,6 +51,7 @@ export default function App() {
         const params = new URLSearchParams(window.location.search);
         const q = params.get('lab');
         if (q === 'golpes' || q === 'emotes') return q;
+        if (import.meta.env.DEV && q === 'versus') return q;
         return (import.meta.env.DEV || params.has('revisao')) && q === 'posicoes' ? q : null;
     });
     const [cards, setCards] = useState(
@@ -112,9 +114,15 @@ export default function App() {
         };
         return (
             <div className="app">
-                {lab === 'golpes' || lab === 'emotes' ? (
+                {lab === 'golpes' || lab === 'emotes' || lab === 'versus' ? (
                     <Suspense fallback={<p className="muted">{t('common.ui.loading')}</p>}>
-                        {lab === 'golpes' ? <MoveLab onExit={exit} /> : <EmoteLab onExit={exit} />}
+                        {lab === 'golpes' ? (
+                            <MoveLab onExit={exit} />
+                        ) : lab === 'emotes' ? (
+                            <EmoteLab onExit={exit} />
+                        ) : (
+                            <VersusLab onExit={exit} />
+                        )}
                     </Suspense>
                 ) : (
                     <PositionLab onExit={exit} />

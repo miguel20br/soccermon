@@ -138,34 +138,24 @@
 /* escudo: borda clara + miolo na cor do clube, com a sigla */
 .vsp-crest {
     --s: clamp(38px, 10vmin, 76px);
-    flex: none;
-    position: relative;
-    display: grid;
-    place-items: center;
     width: var(--s);
-    height: calc(var(--s) * 1.15);
-    clip-path: polygon(0 0, 100% 0, 100% 62%, 50% 100%, 0 62%);
-    background: rgba(255, 255, 255, 0.92);
+    height: calc(var(--s) * 1.1);
+    filter: drop-shadow(0 3px 0 rgb(0 0 0 / 35%));
 }
-.vsp-crest::before {
+
+/* padrão do uniforme (cor secundária) por cima da metade do time, bem de leve */
+.vsp-half::after {
     content: "";
     position: absolute;
-    inset: 3px;
-    clip-path: inherit;
-    background: linear-gradient(
-        160deg,
-        color-mix(in srgb, var(--c) 70%, #fff),
-        var(--c) 45%,
-        color-mix(in srgb, var(--c) 60%, #000)
-    );
+    inset: 0;
+    background: var(--kit, none);
+    opacity: 0.16;
 }
-.vsp-crest span {
-    position: relative;
-    margin-top: -18%;
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: calc(var(--s) * 0.3);
-    color: #fff;
-    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+.vsp-showcase {
+    margin-top: 2px;
+}
+.is-away .vsp-coach .vsp-showcase {
+    justify-self: end;
 }
 
 /* média do time, na faixa das cartas (bronze/prata/ouro) */

@@ -23,7 +23,7 @@ import { missionText, speciesGif, titleName, trainerName } from './club';
 import { CheckIcon, LockIcon, MedalIcon } from './icons';
 
 /** O save do jeito que as missões leem (para as barras de progresso). */
-function useSaveView(): SaveView {
+export function useSaveView(): SaveView {
     const records = useGame((s) => s.records);
     const dex = useGame((s) => s.dex);
     const moves = useGame((s) => s.moves);

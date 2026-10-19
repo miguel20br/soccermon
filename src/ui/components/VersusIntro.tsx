@@ -8,10 +8,14 @@ import { GYM_TM } from '../../engine/tm';
 import { playSfx } from '../../game/audio';
 import { clubName, formationText } from '../../i18n';
 import { useT } from '../../i18n/react';
+import { type ClubLook, lookOfCupClub, lookOfProfile, matchLooks } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
+import type { ShowItem, Tier } from '../../store/medals';
 import { activeTrainer, isGoldTrainer, leaderTrainerOf, type TrainerId, trainerSrc } from '../../store/missions';
-import { rivalColor, tagFromName } from '../../store/profile';
+import { tagFromName } from '../../store/profile';
+import { Crest, kitOverlay } from '../profile/Crest';
 import { useClubColor } from '../profile/club';
+import { frameClass, ShowcaseRow } from '../profile/Medals';
 import { lineupAverage } from '../rating';
 import { reduceMotionOn } from '../settings-sync';
 import { cardSprite } from './PokeCard';
@@ -87,6 +91,9 @@ export interface VsCoach {
     titleLook?: string;
     avatar?: string;
     avatarGoogle?: boolean;
+    /** Vitrine de 3 destaques e a moldura do avatar (o melhor degrau dela). */
+    showcase?: ShowItem[];
+    frame?: Tier;
 }
 
 function Side({
@@ -97,9 +104,11 @@ function Side({
     label,
     trainer,
     coach,
+    look,
 }: {
     team: TeamSetup;
     side: 'home' | 'away';
+    look: ClubLook;
     name: string;
     tag: string;
     label: string;
@@ -110,12 +119,10 @@ function Side({
     const avg = lineupAverage(team.lineup, team.formation);
     return (
         <div className={`vsp-side is-${side}`}>
-            <div className="vsp-half" />
+            <div className="vsp-half" style={{ '--kit': kitOverlay(look.color2, look.pattern) } as CSSProperties} />
             <div className="vsp-team">
                 <div className="vsp-head">
-                    <div className="vsp-crest" aria-hidden>
-                        <span>{tag}</span>
-                    </div>
+                    <Crest look={look} className="crest vsp-crest" title={tag} />
                     <div className="vsp-info">
                         <div className="vsp-who">{label}</div>
                         <div className="vsp-name">{name}</div>
@@ -126,7 +133,7 @@ function Side({
                             <div className="vsp-coach">
                                 {coach.avatar && (
                                     <img
-                                        className={coach.avatarGoogle ? '' : 'pixel'}
+                                        className={`${coach.avatarGoogle ? '' : 'pixel'}${frameClass(coach.frame ?? 0)}`}
                                         src={coach.avatar}
                                         alt=""
                                         referrerPolicy="no-referrer"
@@ -139,6 +146,7 @@ function Side({
                                             <span className={coach.titleLook || undefined}>{coach.title}</span>
                                         </small>
                                     )}
+                                    {coach.showcase && <ShowcaseRow items={coach.showcase} className="vsp-showcase" />}
                                 </span>
                             </div>
                         )}
@@ -171,6 +179,8 @@ export function VersusIntro({
     awayTag,
     homeCoach,
     awayCoach,
+    homeLook,
+    awayLook,
     startsIn,
 }: {
     home: TeamSetup;
@@ -183,6 +193,9 @@ export function VersusIntro({
     /** Duelo: os dois treinadores (nome, avatar e título). */
     homeCoach?: VsCoach;
     awayCoach?: VsCoach;
+    /** Duelo: escudo e uniforme dos dois (o rival já no reserva, se bater). Na copa: o seu perfil e o do ginásio. */
+    homeLook?: ClubLook;
+    awayLook?: ClubLook;
     /** Duelo: o apito é marcado pela sala (segundos que faltam); sem botão de começar. */
     startsIn?: number;
     /** A quadra terminou de carregar: só então começa a contagem para iniciar sozinho. */
@@ -231,9 +244,14 @@ export function VersusIntro({
     const { t } = useT();
     const awayName = clubName(away.name);
     const leader = GYM_TM[away.name]?.leader;
+    const [home0, away0] = matchLooks(
+        homeLook ?? { ...lookOfProfile(profile), color: homeColor },
+        awayLook ?? lookOfCupClub(away.name, away.color),
+    );
+    const looks = { home: homeLook ?? home0, away: awayLook ?? away0 };
     const style = {
-        '--home': hex(homeColor),
-        '--away': hex(rivalColor(homeColor, away.color)),
+        '--home': hex(looks.home.color),
+        '--away': hex(looks.away.color),
     } as CSSProperties;
 
     return (
@@ -251,6 +269,7 @@ export function VersusIntro({
                     trainer={awayTrainer ?? leaderTrainerOf(away.name)}
                     name={awayName}
                     coach={awayCoach}
+                    look={looks.away}
                     tag={awayTag ?? tagFromName(awayName)}
                     label={
                         awayLabel ??
@@ -267,6 +286,7 @@ export function VersusIntro({
                     trainer={activeTrainer(profile)}
                     name={home.name}
                     coach={homeCoach}
+                    look={looks.home}
                     tag={home.name === profile.clubName ? profile.clubTag : tagFromName(home.name)}
                     label={t('match.vs.yourTeam')}
                 />

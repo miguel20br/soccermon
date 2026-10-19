@@ -97,6 +97,13 @@ export interface Peer {
     app: string;
     /** Frase da faixa da torcida (`bannerOf`; peer de antes da faixa não tem = a 1ª). */
     banner?: number;
+    /** Escudo e uniforme (club-kit.ts: `lookOfPeer` valida; peer antigo não tem = o padrão). */
+    color2?: number;
+    kitPattern?: string;
+    crestShape?: string;
+    crestSymbol?: string;
+    /** Vitrine já com o degrau (medals.ts: `parseShowcase` valida), no máximo 3. */
+    showcase?: string[];
     /** Entrou sem conta ("Jogar agora", login anônimo): o lobby mostra o selo "Convidado". */
     anon?: boolean;
 }

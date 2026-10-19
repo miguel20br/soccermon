@@ -22,7 +22,7 @@ import {
 } from '../engine/specials';
 import { teachMove } from '../engine/tm';
 import { detectLang, type Lang } from '../i18n/lang';
-import { addDuel, type DuelRecord, MAX_DUELS } from './duels';
+import { addDuel, type DuelRecord, duelWins, MAX_DUELS } from './duels';
 import { activeTitle, activeTrainer, matchView, newMissions, stageView } from './missions';
 import {
     type Career,
@@ -259,6 +259,8 @@ export interface Records {
     /** Títulos seguidos (copa perdida ou abandonada zera) e a melhor sequência. */
     streak?: number;
     bestStreak?: number;
+    /** Vitórias no Duelo (o histórico guarda só os 30 últimos; a medalha Duelista conta por aqui). */
+    duelWins?: number;
 }
 
 export type SlotRef = { zone: 'lineup' | 'bench'; index: number };
@@ -640,7 +642,15 @@ export const useGame = create<GameStore>()(
                 parkedRuns: [],
                 hall: [],
                 duels: [],
-                recordDuel: (rec) => setState({ duels: addDuel(getState().duels, rec) }),
+                recordDuel: (rec) => {
+                    const { duels, records } = getState();
+                    // vitória nova (a mesma partida pode ser gravada de novo): conta uma vez só
+                    const fresh = rec.result === 'win' && !duels.some((d) => d.id === rec.id && d.result === 'win');
+                    setState({
+                        duels: addDuel(duels, rec),
+                        ...(fresh ? { records: { ...records, duelWins: duelWins(records, duels) + 1 } } : {}),
+                    });
+                },
                 match: null,
                 unlockQueue: [],
 

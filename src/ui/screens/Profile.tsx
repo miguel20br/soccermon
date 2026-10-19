@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useCloud } from '../../cloud/cloud';
 import { useT } from '../../i18n/react';
+import { lookOfProfile } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
 import { activeTitle, activeTrainer, isGoldTrainer } from '../../store/missions';
 import { clubColorHex } from '../../store/profile';
@@ -9,16 +10,19 @@ import { HallList } from '../components/HallParade';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { ClubTab } from '../profile/ClubTab';
+import { Crest } from '../profile/Crest';
 import { clubVars, titleName, trainerLabel, useAvatar } from '../profile/club';
 import { DexTab } from '../profile/DexTab';
+import { frameClass, MedalsTab, ShowcaseRow, useShowcase } from '../profile/Medals';
 import { NumbersTab } from '../profile/NumbersTab';
 import { MissionsTab, TrainerSprite } from '../profile/TrainerTab';
 import '../profile/profile.css';
 
-type Tab = 'clube' | 'missoes' | 'dex' | 'hall' | 'numeros';
-const TABS: Tab[] = ['clube', 'missoes', 'dex', 'hall', 'numeros'];
+type Tab = 'clube' | 'medalhas' | 'missoes' | 'dex' | 'hall' | 'numeros';
+const TABS: Tab[] = ['clube', 'medalhas', 'missoes', 'dex', 'hall', 'numeros'];
 const TAB_ICON: Record<Tab, HudIconKind> = {
     clube: 'defensive',
+    medalhas: 'medal',
     missoes: 'flag',
     dex: 'dex',
     hall: 'cup',
@@ -33,7 +37,13 @@ export function Profile() {
     const career = useGame((s) => s.career);
     const googleName = useCloud((s) => s.user?.name ?? null);
     const avatar = useAvatar();
-    const [tab, setTab] = useState<Tab>('clube');
+    const updateProfile = useGame((s) => s.updateProfile);
+    const showcase = useShowcase();
+    // ?perfil=medalhas abre direto na aba (atalho pros prints e pro Miguel)
+    const [tab, setTab] = useState<Tab>(() => {
+        const q = new URLSearchParams(window.location.search).get('perfil') as Tab | null;
+        return q && TABS.includes(q) ? q : 'clube';
+    });
     const { t, d } = useT();
 
     return (
@@ -46,7 +56,7 @@ export function Profile() {
                 <div className="pf-duo">
                     <TrainerSprite id={activeTrainer(profile)} className="pf-duo-trainer" />
                     <img
-                        className={`pf-avatar${avatar.google ? '' : ' pixel'}`}
+                        className={`pf-avatar${avatar.google ? '' : ' pixel'}${frameClass(showcase.frame)}`}
                         src={avatar.src}
                         alt=""
                         referrerPolicy="no-referrer"
@@ -58,9 +68,10 @@ export function Profile() {
                         {titleName(activeTitle(profile))}
                     </span>
                     <span className="pf-clubline">
-                        <i aria-hidden />
+                        <Crest look={lookOfProfile(profile)} className="crest pf-crest" />
                         {profile.clubName || 'Pallet FC'} · <b>{profile.clubTag}</b>
                     </span>
+                    <ShowcaseRow items={showcase.items} className="pf-showcase" />
                 </div>
                 <dl className="pf-quick">
                     <div>
@@ -98,6 +109,7 @@ export function Profile() {
 
             <div role="tabpanel" id={`pf-panel-${tab}`} aria-labelledby={`pf-tab-${tab}`}>
                 {tab === 'clube' && <ClubTab />}
+                {tab === 'medalhas' && <MedalsTab save={updateProfile} />}
                 {tab === 'missoes' && <MissionsTab />}
                 {tab === 'dex' && <DexTab />}
                 {tab === 'hall' && <HallList />}
