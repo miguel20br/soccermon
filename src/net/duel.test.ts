@@ -351,6 +351,24 @@ describe('log de ordens', () => {
         expect(s.log).toHaveLength(2);
     });
 
+    it('troca do intervalo que chega com o 2º tempo já andando não é carimbada no passado', () => {
+        const s: Shared = {
+            ...inMatch(),
+            halftime: { until: 0, ready: { host: true, guest: true } },
+            secondHalf: true,
+        };
+        const t = s.teams.host!;
+        const late: Intent = {
+            k: 'order',
+            order: { kind: 'sub', outUid: t.lineup[2].uid, inUid: t.bench[0].uid },
+            tick: 0,
+            seq: 1,
+            ht: true,
+        };
+        const out = reduce(s, late, 'host', ctx(0, { tick: 3900, htTick: 3600 }));
+        expect(out.log[0].tick).toBeGreaterThan(3900);
+    });
+
     it('beira da quadra: só com o experimento do host ligado na sala, 3 gritos, pênaltis só com quem é do time', () => {
         const shout = (seq: number): Intent => ({
             k: 'order',

@@ -531,8 +531,10 @@ export function stampOrder(
         });
         if (resolved.length !== field.length || !field.every((u) => resolved.includes(u))) return null;
     } else if (!stampAgency(s, team, mine, i.order)) return null;
+    // ordem do intervalo que chega com o 2º tempo já andando (último segundo, reenvio) vale como uma ordem comum:
+    // carimbada no intervalo ela mudaria um trecho que já passou na tela
     const base =
-        i.ht && ctx.htTick !== undefined
+        i.ht && ctx.htTick !== undefined && !s.secondHalf
             ? ctx.htTick + 1
             : Math.ceil(Math.max(ctx.tick, Number(i.tick) || 0)) + leadTicks(s.speed, duelPace(s));
     const tick = Math.max(base, (s.log.at(-1)?.tick ?? 0) + 1);
