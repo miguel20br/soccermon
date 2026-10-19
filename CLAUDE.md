@@ -124,13 +124,27 @@ Leia a skill antes de começar a tarefa dela:
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (19/10/2026, v0.8.8 · Ícone MVP e conquistas retroativas)
+## Estado atual (19/10/2026, v0.8.8 · Ícone MVP, melhores momentos, medalhas e treinadores)
 
-Na 0.8.8 (conserto rápido): Ícone pode levar o MVP da partida e continua Ícone, com selo "MVP n" e +1 por selo
-(`special.level` no Ícone = MVPs, `specialBonus`/`iconMvpOpen` em `src/engine/specials.ts`); missões lendárias de
-campeão (Original e Clone, Gênese, Lance, Youngster) também saem do Hall da Fama, e `withUnlocks` roda a cada vez
-que o jogo abre (`merge` do persist), não só na migração. O pacotão de 6 frentes que estava previsto como 0.8.8 vira
-a 0.8.9.
+A 0.8.8 vai crescendo no ar sem mudar o número (o Miguel, 19/10: "à medida que for fazendo o que já foi aprovado, vá
+upando na 0.8.8"); o Duelo junta só telas do mesmo deploy (versão + `__APP_BUILD__`). Começou como conserto rápido:
+Ícone pode levar o MVP e continua Ícone, com selo "MVP n" e +1 por selo (`special.level` no Ícone = MVPs,
+`specialBonus`/`iconMvpOpen` em `src/engine/specials.ts`); missões lendárias de campeão também saem do Hall da Fama, e
+`withUnlocks` + `markEvolvedPlayed` rodam a cada vez que o jogo abre (`merge` do persist). Entraram depois:
+- **Melhores momentos** (`src/ui/moments.ts`, `Moments.tsx`, `clip-recorder.ts`; `?demo=momentos`): replay dos lances
+  na quadra, gol da copa (replay guardado em `StageResult.replay`, some se o `ENGINE_VERSION` mudar) e clipe 9:16.
+- **8 consertos** (sequência de títulos, nuvem, Ícone da recompensa, Duelo Time pronto e troca do intervalo); a
+  Pokédex divide a passagem de quem evolui entre as duas formas (`preEvo` no `recordResult`, sem dobrar minutos).
+- **Medalhas e clube** (`src/store/medals.ts`, `club-kit.ts`, tabela aprovada em `docs/planos/medalhas.md`;
+  `?demo=colecao&perfil=medalhas`, `?lab=versus`): 20 medalhas retroativas, vitrine de 3, escudo e uniforme.
+- **Treinadores e quadras** (`src/engine/rival-coach.ts`, `src/game/court-themes.ts`; `?lab=quadras`,
+  `?demo=lider&clube=<id>`): falas dos líderes, quadra por ginásio e rival que reage só com a beira da quadra ligada
+  (aviso de 10 s, `RIVAL_COACH.leadTicks` 200).
+- **Emotes 2 e conta** (`?lab=emotes&modo=copa`): rosto do capitão evoluído, silenciar, pose no "Vamooo!", líder da
+  Copa reagindo; vincular a conta anônima do Duelo ao Google (`linkIdentity`).
+- **Pendente:** fórmula A (`docs/planos/patch-formula.md`, branch `formula-a`) parada: com o goleiro −3 o Dragonite
+  vira Fixo 91 em vez de Pivô; falta o Miguel decidir. Liga (branch `liga-pronta`) espera migração e Edge Function no
+  Supabase.
 
 ### 0.8.7 · Emotes, selos e faixa da torcida
 
