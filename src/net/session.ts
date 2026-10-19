@@ -117,7 +117,10 @@ export const useDuel = create<DuelView>(() => ({
 export const roomNow = () => Date.now() + useDuel.getState().offset;
 
 const LOOP_MS = 500;
+/** Batida do relógio: a cada 2,5 s na partida; fora dela (lobby, draft, resultado) a cada 5 s (Miguel, 18/10/2026). */
 const CLOCK_MS = 2500;
+const IDLE_CLOCK_MS = 5000;
+export const clockEvery = (phase: Shared['phase']) => (phase === 'match' ? CLOCK_MS : IDLE_CLOCK_MS);
 const RETRY_MS = 2000;
 /** Mensagens importantes guardadas pra repetir quando o outro pedir. */
 const OUTBOX = 120;
@@ -851,7 +854,7 @@ class DuelSession {
         }
         // batida com o número da última mensagem (quem perdeu alguma percebe): de quem aplica, o relógio; do outro, o
         // minuto da tela dele (o host que voltou pula pra ele). O host ainda voltando não manda o minuto dele
-        if (otherOn && now - this.lastClock >= CLOCK_MS) {
+        if (otherOn && now - this.lastClock >= clockEvery(this.view.shared!.phase)) {
             this.lastClock = now;
             const cur = this.view.shared!;
             const tick = this.playing ? this.tick : undefined;

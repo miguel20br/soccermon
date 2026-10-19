@@ -14,7 +14,7 @@ vi.stubGlobal('localStorage', {
     removeItem: (k: string) => mem.delete(k),
 });
 
-const { duel, useDuel } = await import('./session');
+const { clockEvery, duel, useDuel } = await import('./session');
 
 const peer = (id: string): Peer => ({
     id,
@@ -276,5 +276,12 @@ describe('sessão: jogo de versão antiga na sala', () => {
         await wait(150);
         expect(shared().phase).toBe('lobby');
         old.close();
+    });
+});
+
+describe('sessão: batida do relógio', () => {
+    it('a cada 2,5 s na partida e 5 s fora dela (lobby, draft, escalação, resultado)', () => {
+        expect(clockEvery('match')).toBe(2500);
+        for (const p of ['lobby', 'team', 'draft', 'preview', 'done'] as const) expect(clockEvery(p)).toBe(5000);
     });
 });
