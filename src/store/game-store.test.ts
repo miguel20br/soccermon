@@ -356,6 +356,28 @@ describe('Pokédex com evolução no meio da partida', () => {
     });
 });
 
+describe('Ícones escalados', () => {
+    it('Ícone que chega como reforço na recompensa também conta (antes só o do draft)', () => {
+        useGame.getState().newRun('Pallet FC', 'icone-reforco');
+        const rng = new Rng('icone-reforco', 'team');
+        const team = [95, 7, 5, 25, 74, 1, 4].map((id) => createInstance(id, rng));
+        const mew = { ...createInstance(151, rng), special: { kind: 'icone' as const, title: 'Mew Ancestral' } };
+        const ready: RunState = {
+            ...(useGame.getState().run as RunState),
+            picks: team,
+            lineup: team.slice(0, 5).map((p) => p.uid),
+            bench: team.slice(5).map((p) => p.uid),
+            captainUid: team[0].uid,
+            status: 'reward',
+            rewards: [{ kind: 'pokemon', inst: mew, from: null }],
+        };
+        useGame.setState({ run: ready, records: { cups: 0, titles: 0, perfect: 0, icones: 2 } });
+        useGame.getState().claimReward(0, team[6].uid);
+        expect(useGame.getState().run!.bench).toContain(mew.uid);
+        expect(useGame.getState().records.icones).toBe(3);
+    });
+});
+
 describe('sequência de títulos', () => {
     it('nova copa por cima de uma em andamento zera a sequência (como abandonar); depois do fim, não', () => {
         const records = { cups: 3, titles: 3, perfect: 0, streak: 3, bestStreak: 3 };

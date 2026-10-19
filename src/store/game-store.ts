@@ -1078,7 +1078,11 @@ export const useGame = create<GameStore>()(
                                   : p,
                         );
                     }
+                    // Ícone que chega como reforço também conta nos Ícones escalados (como o do draft)
+                    const { records } = getState();
+                    const icon = reward.kind === 'pokemon' && reward.inst.special?.kind === 'icone';
                     setState({
+                        ...(icon && { records: { ...records, icones: (records.icones ?? 0) + 1 } }),
                         run: { ...run, picks, bench, rewards: [], status: 'lineup', stage: run.stage + 1 },
                         dex: markOvr(getState().dex, picks.filter((p) => !run.picks.includes(p)).map(ovrOf)),
                         match: null,
