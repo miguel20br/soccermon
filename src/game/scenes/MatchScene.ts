@@ -346,7 +346,13 @@ interface PlayerView {
     clones: Phaser.GameObjects.Sprite[];
     /** Piscando de carga (Solar Beam, Bide...). */
     glowing: boolean;
+    /** Pose do capitão no "Vamooo!" (hora real em que começou; 0 = nenhuma). Só visual: o lance sempre vence. */
+    pose: number;
 }
+
+/** Pose do capitão (emote "Vamooo!"): quanto dura e quanto dela é juntando força antes da pose (tempo real). */
+const POSE_MS = 1600;
+const POSE_CHARGE_MS = 450;
 
 export class MatchScene extends Phaser.Scene {
     private md!: MatchSceneData;
@@ -466,7 +472,9 @@ export class MatchScene extends Phaser.Scene {
         EventBus.on('match:rate', this.onRate, this);
         EventBus.on('match:seek', this.onSeek, this);
         EventBus.on('match:seg-hold', this.onSegHold, this);
+        EventBus.on('match:captain-pose', this.onCaptainPose, this);
         this.unbind = () => {
+            EventBus.off('match:captain-pose', this.onCaptainPose, this);
             EventBus.off('match:rate', this.onRate, this);
             EventBus.off('match:seek', this.onSeek, this);
             EventBus.off('match:seg-hold', this.onSegHold, this);
@@ -622,6 +630,17 @@ export class MatchScene extends Phaser.Scene {
         playSample('apito');
     }
 
+    /**
+     * Emote "Vamooo!" (Duelo, ?lab=emotes) ou o líder da Copa gritando: o capitão em quadra junta força (Charge) e faz
+     * pose (Pose; quem não tem, pula). Só na tela e só parado ou andando: com a bola, chutando ou no carrinho, o lance
+     * vence. Com "reduzir movimento", nada.
+     */
+    private onCaptainPose(idx: number) {
+        const view = this.players[idx];
+        if (this.md.reduceMotion || this.ended || !view || view.evolving || view.enter) return;
+        view.pose = this.time.now;
+    }
+
     private onSpeed(speed: PlaybackSpeed) {
         this.speed = speed;
     }
@@ -762,6 +781,7 @@ export class MatchScene extends Phaser.Scene {
             enter: null,
             clones: [],
             glowing: false,
+            pose: 0,
         };
         this.refreshTint(view);
         // tocar no Pokémon abre o painel dele (src/ui/components/PlayerInspect.tsx) e pausa a partida
@@ -1239,8 +1259,16 @@ export class MatchScene extends Phaser.Scene {
             this.applyIndicators(view, near.p[o + 4], near.p[o + 5]);
             this.applyTraitPose(view, near.p[o + 5]);
 
-            const anim = resolveAnim(view.skin, dive ? 'Attack' : animForAction(action));
-            const key = `${view.skin}/${anim}/${dive ? dive.facing : facing}`;
+            // pose do capitão: só parado ou andando, sem a bola (o lance vence e a pose acaba)
+            const since = view.pose ? this.time.now - view.pose : -1;
+            const calm = (action === Action.Idle || action === Action.Run) && a.owner !== i && b.owner !== i;
+            if (since >= POSE_MS || (since >= 0 && !calm) || dive) view.pose = 0;
+            const posing = view.pose > 0 && entering === null;
+            const anim = resolveAnim(
+                view.skin,
+                dive ? 'Attack' : posing ? (since < POSE_CHARGE_MS ? 'Charge' : 'Pose') : animForAction(action),
+            );
+            const key = `${view.skin}/${anim}/${dive ? dive.facing : posing ? 0 : facing}`;
             if (entering !== null) {
                 const walk = resolveAnim(view.skin, 'Walk');
                 const wkey = `${view.skin}/${walk}/${entering}`;
@@ -1261,7 +1289,7 @@ export class MatchScene extends Phaser.Scene {
             view.sprite.anims.timeScale = pace * Phaser.Math.Clamp(factor, 0.3, 4);
             // quem entra caminha no ritmo normal (a partida está parada) e o nome/anel só aparecem quando ele chega
             const arriving = entering !== null;
-            if (arriving) view.sprite.anims.timeScale = 1;
+            if (arriving || posing) view.sprite.anims.timeScale = 1;
             for (const o of [view.label, view.badge, view.ring, view.shadow, view.arrow]) o?.setVisible(!arriving);
             if (view.status === 1) view.sprite.x += Math.sin(this.time.now / 40) * 1.2; // paralisia: tremidinha
         }

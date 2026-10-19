@@ -70,7 +70,7 @@ import { type BoardPlan, Prancheta, useMedia, WIDE } from '../components/Pranche
 import { agencyView, MaxBars, PenaltyOrderPanel, SidelineControls, SidelineOverlay } from '../components/Sideline';
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
-import { roleAt, snapAt } from '../match-view';
+import { captainAt, roleAt, snapAt } from '../match-view';
 import { bannerText, peerTitle } from '../profile/club';
 import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
@@ -156,10 +156,6 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const colors: [number, number] = side === 0 ? [mine, theirs] : [theirs, mine];
     // clubes com o mesmo nome: o placar e a narração usam o nome do treinador
     const teamNames = duelNames(s);
-    // o capitão de cada lado é a cara dos emotes
-    const captainOf = (t: typeof home) =>
-        [...t.lineup, ...t.bench].find((p) => p.uid === t.captainUid)?.speciesId ?? t.lineup[0].speciesId;
-    const captains: [number, number] = [captainOf(home), captainOf(away)];
 
     useEffect(() => {
         setVolume(settings.volume);
@@ -347,6 +343,15 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         );
     }
 
+    // o capitão de cada lado é a cara dos emotes (quem evoluiu na partida aparece evoluído)
+    const capNow = ([0, 1] as const).map((tm) => captainAt(match, setups, tm, clock.tick));
+    const captains: [number, number] = [capNow[0].speciesId, capNow[1].speciesId];
+    // "Vamooo!": o capitão daquele lado faz pose em quadra (se estiver lá; a cena confere o lance)
+    const captainPose = (tm: 0 | 1) => {
+        const idx = captainAt(match, setups, tm, tickRef.current).idx;
+        if (idx !== null) EventBus.emit('match:captain-pose', idx);
+    };
+
     const pendingOrder = simCount < s.log.length;
     const mineLog = s.log.filter((o) => o.team === side);
     const tacticOrders = mineLog.filter((o) => isTacticOrder(o)) as TacticChange[];
@@ -500,6 +505,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                             mySide={side === 0 ? 'left' : 'right'}
                             captains={captains}
                             colors={[hex(colors[0]), hex(colors[1])]}
+                            onPose={captainPose}
                         />
                     </Scoreboard>
                     <PressureBar match={match} tick={clock.tick} minute={clock.minute} colors={colors} over={over} />

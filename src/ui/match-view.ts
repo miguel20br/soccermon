@@ -110,6 +110,26 @@ export function whoAt(m: MatchResult, setups: [TeamSetup, TeamSetup], idx: numbe
     return { team, inst, since, evolved, transformed, role: roleAt(m, setups, idx, tick) };
 }
 
+/**
+ * Capitão do time no tick: a espécie de agora (evoluiu na partida = a forma nova, a cara dos emotes) e a vaga dele
+ * em quadra (`idx` da partida; null = saiu numa troca ou ainda está no banco).
+ */
+export function captainAt(m: MatchResult, setups: [TeamSetup, TeamSetup], team: 0 | 1, tick: number) {
+    const setup = setups[team];
+    const uid = setup.captainUid ?? setup.lineup[0]?.uid;
+    const inst = [...setup.lineup, ...setup.bench].find((p) => p.uid === uid);
+    let idx: number | null = m.roster.findIndex((r) => r.team === team && r.uid === uid);
+    if (idx < 0) idx = null;
+    let speciesId = inst?.speciesId ?? 0;
+    for (const e of m.events) {
+        if (e.tick > tick) continue;
+        if (e.type === 'sub' && e.team === team && e.outUid === uid) idx = null;
+        if (e.type === 'sub' && e.team === team && e.inUid === uid) idx = e.outIdx;
+        if (e.type === 'evolve' && e.uid === uid) speciesId = e.into;
+    }
+    return { uid, idx, speciesId };
+}
+
 /** Escalação do time no tick (trocas e evoluções até ali): é por ela que o motor conta sinergias e capitão. */
 export function lineupAt(m: MatchResult, setups: [TeamSetup, TeamSetup], team: 0 | 1, tick: number) {
     return m.roster.flatMap((r, idx) => (r.team === team ? (whoAt(m, setups, idx, tick).inst ?? []) : []));
