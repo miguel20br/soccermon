@@ -75,12 +75,16 @@ daria. O conserto é guardar as escolhas da copa (formação, vagas, cartas, rer
 o draft inteiro pela seed (as funções do `game-store` já são quase puras). Até lá: auditoria (refazer as partidas do
 ranking do dia com o time e as ordens guardados) e zerar quem não bater.
 
-## O que falta pra ir pro ar (integração, com o ok do Miguel)
+## No ar (19/10/2026)
 
-1. Aplicar `20261019180000_copa_do_dia_e_liga.sql` (usa `pg_cron`, já ligado).
-2. `npm run edge:liga` e `supabase functions deploy liga --project-ref vszcxacbcabohhdwxfpb`. Refazer o empacote e o
-   deploy **a cada `ENGINE_VERSION` novo** (senão a Liga recusa as partidas da versão nova): entra no checklist do
-   lançamento.
-3. Conferir no ar: a 1ª partida numa instância fria fica abaixo dos 2 s de CPU (o jogo tenta de novo 2 vezes se der
-   546).
-4. Sem a migração aplicada, a Copa do Dia funciona (fora do ranking) e a Liga mostra "o servidor não respondeu".
+1. Migração `20261019180000_copa_do_dia_e_liga.sql` aplicada; Edge Function `liga` publicada com o motor da
+   `ENGINE_VERSION` 5 (`npm run edge:liga` + `npx -y supabase@latest functions deploy liga --project-ref
+   vszcxacbcabohhdwxfpb --use-api`, com o `SUPABASE_ACCESS_TOKEN` do `.env.local`; o gateway confere o JWT e a função
+   recusa conta anônima).
+2. **Refazer o empacote e o deploy a cada `ENGINE_VERSION` novo** (senão a Liga recusa as partidas da versão nova):
+   está no checklist da skill de lançamento.
+3. Conferido com contas de teste (criadas pelo admin e apagadas): 4 partidas, placar do servidor igual ao da
+   simulação local e ao da tela; recusas de versão, ordens e conta anônima. O pedido `resultado` leva ~2 s de relógio
+   (com as idas ao banco); a partida em si roda em ~0,3–0,4 s no Node e nenhum pedido bateu no limite de CPU (546).
+   Os logs de CPU da função ficam no painel (o token da CLI não lê logs).
+4. A partida da Liga conta na Pokédex como o Duelo (seu lado jogou, o fantasma foi visto).

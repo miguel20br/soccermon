@@ -3,8 +3,10 @@
 ## 0.8.8 · Ícone MVP, melhores momentos, medalhas e treinadores
 
 ### Copa do Dia e Liga
-- Copa do Dia: a mesma copa pra todo mundo (mesmo draft, mesmos rivais), uma tentativa por dia e ranking do dia
-- Liga ranqueada: o time da sua copa vira um fantasma que outros enfrentam; você joga contra os deles e sobe no Elo, com divisões e temporada mensal (precisa de conta)
+- Copa do Dia: a mesma copa pra todo mundo (mesmo draft, mesmos rivais), uma tentativa por dia e ranking do dia. Sem conta, você joga fora do ranking
+- Compartilhe a sua Copa do Dia com os quadradinhos de cada partida e acompanhe os dias jogados na semana
+- Liga ranqueada: o time da sua copa vira um fantasma que outros enfrentam; você joga contra os deles e sobe no Elo, com divisões (Bronze, Prata, Ouro e Lenda) e temporada mensal (precisa de conta Google)
+- Na Liga o placar que vale é o do servidor: ele refaz a partida com as suas ordens
 
 ### Balanceamento: Ala e Pivô
 - A nota do Ala agora conta o chute e a do Pivô, a velocidade (o jogo já usava os dois em quadra)
