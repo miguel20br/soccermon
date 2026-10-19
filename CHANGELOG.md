@@ -14,7 +14,12 @@
 ### Álbum de figurinhas
 - Álbum de figurinhas na Pokédex: só as cartas especiais, uma de cada, com a melhor que você tirou
 - Na Pokédex, cada Pokémon mostra quantas figurinhas tem (3/5) e a ficha mostra as cartas dele e a melhor
-- Vitrine de cartas no Perfil e no Duelo
+- Vitrine de cartas no seu perfil público: o rival vê no Duelo
+- Título das cartas Ícone (Charizard Rebelde e cia.) menor, numa linha só
+
+### Perfil
+- Botão do Perfil no canto de cima, com o seu avatar
+- Toque no rival no Duelo (sala, VERSUS ou placar) pra ver o perfil dele, com as cartas grandes
 
 ## 0.8.8.2 · Logo novo e faixas da torcida
 

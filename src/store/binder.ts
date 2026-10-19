@@ -42,7 +42,7 @@ export interface BinderCard {
 
 /** ponytail: guarda só as últimas 30 contadas; a mesma carta só volta dentro da própria copa. */
 const SEEN_MAX = 30;
-/** Vitrine de cartas no Perfil e no VERSUS do Duelo. */
+/** Vitrine de cartas no perfil público (o cartão do treinador; o rival vê no Duelo). */
 export const CARD_SHOWCASE_MAX = 3;
 
 export const binderKey = (p: PokemonInstance) => (p.evolved ? `${p.uid}>${p.speciesId}` : p.uid);
