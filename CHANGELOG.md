@@ -52,6 +52,7 @@
 - O Ícone que chega como reforço na recompensa também conta nos Ícones escalados
 - Duelo (Time pronto): cartas evoluídas levam o bônus de evolução, espécie repetida por evolução é aceita e quem não tem time não trava a sala
 - Duelo: a troca feita no fim do intervalo não volta mais no tempo
+- Conserto de um erro raro da quadra quando a animação de um Pokémon ainda não tinha carregado
 
 ## 0.8.7 · Emotes, selos e faixa da torcida
 
