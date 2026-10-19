@@ -4,10 +4,12 @@ import { CUP_STAGES } from '../../engine/cup';
 import { clubName, dict } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { type DailyRow, isError, league, leagueOnline, publicInfo } from '../../league/api';
+import { ligaCountdown } from '../../league/rules';
 import { dailyDay, dailyShareText, dailyStreak, putDaily, winsOf } from '../../store/daily';
 import { isCupInProgress, useGame } from '../../store/game-store';
 import { clubColorHex } from '../../store/profile';
 import { AccountBar } from '../components/AccountBar';
+import { HudIcon } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { MenuIcon } from '../components/MenuIcon';
 import { SITE_URL, shareText } from '../share';
@@ -305,7 +307,7 @@ function TrophyMini() {
 
 /**
  * Entrada na Home (embaixo dos modos: o "Nova copa" continua na primeira tela do celular): Copa do Dia com os dias da
- * semana e a Liga.
+ * semana e a Liga (fechada até a data, ver `LigaHomeRow`).
  */
 export function HomeDailyCard() {
     const { t, lang } = useT();
@@ -348,18 +350,64 @@ export function HomeDailyCard() {
                           : t('liga.home.dailyPlay')}
                 </button>
             </div>
-            <div className="dc-row">
-                <span className="dc-icon" aria-hidden>
-                    <MenuIcon kind="liga" />
-                </span>
-                <div className="mode-head">
-                    <b>{t('liga.home.ligaTag')}</b>
-                    <span>{t('liga.home.ligaLine')}</span>
-                </div>
-                <button type="button" className="btn ghost dc-go" onClick={() => go('liga')}>
-                    {t('liga.home.ligaGo')}
+            <LigaHomeRow />
+        </div>
+    );
+}
+
+/**
+ * Linha da Liga no cartão da Home. Fechada até `LIGA_OPENS_AT` (src/league/rules.ts): "Em breve", a contagem e, no
+ * toque, o porquê. Na data ela abre sozinha (a contagem roda a cada 30 s).
+ */
+function LigaHomeRow() {
+    const { t } = useT();
+    const go = useGame((s) => s.go);
+    const [left, setLeft] = useState(() => ligaCountdown());
+    const [why, setWhy] = useState(false);
+    useEffect(() => {
+        const id = window.setInterval(() => setLeft(ligaCountdown()), 30000);
+        return () => clearInterval(id);
+    }, []);
+    if (left)
+        return (
+            <div className="dc-liga">
+                <button
+                    type="button"
+                    className="dc-row dc-locked"
+                    aria-expanded={why}
+                    aria-controls="dc-liga-why"
+                    onClick={() => setWhy(!why)}
+                >
+                    <span className="dc-icon" aria-hidden>
+                        <MenuIcon kind="liga" />
+                    </span>
+                    <span className="mode-head">
+                        <b>
+                            {t('liga.home.ligaTag')} <span className="bc-tag">{t('liga.home.ligaSoon')}</span>
+                        </b>
+                        <span>{t('liga.home.ligaOpensIn', left)}</span>
+                    </span>
+                    <HudIcon kind="lock" className="dc-lock" />
                 </button>
+                {why && (
+                    <p id="dc-liga-why" className="lg-note">
+                        {t('liga.home.ligaClosed')}
+                    </p>
+                )}
             </div>
+        );
+    return (
+        <div className="dc-row">
+            <span className="dc-icon" aria-hidden>
+                <MenuIcon kind="liga" />
+            </span>
+            <div className="mode-head">
+                <b>{t('liga.home.ligaTag')}</b>
+                <span>{t('liga.home.ligaLine')}</span>
+            </div>
+            <button type="button" className="btn ghost dc-go" onClick={() => go('liga')}>
+                {t('liga.home.ligaGo')}
+            </button>
         </div>
     );
 }

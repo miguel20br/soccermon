@@ -165,6 +165,10 @@ upando na 0.8.8"); o Duelo junta só telas do mesmo deploy (versão + `__APP_BUI
   `SUPABASE_ACCESS_TOKEN` no `.env.local`), senão a Liga recusa as partidas ("recarregue a página"). A partida da
   Liga conta na Pokédex como o Duelo (`recordDuelDex`). Falta: o draft da Copa do Dia refeito no servidor (hoje o
   ranking do dia só confere plausibilidade).
+- **Liga fechada até juntar gente (pedido do Miguel, 19/10):** a Copa do Dia segue no ar; a Liga aparece na Home com
+  "Em breve", contagem e um aviso no toque. Abre sozinha na data de `LIGA_OPENS_AT` (`src/league/rules.ts`, hoje
+  **01/12/2026 00:00 de Brasília, provisória**). Reabrir antes ou adiar: trocar só essa linha e publicar. Código,
+  tabelas e Edge Function `liga` continuam (o `?demo=liga` entra mesmo fechada).
 
 ### 0.8.7 · Emotes, selos e faixa da torcida
 

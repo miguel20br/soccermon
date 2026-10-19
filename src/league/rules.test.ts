@@ -9,12 +9,30 @@ import {
     ELO_START,
     eloAfter,
     eloExpected,
+    LIGA_OPENS_AT,
+    ligaCountdown,
     pickGhost,
     prevSeason,
     seasonDaysLeft,
     seasonOf,
     seasonStartElo,
 } from './rules';
+
+describe('Liga fechada até a data', () => {
+    it('abre à meia-noite de Brasília do dia marcado', () => {
+        expect(new Date(LIGA_OPENS_AT).toISOString()).toBe('2026-12-01T03:00:00.000Z');
+    });
+    it('antes da data: contagem em dias, horas e minutos; na hora e depois: aberta', () => {
+        const at = Date.parse('2026-12-01T03:00:00Z');
+        const left = (12 * 1440 + 4 * 60 + 31) * 60000;
+        expect(ligaCountdown(at - left, at)).toEqual({ d: 12, h: '04', m: '31' });
+        // 30 s antes ainda está fechada (arredonda pra cima: nunca mostra "0d 00h 00m" fechada)
+        expect(ligaCountdown(at - 30000, at)).toEqual({ d: 0, h: '00', m: '01' });
+        expect(ligaCountdown(at, at)).toBeNull();
+        expect(ligaCountdown(at + 1, at)).toBeNull();
+        expect(ligaCountdown(Date.parse('2026-10-19T12:00:00Z'))).not.toBeNull();
+    });
+});
 
 describe('Elo', () => {
     it('igual contra igual: ganha 24 nas primeiras partidas, 16 depois; perder tira o mesmo', () => {

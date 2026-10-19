@@ -88,3 +88,22 @@ ranking do dia com o time e as ordens guardados) e zerar quem não bater.
    (com as idas ao banco); a partida em si roda em ~0,3–0,4 s no Node e nenhum pedido bateu no limite de CPU (546).
    Os logs de CPU da função ficam no painel (o token da CLI não lê logs).
 4. A partida da Liga conta na Pokédex como o Duelo (seu lado jogou, o fantasma foi visto).
+
+## Fechada até ter mais gente (19/10/2026)
+
+Pedido do Miguel: "tirar a partida ranqueada e voltar com ela pra quando tivermos mais jogadores, no lançamento talvez.
+Aí a gente deixa a opção e um timer pra liberar."
+
+- **Só a Liga fecha.** A Copa do Dia e o ranking do dia seguem iguais.
+- Na Home a linha da Liga continua visível, com o selo "Em breve" (`.bc-tag`), "Abre em 12d 04h 31m" e um cadeado. O
+  toque mostra: "A Liga abre quando tiver mais gente jogando. Enquanto isso, a Copa do Dia tem ranking todo dia."
+  (`LigaHomeRow` em `src/ui/screens/Daily.tsx`.)
+- **Data:** `LIGA_OPENS_AT` em `src/league/rules.ts`, hoje `2026-12-01T00:00:00-03:00` (placeholder até o Miguel
+  confirmar). Passou da data, a Home troca sozinha pro "Abrir a Liga" (a contagem confere a cada 30 s, sem deploy). Pra
+  reabrir antes ou adiar, troque só essa linha e publique. Teste: `src/league/rules.test.ts` ("Liga fechada até a
+  data").
+- **Nada apagado:** tabelas, funções do banco e Edge Function `liga` continuam no Supabase; o `?demo=liga` (dev) entra
+  direto na tela da Liga mesmo fechada.
+- **Partida da Liga aberta:** fica no servidor (e as ordens em `localStorage`, `soccermon-liga-live`), não no save; a
+  Home não depende dela, então nada trava. Quando a Liga abrir, quem tinha uma partida aberta volta nela; se já tinha
+  começado (seed revelada) há mais de 2 h, o servidor conta derrota, como sempre.
