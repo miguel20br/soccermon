@@ -27,7 +27,7 @@ import { liveOf, type PlaybackSpeed, playerTeam, useGame } from '../../store/gam
 import { rivalColor, tagFromName } from '../../store/profile';
 import { Commentator, type CommentLine } from '../commentary';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
-import { HalftimePanel } from '../components/HalftimePanel';
+import { HalftimePanel, rivalHtSubs } from '../components/HalftimePanel';
 import { MatchHighlight } from '../components/MatchHighlight';
 import {
     type Clock,
@@ -344,11 +344,11 @@ export function Match() {
      * Ordem do técnico ao vivo (tática ou substituição): agenda um pouco à frente do que está na tela e
      * resimula a partida com a agenda inteira. As ordens ficam salvas para retomar a partida igual.
      */
+    const htTick = match.events.find((e) => e.type === 'halftime')?.tick;
     const sendOrder = async (make: (tick: number) => MatchOrder, at?: number) => {
         // sempre depois da ordem anterior, para a ordem do motor bater com a da tela; no intervalo (e no pedido de
         // tempo) a partida está parada, então vale já no tick seguinte. `at`: tick fixo (ordem dos pênaltis, que
         // entra antes do apito final e não muda nada do jogo)
-        const htTick = match.events.find((e) => e.type === 'halftime')?.tick;
         const base =
             halftime && htTick !== undefined
                 ? htTick + 1
@@ -356,7 +356,11 @@ export function Match() {
                   ? timeoutAt + 1
                   : Math.ceil(tickRef.current + leadTicks);
         const tick = at ?? Math.max(base, (orders.at(-1)?.tick ?? 0) + 1);
-        const schedule = [...orders, make(tick)];
+        await resim([...orders, make(tick)], tick);
+    };
+
+    /** Resimula com a agenda inteira (ordem nova ou troca desfeita) e segura a tela até a partida nova chegar. */
+    const resim = async (schedule: MatchOrder[], tick: number) => {
         const seed = match.seed;
         setPending(true);
         setTacticError(null);
@@ -427,7 +431,22 @@ export function Match() {
     /** Fôlego (0..1) agora de quem está na vaga `i` do seu time. */
     const energyAt = (i: number, tick = tickRef.current) => snapAt(match.snapshots, tick).p[i * SNAP_STRIDE + 6] ?? 1;
     const pendingSub = subOrders.find((o) => !subsDone.includes(o.inUid)) ?? null;
-    const canSub = canChangeTactic && !pendingSub && subOrders.length < lockedSetup.bench.length && benchNow.length > 0;
+    // vestiário: várias trocas no mesmo intervalo (no jogo, uma por bola parada); quem já vai entrar ou sair fica fora
+    const htSubs = halftime && htTick !== undefined ? subOrders.filter((o) => o.tick > htTick) : [];
+    const benchFree = benchNow.filter((u) => !subOrders.some((o) => o.inUid === u));
+    const leaving = new Set(htSubs.map((o) => o.outUid));
+    const canSub =
+        canChangeTactic &&
+        (halftime ? onField.some((u) => !leaving.has(u)) : !pendingSub) &&
+        subOrders.length < lockedSetup.bench.length &&
+        benchFree.length > 0;
+    const undoSub = (o: MatchOrder) => {
+        if (!canChangeTactic || htTick === undefined) return;
+        resim(
+            orders.filter((x) => x !== o),
+            htTick + 1,
+        );
+    };
     const orderSub = (outUid: string, inUid: string) => {
         setSubOpen(false);
         setSubOut(null);
@@ -455,6 +474,11 @@ export function Match() {
         return evo?.type === 'evolve' && name === species(evo.from).name ? species(evo.into).name : name;
     };
 
+    const spriteOf = (uid: string) => {
+        const p = byUid.get(uid);
+        return p ? cardSprite(p) : '';
+    };
+
     const stage = stageName(run.stage) || t('match.cup');
 
     const finishIntro = () => {
@@ -463,14 +487,16 @@ export function Match() {
         setIntroDone(true);
         EventBus.emit('match:resume');
     };
-    // quem está mais cansado em quadra: o botão Substituir avisa (só avisa; a troca é sempre do técnico)
-    const tiredSlot = onField.map((uid, i) => ({ uid, energy: energyAt(i) })).sort((a, b) => a.energy - b.energy)[0];
-    // intervalo: sugere trocar o mais cansado (só abre o Substituir com ele marcado), pelo fôlego com que ele
-    // começaria o 2º tempo (o mesmo número do "Mais cansado" do painel)
+    // fôlego que vale na tela: no intervalo, o com que cada um começaria o 2º tempo (o mesmo número no "Mais
+    // cansado" do painel, na sugestão de troca e no aviso e na lista do Substituir)
     const ko2 = match.events.find((e) => e.type === 'kickoff' && e.half === 2)?.tick;
+    const energyNow = (i: number) => energyAt(i, halftime ? ko2 : undefined);
+    // quem está mais cansado em quadra: o botão Substituir avisa (só avisa; a troca é sempre do técnico)
+    const tiredSlot = onField.map((uid, i) => ({ uid, energy: energyNow(i) })).sort((a, b) => a.energy - b.energy)[0];
+    // intervalo: sugere trocar o mais cansado (só abre o Substituir com ele marcado)
     const htSuggest = halftime
         ? subSuggestion(
-              onField.map((uid, i) => ({ uid, energy: energyAt(i, ko2) })),
+              onField.map((uid, i) => ({ uid, energy: energyNow(i) })),
               canSub,
           )
         : null;
@@ -612,7 +638,6 @@ export function Match() {
                                 }}
                                 canSub={canSub}
                                 onSub={() => setSubOpen(true)}
-                                pending={pendingSubText}
                                 suggest={
                                     htSuggest && {
                                         text: t('match.ht.suggest', {
@@ -625,6 +650,14 @@ export function Match() {
                                         },
                                     }
                                 }
+                                mySubs={htSubs.map((o) => ({
+                                    key: o.inUid,
+                                    inName: nameOf(o.inUid),
+                                    outName: nameOf(o.outUid),
+                                    sprite: spriteOf(o.inUid),
+                                    onUndo: canChangeTactic ? () => undoSub(o) : undefined,
+                                }))}
+                                rivalSubs={rivalHtSubs(match, 1)}
                                 onContinue={() => {
                                     setHalftime(false);
                                     EventBus.emit('match:resume');
@@ -683,10 +716,11 @@ export function Match() {
                             setSubOut={setSubOut}
                             onClose={() => setSubOpen(false)}
                             onField={onField}
-                            benchNow={benchNow}
+                            benchNow={benchFree}
+                            busy={leaving}
                             byUid={byUid}
                             slots={slots}
-                            energyAt={energyAt}
+                            energyAt={energyNow}
                             nameOf={nameOf}
                             onPick={orderSub}
                         />

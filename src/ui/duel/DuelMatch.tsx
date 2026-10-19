@@ -22,12 +22,14 @@ import type { MatchSceneData } from '../../game/scenes/MatchScene';
 import { formationText } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import {
+    canUnorder,
     DUEL_SPEEDS,
     duelNames,
     duelPace,
     duelTags,
     isSubStamped,
     leadTicks,
+    logVersion,
     type OrderBody,
     onFieldAfter,
     ordersOf,
@@ -48,7 +50,7 @@ import type { TrainerId } from '../../store/missions';
 import { rivalColor } from '../../store/profile';
 import { Commentator, type CommentLine } from '../commentary';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
-import { HalftimePanel } from '../components/HalftimePanel';
+import { HalftimePanel, rivalHtSubs } from '../components/HalftimePanel';
 import { MatchHighlight } from '../components/MatchHighlight';
 import {
     type Clock,
@@ -81,6 +83,7 @@ import { bannerText, peerTitle } from '../profile/club';
 import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
 import { EmoteBar, EmoteBubbles } from './Emotes';
+import { ReadyBar } from './ReadyBar';
 
 /** Segundos que faltam até `at` (relógio da sala), atualizando sozinho. */
 export function useCountdown(at: number | undefined): number {
@@ -118,6 +121,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const myTeam = setups[side];
 
     const [match, setMatch] = useState<MatchResult | null>(null);
+    /** Versão do log (`logVersion`) que a partida na tela já tem. */
     const simLog = useRef(-1);
     const [simCount, setSimCount] = useState(-1);
     const [clock, setClock] = useState<Clock>({ tick: 0, minute: 0, half: 1, score: [0, 0], phase: 'kickoff' });
@@ -179,21 +183,23 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     }, []);
 
     // resimula a cada ordem nova no log (as duas telas com o mesmo log = a mesma partida)
-    const logLen = s.log.length;
-    // biome-ignore lint/correctness/useExhaustiveDependencies: o log só cresce; o tamanho diz quando mudou
+    const logLen = logVersion(s);
+    // biome-ignore lint/correctness/useExhaustiveDependencies: a versão do log só sobe; ela diz quando mudou
     useEffect(() => {
         if (!segSeeds?.length) return;
         let alive = true;
         const seeds = segSeeds;
-        const last = s.log.at(-1);
-        // ordem nova: não passa dela enquanto a partida nova não chega (trecho novo não precisa: a trava do trecho segura)
+        const log = s.log;
+        const last = log.at(-1);
+        // ordem nova: não passa dela enquanto a partida nova não chega (trecho novo não precisa: a trava do trecho
+        // segura). Troca desfeita no intervalo: a tela está parada nele
         if (last && match && logLen > simLog.current) EventBus.emit('match:hold', last.tick);
         // seed por trecho: cada trecho aberto pelos dois muda a sorte dali pra frente (o passado não muda)
-        simulateMatch(home, away, baseSeedOf(s.room, s.game), ordersOf(s.log), seeds)
+        simulateMatch(home, away, baseSeedOf(s.room, s.game), ordersOf(log), seeds)
             .then((r) => {
                 if (!alive) return;
                 duel.result = r;
-                duel.resultLog = logLen;
+                duel.resultOrders = log;
                 duel.resultSeeds = seeds.length;
                 simLog.current = logLen;
                 setSimCount(logLen);
@@ -324,12 +330,12 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
 
     // 2º tempo: os dois prontos (ou o tempo acabou) e a partida já com todas as ordens do intervalo
     useEffect(() => {
-        if (halftime && s.secondHalf && simCount === s.log.length) {
+        if (halftime && s.secondHalf && simCount === logLen) {
             setHalftime(false);
             setSubOpen(false);
             EventBus.emit('match:resume');
         }
-    }, [halftime, s.secondHalf, simCount, s.log.length]);
+    }, [halftime, s.secondHalf, simCount, logLen]);
 
     useEffect(() => {
         if (halftime) halftimeRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -367,7 +373,10 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         if (idx !== null) EventBus.emit('match:captain-pose', idx);
     };
 
-    const pendingOrder = simCount < s.log.length;
+    const pendingOrder = simCount < logLen;
+    // intervalo: com o meu pronto dado a tela trava (o "Mudar algo" destrava)
+    const htMine = !!s.halftime?.ready[role];
+    const htTick = match.events.find((e) => e.type === 'halftime')?.tick;
     const mineLog = s.log.filter((o) => o.team === side);
     const tacticOrders = mineLog.filter((o) => isTacticOrder(o)) as TacticChange[];
     const cornerOrders = mineLog.filter((o) => isCornerOrder(o)) as CornerOrder[];
@@ -385,6 +394,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         !pendingOrder &&
         !ended &&
         !fulltime &&
+        !(halftime && (htMine || s.secondHalf)) &&
         clock.minute + leadMinutes < cfg.displayHalfMinutes * 2 - 1;
 
     const order = (o: OrderBody) => duel.order(o, halftime);
@@ -396,7 +406,14 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const usedIn = new Set(subOrders.map((o) => o.inUid));
     const benchNow = myTeam.bench.map((p) => p.uid).filter((u) => !usedIn.has(u));
     const pendingSub = subOrders.find((o) => !subsDone.includes(o.inUid)) ?? null;
-    const canSub = canChange && !pendingSub && subOrders.length < myTeam.bench.length && benchNow.length > 0;
+    // vestiário: várias trocas no mesmo intervalo, cada uma com desfazer até o 2º tempo (no jogo, uma por bola parada)
+    const htSubs = halftime && htTick !== undefined ? subOrders.filter((o) => o.tick > htTick) : [];
+    const leaving = new Set(htSubs.map((o) => o.outUid));
+    const canSub =
+        canChange &&
+        (halftime ? onField.some((u) => !leaving.has(u)) : !pendingSub) &&
+        subOrders.length < myTeam.bench.length &&
+        benchNow.length > 0;
     const myIdx = match.roster.filter((r) => r.team === side).map((r) => r.idx);
     // posição agora de quem está em cada vaga (a prancheta pode ter mudado)
     const slots = myIdx.map((idx) => roleAt(match, setups, idx, tickRef.current));
@@ -448,14 +465,16 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         } else if (idx !== null) EventBus.emit('match:inspect-request', idx);
     };
 
-    // quem está mais cansado em quadra: o botão Substituir avisa (só avisa; a troca é sempre do técnico)
-    const tiredSlot = onField.map((uid, i) => ({ uid, energy: energyAt(i) })).sort((a, b) => a.energy - b.energy)[0];
-    // intervalo: sugere trocar o mais cansado (só abre o Substituir com ele marcado), pelo fôlego com que ele
-    // começaria o 2º tempo (o mesmo número do "Mais cansado" do painel)
+    // fôlego que vale na tela: no intervalo, o com que cada um começaria o 2º tempo (o mesmo número no "Mais
+    // cansado" do painel, na sugestão de troca e no aviso e na lista do Substituir)
     const ko2 = match.events.find((e) => e.type === 'kickoff' && e.half === 2)?.tick;
+    const energyNow = (i: number) => energyAt(i, halftime ? ko2 : undefined);
+    // quem está mais cansado em quadra: o botão Substituir avisa (só avisa; a troca é sempre do técnico)
+    const tiredSlot = onField.map((uid, i) => ({ uid, energy: energyNow(i) })).sort((a, b) => a.energy - b.energy)[0];
+    // intervalo: sugere trocar o mais cansado (só abre o Substituir com ele marcado)
     const htSuggest = halftime
         ? subSuggestion(
-              onField.map((uid, i) => ({ uid, energy: energyAt(i, ko2) })),
+              onField.map((uid, i) => ({ uid, energy: energyNow(i) })),
               canSub,
           )
         : null;
@@ -600,7 +619,6 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                                 }}
                                 canSub={canSub}
                                 onSub={() => setSubOpen(true)}
-                                pending={pendingSubText}
                                 suggest={
                                     htSuggest && {
                                         text: t('match.ht.suggest', {
@@ -614,19 +632,39 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                                     }
                                 }
                                 onContinue={() => duel.dispatch({ k: 'htReady' })}
-                                readyText={
-                                    htReady?.[role] && !htReady?.[rivalRole] && !awayRival
-                                        ? t('duel.match.htMeReady', { name: rivalName })
-                                        : htReady?.[role]
-                                          ? t('duel.match.htBoth')
-                                          : null
+                                mySubs={htSubs.map((o) => {
+                                    const inst = byUid.get(o.inUid);
+                                    return {
+                                        key: o.inUid,
+                                        inName: nameOf(o.inUid),
+                                        outName: nameOf(o.outUid),
+                                        sprite: inst ? cardSprite(inst) : '',
+                                        onUndo:
+                                            !pendingOrder && canUnorder(s, role, o.seq, htTick)
+                                                ? () => duel.dispatch({ k: 'unorder', seq: o.seq })
+                                                : undefined,
+                                    };
+                                })}
+                                rivalSubs={rivalHtSubs(match, side === 0 ? 1 : 0)}
+                                ready={
+                                    <ReadyBar
+                                        compact
+                                        mine={htMine}
+                                        rival={!!htReady?.[rivalRole]}
+                                        rivalName={rivalName}
+                                        starting={s.secondHalf || (htMine && (!!htReady?.[rivalRole] || awayRival))}
+                                        label={t('match.ht.continue')}
+                                        onReady={() => {
+                                            setSubOpen(false);
+                                            duel.dispatch({ k: 'htReady' });
+                                        }}
+                                        onUndo={() => duel.dispatch({ k: 'htReady', ready: false })}
+                                    />
                                 }
                                 footer={
                                     <p className="duel-ht" data-testid="duel-ht">
                                         <b>{t('duel.match.htTimer', { s: htLeft })}</b>
-                                        {!htReady?.[role] && htReady?.[rivalRole] && (
-                                            <> · {t('duel.match.htRivalReady', { name: rivalName })}</>
-                                        )}
+                                        <small className="muted"> · {t('duel.ready.timeNote')}</small>
                                     </p>
                                 }
                             />
@@ -666,9 +704,10 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                             onClose={() => setSubOpen(false)}
                             onField={onField}
                             benchNow={benchNow}
+                            busy={leaving}
                             byUid={byUid}
                             slots={slots}
-                            energyAt={energyAt}
+                            energyAt={energyNow}
                             nameOf={nameOf}
                             onPick={(outUid, inUid) => {
                                 setSubOpen(false);

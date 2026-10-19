@@ -807,6 +807,34 @@
     .bc .ht-panel > small {
         display: none;
     }
+    /* vestiário com várias trocas: cabe entre o placar e a barra de baixo, e rola dentro do painel */
+    .bc .ht-panel {
+        max-height: calc(100svh - 108px - var(--bc-thumb-h) - env(safe-area-inset-bottom));
+        overflow-y: auto;
+    }
+    /* deitado, os botões (e o pronto do duelo) vêm antes das listas de trocas: o que se toca fica à vista */
+    .bc .ht-panel .ht-actions,
+    .bc .ht-panel .duel-ht {
+        order: 1;
+    }
+    .bc .ht-panel .ht-subs {
+        order: 2;
+    }
+    /* duelo deitado: a dica sai pra caber o pronto (quem está pronto e o botão) */
+    .bc .ht-panel:has(.ready-bar) .ht-tip {
+        display: none;
+    }
+    /* pronto do duelo numa linha só (nome e bolinha) */
+    .bc .ready-bar.compact .ready-chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 8px;
+    }
+    .bc .ht-subs li {
+        min-height: 26px;
+        font-size: 12px;
+    }
     .panel.bc-coach {
         grid-area: coach;
         margin-top: 0;

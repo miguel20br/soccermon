@@ -97,6 +97,12 @@ export const match = {
         tipEven: 'Jogo aberto. Siga assim ou mude algo.',
         /** Lembrete da evolução do rival no 1º tempo. */
         rivalEvo: 'Rival evoluiu',
+        mySubs: 'Suas trocas pro 2º tempo',
+        subRow: '{in} entra no lugar de {out}',
+        undo: 'desfazer',
+        rivalSubs: 'O rival trocou',
+        rivalRow: '{in} entrou, {out} saiu',
+        subMore: 'Trocar mais',
     },
     highlight: {
         goal: 'GOL!',

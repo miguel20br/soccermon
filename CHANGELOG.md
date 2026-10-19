@@ -17,6 +17,11 @@
 - Textos mais simples no jogo todo e boas-vindas em 3 páginas, com dicas na hora certa
 - Experimento beira da quadra: o grito "Pra cima!" virou "Ataca!"
 
+### Vestiário e pronto
+- Intervalo vira vestiário: várias trocas de uma vez, cada uma com desfazer, e o aviso de quem o rival trocou
+- Duelo: o pronto dá pra desfazer na escolha do time, na escalação e no intervalo
+- O fôlego do intervalo é o mesmo em todo lugar: o com que cada um começa o 2º tempo
+
 ### Medalhas e clube
 - 20 medalhas com degraus (bronze, prata, ouro e platina) em Perfil → Medalhas. Já contam tudo o que você jogou
 - Vitrine: escolha até 3 destaques (medalha, coleção completa ou selo); aparecem no seu cartão e no VERSUS do Duelo, e o melhor vira a moldura do avatar

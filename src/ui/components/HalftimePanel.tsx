@@ -3,12 +3,42 @@ import { species } from '../../engine/data';
 import { possessionByPeriod } from '../../engine/match-stats';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { SNAP_STRIDE } from '../../engine/state';
-import { useT } from '../../i18n/react';
+import { rich, useT } from '../../i18n/react';
 import { snapAt } from '../match-view';
+import { cardSprite } from './PokeCard';
+
+/** Uma troca do intervalo: quem entra no lugar de quem (com o desfazer, se ainda dá). */
+export interface HtSub {
+    key: string;
+    inName: string;
+    outName: string;
+    sprite: string;
+    onUndo?: () => void;
+}
+
+/** Trocas do time `team` no intervalo (do apito até a saída de bola do 2º tempo), pela partida simulada. */
+export function rivalHtSubs(match: MatchResult, team: 0 | 1): HtSub[] {
+    const ht = match.events.find((e) => e.type === 'halftime')?.tick;
+    if (ht === undefined) return [];
+    const ko = match.events.find((e) => e.type === 'kickoff' && e.tick > ht)?.tick ?? ht;
+    return match.events.flatMap((e) =>
+        e.type === 'sub' && e.team === team && e.tick >= ht && e.tick <= ko
+            ? [
+                  {
+                      key: e.inUid,
+                      inName: e.in,
+                      outName: e.out,
+                      sprite: cardSprite({ speciesId: e.inSpeciesId, shiny: e.inShiny }),
+                  },
+              ]
+            : [],
+    );
+}
 
 /**
- * Intervalo de verdade (estilo Retro Bowl/FM): a partida para, mostra como foi o 1º tempo e uma dica, e o técnico
- * decide (tática e substituição continuam nos controles de sempre). Nada muda sozinho: "Continuar" segue o jogo.
+ * Intervalo de verdade (estilo Retro Bowl/FM), o vestiário: a partida para, mostra como foi o 1º tempo e uma dica, e o
+ * técnico decide (tática e substituição continuam nos controles de sempre). Várias trocas no mesmo intervalo, cada uma
+ * com desfazer até o 2º tempo começar, e as do rival à vista. Nada muda sozinho: "Continuar" segue o jogo.
  */
 export function HalftimePanel({
     match,
@@ -19,16 +49,19 @@ export function HalftimePanel({
     canSub,
     side = 0,
     footer,
-    pending,
+    mySubs = [],
+    rivalSubs = [],
     suggest,
-    readyText,
+    ready,
 }: {
-    /** Duelo: você já deu pronto (o botão vira "Pronto! Esperando…" e trava). */
-    readyText?: string | null;
-    /** Troca já marcada pro 2º tempo (aparece dentro do painel, perto dos botões). */
-    pending?: ReactNode;
-    /** Sugestão de troca: só abre o Substituir com quem está cansado marcado (nada troca sozinho). */
+    /** Suas trocas pro 2º tempo (ainda não aconteceram: dá pra desfazer). */
+    mySubs?: HtSub[];
+    /** Trocas do rival no intervalo. */
+    rivalSubs?: HtSub[];
+    /** Sugestão de troca, logo abaixo da dica: só abre o Substituir com quem está cansado marcado (nada troca sozinho). */
     suggest?: { text: string; onPick: () => void } | null;
+    /** No duelo: o "pronto" no lugar do "Começar o 2º tempo" (com o desfazer). */
+    ready?: ReactNode;
     match: MatchResult;
     names: [string, string];
     /** Lado do jogador (no duelo, o convidado é o 1). */
@@ -115,14 +148,46 @@ export function HalftimePanel({
                     {suggest.text}
                 </button>
             )}
-            {pending && <p className="ht-pending">{pending}</p>}
+            {mySubs.length > 0 && (
+                <section className="ht-subs" data-testid="ht-my-subs">
+                    <h3>{t('match.ht.mySubs')}</h3>
+                    <ul>
+                        {mySubs.map((x) => (
+                            <li key={x.key}>
+                                <img className="pixel" src={x.sprite} alt="" />
+                                <span>{rich(t('match.ht.subRow'), { in: <b>{x.inName}</b>, out: x.outName })}</span>
+                                {x.onUndo && (
+                                    <button type="button" className="ht-undo" onClick={x.onUndo}>
+                                        {t('match.ht.undo')}
+                                    </button>
+                                )}
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+            )}
+            {rivalSubs.length > 0 && (
+                <section className="ht-subs rival" data-testid="ht-rival-subs">
+                    <h3>{t('match.ht.rivalSubs')}</h3>
+                    <ul>
+                        {rivalSubs.map((x) => (
+                            <li key={x.key}>
+                                <img className="pixel" src={x.sprite} alt="" />
+                                <span>{rich(t('match.ht.rivalRow'), { in: <b>{x.inName}</b>, out: x.outName })}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+            )}
             <div className="ht-actions">
                 <button type="button" className="btn yellow" disabled={!canSub} onClick={onSub}>
-                    {t('match.substitute')}
+                    {mySubs.length ? t('match.ht.subMore') : t('match.substitute')}
                 </button>
-                <button type="button" className="btn primary" disabled={!!readyText} onClick={onContinue}>
-                    {readyText || t('match.ht.continue')}
-                </button>
+                {ready ?? (
+                    <button type="button" className="btn primary" onClick={onContinue}>
+                        {t('match.ht.continue')}
+                    </button>
+                )}
             </div>
             {footer}
             <small className="muted">{t('match.ht.tacticHint')}</small>

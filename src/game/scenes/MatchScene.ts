@@ -850,7 +850,10 @@ export class MatchScene extends Phaser.Scene {
         };
         this.refreshTint(view);
         // tocar no Pokémon abre o painel dele (src/ui/components/PlayerInspect.tsx) e pausa a partida
-        sprite.setInteractive({ useHandCursor: !this.md.replay }).on('pointerdown', () => {
+        sprite.setInteractive({ useHandCursor: !this.md.replay }).on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+            // o Phaser também conta o clique fora da quadra (escuta a janela): o toque num botão do painel por cima
+            // dela (intervalo deitado, pedido de tempo) não pode abrir o Pokémon que está embaixo
+            if (pointer.downElement !== this.game.canvas) return;
             if (this.ended || this.md.replay || this.holdReal > this.time.now) return;
             // no duelo a partida não para (o painel abre por cima)
             this.inspecting = !this.md.duel;

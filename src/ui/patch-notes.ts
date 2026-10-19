@@ -32,6 +32,14 @@ export const PATCH_NOTES: PatchNotes[] = [
                 ],
             },
             {
+                title: 'Vestiário e pronto',
+                lines: [
+                    'Intervalo vira vestiário: várias trocas de uma vez, cada uma com desfazer, e o aviso de quem o rival trocou',
+                    'Duelo: o pronto dá pra desfazer na escolha do time, na escalação e no intervalo',
+                    'O fôlego do intervalo é o mesmo em todo lugar: o com que cada um começa o 2º tempo',
+                ],
+            },
+            {
                 title: 'Medalhas e clube',
                 lines: [
                     '20 medalhas com degraus (bronze, prata, ouro e platina) em Perfil → Medalhas. Já contam tudo o que você jogou',
@@ -626,6 +634,14 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'Pokémon cries: Modern is now the default, with the same volume for all (Classic 8-bit is still in Settings)',
                     'Simpler texts across the game and a 3-page welcome, with tips at the right time',
                     'Touchline experiment: the "Push up!" shout is now "Attack!"',
+                ],
+            },
+            {
+                title: 'Locker room and ready',
+                lines: [
+                    'Halftime becomes a locker room: several subs at once, each with undo, and a note on who the rival subbed',
+                    'Duel: you can undo ready when picking the team, in the lineup and at halftime',
+                    'Halftime stamina is the same everywhere: the stamina each player starts the 2nd half with',
                 ],
             },
             {

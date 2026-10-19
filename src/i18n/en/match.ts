@@ -87,6 +87,12 @@ export const match: typeof pt = {
         tipAhead: "You're ahead: hold on or push for more?",
         tipEven: 'Open game. Keep it up or change something.',
         rivalEvo: 'Rival evolved',
+        mySubs: 'Your subs for the 2nd half',
+        subRow: '{in} comes on for {out}',
+        undo: 'undo',
+        rivalSubs: 'Rival subs',
+        rivalRow: '{in} on, {out} off',
+        subMore: 'Another sub',
     },
     highlight: {
         goal: 'GOAL!',
