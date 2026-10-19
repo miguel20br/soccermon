@@ -250,7 +250,7 @@ const ICONS = {
     press: 'M4 4l5 5M20 4l-5 5M4 20l5-5M20 20l-5-5M12 8v8M8 12h8',
     timeout: 'M4 5h16M12 5v15M8 20h8',
     flyGk: 'M12 21V8M7 13l5-5 5 5M5 4h14',
-    max: 'M13 2L4 14h7l-1 8 9-12h-7z',
+    max: 'M12 2l2.9 6.2 6.6.8-4.9 4.6 1.3 6.6L12 16.9l-5.9 3.3 1.3-6.6L2.5 9l6.6-.8z',
     up: 'M6 15l6-6 6 6',
     down: 'M6 9l6 6 6-6',
 } as const;

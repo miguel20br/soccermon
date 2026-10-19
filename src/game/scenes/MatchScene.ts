@@ -562,7 +562,8 @@ export class MatchScene extends Phaser.Scene {
                 }
             }
         }
-        if ((this.maxSpans.length || this.flySpans.length) && !this.agencyG) this.agencyG = this.add.graphics();
+        if ((this.maxSpans.length || this.flySpans.length) && !this.agencyG)
+            this.agencyG = this.add.graphics().setBlendMode(Phaser.BlendModes.ADD);
     }
 
     /** Desenha as auras (a cada quadro, embaixo do jogador): dourada pulsando no golpe máximo, amarela no goleiro-linha. */
@@ -575,8 +576,8 @@ export class MatchScene extends Phaser.Scene {
         for (const sp of this.maxSpans) {
             const px = pxOf[sp.idx];
             if (!px || t < sp.from || t >= sp.to) continue;
-            g.fillStyle(0xffd447, 0.18 + 0.14 * pulse).fillEllipse(px.x, px.y - 14, 70 + 10 * pulse, 70 + 10 * pulse);
-            g.lineStyle(3, 0xffd447, 0.9).strokeEllipse(px.x, px.y + 1, 40 + 8 * pulse, 16 + 3 * pulse);
+            g.fillStyle(0xffd447, 0.3 + 0.2 * pulse).fillEllipse(px.x, px.y - 16, 84 + 14 * pulse, 92 + 14 * pulse);
+            g.lineStyle(5, 0xfff2a8, 1).strokeEllipse(px.x, px.y + 1, 48 + 10 * pulse, 19 + 4 * pulse);
         }
         for (const sp of this.flySpans) {
             const px = pxOf[sp.idx];

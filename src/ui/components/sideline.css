@@ -14,8 +14,16 @@
     letter-spacing: 1px;
     text-transform: uppercase;
 }
+.sl {
+    min-width: 0;
+}
+.sl > .bc-row {
+    flex-wrap: wrap;
+    row-gap: 2px;
+}
 .sl-count {
-    white-space: nowrap;
+    margin-left: auto;
+    text-align: right;
 }
 .sl-shouts {
     display: grid;
@@ -34,9 +42,12 @@
     font-size: 11px;
     line-height: 1.15;
 }
-.sl-shout.on {
+.bc .sl-shout.on,
+.bc .sl-shout.on:disabled {
     background: var(--yellow);
     color: var(--bc-ink);
+    opacity: 1;
+    filter: none;
 }
 .sl-shout:disabled:not(.on),
 .sl-btn:disabled {

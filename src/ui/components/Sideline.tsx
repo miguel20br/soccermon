@@ -122,10 +122,8 @@ export function SidelineControls({
                     <span className="sl-beta">{a.beta}</span>
                 </span>
                 <span className="bc-lbl sl-count">
-                    {a.shouts}:{' '}
-                    {view.shoutReady || !view.shoutsLeft
-                        ? t('match.agency.shoutsLeft', { n: view.shoutsLeft })
-                        : a.shoutWait}
+                    {a.shouts}: {t('match.agency.shoutsLeft', { n: view.shoutsLeft })}
+                    {!view.shoutReady && view.shoutsLeft > 0 && ` · ${a.shoutWait}`}
                 </span>
             </div>
             {shouts}
@@ -173,7 +171,7 @@ export function SidelineControls({
                 </button>
                 <button
                     type="button"
-                    className={`sl-btn sl-max${maxReady ? ' ready' : ''}${view.max.active ? ' live' : ''}`}
+                    className={`sl-btn sl-max${maxReady && canAct ? ' ready' : ''}${view.max.active ? ' live' : ''}`}
                     title={a.maxHint}
                     disabled={!canAct || !maxReady}
                     onClick={onMax}
