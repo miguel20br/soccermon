@@ -2,7 +2,15 @@ import { describe, expect, it } from 'vitest';
 import type { MatchResult } from '../engine/runners/batch-runner';
 import type { MatchEvent } from '../engine/state';
 import { setLang } from '../i18n';
-import { type Clock, clockParts, pickTab } from './components/MatchHud';
+import {
+    AUTO_RESULT_MS,
+    autoResultStep,
+    type Clock,
+    clockParts,
+    finalOutcome,
+    pickTab,
+    subSuggestion,
+} from './components/MatchHud';
 import { PRESSURE_BINS, pressureUntil } from './match-view';
 
 const ev = (e: Partial<MatchEvent> & { type: MatchEvent['type'] }) => ({ half: 1, ...e }) as MatchEvent;
@@ -63,5 +71,39 @@ describe('relógio do placar em duas linhas', () => {
         expect(clockParts(clock, false, null)).toMatchObject({ main: "19'", sub: '1º tempo', text: false });
         expect(clockParts(clock, false, null, true)).toMatchObject({ main: 'Intervalo', text: true, progress: 0.5 });
         expect(clockParts(clock, true, [3, 2])).toMatchObject({ main: 'Pênaltis 3 x 2', progress: 1 });
+    });
+});
+
+describe('fim de jogo: vai sozinho pro resultado', () => {
+    it('espera ~3 s e vai', () => {
+        expect(AUTO_RESULT_MS).toBe(3000);
+        expect(autoResultStep(0, false)).toBe('wait');
+        expect(autoResultStep(2900, false)).toBe('wait');
+        expect(autoResultStep(3000, false)).toBe('go');
+    });
+    it('um toque na quadra segura: nunca vai sozinho', () => {
+        expect(autoResultStep(10_000, true)).toBe('held');
+    });
+    it('faixa do placar: vitória, derrota, empate e pênaltis, do lado de quem vê', () => {
+        expect(finalOutcome([5, 4], null, 0)).toBe('win');
+        expect(finalOutcome([5, 4], null, 1)).toBe('loss');
+        expect(finalOutcome([2, 2], null, 0)).toBe('draw');
+        expect(finalOutcome([2, 2], [3, 4], 0)).toBe('loss');
+        expect(finalOutcome([2, 2], [3, 4], 1)).toBe('win');
+    });
+});
+
+describe('sugestão de troca no intervalo', () => {
+    const field = [
+        { uid: 'a', energy: 0.9 },
+        { uid: 'b', energy: 0.74 },
+        { uid: 'c', energy: 0.85 },
+    ];
+    it('sugere o mais cansado abaixo de 80%', () => {
+        expect(subSuggestion(field, true)?.uid).toBe('b');
+    });
+    it('não sugere se não dá pra trocar ou se ninguém cansou', () => {
+        expect(subSuggestion(field, false)).toBeNull();
+        expect(subSuggestion([{ uid: 'a', energy: 0.95 }], true)).toBeNull();
     });
 });

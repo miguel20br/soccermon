@@ -52,16 +52,19 @@ import {
     type Clock,
     type CoachTab,
     CoachTabs,
+    FinalBanner,
     HudIcon,
     hex,
     MatchFeed,
     PressureBar,
+    ResultButton,
     Scoreboard,
     SubPanel,
     subSuggestion,
     TacticControls,
     TIRED_HINT,
     Ticker,
+    useAutoResult,
     useClockParts,
     useCoachTab,
 } from '../components/MatchHud';
@@ -336,6 +339,8 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const htLeft = useCountdown(halftime ? s.halftime?.until : undefined);
     const kickLeft = useCountdown(kicked ? undefined : s.kickoffAt);
     const clockParts = useClockParts(clock, fulltime || ended, shootout, halftime);
+    // fim de jogo: vai sozinho pro resultado; um toque na quadra ou no painel segura
+    const auto = useAutoResult(ended, onSeeResult);
 
     if (!match || !sceneData) {
         return (
@@ -514,7 +519,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                     {agency && <MaxBars events={match.events} tick={clock.tick} colors={colors} />}
                 </div>
 
-                <div className="bc-stage">
+                <div className="bc-stage" onPointerDownCapture={auto.hold}>
                     {suspect && <div className="duel-banner warn">{t('duel.match.suspect')}</div>}
                     {/* tela parada esperando o rival (a faixa da espera do W.O., quando vale, já diz isso) */}
                     {stall && stall !== role && s.waitFor !== stall && !ended && (
@@ -539,6 +544,9 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                         )}
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
+                        {ended && !auto.held && (
+                            <FinalBanner score={clock.score} shootout={shootout} side={side} names={teamNames} />
+                        )}
                         <PlayerInspect
                             match={match}
                             setups={setups}
@@ -643,7 +651,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                     {wide && <div className="bc-deskbar">{tactics}</div>}
                 </div>
 
-                <div className="panel bc-coach">
+                <div className="panel bc-coach" onPointerDownCapture={auto.hold}>
                     <CoachTabs tabs={tabs} active={tab} onPick={setTab} />
                     <div className={`bc-pane pane-${tab}`} role="tabpanel">
                         {tab === 'tactic' && tactics}
@@ -718,9 +726,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                             </div>
                         </fieldset>
                     ) : (
-                        <button type="button" className="btn primary bc-result" onClick={onSeeResult}>
-                            {t('duel.match.seeResult')}
-                        </button>
+                        <ResultButton label={t('duel.match.seeResult')} onGo={onSeeResult} auto={auto} />
                     )}
                     {wide ? (
                         <EmoteBar captain={captains[side]} />

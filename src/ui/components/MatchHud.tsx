@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, type Ref, useEffect, useMemo, useState } from 'react';
+import { type CSSProperties, type ReactNode, type Ref, useEffect, useMemo, useRef, useState } from 'react';
 import type { Position } from '../../engine/attributes';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
@@ -617,6 +617,106 @@ export function TacticControls({
                 )}
             </button>
         </div>
+    );
+}
+
+/** Fim de jogo: quanto tempo a quadra espera antes de ir sozinha pro resultado. */
+export const AUTO_RESULT_MS = 3000;
+
+/** Passo da ida automática pro resultado: esperando, já pode ir, ou o técnico segurou (fica na quadra). */
+export function autoResultStep(elapsedMs: number, held: boolean): 'wait' | 'go' | 'held' {
+    if (held) return 'held';
+    return elapsedMs >= AUTO_RESULT_MS ? 'go' : 'wait';
+}
+
+/**
+ * Depois do apito final vai sozinho pro resultado em AUTO_RESULT_MS; `hold()` (um toque na quadra ou no painel)
+ * segura e a tela fica esperando o "Ver resultado". `left` = fração do tempo que falta (1 → 0), pro botão encher.
+ */
+export function useAutoResult(ended: boolean, onGo: () => void): { held: boolean; hold: () => void; left: number } {
+    const [held, setHeld] = useState(false);
+    const [left, setLeft] = useState(1);
+    const go = useRef(onGo);
+    go.current = onGo;
+    useEffect(() => {
+        if (!ended || held) return;
+        const start = performance.now();
+        let gone = false;
+        const id = window.setInterval(() => {
+            const elapsed = performance.now() - start;
+            setLeft(Math.max(0, 1 - elapsed / AUTO_RESULT_MS));
+            if (!gone && autoResultStep(elapsed, false) === 'go') {
+                gone = true;
+                go.current();
+            }
+        }, 100);
+        return () => clearInterval(id);
+    }, [ended, held]);
+    return { held, hold: () => ended && setHeld(true), left };
+}
+
+/** Resultado da partida do ponto de vista de `side` (pênaltis desempatam). */
+export function finalOutcome(score: [number, number], shootout: [number, number] | null, side: 0 | 1) {
+    const [a, b] = shootout && score[0] === score[1] ? shootout : score;
+    const diff = side === 0 ? a - b : b - a;
+    return diff > 0 ? 'win' : diff < 0 ? 'loss' : 'draw';
+}
+
+/** Faixa grande do fim de jogo por cima da quadra: VITÓRIA!/DERROTA/EMPATE e o placar. */
+export function FinalBanner({
+    score,
+    shootout,
+    side,
+    names,
+}: {
+    score: [number, number];
+    shootout: [number, number] | null;
+    side: 0 | 1;
+    names: [string, string];
+}) {
+    const { t } = useT();
+    const outcome = finalOutcome(score, shootout, side);
+    return (
+        <div className={`final-banner ${outcome}`} role="status">
+            <b>{t(`match.final.${outcome}`)}</b>
+            <span>
+                {names[side]} {score[side]} x {score[side === 0 ? 1 : 0]}
+                {shootout && ` (${t('match.penalties', { a: shootout[side], b: shootout[side === 0 ? 1 : 0] })})`}
+            </span>
+        </div>
+    );
+}
+
+/** Botão do fim de jogo: enche enquanto conta os segundos pra ir sozinho; segurado, vira o botão de sempre. */
+export function ResultButton({
+    label,
+    onGo,
+    auto,
+}: {
+    label: string;
+    onGo: () => void;
+    auto: { held: boolean; hold: () => void; left: number };
+}) {
+    const { t } = useT();
+    const counting = !auto.held;
+    return (
+        <>
+            <button
+                type="button"
+                className={`btn primary bc-result${counting ? ' counting' : ''}`}
+                style={{ '--fill': 1 - auto.left } as CSSProperties}
+                onClick={onGo}
+            >
+                {counting
+                    ? t('match.goingResult', { s: Math.max(1, Math.ceil((auto.left * AUTO_RESULT_MS) / 1000)) })
+                    : label}
+            </button>
+            {counting && (
+                <button type="button" className="btn ghost bc-stay" onClick={auto.hold}>
+                    {t('match.stay')}
+                </button>
+            )}
+        </>
     );
 }
 

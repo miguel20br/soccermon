@@ -32,16 +32,19 @@ import {
     type Clock,
     type CoachTab,
     CoachTabs,
+    FinalBanner,
     HudIcon,
     hex,
     MatchFeed,
     PressureBar,
+    ResultButton,
     Scoreboard,
     SubPanel,
     subSuggestion,
     TacticControls,
     TIRED_HINT,
     Ticker,
+    useAutoResult,
     useClockParts,
     useCoachTab,
 } from '../components/MatchHud';
@@ -293,6 +296,8 @@ export function Match() {
     }, [match?.seed]);
 
     const clockParts = useClockParts(clock, fulltime || ended, shootout, halftime);
+    // fim de jogo: vai sozinho pro resultado; um toque na quadra ou no painel segura
+    const auto = useAutoResult(ended, () => go('result'));
     if (!run || !match || !sceneData || !opponent) return null;
 
     const lockedSetup = run.lockedTeam ? { ...run.lockedTeam, manualSubs: true } : playerTeam(run);
@@ -515,7 +520,7 @@ export function Match() {
                     {agency && <MaxBars events={match.events} tick={clock.tick} colors={colors} />}
                 </div>
 
-                <div className="bc-stage">
+                <div className="bc-stage" onPointerDownCapture={auto.hold}>
                     <div className="pitch-wrap">
                         {fontsReady ? (
                             <PhaserGame key={`${match.seed}-${sceneKey}`} data={sceneData} />
@@ -533,6 +538,9 @@ export function Match() {
                         )}
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
+                        {ended && !auto.held && (
+                            <FinalBanner score={clock.score} shootout={shootout} side={0} names={teamNames} />
+                        )}
                         <LeaveConfirm />
                         <PlayerInspect
                             match={match}
@@ -644,7 +652,7 @@ export function Match() {
                     {wide && <div className="bc-deskbar">{tactics}</div>}
                 </div>
 
-                <div className="panel bc-coach">
+                <div className="panel bc-coach" onPointerDownCapture={auto.hold}>
                     <CoachTabs tabs={tabs} active={tab} onPick={setTab} />
                     <div className={`bc-pane pane-${tab}`} role="tabpanel">
                         {tab === 'tactic' && tactics}
@@ -714,9 +722,7 @@ export function Match() {
                             </button>
                         </>
                     ) : (
-                        <button type="button" className="btn primary bc-result" onClick={() => go('result')}>
-                            {t('match.seeResult')}
-                        </button>
+                        <ResultButton label={t('match.seeResult')} onGo={() => go('result')} auto={auto} />
                     )}
                 </div>
             </div>
