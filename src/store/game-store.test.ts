@@ -338,6 +338,16 @@ describe('evolução em quadra na Pokédex', () => {
         expect(dex[53].matches).toBe(1);
         expect(markEvolvedPlayed(dex, [{ picks: [persian] } as unknown as RunState])).toBe(dex);
     });
+
+    it('copas guardadas dão o "jogou" da forma de antes pelas evoluções do resumo de cada partida', () => {
+        const run = {
+            picks: [],
+            results: [{ stats: { players: [], digest: { evolutions: [{ uid: 'x', from: 4, into: 5 }] } } }],
+        } as unknown as RunState;
+        const dex = markEvolvedPlayed({ 5: { ...EMPTY_ENTRY, matches: 1 } }, [run]);
+        expect(dex[4].matches).toBe(1);
+        expect(markEvolvedPlayed(dex, [run])).toBe(dex);
+    });
 });
 
 describe('gol da copa: replay guardado no save', () => {

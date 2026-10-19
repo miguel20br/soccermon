@@ -554,17 +554,21 @@ export function backfillEditions(dex: Dex, hall: HallEntry[], runs: (RunState | 
 }
 
 /**
- * Quem evoluiu em quadra numa versão antiga ficou só com a forma de origem como "jogou" na Pokédex: a carta
- * evoluída (`evolved`) das copas guardadas prova que a forma nova jogou.
+ * Quem evoluiu em quadra numa versão antiga ficou com só uma das formas como "jogou" na Pokédex: a carta evoluída
+ * (`evolved`) das copas guardadas prova que a forma nova jogou, e as evoluções do resumo de cada partida provam que a
+ * forma de antes também (ela jogou até evoluir). Só copas que estão no save (a atual e as guardadas), não o Hall.
  */
 export function markEvolvedPlayed(dex: Dex, runs: (RunState | null | undefined)[]): Dex {
     let out: Dex | null = null;
-    for (const r of runs)
-        for (const p of r?.picks ?? []) {
-            if (!p.evolved || (dex[p.speciesId]?.matches ?? 0) > 0) continue;
-            out ??= { ...dex };
-            out[p.speciesId] = { ...(out[p.speciesId] ?? EMPTY_ENTRY), matches: 1 };
-        }
+    const mark = (id: number) => {
+        if (((out ?? dex)[id]?.matches ?? 0) > 0) return;
+        out ??= { ...dex };
+        out[id] = { ...(out[id] ?? EMPTY_ENTRY), matches: 1 };
+    };
+    for (const r of runs) {
+        for (const p of r?.picks ?? []) if (p.evolved) mark(p.speciesId);
+        for (const res of r?.results ?? []) for (const e of res.stats?.digest?.evolutions ?? []) mark(e.from);
+    }
     return out ?? dex;
 }
 
