@@ -27,8 +27,8 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * partida que a caça de lances (scripts/trailer-hunt.ts) escolheu para o trailer. `?demo=escanteio` monta um time de
  * grandalhões cuja primeira partida tem escanteio seu com disputa no alto logo no começo. `?demo=colecao` põe no save uma
  * carreira de mentira (medalhas em vários degraus, coleções, selos, escudo e uniforme listrado, vitrine cheia) e abre o
- * Perfil (`&perfil=medalhas` abre na aba); `&novo=1` deixa o clube no padrão (pra ver o editor do zero). `?demo=fichario`
- * enche o fichário (edições, Shiny, campeãs, cartas comuns), escolhe 3 pra vitrine e abre o Perfil na aba Fichário.
+ * Perfil (`&perfil=medalhas` abre na aba); `&novo=1` deixa o clube no padrão (pra ver o editor do zero). `?demo=album`
+ * enche o álbum de cartas (edições, combos, ×N) e a Pokédex, escolhe 3 pra vitrine e abre a Pokédex no Álbum.
  * `?demo=lider&clube=<id>` (brock,
  * misty, ltsurge, erika, koga, sabrina, blaine, giovanni, agatha, lance) põe o clube desse treinador na primeira
  * partida (VERSUS com a fala, a quadra do ginásio); com `&agencia=1`, uma partida em que o rival reage cedo.

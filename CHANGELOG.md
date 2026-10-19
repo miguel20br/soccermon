@@ -53,7 +53,8 @@
 ### Medalhas e clube
 - 20 medalhas com degraus (bronze, prata, ouro e platina) em Perfil → Medalhas. Já contam tudo o que você jogou
 - Vitrine: escolha até 3 destaques (medalha, coleção completa ou selo); aparecem no seu cartão e no VERSUS do Duelo, e o melhor vira a moldura do avatar
-- Fichário: todas as cartas raras que você tirou, num lugar só
+- Álbum de figurinhas na Pokédex: só as cartas especiais, uma de cada, com a melhor que você tirou
+- Na Pokédex, cada Pokémon mostra quantas figurinhas tem (3/5) e a ficha mostra as cartas dele e a melhor
 - Vitrine de cartas no Perfil e no Duelo
 - Escudo montável (formato, símbolo e duas cores) e uniforme com padrão, no placar, no VERSUS e na quadra. Símbolos e padrões novos saem com coleções e medalhas
 - Avatares por geração, e o Pokémon que você já jogou shiny vira avatar shiny
