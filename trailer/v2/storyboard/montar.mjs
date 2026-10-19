@@ -4,7 +4,7 @@
  *
  *   PRINTS=<pasta dos prints> node trailer/v2/storyboard/montar.mjs
  *
- * A versão anterior do storyboard fica em v1/ (não é apagada).
+ * As versões anteriores do storyboard ficam em v1/ e v2/ (não são apagadas).
  * PRINTS tem shots/ (recortes do DOM) e cap/ (quadros da partida, scripts/trailer-capture.mjs).
  */
 import { copyFileSync, mkdirSync } from 'node:fs';
@@ -48,8 +48,9 @@ const REF = {
     'h-placar.png': 'shots/h-placar.png',
     'bronze.png': 'shots/s-mewtwo-1.png',
     'campeao.png': 'escolhidos/campeao.png',
-    'dia.png': 'shots/d-dia.png',
-    'nidorino.png': 'escolhidos/nidorino.png',
+    'pikachu.png': 'escolhidos/pikachu.png',
+    'liga-elo.png': 'shots/l-painel-1.png',
+    'liga-ranking.png': 'shots/l-painel-4.png',
 };
 for (const n of ['s-draft-1', 's-draft-2', 's-draft-3', 's-edicao-1', 's-edicao-2', 's-edicao-3', 's-edicao-4', 's-edicao-5', 's-emote-1', 's-vitrine-1'])
     REF[`${n}.png`] = `shots/${n}.png`;

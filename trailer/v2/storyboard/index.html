@@ -15,6 +15,7 @@ main { max-width: 980px; margin: 0 auto; padding: 24px 16px 80px; }
 h1, h2 { font-family: "Galmuri11", monospace; letter-spacing: 1px; }
 h1 { font-size: 26px; margin: 0 0 4px; color: var(--ouro); }
 h2 { font-size: 19px; margin: 40px 0 12px; }
+h3 { font-size: 16px; margin: 24px 0 8px; color: var(--apagado); }
 .sub { color: var(--apagado); margin: 0 0 18px; }
 .tot { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 0 0 14px; }
 .tot b { font-family: "Galmuri11", monospace; font-size: 22px; color: var(--ouro); }
@@ -60,10 +61,10 @@ th { color: var(--apagado); font-weight: 600; }
 </head>
 <body>
 <main>
-  <h1>Trailer 2 · storyboard v2</h1>
+  <h1>Trailer 2 · storyboard v3 (fechado)</h1>
   <p class="sub">Vertical 9:16, pra quem nunca viu o jogo. Abre o Instagram novo e substitui o do TikTok; o 16:9 vem depois.
     Prints do jogo de hoje (0.8.8, headless); abertura e final são mock em HTML. A linha tracejada vermelha em cada quadro é a
-    área segura do Reels/TikTok (fora dos 15% de baixo e da faixa dos botões à direita). Versão anterior: <a href="v1/index.html" style="color:var(--ouro)">v1</a>.</p>
+    área segura do Reels/TikTok (fora dos 15% de baixo e da faixa dos botões à direita). Versões anteriores: <a href="v1/index.html" style="color:var(--ouro)">v1</a> · <a href="v2/index.html" style="color:var(--ouro)">v2</a>.</p>
   <div class="tot" id="tot"></div>
 
   <div class="linha-tempo">
@@ -72,14 +73,13 @@ th { color: var(--apagado); font-weight: 600; }
     <div class="legenda-atos" id="atos"></div>
   </div>
 
-  <h2>O que mudou da v1</h2>
+  <h2>O que mudou da v2</h2>
   <ul class="lista">
-    <li><b>Abertura de 8,27 s pra 7,07 s</b>, com tempo de leitura: 0,08 s por letra + 0,8 s parado em cada caixa (tabela abaixo). O Carvalho e a caixa já entram no 1º quadro, sem tela branca.</li>
-    <li><b>O texto das caixas encurtou</b> (as 3 caixas do jeito antigo, nesse ritmo de leitura, dariam 11,4 s): ficaram 2 caixas, e o twist cai em 4,32–5,36 s.</li>
-    <li><b>Legendas novas</b>, curtas e sem ironia, sem repetir em planos seguidos: as cartas correm sem texto.</li>
-    <li><b>O golpe do Charizard agora termina em defesa</b> (Fire Blast espalmado pelo goleiro): o único gol da partida é o do Raichu.</li>
-    <li><b>Final com o logo de verdade</b>: a carta holo (símbolo) sobe do pacote e vira o O do logo horizontal.</li>
-    <li>Tudo de texto dentro da área segura; o crédito da música está como "a decidir".</li>
+    <li><b>Abertura com o twist de volta:</b> caixa 1 é a fala do Carvalho ("Este mundo é habitado por criaturas chamadas POKÉMON!"), caixa 2 é o twist ("…e elas JOGAM FUTSAL."). Saiu o "Olá! Bem-vindo".</li>
+    <li><b>Mesmo ritmo de leitura</b> (0,08 s/letra + 0,8 s parado): apito em 7,52 s, música por baixo em 7,96 s, <b>1ª batida em 8,43 s</b> (era 7,07 s). Duração total: <b>32,70 s</b>.</li>
+    <li><b>Pikachu</b> na 2ª caixa (animado, com o grito dele), no lugar do Nidorino. <b>Carvalho Game Boy</b> (sprite do jogo em 4 tons).</li>
+    <li><b>"COPA RANKEADA"</b> agora em cima da tela da Liga (divisão Bronze, Elo 1080, ranking da temporada).</li>
+    <li>Fire Blast espalmado (<code>defesa · trailer270</code>) confirmado. Música continua "a decidir".</li>
   </ul>
 
   <h2>Tempo de leitura da abertura</h2>
@@ -87,60 +87,68 @@ th { color: var(--apagado); font-weight: 600; }
     <thead><tr><th>Caixa</th><th>Texto</th><th>Letras</th><th>Digitando (0,08 s/letra)</th><th>Parado</th><th>Leitura total</th><th>Na tela</th></tr></thead>
     <tbody id="leitura"></tbody>
   </table></div>
-  <p class="ref">Depois da 2ª caixa: apito em 6,16 s (no corte pra bola parada), música entra por baixo em 6,60 s (começando 0,5 s dentro da faixa,
-    pulando parte da entrada muda) e a 1ª batida cai em 7,07 s, já no draft. Com o texto antigo de 3 caixas no mesmo ritmo, a 1ª batida iria pra ~12,5 s.</p>
+  <p class="ref">Depois da 2ª caixa: apito em 7,52 s (no corte pra bola parada), música entra por baixo em 7,96 s (começando 0,5 s dentro da faixa,
+    pulando parte da entrada muda) e a 1ª batida cai em 8,43 s, já no draft.</p>
 
   <h2>Planos</h2>
   <div id="planos"></div>
 
-  <h2>Lances pra gravar</h2>
+  <h2>Lista final de gravação</h2>
+  <p class="ref">Pra quando a música for decidida. Com outra faixa, só a grade muda: refaça a análise (<code>trailer/montagem/musica-analisar.py</code> e
+    <code>musica-fase.py</code>) e reancore a 1ª batida em 8,43 s; a ordem e o tamanho em batidas dos planos continuam.</p>
+  <h3>Lances (motor de hoje, ENGINE_VERSION 4)</h3>
   <div class="tabela"><table>
-    <thead><tr><th>Plano</th><th>Lance</th><th>Cena e seed</th><th>Trecho (s de partida)</th></tr></thead>
+    <thead><tr><th></th><th>Plano</th><th>Lance</th><th>Cena e seed</th><th>Gravar (s de partida)</th><th>Modo</th></tr></thead>
     <tbody>
-      <tr><td>10</td><td>Charizard solta <b>Fire Blast</b> e o goleiro <b>espalma</b> (defesaça; quadra cinza da Vermilion)</td><td><code>defesa</code> · <code>trailer270</code></td><td>chute 19,9 (gravar 18,6–22; lento 0,5x de 19,7 a 20,6)</td></tr>
-      <tr><td>11</td><td>O Pikachu marca e evolui pra <b>Raichu</b> em quadra</td><td><code>evolucao</code> · <code>trailer319</code></td><td>evolução 358,6 (gravar 357,5–360 com <code>--modo pagina</code>, a tela de evolução é HTML)</td></tr>
-      <tr><td>12–13</td><td>O Raichu recém-evoluído faz o gol (câmera lenta + flash)</td><td><code>evolucao</code> · <code>trailer319</code></td><td>gol 366,5 (gravar 364–367,5; lento 0,5x de 365,5 a 366,6)</td></tr>
-      <tr><td>3</td><td>Quadra vazia, bola parada no meio</td><td>qualquer · <code>trailer/montagem/quadra-vazia.mjs</code></td><td>tick 0</td></tr>
-      <tr><td>alt. 10</td><td>Charizard Earthquake <b>na trave</b></td><td><code>defesa</code> · <code>trailer326</code> / <code>trailer233</code></td><td>137,7 / 235,1</td></tr>
-      <tr><td>alt. 10</td><td>Charizard Flamethrower espalmado</td><td><code>defesa</code> · <code>trailer180</code></td><td>87,7</td></tr>
-      <tr><td>alt.</td><td>Evolução bem cedo (Squirtle vira Wartortle)</td><td><code>evolucao</code> · <code>trailer422</code></td><td>15,7</td></tr>
+      <tr><td>☐</td><td>3</td><td>Bola parada no círculo central, quadra vazia</td><td>qualquer · <code>trailer/montagem/quadra-vazia.mjs</code></td><td>tick 0</td><td>quadra vazia</td></tr>
+      <tr><td>☐</td><td>8</td><td>Saída de bola com o placar de transmissão</td><td><code>defesa</code> · <code>trailer270</code></td><td>0–4</td><td>canvas + recorte <code>.bc-head</code> 3x</td></tr>
+      <tr><td>☐</td><td>9–10</td><td>Charizard solta <b>Fire Blast</b>, o goleiro <b>espalma</b></td><td><code>defesa</code> · <code>trailer270</code></td><td>18,6–22 normal; 19,7–20,6 a 0,5x</td><td>canvas, versão uau sem flash de gol</td></tr>
+      <tr><td>☐</td><td>11</td><td>O Pikachu marca e evolui pra <b>Raichu</b> (zoom em quadra)</td><td><code>evolucao</code> · <code>trailer319</code></td><td>357,5–360</td><td>canvas</td></tr>
+      <tr><td>☐</td><td>11</td><td>A tela de evolução (silhueta → Raichu)</td><td><code>evolucao</code> · <code>trailer319</code></td><td>358,3–359,2 (o relógio para ~10 s)</td><td><code>--modo pagina</code>, sem os textos do jogo</td></tr>
+      <tr><td>☐</td><td>12–13</td><td>O Raichu evoluído faz o gol</td><td><code>evolucao</code> · <code>trailer319</code></td><td>364–367,5 normal; 365,5–366,6 a 0,5x</td><td>canvas, versão uau (flash no gol)</td></tr>
     </tbody>
   </table></div>
-  <p class="ref">Cena nova <code>defesa</code> na caça (<code>npx tsx scripts/trailer-hunt.ts --cena defesa --n 400</code>): chute com golpe do Charizard que acaba
-    em defesa (espalmada vale mais que agarrada) ou na trave. Seeds do motor de hoje (ENGINE_VERSION 4); se o motor mudar antes da gravação, cace de novo.
-    A faixa "Vai, Pallet FC!" no canto da quadra escapa do filtro de textos do <code>trailer-capture.mjs</code>: tirar antes de gravar.</p>
-
-  <h2>Recortes do DOM (print 3x, corte seco)</h2>
+  <h3>Recortes do DOM (print 3x, corte seco)</h3>
+  <div class="tabela"><table>
+    <thead><tr><th></th><th>Plano</th><th>O quê</th><th>Onde</th></tr></thead>
+    <tbody>
+      <tr><td>☐</td><td>4</td><td>As 3 cartas do draft (Candidatos a capitão)</td><td>Nova copa → Losango → <code>.options &gt; * &gt; :first-child</code></td></tr>
+      <tr><td>☐</td><td>5</td><td>Pacote fechado e a carta virada</td><td><code>?demo=mt</code> → <code>.cpack-stage</code> (antes e depois do toque)</td></tr>
+      <tr><td>☐</td><td>6–7</td><td>Ícone (Pikachu do Ash), Shiny, Destaque, Evento, bronze comum</td><td><code>?cards=1</code> → painel "Edições especiais" e a 1ª carta</td></tr>
+      <tr><td>☐</td><td>14</td><td>Emote "Golaço!" com o rosto do capitão</td><td><code>?lab=emotes</code> → <code>.emote-pop</code></td></tr>
+      <tr><td>☐</td><td>15</td><td>Liga: divisão + Elo e o ranking da temporada</td><td><code>?demo=liga</code> → <code>.lg section.panel</code> 1 e 4 (só na branch <code>liga-pronta</code> até ela entrar na main)</td></tr>
+      <tr><td>☐</td><td>16</td><td>Campeão (troféu, CAMPEÕES!, selos)</td><td><code>?demo=campeao</code> → topo de <code>.champ</code></td></tr>
+      <tr><td>☐</td><td>17</td><td>Vitrine de medalhas + Ícone MVP</td><td><code>?demo=colecao&amp;perfil=medalhas</code> → <code>.md-showcase</code>; <code>?cards=1</code> (Ícone · MVP 2)</td></tr>
+      <tr><td>☐</td><td>18–21</td><td>Pacote, carta holo e logo</td><td>animação no HyperFrames com <code>CardPack</code> de referência + <code>logo-simbolo.svg</code> / <code>logo-horizontal.svg</code></td></tr>
+    </tbody>
+  </table></div>
+  <h3>Abertura e sons</h3>
   <ul class="lista">
-    <li>Draft: Nova copa → Losango → as 3 cartas de <code>.options</code> (Candidatos a capitão).</li>
-    <li>Pacote e carta virando: <code>?demo=mt</code>, elemento <code>.cpack-stage</code>.</li>
-    <li>Ícone, Shiny, Destaque, Evento: <code>?cards=1</code>, painel "Edições especiais".</li>
-    <li>Placar de transmissão: <code>.bc-head</code> na partida, em pé.</li>
-    <li>Emote do Duelo: <code>?lab=emotes</code> → "Golaço!" (<code>.emote-pop</code>).</li>
-    <li>Ranking da Copa do Dia: <code>?demo=dia&amp;estado=feito</code> (só na branch <code>liga-pronta</code> por enquanto).</li>
-    <li>Campeão: <code>?demo=campeao</code>. Medalhas: <code>?demo=colecao&amp;perfil=medalhas</code> (vitrine).</li>
+    <li>☐ Carvalho e Pikachu em 4 tons de Game Boy (<code>trainers/oak.png</code>, <code>cards/25.gif</code> quadro a quadro, filtro de 4 tons) e a caixa do Red/Blue em HTML.</li>
+    <li>☐ Bipes por letra (<code>trailer/montagem/abertura-sons.sh</code>), grito do Pikachu (<code>public/assets/cries/latest/25.ogg</code>), "tum" da bola.</li>
+    <li>☐ Apito: gravação CC0 de <code>trailer/sons/</code> (um só). Torcida: <code>public/assets/sfx/torcida-gol-*</code> e <code>torcida-uuh-*</code> (na defesa).</li>
+  </ul>
+  <h3>Antes de gravar</h3>
+  <ul class="lista">
+    <li>☐ Tirar a faixa "Vai, Pallet FC!" do canto da quadra (escapa do filtro de textos do <code>trailer-capture.mjs</code>).</li>
+    <li>☐ Se o motor mudar (a Liga entrando na main, por exemplo), cace de novo: <code>npx tsx scripts/trailer-hunt.ts --cena defesa|evolucao --n 400</code>.</li>
+    <li>☐ Alternativas guardadas: Earthquake na trave (<code>defesa · trailer326</code>, 137,7 s), evolução cedo (<code>evolucao · trailer422</code>, 15,7 s).</li>
   </ul>
 
   <h2>Falta decidir</h2>
   <ol class="lista">
-    <li><b>Texto das caixas</b> (encurtado pra caber com leitura): "Olá! Bem-vindo ao SOCCERMON!" / "Aqui os POKÉMON JOGAM FUTSAL." Se quiser o "mundo do" de volta ("Olá! Bem-vindo ao mundo do SOCCERMON!"), a abertura vai pra ~7,8 s.</li>
-    <li><b>Na 2ª caixa:</b> Nidorino (igual ao Red/Blue) ou Pikachu?</li>
-    <li><b>O Carvalho em pixel:</b> o sprite do jogo em 4 tons (como no mock) ou um desenhado no traço da Gen 1?</li>
-    <li><b>Plano 10:</b> Fire Blast espalmado (<code>trailer270</code>) ou Earthquake na trave (<code>trailer326</code>)?</li>
-    <li><b>"COPA RANKEADA"</b> em cima do ranking da Copa do Dia, ou da tela da Liga ranqueada (<code>?demo=liga</code>)? As duas só existem na <code>liga-pronta</code>: o trailer sai depois dela no ar.</li>
-    <li><b>Música (a decidir):</b> Bliitzit com crédito, faixa oficial da biblioteca do app ou royalty-free. Os tempos estão na grade do Trainer Battle Remix (178 BPM, compasso 1,348 s); trocando, é só reancorar as batidas.</li>
-    <li><b>Duração:</b> 31,34 s. Dá pra pôr mais 1 compasso de partida e ir a ~32,7 s.</li>
+    <li><b>Música (a decidir):</b> Bliitzit com crédito, faixa oficial da biblioteca do app ou royalty-free. O resto do storyboard está fechado.</li>
   </ol>
 </main>
 <script>
-// Grade da música: entra em 6,60 s começando 0,5 s dentro da faixa; a 1ª batida da faixa (0,968 s) cai em 7,068 s. 178 BPM.
-const BPM = 178, b = 60 / BPM, MUSICA = 6.60, DENTRO = 0.50, G0 = MUSICA + 0.968 - DENTRO;
+// Grade da música: entra em 7,96 s começando 0,5 s dentro da faixa; a 1ª batida da faixa (0,968 s) cai em 7,068 s. 178 BPM.
+const BPM = 178, b = 60 / BPM, MUSICA = 7.96, DENTRO = 0.50, G0 = MUSICA + 0.968 - DENTRO;
 const B = (n) => +(G0 + n * b).toFixed(3);
 const ATOS = { ab: ['Abertura (sem música)', 'var(--ab)'], dr: ['Draft', 'var(--dr)'], pa: ['Partida', 'var(--pa)'], ex: ['Extras', 'var(--ex)'], fi: ['Final: o pacote', 'var(--fi)'] };
 const LETRA = 0.08, PARADO = 0.8;
 const CAIXAS = [
-  { n: 1, txt: 'Olá! Bem-vindo ao SOCCERMON!', ini: 0 },
-  { n: 2, txt: 'Aqui os POKÉMON JOGAM FUTSAL.', ini: null },
+  { n: 1, txt: 'Este mundo é habitado por criaturas chamadas POKÉMON!', ini: 0 },
+  { n: 2, txt: '…e elas JOGAM FUTSAL.', ini: null },
 ];
 for (const c of CAIXAS) {
   c.letras = [...c.txt].length; c.dig = c.letras * LETRA; c.leit = c.dig + PARADO;
@@ -148,11 +156,11 @@ for (const c of CAIXAS) {
 CAIXAS[1].ini = CAIXAS[0].ini + CAIXAS[0].leit;
 const s = (x) => x.toFixed(2).replace('.', ',');
 const fimAb = CAIXAS[1].ini + CAIXAS[1].leit; // 6,16: apito
-const twist = CAIXAS[1].ini + [...'Aqui os POKÉMON '].length * LETRA;
+const twist = CAIXAS[1].ini + [...'…e elas '].length * LETRA;
 const P = [
-  { n: 1, ato: 'ab', nome: 'Caixa 1: boas-vindas', ini: 0, fim: CAIXAS[0].leit, q: ['q01', 'q02'], tela: '"Olá! Bem-vindo ao SOCCERMON!" (digitando desde o 1º quadro; ▼ piscando no fim)', leit: `${CAIXAS[0].letras} letras × 0,08 = ${s(CAIXAS[0].dig)} s + 0,8 s parado = <b>${s(CAIXAS[0].leit)} s</b>`, som: 'bipe a cada letra', trans: 'o Carvalho já está na tela no 1º quadro (sem tela branca)', ref: 'mock HTML · sprite do jogo em 4 tons' },
-  { n: 2, ato: 'ab', nome: 'Caixa 2: o twist', ini: CAIXAS[1].ini, fim: fimAb, q: ['q03', 'q04'], tela: `"Aqui os POKÉMON JOGAM FUTSAL." ("JOGAM FUTSAL." de ${s(twist)} a ${s(CAIXAS[1].ini + CAIXAS[1].dig)} s)`, leit: `${CAIXAS[1].letras} letras × 0,08 = ${s(CAIXAS[1].dig)} s + 0,8 s parado = <b>${s(CAIXAS[1].leit)} s</b>`, som: 'grito do Nidorino quando ele entra; bipes; "tum" da bola caindo no pé dele na palavra FUTSAL', trans: 'o Carvalho sai e o Nidorino entra animado (como no Red/Blue)', ref: 'mock HTML · sprite do jogo' },
-  { n: 3, ato: 'ab', nome: 'Bola parada, apito, música', ini: fimAb, fim: B(0), q: ['q05'], tela: '(nada)', som: `<b>apito em ${s(fimAb)} s</b> (gravação CC0, um só); música entra por baixo em 6,60 s`, trans: 'corte seco pra bola parada no círculo central; a câmera abre pra quadra e cai na 1ª batida, já no draft', ref: 'quadro da partida (tick 0)' },
+  { n: 1, ato: 'ab', nome: 'Caixa 1: a fala do Carvalho', ini: 0, fim: CAIXAS[0].leit, q: ['q01', 'q02'], tela: '"Este mundo é habitado por criaturas chamadas POKÉMON!" (digitando desde o 1º quadro; ▼ piscando no fim)', leit: `${CAIXAS[0].letras} letras × 0,08 = ${s(CAIXAS[0].dig)} s + 0,8 s parado = <b>${s(CAIXAS[0].leit)} s</b>`, som: 'bipe a cada letra', trans: 'o Carvalho (Game Boy, 4 tons) já está na tela no 1º quadro, sem tela branca', ref: 'mock HTML · sprite do jogo em 4 tons' },
+  { n: 2, ato: 'ab', nome: 'Caixa 2: o twist', ini: CAIXAS[1].ini, fim: fimAb, q: ['q03', 'q04'], tela: `"…e elas JOGAM FUTSAL." ("JOGAM FUTSAL." de ${s(twist)} a ${s(CAIXAS[1].ini + CAIXAS[1].dig)} s)`, leit: `${CAIXAS[1].letras} letras × 0,08 = ${s(CAIXAS[1].dig)} s + 0,8 s parado = <b>${s(CAIXAS[1].leit)} s</b>`, som: 'grito do Pikachu quando ele entra; bipes; "tum" da bola caindo no pé dele na palavra FUTSAL', trans: 'o Carvalho sai e o Pikachu entra animado (como o Nidorino no Red/Blue), em 4 tons', ref: 'mock HTML · cards/25.gif em 4 tons' },
+  { n: 3, ato: 'ab', nome: 'Bola parada, apito, música', ini: fimAb, fim: B(0), q: ['q05'], tela: '(nada)', som: `<b>apito em ${s(fimAb)} s</b> (gravação CC0, um só); música entra por baixo em 7,96 s`, trans: 'corte seco pra bola parada no círculo central; a câmera abre pra quadra e cai na 1ª batida, já no draft', ref: 'quadro da partida (tick 0)' },
   { n: 4, ato: 'dr', nome: 'Escolha 1 de 3', n0: 0, n1: 4, q: ['q07'], tela: 'ESCOLHA <b>1</b> DE <b>3</b>', som: 'música', trans: 'uma carta por batida (1, 2, 3); na 4ª a escolhida pula e as outras apagam', ref: 'recorte do draft (Candidatos a capitão)' },
   { n: 5, ato: 'dr', nome: 'Pacote abre, carta vira', n0: 4, n1: 6, q: ['q08a', 'q08b'], tela: '(sem legenda)', som: 'música', trans: 'batida 1: o pacote fechado; batida 2: a carta virada (corte seco)', ref: 'recorte do pacote (?demo=mt)' },
   { n: 6, ato: 'dr', nome: 'Ícone raro', n0: 6, n1: 8, q: ['q09'], tela: 'ÍCONES <b>RAROS</b>', som: 'música', trans: 'flash curto na batida', ref: 'recorte ?cards=1 (Pikachu do Ash)' },
@@ -164,7 +172,7 @@ const P = [
   { n: 12, ato: 'pa', nome: 'O Raichu parte pro gol', n0: 32, n1: 40, q: ['q14'], tela: '(sem legenda)', som: 'música; chute', trans: '1º compasso normal; 2º em câmera lenta 0,5x, zoom no chute', ref: 'evolucao · trailer319 (366 s)' },
   { n: 13, ato: 'pa', nome: 'GOL em câmera lenta', n0: 40, n1: 44, q: ['q15'], tela: '(o placar muda)', som: 'impacto + torcida gravada (gol); cai no pico da música', trans: 'quadro invertido + flash + tremida na batida 1', ref: 'evolucao · trailer319 (366,5 s)' },
   { n: 14, ato: 'ex', nome: 'Duelo com emote', n0: 44, n1: 46, q: ['q16'], tela: '<b>MULTIPLAYER</b> ONLINE', som: 'pop do emote', trans: 'corte seco; o balão "Golaço!" pula com o rosto do capitão', ref: 'recorte ?lab=emotes' },
-  { n: 15, ato: 'ex', nome: 'Copa do Dia', n0: 46, n1: 48, q: ['q17'], tela: 'COPA <b>RANKEADA</b>', som: 'música', trans: 'corte seco', ref: 'recorte ?demo=dia (branch liga-pronta)' },
+  { n: 15, ato: 'ex', nome: 'Liga ranqueada', n0: 46, n1: 48, q: ['q17'], tela: 'COPA <b>RANKEADA</b>', som: 'música', trans: 'corte seco: o card da divisão e, embaixo, o ranking', ref: 'recortes ?demo=liga: divisão + Elo e ranking (branch liga-pronta)' },
   { n: 16, ato: 'ex', nome: 'Campeão', n0: 48, n1: 50, q: ['q18'], tela: '(sem legenda)', som: 'música', trans: 'corte seco + flash', ref: 'recorte ?demo=campeao' },
   { n: 17, ato: 'ex', nome: 'Medalhas e holo', n0: 50, n1: 52, q: ['q19'], tela: '(sem legenda)', som: 'música', trans: 'corte seco', ref: 'recorte ?demo=colecao&perfil=medalhas + carta Ícone MVP' },
   { n: 18, ato: 'fi', nome: 'O pacote cai', n0: 52, n1: 56, q: ['q20'], tela: '(nada)', som: 'música; "tum" quando ele pousa', trans: 'o pacote azul-noite com lacre dourado cai no centro e treme nas batidas 3 e 4, luz vazando pelo lacre', ref: 'mock HTML (CardPack + logo final)' },
@@ -178,7 +186,7 @@ for (const p of P) {
 }
 const TOTAL = P[P.length - 1].fim;
 const batidas = (p) => {
-  if (p.n0 === undefined) return p.n === 3 ? 'antes da 1ª batida (a música entra por baixo em 6,60 s)' : 'sem música (só segundos)';
+  if (p.n0 === undefined) return p.n === 3 ? 'antes da 1ª batida (a música entra por baixo em 7,96 s)' : 'sem música (só segundos)';
   const c0 = Math.floor(p.n0 / 4), c1 = Math.floor((p.n1 - 1) / 4);
   const bt = (n) => `c${Math.floor(n / 4)}.${(n % 4) + 1}`;
   return `batidas ${p.n0}–${p.n1} (${p.n1 - p.n0} batida${p.n1 - p.n0 > 1 ? 's' : ''}) · ${bt(p.n0)} → ${bt(p.n1)}${c1 > c0 ? ` · ${c1 - c0 + 1} compassos` : ''} · na faixa ${s(p.ini - MUSICA + DENTRO)}–${s(p.fim - MUSICA + DENTRO)} s`;
