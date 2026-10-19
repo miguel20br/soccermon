@@ -27,7 +27,7 @@ import {
 import { buildRegistro } from '../../net/record';
 import { duel, localId, makePeer, useDuel } from '../../net/session';
 import { isDraftComplete, type PlaybackSpeed, useGame } from '../../store/game-store';
-import { activeTitle, activeTrainer, isGoldTrainer, trainerSrc } from '../../store/missions';
+import { activeTitle, activeTrainer, trainerFrame, trainerFx, trainerSrc } from '../../store/missions';
 import { bannerOf, clubColorHex, rivalColor } from '../../store/profile';
 import { ResultHero } from '../components/ResultHero';
 import { LeaveConfirm } from '../leave-guard';
@@ -365,14 +365,10 @@ function PeerCard({
     }
     return (
         <div
-            className={`panel duel-peer${online ? '' : ' away'}${isGoldTrainer(p.trainer) ? ' gold-frame' : ''}`}
+            className={`panel duel-peer${online ? '' : ' away'}${trainerFrame(p.trainer)}`}
             style={{ '--club': hexCss(p.clubColor) } as React.CSSProperties}
         >
-            <img
-                className={`duel-trainer pixel${isGoldTrainer(p.trainer) ? ' trainer-gold' : ''}`}
-                src={trainerSrc(p.trainer as never)}
-                alt=""
-            />
+            <img className={`duel-trainer pixel${trainerFx(p.trainer)}`} src={trainerSrc(p.trainer as never)} alt="" />
             <img
                 className={`avatar${p.avatarGoogle ? '' : ' pixel'}`}
                 src={p.avatar}

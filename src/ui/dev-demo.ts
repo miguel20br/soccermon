@@ -19,7 +19,8 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * uma MT do ginásio entre as 3 cartas (Charmeleon, Caterpie e cia. para testar quem aprende). `?demo=conta&tipo=levar|juntar|juntar1|copa|outra|guardada`
  * mostra a pergunta depois do login (com resumos de mentira; os botões só fecham) ou a copa guardada na tela inicial. `?demo=trailer&cena=<cena>&seed=<seed>` abre na escalação a
  * partida que a caça de lances (scripts/trailer-hunt.ts) escolheu para o trailer. `?demo=escanteio` monta um time de
- * grandalhões cuja primeira partida tem escanteio seu com disputa no alto logo no começo.
+ * grandalhões cuja primeira partida tem escanteio seu com disputa no alto logo no começo. `?demo=platina` libera a
+ * platina da Gen 1 sem platinar (Prof. Carvalho holográfico e Diploma de Kanto, já escolhidos) e mostra o aviso na Home.
  */
 let started = false;
 
@@ -34,13 +35,28 @@ export function runDevDemo() {
         demo !== 'trailer' &&
         demo !== 'mt' &&
         demo !== 'escanteio' &&
-        demo !== 'conta'
+        demo !== 'conta' &&
+        demo !== 'platina'
     )
         return;
     started = true;
     // permite aos testes pular direto para o fim do tempo normal
     (window as unknown as { __soccermonBus?: typeof EventBus }).__soccermonBus = EventBus;
     const store = useGame.getState();
+    if (demo === 'platina') {
+        const p = store.profile;
+        useGame.setState({
+            profile: {
+                ...p,
+                missionsDone: [...new Set([...p.missionsDone, 'platina1'])],
+                trainer: 'oakHolo',
+                title: 'diplomaKanto',
+            },
+            unlockQueue: ['platina1'],
+            screen: 'home',
+        });
+        return;
+    }
     if (demo === 'conta') {
         demoAccount(new URLSearchParams(window.location.search).get('tipo') ?? 'juntar');
         return;

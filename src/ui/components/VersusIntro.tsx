@@ -9,7 +9,7 @@ import { playSfx } from '../../game/audio';
 import { clubName, formationText } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { activeTrainer, isGoldTrainer, leaderTrainerOf, type TrainerId, trainerSrc } from '../../store/missions';
+import { activeTrainer, leaderTrainerOf, type TrainerId, trainerFx, trainerSrc } from '../../store/missions';
 import { rivalColor, tagFromName } from '../../store/profile';
 import { useClubColor } from '../profile/club';
 import { lineupAverage } from '../rating';
@@ -48,7 +48,7 @@ function Squad({ team, trainer }: { team: TeamSetup; trainer?: TrainerId }) {
             {/* o treinador fica na ponta de fora da foto, atrás dos Pokémon */}
             {trainer && (
                 <img
-                    className={`vsp-trainer${isGoldTrainer(trainer) ? ' trainer-gold' : ''}`}
+                    className={`vsp-trainer${trainerFx(trainer)}`}
                     src={trainerSrc(trainer)}
                     alt=""
                     draggable={false}
