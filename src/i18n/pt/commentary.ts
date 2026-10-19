@@ -151,4 +151,13 @@ export const commentary = {
     penaltyMissed: 'Pênalti {round}: {x} perde! {gk} defende! ({a} x {b})',
     win: '{team} vence!',
     score: '{home} {a} x {b} {away}',
+    // agência do técnico (experimento)
+    shout: '{team} ouve o técnico: "{shout}"',
+    timeout: 'Tempo pedido pelo {team}: todo mundo na beira da quadra.',
+    flyGkOn: 'Goleiro-linha no {team}! {x} sobe pro ataque e deixa o gol vazio.',
+    flyGkOff: '{x} volta pro gol: acabou o goleiro-linha do {team}.',
+    maxStart: '{x} carrega o golpe máximo! A quadra inteira sente.',
+    maxHit: 'GOLPE MÁXIMO! {x} solta {m} no limite!',
+    maxGk: '{x} fechou o gol com o golpe máximo.',
+    maxMiss: 'O golpe máximo de {x} não saiu: a barra volta pela metade.',
 };

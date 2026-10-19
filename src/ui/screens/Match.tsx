@@ -47,12 +47,21 @@ import {
 import { PlayerInspect } from '../components/PlayerInspect';
 import { cardSprite } from '../components/PokeCard';
 import { type BoardPlan, Prancheta, useMedia, WIDE } from '../components/Prancheta';
+import {
+    agencyView,
+    MaxBars,
+    PenaltyOrderPanel,
+    type PenaltyTaker,
+    SidelineControls,
+    SidelineOverlay,
+    TimeoutPanel,
+} from '../components/Sideline';
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
 import { LeaveConfirm } from '../leave-guard';
 import { roleAt, snapAt } from '../match-view';
 import { useClubColor } from '../profile/club';
-import { reduceMotionOn } from '../settings-sync';
+import { agencyOn, reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
 
 /** Velocidades (o rótulo de 'highlights' vem do dicionário: "Lances"). */
@@ -104,6 +113,12 @@ export function Match() {
     const [sceneKey, setSceneKey] = useState(0);
     const [fulltime, setFulltime] = useState(false);
     const [tacticError, setTacticError] = useState<string | null>(null);
+    /** Beira da quadra (experimento): ligado na entrada da partida, não muda no meio. */
+    const agency = useRef(agencyOn(settings.agency)).current;
+    /** Tick do pedido de tempo em que a quadra está parada (null = jogando). */
+    const [timeoutAt, setTimeoutAt] = useState<number | null>(null);
+    /** Tick do apito final, parado pra escolher a ordem dos pênaltis. */
+    const [penPick, setPenPick] = useState<number | null>(null);
     const alive = useRef(true);
     // painel do técnico: no desktop a Tática fica embaixo da quadra e as abas abrem na Prancheta
     const wide = useMedia(WIDE);
@@ -165,6 +180,7 @@ export function Match() {
                       startPaused: true,
                       startTick: resume?.tick || undefined,
                       final: run?.stage === CUP_STAGES.length - 1,
+                      agency,
                   }
                 : null,
         [match?.seed],
@@ -248,6 +264,10 @@ export function Match() {
             setHalftime(false);
         };
         const onHalftime = () => setHalftime(true);
+        const onTimeout = (tick: number) => setTimeoutAt(tick);
+        const onPenaltyPick = (tick: number) => setPenPick(tick);
+        EventBus.on('match:timeout', onTimeout);
+        EventBus.on('match:penalty-pick', onPenaltyPick);
         const onReady = () => {
             setSceneReady(true);
             // VERSUS já foi embora antes de a quadra carregar: começa direto
@@ -261,6 +281,8 @@ export function Match() {
         EventBus.on('match:ended', onEnded);
         EventBus.on('match:halftime', onHalftime);
         return () => {
+            EventBus.off('match:timeout', onTimeout);
+            EventBus.off('match:penalty-pick', onPenaltyPick);
             EventBus.off('match:halftime', onHalftime);
             EventBus.off('match:event', onEvent);
             EventBus.off('match:tick', onTick);
@@ -298,12 +320,18 @@ export function Match() {
      * Ordem do técnico ao vivo (tática ou substituição): agenda um pouco à frente do que está na tela e
      * resimula a partida com a agenda inteira. As ordens ficam salvas para retomar a partida igual.
      */
-    const sendOrder = async (make: (tick: number) => MatchOrder) => {
-        // sempre depois da ordem anterior, para a ordem do motor bater com a da tela; no intervalo a partida
-        // está parada, então vale já no tick seguinte (a troca acontece no vestiário)
+    const sendOrder = async (make: (tick: number) => MatchOrder, at?: number) => {
+        // sempre depois da ordem anterior, para a ordem do motor bater com a da tela; no intervalo (e no pedido de
+        // tempo) a partida está parada, então vale já no tick seguinte. `at`: tick fixo (ordem dos pênaltis, que
+        // entra antes do apito final e não muda nada do jogo)
         const htTick = match.events.find((e) => e.type === 'halftime')?.tick;
-        const base = halftime && htTick !== undefined ? htTick + 1 : Math.ceil(tickRef.current + leadTicks);
-        const tick = Math.max(base, (orders.at(-1)?.tick ?? 0) + 1);
+        const base =
+            halftime && htTick !== undefined
+                ? htTick + 1
+                : timeoutAt !== null
+                  ? timeoutAt + 1
+                  : Math.ceil(tickRef.current + leadTicks);
+        const tick = at ?? Math.max(base, (orders.at(-1)?.tick ?? 0) + 1);
         const schedule = [...orders, make(tick)];
         const seed = match.seed;
         setPending(true);
@@ -330,6 +358,24 @@ export function Match() {
         if (!canChangeTactic || corner === currentCorner) return;
         sendOrder((tick) => ({ tick, team: 0, kind: 'corner', corner }));
     };
+
+    // beira da quadra (experimento): gritos, tempo, goleiro-linha e golpe máximo, pelo mesmo caminho das ordens
+    const sideline = agencyView(match.events, orders, 0, clock.tick);
+    const canAgency = canChangeTactic && penPick === null;
+    const sidelineControls = (
+        <SidelineControls
+            view={sideline}
+            canAct={canAgency}
+            onShout={(shout) => sendOrder((tick) => ({ tick, team: 0, kind: 'shout', shout }))}
+            onTimeout={
+                timeoutAt === null && !halftime
+                    ? () => sendOrder((tick) => ({ tick, team: 0, kind: 'timeout' }))
+                    : undefined
+            }
+            onFlyGk={(on) => sendOrder((tick) => ({ tick, team: 0, kind: 'flyGk', on }))}
+            onMax={() => sendOrder((tick) => ({ tick, team: 0, kind: 'max' }))}
+        />
+    );
 
     const changeTactic = (tactic: Tactic) => {
         if (!canChangeTactic || tactic === currentTactic) return;
@@ -397,7 +443,7 @@ export function Match() {
             : null;
 
     const over = fulltime || ended;
-    const tactics = (
+    const tacticControls = (
         <TacticControls
             tactic={currentTactic}
             corner={currentCorner}
@@ -412,6 +458,33 @@ export function Match() {
             tired={tired}
         />
     );
+    const tactics = agency ? (
+        <>
+            {tacticControls}
+            {sidelineControls}
+        </>
+    ) : (
+        tacticControls
+    );
+    // ordem dos pênaltis: quem está em quadra no apito final, na ordem do motor (pelo chute); o goleiro no fim
+    const penaltyTakers = (): PenaltyTaker[] => {
+        const ft = penPick ?? 0;
+        const field = onField.map((uid, i) => ({ uid, i, role: roleAt(match, [lockedSetup, opponent], i, ft) }));
+        const shooting = (uid: string) => {
+            const inst = byUid.get(uid);
+            return inst ? viewInstance(inst).attributes.shooting : 0;
+        };
+        return field
+            .sort((a, b) => Number(a.role === 'GK') - Number(b.role === 'GK') || shooting(b.uid) - shooting(a.uid))
+            .map(({ uid, role }) => {
+                const inst = byUid.get(uid);
+                return { uid, name: nameOf(uid), sprite: inst ? cardSprite(inst) : '', gk: role === 'GK' };
+            });
+    };
+    const resumeFromPens = () => {
+        setPenPick(null);
+        EventBus.emit('match:resume');
+    };
 
     return (
         <>
@@ -429,6 +502,7 @@ export function Match() {
                         stage={d.match.stageShort[run.stage] ?? stage}
                     />
                     <PressureBar match={match} tick={clock.tick} minute={clock.minute} colors={colors} over={over} />
+                    {agency && <MaxBars events={match.events} tick={clock.tick} colors={colors} />}
                 </div>
 
                 <div className="bc-stage">
@@ -439,6 +513,14 @@ export function Match() {
                             <div className="phaser-container" />
                         )}
                         <Ticker lines={lines} colors={colors} />
+                        {agency && (
+                            <SidelineOverlay
+                                events={match.events}
+                                tick={clock.tick}
+                                colors={colors}
+                                names={teamNames}
+                            />
+                        )}
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
                         <LeaveConfirm />
@@ -477,6 +559,48 @@ export function Match() {
                                 onContinue={() => {
                                     setHalftime(false);
                                     EventBus.emit('match:resume');
+                                }}
+                            />
+                        </div>
+                    )}
+                    {timeoutAt !== null && (
+                        <div className="ht-wrap">
+                            <TimeoutPanel
+                                canSub={canSub}
+                                onSub={() => setSubOpen(true)}
+                                onBoard={() => {
+                                    setTab('board');
+                                    setBoardFocus((k) => k + 1);
+                                }}
+                                onBack={() => {
+                                    setTimeoutAt(null);
+                                    EventBus.emit('match:resume');
+                                }}
+                            >
+                                <SidelineControls
+                                    compact
+                                    view={sideline}
+                                    canAct={canAgency}
+                                    onShout={(shout) => sendOrder((tick) => ({ tick, team: 0, kind: 'shout', shout }))}
+                                    onFlyGk={() => {}}
+                                    onMax={() => {}}
+                                />
+                            </TimeoutPanel>
+                        </div>
+                    )}
+                    {penPick !== null && (
+                        <div className="ht-wrap">
+                            <PenaltyOrderPanel
+                                takers={penaltyTakers()}
+                                busy={pending}
+                                onKeep={resumeFromPens}
+                                onConfirm={async (order) => {
+                                    // entra antes do apito final: o jogo é o mesmo, só a disputa muda
+                                    await sendOrder(
+                                        (tick) => ({ tick, team: 0, kind: 'penalties', order }),
+                                        penPick - 1,
+                                    );
+                                    resumeFromPens();
                                 }}
                             />
                         </div>

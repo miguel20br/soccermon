@@ -1,4 +1,5 @@
 import { abilityEffect, isStatusImmune } from './abilities';
+import { AGENCY, maxCharge, SHOUT_KINDS, SHOUTS } from './agency';
 import {
     type AttrKey,
     aerialScore,
@@ -20,8 +21,11 @@ import { type ActiveLink, computeLinks } from './links';
 import { applyModifiers, attributeModifiers, captainFactor } from './modifiers';
 import { DRAIN, DRAWBACK, hasTrait, moveProfile, OHKO, type StatusKind, MOVE_TUNING as T, TRAP } from './moves';
 import { Rng } from './rng';
+import { SIGNATURE } from './signature-moves';
 import {
     Action,
+    type AgencyOrder,
+    type AgencyRuntime,
     type CornerPlan,
     type CornerPlay,
     FLAG_BUFF,
@@ -248,6 +252,7 @@ export function createMatch(
                 possessionTicks: 0,
                 combosUsed: [],
                 screens: { light: 0, reflect: 0, mist: 0 },
+                agency: freshAgency(),
             },
             {
                 setup: away,
@@ -259,11 +264,13 @@ export function createMatch(
                 possessionTicks: 0,
                 combosUsed: [],
                 screens: { light: 0, reflect: 0, mist: 0 },
+                agency: freshAgency(),
             },
         ],
         players,
         auraHolders: [],
         subbedOut: [],
+        pauseUntil: 0,
         pendingSubs: [],
         lastMove: [null, null],
         zones: [],
@@ -477,6 +484,7 @@ export function step(s: MatchState, commands: (Command | Command[])[]) {
     if (s.finished) return;
     const dt = 1 / s.cfg.tickRate;
     s.tick++;
+    if (s.teams[0].agency.max || s.teams[1].agency.max) expireMax(s);
     for (const t of s.teams) {
         t.screens.light = Math.max(0, t.screens.light - dt);
         t.screens.reflect = Math.max(0, t.screens.reflect - dt);
@@ -546,7 +554,8 @@ function enterSegment(s: MatchState) {
 }
 
 function updatePhase(s: MatchState, dt: number, commands: (Command | Command[])[]) {
-    s.phaseTimer -= dt;
+    // pedido de tempo: a bola parada espera a conversa do técnico
+    if (s.tick >= s.pauseUntil) s.phaseTimer -= dt;
     for (const p of s.players) {
         tickTimers(s, p, dt);
         if (s.phase === 'goal') {
@@ -616,10 +625,14 @@ function tickTimers(s: MatchState, p: PlayerState, dt: number) {
         (0.0008 + 0.0035 * speedFrac * speedFrac) *
         (1.3 - (0.6 * p.attr.stamina) / 99) *
         TACTIC_MODS[s.teams[p.team].tactic].drain;
+    const shout = s.teams[p.team].agency.shout;
+    const sfx = shout && s.tick < shout.until ? SHOUTS[shout.kind] : null;
+    if (sfx) drain *= sfx.drain;
     for (const o of s.players) {
         if (o.team !== p.team && o.ability.drainAura && dist(o.pos, p.pos) < 4) drain *= o.ability.drainAura;
     }
-    const regen = (p.ability.regen ?? 0) + (p.item === 'leftovers' ? 0.0015 : 0);
+    let regen = (p.ability.regen ?? 0) + (p.item === 'leftovers' ? 0.0015 : 0);
+    if (sfx) regen += sfx.regen;
     p.energy = clamp(p.energy - drain * dt + regen * dt, 0, 1);
     if (p.ability.clutch && !p.clutchAnnounced && p.energy < 0.45 && s.phase === 'play') {
         p.clutchAnnounced = true;
@@ -998,6 +1011,9 @@ function kick(
         ball.assistCandidate = p.idx;
         emit(s, { type: 'pass', by: p.idx, to: receiverId ?? null });
     } else {
+        // golpe máximo do capitão: o chute da janela sai com a versão máxima do golpe dele
+        const max = s.teams[p.team].agency.max;
+        if (max && max.idx === p.idx && p.captain && p.role !== 'GK') maxShot(s, p);
         const shooting = eff(s, p, 'shooting');
         const bonus = p.shotBonus;
         // Scope Lens: chute crítico
@@ -2956,7 +2972,11 @@ function endHalf(s: MatchState) {
             p.fx = { ...freshTraits(), focus: p.fx.focus };
         }
         halftimeSubs(s);
-        for (const t of s.teams) t.combosUsed = [];
+        for (const t of s.teams) {
+            t.combosUsed = [];
+            // tempo pedido no fim do 1º tempo não passa pro 2º (o intervalo já é a pausa)
+            t.agency.timeoutPending = false;
+        }
         s.phase = 'halftime';
         s.phaseTimer = 2;
         return;
@@ -3047,8 +3067,9 @@ function applyLineup(s: MatchState, o: LineupOrder): boolean {
  * Devolve se teve troca pedida ou prancheta que valeu (a bola parada espera um pouco mais pra tela mostrar).
  */
 export function applyPendingSubs(s: MatchState): boolean {
-    if (!s.pendingSubs.length) return false;
-    let changed = false;
+    const agency = applyDeadBallAgency(s);
+    if (!s.pendingSubs.length) return agency;
+    let changed = agency;
     for (const order of s.pendingSubs.splice(0)) {
         if (order.kind === 'lineup') {
             changed = applyLineup(s, order) || changed;
@@ -3085,9 +3106,7 @@ function halftimeSubs(s: MatchState) {
 function penaltyShootout(s: MatchState) {
     // os pênaltis são o trecho seguinte ao último do tempo normal
     enterSegment(s);
-    const takers = [0, 1].map((t) =>
-        s.players.filter((p) => p.team === t && p.role !== 'GK').sort((a, b) => b.attr.shooting - a.attr.shooting),
-    );
+    const takers = ([0, 1] as const).map((t) => penaltyTakers(s, t));
     const gks = [0, 1].map(
         (t) => s.players.find((p) => p.team === t && p.role === 'GK') ?? s.players.find((p) => p.team === t)!,
     );
@@ -3130,6 +3149,153 @@ function penaltyShootout(s: MatchState) {
         round++;
     }
     s.shootout = score;
+}
+
+// ---------------------------------------------------------------- agência do técnico (experimento, agency.ts)
+export function freshAgency(): AgencyRuntime {
+    return {
+        shout: null,
+        shoutsUsed: 0,
+        shoutReadyAt: 0,
+        timeouts: [false, false],
+        timeoutPending: false,
+        flyGk: false,
+        flyGkPending: null,
+        max: null,
+        penaltyOrder: null,
+    };
+}
+
+/** uid de quem está agora no lugar de `uid` (quem saiu numa troca vale como quem entrou). */
+function resolveUid(s: MatchState, team: 0 | 1, uid: string): string {
+    for (const e of s.events) if (e.type === 'sub' && e.team === team && e.outUid === uid) uid = e.inUid;
+    return uid;
+}
+
+/**
+ * Ordem da agência no tick dela (LiveRunner). A que não vale agora (sem grito sobrando, tempo já pedido, barra
+ * vazia...) é ignorada sem efeito nenhum: a mesma regra nos dois lados do duelo.
+ */
+export function applyAgencyOrder(s: MatchState, o: AgencyOrder) {
+    if (s.phase === 'fulltime') return;
+    const ag = s.teams[o.team].agency;
+    switch (o.kind) {
+        case 'shout':
+            if (!SHOUT_KINDS.includes(o.shout) || ag.shoutsUsed >= AGENCY.shoutLimit || s.tick < ag.shoutReadyAt)
+                return;
+            ag.shoutsUsed++;
+            ag.shout = { kind: o.shout, until: s.tick + AGENCY.shoutTicks };
+            ag.shoutReadyAt = s.tick + AGENCY.shoutCooldownTicks;
+            emit(s, { type: 'shout', team: o.team, shout: o.shout });
+            return;
+        case 'timeout':
+            if (s.phase === 'halftime' || ag.timeoutPending || ag.timeouts[s.half - 1]) return;
+            ag.timeoutPending = true;
+            return;
+        case 'flyGk': {
+            if (o.on === (ag.flyGkPending ?? ag.flyGk)) return;
+            ag.flyGkPending = o.on === ag.flyGk ? null : o.on;
+            return;
+        }
+        case 'max':
+            startMax(s, o.team);
+            return;
+        case 'penalties':
+            ag.penaltyOrder = [...o.order];
+            return;
+    }
+}
+
+/** Bola parada: entram o pedido de tempo (fôlego e parada) e a troca do goleiro-linha. */
+function applyDeadBallAgency(s: MatchState): boolean {
+    let changed = false;
+    for (const team of [0, 1] as const) {
+        const ag = s.teams[team].agency;
+        if (ag.flyGkPending !== null) {
+            ag.flyGk = ag.flyGkPending;
+            ag.flyGkPending = null;
+            const gk = s.players.find((p) => p.team === team && p.role === 'GK');
+            emit(s, { type: 'flyGk', team, on: ag.flyGk, by: gk?.idx ?? -1 });
+            changed = true;
+        }
+        if (ag.timeoutPending) {
+            ag.timeoutPending = false;
+            ag.timeouts[s.half - 1] = true;
+            for (const p of s.players) if (p.team === team) p.energy = Math.min(1, p.energy + AGENCY.timeoutEnergy);
+            s.pauseUntil = Math.max(s.pauseUntil, s.tick + AGENCY.timeoutTicks);
+            emit(s, { type: 'timeout', team });
+            changed = true;
+        }
+    }
+    return changed;
+}
+
+/** Golpe que o capitão solta no máximo: a assinatura dele (se for de ataque), senão o 1º golpe de ataque. */
+export function maxMoveOf(moves: readonly string[], speciesId: number): string | null {
+    const attack = (m: string) => {
+        const k = moveProfile(m).kind;
+        return k === 'strike' || k === 'blast';
+    };
+    const sig = SIGNATURE[speciesId];
+    if (sig && moves.includes(sig) && attack(sig)) return sig;
+    return moves.find(attack) ?? (sig && moves.includes(sig) ? sig : (moves[0] ?? null));
+}
+
+function startMax(s: MatchState, team: 0 | 1) {
+    const ag = s.teams[team].agency;
+    const cap = s.players.find((p) => p.team === team && p.captain);
+    if (!cap || ag.max) return;
+    const c = maxCharge(s.events, team, s.tick, s.cfg.teamSize);
+    if (c.used || c.active || c.charge < 1) return;
+    ag.max = { idx: cap.idx, until: s.tick + AGENCY.maxTicks };
+    const timer = AGENCY.maxTicks / s.cfg.tickRate;
+    const buffs: Partial<Record<AttrKey, number>> =
+        cap.role === 'GK' ? { goalkeeping: AGENCY.maxGkBuff } : AGENCY.maxBuff;
+    for (const [attr, factor] of Object.entries(buffs) as [AttrKey, number][])
+        cap.buffs.push({ attr, factor, timer, src: 'max' });
+    emit(s, { type: 'max', team, by: cap.idx, phase: 'start', moveId: maxMoveOf(cap.inst.moves, cap.inst.speciesId) });
+}
+
+/** A janela do golpe máximo acabou: o do goleiro valeu (defesa reforçada); o de linha não saiu e volta pela metade. */
+function expireMax(s: MatchState) {
+    for (const team of [0, 1] as const) {
+        const ag = s.teams[team].agency;
+        if (!ag.max || s.tick < ag.max.until) continue;
+        const by = ag.max.idx;
+        ag.max = null;
+        emit(s, { type: 'max', team, by, phase: s.players[by].role === 'GK' ? 'hit' : 'miss' });
+    }
+}
+
+/** O chute do capitão na janela: a versão máxima do golpe dele (bem mais forte e mais certeiro). */
+function maxShot(s: MatchState, p: PlayerState) {
+    const moveId = maxMoveOf(p.inst.moves, p.inst.speciesId);
+    s.teams[p.team].agency.max = null;
+    p.shotBonus = {
+        power: AGENCY.maxShot.power,
+        accuracy: AGENCY.maxShot.accuracy,
+        moveType: moveId ? (MOVES[moveId]?.type ?? typesOf(p)[0]) : typesOf(p)[0],
+        moveId: moveId ?? '',
+        timer: 1,
+    };
+    emit(s, { type: 'max', team: p.team, by: p.idx, phase: 'hit', moveId });
+}
+
+/** Cobradores na ordem: a do técnico (quem saiu vale como quem entrou), senão pelo chute, como sempre. */
+function penaltyTakers(s: MatchState, team: 0 | 1): PlayerState[] {
+    const field = s.players
+        .filter((p) => p.team === team && p.role !== 'GK')
+        .sort((a, b) => b.attr.shooting - a.attr.shooting);
+    const order = s.teams[team].agency.penaltyOrder;
+    if (!order) return field;
+    const uids = order.map((u) => resolveUid(s, team, u));
+    const rank = (p: PlayerState) => {
+        const i = uids.indexOf((p.origin ?? p.inst).uid);
+        return i < 0 ? uids.length : i;
+    };
+    // o goleiro só bate se o técnico pôs ele na lista
+    const gk = s.players.filter((p) => p.team === team && p.role === 'GK' && rank(p) < uids.length);
+    return [...field, ...gk].sort((a, b) => rank(a) - rank(b));
 }
 
 // ---------------------------------------------------------------- snapshot

@@ -1,0 +1,370 @@
+/* Beira da quadra (agência do técnico, experimento): no kit da transmissão (broadcast-kit.css). */
+.sl {
+    display: grid;
+    gap: 8px;
+    margin-top: 4px;
+}
+.sl-beta {
+    margin-left: 6px;
+    padding: 0 6px;
+    border-radius: 4px;
+    background: var(--yellow);
+    color: var(--bc-ink);
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.sl {
+    min-width: 0;
+}
+.sl > .bc-row {
+    flex-wrap: wrap;
+    row-gap: 2px;
+}
+.sl-count {
+    margin-left: auto;
+    text-align: right;
+}
+.sl-shouts {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+}
+.bc .sl-shout {
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    min-height: 54px;
+    padding: 4px;
+    text-align: center;
+}
+.bc .sl-shout b {
+    font-size: 11px;
+    line-height: 1.15;
+}
+.bc .sl-shout.on,
+.bc .sl-shout.on:disabled {
+    background: var(--yellow);
+    color: var(--bc-ink);
+    opacity: 1;
+    filter: none;
+}
+.sl-shout:disabled:not(.on),
+.sl-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+.sl-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+}
+.sl-actions.four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.sl-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    min-height: 48px;
+    padding: 4px 8px;
+    overflow: hidden;
+    border: 3px solid var(--bc-ink);
+    border-radius: 8px;
+    background: var(--panel-2);
+    box-shadow: 0 3px 0 var(--bc-ink);
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+}
+.sl-btn:active:not(:disabled) {
+    transform: translateY(2px);
+}
+.sl-btn > span {
+    position: relative;
+    min-width: 0;
+}
+.sl-btn b {
+    display: block;
+    font-size: 12px;
+    line-height: 1.15;
+}
+.sl-btn small {
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+    overflow-wrap: anywhere;
+}
+.sl-btn .hud-icon {
+    position: relative;
+}
+.sl-btn.on {
+    outline: 3px solid var(--yellow);
+    outline-offset: -1px;
+}
+/* golpe máximo: a barra enche o botão por baixo; cheia, ele pulsa em amarelo */
+.sl-fill {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 5px;
+    width: calc(var(--fill, 0) * 100%);
+    background: var(--yellow);
+    transition: width 0.3s ease;
+}
+.sl-max.ready {
+    background: var(--yellow);
+    color: var(--bc-ink);
+    animation: sl-pulse 0.9s ease-in-out infinite alternate;
+}
+.sl-max.ready small {
+    color: var(--bc-ink);
+}
+.sl-max.live {
+    outline: 3px solid #fff;
+}
+@keyframes sl-pulse {
+    to {
+        box-shadow:
+            0 3px 0 var(--bc-ink),
+            0 0 14px 2px var(--yellow);
+    }
+}
+
+/* barrinhas do golpe máximo embaixo do placar */
+.sl-maxbars {
+    display: flex;
+    justify-content: space-between;
+    gap: 40%;
+    padding: 0 2px;
+}
+.sl-maxbar {
+    flex: 1;
+    height: 4px;
+    overflow: hidden;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.12);
+}
+.sl-maxbar i {
+    display: block;
+    height: 100%;
+    width: calc(var(--fill, 0) * 100%);
+    background: var(--tc);
+    transition: width 0.3s ease;
+}
+.sl-maxbar.t1 i {
+    margin-left: auto;
+}
+.sl-maxbar.full i,
+.sl-maxbar.live i {
+    background: var(--yellow);
+    animation: sl-glow 0.6s ease-in-out infinite alternate;
+}
+@keyframes sl-glow {
+    to {
+        filter: brightness(1.6);
+    }
+}
+
+/* na quadra */
+.sl-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 4;
+}
+.sl-side {
+    position: absolute;
+    top: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    max-width: 46%;
+}
+.sl-side.t0 {
+    left: 8px;
+}
+.sl-side.t1 {
+    right: 8px;
+    align-items: flex-end;
+}
+.sl-balloon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px 4px 8px;
+    border: 2px solid var(--bc-ink);
+    border-left: 5px solid var(--tc);
+    border-radius: 10px;
+    background: var(--bc-paper);
+    color: var(--bc-ink);
+    font-size: 12px;
+    text-transform: uppercase;
+    box-shadow: 0 2px 0 var(--bc-ink);
+    animation: sl-pop 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+/* rabinho do balão */
+.sl-balloon::after {
+    content: "";
+    position: absolute;
+    bottom: -7px;
+    left: 14px;
+    border: 6px solid transparent;
+    border-top-color: var(--bc-ink);
+    border-bottom: 0;
+}
+.sl-side.t1 .sl-balloon {
+    border-left: 2px solid var(--bc-ink);
+    border-right: 5px solid var(--tc);
+}
+.sl-side.t1 .sl-balloon::after {
+    left: auto;
+    right: 14px;
+}
+.sl-tag {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--bc-ink);
+    border-left: 4px solid var(--tc);
+    color: var(--text);
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+.sl-tag .hud-icon,
+.sl-balloon .hud-icon {
+    width: 14px;
+    height: 14px;
+}
+.sl-tag-max {
+    background: var(--yellow);
+    color: var(--bc-ink);
+    animation: sl-glow 0.5s ease-in-out infinite alternate;
+}
+.sl-timeout {
+    position: absolute;
+    left: 50%;
+    top: 38%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-bottom: 3px solid var(--tc);
+    border-radius: 6px;
+    background: var(--bc-ink);
+    color: var(--text);
+    font-size: 14px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    animation: sl-pop 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+.sl-timeout span {
+    color: var(--muted);
+    font-size: 11px;
+}
+@keyframes sl-pop {
+    from {
+        transform: scale(0.6);
+        opacity: 0;
+    }
+}
+.sl-timeout {
+    animation-name: sl-pop-center;
+}
+@keyframes sl-pop-center {
+    from {
+        transform: translate(-50%, -50%) scale(0.6);
+        opacity: 0;
+    }
+}
+
+/* painel do tempo e dos pênaltis (o mesmo do intervalo) */
+.sl-panel .sl-compact {
+    margin: 4px 0 8px;
+}
+.sl-pens {
+    display: grid;
+    gap: 4px;
+    margin: 6px 0 10px;
+    padding: 0;
+    list-style: none;
+}
+.sl-pens li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    padding: 4px 6px;
+    border-radius: 6px;
+    background: var(--bc-ink-3);
+    opacity: 0.6;
+}
+.sl-pens li.in {
+    opacity: 1;
+}
+.sl-pens img {
+    width: 28px;
+    height: 28px;
+}
+.sl-pens b {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.sl-pens small {
+    color: var(--muted);
+}
+.sl-pen-n {
+    width: 18px;
+    color: var(--yellow);
+    font-weight: 700;
+    text-align: center;
+}
+.sl-arrow {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border: 2px solid var(--bc-ink);
+    border-radius: 6px;
+    background: var(--panel-2);
+    color: var(--text);
+    cursor: pointer;
+}
+.sl-arrow:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+@media (max-width: 360px) {
+    .bc .sl-shout b {
+        font-size: 10px;
+    }
+    .sl-btn {
+        gap: 4px;
+        padding: 4px 5px;
+    }
+    .sl-btn .hud-icon {
+        width: 15px;
+        height: 15px;
+    }
+    .sl-btn b {
+        font-size: 11px;
+    }
+}
+
+[data-reduce-motion="true"] .sl-max.ready,
+[data-reduce-motion="true"] .sl-maxbar i,
+[data-reduce-motion="true"] .sl-tag-max {
+    animation: none;
+}

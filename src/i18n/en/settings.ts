@@ -45,6 +45,11 @@ export const settings: typeof pt = {
         confirmLeave: 'Confirm before leaving',
         confirmLeaveHint: 'Asks before you quit a match halfway.',
         confirmLeaveLabel: 'Confirm before leaving the match',
+        experiments: 'Experiments',
+        agency: 'Touchline (test)',
+        agencyHint:
+            "Coach shouts, time-outs, flying keeper, the captain's max move and penalty order. In a Duel the host's setting applies.",
+        agencyLabel: 'Touchline experiment',
         on: 'On',
         off: 'Off',
         onPl: 'On',

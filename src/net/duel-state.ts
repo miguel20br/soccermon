@@ -1,3 +1,4 @@
+import { AGENCY, SHOUT_KINDS, type Shout } from '../engine/agency';
 import type { Position } from '../engine/attributes';
 import { FUTSAL_5, type MatchConfig, withConfig } from '../engine/config';
 import { captainOptions, DRAFT_PICKS, draftOptions, playerDraftOptions } from '../engine/draft';
@@ -152,6 +153,8 @@ export interface Shared {
     specialLimit: SpecialLimit;
     /** Duração da partida (sem = normal: sala guardada antes da opção). */
     duration?: DuelDuration;
+    /** Beira da quadra (agência do técnico, experimento): a do host, pros dois. Sem o campo = desligado. */
+    agency?: boolean;
     /** Seed pública da sala (só decide quem abre a Disputa); os pacotes saem das seeds das rodadas. */
     seed: string;
     phase: 'lobby' | 'team' | 'draft' | 'preview' | 'match' | 'done';
@@ -192,6 +195,7 @@ export function newShared(
     seed: string,
     specialLimit: SpecialLimit = DEFAULT_SPECIAL_LIMIT,
     duration: DuelDuration = 'normal',
+    agency = false,
 ): Shared {
     return {
         rev: 1,
@@ -201,6 +205,7 @@ export function newShared(
         speed,
         specialLimit: SPECIAL_LIMITS.includes(specialLimit) ? specialLimit : DEFAULT_SPECIAL_LIMIT,
         duration: durationOf({ duration }),
+        ...(agency ? { agency: true } : {}),
         seed,
         phase: 'lobby',
         peers: { host },
@@ -230,7 +235,13 @@ export type OrderBody =
     | { kind: 'tactic'; tactic: Tactic }
     | { kind: 'sub'; outUid: string; inUid: string }
     | { kind: 'corner'; corner: CornerPlan }
-    | { kind: 'lineup'; formation: FormationId; order: string[] };
+    | { kind: 'lineup'; formation: FormationId; order: string[] }
+    // beira da quadra (só com `Shared.agency`)
+    | { kind: 'shout'; shout: Shout }
+    | { kind: 'timeout' }
+    | { kind: 'flyGk'; on: boolean }
+    | { kind: 'max' }
+    | { kind: 'penalties'; order: string[] };
 
 export type Intent =
     | { k: 'join'; peer: Peer }
@@ -519,23 +530,72 @@ export function stampOrder(
             return u;
         });
         if (resolved.length !== field.length || !field.every((u) => resolved.includes(u))) return null;
-    } else return null;
+    } else if (!stampAgency(s, team, mine, i.order)) return null;
     const base =
         i.ht && ctx.htTick !== undefined
             ? ctx.htTick + 1
             : Math.ceil(Math.max(ctx.tick, Number(i.tick) || 0)) + leadTicks(s.speed);
     const tick = Math.max(base, (s.log.at(-1)?.tick ?? 0) + 1);
     const o = i.order;
-    const out: StampedOrder =
-        o.kind === 'tactic'
-            ? { tick, team: side, tactic: o.tactic, seq: i.seq }
-            : o.kind === 'corner'
-              ? { tick, team: side, kind: 'corner', corner: o.corner, seq: i.seq }
-              : o.kind === 'lineup'
-                ? { tick, team: side, kind: 'lineup', formation: o.formation, order: [...o.order], seq: i.seq }
-                : { tick, team: side, kind: 'sub', outUid: o.outUid, inUid: o.inUid, seq: i.seq };
+    const agency = agencyStamp(o, tick, side, i.seq);
+    const out: StampedOrder = agency
+        ? agency
+        : o.kind === 'tactic'
+          ? { tick, team: side, tactic: o.tactic, seq: i.seq }
+          : o.kind === 'corner'
+            ? { tick, team: side, kind: 'corner', corner: o.corner, seq: i.seq }
+            : o.kind === 'lineup'
+              ? { tick, team: side, kind: 'lineup', formation: o.formation, order: [...o.order], seq: i.seq }
+              : {
+                    tick,
+                    team: side,
+                    kind: 'sub',
+                    outUid: (o as SubOrder).outUid,
+                    inUid: (o as SubOrder).inUid,
+                    seq: i.seq,
+                };
     // a mesma regra que o motor usa pra aceitar a ordem na agenda
     return validOrder(out) ? out : null;
+}
+
+/**
+ * Ordem da beira da quadra: só com o experimento ligado na sala, e com o limite que dá pra conferir pelo log (3
+ * gritos; pênaltis só com quem é do time). O resto (barra cheia, tempo já pedido) o motor confere nos dois lados.
+ */
+function stampAgency(s: Shared, team: TeamSetup, mine: StampedOrder[], o: OrderBody): boolean {
+    if (!s.agency) return false;
+    switch (o.kind) {
+        case 'shout':
+            return SHOUT_KINDS.includes(o.shout) && mine.filter((x) => x.kind === 'shout').length < AGENCY.shoutLimit;
+        case 'flyGk':
+            return typeof o.on === 'boolean';
+        case 'timeout':
+        case 'max':
+            return true;
+        case 'penalties': {
+            const uids = new Set([...team.lineup, ...team.bench].map((p) => p.uid));
+            return Array.isArray(o.order) && o.order.length <= 12 && o.order.every((u) => uids.has(u));
+        }
+        default:
+            return false;
+    }
+}
+
+function agencyStamp(o: OrderBody, tick: number, team: 0 | 1, seq: number): StampedOrder | null {
+    switch (o.kind) {
+        case 'shout':
+            return { tick, team, seq, kind: 'shout', shout: o.shout };
+        case 'timeout':
+            return { tick, team, seq, kind: 'timeout' };
+        case 'flyGk':
+            return { tick, team, seq, kind: 'flyGk', on: o.on };
+        case 'max':
+            return { tick, team, seq, kind: 'max' };
+        case 'penalties':
+            return { tick, team, seq, kind: 'penalties', order: [...o.order] };
+        default:
+            return null;
+    }
 }
 
 /** As ordens na ordem do motor: (tick, time, seq). */
@@ -789,6 +849,7 @@ function apply(s: Shared, i: Intent, by: Role, ctx: Ctx): Shared {
                     ctx.newSeed ?? `${s.seed}-r`,
                     specialLimitOf(s),
                     durationOf(s),
+                    !!s.agency,
                 ),
                 peers: s.peers,
                 game: s.game + 1,
@@ -835,6 +896,8 @@ export function acceptTakeover(cur: Shared, next: Shared, awayMs: number): boole
     const hostHashes = (s: Shared) => JSON.stringify(s.segHash.host ?? {});
     if (same) {
         if (next.commits?.host !== cur.commits.host) return false;
+        // o experimento é do host: o convidado não liga nem desliga
+        if (!!next.agency !== !!cur.agency) return false;
         if (next.reveals.host.some((x, k) => x && x !== cur.reveals.host[k])) return false;
         if (next.roundReveals.host.some((x, r) => x && x !== cur.roundReveals.host[r])) return false;
         if (hostOrders(next) !== hostOrders(cur) || hostHashes(next) !== hostHashes(cur)) return false;

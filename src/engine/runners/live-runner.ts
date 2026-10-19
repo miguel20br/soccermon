@@ -1,11 +1,14 @@
+import { SHOUT_KINDS } from '../agency';
 import type { Command, Controller } from '../commands';
 import type { MatchConfig } from '../config';
 import { AIController } from '../controllers/ai-controller';
 import { TACTIC_MODS } from '../effective';
 import { FORMATIONS } from '../formations';
-import { applyPendingSubs, createMatch, emit, snapshot, step } from '../match';
+import { applyAgencyOrder, applyPendingSubs, createMatch, emit, snapshot, step } from '../match';
 import {
+    type AgencyOrder,
     type CornerPlan,
+    isAgencyOrder,
     isCornerOrder,
     isLineupOrder,
     isSubOrder,
@@ -44,7 +47,28 @@ export const validOrder = (o: MatchOrder) =>
             ? validLineup(o)
             : isCornerOrder(o)
               ? CORNER_PLANS.includes(o.corner)
-              : Object.hasOwn(TACTIC_MODS, o.tactic)));
+              : isAgencyOrder(o)
+                ? validAgency(o)
+                : Object.hasOwn(TACTIC_MODS, o.tactic)));
+
+/** Ordem da agência bem formada (se vale na hora, o motor decide: grito sobrando, barra cheia...). */
+function validAgency(o: AgencyOrder): boolean {
+    switch (o.kind) {
+        case 'shout':
+            return SHOUT_KINDS.includes(o.shout);
+        case 'flyGk':
+            return typeof o.on === 'boolean';
+        case 'penalties':
+            return (
+                Array.isArray(o.order) &&
+                o.order.length <= 12 &&
+                o.order.every((u) => typeof u === 'string') &&
+                new Set(o.order).size === o.order.length
+            );
+        default:
+            return true;
+    }
+}
 export const CORNER_PLANS: readonly CornerPlan[] = ['area', 'short', 'mixed'];
 
 /**
@@ -127,10 +151,12 @@ export class LiveRunner {
                 s.pendingSubs = s.pendingSubs.filter((o) => !(isLineupOrder(o) && o.team === order.team));
                 s.pendingSubs.push(order);
             } else if (isCornerOrder(order)) this.changeCorner(order.team, order.corner);
+            else if (isAgencyOrder(order)) applyAgencyOrder(s, order);
             else this.changeTactic(order.team, order.tactic);
         }
-        // troca (e prancheta) pedida no intervalo entra no vestiário, não na 1ª bola parada do 2º tempo
-        if (s.phase === 'halftime') applyPendingSubs(s);
+        // troca (e prancheta) pedida no intervalo entra no vestiário, não na 1ª bola parada do 2º tempo; no pedido
+        // de tempo, entra na hora (a bola está parada esperando o técnico)
+        if (s.phase === 'halftime' || s.tick < s.pauseUntil) applyPendingSubs(s);
         const commands: (Command | Command[])[] = s.players.map((p) =>
             (this.overrides.get(p.idx) ?? this.ai).decide(p.idx),
         );

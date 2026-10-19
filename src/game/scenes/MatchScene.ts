@@ -82,6 +82,18 @@ export interface MatchSceneData {
      * que a tela cheia segura a do outro lado (as duas telas seguem juntas).
      */
     duel?: boolean;
+    /**
+     * Beira da quadra (agência do técnico, experimento) na copa: a quadra para no pedido de tempo do seu time e antes
+     * da disputa de pênaltis (pra escolher a ordem). No duelo nada para (as duas telas seguem juntas).
+     */
+    agency?: boolean;
+}
+
+/** Janela do golpe máximo e período do goleiro-linha (pra aura na quadra). */
+interface AgencySpan {
+    idx: number;
+    from: number;
+    to: number;
 }
 
 /** Defesa seguida de escanteio até esse tanto de ticks depois: as duas faixas saem uma de cada vez. */
@@ -143,7 +155,7 @@ export interface MatchEvolution {
 
 /** Faixa de gol/defesa que a tela React mostra no canto do time. */
 export interface MatchHighlight {
-    kind: 'goal' | 'owngoal' | 'save' | 'sub' | 'rivalEvolve' | 'tactic';
+    kind: 'goal' | 'owngoal' | 'save' | 'sub' | 'rivalEvolve' | 'tactic' | 'shout' | 'timeout' | 'flyGk' | 'max';
     team: 0 | 1;
     speciesId: number;
     shiny: boolean;
@@ -387,6 +399,11 @@ export class MatchScene extends Phaser.Scene {
     private fulltimeTick = Number.POSITIVE_INFINITY;
     private shootoutOn = false;
     private penaltyStage: number[] = [];
+    /** Já parou pra escolher a ordem dos pênaltis (uma vez por partida). */
+    private penPicked = false;
+    private maxSpans: AgencySpan[] = [];
+    private flySpans: AgencySpan[] = [];
+    private agencyG?: Phaser.GameObjects.Graphics;
     private linePos = new Map<number, { x: number; y: number }>();
     private viewPos = new Map<number, { x: number; y: number }>();
     private uiScale = 1;
@@ -514,6 +531,60 @@ export class MatchScene extends Phaser.Scene {
         this.dives = this.matchEvents.flatMap((e) => (e.type === 'save' ? [{ tick: e.tick, gk: e.by, at: null }] : []));
         this.fulltimeTick = this.matchEvents.find((e) => e.type === 'fulltime')?.tick ?? Number.POSITIVE_INFINITY;
         this.penaltyStage = this.penalties.map((_, i) => this.penaltyStage[i] ?? 0);
+        this.agencySpans();
+    }
+
+    /** Aura do golpe máximo (da abertura da janela até sair) e do goleiro-linha (ligado até desligar). */
+    private agencySpans() {
+        this.maxSpans = [];
+        this.flySpans = [];
+        const openMax = new Map<number, AgencySpan>();
+        const openFly = new Map<number, AgencySpan>();
+        for (const e of this.matchEvents) {
+            if (e.type === 'max') {
+                if (e.phase === 'start') {
+                    const span = { idx: e.by, from: e.tick, to: Number.POSITIVE_INFINITY };
+                    openMax.set(e.team, span);
+                    this.maxSpans.push(span);
+                } else {
+                    const span = openMax.get(e.team);
+                    if (span) span.to = e.tick;
+                    openMax.delete(e.team);
+                }
+            } else if (e.type === 'flyGk') {
+                const open = openFly.get(e.team);
+                if (open) open.to = e.tick;
+                openFly.delete(e.team);
+                if (e.on && e.by >= 0) {
+                    const span = { idx: e.by, from: e.tick, to: Number.POSITIVE_INFINITY };
+                    openFly.set(e.team, span);
+                    this.flySpans.push(span);
+                }
+            }
+        }
+        if ((this.maxSpans.length || this.flySpans.length) && !this.agencyG)
+            this.agencyG = this.add.graphics().setBlendMode(Phaser.BlendModes.ADD);
+    }
+
+    /** Desenha as auras (a cada quadro, embaixo do jogador): dourada pulsando no golpe máximo, amarela no goleiro-linha. */
+    private drawAgency(pxOf: { x: number; y: number }[]) {
+        const g = this.agencyG;
+        if (!g) return;
+        g.clear();
+        const t = this.playTick;
+        const pulse = 0.5 + 0.5 * Math.sin(this.time.now / 90);
+        for (const sp of this.maxSpans) {
+            const px = pxOf[sp.idx];
+            if (!px || t < sp.from || t >= sp.to) continue;
+            g.fillStyle(0xffd447, 0.3 + 0.2 * pulse).fillEllipse(px.x, px.y - 16, 84 + 14 * pulse, 92 + 14 * pulse);
+            g.lineStyle(5, 0xfff2a8, 1).strokeEllipse(px.x, px.y + 1, 48 + 10 * pulse, 19 + 4 * pulse);
+        }
+        for (const sp of this.flySpans) {
+            const px = pxOf[sp.idx];
+            if (!px || t < sp.from || t >= sp.to) continue;
+            g.lineStyle(3, 0xffcb05, 0.55 + 0.4 * pulse).strokeEllipse(px.x, px.y + 1, 34, 13);
+        }
+        g.setDepth(1);
     }
 
     private paused = false;
@@ -1187,6 +1258,7 @@ export class MatchScene extends Phaser.Scene {
         }
         this.declutterLabels();
         if (focusPos.size) this.cine.followSpots(focusPos);
+        this.drawAgency(pxOf);
         const bx = a.bx + (b.bx - a.bx) * k;
         const by = a.by + (b.by - a.by) * k;
         const bp = toPx(bx, by);
@@ -1425,6 +1497,19 @@ export class MatchScene extends Phaser.Scene {
             this.playTick = e.tick;
             this.halftimeAt = e.tick;
             EventBus.emit('match:halftime');
+        }
+        // beira da quadra (copa): o seu pedido de tempo para a quadra, e antes dos pênaltis você escolhe a ordem
+        if (this.md.agency && !this.md.duel) {
+            if (e.type === 'timeout' && e.team === this.mine) {
+                this.paused = true;
+                this.playTick = e.tick;
+                EventBus.emit('match:timeout', e.tick);
+            } else if (e.type === 'fulltime' && this.penalties.length && !this.penPicked) {
+                this.penPicked = true;
+                this.paused = true;
+                this.playTick = e.tick;
+                EventBus.emit('match:penalty-pick', e.tick);
+            }
         }
         const cries = this.md.cries;
         const cinematic = this.md.cinematic;
@@ -1868,6 +1953,67 @@ export class MatchScene extends Phaser.Scene {
                         name: dict().common.tactic[e.tactic],
                     };
                     EventBus.emit('match:highlight', h);
+                }
+                break;
+            }
+            case 'shout': {
+                const face =
+                    this.players.find((v) => v.team === e.team && v.captain) ??
+                    this.players.find((v) => v.team === e.team);
+                const text = dict().match.agency.shout[e.shout];
+                this.players.forEach((v, i) => {
+                    if (v.team === e.team) this.popText(i, text.toUpperCase(), '#ffd447');
+                });
+                if (face)
+                    EventBus.emit('match:highlight', {
+                        kind: 'shout',
+                        team: e.team,
+                        speciesId: face.speciesId,
+                        shiny: face.shiny,
+                        name: text,
+                    } satisfies MatchHighlight);
+                break;
+            }
+            case 'timeout': {
+                playSample('apito-curto');
+                const face =
+                    this.players.find((v) => v.team === e.team && v.captain) ??
+                    this.players.find((v) => v.team === e.team);
+                if (face)
+                    EventBus.emit('match:highlight', {
+                        kind: 'timeout',
+                        team: e.team,
+                        speciesId: face.speciesId,
+                        shiny: face.shiny,
+                        name: dict().match.agency.timeoutPanel.title,
+                    } satisfies MatchHighlight);
+                break;
+            }
+            case 'flyGk': {
+                const gk = this.players[e.by];
+                if (!gk) break;
+                this.popText(e.by, dict().match.agency.flyGk.toUpperCase(), e.on ? '#ffd447' : '#a6aed6');
+                if (e.on) this.highlight('flyGk', gk);
+                break;
+            }
+            case 'max': {
+                const cap = this.players[e.by];
+                if (!cap) break;
+                if (e.phase === 'start') {
+                    playSfx('move');
+                    this.popText(e.by, dict().match.agency.max.toUpperCase(), '#ffd447');
+                    this.punch('hit');
+                    this.highlight('max', cap);
+                } else if (e.phase === 'hit') {
+                    this.punch('boom');
+                    if (cinematic) {
+                        this.cine.drama(`${dict().match.agency.max.toUpperCase()}!`, {
+                            color: '#ffd447',
+                            stroke: '#4a2a00',
+                            at: { x: cap.sprite.x, y: cap.sprite.y },
+                            sub: e.moveId ? (MOVES[e.moveId]?.name ?? cap.name) : cap.name,
+                        });
+                    }
                 }
                 break;
             }

@@ -89,6 +89,7 @@ export class Commentator {
     private names: string[];
     private teams: (0 | 1)[];
     private captains: boolean[];
+    private roles: string[];
     private teamNames: [string, string];
     private rng: Rng;
     /** Último escanteio (gol olímpico: o cobrador chuta direto e marca). */
@@ -99,6 +100,7 @@ export class Commentator {
         this.names = result.roster.map((p) => p.name);
         this.teams = result.roster.map((p) => p.team);
         this.captains = result.roster.map((p) => p.captain);
+        this.roles = result.roster.map((p) => p.role);
         this.teamNames = teamNames;
         this.rng = new Rng(result.seed, 'commentary');
     }
@@ -379,6 +381,32 @@ export class Commentator {
                     e.scored ? 'big' : 'normal',
                     this.teams[e.by],
                 );
+            case 'shout':
+                return line(
+                    say(c.shout, { team: this.teamNames[e.team], shout: dict().match.agency.shout[e.shout] }),
+                    'whistle',
+                    e.team,
+                );
+            case 'timeout':
+                return line(say(c.timeout, { team: this.teamNames[e.team] }), 'whistle', e.team);
+            case 'flyGk':
+                return line(
+                    say(e.on ? c.flyGkOn : c.flyGkOff, { team: this.teamNames[e.team], x: this.n(e.by) }),
+                    'big',
+                    e.team,
+                );
+            case 'max': {
+                const m = e.moveId ? (MOVES[e.moveId]?.name ?? e.moveId) : '';
+                const text =
+                    e.phase === 'start'
+                        ? c.maxStart
+                        : e.phase === 'miss'
+                          ? c.maxMiss
+                          : this.roles[e.by] === 'GK'
+                            ? c.maxGk
+                            : c.maxHit;
+                return line(say(text, { x: this.n(e.by), m }), 'big', e.team);
+            }
             case 'end':
                 if (e.winner === null) return null;
                 return line(say(c.win, { team: this.teamNames[e.winner] }), 'whistle', e.winner);

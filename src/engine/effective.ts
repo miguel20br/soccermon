@@ -1,3 +1,4 @@
+import { SHOUTS } from './agency';
 import type { AttrKey } from './attributes';
 import type { MatchState, PlayerState, Tactic } from './state';
 import { dist2 } from './vec';
@@ -48,6 +49,9 @@ export function clutchActive(p: PlayerState): boolean {
 export function eff(s: MatchState, p: PlayerState, key: AttrKey): number {
     const base = compressed(p.attr[key]);
     let v = base * fatigueFactor(p) * (TACTIC_MODS[s.teams[p.team].tactic].attrs[key] ?? 1) * comebackFactor(s, p.team);
+    // grito do técnico (agência, experimento): só multiplica com grito valendo
+    const shout = s.teams[p.team].agency.shout;
+    if (shout && s.tick < shout.until) v *= SHOUTS[shout.kind].attrs[key] ?? 1;
     for (const b of p.buffs) if (b.attr === key) v *= b.factor;
     if (p.status) {
         v *= STATUS_MODS[p.status.kind]?.[key] ?? 1;

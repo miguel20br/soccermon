@@ -44,6 +44,11 @@ export const settings = {
         confirmLeave: 'Confirmar antes de sair',
         confirmLeaveHint: 'Pergunta antes de largar uma partida no meio.',
         confirmLeaveLabel: 'Confirmar antes de sair da partida',
+        experiments: 'Experimentos',
+        agency: 'Beira da quadra (teste)',
+        agencyHint:
+            'Gritos do técnico, pedido de tempo, goleiro-linha, golpe máximo do capitão e ordem dos pênaltis. No Duelo vale o do anfitrião.',
+        agencyLabel: 'Experimento beira da quadra',
         on: 'Ligado',
         off: 'Desligado',
         onPl: 'Ligadas',
