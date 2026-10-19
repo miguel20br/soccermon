@@ -12,6 +12,7 @@ import { useCardModal } from '../card-modal';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { FormationBoard } from '../components/FormationBoard';
 import { ExpandIcon, FutCard } from '../components/FutCard';
+import { HudIcon } from '../components/MatchHud';
 import { cardSprite } from '../components/PokeCard';
 import { TmCard, TmTeachPanel } from '../components/TmTeach';
 import { TypeIcon } from '../components/TypeIcon';
@@ -103,6 +104,7 @@ export function Reward() {
                             setChosen(null);
                         }}
                     >
+                        <HudIcon kind="reroll" />
                         {t('reward.reroll', { n: run.rerolls })}
                     </button>
                     <button type="button" className="btn small ghost" onClick={skipReward}>

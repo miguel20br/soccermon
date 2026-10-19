@@ -2,10 +2,11 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="icon" type="image/svg+xml" href="assets/ui/icone.svg" />
-    <link rel="icon" type="image/png" sizes="192x192" href="assets/ui/icon-192.png" />
-    <!-- ícone de "Adicionar à tela inicial": a carta holográfica com a bola do logo (trailer/arte/logo/icone.svg) -->
+    <!-- ícones do logo final (trailer/arte/logo/final, publicar.mjs): .ico com o 16 px feito à mão + 32/48, SVG do ícone pequeno -->
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" type="image/svg+xml" href="/assets/ui/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/ui/icon-192.png" />
+    <!-- ícone de "Adicionar à tela inicial": a carta holográfica com a bola -->
     <link rel="apple-touch-icon" href="assets/ui/apple-touch-icon.png" />
     <link rel="manifest" href="manifest.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -31,9 +32,17 @@
     <meta name="twitter:description" content="Monte seu time com os 151 de Kanto e dispute a Copa de Futsal. Draft all 151 Kanto Pokémon and play a 5v5 futsal cup. PT | EN, grátis/free." />
     <meta name="twitter:image" content="https://soccermon.com/og-image.jpg" />
     <title>Soccermon · Draft de Pokémon e copa de futsal</title>
+    <!-- tela de carregamento (antes do JS): a carta do logo flutuando no azul-noite -->
+    <style>
+        .boot { min-height: 100vh; display: grid; place-items: center; background: radial-gradient(circle at 50% 45%, #2a3a7a, #070a18 75%); }
+        .boot img { width: 120px; height: auto; animation: boot-flut 1.6s ease-in-out infinite alternate; }
+        @keyframes boot-flut { to { translate: 0 -10px; } }
+        @media (prefers-reduced-motion: reduce) { .boot img { animation: none; } }
+    </style>
 </head>
 <body>
-    <div id="root"></div>
+    <!-- some quando o React monta (createRoot troca o conteúdo do #root) -->
+    <div id="root"><div class="boot"><img src="/assets/ui/simbolo.svg" alt="Soccermon" width="120" height="152" /></div></div>
     <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>

@@ -39,6 +39,8 @@
 ### Tela inicial
 - Tela inicial com mais vida: selo AO VIVO na quadra, logo respirando e os blocos entrando em cascata (para com "reduzir movimento")
 - Página de erro nova: o Psyduck perdeu a bola pra fora da quadra
+- Logo novo: a carta holo com a bola (também na aba do navegador, no ícone do celular e na prévia do link)
+- Ícones padronizados: fechar, setas, estrela, sortear e o resto desenhados no mesmo traço em todo o jogo
 
 ### Medalhas e clube
 - 20 medalhas com degraus (bronze, prata, ouro e platina) em Perfil → Medalhas. Já contam tudo o que você jogou

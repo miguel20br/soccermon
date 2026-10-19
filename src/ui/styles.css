@@ -96,16 +96,10 @@ img.pixel {
     min-height: 40px;
     padding: 0;
 }
+/* o logo inteiro (wordmark com a carta), na altura de um botão */
 .brand img {
-    width: 28px;
-    height: 28px;
-}
-.brand span {
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 20px;
-    letter-spacing: 1px;
-    color: var(--yellow);
-    text-shadow: 2px 2px 0 #2a4ea0;
+    width: auto;
+    height: 30px;
 }
 
 /* ---------- painéis e botões ---------- */
@@ -1027,8 +1021,8 @@ button,
     color: #7dff8a;
 }
 .card-item img {
-    width: 24px;
-    height: 24px;
+    width: 30px;
+    height: 30px;
 }
 .attrs-toggle {
     display: none;
@@ -1147,6 +1141,7 @@ button,
     bottom: 4px;
     width: 20px;
     height: 20px;
+    image-rendering: auto;
 }
 @keyframes pulse {
     50% {
@@ -1168,14 +1163,14 @@ button,
 }
 .item-move {
     display: grid;
-    grid-template-columns: 32px 1fr;
+    grid-template-columns: 30px 1fr;
     gap: 8px;
     align-items: center;
     font-size: 12px;
 }
 .item-move img {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
 }
 .item-move label {
     grid-column: 1 / -1;
@@ -1235,8 +1230,8 @@ button,
         var(--shadow);
 }
 .item-art {
-    width: 72px;
-    height: 72px;
+    width: 60px;
+    height: 60px;
 }
 .target-btn {
     cursor: pointer;
@@ -1282,6 +1277,7 @@ button,
 .fit-badge img {
     width: 14px;
     height: 14px;
+    image-rendering: auto;
 }
 .slot .fit-badge {
     position: absolute;
@@ -1320,7 +1316,25 @@ button,
 }
 
 /* ---------- resultado / home ---------- */
+/* estrela, visto e setas dentro de texto (selos, chips, status): do tamanho da letra, no traço do HudIcon */
+.perfect-badge .hud-icon,
+.rh-star .hud-icon,
+.champ-best .hud-icon,
+.link-chip .hud-icon,
+.acc-ok {
+    width: 1.1em;
+    height: 1.1em;
+    vertical-align: -0.18em;
+}
+.acc-ok {
+    margin-left: 4px;
+    color: var(--green);
+}
 .perfect-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
     font-weight: 700;
     color: #2a2a2a;
     background: linear-gradient(90deg, #ffcb05, #fff3b0, #ffcb05);
@@ -1457,8 +1471,8 @@ button,
         text-align: left;
     }
     .item-art {
-        width: 48px;
-        height: 48px;
+        width: 60px;
+        height: 60px;
         grid-column: 1;
         grid-row: 1 / span 3;
     }
@@ -2816,6 +2830,14 @@ button,
     border: 1px solid #fff;
     text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
 }
+.slot-edition .hud-icon {
+    width: 10px;
+    height: 10px;
+}
+.modal-close .hud-icon {
+    width: 22px;
+    height: 22px;
+}
 .ed-shiny {
     background: linear-gradient(135deg, #b8860b, #ffe680, #b8860b);
 }
@@ -2947,9 +2969,8 @@ button,
     position: absolute;
     top: 0;
     right: 2px;
-    color: #ffe14d;
-    font-size: 12px;
-    text-shadow: 0 1px 0 #000;
+    width: 14px;
+    height: 14px;
 }
 .mh-text {
     display: grid;
@@ -3071,10 +3092,13 @@ button,
     filter: grayscale(0.8);
 }
 .mh-arrow {
-    font-size: clamp(14px, 2vw, 22px);
-    font-weight: 700;
+    display: grid;
     color: #7dff8a;
-    text-shadow: 0 2px 0 rgb(0 0 0 / 55%);
+    filter: drop-shadow(0 2px 0 rgb(0 0 0 / 55%));
+}
+.mh-arrow .hud-icon {
+    width: clamp(16px, 2.4vw, 26px);
+    height: clamp(16px, 2.4vw, 26px);
 }
 .mh-right .mh-arrow {
     transform: scaleX(-1);
@@ -3705,19 +3729,25 @@ button,
     gap: 6px;
     font-size: 13px;
 }
-.mod-row span {
-    font-weight: 700;
+.mod-row .hud-icon {
+    width: 14px;
+    height: 14px;
 }
-.mod-row.up span {
+.mod-row.up .hud-icon {
     color: #7dff8a;
 }
-.mod-row.down span {
+.mod-row.down .hud-icon {
     color: #ff7a7a;
 }
 .attr-mod {
     font-style: normal;
     font-weight: 700;
     font-size: 11px;
+}
+.attr-mod .hud-icon {
+    width: 1.1em;
+    height: 1.1em;
+    vertical-align: -0.2em;
 }
 .attr-mod.up {
     color: #7dff8a;
@@ -4047,6 +4077,12 @@ button,
     font: inherit;
     cursor: pointer;
     padding: 0;
+}
+.st-table th button .st-sort {
+    width: 12px;
+    height: 12px;
+    margin-left: 2px;
+    vertical-align: -2px;
 }
 .st-table th button.on {
     color: var(--text);
@@ -4437,6 +4473,10 @@ button,
     background: var(--panel-2);
     font-size: 10px;
     font-weight: 700;
+}
+.rh-dot .hud-icon {
+    width: 12px;
+    height: 12px;
 }
 .rh-path li.won .rh-dot {
     background: #4fd17a;

@@ -102,7 +102,7 @@ const svgImage = (svg: string) => loadImage(`data:image/svg+xml;charset=utf-8,${
 
 async function logoImage() {
     const svg = await (await fetch('assets/ui/logo.svg')).text();
-    return svgImage(svg.replace('<svg ', '<svg width="1468" height="300" '));
+    return svgImage(svg.replace('<svg ', '<svg width="1441" height="300" '));
 }
 
 function trophyImage(size: number) {
@@ -221,7 +221,7 @@ export async function drawShareCard(data: ShareCardData, format: CardFormat): Pr
     let y = sq ? 36 : 70;
     // logo
     const lw = sq ? 480 : 720;
-    const lh = (lw * 300) / 1468;
+    const lh = (lw * 300) / 1441;
     ctx.drawImage(logo, cx - lw / 2, y, lw, lh);
     y += lh + (sq ? 14 : 30);
 

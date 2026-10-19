@@ -161,8 +161,7 @@ export default function App() {
                         }
                         aria-label={t('common.ui.backHome')}
                     >
-                        <img className="pixel" src="assets/ui/poke-ball.png" alt="" />
-                        <span>SOCCERMON</span>
+                        <img src="assets/ui/logo.svg" alt="" width="1441" height="300" />
                     </button>
                 </header>
             )}

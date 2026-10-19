@@ -19,6 +19,7 @@ import { patchNotes } from '../patch-notes';
 import { TYPE_COLOR } from '../type-colors';
 import { HomeDailyCard } from './Daily';
 import '../home-motion.css';
+import { HudIcon } from '../components/MatchHud';
 
 /** O que vem por aí (só vitrine: nada disso é clicável ainda). Os textos ficam em i18n (home.soon). */
 const SOON_IMG = ['assets/cards/25.gif', 'assets/cards/143.gif', 'assets/ui/poke-ball.png'];
@@ -182,9 +183,9 @@ export function Home() {
 
             <section className="home-hero">
                 <HomeCourt />
-                {/* logo da beta (trailer/arte/logo: "Evolução", o O é uma carta holográfica com a bola) */}
+                {/* logo (trailer/arte/logo/final: o O é a carta holo com a bola; publicar.mjs copia pra cá) */}
                 <h1 className="logo logo-img">
-                    <img src="assets/ui/logo.svg" alt="Soccermon" width="1468" height="300" />
+                    <img src="assets/ui/logo.svg" alt="Soccermon" width="1441" height="300" />
                 </h1>
                 <p className="tagline">{t('home.tagline')}</p>
             </section>
@@ -427,7 +428,7 @@ export function Home() {
                             // biome-ignore lint/a11y/noAutofocus: o foco vai para dentro da janela que acabou de abrir
                             autoFocus
                         >
-                            ×
+                            <HudIcon kind="close" />
                         </button>
                         {notes.map((n) => (
                             <div key={n.version} className="patch-version">

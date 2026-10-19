@@ -36,6 +36,7 @@ import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
 import { FutCard } from './FutCard';
 import { LinkChip } from './LinkChips';
+import { HudIcon } from './MatchHud';
 import { TypeBadge } from './PokeCard';
 import { TaughtMark } from './TmTeach';
 
@@ -126,7 +127,7 @@ export function CardModal() {
                 onClick={(e) => e.stopPropagation()}
             >
                 <button type="button" className="modal-close" onClick={close} aria-label={t('common.ui.close')}>
-                    ×
+                    <HudIcon kind="close" />
                 </button>
                 <div className="card-modal-grid">
                     <div className="card-modal-left">
@@ -236,7 +237,7 @@ export function CardModal() {
                                         const up = (m.add ?? 0) > 0 || (m.factor ?? 1) > 1;
                                         return (
                                             <div key={m.label} className={`mod-row ${up ? 'up' : 'down'}`}>
-                                                <span>{up ? '▲' : '▼'}</span>
+                                                <HudIcon kind={up ? 'up' : 'down'} />
                                                 {modLabel(m, lang)}
                                             </div>
                                         );
@@ -312,7 +313,7 @@ export function CardModal() {
                                                     key={mm.label}
                                                     className={`mod-row ${mm.factor > 1 ? 'up' : 'down'}`}
                                                 >
-                                                    <span>{mm.factor > 1 ? '▲' : '▼'}</span>
+                                                    <HudIcon kind={mm.factor > 1 ? 'up' : 'down'} />
                                                     {moveModLabel(mm, lang)}
                                                 </div>
                                             ))}

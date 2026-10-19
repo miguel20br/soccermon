@@ -241,8 +241,8 @@ export function Ticker({ lines, colors }: { lines: (CommentLine & { id: number }
     );
 }
 
-/** Ícones desenhados do painel da partida (nada de emoji). */
-const ICONS = {
+/** Ícones desenhados do painel da partida e do resto do site (nada de emoji). A Golpedex reusa (GdxIcon). */
+export const ICONS = {
     balanced: 'M12 4v16M6 20h12M4 8h16M4 8l-2.5 6h5zM20 8l-2.5 6h5z',
     offensive: 'M6 13l6-6 6 6M6 19l6-6 6 6',
     defensive: 'M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z',
@@ -278,13 +278,27 @@ const ICONS = {
     // pronto do duelo
     check: 'M5 12.5l4.5 4.5L19 7.5',
     lock: 'M8 11V8a4 4 0 0 1 8 0v3M5 11h14v10H5z',
+    // o resto do site (docs/marca/brand-guide.md: todo ícone de interface sai daqui, 24 / traço 2.4 / ponta redonda)
+    close: 'M6 6l12 12M18 6L6 18',
+    play: 'M8 5l11 7-11 7z',
+    search: 'M10.5 4a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13zM15.5 15.5L20 20',
+    expand: 'M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5',
+    reroll: 'M19.5 13A7.5 7.5 0 1 1 17 6.4M18.5 3v4h-4',
+    download: 'M12 4v11M7 10l5 5 5-5M5 20h14',
+    upload: 'M12 15V4M7 9l5-5 5 5M5 20h14',
+    next: 'M9 6l6 6-6 6',
+    prev: 'M15 6l-6 6 6 6',
+    stop: 'M6.5 6.5h11v11h-11z',
+    mute: 'M3 10v4h4l7 5V5L7 10zM17 9.5l5 5M22 9.5l-5 5',
+    bulb: 'M9.5 18h5M10.5 21h3M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3z',
 } as const;
 export type HudIconKind = keyof typeof ICONS;
 
-export function HudIcon({ kind }: { kind: HudIconKind }) {
+/** `className` soma ao "hud-icon" (18 px): use pra mudar o tamanho num lugar só, nunca o traço. */
+export function HudIcon({ kind, className }: { kind: HudIconKind; className?: string }) {
     return (
         <svg
-            className="hud-icon"
+            className={className ? `hud-icon ${className}` : 'hud-icon'}
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
