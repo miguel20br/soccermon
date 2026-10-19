@@ -34,6 +34,13 @@ export const PATCH_NOTES: PatchNotes[] = [
                 ],
             },
             {
+                title: 'Emotes e conta',
+                lines: [
+                    "Emotes: o capitão evoluído muda de cara, tocar no emote do rival silencia (com Desfazer), o 'Vamooo!' faz o capitão posar em quadra e o líder da Copa reage aos seus gols",
+                    'Quem jogou Duelo sem conta pode ligar o Google e continuar na mesma conta',
+                ],
+            },
+            {
                 title: 'Consertos',
                 lines: [
                     'Carta Ícone agora pode ser o craque da partida: continua Ícone (com o fundo de galáxia), ganha o selo "MVP", "MVP 2" e "MVP 3" e +1 em todos os atributos por selo (até +5). Antes o prêmio pulava pro próximo jogador',
@@ -601,6 +608,13 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 lines: [
                     'Gym leaders now talk before and after the match, and each club plays on its own gym court',
                     'With the touchline experiment on, the rival coach reacts in their own style: yells, calls time-outs, sends the keeper up, calls the max move and changes tactics. The commentary warns you 10 s before it kicks in',
+                ],
+            },
+            {
+                title: 'Emotes and account',
+                lines: [
+                    "Emotes: an evolved captain changes face, tapping the rival's emote mutes it (with Undo), 'Let's gooo!' makes your captain pose on court and the Cup leader reacts to your goals",
+                    'If you played Duel without an account, you can link Google and keep the same account',
                 ],
             },
             {

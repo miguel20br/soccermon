@@ -16,6 +16,10 @@
 - Os líderes de ginásio agora falam antes e depois do jogo, e cada clube joga na quadra do seu ginásio
 - Com o experimento beira da quadra ligado, o técnico rival reage do jeito dele: grita, pede tempo, sobe o goleiro, chama o golpe máximo e muda a tática. A narração avisa 10 s antes de valer
 
+### Emotes e conta
+- Emotes: o capitão evoluído muda de cara, tocar no emote do rival silencia (com Desfazer), o 'Vamooo!' faz o capitão posar em quadra e o líder da Copa reage aos seus gols
+- Quem jogou Duelo sem conta pode ligar o Google e continuar na mesma conta
+
 ### Consertos
 - Carta Ícone agora pode ser o craque da partida: continua Ícone (com o fundo de galáxia), ganha o selo "MVP", "MVP 2" e "MVP 3" e +1 em todos os atributos por selo (até +5). Antes o prêmio pulava pro próximo jogador
 - Quem foi campeão com Mew e Mewtwo, com os 3 pássaros lendários ou com um Rattata antes dessas missões existirem agora ganha a conquista ao abrir o jogo (sai do Hall da Fama)
