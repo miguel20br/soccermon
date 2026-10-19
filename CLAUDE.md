@@ -124,7 +124,23 @@ Leia a skill antes de começar a tarefa dela:
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (18/10/2026, v0.8.6 · Lendas douradas e prancheta ao vivo)
+## Estado atual (19/10/2026, v0.8.7 · Emotes, selos e faixa da torcida)
+
+Na 0.8.7 (5 frentes em paralelo + integração `int-087`; decisões em `docs/planos/relatorio-0.8.6.md`): emotes do Duelo
+com retratos PMD do capitão (`src/ui/duel/Emotes.tsx`, `?lab=emotes`, plano em `docs/planos/emotes.md`), selos de
+carreira na Pokédex (`sealsOf` em `src/store/profile.ts`: Folha 10 partidas, Holo 25 gols, Prisma 5 títulos, Ouro
+escuro = Prisma + Kanto completo; selinho na carta só proposto em `?cards=1`, opção B), faixa da torcida (opção A, pano
+na beira da quadra; frase no Perfil → Meu clube, campo opcional `banner`), "Monta pra mim" no draft (`autoDraft`,
+`bestFit`; evento `pick.auto`/`run_end.auto_from`), Duelo com diferenças (`src/net/patch.ts`, `rev`/`need`, relógio 5 s
+fora da partida) e partida curta = mesma partida tocada em dobro (`duelPace`), aviso de versão diferente na sala.
+**Experimento "beira da quadra"** desligado por padrão (Configurações → Experimentos ou `?agencia=1`; no Duelo vale o
+do host): gritos (3), pedido de tempo (1 por tempo, +5% fôlego pra quem pede e +3% pro rival), goleiro-linha, golpe
+máximo do capitão (janela 20 s) e ordem dos pênaltis; técnico robô em `scripts/balance/coach.ts`. Com o padrão as
+partidas não mudam (`ENGINE_VERSION` 3). Falta: rival que reage (com os líderes) pra "usar bem" valer mais que
+"aleatório".
+
+### 0.8.6 · Lendas douradas e prancheta ao vivo
+
 
 Na 0.8.6 (versão "cheia de ajustes desse gênero", decidido em 18/10; a liga ranqueada foi pra 0.8.7): missões
 lendárias (6 treinadores dourados `*Gold`, sprites por `scripts/build-gold-trainers.ts`, `isGoldTrainer` dá brilho

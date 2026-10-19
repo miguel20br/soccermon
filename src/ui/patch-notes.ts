@@ -7,6 +7,43 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.8.7',
+        title: 'Emotes, selos e faixa da torcida',
+        sections: [
+            {
+                title: 'Duelo',
+                lines: [
+                    'Emotes novos: o seu capitão aparece grandão com cara de alegria, choro ou bronca, e grita junto. 8 emotes, com "Nãão!" e "Grrr!" novos',
+                    'Partida curta na criação da sala: a mesma partida, tocada em dobro',
+                    'A sala gasta bem menos internet (manda só o que mudou)',
+                    'Quem está com o jogo desatualizado recebe o aviso pra atualizar a página em vez de entrar numa partida que não fecha',
+                ],
+            },
+            {
+                title: 'Coleção e clube',
+                lines: [
+                    'Selos de carreira na Pokédex: Folha (10 partidas), Holo (25 gols), Prisma (5 títulos) e Ouro escuro (Prisma + Kanto completo). Já contam tudo o que você jogou',
+                    'Faixa da torcida: escolha a frase do seu clube em Perfil → Meu clube; ela aparece na beira da quadra, na cor do clube',
+                ],
+            },
+            {
+                title: 'Copa',
+                lines: [
+                    'Monta pra mim: no draft, um toque completa o time com a melhor carta pra cada vaga (você ainda troca na escalação)',
+                ],
+            },
+            {
+                title: 'Experimento: beira da quadra',
+                lines: [
+                    'Ligue em Configurações → Experimentos (vale na Copa e, pelo dono da sala, no Duelo)',
+                    'Gritos do técnico (3 por jogo): Pra cima!, Fecha a casinha!, Calma! e Abafa!',
+                    'Pedido de tempo (1 por tempo): +5% de fôlego pro seu time e +3% pro rival, e uma pausa pra trocar e mexer na prancheta',
+                    'Goleiro-linha, golpe máximo do capitão (a barra enche mais rápido quando você está perdendo) e a ordem dos pênaltis',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.8.6',
         title: 'Lendas douradas e prancheta ao vivo',
         sections: [
@@ -497,6 +534,43 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.8.7',
+        title: 'Emotes, seals and supporter banners',
+        sections: [
+            {
+                title: 'Duel',
+                lines: [
+                    'New emotes: your captain pops up big, cheering, crying or fuming, and lets out a cry. 8 emotes, including the new "Noooo!" and "Grrr!"',
+                    'Short match when creating the room: the same match, played at double speed',
+                    'Rooms use much less data (only what changed is sent)',
+                    'Players on an outdated version get asked to refresh instead of joining a match that would fall apart',
+                ],
+            },
+            {
+                title: 'Collection and club',
+                lines: [
+                    "Career seals in the Pokédex: Foil (10 matches), Holo (25 goals), Prism (5 titles) and Dark Gold (Prism + Kanto complete). Everything you've already played counts",
+                    'Supporter banner: pick your club phrase in Profile → My club; it hangs by the court in your club color',
+                ],
+            },
+            {
+                title: 'Cup',
+                lines: [
+                    'Auto-draft: one tap fills the rest of your team with the best card for each slot (you can still swap in the lineup)',
+                ],
+            },
+            {
+                title: 'Experiment: touchline',
+                lines: [
+                    'Turn it on in Settings → Experiments (works in the Cup and, set by the room host, in the Duel)',
+                    'Coach shouts (3 per match): Push up!, Lock it down!, Calm down! and Press high!',
+                    'Timeout (1 per half): +5% stamina for your team and +3% for the rival, plus a pause to sub and change the board',
+                    "Flying keeper, the captain's max move (the bar fills faster when you're losing) and penalty order",
+                ],
+            },
+        ],
+    },
     {
         version: '0.8.6',
         title: 'Golden legends and live tactics board',

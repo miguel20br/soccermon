@@ -1,5 +1,26 @@
 # Novidades
 
+## 0.8.7 · Emotes, selos e faixa da torcida
+
+### Duelo
+- Emotes novos: o seu capitão aparece grandão com cara de alegria, choro ou bronca, e grita junto. 8 emotes, com "Nãão!" e "Grrr!" novos
+- Partida curta na criação da sala: a mesma partida, tocada em dobro
+- A sala gasta bem menos internet (manda só o que mudou)
+- Quem está com o jogo desatualizado recebe o aviso pra atualizar a página em vez de entrar numa partida que não fecha
+
+### Coleção e clube
+- Selos de carreira na Pokédex: Folha (10 partidas), Holo (25 gols), Prisma (5 títulos) e Ouro escuro (Prisma + Kanto completo). Já contam tudo o que você jogou
+- Faixa da torcida: escolha a frase do seu clube em Perfil → Meu clube; ela aparece na beira da quadra, na cor do clube
+
+### Copa
+- Monta pra mim: no draft, um toque completa o time com a melhor carta pra cada vaga (você ainda troca na escalação)
+
+### Experimento: beira da quadra
+- Ligue em Configurações → Experimentos (vale na Copa e, pelo dono da sala, no Duelo)
+- Gritos do técnico (3 por jogo): Pra cima!, Fecha a casinha!, Calma! e Abafa!
+- Pedido de tempo (1 por tempo): +5% de fôlego pro seu time e +3% pro rival, e uma pausa pra trocar e mexer na prancheta
+- Goleiro-linha, golpe máximo do capitão (a barra enche mais rápido quando você está perdendo) e a ordem dos pênaltis
+
 ## 0.8.6 · Lendas douradas e prancheta ao vivo
 
 ### Missões lendárias
