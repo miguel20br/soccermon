@@ -139,6 +139,34 @@ function rate(scene: TrailerScene, seed: string): Hit | null {
         }
         if (!lances.length) return null;
     }
+    if (scene === 'partida') {
+        // trailer 2: na mesma partida, um chute com golpe parado pelo goleiro (ou na trave) antes do Pikachu evoluir pra
+        // Raichu, e depois o gol do Raichu. Vale mais: golpe vistoso, do Charizard, espalmado, e tudo mais cedo
+        const evo = ev.find((e) => e.type === 'evolve' && e.team === 0 && e.from === 25);
+        if (!evo || evo.type !== 'evolve') return null;
+        const gol = goals.find((g) => g.tick > evo.tick && m.roster[g.by].uid === evo.uid);
+        if (!gol) return null;
+        let melhor: { pts: number; txt: string } | null = null;
+        for (const sh of ev) {
+            if (sh.type !== 'shot' || !mine(sh) || !sh.moveId || sh.tick > evo.tick) continue;
+            const fim = ev.find(
+                (e) =>
+                    e.tick >= sh.tick &&
+                    e.tick <= sh.tick + 40 &&
+                    ((e.type === 'save' && e.shooter === sh.by) || (e.type === 'post' && e.shooter === sh.by)),
+            );
+            if (!fim) continue;
+            const pts =
+                (SHOWY.has(sh.moveId) ? 300 : 0) +
+                (m.roster[sh.by].speciesId === 6 ? 200 : 0) +
+                (fim.type === 'post' || (fim.type === 'save' && !fim.caught) ? 150 : 0);
+            if (!melhor || pts > melhor.pts)
+                melhor = { pts, txt: `${sec(sh.tick)} ${who(sh.by)} chuta com ${sh.moveId} → ${fim.type === 'post' ? 'trave' : fim.type === 'save' && fim.caught ? 'goleiro agarra' : 'goleiro espalma'}` };
+        }
+        if (!melhor) return null;
+        score += 1000 + melhor.pts - gol.tick / 20;
+        lances.push(melhor.txt, `${sec(evo.tick)} Pikachu evolui pra Raichu`, `${sec(gol.tick)} gol do Raichu`);
+    }
     if (scene === 'jogada') {
         for (const g of goals) {
             if (g.assist === null) continue;

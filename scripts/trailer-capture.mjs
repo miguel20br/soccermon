@@ -32,6 +32,8 @@ const semNomes = !args.includes('--nomes');
 // sem os textos do jogo (letreiros de golpe, GOOOOL, caixa de narração): o zoom do trailer cortaria; o texto do
 // trailer vem da composição. --textos mantém
 const semTextos = !args.includes('--textos');
+// --placar <arquivo.png>: print do placar de transmissão (.bc-head) no começo do trecho, com o placar da própria partida
+const placar = arg('--placar', null);
 if (!cena || !seed) throw new Error('use --cena e --seed (veja scripts/trailer-hunt.ts)');
 
 const TICK_RATE = 20; // FUTSAL_5.tickRate
@@ -248,6 +250,14 @@ for (let i = 0; (await tick()) < from * TICK_RATE; i++) {
     if (i % 30 === 0) await segueIntervalo();
 }
 console.log(`no ponto: tick ${(await tick()).toFixed(0)} (${((Date.now() - t0) / 1000).toFixed(0)} s pra chegar)`);
+
+if (placar) {
+    await page.addStyleTag({ content: '.bc-head{display:flex!important}' });
+    await wait(400);
+    await (await page.$('.bc-head'))?.screenshot({ path: placar });
+    await page.addStyleTag({ content: '.bc-head{display:none!important}' });
+    console.log(`placar → ${placar}`);
+}
 
 // 2) grava quadro a quadro na velocidade pedida, direto do canvas do Phaser (resolução nativa do jogo; o print da
 // página trava com o tempo parado). As faixas em HTML (gol, evolução) ficam de fora: no trailer o texto é da composição.

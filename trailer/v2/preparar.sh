@@ -1,47 +1,53 @@
 #!/usr/bin/env bash
 # Trailer 2 (9:16): monta a pasta midia/ (fora do git) com os clipes já cortados no tempo do storyboard v3, os
 # recortes do DOM, os sons e a música. Rode da raiz do repo:
-#   CAP=<quadros de trailer-capture.mjs> SHOTS=<recortes do DOM> MUSICA=<fonte da música> trailer/v2/preparar.sh
-# CAP tem saida/, defesa-n/, defesa-l/, evo-n/, evo-p/, gol-n/, gol-l/ (PNG por quadro, 30 fps) e saida.png/
-# saida-vazia.png (trailer/v2/quadra-vazia.mjs). SHOTS tem os prints 3x (scratchpad do storyboard).
+#   CAP=<quadros> SHOTS=<recortes 3x> UI=<emotes 8x> PACOTE=<prints do pacote> MUSICA=<fonte da música> trailer/v2/preparar.sh
 # MUSICA: o MP3 original do Trainer Battle Remix (ORIGINAL=1) ou o trailer 1 renderizado (padrão: a música
 # começa em 6,05 s do vídeo; os compassos 10 a 13 têm gritos por cima e saem na emenda, ver abaixo).
 set -euo pipefail
-: "${CAP:?}" "${SHOTS:?}" "${MUSICA:?}"
+: "${CAP:?}" "${SHOTS:?}" "${UI:?}" "${PACOTE:?}" "${MUSICA:?}"
 cd "$(dirname "$0")"
 M=midia
 P=../../public
 LOGO=${LOGO:-$HOME/Downloads/soccermon-logo-final}
 mkdir -p $M $M/pika
 
-# ---- clipes: quadros 968x528 → 2x sem suavizar (pixel nítido), 30 fps --------------------------------------
-clipe() { # saida pasta primeiro_quadro n_quadros [filtro extra]
-  ffmpeg -v error -y -framerate 30 -start_number "$3" -i "$CAP/$2/%05d.png" -frames:v "$4" \
-    -vf "${5:+$5,}scale=iw*2:ih*2:flags=neighbor,format=yuv420p" -c:v libx264 -crf 16 -preset fast -an "$M/$1.mp4"
+# ---- clipes: a partida inteira é a mesma (partida · trailer3892, quadra da Saffron), enquadrada na faixa 1080x860
+# seguindo a bola (enquadrar.py); no lance do gol o recorte puxa pro gol. Quadros de 968x528, 30 fps.
+# CAP tem pre/ (348,5–352,4 s), defesa-l/ (0,5x), evo-p/ (tela de evolução, modo pagina), gol-n/ e gol-l/ (0,5x),
+# placar.png (--placar do trailer-capture) e saida.png/saida-vazia.png (quadra-vazia.mjs).
+E="python3 enquadrar.py"
+$E "$CAP/pre" 28 40 $M/placar-jogo.mp4 --zoom 1.0                 # plano 8: a jogada antes do golpe (placar em cima)
+$E "$CAP/pre" 68 40 $M/golpe.mp4 --zoom 1.0                       # plano 9: a quadra escurece, Fire Blast
+$E "$CAP/defesa-l" 77 40 $M/defesa.mp4 --zoom 1.25 --gol 0.97     # plano 10: 0,5x, o goleiro espalma no quadro 98
+# plano 11: a tela de evolução (página inteira 1280x730 → faixa): o Pikachu, a silhueta piscando, o clarão e o Raichu
+evo() { # saida 1º quadro n_quadros_origem n_quadros_saida
+  ffmpeg -v error -y -framerate 30 -start_number "$2" -i "$CAP/evo-p/%05d.png" -frames:v "$4" \
+    -vf "trim=end_frame=$3,setpts=(PTS-STARTPTS)*$4/$3,fps=30,crop=917:730:181:0,scale=1080:860:flags=neighbor,format=yuv420p" -c:v libx264 -crf 16 -preset fast -an "$M/$1.mp4"
 }
-clipe saida saida 1 40                 # plano 8: saída de bola (1 compasso)
-clipe golpe defesa-n 33 40             # plano 9: quadra escurece, Fire Blast; a defesa cai no fim (batida 1 do 10)
-clipe defesa defesa-l 40 40            # plano 10: o goleiro espalma, 0,5x
-clipe evo-zoom evo-n 81 20             # plano 11a: zoom no Pikachu (2 batidas)
-# plano 11b: a silhueta piscando (quadros 181–252) acelerada pra 2 batidas
-ffmpeg -v error -y -framerate 30 -start_number 181 -i "$CAP/evo-p/%05d.png" -frames:v 72 \
-  -vf "setpts=PTS*20/72,fps=30,scale=iw*2:ih*2:flags=neighbor,format=yuv420p" -c:v libx264 -crf 16 -preset fast -an $M/evo-silhueta.mp4
-clipe evo-raichu evo-p 253 40   # plano 11c: o clarão e o Raichu (1 compasso)
-clipe corrida-n gol-n 34 40            # plano 12: o Raichu parte (normal)
-clipe corrida-l gol-l 26 40            # plano 12: câmera lenta até o chute entrar
-clipe gol gol-n 94 40                  # plano 13: o clarão do gol e a comemoração
+evo evo-pika 64 40 20
+evo evo-silhueta 109 126 20
+evo evo-raichu 235 40 40
+$E "$CAP/gol-n" 81 20 $M/gol-chute.mp4 --zoom 1.3                 # plano 12a: o golpe do Raichu e o chute
+$E "$CAP/gol-l" 85 20 $M/gol-lento.mp4 --zoom 1.6 --gol 0.97      # plano 12b: 0,5x, a bola chegando no gol
+$E "$CAP/gol-n" 125 20 $M/gol.mp4 --zoom 1.3 --gol 0.97           # plano 13: o clarão do gol
 cp "$CAP/saida-vazia.png" "$CAP/saida.png" $M/
+ffmpeg -v error -y -i "$CAP/placar.png" -vf "crop=545:73:0:0" $M/placar.png
 
 # ---- recortes do DOM (3x) ------------------------------------------------------------------------------------
 cp "$SHOTS"/s-draft-1.png "$SHOTS"/s-draft-2.png "$SHOTS"/s-draft-3.png $M/
-ffmpeg -v error -y -i "$SHOTS/p-fechado.png" -vf "crop=572:792:288:422" $M/p-fechado.png   # só o pacote (sem o "Toque pra abrir")
+cp "$PACOTE/pacote-elemento-pc.png" $M/p-fechado.png   # o pacote do jogo com o logo novo (branch pacote-logo)
 ffmpeg -v error -y -i "$SHOTS/p-3500.png" -vf "crop=532:728:48:403" $M/p-vira.png
 for i in 1 2 3 4 5; do cp "$SHOTS/s-edicao-$i.png" $M/; done
 cp "$SHOTS/s-mewtwo-1.png" $M/bronze.png
-cp "$SHOTS/h-placar.png" "$SHOTS/s-emote-1.png" "$SHOTS/s-emote-2.png" "$SHOTS/s-vitrine-1.png" $M/
-cp "$SHOTS/l-painel-1.png" $M/liga-elo.png
-cp "$SHOTS/l-painel-4.png" $M/liga-ranking.png
+cp "$SHOTS/s-vitrine-1.png" $M/
+cp "$UI/emote-1.png" "$UI/emote-2.png" $M/                                       # emotes em 8x
+cp "$SHOTS/dia-painel-1.png" $M/dia-resumo.png                                   # Copa do Dia (main)
+cp "$SHOTS/dia-painel-3.png" $M/dia-ranking.png
 ffmpeg -v error -y -i "$SHOTS/c-campeao.png" -vf "crop=1160:1250:28:180" $M/campeao.png
+# pacote do jogo com o logo novo (branch pacote-logo): corpo e tampa separados pra tampa rasgar
+ffmpeg -v error -y -i "$PACOTE/pacote-elemento-pc.png" -vf "crop=618:765:0:99" $M/pacote-corpo.png
+ffmpeg -v error -y -i "$PACOTE/pacote-elemento-pc.png" -vf "crop=618:99:0:0" $M/pacote-tampa.png
 
 # ---- abertura: Carvalho e Pikachu (4 tons no CSS), bola, logo, fonte ----------------------------------------
 cp $P/assets/trainers/oak.png $P/assets/ui/ball.svg $P/fonts/Galmuri11-Bold.woff2 $M/
@@ -69,14 +75,17 @@ for id in 25 26 6; do cp $P/assets/cries/latest/$id.ogg $M/grito-$id.ogg; done
 cp $P/assets/sfx/torcida-gol-1.mp3 $P/assets/sfx/torcida-uuh-1.mp3 $M/
 
 # ---- música ---------------------------------------------------------------------------------------------------
-# Grade: 178 BPM, compasso 1,348 s, 1ª batida da faixa em 0,968 s. O trailer usa a faixa a partir de 0,5 s.
+# Grade: 178 BPM, compasso 1,348 s, 1ª batida da faixa em 0,968 s. O trailer usa a faixa a partir de 0,5 s (entra em
+# 7,96 s do vídeo), e o gol do Raichu (batida 48) cai no compasso 12 da faixa.
 if [ "${ORIGINAL:-0}" = 1 ]; then
-  ffmpeg -v error -y -ss 0.5 -t 26 -i "$MUSICA" -ar 48000 -ac 2 $M/musica.wav
+  ffmpeg -v error -y -ss 0.5 -t 32 -i "$MUSICA" -ar 48000 -ac 2 $M/musica.wav
 else
-  # Trailer 1 (vídeo final): a faixa começa em 6,05 s. Os compassos 10–13 da faixa (14,448–19,840 s) têm os gritos
-  # dos golpes por cima: saem, e a emenda cai na batida do gol (plano 13). Com o MP3 original não há emenda.
+  # Trailer 1 (vídeo final): a faixa começa em 6,05 s do vídeo, com gritos por cima nos compassos 10–13 e 25. Saem
+  # nas emendas (sempre no começo de compasso, c_k = 0,968 + k·1,3483): c0–c9, c14–c24, c17 no lugar do c25 (mesma
+  # posição na frase de 8), c26 em diante. Com o MP3 original não há emenda.
+  c() { python3 -c "print(6.05 + 0.968 + $1 * 60 / 178 * 4)"; }
   ffmpeg -v error -y -i "$MUSICA" -filter_complex \
-    "[0:a]atrim=6.55:20.498,asetpts=PTS-STARTPTS[a];[0:a]atrim=25.890:38.5,asetpts=PTS-STARTPTS[b];[a][b]acrossfade=d=0.012:c1=tri:c2=tri" \
+    "[0:a]atrim=6.55:$(c 10),asetpts=PTS-STARTPTS[a];[0:a]atrim=$(c 14):$(c 25),asetpts=PTS-STARTPTS[b];[0:a]atrim=$(c 17):$(c 18),asetpts=PTS-STARTPTS[d];[0:a]atrim=$(c 26):$(c 28),asetpts=PTS-STARTPTS[e];[a][b]acrossfade=d=0.012[ab];[ab][d]acrossfade=d=0.012[abd];[abd][e]acrossfade=d=0.012" \
     -ar 48000 -ac 2 $M/musica.wav
 fi
 echo pronto

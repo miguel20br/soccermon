@@ -14,6 +14,8 @@ export const TRAILER_SCENES = {
     golpe: { lineup: [143, 6, 135, 130, 150], bench: [] },
     // golpe do Charizard que para numa defesaça ou na trave (o time da cena golpe)
     defesa: { lineup: [143, 6, 135, 130, 150], bench: [] },
+    // trailer 2: tudo na mesma partida: golpe do Charizard que para na defesa, Pikachu (capitão) evolui e o Raichu marca
+    partida: { lineup: [143, 6, 135, 7, 25], bench: [] },
     // jogada trabalhada (troca de passes até o gol)
     jogada: { lineup: [143, 68, 25, 136, 150], bench: [] },
     // Ditto copia o melhor em campo + combo Gênese (Mew + Mewtwo)
