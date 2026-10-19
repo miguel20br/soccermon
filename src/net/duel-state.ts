@@ -713,6 +713,9 @@ function apply(s: Shared, i: Intent, by: Role, ctx: Ctx): Shared {
         case 'join': {
             const cur = s.peers[by];
             if (!i.peer || (cur && cur.id !== i.peer.id)) return s;
+            // o mesmo perfil de novo (hello repetido) não é estado novo: o jogo antigo, que não entende o patch, pede
+            // hello a cada relógio com rev maior e ficaria num vaivém de rev sem nunca ver o aviso de versão
+            if (cur && JSON.stringify(cur) === JSON.stringify(i.peer)) return s;
             return { ...s, peers: { ...s.peers, [by]: i.peer } };
         }
         case 'ready': {

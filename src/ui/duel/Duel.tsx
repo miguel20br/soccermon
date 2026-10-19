@@ -470,6 +470,21 @@ function InviteBox({ s, local, compact }: { s: Shared; local: boolean; compact: 
     );
 }
 
+/**
+ * Jogos de versões diferentes na sala (um com a página velha em cache, ou que recarregou depois de uma versão nova):
+ * o lobby não deixa começar e, se acontecer no meio, o aviso fica no topo em vez de a partida se separar calada.
+ */
+function VersionBanner({ s }: { s: Shared }) {
+    const { t } = useT();
+    if (!s.peers.host || !s.peers.guest || versionsOk(s)) return null;
+    const v = (p: Peer) => `${p.app} · ${t('duel.lobby.engine')} ${p.engine}`;
+    return (
+        <p className="duel-banner warn" data-testid="duel-versions">
+            {t('duel.lobby.versions', { a: v(s.peers.host), b: v(s.peers.guest) })}
+        </p>
+    );
+}
+
 function Lobby() {
     const { t, d } = useT();
     const s = useDuel((st) => st.shared)!;
@@ -477,7 +492,6 @@ function Lobby() {
     const online = useDuel((st) => st.online);
     const local = useDuel((st) => st.local);
     const mismatch = s.peers.host && s.peers.guest && !versionsOk(s);
-    const v = (p?: Peer) => (p ? `${p.app} · motor ${p.engine}` : '');
     const rivalIn = !!s.peers[other(role)];
     return (
         <div className="duel-lobby">
@@ -504,11 +518,7 @@ function Lobby() {
                     <PeerCard key={r} p={s.peers[r]} role={r} me={r === role} online={online[r]} ready={s.ready[r]} />
                 ))}
             </div>
-            {mismatch && (
-                <p className="duel-banner warn">
-                    {t('duel.lobby.versions', { a: v(s.peers.host), b: v(s.peers.guest) })}
-                </p>
-            )}
+            <VersionBanner s={s} />
             <button
                 type="button"
                 className={`btn big ${s.ready[role] ? 'ghost' : 'primary'}`}
@@ -821,6 +831,7 @@ export function Duel() {
                 </div>
             )}
             {s && role && <WaitBanner s={s} role={role} />}
+            {s && role && s.phase !== 'lobby' && <VersionBanner s={s} />}
             {body}
             <LeaveConfirm />
         </div>

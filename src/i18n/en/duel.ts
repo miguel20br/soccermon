@@ -82,7 +82,9 @@ export const duel: typeof pt = {
         notReady: 'Not yet',
         imReady: "I'm ready",
         unready: 'Wait',
-        versions: 'Different versions ({a} vs {b}). Reload the page: the duel only starts with the same game on both.',
+        engine: 'engine',
+        versions:
+            'Different versions ({a} vs {b}). Reload the page to join this duel: it only works with the same game on both.',
         local: 'Local room (two tabs on this device, no internet).',
     },
     team: {

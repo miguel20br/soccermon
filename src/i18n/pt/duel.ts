@@ -78,7 +78,9 @@ export const duel = {
         notReady: 'Ainda não',
         imReady: 'Estou pronto',
         unready: 'Esperar',
-        versions: 'Versões diferentes ({a} x {b}). Atualizem a página: o duelo só começa com o mesmo jogo nos dois.',
+        engine: 'motor',
+        versions:
+            'Versões diferentes ({a} x {b}). Atualize a página pra entrar nesse duelo: ele só vale com o mesmo jogo nos dois.',
         local: 'Sala local (duas abas neste aparelho, sem internet).',
     },
     team: {

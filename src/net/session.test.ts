@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { Peer, Shared } from './duel-state';
+import { type Peer, type Shared, versionsOk } from './duel-state';
 import { applyPatch } from './patch';
 
 // a sessão roda no navegador: aqui sem Phaser nem Supabase, com o BroadcastChannel do Node no lugar da outra aba
@@ -249,5 +249,32 @@ describe('sessão: só o que mudou (patch)', () => {
         expect(shared().result).toBeUndefined();
         bia.close();
         eve.close();
+    });
+});
+
+describe('sessão: jogo de versão antiga na sala', () => {
+    it('convidado antigo (só entende o estado inteiro e repete o hello): vê a sala com o aviso, sem vaivém', async () => {
+        const room = await duel.create(peer('ana'), 'disputa', 4, true);
+        const old = tab(room, 'bia');
+        const oldPeer = { ...peer('bia'), app: '0.8.4' };
+        old.send({ t: 'hello', peer: oldPeer, rev: 0 });
+        await wait(150);
+        const rev = shared().rev;
+        // o jogo antigo ignora o patch e, vendo rev maior no relógio, manda hello de novo
+        for (let k = 0; k < 3; k++) {
+            old.send({ t: 'hello', peer: oldPeer, rev });
+            await wait(100);
+        }
+        expect(shared().rev).toBe(rev);
+        const full = old.got.filter((m) => m.t === 'state').at(-1)?.shared as Shared;
+        expect(full.rev).toBe(rev);
+        expect(full.peers.guest?.app).toBe('0.8.4');
+        expect(versionsOk(full)).toBe(false);
+        // pronto dos dois não começa a partida com versões diferentes
+        await duel.setReady(true);
+        old.send({ t: 'intent', intent: { k: 'ready', ready: true, commit: 'a'.repeat(64), specialLimit: 3 } });
+        await wait(150);
+        expect(shared().phase).toBe('lobby');
+        old.close();
     });
 });
