@@ -517,6 +517,7 @@ button.pf-trainer:focus-visible,
 .pf-type:focus-visible,
 .pf-cell:focus-visible,
 .pf-av:focus-visible,
+.pf-av-opt:focus-visible,
 .pf-color:focus-visible,
 .pf-evo-mon:focus-visible {
     outline: 3px solid var(--yellow);
@@ -680,6 +681,63 @@ fieldset.pf-field,
     width: 18px;
     height: 18px;
     filter: drop-shadow(0 1px 0 rgb(0 0 0 / 50%));
+}
+/* shiny liberado: o brilho pequeno no canto do avatar normal; tocar abre a escolha Normal / Shiny no lugar dele */
+.pf-av-has-shiny {
+    position: relative;
+    overflow: visible;
+}
+.pf-av-has-shiny .pf-spark {
+    top: -3px;
+    right: -3px;
+    width: 15px;
+    height: 15px;
+}
+.pf-av-choice {
+    display: flex;
+    gap: 6px;
+    min-width: 0;
+    margin: 0;
+    padding: 3px 8px 4px;
+    border: 2px solid var(--yellow);
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--yellow) 12%, var(--bg-2));
+    animation: pf-av-choice-in 0.16s var(--ease-out);
+}
+.pf-av-opt {
+    display: grid;
+    justify-items: center;
+    gap: 3px;
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    background: none;
+    color: var(--muted);
+    font: inherit;
+    cursor: pointer;
+}
+.pf-av-opt small {
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+}
+.pf-av-opt[aria-pressed="true"] {
+    color: var(--yellow);
+}
+.pf-av-opt .pf-av {
+    width: 44px;
+    height: 44px;
+}
+@keyframes pf-av-choice-in {
+    from {
+        opacity: 0;
+        transform: scale(0.92);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .pf-av-choice {
+        animation: none;
+    }
 }
 /* um bloco por geração: fechado mostra o avatar escolhido e a contagem */
 .pf-gen {

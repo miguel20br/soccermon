@@ -81,6 +81,8 @@ export function ClubTab() {
     const rivalLook = againstLook(look, lookOfCupClub('Cerulean Cascata', PREVIEW_RIVAL));
     const runOld = run && !['eliminated', 'champion'].includes(run.status) && run.teamName !== profile.clubName;
     const av = profile.avatar;
+    // avatar com shiny liberado que foi tocado: mostra a escolha Normal / Shiny
+    const [choosing, setChoosing] = useState<number | null>(null);
 
     return (
         <div className="pf-club">
@@ -147,34 +149,67 @@ export function ClubTab() {
                                     )}
                                     <b>{t('profile.club.gen', { gen: g.gen, region: g.region })}</b>
                                     <span className="pf-count">
-                                        {opts.filter((o) => !o.shiny).length}/{g.to - g.from + 1}
+                                        {opts.length}/{g.to - g.from + 1}
                                     </span>
                                 </summary>
                                 <div className="pf-avatars">
                                     {opts.map(({ speciesId: id, shiny }) => {
-                                        const on = mine && av.speciesId === id && (av.shiny === true) === shiny;
-                                        const name = shiny
-                                            ? t('profile.club.shinyName', { name: species(id).name })
-                                            : species(id).name;
-                                        return (
+                                        const on = mine && av.speciesId === id;
+                                        const onShiny = on && av.shiny === true;
+                                        const name = species(id).name;
+                                        const pick = (s: boolean) => {
+                                            setChoosing(null);
+                                            save({
+                                                avatar: s
+                                                    ? { kind: 'pokemon', speciesId: id, shiny: true }
+                                                    : { kind: 'pokemon', speciesId: id },
+                                            });
+                                        };
+                                        // shiny liberado: tocar abre a escolha Normal / Shiny no lugar do botão
+                                        return shiny && choosing === id ? (
+                                            <fieldset
+                                                key={id}
+                                                className="pf-av-choice"
+                                                aria-label={t('profile.club.avatarPick', { name })}
+                                            >
+                                                {[false, true].map((s) => (
+                                                    <button
+                                                        type="button"
+                                                        key={String(s)}
+                                                        className="pf-av-opt"
+                                                        aria-pressed={on && onShiny === s}
+                                                        onClick={() => pick(s)}
+                                                    >
+                                                        <span
+                                                            className={`pf-av${on && onShiny === s ? ' active' : ''}${s ? ' pf-av-shiny' : ''}`}
+                                                        >
+                                                            <img className="pixel" src={speciesGif(id, s)} alt="" />
+                                                            {s && <ShinySpark />}
+                                                        </span>
+                                                        <small>
+                                                            {t(
+                                                                s
+                                                                    ? 'profile.club.avatarShiny'
+                                                                    : 'profile.club.avatarNormal',
+                                                            )}
+                                                        </small>
+                                                    </button>
+                                                ))}
+                                            </fieldset>
+                                        ) : (
                                             <button
                                                 type="button"
                                                 aria-pressed={on}
-                                                key={`${id}${shiny ? 's' : ''}`}
-                                                className={`pf-av${on ? ' active' : ''}${shiny ? ' pf-av-shiny' : ''}`}
-                                                onClick={() =>
-                                                    save({
-                                                        avatar: shiny
-                                                            ? { kind: 'pokemon', speciesId: id, shiny: true }
-                                                            : { kind: 'pokemon', speciesId: id },
-                                                    })
-                                                }
-                                                title={name}
+                                                aria-expanded={shiny ? false : undefined}
+                                                key={id}
+                                                className={`pf-av${on ? ' active' : ''}${shiny ? ' pf-av-has-shiny' : ''}`}
+                                                onClick={() => (shiny ? setChoosing(id) : pick(false))}
+                                                title={shiny ? t('profile.club.avatarHasShiny', { name }) : name}
                                             >
                                                 <img
                                                     className="pixel"
-                                                    src={speciesGif(id, shiny)}
-                                                    alt={name}
+                                                    src={speciesGif(id, onShiny)}
+                                                    alt={shiny ? t('profile.club.avatarHasShiny', { name }) : name}
                                                     loading="lazy"
                                                 />
                                                 {shiny && <ShinySpark />}

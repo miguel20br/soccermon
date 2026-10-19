@@ -332,15 +332,15 @@ export const hasSticker = (e: DexEntry | undefined, ed: AlbumEdition) => !!((e?.
 export const GENERATIONS = [{ gen: 1, region: 'Kanto', from: 1, to: 151 }] as const;
 
 /**
- * Avatares liberados de uma geração: o Pikachu sempre, os que jogaram pelo seu time e, ao lado da normal, a
- * versão shiny de quem já tem a figurinha Shiny no álbum.
+ * Avatares liberados de uma geração, um por espécie: o Pikachu sempre e os que jogaram pelo seu time. `shiny` = a
+ * versão shiny também está liberada (figurinha Shiny no álbum): o Perfil mostra o brilho e pergunta qual ao tocar.
  */
 export function avatarOptions(dex: Dex, g: { from: number; to: number }): { speciesId: number; shiny: boolean }[] {
     const out: { speciesId: number; shiny: boolean }[] = [];
     for (let id = g.from; id <= g.to; id++) {
         const e = dex[id];
-        if (id === 25 || isPlayed(e)) out.push({ speciesId: id, shiny: false });
-        if (hasSticker(e, 'shiny')) out.push({ speciesId: id, shiny: true });
+        const shiny = hasSticker(e, 'shiny');
+        if (id === 25 || isPlayed(e) || shiny) out.push({ speciesId: id, shiny });
     }
     return out;
 }

@@ -199,14 +199,13 @@ describe('código de conserto da Pokédex', () => {
 describe('avatar', () => {
     const kanto = GENERATIONS[0];
 
-    it('Pikachu sempre; quem jogou vira opção; a versão shiny só com a figurinha Shiny, ao lado da normal', () => {
+    it('Pikachu sempre; quem jogou vira opção (uma por espécie); a shiny liberada só com a figurinha Shiny', () => {
         expect(avatarOptions({}, kanto)).toEqual([{ speciesId: 25, shiny: false }]);
         let dex = recordMatchInDex({}, [line({ speciesId: 1 }), line({ speciesId: 4 })], true);
         dex = markSeen(dex, [7]); // só visto: não vira avatar
         dex = recordEditions(dex, [[4, EDITION_BIT.shiny]]);
         expect(avatarOptions(dex, kanto)).toEqual([
             { speciesId: 1, shiny: false },
-            { speciesId: 4, shiny: false },
             { speciesId: 4, shiny: true },
             { speciesId: 25, shiny: false },
         ]);
