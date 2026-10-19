@@ -3,12 +3,28 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Página não encontrada · Page not found · Soccermon</title>
+    <title>Fora de jogo · Soccermon</title>
     <meta name="robots" content="noindex" />
     <meta name="theme-color" content="#141a33" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/svg+xml" href="/assets/ui/icone.svg" />
+    <!--
+        Página 404 (a Vercel serve dist/404.html, com status 404, pra todo caminho que não existe).
+        Sozinha de propósito: não carrega o jogo, só o logo, a bola, um sprite e as fontes pixel (~50 KB).
+        Visual do kit da transmissão (src/ui/broadcast-kit.css): placar 4 x 4 com a bola no meio.
+    -->
     <style>
+        @font-face {
+            font-family: "Galmuri11";
+            src: url("/fonts/Galmuri11-Bold.woff2") format("woff2");
+            font-weight: 700;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: "Galmuri14";
+            src: url("/fonts/Galmuri14.woff2") format("woff2");
+            font-display: swap;
+        }
         :root {
             --bg: #141a33;
             --panel: #232d57;
@@ -18,6 +34,12 @@
             --yellow: #ffcb05;
             --red: #e8423f;
             --red-dark: #b22b29;
+            --ink: #0e1430;
+            --ink-2: #1b2350;
+            --ink-3: #10173a;
+            --paper: #f4f1e6;
+            --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+            --ease-pop: cubic-bezier(0.2, 0.9, 0.3, 1.4);
             color-scheme: dark;
         }
         * {
@@ -31,74 +53,466 @@
             place-items: center;
             background: radial-gradient(1200px 600px at 50% -10%, #2a3570 0%, var(--bg) 60%) fixed, var(--bg);
             color: var(--text);
-            font: 15px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
         }
         main {
-            width: min(440px, 100%);
-            padding: 24px 16px;
+            width: min(460px, 100%);
+            padding: 20px 16px 28px;
+            display: grid;
+            gap: 16px;
             text-align: center;
         }
         .logo {
-            width: min(280px, 80%);
+            display: block;
+            width: min(240px, 70%);
             height: auto;
+            margin: 0 auto;
         }
-        section {
-            background: var(--panel);
-            border: 2px solid var(--line);
-            border-radius: 12px;
-            padding: 8px 18px 20px;
+
+        .side {
+            display: grid;
+            gap: 16px;
+        }
+        /* placar da transmissão: etiqueta em cima, 4 [bola] 4, faixa da narração embaixo */
+        .bug {
+            position: relative;
             margin-top: 16px;
+            text-align: left;
         }
+        .tag {
+            position: absolute;
+            left: 18px;
+            top: 0;
+            transform: translateY(-100%);
+            padding: 2px 10px 1px;
+            border-radius: 4px 4px 0 0;
+            background: var(--yellow);
+            color: var(--ink);
+            font: 700 10px/14px "Galmuri11", monospace;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .score {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            background: var(--ink);
+            border-radius: 6px 6px 0 0;
+            overflow: hidden;
+        }
+        .score::before,
+        .score::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            background: var(--yellow);
+        }
+        .score::before {
+            left: 0;
+        }
+        .score::after {
+            right: 0;
+            background: var(--red);
+        }
+        .digit {
+            justify-self: center;
+            min-width: 52px;
+            margin: 8px 0;
+            padding: 0 6px;
+            border-radius: 4px;
+            background: var(--paper);
+            color: var(--ink);
+            font: 400 44px/60px "Galmuri14", "Galmuri11", monospace;
+            text-align: center;
+        }
+        .mid {
+            display: grid;
+            place-items: center;
+            width: 96px;
+            background: var(--ink-2);
+        }
+        .mid img {
+            width: 46px;
+            height: 46px;
+            animation: spin 3s linear infinite;
+        }
+        .strip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+            padding: 7px 12px;
+            background: var(--ink-3);
+            border-bottom: 2px solid #000;
+            border-radius: 0 0 6px 6px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+        /* luzinha do "ao vivo" */
+        .strip i {
+            flex: none;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--red);
+            box-shadow: 0 0 0 3px rgb(232 66 63 / 25%);
+            animation: blink 1.2s steps(2, jump-none) infinite;
+        }
+
+        /* quadra: o Pokémon perdido, a bola fora da linha e o bandeirinha */
+        .court {
+            position: relative;
+            height: 132px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 3px solid #fff3;
+            background:
+                radial-gradient(ellipse 60% 90% at 50% 0%, rgb(255 240 200 / 35%), transparent 70%),
+                repeating-linear-gradient(90deg, #d39a5c 0 34px, #c98d4f 34px 68px);
+            box-shadow:
+                inset 0 -26px 36px rgb(0 0 0 / 30%),
+                0 6px 0 rgb(0 0 0 / 35%);
+        }
+        /* linha lateral: daqui pra direita é fora */
+        .court .line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 22%;
+            width: 3px;
+            background: rgb(255 255 255 / 85%);
+        }
+        .court .circle {
+            position: absolute;
+            left: 10%;
+            top: 50%;
+            width: 76px;
+            height: 76px;
+            border: 3px solid rgb(255 255 255 / 80%);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .mon {
+            position: absolute;
+            left: 36%;
+            bottom: 22px;
+            height: 64px;
+            transform-origin: 50% 100%;
+            translate: -50% 0;
+            image-rendering: pixelated;
+            filter: drop-shadow(0 4px 0 rgb(0 0 0 / 30%));
+            animation: confused 6s ease-in-out infinite;
+        }
+        .ask {
+            position: absolute;
+            left: calc(36% + 22px);
+            bottom: 86px;
+            display: grid;
+            place-items: center;
+            width: 26px;
+            height: 26px;
+            border: 2px solid var(--ink);
+            border-radius: 50%;
+            background: #fff;
+            color: var(--ink);
+            font: 400 16px/1 "Galmuri14", monospace;
+            animation: ask 6s var(--ease-pop) infinite;
+        }
+        .ball {
+            position: absolute;
+            left: 88%;
+            bottom: 24px;
+            width: 18px;
+            height: 18px;
+            translate: -50% 0;
+            animation: out 6s var(--ease-out) infinite;
+        }
+        .ball img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            animation: roll 6s var(--ease-out) infinite;
+        }
+        /* bandeirinha: sobe quando a bola cruza a linha */
+        .flag {
+            position: absolute;
+            right: 6%;
+            bottom: 18px;
+            width: 4px;
+            height: 58px;
+            border-radius: 2px;
+            background: #e9e4d4;
+            transform-origin: 50% 100%;
+            rotate: 0deg;
+            animation: flag 6s var(--ease-pop) infinite;
+        }
+        .flag::after {
+            content: "";
+            position: absolute;
+            left: 4px;
+            top: 0;
+            width: 24px;
+            height: 17px;
+            border: 2px solid var(--ink);
+            background: conic-gradient(var(--yellow) 25%, var(--red) 0 50%, var(--yellow) 0 75%, var(--red) 0) 0 0 / 50% 50%;
+        }
+
         h1 {
+            margin: 4px 0 0;
             color: var(--yellow);
-            font-size: 24px;
-            margin: 12px 0 4px;
+            font: 700 26px/1.2 "Galmuri11", monospace;
+            letter-spacing: 1px;
+            text-shadow: 3px 3px 0 #2a4ea0;
         }
         p {
+            margin: 0;
             color: var(--muted);
-            margin: 0 0 16px;
         }
         .btn {
+            justify-self: center;
             display: inline-block;
-            padding: 10px 20px;
+            min-width: 200px;
+            padding: 12px 22px;
             border-radius: 8px;
             border: 3px solid var(--red-dark);
             background: var(--red);
             box-shadow: 0 3px 0 #6e1615;
             color: var(--text);
-            font-weight: 700;
+            font: 700 15px/1.3 "Galmuri11", system-ui, sans-serif;
             text-decoration: none;
+            transition: transform 0.06s ease, filter 0.15s ease;
         }
         .btn:hover {
             filter: brightness(1.15);
         }
-        .en {
-            border-top: 1px solid var(--line);
-            margin-top: 20px;
-            padding-top: 4px;
-        }
-        .en h1 {
-            font-size: 20px;
+        .btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #6e1615;
         }
         .btn:focus-visible {
-            outline: 3px solid var(--yellow);
-            outline-offset: 2px;
+            outline: 3px solid #fff;
+            outline-offset: 3px;
+        }
+
+        /* entrada: placar desce, quadra e texto sobem */
+        .bug,
+        .court,
+        .text {
+            animation: rise 0.5s var(--ease-out) both;
+        }
+        .court {
+            animation-delay: 0.08s;
+        }
+        .text {
+            animation-delay: 0.16s;
+        }
+        .text {
+            display: grid;
+            gap: 12px;
+        }
+
+        @keyframes rise {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+        }
+        @keyframes spin {
+            to {
+                rotate: 360deg;
+            }
+        }
+        @keyframes blink {
+            50% {
+                opacity: 0.25;
+            }
+        }
+        @keyframes roll {
+            0% {
+                rotate: -540deg;
+            }
+            30%,
+            100% {
+                rotate: 0deg;
+            }
+        }
+        /* a bola sai do pé dele, cruza a linha e para fora; some e volta no começo */
+        @keyframes out {
+            0% {
+                left: 40%;
+                opacity: 0;
+            }
+            4% {
+                opacity: 1;
+            }
+            30%,
+            90% {
+                left: 88%;
+                opacity: 1;
+            }
+            100% {
+                left: 88%;
+                opacity: 0;
+            }
+        }
+        @keyframes flag {
+            0%,
+            24% {
+                rotate: -70deg;
+            }
+            32%,
+            86% {
+                rotate: 0deg;
+            }
+            94%,
+            100% {
+                rotate: -70deg;
+            }
+        }
+        /* olha pra bola, coça a cabeça (balança), olha pra gente */
+        @keyframes confused {
+            0%,
+            30%,
+            100% {
+                rotate: 0deg;
+                scale: 1 1;
+            }
+            38% {
+                rotate: -8deg;
+            }
+            46% {
+                rotate: 8deg;
+            }
+            54% {
+                rotate: -6deg;
+            }
+            62%,
+            90% {
+                rotate: 0deg;
+                scale: -1 1;
+            }
+        }
+        @keyframes ask {
+            0%,
+            32% {
+                opacity: 0;
+                scale: 0.3;
+            }
+            40%,
+            88% {
+                opacity: 1;
+                scale: 1;
+            }
+            96%,
+            100% {
+                opacity: 0;
+                scale: 0.6;
+            }
+        }
+
+        /* celular deitado: placar e quadra à esquerda; logo, texto e botão à direita */
+        @media (orientation: landscape) and (max-height: 520px) {
+            main {
+                width: min(820px, 100%);
+                grid-template-columns: 1fr 1fr;
+                grid-template-areas:
+                    "side brand"
+                    "side text";
+                align-items: center;
+                gap: 8px 24px;
+                padding-block: 12px;
+            }
+            .brand {
+                grid-area: brand;
+                align-self: end;
+            }
+            .side {
+                grid-area: side;
+                gap: 12px;
+            }
+            .text {
+                grid-area: text;
+                align-self: start;
+            }
+            .court {
+                height: 118px;
+            }
+            .mon {
+                height: 54px;
+                bottom: 18px;
+            }
+            .ask {
+                bottom: 74px;
+            }
+        }
+        @media (max-width: 360px) {
+            .digit {
+                min-width: 44px;
+                font-size: 38px;
+                line-height: 54px;
+            }
+            .mid {
+                width: 80px;
+            }
+            h1 {
+                font-size: 23px;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation: none !important;
+                transition: none !important;
+            }
+            /* parado no lance: bola fora, bandeira em pé, o "?" na cabeça */
+            .flag {
+                rotate: 0deg;
+            }
         }
     </style>
 </head>
 <body>
     <main>
-        <img class="logo" src="/assets/ui/logo.svg" alt="Soccermon" />
-        <section>
-            <h1>Essa página não existe</h1>
-            <p>O endereço pode ter mudado ou foi digitado errado. A copa continua te esperando.</p>
-            <a class="btn" href="/">Voltar ao jogo</a>
-            <div class="en" lang="en">
-                <h1>This page doesn't exist</h1>
-                <p>The address may have changed or was mistyped. Your cup is still waiting for you.</p>
-                <a class="btn" href="/">Back to the game</a>
+        <a class="brand" href="/" aria-label="Soccermon"><img class="logo" src="/assets/ui/logo.svg" alt="Soccermon" width="1468" height="300" /></a>
+        <div class="side">
+            <div class="bug">
+                <span class="tag" data-en="Error 404">Erro 404</span>
+                <div class="score" aria-hidden="true">
+                    <b class="digit">4</b>
+                    <span class="mid"><img src="/assets/ui/ball.svg" alt="" width="46" height="46" /></span>
+                    <b class="digit">4</b>
+                </div>
+                <p class="strip"><i></i><span data-en="The ball went out of play!">A bola saiu da quadra!</span></p>
             </div>
-        </section>
+            <div class="court" aria-hidden="true">
+                <i class="circle"></i>
+                <i class="line"></i>
+                <i class="flag"></i>
+                <img class="mon" src="/assets/cards/54.gif" alt="" />
+                <span class="ask">?</span>
+                <span class="ball"><img src="/assets/ui/ball.svg" alt="" /></span>
+            </div>
+        </div>
+        <div class="text">
+            <h1 data-en="Offside!">Fora de jogo!</h1>
+            <p data-en="This page doesn't exist or has moved. Your cup is still waiting for you.">
+                Essa página não existe ou mudou de endereço. A copa continua te esperando.
+            </p>
+            <a class="btn" href="/" data-en="Back to the game">Voltar pro jogo</a>
+        </div>
     </main>
+    <script>
+        // idioma do navegador, igual ao jogo (pt* = português, o resto inglês)
+        if (!/^pt/i.test(navigator.language || '')) {
+            document.documentElement.lang = 'en';
+            document.title = 'Offside · Soccermon';
+            document.querySelectorAll('[data-en]').forEach(function (el) {
+                el.textContent = el.getAttribute('data-en');
+            });
+        }
+    </script>
 </body>
 </html>
