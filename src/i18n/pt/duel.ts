@@ -123,7 +123,6 @@ export const duel = {
         hint: 'Ajuste o time vendo o rival. Toque em dois pra trocar.',
         rival: 'Rival: {name}',
         ready: 'Pronto pro jogo',
-        captainStays: 'O capitão começa jogando: troque com outro titular.',
         autoTaker: 'Automático',
         formation: 'Formação',
         tactic: 'Tática',

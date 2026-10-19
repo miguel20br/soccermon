@@ -456,7 +456,7 @@ export function tagTeam(team: TeamSetup, role: Role): TeamSetup {
 
 const TACTICS: Tactic[] = ['balanced', 'offensive', 'defensive', 'counter'];
 
-/** Aplica a prévia aberta (mesmo elenco, formação e tática válidas, capitão em quadra). */
+/** Aplica a prévia aberta (mesmo elenco, formação e tática válidas; o capitão pode começar no banco, como na copa). */
 export function applyPreview(team: TeamSetup, cfg: PreviewCfg): TeamSetup | null {
     if (!cfg || !FORMATIONS[cfg.formation] || !TACTICS.includes(cfg.tactic)) return null;
     const all = [...team.lineup, ...team.bench];
@@ -466,7 +466,6 @@ export function applyPreview(team: TeamSetup, cfg: PreviewCfg): TeamSetup | null
     const order = cfg.order.map((u) => byUid.get(u));
     if (order.some((p) => !p)) return null;
     const lineup = order.slice(0, 5) as PokemonInstance[];
-    if (team.captainUid && !lineup.some((p) => p.uid === team.captainUid)) return null;
     if (cfg.corner !== undefined && !CORNER_PLANS.includes(cfg.corner)) return null;
     if (cfg.cornerTaker != null && !byUid.has(cfg.cornerTaker)) return null;
     return {

@@ -125,7 +125,6 @@ export const duel: typeof pt = {
         hint: 'Set up your team while seeing the rival. Tap two to swap.',
         rival: 'Rival: {name}',
         ready: 'Ready to play',
-        captainStays: 'The captain starts: swap with another starter.',
         autoTaker: 'Automatic',
         formation: 'Formation',
         tactic: 'Tactic',

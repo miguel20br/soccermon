@@ -450,7 +450,6 @@ export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
         corner: team.corner ?? 'mixed',
         cornerTaker: team.cornerTakerUid ?? null,
     }));
-    const [captainNote, setCaptainNote] = useState(false);
     useEffect(() => {
         duel.previewDraft = cfg;
     }, [cfg]);
@@ -460,10 +459,7 @@ export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
         const order = [...cfg.order];
         const [i, j] = [idxOf(a), idxOf(b)];
         [order[i], order[j]] = [order[j], order[i]];
-        // o capitão começa jogando (a regra do lacre: sem isso a escalação não abre)
-        const benched = !!team.captainUid && !order.slice(0, 5).includes(team.captainUid);
-        setCaptainNote(benched);
-        if (!benched) setCfg({ ...cfg, order });
+        setCfg({ ...cfg, order });
     };
     const rivalAvg = avgOf(rivalTeam);
     return (
@@ -535,7 +531,6 @@ export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
                             }}
                             onUndo={() => duel.unsealChoice()}
                         />
-                        {captainNote && <p className="error-text">{t('duel.preview.captainStays')}</p>}
                     </div>
                 }
             />

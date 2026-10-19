@@ -15,6 +15,7 @@ import { runMatch } from '../engine/runners/batch-runner';
 import type { TeamSetup } from '../engine/state';
 import {
     acceptTakeover,
+    applyPreview,
     autoLineup,
     blocker,
     type Ctx,
@@ -186,6 +187,20 @@ describe('validarTimeDuelo (time pronto)', () => {
         expect(edit((r) => (r.lineup[1] = { ...r.lineup[0] })).length).toBeGreaterThan(0);
         expect(edit((r) => r.lineup.pop()).length).toBeGreaterThan(0);
         expect(validarTimeDuelo(null)).toEqual(['time vazio']);
+    });
+
+    it('capitão no banco passa (a copa deixa) e a prévia aceita deixar ele no banco', () => {
+        const t = team('capitao-banco');
+        const benched = { ...t, captainUid: t.bench[0].uid };
+        const r = teamRecipe(benched);
+        expect(r.captain).toBe(5);
+        expect(validarTimeDuelo(r)).toEqual([]);
+        const back = teamFromRecipe(r, '~h');
+        expect(back.captainUid).toBe(back.bench[0].uid);
+        const order = [...back.lineup, ...back.bench].map((p) => p.uid);
+        const applied = applyPreview(back, { formation: back.formation ?? '1-2-1', tactic: 'balanced', order });
+        expect(applied?.captainUid).toBe(back.bench[0].uid);
+        expect(edit((x) => (x.captain = 7)).length).toBeGreaterThan(0);
     });
 
     it('carta que evoluiu na copa leva o bônus de evolução pro duelo (carta = campo)', () => {
