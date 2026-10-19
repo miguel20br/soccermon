@@ -678,7 +678,16 @@ export const useGame = create<GameStore>()(
                             moves: Object.keys(getState().moves).length,
                         },
                     };
-                    setState({ run, match: null, screen: 'draft' });
+                    // começar outra por cima de uma copa em jogo é abandonar a atual: a sequência de títulos zera
+                    const { records } = getState();
+                    setState({
+                        run,
+                        match: null,
+                        screen: 'draft',
+                        ...(isCupInProgress(getState().run) && {
+                            records: { ...records, ...streakAfter(records, false) },
+                        }),
+                    });
                 },
 
                 abandonRun: () =>

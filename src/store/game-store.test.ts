@@ -314,3 +314,17 @@ describe('Monta pra mim (draft automático, escolha do jogador)', () => {
         expect(new Set(run.picks.map((p) => p.speciesId)).size).toBe(DRAFT_PICKS);
     });
 });
+
+describe('sequência de títulos', () => {
+    it('nova copa por cima de uma em andamento zera a sequência (como abandonar); depois do fim, não', () => {
+        const records = { cups: 3, titles: 3, perfect: 0, streak: 3, bestStreak: 3 };
+        useGame.setState({ records });
+        useGame.getState().newRun('Pallet FC', 'seq-a');
+        useGame.getState().newRun('Pallet FC', 'seq-b');
+        expect(useGame.getState().records.streak).toBe(0);
+        expect(useGame.getState().records.bestStreak).toBe(3);
+        useGame.setState({ records, run: { ...useGame.getState().run!, status: 'champion' } });
+        useGame.getState().newRun('Pallet FC', 'seq-c');
+        expect(useGame.getState().records.streak).toBe(3);
+    });
+});
