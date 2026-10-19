@@ -83,7 +83,8 @@ async function close(db: SupabaseClient, uid: string, m: Json, won: boolean, ext
 }
 
 async function inscrever(db: SupabaseClient, uid: string, body: Json) {
-    const problems = L.validarTimeDuelo(body.team, LIGA_SPECIALS);
+    // engine.js não tem tipos: o Deno acha que o 2º parâmetro só aceita o padrão (null)
+    const problems: string[] = L.validarTimeDuelo(body.team, LIGA_SPECIALS as never);
     if (problems.length) throw new Recusa(`time_invalido: ${problems.slice(0, 3).join('; ')}`);
     const team = L.teamFromRecipe(body.team as never, 'x');
     const ovr = Math.round(team.lineup.reduce((n, p) => n + L.viewInstance(p).overall, 0) / team.lineup.length);
