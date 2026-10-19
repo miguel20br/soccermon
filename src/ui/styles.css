@@ -440,6 +440,26 @@ img.pixel {
     display: flex;
     gap: 6px;
 }
+/* "Monta pra mim": no PC fica no cabeçalho; no celular é a barra do polegar (broadcast-kit.css) */
+.draft-auto {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+.draft-auto p {
+    flex: 1 1 100%;
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--muted);
+}
+@media (min-width: 701px) and (min-height: 521px) {
+    .draft-auto.ask {
+        flex: 1 1 100%;
+    }
+}
 .steps span {
     width: 26px;
     height: 8px;

@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 import type { Position } from '../engine/attributes';
 import { buildCupOpponents, CUP_STAGES } from '../engine/cup';
-import { BENCH_SIZE, captainOptions, DRAFT_PICKS, playerDraftOptions } from '../engine/draft';
+import { BENCH_SIZE, bestFit, captainOptions, DRAFT_PICKS, playerDraftOptions } from '../engine/draft';
 import { evolutionTarget, evolveInstance, evoProgress } from '../engine/evolution';
 import { DEFAULT_FORMATION, type FormationId, formationOf } from '../engine/formations';
 import type { PokemonInstance } from '../engine/instance';
@@ -171,6 +171,8 @@ export interface RunState {
     champ?: ChampMemo;
     /** Pokédex (vistos) e golpes descobertos quando a copa começou: o fim da copa mostra quanto cresceu. */
     startCounts?: { seen: number; moves: number };
+    /** Rodada do draft em que o jogador tocou em "Monta pra mim" (sem = montou tudo na mão). */
+    autoFrom?: number;
 }
 
 export interface LiveMatch {
@@ -297,6 +299,11 @@ export interface GameStore {
     /** Capitão: precisa da vaga. Rodadas seguintes: usa a vaga escolhida. */
     pick(uid: string, slot?: SlotRef): void;
     reroll(): void;
+    /**
+     * "Monta pra mim": completa o draft daqui pra frente (formação atual, capitão e cada vaga com a carta de maior
+     * nota nela, nas mesmas opções que o jogador veria) e vai pra escalação. `captainUid`: o capitão já escolhido.
+     */
+    autoDraft(captainUid?: string): void;
     swapSlots(a: SlotRef, b: SlotRef): void;
     setFormation(id: FormationId): void;
     setTactic(t: Tactic): void;
@@ -739,6 +746,41 @@ export const useGame = create<GameStore>()(
                         next.options = rollOptions(next, run.draftSlot);
                     else return;
                     setState({ run: next, dex: seenDex(next.options) });
+                },
+
+                autoDraft: (captainUid) => {
+                    const run = getState().run;
+                    if (!run || !['formation', 'captain', 'drafting'].includes(run.status)) return;
+                    updateRun({ autoFrom: run.autoFrom ?? run.draftRound });
+                    if (run.status === 'formation') getState().chooseFormation(run.formation);
+                    // mesmo caminho da mão (vaga → opções → assinar): dex, recordes e estatísticas iguais
+                    for (let guard = 0; guard <= DRAFT_PICKS; guard++) {
+                        const r = getState().run;
+                        if (r?.status === 'captain') {
+                            const slots = r.lineup.map((_, index) => ({ zone: 'lineup' as const, index }));
+                            const options = r.options.filter((o) => o.uid === captainUid);
+                            const pool = options.length ? options : r.options;
+                            const fit = bestFit(
+                                pool,
+                                slots.map((sl) => slotRole(r, sl)),
+                            );
+                            getState().pick(pool[fit.option].uid, slots[fit.role]);
+                        } else if (r?.status === 'drafting') {
+                            if (!r.draftSlot) {
+                                const lineup = r.lineup.indexOf('');
+                                getState().chooseSlot(
+                                    lineup >= 0
+                                        ? { zone: 'lineup', index: lineup }
+                                        : { zone: 'bench', index: r.bench.indexOf('') },
+                                );
+                            }
+                            const now = getState().run!;
+                            if (!now.draftSlot || !now.options.length) return;
+                            getState().pick(
+                                now.options[bestFit(now.options, [slotRole(now, now.draftSlot)]).option].uid,
+                            );
+                        } else return;
+                    }
                 },
 
                 swapSlots: (a, b) => {

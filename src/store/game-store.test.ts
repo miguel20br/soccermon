@@ -4,13 +4,15 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
 import { ENGINE_VERSION } from '../engine/config';
+import { bestFit, DRAFT_PICKS } from '../engine/draft';
 import { evolveInstance } from '../engine/evolution';
-import { createInstance } from '../engine/instance';
+import { formationOf } from '../engine/formations';
+import { createInstance, slotRating } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { SIGNATURE } from '../engine/signature-moves';
 import { teachMove } from '../engine/tm';
 import { type DuelRecord, mergeDuels } from './duels';
-import { liveOf, migrateSave, type RunState, SAVE_VERSION, useGame } from './game-store';
+import { liveOf, migrateSave, type RunState, SAVE_VERSION, type SlotRef, slotRole, useGame } from './game-store';
 import { EDITION_BIT } from './profile';
 
 describe('save', () => {
@@ -223,5 +225,75 @@ describe('backup antigo (scripts/fixtures)', () => {
         expect(itemOf(1)).toBe('scopelens');
         expect(itemOf(2)).toBe('leftovers');
         expect(itemOf(3)).toBe('choiceband');
+    });
+});
+
+describe('Monta pra mim (draft automático, escolha do jogador)', () => {
+    const g = () => useGame.getState();
+    const squad = () => {
+        const run = g().run!;
+        return [...run.lineup, ...run.bench].map((u) => run.picks.find((p) => p.uid === u)?.speciesId);
+    };
+    /** O mesmo draft feito na mão, sempre com a carta de maior nota na vaga (vagas na ordem da formação). */
+    const manualBest = (seed: string) => {
+        g().newRun('Pallet FC', seed);
+        g().chooseFormation(g().run!.formation);
+        const cap = g().run!.options;
+        const fit = bestFit(cap, formationOf(g().run!.formation).slots);
+        g().pick(cap[fit.option].uid, { zone: 'lineup', index: fit.role });
+        while (g().run!.status === 'drafting') {
+            const run = g().run!;
+            const i = run.lineup.indexOf('');
+            const slot: SlotRef =
+                i >= 0 ? { zone: 'lineup', index: i } : { zone: 'bench', index: run.bench.indexOf('') };
+            const role = slotRole(run, slot);
+            g().chooseSlot(slot);
+            const best = g().run!.options.reduce((b, o) => (slotRating(o, role) > slotRating(b, role) ? o : b));
+            g().pick(best.uid);
+        }
+        return squad();
+    };
+
+    it('da formação ao fim: time completo, na escalação, igual ao draft na mão pela melhor carta', () => {
+        const hand = manualBest('teste-monta');
+        expect(g().run!.autoFrom).toBeUndefined();
+        g().newRun('Pallet FC', 'teste-monta');
+        const rerolls = g().run!.rerolls;
+        g().autoDraft();
+        const run = g().run!;
+        expect(run.status).toBe('lineup');
+        expect(g().screen).toBe('lineup');
+        expect(run.picks).toHaveLength(DRAFT_PICKS);
+        expect([...run.lineup, ...run.bench].every(Boolean)).toBe(true);
+        expect(run.captainUid).toBeTruthy();
+        expect(run.autoFrom).toBe(0);
+        expect(run.rerolls).toBe(rerolls);
+        expect(squad()).toEqual(hand);
+        // mesma seed, mesmo time
+        g().newRun('Pallet FC', 'teste-monta');
+        g().autoDraft();
+        expect(squad()).toEqual(hand);
+    });
+
+    it('no meio do draft: guarda o que já foi escolhido e respeita o capitão marcado', () => {
+        g().newRun('Pallet FC', 'teste-monta-meio');
+        g().chooseFormation('2-2');
+        const cap = g().run!.options[2];
+        g().autoDraft(cap.uid);
+        expect(g().run!.captainUid).toBe(cap.uid);
+        expect(g().run!.formation).toBe('2-2');
+
+        g().newRun('Pallet FC', 'teste-monta-meio');
+        g().chooseFormation('2-2');
+        g().pick(g().run!.options[0].uid, { zone: 'lineup', index: 4 });
+        g().chooseSlot({ zone: 'bench', index: 0 });
+        const benchPick = g().run!.options[1];
+        g().pick(benchPick.uid);
+        g().autoDraft();
+        const run = g().run!;
+        expect(run.status).toBe('lineup');
+        expect(run.autoFrom).toBe(2);
+        expect(run.bench[0]).toBe(benchPick.uid);
+        expect(new Set(run.picks.map((p) => p.speciesId)).size).toBe(DRAFT_PICKS);
     });
 });

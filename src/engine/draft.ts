@@ -181,6 +181,27 @@ export function captainOptions(rng: Rng, taken: ReadonlySet<number>, count = 3):
     return draftOptions(rng, 0, taken, count, [], 'ANY', CAPTAIN_ODDS);
 }
 
+/**
+ * "Monta pra mim" (escolha do jogador): a opção e a vaga em que ela tem a maior nota, como a carta mostra
+ * na vaga (no banco, a nota da posição principal). Empate: a primeira. Sem sorteio: mesma seed, mesmo time.
+ */
+export function bestFit(
+    options: readonly PokemonInstance[],
+    roles: readonly (Position | 'ANY')[],
+): { option: number; role: number } {
+    let best = { option: 0, role: 0 };
+    let top = -1;
+    for (const [i, o] of options.entries())
+        for (const [j, r] of roles.entries()) {
+            const v = slotRating(o, r);
+            if (v > top) {
+                top = v;
+                best = { option: i, role: j };
+            }
+        }
+    return best;
+}
+
 /** IA do draft: escolhe a opção com melhor nota na posição pedida (com um toque de aleatoriedade). */
 export function aiPick(rng: Rng, options: PokemonInstance[], need: Position | 'ANY'): PokemonInstance {
     const score = (inst: PokemonInstance) => {

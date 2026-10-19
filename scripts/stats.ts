@@ -301,6 +301,21 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
             `${MD ? '' : '  '}${bold('Maior vazamento')}: ${ETAPAS[vaz.i - 1]} → ${ETAPAS[vaz.i]} (perde ${Math.round(vaz.perda * 100)}%, ${fmt(vaz.pessoas)} sessões${base === fNovas ? ' novas' : ''})`,
         );
     }
+    // "Monta pra mim" (0.8.7): de quem começou copa, quantos usaram o atalho e quantos jogaram partida em cada grupo
+    const comAuto = new Set(
+        by('pick')
+            .filter((e) => bool(e.props.auto))
+            .map((e) => e.session),
+    );
+    if (comAuto.size) {
+        const comecou = sessions.filter((s) => etapa(s) >= 2);
+        const jogou = (ss: string[]) => pct(ss.filter((s) => etapa(s) >= 3).length, ss.length);
+        const usou = comecou.filter((s) => comAuto.has(s));
+        const naMao = comecou.filter((s) => !comAuto.has(s));
+        line(
+            `${MD ? '' : '  '}${bold('Monta pra mim')}: ${fmt(usou.length)} de ${fmt(comecou.length)} sessões que começaram copa (${jogou(usou)} jogaram partida; na mão: ${jogou(naMao)})`,
+        );
+    }
 
     // 4. Canais
     titulo('4. Canais');

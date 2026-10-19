@@ -110,6 +110,8 @@ function onChange(s: GameState, prev: GameState) {
                 captain: run.captainUid === p.uid && old.status === 'captain',
                 special: p.special?.kind ?? null,
                 rerolls_left: run.rerolls,
+                // "Monta pra mim": a escolha saiu do atalho (teste do funil na 0.8.7)
+                auto: run.autoFrom !== undefined,
             });
         }
         if (run.results.length > old.results.length) {
@@ -139,6 +141,7 @@ function onChange(s: GameState, prev: GameState) {
                     .filter(Boolean)
                     .join(','),
                 captain: run.picks.find((p) => p.uid === run.captainUid)?.speciesId ?? null,
+                auto_from: run.autoFrom ?? null,
             });
         }
         if (old.status === 'reward' && run.status === 'lineup') {
