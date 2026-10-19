@@ -123,7 +123,7 @@ export const commentary: typeof pt = {
     ability: "{x}'s {ab} activated!",
     transform: '{x} transformed into {sp}, the best in its position on the court!',
     combo: '{link} COMBO! {a} sets up {b}: {combo}!',
-    evolve: 'What? {x} is evolving... it became {sp}!',
+    evolve: "What? {team}'s {x} evolved into {sp}!",
     decoy: "{x}'s substitute took {y}'s hit!",
     haze: '{x} uses Haze: all stat changes were eliminated for {n} Pokémon nearby!',
     hazeEmpty: '{x} uses Haze, but nobody nearby had anything to clear.',

@@ -131,7 +131,7 @@ export const commentary = {
     transform: '{x} se transforma em {sp}, o melhor da posição em campo!',
     /** `{link}` em maiúsculas, `{a}` serve `{b}`. */
     combo: 'COMBO {link}! {a} serve {b}: {combo}!',
-    evolve: 'O QUÊ? {x} está evoluindo... virou {sp}!',
+    evolve: 'O QUÊ? {x} do {team} evoluiu pra {sp}!',
     decoy: 'O boneco de {x} aguentou o golpe de {y}!',
     haze: '{x} solta Haze: a névoa limpa {n} Pokémon em volta!',
     hazeEmpty: '{x} solta Haze, mas ninguém por perto tinha nada.',

@@ -276,7 +276,8 @@ export class Commentator {
                 );
             }
             case 'evolve': {
-                const text = say(c.evolve, { x: this.n(e.by), sp: species(e.into).name });
+                // diz de quem é: "Koffing do Fuchsia evoluiu pra Weezing!"
+                const text = say(c.evolve, { x: this.n(e.by), team: this.teamNames[e.team], sp: species(e.into).name });
                 if (this.names[e.by] === species(e.from).name) this.names[e.by] = species(e.into).name;
                 return line(text, 'big', e.team);
             }

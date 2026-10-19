@@ -1,7 +1,7 @@
 /**
  * Como a quadra mostra uma evolução no meio da partida (sem Phaser, para dar teste).
  * - 'mine': a do seu time, em tela cheia (EvolutionOverlay), com a partida parada até ela acabar.
- * - 'rival': a do outro time, na quadra (silhueta branca piscando + faixa "RIVAL EVOLUIU!" na cor dele), curta.
+ * - 'rival': a do outro time, na quadra (zoom, silhueta branca piscando + faixa com o nome e a cor do time dele).
  * - 'skip': retomando a partida (evento antigo): troca a forma sem animação.
  * "Meu time" é o lado de quem está vendo (`mine`): no duelo o convidado é o 1, e a evolução do anfitrião é a do rival.
  * Sem a forma nova carregada, a sua troca direto; a do rival ainda ganha a faixa (o rosto não depende do atlas).
@@ -12,8 +12,8 @@ export function evolutionView(team: 0 | 1, mine: 0 | 1, silent: boolean, ready: 
     return ready ? 'mine' : 'skip';
 }
 
-/** Copa: quanto a evolução do rival segura a quadra (a sua segura até a tela cheia fechar, ~10 s). */
-export const RIVAL_EVO_MS = 1500;
+/** Copa: quanto a evolução do rival segura a quadra (a sua segura até a tela cheia fechar, ~10 s). Era 1,5 s. */
+export const RIVAL_EVO_MS = 2500;
 
 /** Piscadas da silhueta (ms entre uma e outra), acelerando, cabendo em `total` ms. */
 export function blinkSchedule(total: number): number[] {

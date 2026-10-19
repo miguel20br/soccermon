@@ -2167,9 +2167,21 @@ export class MatchScene extends Phaser.Scene {
         playSfx('status');
         this.battleBox.push(tr('battle.evolvingRival', { x: oldName }));
         view.evolving = true;
-        // no duelo a faixa sobe ~2,6 s antes de a quadra voltar; na copa, quando ela volta
-        const morph = this.md.duel ? hold - 2600 : hold;
+        // a forma nova aparece com a quadra ainda parada (e a câmera perto): no duelo ~2,6 s antes de ela voltar
+        const morph = hold - (this.md.duel ? 2600 : 900);
         const sp = view.sprite;
+        // câmera chega perto de quem está evoluindo (reduzir movimento já deixa a câmera parada) e volta depois
+        if (this.md.cinematic) {
+            const cam = this.cameras.main;
+            this.time.delayedCall(30, () => {
+                cam.pan(sp.x, sp.y - 14, 350, 'Sine.easeOut', true);
+                cam.zoomTo(1.6, 350, 'Sine.easeOut', true);
+            });
+            this.time.delayedCall(hold, () => {
+                cam.pan(GAME_W / 2, GAME_H / 2, 450, 'Sine.easeInOut', true);
+                cam.zoomTo(1, 450, 'Sine.easeInOut', true);
+            });
+        }
         const glow = this.add
             .circle(sp.x, sp.y - 14, 22, this.md.colors[view.team], 0.55)
             .setBlendMode(Phaser.BlendModes.ADD)
