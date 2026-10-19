@@ -692,8 +692,13 @@ class DuelSession {
         const side = SIDE[role];
         const sent = this.kept.sent?.game === s.game ? this.kept.sent.orders : {};
         const seq =
-            Math.max(0, ...s.log.filter((o) => o.team === side).map((o) => o.seq), ...Object.keys(sent).map(Number)) +
-            1;
+            Math.max(
+                0,
+                ...s.log.filter((o) => o.team === side).map((o) => o.seq),
+                // troca desfeita: o seq dela não volta (nem de outro aparelho, sem o que eu mandei guardado)
+                ...(s.voided?.[role] ?? []),
+                ...Object.keys(sent).map(Number),
+            ) + 1;
         sent[seq] = { tick: this.tick, at: Date.now(), body, ht };
         this.kept.sent = { game: s.game, orders: sent };
         writeKept(s.room, this.view.me, this.kept);

@@ -1085,22 +1085,28 @@
     width: 100%;
 }
 .ready-chip {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    display: grid;
+    gap: 2px;
     min-width: 0;
-    padding: 4px 8px;
+    margin: 0;
+    padding: 5px 10px;
     border-radius: 6px;
     background: var(--bc-ink-2);
     color: var(--muted);
     font-size: 12px;
-    white-space: nowrap;
+    text-align: left;
 }
 .ready-chip b {
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
     color: var(--text);
     font-weight: 400;
+}
+.ready-chip span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 .ready-chip i {
     flex: none;

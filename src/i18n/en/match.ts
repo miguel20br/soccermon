@@ -79,7 +79,7 @@ export const match: typeof pt = {
         mySubs: 'Your subs for the 2nd half',
         subRow: '{in} comes on for {out}',
         undo: 'undo',
-        rivalSubs: 'The rival changed',
+        rivalSubs: 'Rival subs',
         rivalRow: '{in} on, {out} off',
         subMore: 'Another sub',
     },

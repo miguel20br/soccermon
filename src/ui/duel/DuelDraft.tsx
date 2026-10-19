@@ -122,8 +122,11 @@ export function TeamPick({ s, role }: { s: Shared; role: Role }) {
             <p className="muted">{specialRuleText(specialLimitOf(s), t)}</p>
             {s.choice?.seal[other(role)] && (
                 <p className="ready-chip on" data-testid="ready-rival">
-                    <i aria-hidden />
-                    <b>{rival}</b> {t('duel.ready.on')}
+                    <b>{rival}</b>
+                    <span>
+                        <i aria-hidden />
+                        {t('duel.ready.on')}
+                    </span>
                 </p>
             )}
             {options.length === 0 && <p className="panel muted">{t('duel.team.none')}</p>}

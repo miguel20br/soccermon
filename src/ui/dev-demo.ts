@@ -1,6 +1,6 @@
 import { type LinkAsk, useCloud } from '../cloud/cloud';
 import type { SaveSummary } from '../cloud/reconcile-plan';
-import { FUTSAL_5 } from '../engine/config';
+import { ENGINE_VERSION, FUTSAL_5 } from '../engine/config';
 import { aiDraftTeam } from '../engine/draft';
 import { createInstance } from '../engine/instance';
 import { rewardOptions } from '../engine/rewards';
@@ -19,7 +19,9 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * uma MT do ginásio entre as 3 cartas (Charmeleon, Caterpie e cia. para testar quem aprende). `?demo=conta&tipo=levar|juntar|juntar1|copa|outra|guardada`
  * mostra a pergunta depois do login (com resumos de mentira; os botões só fecham) ou a copa guardada na tela inicial. `?demo=trailer&cena=<cena>&seed=<seed>` abre na escalação a
  * partida que a caça de lances (scripts/trailer-hunt.ts) escolheu para o trailer. `?demo=escanteio` monta um time de
- * grandalhões cuja primeira partida tem escanteio seu com disputa no alto logo no começo.
+ * grandalhões cuja primeira partida tem escanteio seu com disputa no alto logo no começo. `?demo=vestiario` abre na
+ * escalação uma partida que, ao começar, já está a 2 s do intervalo, com 2 no banco e troca do rival no intervalo (o
+ * vestiário: várias trocas, desfazer e "O rival trocou").
  */
 let started = false;
 
@@ -34,6 +36,7 @@ export function runDevDemo() {
         demo !== 'trailer' &&
         demo !== 'mt' &&
         demo !== 'escanteio' &&
+        demo !== 'vestiario' &&
         demo !== 'conta'
     )
         return;
@@ -171,6 +174,36 @@ export function runDevDemo() {
                 console.info(`[demo] copa camp${k}: campeão`);
                 return;
             }
+        }
+        return;
+    }
+    if (demo === 'vestiario') {
+        for (let k = 0; k < 120; k++) {
+            store.newRun('Demo FC', `vest${k}`);
+            const run = useGame.getState().run!;
+            const rng = new Rng(`vest${k}`, 'demo');
+            // goleiro Onix, fixo Machamp, alas Arcanine e Wartortle, pivô Kabutops; banco Dragonair e Blastoise
+            const lineup = [95, 68, 59, 8, 141].map((id) => createInstance(id, rng));
+            const bench = [148, 9].map((id) => createInstance(id, rng));
+            const ready = {
+                ...run,
+                formation: '1-2-1' as const,
+                picks: [...lineup, ...bench],
+                lineup: lineup.map((p) => p.uid),
+                bench: bench.map((p) => p.uid),
+                captainUid: lineup[4].uid,
+                draftRound: 7,
+                status: 'lineup' as const,
+            };
+            const team = { ...playerTeam(ready), manualSubs: true };
+            const r = runMatch(FUTSAL_5, team, ready.opponents[0], `${ready.seed}-stage-0`, { snapshots: false });
+            const ht = r.events.find((e) => e.type === 'halftime');
+            if (!ht || !r.events.some((e) => e.type === 'sub' && e.team === 1 && e.tick === ht.tick)) continue;
+            // partida já travada e salva perto do apito do intervalo: "Começar" retoma dali
+            const live = { stage: 0, orders: [], tick: Math.max(0, ht.tick - 40), engine: ENGINE_VERSION };
+            useGame.setState({ run: { ...ready, lockedTeam: team, live }, screen: 'lineup' });
+            console.info(`[demo] copa ${ready.seed}: intervalo no tick ${ht.tick} com troca do rival`);
+            return;
         }
         return;
     }

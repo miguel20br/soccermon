@@ -628,10 +628,25 @@
     .bc .ht-panel > small {
         display: none;
     }
-    /* vestiário com várias trocas: rola dentro do painel em vez de sair da tela */
+    /* vestiário com várias trocas: cabe entre o placar e a barra de baixo, e rola dentro do painel */
     .bc .ht-panel {
-        max-height: calc(100svh - 24px);
+        max-height: calc(100svh - 108px - var(--bc-thumb-h) - env(safe-area-inset-bottom));
         overflow-y: auto;
+    }
+    /* deitado, os botões (e o pronto do duelo) vêm antes das listas de trocas: o que se toca fica à vista */
+    .bc .ht-panel .ht-actions,
+    .bc .ht-panel .duel-ht {
+        order: 1;
+    }
+    .bc .ht-panel .ht-subs {
+        order: 2;
+    }
+    /* pronto do duelo numa linha só (nome e bolinha) */
+    .bc .ready-bar.compact .ready-chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 8px;
     }
     .bc .ht-subs li {
         min-height: 26px;

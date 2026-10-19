@@ -33,8 +33,11 @@ export function ReadyBar({
     const { t } = useT();
     const chip = (name: string, on: boolean, testid: string) => (
         <span className={`ready-chip${on ? ' on' : ''}`} data-testid={testid}>
-            <i aria-hidden />
-            <b>{name}</b> {on ? t('duel.ready.on') : t('duel.ready.off')}
+            <b>{name}</b>
+            <span>
+                <i aria-hidden />
+                {on ? t('duel.ready.on') : t('duel.ready.off')}
+            </span>
         </span>
     );
     return (
