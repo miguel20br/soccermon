@@ -38,10 +38,12 @@
 - 20 medalhas com degraus (bronze, prata, ouro e platina) em Perfil → Medalhas. Já contam tudo o que você jogou
 - Vitrine: escolha até 3 destaques (medalha, coleção completa ou selo); aparecem no seu cartão e no VERSUS do Duelo, e o melhor vira a moldura do avatar
 - Escudo montável (formato, símbolo e duas cores) e uniforme com padrão, no placar, no VERSUS e na quadra. Símbolos e padrões novos saem com coleções e medalhas
+- Avatares por geração, e o Pokémon que você já jogou shiny vira avatar shiny
 
 ### Conquistas
 - Tudo que você ganha agora mostra a tarefa cumprida: no aviso, na escolha de treinador e na de título
 - Nova Platina da Gen 1: faça 100% de tudo e ganhe o Prof. Carvalho holográfico e o título Diploma de Kanto
+- A tarefa dos treinadores aparece inteira no celular
 
 ### Treinadores e quadras
 - Os líderes de ginásio agora falam antes e depois do jogo, e cada clube joga na quadra do seu ginásio

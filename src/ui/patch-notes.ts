@@ -63,6 +63,7 @@ export const PATCH_NOTES: PatchNotes[] = [
                     '20 medalhas com degraus (bronze, prata, ouro e platina) em Perfil → Medalhas. Já contam tudo o que você jogou',
                     'Vitrine: escolha até 3 destaques (medalha, coleção completa ou selo); aparecem no seu cartão e no VERSUS do Duelo, e o melhor vira a moldura do avatar',
                     'Escudo montável (formato, símbolo e duas cores) e uniforme com padrão, no placar, no VERSUS e na quadra. Símbolos e padrões novos saem com coleções e medalhas',
+                    'Avatares por geração, e o Pokémon que você já jogou shiny vira avatar shiny',
                 ],
             },
             {
@@ -70,6 +71,7 @@ export const PATCH_NOTES: PatchNotes[] = [
                 lines: [
                     'Tudo que você ganha agora mostra a tarefa cumprida: no aviso, na escolha de treinador e na de título',
                     'Nova Platina da Gen 1: faça 100% de tudo e ganhe o Prof. Carvalho holográfico e o título Diploma de Kanto',
+                    'A tarefa dos treinadores aparece inteira no celular',
                 ],
             },
             {
@@ -691,6 +693,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     '20 tiered medals (bronze, silver, gold and platinum) in Profile → Medals. Everything you already played counts',
                     'Showcase: pick up to 3 highlights (medal, completed collection or seal); they show on your card and on the Duel VERSUS, and the best one becomes your avatar frame',
                     'Build your crest (shape, symbol and two colors) and a kit with a pattern, on the scoreboard, the VERSUS and the court. New symbols and patterns unlock with collections and medals',
+                    'Avatars by generation, and any Pokémon you have played shiny becomes a shiny avatar',
                 ],
             },
             {
@@ -698,6 +701,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 lines: [
                     'Everything you unlock now shows the task you completed: in the notice and when picking a trainer or a title',
                     'New Gen 1 Platinum: get 100% of everything and earn the holographic Prof. Oak and the Kanto Diploma title',
+                    'The trainer task now shows in full on phones',
                 ],
             },
             {
