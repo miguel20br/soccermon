@@ -12,6 +12,8 @@ export default function startGame(parent: HTMLElement, data: MatchSceneData): Ph
         backgroundColor: '#5a3820',
         scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
         audio: { noAudio: true }, // áudio é tocado por HTMLAudio/ZzFX (src/game/audio.ts)
+        // replay: o clipe 9:16 (src/ui/clip-recorder.ts) copia o quadro do canvas depois de desenhado
+        render: { preserveDrawingBuffer: !!data.replay },
         callbacks: {
             preBoot: (game) => game.registry.set('matchData', data),
         },

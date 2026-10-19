@@ -3,12 +3,13 @@ import { describe, expect, it, vi } from 'vitest';
 // sem IndexedDB no Node: o save fica só na memória
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
-import { ENGINE_VERSION } from '../engine/config';
+import { ENGINE_VERSION, FUTSAL_5 } from '../engine/config';
 import { bestFit, DRAFT_PICKS } from '../engine/draft';
 import { evolveInstance } from '../engine/evolution';
 import { formationOf } from '../engine/formations';
 import { createInstance, slotRating } from '../engine/instance';
 import { Rng } from '../engine/rng';
+import { runMatch } from '../engine/runners/batch-runner';
 import { SIGNATURE } from '../engine/signature-moves';
 import { teachMove } from '../engine/tm';
 import { profile as enProfile } from '../i18n/en/profile';
@@ -18,6 +19,7 @@ import {
     liveOf,
     markEvolvedPlayed,
     migrateSave,
+    playerTeam,
     type RunState,
     SAVE_VERSION,
     type SlotRef,
@@ -333,5 +335,51 @@ describe('evolução em quadra na Pokédex', () => {
         ]);
         expect(dex[53].matches).toBe(1);
         expect(markEvolvedPlayed(dex, [{ picks: [persian] } as unknown as RunState])).toBe(dex);
+    });
+});
+
+describe('gol da copa: replay guardado no save', () => {
+    it('a partida com gol seu guarda time e ordens; rodar de novo dá o mesmo placar e passa pelo save', () => {
+        const g = () => useGame.getState();
+        let found = false;
+        for (let k = 0; k < 12 && !found; k++) {
+            const seed = `teste-replay${k}`;
+            g().newRun('Pallet FC', seed);
+            const rng = new Rng(seed, 'demo');
+            const lineup = [143, 68, 151, 142, 150].map((id) => createInstance(id, rng));
+            const bench = [149, 25].map((id) => createInstance(id, rng));
+            useGame.setState({
+                run: {
+                    ...g().run!,
+                    formation: '1-2-1',
+                    picks: [...lineup, ...bench],
+                    lineup: lineup.map((p) => p.uid),
+                    bench: bench.map((p) => p.uid),
+                    captainUid: lineup[4].uid,
+                    draftRound: 7,
+                    status: 'lineup',
+                },
+            });
+            const team = playerTeam(g().run!);
+            g().lockMatch(team);
+            const run = g().run!;
+            const m = runMatch(FUTSAL_5, team, run.opponents[0], `${seed}-stage-0`);
+            g().recordResult(m);
+            const res = g().run!.results[0];
+            if (m.score[0] === 0) {
+                expect(res.replay).toBeUndefined();
+                continue;
+            }
+            found = true;
+            expect(res.replay?.engine).toBe(ENGINE_VERSION);
+            const again = runMatch(FUTSAL_5, res.replay!.team, run.opponents[0], `${seed}-stage-0`, {
+                orders: res.replay!.orders,
+                snapshots: false,
+            });
+            expect(again.score).toEqual(res.score);
+            const saved = migrateSave(JSON.parse(JSON.stringify({ run: g().run })), SAVE_VERSION);
+            expect(saved.run?.results[0].replay?.team.lineup).toHaveLength(5);
+        }
+        expect(found).toBe(true);
     });
 });

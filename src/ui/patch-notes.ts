@@ -8,8 +8,16 @@ export interface PatchNotes {
 export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.8.8',
-        title: 'Ícone MVP e conquistas retroativas',
+        title: 'Ícone MVP e melhores momentos',
         sections: [
+            {
+                title: 'Melhores momentos',
+                lines: [
+                    'Depois da partida, reveja os gols e lances em câmera lenta na própria quadra',
+                    'Gol da copa: no fim da copa, o seu gol mais bonito ganha replay e o porquê da escolha',
+                    'Exporte um clipe vertical (9:16) do lance pra mandar ou postar no TikTok',
+                ],
+            },
             {
                 title: 'Consertos',
                 lines: [
@@ -550,8 +558,16 @@ export const PATCH_NOTES: PatchNotes[] = [
 export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.8.8',
-        title: 'Icon MVP and retroactive achievements',
+        title: 'Icon MVP and highlights',
         sections: [
+            {
+                title: 'Highlights',
+                lines: [
+                    'After the match, rewatch the goals and big plays in slow motion on the court itself',
+                    'Goal of the cup: at the end of the cup, your best goal gets a replay and the reason it was picked',
+                    'Export a vertical clip (9:16) of the play to send or post on TikTok',
+                ],
+            },
             {
                 title: 'Fixes',
                 lines: [

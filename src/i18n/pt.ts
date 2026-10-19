@@ -6,6 +6,7 @@ import { duel } from './pt/duel';
 import { help } from './pt/help';
 import { home } from './pt/home';
 import { match } from './pt/match';
+import { moments } from './pt/moments';
 import { profile } from './pt/profile';
 import { result } from './pt/result';
 import { reward } from './pt/reward';
@@ -36,6 +37,7 @@ export const pt = {
     account,
     title,
     duel,
+    moments,
 };
 
 export type Dict = typeof pt;

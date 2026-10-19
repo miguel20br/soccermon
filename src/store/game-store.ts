@@ -83,6 +83,12 @@ export interface StageResult {
     destaqueUid?: string | null;
     /** Resumo da partida para as estatísticas da copa (partidas antigas não têm). */
     stats?: StageStats;
+    /**
+     * O que basta pra rodar a partida de novo, igual (gol da copa em replay): seu time travado e as ordens do técnico;
+     * o rival e a seed já estão no run. Só quando o seu time fez gol. Partidas antigas não têm; com outro
+     * `ENGINE_VERSION` a partida sairia diferente, então o replay some.
+     */
+    replay?: { team: TeamSetup; orders: MatchOrder[]; engine: number };
 }
 
 /** Resumo de uma partida guardado no run (o MatchResult inteiro é grande demais para salvar). */
@@ -948,6 +954,12 @@ export const useGame = create<GameStore>()(
                             digest: matchDigest(m),
                         },
                     };
+                    if (run.lockedTeam && result.stats?.digest?.goals.some((g) => g.team === 0 && !g.ownGoal))
+                        result.replay = {
+                            team: run.lockedTeam,
+                            orders: liveOf(run)?.orders ?? [],
+                            engine: ENGINE_VERSION,
+                        };
                     const last = run.stage === CUP_STAGES.length - 1;
                     const status: RunStatus = !won ? 'eliminated' : last ? 'champion' : 'reward';
                     const next: RunState = {

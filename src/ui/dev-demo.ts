@@ -15,7 +15,7 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * partida termina empatada e vai para os pênaltis, já na tela de escalação. `?demo=ditto` monta um time
  * com Ditto e Mew + Mewtwo (sinergia Gênese) cuja primeira partida tem combo. `?demo=evolucao` monta um time
  * de iniciais cuja primeira partida tem evolução do seu time logo no começo (`&rival=1`: do rival). `?demo=campeao` joga uma copa
- * inteira com um time forte e para na tela do título. `?demo=mt` abre a recompensa depois das oitavas com
+ * inteira com um time forte e para na tela do título (`?demo=momentos` é a mesma: Melhores momentos e gol da copa). `?demo=mt` abre a recompensa depois das oitavas com
  * uma MT do ginásio entre as 3 cartas (Charmeleon, Caterpie e cia. para testar quem aprende). `?demo=conta&tipo=levar|juntar|juntar1|copa|outra|guardada`
  * mostra a pergunta depois do login (com resumos de mentira; os botões só fecham) ou a copa guardada na tela inicial. `?demo=trailer&cena=<cena>&seed=<seed>` abre na escalação a
  * partida que a caça de lances (scripts/trailer-hunt.ts) escolheu para o trailer. `?demo=escanteio` monta um time de
@@ -31,6 +31,7 @@ export function runDevDemo() {
         demo !== 'ditto' &&
         demo !== 'evolucao' &&
         demo !== 'campeao' &&
+        demo !== 'momentos' &&
         demo !== 'trailer' &&
         demo !== 'mt' &&
         demo !== 'escanteio' &&
@@ -137,7 +138,8 @@ export function runDevDemo() {
         }
         return;
     }
-    if (demo === 'campeao') {
+    // ?demo=momentos: a mesma copa do campeão (cada partida travada como no jogo, então o gol da copa tem replay)
+    if (demo === 'campeao' || demo === 'momentos') {
         for (let k = 0; k < 40; k++) {
             store.newRun('Demo FC', `camp${k}`);
             const run = useGame.getState().run!;
@@ -161,7 +163,9 @@ export function runDevDemo() {
             for (let stage = 0; stage < 4; stage++) {
                 const cur = useGame.getState().run!;
                 // com snapshots: as estatísticas da partida (distância, notas) saem deles
-                m = runMatch(FUTSAL_5, playerTeam(cur), cur.opponents[cur.stage], `${cur.seed}-stage-${cur.stage}`);
+                const team = playerTeam(cur);
+                useGame.getState().lockMatch(team);
+                m = runMatch(FUTSAL_5, team, cur.opponents[cur.stage], `${cur.seed}-stage-${cur.stage}`);
                 useGame.getState().recordResult(m);
                 if (useGame.getState().run!.status === 'reward') useGame.getState().skipReward();
                 else break;

@@ -14,12 +14,20 @@ export const FOCUS_DEPTH = 7100;
 type Pinnable = Phaser.GameObjects.Container;
 const hexColor = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 
+/** Tamanho dos textos presos dentro do recorte do clipe (cabem na faixa e seguem legíveis no 9:16). */
+const CROP_TEXT_SCALE = 0.72;
+
 export class Cinematics {
     readonly focused = new Set<number>();
     private readonly dim: Phaser.GameObjects.Rectangle;
     private readonly spots = new Map<number, Phaser.GameObjects.Image>();
     private banner: Phaser.GameObjects.Container | null = null;
     private readonly pins = new Map<Pinnable, { sx: number; sy: number; scale: number }>();
+    /**
+     * Clipe 9:16 (src/ui/clip-recorder.ts): só a faixa [x, x + w] da tela entra no vídeo. Os textos presos vão pra
+     * dentro dela (menores), senão a faixa do golpe e a caixa de narração ficavam cortadas.
+     */
+    crop: { x: number; w: number } | null = null;
     /** Feixe atacante → alvo e mira no alvo, redesenhados a cada quadro durante o holofote. */
     private readonly beam: Phaser.GameObjects.Graphics;
     private pair: { attacker: number; target: number | null; color: number } | null = null;
@@ -230,8 +238,11 @@ export class Cinematics {
         // antes do primeiro render o worldView ainda está zerado
         const vx = view.width > 0 ? view.x : 0;
         const vy = view.height > 0 ? view.y : 0;
-        obj.setPosition(vx + pin.sx / z, vy + pin.sy / z);
-        obj.setScale(pin.scale / z);
+        const c = this.crop;
+        const sx = c ? c.x + (pin.sx * c.w) / GAME_W : pin.sx;
+        const k = c ? CROP_TEXT_SCALE : 1;
+        obj.setPosition(vx + sx / z, vy + pin.sy / z);
+        obj.setScale((pin.scale * k) / z);
     }
 
     /**

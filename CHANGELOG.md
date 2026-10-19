@@ -1,6 +1,11 @@
 # Novidades
 
-## 0.8.8 · Ícone MVP e conquistas retroativas
+## 0.8.8 · Ícone MVP e melhores momentos
+
+### Melhores momentos
+- Depois da partida, reveja os gols e lances em câmera lenta na própria quadra
+- Gol da copa: no fim da copa, o seu gol mais bonito ganha replay e o porquê da escolha
+- Exporte um clipe vertical (9:16) do lance pra mandar ou postar no TikTok
 
 ### Consertos
 - Carta Ícone agora pode ser o craque da partida: continua Ícone (com o fundo de galáxia), ganha o selo "MVP", "MVP 2" e "MVP 3" e +1 em todos os atributos por selo (até +5). Antes o prêmio pulava pro próximo jogador
