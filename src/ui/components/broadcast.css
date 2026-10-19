@@ -536,6 +536,9 @@
 .bc-thumb .bc-result.counting {
     background-image: linear-gradient(90deg, rgb(0 0 0 / 0%) calc(var(--fill, 0) * 100%), rgb(255 255 255 / 25%) 0);
 }
+.bc-thumb .bc-result.counting {
+    white-space: nowrap;
+}
 .bc-stay {
     flex: none;
     min-height: 44px;

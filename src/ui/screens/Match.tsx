@@ -298,6 +298,11 @@ export function Match() {
     const clockParts = useClockParts(clock, fulltime || ended, shootout, halftime);
     // fim de jogo: vai sozinho pro resultado; um toque na quadra ou no painel segura
     const auto = useAutoResult(ended, () => go('result'));
+    // fim de jogo: a quadra volta pra tela (no celular a página pode ter ficado rolada desde o intervalo)
+    useEffect(() => {
+        if (ended)
+            scoreboardRef.current?.scrollIntoView({ block: 'nearest', behavior: reduceMotionOn() ? 'auto' : 'smooth' });
+    }, [ended]);
     if (!run || !match || !sceneData || !opponent) return null;
 
     const lockedSetup = run.lockedTeam ? { ...run.lockedTeam, manualSubs: true } : playerTeam(run);

@@ -26,7 +26,7 @@ export const match: typeof pt = {
     skip: 'Skip to the end',
     seeResult: 'See result',
     goingResult: 'See result · {s} s',
-    stay: 'Stay here',
+    stay: 'Stay',
     final: { win: 'VICTORY!', loss: 'DEFEAT', draw: 'DRAW' },
     feed: 'Commentary',
     feedEmpty: 'The teams walk onto the court…',
