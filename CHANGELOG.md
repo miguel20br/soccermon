@@ -2,6 +2,10 @@
 
 ## 0.8.8 · Ícone MVP, melhores momentos, medalhas e treinadores
 
+### Copa do Dia e Liga
+- Copa do Dia: a mesma copa pra todo mundo (mesmo draft, mesmos rivais), uma tentativa por dia e ranking do dia
+- Liga ranqueada: o time da sua copa vira um fantasma que outros enfrentam; você joga contra os deles e sobe no Elo, com divisões e temporada mensal (precisa de conta)
+
 ### Melhores momentos
 - Depois da partida, reveja os gols e lances em câmera lenta na própria quadra
 - Gol da copa: no fim da copa, o seu gol mais bonito ganha replay e o porquê da escolha
