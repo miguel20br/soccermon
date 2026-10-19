@@ -218,7 +218,7 @@ await page.evaluate((semTextos) => {
 }, semTextos);
 await click('^Começar');
 // grab: lê o canvas na mesma chamada do step (WebGL sem preserveDrawingBuffer: lido depois, às vezes sai preto)
-const step = (dt, grab = false) =>
+const step = (dt, grab = false, gifs = modo === 'pagina') =>
     page.evaluate(
         async (d, gif, semNomes, grab) => {
             window.__t += d;
@@ -230,7 +230,7 @@ const step = (dt, grab = false) =>
             return grab ? document.querySelector('.pitch-wrap canvas').toDataURL('image/png') : null;
         },
         dt,
-        modo === 'pagina',
+        gifs,
         semNomes,
         grab,
     );
@@ -238,7 +238,13 @@ const step = (dt, grab = false) =>
 // 1) avança rápido até o começo do lance (8x, sem gravar)
 await page.evaluate(() => window.__soccermonBus.emit('match:set-speed', 8));
 const t0 = Date.now();
-while ((await tick()) < from * TICK_RATE) await step(DT);
+// o vestiário do intervalo (0.8.8) espera o "Começar o 2º tempo": sem o clique a captura parava ali pra sempre
+const segueIntervalo = () => page.evaluate(() => document.querySelector('.ht-panel .btn.primary')?.click());
+for (let i = 0; (await tick()) < from * TICK_RATE; i++) {
+    // sem trocar os quadros dos GIFs no avanço rápido (no modo pagina isso deixava o avanço lentíssimo)
+    await step(DT, false, false);
+    if (i % 30 === 0) await segueIntervalo();
+}
 console.log(`no ponto: tick ${(await tick()).toFixed(0)} (${((Date.now() - t0) / 1000).toFixed(0)} s pra chegar)`);
 
 // 2) grava quadro a quadro na velocidade pedida, direto do canvas do Phaser (resolução nativa do jogo; o print da
