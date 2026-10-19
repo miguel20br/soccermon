@@ -613,10 +613,23 @@ export function markEvolvedPlayed(dex: Dex, runs: (RunState | null | undefined)[
 }
 
 /**
+ * Recordes que o Hall da Fama já prova: juntar nuvem e aparelho pelo maior de cada número podia deixar 2 títulos no
+ * Hall e 1 no Perfil (e a missão contando 2). Copas nunca ficam abaixo dos títulos.
+ */
+export function settleRecords(r: Records, hall: HallEntry[]): Records {
+    const titles = Math.max(r.titles, hall.length);
+    const perfect = Math.max(r.perfect, hall.filter((h) => h.perfect).length);
+    const cups = Math.max(r.cups, titles);
+    return titles === r.titles && perfect === r.perfect && cups === r.cups ? r : { ...r, titles, perfect, cups };
+}
+
+/**
  * Missões que o save já garante (sem aviso: é retroativo). Feitos de partida contam pelas partidas guardadas nas
  * copas do save (o resumo de cada uma); o resto sai de recordes, Pokédex, golpes, carreira e Hall da Fama.
  */
-export function withUnlocks(save: PersistedSave): PersistedSave {
+export function withUnlocks(saved: PersistedSave): PersistedSave {
+    const records = settleRecords(saved.records, saved.hall);
+    const save = records === saved.records ? saved : { ...saved, records };
     const runs = [save.run, ...save.parkedRuns];
     const fresh = newMissions(
         { ...save, runs, done: save.profile.missionsDone },

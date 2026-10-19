@@ -83,6 +83,21 @@ describe('medalhas', () => {
         }
     });
 
+    it('nuvem + aparelho com um título diferente em cada: Perfil, Home, missão e medalha veem os 2', () => {
+        const base = fixture('pt');
+        const champ = (id: string, perfect: boolean) => ({ ...base.hall[0], id, date: Date.now(), perfect });
+        const one = (id: string, perfect: boolean) => ({
+            ...base,
+            hall: [champ(id, perfect)],
+            records: { cups: 1, titles: 1, perfect: perfect ? 1 : 0 },
+        });
+        const merged = mergeSaves(one('copa-a', true), one('copa-b', true), 'device');
+        expect(merged.hall).toHaveLength(2);
+        // o Perfil e a Home leem records direto: precisam bater com o Hall
+        expect(merged.records).toMatchObject({ titles: 2, perfect: 2, cups: 2 });
+        expect(medalById('campeao')?.value(viewOf(merged))).toBe(2);
+    });
+
     it('save vazio: nenhuma medalha', () => {
         expect(medalProgress(empty()).every((p) => p.tier === 0)).toBe(true);
     });
