@@ -474,3 +474,28 @@ revisão de segurança (`multiplayer-revisao.md`). Código em `src/net/` (regras
 - **Revanche de um toque:** o pedido leva o lacre da partida seguinte; com os dois, vai direto pro draft/time do mesmo
   modo. Sem lacre (versão antiga) ou versões diferentes, volta pro lobby como antes. Rival fora da sala desliga a revanche.
 - Ordem recusada pela regra para de ser reenviada; Time pronto com barra de evolução abaixo do limiar (13,9).
+
+### 0.8.7: só o que mudou e partida curta (decididos pelo Miguel no relatório da 0.8.6)
+
+- **Só o que mudou.** Quem aplica as regras manda `patch` (`src/net/patch.ts`: `[caminho, valor]`, objetos e listas que
+  cresceram descem um nível) em cima do estado anterior dele: `base` (rev) + `bo` (quem fez aquele estado). Quem não tem
+  essa base (entrou agora, recarregou, perdeu uma mensagem, o estado dele andou sozinho) manda `need` e recebe o
+  inteiro (`state`, que agora leva `o` = quem fez). O estado inteiro continua indo pra quem entra (`hello`) ou volta pra
+  sala; o relógio com `rev` maior também pede o inteiro (`need`, não mais `hello`). O estado montado pelo patch passa
+  pelo mesmo `adopt` de antes: anti-trapaça e volta do host iguais (testes em `session.test.ts`).
+- **Medido** (duas abas, Disputa, 4x, do lobby ao começo da revanche; `BroadcastChannel.postMessage` contado):
+  antes 319 mensagens e 1.057 KB (estado inteiro de 8–12 KB a cada mudança, 98% dos bytes); depois 321 mensagens e
+  67 KB (patch médio de 330 B, maior 3,5 KB). Partida curta com o convidado recarregando no meio: 286 mensagens, 82 KB.
+- **Cota do Supabase (plano Free, conferido em 18/10/2026):** 2 milhões de mensagens por ciclo, cada broadcast conta 1
+  envio + 1 por quem recebe (2 por mensagem no duelo); 5 GB de egress (o Realtime conta); 200 conexões; 100 msg/s;
+  256 KB por mensagem. Por duelo: ~640 na conta a 4x e ~1.400 a 1x (o relógio e o `where` são 0,8 msg/s e crescem com
+  o tempo real). Antes: ~3.100 duelos/mês a 4x (~1.400 a 1x) pelas mensagens e ~4.500 pelo egress. Depois: as mesmas
+  mensagens, mas o egress passa de ~1,1 MB pra ~0,12 MB por duelo (~40 mil duelos): o teto agora é só o de
+  mensagens. Pra subir ele, o próximo passo é o relógio mais espaçado fora da partida (decisão do Miguel).
+- **Partida curta** (o host escolhe na criação da sala, `Shared.duration`; sala antiga = normal): metade de
+  `halfSeconds` com o mesmo relógio de 0 a 40 (`duelConfig`), então intervalo, trechos da seed (o trecho vira 180
+  ticks), pênaltis e escanteio funcionam igual; a revanche continua curta e o registro leva a duração. A normal é a
+  `FUTSAL_5` de sempre (sem `ENGINE_VERSION` novo). Equilíbrio (`npx tsx scripts/balance/duel-curta.ts 300`): metade
+  dos gols, chutes e escanteios, 62% dos golpes, pênaltis em 26% (eram 14%), fôlego no fim 0,82 (era 0,56) e
+  **evolução em 4% das partidas (era 25%)**. Interruptor pronto e desligado: `MatchConfig.evoGain` (peso da barra na
+  partida; x1,5 dá 18%, x2 dá 31%), à espera do ok do Miguel.

@@ -14,6 +14,9 @@ export const duel: typeof pt = {
     modeLabel: 'Mode',
     speedLabel: 'Starting speed',
     speedHint: 'Mid-match either of you can ask for another; the rival accepts or declines.',
+    durationLabel: 'Length',
+    durations: { normal: 'Normal', short: 'Short' },
+    durationHint: 'Short: half the time, the clock runs twice as fast.',
     modes: {
         ready: [
             'Ready team',

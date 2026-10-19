@@ -20,6 +20,7 @@ import {
     canClaimWO,
     clockAdjust,
     disputaOptions,
+    duelConfig,
     duelNames,
     duelTags,
     emoteAllowed,
@@ -40,6 +41,7 @@ import {
     trainerNames,
     WO_WAIT_MS,
 } from './duel-state';
+import { applyPatch, diff } from './patch';
 import { buildRegistro, registroInputs } from './record';
 import {
     abrir,
@@ -802,5 +804,114 @@ describe('transporte local (BroadcastChannel)', () => {
         expect(peers.at(-1)).toEqual(['b']);
         a.close();
         b.close();
+    });
+});
+
+describe('só o que mudou (patch do estado)', () => {
+    const wire = <T>(v: T): T => JSON.parse(JSON.stringify(v));
+    const size = (v: unknown) => JSON.stringify(v).length;
+
+    it('diferença aplicada no estado de antes (como chegou pela rede) dá o mesmo estado, num duelo inteiro', () => {
+        let s = newShared('ABCDEF', peer('ana'), 'ready', 4, 'seed-teste');
+        const steps: Shared[] = [s];
+        const push = (n: Shared) => {
+            if (n !== s) steps.push(n);
+            s = n;
+        };
+        push(reduce(s, { k: 'join', peer: peer('bia') }, 'guest', ctx()));
+        push(reduce(s, { k: 'ready', ready: true, commit: H('a'), specialLimit: 3 }, 'host', ctx()));
+        push(reduce(s, { k: 'ready', ready: true, commit: H('b'), specialLimit: 3 }, 'guest', ctx()));
+        push(reduce(s, { k: 'choiceSeal', seal: H('1') }, 'host', ctx()));
+        push(reduce(s, { k: 'choiceSeal', seal: H('2') }, 'guest', ctx()));
+        push(reduce(s, { k: 'choiceOpen', value: teamRecipe(team('a')), salt: 'x' }, 'host', ctx()));
+        push(reduce(s, { k: 'choiceOpen', value: teamRecipe(team('b')), salt: 'y' }, 'guest', ctx()));
+        const cfg = (r: Role) => ({
+            formation: s.teams[r]!.formation ?? '1-2-1',
+            tactic: s.teams[r]!.tactic,
+            order: [...s.teams[r]!.lineup, ...s.teams[r]!.bench].map((p) => p.uid),
+        });
+        push(reduce(s, { k: 'choiceSeal', seal: H('3') }, 'host', ctx()));
+        push(reduce(s, { k: 'choiceSeal', seal: H('4') }, 'guest', ctx()));
+        push(reduce(s, { k: 'choiceOpen', value: cfg('host'), salt: 'z' }, 'host', ctx()));
+        push(reduce(s, { k: 'choiceOpen', value: cfg('guest'), salt: 'w' }, 'guest', ctx()));
+        expect(s.phase).toBe('match');
+        for (let k = 0; k < SEG_COUNT; k++) {
+            if (k === 10) {
+                push(reduce(s, { k: 'atHalftime' }, 'host', ctx(1)));
+                push(tickTimers(s, ctx(1 + HALFTIME_MS)));
+            }
+            for (const r of ['host', 'guest'] as Role[]) {
+                const x = randomSecret();
+                push(reduce(s, { k: 'reveal', seg: k, x }, r, ctx()));
+                if (k > 0) push(reduce(s, { k: 'reveal', seg: k, x, hash: `0:h${k}` }, r, ctx()));
+            }
+            if (k === 5) {
+                const order = { kind: 'tactic', tactic: 'counter' } as const;
+                push(reduce(s, { k: 'order', order, tick: 0, seq: 1 }, 'guest', ctx(0, { tick: 900 })));
+            }
+        }
+        const final = { score: [1, 1] as [number, number], shootout: [4, 3] as [number, number], winner: 0 as const };
+        push(reduce(s, { k: 'ended' }, 'host', ctx(0, { final })));
+        push(reduce(s, { k: 'rematch', commit: H('c') }, 'host', ctx()));
+        push(reduce(s, { k: 'rematch', commit: H('d') }, 'guest', ctx(0, { newSeed: 'nova' })));
+        expect(s.game).toBe(2);
+        expect(s.log).toEqual([]);
+        let full = 0;
+        let patched = 0;
+        for (let i = 1; i < steps.length; i++) {
+            const d = diff(steps[i - 1], steps[i]);
+            expect(applyPatch(wire(steps[i - 1]), wire(d))).toEqual(wire(steps[i]));
+            full += size(steps[i]);
+            patched += size(d);
+        }
+        // o duelo inteiro em diferenças é uma fração pequena do estado inteiro a cada mudança
+        expect(patched).toBeLessThan(full * 0.15);
+    });
+
+    it('lixo e caminho perigoso não aplicam (aí pede o estado inteiro); o estado de antes não muda', () => {
+        const s = inMatch();
+        expect(applyPatch(s, 'x')).toBeNull();
+        expect(applyPatch(s, [[['__proto__', 'polluted'], 1]])).toBeNull();
+        expect(applyPatch(s, [[['draft', 'round'], 1]])).toBeNull();
+        expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+        const before = JSON.stringify(s);
+        const next = applyPatch(s, [[['teams', 'host', 'name'], 'outro'], [['speedAsk']]]);
+        expect(next?.teams.host?.name).toBe('outro');
+        expect(JSON.stringify(s)).toBe(before);
+    });
+});
+
+describe('partida curta', () => {
+    const home = tagTeam(team('casa'), 'host');
+    const away = tagTeam(team('fora'), 'guest');
+
+    it('normal é a partida de sempre; curta tem metade do tempo, o mesmo relógio e é determinística', async () => {
+        expect(duelConfig({})).toBe(FUTSAL_5);
+        expect(duelConfig(newShared('ABCDEF', peer('ana'), 'disputa', 4, 'x'))).toBe(FUTSAL_5);
+        const short = newShared('ABCDEF', peer('ana'), 'disputa', 4, 'x', 3, 'short');
+        const cfg = duelConfig(short);
+        expect(cfg.halfSeconds).toBe(FUTSAL_5.halfSeconds / 2);
+        expect(cfg.displayHalfMinutes).toBe(FUTSAL_5.displayHalfMinutes);
+        const seeds = await segmentSeeds('ABCDEF', Array(SEG_COUNT).fill(H('1')), Array(SEG_COUNT).fill(H('2')));
+        const a = runMatch(cfg, home, away, 'base', { segmentSeeds: seeds });
+        const b = runMatch(cfg, home, away, 'base', { segmentSeeds: seeds });
+        const n = runMatch(FUTSAL_5, home, away, 'base', { segmentSeeds: seeds });
+        expect(b.events).toEqual(a.events);
+        expect(b.score).toEqual(a.score);
+        // metade dos ticks, relógio até os 40 e intervalo no 20
+        const end = (m: typeof a) => m.events.find((e) => e.type === 'fulltime')?.tick ?? 0;
+        expect(end(a)).toBeGreaterThan(0);
+        expect(Math.abs(end(a) / end(n) - 0.5)).toBeLessThan(0.05);
+        expect(a.snapshots.at(-1)!.minute).toBeGreaterThanOrEqual(40);
+        expect(a.events.some((e) => e.type === 'halftime')).toBe(true);
+        // os 20 trechos da seed cabem na partida curta (trava no fim de cada um, como na normal)
+        expect(holdTick(a.snapshots, 19)).toBeLessThan(end(a));
+        // a revanche continua curta
+        let s: Shared = { ...short, peers: { host: peer('ana'), guest: peer('bia') }, phase: 'done' };
+        s = reduce(s, { k: 'rematch', commit: H('c') }, 'host', ctx());
+        s = reduce(s, { k: 'rematch', commit: H('d') }, 'guest', ctx());
+        expect(s.game).toBe(2);
+        expect(s.duration).toBe('short');
+        expect(buildRegistro({ ...s, teams: inMatch().teams }, 1, '0.8.7').duration).toBe('short');
     });
 });

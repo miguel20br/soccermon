@@ -21,6 +21,8 @@ export interface MatchConfig {
     knockout: boolean; // empate vai para os pênaltis
     penaltyKicks: number;
     halftimeRecovery: number; // fôlego recuperado no intervalo
+    /** Peso do que o Pokémon faz na partida na barra de evolução (sem = 1). Interruptor pra partida curta do duelo. */
+    evoGain?: number;
 }
 
 /**
