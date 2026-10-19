@@ -182,6 +182,7 @@ export const duel: typeof pt = {
         bravo: 'Grrr!',
         mute: "Mute rival's emotes",
         unmute: "Show rival's emotes",
+        lab: { mine: 'Your captain', theirs: 'Rival captain', auto: 'Rival sends on its own' },
     },
     result: {
         lossTitle: 'DEFEAT',

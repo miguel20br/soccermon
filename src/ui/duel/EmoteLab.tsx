@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { SPECIES } from '../../engine/data';
+import { useT } from '../../i18n/react';
 import { EMOTES } from '../../net/duel-state';
 import { useDuel } from '../../net/session';
 import { hex, Scoreboard } from '../components/MatchHud';
@@ -14,6 +15,7 @@ const RED = 0xe0403a;
  * 3,5 s (dá pra pausar). Escolha o capitão de cada lado pra ver as caras (quem não tem a emoção cai no rosto normal).
  */
 export function EmoteLab({ onExit }: { onExit: () => void }) {
+    const { t, d } = useT();
     const [mine, setMine] = useState(25);
     const [theirs, setTheirs] = useState(6);
     const [auto, setAuto] = useState(true);
@@ -42,23 +44,27 @@ export function EmoteLab({ onExit }: { onExit: () => void }) {
                     tags={['PAL', 'RIV']}
                     colors={[BLUE, RED]}
                     score={[2, 1]}
-                    clock={{ main: "14'", sub: '2º', text: false, progress: 0.7 }}
-                    stage="Duelo"
+                    clock={{ main: "14'", sub: d.match.half[1], text: false, progress: 0.7 }}
+                    stage={t('duel.title')}
                 >
                     <EmoteBubbles mySide="left" captains={[mine, theirs]} colors={[hex(BLUE), hex(RED)]} />
                 </Scoreboard>
             </div>
             <div className="emote-lab-pitch" />
             <div className="panel emote-lab-ctl">
-                <span className="emote-lab-row">Seu capitão {pick('Seu capitão', mine, setMine)}</span>
-                <span className="emote-lab-row">Capitão rival {pick('Capitão rival', theirs, setTheirs)}</span>
+                <span className="emote-lab-row">
+                    {t('duel.emotes.lab.mine')} {pick(t('duel.emotes.lab.mine'), mine, setMine)}
+                </span>
+                <span className="emote-lab-row">
+                    {t('duel.emotes.lab.theirs')} {pick(t('duel.emotes.lab.theirs'), theirs, setTheirs)}
+                </span>
                 <label>
-                    <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} /> Rival manda
-                    sozinho
+                    <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} />{' '}
+                    {t('duel.emotes.lab.auto')}
                 </label>
                 <EmoteBar captain={mine} />
                 <button type="button" className="btn" onClick={onExit}>
-                    Sair
+                    {t('common.ui.back')}
                 </button>
             </div>
         </div>

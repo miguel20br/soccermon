@@ -176,6 +176,7 @@ export const duel = {
         bravo: 'Grrr!',
         mute: 'Silenciar emotes do rival',
         unmute: 'Ver emotes do rival',
+        lab: { mine: 'Seu capitão', theirs: 'Capitão rival', auto: 'Rival manda sozinho' },
     },
     result: {
         lossTitle: 'DERROTA',
