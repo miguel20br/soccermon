@@ -5,6 +5,7 @@ import { common } from './en/common';
 import { duel } from './en/duel';
 import { help } from './en/help';
 import { home } from './en/home';
+import { liga } from './en/liga';
 import { match } from './en/match';
 import { profile } from './en/profile';
 import { result } from './en/result';
@@ -32,4 +33,5 @@ export const en: Dict = {
     account,
     title,
     duel,
+    liga,
 };

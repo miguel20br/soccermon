@@ -34,13 +34,21 @@ export function runDevDemo() {
         demo !== 'trailer' &&
         demo !== 'mt' &&
         demo !== 'escanteio' &&
-        demo !== 'conta'
+        demo !== 'conta' &&
+        demo !== 'dia' &&
+        demo !== 'liga'
     )
         return;
     started = true;
     // permite aos testes pular direto para o fim do tempo normal
     (window as unknown as { __soccermonBus?: typeof EventBus }).__soccermonBus = EventBus;
     const store = useGame.getState();
+    // Copa do Dia e Liga com um servidor de mentira (src/league/demo.ts): `?demo=dia[&estado=feito]`, `?demo=liga`
+    if (demo === 'dia' || demo === 'liga') {
+        const estado = new URLSearchParams(window.location.search).get('estado');
+        void import('../league/demo').then((m) => m.startLeagueDemo(demo, estado));
+        return;
+    }
     if (demo === 'conta') {
         demoAccount(new URLSearchParams(window.location.search).get('tipo') ?? 'juntar');
         return;

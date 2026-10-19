@@ -21,6 +21,7 @@ import { EventBus } from '../../game/EventBus';
 import type { MatchSceneData } from '../../game/scenes/MatchScene';
 import { clubName, formationText, stageName } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
+import { ligaRun, useLiga } from '../../league/liga-store';
 import { PhaserGame } from '../../PhaserGame';
 import { liveOf, type PlaybackSpeed, playerTeam, useGame } from '../../store/game-store';
 import { rivalColor, tagFromName } from '../../store/profile';
@@ -81,8 +82,19 @@ const HIGHLIGHTS_MULT = 4;
 /** De quanto em quanto tempo (real) o ponto da partida é salvo para poder retomar. */
 const SAVE_EVERY_MS = 1500;
 
-export function Match() {
-    const { run, match, settings, updateSettings, recordResult, setMatch, go, saveLive } = useGame();
+/** `liga`: partida contra um time fantasma (src/league): a mesma tela, com a partida da Liga no lugar da copa. */
+export function Match({ liga = false }: { liga?: boolean }) {
+    const store = useGame();
+    const { match, settings, updateSettings, setMatch, go } = store;
+    const ligaOpen = useLiga((s) => s.open);
+    // a partida da Liga vira uma copa de 1 fase (montada uma vez: as ordens vêm do estado da tela)
+    const ligaRunRef = useRef(liga && ligaOpen ? ligaRun(ligaOpen, useLiga.getState().live) : null);
+    const run = liga ? ligaRunRef.current : store.run;
+    const saveLive = liga ? useLiga.getState().saveLive : store.saveLive;
+    // na Liga quem grava é o servidor: o apito final manda as ordens e ele refaz a partida
+    const recordResult = liga ? useLiga.getState().finish : store.recordResult;
+    const saveLiveRef = useRef(saveLive);
+    saveLiveRef.current = saveLive;
     const { t, d } = useT();
     // retomando uma partida que ficou no meio: mesmo ponto e mesmas ordens
     const resume = useRef(liveOf(run)).current;
@@ -179,7 +191,7 @@ export function Match() {
                       ),
                       startPaused: true,
                       startTick: resume?.tick || undefined,
-                      final: run?.stage === CUP_STAGES.length - 1,
+                      final: !liga && run?.stage === CUP_STAGES.length - 1,
                       agency,
                       // a faixa da torcida é só a sua (o rival da copa não tem torcida organizada)
                       banners: [bannerText(profileClub.banner, run?.teamName || profileClub.clubName), null],
@@ -242,7 +254,7 @@ export function Match() {
         const onEvent = (e: MatchEvent) => {
             if (e.type === 'sub' && e.team === 0) setSubsDone((prev) => [...prev, e.inUid]);
             // gol: salva o ponto na hora (não dá para sair e voltar antes dele)
-            if (e.type === 'goal') useGame.getState().saveLive({ tick: e.tick });
+            if (e.type === 'goal') saveLiveRef.current({ tick: e.tick });
             const line = commentator.lineFor(e);
             if (line) setLines((prev) => [{ ...line, id: lineId.current++ }, ...prev].slice(0, 200));
             if (e.type === 'penalty') setShootout(e.shootout);
@@ -258,7 +270,7 @@ export function Match() {
             const now = performance.now();
             if (!afterFulltime && now - lastSave > SAVE_EVERY_MS) {
                 lastSave = now;
-                useGame.getState().saveLive({ tick: Math.floor(t.tick) });
+                saveLiveRef.current({ tick: Math.floor(t.tick) });
             }
         };
         const onEnded = () => {
@@ -428,7 +440,7 @@ export function Match() {
         return evo?.type === 'evolve' && name === species(evo.from).name ? species(evo.into).name : name;
     };
 
-    const stage = stageName(run.stage) || t('match.cup');
+    const stage = liga ? t('liga.stage') : stageName(run.stage) || t('match.cup');
 
     const finishIntro = () => {
         if (introDoneRef.current) return;
@@ -501,7 +513,7 @@ export function Match() {
                         colors={colors}
                         score={clock.score}
                         clock={clockParts}
-                        stage={d.match.stageShort[run.stage] ?? stage}
+                        stage={liga ? t('liga.stageShort') : (d.match.stageShort[run.stage] ?? stage)}
                     />
                     <PressureBar match={match} tick={clock.tick} minute={clock.minute} colors={colors} over={over} />
                     {agency && <MaxBars events={match.events} tick={clock.tick} colors={colors} />}
@@ -709,7 +721,11 @@ export function Match() {
                             </button>
                         </>
                     ) : (
-                        <button type="button" className="btn primary bc-result" onClick={() => go('result')}>
+                        <button
+                            type="button"
+                            className="btn primary bc-result"
+                            onClick={() => go(liga ? 'liga' : 'result')}
+                        >
                             {t('match.seeResult')}
                         </button>
                     )}

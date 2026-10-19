@@ -5,6 +5,7 @@ import { common } from './pt/common';
 import { duel } from './pt/duel';
 import { help } from './pt/help';
 import { home } from './pt/home';
+import { liga } from './pt/liga';
 import { match } from './pt/match';
 import { profile } from './pt/profile';
 import { result } from './pt/result';
@@ -36,6 +37,7 @@ export const pt = {
     account,
     title,
     duel,
+    liga,
 };
 
 export type Dict = typeof pt;
