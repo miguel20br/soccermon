@@ -3,18 +3,28 @@ import { describe, expect, it, vi } from 'vitest';
 // sem IndexedDB no Node: o save fica só na memória
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
-import { ENGINE_VERSION } from '../engine/config';
+import { ENGINE_VERSION, FUTSAL_5 } from '../engine/config';
 import { bestFit, DRAFT_PICKS } from '../engine/draft';
 import { evolveInstance } from '../engine/evolution';
 import { formationOf } from '../engine/formations';
 import { createInstance, slotRating } from '../engine/instance';
 import { Rng } from '../engine/rng';
+import { runMatch } from '../engine/runners/batch-runner';
 import { SIGNATURE } from '../engine/signature-moves';
 import { teachMove } from '../engine/tm';
 import { profile as enProfile } from '../i18n/en/profile';
 import { profile as ptProfile } from '../i18n/pt/profile';
 import { type DuelRecord, mergeDuels } from './duels';
-import { liveOf, migrateSave, type RunState, SAVE_VERSION, type SlotRef, slotRole, useGame } from './game-store';
+import {
+    liveOf,
+    migrateSave,
+    playerTeam,
+    type RunState,
+    SAVE_VERSION,
+    type SlotRef,
+    slotRole,
+    useGame,
+} from './game-store';
 import { BANNER_COUNT, bannerOf, EDITION_BIT } from './profile';
 
 describe('save', () => {
@@ -312,6 +322,37 @@ describe('Monta pra mim (draft automático, escolha do jogador)', () => {
         expect(run.autoFrom).toBe(2);
         expect(run.bench[0]).toBe(benchPick.uid);
         expect(new Set(run.picks.map((p) => p.speciesId)).size).toBe(DRAFT_PICKS);
+    });
+});
+
+describe('Pokédex com evolução no meio da partida', () => {
+    it('a forma de antes também jogou (a linha da partida já vem com a forma nova)', () => {
+        const g = () => useGame.getState();
+        useGame.setState({ dex: {} });
+        g().newRun('Pallet FC', 'dex-evo');
+        const base = g().run!;
+        // time de quem evolui, com a barra quase cheia: evolui na primeira bola parada depois de fazer algo
+        const rng = new Rng('dex-evo', 'team');
+        const picks = [1, 4, 7, 60, 66, 92, 147].map((id) => ({ ...createInstance(id, rng), evo: 13.5 }));
+        const run: RunState = {
+            ...base,
+            status: 'lineup',
+            picks,
+            lineup: picks.slice(0, 5).map((p) => p.uid),
+            bench: picks.slice(5).map((p) => p.uid),
+            captainUid: picks[0].uid,
+        };
+        useGame.setState({ run });
+        const team = playerTeam(g().run!, 0xe8423f);
+        g().lockMatch(team);
+        const m = runMatch(FUTSAL_5, team, run.opponents[0], 'dex-evo-0');
+        const ev = m.events.find((e) => e.type === 'evolve' && e.team === 0 && e.minute >= 2);
+        expect(ev?.type).toBe('evolve');
+        if (ev?.type !== 'evolve') return;
+        g().recordResult(m);
+        expect(g().dex[ev.into].matches).toBe(1);
+        expect(g().dex[ev.from].matches).toBe(1);
+        expect(g().dex[ev.from].minutes).toBeGreaterThan(0);
     });
 });
 

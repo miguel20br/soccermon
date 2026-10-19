@@ -953,12 +953,28 @@ export const useGame = create<GameStore>()(
                     };
                     if (status === 'reward') next.rewards = rollRewards(next, 0);
                     // Pokédex: seu time (1+ minuto) "jogou", o rival e as recompensas ficam "vistos";
-                    // quem evoluiu em campo também entra (a forma nova jogou o resto da partida)
-                    let dex = recordMatchInDex(getState().dex, lines, won);
+                    // quem evoluiu em campo jogou com as duas formas (a linha da partida já vem com a forma nova:
+                    // a de antes entra com os minutos até a evolução)
+                    const preEvo = [...evolved.values()].flatMap((e) => {
+                        const line = lines.find((l) => l.team === 0 && l.uid === e.uid);
+                        const inAt = m.events.find((x) => x.type === 'sub' && x.inUid === e.uid)?.minute ?? 0;
+                        if (!line) return [];
+                        const minutes = Math.min(line.minutes, Math.round(e.minute - inAt));
+                        return [
+                            {
+                                ...line,
+                                speciesId: e.from,
+                                minutes,
+                                rating: 0,
+                                stats: { ...line.stats, goals: 0, assists: 0 },
+                            },
+                        ];
+                    });
+                    let dex = recordMatchInDex(getState().dex, [...lines, ...preEvo], won);
                     // álbum: a edição de cada carta que jogou (como ela entrou: o Destaque desta partida conta na próxima)
                     dex = recordEditions(
                         dex,
-                        lines.flatMap((l) => {
+                        [...lines, ...preEvo].flatMap((l) => {
                             const card = l.team === 0 && l.minutes >= 1 && run.picks.find((p) => p.uid === l.uid);
                             return card ? [[l.speciesId, editionBits(card)] as [number, number]] : [];
                         }),
@@ -973,9 +989,10 @@ export const useGame = create<GameStore>()(
                     );
                     dex = markOvr(dex, picks.filter((p) => evolved.has(p.uid) || p.uid === destaqueUid).map(ovrOf));
                     if (status === 'champion') {
-                        const played = next.results.flatMap((r) =>
-                            (r.stats?.players ?? []).filter((p) => p.minutes >= 1).map((p) => p.speciesId),
-                        );
+                        const played = next.results.flatMap((r) => [
+                            ...(r.stats?.players ?? []).filter((p) => p.minutes >= 1).map((p) => p.speciesId),
+                            ...(r.stats?.digest?.evolutions ?? []).map((e) => e.from),
+                        ]);
                         dex = recordTitleInDex(dex, played);
                     }
                     const ended = status === 'eliminated' || status === 'champion';
