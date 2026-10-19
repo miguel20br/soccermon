@@ -153,7 +153,7 @@ export function EmoteLab({ onExit }: { onExit: () => void }) {
                     )}
                 </div>
             </div>
-            <div className="panel emote-lab-ctl">
+            <div className="panel bc-coach emote-lab-ctl">
                 <span className="emote-lab-row">
                     {t('duel.emotes.lab.mode')}
                     <select

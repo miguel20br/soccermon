@@ -106,7 +106,7 @@ function MutedNote({ i, onUndo }: { i: 0 | 1; onUndo: () => void }) {
         <div className={`emote-muted ${i ? 'right' : 'left'}`} role="status">
             <MuteIcon muted />
             <span>{t('duel.emotes.muted')}</span>
-            <button type="button" className="btn small ghost" onClick={onUndo}>
+            <button type="button" className="emote-undo" onClick={onUndo}>
                 {t('duel.emotes.undo')}
             </button>
         </div>

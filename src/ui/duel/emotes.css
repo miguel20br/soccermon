@@ -228,7 +228,7 @@
     width: 22px;
     height: 22px;
 }
-.emote-muted button {
+.emote-muted .emote-undo {
     all: unset;
     min-height: 32px;
     padding: 0 12px;
@@ -239,7 +239,7 @@
     display: inline-flex;
     align-items: center;
 }
-.emote-muted button:focus-visible {
+.emote-muted .emote-undo:focus-visible {
     outline: 3px solid var(--tc, #3b6dff);
     outline-offset: 2px;
 }
