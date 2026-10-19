@@ -171,11 +171,14 @@ export function Result() {
                     actions={actions}
                 />
             )}
-            <LeaderQuote
-                club={opponent.name}
-                won={match.winner === 0}
-                color={`#${rivalColor(clubColor, opponent.color).toString(16).padStart(6, '0')}`}
-            />
+            {/* fora do título a fala vem no topo do resultado (ResultHero) */}
+            {champion && (
+                <LeaderQuote
+                    club={opponent.name}
+                    won
+                    color={`#${rivalColor(clubColor, opponent.color).toString(16).padStart(6, '0')}`}
+                />
+            )}
             {champion && <h2 className="champ-h champ-final-h">{t('result.finalDetails')}</h2>}
 
             <MatchDetails

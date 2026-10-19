@@ -9,7 +9,7 @@
 import { writeFileSync } from 'node:fs';
 import { AGENCY, maxCharge, SHOUT_KINDS, type Shout } from '../../src/engine/agency';
 import { minuteOf } from '../../src/engine/match';
-import { COACH_LEADERS } from '../../src/engine/rival-coach';
+import { COACH_LEADERS, RIVAL_COACH } from '../../src/engine/rival-coach';
 import { LiveRunner } from '../../src/engine/runners/live-runner';
 import type { MatchState } from '../../src/engine/state';
 import { baseTeams, FUTSAL_5, Rng } from './lib';
@@ -23,6 +23,8 @@ const RIVAL = process.env.RIVAL === '1';
 // variantes pra comparar (ex.: AG_maxRange=14): mexe só nesta rodada do robô, nunca no jogo
 for (const [k, v] of Object.entries(process.env)) {
     if (k.startsWith('AG_') && v) (AGENCY as unknown as Record<string, number>)[k.slice(3)] = Number(v);
+    // técnico IA rival (ex.: RC_leadTicks=200: avisa 10 s antes)
+    if (k.startsWith('RC_') && v) (RIVAL_COACH as unknown as Record<string, number>)[k.slice(3)] = Number(v);
 }
 type Policy = 'never' | 'random' | 'good' | 'read';
 

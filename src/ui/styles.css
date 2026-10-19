@@ -7054,10 +7054,10 @@ body {
     display: flex;
     align-items: flex-end;
     gap: 10px;
-    width: min(560px, 100%);
-    margin: 0 auto 14px;
-    padding: 0 4px;
+    width: min(520px, 100%);
+    margin: 4px auto 10px;
     box-sizing: border-box;
+    text-align: left;
 }
 .leader-quote img {
     flex: none;
