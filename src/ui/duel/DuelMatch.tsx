@@ -615,7 +615,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                 <div className="bc-thumb">
                     {!wide && emotesOpen && (
                         <div className="bc-emotes">
-                            <EmoteBar captain={captains[side]} />
+                            <EmoteBar captain={captains[side]} onSent={() => setEmotesOpen(false)} />
                         </div>
                     )}
                     {!ended ? (

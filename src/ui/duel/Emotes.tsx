@@ -78,8 +78,11 @@ export function EmoteBubbles({
     );
 }
 
-/** Os 8 emotes com a cara do seu capitão: 1 a cada 3 s (o grito, 10 s) e o botão de silenciar os do rival. */
-export function EmoteBar({ captain }: { captain: number }) {
+/**
+ * Os 8 emotes com a cara do seu capitão: 1 a cada 3 s (o grito, 10 s) e o botão de silenciar os do rival. `onSent`:
+ * a gaveta do celular fecha ao mandar (como no Clash Royale), pra o emote aparecer.
+ */
+export function EmoteBar({ captain, onSent }: { captain: number; onSent?: () => void }) {
     const { t, d } = useT();
     const muted = useDuel((s) => s.muted);
     const [cool, setCool] = useState(false);
@@ -87,6 +90,7 @@ export function EmoteBar({ captain }: { captain: number }) {
         if (!duel.sendEmote(kind)) return;
         cry(captain, kind);
         window.dispatchEvent(new CustomEvent('duel:emote-sent', { detail: kind }));
+        onSent?.();
         setCool(true);
         window.setTimeout(() => setCool(false), 3000);
     };

@@ -708,6 +708,20 @@
         font-size: 18px;
     }
 }
+/* celular deitado: a gaveta numa linha só, sem a frase (senão tampa a quadra inteira) */
+@media (orientation: landscape) and (max-height: 520px) {
+    .bc-emotes .emote-bar {
+        grid-template-columns: repeat(9, minmax(0, 1fr));
+    }
+    .bc-emotes .emote-btn span {
+        display: none;
+    }
+    .bc-emotes .emote-btn.mute {
+        grid-column: auto;
+        grid-row: auto;
+        width: auto;
+    }
+}
 @media (prefers-reduced-motion: reduce) {
     .emote-pop,
     .emote-pop .emote-face {
