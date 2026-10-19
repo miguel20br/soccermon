@@ -161,6 +161,13 @@ export const profile: typeof pt = {
             ouro: 'Prism + Kanto complete ({n}/151)',
         },
         sealGot: '{name}: earned',
+        sealTip: {
+            folha: 'Foil: 10 matches with {name}.',
+            holo: 'Holo: 25 goals with {name}.',
+            prisma: 'Prism: 5 titles with {name}.',
+            ouro: 'Dark Gold: Prism with {name} and Kanto complete.',
+        },
+        sealHave: 'You have {n}.',
         sealMissing: '{name}: missing ({goal})',
         sealsHelp: 'The seal tracks your career with this species. It does not change the card.',
         notPlayed: "Hasn't played for your team yet. Field it in a cup to start its career.",

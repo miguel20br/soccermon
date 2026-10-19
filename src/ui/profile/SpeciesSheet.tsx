@@ -24,11 +24,13 @@ import {
     topSeal,
 } from '../../store/profile';
 import { HudIcon } from '../components/MatchHud';
+import { Tip } from '../components/Tip';
 import { TypeIcon } from '../components/TypeIcon';
 import { METAL, metalOf } from '../rarity';
 import { TYPE_COLOR } from '../type-colors';
 import { speciesGif } from './club';
 import { BallMark, CareerSealIcon, ChampionRibbon, Chevron, EvoArrow, LockIcon, SpeakerIcon } from './icons';
+import { sealTip } from './seal-tip';
 
 const STATS: StatKey[] = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'];
 
@@ -175,10 +177,13 @@ export function SpeciesSheet({
                             </span>
                         )}
                         {seal && (
-                            <span className={`pf-champ pf-seal-line seal-${seal}`}>
+                            <Tip
+                                className={`pf-champ pf-seal-line seal-${seal}`}
+                                text={sealTip(t, seal, sp.name, entry, playedCount(dex))}
+                            >
                                 <CareerSealIcon seal={seal} />{' '}
                                 {t('profile.sheet.seal', { name: d.profile.sheet.sealNames[seal] })}
-                            </span>
+                            </Tip>
                         )}
                         {seen && (
                             <button

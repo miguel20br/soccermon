@@ -13,7 +13,7 @@ import { rewardOptions } from '../../src/engine/rewards';
 import {
     DESTAQUE_LEVEL_UP_RATING,
     DESTAQUE_MAX_LEVEL,
-    iconMvpOpen,
+    mvpOpen,
     rollSpecial,
     weeklyEventType,
 } from '../../src/engine/specials';
@@ -23,10 +23,6 @@ const [shard, nshards] = [Number(process.argv[2]), Number(process.argv[3])];
 const out = process.argv[4];
 const PER = Number(process.argv[5]) || 300;
 const STRAT = process.argv[6] ?? 'nota';
-// PROPOSTA_MVP=1: carta Evento também leva o selo MVP (proposta dos combos, 19/10/2026); senão, a regra de hoje
-const PROPOSTA_MVP = process.env.PROPOSTA_MVP === '1';
-const mvpOpen = (p: PokemonInstance) =>
-    iconMvpOpen(p) || (PROPOSTA_MVP && p.special?.kind === 'evento' && (p.special.level ?? 0) < DESTAQUE_MAX_LEVEL);
 const evoScore = (o: PokemonInstance, role: Position | 'ANY') => {
     const t = evolutionTarget(o.speciesId, o.uid);
     const r = ratingAt(o, role).rating;
@@ -152,7 +148,7 @@ function cup(seed: string, formation: FormationId) {
             star?.special?.kind === 'destaque' &&
             (star.special.level ?? 1) < DESTAQUE_MAX_LEVEL &&
             starRating >= DESTAQUE_LEVEL_UP_RATING;
-        // mesma regra do game-store (recordResult): Ícone (e Evento na proposta) leva o selo MVP
+        // mesma regra do game-store (recordResult): Ícone e Evento levam o selo MVP
         const mvpTaker = (p: PokemonInstance) =>
             mvpOpen(p) && (!p.special?.level || (p === star && starRating >= DESTAQUE_LEVEL_UP_RATING));
         const winner = levelUp ? star : ranked.find((p) => !p.special || mvpTaker(p));

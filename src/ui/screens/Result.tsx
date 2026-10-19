@@ -28,6 +28,7 @@ import { UnlockStrip } from '../components/UnlockNotice';
 import { Tip } from '../help/Tip';
 import { FEEDBACK_URL } from '../links';
 import { useClubColor } from '../profile/club';
+import { editionLabel } from '../rarity';
 import { shareRun } from '../share';
 import { type CardFormat, downloadBlob, shareCardBlob } from '../share-card';
 import { CupStats } from '../stats/CupStats';
@@ -225,15 +226,18 @@ export function Result() {
                         {destaque && (
                             <div className="destaque-box">
                                 <h2>
-                                    {destaque.special?.kind === 'icone'
-                                        ? t('result.iconMvpTitle', { n: destaque.special.level ?? 1 })
+                                    {destaque.special?.kind === 'icone' || destaque.special?.kind === 'evento'
+                                        ? t('result.mvpTitle', {
+                                              ed: editionLabel(destaque.special.kind),
+                                              n: destaque.special.level ?? 1,
+                                          })
                                         : (destaque.special?.level ?? 1) > 1
                                           ? t('result.destaqueLevelTitle', { n: destaque.special?.level ?? 1 })
                                           : t('result.destaqueTitle')}
                                 </h2>
                                 <p className="tactic-desc">
-                                    {destaque.special?.kind === 'icone'
-                                        ? t('result.iconMvpText', {
+                                    {destaque.special?.kind === 'icone' || destaque.special?.kind === 'evento'
+                                        ? t('result.mvpText', {
                                               name: destaque.nickname ?? species(destaque.speciesId).name,
                                               bonus: specialBonus(destaque),
                                           })
@@ -244,6 +248,7 @@ export function Result() {
                                             })
                                           : t('result.destaqueText', {
                                                 name: destaque.nickname ?? species(destaque.speciesId).name,
+                                                bonus: specialBonus(destaque),
                                             })}
                                 </p>
                                 <FutCard inst={destaque} size="sm" position={lineupPosition(run, destaque.uid)} />

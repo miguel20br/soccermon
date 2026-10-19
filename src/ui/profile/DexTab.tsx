@@ -4,10 +4,12 @@ import { typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { albumSlots, type DexEntry, hasSticker, isPlayed, topSeal } from '../../store/profile';
+import { Tip } from '../components/Tip';
 import { TypeIcon } from '../components/TypeIcon';
 import { speciesGif } from './club';
 import { BallMark, CareerSealIcon, ChampionRibbon } from './icons';
 import { dexNo, SpeciesSheet } from './SpeciesSheet';
+import { sealTip } from './seal-tip';
 
 type Status = 'played' | 'seen' | 'unseen';
 type Filter = 'all' | Status | 'missing';
@@ -157,7 +159,13 @@ export function DexTab() {
                                     <span className="pf-cell-name">{known ? sp.name : '???'}</span>
                                     {/* o selo (10+ partidas) já diz que jogou: fica no lugar da bolinha */}
                                     {seal ? (
-                                        <CareerSealIcon seal={seal} className={`pf-seal pf-cell-mark seal-${seal}`} />
+                                        <Tip
+                                            className="pf-cell-mark pf-cell-tip"
+                                            focusable={false}
+                                            text={sealTip(t, seal, sp.name, dex[sp.id], counts.played)}
+                                        >
+                                            <CareerSealIcon seal={seal} className={`pf-seal seal-${seal}`} />
+                                        </Tip>
                                     ) : (
                                         st === 'played' && <BallMark className="pf-ball pf-cell-mark" />
                                     )}

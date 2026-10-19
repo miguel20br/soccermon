@@ -1741,11 +1741,16 @@ fieldset.pf-field,
     height: 21px;
     flex: none;
 }
-.pf-cell .pf-seal.pf-cell-mark {
+.pf-cell .pf-cell-tip {
     top: 2px;
     right: 2px;
     width: 16px;
     height: 17px;
+}
+.pf-cell-tip .pf-seal {
+    display: block;
+    width: 100%;
+    height: 100%;
 }
 .pf-seal-line {
     color: var(--text);

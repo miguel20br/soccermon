@@ -19,9 +19,11 @@ import {
 } from '../../store/medals';
 import { MISSIONS } from '../../store/missions';
 import { kantoComplete, type Profile, topSeal } from '../../store/profile';
+import { Tip } from '../components/Tip';
 import { symbolArt } from './Crest';
 import { speciesGif, titleName } from './club';
 import { CareerSealIcon, CheckIcon } from './icons';
+import { sealTip } from './seal-tip';
 import { useSaveView } from './TrainerTab';
 import './medals.css';
 
@@ -94,6 +96,13 @@ export function showLabel(it: ShowItem, d: ReturnType<typeof useT>['d']): string
     return `${species(it.speciesId).name} · ${d.profile.sheet.sealNames[it.seal]}`;
 }
 
+/** Dica de um destaque: o nome e o que ele pede (medalha), ou o que o selo de carreira pede. */
+export function showTip(it: ShowItem, tr: ReturnType<typeof useT>): string {
+    if (it.kind === 'm') return `${showLabel(it, tr.d)}: ${tr.d.profile.medals.text[it.id] ?? ''}`;
+    if (it.kind === 's') return sealTip(tr.t, it.seal, species(it.speciesId).name);
+    return showLabel(it, tr.d);
+}
+
 /** Um destaque: medalha, coleção (medalha de prata com o símbolo dela) ou selo de carreira na espécie. */
 export function ShowBadge({ it }: { it: ShowItem }) {
     if (it.kind === 'm') return <MedalDisc glyph={MEDAL_GLYPH[it.id] ?? 'pokebola'} tier={it.tier} />;
@@ -108,14 +117,16 @@ export function ShowBadge({ it }: { it: ShowItem }) {
 
 /** A fileira da vitrine (cartão de treinador, VERSUS). Sem destaques, não aparece. */
 export function ShowcaseRow({ items, className = '' }: { items: ShowItem[]; className?: string }) {
-    const { d } = useT();
+    const tr = useT();
     if (!items.length) return null;
     return (
-        <ul className={`showcase ${className}`} aria-label={d.profile.medals.showcase}>
+        <ul className={`showcase ${className}`} aria-label={tr.d.profile.medals.showcase}>
             {items.map((it) => (
-                <li key={showKey(it)} title={showLabel(it, d)}>
-                    <ShowBadge it={it} />
-                    <span className="pf-sr">{showLabel(it, d)}</span>
+                <li key={showKey(it)}>
+                    <Tip text={showTip(it, tr)}>
+                        <ShowBadge it={it} />
+                        <span className="pf-sr">{showLabel(it, tr.d)}</span>
+                    </Tip>
                 </li>
             ))}
         </ul>
@@ -243,7 +254,12 @@ export function MedalsTab({ save }: { save: (patch: Partial<Profile>) => void })
                         const name = d.profile.medals.names[medal.id] ?? medal.id;
                         return (
                             <li key={medal.id} className={`md-card t-${TIER_NAMES[tier]}${on ? ' shown' : ''}`}>
-                                <MedalDisc glyph={MEDAL_GLYPH[medal.id] ?? 'pokebola'} tier={tier} />
+                                <Tip
+                                    focusable={false}
+                                    text={`${name} · ${tier ? d.profile.medals.tiers[TIER_NAMES[tier]] : t('profile.medals.none')}: ${d.profile.medals.text[medal.id] ?? ''}`}
+                                >
+                                    <MedalDisc glyph={MEDAL_GLYPH[medal.id] ?? 'pokebola'} tier={tier} />
+                                </Tip>
                                 <div className="md-body">
                                     <b>{name}</b>
                                     <span className="md-text">{d.profile.medals.text[medal.id]}</span>

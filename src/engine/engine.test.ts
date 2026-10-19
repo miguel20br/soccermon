@@ -19,7 +19,7 @@ import { Rng } from './rng';
 import { runMatch } from './runners/batch-runner';
 import { LiveRunner, validOrder } from './runners/live-runner';
 import { SIGNATURE } from './signature-moves';
-import { EVENT_TYPES, iconMvpOpen, rollSpecial, SPECIAL_BONUS, specialBonus, weeklyEventType } from './specials';
+import { EVENT_TYPES, mvpOpen, rollSpecial, SPECIAL_BONUS, specialBonus, weeklyEventType } from './specials';
 import { type MatchOrder, SNAP_STRIDE, type Tactic, type TeamSetup } from './state';
 import { computeSynergies } from './synergy';
 import { dir8, v } from './vec';
@@ -474,12 +474,14 @@ describe('v0.6: cartas especiais', () => {
         expect(fire).toBeGreaterThan(250);
     });
 
-    it('edição dá +2 em tudo, sem acumular com shiny', () => {
+    it('edição dá +2 em tudo; shiny por cima de outra edição soma +1', () => {
         const base = createInstance(1, new Rng('b'));
         const plain = viewInstance({ ...base, shiny: false, special: null }).attributes;
+        const shiny = viewInstance({ ...base, shiny: true, special: null }).attributes;
         const both = viewInstance({ ...base, shiny: true, special: { kind: 'destaque' } }).attributes;
-        expect(both.pace - plain.pace).toBe(SPECIAL_BONUS);
-        expect(both.shooting - plain.shooting).toBe(SPECIAL_BONUS);
+        expect(shiny.pace - plain.pace).toBe(SPECIAL_BONUS);
+        expect(both.pace - plain.pace).toBe(SPECIAL_BONUS + 1);
+        expect(both.shooting - plain.shooting).toBe(SPECIAL_BONUS + 1);
     });
 
     it('evento da semana gira entre tipos com Pokémon e é estável dentro da semana', () => {
@@ -979,13 +981,34 @@ describe('escanteio (0.8.5)', () => {
     });
 });
 
-describe('Ícone com MVP', () => {
-    it('continua Ícone e ganha +1 por selo de MVP, até 3', () => {
-        const base = createInstance(25, new Rng('icone', 'mvp'));
+describe('Edições em camadas (MVP e shiny)', () => {
+    const base = { ...createInstance(25, new Rng('icone', 'mvp')), shiny: false };
+    it('Ícone e Evento continuam e ganham +1 por selo de MVP, até 3', () => {
         const icon = (level?: number) => ({ ...base, special: { kind: 'icone' as const, ...(level && { level }) } });
+        const evt = (level?: number) => ({
+            ...base,
+            special: { kind: 'evento' as const, type: 'Electric', ...(level && { level }) },
+        });
         expect(specialBonus(icon())).toBe(SPECIAL_BONUS);
         expect([1, 2, 3].map((n) => specialBonus(icon(n)))).toEqual([3, 4, 5]);
-        expect(iconMvpOpen(icon(2))).toBe(true);
-        expect(iconMvpOpen(icon(3))).toBe(false);
+        expect([0, 1, 2, 3].map((n) => specialBonus(evt(n)))).toEqual([2, 3, 4, 5]);
+        expect(mvpOpen(icon(2))).toBe(true);
+        expect(mvpOpen(icon(3))).toBe(false);
+        expect(mvpOpen(evt(2))).toBe(true);
+        expect(mvpOpen({ ...base, special: { kind: 'destaque' } })).toBe(false);
+    });
+    it('shiny +1 junto de outra edição, Destaque 1–3; sem teto além do 99', () => {
+        const dest = (level: number, shiny = false) => ({
+            ...base,
+            shiny,
+            special: { kind: 'destaque' as const, level },
+        });
+        expect([1, 2, 3].map((n) => specialBonus(dest(n)))).toEqual([2, 3, 4]);
+        expect([1, 2, 3].map((n) => specialBonus(dest(n, true)))).toEqual([3, 4, 5]);
+        const top = { ...base, shiny: true, special: { kind: 'icone' as const, level: 3 } };
+        expect(specialBonus(top)).toBe(6);
+        // atributo trava em 99: o bônus que sobra só sobe quem ainda está abaixo
+        const v = viewInstance({ ...createInstance(150, new Rng('teto')), shiny: true, special: top.special });
+        expect(Math.max(...Object.values(v.attributes))).toBeLessThanOrEqual(99);
     });
 });

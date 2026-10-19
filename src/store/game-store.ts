@@ -16,7 +16,7 @@ import type { MatchResult } from '../engine/runners/batch-runner';
 import {
     DESTAQUE_LEVEL_UP_RATING,
     DESTAQUE_MAX_LEVEL,
-    iconMvpOpen,
+    mvpOpen,
     rollSpecial as roll,
     SPECIALS_LIVE,
     weeklyEventType,
@@ -1059,8 +1059,8 @@ export const useGame = create<GameStore>()(
                     const won = m.winner === 0;
                     // carta Destaque (só na vitória: na eliminação a copa acaba e a carta não teria onde jogar).
                     // O craque vira Destaque; se já é, sobe de nível jogando muito (nota 8+, até o 3); senão o
-                    // prêmio vai pro melhor do time que ainda não tem edição. Ícone também leva: continua Ícone
-                    // (fundo de galáxia) e ganha o selo "MVP n" (o 2º e o 3º pedem nota 8+, como o Destaque).
+                    // prêmio vai pro melhor do time que ainda não tem edição. Ícone e Evento também levam: seguem
+                    // com a edição e ganham o selo "MVP n" (o 2º e o 3º pedem nota 8+, como o Destaque).
                     const lines = playerLines(m);
                     const ranked = everyoneIn(m)
                         .filter((p) => p.team === 0 && mvpScore(p) > 0)
@@ -1072,10 +1072,10 @@ export const useGame = create<GameStore>()(
                         star?.special?.kind === 'destaque' &&
                         (star.special.level ?? 1) < DESTAQUE_MAX_LEVEL &&
                         starRating >= DESTAQUE_LEVEL_UP_RATING;
-                    // Ícone sem selo leva como carta sem edição; com selo, só sobe sendo o craque com nota 8+
-                    const iconMvp = (p: PokemonInstance) =>
-                        iconMvpOpen(p) && (!p.special?.level || (p === star && starRating >= DESTAQUE_LEVEL_UP_RATING));
-                    const winner = levelUp ? star : ranked.find((p) => !p.special || iconMvp(p));
+                    // Ícone/Evento sem selo leva como carta sem edição; com selo, só sobe sendo o craque com nota 8+
+                    const mvpTaker = (p: PokemonInstance) =>
+                        mvpOpen(p) && (!p.special?.level || (p === star && starRating >= DESTAQUE_LEVEL_UP_RATING));
+                    const winner = levelUp ? star : ranked.find((p) => !p.special || mvpTaker(p));
                     const destaqueUid = won && SPECIALS_LIVE && winner ? winner.uid : null;
                     const destaqueLevel = levelUp ? (star.special?.level ?? 1) + 1 : 1;
                     // quem evoluiu no meio da partida continua evoluído pelo resto da copa
@@ -1099,7 +1099,7 @@ export const useGame = create<GameStore>()(
                             out = {
                                 ...out,
                                 special:
-                                    p.special?.kind === 'icone'
+                                    p.special?.kind === 'icone' || p.special?.kind === 'evento'
                                         ? { ...p.special, level: (p.special.level ?? 0) + 1 }
                                         : {
                                               kind: 'destaque' as const,
