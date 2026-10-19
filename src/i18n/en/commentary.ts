@@ -150,5 +150,13 @@ export const commentary: typeof pt = {
     maxStart: '{x} is charging the max move! The whole court feels it.',
     maxHit: 'MAX MOVE! {x} unleashes {m} at full power!',
     maxGk: '{x} shut the goal with the max move.',
+    coach: {
+        shout: '{leader} yells from the sideline: "{shout}"',
+        timeout: '{leader} called a time-out! Play stops at the next dead ball.',
+        flyGkOn: '{leader} sends the keeper forward: flying keeper incoming!',
+        flyGkOff: '{leader} calls the keeper back to goal.',
+        max: "{leader} calls for the captain's max move!",
+        tactic: '{leader} switches {team} to {tactic}.',
+    },
     maxMiss: "{x}'s max move didn't come off: the bar drops back to half.",
 };

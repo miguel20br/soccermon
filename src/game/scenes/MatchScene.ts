@@ -5,6 +5,7 @@ import { ABILITIES, MOVES, species } from '../../engine/data';
 import { ITEMS } from '../../engine/items';
 import { LINKS } from '../../engine/links';
 import { moveProfile } from '../../engine/moves';
+import type { LeaderId } from '../../engine/rival-coach';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import {
     Action,
@@ -48,6 +49,7 @@ import { trailParticle, typeBurst } from '../ball-trail';
 import { BattleBox } from '../battle-box';
 import { Cinematics, FOCUS_DEPTH } from '../cinematics';
 import { drawBanner, drawCourt, ensureBallTexture, GAME_H, GAME_W, PPM, toPx } from '../court';
+import { COURTS } from '../court-themes';
 import { EventBus } from '../EventBus';
 import { blinkSchedule, evolutionView, RIVAL_EVO_MS } from '../evolution-view';
 import { castMove, preloadMoveFx } from '../move-fx';
@@ -92,6 +94,8 @@ export interface MatchSceneData {
      * da disputa de pênaltis (pra escolher a ordem). No duelo nada para (as duas telas seguem juntas).
      */
     agency?: boolean;
+    /** Quadra do ginásio do rival (Copa; src/game/court-themes.ts). Sem ela, a madeira de sempre. */
+    court?: LeaderId;
 }
 
 /** Janela do golpe máximo e período do goleiro-linha (pra aura na quadra). */
@@ -431,7 +435,7 @@ export class MatchScene extends Phaser.Scene {
         this.playTick = this.snaps[0]?.tick ?? 0;
         if (this.md.reduceMotion) this.steadyCamera();
 
-        drawCourt(this);
+        drawCourt(this, this.md.court ? COURTS[this.md.court] : undefined);
         for (const team of [0, 1] as const) {
             const text = this.md.banners?.[team];
             if (text) drawBanner(this, team, text, this.md.colors[team], bannerInk(this.md.colors[team]));

@@ -1,5 +1,6 @@
 import type Phaser from 'phaser';
 import { FUTSAL_5 } from '../engine/config';
+import { type CourtTheme, drawFloor, WOOD } from './court-themes';
 
 export const PPM = 22; // pixels por metro
 export const MARGIN = 44;
@@ -9,16 +10,22 @@ export const GAME_H = W * PPM + MARGIN * 2;
 
 export const toPx = (x: number, y: number) => ({ x: MARGIN + x * PPM, y: MARGIN + y * PPM });
 
-/** Quadra de futsal em piso de madeira, com a pokébola no círculo central. */
-export function drawCourt(scene: Phaser.Scene) {
+/**
+ * Quadra de futsal com a pokébola no círculo central: madeira por padrão, ou a do ginásio (`COURTS` em
+ * court-themes.ts). Um Graphics só, desenhado uma vez.
+ */
+export function drawCourt(scene: Phaser.Scene, theme: CourtTheme = WOOD) {
     const g = scene.add.graphics();
     const tl = toPx(0, 0);
-    g.fillStyle(0x7a4a2a, 1).fillRect(0, 0, GAME_W, GAME_H);
-    g.fillStyle(0xc98a4f, 1).fillRect(tl.x - 14, tl.y - 14, L * PPM + 28, W * PPM + 28);
-    for (let i = 0; i < (L * PPM + 28) / 24; i++) {
-        g.fillStyle(i % 2 ? 0xc68649 : 0xcf9358, 1).fillRect(tl.x - 14 + i * 24, tl.y - 14, 24, W * PPM + 28);
+    const box = { x: tl.x - 14, y: tl.y - 14, w: L * PPM + 28, h: W * PPM + 28 };
+    g.fillStyle(theme.surround, 1).fillRect(0, 0, GAME_W, GAME_H);
+    if (theme.rim === undefined) drawFloor(g, theme.floor, box);
+    else {
+        g.fillStyle(theme.rim, 1).fillRect(box.x, box.y, box.w, box.h);
+        drawFloor(g, theme.floor, { x: tl.x, y: tl.y, w: L * PPM, h: W * PPM });
     }
-    g.fillStyle(0x3a7bd5, 0.55);
+    theme.decor?.(g, box, { w: GAME_W, h: GAME_H });
+    g.fillStyle(theme.area, theme.areaAlpha);
     areaPath(g, 0, true);
     areaPath(g, 1, true);
 

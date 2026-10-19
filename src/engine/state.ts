@@ -6,6 +6,7 @@ import type { Species, TypeName } from './data';
 import type { Formation, FormationId } from './formations';
 import type { PokemonInstance } from './instance';
 import type { MoveKind, StatusKind } from './moves';
+import type { CoachCall, LeaderId } from './rival-coach';
 import type { Rng } from './rng';
 import type { Vec2 } from './vec';
 
@@ -39,6 +40,11 @@ export interface TeamSetup {
     corner?: CornerPlan;
     /** uid de quem cobra os escanteios (padrão: o melhor passe fora do pivô). */
     cornerTakerUid?: string | null;
+    /**
+     * Técnico IA que reage ao vivo (rival da Copa com a beira da quadra ligada; src/engine/rival-coach.ts). Sem ele
+     * a partida é a de sempre.
+     */
+    coach?: LeaderId;
 }
 
 /** Mudança de tática agendada (tática ao vivo: a partida é resimulada com a agenda). */
@@ -456,6 +462,8 @@ export type MatchEvent = MatchEventBase &
         | { type: 'flyGk'; team: 0 | 1; on: boolean; by: number }
         /** Golpe máximo: abriu a janela, saiu (`hit`: o chute, ou a janela do goleiro) ou passou sem sair (`miss`). */
         | { type: 'max'; team: 0 | 1; by: number; phase: 'start' | 'hit' | 'miss'; moveId?: string | null }
+        /** Técnico IA avisou a ordem (vale `RIVAL_COACH.leadTicks` depois; src/engine/rival-coach.ts). */
+        | ({ type: 'coach'; team: 0 | 1; leader: LeaderId } & CoachCall)
     );
 
 export type MatchEventType = MatchEvent['type'];

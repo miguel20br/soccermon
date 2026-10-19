@@ -95,6 +95,8 @@ export class Commentator {
     /** Último escanteio (gol olímpico: o cobrador chuta direto e marca). */
     private corner: { tick: number; by: number; team: 0 | 1 } | null = null;
     private olympicShot = false;
+    /** Time com técnico IA (rival que reage): o aviso dele já narra o grito e a tática, sem repetir. */
+    private coached: [boolean, boolean];
 
     constructor(result: MatchResult, teamNames: [string, string]) {
         this.names = result.roster.map((p) => p.name);
@@ -103,6 +105,10 @@ export class Commentator {
         this.roles = result.roster.map((p) => p.role);
         this.teamNames = teamNames;
         this.rng = new Rng(result.seed, 'commentary');
+        this.coached = [0, 1].map((t) => result.events.some((e) => e.type === 'coach' && e.team === t)) as [
+            boolean,
+            boolean,
+        ];
     }
 
     private n(idx: number | null | undefined): string {
@@ -335,6 +341,7 @@ export class Commentator {
                     e.team,
                 );
             case 'tactic':
+                if (this.coached[e.team]) return null;
                 return line(
                     say(c.tactic, { team: this.teamNames[e.team], tactic: dict().common.tactic[e.tactic] }),
                     'whistle',
@@ -381,7 +388,20 @@ export class Commentator {
                     e.scored ? 'big' : 'normal',
                     this.teams[e.by],
                 );
+            case 'coach': {
+                const k = c.coach;
+                const vars = {
+                    leader: dict().match.leaders[e.leader].name,
+                    team: this.teamNames[e.team],
+                    shout: e.call === 'shout' ? dict().match.agency.shout[e.shout] : '',
+                    tactic: e.call === 'tactic' ? dict().common.tactic[e.tactic] : '',
+                };
+                const text =
+                    e.call === 'flyGk' ? (e.on ? k.flyGkOn : k.flyGkOff) : e.call === 'shout' ? k.shout : k[e.call];
+                return line(say(text, vars), e.call === 'timeout' || e.call === 'max' ? 'big' : 'whistle', e.team);
+            }
             case 'shout':
+                if (this.coached[e.team]) return null;
                 return line(
                     say(c.shout, { team: this.teamNames[e.team], shout: dict().match.agency.shout[e.shout] }),
                     'whistle',

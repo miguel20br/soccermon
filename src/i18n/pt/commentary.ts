@@ -160,4 +160,13 @@ export const commentary = {
     maxHit: 'GOLPE MÁXIMO! {x} solta {m} no limite!',
     maxGk: '{x} fechou o gol com o golpe máximo.',
     maxMiss: 'O golpe máximo de {x} não saiu: a barra volta pela metade.',
+    /** Técnico rival que reage (beira da quadra): o aviso sai antes de a ordem valer. */
+    coach: {
+        shout: '{leader} grita da beira da quadra: "{shout}"',
+        timeout: '{leader} pediu tempo! A quadra para na próxima bola parada.',
+        flyGkOn: '{leader} manda o goleiro subir: vem goleiro-linha!',
+        flyGkOff: '{leader} chama o goleiro de volta pro gol.',
+        max: '{leader} chama o golpe máximo do capitão!',
+        tactic: '{leader} muda o {team}: {tactic}.',
+    },
 };

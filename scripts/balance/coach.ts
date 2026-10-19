@@ -3,9 +3,11 @@
 // O time 0 é o robô; o time 1, a IA de sempre (sem mecânica). Mesmas seeds em todas as políticas (comparação pareada).
 // Políticas: never (nunca usa = a partida de hoje), random (usa em horas sorteadas), good (regra simples e sensata).
 // A ordem vale `40 × velocidade` ticks à frente, como na copa.
+// RIVAL=1: o time 1 ganha o técnico IA que reage (src/engine/rival-coach.ts), um líder por partida (em rodízio).
 import { writeFileSync } from 'node:fs';
 import { AGENCY, maxCharge, SHOUT_KINDS, type Shout } from '../../src/engine/agency';
 import { minuteOf } from '../../src/engine/match';
+import { COACH_LEADERS } from '../../src/engine/rival-coach';
 import { LiveRunner } from '../../src/engine/runners/live-runner';
 import type { MatchState } from '../../src/engine/state';
 import { baseTeams, FUTSAL_5, Rng } from './lib';
@@ -15,6 +17,7 @@ const OUT = process.argv[3] ?? 'coach.json';
 const SPEED = Number(process.argv[4]) || 4;
 const MECHS = (process.argv[5] ?? 'shout,timeout,flyGk,max,pens,all').split(',');
 const LEAD = 40 * SPEED;
+const RIVAL = process.env.RIVAL === '1';
 // variantes pra comparar (ex.: AG_maxRange=14): mexe só nesta rodada do robô, nunca no jogo
 for (const [k, v] of Object.entries(process.env)) {
     if (k.startsWith('AG_') && v) (AGENCY as unknown as Record<string, number>)[k.slice(3)] = Number(v);
@@ -59,11 +62,14 @@ interface Out {
     shouts: number;
     timeouts: number;
     shootout: boolean;
+    /** Ordens do técnico IA rival (avisos 'coach'). */
+    rivalCalls: number;
 }
 
 function play(i: number, mech: string, policy: Policy): Out {
     const { A, B } = baseTeams(i);
-    const runner = new LiveRunner(FUTSAL_5, A, B, `coach-${i}`);
+    const away = RIVAL ? { ...B, coach: COACH_LEADERS[i % COACH_LEADERS.length] } : B;
+    const runner = new LiveRunner(FUTSAL_5, A, away, `coach-${i}`);
     const s = runner.state;
     const plan = randomPlan(i);
     const use = (m: string) => policy !== 'never' && (mech === m || mech === 'all');
@@ -162,6 +168,7 @@ function summarize(s: MatchState): Out {
         shouts: 0,
         timeouts: 0,
         shootout: !!s.shootout,
+        rivalCalls: ev.filter((e) => e.type === 'coach' && e.team === 1).length,
     };
     let fly = false;
     let lastMaxHit: { tick: number; by: number } | null = null;
@@ -190,6 +197,7 @@ const configs: [string, Policy][] = [['none', 'never']];
 for (const m of MECHS) configs.push([m, 'random'], [m, 'good']);
 const res: Record<string, Out[]> = {};
 const t0 = Date.now();
+console.log(RIVAL ? 'rival reagindo (técnico IA, líderes em rodízio)' : 'rival parado (como hoje)');
 for (const [m, p] of configs) {
     const key = `${m}:${p}`;
     res[key] = [];
@@ -197,7 +205,7 @@ for (const [m, p] of configs) {
     const w = res[key].filter((x) => x.win).length / N;
     console.log(`${key.padEnd(16)} vitória ${(w * 100).toFixed(1)}%  (${((Date.now() - t0) / 1000).toFixed(0)} s)`);
 }
-writeFileSync(OUT, JSON.stringify({ N, SPEED, res }));
+writeFileSync(OUT, JSON.stringify({ N, SPEED, RIVAL, res }));
 
 // tabela: diferença pareada contra "nunca usa", com o erro (1 desvio) da diferença
 const base = res['none:never'];
@@ -220,6 +228,7 @@ for (const [key, rows] of Object.entries(res)) {
         avg((r) => r.shouts) ? `gritos ${avg((r) => r.shouts).toFixed(1)}` : '',
         avg((r) => r.timeouts) ? `tempos ${avg((r) => r.timeouts).toFixed(1)}` : '',
         m === 'pens' || m === 'none' ? `pênaltis ${(avg((r) => Number(r.shootout)) * 100).toFixed(0)}%` : '',
+        RIVAL && m === 'none' ? `rival: ${avg((r) => r.rivalCalls).toFixed(1)} ordens/jogo` : '',
     ]
         .filter(Boolean)
         .join('; ');
