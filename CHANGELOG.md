@@ -2,6 +2,10 @@
 
 ## 0.8.8 · Ícone MVP, melhores momentos, medalhas e treinadores
 
+### Copa do Dia e Liga
+- Copa do Dia: a mesma copa pra todo mundo (mesmo draft, mesmos rivais), uma tentativa por dia e ranking do dia
+- Liga ranqueada: o time da sua copa vira um fantasma que outros enfrentam; você joga contra os deles e sobe no Elo, com divisões e temporada mensal (precisa de conta)
+
 ### Balanceamento: Ala e Pivô
 - A nota do Ala agora conta o chute e a do Pivô, a velocidade (o jogo já usava os dois em quadra)
 - Nerf e ajuste: Jolteon Ala 92 ⇒ 88, Alakazam Ala 87 ⇒ 83, Electrode Ala 84 ⇒ 80, Gengar Ala 86 ⇒ 83, Pikachu Ala 66 ⇒ 63, Dragonite Pivô 90 ⇒ 89

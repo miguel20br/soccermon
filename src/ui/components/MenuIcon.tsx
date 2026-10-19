@@ -9,7 +9,9 @@ export type MenuIconKind =
     | 'profile'
     | 'dex'
     | 'help'
-    | 'feedback';
+    | 'feedback'
+    | 'daily'
+    | 'liga';
 
 export function MenuIcon({ kind }: { kind: MenuIconKind }) {
     return (
@@ -86,6 +88,24 @@ export function MenuIcon({ kind }: { kind: MenuIconKind }) {
                 <g stroke="#1a1430" strokeWidth="2" strokeLinejoin="round">
                     <path d="M4 6 H28 V22 H14 L8 28 V22 H4 Z" fill="#58b85c" />
                     <path d="M9 12 H23 M9 17 H19" stroke="#f4f1e6" strokeLinecap="round" />
+                </g>
+            )}
+            {kind === 'daily' && (
+                // folhinha do calendário com o dia marcado
+                <g stroke="#1a1430" strokeWidth="2" strokeLinejoin="round">
+                    <rect x="4" y="6" width="24" height="22" rx="3" fill="#f4f1e6" />
+                    <path d="M4 9 C4 7 5 6 7 6 H25 C27 6 28 7 28 9 V12 H4 Z" fill="#e8423f" />
+                    <path d="M10 3 V8 M22 3 V8" strokeLinecap="round" />
+                    <rect x="13" y="16" width="7" height="7" rx="1" fill="#ffcb05" />
+                </g>
+            )}
+            {kind === 'liga' && (
+                // escudo com as três faixas da divisão (bronze, prata, ouro)
+                <g stroke="#1a1430" strokeWidth="2" strokeLinejoin="round">
+                    <path d="M16 3 L27 7 V15 C27 22 22 27 16 29 C10 27 5 22 5 15 V7 Z" fill="#2f6fde" />
+                    <path d="M10 20 H22" stroke="#c98a52" strokeWidth="3" strokeLinecap="round" />
+                    <path d="M10 15.5 H22" stroke="#c9ced8" strokeWidth="3" strokeLinecap="round" />
+                    <path d="M10 11 H22" stroke="#e8c24a" strokeWidth="3" strokeLinecap="round" />
                 </g>
             )}
             {kind === 'back' && (

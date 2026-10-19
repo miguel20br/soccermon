@@ -14,6 +14,7 @@ import {
     type PlaybackSpeed,
     type ReduceMotion,
     SAVE_VERSION,
+    savePart,
     useGame,
 } from '../../store/game-store';
 import { DEFAULT_PROFILE, EMPTY_CAREER, seenCount } from '../../store/profile';
@@ -350,9 +351,7 @@ interface BackupFile {
 }
 
 function currentSave(): PersistedSave {
-    const { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns, hall, duels } =
-        useGame.getState();
-    return { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns, hall, duels };
+    return savePart(useGame.getState());
 }
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);

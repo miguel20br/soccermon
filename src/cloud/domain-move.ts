@@ -1,4 +1,4 @@
-import { migrateSave, type PersistedSave, SAVE_VERSION, useGame } from '../store/game-store';
+import { migrateSave, type PersistedSave, SAVE_VERSION, savePart, useGame } from '../store/game-store';
 import { mergeSaves } from './reconcile-plan';
 
 /**
@@ -21,9 +21,7 @@ const hasProgress = (s: Partial<PersistedSave>) =>
     !!s.run || (s.records?.cups ?? 0) > 0 || Object.keys(s.dex ?? {}).length > 0;
 
 function snapshot(): PersistedSave {
-    const { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns, hall, duels } =
-        useGame.getState();
-    return { run, settings, records, profile, dex, moves, career, onboarded, parkedRuns, hall, duels };
+    return savePart(useGame.getState());
 }
 
 const toB64 = (bytes: Uint8Array) => {

@@ -11,6 +11,13 @@ export const PATCH_NOTES: PatchNotes[] = [
         title: 'Ícone MVP, melhores momentos, medalhas e treinadores',
         sections: [
             {
+                title: 'Copa do Dia e Liga',
+                lines: [
+                    'Copa do Dia: a mesma copa pra todo mundo (mesmo draft, mesmos rivais), uma tentativa por dia e ranking do dia',
+                    'Liga ranqueada: o time da sua copa vira um fantasma que outros enfrentam; você joga contra os deles e sobe no Elo, com divisões e temporada mensal (precisa de conta)',
+                ],
+            },
+            {
                 title: 'Balanceamento: Ala e Pivô',
                 lines: [
                     'A nota do Ala agora conta o chute e a do Pivô, a velocidade (o jogo já usava os dois em quadra)',
@@ -649,6 +656,13 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
         version: '0.8.8',
         title: 'Icon MVP, highlights, medals and coaches',
         sections: [
+            {
+                title: 'Daily Cup and League',
+                lines: [
+                    'Daily Cup: the same cup for everyone (same draft, same rivals), one try per day and a daily ranking',
+                    'Ranked League: your cup team becomes a ghost others play against; you face theirs and climb the Elo, with divisions and a monthly season (needs an account)',
+                ],
+            },
             {
                 title: 'Balance: Winger and Pivot',
                 lines: [
