@@ -33,7 +33,7 @@ import { bannerOf, clubColorHex, rivalColor } from '../../store/profile';
 import { ResultHero } from '../components/ResultHero';
 import { LeaveConfirm } from '../leave-guard';
 import { FEEDBACK_URL } from '../links';
-import { avatarImage, hexCss, peerTitle, titleName, trainerLabel } from '../profile/club';
+import { avatarImage, hexCss, peerAvatar, peerTitle, titleName, trainerLabel } from '../profile/club';
 import { useShowcase } from '../profile/Medals';
 import { qrPath } from '../qr';
 import { heroStats, MatchDetails } from '../screens/Result';
@@ -375,8 +375,8 @@ function PeerCard({
         >
             <img className={`duel-trainer pixel${trainerFx(p.trainer)}`} src={trainerSrc(p.trainer as never)} alt="" />
             <img
-                className={`avatar${p.avatarGoogle ? '' : ' pixel'}`}
-                src={p.avatar}
+                className={`avatar${peerAvatar(p).google ? '' : ' pixel'}`}
+                src={peerAvatar(p).src}
                 alt=""
                 referrerPolicy="no-referrer"
             />

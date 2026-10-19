@@ -17,7 +17,10 @@ export const profile = {
         yourName: 'Seu nome',
         avatar: 'Avatar',
         googlePhoto: 'Foto da conta Google',
-        avatarHelp: 'Os Pokémon que jogarem pelo seu time viram opção de avatar.',
+        avatarHelp:
+            'Os Pokémon que jogarem pelo seu time viram opção de avatar; quem já jogou shiny ganha também a versão shiny.',
+        gen: 'Gen {gen} · {region}',
+        shinyName: '{name} shiny',
         clubTitle: 'Clube',
         clubName: 'Nome do clube',
         tag: 'Sigla',

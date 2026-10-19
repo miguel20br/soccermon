@@ -314,13 +314,11 @@ button.pf-trainer:focus-visible,
     font-weight: 700;
     font-size: 13px;
 }
-/* como se ganhou: uma linha curta embaixo do nome (o texto inteiro fica na aba Missões) */
+/* como se ganhou: a tarefa inteira embaixo do nome, quebrando linha (no celular cortava cedo demais) */
 .pf-how {
     display: block;
     max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: break-word;
     font-size: 11px;
     font-weight: 400;
     line-height: 1.3;
@@ -329,13 +327,8 @@ button.pf-trainer:focus-visible,
 .pf-chip .pf-how {
     margin-left: 0;
 }
-/* na grade de treinadores a célula é estreita: até 2 linhas */
+/* na grade de treinadores a célula é estreita: letra menor (a linha da grade cresce junto) */
 .pf-trainer .pf-how {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    white-space: normal;
     font-size: 10.5px;
 }
 /* platina bloqueada: o selo e a moldura com as cores holo no lugar do ouro */
@@ -669,6 +662,76 @@ fieldset.pf-field,
     box-shadow:
         0 0 0 2px #0e1430,
         0 0 0 4px var(--yellow);
+}
+/* shiny: moldura dourada e o brilho desenhado no canto (fora do círculo) */
+.pf-av-shiny,
+.pf-gen-current {
+    position: relative;
+    overflow: visible;
+}
+.pf-av-shiny:not(.active) {
+    border-color: rgb(255 216 74 / 55%);
+    background: radial-gradient(circle at 50% 40%, rgb(255 203 5 / 18%), var(--bg-2) 70%);
+}
+.pf-spark {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 18px;
+    height: 18px;
+    filter: drop-shadow(0 1px 0 rgb(0 0 0 / 50%));
+}
+/* um bloco por geração: fechado mostra o avatar escolhido e a contagem */
+.pf-gen {
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--bg-2) 60%, transparent);
+}
+.pf-gen + .pf-gen,
+.pf-avatars + .pf-gen {
+    margin-top: 8px;
+}
+.pf-gen summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 14px;
+    list-style: none;
+}
+.pf-gen summary::after {
+    content: "";
+    margin-left: auto;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--muted);
+    border-bottom: 2px solid var(--muted);
+    transform: rotate(45deg);
+    transition: transform 0.15s var(--ease-out);
+}
+.pf-gen[open] summary::after {
+    transform: rotate(-135deg);
+}
+.pf-gen summary::-webkit-details-marker {
+    display: none;
+}
+.pf-gen summary .pf-count {
+    color: var(--muted);
+    font-size: 13px;
+}
+.pf-gen-current {
+    width: 40px;
+    height: 40px;
+    flex: none;
+}
+.pf-gen-current .pf-spark {
+    width: 15px;
+    height: 15px;
+}
+.pf-gen .pf-avatars {
+    max-height: 264px;
+    padding: 4px 8px 10px;
 }
 
 /* cores */

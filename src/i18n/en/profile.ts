@@ -18,7 +18,10 @@ export const profile: typeof pt = {
         yourName: 'Your name',
         avatar: 'Avatar',
         googlePhoto: 'Google account photo',
-        avatarHelp: 'Pokémon that play for your team become avatar options.',
+        avatarHelp:
+            'Pokémon that play for your team become avatar options; the ones that played shiny unlock their shiny version too.',
+        gen: 'Gen {gen} · {region}',
+        shinyName: 'Shiny {name}',
         clubTitle: 'Club',
         clubName: 'Club name',
         tag: 'Tag',

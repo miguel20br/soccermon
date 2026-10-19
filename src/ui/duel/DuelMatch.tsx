@@ -79,7 +79,7 @@ import { agencyView, MaxBars, PenaltyOrderPanel, SidelineControls, SidelineOverl
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
 import { captainAt, roleAt, snapAt } from '../match-view';
-import { bannerText, peerTitle } from '../profile/club';
+import { bannerText, peerAvatar, peerTitle } from '../profile/club';
 import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
 import { EmoteBar, EmoteBubbles } from './Emotes';
@@ -445,8 +445,8 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
             name: p.name,
             title: peerTitle(p).name,
             titleLook: peerTitle(p).look,
-            avatar: p.avatar,
-            avatarGoogle: p.avatarGoogle,
+            avatar: peerAvatar(p).src,
+            avatarGoogle: peerAvatar(p).google,
             showcase: parseShowcase(p.showcase),
             frame: frameTier(parseShowcase(p.showcase)),
         };

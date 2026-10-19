@@ -172,6 +172,21 @@ export function CareerSealIcon({ seal, className = 'pf-seal' }: { seal: CareerSe
     );
 }
 
+/** Brilho de 4 pontas (shiny), desenhado: nada de emoji. */
+export function ShinySpark({ className = 'pf-spark' }: { className?: string }) {
+    return (
+        <svg className={className} viewBox="0 0 24 24" aria-hidden>
+            <path
+                d="M12 1 C13 8 16 11 23 12 C16 13 13 16 12 23 C11 16 8 13 1 12 C8 11 11 8 12 1 Z"
+                fill="#ffe066"
+                stroke="#7a4a00"
+                strokeWidth="1.2"
+                strokeLinejoin="round"
+            />
+        </svg>
+    );
+}
+
 /** Visto de "salvo". */
 export function CheckIcon() {
     return (

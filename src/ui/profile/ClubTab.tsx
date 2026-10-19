@@ -18,18 +18,19 @@ import {
 import { useGame } from '../../store/game-store';
 import { medalTiers, TIER_NAMES } from '../../store/medals';
 import {
+    avatarOptions,
     bannerInk,
     bannerOf,
     CLUB_COLORS,
     DEFAULT_PROFILE,
-    isPlayed,
+    GENERATIONS,
     type Profile,
     rivalColor,
     tagFromName,
 } from '../../store/profile';
 import { Crest, KitShirt, kitBackground } from './Crest';
 import { bannerText, hexCss, speciesGif, titleName } from './club';
-import { CheckIcon, LockIcon } from './icons';
+import { CheckIcon, LockIcon, ShinySpark } from './icons';
 import { useMedalView } from './Medals';
 import { TrainerCard } from './TrainerTab';
 
@@ -74,12 +75,6 @@ export function ClubTab() {
     const [tag, setTag] = useState(profile.clubTag);
     useEffect(() => setTag(profile.clubTag), [profile.clubTag]);
 
-    const avatars = useMemo(() => {
-        const ids = new Set<number>([25]);
-        for (const [id, e] of Object.entries(dex)) if (isPlayed(e)) ids.add(Number(id));
-        return [...ids].sort((a, b) => a - b);
-    }, [dex]);
-
     const club = CLUB_COLORS.find((c) => c.id === profile.clubColor)?.hex ?? CLUB_COLORS[0].hex;
     const rival = rivalColor(club, PREVIEW_RIVAL);
     const look = lookOfProfile(profile);
@@ -116,8 +111,8 @@ export function ClubTab() {
                 </label>
                 <fieldset className="pf-field">
                     <legend>{t('profile.club.avatar')}</legend>
-                    <div className="pf-avatars">
-                        {user?.avatar && (
+                    {user?.avatar && (
+                        <div className="pf-avatars">
                             <button
                                 type="button"
                                 aria-pressed={av.kind === 'google'}
@@ -131,23 +126,65 @@ export function ClubTab() {
                                     referrerPolicy="no-referrer"
                                 />
                             </button>
-                        )}
-                        {avatars.map((id) => {
-                            const on = av.kind === 'pokemon' && av.speciesId === id;
-                            return (
-                                <button
-                                    type="button"
-                                    aria-pressed={on}
-                                    key={id}
-                                    className={`pf-av${on ? ' active' : ''}`}
-                                    onClick={() => save({ avatar: { kind: 'pokemon', speciesId: id } })}
-                                    title={species(id).name}
-                                >
-                                    <img className="pixel" src={speciesGif(id)} alt={species(id).name} loading="lazy" />
-                                </button>
-                            );
-                        })}
-                    </div>
+                        </div>
+                    )}
+                    {/* um bloco por geração (fechado); o escolhido aparece no título do bloco */}
+                    {GENERATIONS.map((g) => {
+                        const opts = avatarOptions(dex, g);
+                        const mine = av.kind === 'pokemon' && av.speciesId >= g.from && av.speciesId <= g.to;
+                        return (
+                            <details key={g.gen} className="pf-gen">
+                                <summary>
+                                    {mine && (
+                                        <span className="pf-av active pf-gen-current">
+                                            <img
+                                                className="pixel"
+                                                src={speciesGif(av.speciesId, av.shiny === true)}
+                                                alt=""
+                                            />
+                                            {av.shiny && <ShinySpark />}
+                                        </span>
+                                    )}
+                                    <b>{t('profile.club.gen', { gen: g.gen, region: g.region })}</b>
+                                    <span className="pf-count">
+                                        {opts.filter((o) => !o.shiny).length}/{g.to - g.from + 1}
+                                    </span>
+                                </summary>
+                                <div className="pf-avatars">
+                                    {opts.map(({ speciesId: id, shiny }) => {
+                                        const on = mine && av.speciesId === id && (av.shiny === true) === shiny;
+                                        const name = shiny
+                                            ? t('profile.club.shinyName', { name: species(id).name })
+                                            : species(id).name;
+                                        return (
+                                            <button
+                                                type="button"
+                                                aria-pressed={on}
+                                                key={`${id}${shiny ? 's' : ''}`}
+                                                className={`pf-av${on ? ' active' : ''}${shiny ? ' pf-av-shiny' : ''}`}
+                                                onClick={() =>
+                                                    save({
+                                                        avatar: shiny
+                                                            ? { kind: 'pokemon', speciesId: id, shiny: true }
+                                                            : { kind: 'pokemon', speciesId: id },
+                                                    })
+                                                }
+                                                title={name}
+                                            >
+                                                <img
+                                                    className="pixel"
+                                                    src={speciesGif(id, shiny)}
+                                                    alt={name}
+                                                    loading="lazy"
+                                                />
+                                                {shiny && <ShinySpark />}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </details>
+                        );
+                    })}
                     <small className="muted">{t('profile.club.avatarHelp')}</small>
                 </fieldset>
             </section>

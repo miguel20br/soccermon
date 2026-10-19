@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import { useCloud } from '../../cloud/cloud';
+import { SPECIES } from '../../engine/data';
 import { dict, fmt, getLang, t } from '../../i18n';
 import { useGame } from '../../store/game-store';
 import { DEFAULT_TITLE, MISSIONS, type Mission, missionOfTrainer, type TrainerId } from '../../store/missions';
@@ -28,12 +29,26 @@ export function trainerLabel(profile: Profile, googleName?: string | null): stri
 export const bannerText = (banner: unknown, club: string) =>
     fmt(dict().profile.club.banners[bannerOf(banner)], { club });
 
-export const speciesGif = (id: number) => `assets/cards/${id}.gif`;
+export const speciesGif = (id: number, shiny = false) => `assets/cards/${shiny ? 'shiny/' : ''}${id}.gif`;
 
-/** Foto do avatar: a do Google (se escolheu e está logado) ou o sprite do Pokémon (Pikachu de reserva). */
+/** Foto do avatar: a do Google (se escolheu e está logado) ou o sprite do Pokémon, normal ou shiny (Pikachu de reserva). */
 export function avatarImage(avatar: Avatar, googlePhoto: string | null | undefined): { src: string; google: boolean } {
     if (avatar.kind === 'google' && googlePhoto) return { src: googlePhoto, google: true };
-    return { src: speciesGif(avatar.kind === 'pokemon' ? avatar.speciesId : 25), google: false };
+    const pk = avatar.kind === 'pokemon' && SPECIES.some((sp) => sp.id === avatar.speciesId);
+    return { src: pk ? speciesGif(avatar.speciesId, avatar.shiny === true) : speciesGif(25), google: false };
+}
+
+const SPRITE_SRC = /^assets\/cards\/(?:shiny\/)?(\d{1,3})\.gif$/;
+
+/**
+ * Avatar que veio do rival no Duelo (dado de fora): só um sprite nosso (normal ou shiny) de uma espécie que existe,
+ * ou uma foto https quando ele marcou Google. Qualquer outra coisa vira o Pikachu.
+ */
+export function peerAvatar(p: { avatar?: unknown; avatarGoogle?: unknown }): { src: string; google: boolean } {
+    const src = typeof p.avatar === 'string' ? p.avatar : '';
+    if (p.avatarGoogle === true && src.startsWith('https://')) return { src, google: true };
+    const id = Number(SPRITE_SRC.exec(src)?.[1]);
+    return { src: SPECIES.some((sp) => sp.id === id) ? src : speciesGif(25), google: false };
 }
 
 /** Avatar do perfil, pronto para usar (lê o perfil e a conta). */

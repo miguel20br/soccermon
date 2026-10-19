@@ -456,7 +456,12 @@ function demoCollection() {
         profile: {
             ...g.profile,
             missionsDone: [
-                ...new Set([...g.profile.missionsDone, 'colIniciais', 'colPassaros', 'colEevee', 'blue', 'acetrainer']),
+                ...new Set([
+                    ...g.profile.missionsDone,
+                    ...['colIniciais', 'colPassaros', 'colEevee', 'blue', 'acetrainer'],
+                    // tarefas compridas: conferir no celular que o texto aparece inteiro
+                    ...['erika', 'sabrina', 'lorelei', 'bugcatcher', 'channeler'],
+                ]),
             ],
             ...(novo
                 ? {

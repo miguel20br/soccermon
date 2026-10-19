@@ -1,12 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { SPECIES } from '../engine/data';
 import type { PlayerLine } from '../engine/match-stats';
+import { avatarImage, peerAvatar } from '../ui/profile/club';
 import {
     albumSlots,
+    avatarOptions,
     CLUB_COLORS,
     colorDistance,
+    DEFAULT_PROFILE,
     EDITION_BIT,
     editionBits,
+    GENERATIONS,
     hasSticker,
     isPlayed,
     kantoComplete,
@@ -189,5 +193,50 @@ describe('código de conserto da Pokédex', () => {
         const dex = markPlayed({ 16: { ...EMPTY_ENTRY }, 25: { ...EMPTY_ENTRY, matches: 7 } }, [16, 25]);
         expect(dex[16].matches).toBe(1);
         expect(dex[25].matches).toBe(7);
+    });
+});
+
+describe('avatar', () => {
+    const kanto = GENERATIONS[0];
+
+    it('Pikachu sempre; quem jogou vira opção; a versão shiny só com a figurinha Shiny, ao lado da normal', () => {
+        expect(avatarOptions({}, kanto)).toEqual([{ speciesId: 25, shiny: false }]);
+        let dex = recordMatchInDex({}, [line({ speciesId: 1 }), line({ speciesId: 4 })], true);
+        dex = markSeen(dex, [7]); // só visto: não vira avatar
+        dex = recordEditions(dex, [[4, EDITION_BIT.shiny]]);
+        expect(avatarOptions(dex, kanto)).toEqual([
+            { speciesId: 1, shiny: false },
+            { speciesId: 4, shiny: false },
+            { speciesId: 4, shiny: true },
+            { speciesId: 25, shiny: false },
+        ]);
+    });
+
+    it('avatar shiny usa o sprite shiny; save antigo (sem o campo) e lixo no campo ficam no normal', () => {
+        expect(avatarImage({ kind: 'pokemon', speciesId: 4, shiny: true }, null).src).toBe('assets/cards/shiny/4.gif');
+        expect(avatarImage(DEFAULT_PROFILE.avatar, null).src).toBe('assets/cards/25.gif');
+        expect(avatarImage({ kind: 'pokemon', speciesId: 4, shiny: 'sim' } as never, null).src).toBe(
+            'assets/cards/4.gif',
+        );
+        expect(avatarImage({ kind: 'pokemon', speciesId: 999, shiny: true }, null).src).toBe('assets/cards/25.gif');
+        expect(avatarImage({ kind: 'google' }, 'https://foto').google).toBe(true);
+        expect(avatarImage({ kind: 'google' }, null).src).toBe('assets/cards/25.gif');
+    });
+
+    it('avatar do rival no Duelo: só sprite nosso (normal ou shiny) ou foto https do Google', () => {
+        expect(peerAvatar({ avatar: 'assets/cards/shiny/6.gif', avatarGoogle: false })).toEqual({
+            src: 'assets/cards/shiny/6.gif',
+            google: false,
+        });
+        expect(peerAvatar({ avatar: 'https://lh3.example/a.jpg', avatarGoogle: true }).google).toBe(true);
+        for (const bad of [
+            { avatar: 'https://lh3.example/a.jpg', avatarGoogle: false },
+            { avatar: 'javascript:alert(1)', avatarGoogle: true },
+            { avatar: 'assets/cards/999.gif', avatarGoogle: false },
+            { avatar: 'assets/cards/shiny/6.gif?x', avatarGoogle: false },
+            { avatar: 42, avatarGoogle: 'true' },
+            {},
+        ])
+            expect(peerAvatar(bad)).toEqual({ src: 'assets/cards/25.gif', google: false });
     });
 });

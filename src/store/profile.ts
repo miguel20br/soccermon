@@ -57,7 +57,8 @@ export function rivalColor(player: number, rival: number): number {
     return AWAY_KITS.find((k) => colorDistance(player, k) >= CLASH * 1.5) ?? 0xf2f2f2;
 }
 
-export type Avatar = { kind: 'google' } | { kind: 'pokemon'; speciesId: number };
+/** Avatar: foto do Google ou sprite do Pokémon (`shiny` opcional: save antigo não tem = normal). */
+export type Avatar = { kind: 'google' } | { kind: 'pokemon'; speciesId: number; shiny?: boolean };
 
 export interface Profile {
     /** Nome do treinador ('' = usa o nome da conta Google, ou "Treinador"). */
@@ -305,6 +306,23 @@ export function albumSlots(sp: { id: number; types: readonly string[] }): AlbumE
 }
 
 export const hasSticker = (e: DexEntry | undefined, ed: AlbumEdition) => !!((e?.editions ?? 0) & EDITION_BIT[ed]);
+
+/** Gerações do jogo (por enquanto só Kanto): agrupam os avatares no Perfil. */
+export const GENERATIONS = [{ gen: 1, region: 'Kanto', from: 1, to: 151 }] as const;
+
+/**
+ * Avatares liberados de uma geração: o Pikachu sempre, os que jogaram pelo seu time e, ao lado da normal, a
+ * versão shiny de quem já tem a figurinha Shiny no álbum.
+ */
+export function avatarOptions(dex: Dex, g: { from: number; to: number }): { speciesId: number; shiny: boolean }[] {
+    const out: { speciesId: number; shiny: boolean }[] = [];
+    for (let id = g.from; id <= g.to; id++) {
+        const e = dex[id];
+        if (id === 25 || isPlayed(e)) out.push({ speciesId: id, shiny: false });
+        if (hasSticker(e, 'shiny')) out.push({ speciesId: id, shiny: true });
+    }
+    return out;
+}
 
 /** Álbum de uma lista de espécies: figurinhas coladas e quantas existem. */
 export function albumCount(dex: Dex, list: readonly { id: number; types: readonly string[] }[] = SPECIES) {
