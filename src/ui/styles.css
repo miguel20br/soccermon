@@ -3219,6 +3219,34 @@ button,
     justify-content: center;
     gap: 8px;
 }
+.ht-rival-evo dd {
+    color: var(--yellow);
+}
+/* sugestão de troca: um toque abre o Substituir com o cansado marcado */
+.ht-suggest {
+    min-height: 40px;
+    padding: 6px 12px;
+    border: 2px dashed var(--yellow);
+    border-radius: 8px;
+    background: rgb(255 212 71 / 8%);
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+.ht-suggest:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+}
+/* troca marcada pro 2º tempo, dentro do painel */
+.ht-pending {
+    margin: 0;
+    padding: 6px 10px;
+    border-left: 4px solid #7dff8a;
+    border-radius: 0 6px 6px 0;
+    background: var(--bg-2);
+    font-size: 13px;
+}
 .evolved-card {
     display: grid;
     justify-items: center;

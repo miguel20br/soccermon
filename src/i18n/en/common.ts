@@ -116,11 +116,11 @@ export const common: typeof pt = {
     stageWon: ['Round of 16 won', 'Quarter-finals won', 'Semi-final won', 'Final won'],
     tactic: {
         balanced: 'Balanced',
-        offensive: 'Attacking',
+        offensive: 'Push up',
         defensive: 'Defensive',
         counter: 'Counter-attack',
     },
-    cornerPlan: { area: 'In the box', short: 'Short', mixed: 'Mix it up' },
+    cornerPlan: { area: 'High ball', short: 'Short', mixed: 'Mix' },
     cornerPlay: { area: 'In the box', short: 'Short', near: 'Near post' },
     aerial: { high: 'high', mid: 'medium', low: 'low' },
     formation: {

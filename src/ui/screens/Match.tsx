@@ -38,6 +38,7 @@ import {
     PressureBar,
     Scoreboard,
     SubPanel,
+    subSuggestion,
     TacticControls,
     TIRED_HINT,
     Ticker,
@@ -101,8 +102,6 @@ export function Match() {
     const halftimeRef = useRef<HTMLDivElement>(null);
     const [subOut, setSubOut] = useState<string | null>(null);
     const [pending, setPending] = useState(false);
-    /** Muda a cada "Mudar prancheta" do intervalo (a prancheta rola até a tela). */
-    const [boardFocus, setBoardFocus] = useState(0);
     /** A cena Phaser só escuta comandos depois de carregar; até lá os controles ficam travados. */
     const [sceneReady, setSceneReady] = useState(false);
     /** Se a quadra demorar demais (celular fraco, aba em segundo plano), oferece recarregar. */
@@ -437,7 +436,16 @@ export function Match() {
         EventBus.emit('match:resume');
     };
     // quem está mais cansado em quadra: o botão Substituir avisa (só avisa; a troca é sempre do técnico)
-    const tiredSlot = onField.map((uid, i) => ({ uid, energy: energyAt(i) })).sort((a, b) => a.energy - b.energy)[0];
+    const fieldEnergy = onField.map((uid, i) => ({ uid, energy: energyAt(i) }));
+    const tiredSlot = [...fieldEnergy].sort((a, b) => a.energy - b.energy)[0];
+    // intervalo: sugere trocar o mais cansado (só abre o Substituir com ele marcado)
+    const htSuggest = halftime ? subSuggestion(fieldEnergy, canSub) : null;
+    const pendingSubText = pendingSub
+        ? rich(t(halftime ? 'match.subPendingHt' : 'match.subPending'), {
+              out: <b>{nameOf(pendingSub.outUid)}</b>,
+              in: <b>{nameOf(pendingSub.inUid)}</b>,
+          })
+        : null;
     const tiredInst = tiredSlot && byUid.get(tiredSlot.uid);
     const tired =
         canSub && tiredSlot && tiredInst && tiredSlot.energy < TIRED_HINT
@@ -554,10 +562,19 @@ export function Match() {
                                 }}
                                 canSub={canSub}
                                 onSub={() => setSubOpen(true)}
-                                onBoard={() => {
-                                    setTab('board');
-                                    setBoardFocus((k) => k + 1);
-                                }}
+                                pending={pendingSubText}
+                                suggest={
+                                    htSuggest && {
+                                        text: t('match.ht.suggest', {
+                                            name: nameOf(htSuggest.uid),
+                                            p: Math.round(htSuggest.energy * 100),
+                                        }),
+                                        onPick: () => {
+                                            setSubOut(htSuggest.uid);
+                                            setSubOpen(true);
+                                        },
+                                    }
+                                }
                                 onContinue={() => {
                                     setHalftime(false);
                                     EventBus.emit('match:resume');
@@ -570,10 +587,6 @@ export function Match() {
                             <TimeoutPanel
                                 canSub={canSub}
                                 onSub={() => setSubOpen(true)}
-                                onBoard={() => {
-                                    setTab('board');
-                                    setBoardFocus((k) => k + 1);
-                                }}
                                 onBack={() => {
                                     setTimeoutAt(null);
                                     EventBus.emit('match:resume');
@@ -607,14 +620,7 @@ export function Match() {
                             />
                         </div>
                     )}
-                    {pendingSub && (
-                        <div className="sub-pending">
-                            {rich(t('match.subPending'), {
-                                out: <b>{nameOf(pendingSub.outUid)}</b>,
-                                in: <b>{nameOf(pendingSub.inUid)}</b>,
-                            })}
-                        </div>
-                    )}
+                    {pendingSub && !halftime && <div className="sub-pending">{pendingSubText}</div>}
                     {pendingBoard && (
                         <div className="sub-pending">
                             {t('match.boardPending', { formation: formationText(pendingBoard.formation).name })}
@@ -657,7 +663,6 @@ export function Match() {
                                     } else if (idx !== null) EventBus.emit('match:inspect-request', idx);
                                 }}
                                 edit={{ enabled: canChangeTactic, pending: pendingBoard, onConfirm: orderBoard, over }}
-                                focusKey={boardFocus}
                             />
                         )}
                         {tab === 'team' && (

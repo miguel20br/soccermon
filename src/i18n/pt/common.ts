@@ -127,12 +127,12 @@ export const common = {
     stageWon: ['Oitavas de final vencidas', 'Quartas de final vencidas', 'Semifinal vencida', 'Final vencida'],
     tactic: {
         balanced: 'Equilibrado',
-        offensive: 'Ofensivo',
+        offensive: 'Pra cima',
         defensive: 'Retranca',
         counter: 'Contra-ataque',
     },
     /** Instrução de escanteio do técnico. */
-    cornerPlan: { area: 'Na área', short: 'Curta', mixed: 'Variar' },
+    cornerPlan: { area: 'Bola alta', short: 'Curta', mixed: 'Varia' },
     /** Jogada de escanteio que saiu (faixa na quadra e narração). */
     cornerPlay: { area: 'Na área', short: 'Curta', near: '1ª trave' },
     /** Selo "Jogo aéreo" do painel do Pokémon. */
