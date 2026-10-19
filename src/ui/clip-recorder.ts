@@ -57,7 +57,10 @@ function shadowText(ctx: CanvasRenderingContext2D, text: string, x: number, y: n
     ctx.fillText(text, x, y);
 }
 
-type ReplayScene = Phaser.Scene & { ballOnScreen(): { x: number; y: number } };
+type ReplayScene = Phaser.Scene & {
+    ballOnScreen(): { x: number; y: number };
+    setClipView(x: number, w: number): void;
+};
 
 export class ClipRecorder {
     readonly canvas = document.createElement('canvas');
@@ -185,6 +188,7 @@ export class ClipRecorder {
         const ball = this.scene.ballOnScreen();
         const target = Math.max(0, Math.min(src.width - cropW, ball.x * kx - cropW / 2));
         this.camX = this.camX === null ? target : this.camX + (target - this.camX) * 0.12;
+        this.scene.setClipView(this.camX / kx, cropW / kx);
         ctx.imageSmoothingEnabled = true;
         ctx.drawImage(src, this.camX, 0, cropW, src.height, COURT.x, COURT.y, COURT.w, COURT.h);
         ctx.fillStyle = INK;

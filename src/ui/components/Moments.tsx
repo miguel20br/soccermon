@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ENGINE_VERSION } from '../../engine/config';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { EventBus } from '../../game/EventBus';
@@ -174,7 +175,8 @@ export function Moments({
         }
     };
 
-    return (
+    // no body: dentro da tela de resultado o painel animado vira o "fixed" dele e o modal sai do lugar
+    return createPortal(
         <div className="modal-backdrop moments-backdrop" role="presentation">
             <div
                 className="modal panel moments-modal"
@@ -256,7 +258,8 @@ export function Moments({
                     </>
                 )}
             </div>
-        </div>
+        </div>,
+        document.body,
     );
 }
 

@@ -2,6 +2,8 @@
 .moments-modal {
     width: min(980px, 100%);
     display: grid;
+    /* minmax: o canvas de 968 px não pode alargar a coluna (no celular a quadra saía cortada) */
+    grid-template-columns: minmax(0, 1fr);
     gap: 12px;
     padding: 14px;
 }
@@ -60,17 +62,20 @@
     margin: 0;
     text-align: center;
 }
-/* celular deitado: a quadra ocupa a altura e os botões ficam do lado de baixo, compactos */
+/* celular deitado: a quadra ocupa a altura e os botões vão pra coluna do lado */
 @media (orientation: landscape) and (max-height: 520px) {
     .moments-backdrop {
         padding: 6px;
     }
     .moments-modal {
-        gap: 6px;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 6px 10px;
         padding: 8px;
         max-height: calc(100vh - 12px);
     }
     .moments-head {
+        grid-column: 1 / -1;
         margin-top: 14px;
         padding-block: 4px;
     }
@@ -78,8 +83,17 @@
         width: min(100%, calc((100vh - 130px) * 968 / 528));
         justify-self: center;
     }
+    .moments-modal .moments-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .moments-clip,
+    .moments-rec,
+    .moments-error {
+        grid-column: 1 / -1;
+    }
     .moments-clip video {
-        height: calc(100vh - 140px);
+        height: calc(100vh - 150px);
     }
 }
 

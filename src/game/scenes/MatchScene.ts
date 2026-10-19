@@ -727,6 +727,11 @@ export class MatchScene extends Phaser.Scene {
         EventBus.emit('replay:clip', this.clip);
     }
 
+    /** Clipe 9:16: a faixa da tela que entra no vídeo (os textos presos vão pra dentro dela). */
+    setClipView(x: number, w: number) {
+        this.cine.crop = { x, w };
+    }
+
     /** Bola na tela (px do canvas, com pan e zoom da câmera): o clipe 9:16 segue o lance. */
     ballOnScreen(): { x: number; y: number } {
         const cam = this.cameras.main;
