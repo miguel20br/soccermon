@@ -237,7 +237,7 @@ export function CardModal() {
                                         const up = (m.add ?? 0) > 0 || (m.factor ?? 1) > 1;
                                         return (
                                             <div key={m.label} className={`mod-row ${up ? 'up' : 'down'}`}>
-                                                <span>{up ? '▲' : '▼'}</span>
+                                                <HudIcon kind={up ? 'up' : 'down'} />
                                                 {modLabel(m, lang)}
                                             </div>
                                         );
@@ -313,7 +313,7 @@ export function CardModal() {
                                                     key={mm.label}
                                                     className={`mod-row ${mm.factor > 1 ? 'up' : 'down'}`}
                                                 >
-                                                    <span>{mm.factor > 1 ? '▲' : '▼'}</span>
+                                                    <HudIcon kind={mm.factor > 1 ? 'up' : 'down'} />
                                                     {moveModLabel(mm, lang)}
                                                 </div>
                                             ))}

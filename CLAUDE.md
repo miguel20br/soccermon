@@ -106,6 +106,7 @@ Leia a skill antes de começar a tarefa dela:
 | `soccermon-lancamento` | versão nova: checklist, "pode subir", merge, tag, release, conferir o ar |
 | `soccermon-titulos` | título por código pra gametester/amigo |
 | `soccermon-assets` | vídeo, logo, imagem e texto de divulgação |
+| `soccermon-marca` | antes de mexer em qualquer visual, ícone, texto de interface ou asset: checklist de padronização (brand guide em `docs/marca/`) |
 
 ## Regras de desenvolvimento (17/10/2026)
 

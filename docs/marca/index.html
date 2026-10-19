@@ -1,0 +1,580 @@
+<!doctype html>
+<!--
+  Brand guide do Soccermon (página visual). Texto completo em brand-guide.md, ao lado.
+  Abre direto do disco (file://). Os ícones de interface entram por `node docs/marca/montar.mjs`, que também
+  copia a página com os arquivos pra ~/Downloads/soccermon-brand-guide/.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Soccermon · brand guide</title>
+<link rel="icon" href="../../public/assets/ui/favicon.svg" type="image/svg+xml" />
+<style>
+@font-face { font-family: "Galmuri11"; src: url("../../public/fonts/Galmuri11.woff2") format("woff2"); font-weight: 400; }
+@font-face { font-family: "Galmuri11"; src: url("../../public/fonts/Galmuri11-Bold.woff2") format("woff2"); font-weight: 700; }
+@font-face { font-family: "Galmuri14"; src: url("../../public/fonts/Galmuri14.woff2") format("woff2"); }
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-pop: cubic-bezier(0.2, 0.9, 0.3, 1.4);
+  --bg: #141a33; --bg-2: #1c2447; --panel: #232d57; --panel-2: #2c3868; --line: #4b5a9a;
+  --text: #f4f1e6; --muted: #a6aed6; --red: #e8423f; --red-dark: #b22b29; --yellow: #ffcb05;
+  --blue: #3a7bd5; --green: #58c26b;
+  --bc-ink: #0e1430; --bc-ink-2: #1b2350; --bc-ink-3: #10173a; --bc-paper: #f4f1e6; --bc-edge: #000;
+  --azul-3d: #2a4ea0; --noite-a: #2a3a7a; --noite-b: #070a18;
+  --holo-1: #ff9ad5; --holo-2: #9ae6ff; --holo-3: #b6ffa0; --holo-4: #fff29a;
+  --ouro-c: #fff3a0; --ouro-e: #ff8a1c; --ouro-x: #b85a10;
+  --bronze: #c98a52; --prata: #c9ced8; --ouro: #e8c24a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 16px; }
+body { margin: 0; background: radial-gradient(1200px 600px at 50% -10%, #2a3570 0%, var(--bg) 60%) fixed, var(--bg);
+  color: var(--text); font: 14px/1.5 "Galmuri11", ui-monospace, monospace; -webkit-font-smoothing: none; }
+a { color: var(--yellow); }
+img { max-width: 100%; }
+img[width][height] { height: auto; }
+.pixel { image-rendering: pixelated; }
+code { font: inherit; color: var(--yellow); background: var(--bc-ink); padding: 0 4px; border-radius: 4px; overflow-wrap: anywhere; }
+
+/* layout: índice fixo à esquerda no desktop */
+.wrap { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 32px; max-width: 1240px; margin: 0 auto; padding: 24px 16px 80px; }
+nav.toc { position: sticky; top: 16px; align-self: start; max-height: calc(100vh - 32px); overflow: auto; font-size: 12px; }
+nav.toc b { display: block; margin: 14px 0 4px; color: var(--muted); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
+nav.toc a { display: block; padding: 3px 8px; border-left: 3px solid transparent; color: var(--text); text-decoration: none; }
+nav.toc a[aria-current="true"] { border-left-color: var(--yellow); color: var(--yellow); }
+main { min-width: 0; }
+@media (max-width: 900px) { .wrap { grid-template-columns: minmax(0, 1fr); } nav.toc { display: none; } }
+
+/* peças do kit da transmissão (cópia fiel de src/ui/broadcast-kit.css) */
+.bc-tag { display: inline-block; padding: 2px 10px 1px; border-radius: 4px; background: var(--yellow); color: var(--bc-ink);
+  font-size: 10px; font-weight: 700; letter-spacing: 1px; line-height: 14px; text-transform: uppercase; white-space: nowrap; }
+.bc-surface { position: relative; background: var(--bc-ink); border-bottom: 2px solid var(--bc-edge); border-radius: 6px; }
+.bc-stripe { padding-left: 18px; }
+.bc-stripe::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: var(--tc, var(--yellow)); border-radius: 6px 0 0 6px; }
+.bc-screenhead { position: relative; display: flex; align-items: center; gap: 10px; padding: 10px 14px 10px 18px;
+  background: var(--bc-ink); border-bottom: 2px solid var(--bc-edge); border-radius: 6px; }
+.bc-screenhead::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: var(--yellow); border-radius: 6px 0 0 6px; }
+.bc-screenhead > .bc-tag { position: absolute; left: 18px; top: -16px; border-radius: 4px 4px 0 0; }
+.panel { background: var(--panel); border: 3px solid var(--line); border-radius: 10px; box-shadow: 0 4px 0 rgba(0,0,0,.35), inset 0 0 0 2px rgba(255,255,255,.04); padding: 16px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 10px 16px; border-radius: 8px;
+  border: 3px solid #0e1430; background: var(--panel-2); box-shadow: 0 3px 0 #0e1430; color: var(--text); font: inherit; font-weight: 700; cursor: pointer;
+  transition: transform .06s ease, filter .15s ease; }
+.btn:hover { filter: brightness(1.1); }
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #0e1430; }
+.btn:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
+.btn.primary { background: var(--red); color: #fff; }
+.ico { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+/* partes e seções */
+.parte { margin: 56px 0 8px; padding: 18px 20px; display: flex; align-items: center; gap: 16px; }
+.parte .num { font: 40px/1 "Galmuri14", monospace; color: var(--yellow); }
+.parte h2 { margin: 0; font: 22px/1.2 "Galmuri14", monospace; }
+section.s { padding: 28px 0; border-top: 2px solid var(--bc-ink-2); }
+section.s > h3 { margin: 6px 0 4px; font: 20px/1.25 "Galmuri14", monospace; }
+section.s > .sob { display: block; margin-bottom: 2px; color: var(--muted); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
+section.s > p.lead { margin: 4px 0 16px; color: var(--muted); max-width: 68ch; }
+ul.regras { margin: 12px 0; padding-left: 20px; max-width: 72ch; }
+ul.regras li { margin: 4px 0; }
+.grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.grid.dois { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+.card { background: var(--panel); border: 3px solid var(--line); border-radius: 10px; padding: 14px; box-shadow: 0 4px 0 rgba(0,0,0,.35);
+  transition: translate .15s var(--ease-out); }
+@media (hover: hover) and (pointer: fine) { .card:hover { translate: 0 -3px; } }
+.card h4 { margin: 0 0 6px; font-size: 14px; }
+.card p { margin: 4px 0; color: var(--muted); font-size: 12px; }
+.bad { border-color: #ff7a7a; background: color-mix(in srgb, #ff7a7a 10%, var(--panel)); }
+.bad h4::before { content: ""; display: inline-block; width: 12px; height: 12px; margin-right: 6px; vertical-align: -1px;
+  background: linear-gradient(45deg, transparent 42%, #ff7a7a 42% 58%, transparent 58%), linear-gradient(-45deg, transparent 42%, #ff7a7a 42% 58%, transparent 58%); }
+.good { border-color: var(--green); }
+.tabela { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 12px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--bc-ink-2); vertical-align: top; }
+th { color: var(--muted); font-weight: 400; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
+
+/* capa */
+.capa { position: relative; overflow: hidden; border-radius: 10px; padding: 48px 24px 36px; text-align: center;
+  background: radial-gradient(circle at 50% 45%, var(--noite-a), var(--noite-b) 75%); border: 3px solid var(--line); }
+.capa .raios { position: absolute; left: 50%; top: 45%; width: 2400px; height: 2400px; margin: -1200px 0 0 -1200px; pointer-events: none;
+  background: repeating-conic-gradient(rgb(255 255 255 / 7%) 0 6deg, transparent 6deg 22.5deg); }
+.capa > * { position: relative; }
+.capa img.logo { width: min(720px, 100%); height: auto; }
+.capa .tag { margin: 18px 0 6px; color: var(--yellow); font: 700 clamp(20px, 4vw, 34px)/1.2 "Galmuri11", monospace; letter-spacing: 3px; text-shadow: 3px 4px 0 var(--bc-ink); }
+.capa .linha { margin: 8px auto 18px; max-width: 56ch; }
+.capa .selo { display: inline-block; padding: 6px 14px; border-radius: 999px; background: var(--red); color: #fff; font-weight: 700; box-shadow: 0 4px 0 #8c1d1b; }
+.sumario { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 22px; }
+.sumario a { padding: 4px 10px; border-radius: 6px; background: var(--bc-ink); color: var(--text); text-decoration: none; font-size: 12px; border-bottom: 2px solid #000; }
+@media (prefers-reduced-motion: no-preference) {
+  .capa .flutua { animation: flut 1.8s var(--ease-out) infinite alternate; }
+  @keyframes flut { to { translate: 0 -8px; } }
+}
+
+/* logo */
+.palco { display: grid; place-items: center; min-height: 180px; padding: 24px; border-radius: 10px; }
+.palco.noite { background: radial-gradient(circle at 50% 45%, var(--noite-a), var(--noite-b) 80%); }
+.palco.claro { background: #f4f1e6; }
+.palco.ouro { background: var(--yellow); }
+.palco img { max-height: 140px; height: auto; }
+.respiro { position: relative; display: inline-block; padding: 46px; outline: 2px dashed var(--yellow); outline-offset: -2px; }
+.respiro img { display: block; width: min(560px, 70vw); height: auto; }
+.respiro span { position: absolute; color: var(--yellow); font-size: 10px; }
+.respiro .t { top: 14px; left: 50%; translate: -50% 0; }
+.respiro .l { left: 6px; top: 50%; translate: 0 -50%; writing-mode: vertical-rl; }
+.minimos { display: flex; flex-wrap: wrap; align-items: end; gap: 28px; }
+.minimos figure { margin: 0; text-align: center; font-size: 11px; color: var(--muted); }
+.errado img { display: block; margin: 0 auto; max-height: 70px; }
+.e-esticado { width: 100%; height: 70px; object-fit: fill; }
+.e-cor { filter: hue-rotate(150deg) saturate(1.4); }
+.e-brilho { filter: blur(1.2px) drop-shadow(0 0 10px #fff6c9) drop-shadow(0 0 18px #ffcb05); }
+.e-gira { rotate: 14deg; }
+
+/* cor */
+.barra { display: flex; height: 44px; border-radius: 8px; overflow: hidden; border: 2px solid #000; }
+.barra span { display: grid; place-items: center; font-size: 10px; color: var(--bc-ink); }
+.swatch { border-radius: 10px; overflow: hidden; border: 3px solid var(--line); background: var(--panel); }
+.swatch .am { height: 76px; display: grid; place-items: center; font: 22px "Galmuri14", monospace; }
+.swatch .info { padding: 8px 10px; font-size: 11px; }
+.swatch .info b { display: block; font-size: 12px; }
+.copiar { all: unset; cursor: pointer; color: var(--yellow); border-bottom: 1px dashed currentColor; }
+.copiar:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+.mini { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
+.mini div { border-radius: 8px; padding: 26px 8px 6px; font-size: 10px; color: #0e1430; font-weight: 700; border: 2px solid #000; }
+.mini .copiar { color: inherit; }
+#tokens { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.ok { color: var(--green); } .nao { color: #ff7a7a; }
+
+/* tipografia */
+.estilo { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 12px; align-items: baseline; padding: 12px 0; border-bottom: 1px solid var(--bc-ink-2); }
+.estilo small { color: var(--muted); font-size: 11px; }
+@media (max-width: 560px) { .estilo { grid-template-columns: minmax(0, 1fr); } }
+.g14 { font-family: "Galmuri14", monospace; }
+
+/* ícones */
+.icos { display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 8px; }
+.icos figure { margin: 0; display: grid; justify-items: center; gap: 6px; padding: 12px 4px 8px; background: var(--bc-ink); border-radius: 6px; border-bottom: 2px solid #000; font-size: 10px; color: var(--muted); }
+.icos svg { width: 24px; height: 24px; color: var(--text); }
+.familias svg { width: 32px; height: 32px; }
+
+/* movimento */
+.trilhas { display: grid; gap: 10px; }
+.trilha { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 12px; align-items: center; font-size: 11px; }
+.trilha .pista { position: relative; height: 28px; background: var(--bc-ink); border-radius: 999px; border-bottom: 2px solid #000; }
+.trilha .miolo { position: absolute; inset: 0 28px 0 0; }
+.trilha .bola { width: 28px; height: 28px; border-radius: 50%; background: #fff url("../../public/assets/ui/ball.svg") center / 22px no-repeat; }
+.trilhas[data-tocando] .bola { animation: anda var(--d) var(--c) infinite alternate; }
+@keyframes anda { to { transform: translateX(calc(100cqw - 28px)); } }
+.trilha .miolo { container-type: inline-size; }
+.demos { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.demo-pop { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 10px; background: var(--bc-ink); border-bottom: 2px solid #000; font: 34px "Galmuri14", monospace; color: var(--yellow); cursor: pointer; }
+.demo-pop:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
+@media (prefers-reduced-motion: no-preference) {
+  .demo-pop:hover span, .demo-pop:focus-visible span { animation: pop .35s var(--ease-pop); }
+  @keyframes pop { from { scale: .4; } }
+}
+
+/* voz */
+.antes { text-decoration: line-through; color: #ff9a9a; }
+.depois { color: #9dffa9; }
+.legendas { display: flex; flex-wrap: wrap; gap: 8px; }
+.legendas span { padding: 6px 10px; background: var(--bc-ink); border-radius: 6px; font-weight: 700; letter-spacing: 1px; border-bottom: 2px solid #000; }
+.etiquetas { display: flex; flex-wrap: wrap; gap: 6px; }
+.etiquetas span { padding: 2px 8px; border-radius: 999px; border: 2px solid var(--green); font-size: 12px; }
+.etiquetas.evita span { border-color: #ff7a7a; color: #ffb3b3; }
+.legendas .faixa { display: inline-block; padding: 6px 14px; background: #fff; color: #0e1430; font-weight: 700; border: 3px solid #0e1430; transform: skew(-6deg); }
+
+/* aplicações */
+.tela { border-radius: 10px; overflow: hidden; border: 3px solid var(--line); background: #000; }
+.tela img { display: block; width: 100%; height: auto; }
+.celular { max-width: 260px; border-radius: 22px; border: 6px solid #000; }
+.zap { max-width: 380px; border-radius: 10px; overflow: hidden; background: #1f2c33; font-family: system-ui, sans-serif; -webkit-font-smoothing: auto; }
+.zap img { display: block; width: 100%; height: auto; }
+.zap div { padding: 8px 10px; font-size: 12px; color: #e9edef; }
+.zap small { color: #8696a0; }
+.icones-app { display: flex; gap: 18px; align-items: end; flex-wrap: wrap; }
+.icones-app img { border-radius: 22%; display: block; }
+
+/* aviso de copiado */
+#aviso { position: fixed; left: 50%; bottom: 20px; translate: -50% 160%; padding: 8px 14px; border-radius: 6px; background: var(--yellow); color: var(--bc-ink); font-weight: 700;
+  transition: translate .25s var(--ease-out); z-index: 9; }
+#aviso.on { translate: -50% 0; }
+
+/* seções entrando ao rolar (só onde há suporte) */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    section.s > * { animation: entra linear both; animation-timeline: view(); animation-range: entry 0% entry 35%; }
+    @keyframes entra { from { opacity: 0; translate: 0 18px; } }
+  }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="toc" aria-label="Índice">
+  <a href="#capa"><img src="../../public/assets/ui/logo.svg" alt="Soccermon" width="160" style="height:auto" /></a>
+  <b>1 · Quem somos</b>
+  <a href="#porque">1.1 Por que existimos</a><a href="#personagens">1.2 Personagens</a><a href="#ilustracao">1.3 Ilustração</a>
+  <b>2 · Identidade visual</b>
+  <a href="#logo">2.1 Logo</a><a href="#cor">2.2 Cor</a><a href="#tipo">2.3 Tipografia</a><a href="#forma">2.4 Forma</a><a href="#icones">2.5 Ícones</a>
+  <b>3 · Movimento e som</b>
+  <a href="#movimento">3.1 Movimento</a><a href="#som">3.2 Som</a>
+  <b>4 · Voz</b>
+  <a href="#voz">4.1 Método de escrita</a><a href="#tracos">4.2 Traços e glossário</a>
+  <b>5 · Aplicações</b>
+  <a href="#aplicacoes">5.1 Site e redes</a><a href="#email">5.2 E-mail</a>
+  <b>6 · Para não errar</b>
+  <a href="#acess">6.1 Acessibilidade</a><a href="#arquivos">6.2 Arquivos</a><a href="#naofazer">6.3 Não fazer</a>
+</nav>
+<main>
+
+<header class="capa" id="capa">
+  <div class="raios" aria-hidden="true"></div>
+  <img class="logo flutua" src="../../public/assets/ui/logo.svg" alt="Soccermon" width="1441" height="300" />
+  <p class="tag">TEMOS QUE CHUTAR!</p>
+  <p class="linha">Draft "escolha 1 de 3" com os 151 de Kanto e uma copa de futsal 5 contra 5, no navegador.</p>
+  <span class="selo">Grátis, sem anúncio, sem conta obrigatória</span>
+  <div class="sumario">
+    <a href="#porque">1 Quem somos</a><a href="#logo">2 Identidade visual</a><a href="#movimento">3 Movimento e som</a>
+    <a href="#voz">4 Voz</a><a href="#aplicacoes">5 Aplicações</a><a href="#acess">6 Para não errar</a>
+  </div>
+</header>
+
+<div class="parte bc-surface bc-stripe"><span class="num">1</span><h2>Quem somos</h2></div>
+
+<section class="s" id="porque">
+  <span class="sob">1.1 · Por que existimos</span><h3>Pokémon e futebol, numa copa que dura minutos</h3>
+  <div class="grid">
+    <div class="card good"><h4>Missão</h4><p>Juntar Pokémon e futebol num jogo curto de celular que dá vontade de jogar de novo.</p></div>
+    <div class="card"><h4>Pra quem</h4><p>O fã que cresceu com a Gen 1 e a criança de 12 anos no celular. Os dois leem a mesma tela.</p></div>
+    <div class="card"><h4>O que diferencia</h4><p>O golpe aparece em campo: o Snorlax fecha o gol, o Ditto joga em todas. E tudo tem cara de transmissão de TV.</p></div>
+  </div>
+</section>
+
+<section class="s" id="personagens">
+  <span class="sob">1.2 · Personagens</span><h3>Os Pokémon jogam. O símbolo é nosso.</h3>
+  <p class="lead">Sprites, gritos e nomes são da Nintendo, Game Freak, Creatures e The Pokémon Company (créditos em <code>CREDITS.md</code>). Eles aparecem no jogo e nas artes, nunca no logo.</p>
+  <div class="grid">
+    <div class="card"><img class="pixel" src="../../public/assets/cards/25.gif" alt="Pikachu" width="96" height="96" /><h4>Sprite de jogo</h4><p><code>public/assets/cards/</code>: draft, Pokédex, artes.</p></div>
+    <div class="card"><img class="pixel" src="../../public/assets/cards/143.gif" alt="Snorlax" width="96" height="96" /><h4>Fileira de time</h4><p>Nas artes, uma fileira de 5 a 6, de pé, na mesma escala.</p></div>
+    <div class="card"><img class="pixel" src="../../public/assets/cards/132.gif" alt="Ditto" width="96" height="96" /><h4>Piada com Pokémon</h4><p>O Ditto em todas as posições. Humor de fã, com o Pokémon certo.</p></div>
+  </div>
+</section>
+
+<section class="s" id="ilustracao">
+  <span class="sob">1.3 · Ilustração</span><h3>Pixel art em múltiplo inteiro</h3>
+  <ul class="regras">
+    <li>Ampliar só em 2x, 3x com <code>image-rendering: pixelated</code>. Reduzir com <code>image-rendering: auto</code>.</li>
+    <li>Item tem 30 x 30: mostre em 30, 60 ou 90 px. Ícone de tipo é arte lisa: sem <code>pixelated</code>.</li>
+    <li>Fundo de marca: azul-noite radial <code>#2a3a7a → #070a18</code> com os raios da tela de evolução.</li>
+  </ul>
+  <div class="grid">
+    <div class="card good"><img class="pixel" src="../../public/assets/items/choice-band.png" alt="" width="60" height="60" /><h4>60 px (2x)</h4><p>Cada pixel vira 2 x 2. Nítido.</p></div>
+    <div class="card bad"><img class="pixel" src="../../public/assets/items/choice-band.png" alt="" width="44" height="44" /><h4>44 px (1,47x)</h4><p>Pixel desigual: umas linhas dobram, outras não.</p></div>
+    <div class="card good"><img src="../../public/assets/items/choice-band.png" alt="" width="20" height="20" style="image-rendering:auto" /><h4>20 px reduzido liso</h4><p>Menor que o original: filtro liso, sem pixel faltando.</p></div>
+  </div>
+</section>
+
+<div class="parte bc-surface bc-stripe"><span class="num">2</span><h2>Identidade visual</h2></div>
+
+<section class="s" id="logo">
+  <span class="sob">2.1 · Logo</span><h3>A carta holo com a bola</h3>
+  <p class="lead">O primeiro O de SOCCERMON é uma carta dourada inclinada, com holo em quatro faixas e uma bola de futebol de verdade, com faixa e botão dourado: lê como bola e como pokébola. Vetor limpo: contorno azul-noite firme, cores chapadas, nada de degradê.</p>
+  <div class="grid dois">
+    <div class="palco noite"><img src="../../trailer/arte/logo/final/logo-horizontal.svg" alt="Logo horizontal em cor" width="560" /></div>
+    <div class="palco noite"><img src="../../trailer/arte/logo/final/logo-simbolo.svg" alt="Símbolo: a carta" width="110" /></div>
+    <div class="palco claro"><img src="../../trailer/arte/logo/final/logo-horizontal-mono-azul.svg" alt="Logo de uma cor, azul-noite" width="560" /></div>
+    <div class="palco ouro"><img src="../../trailer/arte/logo/final/logo-horizontal-mono-azul.svg" alt="Logo de uma cor sobre o dourado" width="560" /></div>
+    <div class="palco noite"><img src="../../trailer/arte/logo/final/logo-horizontal-mono-branco.svg" alt="Logo de uma cor, branco" width="560" /></div>
+    <div class="palco noite"><img src="../../trailer/arte/logo/final/logo-icone.svg" alt="Ícone do app" width="130" style="border-radius:22%" /></div>
+  </div>
+  <h4>Área de respiro: metade da altura das letras</h4>
+  <div class="palco noite"><div class="respiro"><span class="t">0,5x</span><span class="l">0,5x</span><img src="../../trailer/arte/logo/final/logo-horizontal.svg" alt="Logo com a área de respiro marcada" /></div></div>
+  <h4>Tamanho mínimo</h4>
+  <div class="palco noite"><div class="minimos">
+    <figure><img src="../../trailer/arte/logo/final/logo-horizontal.svg" alt="" width="144" /><figcaption>horizontal, 144 px (topo)<br />mínimo 120</figcaption></figure>
+    <figure><img src="../../trailer/arte/logo/final/logo-simbolo.svg" alt="" height="24" style="height:24px;width:auto" /><figcaption>símbolo, 24 px</figcaption></figure>
+    <figure><img src="../../trailer/arte/logo/final/logo-icone.svg" alt="" width="64" /><figcaption>ícone, 64 px+</figcaption></figure>
+    <figure><img src="../../trailer/arte/logo/final/logo-icone-pequeno.svg" alt="" width="32" /><figcaption>pequeno, 32 a 48</figcaption></figure>
+    <figure><img class="pixel" src="../../trailer/arte/logo/final/logo-icone-16.svg" alt="" width="48" /><figcaption>16 px à mão (em 3x)</figcaption></figure>
+  </div></div>
+  <h4>Usos errados</h4>
+  <div class="grid">
+    <div class="card bad errado"><img class="e-esticado" src="../../trailer/arte/logo/final/logo-horizontal.svg" alt="" /><h4>Esticado</h4><p>Sempre na proporção 1441 x 300.</p></div>
+    <div class="card bad errado"><img class="e-cor" src="../../trailer/arte/logo/final/logo-horizontal.svg" alt="" width="220" /><h4>Cor trocada</h4><p>SOCC branco, ERMON dourado. Sempre.</p></div>
+    <div class="card bad errado"><img class="e-brilho" src="../../trailer/arte/logo/final/logo-horizontal.svg" alt="" width="220" /><h4>Brilho borrado</h4><p>Sem glow, sem sombra macia, sem degradê.</p></div>
+    <div class="card bad errado"><img class="e-gira" src="../../trailer/arte/logo/final/logo-horizontal.svg" alt="" width="200" /><h4>Girado</h4><p>Só a carta é inclinada (-8°), o resto fica reto.</p></div>
+    <div class="card bad errado" style="background:#f4f1e6"><img src="../../trailer/arte/logo/final/logo-horizontal.svg" alt="" width="220" style="opacity:.55" /><h4 style="color:#0e1430">Cor em fundo claro</h4><p style="color:#333">Fundo claro pede a versão de uma cor.</p></div>
+    <div class="card bad errado"><p class="g14" style="font-size:26px;color:var(--yellow);text-align:center;margin:12px 0">SOCCERMON</p><h4>Nome em fonte</h4><p>O título é desenho. Em texto corrido, "Soccermon".</p></div>
+  </div>
+</section>
+
+<section class="s" id="cor">
+  <span class="sob">2.2 · Cor</span><h3>Azul-noite domina, dourado é pouco de propósito</h3>
+  <div class="barra" role="img" aria-label="Proporção numa tela típica: fundo 70%, painel 20%, dourado 6%, vermelho 2%, tipos 2%">
+    <span style="flex:70;background:var(--bg);color:var(--text)">fundo 70%</span><span style="flex:20;background:var(--panel);color:var(--text)">painel 20%</span>
+    <span style="flex:6;background:var(--yellow)">6%</span><span style="flex:2;background:var(--red)"></span><span style="flex:2;background:linear-gradient(90deg,#EE8130,#6390F0,#7AC74C)"></span>
+  </div>
+  <h4>Tokens (toque no hex pra copiar)</h4>
+  <div class="grid" id="tokens"></div>
+  <h4>Cartas: o metal vem da nota</h4>
+  <div class="mini">
+    <div style="background:var(--bronze)">Bronze · até 64<br /><button class="copiar">#c98a52</button></div>
+    <div style="background:var(--prata)">Prata · 65 a 74<br /><button class="copiar">#c9ced8</button></div>
+    <div style="background:var(--ouro)">Ouro · 75+<br /><button class="copiar">#e8c24a</button></div>
+    <div style="background:linear-gradient(135deg,var(--holo-1),var(--holo-2),var(--holo-3),var(--holo-4))">Holo · edições</div>
+  </div>
+  <h4>Tipos (cor oficial, só pro tipo)</h4>
+  <div class="mini" id="tipos"></div>
+  <h4>Contraste medido</h4>
+  <div class="tabela"><table>
+    <thead><tr><th>Texto</th><th>Fundo</th><th>Razão</th><th>Uso</th></tr></thead>
+    <tbody id="contraste"></tbody>
+  </table></div>
+</section>
+
+<section class="s" id="tipo">
+  <span class="sob">2.3 · Tipografia</span><h3>Galmuri, uma família pixel só</h3>
+  <p class="lead">SIL OFL 1.1, em <code>public/fonts/</code> (subset por <code>npm run fonts</code>). Fonte é pixel: nada de alisar.</p>
+  <div class="estilo"><small>Placar · Galmuri14 · 48 px</small><span class="g14" style="font-size:48px;line-height:1">4 x 2</span></div>
+  <div class="estilo"><small>Título de tela · Galmuri14 · 20 px</small><span class="g14" style="font-size:20px">Escalação</span></div>
+  <div class="estilo"><small>Texto · Galmuri11 · 14 px / 1,45</small><span>Toque em dois pra trocar. Mesmo tipo e duplas famosas dão sinergia.</span></div>
+  <div class="estilo"><small>Botão · Galmuri11 Bold</small><span><b>Nova copa</b></span></div>
+  <div class="estilo"><small>Etiqueta · Bold 10 px caixa alta</small><span><span class="bc-tag">Oitavas de final</span></span></div>
+  <div class="estilo"><small>Legenda de vídeo · Bold caixa alta</small><span style="font-weight:700;font-size:24px;letter-spacing:2px">EVOLUÇÕES NO MEIO DO JOGO</span></div>
+  <h4>Em uso</h4>
+  <div class="panel" style="max-width:460px">
+    <div class="bc-screenhead" style="margin-top:16px"><span class="bc-tag">Final</span><span class="g14" style="font-size:20px">Liga Índigo</span></div>
+    <p>Venceu as três. Falta uma pra levantar a taça.</p>
+    <button class="btn primary">Jogar a final</button>
+  </div>
+</section>
+
+<section class="s" id="forma">
+  <span class="sob">2.4 · Forma</span><h3>O kit da transmissão</h3>
+  <p class="lead">O site inteiro usa as peças do placar de TV (<code>src/ui/broadcast-kit.css</code>): superfície chapada, borda de baixo preta, faixa lateral na cor do time, sombra dura.</p>
+  <div class="grid dois">
+    <div class="card"><div class="bc-surface bc-stripe" style="padding:12px 14px 12px 18px;--tc:#e8423f">Pallet FC <b style="float:right" class="g14">2</b></div><h4 style="margin-top:10px"><code>.bc-surface</code> + <code>.bc-stripe</code></h4><p>Faixa de 6 px na cor do time.</p></div>
+    <div class="card"><div class="bc-screenhead" style="margin-top:16px"><span class="bc-tag">Menu</span><span class="g14" style="font-size:20px">Configurações</span></div><h4 style="margin-top:10px"><code>.bc-screenhead</code></h4><p>O título num placar, a etiqueta em cima.</p></div>
+    <div class="card"><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn primary">Nova copa</button><button class="btn">Pallet FC</button></div><h4 style="margin-top:10px"><code>.btn</code></h4><p>Borda 3 px, sombra dura de 3 px, afunda no clique. O principal é vermelho.</p></div>
+    <div class="card"><div class="panel" style="padding:10px">Painel</div><h4 style="margin-top:10px"><code>.panel</code></h4><p>Raio 10, borda <code>--line</code>, sombra dura.</p></div>
+  </div>
+  <ul class="regras"><li>Raios: 4 etiqueta, 6 placar, 8 botão, 10 painel e carta.</li><li>Sombra sempre dura. O único brilho é o amarelo de seleção.</li></ul>
+</section>
+
+<section class="s" id="icones">
+  <span class="sob">2.5 · Ícones</span><h3>Desenhado, nunca emoji</h3>
+  <div class="grid familias">
+    <div class="card good"><svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg><h4>Interface (HudIcon)</h4><p>Grade 24, só contorno, traço 2.4 (3 abaixo de 14 px), ponta e junta redondas, <code>currentColor</code>, 18 px.</p></div>
+    <div class="card"><svg viewBox="0 0 32 32"><path d="M18 2 L6 18 H14 L12 30 L26 12 H17 Z" fill="#ffcb05" stroke="#2a1a00" stroke-width="2" /></svg><h4>Ilustração de menu</h4><p>Cheia, colorida, contorno escuro, grade 32. Só em cartão de menu e prêmio.</p></div>
+    <div class="card"><img class="pixel" src="../../public/assets/items/charcoal.png" alt="" width="30" height="30" /><h4>Sprite</h4><p>Pixel art pelas regras da Ilustração.</p></div>
+    <div class="card"><p class="g14" style="font-size:20px;color:var(--text);margin:0">A → B · ×2</p><h4>Caractere de texto</h4><p>Só pontuação dentro da frase. Sozinho num botão, nunca.</p></div>
+  </div>
+  <h4>Os ícones de interface (de <code>src/ui/components/MatchHud.tsx</code>)</h4>
+  <div class="icos" id="icos"><!-- ICONES: gerado por montar.mjs --><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M6 20h12M4 8h16M4 8l-2.5 6h5zM20 8l-2.5 6h5z" /></svg><figcaption>balanced</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 13l6-6 6 6M6 19l6-6 6 6" /></svg><figcaption>offensive</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z" /></svg><figcaption>defensive</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L5 13h6l-1 9 8-12h-6z" /></svg><figcaption>counter</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v15M3 15l4 4 4-4M17 20V5M13 9l4-4 4 4" /></svg><figcaption>sub</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V3M6 4h11l-3 4 3 4H6" /></svg><figcaption>flag</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5l8 7-8 7zM12 5l8 7-8 7z" /></svg><figcaption>skip</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM9 3h6v3H9zM9 11h6M9 15h4" /></svg><figcaption>board</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg><figcaption>team</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H10l-6 4z" /></svg><figcaption>feed</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM8 14c1 2 2.4 3 4 3s3-1 4-3M9 9.5v.5M15 9.5v.5" /></svg><figcaption>smile</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 4.5a3.5 3.5 0 0 1 0 6.5M18 14c2 .6 3.5 2.8 3.5 6" /></svg><figcaption>players</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V11M11 20V5M17 20v-7M2 20h20" /></svg><figcaption>chart</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0zM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 21h8" /></svg><figcaption>cup</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM3 12h6.5M14.5 12H21M12 9.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5z" /></svg><figcaption>dex</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h4l7 5V5L7 10zM17 9a4 4 0 0 1 0 6M19.5 6a8 8 0 0 1 0 12" /></svg><figcaption>shout</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10c3-3 6-3 9 0s6 3 9 0M3 16c3-3 6-3 9 0s6 3 9 0" /></svg><figcaption>calm</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4l5 5M20 4l-5 5M4 20l5-5M20 20l-5-5M12 8v8M8 12h8" /></svg><figcaption>press</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M12 5v15M8 20h8" /></svg><figcaption>timeout</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V8M7 13l5-5 5 5M5 4h14" /></svg><figcaption>flyGk</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9 6.2 6.6.8-4.9 4.6 1.3 6.6L12 16.9l-5.9 3.3 1.3-6.6L2.5 9l6.6-.8z" /></svg><figcaption>max</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2l3 7M16 2l-3 7M12 9a6 6 0 1 1 0 12 6 6 0 0 1 0-12zM12 12.5l1 2 2.2.3-1.6 1.5.4 2.2-2-1-2 1 .4-2.2-1.6-1.5 2.2-.3z" /></svg><figcaption>medal</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6" /></svg><figcaption>up</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg><figcaption>down</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18c2-9 14-9 16 0M18 15l2 3 2-3" /></svg><figcaption>cornerArea</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 14h11M10 10l4 4-4 4M19 7a2 2 0 1 1 0 .1" /></svg><figcaption>cornerShort</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h4l10 10h4M3 17h4l10-10h4M18 4l3 3-3 3M18 14l3 3-3 3" /></svg><figcaption>cornerMixed</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg><figcaption>check</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11V8a4 4 0 0 1 8 0v3M5 11h14v10H5z" /></svg><figcaption>lock</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg><figcaption>close</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z" /></svg><figcaption>play</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 4a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13zM15.5 15.5L20 20" /></svg><figcaption>search</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" /></svg><figcaption>expand</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 13A7.5 7.5 0 1 1 17 6.4M18.5 3v4h-4" /></svg><figcaption>reroll</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" /></svg><figcaption>download</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7 9l5-5 5 5M5 20h14" /></svg><figcaption>upload</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg><figcaption>next</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg><figcaption>prev</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5h11v11h-11z" /></svg><figcaption>stop</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h4l7 5V5L7 10zM17 9.5l5 5M22 9.5l-5 5" /></svg><figcaption>mute</figcaption></figure><figure><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 18h5M10.5 21h3M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3z" /></svg><figcaption>bulb</figcaption></figure><!-- /ICONES --></div>
+  <div class="grid" style="margin-top:14px">
+    <div class="card bad"><p class="g14" style="font-size:22px;margin:0" data-copy-ia="exemplo">× ▲ ★ ↻</p><h4>Caractere solto</h4><p>Fechar, setas, estrela e sortear eram letras. Viraram HudIcon.</p></div>
+    <div class="card good"><div style="display:flex;gap:12px"><svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg><svg class="ico" viewBox="0 0 24 24"><path d="M6 15l6-6 6 6" /></svg><svg class="ico" viewBox="0 0 24 24"><path d="M12 2l2.9 6.2 6.6.8-4.9 4.6 1.3 6.6L12 16.9l-5.9 3.3 1.3-6.6L2.5 9l6.6-.8z" /></svg><svg class="ico" viewBox="0 0 24 24"><path d="M19.5 13A7.5 7.5 0 1 1 17 6.4M18.5 3v4h-4" /></svg></div><h4>Mesma família</h4><p>Um cadeado, uma seta, um visto em todo o site.</p></div>
+    <div class="card"><h4>Pendente: a carta</h4><p>A carta ainda usa ● ◆ ★ na raridade e ★ SHINY. Muda só pela galeria <code>?cards=1</code> com o ok do Miguel.</p></div>
+  </div>
+</section>
+
+<div class="parte bc-surface bc-stripe"><span class="num">3</span><h2>Movimento e som</h2></div>
+
+<section class="s" id="movimento">
+  <span class="sob">3.1 · Movimento</span><h3>Peso de jogo, sem enjoar</h3>
+  <button class="btn" id="tocar" aria-pressed="false">Tocar as curvas</button>
+  <div class="trilhas" id="trilhas" style="margin-top:12px">
+    <div class="trilha"><span><b>--ease-out</b><br />0,6 s · tudo</span><div class="pista"><div class="miolo"><div class="bola" style="--d:.6s;--c:var(--ease-out)"></div></div></div></div>
+    <div class="trilha"><span><b>--ease-pop</b><br />0,6 s · carta, número, selo</span><div class="pista"><div class="miolo"><div class="bola" style="--d:.6s;--c:var(--ease-pop)"></div></div></div></div>
+    <div class="trilha"><span><b>linear</b><br />não use</span><div class="pista"><div class="miolo"><div class="bola" style="--d:.6s;--c:linear"></div></div></div></div>
+  </div>
+  <h4>Micro-movimentos (passe o mouse ou o foco)</h4>
+  <div class="demos">
+    <div class="demo-pop" tabindex="0" aria-label="Número que pula"><span>89</span></div>
+    <button class="btn primary">Botão afunda</button>
+    <div class="card" style="width:180px" tabindex="0"><h4>Cartão sobe</h4><p>3 px, 0,15 s.</p></div>
+  </div>
+  <ul class="regras">
+    <li>Anime <code>transform</code> e <code>opacity</code>. Botão 0,06 s, hover 0,15 s, painel 0,2 a 0,3 s.</li>
+    <li>Loop só em decoração leve (pacote flutuando, a carta do carregamento).</li>
+    <li><b>Reduzir movimento</b> (Configurações › Acessibilidade): <code>&lt;html data-reduce-motion="true"&gt;</code> zera animação e transição e some com os clarões; na quadra, câmera parada e evolução sem animação. Toda animação nova é testada com ele ligado.</li>
+  </ul>
+</section>
+
+<section class="s" id="som">
+  <span class="sob">3.2 · Som</span><h3>Gravado, não sintetizado</h3>
+  <ul class="regras">
+    <li>Um apito só, gravado (CC0). Torcida gravada do lado do jogador: gol, vaia, "uuuh".</li>
+    <li>Gritos dos Pokémon em 8-bit (Gen 1) ou modernos, o jogador escolhe. Efeitos curtos do ZzFX.</li>
+    <li>Música só nos vídeos: o Miguel escolhe e ela é creditada.</li>
+  </ul>
+  <audio controls preload="none" src="../../public/assets/sfx/apito.mp3" aria-label="O apito"></audio>
+</section>
+
+<div class="parte bc-surface bc-stripe"><span class="num">4</span><h2>Voz</h2></div>
+
+<section class="s" id="voz">
+  <span class="sob">4.1 · O método de escrita do Miguel</span><h3>Curto, direto, de fã pra fã</h3>
+  <ol class="regras">
+    <li><b>Curto e direto.</b> Legenda de vídeo: 2 a 5 palavras, a feature, em caixa alta.</li>
+    <li><b>Sem ironia nem piada empilhada.</b> As irônicas pareceram feitas com IA.</li>
+    <li><b>Sem tricolon de IA.</b></li>
+    <li><b>Humor de fã em momento pontual</b>, de preferência paródia de coisa real: grito de torcida, fala dos jogos.</li>
+    <li><b>Quem lê tem 12 anos e está no celular:</b> até ~12 palavras por texto no jogo.</li>
+    <li><b>Jargão Pokémon é bem-vindo:</b> PP, super efetivo, Hyper Beam, insígnia. Golpe com o nome oficial em inglês.</li>
+    <li><b>Frase do Miguel vale como está.</b> Só gramática ou tamanho, e avise.</li>
+  </ol>
+  <h4>Legendas aprovadas</h4>
+  <div class="legendas"><span>ESCOLHA 1 DE 3</span><span>ÍCONES RAROS</span><span>FUTSAL 5 CONTRA 5</span><span>EVOLUÇÕES NO MEIO DO JOGO</span><span>MULTIPLAYER ONLINE</span><span>COPA RANKEADA</span></div>
+  <h4>Antes e depois</h4>
+  <div class="tabela"><table>
+    <thead><tr><th>Antes</th><th>Depois</th></tr></thead>
+    <tbody>
+      <tr data-copy-ia="exemplo"><td class="antes" data-copy-ia="exemplo">CHAMA AQUELE AMIGO QUE DIZ QUE É MESTRE POKÉMON</td><td class="depois">MULTIPLAYER ONLINE</td></tr>
+      <tr><td class="antes" data-copy-ia="exemplo">ELE EVOLUIU NO MEIO DO JOGO?!</td><td class="depois">EVOLUÇÕES NO MEIO DO JOGO</td></tr>
+      <tr><td class="antes" data-copy-ia="exemplo">Monte. Escale. Evolua.</td><td class="depois">Temos que chutar!</td></tr>
+      <tr><td class="antes">Você receberá uma recompensa ao vencer.</td><td class="depois">Ganhou! Pegue um Pokémon do rival, um item ou uma MT.</td></tr>
+    </tbody>
+  </table></div>
+  <h4>Humor de fã, do jeito certo: as faixas da torcida</h4>
+  <div class="legendas"><span class="faixa">ABAIXA QUE É HYPER BEAM</span><span class="faixa">Sua insígnia é minha!</span><span class="faixa">Confia no professor!</span><span class="faixa">Até o último PP!</span></div>
+</section>
+
+<section class="s" id="tracos">
+  <span class="sob">4.2 · Traços e glossário</span><h3>Fã, narrador, direto</h3>
+  <div class="tabela"><table>
+    <thead><tr><th>Somos</th><th>Faça</th><th>Não faça</th></tr></thead>
+    <tbody>
+      <tr><td>Fã falando com fã</td><td>"É super efetivo!"</td><td>explicar o que é PP</td></tr>
+      <tr><td>Narrador de TV</td><td>"GOL!", "GOLPE MÁXIMO"</td><td data-copy-ia="exemplo">frase de manual ("O usuário deve selecionar")</td></tr>
+      <tr><td>Direto</td><td>"Toque em dois pra trocar."</td><td>"Para realizar a troca, toque em dois jogadores."</td></tr>
+    </tbody>
+  </table></div>
+  <h4>Usamos</h4>
+  <div class="etiquetas"><span>Copa</span><span>Duelo</span><span>Golpedex</span><span>Destaque</span><span>insígnia</span><span>MT</span><span>craque</span><span>capitão</span><span>Pivô · Ala · Fixo · Goleiro</span></div>
+  <h4>Evitamos</h4>
+  <div class="etiquetas evita" data-copy-ia="exemplo"><span>usuário</span><span>experiência</span><span>jornada</span><span>incrível</span><span>oficial</span><span>Épico fora da raridade</span></div>
+  <p>Conferir: <code>python3 -I .claude/skills/soccermon-marca/copy_ia.py &lt;arquivo&gt;</code> (e <code>--legenda</code> pra legenda de vídeo). Depois leia em voz alta.</p>
+</section>
+
+<div class="parte bc-surface bc-stripe"><span class="num">5</span><h2>Aplicações</h2></div>
+
+<section class="s" id="aplicacoes">
+  <span class="sob">5.1 · Site e redes</span><h3>Onde a marca aparece</h3>
+  <div class="grid dois">
+    <div><div class="zap"><img src="../../public/og-image.jpg" alt="Prévia do link do soccermon.com" width="1200" height="630" /><div><b>Soccermon · Draft de Pokémon e copa de futsal</b><br /><small>soccermon.com</small></div></div><p>Prévia do link (<code>public/og-image.jpg</code>, 1200 x 630).</p></div>
+    <div><div class="icones-app"><img src="../../public/assets/ui/icon-192.png" alt="Ícone 192" width="96" height="96" /><img src="../../public/assets/ui/apple-touch-icon.png" alt="Ícone do iPhone" width="60" height="60" /><img src="../../trailer/arte/logo/final/logo-icone-pequeno.svg" alt="Aba, 32" width="32" height="32" /><img class="pixel" src="../../trailer/arte/logo/final/logo-icone-16.svg" alt="Aba, 16" width="16" height="16" /></div><p>Ícone do app, iPhone, aba em 32 e em 16.</p></div>
+  </div>
+  <h4>Home</h4>
+  <div class="grid dois"><div class="tela"><img src="telas/home-1440.jpg" alt="Home no desktop" /></div><div class="tela celular"><img src="telas/home-390.jpg" alt="Home no celular" /></div></div>
+  <h4>Página 404: "Fora de jogo!"</h4>
+  <p>Placar 4 x 4 com a bola, Psyduck confuso, não culpa a pessoa, botão de volta. <code>public/404.html</code>.</p>
+  <div class="grid dois"><div class="tela"><img src="telas/404-1440.jpg" alt="404 no desktop" /></div><div class="tela celular"><img src="telas/404-390.jpg" alt="404 no celular" /></div></div>
+  <h4>Uma tela de jogo (o kit em uso)</h4>
+  <div class="tela"><img src="telas/escalacao-1440.jpg" alt="Escalação no desktop" /></div>
+</section>
+
+<section class="s" id="email">
+  <span class="sob">5.2 · E-mail</span><h3>O jogo não manda e-mail</h3>
+  <p class="lead">Login pelo Google ou anônimo. Se um dia mandar: remetente "Soccermon", assunto curto que diz o que tem dentro, sem emoji, fundo azul-noite sólido, logo em PNG com contorno, texto nunca em imagem.</p>
+</section>
+
+<div class="parte bc-surface bc-stripe"><span class="num">6</span><h2>Para não errar</h2></div>
+
+<section class="s" id="acess">
+  <span class="sob">6.1 · Acessibilidade</span><h3>Todo mundo joga</h3>
+  <div class="grid">
+    <div class="card"><h4>Contraste</h4><p>Pela tabela da Cor. Branco sobre verde, não.</p></div>
+    <div class="card"><h4>Foco</h4><p>Anel de 3 px amarelo ou branco, folga de 2 a 3 px.</p></div>
+    <div class="card"><h4>Toque</h4><p>Alvo de 40 a 44 px.</p></div>
+    <div class="card"><h4>Ícone sozinho</h4><p>Botão com <code>aria-label</code>, SVG com <code>aria-hidden</code>.</p></div>
+  </div>
+</section>
+
+<section class="s" id="arquivos">
+  <span class="sob">6.2 · Arquivos</span><h3>Fonte da verdade</h3>
+  <div class="tabela"><table><tbody id="arqs"></tbody></table></div>
+</section>
+
+<section class="s" id="naofazer">
+  <span class="sob">6.3 · Não fazer</span><h3>O que quebra a marca</h3>
+  <ul class="regras">
+    <li>Emoji na interface. Só no texto de Compartilhar e nos posts.</li>
+    <li>Caractere solto como ícone num botão ou marcador.</li>
+    <li>Logo esticado, recolorido, com degradê ou sem contorno.</li>
+    <li>Marca da Nintendo em destaque: logo oficial, fonte Pokémon Solid, Pokébola como símbolo, "Pokémon" maior que "Soccermon".</li>
+    <li>Qualquer dinheiro: doação, anúncio, loja.</li>
+    <li>Sombra macia ou degradê nas peças do kit.</li>
+    <li>Cor de tipo como enfeite, dourado espalhado.</li>
+    <li>Texto com cara de IA: tricolon, ironia empilhada, legenda comprida.</li>
+    <li>Mudar carta sem a galeria <code>?cards=1</code>.</li>
+    <li>Animação que ignora Reduzir movimento.</li>
+  </ul>
+</section>
+
+</main>
+</div>
+<div id="aviso" role="status" aria-live="polite"></div>
+<script>
+const TOKENS = [
+  ['--bg', '#141a33', 'fundo de toda tela', '#f4f1e6'], ['--panel', '#232d57', 'painel', '#f4f1e6'], ['--panel-2', '#2c3868', 'botão comum', '#f4f1e6'],
+  ['--line', '#4b5a9a', 'borda (não é texto)', '#f4f1e6'], ['--text', '#f4f1e6', 'texto', '#141a33'], ['--muted', '#a6aed6', 'texto de apoio', '#141a33'],
+  ['--yellow', '#ffcb05', 'destaque, etiqueta, ERMON', '#0e1430'], ['--red', '#e8423f', 'ação principal', '#ffffff'], ['--red-dark', '#b22b29', 'vermelho com texto pequeno', '#ffffff'],
+  ['--blue', '#3a7bd5', 'informação, ligado', '#ffffff'], ['--green', '#58c26b', 'vitória, salvo', '#0e1430'], ['--bc-ink', '#0e1430', 'placar, contorno do logo', '#ffcb05'],
+  ['azul do 3D', '#2a4ea0', 'bloco do ERMON, sombra dura', '#f4f1e6'], ['dourado claro', '#fff3a0', 'filete do logo', '#0e1430'], ['laranja do lábio', '#ff8a1c', 'lábio do ERMON, lendário', '#0e1430'],
+  ['noite', '#2a3a7a → #070a18', 'fundo de marca', '#f4f1e6'],
+];
+const TIPOS = { Normal: '#A8A77A', Fogo: '#EE8130', Água: '#6390F0', Elétrico: '#F7D02C', Planta: '#7AC74C', Gelo: '#96D9D6', Lutador: '#C22E28', Venenoso: '#A33EA1', Terrestre: '#E2BF65',
+  Voador: '#A98FF3', Psíquico: '#F95587', Inseto: '#A6B91A', Pedra: '#B6A136', Fantasma: '#735797', Dragão: '#6F35FC', Sombrio: '#705746', Aço: '#B7B7CE', Fada: '#D685AD' };
+const CONTRASTE = [
+  ['#f4f1e6', '#141a33', '15,2', 'texto sobre fundo', 1], ['#a6aed6', '#141a33', '7,9', 'texto de apoio', 1], ['#a6aed6', '#232d57', '6,1', 'apoio no painel', 1],
+  ['#ffcb05', '#0e1430', '11,9', 'dourado no placar', 1], ['#0e1430', '#ffcb05', '11,9', 'etiqueta', 1], ['#ffffff', '#e8423f', '4,0', 'só botão grande e negrito; pequeno vai em #b22b29 (6,4)', 2],
+  ['#ffffff', '#3a7bd5', '4,2', 'só negrito grande', 2], ['#ffffff', '#58c26b', '2,2', 'não use: azul-noite em cima (8,0)', 0], ['#0e1430', '#c98a52', '6,2', 'número na carta bronze', 1],
+  ['#4b5a9a', '#141a33', '2,6', 'só borda, nunca texto', 0],
+];
+const ARQS = [
+  ['Logo (fonte)', 'trailer/arte/logo/final/logo.py'], ['Logo no site', 'public/assets/ui/logo.svg'], ['Ícones do site e .ico', 'trailer/arte/logo/final/publicar.mjs'],
+  ['Tokens', 'src/ui/styles.css'], ['Kit da transmissão', 'src/ui/broadcast-kit.css'], ['Cartas', 'src/ui/rarity.ts'], ['Tipos', 'src/ui/type-colors.ts'],
+  ['Ícones de interface', 'src/ui/components/MatchHud.tsx'], ['Ilustrações de menu', 'src/ui/components/MenuIcon.tsx'], ['Movimento', 'src/ui/motion.css'],
+  ['Fontes', 'scripts/build-fonts.ts'], ['Artes de divulgação', 'docs/marketing/arte/arte.html'], ['Este guia (texto)', 'docs/marca/brand-guide.md'],
+  ['Checklist', '.claude/skills/soccermon-marca/SKILL.md'],
+];
+const $ = (s) => document.querySelector(s);
+const el = (tag, attrs = {}, html = '') => Object.assign(document.createElement(tag), attrs, { innerHTML: html });
+for (const [nome, hex, uso, ink] of TOKENS) {
+  const bg = hex.includes('→') ? 'radial-gradient(circle,#2a3a7a,#070a18)' : hex;
+  $('#tokens').append(el('div', { className: 'swatch' }, `<div class="am" style="background:${bg};color:${ink}">Aa</div><div class="info"><b>${nome}</b><button class="copiar">${hex}</button><br />${uso}</div>`));
+}
+for (const [nome, hex] of Object.entries(TIPOS)) $('#tipos').append(el('div', { style: `background:${hex}` }, `${nome}<br /><button class="copiar">${hex}</button>`));
+for (const [a, b, r, uso, nivel] of CONTRASTE)
+  $('#contraste').append(el('tr', {}, `<td><span style="background:${b};color:${a};padding:2px 8px;border-radius:4px">Aa</span> ${a}</td><td>${b}</td><td class="${nivel ? 'ok' : 'nao'}">${r}${nivel === 2 ? ' (grande)' : ''}</td><td>${uso}</td>`));
+for (const [o, c] of ARQS) $('#arqs').append(el('tr', {}, `<td>${o}</td><td><button class="copiar">${c}</button></td>`));
+
+// copiar com aviso
+const aviso = $('#aviso');
+let t;
+function avisar(msg) { aviso.textContent = msg; aviso.classList.add('on'); clearTimeout(t); t = setTimeout(() => aviso.classList.remove('on'), 1600); }
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('.copiar');
+  if (!b) return;
+  try { await navigator.clipboard.writeText(b.textContent); avisar(`Copiado: ${b.textContent}`); }
+  catch { getSelection().selectAllChildren(b); avisar('Aperte Ctrl+C'); }
+});
+
+// curvas sob demanda (movimento que se repete precisa de botão pra parar)
+$('#tocar').addEventListener('click', (e) => {
+  const on = e.currentTarget.getAttribute('aria-pressed') !== 'true';
+  e.currentTarget.setAttribute('aria-pressed', String(on));
+  e.currentTarget.textContent = on ? 'Parar' : 'Tocar as curvas';
+  $('#trilhas').toggleAttribute('data-tocando', on);
+});
+
+// índice marca a seção atual
+const links = [...document.querySelectorAll('nav.toc a[href^="#"]')];
+const io = new IntersectionObserver((es) => {
+  for (const en of es) if (en.isIntersecting) for (const a of links) a.setAttribute('aria-current', String(a.getAttribute('href') === `#${en.target.id}`));
+}, { rootMargin: '-45% 0px -50% 0px' });
+for (const s of document.querySelectorAll('section[id]')) io.observe(s);
+</script>
+</body>
+</html>

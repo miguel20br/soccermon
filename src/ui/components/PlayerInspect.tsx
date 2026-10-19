@@ -13,6 +13,7 @@ import { useCardModal } from '../card-modal';
 import { lineupAt, snapAt, statsUntil, whoAt } from '../match-view';
 import { TYPE_COLOR } from '../type-colors';
 import { FutCard } from './FutCard';
+import { HudIcon } from './MatchHud';
 import { TaughtMark } from './TmTeach';
 
 /** Setinha "abre mais" nos golpes, desenhada em SVG. */
@@ -183,7 +184,7 @@ export function PlayerInspect({
                         <div className="mod-list">
                             {live.map((l) => (
                                 <div key={l.text} className={`mod-row ${l.up ? 'up' : 'down'}`}>
-                                    <span>{l.up ? '▲' : '▼'}</span>
+                                    <HudIcon kind={l.up ? 'up' : 'down'} />
                                     {l.text}
                                 </div>
                             ))}
@@ -191,7 +192,7 @@ export function PlayerInspect({
                                 const up = (m.add ?? 0) > 0 || (m.factor ?? 1) > 1;
                                 return (
                                     <div key={m.label} className={`mod-row ${up ? 'up' : 'down'}`}>
-                                        <span>{up ? '▲' : '▼'}</span>
+                                        <HudIcon kind={up ? 'up' : 'down'} />
                                         {modLabel(m, lang)}
                                     </div>
                                 );
@@ -248,7 +249,11 @@ export function PlayerInspect({
                                                   ? t('team.inspect.used')
                                                   : `${left}x`}
                                         </span>
-                                        {boost && <em className="attr-mod up">▲ {moveModLabel(boost, lang)}</em>}
+                                        {boost && (
+                                            <em className="attr-mod up">
+                                                <HudIcon kind="up" /> {moveModLabel(boost, lang)}
+                                            </em>
+                                        )}
                                         <ChevronIcon />
                                     </button>
                                 );

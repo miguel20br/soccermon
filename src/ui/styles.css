@@ -3729,19 +3729,25 @@ button,
     gap: 6px;
     font-size: 13px;
 }
-.mod-row span {
-    font-weight: 700;
+.mod-row .hud-icon {
+    width: 14px;
+    height: 14px;
 }
-.mod-row.up span {
+.mod-row.up .hud-icon {
     color: #7dff8a;
 }
-.mod-row.down span {
+.mod-row.down .hud-icon {
     color: #ff7a7a;
 }
 .attr-mod {
     font-style: normal;
     font-weight: 700;
     font-size: 11px;
+}
+.attr-mod .hud-icon {
+    width: 1.1em;
+    height: 1.1em;
+    vertical-align: -0.2em;
 }
 .attr-mod.up {
     color: #7dff8a;
