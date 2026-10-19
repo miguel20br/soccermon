@@ -260,13 +260,14 @@ class DuelSession {
         speed: PlaybackSpeed,
         local: boolean,
         specialLimit: SpecialLimit = DEFAULT_SPECIAL_LIMIT,
+        agency = false,
     ): Promise<string> {
         const room = roomCode((n) => {
             const b = new Uint32Array(1);
             crypto.getRandomValues(b);
             return b[0] % n;
         });
-        const shared = newShared(room, peer, mode, speed, randomSecret().slice(0, 16), specialLimit);
+        const shared = newShared(room, peer, mode, speed, randomSecret().slice(0, 16), specialLimit, agency);
         this.kept = { role: 'host', shared, tops: {} };
         writeKept(room, peer.id, this.kept);
         this.open(room, peer, local, 'host', shared, false);

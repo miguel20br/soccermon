@@ -1,4 +1,5 @@
 import type { AbilityEffect } from './abilities';
+import type { Shout } from './agency';
 import type { Attributes, AttrKey, Position } from './attributes';
 import type { MatchConfig } from './config';
 import type { Species, TypeName } from './data';
@@ -84,12 +85,27 @@ export interface LineupOrder {
     order: string[];
 }
 
+/**
+ * Agência do técnico (experimento, src/engine/agency.ts): grito (vale na hora), pedido de tempo e goleiro-linha (na
+ * próxima bola parada), golpe máximo do capitão (na hora, se a barra estiver cheia) e a ordem dos cobradores de
+ * pênalti (uids, guardada até a disputa). Sem essas ordens a partida é a de sempre.
+ */
+export type AgencyOrder =
+    | { tick: number; team: 0 | 1; seq?: number; kind: 'shout'; shout: Shout }
+    | { tick: number; team: 0 | 1; seq?: number; kind: 'timeout' }
+    | { tick: number; team: 0 | 1; seq?: number; kind: 'flyGk'; on: boolean }
+    | { tick: number; team: 0 | 1; seq?: number; kind: 'max' }
+    | { tick: number; team: 0 | 1; seq?: number; kind: 'penalties'; order: string[] };
+export type AgencyKind = AgencyOrder['kind'];
+export const AGENCY_KINDS: readonly AgencyKind[] = ['shout', 'timeout', 'flyGk', 'max', 'penalties'];
+
 /** Ordens do técnico durante a partida (a partida é resimulada com a agenda inteira). */
-export type MatchOrder = TacticChange | SubOrder | CornerOrder | LineupOrder;
+export type MatchOrder = TacticChange | SubOrder | CornerOrder | LineupOrder | AgencyOrder;
 export const isSubOrder = (o: MatchOrder): o is SubOrder => o.kind === 'sub';
 export const isLineupOrder = (o: MatchOrder): o is LineupOrder => o.kind === 'lineup';
 export const isCornerOrder = (o: MatchOrder): o is CornerOrder => o.kind === 'corner';
 export const isTacticOrder = (o: MatchOrder): o is TacticChange => !o.kind || o.kind === 'tactic';
+export const isAgencyOrder = (o: MatchOrder): o is AgencyOrder => AGENCY_KINDS.includes(o.kind as AgencyKind);
 
 /** Códigos de ação para o render escolher a animação. */
 export const Action = {
@@ -305,6 +321,25 @@ export interface TeamRuntime {
     screens: { light: number; reflect: number; mist: number };
     /** Instrução de escanteio agora (muda com a ordem do técnico). */
     corner: CornerPlan;
+    /** Agência do técnico (experimento): só muda com as ordens novas. */
+    agency: AgencyRuntime;
+}
+
+export interface AgencyRuntime {
+    shout: { kind: Shout; until: number } | null;
+    shoutsUsed: number;
+    /** Próximo grito só a partir deste tick (recarga). */
+    shoutReadyAt: number;
+    /** Pedido de tempo já usado em cada tempo, e o que espera a próxima bola parada. */
+    timeouts: [boolean, boolean];
+    timeoutPending: boolean;
+    /** Goleiro-linha ligado agora e a troca que espera a próxima bola parada (null = nenhuma). */
+    flyGk: boolean;
+    flyGkPending: boolean | null;
+    /** Golpe máximo solto: quem (índice do capitão) e até que tick a janela vale. */
+    max: { idx: number; until: number } | null;
+    /** Ordem dos cobradores de pênalti (uids; null = pelo chute, como sempre). */
+    penaltyOrder: string[] | null;
 }
 
 export interface MatchEventBase {
@@ -414,6 +449,13 @@ export type MatchEvent = MatchEventBase &
         | { type: 'fulltime'; score: [number, number] }
         | { type: 'penalty'; by: number; gk: number; scored: boolean; round: number; shootout: [number, number] }
         | { type: 'end'; winner: 0 | 1 | null; score: [number, number]; shootout: [number, number] | null }
+        // agência do técnico (experimento)
+        | { type: 'shout'; team: 0 | 1; shout: Shout }
+        | { type: 'timeout'; team: 0 | 1 }
+        /** Goleiro-linha ligou/desligou (`by` = o goleiro). */
+        | { type: 'flyGk'; team: 0 | 1; on: boolean; by: number }
+        /** Golpe máximo: abriu a janela, saiu (`hit`: o chute, ou a janela do goleiro) ou passou sem sair (`miss`). */
+        | { type: 'max'; team: 0 | 1; by: number; phase: 'start' | 'hit' | 'miss'; moveId?: string | null }
     );
 
 export type MatchEventType = MatchEvent['type'];
@@ -526,6 +568,8 @@ export interface MatchState {
     nextMoveTick: number;
     /** Jogadores substituídos (com as estatísticas que fizeram antes de sair). */
     subbedOut: PlayerState[];
+    /** Pedido de tempo: a bola parada não anda até este tick (0 = sem parada). */
+    pauseUntil: number;
     /** Substituições e mudanças de prancheta pedidas esperando a próxima bola parada. */
     pendingSubs: (SubOrder | LineupOrder)[];
     /** Último golpe usado por cada time (Mirror Move/Mimic copiam o do rival). */

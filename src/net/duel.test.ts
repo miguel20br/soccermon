@@ -334,6 +334,42 @@ describe('log de ordens', () => {
         s = reduce(s, sub(t.bench[0].uid, t.bench[1].uid, 2), 'host', ctx(0, { tick: 4000 }));
         expect(s.log).toHaveLength(2);
     });
+
+    it('beira da quadra: só com o experimento do host ligado na sala, 3 gritos, pênaltis só com quem é do time', () => {
+        const shout = (seq: number): Intent => ({
+            k: 'order',
+            order: { kind: 'shout', shout: 'attack' },
+            tick: 0,
+            seq,
+        });
+        const off = inMatch();
+        expect(reduce(off, shout(1), 'host', ctx())).toBe(off);
+        let s: Shared = { ...inMatch(), agency: true };
+        for (let seq = 1; seq <= 4; seq++) s = reduce(s, shout(seq), 'guest', ctx(0, { tick: seq * 600 }));
+        expect(s.log.filter((o) => o.kind === 'shout')).toHaveLength(3);
+        expect(s.log[0]).toMatchObject({ team: 1, kind: 'shout', shout: 'attack', seq: 1 });
+        const mine = s.teams.guest!.lineup.map((p) => p.uid);
+        const theirs = s.teams.host!.lineup.map((p) => p.uid);
+        const pens = (order: string[], seq: number): Intent => ({
+            k: 'order',
+            order: { kind: 'penalties', order },
+            tick: 0,
+            seq,
+        });
+        expect(reduce(s, pens(theirs, 5), 'guest', ctx(0, { tick: 3000 }))).toBe(s);
+        s = reduce(s, pens([mine[3], mine[1]], 5), 'guest', ctx(0, { tick: 3000 }));
+        expect(s.log.at(-1)).toMatchObject({ kind: 'penalties', order: [mine[3], mine[1]] });
+        s = reduce(
+            s,
+            { k: 'order', order: { kind: 'flyGk', on: true }, tick: 0, seq: 1 },
+            'host',
+            ctx(0, { tick: 3100 }),
+        );
+        expect(s.log.at(-1)).toMatchObject({ team: 0, kind: 'flyGk', on: true });
+        // o convidado não liga nem desliga o experimento quando assume a sala
+        expect(acceptTakeover(s, { ...s, rev: s.rev + 1 }, 0)).toBe(true);
+        expect(acceptTakeover(s, { ...s, rev: s.rev + 1, agency: false }, 0)).toBe(false);
+    });
 });
 
 describe('intervalo, velocidade, W.O. e dessincronização', () => {

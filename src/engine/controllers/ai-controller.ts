@@ -1,3 +1,4 @@
+import { AGENCY, SHOUTS } from '../agency';
 import type { Command, Controller } from '../commands';
 import { eff } from '../effective';
 import { FRICTION, goalXFor, isInOwnArea, maxSpeed, ownGoalX, TACKLE_RANGE, toRel, toWorld } from '../match';
@@ -36,19 +37,64 @@ export class AIController implements Controller {
 
     constructor(private readonly s: MatchState) {}
 
+    /** Deslocamentos da tática, mais o do grito do técnico enquanto ele vale (agência, experimento). */
+    private shift(team: 0 | 1): (typeof TACTIC_SHIFT)[Tactic] {
+        const s = this.s;
+        const base = TACTIC_SHIFT[s.teams[team].tactic];
+        const sh = s.teams[team].agency.shout;
+        if (!sh || s.tick >= sh.until) return base;
+        const m = SHOUTS[sh.kind];
+        return {
+            attack: base.attack + m.attack,
+            defend: base.defend + m.defend,
+            pivotHold: base.pivotHold,
+            shootBias: base.shootBias + m.shootBias,
+            pressBias: base.pressBias + m.pressBias,
+        };
+    }
+
+    /** Goleiro-linha ligado: o goleiro do time joga como 5º de linha no ataque. */
+    private flying(p: PlayerState): boolean {
+        return p.role === 'GK' && this.s.teams[p.team].agency.flyGk;
+    }
+
+    /** Bola solta que o próprio time tocou por último (passe no caminho): o goleiro-linha não volta à toa. */
+    private ourLooseBall(team: 0 | 1): boolean {
+        const b = this.s.ball;
+        return b.owner === null && b.lastTouch !== null && this.s.players[b.lastTouch].team === team;
+    }
+
+    /** O goleiro rival está longe do gol (goleiro-linha): chute de longe no gol vazio vale. */
+    private emptyNet(team: 0 | 1): boolean {
+        const s = this.s;
+        const opp = team === 0 ? 1 : 0;
+        if (!s.teams[opp].agency.flyGk) return false;
+        const gk = s.players.find((o) => o.team === opp && o.role === 'GK');
+        if (!gk) return true;
+        return dist(gk.pos, v(goalXFor(s, team), s.cfg.pitch.width / 2)) > AGENCY.emptyNetGkAway;
+    }
+
     decide(idx: number): Command | Command[] {
         const s = this.s;
         if (s.phase !== 'play') return { type: 'idle' };
         const ctx = this.context();
         const p = s.players[idx];
-        if (s.ball.owner === idx) return p.role === 'GK' ? this.goalkeeperWithBall(p) : this.carrier(p);
+        if (s.ball.owner === idx)
+            return p.role === 'GK' && !(this.flying(p) && !isInOwnArea(s, p, p.pos))
+                ? this.goalkeeperWithBall(p)
+                : this.carrier(p);
         // escanteio: quem disputa a bola corre pro ponto onde ela cai
         const sp = s.setPiece;
         if (sp && s.ball.owner === null && sp.contestTick > s.tick && sp.runners.includes(idx)) {
             return this.moveTo(p, sp.at, true);
         }
         // goleiro também usa golpe de suporte (Sing, Soft-Boiled, Barrier...) fora do lance
-        if (p.role === 'GK') return this.withUtility(p, this.goalkeeper(p, ctx));
+        if (p.role === 'GK') {
+            // goleiro-linha: no ataque ele sobe como 5º jogador (opção de passe atrás da bola); sem a bola, volta
+            if (this.flying(p) && (ctx.attacking[p.team] || this.ourLooseBall(p.team)))
+                return this.withUtility(p, this.flyingKeeper(p));
+            return this.withUtility(p, this.goalkeeper(p, ctx));
+        }
         return this.withUtility(p, this.offBallMovement(p, ctx));
     }
 
@@ -167,7 +213,7 @@ export class AIController implements Controller {
     // ------------------------------------------------------------ portador da bola
     private carrier(p: PlayerState): Command | Command[] {
         const s = this.s;
-        const tactic = TACTIC_SHIFT[s.teams[p.team].tactic];
+        const tactic = this.shift(p.team);
         const gx = goalXFor(s, p.team);
         const gy = s.cfg.pitch.width / 2;
         const goal = v(gx, gy);
@@ -191,6 +237,21 @@ export class AIController implements Controller {
         const distGoal = dist(p.pos, goal);
         const xg = expectedGoals(p.pos, gx, gy, s.cfg.pitch.goalWidth);
         const shootingSkill = eff(s, p, 'shooting') / 99;
+
+        // golpe máximo do capitão (agência): na janela, de perto do gol ele solta na hora
+        const max = s.teams[p.team].agency.max;
+        if (max && max.idx === p.idx && p.role !== 'GK' && distGoal < AGENCY.maxRange) {
+            return { type: 'shoot', target: this.shotTarget(p), power: 1 };
+        }
+        // gol vazio (goleiro-linha do rival): de longe, com o caminho livre, chuta
+        if (
+            distGoal < AGENCY.emptyNetRange &&
+            this.emptyNet(p.team) &&
+            this.passIsSafe(p.team, p.pos, goal) &&
+            s.rng.chance(0.85)
+        ) {
+            return { type: 'shoot', target: v(gx, gy + s.rng.range(-0.6, 0.6)), power: 1.1 };
+        }
 
         // 1) chute
         const shootThreshold = (pressure > 0.5 ? 0.04 : 0.075) + tactic.shootBias - shootingSkill * 0.03;
@@ -307,14 +368,15 @@ export class AIController implements Controller {
         isKeeper = false,
     ): { target: Vec2; receiver: number; score: number } | null {
         const s = this.s;
-        const tactic = TACTIC_SHIFT[s.teams[p.team].tactic];
+        const tactic = this.shift(p.team);
         const gx = goalXFor(s, p.team);
         const gy = s.cfg.pitch.width / 2;
         const myRel = toRel(s, p.team, p.pos);
         let best: { target: Vec2; receiver: number; score: number } | null = null;
         for (const mate of s.players) {
             if (mate.team !== p.team || mate.idx === p.idx) continue;
-            if (mate.role === 'GK' && pressure < 0.7) continue;
+            const keeper = mate.role === 'GK' && !this.flying(mate);
+            if (keeper && pressure < 0.7) continue;
             const target = this.clampToPitch(add(mate.pos, scale(mate.vel, 0.45)));
             const d = dist(p.pos, target);
             if (d < 2.5 || d > 22) continue;
@@ -325,7 +387,10 @@ export class AIController implements Controller {
             score += Math.min(4, this.openness(mate)) * 0.07;
             score -= d * 0.012;
             if (!safe) score -= 1.2;
-            if (mate.role === 'GK') score -= 0.4;
+            if (keeper) score -= 0.4;
+            // golpe máximo aberto: a bola procura o capitão
+            const max = s.teams[p.team].agency.max;
+            if (max && max.idx === mate.idx) score += 0.35;
             if (tactic.pivotHold > 2 && mate.role === 'PIVO') score += 0.1; // contra-ataque: busca o pivô
             score += s.rng.range(-0.08, 0.08);
             if (isKeeper && !safe) continue;
@@ -461,7 +526,7 @@ export class AIController implements Controller {
     private offBallMovement(p: PlayerState, ctx: TeamContext): Command | Command[] {
         const s = this.s;
         const team = p.team;
-        const tactic = TACTIC_SHIFT[s.teams[team].tactic];
+        const tactic = this.shift(team);
 
         if (s.ball.owner === null) {
             const kick = s.ball.lastKick;
@@ -532,6 +597,16 @@ export class AIController implements Controller {
         return this.moveTo(p, home, false);
     }
 
+    /** Goleiro-linha no ataque: fica atrás da bola, no meio, como a opção de passe que sobra (o 5º). */
+    private flyingKeeper(p: PlayerState): Command {
+        const s = this.s;
+        const { length, width } = s.cfg.pitch;
+        const ballRel = toRel(s, p.team, s.ball.pos);
+        const xr = clamp(ballRel.x - 7, length * 0.3, length * 0.68);
+        const y = width / 2 + (s.ball.pos.y - width / 2) * 0.3;
+        return this.moveTo(p, toWorld(s, p.team, xr, y), false);
+    }
+
     private goalkeeper(p: PlayerState, ctx: TeamContext): Command | Command[] {
         const s = this.s;
         const team = p.team;
@@ -571,7 +646,7 @@ export class AIController implements Controller {
     private homePosition(p: PlayerState, ctx: TeamContext): Vec2 {
         const s = this.s;
         const team = p.team;
-        const tactic = TACTIC_SHIFT[s.teams[team].tactic];
+        const tactic = this.shift(team);
         const attacking = ctx.attacking[team];
         // posições-base vêm da formação do time (losango, quadrado, linha de 3)
         const formation = s.teams[team].formation;
