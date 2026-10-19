@@ -66,6 +66,7 @@ import {
 import { PlayerInspect } from '../components/PlayerInspect';
 import { cardSprite } from '../components/PokeCard';
 import { type BoardPlan, Prancheta, useMedia, WIDE } from '../components/Prancheta';
+import { agencyView, MaxBars, PenaltyOrderPanel, SidelineControls, SidelineOverlay } from '../components/Sideline';
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
 import { roleAt, snapAt } from '../match-view';
@@ -133,6 +134,8 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const [emotesOpen, setEmotesOpen] = useState(false);
     const [fulltime, setFulltime] = useState(false);
     const [shootout, setShootout] = useState<[number, number] | null>(null);
+    /** Beira da quadra: painel da ordem dos pênaltis aberto. */
+    const [pensOpen, setPensOpen] = useState(false);
     const tickRef = useRef(0);
     const scoreboardRef = useRef<HTMLDivElement>(null);
     const halftimeRef = useRef<HTMLDivElement>(null);
@@ -419,7 +422,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
             ? { name: nameOf(tiredSlot.uid), energy: tiredSlot.energy, sprite: cardSprite(tiredInst) }
             : null;
     const over = fulltime || ended;
-    const tactics = (
+    const tacticControls = (
         <TacticControls
             tactic={currentTactic}
             corner={currentCorner}
@@ -432,6 +435,25 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
             onToggleSub={() => setSubOpen((v) => !v)}
             tired={tired}
         />
+    );
+    // beira da quadra (experimento): só com a sala do host ligada; as ordens passam pelo carimbo do host
+    const agency = !!s.agency;
+    const sideline = agencyView(match.events, s.log, side, clock.tick);
+    const tactics = agency ? (
+        <>
+            {tacticControls}
+            <SidelineControls
+                view={sideline}
+                canAct={canChange}
+                onShout={(shout) => order({ kind: 'shout', shout })}
+                onTimeout={halftime ? undefined : () => order({ kind: 'timeout' })}
+                onFlyGk={(on) => order({ kind: 'flyGk', on })}
+                onMax={() => order({ kind: 'max' })}
+                onPens={() => setPensOpen(true)}
+            />
+        </>
+    ) : (
+        tacticControls
     );
 
     return (
@@ -466,6 +488,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                         <EmoteBubbles mySide={side === 0 ? 'left' : 'right'} />
                     </Scoreboard>
                     <PressureBar match={match} tick={clock.tick} minute={clock.minute} colors={colors} over={over} />
+                    {agency && <MaxBars events={match.events} tick={clock.tick} colors={colors} />}
                 </div>
 
                 <div className="bc-stage">
@@ -483,6 +506,14 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                             <div className="phaser-container" />
                         )}
                         <Ticker lines={lines} colors={colors} />
+                        {agency && (
+                            <SidelineOverlay
+                                events={match.events}
+                                tick={clock.tick}
+                                colors={colors}
+                                names={teamNames}
+                            />
+                        )}
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
                         <PlayerInspect
@@ -524,6 +555,26 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                                               : ''}
                                     </p>
                                 }
+                            />
+                        </div>
+                    )}
+                    {pensOpen && agency && (
+                        <div className="ht-wrap">
+                            <PenaltyOrderPanel
+                                takers={onField.map((uid, i) => {
+                                    const inst = byUid.get(uid);
+                                    return {
+                                        uid,
+                                        name: nameOf(uid),
+                                        sprite: inst ? cardSprite(inst) : '',
+                                        gk: slots[i] === 'GK',
+                                    };
+                                })}
+                                onKeep={() => setPensOpen(false)}
+                                onConfirm={(o) => {
+                                    setPensOpen(false);
+                                    if (canChange) order({ kind: 'penalties', order: o });
+                                }}
                             />
                         </div>
                     )}

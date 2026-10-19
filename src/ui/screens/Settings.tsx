@@ -269,6 +269,17 @@ export function Settings() {
                 </Row>
             </Group>
 
+            <Group title={t('settings.screen.experiments')}>
+                <Row title={t('settings.screen.agency')} hint={t('settings.screen.agencyHint')}>
+                    <Segmented
+                        label={t('settings.screen.agencyLabel')}
+                        value={!!settings.agency}
+                        options={onOff(t('settings.screen.on'), t('settings.screen.off'))}
+                        onPick={(agency) => set({ agency })}
+                    />
+                </Row>
+            </Group>
+
             <Group title={t('settings.screen.accessibility')}>
                 <Row
                     title={t('settings.screen.motion')}

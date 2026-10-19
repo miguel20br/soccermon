@@ -244,6 +244,15 @@ const ICONS = {
     chart: 'M5 20V11M11 20V5M17 20v-7M2 20h20',
     cup: 'M7 4h10v5a5 5 0 0 1-10 0zM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 21h8',
     dex: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM3 12h6.5M14.5 12H21M12 9.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5z',
+    // beira da quadra (agência do técnico, experimento)
+    shout: 'M3 10v4h4l7 5V5L7 10zM17 9a4 4 0 0 1 0 6M19.5 6a8 8 0 0 1 0 12',
+    calm: 'M3 10c3-3 6-3 9 0s6 3 9 0M3 16c3-3 6-3 9 0s6 3 9 0',
+    press: 'M4 4l5 5M20 4l-5 5M4 20l5-5M20 20l-5-5M12 8v8M8 12h8',
+    timeout: 'M4 5h16M12 5v15M8 20h8',
+    flyGk: 'M12 21V8M7 13l5-5 5 5M5 4h14',
+    max: 'M13 2L4 14h7l-1 8 9-12h-7z',
+    up: 'M6 15l6-6 6 6',
+    down: 'M6 9l6 6 6-6',
 } as const;
 export type HudIconKind = keyof typeof ICONS;
 

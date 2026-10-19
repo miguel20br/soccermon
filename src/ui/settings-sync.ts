@@ -16,6 +16,16 @@ export function reduceMotionOn(pref: ReduceMotion = useGame.getState().settings.
     }
 }
 
+/** Experimento "beira da quadra" ligado: em Configurações ou pelo link com `?agencia=1`. */
+export function agencyOn(pref: boolean | undefined = useGame.getState().settings.agency): boolean {
+    if (pref) return true;
+    try {
+        return new URLSearchParams(window.location.search).get('agencia') === '1';
+    } catch {
+        return false;
+    }
+}
+
 /**
  * Marca o <html> (o CSS em settings.css desliga animações, flashes e transições, e `lang` segue o idioma),
  * acerta o volume e o idioma dos textos fora do React.

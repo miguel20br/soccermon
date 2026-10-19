@@ -32,6 +32,7 @@ import { FEEDBACK_URL } from '../links';
 import { avatarImage, hexCss, peerTitle, titleName, trainerLabel } from '../profile/club';
 import { qrPath } from '../qr';
 import { heroStats, MatchDetails } from '../screens/Result';
+import { agencyOn } from '../settings-sync';
 import { setChartColors } from '../stats/StatsCharts';
 import { DuelDraft, DuelPreview, specialRuleText, TeamPick } from './DuelDraft';
 import { DuelMatch, useCountdown } from './DuelMatch';
@@ -284,7 +285,7 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
                 onClick={async () => {
                     setBusy(true);
                     playSfx('select');
-                    const code = await duel.create(peer, mode, speed, local, specialLimit);
+                    const code = await duel.create(peer, mode, speed, local, specialLimit, agencyOn());
                     setUrl(code, local);
                 }}
             >
@@ -470,6 +471,7 @@ function Lobby() {
                             </span>
                         </>
                     )}
+                    {s.agency && <> · {t('match.agency.title')}</>}
                 </span>
             </div>
             <InviteBox s={s} local={local} compact={rivalIn} />

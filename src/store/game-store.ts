@@ -219,6 +219,8 @@ export interface Settings {
     stats: boolean;
     /** Idioma (o padrão segue o navegador). */
     lang: Lang;
+    /** Experimento "beira da quadra" (agência do técnico na partida): desligado por padrão. */
+    agency?: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -240,6 +242,7 @@ export const DEFAULT_SETTINGS: Settings = {
     confirmLeave: true,
     stats: true,
     lang: detectLang(),
+    agency: false,
 };
 
 export interface Records {

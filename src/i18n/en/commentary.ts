@@ -143,4 +143,12 @@ export const commentary: typeof pt = {
     penaltyMissed: 'Penalty {round}: {x} misses! {gk} saves! ({a}–{b})',
     win: '{team} win!',
     score: '{home} {a}–{b} {away}',
+    shout: '{team} hear the coach: "{shout}"',
+    timeout: 'Time-out called by {team}: everyone to the touchline.',
+    flyGkOn: '{team} go with a flying keeper! {x} pushes up and leaves the goal empty.',
+    flyGkOff: '{x} heads back to goal: {team} drop the flying keeper.',
+    maxStart: '{x} is charging the max move! The whole court feels it.',
+    maxHit: 'MAX MOVE! {x} unleashes {m} at full power!',
+    maxGk: '{x} shut the goal with the max move.',
+    maxMiss: "{x}'s max move didn't come off: the bar drops back to half.",
 };
