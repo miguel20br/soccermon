@@ -85,9 +85,10 @@ export const BODY_EFFECTS: Record<string, { label: string; note: string; mods: P
 export const DEFAULT_FORMULAS: PositionFormulas = {
     goalkeeping: { hp: 30, def: 25, spd: 25, size: 20 },
     FIXO: { tackling: 35, positioning: 25, strength: 20, passing: 20 },
-    ALA: { pace: 30, dribble: 30, passing: 25, stamina: 15 },
+    // fórmula A (patch-formula.md, aprovada pelo Miguel em 19/10/2026): o Ala conta chute e o Pivô conta velocidade
+    ALA: { pace: 25, dribble: 25, passing: 20, shooting: 15, stamina: 15 },
     // Pivô "trombador": segura a bola de costas pro gol, força pesa tanto quanto o chute
-    PIVO: { shooting: 35, strength: 35, dribble: 15, positioning: 15 },
+    PIVO: { shooting: 30, strength: 30, dribble: 15, positioning: 15, pace: 10 },
     physique: {
         smallAgility: 6,
         body: Object.fromEntries(Object.entries(BODY_EFFECTS).map(([k, b]) => [k, b.mods])),
@@ -185,8 +186,9 @@ export function physiqueOf(sp: Species): { size: string; body: string; note: str
 
 /**
  * Ajuste fino por espécie (balanceamento, Bloco 3): pontos num atributo de quem rendia em campo bem diferente
- * da nota. Mexe de preferência num atributo que a nota da posição não usa (o Pivô não conta velocidade, o Ala não
- * conta chute), então a nota fica a mesma e o campo chega perto dela. Aparece na carta como qualquer atributo.
+ * da nota. No Bloco 3 mexia num atributo que a nota da posição não usava (velocidade no Pivô, chute no Ala); desde a
+ * fórmula A (0.8.8) esses dois contam, então os ajustes antigos de Pikachu, Electrode, Jynx, Pinsir e Flareon mexem
+ * um pouco na nota. Aparece na carta como qualquer atributo.
  */
 export const SPECIES_TUNING: Record<number, Partial<Record<AttrKey, number>>> = {
     // rendiam abaixo da nota
@@ -217,6 +219,8 @@ export const SPECIES_TUNING: Record<number, Partial<Record<AttrKey, number>>> = 
     131: { strength: 5, positioning: 4 }, // Lapras: a balsa de 220 kg, Fixo 81 → 83
     134: { pace: 4, dribble: 4 }, // Vaporeon: lenta na Ala pros 525 de BST, 76 → 79
     143: { strength: 6, goalkeeping: -2 }, // Snorlax: o mais pesado de Kanto tinha força 83; rendia acima no gol (93 → 91)
+    // fórmula A (19/10/2026): o Pivô dele cai pra 87 e o Goleiro passaria na frente; segue Pivô (decisão do Miguel)
+    149: { goalkeeping: -3 }, // Dragonite
 };
 
 export function computeAttributes(
