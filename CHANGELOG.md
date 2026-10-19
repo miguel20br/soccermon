@@ -69,6 +69,12 @@
 - Copas guardadas dão o "jogou" da forma de antes de quem evoluiu em quadra
 - Pokémon shiny aparecem shiny nas estatísticas: destaques, tabela, prêmios e final
 - Duelo (Time pronto): capitão no banco é aceito, e o aviso de time inválido sai no idioma do jogo
+- Evolução em quadra conta as duas formas mesmo quando uma ficou só segundos (evoluir logo no começo ou no último minuto)
+- Barra de evolução cheia da partida anterior: o Pokémon entra com a forma de antes e evolui depois de fazer algo (antes a quadra já abria com ele evoluído)
+- Contadores iguais em todo lugar: Pokédex, Golpedex, missões, medalhas, platina e Perfil contam do mesmo jeito (o Transformar do Ditto agora vale nas missões de golpes)
+- Títulos e copas perfeitas do Hall da Fama aparecem no Perfil e na tela inicial depois de juntar o save de dois aparelhos
+- Avatar shiny: toque no Pokémon com o brilho no canto e escolha a versão normal ou a shiny
+- Avatares centralizados e o shiny não passa mais da borda
 
 ## 0.8.7 · Emotes, selos e faixa da torcida
 
