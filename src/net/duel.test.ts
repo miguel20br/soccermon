@@ -199,6 +199,17 @@ describe('validarTimeDuelo (time pronto)', () => {
         expect(edit((x) => (x.lineup[0] = { ...r.lineup[0], speciesId: 4, evolved: 1 })).length).toBeGreaterThan(0);
     });
 
+    it('espécie repetida só vale quando a cópia a mais evoluiu (Charmander que virou o Charmeleon do time)', () => {
+        const t = team('evoluiu-2');
+        const rng = new Rng('repetida', 'x');
+        const drafted = createInstance(5, rng);
+        const grown = { ...createInstance(5, rng), evolved: 1 };
+        const r = teamRecipe({ ...t, lineup: [drafted, grown, ...t.lineup.slice(2)] });
+        expect(validarTimeDuelo(r)).toEqual([]);
+        const twice = teamRecipe({ ...t, lineup: [drafted, { ...grown, evolved: 0 }, ...t.lineup.slice(2)] });
+        expect(validarTimeDuelo(twice)).toContain('espécie repetida');
+    });
+
     it('barra de evolução abaixo do limiar (com 60 ele evoluía na primeira bola parada)', () => {
         expect(edit((r) => (r.lineup[0].evo = 60)).length).toBeGreaterThan(0);
         expect(edit((r) => (r.lineup[0].evo = EVO_THRESHOLD)).length).toBeGreaterThan(0);

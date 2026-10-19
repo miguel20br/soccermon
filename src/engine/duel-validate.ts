@@ -164,7 +164,10 @@ export function validarTimeDuelo(r: unknown, specialLimit: SpecialLimit = null):
     all.forEach((m, i) => {
         out.push(...monProblems(m, `#${i + 1}`));
     });
-    if (new Set(all.map((m) => m?.speciesId)).size !== all.length) out.push('espécie repetida');
+    // o draft não repete espécie, mas a evolução repete (Charmander que vira o Charmeleon que já estava no time):
+    // a cópia a mais tem que ter evoluído
+    const fresh = all.filter((m) => !m?.evolved).map((m) => m?.speciesId);
+    if (new Set(fresh).size !== fresh.length) out.push('espécie repetida');
     if (!Number.isInteger(t.captain) || t.captain < -1 || t.captain >= 5) out.push('capitão');
     if (t.corner !== undefined && !CORNER_PLANS.includes(t.corner)) out.push('escanteio');
     // o cobrador tem que ser alguém do time (ou o automático do motor)
