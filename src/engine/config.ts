@@ -29,8 +29,10 @@ export interface MatchConfig {
  * 1 = 0.8.4 (balanceamento geral). 2 = 0.8.5 (contas próprias: sin/cos/atan2/exp/log/pow do `dmath.ts`; escanteio).
  * 3 = 0.8.6 (carta que evolui ganha +2 por evolução; Duelo com o mesmo limiar de evolução nos dois lados; espalmada
  *     pra escanteio sai de lado; prancheta no meio da partida: ordem `lineup` na próxima bola parada).
+ * 4 = 0.8.8 (fórmula A: Ala conta chute e Pivô conta velocidade; Dragonite segue Pivô; Eevee no duelo evolui
+ *     pra forma da carta).
  */
-export const ENGINE_VERSION = 3;
+export const ENGINE_VERSION = 4;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',

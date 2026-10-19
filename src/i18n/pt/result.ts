@@ -18,13 +18,14 @@ export const result = {
     evolvedMany: 'Evoluíram na partida!',
     evolvedOne: 'Evoluiu na partida!',
     evolvedNote: 'A evolução vale para o resto da copa.',
+    rivalEvolved: 'Evoluções do rival',
+    dexTip: 'Quem você viu entrou na Pokédex. Entre com Google pra salvar na nuvem.',
     destaqueTitle: 'Virou carta Destaque!',
-    destaqueText: '{name} foi um dos craques do seu time e ganhou a edição Destaque: +2 em todos os atributos.',
+    destaqueText: '{name} foi um craque do time e virou Destaque: +2 em tudo.',
     destaqueLevelTitle: 'Destaque nível {n}!',
-    destaqueLevelText: '{name} seguiu jogando muito e subiu de nível: +{bonus} em todos os atributos.',
+    destaqueLevelText: '{name} seguiu jogando muito e subiu de nível: +{bonus} em tudo.',
     iconMvpTitle: 'Ícone MVP {n}!',
-    iconMvpText:
-        '{name} foi o craque do seu time: continua Ícone, ganha o selo de MVP e fica com +{bonus} em todos os atributos.',
+    iconMvpText: '{name} foi o craque do time: ganha o selo MVP e +{bonus} em tudo.',
     mvp: 'Craque da partida',
     rows: {
         possession: 'Posse de bola',
@@ -41,11 +42,10 @@ export const result = {
         distance: 'Distância percorrida',
     },
     dangerTitle: 'Perigo por período',
-    dangerSub:
-        'Soma da chance de gol dos chutes a cada 5 minutos (para cima: {home}; para baixo: {away}). A bolinha marca os gols.',
+    dangerSub: 'Chance de gol a cada 5 minutos ({home} em cima, {away} embaixo). Bolinha = gol.',
     possessionTitle: 'Posse de bola por período',
     shotMapTitle: 'Mapa de chutes',
-    shotMapSub: 'De onde saiu cada chute. {home} ataca para a direita, {away} para a esquerda.',
+    shotMapSub: 'De onde saiu cada chute. {home} ataca pra direita.',
     hero: {
         champions: 'CAMPEÕES!',
         win: 'VITÓRIA!',

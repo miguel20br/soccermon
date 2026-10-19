@@ -14,6 +14,7 @@ type P = StageStats['players'][number];
 export interface Agg {
     uid: string;
     speciesId: number;
+    shiny: boolean;
     name: string;
     games: number;
     minutes: number;
@@ -37,6 +38,7 @@ export function aggregate(results: StageResult[]): Agg[] {
             const a: Agg = map.get(p.uid) ?? {
                 uid: p.uid,
                 speciesId: p.speciesId,
+                shiny: false,
                 name: p.name,
                 games: 0,
                 minutes: 0,
@@ -54,6 +56,7 @@ export function aggregate(results: StageResult[]): Agg[] {
             };
             // a forma mais recente (evoluiu no meio da copa)
             a.speciesId = p.speciesId;
+            a.shiny ||= !!p.shiny;
             a.name = p.name;
             a.games++;
             for (const k of [
@@ -248,7 +251,7 @@ export function CupStats({ results }: { results: StageResult[] }) {
                                 <div key={title} className="st-leader">
                                     <img
                                         className="pixel"
-                                        src={cardSprite({ speciesId: a.speciesId, shiny: false })}
+                                        src={cardSprite({ speciesId: a.speciesId, shiny: a.shiny })}
                                         alt=""
                                     />
                                     <div>
@@ -288,7 +291,7 @@ export function CupStats({ results }: { results: StageResult[] }) {
                                         <i style={{ background: homeC() }} />
                                         <img
                                             className="pixel"
-                                            src={cardSprite({ speciesId: a.speciesId, shiny: false })}
+                                            src={cardSprite({ speciesId: a.speciesId, shiny: a.shiny })}
                                             alt=""
                                         />
                                         <span>{a.name}</span>

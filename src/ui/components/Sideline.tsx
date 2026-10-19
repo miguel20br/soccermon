@@ -306,13 +306,11 @@ export function TimeoutPanel({
     children,
     canSub,
     onSub,
-    onBoard,
     onBack,
 }: {
     children: ReactNode;
     canSub: boolean;
     onSub: () => void;
-    onBoard?: () => void;
     onBack: () => void;
 }) {
     const { t, d } = useT();
@@ -326,11 +324,6 @@ export function TimeoutPanel({
                 <button type="button" className="btn yellow" disabled={!canSub} onClick={onSub}>
                     {t('match.substitute')}
                 </button>
-                {onBoard && (
-                    <button type="button" className="btn" onClick={onBoard}>
-                        {t('match.ht.board')}
-                    </button>
-                )}
                 <button type="button" className="btn primary" onClick={onBack}>
                     {a.back}
                 </button>

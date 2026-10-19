@@ -285,3 +285,52 @@ describe('sessão: batida do relógio', () => {
         for (const p of ['lobby', 'team', 'draft', 'preview', 'done'] as const) expect(clockEvery(p)).toBe(5000);
     });
 });
+
+describe('sessão: pronto da escolha que dá pra desfazer', () => {
+    const teamPhase = (room: string, rev: number, seal: Record<'host' | 'guest', string | null>): Shared => ({
+        ...lobbyOf(room, rev),
+        mode: 'ready',
+        phase: 'team',
+        choice: { seal, opened: { host: false, guest: false } },
+    });
+    const intents = (got: Record<string, unknown>[], k: string) =>
+        got.flatMap((m) => {
+            const i = m.t === 'intent' ? (m.intent as Record<string, unknown>) : null;
+            return i?.k === k ? [i] : [];
+        });
+
+    it('desfazer leva o lacre da sala, repete depois de recarregar e, se o rival lacrou antes, abre o de antes', async () => {
+        const room = 'KQUNDO';
+        const ana = tab(room, 'ana');
+        duel.join(room, peer('bia'), true);
+        ana.send({ t: 'state', shared: teamPhase(room, 5, { host: null, guest: null }), o: 'ana' });
+        await wait(150);
+        const recipe = { time: 'de antes' };
+        await duel.sealChoice(recipe);
+        await wait(100);
+        const seal = intents(ana.got, 'choiceSeal')[0]?.seal as string;
+        expect(seal).toMatch(/^[0-9a-f]{64}$/);
+        ana.send({ t: 'state', shared: teamPhase(room, 6, { host: null, guest: seal }), o: 'ana' });
+        await wait(150);
+        expect(useDuel.getState().choiceSealed).toBe(true);
+        // a tela destrava na hora e o desfazer vai com o lacre que está na sala
+        duel.unsealChoice();
+        expect(useDuel.getState().choiceSealed).toBe(false);
+        await wait(100);
+        expect(intents(ana.got, 'choiceUnseal')).toEqual([{ k: 'choiceUnseal', seal }]);
+        // recarrega no meio (o desfazer ainda não entrou na sala): volta e manda de novo sozinho
+        duel.leave();
+        duel.join(room, peer('bia'), true);
+        ana.got.length = 0;
+        ana.send({ t: 'state', shared: teamPhase(room, 7, { host: null, guest: seal }), o: 'ana' });
+        await wait(1200);
+        expect(useDuel.getState().choiceSealed).toBe(false);
+        expect(intents(ana.got, 'choiceUnseal').at(-1)).toEqual({ k: 'choiceUnseal', seal });
+        // corrida: o pronto do rival entrou antes do desfazer; os dois lacrados, abre o valor do lacre de antes
+        ana.got.length = 0;
+        ana.send({ t: 'state', shared: teamPhase(room, 8, { host: 'a'.repeat(64), guest: seal }), o: 'ana' });
+        await wait(1200);
+        expect(intents(ana.got, 'choiceOpen')[0]?.value).toEqual(recipe);
+        ana.close();
+    });
+});

@@ -3,9 +3,12 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
 import { mergeSaves } from '../cloud/reconcile-plan';
+import { SPECIES } from '../engine/data';
 import { createInstance } from '../engine/instance';
 import type { GoalNote } from '../engine/match-stats';
 import { Rng } from '../engine/rng';
+import { noticeLines } from '../ui/components/UnlockNotice';
+import { titleHow, trainerHow } from '../ui/profile/club';
 import { migrateSave, type PersistedSave, type Records, streakAfter } from './game-store';
 import {
     activeTitle,
@@ -16,10 +19,12 @@ import {
     MISSION_GROUPS,
     MISSIONS,
     newMissions,
+    PLATINUM,
+    platinumItems,
     TRAINERS,
     unlockedTrainers,
 } from './missions';
-import { DEFAULT_PROFILE, type HallEntry } from './profile';
+import { DEFAULT_PROFILE, type Dex, gameMoveIds, type HallEntry } from './profile';
 import { normalizeCode, redeemCode } from './title-codes';
 
 const mon = (speciesId: number) => createInstance(speciesId, new Rng('m', String(speciesId)));
@@ -253,5 +258,75 @@ describe('códigos', () => {
         expect(normalizeCode('  goat-x ')).toBe('GOAT-X');
         expect(await redeemCode('SOCCERMON')).toBeNull();
         expect(await redeemCode('')).toBeNull();
+    });
+});
+
+describe('platina da Gen 1', () => {
+    const others = MISSIONS.filter((m) => m.group !== 'platina').map((m) => m.id);
+    const entry = { matches: 1, minutes: 9, goals: 0, assists: 0, wins: 0, titles: 0, bestRating: 0, bestOvr: 0 };
+    /** Tudo 100%: os 151 jogaram com todas as edições, todos os golpes vistos. */
+    const fullDex: Dex = Object.fromEntries(SPECIES.map((sp) => [sp.id, { ...entry, editions: 31 }]));
+    const allMoves = Object.fromEntries([...gameMoveIds()].map((id) => [id, 1]));
+    const items = (dex: Dex, moves: Record<string, number>, done: string[]) =>
+        Object.fromEntries(
+            platinumItems(PLATINUM[0], { ...empty, dex, moves, done: new Set(done) } as never).map((i) => [
+                i.id,
+                [i.n, i.goal],
+            ]),
+        );
+
+    it('cada item conta do save e o total fecha só com 100% em tudo', () => {
+        expect(items({}, {}, [])).toEqual({
+            dex: [0, 151],
+            moves: [0, gameMoveIds().size],
+            album: [0, expect.any(Number)],
+            collections: [0, 9],
+            trainers: [0, MISSIONS.filter((m) => m.trainer && m.group !== 'platina').length],
+            missions: [0, others.length],
+        });
+        const full = items(fullDex, allMoves, others);
+        for (const [n, goal] of Object.values(full)) expect(n).toBe(goal);
+        expect(newMissions({ ...empty, dex: fullDex, moves: allMoves, done: others })).toEqual(['platina1']);
+    });
+
+    it('falta uma coisa = sem Carvalho holográfico (uma figurinha, um golpe, uma missão)', () => {
+        const noShiny = { ...fullDex, 25: { ...entry, editions: 31 & ~2 } };
+        const [oneMove] = gameMoveIds();
+        const { [oneMove]: _, ...missingMove } = allMoves;
+        expect(newMissions({ ...empty, dex: noShiny, moves: allMoves, done: others })).toEqual([]);
+        expect(newMissions({ ...empty, dex: fullDex, moves: missingMove, done: others })).toEqual([]);
+        expect(newMissions({ ...empty, dex: fullDex, moves: allMoves, done: others.slice(1) })).not.toContain(
+            'platina1',
+        );
+        const p = { ...DEFAULT_PROFILE, trainer: 'oakHolo' as const, missionsDone: others };
+        expect(unlockedTrainers(p)).not.toContain('oakHolo');
+        expect(activeTrainer(p)).toBe('red');
+        expect(activeTrainer({ ...p, missionsDone: [...others, 'platina1'] })).toBe('oakHolo');
+    });
+
+    it('é retroativa: um save que já tem 100% ganha a platina ao abrir', () => {
+        const old = { profile: { missionsDone: others }, dex: fullDex, moves: allMoves } as never;
+        const out = migrateSave(old, 7);
+        expect(out.profile.missionsDone).toContain('platina1');
+        expect(earnedTitles(out.profile)).toContain('diplomaKanto');
+    });
+});
+
+describe('a tarefa cumprida aparece em tudo que se ganha', () => {
+    it('aviso: o prêmio e a tarefa', () => {
+        expect(noticeLines('originalClone')).toEqual({
+            head: 'Título novo: Original e Clone',
+            task: 'Seja campeão com Mew e Mewtwo titulares na final',
+        });
+        expect(noticeLines('platina1')?.head).toBe('Treinador novo desbloqueado: Prof. Carvalho Holográfico');
+        expect(noticeLines('nada')).toBeNull();
+    });
+
+    it('perfil: treinador e título dizem como saíram (livres e de código também)', () => {
+        expect(trainerHow('red')).toBe('Desde o começo');
+        expect(trainerHow('brock')).toBe('Vença o clube de Pewter (ginásio de Brock) numa copa');
+        expect(titleHow('pallet')).toBe('Desde o começo');
+        expect(titleHow('goat')).toBe('Código');
+        expect(titleHow('diplomaKanto')).toBe('Platine a Gen 1: 100% de tudo');
     });
 });

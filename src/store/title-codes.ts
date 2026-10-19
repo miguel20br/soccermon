@@ -8,7 +8,7 @@
  *   2. Gere o hash:  node -e "console.log(require('crypto').createHash('sha256').update('MEU-CODIGO').digest('hex'))"
  *   3. Ponha `'<hash>': '<id do título>'` em CODE_TITLES e o nome do título em CUSTOM_TITLES (pt e en).
  * Vários códigos podem dar o mesmo título. `look` dá um visual próprio: 'shine' (dourado brilhando) ou 'holo'
- * (holográfico, só o do criador).
+ * (holográfico: o do criador e os da platina).
  * ========================================================================================================
  */
 export const CODE_TITLES: Readonly<Record<string, string>> = {
@@ -16,6 +16,15 @@ export const CODE_TITLES: Readonly<Record<string, string>> = {
     cffbb440db026334b04a1ed02f5b3ee98078cbc0c4d1302cf5809d430c38b93a: 'criador',
     // Davi, 1º gametester (17/10/2026)
     '3ad01be87b2c8319fcd8ebebfb5f701dd2c7bef673d3bcd5ba1dce42b3953776': 'goat',
+};
+
+/**
+ * Códigos de conserto da Pokédex: marcam espécies como "jogou" pra quem perdeu o registro por bug (mesmo esquema
+ * dos títulos: só o hash fica no repositório).
+ */
+export const CODE_DEX: Readonly<Record<string, number[]>> = {
+    // Triple M: Pidgey evoluiu em quadra antes do conserto da forma de antes (19/10/2026)
+    adef2a8034aaa56f8f99d7ef71c348d78b68fb63b1ec7d24630cc587f75c3afb: [16],
 };
 
 /** Nome dos títulos de código (o resto dos títulos fica no dicionário: profile.titles). */
@@ -39,8 +48,12 @@ const LEGEND_TITLES = new Set([
     'zeNinguem',
 ]);
 
+/** Títulos da platina (100% de uma geração): holográficos, como o treinador que vem junto. */
+const PLATINUM_TITLES = new Set(['diplomaKanto']);
+
 export const titleClass = (id: string) => {
-    const look = CUSTOM_TITLES[id]?.look ?? (LEGEND_TITLES.has(id) ? 'shine' : undefined);
+    const look =
+        CUSTOM_TITLES[id]?.look ?? (PLATINUM_TITLES.has(id) ? 'holo' : LEGEND_TITLES.has(id) ? 'shine' : undefined);
     return look ? ` title-${look}` : '';
 };
 
@@ -57,4 +70,11 @@ export async function redeemCode(code: string): Promise<string | null> {
     const clean = normalizeCode(code);
     if (!clean) return null;
     return CODE_TITLES[await sha256Hex(clean)] ?? null;
+}
+
+/** Espécies que um código de conserto da Pokédex marca como "jogou", ou null. */
+export async function redeemDexCode(code: string): Promise<number[] | null> {
+    const clean = normalizeCode(code);
+    if (!clean) return null;
+    return CODE_DEX[await sha256Hex(clean)] ?? null;
 }

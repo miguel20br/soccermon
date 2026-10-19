@@ -54,8 +54,9 @@ const MAX_ID = SPECIES.length;
 export function evolutionTarget(speciesId: number, uid: string): number | null {
     const options = species(speciesId).evolvesTo.filter((e) => e.id <= MAX_ID);
     if (!options.length) return null;
+    // o lado do duelo (`~h`/`~g` no fim do uid) não entra: a carta do draft e a partida do duelo evoluem pro mesmo
     let h = 0;
-    for (const c of uid) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+    for (const c of uid.replace(/~[hg]$/, '')) h = (h * 31 + c.charCodeAt(0)) >>> 0;
     return options[h % options.length].id;
 }
 

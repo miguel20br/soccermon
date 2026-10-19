@@ -39,6 +39,7 @@ import {
     MAX_HALL,
     type MoveDex,
     markOvr,
+    markPlayed,
     markSeen,
     type Profile,
     recordEditions,
@@ -103,6 +104,8 @@ export interface StageStats {
     players: {
         uid: string;
         speciesId: number;
+        /** Carta shiny (partidas antes da 0.8.8 não têm: ficam com o sprite normal). */
+        shiny?: boolean;
         name: string;
         role: string;
         rating: number;
@@ -209,6 +212,11 @@ export type ChanceSpeed = 0 | 1 | 2 | 4;
 
 export interface Settings {
     cries: CryStyle;
+    /**
+     * Escolheu o estilo dos gritos em Configurações. Sem isso vale o padrão, que virou o Novo ('latest') na 0.8.9:
+     * o save antigo não separava "escolheu Gen 1" de "ficou no padrão", então o Gen 1 antigo conta como padrão.
+     */
+    criesChosen?: boolean;
     /** Volume geral (0..1); gritos e efeitos têm o próprio volume por cima dele. */
     volume: number;
     criesVolume: number;
@@ -240,7 +248,8 @@ export interface Settings {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
-    cries: 'legacy',
+    // gritos modernos por padrão desde a 0.8.9 (o Gen 1 continua em Configurações)
+    cries: 'latest',
     volume: 0.6,
     criesVolume: 1,
     sfxVolume: 1,
@@ -313,6 +322,8 @@ export interface GameStore {
     startDaily(ranked: boolean): void;
     /** O servidor já recebeu até a partida `n` da Copa do Dia de `day`. */
     markDailyReported(day: string, n: number): void;
+    /** Duelo na Pokédex: quem jogou 1+ minuto pelo seu lado vira "jogou" (só isso), o rival fica "visto". */
+    recordDuelDex(m: MatchResult, side: 0 | 1): void;
     /** Partida atual (não persistida — snapshots são grandes). */
     match: MatchResult | null;
     /** Missões cumpridas agora há pouco, na fila do aviso (não persistida: o aviso é só na hora). */
@@ -569,6 +580,11 @@ const runShapeOk = (r: unknown): r is RunState => {
     );
 };
 
+/** Estilo dos gritos: quem nunca escolheu em Configurações fica no padrão (o Novo). */
+export function withCryDefault(settings: Settings): Settings {
+    return settings.criesChosen ? settings : { ...settings, cries: DEFAULT_SETTINGS.cries };
+}
+
 /** Versão atual do save (a mesma do `persist`). */
 export const SAVE_VERSION = 9;
 
@@ -596,17 +612,43 @@ export function backfillEditions(dex: Dex, hall: HallEntry[], runs: (RunState | 
 }
 
 /**
- * Quem evoluiu em quadra numa versão antiga ficou só com a forma de origem como "jogou" na Pokédex: a carta
- * evoluída (`evolved`) das copas guardadas prova que a forma nova jogou.
+ * Linhas da partida pra Pokédex, com o lado `side` como time 0: quem evoluiu em campo jogou com as duas formas (a
+ * linha já vem com a forma nova; a de antes entra com os minutos até a evolução e a nova fica só com o resto, sem
+ * dobrar a passagem). Copa e Duelo passam por aqui.
+ */
+export function dexLines(m: MatchResult, side: 0 | 1 = 0, all: PlayerLine[] = playerLines(m)): PlayerLine[] {
+    const lines = side === 0 ? all : all.map((l) => ({ ...l, team: (1 - l.team) as 0 | 1 }));
+    const preEvo = m.events.flatMap((e) => {
+        if (e.type !== 'evolve' || e.team !== side) return [];
+        const line = lines.find((l) => l.team === 0 && l.uid === e.uid);
+        const inAt = m.events.find((x) => x.type === 'sub' && x.inUid === e.uid)?.minute ?? 0;
+        if (!line) return [];
+        const minutes = Math.min(line.minutes, Math.round(e.minute - inAt));
+        return [{ ...line, speciesId: e.from, minutes, rating: 0, stats: { ...line.stats, goals: 0, assists: 0 } }];
+    });
+    const rest = lines.map((l) => {
+        const pre = l.team === 0 && preEvo.find((x) => x.uid === l.uid);
+        return pre ? { ...l, minutes: l.minutes - pre.minutes } : l;
+    });
+    return [...rest, ...preEvo];
+}
+
+/**
+ * Quem evoluiu em quadra numa versão antiga ficou com só uma das formas como "jogou" na Pokédex: a carta evoluída
+ * (`evolved`) das copas guardadas prova que a forma nova jogou, e as evoluções do resumo de cada partida provam que a
+ * forma de antes também (ela jogou até evoluir). Só copas que estão no save (a atual e as guardadas), não o Hall.
  */
 export function markEvolvedPlayed(dex: Dex, runs: (RunState | null | undefined)[]): Dex {
     let out: Dex | null = null;
-    for (const r of runs)
-        for (const p of r?.picks ?? []) {
-            if (!p.evolved || (dex[p.speciesId]?.matches ?? 0) > 0) continue;
-            out ??= { ...dex };
-            out[p.speciesId] = { ...(out[p.speciesId] ?? EMPTY_ENTRY), matches: 1 };
-        }
+    const mark = (id: number) => {
+        if (((out ?? dex)[id]?.matches ?? 0) > 0) return;
+        out ??= { ...dex };
+        out[id] = { ...(out[id] ?? EMPTY_ENTRY), matches: 1 };
+    };
+    for (const r of runs) {
+        for (const p of r?.picks ?? []) if (p.evolved) mark(p.speciesId);
+        for (const res of r?.results ?? []) for (const e of res.stats?.digest?.evolutions ?? []) mark(e.from);
+    }
     return out ?? dex;
 }
 
@@ -631,7 +673,7 @@ export function withUnlocks(save: PersistedSave): PersistedSave {
  * em andamento, e quem já jogava não vê o passo a passo de boas-vindas de novo.
  */
 export function migrateSave(old: Partial<PersistedSave>, version: number): PersistedSave {
-    const settings: Settings = { ...DEFAULT_SETTINGS, ...old.settings };
+    const settings = withCryDefault({ ...DEFAULT_SETTINGS, ...old.settings });
     const records = old.records ?? { cups: 0, titles: 0, perfect: 0 };
     const run = version < 3 || !old.run ? null : { ...old.run, lockedTeam: old.run.lockedTeam ?? null };
     const profile: Profile = {
@@ -747,6 +789,18 @@ export const useGame = create<GameStore>()(
                 },
                 markDailyReported: (day, n) =>
                     setState({ daily: getState().daily.map((e) => (e.day === day ? { ...e, reported: n } : e)) }),
+                recordDuelDex: (m, side) => {
+                    const lines = dexLines(m, side);
+                    let dex = markPlayed(
+                        getState().dex,
+                        lines.filter((l) => l.team === 0 && l.minutes >= 1).map((l) => l.speciesId),
+                    );
+                    dex = markSeen(
+                        dex,
+                        lines.map((l) => l.speciesId),
+                    );
+                    setState({ dex });
+                },
                 match: null,
                 unlockQueue: [],
 
@@ -1032,6 +1086,7 @@ export const useGame = create<GameStore>()(
                                 .map((l) => ({
                                     uid: l.uid,
                                     speciesId: l.speciesId,
+                                    ...(l.shiny && { shiny: true }),
                                     name: l.name,
                                     role: l.role,
                                     rating: l.rating,
@@ -1067,33 +1122,13 @@ export const useGame = create<GameStore>()(
                         live: null,
                     };
                     if (status === 'reward') next.rewards = rollRewards(next, 0);
-                    // Pokédex: seu time (1+ minuto) "jogou", o rival e as recompensas ficam "vistos";
-                    // quem evoluiu em campo jogou com as duas formas (a linha da partida já vem com a forma nova:
-                    // a de antes entra com os minutos até a evolução e a nova fica só com o resto, sem dobrar a passagem)
-                    const preEvo = [...evolved.values()].flatMap((e) => {
-                        const line = lines.find((l) => l.team === 0 && l.uid === e.uid);
-                        const inAt = m.events.find((x) => x.type === 'sub' && x.inUid === e.uid)?.minute ?? 0;
-                        if (!line) return [];
-                        const minutes = Math.min(line.minutes, Math.round(e.minute - inAt));
-                        return [
-                            {
-                                ...line,
-                                speciesId: e.from,
-                                minutes,
-                                rating: 0,
-                                stats: { ...line.stats, goals: 0, assists: 0 },
-                            },
-                        ];
-                    });
-                    const dexLines = lines.map((l) => {
-                        const pre = l.team === 0 && preEvo.find((x) => x.uid === l.uid);
-                        return pre ? { ...l, minutes: l.minutes - pre.minutes } : l;
-                    });
-                    let dex = recordMatchInDex(getState().dex, [...dexLines, ...preEvo], won);
+                    // Pokédex: seu time (1+ minuto) "jogou", o rival e as recompensas ficam "vistos"
+                    const forDex = dexLines(m, 0, lines);
+                    let dex = recordMatchInDex(getState().dex, forDex, won);
                     // álbum: a edição de cada carta que jogou (como ela entrou: o Destaque desta partida conta na próxima)
                     dex = recordEditions(
                         dex,
-                        [...dexLines, ...preEvo].flatMap((l) => {
+                        forDex.flatMap((l) => {
                             const card = l.team === 0 && l.minutes >= 1 && run.picks.find((p) => p.uid === l.uid);
                             return card ? [[l.speciesId, editionBits(card)] as [number, number]] : [];
                         }),
@@ -1271,10 +1306,14 @@ export const useGame = create<GameStore>()(
             },
             // missão nova (ou que virou retroativa) sai já ao abrir o jogo, sem esperar a próxima partida
             merge: (persisted, current) => {
-                const p = persisted as PersistedSave | undefined;
+                const saved = persisted as PersistedSave | undefined;
+                const p = saved?.settings ? { ...saved, settings: withCryDefault(saved.settings) } : saved;
                 if (!p?.profile) return { ...current, ...p };
                 const dex = markEvolvedPlayed(p.dex ?? {}, [p.run, ...(p.parkedRuns ?? [])]);
-                return { ...current, ...withUnlocks({ ...p, dex }) };
+                const next = withUnlocks({ ...p, dex });
+                // as que saíram agora ganham o aviso (na Home)
+                const fresh = (next.profile.missionsDone ?? []).slice(p.profile.missionsDone?.length ?? 0);
+                return { ...current, ...next, unlockQueue: [...current.unlockQueue, ...fresh] };
             },
         },
     ),

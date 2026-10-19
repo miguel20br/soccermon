@@ -1,6 +1,6 @@
 import { type LinkAsk, useCloud } from '../cloud/cloud';
 import type { SaveSummary } from '../cloud/reconcile-plan';
-import { FUTSAL_5 } from '../engine/config';
+import { ENGINE_VERSION, FUTSAL_5 } from '../engine/config';
 import { clubLeader, cupRival } from '../engine/cup';
 import { aiDraftTeam } from '../engine/draft';
 import { createInstance } from '../engine/instance';
@@ -27,6 +27,11 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * `?demo=lider&clube=<id>` (brock,
  * misty, ltsurge, erika, koga, sabrina, blaine, giovanni, agatha, lance) põe o clube desse treinador na primeira
  * partida (VERSUS com a fala, a quadra do ginásio); com `&agencia=1`, uma partida em que o rival reage cedo.
+ * `?demo=platina` libera a
+ * platina da Gen 1 sem platinar (Prof. Carvalho holográfico e Diploma de Kanto, já escolhidos) e mostra o aviso na Home.
+ * `?demo=vestiario` abre na
+ * escalação uma partida que, ao começar, já está a 2 s do intervalo, com 2 no banco e troca do rival no intervalo (o
+ * vestiário: várias trocas, desfazer e "O rival trocou").
  */
 let started = false;
 
@@ -46,7 +51,9 @@ export function runDevDemo() {
         demo !== 'lider' &&
         demo !== 'colecao' &&
         demo !== 'dia' &&
-        demo !== 'liga'
+        demo !== 'liga' &&
+        demo !== 'platina' &&
+        demo !== 'vestiario'
     )
         return;
     started = true;
@@ -61,6 +68,20 @@ export function runDevDemo() {
     if (demo === 'dia' || demo === 'liga') {
         const estado = new URLSearchParams(window.location.search).get('estado');
         void import('../league/demo').then((m) => m.startLeagueDemo(demo, estado));
+        return;
+    }
+    if (demo === 'platina') {
+        const p = store.profile;
+        useGame.setState({
+            profile: {
+                ...p,
+                missionsDone: [...new Set([...p.missionsDone, 'platina1'])],
+                trainer: 'oakHolo',
+                title: 'diplomaKanto',
+            },
+            unlockQueue: ['platina1'],
+            screen: 'home',
+        });
         return;
     }
     if (demo === 'conta') {
@@ -235,6 +256,36 @@ export function runDevDemo() {
                 console.info(`[demo] copa camp${k}: campeão`);
                 return;
             }
+        }
+        return;
+    }
+    if (demo === 'vestiario') {
+        for (let k = 0; k < 120; k++) {
+            store.newRun('Demo FC', `vest${k}`);
+            const run = useGame.getState().run!;
+            const rng = new Rng(`vest${k}`, 'demo');
+            // goleiro Onix, fixo Machamp, alas Arcanine e Wartortle, pivô Kabutops; banco Dragonair e Blastoise
+            const lineup = [95, 68, 59, 8, 141].map((id) => createInstance(id, rng));
+            const bench = [148, 9].map((id) => createInstance(id, rng));
+            const ready = {
+                ...run,
+                formation: '1-2-1' as const,
+                picks: [...lineup, ...bench],
+                lineup: lineup.map((p) => p.uid),
+                bench: bench.map((p) => p.uid),
+                captainUid: lineup[4].uid,
+                draftRound: 7,
+                status: 'lineup' as const,
+            };
+            const team = { ...playerTeam(ready), manualSubs: true };
+            const r = runMatch(FUTSAL_5, team, ready.opponents[0], `${ready.seed}-stage-0`, { snapshots: false });
+            const ht = r.events.find((e) => e.type === 'halftime');
+            if (!ht || !r.events.some((e) => e.type === 'sub' && e.team === 1 && e.tick === ht.tick)) continue;
+            // partida já travada e salva perto do apito do intervalo: "Começar" retoma dali
+            const live = { stage: 0, orders: [], tick: Math.max(0, ht.tick - 40), engine: ENGINE_VERSION };
+            useGame.setState({ run: { ...ready, lockedTeam: team, live }, screen: 'lineup' });
+            console.info(`[demo] copa ${ready.seed}: intervalo no tick ${ht.tick} com troca do rival`);
+            return;
         }
         return;
     }

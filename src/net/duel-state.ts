@@ -182,6 +182,8 @@ export interface Shared {
     speedAsk?: { by: Role; speed: PlaybackSpeed; until: number };
     halftime?: { until: number; ready: Record<Role, boolean> };
     secondHalf: boolean;
+    /** Trocas do intervalo desfeitas (seq de cada um): saem do log e o mesmo seq não entra de novo. */
+    voided?: Partial<Record<Role, number[]>>;
     /** Quem está travando a sala e desde quando (a espera do W.O.). */
     waitFor?: Role;
     waitSince?: number;
@@ -258,13 +260,18 @@ export type Intent =
     | { k: 'pick'; uid: string }
     | { k: 'seal'; round: number; seal: string }
     | { k: 'choiceSeal'; seal: string }
+    /** Desfaz o "pronto" da escolha (time pronto e escalação): só o lacre que está lá e só antes de o outro lacrar. */
+    | { k: 'choiceUnseal'; seal: string }
     | { k: 'choiceOpen'; value: unknown; salt: string }
     | { k: 'reveal'; seg: number; x: string; hash?: string }
     | { k: 'order'; order: OrderBody; tick: number; seq: number; ht?: boolean }
+    /** Desfaz uma troca minha que ainda não entrou (a do intervalo, com o 2º tempo parado). */
+    | { k: 'unorder'; seq: number }
     | { k: 'speed'; speed: PlaybackSpeed }
     | { k: 'speedAnswer'; yes: boolean }
     | { k: 'atHalftime' }
-    | { k: 'htReady' }
+    /** Pronto do intervalo; `ready: false` desfaz (só enquanto o outro não deu pronto). Sem o campo = pronto. */
+    | { k: 'htReady'; ready?: boolean }
     /** Apito final na tela de quem manda (o placar sai da partida que quem aplica simulou, nunca da mensagem). */
     | { k: 'ended' }
     | { k: 'claimWO' }
@@ -449,7 +456,7 @@ export function tagTeam(team: TeamSetup, role: Role): TeamSetup {
 
 const TACTICS: Tactic[] = ['balanced', 'offensive', 'defensive', 'counter'];
 
-/** Aplica a prévia aberta (mesmo elenco, formação e tática válidas, capitão em quadra). */
+/** Aplica a prévia aberta (mesmo elenco, formação e tática válidas; o capitão pode começar no banco, como na copa). */
 export function applyPreview(team: TeamSetup, cfg: PreviewCfg): TeamSetup | null {
     if (!cfg || !FORMATIONS[cfg.formation] || !TACTICS.includes(cfg.tactic)) return null;
     const all = [...team.lineup, ...team.bench];
@@ -459,7 +466,6 @@ export function applyPreview(team: TeamSetup, cfg: PreviewCfg): TeamSetup | null
     const order = cfg.order.map((u) => byUid.get(u));
     if (order.some((p) => !p)) return null;
     const lineup = order.slice(0, 5) as PokemonInstance[];
-    if (team.captainUid && !lineup.some((p) => p.uid === team.captainUid)) return null;
     if (cfg.corner !== undefined && !CORNER_PLANS.includes(cfg.corner)) return null;
     if (cfg.cornerTaker != null && !byUid.has(cfg.cornerTaker)) return null;
     return {
@@ -511,7 +517,7 @@ export function stampOrder(
     const team = s.teams[by];
     if (!team || !Number.isInteger(i.seq) || i.seq < 1 || !i.order) return null;
     const mine = s.log.filter((o) => o.team === side);
-    if (mine.some((o) => o.seq >= i.seq)) return null;
+    if (mine.some((o) => o.seq >= i.seq) || s.voided?.[by]?.includes(i.seq)) return null;
     if (i.order.kind === 'tactic') {
         const tactics = mine.filter((o) => isTacticOrder(o)) as TacticChange[];
         const current = tactics.at(-1)?.tactic ?? team.tactic;
@@ -538,8 +544,8 @@ export function stampOrder(
         });
         if (resolved.length !== field.length || !field.every((u) => resolved.includes(u))) return null;
     } else if (!stampAgency(s, team, mine, i.order)) return null;
-    // ordem do intervalo que chega com o 2º tempo já andando (último segundo, reenvio) vale como uma ordem comum:
-    // carimbada no intervalo ela mudaria um trecho que já passou na tela
+    // "do intervalo" só até o 2º tempo começar: a que chega depois do apito vale como ordem ao vivo (no tick do
+    // intervalo ela ficaria no passado das duas telas)
     const base =
         i.ht && ctx.htTick !== undefined && !s.secondHalf
             ? ctx.htTick + 1
@@ -607,6 +613,26 @@ function agencyStamp(o: OrderBody, tick: number, team: 0 | 1, seq: number): Stam
     }
 }
 
+/** Intervalo parado esperando os dois (ainda dá pra trocar, desfazer troca e tirar o pronto). */
+export const htOpen = (s: Shared) => s.phase === 'match' && !s.result && !!s.halftime && !s.secondHalf;
+
+/**
+ * Troca minha que dá pra desfazer: ainda não aconteceu na tela (marcada depois do apito do intervalo, com a partida
+ * parada nele) e eu ainda não dei pronto.
+ */
+export function canUnorder(s: Shared, by: Role, seq: number, htTick: number | undefined): boolean {
+    if (!htOpen(s) || htTick === undefined || s.halftime!.ready[by]) return false;
+    const o = s.log.find((x) => x.team === SIDE[by] && x.seq === seq);
+    return !!o && isSubOrder(o) && o.tick > htTick;
+}
+
+/**
+ * Quantas mudanças o log já teve (só sobe): cada ordem nova soma 1 e cada troca desfeita também (sai do log, -1, e
+ * entra nas desfeitas, +2). A tela resimula quando ele muda.
+ */
+export const logVersion = (s: Pick<Shared, 'log' | 'voided'>) =>
+    s.log.length + 2 * ((s.voided?.host?.length ?? 0) + (s.voided?.guest?.length ?? 0));
+
 /** As ordens na ordem do motor: (tick, time, seq). */
 export const ordersOf = (log: StampedOrder[]): MatchOrder[] =>
     [...log].sort((a, b) => a.tick - b.tick || a.team - b.team || a.seq - b.seq);
@@ -625,12 +651,16 @@ function startPlay(s: Shared, now: number): Shared {
         segHash: { host: {}, guest: {} },
         halftime: undefined,
         secondHalf: false,
+        voided: undefined,
         speedAsk: undefined,
         waitFor: undefined,
         waitSince: undefined,
         result: undefined,
     };
 }
+
+/** Os dois deram pronto na escolha (time pronto / escalação): a fase já vai andar, não dá mais pra desfazer. */
+export const bothSealed = (s: Pick<Shared, 'choice'>) => !!s.choice && ROLES.every((r) => s.choice!.seal[r]);
 
 const emptyChoice = (until?: number): ChoiceState => ({ seal: both(null), opened: both(false), until });
 
@@ -788,6 +818,15 @@ function apply(s: Shared, i: Intent, by: Role, ctx: Ctx): Shared {
             if (!c || (s.phase !== 'team' && s.phase !== 'preview') || c.seal[by] || !isHex64(i.seal)) return s;
             return { ...s, choice: { ...c, seal: { ...c.seal, [by]: i.seal } } };
         }
+        case 'choiceUnseal': {
+            const c = s.choice;
+            if (!c || (s.phase !== 'team' && s.phase !== 'preview') || c.opened[by]) return s;
+            // só o lacre que está lá (reenvio velho não tira um lacre novo) e só antes de o outro lacrar: com os
+            // dois lacrados a fase já andou. Na escalação, depois do tempo acabar também não (vale o que está lá)
+            if (!isHex64(i.seal) || c.seal[by] !== i.seal || c.seal[other(by)]) return s;
+            if (s.phase === 'preview' && c.until !== undefined && now >= c.until) return s;
+            return { ...s, choice: { ...c, seal: { ...c.seal, [by]: null } } };
+        }
         case 'choiceOpen':
             return applyChoice(s, by, i.value, now);
         case 'reveal': {
@@ -814,6 +853,15 @@ function apply(s: Shared, i: Intent, by: Role, ctx: Ctx): Shared {
             const o = stampOrder(s, by, i, ctx);
             return o ? { ...s, log: [...s.log, o] } : s;
         }
+        case 'unorder': {
+            if (!Number.isInteger(i.seq) || !canUnorder(s, by, i.seq, ctx.htTick)) return s;
+            const side = SIDE[by];
+            return {
+                ...s,
+                log: s.log.filter((o) => !(o.team === side && o.seq === i.seq)),
+                voided: { ...s.voided, [by]: [...(s.voided?.[by] ?? []), i.seq] },
+            };
+        }
         case 'speed': {
             if (s.phase !== 'match' || s.speedAsk || i.speed === s.speed || !DUEL_SPEEDS.includes(i.speed)) return s;
             // o outro fora da sala não tem como aceitar: fica como está
@@ -829,8 +877,13 @@ function apply(s: Shared, i: Intent, by: Role, ctx: Ctx): Shared {
             return { ...s, halftime: { until: now + HALFTIME_MS, ready: both(false) } };
         }
         case 'htReady': {
-            if (!s.halftime || s.secondHalf) return s;
-            return { ...s, halftime: { ...s.halftime, ready: { ...s.halftime.ready, [by]: true } } };
+            if (!htOpen(s)) return s;
+            const ht = s.halftime!;
+            const ready = i.ready !== false;
+            if (ht.ready[by] === ready) return s;
+            // desfazer só enquanto o outro não deu pronto (com os dois prontos o 2º tempo já vai começar)
+            if (!ready && ht.ready[other(by)]) return s;
+            return { ...s, halftime: { ...ht, ready: { ...ht.ready, [by]: ready } } };
         }
         case 'ended': {
             // o placar é o da partida que quem aplica simulou, e só depois do apito final na tela dele
@@ -913,6 +966,7 @@ export function acceptTakeover(cur: Shared, next: Shared, awayMs: number): boole
         if (next.reveals.host.some((x, k) => x && x !== cur.reveals.host[k])) return false;
         if (next.roundReveals.host.some((x, r) => x && x !== cur.roundReveals.host[r])) return false;
         if (hostOrders(next) !== hostOrders(cur) || hostHashes(next) !== hostHashes(cur)) return false;
+        if (JSON.stringify(next.voided?.host ?? []) !== JSON.stringify(cur.voided?.host ?? [])) return false;
         // o time do host só muda pelas escolhas dele: não pode mudar nem aparecer enquanto ele estava fora
         if (teamKey(next.teams.host) !== teamKey(cur.teams.host)) return false;
         // no lobby a partida só começa com o "pronto" do host

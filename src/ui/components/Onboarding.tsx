@@ -4,8 +4,6 @@ import { type Dict, fmt } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import '../help/help.css';
-import { Trophy } from './Trophy';
-import { TypeIcon } from './TypeIcon';
 
 /** Tamanho natural (px) dos sprites usados aqui, pra manter a proporção entre eles. */
 const SPRITE_SIZE: Record<number, [number, number]> = {
@@ -45,39 +43,13 @@ function Chevron({ dir }: { dir: 'left' | 'right' }) {
     );
 }
 
-/** Mini-quadra vista de cima, com o time em losango (1-2-1). */
-function CourtVisual() {
-    const spots: [number, number, number][] = [
-        [50, 88, 7],
-        [50, 64, 1],
-        [20, 42, 4],
-        [80, 42, 25],
-        [50, 18, 6],
-    ];
-    return (
-        <div className="ob-court">
-            <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-                <rect x="2" y="2" width="96" height="96" rx="4" />
-                <line x1="2" y1="50" x2="98" y2="50" />
-                <circle cx="50" cy="50" r="10" />
-                <path d="M32 2v10a18 10 0 0 0 36 0V2M32 98V88a18 10 0 0 1 36 0v10" />
-            </svg>
-            {spots.map(([x, y, id]) => (
-                <span key={id} className="ob-court-spot" style={{ left: `${x}%`, top: `${y}%` }}>
-                    <Sprite id={id} scale={id === 6 ? 0.5 : 0.85} />
-                </span>
-            ))}
-        </div>
-    );
-}
-
 interface Slide {
     title: string;
     text: ReactNode;
     visual: ReactNode;
 }
 
-/** Os passos, no idioma do jogo. */
+/** Os passos, no idioma do jogo: só 3 (o resto vira dica na hora em que aparece: escalação, recompensa, Pokédex). */
 const slides = (d: Dict): Slide[] => {
     const o = d.help.onboarding;
     return [
@@ -112,21 +84,6 @@ const slides = (d: Dict): Slide[] => {
             ),
         },
         {
-            title: o.lineupTitle,
-            text: rich(o.lineupText),
-            visual: (
-                <div className="ob-lineup-visual">
-                    <CourtVisual />
-                    <div className="ob-chips">
-                        <span className="ob-chip">
-                            <TypeIcon type="Fire" size={18} /> ×2 +3%
-                        </span>
-                        <span className="ob-chip">{d.common.link.iniciais.name}</span>
-                    </div>
-                </div>
-            ),
-        },
-        {
             title: o.coachTitle,
             text: rich(o.coachText),
             visual: (
@@ -143,44 +100,6 @@ const slides = (d: Dict): Slide[] => {
                         <span className="ob-pill yellow">{o.sub}</span>
                         <span className="ob-pill">2x</span>
                     </div>
-                </div>
-            ),
-        },
-        {
-            title: o.cupTitle,
-            text: rich(o.cupText),
-            visual: (
-                <div className="ob-cup">
-                    <ol className="ob-path">
-                        {(['Rock', 'Water', 'Electric', 'Dragon'] as const)
-                            .map((type, i) => [type, o.cupPath[i]] as const)
-                            .map(([type, label]) => (
-                                <li key={label}>
-                                    <TypeIcon type={type} size={30} />
-                                    <span>{label}</span>
-                                </li>
-                            ))}
-                    </ol>
-                    <Trophy size={70} />
-                </div>
-            ),
-        },
-        {
-            title: o.dexTitle,
-            text: rich(o.dexText),
-            visual: (
-                <div className="ob-dex">
-                    <div className="ob-dex-grid">
-                        {[25, 133, 143, 150, 151, 9].map((id, i) => (
-                            <span key={id} className={`ob-dex-cell${i >= 3 ? ' unseen' : ''}`}>
-                                <Sprite id={id} scale={id === 25 || id === 133 ? 0.9 : 0.6} />
-                            </span>
-                        ))}
-                    </div>
-                    <svg viewBox="0 0 48 32" className="ob-cloud" aria-hidden="true">
-                        <path d="M14 28h22a8 8 0 0 0 1-15.9A11 11 0 0 0 16 9.5 9.3 9.3 0 0 0 14 28Z" />
-                        <path d="M24 24v-9M20 18.5l4-4 4 4" className="ob-cloud-arrow" />
-                    </svg>
                 </div>
             ),
         },

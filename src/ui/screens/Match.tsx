@@ -28,21 +28,25 @@ import { liveOf, type PlaybackSpeed, playerTeam, useGame } from '../../store/gam
 import { rivalColor, tagFromName } from '../../store/profile';
 import { Commentator, type CommentLine } from '../commentary';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
-import { HalftimePanel } from '../components/HalftimePanel';
+import { HalftimePanel, rivalHtSubs } from '../components/HalftimePanel';
 import { MatchHighlight } from '../components/MatchHighlight';
 import {
     type Clock,
     type CoachTab,
     CoachTabs,
+    FinalBanner,
     HudIcon,
     hex,
     MatchFeed,
     PressureBar,
+    ResultButton,
     Scoreboard,
     SubPanel,
+    subSuggestion,
     TacticControls,
     TIRED_HINT,
     Ticker,
+    useAutoResult,
     useClockParts,
     useCoachTab,
 } from '../components/MatchHud';
@@ -116,8 +120,6 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const halftimeRef = useRef<HTMLDivElement>(null);
     const [subOut, setSubOut] = useState<string | null>(null);
     const [pending, setPending] = useState(false);
-    /** Muda a cada "Mudar prancheta" do intervalo (a prancheta rola até a tela). */
-    const [boardFocus, setBoardFocus] = useState(0);
     /** A cena Phaser só escuta comandos depois de carregar; até lá os controles ficam travados. */
     const [sceneReady, setSceneReady] = useState(false);
     /** Se a quadra demorar demais (celular fraco, aba em segundo plano), oferece recarregar. */
@@ -319,6 +321,13 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const clockParts = useClockParts(clock, fulltime || ended, shootout, halftime);
     // o capitão do líder rival reage aos gols (emote do Duelo, só na tela)
     const rivalPlan = useMemo(() => (match ? rivalEmotes(match.events, 1) : []), [match]);
+    // fim de jogo: vai sozinho pro resultado; um toque na quadra ou no painel segura
+    const auto = useAutoResult(ended, () => go(liga ? 'liga' : 'result'));
+    // fim de jogo: a quadra volta pra tela (no celular a página pode ter ficado rolada desde o intervalo)
+    useEffect(() => {
+        if (ended)
+            scoreboardRef.current?.scrollIntoView({ block: 'nearest', behavior: reduceMotionOn() ? 'auto' : 'smooth' });
+    }, [ended]);
     if (!run || !match || !sceneData || !opponent) return null;
 
     const lockedSetup = run.lockedTeam ? { ...run.lockedTeam, manualSubs: true } : playerTeam(run);
@@ -347,11 +356,11 @@ export function Match({ liga = false }: { liga?: boolean }) {
      * Ordem do técnico ao vivo (tática ou substituição): agenda um pouco à frente do que está na tela e
      * resimula a partida com a agenda inteira. As ordens ficam salvas para retomar a partida igual.
      */
+    const htTick = match.events.find((e) => e.type === 'halftime')?.tick;
     const sendOrder = async (make: (tick: number) => MatchOrder, at?: number) => {
         // sempre depois da ordem anterior, para a ordem do motor bater com a da tela; no intervalo (e no pedido de
         // tempo) a partida está parada, então vale já no tick seguinte. `at`: tick fixo (ordem dos pênaltis, que
         // entra antes do apito final e não muda nada do jogo)
-        const htTick = match.events.find((e) => e.type === 'halftime')?.tick;
         const base =
             halftime && htTick !== undefined
                 ? htTick + 1
@@ -359,7 +368,11 @@ export function Match({ liga = false }: { liga?: boolean }) {
                   ? timeoutAt + 1
                   : Math.ceil(tickRef.current + leadTicks);
         const tick = at ?? Math.max(base, (orders.at(-1)?.tick ?? 0) + 1);
-        const schedule = [...orders, make(tick)];
+        await resim([...orders, make(tick)], tick);
+    };
+
+    /** Resimula com a agenda inteira (ordem nova ou troca desfeita) e segura a tela até a partida nova chegar. */
+    const resim = async (schedule: MatchOrder[], tick: number) => {
         const seed = match.seed;
         setPending(true);
         setTacticError(null);
@@ -428,9 +441,24 @@ export function Match({ liga = false }: { liga?: boolean }) {
     // posição agora de quem está em cada vaga (a prancheta pode ter mudado)
     const slots = onField.map((_, i) => roleAt(match, [lockedSetup, opponent], i, tickRef.current));
     /** Fôlego (0..1) agora de quem está na vaga `i` do seu time. */
-    const energyAt = (i: number) => snapAt(match.snapshots, tickRef.current).p[i * SNAP_STRIDE + 6] ?? 1;
+    const energyAt = (i: number, tick = tickRef.current) => snapAt(match.snapshots, tick).p[i * SNAP_STRIDE + 6] ?? 1;
     const pendingSub = subOrders.find((o) => !subsDone.includes(o.inUid)) ?? null;
-    const canSub = canChangeTactic && !pendingSub && subOrders.length < lockedSetup.bench.length && benchNow.length > 0;
+    // vestiário: várias trocas no mesmo intervalo (no jogo, uma por bola parada); quem já vai entrar ou sair fica fora
+    const htSubs = halftime && htTick !== undefined ? subOrders.filter((o) => o.tick > htTick) : [];
+    const benchFree = benchNow.filter((u) => !subOrders.some((o) => o.inUid === u));
+    const leaving = new Set(htSubs.map((o) => o.outUid));
+    const canSub =
+        canChangeTactic &&
+        (halftime ? onField.some((u) => !leaving.has(u)) : !pendingSub) &&
+        subOrders.length < lockedSetup.bench.length &&
+        benchFree.length > 0;
+    const undoSub = (o: MatchOrder) => {
+        if (!canChangeTactic || htTick === undefined) return;
+        resim(
+            orders.filter((x) => x !== o),
+            htTick + 1,
+        );
+    };
     const orderSub = (outUid: string, inUid: string) => {
         setSubOpen(false);
         setSubOut(null);
@@ -458,6 +486,11 @@ export function Match({ liga = false }: { liga?: boolean }) {
         return evo?.type === 'evolve' && name === species(evo.from).name ? species(evo.into).name : name;
     };
 
+    const spriteOf = (uid: string) => {
+        const p = byUid.get(uid);
+        return p ? cardSprite(p) : '';
+    };
+
     const stage = liga ? t('liga.stage') : stageName(run.stage) || t('match.cup');
 
     const finishIntro = () => {
@@ -466,8 +499,25 @@ export function Match({ liga = false }: { liga?: boolean }) {
         setIntroDone(true);
         EventBus.emit('match:resume');
     };
+    // fôlego que vale na tela: no intervalo, o com que cada um começaria o 2º tempo (o mesmo número no "Mais
+    // cansado" do painel, na sugestão de troca e no aviso e na lista do Substituir)
+    const ko2 = match.events.find((e) => e.type === 'kickoff' && e.half === 2)?.tick;
+    const energyNow = (i: number) => energyAt(i, halftime ? ko2 : undefined);
     // quem está mais cansado em quadra: o botão Substituir avisa (só avisa; a troca é sempre do técnico)
-    const tiredSlot = onField.map((uid, i) => ({ uid, energy: energyAt(i) })).sort((a, b) => a.energy - b.energy)[0];
+    const tiredSlot = onField.map((uid, i) => ({ uid, energy: energyNow(i) })).sort((a, b) => a.energy - b.energy)[0];
+    // intervalo: sugere trocar o mais cansado (só abre o Substituir com ele marcado)
+    const htSuggest = halftime
+        ? subSuggestion(
+              onField.map((uid, i) => ({ uid, energy: energyNow(i) })),
+              canSub,
+          )
+        : null;
+    const pendingSubText = pendingSub
+        ? rich(t(halftime ? 'match.subPendingHt' : 'match.subPending'), {
+              out: <b>{nameOf(pendingSub.outUid)}</b>,
+              in: <b>{nameOf(pendingSub.inUid)}</b>,
+          })
+        : null;
     const tiredInst = tiredSlot && byUid.get(tiredSlot.uid);
     const tired =
         canSub && tiredSlot && tiredInst && tiredSlot.energy < TIRED_HINT
@@ -550,7 +600,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                     {agency && <MaxBars events={match.events} tick={clock.tick} colors={colors} />}
                 </div>
 
-                <div className="bc-stage">
+                <div className="bc-stage" onPointerDownCapture={auto.hold}>
                     <div className="pitch-wrap">
                         {fontsReady ? (
                             <PhaserGame key={`${match.seed}-${sceneKey}`} data={sceneData} />
@@ -568,6 +618,9 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         )}
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
+                        {ended && !auto.held && (
+                            <FinalBanner score={clock.score} shootout={shootout} side={0} names={teamNames} />
+                        )}
                         <LeaveConfirm />
                         <PlayerInspect
                             match={match}
@@ -597,10 +650,26 @@ export function Match({ liga = false }: { liga?: boolean }) {
                                 }}
                                 canSub={canSub}
                                 onSub={() => setSubOpen(true)}
-                                onBoard={() => {
-                                    setTab('board');
-                                    setBoardFocus((k) => k + 1);
-                                }}
+                                suggest={
+                                    htSuggest && {
+                                        text: t('match.ht.suggest', {
+                                            name: nameOf(htSuggest.uid),
+                                            p: Math.round(htSuggest.energy * 100),
+                                        }),
+                                        onPick: () => {
+                                            setSubOut(htSuggest.uid);
+                                            setSubOpen(true);
+                                        },
+                                    }
+                                }
+                                mySubs={htSubs.map((o) => ({
+                                    key: o.inUid,
+                                    inName: nameOf(o.inUid),
+                                    outName: nameOf(o.outUid),
+                                    sprite: spriteOf(o.inUid),
+                                    onUndo: canChangeTactic ? () => undoSub(o) : undefined,
+                                }))}
+                                rivalSubs={rivalHtSubs(match, 1)}
                                 onContinue={() => {
                                     setHalftime(false);
                                     EventBus.emit('match:resume');
@@ -613,10 +682,6 @@ export function Match({ liga = false }: { liga?: boolean }) {
                             <TimeoutPanel
                                 canSub={canSub}
                                 onSub={() => setSubOpen(true)}
-                                onBoard={() => {
-                                    setTab('board');
-                                    setBoardFocus((k) => k + 1);
-                                }}
                                 onBack={() => {
                                     setTimeoutAt(null);
                                     EventBus.emit('match:resume');
@@ -650,14 +715,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                             />
                         </div>
                     )}
-                    {pendingSub && (
-                        <div className="sub-pending">
-                            {rich(t('match.subPending'), {
-                                out: <b>{nameOf(pendingSub.outUid)}</b>,
-                                in: <b>{nameOf(pendingSub.inUid)}</b>,
-                            })}
-                        </div>
-                    )}
+                    {pendingSub && !halftime && <div className="sub-pending">{pendingSubText}</div>}
                     {pendingBoard && (
                         <div className="sub-pending">
                             {t('match.boardPending', { formation: formationText(pendingBoard.formation).name })}
@@ -670,10 +728,11 @@ export function Match({ liga = false }: { liga?: boolean }) {
                             setSubOut={setSubOut}
                             onClose={() => setSubOpen(false)}
                             onField={onField}
-                            benchNow={benchNow}
+                            benchNow={benchFree}
+                            busy={leaving}
                             byUid={byUid}
                             slots={slots}
-                            energyAt={energyAt}
+                            energyAt={energyNow}
                             nameOf={nameOf}
                             onPick={orderSub}
                         />
@@ -681,7 +740,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                     {wide && <div className="bc-deskbar">{tactics}</div>}
                 </div>
 
-                <div className="panel bc-coach">
+                <div className="panel bc-coach" onPointerDownCapture={auto.hold}>
                     <CoachTabs tabs={tabs} active={tab} onPick={setTab} />
                     <div className={`bc-pane pane-${tab}`} role="tabpanel">
                         {tab === 'tactic' && tactics}
@@ -700,7 +759,6 @@ export function Match({ liga = false }: { liga?: boolean }) {
                                     } else if (idx !== null) EventBus.emit('match:inspect-request', idx);
                                 }}
                                 edit={{ enabled: canChangeTactic, pending: pendingBoard, onConfirm: orderBoard, over }}
-                                focusKey={boardFocus}
                             />
                         )}
                         {tab === 'team' && (
@@ -752,13 +810,11 @@ export function Match({ liga = false }: { liga?: boolean }) {
                             </button>
                         </>
                     ) : (
-                        <button
-                            type="button"
-                            className="btn primary bc-result"
-                            onClick={() => go(liga ? 'liga' : 'result')}
-                        >
-                            {t('match.seeResult')}
-                        </button>
+                        <ResultButton
+                            label={t('match.seeResult')}
+                            onGo={() => go(liga ? 'liga' : 'result')}
+                            auto={auto}
+                        />
                     )}
                 </div>
             </div>

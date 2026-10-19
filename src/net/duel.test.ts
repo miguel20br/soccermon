@@ -8,17 +8,20 @@ import {
     teamRecipe,
     validarTimeDuelo,
 } from '../engine/duel-validate';
-import { EVO_THRESHOLD } from '../engine/evolution';
+import { EVO_THRESHOLD, evolutionTarget } from '../engine/evolution';
 import { createInstance, viewInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
 import type { TeamSetup } from '../engine/state';
+import { duel as enDuel } from '../i18n/en/duel';
 import {
     acceptTakeover,
+    applyPreview,
     autoLineup,
     blocker,
     type Ctx,
     canClaimWO,
+    canUnorder,
     clockAdjust,
     disputaOptions,
     duelNames,
@@ -29,6 +32,7 @@ import {
     type Intent,
     isRoomCode,
     leadTicks,
+    logVersion,
     newShared,
     ordersOf,
     type Peer,
@@ -184,6 +188,25 @@ describe('validarTimeDuelo (time pronto)', () => {
         expect(edit((r) => (r.lineup[1] = { ...r.lineup[0] })).length).toBeGreaterThan(0);
         expect(edit((r) => r.lineup.pop()).length).toBeGreaterThan(0);
         expect(validarTimeDuelo(null)).toEqual(['time vazio']);
+    });
+
+    it('o aviso de time inválido não mostra os motivos do validador (em português) no jogo em inglês', () => {
+        expect(validarTimeDuelo({ ...ok, name: 7 })).toEqual(['nome']);
+        expect(enDuel.team.invalid).not.toContain('{why}');
+    });
+
+    it('capitão no banco passa (a copa deixa) e a prévia aceita deixar ele no banco', () => {
+        const t = team('capitao-banco');
+        const benched = { ...t, captainUid: t.bench[0].uid };
+        const r = teamRecipe(benched);
+        expect(r.captain).toBe(5);
+        expect(validarTimeDuelo(r)).toEqual([]);
+        const back = teamFromRecipe(r, '~h');
+        expect(back.captainUid).toBe(back.bench[0].uid);
+        const order = [...back.lineup, ...back.bench].map((p) => p.uid);
+        const applied = applyPreview(back, { formation: back.formation ?? '1-2-1', tactic: 'balanced', order });
+        expect(applied?.captainUid).toBe(back.bench[0].uid);
+        expect(edit((x) => (x.captain = 7)).length).toBeGreaterThan(0);
     });
 
     it('carta que evoluiu na copa leva o bônus de evolução pro duelo (carta = campo)', () => {
@@ -415,6 +438,160 @@ describe('log de ordens', () => {
         expect(acceptTakeover(s, { ...s, rev: s.rev + 1 }, 0)).toBe(true);
         expect(acceptTakeover(s, { ...s, rev: s.rev + 1, agency: false }, 0)).toBe(false);
         expect(acceptTakeover(s, { ...s, rev: s.rev + 1, duration: 'short' }, 0)).toBe(false);
+    });
+});
+
+describe('pronto que dá pra desfazer (escolha do time, escalação, intervalo)', () => {
+    it('escolha: desfaz só o próprio lacre e só antes de o rival lacrar; depois lacra de novo', () => {
+        let s = lobby('ready');
+        s = reduce(s, { k: 'choiceSeal', seal: H('1') }, 'host', ctx());
+        // o lacre de outro (reenvio velho) ou o do rival não sai
+        expect(reduce(s, { k: 'choiceUnseal', seal: H('9') }, 'host', ctx())).toBe(s);
+        expect(reduce(s, { k: 'choiceUnseal', seal: H('1') }, 'guest', ctx())).toBe(s);
+        const undone = reduce(s, { k: 'choiceUnseal', seal: H('1') }, 'host', ctx());
+        expect(undone.choice?.seal.host).toBeNull();
+        expect(undone.rev).toBe(s.rev + 1);
+        const again = reduce(undone, { k: 'choiceSeal', seal: H('3') }, 'host', ctx());
+        expect(again.choice?.seal.host).toBe(H('3'));
+        // os dois lacrados: a fase já anda, desfazer não vale
+        const both = reduce(again, { k: 'choiceSeal', seal: H('2') }, 'guest', ctx());
+        expect(reduce(both, { k: 'choiceUnseal', seal: H('3') }, 'host', ctx())).toBe(both);
+    });
+
+    it('corrida: o pronto do rival chega antes do desfazer, o host fica com o lacre de antes', () => {
+        let s = lobby('ready');
+        s = reduce(s, { k: 'choiceSeal', seal: H('1') }, 'host', ctx());
+        s = reduce(s, { k: 'choiceSeal', seal: H('2') }, 'guest', ctx());
+        const late = reduce(s, { k: 'choiceUnseal', seal: H('1') }, 'host', ctx());
+        expect(late).toBe(s);
+        expect(late.choice?.seal).toEqual({ host: H('1'), guest: H('2') });
+        // e o contrário: o desfazer chega antes, o pronto do rival entra e a fase espera o meu lacre novo
+        let t = lobby('ready');
+        t = reduce(t, { k: 'choiceSeal', seal: H('1') }, 'host', ctx());
+        t = reduce(t, { k: 'choiceUnseal', seal: H('1') }, 'host', ctx());
+        t = reduce(t, { k: 'choiceSeal', seal: H('2') }, 'guest', ctx());
+        expect(t.choice?.seal).toEqual({ host: null, guest: H('2') });
+        expect(t.phase).toBe('team');
+    });
+
+    it('escalação: depois do tempo acabar não desfaz (vale o que está lá)', () => {
+        let s = inMatch();
+        // volta pra uma escalação aberta com 30 s
+        s = {
+            ...s,
+            phase: 'preview',
+            choice: { seal: { host: H('5'), guest: null }, opened: { host: false, guest: false }, until: 30_000 },
+        };
+        expect(reduce(s, { k: 'choiceUnseal', seal: H('5') }, 'host', ctx(29_000)).choice?.seal.host).toBeNull();
+        expect(reduce(s, { k: 'choiceUnseal', seal: H('5') }, 'host', ctx(30_000))).toBe(s);
+    });
+
+    it('intervalo: tira o pronto enquanto o rival não deu; com os dois prontos ou no 2º tempo, não', () => {
+        let s = inMatch();
+        s = reduce(s, { k: 'atHalftime' }, 'host', ctx(1000));
+        s = reduce(s, { k: 'htReady' }, 'guest', ctx(1500));
+        expect(s.halftime?.ready.guest).toBe(true);
+        const off = reduce(s, { k: 'htReady', ready: false }, 'guest', ctx(1600));
+        expect(off.halftime?.ready.guest).toBe(false);
+        // repetido não sobe o rev
+        expect(reduce(off, { k: 'htReady', ready: false }, 'guest', ctx(1700))).toBe(off);
+        // o rival deu pronto antes do desfazer chegar: o host decide pelo que chegou primeiro
+        const both = reduce(s, { k: 'htReady' }, 'host', ctx(1650));
+        expect(reduce(both, { k: 'htReady', ready: false }, 'guest', ctx(1700))).toBe(both);
+        expect(tickTimers(both, ctx(1800)).secondHalf).toBe(true);
+        // sem o pronto, o tempo acaba do mesmo jeito
+        expect(tickTimers(off, ctx(1000 + HALFTIME_MS)).secondHalf).toBe(true);
+        const second = tickTimers(both, ctx(1800));
+        expect(reduce(second, { k: 'htReady', ready: false }, 'host', ctx(1900))).toBe(second);
+    });
+
+    it('intervalo: várias trocas, desfazer cada uma (o seq desfeito não volta) e a partida fica igual à sem ela', () => {
+        let s = inMatch();
+        const home = s.teams.host!;
+        const away = s.teams.guest!;
+        // o tick do intervalo de verdade (a tela para nele)
+        const HT = runMatch(FUTSAL_5, home, away, 'base').events.find((e) => e.type === 'halftime')!.tick;
+        s = reduce(s, { k: 'atHalftime' }, 'host', ctx(1000));
+        const t = s.teams.host!;
+        const sub = (outUid: string, inUid: string, seq: number): Intent => ({
+            k: 'order',
+            order: { kind: 'sub', outUid, inUid },
+            tick: HT,
+            seq,
+            ht: true,
+        });
+        const c = ctx(1100, { tick: HT, htTick: HT });
+        const v0 = logVersion(s);
+        s = reduce(s, sub(t.lineup[2].uid, t.bench[0].uid, 1), 'host', c);
+        s = reduce(s, sub(t.lineup[3].uid, t.bench[1].uid, 2), 'host', c);
+        expect(s.log.map((o) => o.tick)).toEqual([HT + 1, HT + 2]);
+        const withBoth = s;
+        // desfaz a 1ª: sai do log, a versão do log sobe (a tela resimula) e o reenvio dela não entra de novo
+        expect(canUnorder(s, 'host', 1, HT)).toBe(true);
+        expect(canUnorder(s, 'guest', 1, HT)).toBe(false);
+        s = reduce(s, { k: 'unorder', seq: 1 }, 'host', c);
+        expect(s.log.map((o) => o.seq)).toEqual([2]);
+        expect(logVersion(s)).toBeGreaterThan(logVersion(withBoth));
+        expect(logVersion(withBoth)).toBeGreaterThan(v0);
+        expect(reduce(s, sub(t.lineup[2].uid, t.bench[0].uid, 1), 'host', c)).toBe(s);
+        expect(reduce(s, { k: 'unorder', seq: 1 }, 'host', c)).toBe(s);
+        // o reserva volta pro banco: outra troca com ele vale (seq novo)
+        s = reduce(s, sub(t.lineup[4].uid, t.bench[0].uid, 3), 'host', c);
+        expect(s.log.map((o) => o.seq)).toEqual([2, 3]);
+        // com o pronto dado não desfaz; tirando o pronto, desfaz
+        const ready = reduce(s, { k: 'htReady' }, 'host', c);
+        expect(reduce(ready, { k: 'unorder', seq: 3 }, 'host', c)).toBe(ready);
+        // as duas trocas entram no vestiário (antes da saída de bola do 2º tempo)
+        const m = runMatch(FUTSAL_5, home, away, 'base', { orders: ordersOf(s.log) });
+        const ht = m.events.find((e) => e.type === 'halftime')!.tick;
+        const ko = m.events.find((e) => e.type === 'kickoff' && e.tick > ht)!.tick;
+        const subs = m.events.filter((e) => e.type === 'sub' && e.team === 0);
+        expect(subs.map((e) => e.type === 'sub' && e.inUid)).toEqual([t.bench[1].uid, t.bench[0].uid]);
+        expect(subs.every((e) => e.tick > ht && e.tick <= ko)).toBe(true);
+        // troca desfeita = troca que nunca existiu
+        const never = runMatch(FUTSAL_5, home, away, 'base', {
+            orders: ordersOf(s.log.filter((o) => o.seq !== 3)),
+        });
+        const undoneLast = reduce(s, { k: 'unorder', seq: 3 }, 'host', c);
+        const viaUndo = runMatch(FUTSAL_5, home, away, 'base', { orders: ordersOf(undoneLast.log) });
+        expect(viaUndo.events).toEqual(never.events);
+    });
+
+    it('troca do 1º tempo que já aconteceu não desfaz; ordem do intervalo que chega no 2º tempo vale ao vivo', () => {
+        const HT = 3600;
+        let s = inMatch();
+        const t = s.teams.host!;
+        s = reduce(
+            s,
+            { k: 'order', order: { kind: 'sub', outUid: t.lineup[2].uid, inUid: t.bench[0].uid }, tick: 100, seq: 1 },
+            'host',
+            ctx(0, { tick: 100 }),
+        );
+        s = reduce(s, { k: 'atHalftime' }, 'host', ctx(1000));
+        expect(canUnorder(s, 'host', 1, HT)).toBe(false);
+        s = reduce(s, { k: 'htReady' }, 'host', ctx(1100));
+        s = reduce(s, { k: 'htReady' }, 'guest', ctx(1100));
+        s = tickTimers(s, ctx(1200));
+        expect(s.secondHalf).toBe(true);
+        s = reduce(
+            s,
+            {
+                k: 'order',
+                order: { kind: 'sub', outUid: t.lineup[3].uid, inUid: t.bench[1].uid },
+                tick: HT,
+                seq: 2,
+                ht: true,
+            },
+            'host',
+            ctx(1300, { tick: HT + 50, htTick: HT }),
+        );
+        expect(s.log.at(-1)?.tick).toBe(HT + 50 + leadTicks(4));
+    });
+
+    it('o host que volta não aceita troca desfeita do host feita pelo convidado', () => {
+        const s = inMatch();
+        expect(acceptTakeover(s, { ...s, rev: s.rev + 1, voided: { host: [1] } }, 0)).toBe(false);
+        expect(acceptTakeover(s, { ...s, rev: s.rev + 1, voided: { guest: [1] } }, 0)).toBe(true);
     });
 });
 
@@ -986,5 +1163,17 @@ describe('partida curta', () => {
         expect(s.game).toBe(2);
         expect(s.duration).toBe('short');
         expect(buildRegistro({ ...s, teams: inMatch().teams }, 1, '0.8.7').duration).toBe('short');
+    });
+});
+
+describe('Eevee no duelo', () => {
+    it('evolui pra mesma forma da carta: o lado da sala (~h/~g no uid) não muda o sorteio', () => {
+        const uids = Array.from({ length: 12 }, (_, i) => `133-${i}-eevee`);
+        for (const uid of uids) {
+            const card = evolutionTarget(133, uid);
+            expect(evolutionTarget(133, `${uid}~h`)).toBe(card);
+            expect(evolutionTarget(133, `${uid}~g`)).toBe(card);
+        }
+        expect(new Set(uids.map((u) => evolutionTarget(133, u))).size).toBeGreaterThan(1);
     });
 });

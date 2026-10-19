@@ -9,6 +9,7 @@ import { playSfx } from '../../game/audio';
 import { formationText } from '../../i18n';
 import { useT } from '../../i18n/react';
 import {
+    bothSealed,
     DUEL_ROUNDS,
     other,
     type PreviewCfg,
@@ -29,6 +30,7 @@ import { lineupAverage } from '../rating';
 import { LineupEditor } from '../screens/Lineup';
 import { reduceMotionOn } from '../settings-sync';
 import { useCountdown } from './DuelMatch';
+import { ReadyBar } from './ReadyBar';
 
 const avgOf = (t: TeamSetup) => lineupAverage(t.lineup, t.formation);
 
@@ -93,15 +95,21 @@ export function TeamPick({ s, role }: { s: Shared; role: Role }) {
     if (run && isDraftComplete(run) && run.lineup.length)
         options.push({ key: 'run', label: t('duel.team.current'), team: playerTeam(run, color) });
     for (const h of hall) options.push({ key: h.id, label: t('duel.team.hall', { n: h.titleNo }), team: hallTeam(h) });
-    if (sealed) {
+    // escolhido: o time fica à vista com o pronto (e o "Mudar algo" volta pra lista enquanto o rival não escolheu)
+    if (sealed || bothSealed(s)) {
         return (
             <div className="panel duel-center">
                 <h2>{t('duel.team.chosen')}</h2>
                 {chosen && <SquadStrip picks={[...chosen.lineup, ...chosen.bench]} />}
-                <p className="muted">{t('duel.team.sealed')}</p>
-                <p className="muted">
-                    <span className="duel-spinner" aria-hidden /> {t('duel.team.waiting', { name: rival })}
-                </p>
+                <ReadyBar
+                    mine={sealed}
+                    rival={!!s.choice?.seal[other(role)]}
+                    rivalName={rival}
+                    starting={bothSealed(s)}
+                    label=""
+                    onReady={() => {}}
+                    onUndo={() => duel.unsealChoice()}
+                />
             </div>
         );
     }
@@ -112,6 +120,15 @@ export function TeamPick({ s, role }: { s: Shared; role: Role }) {
                 <h1>{t('duel.team.title')}</h1>
             </header>
             <p className="muted">{specialRuleText(specialLimitOf(s), t)}</p>
+            {s.choice?.seal[other(role)] && (
+                <p className="ready-chip on" data-testid="ready-rival">
+                    <b>{rival}</b>
+                    <span>
+                        <i aria-hidden />
+                        {t('duel.ready.on')}
+                    </span>
+                </p>
+            )}
             {options.length === 0 && <p className="panel muted">{t('duel.team.none')}</p>}
             <div className="duel-team-list">
                 {options.map((o) => {
@@ -151,11 +168,7 @@ export function TeamPick({ s, role }: { s: Shared; role: Role }) {
                                         : tn('duel.team.tooManySpecials', specials, { max: limit })}
                                 </span>
                             )}
-                            {problems.length > 0 && (
-                                <span className="error-text small">
-                                    {t('duel.team.invalid', { why: problems.slice(0, 3).join(', ') })}
-                                </span>
-                            )}
+                            {problems.length > 0 && <span className="error-text small">{t('duel.team.invalid')}</span>}
                         </button>
                     );
                 })}
@@ -433,7 +446,6 @@ export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
         corner: team.corner ?? 'mixed',
         cornerTaker: team.cornerTakerUid ?? null,
     }));
-    const [captainNote, setCaptainNote] = useState(false);
     useEffect(() => {
         duel.previewDraft = cfg;
     }, [cfg]);
@@ -443,10 +455,7 @@ export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
         const order = [...cfg.order];
         const [i, j] = [idxOf(a), idxOf(b)];
         [order[i], order[j]] = [order[j], order[i]];
-        // o capitão começa jogando (a regra do lacre: sem isso a escalação não abre)
-        const benched = !!team.captainUid && !order.slice(0, 5).includes(team.captainUid);
-        setCaptainNote(benched);
-        if (!benched) setCfg({ ...cfg, order });
+        setCfg({ ...cfg, order });
     };
     const rivalAvg = avgOf(rivalTeam);
     return (
@@ -471,7 +480,7 @@ export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
                 tactic={cfg.tactic}
                 cornerPlan={cfg.corner ?? 'mixed'}
                 cornerTakerUid={cfg.cornerTaker ?? null}
-                locked={sealed}
+                locked={sealed || bothSealed(s)}
                 onFormation={(formation) => setCfg({ ...cfg, formation })}
                 onSwap={swap}
                 onTactic={(tactic) => setCfg({ ...cfg, tactic })}
@@ -505,20 +514,19 @@ export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
                                 n: rivalAvg,
                             })}
                         </p>
-                        <button
-                            type="button"
-                            className="btn primary wide"
-                            data-testid="duel-ready-btn"
-                            disabled={sealed}
-                            onClick={() => {
+                        <ReadyBar
+                            mine={sealed}
+                            rival={!!s.choice?.seal[rivalRole]}
+                            rivalName={rival}
+                            starting={bothSealed(s)}
+                            label={t('duel.preview.ready')}
+                            note={t('duel.ready.timeNote')}
+                            onReady={() => {
                                 playSfx('select');
                                 void duel.sealChoice(cfg);
                             }}
-                        >
-                            {sealed ? t('duel.preview.waiting', { name: rival }) : t('duel.preview.ready')}
-                        </button>
-                        <p className="tactic-desc">{sealed ? t('duel.preview.sealed') : t('duel.preview.lockNote')}</p>
-                        {captainNote && <p className="error-text">{t('duel.preview.captainStays')}</p>}
+                            onUndo={() => duel.unsealChoice()}
+                        />
                     </div>
                 }
             />

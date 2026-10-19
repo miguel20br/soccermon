@@ -1,0 +1,198 @@
+/*
+ * Vida da Home (0.8.9): selo AO VIVO na quadra, logo respirando, brilho no "Nova copa", faixa da semana com reflexo,
+ * Pikachu x Eevee do Duelo pulando e a entrada em cascata dos blocos. Só transform/opacity (nada de layout).
+ * Tudo para com "reduzir movimento" (do aparelho ou das Configurações) e a quadra para fora da tela (HomeCourt.tsx).
+ * Intensidade: `--hm` (1 = padrão). `?home=forte` na URL dobra (pra comparar).
+ */
+.home {
+    --hm: 1;
+}
+.home.home-forte {
+    --hm: 2;
+}
+
+/* ---------- quadra: selo "AO VIVO" da transmissão ---------- */
+.home-court .hc-live {
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 7px 1px 6px;
+    border-radius: 4px;
+    border-bottom: 2px solid var(--bc-edge);
+    background: var(--bc-ink);
+    color: var(--text);
+    font-family: "Galmuri11", monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    line-height: 14px;
+}
+.home-court .hc-live i {
+    position: static;
+    width: 7px;
+    height: 7px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--red);
+    animation: hm-blink 1.4s steps(1, end) infinite;
+}
+@keyframes hm-blink {
+    50% {
+        opacity: 0.2;
+    }
+}
+/* aba escondida ou quadra fora da tela: tudo parado onde estava */
+.home-court.paused,
+.home-court.paused * {
+    animation-play-state: paused;
+}
+
+/* ---------- logo respirando ---------- */
+.home-hero .logo-img img {
+    transform-origin: 50% 60%;
+    animation: hm-breathe 4.8s ease-in-out infinite;
+}
+@keyframes hm-breathe {
+    50% {
+        transform: translateY(calc(var(--hm) * -1.5px)) scale(calc(1 + var(--hm) * 0.012));
+    }
+}
+
+/* ---------- brilho correndo no "Nova copa" (só quando ele é o botão principal) ---------- */
+.home .new-run .btn.primary,
+.home .resume-card .rc-go {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+.home .new-run .btn.primary::after,
+.home .resume-card .rc-go::after {
+    content: "";
+    position: absolute;
+    inset: -3px auto -3px 0;
+    width: 40%;
+    background: linear-gradient(100deg, transparent, rgb(255 255 255 / 45%), transparent);
+    transform: translateX(-120%) skewX(-18deg);
+    pointer-events: none;
+    animation: hm-shine calc(5.2s / var(--hm)) var(--ease-out) 1.2s infinite;
+}
+@keyframes hm-shine {
+    0% {
+        transform: translateX(-120%) skewX(-18deg);
+    }
+    22%,
+    100% {
+        transform: translateX(320%) skewX(-18deg);
+    }
+}
+
+/* ---------- faixa da semana do tipo: reflexo passando ---------- */
+.home-top .event-banner {
+    overflow: hidden;
+}
+.home-top .event-banner::after {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 30%;
+    background: linear-gradient(100deg, transparent, rgb(255 255 255 / 14%), transparent);
+    transform: translateX(-120%) skewX(-18deg);
+    pointer-events: none;
+    animation: hm-sweep calc(8s / var(--hm)) ease-in-out 2.4s infinite;
+}
+@keyframes hm-sweep {
+    0% {
+        transform: translateX(-120%) skewX(-18deg);
+    }
+    18%,
+    100% {
+        transform: translateX(420%) skewX(-18deg);
+    }
+}
+
+/* ---------- Duelo: Pikachu e Eevee pulando um de cada vez, o VS pulsando ---------- */
+.duel-card-art img {
+    animation: hm-hop 1.6s ease-in-out infinite;
+}
+.duel-card-art img.flip {
+    animation-delay: 0.8s;
+}
+.duel-card-art b {
+    animation: hm-vs 1.6s ease-in-out infinite;
+}
+@keyframes hm-hop {
+    0%,
+    30%,
+    100% {
+        translate: 0 0;
+    }
+    15% {
+        translate: 0 calc(var(--hm) * -5px);
+    }
+}
+@keyframes hm-vs {
+    0%,
+    100% {
+        scale: 1;
+    }
+    50% {
+        scale: calc(1 + var(--hm) * 0.1);
+    }
+}
+
+/* ---------- entrada (só na 1ª abertura, .home-enter): faixa desliza, blocos em sequência ---------- */
+.home-enter .home-top .event-banner {
+    animation: hm-slide 0.5s var(--ease-out) both;
+}
+.home-enter .cup-card {
+    animation: home-rise 0.45s var(--ease-out) 0.1s both;
+}
+.home-enter .duel-card {
+    animation: home-rise 0.45s var(--ease-out) 0.18s both;
+}
+@keyframes hm-slide {
+    from {
+        opacity: 0;
+        transform: translateX(-24px);
+    }
+}
+
+/* ---------- reduzir movimento: tudo parado (o selo AO VIVO fica aceso) ---------- */
+@media (prefers-reduced-motion: reduce) {
+    .home-court .hc-live i,
+    .home-hero .logo-img img,
+    .home .new-run .btn.primary::after,
+    .home .resume-card .rc-go::after,
+    .home-top .event-banner::after,
+    .duel-card-art img,
+    .duel-card-art b,
+    .home-enter .home-top .event-banner,
+    .home-enter .cup-card,
+    .home-enter .duel-card {
+        animation: none;
+    }
+}
+:root[data-reduce-motion="true"] .home-court .hc-live i,
+:root[data-reduce-motion="true"] .home-hero .logo-img img,
+:root[data-reduce-motion="true"] .home .new-run .btn.primary::after,
+:root[data-reduce-motion="true"] .home .resume-card .rc-go::after,
+:root[data-reduce-motion="true"] .home-top .event-banner::after,
+:root[data-reduce-motion="true"] .duel-card-art img,
+:root[data-reduce-motion="true"] .duel-card-art b,
+:root[data-reduce-motion="true"] .home-enter .home-top .event-banner,
+:root[data-reduce-motion="true"] .home-enter .cup-card,
+:root[data-reduce-motion="true"] .home-enter .duel-card {
+    animation: none;
+}
+/* com o "reduzir movimento" das Configurações as animações acabam na hora (motion.css): a corrida da 1ª cena
+   ficaria fora da quadra. Parada no meio, igual ao reduzir do aparelho (styles.css). */
+:root[data-reduce-motion="true"] .home-parade img {
+    left: calc(8% + var(--i) * 12%);
+}
+:root[data-reduce-motion="true"] .hp-ball {
+    left: 3%;
+}

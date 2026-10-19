@@ -6,7 +6,9 @@
     "redirects": [
         { "source": "/tt", "destination": "/?utm_source=tiktok", "permanent": false },
         { "source": "/yt", "destination": "/?utm_source=youtube", "permanent": false },
-        { "source": "/ig", "destination": "/?utm_source=instagram", "permanent": false }
+        { "source": "/ig", "destination": "/?utm_source=instagram", "permanent": false },
+        { "source": "/privacidade", "destination": "/privacidade.html", "permanent": true },
+        { "source": "/privacy", "destination": "/privacy.html", "permanent": true }
     ],
     "headers": [
         {

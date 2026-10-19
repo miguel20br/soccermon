@@ -142,9 +142,21 @@ upando na 0.8.8"); o Duelo junta só telas do mesmo deploy (versão + `__APP_BUI
   (aviso de 10 s, `RIVAL_COACH.leadTicks` 200).
 - **Emotes 2 e conta** (`?lab=emotes&modo=copa`): rosto do capitão evoluído, silenciar, pose no "Vamooo!", líder da
   Copa reagindo; vincular a conta anônima do Duelo ao Google (`linkIdentity`).
-- **Pendente:** fórmula A (`docs/planos/patch-formula.md`, branch `formula-a`) parada: com o goleiro −3 o Dragonite
-  vira Fixo 91 em vez de Pivô; falta o Miguel decidir. Liga (branch `liga-pronta`) espera migração e Edge Function no
-  Supabase.
+- **Conquistas** (`?demo=platina`): tarefa cumprida em tudo que se ganha e a Platina da Gen 1 (Prof. Carvalho
+  holográfico, título Diploma de Kanto).
+- **UX** (pesquisa com jogadores): aba Tática simples (a tática segue "Ofensivo"; o grito do experimento é "Ataca!"),
+  aba Posições, sugestão de troca, fim de jogo sozinho em 3 s, gritos Modernos de padrão, boas-vindas em 3 páginas,
+  vestiário no intervalo (várias trocas com desfazer, "O rival trocou"; `?demo=vestiario`) e pronto com desfazer no
+  Duelo. O fôlego do intervalo é o do começo do 2º tempo em todo lugar.
+- **Home e 404** (`public/404.html`, `?home=forte`): selo AO VIVO e Psyduck "Fora de jogo!".
+- **Consertos** (bugs-2): capitão no banco no Time pronto, aviso de time inválido no idioma, shiny nas estatísticas,
+  "jogou" retroativo da forma de antes, o Duelo conta na Pokédex (`recordDuelDex`, mesmo `dexLines` da Copa) e a
+  animação da quadra sem folha carregada.
+- **Fórmula A** (`docs/planos/patch-formula.md`): Ala conta chute, Pivô conta velocidade, Dragonite Pivô 89, Eevee do
+  Duelo evolui pra forma da carta; `ENGINE_VERSION` 4.
+- **Liga** (Copa do Dia + Liga, branch `liga-pronta`): migração aplicada no Supabase em 19/10; falta publicar a Edge
+  Function `liga` (`npm run edge:liga` + `supabase functions deploy liga --project-ref vszcxacbcabohhdwxfpb`, precisa
+  do login da CLI) antes de subir a branch.
 
 ### 0.8.7 · Emotes, selos e faixa da torcida
 

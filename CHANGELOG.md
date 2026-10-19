@@ -6,15 +6,46 @@
 - Copa do Dia: a mesma copa pra todo mundo (mesmo draft, mesmos rivais), uma tentativa por dia e ranking do dia
 - Liga ranqueada: o time da sua copa vira um fantasma que outros enfrentam; você joga contra os deles e sobe no Elo, com divisões e temporada mensal (precisa de conta)
 
+### Balanceamento: Ala e Pivô
+- A nota do Ala agora conta o chute e a do Pivô, a velocidade (o jogo já usava os dois em quadra)
+- Nerf e ajuste: Jolteon Ala 92 ⇒ 88, Alakazam Ala 87 ⇒ 83, Electrode Ala 84 ⇒ 80, Gengar Ala 86 ⇒ 83, Pikachu Ala 66 ⇒ 63, Dragonite Pivô 90 ⇒ 89
+- Buff: Tauros Pivô 75 ⇒ 77, Scyther Pivô 79 ⇒ 80, Victreebel Pivô 75 ⇒ Ala 76
+- Mudam de posição: Kingler, Cloyster, Kabutops e Exeggutor viram Fixo; Rapidash, Dugtrio e Primeape viram Pivô; Mr. Mime vira Goleiro
+- Duelo: Eevee evolui pra mesma forma que a carta mostra
+- Partida salva no meio de um jogo recomeça do 0 a 0 (o motor mudou)
+
 ### Melhores momentos
 - Depois da partida, reveja os gols e lances em câmera lenta na própria quadra
 - Gol da copa: no fim da copa, o seu gol mais bonito ganha replay e o porquê da escolha
 - Exporte um clipe vertical (9:16) do lance pra mandar ou postar no TikTok
 
+### Mais fácil de jogar
+- Aba Tática com textos simples e uma régua de ataque e defesa em cada estilo
+- A aba Prancheta virou Posições, sem o botão "Mudar prancheta"
+- No intervalo, o jogo sugere uma troca pelo fôlego do 2º tempo (a escolha é sua)
+- Fim de jogo: vai sozinho pro resultado em 3 s; um toque na quadra segura
+- Evolução do rival mais clara: mais longa, com zoom, nome e cor do time e um lembrete no Resultado
+- Gritos dos Pokémon: os Modernos viraram o padrão, com o mesmo volume pra todos (os Clássicos 8-bit continuam em Configurações)
+- Textos mais simples no jogo todo e boas-vindas em 3 páginas, com dicas na hora certa
+- Experimento beira da quadra: o grito "Pra cima!" virou "Ataca!"
+
+### Vestiário e pronto
+- Intervalo vira vestiário: várias trocas de uma vez, cada uma com desfazer, e o aviso de quem o rival trocou
+- Duelo: o pronto dá pra desfazer na escolha do time, na escalação e no intervalo
+- O fôlego do intervalo é o mesmo em todo lugar: o com que cada um começa o 2º tempo
+
+### Tela inicial
+- Tela inicial com mais vida: selo AO VIVO na quadra, logo respirando e os blocos entrando em cascata (para com "reduzir movimento")
+- Página de erro nova: o Psyduck perdeu a bola pra fora da quadra
+
 ### Medalhas e clube
 - 20 medalhas com degraus (bronze, prata, ouro e platina) em Perfil → Medalhas. Já contam tudo o que você jogou
 - Vitrine: escolha até 3 destaques (medalha, coleção completa ou selo); aparecem no seu cartão e no VERSUS do Duelo, e o melhor vira a moldura do avatar
 - Escudo montável (formato, símbolo e duas cores) e uniforme com padrão, no placar, no VERSUS e na quadra. Símbolos e padrões novos saem com coleções e medalhas
+
+### Conquistas
+- Tudo que você ganha agora mostra a tarefa cumprida: no aviso, na escolha de treinador e na de título
+- Nova Platina da Gen 1: faça 100% de tudo e ganhe o Prof. Carvalho holográfico e o título Diploma de Kanto
 
 ### Treinadores e quadras
 - Os líderes de ginásio agora falam antes e depois do jogo, e cada clube joga na quadra do seu ginásio
@@ -33,6 +64,11 @@
 - O Ícone que chega como reforço na recompensa também conta nos Ícones escalados
 - Duelo (Time pronto): cartas evoluídas levam o bônus de evolução, espécie repetida por evolução é aceita e quem não tem time não trava a sala
 - Duelo: a troca feita no fim do intervalo não volta mais no tempo
+- Conserto de um erro raro da quadra quando a animação de um Pokémon ainda não tinha carregado
+- O Duelo agora conta na Pokédex: quem joga pelo seu time vira 'jogou'
+- Copas guardadas dão o "jogou" da forma de antes de quem evoluiu em quadra
+- Pokémon shiny aparecem shiny nas estatísticas: destaques, tabela, prêmios e final
+- Duelo (Time pronto): capitão no banco é aceito, e o aviso de time inválido sai no idioma do jogo
 
 ## 0.8.7 · Emotes, selos e faixa da torcida
 

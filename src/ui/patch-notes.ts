@@ -18,6 +18,17 @@ export const PATCH_NOTES: PatchNotes[] = [
                 ],
             },
             {
+                title: 'Balanceamento: Ala e Pivô',
+                lines: [
+                    'A nota do Ala agora conta o chute e a do Pivô, a velocidade (o jogo já usava os dois em quadra)',
+                    'Nerf e ajuste: Jolteon Ala 92 ⇒ 88, Alakazam Ala 87 ⇒ 83, Electrode Ala 84 ⇒ 80, Gengar Ala 86 ⇒ 83, Pikachu Ala 66 ⇒ 63, Dragonite Pivô 90 ⇒ 89',
+                    'Buff: Tauros Pivô 75 ⇒ 77, Scyther Pivô 79 ⇒ 80, Victreebel Pivô 75 ⇒ Ala 76',
+                    'Mudam de posição: Kingler, Cloyster, Kabutops e Exeggutor viram Fixo; Rapidash, Dugtrio e Primeape viram Pivô; Mr. Mime vira Goleiro',
+                    'Duelo: Eevee evolui pra mesma forma que a carta mostra',
+                    'Partida salva no meio de um jogo recomeça do 0 a 0 (o motor mudou)',
+                ],
+            },
+            {
                 title: 'Melhores momentos',
                 lines: [
                     'Depois da partida, reveja os gols e lances em câmera lenta na própria quadra',
@@ -26,11 +37,46 @@ export const PATCH_NOTES: PatchNotes[] = [
                 ],
             },
             {
+                title: 'Mais fácil de jogar',
+                lines: [
+                    'Aba Tática com textos simples e uma régua de ataque e defesa em cada estilo',
+                    'A aba Prancheta virou Posições, sem o botão "Mudar prancheta"',
+                    'No intervalo, o jogo sugere uma troca pelo fôlego do 2º tempo (a escolha é sua)',
+                    'Fim de jogo: vai sozinho pro resultado em 3 s; um toque na quadra segura',
+                    'Evolução do rival mais clara: mais longa, com zoom, nome e cor do time e um lembrete no Resultado',
+                    'Gritos dos Pokémon: os Modernos viraram o padrão, com o mesmo volume pra todos (os Clássicos 8-bit continuam em Configurações)',
+                    'Textos mais simples no jogo todo e boas-vindas em 3 páginas, com dicas na hora certa',
+                    'Experimento beira da quadra: o grito "Pra cima!" virou "Ataca!"',
+                ],
+            },
+            {
+                title: 'Vestiário e pronto',
+                lines: [
+                    'Intervalo vira vestiário: várias trocas de uma vez, cada uma com desfazer, e o aviso de quem o rival trocou',
+                    'Duelo: o pronto dá pra desfazer na escolha do time, na escalação e no intervalo',
+                    'O fôlego do intervalo é o mesmo em todo lugar: o com que cada um começa o 2º tempo',
+                ],
+            },
+            {
+                title: 'Tela inicial',
+                lines: [
+                    'Tela inicial com mais vida: selo AO VIVO na quadra, logo respirando e os blocos entrando em cascata (para com "reduzir movimento")',
+                    'Página de erro nova: o Psyduck perdeu a bola pra fora da quadra',
+                ],
+            },
+            {
                 title: 'Medalhas e clube',
                 lines: [
                     '20 medalhas com degraus (bronze, prata, ouro e platina) em Perfil → Medalhas. Já contam tudo o que você jogou',
                     'Vitrine: escolha até 3 destaques (medalha, coleção completa ou selo); aparecem no seu cartão e no VERSUS do Duelo, e o melhor vira a moldura do avatar',
                     'Escudo montável (formato, símbolo e duas cores) e uniforme com padrão, no placar, no VERSUS e na quadra. Símbolos e padrões novos saem com coleções e medalhas',
+                ],
+            },
+            {
+                title: 'Conquistas',
+                lines: [
+                    'Tudo que você ganha agora mostra a tarefa cumprida: no aviso, na escolha de treinador e na de título',
+                    'Nova Platina da Gen 1: faça 100% de tudo e ganhe o Prof. Carvalho holográfico e o título Diploma de Kanto',
                 ],
             },
             {
@@ -58,6 +104,11 @@ export const PATCH_NOTES: PatchNotes[] = [
                     'O Ícone que chega como reforço na recompensa também conta nos Ícones escalados',
                     'Duelo (Time pronto): cartas evoluídas levam o bônus de evolução, espécie repetida por evolução é aceita e quem não tem time não trava a sala',
                     'Duelo: a troca feita no fim do intervalo não volta mais no tempo',
+                    'Conserto de um erro raro da quadra quando a animação de um Pokémon ainda não tinha carregado',
+                    "O Duelo agora conta na Pokédex: quem joga pelo seu time vira 'jogou'",
+                    'Copas guardadas dão o "jogou" da forma de antes de quem evoluiu em quadra',
+                    'Pokémon shiny aparecem shiny nas estatísticas: destaques, tabela, prêmios e final',
+                    'Duelo (Time pronto): capitão no banco é aceito, e o aviso de time inválido sai no idioma do jogo',
                 ],
             },
         ],
@@ -602,6 +653,17 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 ],
             },
             {
+                title: 'Balance: Winger and Pivot',
+                lines: [
+                    "The Winger rating now counts shooting and the Pivot's counts pace (the game already used both on court)",
+                    'Nerf and tweak: Jolteon Winger 92 ⇒ 88, Alakazam Winger 87 ⇒ 83, Electrode Winger 84 ⇒ 80, Gengar Winger 86 ⇒ 83, Pikachu Winger 66 ⇒ 63, Dragonite Pivot 90 ⇒ 89',
+                    'Buff: Tauros Pivot 75 ⇒ 77, Scyther Pivot 79 ⇒ 80, Victreebel Pivot 75 ⇒ Winger 76',
+                    'Position changes: Kingler, Cloyster, Kabutops and Exeggutor become Defender; Rapidash, Dugtrio and Primeape become Pivot; Mr. Mime becomes Goalkeeper',
+                    'Duel: Eevee evolves into the same form the card shows',
+                    'A match saved midway restarts at 0-0 (the engine changed)',
+                ],
+            },
+            {
                 title: 'Highlights',
                 lines: [
                     'After the match, rewatch the goals and big plays in slow motion on the court itself',
@@ -610,11 +672,46 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 ],
             },
             {
+                title: 'Easier to play',
+                lines: [
+                    'Tactics tab with plain texts and an attack and defense meter on each style',
+                    'The Board tab is now Positions, without the "Change board" button',
+                    'At halftime the game suggests a sub based on second-half stamina (your call)',
+                    'Full time: goes to the result on its own in 3 s; one tap on the court holds it',
+                    "The rival's evolution is clearer: longer, with zoom, the team's name and color and a reminder on the Result",
+                    'Pokémon cries: Modern is now the default, with the same volume for all (Classic 8-bit is still in Settings)',
+                    'Simpler texts across the game and a 3-page welcome, with tips at the right time',
+                    'Touchline experiment: the "Push up!" shout is now "Attack!"',
+                ],
+            },
+            {
+                title: 'Locker room and ready',
+                lines: [
+                    'Halftime becomes a locker room: several subs at once, each with undo, and a note on who the rival subbed',
+                    'Duel: you can undo ready when picking the team, in the lineup and at halftime',
+                    'Halftime stamina is the same everywhere: the stamina each player starts the 2nd half with',
+                ],
+            },
+            {
+                title: 'Home screen',
+                lines: [
+                    'A livelier home screen: LIVE badge on the court, a breathing logo and blocks that cascade in (stops with "reduce motion")',
+                    'New error page: Psyduck kicked the ball off the court',
+                ],
+            },
+            {
                 title: 'Medals and club',
                 lines: [
                     '20 tiered medals (bronze, silver, gold and platinum) in Profile → Medals. Everything you already played counts',
                     'Showcase: pick up to 3 highlights (medal, completed collection or seal); they show on your card and on the Duel VERSUS, and the best one becomes your avatar frame',
                     'Build your crest (shape, symbol and two colors) and a kit with a pattern, on the scoreboard, the VERSUS and the court. New symbols and patterns unlock with collections and medals',
+                ],
+            },
+            {
+                title: 'Achievements',
+                lines: [
+                    'Everything you unlock now shows the task you completed: in the notice and when picking a trainer or a title',
+                    'New Gen 1 Platinum: get 100% of everything and earn the holographic Prof. Oak and the Kanto Diploma title',
                 ],
             },
             {
@@ -642,6 +739,11 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'An Icon that joins as a reward also counts toward fielded Icons',
                     'Duel (Ready team): evolved cards get their evolution bonus, a species repeated through evolution is accepted and a player without a team no longer stalls the room',
                     'Duel: a sub made at the end of halftime no longer goes back in time',
+                    "Fixed a rare court error when a Pokémon's animation hadn't loaded yet",
+                    "Duel now counts in the Pokédex: whoever plays for your team becomes 'played'",
+                    'Saved cups give "played" to the earlier form of whoever evolved on court',
+                    'Shiny Pokémon show as shiny in the stats: highlights, table, awards and final',
+                    'Duel (Ready team): a benched captain is accepted, and the invalid team notice shows in the game language',
                 ],
             },
         ],

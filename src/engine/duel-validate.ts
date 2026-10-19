@@ -168,7 +168,8 @@ export function validarTimeDuelo(r: unknown, specialLimit: SpecialLimit = null):
     // a cópia a mais tem que ter evoluído
     const fresh = all.filter((m) => !m?.evolved).map((m) => m?.speciesId);
     if (new Set(fresh).size !== fresh.length) out.push('espécie repetida');
-    if (!Number.isInteger(t.captain) || t.captain < -1 || t.captain >= 5) out.push('capitão');
+    // o capitão pode estar no banco (a copa deixa: ele entra depois)
+    if (!Number.isInteger(t.captain) || t.captain < -1 || t.captain >= all.length) out.push('capitão');
     if (t.corner !== undefined && !CORNER_PLANS.includes(t.corner)) out.push('escanteio');
     // o cobrador tem que ser alguém do time (ou o automático do motor)
     if (

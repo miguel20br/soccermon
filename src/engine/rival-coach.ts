@@ -218,12 +218,14 @@ export class RivalCoach {
         const field = s.players.filter((p) => p.team === team && p.role !== 'GK');
         const energy = field.reduce((a, p) => a + p.energy, 0) / (field.length || 1);
         const calls: CoachCall[] = [];
-        // tempo e golpe máximo não saem no último minuto e meio de cada tempo (o apito engoliria os dois)
+        // grito, tempo e golpe máximo não saem no último minuto e meio de cada tempo: a ordem só vale `leadTicks`
+        // depois (10 s, ~1 minuto do relógio) e o apito engoliria o que a narração já avisou
         const h = s.half - 1;
         const halfEnd = s.cfg.displayHalfMinutes * s.half - 1.5;
 
-        // grito: um por vez, com sobra e fora da recarga (a ordem só entra `leadTicks` depois)
+        // grito: um por vez, com sobra e fora da recarga
         const free =
+            min < halfEnd &&
             ag.shoutsUsed < AGENCY.shoutLimit &&
             tick >= ag.shoutReadyAt &&
             s.tick > this.lastShout + RIVAL_COACH.leadTicks;

@@ -156,3 +156,24 @@ em tudo" na regra única de `modifiers.ts`). Charmander que vira Charizard: 89 c
 
 Quem draftou mirando evolução: oitavas 66% → 62%, semi 55% → 66%, final 60% → 68%. O rival que evolui no meio da
 partida também ganha o bônus. `ENGINE_VERSION` 3.
+
+## Fórmula A: aprovada pelo Miguel em 19/10
+
+A nota do Ala passa a contar chute e a do Pivô, velocidade (o motor já usava os dois). Ala: velocidade 25, drible 25,
+passe 20, chute 15, fôlego 15. Pivô: chute 30, força 30, drible 15, posicionamento 15, velocidade 10. Dragonite segue
+Pivô (90 ⇒ 89; `SPECIES_TUNING` goleiro −5, desarme −6, chute +4, força +2). Proposta, tabelas e ressalvas em
+[patch-formula.md](patch-formula.md). `ENGINE_VERSION` 4.
+
+| Exemplo | Antes | Depois |
+|---|---|---|
+| Jolteon | Ala 92 | Ala 88 |
+| Alakazam | Ala 87 | Ala 83 |
+| Electrode | Ala 84 | Ala 80 |
+| Pikachu | Ala 66 (prata) | Ala 63 (bronze) |
+| Tauros | Pivô 75 | Pivô 77 |
+| Kingler | Pivô 78 | Fixo 78 |
+| Rapidash | Ala 83 | Pivô 82 |
+| Mr. Mime | Ala 80 | Goleiro 77 |
+| Dragonite | Pivô 90 | Pivô 89 |
+
+Calibragem (400 partidas): 6,84 gols por jogo (meta 5–7), favorito vence 62,6% (meta 60–65%), goleadas 1,8%.

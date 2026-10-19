@@ -317,7 +317,14 @@ export function CupGoalCard({ run, match }: { run: RunState; match: MatchResult 
     };
     return (
         <section className="bc-surface bc-stripe cupgoal" aria-label={t('moments.cup.h')}>
-            <img className="pixel" src={cardSprite({ speciesId: pick.goal.speciesId, shiny: false })} alt="" />
+            <img
+                className="pixel"
+                src={cardSprite({
+                    speciesId: pick.goal.speciesId,
+                    shiny: !!run.picks.find((p) => p.uid === pick.goal.uid)?.shiny,
+                })}
+                alt=""
+            />
             <span className="bc-lbl">{t('moments.cup.h')}</span>
             <span className="cupgoal-line">
                 {t('moments.cup.line', {

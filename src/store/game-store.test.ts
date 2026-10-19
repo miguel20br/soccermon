@@ -17,6 +17,7 @@ import { profile as enProfile } from '../i18n/en/profile';
 import { profile as ptProfile } from '../i18n/pt/profile';
 import { type DuelRecord, mergeDuels } from './duels';
 import {
+    DEFAULT_SETTINGS,
     liveOf,
     markEvolvedPlayed,
     migrateSave,
@@ -337,6 +338,16 @@ describe('evolução em quadra na Pokédex', () => {
         expect(dex[53].matches).toBe(1);
         expect(markEvolvedPlayed(dex, [{ picks: [persian] } as unknown as RunState])).toBe(dex);
     });
+
+    it('copas guardadas dão o "jogou" da forma de antes pelas evoluções do resumo de cada partida', () => {
+        const run = {
+            picks: [],
+            results: [{ stats: { players: [], digest: { evolutions: [{ uid: 'x', from: 4, into: 5 }] } } }],
+        } as unknown as RunState;
+        const dex = markEvolvedPlayed({ 5: { ...EMPTY_ENTRY, matches: 1 } }, [run]);
+        expect(dex[4].matches).toBe(1);
+        expect(markEvolvedPlayed(dex, [run])).toBe(dex);
+    });
 });
 
 describe('gol da copa: replay guardado no save', () => {
@@ -419,6 +430,39 @@ describe('Pokédex com evolução no meio da partida', () => {
     });
 });
 
+describe('Duelo na Pokédex', () => {
+    it('quem jogou pelo seu lado vira "jogou" (as duas formas de quem evoluiu), o rival fica "visto"', () => {
+        const rng = new Rng('duelo-dex', 'team');
+        const mk = (ids: number[], name: string, evo?: number) => {
+            const ps = ids.map((id) => ({ ...createInstance(id, rng), ...(evo ? { evo } : {}) }));
+            return {
+                name,
+                lineup: ps.slice(0, 5),
+                bench: ps.slice(5),
+                tactic: 'balanced' as const,
+                color: 0x3a7bd5,
+                formation: '1-2-1' as const,
+                captainUid: ps[0].uid,
+                manualSubs: true,
+            };
+        };
+        const host = mk([95, 111, 74, 27, 50], 'Anfitrião');
+        const guest = mk([1, 4, 7, 60, 66, 92, 147], 'Convidado', 13.5);
+        const m = runMatch(FUTSAL_5, host, guest, 'duelo-dex-0');
+        const ev = m.events.find((e) => e.type === 'evolve' && e.team === 1 && e.minute >= 2);
+        expect(ev?.type).toBe('evolve');
+        if (ev?.type !== 'evolve') return;
+        useGame.setState({ dex: {} });
+        useGame.getState().recordDuelDex(m, 1);
+        const dex = useGame.getState().dex;
+        expect(dex[ev.from].matches).toBe(1);
+        expect(dex[ev.into].matches).toBe(1);
+        // o anfitrião é o rival de quem gravou: visto, não jogou
+        expect(dex[95]).toBeDefined();
+        expect(dex[95].matches).toBe(0);
+    });
+});
+
 describe('Ícones escalados', () => {
     it('Ícone que chega como reforço na recompensa também conta (antes só o do draft)', () => {
         useGame.getState().newRun('Pallet FC', 'icone-reforco');
@@ -452,5 +496,19 @@ describe('sequência de títulos', () => {
         useGame.setState({ records, run: { ...useGame.getState().run!, status: 'champion' } });
         useGame.getState().newRun('Pallet FC', 'seq-c');
         expect(useGame.getState().records.streak).toBe(3);
+    });
+});
+
+describe('estilo dos gritos: o padrão virou o Novo (0.8.9)', () => {
+    it('save antigo no Gen 1 sem ter escolhido conta como padrão e vai pro Novo', () => {
+        const old = { ...DEFAULT_SETTINGS, cries: 'legacy' as const, criesChosen: undefined };
+        expect(migrateSave({ settings: old }, SAVE_VERSION).settings.cries).toBe('latest');
+    });
+    it('quem escolheu em Configurações fica com o que escolheu', () => {
+        const chosen = { ...DEFAULT_SETTINGS, cries: 'legacy' as const, criesChosen: true };
+        expect(migrateSave({ settings: chosen }, SAVE_VERSION).settings.cries).toBe('legacy');
+    });
+    it('jogador novo começa no Novo', () => {
+        expect(DEFAULT_SETTINGS.cries).toBe('latest');
     });
 });

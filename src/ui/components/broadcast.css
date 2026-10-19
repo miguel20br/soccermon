@@ -349,6 +349,107 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
 }
+/* peça da tática: nome, o que muda em palavras simples e a régua ataque/defesa */
+.bc .tac-tile {
+    position: relative;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: 2px;
+}
+.tac-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+.tac-head .hud-icon {
+    flex: none;
+    width: 18px;
+    height: 18px;
+}
+.bc .tac-tile small {
+    font-size: 11px;
+    line-height: 1.2;
+    color: var(--text);
+    opacity: 0.85;
+}
+.tac-meter {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+}
+.bc-dots {
+    display: inline-flex;
+    gap: 2px;
+    margin-right: 4px;
+}
+.bc-dots i {
+    width: 7px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgb(255 255 255 / 14%);
+}
+.bc-dots.atk i.on {
+    background: var(--yellow);
+}
+.bc-dots.def i.on {
+    background: #7fc4ff;
+}
+.tac-on {
+    position: absolute;
+    top: -9px;
+    right: 6px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--yellow);
+    color: var(--bc-ink);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+/* aviso curto depois de tocar numa tática */
+.tac-note {
+    margin: 0;
+    padding: 6px 10px;
+    border-left: 4px solid var(--yellow);
+    border-radius: 0 6px 6px 0;
+    background: var(--bg-2);
+    font-size: 12px;
+    animation: tac-note-in 0.2s ease-out both;
+}
+@keyframes tac-note-in {
+    from {
+        opacity: 0;
+        translate: 0 -4px;
+    }
+}
+:root[data-reduce-motion="true"] .tac-note {
+    animation: none;
+}
+/* escanteio: ícone, nome e pra que serve */
+.bc .corner-seg button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    padding-block: 4px;
+}
+.corner-seg .hud-icon {
+    width: 16px;
+    height: 16px;
+}
+.corner-seg small {
+    font-size: 9px;
+    font-weight: 400;
+    opacity: 0.85;
+    white-space: normal;
+    line-height: 1.1;
+}
 .bc-subbtn:active:not(:disabled),
 .bc-skip:active:not(:disabled) {
     transform: translateY(2px);
@@ -442,6 +543,66 @@
 }
 .bc-result {
     flex: 1;
+}
+/* fim de jogo: o botão enche enquanto conta os segundos pra ir sozinho */
+.bc-thumb .bc-result.counting {
+    background-image: linear-gradient(90deg, rgb(0 0 0 / 0%) calc(var(--fill, 0) * 100%), rgb(255 255 255 / 25%) 0);
+}
+.bc-thumb .bc-result.counting {
+    white-space: nowrap;
+}
+.bc-stay {
+    flex: none;
+    min-height: 44px;
+    font-size: 12px;
+}
+/* faixa grande do fim de jogo por cima da quadra */
+.final-banner {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 6;
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    max-width: calc(100% - 24px);
+    padding: 8px 20px;
+    border: 3px solid #f4f1e6;
+    border-radius: 10px;
+    background: rgb(14 20 48 / 94%);
+    box-shadow: 0 4px 0 rgb(0 0 0 / 40%);
+    pointer-events: none;
+    text-align: center;
+    translate: -50% -50%;
+    animation: final-in 0.35s cubic-bezier(0.2, 0.9, 0.25, 1.2) both;
+}
+.final-banner b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: clamp(24px, 6vw, 44px);
+    line-height: 1.05;
+    color: #f4f1e6;
+}
+.final-banner span {
+    font-size: clamp(12px, 2.2vw, 16px);
+    overflow-wrap: anywhere;
+}
+.final-banner.win {
+    border-color: var(--yellow);
+}
+.final-banner.win b {
+    color: var(--yellow);
+}
+.final-banner.loss {
+    border-color: #e94b4b;
+}
+@keyframes final-in {
+    from {
+        opacity: 0;
+        scale: 0.8;
+    }
+}
+:root[data-reduce-motion="true"] .final-banner {
+    animation: none;
 }
 .bc-speed-ask {
     flex: 1;
@@ -559,6 +720,12 @@
         border-radius: 0;
     }
 }
+/* celular em pé: o Substituir vem primeiro na aba Tática (com o texto das peças ele ficava abaixo da dobra) */
+@media (max-width: 480px) {
+    .bc-pane .bc-subbtn {
+        order: -1;
+    }
+}
 /* 320: peças da tática mais justas */
 @media (max-width: 380px) {
     .bc .bc-tile {
@@ -640,6 +807,34 @@
     .bc .ht-panel > small {
         display: none;
     }
+    /* vestiário com várias trocas: cabe entre o placar e a barra de baixo, e rola dentro do painel */
+    .bc .ht-panel {
+        max-height: calc(100svh - 108px - var(--bc-thumb-h) - env(safe-area-inset-bottom));
+        overflow-y: auto;
+    }
+    /* deitado, os botões (e o pronto do duelo) vêm antes das listas de trocas: o que se toca fica à vista */
+    .bc .ht-panel .ht-actions,
+    .bc .ht-panel .duel-ht {
+        order: 1;
+    }
+    .bc .ht-panel .ht-subs {
+        order: 2;
+    }
+    /* duelo deitado: a dica sai pra caber o pronto (quem está pronto e o botão) */
+    .bc .ht-panel:has(.ready-bar) .ht-tip {
+        display: none;
+    }
+    /* pronto do duelo numa linha só (nome e bolinha) */
+    .bc .ready-bar.compact .ready-chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 8px;
+    }
+    .bc .ht-subs li {
+        min-height: 26px;
+        font-size: 12px;
+    }
     .panel.bc-coach {
         grid-area: coach;
         margin-top: 0;
@@ -674,14 +869,15 @@
         padding: 4px 6px;
         gap: 6px;
     }
-    .bc .bc-tile small {
-        display: none;
-    }
     .bc .bc-tile b {
         font-size: 12px;
     }
     .bc .bc-seg button {
         min-height: 32px;
+    }
+    /* coluna estreita e baixa: o Substituir vem primeiro (não fica escondido embaixo das peças) */
+    .bc-pane .bc-subbtn {
+        order: -1;
     }
     .bc-subbtn {
         min-height: 40px;
