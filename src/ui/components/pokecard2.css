@@ -3549,3 +3549,45 @@ button.pc2.pc2-fx:hover {
 .m-stats .m-mod.down {
     background: #c9302c;
 }
+
+/* galeria: proposta do selo de carreira na carta (só aqui; nada liga fora da ?cards=1) */
+.cg-seal-intro,
+.cg-seal-group > p {
+    margin: 4px 0 10px;
+    font-size: 12px;
+}
+.cg-seal-group h3 {
+    margin: 14px 0 0;
+    font-size: 14px;
+}
+.cg-seal {
+    position: relative;
+}
+.cg-seal-mark {
+    position: absolute;
+    z-index: 20;
+    pointer-events: none;
+    height: auto;
+}
+/* A: no pé da coluna da nota/posição/tipo, logo acima do nome (abaixo da seta de evolução) */
+.cg-seal-arte .cg-seal-mark {
+    left: 7.5%;
+    top: 50.5%;
+    width: 11%;
+}
+/* B: na ponta direita da faixa do nome */
+.cg-seal-nome .cg-seal-mark {
+    right: 6%;
+    top: 64.5%;
+    width: 8%;
+}
+/* C: lacre na borda de baixo, metade pra fora */
+.cg-seal-cera .cg-seal-mark {
+    left: 50%;
+    bottom: 0;
+    width: 13%;
+    transform: translate(-50%, 45%);
+}
+.cg-seal-cera {
+    margin-bottom: 14px;
+}

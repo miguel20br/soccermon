@@ -1,4 +1,5 @@
 /** Ícones pequenos do Perfil, desenhados em SVG (nada de emoji). */
+import type { CareerSeal } from '../../store/profile';
 
 /** Bolinha de futsal: marca quem já jogou pelo seu time. */
 export function BallMark({ className = 'pf-ball' }: { className?: string }) {
@@ -104,6 +105,69 @@ export function ChampionRibbon({ n, className = 'pf-ribbon' }: { n: number; clas
             >
                 {n}
             </text>
+        </svg>
+    );
+}
+
+// selo de carreira: hexágono facetado com a borda de baixo preta do placar (visual da transmissão)
+const HEX: [number, number][] = [
+    [12, 1.5],
+    [21.1, 6.75],
+    [21.1, 17.25],
+    [12, 22.5],
+    [2.9, 17.25],
+    [2.9, 6.75],
+];
+const hexPath = (dy = 0) => `M${HEX.map(([x, y]) => `${x} ${y + dy}`).join(' L')} Z`;
+const facet = (i: number) => {
+    const [a, b] = [HEX[i], HEX[(i + 1) % 6]];
+    return `M12 12 L${a[0]} ${a[1]} L${b[0]} ${b[1]} Z`;
+};
+/** Cor de cada faceta (a partir da de cima à direita, no sentido do relógio). */
+const SEAL_FACETS: Record<CareerSeal, string[]> = {
+    folha: ['#e6ebf3', '#aeb8ca', '#7f8aa2', '#97a2b7', '#c9d1de', '#f7f9fc'],
+    holo: ['#ff9ad5', '#ffd36b', '#a6f08a', '#7fe0ff', '#a99bff', '#ffb3a3'],
+    prisma: ['#7a6cd6', '#5f53b8', '#483e98', '#5a4fb0', '#6c5fc8', '#8d7fe6'],
+    ouro: ['#4a3a17', '#33280f', '#211907', '#2c220c', '#3d3013', '#5a4719'],
+};
+
+/** Selo de carreira da espécie (Folha, Holo, Prisma, Ouro escuro). Só enfeite da Pokédex: não muda a carta. */
+export function CareerSealIcon({ seal, className = 'pf-seal' }: { seal: CareerSeal; className?: string }) {
+    return (
+        <svg className={className} viewBox="0 0 24 25" aria-hidden>
+            <path d={hexPath(1.6)} fill="#000" />
+            {SEAL_FACETS[seal].map((c, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: as 6 facetas são fixas
+                <path key={i} d={facet(i)} fill={c} />
+            ))}
+            {seal === 'folha' && <path d="M7 15 L15 5 L17 6.4 L9 16.4 Z" fill="#fff" opacity="0.7" />}
+            {seal === 'holo' && (
+                <path d="M12 7.2 L16.2 9.6 V14.4 L12 16.8 L7.8 14.4 V9.6 Z" fill="#fff" opacity="0.75" />
+            )}
+            {seal === 'prisma' && (
+                <>
+                    <path d="M3.2 13.8 L9 12.2" stroke="#fff" strokeWidth="1.4" strokeLinecap="round" />
+                    <path d="M12 12.8 L12 4.8 L18.6 16.8 Z" fill="#ff6ad5" />
+                    <path d="M12 12.8 L18.6 16.8 L5.4 16.8 Z" fill="#ffe066" />
+                    <path d="M12 12.8 L5.4 16.8 L12 4.8 Z" fill="#5fe3ff" />
+                </>
+            )}
+            {seal === 'ouro' && (
+                <>
+                    <path
+                        d={hexPath()}
+                        fill="none"
+                        stroke="#d9b23c"
+                        strokeWidth="1.3"
+                        transform="translate(3 3) scale(0.75)"
+                    />
+                    <path
+                        d="M12 6.6 L13.5 10.3 L17.4 10.5 L14.4 13 L15.4 16.8 L12 14.7 L8.6 16.8 L9.6 13 L6.6 10.5 L10.5 10.3 Z"
+                        fill="#f2c230"
+                    />
+                </>
+            )}
+            <path d={hexPath()} fill="none" stroke="#0e1430" strokeWidth="1.4" strokeLinejoin="round" />
         </svg>
     );
 }

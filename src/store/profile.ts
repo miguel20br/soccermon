@@ -1,3 +1,4 @@
+import { SPECIES } from '../engine/data';
 import type { PlayerLine } from '../engine/match-stats';
 import type { MatchResult } from '../engine/runners/batch-runner';
 import { EVENT_TYPES, ICONS, type SpecialKind } from '../engine/specials';
@@ -265,6 +266,32 @@ export function recordEditions(dex: Dex, played: Iterable<[number, number]>): De
     }
     return out ?? dex;
 }
+
+/**
+ * Selo de carreira por espécie (só cosmético, não mexe na carta): sai do que a Dex já conta, então é retroativo.
+ * Cada degrau olha um número próprio e vale o mais alto que a espécie alcançou:
+ * Folha = 10 partidas, Holo = 25 gols, Prisma = 5 títulos, Ouro escuro = Prisma + Kanto completo (os 151 jogaram
+ * pelo seu time).
+ */
+export type CareerSeal = 'folha' | 'holo' | 'prisma' | 'ouro';
+export const CAREER_SEALS: CareerSeal[] = ['folha', 'holo', 'prisma', 'ouro'];
+export const SEAL_GOAL = { folha: 10, holo: 25, prisma: 5 } as const;
+
+/** Kanto completo: todas as espécies do jogo já jogaram pelo seu time. */
+export const kantoComplete = (dex: Dex) => SPECIES.every((sp) => isPlayed(dex[sp.id]));
+
+/** Degraus que a espécie já tem (em ordem). `kanto` = Kanto completo (calcule uma vez com `kantoComplete`). */
+export function sealsOf(e: DexEntry | undefined, kanto: boolean): CareerSeal[] {
+    if (!e) return [];
+    const out: CareerSeal[] = [];
+    if (e.matches >= SEAL_GOAL.folha) out.push('folha');
+    if (e.goals >= SEAL_GOAL.holo) out.push('holo');
+    if (e.titles >= SEAL_GOAL.prisma) out.push('prisma', ...(kanto ? (['ouro'] as const) : []));
+    return out;
+}
+
+/** O selo mais alto da espécie (o que aparece na grade), ou null. */
+export const topSeal = (e: DexEntry | undefined, kanto: boolean): CareerSeal | null => sealsOf(e, kanto).at(-1) ?? null;
 
 /** Junta duas Dex (nuvem + aparelho): fica o maior de cada número, e as figurinhas dos dois lados. */
 export function mergeDex(a: Dex = {}, b: Dex = {}): Dex {

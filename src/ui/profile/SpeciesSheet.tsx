@@ -8,12 +8,25 @@ import { playCry } from '../../game/audio';
 import { getLang, moveName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { albumSlots, type Dex, hasSticker, isPlayed, type MoveDex } from '../../store/profile';
+import {
+    albumSlots,
+    CAREER_SEALS,
+    type CareerSeal,
+    type Dex,
+    type DexEntry,
+    hasSticker,
+    isPlayed,
+    kantoComplete,
+    type MoveDex,
+    SEAL_GOAL,
+    sealsOf,
+    topSeal,
+} from '../../store/profile';
 import { TypeIcon } from '../components/TypeIcon';
 import { METAL, metalOf } from '../rarity';
 import { TYPE_COLOR } from '../type-colors';
 import { speciesGif } from './club';
-import { BallMark, ChampionRibbon, Chevron, EvoArrow, LockIcon, SpeakerIcon } from './icons';
+import { BallMark, CareerSealIcon, ChampionRibbon, Chevron, EvoArrow, LockIcon, SpeakerIcon } from './icons';
 
 const STATS: StatKey[] = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'];
 
@@ -70,9 +83,10 @@ export function SpeciesSheet({
     const dex = useGame((s) => s.dex);
     const moves = useGame((s) => s.moves);
     const cries = useGame((s) => s.settings.cries);
-    const { t, tn } = useT();
+    const { t, tn, d } = useT();
     const sp = species(id);
     const entry = dex[id];
+    const seal = topSeal(entry, kantoComplete(dex));
     const seen = !!entry;
     const played = isPlayed(entry);
     const idx = order.indexOf(id);
@@ -156,6 +170,12 @@ export function SpeciesSheet({
                         {(entry?.titles ?? 0) > 0 && (
                             <span className="pf-champ">
                                 <ChampionRibbon n={entry.titles} /> {tn('profile.sheet.ribbon', entry.titles)}
+                            </span>
+                        )}
+                        {seal && (
+                            <span className={`pf-champ pf-seal-line seal-${seal}`}>
+                                <CareerSealIcon seal={seal} />{' '}
+                                {t('profile.sheet.seal', { name: d.profile.sheet.sealNames[seal] })}
                             </span>
                         )}
                         {seen && (
@@ -332,6 +352,8 @@ function SeenBody({ sp, dex, moves, onNav }: { sp: Species; dex: Dex; moves: Mov
 
             <Album sp={sp} dex={dex} />
 
+            {entry && isPlayed(entry) && <Seals entry={entry} dex={dex} />}
+
             <section className="pf-block">
                 <h3>{t('profile.sheet.career')}</h3>
                 {entry && isPlayed(entry) ? (
@@ -410,6 +432,52 @@ function Album({ sp, dex }: { sp: Species; dex: Dex }) {
                 })}
             </ul>
             {got < slots.length && <p className="pf-note">{t('profile.sheet.albumHelp')}</p>}
+        </section>
+    );
+}
+
+/** Os 4 degraus do selo de carreira com o quanto falta (retroativo: sai dos números da Dex). */
+function Seals({ entry, dex }: { entry: DexEntry; dex: Dex }) {
+    const { t, d } = useT();
+    const played = Object.values(dex).filter(isPlayed).length;
+    const got = sealsOf(entry, kantoComplete(dex));
+    const progress: Record<CareerSeal, number> = {
+        folha: Math.min(entry.matches, SEAL_GOAL.folha),
+        holo: Math.min(entry.goals, SEAL_GOAL.holo),
+        prisma: Math.min(entry.titles, SEAL_GOAL.prisma),
+        ouro: played,
+    };
+    return (
+        <section className="pf-block">
+            <h3>
+                {t('profile.sheet.seals')}{' '}
+                <span className="pf-bst">
+                    {got.length}/{CAREER_SEALS.length}
+                </span>
+            </h3>
+            <ul className="pf-seals">
+                {CAREER_SEALS.map((s) => {
+                    const on = got.includes(s);
+                    const name = d.profile.sheet.sealNames[s];
+                    const goal = t(`profile.sheet.sealGoal.${s}`, { n: progress[s] });
+                    return (
+                        <li
+                            key={s}
+                            className={`pf-seal-slot${on ? ' got' : ''}`}
+                            aria-label={
+                                on
+                                    ? t('profile.sheet.sealGot', { name })
+                                    : t('profile.sheet.sealMissing', { name, goal })
+                            }
+                        >
+                            <CareerSealIcon seal={s} />
+                            <b>{name}</b>
+                            <small>{goal}</small>
+                        </li>
+                    );
+                })}
+            </ul>
+            <p className="pf-note">{t('profile.sheet.sealsHelp')}</p>
         </section>
     );
 }

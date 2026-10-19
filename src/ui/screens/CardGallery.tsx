@@ -3,8 +3,10 @@ import { SPECIES, species } from '../../engine/data';
 import { createInstance, type PokemonInstance, viewInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
 import { type Edition, ICONS } from '../../engine/specials';
+import type { CareerSeal } from '../../store/profile';
 import { TIER_PT } from '../components/PokeCard';
 import { type CardVariant, HOLO_FINISHES, type HoloFinish, PokeCard2, VARIANT_LABEL } from '../components/PokeCard2';
+import { CareerSealIcon } from '../profile/icons';
 import { EDITION, FINISH_LABEL, finishOf, METAL, type Metal, metalOf } from '../rarity';
 
 /**
@@ -116,6 +118,37 @@ const EDITION_SAMPLES: { ed: Edition; inst: PokemonInstance }[] = [
     { ed: 'icone', inst: withEdition(sample(25), 'icone') },
     { ed: 'evento', inst: withEdition(sample(59), 'evento') },
 ];
+/**
+ * Selo de carreira na carta (só proposta, nada liga fora daqui): o selo da Pokédex num canto da carta, em 3 jeitos.
+ * Cada linha mistura metal e edição pra ver se o selo briga com a raridade, o bronze/prata/ouro e as edições.
+ */
+type SealSpot = 'arte' | 'nome' | 'cera';
+const SEAL_SPOTS: { spot: SealSpot; title: string; desc: string }[] = [
+    {
+        spot: 'arte',
+        title: 'A · Canto da arte',
+        desc: 'Pequeno, no pé da coluna da nota e do tipo, logo acima do nome. Dentro da carta, longe da etiqueta da edição.',
+    },
+    {
+        spot: 'nome',
+        title: 'B · Ao lado do nome',
+        desc: 'Na faixa do nome, como um carimbo. O mais discreto: some no meio do texto.',
+    },
+    {
+        spot: 'cera',
+        title: 'C · Selo de cera na borda',
+        desc: 'Metade pra fora, embaixo, como lacre de envelope. Não mexe em nada da cara da carta.',
+    },
+];
+const SEAL_SAMPLES: { seal: CareerSeal; label: string; inst: PokemonInstance }[] = [
+    { seal: 'folha', label: 'Folha (10 partidas) · bronze', inst: METAL_ROWS[0]?.inst ?? sample(16) },
+    { seal: 'holo', label: 'Holo (25 gols) · prata brilhante', inst: METAL_ROWS[3]?.inst ?? sample(58) },
+    { seal: 'prisma', label: 'Prisma (5 títulos) · ouro', inst: sample(149) },
+    { seal: 'ouro', label: 'Ouro escuro · Destaque', inst: withEdition(sample(68), 'destaque') },
+    { seal: 'holo', label: 'Holo · Shiny', inst: withEdition(sample(6), 'shiny') },
+    { seal: 'prisma', label: 'Prisma · Ícone', inst: withEdition(sample(25), 'icone') },
+];
+
 const ICON_SAMPLES = Object.keys(ICONS).map((id) => withEdition(sample(Number(id)), 'icone'));
 
 function Column({ title, children, active }: { title: string; children: ReactNode; active: boolean }) {
@@ -324,6 +357,31 @@ export function CardGallery({ onExit }: { onExit: () => void }) {
                                 </figure>
                             ))}
                         </div>
+                    </section>
+                    <section className="panel cg-seal-panel">
+                        <h2>Selo de carreira (proposta)</h2>
+                        <p className="muted cg-seal-intro">
+                            O selo da Pokédex (Folha, Holo, Prisma, Ouro escuro) num cantinho da carta. Não muda o
+                            acabamento nem a raridade: só mostra a sua carreira com a espécie. Escolha A, B ou C (ou
+                            nenhum).
+                        </p>
+                        {SEAL_SPOTS.map(({ spot, title, desc }) => (
+                            <div key={spot} className="cg-seal-group">
+                                <h3>{title}</h3>
+                                <p className="muted">{desc}</p>
+                                <div className="cg-row">
+                                    {SEAL_SAMPLES.map((s) => (
+                                        <figure key={`${spot}-${s.label}`} className="cg-item">
+                                            <div className={`cg-seal cg-seal-${spot}`}>
+                                                <PokeCard2 inst={s.inst} variant="metal" size="md" />
+                                                <CareerSealIcon seal={s.seal} className="cg-seal-mark" />
+                                            </div>
+                                            <figcaption className="muted">{s.label}</figcaption>
+                                        </figure>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
                     </section>
                     <section className="panel">
                         <h2>Ícones ({ICON_SAMPLES.length}): a lista pra você aprovar</h2>

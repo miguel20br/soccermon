@@ -3,10 +3,10 @@ import { SPECIES } from '../../engine/data';
 import { typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { albumSlots, type DexEntry, hasSticker, isPlayed } from '../../store/profile';
+import { albumSlots, type DexEntry, hasSticker, isPlayed, topSeal } from '../../store/profile';
 import { TypeIcon } from '../components/TypeIcon';
 import { speciesGif } from './club';
-import { BallMark, ChampionRibbon } from './icons';
+import { BallMark, CareerSealIcon, ChampionRibbon } from './icons';
 import { dexNo, SpeciesSheet } from './SpeciesSheet';
 
 type Status = 'played' | 'seen' | 'unseen';
@@ -44,6 +44,7 @@ export function DexTab() {
         return c;
     }, [dex]);
     const seenCount = counts.played + counts.seen;
+    const kanto = counts.played === TOTAL;
 
     const list = useMemo(
         () =>
@@ -135,13 +136,14 @@ export function DexTab() {
                         const st = statusOf(dex[sp.id]);
                         const known = st !== 'unseen';
                         const titles = dex[sp.id]?.titles ?? 0;
+                        const seal = topSeal(dex[sp.id], kanto);
                         return (
                             <li key={sp.id}>
                                 <button
                                     type="button"
                                     className={`pf-cell ${st}`}
                                     onClick={() => setOpen(sp.id)}
-                                    aria-label={`${t('profile.dex.cellAria', { no: dexNo(sp.id), name: known ? sp.name : t('profile.dex.notSeenLower') })}${st === 'played' ? t('profile.dex.playedForYou') : ''}${titles ? tn('profile.dex.ribbonAria', titles) : ''}`}
+                                    aria-label={`${t('profile.dex.cellAria', { no: dexNo(sp.id), name: known ? sp.name : t('profile.dex.notSeenLower') })}${st === 'played' ? t('profile.dex.playedForYou') : ''}${titles ? tn('profile.dex.ribbonAria', titles) : ''}${seal ? t('profile.dex.sealAria', { name: d.profile.sheet.sealNames[seal] }) : ''}`}
                                 >
                                     <span className="pf-cell-no">{dexNo(sp.id)}</span>
                                     <img
@@ -153,7 +155,12 @@ export function DexTab() {
                                         draggable={false}
                                     />
                                     <span className="pf-cell-name">{known ? sp.name : '???'}</span>
-                                    {st === 'played' && <BallMark className="pf-ball pf-cell-mark" />}
+                                    {/* o selo (10+ partidas) já diz que jogou: fica no lugar da bolinha */}
+                                    {seal ? (
+                                        <CareerSealIcon seal={seal} className={`pf-seal pf-cell-mark seal-${seal}`} />
+                                    ) : (
+                                        st === 'played' && <BallMark className="pf-ball pf-cell-mark" />
+                                    )}
                                     {titles > 0 && <ChampionRibbon n={titles} className="pf-ribbon pf-cell-ribbon" />}
                                     <span className="pf-pips" aria-hidden>
                                         {SLOTS.get(sp.id)?.map((ed) => (
