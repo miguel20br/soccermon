@@ -3,6 +3,7 @@ import type { Position } from '../engine/attributes';
 import { captainOptions, DRAFT_PICKS, draftOptions, playerDraftOptions } from '../engine/draft';
 import {
     DEFAULT_SPECIAL_LIMIT,
+    type DuelMonRecipe,
     type DuelTeamRecipe,
     SPECIAL_LIMITS,
     type SpecialLimit,
@@ -104,6 +105,8 @@ export interface Peer {
     crestSymbol?: string;
     /** Vitrine já com o degrau (medals.ts: `parseShowcase` valida), no máximo 3. */
     showcase?: string[];
+    /** Vitrine de cartas (receitas, como o Time pronto; binder.ts: `parseCardShowcase` valida), no máximo 3. */
+    cards?: DuelMonRecipe[];
     /** Entrou sem conta ("Jogar agora", login anônimo): o lobby mostra o selo "Convidado". */
     anon?: boolean;
 }

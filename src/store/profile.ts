@@ -78,6 +78,8 @@ export interface Profile {
     crestSymbol?: string;
     /** Vitrine: até 3 destaques escolhidos (medals.ts: `m:<medalha>`, `c:<coleção>`, `s:<espécie>`). */
     showcase?: string[];
+    /** Vitrine de cartas: até 3 cartas do fichário (binder.ts: id da carta). */
+    cardShowcase?: string[];
     /** Sprite do treinador e título embaixo do nome (missions.ts). */
     trainer: TrainerId;
     title: string;
