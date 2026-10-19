@@ -5,6 +5,22 @@
 
 export const ELO_START = 1000;
 
+/**
+ * Liga fechada até juntar mais gente (pedido do Miguel, 19/10/2026): a Home mostra o cartão com "Em breve" e a
+ * contagem. **Pra mudar a data, troque só esta linha** (hora de Brasília, UTC−3). Passou dela, a Liga abre sozinha,
+ * sem deploy. O `?demo=liga` (dev) entra mesmo fechada.
+ */
+export const LIGA_OPENS_AT = Date.parse('2026-12-01T00:00:00-03:00');
+
+/** Quanto falta pra Liga abrir, em dias, horas e minutos; `null` = aberta. */
+export function ligaCountdown(now = Date.now(), opensAt = LIGA_OPENS_AT) {
+    const left = opensAt - now;
+    if (left <= 0) return null;
+    const min = Math.ceil(left / 60000);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return { d: Math.floor(min / 1440), h: pad(Math.floor(min / 60) % 24), m: pad(min % 60) };
+}
+
 /** Chance de vitória esperada (Elo clássico). */
 export const eloExpected = (me: number, opp: number) => 1 / (1 + 10 ** ((opp - me) / 400));
 
