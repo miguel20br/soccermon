@@ -2,6 +2,14 @@
 
 ## 0.8.8 · Ícone MVP, melhores momentos, medalhas e treinadores
 
+### Balanceamento: Ala e Pivô
+- A nota do Ala agora conta o chute e a do Pivô, a velocidade (o jogo já usava os dois em quadra)
+- Nerf e ajuste: Jolteon Ala 92 ⇒ 88, Alakazam Ala 87 ⇒ 83, Electrode Ala 84 ⇒ 80, Gengar Ala 86 ⇒ 83, Pikachu Ala 66 ⇒ 63, Dragonite Pivô 90 ⇒ 89
+- Buff: Tauros Pivô 75 ⇒ 77, Scyther Pivô 79 ⇒ 80, Victreebel Pivô 75 ⇒ Ala 76
+- Mudam de posição: Kingler, Cloyster, Kabutops e Exeggutor viram Fixo; Rapidash, Dugtrio e Primeape viram Pivô; Mr. Mime vira Goleiro
+- Duelo: Eevee evolui pra mesma forma que a carta mostra
+- Partida salva no meio de um jogo recomeça do 0 a 0 (o motor mudou)
+
 ### Melhores momentos
 - Depois da partida, reveja os gols e lances em câmera lenta na própria quadra
 - Gol da copa: no fim da copa, o seu gol mais bonito ganha replay e o porquê da escolha

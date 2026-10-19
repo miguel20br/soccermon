@@ -1,9 +1,11 @@
-# Patch da fórmula: Ala contando chute, Pivô contando velocidade (proposta, 19/10/2026)
+# Patch da fórmula: Ala contando chute, Pivô contando velocidade (aprovado em 19/10/2026, na 0.8.8)
 
-**Nada foi aplicado.** O código do motor está igual; os números abaixo saem de `scripts/balance/formula-patch.ts`,
-que troca a fórmula só na memória (`table`, `calibrate <base|A|B>`, `econ <base|A|B>`). Aplicar exige o ok do
-Miguel, subir `ENGINE_VERSION` (`src/engine/config.ts`) e conferir `eligiblePositions`, `POSITION_OVERRIDES` e
-`SPECIES_TUNING` (`src/engine/attributes.ts`).
+**Aplicada a fórmula A** (`DEFAULT_FORMULAS` em `src/engine/attributes.ts`) com o Dragonite mantido Pivô 89
+(`SPECIES_TUNING[149] = { goalkeeping: -5, tackling: -6, shooting: 4, strength: 2 }`: o goleiro −3 da proposta não
+bastava, o Fixo 91 passava o Pivô 89 com o bônus) e `ENGINE_VERSION` 4. Calibragem com tudo aplicado
+(`npm run calibrate -- --n 400`): 6,84 gols por jogo, favorito (Δ≥3) vence 62,6%, goleadas 1,8%, empates 15,5%.
+14 mudam de posição principal (os da lista abaixo, sem o Dragonite) e 7 mudam de metal. O resto deste documento é a
+proposta como foi feita; `scripts/balance/formula-patch.ts` agora tem a A como base.
 
 ## O que os dados dizem
 

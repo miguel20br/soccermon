@@ -219,8 +219,8 @@ export const SPECIES_TUNING: Record<number, Partial<Record<AttrKey, number>>> = 
     131: { strength: 5, positioning: 4 }, // Lapras: a balsa de 220 kg, Fixo 81 → 83
     134: { pace: 4, dribble: 4 }, // Vaporeon: lenta na Ala pros 525 de BST, 76 → 79
     143: { strength: 6, goalkeeping: -2 }, // Snorlax: o mais pesado de Kanto tinha força 83; rendia acima no gol (93 → 91)
-    // fórmula A (19/10/2026): o Pivô dele cai pra 87 e o Goleiro passaria na frente; segue Pivô (decisão do Miguel)
-    149: { goalkeeping: -3 }, // Dragonite
+    // fórmula A (19/10/2026): Goleiro e Fixo passavam o Pivô dele; segue Pivô 89 (decisão do Miguel)
+    149: { goalkeeping: -5, tackling: -6, shooting: 4, strength: 2 }, // Dragonite
 };
 
 export function computeAttributes(

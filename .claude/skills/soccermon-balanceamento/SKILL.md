@@ -33,8 +33,9 @@ Saídas de script vão pro scratchpad, nunca pro repo.
   lista de "fora da curva" da 1ª auditoria era quase toda sorte (correlação 0,27 com a medição seguinte).
   **Confirme cada candidata com 384+ jogos (±0,16)** antes de propor mexer.
 - **Memória (7,5 GB):** uma simulação pesada por vez; nada em paralelo; vitest com `--maxWorkers=2`.
-- **Atributo escondido:** a nota do Ala não conta chute e a do Pivô não conta velocidade, mas o motor usa os dois.
-  Pra corrigir rendimento sem mudar a nota, mexa no atributo que a posição não conta (`SPECIES_TUNING`).
+- **Atributo escondido:** até a 0.8.8 a nota do Ala não contava chute e a do Pivô não contava velocidade (fórmula A,
+  `patch-formula.md`, agora conta). Pra corrigir rendimento sem mudar a nota, mexa num atributo que a posição não
+  conta (`SPECIES_TUNING`; ex.: desarme no Pivô, chute no Fixo).
 - **Margem de posição (4 pontos):** nerf grande tira posição alternativa (Tauros perde Ala/Fixo). Confira
   `eligiblePositions` depois.
 - **A copa só usa o jogador simulado** (escolhe pela nota, não usa MT, joga na equilibrada). Diga isso nas ressalvas.

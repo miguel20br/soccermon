@@ -11,6 +11,17 @@ export const PATCH_NOTES: PatchNotes[] = [
         title: 'Ícone MVP, melhores momentos, medalhas e treinadores',
         sections: [
             {
+                title: 'Balanceamento: Ala e Pivô',
+                lines: [
+                    'A nota do Ala agora conta o chute e a do Pivô, a velocidade (o jogo já usava os dois em quadra)',
+                    'Nerf e ajuste: Jolteon Ala 92 ⇒ 88, Alakazam Ala 87 ⇒ 83, Electrode Ala 84 ⇒ 80, Gengar Ala 86 ⇒ 83, Pikachu Ala 66 ⇒ 63, Dragonite Pivô 90 ⇒ 89',
+                    'Buff: Tauros Pivô 75 ⇒ 77, Scyther Pivô 79 ⇒ 80, Victreebel Pivô 75 ⇒ Ala 76',
+                    'Mudam de posição: Kingler, Cloyster, Kabutops e Exeggutor viram Fixo; Rapidash, Dugtrio e Primeape viram Pivô; Mr. Mime vira Goleiro',
+                    'Duelo: Eevee evolui pra mesma forma que a carta mostra',
+                    'Partida salva no meio de um jogo recomeça do 0 a 0 (o motor mudou)',
+                ],
+            },
+            {
                 title: 'Melhores momentos',
                 lines: [
                     'Depois da partida, reveja os gols e lances em câmera lenta na própria quadra',
@@ -627,6 +638,17 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
         version: '0.8.8',
         title: 'Icon MVP, highlights, medals and coaches',
         sections: [
+            {
+                title: 'Balance: Winger and Pivot',
+                lines: [
+                    "The Winger rating now counts shooting and the Pivot's counts pace (the game already used both on court)",
+                    'Nerf and tweak: Jolteon Winger 92 ⇒ 88, Alakazam Winger 87 ⇒ 83, Electrode Winger 84 ⇒ 80, Gengar Winger 86 ⇒ 83, Pikachu Winger 66 ⇒ 63, Dragonite Pivot 90 ⇒ 89',
+                    'Buff: Tauros Pivot 75 ⇒ 77, Scyther Pivot 79 ⇒ 80, Victreebel Pivot 75 ⇒ Winger 76',
+                    'Position changes: Kingler, Cloyster, Kabutops and Exeggutor become Defender; Rapidash, Dugtrio and Primeape become Pivot; Mr. Mime becomes Goalkeeper',
+                    'Duel: Eevee evolves into the same form the card shows',
+                    'A match saved midway restarts at 0-0 (the engine changed)',
+                ],
+            },
             {
                 title: 'Highlights',
                 lines: [
