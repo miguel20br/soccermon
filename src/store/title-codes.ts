@@ -8,7 +8,7 @@
  *   2. Gere o hash:  node -e "console.log(require('crypto').createHash('sha256').update('MEU-CODIGO').digest('hex'))"
  *   3. Ponha `'<hash>': '<id do título>'` em CODE_TITLES e o nome do título em CUSTOM_TITLES (pt e en).
  * Vários códigos podem dar o mesmo título. `look` dá um visual próprio: 'shine' (dourado brilhando) ou 'holo'
- * (holográfico, só o do criador).
+ * (holográfico: o do criador e os da platina).
  * ========================================================================================================
  */
 export const CODE_TITLES: Readonly<Record<string, string>> = {
@@ -39,8 +39,12 @@ const LEGEND_TITLES = new Set([
     'zeNinguem',
 ]);
 
+/** Títulos da platina (100% de uma geração): holográficos, como o treinador que vem junto. */
+const PLATINUM_TITLES = new Set(['diplomaKanto']);
+
 export const titleClass = (id: string) => {
-    const look = CUSTOM_TITLES[id]?.look ?? (LEGEND_TITLES.has(id) ? 'shine' : undefined);
+    const look =
+        CUSTOM_TITLES[id]?.look ?? (PLATINUM_TITLES.has(id) ? 'holo' : LEGEND_TITLES.has(id) ? 'shine' : undefined);
     return look ? ` title-${look}` : '';
 };
 

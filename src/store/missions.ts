@@ -1,4 +1,4 @@
-import { species } from '../engine/data';
+import { SPECIES, species } from '../engine/data';
 import { type PokemonInstance, viewInstance } from '../engine/instance';
 import { type ActiveLink, computeLinks } from '../engine/links';
 import type { GoalNote, MatchDigest } from '../engine/match-stats';
@@ -6,8 +6,22 @@ import type { MatchResult } from '../engine/runners/batch-runner';
 import type { TeamSetup } from '../engine/state';
 import { GYM_TM } from '../engine/tm';
 import type { Records, RunState, StageResult } from './game-store';
-import type { Career, Dex, HallEntry, MoveDex, Profile } from './profile';
+import {
+    albumCount,
+    type Career,
+    DEFAULT_TITLE,
+    DEFAULT_TRAINER,
+    type Dex,
+    gameMoveIds,
+    type HallEntry,
+    isPlayed,
+    type MoveDex,
+    type Profile,
+    timesSeen,
+} from './profile';
 import { CODE_TITLES } from './title-codes';
+
+export { DEFAULT_TITLE, DEFAULT_TRAINER };
 
 /**
  * Missões, treinadores e títulos. Tudo cosmético: 4 treinadores livres desde o começo; os outros e quase todos
@@ -61,11 +75,12 @@ export const TRAINERS = [
     'redGold',
     'blueGold',
     'oakGold',
+    // platina: holográficos, um por geração (100% de tudo da geração)
+    'oakHolo',
 ] as const;
 export type TrainerId = (typeof TRAINERS)[number];
 
 export const FREE_TRAINERS: readonly TrainerId[] = ['red', 'leaf', 'youngster', 'lass'];
-export const DEFAULT_TRAINER: TrainerId = 'red';
 export const trainerSrc = (id: TrainerId) => `assets/trainers/${id}.png`;
 
 /** Treinador de origem → versão dourada (sprite gerado por scripts/build-gold-trainers.ts). */
@@ -80,6 +95,18 @@ export const GOLD_TRAINERS = {
 const GOLD_SET = new Set<string>(Object.values(GOLD_TRAINERS));
 /** Treinador dourado: sprite com brilho e moldura dourada no perfil, VERSUS, duelo e card do título. */
 export const isGoldTrainer = (id: string | null | undefined) => !!id && GOLD_SET.has(id);
+
+/** Geração → treinador holográfico da platina (sprite gerado por scripts/build-gold-trainers.ts). */
+export const HOLO_TRAINERS = { 1: 'oakHolo' } as const satisfies Record<number, TrainerId>;
+const HOLO_SET = new Set<string>(Object.values(HOLO_TRAINERS));
+/** Treinador holográfico (platina): o nível acima do dourado, com brilho arco-íris e moldura holo. */
+export const isHoloTrainer = (id: string | null | undefined) => !!id && HOLO_SET.has(id);
+/** Classe do sprite do treinador: holo, dourado ou nada (começa com espaço). */
+export const trainerFx = (id: string | null | undefined) =>
+    isHoloTrainer(id) ? ' trainer-holo' : isGoldTrainer(id) ? ' trainer-gold' : '';
+/** Classe da moldura de quem usa o treinador (perfil, duelo, Hall da Fama). */
+export const trainerFrame = (id: string | null | undefined) =>
+    isHoloTrainer(id) ? ' holo-frame' : isGoldTrainer(id) ? ' gold-frame' : '';
 
 /** Missão do Ash: ser campeão sofrendo no máximo isso de gols na copa inteira. */
 export const ASH_MAX_CONCEDED = 5;
@@ -131,9 +158,10 @@ export const TITLE_IDS = [
     'colNidos',
     'colBrock',
     'colMisty',
+    // platina (0.8.9)
+    'diplomaKanto',
 ] as const;
 export type TitleId = (typeof TITLE_IDS)[number];
-export const DEFAULT_TITLE: TitleId = 'pallet';
 
 /** O que o save guarda e que vale para as missões. */
 export interface SaveView {
@@ -166,8 +194,9 @@ export interface MatchView {
     final: boolean;
 }
 
-export type MissionGroup = 'ginasios' | 'elite' | 'classes' | 'feitos' | 'colecao' | 'colecoes' | 'lendas';
+export type MissionGroup = 'platina' | 'ginasios' | 'elite' | 'classes' | 'feitos' | 'colecao' | 'colecoes' | 'lendas';
 export const MISSION_GROUPS: MissionGroup[] = [
+    'platina',
     'ginasios',
     'elite',
     'classes',
@@ -262,6 +291,62 @@ const COLLECTIONS: [string, number[]][] = [
     ['colMisty', [120, 121, 54, 55, 118, 119, 116, 117]],
 ];
 const playedIn = (s: SaveView, ids: number[]) => ids.filter((id) => (s.dex[id]?.matches ?? 0) > 0).length;
+
+// ------------------------------------------------------------------------------------------- platina
+/**
+ * Platina de uma geração: 100% de tudo que dá para completar. Fica de fora o que é por código ou impossível
+ * (selos de carreira das 151 espécies, Hall da Fama com limite). Geração nova = uma linha em PLATINUM (com o
+ * treinador holo em HOLO_TRAINERS e o título), só a Gen 1 está ligada.
+ */
+export interface Platinum {
+    gen: keyof typeof HOLO_TRAINERS;
+    mission: string;
+    title: TitleId;
+    /** Espécies da geração (Pokédex e álbum). */
+    species: readonly { id: number; types: readonly string[] }[];
+}
+export const PLATINUM: Platinum[] = [
+    { gen: 1, mission: 'platina1', title: 'diplomaKanto', species: SPECIES.filter((sp) => sp.id <= 151) },
+];
+
+export type PlatinumItemId = 'dex' | 'moves' | 'album' | 'collections' | 'trainers' | 'missions';
+export interface PlatinumItem {
+    id: PlatinumItemId;
+    n: number;
+    goal: number;
+}
+
+/** Missões que contam na platina: todas menos as próprias platinas. ponytail: quando houver Gen 2, filtrar por geração. */
+const platinumPool = () => MISSIONS.filter((m) => m.group !== 'platina');
+const doneOf = (list: Mission[], s: SaveView) => list.filter((m) => s.done.has(m.id)).length;
+
+/** Os itens da platina com o progresso de cada um (tudo sai do save: é retroativo). */
+export function platinumItems(p: Platinum, s: SaveView): PlatinumItem[] {
+    const pool = platinumPool();
+    const moves = [...gameMoveIds()];
+    const album = albumCount(s.dex, p.species);
+    const collections = pool.filter((m) => m.group === 'colecoes');
+    const trainers = pool.filter((m) => m.trainer);
+    return [
+        { id: 'dex', n: p.species.filter((sp) => isPlayed(s.dex[sp.id])).length, goal: p.species.length },
+        { id: 'moves', n: moves.filter((id) => timesSeen(id, s.moves, s.dex) > 0).length, goal: moves.length },
+        { id: 'album', n: album.got, goal: album.total },
+        { id: 'collections', n: doneOf(collections, s), goal: collections.length },
+        { id: 'trainers', n: doneOf(trainers, s), goal: trainers.length },
+        { id: 'missions', n: doneOf(pool, s), goal: pool.length },
+    ];
+}
+export const platinumDone = (p: Platinum, s: SaveView) => platinumItems(p, s).every((i) => i.n >= i.goal);
+
+function platinumMissions(): Mission[] {
+    return PLATINUM.map((p) => ({
+        id: p.mission,
+        group: 'platina',
+        trainer: HOLO_TRAINERS[p.gen],
+        title: p.title,
+        has: (s) => platinumDone(p, s),
+    }));
+}
 
 export const MISSIONS: Mission[] = [
     // Ginásios: vencer o clube do líder numa copa
@@ -495,6 +580,8 @@ export const MISSIONS: Mission[] = [
         title: 'zeNinguem',
         match: (m) => champion(m) && m.lineup.length > 0 && m.lineup.every((p) => viewInstance(p).overall <= 64),
     },
+    // Platina: 100% de tudo da geração (fica por último: olha as missões cumpridas acima, inclusive as de agora)
+    ...platinumMissions(),
 ];
 
 const BY_ID = new Map(MISSIONS.map((m) => [m.id, m]));

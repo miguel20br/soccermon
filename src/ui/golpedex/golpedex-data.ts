@@ -2,7 +2,9 @@ import { MOVES, SPECIES, type Species } from '../../engine/data';
 import { defaultMoveset, moveProfile } from '../../engine/moves';
 import { SIGNATURE } from '../../engine/signature-moves';
 import { type FxStyle, fxStyle } from '../../game/move-fx';
-import type { Dex, MoveDex } from '../../store/profile';
+import { gameMoveIds } from '../../store/profile';
+
+export { timesSeen } from '../../store/profile';
 
 /**
  * Dados da Golpedex (?lab=golpes): cada golpe do jogo com quem usa, e as regras de "descoberto".
@@ -42,7 +44,7 @@ function build(): MoveRow[] {
         const signatureOf = SPECIES.filter((sp) => SIGNATURE[sp.id] === m.id);
         const users = SPECIES.filter((sp) => MOVESET.get(sp.id)?.includes(m.id));
         const learner = SPECIES.find((sp) => sp.learnset.includes(m.id));
-        const learnable = !!learner || users.length > 0;
+        const learnable = gameMoveIds().has(m.id);
         return {
             id: m.id,
             num: 0,
@@ -72,16 +74,6 @@ export const ALL_ROWS: MoveRow[] = build();
 /** Os que dá para ver em campo (alguém aprende): o total da Golpedex. */
 export const GAME_ROWS: MoveRow[] = ALL_ROWS.filter((r) => r.num > 0);
 export const ROW_BY_ID: ReadonlyMap<string, MoveRow> = new Map(ALL_ROWS.map((r) => [r.id, r]));
-
-/**
- * Vezes que o golpe apareceu em campo. Transformar (Ditto) não gera evento de golpe na partida (o Ditto
- * se transforma sozinho no apito), então vale como visto quando o Ditto já jogou.
- */
-export function timesSeen(id: string, moves: MoveDex, dex: Dex): number {
-    const n = moves[id] ?? 0;
-    if (id === 'transform' && n === 0 && (dex[DITTO]?.matches ?? 0) > 0) return dex[DITTO].matches;
-    return n;
-}
 
 export const pad3 = (n: number) => String(n).padStart(3, '0');
 

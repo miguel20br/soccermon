@@ -1,8 +1,13 @@
-import { SPECIES } from '../engine/data';
+import { MOVES, SPECIES } from '../engine/data';
 import type { PlayerLine } from '../engine/match-stats';
+import { defaultMoveset } from '../engine/moves';
 import type { MatchResult } from '../engine/runners/batch-runner';
 import { EVENT_TYPES, ICONS, type SpecialKind } from '../engine/specials';
-import { DEFAULT_TITLE, DEFAULT_TRAINER, type TrainerId } from './missions';
+import type { TitleId, TrainerId } from './missions';
+
+/** Treinador e título de quem começa (aqui e não em missions.ts: missions lê o perfil, sem importação em ciclo). */
+export const DEFAULT_TRAINER: TrainerId = 'red';
+export const DEFAULT_TITLE: TitleId = 'pallet';
 
 /**
  * Perfil, Pokédex e golpes descobertos (save v5). Tudo cosmético ou de registro: nada daqui mexe em
@@ -218,6 +223,27 @@ export function recordMovesSeen(moves: MoveDex, m: Pick<MatchResult, 'events'>):
     return out;
 }
 
+let gameMoves: ReadonlySet<string> | null = null;
+/** Golpes que dá para ver em campo (alguém aprende ou leva no moveset padrão): o total da Golpedex. */
+export function gameMoveIds(): ReadonlySet<string> {
+    if (!gameMoves) {
+        const known = new Set(SPECIES.flatMap((sp) => [...sp.learnset, ...defaultMoveset(sp)]));
+        gameMoves = new Set(Object.keys(MOVES).filter((id) => known.has(id)));
+    }
+    return gameMoves;
+}
+
+const DITTO = 132;
+/**
+ * Vezes que o golpe apareceu em campo. Transformar (Ditto) não gera evento de golpe na partida (o Ditto
+ * se transforma sozinho no apito), então vale como visto quando o Ditto já jogou.
+ */
+export function timesSeen(id: string, moves: MoveDex, dex: Dex): number {
+    const n = moves[id] ?? 0;
+    if (id === 'transform' && n === 0 && (dex[DITTO]?.matches ?? 0) > 0) return dex[DITTO].matches;
+    return n;
+}
+
 /** Números da carreira do treinador (somam todas as copas). */
 export interface Career {
     matches: number;
@@ -262,6 +288,18 @@ export function albumSlots(sp: { id: number; types: readonly string[] }): AlbumE
 }
 
 export const hasSticker = (e: DexEntry | undefined, ed: AlbumEdition) => !!((e?.editions ?? 0) & EDITION_BIT[ed]);
+
+/** Álbum de uma lista de espécies: figurinhas coladas e quantas existem. */
+export function albumCount(dex: Dex, list: readonly { id: number; types: readonly string[] }[] = SPECIES) {
+    let got = 0;
+    let total = 0;
+    for (const sp of list)
+        for (const ed of albumSlots(sp)) {
+            total++;
+            if (hasSticker(dex[sp.id], ed)) got++;
+        }
+    return { got, total };
+}
 
 /** Bits da carta: a edição especial e o shiny (sem nenhum dos dois = Normal). */
 export function editionBits(card: { shiny: boolean; special?: { kind: SpecialKind } | null }): number {

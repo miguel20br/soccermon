@@ -1134,7 +1134,11 @@ export const useGame = create<GameStore>()(
             // missão nova (ou que virou retroativa) sai já ao abrir o jogo, sem esperar a próxima partida
             merge: (persisted, current) => {
                 const p = persisted as PersistedSave | undefined;
-                return { ...current, ...(p?.profile ? withUnlocks(p) : p) };
+                if (!p?.profile) return { ...current, ...p };
+                const next = withUnlocks(p);
+                // as que saíram agora ganham o aviso (na Home)
+                const fresh = (next.profile.missionsDone ?? []).slice(p.profile.missionsDone?.length ?? 0);
+                return { ...current, ...next, unlockQueue: [...current.unlockQueue, ...fresh] };
             },
         },
     ),
