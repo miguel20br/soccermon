@@ -326,7 +326,7 @@ export interface GameStore {
     startDaily(ranked: boolean): void;
     /** O servidor já recebeu até a partida `n` da Copa do Dia de `day`. */
     markDailyReported(day: string, n: number): void;
-    /** Duelo na Pokédex: quem jogou 1+ minuto pelo seu lado vira "jogou" (só isso), o rival fica "visto". */
+    /** Duelo e Liga na Pokédex: quem jogou 1+ minuto pelo seu lado vira "jogou" (só isso), o rival fica "visto". */
     recordDuelDex(m: MatchResult, side: 0 | 1): void;
     /** Partida atual (não persistida — snapshots são grandes). */
     match: MatchResult | null;

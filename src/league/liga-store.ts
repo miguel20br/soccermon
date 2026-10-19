@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import { ENGINE_VERSION } from '../engine/config';
 import { ligaTeams } from '../engine/league';
+import type { MatchResult } from '../engine/runners/batch-runner';
 import type { MatchOrder } from '../engine/state';
-import type { LiveMatch, RunState } from '../store/game-store';
+import { type LiveMatch, type RunState, useGame } from '../store/game-store';
 import { isError, type LigaOpen, type LigaResult, league } from './api';
 
 /**
@@ -42,8 +43,11 @@ interface LigaState {
     error: string | null;
     setOpen(o: LigaOpen | null): void;
     saveLive(patch: Partial<Omit<LiveMatch, 'stage'>>): void;
-    /** Apito final: manda as ordens; o servidor refaz a partida e devolve o placar e o Elo. */
-    finish(): Promise<void>;
+    /**
+     * Apito final: manda as ordens; o servidor refaz a partida e devolve o placar e o Elo. Com a partida (`m`), a
+     * Pokédex marca como na Copa e no Duelo (seu lado jogou, o fantasma foi visto).
+     */
+    finish(m?: MatchResult): Promise<void>;
 }
 
 export const useLiga = create<LigaState>((set, get) => ({
@@ -59,10 +63,11 @@ export const useLiga = create<LigaState>((set, get) => ({
         writeLive(next);
         set({ live: next });
     },
-    finish: async () => {
+    finish: async (m) => {
         const { open, live, result } = get();
         // já mandou (ou está mandando): o apito final pode chegar duas vezes
         if (!open || result) return;
+        if (m) useGame.getState().recordDuelDex(m, 0);
         set({ result: 'sending', error: null });
         const r = await league().liga<LigaResult>('resultado', {
             id: open.id,
