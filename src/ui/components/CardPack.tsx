@@ -168,6 +168,7 @@ export function CardPack({
                     {showPack && (
                         <span className={`cpack${look ? ` cpack-${look}` : ''}`} aria-hidden>
                             <span className="cpack-body">
+                                <img className="cpack-simbolo" src="assets/ui/simbolo.svg" alt="" />
                                 <img className="cpack-logo" src="assets/ui/logo.svg" alt="" />
                                 {label && <span className="cpack-label">{label}</span>}
                             </span>
