@@ -938,6 +938,7 @@ export class MatchScene extends Phaser.Scene {
     private swapSpecies(view: PlayerView, speciesId: number, name: string, shiny: boolean) {
         view.speciesId = speciesId;
         view.skin = this.loadedSkin(speciesId, shiny);
+        createSpeciesAnims(this, view.skin);
         view.name = name;
         view.shiny = shiny;
         view.captain = false;

@@ -63,10 +63,14 @@ export function resolveAnim(skin: number, anim: string): string {
     return 'Idle';
 }
 
-/** Cria (uma vez) as 8 direções de cada animação da espécie. */
+/**
+ * Cria (uma vez) as 8 direções de cada animação da espécie. Sem a folha carregada não cria nada: a animação sairia
+ * sem quadros, ficaria guardada assim (o `exists` não refaz) e o `play` dela quebra o Phaser (getFirstTick).
+ */
 export function createSpeciesAnims(scene: Phaser.Scene, skin: number) {
     const info = PMD[baseOf(skin)]?.anims ?? {};
     const key = atlasKey(skin);
+    if (!scene.textures.exists(key)) return;
     for (const [name, a] of Object.entries(info)) {
         for (let dir = 0; dir < 8; dir++) {
             const animKey = `${skin}/${name}/${dir}`;
