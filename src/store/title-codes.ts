@@ -18,6 +18,15 @@ export const CODE_TITLES: Readonly<Record<string, string>> = {
     '3ad01be87b2c8319fcd8ebebfb5f701dd2c7bef673d3bcd5ba1dce42b3953776': 'goat',
 };
 
+/**
+ * Códigos de conserto da Pokédex: marcam espécies como "jogou" pra quem perdeu o registro por bug (mesmo esquema
+ * dos títulos: só o hash fica no repositório).
+ */
+export const CODE_DEX: Readonly<Record<string, number[]>> = {
+    // Triple M: Pidgey evoluiu em quadra antes do conserto da forma de antes (19/10/2026)
+    adef2a8034aaa56f8f99d7ef71c348d78b68fb63b1ec7d24630cc587f75c3afb: [16],
+};
+
 /** Nome dos títulos de código (o resto dos títulos fica no dicionário: profile.titles). */
 export const CUSTOM_TITLES: Readonly<Record<string, { pt: string; en: string; look?: 'shine' | 'holo' }>> = {
     gametester: { pt: 'Gametester', en: 'Gametester' },
@@ -61,4 +70,11 @@ export async function redeemCode(code: string): Promise<string | null> {
     const clean = normalizeCode(code);
     if (!clean) return null;
     return CODE_TITLES[await sha256Hex(clean)] ?? null;
+}
+
+/** Espécies que um código de conserto da Pokédex marca como "jogou", ou null. */
+export async function redeemDexCode(code: string): Promise<number[] | null> {
+    const clean = normalizeCode(code);
+    if (!clean) return null;
+    return CODE_DEX[await sha256Hex(clean)] ?? null;
 }

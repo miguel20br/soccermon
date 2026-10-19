@@ -471,6 +471,7 @@ export const profile: typeof pt = {
         codeSubmit: 'Redeem',
         codeOk: 'Title unlocked: {title}',
         codeBad: "That code doesn't work.",
+        codeDex: 'Pokédex fixed: {names} now counts as played.',
         codeHave: 'You already have the {title} title.',
         fromStart: 'From the start',
         byCode: 'Code',

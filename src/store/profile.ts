@@ -159,6 +159,16 @@ export function markSeen(dex: Dex, ids: Iterable<number>): Dex {
     return out ?? dex;
 }
 
+/** Marca espécies como "jogou" (código de conserto): quem já jogou fica como está. */
+export function markPlayed(dex: Dex, ids: Iterable<number>): Dex {
+    const out: Dex = { ...dex };
+    for (const id of ids) {
+        const cur = out[id] ?? EMPTY_ENTRY;
+        if (cur.matches < 1) out[id] = { ...cur, matches: 1 };
+    }
+    return out;
+}
+
 /** Guarda a maior nota de carta de uma espécie que passou pelo seu time. */
 export function markOvr(dex: Dex, entries: Iterable<[number, number]>): Dex {
     let out: Dex | null = null;
