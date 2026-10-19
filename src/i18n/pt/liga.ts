@@ -87,7 +87,7 @@ export const liga = {
         rankingTitle: 'Ranking da temporada',
         rankingEmpty: 'Ninguém jogou nesta temporada ainda.',
         openNote:
-            'O adversário sorteado fica até você jogar (recarregar não troca). Partida largada por mais de 2 horas conta como derrota.',
+            'O adversário sorteado fica até você jogar (recarregar não troca). Começou e largou a partida por mais de 2 horas: conta como derrota.',
         errors: {
             offline: 'Sem conexão com o servidor.',
             sem_time: 'Inscreva um time primeiro.',

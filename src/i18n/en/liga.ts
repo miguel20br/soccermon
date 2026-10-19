@@ -88,7 +88,7 @@ export const liga: typeof pt = {
         rankingTitle: 'Season ranking',
         rankingEmpty: 'Nobody has played this season yet.',
         openNote:
-            "Your drawn opponent stays until you play (reloading doesn't change it). A match left open for over 2 hours counts as a loss.",
+            "Your drawn opponent stays until you play (reloading doesn't change it). Starting a match and leaving it for over 2 hours counts as a loss.",
         errors: {
             offline: 'No connection to the server.',
             sem_time: 'Sign up a team first.',

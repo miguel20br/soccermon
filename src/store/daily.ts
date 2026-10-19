@@ -106,10 +106,8 @@ export function dailyShareText(
     const fill = (s: string, v: Record<string, string | number>) =>
         s.replace(/\{(\w+)\}/g, (m, k) => String(v[k] ?? m));
     const [, mm, dd] = e.day.split('-');
-    const squares = Array.from({ length: 4 }, (_, i) => {
-        const r = e.results[i];
-        return r ? (r.won ? '🟩' : '🟥') : '⬛';
-    }).join('');
+    // só as partidas jogadas, como as linhas do Wordle (quadrado preto ficaria fora do subset das fontes)
+    const squares = e.results.map((r) => (r.won ? '🟩' : '🟥')).join('');
     const wins = winsOf(e);
     return [
         fill(tx.title, { d: dd, m: mm }),

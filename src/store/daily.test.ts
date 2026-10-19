@@ -133,7 +133,7 @@ describe('Copa do Dia: sequência e compartilhar', () => {
         );
         expect(text.split('\n')).toEqual([
             'Soccermon · Copa do Dia 19/10',
-            '🟩🟥⬛⬛ 1/4',
+            '🟩🟥 1/4',
             '3x1 Pewter Rochedo',
             '2x2 (pên. 3x4) Cerulean Cascata',
             '4/7 dias na semana',
