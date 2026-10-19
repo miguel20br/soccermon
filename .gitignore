@@ -43,3 +43,6 @@ trailer/vertical/.hyperframes/
 trailer/atualizacao/midia/
 trailer/atualizacao/.hyperframes/
 trailer/atualizacao/render/
+
+# motor empacotado pra Edge Function da Liga (npm run edge:liga antes do deploy)
+supabase/functions/liga/engine.js

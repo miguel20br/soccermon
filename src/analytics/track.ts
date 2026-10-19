@@ -100,7 +100,7 @@ function onChange(s: GameState, prev: GameState) {
     const old = prev.run;
     // retomar uma copa guardada não é começar copa nova
     if (run && run.seed !== old?.seed && !(prev.parkedRuns ?? []).some((p) => p.seed === run.seed))
-        track('run_start', { challenge: new URLSearchParams(location.search).has('seed') });
+        track('run_start', { challenge: new URLSearchParams(location.search).has('seed'), daily: !!run.daily });
     if (run && old && run.seed === old.seed) {
         if (old.status === 'formation' && run.status === 'captain') track('formation', { formation: run.formation });
         if (run.picks.length > old.picks.length) {

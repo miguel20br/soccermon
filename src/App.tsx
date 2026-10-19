@@ -13,9 +13,11 @@ import { Duel, duelCodeFromUrl } from './ui/duel/Duel';
 import { requestLeave } from './ui/leave-guard';
 import { CardGallery } from './ui/screens/CardGallery';
 import { Credits } from './ui/screens/Credits';
+import { Daily } from './ui/screens/Daily';
 import { Draft } from './ui/screens/Draft';
 import { Help } from './ui/screens/Help';
 import { Home } from './ui/screens/Home';
+import { Liga } from './ui/screens/Liga';
 import { Lineup } from './ui/screens/Lineup';
 import { Match } from './ui/screens/Match';
 import { PositionLab } from './ui/screens/PositionLab';
@@ -174,6 +176,9 @@ export default function App() {
             {screen === 'profile' && <Profile />}
             {screen === 'help' && <Help />}
             {screen === 'duel' && <Duel />}
+            {screen === 'daily' && <Daily />}
+            {screen === 'liga' && <Liga />}
+            {screen === 'liga-match' && <Match liga />}
             <CardModal />
             <AccountLink />
             <UnlockNotice />

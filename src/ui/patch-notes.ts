@@ -11,6 +11,15 @@ export const PATCH_NOTES: PatchNotes[] = [
         title: 'Ícone MVP, melhores momentos, medalhas e treinadores',
         sections: [
             {
+                title: 'Copa do Dia e Liga',
+                lines: [
+                    'Copa do Dia: a mesma copa pra todo mundo (mesmo draft, mesmos rivais), uma tentativa por dia e ranking do dia. Sem conta, você joga fora do ranking',
+                    'Compartilhe a sua Copa do Dia com os quadradinhos de cada partida e acompanhe os dias jogados na semana',
+                    'Liga ranqueada: o time da sua copa vira um fantasma que outros enfrentam; você joga contra os deles e sobe no Elo, com divisões (Bronze, Prata, Ouro e Lenda) e temporada mensal (precisa de conta Google)',
+                    'Na Liga o placar que vale é o do servidor: ele refaz a partida com as suas ordens',
+                ],
+            },
+            {
                 title: 'Balanceamento: Ala e Pivô',
                 lines: [
                     'A nota do Ala agora conta o chute e a do Pivô, a velocidade (o jogo já usava os dois em quadra)',
@@ -651,6 +660,15 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
         version: '0.8.8',
         title: 'Icon MVP, highlights, medals and coaches',
         sections: [
+            {
+                title: 'Daily Cup and League',
+                lines: [
+                    'Daily Cup: the same cup for everyone (same draft, same rivals), one try per day and a daily ranking. Without an account, you play outside the ranking',
+                    'Share your Daily Cup with a square for each match and keep track of the days you played this week',
+                    'Ranked League: your cup team becomes a ghost others play against; you face theirs and climb the Elo, with divisions (Bronze, Silver, Gold and Legend) and a monthly season (needs a Google account)',
+                    'In the League the server score is the one that counts: it replays the match with your orders',
+                ],
+            },
             {
                 title: 'Balance: Winger and Pivot',
                 lines: [

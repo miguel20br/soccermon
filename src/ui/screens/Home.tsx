@@ -17,6 +17,7 @@ import { FEEDBACK_URL, privacyUrl } from '../links';
 import { readCount, writeCount } from '../local-count';
 import { patchNotes } from '../patch-notes';
 import { TYPE_COLOR } from '../type-colors';
+import { HomeDailyCard } from './Daily';
 import '../home-motion.css';
 import { HudIcon } from '../components/MatchHud';
 
@@ -335,6 +336,7 @@ export function Home() {
                         {t('duel.createRoom')}
                     </button>
                 </div>
+                <HomeDailyCard />
             </div>
 
             {/* entrar com o Google: embaixo dos modos, pro "Nova copa" ficar na primeira tela do celular */}

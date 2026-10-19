@@ -155,9 +155,16 @@ upando na 0.8.8"); o Duelo junta só telas do mesmo deploy (versão + `__APP_BUI
   animação da quadra sem folha carregada.
 - **Fórmula A** (`docs/planos/patch-formula.md`): Ala conta chute, Pivô conta velocidade, Dragonite Pivô 89, Eevee do
   Duelo evolui pra forma da carta; `ENGINE_VERSION` 4.
-- **Liga** (Copa do Dia + Liga, branch `liga-pronta`): migração aplicada no Supabase em 19/10; falta publicar a Edge
-  Function `liga` (`npm run edge:liga` + `supabase functions deploy liga --project-ref vszcxacbcabohhdwxfpb`, precisa
-  do login da CLI) antes de subir a branch.
+- **Contadores e evolução em quadra**: vistos/jogaram/golpes/figurinhas de uma fonte só (`seenCount`, `playedLine`,
+  `isPlayed`, `movesFound`), barra cheia de antes só evolui depois de ele fazer algo na partida (`ENGINE_VERSION` 5).
+- **Copa do Dia e Liga no ar (19/10)** (plano e regras em [docs/planos/liga.md](docs/planos/liga.md); `?demo=dia`,
+  `?demo=liga` no dev): migração `20261019180000_copa_do_dia_e_liga.sql` aplicada e Edge Function `liga` publicada
+  (refaz a partida da Liga no servidor; placar do servidor = placar da tela, conferido com contas de teste). **A Edge
+  Function leva o motor empacotado: a cada `ENGINE_VERSION` novo, `npm run edge:liga` e
+  `npx -y supabase@latest functions deploy liga --project-ref vszcxacbcabohhdwxfpb --use-api`** (token
+  `SUPABASE_ACCESS_TOKEN` no `.env.local`), senão a Liga recusa as partidas ("recarregue a página"). A partida da
+  Liga conta na Pokédex como o Duelo (`recordDuelDex`). Falta: o draft da Copa do Dia refeito no servidor (hoje o
+  ranking do dia só confere plausibilidade).
 
 ### 0.8.7 · Emotes, selos e faixa da torcida
 

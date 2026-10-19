@@ -41,8 +41,10 @@ export function challengeUrl(seed: string): string {
  * Compartilha pelo menu nativo (celular) ou copia para a área de transferência. Com `image` (card do
  * título, src/ui/share-card.ts) e um navegador que aceite arquivo, a imagem vai junto do texto.
  */
-export async function shareRun(run: RunState, image?: Blob | null): Promise<'shared' | 'copied' | 'failed'> {
-    const text = buildShareText(run);
+export const shareRun = (run: RunState, image?: Blob | null) => shareText(buildShareText(run), image);
+
+/** Menu nativo (celular) ou área de transferência, com a imagem junto quando o navegador aceita arquivo. */
+export async function shareText(text: string, image?: Blob | null): Promise<'shared' | 'copied' | 'failed'> {
     try {
         if (navigator.share) {
             const files = image ? [new File([image], 'soccermon.png', { type: 'image/png' })] : [];
