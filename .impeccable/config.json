@@ -59,6 +59,12 @@
         ],
         "createdAt": "2026-10-18T21:01:51.866Z",
         "reason": "Miguel escolheu a opção B (placar de transmissão com faixa na cor do time) e pediu o site inteiro nesse visual: a faixa lateral é a linguagem do placar, não enfeite de card"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "emote-wobble",
+        "createdAt": "2026-10-19T03:42:41.150Z",
+        "reason": "Miguel pediu emotes inspirados no Clash Royale: o balanço do emote é a animação cartunesca do gênero (respeita reduzir movimento)"
       }
     ]
   }
