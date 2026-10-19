@@ -49,7 +49,9 @@ Game Freak, Creatures e The Pokémon Company (créditos em `CREDITS.md`).
 
 O logo é a palavra SOCCERMON com o primeiro O trocado pela **carta holo com a bola**: carta dourada levemente
 inclinada (-8°), holo em quatro faixas pastel, e uma bola de futebol de verdade (gomos de icosaedro truncado) com a
-faixa e o botão dourado no meio, que lê como bola e como pokébola ao mesmo tempo. Vetor limpo: contorno azul-noite
+faixa e o botão dourado no meio, que lê como bola e como pokébola ao mesmo tempo. A bola é simétrica em
+relação à faixa: o pentágono de cima espelha o de baixo (vista pelo eixo de ordem 2 do icosaedro) e gira inteira,
+junto com a faixa. Vetor limpo: contorno azul-noite
 firme, cores chapadas, sem degradê e sem brilho borrado.
 
 | Versão | Arquivo | Onde |
@@ -59,6 +61,7 @@ firme, cores chapadas, sem degradê e sem brilho borrado.
 | Ícone (carta no azul-noite com raios) | `public/assets/ui/icone.svg`, `icon-192.png`, `icon-512.png`, `apple-touch-icon.png` | app no celular, avatar das redes |
 | Ícone pequeno (32 e 48 px) | `public/assets/ui/favicon.svg` | aba do navegador |
 | Ícone 16 px feito à mão | dentro de `public/favicon.ico` (com o 32 e o 48) | aba em tela comum |
+| Só a bola | `public/assets/ui/bola.svg` | página 404 |
 | Uma cor só | `trailer/arte/logo/final/logo-*-mono-branco.svg` e `-mono-azul.svg` (`#0b1030`) | carimbo, fundo claro, bordado, impressão de uma cor |
 
 Gerar tudo de novo: `python3 trailer/arte/logo/final/logo.py && node trailer/arte/logo/final/publicar.mjs` e depois

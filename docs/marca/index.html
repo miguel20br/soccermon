@@ -160,7 +160,7 @@ th { color: var(--muted); font-weight: 400; font-size: 10px; letter-spacing: 1px
 .trilha { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 12px; align-items: center; font-size: 11px; }
 .trilha .pista { position: relative; height: 28px; background: var(--bc-ink); border-radius: 999px; border-bottom: 2px solid #000; }
 .trilha .miolo { position: absolute; inset: 0 28px 0 0; }
-.trilha .bola { width: 28px; height: 28px; border-radius: 50%; background: #fff url("../../public/assets/ui/ball.svg") center / 22px no-repeat; }
+.trilha .bola { width: 28px; height: 28px; border-radius: 50%; background: url("../../public/assets/ui/bola.svg") center / contain no-repeat; }
 .trilhas[data-tocando] .bola { animation: anda var(--d) var(--c) infinite alternate; }
 @keyframes anda { to { transform: translateX(calc(100cqw - 28px)); } }
 .trilha .miolo { container-type: inline-size; }
