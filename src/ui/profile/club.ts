@@ -30,15 +30,20 @@ export const bannerText = (banner: unknown, club: string) =>
     fmt(dict().profile.club.banners[bannerOf(banner)], { club });
 
 export const speciesGif = (id: number, shiny = false) => `assets/cards/${shiny ? 'shiny/' : ''}${id}.gif`;
+/** Sprite do avatar: o da carta numa tela quadrada, centrado e dentro do círculo (scripts/build-avatars.ts). */
+export const avatarGif = (id: number, shiny = false) => `assets/avatars/${shiny ? 'shiny/' : ''}${id}.gif`;
 
 /** Foto do avatar: a do Google (se escolheu e está logado) ou o sprite do Pokémon, normal ou shiny (Pikachu de reserva). */
 export function avatarImage(avatar: Avatar, googlePhoto: string | null | undefined): { src: string; google: boolean } {
     if (avatar.kind === 'google' && googlePhoto) return { src: googlePhoto, google: true };
     const pk = avatar.kind === 'pokemon' && SPECIES.some((sp) => sp.id === avatar.speciesId);
-    return { src: pk ? speciesGif(avatar.speciesId, avatar.shiny === true) : speciesGif(25), google: false };
+    return { src: pk ? avatarGif(avatar.speciesId, avatar.shiny === true) : avatarGif(25), google: false };
 }
 
-const SPRITE_SRC = /^assets\/cards\/(?:shiny\/)?(\d{1,3})\.gif$/;
+const SPRITE_SRC = /^assets\/(?:cards|avatars)\/(shiny\/)?(\d{1,3})\.gif$/;
+
+/** O avatar como vai pro rival do Duelo: o caminho do sprite da carta (o que as versões anteriores aceitam). */
+export const avatarWire = (src: string) => src.replace(/^assets\/avatars\//, 'assets/cards/');
 
 /**
  * Avatar que veio do rival no Duelo (dado de fora): só um sprite nosso (normal ou shiny) de uma espécie que existe,
@@ -47,8 +52,9 @@ const SPRITE_SRC = /^assets\/cards\/(?:shiny\/)?(\d{1,3})\.gif$/;
 export function peerAvatar(p: { avatar?: unknown; avatarGoogle?: unknown }): { src: string; google: boolean } {
     const src = typeof p.avatar === 'string' ? p.avatar : '';
     if (p.avatarGoogle === true && src.startsWith('https://')) return { src, google: true };
-    const id = Number(SPRITE_SRC.exec(src)?.[1]);
-    return { src: SPECIES.some((sp) => sp.id === id) ? src : speciesGif(25), google: false };
+    const m = SPRITE_SRC.exec(src);
+    const id = Number(m?.[2]);
+    return { src: SPECIES.some((sp) => sp.id === id) ? avatarGif(id, !!m?.[1]) : avatarGif(25), google: false };
 }
 
 /** Avatar do perfil, pronto para usar (lê o perfil e a conta). */

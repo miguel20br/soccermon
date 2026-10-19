@@ -29,7 +29,7 @@ import {
     tagFromName,
 } from '../../store/profile';
 import { Crest, KitShirt, kitBackground } from './Crest';
-import { bannerText, hexCss, speciesGif, titleName } from './club';
+import { avatarGif, bannerText, hexCss, titleName } from './club';
 import { CheckIcon, LockIcon, ShinySpark } from './icons';
 import { useMedalView } from './Medals';
 import { TrainerCard } from './TrainerTab';
@@ -141,7 +141,7 @@ export function ClubTab() {
                                         <span className="pf-av active pf-gen-current">
                                             <img
                                                 className="pixel"
-                                                src={speciesGif(av.speciesId, av.shiny === true)}
+                                                src={avatarGif(av.speciesId, av.shiny === true)}
                                                 alt=""
                                             />
                                             {av.shiny && <ShinySpark />}
@@ -183,7 +183,7 @@ export function ClubTab() {
                                                         <span
                                                             className={`pf-av${on && onShiny === s ? ' active' : ''}${s ? ' pf-av-shiny' : ''}`}
                                                         >
-                                                            <img className="pixel" src={speciesGif(id, s)} alt="" />
+                                                            <img className="pixel" src={avatarGif(id, s)} alt="" />
                                                             {s && <ShinySpark />}
                                                         </span>
                                                         <small>
@@ -208,7 +208,7 @@ export function ClubTab() {
                                             >
                                                 <img
                                                     className="pixel"
-                                                    src={speciesGif(id, onShiny)}
+                                                    src={avatarGif(id, onShiny)}
                                                     alt={shiny ? t('profile.club.avatarHasShiny', { name }) : name}
                                                     loading="lazy"
                                                 />

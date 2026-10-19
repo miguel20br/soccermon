@@ -1,7 +1,8 @@
+import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { SPECIES } from '../engine/data';
 import type { PlayerLine } from '../engine/match-stats';
-import { avatarImage, peerAvatar } from '../ui/profile/club';
+import { avatarImage, avatarWire, peerAvatar } from '../ui/profile/club';
 import {
     albumSlots,
     avatarOptions,
@@ -212,21 +213,36 @@ describe('avatar', () => {
     });
 
     it('avatar shiny usa o sprite shiny; save antigo (sem o campo) e lixo no campo ficam no normal', () => {
-        expect(avatarImage({ kind: 'pokemon', speciesId: 4, shiny: true }, null).src).toBe('assets/cards/shiny/4.gif');
-        expect(avatarImage(DEFAULT_PROFILE.avatar, null).src).toBe('assets/cards/25.gif');
-        expect(avatarImage({ kind: 'pokemon', speciesId: 4, shiny: 'sim' } as never, null).src).toBe(
-            'assets/cards/4.gif',
+        expect(avatarImage({ kind: 'pokemon', speciesId: 4, shiny: true }, null).src).toBe(
+            'assets/avatars/shiny/4.gif',
         );
-        expect(avatarImage({ kind: 'pokemon', speciesId: 999, shiny: true }, null).src).toBe('assets/cards/25.gif');
+        expect(avatarImage(DEFAULT_PROFILE.avatar, null).src).toBe('assets/avatars/25.gif');
+        expect(avatarImage({ kind: 'pokemon', speciesId: 4, shiny: 'sim' } as never, null).src).toBe(
+            'assets/avatars/4.gif',
+        );
+        expect(avatarImage({ kind: 'pokemon', speciesId: 999, shiny: true }, null).src).toBe('assets/avatars/25.gif');
         expect(avatarImage({ kind: 'google' }, 'https://foto').google).toBe(true);
-        expect(avatarImage({ kind: 'google' }, null).src).toBe('assets/cards/25.gif');
+        expect(avatarImage({ kind: 'google' }, null).src).toBe('assets/avatars/25.gif');
+    });
+
+    it('todo avatar tem o sprite centrado (normal e shiny); conferir o círculo: npx tsx scripts/build-avatars.ts --check', () => {
+        const missing = SPECIES.flatMap((sp) =>
+            [false, true]
+                .map((shiny) => `public/${avatarImage({ kind: 'pokemon', speciesId: sp.id, shiny }, null).src}`)
+                .filter((f) => !existsSync(f)),
+        );
+        expect(missing).toEqual([]);
     });
 
     it('avatar do rival no Duelo: só sprite nosso (normal ou shiny) ou foto https do Google', () => {
+        // vem como o sprite da carta (o que as versões anteriores mandam e aceitam) e aparece como o avatar centrado
         expect(peerAvatar({ avatar: 'assets/cards/shiny/6.gif', avatarGoogle: false })).toEqual({
-            src: 'assets/cards/shiny/6.gif',
+            src: 'assets/avatars/shiny/6.gif',
             google: false,
         });
+        const mine = avatarImage({ kind: 'pokemon', speciesId: 6, shiny: true }, null).src;
+        expect(avatarWire(mine)).toBe('assets/cards/shiny/6.gif');
+        expect(peerAvatar({ avatar: avatarWire(mine) }).src).toBe(mine);
         expect(peerAvatar({ avatar: 'https://lh3.example/a.jpg', avatarGoogle: true }).google).toBe(true);
         for (const bad of [
             { avatar: 'https://lh3.example/a.jpg', avatarGoogle: false },
@@ -236,6 +252,6 @@ describe('avatar', () => {
             { avatar: 42, avatarGoogle: 'true' },
             {},
         ])
-            expect(peerAvatar(bad)).toEqual({ src: 'assets/cards/25.gif', google: false });
+            expect(peerAvatar(bad)).toEqual({ src: 'assets/avatars/25.gif', google: false });
     });
 });

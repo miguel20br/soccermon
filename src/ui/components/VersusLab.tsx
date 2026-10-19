@@ -64,7 +64,7 @@ export function VersusLab({ onExit }: { onExit: () => void }) {
                     }}
                     awayCoach={{
                         name: 'Gary',
-                        avatar: 'assets/cards/6.gif',
+                        avatar: 'assets/avatars/6.gif',
                         showcase: rivalShow,
                         frame: frameTier(rivalShow),
                     }}

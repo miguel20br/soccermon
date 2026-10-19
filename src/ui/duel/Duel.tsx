@@ -33,7 +33,7 @@ import { bannerOf, clubColorHex, rivalColor } from '../../store/profile';
 import { ResultHero } from '../components/ResultHero';
 import { LeaveConfirm } from '../leave-guard';
 import { FEEDBACK_URL } from '../links';
-import { avatarImage, hexCss, peerAvatar, peerTitle, titleName, trainerLabel } from '../profile/club';
+import { avatarImage, avatarWire, hexCss, peerAvatar, peerTitle, titleName, trainerLabel } from '../profile/club';
 import { useShowcase } from '../profile/Medals';
 import { qrPath } from '../qr';
 import { heroStats, MatchDetails } from '../screens/Result';
@@ -104,7 +104,7 @@ function usePeer(local: boolean): Peer | null {
     return makePeer({
         id,
         name: trainerLabel(profile, user?.name),
-        avatar: av.src,
+        avatar: avatarWire(av.src),
         avatarGoogle: av.google,
         trainer: activeTrainer(profile),
         title: titleName(activeTitle(profile)),

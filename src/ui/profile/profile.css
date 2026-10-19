@@ -654,6 +654,8 @@ fieldset.pf-field,
     width: 100%;
     height: 100%;
     object-fit: contain;
+    /* o sprite fica dentro do círculo mesmo quando o botão deixa o brilho do shiny sair pelo canto */
+    border-radius: 50%;
 }
 .pf-av img:not(.pixel) {
     object-fit: cover;
