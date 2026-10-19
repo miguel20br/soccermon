@@ -105,7 +105,8 @@ export const match = {
             press: 'marcação lá em cima por 2,5 min; cansa 2x',
         },
         timeout: 'Pedir tempo',
-        timeoutHint: '1 por tempo: para na próxima bola parada, +5% de fôlego (+3% pro rival) e as trocas entram na hora',
+        timeoutHint:
+            '1 por tempo: para na próxima bola parada, +5% de fôlego (+3% pro rival) e as trocas entram na hora',
         timeoutUsed: 'Tempo já pedido',
         timeoutPerHalf: '1 por tempo',
         timeoutPending: 'na próxima bola parada',

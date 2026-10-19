@@ -23,8 +23,8 @@ import { formationText } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import {
     DUEL_SPEEDS,
-    duelPace,
     duelNames,
+    duelPace,
     duelTags,
     isSubStamped,
     leadTicks,

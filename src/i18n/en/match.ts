@@ -103,7 +103,8 @@ export const match: typeof pt = {
             press: 'high press for 2.5 min; tires 2x',
         },
         timeout: 'Time-out',
-        timeoutHint: '1 per half: stops at the next restart, +5% stamina (+3% for the rival) and subs happen right away',
+        timeoutHint:
+            '1 per half: stops at the next restart, +5% stamina (+3% for the rival) and subs happen right away',
         timeoutUsed: 'Time-out used',
         timeoutPerHalf: '1 per half',
         timeoutPending: 'at the next restart',
