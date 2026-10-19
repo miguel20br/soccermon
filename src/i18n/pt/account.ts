@@ -3,7 +3,7 @@ export const account = {
     bring: {
         title: 'Levar seu progresso para a conta?',
         text: 'Você entrou com o Google. Este aparelho tem progresso de visitante:',
-        after: 'Ele passa a ficar salvo na nuvem, e você continua de onde parou em qualquer aparelho.',
+        after: 'Ele fica salvo na nuvem e você continua em qualquer aparelho.',
         yes: 'Levar para a conta',
     },
     merge: {
@@ -13,7 +13,7 @@ export const account = {
     },
     cup: {
         title: 'Duas copas em andamento',
-        text: 'Este aparelho tem uma copa que ainda não foi para a nuvem, e a sua conta tem outra.',
+        text: 'Este aparelho tem uma copa fora da nuvem, e sua conta tem outra.',
     },
     best: 'Recordes e Pokédex juntam o melhor dos dois.',
     continues: 'Você continua a copa do {team} ({step}).',

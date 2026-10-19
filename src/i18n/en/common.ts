@@ -130,25 +130,23 @@ export const common: typeof pt = {
         },
         '2-2': {
             name: 'Square (2-2)',
-            description: 'Two defenders holding at the back, a winger and a pivot up front. Solid and direct.',
+            description: 'Two defenders at the back, a winger and a pivot up front.',
         },
         '3-1': {
             name: 'Back Three (3-1)',
-            description: 'Defender and wingers form a deep line; the pivot holds the ball up front alone.',
+            description: 'A deep line of three and a lone pivot up front.',
         },
         '4-0': {
             name: 'Rotation (4-0)',
-            description:
-                'No pivot: four outfield players swapping places all the time. Lots of possession and passing, little presence in the box.',
+            description: 'No pivot: four players swapping places. Lots of possession and passing.',
         },
         '1-1-2': {
             name: 'Twin Pivots (1-1-2)',
-            description:
-                'Heavy attack: two pivots inside the rival box, a linking winger and one defender holding at the back.',
+            description: 'Heavy attack: two pivots in the box and a defender at the back.',
         },
         ferrolho: {
             name: 'Lockdown (3 DEF)',
-            description: 'Three defenders parked in front of the keeper and a lone pivot for the counter-attack.',
+            description: 'Three defenders in front of the keeper and a pivot for the counter.',
         },
     },
     link: {
@@ -211,7 +209,7 @@ export const common: typeof pt = {
         leftovers: 'Slowly restores stamina during the match.',
         choiceband: 'Shooting +15%, but only the first move can be used.',
         quickclaw: '+15% in 50-50 challenges (tackles and shielding the ball).',
-        focussash: 'Goalkeeper: stops the first shot on target. Outfield: ignores the first status condition.',
+        focussash: 'Keeper: stops the first shot on target. Outfield: ignores the first status.',
         scopelens: '20% chance of a critical shot (harder and more accurate).',
         lumberry: 'Cures the first status condition suffered in the match.',
         kingsrock: 'Moves that hit may make the rival flinch.',

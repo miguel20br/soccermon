@@ -70,7 +70,7 @@ export function Lineup() {
 
     return (
         <>
-            <Tip id="lineup-coach">{t('team.lineup.tip')}</Tip>
+            <Tip id="lineup-synergy">{t('team.lineup.tip')}</Tip>
             <div className="cup-bug bc-surface">
                 <div className="cup-path">
                     {d.common.stage.map((label, i) => {

@@ -9,7 +9,7 @@ export const reward: typeof pt = {
     choose: 'Choose a reward',
     reroll: '↻ Reroll ({n})',
     skip: 'Skip (+1 reroll)',
-    tip: 'You can sign a player from the team you just knocked out: the new Pokémon replaces a sub (and inherits their item). The gym TM teaches a new move: you choose who learns it and which move it forgets. Skipping takes nothing, but gives +1 reroll.',
+    tip: 'You won! Take a rival Pokémon, an item or a TM. Skipping gives +1 reroll.',
     fromClub: 'From {club}',
     reinforcement: 'Reinforcement',
     chosen: 'Chosen',
@@ -36,8 +36,8 @@ export const reward: typeof pt = {
     fit: {
         typeCount: '{n} {type} move|{n} {type} moves',
         hitCount: '{n} damaging move|{n} damaging moves',
-        typeLegend: 'With {item}: the number is how many {type} moves each one has (faded: none).',
-        hitLegend: 'With {item}: the number is how many damaging (non-Status) moves each one has (faded: none).',
+        typeLegend: 'With {item}: how many {type} moves each one has.',
+        hitLegend: 'With {item}: how many damaging moves each one has.',
     },
     compare: 'Compare with your squad before choosing.',
     tm: {
@@ -62,7 +62,7 @@ export const reward: typeof pt = {
         pickForget: 'Pick the move to forget.',
         willForget: '{name} will forget {old} and learn {move}.',
         willLearn: '{name} will learn {move}.',
-        choiceBandLock: 'With Choice Band, {name} only uses its first move: {move} stays locked in matches.',
+        choiceBandLock: 'With Choice Band, {name} only uses {move}.',
         back: 'Back',
         teach: 'Teach',
         doneLabel: 'Move taught',

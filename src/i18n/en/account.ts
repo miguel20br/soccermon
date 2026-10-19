@@ -5,7 +5,7 @@ export const account: typeof pt = {
     bring: {
         title: 'Bring your progress to your account?',
         text: 'You signed in with Google. This device has guest progress:',
-        after: 'It will be saved to the cloud, and you can pick up where you left off on any device.',
+        after: 'It gets saved to the cloud so you can continue on any device.',
         yes: 'Bring to my account',
     },
     merge: {
@@ -15,7 +15,7 @@ export const account: typeof pt = {
     },
     cup: {
         title: 'Two cups in progress',
-        text: "This device has a cup that isn't in the cloud yet, and your account has another one.",
+        text: 'This device has a cup not in the cloud, and your account has another.',
     },
     best: 'Records and Pokédex keep the best of both.',
     continues: "You'll continue the {team} cup ({step}).",

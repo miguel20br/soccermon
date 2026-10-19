@@ -9,7 +9,7 @@ export const reward = {
     choose: 'Escolha uma recompensa',
     reroll: '↻ Sortear de novo ({n})',
     skip: 'Pular (+1 reroll)',
-    tip: 'Dá pra contratar do time que você eliminou: o Pokémon novo entra no lugar de um reserva (e herda o item dele). A MT do ginásio ensina um golpe novo: você escolhe quem aprende e o que esquece. Pular não pega nada, mas dá +1 reroll.',
+    tip: 'Ganhou! Pegue um Pokémon do rival, um item ou uma MT. Pular dá +1 sorteio.',
     fromClub: 'Do {club}',
     reinforcement: 'Reforço',
     chosen: 'Escolhido',
@@ -42,9 +42,8 @@ export const reward = {
     fit: {
         typeCount: '{n} golpe {type}|{n} golpes {type}',
         hitCount: '{n} golpe que acerta|{n} golpes que acertam',
-        typeLegend: 'Com {item}: o número é quantos golpes {type} cada um tem (apagado: nenhum).',
-        hitLegend:
-            'Com {item}: o número é quantos golpes que acertam (fora os de Status) cada um tem (apagado: nenhum).',
+        typeLegend: 'Com {item}: quantos golpes {type} cada um tem.',
+        hitLegend: 'Com {item}: quantos golpes de dano cada um tem.',
     },
     /** MT do ginásio. */
     tm: {
@@ -71,7 +70,7 @@ export const reward = {
         willForget: '{name} vai esquecer {old} e aprender {move}.',
         willLearn: '{name} vai aprender {move}.',
         /** Choice Band trava todo golpe fora da 1ª vaga (src/engine/match.ts → createPlayer). */
-        choiceBandLock: 'Com a Choice Band, {name} só usa o primeiro golpe: {move} fica travado nas partidas.',
+        choiceBandLock: 'Com a Choice Band, {name} só usa {move}.',
         back: 'Voltar',
         teach: 'Ensinar',
         doneLabel: 'Golpe ensinado',
