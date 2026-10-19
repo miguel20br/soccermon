@@ -349,6 +349,17 @@ describe('evolução em quadra na Pokédex', () => {
         expect(dex[4].matches).toBe(1);
         expect(markEvolvedPlayed(dex, [run])).toBe(dex);
     });
+
+    it('a forma de antes ganha a figurinha da carta (shiny), sem inventar Destaque', () => {
+        const card = { ...createInstance(5, new Rng('evo', 'sticker')), uid: 'x', shiny: true, special: null };
+        const run = {
+            picks: [{ ...card, evolved: 1, special: { kind: 'destaque' } }],
+            results: [{ stats: { players: [], digest: { evolutions: [{ uid: 'x', from: 4, into: 5 }] } } }],
+        } as unknown as RunState;
+        const dex = markEvolvedPlayed({}, [run]);
+        expect(dex[4].editions).toBe(EDITION_BIT.shiny);
+        expect(dex[5].editions).toBe(EDITION_BIT.shiny);
+    });
 });
 
 describe('gol da copa: replay guardado no save', () => {

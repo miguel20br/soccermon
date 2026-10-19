@@ -596,20 +596,31 @@ export function dexLines(m: MatchResult, side: 0 | 1 = 0, all: PlayerLine[] = pl
 /**
  * Quem evoluiu em quadra numa versão antiga ficou com só uma das formas como "jogou" na Pokédex: a carta evoluída
  * (`evolved`) das copas guardadas prova que a forma nova jogou, e as evoluções do resumo de cada partida provam que a
- * forma de antes também (ela jogou até evoluir). Só copas que estão no save (a atual e as guardadas), não o Hall.
+ * forma de antes também (ela jogou até evoluir), com a figurinha da carta. Só copas que estão no save (a atual e as
+ * guardadas), não o Hall.
  */
 export function markEvolvedPlayed(dex: Dex, runs: (RunState | null | undefined)[]): Dex {
     let out: Dex | null = null;
-    const mark = (id: number) => {
+    const stickers: [number, number][] = [];
+    // figurinha da carta como ela é (Destaque fica de fora: pode ter vindo depois da evolução)
+    const bits = (p: PokemonInstance | undefined) =>
+        p ? editionBits({ shiny: p.shiny, special: p.special?.kind === 'destaque' ? null : p.special }) : 0;
+    const mark = (id: number, card: PokemonInstance | undefined) => {
+        if (card) stickers.push([id, bits(card)]);
         if (((out ?? dex)[id]?.matches ?? 0) > 0) return;
         out ??= { ...dex };
         out[id] = { ...(out[id] ?? EMPTY_ENTRY), matches: 1 };
     };
     for (const r of runs) {
-        for (const p of r?.picks ?? []) if (p.evolved) mark(p.speciesId);
-        for (const res of r?.results ?? []) for (const e of res.stats?.digest?.evolutions ?? []) mark(e.from);
+        for (const p of r?.picks ?? []) if (p.evolved) mark(p.speciesId, p);
+        for (const res of r?.results ?? [])
+            for (const e of res.stats?.digest?.evolutions ?? [])
+                mark(
+                    e.from,
+                    r?.picks.find((p) => p.uid === e.uid),
+                );
     }
-    return out ?? dex;
+    return recordEditions(out ?? dex, stickers);
 }
 
 /**
