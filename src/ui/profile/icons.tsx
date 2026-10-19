@@ -15,13 +15,13 @@ export function BallMark({ className = 'pf-ball' }: { className?: string }) {
 export function SpeakerIcon() {
     return (
         <svg className="pf-ico" viewBox="0 0 24 24" aria-hidden>
-            <path d="M4 9 H8 L13 5 V19 L8 15 H4 Z" fill="currentColor" />
             <path
-                d="M16 9 C17.3 10.3 17.3 13.7 16 15 M18.5 6.5 C21.2 9.2 21.2 14.8 18.5 17.5"
+                d="M4 9 H8 L13 5 V19 L8 15 H4 Z M16 9 C17.3 10.3 17.3 13.7 16 15 M18.5 6.5 C21.2 9.2 21.2 14.8 18.5 17.5"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="2"
+                strokeWidth="2.4"
                 strokeLinecap="round"
+                strokeLinejoin="round"
             />
         </svg>
     );
@@ -31,8 +31,14 @@ export function SpeakerIcon() {
 export function LockIcon() {
     return (
         <svg className="pf-ico" viewBox="0 0 24 24" aria-hidden>
-            <rect x="5" y="10" width="14" height="10" rx="2" fill="currentColor" />
-            <path d="M8 10 V7.5 A4 4 0 0 1 16 7.5 V10" fill="none" stroke="currentColor" strokeWidth="2.4" />
+            <path
+                d="M8 11V8a4 4 0 0 1 8 0v3M5 11h14v10H5z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
         </svg>
     );
 }
@@ -42,10 +48,10 @@ export function Chevron({ dir }: { dir: 'left' | 'right' }) {
     return (
         <svg className="pf-ico" viewBox="0 0 24 24" aria-hidden>
             <path
-                d={dir === 'left' ? 'M15 5 L8 12 L15 19' : 'M9 5 L16 12 L9 19'}
+                d={dir === 'left' ? 'M15 6 L9 12 L15 18' : 'M9 6 L15 12 L9 18'}
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="3"
+                strokeWidth="2.4"
                 strokeLinecap="round"
                 strokeLinejoin="round"
             />
@@ -57,7 +63,14 @@ export function Chevron({ dir }: { dir: 'left' | 'right' }) {
 export function EvoArrow() {
     return (
         <svg className="pf-evo-arrow" viewBox="0 0 24 24" aria-hidden>
-            <path d="M4 12 H17 M12 6 L18 12 L12 18" fill="none" stroke="currentColor" strokeWidth="3" />
+            <path
+                d="M4 12 H17 M12 6 L18 12 L12 18"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
         </svg>
     );
 }
@@ -195,7 +208,7 @@ export function CheckIcon() {
                 d="M5 12.5 L10 17 L19 7"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="3"
+                strokeWidth="2.4"
                 strokeLinecap="round"
                 strokeLinejoin="round"
             />

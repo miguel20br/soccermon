@@ -6,6 +6,7 @@ import { duel, useDuel } from '../../net/session';
 import { useGame } from '../../store/game-store';
 import { emoteFace, FACE, type RivalEmote } from './emote-faces';
 import './emotes.css';
+import { HudIcon } from '../components/MatchHud';
 
 /** Quanto o emote fica na tela e quanto o "Rival silenciado · Desfazer" espera (tempo real). */
 const SHOW_MS = 2600;
@@ -36,19 +37,6 @@ function useNote() {
         return () => clearTimeout(id);
     }, [at]);
     return [at > 0, () => setAt(Date.now()), () => setAt(0)] as const;
-}
-
-function MuteIcon({ muted }: { muted: boolean }) {
-    return (
-        <svg viewBox="0 0 32 32" aria-hidden className="emote-svg">
-            <path d="M4 12 H10 L17 6 V26 L10 20 H4 Z" fill="#cfd6e4" stroke="#222" strokeWidth="1.6" />
-            {muted ? (
-                <path d="M21 11 L29 21 M29 11 L21 21" stroke="#ff4d4d" strokeWidth="2.6" strokeLinecap="round" />
-            ) : (
-                <path d="M21 12 Q24 16 21 20 M24 9 Q29 16 24 23" stroke="#cfd6e4" strokeWidth="2" fill="none" />
-            )}
-        </svg>
-    );
 }
 
 /**
@@ -104,7 +92,7 @@ function MutedNote({ i, onUndo }: { i: 0 | 1; onUndo: () => void }) {
     const { t } = useT();
     return (
         <div className={`emote-muted ${i ? 'right' : 'left'}`} role="status">
-            <MuteIcon muted />
+            <HudIcon kind="mute" className="emote-svg" />
             <span>{t('duel.emotes.muted')}</span>
             <button type="button" className="emote-undo" onClick={onUndo}>
                 {t('duel.emotes.undo')}
@@ -311,7 +299,7 @@ export function EmoteBar({ captain, onSent }: { captain: number; onSent?: () => 
                 aria-pressed={muted}
                 onClick={() => duel.setMuted(!muted)}
             >
-                <MuteIcon muted={muted} />
+                <HudIcon kind={muted ? 'mute' : 'shout'} className="emote-svg" />
             </button>
         </div>
     );

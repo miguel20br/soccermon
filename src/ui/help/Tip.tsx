@@ -2,6 +2,7 @@ import { type ReactNode, useState } from 'react';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import './help.css';
+import { HudIcon } from '../components/MatchHud';
 
 /** Dicas fechadas ficam neste aparelho (é só conveniência; não vai pro save nem pra nuvem). */
 const KEY = 'soccermon-tips';
@@ -45,10 +46,7 @@ export function Tip({ id, children }: { id: string; children: ReactNode }) {
     if (!enabled || hidden) return null;
     return (
         <div className="tip bc-surface bc-stripe" role="note">
-            <svg className="tip-icon" viewBox="0 0 16 16" aria-hidden="true">
-                <path d="M8 1.5a4.5 4.5 0 0 0-2.6 8.2c.4.3.6.7.6 1.1V12h4v-1.2c0-.4.2-.8.6-1.1A4.5 4.5 0 0 0 8 1.5Z" />
-                <rect x="6" y="13" width="4" height="1.6" rx=".6" />
-            </svg>
+            <HudIcon kind="bulb" className="tip-icon" />
             <span className="tip-text">
                 <b>{d.help.tip.label}</b> {children}
             </span>
@@ -61,9 +59,7 @@ export function Tip({ id, children }: { id: string; children: ReactNode }) {
                     setHidden(true);
                 }}
             >
-                <svg viewBox="0 0 12 12" aria-hidden="true">
-                    <path d="M2.5 2.5l7 7M9.5 2.5l-7 7" />
-                </svg>
+                <HudIcon kind="close" />
             </button>
         </div>
     );

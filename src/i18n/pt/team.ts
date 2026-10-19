@@ -19,7 +19,7 @@ export const team = {
         avg: 'Média dos titulares: {n}',
         captainCandidates: 'Candidatos a capitão',
         optionsFor: 'Opções para {pos}',
-        reroll: '↻ Sortear de novo ({n})',
+        reroll: 'Sortear de novo ({n})',
         activates: 'Ativa',
         fitMain: '{pos} de origem',
         fitAlt: 'Também joga de {pos} · {r}',

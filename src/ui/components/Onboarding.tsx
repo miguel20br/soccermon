@@ -4,6 +4,7 @@ import { type Dict, fmt } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import '../help/help.css';
+import { HudIcon } from './MatchHud';
 
 /** Tamanho natural (px) dos sprites usados aqui, pra manter a proporção entre eles. */
 const SPRITE_SIZE: Record<number, [number, number]> = {
@@ -32,14 +33,6 @@ function Sprite({ id, scale = 1, className = '' }: { id: number; scale?: number;
             height={Math.round(h * scale)}
             draggable={false}
         />
-    );
-}
-
-function Chevron({ dir }: { dir: 'left' | 'right' }) {
-    return (
-        <svg viewBox="0 0 16 16" aria-hidden="true" className="ob-chevron">
-            <path d={dir === 'left' ? 'M10 3L5 8l5 5' : 'M6 3l5 5-5 5'} />
-        </svg>
     );
 }
 
@@ -237,7 +230,7 @@ export function Onboarding() {
                         disabled={index === 0}
                         aria-label={o.prev}
                     >
-                        <Chevron dir="left" />
+                        <HudIcon kind="prev" />
                     </button>
                     <div className="ob-dots">
                         {SLIDES.map((s, i) => (
@@ -262,7 +255,7 @@ export function Onboarding() {
                             onClick={() => goTo(index + 1)}
                             aria-label={o.next}
                         >
-                            <Chevron dir="right" />
+                            <HudIcon kind="next" />
                         </button>
                     )}
                 </div>

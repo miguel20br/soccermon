@@ -21,6 +21,7 @@ import { MenuHead } from '../components/MenuHead';
 import { privacyUrl } from '../links';
 import { reduceMotionOn } from '../settings-sync';
 import '../settings.css';
+import { HudIcon } from '../components/MatchHud';
 
 /** Seletor segmentado do kit da transmissão (o ativo fica amarelo). */
 function Segmented<T extends string | number | boolean>({
@@ -521,11 +522,11 @@ function DataSettings() {
                             setMsg({ tone: 'ok', text: t('settings.data.downloaded') });
                         }}
                     >
-                        <DataIcon kind="down" />
+                        <HudIcon kind="download" className="set-icon" />
                         {t('settings.data.download')}
                     </button>
                     <button type="button" className="btn small" onClick={() => fileRef.current?.click()}>
-                        <DataIcon kind="up" />
+                        <HudIcon kind="upload" className="set-icon" />
                         {t('settings.data.restore')}
                     </button>
                     <input
@@ -621,29 +622,6 @@ function DataSettings() {
                 </p>
             )}
         </Group>
-    );
-}
-
-/** Setinha para baixo (baixar) ou para cima (restaurar) sobre uma bandeja. */
-function DataIcon({ kind }: { kind: 'down' | 'up' }) {
-    return (
-        <svg className="set-icon" viewBox="0 0 16 16" aria-hidden>
-            <path
-                d={kind === 'down' ? 'M8 2 V10 M4.5 6.5 L8 10 L11.5 6.5' : 'M8 10 V2 M4.5 5.5 L8 2 L11.5 5.5'}
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            />
-            <path
-                d="M2.5 11 V13.5 H13.5 V11"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinejoin="round"
-            />
-        </svg>
     );
 }
 

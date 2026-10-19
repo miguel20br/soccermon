@@ -11,6 +11,7 @@ import { rivalColor } from '../../store/profile';
 import { useClubColor } from '../profile/club';
 import { CountUp } from './CountUp';
 import { LeaderQuote } from './LeaderQuote';
+import { HudIcon } from './MatchHud';
 import { cardSprite } from './PokeCard';
 
 /** Linha de número do topo do resultado (seu time x rival). */
@@ -188,7 +189,12 @@ export function ResultHero({
                         className={`rh-mon${p.uid === mvpUid ? ` mvp${mvpOn ? ' mvp-on' : ''}` : ''}`}
                         style={{ '--i': i } as CSSProperties}
                     >
-                        {p.uid === mvpUid && mvpOn && <span className="rh-star">{t('result.hero.star')}</span>}
+                        {p.uid === mvpUid && mvpOn && (
+                            <span className="rh-star">
+                                <HudIcon kind="max" />
+                                {t('result.hero.star')}
+                            </span>
+                        )}
                         <img
                             className="pixel"
                             src={cardSprite({ speciesId: p.speciesId, shiny: p.shiny })}
@@ -205,7 +211,15 @@ export function ResultHero({
                         const state = res ? (res.won ? 'won' : 'lost') : i === run.stage + 1 && won ? 'next' : 'todo';
                         return (
                             <li key={label} className={state}>
-                                <span className="rh-dot">{state === 'won' ? '✓' : state === 'lost' ? '✗' : i + 1}</span>
+                                <span className="rh-dot">
+                                    {state === 'won' ? (
+                                        <HudIcon kind="check" />
+                                    ) : state === 'lost' ? (
+                                        <HudIcon kind="close" />
+                                    ) : (
+                                        i + 1
+                                    )}
+                                </span>
                                 <span>{d.result.hero.stageShort[i] ?? label}</span>
                                 {res && (
                                     <small>

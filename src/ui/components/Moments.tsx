@@ -17,6 +17,7 @@ import { downloadBlob } from '../share-card';
 import { simulateMatch } from '../sim-client';
 import { cardSprite } from './PokeCard';
 import './moments.css';
+import { HudIcon } from './MatchHud';
 
 type Mode = 'watch' | 'record' | 'clip';
 
@@ -185,7 +186,7 @@ export function Moments({
                 aria-label={cup ? t('moments.cup.h') : t('moments.title')}
             >
                 <button type="button" className="modal-close" onClick={onClose} aria-label={t('moments.close')}>
-                    ×
+                    <HudIcon kind="close" />
                 </button>
                 <div className="bc-screenhead moments-head">
                     <span className="bc-tag">
@@ -340,7 +341,7 @@ export function CupGoalCard({ run, match }: { run: RunState; match: MatchResult 
             <small className="muted cupgoal-rule">{t('moments.cup.rule')}</small>
             {live || replay ? (
                 <button type="button" className="btn yellow" onClick={watch} disabled={busy}>
-                    <PlayIcon /> {busy ? t('moments.loading') : t('moments.cup.watch')}
+                    <HudIcon kind="play" /> {busy ? t('moments.loading') : t('moments.cup.watch')}
                 </button>
             ) : (
                 <small className="muted cupgoal-rule">{t('moments.cup.old')}</small>
@@ -375,7 +376,7 @@ export function MomentsButton({ run, match }: { run: RunState; match: MatchResul
     return (
         <>
             <button type="button" className="btn primary" onClick={() => setOpen(true)}>
-                <PlayIcon /> {t('moments.open')}
+                <HudIcon kind="play" /> {t('moments.open')}
             </button>
             {open && (
                 <Moments
@@ -388,14 +389,5 @@ export function MomentsButton({ run, match }: { run: RunState; match: MatchResul
                 />
             )}
         </>
-    );
-}
-
-/** Triângulo de "tocar" (sem emoji na interface). */
-function PlayIcon() {
-    return (
-        <svg className="hud-icon" viewBox="0 0 16 16" aria-hidden="true">
-            <path d="M4 2.5v11l9-5.5z" fill="currentColor" />
-        </svg>
     );
 }

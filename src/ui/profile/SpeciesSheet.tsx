@@ -23,6 +23,7 @@ import {
     sealsOf,
     topSeal,
 } from '../../store/profile';
+import { HudIcon } from '../components/MatchHud';
 import { TypeIcon } from '../components/TypeIcon';
 import { METAL, metalOf } from '../rarity';
 import { TYPE_COLOR } from '../type-colors';
@@ -133,7 +134,7 @@ export function SpeciesSheet({
                     // biome-ignore lint/a11y/noAutofocus: o foco vai para dentro da janela que acabou de abrir
                     autoFocus
                 >
-                    ×
+                    <HudIcon kind="close" />
                 </button>
 
                 <div key={id} className={`pf-sheet-hero${slide}`}>

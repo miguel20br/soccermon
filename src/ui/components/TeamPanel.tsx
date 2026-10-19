@@ -8,6 +8,7 @@ import { EventBus } from '../../game/EventBus';
 import { statusName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { snapAt, statsUntil, whoAt } from '../match-view';
+import { HudIcon } from './MatchHud';
 import { cardSprite } from './PokeCard';
 
 /** Recalcula a cada meio segundo de jogo (o relógio da partida atualiza bem mais rápido que isso). */
@@ -105,7 +106,7 @@ export function TeamPanel({
                     aria-label={open ? t('team.panel.collapse') : t('team.panel.expand')}
                     onClick={() => setOpen((v) => !v)}
                 >
-                    {open ? '▲' : '▼'}
+                    <HudIcon kind={open ? 'up' : 'down'} />
                 </button>
             </div>
             {open && (

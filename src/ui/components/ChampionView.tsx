@@ -12,6 +12,7 @@ import { CupAwards, CupFinal, CupGoals, CupXI, FormSpark, TitleRecords, useRarit
 import { CupGains } from './CupGains';
 import { FutCard } from './FutCard';
 import { HallParade } from './HallParade';
+import { HudIcon } from './MatchHud';
 import { cardSprite } from './PokeCard';
 import { Confetti } from './ResultHero';
 import { Trophy } from './Trophy';
@@ -65,7 +66,13 @@ export function ChampionView({ run, actions }: { run: RunState; actions: ReactNo
                     ))}
                 </h1>
                 <div className="champ-sub">{rich(t('result.champ.sub'), { team: <b>{run.teamName}</b> })}</div>
-                {isPerfectCup(run) && <div className="perfect-badge">{t('result.champ.perfect')}</div>}
+                {isPerfectCup(run) && (
+                    <div className="perfect-badge">
+                        <HudIcon kind="max" />
+                        {t('result.champ.perfect')}
+                        <HudIcon kind="max" />
+                    </div>
+                )}
                 <TitleRecords run={run} rarity={rarity} />
                 <CupGains run={run} />
 
@@ -138,7 +145,7 @@ export function ChampionView({ run, actions }: { run: RunState; actions: ReactNo
                                 )}
                                 {best && (
                                     <span className="champ-best">
-                                        ★ {best.name} ({best.rating.toFixed(1)})
+                                        <HudIcon kind="max" /> {best.name} ({best.rating.toFixed(1)})
                                     </span>
                                 )}
                             </li>

@@ -2,6 +2,7 @@ import type { PokemonInstance } from '../../engine/instance';
 import { type ActiveLink, computeLinks, type LinkDef } from '../../engine/links';
 import { linkText } from '../../i18n';
 import { useT } from '../../i18n/react';
+import { HudIcon } from './MatchHud';
 
 /** Selo de uma sinergia de história ("★ Gênese +8%"), com a descrição no title. */
 export function LinkChip({
@@ -23,7 +24,7 @@ export function LinkChip({
             className={`link-chip${fresh ? ' fresh' : ''}${special ? ` special aura-${def.id}` : ''}`}
             title={t('team.linkTitle', { desc: txt.desc, combo: txt.combo })}
         >
-            ★ {txt.name} <b>+{Math.round((bonus - 1) * 100)}%</b>
+            <HudIcon kind="max" /> {txt.name} <b>+{Math.round((bonus - 1) * 100)}%</b>
         </span>
     );
 }

@@ -18,6 +18,7 @@ import { readCount, writeCount } from '../local-count';
 import { patchNotes } from '../patch-notes';
 import { TYPE_COLOR } from '../type-colors';
 import '../home-motion.css';
+import { HudIcon } from '../components/MatchHud';
 
 /** O que vem por aí (só vitrine: nada disso é clicável ainda). Os textos ficam em i18n (home.soon). */
 const SOON_IMG = ['assets/cards/25.gif', 'assets/cards/143.gif', 'assets/ui/poke-ball.png'];
@@ -425,7 +426,7 @@ export function Home() {
                             // biome-ignore lint/a11y/noAutofocus: o foco vai para dentro da janela que acabou de abrir
                             autoFocus
                         >
-                            ×
+                            <HudIcon kind="close" />
                         </button>
                         {notes.map((n) => (
                             <div key={n.version} className="patch-version">

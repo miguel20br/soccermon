@@ -127,6 +127,7 @@ export function Result() {
                     <div className="bc-thumbbar">
                         <button type="button" className="btn primary big" onClick={advance}>
                             {t('result.chooseReward')}
+                            <HudIcon kind="next" />
                         </button>
                     </div>
                 )}

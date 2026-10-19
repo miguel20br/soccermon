@@ -20,7 +20,7 @@ export const team: typeof pt = {
         avg: 'Starters average: {n}',
         captainCandidates: 'Captain candidates',
         optionsFor: 'Options for {pos}',
-        reroll: '↻ Reroll ({n})',
+        reroll: 'Reroll ({n})',
         activates: 'Activates',
         fitMain: 'Natural {pos}',
         fitAlt: 'Also plays {pos} · {r}',

@@ -36,6 +36,7 @@ import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
 import { FutCard } from './FutCard';
 import { LinkChip } from './LinkChips';
+import { HudIcon } from './MatchHud';
 import { TypeBadge } from './PokeCard';
 import { TaughtMark } from './TmTeach';
 
@@ -126,7 +127,7 @@ export function CardModal() {
                 onClick={(e) => e.stopPropagation()}
             >
                 <button type="button" className="modal-close" onClick={close} aria-label={t('common.ui.close')}>
-                    ×
+                    <HudIcon kind="close" />
                 </button>
                 <div className="card-modal-grid">
                     <div className="card-modal-left">
