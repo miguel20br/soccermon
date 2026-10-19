@@ -4,7 +4,10 @@ Substitui o plano de 4 semanas de `pesquisas/marketing.md` (feito antes da Liga,
 logo novo). Regra de sempre: **o Claude prepara tudo e para antes de publicar**; o Miguel confirma numa linha e posta
 (ou o Claude posta pelo perfil pessoal do Chrome, no TikTok). Textos seguem o método de escrita do Miguel
 (`docs/marca/brand-guide.md`): curto, direto, sem ironia, humor de fã só pontual. Música do trailer: Trainer Battle
-Remix, do Bliitzit, **sempre creditada** (no fim do vídeo e no post).
+Remix, do Bliitzit, **sempre creditada** (no fim do vídeo e no post). O Bliitzit libera o uso na descrição do
+vídeo dele (link a registrar aqui); isso cobre o arranjo/gravação dele, não a composição original da Game Freak, então
+pode haver reivindicação automática (Content ID) por cima: se o Reels/TikTok silenciar o vídeo, trocar pela faixa da
+biblioteca do app no próprio post. Clipes do **kit dos creators vão sem música** (o risco seria do canal deles).
 
 ## Decisões
 
