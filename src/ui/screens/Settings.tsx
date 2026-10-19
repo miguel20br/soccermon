@@ -16,7 +16,7 @@ import {
     SAVE_VERSION,
     useGame,
 } from '../../store/game-store';
-import { DEFAULT_PROFILE, EMPTY_CAREER } from '../../store/profile';
+import { DEFAULT_PROFILE, EMPTY_CAREER, seenCount } from '../../store/profile';
 import { MenuHead } from '../components/MenuHead';
 import { privacyUrl } from '../links';
 import { reduceMotionOn } from '../settings-sync';
@@ -489,7 +489,7 @@ function DataSettings() {
     };
 
     const summary = pending?.save;
-    const seen = summary ? Object.keys(summary.dex).length : 0;
+    const seen = summary ? seenCount(summary.dex) : 0;
 
     return (
         <Group title={t('settings.data.title')}>

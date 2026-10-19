@@ -1,5 +1,6 @@
 import { rich, useT } from '../../i18n/react';
 import { type RunState, useGame } from '../../store/game-store';
+import { movesFound, seenCount } from '../../store/profile';
 import { CountUp } from './CountUp';
 
 /**
@@ -8,8 +9,8 @@ import { CountUp } from './CountUp';
  */
 export function CupGains({ run }: { run: RunState }) {
     const { t, tn } = useT();
-    const seen = useGame((s) => Object.keys(s.dex).length);
-    const moves = useGame((s) => Object.keys(s.moves).length);
+    const seen = useGame((s) => seenCount(s.dex));
+    const moves = useGame((s) => movesFound(s.moves, s.dex));
     const start = run.startCounts;
     if (!start) return null;
     const items = [

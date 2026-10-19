@@ -21,7 +21,17 @@ import {
     tierOf,
     toggleShowcase,
 } from './medals';
-import { clubColorHex, EMPTY_CAREER } from './profile';
+import { missionById, PLATINUM, platinumItems } from './missions';
+import {
+    albumCount,
+    clubColorHex,
+    EDITION_BIT,
+    EMPTY_CAREER,
+    EMPTY_ENTRY,
+    movesFound,
+    playedCount,
+    seenCount,
+} from './profile';
 
 const viewOf = (save: ReturnType<typeof migrateSave>): MedalView => ({
     records: save.records,
@@ -223,5 +233,42 @@ describe('escudo e uniforme', () => {
         expect(isUnlocked('coroa', new Set(), { campeao: 1 })).toBe(false);
         expect(isUnlocked('coroa', new Set(), { campeao: 2 })).toBe(true);
         expect(isUnlocked('meio', new Set(), { campeao: 1 })).toBe(true);
+    });
+});
+
+describe('contadores: uma fonte só (tela, missão, medalha e platina contam igual)', () => {
+    const mission = (id: string, v: MedalView) => missionById(id)?.count?.(v);
+    const platinum = (v: MedalView) => Object.fromEntries(platinumItems(PLATINUM[0], v).map((i) => [i.id, i.n]));
+
+    it('golpes: a Golpedex conta Transformar quando o Ditto jogou; missão, medalha e platina contam o mesmo', () => {
+        const v = {
+            ...empty(),
+            dex: { 132: { ...EMPTY_ENTRY, matches: 2 } },
+            moves: { tackle: 3, naoExiste: 1, outroFalso: 2 },
+        };
+        expect(movesFound(v.moves, v.dex)).toBe(2);
+        expect(mission('supernerd', v)).toBe(2);
+        expect(mission('golpes', v)).toBe(2);
+        expect(medalById('movedex')?.value(v)).toBe(2);
+        expect(platinum(v).moves).toBe(2);
+    });
+
+    it('vistos e jogaram: só espécies do jogo (a aba da Pokédex percorre os 151), igual em todo lugar', () => {
+        const dex = { 16: { ...EMPTY_ENTRY, matches: 1 }, 17: { ...EMPTY_ENTRY }, 0: { ...EMPTY_ENTRY, matches: 1 } };
+        const v = { ...empty(), dex };
+        expect(seenCount(dex)).toBe(2);
+        expect(playedCount(dex)).toBe(1);
+        expect(mission('oak', v)).toBe(2);
+        expect(mission('oakGold', v)).toBe(1);
+        expect(medalById('pokedex')?.value(v)).toBe(2);
+        expect(medalById('elenco')?.value(v)).toBe(1);
+        expect(platinum(v).dex).toBe(1);
+    });
+
+    it('figurinhas: a medalha conta o álbum (o mesmo número da Pokédex e da platina)', () => {
+        const dex = { 25: { ...EMPTY_ENTRY, matches: 1, editions: EDITION_BIT.normal | EDITION_BIT.shiny } };
+        const v = { ...empty(), dex };
+        expect(medalById('figurinhas')?.value(v)).toBe(albumCount(dex).got);
+        expect(platinum(v).album).toBe(2);
     });
 });

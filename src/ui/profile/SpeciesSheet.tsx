@@ -18,6 +18,7 @@ import {
     isPlayed,
     kantoComplete,
     type MoveDex,
+    playedCount,
     SEAL_GOAL,
     sealsOf,
     topSeal,
@@ -439,7 +440,7 @@ function Album({ sp, dex }: { sp: Species; dex: Dex }) {
 /** Os 4 degraus do selo de carreira com o quanto falta (retroativo: sai dos números da Dex). */
 function Seals({ entry, dex }: { entry: DexEntry; dex: Dex }) {
     const { t, d } = useT();
-    const played = Object.values(dex).filter(isPlayed).length;
+    const played = playedCount(dex);
     const got = sealsOf(entry, kantoComplete(dex));
     const progress: Record<CareerSeal, number> = {
         folha: Math.min(entry.matches, SEAL_GOAL.folha),

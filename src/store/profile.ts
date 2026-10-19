@@ -159,6 +159,14 @@ export type DexLine = PlayerLine & { evoForm?: boolean };
 export const playedLine = (l: Pick<DexLine, 'team' | 'minutes' | 'evoForm'>) =>
     l.team === 0 && (l.minutes >= 1 || !!l.evoForm);
 
+/** Vistos: espécies do jogo com página na Pokédex (a aba Todos/Vistos da Pokédex conta igual). */
+export const seenCount = (dex: Dex, list: readonly { id: number }[] = SPECIES) =>
+    list.filter((sp) => dex[sp.id]).length;
+
+/** Jogaram pelo seu time (`isPlayed`): Pokédex, Carvalho dourado, medalha Elenco, platina e Kanto completo. */
+export const playedCount = (dex: Dex, list: readonly { id: number }[] = SPECIES) =>
+    list.filter((sp) => isPlayed(dex[sp.id])).length;
+
 /** Marca espécies como vistas (não mexe em quem já está na Dex). Devolve o mesmo objeto se nada mudou. */
 export function markSeen(dex: Dex, ids: Iterable<number>): Dex {
     let out: Dex | null = null;
@@ -264,7 +272,14 @@ const DITTO = 132;
  */
 export function timesSeen(id: string, moves: MoveDex, dex: Dex): number {
     const n = moves[id] ?? 0;
-    if (id === 'transform' && n === 0 && (dex[DITTO]?.matches ?? 0) > 0) return dex[DITTO].matches;
+    if (id === 'transform' && n === 0 && isPlayed(dex[DITTO])) return dex[DITTO].matches;
+    return n;
+}
+
+/** Golpes descobertos (o número da Golpedex): os do jogo que já apareceram em campo, Transformar pelo Ditto. */
+export function movesFound(moves: MoveDex, dex: Dex): number {
+    let n = 0;
+    for (const id of gameMoveIds()) if (timesSeen(id, moves, dex) > 0) n++;
     return n;
 }
 
@@ -371,7 +386,7 @@ export const CAREER_SEALS: CareerSeal[] = ['folha', 'holo', 'prisma', 'ouro'];
 export const SEAL_GOAL = { folha: 10, holo: 25, prisma: 5 } as const;
 
 /** Kanto completo: todas as espécies do jogo já jogaram pelo seu time. */
-export const kantoComplete = (dex: Dex) => SPECIES.every((sp) => isPlayed(dex[sp.id]));
+export const kantoComplete = (dex: Dex) => playedCount(dex) === SPECIES.length;
 
 /** Degraus que a espécie já tem (em ordem). `kanto` = Kanto completo (calcule uma vez com `kantoComplete`). */
 export function sealsOf(e: DexEntry | undefined, kanto: boolean): CareerSeal[] {

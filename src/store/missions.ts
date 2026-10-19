@@ -17,8 +17,10 @@ import {
     type HallEntry,
     isPlayed,
     type MoveDex,
+    movesFound,
     type Profile,
-    timesSeen,
+    playedCount,
+    seenCount,
 } from './profile';
 import { CODE_TITLES } from './title-codes';
 
@@ -231,7 +233,7 @@ const ofType = (list: PokemonInstance[], type: string) => list.filter((p) => has
 const hasSpecies = (list: { speciesId: number }[], ids: number[]) => list.some((p) => ids.includes(p.speciesId));
 const fullLink = (m: MatchView, id: string) => m.links.some((l) => l.def.id === id && l.full);
 const titles = (s: SaveView) => Math.max(s.records.titles, s.hall.length);
-const seen = (s: SaveView) => Object.keys(s.dex).length;
+const seen = (s: SaveView) => seenCount(s.dex);
 const results = (s: SaveView) => s.runs.flatMap((r) => r?.results ?? []);
 const allPicks = (s: SaveView) => s.runs.flatMap((r) => r?.picks ?? []);
 /** Mais gols do seu time numa copa só (copas guardadas e Hall da Fama). */
@@ -324,13 +326,12 @@ const doneOf = (list: Mission[], s: SaveView) => list.filter((m) => s.done.has(m
 /** Os itens da platina com o progresso de cada um (tudo sai do save: é retroativo). */
 export function platinumItems(p: Platinum, s: SaveView): PlatinumItem[] {
     const pool = platinumPool();
-    const moves = [...gameMoveIds()];
     const album = albumCount(s.dex, p.species);
     const collections = pool.filter((m) => m.group === 'colecoes');
     const trainers = pool.filter((m) => m.trainer);
     return [
-        { id: 'dex', n: p.species.filter((sp) => isPlayed(s.dex[sp.id])).length, goal: p.species.length },
-        { id: 'moves', n: moves.filter((id) => timesSeen(id, s.moves, s.dex) > 0).length, goal: moves.length },
+        { id: 'dex', n: playedCount(s.dex, p.species), goal: p.species.length },
+        { id: 'moves', n: movesFound(s.moves, s.dex), goal: gameMoveIds().size },
         { id: 'album', n: album.got, goal: album.total },
         { id: 'collections', n: doneOf(collections, s), goal: collections.length },
         { id: 'trainers', n: doneOf(trainers, s), goal: trainers.length },
@@ -498,8 +499,8 @@ export const MISSIONS: Mission[] = [
     // Coleção
     { id: 'oak', group: 'colecao', trainer: 'oak', title: 'colecionador', goal: 151, count: seen },
     { id: 'mestrePokemon', group: 'colecao', title: 'mestrePokemon', goal: 151, count: seen },
-    { id: 'supernerd', group: 'colecao', trainer: 'supernerd', goal: 50, count: (s) => Object.keys(s.moves).length },
-    { id: 'golpes', group: 'colecao', title: 'golpes', goal: 100, count: (s) => Object.keys(s.moves).length },
+    { id: 'supernerd', group: 'colecao', trainer: 'supernerd', goal: 50, count: (s) => movesFound(s.moves, s.dex) },
+    { id: 'golpes', group: 'colecao', title: 'golpes', goal: 100, count: (s) => movesFound(s.moves, s.dex) },
     {
         id: 'scientist',
         group: 'colecao',
@@ -573,7 +574,7 @@ export const MISSIONS: Mission[] = [
         trainer: 'oakGold',
         title: 'todosJogaram',
         goal: 151,
-        count: (s) => Object.values(s.dex).filter(isPlayed).length,
+        count: (s) => playedCount(s.dex),
     },
     {
         id: 'zeNinguem',

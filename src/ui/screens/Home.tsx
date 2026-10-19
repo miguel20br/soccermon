@@ -4,6 +4,7 @@ import { weeklyEventType } from '../../engine/specials';
 import { fmt, stageName, typeName } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { isCupInProgress, seedFromUrl, useGame } from '../../store/game-store';
+import { seenCount } from '../../store/profile';
 import { AccountBar } from '../components/AccountBar';
 import { cupStep } from '../components/AccountLink';
 import { CountUp } from '../components/CountUp';
@@ -31,7 +32,7 @@ const DEX_TOTAL = 151;
  */
 function DexProgress() {
     const { t, tn } = useT();
-    const seen = useGame((s) => Object.keys(s.dex).length);
+    const seen = useGame((s) => seenCount(s.dex));
     const [from] = useState(() => readCount(DEX_KEY));
     useEffect(() => {
         if (seen > (readCount(DEX_KEY) ?? -1)) writeCount(DEX_KEY, seen);

@@ -1,5 +1,6 @@
 import { cloudApi, isApplyingCloud, takeLoginPending, useCloud } from '../cloud/cloud';
 import { type GameState, useGame } from '../store/game-store';
+import { seenCount } from '../store/profile';
 
 /**
  * Estatísticas anônimas do jogo, gravadas na tabela `game_events` do Supabase (só inserir; ninguém lê
@@ -183,7 +184,7 @@ export function startAnalytics() {
             device: device(),
             lab,
             cups: g.records.cups,
-            dex_seen: Object.keys(g.dex).length,
+            dex_seen: seenCount(g.dex),
         });
         useGame.subscribe(onChange);
     };

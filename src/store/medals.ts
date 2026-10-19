@@ -2,7 +2,17 @@ import { species } from '../engine/data';
 import { type DuelRecord, duelWins } from './duels';
 import type { Records } from './game-store';
 import { MISSIONS, type SaveView } from './missions';
-import { type Career, type CareerSeal, EDITION_BIT, isPlayed, kantoComplete, topSeal } from './profile';
+import {
+    albumCount,
+    type Career,
+    type CareerSeal,
+    EDITION_BIT,
+    kantoComplete,
+    movesFound,
+    playedCount,
+    seenCount,
+    topSeal,
+} from './profile';
 
 /**
  * Medalhas com degraus (bronze, prata, ouro, platina), padrão Pokémon GO. Só cosmético e 100% retroativo: cada
@@ -28,18 +38,13 @@ export interface Medal {
     value: (v: MedalView) => number;
 }
 
-const popcount = (n: number) => {
-    let c = 0;
-    for (let x = n; x; x &= x - 1) c++;
-    return c;
-};
 const entries = (v: MedalView) => Object.entries(v.dex).map(([id, e]) => [Number(id), e] as const);
 const titlesOf = (v: MedalView) => Math.max(v.records.titles, v.hall.length);
 const COLLECTION_IDS = MISSIONS.filter((m) => m.group === 'colecoes').map((m) => m.id);
 
 export const MEDALS: Medal[] = [
-    { id: 'pokedex', steps: [40, 80, 120, 151], value: (v) => Object.keys(v.dex).length },
-    { id: 'elenco', steps: [25, 60, 100, 151], value: (v) => entries(v).filter(([, e]) => isPlayed(e)).length },
+    { id: 'pokedex', steps: [40, 80, 120, 151], value: (v) => seenCount(v.dex) },
+    { id: 'elenco', steps: [25, 60, 100, 151], value: (v) => playedCount(v.dex) },
     { id: 'partidas', steps: [10, 50, 250, 1000], value: (v) => v.career.matches },
     { id: 'vitorias', steps: [5, 30, 150, 600], value: (v) => v.career.wins },
     { id: 'artilheiro', steps: [100, 500, 2000, 5000], value: (v) => v.career.goalsFor },
@@ -48,11 +53,11 @@ export const MEDALS: Medal[] = [
     { id: 'sequencia', steps: [2, 3, 5, 8], value: (v) => v.records.bestStreak ?? 0 },
     { id: 'penaltis', steps: [1, 5, 20, 50], value: (v) => v.career.shootoutWins },
     { id: 'evolucoes', steps: [5, 25, 100, 300], value: (v) => v.records.evolucoes ?? 0 },
-    { id: 'movedex', steps: [25, 60, 100, 150], value: (v) => Object.keys(v.moves).length },
+    { id: 'movedex', steps: [25, 60, 100, 150], value: (v) => movesFound(v.moves, v.dex) },
     {
         id: 'figurinhas',
         steps: [100, 250, 400, 622],
-        value: (v) => entries(v).reduce((n, [, e]) => n + popcount(e.editions ?? 0), 0),
+        value: (v) => albumCount(v.dex).got,
     },
     {
         id: 'shiny',

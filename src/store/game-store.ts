@@ -41,6 +41,7 @@ import {
     markOvr,
     markPlayed,
     markSeen,
+    movesFound,
     type Profile,
     playedLine,
     recordEditions,
@@ -48,6 +49,7 @@ import {
     recordMatchInDex,
     recordMovesSeen,
     recordTitleInDex,
+    seenCount,
     tagFromName,
 } from './profile';
 
@@ -773,8 +775,8 @@ export const useGame = create<GameStore>()(
                         eventType: weeklyEventType(new Date()),
                         startedAt: Date.now(),
                         startCounts: {
-                            seen: Object.keys(getState().dex).length,
-                            moves: Object.keys(getState().moves).length,
+                            seen: seenCount(getState().dex),
+                            moves: movesFound(getState().moves, getState().dex),
                         },
                     };
                     // começar outra por cima de uma copa em jogo é abandonar a atual: a sequência de títulos zera
