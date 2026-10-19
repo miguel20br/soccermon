@@ -11,7 +11,7 @@ import { useT } from '../../i18n/react';
 import { type ClubLook, lookOfCupClub, lookOfProfile, matchLooks } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
 import type { ShowItem, Tier } from '../../store/medals';
-import { activeTrainer, isGoldTrainer, leaderTrainerOf, type TrainerId, trainerSrc } from '../../store/missions';
+import { activeTrainer, leaderTrainerOf, type TrainerId, trainerFx, trainerSrc } from '../../store/missions';
 import { tagFromName } from '../../store/profile';
 import { Crest, kitOverlay } from '../profile/Crest';
 import { useClubColor } from '../profile/club';
@@ -52,7 +52,7 @@ function Squad({ team, trainer }: { team: TeamSetup; trainer?: TrainerId }) {
             {/* o treinador fica na ponta de fora da foto, atrás dos Pokémon */}
             {trainer && (
                 <img
-                    className={`vsp-trainer${isGoldTrainer(trainer) ? ' trainer-gold' : ''}`}
+                    className={`vsp-trainer${trainerFx(trainer)}`}
                     src={trainerSrc(trainer)}
                     alt=""
                     draggable={false}

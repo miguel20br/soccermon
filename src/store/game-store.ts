@@ -1208,7 +1208,10 @@ export const useGame = create<GameStore>()(
                 const p = persisted as PersistedSave | undefined;
                 if (!p?.profile) return { ...current, ...p };
                 const dex = markEvolvedPlayed(p.dex ?? {}, [p.run, ...(p.parkedRuns ?? [])]);
-                return { ...current, ...withUnlocks({ ...p, dex }) };
+                const next = withUnlocks({ ...p, dex });
+                // as que saíram agora ganham o aviso (na Home)
+                const fresh = (next.profile.missionsDone ?? []).slice(p.profile.missionsDone?.length ?? 0);
+                return { ...current, ...next, unlockQueue: [...current.unlockQueue, ...fresh] };
             },
         },
     ),

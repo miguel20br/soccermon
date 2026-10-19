@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { viewInstance } from '../engine/instance';
 import { clubName, dict, fmt, getLang, type Lang, tn } from '../i18n';
 import { isPerfectCup, type RunState, useGame } from '../store/game-store';
-import { isGoldTrainer, type TrainerId, trainerSrc } from '../store/missions';
+import { isGoldTrainer, isHoloTrainer, type TrainerId, trainerSrc } from '../store/missions';
 import { cardSprite } from './components/PokeCard';
 import { Trophy } from './components/Trophy';
 import { titleName, trainerLabel } from './profile/club';
@@ -27,7 +27,7 @@ export interface ShareCardData {
     squad: { sprite: string; name: string; captain: boolean }[];
     scorer: { label: string; text: string; sprite: string } | null;
     /** Treinador campeão (só no formato Stories, ao lado da taça). */
-    trainer: { sprite: string; name: string; title: string; gold: boolean } | null;
+    trainer: { sprite: string; name: string; title: string; gold: boolean; holo: boolean } | null;
     site: string;
 }
 
@@ -80,7 +80,8 @@ export function shareCardData(
             sprite: trainerSrc(trainer.id),
             name: trainer.name,
             title: trainer.title,
-            gold: isGoldTrainer(trainer.id),
+            gold: isGoldTrainer(trainer.id) || isHoloTrainer(trainer.id),
+            holo: isHoloTrainer(trainer.id),
         },
         site: SITE_URL.replace(/^https?:\/\//, ''),
     };
@@ -202,14 +203,13 @@ export async function drawShareCard(data: ShareCardData, format: CardFormat): Pr
         ctx.fill();
     }
 
-    // treinador dourado: moldura de ouro em volta do card
+    // treinador dourado: moldura de ouro em volta do card (holo: as cores do arco-íris)
     if (data.trainer?.gold) {
         const g = ctx.createLinearGradient(0, 0, W, H);
-        g.addColorStop(0, '#b8860b');
-        g.addColorStop(0.35, '#ffd84a');
-        g.addColorStop(0.5, '#fff6c8');
-        g.addColorStop(0.65, '#ffd84a');
-        g.addColorStop(1, '#b8860b');
+        const stops = data.trainer.holo
+            ? ['#ff9ad5', '#9ae6ff', '#b6ffa0', '#fff29a', '#d7a6ff']
+            : ['#b8860b', '#ffd84a', '#fff6c8', '#ffd84a', '#b8860b'];
+        for (const [i, c] of stops.entries()) g.addColorStop([0, 0.35, 0.5, 0.65, 1][i], c);
         ctx.strokeStyle = g;
         ctx.lineWidth = 22;
         ctx.strokeRect(11, 11, W - 22, H - 22);
@@ -248,7 +248,7 @@ export async function drawShareCard(data: ShareCardData, format: CardFormat): Pr
             ctx.translate(tx * 2, 0);
             ctx.scale(-1, 1);
             if (data.trainer.gold) {
-                ctx.shadowColor = 'rgba(255, 216, 74, 0.9)';
+                ctx.shadowColor = data.trainer.holo ? 'rgba(215, 166, 255, 0.9)' : 'rgba(255, 216, 74, 0.9)';
                 ctx.shadowBlur = 40;
             }
             sprite(ctx, trainerImg, tx, y + ts + 0.1 * 80 * k, k);

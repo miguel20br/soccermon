@@ -240,6 +240,7 @@ export const profile: typeof pt = {
         redGold: 'Golden Red',
         blueGold: 'Golden Blue',
         oakGold: 'Golden Prof. Oak',
+        oakHolo: 'Holographic Prof. Oak',
     },
     titles: {
         pallet: 'Pallet Town Trainer',
@@ -286,6 +287,7 @@ export const profile: typeof pt = {
         colNidos: 'Nido Royalty',
         colBrock: 'Rock-Solid',
         colMisty: 'Tomboyish Mermaid',
+        diplomaKanto: 'Kanto Diploma',
     },
     missions: {
         summary: '{done} of {total} missions done',
@@ -301,8 +303,21 @@ export const profile: typeof pt = {
             colecao: 'Collection',
             colecoes: 'Themed collections',
             lendas: 'Legendary',
+            platina: 'Platinum',
         },
         collectionHelp: 'Counts who played for your team (at least 1 minute on court).',
+        platinum: {
+            title: 'Gen {gen} Platinum',
+            help: 'Platinum means 100% of everything the generation has. Reward: {trainer} and the {title} title.',
+            items: {
+                dex: 'Pokédex: play with every Pokémon',
+                moves: 'Movedex: discover every move',
+                album: 'Album: every edition of each Pokémon',
+                collections: 'Every themed collection',
+                trainers: 'Every mission trainer',
+                missions: 'Every other mission',
+            } as Record<string, string>,
+        },
         gym: "Beat the {city} club ({leader}'s gym) in a cup",
         text: {
             kanto: 'Beat the clubs of all 8 gym leaders',
@@ -348,6 +363,7 @@ export const profile: typeof pt = {
             blueGold: 'Win the cup by coming back from 3 goals down in the final',
             oakGold: 'Play with all 151 Pokémon for your team',
             zeNinguem: 'Win the cup with 5 bronze-card starters in the final',
+            platina1: 'Platinum Gen 1: 100% of everything',
             colIniciais: 'Kanto starters: play with all 9 forms of Bulbasaur, Charmander and Squirtle',
             colPassaros: 'Legendary birds: play with Articuno, Zapdos and Moltres',
             colFosseis: 'Fossils: play with Omanyte, Kabuto, Aerodactyl and their evolutions',
@@ -459,6 +475,9 @@ export const profile: typeof pt = {
         codeOk: 'Title unlocked: {title}',
         codeBad: "That code doesn't work.",
         codeHave: 'You already have the {title} title.',
+        fromStart: 'From the start',
+        byCode: 'Code',
+        lockedTitles: 'Locked ({n})',
     },
     unlocked: {
         trainer: 'New trainer unlocked: {name}',

@@ -6588,41 +6588,75 @@ p.muted.center a {
     animation: panel-in 0.2s var(--ease-out) both;
 }
 
-/* missão cumprida (treinador ou título novo): pílula no rodapé (no topo cobria o logo e o título da tela), uma de
-   cada vez, sem pegar toque */
+/* missão cumprida (treinador ou título novo), com a tarefa cumprida embaixo (UnlockNotice.tsx). Na Home: pílula
+   pequena fixa em cima da quadra do topo (enfeite), uma de cada vez, sem pegar toque. No Resultado: faixa no meio
+   da página, embaixo do placar (fixa no topo ela cobria o placar e o título da tela) */
 .unlock-notice {
     position: fixed;
     left: 50%;
-    /* em cima: embaixo ficam os botões de seguir ("Ver resultado", "Fechar") e no celular ele cobria */
-    top: max(12px, env(safe-area-inset-top));
+    top: calc(max(6px, env(safe-area-inset-top)) + 58px);
     z-index: 260;
-    display: flex;
-    align-items: center;
-    gap: 8px;
     width: max-content;
-    max-width: calc(100vw - 32px);
-    padding: 4px 16px 4px 6px;
-    border-radius: 999px;
+    max-width: min(460px, calc(100vw - 32px));
+    border-radius: 18px;
     background: var(--panel-2);
-    border: 2px solid var(--yellow);
     box-shadow: var(--shadow);
-    color: var(--text);
-    font-weight: 700;
-    font-size: 13px;
     pointer-events: none;
     transform: translateX(-50%);
     animation: unlock-in 0.32s var(--ease-pop) both;
 }
-.unlock-notice img {
-    width: 48px;
-    height: 48px;
+@media (min-width: 900px) {
+    .unlock-notice {
+        top: 104px;
+    }
+}
+.unlock-notice,
+.unlock-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 14px 3px 4px;
+    border: 2px solid var(--yellow);
+    color: var(--text);
+    font-size: 12px;
+    line-height: 1.25;
+}
+.unlock-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+    gap: 6px;
+    margin: 10px 0;
+}
+.unlock-item {
+    min-width: 0;
+    border-radius: 12px;
+    background: var(--panel-2);
+    animation: unlock-in 0.32s var(--ease-pop) both;
+}
+:is(.unlock-notice, .unlock-item) > span {
+    display: grid;
+    min-width: 0;
+}
+/* a tarefa cumprida: até 2 linhas (inteira no celular estreito) */
+:is(.unlock-notice, .unlock-item) small {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    font-size: 11px;
+    color: var(--muted);
+}
+:is(.unlock-notice, .unlock-item) img {
+    width: 36px;
+    height: 36px;
     flex: none;
     image-rendering: pixelated;
 }
-.unlock-notice svg {
-    width: 32px;
-    height: 32px;
-    margin: 8px;
+:is(.unlock-notice, .unlock-item) svg {
+    width: 22px;
+    height: 22px;
+    margin: 4px;
     flex: none;
 }
 @keyframes unlock-in {
@@ -7155,4 +7189,48 @@ body {
 }
 .court-card dd {
     margin: 0;
+}
+/* treinador holográfico (platina da geração): o nível acima do dourado. As cores giram no sprite e na moldura;
+   com "reduzir movimento" fica parado, ainda holo (o sprite já é arco-íris) */
+.trainer-holo {
+    filter: drop-shadow(0 0 2px #d7a6ff) drop-shadow(0 0 7px rgb(154 230 255 / 65%)) hue-rotate(0deg);
+    animation: trainer-holo 4s linear infinite;
+}
+@keyframes trainer-holo {
+    to {
+        filter: drop-shadow(0 0 2px #d7a6ff) drop-shadow(0 0 7px rgb(154 230 255 / 65%)) hue-rotate(360deg);
+    }
+}
+.holo-frame.holo-frame {
+    position: relative;
+    border-color: transparent;
+    box-shadow: 0 0 16px rgb(215 166 255 / 40%);
+}
+.holo-frame::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    padding: 3px;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #ff9ad5, #9ae6ff, #b6ffa0, #fff29a, #d7a6ff, #ff9ad5) 0 0 / 300% 100%;
+    mask:
+        linear-gradient(#000 0 0) content-box exclude,
+        linear-gradient(#000 0 0);
+    pointer-events: none;
+    animation: holo-frame 4s linear infinite;
+}
+@keyframes holo-frame {
+    to {
+        background-position: 300% 0;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .trainer-holo,
+    .holo-frame::after {
+        animation: none;
+    }
+}
+:root[data-reduce-motion="true"] .trainer-holo,
+:root[data-reduce-motion="true"] .holo-frame::after {
+    animation: none;
 }

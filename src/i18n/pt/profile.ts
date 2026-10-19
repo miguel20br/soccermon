@@ -239,6 +239,7 @@ export const profile = {
         redGold: 'Red Dourado',
         blueGold: 'Blue Dourado',
         oakGold: 'Prof. Carvalho Dourado',
+        oakHolo: 'Prof. Carvalho Holográfico',
     } as Record<string, string>,
     /** Títulos embaixo do nome do treinador. */
     titles: {
@@ -286,6 +287,7 @@ export const profile = {
         colNidos: 'Realeza Nido',
         colBrock: 'Firme como Rocha',
         colMisty: 'Sereia Moleca',
+        diplomaKanto: 'Diploma de Kanto',
     } as Record<string, string>,
     missions: {
         summary: '{done} de {total} missões cumpridas',
@@ -301,8 +303,21 @@ export const profile = {
             colecao: 'Coleção',
             colecoes: 'Coleções temáticas',
             lendas: 'Lendárias',
+            platina: 'Platina',
         } as Record<string, string>,
         collectionHelp: 'Vale quem jogou pelo seu time (pelo menos 1 minuto em quadra).',
+        platinum: {
+            title: 'Platina da Gen {gen}',
+            help: 'Platinar é fazer 100% de tudo que a geração tem. Prêmio: {trainer} e o título {title}.',
+            items: {
+                dex: 'Pokédex: jogue com todos os Pokémon',
+                moves: 'Golpedex: descubra todos os golpes',
+                album: 'Álbum: todas as edições de cada Pokémon',
+                collections: 'Todas as coleções temáticas',
+                trainers: 'Todos os treinadores das missões',
+                missions: 'Todas as outras missões',
+            } as Record<string, string>,
+        },
         gym: 'Vença o clube de {city} (ginásio de {leader}) numa copa',
         text: {
             kanto: 'Vença os clubes dos 8 líderes de ginásio',
@@ -348,6 +363,7 @@ export const profile = {
             blueGold: 'Seja campeão virando a final depois de perder por 3 gols',
             oakGold: 'Jogue com os 151 Pokémon pelo seu time',
             zeNinguem: 'Seja campeão com 5 titulares de carta bronze na final',
+            platina1: 'Platine a Gen 1: 100% de tudo',
             colIniciais: 'Iniciais de Kanto: jogue com as 9 formas de Bulbasaur, Charmander e Squirtle',
             colPassaros: 'Pássaros lendários: jogue com Articuno, Zapdos e Moltres',
             colFosseis: 'Fósseis: jogue com Omanyte, Kabuto, Aerodactyl e as evoluções',
@@ -459,6 +475,9 @@ export const profile = {
         codeOk: 'Título liberado: {title}',
         codeBad: 'Esse código não vale.',
         codeHave: 'Você já tem o título {title}.',
+        fromStart: 'Desde o começo',
+        byCode: 'Código',
+        lockedTitles: 'Bloqueados ({n})',
     },
     unlocked: {
         trainer: 'Treinador novo desbloqueado: {name}',

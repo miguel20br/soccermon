@@ -5,21 +5,28 @@ import {
     activeTitle,
     activeTrainer,
     earnedTitles,
+    HOLO_TRAINERS,
     isGoldTrainer,
+    isHoloTrainer,
     MISSION_GROUPS,
     MISSIONS,
     type Mission,
     missionCount,
     missionOfTrainer,
+    PLATINUM,
+    type Platinum,
+    platinumItems,
     type SaveView,
+    TITLE_IDS,
     TRAINERS,
     type TrainerId,
+    trainerFx,
     trainerSrc,
     unlockedTrainers,
 } from '../../store/missions';
 import type { Profile } from '../../store/profile';
 import { redeemCode, titleClass } from '../../store/title-codes';
-import { missionText, speciesGif, titleName, trainerName } from './club';
+import { missionOfTitle, missionText, speciesGif, titleHow, titleName, trainerHow, trainerName } from './club';
 import { CheckIcon, LockIcon, MedalIcon } from './icons';
 
 /** O save do jeito que as missões leem (para as barras de progresso). */
@@ -42,7 +49,7 @@ export function useSaveView(): SaveView {
 export function TrainerSprite({ id, locked, className = '' }: { id: TrainerId; locked?: boolean; className?: string }) {
     return (
         <img
-            className={`trainer-sprite${locked ? ' locked' : isGoldTrainer(id) ? ' trainer-gold' : ''} ${className}`}
+            className={`trainer-sprite${locked ? ' locked' : trainerFx(id)} ${className}`}
             src={trainerSrc(id)}
             alt=""
             draggable={false}
@@ -57,12 +64,13 @@ export function TrainerSprite({ id, locked, className = '' }: { id: TrainerId; l
  */
 export function TrainerCard({ save }: { save: (patch: Partial<Profile>) => void }) {
     const profile = useGame((s) => s.profile);
-    const { t } = useT();
+    const { t, d } = useT();
     const unlocked = unlockedTrainers(profile);
     const current = activeTrainer(profile);
     const view = useSaveView();
     const titles = earnedTitles(profile);
     const title = activeTitle(profile);
+    const lockedTitles = TITLE_IDS.filter((id) => !titles.includes(id));
 
     const [code, setCode] = useState('');
     const [codeMsg, setCodeMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -107,14 +115,20 @@ export function TrainerCard({ save }: { save: (patch: Partial<Profile>) => void 
                                     >
                                         <TrainerSprite id={id} />
                                         <b>{trainerName(id)}</b>
+                                        <small className="pf-how">{trainerHow(id)}</small>
                                     </button>
                                 </li>
                             );
-                        // dourado bloqueado: silhueta com brilho de ouro e o selo, pra dar gosto de caçar
-                        const gold = isGoldTrainer(id);
+                        // dourado bloqueado: silhueta com brilho de ouro e o selo, pra dar gosto de caçar (holo: o da platina)
+                        const holo = isHoloTrainer(id);
+                        const gold = holo || isGoldTrainer(id);
                         return (
-                            <li key={id} className={`pf-trainer locked${gold ? ' gold' : ''}`}>
-                                {gold && <span className="pf-gold-seal">{t('profile.picker.legendary')}</span>}
+                            <li key={id} className={`pf-trainer locked${gold ? ' gold' : ''}${holo ? ' holo' : ''}`}>
+                                {gold && (
+                                    <span className="pf-gold-seal">
+                                        {holo ? d.profile.missions.groups.platina : t('profile.picker.legendary')}
+                                    </span>
+                                )}
                                 <TrainerSprite id={id} locked className={gold ? 'locked-gold' : ''} />
                                 <b>
                                     <LockIcon /> {trainerName(id)}
@@ -129,19 +143,39 @@ export function TrainerCard({ save }: { save: (patch: Partial<Profile>) => void 
 
             <fieldset className="pf-field">
                 <legend>{t('profile.picker.title')}</legend>
-                <div className="pf-titles">
+                <ul className="pf-titles">
                     {titles.map((id) => (
-                        <button
-                            type="button"
-                            key={id}
-                            aria-pressed={id === title}
-                            className={`pf-chip pf-title-chip${id === title ? ' active' : ''}`}
-                            onClick={() => save({ title: id })}
-                        >
-                            <span className={titleClass(id).trim() || undefined}>{titleName(id)}</span>
-                        </button>
+                        <li key={id}>
+                            <button
+                                type="button"
+                                aria-pressed={id === title}
+                                className={`pf-chip pf-title-chip${id === title ? ' active' : ''}`}
+                                onClick={() => save({ title: id })}
+                            >
+                                <span className={titleClass(id).trim() || undefined}>{titleName(id)}</span>
+                                <small className="pf-how">{titleHow(id)}</small>
+                            </button>
+                        </li>
                     ))}
-                </div>
+                </ul>
+                {lockedTitles.length > 0 && (
+                    <details className="pf-titles-locked">
+                        <summary>{t('profile.picker.lockedTitles', { n: lockedTitles.length })}</summary>
+                        <ul className="pf-titles">
+                            {lockedTitles.map((id) => {
+                                const m = missionOfTitle(id);
+                                return (
+                                    <li key={id} className="pf-chip pf-title-chip locked">
+                                        <span>
+                                            <LockIcon /> {titleName(id)}
+                                        </span>
+                                        {m && <MissionHow m={m} view={view} />}
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </details>
+                )}
                 <small className="muted">{t('profile.picker.titleHelp')}</small>
             </fieldset>
 
@@ -255,6 +289,66 @@ function MissionRow({ m, view }: { m: Mission; view: SaveView }) {
     );
 }
 
+/** Platina da geração: a lista do que falta para 100%, com a barra de cada item e o total (ex.: 4/6). */
+function PlatinumBlock({ p, view }: { p: Platinum; view: SaveView }) {
+    const { t, d } = useT();
+    const items = platinumItems(p, view);
+    const full = items.filter((i) => i.n >= i.goal).length;
+    const trainer = HOLO_TRAINERS[p.gen];
+    const done = view.done.has(p.mission);
+    return (
+        <section className={`panel pf-card pf-platinum${done ? ' done' : ''}`}>
+            <header className="pf-platinum-head">
+                <TrainerSprite id={trainer} locked={!done} className={done ? '' : 'locked-gold'} />
+                <div>
+                    <h2>
+                        {t('profile.missions.platinum.title', { gen: p.gen })}{' '}
+                        <span className="pf-count">
+                            {full}/{items.length}
+                        </span>
+                    </h2>
+                    <small className="muted">
+                        {t('profile.missions.platinum.help', {
+                            trainer: trainerName(trainer),
+                            title: titleName(p.title),
+                        })}
+                    </small>
+                </div>
+            </header>
+            <ul className="pf-mission-list">
+                {items.map((i) => (
+                    <li key={i.id} className={`pf-mission pf-platinum-item${i.n >= i.goal ? ' done' : ''}`}>
+                        <div className="pf-mission-body">
+                            <span className="pf-mission-text">{d.profile.missions.platinum.items[i.id]}</span>
+                            <span
+                                className="pf-mission-progress"
+                                role="progressbar"
+                                aria-valuemin={0}
+                                aria-valuemax={i.goal}
+                                aria-valuenow={Math.min(i.n, i.goal)}
+                                aria-label={t('profile.missions.progressAria', { n: i.n, goal: i.goal })}
+                            >
+                                <span className="pf-mission-bar">
+                                    <i style={{ width: `${Math.min(1, i.n / i.goal) * 100}%` }} />
+                                </span>
+                                <small>
+                                    {i.n}/{i.goal}
+                                </small>
+                            </span>
+                        </div>
+                        {i.n >= i.goal && (
+                            <span className="pf-mission-done" title={t('profile.missions.done')}>
+                                <CheckIcon />
+                                <span className="pf-sr">{t('profile.missions.done')}</span>
+                            </span>
+                        )}
+                    </li>
+                ))}
+            </ul>
+        </section>
+    );
+}
+
 /** Missões: todas, por grupo, com o prêmio (treinador e/ou título), a barra das de contador e o visto. */
 export function MissionsTab() {
     const view = useSaveView();
@@ -274,7 +368,10 @@ export function MissionsTab() {
                     <i style={{ width: `${(done / MISSIONS.length) * 100}%` }} />
                 </span>
             </div>
-            {MISSION_GROUPS.map((g) => (
+            {PLATINUM.map((p) => (
+                <PlatinumBlock key={p.gen} p={p} view={view} />
+            ))}
+            {MISSION_GROUPS.filter((g) => g !== 'platina').map((g) => (
                 <section key={g} className="panel pf-card">
                     <h2>{d.profile.missions.groups[g]}</h2>
                     {g === 'colecoes' && <small className="muted">{t('profile.missions.collectionHelp')}</small>}

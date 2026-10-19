@@ -24,6 +24,7 @@ import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { CupGoalCard, MomentsButton } from '../components/Moments';
 import { cardSprite } from '../components/PokeCard';
 import { type HeroStat, ResultHero } from '../components/ResultHero';
+import { UnlockStrip } from '../components/UnlockNotice';
 import { FEEDBACK_URL } from '../links';
 import { useClubColor } from '../profile/club';
 import { shareRun } from '../share';
@@ -184,6 +185,7 @@ export function Result() {
                     color={`#${rivalColor(clubColor, opponent.color).toString(16).padStart(6, '0')}`}
                 />
             )}
+            <UnlockStrip />
             {champion && <h2 className="champ-h champ-final-h">{t('result.finalDetails')}</h2>}
 
             <MatchDetails

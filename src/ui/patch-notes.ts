@@ -27,6 +27,13 @@ export const PATCH_NOTES: PatchNotes[] = [
                 ],
             },
             {
+                title: 'Conquistas',
+                lines: [
+                    'Tudo que você ganha agora mostra a tarefa cumprida: no aviso, na escolha de treinador e na de título',
+                    'Nova Platina da Gen 1: faça 100% de tudo e ganhe o Prof. Carvalho holográfico e o título Diploma de Kanto',
+                ],
+            },
+            {
                 title: 'Treinadores e quadras',
                 lines: [
                     'Os líderes de ginásio agora falam antes e depois do jogo, e cada clube joga na quadra do seu ginásio',
@@ -601,6 +608,13 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     '20 tiered medals (bronze, silver, gold and platinum) in Profile → Medals. Everything you already played counts',
                     'Showcase: pick up to 3 highlights (medal, completed collection or seal); they show on your card and on the Duel VERSUS, and the best one becomes your avatar frame',
                     'Build your crest (shape, symbol and two colors) and a kit with a pattern, on the scoreboard, the VERSUS and the court. New symbols and patterns unlock with collections and medals',
+                ],
+            },
+            {
+                title: 'Achievements',
+                lines: [
+                    'Everything you unlock now shows the task you completed: in the notice and when picking a trainer or a title',
+                    'New Gen 1 Platinum: get 100% of everything and earn the holographic Prof. Oak and the Kanto Diploma title',
                 ],
             },
             {

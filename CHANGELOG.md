@@ -12,6 +12,10 @@
 - Vitrine: escolha até 3 destaques (medalha, coleção completa ou selo); aparecem no seu cartão e no VERSUS do Duelo, e o melhor vira a moldura do avatar
 - Escudo montável (formato, símbolo e duas cores) e uniforme com padrão, no placar, no VERSUS e na quadra. Símbolos e padrões novos saem com coleções e medalhas
 
+### Conquistas
+- Tudo que você ganha agora mostra a tarefa cumprida: no aviso, na escolha de treinador e na de título
+- Nova Platina da Gen 1: faça 100% de tudo e ganhe o Prof. Carvalho holográfico e o título Diploma de Kanto
+
 ### Treinadores e quadras
 - Os líderes de ginásio agora falam antes e depois do jogo, e cada clube joga na quadra do seu ginásio
 - Com o experimento beira da quadra ligado, o técnico rival reage do jeito dele: grita, pede tempo, sobe o goleiro, chama o golpe máximo e muda a tática. A narração avisa 10 s antes de valer

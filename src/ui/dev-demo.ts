@@ -27,6 +27,8 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * `?demo=lider&clube=<id>` (brock,
  * misty, ltsurge, erika, koga, sabrina, blaine, giovanni, agatha, lance) põe o clube desse treinador na primeira
  * partida (VERSUS com a fala, a quadra do ginásio); com `&agencia=1`, uma partida em que o rival reage cedo.
+ * grandalhões cuja primeira partida tem escanteio seu com disputa no alto logo no começo. `?demo=platina` libera a
+ * platina da Gen 1 sem platinar (Prof. Carvalho holográfico e Diploma de Kanto, já escolhidos) e mostra o aviso na Home.
  */
 let started = false;
 
@@ -44,7 +46,8 @@ export function runDevDemo() {
         demo !== 'escanteio' &&
         demo !== 'conta' &&
         demo !== 'lider' &&
-        demo !== 'colecao'
+        demo !== 'colecao' &&
+        demo !== 'platina'
     )
         return;
     started = true;
@@ -53,6 +56,20 @@ export function runDevDemo() {
     const store = useGame.getState();
     if (demo === 'colecao') {
         demoCollection();
+        return;
+    }
+    if (demo === 'platina') {
+        const p = store.profile;
+        useGame.setState({
+            profile: {
+                ...p,
+                missionsDone: [...new Set([...p.missionsDone, 'platina1'])],
+                trainer: 'oakHolo',
+                title: 'diplomaKanto',
+            },
+            unlockQueue: ['platina1'],
+            screen: 'home',
+        });
         return;
     }
     if (demo === 'conta') {
