@@ -1,3 +1,4 @@
+import { mergeBinder } from '../store/binder';
 import { mergeDaily } from '../store/daily';
 import { mergeDuels } from '../store/duels';
 import {
@@ -187,6 +188,7 @@ export function mergeSaves(
         hall: mergeHall(local.hall, cloud?.hall),
         duels: mergeDuels(local.duels, cloud?.duels),
         daily: mergeDaily(local.daily, cloud?.daily),
+        binder: mergeBinder(local.binder, cloud?.binder),
     });
 }
 

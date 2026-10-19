@@ -47,11 +47,14 @@
 - Tela inicial com mais vida: selo AO VIVO na quadra, logo respirando e os blocos entrando em cascata (para com "reduzir movimento")
 - Página de erro nova: o Psyduck perdeu a bola pra fora da quadra
 - Logo novo: a carta holo com a bola (também na aba do navegador, no ícone do celular e na prévia do link)
+- Pacote de cartas com o logo novo
 - Ícones padronizados: fechar, setas, estrela, sortear e o resto desenhados no mesmo traço em todo o jogo
 
 ### Medalhas e clube
 - 20 medalhas com degraus (bronze, prata, ouro e platina) em Perfil → Medalhas. Já contam tudo o que você jogou
 - Vitrine: escolha até 3 destaques (medalha, coleção completa ou selo); aparecem no seu cartão e no VERSUS do Duelo, e o melhor vira a moldura do avatar
+- Fichário: todas as cartas raras que você tirou, num lugar só
+- Vitrine de cartas no Perfil e no Duelo
 - Escudo montável (formato, símbolo e duas cores) e uniforme com padrão, no placar, no VERSUS e na quadra. Símbolos e padrões novos saem com coleções e medalhas
 - Avatares por geração, e o Pokémon que você já jogou shiny vira avatar shiny
 

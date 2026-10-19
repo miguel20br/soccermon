@@ -63,7 +63,7 @@ const TACTICS: Tactic[] = ['balanced', 'offensive', 'defensive', 'counter'];
  */
 export const MAX_EVO = EVO_THRESHOLD - 0.1;
 
-const monRecipe = (p: PokemonInstance): DuelMonRecipe => ({
+export const monRecipe = (p: PokemonInstance): DuelMonRecipe => ({
     speciesId: p.speciesId,
     moves: [...p.moves],
     ability: p.ability,
@@ -95,7 +95,8 @@ export function teamRecipe(t: TeamSetup): DuelTeamRecipe {
 
 const isStr = (v: unknown, max = 40): v is string => typeof v === 'string' && v.length <= max;
 
-function monProblems(m: DuelMonRecipe, where: string): string[] {
+/** Problemas de uma carta (receita) que veio de fora: vazio = é uma carta que uma copa poderia dar. */
+export function monProblems(m: DuelMonRecipe, where: string): string[] {
     const out: string[] = [];
     const bad = (what: string) => out.push(`${where}: ${what}`);
     if (!m || typeof m !== 'object') return [`${where}: vazio`];
@@ -187,29 +188,31 @@ export function validarTimeDuelo(r: unknown, specialLimit: SpecialLimit = null):
     return out;
 }
 
+/** Carta de verdade a partir da receita (nível e condição padrão). */
+export function monFromRecipe(m: DuelMonRecipe, uid: string): PokemonInstance {
+    const p: PokemonInstance = {
+        uid,
+        speciesId: m.speciesId,
+        level: DEFAULT_LEVEL,
+        xp: 0,
+        moves: [...m.moves],
+        ability: m.ability,
+        shiny: m.shiny,
+        nickname: m.nickname ?? null,
+        condition: 1,
+        item: m.item ?? null,
+        special: m.special ?? null,
+    };
+    if (m.taught?.length) p.taught = [...m.taught];
+    if (m.evo !== undefined) p.evo = m.evo;
+    if (m.inherited?.length) p.inherited = [...m.inherited];
+    if (m.evolved) p.evolved = m.evolved;
+    return p;
+}
+
 /** Time de verdade a partir da receita (uids novos, com o lado no fim; nível e condição padrão). */
 export function teamFromRecipe(r: DuelTeamRecipe, suffix: string): TeamSetup {
-    const make = (m: DuelMonRecipe, i: number): PokemonInstance => {
-        const p: PokemonInstance = {
-            uid: `${m.speciesId}-${i}${suffix}`,
-            speciesId: m.speciesId,
-            level: DEFAULT_LEVEL,
-            xp: 0,
-            moves: [...m.moves],
-            ability: m.ability,
-            shiny: m.shiny,
-            nickname: m.nickname ?? null,
-            condition: 1,
-            item: m.item ?? null,
-            special: m.special ?? null,
-        };
-        if (m.taught?.length) p.taught = [...m.taught];
-        if (m.evo !== undefined) p.evo = m.evo;
-        if (m.inherited?.length) p.inherited = [...m.inherited];
-        if (m.evolved) p.evolved = m.evolved;
-        return p;
-    };
-    const all = [...r.lineup, ...r.bench].map(make);
+    const all = [...r.lineup, ...r.bench].map((m, i) => monFromRecipe(m, `${m.speciesId}-${i}${suffix}`));
     return {
         name: r.name,
         lineup: all.slice(0, 5),

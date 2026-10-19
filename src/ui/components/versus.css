@@ -151,11 +151,15 @@
     background: var(--kit, none);
     opacity: 0.16;
 }
-.vsp-showcase {
-    margin-top: 2px;
+/* vitrine do treinador (Duelo): medalhas e cartas numa fileira só */
+.vsp-shows {
+    display: flex;
+    align-items: center;
+    gap: clamp(6px, 1.5vmin, 12px);
+    margin-top: 6px;
 }
-.is-away .vsp-coach .vsp-showcase {
-    justify-self: end;
+.is-away .vsp-shows {
+    justify-content: flex-end;
 }
 
 /* média do time, na faixa das cartas (bronze/prata/ouro) */
@@ -673,4 +677,20 @@
 }
 .vs-countdown {
     pointer-events: none;
+}
+
+/* cartas da vitrine em miniatura */
+.vsp-cards {
+    --cs-w: clamp(26px, 6.5vmin, 60px);
+    gap: clamp(3px, 0.8vmin, 6px);
+}
+.vsp-cards .pc2 {
+    box-shadow: 0 2px 0 rgb(0 0 0 / 55%);
+    border-radius: 0.6em;
+}
+/* celular baixinho em pé: a carta fica da altura da medalha (a foto do time não encolhe) */
+@media (orientation: portrait) and (max-height: 640px) {
+    .vsp-cards {
+        --cs-w: 22px;
+    }
 }

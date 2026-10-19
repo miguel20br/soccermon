@@ -42,6 +42,7 @@ import {
 import { baseSeedOf, holdTick, openedSegments } from '../../net/seal';
 import { duel, roomNow, useDuel } from '../../net/session';
 import { PhaserGame } from '../../PhaserGame';
+import { parseCardShowcase } from '../../store/binder';
 import { fieldKit, lookOfPeer, matchLooks } from '../../store/club-kit';
 import type { ChanceSpeed, PlaybackSpeed } from '../../store/game-store';
 import { useGame } from '../../store/game-store';
@@ -449,6 +450,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
             avatarGoogle: peerAvatar(p).google,
             showcase: parseShowcase(p.showcase),
             frame: frameTier(parseShowcase(p.showcase)),
+            cards: parseCardShowcase(p.cards),
         };
     const badge = (p?: typeof myPeer) => {
         const tt = p && peerTitle(p);

@@ -33,6 +33,7 @@ import { bannerOf, clubColorHex, rivalColor } from '../../store/profile';
 import { ResultHero } from '../components/ResultHero';
 import { LeaveConfirm } from '../leave-guard';
 import { FEEDBACK_URL } from '../links';
+import { useCardShowcase } from '../profile/BinderTab';
 import { avatarImage, avatarWire, hexCss, peerAvatar, peerTitle, titleName, trainerLabel } from '../profile/club';
 import { useShowcase } from '../profile/Medals';
 import { qrPath } from '../qr';
@@ -98,6 +99,7 @@ function usePeer(local: boolean): Peer | null {
     const user = useCloud((s) => s.user);
     useCloud((s) => s.anonId);
     const showcase = useShowcase().encoded;
+    const cards = useCardShowcase().encoded;
     const id = local ? localId() : duelUserId();
     if (!id) return null;
     const av = avatarImage(profile.avatar, user?.avatar);
@@ -115,6 +117,7 @@ function usePeer(local: boolean): Peer | null {
         banner: bannerOf(profile.banner),
         ...peerLookFields(lookOfProfile(profile)),
         showcase,
+        cards,
         anon: !local && !user,
     });
 }

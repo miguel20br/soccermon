@@ -5131,7 +5131,7 @@ a.home-tile {
     left: 100%;
     width: 20px;
     height: 20px;
-    background: url("/assets/ui/bola.svg") center / contain no-repeat;
+    background: url("/assets/ui/ball.svg") center / contain no-repeat;
     animation:
         hp-run 9s -0.45s linear infinite,
         hp-roll 0.5s linear infinite;
@@ -5178,7 +5178,7 @@ a.home-tile {
     width: 16px;
     height: 16px;
     translate: -50% 0;
-    background: url("/assets/ui/bola.svg") center / contain no-repeat;
+    background: url("/assets/ui/ball.svg") center / contain no-repeat;
 }
 @keyframes hc-kick {
     0%,
@@ -6458,9 +6458,17 @@ p.muted.center a {
     border-bottom: 2px dashed rgb(255 255 255 / 70%);
     border-radius: 10px 10px 0 0;
 }
+/* a carta holo do logo (símbolo) em destaque, com o logo horizontal embaixo */
+.cpack-simbolo {
+    position: relative;
+    width: 44%;
+    height: auto;
+    margin-top: 4cqw;
+    filter: drop-shadow(0 3px 8px rgb(0 0 0 / 60%)) drop-shadow(0 0 14px rgb(255 214 120 / 45%));
+}
 .cpack-logo {
     position: relative;
-    width: 86%;
+    width: 82%;
     height: auto;
     filter: drop-shadow(0 2px 6px rgb(0 0 0 / 60%));
 }

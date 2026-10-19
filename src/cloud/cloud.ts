@@ -355,6 +355,7 @@ async function reconcile(uid: string): Promise<boolean> {
                 hall: cloud?.hall ?? [],
                 duels: cloud?.duels ?? [],
                 daily: cloud?.daily ?? [],
+                binder: cloud?.binder ?? [],
                 screen: 'home',
                 match: null,
             });

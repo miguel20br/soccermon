@@ -9,6 +9,7 @@ import { titleClass } from '../../store/title-codes';
 import { HallList } from '../components/HallParade';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
+import { BinderTab, CardShowcaseRow, useCardShowcase } from '../profile/BinderTab';
 import { ClubTab } from '../profile/ClubTab';
 import { Crest } from '../profile/Crest';
 import { clubVars, titleName, trainerLabel, useAvatar } from '../profile/club';
@@ -18,11 +19,12 @@ import { NumbersTab } from '../profile/NumbersTab';
 import { MissionsTab, TrainerSprite } from '../profile/TrainerTab';
 import '../profile/profile.css';
 
-type Tab = 'clube' | 'medalhas' | 'missoes' | 'dex' | 'hall' | 'numeros';
-const TABS: Tab[] = ['clube', 'medalhas', 'missoes', 'dex', 'hall', 'numeros'];
+type Tab = 'clube' | 'medalhas' | 'fichario' | 'missoes' | 'dex' | 'hall' | 'numeros';
+const TABS: Tab[] = ['clube', 'medalhas', 'fichario', 'missoes', 'dex', 'hall', 'numeros'];
 const TAB_ICON: Record<Tab, HudIconKind> = {
     clube: 'defensive',
     medalhas: 'medal',
+    fichario: 'cards',
     missoes: 'flag',
     dex: 'dex',
     hall: 'cup',
@@ -39,6 +41,7 @@ export function Profile() {
     const avatar = useAvatar();
     const updateProfile = useGame((s) => s.updateProfile);
     const showcase = useShowcase();
+    const cardShow = useCardShowcase();
     // ?perfil=medalhas abre direto na aba (atalho pros prints e pro Miguel)
     const [tab, setTab] = useState<Tab>(() => {
         const q = new URLSearchParams(window.location.search).get('perfil') as Tab | null;
@@ -85,6 +88,7 @@ export function Profile() {
                         <dd>{career.goalsFor}</dd>
                     </div>
                 </dl>
+                <CardShowcaseRow insts={cardShow.insts} className="pf-cardshow" open />
             </header>
 
             <div className="pf-tabs bc-tabs" role="tablist" aria-label={t('profile.title')}>
@@ -108,6 +112,7 @@ export function Profile() {
             <div role="tabpanel" id={`pf-panel-${tab}`} aria-labelledby={`pf-tab-${tab}`}>
                 {tab === 'clube' && <ClubTab />}
                 {tab === 'medalhas' && <MedalsTab save={updateProfile} />}
+                {tab === 'fichario' && <BinderTab />}
                 {tab === 'missoes' && <MissionsTab />}
                 {tab === 'dex' && <DexTab />}
                 {tab === 'hall' && <HallList />}

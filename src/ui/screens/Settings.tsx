@@ -484,6 +484,7 @@ function DataSettings() {
             career: EMPTY_CAREER,
             onboarded: false,
             parkedRuns: [],
+            binder: [],
             screen: 'home',
         });
     };

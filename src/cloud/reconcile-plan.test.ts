@@ -48,6 +48,7 @@ function save(patch: Partial<PersistedSave> = {}): PersistedSave {
         profile: DEFAULT_PROFILE,
         dex: {},
         moves: {},
+        binder: [],
         career: EMPTY_CAREER,
         onboarded: false,
         parkedRuns: [],

@@ -267,6 +267,8 @@ export const ICONS = {
     timeout: 'M4 5h16M12 5v15M8 20h8',
     flyGk: 'M12 21V8M7 13l5-5 5 5M5 4h14',
     max: 'M12 2l2.9 6.2 6.6.8-4.9 4.6 1.3 6.6L12 16.9l-5.9 3.3 1.3-6.6L2.5 9l6.6-.8z',
+    // duas cartas, uma atrás da outra (aba Fichário do Perfil)
+    cards: 'M9 7h10v14H9zM5 17V3h10',
     // medalha com fita (aba Medalhas do Perfil)
     medal: 'M8 2l3 7M16 2l-3 7M12 9a6 6 0 1 1 0 12 6 6 0 0 1 0-12zM12 12.5l1 2 2.2.3-1.6 1.5.4 2.2-2-1-2 1 .4-2.2-1.6-1.5 2.2-.3z',
     up: 'M6 15l6-6 6 6',

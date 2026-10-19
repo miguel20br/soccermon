@@ -497,16 +497,15 @@ button.pf-trainer:focus-visible,
     text-align: center;
     line-height: 1.2;
 }
-/* 6 abas não cabem numa fileira no celular estreito: duas de 3 */
+/* 7 abas não cabem numa fileira no celular estreito: duas de 4 (ícone em cima do nome) */
 @media (max-width: 480px) {
     .pf-tabs.bc-tabs {
         grid-auto-flow: row;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
     .pf-tabs.bc-tabs button {
-        min-height: 44px;
-        flex-direction: row;
-        gap: 5px;
+        min-height: 48px;
+        padding-inline: 2px;
     }
 }
 .pf-tab:hover {
@@ -601,7 +600,8 @@ fieldset.pf-field,
     letter-spacing: 3px;
     font-family: "Galmuri14", "Galmuri11", monospace;
 }
-.pf-card small {
+/* a carta (fichário) tem os textos dela, em em */
+.pf-card small:not(.pc2 small) {
     font-size: 12px;
     line-height: 1.4;
 }
