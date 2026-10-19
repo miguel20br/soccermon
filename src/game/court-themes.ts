@@ -95,7 +95,7 @@ export const COURTS: Record<LeaderId, CourtTheme> = {
     misty: {
         surround: 0x1f5f8f,
         rim: 0x74bddb,
-        floor: { kind: 'checker', size: 22, tones: [0x92d1ea, 0x9fd8ee] },
+        floor: { kind: 'checker', size: 22, tones: [0x74bbdd, 0x7ec2e1] },
         area: 0x1f63c4,
         areaAlpha: 0.5,
         decor: (g, box, size) => {
@@ -148,8 +148,8 @@ export const COURTS: Record<LeaderId, CourtTheme> = {
         surround: 0x3f6b3a,
         rim: 0x6aa64e,
         floor: { kind: 'stripes', size: 44, tones: [0x80bf60, 0x76b558] },
-        area: 0xe0679f,
-        areaAlpha: 0.42,
+        area: 0xd94f90,
+        areaAlpha: 0.55,
         decor: (g, box, size) => {
             const petals = [0xf4a7c8, 0xfff1a8, 0xffffff, 0xe889b6];
             for (const [i, p] of along(box, size, 30).entries()) {
@@ -276,8 +276,8 @@ export const COURTS: Record<LeaderId, CourtTheme> = {
         surround: 0x1c1e45,
         rim: 0x5f66ab,
         floor: { kind: 'checker', size: 44, tones: [0x8e94c9, 0x868cc1] },
-        area: 0xd9a935,
-        areaAlpha: 0.38,
+        area: 0x2e3080,
+        areaAlpha: 0.5,
         decor: (g, box, size) => {
             g.lineStyle(2, 0xd9a935, 0.85).strokeRect(box.x - 6, box.y - 6, box.w + 12, box.h + 12);
             for (const [i, p] of along(box, size, 60).entries()) {

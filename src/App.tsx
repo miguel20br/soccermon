@@ -26,6 +26,7 @@ import { Settings } from './ui/screens/Settings';
 
 // Movedex (?lab=golpes) usa o Phaser: vem num pedaço à parte, como a partida
 const MoveLab = lazy(() => import('./ui/screens/MoveLab').then((m) => ({ default: m.MoveLab })));
+const CourtLab = lazy(() => import('./ui/screens/CourtLab').then((m) => ({ default: m.CourtLab })));
 const EmoteLab = lazy(() => import('./ui/duel/EmoteLab').then((m) => ({ default: m.EmoteLab })));
 
 export default function App() {
@@ -44,12 +45,13 @@ export default function App() {
     if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('demo') === 'crash') {
         throw new Error('Teste do aviso de erro (?demo=crash)');
     }
-    // laboratórios: ?lab=golpes (animação de todos os golpes, público), ?lab=emotes (emotes do Duelo sem sala, público); ?lab=posicoes e ?cards=1 só no dev, menos
+    // laboratórios: ?lab=golpes (animação de todos os golpes, público), ?lab=emotes (emotes do Duelo sem sala, público),
+    // ?lab=quadras (treinadores, falas e a quadra de cada ginásio, público); ?lab=posicoes e ?cards=1 só no dev, menos
     // a revisão dos suspeitos de posição (?lab=posicoes&revisao=1), que o Miguel abre no celular
     const [lab, setLab] = useState(() => {
         const params = new URLSearchParams(window.location.search);
         const q = params.get('lab');
-        if (q === 'golpes' || q === 'emotes') return q;
+        if (q === 'golpes' || q === 'emotes' || q === 'quadras') return q;
         return (import.meta.env.DEV || params.has('revisao')) && q === 'posicoes' ? q : null;
     });
     const [cards, setCards] = useState(
@@ -112,9 +114,15 @@ export default function App() {
         };
         return (
             <div className="app">
-                {lab === 'golpes' || lab === 'emotes' ? (
+                {lab === 'golpes' || lab === 'emotes' || lab === 'quadras' ? (
                     <Suspense fallback={<p className="muted">{t('common.ui.loading')}</p>}>
-                        {lab === 'golpes' ? <MoveLab onExit={exit} /> : <EmoteLab onExit={exit} />}
+                        {lab === 'golpes' ? (
+                            <MoveLab onExit={exit} />
+                        ) : lab === 'quadras' ? (
+                            <CourtLab onExit={exit} />
+                        ) : (
+                            <EmoteLab onExit={exit} />
+                        )}
                     </Suspense>
                 ) : (
                     <PositionLab onExit={exit} />

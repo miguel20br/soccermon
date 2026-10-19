@@ -60,6 +60,7 @@ export function drawCourt(scene: Phaser.Scene, theme: CourtTheme = WOOD) {
         g.lineStyle(3, 0xffffff, 1).strokeRect(top.x, top.y, PPM, GW * PPM);
     }
     g.setDepth(-1000);
+    return g;
 }
 
 /**

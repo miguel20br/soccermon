@@ -202,6 +202,14 @@ export const match: typeof pt = {
             lose: "That's it! You're Kanto's new champion!",
         },
     },
+    courtLab: {
+        title: 'Trainers and courts',
+        intro: 'Every cup club plays at home, on its gym court. The lines show up in the VERSUS and after the match.',
+        alt: '{club} court',
+        pre: 'Before',
+        win: 'If they win',
+        lose: 'If they lose',
+    },
     vs: {
         yourTeam: 'Your team',
         rival: 'Rival',

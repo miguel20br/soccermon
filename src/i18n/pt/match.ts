@@ -208,6 +208,14 @@ export const match = {
             lose: 'É isso! Você é o novo campeão de Kanto!',
         },
     },
+    courtLab: {
+        title: 'Treinadores e quadras',
+        intro: 'Cada clube da copa joga em casa, na quadra do ginásio. As falas aparecem no VERSUS e no fim do jogo.',
+        alt: 'Quadra do {club}',
+        pre: 'Antes',
+        win: 'Se ganhar',
+        lose: 'Se perder',
+    },
     vs: {
         yourTeam: 'Seu time',
         rival: 'Rival',

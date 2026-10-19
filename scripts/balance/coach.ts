@@ -1,7 +1,9 @@
 // Técnico robô da agência (docs/planos/pesquisas/agencia.md, seção 4): mede quanto cada mecânica vale.
 // Uso: npx tsx scripts/balance/coach.ts <partidas> <out.json> [velocidade=4] [mecânicas=shout,timeout,flyGk,max,pens,all]
 // O time 0 é o robô; o time 1, a IA de sempre (sem mecânica). Mesmas seeds em todas as políticas (comparação pareada).
-// Políticas: never (nunca usa = a partida de hoje), random (usa em horas sorteadas), good (regra simples e sensata).
+// Políticas: never (nunca usa = a partida de hoje), random (usa em horas sorteadas), good (regra simples e sensata);
+// com RIVAL=1 também read (a good + responde ao aviso do rival: ele chama o time pra frente, você fecha; ele fecha,
+// você vai pra cima).
 // A ordem vale `40 × velocidade` ticks à frente, como na copa.
 // RIVAL=1: o time 1 ganha o técnico IA que reage (src/engine/rival-coach.ts), um líder por partida (em rodízio).
 import { writeFileSync } from 'node:fs';
@@ -22,7 +24,7 @@ const RIVAL = process.env.RIVAL === '1';
 for (const [k, v] of Object.entries(process.env)) {
     if (k.startsWith('AG_') && v) (AGENCY as unknown as Record<string, number>)[k.slice(3)] = Number(v);
 }
-type Policy = 'never' | 'random' | 'good';
+type Policy = 'never' | 'random' | 'good' | 'read';
 
 interface Plan {
     shouts: { minute: number; shout: Shout }[];
@@ -85,6 +87,14 @@ function play(i: number, mech: string, policy: Policy): Out {
         if (s.tick % 20 === 0 && s.phase !== 'fulltime') decide();
         runner.step();
     }
+    function rivalShout(): Shout | null {
+        for (let k = s.events.length - 1; k >= 0; k--) {
+            const e = s.events[k];
+            if (s.tick - e.tick > AGENCY.shoutTicks) return null;
+            if (e.type === 'coach' && e.team === 1 && e.call === 'shout') return e.shout;
+        }
+        return null;
+    }
     function decide() {
         const min = minuteOf(s);
         const diff = s.score[0] - s.score[1];
@@ -110,6 +120,10 @@ function play(i: number, mech: string, policy: Policy): Out {
                             : energy < 0.45
                               ? 'calm'
                               : null;
+                // lê o rival: responde ao último grito avisado dele (vale enquanto o grito dele dura)
+                const call = policy === 'read' ? rivalShout() : null;
+                if (call && (call === 'attack' || call === 'press') && diff >= 0) pick = 'lock';
+                else if (call === 'lock' && diff <= 0) pick = 'attack';
             }
             if (pick && free) {
                 order({ kind: 'shout', shout: pick });
@@ -194,7 +208,10 @@ function summarize(s: MatchState): Out {
 }
 
 const configs: [string, Policy][] = [['none', 'never']];
-for (const m of MECHS) configs.push([m, 'random'], [m, 'good']);
+for (const m of MECHS) {
+    configs.push([m, 'random'], [m, 'good']);
+    if (RIVAL && (m === 'shout' || m === 'all')) configs.push([m, 'read']);
+}
 const res: Record<string, Out[]> = {};
 const t0 = Date.now();
 console.log(RIVAL ? 'rival reagindo (técnico IA, líderes em rodízio)' : 'rival parado (como hoje)');

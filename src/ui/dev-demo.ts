@@ -1,6 +1,7 @@
 import { type LinkAsk, useCloud } from '../cloud/cloud';
 import type { SaveSummary } from '../cloud/reconcile-plan';
 import { FUTSAL_5 } from '../engine/config';
+import { clubLeader, cupRival } from '../engine/cup';
 import { aiDraftTeam } from '../engine/draft';
 import { createInstance } from '../engine/instance';
 import { rewardOptions } from '../engine/rewards';
@@ -8,6 +9,7 @@ import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
 import { EventBus } from '../game/EventBus';
 import { playerTeam, useGame } from '../store/game-store';
+import { agencyOn } from './settings-sync';
 import { isTrailerScene, trailerPicks } from './trailer-scenes';
 
 /**
@@ -19,7 +21,9 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * uma MT do ginásio entre as 3 cartas (Charmeleon, Caterpie e cia. para testar quem aprende). `?demo=conta&tipo=levar|juntar|juntar1|copa|outra|guardada`
  * mostra a pergunta depois do login (com resumos de mentira; os botões só fecham) ou a copa guardada na tela inicial. `?demo=trailer&cena=<cena>&seed=<seed>` abre na escalação a
  * partida que a caça de lances (scripts/trailer-hunt.ts) escolheu para o trailer. `?demo=escanteio` monta um time de
- * grandalhões cuja primeira partida tem escanteio seu com disputa no alto logo no começo.
+ * grandalhões cuja primeira partida tem escanteio seu com disputa no alto logo no começo. `?demo=lider&clube=<id>` (brock,
+ * misty, ltsurge, erika, koga, sabrina, blaine, giovanni, agatha, lance) põe o clube desse treinador na primeira
+ * partida (VERSUS com a fala, a quadra do ginásio); com `&agencia=1`, uma partida em que o rival reage cedo.
  */
 let started = false;
 
@@ -34,6 +38,7 @@ export function runDevDemo() {
         demo !== 'trailer' &&
         demo !== 'mt' &&
         demo !== 'escanteio' &&
+        demo !== 'lider' &&
         demo !== 'conta'
     )
         return;
@@ -68,6 +73,45 @@ export function runDevDemo() {
             screen: 'lineup',
         });
         console.info(`[demo] trailer: cena ${cena}, copa ${seed}`);
+        return;
+    }
+    if (demo === 'lider') {
+        const want = new URLSearchParams(window.location.search).get('clube') ?? 'ltsurge';
+        const agency = agencyOn();
+        for (let k = 0; k < 300; k++) {
+            store.newRun('Demo FC', `lider${k}`);
+            const run = useGame.getState().run!;
+            const idx = run.opponents.findIndex((o) => clubLeader(o.name) === want);
+            if (idx < 0) continue;
+            const team = aiDraftTeam(new Rng(`lider${k}`, 'demo'), 2);
+            const ready = {
+                ...run,
+                opponents: [run.opponents[idx], ...run.opponents.filter((_, i) => i !== idx)],
+                formation: '1-2-1' as const,
+                picks: [...team.lineup, ...team.bench],
+                lineup: team.lineup.map((p) => p.uid),
+                bench: team.bench.map((p) => p.uid),
+                captainUid: team.captainUid,
+                draftRound: 7,
+                status: 'lineup' as const,
+            };
+            if (agency) {
+                // o rival tem que reagir logo (aviso do técnico antes dos 12')
+                const r = runMatch(
+                    FUTSAL_5,
+                    playerTeam(ready),
+                    cupRival(ready.opponents[0], true),
+                    `${ready.seed}-stage-0`,
+                    {
+                        snapshots: false,
+                    },
+                );
+                if (!r.events.some((e) => e.type === 'coach' && e.minute < 12)) continue;
+            }
+            useGame.setState({ run: ready, screen: 'lineup' });
+            console.info(`[demo] copa ${ready.seed}: contra ${ready.opponents[0].name}`);
+            return;
+        }
         return;
     }
     if (demo === 'ditto') {
