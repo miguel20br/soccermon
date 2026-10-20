@@ -102,6 +102,11 @@ existem: `club-kit.ts`).
 | **Média (recomendada)** | Simples + rodadas contra times-fantasma com ranking da temporada, pacotes do ranking vindos do servidor, Evoluções, pontes com a Copa | 3–4 versões | médio (reaproveita a Liga) |
 | Rica | Média + Duelo com time do UT, desafios de montagem, troca entre amigos, temporada temática | 5+ versões | alto (economia e servidor) |
 
+## Decidido com o Miguel (20/10/2026)
+
+"O planejamento do UT tá perfeito": valem as recomendações das 8 decisões abaixo (B, 6 semanas, escopo Médio,
+Evoluções sim, sem mercado na 1ª versão, UT entra na 1.0, nome "Ultimate Team" por enquanto, a Copa continua "Copa").
+
 ## Decisões pro Miguel
 
 1. **Ponte entre os modos:** B, pontes de mão única (Copa dá pacote no UT; Pokédex/Álbum/medalhas juntos; carta do UT

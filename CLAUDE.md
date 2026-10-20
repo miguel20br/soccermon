@@ -50,6 +50,9 @@ você é o Claude e `git log` mostrar commits com `miguelcunhabr@`, avise o Migu
 - **Cartas:** minimalistas, bronze/prata/ouro pela nota (≤64 / 65–74 / 75+, padrão FIFA), nota e atributos
   grandes, raridade só como acabamento. Edições especiais (Shiny, Destaque, Ícone, Evento) têm visual próprio.
   Mudança visual de carta: mostrar na galeria `?cards=1` antes de espalhar.
+- **Nada teleporta (20/10/2026, regra do Tutti):** toda troca de tela, entrada, saída e mudança de estado nos menus tem
+  transição (200–300 ms, `--ease-out`), nada pula de posição; com Reduzir movimento fica só o fade. Tela nova já nasce
+  assim; o que já existe está no backlog em `docs/planos/nada-teleporta.md`.
 - **Sem emoji na interface do jogo** (golpes, menus, gráficos): use ícones desenhados (SVG ou Phaser). O texto
   de Compartilhar pode ter emoji.
 - **Carta = campo:** `src/engine/modifiers.ts` é a regra única de bônus; carta, painel e motor usam a mesma.
