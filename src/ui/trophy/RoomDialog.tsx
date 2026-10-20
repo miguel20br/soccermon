@@ -51,8 +51,14 @@ export function RoomDialog({
                 <span aria-hidden>{text.slice(0, n)}</span>
                 {done && <i className="room-dialog-next" aria-hidden />}
             </button>
-            {done && action && (
-                <button type="button" className="btn small room-dialog-go" onClick={action.run}>
+            {/* o botão já ocupa o lugar dele (o texto não pula) e aparece com fade quando o texto acaba */}
+            {action && (
+                <button
+                    type="button"
+                    className={`btn small room-dialog-go${done ? ' ready' : ''}`}
+                    disabled={!done}
+                    onClick={action.run}
+                >
                     {action.label}
                 </button>
             )}

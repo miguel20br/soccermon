@@ -214,3 +214,10 @@
         align-self: flex-end;
     }
 }
+.room-dialog-go {
+    opacity: 0;
+    transition: opacity 200ms var(--ease-out);
+}
+.room-dialog-go.ready {
+    opacity: 1;
+}
