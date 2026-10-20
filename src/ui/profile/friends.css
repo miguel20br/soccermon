@@ -109,6 +109,21 @@
     display: grid;
     min-width: 0;
 }
+/* o nome do amigo abre o perfil dele */
+.fr-open {
+    all: unset;
+    min-width: 0;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: opacity 200ms var(--ease-out);
+}
+.fr-open:focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: 2px;
+}
+.fr-open[aria-busy="true"] {
+    opacity: 0.6;
+}
 .fr-who b,
 .fr-who small {
     overflow: hidden;

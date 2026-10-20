@@ -1,6 +1,7 @@
 import { type CSSProperties, useEffect, useState } from 'react';
 import { useCloud } from '../../cloud/cloud';
 import { CUP_STAGES } from '../../engine/cup';
+import { useFriends } from '../../friends/api';
 import { clubName, dict } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { type DailyRow, isError, league, leagueOnline, publicInfo } from '../../league/api';
@@ -138,6 +139,10 @@ export function Daily() {
     const { begin, busy, note } = useDailyBegin();
     const [shared, setShared] = useState(false);
     const [rows, setRows] = useState<DailyRow[] | 'loading' | 'error' | null>(leagueOnline() ? 'loading' : null);
+    // ranking só com os amigos (aparece quando tem amigo na lista)
+    const hasFriends = useFriends((s) => !!s.rows?.some((r) => r.status === 'amigo'));
+    const [onlyFriends, setOnlyFriends] = useState(false);
+    const friendsView = onlyFriends && hasFriends && !!user;
     const [clock, setClock] = useState(untilNext);
     useEffect(() => {
         const id = window.setInterval(() => setClock(untilNext()), 30000);
@@ -149,12 +154,12 @@ export function Daily() {
         let alive = true;
         setRows('loading');
         league()
-            .dailyRanking(today)
+            .dailyRanking(today, friendsView)
             .then((r) => alive && setRows(r ?? 'error'));
         return () => {
             alive = false;
         };
-    }, [today, user, entry?.done, entry?.reported]);
+    }, [today, user, entry?.done, entry?.reported, friendsView]);
 
     const share = async () => {
         if (!entry) return;
@@ -244,6 +249,21 @@ export function Daily() {
 
             <section className="panel lg-rank bc-surface">
                 <h2 className="bc-caption">{t('liga.daily.rankingTitle')}</h2>
+                {hasFriends && user && (
+                    <div className="bc-seg segmented lg-scope">
+                        {[false, true].map((f) => (
+                            <button
+                                key={String(f)}
+                                type="button"
+                                className={onlyFriends === f ? 'on' : undefined}
+                                aria-pressed={onlyFriends === f}
+                                onClick={() => setOnlyFriends(f)}
+                            >
+                                {f ? t('liga.daily.scopeFriends') : t('liga.daily.scopeAll')}
+                            </button>
+                        ))}
+                    </div>
+                )}
                 {!leagueOnline() ? (
                     <p className="lg-hint">{t('liga.daily.rankingOff')}</p>
                 ) : rows === 'loading' ? (

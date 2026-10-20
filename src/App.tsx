@@ -11,7 +11,7 @@ import { UnlockNotice } from './ui/components/UnlockNotice';
 import { runDevDemo } from './ui/dev-demo';
 import { Duel, duelCodeFromUrl } from './ui/duel/Duel';
 import { requestLeave } from './ui/leave-guard';
-import { FriendInvite } from './ui/profile/FriendsTab';
+import { FriendInvite, FriendVitrine } from './ui/profile/FriendsTab';
 import { PlayerCardModal, ProfileChip } from './ui/profile/PlayerCard';
 import { CardGallery } from './ui/screens/CardGallery';
 import { Credits } from './ui/screens/Credits';
@@ -188,6 +188,7 @@ export default function App() {
             <PlayerCardModal />
             <CardModal />
             <FriendInvite />
+            <FriendVitrine />
             <AccountLink />
             <UnlockNotice />
             {hydrated && !onboarded && screen === 'home' && <Onboarding />}

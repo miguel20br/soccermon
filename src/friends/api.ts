@@ -1,7 +1,10 @@
 import { create } from 'zustand';
 import { cloudEnabled, cloudUserId, loadCloud, useCloud } from '../cloud/cloud';
 import { type PublicInfo, publicInfo } from '../league/api';
-import { useGame } from '../store/game-store';
+import type { Peer } from '../net/duel-state';
+import { duelWins } from '../store/duels';
+import { type GameState, useGame } from '../store/game-store';
+import { playedCount } from '../store/profile';
 
 /**
  * Amigos (docs/planos/amigos.md): código de amigo, pedido → aceite, lista, desafiar pro Duelo, remover e bloquear.
@@ -45,6 +48,42 @@ export interface AskResult {
     club?: string | null;
 }
 
+/** O seu perfil como vai pra sala do Duelo, sem o id da conta (a vitrine dos amigos usa o mesmo). */
+export type PublicPeer = Omit<Peer, 'id' | 'engine' | 'app' | 'anon'>;
+
+export interface FriendNumbers {
+    matches: number;
+    wins: number;
+    goals: number;
+    titles: number;
+    perfect: number;
+    bestStreak: number;
+    duelWins: number;
+    /** Espécies que já jogaram pelo time (Pokédex). */
+    played: number;
+}
+
+/** Um título da Copa na vitrine (os 3 últimos do Hall da Fama). */
+export interface FriendTitle {
+    date: number;
+    club: string;
+    color: string;
+    /** Placar da final, do lado de quem ganhou. */
+    final: [number, number];
+    perfect: boolean;
+    captain: number;
+    shiny: boolean;
+}
+
+/**
+ * Vitrine do perfil do amigo (supabase/migrations/20261021120000_perfil_do_amigo.sql): o mesmo pacote da sala do
+ * Duelo mais os números e os últimos títulos. Só amigo aceito lê; quem lê valida cada campo (friendInfo).
+ */
+export interface FriendProfile extends PublicPeer {
+    numbers: FriendNumbers;
+    hall: FriendTitle[];
+}
+
 /** Pelo código de amigo, ou pelo rival do Duelo (o id que já está na sala). */
 export type AskTarget = { code: string } | { user: string };
 
@@ -58,6 +97,10 @@ export interface FriendsServer {
     block(code: string): Promise<void>;
     unblock(code: string): Promise<void>;
     challenge(code: string, room: string): Promise<string>;
+    /** Publica a sua vitrine (os amigos veem no seu perfil). */
+    vitrine(p: FriendProfile): Promise<boolean>;
+    /** A vitrine de um amigo (null = não é amigo, ou ele ainda não abriu a versão com vitrine). Dado de fora. */
+    profile(code: string): Promise<unknown>;
     /** "Estou com o jogo aberto" (os amigos veem online). */
     ping(): Promise<void>;
     /** Ouve os avisos na hora (pedido, amizade aceita, desafio). Devolve a função que para de ouvir. */
@@ -182,6 +225,18 @@ const real: FriendsServer = {
         const { data, error } = await sb.rpc('amigos_desafiar', { p_code: code, p_room: room });
         return error ? 'offline' : (data as string);
     },
+    async vitrine(p) {
+        const sb = await sbOrNull();
+        if (!sb) return false;
+        const { error } = await sb.rpc('amigos_vitrine', { p_perfil: p });
+        return !error;
+    },
+    async profile(code) {
+        const sb = await sbOrNull();
+        if (!sb) return null;
+        const { data, error } = await sb.rpc('amigos_perfil', { p_code: code });
+        return error ? null : data;
+    },
 };
 
 let server: FriendsServer = real;
@@ -242,6 +297,48 @@ export async function refreshFriends() {
     }
     const rows = await server.list();
     useFriends.setState({ rows, status: rows ? 'ok' : 'error' });
+}
+
+/** A sua vitrine: o perfil da sala do Duelo + números da carreira + os 3 últimos títulos do Hall da Fama. */
+export function buildVitrine(
+    pub: PublicPeer,
+    s: Pick<GameState, 'career' | 'records' | 'hall' | 'dex' | 'duels'>,
+): FriendProfile {
+    return {
+        ...pub,
+        numbers: {
+            matches: s.career.matches,
+            wins: s.career.wins,
+            goals: s.career.goalsFor,
+            titles: s.records.titles,
+            perfect: s.records.perfect,
+            bestStreak: s.records.bestStreak ?? 0,
+            duelWins: duelWins(s.records, s.duels),
+            played: playedCount(s.dex),
+        },
+        hall: s.hall.slice(0, 3).map((h) => {
+            const cap = h.squad.find((p) => p.captain) ?? h.squad[0];
+            return {
+                date: h.date,
+                club: h.club,
+                color: h.clubColor,
+                final: h.scores.at(-1) ?? [0, 0],
+                perfect: h.perfect,
+                captain: cap?.speciesId ?? 25,
+                shiny: !!cap?.shiny,
+            };
+        }),
+    };
+}
+
+let vitrineKey = '';
+
+/** Sobe a vitrine quando ela muda (uma vez por abertura do jogo, e de novo a cada título, carta nova…). */
+export async function publishVitrine(p: FriendProfile) {
+    const key = JSON.stringify(p);
+    if (key === vitrineKey || !useFriends.getState().code) return;
+    vitrineKey = key;
+    if (!(await server.vitrine(p))) vitrineKey = '';
 }
 
 /** Faz a ação e recarrega a lista. */

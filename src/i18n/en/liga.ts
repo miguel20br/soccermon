@@ -37,6 +37,8 @@ export const liga: typeof pt = {
         week: '{n} of 7 days this week',
         total: '1 day played in total|{n} days played in total',
         weekDays: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+        scopeAll: 'Everyone',
+        scopeFriends: 'Friends',
         rankingTitle: "Today's ranking",
         rankingEmpty: 'Nobody in the ranking yet. Be the first!',
         rankingLogin:

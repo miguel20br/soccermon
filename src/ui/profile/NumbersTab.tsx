@@ -138,7 +138,7 @@ export function NumbersTab({ onOpenDex }: { onOpenDex: () => void }) {
     );
 }
 
-function Num({ label, v }: { label: string; v: number | string }) {
+export function Num({ label, v }: { label: string; v: number | string }) {
     return (
         <div className="pf-num">
             <b>{v}</b>

@@ -1,14 +1,17 @@
 import { type CSSProperties, useEffect, useState } from 'react';
 import { signInWithGoogle, useCloud } from '../../cloud/cloud';
 import {
+    buildVitrine,
     CHALLENGE_MS,
     type FriendRow,
     formatFriendCode,
     friendAction,
+    friends,
     friendsOnline,
     groupFriends,
     isFriendCode,
     normalizeFriendCode,
+    publishVitrine,
     refreshFriends,
     useFriends,
 } from '../../friends/api';
@@ -20,6 +23,7 @@ import { HudIcon } from '../components/MatchHud';
 import { duelLink, isLocalDuel } from '../duel/link';
 import { useAskText } from './AddFriendButton';
 import { hexCss } from './club';
+import { friendInfo, usePlayerCard, usePublicPeer } from './PlayerCard';
 import './friends.css';
 
 const stripe = (color: string) => ({ '--tc': hexCss(clubColorHex(color)) }) as CSSProperties;
@@ -66,9 +70,26 @@ function Who({ r }: { r: FriendRow }) {
 function FriendLine({ r }: { r: FriendRow }) {
     const { t } = useT();
     const [open, setOpen] = useState(false);
+    const [busy, setBusy] = useState(false);
+    // o perfil abre quando a vitrine chega (sem ela, só o nome e o clube)
+    const openProfile = async () => {
+        if (busy) return;
+        setBusy(true);
+        const raw = await friends().profile(r.code);
+        setBusy(false);
+        usePlayerCard.getState().open(friendInfo(r, raw));
+    };
     return (
         <li className={`fr-row${open ? ' open' : ''}`} style={stripe(r.club_color)} data-testid="friend-row">
-            <Who r={r} />
+            <button
+                type="button"
+                className="fr-open"
+                aria-busy={busy}
+                aria-label={t('profile.card.openAria', { name: r.trainer })}
+                onClick={() => void openProfile()}
+            >
+                <Who r={r} />
+            </button>
             <span className="fr-actions">
                 {r.room ? (
                     <button type="button" className="btn primary" onClick={() => joinRoom(r.room!)}>
@@ -422,4 +443,25 @@ export function FriendInvite() {
             </button>
         </div>
     );
+}
+
+/** Mantém em dia a vitrine que os amigos veem no seu perfil (só com conta Google e código de amigo). */
+export function FriendVitrine() {
+    const pub = usePublicPeer();
+    const code = useFriends((s) => s.code);
+    const career = useGame((s) => s.career);
+    const records = useGame((s) => s.records);
+    const hall = useGame((s) => s.hall);
+    const dex = useGame((s) => s.dex);
+    const duels = useGame((s) => s.duels);
+    useEffect(() => {
+        if (!code) return;
+        // espera a partida/tela assentar: a Pokédex muda várias vezes seguidas
+        const id = window.setTimeout(
+            () => void publishVitrine(buildVitrine(pub, { career, records, hall, dex, duels })),
+            3000,
+        );
+        return () => window.clearTimeout(id);
+    }, [code, pub, career, records, hall, dex, duels]);
+    return null;
 }

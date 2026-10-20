@@ -508,3 +508,7 @@
     outline-offset: 4px;
     border-radius: 6px;
 }
+/* Ranking do dia: Todos / Amigos */
+.lg-scope {
+    margin: 2px 0 8px;
+}

@@ -36,6 +36,8 @@ export const liga = {
         week: '{n} de 7 dias nesta semana',
         total: '1 dia jogado no total|{n} dias jogados no total',
         weekDays: ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'],
+        scopeAll: 'Todos',
+        scopeFriends: 'Amigos',
         rankingTitle: 'Ranking do dia',
         rankingEmpty: 'Ninguém no ranking ainda. Seja o primeiro!',
         rankingLogin:
