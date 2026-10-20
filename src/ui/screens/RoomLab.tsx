@@ -218,6 +218,7 @@ const ROOM_SCENE = (night: boolean) => ({
     cards: 3,
     tv: { speciesId: 6, shiny: true },
     mon: { speciesId: 25, shiny: false },
+    fresh: ['medalhas'],
 });
 
 /** G: a sala em pixel art com luz (o candidato), com o foco ao tocar. */

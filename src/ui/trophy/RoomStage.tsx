@@ -11,14 +11,24 @@ export const RoomStage = memo(function RoomStage({
     data,
     focus,
     onPick,
+    onHover,
+    onHold,
 }: {
     data: RoomSceneData;
     focus: string | null;
     onPick: (id: string) => void;
+    /** Objeto debaixo do mouse (null = nenhum). */
+    onHover?: (id: string | null) => void;
+    /** Segurando o dedo/mouse na sala (mostra o nome de tudo). */
+    onHold?: (on: boolean) => void;
 }) {
     const ref = useRef<HTMLDivElement>(null);
     const pick = useRef(onPick);
     pick.current = onPick;
+    const hover = useRef(onHover);
+    hover.current = onHover;
+    const hold = useRef(onHold);
+    hold.current = onHold;
     const ready = useRef(false);
     const pendingFocus = useRef(focus);
     pendingFocus.current = focus;
@@ -30,8 +40,12 @@ export const RoomStage = memo(function RoomStage({
             ready.current = true;
             if (pendingFocus.current) EventBus.emit('room:focus', pendingFocus.current);
         };
+        const onHoverEv = (id: string | null) => hover.current?.(id);
+        const onHoldEv = (on: boolean) => hold.current?.(on);
         EventBus.on('room:pick', onPickEv);
         EventBus.on('room:ready', onReady);
+        EventBus.on('room:hover', onHoverEv);
+        EventBus.on('room:hold', onHoldEv);
         let game: Phaser.Game | null = null;
         const timer = window.setTimeout(() => {
             if (!ref.current) return;
@@ -55,6 +69,8 @@ export const RoomStage = memo(function RoomStage({
             ready.current = false;
             EventBus.off('room:pick', onPickEv);
             EventBus.off('room:ready', onReady);
+            EventBus.off('room:hover', onHoverEv);
+            EventBus.off('room:hold', onHoldEv);
             game?.destroy(true);
         };
     }, [JSON.stringify(data)]);

@@ -1,4 +1,5 @@
 import { lazy, type ReactNode, Suspense, useEffect, useMemo, useState } from 'react';
+import { ROOM_H, ROOM_SPOTS, ROOM_W, type RoomSpot } from '../../game/room-spots';
 import type { TKey } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { duelWins as duelWinsOf } from '../../store/duels';
@@ -25,8 +26,10 @@ import { useCardShowcase } from '../profile/Album';
 import { bannerText, clubVars } from '../profile/club';
 import { MedalsTab, useMedalView } from '../profile/Medals';
 import { NumbersTab } from '../profile/NumbersTab';
+import { markSeen, newsCount, useNews } from '../profile/news';
 import { PlatinumBlock } from '../profile/TrainerTab';
 import type { Metal } from '../rarity';
+import { RoomDialog } from '../trophy/RoomDialog';
 import '../profile/profile.css';
 import '../trophy-room.css';
 
@@ -50,6 +53,63 @@ const ORDER = [
     'tv',
 ] as const;
 type Obj = (typeof ORDER)[number];
+
+/** Botões-legenda embaixo do quarto: cada um leva ao objeto (e acende quando o foco está nele). */
+const LEGEND: { label: LabelKey; to: Obj; has: readonly Obj[] }[] = [
+    { label: 'copa', to: 'copa-bronze', has: ['copa-bronze', 'copa-prata', 'copa-ouro'] },
+    { label: 'liga', to: 'liga', has: ['liga'] },
+    { label: 'dia', to: 'dia', has: ['dia'] },
+    { label: 'duelo', to: 'duelo', has: ['duelo'] },
+    { label: 'medalhas', to: 'medalhas', has: ['medalhas'] },
+    { label: 'hall', to: 'hall', has: ['hall', 'tv'] },
+    { label: 'platina', to: 'platina', has: ['platina'] },
+    { label: 'numeros', to: 'numeros', has: ['numeros'] },
+    { label: 'colecao', to: 'album', has: ['album', 'livros'] },
+    { label: 'clube', to: 'clube', has: ['clube'] },
+];
+type LabelKey = 'copa' | 'liga' | 'dia' | 'duelo' | 'medalhas' | 'hall' | 'platina' | 'numeros' | 'colecao' | 'clube';
+/** Nome curto de cada objeto (o que aparece ao segurar e ao passar o mouse). */
+const LABEL_OF: Record<Obj, LabelKey> = {
+    platina: 'platina',
+    hall: 'hall',
+    clube: 'clube',
+    dia: 'dia',
+    medalhas: 'medalhas',
+    duelo: 'duelo',
+    'copa-bronze': 'copa',
+    'copa-prata': 'copa',
+    'copa-ouro': 'copa',
+    liga: 'liga',
+    album: 'colecao',
+    livros: 'colecao',
+    numeros: 'numeros',
+    tv: 'hall',
+};
+/** Ao segurar, um nome por grupo (as 3 taças: um "Copa" só). */
+const HOLD_LABELS: Obj[] = [
+    'platina',
+    'hall',
+    'clube',
+    'copa-prata',
+    'liga',
+    'dia',
+    'medalhas',
+    'duelo',
+    'tv',
+    'numeros',
+    'album',
+    'livros',
+];
+const TUTORIAL: { focus: Obj | null; key: 'step1' | 'step2' | 'step3' }[] = [
+    { focus: 'copa-prata', key: 'step1' },
+    { focus: 'medalhas', key: 'step2' },
+    { focus: null, key: 'step3' },
+];
+const TUT_KEY = 'tut:sala';
+const pos = (id: RoomSpot) => {
+    const r = ROOM_SPOTS[id];
+    return { left: `${((r.x + r.w / 2) / ROOM_W) * 100}%`, top: `${(r.y / ROOM_H) * 100}%` };
+};
 type Sheet = 'lista' | 'medalhas' | 'numeros' | 'hall';
 
 /** Um troféu da lista: o desenho (silhueta se falta), o nome, quantos e como ganhar. */
@@ -129,7 +189,24 @@ export function TrophyRoom() {
     const records = useGame((s) => s.records);
     const view = useMedalView();
     const glass = useCardShowcase().insts;
-    const [focus, setFocus] = useState<Obj | null>(null);
+    // tutorial na primeira vez (fica no save; o "Como funciona" mostra de novo)
+    const firstVisit = !profile.seen?.includes(TUT_KEY);
+    const [focus, setFocus] = useState<Obj | null>(firstVisit ? TUTORIAL[0].focus : null);
+    const [hover, setHover] = useState<Obj | null>(null);
+    const [hold, setHold] = useState(false);
+    const news = useNews();
+    const [tut, setTut] = useState<number | null>(firstVisit ? 0 : null);
+    const tutNext = () => {
+        const n = (tut ?? 0) + 1;
+        if (n >= TUTORIAL.length) {
+            setTut(null);
+            setFocus(null);
+            markSeen([TUT_KEY], true);
+        } else {
+            setTut(n);
+            setFocus(TUTORIAL[n].focus);
+        }
+    };
     // ?aba=medalhas|numeros (links antigos e prints) abre o painel direto
     const [sheet, setSheet] = useState<Sheet | null>(() => {
         const tab = initialTab('trophies');
@@ -189,6 +266,10 @@ export function TrophyRoom() {
                 .map((h) => ({ speciesId: capOf(h)?.speciesId ?? 25, shiny: !!capOf(h)?.shiny })),
             cards: glass.length,
             tv: hall[0] ? { speciesId: capOf(hall[0])?.speciesId ?? 25, shiny: !!capOf(hall[0])?.shiny } : null,
+            fresh: [
+                ...(newsCount(news, 'medalhas') > 0 ? ['medalhas'] : []),
+                ...(newsCount(news, 'album') > 0 ? ['album', 'livros'] : []),
+            ],
             mon:
                 avatar.kind === 'pokemon'
                     ? { speciesId: avatar.speciesId, shiny: avatar.shiny === true }
@@ -347,10 +428,36 @@ export function TrophyRoom() {
                     <RoomStage
                         data={scene}
                         focus={focus}
-                        onPick={(id) => setFocus((cur) => (cur === id ? null : (id as Obj)))}
+                        onPick={(id) => {
+                            if (tut !== null) return;
+                            setFocus((cur) => (cur === id ? null : (id as Obj)));
+                        }}
+                        onHover={(id) => setHover(id as Obj | null)}
+                        onHold={setHold}
                     />
                 </Suspense>
-                {card && (
+                {/* nomes: de tudo ao segurar, do que está debaixo do mouse ao passar */}
+                {!focus && (hold || hover) && (
+                    <div className="room-labels" aria-hidden>
+                        {(hold ? HOLD_LABELS : hover ? [hover] : []).map((id) => (
+                            <span key={id} className="room-label" style={pos(id)}>
+                                {d.trophies.labels[LABEL_OF[id]]}
+                            </span>
+                        ))}
+                    </div>
+                )}
+                {tut !== null && (
+                    <RoomDialog
+                        key={tut}
+                        text={t(`trophies.tut.${TUTORIAL[tut].key}`)}
+                        action={{
+                            label: tut < TUTORIAL.length - 1 ? t('trophies.tut.next') : t('trophies.tut.done'),
+                            run: tutNext,
+                        }}
+                        onClose={tutNext}
+                    />
+                )}
+                {card && tut === null && (
                     <aside className="room-card" data-exit aria-live="polite">
                         <button
                             type="button"
@@ -394,15 +501,46 @@ export function TrophyRoom() {
                 )}
             </div>
 
+            <nav className="room-legend" aria-label={t('trophies.legendAria')}>
+                {LEGEND.map((l) => {
+                    const on = !!focus && l.has.includes(focus);
+                    return (
+                        <button
+                            key={l.label}
+                            type="button"
+                            className={`room-chip${on ? ' on' : ''}`}
+                            aria-pressed={on}
+                            onClick={() => setFocus(on ? null : l.to)}
+                            disabled={tut !== null}
+                        >
+                            {d.trophies.labels[l.label]}
+                        </button>
+                    );
+                })}
+            </nav>
+
             <div className="tr-summary">
                 <span>
                     <b>{t('trophies.levelLine', { n: lvl.n, name: t(`trophies.level.${lvl.level}` as TKey) })}</b>
                     <small>{lvl.next ? t('trophies.nextLevel', { n: lvl.next }) : t('trophies.maxLevel')}</small>
                 </span>
                 <small className="muted">{t('trophies.card.hint')}</small>
-                <button type="button" className="btn small" onClick={() => setSheet('lista')}>
-                    {t('trophies.card.list')}
-                </button>
+                <span className="tr-summary-btns">
+                    <button
+                        type="button"
+                        className="btn small"
+                        onClick={() => {
+                            setTut(0);
+                            setFocus(TUTORIAL[0].focus);
+                        }}
+                        title={t('trophies.tut.again')}
+                    >
+                        {t('trophies.tut.how')}
+                    </button>
+                    <button type="button" className="btn small" onClick={() => setSheet('lista')}>
+                        {t('trophies.card.list')}
+                    </button>
+                </span>
             </div>
 
             {sheet === 'medalhas' && (

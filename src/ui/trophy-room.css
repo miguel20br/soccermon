@@ -339,3 +339,78 @@
         margin-top: 8px;
     }
 }
+
+/* nomes dos objetos: de tudo ao segurar, do que está debaixo do mouse ao passar */
+.room-labels {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    aspect-ratio: 480 / 320;
+}
+.room-label {
+    position: absolute;
+    translate: -50% calc(-100% - 2px);
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: rgba(14, 20, 48, 0.9);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
+    animation: room-label-in 160ms var(--ease-out) both;
+}
+@keyframes room-label-in {
+    from {
+        opacity: 0;
+        translate: -50% -80%;
+    }
+}
+/* botões-legenda embaixo do quarto */
+.room-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+.room-chip {
+    min-height: 34px;
+    padding: 4px 12px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--panel-2);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        background-color 200ms var(--ease-out),
+        color 200ms var(--ease-out);
+}
+.room-chip:hover:not(:disabled) {
+    background: var(--bc-ink-2);
+}
+.room-chip.on {
+    background: var(--yellow);
+    color: var(--bc-ink);
+}
+.room-chip:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+.tr-summary-btns {
+    display: flex;
+    gap: 6px;
+}
+.tr-summary-btns .btn {
+    width: auto;
+    margin: 0;
+}
+.room-dialog-full {
+    visibility: hidden;
+}
+.room-dialog-typed {
+    position: absolute;
+    inset: 2px 18px 2px 4px;
+}

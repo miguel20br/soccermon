@@ -48,7 +48,13 @@ export function RoomDialog({
                 onClick={() => (done ? onClose() : setN(text.length))}
                 aria-label={text}
             >
-                <span aria-hidden>{text.slice(0, n)}</span>
+                {/* o texto inteiro (invisível) reserva a altura: a caixa não cresce enquanto as letras aparecem */}
+                <span className="room-dialog-full" aria-hidden>
+                    {text}
+                </span>
+                <span className="room-dialog-typed" aria-hidden>
+                    {text.slice(0, n)}
+                </span>
                 {done && <i className="room-dialog-next" aria-hidden />}
             </button>
             {/* o botão já ocupa o lugar dele (o texto não pula) e aparece com fade quando o texto acaba */}

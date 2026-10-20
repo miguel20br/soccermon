@@ -1,6 +1,10 @@
 import Phaser from 'phaser';
 import { atlasKey, createSpeciesAnims, footOrigin, preloadSpecies, resolveAnim } from '../animation-manager';
 import { EventBus } from '../EventBus';
+import { CUP_X, LIGA_X, ROOM_H, ROOM_SPOTS, ROOM_W, type RoomSpot } from '../room-spots';
+
+export { ROOM_H, ROOM_W } from '../room-spots';
+
 import {
     type Metal,
     paintBanner,
@@ -20,8 +24,6 @@ import {
  * Mystery Dungeon, o mesmo da quadra) passeando. Tocar num objeto avisa a tela (`room:pick`); a tela manda
  * `room:focus` e a câmera aproxima dele com o resto escurecido.
  */
-export const ROOM_W = 480;
-export const ROOM_H = 320;
 
 export interface RoomSceneData {
     night: boolean;
@@ -36,6 +38,8 @@ export interface RoomSceneData {
     cards: number;
     tv: { speciesId: number; shiny: boolean } | null;
     mon: { speciesId: number; shiny: boolean };
+    /** Objetos com novidade (brilho piscando em cima). */
+    fresh: string[];
 }
 
 /** Recortes do Interiors_free_32x32.png (x, y, w, h). */
@@ -59,7 +63,6 @@ const MI: Record<string, [number, number, number, number]> = {
 };
 
 const FLOOR_Y = 76;
-const CUP_X: Record<Metal, number> = { bronze: 122, prata: 156, ouro: 190 };
 
 export class TrophyRoomScene extends Phaser.Scene {
     private room!: RoomSceneData;
@@ -69,6 +72,9 @@ export class TrophyRoomScene extends Phaser.Scene {
     private monKey = 0;
     private lights2: { light: Phaser.GameObjects.Light; base: number; flicker: number }[] = [];
     private focused: string | null = null;
+    private outline!: Phaser.GameObjects.Graphics;
+    private held = false;
+    private holdTimer: Phaser.Time.TimerEvent | null = null;
 
     constructor() {
         super('TrophyRoom');
@@ -126,27 +132,33 @@ export class TrophyRoomScene extends Phaser.Scene {
             .setOrigin(0)
             .setDepth(9000);
 
-        // ---- parede: janela, diploma, polaroids (Hall da Fama), faixa, cortiça (Copa do Dia), broches, cinturões
+        // ---- cada parte da sala fala de um assunto (docs/planos/sala-brainstorm.md): à esquerda o Hall da Fama e a
+        // Platina, no centro a Copa e a Liga, à direita Copa do Dia, medalhas e cinturões, embaixo TV, PC e a Coleção
         const wall = (tex: string, x: number, y: number, frame?: string) =>
             lit(this.add.image(x, y, tex, frame).setOrigin(0).setDepth(-5));
-        const zone = (
-            id: string,
-            x: number,
-            y: number,
-            w: number,
-            h: number,
-            parts: Phaser.GameObjects.GameObject[],
-        ) => {
-            const z = this.add.zone(x, y, w, h).setOrigin(0).setInteractive({ useHandCursor: true }).setDepth(9500);
-            z.on('pointerdown', () => EventBus.emit('room:pick', id));
+        const zone = (id: RoomSpot, parts: Phaser.GameObjects.GameObject[]) => {
+            const r = ROOM_SPOTS[id];
+            const z = this.add
+                .zone(r.x, r.y, r.w, r.h)
+                .setOrigin(0)
+                .setInteractive({ useHandCursor: true })
+                .setDepth(9500);
+            // toque rápido abre; segurar mostra os nomes (aí soltar não abre)
+            z.on('pointerup', () => {
+                if (!this.held) EventBus.emit('room:pick', id);
+            });
+            z.on('pointerover', () => this.hover(id));
+            z.on('pointerout', () => this.hover(null));
             this.spots.set(id, parts);
+            if (d.fresh.includes(id)) this.sparkle(r.x + r.w - 3, r.y + 3);
         };
-        const win = wall('mi', 412, 18, 'window');
-        const diploma = wall('mi', 30, 18, 'frame').setAlpha(d.platinum ? 1 : 0.5);
-        zone('platina', 28, 16, 28, 36, [diploma]);
+
+        // esquerda: lareira (enfeite), diploma, polaroids
+        put('fireplace', 8, 122);
+        zone('platina', [wall('mi', 52, 16, 'frame').setAlpha(d.platinum ? 1 : 0.5)]);
         const pol: Phaser.GameObjects.GameObject[] = [];
         d.polaroids.slice(0, 4).forEach((p, i) => {
-            const x = 70 + i * 22;
+            const x = 82 + i * 22;
             const y = 20 + (i % 2) * 3;
             pol.push(wall(canvasTex('polaroid', paintPolaroid()), x, y));
             if (this.textures.exists(`card-${p.speciesId}`))
@@ -159,38 +171,12 @@ export class TrophyRoomScene extends Phaser.Scene {
                     ),
                 );
         });
-        if (pol.length) zone('hall', 66, 16, 92, 32, pol);
-        const banner = wall(canvasTex('banner', paintBanner(d.club)), 176, 16);
-        zone('clube', 176, 14, 64, 22, [banner]);
-        const cork = wall('mi', 252, 20, 'cork');
-        const medals: Phaser.GameObjects.GameObject[] = [cork];
-        (['bronze', 'prata', 'ouro'] as Metal[]).forEach((m, i) => {
-            medals.push(
-                wall(
-                    canvasTex(`medal-${m}-${d.days[m] > 0}`, paintMedal(d.days[m] ? m : 'ghost', d.club)),
-                    258 + i * 15,
-                    18,
-                ).setScale(0.6),
-            );
-        });
-        zone('dia', 250, 16, 56, 32, medals);
-        const pins = wall(canvasTex('pins', paintPins(d.pins)), 316, 16);
-        zone('medalhas', 314, 14, 48, 34, [pins]);
-        const belts = [0, 1, 2].map((i) =>
-            wall(
-                canvasTex(
-                    `belt-${i}-${d.belts[i]}`,
-                    paintBelt(d.belts[i] ? (['bronze', 'prata', 'ouro'] as Metal[])[i] : 'ghost'),
-                ),
-                368,
-                18 + i * 12,
-            ),
-        );
-        zone('duelo', 366, 16, 44, 40, belts);
+        if (!pol.length) pol.push(wall(canvasTex('polaroid', paintPolaroid()), 82, 20).setAlpha(0.4));
+        zone('hall', pol);
+        put('lamp', 76, 120);
 
-        // ---- encostado na parede: lareira, abajur, as 3 vitrines da Copa, a da Liga, vitrine de cartas, estante, planta
-        const fire = put('fireplace', 8, 122);
-        const lamp = put('lamp', 76, 120);
+        // centro: faixa do clube, as 3 taças da Copa e a Liga
+        zone('clube', [wall(canvasTex('banner', paintBanner(d.club)), 200, 14)]);
         const pedestalTex = canvasTex('pedestal', paintPedestal(26, 26));
         const glassTex = canvasTex('glass', paintGlass(28, 34));
         (['bronze', 'prata', 'ouro'] as Metal[]).forEach((m) => {
@@ -203,60 +189,101 @@ export class TrophyRoomScene extends Phaser.Scene {
                     .setDepth(121),
             );
             const glass = this.add.image(x, 95, glassTex).setOrigin(0.5, 1).setDepth(122);
-            const parts: Phaser.GameObjects.GameObject[] = [base, cup, glass];
-            zone(`copa-${m}`, x - 15, 50, 30, 72, parts);
+            zone(`copa-${m}`, [base, cup, glass]);
             if (d.cups[m]) this.spot(x, 0xffe9b8, 1.5);
         });
         const ligaBase = lit(
             this.add
-                .image(232, 122, canvasTex('pedestal-big', paintPedestal(34, 30)))
+                .image(LIGA_X, 122, canvasTex('pedestal-big', paintPedestal(34, 30)))
                 .setOrigin(0.5, 1)
                 .setDepth(122),
         );
         const ligaCup = lit(
             this.add
-                .image(232, 93, canvasTex('cup-liga', paintCup('ghost', true)))
+                .image(LIGA_X, 93, canvasTex('cup-liga', paintCup('ghost', true)))
                 .setOrigin(0.5, 1)
                 .setDepth(123),
         );
         const ligaGlass = this.add
-            .image(232, 93, canvasTex('glass-big', paintGlass(40, 48)))
+            .image(LIGA_X, 93, canvasTex('glass-big', paintGlass(40, 48)))
             .setOrigin(0.5, 1)
             .setDepth(124);
-        zone('liga', 212, 44, 40, 80, [ligaBase, ligaCup, ligaGlass]);
-        const cards = put('cabinetGlass', 264, 122);
-        zone('album', 262, 66, 58, 58, [cards]);
-        const shelf = put('bookshelf', 326, 120);
-        zone('livros', 324, 54, 68, 68, [shelf]);
-        put('plantTree', 404, 124);
+        zone('liga', [ligaBase, ligaCup, ligaGlass]);
 
-        // ---- chão: tapete, banco, TV com o gol, PC com os números, plantas
-        lit(this.add.image(240, 210, 'mi', 'rug').setAngle(90).setScale(1.35).setDepth(-15));
-        const bench = put('bench', 192, 304);
-        void bench;
-        const tvCab = put('tvCabinet', 388, 244);
-        const tv = put('tv', 400, 212);
+        // direita: cortiça da Copa do Dia, broches das medalhas, cinturões do Duelo
+        const medals: Phaser.GameObjects.GameObject[] = [wall('mi', 286, 20, 'cork')];
+        (['bronze', 'prata', 'ouro'] as Metal[]).forEach((m, i) => {
+            medals.push(
+                wall(
+                    canvasTex(`medal-${m}-${d.days[m] > 0}`, paintMedal(d.days[m] ? m : 'ghost', d.club)),
+                    292 + i * 15,
+                    18,
+                ).setScale(0.6),
+            );
+        });
+        zone('dia', medals);
+        zone('medalhas', [wall(canvasTex('pins', paintPins(d.pins)), 346, 16)]);
+        zone(
+            'duelo',
+            [0, 1, 2].map((i) =>
+                wall(
+                    canvasTex(
+                        `belt-${i}-${d.belts[i]}`,
+                        paintBelt(d.belts[i] ? (['bronze', 'prata', 'ouro'] as Metal[])[i] : 'ghost'),
+                    ),
+                    400,
+                    18 + i * 12,
+                ),
+            ),
+        );
+        put('plantTree', 420, 124);
+
+        // embaixo: TV (o último título), PC (números), Coleção (vitrine de cartas e estante dos álbuns)
+        lit(this.add.image(240, 196, 'mi', 'rug').setAngle(90).setScale(1.35).setDepth(-15));
+        const tvCab = put('tvCabinet', 24, 302);
+        const tv = put('tv', 36, 268);
+        const tvParts: Phaser.GameObjects.GameObject[] = [tvCab, tv];
         if (d.tv && this.textures.exists(`card-${d.tv.speciesId}`))
-            this.add.image(426, 194, `card-${d.tv.speciesId}`).setDisplaySize(24, 24).setDepth(213).setAlpha(0.9);
-        zone('tv', 386, 172, 80, 74, [tvCab, tv]);
-        const desk = put('desk', 14, 304);
-        zone('numeros', 12, 196, 62, 110, [desk]);
-        put('plantSmall', 88, 300);
-        put('plantPalm', 430, 306);
+            tvParts.push(
+                this.add.image(62, 250, `card-${d.tv.speciesId}`).setDisplaySize(24, 24).setDepth(269).setAlpha(0.9),
+            );
+        zone('tv', tvParts);
+        zone('numeros', [put('desk', 128, 304)]);
+        put('plantSmall', 222, 302);
+        zone('album', [put('cabinetGlass', 330, 302)]);
+        zone('livros', [put('bookshelf', 390, 302)]);
+
+        // contorno do que dá pra tocar (mouse em cima)
+        this.outline = this.add.graphics().setDepth(9450);
+
+        // segurar em qualquer lugar mostra o nome de tudo (a tela desenha os nomes)
+        this.input.on('pointerdown', () => {
+            this.held = false;
+            this.holdTimer?.remove();
+            this.holdTimer = this.time.delayedCall(450, () => {
+                this.held = true;
+                EventBus.emit('room:hold', true);
+            });
+        });
+        this.input.on('pointerup', () => {
+            this.holdTimer?.remove();
+            if (this.held) EventBus.emit('room:hold', false);
+            // o pointerup da zona roda antes: só agora zera
+            this.time.delayedCall(0, () => {
+                this.held = false;
+            });
+        });
 
         // ---- luz: noite (ou dia, pelo relógio)
         this.lights.enable().setAmbientColor(d.night ? 0x4a5080 : 0xd8d4cc);
         if (d.night) {
             this.lights2.push({ light: this.lights.addLight(40, 90, 150, 0xff8a3a, 1.6), base: 1.6, flicker: 0.35 });
             this.lights2.push({ light: this.lights.addLight(91, 78, 110, 0xffd08a, 1.2), base: 1.2, flicker: 0 });
-            this.lights2.push({ light: this.lights.addLight(426, 200, 100, 0x6aa0ff, 1.1), base: 1.1, flicker: 0.2 });
-            this.lights2.push({ light: this.lights.addLight(440, 40, 110, 0x9fb4ff, 0.8), base: 0.8, flicker: 0 });
+            this.lights2.push({ light: this.lights.addLight(62, 252, 100, 0x6aa0ff, 1.1), base: 1.1, flicker: 0.2 });
+            this.lights2.push({ light: this.lights.addLight(240, 150, 200, 0x9fb4ff, 0.5), base: 0.8, flicker: 0 });
             this.add.pointlight(40, 104, 0xff8a3a, 34, 0.25).setDepth(130);
             this.add.pointlight(91, 82, 0xffd08a, 22, 0.25).setDepth(130);
         }
-        void win;
-        void fire;
-        void lamp;
 
         // a câmera nunca mostra fora do quarto (ao aproximar de um canto)
         this.cameras.main.setBounds(0, 0, ROOM_W, ROOM_H);
@@ -272,11 +299,47 @@ export class TrophyRoomScene extends Phaser.Scene {
         createSpeciesAnims(this, d.mon.speciesId);
         if (this.textures.exists(atlasKey(d.mon.speciesId))) {
             this.monKey = d.mon.speciesId;
-            this.mon = this.add.sprite(240, 220, atlasKey(this.monKey)).setScale(1.4).setDepth(220);
+            this.mon = this.add.sprite(240, 200, atlasKey(this.monKey)).setScale(1.4).setDepth(220);
             this.mon.setLighting(true);
             this.wander();
         }
         EventBus.emit('room:ready');
+    }
+
+    /** Contorno claro no objeto debaixo do mouse (e o nome dele na tela). */
+    private hover(id: RoomSpot | null) {
+        this.outline.clear();
+        EventBus.emit('room:hover', id);
+        if (!id || this.focused) return;
+        const r = ROOM_SPOTS[id];
+        this.outline.lineStyle(1, 0xffd447, 0.9).strokeRect(r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1);
+    }
+
+    /** Brilho piscando (novidade) num canto do objeto. */
+    private sparkle(x: number, y: number) {
+        const key = 'sparkle';
+        if (!this.textures.exists(key)) {
+            const el = document.createElement('canvas');
+            el.width = 7;
+            el.height = 7;
+            const c = el.getContext('2d')!;
+            c.fillStyle = '#ffe36a';
+            c.fillRect(3, 0, 1, 7);
+            c.fillRect(0, 3, 7, 1);
+            c.fillStyle = '#ffffff';
+            c.fillRect(2, 2, 3, 3);
+            this.textures.addCanvas(key, el);
+        }
+        const s = this.add.image(x, y, key).setDepth(9460);
+        if (document.documentElement.dataset.reduceMotion !== 'true')
+            this.tweens.add({
+                targets: s,
+                scale: { from: 0.6, to: 1.3 },
+                alpha: { from: 0.5, to: 1 },
+                duration: 700,
+                yoyo: true,
+                repeat: -1,
+            });
     }
 
     /** Holofote em cone vindo do teto, apontado pra baixo, sobre uma vitrine. */
@@ -294,7 +357,7 @@ export class TrophyRoomScene extends Phaser.Scene {
             this.play('Sleep', 0);
             return;
         }
-        const to = { x: Phaser.Math.Between(150, 340), y: Phaser.Math.Between(170, 260) };
+        const to = { x: Phaser.Math.Between(160, 320), y: Phaser.Math.Between(150, 230) };
         this.walkTo(to.x, to.y, () => {
             this.play('Idle', 0);
             this.time.delayedCall(Phaser.Math.Between(1800, 4200), () => this.wander());
