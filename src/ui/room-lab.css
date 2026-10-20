@@ -352,7 +352,7 @@
 }
 .room-stage {
     width: 100%;
-    aspect-ratio: 480 / 320;
+    aspect-ratio: 416 / 256;
     overflow: hidden;
     border-radius: 8px;
     background: #0e1430;

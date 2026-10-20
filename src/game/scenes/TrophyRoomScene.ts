@@ -133,7 +133,7 @@ export class TrophyRoomScene extends Phaser.Scene {
             .setDepth(9000);
 
         // ---- cada parte da sala fala de um assunto (docs/planos/sala-brainstorm.md): à esquerda o Hall da Fama e a
-        // Platina, no centro a Copa e a Liga, à direita Copa do Dia, medalhas e cinturões, embaixo TV, PC e a Coleção
+        // Platina, no centro a Copa e a Liga, à direita Copa do Dia, medalhas, cinturões e a Coleção, embaixo TV e PC
         const wall = (tex: string, x: number, y: number, frame?: string) =>
             lit(this.add.image(x, y, tex, frame).setOrigin(0).setDepth(-5));
         const zone = (id: RoomSpot, parts: Phaser.GameObjects.GameObject[]) => {
@@ -154,11 +154,11 @@ export class TrophyRoomScene extends Phaser.Scene {
         };
 
         // esquerda: lareira (enfeite), diploma, polaroids
-        put('fireplace', 8, 122);
-        zone('platina', [wall('mi', 52, 16, 'frame').setAlpha(d.platinum ? 1 : 0.5)]);
+        put('fireplace', 6, 122);
+        zone('platina', [wall('mi', 104, 16, 'frame').setAlpha(d.platinum ? 1 : 0.5)]);
         const pol: Phaser.GameObjects.GameObject[] = [];
         d.polaroids.slice(0, 4).forEach((p, i) => {
-            const x = 82 + i * 22;
+            const x = 12 + i * 22;
             const y = 20 + (i % 2) * 3;
             pol.push(wall(canvasTex('polaroid', paintPolaroid()), x, y));
             if (this.textures.exists(`card-${p.speciesId}`))
@@ -171,12 +171,12 @@ export class TrophyRoomScene extends Phaser.Scene {
                     ),
                 );
         });
-        if (!pol.length) pol.push(wall(canvasTex('polaroid', paintPolaroid()), 82, 20).setAlpha(0.4));
+        if (!pol.length) pol.push(wall(canvasTex('polaroid', paintPolaroid()), 12, 20).setAlpha(0.4));
         zone('hall', pol);
-        put('lamp', 76, 120);
+        put('lamp', 72, 120);
 
         // centro: faixa do clube, as 3 taças da Copa e a Liga
-        zone('clube', [wall(canvasTex('banner', paintBanner(d.club)), 200, 14)]);
+        zone('clube', [wall(canvasTex('banner', paintBanner(d.club)), 164, 14)]);
         const pedestalTex = canvasTex('pedestal', paintPedestal(26, 26));
         const glassTex = canvasTex('glass', paintGlass(28, 34));
         (['bronze', 'prata', 'ouro'] as Metal[]).forEach((m) => {
@@ -211,18 +211,18 @@ export class TrophyRoomScene extends Phaser.Scene {
         zone('liga', [ligaBase, ligaCup, ligaGlass]);
 
         // direita: cortiça da Copa do Dia, broches das medalhas, cinturões do Duelo
-        const medals: Phaser.GameObjects.GameObject[] = [wall('mi', 286, 20, 'cork')];
+        const medals: Phaser.GameObjects.GameObject[] = [wall('mi', 262, 20, 'cork')];
         (['bronze', 'prata', 'ouro'] as Metal[]).forEach((m, i) => {
             medals.push(
                 wall(
                     canvasTex(`medal-${m}-${d.days[m] > 0}`, paintMedal(d.days[m] ? m : 'ghost', d.club)),
-                    292 + i * 15,
+                    268 + i * 15,
                     18,
                 ).setScale(0.6),
             );
         });
         zone('dia', medals);
-        zone('medalhas', [wall(canvasTex('pins', paintPins(d.pins)), 346, 16)]);
+        zone('medalhas', [wall(canvasTex('pins', paintPins(d.pins)), 318, 16)]);
         zone(
             'duelo',
             [0, 1, 2].map((i) =>
@@ -231,27 +231,27 @@ export class TrophyRoomScene extends Phaser.Scene {
                         `belt-${i}-${d.belts[i]}`,
                         paintBelt(d.belts[i] ? (['bronze', 'prata', 'ouro'] as Metal[])[i] : 'ghost'),
                     ),
-                    400,
+                    366,
                     18 + i * 12,
                 ),
             ),
         );
-        put('plantTree', 420, 124);
 
-        // embaixo: TV (o último título), PC (números), Coleção (vitrine de cartas e estante dos álbuns)
-        lit(this.add.image(240, 196, 'mi', 'rug').setAngle(90).setScale(1.35).setDepth(-15));
-        const tvCab = put('tvCabinet', 24, 302);
-        const tv = put('tv', 36, 268);
+        // embaixo: TV (o último título) e PC (números); a Coleção fica no fundo, à direita
+        lit(this.add.image(214, 186, 'mi', 'rug').setAngle(90).setScale(1.1).setDepth(-15));
+        const tvCab = put('tvCabinet', 12, 238);
+        const tv = put('tv', 24, 204);
         const tvParts: Phaser.GameObjects.GameObject[] = [tvCab, tv];
         if (d.tv && this.textures.exists(`card-${d.tv.speciesId}`))
             tvParts.push(
-                this.add.image(62, 250, `card-${d.tv.speciesId}`).setDisplaySize(24, 24).setDepth(269).setAlpha(0.9),
+                this.add.image(50, 186, `card-${d.tv.speciesId}`).setDisplaySize(24, 24).setDepth(205).setAlpha(0.9),
             );
         zone('tv', tvParts);
-        zone('numeros', [put('desk', 128, 304)]);
-        put('plantSmall', 222, 302);
-        zone('album', [put('cabinetGlass', 330, 302)]);
-        zone('livros', [put('bookshelf', 390, 302)]);
+        zone('numeros', [put('desk', 96, 240)]);
+        put('plantSmall', 300, 242);
+        put('plantPalm', 352, 248);
+        zone('album', [put('cabinetGlass', 262, 122)]);
+        zone('livros', [put('bookshelf', 318, 120)]);
 
         // contorno do que dá pra tocar (mouse em cima)
         this.outline = this.add.graphics().setDepth(9450);
@@ -277,12 +277,12 @@ export class TrophyRoomScene extends Phaser.Scene {
         // ---- luz: noite (ou dia, pelo relógio)
         this.lights.enable().setAmbientColor(d.night ? 0x4a5080 : 0xd8d4cc);
         if (d.night) {
-            this.lights2.push({ light: this.lights.addLight(40, 90, 150, 0xff8a3a, 1.6), base: 1.6, flicker: 0.35 });
-            this.lights2.push({ light: this.lights.addLight(91, 78, 110, 0xffd08a, 1.2), base: 1.2, flicker: 0 });
-            this.lights2.push({ light: this.lights.addLight(62, 252, 100, 0x6aa0ff, 1.1), base: 1.1, flicker: 0.2 });
-            this.lights2.push({ light: this.lights.addLight(240, 150, 200, 0x9fb4ff, 0.5), base: 0.8, flicker: 0 });
-            this.add.pointlight(40, 104, 0xff8a3a, 34, 0.25).setDepth(130);
-            this.add.pointlight(91, 82, 0xffd08a, 22, 0.25).setDepth(130);
+            this.lights2.push({ light: this.lights.addLight(38, 90, 140, 0xff8a3a, 1.6), base: 1.6, flicker: 0.35 });
+            this.lights2.push({ light: this.lights.addLight(87, 78, 100, 0xffd08a, 1.2), base: 1.2, flicker: 0 });
+            this.lights2.push({ light: this.lights.addLight(50, 186, 90, 0x6aa0ff, 1.1), base: 1.1, flicker: 0.2 });
+            this.lights2.push({ light: this.lights.addLight(208, 140, 180, 0x9fb4ff, 0.5), base: 0.8, flicker: 0 });
+            this.add.pointlight(38, 104, 0xff8a3a, 34, 0.25).setDepth(130);
+            this.add.pointlight(87, 82, 0xffd08a, 22, 0.25).setDepth(130);
         }
 
         // a câmera nunca mostra fora do quarto (ao aproximar de um canto)
@@ -299,7 +299,7 @@ export class TrophyRoomScene extends Phaser.Scene {
         createSpeciesAnims(this, d.mon.speciesId);
         if (this.textures.exists(atlasKey(d.mon.speciesId))) {
             this.monKey = d.mon.speciesId;
-            this.mon = this.add.sprite(240, 200, atlasKey(this.monKey)).setScale(1.4).setDepth(220);
+            this.mon = this.add.sprite(214, 180, atlasKey(this.monKey)).setScale(1.4).setDepth(220);
             this.mon.setLighting(true);
             this.wander();
         }
@@ -357,7 +357,7 @@ export class TrophyRoomScene extends Phaser.Scene {
             this.play('Sleep', 0);
             return;
         }
-        const to = { x: Phaser.Math.Between(160, 320), y: Phaser.Math.Between(150, 230) };
+        const to = { x: Phaser.Math.Between(170, 290), y: Phaser.Math.Between(148, 218) };
         this.walkTo(to.x, to.y, () => {
             this.play('Idle', 0);
             this.time.delayedCall(Phaser.Math.Between(1800, 4200), () => this.wander());
@@ -426,8 +426,8 @@ export class TrophyRoomScene extends Phaser.Scene {
             if (this.mon) {
                 this.tweens.killTweensOf(this.mon);
                 this.walkTo(
-                    Phaser.Math.Clamp(bounds.centerX + 18, 30, 450),
-                    Phaser.Math.Clamp(bounds.bottom + 14, 130, 300),
+                    Phaser.Math.Clamp(bounds.centerX + 18, 30, ROOM_W - 30),
+                    Phaser.Math.Clamp(bounds.bottom + 14, 130, ROOM_H - 20),
                     () => this.play('Idle', 4),
                 );
             }

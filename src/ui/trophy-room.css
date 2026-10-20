@@ -228,7 +228,7 @@
 }
 .room-stage {
     width: 100%;
-    aspect-ratio: 480 / 320;
+    aspect-ratio: 416 / 256;
     overflow: hidden;
     border-radius: 8px;
     background: #0e1430;
@@ -315,8 +315,13 @@
     align-items: center;
     justify-content: space-between;
     gap: 6px 12px;
+    margin-top: 2px;
 }
-.tr-summary > span {
+/* a sala, a legenda e o resumo formam um bloco só (o espaço entre eles é menor que o da tela) */
+.tr.menu-screen {
+    gap: 10px;
+}
+.tr-summary > span:first-child {
     display: grid;
 }
 .tr-summary small {
@@ -345,7 +350,7 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    aspect-ratio: 480 / 320;
+    aspect-ratio: 416 / 256;
 }
 .room-label {
     position: absolute;
@@ -370,18 +375,18 @@
 .room-legend {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 10px;
+    gap: 4px;
+    margin-top: 8px;
 }
 .room-chip {
-    min-height: 34px;
-    padding: 4px 12px;
+    min-height: 30px;
+    padding: 3px 10px;
     border: 0;
     border-radius: 999px;
     background: var(--panel-2);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
     color: var(--text);
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
     cursor: pointer;
     transition:

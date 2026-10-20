@@ -524,7 +524,6 @@ export function TrophyRoom() {
                     <b>{t('trophies.levelLine', { n: lvl.n, name: t(`trophies.level.${lvl.level}` as TKey) })}</b>
                     <small>{lvl.next ? t('trophies.nextLevel', { n: lvl.next }) : t('trophies.maxLevel')}</small>
                 </span>
-                <small className="muted">{t('trophies.card.hint')}</small>
                 <span className="tr-summary-btns">
                     <button
                         type="button"
