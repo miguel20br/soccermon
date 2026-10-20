@@ -38,6 +38,12 @@ export const PATCH_NOTES: PatchNotes[] = [
                     'Toque no rival no Duelo (sala, VERSUS ou placar) pra ver o perfil dele, com as cartas grandes',
                 ],
             },
+            {
+                title: 'Correções',
+                lines: [
+                    'VERSUS: o botão só deixa começar com a quadra carregada (antes levava a uma partida vazia). Se demorar, aparece "Tentar de novo"',
+                ],
+            },
         ],
     },
     {
@@ -751,6 +757,12 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 lines: [
                     'Profile button in the top corner, with your avatar',
                     'Tap your rival in the Duel (room, VERSUS or scoreboard) to see their profile, with the cards in full size',
+                ],
+            },
+            {
+                title: 'Fixes',
+                lines: [
+                    'VERSUS: the button only lets you start once the court has loaded (it used to open an empty match). If it takes too long, "Try again" shows up',
                 ],
             },
         ],

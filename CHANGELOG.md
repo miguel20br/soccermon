@@ -21,6 +21,9 @@
 - Botão do Perfil no canto de cima, com o seu avatar
 - Toque no rival no Duelo (sala, VERSUS ou placar) pra ver o perfil dele, com as cartas grandes
 
+### Correções
+- VERSUS: o botão só deixa começar com a quadra carregada (antes levava a uma partida vazia). Se demorar, aparece "Tentar de novo"
+
 ## 0.8.8.2 · Logo novo e faixas da torcida
 
 ### Logo novo

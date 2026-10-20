@@ -253,5 +253,7 @@ export const match = {
         start: 'Começar!',
         startsIn: 'Apito em {s} s',
         loading: 'Carregando a quadra…',
+        slow: 'a quadra está demorando',
+        retry: 'Tentar de novo',
     },
 };

@@ -127,6 +127,8 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const [simCount, setSimCount] = useState(-1);
     const [clock, setClock] = useState<Clock>({ tick: 0, minute: 0, half: 1, score: [0, 0], phase: 'kickoff' });
     const [sceneReady, setSceneReady] = useState(false);
+    /** "Tentar de novo" do VERSUS: remonta a quadra que não carregou. */
+    const [sceneKey, setSceneKey] = useState(0);
     const [fontsReady, setFontsReady] = useState(false);
     const [kicked, setKicked] = useState(() => roomNow() >= (s.kickoffAt ?? 0));
     const [halftime, setHalftime] = useState(false);
@@ -549,6 +551,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                     homeLook={looks[side]}
                     awayLook={looks[side === 0 ? 1 : 0]}
                     startsIn={kickLeft}
+                    onRetry={() => setSceneKey((k) => k + 1)}
                 />
             )}
             <div className="bc duel">
@@ -585,7 +588,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                     )}
                     <div className="pitch-wrap">
                         {fontsReady ? (
-                            <PhaserGame key={String(match.seed)} data={sceneData} />
+                            <PhaserGame key={`${match.seed}-${sceneKey}`} data={sceneData} />
                         ) : (
                             <div className="phaser-container" />
                         )}

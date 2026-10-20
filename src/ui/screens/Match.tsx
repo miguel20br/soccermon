@@ -571,7 +571,14 @@ export function Match({ liga = false }: { liga?: boolean }) {
     return (
         <>
             {!introDone && (
-                <VersusIntro home={lockedSetup} away={opponent} stage={stage} ready={sceneReady} onDone={finishIntro} />
+                <VersusIntro
+                    home={lockedSetup}
+                    away={opponent}
+                    stage={stage}
+                    ready={sceneReady}
+                    onDone={finishIntro}
+                    onRetry={() => setSceneKey((k) => k + 1)}
+                />
             )}
             <div className="bc">
                 <div className="bc-head" ref={scoreboardRef}>

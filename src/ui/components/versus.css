@@ -457,6 +457,23 @@
 :root[data-reduce-motion="true"] .vsp .vs-start.loading::after {
     animation: none;
 }
+/* carregando é desligado de verdade, mas sem o apagado forte do .btn:disabled (a barrinha diz que vem aí) */
+.vsp .vs-start.loading:disabled {
+    opacity: 0.85;
+    cursor: progress;
+}
+/* quadra demorando: "Tentar de novo" com o aviso numa linha menor dentro do botão */
+.vsp .vs-slow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.1;
+    animation-delay: 0s;
+}
+.vsp .vs-slow small {
+    font-size: 0.7em;
+    opacity: 0.85;
+}
 
 /* ---------- celular em pé: rival em cima, você embaixo ---------- */
 @media (max-aspect-ratio: 1 / 1) {
