@@ -2,6 +2,7 @@
 export const home = {
     soon: [
         { title: 'Modo história', text: 'Ginásios, insígnias e a Liga Índigo' },
+        { title: 'Ultimate Team', text: 'O time da temporada, montado abrindo pacotes' },
         { title: 'Futebol de campo', text: 'Partidas 11 contra 11' },
         { title: 'Geração 2', text: 'Os Pokémon de Johto' },
     ],
