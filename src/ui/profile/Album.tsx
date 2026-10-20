@@ -1,4 +1,4 @@
-import { type CSSProperties, type PointerEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, type PointerEvent, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { SPECIES, type Species, species } from '../../engine/data';
 import { type DuelMonRecipe, monRecipe } from '../../engine/duel-validate';
 import type { PokemonInstance } from '../../engine/instance';
@@ -146,8 +146,9 @@ function useFresh() {
     return { fresh, done, again };
 }
 
-/** Quanto dura abrir/fechar a capa (o CSS usa o mesmo número). */
+/** Quanto dura abrir/fechar a capa e virar a folha (o CSS usa os mesmos números). */
 const COVER_MS = 520;
+const LEAF_MS = 650;
 
 /**
  * Álbum de figurinhas (pedido do Miguel em 20/10): uma estante com um livro por geração; tocar na capa abre o livro,
@@ -210,12 +211,20 @@ export function AlbumView({
     const [dir, setDir] = useState<'next' | 'prev' | ''>('');
     const [found, setFound] = useState<number | null>(null);
     const { fresh, done, again } = useFresh();
+    /** A folha virando: as páginas de antes e as de depois (some sozinha quando a animação acaba). */
+    const [leaf, setLeaf] = useState<{ from: Species[][]; to: Species[][]; n: number } | null>(null);
+    const [fan, setFan] = useState<number | null>(null);
     const turn = (to: number) => {
         const p = Math.max(0, Math.min(pages.length - 1, to));
         if (p === page) return;
         setDir(p > page ? 'next' : 'prev');
         setPage(p);
         setFound(null);
+        if (reduce) return;
+        const n = Date.now();
+        setLeaf({ from: pages.slice(cur, cur + step), to: pages.slice(p, p + step), n });
+        // some quando a animação acaba (onAnimationEnd); o relógio é só a garantia se ela não rodar
+        window.setTimeout(() => setLeaf((l) => (l?.n === n ? null : l)), LEAF_MS * 3);
     };
     // trocou o tamanho da página (girou o celular): fica onde estava o primeiro Pokémon
     const anchor = useRef(1);
@@ -313,10 +322,7 @@ export function AlbumView({
                           {
                               label: t('profile.album.front'),
                               primary: true,
-                              onClick: () => {
-                                  updateProfile({ albumFront: { ...(front ?? {}), [sp.id]: r.id } });
-                                  again(sp.id);
-                              },
+                              onClick: () => setFront(sp, r.id),
                           },
                       ]
                     : []),
@@ -343,24 +349,34 @@ export function AlbumView({
     };
     const tap = (sp: Species, order: number[]) => {
         if (swiped.current) return;
-        if (rows.get(sp.id)?.length) openRow(sp);
+        const n = rows.get(sp.id)?.length ?? 0;
+        if (n > 1) setFan(sp.id);
+        else if (n) openRow(sp);
         else onSheet(sp.id, order);
+    };
+    const setFront = (sp: Species, id: string) => {
+        updateProfile({ albumFront: { ...(front ?? {}), [sp.id]: id } });
+        again(sp.id);
     };
 
     const total = albumCount(dex);
     const withSticker = KANTO.filter((sp) => rows.get(sp.id)?.length).length;
     const freshAny = KANTO.some((sp) => fresh.has(sp.id));
 
-    const slotEl = (list: Species[], sp: Species, i: number) => {
+    /** Um espaço da página; `ghost`: a cópia que vai na folha virando (sem toque, sem animação de colar). */
+    const slotEl = (list: Species[], sp: Species, i: number, ghost = false) => {
         const r = rows.get(sp.id) ?? [];
         const top = frontRow(r, front?.[sp.id]);
+        // as outras versões aparecem atrás da da frente, como cartas empilhadas (até 2)
+        const behind = r.filter((x) => x !== top).slice(0, 2);
         const known = !!dex[sp.id];
         const eds = albumSlots(sp);
         return (
             <li key={sp.id}>
                 <button
                     type="button"
-                    className={`al-slot${top ? ' got' : ''}${found === sp.id ? ' found' : ''}`}
+                    tabIndex={ghost ? -1 : undefined}
+                    className={`al-slot${top ? ' got' : ''}${!ghost && found === sp.id ? ' found' : ''}`}
                     onClick={() =>
                         tap(
                             sp,
@@ -380,17 +396,31 @@ export function AlbumView({
                             <img className="pixel" src={speciesGif(sp.id)} alt="" loading="lazy" draggable={false} />
                             <b>#{dexNo(sp.id)}</b>
                         </span>
+                        {behind.map((x, k) => (
+                            <span
+                                key={x.id}
+                                className="al-stk behind"
+                                style={{ '--rot': `${tilt(sp.id)}deg`, '--k': behind.length - k } as CSSProperties}
+                            >
+                                <PokeCard2 inst={x.inst} variant="metal" />
+                            </span>
+                        ))}
                         {top && (
                             <span
                                 key={top.id}
-                                className={`al-stk${fresh.has(sp.id) ? ' pasting' : ''}`}
+                                className={`al-stk${!ghost && fresh.has(sp.id) ? ' pasting' : ''}`}
                                 style={{ '--rot': `${tilt(sp.id)}deg`, '--d': `${i * 70}ms` } as CSSProperties}
                             >
                                 <PokeCard2 inst={top.inst} variant="metal" />
                             </span>
                         )}
                         {r.length > 1 && <span className="al-n">×{r.length}</span>}
-                        <NewBadge k={CARD_SLOTS.map((ed) => newsKey.sticker(slotId(sp.id, ed)))} className="corner" />
+                        {!ghost && (
+                            <NewBadge
+                                k={CARD_SLOTS.map((ed) => newsKey.sticker(slotId(sp.id, ed)))}
+                                className="corner"
+                            />
+                        )}
                     </span>
                     {/* as edições do Pokémon, na ordem Normal, Shiny, Evento, Ícone, Destaque: acesa = tem */}
                     <span className="al-dots" aria-hidden>
@@ -403,6 +433,47 @@ export function AlbumView({
         );
     };
     const range = (list: Species[]) => `#${dexNo(list[0].id)}–#${dexNo(list[list.length - 1].id)}`;
+    /** O miolo de uma página (faixa, espaços, número da folha). */
+    const pageInner = (list: Species[] | undefined, ghost = false) =>
+        list && (
+            <>
+                <header className="al-ph">
+                    <b>{t('profile.album.coverGen', { gen: 1 })} · Kanto</b>
+                    <span>{range(list)}</span>
+                </header>
+                <ul className="al-pgrid">{list.map((sp, j) => slotEl(list, sp, j, ghost))}</ul>
+                <footer className="al-folio" aria-hidden>
+                    {pages.indexOf(list) + 1}
+                </footer>
+            </>
+        );
+    /** A folha que vira por cima: frente = a página que sai, verso = a que chega do outro lado (no celular, papel). */
+    const leafEl = (
+        front: Species[] | undefined,
+        back: Species[] | undefined,
+        side: 'next' | 'prev',
+        solo: boolean,
+    ) => (
+        <div
+            className={`al-leaf ${side}${solo ? ' solo' : ''}`}
+            aria-hidden
+            onAnimationEnd={(e) => e.target === e.currentTarget && setLeaf(null)}
+        >
+            <div className="al-page al-leaf-face front">{pageInner(front, true)}</div>
+            <div className="al-page al-leaf-face back">{pageInner(back, true)}</div>
+        </div>
+    );
+    // o que fica embaixo da folha: no celular a página nova; aberto, o lado que a folha ainda não cobriu
+    const base: { list?: Species[]; leaf?: ReactNode }[] = !leaf
+        ? visible.map((list) => ({ list }))
+        : step === 1
+          ? [{ list: leaf.to[0], leaf: leafEl(leaf.from[0], undefined, dir as 'next' | 'prev', true) }]
+          : dir === 'next'
+            ? [{ list: leaf.from[0] }, { list: leaf.to[1], leaf: leafEl(leaf.from[1], leaf.to[0], 'next', false) }]
+            : [{ list: leaf.to[0], leaf: leafEl(leaf.from[0], leaf.to[1], 'prev', false) }, { list: leaf.from[1] }];
+    const fanSp = fan ? species(fan) : null;
+    const fanRows = fan ? (rows.get(fan) ?? []) : [];
+    const fanFront = fan ? frontRow(fanRows, front?.[fan])?.id : undefined;
 
     return (
         <div className="al">
@@ -508,20 +579,15 @@ export function AlbumView({
                             drag.current = null;
                         }}
                     >
-                        {visible.map((list, i) => (
+                        {base.map((b, i) => (
                             <section
-                                key={`${per}-${pages.indexOf(list)}`}
-                                className={`al-page${dir ? ` turn-${dir}` : ' enter'}${i ? ' right' : ''}`}
-                                aria-label={range(list)}
+                                // biome-ignore lint/suspicious/noArrayIndexKey: lado esquerdo/direito do livro aberto
+                                key={i}
+                                className={`al-page${!dir ? ' enter' : ''}${i ? ' right' : ''}`}
+                                aria-label={b.list ? range(b.list) : undefined}
                             >
-                                <header className="al-ph">
-                                    <b>{t('profile.album.coverGen', { gen: 1 })} · Kanto</b>
-                                    <span>{range(list)}</span>
-                                </header>
-                                <ul className="al-pgrid">{list.map((sp, j) => slotEl(list, sp, j))}</ul>
-                                <footer className="al-folio" aria-hidden>
-                                    {pages.indexOf(list) + 1}
-                                </footer>
+                                {pageInner(b.list)}
+                                {b.leaf}
                             </section>
                         ))}
                     </div>
@@ -532,6 +598,21 @@ export function AlbumView({
                         </button>
                     </div>
                 </>
+            )}
+
+            {fanSp && (
+                <VersionsFan
+                    title={fanSp.name}
+                    rows={fanRows}
+                    front={fanFront}
+                    name={nameOf}
+                    onOpen={(id) => {
+                        setFan(null);
+                        openRow(fanSp, id);
+                    }}
+                    onFront={(id) => setFront(fanSp, id)}
+                    onClose={() => setFan(null)}
+                />
             )}
 
             <div className="pf-album">
@@ -547,6 +628,63 @@ export function AlbumView({
                     <i className="played" style={{ width: `${(total.got / total.total) * 100}%` }} />
                 </div>
                 <small className="muted">{t('profile.album.help')}</small>
+            </div>
+        </div>
+    );
+}
+
+/** Tocar num Pokémon com mais de uma versão: elas se espalham por cima da página, do tamanho de ler. */
+function VersionsFan({
+    title,
+    rows,
+    front,
+    name,
+    onOpen,
+    onFront,
+    onClose,
+}: {
+    title: string;
+    rows: Row[];
+    front?: string;
+    name: (r: Row) => string;
+    onOpen: (id: string) => void;
+    onFront: (id: string) => void;
+    onClose: () => void;
+}) {
+    const { t, tn } = useT();
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [onClose]);
+    return (
+        <div className="al-fan" role="dialog" aria-modal="true" aria-label={title}>
+            <button type="button" className="al-fan-bg" aria-label={t('profile.album.fanClose')} onClick={onClose} />
+            <div className="al-fan-box">
+                <header>
+                    <b>{title}</b>
+                    <span>{tn('profile.album.versionsN', rows.length)}</span>
+                    <button type="button" className="btn ghost small" onClick={onClose}>
+                        {t('profile.album.fanClose')}
+                    </button>
+                </header>
+                <ul>
+                    {rows.map((r, i) => (
+                        <li key={r.id} style={{ '--i': i } as CSSProperties}>
+                            <button type="button" className="al-fan-card" onClick={() => onOpen(r.id)}>
+                                <PokeCard2 inst={r.inst} variant="metal" />
+                            </button>
+                            <b>{name(r)}</b>
+                            {r.id === front ? (
+                                <small className="al-fan-on">{t('profile.album.onFront')}</small>
+                            ) : (
+                                <button type="button" className="btn small" onClick={() => onFront(r.id)}>
+                                    {t('profile.album.front')}
+                                </button>
+                            )}
+                        </li>
+                    ))}
+                </ul>
             </div>
         </div>
     );

@@ -460,6 +460,8 @@ export const profile = {
         closeBook: 'Fechar o álbum',
         oldTag: 'carta padrão',
         versions: 'Suas versões',
+        versionsN: '{n} versão|{n} versões',
+        fanClose: 'Fechar',
         onShowcase: 'na vitrine',
         sheet: 'Ficha na Pokédex',
         stickers: 'Figurinhas',

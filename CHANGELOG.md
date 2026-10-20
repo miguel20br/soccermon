@@ -1,5 +1,18 @@
 # Novidades
 
+## 0.8.8.4 · Álbum em livro
+
+### Álbum de figurinhas
+- O álbum virou livro: uma estante com o Álbum da Geração 1 (Kanto). Toque na capa e ele abre
+- A folha vira de verdade, pela lombada, arrastando pro lado ou nas setas
+- Um espaço por Pokémon, na ordem da Pokédex, com a carta da frente colada. As bolinhas embaixo mostram quais edições você tem (Normal, Shiny, Evento, Ícone, Destaque)
+- Tem mais de uma versão? Elas aparecem empilhadas atrás. Toque e todas se espalham na tela, do tamanho de ler
+- Escolha qual fica na frente ("Mostrar na frente"). Sem escolher, fica a melhor
+- Figurinha nova cai e cola no espaço quando a página dela aparece
+
+### Correções
+- "Ver todos na Pokédex" (Números) agora sobe até a Pokédex em vez de abrir no meio da lista
+
 ## 0.8.8.3 · Cartas em camadas e álbum de figurinhas
 
 ### Cartas em camadas

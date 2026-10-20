@@ -156,7 +156,7 @@ commit). Prévias da Vercel têm os atalhos de demo e `?vel=N` (quadra até 64x)
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (19/10/2026, v0.8.8.3 · Cartas em camadas e álbum de figurinhas)
+## Estado atual (20/10/2026, v0.8.8.4 · Álbum em livro)
 
 Tudo que subiu em 19/10 foi separado nas Novidades em 4 números (decisão do Miguel, 19/10): **0.8.8** Ícone MVP e
 conquistas retroativas (o conserto da manhã); **0.8.8.1** Melhores momentos, Copa do Dia e medalhas (o pacotão:
@@ -213,6 +213,11 @@ Duelo sai de `"displayVersion"` no `package.json` (`__APP_VERSION__` = `displayV
 **0.8.8.2:** logo novo (a carta holo com a bola, `public/assets/ui/logo.svg`), título chapado, ícones no traço do
 `HudIcon`, brand guide em `docs/marca/` (skill `soccermon-marca`), faixas da torcida escritas pelo Miguel, pacote de
 cartas com o logo, bola original na Home e a Liga fechada com contagem.
+
+**0.8.8.4 (20/10):** o Álbum virou livro (`src/ui/profile/Album.tsx`, `?demo=album`): estante com um livro por geração
+(Gen 2 fechada, Em breve), capa que abre, folha que vira pela lombada (`.al-leaf`), um espaço por Pokémon com a carta da
+frente (`profile.albumFront`, sem = a melhor; `speciesRows`/`frontRow`), versões empilhadas e espalhadas ao tocar
+(`VersionsFan`). Some a página Raridades e as seções por edição.
 
 **0.8.8.3:** cartas em camadas (shiny +1 por cima de outra edição, selo MVP 1 a 3 no Ícone e no Evento, Destaque por
 nível, Evento com o desenho do tipo, bônus que passa de 99 vai pros outros atributos; `src/engine/specials.ts`,

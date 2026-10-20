@@ -457,6 +457,8 @@ export const profile: typeof pt = {
         closeBook: 'Close the album',
         oldTag: 'default card',
         versions: 'Your versions',
+        versionsN: '{n} version|{n} versions',
+        fanClose: 'Close',
         onShowcase: 'on showcase',
         sheet: 'Pokédex entry',
         stickers: 'Stickers',

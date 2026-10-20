@@ -7,6 +7,27 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.8.8.4',
+        title: 'Álbum em livro',
+        sections: [
+            {
+                title: 'Álbum de figurinhas',
+                lines: [
+                    'O álbum virou livro: uma estante com o Álbum da Geração 1 (Kanto). Toque na capa e ele abre',
+                    'A folha vira de verdade, pela lombada, arrastando pro lado ou nas setas',
+                    'Um espaço por Pokémon, na ordem da Pokédex, com a carta da frente colada. As bolinhas embaixo mostram quais edições você tem (Normal, Shiny, Evento, Ícone, Destaque)',
+                    'Tem mais de uma versão? Elas aparecem empilhadas atrás. Toque e todas se espalham na tela, do tamanho de ler',
+                    'Escolha qual fica na frente ("Mostrar na frente"). Sem escolher, fica a melhor',
+                    'Figurinha nova cai e cola no espaço quando a página dela aparece',
+                ],
+            },
+            {
+                title: 'Correções',
+                lines: ['"Ver todos na Pokédex" (Números) agora sobe até a Pokédex em vez de abrir no meio da lista'],
+            },
+        ],
+    },
+    {
         version: '0.8.8.3',
         title: 'Cartas em camadas e álbum de figurinhas',
         sections: [
@@ -740,6 +761,27 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.8.8.4',
+        title: 'The album is a book',
+        sections: [
+            {
+                title: 'Sticker album',
+                lines: [
+                    'The album is now a book: a shelf with the Generation 1 (Kanto) album. Tap the cover and it opens',
+                    'Pages really turn, over the spine, by swiping or with the arrows',
+                    'One slot per Pokémon, in Pokédex order, with the front card stuck in. The dots below show which editions you have (Regular, Shiny, Event, Icon, Star Player)',
+                    'More than one version? They stack up behind it. Tap and they all spread across the screen, big enough to read',
+                    'Pick which one goes on the front ("Put on the front"). If you never pick, the best one shows',
+                    'A new sticker falls and sticks into its slot when its page shows up',
+                ],
+            },
+            {
+                title: 'Fixes',
+                lines: ['"See all in the Pokédex" (Numbers) now scrolls up to the Pokédex instead of landing mid-list'],
+            },
+        ],
+    },
     {
         version: '0.8.8.3',
         title: 'Layered cards and sticker album',
