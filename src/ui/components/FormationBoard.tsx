@@ -5,7 +5,7 @@ import { type FormationId, formationOf } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { computeLinks } from '../../engine/links';
-import { editionOf } from '../../engine/specials';
+import { cardTypeOf, editionOf } from '../../engine/specials';
 import { useT } from '../../i18n/react';
 import type { SlotRef } from '../../store/game-store';
 import { editionLabel, finishOf, METAL, metalOf } from '../rarity';
@@ -103,7 +103,8 @@ export function FormationBoard({
                   ? 'sc sc-lendario'
                   : `sc sc-${metalOf(viewInstance(inst).overall)}${tier && finishOf(tier) === 'brilhante' ? ' sc-brilhante' : ''}`
             : '';
-        const t1 = inst ? TYPE_COLOR[species(inst.speciesId).types[0]] : undefined;
+        // Evento: a cor (e o fundo da vaga) é a do tipo do evento, não a do 1º tipo do Pokémon (Kabutops de Água ≠ Pedra)
+        const t1 = inst ? TYPE_COLOR[cardTypeOf(inst)] : undefined;
         const rarStyle = ring ? ({ ...style, '--rar': ring, '--t1': t1 } as CSSProperties) : style;
         const dim = inst && dimOf?.(inst) ? ' dim' : '';
         const glow = inst && ref.zone === 'lineup' && aura.has(inst.uid) ? ` aura aura-${aura.get(inst.uid)}` : '';

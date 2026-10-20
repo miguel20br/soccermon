@@ -77,6 +77,19 @@ enche de cópia).
 | **B. Sala (recomendada)** | A + a sala em pixel art com parede (faixa, bandeira, camisa, diploma, broches), vitrine de vidro, livros do álbum, TV com o gol, nível da sala, visita pelo perfil | 2 versões | médio (arte) |
 | C. Sala montável | B + arrastar e arrumar, papel de parede e chão por missão, visitar a sala inteira do amigo | 3+ versões | alto |
 
+## Decidido com o Miguel (20/10/2026)
+
+1. **B, a sala** (pixel art, parede, vitrine de vidro, TV, nível da sala, visita).
+2. **Botão "Sala de troféus" no Perfil** (o Hall da Fama vira a estante da Copa).
+3. **Metal da taça pela campanha:** campeão = bronze, sem perder = prata, sem sofrer gol = ouro.
+4. **Silhueta do que falta à vista.**
+5. **Pixel art do Red/Blue** (quarto de Pallet).
+
+Perfil do amigo (decisões 6–10, as recomendadas): ver o cartão, a vitrine de cartas, as medalhas, os números e os
+últimos títulos do amigo; retrospecto entre vocês no Duelo; ranking da Copa do Dia só com amigos; reações (sem texto)
+na sala do amigo depois que a sala existir; a foto do perfil só pros amigos (migração no Supabase de produção, com o
+ok do Miguel antes de aplicar). Ordem: perfil do amigo → sala → reações.
+
 ## Decisões pro Miguel
 
 1. **Escopo:** B, a sala **(recomendado)** / A só estante / C montável já.
