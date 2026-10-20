@@ -108,6 +108,24 @@ Leia a skill antes de começar a tarefa dela:
 | `soccermon-assets` | vídeo, logo, imagem e texto de divulgação |
 | `soccermon-marca` | antes de mexer em qualquer visual, ícone, texto de interface ou asset: checklist de padronização (brand guide em `docs/marca/`) |
 
+## Regras de velocidade (19/10/2026, `docs/planos/pesquisas/velocidade.md`)
+
+Regras gerais aprovadas pelo Miguel ("1a a 9a"); **cada tarefa é avaliada por si**, isto não é automático:
+1. **Nunca travar a sessão com questionário bloqueante** quando há entrega pronta esperando: pergunte em texto e
+   siga entregando o que já foi aprovado (um questionário travou 5 h de entregas em 19/10).
+2. **CI em toda branch** (GitHub Actions: testes, build, fumaça e prints na nuvem); o agente espera o CI em vez da
+   fila do PC.
+3. **Esteira com fila própria** que confia no CI do commit da junção, sem refazer tudo local.
+4. **Duas trilhas:** rápida (tela, texto, conserto fora do motor: `tsc --incremental`, `vitest related`, prints em
+   390 e 1440) e completa (motor, Duelo, save, Supabase).
+5. **Sobe sem perguntar:** conserto com teste, texto e tradução, acessibilidade, desempenho, processo, layout no kit
+   da transmissão. **Continua com o Miguel:** equilíbrio, posições, visual de carta, regra nova de jogo, Supabase de
+   produção e o que ele pedir pra ver antes.
+6. **Modo fumaça nas prévias** (atalhos de demo e velocidade alta fora da produção).
+7. **Vídeo (ffmpeg) e outros projetos na mesma fila pesada** (`flock /tmp/soccermon-heavy.lock`).
+8. **Agentes na nuvem:** testar com 1 tarefa pequena antes de usar mais.
+9. **Ferramentas:** `tsc` incremental, build sem repetir o `tsc`, `engine.test.ts` dividido.
+
 ## Regras de desenvolvimento (17/10/2026)
 
 - **`main` = produção.** Nada vai pra `main` sem o "pode subir" do Miguel naquela conversa. Prévia: push numa
