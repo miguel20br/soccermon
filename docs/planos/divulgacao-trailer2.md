@@ -27,7 +27,7 @@ biblioteca do app no próprio post. Clipes do **kit dos creators vão sem músic
 | até 18h | Trailer 2 aprovado no celular (PT 9:16, EN 9:16 e 16:9), capa, legendas e hashtags prontos | Claude prepara, Miguel aprova |
 | 18h30 | Instagram criado: foto (logo novo, `logo-icone.svg`), bio, link `/ig`; destaque "Como jogar" | Miguel |
 | 19h | **Reels** com o trailer PT (+ comentário fixado com o link) | Miguel |
-| 19h05 | **TikTok**: apaga o antigo, posta o trailer PT, comentário com o link | Miguel (ou Claude pelo Chrome, depois do ok) |
+| 19h05 | **TikTok**: trailer PT **já agendado pra 19h** (20/10, capa `capa-PT-9x16.png`); depois de sair, o Claude apaga o vídeo antigo de 16/10 e o Miguel comenta o link | Claude + Miguel |
 | 19h10 | **YouTube Shorts** (PT) + **X** (16:9 EN e PT no fio) | Miguel |
 | 19h15 | **GitHub**: release com o trailer + Discussion "Trailer 2 / #DesafioDourado" fixada | Claude |
 | 19h–22h | Responder comentários (os primeiros 60 min pesam no alcance) | Miguel |
