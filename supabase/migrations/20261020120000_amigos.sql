@@ -8,6 +8,14 @@
 -- públicas. O identificador que o navegador vê é o código de amigo, nunca o id da conta nem o e-mail.
 -- Bloqueio é silencioso: quem foi bloqueado não fica sabendo (o pedido dele "vai", mas nunca aparece pro outro).
 -- Apagar a conta leva tudo junto (on delete cascade).
+--
+-- Online e avisos na hora (decididos com o Miguel em 19/10):
+--   * "online" = o jogo aberto e visível nos últimos 150 s (amigos_ping a cada 60 s). Só os amigos aceitos veem.
+--     Não usa Presence do Realtime: num canal comum todo mundo veria todo mundo (e cada entrada/saída vira mensagem pra
+--     todos), e um canal por amigo bate no limite de canais por conexão. O ponto verde vem junto da lista.
+--   * avisos (pedido, amizade aceita, desafio pro Duelo) saem do banco pelo Realtime Broadcast (realtime.send) no
+--     canal privado `amigos:<id da conta>`, que só o dono ouve (política em realtime.messages). Ninguém escreve
+--     nesse canal pelo navegador: só as funções daqui.
 
 -- ------------------------------------------------------------------------------------------- tabelas
 
@@ -22,7 +30,9 @@ create table public.friend_cards (
     club_color text not null check (
         club_color in ('vermelho', 'azul', 'verde', 'amarelo', 'laranja', 'roxo', 'rosa', 'ciano', 'vinho', 'grafite')
     ),
-    updated_at timestamptz not null default now()
+    updated_at timestamptz not null default now(),
+    -- última vez que o jogo dele estava aberto (amigos_ping); os amigos veem "online" até 150 s depois
+    seen_at timestamptz
 );
 
 -- Pedido (pending) ou amizade (accepted). Um par só tem uma linha, não importa quem pediu.
@@ -156,6 +166,39 @@ as $$
 $$;
 
 /**
+ * Aviso na hora pro outro jogador, no canal privado dele (`amigos:<id>`): quem mandou (código e nome público, nunca
+ * o id) + `p_extra`. Se o Realtime falhar, a ação continua (a lista mostra tudo na próxima atualização).
+ */
+create or replace function public.amigos_avisar(p_to uuid, p_event text, p_extra jsonb default '{}'::jsonb)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+    perform realtime.send(
+        (select jsonb_build_object('code', c.code, 'trainer', c.trainer, 'club', c.club, 'club_tag', c.club_tag,
+            'club_color', c.club_color) from public.friend_cards c where c.user_id = auth.uid()) || p_extra,
+        p_event,
+        'amigos:' || p_to::text,
+        true
+    );
+exception when others then
+    null;
+end;
+$$;
+
+/** "Estou com o jogo aberto": o jogo chama a cada 60 s com a aba visível. Os amigos veem online por 150 s. */
+create or replace function public.amigos_ping()
+returns void
+language sql
+security definer
+set search_path = ''
+as $$
+    update public.friend_cards c set seen_at = now() where c.user_id = public.amigos_conta()
+$$;
+
+/**
  * Pede amizade pelo código de amigo (`p_code`) ou pelo rival do Duelo (`p_user`, o id que já está na sala).
  * Devolve um status em vez de erro (o contador do dia não pode voltar atrás num erro):
  *   enviado · amigos (ele já tinha te pedido: viram amigos) · ja_amigos · ja_pediu · nao_achei · voce_mesmo ·
@@ -215,6 +258,7 @@ begin
         delete from public.friend_blocks b where b.user_id = v_me and b.blocked_id = c.user_id;
         update public.friend_links f set status = 'accepted', accepted_at = now()
         where f.from_id = c.user_id and f.to_id = v_me;
+        perform public.amigos_avisar(c.user_id, 'amigos');
         return query select 'amigos', c.trainer, c.club, c.club_tag, c.club_color;
         return;
     end if;
@@ -230,6 +274,10 @@ begin
     -- pedir pra quem eu bloqueei desbloqueia
     delete from public.friend_blocks b where b.user_id = v_me and b.blocked_id = c.user_id;
     insert into public.friend_links (from_id, to_id) values (v_me, c.user_id);
+    -- quem me bloqueou não recebe aviso (o pedido fica escondido pra ele)
+    if not exists (select 1 from public.friend_blocks b where b.user_id = c.user_id and b.blocked_id = v_me) then
+        perform public.amigos_avisar(c.user_id, 'pedido');
+    end if;
     return query select 'enviado', c.trainer, c.club, c.club_tag, c.club_color;
 end;
 $$;
@@ -271,6 +319,7 @@ begin
     end if;
     update public.friend_links f set status = 'accepted', accepted_at = now()
     where f.from_id = v_other and f.to_id = v_me;
+    perform public.amigos_avisar(v_other, 'amigos');
     return 'amigos';
 end;
 $$;
@@ -325,7 +374,7 @@ begin
 end;
 $$;
 
-/** Chama um amigo pra sua sala do Duelo (ele vê na lista e na Home por 15 minutos). */
+/** Chama um amigo pra sua sala do Duelo: aviso na hora (Realtime) e na lista e na Home por 15 minutos. */
 create or replace function public.amigos_desafiar(p_code text, p_room text)
 returns text
 language plpgsql
@@ -351,13 +400,14 @@ begin
     end if;
     insert into public.friend_challenges as f (from_id, to_id, room) values (v_me, v_other, p_room)
     on conflict (from_id, to_id) do update set room = excluded.room, created_at = now();
+    perform public.amigos_avisar(v_other, 'desafio', jsonb_build_object('room', p_room));
     return 'enviado';
 end;
 $$;
 
 /**
  * Sua lista: amigos, pedidos recebidos e enviados, e quem você bloqueou. Só colunas públicas (código, treinador,
- * clube). `room` = a sala do Duelo pra onde esse amigo te chamou nos últimos 15 minutos.
+ * clube). `room` = a sala do Duelo pra onde esse amigo te chamou nos últimos 15 minutos. `online` só pros amigos.
  * Pedido de quem você bloqueou não aparece.
  */
 create or replace function public.amigos_lista()
@@ -370,7 +420,8 @@ returns table (
     status text,
     since timestamptz,
     room text,
-    room_at timestamptz
+    room_at timestamptz,
+    online boolean
 )
 language sql
 stable
@@ -392,7 +443,8 @@ as $$
         union all
         select b.blocked_id, 'bloqueado', b.created_at from public.friend_blocks b, me where b.user_id = me.id
     )
-    select c.code, c.trainer, c.club, c.club_tag, c.club_color, rel.status, rel.since, ch.room, ch.created_at
+    select c.code, c.trainer, c.club, c.club_tag, c.club_color, rel.status, rel.since, ch.room, ch.created_at,
+        rel.status = 'amigo' and coalesce(c.seen_at > now() - interval '150 seconds', false)
     from rel
     join public.friend_cards c on c.user_id = rel.other
     cross join me
@@ -408,15 +460,28 @@ $$;
 revoke execute on function public.amigos_conta(), public.amigos_cartao(text, text, text, text),
     public.amigos_total(uuid), public.amigos_pedir(text, uuid), public.amigos_id(text),
     public.amigos_responder(text, boolean), public.amigos_remover(text), public.amigos_bloquear(text),
-    public.amigos_desbloquear(text), public.amigos_desafiar(text, text), public.amigos_lista()
+    public.amigos_desbloquear(text), public.amigos_desafiar(text, text), public.amigos_lista(),
+    public.amigos_avisar(uuid, text, jsonb), public.amigos_ping()
     from public, anon;
--- as ajudantes (conta, total, id) ficam só pras outras funções: o navegador não chama
-revoke execute on function public.amigos_total(uuid), public.amigos_id(text) from authenticated;
+-- as ajudantes (conta, total, id, avisar) ficam só pras outras funções: o navegador não chama
+revoke execute on function public.amigos_total(uuid), public.amigos_id(text), public.amigos_avisar(uuid, text, jsonb)
+    from authenticated;
 grant execute on function public.amigos_conta(), public.amigos_cartao(text, text, text, text),
     public.amigos_pedir(text, uuid), public.amigos_responder(text, boolean), public.amigos_remover(text),
     public.amigos_bloquear(text), public.amigos_desbloquear(text), public.amigos_desafiar(text, text),
-    public.amigos_lista()
+    public.amigos_lista(), public.amigos_ping()
     to authenticated;
+
+-- ------------------------------------------------------------------------------------------- Realtime
+
+-- Canal privado de avisos `amigos:<id>`: só o dono ouve. Sem política de insert: o navegador não fala nesse canal,
+-- só as funções acima (realtime.send roda como dono do banco).
+create policy "amigos: ouvir o próprio canal" on realtime.messages
+    for select to authenticated
+    using (
+        (select realtime.topic()) = 'amigos:' || (select auth.uid())::text
+        and realtime.messages.extension = 'broadcast'
+    );
 
 -- ------------------------------------------------------------------------------------------- limpeza
 

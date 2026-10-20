@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { cloudEnabled, duelUserId, signInAnon, signInWithGoogle, useCloud } from '../../cloud/cloud';
+import { duelUserId, signInAnon, signInWithGoogle, useCloud } from '../../cloud/cloud';
 import { ENGINE_VERSION } from '../../engine/config';
 import { DEFAULT_SPECIAL_LIMIT, SPECIAL_LIMITS, type SpecialLimit } from '../../engine/duel-validate';
 import { matchMvp } from '../../engine/mvp';
@@ -44,6 +44,7 @@ import { agencyOn } from '../settings-sync';
 import { setChartColors } from '../stats/StatsCharts';
 import { DuelDraft, DuelPreview, specialRuleText, TeamPick } from './DuelDraft';
 import { DuelMatch, useCountdown } from './DuelMatch';
+import { duelLink, isLocalDuel } from './link';
 import './duel.css';
 
 const PENDING = 'soccermon-duel-pending';
@@ -62,15 +63,6 @@ export function duelCodeFromUrl(): string | null {
         return null;
     }
 }
-
-/** Sala local (duas abas, sem internet): sem Supabase configurado ou com `&local=1` no link. */
-export const isLocalDuel = () => !cloudEnabled || new URLSearchParams(window.location.search).get('local') === '1';
-
-/** Link da sala; `from` = nome de quem chama (a tela de quem abre sem conta mostra "Fulano te chamou"). */
-export const duelLink = (code: string, local: boolean, from?: string) =>
-    `${window.location.origin}${window.location.pathname}?duelo=${code}${local ? '&local=1' : ''}${
-        from ? `&de=${encodeURIComponent(from.slice(0, 24))}` : ''
-    }`;
 
 const FROM = 'soccermon-duel-from';
 /** Quem mandou o link (`&de=`), guardado pra sobreviver ao login pelo Google. */

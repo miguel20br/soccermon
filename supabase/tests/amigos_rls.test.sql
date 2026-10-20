@@ -22,6 +22,20 @@ grant execute on all functions in schema auth to anon, authenticated, service_ro
 create schema cron;
 create function cron.schedule(text, text, text) returns bigint language sql as $$ select 1::bigint $$;
 grant usage on schema public to anon, authenticated, service_role;
+-- Realtime: realtime.send grava em realtime.messages; realtime.topic() é o canal que a conexão quer ouvir
+create schema realtime;
+create table realtime.messages (
+    topic text, extension text default 'broadcast', event text, payload jsonb, private boolean,
+    inserted_at timestamptz default now()
+);
+alter table realtime.messages enable row level security;
+create function realtime.topic() returns text language sql stable as
+    $$ select nullif(current_setting('realtime.topic', true), '') $$;
+create function realtime.send(payload jsonb, event text, topic text, private boolean) returns void language sql as
+    $$ insert into realtime.messages (topic, event, payload, private) values (topic, event, payload, private) $$;
+grant usage on schema realtime to authenticated;
+grant select on realtime.messages to authenticated;
+grant execute on all functions in schema realtime to authenticated;
 
 -- 1 Miguel, 2 Davi, 3 Ana, 4 sessão anônima do duelo, 5 Bia
 insert into auth.users
@@ -30,6 +44,12 @@ insert into auth.users
 -- hoje_brasilia() e conta_google() vêm da migração da Copa do Dia (já no ar)
 \ir ../migrations/20261019180000_copa_do_dia_e_liga.sql
 \ir ../migrations/20261020120000_amigos.sql
+
+-- quantos avisos o canal de `n` recebeu com este evento (lido como service_role, sem RLS)
+create function pg_temp.avisos(n int, ev text) returns int language sql as $$
+    select count(*)::int from realtime.messages
+    where topic = 'amigos:00000000-0000-0000-0000-00000000000' || n and event = ev
+$$;
 
 -- ------------------------------------------------------------------------- ajudantes
 create function pg_temp.como(n int, anonimo boolean default false) returns void language plpgsql as $$
@@ -98,6 +118,8 @@ select pg_temp.falha($$update public.friend_cards set trainer = 'x'$$, 'permissa
 select pg_temp.falha($$select * from public.friend_blocks$$, 'permissao');
 -- as ajudantes internas não são chamáveis pelo navegador
 select pg_temp.falha($$select public.amigos_id('AAAAAAAA')$$, 'permissao');
+select pg_temp.falha($$select public.amigos_avisar(auth.uid(), 'desafio')$$, 'permissao');
+select pg_temp.falha($$insert into realtime.messages (topic, event) values ('amigos:x', 'desafio')$$, 'permissao');
 
 -- ------------------------------------------------------------------------- pedido → aceite
 select pg_temp.igual((select status from public.amigos_pedir('zzzzzzzz')), 'nao_achei', 'código inexistente');
@@ -122,6 +144,18 @@ begin
     end if;
 end $$;
 select pg_temp.igual(public.amigos_responder((select code from public.codigos where n = 1), true), 'amigos', 'aceitar');
+reset role;
+select pg_temp.igual(pg_temp.avisos(2, 'pedido')::text, '1', 'aviso de pedido pro Davi');
+select pg_temp.igual(pg_temp.avisos(1, 'amigos')::text, '1', 'aviso de aceite pro Miguel');
+-- o aviso leva o nome público e o código, nunca o id da conta
+select pg_temp.igual((select payload ->> 'trainer' from realtime.messages where event = 'pedido'), 'Miguel G.', 'nome no aviso');
+do $$ begin
+    if (select payload::text from realtime.messages where event = 'pedido') like '%00000000-%' then
+        raise exception 'aviso vazou o id da conta';
+    end if;
+end $$;
+set role authenticated;
+select pg_temp.como(2);
 select pg_temp.igual((select status from public.amigos_lista()), 'amigo', 'virou amigo (Davi)');
 select pg_temp.como(1);
 select pg_temp.igual((select status from public.amigos_lista()), 'amigo', 'virou amigo (Miguel)');
@@ -164,6 +198,31 @@ select pg_temp.igual(public.amigos_desafiar((select code from public.codigos whe
 select pg_temp.igual(public.amigos_desafiar((select code from public.codigos where n = 2), 'abc'), 'sala', 'sala inválida');
 select pg_temp.como(2);
 select pg_temp.igual((select room from public.amigos_lista()), 'K7M2QX', 'Davi vê o desafio');
+-- o aviso na hora chega no canal do Davi, e só ele ouve esse canal
+select set_config('realtime.topic', 'amigos:00000000-0000-0000-0000-000000000002', false);
+select pg_temp.igual((select payload ->> 'room' from realtime.messages where event = 'desafio'), 'K7M2QX',
+    'Davi ouve o desafio');
+select pg_temp.como(1);
+select pg_temp.igual((select count(*)::text from realtime.messages), '0', 'Miguel não ouve o canal do Davi');
+select pg_temp.como(4, true);
+select pg_temp.igual((select count(*)::text from realtime.messages), '0', 'anônimo não ouve o canal do Davi');
+select set_config('realtime.topic', '', false);
+-- online: só amigo vê, e some 150 s depois do último sinal
+select pg_temp.como(1);
+select public.amigos_ping();
+select pg_temp.como(2);
+select pg_temp.igual((select online::text from public.amigos_lista() where trainer = 'Miguel G.'), 'true', 'online');
+reset role;
+update public.friend_cards set seen_at = now() - interval '3 minutes' where trainer = 'Miguel G.';
+set role authenticated;
+select pg_temp.igual((select online::text from public.amigos_lista() where trainer = 'Miguel G.'), 'false',
+    'online vencido');
+select pg_temp.como(4, true);
+select pg_temp.falha($$select public.amigos_ping()$$, 'precisa_conta');
+reset role;
+update public.friend_cards set seen_at = now() where trainer = 'Miguel G.';
+set role authenticated;
+select pg_temp.como(2);
 reset role;
 update public.friend_challenges set created_at = now() - interval '16 minutes';
 set role authenticated;
@@ -180,8 +239,13 @@ end $$;
 -- Miguel não fica sabendo: o pedido "vai", mas Davi não vê
 select pg_temp.igual((select status from public.amigos_pedir((select code from public.codigos where n = 2))),
     'enviado', 'pedido pra quem bloqueou');
+reset role;
+select pg_temp.igual(pg_temp.avisos(2, 'pedido')::text, '1', 'quem bloqueou não recebe aviso');
+set role authenticated;
 select pg_temp.como(2);
 select pg_temp.igual((select string_agg(status, ',') from public.amigos_lista()), 'bloqueado', 'pedido escondido');
+-- bloqueado não aparece online (não é mais amigo)
+select pg_temp.igual((select online::text from public.amigos_lista()), 'false', 'bloqueado sem online');
 select pg_temp.igual(public.amigos_responder((select code from public.codigos where n = 1), true), 'nao_achei',
     'aceitar pedido de bloqueado');
 -- desbloquear: o pedido que estava esperando aparece

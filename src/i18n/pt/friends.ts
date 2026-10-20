@@ -19,6 +19,7 @@ export const friends = {
     listTitle: 'Amigos',
     listCount: '{n}/100',
     empty: 'Nenhum amigo ainda. Mande o seu código ou adicione o rival depois de um Duelo.',
+    online: 'Online agora',
     challenge: 'Desafiar',
     more: 'Mais opções de {name}',
     removeAsk: 'Tirar {name} dos amigos?',

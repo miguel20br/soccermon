@@ -1,8 +1,7 @@
 import { type CSSProperties, useEffect, useState } from 'react';
 import { signInWithGoogle, useCloud } from '../../cloud/cloud';
 import {
-    type AskResult,
-    type AskTarget,
+    CHALLENGE_MS,
     type FriendRow,
     formatFriendCode,
     friendAction,
@@ -14,22 +13,16 @@ import {
     useFriends,
 } from '../../friends/api';
 import { playSfx } from '../../game/audio';
-import type { TKey } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { clubColorHex } from '../../store/profile';
 import { HudIcon } from '../components/MatchHud';
-import { duelLink, isLocalDuel } from '../duel/Duel';
+import { duelLink, isLocalDuel } from '../duel/link';
+import { useAskText } from './AddFriendButton';
 import { hexCss } from './club';
 import './friends.css';
 
 const stripe = (color: string) => ({ '--tc': hexCss(clubColorHex(color)) }) as CSSProperties;
-
-/** Texto do resultado de um pedido ("Pedido enviado pra Davi."). */
-function useAskText() {
-    const { t } = useT();
-    return (r: AskResult) => t(`friends.ask.${r.status}` as TKey, { name: r.trainer ?? '' });
-}
 
 /** Recarrega a lista ao abrir e a cada 30 s enquanto a tela estiver aberta (o desafio vale 15 min). */
 function useFriendsPoll() {
@@ -56,9 +49,13 @@ function startChallenge(r: FriendRow) {
 const joinRoom = (room: string) => window.location.assign(duelLink(room, isLocalDuel()));
 
 function Who({ r }: { r: FriendRow }) {
+    const { t } = useT();
     return (
         <span className="fr-who">
-            <b>{r.trainer}</b>
+            <b>
+                {r.online && <i className="fr-online" role="img" aria-label={t('friends.online')} />}
+                {r.trainer}
+            </b>
             <small>
                 {r.club} · {r.club_tag}
             </small>
@@ -201,7 +198,7 @@ function AddByCode() {
                     }}
                 />
                 <button type="submit" className="btn primary" disabled={!isFriendCode(code) || busy}>
-                    <HudIcon kind="friendAdd" /> {t('friends.add')}
+                    <HudIcon kind="addFriend" /> {t('friends.add')}
                 </button>
             </div>
             {msg && (
@@ -217,6 +214,10 @@ function AddByCode() {
 export function FriendsTab() {
     const { t } = useT();
     useFriendsPoll();
+    useEffect(() => {
+        useFriends.setState({ listOpen: true });
+        return () => useFriends.setState({ listOpen: false });
+    }, []);
     const { code, rows, status } = useFriends();
     const user = useCloud((s) => s.user);
 
@@ -360,50 +361,6 @@ export function FriendsTab() {
     );
 }
 
-/**
- * Botão "Adicionar amigo" do cartão do treinador (o rival do Duelo). `peer` = quem está na sala: o `id` é o da conta
- * dele (o servidor procura o cartão por ele), `anon` = jogando sem conta Google (não dá pra adicionar).
- */
-export function AddFriendButton({ peer }: { peer: { id: string; anon?: boolean } }) {
-    const { t } = useT();
-    const askText = useAskText();
-    const user = useCloud((s) => s.user);
-    const [state, setState] = useState<'idle' | 'busy' | AskResult>('idle');
-    if (!friendsOnline()) return null;
-    const blocked = !user ? t('friends.button.needGoogle') : peer.anon ? t('friends.button.rivalAnon') : null;
-    const done = typeof state === 'object' && state.status !== 'offline';
-    return (
-        <div className="fr-addbtn">
-            <button
-                type="button"
-                className="btn primary"
-                disabled={!!blocked || state === 'busy' || done}
-                data-testid="add-friend"
-                onClick={async () => {
-                    setState('busy');
-                    playSfx('select');
-                    const target: AskTarget = { user: peer.id };
-                    setState(await friendAction((s) => s.ask(target)));
-                }}
-            >
-                <HudIcon kind={done ? 'check' : 'friendAdd'} />{' '}
-                {state === 'busy'
-                    ? t('friends.button.sending')
-                    : !done
-                      ? t('friends.button.add')
-                      : state.status === 'amigos' || state.status === 'ja_amigos'
-                        ? t('friends.listTitle')
-                        : t('friends.sentLine')}
-            </button>
-            {(blocked || typeof state === 'object') && (
-                <small className="fr-hint" role="status">
-                    {blocked ?? askText(state as AskResult)}
-                </small>
-            )}
-        </div>
-    );
-}
-
 /** Na Home (cartão do Duelo): "Davi te chamou pro Duelo · Entrar". Também mantém o cartão de amigo em dia. */
 export function FriendChallenge() {
     const { t } = useT();
@@ -417,6 +374,51 @@ export function FriendChallenge() {
             <span>{t('friends.challengeLine', { name: first.trainer })}</span>
             <button type="button" className="btn primary" onClick={() => joinRoom(first.room!)}>
                 {t('friends.enter')}
+            </button>
+        </div>
+    );
+}
+
+/**
+ * Aviso por cima de qualquer tela: "Davi te chamou pro Duelo · Entrar". Chega na hora pelo Realtime (startFriendsLive)
+ * e vale enquanto o convite valer (15 min). Não aparece na Home, no Duelo nem com a aba Amigos aberta (já está na tela).
+ */
+export function FriendInvite() {
+    const { t } = useT();
+    const screen = useGame((s) => s.screen);
+    const rows = useFriends((s) => s.rows);
+    const dismissed = useFriends((s) => s.dismissed);
+    const [, tick] = useState(0);
+    const first = groupFriends(rows ?? [], Date.now()).challenges.find((r) => !dismissed.includes(r.room!));
+    // some sozinho quando o convite vence
+    useEffect(() => {
+        if (!first?.room_at) return;
+        const left = Date.parse(first.room_at) + CHALLENGE_MS - Date.now();
+        const id = window.setTimeout(() => tick((n) => n + 1), Math.max(1000, left));
+        return () => window.clearTimeout(id);
+    }, [first?.room_at]);
+    const listOpen = useFriends((s) => s.listOpen);
+    const shown = screen !== 'home' && screen !== 'duel' && !listOpen ? first : undefined;
+    const room = shown?.room;
+    useEffect(() => {
+        if (room) playSfx('select');
+    }, [room]);
+    if (!first || !shown) return null;
+    const close = () => useFriends.setState((s) => ({ dismissed: [...s.dismissed, first.room!] }));
+    return (
+        <div className="fr-toast" style={stripe(first.club_color)} role="alert" data-testid="friend-invite">
+            <HudIcon kind="friends" />
+            <span className="fr-who">
+                <b>{t('friends.challengeLine', { name: first.trainer })}</b>
+                <small>
+                    {first.club} · {first.club_tag}
+                </small>
+            </span>
+            <button type="button" className="btn primary" onClick={() => joinRoom(first.room!)}>
+                {t('friends.enter')}
+            </button>
+            <button type="button" className="btn fr-toast-x" onClick={close} aria-label={t('common.ui.close')}>
+                <HudIcon kind="close" />
             </button>
         </div>
     );

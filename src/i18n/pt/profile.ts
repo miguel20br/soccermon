@@ -19,8 +19,6 @@ export const profile = {
         openAria: 'Ver o perfil de {name}',
         cards: 'Cartas da vitrine',
         noCards: 'Nenhuma carta na vitrine ainda.',
-        addFriend: 'Adicionar amigo',
-        soon: 'Em breve',
     },
     club: {
         saved: 'Salvo',

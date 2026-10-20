@@ -91,6 +91,9 @@
                     Settings.</li>
                 <li>Daily Cup and League rankings: only signed-in players appear, and the public only sees the trainer and
                     club names you chose in the game, never your Google name, email or photo.</li>
+                <li>Friends: only when signed in, and there's no chat. Nobody can find you by name: only someone with
+                    your friend code or who played a Duel with you can send you a request. Your friends see your trainer
+                    and club names and whether you have the game open right now.</li>
                 <li>You can delete your account and everything in the cloud at any time, in Settings.</li>
             </ul>
         </section>
@@ -144,6 +147,19 @@
                     "Treinador". Your Google name, email and photo are never public.</li>
                 <li>Without signing in, the Daily Cup works the same, but nothing goes to the ranking.</li>
             </ul>
+            <p><b>Friends (signed in only):</b></p>
+            <ul>
+                <li>Your friend code, the trainer and club name (tag and color) your friends see, requests, friendships,
+                    who you blocked, Duel invites (the room code) and the last time the game was open on your screen (to
+                    show "online now").</li>
+                <li><b>Who sees what:</b> whoever gets a request from you sees your trainer and club names. Your friends
+                    also see whether you're online now (the game open in the last two and a half minutes). Nobody sees
+                    your friends list, and nobody outside it sees whether you're online. There is no chat and no search
+                    by name.</li>
+                <li>Blocking removes the person from your friends and hides their requests, without telling them.</li>
+                <li>Request and invite notices arrive right away through a channel of your own on Supabase Realtime,
+                    which only your account can listen to.</li>
+            </ul>
 
             <h2>What we use it for</h2>
             <p>
@@ -164,11 +180,12 @@
                     technical data of that connection.</li>
             </ul>
             <p>Each player can only read and change their own save; nobody else has access to it through the game. From the
-                rankings, the game only shows the public columns described above.</p>
+                rankings and friends, the game only shows the public columns described above.</p>
 
             <h2>How long</h2>
             <p>As long as your account exists. If you delete your account, the sign-in, profile and save are removed
-                immediately. The Daily Cup stays in the ranking for 12 months (each match's team and orders are removed
+                immediately. Unanswered friend requests are removed after 30 days and Duel invites after 1 day; your friends
+                list stays while the account exists. The Daily Cup stays in the ranking for 12 months (each match's team and orders are removed
                 after 30 days) and League matches for 3 months (the season's Elo stays). Deleting your account removes you
                 from the rankings right away. Anonymous game events are deleted automatically after 12 months; since they aren't linked
                 to you, there's no way to tell which ones are yours.</p>

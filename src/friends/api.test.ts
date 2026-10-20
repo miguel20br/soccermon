@@ -46,6 +46,13 @@ describe('lista de amigos', () => {
         expect(g.blocked.map((r) => r.trainer)).toEqual(['Zé']);
         expect(g.challenges).toEqual([]);
     });
+    it('quem está online vem primeiro', () => {
+        const g = groupFriends(
+            [row('Ana', 'amigo'), { ...row('Zé', 'amigo'), online: true }, row('Bia', 'amigo')],
+            now,
+        );
+        expect(g.friends.map((r) => r.trainer)).toEqual(['Zé', 'Ana', 'Bia']);
+    });
     it('desafio vale 15 minutos: o mais novo primeiro, o vencido some (sala e botão Entrar)', () => {
         const g = groupFriends(
             [

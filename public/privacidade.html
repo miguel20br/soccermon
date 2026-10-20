@@ -91,6 +91,9 @@
                     desligar em Configurações.</li>
                 <li>Ranking da Copa do Dia e da Liga: só entra quem está logado, e o público vê só o nome de treinador e
                     do clube que você escolheu no jogo, nunca seu nome, e-mail ou foto do Google.</li>
+                <li>Amigos: só com login e sem chat. Ninguém te acha pelo nome: só quem tem o seu código de amigo ou
+                    jogou um Duelo com você pode te pedir amizade. Seus amigos veem o nome de treinador e do clube e se
+                    você está com o jogo aberto agora.</li>
                 <li>Você apaga sua conta e tudo da nuvem a qualquer momento, em Configurações.</li>
             </ul>
         </section>
@@ -144,6 +147,18 @@
                     nome de treinador, aparece "Treinador". Nunca ficam públicos seu nome, e-mail ou foto do Google.</li>
                 <li>Jogando sem login, a Copa do Dia funciona igual, mas nada vai para o ranking.</li>
             </ul>
+            <p><b>Amigos (só com login):</b></p>
+            <ul>
+                <li>O seu código de amigo, o nome de treinador e do clube (sigla e cor) que os amigos veem, os pedidos,
+                    as amizades, quem você bloqueou, os convites para o Duelo (o código da sala) e o horário da última
+                    vez que o jogo estava aberto na sua tela (para mostrar "online agora").</li>
+                <li><b>Quem vê o quê:</b> quem recebe um pedido seu vê o seu nome de treinador e clube. Seus amigos veem
+                    também se você está online agora (o jogo aberto nos últimos 2 minutos e meio). Ninguém vê sua lista
+                    de amigos, e ninguém de fora da lista vê se você está online. Não existe chat nem busca por nome.</li>
+                <li>Bloquear tira a pessoa dos amigos e esconde os pedidos dela, sem avisar.</li>
+                <li>Os avisos de pedido e de convite chegam na hora por um canal só seu no Supabase Realtime, que só a sua
+                    conta consegue ouvir.</li>
+            </ul>
 
             <h2>Para que usamos</h2>
             <p>
@@ -164,10 +179,12 @@
                     dados técnicos dessa conexão.</li>
             </ul>
             <p>Cada jogador só consegue ler e alterar o próprio save; ninguém mais tem acesso a ele pelo jogo. Dos
-                rankings, o jogo só mostra as colunas públicas descritas acima.</p>
+                rankings e dos amigos, o jogo só mostra as colunas públicas descritas acima.</p>
 
             <h2>Por quanto tempo</h2>
             <p>Enquanto sua conta existir. Se você apagar a conta, o login, o perfil e o save são removidos na hora.
+                Pedido de amizade sem resposta some em 30 dias e convite para o Duelo em 1 dia; a lista de amigos fica
+                enquanto a conta existir.
                 A Copa do Dia fica no ranking por 12 meses (o time e as ordens de cada partida saem depois de 30 dias) e
                 as partidas da Liga, por 3 meses (o Elo da temporada continua). Apagar a conta tira você dos rankings
                 na hora. Os eventos anônimos do jogo são apagados automaticamente depois de 12 meses; como não têm ligação

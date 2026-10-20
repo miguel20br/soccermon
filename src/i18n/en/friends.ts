@@ -20,6 +20,7 @@ export const friends: typeof pt = {
     listTitle: 'Friends',
     listCount: '{n}/100',
     empty: 'No friends yet. Send your code or add your rival after a Duel.',
+    online: 'Online now',
     challenge: 'Challenge',
     more: 'More options for {name}',
     removeAsk: 'Remove {name} from your friends?',

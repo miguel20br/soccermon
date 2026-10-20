@@ -4,7 +4,45 @@ Pedido do Miguel (19/10/2026): "um botão de adicionar amigo é necessário". Pr
 (nada aplicado no Supabase). Base: Duelo por link (`multiplayer.md`), contas Google, Perfil com treinador e clube, e o
 cartão do treinador que abre ao tocar no rival (outra branch), que já tem o botão "Adicionar amigo" desligado.
 
-## Recomendação
+## Decidido com o Miguel (19/10/2026)
+
+1a só conta Google · 2a código de 8 letras + botão no cartão do rival · 3a pedido → aceitar · **4b mostrar quem está
+online (bolinha verde na lista)** · **5a+b convite na lista e no cartão do Duelo da Home por 15 min e também um aviso por
+cima de qualquer tela, na hora** · 6a 100 amigos, 20 pedidos esperando, 30 por dia, pedido some em 30 dias · 7a só
+bloquear · 8a aba Amigos no Perfil · 9a código fixo.
+
+Feito na branch `amigos` (migração escrita, **não aplicada**). O botão "Adicionar amigo" está no cartão do treinador de
+verdade (`PlayerCard.tsx`).
+
+## Online e aviso na hora: como ficou e quanto custa
+
+**Online (ponto verde)** = o jogo aberto e visível nos últimos 150 s. Com a aba visível, o jogo chama `amigos_ping` a
+cada 60 s (grava `seen_at` no cartão) e a lista diz `online` só pros amigos aceitos. A lista já é recarregada a cada
+30 s na Home e no Perfil, então o ponto vem junto, sem Realtime.
+
+**Aviso na hora** (pedido, amizade aceita, desafio) sai do próprio banco pelo Realtime Broadcast (`realtime.send`)
+num canal privado por conta, `amigos:<id>`. Só o dono ouve (política em `realtime.messages`); o navegador não fala
+nesse canal. O aviso só leva o código e o nome público de quem mandou e o código da sala. Ao chegar, o jogo recarrega a
+lista, e o convite aparece por cima da tela (`FriendInvite` no `App.tsx`; não aparece na Home nem no Duelo, onde o
+convite já está na tela).
+
+**Por que não Presence:** num canal comum de presença todo mundo veria todo mundo online, e cada entrada/saída vira
+mensagem pra todos os conectados (com N online, N mensagens por entrada: cresce com N²). Um canal de presença por amigo
+bate no limite de canais por conexão (100 amigos = 100 canais). O sinal de 60 s no banco não gasta mensagem nenhuma do
+Realtime.
+
+**Cota do Supabase grátis** (200 conexões ao mesmo tempo, 2 milhões de mensagens/mês, 100 mensagens/s):
+
+| O quê | Gasto |
+|---|---|
+| Ponto online | 0 mensagens do Realtime; 1 chamada ao banco por minuto por jogador com a aba visível e alguém na lista |
+| Aviso (pedido, aceite, desafio) | ~2 mensagens cada (o envio do banco e a entrega pro dono do canal). 1.000 desafios por dia ≈ 60 mil/mês, 3% da cota |
+| Conexões | 1 por aba visível de quem tem conta Google **e** alguém na lista (amigo ou pedido enviado). O Duelo usa a mesma conexão. Aba escondida fecha o canal; ao voltar, recarrega a lista (o convite vale 15 min, nada se perde) |
+
+O limite que pesa primeiro é o de **200 conexões ao mesmo tempo**. Passou disso, quem fica sem canal continua vendo o
+convite na Home e na lista (que se atualizam a cada 30 s), só não recebe o aviso por cima da tela.
+
+## Recomendação (antes das decisões)
 
 **Código de amigo de 8 letras + pedido → aceite, só com conta Google, sem chat.** Adiciona de dois jeitos: pelo cartão
 do rival depois de um Duelo (um toque) ou digitando o código que o amigo mandou no WhatsApp. A lista fica numa aba
@@ -50,7 +88,7 @@ O que serve pra gente:
    os desafios e esconde os pedidos novos dessa pessoa, **sem avisar**: pra ela, o pedido "foi". Desbloquear fica
    numa lista recolhida "Bloqueados".
 
-O que **não** entra: chat, busca por nome, ver online, ver o time/vitrine do amigo pela lista (dá pra pôr depois,
+O que **não** entra: chat, busca por nome, ver o time/vitrine do amigo pela lista (dá pra pôr depois,
 com o cartão do treinador), notificação push.
 
 ## Banco (`supabase/migrations/20261020120000_amigos.sql`, não aplicado)
@@ -90,7 +128,7 @@ Moderação mínima: o único texto livre que outra pessoa vê é o nome do trei
 ranking. Nome ofensivo: bloquear resolve pra quem viu; se aparecer, o próximo passo é um filtro de palavrões no
 `amigos_cartao` e no ranking juntos (decisão 7).
 
-## Página de privacidade (texto pra entrar junto, PT; EN igual)
+## Página de privacidade (texto da proposta; o que entrou está em `public/privacidade.html` e `privacy.html`)
 
 No **Resumo**, um item novo:
 
@@ -117,17 +155,19 @@ Em **Por quanto tempo**:
 | Aba Amigos, botão do cartão, convite na Home | `src/ui/profile/FriendsTab.tsx`, `friends.css` |
 | Aba no Perfil, faixa no Duelo, convite na Home | `Profile.tsx`, `Duel.tsx` (manda o convite ao criar a sala), `Home.tsx` |
 | Textos | `src/i18n/pt/friends.ts`, `src/i18n/en/friends.ts` |
+| Online e aviso na hora | `startFriendsLive` em `src/friends/api.ts` (ligado no `main.tsx`), `FriendInvite` no `App.tsx` |
+| Botão no cartão do treinador | `src/ui/profile/PlayerCard.tsx` |
 | Banco e teste das regras | `supabase/migrations/20261020120000_amigos.sql`, `supabase/tests/amigos_rls.test.sql` |
+| Privacidade | `public/privacidade.html`, `public/privacy.html` |
 
-Atalhos (dev): `?demo=amigos` (Perfil → Amigos; o código `CHAR2ZRD` acha o "Gary"), `?demo=amigos&tela=home`
-(convite na Home), `?demo=amigos&cartao=1` e `&cartao=anon` (o botão num cartão de mentira).
-
-**Pra ligar no cartão do treinador da outra branch:** `<AddFriendButton peer={rival} />` (o `Peer` da sala já tem
-`id` e `anon`). Não liguei no lobby do Duelo pra não brigar com aquele trabalho.
+Atalhos (dev): `?demo=amigos` (Perfil → Amigos com Davi e Ana online; o código `CHAR2ZRD` acha o "Gary"),
+`?demo=amigos&tela=home` (convite na Home), `?demo=amigos&tela=config` (Configurações; 2 s depois a Ana chama pro
+Duelo e o aviso aparece por cima), `?demo=amigos&cartao=1` e `&cartao=anon` (o cartão do treinador do rival com o
+"Adicionar amigo").
 
 Pra rodar o teste do banco: as instruções estão no topo de `supabase/tests/amigos_rls.test.sql` (Postgres no Docker).
 
-## Decisões pro Miguel
+## Decisões pro Miguel (respondidas em 19/10, no topo)
 
 1. **Quem pode ter amigos?**
    a) Só conta Google *(recomendo: o código e a lista valem em qualquer aparelho, e é a mesma regra do ranking)*;

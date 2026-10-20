@@ -23,6 +23,8 @@ export interface FriendRow {
     /** Sala do Duelo pra onde esse amigo te chamou nos últimos 15 min. */
     room: string | null;
     room_at: string | null;
+    /** Amigo com o jogo aberto nos últimos 150 s (só vem pra amigo aceito). */
+    online?: boolean;
 }
 
 export type AskStatus =
@@ -56,6 +58,10 @@ export interface FriendsServer {
     block(code: string): Promise<void>;
     unblock(code: string): Promise<void>;
     challenge(code: string, room: string): Promise<string>;
+    /** "Estou com o jogo aberto" (os amigos veem online). */
+    ping(): Promise<void>;
+    /** Ouve os avisos na hora (pedido, amizade aceita, desafio). Devolve a função que para de ouvir. */
+    listen(on: (event: string) => void): () => void;
 }
 
 // ------------------------------------------------------------------ código de amigo
@@ -88,7 +94,8 @@ export function groupFriends(rows: FriendRow[], now: number): FriendGroups {
     const byName = (a: FriendRow, b: FriendRow) => a.trainer.localeCompare(b.trainer);
     const live = (r: FriendRow) => !!r.room && !!r.room_at && now - Date.parse(r.room_at) < CHALLENGE_MS;
     const of = (s: FriendStatus) => rows.filter((r) => r.status === s).sort(byName);
-    const friends = of('amigo');
+    // quem está online primeiro
+    const friends = of('amigo').sort((a, b) => Number(!!b.online) - Number(!!a.online));
     return {
         challenges: friends.filter(live).sort((a, b) => Date.parse(b.room_at!) - Date.parse(a.room_at!)),
         received: of('recebido'),
@@ -145,6 +152,30 @@ const real: FriendsServer = {
     async unblock(code) {
         await (await sbOrNull())?.rpc('amigos_desbloquear', { p_code: code });
     },
+    async ping() {
+        await (await sbOrNull())?.rpc('amigos_ping');
+    },
+    listen(on) {
+        // canal privado `amigos:<id>`: só o dono ouve (política em realtime.messages); quem fala é o banco
+        let stop = false;
+        let off = () => {};
+        void (async () => {
+            const sb = await sbOrNull();
+            const uid = cloudUserId();
+            if (!sb || !uid || stop) return;
+            await sb.realtime.setAuth();
+            const ch = sb
+                .channel(`amigos:${uid}`, { config: { private: true } })
+                .on('broadcast', { event: '*' }, (m) => on(m.event))
+                .subscribe();
+            off = () => void sb.removeChannel(ch);
+            if (stop) off();
+        })();
+        return () => {
+            stop = true;
+            off();
+        };
+    },
     async challenge(code, room) {
         const sb = await sbOrNull();
         if (!sb) return 'offline';
@@ -171,9 +202,20 @@ interface FriendsState {
     status: 'loading' | 'ok' | 'off' | 'error' | null;
     /** "Desafiar" foi tocado: a próxima sala criada no Duelo chama esse amigo. */
     challenging: { code: string; trainer: string } | null;
+    /** Salas dos avisos que a pessoa fechou (o aviso por cima da tela não volta). */
+    dismissed: string[];
+    /** A aba Amigos está aberta (o aviso por cima não repete o que a lista já mostra). */
+    listOpen: boolean;
 }
 
-export const useFriends = create<FriendsState>(() => ({ code: null, rows: null, status: null, challenging: null }));
+export const useFriends = create<FriendsState>(() => ({
+    code: null,
+    rows: null,
+    status: null,
+    challenging: null,
+    dismissed: [],
+    listOpen: false,
+}));
 // saiu do Duelo sem criar a sala: o desafio não fica pendurado pra próxima vez
 useGame.subscribe((s) => {
     if (s.screen !== 'duel' && useFriends.getState().challenging) useFriends.setState({ challenging: null });
@@ -215,4 +257,44 @@ export async function sendPendingChallenge(room: string) {
     if (!c) return null;
     useFriends.setState({ challenging: null });
     return server.challenge(c.code, room);
+}
+
+// ------------------------------------------------------------------ online e avisos na hora
+
+/**
+ * Enquanto o jogo está aberto e visível, com conta Google e alguém na lista (amigo ou pedido enviado): "online" a cada
+ * 60 s (amigos_ping) e o canal de avisos ligado. Aba escondida desliga os dois (economiza conexão do Realtime: o plano
+ * grátis aguenta 200 ao mesmo tempo); ao voltar, recarrega a lista (o convite vale 15 min, nada se perde).
+ */
+let liveOff: (() => void) | null = null;
+let pingTimer = 0;
+const visible = () => typeof document === 'undefined' || document.visibilityState === 'visible';
+const wantLive = () =>
+    !!useCloud.getState().user &&
+    friendsOnline() &&
+    visible() &&
+    !!useFriends.getState().rows?.some((r) => r.status === 'amigo' || r.status === 'enviado');
+
+function syncLive() {
+    const want = wantLive();
+    if (want && !liveOff) {
+        liveOff = server.listen(() => void refreshFriends());
+        void server.ping();
+        pingTimer = window.setInterval(() => void server.ping(), 60_000);
+    } else if (!want && liveOff) {
+        liveOff();
+        liveOff = null;
+        window.clearInterval(pingTimer);
+    }
+}
+
+export function startFriendsLive() {
+    const wake = () => {
+        if (useCloud.getState().user && friendsOnline() && visible()) void refreshFriends().then(syncLive);
+        else syncLive();
+    };
+    useCloud.subscribe((s, prev) => s.user !== prev.user && wake());
+    useFriends.subscribe((s, prev) => s.rows !== prev.rows && syncLive());
+    document.addEventListener('visibilitychange', wake);
+    wake();
 }

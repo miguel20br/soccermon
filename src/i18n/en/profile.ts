@@ -19,8 +19,6 @@ export const profile: typeof pt = {
         openAria: "See {name}'s profile",
         cards: 'Showcase cards',
         noCards: 'No cards in the showcase yet.',
-        addFriend: 'Add friend',
-        soon: 'Coming soon',
     },
     club: {
         saved: 'Saved',
