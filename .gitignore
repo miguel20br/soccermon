@@ -51,3 +51,6 @@ trailer/v2/render/
 
 # motor empacotado pra Edge Function da Liga (npm run edge:liga antes do deploy)
 supabase/functions/liga/engine.js
+trailer/v2-16x9/midia
+trailer/v2-16x9/.hyperframes/
+trailer/v2-16x9/render/

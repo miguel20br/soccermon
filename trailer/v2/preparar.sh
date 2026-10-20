@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Trailer 2 (9:16): monta a pasta midia/ (fora do git) com os clipes já cortados no tempo do storyboard v3, os
 # recortes do DOM, os sons e a música. Rode da raiz do repo:
-#   CAP=<quadros> SHOTS=<recortes 3x> UI=<emotes 8x> PACOTE=<prints do pacote> MUSICA=<fonte da música> trailer/v2/preparar.sh
+#   CAP=<quadros> SHOTS=<recortes 3x, emotes 8x, pacote> MUSICA=<fonte da música> [ORIGINAL=1] trailer/v2/preparar.sh
 # MUSICA: o MP3 original do Trainer Battle Remix (ORIGINAL=1) ou o trailer 1 renderizado (padrão: a música
 # começa em 6,05 s do vídeo; os compassos 10 a 13 têm gritos por cima e saem na emenda, ver abaixo).
 set -euo pipefail
-: "${CAP:?}" "${SHOTS:?}" "${UI:?}" "${PACOTE:?}" "${MUSICA:?}"
+: "${CAP:?}" "${SHOTS:?}" "${MUSICA:?}"
 cd "$(dirname "$0")"
 M=midia
 P=../../public
@@ -31,23 +31,40 @@ evo evo-raichu 235 40 40
 $E "$CAP/gol-n" 81 20 $M/gol-chute.mp4 --zoom 1.3                 # plano 12a: o golpe do Raichu e o chute
 $E "$CAP/gol-l" 85 20 $M/gol-lento.mp4 --zoom 1.6 --gol 0.97      # plano 12b: 0,5x, a bola chegando no gol
 $E "$CAP/gol-n" 125 20 $M/gol.mp4 --zoom 1.3 --gol 0.97           # plano 13: o clarão do gol
+# versão 16:9 dos mesmos clipes (sufixo -h, 1920x1080) pro trailer/v2-16x9: mesmos trechos, recorte mais aberto
+H="--tamanho 1920x1080"
+$E "$CAP/pre" 28 40 $M/placar-jogo-h.mp4 $H
+$E "$CAP/pre" 68 40 $M/golpe-h.mp4 $H
+$E "$CAP/defesa-l" 77 40 $M/defesa-h.mp4 --zoom 1.1 --gol 0.97 $H
+$E "$CAP/gol-n" 81 20 $M/gol-chute-h.mp4 --zoom 1.15 $H
+$E "$CAP/gol-l" 85 20 $M/gol-lento-h.mp4 --zoom 1.4 --gol 0.97 $H
+$E "$CAP/gol-n" 125 20 $M/gol-h.mp4 --zoom 1.15 --gol 0.97 $H
+evoh() {
+  ffmpeg -v error -y -framerate 30 -start_number "$2" -i "$CAP/evo-p/%05d.png" -frames:v "$4" \
+    -vf "trim=end_frame=$3,setpts=(PTS-STARTPTS)*$4/$3,fps=30,crop=1280:720:0:5,scale=1920:1080:flags=neighbor,format=yuv420p" -c:v libx264 -crf 16 -preset fast -an "$M/$1.mp4"
+}
+evoh evo-pika-h 64 40 20
+evoh evo-silhueta-h 109 126 20
+evoh evo-raichu-h 235 40 40
 cp "$CAP/saida-vazia.png" "$CAP/saida.png" $M/
-ffmpeg -v error -y -i "$CAP/placar.png" -vf "crop=545:73:0:0" $M/placar.png
+ffmpeg -v error -y -i "$CAP/placar.png" -vf "crop=376:73:0:0" $M/placar.png
 
 # ---- recortes do DOM (3x) ------------------------------------------------------------------------------------
 cp "$SHOTS"/s-draft-1.png "$SHOTS"/s-draft-2.png "$SHOTS"/s-draft-3.png $M/
-cp "$PACOTE/pacote-elemento-pc.png" $M/p-fechado.png   # o pacote do jogo com o logo novo (branch pacote-logo)
+cp "$SHOTS/pacote-elemento-pc.png" $M/p-fechado.png   # o pacote do jogo com o logo novo (branch pacote-logo)
 ffmpeg -v error -y -i "$SHOTS/p-3500.png" -vf "crop=532:728:48:403" $M/p-vira.png
-for i in 1 2 3 4 5; do cp "$SHOTS/s-edicao-$i.png" $M/; done
+# edições na galeria ?cards=1 (main de 20/10): 1 Shiny, 2–4 Destaque (MVP 0–2), 5 Ícone, 6 Ícone MVP, 7 Evento
+cp "$SHOTS/s-edicao-1.png" $M/ed-shiny.png; cp "$SHOTS/s-edicao-2.png" $M/ed-destaque.png
+cp "$SHOTS/s-edicao-5.png" $M/ed-icone.png; cp "$SHOTS/s-edicao-6.png" $M/ed-icone-mvp.png; cp "$SHOTS/s-edicao-7.png" $M/ed-evento.png
 cp "$SHOTS/s-mewtwo-1.png" $M/bronze.png
-cp "$SHOTS/s-vitrine-1.png" $M/
-cp "$UI/emote-1.png" "$UI/emote-2.png" $M/                                       # emotes em 8x
+ffmpeg -v error -y -i "$SHOTS/s-vitrine-1.png" -vf "crop=1143:830:0:0" $M/s-vitrine-1.png
+cp "$SHOTS/emote-1.png" "$SHOTS/emote-2.png" $M/                                 # emotes em 8x
 cp "$SHOTS/dia-painel-1.png" $M/dia-resumo.png                                   # Copa do Dia (main)
 cp "$SHOTS/dia-painel-3.png" $M/dia-ranking.png
-ffmpeg -v error -y -i "$SHOTS/c-campeao.png" -vf "crop=1160:1250:28:180" $M/campeao.png
+ffmpeg -v error -y -i "$SHOTS/c-campeao.png" -vf "crop=1143:1400:36:195" $M/campeao.png
 # pacote do jogo com o logo novo (branch pacote-logo): corpo e tampa separados pra tampa rasgar
-ffmpeg -v error -y -i "$PACOTE/pacote-elemento-pc.png" -vf "crop=618:765:0:99" $M/pacote-corpo.png
-ffmpeg -v error -y -i "$PACOTE/pacote-elemento-pc.png" -vf "crop=618:99:0:0" $M/pacote-tampa.png
+ffmpeg -v error -y -i "$SHOTS/pacote-elemento-pc.png" -vf "crop=618:765:0:99" $M/pacote-corpo.png
+ffmpeg -v error -y -i "$SHOTS/pacote-elemento-pc.png" -vf "crop=618:99:0:0" $M/pacote-tampa.png
 
 # ---- abertura: Carvalho e Pikachu (4 tons no CSS), bola, logo, fonte ----------------------------------------
 cp $P/assets/trainers/oak.png $P/assets/ui/ball.svg $P/fonts/Galmuri11-Bold.woff2 $M/
@@ -76,9 +93,19 @@ cp $P/assets/sfx/torcida-gol-1.mp3 $P/assets/sfx/torcida-uuh-1.mp3 $M/
 
 # ---- música ---------------------------------------------------------------------------------------------------
 # Grade: 178 BPM, compasso 1,348 s, 1ª batida da faixa em 0,968 s. O trailer usa a faixa a partir de 0,5 s (entra em
-# 7,96 s do vídeo), e o gol do Raichu (batida 48) cai no compasso 12 da faixa.
+# 7,96 s do vídeo).
 if [ "${ORIGINAL:-0}" = 1 ]; then
-  ffmpeg -v error -y -ss 0.5 -t 32 -i "$MUSICA" -ar 48000 -ac 2 $M/musica.wav
+  # MP3 original (Bliitzit, 348 s). A grade dele: 1ª batida do compasso 0 em C0 = 1,003 s (correlação com a música do
+  # trailer 1, cuja grade aprovada é 0,968 s: o original está 0,035 s atrasado em relação a ela).
+  # O drop da faixa é o compasso 10; o gol do Raichu é a batida 48 do trailer (compasso 12). Pra o drop cair no gol,
+  # os compassos 8–9 (a respiração antes do drop) tocam duas vezes: c0…c9, c8–c9 de novo, c10 em diante, sem
+  # emenda no meio de compasso (cortes no começo de compasso, 10 ms de cruzamento).
+  C0=${C0:-1.003}
+  c() { python3 -c "print($C0 + $1 * 60 / 178 * 4)"; }
+  INI=$(python3 -c "print($C0 - 0.468)")   # a faixa entra 0,468 s antes da 1ª batida (7,96 s do vídeo)
+  ffmpeg -v error -y -i "$MUSICA" -filter_complex \
+    "[0:a]atrim=$INI:$(c 10),asetpts=PTS-STARTPTS[a];[0:a]atrim=$(c 8):$(c 10),asetpts=PTS-STARTPTS[b];[0:a]atrim=$(c 10):$(c 24),asetpts=PTS-STARTPTS[d];[a][b]acrossfade=d=0.01[ab];[ab][d]acrossfade=d=0.01" \
+    -ar 48000 -ac 2 $M/musica.wav
 else
   # Trailer 1 (vídeo final): a faixa começa em 6,05 s do vídeo, com gritos por cima nos compassos 10–13 e 25. Saem
   # nas emendas (sempre no começo de compasso, c_k = 0,968 + k·1,3483): c0–c9, c14–c24, c17 no lugar do c25 (mesma

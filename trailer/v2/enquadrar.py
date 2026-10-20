@@ -1,4 +1,5 @@
-"""Recorta um trecho de quadros do trailer-capture.mjs na proporção da faixa do jogo (1080x860), seguindo a bola.
+"""Recorta um trecho de quadros do trailer-capture.mjs na proporção da faixa do jogo (1080x860, ou --tamanho 1920x1080
+pro 16:9), seguindo a bola.
 
     python3 trailer/v2/enquadrar.py <pasta> <1º quadro> <n quadros> <saida.mp4> [--zoom 1.0] [--gol 0.95] [--rapido 1]
 
@@ -14,13 +15,15 @@ ap.add_argument("--zoom", type=float, default=1.0)
 ap.add_argument("--gol", type=float, default=None)
 ap.add_argument("--suave", type=float, default=0.18)
 ap.add_argument("--rapido", type=int, default=1)
+ap.add_argument("--tamanho", default="1080x860", help="tamanho da saída (a proporção do recorte vem dele)")
 a = ap.parse_args()
 
 meta = json.load(open(os.path.join(a.pasta, "quadros.json")))["meta"]
 probe = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "stream=width,height", "-of", "csv=p=0",
                         os.path.join(a.pasta, f"{a.ini:05d}.png")], capture_output=True, text=True).stdout.strip()
 W, H = map(int, probe.split(","))
-A = 1080 / 860
+OW, OH = map(int, a.tamanho.split("x"))
+A = OW / OH
 h = H / a.zoom
 w = min(W, h * A)
 h = w / A
@@ -47,6 +50,6 @@ open(os.path.join(tmp, "lista.txt"), "w").write("\n".join(lista) + "\n")
 x0, y0 = cmds[0].split("x ")[1].split(",")[0], cmds[0].split("y ")[1].rstrip(";")
 subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", os.path.join(tmp, "lista.txt"),
                 "-vf", f"sendcmd=f={os.path.join(tmp, 'cmds.txt')},crop=w={w:.0f}:h={h:.0f}:x={x0}:y={y0},"
-                       f"scale=1080:860:flags=neighbor,fps=30,format=yuv420p",
+                       f"scale={OW}:{OH}:flags=neighbor,fps=30,format=yuv420p",
                 "-frames:v", str(len(quadros)), "-c:v", "libx264", "-crf", "16", "-preset", "fast", "-an", a.saida], check=True)
 print(a.saida, f"{len(quadros)} quadros, recorte {w:.0f}x{h:.0f} de {W}x{H}")
