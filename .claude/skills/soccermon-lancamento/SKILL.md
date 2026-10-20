@@ -20,11 +20,14 @@ então **nada vai pra `main` sem o "pode subir" do Miguel** na conversa, mesmo c
    `npx -y supabase@latest functions deploy liga --project-ref vszcxacbcabohhdwxfpb --use-api` (token
    `SUPABASE_ACCESS_TOKEN` do `.env.local`). Confira com uma partida da Liga no ar.
 3. **Save mudou de formato?** → migração em `src/store/` (`migrateSave`, `SAVE_VERSION`) + teste.
-4. **Checagens:** `npx tsc --noEmit -p .`, `npm run lint` (0 erro), `npx vitest run --maxWorkers=2` (a máquina tem
-   7,5 GB), `npm run build`. Se o equilíbrio mudou, `npm run calibrate -- --n 400` (ver skill
-   `soccermon-balanceamento`).
-5. **Teste de fumaça headless** (skill `soccermon-teste-navegador`): copa inteira (draft → partida com troca no
-   intervalo em 8x → recompensa → próxima), save antigo, 320/390/deitado/desktop. Bom delegar pra um agente.
+4. **Checagens pela trilha** ([docs/planos/esteira.md](../../../docs/planos/esteira.md)): `node scripts/trilha.mjs`
+   diz rápida ou completa. Local, `npm run check:rapido` (segundos); o pesado é do **CI da branch** (lint, tsc,
+   vitest, build, fumaça da copa e prints 390/1440 no artefato `fumaca-prints`): `gh run watch` e tem que dar
+   `check` verde. `npm run check:completo` local só se o CI não der (entra na fila pesada sozinho). Se o equilíbrio
+   mudou, `npm run calibrate -- --n 400` (ver skill `soccermon-balanceamento`), via `scripts/pesado.sh`.
+5. **Fumaça além do CI** (skill `soccermon-teste-navegador`): só o que o CI não cobre. Trilha completa: copa inteira
+   com troca no intervalo, save antigo, Duelo em 2 páginas se mexeu em `src/net`/`src/ui/duel`; 320 e deitado. A
+   prévia da Vercel tem os `?demo=` e `?vel=N` (modo fumaça): dá pra pular direto pra tela.
 6. **Novidades** em `src/ui/patch-notes.ts`, PT (`PATCH_NOTES`) e EN (`PATCH_NOTES_EN`), a mais nova primeiro:
    - título curto da versão ("Balanceamento geral e o seu treinador");
    - seções por assunto; mudança de número sempre "antes ⇒ depois" (Onix: Fixo 63 ⇒ 70);
@@ -46,6 +49,7 @@ Aí resuma pro Miguel (o que entra, o que o teste achou e corrigiu, link da pré
 
 ```bash
 git fetch -q origin && git merge-base --is-ancestor origin/main HEAD   # tem que dar fast-forward
+gh run list --branch <branch> --limit 1      # CI do commit que vai subir: check verde (sem refazer tudo local)
 git push origin HEAD:main
 git tag -a vX.Y.Z -m "X.Y.Z · <título>" && git push -q origin vX.Y.Z
 awk '/^## X.Y.Z/{f=1;next} /^## /{if(f)exit} f' CHANGELOG.md > notas.md   # notas só desta versão
