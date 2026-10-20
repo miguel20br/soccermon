@@ -23,7 +23,7 @@ import { species } from '../../engine/data';
 import { createInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
 import { binderAdd } from '../../store/binder';
-import { DEFAULT_PROFILE, EDITION_BIT } from '../../store/profile';
+import { DEFAULT_PROFILE, EDITION_BIT, EMPTY_CAREER } from '../../store/profile';
 import { AlbumView, frontRow, speciesRows } from './Album';
 import { DexTab } from './DexTab';
 import { SpeciesSheet } from './SpeciesSheet';
@@ -52,7 +52,19 @@ describe('figurinhas na Pokédex e na ficha (a mesma conta: hasSticker)', () => 
     });
 
     it('ficha sem cartas: só "Figurinhas 3/5 · Ver no álbum"', () => {
-        Object.assign(state, { dex, binder, moves: {}, settings: { cries: 0 }, profile: DEFAULT_PROFILE });
+        Object.assign(state, {
+            dex,
+            binder,
+            moves: {},
+            settings: { cries: 0 },
+            profile: DEFAULT_PROFILE,
+            records: { cups: 0, titles: 0, perfect: 0 },
+            career: EMPTY_CAREER,
+            hall: [],
+            run: null,
+            parkedRuns: [],
+            duels: [],
+        });
         const html = render(
             createElement(SpeciesSheet, { id: 131, order: [131], onNav() {}, onClose() {}, onAlbum() {} }),
         );

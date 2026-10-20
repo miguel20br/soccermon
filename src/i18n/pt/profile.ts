@@ -3,7 +3,10 @@ export const profile = {
     title: 'Perfil',
     trainer: 'Treinador',
     tabs: {
-        clube: 'Meu clube',
+        treinador: 'Treinador',
+        album: 'Álbum',
+        golpedex: 'Golpedex',
+        clube: 'Clube',
         dex: 'Pokédex',
         hall: 'Hall da Fama',
         numeros: 'Números',
@@ -18,6 +21,8 @@ export const profile = {
         markTab: 'Marcar como visto',
         markAll: 'Marcar tudo ({n})',
     },
+    collection: 'Coleção',
+    publicHint: 'O cartão que os outros jogadores veem',
     quick: { cups: 'Copas', titles: 'Títulos', goals: 'Gols' },
     /** Cartão do treinador: o perfil que os outros veem (Duelo) e o seu, pelo botão do Perfil. */
     card: {
@@ -486,11 +491,11 @@ export const profile = {
         none: 'Sem medalha',
         next: '{tier}: {n}/{goal}',
         max: 'completa',
-        pick: 'Vitrine',
+        pick: 'Destacar',
         unpick: 'Tirar',
-        showcase: 'Vitrine',
+        showcase: 'Destaques',
         showcaseHelp:
-            'Escolha até 3 destaques (medalhas, coleções completas ou selos de carreira). Aparecem no seu cartão e no VERSUS do Duelo; o melhor degrau vira a moldura do avatar.',
+            'Até 3 destaques no seu cartão e no VERSUS do Duelo: medalhas e coleções aqui, selos de carreira na ficha do Pokémon (Coleção → Pokédex). O melhor degrau vira a moldura do avatar.',
         slotEmpty: 'Vaga livre',
         collections: 'Coleções completas',
         seals: 'Selos de carreira',
@@ -542,7 +547,7 @@ export const profile = {
     picker: {
         trainer: 'Seu treinador',
         trainerCount: '{n} de {total} liberados',
-        trainerHelp: 'Os outros saem das missões (aba Missões).',
+        trainerHelp: 'Os outros saem das missões: cada um mostra a sua logo abaixo.',
         legendary: 'Lendária',
         lockedAria: '{name}, bloqueado: {mission}',
         title: 'Título',

@@ -103,12 +103,12 @@ describe('selo NOVO', () => {
             }),
         );
         const before = newsOf(useGame.getState());
-        expect(newsCount(before, 'dex')).toBe(1);
-        expect(newsCount(before, 'clube')).toBeGreaterThan(1);
-        markAllSeen('dex');
+        expect(newsCount(before, 'album')).toBe(1);
+        expect(newsCount(before, 'treinador')).toBeGreaterThan(1);
+        markAllSeen('album');
         const mid = newsOf(useGame.getState());
-        expect(newsCount(mid, 'dex')).toBe(0);
-        expect(newsCount(mid, 'clube')).toBeGreaterThan(0);
+        expect(newsCount(mid, 'album')).toBe(0);
+        expect(newsCount(mid, 'treinador')).toBeGreaterThan(0);
         markAllSeen();
         expect(newsOf(useGame.getState()).size).toBe(0);
     });

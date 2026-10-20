@@ -149,8 +149,8 @@ export function Settings() {
         <div className="menu-screen settings-screen">
             <MenuHead title={t('settings.screen.title')} icon="settings" onBack={() => go('home')} />
 
-            <section className="panel set-group">
-                <Row title={t('settings.screen.langLabel')}>
+            <Group title={t('settings.screen.langLabel')}>
+                <div className="set-row">
                     <Segmented<Lang>
                         label={t('settings.screen.langLabel')}
                         value={lang}
@@ -160,8 +160,8 @@ export function Settings() {
                         ]}
                         onPick={(l) => set({ lang: l })}
                     />
-                </Row>
-            </section>
+                </div>
+            </Group>
 
             <Group title={t('settings.screen.sound')}>
                 <Row title={t('settings.screen.volume')}>

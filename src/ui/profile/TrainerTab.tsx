@@ -9,12 +9,10 @@ import {
     HOLO_TRAINERS,
     isGoldTrainer,
     isHoloTrainer,
-    MISSION_GROUPS,
     MISSIONS,
     type Mission,
     missionCount,
     missionOfTrainer,
-    PLATINUM,
     type Platinum,
     platinumItems,
     type SaveView,
@@ -28,8 +26,8 @@ import {
 import { newsKey } from '../../store/news';
 import { markPlayed, type Profile } from '../../store/profile';
 import { redeemCode, redeemDexCode, titleClass } from '../../store/title-codes';
-import { missionOfTitle, missionText, speciesGif, titleHow, titleName, trainerHow, trainerName } from './club';
-import { CheckIcon, LockIcon, MedalIcon } from './icons';
+import { missionOfTitle, missionText, titleHow, titleName, trainerHow, trainerName } from './club';
+import { CheckIcon, LockIcon } from './icons';
 import { NewBadge } from './news';
 
 /** O save do jeito que as missões leem (para as barras de progresso). */
@@ -253,56 +251,8 @@ function MissionHow({ m, view }: { m: Mission; view: SaveView }) {
     );
 }
 
-function MissionRow({ m, view }: { m: Mission; view: SaveView }) {
-    const { t } = useT();
-    const done = view.done.has(m.id);
-    return (
-        <li className={`pf-mission${done ? ' done' : ''}`}>
-            <div className="pf-mission-art" aria-hidden>
-                {m.trainer ? <TrainerSprite id={m.trainer} locked={!done} /> : <MedalIcon />}
-            </div>
-            <div className="pf-mission-body">
-                <MissionHow m={m} view={view} />
-                {m.species && (
-                    <ul className="pf-collection" aria-hidden>
-                        {m.species.map((id) => (
-                            <li key={id}>
-                                <img
-                                    className={`pixel${(view.dex[id]?.matches ?? 0) > 0 ? '' : ' pf-silhouette'}`}
-                                    src={speciesGif(id)}
-                                    alt=""
-                                    loading="lazy"
-                                    draggable={false}
-                                />
-                            </li>
-                        ))}
-                    </ul>
-                )}
-                <span className="pf-mission-reward">
-                    {m.trainer && (
-                        <span>
-                            {t('profile.missions.rewardTrainer')}: <b>{trainerName(m.trainer)}</b>
-                        </span>
-                    )}
-                    {m.title && (
-                        <span>
-                            {t('profile.missions.rewardTitle')}: <b>{titleName(m.title)}</b>
-                        </span>
-                    )}
-                </span>
-            </div>
-            {done && (
-                <span className="pf-mission-done" title={t('profile.missions.done')}>
-                    <CheckIcon />
-                    <span className="pf-sr">{t('profile.missions.done')}</span>
-                </span>
-            )}
-        </li>
-    );
-}
-
-/** Platina da geração: a lista do que falta para 100%, com a barra de cada item e o total (ex.: 4/6). */
-function PlatinumBlock({ p, view }: { p: Platinum; view: SaveView }) {
+/** Platina de uma geração (o diploma da Sala de troféus): os 6 itens com o progresso. */
+export function PlatinumBlock({ p, view }: { p: Platinum; view: SaveView }) {
     const { t, d } = useT();
     const items = platinumItems(p, view);
     const full = items.filter((i) => i.n >= i.goal).length;
@@ -361,39 +311,23 @@ function PlatinumBlock({ p, view }: { p: Platinum; view: SaveView }) {
     );
 }
 
-/** Missões: todas, por grupo, com o prêmio (treinador e/ou título), a barra das de contador e o visto. */
-export function MissionsTab() {
+/** Quantas missões já foram (cada treinador e título bloqueado mostra a dele logo abaixo). */
+export function MissionSummary() {
     const view = useSaveView();
-    const { t, d } = useT();
+    const { t } = useT();
     const done = MISSIONS.filter((m) => view.done.has(m.id)).length;
     return (
-        <div className="pf-missions">
-            <div
-                className="pf-mission-summary"
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={MISSIONS.length}
-                aria-valuenow={done}
-            >
-                <b>{t('profile.missions.summary', { done, total: MISSIONS.length })}</b>
-                <span className="pf-mission-bar">
-                    <i style={{ width: `${(done / MISSIONS.length) * 100}%` }} />
-                </span>
-            </div>
-            {PLATINUM.map((p) => (
-                <PlatinumBlock key={p.gen} p={p} view={view} />
-            ))}
-            {MISSION_GROUPS.filter((g) => g !== 'platina').map((g) => (
-                <section key={g} className="panel pf-card">
-                    <h2>{d.profile.missions.groups[g]}</h2>
-                    {g === 'colecoes' && <small className="muted">{t('profile.missions.collectionHelp')}</small>}
-                    <ul className="pf-mission-list">
-                        {MISSIONS.filter((m) => m.group === g).map((m) => (
-                            <MissionRow key={m.id} m={m} view={view} />
-                        ))}
-                    </ul>
-                </section>
-            ))}
+        <div
+            className="pf-mission-summary"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={MISSIONS.length}
+            aria-valuenow={done}
+        >
+            <b>{t('profile.missions.summary', { done, total: MISSIONS.length })}</b>
+            <span className="pf-mission-bar">
+                <i style={{ width: `${(done / MISSIONS.length) * 100}%` }} />
+            </span>
         </div>
     );
 }

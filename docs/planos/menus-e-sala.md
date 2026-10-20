@@ -72,6 +72,26 @@ Direções possíveis (todas desenhadas por nós, sem tile copiado de jogo):
 Junto da direção: o **nível da sala** vira o próprio cenário do jogo (quarto do Red → sede do clube → vestiário
 do estádio), e a cor do clube entra no tapete e na bandeira, não na parede inteira.
 
+## Decidido com o Miguel (20/10/2026)
+
+Todas as recomendadas: **B (três portas)**, Missões dentro de Treinador, Medalhas/Números/Hall dentro da sala,
+Golpedex na Coleção, selos na ficha da espécie, "Destaques" e "Vitrine de cartas", NOVO que some sozinho e "Notas da
+versão". Mais: **diagramação convencional** no site todo (ex.: a engrenagem das Configurações num lugar estranho). Arte
+da sala: **ver o quarto de teste antes** (direção 1, FireRed/LeafGreen, em `?lab=sala`); a sala funciona com qualquer
+arte (o quarto é a cena de cima, as seções ficam embaixo).
+
+## Feito na `v089` (20/10/2026)
+
+| Peça | Onde |
+|---|---|
+| As três portas na Home (com contador e o pontinho de novidade), rodapé convencional (Notas da versão, Ajuda, Créditos, Dar feedback, Privacidade, GitHub, PT/EN) e o canto de cima igual em toda tela de menu (Ajuda só na Home, engrenagem das Configurações, Perfil) | `src/ui/screens/Home.tsx`, `src/ui/components/TopActions.tsx` |
+| Perfil = Treinador (com as missões: cada bloqueado mostra a sua), Clube, Amigos; o topo é o cartão público (com as taças) | `src/ui/screens/Profile.tsx`, `ClubTab part` |
+| Coleção = Pokédex (selos de carreira na ficha, com "Destacar"), Álbum, Golpedex | `src/ui/screens/Collection.tsx` |
+| Sala de troféus = o quarto (FireRed, canvas 240x160, cada móvel leva à seção dele) + Troféus (Copa com o Hall da Fama, Copa do Dia, Duelo, Liga, Platina), Medalhas (com os Destaques), Números | `src/ui/screens/TrophyRoom.tsx`, `src/ui/trophy/RoomScene.tsx` |
+| Abas por porta e links antigos (`?perfil=medalhas`, `?perfil=album`…) levando pro lugar novo; `?aba=` abre direto | `src/ui/doors.ts` |
+| NOVO sem as barras "Marcar como visto"; cada novidade conta na porta e na aba onde ela mora | `src/store/news.ts` (`NEWS_DOORS`) |
+| Configurações: Idioma como as outras seções, volume na largura toda; Copa do Dia com a data em minúscula e o login alinhado | `Settings.tsx`, `settings`/`liga.css` |
+
 ## 4. Decisões pro Miguel
 
 1. **Estrutura:** B, as três portas **(recomendado)** / A, só a faxina / C, a sala como centro.

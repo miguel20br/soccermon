@@ -34,7 +34,7 @@ import { avatarGif, bannerText, hexCss, titleName } from './club';
 import { CheckIcon, LockIcon, ShinySpark } from './icons';
 import { useMedalView } from './Medals';
 import { NewBadge, useNews } from './news';
-import { TrainerCard } from './TrainerTab';
+import { MissionSummary, TrainerCard } from './TrainerTab';
 
 /** Rival da prévia do placar (Cerulean): azul, troca de uniforme se bater com a sua cor. */
 const PREVIEW_RIVAL = 0x2f6fde;
@@ -60,7 +60,8 @@ function useSavedFlash(): [boolean, () => void] {
 }
 
 /** Meu clube: nome do treinador, clube, sigla, cor e avatar. Tudo salva na hora. */
-export function ClubTab() {
+/** Perfil → Treinador (`trainer`: nome, avatar, treinador, título e as missões) ou Clube (`club`: cor, escudo, uniforme, faixa). */
+export function ClubTab({ part }: { part: 'trainer' | 'club' }) {
     const profile = useGame((s) => s.profile);
     const updateProfile = useGame((s) => s.updateProfile);
     const dex = useGame((s) => s.dex);
@@ -99,279 +100,285 @@ export function ClubTab() {
                 )}
             </div>
 
-            <section className="panel pf-card">
-                <h2>{t('profile.club.trainerTitle')}</h2>
-                <label className="pf-field">
-                    <span>{t('profile.club.yourName')}</span>
-                    <input
-                        className="pf-input"
-                        value={profile.trainerName}
-                        maxLength={20}
-                        placeholder={user?.name || t('profile.trainer')}
-                        autoComplete="nickname"
-                        onChange={(e) => save({ trainerName: e.target.value })}
-                        onBlur={(e) => {
-                            const v = e.target.value.trim();
-                            if (v !== profile.trainerName) save({ trainerName: v });
-                        }}
-                    />
-                </label>
-                <fieldset className="pf-field">
-                    <legend>{t('profile.club.avatar')}</legend>
-                    {user?.avatar && (
-                        <div className="pf-avatars">
-                            <button
-                                type="button"
-                                aria-pressed={av.kind === 'google'}
-                                className={`pf-av${av.kind === 'google' ? ' active' : ''}`}
-                                onClick={() => save({ avatar: { kind: 'google' } })}
-                                title={t('profile.club.googlePhoto')}
-                            >
-                                <img
-                                    src={user.avatar}
-                                    alt={t('profile.club.googlePhoto')}
-                                    referrerPolicy="no-referrer"
-                                />
-                            </button>
-                        </div>
-                    )}
-                    {/* um bloco por geração (fechado); o escolhido aparece no título do bloco */}
-                    {GENERATIONS.map((g) => {
-                        const opts = avatarOptions(dex, g);
-                        const mine = av.kind === 'pokemon' && av.speciesId >= g.from && av.speciesId <= g.to;
-                        return (
-                            <details key={g.gen} className="pf-gen">
-                                <summary>
-                                    {mine && (
-                                        <span className="pf-av active pf-gen-current">
-                                            <img
-                                                className="pixel"
-                                                src={avatarGif(av.speciesId, av.shiny === true)}
-                                                alt=""
-                                            />
-                                            {av.shiny && <ShinySpark />}
-                                        </span>
-                                    )}
-                                    <b>{t('profile.club.gen', { gen: g.gen, region: g.region })}</b>
-                                    <span className="pf-count">
-                                        {opts.length}/{g.to - g.from + 1}
-                                    </span>
-                                    <NewBadge
-                                        on={opts.some((o) => avKeys(o.speciesId, o.shiny).some((k) => news.has(k)))}
-                                    />
-                                </summary>
-                                <div className="pf-avatars">
-                                    {opts.map(({ speciesId: id, shiny }) => {
-                                        const on = mine && av.speciesId === id;
-                                        const onShiny = on && av.shiny === true;
-                                        const name = species(id).name;
-                                        const pick = (s: boolean) => {
-                                            setChoosing(null);
-                                            save({
-                                                avatar: s
-                                                    ? { kind: 'pokemon', speciesId: id, shiny: true }
-                                                    : { kind: 'pokemon', speciesId: id },
-                                            });
-                                        };
-                                        // shiny liberado: tocar abre a escolha Normal / Shiny no lugar do botão
-                                        return shiny && choosing === id ? (
-                                            <fieldset
-                                                key={id}
-                                                className="pf-av-choice"
-                                                aria-label={t('profile.club.avatarPick', { name })}
-                                            >
-                                                {[false, true].map((s) => (
-                                                    <button
-                                                        type="button"
-                                                        key={String(s)}
-                                                        className="pf-av-opt"
-                                                        aria-pressed={on && onShiny === s}
-                                                        onClick={() => pick(s)}
-                                                    >
-                                                        <span
-                                                            className={`pf-av${on && onShiny === s ? ' active' : ''}${s ? ' pf-av-shiny' : ''}`}
-                                                        >
-                                                            <img className="pixel" src={avatarGif(id, s)} alt="" />
-                                                            {s && <ShinySpark />}
-                                                        </span>
-                                                        <small>
-                                                            {t(
-                                                                s
-                                                                    ? 'profile.club.avatarShiny'
-                                                                    : 'profile.club.avatarNormal',
-                                                            )}
-                                                        </small>
-                                                    </button>
-                                                ))}
-                                            </fieldset>
-                                        ) : (
-                                            <button
-                                                type="button"
-                                                aria-pressed={on}
-                                                aria-expanded={shiny ? false : undefined}
-                                                key={id}
-                                                className={`pf-av${on ? ' active' : ''}${shiny ? ' pf-av-has-shiny' : ''}`}
-                                                onClick={() => (shiny ? setChoosing(id) : pick(false))}
-                                                title={shiny ? t('profile.club.avatarHasShiny', { name }) : name}
-                                            >
-                                                <img
-                                                    className="pixel"
-                                                    src={avatarGif(id, onShiny)}
-                                                    alt={shiny ? t('profile.club.avatarHasShiny', { name }) : name}
-                                                    loading="lazy"
-                                                />
-                                                {shiny && <ShinySpark />}
-                                                <NewBadge k={avKeys(id, shiny)} className="corner" />
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </details>
-                        );
-                    })}
-                    <small className="muted">{t('profile.club.avatarHelp')}</small>
-                </fieldset>
-            </section>
-
-            <TrainerCard save={save} />
-
-            <section className="panel pf-card">
-                <h2>{t('profile.club.clubTitle')}</h2>
-                <div className="pf-row">
-                    <label className="pf-field grow">
-                        <span>{t('profile.club.clubName')}</span>
+            {part === 'trainer' && <MissionSummary />}
+            {part === 'trainer' && (
+                <section className="panel pf-card">
+                    <h2>{t('profile.club.trainerTitle')}</h2>
+                    <label className="pf-field">
+                        <span>{t('profile.club.yourName')}</span>
                         <input
                             className="pf-input"
-                            value={profile.clubName}
-                            maxLength={22}
-                            autoComplete="off"
-                            onChange={(e) => {
-                                const name = e.target.value;
-                                // sigla automática até a pessoa escolher uma
-                                const auto = profile.clubTag === tagFromName(profile.clubName);
-                                save(auto ? { clubName: name, clubTag: tagFromName(name) } : { clubName: name });
-                            }}
+                            value={profile.trainerName}
+                            maxLength={20}
+                            placeholder={user?.name || t('profile.trainer')}
+                            autoComplete="nickname"
+                            onChange={(e) => save({ trainerName: e.target.value })}
                             onBlur={(e) => {
-                                const name = e.target.value.trim() || DEFAULT_PROFILE.clubName;
-                                if (name === profile.clubName) return;
-                                const auto = profile.clubTag === tagFromName(profile.clubName);
-                                save(auto ? { clubName: name, clubTag: tagFromName(name) } : { clubName: name });
+                                const v = e.target.value.trim();
+                                if (v !== profile.trainerName) save({ trainerName: v });
                             }}
                         />
                     </label>
-                    <label className="pf-field pf-tag-field">
-                        <span>{t('profile.club.tag')}</span>
-                        <input
-                            className="pf-input pf-tag-input"
-                            value={tag}
-                            maxLength={3}
-                            autoCapitalize="characters"
-                            autoComplete="off"
-                            spellCheck={false}
-                            aria-describedby="pf-tag-help"
-                            onChange={(e) => {
-                                const v = cleanTag(e.target.value);
-                                setTag(v);
-                                if (v.length === 3) save({ clubTag: v });
-                            }}
-                            onBlur={() => {
-                                if (tag.length === 3) return;
-                                const v = tag ? tag.padEnd(3, 'X') : tagFromName(profile.clubName);
-                                setTag(v);
-                                save({ clubTag: v });
-                            }}
-                        />
-                    </label>
-                </div>
-                <small id="pf-tag-help" className="muted">
-                    {t('profile.club.tagHelp')}
-                    {runOld && t('profile.club.runOld', { team: run?.teamName ?? '' })}
-                </small>
-
-                <fieldset className="pf-field">
-                    <legend>{t('profile.club.color')}</legend>
-                    <div className="pf-colors">
-                        {CLUB_COLORS.map((c) => {
-                            const on = c.id === profile.clubColor;
-                            return (
+                    <fieldset className="pf-field">
+                        <legend>{t('profile.club.avatar')}</legend>
+                        {user?.avatar && (
+                            <div className="pf-avatars">
                                 <button
                                     type="button"
-                                    aria-pressed={on}
-                                    key={c.id}
-                                    className={`pf-color${on ? ' active' : ''}`}
-                                    style={{ ['--sw' as string]: hexCss(c.hex) }}
-                                    onClick={() => save({ clubColor: c.id })}
+                                    aria-pressed={av.kind === 'google'}
+                                    className={`pf-av${av.kind === 'google' ? ' active' : ''}`}
+                                    onClick={() => save({ avatar: { kind: 'google' } })}
+                                    title={t('profile.club.googlePhoto')}
                                 >
-                                    <i />
-                                    <span>{d.common.color[c.id] ?? c.name}</span>
+                                    <img
+                                        src={user.avatar}
+                                        alt={t('profile.club.googlePhoto')}
+                                        referrerPolicy="no-referrer"
+                                    />
                                 </button>
+                            </div>
+                        )}
+                        {/* um bloco por geração (fechado); o escolhido aparece no título do bloco */}
+                        {GENERATIONS.map((g) => {
+                            const opts = avatarOptions(dex, g);
+                            const mine = av.kind === 'pokemon' && av.speciesId >= g.from && av.speciesId <= g.to;
+                            return (
+                                <details key={g.gen} className="pf-gen">
+                                    <summary>
+                                        {mine && (
+                                            <span className="pf-av active pf-gen-current">
+                                                <img
+                                                    className="pixel"
+                                                    src={avatarGif(av.speciesId, av.shiny === true)}
+                                                    alt=""
+                                                />
+                                                {av.shiny && <ShinySpark />}
+                                            </span>
+                                        )}
+                                        <b>{t('profile.club.gen', { gen: g.gen, region: g.region })}</b>
+                                        <span className="pf-count">
+                                            {opts.length}/{g.to - g.from + 1}
+                                        </span>
+                                        <NewBadge
+                                            on={opts.some((o) => avKeys(o.speciesId, o.shiny).some((k) => news.has(k)))}
+                                        />
+                                    </summary>
+                                    <div className="pf-avatars">
+                                        {opts.map(({ speciesId: id, shiny }) => {
+                                            const on = mine && av.speciesId === id;
+                                            const onShiny = on && av.shiny === true;
+                                            const name = species(id).name;
+                                            const pick = (s: boolean) => {
+                                                setChoosing(null);
+                                                save({
+                                                    avatar: s
+                                                        ? { kind: 'pokemon', speciesId: id, shiny: true }
+                                                        : { kind: 'pokemon', speciesId: id },
+                                                });
+                                            };
+                                            // shiny liberado: tocar abre a escolha Normal / Shiny no lugar do botão
+                                            return shiny && choosing === id ? (
+                                                <fieldset
+                                                    key={id}
+                                                    className="pf-av-choice"
+                                                    aria-label={t('profile.club.avatarPick', { name })}
+                                                >
+                                                    {[false, true].map((s) => (
+                                                        <button
+                                                            type="button"
+                                                            key={String(s)}
+                                                            className="pf-av-opt"
+                                                            aria-pressed={on && onShiny === s}
+                                                            onClick={() => pick(s)}
+                                                        >
+                                                            <span
+                                                                className={`pf-av${on && onShiny === s ? ' active' : ''}${s ? ' pf-av-shiny' : ''}`}
+                                                            >
+                                                                <img className="pixel" src={avatarGif(id, s)} alt="" />
+                                                                {s && <ShinySpark />}
+                                                            </span>
+                                                            <small>
+                                                                {t(
+                                                                    s
+                                                                        ? 'profile.club.avatarShiny'
+                                                                        : 'profile.club.avatarNormal',
+                                                                )}
+                                                            </small>
+                                                        </button>
+                                                    ))}
+                                                </fieldset>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    aria-pressed={on}
+                                                    aria-expanded={shiny ? false : undefined}
+                                                    key={id}
+                                                    className={`pf-av${on ? ' active' : ''}${shiny ? ' pf-av-has-shiny' : ''}`}
+                                                    onClick={() => (shiny ? setChoosing(id) : pick(false))}
+                                                    title={shiny ? t('profile.club.avatarHasShiny', { name }) : name}
+                                                >
+                                                    <img
+                                                        className="pixel"
+                                                        src={avatarGif(id, onShiny)}
+                                                        alt={shiny ? t('profile.club.avatarHasShiny', { name }) : name}
+                                                        loading="lazy"
+                                                    />
+                                                    {shiny && <ShinySpark />}
+                                                    <NewBadge k={avKeys(id, shiny)} className="corner" />
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </details>
                             );
                         })}
+                        <small className="muted">{t('profile.club.avatarHelp')}</small>
+                    </fieldset>
+                </section>
+            )}
+            {part === 'trainer' && <TrainerCard save={save} />}
+
+            {part === 'club' && (
+                <section className="panel pf-card">
+                    <h2>{t('profile.club.clubTitle')}</h2>
+                    <div className="pf-row">
+                        <label className="pf-field grow">
+                            <span>{t('profile.club.clubName')}</span>
+                            <input
+                                className="pf-input"
+                                value={profile.clubName}
+                                maxLength={22}
+                                autoComplete="off"
+                                onChange={(e) => {
+                                    const name = e.target.value;
+                                    // sigla automática até a pessoa escolher uma
+                                    const auto = profile.clubTag === tagFromName(profile.clubName);
+                                    save(auto ? { clubName: name, clubTag: tagFromName(name) } : { clubName: name });
+                                }}
+                                onBlur={(e) => {
+                                    const name = e.target.value.trim() || DEFAULT_PROFILE.clubName;
+                                    if (name === profile.clubName) return;
+                                    const auto = profile.clubTag === tagFromName(profile.clubName);
+                                    save(auto ? { clubName: name, clubTag: tagFromName(name) } : { clubName: name });
+                                }}
+                            />
+                        </label>
+                        <label className="pf-field pf-tag-field">
+                            <span>{t('profile.club.tag')}</span>
+                            <input
+                                className="pf-input pf-tag-input"
+                                value={tag}
+                                maxLength={3}
+                                autoCapitalize="characters"
+                                autoComplete="off"
+                                spellCheck={false}
+                                aria-describedby="pf-tag-help"
+                                onChange={(e) => {
+                                    const v = cleanTag(e.target.value);
+                                    setTag(v);
+                                    if (v.length === 3) save({ clubTag: v });
+                                }}
+                                onBlur={() => {
+                                    if (tag.length === 3) return;
+                                    const v = tag ? tag.padEnd(3, 'X') : tagFromName(profile.clubName);
+                                    setTag(v);
+                                    save({ clubTag: v });
+                                }}
+                            />
+                        </label>
                     </div>
-                </fieldset>
+                    <small id="pf-tag-help" className="muted">
+                        {t('profile.club.tagHelp')}
+                        {runOld && t('profile.club.runOld', { team: run?.teamName ?? '' })}
+                    </small>
 
-                <KitEditor save={save} />
+                    <fieldset className="pf-field">
+                        <legend>{t('profile.club.color')}</legend>
+                        <div className="pf-colors">
+                            {CLUB_COLORS.map((c) => {
+                                const on = c.id === profile.clubColor;
+                                return (
+                                    <button
+                                        type="button"
+                                        aria-pressed={on}
+                                        key={c.id}
+                                        className={`pf-color${on ? ' active' : ''}`}
+                                        style={{ ['--sw' as string]: hexCss(c.hex) }}
+                                        onClick={() => save({ clubColor: c.id })}
+                                    >
+                                        <i />
+                                        <span>{d.common.color[c.id] ?? c.name}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </fieldset>
 
-                <div className="pf-field">
-                    <span id="pf-banner-label">{t('profile.club.banner')}</span>
-                    <select
-                        aria-labelledby="pf-banner-label"
-                        className="pf-input"
-                        value={bannerOf(profile.banner)}
-                        data-testid="pf-banner"
-                        onChange={(e) => save({ banner: Number(e.target.value) })}
-                    >
-                        {d.profile.club.banners.map((_, i) => (
-                            // biome-ignore lint/suspicious/noArrayIndexKey: a lista é fixa e o índice é o que salva
-                            <option key={i} value={i}>
-                                {bannerText(i, profile.clubName)}
-                            </option>
-                        ))}
-                    </select>
-                    <div
-                        className="pf-banner"
-                        style={{ ['--c' as string]: hexCss(club), ['--ink' as string]: hexCss(bannerInk(club)) }}
-                    >
-                        {bannerText(profile.banner, profile.clubName)}
-                    </div>
-                    <small className="muted">{t('profile.club.bannerHelp')}</small>
-                </div>
+                    <KitEditor save={save} />
 
-                <div className="pf-field">
-                    <span>{t('profile.club.preview')}</span>
-                    <div
-                        className="pf-preview"
-                        role="img"
-                        aria-label={t('profile.club.previewAria', { tag: profile.clubTag })}
-                    >
-                        <span
-                            className="pf-pv-team"
-                            style={{ ['--kit' as string]: kitBackground(look.color, look.color2, look.pattern, '3px') }}
+                    <div className="pf-field">
+                        <span id="pf-banner-label">{t('profile.club.banner')}</span>
+                        <select
+                            aria-labelledby="pf-banner-label"
+                            className="pf-input"
+                            value={bannerOf(profile.banner)}
+                            data-testid="pf-banner"
+                            onChange={(e) => save({ banner: Number(e.target.value) })}
                         >
-                            <i />
-                            <Crest look={look} className="crest pf-pv-crest" />
-                            {profile.clubTag}
-                        </span>
-                        <b>2 x 1</b>
-                        <span
-                            className="pf-pv-team away"
-                            style={{
-                                ['--kit' as string]: kitBackground(
-                                    rivalLook.color,
-                                    rivalLook.color2,
-                                    rivalLook.pattern,
-                                    '3px',
-                                ),
-                            }}
+                            {d.profile.club.banners.map((_, i) => (
+                                // biome-ignore lint/suspicious/noArrayIndexKey: a lista é fixa e o índice é o que salva
+                                <option key={i} value={i}>
+                                    {bannerText(i, profile.clubName)}
+                                </option>
+                            ))}
+                        </select>
+                        <div
+                            className="pf-banner"
+                            style={{ ['--c' as string]: hexCss(club), ['--ink' as string]: hexCss(bannerInk(club)) }}
                         >
-                            CER
-                            <Crest look={rivalLook} className="crest pf-pv-crest" />
-                            <i />
-                        </span>
+                            {bannerText(profile.banner, profile.clubName)}
+                        </div>
+                        <small className="muted">{t('profile.club.bannerHelp')}</small>
                     </div>
-                    {rival !== PREVIEW_RIVAL && <small className="muted">{t('profile.club.awayKit')}</small>}
-                </div>
-            </section>
+
+                    <div className="pf-field">
+                        <span>{t('profile.club.preview')}</span>
+                        <div
+                            className="pf-preview"
+                            role="img"
+                            aria-label={t('profile.club.previewAria', { tag: profile.clubTag })}
+                        >
+                            <span
+                                className="pf-pv-team"
+                                style={{
+                                    ['--kit' as string]: kitBackground(look.color, look.color2, look.pattern, '3px'),
+                                }}
+                            >
+                                <i />
+                                <Crest look={look} className="crest pf-pv-crest" />
+                                {profile.clubTag}
+                            </span>
+                            <b>2 x 1</b>
+                            <span
+                                className="pf-pv-team away"
+                                style={{
+                                    ['--kit' as string]: kitBackground(
+                                        rivalLook.color,
+                                        rivalLook.color2,
+                                        rivalLook.pattern,
+                                        '3px',
+                                    ),
+                                }}
+                            >
+                                CER
+                                <Crest look={rivalLook} className="crest pf-pv-crest" />
+                                <i />
+                            </span>
+                        </div>
+                        {rival !== PREVIEW_RIVAL && <small className="muted">{t('profile.club.awayKit')}</small>}
+                    </div>
+                </section>
+            )}
         </div>
     );
 }

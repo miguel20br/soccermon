@@ -441,7 +441,7 @@ export const help: typeof pt = {
             ],
         },
         pokedex: {
-            title: 'Pokédex, Movedex and Profile',
+            title: 'Profile, Collection and Trophy room',
             blocks: [
                 {
                     list: [
@@ -450,7 +450,10 @@ export const help: typeof pt = {
                             '**seen** = showed up in your draft, in rewards or on a rival team. **Played** = took the court for your team for at least 1 minute. It keeps matches, titles and the highest rating of each one.',
                         ],
                         ['Movedex', 'moves are added when they appear on the court in your matches (from both teams).'],
-                        ['Profile', "your club's name, tag and color, your avatar and your coaching career numbers."],
+                        [
+                            'Three doors on the start screen',
+                            '**Profile** (trainer, title, club and friends), **Collection** (Pokédex, Album and Movedex) and **Trophy room** (trophies, medals and career numbers).',
+                        ],
                     ],
                 },
             ],

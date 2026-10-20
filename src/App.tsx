@@ -3,17 +3,19 @@ import { setVolume } from './game/audio';
 import { useT } from './i18n/react';
 import { duel } from './net/session';
 import { preloadGame } from './PhaserGame';
-import { useGame } from './store/game-store';
+import { type Screen, useGame } from './store/game-store';
 import { AccountLink } from './ui/components/AccountLink';
 import { CardModal } from './ui/components/CardModal';
 import { Onboarding } from './ui/components/Onboarding';
+import { TopActions } from './ui/components/TopActions';
 import { UnlockNotice } from './ui/components/UnlockNotice';
 import { runDevDemo } from './ui/dev-demo';
 import { Duel, duelCodeFromUrl } from './ui/duel/Duel';
 import { requestLeave } from './ui/leave-guard';
 import { FriendInvite, FriendVitrine } from './ui/profile/FriendsTab';
-import { PlayerCardModal, ProfileChip } from './ui/profile/PlayerCard';
+import { PlayerCardModal } from './ui/profile/PlayerCard';
 import { CardGallery } from './ui/screens/CardGallery';
+import { Collection } from './ui/screens/Collection';
 import { Credits } from './ui/screens/Credits';
 import { Daily } from './ui/screens/Daily';
 import { Draft } from './ui/screens/Draft';
@@ -30,6 +32,9 @@ import { Settings } from './ui/screens/Settings';
 import { TrophyRoom } from './ui/screens/TrophyRoom';
 
 // Movedex (?lab=golpes) usa o Phaser: vem num pedaço à parte, como a partida
+/** Telas de menu: o topo tem o canto de Configurações e Perfil (partida, draft e Duelo não, pra ninguém sair sem querer). */
+const MENU_SCREENS: Screen[] = ['settings', 'credits', 'help', 'profile', 'collection', 'trophies', 'daily', 'liga'];
+
 const MoveLab = lazy(() => import('./ui/screens/MoveLab').then((m) => ({ default: m.MoveLab })));
 const VersusLab = lazy(() => import('./ui/components/VersusLab').then((m) => ({ default: m.VersusLab })));
 const CourtLab = lazy(() => import('./ui/screens/CourtLab').then((m) => ({ default: m.CourtLab })));
@@ -145,7 +150,7 @@ export default function App() {
     return (
         <div className="app">
             {screen !== 'home' && (
-                <header className="topbar">
+                <header className={`topbar${MENU_SCREENS.includes(screen) ? ' topbar-menu' : ''}`}>
                     <button
                         type="button"
                         className="brand"
@@ -168,8 +173,8 @@ export default function App() {
                     >
                         <img src="assets/ui/logo.svg" alt="" width="1441" height="300" />
                     </button>
-                    {/* telas de menu: o Perfil no canto, como na Home */}
-                    {(screen === 'settings' || screen === 'credits' || screen === 'help') && <ProfileChip />}
+                    {/* telas de menu: Configurações e Perfil no canto, como na Home (na partida e no draft, não) */}
+                    {MENU_SCREENS.includes(screen) && <TopActions />}
                 </header>
             )}
             {screen === 'home' && <Home />}
@@ -187,6 +192,7 @@ export default function App() {
             {screen === 'liga' && <Liga />}
             {screen === 'liga-match' && <Match liga />}
             {screen === 'trophies' && <TrophyRoom />}
+            {screen === 'collection' && <Collection />}
             <PlayerCardModal />
             <CardModal />
             <FriendInvite />

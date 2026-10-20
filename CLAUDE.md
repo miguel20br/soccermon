@@ -217,8 +217,11 @@ cartas com o logo, bola original na Home e a Liga fechada com contagem.
 **Branch `v089` (20/10, ainda não lançada):** perfil do amigo (Amigos → tocar no nome: vitrine, números, últimos
 títulos, "vocês no Duelo"; ranking da Copa do Dia Todos/Amigos; migração `20261021120000_perfil_do_amigo.sql` **ainda
 não aplicada**, precisa do ok do Miguel), Sala de troféus (`src/ui/screens/TrophyRoom.tsx`, `src/store/trophies.ts`,
-`?demo=sala`; botão no Perfil, a aba Hall da Fama saiu e virou a estante da Copa) e o retrofit do "nada teleporta"
-(`src/ui/view-transition.ts`, `tab-slide.ts`, `exit-motion.ts`, `npm run teleporte`).
+`?demo=sala`), o retrofit do "nada teleporta" (`src/ui/view-transition.ts`, `tab-slide.ts`, `exit-motion.ts`,
+`npm run teleporte`) e os **menus em três portas** (decidido em 20/10, `docs/planos/menus-e-sala.md`): a Home tem os
+modos de jogo + **Perfil** (Treinador com as missões, Clube, Amigos), **Coleção** (Pokédex, Álbum, Golpedex) e **Sala de
+troféus** (o quarto no estilo FireRed, ainda **esperando o ok do Miguel**, + Troféus, Medalhas, Números); engrenagem e
+Perfil no canto de cima de toda tela de menu; `?aba=` abre a aba, `?perfil=` antigo é redirecionado (`src/ui/doors.ts`).
 
 **0.8.8.4 (20/10):** o Álbum virou livro (`src/ui/profile/Album.tsx`, `?demo=album`): estante com um livro por geração
 (Gen 2 fechada, Em breve), capa que abre, folha que vira pela lombada (`.al-leaf`), um espaço por Pokémon com a carta da

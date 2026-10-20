@@ -1,7 +1,7 @@
 import { type CSSProperties, useEffect, useState } from 'react';
 import { CUP_STAGES } from '../../engine/cup';
 import { weeklyEventType } from '../../engine/specials';
-import { fmt, stageName, typeName } from '../../i18n';
+import { stageName, typeName } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { isCupInProgress, seedFromUrl, useGame } from '../../store/game-store';
 import { seenCount } from '../../store/profile';
@@ -20,8 +20,12 @@ import { FriendChallenge } from '../profile/FriendsTab';
 import { TYPE_COLOR } from '../type-colors';
 import { HomeDailyCard } from './Daily';
 import '../home-motion.css';
+import { NEWS_DOORS } from '../../store/news';
 import { HudIcon } from '../components/MatchHud';
-import { ProfileChip } from '../profile/PlayerCard';
+import { TopActions } from '../components/TopActions';
+import { type Door, openDoor } from '../doors';
+import { useAvatar } from '../profile/club';
+import { NewDot, newsCount, useNews } from '../profile/news';
 
 /** O que vem por aí (só vitrine: nada disso é clicável ainda). Os textos ficam em i18n (home.soon). */
 const SOON_IMG = ['assets/cards/25.gif', 'assets/ui/simbolo.svg', 'assets/cards/143.gif', 'assets/ui/poke-ball.png'];
@@ -84,6 +88,49 @@ function LangToggle() {
     );
 }
 
+/** As três portas (docs/planos/menus-e-sala.md): Perfil, Coleção e Sala de troféus, com o pontinho de novidade. */
+function Doors() {
+    const { d, t } = useT();
+    const news = useNews();
+    const avatar = useAvatar();
+    const seen = useGame((s) => seenCount(s.dex));
+    const titles = useGame((s) => s.records.titles);
+    const doors: { door: Door; icon: React.ReactNode; count?: string }[] = [
+        {
+            door: 'profile',
+            icon: (
+                <img
+                    className={`door-av${avatar.google ? '' : ' pixel'}`}
+                    src={avatar.src}
+                    alt=""
+                    referrerPolicy="no-referrer"
+                />
+            ),
+        },
+        { door: 'collection', icon: <MenuIcon kind="dex" />, count: `${seen}/${DEX_TOTAL}` },
+        { door: 'trophies', icon: <Trophy size={32} />, count: titles ? String(titles) : undefined },
+    ];
+    return (
+        <nav className="doors" aria-label={t('home.doorsAria')}>
+            {doors.map(({ door, icon, count }) => {
+                const [title, sub] = d.home.doors[door];
+                const fresh = NEWS_DOORS[door].some((tab) => newsCount(news, tab) > 0);
+                return (
+                    <button key={door} type="button" className="door bc-tile" onClick={() => openDoor(door)}>
+                        {icon}
+                        <span>
+                            <b>{title}</b>
+                            <small>{sub}</small>
+                        </span>
+                        {count && <em className="door-count">{count}</em>}
+                        <NewDot on={fresh} className="door-dot" />
+                    </button>
+                );
+            })}
+        </nav>
+    );
+}
+
 /** `?home=forte`: enfeites da Home (logo, brilho, pulos) com o dobro da intensidade, pra comparar. */
 const HOME_FORTE = new URLSearchParams(window.location.search).get('home') === 'forte';
 
@@ -95,8 +142,8 @@ export function Home() {
     useEffect(() => {
         homeEntered = true;
     }, []);
-    const { run, newRun, go, records, profile, setOnboarded, parkedRuns, resumeParked, discardParked } = useGame();
-    const { t, tn, d, lang } = useT();
+    const { run, newRun, go, profile, setOnboarded, parkedRuns, resumeParked, discardParked } = useGame();
+    const { t, d, lang } = useT();
     const notes = patchNotes(lang);
     const [teamName, setTeamName] = useState(profile.clubName || 'Pallet FC');
     // o perfil chega do IndexedDB/nuvem depois do primeiro render: acompanha até a pessoa digitar
@@ -149,14 +196,6 @@ export function Home() {
     const openLab = (q: string) => {
         window.location.search = q;
     };
-    const tile = (k: keyof typeof d.home.tiles, vars?: Record<string, string>) => (
-        <>
-            <span>
-                <b>{d.home.tiles[k][0]}</b>
-                <small>{fmt(d.home.tiles[k][1], vars)}</small>
-            </span>
-        </>
-    );
 
     return (
         <div className={`home${entering ? ' home-enter' : ''}${HOME_FORTE ? ' home-forte' : ''}`}>
@@ -171,17 +210,7 @@ export function Home() {
                         <span>{t('home.eventText', { type: typeName(eventType) })}</span>
                     </div>
                 </div>
-                <LangToggle />
-                <button
-                    type="button"
-                    className="help-fab"
-                    aria-label={t('home.helpAria')}
-                    title={t('home.helpTitle')}
-                    onClick={() => setOnboarded(false)}
-                >
-                    <MenuIcon kind="help" />
-                </button>
-                <ProfileChip />
+                <TopActions help={() => setOnboarded(false)} />
             </div>
 
             <section className="home-hero">
@@ -346,69 +375,7 @@ export function Home() {
             {/* entrar com o Google: embaixo dos modos, pro "Nova copa" ficar na primeira tela do celular */}
             <AccountBar />
 
-            {records.cups > 0 && (
-                <div className="records">
-                    <span className="rec-titles">
-                        <Trophy size={30} />
-                        <b>{records.titles}</b> {tn('home.rec.titles', records.titles)}
-                    </span>
-                    <span>
-                        <b>{records.cups}</b> {tn('home.rec.cups', records.cups)}
-                    </span>
-                    <span>
-                        <b>{records.perfect}</b> {tn('home.rec.perfect', records.perfect)}
-                    </span>
-                    {(records.destaques ?? 0) > 0 && (
-                        <span>
-                            <b>{records.destaques}</b> {tn('home.rec.destaques', records.destaques ?? 0)}
-                        </span>
-                    )}
-                    {(records.evolucoes ?? 0) > 0 && (
-                        <span>
-                            <b>{records.evolucoes}</b> {tn('home.rec.evolucoes', records.evolucoes ?? 0)}
-                        </span>
-                    )}
-                    {(records.icones ?? 0) > 0 && (
-                        <span>
-                            <b>{records.icones}</b> {tn('home.rec.icones', records.icones ?? 0)}
-                        </span>
-                    )}
-                </div>
-            )}
-
-            <nav className="home-tiles" aria-label={t('common.ui.menu')}>
-                <button type="button" className="home-tile bc-tile" onClick={() => openLab('?lab=golpes')}>
-                    <MenuIcon kind="moves" />
-                    {tile('moves')}
-                </button>
-                <button type="button" className="home-tile bc-tile" onClick={() => go('help')}>
-                    <MenuIcon kind="help" />
-                    {tile('help')}
-                </button>
-                <button type="button" className="home-tile bc-tile" onClick={() => setNotesOpen(true)}>
-                    <MenuIcon kind="news" />
-                    {tile('news', { v: notes[0].version })}
-                    <em className="tile-badge">v{notes[0].version}</em>
-                </button>
-                <button type="button" className="home-tile bc-tile" onClick={() => go('settings')}>
-                    <MenuIcon kind="settings" />
-                    {tile('settings')}
-                </button>
-                <button type="button" className="home-tile bc-tile" onClick={() => go('credits')}>
-                    <MenuIcon kind="credits" />
-                    {tile('credits')}
-                </button>
-                <a className="home-tile bc-tile" href={FEEDBACK_URL} target="_blank" rel="noopener">
-                    <MenuIcon kind="feedback" />
-                    {tile('feedback')}
-                </a>
-                {import.meta.env.DEV && (
-                    <button type="button" className="home-tile bc-tile dev" onClick={() => openLab('?cards=1')}>
-                        <MenuIcon kind="cards" />
-                        {tile('cards')}
-                    </button>
-                )}
-            </nav>
+            <Doors />
             {notesOpen && (
                 // biome-ignore lint/a11y/noStaticElementInteractions: clicar fora fecha; o botão fecha pelo teclado
                 <div className="modal-backdrop" onClick={() => setNotesOpen(false)} role="presentation">
@@ -460,16 +427,35 @@ export function Home() {
                     ))}
                 </div>
             </section>
-            <p className="disclaimer">
-                {t('home.disclaimer', { v: __APP_VERSION__.replace(/\.0$/, '') })}{' '}
-                <a href={privacyUrl()} target="_blank" rel="noopener">
-                    {t('home.privacy')}
-                </a>{' '}
-                ·{' '}
-                <a href="https://github.com/miguel20br/soccermon" target="_blank" rel="noopener">
-                    {t('home.github')}
-                </a>
-            </p>
+            <footer className="home-footer">
+                <nav className="footer-links" aria-label={t('home.footerAria')}>
+                    <button type="button" className="link-btn" onClick={() => setNotesOpen(true)}>
+                        {d.home.tiles.news[0]} <em className="tile-badge">v{notes[0].version}</em>
+                    </button>
+                    <button type="button" className="link-btn" onClick={() => go('help')}>
+                        {d.home.tiles.help[0]}
+                    </button>
+                    <button type="button" className="link-btn" onClick={() => go('credits')}>
+                        {d.home.tiles.credits[0]}
+                    </button>
+                    <a href={FEEDBACK_URL} target="_blank" rel="noopener">
+                        {d.home.tiles.feedback[0]}
+                    </a>
+                    <a href={privacyUrl()} target="_blank" rel="noopener">
+                        {t('home.privacy')}
+                    </a>
+                    <a href="https://github.com/miguel20br/soccermon" target="_blank" rel="noopener">
+                        {t('home.github')}
+                    </a>
+                    {import.meta.env.DEV && (
+                        <button type="button" className="link-btn" onClick={() => openLab('?cards=1')}>
+                            {d.home.tiles.cards[0]}
+                        </button>
+                    )}
+                    <LangToggle />
+                </nav>
+                <p className="disclaimer">{t('home.disclaimer', { v: __APP_VERSION__.replace(/\.0$/, '') })}</p>
+            </footer>
         </div>
     );
 }

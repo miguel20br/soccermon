@@ -106,7 +106,8 @@ function Sprite({ id, shown, size = 48 }: { id: number; shown: boolean; size?: n
     );
 }
 
-export function MoveLab({ onExit }: { onExit: () => void }) {
+/** Golpedex. `bare`: dentro da Coleção (a aba já tem o cabeçalho). */
+export function MoveLab({ onExit, bare }: { onExit: () => void; bare?: boolean }) {
     const { t, tn, d, lang } = useT();
     const L = d.stats.lab;
     const moves = useGame((s) => s.moves);
@@ -342,7 +343,7 @@ export function MoveLab({ onExit }: { onExit: () => void }) {
 
     return (
         <div className="golpedex">
-            <MenuHead title={t('stats.lab.title')} icon="moves" onBack={onExit} />
+            {!bare && <MenuHead title={t('stats.lab.title')} icon="moves" onBack={onExit} />}
 
             <section className="panel gdx-progress" aria-label={L.progress}>
                 <div className="gdx-progress-top">

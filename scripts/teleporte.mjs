@@ -12,7 +12,8 @@ const [W, H] = size.split('x').map(Number);
 // telas (url) e o que tocar nelas (seletores; cada elemento achado é tocado uma vez, Esc depois)
 const PAGES = [
     ['/?demo=colecao&motion=1', ['[role=tab]', '.pf-public']],
-    ['/?demo=sala&motion=1', ['.tr-obj']],
+    ['/?demo=sala&motion=1', ['[role=tab]', '.room-spot']],
+    ['/?demo=album&motion=1', ['[role=tab]']],
     ['/?demo=amigos&motion=1', ['.fr-open', '.fr-more']],
     ['/?demo=dia&motion=1', ['.bc-seg button']],
 ];

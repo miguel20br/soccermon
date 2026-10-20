@@ -65,6 +65,15 @@
         "value": "emote-wobble",
         "createdAt": "2026-10-19T03:42:41.150Z",
         "reason": "Miguel pediu emotes inspirados no Clash Royale: o balanço do emote é a animação cartunesca do gênero (respeita reduzir movimento)"
+      },
+      {
+        "rule": "gradient-text",
+        "value": "*",
+        "files": [
+          "src/ui/profile/profile.css"
+        ],
+        "createdAt": "2026-10-20T19:08:44.116Z",
+        "reason": "Títulos dourado/holográfico (title-shine, title-holo) são decisão de design registrada no CLAUDE.md (0.8.6: 9 títulos com title-shine; platina holográfica): o gradiente é o metal do título, não enfeite"
       }
     ]
   }

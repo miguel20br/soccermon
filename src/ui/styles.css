@@ -5770,7 +5770,6 @@ a.home-tile {
 }
 .volume-row input[type="range"] {
     flex: 1;
-    max-width: 360px;
     accent-color: var(--yellow);
 }
 .volume-row b {
@@ -7414,4 +7413,122 @@ body {
 :root[data-reduce-motion="true"] .trainer-holo,
 :root[data-reduce-motion="true"] .holo-frame::after {
     animation: none;
+}
+
+/* ---------- menus coesos (docs/planos/menus-e-sala.md) ---------- */
+/* canto de cima à direita, igual em toda tela de menu: Ajuda (Home), Configurações e Perfil */
+.top-actions {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+/* as três portas da Home: Perfil, Coleção e Sala de troféus */
+.doors {
+    width: min(460px, 100%);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+}
+/* mesma largura dos modos de jogo logo acima (src/ui/duel/duel.css) */
+@media (min-width: 900px) {
+    .doors {
+        width: min(820px, 100%);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+    }
+}
+.door {
+    position: relative;
+    min-height: 72px;
+    padding: 10px 12px;
+}
+.door .menu-icon,
+.door svg:first-child,
+.door-av {
+    flex: none;
+    width: 36px;
+    height: 36px;
+}
+.door-av {
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--bc-ink);
+}
+.door b {
+    font-size: 14px;
+}
+.door small {
+    font-size: 11px;
+}
+.door-count {
+    margin-left: auto;
+    padding-left: 6px;
+    font-style: normal;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 15px;
+    color: var(--yellow);
+}
+.door > .new-dot.door-dot {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+}
+@media (max-width: 899px) {
+    .door {
+        min-height: 60px;
+    }
+}
+/* rodapé convencional: links pequenos numa linha, idioma no fim, o aviso de direitos embaixo */
+.home-footer {
+    width: min(820px, 100%);
+    display: grid;
+    gap: 10px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+}
+.footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 4px 14px;
+    font-size: 13px;
+}
+.footer-links a,
+.link-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text);
+    font: inherit;
+    text-decoration: underline;
+    text-decoration-color: var(--line);
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+.footer-links a:hover,
+.link-btn:hover {
+    text-decoration-color: currentColor;
+}
+.footer-links .tile-badge {
+    position: static;
+    border-width: 1px;
+}
+.footer-links .lang-toggle {
+    margin-left: 4px;
+}
+.home-footer .disclaimer {
+    text-align: center;
+}
+/* nas telas de menu o topo (logo e o canto de Configurações/Perfil) acompanha a coluna do conteúdo */
+.topbar.topbar-menu {
+    width: min(720px, 100%);
+    margin-inline: auto;
 }

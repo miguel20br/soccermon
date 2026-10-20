@@ -1888,3 +1888,22 @@ fieldset.pf-field,
     font-size: 12px;
     font-weight: 700;
 }
+/* o topo do Perfil é o seu cartão: as taças (leva pra Sala) e a legenda "o cartão que os outros veem" */
+.pf-cups {
+    flex-wrap: wrap;
+    margin-top: 6px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+}
+.pf-cups:focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: 2px;
+}
+.pf-public-hint {
+    grid-column: 1 / -1;
+    color: var(--muted);
+    font-size: 11px;
+}

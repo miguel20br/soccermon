@@ -18,7 +18,10 @@
     font-family: "Galmuri14", "Galmuri11", monospace;
     font-size: 18px;
     color: var(--yellow);
-    text-transform: capitalize;
+}
+/* "Terça-feira, 20 de outubro": só a primeira letra maiúscula */
+.lg-date::first-letter {
+    text-transform: uppercase;
 }
 .lg-line {
     margin: 0;
@@ -511,4 +514,10 @@
 /* Ranking do dia: Todos / Amigos */
 .lg-scope {
     margin: 2px 0 8px;
+}
+/* dentro do painel o "Entrar com Google" segue o alinhamento do texto (à esquerda) */
+.lg .account-bar {
+    justify-content: flex-start;
+    max-width: none;
+    text-align: left;
 }
