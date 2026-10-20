@@ -25,6 +25,7 @@ dist-ssr
 
 # caches de assets
 .cache
+*.tsbuildinfo
 .vitest
 
 .vercel
