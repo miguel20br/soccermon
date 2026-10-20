@@ -1,7 +1,8 @@
-import { SPECIES_BY_ID } from '../engine/data';
+import { SPECIES_BY_ID, type Species } from '../engine/data';
 import { type DuelMonRecipe, monFromRecipe, monProblems, monRecipe } from '../engine/duel-validate';
-import { type PokemonInstance, viewInstance } from '../engine/instance';
+import { DEFAULT_LEVEL, type PokemonInstance, viewInstance } from '../engine/instance';
 import { defaultMoveset } from '../engine/moves';
+import { EVENT_TYPES, ICONS, mvpLevel } from '../engine/specials';
 import type { RunState } from './game-store';
 import type { AlbumEdition, HallEntry } from './profile';
 
@@ -38,10 +39,26 @@ export interface BinderCard {
     n: number;
     /** As últimas cartas contadas: a mesma carta de novo (virou Destaque, foi campeã) não conta 2 vezes. */
     seen: string[];
+    /**
+     * As versões que você já teve nesse espaço (Ícone, Shiny Ícone, Shiny Ícone MVP 2…), a melhor de cada combo.
+     * Álbum de antes delas não tem: a versão é a própria melhor carta (`versionsOf`).
+     */
+    versions?: BinderVersion[];
+}
+
+/** Uma versão de um espaço do álbum: a melhor carta daquele combo (`versionKey`). */
+export interface BinderVersion {
+    uid: string;
+    card: DuelMonRecipe;
+    at: number;
+    from: BinderFrom;
+    champ?: boolean;
 }
 
 /** ponytail: guarda só as últimas 30 contadas; a mesma carta só volta dentro da própria copa. */
 const SEEN_MAX = 30;
+/** Versões por espaço que um save de fora pode trazer (Shiny × Evento × 2 tipos × MVP 0–3 = 16 no máximo). */
+const VERSIONS_MAX = 24;
 /** Vitrine de cartas no perfil público (o cartão do treinador; o rival vê no Duelo). */
 export const CARD_SHOWCASE_MAX = 3;
 
@@ -54,7 +71,8 @@ export function cardSlots(card: { shiny: boolean; special?: { kind: CardSlot } |
 }
 
 /** A carta pra desenhar (o uid de origem fica: a evolução do Eevee sai dele). */
-export const binderInst = (c: BinderCard): PokemonInstance => monFromRecipe(c.card, c.uid.split('>')[0]);
+export const binderInst = (c: Pick<BinderCard, 'card' | 'uid'>): PokemonInstance =>
+    monFromRecipe(c.card, c.uid.split('>')[0]);
 
 /** Edição mais rara primeiro (na "melhor" da espécie): Ícone, Destaque, Evento. */
 const RARITY = { icone: 3, destaque: 2, evento: 1 } as const;
@@ -67,11 +85,46 @@ const rank = (c: Pick<BinderCard, 'card' | 'champ' | 'uid'>) => [
     c.champ ? 1 : 0,
     viewInstance(monFromRecipe(c.card, c.uid.split('>')[0])).overall,
 ];
-export function betterCard(a: BinderCard, b: BinderCard): boolean {
+export function betterCard(
+    a: Pick<BinderCard, 'card' | 'champ' | 'uid'>,
+    b: Pick<BinderCard, 'card' | 'champ' | 'uid'>,
+): boolean {
     const ra = rank(a);
     const rb = rank(b);
     for (let i = 0; i < ra.length; i++) if (ra[i] !== rb[i]) return ra[i] > rb[i];
     return false;
+}
+
+/** O combo da carta: Shiny, edição base, tipo do Evento e nível do selo MVP ("s.icone..2"). */
+export const versionKey = (card: Pick<PokemonInstance, 'shiny' | 'special'>) =>
+    [card.shiny ? 's' : '', card.special?.kind ?? '', card.special?.type ?? '', mvpLevel(card as PokemonInstance)].join(
+        '.',
+    );
+
+const toVersion = (c: BinderVersion): BinderVersion => ({
+    uid: c.uid,
+    card: c.card,
+    at: c.at,
+    from: c.from,
+    ...(c.champ && { champ: true }),
+});
+
+/** As versões do espaço, da melhor pra pior (álbum de antes das versões: só a melhor carta). */
+export const versionsOf = (c: BinderCard | undefined): BinderVersion[] =>
+    c ? [...(c.versions ?? [toVersion(c)])].sort((a, b) => (betterCard(a, b) ? -1 : betterCard(b, a) ? 1 : 0)) : [];
+
+/** Junta versões: uma por combo, a melhor; a mesma carta de novo fica com a data de quando chegou. */
+function mergeVersions(a: BinderVersion[], b: BinderVersion[]): BinderVersion[] {
+    const byKey = new Map<string, BinderVersion>();
+    for (const v of [...a, ...b]) {
+        const k = versionKey(v.card);
+        const prev = byKey.get(k);
+        if (!prev) byKey.set(k, v);
+        else if (prev.uid === v.uid)
+            byKey.set(k, { ...prev, card: v.card, ...((prev.champ || v.champ) && { champ: true }) });
+        else if (betterCard(v, prev)) byKey.set(k, v);
+    }
+    return [...byKey.values()];
 }
 
 /** A melhor carta que você já teve da espécie (a "Melhor carta" da ficha), entre os espaços `got`. */
@@ -100,6 +153,9 @@ function put(bySlot: Map<string, BinderCard>, p: PokemonInstance, uid: string, m
         const same = prev?.uid === uid ? prev : undefined;
         const champ = !!meta.champ || !!same?.champ;
         const cup = same?.cup ?? meta.cup;
+        const versions = mergeVersions(versionsOf(prev), [
+            { uid, card, at: meta.at, from: meta.from, ...(meta.champ && { champ: true }) },
+        ]);
         const cand: BinderCard = {
             id,
             uid,
@@ -110,8 +166,9 @@ function put(bySlot: Map<string, BinderCard>, p: PokemonInstance, uid: string, m
             ...(champ && { champ }),
             n,
             seen,
+            versions,
         };
-        bySlot.set(id, !prev || same || betterCard(cand, prev) ? cand : { ...prev, n, seen });
+        bySlot.set(id, !prev || same || betterCard(cand, prev) ? cand : { ...prev, n, seen, versions });
     }
 }
 
@@ -136,7 +193,8 @@ export function mergeBinder(a: unknown = [], b: unknown = []): BinderCard[] {
         // o mesmo save dos dois lados: fica a contagem maior; dois aparelhos com cartas diferentes: soma
         const n = Math.max(prev.n, c.n, seen.length);
         const best = betterCard(c, prev) ? c : prev;
-        bySlot.set(c.id, { ...best, n, seen: seen.slice(-SEEN_MAX) });
+        const versions = mergeVersions(versionsOf(prev), versionsOf(c));
+        bySlot.set(c.id, { ...best, n, seen: seen.slice(-SEEN_MAX), versions });
     }
     return [...bySlot.values()];
 }
@@ -171,7 +229,18 @@ export function cleanBinder(raw: unknown): BinderCard[] {
         if (!slots.includes(c.id) || bySlot.has(c.id) || typeof c.uid !== 'string' || c.uid.length > 80) continue;
         if (typeof c.n !== 'number' || !Number.isInteger(c.n) || c.n < 1 || !Array.isArray(c.seen)) continue;
         const seen = c.seen.filter((x): x is string => typeof x === 'string' && x.length <= 80).slice(-SEEN_MAX);
-        bySlot.set(c.id, { id: c.id, uid: c.uid, card, ...meta, n: c.n, seen });
+        const best: BinderCard = { id: c.id, uid: c.uid, card, ...meta, n: c.n, seen };
+        const ok = (v: Partial<BinderVersion>): v is BinderVersion =>
+            !!v &&
+            typeof v.uid === 'string' &&
+            v.uid.length <= 80 &&
+            typeof v.at === 'number' &&
+            Number.isFinite(v.at) &&
+            FROMS.includes(v.from as BinderFrom) &&
+            okRecipe(v.card) &&
+            cardSlots(v.card).some((ed) => slotId((v.card as DuelMonRecipe).speciesId, ed) === c.id);
+        const raw = Array.isArray(c.versions) ? c.versions.slice(0, VERSIONS_MAX).filter(ok).map(toVersion) : [];
+        bySlot.set(c.id, { ...best, versions: mergeVersions(raw, [toVersion(best)]) });
     }
     // fichário antigo: na ordem de chegada, como se cada carta entrasse agora
     for (const l of legacy.sort((x, y) => x.meta.at - y.meta.at))
@@ -234,22 +303,80 @@ export const binderOf = (s: {
     Array.isArray(s.binder) ? cleanBinder(s.binder) : binderBackfill([s.run, ...(s.parkedRuns ?? [])], s.hall ?? []);
 
 // ------------------------------------------------------------------------------------------- vitrine
+/** A carta padrão da espécie (nível 50, golpes padrão), com a edição do espaço quando há. */
+export function defaultCard(sp: Species, ed?: CardSlot): PokemonInstance {
+    const evType = sp.types.find((ty) => EVENT_TYPES.includes(ty)) ?? sp.types[0];
+    return {
+        uid: `dex-${sp.id}${ed ? `-${ed}` : ''}`,
+        speciesId: sp.id,
+        level: DEFAULT_LEVEL,
+        xp: 0,
+        moves: defaultMoveset(sp),
+        ability: sp.abilities[0] ?? '',
+        shiny: ed === 'shiny',
+        nickname: null,
+        condition: 1,
+        special:
+            ed === 'icone'
+                ? { kind: 'icone', title: ICONS[sp.id] }
+                : ed === 'evento'
+                  ? { kind: 'evento', type: evType }
+                  : ed === 'destaque'
+                    ? { kind: 'destaque', level: 1 }
+                    : null,
+    };
+}
+
+/** Figurinha de antes do álbum (colada, sem carta guardada): a vitrine e "Suas versões" usam a carta padrão. */
+export const OLD_VERSION = 'padrao';
+
 /**
- * A vitrine do seu save: só cartas do álbum (`ok`: figurinha colada), no máximo 3. A escolha guarda o espaço
- * ("6:icone"); a do fichário antigo guardava a carta, que ainda acha o espaço dela.
+ * Id de uma versão na vitrine: o espaço da edição base (o Shiny Ícone fica no Ícone) + o combo. "6:icone#s.icone..2";
+ * a figurinha de antes do álbum: "150:icone#padrao".
+ */
+export const versionId = (speciesId: number, v: BinderVersion | { ed: CardSlot }) =>
+    'ed' in v
+        ? `${slotId(speciesId, v.ed)}#${OLD_VERSION}`
+        : `${slotId(speciesId, v.card.special?.kind ?? 'shiny')}#${versionKey(v.card)}`;
+
+export interface ShowcaseCard {
+    /** Id da versão (`versionId`): o que a vitrine guarda. */
+    id: string;
+    inst: PokemonInstance;
+    /** A versão guardada (null: a carta padrão da figurinha de antes do álbum). */
+    v: BinderVersion | null;
+}
+
+/**
+ * A vitrine do seu save: só versões que você tem (`ok`: a figurinha do espaço está colada), no máximo 3. A escolha
+ * guarda a versão (`versionId`); a de antes guardava o espaço ("6:icone": a melhor carta dele) ou a carta (uid).
  */
 export function resolveCardShowcase(
     choice: unknown,
     binder: BinderCard[],
-    ok: (c: BinderCard) => boolean = () => true,
-): BinderCard[] {
+    ok: (slot: string) => boolean = () => true,
+): ShowcaseCard[] {
     if (!Array.isArray(choice)) return [];
-    const out: BinderCard[] = [];
-    for (const id of choice) {
-        if (typeof id !== 'string') continue;
-        const c = binder.find((x) => x.id === id) ?? binder.find((x) => x.uid === id || x.seen.includes(id));
-        // o Shiny Ícone ocupa 2 espaços: na vitrine aparece uma vez
-        if (c && ok(c) && !out.some((x) => x.uid === c.uid)) out.push(c);
+    const out: ShowcaseCard[] = [];
+    const push = (x: ShowcaseCard) => !out.some((o) => o.id === x.id) && out.push(x);
+    for (const raw of choice) {
+        if (typeof raw !== 'string') continue;
+        const [slot, key] = raw.split('#');
+        const [spId, ed] = slot.split(':');
+        const sp = SPECIES_BY_ID.get(Number(spId));
+        if (key === OLD_VERSION) {
+            if (sp && CARD_SLOTS.includes(ed as CardSlot) && ok(slot))
+                push({ id: raw, inst: defaultCard(sp, ed as CardSlot), v: null });
+            continue;
+        }
+        const c =
+            binder.find((x) => x.id === slot) ??
+            (key ? undefined : binder.find((x) => x.uid === raw || x.seen.includes(raw)));
+        if (!c || !ok(c.id)) continue;
+        const vs = versionsOf(c);
+        const v = (key && vs.find((x) => versionKey(x.card) === key)) || vs[0];
+        // o Shiny Ícone fica nos 2 espaços: na vitrine aparece uma vez (o id é o da edição base)
+        if (v) push({ id: versionId(c.card.speciesId, v), inst: binderInst(v), v });
     }
     return out.slice(0, CARD_SHOWCASE_MAX);
 }

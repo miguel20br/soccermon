@@ -25,8 +25,11 @@ export const PATCH_NOTES: PatchNotes[] = [
             {
                 title: 'Álbum de figurinhas',
                 lines: [
-                    'Álbum de figurinhas na Pokédex: só as cartas especiais, uma de cada, com a melhor que você tirou',
-                    'Na Pokédex, cada Pokémon mostra quantas figurinhas tem (3/5) e a ficha mostra as cartas dele e a melhor',
+                    'Álbum de figurinhas na Pokédex, de papel: a carta de verdade colada em cada espaço, uma de cada edição especial',
+                    'Espaço vazio com nome, silhueta e número; tocar abre a ficha. No desktop, duas páginas abertas',
+                    'Toque na figurinha pra ver todas as versões que você já teve dela. Qualquer uma vai pra vitrine',
+                    'Página Raridades no fim do álbum: Shiny Ícone, Shiny Evento, MVP 3 e Destaque III',
+                    'Na Pokédex, cada Pokémon mostra quantas figurinhas tem (3/5); as cartas ficam no álbum',
                     'Vitrine de cartas no seu perfil público: o rival vê no Duelo',
                     'Título das cartas Ícone (Charizard Rebelde e cia.) menor, numa linha só',
                 ],
@@ -746,8 +749,11 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
             {
                 title: 'Sticker album',
                 lines: [
-                    'Sticker album in the Pokédex: special cards only, one of each, with the best one you pulled',
-                    'In the Pokédex, each Pokémon shows how many stickers it has (3/5), and its page shows its cards and the best one',
+                    'Paper sticker album in the Pokédex: the real card stuck in each slot, one of each special edition',
+                    'Empty slots show the name, silhouette and number; tap to open the entry. On desktop, two pages open side by side',
+                    'Tap a sticker to see every version of it you have had. Any of them can go on your showcase',
+                    'Rarities page at the end of the album: Shiny Icon, Shiny Event, MVP 3 and Star Player III',
+                    'In the Pokédex, each Pokémon shows how many stickers it has (3/5); the cards live in the album',
                     'Card showcase on your public profile: your Duel rival sees it',
                     'Icon card titles (Rebel Charizard and co.) are smaller, on a single line',
                 ],

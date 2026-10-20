@@ -15,6 +15,7 @@ import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
 import {
     type BinderCard,
+    type BinderVersion,
     bestOfSpecies,
     binderAdd,
     binderBackfill,
@@ -26,6 +27,8 @@ import {
     mergeBinder,
     parseCardShowcase,
     resolveCardShowcase,
+    versionId,
+    versionsOf,
 } from './binder';
 import { backfillEditions, migrateSave, playerTeam, type RunState, SAVE_VERSION, useGame } from './game-store';
 import { MEDALS, type MedalView } from './medals';
@@ -41,6 +44,8 @@ const mon = (id: number, uid: string, extra: Partial<PokemonInstance> = {}): Pok
 });
 const icon = (uid: string, level?: number) =>
     mon(6, uid, { special: { kind: 'icone', title: 'Charizard Rebelde', ...(level && { level }) } });
+/** O espaço da versão na vitrine ("6:icone#s.icone..2" → "6:icone"). */
+const slotOf = (id: string) => id.split('#')[0];
 const add = (list: BinderCard[], p: PokemonInstance, at = 1, champ = false) =>
     binderAdd(list, [p], { from: 'draft', at, cup: 'c', champ });
 
@@ -124,7 +129,7 @@ describe('álbum: migração do fichário, retroativo e nuvem', () => {
         expect(b.map((c) => c.id).sort()).toEqual(['25:shiny', '6:icone']);
         expect(b.find((c) => c.id === '6:icone')).toMatchObject({ uid: 'i2', n: 3, champ: true, at: 3 });
         // a vitrine antiga (guardava a carta) acha o espaço dela
-        expect(resolveCardShowcase(['i3', 'pk', 'comum'], b).map((c) => c.id)).toEqual(['6:icone', '25:shiny']);
+        expect(resolveCardShowcase(['i3', 'pk', 'comum'], b).map((c) => slotOf(c.id))).toEqual(['6:icone', '25:shiny']);
         // e o save novo lê de volta igual
         expect(cleanBinder(JSON.parse(JSON.stringify(b)))).toEqual(b);
     });
@@ -268,8 +273,8 @@ describe('vitrine de cartas', () => {
         let b: BinderCard[] = [];
         for (const id of [6, 25, 94, 143, 150]) b = add(b, mon(id, `s${id}`, { shiny: true }));
         const ids = ['150:shiny', 'nao-existe', '6:shiny', 's6', '25:shiny', '94:shiny'];
-        expect(resolveCardShowcase(ids, b).map((c) => c.id)).toEqual(['150:shiny', '6:shiny', '25:shiny']);
-        expect(resolveCardShowcase(ids, b, (c) => c.id !== '6:shiny').map((c) => c.id)).toEqual([
+        expect(resolveCardShowcase(ids, b).map((c) => slotOf(c.id))).toEqual(['150:shiny', '6:shiny', '25:shiny']);
+        expect(resolveCardShowcase(ids, b, (slot) => slot !== '6:shiny').map((c) => slotOf(c.id))).toEqual([
             '150:shiny',
             '25:shiny',
             '94:shiny',
@@ -278,6 +283,56 @@ describe('vitrine de cartas', () => {
         // o Shiny Ícone ocupa os dois espaços: na vitrine aparece uma vez
         const combo = add([], { ...icon('combo', 1), shiny: true });
         expect(resolveCardShowcase(['6:icone', '6:shiny'], combo)).toHaveLength(1);
+    });
+
+    it('qualquer versão que você tem vai pra vitrine, não só a melhor do espaço', () => {
+        let b: BinderCard[] = [];
+        b = add(b, icon('plain'), 1);
+        b = add(b, icon('mvp2', 2), 2);
+        b = add(b, { ...icon('combo'), shiny: true }, 3);
+        const slot = b.find((c) => c.id === '6:icone');
+        const vs = versionsOf(slot);
+        // a melhor primeiro: Shiny Ícone, Ícone MVP 2, Ícone
+        expect(vs.map((v) => v.uid)).toEqual(['combo', 'mvp2', 'plain']);
+        const plain = vs.find((v) => v.uid === 'plain') as BinderVersion;
+        const shown = resolveCardShowcase([versionId(6, plain)], b);
+        expect(shown).toHaveLength(1);
+        expect(shown[0].inst).toMatchObject({ shiny: false, special: { kind: 'icone' } });
+        expect(shown[0].inst.special?.level).toBeUndefined();
+        // o Shiny Ícone pelo espaço Shiny ou pelo Ícone é a mesma versão (aparece uma vez)
+        const combo = vs[0];
+        expect(resolveCardShowcase(['6:shiny', versionId(6, combo)], b)).toHaveLength(1);
+        // versões sobrevivem ao backup e à nuvem
+        expect(versionsOf(cleanBinder(JSON.parse(JSON.stringify(b))).find((c) => c.id === '6:icone'))).toHaveLength(3);
+        const other = add([], icon('outro', 3), 9);
+        expect(versionsOf(mergeBinder(b, other).find((c) => c.id === '6:icone')).map((v) => v.uid)).toEqual([
+            'combo',
+            'outro',
+            'mvp2',
+            'plain',
+        ]);
+    });
+
+    it('figurinha de antes do álbum (sem carta guardada) vai pra vitrine como a carta padrão (bug do Mewtwo Ícone)', () => {
+        // o caso do Triple M: Mewtwo Destaque I guardado e a figurinha Ícone que veio do álbum antigo, sem carta
+        const b = add([], mon(150, 'mew-d', { special: { kind: 'destaque', level: 1 } }));
+        const old = versionId(150, { ed: 'icone' });
+        expect(old).toBe('150:icone#padrao');
+        const shown = resolveCardShowcase([old], b, (slot) => slot === '150:icone' || slot === '150:destaque');
+        expect(shown.map((c) => c.inst.special)).toEqual([{ kind: 'icone', title: 'Mewtwo Contra-Ataca' }]);
+        expect(shown[0].v).toBeNull();
+        // sem a figurinha colada, não entra
+        expect(resolveCardShowcase([old], b, () => false)).toEqual([]);
+        // e o rival no Duelo aceita a carta padrão
+        expect(parseCardShowcase([monRecipe(shown[0].inst)])).toHaveLength(1);
+    });
+
+    it('álbum de antes das versões: a versão é a própria melhor carta', () => {
+        const b = add([], icon('i', 2));
+        const { versions: _, ...old } = b[0];
+        const back = cleanBinder([old]);
+        expect(versionsOf(back[0]).map((v) => v.uid)).toEqual(['i']);
+        expect(resolveCardShowcase(['6:icone'], back)[0].id).toBe(versionId(6, versionsOf(back[0])[0]));
     });
 
     it('a do rival no Duelo: carta inventada e lixo são ignorados, no máximo 3', () => {

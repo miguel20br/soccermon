@@ -1,10 +1,11 @@
-import { type RefObject, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { MOVES, SPECIES_BY_ID, type Species, type StatKey, species } from '../../engine/data';
 import { viewInstance } from '../../engine/instance';
 import { SIGNATURE } from '../../engine/signature-moves';
 import { playCry } from '../../game/audio';
 import { getLang, moveName } from '../../i18n';
 import { useT } from '../../i18n/react';
+import { defaultCard } from '../../store/binder';
 import { useGame } from '../../store/game-store';
 import {
     albumCount,
@@ -25,7 +26,6 @@ import { Tip } from '../components/Tip';
 import { TypeIcon } from '../components/TypeIcon';
 import { METAL, metalOf } from '../rarity';
 import { TYPE_COLOR } from '../type-colors';
-import { defaultCard, SheetCards } from './Album';
 import { speciesGif } from './club';
 import { BallMark, CareerSealIcon, ChampionRibbon, Chevron, EvoArrow, LockIcon, SpeakerIcon } from './icons';
 import { sealTip } from './seal-tip';
@@ -60,11 +60,11 @@ export function SpeciesSheet({
     order,
     onNav,
     onClose,
-    focus,
+    onAlbum,
 }: {
     id: number;
-    /** Abre já rolada nas cartas (tocar numa figurinha do Álbum). */
-    focus?: 'cards';
+    /** "Figurinhas 3/5 · Ver no álbum": abre o Álbum na página dele (as cartas ficam só no Álbum). */
+    onAlbum?: (id: number) => void;
     /** Ordem da lista atual (para anterior/próximo). */
     order: number[];
     onNav: (id: number) => void;
@@ -99,13 +99,6 @@ export function SpeciesSheet({
         return () => window.removeEventListener('keydown', onKey);
     }, [prev, next, onNav, onClose]);
 
-    // "Suas cartas" e a "Melhor carta" ficam no meio da ficha: o atalho do topo (e o Álbum) rolam até lá
-    const cardsRef = useRef<HTMLElement | null>(null);
-    const toCards = () => cardsRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    // biome-ignore lint/correctness/useExhaustiveDependencies: rola de novo a cada espécie aberta pelo Álbum
-    useEffect(() => {
-        if (focus === 'cards') cardsRef.current?.scrollIntoView({ block: 'start' });
-    }, [focus, id]);
     const stickers = albumCount(dex, [sp]);
 
     const name = seen ? sp.name : '???';
@@ -181,14 +174,6 @@ export function SpeciesSheet({
                             </Tip>
                         )}
                         {seen && (
-                            <button type="button" className="btn small pf-tocards" onClick={toCards}>
-                                <HudIcon kind="cards" /> {t('profile.album.jump')}{' '}
-                                <small>
-                                    {stickers.got}/{stickers.total}
-                                </small>
-                            </button>
-                        )}
-                        {seen && (
                             <button
                                 type="button"
                                 className="btn ghost small pf-cry"
@@ -201,7 +186,20 @@ export function SpeciesSheet({
                     </div>
                 </div>
 
-                {seen ? <SeenBody sp={sp} dex={dex} moves={moves} onNav={onNav} cardsRef={cardsRef} /> : <LockedBody />}
+                {seen && onAlbum && (
+                    <button type="button" className="pf-album-line" onClick={() => onAlbum(id)}>
+                        <HudIcon kind="cards" />
+                        <span>
+                            {t('profile.album.stickers')}{' '}
+                            <b>
+                                {stickers.got}/{stickers.total}
+                            </b>
+                        </span>
+                        <span className="pf-album-go">{t('profile.album.seeIn')}</span>
+                        <HudIcon kind="next" />
+                    </button>
+                )}
+                {seen ? <SeenBody sp={sp} dex={dex} moves={moves} onNav={onNav} /> : <LockedBody />}
 
                 <div className="pf-sheet-nav">
                     <button
@@ -239,19 +237,7 @@ function LockedBody() {
     );
 }
 
-function SeenBody({
-    sp,
-    dex,
-    moves,
-    onNav,
-    cardsRef,
-}: {
-    sp: Species;
-    dex: Dex;
-    moves: MoveDex;
-    onNav: (id: number) => void;
-    cardsRef: RefObject<HTMLElement | null>;
-}) {
+function SeenBody({ sp, dex, moves, onNav }: { sp: Species; dex: Dex; moves: MoveDex; onNav: (id: number) => void }) {
     const inst = defaultCard(sp);
     const view = viewInstance(inst);
     const entry = dex[sp.id];
@@ -371,8 +357,6 @@ function SeenBody({
                 </ul>
                 {found < moveIds.length && <p className="pf-note">{t('profile.sheet.movesHelp')}</p>}
             </section>
-
-            <SheetCards sp={sp} anchor={cardsRef} />
 
             {entry && isPlayed(entry) && <Seals entry={entry} dex={dex} />}
 

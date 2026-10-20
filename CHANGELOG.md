@@ -12,8 +12,11 @@
 - Partida salva no meio de um jogo recomeça do 0 a 0 (o motor mudou)
 
 ### Álbum de figurinhas
-- Álbum de figurinhas na Pokédex: só as cartas especiais, uma de cada, com a melhor que você tirou
-- Na Pokédex, cada Pokémon mostra quantas figurinhas tem (3/5) e a ficha mostra as cartas dele e a melhor
+- Álbum de figurinhas na Pokédex, de papel: a carta de verdade colada em cada espaço, uma de cada edição especial
+- Espaço vazio com nome, silhueta e número; tocar abre a ficha. No desktop, duas páginas abertas
+- Toque na figurinha pra ver todas as versões que você já teve dela. Qualquer uma vai pra vitrine
+- Página Raridades no fim do álbum: Shiny Ícone, Shiny Evento, MVP 3 e Destaque III
+- Na Pokédex, cada Pokémon mostra quantas figurinhas tem (3/5); as cartas ficam no álbum
 - Vitrine de cartas no seu perfil público: o rival vê no Duelo
 - Título das cartas Ícone (Charizard Rebelde e cia.) menor, numa linha só
 

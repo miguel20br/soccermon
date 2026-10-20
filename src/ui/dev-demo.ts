@@ -538,6 +538,19 @@ function demoBinder() {
         shiny: false,
         special: { kind: 'evento', type: 'Ice' },
     });
+    // Raridades: Lapras Shiny Evento; o caso do Triple M: Mew Destaque I guardado + a Ícone de antes do álbum (sem carta)
+    cards.push({
+        ...createInstance(131, rng),
+        uid: 'demo-lapras-se',
+        shiny: true,
+        special: { kind: 'evento', type: 'Ice' },
+    });
+    cards.push({
+        ...createInstance(151, rng),
+        uid: 'demo-mew-d',
+        shiny: false,
+        special: { kind: 'destaque', level: 1 },
+    });
     cards.forEach((p, i) => {
         binder = binderAdd(binder, [p], {
             from: (['draft', 'recompensa', 'evolucao', 'hall'] as const)[i % 4],
@@ -564,6 +577,7 @@ function demoBinder() {
     };
     for (const p of cards) stick(p.speciesId, editionBits(p) | EDITION_BIT.normal);
     stick(143, EDITION_BIT.destaque);
+    stick(151, EDITION_BIT.icone);
     const pick = [...binder].sort((a, b) => b.n - a.n).slice(0, 3);
     useGame.setState({ binder, dex, profile: { ...g.profile, cardShowcase: pick.map((c) => c.id) } });
     const url = new URL(window.location.href);

@@ -1,4 +1,4 @@
-/* Álbum de cartas (visão da Pokédex), "Suas cartas" e "Melhor carta" na ficha, e a vitrine de cartas. */
+/* Álbum de figurinhas (visão da Pokédex, estilo Panini com a carta de verdade), a vitrine e "Suas versões". */
 .al {
     display: grid;
     gap: 12px;
@@ -53,47 +53,6 @@
     color: var(--yellow);
 }
 
-/* seções do álbum */
-.al-tabs button {
-    display: grid;
-    gap: 1px;
-    line-height: 1.1;
-}
-.al-tabs small {
-    font-size: 10px;
-    opacity: 0.85;
-}
-.al-group {
-    display: grid;
-    gap: 6px;
-}
-.al-group h3 {
-    margin: 4px 0 0;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-}
-.al-group .pf-count {
-    margin-left: auto;
-}
-
-/* grade de figurinhas: 4 por linha no celular, mais no desktop */
-.al-grid,
-.al-row {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 8px 6px;
-}
-.al-grid {
-    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
-}
-.al-row {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    align-items: start;
-}
 .al-cell {
     position: relative;
     width: 100%;
@@ -116,28 +75,6 @@
     outline-offset: 2px;
     border-radius: 6px;
 }
-.al-empty {
-    width: 100%;
-    aspect-ratio: 63 / 88;
-    display: grid;
-    place-items: center;
-    border: 2px dashed #364275;
-    border-radius: 6px;
-    background: var(--bg-2);
-}
-.al-empty img,
-.al-empty b {
-    grid-area: 1 / 1;
-}
-.al-empty img {
-    width: 70%;
-    height: auto;
-}
-.al-empty b {
-    font-family: "Galmuri14", monospace;
-    font-size: 18px;
-    color: #5d679a;
-}
 .al-cell small {
     font-size: 10px;
     font-weight: 700;
@@ -159,65 +96,6 @@
     line-height: 1;
     box-shadow: 0 2px 0 #000;
 }
-.al-commons {
-    margin: 0;
-}
-
-/* ficha: a Normal fica como figurinha pequena, do tamanho das cartas */
-.al-normal {
-    width: 100%;
-    aspect-ratio: 63 / 88;
-    align-content: center;
-    padding: 4px 2px;
-    box-sizing: border-box;
-}
-.al-normal img {
-    width: 70%;
-    height: auto;
-}
-
-/* ficha: atalho do topo pras cartas */
-.pf-tocards {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-.pf-tocards svg {
-    width: 16px;
-    height: 16px;
-}
-.pf-tocards small {
-    opacity: 0.8;
-}
-.al-yours {
-    scroll-margin-top: 8px;
-}
-
-/* Melhor carta: a carta grande e quando/como veio */
-.al-best-row {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 14px;
-    align-items: center;
-}
-.al-best-row .pc2 {
-    font-size: 9px;
-}
-.al-best-info {
-    display: grid;
-    gap: 6px;
-    justify-items: start;
-}
-.al-best-info b {
-    font-family: "Galmuri14", monospace;
-    font-size: 16px;
-}
-@media (min-width: 720px) {
-    .al-best-row .pc2 {
-        font-size: 11px;
-    }
-}
-
 /* vitrine: 3 vagas do tamanho da carta pequena */
 .bd-slots {
     --fut-w: min(110px, calc((100vw - 76px) / 3));
@@ -231,4 +109,489 @@
     aspect-ratio: 63 / 88;
     border: 2px dashed var(--line);
     border-radius: 10px;
+}
+.al-commons,
+.al-swipe {
+    margin: 0;
+    text-align: center;
+}
+
+/* índice das seções: o nome, o contador e a barrinha */
+.al-index {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+}
+.al-tab {
+    position: relative;
+    display: grid;
+    gap: 1px;
+    padding: 7px 2px 9px;
+    border: 0;
+    border-bottom: 2px solid #000;
+    border-radius: 6px;
+    background: var(--bc-ink);
+    color: var(--muted);
+    font: inherit;
+    cursor: pointer;
+    overflow: hidden;
+}
+.al-tab b {
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.al-tab small {
+    font-size: 10px;
+}
+.al-tab i {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 3px;
+    background: var(--yellow);
+}
+.al-tab.on {
+    background: var(--yellow);
+    color: var(--bc-ink);
+}
+.al-tab.on i {
+    background: var(--bc-ink);
+}
+.al-tab:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+
+.al-nav {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+}
+.al-nav .btn {
+    min-width: 44px;
+    min-height: 40px;
+}
+.al-where {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* o livro: uma página no celular, duas abertas no desktop */
+.al-book {
+    --ed-icone: #8a5cf0;
+    --ed-shiny: conic-gradient(from 200deg, #ff5ea8, #ffd75e, #5eeaff, #b16bff, #ff5ea8);
+    --ed-destaque: #f2c53d;
+    display: flex;
+    justify-content: center;
+    touch-action: pan-y;
+    user-select: none;
+    perspective: 1600px;
+}
+.al-page {
+    position: relative;
+    box-sizing: border-box;
+    width: min(100%, 560px);
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    gap: 10px;
+    padding: 0 12px 6px;
+    color: var(--bc-ink);
+    background:
+        radial-gradient(rgba(14, 20, 48, 0.05) 1px, transparent 1.2px) 0 0 / 7px 7px,
+        var(--bc-paper);
+    border-radius: 4px 10px 10px 4px;
+    box-shadow:
+        inset 8px 0 0 -4px rgba(14, 20, 48, 0.1),
+        4px 4px 0 rgba(0, 0, 0, 0.4);
+}
+.al-page.right {
+    border-radius: 10px 4px 4px 10px;
+    box-shadow:
+        inset -8px 0 0 -4px rgba(14, 20, 48, 0.1),
+        4px 4px 0 rgba(0, 0, 0, 0.4);
+}
+/* faixa do topo, impressa na cor da edição */
+.al-ph {
+    grid-row: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    margin: 0 -12px;
+    padding: 6px 12px;
+    border-radius: 4px 10px 0 0;
+    background: var(--bc-ink);
+    color: var(--bc-paper);
+    border-bottom: 4px solid var(--ed, var(--yellow));
+}
+.al-page.right .al-ph {
+    border-radius: 10px 4px 0 0;
+}
+.al-ph b {
+    font-family: "Galmuri14", monospace;
+    font-weight: 400;
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.al-ph span {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 700;
+}
+.al-page.al-ed-icone {
+    --ed: var(--ed-icone);
+}
+.al-page.al-ed-destaque,
+.al-page.al-ed-raras {
+    --ed: var(--ed-destaque);
+}
+.al-page.al-ed-evento {
+    --ed: var(--ev, var(--yellow));
+}
+.al-page.al-ed-shiny .al-ph {
+    border-image: var(--ed-shiny) 1;
+}
+.al-folio {
+    grid-row: 4;
+    font-size: 10px;
+    font-weight: 700;
+    text-align: right;
+    opacity: 0.6;
+}
+.al-page.right .al-folio {
+    text-align: left;
+}
+.al-rare-help {
+    grid-row: 2;
+    margin: 0;
+    font-size: 12px;
+    color: rgba(14, 20, 48, 0.7);
+}
+
+/* a grade: 2×3 no celular em pé, 6 numa linha deitado, 4×3 no tablet e no desktop */
+.al-pgrid {
+    grid-row: 3;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
+    gap: 12px 14px;
+}
+@media (min-width: 600px) and (min-height: 501px) {
+    .al-pgrid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px 10px;
+    }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+    .al-page {
+        width: min(100%, 820px);
+    }
+    .al-pgrid {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+}
+@media (min-width: 1000px) and (min-height: 600px) {
+    .al-book {
+        gap: 6px;
+    }
+    .al-page {
+        width: min(49%, 560px);
+    }
+}
+
+.al-slot {
+    position: relative;
+    display: grid;
+    gap: 4px;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+.al-slot:focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: 3px;
+    border-radius: 6px;
+}
+.al-box {
+    position: relative;
+    display: block;
+    aspect-ratio: 63 / 88;
+    container-type: inline-size;
+}
+/* espaço vazio: retângulo impresso com nome, silhueta clarinha e número */
+.al-print {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    justify-items: center;
+    align-items: center;
+    padding: 6px 4px;
+    box-sizing: border-box;
+    border: 2px solid rgba(14, 20, 48, 0.16);
+    border-radius: 6px;
+    background: rgba(14, 20, 48, 0.035);
+}
+.al-print small {
+    max-width: 100%;
+    font-size: clamp(10px, 11cqi, 13px);
+    font-weight: 700;
+    color: rgba(14, 20, 48, 0.55);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.al-print img {
+    width: 62%;
+    height: auto;
+    filter: brightness(0);
+    opacity: 0.12;
+}
+.al-print b {
+    font-family: "Galmuri14", monospace;
+    font-weight: 400;
+    font-size: clamp(12px, 15cqi, 20px);
+    line-height: 1;
+    color: rgba(14, 20, 48, 0.5);
+}
+.al-slot .al-n {
+    z-index: 3;
+    top: -6px;
+    right: -6px;
+}
+.al-cap {
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    color: var(--bc-ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* a figurinha: a carta de verdade, colada levemente torta, com a fita em cima */
+.al-stk {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    transform: rotate(var(--rot, 0deg));
+    filter: drop-shadow(2px 3px 0 rgba(14, 20, 48, 0.3));
+    transition: transform 150ms var(--ease-out);
+}
+.al-stk .pc2 {
+    font-size: calc(100cqi / 15);
+}
+.al-stk::after {
+    content: "";
+    position: absolute;
+    z-index: 2;
+    top: -5px;
+    left: 50%;
+    width: 38%;
+    height: 12px;
+    transform: translateX(-50%) rotate(-3deg);
+    background: rgba(255, 252, 235, 0.62);
+    box-shadow: inset 0 0 0 1px rgba(14, 20, 48, 0.08);
+    pointer-events: none;
+}
+.al-slot:hover .al-stk {
+    transform: rotate(var(--rot, 0deg)) translateY(-2px);
+}
+/* colar ao ganhar: cai de cima, assenta torta */
+.al-stk.pasting {
+    animation: al-stick 700ms var(--ease-pop) var(--d, 0ms) both;
+}
+@keyframes al-stick {
+    0% {
+        transform: translateY(-30%) rotate(calc(var(--rot) - 12deg)) scale(1.35);
+        opacity: 0;
+    }
+    45% {
+        opacity: 1;
+    }
+    70% {
+        transform: rotate(var(--rot)) scale(0.95);
+    }
+    100% {
+        transform: rotate(var(--rot)) scale(1);
+    }
+}
+/* achou o Pokémon (Ver no álbum): o espaço pisca em amarelo */
+.al-slot.found .al-box {
+    border-radius: 6px;
+    box-shadow: 0 0 0 3px var(--yellow);
+    animation: al-found 1.4s var(--ease-out) 2;
+}
+@keyframes al-found {
+    30% {
+        box-shadow: 0 0 0 8px rgba(255, 203, 5, 0.35);
+    }
+}
+
+/* virar a página */
+.al-page.turn-next {
+    transform-origin: left center;
+    animation: al-flip-next 380ms var(--ease-out);
+}
+.al-page.turn-prev {
+    transform-origin: right center;
+    animation: al-flip-prev 380ms var(--ease-out);
+}
+@keyframes al-flip-next {
+    from {
+        transform: rotateY(-28deg) translateX(6%);
+        opacity: 0;
+    }
+}
+@keyframes al-flip-prev {
+    from {
+        transform: rotateY(28deg) translateX(-6%);
+        opacity: 0;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .al-stk.pasting,
+    .al-page.turn-next,
+    .al-page.turn-prev,
+    .al-slot.found .al-box {
+        animation: none;
+    }
+}
+
+/* Suas versões (na carta grande) */
+.al-versions {
+    display: grid;
+    gap: 6px;
+    width: 100%;
+}
+.al-versions h3 {
+    margin: 0;
+    font-size: 12px;
+}
+.al-versions ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 4px;
+}
+.al-versions button {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    width: 100%;
+    padding: 8px 10px;
+    border: 0;
+    border-bottom: 2px solid #000;
+    border-radius: 6px;
+    background: var(--bc-ink);
+    color: var(--text);
+    font: inherit;
+    font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+}
+.al-versions button.on {
+    box-shadow: inset 0 0 0 2px var(--yellow);
+}
+.al-versions button:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+.al-versions em {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--panel-2);
+    color: var(--muted);
+    font-size: 10px;
+    font-style: normal;
+}
+.al-versions small {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-left: auto;
+    color: var(--yellow);
+    font-size: 10px;
+    font-weight: 700;
+}
+.al-versions small svg {
+    width: 12px;
+    height: 12px;
+}
+
+/* ficha da Pokédex: a única linha de cartas, que leva ao álbum */
+.pf-album-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    margin: 10px 0 2px;
+    padding: 10px 12px;
+    border: 0;
+    border-bottom: 2px solid #000;
+    border-radius: 6px;
+    background: var(--bc-ink);
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+}
+.pf-album-line svg {
+    width: 16px;
+    height: 16px;
+}
+.pf-album-line b {
+    color: var(--yellow);
+}
+.pf-album-line .pf-album-go {
+    margin-left: auto;
+    font-weight: 700;
+}
+.pf-album-line:hover,
+.pf-album-line:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--yellow);
+}
+
+/* 320: o índice em 2 linhas (3 + 2) pra caber o nome inteiro */
+@media (max-width: 380px) {
+    .al-index {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+    .al-tab {
+        grid-column: span 2;
+    }
+    .al-tab:nth-child(n + 4) {
+        grid-column: span 3;
+    }
+}
+/* desktop: o livro aberto sai da coluna do perfil, pra carta ficar do tamanho de ler */
+@media (min-width: 1000px) and (min-height: 600px) {
+    .al-book {
+        --w: min(1160px, calc(100vw - 48px));
+        width: var(--w);
+        margin-inline: calc((100% - var(--w)) / 2);
+    }
 }

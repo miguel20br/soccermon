@@ -21,8 +21,9 @@ vi.mock('../../store/game-store', async (orig) => ({
 
 import { createInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
-import { binderAdd } from '../../store/binder';
+import { binderAdd, binderInst } from '../../store/binder';
 import { DEFAULT_PROFILE, EDITION_BIT } from '../../store/profile';
+import { AlbumView, rareVersions } from './Album';
 import { DexTab } from './DexTab';
 import { SpeciesSheet } from './SpeciesSheet';
 
@@ -49,15 +50,56 @@ describe('figurinhas na Pokédex e na ficha (a mesma conta: hasSticker)', () => 
         expect(cell('001')).toMatch(/1\/4/);
     });
 
-    it('ficha: a figurinha Shiny é a carta shiny; a Evento colada sem carta guardada vira a carta padrão', () => {
+    it('ficha sem cartas: só "Figurinhas 3/5 · Ver no álbum"', () => {
         Object.assign(state, { dex, binder, moves: {}, settings: { cries: 0 }, profile: DEFAULT_PROFILE });
-        const html = render(createElement(SpeciesSheet, { id: 131, order: [131], onNav() {}, onClose() {} }));
-        const yours = html.slice(html.indexOf('al-yours'), html.indexOf('al-best'));
-        const cells = yours.split('class="al-cell').slice(1);
-        // ordem: Shiny, Evento, Ícone, Destaque (a Normal fica no fim, como figurinha pequena)
-        expect(cells.map((c) => c.startsWith(' got'))).toEqual([true, true, false, false]);
-        expect(cells[0]).toContain('is-shiny');
-        expect(cells[0]).toContain('shiny/131');
-        expect(cells[1]).toContain('ed-evento');
+        const html = render(
+            createElement(SpeciesSheet, { id: 131, order: [131], onNav() {}, onClose() {}, onAlbum() {} }),
+        );
+        expect(html).toContain('pf-album-line');
+        expect(html).toMatch(/Figurinhas <b>3\/5<\/b>/);
+        expect(html).toContain('Ver no álbum');
+        expect(html).not.toContain('class="pc2');
+    });
+});
+
+describe('álbum (Panini com a carta de verdade)', () => {
+    it('vazio: nome, silhueta e número ("???" só pra quem nunca viu); colada: a carta, inclusive a figurinha antiga', () => {
+        // Blastoise com a Ícone de antes do álbum (sem carta guardada); Charizard visto sem a Ícone; Pikachu nunca visto
+        const d2 = { ...dex, 9: { ...entry, editions: EDITION_BIT.icone }, 6: entry };
+        Object.assign(state, { dex: d2, binder, moves: {}, settings: { cries: 0 }, profile: DEFAULT_PROFILE });
+        const html = render(createElement(AlbumView, { onSheet() {} }));
+        const slot = (no: string) => {
+            const i = html.indexOf(`#${no}<`);
+            return html.slice(html.lastIndexOf('<li', i), html.indexOf('</li>', i));
+        };
+        expect(slot('006')).toMatch(/<small>Charizard<\/small><img[^>]*src="[^"]*\/6\.gif/);
+        expect(slot('006')).not.toContain('pc2');
+        expect(slot('025')).toContain('<small>???</small>');
+        expect(slot('009')).toContain('al-slot got');
+        expect(slot('009')).toContain('class="pc2');
+    });
+
+    it('Raridades: só Shiny Ícone/Evento e selo 3', () => {
+        const b = (...cards: Parameters<typeof binderAdd>[1]) => binderAdd([], cards, { from: 'draft', at: 1 });
+        const ic = (extra: object) => ({
+            ...createInstance(6, rng),
+            uid: JSON.stringify(extra),
+            shiny: false,
+            special: { kind: 'icone' as const, title: 'Charizard Rebelde' },
+            ...extra,
+        });
+        const all = b(
+            ic({}),
+            ic({ shiny: true }),
+            ic({ special: { kind: 'icone', level: 3 } }),
+            ic({ special: { kind: 'destaque', level: 2 } }),
+            ic({ special: { kind: 'destaque', level: 3 } }),
+            { ...createInstance(25, rng), uid: 'pk', shiny: true },
+        );
+        const got = rareVersions(all, () => true).map((v) => {
+            const p = binderInst(v);
+            return `${p.shiny ? 'Shiny ' : ''}${p.special?.kind} ${p.special?.level ?? ''}`.trim();
+        });
+        expect(got.sort()).toEqual(['Shiny icone', 'destaque 3', 'icone 3']);
     });
 });

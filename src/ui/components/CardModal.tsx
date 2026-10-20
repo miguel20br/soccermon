@@ -64,7 +64,7 @@ function secondaryText(moveId: string, d: Dict): string | null {
 
 /** Carta completa: tudo sobre o Pokémon, com ações (escolher, pegar…). */
 export function CardModal() {
-    const { inst, position, captain, note, section, actions, close } = useCardModal();
+    const { inst, position, captain, note, section, actions, extra, close } = useCardModal();
     const run = useGame((s) => s.run);
     const { t, tn, d, lang } = useT();
     const movesRef = useRef<HTMLHeadingElement>(null);
@@ -177,6 +177,7 @@ export function CardModal() {
                                 ))}
                             </div>
                         )}
+                        {extra}
                     </div>
 
                     <div className="card-modal-right">

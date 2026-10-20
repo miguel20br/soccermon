@@ -44,7 +44,9 @@ export function DexTab({ initial = 'dex' }: { initial?: DexView }) {
     const [view, setView] = useState<DexView>(initial);
     const [filter, setFilter] = useState<Filter>('all');
     const [type, setType] = useState<string | null>(null);
-    const [open, setOpen] = useState<{ id: number; order?: number[]; focus?: 'cards' } | null>(null);
+    const [open, setOpen] = useState<{ id: number; order?: number[] } | null>(null);
+    // "Ver no álbum" da ficha: abre o Álbum na página do Pokémon (n muda a cada pedido)
+    const [at, setAt] = useState<{ id: number; n: number } | null>(null);
     const { t, tn, d, lang } = useT();
     const album = albumCount(dex);
 
@@ -80,9 +82,13 @@ export function DexTab({ initial = 'dex' }: { initial?: DexView }) {
         <SpeciesSheet
             id={open.id}
             order={open.order ?? order}
-            focus={open.focus}
             onNav={(id) => setOpen({ ...open, id })}
             onClose={() => setOpen(null)}
+            onAlbum={(id) => {
+                setOpen(null);
+                setView('album');
+                setAt({ id, n: (at?.n ?? 0) + 1 });
+            }}
         />
     );
     const tabs = (
@@ -105,7 +111,7 @@ export function DexTab({ initial = 'dex' }: { initial?: DexView }) {
         return (
             <div className="pf-dex">
                 {tabs}
-                <AlbumView onOpen={(id, o) => setOpen({ id, order: o, focus: 'cards' })} />
+                <AlbumView at={at} paused={!!open} onSheet={(id, o) => setOpen({ id, order: o })} />
                 {sheet}
             </div>
         );
