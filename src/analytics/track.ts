@@ -145,7 +145,7 @@ function onChange(s: GameState, prev: GameState) {
                 auto_from: run.autoFrom ?? null,
             });
         }
-        if (old.status === 'reward' && run.status === 'lineup') {
+        if (old.status === 'reward' && (run.status === 'lineup' || run.status === 'shop')) {
             track('reward', { stage: old.stage, rerolls_left: run.rerolls, skipped: run.picks === old.picks });
         }
     }

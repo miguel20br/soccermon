@@ -45,6 +45,8 @@ export interface TeamSetup {
      * a partida é a de sempre.
      */
     coach?: LeaderId;
+    /** Patrocínios da copa (src/engine/sponsors.ts): os de campo dão bônus pela regra única (modifiers.ts). */
+    sponsors?: string[];
 }
 
 /** Mudança de tática agendada (tática ao vivo: a partida é resimulada com a agenda). */

@@ -447,7 +447,13 @@ export const profile = {
         } as Record<string, string>,
     },
     binder: {
-        from: { draft: 'Draft', recompensa: 'Recompensa', evolucao: 'Evolução', hall: 'Hall da Fama' },
+        from: {
+            draft: 'Draft',
+            recompensa: 'Recompensa',
+            mercado: 'Mercado',
+            evolucao: 'Evolução',
+            hall: 'Hall da Fama',
+        },
         showcase: 'Vitrine de cartas',
         showcaseHelp: 'Até 3 cartas no seu perfil público (o rival vê no Duelo). Toque numa figurinha do álbum.',
         add: 'Pôr na vitrine',

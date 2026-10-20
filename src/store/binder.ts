@@ -15,7 +15,7 @@ import type { AlbumEdition, HallEntry } from './profile';
  * Se a figurinha está colada ou não é a Pokédex que diz (`DexEntry.editions`, a mesma conta da medalha e da platina):
  * aqui fica só a carta que aparece nela.
  */
-export type BinderFrom = 'draft' | 'recompensa' | 'evolucao' | 'hall';
+export type BinderFrom = 'draft' | 'recompensa' | 'mercado' | 'evolucao' | 'hall';
 const FROMS: BinderFrom[] = ['draft', 'recompensa', 'evolucao', 'hall'];
 
 /** Edições que viram figurinha no álbum de cartas (a Normal não entra). */

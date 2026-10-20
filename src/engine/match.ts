@@ -118,15 +118,16 @@ interface TeamBonuses {
     lineup: readonly PokemonInstance[];
     links: ActiveLink[];
     captain: PokemonInstance | null;
+    sponsors?: readonly string[];
 }
 
 /** Bônus pela escalação de agora (`lineup`): capitão substituído leva a aura junto. */
-function teamBonuses(lineup: readonly PokemonInstance[], captainUid: string | null | undefined): TeamBonuses {
-    const captain = lineup.find((p) => p.uid === captainUid) ?? null;
-    return { lineup, links: computeLinks(lineup), captain };
+function teamBonuses(lineup: readonly PokemonInstance[], setup: TeamSetup): TeamBonuses {
+    const captain = lineup.find((p) => p.uid === setup.captainUid) ?? null;
+    return { lineup, links: computeLinks(lineup), captain, sponsors: setup.sponsors };
 }
 
-const bonusesOf = (s: MatchState, team: 0 | 1) => teamBonuses(s.teams[team].lineup, s.teams[team].setup.captainUid);
+const bonusesOf = (s: MatchState, team: 0 | 1) => teamBonuses(s.teams[team].lineup, s.teams[team].setup);
 
 /**
  * A escalação mudou (troca ou evolução): recalcula para o time inteiro o que depende dela — sinergia de tipo,
@@ -136,7 +137,7 @@ function refreshTeamBonuses(s: MatchState, team: 0 | 1) {
     const bonuses = bonusesOf(s, team);
     for (const p of s.players) {
         if (p.team !== team) continue;
-        const mods = attributeModifiers(p.inst, { lineup: bonuses.lineup, captain: bonuses.captain, role: p.role });
+        const mods = attributeModifiers(p.inst, { ...bonuses, role: p.role });
         p.attr = applyModifiers(computeAttributes(p.sp, p.inst.level), mods, p.role);
         p.captain = bonuses.captain?.uid === p.inst.uid;
     }
@@ -154,7 +155,7 @@ function createPlayer(
 ): PlayerState {
     const sp = species(inst.speciesId);
     // edição, habilidade, item, tipo, capitão, sinergias e posição: a mesma regra que a carta mostra
-    const mods = attributeModifiers(inst, { lineup: bonuses.lineup, captain: bonuses.captain, role });
+    const mods = attributeModifiers(inst, { ...bonuses, role });
     const attr = applyModifiers(computeAttributes(sp, inst.level), mods, role);
     const ability = abilityEffect(inst.ability);
     const item = inst.item && ITEMS[inst.item] ? inst.item : null;
@@ -225,7 +226,7 @@ export function createMatch(
     const formations = [formationOf(home.formation), formationOf(away.formation)];
     [home, away].forEach((setup, t) => {
         const team = t as 0 | 1;
-        const bonuses = teamBonuses(setup.lineup, setup.captainUid);
+        const bonuses = teamBonuses(setup.lineup, setup);
         setup.lineup.forEach((inst, slot) => {
             players.push(createPlayer(players.length, team, slot, inst, formations[team].slots[slot], bonuses));
         });

@@ -444,7 +444,7 @@ export const profile: typeof pt = {
         } as Record<string, string>,
     },
     binder: {
-        from: { draft: 'Draft', recompensa: 'Reward', evolucao: 'Evolution', hall: 'Hall of Fame' },
+        from: { draft: 'Draft', recompensa: 'Reward', mercado: 'Market', evolucao: 'Evolution', hall: 'Hall of Fame' },
         showcase: 'Card showcase',
         showcaseHelp: 'Up to 3 cards on your public profile (your Duel rival sees them). Tap a sticker in the album.',
         add: 'Add to showcase',

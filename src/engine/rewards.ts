@@ -26,6 +26,8 @@ export function rewardOptions(
     reroll: number,
     team: readonly PokemonInstance[],
     defeated?: { name: string; players: readonly PokemonInstance[] },
+    /** Opções a mais (Patrocínio Laboratório de Cinnabar: 4 em vez de 3), sempre itens. */
+    extra = 0,
 ): Reward[] {
     const rng = new Rng(seed, `reward-${stage}-r${reroll}`);
     const taken = new Set(team.map((p) => p.speciesId));
@@ -50,7 +52,7 @@ export function rewardOptions(
     const items = new Set<string>();
     if (typed.length && rng.chance(0.6)) items.add(rng.pick(typed));
     let guard = 0;
-    while (items.size < 2 && guard++ < 50) items.add(rng.pick(general.length ? general : ITEM_IDS));
+    while (items.size < 2 + extra && guard++ < 50) items.add(rng.pick(general.length ? general : ITEM_IDS));
 
     const options: Reward[] = [...items].map((item) => ({ kind: 'item' as const, item }));
     if (pokemon) options.splice(rng.int(0, options.length), 0, pokemon);

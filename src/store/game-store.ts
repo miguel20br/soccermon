@@ -13,6 +13,7 @@ import { everyoneIn, mvpScore } from '../engine/mvp';
 import { type Reward, rewardOptions } from '../engine/rewards';
 import { Rng } from '../engine/rng';
 import type { MatchResult } from '../engine/runners/batch-runner';
+import { packCards, rerollPrice, type ShopOffer, type ShopState, shopOffers, winEarnings } from '../engine/shop';
 import {
     DESTAQUE_LEVEL_UP_RATING,
     DESTAQUE_MAX_LEVEL,
@@ -21,6 +22,7 @@ import {
     SPECIALS_LIVE,
     weeklyEventType,
 } from '../engine/specials';
+import { MAX_SPONSORS } from '../engine/sponsors';
 import { teachMove } from '../engine/tm';
 import { detectLang, type Lang } from '../i18n/lang';
 import { type BinderCard, binderAdd, binderOf } from './binder';
@@ -79,7 +81,8 @@ export type Screen =
     | 'liga'
     | 'liga-match'
     | 'collection'
-    | 'trophies';
+    | 'trophies'
+    | 'shop';
 export type CryStyle = 'legacy' | 'latest';
 export type PlaybackSpeed = 1 | 2 | 4 | 8 | 'highlights';
 
@@ -147,7 +150,7 @@ export interface ChampMemo {
     paraded?: boolean;
 }
 
-export type RunStatus = 'formation' | 'captain' | 'drafting' | 'lineup' | 'reward' | 'eliminated' | 'champion';
+export type RunStatus = 'formation' | 'captain' | 'drafting' | 'lineup' | 'reward' | 'shop' | 'eliminated' | 'champion';
 
 /** Run do modo copa (roguelike). Separada do futuro CareerSave. */
 export interface RunState {
@@ -199,7 +202,18 @@ export interface RunState {
     autoFrom?: number;
     /** Copa do Dia: o dia ('2026-10-19'). Sem = copa normal. */
     daily?: string;
+    /** ₽ (Pokédólar) da copa: só existe dentro dela (docs/planos/copa-roguelike-plano.md). Copas antigas: 0. */
+    money?: number;
+    /** Patrocínios comprados (ids de src/engine/sponsors.ts), até 3. */
+    sponsors?: string[];
+    /** Mercado aberto (status 'shop'). */
+    shop?: (ShopState & { pack?: PokemonInstance[] }) | null;
+    /** Pacotes de tipo abertos na copa (entra na seed do próximo). */
+    packs?: number;
 }
+
+/** O Mercado vem depois da recompensa de cada vitória, menos na Copa do Dia (e não há Mercado depois da final). */
+export const hasShop = (run: Pick<RunState, 'daily'>) => !run.daily;
 
 export interface LiveMatch {
     stage: number;
@@ -373,6 +387,15 @@ export interface GameStore {
     claimReward(index: number, targetUid: string, forgetSlot?: number, passTo?: string): void;
     skipReward(): void;
     rerollReward(): void;
+    /**
+     * Compra no Mercado (mesmos alvos da recompensa). Pacote: abre e as cartas ficam em `shop.pack` até `claimPack`.
+     * Patrocínio com as 3 vagas cheias: `targetUid` = o id do Patrocínio que sai.
+     */
+    buyOffer(index: number, targetUid?: string, forgetSlot?: number, passTo?: string): void;
+    /** Fica com a carta `index` do pacote aberto, no lugar do reserva `targetUid`. */
+    claimPack(index: number, targetUid: string): void;
+    rerollShop(): void;
+    leaveShop(): void;
     advance(): void;
     updateSettings(patch: Partial<Settings>): void;
     updateProfile(patch: Partial<Profile>): void;
@@ -414,9 +437,65 @@ function rollOptions(run: RunState, slot: SlotRef): PokemonInstance[] {
 
 /** Recompensas da fase; o reforço sorteado (não o contratado do adversário) pode vir com edição especial. */
 function rollRewards(run: RunState, reroll: number): Reward[] {
-    return rewardOptions(run.seed, run.stage, reroll, run.picks, defeatedOf(run)).map((r) =>
+    const extra = run.sponsors?.includes('cinnabar') ? 1 : 0;
+    return rewardOptions(run.seed, run.stage, reroll, run.picks, defeatedOf(run), extra).map((r) =>
         r.kind === 'pokemon' && !r.from ? { ...r, inst: rollSpecial(r.inst, run.eventType ?? null) } : r,
     );
+}
+
+/** A recompensa ou a compra entra no time (o mesmo caminho pra recompensa grátis e o Mercado). null = alvo inválido. */
+function grant(
+    run: RunState,
+    reward: Exclude<Reward | ShopOffer, { kind: 'pack' | 'sponsor' }>,
+    targetUid: string,
+    forgetSlot?: number,
+    passTo?: string,
+): { picks: PokemonInstance[]; bench: string[] } | null {
+    let picks = run.picks;
+    let bench = run.bench;
+    if (reward.kind === 'pokemon') {
+        // reforço entra no banco no lugar do reserva escolhido (nunca o capitão);
+        // o item do reserva que sai passa para o reforço
+        const benchIdx = run.bench.indexOf(targetUid);
+        if (benchIdx < 0 || targetUid === run.captainUid) return null;
+        const leaving = run.picks.find((p) => p.uid === targetUid);
+        const incoming = { ...reward.inst, item: reward.inst.item ?? leaving?.item ?? null };
+        bench = run.bench.map((u, i) => (i === benchIdx ? incoming.uid : u));
+        picks = [...run.picks.filter((p) => p.uid !== targetUid), incoming];
+    } else if (reward.kind === 'tm') {
+        // MT: o escolhido esquece um golpe (nunca a assinatura) e aprende o novo
+        const target = run.picks.find((p) => p.uid === targetUid);
+        const taught = target && forgetSlot !== undefined && teachMove(target, reward.move, forgetSlot);
+        if (!taught) return null;
+        picks = run.picks.map((p) => (p.uid === targetUid ? taught : p));
+    } else {
+        // o item antigo de quem recebe vai pra quem o jogador escolheu (se escolheu)
+        const old = run.picks.find((p) => p.uid === targetUid)?.item ?? null;
+        picks = run.picks.map((p) =>
+            p.uid === targetUid
+                ? { ...p, item: reward.item }
+                : old && passTo && p.uid === passTo
+                  ? { ...p, item: old }
+                  : p,
+        );
+    }
+    return { picks, bench };
+}
+
+/** Próxima fase: escalação. */
+const toLineup = (run: RunState): RunState => ({ ...run, status: 'lineup', stage: run.stage + 1 });
+
+/** Vitrine do Mercado desta fase (a `reroll`-ésima troca). */
+function rollShop(run: RunState, reroll: number): ShopOffer[] {
+    return shopOffers({
+        seed: run.seed,
+        stage: run.stage,
+        reroll,
+        team: run.picks,
+        sponsors: run.sponsors ?? [],
+        eventType: run.eventType ?? null,
+        captain: run.picks.find((p) => p.uid === run.captainUid) ?? null,
+    });
 }
 
 export function playerTeam(run: RunState, color = clubColorHex(useGame.getState().profile.clubColor)): TeamSetup {
@@ -427,6 +506,7 @@ export function playerTeam(run: RunState, color = clubColorHex(useGame.getState(
         bench: run.bench.map((u) => byUid.get(u)!),
         tactic: run.tactic,
         color,
+        ...(run.sponsors?.length && { sponsors: run.sponsors }),
         formation: run.formation,
         captainUid: run.captainUid,
         manualSubs: true,
@@ -810,6 +890,35 @@ export const useGame = create<GameStore>()(
                     list.map((p) => p.speciesId),
                 );
             const ovrOf = (p: PokemonInstance): [number, number] => [p.speciesId, viewInstance(p).overall];
+            /** O que muda no save quando chega carta nova (recompensa ou Mercado): Ícones, álbum e nota na Pokédex. */
+            const gained = (run: RunState, picks: PokemonInstance[], from: 'recompensa' | 'mercado') => {
+                const changed = picks.filter((p) => !run.picks.includes(p));
+                const incoming = changed.filter((p) => !run.picks.some((o) => o.uid === p.uid));
+                const { records } = getState();
+                // Ícone que chega como reforço também conta nos Ícones escalados (como o do draft)
+                const icons = incoming.filter((p) => p.special?.kind === 'icone').length;
+                return {
+                    ...(icons && { records: { ...records, icones: (records.icones ?? 0) + icons } }),
+                    binder: binderAdd(getState().binder, incoming, { from, at: Date.now(), cup: run.seed }),
+                    dex: markOvr(getState().dex, changed.map(ovrOf)),
+                };
+            };
+            /** Saindo da recompensa: Mercado (com o ₽ da vitória) ou direto pra escalação da próxima fase. */
+            const afterReward = (run: RunState): Partial<GameStore> => {
+                const done = { ...run, rewards: [] };
+                const res = run.results.find((r) => r.stage === run.stage);
+                if (!hasShop(run) || !res) return { run: toLineup(done), match: null, screen: 'lineup' };
+                const sponsors = run.sponsors ?? [];
+                const earned = winEarnings(res.score[0], res.score[1], run.money ?? 0, sponsors);
+                const money = (run.money ?? 0) + earned.total;
+                const shop = { stage: run.stage, rerolls: 0, offers: rollShop(done, 0), sold: [], earned };
+                return {
+                    run: { ...done, money, shop, status: 'shop' },
+                    dex: seenDex(shop.offers.flatMap((o) => (o.kind === 'pokemon' ? [o.inst] : []))),
+                    match: null,
+                    screen: 'shop',
+                };
+            };
             return {
                 screen: 'home',
                 run: null,
@@ -1289,60 +1398,92 @@ export const useGame = create<GameStore>()(
                     const run = getState().run;
                     const reward = run?.rewards[index];
                     if (run?.status !== 'reward' || !reward) return;
-                    let picks = run.picks;
-                    let bench = run.bench;
-                    if (reward.kind === 'pokemon') {
-                        // reforço entra no banco no lugar do reserva escolhido (nunca o capitão);
-                        // o item do reserva que sai passa para o reforço
-                        const benchIdx = run.bench.indexOf(targetUid);
-                        if (benchIdx < 0 || targetUid === run.captainUid) return;
-                        const leaving = run.picks.find((p) => p.uid === targetUid);
-                        const incoming = { ...reward.inst, item: reward.inst.item ?? leaving?.item ?? null };
-                        bench = run.bench.map((u, i) => (i === benchIdx ? incoming.uid : u));
-                        picks = [...run.picks.filter((p) => p.uid !== targetUid), incoming];
-                    } else if (reward.kind === 'tm') {
-                        // MT: o escolhido esquece um golpe (nunca a assinatura) e aprende o novo
-                        const target = run.picks.find((p) => p.uid === targetUid);
-                        const taught = target && forgetSlot !== undefined && teachMove(target, reward.move, forgetSlot);
-                        if (!taught) return;
-                        picks = run.picks.map((p) => (p.uid === targetUid ? taught : p));
-                    } else {
-                        // o item antigo de quem recebe vai pra quem o jogador escolheu (se escolheu)
-                        const old = run.picks.find((p) => p.uid === targetUid)?.item ?? null;
-                        picks = run.picks.map((p) =>
-                            p.uid === targetUid
-                                ? { ...p, item: reward.item }
-                                : old && passTo && p.uid === passTo
-                                  ? { ...p, item: old }
-                                  : p,
-                        );
-                    }
-                    // Ícone que chega como reforço também conta nos Ícones escalados (como o do draft)
-                    const { records } = getState();
-                    const icon = reward.kind === 'pokemon' && reward.inst.special?.kind === 'icone';
-                    const incoming = reward.kind === 'pokemon' ? picks.filter((p) => !run.picks.includes(p)) : [];
-                    setState({
-                        ...(icon && { records: { ...records, icones: (records.icones ?? 0) + 1 } }),
-                        binder: binderAdd(getState().binder, incoming, {
-                            from: 'recompensa',
-                            at: Date.now(),
-                            cup: run.seed,
-                        }),
-                        run: { ...run, picks, bench, rewards: [], status: 'lineup', stage: run.stage + 1 },
-                        dex: markOvr(getState().dex, picks.filter((p) => !run.picks.includes(p)).map(ovrOf)),
-                        match: null,
-                        screen: 'lineup',
-                    });
+                    const got = grant(run, reward, targetUid, forgetSlot, passTo);
+                    if (!got) return;
+                    // em dois passos: a vitrine do Mercado marca os vistos em cima da Pokédex já com a carta nova
+                    setState(gained(run, got.picks, 'recompensa'));
+                    setState(afterReward({ ...run, ...got }));
                 },
 
                 skipReward: () => {
                     const run = getState().run;
                     if (run?.status !== 'reward') return;
+                    setState(afterReward({ ...run, rerolls: run.rerolls + 1 }));
+                },
+
+                buyOffer: (index, targetUid, forgetSlot, passTo) => {
+                    const run = getState().run;
+                    const shop = run?.shop;
+                    const offer = shop?.offers[index];
+                    if (run?.status !== 'shop' || !shop || !offer || shop.sold.includes(index) || shop.pack) return;
+                    const money = run.money ?? 0;
+                    if (money < offer.price) return;
+                    const sold = [...shop.sold, index];
+                    const paid = { ...run, money: money - offer.price };
+                    if (offer.kind === 'sponsor') {
+                        let sponsors = run.sponsors ?? [];
+                        if (sponsors.length >= MAX_SPONSORS) {
+                            if (!targetUid || !sponsors.includes(targetUid)) return;
+                            sponsors = sponsors.filter((id) => id !== targetUid);
+                        }
+                        setState({ run: { ...paid, sponsors: [...sponsors, offer.id], shop: { ...shop, sold } } });
+                        return;
+                    }
+                    if (offer.kind === 'pack') {
+                        const n = run.packs ?? 0;
+                        const pack = packCards(
+                            run.seed,
+                            run.stage,
+                            offer.type,
+                            run.picks,
+                            run.sponsors ?? [],
+                            run.eventType ?? null,
+                            n,
+                        );
+                        setState({
+                            run: { ...paid, packs: n + 1, shop: { ...shop, sold, pack } },
+                            dex: seenDex(pack),
+                        });
+                        return;
+                    }
+                    const got = grant(run, offer, targetUid ?? '', forgetSlot, passTo);
+                    if (!got) return;
                     setState({
-                        run: { ...run, rewards: [], rerolls: run.rerolls + 1, status: 'lineup', stage: run.stage + 1 },
-                        match: null,
-                        screen: 'lineup',
+                        ...gained(run, got.picks, 'mercado'),
+                        run: { ...paid, ...got, shop: { ...shop, sold } },
                     });
+                },
+
+                claimPack: (index, targetUid) => {
+                    const run = getState().run;
+                    const card = run?.shop?.pack?.[index];
+                    if (run?.status !== 'shop' || !run.shop || !card) return;
+                    const got = grant(run, { kind: 'pokemon', inst: card, from: null }, targetUid);
+                    if (!got) return;
+                    setState({
+                        ...gained(run, got.picks, 'mercado'),
+                        run: { ...run, ...got, shop: { ...run.shop, pack: undefined } },
+                    });
+                },
+
+                rerollShop: () => {
+                    const run = getState().run;
+                    const shop = run?.shop;
+                    if (run?.status !== 'shop' || !shop || shop.pack) return;
+                    const price = rerollPrice(shop.rerolls, run.sponsors);
+                    if ((run.money ?? 0) < price) return;
+                    const rerolls = shop.rerolls + 1;
+                    const offers = rollShop(run, rerolls);
+                    setState({
+                        run: { ...run, money: (run.money ?? 0) - price, shop: { ...shop, rerolls, offers, sold: [] } },
+                        dex: seenDex(offers.flatMap((o) => (o.kind === 'pokemon' ? [o.inst] : []))),
+                    });
+                },
+
+                leaveShop: () => {
+                    const run = getState().run;
+                    if (run?.status !== 'shop' || run.shop?.pack) return;
+                    setState({ run: toLineup({ ...run, shop: null }), match: null, screen: 'lineup' });
                 },
 
                 rerollReward: () => {
@@ -1359,6 +1500,7 @@ export const useGame = create<GameStore>()(
                 advance: () => {
                     const run = getState().run;
                     if (run?.status === 'reward') setState({ screen: 'reward' });
+                    else if (run?.status === 'shop') setState({ screen: 'shop' });
                     else setState({ match: null, screen: 'home' });
                 },
 

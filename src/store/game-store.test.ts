@@ -576,3 +576,101 @@ describe('estilo dos gritos: o padrão virou o Novo (0.8.9)', () => {
         expect(DEFAULT_SETTINGS.cries).toBe('latest');
     });
 });
+
+describe('Mercado (Copa rápida)', () => {
+    const ready = (seed: string, patch: Partial<RunState> = {}): RunState => {
+        useGame.getState().newRun('Pallet FC', seed);
+        const rng = new Rng(seed, 'team');
+        const team = [95, 7, 5, 25, 74, 1, 4].map((id) => createInstance(id, rng));
+        return {
+            ...(useGame.getState().run as RunState),
+            picks: team,
+            lineup: team.slice(0, 5).map((p) => p.uid),
+            bench: team.slice(5).map((p) => p.uid),
+            captainUid: team[0].uid,
+            status: 'reward',
+            stage: 0,
+            rewards: [{ kind: 'item', item: 'scopelens' }],
+            results: [{ stage: 0, opponent: 'x', score: [3, 0], shootout: null, won: true }],
+            ...patch,
+        };
+    };
+
+    it('vitória → recompensa → Mercado com o ₽ da vitória → escalação da próxima fase', () => {
+        useGame.setState({ run: ready('mercado-fluxo', { money: 4 }) });
+        useGame.getState().skipReward();
+        let run = useGame.getState().run!;
+        expect(run.status).toBe('shop');
+        expect(useGame.getState().screen).toBe('shop');
+        // 5 da vitória + 3 gols + 2 sem sofrer + 0 de juros (4 guardados)
+        expect(run.shop!.earned.total).toBe(10);
+        expect(run.money).toBe(14);
+
+        const i = run.shop!.offers.findIndex((o) => o.kind === 'pokemon');
+        const offer = run.shop!.offers[i];
+        useGame.getState().buyOffer(i, run.bench[0]);
+        run = useGame.getState().run!;
+        expect(run.money).toBe(14 - offer.price);
+        expect(run.shop!.sold).toEqual([i]);
+        expect(run.picks.some((p) => offer.kind === 'pokemon' && p.uid === offer.inst.uid)).toBe(true);
+        // vendido não vende de novo
+        useGame.getState().buyOffer(i, run.bench[1]);
+        expect(useGame.getState().run!.money).toBe(run.money);
+
+        useGame.getState().leaveShop();
+        run = useGame.getState().run!;
+        expect(run.status).toBe('lineup');
+        expect(run.stage).toBe(1);
+        expect(run.shop).toBeNull();
+    });
+
+    it('Patrocínio: até 3, o 4º troca por um que sai; sem ₽ não compra', () => {
+        useGame.setState({ run: ready('mercado-patrocinio', { sponsors: ['loja', 'creche', 'cassino'], money: 30 }) });
+        useGame.getState().skipReward();
+        const run = useGame.getState().run!;
+        const i = run.shop!.offers.findIndex((o) => o.kind === 'sponsor');
+        useGame.getState().buyOffer(i);
+        expect(useGame.getState().run!.sponsors).toHaveLength(3);
+        useGame.getState().buyOffer(i, 'creche');
+        const after = useGame.getState().run!;
+        expect(after.sponsors).toHaveLength(3);
+        expect(after.sponsors).not.toContain('creche');
+        expect(after.money).toBe(run.money! - 10);
+
+        useGame.setState({ run: { ...after, money: 1, shop: { ...after.shop!, sold: [] } } });
+        useGame.getState().buyOffer(0, after.bench[0]);
+        expect(useGame.getState().run!.shop!.sold).toEqual([]);
+    });
+
+    it('pacote de tipo: abre, você fica com 1 no lugar de um reserva', () => {
+        useGame.setState({ run: ready('mercado-pacote', { money: 20 }) });
+        useGame.getState().skipReward();
+        const i = useGame.getState().run!.shop!.offers.findIndex((o) => o.kind === 'pack');
+        useGame.getState().buyOffer(i);
+        let run = useGame.getState().run!;
+        expect(run.shop!.pack!.length).toBe(3);
+        // com o pacote aberto não sai do Mercado
+        useGame.getState().leaveShop();
+        expect(useGame.getState().run!.status).toBe('shop');
+        const card = run.shop!.pack![1];
+        useGame.getState().claimPack(1, run.bench[1]);
+        run = useGame.getState().run!;
+        expect(run.bench[1]).toBe(card.uid);
+        expect(run.shop!.pack).toBeUndefined();
+    });
+
+    it('Copa do Dia e copa sem resultado (save antigo) não têm Mercado', () => {
+        useGame.setState({ run: ready('mercado-dia', { daily: '2026-10-20' }) });
+        useGame.getState().skipReward();
+        expect(useGame.getState().run!.status).toBe('lineup');
+        useGame.setState({ run: ready('mercado-antigo', { results: [] }) });
+        useGame.getState().skipReward();
+        expect(useGame.getState().run!.status).toBe('lineup');
+    });
+
+    it('Patrocínio de campo vai pro time da partida (carta = campo)', () => {
+        const run = ready('mercado-campo', { sponsors: ['academia'] });
+        expect(playerTeam(run, 15221311).sponsors).toEqual(['academia']);
+        expect(playerTeam({ ...run, sponsors: [] }, 15221311).sponsors).toBeUndefined();
+    });
+});

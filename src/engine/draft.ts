@@ -89,6 +89,8 @@ export function draftOptions(
     preferTypes: readonly string[] = [],
     needOverride?: Position | 'ANY',
     oddsOverride?: number[],
+    /** Só deste tipo (pacote de tipo do Mercado). */
+    onlyType?: string,
 ): PokemonInstance[] {
     const need = needOverride ?? DRAFT_ROUNDS[round]?.need ?? 'ANY';
     // Pivô é a posição mais escassa: a vaga puxa um pouco mais de raridade para não sobrar só nota baixa
@@ -99,14 +101,20 @@ export function draftOptions(
     while (chosen.length < count && guard++ < 500) {
         const tier = rng.weighted(TIERS, (t) => odds[TIERS.indexOf(t)]);
         const pool = SPECIES.filter(
-            (sp) => sp.tier === tier && !taken.has(sp.id) && !chosen.some((c) => c.id === sp.id) && canPlay(sp, need),
+            (sp) =>
+                sp.tier === tier &&
+                !taken.has(sp.id) &&
+                !chosen.some((c) => c.id === sp.id) &&
+                canPlay(sp, need) &&
+                (!onlyType || sp.types.includes(onlyType)),
         );
         if (!pool.length) continue;
         // times temáticos (ginásios) preferem os próprios tipos
         const themed = preferTypes.length ? pool.filter((sp) => sp.types.some((t) => preferTypes.includes(t))) : [];
         const pick = rng.pick(themed.length && rng.chance(0.75) ? themed : pool);
         const typesSoFar = new Set(chosen.map((c) => c.types[0]));
-        if (chosen.length === 2 && typesSoFar.size === 1 && typesSoFar.has(pick.types[0]) && guard < 400) continue;
+        if (!onlyType && chosen.length === 2 && typesSoFar.size === 1 && typesSoFar.has(pick.types[0]) && guard < 400)
+            continue;
         chosen.push(pick);
     }
     return chosen.map((sp) => createInstance(sp.id, rng));
