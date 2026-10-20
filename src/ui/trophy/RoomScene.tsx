@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useRef } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useRef } from 'react';
 import { useT } from '../../i18n/react';
 import { lookOfProfile } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
@@ -256,7 +256,7 @@ function draw(c: Ctx, d: RoomData) {
 }
 
 /** Lugar de cada móvel no quarto (pixels do desenho) e pra onde ele leva. */
-type Spot = 'cups' | 'daily' | 'duel' | 'liga' | 'diploma' | 'medals' | 'pc' | 'tv' | 'books' | 'glass' | 'flag';
+export type Spot = 'cups' | 'daily' | 'duel' | 'liga' | 'diploma' | 'medals' | 'pc' | 'tv' | 'books' | 'glass' | 'flag';
 const SPOTS: { target: RoomTarget; x: number; y: number; w: number; h: number; label: Spot }[] = [
     { target: 'tr-copa', x: 8, y: 36, w: 96, h: 24, label: 'cups' },
     { target: 'tr-dia', x: 8, y: 60, w: 96, h: 24, label: 'daily' },
@@ -279,7 +279,16 @@ const at = (x: number, y: number, w: number, h: number): CSSProperties => ({
     height: pct(h, ROOM_H),
 });
 
-export function RoomScene({ data, onPick }: { data: RoomData; onPick: (t: RoomTarget) => void }) {
+export function RoomScene({
+    data,
+    onPick,
+    children,
+}: {
+    data: RoomData;
+    onPick: (t: RoomTarget, spot: Spot) => void;
+    /** Por cima do quarto (a caixa de diálogo do móvel tocado). */
+    children?: ReactNode;
+}) {
     const { d } = useT();
     const ref = useRef<HTMLCanvasElement>(null);
     const profile = useGame((s) => s.profile);
@@ -320,9 +329,10 @@ export function RoomScene({ data, onPick }: { data: RoomData; onPick: (t: RoomTa
                     style={at(s.x, s.y, s.w, s.h)}
                     aria-label={name(s.label)}
                     title={name(s.label)}
-                    onClick={() => onPick(s.target)}
+                    onClick={() => onPick(s.target, s.label)}
                 />
             ))}
+            {children}
         </div>
     );
 }

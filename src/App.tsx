@@ -35,6 +35,7 @@ import { TrophyRoom } from './ui/screens/TrophyRoom';
 /** Telas de menu: o topo tem o canto de Configurações e Perfil (partida, draft e Duelo não, pra ninguém sair sem querer). */
 const MENU_SCREENS: Screen[] = ['settings', 'credits', 'help', 'profile', 'collection', 'trophies', 'daily', 'liga'];
 
+const RoomLab = lazy(() => import('./ui/screens/RoomLab').then((m) => ({ default: m.RoomLab })));
 const MoveLab = lazy(() => import('./ui/screens/MoveLab').then((m) => ({ default: m.MoveLab })));
 const VersusLab = lazy(() => import('./ui/components/VersusLab').then((m) => ({ default: m.VersusLab })));
 const CourtLab = lazy(() => import('./ui/screens/CourtLab').then((m) => ({ default: m.CourtLab })));
@@ -63,7 +64,7 @@ export default function App() {
         const params = new URLSearchParams(window.location.search);
         const q = params.get('lab');
         if (q === 'golpes' || q === 'emotes' || q === 'quadras') return q;
-        if (__SMOKE__ && q === 'versus') return q;
+        if (__SMOKE__ && (q === 'versus' || q === 'sala')) return q;
         return (__SMOKE__ || params.has('revisao')) && q === 'posicoes' ? q : null;
     });
     const [cards, setCards] = useState(
@@ -126,7 +127,7 @@ export default function App() {
         };
         return (
             <div className="app">
-                {lab === 'golpes' || lab === 'emotes' || lab === 'versus' || lab === 'quadras' ? (
+                {lab === 'golpes' || lab === 'emotes' || lab === 'versus' || lab === 'quadras' || lab === 'sala' ? (
                     <Suspense fallback={<p className="muted">{t('common.ui.loading')}</p>}>
                         {lab === 'golpes' ? (
                             <MoveLab onExit={exit} />
@@ -134,6 +135,8 @@ export default function App() {
                             <EmoteLab onExit={exit} />
                         ) : lab === 'quadras' ? (
                             <CourtLab onExit={exit} />
+                        ) : lab === 'sala' ? (
+                            <RoomLab onExit={exit} />
                         ) : (
                             <VersusLab onExit={exit} />
                         )}

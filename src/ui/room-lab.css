@@ -1,0 +1,233 @@
+/* ?lab=sala: as direções da Sala de troféus lado a lado (src/ui/screens/RoomLab.tsx) */
+.lab-dir {
+    display: grid;
+    gap: 10px;
+}
+.lab-dir p {
+    margin: 0;
+}
+
+/* B · museu: fundo escuro, vitrine com holofote, troféu grande */
+.lab-museum {
+    display: grid;
+    gap: 14px;
+    padding: 16px 10px;
+    border-radius: 8px;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, #1d2654, #0a0e22 75%);
+}
+.lm-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+.lm-case {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    padding: 26px 6px 10px;
+    border: 2px solid rgba(190, 220, 255, 0.35);
+    border-bottom: 10px solid #1a1f3a;
+    border-radius: 6px 6px 2px 2px;
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02) 45%);
+    color: var(--text);
+    cursor: pointer;
+    transition:
+        transform 250ms var(--ease-out),
+        border-color 250ms var(--ease-out);
+}
+.lm-case.on {
+    transform: translateY(-4px) scale(1.04);
+    border-color: var(--yellow);
+}
+.lm-light {
+    position: absolute;
+    inset: 0 10% auto;
+    height: 70%;
+    background: radial-gradient(ellipse 50% 100% at 50% 0%, rgba(255, 241, 168, 0.35), transparent 75%);
+    pointer-events: none;
+}
+.lm-case.empty .lm-light {
+    opacity: 0.25;
+}
+.lm-case .tr-art {
+    position: relative;
+    width: 72px;
+    height: auto;
+    filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.45));
+}
+.lm-case .tr-cinturao {
+    width: 92px;
+}
+.lm-plate {
+    display: flex;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    background: #c9a24a;
+    color: #2a1d12;
+    font-size: 11px;
+}
+.lm-plate em {
+    font-style: normal;
+}
+.lm-say {
+    margin: 0;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: var(--bc-ink-2);
+    animation: room-dialog-in 200ms var(--ease-out) both;
+}
+
+/* C · estante: uma prateleira por vez, item vira ao tocar */
+.lab-shelf {
+    display: grid;
+    gap: 0;
+    padding: 12px;
+    border-radius: 8px;
+    background: linear-gradient(#3b2a1c, #2a1d12);
+}
+.ls-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 10px;
+    color: #f4e4c0;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 18px;
+}
+.ls-board {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    animation: screen-in 250ms var(--ease-out) both;
+}
+.ls-item {
+    position: relative;
+    height: 150px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    perspective: 600px;
+}
+.ls-front,
+.ls-back {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: end center;
+    padding-bottom: 6px;
+    border-radius: 6px;
+    backface-visibility: hidden;
+    transition: transform 300ms var(--ease-out);
+}
+.ls-front .tr-art {
+    width: 88px;
+    height: auto;
+}
+.ls-front .tr-cinturao {
+    width: 104px;
+}
+.ls-front em {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    font-style: normal;
+    color: var(--yellow);
+    font-family: "Galmuri14", "Galmuri11", monospace;
+}
+.ls-back {
+    place-items: center;
+    padding: 8px;
+    background: #f4e4c0;
+    color: #2a1d12;
+    font-size: 12px;
+    transform: rotateY(180deg);
+}
+.ls-item.flip .ls-front {
+    transform: rotateY(180deg);
+}
+.ls-item.flip .ls-back {
+    transform: rotateY(360deg);
+}
+.ls-plank {
+    height: 14px;
+    border-radius: 2px;
+    background: #8a5a32;
+    box-shadow: 0 6px 0 #5a3b24;
+}
+
+/* D · Game Boy: 4 tons, lista de itens, caixa de texto */
+.lab-gb {
+    padding: 14px;
+    border-radius: 10px 10px 40px 10px;
+    background: #c4c0b8;
+}
+.gb-screen {
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+    border: 6px solid #4a4a58;
+    border-radius: 4px;
+    background: #9bbc0f;
+    color: #0f380f;
+    font-family: "Galmuri11", monospace;
+}
+.gb-show {
+    display: grid;
+    place-items: center;
+    height: 96px;
+}
+.gb-show .tr-art {
+    width: 80px;
+    height: auto;
+}
+.gb-show .tr-cinturao {
+    width: 110px;
+}
+.gb-list {
+    list-style: none;
+    margin: 0;
+    padding: 6px;
+    border: 3px solid #0f380f;
+    background: #8bac0f;
+    max-height: 132px;
+    overflow: auto;
+}
+.gb-list button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 2px 0;
+    border: 0;
+    background: none;
+    color: #0f380f;
+    font: inherit;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+}
+.gb-cursor {
+    width: 0;
+    height: 0;
+    border: 5px solid transparent;
+    border-left: 7px solid transparent;
+}
+.gb-list button.on .gb-cursor {
+    border-left-color: #0f380f;
+}
+.gb-n {
+    margin-left: auto;
+}
+.gb-box {
+    margin: 0;
+    padding: 8px 10px;
+    border: 3px solid #0f380f;
+    box-shadow:
+        inset 0 0 0 2px #9bbc0f,
+        inset 0 0 0 4px #0f380f;
+    background: #9bbc0f;
+    font-size: 13px;
+}

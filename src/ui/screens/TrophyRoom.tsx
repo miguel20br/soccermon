@@ -5,23 +5,24 @@ import { useT } from '../../i18n/react';
 import { duelWins as duelWinsOf } from '../../store/duels';
 import { useGame } from '../../store/game-store';
 import { medalProgress } from '../../store/medals';
-import { PLATINUM, platinumDone } from '../../store/missions';
-import { clubColorHex } from '../../store/profile';
-import { BELTS, cupCounts, dailyCounts, fullWeeks, METALS, roomLevel } from '../../store/trophies';
+import { PLATINUM, platinumDone, platinumItems } from '../../store/missions';
+import { albumCount, clubColorHex } from '../../store/profile';
+import { BELTS, cupCounts, dailyCounts, fullWeeks, METALS, type MetalCount, roomLevel } from '../../store/trophies';
 import { HallList } from '../components/HallParade';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { type ArtKind, PixelTrophy } from '../components/PixelTrophy';
 import { DOOR_TABS, type DoorTab, initialTab, openDoor } from '../doors';
 import { useCardShowcase } from '../profile/Album';
-import { clubVars } from '../profile/club';
+import { bannerText, clubVars } from '../profile/club';
 import { MedalsTab, useMedalView } from '../profile/Medals';
 import { NumbersTab } from '../profile/NumbersTab';
 import { NewDot, newsCount, useNews } from '../profile/news';
 import { PlatinumBlock } from '../profile/TrainerTab';
 import { type Metal, metalOf } from '../rarity';
 import { reduceMotionOn } from '../settings-sync';
-import { RoomScene, type RoomTarget } from '../trophy/RoomScene';
+import { RoomDialog } from '../trophy/RoomDialog';
+import { RoomScene, type RoomTarget, type Spot } from '../trophy/RoomScene';
 import '../profile/profile.css';
 import '../trophy-room.css';
 
@@ -58,8 +59,9 @@ function TrophyCard({
  * do cartão) e Números.
  */
 export function TrophyRoom() {
-    const { t, d } = useT();
+    const { t, d, lang } = useT();
     const go = useGame((s) => s.go);
+    const career = useGame((s) => s.career);
     const profile = useGame((s) => s.profile);
     const updateProfile = useGame((s) => s.updateProfile);
     const hall = useGame((s) => s.hall);
@@ -93,8 +95,10 @@ export function TrophyRoom() {
         tv: cap ? { speciesId: cap.speciesId, shiny: cap.shiny } : null,
     };
 
-    /** Móvel tocado: abre a aba e desliza até a seção (o que mora em outra porta abre lá). */
-    const pick = (to: RoomTarget) => {
+    const metalName = (m: Metal) => t(`trophies.metal.${m}` as TKey);
+    /** Só quando a pessoa pede (o botão da caixa): abre a aba e desliza até a seção, ou a outra porta. */
+    const goTo = (to: RoomTarget) => {
+        setSay(null);
         if (to === 'album') return openDoor('collection', 'album');
         if (to === 'clube') return openDoor('profile', 'clube');
         const next: Tab = to === 'medalhas' || to === 'numeros' ? to : 'trofeus';
@@ -105,13 +109,112 @@ export function TrophyRoom() {
                 ?.scrollIntoView({ block: 'start', behavior: reduceMotionOn() ? 'auto' : 'smooth' }),
         );
     };
-    const metalName = (m: Metal) => t(`trophies.metal.${m}` as TKey);
+    const [say, setSay] = useState<{ spot: Spot; target: RoomTarget } | null>(null);
+    const list = (n: MetalCount) =>
+        new Intl.ListFormat(lang === 'pt' ? 'pt-BR' : 'en', { type: 'conjunction' }).format(
+            METALS.filter((m) => n[m]).map((m) => t('trophies.say.metalN', { n: n[m], metal: metalName(m) })),
+        );
+    /** O que a caixa diz de cada móvel, e pra onde o botão leva. */
+    const talk = (spot: Spot): { text: string; action?: { label: string; to: RoomTarget } } => {
+        const sum = (n: MetalCount) => n.bronze + n.prata + n.ouro;
+        const last = hall[0];
+        switch (spot) {
+            case 'cups':
+                return sum(cups)
+                    ? {
+                          text: t('trophies.say.cups', { list: list(cups) }),
+                          action: { label: t('trophies.act.hall'), to: 'tr-copa' },
+                      }
+                    : { text: t('trophies.say.cupsNone') };
+            case 'daily':
+                return {
+                    text: sum(days)
+                        ? t('trophies.say.daily', { list: list(days), w: weeks })
+                        : t('trophies.say.dailyNone'),
+                    action: { label: t('trophies.act.daily'), to: 'tr-dia' },
+                };
+            case 'duel': {
+                const next = BELTS.find((b) => duelWins < b.wins);
+                return {
+                    text: next
+                        ? t('trophies.say.duel', { n: duelWins, next: next.wins })
+                        : t('trophies.say.duelMax', { n: duelWins }),
+                    action: { label: t('trophies.act.duel'), to: 'tr-duelo' },
+                };
+            }
+            case 'liga':
+                return { text: t('trophies.ligaHow') };
+            case 'diploma': {
+                const items = platinumItems(PLATINUM[0], view);
+                return platinum
+                    ? { text: t('trophies.say.diplomaDone') }
+                    : {
+                          text: t('trophies.say.diploma', {
+                              k: items.filter((i) => i.n >= i.goal).length,
+                              total: items.length,
+                          }),
+                          action: { label: t('trophies.act.platina'), to: 'tr-platina' },
+                      };
+            }
+            case 'medals':
+                return {
+                    text: t('trophies.say.medals', {
+                        n: medals.filter((m) => m.tier > 0).length,
+                        total: medals.length,
+                    }),
+                    action: { label: t('trophies.act.medals'), to: 'medalhas' },
+                };
+            case 'pc':
+                return {
+                    text: t('trophies.say.pc', { m: career.matches, w: career.wins, g: career.goalsFor }),
+                    action: { label: t('trophies.act.numbers'), to: 'numeros' },
+                };
+            case 'tv': {
+                const fin = last?.scores.at(-1);
+                return last && fin
+                    ? {
+                          text: t('trophies.say.tv', { club: last.club, a: fin[0], b: fin[1] }),
+                          action: { label: t('trophies.act.hall'), to: 'tr-copa' },
+                      }
+                    : { text: t('trophies.say.tvNone') };
+            }
+            case 'books': {
+                const a = albumCount(view.dex);
+                return {
+                    text: t('trophies.say.books', { got: a.got, total: a.total }),
+                    action: { label: t('trophies.act.album'), to: 'album' },
+                };
+            }
+            case 'glass':
+                return {
+                    text: t('trophies.say.glass', { n: glass.length }),
+                    action: { label: t('trophies.act.album'), to: 'album' },
+                };
+            case 'flag':
+                return {
+                    text: t('trophies.say.flag', {
+                        banner: bannerText(profile.banner, profile.clubName || 'Pallet FC'),
+                    }),
+                    action: { label: t('trophies.act.club'), to: 'clube' },
+                };
+        }
+    };
+    const said = say && talk(say.spot);
 
     return (
         <div className="menu-screen pf tr" style={clubVars(clubColorHex(profile.clubColor))}>
             <MenuHead title={t('trophies.title')} icon="liga" onBack={() => go('home')} />
 
-            <RoomScene data={room} onPick={pick} />
+            <RoomScene data={room} onPick={(target, spot) => setSay({ target, spot })}>
+                {said && (
+                    <RoomDialog
+                        key={say.spot}
+                        text={said.text}
+                        action={said.action && { label: said.action.label, run: () => goTo(said.action!.to) }}
+                        onClose={() => setSay(null)}
+                    />
+                )}
+            </RoomScene>
             <p className="tr-level">
                 <b>{t('trophies.levelLine', { n: lvl.n, name: t(`trophies.level.${lvl.level}` as TKey) })}</b>
                 <small>{lvl.next ? t('trophies.nextLevel', { n: lvl.next }) : t('trophies.maxLevel')}</small>

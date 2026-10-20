@@ -215,8 +215,8 @@ Duelo sai de `"displayVersion"` no `package.json` (`__APP_VERSION__` = `displayV
 cartas com o logo, bola original na Home e a Liga fechada com contagem.
 
 **Branch `v089` (20/10, ainda não lançada):** perfil do amigo (Amigos → tocar no nome: vitrine, números, últimos
-títulos, "vocês no Duelo"; ranking da Copa do Dia Todos/Amigos; migração `20261021120000_perfil_do_amigo.sql` **ainda
-não aplicada**, precisa do ok do Miguel), Sala de troféus (`src/ui/screens/TrophyRoom.tsx`, `src/store/trophies.ts`,
+títulos, "vocês no Duelo"; ranking da Copa do Dia Todos/Amigos; migração `20261021120000_perfil_do_amigo.sql` **aplicada
+em produção em 20/10** com o ok do Miguel), Sala de troféus (`src/ui/screens/TrophyRoom.tsx`, `src/store/trophies.ts`,
 `?demo=sala`), o retrofit do "nada teleporta" (`src/ui/view-transition.ts`, `tab-slide.ts`, `exit-motion.ts`,
 `npm run teleporte`) e os **menus em três portas** (decidido em 20/10, `docs/planos/menus-e-sala.md`): a Home tem os
 modos de jogo + **Perfil** (Treinador com as missões, Clube, Amigos), **Coleção** (Pokédex, Álbum, Golpedex) e **Sala de

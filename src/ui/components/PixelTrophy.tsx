@@ -54,20 +54,27 @@ const PALETTE: Record<Metal, { o: string; h: string; s: string }> = {
     ouro: { o: '#e8c24a', h: '#fff1a8', s: '#b08a20' },
 };
 
+const GB_METAL: Record<Metal, string> = { bronze: '#306230', prata: '#8bac0f', ouro: '#9bbc0f' };
+
 /** Um path por cor (um quadradinho por pixel). Silhueta: tudo numa cor só, apagada. */
 export function PixelTrophy({
     kind,
     metal,
     ghost,
+    gb,
     className = '',
 }: {
     kind: ArtKind;
     metal: Metal;
     ghost?: boolean;
+    /** Nos 4 tons do Game Boy (o metal vira o tom: ouro claro, bronze escuro). */
+    gb?: boolean;
     className?: string;
 }) {
     const rows = ART[kind];
-    const pal: Record<string, string> = { ...PALETTE[metal], b: '#5a3b24', r: 'var(--tr-ribbon)', k: '#3a2a22' };
+    const pal: Record<string, string> = gb
+        ? { o: GB_METAL[metal], h: '#9bbc0f', s: '#0f380f', b: '#0f380f', r: '#306230', k: '#0f380f' }
+        : { ...PALETTE[metal], b: '#5a3b24', r: 'var(--tr-ribbon)', k: '#3a2a22' };
     const paths = new Map<string, string>();
     rows.forEach((row, y) => {
         [...row].forEach((c, x) => {
