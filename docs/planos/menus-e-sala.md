@@ -104,3 +104,24 @@ arte (o quarto é a cena de cima, as seções ficam embaixo).
    as barras. E "Novidades" da Home vira **"Notas da versão"**.
 8. **Arte da sala:** 1, FireRed/LeafGreen visto de cima **(recomendado)** / 2, Game Boy 4 tons / 3, Mystery Dungeon.
    Antes de espalhar, um quarto de teste em `?lab=sala` pra você aprovar.
+
+## Pesquisa da arte do quarto (20/10/2026, depois do "não gosto do estilo")
+
+O Miguel: mistura do A (cenário) com o B (museu escuro, troféu grande), visual moderno, vivo, tudo numa tela; o maior
+problema é o traço, e o jeito de mostrar as informações.
+
+- **Galeria de troféus do Smash Bros. (Melee/Brawl):** o troféu sozinho, grande, girando, com o texto do lado; dá pra
+  girar e dar zoom. É o modelo pra mostrar a informação: o troféu escolhido no centro, um cartão curto ao lado.
+  ([SmashWiki: Trophy](https://www.ssbwiki.com/Trophy), [Trophy Hoard](https://www.ssbwiki.com/Trophy_Hoard))
+- **Salas isométricas 3D na web (three.js):** câmera ortográfica em ângulo, luz quente pontual, troca de luz ao
+  tocar; leve se a luz for "assada". ([exemplo isométrico](https://freefrontend.com/code/isometric-3d-baked-room-2026-02-16/))
+- **Móveis low-poly livres:** [KayKit Furniture Bits](https://github.com/KayKit-Game-Assets/KayKit-Furniture-Bits-1.0)
+  (CC0, glTF, 50+ móveis no traço arredondado "de brinquedo") e o
+  [Furniture Kit da Kenney](https://opengameart.org/content/furniture-kit) (CC0, 120 objetos). Resolvem o traço sem
+  desenhar à mão.
+- Não achei uma "sala de troféus" pronta em jogo de futebol (o FC 25 só põe troféus no estádio do UT).
+
+**Direção F (protótipo no `?lab=sala`):** diorama 3D de noite: paredes azul-noite (como o resto do jogo), vitrines
+com holofote, taças de metal que refletem, móveis KayKit, o seu Pokémon andando até o troféu tocado; tocar num troféu
+aproxima a câmera, ele gira e o cartão aparece do lado (estilo Smash). three.js só nesse pedaço (~620 KB, ~160 KB
+gzip), carregado só na sala.
