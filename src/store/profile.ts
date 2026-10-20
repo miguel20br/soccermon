@@ -80,6 +80,8 @@ export interface Profile {
     showcase?: string[];
     /** Vitrine de cartas: até 3 cartas do fichário (binder.ts: id da carta). */
     cardShowcase?: string[];
+    /** Álbum: a versão que fica na frente de cada espécie (`versionId` ou `<espécie>:normal`); sem = a melhor. */
+    albumFront?: Record<string, string>;
     /** Sprite do treinador e título embaixo do nome (missions.ts). */
     trainer: TrainerId;
     title: string;

@@ -110,58 +110,9 @@
     border: 2px dashed var(--line);
     border-radius: 10px;
 }
-.al-commons,
 .al-swipe {
     margin: 0;
     text-align: center;
-}
-
-/* índice das seções: o nome, o contador e a barrinha */
-.al-index {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 4px;
-}
-.al-tab {
-    position: relative;
-    display: grid;
-    gap: 1px;
-    padding: 7px 2px 9px;
-    border: 0;
-    border-bottom: 2px solid #000;
-    border-radius: 6px;
-    background: var(--bc-ink);
-    color: var(--muted);
-    font: inherit;
-    cursor: pointer;
-    overflow: hidden;
-}
-.al-tab b {
-    font-size: 11px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.al-tab small {
-    font-size: 10px;
-}
-.al-tab i {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    height: 3px;
-    background: var(--yellow);
-}
-.al-tab.on {
-    background: var(--yellow);
-    color: var(--bc-ink);
-}
-.al-tab.on i {
-    background: var(--bc-ink);
-}
-.al-tab:focus-visible {
-    outline: 3px solid var(--yellow);
-    outline-offset: 2px;
 }
 
 .al-nav {
@@ -249,19 +200,6 @@
     font-size: 11px;
     font-weight: 700;
 }
-.al-page.al-ed-icone {
-    --ed: var(--ed-icone);
-}
-.al-page.al-ed-destaque,
-.al-page.al-ed-raras {
-    --ed: var(--ed-destaque);
-}
-.al-page.al-ed-evento {
-    --ed: var(--ev, var(--yellow));
-}
-.al-page.al-ed-shiny .al-ph {
-    border-image: var(--ed-shiny) 1;
-}
 .al-folio {
     grid-row: 4;
     font-size: 10px;
@@ -272,14 +210,6 @@
 .al-page.right .al-folio {
     text-align: left;
 }
-.al-rare-help {
-    grid-row: 2;
-    margin: 0;
-    font-size: 12px;
-    color: rgba(14, 20, 48, 0.7);
-}
-
-/* a grade: 2×3 no celular em pé, 6 numa linha deitado, 4×3 no tablet e no desktop */
 .al-pgrid {
     grid-row: 3;
     list-style: none;
@@ -377,16 +307,6 @@
     top: -6px;
     right: -6px;
 }
-.al-cap {
-    font-size: 11px;
-    font-weight: 700;
-    text-align: center;
-    color: var(--bc-ink);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
 /* a figurinha: a carta de verdade, colada levemente torta, com a fita em cima */
 .al-stk {
     position: absolute;
@@ -448,6 +368,17 @@
     }
 }
 
+/* o livro acabou de abrir: a página aparece com a capa saindo da frente */
+.al-page.enter {
+    animation: al-page-in 320ms var(--ease-out);
+}
+@keyframes al-page-in {
+    from {
+        transform: scale(0.96);
+        opacity: 0;
+    }
+}
+
 /* virar a página */
 .al-page.turn-next {
     transform-origin: left center;
@@ -473,6 +404,9 @@
     .al-stk.pasting,
     .al-page.turn-next,
     .al-page.turn-prev,
+    .al-page.enter,
+    .al-cover.opening .al-cover-face,
+    .al-cover.closing .al-cover-face,
     .al-slot.found .al-box {
         animation: none;
     }
@@ -575,18 +509,6 @@
     box-shadow: inset 0 0 0 2px var(--yellow);
 }
 
-/* 320: o índice em 2 linhas (3 + 2) pra caber o nome inteiro */
-@media (max-width: 380px) {
-    .al-index {
-        grid-template-columns: repeat(6, minmax(0, 1fr));
-    }
-    .al-tab {
-        grid-column: span 2;
-    }
-    .al-tab:nth-child(n + 4) {
-        grid-column: span 3;
-    }
-}
 /* desktop: o livro aberto sai da coluna do perfil, pra carta ficar do tamanho de ler */
 @media (min-width: 1000px) and (min-height: 600px) {
     .al-book {
@@ -595,12 +517,175 @@
         margin-inline: calc((100% - var(--w)) / 2);
     }
 }
-/* seção com figurinha nova: o pontinho no canto da aba */
-.al-tab i.new-dot.al-tab-dot {
-    top: 4px;
-    right: 4px;
+
+/* estante: um livro por geração; tocar na capa abre */
+.al-shelf {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 220px));
+    justify-content: center;
+    gap: 14px;
+    perspective: 1400px;
+}
+.al-cover {
+    position: relative;
+    padding: 0;
+    border: 0;
+    background: var(--bc-paper);
+    border-radius: 6px 12px 12px 6px;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    box-shadow: 4px 6px 0 rgba(0, 0, 0, 0.45);
+}
+.al-cover:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 3px;
+}
+.al-cover-face {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 6px;
+    aspect-ratio: 3 / 4;
+    padding: 16px 10px 12px 18px;
+    box-sizing: border-box;
+    border: 3px solid #f2c53d;
+    border-radius: 6px 12px 12px 6px;
+    background:
+        repeating-conic-gradient(rgb(255 255 255 / 5%) 0 7deg, transparent 7deg 15deg) 50% 60% / 260% 260%,
+        radial-gradient(circle at 50% 40%, #2c3d86, #10183d 75%);
+    box-shadow: inset 10px 0 0 -2px rgb(0 0 0 / 35%);
+    color: var(--text);
+    transform-origin: left center;
+    backface-visibility: hidden;
+    transition: transform 150ms var(--ease-out);
+}
+.al-cover:not(:disabled):hover .al-cover-face {
+    transform: rotateY(-8deg);
+}
+.al-cover-logo {
+    width: 88%;
+    height: auto;
+    image-rendering: auto;
+}
+.al-cover-title {
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.al-cover-gen {
+    font-family: "Galmuri14", monospace;
+    font-size: 18px;
+    color: var(--yellow);
+}
+.al-cover-region {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+}
+.al-cover-mon {
+    width: 46%;
+    height: auto;
+}
+.al-cover-n {
+    font-size: 12px;
+    font-weight: 700;
+}
+.al-cover-cta {
+    margin-top: auto;
+    padding: 4px 12px;
+    border-radius: 6px;
+    background: var(--yellow);
+    color: var(--bc-ink);
+    font-size: 12px;
+    font-weight: 700;
+    box-shadow: 0 3px 0 #000;
+}
+.al-cover.soon {
+    cursor: default;
+    filter: grayscale(1) brightness(0.65);
+}
+.al-cover .al-cover-dot {
+    top: 8px;
+    right: 8px;
     left: auto;
     bottom: auto;
-    width: 9px;
-    height: 9px;
+}
+/* a capa gira pra esquerda como capa de livro e mostra o papel de dentro (e volta ao fechar) */
+.al-cover.opening .al-cover-face {
+    animation: al-cover-open 520ms var(--ease-in-out, ease-in-out) forwards;
+}
+.al-cover.closing .al-cover-face {
+    animation: al-cover-open 520ms var(--ease-in-out, ease-in-out) reverse both;
+}
+@keyframes al-cover-open {
+    to {
+        transform: rotateY(-160deg);
+    }
+}
+
+/* edições do Pokémon embaixo do espaço: Normal, Shiny, Evento, Ícone, Destaque (acesa = tem) */
+.al-dots {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    min-height: 8px;
+}
+.al-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1.5px rgba(14, 20, 48, 0.3);
+}
+.al-dot.on {
+    box-shadow: 0 1px 0 rgba(14, 20, 48, 0.5);
+}
+.al-dot-normal.on {
+    background: #8e97b3;
+}
+.al-dot-shiny.on {
+    background: conic-gradient(#ff5ea8, #ffd75e, #5eeaff, #b16bff, #ff5ea8);
+}
+.al-dot-evento.on {
+    background: #3fbf7f;
+}
+.al-dot-icone.on {
+    background: #8a5cf0;
+}
+.al-dot-destaque.on {
+    background: #f2c53d;
+}
+
+.al-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+/* Suas versões em carta pequena (a carta grande troca ao tocar) */
+.al-versions ul {
+    grid-auto-flow: column;
+    grid-auto-columns: 92px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+.al-versions button {
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    text-align: center;
+}
+.al-vcard {
+    width: 100%;
+    container-type: inline-size;
+}
+.al-vcard .pc2 {
+    font-size: calc(100cqi / 15);
+}
+.al-versions small {
+    margin-left: 0;
 }

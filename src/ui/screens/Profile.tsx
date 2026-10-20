@@ -20,6 +20,7 @@ import { NumbersTab } from '../profile/NumbersTab';
 import { NewDot, NewsBar, newsCount, useNews } from '../profile/news';
 import { useMyInfo, usePlayerCard } from '../profile/PlayerCard';
 import { MissionsTab, TrainerSprite } from '../profile/TrainerTab';
+import { reduceMotionOn } from '../settings-sync';
 import '../profile/profile.css';
 
 type Tab = 'clube' | 'medalhas' | 'missoes' | 'dex' | 'amigos' | 'hall' | 'numeros';
@@ -52,6 +53,15 @@ export function Profile() {
     const q = new URLSearchParams(window.location.search).get('perfil');
     const albumQ = q === 'album' || q === 'fichario';
     const [tab, setTab] = useState<Tab>(() => (albumQ ? 'dex' : q && TABS.includes(q as Tab) ? (q as Tab) : 'clube'));
+    /** Vai pra outra aba de um botão lá embaixo da página: sobe até as abas (senão a aba nova abre no meio). */
+    const openTab = (id: Tab) => {
+        setTab(id);
+        requestAnimationFrame(() =>
+            document
+                .getElementById(`pf-tab-${id}`)
+                ?.scrollIntoView({ block: 'start', behavior: reduceMotionOn() ? 'auto' : 'smooth' }),
+        );
+    };
     const { t, d } = useT();
     const news = useNews();
 
@@ -127,7 +137,7 @@ export function Profile() {
                 {tab === 'dex' && <DexTab initial={albumQ ? 'album' : 'dex'} />}
                 {tab === 'amigos' && <FriendsTab />}
                 {tab === 'hall' && <HallList />}
-                {tab === 'numeros' && <NumbersTab onOpenDex={() => setTab('dex')} />}
+                {tab === 'numeros' && <NumbersTab onOpenDex={() => openTab('dex')} />}
             </div>
         </div>
     );

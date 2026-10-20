@@ -1,20 +1,12 @@
 import { setGoalCry, setVolumes } from '../game/audio';
 import { setLang } from '../i18n';
 import { detectLang, htmlLang } from '../i18n/lang';
-import { type ReduceMotion, type Settings, useGame } from '../store/game-store';
+import { type Settings, useGame } from '../store/game-store';
 import './motion.css';
 
-const REDUCE_QUERY = '(prefers-reduced-motion: reduce)';
+import { REDUCE_QUERY, reduceMotionOn } from './reduce-motion';
 
-/** "Reduzir movimento" resolvido: 'system' segue o aparelho. */
-export function reduceMotionOn(pref: ReduceMotion = useGame.getState().settings.reduceMotion): boolean {
-    if (pref !== 'system') return pref === 'on';
-    try {
-        return window.matchMedia(REDUCE_QUERY).matches;
-    } catch {
-        return false;
-    }
-}
+export { reduceMotionOn };
 
 /** Experimento "beira da quadra" ligado: em Configurações ou pelo link com `?agencia=1`. */
 export function agencyOn(pref: boolean | undefined = useGame.getState().settings.agency): boolean {

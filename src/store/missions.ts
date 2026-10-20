@@ -692,6 +692,7 @@ const OPTIONAL_LOOK = [
     'crestSymbol',
     'showcase',
     'cardShowcase',
+    'albumFront',
 ] as const;
 
 /**
