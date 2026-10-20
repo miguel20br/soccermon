@@ -84,6 +84,69 @@ longa. C fica como o caminho pro Modo história (que já está no "Em breve"): a
 - Calibragem (skill `soccermon-balanceamento`): quanto ₽ por vitória/gol, preços, força dos Patrocínios, com
   antes/depois pro ok do Miguel.
 
+## Decidido com o Miguel (20/10/2026)
+
+"A ideia 2 é INCRÍVEL": a Copa de hoje vira a **Copa rápida**, o mapa é a **Copa longa**, e o **modo Jornada** é o
+"algo maior". Ordem: primeiro a etapa 1 (Mercado, eventos, Patrocínios), depois a 2 (mapa). Antes das decisões ele
+pediu uma análise do jogo de hoje contra Balatro, Slay the Spire e cia. (abaixo).
+
+## Análise: o jogo de hoje e o que isso agrega (dados de 13 a 20/10)
+
+**Como as pessoas jogam hoje** (`npm run stats -- --dias 7`):
+
+| Sinal | Número | O que diz |
+|---|---|---|
+| Copas por sessão que começou copa | 444 copas em 82 sessões (**~5,4 por sessão**) | o ciclo curto funciona: quem entra joga de novo, de novo |
+| Velocidade da partida | **86% em 8x**, 10% em "Lances" | ninguém assiste a partida inteira: a diversão está **nas decisões e no resultado**, não em ver o jogo |
+| Tática | 79% das partidas na "equilibrada" | quase ninguém mexe durante a partida |
+| Formação | 1-2-1 em 65% das copas | uma escolha "resolvida": pouca variedade |
+| Recompensa entre partidas | 605, só 14% puladas | a única decisão entre os jogos é bem usada |
+| Título | 84 em 388 copas terminadas (~22%) | a copa é difícil o bastante pra ter tensão |
+| Funil | 45% saem antes de passar as boas-vindas; 56% no celular | quem chega é casual e de celular: tudo novo tem que ser rápido e claro |
+
+**Onde está a diversão:** no **draft** (as escolhas), na **recompensa** e em **ver o time evoluir** ao longo da
+copa. A partida é o "dado rolando": as pessoas aceleram pra ver o resultado. Entre as partidas, hoje, só existe
+**uma** escolha por vitória (4 por copa).
+
+**O que os jogos de referência fazem que falta aqui:**
+
+| Jogo | O que prende | Equivalente no Soccermon | Falta hoje |
+|---|---|---|---|
+| **Slay the Spire** | escolher a rota (risco x recompensa), eventos com escolhas difíceis, elites opcionais | o mapa, os eventos "?", o Ginásio | **toda decisão de rota**: hoje o caminho é sempre o mesmo |
+| **Balatro** | economia (gastar agora ou guardar), Jokers que mudam as regras e se combinam, loja curta e rápida | ₽, Mercado, **Patrocínios** (os Jokers daqui), sinergias de tipo e de história que já existem | **economia e tensão de guardar**; regras que você monta |
+| **PokéRogue** | cuidar do time sem Centro Pokémon, itens que acumulam | Treino, lesão, itens | consequência entre partidas (fôlego e lesão que pesam) |
+| **Rogue Striker** | o mesmo formato no futebol: atos, eventos, loja, treino | a Copa longa e a Jornada | — |
+
+**O que isso agrega:**
+
+1. **Mais decisões por minuto onde as pessoas já se divertem** (entre as partidas), sem mexer na partida que elas
+   aceleram. Em vez de 4 escolhas por copa, ~12 a 20 na Copa longa.
+2. **Copas diferentes entre si:** hoje toda copa é draft → 4 jogos iguais em formato. Com mapa, eventos e
+   Patrocínios, cada copa conta uma história ("vendi o capitão pro patrocinador e ganhei a final com o Magikarp").
+   É isso que faz o "só mais uma" do Balatro durar meses.
+3. **Builds:** os Patrocínios (como os Jokers) mudam regras e se combinam com as sinergias de tipo e os links da
+   Gen 1 que já temos. A formação e a tática começam a ter motivo pra mudar.
+4. **Um lugar pro "algo maior":** a Jornada é o mapa esticado por Kanto inteiro, e o Modo história nasce em cima.
+
+**Riscos e como evitar:**
+
+- **Complexidade pra quem é casual e de celular** (45% saem nas boas-vindas): a **Copa rápida fica como é** e
+  continua sendo o padrão; Mercado e eventos com no máximo 1 tela e 2–3 botões; tutorial na primeira vez.
+- **Ficar lento:** cada tela entre partidas tem que se resolver em ~10 s (o mesmo motivo de 86% jogarem em 8x).
+- **Economia quebrada** (comprar o time perfeito): preços que sobem a cada compra, limite de Patrocínios, calibrado
+  com o `npm run calibrate` antes/depois pro ok do Miguel.
+- **Cheiro de loja de dinheiro de verdade:** o ₽ só existe dentro da copa, some quando ela acaba, e nada é vendido
+  fora do jogo (o Soccermon nunca cobra).
+
+**Veredito:** **sim, é isso mesmo**, com três ajustes na ordem da etapa 1:
+
+1. **Os Patrocínios são a peça mais importante** (são os Jokers do Balatro: mudam as regras e criam builds). Entram
+   junto com o Mercado, não depois.
+2. **Medir desde o primeiro dia:** eventos de estatística pra compra no Mercado, Patrocínio escolhido e escolha de
+   evento (dá pra ver se as pessoas usam ou pulam).
+3. **A Copa rápida ganha só o Mercado** (curto) na etapa 1; os eventos "?" ficam pra Copa longa, pra a rápida
+   continuar rápida.
+
 ## Decisões pro Miguel
 
 1. **Formato:** B em duas etapas (loja/eventos primeiro, mapa depois) **(recomendado)** / A só / ir direto pro mapa.
