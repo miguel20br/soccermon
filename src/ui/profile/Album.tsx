@@ -21,6 +21,7 @@ import {
 } from '../../store/binder';
 import { useGame } from '../../store/game-store';
 import { toggleShowcase } from '../../store/medals';
+import { newsKey } from '../../store/news';
 import { albumCount, albumSlots, type Dex, hasSticker } from '../../store/profile';
 import { useCardModal } from '../card-modal';
 import { HudIcon } from '../components/MatchHud';
@@ -28,6 +29,7 @@ import { PokeCard2 } from '../components/PokeCard2';
 import { TypeIcon } from '../components/TypeIcon';
 import { TYPE_COLOR } from '../type-colors';
 import { speciesGif } from './club';
+import { NewBadge, NewDot, useNews } from './news';
 import './album.css';
 
 /** Sem importar a ficha (que puxa o som do grito): o Perfil público usa o Álbum. */
@@ -139,23 +141,15 @@ function useMedia(q: string) {
     return m;
 }
 
-/** Figurinhas que você já viu coladas (por aparelho): as novas colam com animação na 1ª vez que aparecem. */
-const SEEN_KEY = 'soccermon.album.colados';
-function useFresh(dex: Dex) {
-    const [fresh, setFresh] = useState<Set<string>>(() => {
-        const got = SPECIES.flatMap((sp) =>
-            CARD_SLOTS.filter((ed) => hasSticker(dex[sp.id], ed)).map((ed) => slotId(sp.id, ed)),
-        );
-        let prev: string[] | null = null;
-        try {
-            prev = JSON.parse(localStorage.getItem(SEEN_KEY) ?? 'null');
-            localStorage.setItem(SEEN_KEY, JSON.stringify(got));
-        } catch {
-            return new Set();
-        }
-        // 1ª vez no álbum: a coleção inteira cola, página por página
-        return new Set(Array.isArray(prev) ? got.filter((x) => !prev.includes(x)) : got);
-    });
+/**
+ * Figurinhas novas (selo NOVO, news.ts): colam com animação na 1ª vez que aparecem. A lista é a da hora em que o álbum
+ * abriu; quem marca como visto é o selo NOVO de cada uma.
+ */
+function useFresh() {
+    const news = useNews();
+    const [fresh, setFresh] = useState<Set<string>>(
+        () => new Set([...news].filter((k) => k.startsWith('fig:')).map((k) => k.slice(4))),
+    );
     const done = (ids: string[]) =>
         setFresh((f) => (ids.some((x) => f.has(x)) ? new Set([...f].filter((x) => !ids.includes(x))) : f));
     return { fresh, done };
@@ -214,7 +208,8 @@ export function AlbumView({
     const [page, setPage] = useState(0);
     const [dir, setDir] = useState<'next' | 'prev' | ''>('');
     const [found, setFound] = useState<string | null>(null);
-    const { fresh, done } = useFresh(dex);
+    const { fresh, done } = useFresh();
+    const news = useNews();
     const turn = (to: number) => {
         const p = Math.max(0, Math.min(pages.length - 1, to));
         if (p === page) return;
@@ -358,6 +353,7 @@ export function AlbumView({
                 <PokeCard2 inst={inst} variant="metal" />
             </span>
             {n > 1 && <span className="al-n">×{n}</span>}
+            {ed !== 'raras' && <NewBadge k={newsKey.sticker(key)} className="corner" />}
         </>
     );
     const slotEl = (p: Page, sp: Species, i: number) => {
@@ -473,10 +469,23 @@ export function AlbumView({
                             key={ed}
                             className={`al-tab al-ed-${ed}${on ? ' on' : ''}`}
                             aria-current={on ? 'page' : undefined}
-                            onClick={() => turn(pages.findIndex((p) => p.ed === ed))}
+                            onClick={() => {
+                                // com figurinha nova: abre na página dela
+                                const isNewOn = (p: Page) =>
+                                    p.list.some((sp) => news.has(newsKey.sticker(slotId(sp.id, ed as CardSlot))));
+                                const fresh = pages.findIndex((p) => p.ed === ed && isNewOn(p));
+                                turn(fresh >= 0 ? fresh : pages.findIndex((p) => p.ed === ed));
+                            }}
                         >
                             <b>{d.profile.album.sections[ed]}</b>
                             <small>{n ? `${n.got}/${n.total}` : rare.length}</small>
+                            <NewDot
+                                on={
+                                    ed !== 'raras' &&
+                                    [...news].some((k) => k.startsWith('fig:') && k.endsWith(`:${ed}`))
+                                }
+                                className="al-tab-dot"
+                            />
                             {n && <i style={{ width: `${(n.got / n.total) * 100}%` }} />}
                         </button>
                     );

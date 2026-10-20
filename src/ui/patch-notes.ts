@@ -39,6 +39,7 @@ export const PATCH_NOTES: PatchNotes[] = [
                 lines: [
                     'Botão do Perfil no canto de cima, com o seu avatar',
                     'Toque no rival no Duelo (sala, VERSUS ou placar) pra ver o perfil dele, com as cartas grandes',
+                    'Selo NOVO no que você ganhou e ainda não viu (treinador, título, medalha, avatar, figurinha), pontinho no botão do Perfil e "Marcar como visto"',
                 ],
             },
             {
@@ -772,6 +773,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 lines: [
                     'Profile button in the top corner, with your avatar',
                     'Tap your rival in the Duel (room, VERSUS or scoreboard) to see their profile, with the cards in full size',
+                    'NEW tag on what you earned and have not seen yet (trainer, title, medal, avatar, sticker), a dot on the Profile button and "Mark as seen"',
                 ],
             },
             {

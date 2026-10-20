@@ -17,6 +17,7 @@ import {
 } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
 import { medalTiers, TIER_NAMES } from '../../store/medals';
+import { newsKey } from '../../store/news';
 import {
     avatarOptions,
     bannerInk,
@@ -32,6 +33,7 @@ import { Crest, KitShirt, kitBackground } from './Crest';
 import { avatarGif, bannerText, hexCss, titleName } from './club';
 import { CheckIcon, LockIcon, ShinySpark } from './icons';
 import { useMedalView } from './Medals';
+import { NewBadge, useNews } from './news';
 import { TrainerCard } from './TrainerTab';
 
 /** Rival da prévia do placar (Cerulean): azul, troca de uniforme se bater com a sua cor. */
@@ -83,6 +85,9 @@ export function ClubTab() {
     const av = profile.avatar;
     // avatar com shiny liberado que foi tocado: mostra a escolha Normal / Shiny
     const [choosing, setChoosing] = useState<number | null>(null);
+    const news = useNews();
+    const avKeys = (id: number, shiny: boolean) =>
+        shiny ? [newsKey.avatar(id), newsKey.avatar(id, true)] : [newsKey.avatar(id)];
 
     return (
         <div className="pf-club">
@@ -151,6 +156,9 @@ export function ClubTab() {
                                     <span className="pf-count">
                                         {opts.length}/{g.to - g.from + 1}
                                     </span>
+                                    <NewBadge
+                                        on={opts.some((o) => avKeys(o.speciesId, o.shiny).some((k) => news.has(k)))}
+                                    />
                                 </summary>
                                 <div className="pf-avatars">
                                     {opts.map(({ speciesId: id, shiny }) => {
@@ -213,6 +221,7 @@ export function ClubTab() {
                                                     loading="lazy"
                                                 />
                                                 {shiny && <ShinySpark />}
+                                                <NewBadge k={avKeys(id, shiny)} className="corner" />
                                             </button>
                                         );
                                     })}
@@ -445,6 +454,7 @@ function KitEditor({ save }: { save: (patch: Partial<Profile>) => void }) {
                             >
                                 {art}
                                 <small>{name}</small>
+                                {UNLOCK[symbol] && <NewBadge k={newsKey.kit(symbol)} className="corner" />}
                             </button>
                         );
                     })}
@@ -490,6 +500,7 @@ function KitEditor({ save }: { save: (patch: Partial<Profile>) => void }) {
                             >
                                 {art}
                                 <small>{name}</small>
+                                {UNLOCK[pattern] && <NewBadge k={newsKey.kit(pattern)} className="corner" />}
                             </button>
                         );
                     })}

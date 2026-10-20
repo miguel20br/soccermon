@@ -595,3 +595,12 @@
         margin-inline: calc((100% - var(--w)) / 2);
     }
 }
+/* seção com figurinha nova: o pontinho no canto da aba */
+.al-tab i.new-dot.al-tab-dot {
+    top: 4px;
+    right: 4px;
+    left: auto;
+    bottom: auto;
+    width: 9px;
+    height: 9px;
+}

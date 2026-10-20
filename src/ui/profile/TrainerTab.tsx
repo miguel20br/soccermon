@@ -25,10 +25,12 @@ import {
     trainerSrc,
     unlockedTrainers,
 } from '../../store/missions';
+import { newsKey } from '../../store/news';
 import { markPlayed, type Profile } from '../../store/profile';
 import { redeemCode, redeemDexCode, titleClass } from '../../store/title-codes';
 import { missionOfTitle, missionText, speciesGif, titleHow, titleName, trainerHow, trainerName } from './club';
 import { CheckIcon, LockIcon, MedalIcon } from './icons';
+import { NewBadge } from './news';
 
 /** O save do jeito que as missões leem (para as barras de progresso). */
 export function useSaveView(): SaveView {
@@ -124,6 +126,7 @@ export function TrainerCard({ save }: { save: (patch: Partial<Profile>) => void 
                                         <TrainerSprite id={id} />
                                         <b>{trainerName(id)}</b>
                                         <small className="pf-how">{trainerHow(id)}</small>
+                                        <NewBadge k={newsKey.trainer(id)} className="corner" />
                                     </button>
                                 </li>
                             );
@@ -162,6 +165,7 @@ export function TrainerCard({ save }: { save: (patch: Partial<Profile>) => void 
                             >
                                 <span className={titleClass(id).trim() || undefined}>{titleName(id)}</span>
                                 <small className="pf-how">{titleHow(id)}</small>
+                                <NewBadge k={newsKey.title(id)} className="corner" />
                             </button>
                         </li>
                     ))}

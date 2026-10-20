@@ -12,6 +12,7 @@ import { EVENT_TYPES, ICONS, type Special } from '../engine/specials';
 import { EventBus } from '../game/EventBus';
 import { type BinderCard, binderAdd } from '../store/binder';
 import { playerTeam, useGame } from '../store/game-store';
+import { earnedKeys, medalViewOf } from '../store/news';
 import { EDITION_BIT, editionBits } from '../store/profile';
 import { agencyOn } from './settings-sync';
 import { isTrailerScene, trailerPicks } from './trailer-scenes';
@@ -57,6 +58,7 @@ export function runDevDemo() {
         demo !== 'conta' &&
         demo !== 'lider' &&
         demo !== 'colecao' &&
+        demo !== 'novidades' &&
         demo !== 'fichario' &&
         demo !== 'album' &&
         demo !== 'dia' &&
@@ -72,6 +74,10 @@ export function runDevDemo() {
     const store = useGame.getState();
     if (demo === 'colecao') {
         demoCollection();
+        return;
+    }
+    if (demo === 'novidades') {
+        demoNews();
         return;
     }
     if (demo === 'fichario' || demo === 'album') {
@@ -510,6 +516,35 @@ function demoCollection() {
         },
     });
     g.go('profile');
+}
+
+/**
+ * `?demo=novidades`: a carreira do `?demo=colecao` com algumas coisas ainda não vistas (selo NOVO): treinadores e
+ * títulos das missões, 3 medalhas, as coleções, 3 selos, 6 avatares, as peças do escudo e 4 figurinhas. Abre na
+ * Home (o pontinho no botão do Perfil); `&perfil=<aba>` abre direto no Perfil.
+ */
+function demoNews() {
+    demoCollection();
+    const g = useGame.getState();
+    const earned = earnedKeys(medalViewOf(g), g.profile);
+    const left = new Set<string>();
+    const take = (prefix: string, n = Infinity) =>
+        earned
+            .filter((k) => k.startsWith(prefix))
+            .slice(0, n)
+            .forEach((k) => {
+                left.add(k);
+            });
+    take('tr:');
+    take('ti:');
+    take('md:', 3);
+    take('col:');
+    take('sl:', 3);
+    take('av:', 6);
+    take('kit:');
+    take('fig:', 4);
+    g.updateProfile({ seen: earned.filter((k) => !left.has(k)) });
+    if (!new URLSearchParams(window.location.search).get('perfil')) g.go('home');
 }
 
 /**

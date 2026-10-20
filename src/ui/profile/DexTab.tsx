@@ -18,6 +18,7 @@ import { TypeIcon } from '../components/TypeIcon';
 import { AlbumView } from './Album';
 import { speciesGif } from './club';
 import { BallMark, CareerSealIcon, ChampionRibbon } from './icons';
+import { NewDot, newsCount, useNews } from './news';
 import { dexNo, SpeciesSheet } from './SpeciesSheet';
 import { sealTip } from './seal-tip';
 
@@ -49,6 +50,7 @@ export function DexTab({ initial = 'dex' }: { initial?: DexView }) {
     const [at, setAt] = useState<{ id: number; n: number } | null>(null);
     const { t, tn, d, lang } = useT();
     const album = albumCount(dex);
+    const news = useNews();
 
     const counts = useMemo(() => {
         const c = { all: TOTAL, played: 0, seen: 0, unseen: 0, missing: 0 };
@@ -103,6 +105,7 @@ export function DexTab({ initial = 'dex' }: { initial?: DexView }) {
                     onClick={() => setView(v)}
                 >
                     <HudIcon kind={v === 'dex' ? 'dex' : 'cards'} /> {d.profile.album.views[v]}
+                    {v === 'album' && <NewDot on={view !== 'album' && newsCount(news, 'dex') > 0} />}
                 </button>
             ))}
         </div>

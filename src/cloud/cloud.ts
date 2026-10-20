@@ -346,7 +346,7 @@ async function reconcile(uid: string): Promise<boolean> {
                 run: cloud?.run ?? null,
                 settings: mergeSettings(local.settings, cloud?.settings, 'cloud'),
                 records: mergeRecords({ cups: 0, titles: 0, perfect: 0 }, cloud?.records),
-                profile: { ...DEFAULT_PROFILE, ...cloud?.profile },
+                profile: { ...DEFAULT_PROFILE, seen: [], ...cloud?.profile },
                 dex: cloud?.dex ?? {},
                 moves: cloud?.moves ?? {},
                 career: { ...EMPTY_CAREER, ...cloud?.career },

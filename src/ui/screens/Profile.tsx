@@ -4,6 +4,7 @@ import { useT } from '../../i18n/react';
 import { lookOfProfile } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
 import { activeTitle, activeTrainer, trainerFrame } from '../../store/missions';
+import type { NewsTab } from '../../store/news';
 import { clubColorHex } from '../../store/profile';
 import { titleClass } from '../../store/title-codes';
 import { HallList } from '../components/HallParade';
@@ -16,12 +17,14 @@ import { DexTab } from '../profile/DexTab';
 import { FriendsTab } from '../profile/FriendsTab';
 import { frameClass, MedalsTab, ShowcaseRow, useShowcase } from '../profile/Medals';
 import { NumbersTab } from '../profile/NumbersTab';
+import { NewDot, NewsBar, newsCount, useNews } from '../profile/news';
 import { useMyInfo, usePlayerCard } from '../profile/PlayerCard';
 import { MissionsTab, TrainerSprite } from '../profile/TrainerTab';
 import '../profile/profile.css';
 
 type Tab = 'clube' | 'medalhas' | 'missoes' | 'dex' | 'amigos' | 'hall' | 'numeros';
 const TABS: Tab[] = ['clube', 'medalhas', 'missoes', 'dex', 'amigos', 'hall', 'numeros'];
+const NEWS_TABS: Tab[] = ['clube', 'medalhas', 'dex'];
 const TAB_ICON: Record<Tab, HudIconKind> = {
     clube: 'defensive',
     medalhas: 'medal',
@@ -50,6 +53,7 @@ export function Profile() {
     const albumQ = q === 'album' || q === 'fichario';
     const [tab, setTab] = useState<Tab>(() => (albumQ ? 'dex' : q && TABS.includes(q as Tab) ? (q as Tab) : 'clube'));
     const { t, d } = useT();
+    const news = useNews();
 
     return (
         <div className="menu-screen pf" style={clubVars(clubColorHex(profile.clubColor))}>
@@ -110,11 +114,13 @@ export function Profile() {
                     >
                         <HudIcon kind={TAB_ICON[id]} />
                         <span>{d.profile.tabs[id]}</span>
+                        <NewDot on={NEWS_TABS.includes(id) && newsCount(news, id as NewsTab) > 0} />
                     </button>
                 ))}
             </div>
 
             <div role="tabpanel" id={`pf-panel-${tab}`} aria-labelledby={`pf-tab-${tab}`}>
+                {NEWS_TABS.includes(tab) && <NewsBar key={tab} tab={tab as NewsTab} />}
                 {tab === 'clube' && <ClubTab />}
                 {tab === 'medalhas' && <MedalsTab save={updateProfile} />}
                 {tab === 'missoes' && <MissionsTab />}

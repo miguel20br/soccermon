@@ -18,11 +18,13 @@ import {
     toggleShowcase,
 } from '../../store/medals';
 import { MISSIONS } from '../../store/missions';
+import { newsKey } from '../../store/news';
 import { kantoComplete, type Profile, topSeal } from '../../store/profile';
 import { Tip } from '../components/Tip';
 import { symbolArt } from './Crest';
 import { speciesGif, titleName } from './club';
 import { CareerSealIcon, CheckIcon } from './icons';
+import { NewBadge, useNews } from './news';
 import { sealTip } from './seal-tip';
 import { useSaveView } from './TrainerTab';
 import './medals.css';
@@ -155,9 +157,13 @@ export function MedalsTab({ save }: { save: (patch: Partial<Profile>) => void })
         .map(([id, e]) => ({ id: Number(id), seal: topSeal(e, kanto) }))
         .filter((x) => x.seal)
         .sort((a, b) => SEAL_ORDER.indexOf(a.seal!) - SEAL_ORDER.indexOf(b.seal!) || a.id - b.id);
-    const seals = allSeals.filter((x, i) => i < 12 || shownKeys.has(`s:${x.id}`));
+    // os novos também aparecem (senão o NOVO ficava escondido)
+    const news = useNews();
+    const seals = allSeals.filter(
+        (x, i) => i < 12 || shownKeys.has(`s:${x.id}`) || news.has(newsKey.seal(x.id, x.seal!)),
+    );
 
-    const pickBtn = (key: string, label: string, children: React.ReactNode) => {
+    const pickBtn = (key: string, label: string, children: React.ReactNode, fresh?: string) => {
         const on = shownKeys.has(key);
         return (
             <button
@@ -172,6 +178,7 @@ export function MedalsTab({ save }: { save: (patch: Partial<Profile>) => void })
                 {children}
                 <span className="pf-sr">{label}</span>
                 {on && <CheckIcon />}
+                {fresh && <NewBadge k={fresh} className="corner" />}
             </button>
         );
     };
@@ -215,6 +222,7 @@ export function MedalsTab({ save }: { save: (patch: Partial<Profile>) => void })
                                             `c:${m.id}`,
                                             titleName(m.id),
                                             <ShowBadge it={{ kind: 'c', id: m.id }} />,
+                                            newsKey.collection(m.id),
                                         ),
                                     )}
                                 </div>
@@ -229,6 +237,7 @@ export function MedalsTab({ save }: { save: (patch: Partial<Profile>) => void })
                                             `s:${id}`,
                                             showLabel({ kind: 's', speciesId: id, seal: seal! }, d),
                                             <ShowBadge it={{ kind: 's', speciesId: id, seal: seal! }} />,
+                                            newsKey.seal(id, seal!),
                                         ),
                                     )}
                                 </div>
@@ -261,7 +270,9 @@ export function MedalsTab({ save }: { save: (patch: Partial<Profile>) => void })
                                     <MedalDisc glyph={MEDAL_GLYPH[medal.id] ?? 'pokebola'} tier={tier} />
                                 </Tip>
                                 <div className="md-body">
-                                    <b>{name}</b>
+                                    <b>
+                                        {name} {tier > 0 && <NewBadge k={newsKey.medal(medal.id, tier)} />}
+                                    </b>
                                     <span className="md-text">{d.profile.medals.text[medal.id]}</span>
                                     <span className="md-tier">
                                         {tier ? d.profile.medals.tiers[TIER_NAMES[tier]] : t('profile.medals.none')}

@@ -17,6 +17,7 @@ import { useCardShowcase } from './Album';
 import { Crest } from './Crest';
 import { hexCss, peerAvatar, peerTitle, titleName, trainerLabel, useAvatar } from './club';
 import { frameClass, ShowcaseRow, useShowcase } from './Medals';
+import { NewDot, useNews } from './news';
 import { TrainerSprite } from './TrainerTab';
 import './profile.css';
 import './player-card.css';
@@ -187,6 +188,7 @@ export function ProfileChip() {
     const frame = useShowcase().frame;
     const { t } = useT();
     const name = trainerLabel(profile);
+    const news = useNews();
     return (
         <button
             type="button"
@@ -203,6 +205,7 @@ export function ProfileChip() {
                 referrerPolicy="no-referrer"
             />
             <span className="profile-chip-name">{name}</span>
+            <NewDot on={news.size > 0} className="profile-chip-dot" />
         </button>
     );
 }

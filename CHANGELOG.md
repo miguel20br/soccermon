@@ -23,6 +23,7 @@
 ### Perfil
 - Botão do Perfil no canto de cima, com o seu avatar
 - Toque no rival no Duelo (sala, VERSUS ou placar) pra ver o perfil dele, com as cartas grandes
+- Selo NOVO no que você ganhou e ainda não viu (treinador, título, medalha, avatar, figurinha), pontinho no botão do Perfil e "Marcar como visto"
 
 ### Amigos
 - Adicionar amigo pelo perfil do rival depois do Duelo, ou pelo código de amigo de 8 letras

@@ -12,6 +12,13 @@ export const profile: typeof pt = {
         medalhas: 'Medals',
         amigos: 'Friends',
     },
+    news: {
+        badge: 'NEW',
+        dot: 'Something new',
+        count: '{n} new item|{n} new items',
+        markTab: 'Mark as seen',
+        markAll: 'Mark all ({n})',
+    },
     quick: { cups: 'Cups', titles: 'Titles', goals: 'Goals' },
     card: {
         open: 'See my public profile',

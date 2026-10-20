@@ -11,6 +11,13 @@ export const profile = {
         medalhas: 'Medalhas',
         amigos: 'Amigos',
     },
+    news: {
+        badge: 'NOVO',
+        dot: 'Tem novidade',
+        count: '{n} novidade|{n} novidades',
+        markTab: 'Marcar como visto',
+        markAll: 'Marcar tudo ({n})',
+    },
     quick: { cups: 'Copas', titles: 'Títulos', goals: 'Gols' },
     /** Cartão do treinador: o perfil que os outros veem (Duelo) e o seu, pelo botão do Perfil. */
     card: {

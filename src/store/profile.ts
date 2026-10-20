@@ -87,6 +87,8 @@ export interface Profile {
     missionsDone: string[];
     /** Títulos resgatados com código (title-codes.ts). */
     redeemedTitles: string[];
+    /** Selo NOVO (news.ts): o que já foi visto. Sem o campo = save de antes dele (o que já tinha conta como visto). */
+    seen?: string[];
 }
 
 export const DEFAULT_PROFILE: Profile = {

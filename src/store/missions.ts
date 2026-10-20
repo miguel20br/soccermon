@@ -707,5 +707,7 @@ export function mergeProfileUnlocks(keep: Profile, other: Partial<Profile> | und
         ...filled,
         missionsDone: union(keep.missionsDone, other?.missionsDone),
         redeemedTitles: union(keep.redeemedTitles, other?.redeemedTitles),
+        // selo NOVO: visto em qualquer lado conta (sem nenhum dos dois, o baseline de news.ts decide)
+        seen: keep.seen || other?.seen ? union(keep.seen ?? [], other?.seen) : undefined,
     };
 }

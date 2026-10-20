@@ -27,6 +27,7 @@ import { type BinderCard, binderAdd, binderOf } from './binder';
 import { type DailyEntry, dailyDay, dailyEventType, dailySeed, isDailySeed, mergeDaily, putDaily } from './daily';
 import { addDuel, type DuelRecord, duelWins, MAX_DUELS } from './duels';
 import { activeTitle, activeTrainer, matchView, newMissions, stageView } from './missions';
+import { withSeenBaseline } from './news';
 import {
     type Career,
     clubColorHex,
@@ -712,9 +713,12 @@ export function withUnlocks(saved: PersistedSave): PersistedSave {
         { ...save, runs, done: save.profile.missionsDone },
         runs.flatMap((r) => r?.results ?? []).map(stageView),
     );
-    return fresh.length
-        ? { ...save, profile: { ...save.profile, missionsDone: [...save.profile.missionsDone, ...fresh] } }
-        : save;
+    // selo NOVO: save de antes dele conta o que já tinha como visto (depois das missões retroativas)
+    return withSeenBaseline(
+        fresh.length
+            ? { ...save, profile: { ...save.profile, missionsDone: [...save.profile.missionsDone, ...fresh] } }
+            : save,
+    );
 }
 
 /**
@@ -808,7 +812,7 @@ export const useGame = create<GameStore>()(
                 run: null,
                 settings: DEFAULT_SETTINGS,
                 records: { cups: 0, titles: 0, perfect: 0 },
-                profile: DEFAULT_PROFILE,
+                profile: { ...DEFAULT_PROFILE, seen: [] },
                 dex: {},
                 moves: {},
                 career: EMPTY_CAREER,
