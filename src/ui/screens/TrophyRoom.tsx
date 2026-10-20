@@ -270,7 +270,7 @@ export function TrophyRoom() {
             </div>
 
             {focus && (
-                <section ref={sheet} className="panel tr-sheet bc-surface bc-stripe" aria-live="polite">
+                <section ref={sheet} className="panel tr-sheet bc-surface bc-stripe" aria-live="polite" data-exit>
                     <button
                         type="button"
                         className="modal-close"

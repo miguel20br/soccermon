@@ -350,3 +350,54 @@ h3.bc-lbl {
         margin-inline: auto;
     }
 }
+
+/* ---------- Nada teleporta: o marcador da opção ativa desliza (src/ui/tab-slide.ts) ---------- */
+.bc-tabs.has-ind,
+.bc-seg.has-ind {
+    position: relative;
+    isolation: isolate;
+}
+.bc-tabs.has-ind::before,
+.bc-seg.has-ind::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    top: 0;
+    width: var(--ind-w);
+    height: var(--ind-h);
+    transform: translate(var(--ind-x), var(--ind-y));
+    pointer-events: none;
+}
+.bc-seg.has-ind::before {
+    border-radius: 6px;
+    background: var(--yellow);
+}
+.bc-tabs.has-ind::before {
+    border-bottom: 3px solid var(--yellow);
+    background: var(--panel);
+}
+.bc-tabs.ind-ready::before,
+.bc-seg.ind-ready::before {
+    transition:
+        transform 250ms var(--ease-out),
+        width 250ms var(--ease-out),
+        height 250ms var(--ease-out);
+}
+.bc-tabs button,
+.bc-seg button {
+    transition: color 200ms var(--ease-out);
+}
+/* o fundo da ativa passa a ser o marcador */
+.bc-seg.has-ind button.on,
+.bc-seg.has-ind button[aria-pressed="true"],
+.bc-seg.has-ind button[aria-checked="true"],
+.bc-tabs.has-ind button.on,
+.bc-tabs.has-ind button[aria-selected="true"] {
+    background: none;
+    border-bottom-color: transparent;
+}
+/* o conteúdo da aba nova entra com fade */
+[role="tabpanel"] > * {
+    animation: screen-in 200ms var(--ease-out) both;
+}

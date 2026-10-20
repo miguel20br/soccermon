@@ -114,6 +114,7 @@ export function FormationBoard({
                 key={`${ref.zone}-${ref.index}`}
                 className={`slot ${inst ? 'filled' : 'empty'} ${state}${projClass}${tier ? ` rar-${tier}` : ''}${dim}${glow} ${look}`}
                 style={rarStyle}
+                data-uid={inst?.uid}
                 disabled={!clickable}
                 onClick={() => onSlot?.(ref, uid)}
                 aria-label={`${fullLabel}${inst ? `: ${viewInstance(inst).displayName}${slotAria ? slotAria(inst) : ''}` : ` (${emptyLabel})`}`}

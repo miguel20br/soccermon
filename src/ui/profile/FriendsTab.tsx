@@ -80,7 +80,12 @@ function FriendLine({ r }: { r: FriendRow }) {
         usePlayerCard.getState().open(friendInfo(r, raw));
     };
     return (
-        <li className={`fr-row${open ? ' open' : ''}`} style={stripe(r.club_color)} data-testid="friend-row">
+        <li
+            className={`fr-row${open ? ' open' : ''}`}
+            data-exit="collapse"
+            style={stripe(r.club_color)}
+            data-testid="friend-row"
+        >
             <button
                 type="button"
                 className="fr-open"
@@ -111,7 +116,7 @@ function FriendLine({ r }: { r: FriendRow }) {
                 </button>
             </span>
             {open && (
-                <div className="fr-confirm">
+                <div className="fr-confirm" data-exit="collapse">
                     <p>{t('friends.removeAsk', { name: r.trainer })}</p>
                     <div className="fr-confirm-btns">
                         <button
@@ -274,7 +279,7 @@ export function FriendsTab() {
                     <h2 className="bc-caption">{t('friends.challengesTitle')}</h2>
                     <ul className="fr-list">
                         {g.challenges.map((r) => (
-                            <li key={r.code} className="fr-row" style={stripe(r.club_color)}>
+                            <li key={r.code} className="fr-row" data-exit="collapse" style={stripe(r.club_color)}>
                                 <span className="fr-who">
                                     <b>{t('friends.challengeLine', { name: r.trainer })}</b>
                                     <small>
@@ -298,6 +303,7 @@ export function FriendsTab() {
                             <li
                                 key={r.code}
                                 className="fr-row"
+                                data-exit="collapse"
                                 style={stripe(r.club_color)}
                                 data-testid="friend-request"
                             >
@@ -344,7 +350,7 @@ export function FriendsTab() {
                     <h2 className="bc-caption">{t('friends.sentTitle')}</h2>
                     <ul className="fr-list">
                         {g.sent.map((r) => (
-                            <li key={r.code} className="fr-row dim" style={stripe(r.club_color)}>
+                            <li key={r.code} className="fr-row dim" data-exit="collapse" style={stripe(r.club_color)}>
                                 <Who r={r} />
                                 <button
                                     type="button"
@@ -364,7 +370,7 @@ export function FriendsTab() {
                     <summary className="bc-lbl">{t('friends.blockedTitle', { n: g.blocked.length })}</summary>
                     <ul className="fr-list">
                         {g.blocked.map((r) => (
-                            <li key={r.code} className="fr-row dim" style={stripe(r.club_color)}>
+                            <li key={r.code} className="fr-row dim" data-exit="collapse" style={stripe(r.club_color)}>
                                 <Who r={r} />
                                 <button
                                     type="button"
@@ -427,7 +433,7 @@ export function FriendInvite() {
     if (!first || !shown) return null;
     const close = () => useFriends.setState((s) => ({ dismissed: [...s.dismissed, first.room!] }));
     return (
-        <div className="fr-toast" style={stripe(first.club_color)} role="alert" data-testid="friend-invite">
+        <div className="fr-toast" style={stripe(first.club_color)} role="alert" data-testid="friend-invite" data-exit>
             <HudIcon kind="friends" />
             <span className="fr-who">
                 <b>{t('friends.challengeLine', { name: first.trainer })}</b>

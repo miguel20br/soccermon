@@ -19,3 +19,78 @@
 [data-reduce-motion="true"] .vsp-flash {
     display: none;
 }
+
+/* ---------- Nada teleporta: troca de tela (src/ui/view-transition.ts) ---------- */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 250ms;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* a View Transition já faz o fade: a tela nova não repete o dela */
+.vt-screen .app > *:not(.topbar) {
+    animation: none;
+}
+/* a carta contratada voa até a vaga (src/ui/view-transition.ts, flyCard) */
+::view-transition-group(fly-card) {
+    animation-duration: 300ms;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* saída de modal e de `data-exit` (src/ui/exit-motion.ts): a cópia some com fade, a caixa encolhe um pouco */
+.is-leaving {
+    pointer-events: none;
+    animation: leave-fade 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.is-leaving *:not(.modal) {
+    animation: none;
+    transition: none;
+}
+.is-leaving .modal {
+    animation: modal-out 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes leave-fade {
+    to {
+        opacity: 0;
+    }
+}
+@keyframes modal-out {
+    to {
+        opacity: 0;
+        scale: 0.96;
+    }
+}
+/* listas: linha nova entra com fade; a que sai (data-exit="collapse") fecha a altura em vez de pular */
+:root {
+    interpolate-size: allow-keywords;
+}
+.fr-row {
+    animation: row-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes row-in {
+    from {
+        opacity: 0;
+        translate: 0 6px;
+    }
+}
+.is-leaving[data-exit="collapse"] {
+    overflow: hidden;
+    animation: leave-collapse 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes leave-collapse {
+    to {
+        opacity: 0;
+        height: 0;
+        padding-block: 0;
+        margin-block: 0;
+    }
+}
+/* painel que abre dentro da linha (confirmação de remover/bloquear amigo): abre a altura, não empurra de uma vez */
+.fr-confirm {
+    overflow: hidden;
+    animation: reveal 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes reveal {
+    from {
+        opacity: 0;
+        height: 0;
+    }
+}

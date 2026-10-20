@@ -21,6 +21,20 @@ o seu próprio movimento.
   sai deslocamento, giro, zoom.
 - Sem biblioteca de animação nova: CSS + View Transitions + o que o React 19 já faz.
 
+## Feito na 0.8.9 (20/10/2026)
+
+| Peça | Onde | Como |
+|---|---|---|
+| Troca de tela | `src/store/screen-transition.ts` + `src/ui/view-transition.ts` | toda mudança de `screen` no store (até as de dentro, como a última contratação do draft) passa por uma View Transition de 250 ms; sem suporte, Reduzir movimento ou aba escondida: direto |
+| Abas e seletores | `src/ui/tab-slide.ts` | um observador só pra página: o marcador da opção ativa de todo `.bc-tabs`/`.bc-seg` desliza; o conteúdo da aba entra com fade (`[role=tabpanel] > *`) |
+| Modais e o que tem `data-exit` | `src/ui/exit-motion.ts` | uma cópia sem clique some com fade no lugar do que o React tirou (`data-exit="collapse"` fecha a altura); desligado em teste automático, `?motion=1` liga |
+| Draft | `flyCard` em `src/ui/view-transition.ts` | a carta contratada voa até a vaga (`data-fly` → `data-uid`) |
+| Listas | `src/ui/motion.css` | linha de amigo entra com fade e sai fechando a altura; a confirmação de remover abre a altura (`interpolate-size`) |
+| Conferência | `npm run teleporte -- <base> [LxA]` (`scripts/teleporte.mjs`) | toca em abas, seletores e botões de abrir de 4 telas e acusa o que aparece, some ou pula sem animação; ainda fora do CI |
+
+Falta: View Transition com nome nas peças que existem nas duas telas (logo, carta do capitão, escudo), o resto das
+listas (missões, filtros da Pokédex), mais telas no `teleporte` e ele no CI quando estiver estável.
+
 ## Retrofit (o que já existe e teleporta)
 
 1. Trocador de telas (Home → Copa → Perfil…): View Transition por tela.

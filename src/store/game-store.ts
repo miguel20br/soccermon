@@ -55,6 +55,7 @@ import {
     seenCount,
     tagFromName,
 } from './profile';
+import { screenTransition } from './screen-transition';
 
 /** Edição especial só quando as cartas novas estão no jogo. */
 const rollSpecial: typeof roll = (inst, ev) => (SPECIALS_LIVE ? roll(inst, ev) : inst);
@@ -796,7 +797,7 @@ export function migrateSave(old: Partial<PersistedSave>, version: number): Persi
 
 export const useGame = create<GameStore>()(
     persist(
-        (setState, getState) => {
+        screenTransition((setState, getState) => {
             const updateRun = (patch: Partial<RunState>) => {
                 const run = getState().run;
                 if (run) setState({ run: { ...run, ...patch } });
@@ -1376,7 +1377,7 @@ export const useGame = create<GameStore>()(
                 },
                 discardParked: (seed) => setState({ parkedRuns: getState().parkedRuns.filter((r) => r.seed !== seed) }),
             };
-        },
+        }),
         {
             name: 'soccermon-save',
             // v4: cartas especiais (campo opcional `special`, `eventType` na run, recordes novos)

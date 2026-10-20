@@ -20,6 +20,7 @@ import { EvoBadge } from '../components/PokeCard2';
 import { Tip } from '../help/Tip';
 import { lineupAverage, ratingAt } from '../rating';
 import { reduceMotionOn } from '../settings-sync';
+import { flyCard } from '../view-transition';
 
 /** "Média dos titulares" que rola até o valor novo e mostra o quanto a escolha mudou (+4 / −2) por 1,5 s. */
 function TeamAvg({ avg }: { avg: number }) {
@@ -193,8 +194,10 @@ export function Draft() {
         playSfx('select');
         if (isCaptain) {
             if (!chosen) return;
-            pick(chosen.uid, slot);
-            setSelected(null);
+            flyCard(chosen.uid, () => {
+                pick(chosen.uid, slot);
+                setSelected(null);
+            });
         } else {
             chooseSlot(slot);
         }
@@ -299,7 +302,11 @@ export function Draft() {
                         >
                             <div className="options">
                                 {run.options.map((o) => (
-                                    <div key={o.uid} className={`option cpack-card${isBigCard(o) ? ' big' : ''}`}>
+                                    <div
+                                        key={o.uid}
+                                        className={`option cpack-card${isBigCard(o) ? ' big' : ''}`}
+                                        data-fly={o.uid}
+                                    >
                                         {!isCaptain && role !== 'ANY' && newLinks(filled, o).length > 0 && (
                                             <div className="option-links">
                                                 {t('team.draft.activates')}{' '}
@@ -363,7 +370,7 @@ export function Draft() {
                                                 onClick: () => {
                                                     playSfx('select');
                                                     if (isCaptain) setSelected(selected === o.uid ? null : o.uid);
-                                                    else pick(o.uid);
+                                                    else flyCard(o.uid, () => pick(o.uid));
                                                 },
                                             }}
                                         />

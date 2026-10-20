@@ -9,7 +9,10 @@ import { importFromOldDomain, moveToNewDomain } from './cloud/domain-move';
 import { startFriendsLive } from './friends/api';
 import { startLeagueSync } from './league/sync';
 import { ErrorBoundary } from './ui/components/ErrorBoundary';
+import { startExitMotion } from './ui/exit-motion';
 import { startSettingsSync } from './ui/settings-sync';
+import { startTabSlide } from './ui/tab-slide';
+import { startScreenTransitions } from './ui/view-transition';
 import './ui/styles.css';
 import './ui/broadcast-kit.css';
 
@@ -24,6 +27,10 @@ window.addEventListener('unhandledrejection', (e) => {
 // endereço antigo (soccermon.vercel.app) leva o jogador e o save para o soccermon.com
 void moveToNewDomain();
 void importFromOldDomain();
+
+startScreenTransitions();
+startTabSlide();
+startExitMotion();
 
 // contas e save na nuvem (só liga se o Supabase estiver configurado)
 startCloudSync();
