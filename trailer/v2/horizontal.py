@@ -75,6 +75,7 @@ s = s.replace('<div style="position:absolute;left:0;top:520px;width:1080px;heigh
 s = s.replace('transform-origin:540px 430px', 'transform-origin:960px 540px')
 s = s.replace('<div class="leque" id="leque" style="left:490px"></div>', '<div class="leque" id="leque"></div>')
 s = s.replace('{ y: -380, scale: 1.25, rotationY: 720,', '{ y: -60, scale: 1.25, rotationY: 720,')
+s = s.replace('tl.to("#oak", { x: -700,', 'tl.to("#oak", { x: -1500,')
 # vídeos: as versões 16:9 dos clipes (sufixo -h)
 s = re.sub(r'src="midia/([a-z-]+)\.mp4"', r'src="midia/\1-h.mp4"', s)
 s = re.sub(r'<video id="([a-z-]+)"', r'<video id="\1-h"', s)

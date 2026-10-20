@@ -282,7 +282,7 @@ img { image-rendering: pixelated; }
     tl.to("#seta1", { opacity: 1, duration: 0.01, repeat: 3, yoyo: true, repeatDelay: 0.18 }, fim1 + 0.05);
     tl.set("#caixa1", { opacity: 0 }, 5.04);
     tl.set("#caixa2", { opacity: 1 }, 5.04);
-    tl.to("#oak", { x: -700, duration: 0.25, ease: "power2.in" }, 5.04);
+    tl.to("#oak", { x: -1500, duration: 0.25, ease: "power2.in" }, 5.04);
     tl.fromTo("#pika", { x: 700, opacity: 1 }, { x: 0, opacity: 1, duration: 0.3, ease: "power2.out", immediateRender: false }, 5.04);
     for (let k = 0, t = 5.04; t < 7.52; k++, t += 0.1) tl.set("#pika", { attr: { src: `midia/pika/${String(k % 60).padStart(2, "0")}.png` } }, t);
     // a bola cai no pé do Pikachu quando a palavra FUTSAL começa a aparecer
