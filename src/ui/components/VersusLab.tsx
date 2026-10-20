@@ -5,14 +5,14 @@ import { monRecipe } from '../../engine/duel-validate';
 import { defaultMoveset } from '../../engine/moves';
 import type { Special } from '../../engine/specials';
 import { useT } from '../../i18n/react';
-import { parseCardShowcase } from '../../store/binder';
+import type { Peer } from '../../net/duel-state';
 import { lookOfPeer, lookOfProfile, matchLooks } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
 import { frameTier, parseShowcase } from '../../store/medals';
 import { clubColorHex } from '../../store/profile';
-import { useCardShowcase } from '../profile/Album';
 import { trainerLabel, useAvatar } from '../profile/club';
 import { useShowcase } from '../profile/Medals';
+import { peerInfo, useMyInfo, usePlayerCard } from '../profile/PlayerCard';
 import { Scoreboard } from './MatchHud';
 import { VersusIntro } from './VersusIntro';
 
@@ -33,6 +33,16 @@ const fake = (id: number, special: Special | null, shiny = false) =>
 
 /** Rival de mentira do Duelo: vem como viria da sala (ids e vitrine já com o degrau). */
 const RIVAL = {
+    id: 'lab-rival',
+    name: 'Gary',
+    avatar: 'assets/cards/6.gif',
+    avatarGoogle: false,
+    trainer: 'blue',
+    title: 'Campeão de Kanto',
+    clubName: 'Rival FC',
+    clubTag: 'RIV',
+    engine: 0,
+    app: 'lab',
     clubColor: 0xe8423f,
     color2: 0xf2c230,
     kitPattern: 'faixa',
@@ -58,7 +68,8 @@ export function VersusLab({ onExit }: { onExit: () => void }) {
     const profile = useGame((s) => s.profile);
     const avatar = useAvatar();
     const mine = useShowcase();
-    const myCards = useCardShowcase().insts;
+    const me = useMyInfo();
+    const openCard = usePlayerCard((s) => s.open);
     const { t } = useT();
     const params = new URLSearchParams(window.location.search);
     const clash = params.get('clash') === '1';
@@ -91,14 +102,14 @@ export function VersusLab({ onExit }: { onExit: () => void }) {
                         avatarGoogle: avatar.google,
                         showcase: mine.items,
                         frame: mine.frame,
-                        cards: myCards,
+                        onOpen: () => openCard(me),
                     }}
                     awayCoach={{
                         name: 'Gary',
                         avatar: 'assets/avatars/6.gif',
                         showcase: rivalShow,
-                        cards: parseCardShowcase(RIVAL.cards),
                         frame: frameTier(rivalShow),
+                        onOpen: () => openCard(peerInfo(RIVAL as unknown as Peer)),
                     }}
                     homeLook={looks[0]}
                     awayLook={looks[1]}
@@ -114,6 +125,19 @@ export function VersusLab({ onExit }: { onExit: () => void }) {
                     score={[2, 1]}
                     clock={{ main: "14'", sub: '', text: false, progress: 0.7 }}
                     stage={t('duel.title')}
+                    coaches={[
+                        <button key="me" type="button" className="sb-title is-btn" onClick={() => openCard(me)}>
+                            {me.title.name}
+                        </button>,
+                        <button
+                            key="rival"
+                            type="button"
+                            className="sb-title is-btn"
+                            onClick={() => openCard(peerInfo(RIVAL as unknown as Peer))}
+                        >
+                            {RIVAL.title}
+                        </button>,
+                    ]}
                 />
             </div>
         </div>

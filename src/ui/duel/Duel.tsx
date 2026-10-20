@@ -37,6 +37,7 @@ import { FEEDBACK_URL } from '../links';
 import { useCardShowcase } from '../profile/Album';
 import { avatarImage, avatarWire, hexCss, peerAvatar, peerTitle, titleName, trainerLabel } from '../profile/club';
 import { useShowcase } from '../profile/Medals';
+import { peerInfo, usePlayerCard } from '../profile/PlayerCard';
 import { qrPath } from '../qr';
 import { heroStats, MatchDetails } from '../screens/Result';
 import { agencyOn } from '../settings-sync';
@@ -410,6 +411,13 @@ function PeerCard({
             <span className={`duel-ready${ready ? ' on' : ''}`} data-testid={`ready-${role}`}>
                 {ready ? t('duel.lobby.ready') : t('duel.lobby.notReady')}
             </span>
+            {/* o cartão inteiro abre o perfil (o cartão do treinador, com a vitrine) */}
+            <button
+                type="button"
+                className="duel-peer-open"
+                onClick={() => usePlayerCard.getState().open(peerInfo(p, !me))}
+                aria-label={t('profile.card.openAria', { name: p.name })}
+            />
         </div>
     );
 }

@@ -13,6 +13,15 @@ export const profile: typeof pt = {
         amigos: 'Friends',
     },
     quick: { cups: 'Cups', titles: 'Titles', goals: 'Goals' },
+    card: {
+        open: 'See my public profile',
+        aria: "{name}'s profile",
+        openAria: "See {name}'s profile",
+        cards: 'Showcase cards',
+        noCards: 'No cards in the showcase yet.',
+        addFriend: 'Add friend',
+        soon: 'Coming soon',
+    },
     club: {
         saved: 'Saved',
         trainerTitle: 'Trainer',
@@ -418,7 +427,7 @@ export const profile: typeof pt = {
     binder: {
         from: { draft: 'Draft', recompensa: 'Reward', evolucao: 'Evolution', hall: 'Hall of Fame' },
         showcase: 'Card showcase',
-        showcaseHelp: 'Up to 3 cards at the top of your Profile and on the Duel VERSUS. Tap a sticker in the album.',
+        showcaseHelp: 'Up to 3 cards on your public profile (your Duel rival sees them). Tap a sticker in the album.',
         add: 'Add to showcase',
         remove: 'Remove from showcase',
         full: 'Showcase full: remove one first',

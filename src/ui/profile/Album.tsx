@@ -20,7 +20,6 @@ import { useGame } from '../../store/game-store';
 import { toggleShowcase } from '../../store/medals';
 import { albumCount, albumSlots, type Dex, hasSticker } from '../../store/profile';
 import { useCardModal } from '../card-modal';
-import { FutCard } from '../components/FutCard';
 import { PokeCard2 } from '../components/PokeCard2';
 import { TypeIcon } from '../components/TypeIcon';
 import { speciesGif } from './club';
@@ -40,30 +39,6 @@ export function useCardShowcase(): { cards: BinderCard[]; insts: PokemonInstance
         // a barra de evolução não vai pro rival (a vitrine é a carta, não a copa)
         return { cards, insts, encoded: insts.map((p) => ({ ...monRecipe(p), evo: undefined })) };
     }, [choice, binder, dex]);
-}
-
-/**
- * A fileira da vitrine de cartas (topo do Perfil, VERSUS). Sem cartas, não aparece. `open`: tocar abre a carta
- * completa (no VERSUS a tela começa sozinha: só a carta).
- */
-export function CardShowcaseRow({
-    insts,
-    className = '',
-    open = false,
-}: {
-    insts: PokemonInstance[];
-    className?: string;
-    open?: boolean;
-}) {
-    const { t } = useT();
-    if (!insts.length) return null;
-    return (
-        <ul className={`cardshow ${className}`} aria-label={t('profile.binder.showcase')}>
-            {insts.map((p) => (
-                <li key={p.uid}>{open ? <FutCard inst={p} size="sm" /> : <PokeCard2 inst={p} variant="metal" />}</li>
-            ))}
-        </ul>
-    );
 }
 
 /** A carta padrão da espécie (nível 50, golpes padrão), com a edição do espaço quando há. */

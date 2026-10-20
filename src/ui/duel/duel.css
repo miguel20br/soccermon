@@ -265,6 +265,23 @@
     border: 2px solid var(--club, var(--line));
     text-align: left;
 }
+.duel-peer {
+    position: relative;
+}
+.duel-peer-open {
+    position: absolute;
+    inset: 0;
+    padding: 0;
+    border: 0;
+    border-radius: inherit;
+    background: none;
+    cursor: pointer;
+}
+.duel-peer-open:hover,
+.duel-peer-open:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 1px;
+}
 .duel-peer.empty {
     display: flex;
     justify-content: center;
@@ -312,6 +329,18 @@
     overflow: hidden;
     text-overflow: ellipsis;
     box-sizing: border-box;
+}
+/* o título do placar abre o cartão do treinador */
+button.sb-title {
+    font-family: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    cursor: pointer;
+}
+button.sb-title:focus-visible,
+button.sb-title:hover {
+    outline: 2px solid #fff;
+    outline-offset: 1px;
 }
 :is(.duel-title, .sb-title, .vsp-coach small):has(> .title-shine) {
     border-color: #ffd84a;

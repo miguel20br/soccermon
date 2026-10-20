@@ -5023,6 +5023,12 @@ button,
     font-size: 12px;
     letter-spacing: 0.04em;
 }
+/* celular estreito: com o Perfil no canto, fica só o botão do outro idioma (o "EN" num site em português) */
+@media (max-width: 374px) {
+    .home-top .lang-toggle.bc-seg button.on {
+        display: none;
+    }
+}
 /* "?" do Como jogar: rever o passo a passo de boas-vindas */
 .help-fab {
     flex: none;
