@@ -12,6 +12,7 @@ import { titleClass } from '../../store/title-codes';
 import { useCardModal } from '../card-modal';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
+import { AddFriendButton } from './AddFriendButton';
 import { useCardShowcase } from './Album';
 import { Crest } from './Crest';
 import { hexCss, peerAvatar, peerTitle, titleName, trainerLabel, useAvatar } from './club';
@@ -32,8 +33,10 @@ export interface PlayerInfo {
     look: ClubLook;
     showcase: ShowItem[];
     cards: PokemonInstance[];
-    /** Outro jogador: mostra o lugar do "Adicionar amigo". */
+    /** Outro jogador: mostra o "Adicionar amigo". */
     other: boolean;
+    /** Id da conta de quem está na sala (o servidor de amigos acha o cartão dele por aqui). */
+    id?: string;
     anon?: boolean;
 }
 
@@ -54,6 +57,7 @@ export function peerInfo(p: Peer, other = true): PlayerInfo {
         showcase,
         cards: parseCardShowcase(p.cards),
         other,
+        id: str(p.id, 64),
         anon: p.anon === true,
     };
 }
@@ -89,7 +93,7 @@ export const usePlayerCard = create<{ info: PlayerInfo | null; open(i: PlayerInf
 
 /**
  * Cartão do treinador (modal): avatar, nome, título, clube, as medalhas da vitrine e as 3 cartas grandes (tocar abre
- * a carta inteira). De outro jogador, o lugar do "Adicionar amigo" (desligado até os amigos existirem).
+ * a carta inteira). De outro jogador, o "Adicionar amigo" (src/ui/profile/FriendsTab.tsx).
  */
 export function PlayerCardModal() {
     const { info, close } = usePlayerCard();
@@ -165,13 +169,9 @@ export function PlayerCardModal() {
                 ) : (
                     <p className="muted pcard-empty">{t('profile.card.noCards')}</p>
                 )}
-                {info.other && (
+                {info.other && info.id && (
                     <div className="pcard-friend">
-                        <button type="button" className="btn" disabled>
-                            <HudIcon kind="addFriend" />
-                            {t('profile.card.addFriend')}
-                        </button>
-                        <span className="bc-tag">{t('profile.card.soon')}</span>
+                        <AddFriendButton peer={{ id: info.id, anon: info.anon }} />
                     </div>
                 )}
             </div>

@@ -32,6 +32,8 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * `?demo=lider&clube=<id>` (brock,
  * misty, ltsurge, erika, koga, sabrina, blaine, giovanni, agatha, lance) põe o clube desse treinador na primeira
  * partida (VERSUS com a fala, a quadra do ginásio); com `&agencia=1`, uma partida em que o rival reage cedo.
+ * `?demo=amigos` abre Perfil → Amigos com um servidor de mentira (`&tela=home`: o convite na Home; `&cartao=1|anon`: o
+ * botão "Adicionar amigo" num cartão do treinador de mentira).
  * `?demo=platina` libera a
  * platina da Gen 1 sem platinar (Prof. Carvalho holográfico e Diploma de Kanto, já escolhidos) e mostra o aviso na Home.
  * `?demo=vestiario` abre na
@@ -59,6 +61,7 @@ export function runDevDemo() {
         demo !== 'album' &&
         demo !== 'dia' &&
         demo !== 'liga' &&
+        demo !== 'amigos' &&
         demo !== 'platina' &&
         demo !== 'vestiario'
     )
@@ -79,6 +82,12 @@ export function runDevDemo() {
     if (demo === 'dia' || demo === 'liga') {
         const estado = new URLSearchParams(window.location.search).get('estado');
         void import('../league/demo').then((m) => m.startLeagueDemo(demo, estado));
+        return;
+    }
+    // Amigos com um servidor de mentira (src/friends/demo.tsx): `?demo=amigos[&tela=home][&cartao=1|anon]`
+    if (demo === 'amigos') {
+        const params = new URLSearchParams(window.location.search);
+        void import('../friends/demo').then((m) => m.startFriendsDemo(params));
         return;
     }
     if (demo === 'platina') {

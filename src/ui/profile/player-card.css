@@ -61,8 +61,9 @@
     gap: 8px;
     margin-top: 8px;
 }
-.pcard-friend .bc-tag {
-    margin-top: 8px;
+.pcard-friend .fr-addbtn {
+    justify-items: start;
+    text-align: left;
 }
 @media (max-width: 560px) {
     .modal.pcard {

@@ -24,6 +24,12 @@
 - Botão do Perfil no canto de cima, com o seu avatar
 - Toque no rival no Duelo (sala, VERSUS ou placar) pra ver o perfil dele, com as cartas grandes
 
+### Amigos
+- Adicionar amigo pelo perfil do rival depois do Duelo, ou pelo código de amigo de 8 letras
+- Aba Amigos no Perfil: pedidos pra aceitar, quem está online agora e o botão Desafiar
+- Desafiou? O convite chega na hora, por cima de qualquer tela, e vale 15 minutos
+- Sem chat e sem busca por nome. Remover e bloquear em um toque (quem foi bloqueado não fica sabendo)
+
 ### Correções
 - VERSUS: o botão só deixa começar com a quadra carregada (antes levava a uma partida vazia). Se demorar, aparece "Tentar de novo"
 

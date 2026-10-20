@@ -42,6 +42,15 @@ export const PATCH_NOTES: PatchNotes[] = [
                 ],
             },
             {
+                title: 'Amigos',
+                lines: [
+                    'Adicionar amigo pelo perfil do rival depois do Duelo, ou pelo código de amigo de 8 letras',
+                    'Aba Amigos no Perfil: pedidos pra aceitar, quem está online agora e o botão Desafiar',
+                    'Desafiou? O convite chega na hora, por cima de qualquer tela, e vale 15 minutos',
+                    'Sem chat e sem busca por nome. Remover e bloquear em um toque (quem foi bloqueado não fica sabendo)',
+                ],
+            },
+            {
                 title: 'Correções',
                 lines: [
                     'VERSUS: o botão só deixa começar com a quadra carregada (antes levava a uma partida vazia). Se demorar, aparece "Tentar de novo"',
@@ -763,6 +772,15 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 lines: [
                     'Profile button in the top corner, with your avatar',
                     'Tap your rival in the Duel (room, VERSUS or scoreboard) to see their profile, with the cards in full size',
+                ],
+            },
+            {
+                title: 'Friends',
+                lines: [
+                    "Add a friend from your rival's profile after a Duel, or with an 8-letter friend code",
+                    'Friends tab in the Profile: requests to accept, who is online now and the Challenge button',
+                    'Challenged someone? The invite shows up right away, on top of any screen, and lasts 15 minutes',
+                    "No chat and no search by name. Remove and block in one tap (blocked players aren't told)",
                 ],
             },
             {

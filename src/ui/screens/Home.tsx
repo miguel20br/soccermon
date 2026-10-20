@@ -16,6 +16,7 @@ import { TypeIcon } from '../components/TypeIcon';
 import { FEEDBACK_URL, privacyUrl } from '../links';
 import { readCount, writeCount } from '../local-count';
 import { patchNotes } from '../patch-notes';
+import { FriendChallenge } from '../profile/FriendsTab';
 import { TYPE_COLOR } from '../type-colors';
 import { HomeDailyCard } from './Daily';
 import '../home-motion.css';
@@ -334,6 +335,7 @@ export function Home() {
                         <b>VS</b>
                         <img className="pixel flip" src="assets/cards/133.gif" alt="" />
                     </span>
+                    <FriendChallenge />
                     <button type="button" className="btn duel-go" onClick={() => go('duel')}>
                         {t('duel.createRoom')}
                     </button>

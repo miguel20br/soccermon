@@ -9,6 +9,7 @@ export const profile = {
         numeros: 'Números',
         missoes: 'Missões',
         medalhas: 'Medalhas',
+        amigos: 'Amigos',
     },
     quick: { cups: 'Copas', titles: 'Títulos', goals: 'Gols' },
     /** Cartão do treinador: o perfil que os outros veem (Duelo) e o seu, pelo botão do Perfil. */
@@ -18,8 +19,6 @@ export const profile = {
         openAria: 'Ver o perfil de {name}',
         cards: 'Cartas da vitrine',
         noCards: 'Nenhuma carta na vitrine ainda.',
-        addFriend: 'Adicionar amigo',
-        soon: 'Em breve',
     },
     club: {
         saved: 'Salvo',
