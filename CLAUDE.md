@@ -31,6 +31,9 @@ você é o Claude e `git log` mostrar commits com `miguelcunhabr@`, avise o Migu
   comprimir com ffmpeg 2 passes (~1,45 Mbps de vídeo, 1080x1920). Link clicável na bio só com 1000 seguidores:
   `soccermon.com` vai escrito na legenda. Todo post ganha um comentário com o link; fixar comentário só pelo app
   (o site não tem a opção). Mudança de perfil (foto/bio) demora uns minutos pra aparecer: não repetir.
+- **Social media (20/10/2026):** o Miguel passou as redes pro Claude ("masterize a arte de ser meu social media").
+  Skill `soccermon-social`: pauta numerada por semana em `docs/marketing/pauta.md`, ele aprova numa linha ("ok 1–5")
+  e o Claude grava, agenda e acompanha; nada vai ao ar fora de uma pauta aprovada.
 - Antes de planejar algo grande e novo, ele gosta de uma pesquisa ampla de referências (repos do GitHub, libs,
   assets, skills de game design).
 
@@ -106,6 +109,7 @@ Leia a skill antes de começar a tarefa dela:
 | `soccermon-lancamento` | versão nova: checklist, "pode subir", merge, tag, release, conferir o ar |
 | `soccermon-titulos` | título por código pra gametester/amigo |
 | `soccermon-assets` | vídeo, logo, imagem e texto de divulgação |
+| `soccermon-social` | redes do jogo: pauta da semana, clipes, agendar no TikTok/Instagram/Shorts, comentários, placar |
 | `soccermon-marca` | antes de mexer em qualquer visual, ícone, texto de interface ou asset: checklist de padronização (brand guide em `docs/marca/`) |
 
 ## Regras de velocidade (19/10/2026, `docs/planos/pesquisas/velocidade.md`)
