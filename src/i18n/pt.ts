@@ -13,6 +13,7 @@ import { profile } from './pt/profile';
 import { result } from './pt/result';
 import { reward } from './pt/reward';
 import { settings } from './pt/settings';
+import { shop } from './pt/shop';
 import { stats } from './pt/stats';
 import { team } from './pt/team';
 import { title } from './pt/title';
@@ -44,6 +45,7 @@ export const pt = {
     liga,
     friends,
     trophies,
+    shop,
 };
 
 export type Dict = typeof pt;

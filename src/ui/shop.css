@@ -1,0 +1,126 @@
+/* Mercado e Patrocínios (docs/planos/copa-roguelike-plano.md). Família: economia amarela, recompensa azul, campo verde. */
+.fam-economia {
+    --fam: var(--yellow);
+}
+.fam-recompensa {
+    --fam: var(--blue);
+}
+.fam-campo {
+    --fam: var(--green);
+}
+
+.money {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 700;
+    color: var(--yellow);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------- carta do Patrocínio ---------- */
+.sp-card {
+    width: var(--fut-w, 190px);
+    min-height: 250px;
+    display: grid;
+    grid-template-rows: auto auto auto 1fr auto;
+    justify-items: center;
+    gap: 8px;
+    padding: 12px 12px 14px;
+    background: var(--bc-ink);
+    border: 3px solid var(--fam);
+    border-radius: 10px;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.45);
+    text-align: center;
+    color: var(--text);
+}
+.sp-fam {
+    padding: 2px 8px 1px;
+    border-radius: 4px;
+    background: var(--fam);
+    color: var(--bc-ink);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    line-height: 14px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.sp-emblem {
+    display: grid;
+    place-items: center;
+    width: 76px;
+    height: 76px;
+    margin-top: 4px;
+    border-radius: 50%;
+    border: 3px solid var(--fam);
+    background: color-mix(in srgb, var(--fam) 16%, var(--bc-ink));
+    color: var(--fam);
+}
+.sp-emblem .hud-icon {
+    width: 40px;
+    height: 40px;
+}
+.sp-name {
+    font-family: "Galmuri14", var(--font, inherit);
+    font-size: 15px;
+    line-height: 1.2;
+}
+.sp-desc {
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--muted);
+}
+
+/* ---------- as 3 vagas ---------- */
+.sp-slots {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+.sp-slot {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: var(--bc-ink);
+    border: 2px solid var(--fam, var(--line));
+    color: var(--text);
+    font: inherit;
+    font-size: 12px;
+    text-align: left;
+    transition:
+        transform 200ms var(--ease-out),
+        background-color 200ms var(--ease-out);
+}
+.sp-slot .hud-icon {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    color: var(--fam);
+}
+.sp-slot-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.sp-slot.free {
+    border-style: dashed;
+    border-color: var(--line);
+    background: transparent;
+    color: var(--muted);
+}
+.sp-slot-li {
+    display: grid;
+}
+button.sp-slot {
+    cursor: pointer;
+}
+button.sp-slot:hover {
+    transform: translateY(-2px);
+}

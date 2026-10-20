@@ -13,6 +13,7 @@ import { profile } from './en/profile';
 import { result } from './en/result';
 import { reward } from './en/reward';
 import { settings } from './en/settings';
+import { shop } from './en/shop';
 import { stats } from './en/stats';
 import { team } from './en/team';
 import { title } from './en/title';
@@ -40,4 +41,5 @@ export const en: Dict = {
     liga,
     friends,
     trophies,
+    shop,
 };

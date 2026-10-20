@@ -297,6 +297,18 @@ export const ICONS = {
     addFriend: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21c0-4 3-7 7-7s7 3 7 7M19 8v6M16 11h6',
     friends: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21c0-4 3-7 7-7s7 3 7 7M16 3.5a4 4 0 0 1 0 7.5M18 14c2.4.8 4 3.4 4 7',
     more: 'M5 12h.01M12 12h.01M19 12h.01',
+    // Mercado e Patrocínios (src/ui/components/SponsorCard.tsx)
+    heart: 'M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z',
+    dice: 'M5 5h14v14H5zM9 9h.01M15 9h.01M12 12h.01M9 15h.01M15 15h.01',
+    ship: 'M3 14h18l-2.5 6h-13zM6 14V9h12v5M10 9V5h4v4',
+    bag: 'M5 8h14l-1 13H6zM9 8V6a3 3 0 0 1 6 0v2',
+    flask: 'M9 3h6M10 3v6l-5 11h14l-5-11V3M7 15h10',
+    egg: 'M12 3c4 0 7 6 7 11a7 7 0 0 1-14 0c0-5 3-11 7-11zM8 14l2 1.5 2-1.5 2 1.5 2-1.5',
+    leaf: 'M5 19C5 10 11 4 20 4c0 9-6 15-15 15zM5 19l8-8',
+    building: 'M5 21V4h9v17M14 9h5v12M3 21h18M8 8h3M8 12h3M8 16h3',
+    bike: 'M3.5 17a3 3 0 1 0 6 0 3 3 0 1 0-6 0M14.5 17a3 3 0 1 0 6 0 3 3 0 1 0-6 0M6.5 17L10 9h5l2.5 8M10 9l3 8M13 6h3',
+    book: 'M3 5h6a3 3 0 0 1 3 3v12a2.5 2.5 0 0 0-2.5-2.5H3zM21 5h-6a3 3 0 0 0-3 3v12a2.5 2.5 0 0 1 2.5-2.5H21z',
+    crown: 'M4 19h16M5 16L3 7l5 4 4-6 4 6 5-4-2 9z',
 } as const;
 export type HudIconKind = keyof typeof ICONS;
 

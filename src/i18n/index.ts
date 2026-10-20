@@ -153,8 +153,20 @@ export const linkText = (id: string, lang: Lang = current) =>
 /** "+5%" / "−3%" (mesmo formato das linhas de bônus do motor). */
 export const pct = (f: number) => `${f >= 1 ? '+' : '−'}${Math.round(Math.abs(f - 1) * 100)}%`;
 
+/** Patrocínio: nome e efeito. */
+export const sponsorText = (id: string, lang: Lang = current) => DICTS[lang].shop.sponsor[id] ?? { name: id, desc: '' };
+
 /** Linha de bônus da carta no idioma do jogo (em português é o próprio rótulo do motor). */
 export function modLabel(m: AttrModifier, lang: Lang = current): string {
+    if (m.source === 'patrocinio') {
+        const d = DICTS[lang];
+        const k = Array.isArray(m.attrs) ? m.attrs[0] : undefined;
+        return fmt(d.shop.mod, {
+            name: sponsorText(m.ref ?? '', lang).name,
+            n: m.add ?? 0,
+            what: k ? d.common.attr[k].toLowerCase() : d.shop.allAttrs,
+        });
+    }
     if (lang === 'pt') return m.label;
     const c = DICTS[lang].common;
     const f = m.factor ?? 1;
