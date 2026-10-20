@@ -74,8 +74,8 @@ cp "$LOGO/logo-horizontal.svg" "$LOGO/logo-simbolo.svg" $M/
 
 # ---- sons ----------------------------------------------------------------------------------------------------
 # bipe do Game Boy a cada letra (0,08 s): onda quadrada curta
-ffmpeg -v error -y -f lavfi -i "aevalsrc=0.22*sgn(sin(2*PI*1350*t))*lt(mod(t\,0.08)\,0.03):s=44100:d=4.3" $M/bipes1.wav
-ffmpeg -v error -y -f lavfi -i "aevalsrc=0.22*sgn(sin(2*PI*1350*t))*lt(mod(t\,0.08)\,0.03):s=44100:d=1.7" $M/bipes2.wav
+ffmpeg -v error -y -f lavfi -i "aevalsrc=0.22*sgn(sin(2*PI*1350*t))*lt(mod(t\,0.055)\,0.025):s=44100:d=2.85" $M/bipes1.wav
+ffmpeg -v error -y -f lavfi -i "aevalsrc=0.22*sgn(sin(2*PI*1350*t))*lt(mod(t\,0.055)\,0.025):s=44100:d=1.15" $M/bipes2.wav
 # apito: gravação real de juiz num ginásio (CC0, ../sons/CREDITOS.md), um só
 ffmpeg -v error -y -ss 0.07 -t 1.5 -i ../sons/apito-ginasio-splicesound-cc0.wav -af "afade=t=out:st=1.1:d=0.4,loudnorm=I=-14:TP=-1:LRA=7" -ar 44100 $M/apito.wav
 # "tum" da bola caindo no pé do Pikachu e do pacote pousando: grave curto

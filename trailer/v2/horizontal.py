@@ -18,16 +18,16 @@ css = {
     ".jogo { position: absolute; left: 0; top: 520px; width: 1080px; height: 860px; object-fit: cover; object-position: 50% 50%;\n  box-shadow: 0 0 0 6px #0e1430, 0 20px 60px rgb(0 0 0 / 60%); }":
         ".jogo { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; object-position: 50% 50%; }",
     ".vinheta { position: absolute; left: 0; top: 520px; width: 1080px; height: 860px;": ".vinheta { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px;",
-    ".caixa { position: absolute; left: 40px; width: 900px; top: 1130px; height: 470px; box-sizing: border-box; padding: 76px 70px;":
+    ".caixa { position: absolute; left: 90px; width: 900px; top: 1130px; height: 470px; box-sizing: border-box; padding: 76px 70px;":
         ".caixa { position: absolute; left: 360px; width: 1200px; top: 640px; height: 380px; box-sizing: border-box; padding: 64px 80px;",
-    "#bola-gb { position: absolute; width: 140px; left: 610px; top: 880px;": "#bola-gb { position: absolute; width: 120px; left: 1130px; top: 470px;",
+    "#bola-gb { position: absolute; width: 140px; left: 660px; top: 880px;": "#bola-gb { position: absolute; width: 120px; left: 1130px; top: 470px;",
     ".leque { position: absolute; left: 540px; top: 700px;": ".leque { position: absolute; left: 960px; top: 300px;",
-    "#logo { position: absolute; left: 90px; top: 430px; width: 800px;": "#logo { position: absolute; left: 410px; top: 200px; width: 1100px;",
-    ".tag { position: absolute; left: 60px; width: 860px; top: 760px;": ".tag { position: absolute; left: 160px; width: 1600px; top: 500px;",
-    ".site { position: absolute; left: 60px; width: 860px; top: 1010px;": ".site { position: absolute; left: 160px; width: 1600px; top: 650px;",
-    ".selo { position: absolute; left: 60px; width: 860px; top: 1130px;": ".selo { position: absolute; left: 160px; width: 1600px; top: 760px;",
-    ".credito { position: absolute; left: 60px; width: 860px; top: 1500px;": ".credito { position: absolute; left: 160px; width: 1600px; top: 990px;",
-    "Área segura: textos e logo entre x 60–920 e y 130–1632 (fora dos 15% de baixo e da faixa dos botões à direita).":
+    "#logo { position: absolute; left: 140px; top: 520px; width: 800px;": "#logo { position: absolute; left: 410px; top: 200px; width: 1100px;",
+    ".tag { position: absolute; left: 110px; width: 860px; top: 750px;": ".tag { position: absolute; left: 160px; width: 1600px; top: 500px;",
+    ".site { position: absolute; left: 110px; width: 860px; top: 890px;": ".site { position: absolute; left: 160px; width: 1600px; top: 650px;",
+    ".selo { position: absolute; left: 110px; width: 860px; top: 1000px;": ".selo { position: absolute; left: 160px; width: 1600px; top: 760px;",
+    ".credito { position: absolute; left: 110px; width: 860px; top: 1560px;": ".credito { position: absolute; left: 160px; width: 1600px; top: 990px;",
+    "Tudo centrado em x 540 (o centro dos raios e das legendas); textos entre y 130 e 1632 (fora dos 15% de baixo).":
         "Versão 16:9 gerada por trailer/v2/horizontal.py a partir do 9:16 (não edite à mão).",
     "<title>Soccermon · trailer 2 vertical</title>": "<title>Soccermon · trailer 2 16:9</title>",
     '<meta name="viewport" content="width=1080, height=1920" />': '<meta name="viewport" content="width=1920, height=1080" />',
@@ -61,8 +61,8 @@ pos = {
     "camp": "left:640px;top:250px;width:640px;opacity:0",
     "vit": "left:430px;top:250px;width:540px;opacity:0",
     "mvp": "left:1060px;top:330px;width:400px;opacity:0",
-    "pacote": "position:absolute;left:651px;top:130px;width:618px;height:864px",
-    "simbolo": "left:820px;top:200px",
+    "pacote": "position:absolute;left:651px;top:230px;width:618px;height:864px",
+    "simbolo": "left:820px;top:380px",
 }
 for i, st in pos.items():
     n = len(re.findall(rf'id="{i}"([^>]*?)style="[^"]*"', s))
@@ -73,8 +73,8 @@ for i, st in pos.items():
 s = s.replace('<div style="position:absolute;left:0;top:520px;width:1080px;height:860px;overflow:hidden">',
               '<div style="position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden">')
 s = s.replace('transform-origin:540px 430px', 'transform-origin:960px 540px')
-s = s.replace('<div class="leque" id="leque" style="left:490px"></div>', '<div class="leque" id="leque"></div>')
-s = s.replace('{ y: -380, scale: 1.25, rotationY: 720,', '{ y: -60, scale: 1.25, rotationY: 720,')
+# a carta holo sai de dentro do pacote (atrás dele) e sobe até a altura do logo
+s = s.replace('{ y: -420, scale: 1.25, rotationY: 720,', '{ y: -250, scale: 1.25, rotationY: 720,')
 s = s.replace('tl.to("#oak", { x: -700,', 'tl.to("#oak", { x: -1500,')
 # vídeos: as versões 16:9 dos clipes (sufixo -h)
 s = re.sub(r'src="midia/([a-z-]+)\.mp4"', r'src="midia/\1-h.mp4"', s)

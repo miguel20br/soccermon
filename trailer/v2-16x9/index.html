@@ -75,7 +75,7 @@ img { image-rendering: pixelated; }
 .site { position: absolute; left: 160px; width: 1600px; top: 650px; text-align: center; font-size: 62px; letter-spacing: 2px; color: #fff; opacity: 0; }
 .selo { position: absolute; left: 160px; width: 1600px; top: 760px; display: flex; justify-content: center; opacity: 0; }
 .selo span { padding: 18px 30px; border-radius: 14px; background: #e8423f; color: #fff; font-size: 38px; line-height: 1.3; letter-spacing: 2px; box-shadow: 0 7px 0 #8c1d1b; text-align: center; }
-.credito { position: absolute; left: 160px; width: 1600px; top: 990px; text-align: center; font-size: 30px; color: #9aa6d8; letter-spacing: 1px; opacity: 0; }
+.credito { position: absolute; left: 160px; width: 1600px; top: 990px; text-align: center; font-size: 34px; color: #9aa6d8; letter-spacing: 1px; opacity: 0; }
 </style>
 </head>
 <body>
@@ -90,10 +90,10 @@ img { image-rendering: pixelated; }
     </feComponentTransfer>
   </filter>
 </svg>
-<div id="root" data-composition-id="root" data-width="1920" data-height="1080" data-start="0" data-duration="38.091">
+<div id="root" data-composition-id="root" data-width="1920" data-height="1080" data-start="0" data-duration="33.374">
 
   <!-- ===== planos 1–2 · abertura Red/Blue (sem música) ===== -->
-  <div id="abertura" class="clip gb" data-start="0" data-duration="7.52">
+  <div id="abertura" class="clip gb" data-start="0" data-duration="5.5">
     <img class="sprite" id="oak" src="midia/oak.png" style="left:700px;top:60px;width:520px" alt="" />
     <img class="sprite" id="pika" src="midia/pika/00.png" style="left:735px;top:150px;width:450px;opacity:0" alt="" />
     <img id="bola-gb" src="midia/ball.svg" style="opacity:0" alt="" />
@@ -102,8 +102,8 @@ img { image-rendering: pixelated; }
   </div>
 
   <!-- ===== plano 3 · bola parada, apito, a música entra e a câmera abre ===== -->
-  <div id="bola" class="clip" data-start="7.52" data-duration="0.908" style="background:#000">
-    <div id="fundo-bola" class="clip palco" style="opacity:0"><div class="raios"></div></div>
+  <div id="bola" class="clip" data-start="5.5" data-duration="0.908" style="background:#000">
+    <div id="fundo-bola" class="clip palco"><div class="raios"></div></div>
     <div style="position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden">
       <div id="zoom-bola" style="position:absolute;inset:0;transform-origin:960px 540px">
         <img class="jogo" src="midia/saida-vazia.png" style="top:0" alt="" />
@@ -113,7 +113,7 @@ img { image-rendering: pixelated; }
   </div>
 
   <!-- ===== planos 4–7 · draft (B0–B24), cada corte com 2 batidas no mínimo ===== -->
-  <div id="draft" class="clip palco" data-start="8.428" data-duration="8.09">
+  <div id="draft" class="clip palco" data-start="6.408" data-duration="8.09">
     <div class="raios"></div>
     <div id="d-cartas" class="clip">
       <img class="recorte" id="d1" src="midia/s-draft-1.png" style="left:330px;top:290px;width:380px" alt="" />
@@ -128,29 +128,29 @@ img { image-rendering: pixelated; }
     <img class="recorte" id="e3" src="midia/ed-evento.png" style="left:710px;top:250px;width:500px;opacity:0" alt="" />
     <img class="recorte" id="e4" src="midia/bronze.png" style="left:710px;top:250px;width:500px;opacity:0" alt="" />
   </div>
-  <div class="clip legenda" id="leg-escolha" data-start="8.428" data-duration="2.697"></div>
-  <div class="clip legenda" id="leg-icones" data-start="12.473" data-duration="1.348"></div>
+  <div class="clip legenda" id="leg-escolha" data-start="6.408" data-duration="2.697"></div>
+  <div class="clip legenda" id="leg-icones" data-start="10.453" data-duration="1.348"></div>
 
   <!-- ===== planos 8–13 · partida (B24–B50): tudo na mesma partida (partida · trailer3892, quadra da Saffron) ===== -->
-  <div class="clip palco" data-start="16.518" data-duration="8.764"><div class="raios" style="opacity:.6"></div></div>
-  <video id="v-placar-jogo-h" class="jogo" src="midia/placar-jogo-h.mp4" muted playsinline data-start="16.518" data-duration="1.348"></video>
-  <img class="clip recorte" id="placar" src="midia/placar.png" data-start="16.518" data-duration="1.348" style="left:650px;top:40px;width:620px;height:auto;z-index:30" alt="" />
-  <video id="v-golpe-h" class="jogo" src="midia/golpe-h.mp4" muted playsinline data-start="17.866" data-duration="1.349"></video>
-  <div class="clip mira" id="mira" data-start="17.866" data-duration="0.9" style="left:905px;top:430px"></div>
-  <div class="clip golpe" id="golpe" data-start="17.866" data-duration="1.1" style="left:545px;top:180px"><div class="face"><img src="midia/retrato-6.png" alt="" /></div><div><div class="quem" id="golpe-quem"></div><div class="nome">FIRE BLAST!</div></div></div>
-  <video id="v-defesa-h" class="jogo" src="midia/defesa-h.mp4" muted playsinline data-start="19.215" data-duration="1.348"></video>
-  <video id="v-evo-pika-h" class="jogo" src="midia/evo-pika-h.mp4" muted playsinline data-start="20.563" data-duration="0.674"></video>
-  <video id="v-evo-silhueta-h" class="jogo" src="midia/evo-silhueta-h.mp4" muted playsinline data-start="21.237" data-duration="0.674"></video>
-  <video id="v-evo-raichu-h" class="jogo" src="midia/evo-raichu-h.mp4" muted playsinline data-start="21.911" data-duration="1.348"></video>
-  <video id="v-gol-chute-h" class="jogo" src="midia/gol-chute-h.mp4" muted playsinline data-start="23.259" data-duration="0.675"></video>
-  <video id="v-gol-lento-h" class="jogo" src="midia/gol-lento-h.mp4" muted playsinline data-start="23.934" data-duration="0.674"></video>
-  <video id="v-gol-h" class="jogo" src="midia/gol-h.mp4" muted playsinline data-start="24.608" data-duration="0.674"></video>
-  <div class="clip vinheta" data-start="16.518" data-duration="8.764"></div>
-  <div class="clip legenda baixo" id="leg-futsal" data-start="16.518" data-duration="1.348"></div>
-  <div class="clip legenda" id="leg-evo" data-start="20.563" data-duration="2.696"></div>
+  <div class="clip palco" data-start="14.498" data-duration="8.764"><div class="raios" style="opacity:.6"></div></div>
+  <video id="v-placar-jogo-h" class="jogo" src="midia/placar-jogo-h.mp4" muted playsinline data-start="14.498" data-duration="1.348"></video>
+  <img class="clip recorte" id="placar" src="midia/placar.png" data-start="14.498" data-duration="1.348" style="left:650px;top:40px;width:620px;height:auto;z-index:30" alt="" />
+  <video id="v-golpe-h" class="jogo" src="midia/golpe-h.mp4" muted playsinline data-start="15.846" data-duration="1.349"></video>
+  <div class="clip mira" id="mira" data-start="15.846" data-duration="0.9" style="left:905px;top:430px"></div>
+  <div class="clip golpe" id="golpe" data-start="15.846" data-duration="1.1" style="left:545px;top:180px"><div class="face"><img src="midia/retrato-6.png" alt="" /></div><div><div class="quem" id="golpe-quem"></div><div class="nome">FIRE BLAST!</div></div></div>
+  <video id="v-defesa-h" class="jogo" src="midia/defesa-h.mp4" muted playsinline data-start="17.195" data-duration="1.348"></video>
+  <video id="v-evo-pika-h" class="jogo" src="midia/evo-pika-h.mp4" muted playsinline data-start="18.543" data-duration="0.674"></video>
+  <video id="v-evo-silhueta-h" class="jogo" src="midia/evo-silhueta-h.mp4" muted playsinline data-start="19.217" data-duration="0.674"></video>
+  <video id="v-evo-raichu-h" class="jogo" src="midia/evo-raichu-h.mp4" muted playsinline data-start="19.891" data-duration="1.348"></video>
+  <video id="v-gol-chute-h" class="jogo" src="midia/gol-chute-h.mp4" muted playsinline data-start="21.239" data-duration="0.675"></video>
+  <video id="v-gol-lento-h" class="jogo" src="midia/gol-lento-h.mp4" muted playsinline data-start="21.914" data-duration="0.674"></video>
+  <video id="v-gol-h" class="jogo" src="midia/gol-h.mp4" muted playsinline data-start="22.588" data-duration="0.674"></video>
+  <div class="clip vinheta" data-start="14.498" data-duration="8.764"></div>
+  <div class="clip legenda baixo" id="leg-futsal" data-start="14.498" data-duration="1.348"></div>
+  <div class="clip legenda" id="leg-evo" data-start="18.543" data-duration="2.696"></div>
 
-  <!-- ===== planos 14–17 · extras (B50–B68), 4 batidas cada (medalhas 6) ===== -->
-  <div id="extras" class="clip palco" data-start="25.282" data-duration="6.067">
+  <!-- ===== planos 14–17 · extras (B50–B66), 4 batidas cada ===== -->
+  <div id="extras" class="clip palco" data-start="23.262" data-duration="5.393">
     <div class="raios"></div>
     <img class="recorte" id="em1" src="midia/emote-1.png" style="left:520px;top:270px;width:440px" alt="" />
     <img class="recorte" id="em2" src="midia/emote-2.png" style="left:980px;top:440px;width:380px;opacity:0" alt="" />
@@ -160,18 +160,18 @@ img { image-rendering: pixelated; }
     <img class="recorte" id="vit" src="midia/s-vitrine-1.png" style="left:430px;top:250px;width:540px;opacity:0" alt="" />
     <img class="recorte" id="mvp" src="midia/ed-icone-mvp.png" style="left:1060px;top:330px;width:400px;opacity:0" alt="" />
   </div>
-  <div class="clip legenda" id="leg-multi" data-start="25.282" data-duration="1.348"></div>
-  <div class="clip legenda" id="leg-copa" data-start="26.63" data-duration="1.349"></div>
+  <div class="clip legenda" id="leg-multi" data-start="23.262" data-duration="1.348"></div>
+  <div class="clip legenda" id="leg-copa" data-start="24.61" data-duration="1.349"></div>
 
-  <!-- ===== planos 18–21 · o pacote do jogo cai, rasga, a carta holo sobe e vira o logo (B68–B88) ===== -->
-  <div id="final" class="clip palco" data-start="31.349" data-duration="6.742">
+  <!-- ===== planos 18–21 · o pacote do jogo cai, rasga, a carta holo sobe e vira o logo (B66–B80) ===== -->
+  <div id="final" class="clip palco" data-start="28.655" data-duration="4.719">
     <div class="raios" id="raios-final"></div>
     <div class="leque" id="leque"></div>
-    <div id="pacote" style="position:absolute;left:651px;top:130px;width:618px;height:864px">
+    <img id="simbolo" src="midia/logo-simbolo.svg" style="left:820px;top:380px" alt="" />
+    <div id="pacote" style="position:absolute;left:651px;top:230px;width:618px;height:864px">
       <img id="pacote-corpo" src="midia/pacote-corpo.png" style="position:absolute;left:0;top:99px;width:618px;image-rendering:auto" alt="" />
       <img id="pacote-tampa" src="midia/pacote-tampa.png" style="position:absolute;left:0;top:0;width:618px;image-rendering:auto" alt="" />
     </div>
-    <img id="simbolo" src="midia/logo-simbolo.svg" style="left:820px;top:200px" alt="" />
     <img id="logo" src="midia/logo-horizontal.svg" alt="" />
     <div class="tag" id="tag"></div>
     <div class="site" id="site">soccermon.com</div>
@@ -181,29 +181,29 @@ img { image-rendering: pixelated; }
   <div class="flash" id="flash"></div>
 
   <!-- ===== som ===== -->
-  <audio id="a-bipes1" class="clip" src="midia/bipes1.wav" data-start="0" data-duration="4.3" data-volume="0.45"></audio>
-  <audio id="a-pika1" class="clip" src="midia/grito-25.ogg" data-start="5.04" data-duration="1.2" data-volume="0.7"></audio>
-  <audio id="a-bipes2" class="clip" src="midia/bipes2.wav" data-start="5.04" data-duration="1.7" data-volume="0.45"></audio>
-  <audio id="a-tum1" class="clip" src="midia/tum.wav" data-start="6.4" data-duration="0.35" data-volume="0.9"></audio>
-  <audio id="a-apito" class="clip" src="midia/apito.wav" data-start="7.52" data-duration="1.5" data-volume="1.6"></audio>
-  <audio id="a-musica" class="clip" src="midia/musica.wav" data-start="7.96" data-duration="30.131" data-media-start="0" data-fade-out="1.6"></audio>
-  <audio id="a-zard" class="clip" src="midia/grito-6.ogg" data-start="17.95" data-duration="1.2" data-volume="0.45"></audio>
-  <audio id="a-imp1" class="clip" src="midia/impacto.wav" data-start="19.915" data-duration="0.6" data-volume="0.7"></audio>
-  <audio id="a-uuh" class="clip" src="midia/torcida-uuh-1.mp3" data-start="19.95" data-duration="0.6" data-volume="0.6" data-fade-out="0.2"></audio>
-  <audio id="a-pika2" class="clip" src="midia/grito-25.ogg" data-start="20.563" data-duration="1.0" data-volume="0.45"></audio>
-  <audio id="a-raichu" class="clip" src="midia/grito-26.ogg" data-start="21.95" data-duration="1.3" data-volume="0.5"></audio>
-  <audio id="a-imp2" class="clip" src="midia/impacto.wav" data-start="24.608" data-duration="0.6" data-volume="0.8"></audio>
-  <audio id="a-gol" class="clip" src="midia/torcida-gol-1.mp3" data-start="24.62" data-duration="1.2" data-volume="0.65" data-fade-out="0.4"></audio>
-  <audio id="a-pop1" class="clip" src="midia/pop.wav" data-start="25.282" data-duration="0.25" data-volume="0.6"></audio>
-  <audio id="a-pop2" class="clip" src="midia/pop.wav" data-start="25.619" data-duration="0.25" data-volume="0.6"></audio>
-  <audio id="a-tum2" class="clip" src="midia/tum.wav" data-start="31.6" data-duration="0.35" data-volume="0.9"></audio>
-  <audio id="a-rasgo" class="clip" src="midia/rasgo.wav" data-start="32.698" data-duration="0.45" data-volume="0.7"></audio>
-  <audio id="a-brilho" class="clip" src="midia/brilho.wav" data-start="32.8" data-duration="0.9" data-volume="0.5"></audio>
-  <audio id="a-pika3" class="clip" src="midia/grito-25.ogg" data-start="36.8" data-duration="1.2" data-volume="0.45"></audio>
+  <audio id="a-bipes1" class="clip" src="midia/bipes1.wav" data-start="0" data-duration="2.85" data-volume="0.45"></audio>
+  <audio id="a-pika1" class="clip" src="midia/grito-25.ogg" data-start="3.5" data-duration="1.2" data-volume="0.7"></audio>
+  <audio id="a-bipes2" class="clip" src="midia/bipes2.wav" data-start="3.5" data-duration="1.15" data-volume="0.45"></audio>
+  <audio id="a-tum1" class="clip" src="midia/tum.wav" data-start="4.510" data-duration="0.35" data-volume="0.9"></audio>
+  <audio id="a-apito" class="clip" src="midia/apito.wav" data-start="5.5" data-duration="1.5" data-volume="1.6"></audio>
+  <audio id="a-musica" class="clip" src="midia/musica.wav" data-start="5.940" data-duration="27.434" data-media-start="0" data-fade-out="1.6"></audio>
+  <audio id="a-zard" class="clip" src="midia/grito-6.ogg" data-start="15.93" data-duration="1.2" data-volume="0.45"></audio>
+  <audio id="a-imp1" class="clip" src="midia/impacto.wav" data-start="17.895" data-duration="0.6" data-volume="0.7"></audio>
+  <audio id="a-uuh" class="clip" src="midia/torcida-uuh-1.mp3" data-start="17.93" data-duration="0.6" data-volume="0.6" data-fade-out="0.2"></audio>
+  <audio id="a-pika2" class="clip" src="midia/grito-25.ogg" data-start="18.543" data-duration="1.0" data-volume="0.45"></audio>
+  <audio id="a-raichu" class="clip" src="midia/grito-26.ogg" data-start="19.93" data-duration="1.3" data-volume="0.5"></audio>
+  <audio id="a-imp2" class="clip" src="midia/impacto.wav" data-start="22.588" data-duration="0.6" data-volume="0.8"></audio>
+  <audio id="a-gol" class="clip" src="midia/torcida-gol-1.mp3" data-start="22.6" data-duration="1.2" data-volume="0.65" data-fade-out="0.4"></audio>
+  <audio id="a-pop1" class="clip" src="midia/pop.wav" data-start="23.262" data-duration="0.25" data-volume="0.6"></audio>
+  <audio id="a-pop2" class="clip" src="midia/pop.wav" data-start="23.599" data-duration="0.25" data-volume="0.6"></audio>
+  <audio id="a-tum2" class="clip" src="midia/tum.wav" data-start="28.905" data-duration="0.35" data-volume="0.9"></audio>
+  <audio id="a-rasgo" class="clip" src="midia/rasgo.wav" data-start="29.666" data-duration="0.45" data-volume="0.7"></audio>
+  <audio id="a-brilho" class="clip" src="midia/brilho.wav" data-start="29.766" data-duration="0.9" data-volume="0.5"></audio>
+  <audio id="a-pika3" class="clip" src="midia/grito-25.ogg" data-start="32.084" data-duration="1.2" data-volume="0.45"></audio>
 
   <script>
-    const b = 60 / 178, G0 = 8.428, B = (n) => G0 + n * b;
-    const LETRA = 0.08;
+    const AP = 5.5, b = 60 / 178, G0 = AP + 0.908, B = (n) => G0 + n * b;  // AP: apito; a música entra em AP + 0,44
+    const LETRA = 0.055, CX2 = 3.5;
     const TEXTOS = {
       pt: {
         cx1: "Este mundo é habitado<br>por criaturas chamadas<br>POKÉMON!",
@@ -280,24 +280,23 @@ img { image-rendering: pixelated; }
     tl.fromTo("#oak", { opacity: 0.25 }, { opacity: 1, duration: 0.3, ease: "steps(3)", immediateRender: false }, 0);
     const fim1 = digitar("cx1", T.cx1, 0).fim;
     tl.to("#seta1", { opacity: 1, duration: 0.01, repeat: 3, yoyo: true, repeatDelay: 0.18 }, fim1 + 0.05);
-    tl.set("#caixa1", { opacity: 0 }, 5.04);
-    tl.set("#caixa2", { opacity: 1 }, 5.04);
-    tl.to("#oak", { x: -1500, duration: 0.25, ease: "power2.in" }, 5.04);
-    tl.fromTo("#pika", { x: 700, opacity: 1 }, { x: 0, opacity: 1, duration: 0.3, ease: "power2.out", immediateRender: false }, 5.04);
-    for (let k = 0, t = 5.04; t < 7.52; k++, t += 0.1) tl.set("#pika", { attr: { src: `midia/pika/${String(k % 60).padStart(2, "0")}.png` } }, t);
+    tl.set("#caixa1", { opacity: 0 }, CX2);
+    tl.set("#caixa2", { opacity: 1 }, CX2);
+    tl.to("#oak", { x: -1500, duration: 0.25, ease: "power2.in" }, CX2);
+    tl.fromTo("#pika", { x: 700, opacity: 1 }, { x: 0, opacity: 1, duration: 0.3, ease: "power2.out", immediateRender: false }, CX2);
+    for (let k = 0, t = CX2; t < AP; k++, t += 0.1) tl.set("#pika", { attr: { src: `midia/pika/${String(k % 60).padStart(2, "0")}.png` } }, t);
     // a bola cai no pé do Pikachu quando a palavra FUTSAL começa a aparecer
-    const cx2 = digitar("cx2", T.cx2, 5.04);
-    const tBola = 5.04 + cx2.texto.indexOf("FUTSAL") * LETRA;
+    const cx2 = digitar("cx2", T.cx2, CX2);
+    const tBola = CX2 + cx2.texto.indexOf("FUTSAL") * LETRA;
     tl.fromTo("#bola-gb", { y: -900, opacity: 1 }, { y: 0, opacity: 1, duration: 0.24, ease: "power2.in", immediateRender: false }, tBola);
     tl.to("#bola-gb", { keyframes: { y: [-60, 0, -18, 0] }, duration: 0.35, ease: "none" }, tBola + 0.24);
 
     // ===== bola parada → apito → a música entra e a câmera abre =====
-    tl.set("#zoom-bola", { scale: 3.2 }, 7.52);
-    tl.to("#zoom-bola", { scale: 3.35, duration: 0.44, ease: "none" }, 7.52);
-    tl.to("#zoom-bola", { scale: 1, duration: G0 - 7.96, ease: "power3.in" }, 7.96);
-    tl.to("#com-times", { opacity: 1, duration: 0.3 }, 8.1);
-    tl.to("#fundo-bola", { opacity: 1, duration: 0.3 }, 8.1);
-
+    tl.set("#zoom-bola", { scale: 3.2 }, AP);
+    tl.to("#zoom-bola", { scale: 3.35, duration: 0.44, ease: "none" }, AP);
+    tl.to("#zoom-bola", { scale: 1, duration: G0 - AP - 0.44, ease: "power3.in" }, AP + 0.44);
+    tl.to("#com-times", { opacity: 1, duration: 0.3 }, AP + 0.58);
+    
     // ===== draft: 2 batidas por corte =====
     tl.set(["#d1", "#d2", "#d3"], { opacity: 0 }, 0);
     corte("#d1", B(0)); corte("#d2", B(2)); corte("#d3", B(4));
@@ -339,33 +338,34 @@ img { image-rendering: pixelated; }
     legenda("copa", B(54));
     corte("#camp", B(58), 4 * b);
     flash(B(58), 0.6, 0.25);
-    corte("#vit", B(62), 6 * b + 0.01);
-    tl.set("#mvp", { opacity: 1 }, B(64));
-    tl.from("#mvp", { x: 300, rotation: 20, duration: 0.2, ease: "back.out(2)" }, B(64));
+    corte("#vit", B(62), 4 * b + 0.01);
+    tl.set("#mvp", { opacity: 1 }, B(63));
+    tl.from("#mvp", { x: 300, rotation: 20, duration: 0.2, ease: "back.out(2)" }, B(63));
 
     // ===== final: o pacote do jogo cai, treme, rasga; a carta holo sobe e vira o logo =====
-    tl.to("#raios-final", { rotation: 40, duration: 6.742, ease: "none" }, B(68));
-    tl.from("#pacote", { y: -1500, rotation: -12, duration: 0.25, ease: "power2.in" }, B(68));
-    tl.to("#pacote", { keyframes: { y: [0, 26, 0] }, duration: 0.18, ease: "none" }, B(68) + 0.25);
-    for (const n of [70, 71]) tl.to("#pacote", { keyframes: { rotation: [-5, 5, -3, 3, 0] }, duration: 0.25, ease: "none" }, B(n));
-    tl.fromTo("#pacote", { filter: "drop-shadow(0 0 0px rgba(255,220,90,0))" }, { filter: "drop-shadow(0 0 70px rgba(255,220,90,0.95))", duration: 4 * b, ease: "power2.in", immediateRender: false }, B(68));
-    flash(B(72), 0.9, 0.3);
-    tl.to("#pacote-tampa", { x: 180, y: -300, rotation: 30, opacity: 0, duration: 0.45, ease: "power2.out" }, B(72));
-    tl.to("#leque", { opacity: 1, duration: 0.15 }, B(72));
-    tl.to("#leque", { rotation: 25, duration: 8 * b, ease: "none" }, B(72));
-    tl.set("#simbolo", { opacity: 1 }, B(72) + 0.1);
-    tl.fromTo("#simbolo", { y: 0, scale: 0.6, rotationY: 0 }, { y: -60, scale: 1.25, rotationY: 720, duration: 3 * b + 0.1, ease: "power2.out", immediateRender: false }, B(72) + 0.1);
-    tl.to("#pacote", { y: 900, opacity: 0, duration: 0.6, ease: "power2.in" }, B(74));
-    flash(B(76), 1, 0.35);
-    tl.set("#simbolo", { opacity: 0 }, B(76));
-    tl.set("#logo", { opacity: 1 }, B(76));
-    tl.fromTo("#logo", { scale: 0.7 }, { scale: 1, duration: 0.45, ease: "back.out(3)", immediateRender: false }, B(76));
-    tl.to("#leque", { opacity: 0.45, y: -140, duration: 0.4 }, B(76));
-    tl.set("#tag", { opacity: 1 }, B(80));
-    tl.from("#tag", { scale: 1.6, duration: 0.25, ease: "back.out(2)" }, B(80));
-    tl.to(["#site", "#selo"], { opacity: 1, duration: 0.2 }, B(84));
-    tl.from("#selo", { y: 40, duration: 0.25, ease: "back.out(2)" }, B(84));
-    tl.to("#credito", { opacity: 1, duration: 0.3 }, B(84));
+    tl.to("#raios-final", { rotation: 30, duration: 14 * b, ease: "none" }, B(66));
+    tl.from("#pacote", { y: -1500, rotation: -12, duration: 0.25, ease: "power2.in" }, B(66));
+    tl.to("#pacote", { keyframes: { y: [0, 26, 0] }, duration: 0.18, ease: "none" }, B(66) + 0.25);
+    for (const n of [67, 68]) tl.to("#pacote", { keyframes: { rotation: [-5, 5, -3, 3, 0] }, duration: 0.25, ease: "none" }, B(n));
+    tl.fromTo("#pacote", { filter: "drop-shadow(0 0 0px rgba(255,220,90,0))" }, { filter: "drop-shadow(0 0 70px rgba(255,220,90,0.95))", duration: 3 * b, ease: "power2.in", immediateRender: false }, B(66));
+    flash(B(69), 0.9, 0.3);
+    tl.to("#pacote-tampa", { x: 180, y: -300, rotation: 30, opacity: 0, duration: 0.45, ease: "power2.out" }, B(69));
+    tl.to("#leque", { opacity: 1, duration: 0.15 }, B(69));
+    tl.to("#leque", { rotation: 25, duration: 8 * b, ease: "none" }, B(69));
+    // a carta holo fica atrás do pacote e sai de dentro dele pela boca rasgada
+    tl.set("#simbolo", { opacity: 1 }, B(69) + 0.05);
+    tl.fromTo("#simbolo", { y: 0, scale: 0.6, rotationY: 0 }, { y: -250, scale: 1.25, rotationY: 720, duration: 3 * b - 0.05, ease: "power2.out", immediateRender: false }, B(69) + 0.05);
+    tl.to("#pacote", { y: 900, opacity: 0, duration: 0.5, ease: "power2.in" }, B(70.5));
+    flash(B(72), 1, 0.35);
+    tl.set("#simbolo", { opacity: 0 }, B(72));
+    tl.set("#logo", { opacity: 1 }, B(72));
+    tl.fromTo("#logo", { scale: 0.7 }, { scale: 1, duration: 0.45, ease: "back.out(3)", immediateRender: false }, B(72));
+    tl.to("#leque", { opacity: 0.45, y: -140, duration: 0.4 }, B(72));
+    tl.set("#tag", { opacity: 1 }, B(74));
+    tl.from("#tag", { scale: 1.6, duration: 0.25, ease: "back.out(2)" }, B(74));
+    tl.to(["#site", "#selo"], { opacity: 1, duration: 0.2 }, B(76));
+    tl.from("#selo", { y: 40, duration: 0.25, ease: "back.out(2)" }, B(76));
+    tl.to("#credito", { opacity: 1, duration: 0.3 }, B(76));
 
     window.__timelines = window.__timelines || {};
     window.__timelines.root = tl;
