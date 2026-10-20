@@ -30,12 +30,13 @@
     "fonts": "tsx scripts/build-fonts.ts",
     "calibrate": "tsx scripts/calibrate.ts",
     "teleporte": "node scripts/teleporte.mjs",
-        "stats": "tsx scripts/stats.ts",
+    "stats": "tsx scripts/stats.ts",
     "determinismo": "tsx scripts/determinismo.ts",
     "edge:liga": "esbuild src/league/edge-entry.ts --bundle --minify --format=esm --platform=neutral --outfile=supabase/functions/liga/engine.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.117.2",
+    "@types/three": "^0.186.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "galmuri": "^2.40.3",
@@ -44,6 +45,7 @@
     "phaser": "^4.2.1",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
+    "three": "^0.186.1",
     "zustand": "^5.0.15",
     "zzfx": "^1.4.0"
   },

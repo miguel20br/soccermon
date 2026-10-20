@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { useT } from '../../i18n/react';
 import type { MedalProgress } from '../../store/medals';
 import { MEDALS } from '../../store/medals';
@@ -7,9 +7,13 @@ import { HudIcon } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { type ArtKind, PixelTrophy } from '../components/PixelTrophy';
 import type { Metal } from '../rarity';
+import type { DioramaData } from '../trophy/Diorama';
 import { RoomDialog } from '../trophy/RoomDialog';
 import { type RoomData, RoomScene, type Spot } from '../trophy/RoomScene';
 import '../trophy-room.css';
+
+const Diorama = lazy(() => import('../trophy/Diorama').then((m) => ({ default: m.Diorama })));
+
 import '../room-lab.css';
 
 /**
@@ -175,6 +179,30 @@ function GameBoy() {
     );
 }
 
+/** Os mesmos troféus do esboço, no formato do diorama (com a linha de "como ganhar" e o último). */
+const DIORAMA: DioramaData = {
+    club: 0x3a7bd5,
+    mon: 'assets/cards/25.gif',
+    items: [
+        ...PIECES.map((p) => ({
+            id: p.id,
+            kind: p.kind,
+            metal: p.metal,
+            n: p.n,
+            name: p.name,
+            lines: [p.text, ...(p.kind === 'taca' && p.n ? ['Último: 20/10/2026 · Pallet FC · final 4x2'] : [])],
+        })),
+        {
+            id: 'liga',
+            kind: 'liga' as const,
+            metal: 'ouro' as const,
+            n: 0,
+            name: 'Taça da Liga',
+            lines: ['A taça da temporada fica aqui quando a Liga abrir.'],
+        },
+    ],
+};
+
 export function RoomLab({ onExit }: { onExit: () => void }) {
     const [say, setSay] = useState<Spot | null>(null);
     const { d } = useT();
@@ -185,6 +213,18 @@ export function RoomLab({ onExit }: { onExit: () => void }) {
                 Os mesmos números nas 4 direções (9 títulos, 12 vitórias no Duelo). Toque nas coisas: cada uma responde
                 no lugar, sem levar a página pra baixo. São esboços de direção, não a arte final.
             </p>
+
+            <section className="panel lab-dir">
+                <h2 className="bc-caption">F · Diorama 3D (A + B)</h2>
+                <p className="muted">
+                    O quarto de noite visto de cima, vitrines com holofote, troféus de metal de verdade, móveis low-poly
+                    (KayKit, livres) e o seu Pokémon. Toque num troféu: a câmera chega perto, ele gira e o cartão
+                    aparece do lado. Toque fora pra voltar.
+                </p>
+                <Suspense fallback={<p className="muted">Carregando…</p>}>
+                    <Diorama data={DIORAMA} />
+                </Suspense>
+            </section>
 
             <section className="panel lab-dir">
                 <h2 className="bc-caption">A · Quarto FireRed (o de agora)</h2>
