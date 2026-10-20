@@ -18,7 +18,7 @@ import { agencyOn } from './settings-sync';
 import { isTrailerScene, trailerPicks } from './trailer-scenes';
 
 /**
- * Atalhos de desenvolvimento (só em `npm run dev`): `?demo=penaltis` monta uma copa cuja primeira
+ * Atalhos de desenvolvimento (no dev e nas prévias da Vercel, `__SMOKE__`; nunca em produção):`?demo=penaltis` monta uma copa cuja primeira
  * partida termina empatada e vai para os pênaltis, já na tela de escalação. `?demo=ditto` monta um time
  * com Ditto e Mew + Mewtwo (sinergia Gênese) cuja primeira partida tem combo. `?demo=evolucao` monta um time
  * de iniciais cuja primeira partida tem evolução do seu time logo no começo (`&rival=1`: do rival). `?demo=campeao` joga uma copa
@@ -44,7 +44,7 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
 let started = false;
 
 export function runDevDemo() {
-    if (!import.meta.env.DEV || started) return;
+    if (!__SMOKE__ || started) return;
     const demo = new URLSearchParams(window.location.search).get('demo');
     if (
         demo !== 'penaltis' &&

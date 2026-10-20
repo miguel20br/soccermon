@@ -13,6 +13,8 @@ export default defineConfig({
         // displayVersion: número das Novidades com 4 partes (0.8.8.3); o npm só aceita semver em "version"
         __APP_VERSION__: JSON.stringify(pkg.displayVersion ?? pkg.version),
         __APP_BUILD__: JSON.stringify(process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? 'local'),
+        // modo fumaça (?demo=, ?cards=1, ?vel=N): só nas prévias da Vercel e no CI, nunca em produção
+        __SMOKE__: JSON.stringify(process.env.VERCEL_ENV === 'preview' || process.env.SOCCERMON_SMOKE === '1'),
     },
     logLevel: 'warning',
     worker: { format: 'es' },
