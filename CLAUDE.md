@@ -126,6 +126,12 @@ Regras gerais aprovadas pelo Miguel ("1a a 9a"); **cada tarefa é avaliada por s
 8. **Agentes na nuvem:** testar com 1 tarefa pequena antes de usar mais.
 9. **Ferramentas:** `tsc` incremental, build sem repetir o `tsc`, `engine.test.ts` dividido.
 
+Como usar: `npm run check:rapido` (tsc incremental + Biome e `vitest related` nos mudados; avisa se caiu na trilha
+completa, definida em `scripts/trilha.mjs`) e `npm run check:completo` (tudo, já na fila pesada). Fila pesada:
+`scripts/pesado.sh <cmd>`. Esteira: `docs/planos/esteira.md`. CI (`.github/workflows/ci.yml`) roda em toda branch
+com fumaça headless e prints no artefato `fumaca-prints` (página extra: linha `Fumaça: /?demo=...` na mensagem do
+commit). Prévias da Vercel têm os atalhos de demo e `?vel=N` (quadra até 64x); produção não.
+
 ## Regras de desenvolvimento (17/10/2026)
 
 - **`main` = produção.** Nada vai pra `main` sem o "pode subir" do Miguel naquela conversa. Prévia: push numa
