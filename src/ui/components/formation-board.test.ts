@@ -14,6 +14,8 @@ describe('vaga da carta Evento na prancheta', () => {
         const k = { ...createInstance(141, rng), uid: 'k', special: { kind: 'evento' as const, type: 'Water' } };
         expect(cardTypeOf(k)).toBe('Water');
         expect(cardTypeOf({ ...k, special: null })).toBe('Rock');
+        // a carta Evento de Pedra continua de Pedra
+        expect(cardTypeOf({ ...k, special: { kind: 'evento', type: 'Rock' } })).toBe('Rock');
         const html = renderToStaticMarkup(
             createElement(FormationBoard, {
                 formation: '1-2-1',
