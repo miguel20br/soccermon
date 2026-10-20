@@ -147,6 +147,9 @@ copa. A partida é o "dado rolando": as pessoas aceleram pra ver o resultado. En
 3. **A Copa rápida ganha só o Mercado** (curto) na etapa 1; os eventos "?" ficam pra Copa longa, pra a rápida
    continuar rápida.
 
+**Decisões aprovadas (20/10):** todas as recomendadas abaixo, com os 3 ajustes do veredito. Plano de implementação em
+[copa-roguelike-plano.md](copa-roguelike-plano.md).
+
 ## Decisões pro Miguel
 
 1. **Formato:** B em duas etapas (loja/eventos primeiro, mapa depois) **(recomendado)** / A só / ir direto pro mapa.
