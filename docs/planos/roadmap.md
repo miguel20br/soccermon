@@ -73,6 +73,8 @@ Plano do trailer e dos posts de lançamento (LinkedIn como projeto pessoal, X co
 - **Geração 2**: os Pokémon de Johto.
 - **1.0 = lançamento oficial** com tudo do "Em breve" (decisão do Miguel, 16/10/2026). Depois da 1.0: modo jogável,
   Gens 3 a 9, personalização absurda e modo Ultimate Team (detalhes em [lancamento.md](lancamento.md)).
+- **Sala de troféus (20/10/2026):** deixar físico o que hoje é lista (troféus da Copa, Copa do Dia, Duelo, Liga,
+  medalhas, escudo, camisa, faixa). Brainstorm e decisões em [sala-de-trofeus.md](sala-de-trofeus.md).
 - **Nada teleporta (20/10/2026):** menus e telas com transição em tudo, como no Tutti; regra e retrofit em
   [nada-teleporta.md](nada-teleporta.md).
 - **Ultimate Team no Em breve (20/10/2026):** o Miguel quer dois modos principais, o futsal casual (Copa) e o
