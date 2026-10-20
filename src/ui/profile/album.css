@@ -136,14 +136,12 @@
 
 /* o livro: uma página no celular, duas abertas no desktop */
 .al-book {
-    --ed-icone: #8a5cf0;
-    --ed-shiny: conic-gradient(from 200deg, #ff5ea8, #ffd75e, #5eeaff, #b16bff, #ff5ea8);
-    --ed-destaque: #f2c53d;
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 560px);
     justify-content: center;
     touch-action: pan-y;
     user-select: none;
-    perspective: 1600px;
+    perspective: 3400px;
 }
 .al-page {
     position: relative;
@@ -227,8 +225,8 @@
     }
 }
 @media (orientation: landscape) and (max-height: 500px) {
-    .al-page {
-        width: min(100%, 820px);
+    .al-book {
+        grid-template-columns: minmax(0, 820px);
     }
     .al-pgrid {
         grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -236,10 +234,8 @@
 }
 @media (min-width: 1000px) and (min-height: 600px) {
     .al-book {
-        gap: 6px;
-    }
-    .al-page {
-        width: min(49%, 560px);
+        grid-template-columns: repeat(2, minmax(0, 560px));
+        gap: 0 6px;
     }
 }
 
@@ -379,90 +375,136 @@
     }
 }
 
-/* virar a folha: a página que sai gira pela lombada (frente = ela, verso = a que chega); no celular sai de lado */
-.al-leaf {
-    position: absolute;
-    inset: 0;
-    z-index: 5;
-    transform-style: preserve-3d;
-    pointer-events: none;
-    animation: al-leaf-next 650ms cubic-bezier(0.45, 0.05, 0.35, 1) forwards;
+/* virar a folha: a própria página que sai gira pela lombada (frente); no livro aberto a que chega gira junto do
+   outro lado (verso), escondida até passar da metade. No celular a folha sai de lado e some. */
+.al-book > .al-page {
+    grid-row: 1;
+    width: auto;
+    /* cada folha é um mundo: mexer numa não refaz o layout das outras */
+    contain: layout style;
 }
-.al-leaf.next {
+.al-page.leaf-front,
+.al-page.leaf-back {
+    z-index: 4;
+    backface-visibility: hidden;
+    /* em longhand: o minificador do build troca "animation: 640ms … both" (sem nome) por "none" */
+    animation-duration: 640ms;
+    animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1);
+    animation-fill-mode: both;
+}
+.al-page.leaf-back {
+    z-index: 3;
+}
+/* antes do giro: o verso espera escondido (a frente fica parada por cima) */
+.al-page.leaf-back:not(.go) {
+    opacity: 0;
+}
+.al-page.leaf-front.next {
     transform-origin: left center;
 }
-.al-leaf.prev {
+.al-page.leaf-front.next.go {
+    animation-name: al-leaf-out-next;
+}
+.al-page.leaf-front.prev {
     transform-origin: right center;
-    animation-name: al-leaf-prev;
 }
-.al-leaf.solo.next {
-    animation-name: al-leaf-solo-next;
+.al-page.leaf-front.prev.go {
+    animation-name: al-leaf-out-prev;
 }
-.al-leaf.solo.prev {
-    animation-name: al-leaf-solo-prev;
+.al-page.leaf-back.next {
+    transform-origin: right center;
 }
-.al-leaf-face {
-    position: absolute;
-    inset: 0;
-    width: auto;
-    margin: 0;
-    backface-visibility: hidden;
-    overflow: hidden;
+.al-page.leaf-back.next.go {
+    animation-name: al-leaf-in-next;
 }
-.al-leaf-face.back {
-    transform: rotateY(180deg);
+.al-page.leaf-back.prev {
+    transform-origin: left center;
 }
-/* sombra da curva: escurece no meio do giro */
-.al-leaf-face::after {
+.al-page.leaf-back.prev.go {
+    animation-name: al-leaf-in-prev;
+}
+/* a vizinha já desenhada, esperando a vez */
+.al-page.stand {
+    z-index: 0;
+    /* fora da conta (sem layout nem pintura), mas pronta: mostrar depois é rápido */
+    content-visibility: hidden;
+    pointer-events: none;
+}
+/* sombra da dobra: escurece no meio do giro */
+.al-page.leaf-front.go::after,
+.al-page.leaf-back.go::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, rgb(0 0 0 / 0%), rgb(0 0 0 / 28%));
+    border-radius: inherit;
+    background: rgb(0 0 0 / 30%);
     opacity: 0;
-    animation: al-leaf-shade 650ms ease-in-out;
     pointer-events: none;
+    animation: al-leaf-shade 640ms ease-in-out;
 }
-.al-leaf.prev .al-leaf-face::after {
-    background: linear-gradient(270deg, rgb(0 0 0 / 0%), rgb(0 0 0 / 28%));
-}
-@keyframes al-leaf-next {
-    from {
-        transform: perspective(1800px) rotateY(0deg);
-    }
-    to {
-        transform: perspective(1800px) rotateY(-180deg);
-    }
-}
-@keyframes al-leaf-prev {
-    from {
-        transform: perspective(1800px) rotateY(0deg);
-    }
-    to {
-        transform: perspective(1800px) rotateY(180deg);
-    }
-}
-@keyframes al-leaf-solo-next {
-    from {
-        transform: perspective(1400px) rotateY(0deg);
-    }
-    70% {
+/* cada face some ao passar dos 90° (as cartas têm camada própria e apareceriam espelhadas no verso) */
+@keyframes al-leaf-out-next {
+    0% {
+        transform: rotateY(0deg);
         opacity: 1;
     }
-    to {
-        transform: perspective(1400px) rotateY(-170deg);
+    49% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+    100% {
+        transform: rotateY(-180deg);
         opacity: 0;
     }
 }
-@keyframes al-leaf-solo-prev {
-    from {
-        transform: perspective(1400px) rotateY(0deg);
-    }
-    70% {
+@keyframes al-leaf-out-prev {
+    0% {
+        transform: rotateY(0deg);
         opacity: 1;
     }
-    to {
-        transform: perspective(1400px) rotateY(170deg);
+    49% {
+        opacity: 1;
+    }
+    50% {
         opacity: 0;
+    }
+    100% {
+        transform: rotateY(180deg);
+        opacity: 0;
+    }
+}
+@keyframes al-leaf-in-next {
+    0% {
+        transform: rotateY(180deg);
+        opacity: 0;
+    }
+    50% {
+        opacity: 0;
+    }
+    51% {
+        opacity: 1;
+    }
+    100% {
+        transform: rotateY(0deg);
+        opacity: 1;
+    }
+}
+@keyframes al-leaf-in-prev {
+    0% {
+        transform: rotateY(-180deg);
+        opacity: 0;
+    }
+    50% {
+        opacity: 0;
+    }
+    51% {
+        opacity: 1;
+    }
+    100% {
+        transform: rotateY(0deg);
+        opacity: 1;
     }
 }
 @keyframes al-leaf-shade {
@@ -470,11 +512,9 @@
         opacity: 1;
     }
 }
-.al-book {
-    position: relative;
-}
-.al-page {
-    position: relative;
+/* figurinha nova espera a folha assentar pra colar */
+.al-book.turning .al-stk.pasting {
+    animation-play-state: paused;
 }
 
 /* mais de uma versão: as outras ficam atrás da da frente, como cartas empilhadas */
@@ -598,8 +638,8 @@
 
 @media (prefers-reduced-motion: reduce) {
     .al-stk.pasting,
-    .al-leaf,
-    .al-leaf-face::after,
+    .al-page.leaf-front,
+    .al-page.leaf-back,
     .al-fan-box li,
     .al-fan-bg,
     .al-page.enter,

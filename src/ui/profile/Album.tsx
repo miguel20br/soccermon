@@ -1,4 +1,4 @@
-import { type CSSProperties, type PointerEvent, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, memo, type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SPECIES, type Species, species } from '../../engine/data';
 import { type DuelMonRecipe, monRecipe } from '../../engine/duel-validate';
 import type { PokemonInstance } from '../../engine/instance';
@@ -22,7 +22,7 @@ import {
 import { useGame } from '../../store/game-store';
 import { toggleShowcase } from '../../store/medals';
 import { newsKey } from '../../store/news';
-import { albumCount, albumSlots, type Dex, GENERATIONS, hasSticker } from '../../store/profile';
+import { albumCount, albumSlots, type Dex, type DexEntry, GENERATIONS, hasSticker } from '../../store/profile';
 import { useCardModal } from '../card-modal';
 import { HudIcon } from '../components/MatchHud';
 import { PokeCard2 } from '../components/PokeCard2';
@@ -211,8 +211,8 @@ export function AlbumView({
     const [dir, setDir] = useState<'next' | 'prev' | ''>('');
     const [found, setFound] = useState<number | null>(null);
     const { fresh, done, again } = useFresh();
-    /** A folha virando: as páginas de antes e as de depois (some sozinha quando a animação acaba). */
-    const [leaf, setLeaf] = useState<{ from: Species[][]; to: Species[][]; n: number } | null>(null);
+    /** A folha virando: 1ª página de antes e de depois (some quando a animação acaba). */
+    const [leaf, setLeaf] = useState<{ from: number; to: number; n: number; go?: boolean } | null>(null);
     const [fan, setFan] = useState<number | null>(null);
     const turn = (to: number) => {
         const p = Math.max(0, Math.min(pages.length - 1, to));
@@ -222,7 +222,10 @@ export function AlbumView({
         setFound(null);
         if (reduce) return;
         const n = Date.now();
-        setLeaf({ from: pages.slice(cur, cur + step), to: pages.slice(p, p + step), n });
+        setLeaf({ from: cur, to: p, n });
+        // 1º quadro: as páginas novas se desenham com a folha velha parada por cima; o giro começa no seguinte (se o
+        // 1º quadro demora, a animação não começa já pela metade)
+        requestAnimationFrame(() => requestAnimationFrame(() => setLeaf((l) => (l?.n === n ? { ...l, go: true } : l))));
         // some quando a animação acaba (onAnimationEnd); o relógio é só a garantia se ela não rodar
         window.setTimeout(() => setLeaf((l) => (l?.n === n ? null : l)), LEAF_MS * 3);
     };
@@ -347,13 +350,18 @@ export function AlbumView({
             ),
         });
     };
-    const tap = (sp: Species, order: number[]) => {
+    const tap = (sp: Species) => {
         if (swiped.current) return;
+        const order = (pages[Math.floor((sp.id - 1) / per)] ?? []).map((x) => x.id);
         const n = rows.get(sp.id)?.length ?? 0;
         if (n > 1) setFan(sp.id);
         else if (n) openRow(sp);
         else onSheet(sp.id, order);
     };
+    // o toque do espaço é sempre a mesma função (o espaço é memo: virar a página não redesenha as cartas)
+    const tapRef = useRef(tap);
+    tapRef.current = tap;
+    const onTap = useCallback((sp: Species) => tapRef.current(sp), []);
     const setFront = (sp: Species, id: string) => {
         updateProfile({ albumFront: { ...(front ?? {}), [sp.id]: id } });
         again(sp.id);
@@ -363,114 +371,94 @@ export function AlbumView({
     const withSticker = KANTO.filter((sp) => rows.get(sp.id)?.length).length;
     const freshAny = KANTO.some((sp) => fresh.has(sp.id));
 
-    /** Um espaço da página; `ghost`: a cópia que vai na folha virando (sem toque, sem animação de colar). */
-    const slotEl = (list: Species[], sp: Species, i: number, ghost = false) => {
+    /** Um espaço da página; `quiet`: página vizinha escondida (não cola nem conta como vista). */
+    const slotEl = (sp: Species, i: number, quiet = false) => {
         const r = rows.get(sp.id) ?? [];
-        const top = frontRow(r, front?.[sp.id]);
-        // as outras versões aparecem atrás da da frente, como cartas empilhadas (até 2)
-        const behind = r.filter((x) => x !== top).slice(0, 2);
         const known = !!dex[sp.id];
-        const eds = albumSlots(sp);
         return (
-            <li key={sp.id}>
-                <button
-                    type="button"
-                    tabIndex={ghost ? -1 : undefined}
-                    className={`al-slot${top ? ' got' : ''}${!ghost && found === sp.id ? ' found' : ''}`}
-                    onClick={() =>
-                        tap(
-                            sp,
-                            list.map((s) => s.id),
-                        )
-                    }
-                    aria-label={
-                        top
-                            ? tn('profile.album.cellVersions', r.length, { name: sp.name })
-                            : t('profile.album.cellEmpty', { name: known ? sp.name : `Nº ${sp.id}` })
-                    }
-                >
-                    <span className="al-box">
-                        {/* o que vem impresso na página: nome, silhueta e número */}
-                        <span className="al-print" aria-hidden>
-                            <small>{known ? sp.name : '???'}</small>
-                            <img className="pixel" src={speciesGif(sp.id)} alt="" loading="lazy" draggable={false} />
-                            <b>#{dexNo(sp.id)}</b>
-                        </span>
-                        {behind.map((x, k) => (
-                            <span
-                                key={x.id}
-                                className="al-stk behind"
-                                style={{ '--rot': `${tilt(sp.id)}deg`, '--k': behind.length - k } as CSSProperties}
-                            >
-                                <PokeCard2 inst={x.inst} variant="metal" />
-                            </span>
-                        ))}
-                        {top && (
-                            <span
-                                key={top.id}
-                                className={`al-stk${!ghost && fresh.has(sp.id) ? ' pasting' : ''}`}
-                                style={{ '--rot': `${tilt(sp.id)}deg`, '--d': `${i * 70}ms` } as CSSProperties}
-                            >
-                                <PokeCard2 inst={top.inst} variant="metal" />
-                            </span>
-                        )}
-                        {r.length > 1 && <span className="al-n">×{r.length}</span>}
-                        {!ghost && (
-                            <NewBadge
-                                k={CARD_SLOTS.map((ed) => newsKey.sticker(slotId(sp.id, ed)))}
-                                className="corner"
-                            />
-                        )}
-                    </span>
-                    {/* as edições do Pokémon, na ordem Normal, Shiny, Evento, Ícone, Destaque: acesa = tem */}
-                    <span className="al-dots" aria-hidden>
-                        {eds.map((ed) => (
-                            <i key={ed} className={`al-dot al-dot-${ed}${hasSticker(dex[sp.id], ed) ? ' on' : ''}`} />
-                        ))}
-                    </span>
-                </button>
-            </li>
+            <AlbumSlot
+                key={sp.id}
+                sp={sp}
+                rows={r}
+                choice={front?.[sp.id]}
+                entry={dex[sp.id]}
+                i={i}
+                quiet={quiet}
+                fresh={fresh.has(sp.id)}
+                found={found === sp.id}
+                label={
+                    r.length
+                        ? tn('profile.album.cellVersions', r.length, { name: sp.name })
+                        : t('profile.album.cellEmpty', { name: known ? sp.name : `Nº ${sp.id}` })
+                }
+                onTap={onTap}
+            />
         );
     };
     const range = (list: Species[]) => `#${dexNo(list[0].id)}–#${dexNo(list[list.length - 1].id)}`;
     /** O miolo de uma página (faixa, espaços, número da folha). */
-    const pageInner = (list: Species[] | undefined, ghost = false) =>
-        list && (
-            <>
-                <header className="al-ph">
-                    <b>{t('profile.album.coverGen', { gen: 1 })} · Kanto</b>
-                    <span>{range(list)}</span>
-                </header>
-                <ul className="al-pgrid">{list.map((sp, j) => slotEl(list, sp, j, ghost))}</ul>
-                <footer className="al-folio" aria-hidden>
-                    {pages.indexOf(list) + 1}
-                </footer>
-            </>
-        );
-    /** A folha que vira por cima: frente = a página que sai, verso = a que chega do outro lado (no celular, papel). */
-    const leafEl = (
-        front: Species[] | undefined,
-        back: Species[] | undefined,
-        side: 'next' | 'prev',
-        solo: boolean,
-    ) => (
-        <div
-            className={`al-leaf ${side}${solo ? ' solo' : ''}`}
-            aria-hidden
-            onAnimationEnd={(e) => e.target === e.currentTarget && setLeaf(null)}
-        >
-            <div className="al-page al-leaf-face front">{pageInner(front, true)}</div>
-            <div className="al-page al-leaf-face back">{pageInner(back, true)}</div>
-        </div>
+    const pageInner = (list: Species[], quiet = false) => (
+        <>
+            <header className="al-ph">
+                <b>{t('profile.album.coverGen', { gen: 1 })} · Kanto</b>
+                <span>{range(list)}</span>
+            </header>
+            <ul className="al-pgrid">{list.map((sp, j) => slotEl(sp, j, quiet))}</ul>
+            <footer className="al-folio" aria-hidden>
+                {pages.indexOf(list) + 1}
+            </footer>
+        </>
     );
-    // o que fica embaixo da folha: no celular a página nova; aberto, o lado que a folha ainda não cobriu
-    const base: { list?: Species[]; leaf?: ReactNode }[] = !leaf
-        ? visible.map((list) => ({ list }))
-        : step === 1
-          ? [{ list: leaf.to[0], leaf: leafEl(leaf.from[0], undefined, dir as 'next' | 'prev', true) }]
-          : dir === 'next'
-            ? [{ list: leaf.from[0] }, { list: leaf.to[1], leaf: leafEl(leaf.from[1], leaf.to[0], 'next', false) }]
-            : [{ list: leaf.to[0], leaf: leafEl(leaf.from[0], leaf.to[1], 'prev', false) }, { list: leaf.from[1] }];
+    /**
+     * As folhas na mesa, cada uma com a chave da página (a que já estava não é desenhada de novo, só gira). Virando:
+     * embaixo, o que a folha ainda não cobriu e a página nova; por cima, a folha que sai (frente) e, no livro aberto, a
+     * página que chega do outro lado (verso, entra girando junto, escondida até passar da metade).
+     */
+    type Sheet = { idx: number; col: 1 | 2; role?: 'under' | 'front' | 'back' | 'stand' };
+    const onBook = (x: Sheet) => x.idx >= 0 && x.idx < pages.length;
+    const colOf = (idx: number): 1 | 2 => (step === 2 && idx % 2 ? 2 : 1);
+    /** As páginas vizinhas já ficam desenhadas (invisíveis): virar é só a animação, sem esperar desenhar. */
+    const live = (list: Sheet[]): Sheet[] => {
+        const have = list.filter(onBook);
+        // vizinhas da página de antes enquanto a folha vira (as novas só depois que ela assenta: nada novo no meio)
+        const at = leaf ? leaf.from : cur;
+        const near = step === 2 ? [at - 2, at - 1, at + 2, at + 3] : [at - 1, at + 1];
+        const stand = near
+            .filter((idx) => !have.some((h) => h.idx === idx))
+            .map((idx) => ({ idx, col: colOf(idx), role: 'stand' as const }))
+            .filter(onBook);
+        return [...stand, ...have];
+    };
+    const sheets: Sheet[] = (() => {
+        if (!leaf)
+            return live(
+                [
+                    { idx: cur, col: 1 as const },
+                    { idx: cur + 1, col: 2 as const },
+                ].slice(0, step),
+            );
+        const { from: a, to: c } = leaf;
+        if (step === 1)
+            return live([
+                { idx: c, col: 1, role: 'under' },
+                { idx: a, col: 1, role: 'front' },
+            ]);
+        return live(
+            c > a
+                ? [
+                      { idx: a, col: 1, role: 'under' },
+                      { idx: c + 1, col: 2, role: 'under' },
+                      { idx: c, col: 1, role: 'back' },
+                      { idx: a + 1, col: 2, role: 'front' },
+                  ]
+                : [
+                      { idx: c, col: 1, role: 'under' },
+                      { idx: a + 1, col: 2, role: 'under' },
+                      { idx: c + 1, col: 2, role: 'back' },
+                      { idx: a, col: 1, role: 'front' },
+                  ],
+        );
+    })();
     const fanSp = fan ? species(fan) : null;
     const fanRows = fan ? (rows.get(fan) ?? []) : [];
     const fanFront = fan ? frontRow(fanRows, front?.[fan])?.id : undefined;
@@ -572,22 +560,34 @@ export function AlbumView({
                         </button>
                     </div>
                     <div
-                        className="al-book"
+                        className={`al-book${leaf ? ' turning' : ''}`}
                         onPointerDown={onDown}
                         onPointerUp={onUp}
                         onPointerCancel={() => {
                             drag.current = null;
                         }}
                     >
-                        {base.map((b, i) => (
+                        {sheets.map((sh) => (
                             <section
-                                // biome-ignore lint/suspicious/noArrayIndexKey: lado esquerdo/direito do livro aberto
-                                key={i}
-                                className={`al-page${!dir ? ' enter' : ''}${i ? ' right' : ''}`}
-                                aria-label={b.list ? range(b.list) : undefined}
+                                key={`pg-${per}-${sh.idx}`}
+                                className={`al-page${!dir && sh.role !== 'stand' ? ' enter' : ''}${
+                                    sh.col === 2 ? ' right' : ''
+                                }${
+                                    sh.role === 'stand'
+                                        ? ' stand'
+                                        : sh.role && sh.role !== 'under'
+                                          ? ` leaf-${sh.role} ${dir}${step === 1 ? ' solo' : ''}${leaf?.go ? ' go' : ''}`
+                                          : ''
+                                }`}
+                                style={{ gridColumn: sh.col }}
+                                inert={sh.role === 'stand' || sh.role === 'front' || undefined}
+                                aria-hidden={sh.role === 'stand' || sh.role === 'front' || undefined}
+                                aria-label={range(pages[sh.idx])}
+                                onAnimationEnd={(e) =>
+                                    sh.role === 'front' && e.target === e.currentTarget && setLeaf(null)
+                                }
                             >
-                                {pageInner(b.list)}
-                                {b.leaf}
+                                {pageInner(pages[sh.idx], sh.role === 'stand')}
                             </section>
                         ))}
                     </div>
@@ -632,6 +632,82 @@ export function AlbumView({
         </div>
     );
 }
+
+/** Um espaço do álbum (memo: só redesenha quando muda o que ele mostra). */
+const AlbumSlot = memo(function AlbumSlot({
+    sp,
+    rows,
+    choice,
+    entry,
+    i,
+    quiet,
+    fresh,
+    found,
+    label,
+    onTap,
+}: {
+    sp: Species;
+    rows: Row[];
+    choice?: string;
+    entry: DexEntry | undefined;
+    i: number;
+    quiet: boolean;
+    fresh: boolean;
+    found: boolean;
+    label: string;
+    onTap: (sp: Species) => void;
+}) {
+    const top = frontRow(rows, choice);
+    // as outras versões aparecem atrás da da frente, como cartas empilhadas (até 2)
+    const behind = rows.filter((x) => x !== top).slice(0, 2);
+    return (
+        <li>
+            <button
+                type="button"
+                className={`al-slot${top ? ' got' : ''}${found ? ' found' : ''}`}
+                onClick={() => onTap(sp)}
+                aria-label={label}
+            >
+                <span className="al-box">
+                    {/* o que vem impresso na página: nome, silhueta e número */}
+                    <span className="al-print" aria-hidden>
+                        <small>{entry ? sp.name : '???'}</small>
+                        <img className="pixel" src={speciesGif(sp.id)} alt="" loading="lazy" draggable={false} />
+                        <b>#{dexNo(sp.id)}</b>
+                    </span>
+                    {behind.map((x, k) => (
+                        <span
+                            key={x.id}
+                            className="al-stk behind"
+                            style={{ '--rot': `${tilt(sp.id)}deg`, '--k': behind.length - k } as CSSProperties}
+                        >
+                            <PokeCard2 inst={x.inst} variant="metal" />
+                        </span>
+                    ))}
+                    {top && (
+                        <span
+                            key={top.id}
+                            className={`al-stk${!quiet && fresh ? ' pasting' : ''}`}
+                            style={{ '--rot': `${tilt(sp.id)}deg`, '--d': `${i * 70}ms` } as CSSProperties}
+                        >
+                            <PokeCard2 inst={top.inst} variant="metal" />
+                        </span>
+                    )}
+                    {rows.length > 1 && <span className="al-n">×{rows.length}</span>}
+                    {!quiet && (
+                        <NewBadge k={CARD_SLOTS.map((ed) => newsKey.sticker(slotId(sp.id, ed)))} className="corner" />
+                    )}
+                </span>
+                {/* as edições do Pokémon, na ordem Normal, Shiny, Evento, Ícone, Destaque: acesa = tem */}
+                <span className="al-dots" aria-hidden>
+                    {albumSlots(sp).map((ed) => (
+                        <i key={ed} className={`al-dot al-dot-${ed}${hasSticker(entry, ed) ? ' on' : ''}`} />
+                    ))}
+                </span>
+            </button>
+        </li>
+    );
+});
 
 /** Tocar num Pokémon com mais de uma versão: elas se espalham por cima da página, do tamanho de ler. */
 function VersionsFan({
