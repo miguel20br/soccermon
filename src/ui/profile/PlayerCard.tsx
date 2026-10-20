@@ -14,9 +14,11 @@ import { frameTier, parseShowcase, type ShowItem, type Tier } from '../../store/
 import { activeTitle, activeTrainer, TRAINERS, type TrainerId, trainerFrame } from '../../store/missions';
 import { bannerOf, clubColorHex } from '../../store/profile';
 import { titleClass } from '../../store/title-codes';
+import { cupCounts, cupList, METALS } from '../../store/trophies';
 import { useCardModal } from '../card-modal';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
+import { PixelTrophy } from '../components/PixelTrophy';
 import { AddFriendButton } from './AddFriendButton';
 import { useCardShowcase } from './Album';
 import { Crest } from './Crest';
@@ -55,11 +57,19 @@ export interface PlayerInfo {
     /** Id da conta de quem está na sala (o servidor de amigos acha o cartão dele por aqui). */
     id?: string;
     anon?: boolean;
+    /** Taças da Copa por metal (bronze, prata, ouro): o pedaço da sala de troféus. */
+    cups: [number, number, number];
     /** Perfil de um amigo (Perfil → Amigos → tocar no nome): números, últimos títulos e o retrospecto no Duelo. */
     friend?: { code: string; club: string; numbers: FriendNumbers | null; hall: FriendTitle[] };
 }
 
 const str = (v: unknown, max: number) => (typeof v === 'string' ? v.slice(0, max) : '');
+const int = (v: unknown, max = 1e7) =>
+    typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.min(max, Math.floor(v))) : 0;
+const parseCups = (v: unknown): [number, number, number] => {
+    const a = Array.isArray(v) ? v : [];
+    return [int(a[0], 999), int(a[1], 999), int(a[2], 999)];
+};
 
 /** Perfil de quem está na sala do Duelo (dado de fora: cada campo passa pela validação que já existe). */
 export function peerInfo(p: Peer, other = true): PlayerInfo {
@@ -75,6 +85,7 @@ export function peerInfo(p: Peer, other = true): PlayerInfo {
         look: lookOfPeer(p),
         showcase,
         cards: parseCardShowcase(p.cards),
+        cups: parseCups(p.cups),
         other,
         id: str(p.id, 64),
         anon: p.anon === true,
@@ -83,9 +94,6 @@ export function peerInfo(p: Peer, other = true): PlayerInfo {
 
 const obj = (v: unknown): Record<string, unknown> =>
     v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
-const int = (v: unknown, max = 1e7) =>
-    typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.min(max, Math.floor(v))) : 0;
-
 function friendTitle(v: unknown): FriendTitle | null {
     const h = obj(v);
     const final = Array.isArray(h.final) ? h.final : [];
@@ -150,6 +158,7 @@ export function useMyInfo(): PlayerInfo {
     const show = useShowcase();
     const cards = useCardShowcase().insts;
     const title = activeTitle(profile);
+    const hall = useGame((s) => s.hall);
     return {
         name: trainerLabel(profile),
         trainer: activeTrainer(profile),
@@ -161,6 +170,7 @@ export function useMyInfo(): PlayerInfo {
         look: lookOfProfile(profile),
         showcase: show.items,
         cards,
+        cups: cupList(cupCounts(hall)),
         other: false,
     };
 }
@@ -172,6 +182,7 @@ export function usePublicPeer(): PublicPeer {
     const showcase = useShowcase().encoded;
     const cards = useCardShowcase().encoded;
     const code = useFriends((s) => s.code);
+    const hall = useGame((s) => s.hall);
     return useMemo(() => {
         const av = avatarImage(profile.avatar, user?.avatar);
         return {
@@ -188,9 +199,10 @@ export function usePublicPeer(): PublicPeer {
             ...peerLookFields(lookOfProfile(profile)),
             showcase,
             cards,
+            cups: cupList(cupCounts(hall)),
             ...(code ? { code } : {}),
         };
-    }, [profile, user, showcase, cards, code]);
+    }, [profile, user, showcase, cards, code, hall]);
 }
 
 /** Cartão do treinador aberto (de qualquer tela: Perfil, sala, VERSUS, placar). */
@@ -266,6 +278,18 @@ export function PlayerCardModal() {
                     </div>
                 </header>
                 <ShowcaseRow items={info.showcase} className="pcard-medals" />
+                {info.cups.some((n) => n > 0) && (
+                    <div className="pcard-cups" aria-label={t('trophies.cardTrophies')}>
+                        {METALS.map((m, i) =>
+                            info.cups[i] ? (
+                                <span key={m} className="pcard-cup">
+                                    <PixelTrophy kind="taca" metal={m} />
+                                    <b>{t('trophies.times', { n: info.cups[i] })}</b>
+                                </span>
+                            ) : null,
+                        )}
+                    </div>
+                )}
                 <h3 className="bc-lbl pcard-lbl">{t('profile.card.cards')}</h3>
                 {info.cards.length ? (
                     <ul className="pcard-cards">

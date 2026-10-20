@@ -7,7 +7,6 @@ import { activeTitle, activeTrainer, trainerFrame } from '../../store/missions';
 import type { NewsTab } from '../../store/news';
 import { clubColorHex } from '../../store/profile';
 import { titleClass } from '../../store/title-codes';
-import { HallList } from '../components/HallParade';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { ClubTab } from '../profile/ClubTab';
@@ -23,8 +22,8 @@ import { MissionsTab, TrainerSprite } from '../profile/TrainerTab';
 import { reduceMotionOn } from '../settings-sync';
 import '../profile/profile.css';
 
-type Tab = 'clube' | 'medalhas' | 'missoes' | 'dex' | 'amigos' | 'hall' | 'numeros';
-const TABS: Tab[] = ['clube', 'medalhas', 'missoes', 'dex', 'amigos', 'hall', 'numeros'];
+type Tab = 'clube' | 'medalhas' | 'missoes' | 'dex' | 'amigos' | 'numeros';
+const TABS: Tab[] = ['clube', 'medalhas', 'missoes', 'dex', 'amigos', 'numeros'];
 const NEWS_TABS: Tab[] = ['clube', 'medalhas', 'dex'];
 const TAB_ICON: Record<Tab, HudIconKind> = {
     clube: 'defensive',
@@ -32,7 +31,6 @@ const TAB_ICON: Record<Tab, HudIconKind> = {
     missoes: 'flag',
     dex: 'dex',
     amigos: 'friends',
-    hall: 'cup',
     numeros: 'chart',
 };
 
@@ -104,10 +102,16 @@ export function Profile() {
                         <dd>{career.goalsFor}</dd>
                     </div>
                 </dl>
-                <button type="button" className="btn small pf-public" onClick={() => openCard(myInfo)}>
-                    <HudIcon kind="person" />
-                    {t('profile.card.open')}
-                </button>
+                <div className="pf-head-btns">
+                    <button type="button" className="btn small pf-public" onClick={() => openCard(myInfo)}>
+                        <HudIcon kind="person" />
+                        {t('profile.card.open')}
+                    </button>
+                    <button type="button" className="btn small pf-public" onClick={() => go('trophies')}>
+                        <HudIcon kind="cup" />
+                        {t('trophies.open')}
+                    </button>
+                </div>
             </header>
 
             <div className="pf-tabs bc-tabs" role="tablist" aria-label={t('profile.title')}>
@@ -136,7 +140,6 @@ export function Profile() {
                 {tab === 'missoes' && <MissionsTab />}
                 {tab === 'dex' && <DexTab initial={albumQ ? 'album' : 'dex'} />}
                 {tab === 'amigos' && <FriendsTab />}
-                {tab === 'hall' && <HallList />}
                 {tab === 'numeros' && <NumbersTab onOpenDex={() => openTab('dex')} />}
             </div>
         </div>

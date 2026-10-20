@@ -30,7 +30,7 @@ import { useSaveView } from './TrainerTab';
 import './medals.css';
 
 /** Desenho no meio de cada medalha (os mesmos símbolos do escudo). */
-const MEDAL_GLYPH: Record<string, CrestSymbol> = {
+export const MEDAL_GLYPH: Record<string, CrestSymbol> = {
     pokedex: 'pokebola',
     elenco: 'punho',
     partidas: 'bola',

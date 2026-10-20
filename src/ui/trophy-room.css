@@ -1,0 +1,412 @@
+/* ---------- Sala de troféus (src/ui/screens/TrophyRoom.tsx): pixel art por CSS, sem imagem nova ---------- */
+.tr {
+    --tr-wall: #e9dcc0;
+    --tr-wall-2: #ded0b0;
+    --tr-wood: #8a5a32;
+    --tr-wood-dark: #5a3b24;
+    --tr-floor: #a8703f;
+    --tr-floor-2: #96633a;
+    --tr-ghost: rgba(20, 26, 51, 0.22);
+    --tr-ink: #2a1d12;
+}
+/* sala do clube: a parede pega a cor do clube */
+.tr.tr-lv-clube {
+    --tr-wall: color-mix(in srgb, var(--club) 30%, #e9dcc0);
+    --tr-wall-2: color-mix(in srgb, var(--club) 38%, #ded0b0);
+}
+/* sala do estádio: parede escura com refletores e chão de quadra */
+.tr.tr-lv-estadio {
+    --tr-wall: #1d2550;
+    --tr-wall-2: #182046;
+    --tr-floor: #3a4a7a;
+    --tr-floor-2: #33426e;
+    --tr-ghost: rgba(255, 255, 255, 0.12);
+    --tr-ink: #f2f4f8;
+}
+.tr-level {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 10px;
+    margin: 0 0 10px;
+}
+.tr-level small {
+    color: var(--muted);
+}
+
+.tr-room {
+    display: grid;
+    gap: 14px;
+    padding: 14px;
+    border-radius: 8px;
+    border-bottom: 4px solid #000;
+    color: var(--tr-ink);
+    background: repeating-linear-gradient(90deg, var(--tr-wall) 0 14px, var(--tr-wall-2) 14px 16px);
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
+}
+.tr-lv-estadio .tr-room {
+    background:
+        radial-gradient(ellipse 30% 22% at 20% 0%, rgba(255, 241, 168, 0.18), transparent 70%),
+        radial-gradient(ellipse 30% 22% at 80% 0%, rgba(255, 241, 168, 0.18), transparent 70%),
+        repeating-linear-gradient(90deg, var(--tr-wall) 0 14px, var(--tr-wall-2) 14px 16px);
+}
+
+/* ---------- objetos (botões) ---------- */
+.tr-obj {
+    all: unset;
+    box-sizing: border-box;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    border-radius: 6px;
+    transition:
+        transform 250ms var(--ease-out),
+        box-shadow 250ms var(--ease-out);
+}
+.tr-obj:hover {
+    transform: translateY(-2px);
+}
+.tr-obj:focus-visible,
+.tr-obj.on {
+    box-shadow: 0 0 0 3px var(--yellow);
+}
+.tr-obj.on {
+    transform: translateY(-3px) scale(1.06);
+}
+.tr-art {
+    display: block;
+    image-rendering: pixelated;
+}
+.tr-taca {
+    width: 64px;
+}
+.tr-medalhao {
+    width: 48px;
+}
+.tr-cinturao {
+    width: 80px;
+}
+.tr-counted {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    padding: 4px;
+}
+/* plaquinha de latão com o número gravado */
+.tr-plate {
+    padding: 0 6px;
+    border-radius: 2px;
+    background: #c9a24a;
+    color: #2a1d12;
+    font-family: "Galmuri11", monospace;
+    font-size: 11px;
+    line-height: 16px;
+    box-shadow: 0 2px 0 #7a5a1a;
+}
+
+/* ---------- parede de cima ---------- */
+.tr-wall {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 12px;
+}
+.tr-flag {
+    width: 64px;
+    height: 80px;
+    padding-bottom: 14px;
+    background: var(--club);
+    clip-path: polygon(0 0, 100% 0, 100% 78%, 50% 100%, 0 78%);
+}
+.tr-crest {
+    width: 40px;
+    height: 40px;
+}
+.tr-banner {
+    min-height: 44px;
+    padding: 6px 14px;
+    background: var(--club);
+    color: #fff;
+    border-radius: 2px;
+    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+    font-family: "Galmuri11", monospace;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    text-transform: uppercase;
+}
+.tr-frame {
+    width: 76px;
+    height: 76px;
+    border: 6px solid var(--tr-wood);
+    background: #f4f1e6;
+    box-shadow:
+        inset 0 0 0 2px var(--tr-wood-dark),
+        0 3px 0 rgba(0, 0, 0, 0.3);
+    border-radius: 2px;
+}
+.tr-diploma img {
+    width: 48px;
+    image-rendering: pixelated;
+}
+.tr-diploma .ghost img {
+    filter: grayscale(1);
+    opacity: 0.25;
+}
+.tr-shirt .kit-shirt {
+    width: 52px;
+    height: 52px;
+}
+
+/* ---------- estantes ---------- */
+.tr-shelf,
+.tr-cork,
+.tr-belts {
+    position: relative;
+    display: grid;
+    gap: 6px;
+    padding: 18px 10px 0;
+}
+.tr-shelf-tag {
+    position: absolute;
+    top: 0;
+    left: 10px;
+    padding: 0 6px;
+    border-radius: 2px;
+    background: var(--tr-wood-dark);
+    color: #f4f1e6;
+    font-family: "Galmuri11", monospace;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    line-height: 16px;
+}
+.tr-shelf-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 8px 14px;
+}
+/* a tábua da prateleira */
+.tr-shelf .tr-shelf-row {
+    padding-bottom: 6px;
+    border-bottom: 10px solid var(--tr-wood);
+    box-shadow: 0 4px 0 var(--tr-wood-dark);
+}
+.tr-liga .tr-taca {
+    width: 96px;
+}
+.tr-two {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+}
+.tr-cork {
+    padding-bottom: 10px;
+    border: 6px solid var(--tr-wood);
+    border-radius: 2px;
+    background:
+        radial-gradient(circle at 30% 40%, rgba(90, 59, 36, 0.35) 1px, transparent 1.5px) 0 0 / 9px 9px,
+        #c4935f;
+}
+.tr-belts {
+    padding-bottom: 6px;
+}
+.tr-belt-col {
+    display: grid;
+    gap: 6px;
+}
+
+/* ---------- veludo com os broches ---------- */
+.tr-velvet {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px;
+    border: 6px solid var(--tr-wood);
+    background: radial-gradient(ellipse at 50% 30%, #7a2a3c, #4a1624);
+}
+.tr-velvet .medal {
+    width: 30px;
+    height: 30px;
+}
+.tr-pin-ghost {
+    filter: grayscale(1);
+    opacity: 0.25;
+}
+
+/* ---------- chão: vitrine, livros, TV ---------- */
+.tr-floor {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: end;
+    gap: 14px;
+    margin: 0 -14px -14px;
+    padding: 14px;
+    border-radius: 0 0 8px 8px;
+    background: repeating-linear-gradient(0deg, var(--tr-floor) 0 12px, var(--tr-floor-2) 12px 14px);
+}
+.tr-glass {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    min-height: 96px;
+    padding: 8px;
+    border: 3px solid rgba(255, 255, 255, 0.6);
+    border-bottom: 8px solid var(--tr-wood-dark);
+    background: linear-gradient(
+        120deg,
+        rgba(255, 255, 255, 0.28),
+        rgba(255, 255, 255, 0.06) 40%,
+        rgba(255, 255, 255, 0.18)
+    );
+}
+.tr-glass-card .fut-wrap {
+    --fut-w: 76px;
+}
+.tr-glass-empty {
+    align-self: center;
+    color: #f4f1e6;
+    font-size: 12px;
+}
+.tr-books {
+    display: flex;
+    align-items: end;
+    gap: 3px;
+    padding: 4px;
+}
+.tr-book {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 72px;
+    border-radius: 2px;
+    box-shadow:
+        inset -4px 0 0 rgba(0, 0, 0, 0.25),
+        0 3px 0 rgba(0, 0, 0, 0.35);
+    color: #f4f1e6;
+    font-family: "Galmuri14", monospace;
+    font-size: 11px;
+}
+.tr-book.kanto {
+    background: #c0392f;
+}
+.tr-book.johto {
+    height: 64px;
+    background: #6b6f80;
+    opacity: 0.6;
+}
+.tr-tv {
+    width: 96px;
+    padding: 8px 8px 14px;
+    border-radius: 8px;
+    background: #2b2f3c;
+    box-shadow: 0 4px 0 #14161e;
+}
+.tr-tv-screen {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border-radius: 6px;
+    background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 3px), #3a6e8f;
+}
+.tr-tv-screen img {
+    width: 56px;
+    image-rendering: pixelated;
+}
+.tr-tv-screen .tr-taca {
+    width: 40px;
+}
+
+/* ---------- detalhe do objeto ---------- */
+.tr-sheet {
+    position: relative;
+    display: grid;
+    gap: 10px;
+    margin-top: 14px;
+    padding-right: 56px;
+    animation-name: tr-in;
+    animation-duration: 250ms;
+    animation-timing-function: var(--ease-out);
+}
+.tr-sheet-title {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+.tr-sheet-title small {
+    color: var(--muted);
+}
+.tr-how {
+    margin: 0;
+}
+.tr-go {
+    justify-self: start;
+}
+@keyframes tr-in {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+}
+@keyframes tr-fade {
+    from {
+        opacity: 0;
+    }
+}
+:root[data-reduce-motion="true"] .tr-sheet {
+    animation-name: tr-fade;
+}
+:root[data-reduce-motion="true"] .tr-obj,
+:root[data-reduce-motion="true"] .tr-obj:hover,
+:root[data-reduce-motion="true"] .tr-obj.on {
+    transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+    .tr-sheet {
+        animation-name: tr-fade;
+    }
+    .tr-obj,
+    .tr-obj:hover,
+    .tr-obj.on {
+        transform: none;
+    }
+}
+
+/* ---------- celular ---------- */
+@media (max-width: 560px) {
+    .tr-room {
+        padding: 10px;
+    }
+    .tr-wall {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+    .tr-two {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .tr-belt-col {
+        grid-auto-flow: column;
+        justify-content: center;
+    }
+    .tr-floor {
+        grid-template-columns: auto auto;
+        justify-content: space-between;
+        margin: 0 -10px -10px;
+        padding: 10px;
+    }
+    .tr-glass {
+        grid-column: 1 / -1;
+    }
+    .tr-taca {
+        width: 48px;
+    }
+    .tr-liga .tr-taca {
+        width: 64px;
+    }
+    .tr-cinturao {
+        width: 60px;
+    }
+}

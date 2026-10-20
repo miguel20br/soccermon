@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildVitrine } from '../../friends/api';
 import type { Peer } from '../../net/duel-state';
 import { headToHead } from '../../store/duels';
+import { ART } from '../components/PixelTrophy';
 import { friendInfo, peerInfo } from './PlayerCard';
 
 /** Perfil que chega do rival na sala: dado de fora, cada campo tem que passar pela validação. */
@@ -137,5 +138,15 @@ describe('perfil do amigo', () => {
             draw: 0,
             loss: 1,
         });
+    });
+});
+
+describe('pedaço da sala de troféus no cartão', () => {
+    it('as taças por metal vêm limpas (3 números inteiros)', () => {
+        expect(peerInfo(peer({ cups: [2, -1, 'x', 9] })).cups).toEqual([2, 0, 0]);
+        expect(peerInfo(peer({})).cups).toEqual([0, 0, 0]);
+    });
+    it('cada desenho de troféu tem todas as fileiras do mesmo tamanho', () => {
+        for (const rows of Object.values(ART)) expect(new Set(rows.map((r) => r.length)).size).toBe(1);
     });
 });

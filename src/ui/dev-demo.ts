@@ -65,7 +65,8 @@ export function runDevDemo() {
         demo !== 'liga' &&
         demo !== 'amigos' &&
         demo !== 'platina' &&
-        demo !== 'vestiario'
+        demo !== 'vestiario' &&
+        demo !== 'sala'
     )
         return;
     started = true;
@@ -78,6 +79,10 @@ export function runDevDemo() {
     }
     if (demo === 'novidades') {
         demoNews();
+        return;
+    }
+    if (demo === 'sala') {
+        demoTrophyRoom();
         return;
     }
     if (demo === 'fichario' || demo === 'album') {
@@ -516,6 +521,69 @@ function demoCollection() {
         },
     });
     g.go('profile');
+}
+
+/**
+ * `?demo=sala`: a carreira do `?demo=colecao` com 9 títulos (taças de bronze, prata e ouro), 12 dias de Copa do Dia
+ * (uma semana inteira) e 12 vitórias no Duelo, e abre a Sala de troféus (sala do clube, nível 2). `&titulos=0` deixa
+ * a sala vazia (só silhuetas); `&titulos=30` vira a sala do estádio.
+ */
+function demoTrophyRoom() {
+    demoCollection();
+    const g = useGame.getState();
+    const n = Number(new URLSearchParams(window.location.search).get('titulos') ?? 9);
+    const day = 864e5;
+    const hall = Array.from({ length: n }, (_, i) => ({
+        id: `demo-${i}`,
+        date: Date.now() - i * 3 * day,
+        club: g.profile.clubName || 'Pallet FC',
+        clubColor: g.profile.clubColor,
+        formation: '2-2',
+        titleNo: n - i,
+        perfect: i % 4 === 0,
+        scores: (i % 3 === 1
+            ? [
+                  [3, 1],
+                  [2, 0],
+                  [1, 0],
+                  [4, 2],
+              ]
+            : [
+                  [3, 1],
+                  [2, 2],
+                  [1, 0],
+                  [4, 2],
+              ]) as [number, number][],
+        squad: [6, 9, 25, 143, 149].map((speciesId, k) => ({
+            speciesId,
+            shiny: k === 0 && i === 0,
+            name: '',
+            ovr: 80,
+            goals: k,
+            captain: k === i % 5,
+        })),
+    }));
+    const iso = (t: number) => new Date(t).toISOString().slice(0, 10);
+    // segunda 12/10/2026 a domingo 18/10 inteira, e mais uns dias soltos
+    const daily = [...Array.from({ length: 7 }, (_, i) => Date.UTC(2026, 9, 12 + i)), Date.UTC(2026, 9, 20)]
+        .slice(0, n ? 8 : 0)
+        .map((t, i) => ({
+            day: iso(t),
+            done: true,
+            champion: i % 3 === 0,
+            results: Array.from({ length: 4 }, (_, k) => ({
+                score: [k < 2 + (i % 3) ? 2 : 0, 1] as [number, number],
+                shootout: null,
+                won: k < 2 + (i % 3),
+                opponent: 'x',
+            })),
+        }));
+    useGame.setState({
+        hall,
+        daily,
+        records: { ...g.records, titles: n, perfect: hall.filter((h) => h.perfect).length, duelWins: n ? 12 : 0 },
+    });
+    g.go('trophies');
 }
 
 /**

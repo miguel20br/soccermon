@@ -27,6 +27,7 @@ import { Profile } from './ui/screens/Profile';
 import { Result } from './ui/screens/Result';
 import { Reward } from './ui/screens/Reward';
 import { Settings } from './ui/screens/Settings';
+import { TrophyRoom } from './ui/screens/TrophyRoom';
 
 // Movedex (?lab=golpes) usa o Phaser: vem num pedaço à parte, como a partida
 const MoveLab = lazy(() => import('./ui/screens/MoveLab').then((m) => ({ default: m.MoveLab })));
@@ -185,6 +186,7 @@ export default function App() {
             {screen === 'daily' && <Daily />}
             {screen === 'liga' && <Liga />}
             {screen === 'liga-match' && <Match liga />}
+            {screen === 'trophies' && <TrophyRoom />}
             <PlayerCardModal />
             <CardModal />
             <FriendInvite />

@@ -76,7 +76,8 @@ export type Screen =
     | 'duel'
     | 'daily'
     | 'liga'
-    | 'liga-match';
+    | 'liga-match'
+    | 'trophies';
 export type CryStyle = 'legacy' | 'latest';
 export type PlaybackSpeed = 1 | 2 | 4 | 8 | 'highlights';
 

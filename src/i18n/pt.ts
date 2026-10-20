@@ -16,6 +16,7 @@ import { settings } from './pt/settings';
 import { stats } from './pt/stats';
 import { team } from './pt/team';
 import { title } from './pt/title';
+import { trophies } from './pt/trophies';
 
 /**
  * Dicionário em português: a fonte da verdade. Cada área fica num arquivo em ./pt/ e tem o par em ./en/
@@ -42,6 +43,7 @@ export const pt = {
     moments,
     liga,
     friends,
+    trophies,
 };
 
 export type Dict = typeof pt;

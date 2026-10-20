@@ -79,9 +79,11 @@ export function HallParade({ entry, trainer, onDone }: { entry: HallEntry; train
 }
 
 /** Lista do Hall da Fama (Perfil): um cartão por título, do mais recente ao mais antigo. */
-export function HallList() {
+/** Os títulos do Hall da Fama (`only`: só estes, pela copa; a sala de troféus filtra pelo metal da taça). */
+export function HallList({ only }: { only?: string[] } = {}) {
     const { t, lang } = useT();
-    const hall = useGame((s) => s.hall);
+    const all = useGame((s) => s.hall);
+    const hall = only ? all.filter((h) => only.includes(h.id)) : all;
     if (!hall.length) return <p className="muted">{t('title.hall.empty')}</p>;
     return (
         <ol className="hall-list">

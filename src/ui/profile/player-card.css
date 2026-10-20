@@ -65,6 +65,23 @@
     justify-items: start;
     text-align: left;
 }
+/* o pedaço da sala de troféus: as taças da Copa por metal */
+.pcard-cups {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+}
+.pcard-cup {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+}
+.pcard-cup .tr-taca {
+    width: 32px;
+}
+.pcard-cup b {
+    font-size: 12px;
+}
 /* perfil do amigo: últimos títulos (capitão + clube + final) e o retrospecto no Duelo */
 .pcard-titles {
     list-style: none;
@@ -179,9 +196,13 @@
 }
 
 /* Perfil: "Ver meu perfil público" embaixo do cabeçalho */
-.pf-public {
+.pf-head-btns {
     grid-column: 1 / -1;
-    justify-self: start;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.pf-public {
     display: inline-flex;
     align-items: center;
     gap: 8px;
