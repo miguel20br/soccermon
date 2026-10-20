@@ -6,6 +6,7 @@ import App from './App';
 import { startAnalytics } from './analytics/track';
 import { startCloudSync } from './cloud/cloud';
 import { importFromOldDomain, moveToNewDomain } from './cloud/domain-move';
+import { startFriendsLive } from './friends/api';
 import { startLeagueSync } from './league/sync';
 import { ErrorBoundary } from './ui/components/ErrorBoundary';
 import { startSettingsSync } from './ui/settings-sync';
@@ -28,6 +29,8 @@ void importFromOldDomain();
 startCloudSync();
 // Copa do Dia: cada partida vai pro ranking do dia (só com conta Google)
 startLeagueSync();
+// amigos: online e avisos na hora (só com conta Google e alguém na lista)
+startFriendsLive();
 // volume por canal e "reduzir movimento" (Configurações)
 startSettingsSync();
 // visitas e velocidade (Vercel, sem cookie) e estatísticas anônimas do jogo (Supabase)

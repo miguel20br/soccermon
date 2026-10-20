@@ -237,5 +237,7 @@ export const match: typeof pt = {
         start: 'Kick off!',
         startsIn: 'Kick-off in {s} s',
         loading: 'Loading the court…',
+        slow: 'the court is taking a while',
+        retry: 'Try again',
     },
 };

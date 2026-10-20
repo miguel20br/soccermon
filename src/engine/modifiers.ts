@@ -5,7 +5,7 @@ import { evolutionBonus, instancePositions, type PokemonInstance } from './insta
 import { ITEMS } from './items';
 import { computeLinks, linkFactor } from './links';
 import { moveProfile } from './moves';
-import { SPECIAL_BONUS, specialBonus } from './specials';
+import { specialBonus } from './specials';
 import { computeSynergies, SYNERGY_CAP, synergyFactor } from './synergy';
 
 /**
@@ -92,8 +92,7 @@ export function attributeModifiers(inst: PokemonInstance, ctx: TeamContext = {})
     const sp = species(inst.speciesId);
     const mods: AttrModifier[] = [];
     const bonus = specialBonus(inst);
-    if (bonus)
-        mods.push({ source: 'edicao', label: `Edição especial: +${SPECIAL_BONUS} em tudo`, attrs: 'all', add: bonus });
+    if (bonus) mods.push({ source: 'edicao', label: `Edição especial: +${bonus} em tudo`, attrs: 'all', add: bonus });
     const evo = evolutionBonus(inst);
     if (evo) mods.push({ source: 'evolucao', label: `Evoluiu: +${evo} em tudo`, attrs: 'all', add: evo });
 

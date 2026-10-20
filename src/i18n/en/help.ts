@@ -101,7 +101,7 @@ export const help: typeof pt = {
                     p: 'Hover the mouse (or hold your finger) on a card to see the summary; tap to open the full card with attributes, moves, Ability and bonuses.',
                 },
                 {
-                    p: "**Special editions** give +{bonus} to every attribute (they don't stack) and have their own look:",
+                    p: '**Special editions** give +{bonus} to every attribute and have their own look. Shiny goes on top of any of them (+1) and the MVP seal adds +1 per level (up to 3). No attribute goes past 99:',
                 },
                 {
                     list: [
@@ -113,7 +113,7 @@ export const help: typeof pt = {
                         ['Event', 'the type of the week: 1 in 8 cards of that type. Changes every week.'],
                         [
                             'Star Player',
-                            "your team's best player in a win becomes a Star Player card. If it already is one, it levels up with a rating of 8+ (up to level 3: +3, +4); otherwise the prize goes to the next best player without an edition.",
+                            "your team's best player in a win earns the MVP seal: a plain card becomes a Star Player; Icon and Event cards keep their edition and get the seal. With a rating of 8+ the seal levels up, up to MVP 3.",
                         ],
                     ],
                 },

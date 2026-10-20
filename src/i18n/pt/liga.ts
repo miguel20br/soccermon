@@ -12,6 +12,9 @@ export const liga = {
         ligaTag: 'Liga',
         ligaLine: 'Contra o time de outro treinador · vale Elo',
         ligaGo: 'Abrir a Liga',
+        ligaSoon: 'Em breve',
+        ligaOpensIn: 'Abre em {d}d {h}h {m}m',
+        ligaClosed: 'A Liga abre quando tiver mais gente jogando. Enquanto isso, a Copa do Dia tem ranking todo dia.',
     },
     daily: {
         tag: 'Copa do Dia',

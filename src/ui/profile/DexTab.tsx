@@ -3,11 +3,24 @@ import { SPECIES } from '../../engine/data';
 import { typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { albumSlots, type DexEntry, hasSticker, isPlayed, topSeal } from '../../store/profile';
+import {
+    type AlbumEdition,
+    albumCount,
+    albumSlots,
+    type DexEntry,
+    hasSticker,
+    isPlayed,
+    topSeal,
+} from '../../store/profile';
+import { HudIcon } from '../components/MatchHud';
+import { Tip } from '../components/Tip';
 import { TypeIcon } from '../components/TypeIcon';
+import { AlbumView } from './Album';
 import { speciesGif } from './club';
 import { BallMark, CareerSealIcon, ChampionRibbon } from './icons';
+import { NewDot, newsCount, useNews } from './news';
 import { dexNo, SpeciesSheet } from './SpeciesSheet';
+import { sealTip } from './seal-tip';
 
 type Status = 'played' | 'seen' | 'unseen';
 type Filter = 'all' | Status | 'missing';
@@ -21,29 +34,35 @@ const TYPES = [...new Set(SPECIES.flatMap((s) => s.types))];
 const TOTAL = SPECIES.length;
 /** Álbum: as edições que existem de cada espécie (Ícone só nos 20 da lista). */
 const SLOTS = new Map(SPECIES.map((sp) => [sp.id, albumSlots(sp)]));
-const STICKERS = [...SLOTS.values()].reduce((n, s) => n + s.length, 0);
 const stickersGot = (id: number, e: DexEntry | undefined) =>
     SLOTS.get(id)?.filter((ed) => hasSticker(e, ed)).length ?? 0;
 
-/** Pokédex: os 151 com o que você já viu e quem já jogou pelo seu time. */
-export function DexTab() {
+export type DexView = 'dex' | 'album';
+
+/** Pokédex: os 151 com o que você já viu e quem já jogou pelo seu time; e o Álbum de cartas especiais. */
+export function DexTab({ initial = 'dex' }: { initial?: DexView }) {
     const dex = useGame((s) => s.dex);
+    const [view, setView] = useState<DexView>(initial);
     const [filter, setFilter] = useState<Filter>('all');
     const [type, setType] = useState<string | null>(null);
-    const [open, setOpen] = useState<number | null>(null);
+    const [open, setOpen] = useState<{ id: number; order?: number[] } | null>(null);
+    // "Ver no álbum" da ficha: abre o Álbum na página do Pokémon (n muda a cada pedido)
+    const [at, setAt] = useState<{ id: number; n: number } | null>(null);
     const { t, tn, d, lang } = useT();
+    const album = albumCount(dex);
+    const news = useNews();
 
     const counts = useMemo(() => {
-        const c = { all: TOTAL, played: 0, seen: 0, unseen: 0, missing: 0, stickers: 0 };
+        const c = { all: TOTAL, played: 0, seen: 0, unseen: 0, missing: 0 };
         for (const sp of SPECIES) {
             c[statusOf(dex[sp.id])]++;
             const got = stickersGot(sp.id, dex[sp.id]);
-            c.stickers += got;
             if (got < (SLOTS.get(sp.id)?.length ?? 0)) c.missing++;
         }
         return c;
     }, [dex]);
     const seenCount = counts.played + counts.seen;
+    const edName = (ed: AlbumEdition) => (ed === 'normal' ? t('profile.sheet.normal') : d.common.edition[ed]);
     const kanto = counts.played === TOTAL;
 
     const list = useMemo(
@@ -61,8 +80,48 @@ export function DexTab() {
     );
     const order = useMemo(() => list.map((s) => s.id), [list]);
 
+    const sheet = open && (
+        <SpeciesSheet
+            id={open.id}
+            order={open.order ?? order}
+            onNav={(id) => setOpen({ ...open, id })}
+            onClose={() => setOpen(null)}
+            onAlbum={(id) => {
+                setOpen(null);
+                setView('album');
+                setAt({ id, n: (at?.n ?? 0) + 1 });
+            }}
+        />
+    );
+    const tabs = (
+        <div className="bc-seg pf-dexview" role="tablist" aria-label={d.profile.tabs.dex}>
+            {(['dex', 'album'] as DexView[]).map((v) => (
+                <button
+                    type="button"
+                    role="tab"
+                    key={v}
+                    aria-selected={view === v}
+                    className={view === v ? 'on' : undefined}
+                    onClick={() => setView(v)}
+                >
+                    <HudIcon kind={v === 'dex' ? 'dex' : 'cards'} /> {d.profile.album.views[v]}
+                    {v === 'album' && <NewDot on={view !== 'album' && newsCount(news, 'dex') > 0} />}
+                </button>
+            ))}
+        </div>
+    );
+    if (view === 'album')
+        return (
+            <div className="pf-dex">
+                {tabs}
+                <AlbumView at={at} paused={!!open} onSheet={(id, o) => setOpen({ id, order: o })} />
+                {sheet}
+            </div>
+        );
+
     return (
         <div className="pf-dex">
+            {tabs}
             <div className="pf-dex-progress">
                 <div className="pf-dex-counts">
                     <span>
@@ -82,22 +141,22 @@ export function DexTab() {
                 </div>
             </div>
 
-            <div className="pf-album">
+            <button type="button" className="pf-album pf-album-link" onClick={() => setView('album')}>
                 <span className="pf-album-label">{t('profile.dex.stickers')}</span>
                 <b className="pf-album-n">
                     <span aria-hidden>
-                        {counts.stickers}
-                        <small>/{STICKERS}</small>
+                        {album.got}
+                        <small>/{album.total}</small>
                     </span>
-                    <span className="pf-sr">
-                        {t('profile.dex.stickersAria', { n: counts.stickers, total: STICKERS })}
-                    </span>
+                    <span className="pf-sr">{t('profile.dex.stickersAria', { n: album.got, total: album.total })}</span>
                 </b>
                 <div className="pf-bar" aria-hidden>
-                    <i className="played" style={{ width: `${(counts.stickers / STICKERS) * 100}%` }} />
+                    <i className="played" style={{ width: `${(album.got / album.total) * 100}%` }} />
                 </div>
-                <small className="muted">{t('profile.dex.stickersHelp')}</small>
-            </div>
+                <small className="muted">
+                    {t('profile.dex.stickersHelp')} <b className="pf-album-go">{t('profile.album.see')}</b>
+                </small>
+            </button>
 
             <fieldset className="pf-filters">
                 <legend className="pf-sr">{t('profile.dex.filterStatus')}</legend>
@@ -137,12 +196,26 @@ export function DexTab() {
                         const known = st !== 'unseen';
                         const titles = dex[sp.id]?.titles ?? 0;
                         const seal = topSeal(dex[sp.id], kanto);
+                        const slots = SLOTS.get(sp.id) ?? [];
+                        const stk = stickersGot(sp.id, dex[sp.id]);
+                        const stkTip = t('profile.dex.stickersTip', {
+                            got:
+                                slots
+                                    .filter((ed) => hasSticker(dex[sp.id], ed))
+                                    .map(edName)
+                                    .join(', ') || '—',
+                            missing:
+                                slots
+                                    .filter((ed) => !hasSticker(dex[sp.id], ed))
+                                    .map(edName)
+                                    .join(', ') || '—',
+                        });
                         return (
                             <li key={sp.id}>
                                 <button
                                     type="button"
                                     className={`pf-cell ${st}`}
-                                    onClick={() => setOpen(sp.id)}
+                                    onClick={() => setOpen({ id: sp.id })}
                                     aria-label={`${t('profile.dex.cellAria', { no: dexNo(sp.id), name: known ? sp.name : t('profile.dex.notSeenLower') })}${st === 'played' ? t('profile.dex.playedForYou') : ''}${titles ? tn('profile.dex.ribbonAria', titles) : ''}${seal ? t('profile.dex.sealAria', { name: d.profile.sheet.sealNames[seal] }) : ''}`}
                                 >
                                     <span className="pf-cell-no">{dexNo(sp.id)}</span>
@@ -157,16 +230,26 @@ export function DexTab() {
                                     <span className="pf-cell-name">{known ? sp.name : '???'}</span>
                                     {/* o selo (10+ partidas) já diz que jogou: fica no lugar da bolinha */}
                                     {seal ? (
-                                        <CareerSealIcon seal={seal} className={`pf-seal pf-cell-mark seal-${seal}`} />
+                                        <Tip
+                                            className="pf-cell-mark pf-cell-tip"
+                                            focusable={false}
+                                            text={sealTip(t, seal, sp.name, dex[sp.id], counts.played)}
+                                        >
+                                            <CareerSealIcon seal={seal} className={`pf-seal seal-${seal}`} />
+                                        </Tip>
                                     ) : (
                                         st === 'played' && <BallMark className="pf-ball pf-cell-mark" />
                                     )}
                                     {titles > 0 && <ChampionRibbon n={titles} className="pf-ribbon pf-cell-ribbon" />}
-                                    <span className="pf-pips" aria-hidden>
-                                        {SLOTS.get(sp.id)?.map((ed) => (
-                                            <i key={ed} className={hasSticker(dex[sp.id], ed) ? `on ed-${ed}` : ''} />
-                                        ))}
-                                    </span>
+                                    {/* figurinhas da espécie: "3/5" com o ícone de carta (a dica diz quais) */}
+                                    {known && (
+                                        <Tip className="pf-cell-stk-tip" focusable={false} text={stkTip}>
+                                            <span className={`pf-cell-stk${stk === slots.length ? ' full' : ''}`}>
+                                                <HudIcon kind="cards" />
+                                                {stk}/{slots.length}
+                                            </span>
+                                        </Tip>
+                                    )}
                                 </button>
                             </li>
                         );
@@ -184,7 +267,7 @@ export function DexTab() {
                 </p>
             )}
 
-            {open !== null && <SpeciesSheet id={open} order={order} onNav={setOpen} onClose={() => setOpen(null)} />}
+            {sheet}
         </div>
     );
 }

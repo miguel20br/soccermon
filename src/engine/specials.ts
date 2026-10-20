@@ -3,8 +3,10 @@ import type { PokemonInstance } from './instance';
 import { Rng } from './rng';
 
 /**
- * Cartas especiais (edições). Uma carta tem no máximo uma edição; shiny continua sendo só o sprite
- * e conta como edição "Shiny" quando não há outra. Toda edição dá +2 em todos os atributos (não acumula).
+ * Cartas especiais (edições), em camadas (0.8.8, aprovado pelo Miguel em 19/10/2026): a carta tem no máximo uma
+ * edição base (Ícone, Evento ou Destaque) e o shiny vai por cima de qualquer uma. Bônus: edição base +2, shiny
+ * +1 junto de outra edição (sozinho é +2), MVP +1 por nível (o 1º MVP de uma carta comum é o próprio Destaque).
+ * Sem teto: o único limite é o atributo não passar de 99 (`withBonus`). O máximo hoje é +6 (shiny Ícone MVP 3).
  * - Ícone: Pokémon da lista curada, 1 em 80 quando aparece no draft ou na recompensa.
  * - Evento: tipo da semana, 1 em 8 para cartas desse tipo.
  * - Destaque: o craque do seu time na partida (dado pelo resultado, não sorteado).
@@ -18,8 +20,8 @@ export interface Special {
     /** Ícone: título temático ("Pikachu do Ash"). */
     title?: string;
     /**
-     * Destaque: nível 1–3 (o craque que segue jogando muito sobe de nível: +2, +3, +4).
-     * Ícone: quantos MVPs a carta já levou (0–3, selo "MVP n"): +1 por MVP em cima dos +2 da edição.
+     * Destaque: nível 1–3 (o craque que segue jogando muito sobe de nível: +2, +3, +4; é o selo MVP 1–3).
+     * Ícone e Evento: quantos MVPs a carta já levou (0–3, selo "MVP n"): +1 por MVP em cima dos +2 da edição.
      */
     level?: number;
 }
@@ -66,18 +68,25 @@ export const DESTAQUE_MAX_LEVEL = 3;
 /** Nota mínima na partida pra um Destaque subir de nível (senão o prêmio vai pro próximo craque). */
 export const DESTAQUE_LEVEL_UP_RATING = 8;
 
-/** +2 em tudo pra qualquer edição (inclusive shiny); Destaque nível 2 e 3 dão +3 e +4; Ícone +1 por MVP (até +5). */
-export function specialBonus(inst: PokemonInstance): number {
-    if (!editionOf(inst)) return 0;
+/** Nível do selo MVP (0–3): o Destaque já nasce MVP 1; Ícone e Evento contam os MVPs que levaram. */
+export function mvpLevel(inst: PokemonInstance): number {
     const s = inst.special;
-    if (s?.kind === 'destaque') return SPECIAL_BONUS + (s.level ?? 1) - 1;
-    if (s?.kind === 'icone') return SPECIAL_BONUS + (s.level ?? 0);
-    return SPECIAL_BONUS;
+    if (!s) return 0;
+    return s.kind === 'destaque' ? (s.level ?? 1) : (s.level ?? 0);
 }
 
-/** Ícone que ainda pode ganhar selo de MVP (até 3, como o Destaque). */
-export const iconMvpOpen = (inst: PokemonInstance) =>
-    inst.special?.kind === 'icone' && (inst.special.level ?? 0) < DESTAQUE_MAX_LEVEL;
+/** Edição base +2, shiny +1 junto de outra edição (sozinho +2), MVP +1 por nível. */
+export function specialBonus(inst: PokemonInstance): number {
+    const s = inst.special;
+    if (!s) return inst.shiny ? SPECIAL_BONUS : 0;
+    const mvp = s.kind === 'destaque' ? mvpLevel(inst) - 1 : mvpLevel(inst);
+    return SPECIAL_BONUS + mvp + (inst.shiny ? 1 : 0);
+}
+
+/** Ícone ou Evento que ainda pode ganhar selo de MVP (até 3, como o Destaque). */
+export const mvpOpen = (inst: PokemonInstance) =>
+    (inst.special?.kind === 'icone' || inst.special?.kind === 'evento') &&
+    (inst.special.level ?? 0) < DESTAQUE_MAX_LEVEL;
 
 /** Número da semana ISO (1..53) e o ano dela. */
 function isoWeek(date: Date): { year: number; week: number } {

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { cloudEnabled, duelUserId, signInAnon, signInWithGoogle, useCloud } from '../../cloud/cloud';
+import { duelUserId, signInAnon, signInWithGoogle, useCloud } from '../../cloud/cloud';
 import { ENGINE_VERSION } from '../../engine/config';
 import { DEFAULT_SPECIAL_LIMIT, SPECIAL_LIMITS, type SpecialLimit } from '../../engine/duel-validate';
 import { matchMvp } from '../../engine/mvp';
+import { sendPendingChallenge, useFriends } from '../../friends/api';
 import { playSfx } from '../../game/audio';
 import { useT } from '../../i18n/react';
 import {
@@ -33,14 +34,17 @@ import { bannerOf, clubColorHex, rivalColor } from '../../store/profile';
 import { ResultHero } from '../components/ResultHero';
 import { LeaveConfirm } from '../leave-guard';
 import { FEEDBACK_URL } from '../links';
+import { useCardShowcase } from '../profile/Album';
 import { avatarImage, avatarWire, hexCss, peerAvatar, peerTitle, titleName, trainerLabel } from '../profile/club';
 import { useShowcase } from '../profile/Medals';
+import { peerInfo, usePlayerCard } from '../profile/PlayerCard';
 import { qrPath } from '../qr';
 import { heroStats, MatchDetails } from '../screens/Result';
 import { agencyOn } from '../settings-sync';
 import { setChartColors } from '../stats/StatsCharts';
 import { DuelDraft, DuelPreview, specialRuleText, TeamPick } from './DuelDraft';
 import { DuelMatch, useCountdown } from './DuelMatch';
+import { duelLink, isLocalDuel } from './link';
 import './duel.css';
 
 const PENDING = 'soccermon-duel-pending';
@@ -59,15 +63,6 @@ export function duelCodeFromUrl(): string | null {
         return null;
     }
 }
-
-/** Sala local (duas abas, sem internet): sem Supabase configurado ou com `&local=1` no link. */
-export const isLocalDuel = () => !cloudEnabled || new URLSearchParams(window.location.search).get('local') === '1';
-
-/** Link da sala; `from` = nome de quem chama (a tela de quem abre sem conta mostra "Fulano te chamou"). */
-export const duelLink = (code: string, local: boolean, from?: string) =>
-    `${window.location.origin}${window.location.pathname}?duelo=${code}${local ? '&local=1' : ''}${
-        from ? `&de=${encodeURIComponent(from.slice(0, 24))}` : ''
-    }`;
 
 const FROM = 'soccermon-duel-from';
 /** Quem mandou o link (`&de=`), guardado pra sobreviver ao login pelo Google. */
@@ -98,6 +93,7 @@ function usePeer(local: boolean): Peer | null {
     const user = useCloud((s) => s.user);
     useCloud((s) => s.anonId);
     const showcase = useShowcase().encoded;
+    const cards = useCardShowcase().encoded;
     const id = local ? localId() : duelUserId();
     if (!id) return null;
     const av = avatarImage(profile.avatar, user?.avatar);
@@ -115,6 +111,7 @@ function usePeer(local: boolean): Peer | null {
         banner: bannerOf(profile.banner),
         ...peerLookFields(lookOfProfile(profile)),
         showcase,
+        cards,
         anon: !local && !user,
     });
 }
@@ -222,6 +219,8 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
     const [joinCode, setJoinCode] = useState('');
     const [specialLimit, setSpecialLimit] = useState<SpecialLimit>(DEFAULT_SPECIAL_LIMIT);
     const [duration, setDuration] = useState<DuelDuration>('normal');
+    // "Desafiar" na lista de amigos: a sala que nascer aqui chama esse amigo
+    const challenging = useFriends((s) => s.challenging);
     return (
         <div className="duel-create">
             <header className="bc-screenhead">
@@ -229,6 +228,9 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
                 <h1>{t('duel.newDuel')}</h1>
             </header>
             <p className="muted">{t('duel.newHint')}</p>
+            {challenging && (
+                <p className="panel fr-challenging">{t('friends.challengingNote', { name: challenging.trainer })}</p>
+            )}
             <BetaNote />
             <fieldset className="duel-modes">
                 <legend className="bc-lbl">{t('duel.modeLabel')}</legend>
@@ -315,6 +317,7 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
                     playSfx('select');
                     const code = await duel.create(peer, mode, speed, local, specialLimit, duration, agencyOn());
                     setUrl(code, local);
+                    void sendPendingChallenge(code);
                 }}
             >
                 {t('duel.createRoom')}
@@ -400,6 +403,13 @@ function PeerCard({
             <span className={`duel-ready${ready ? ' on' : ''}`} data-testid={`ready-${role}`}>
                 {ready ? t('duel.lobby.ready') : t('duel.lobby.notReady')}
             </span>
+            {/* o cartão inteiro abre o perfil (o cartão do treinador, com a vitrine) */}
+            <button
+                type="button"
+                className="duel-peer-open"
+                onClick={() => usePlayerCard.getState().open(peerInfo(p, !me))}
+                aria-label={t('profile.card.openAria', { name: p.name })}
+            />
         </div>
     );
 }

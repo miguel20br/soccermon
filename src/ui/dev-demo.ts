@@ -2,18 +2,23 @@ import { type LinkAsk, useCloud } from '../cloud/cloud';
 import type { SaveSummary } from '../cloud/reconcile-plan';
 import { ENGINE_VERSION, FUTSAL_5 } from '../engine/config';
 import { clubLeader, cupRival } from '../engine/cup';
+import { species } from '../engine/data';
 import { aiDraftTeam } from '../engine/draft';
-import { createInstance } from '../engine/instance';
+import { createInstance, type PokemonInstance } from '../engine/instance';
 import { rewardOptions } from '../engine/rewards';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
+import { EVENT_TYPES, ICONS, type Special } from '../engine/specials';
 import { EventBus } from '../game/EventBus';
+import { type BinderCard, binderAdd } from '../store/binder';
 import { playerTeam, useGame } from '../store/game-store';
+import { earnedKeys, medalViewOf } from '../store/news';
+import { EDITION_BIT, editionBits } from '../store/profile';
 import { agencyOn } from './settings-sync';
 import { isTrailerScene, trailerPicks } from './trailer-scenes';
 
 /**
- * Atalhos de desenvolvimento (só em `npm run dev`): `?demo=penaltis` monta uma copa cuja primeira
+ * Atalhos de desenvolvimento (no dev e nas prévias da Vercel, `__SMOKE__`; nunca em produção):`?demo=penaltis` monta uma copa cuja primeira
  * partida termina empatada e vai para os pênaltis, já na tela de escalação. `?demo=ditto` monta um time
  * com Ditto e Mew + Mewtwo (sinergia Gênese) cuja primeira partida tem combo. `?demo=evolucao` monta um time
  * de iniciais cuja primeira partida tem evolução do seu time logo no começo (`&rival=1`: do rival). `?demo=campeao` joga uma copa
@@ -23,10 +28,13 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * partida que a caça de lances (scripts/trailer-hunt.ts) escolheu para o trailer. `?demo=escanteio` monta um time de
  * grandalhões cuja primeira partida tem escanteio seu com disputa no alto logo no começo. `?demo=colecao` põe no save uma
  * carreira de mentira (medalhas em vários degraus, coleções, selos, escudo e uniforme listrado, vitrine cheia) e abre o
- * Perfil (`&perfil=medalhas` abre na aba); `&novo=1` deixa o clube no padrão (pra ver o editor do zero).
+ * Perfil (`&perfil=medalhas` abre na aba); `&novo=1` deixa o clube no padrão (pra ver o editor do zero). `?demo=album`
+ * enche o álbum de cartas (edições, combos, ×N) e a Pokédex, escolhe 3 pra vitrine e abre a Pokédex no Álbum.
  * `?demo=lider&clube=<id>` (brock,
  * misty, ltsurge, erika, koga, sabrina, blaine, giovanni, agatha, lance) põe o clube desse treinador na primeira
  * partida (VERSUS com a fala, a quadra do ginásio); com `&agencia=1`, uma partida em que o rival reage cedo.
+ * `?demo=amigos` abre Perfil → Amigos com um servidor de mentira (`&tela=home`: o convite na Home; `&cartao=1|anon`: o
+ * botão "Adicionar amigo" num cartão do treinador de mentira).
  * `?demo=platina` libera a
  * platina da Gen 1 sem platinar (Prof. Carvalho holográfico e Diploma de Kanto, já escolhidos) e mostra o aviso na Home.
  * `?demo=vestiario` abre na
@@ -36,7 +44,7 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
 let started = false;
 
 export function runDevDemo() {
-    if (!import.meta.env.DEV || started) return;
+    if (!__SMOKE__ || started) return;
     const demo = new URLSearchParams(window.location.search).get('demo');
     if (
         demo !== 'penaltis' &&
@@ -50,8 +58,12 @@ export function runDevDemo() {
         demo !== 'conta' &&
         demo !== 'lider' &&
         demo !== 'colecao' &&
+        demo !== 'novidades' &&
+        demo !== 'fichario' &&
+        demo !== 'album' &&
         demo !== 'dia' &&
         demo !== 'liga' &&
+        demo !== 'amigos' &&
         demo !== 'platina' &&
         demo !== 'vestiario'
     )
@@ -64,10 +76,24 @@ export function runDevDemo() {
         demoCollection();
         return;
     }
+    if (demo === 'novidades') {
+        demoNews();
+        return;
+    }
+    if (demo === 'fichario' || demo === 'album') {
+        demoBinder();
+        return;
+    }
     // Copa do Dia e Liga com um servidor de mentira (src/league/demo.ts): `?demo=dia[&estado=feito]`, `?demo=liga`
     if (demo === 'dia' || demo === 'liga') {
         const estado = new URLSearchParams(window.location.search).get('estado');
         void import('../league/demo').then((m) => m.startLeagueDemo(demo, estado));
+        return;
+    }
+    // Amigos com um servidor de mentira (src/friends/demo.tsx): `?demo=amigos[&tela=home][&cartao=1|anon]`
+    if (demo === 'amigos') {
+        const params = new URLSearchParams(window.location.search);
+        void import('../friends/demo').then((m) => m.startFriendsDemo(params));
         return;
     }
     if (demo === 'platina') {
@@ -489,5 +515,119 @@ function demoCollection() {
                   }),
         },
     });
+    g.go('profile');
+}
+
+/**
+ * `?demo=novidades`: a carreira do `?demo=colecao` com algumas coisas ainda não vistas (selo NOVO): treinadores e
+ * títulos das missões, 3 medalhas, as coleções, 3 selos, 6 avatares, as peças do escudo e 4 figurinhas. Abre na
+ * Home (o pontinho no botão do Perfil); `&perfil=<aba>` abre direto no Perfil.
+ */
+function demoNews() {
+    demoCollection();
+    const g = useGame.getState();
+    const earned = earnedKeys(medalViewOf(g), g.profile);
+    const left = new Set<string>();
+    const take = (prefix: string, n = Infinity) =>
+        earned
+            .filter((k) => k.startsWith(prefix))
+            .slice(0, n)
+            .forEach((k) => {
+                left.add(k);
+            });
+    take('tr:');
+    take('ti:');
+    take('md:', 3);
+    take('col:');
+    take('sl:', 3);
+    take('av:', 6);
+    take('kit:');
+    take('fig:', 4);
+    g.updateProfile({ seen: earned.filter((k) => !left.has(k)) });
+    if (!new URLSearchParams(window.location.search).get('perfil')) g.go('home');
+}
+
+/**
+ * `?demo=album` (ou `fichario`): álbum de cartas cheio (Ícones, Shiny, Evento por tipo, Destaque, combos, ×N), a
+ * Pokédex com as figurinhas dessas cartas (Lapras com Normal, Shiny e Evento; uma figurinha de antes do álbum, sem
+ * carta) e a vitrine com 3 cartas.
+ */
+function demoBinder() {
+    const rng = new Rng('demo-fichario');
+    const ICON_IDS = [25, 6, 150, 94, 143, 149, 131, 65, 6, 6];
+    let binder: BinderCard[] = [];
+    const now = Date.now();
+    const cards: PokemonInstance[] = [];
+    for (let i = 0; i < 140; i++) {
+        const id = i < ICON_IDS.length ? ICON_IDS[i] : 1 + Math.floor(rng.next() * 151);
+        let p: PokemonInstance = { ...createInstance(id, rng), uid: `demo-${i}`, shiny: false };
+        const type = species(id).types.find((t) => EVENT_TYPES.includes(t));
+        const special: Special | null =
+            i < ICON_IDS.length
+                ? { kind: 'icone', title: ICONS[id], ...(i % 3 === 0 && { level: 1 + (i % 3) + (i === 9 ? 1 : 0) }) }
+                : i % 4 === 0 && type
+                  ? { kind: 'evento', type }
+                  : i % 5 === 0
+                    ? { kind: 'destaque', level: 1 + (i % 3) }
+                    : null;
+        if (special) p = { ...p, special };
+        if (i % 6 === 1 || i === 9) p = { ...p, shiny: true };
+        cards.push(p);
+    }
+    // Lapras (Água/Gelo): Shiny e Evento de Gelo
+    cards.push({ ...createInstance(131, rng), uid: 'demo-lapras-s', shiny: true });
+    cards.push({
+        ...createInstance(131, rng),
+        uid: 'demo-lapras-e',
+        shiny: false,
+        special: { kind: 'evento', type: 'Ice' },
+    });
+    // Raridades: Lapras Shiny Evento; o caso do Triple M: Mew Destaque I guardado + a Ícone de antes do álbum (sem carta)
+    cards.push({
+        ...createInstance(131, rng),
+        uid: 'demo-lapras-se',
+        shiny: true,
+        special: { kind: 'evento', type: 'Ice' },
+    });
+    cards.push({
+        ...createInstance(151, rng),
+        uid: 'demo-mew-d',
+        shiny: false,
+        special: { kind: 'destaque', level: 1 },
+    });
+    cards.forEach((p, i) => {
+        binder = binderAdd(binder, [p], {
+            from: (['draft', 'recompensa', 'evolucao', 'hall'] as const)[i % 4],
+            at: now - i * 3_600_000,
+            cup: `demo-${Math.floor(i / 7)}`,
+            champ: i % 5 === 0,
+        });
+    });
+    // Pokédex: as cartas jogaram (figurinha colada) + a Normal de quem jogou; Snorlax Destaque de antes do álbum
+    const g = useGame.getState();
+    const dex = { ...g.dex };
+    const stick = (id: number, bits: number) => {
+        const e = dex[id] ?? {
+            matches: 3,
+            minutes: 30,
+            goals: 1,
+            assists: 0,
+            wins: 2,
+            titles: 0,
+            bestRating: 7,
+            bestOvr: 70,
+        };
+        dex[id] = { ...e, matches: Math.max(1, e.matches), editions: (e.editions ?? 0) | bits };
+    };
+    for (const p of cards) stick(p.speciesId, editionBits(p) | EDITION_BIT.normal);
+    stick(143, EDITION_BIT.destaque);
+    stick(151, EDITION_BIT.icone);
+    const pick = [...binder].sort((a, b) => b.n - a.n).slice(0, 3);
+    useGame.setState({ binder, dex, profile: { ...g.profile, cardShowcase: pick.map((c) => c.id) } });
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has('perfil')) {
+        url.searchParams.set('perfil', 'album');
+        window.history.replaceState(null, '', url);
+    }
     g.go('profile');
 }

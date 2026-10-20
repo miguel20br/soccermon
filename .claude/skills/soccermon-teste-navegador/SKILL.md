@@ -8,6 +8,17 @@ description: Como testar o Soccermon no navegador sem janela (Playwright headles
 **Nunca abra janela visível**: rouba o foco do Miguel. Playwright com `headless: true`. O Claude in Chrome é só
 pras contas dele (TikTok etc.), e só depois de perguntar qual navegador.
 
+## Primeiro: o CI já faz a fumaça
+
+Todo push em qualquer branch roda no GitHub a copa curta (draft → 1ª partida → resultado) e prints de páginas a
+390x844 e 1440x900, contra o build com modo fumaça (`scripts/smoke/fumaca.mjs`, fluxo em
+`docs/planos/esteira.md`). Prints: `gh run download <id> -n fumaca-prints`. Página a mais nos prints: linha
+`Fumaça: /?demo=album /?lab=quadras|.seletor` na mensagem de um commit. **Local, só o que o CI não cobre**
+(trilha rápida: print 390 e 1440 da tela mexida; completa: copa inteira, save antigo, Duelo, 320 e deitado), sempre
+por `scripts/pesado.sh` (fila `flock /tmp/soccermon-heavy.lock`). O mesmo roteiro roda local:
+`SOCCERMON_SMOKE=1 npm run build:vite`, `npx vite preview --config vite/config.prod.mjs --port <p> --strictPort` e
+`node scripts/smoke/fumaca.mjs copa|paginas http://localhost:<p> <pasta> 390x844 [url...]`.
+
 ## Ligar o jogo
 
 ```bash
@@ -30,6 +41,9 @@ npx vite --config vite/config.dev.mjs --port 8096 --strictPort   # em background
 | `?cards=1` | galeria de cartas (mudança visual de carta: mostrar aqui antes) |
 | `?lab=golpes` / `?lab=posicoes` / `&revisao=1` | laboratórios e ferramentas de revisão do Miguel |
 | `?demo=crash` | aviso de erro |
+| `?vel=16` | quadra 16x mais rápida (até 64), por cima da velocidade escolhida |
+
+Esses atalhos valem no dev, nas **prévias da Vercel** e no CI (modo fumaça, `__SMOKE__`); em produção não existem.
 
 `localStorage.setItem('soccermon-packs-opened','10')` deixa o pacote no modo rápido.
 

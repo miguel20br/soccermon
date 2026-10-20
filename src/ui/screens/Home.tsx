@@ -16,10 +16,12 @@ import { TypeIcon } from '../components/TypeIcon';
 import { FEEDBACK_URL, privacyUrl } from '../links';
 import { readCount, writeCount } from '../local-count';
 import { patchNotes } from '../patch-notes';
+import { FriendChallenge } from '../profile/FriendsTab';
 import { TYPE_COLOR } from '../type-colors';
 import { HomeDailyCard } from './Daily';
 import '../home-motion.css';
 import { HudIcon } from '../components/MatchHud';
+import { ProfileChip } from '../profile/PlayerCard';
 
 /** O que vem por aí (só vitrine: nada disso é clicável ainda). Os textos ficam em i18n (home.soon). */
 const SOON_IMG = ['assets/cards/25.gif', 'assets/cards/143.gif', 'assets/ui/poke-ball.png'];
@@ -179,6 +181,7 @@ export function Home() {
                 >
                     <MenuIcon kind="help" />
                 </button>
+                <ProfileChip />
             </div>
 
             <section className="home-hero">
@@ -332,6 +335,7 @@ export function Home() {
                         <b>VS</b>
                         <img className="pixel flip" src="assets/cards/133.gif" alt="" />
                     </span>
+                    <FriendChallenge />
                     <button type="button" className="btn duel-go" onClick={() => go('duel')}>
                         {t('duel.createRoom')}
                     </button>
@@ -373,10 +377,6 @@ export function Home() {
             )}
 
             <nav className="home-tiles" aria-label={t('common.ui.menu')}>
-                <button type="button" className="home-tile bc-tile" onClick={() => go('profile')}>
-                    <MenuIcon kind="profile" />
-                    {tile('profile')}
-                </button>
                 <button type="button" className="home-tile bc-tile" onClick={() => openLab('?lab=golpes')}>
                     <MenuIcon kind="moves" />
                     {tile('moves')}

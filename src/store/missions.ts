@@ -684,7 +684,15 @@ export const activeTitle = (p: Pick<Profile, 'title' | 'missionsDone' | 'redeeme
 const union = (a: readonly string[], b: readonly string[] = []) => [...new Set([...a, ...b])];
 
 /** Peças opcionais do clube (faixa, escudo, uniforme, vitrine): o lado que não tem herda do outro. */
-const OPTIONAL_LOOK = ['banner', 'clubColor2', 'kitPattern', 'crestShape', 'crestSymbol', 'showcase'] as const;
+const OPTIONAL_LOOK = [
+    'banner',
+    'clubColor2',
+    'kitPattern',
+    'crestShape',
+    'crestSymbol',
+    'showcase',
+    'cardShowcase',
+] as const;
 
 /**
  * Junta o perfil da nuvem com o do aparelho: vale o de `keep`, mas missão cumprida e título resgatado não se perdem,
@@ -699,5 +707,7 @@ export function mergeProfileUnlocks(keep: Profile, other: Partial<Profile> | und
         ...filled,
         missionsDone: union(keep.missionsDone, other?.missionsDone),
         redeemedTitles: union(keep.redeemedTitles, other?.redeemedTitles),
+        // selo NOVO: visto em qualquer lado conta (sem nenhum dos dois, o baseline de news.ts decide)
+        seen: keep.seen || other?.seen ? union(keep.seen ?? [], other?.seen) : undefined,
     };
 }

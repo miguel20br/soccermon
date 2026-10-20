@@ -1,12 +1,16 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
+import { computeAttributes } from '../../engine/attributes';
 import { SPECIES, species } from '../../engine/data';
-import { createInstance, type PokemonInstance, viewInstance } from '../../engine/instance';
+import { evolveInstance } from '../../engine/evolution';
+import { createInstance, evolutionBonus, type PokemonInstance, viewInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
-import { type Edition, ICONS } from '../../engine/specials';
-import type { CareerSeal } from '../../store/profile';
+import { type Edition, EVENT_TYPES, ICONS, type Special, specialBonus } from '../../engine/specials';
+import { useT } from '../../i18n/react';
+import { type CareerSeal, type DexEntry, EMPTY_ENTRY } from '../../store/profile';
 import { PokeCard2 } from '../components/PokeCard2';
-import { CareerSealIcon } from '../profile/icons';
+import { sealTip } from '../profile/seal-tip';
 import { EDITION, FINISH_LABEL, finishOf, METAL, type Metal, metalOf } from '../rarity';
+import { TYPE_PT } from '../type-colors';
 
 /**
  * Galeria de cartas (?cards=1, só no dev): só a carta do jogo (metal). Os estilos antigos ficam no arquivo
@@ -88,18 +92,119 @@ const EDITION_SAMPLES: { ed: Edition; inst: PokemonInstance; note?: string }[] =
     },
     { ed: 'evento', inst: withEdition(sample(59), 'evento') },
 ];
-/**
- * Selinho de carreira na carta: opção B (ao lado do nome), escolhida pelo Miguel em 18/10/2026; por enquanto só aqui.
- * Cada exemplo mistura metal e edição pra ver se o selo briga com a raridade, o bronze/prata/ouro e as edições.
- */
-const SEAL_SAMPLES: { seal: CareerSeal; label: string; inst: PokemonInstance }[] = [
-    { seal: 'folha', label: 'Folha (10 partidas) · bronze', inst: METAL_ROWS[0]?.inst ?? sample(16) },
-    { seal: 'holo', label: 'Holo (25 gols) · prata brilhante', inst: METAL_ROWS[3]?.inst ?? sample(58) },
-    { seal: 'prisma', label: 'Prisma (5 títulos) · ouro', inst: sample(149) },
-    { seal: 'ouro', label: 'Ouro escuro · Destaque', inst: withEdition(sample(68), 'destaque') },
-    { seal: 'holo', label: 'Holo · Shiny', inst: withEdition(sample(6), 'shiny') },
-    { seal: 'prisma', label: 'Prisma · Ícone', inst: withEdition(sample(25), 'icone') },
+/** Selo de carreira na faixa do nome: parte da carta (inclina junto). A dica usa números de exemplo. */
+const SEAL_SAMPLES: { seal: CareerSeal; label: string; inst: PokemonInstance; have: Partial<DexEntry> }[] = [
+    { seal: 'folha', label: 'Folha · bronze', inst: METAL_ROWS[0]?.inst ?? sample(16), have: { matches: 14 } },
+    { seal: 'holo', label: 'Holo · prata brilhante', inst: METAL_ROWS[3]?.inst ?? sample(58), have: { goals: 31 } },
+    { seal: 'prisma', label: 'Prisma · ouro', inst: sample(150), have: { titles: 6 } },
+    { seal: 'ouro', label: 'Ouro escuro · Destaque', inst: withEdition(sample(68), 'destaque'), have: { titles: 5 } },
+    { seal: 'holo', label: 'Holo · Shiny', inst: withEdition(sample(6), 'shiny'), have: { goals: 25 } },
+    { seal: 'prisma', label: 'Prisma · Ícone', inst: withEdition(sample(25), 'icone'), have: { titles: 9 } },
 ];
+
+/** Combos de edição em camadas (0.8.8): fundo da edição, shiny por cima, selo MVP 1–3. */
+const card = (id: number, shiny: boolean, special: Special | null): PokemonInstance => ({
+    ...sample(id),
+    shiny,
+    special,
+});
+const ico = (id: number, level?: number): Special => ({ kind: 'icone', title: ICONS[id], ...(level && { level }) });
+const evt = (type: string, level?: number): Special => ({ kind: 'evento', type, ...(level && { level }) });
+const dest = (level?: number): Special => ({ kind: 'destaque', ...(level && level > 1 && { level }) });
+const COMBOS: { label: string; inst: PokemonInstance }[] = [
+    { label: 'Shiny', inst: card(6, true, null) },
+    { label: 'Ícone', inst: card(25, false, ico(25)) },
+    { label: 'Shiny Ícone', inst: card(25, true, ico(25)) },
+    { label: 'Evento', inst: card(59, false, evt('Fire')) },
+    { label: 'Shiny Evento', inst: card(59, true, evt('Fire')) },
+    ...[1, 2, 3].map((n) => ({ label: `Destaque ${n}`, inst: card(68, false, dest(n)) })),
+    { label: 'Shiny Destaque 1', inst: card(6, true, dest()) },
+    { label: 'Shiny Destaque 3', inst: card(6, true, dest(3)) },
+    ...[1, 2, 3].map((n) => ({ label: `Ícone MVP ${n}`, inst: card(25, false, ico(25, n)) })),
+    { label: 'Shiny Ícone MVP 3', inst: card(25, true, ico(25, 3)) },
+    ...[1, 2, 3].map((n) => ({ label: `Evento MVP ${n}`, inst: card(59, false, evt('Fire', n)) })),
+    { label: 'Shiny Evento MVP 3', inst: card(59, true, evt('Fire', 3)) },
+];
+
+/**
+ * Passo a passo de uma carta empilhando tudo: a nota, o bônus e o que trava no 99 (cada atributo para em 99 e o
+ * bônus que sobra só sobe os que ainda estão abaixo; a nota pode parar antes de 99).
+ */
+interface Step {
+    label: string;
+    inst: PokemonInstance;
+}
+function stepNumbers(inst: PokemonInstance) {
+    const view = viewInstance(inst);
+    const base = computeAttributes(view.species, inst.level);
+    const bonus = specialBonus(inst) + evolutionBonus(inst);
+    const keys = Object.keys(base) as (keyof typeof base)[];
+    const at99 = keys.filter((k) => base[k] + bonus >= 99).length;
+    const lost = keys.reduce((a, k) => a + Math.max(0, base[k] + bonus - 99), 0);
+    return { ovr: view.overall, bonus, at99, lost };
+}
+const MEWTWO: Step[] = [
+    { label: 'Normal', inst: card(150, false, null) },
+    { label: 'Shiny', inst: card(150, true, null) },
+    { label: 'Shiny Ícone', inst: card(150, true, ico(150)) },
+    ...[1, 2, 3].map((n) => ({ label: `Shiny Ícone MVP ${n}`, inst: card(150, true, ico(150, n)) })),
+    { label: 'Shiny Evento Psíquico MVP 3', inst: card(150, true, evt('Psychic', 3)) },
+];
+const caterpie = (shiny: boolean, special: Special | null) => card(10, shiny, special);
+const bugMvp3 = caterpie(true, evt('Bug', 3));
+const CATERPIE: Step[] = [
+    { label: 'Caterpie', inst: caterpie(false, null) },
+    { label: 'Shiny', inst: caterpie(true, null) },
+    { label: 'Shiny Evento Inseto', inst: caterpie(true, evt('Bug')) },
+    ...[1, 2, 3].map((n) => ({ label: `Shiny Evento MVP ${n}`, inst: caterpie(true, evt('Bug', n)) })),
+    { label: 'Evoluiu: Metapod', inst: evolveInstance(bugMvp3, 11) },
+    { label: 'Evoluiu: Butterfree', inst: evolveInstance(evolveInstance(bugMvp3, 11), 12) },
+];
+
+function Ladder({ steps }: { steps: Step[] }) {
+    return (
+        <div className="cg-row">
+            {steps.map(({ label, inst }) => {
+                const n = stepNumbers(inst);
+                return (
+                    <figure key={label} className="cg-item cb-step">
+                        <PokeCard2 inst={inst} variant="metal" tipFocus />
+                        <figcaption className="muted">
+                            <b>{label}</b>
+                            <br />
+                            nota {n.ovr} · +{n.bonus} em tudo
+                            {n.at99 > 0 && (
+                                <>
+                                    <br />
+                                    {n.at99} no 99 (perdeu {n.lost})
+                                </>
+                            )}
+                        </figcaption>
+                    </figure>
+                );
+            })}
+        </div>
+    );
+}
+
+/** Evento por tipo: um Pokémon de cada tipo que dá evento (EVENT_TYPES). */
+const EVENT_SPECIES: Record<string, number> = {
+    Bug: 123,
+    Electric: 135,
+    Fairy: 36,
+    Fighting: 68,
+    Fire: 6,
+    Flying: 18,
+    Grass: 3,
+    Ground: 112,
+    Ice: 144,
+    Normal: 143,
+    Poison: 89,
+    Psychic: 65,
+    Rock: 95,
+    Water: 130,
+};
+const EVENT_SAMPLES = EVENT_TYPES.map((type) => ({ type, inst: card(EVENT_SPECIES[type] ?? 143, false, evt(type)) }));
 
 const ICON_SAMPLES = Object.keys(ICONS).map((id) => withEdition(sample(Number(id)), 'icone'));
 
@@ -114,6 +219,7 @@ export function CardGallery({ onExit }: { onExit: () => void }) {
 }
 
 function CurrentCards({ onExit }: { onExit: () => void }) {
+    const { t } = useT();
     const [edition, setEdition] = useState<Edition | 'none'>('none');
     const [query, setQuery] = useState('');
     const [customShiny, setCustomShiny] = useState(false);
@@ -235,19 +341,72 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
                         ))}
                     </div>
                 </section>
-                <section className="panel cg-seal-panel">
-                    <h2>Selo de carreira · B, ao lado do nome</h2>
+                <section className="panel" id="combos">
+                    <h2>Combos de edição</h2>
+                    <p className="muted cb-intro">
+                        O fundo é a edição (Ícone = galáxia, Evento = desenho do tipo, Destaque = preto e dourado); o
+                        shiny vai por cima de qualquer uma (+1); o selo MVP soma +1 por nível. Passe o mouse ou segure o
+                        dedo nos selos.
+                    </p>
+                    <div className="cg-row">
+                        {COMBOS.map(({ label, inst }) => (
+                            <figure key={label} className="cg-item">
+                                <PokeCard2 inst={inst} variant="metal" tipFocus />
+                                <figcaption className="muted">
+                                    <b>{label}</b> · +{specialBonus(inst)} em tudo
+                                </figcaption>
+                            </figure>
+                        ))}
+                    </div>
+                </section>
+                <section className="panel" id="absurda">
+                    <h2>A carta mais absurda</h2>
+                    <p className="muted cb-intro">
+                        Cada atributo para em 99; o bônus que sobra só sobe os que ainda estão abaixo. Por isso a nota
+                        pode travar antes de 99. Ícone e Evento não se juntam.
+                    </p>
+                    <Ladder steps={MEWTWO} />
+                    <h3 className="cb-sub">Caterpie até Butterfree (Evento Inseto, shiny, MVP 3 e 2 evoluções)</h3>
+                    <Ladder steps={CATERPIE} />
+                </section>
+                <section className="panel" id="evento-tipos">
+                    <h2>Evento por tipo</h2>
+                    <div className="cg-row">
+                        {EVENT_SAMPLES.map(({ type, inst }) => (
+                            <figure key={type} className="cg-item">
+                                <PokeCard2 inst={inst} variant="metal" tipFocus />
+                                <figcaption className="muted">{TYPE_PT[type] ?? type}</figcaption>
+                            </figure>
+                        ))}
+                    </div>
+                </section>
+                <section className="panel" id="selos">
+                    <h2>Selo de carreira (ao lado do nome)</h2>
                     <p className="muted cg-seal-intro">
-                        O selo da Pokédex (Folha, Holo, Prisma, Ouro escuro) na faixa do nome, como um carimbo. Não muda
-                        o acabamento nem a raridade. Por enquanto só aqui na galeria.
+                        O selo da Pokédex faz parte da carta: inclina e brilha junto. Não muda o acabamento nem a
+                        raridade. Por enquanto só aqui na galeria.
                     </p>
                     <div className="cg-row">
                         {SEAL_SAMPLES.map((s) => (
                             <figure key={s.label} className="cg-item">
-                                <div className="cg-seal cg-seal-nome">
-                                    <PokeCard2 inst={s.inst} variant="metal" size="md" />
-                                    <CareerSealIcon seal={s.seal} className="cg-seal-mark" />
-                                </div>
+                                <PokeCard2
+                                    inst={s.inst}
+                                    variant="metal"
+                                    tipFocus
+                                    seal={{
+                                        kind: s.seal,
+                                        tip: sealTip(
+                                            t,
+                                            s.seal,
+                                            species(s.inst.speciesId).name,
+                                            {
+                                                ...EMPTY_ENTRY,
+                                                ...s.have,
+                                            },
+                                            151,
+                                        ),
+                                    }}
+                                />
                                 <figcaption className="muted">{s.label}</figcaption>
                             </figure>
                         ))}

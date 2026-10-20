@@ -151,11 +151,15 @@
     background: var(--kit, none);
     opacity: 0.16;
 }
-.vsp-showcase {
-    margin-top: 2px;
+/* vitrine do treinador (Duelo): medalhas e cartas numa fileira só */
+.vsp-shows {
+    display: flex;
+    align-items: center;
+    gap: clamp(6px, 1.5vmin, 12px);
+    margin-top: 6px;
 }
-.is-away .vsp-coach .vsp-showcase {
-    justify-self: end;
+.is-away .vsp-shows {
+    justify-content: flex-end;
 }
 
 /* média do time, na faixa das cartas (bronze/prata/ouro) */
@@ -453,6 +457,23 @@
 :root[data-reduce-motion="true"] .vsp .vs-start.loading::after {
     animation: none;
 }
+/* carregando é desligado de verdade, mas sem o apagado forte do .btn:disabled (a barrinha diz que vem aí) */
+.vsp .vs-start.loading:disabled {
+    opacity: 0.85;
+    cursor: progress;
+}
+/* quadra demorando: "Tentar de novo" com o aviso numa linha menor dentro do botão */
+.vsp .vs-slow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.1;
+    animation-delay: 0s;
+}
+.vsp .vs-slow small {
+    font-size: 0.7em;
+    opacity: 0.85;
+}
 
 /* ---------- celular em pé: rival em cima, você embaixo ---------- */
 @media (max-aspect-ratio: 1 / 1) {
@@ -673,4 +694,25 @@
 }
 .vs-countdown {
     pointer-events: none;
+}
+
+/* o treinador do Duelo é botão: abre o cartão dele (com as cartas da vitrine) */
+.vsp-coach.is-btn {
+    padding: 2px 10px 2px 2px;
+    border: 0;
+    border-radius: 999px;
+    background: rgb(5 6 15 / 45%);
+    font: inherit;
+    font-size: clamp(12px, 3vmin, 18px);
+    text-align: inherit;
+    cursor: pointer;
+    pointer-events: auto;
+}
+.is-away .vsp-coach.is-btn {
+    padding: 2px 2px 2px 10px;
+}
+.vsp-coach.is-btn:hover,
+.vsp-coach.is-btn:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 1px;
 }

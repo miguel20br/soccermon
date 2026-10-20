@@ -11,6 +11,8 @@ import { UnlockNotice } from './ui/components/UnlockNotice';
 import { runDevDemo } from './ui/dev-demo';
 import { Duel, duelCodeFromUrl } from './ui/duel/Duel';
 import { requestLeave } from './ui/leave-guard';
+import { FriendInvite } from './ui/profile/FriendsTab';
+import { PlayerCardModal, ProfileChip } from './ui/profile/PlayerCard';
 import { CardGallery } from './ui/screens/CardGallery';
 import { Credits } from './ui/screens/Credits';
 import { Daily } from './ui/screens/Daily';
@@ -44,22 +46,22 @@ export default function App() {
         if (useGame.persist.hasHydrated()) setHydrated(true);
         return off;
     }, []);
-    // ?demo=crash (só no dev): quebra a renderização para conferir a tela do ErrorBoundary
-    if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('demo') === 'crash') {
+    // ?demo=crash (dev e prévias): quebra a renderização para conferir a tela do ErrorBoundary
+    if (__SMOKE__ && new URLSearchParams(window.location.search).get('demo') === 'crash') {
         throw new Error('Teste do aviso de erro (?demo=crash)');
     }
     // laboratórios: ?lab=golpes (animação de todos os golpes, público), ?lab=emotes (emotes do Duelo sem sala, público),
-    // ?lab=quadras (treinadores, falas e a quadra de cada ginásio, público); ?lab=posicoes e ?cards=1 só no dev, menos
+    // ?lab=quadras (treinadores, falas e a quadra de cada ginásio, público); ?lab=posicoes e ?cards=1 só no dev e nas prévias (__SMOKE__), menos
     // a revisão dos suspeitos de posição (?lab=posicoes&revisao=1), que o Miguel abre no celular
     const [lab, setLab] = useState(() => {
         const params = new URLSearchParams(window.location.search);
         const q = params.get('lab');
         if (q === 'golpes' || q === 'emotes' || q === 'quadras') return q;
-        if (import.meta.env.DEV && q === 'versus') return q;
-        return (import.meta.env.DEV || params.has('revisao')) && q === 'posicoes' ? q : null;
+        if (__SMOKE__ && q === 'versus') return q;
+        return (__SMOKE__ || params.has('revisao')) && q === 'posicoes' ? q : null;
     });
     const [cards, setCards] = useState(
-        () => import.meta.env.DEV && new URLSearchParams(window.location.search).get('cards') === '1',
+        () => __SMOKE__ && new URLSearchParams(window.location.search).get('cards') === '1',
     );
 
     useEffect(() => {
@@ -133,6 +135,8 @@ export default function App() {
                 ) : (
                     <PositionLab onExit={exit} />
                 )}
+                <PlayerCardModal />
+                <CardModal />
             </div>
         );
     }
@@ -163,6 +167,8 @@ export default function App() {
                     >
                         <img src="assets/ui/logo.svg" alt="" width="1441" height="300" />
                     </button>
+                    {/* telas de menu: o Perfil no canto, como na Home */}
+                    {(screen === 'settings' || screen === 'credits' || screen === 'help') && <ProfileChip />}
                 </header>
             )}
             {screen === 'home' && <Home />}
@@ -179,7 +185,9 @@ export default function App() {
             {screen === 'daily' && <Daily />}
             {screen === 'liga' && <Liga />}
             {screen === 'liga-match' && <Match liga />}
+            <PlayerCardModal />
             <CardModal />
+            <FriendInvite />
             <AccountLink />
             <UnlockNotice />
             {hydrated && !onboarded && screen === 'home' && <Onboarding />}

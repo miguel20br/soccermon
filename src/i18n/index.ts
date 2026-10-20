@@ -2,7 +2,6 @@ import { ABILITIES, MOVES } from '../engine/data';
 import { ITEMS } from '../engine/items';
 import type { AttrModifier, MoveModifier } from '../engine/modifiers';
 import { DRAIN, type ExplainMoveId, MOVE_EXPLAIN, moveProfile } from '../engine/moves';
-import { SPECIAL_BONUS } from '../engine/specials';
 import { en } from './en';
 import { moveExplainEn } from './en/move-explain';
 import { detectLang, type Lang } from './lang';
@@ -161,7 +160,7 @@ export function modLabel(m: AttrModifier, lang: Lang = current): string {
     const f = m.factor ?? 1;
     switch (m.source) {
         case 'edicao':
-            return fmt(c.mod.edition, { n: SPECIAL_BONUS });
+            return fmt(c.mod.edition, { n: m.add ?? 0 });
         case 'evolucao':
             return fmt(c.mod.evolved, { n: m.add ?? 0 });
         case 'habilidade': {

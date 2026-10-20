@@ -6,14 +6,17 @@ import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { applyModifiers, attributeModifiers } from '../../engine/modifiers';
 import { moveProfile } from '../../engine/moves';
-import { type Edition, editionOf } from '../../engine/specials';
+import { type Edition, editionOf, ICON_CHANCE, mvpLevel, specialBonus } from '../../engine/specials';
 import { abilityName, iconTitle, itemName, moveName, typeName } from '../../i18n';
 import { type Translator, useT } from '../../i18n/react';
+import type { CareerSeal } from '../../store/profile';
+import { CareerSealIcon, ShinySpark } from '../profile/icons';
 import { EDITION, type FINISH_LABEL, finishOf, type METAL, metalOf, RARITY } from '../rarity';
 import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
 import { cardSprite } from './PokeCard';
 import './pokecard2.css';
+import { Tip } from './Tip';
 import { TypeIcons } from './TypeIcon';
 import { useHoloPointer } from './useHoloPointer';
 
@@ -77,6 +80,10 @@ interface PokeCard2Props {
     finish?: HoloFinish | 'none';
     /** Tamanho da carta (o layout todo é em em). */
     size?: 'lg' | 'md' | 'sm';
+    /** Selo de carreira na faixa do nome (carta Metal), com a dica dele. */
+    seal?: { kind: CareerSeal; tip: string };
+    /** Dicas dos selos entram no Tab (fora de botão; a carta clicável já diz a edição no aria-label). */
+    tipFocus?: boolean;
 }
 
 /**
@@ -137,7 +144,19 @@ function cardData(inst: PokemonInstance, tr: Translator, position?: Position) {
 type Data = ReturnType<typeof cardData>;
 type VariantProps = { inst: PokemonInstance; d: Data; captain?: boolean };
 
-export function PokeCard2({ inst, variant, position, captain, onClick, weak, showcase, finish, size }: PokeCard2Props) {
+export function PokeCard2({
+    inst,
+    variant,
+    position,
+    captain,
+    onClick,
+    weak,
+    showcase,
+    finish,
+    size,
+    seal,
+    tipFocus,
+}: PokeCard2Props) {
     const tr = useT();
     const d = cardData(inst, tr, position);
     const holo = isHolo(variant);
@@ -172,6 +191,11 @@ export function PokeCard2({ inst, variant, position, captain, onClick, weak, sho
         classes.push(edition ? `ed-${edition}` : metalFinish === 'lendario' ? 'm-lendario' : `m-${metalTier}`);
         classes.push(`m-${metalFinish}`);
         if (edition) classes.push('is-special');
+        // edições em camadas: shiny por cima, Destaque por nível, Evento com o desenho do tipo
+        classes.push('pr');
+        if (inst.shiny) classes.push('pr-shiny');
+        if (edition === 'destaque') classes.push(`pr-d${inst.special?.level ?? 1}`);
+        if (edition === 'evento') classes.push(`pr-ev-${(inst.special?.type ?? '').toLowerCase()}`);
     }
     if (fig) {
         // tema do fundo: o 1º tipo, mas Normal cede pro 2º (Pidgey/Normal-Voador ganha o céu)
@@ -192,6 +216,11 @@ export function PokeCard2({ inst, variant, position, captain, onClick, weak, sho
         edition: edition ? tr.t('team.card.editionAria', { label: tr.d.common.edition[edition] }) : '',
         evo: d.evo ? tr.t('team.card.evoAria', { name: SPECIES[d.evo.into - 1].name, r: d.evo.rating }) : '',
     });
+    // Evento: a cor é a do tipo do evento (não a do 1º tipo do Pokémon)
+    const style =
+        metal && edition === 'evento'
+            ? ({ ...d.style, '--t1': TYPE_COLOR[inst.special?.type ?? ''] ?? '#888' } as CSSProperties)
+            : d.style;
     const base = metal ? (
         <Metal
             inst={inst}
@@ -199,6 +228,8 @@ export function PokeCard2({ inst, variant, position, captain, onClick, weak, sho
             captain={captain}
             edition={edition}
             metalLabel={metalLabel(tr, metalTier, metalFinish)}
+            seal={seal}
+            tipFocus={!!tipFocus && !onClick}
         />
     ) : fig ? (
         <Figurinha inst={inst} d={d} captain={captain} edition={edition} />
@@ -226,7 +257,7 @@ export function PokeCard2({ inst, variant, position, captain, onClick, weak, sho
                 }}
                 type="button"
                 className={classes.join(' ')}
-                style={d.style}
+                style={style}
                 onClick={onClick}
                 aria-label={label}
             >
@@ -240,7 +271,7 @@ export function PokeCard2({ inst, variant, position, captain, onClick, weak, sho
                 ref.current = el;
             }}
             className={classes.join(' ')}
-            style={d.style}
+            style={style}
             role="img"
             aria-label={label}
         >
@@ -298,11 +329,34 @@ function Metal({
     captain,
     edition,
     metalLabel: label,
-}: VariantProps & { edition: Edition | null; metalLabel: string }) {
-    const theme = d.sp.types[0] === 'Normal' && d.sp.types[1] ? d.sp.types[1] : d.sp.types[0];
-    const tag = editionTag(d.tr, inst, edition);
+    seal,
+    tipFocus,
+}: VariantProps & {
+    edition: Edition | null;
+    metalLabel: string;
+    seal?: PokeCard2Props['seal'];
+    tipFocus: boolean;
+}) {
+    const theme =
+        edition === 'evento' && inst.special?.type
+            ? inst.special.type
+            : d.sp.types[0] === 'Normal' && d.sp.types[1]
+              ? d.sp.types[1]
+              : d.sp.types[0];
+    const tag = layerTag(d.tr, inst, edition);
+    const mvp = mvpLevel(inst);
+    const dLevel = edition === 'destaque' ? mvp : 0;
+    const tr = d.tr;
     return (
         <>
+            {edition === 'evento' && <span className="pr-ev" />}
+            {dLevel === 3 && (
+                <>
+                    <span className="pr-rays" />
+                    <span className="pr-dust" />
+                </>
+            )}
+            {dLevel >= 2 && <span className="pr-sweep" />}
             <span className="m-top">
                 <span
                     className="m-mark"
@@ -319,11 +373,32 @@ function Metal({
                 </span>
                 <img className="pixel m-art" src={cardSprite(inst)} alt="" loading="lazy" draggable={false} />
                 {d.item && <img className="pixel m-item" src={itemSprite(d.item.id)} alt={d.item.name} />}
-                {tag && <span className="m-tag">{tag}</span>}
+                {tag && (
+                    <Tip className="m-tag" text={editionTip(tr, inst, edition)} focusable={tipFocus}>
+                        {tag}
+                    </Tip>
+                )}
+                {mvp > 0 && (
+                    <Tip
+                        className="pr-stamp-tip"
+                        focusable={tipFocus}
+                        text={tr.t(mvp === 1 ? 'team.card.tipMvpOne' : 'team.card.tipMvp', {
+                            n: mvp,
+                            bonus: specialBonus(inst),
+                        })}
+                    >
+                        <MvpStamp level={mvp} />
+                    </Tip>
+                )}
             </span>
             <span className="m-name">
-                {d.view.displayName}
+                <span className="m-nm">{d.view.displayName}</span>
                 <small>{specialTitle(inst, d.tr) ?? label}</small>
+                {seal && (
+                    <Tip className="m-seal" text={seal.tip} focusable={tipFocus}>
+                        <CareerSealIcon seal={seal.kind} className="m-seal-icon" />
+                    </Tip>
+                )}
             </span>
             <span className="m-stats">
                 {d.stats.map((s) => (
@@ -339,7 +414,71 @@ function Metal({
                 ))}
             </span>
             <HoloLayer />
+            {inst.shiny && <span className="pr-sparkles" />}
         </>
+    );
+}
+
+/** Etiqueta da carta Metal: só a edição base (o nível vai no selo MVP), com a estrelinha quando é shiny. */
+function layerTag(tr: Translator, inst: PokemonInstance, edition: Edition | null) {
+    if (!edition) return null;
+    const name =
+        edition === 'evento'
+            ? tr.t('team.card.event', { type: typeName(inst.special?.type ?? '', tr.lang) })
+            : tr.d.common.edition[edition];
+    return (
+        <>
+            {inst.shiny && <ShinySpark className="pr-spark" />}
+            {name}
+        </>
+    );
+}
+
+/** Pontas do selo (roseta de 16 pontas), calculadas uma vez. */
+const ROSETTE = Array.from({ length: 32 }, (_, i) => {
+    const a = (i * Math.PI) / 16 - Math.PI / 2;
+    const r = i % 2 ? 16.6 : 19.4;
+    return `${(20 + r * Math.cos(a)).toFixed(2)},${(20 + r * Math.sin(a)).toFixed(2)}`;
+}).join(' ');
+const STAR = 'M12 2l2.9 6.2 6.6.8-4.9 4.6 1.3 6.6L12 16.9l-5.9 3.3 1.3-6.6L2.5 9l6.6-.8z';
+
+/** Dica da etiqueta: o que é a edição (e o shiny por cima, quando tem). */
+function editionTip(tr: Translator, inst: PokemonInstance, edition: Edition | null): string {
+    const base =
+        edition === 'icone'
+            ? tr.t('team.card.tipIcone', { odds: Math.round(1 / ICON_CHANCE) })
+            : edition === 'evento'
+              ? tr.t('team.card.tipEvento', { type: typeName(inst.special?.type ?? '', tr.lang) })
+              : edition === 'destaque'
+                ? tr.t('team.card.tipDestaque')
+                : tr.t('team.card.tipShiny');
+    return inst.shiny && edition !== 'shiny' ? `${base} ${tr.t('team.card.tipShinyOn')}` : base;
+}
+
+/** Selo MVP: 1 bronze simples, 2 prata com brilho correndo, 3 ouro com raios girando. */
+function MvpStamp({ level }: { level: number }) {
+    const n = Math.min(3, level);
+    return (
+        <span className={`pr-stamp lv-${n}`} aria-hidden>
+            {n === 3 && <i className="pr-stamp-rays" />}
+            <svg viewBox="0 0 40 40" aria-hidden>
+                <polygon className="pr-stamp-out" points={ROSETTE} />
+                <circle className="pr-stamp-in" cx="20" cy="20" r="13.2" />
+                <path className="pr-stamp-hi" d="M9.5 17a11 11 0 0 1 21 0" />
+                <text x="20" y="21.6" textAnchor="middle">
+                    MVP
+                </text>
+                {Array.from({ length: n }, (_, i) => (
+                    <path
+                        // biome-ignore lint/suspicious/noArrayIndexKey: estrelas iguais, só a quantidade importa
+                        key={i}
+                        d={STAR}
+                        transform={`translate(${20 - n * 2.6 + i * 5.2 + 0.32} 24.6) scale(0.19)`}
+                    />
+                ))}
+            </svg>
+            {n >= 2 && <i className="pr-stamp-shine" />}
+        </span>
     );
 }
 

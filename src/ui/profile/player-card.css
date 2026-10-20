@@ -1,0 +1,147 @@
+/* ---------- Cartão do treinador (perfil público: o seu e o do rival no Duelo) ---------- */
+.modal.pcard {
+    --club: #e8423f;
+    width: min(620px, 100%);
+    display: grid;
+    gap: 12px;
+    padding: 16px 16px 18px 22px;
+    background:
+        radial-gradient(ellipse 70% 60% at 0% 0%, color-mix(in srgb, var(--club) 22%, transparent), transparent 70%),
+        var(--bc-ink);
+}
+.pcard:focus {
+    outline: none;
+}
+.pcard-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 14px;
+    /* o fechar fica no canto */
+    padding-right: 48px;
+}
+.pcard-anon {
+    justify-self: start;
+    margin-left: 0;
+}
+.pcard-medals {
+    justify-content: flex-start;
+}
+.pcard-lbl {
+    margin: 2px 0 -4px;
+}
+/* as 3 cartas grandes: 3 lado a lado com espaço, 2 + 1 no celular (tocar abre a carta inteira) */
+.pcard-cards {
+    --fut-w: 168px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+}
+.pcard-cards .fut-wrap {
+    --fut-w: inherit;
+}
+.pcard-empty {
+    margin: 0;
+    font-size: 13px;
+}
+.pcard-friend {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 4px;
+    border-top: 1px solid var(--line);
+}
+.pcard-friend .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+.pcard-friend .fr-addbtn {
+    justify-items: start;
+    text-align: left;
+}
+@media (max-width: 560px) {
+    .modal.pcard {
+        padding: 14px 12px 16px 16px;
+    }
+    .pcard-cards {
+        --fut-w: min(150px, calc((100vw - 86px) / 2));
+        gap: 10px;
+    }
+    .pcard-head .pf-who h2 {
+        font-size: 18px;
+    }
+}
+/* deitado: sobra largura e falta altura, as 3 numa fileira */
+@media (orientation: landscape) and (max-height: 500px) {
+    .modal.pcard {
+        width: min(760px, 100%);
+    }
+    .pcard-cards {
+        --fut-w: min(130px, 20vw);
+        flex-wrap: nowrap;
+    }
+}
+
+/* ---------- Botão do Perfil no canto de cima (Home e telas de menu) ---------- */
+.profile-chip {
+    --club: #e8423f;
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 200px;
+    min-height: 44px;
+    padding: 3px;
+    border: 0;
+    border-bottom: 2px solid var(--bc-edge);
+    border-radius: 22px;
+    background: var(--bc-ink);
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+}
+.profile-chip:hover,
+.profile-chip:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 1px;
+}
+.profile-chip .pf-avatar {
+    width: 38px;
+    height: 38px;
+    border-width: 2px;
+    box-shadow: none;
+    flex: none;
+}
+.profile-chip-name {
+    min-width: 0;
+    padding-right: 12px;
+    font-weight: 700;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* celular: só o avatar */
+@media (max-width: 719px) {
+    .profile-chip {
+        padding: 2px;
+    }
+    .profile-chip-name {
+        display: none;
+    }
+}
+
+/* Perfil: "Ver meu perfil público" embaixo do cabeçalho */
+.pf-public {
+    grid-column: 1 / -1;
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}

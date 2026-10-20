@@ -16,16 +16,18 @@ import type { MatchResult } from '../engine/runners/batch-runner';
 import {
     DESTAQUE_LEVEL_UP_RATING,
     DESTAQUE_MAX_LEVEL,
-    iconMvpOpen,
+    mvpOpen,
     rollSpecial as roll,
     SPECIALS_LIVE,
     weeklyEventType,
 } from '../engine/specials';
 import { teachMove } from '../engine/tm';
 import { detectLang, type Lang } from '../i18n/lang';
+import { type BinderCard, binderAdd, binderOf } from './binder';
 import { type DailyEntry, dailyDay, dailyEventType, dailySeed, isDailySeed, mergeDaily, putDaily } from './daily';
 import { addDuel, type DuelRecord, duelWins, MAX_DUELS } from './duels';
 import { activeTitle, activeTrainer, matchView, newMissions, stageView } from './missions';
+import { withSeenBaseline } from './news';
 import {
     type Career,
     clubColorHex,
@@ -314,6 +316,8 @@ export interface GameStore {
     parkedRuns: RunState[];
     /** Hall da Fama: os títulos, do mais recente ao mais antigo. */
     hall: HallEntry[];
+    /** Álbum de cartas: a melhor carta especial de cada espécie × edição, com quantas você tirou (binder.ts). */
+    binder: BinderCard[];
     /** Duelos amistosos (só no save), do mais recente ao mais antigo. */
     duels: DuelRecord[];
     recordDuel(rec: DuelRecord): void;
@@ -555,6 +559,7 @@ export type PersistedSave = Pick<
     | 'hall'
     | 'duels'
     | 'daily'
+    | 'binder'
 >;
 
 /** A parte do estado que é save (IndexedDB, nuvem, backup). */
@@ -571,6 +576,7 @@ export const savePart = (s: PersistedSave): PersistedSave => ({
     hall: s.hall,
     duels: s.duels,
     daily: s.daily,
+    binder: s.binder,
 });
 
 /** Copa salva com formato aceitável (save importado ou da nuvem): senão é descartada, não trava o jogo. */
@@ -595,10 +601,16 @@ export const SAVE_VERSION = 9;
 /**
  * Álbum de edições pra quem já jogava (v9): o que dá pra saber do save. Quem jogou ganha a Normal (quase toda carta
  * é Normal); o Hall da Fama dá a Shiny; as copas guardadas dão a edição de cada carta que jogou (a Destaque só se
- * jogou depois de virar Destaque).
+ * jogou depois de virar Destaque). `normal` = false (ao abrir o jogo): só as edições especiais, sem dar a Normal a quem
+ * só jogou com carta especial.
  */
-export function backfillEditions(dex: Dex, hall: HallEntry[], runs: (RunState | null | undefined)[]): Dex {
-    const got: [number, number][] = Object.keys(dex).map((id) => [Number(id), EDITION_BIT.normal]);
+export function backfillEditions(
+    dex: Dex,
+    hall: HallEntry[],
+    runs: (RunState | null | undefined)[],
+    normal = true,
+): Dex {
+    const got: [number, number][] = normal ? Object.keys(dex).map((id) => [Number(id), EDITION_BIT.normal]) : [];
     for (const h of hall) for (const p of h.squad) if (p.shiny) got.push([p.speciesId, EDITION_BIT.shiny]);
     for (const r of runs) {
         if (!r) continue;
@@ -701,9 +713,12 @@ export function withUnlocks(saved: PersistedSave): PersistedSave {
         { ...save, runs, done: save.profile.missionsDone },
         runs.flatMap((r) => r?.results ?? []).map(stageView),
     );
-    return fresh.length
-        ? { ...save, profile: { ...save.profile, missionsDone: [...save.profile.missionsDone, ...fresh] } }
-        : save;
+    // selo NOVO: save de antes dele conta o que já tinha como visto (depois das missões retroativas)
+    return withSeenBaseline(
+        fresh.length
+            ? { ...save, profile: { ...save.profile, missionsDone: [...save.profile.missionsDone, ...fresh] } }
+            : save,
+    );
 }
 
 /**
@@ -773,6 +788,8 @@ export function migrateSave(old: Partial<PersistedSave>, version: number): Persi
             : [],
         // Copa do Dia (campo novo, opcional: saves antigos não têm)
         daily: mergeDaily(Array.isArray(old.daily) ? old.daily : []),
+        // Álbum de cartas (opcional): o fichário da 0.8.8 vira álbum; save de antes dele nasce das copas e do Hall
+        binder: binderOf({ ...old, run, parkedRuns, hall }),
     });
 }
 
@@ -795,13 +812,14 @@ export const useGame = create<GameStore>()(
                 run: null,
                 settings: DEFAULT_SETTINGS,
                 records: { cups: 0, titles: 0, perfect: 0 },
-                profile: DEFAULT_PROFILE,
+                profile: { ...DEFAULT_PROFILE, seen: [] },
                 dex: {},
                 moves: {},
                 career: EMPTY_CAREER,
                 onboarded: false,
                 parkedRuns: [],
                 hall: [],
+                binder: [],
                 duels: [],
                 recordDuel: (rec) => {
                     const { duels, records } = getState();
@@ -944,11 +962,16 @@ export const useGame = create<GameStore>()(
                         status: 'drafting',
                     };
                     const dex = markOvr(getState().dex, [ovrOf(choice)]);
+                    const binder = binderAdd(getState().binder, [choice], {
+                        from: 'draft',
+                        at: Date.now(),
+                        cup: run.seed,
+                    });
                     if (isDraftComplete(next) || next.picks.length >= DRAFT_PICKS) {
                         next.status = 'lineup';
-                        setState({ run: next, screen: 'lineup', dex });
+                        setState({ run: next, screen: 'lineup', dex, binder });
                     } else {
-                        setState({ run: next, dex });
+                        setState({ run: next, dex, binder });
                     }
                 },
 
@@ -1059,8 +1082,8 @@ export const useGame = create<GameStore>()(
                     const won = m.winner === 0;
                     // carta Destaque (só na vitória: na eliminação a copa acaba e a carta não teria onde jogar).
                     // O craque vira Destaque; se já é, sobe de nível jogando muito (nota 8+, até o 3); senão o
-                    // prêmio vai pro melhor do time que ainda não tem edição. Ícone também leva: continua Ícone
-                    // (fundo de galáxia) e ganha o selo "MVP n" (o 2º e o 3º pedem nota 8+, como o Destaque).
+                    // prêmio vai pro melhor do time que ainda não tem edição. Ícone e Evento também levam: seguem
+                    // com a edição e ganham o selo "MVP n" (o 2º e o 3º pedem nota 8+, como o Destaque).
                     const lines = playerLines(m);
                     const ranked = everyoneIn(m)
                         .filter((p) => p.team === 0 && mvpScore(p) > 0)
@@ -1072,10 +1095,10 @@ export const useGame = create<GameStore>()(
                         star?.special?.kind === 'destaque' &&
                         (star.special.level ?? 1) < DESTAQUE_MAX_LEVEL &&
                         starRating >= DESTAQUE_LEVEL_UP_RATING;
-                    // Ícone sem selo leva como carta sem edição; com selo, só sobe sendo o craque com nota 8+
-                    const iconMvp = (p: PokemonInstance) =>
-                        iconMvpOpen(p) && (!p.special?.level || (p === star && starRating >= DESTAQUE_LEVEL_UP_RATING));
-                    const winner = levelUp ? star : ranked.find((p) => !p.special || iconMvp(p));
+                    // Ícone/Evento sem selo leva como carta sem edição; com selo, só sobe sendo o craque com nota 8+
+                    const mvpTaker = (p: PokemonInstance) =>
+                        mvpOpen(p) && (!p.special?.level || (p === star && starRating >= DESTAQUE_LEVEL_UP_RATING));
+                    const winner = levelUp ? star : ranked.find((p) => !p.special || mvpTaker(p));
                     const destaqueUid = won && SPECIALS_LIVE && winner ? winner.uid : null;
                     const destaqueLevel = levelUp ? (star.special?.level ?? 1) + 1 : 1;
                     // quem evoluiu no meio da partida continua evoluído pelo resto da copa
@@ -1099,7 +1122,7 @@ export const useGame = create<GameStore>()(
                             out = {
                                 ...out,
                                 special:
-                                    p.special?.kind === 'icone'
+                                    p.special?.kind === 'icone' || p.special?.kind === 'evento'
                                         ? { ...p.special, level: (p.special.level ?? 0) + 1 }
                                         : {
                                               kind: 'destaque' as const,
@@ -1190,6 +1213,24 @@ export const useGame = create<GameStore>()(
                     }
                     const ended = status === 'eliminated' || status === 'champion';
                     if (ended) next.endedAt = Date.now();
+                    // fichário: a carta nova da evolução, o Destaque/MVP desta partida e, no título, o elenco campeão
+                    const at = Date.now();
+                    let binder = binderAdd(
+                        getState().binder,
+                        picks.filter((p) => evolved.has(p.uid)),
+                        { from: 'evolucao', at, cup: run.seed },
+                    );
+                    binder = binderAdd(
+                        binder,
+                        picks.filter((p) => p.uid === destaqueUid && !evolved.has(p.uid)),
+                        { from: 'draft', at, cup: run.seed },
+                    );
+                    if (status === 'champion')
+                        binder = binderAdd(
+                            binder,
+                            [...next.lineup, ...next.bench].flatMap((uid) => picks.filter((p) => p.uid === uid)),
+                            { from: 'draft', at, cup: run.seed, champ: true },
+                        );
                     let hall = getState().hall;
                     if (status === 'champion') {
                         next.champ = champMemo(next, records, getState().dex);
@@ -1206,6 +1247,7 @@ export const useGame = create<GameStore>()(
                     const saved = {
                         run: next,
                         hall,
+                        binder,
                         dex,
                         moves: recordMovesSeen(moves, m),
                         career: recordMatchInCareer(career, m.score, won, !!m.shootout),
@@ -1275,8 +1317,14 @@ export const useGame = create<GameStore>()(
                     // Ícone que chega como reforço também conta nos Ícones escalados (como o do draft)
                     const { records } = getState();
                     const icon = reward.kind === 'pokemon' && reward.inst.special?.kind === 'icone';
+                    const incoming = reward.kind === 'pokemon' ? picks.filter((p) => !run.picks.includes(p)) : [];
                     setState({
                         ...(icon && { records: { ...records, icones: (records.icones ?? 0) + 1 } }),
+                        binder: binderAdd(getState().binder, incoming, {
+                            from: 'recompensa',
+                            at: Date.now(),
+                            cup: run.seed,
+                        }),
                         run: { ...run, picks, bench, rewards: [], status: 'lineup', stage: run.stage + 1 },
                         dex: markOvr(getState().dex, picks.filter((p) => !run.picks.includes(p)).map(ovrOf)),
                         match: null,
@@ -1348,8 +1396,12 @@ export const useGame = create<GameStore>()(
                 const saved = persisted as PersistedSave | undefined;
                 const p = saved?.settings ? { ...saved, settings: withCryDefault(saved.settings) } : saved;
                 if (!p?.profile) return { ...current, ...p };
-                const dex = markEvolvedPlayed(p.dex ?? {}, [p.run, ...(p.parkedRuns ?? [])]);
-                const next = withUnlocks({ ...p, dex });
+                const runs = [p.run, ...(p.parkedRuns ?? [])];
+                // figurinhas de edição das copas guardadas (quem jogou 1+ minuto) e do Hall: sempre, não só na v9
+                const dex = backfillEditions(markEvolvedPlayed(p.dex ?? {}, runs), p.hall ?? [], runs, false);
+                // álbum de cartas: o fichário da 0.8.8 vira álbum; o save de antes dele ganha as copas guardadas e o Hall
+                const binder = binderOf(p);
+                const next = withUnlocks({ ...p, dex, binder });
                 // as que saíram agora ganham o aviso (na Home)
                 const fresh = (next.profile.missionsDone ?? []).slice(p.profile.missionsDone?.length ?? 0);
                 return { ...current, ...next, unlockQueue: [...current.unlockQueue, ...fresh] };

@@ -7,16 +7,92 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
-        version: '0.8.8',
-        title: 'Ícone MVP, melhores momentos, medalhas e treinadores',
+        version: '0.8.8.3',
+        title: 'Cartas em camadas e álbum de figurinhas',
         sections: [
             {
-                title: 'Copa do Dia e Liga',
+                title: 'Cartas em camadas',
+                lines: [
+                    'O shiny vai por cima de qualquer edição e soma +1: Shiny Ícone, Shiny Evento, Shiny Destaque',
+                    'Selo MVP no canto da carta, em bronze, prata e ouro. Ícone e Evento também levam, e cada nível soma +1 em tudo',
+                    'Carta Destaque mais bonita a cada nível: filete e brilho no 2, raios e pó dourado no 3',
+                    'Evento com o desenho do tipo, na cor dele: chamas no Fogo, ondas na Água, raios no Elétrico e mais 11 tipos',
+                    'Passe o mouse ou segure o dedo nos selos, na etiqueta da edição, na Pokédex e nas medalhas pra ver o que cada um quer dizer',
+                    'Atributo nenhum passa de 99: o bônus que sobra sobe só os que ainda estão abaixo',
+                    'Partida salva no meio de um jogo recomeça do 0 a 0 (o motor mudou)',
+                ],
+            },
+            {
+                title: 'Álbum de figurinhas',
+                lines: [
+                    'Álbum de figurinhas na Pokédex, de papel: a carta de verdade colada em cada espaço, uma de cada edição especial',
+                    'Espaço vazio com nome, silhueta e número; tocar abre a ficha. No desktop, duas páginas abertas',
+                    'Toque na figurinha pra ver todas as versões que você já teve dela. Qualquer uma vai pra vitrine',
+                    'Página Raridades no fim do álbum: Shiny Ícone, Shiny Evento, MVP 3 e Destaque III',
+                    'Na Pokédex, cada Pokémon mostra quantas figurinhas tem (3/5); as cartas ficam no álbum',
+                    'Vitrine de cartas no seu perfil público: o rival vê no Duelo',
+                    'Título das cartas Ícone (Charizard Rebelde e cia.) menor, numa linha só',
+                ],
+            },
+            {
+                title: 'Perfil',
+                lines: [
+                    'Botão do Perfil no canto de cima, com o seu avatar',
+                    'Toque no rival no Duelo (sala, VERSUS ou placar) pra ver o perfil dele, com as cartas grandes',
+                    'Selo NOVO no que você ganhou e ainda não viu (treinador, título, medalha, avatar, figurinha), pontinho no botão do Perfil e "Marcar como visto"',
+                ],
+            },
+            {
+                title: 'Amigos',
+                lines: [
+                    'Adicionar amigo pelo perfil do rival depois do Duelo, ou pelo código de amigo de 8 letras',
+                    'Aba Amigos no Perfil: pedidos pra aceitar, quem está online agora e o botão Desafiar',
+                    'Desafiou? O convite chega na hora, por cima de qualquer tela, e vale 15 minutos',
+                    'Sem chat e sem busca por nome. Remover e bloquear em um toque (quem foi bloqueado não fica sabendo)',
+                ],
+            },
+            {
+                title: 'Correções',
+                lines: [
+                    'VERSUS: o botão só deixa começar com a quadra carregada (antes levava a uma partida vazia). Se demorar, aparece "Tentar de novo"',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.8.8.2',
+        title: 'Logo novo e faixas da torcida',
+        sections: [
+            {
+                title: 'Logo novo',
+                lines: [
+                    'Logo novo: a carta holo com a bola (também na aba do navegador, no ícone do celular e na prévia do link)',
+                    'Pacote de cartas com o logo novo',
+                    'Ícones padronizados: fechar, setas, estrela, sortear e o resto desenhados no mesmo traço em todo o jogo',
+                ],
+            },
+            {
+                title: 'Torcida',
+                lines: [
+                    'Faixas da torcida novas: "Aqui é {clube}", "ABAIXA QUE É HYPER BEAM", "Hoje Magikarp, amanhã Gyarados", "Sua insígnia é minha!" e outras',
+                ],
+            },
+            {
+                title: 'Liga',
+                lines: ['Liga ranqueada fechada por enquanto: o timer na Home mostra quando ela abre'],
+            },
+        ],
+    },
+    {
+        version: '0.8.8.1',
+        title: 'Melhores momentos, Copa do Dia e medalhas',
+        sections: [
+            {
+                title: 'Copa do Dia',
                 lines: [
                     'Copa do Dia: a mesma copa pra todo mundo (mesmo draft, mesmos rivais), uma tentativa por dia e ranking do dia. Sem conta, você joga fora do ranking',
                     'Compartilhe a sua Copa do Dia com os quadradinhos de cada partida e acompanhe os dias jogados na semana',
-                    'Liga ranqueada: o time da sua copa vira um fantasma que outros enfrentam; você joga contra os deles e sobe no Elo, com divisões (Bronze, Prata, Ouro e Lenda) e temporada mensal (precisa de conta Google)',
-                    'Na Liga o placar que vale é o do servidor: ele refaz a partida com as suas ordens',
+                    'A Liga ranqueada volta quando tiver mais gente jogando',
                 ],
             },
             {
@@ -64,8 +140,6 @@ export const PATCH_NOTES: PatchNotes[] = [
                 lines: [
                     'Tela inicial com mais vida: selo AO VIVO na quadra, logo respirando e os blocos entrando em cascata (para com "reduzir movimento")',
                     'Página de erro nova: o Psyduck perdeu a bola pra fora da quadra',
-                    'Logo novo: a carta holo com a bola (também na aba do navegador, no ícone do celular e na prévia do link)',
-                    'Ícones padronizados: fechar, setas, estrela, sortear e o resto desenhados no mesmo traço em todo o jogo',
                 ],
             },
             {
@@ -102,11 +176,8 @@ export const PATCH_NOTES: PatchNotes[] = [
             {
                 title: 'Consertos',
                 lines: [
-                    'Faixas da torcida novas: "Aqui é {clube}", "ABAIXA QUE É HYPER BEAM", "Hoje Magikarp, amanhã Gyarados", "Sua insígnia é minha!" e outras',
                     'Prof. Carvalho agora pede ver os 151 Pokémon na Pokédex (era 100); quem já tinha ganhado continua com ele',
                     'O Prof. Carvalho dourado conta "jogou" igual à Pokédex (quem tinha 151 jogados e via 150/151 agora ganha)',
-                    'Carta Ícone agora pode ser o craque da partida: continua Ícone (com o fundo de galáxia), ganha o selo "MVP", "MVP 2" e "MVP 3" e +1 em todos os atributos por selo (até +5). Antes o prêmio pulava pro próximo jogador',
-                    'Quem foi campeão com Mew e Mewtwo, com os 3 pássaros lendários ou com um Rattata antes dessas missões existirem agora ganha a conquista ao abrir o jogo (sai do Hall da Fama)',
                     'Pokémon que evolui em quadra conta como "jogou" nas duas formas na Pokédex (a de antes até a evolução, a nova depois)',
                     'A sequência de títulos zera ao começar uma copa nova por cima de outra em andamento',
                     'A sequência de títulos não volta mais ao juntar o save do celular e do PC',
@@ -124,6 +195,19 @@ export const PATCH_NOTES: PatchNotes[] = [
                     'Títulos e copas perfeitas do Hall da Fama aparecem no Perfil e na tela inicial depois de juntar o save de dois aparelhos',
                     'Avatar shiny: toque no Pokémon com o brilho no canto e escolha a versão normal ou a shiny',
                     'Avatares centralizados e o shiny não passa mais da borda',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.8.8',
+        title: 'Ícone MVP e conquistas retroativas',
+        sections: [
+            {
+                title: 'Consertos',
+                lines: [
+                    'Carta Ícone agora pode ser o craque da partida: continua Ícone (com o fundo de galáxia), ganha o selo "MVP", "MVP 2" e "MVP 3" e +1 em todos os atributos por selo (até +5). Antes o prêmio pulava pro próximo jogador',
+                    'Quem foi campeão com Mew e Mewtwo, com os 3 pássaros lendários ou com um Rattata antes dessas missões existirem agora ganha a conquista ao abrir o jogo (sai do Hall da Fama)',
                 ],
             },
         ],
@@ -657,16 +741,92 @@ export const PATCH_NOTES: PatchNotes[] = [
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
     {
-        version: '0.8.8',
-        title: 'Icon MVP, highlights, medals and coaches',
+        version: '0.8.8.3',
+        title: 'Layered cards and sticker album',
         sections: [
             {
-                title: 'Daily Cup and League',
+                title: 'Layered cards',
+                lines: [
+                    'Shiny goes on top of any edition and adds +1: Shiny Icon, Shiny Event, Shiny Star Player',
+                    'MVP seal on the corner of the card, in bronze, silver and gold. Icon and Event cards get it too, and each level adds +1 to everything',
+                    'Star Player cards look better at each level: trim and shine at 2, gold rays and dust at 3',
+                    'Event cards show their type, in its color: flames for Fire, waves for Water, bolts for Electric and 11 more types',
+                    'Hover or hold your finger on the seals, the edition tag, the Pokédex and the medals to see what each one means',
+                    'No attribute goes past 99: the leftover bonus only raises the ones still below',
+                    'A match saved midway restarts at 0-0 (the engine changed)',
+                ],
+            },
+            {
+                title: 'Sticker album',
+                lines: [
+                    'Paper sticker album in the Pokédex: the real card stuck in each slot, one of each special edition',
+                    'Empty slots show the name, silhouette and number; tap to open the entry. On desktop, two pages open side by side',
+                    'Tap a sticker to see every version of it you have had. Any of them can go on your showcase',
+                    'Rarities page at the end of the album: Shiny Icon, Shiny Event, MVP 3 and Star Player III',
+                    'In the Pokédex, each Pokémon shows how many stickers it has (3/5); the cards live in the album',
+                    'Card showcase on your public profile: your Duel rival sees it',
+                    'Icon card titles (Rebel Charizard and co.) are smaller, on a single line',
+                ],
+            },
+            {
+                title: 'Profile',
+                lines: [
+                    'Profile button in the top corner, with your avatar',
+                    'Tap your rival in the Duel (room, VERSUS or scoreboard) to see their profile, with the cards in full size',
+                    'NEW tag on what you earned and have not seen yet (trainer, title, medal, avatar, sticker), a dot on the Profile button and "Mark as seen"',
+                ],
+            },
+            {
+                title: 'Friends',
+                lines: [
+                    "Add a friend from your rival's profile after a Duel, or with an 8-letter friend code",
+                    'Friends tab in the Profile: requests to accept, who is online now and the Challenge button',
+                    'Challenged someone? The invite shows up right away, on top of any screen, and lasts 15 minutes',
+                    "No chat and no search by name. Remove and block in one tap (blocked players aren't told)",
+                ],
+            },
+            {
+                title: 'Fixes',
+                lines: [
+                    'VERSUS: the button only lets you start once the court has loaded (it used to open an empty match). If it takes too long, "Try again" shows up',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.8.8.2',
+        title: 'New logo and fan banners',
+        sections: [
+            {
+                title: 'New logo',
+                lines: [
+                    'New logo: the holo card with the ball (also on the browser tab, the phone icon and the link preview)',
+                    'Card pack with the new logo',
+                    'Standardized icons: close, arrows, star, reroll and the rest drawn with the same stroke across the game',
+                ],
+            },
+            {
+                title: 'Fans',
+                lines: [
+                    'New fan banners: "This is {club}", "DUCK, IT\'S HYPER BEAM", "Magikarp today, Gyarados tomorrow", "Your badge is mine!" and more',
+                ],
+            },
+            {
+                title: 'League',
+                lines: ['Ranked League closed for now: the timer on the home screen shows when it opens'],
+            },
+        ],
+    },
+    {
+        version: '0.8.8.1',
+        title: 'Highlights, Daily Cup and medals',
+        sections: [
+            {
+                title: 'Daily Cup',
                 lines: [
                     'Daily Cup: the same cup for everyone (same draft, same rivals), one try per day and a daily ranking. Without an account, you play outside the ranking',
                     'Share your Daily Cup with a square for each match and keep track of the days you played this week',
-                    'Ranked League: your cup team becomes a ghost others play against; you face theirs and climb the Elo, with divisions (Bronze, Silver, Gold and Legend) and a monthly season (needs a Google account)',
-                    'In the League the server score is the one that counts: it replays the match with your orders',
+                    'The Ranked League comes back when more people are playing',
                 ],
             },
             {
@@ -714,8 +874,6 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 lines: [
                     'A livelier home screen: LIVE badge on the court, a breathing logo and blocks that cascade in (stops with "reduce motion")',
                     'New error page: Psyduck kicked the ball off the court',
-                    'New logo: the holo card with the ball (also on the browser tab, the phone icon and the link preview)',
-                    'Standardized icons: close, arrows, star, reroll and the rest drawn with the same stroke across the game',
                 ],
             },
             {
@@ -752,11 +910,8 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
             {
                 title: 'Fixes',
                 lines: [
-                    'New fan banners: "This is {club}", "DUCK, IT\'S HYPER BEAM", "Magikarp today, Gyarados tomorrow", "Your badge is mine!" and more',
                     'Prof. Oak now asks you to see all 151 Pokémon in the Pokédex (was 100); anyone who already earned him keeps him',
                     'Golden Prof. Oak counts "played" the same way as the Pokédex (players at 151 played who saw 150/151 now get it)',
-                    'Icon cards can now be the star player: they stay Icons (galaxy background), get the "MVP", "MVP 2" and "MVP 3" seal and +1 to every attribute per seal (up to +5). Before, the award skipped to the next player',
-                    'Anyone who won the cup with Mew and Mewtwo, the 3 legendary birds or a Rattata before those missions existed now gets the achievement when opening the game (it comes from the Hall of Fame)',
                     'A Pokémon that evolves on court counts as "played" in both forms in the Pokédex (the old one until it evolves, the new one after)',
                     'The title streak resets when you start a new cup over one in progress',
                     'The title streak no longer comes back when merging the phone and PC saves',
@@ -774,6 +929,19 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'Hall of Fame titles and perfect cups show in the Profile and home screen after merging the saves of two devices',
                     'Shiny avatar: tap the Pokémon with the sparkle in the corner and pick the normal or the shiny version',
                     'Avatars are centered and shiny ones no longer spill over the border',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.8.8',
+        title: 'Icon MVP and retroactive achievements',
+        sections: [
+            {
+                title: 'Fixes',
+                lines: [
+                    'Icon cards can now be the star player: they stay Icons (galaxy background), get the "MVP", "MVP 2" and "MVP 3" seal and +1 to every attribute per seal (up to +5). Before, the award skipped to the next player',
+                    'Anyone who won the cup with Mew and Mewtwo, the 3 legendary birds or a Rattata before those missions existed now gets the achievement when opening the game (it comes from the Hall of Fame)',
                 ],
             },
         ],

@@ -37,7 +37,6 @@ export const home: typeof pt = {
         icones: 'icon|icons',
     },
     tiles: {
-        profile: ['Profile', 'Your club, Pokédex and numbers'],
         moves: ['Movedex', "The moves you've seen on the court"],
         help: ['Help', 'How to play and every mechanic'],
         news: ["What's new", 'What changed in version {v}'],

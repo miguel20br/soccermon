@@ -7,11 +7,12 @@ import { ENGINE_VERSION, FUTSAL_5 } from '../engine/config';
 import { bestFit, DRAFT_PICKS } from '../engine/draft';
 import { evolveInstance } from '../engine/evolution';
 import { formationOf } from '../engine/formations';
-import { createInstance, slotRating } from '../engine/instance';
+import { createInstance, type PokemonInstance, slotRating } from '../engine/instance';
 import { playerLines } from '../engine/match-stats';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
 import { SIGNATURE } from '../engine/signature-moves';
+import { specialBonus } from '../engine/specials';
 import { teachMove } from '../engine/tm';
 import { profile as enProfile } from '../i18n/en/profile';
 import { profile as ptProfile } from '../i18n/pt/profile';
@@ -175,6 +176,29 @@ describe('backup antigo (scripts/fixtures)', () => {
             expect(save.profile.banner).toBeUndefined();
             expect(bannerOf(save.profile.banner)).toBe(0);
         }
+    });
+
+    it('edições em camadas (0.8.8): save antigo segue valendo e combo novo (shiny + Evento MVP) sobrevive', async () => {
+        const { readFileSync } = await import('node:fs');
+        for (const lang of ['pt', 'en']) {
+            const backup = JSON.parse(readFileSync(`scripts/fixtures/backup-v6-${lang}.json`, 'utf8'));
+            const save = migrateSave(backup.save, backup.version);
+            const cards = save.run?.picks ?? [];
+            for (const c of cards) expect(specialBonus(c)).toBeGreaterThanOrEqual(0);
+            for (const c of cards) expect(specialBonus(c)).toBeLessThanOrEqual(6);
+        }
+        useGame.getState().newRun('Pallet FC', 'teste-combo-save');
+        const run = useGame.getState().run;
+        if (!run) throw new Error('sem run');
+        const card = {
+            ...createInstance(4, new Rng('combo')),
+            shiny: true,
+            special: { kind: 'evento' as const, type: 'Fire', level: 2 },
+        };
+        const saved = migrateSave(JSON.parse(JSON.stringify({ run: { ...run, picks: [card] } })), SAVE_VERSION);
+        expect(saved.run?.picks[0].shiny).toBe(true);
+        expect(saved.run?.picks[0].special).toEqual({ kind: 'evento', type: 'Fire', level: 2 });
+        expect(specialBonus(saved.run?.picks[0] as PokemonInstance)).toBe(5);
     });
 
     it('faixa da torcida: a escolhida sobrevive a salvar e carregar; número estragado vira a 1ª', () => {

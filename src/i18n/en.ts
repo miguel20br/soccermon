@@ -3,6 +3,7 @@ import { battle } from './en/battle';
 import { commentary } from './en/commentary';
 import { common } from './en/common';
 import { duel } from './en/duel';
+import { friends } from './en/friends';
 import { help } from './en/help';
 import { home } from './en/home';
 import { liga } from './en/liga';
@@ -36,4 +37,5 @@ export const en: Dict = {
     duel,
     moments,
     liga,
+    friends,
 };

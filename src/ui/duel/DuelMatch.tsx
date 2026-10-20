@@ -80,6 +80,7 @@ import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
 import { captainAt, roleAt, snapAt } from '../match-view';
 import { bannerText, peerAvatar, peerTitle } from '../profile/club';
+import { peerInfo, usePlayerCard } from '../profile/PlayerCard';
 import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
 import { EmoteBar, EmoteBubbles } from './Emotes';
@@ -126,6 +127,8 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const [simCount, setSimCount] = useState(-1);
     const [clock, setClock] = useState<Clock>({ tick: 0, minute: 0, half: 1, score: [0, 0], phase: 'kickoff' });
     const [sceneReady, setSceneReady] = useState(false);
+    /** "Tentar de novo" do VERSUS: remonta a quadra que não carregou. */
+    const [sceneKey, setSceneKey] = useState(0);
     const [fontsReady, setFontsReady] = useState(false);
     const [kicked, setKicked] = useState(() => roomNow() >= (s.kickoffAt ?? 0));
     const [halftime, setHalftime] = useState(false);
@@ -440,6 +443,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const awayRival = !online[rivalRole];
 
     const myPeer = s.peers[role];
+    const openCard = usePlayerCard.getState().open;
     const coach = (p?: typeof myPeer) =>
         p && {
             name: p.name,
@@ -449,13 +453,19 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
             avatarGoogle: peerAvatar(p).google,
             showcase: parseShowcase(p.showcase),
             frame: frameTier(parseShowcase(p.showcase)),
+            onOpen: () => openCard(peerInfo(p, p !== myPeer)),
         };
     const badge = (p?: typeof myPeer) => {
         const tt = p && peerTitle(p);
-        return tt?.name ? (
-            <span className="sb-title">
+        return p && tt?.name ? (
+            <button
+                type="button"
+                className="sb-title is-btn"
+                onClick={() => openCard(peerInfo(p, p !== myPeer))}
+                aria-label={t('profile.card.openAria', { name: p.name })}
+            >
                 <span className={tt.look || undefined}>{tt.name}</span>
-            </span>
+            </button>
         ) : null;
     };
     const onMine = (uid: string, idx: number | null, outUid?: string) => {
@@ -541,6 +551,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                     homeLook={looks[side]}
                     awayLook={looks[side === 0 ? 1 : 0]}
                     startsIn={kickLeft}
+                    onRetry={() => setSceneKey((k) => k + 1)}
                 />
             )}
             <div className="bc duel">
@@ -577,7 +588,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                     )}
                     <div className="pitch-wrap">
                         {fontsReady ? (
-                            <PhaserGame key={String(match.seed)} data={sceneData} />
+                            <PhaserGame key={`${match.seed}-${sceneKey}`} data={sceneData} />
                         ) : (
                             <div className="phaser-container" />
                         )}

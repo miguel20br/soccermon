@@ -497,16 +497,15 @@ button.pf-trainer:focus-visible,
     text-align: center;
     line-height: 1.2;
 }
-/* 6 abas não cabem numa fileira no celular estreito: duas de 3 */
+/* 7 abas não cabem numa fileira no celular estreito: duas de 4 (ícone em cima do nome) */
 @media (max-width: 480px) {
     .pf-tabs.bc-tabs {
         grid-auto-flow: row;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
     .pf-tabs.bc-tabs button {
-        min-height: 44px;
-        flex-direction: row;
-        gap: 5px;
+        min-height: 48px;
+        padding-inline: 2px;
     }
 }
 .pf-tab:hover {
@@ -601,7 +600,8 @@ fieldset.pf-field,
     letter-spacing: 3px;
     font-family: "Galmuri14", "Galmuri11", monospace;
 }
-.pf-card small {
+/* a carta (fichário) tem os textos dela, em em */
+.pf-card small:not(.pc2 small) {
     font-size: 12px;
     line-height: 1.4;
 }
@@ -1628,21 +1628,6 @@ fieldset.pf-field,
     font-size: 12px;
     line-height: 1.35;
 }
-.pf-pips {
-    display: flex;
-    gap: 3px;
-    height: 6px;
-    margin-top: 2px;
-}
-.pf-pips i {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: rgb(255 255 255 / 12%);
-}
-.pf-pips i.on.ed-normal {
-    background: #f4f1e6;
-}
 .pf-ribbon {
     width: 18px;
     height: 22px;
@@ -1741,11 +1726,16 @@ fieldset.pf-field,
     height: 21px;
     flex: none;
 }
-.pf-cell .pf-seal.pf-cell-mark {
+.pf-cell .pf-cell-tip {
     top: 2px;
     right: 2px;
     width: 16px;
     height: 17px;
+}
+.pf-cell-tip .pf-seal {
+    display: block;
+    width: 100%;
+    height: 100%;
 }
 .pf-seal-line {
     color: var(--text);
@@ -1807,4 +1797,94 @@ fieldset.pf-field,
     line-height: 1.2;
     color: #8a93c4;
     overflow-wrap: anywhere;
+}
+
+/* ---------- selo NOVO (news.tsx): a etiqueta dourada do kit, e o pontinho de "tem novidade" ---------- */
+.new-badge {
+    display: inline-block;
+    padding: 1px 5px 0;
+    border-radius: 4px;
+    background: var(--yellow);
+    color: var(--bc-ink);
+    box-shadow: 0 2px 0 var(--bc-edge);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    line-height: 13px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    vertical-align: middle;
+    pointer-events: none;
+    animation: new-badge-in 260ms var(--ease-out) both;
+}
+@keyframes new-badge-in {
+    from {
+        opacity: 0;
+        transform: translateY(3px);
+    }
+}
+/* no canto de cima do item (treinador, título, avatar, peça, figurinha) */
+.new-badge.corner {
+    position: absolute;
+    top: -7px;
+    right: -4px;
+    z-index: 3;
+}
+:is(.pf-trainer, .pf-title-chip, .pf-av, .kit-opt, .show-pick):has(> .new-badge) {
+    position: relative;
+    overflow: visible;
+}
+/* avatar: o brilho do shiny já mora no canto direito */
+.pf-av > .new-badge.corner {
+    right: auto;
+    left: 50%;
+    translate: -50% 0;
+}
+.pf-gen > summary .new-badge {
+    margin-left: 4px;
+}
+.new-dot {
+    position: absolute;
+    top: 6px;
+    right: calc(50% - 18px);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--yellow);
+    border: 2px solid var(--bc-ink);
+}
+.bc-tabs button:has(> .new-dot),
+.bc-seg button:has(> .new-dot) {
+    position: relative;
+}
+.bc-seg button > .new-dot {
+    top: 3px;
+    right: 4px;
+}
+.profile-chip {
+    position: relative;
+}
+.profile-chip > .new-dot.profile-chip-dot {
+    top: -2px;
+    right: -2px;
+    width: 12px;
+    height: 12px;
+}
+/* barra da aba: quantas novidades e os botões de marcar */
+.pf-news {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin: 0 0 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 2px solid var(--line);
+    background: var(--panel);
+}
+.pf-news-n {
+    flex: 1;
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 700;
 }

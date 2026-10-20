@@ -108,6 +108,30 @@ Leia a skill antes de começar a tarefa dela:
 | `soccermon-assets` | vídeo, logo, imagem e texto de divulgação |
 | `soccermon-marca` | antes de mexer em qualquer visual, ícone, texto de interface ou asset: checklist de padronização (brand guide em `docs/marca/`) |
 
+## Regras de velocidade (19/10/2026, `docs/planos/pesquisas/velocidade.md`)
+
+Regras gerais aprovadas pelo Miguel ("1a a 9a"); **cada tarefa é avaliada por si**, isto não é automático:
+1. **Nunca travar a sessão com questionário bloqueante** quando há entrega pronta esperando: pergunte em texto e
+   siga entregando o que já foi aprovado (um questionário travou 5 h de entregas em 19/10).
+2. **CI em toda branch** (GitHub Actions: testes, build, fumaça e prints na nuvem); o agente espera o CI em vez da
+   fila do PC.
+3. **Esteira com fila própria** que confia no CI do commit da junção, sem refazer tudo local.
+4. **Duas trilhas:** rápida (tela, texto, conserto fora do motor: `tsc --incremental`, `vitest related`, prints em
+   390 e 1440) e completa (motor, Duelo, save, Supabase).
+5. **Sobe sem perguntar:** conserto com teste, texto e tradução, acessibilidade, desempenho, processo, layout no kit
+   da transmissão. **Continua com o Miguel:** equilíbrio, posições, visual de carta, regra nova de jogo, Supabase de
+   produção e o que ele pedir pra ver antes.
+6. **Modo fumaça nas prévias** (atalhos de demo e velocidade alta fora da produção).
+7. **Vídeo (ffmpeg) e outros projetos na mesma fila pesada** (`flock /tmp/soccermon-heavy.lock`).
+8. **Agentes na nuvem:** testar com 1 tarefa pequena antes de usar mais.
+9. **Ferramentas:** `tsc` incremental, build sem repetir o `tsc`, `engine.test.ts` dividido.
+
+Como usar: `npm run check:rapido` (tsc incremental + Biome e `vitest related` nos mudados; avisa se caiu na trilha
+completa, definida em `scripts/trilha.mjs`) e `npm run check:completo` (tudo, já na fila pesada). Fila pesada:
+`scripts/pesado.sh <cmd>`. Esteira: `docs/planos/esteira.md`. CI (`.github/workflows/ci.yml`) roda em toda branch
+com fumaça headless e prints no artefato `fumaca-prints` (página extra: linha `Fumaça: /?demo=...` na mensagem do
+commit). Prévias da Vercel têm os atalhos de demo e `?vel=N` (quadra até 64x); produção não.
+
 ## Regras de desenvolvimento (17/10/2026)
 
 - **`main` = produção.** Nada vai pra `main` sem o "pode subir" do Miguel naquela conversa. Prévia: push numa
@@ -125,13 +149,22 @@ Leia a skill antes de começar a tarefa dela:
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (19/10/2026, v0.8.8 · Ícone MVP, melhores momentos, medalhas e treinadores)
+## Estado atual (19/10/2026, v0.8.8.3 · Cartas em camadas e álbum de figurinhas)
 
-A 0.8.8 vai crescendo no ar sem mudar o número (o Miguel, 19/10: "à medida que for fazendo o que já foi aprovado, vá
-upando na 0.8.8"); o Duelo junta só telas do mesmo deploy (versão + `__APP_BUILD__`). Começou como conserto rápido:
+Tudo que subiu em 19/10 foi separado nas Novidades em 4 números (decisão do Miguel, 19/10): **0.8.8** Ícone MVP e
+conquistas retroativas (o conserto da manhã); **0.8.8.1** Melhores momentos, Copa do Dia e medalhas (o pacotão:
+momentos, coleção, treinadores, UX, consertos, fórmula A, Copa do Dia); **0.8.8.2** Logo novo e faixas da torcida
+(marca, ícones, pacote com o logo, Liga fechada com timer); **0.8.8.3** Cartas em camadas e álbum de figurinhas.
+Número de 4 partes: o npm só aceita semver em `"version"` (fica `0.8.8`), então o número da Home, das Novidades e do
+Duelo sai de `"displayVersion"` no `package.json` (`__APP_VERSION__` = `displayVersion ?? version` nos dois
+`vite/config.*.mjs`); tags `v0.8.8.1`…`v0.8.8.3`. O Duelo junta só telas do mesmo deploy (versão + `__APP_BUILD__`).
+
+**0.8.8.** Começou como conserto rápido:
 Ícone pode levar o MVP e continua Ícone, com selo "MVP n" e +1 por selo (`special.level` no Ícone = MVPs,
 `specialBonus`/`iconMvpOpen` em `src/engine/specials.ts`); missões lendárias de campeão também saem do Hall da Fama, e
-`withUnlocks` + `markEvolvedPlayed` rodam a cada vez que o jogo abre (`merge` do persist). Entraram depois:
+`withUnlocks` + `markEvolvedPlayed` rodam a cada vez que o jogo abre (`merge` do persist).
+
+**0.8.8.1** (o pacotão):
 - **Melhores momentos** (`src/ui/moments.ts`, `Moments.tsx`, `clip-recorder.ts`; `?demo=momentos`): replay dos lances
   na quadra, gol da copa (replay guardado em `StageResult.replay`, some se o `ENGINE_VERSION` mudar) e clipe 9:16.
 - **8 consertos** (sequência de títulos, nuvem, Ícone da recompensa, Duelo Time pronto e troca do intervalo); a
@@ -165,6 +198,20 @@ upando na 0.8.8"); o Duelo junta só telas do mesmo deploy (versão + `__APP_BUI
   `SUPABASE_ACCESS_TOKEN` no `.env.local`), senão a Liga recusa as partidas ("recarregue a página"). A partida da
   Liga conta na Pokédex como o Duelo (`recordDuelDex`). Falta: o draft da Copa do Dia refeito no servidor (hoje o
   ranking do dia só confere plausibilidade).
+- **Liga fechada até juntar gente (pedido do Miguel, 19/10):** a Copa do Dia segue no ar; a Liga aparece na Home com
+  "Em breve", contagem e um aviso no toque. Abre sozinha na data de `LIGA_OPENS_AT` (`src/league/rules.ts`, hoje
+  **01/12/2026 00:00 de Brasília, provisória**). Reabrir antes ou adiar: trocar só essa linha e publicar. Código,
+  tabelas e Edge Function `liga` continuam (o `?demo=liga` entra mesmo fechada).
+
+**0.8.8.2:** logo novo (a carta holo com a bola, `public/assets/ui/logo.svg`), título chapado, ícones no traço do
+`HudIcon`, brand guide em `docs/marca/` (skill `soccermon-marca`), faixas da torcida escritas pelo Miguel, pacote de
+cartas com o logo, bola original na Home e a Liga fechada com contagem.
+
+**0.8.8.3:** cartas em camadas (shiny +1 por cima de outra edição, selo MVP 1 a 3 no Ícone e no Evento, Destaque por
+nível, Evento com o desenho do tipo, bônus que passa de 99 vai pros outros atributos; `src/engine/specials.ts`,
+`ENGINE_VERSION` 6), dicas ao passar o mouse/segurar (`Tip.tsx`) e o Álbum de figurinhas dentro da Pokédex
+(`src/store/binder.ts`, `src/ui/profile/Album.tsx`; o Fichário do Perfil virou o álbum), com vitrine de cartas no
+Perfil e no Duelo.
 
 ### 0.8.7 · Emotes, selos e faixa da torcida
 

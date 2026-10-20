@@ -8,6 +8,10 @@ description: Como criar assets de divulgação do Soccermon (trailer, clipes de 
 Aprendido no lançamento da beta aberta (15/10/2026, trailer "Temos que chutar!"). Leia inteiro antes de começar:
 metade disto são armadilhas que custaram horas.
 
+**Fila pesada (regra 7 do CLAUDE.md):** ffmpeg, render do HyperFrames, gravação de clipe e `render.mjs` de arte vão
+por `~/Projects/soccermon/scripts/pesado.sh <comando>` (`flock /tmp/soccermon-heavy.lock`, um pesado por vez). Vídeo
+rodando fora da fila deixou testes e build dos agentes 2,5x mais lentos em 19/10.
+
 ## O que existe e onde
 
 | Peça | Fonte (no repo) | Como gerar |

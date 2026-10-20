@@ -478,12 +478,13 @@ function DataSettings() {
             match: null,
             settings: { ...DEFAULT_SETTINGS, lang, stats },
             records: { cups: 0, titles: 0, perfect: 0 },
-            profile: DEFAULT_PROFILE,
+            profile: { ...DEFAULT_PROFILE, seen: [] },
             dex: {},
             moves: {},
             career: EMPTY_CAREER,
             onboarded: false,
             parkedRuns: [],
+            binder: [],
             screen: 'home',
         });
     };

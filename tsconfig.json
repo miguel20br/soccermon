@@ -12,6 +12,9 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
+    /* tsc incremental: da 2ª vez em diante só confere o que mudou; o cache fica fora do git */
+    "incremental": true,
+    "tsBuildInfoFile": "./.cache/tsc/app.tsbuildinfo",
     "jsx": "react-jsx",
 
     /* Linting */

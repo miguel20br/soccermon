@@ -116,6 +116,10 @@ export interface ReplayClip {
 
 /** Velocidade da câmera lenta do replay no clímax (chute até o gol). */
 const REPLAY_SLOW = 0.35;
+/** Modo fumaça (dev e prévias, nunca produção): `?vel=N` multiplica o ritmo da quadra (até 64x) pra fumaça andar rápido. */
+const SMOKE_VEL = __SMOKE__
+    ? Math.min(64, Math.max(1, Number(new URLSearchParams(location.search).get('vel')) || 1))
+    : 1;
 
 /** Janela do golpe máximo e período do goleiro-linha (pra aura na quadra). */
 interface AgencySpan {
@@ -1028,7 +1032,8 @@ export class MatchScene extends Phaser.Scene {
             if (this.paused) return;
         }
         // evolução: a partida para enquanto o Pokémon evolui, como nos jogos
-        const factor = time < this.holdReal ? 0 : this.currentSpeedFactor(time) * this.rate * (this.md.pace ?? 1);
+        const factor =
+            time < this.holdReal ? 0 : this.currentSpeedFactor(time) * this.rate * (this.md.pace ?? 1) * SMOKE_VEL;
         this.playTick = Math.min(
             this.playTick + (delta / 1000) * TICK_RATE * factor,
             // as travas seguram, nunca voltam a partida (trava atrás da tela = para onde está)

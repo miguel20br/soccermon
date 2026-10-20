@@ -61,7 +61,7 @@ firme, cores chapadas, sem degradê e sem brilho borrado.
 | Ícone (carta no azul-noite com raios) | `public/assets/ui/icone.svg`, `icon-192.png`, `icon-512.png`, `apple-touch-icon.png` | app no celular, avatar das redes |
 | Ícone pequeno (32 e 48 px) | `public/assets/ui/favicon.svg` | aba do navegador |
 | Ícone 16 px feito à mão | dentro de `public/favicon.ico` (com o 32 e o 48) | aba em tela comum |
-| Só a bola | `public/assets/ui/bola.svg` | página 404, a bolinha que rola na quadra da Home |
+| Só a bola do logo | `public/assets/ui/bola.svg` | marca e página 404 (a bolinha que rola na quadra da Home é a original do jogo, `public/assets/ui/ball.svg`) |
 | Uma cor só | `trailer/arte/logo/final/logo-*-mono-branco.svg` e `-mono-azul.svg` (`#0b1030`) | carimbo, fundo claro, bordado, impressão de uma cor |
 
 Gerar tudo de novo: `python3 trailer/arte/logo/final/logo.py && node trailer/arte/logo/final/publicar.mjs` e depois

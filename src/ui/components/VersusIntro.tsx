@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useRef } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
 import { CLUBS, clubLeader } from '../../engine/cup';
 import { species } from '../../engine/data';
 import { formationOf } from '../../engine/formations';
@@ -22,6 +22,8 @@ import { cardSprite } from './PokeCard';
 import './versus.css';
 
 const AUTO_START_MS = 4500;
+/** A quadra não ficou pronta nesse tempo: aviso e "Tentar de novo" (rede lenta ou carregamento travado). */
+export const SLOW_MS = 15000;
 /** Quando o VS bate na tela (casa com o atraso + 60% de `vsp-slam` no versus.css). */
 const SLAM_MS = 1000;
 const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
@@ -83,6 +85,51 @@ function Squad({ team, trainer }: { team: TeamSetup; trainer?: TrainerId }) {
     );
 }
 
+/**
+ * Botão de baixo do VERSUS. Carregando: desligado de verdade (disabled + aria-busy), sem ação no toque/Enter; só
+ * vira "Começar" com a quadra pronta. Demorou demais (`slow`): aviso e "Tentar de novo". No Duelo (`startsIn`) o
+ * apito é da sala: contagem sem botão.
+ */
+export function VsStartButton({
+    ready,
+    slow,
+    startsIn,
+    onStart,
+    onRetry,
+}: {
+    ready: boolean;
+    slow?: boolean;
+    startsIn?: number;
+    onStart: () => void;
+    onRetry?: () => void;
+}) {
+    const { t } = useT();
+    if (!ready && slow && onRetry)
+        return (
+            <button type="button" className="btn yellow vs-start vs-slow" onClick={onRetry}>
+                {t('match.vs.retry')}
+                <small role="alert">{t('match.vs.slow')}</small>
+            </button>
+        );
+    if (startsIn !== undefined)
+        return (
+            <div className={`btn primary vs-start vs-countdown${ready ? '' : ' loading'}`} role="status">
+                {ready ? t('match.vs.startsIn', { s: startsIn }) : t('match.vs.loading')}
+            </div>
+        );
+    return (
+        <button
+            type="button"
+            className={`btn primary vs-start${ready ? '' : ' loading'}`}
+            disabled={!ready}
+            aria-busy={!ready}
+            onClick={ready ? onStart : undefined}
+        >
+            {ready ? t('match.vs.start') : t('match.vs.loading')}
+        </button>
+    );
+}
+
 /** Treinador de verdade do lado (duelo): avatar e título embaixo do nome do clube. */
 export interface VsCoach {
     name: string;
@@ -94,6 +141,25 @@ export interface VsCoach {
     /** Vitrine de 3 destaques e a moldura do avatar (o melhor degrau dela). */
     showcase?: ShowItem[];
     frame?: Tier;
+    /** Tocar no treinador abre o cartão dele (as cartas da vitrine ficam lá, grandes). */
+    onOpen?: () => void;
+}
+
+/** Treinador no VERSUS: com o cartão, vira botão (abre o perfil dele por cima; a partida segue o relógio). */
+function CoachTag({ onOpen, name, children }: { onOpen?: () => void; name: string; children: ReactNode }) {
+    const { t } = useT();
+    return onOpen ? (
+        <button
+            type="button"
+            className="vsp-coach is-btn"
+            onClick={onOpen}
+            aria-label={t('profile.card.openAria', { name })}
+        >
+            {children}
+        </button>
+    ) : (
+        <div className="vsp-coach">{children}</div>
+    );
 }
 
 function Side({
@@ -133,7 +199,7 @@ function Side({
                             {formationText(formationOf(team.formation).id).name} · {d.common.tactic[team.tactic]}
                         </div>
                         {coach && (
-                            <div className="vsp-coach">
+                            <CoachTag onOpen={coach.onOpen} name={coach.name}>
                                 {coach.avatar && (
                                     <img
                                         className={`${coach.avatarGoogle ? '' : 'pixel'}${frameClass(coach.frame ?? 0)}`}
@@ -149,8 +215,13 @@ function Side({
                                             <span className={coach.titleLook || undefined}>{coach.title}</span>
                                         </small>
                                     )}
-                                    {coach.showcase && <ShowcaseRow items={coach.showcase} className="vsp-showcase" />}
                                 </span>
+                            </CoachTag>
+                        )}
+                        {/* vitrine de medalhas embaixo do treinador (as cartas ficam no cartão dele) */}
+                        {!!coach?.showcase?.length && (
+                            <div className="vsp-shows">
+                                <ShowcaseRow items={coach.showcase} className="vsp-showcase" />
                             </div>
                         )}
                     </div>
@@ -190,6 +261,7 @@ export function VersusIntro({
     homeLook,
     awayLook,
     startsIn,
+    onRetry,
 }: {
     home: TeamSetup;
     away: TeamSetup;
@@ -209,6 +281,8 @@ export function VersusIntro({
     /** A quadra terminou de carregar: só então começa a contagem para iniciar sozinho. */
     ready: boolean;
     onDone: () => void;
+    /** Recarrega a quadra (remonta o Phaser) quando ela passa de `SLOW_MS` sem ficar pronta. */
+    onRetry?: () => void;
 }) {
     // a função pode mudar a cada render da tela; o timer não pode reiniciar por isso
     const done = useRef(onDone);
@@ -231,6 +305,20 @@ export function VersusIntro({
         const timer = window.setTimeout(slam, SLAM_MS);
         return () => clearTimeout(timer);
     }, [final]);
+
+    // quadra demorando: depois de SLOW_MS sem ficar pronta, troca o botão pelo aviso (cada tentativa zera a conta)
+    const [slow, setSlow] = useState(false);
+    useEffect(() => {
+        if (ready || slow) return;
+        const timer = window.setTimeout(() => setSlow(true), SLOW_MS);
+        return () => clearTimeout(timer);
+    }, [ready, slow]);
+    const retry = onRetry
+        ? () => {
+              setSlow(false);
+              onRetry();
+          }
+        : undefined;
 
     const timed = startsIn !== undefined;
     useEffect(() => {
@@ -326,15 +414,7 @@ export function VersusIntro({
                 <div className="vs-stage vsp-stage">{final ? t('match.vs.final') : stage}</div>
             </div>
             <div className="vsp-flash" />
-            {startsIn !== undefined ? (
-                <div className={`btn primary vs-start vs-countdown${ready ? '' : ' loading'}`} role="status">
-                    {ready ? t('match.vs.startsIn', { s: startsIn }) : t('match.vs.loading')}
-                </div>
-            ) : (
-                <button type="button" className={`btn primary vs-start${ready ? '' : ' loading'}`} onClick={onDone}>
-                    {ready ? t('match.vs.start') : t('match.vs.loading')}
-                </button>
-            )}
+            <VsStartButton ready={ready} slow={slow} startsIn={startsIn} onStart={onDone} onRetry={retry} />
             {ready && startsIn === undefined && (
                 <div className="vs-progress" style={{ animationDuration: `${AUTO_START_MS}ms` }} />
             )}

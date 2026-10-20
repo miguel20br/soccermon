@@ -1,23 +1,62 @@
 import { useMemo } from 'react';
 import { buildCupOpponents } from '../../engine/cup';
+import { species } from '../../engine/data';
+import { monRecipe } from '../../engine/duel-validate';
+import { defaultMoveset } from '../../engine/moves';
+import type { Special } from '../../engine/specials';
 import { useT } from '../../i18n/react';
+import type { Peer } from '../../net/duel-state';
 import { lookOfPeer, lookOfProfile, matchLooks } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
 import { frameTier, parseShowcase } from '../../store/medals';
 import { clubColorHex } from '../../store/profile';
 import { trainerLabel, useAvatar } from '../profile/club';
 import { useShowcase } from '../profile/Medals';
+import { peerInfo, useMyInfo, usePlayerCard } from '../profile/PlayerCard';
 import { Scoreboard } from './MatchHud';
 import { VersusIntro } from './VersusIntro';
 
+/** Carta de mentira do rival, como viria da sala (receita). */
+const fake = (id: number, special: Special | null, shiny = false) =>
+    monRecipe({
+        uid: `lab-${id}`,
+        speciesId: id,
+        level: 50,
+        xp: 0,
+        moves: defaultMoveset(species(id)),
+        ability: id === 132 ? 'imposter' : species(id).abilities[0],
+        shiny,
+        nickname: null,
+        condition: 1,
+        special,
+    });
+
 /** Rival de mentira do Duelo: vem como viria da sala (ids e vitrine já com o degrau). */
 const RIVAL = {
+    id: 'lab-rival',
+    name: 'Gary',
+    avatar: 'assets/cards/6.gif',
+    avatarGoogle: false,
+    trainer: 'blue',
+    title: 'Campeão de Kanto',
+    clubName: 'Rival FC',
+    clubTag: 'RIV',
+    engine: 0,
+    app: 'lab',
     clubColor: 0xe8423f,
     color2: 0xf2c230,
     kitPattern: 'faixa',
     crestShape: 'hexagono',
     crestSymbol: 'chama',
     showcase: ['m:campeao:4', 'c:colPassaros', 's:6:holo'],
+    // lixo na frente (espécie que não existe, texto) é ignorado: ficam as 3 cartas de verdade
+    cards: [
+        { speciesId: 999 },
+        'lixo',
+        fake(6, { kind: 'icone', title: 'Charizard Rebelde', level: 2 }),
+        fake(150, null, true),
+        fake(59, { kind: 'evento', type: 'Fire' }),
+    ],
 };
 
 /**
@@ -29,6 +68,8 @@ export function VersusLab({ onExit }: { onExit: () => void }) {
     const profile = useGame((s) => s.profile);
     const avatar = useAvatar();
     const mine = useShowcase();
+    const me = useMyInfo();
+    const openCard = usePlayerCard((s) => s.open);
     const { t } = useT();
     const params = new URLSearchParams(window.location.search);
     const clash = params.get('clash') === '1';
@@ -61,12 +102,14 @@ export function VersusLab({ onExit }: { onExit: () => void }) {
                         avatarGoogle: avatar.google,
                         showcase: mine.items,
                         frame: mine.frame,
+                        onOpen: () => openCard(me),
                     }}
                     awayCoach={{
                         name: 'Gary',
                         avatar: 'assets/avatars/6.gif',
                         showcase: rivalShow,
                         frame: frameTier(rivalShow),
+                        onOpen: () => openCard(peerInfo(RIVAL as unknown as Peer)),
                     }}
                     homeLook={looks[0]}
                     awayLook={looks[1]}
@@ -82,6 +125,19 @@ export function VersusLab({ onExit }: { onExit: () => void }) {
                     score={[2, 1]}
                     clock={{ main: "14'", sub: '', text: false, progress: 0.7 }}
                     stage={t('duel.title')}
+                    coaches={[
+                        <button key="me" type="button" className="sb-title is-btn" onClick={() => openCard(me)}>
+                            {me.title.name}
+                        </button>,
+                        <button
+                            key="rival"
+                            type="button"
+                            className="sb-title is-btn"
+                            onClick={() => openCard(peerInfo(RIVAL as unknown as Peer))}
+                        >
+                            {RIVAL.title}
+                        </button>,
+                    ]}
                 />
             </div>
         </div>

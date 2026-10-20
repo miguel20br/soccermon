@@ -1,12 +1,58 @@
 # Novidades
 
-## 0.8.8 · Ícone MVP, melhores momentos, medalhas e treinadores
+## 0.8.8.3 · Cartas em camadas e álbum de figurinhas
 
-### Copa do Dia e Liga
+### Cartas em camadas
+- O shiny vai por cima de qualquer edição e soma +1: Shiny Ícone, Shiny Evento, Shiny Destaque
+- Selo MVP no canto da carta, em bronze, prata e ouro. Ícone e Evento também levam, e cada nível soma +1 em tudo
+- Carta Destaque mais bonita a cada nível: filete e brilho no 2, raios e pó dourado no 3
+- Evento com o desenho do tipo, na cor dele: chamas no Fogo, ondas na Água, raios no Elétrico e mais 11 tipos
+- Passe o mouse ou segure o dedo nos selos, na etiqueta da edição, na Pokédex e nas medalhas pra ver o que cada um quer dizer
+- Atributo nenhum passa de 99: o bônus que sobra sobe só os que ainda estão abaixo
+- Partida salva no meio de um jogo recomeça do 0 a 0 (o motor mudou)
+
+### Álbum de figurinhas
+- Álbum de figurinhas na Pokédex, de papel: a carta de verdade colada em cada espaço, uma de cada edição especial
+- Espaço vazio com nome, silhueta e número; tocar abre a ficha. No desktop, duas páginas abertas
+- Toque na figurinha pra ver todas as versões que você já teve dela. Qualquer uma vai pra vitrine
+- Página Raridades no fim do álbum: Shiny Ícone, Shiny Evento, MVP 3 e Destaque III
+- Na Pokédex, cada Pokémon mostra quantas figurinhas tem (3/5); as cartas ficam no álbum
+- Vitrine de cartas no seu perfil público: o rival vê no Duelo
+- Título das cartas Ícone (Charizard Rebelde e cia.) menor, numa linha só
+
+### Perfil
+- Botão do Perfil no canto de cima, com o seu avatar
+- Toque no rival no Duelo (sala, VERSUS ou placar) pra ver o perfil dele, com as cartas grandes
+- Selo NOVO no que você ganhou e ainda não viu (treinador, título, medalha, avatar, figurinha), pontinho no botão do Perfil e "Marcar como visto"
+
+### Amigos
+- Adicionar amigo pelo perfil do rival depois do Duelo, ou pelo código de amigo de 8 letras
+- Aba Amigos no Perfil: pedidos pra aceitar, quem está online agora e o botão Desafiar
+- Desafiou? O convite chega na hora, por cima de qualquer tela, e vale 15 minutos
+- Sem chat e sem busca por nome. Remover e bloquear em um toque (quem foi bloqueado não fica sabendo)
+
+### Correções
+- VERSUS: o botão só deixa começar com a quadra carregada (antes levava a uma partida vazia). Se demorar, aparece "Tentar de novo"
+
+## 0.8.8.2 · Logo novo e faixas da torcida
+
+### Logo novo
+- Logo novo: a carta holo com a bola (também na aba do navegador, no ícone do celular e na prévia do link)
+- Pacote de cartas com o logo novo
+- Ícones padronizados: fechar, setas, estrela, sortear e o resto desenhados no mesmo traço em todo o jogo
+
+### Torcida
+- Faixas da torcida novas: "Aqui é {clube}", "ABAIXA QUE É HYPER BEAM", "Hoje Magikarp, amanhã Gyarados", "Sua insígnia é minha!" e outras
+
+### Liga
+- Liga ranqueada fechada por enquanto: o timer na Home mostra quando ela abre
+
+## 0.8.8.1 · Melhores momentos, Copa do Dia e medalhas
+
+### Copa do Dia
 - Copa do Dia: a mesma copa pra todo mundo (mesmo draft, mesmos rivais), uma tentativa por dia e ranking do dia. Sem conta, você joga fora do ranking
 - Compartilhe a sua Copa do Dia com os quadradinhos de cada partida e acompanhe os dias jogados na semana
-- Liga ranqueada: o time da sua copa vira um fantasma que outros enfrentam; você joga contra os deles e sobe no Elo, com divisões (Bronze, Prata, Ouro e Lenda) e temporada mensal (precisa de conta Google)
-- Na Liga o placar que vale é o do servidor: ele refaz a partida com as suas ordens
+- A Liga ranqueada volta quando tiver mais gente jogando
 
 ### Balanceamento: Ala e Pivô
 - A nota do Ala agora conta o chute e a do Pivô, a velocidade (o jogo já usava os dois em quadra)
@@ -39,8 +85,6 @@
 ### Tela inicial
 - Tela inicial com mais vida: selo AO VIVO na quadra, logo respirando e os blocos entrando em cascata (para com "reduzir movimento")
 - Página de erro nova: o Psyduck perdeu a bola pra fora da quadra
-- Logo novo: a carta holo com a bola (também na aba do navegador, no ícone do celular e na prévia do link)
-- Ícones padronizados: fechar, setas, estrela, sortear e o resto desenhados no mesmo traço em todo o jogo
 
 ### Medalhas e clube
 - 20 medalhas com degraus (bronze, prata, ouro e platina) em Perfil → Medalhas. Já contam tudo o que você jogou
@@ -62,11 +106,8 @@
 - Quem jogou Duelo sem conta pode ligar o Google e continuar na mesma conta
 
 ### Consertos
-- Faixas da torcida novas: "Aqui é {clube}", "ABAIXA QUE É HYPER BEAM", "Hoje Magikarp, amanhã Gyarados", "Sua insígnia é minha!" e outras
 - Prof. Carvalho agora pede ver os 151 Pokémon na Pokédex (era 100); quem já tinha ganhado continua com ele
 - O Prof. Carvalho dourado conta "jogou" igual à Pokédex (quem tinha 151 jogados e via 150/151 agora ganha)
-- Carta Ícone agora pode ser o craque da partida: continua Ícone (com o fundo de galáxia), ganha o selo "MVP", "MVP 2" e "MVP 3" e +1 em todos os atributos por selo (até +5). Antes o prêmio pulava pro próximo jogador
-- Quem foi campeão com Mew e Mewtwo, com os 3 pássaros lendários ou com um Rattata antes dessas missões existirem agora ganha a conquista ao abrir o jogo (sai do Hall da Fama)
 - Pokémon que evolui em quadra conta como "jogou" nas duas formas na Pokédex (a de antes até a evolução, a nova depois)
 - A sequência de títulos zera ao começar uma copa nova por cima de outra em andamento
 - A sequência de títulos não volta mais ao juntar o save do celular e do PC
@@ -84,6 +125,12 @@
 - Títulos e copas perfeitas do Hall da Fama aparecem no Perfil e na tela inicial depois de juntar o save de dois aparelhos
 - Avatar shiny: toque no Pokémon com o brilho no canto e escolha a versão normal ou a shiny
 - Avatares centralizados e o shiny não passa mais da borda
+
+## 0.8.8 · Ícone MVP e conquistas retroativas
+
+### Consertos
+- Carta Ícone agora pode ser o craque da partida: continua Ícone (com o fundo de galáxia), ganha o selo "MVP", "MVP 2" e "MVP 3" e +1 em todos os atributos por selo (até +5). Antes o prêmio pulava pro próximo jogador
+- Quem foi campeão com Mew e Mewtwo, com os 3 pássaros lendários ou com um Rattata antes dessas missões existirem agora ganha a conquista ao abrir o jogo (sai do Hall da Fama)
 
 ## 0.8.7 · Emotes, selos e faixa da torcida
 
