@@ -65,7 +65,7 @@ Ainda pendente do antigo "Primeiro minuto" (o maior vazamento é entre começar 
   líderes e golpes; habilidades e tipos novos entram junto (Fairy na Gen 6).
 - **Personalização absurda:** escudo desenhado, uniforme (cores, listras, número), mascote, quadra/estádio do clube,
   torcida, música e grito de gol, cartas e molduras próprias, apelido dos Pokémon.
-- **Modo Ultimate Team:** montar o clube com as cartas que você ganha (edições especiais, Shiny, Ícones, Eventos),
+- **Modo Ultimate Team** (proposta em [ultimate-team.md](ultimate-team.md), no Em breve desde 20/10/2026): montar o clube com as cartas que você ganha (edições especiais, Shiny, Ícones, Eventos),
   química por tipo e sinergia, desafios de montagem (SBC) e temporadas. Sem dinheiro nenhum: tudo se ganha jogando.
 - Mais ideias que já surgiram: Nuzlocke opcional, ranking por temporada, quadras temáticas extras, torneios da
   comunidade.
