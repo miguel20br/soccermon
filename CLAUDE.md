@@ -156,7 +156,7 @@ commit). Prévias da Vercel têm os atalhos de demo e `?vel=N` (quadra até 64x)
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (20/10/2026, v0.8.8.4 · Álbum em livro)
+## Estado atual (20/10/2026, v0.8.9 · Sala de troféus e menus novos, pronta na branch `v089`)
 
 Tudo que subiu em 19/10 foi separado nas Novidades em 4 números (decisão do Miguel, 19/10): **0.8.8** Ícone MVP e
 conquistas retroativas (o conserto da manhã); **0.8.8.1** Melhores momentos, Copa do Dia e medalhas (o pacotão:
@@ -214,13 +214,14 @@ Duelo sai de `"displayVersion"` no `package.json` (`__APP_VERSION__` = `displayV
 `HudIcon`, brand guide em `docs/marca/` (skill `soccermon-marca`), faixas da torcida escritas pelo Miguel, pacote de
 cartas com o logo, bola original na Home e a Liga fechada com contagem.
 
-**Branch `v089` (20/10, ainda não lançada):** perfil do amigo (Amigos → tocar no nome: vitrine, números, últimos
+**0.8.9 (branch `v089`, pronta; sobe com o "pode subir"):** perfil do amigo (Amigos → tocar no nome: vitrine, números, últimos
 títulos, "vocês no Duelo"; ranking da Copa do Dia Todos/Amigos; migração `20261021120000_perfil_do_amigo.sql` **aplicada
 em produção em 20/10** com o ok do Miguel), Sala de troféus (`src/ui/screens/TrophyRoom.tsx`, `src/store/trophies.ts`,
 `?demo=sala`), o retrofit do "nada teleporta" (`src/ui/view-transition.ts`, `tab-slide.ts`, `exit-motion.ts`,
 `npm run teleporte`) e os **menus em três portas** (decidido em 20/10, `docs/planos/menus-e-sala.md`): a Home tem os
 modos de jogo + **Perfil** (Treinador com as missões, Clube, Amigos), **Coleção** (Pokédex, Álbum, Golpedex) e **Sala de
-troféus** (o quarto no estilo FireRed, ainda **esperando o ok do Miguel**, + Troféus, Medalhas, Números); engrenagem e
+troféus** (quarto em pixel art do Modern Interiors grátis com a luz 2D do Phaser, `src/game/scenes/TrophyRoomScene.ts`,
+`src/game/room-spots.ts`; o quarto é o menu, com cartão, botões-legenda, nomes ao segurar e tutorial na 1ª visita); engrenagem e
 Perfil no canto de cima de toda tela de menu; `?aba=` abre a aba, `?perfil=` antigo é redirecionado (`src/ui/doors.ts`).
 
 **0.8.8.4 (20/10):** o Álbum virou livro (`src/ui/profile/Album.tsx`, `?demo=album`): estante com um livro por geração

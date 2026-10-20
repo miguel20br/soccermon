@@ -419,3 +419,25 @@
     position: absolute;
     inset: 2px 18px 2px 4px;
 }
+
+/* celular: o quarto vai de ponta a ponta (sem a margem da página) e a legenda vira uma fileira que desliza */
+@media (max-width: 560px) {
+    .room-wrap .room-stage {
+        width: calc(100% + 32px);
+        margin-inline: -16px;
+        border-radius: 0;
+    }
+    .room-legend {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        margin-inline: -16px;
+        padding: 0 16px 4px;
+        scrollbar-width: none;
+    }
+    .room-legend::-webkit-scrollbar {
+        display: none;
+    }
+    .room-chip {
+        flex: none;
+    }
+}

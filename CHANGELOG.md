@@ -1,5 +1,30 @@
 # Novidades
 
+## 0.8.9 · Sala de troféus e menus novos
+
+### Sala de troféus
+- Uma sala de verdade, em pixel art, pra tudo que você ganhou: taças da Copa (bronze, prata e ouro pela campanha), a Liga, medalhões da Copa do Dia, cinturões do Duelo, broches das medalhas, o diploma da Platina e o Hall da Fama em polaroids
+- De noite (18 h às 6 h) os holofotes acendem nas vitrines, a lareira e a TV piscam; de dia, a sala fica clara
+- O seu Pokémon do avatar mora lá: passeia, vai até o que você toca e dorme no tapete de madrugada
+- Toque em qualquer coisa: a câmera chega perto e um cartão diz o que é, quantos você tem, como ganhar e o histórico. Ou use os botões embaixo da sala
+- Segure na sala pra ver o nome de tudo. Na primeira visita, um tutorial curto mostra cada parte
+- A sala sobe de nível com os títulos: quarto em Pallet, sala do clube, sala do estádio
+
+### Menus em três portas
+- A tela inicial ficou com os modos de jogo e três portas: Perfil (quem você é), Coleção (o que você coleciona) e Sala de troféus (o que você ganhou)
+- Perfil: o topo é o seu cartão público; abas Treinador (com as missões que liberam cada treinador e título), Clube e Amigos
+- Coleção: Pokédex, Álbum e Golpedex juntos. Os selos de carreira ficam na ficha de cada Pokémon, com "Destacar"
+- Configurações na engrenagem do canto de cima, em toda tela de menu. Notas da versão, Ajuda, Créditos e feedback no rodapé
+- O NOVO some sozinho quando a coisa aparece na tela (sem as barras de "Marcar como visto")
+
+### Amigos
+- Toque num amigo pra ver o perfil dele: cartão, vitrine, números, últimos títulos e o retrospecto de vocês no Duelo
+- Ranking da Copa do Dia com Todos ou só Amigos
+
+### Nada pula
+- Toda troca de tela tem transição; as abas deslizam; janelas saem com fade; no draft, a carta contratada voa até a vaga
+- Celular em pé: nomes de Pokémon colados na quadra somem com fade em vez de se embolar
+
 ## 0.8.8.4 · Álbum em livro
 
 ### Álbum de figurinhas

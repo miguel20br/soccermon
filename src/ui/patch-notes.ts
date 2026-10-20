@@ -7,6 +7,47 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.8.9',
+        title: 'Sala de troféus e menus novos',
+        sections: [
+            {
+                title: 'Sala de troféus',
+                lines: [
+                    'Uma sala de verdade, em pixel art, pra tudo que você ganhou: taças da Copa (bronze, prata e ouro pela campanha), a Liga, medalhões da Copa do Dia, cinturões do Duelo, broches das medalhas, o diploma da Platina e o Hall da Fama em polaroids',
+                    'De noite (18 h às 6 h) os holofotes acendem nas vitrines, a lareira e a TV piscam; de dia, a sala fica clara',
+                    'O seu Pokémon do avatar mora lá: passeia, vai até o que você toca e dorme no tapete de madrugada',
+                    'Toque em qualquer coisa: a câmera chega perto e um cartão diz o que é, quantos você tem, como ganhar e o histórico. Ou use os botões embaixo da sala',
+                    'Segure na sala pra ver o nome de tudo. Na primeira visita, um tutorial curto mostra cada parte',
+                    'A sala sobe de nível com os títulos: quarto em Pallet, sala do clube, sala do estádio',
+                ],
+            },
+            {
+                title: 'Menus em três portas',
+                lines: [
+                    'A tela inicial ficou com os modos de jogo e três portas: Perfil (quem você é), Coleção (o que você coleciona) e Sala de troféus (o que você ganhou)',
+                    'Perfil: o topo é o seu cartão público; abas Treinador (com as missões que liberam cada treinador e título), Clube e Amigos',
+                    'Coleção: Pokédex, Álbum e Golpedex juntos. Os selos de carreira ficam na ficha de cada Pokémon, com "Destacar"',
+                    'Configurações na engrenagem do canto de cima, em toda tela de menu. Notas da versão, Ajuda, Créditos e feedback no rodapé',
+                    'O NOVO some sozinho quando a coisa aparece na tela (sem as barras de "Marcar como visto")',
+                ],
+            },
+            {
+                title: 'Amigos',
+                lines: [
+                    'Toque num amigo pra ver o perfil dele: cartão, vitrine, números, últimos títulos e o retrospecto de vocês no Duelo',
+                    'Ranking da Copa do Dia com Todos ou só Amigos',
+                ],
+            },
+            {
+                title: 'Nada pula',
+                lines: [
+                    'Toda troca de tela tem transição; as abas deslizam; janelas saem com fade; no draft, a carta contratada voa até a vaga',
+                    'Celular em pé: nomes de Pokémon colados na quadra somem com fade em vez de se embolar',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.8.8.4',
         title: 'Álbum em livro',
         sections: [
@@ -761,6 +802,47 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.8.9',
+        title: 'Trophy room and new menus',
+        sections: [
+            {
+                title: 'Trophy room',
+                lines: [
+                    'A real pixel art room for everything you won: Cup trophies (bronze, silver and gold by how you won), the League, Daily Cup medallions, Duel belts, medal pins, the Platinum diploma and the Hall of Fame in polaroids',
+                    'At night (6 pm to 6 am) the spotlights turn on over the cases and the fireplace and TV flicker; by day the room is bright',
+                    'Your avatar Pokémon lives there: it walks around, goes to what you tap and sleeps on the rug late at night',
+                    'Tap anything: the camera moves in and a card tells you what it is, how many you have, how to earn it and the history. Or use the buttons below the room',
+                    'Hold on the room to see every name. On your first visit, a short tutorial shows each part',
+                    'The room levels up with your titles: Pallet bedroom, club room, stadium room',
+                ],
+            },
+            {
+                title: 'Menus in three doors',
+                lines: [
+                    'The start screen has the game modes and three doors: Profile (who you are), Collection (what you collect) and Trophy room (what you won)',
+                    'Profile: the top is your public card; Trainer (with the missions that unlock each trainer and title), Club and Friends tabs',
+                    'Collection: Pokédex, Album and Movedex together. Career seals live on each Pokémon page, with "Highlight"',
+                    'Settings in the gear at the top corner of every menu screen. Patch notes, Help, Credits and feedback in the footer',
+                    'NEW disappears by itself once you see the item (no more "Mark as seen" bars)',
+                ],
+            },
+            {
+                title: 'Friends',
+                lines: [
+                    'Tap a friend to see their profile: card, showcase, numbers, latest titles and your Duel record against each other',
+                    'Daily Cup ranking with Everyone or Friends only',
+                ],
+            },
+            {
+                title: 'Nothing jumps',
+                lines: [
+                    'Every screen change has a transition; tabs slide; windows fade out; in the draft, the signed card flies to its slot',
+                    'Phone in portrait: Pokémon names that overlap on the court fade out instead of piling up',
+                ],
+            },
+        ],
+    },
     {
         version: '0.8.8.4',
         title: 'The album is a book',
