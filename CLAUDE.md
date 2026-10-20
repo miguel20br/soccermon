@@ -214,6 +214,12 @@ Duelo sai de `"displayVersion"` no `package.json` (`__APP_VERSION__` = `displayV
 `HudIcon`, brand guide em `docs/marca/` (skill `soccermon-marca`), faixas da torcida escritas pelo Miguel, pacote de
 cartas com o logo, bola original na Home e a Liga fechada com contagem.
 
+**Branch `v089` (20/10, ainda não lançada):** perfil do amigo (Amigos → tocar no nome: vitrine, números, últimos
+títulos, "vocês no Duelo"; ranking da Copa do Dia Todos/Amigos; migração `20261021120000_perfil_do_amigo.sql` **ainda
+não aplicada**, precisa do ok do Miguel), Sala de troféus (`src/ui/screens/TrophyRoom.tsx`, `src/store/trophies.ts`,
+`?demo=sala`; botão no Perfil, a aba Hall da Fama saiu e virou a estante da Copa) e o retrofit do "nada teleporta"
+(`src/ui/view-transition.ts`, `tab-slide.ts`, `exit-motion.ts`, `npm run teleporte`).
+
 **0.8.8.4 (20/10):** o Álbum virou livro (`src/ui/profile/Album.tsx`, `?demo=album`): estante com um livro por geração
 (Gen 2 fechada, Em breve), capa que abre, folha que vira pela lombada (`.al-leaf`), um espaço por Pokémon com a carta da
 frente (`profile.albumFront`, sem = a melhor; `speciesRows`/`frontRow`), versões empilhadas e espalhadas ao tocar
@@ -353,8 +359,8 @@ Plano do trailer e dos posts de lançamento: [docs/planos/divulgacao-trailer.md]
    LinkedIn (texto em `docs/marketing/textos-divulgacao.md` §7), clipes, Reddit, TabNews, Show HN. itch.io
    descartado (16/10: dá trabalho manter e traz pouca gente). Posts nas contas dele: o Claude prepara e para antes de publicar.
 6. **Sinais do 1º dia para olhar no placar:** maior vazamento entre "começou copa" e "jogou partida" (draft longo
-   no celular?); 73% jogam em 8x (começar mais rápido?); Dragonite capitão em 50% das copas (forte demais? decidir
-   junto, com calibragem).
+   no celular?); 73% jogam em 8x (começar mais rápido?). Dragonite capitão caiu de 50% (1º dia) pra 11% em 20/10
+   (Arcanine, Snorlax e Ditto 7%): sem mudança.
 7. **Ambiente de dev** (`docs/planos/ambiente-dev.md`): branch `staging` + staging.soccermon.com protegido,
    variáveis do Supabase só em Production, regra de CI na `main`, `ignoreCommand` no vercel.json. Depois do
    lançamento. O vercel.app hoje leva o save por JS (`src/cloud/domain-move.ts`): trocar por 308 no painel da
@@ -370,9 +376,10 @@ Plano do trailer e dos posts de lançamento: [docs/planos/divulgacao-trailer.md]
 11. **Depois da 0.8.5 (18/10/2026):** clipe combo 0.8.4 + 0.8.5 pro TikTok (rascunho da 0.8.4 em
    `trailer/atualizacao/`; falta gravar escanteio e duelo e o Miguel escolher a música; confirmar antes de postar).
    Duelo: confirmar no ar que o "Partida anulada" sumiu (corrigido na 0.8.5; só testado em duas abas no PC).
-   Pequenos: prancheta mostra quem saiu por 1–3 s depois do intervalo (celular); barra "Escanteios 0 x 0" do gráfico
-   com um risco vermelho; vincular conta anônima ao Google (precisa ligar "manual linking" no Supabase). Ideia
-   solta: patch da fórmula (Ala contando chute, Pivô contando velocidade), com antes/depois pro ok dele.
+   (Prancheta depois do intervalo, risco na barra "Escanteios 0 x 0" e vincular conta anônima: feitos, com teste.)
+12. **Copa do Dia refeita no servidor:** o draft e as recompensas mudam o time de uma partida pra outra, então
+   conferir de verdade = refazer a copa inteira (draft, recompensas e as 4 partidas) numa Edge Function, como a da Liga.
+   Plano em `docs/planos/liga.md`; não é coisa pequena (precisa tirar o draft do `game-store` pra funções puras).
 
 ### Riscos que ele já conhece
 

@@ -8,22 +8,42 @@ import { reduceMotionOn } from './settings-sync';
  * voa de um lugar pro outro. Navegador sem View Transitions, Reduzir movimento ou aba escondida: troca direto.
  * Uma por vez: o que muda durante uma transição (a última contratação do draft também troca de tela) entra nela.
  */
-let running = false;
+type Step = { apply: () => void; after?: () => void };
+/** Transição criada e a troca ainda não aplicada: o que chegar agora entra nela, na ordem. */
+let queue: Step[] | null = null;
+/** Troca já aplicada, animação rodando: o que chegar agora troca direto. */
+let animating = false;
 
-function run(apply: () => void, after?: () => void) {
-    if (running || !document.startViewTransition || reduceMotionOn() || document.visibilityState !== 'visible') {
+const can = () =>
+    typeof document !== 'undefined' &&
+    !!document.startViewTransition &&
+    !reduceMotionOn() &&
+    document.visibilityState === 'visible';
+
+/** Aplica `apply` dentro de uma View Transition (ou direto), sempre na ordem em que as trocas chegaram. */
+export function run(apply: () => void, after?: () => void) {
+    if (queue) {
+        queue.push({ apply, after });
+        return null;
+    }
+    if (animating || !can()) {
         apply();
         after?.();
         return null;
     }
-    running = true;
+    queue = [{ apply, after }];
     document.documentElement.classList.add('vt-screen');
     const vt = document.startViewTransition(() => {
-        flushSync(apply);
-        after?.();
+        const steps = queue ?? [];
+        queue = null;
+        animating = true;
+        flushSync(() => {
+            for (const st of steps) st.apply();
+        });
+        for (const st of steps) st.after?.();
     });
     void vt.finished.finally(() => {
-        running = false;
+        animating = false;
         document.documentElement.classList.remove('vt-screen');
     });
     return vt;

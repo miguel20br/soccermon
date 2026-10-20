@@ -279,7 +279,11 @@ export function PlayerCardModal() {
                 </header>
                 <ShowcaseRow items={info.showcase} className="pcard-medals" />
                 {info.cups.some((n) => n > 0) && (
-                    <div className="pcard-cups" aria-label={t('trophies.cardTrophies')}>
+                    <div
+                        className="pcard-cups"
+                        role="img"
+                        aria-label={`${t('trophies.cardTrophies')}: ${info.cups.join(' · ')}`}
+                    >
                         {METALS.map((m, i) =>
                             info.cups[i] ? (
                                 <span key={m} className="pcard-cup">
