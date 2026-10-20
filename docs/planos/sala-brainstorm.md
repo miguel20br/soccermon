@@ -104,3 +104,18 @@ Esforço: médio-alto (a sala vira uma cena do Phaser como a quadra). Antes do c
 - [Phaser 4: Cone Lights](https://cdn.jsdelivr.net/npm/phaser@4.2.0/docs/Phaser%204%20Cone%20Lights/Phaser%204%20Cone%20Lights.md)
 - [Unity: 2D Lighting (referência de clima)](https://learn.unity.com/tutorial/add-2d-lighting)
 - [SmashWiki: Trophy](https://www.ssbwiki.com/Trophy) (galeria com o troféu girando e o texto)
+
+## Decidido e feito (20/10/2026)
+
+O Miguel aprovou o pacote recomendado ("pode montar; o que for grátis baixa, o que for pago me fala o valor").
+
+- **Traço:** a versão grátis do **Modern Interiors** (LimeZu, uso não comercial com crédito) tem paredes, pisos,
+  tapetes, lareira, abajur, plantas, estante, vitrine de vidro, TV, mesa com computador e quadros: deu pra montar a
+  sala sem pagar nada. A versão completa custa **US$ 1,50** (pagando no itch.io; tem museu, mais móveis e mais
+  pisos) e o estilo DS/BW, **US$ 3**: só se quiser mais variedade depois.
+- **Troféus** pintados por código no traço do pacote (`src/game/room-art.ts`).
+- **Cena do Phaser** (`src/game/scenes/TrophyRoomScene.ts`, palco em `src/ui/trophy/RoomStage.tsx`): noite (18 h às
+  6 h) com holofote em cone em cada vitrine, lareira e TV piscando, abajur, luar; de dia, luz clara. O Pokémon do
+  avatar passeia (sprite do Mystery Dungeon da quadra) e dorme no tapete depois das 22 h.
+- **Tudo numa tela:** tocar num objeto escurece o resto, a câmera aproxima e o cartão mostra nome, quantos, como
+  ganhar e o histórico, com setas pro próximo; medalhas, números, Hall da Fama e a lista de tudo abrem num painel.

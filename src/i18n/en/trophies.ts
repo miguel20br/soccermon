@@ -23,6 +23,17 @@ export const trophies: typeof pt = {
         glass: 'Card showcase',
         flag: 'Club banner and crest',
     },
+    card: {
+        none: 'Not earned yet',
+        soon: 'Coming soon',
+        titleLine: '{date} · {club} · final {a}-{b}',
+        got: 'earned',
+        medalsLine: 'Each pin is a medal; the metal shows the tier.',
+        prev: 'Previous',
+        next: 'Next',
+        hint: 'Tap anything in the room.',
+        list: 'See everything as a list',
+    },
     say: {
         close: 'Tap the text to close.',
         metalN: '{n} {metal}',

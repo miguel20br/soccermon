@@ -22,6 +22,17 @@ export const trophies = {
         glass: 'Vitrine de cartas',
         flag: 'Faixa e escudo do clube',
     },
+    card: {
+        none: 'Falta ganhar',
+        soon: 'Em breve',
+        titleLine: '{date} · {club} · final {a}x{b}',
+        got: 'ganho',
+        medalsLine: 'Cada broche é uma medalha; o metal mostra o degrau.',
+        prev: 'Anterior',
+        next: 'Próximo',
+        hint: 'Toque num objeto da sala.',
+        list: 'Ver tudo em lista',
+    },
     say: {
         close: 'Toque no texto pra fechar.',
         metalN: '{n} de {metal}',

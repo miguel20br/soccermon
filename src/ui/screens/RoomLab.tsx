@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useMemo, useState } from 'react';
 import { useT } from '../../i18n/react';
 import type { MedalProgress } from '../../store/medals';
 import { MEDALS } from '../../store/medals';
@@ -12,6 +12,7 @@ import { RoomDialog } from '../trophy/RoomDialog';
 import { type RoomData, RoomScene, type Spot } from '../trophy/RoomScene';
 import '../trophy-room.css';
 
+const RoomStage = lazy(() => import('../trophy/RoomStage').then((m) => ({ default: m.RoomStage })));
 const Diorama = lazy(() => import('../trophy/Diorama').then((m) => ({ default: m.Diorama })));
 
 import '../room-lab.css';
@@ -203,6 +204,55 @@ const DIORAMA: DioramaData = {
     ],
 };
 
+/** Os mesmos números, no formato da cena da sala em pixel art. */
+const ROOM_SCENE = (night: boolean) => ({
+    night,
+    club: '#3a7bd5',
+    cups: CUPS,
+    days: DAYS,
+    weeks: 1,
+    belts: BELTS.map((b) => DUEL_WINS >= b.wins),
+    platinum: false,
+    pins: MEDALS_FAKE.map((m) => m.tier),
+    polaroids: [6, 9, 3, 25].map((speciesId) => ({ speciesId, shiny: false })),
+    cards: 3,
+    tv: { speciesId: 6, shiny: true },
+    mon: { speciesId: 25, shiny: false },
+});
+
+/** G: a sala em pixel art com luz (o candidato), com o foco ao tocar. */
+function PixelRoom() {
+    const [night, setNight] = useState(true);
+    const [focus, setFocus] = useState<string | null>(null);
+    const data = useMemo(() => ROOM_SCENE(night), [night]);
+    return (
+        <>
+            <div className="bc-seg segmented">
+                <button type="button" className={night ? 'on' : undefined} onClick={() => setNight(true)}>
+                    Noite
+                </button>
+                <button type="button" className={night ? undefined : 'on'} onClick={() => setNight(false)}>
+                    Dia
+                </button>
+            </div>
+            <div className="lab-pixel-room">
+                <Suspense fallback={<p className="muted">Carregando…</p>}>
+                    <RoomStage data={data} focus={focus} onPick={(id) => setFocus(id === focus ? null : id)} />
+                </Suspense>
+                {focus && (
+                    <button type="button" className="lab-pixel-card" onClick={() => setFocus(null)}>
+                        <b>{focus}</b>
+                        <small>(o cartão com as informações entra aqui; toque pra voltar)</small>
+                    </button>
+                )}
+            </div>
+        </>
+    );
+}
+
+/** `&so=g`: só a sala em pixel art (prints e celular fraco: os outros esboços também desenham o tempo todo). */
+const ONLY_G = new URLSearchParams(window.location.search).get('so') === 'g';
+
 export function RoomLab({ onExit }: { onExit: () => void }) {
     const [say, setSay] = useState<Spot | null>(null);
     const { d } = useT();
@@ -215,45 +265,63 @@ export function RoomLab({ onExit }: { onExit: () => void }) {
             </p>
 
             <section className="panel lab-dir">
-                <h2 className="bc-caption">F · Diorama 3D (A + B)</h2>
+                <h2 className="bc-caption">G · Sala em pixel art com luz (a escolhida)</h2>
                 <p className="muted">
-                    O quarto de noite visto de cima, vitrines com holofote, troféus de metal de verdade, móveis low-poly
-                    (KayKit, livres) e o seu Pokémon. Toque num troféu: a câmera chega perto, ele gira e o cartão
-                    aparece do lado. Toque fora pra voltar.
+                    Móveis do Modern Interiors (LimeZu, versão grátis), troféus pintados no mesmo traço, luz 2D do
+                    Phaser (holofote em cada vitrine, lareira, abajur, TV, luar) e o seu Pokémon passeando. Toque num
+                    objeto: o resto escurece e a câmera chega perto.
                 </p>
-                <Suspense fallback={<p className="muted">Carregando…</p>}>
-                    <Diorama data={DIORAMA} />
-                </Suspense>
+                <PixelRoom />
             </section>
 
-            <section className="panel lab-dir">
-                <h2 className="bc-caption">A · Quarto FireRed (o de agora)</h2>
-                <p className="muted">O quarto do Red visto de cima, com móveis desenhados por código.</p>
-                <RoomScene data={ROOM} onPick={(_, spot) => setSay(spot)}>
-                    {say && <RoomDialog key={say} text={`${d.trophies.spots[say]}.`} onClose={() => setSay(null)} />}
-                </RoomScene>
-            </section>
+            {!ONLY_G && (
+                <>
+                    <section className="panel lab-dir">
+                        <h2 className="bc-caption">F · Diorama 3D (A + B)</h2>
+                        <p className="muted">
+                            O quarto de noite visto de cima, vitrines com holofote, troféus de metal de verdade, móveis
+                            low-poly (KayKit, livres) e o seu Pokémon. Toque num troféu: a câmera chega perto, ele gira
+                            e o cartão aparece do lado. Toque fora pra voltar.
+                        </p>
+                        <Suspense fallback={<p className="muted">Carregando…</p>}>
+                            <Diorama data={DIORAMA} />
+                        </Suspense>
+                    </section>
 
-            <section className="panel lab-dir">
-                <h2 className="bc-caption">B · Museu do clube</h2>
-                <p className="muted">
-                    Escuro como o resto do jogo, vitrines com holofote, troféus grandes e brilhando. Menos cenário, mais
-                    troféu.
-                </p>
-                <Museum />
-            </section>
+                    <section className="panel lab-dir">
+                        <h2 className="bc-caption">A · Quarto FireRed (o de agora)</h2>
+                        <p className="muted">O quarto do Red visto de cima, com móveis desenhados por código.</p>
+                        <RoomScene data={ROOM} onPick={(_, spot) => setSay(spot)}>
+                            {say && (
+                                <RoomDialog key={say} text={`${d.trophies.spots[say]}.`} onClose={() => setSay(null)} />
+                            )}
+                        </RoomScene>
+                    </section>
 
-            <section className="panel lab-dir">
-                <h2 className="bc-caption">C · Estante que desliza</h2>
-                <p className="muted">Uma prateleira por vez, troféus enormes; tocar vira o troféu e mostra o que é.</p>
-                <Shelf />
-            </section>
+                    <section className="panel lab-dir">
+                        <h2 className="bc-caption">B · Museu do clube</h2>
+                        <p className="muted">
+                            Escuro como o resto do jogo, vitrines com holofote, troféus grandes e brilhando. Menos
+                            cenário, mais troféu.
+                        </p>
+                        <Museum />
+                    </section>
 
-            <section className="panel lab-dir">
-                <h2 className="bc-caption">D · Game Boy (Red/Blue)</h2>
-                <p className="muted">A tela de 4 tons do Game Boy, com a lista igual ao menu de itens.</p>
-                <GameBoy />
-            </section>
+                    <section className="panel lab-dir">
+                        <h2 className="bc-caption">C · Estante que desliza</h2>
+                        <p className="muted">
+                            Uma prateleira por vez, troféus enormes; tocar vira o troféu e mostra o que é.
+                        </p>
+                        <Shelf />
+                    </section>
+
+                    <section className="panel lab-dir">
+                        <h2 className="bc-caption">D · Game Boy (Red/Blue)</h2>
+                        <p className="muted">A tela de 4 tons do Game Boy, com a lista igual ao menu de itens.</p>
+                        <GameBoy />
+                    </section>
+                </>
+            )}
         </div>
     );
 }

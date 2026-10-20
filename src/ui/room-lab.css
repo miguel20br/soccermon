@@ -345,3 +345,33 @@
         width: auto;
     }
 }
+
+/* G · sala em pixel art (src/ui/trophy/RoomStage.tsx) */
+.lab-pixel-room {
+    position: relative;
+}
+.room-stage {
+    width: 100%;
+    aspect-ratio: 480 / 320;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #0e1430;
+}
+.room-stage canvas {
+    image-rendering: pixelated;
+}
+.lab-pixel-card {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    display: grid;
+    gap: 4px;
+    max-width: 60%;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: rgba(14, 20, 48, 0.92);
+    color: var(--text);
+    text-align: left;
+    animation: diorama-card-in 250ms var(--ease-out) both;
+}

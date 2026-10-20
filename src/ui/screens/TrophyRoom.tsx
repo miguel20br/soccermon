@@ -1,5 +1,4 @@
-import { type CSSProperties, useMemo, useState } from 'react';
-import { viewInstance } from '../../engine/instance';
+import { lazy, type ReactNode, Suspense, useEffect, useMemo, useState } from 'react';
 import type { TKey } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { duelWins as duelWinsOf } from '../../store/duels';
@@ -7,29 +6,53 @@ import { useGame } from '../../store/game-store';
 import { medalProgress } from '../../store/medals';
 import { PLATINUM, platinumDone, platinumItems } from '../../store/missions';
 import { albumCount, clubColorHex } from '../../store/profile';
-import { BELTS, cupCounts, dailyCounts, fullWeeks, METALS, type MetalCount, roomLevel } from '../../store/trophies';
+import {
+    BELTS,
+    cupCounts,
+    cupMetal,
+    dailyCounts,
+    dailyMetal,
+    fullWeeks,
+    METALS,
+    roomLevel,
+} from '../../store/trophies';
 import { HallList } from '../components/HallParade';
-import { HudIcon, type HudIconKind } from '../components/MatchHud';
+import { HudIcon } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { type ArtKind, PixelTrophy } from '../components/PixelTrophy';
-import { DOOR_TABS, type DoorTab, initialTab, openDoor } from '../doors';
+import { initialTab, openDoor } from '../doors';
 import { useCardShowcase } from '../profile/Album';
 import { bannerText, clubVars } from '../profile/club';
 import { MedalsTab, useMedalView } from '../profile/Medals';
 import { NumbersTab } from '../profile/NumbersTab';
-import { NewDot, newsCount, useNews } from '../profile/news';
 import { PlatinumBlock } from '../profile/TrainerTab';
-import { type Metal, metalOf } from '../rarity';
-import { reduceMotionOn } from '../settings-sync';
-import { RoomDialog } from '../trophy/RoomDialog';
-import { RoomScene, type RoomTarget, type Spot } from '../trophy/RoomScene';
+import type { Metal } from '../rarity';
 import '../profile/profile.css';
 import '../trophy-room.css';
 
-type Tab = DoorTab<'trophies'>;
-const TAB_ICON: Record<Tab, HudIconKind> = { trofeus: 'cup', medalhas: 'medal', numeros: 'chart' };
+const RoomStage = lazy(() => import('../trophy/RoomStage').then((m) => ({ default: m.RoomStage })));
 
-/** Um troféu da estante: o desenho (silhueta se falta), o nome, quantos e como ganhar. */
+/** Os objetos do quarto na ordem das setas do cartão (de cima pra baixo, da esquerda pra direita). */
+const ORDER = [
+    'platina',
+    'hall',
+    'clube',
+    'dia',
+    'medalhas',
+    'duelo',
+    'copa-bronze',
+    'copa-prata',
+    'copa-ouro',
+    'liga',
+    'album',
+    'livros',
+    'numeros',
+    'tv',
+] as const;
+type Obj = (typeof ORDER)[number];
+type Sheet = 'lista' | 'medalhas' | 'numeros' | 'hall';
+
+/** Um troféu da lista: o desenho (silhueta se falta), o nome, quantos e como ganhar. */
 function TrophyCard({
     kind,
     metal,
@@ -53,10 +76,47 @@ function TrophyCard({
     );
 }
 
+/** Painel por cima da sala (medalhas, números, Hall da Fama, a lista de tudo). */
+function SheetPanel({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+    const { t } = useT();
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [onClose]);
+    return (
+        // biome-ignore lint/a11y/noStaticElementInteractions: clicar fora fecha; Esc e o botão fechar cobrem o teclado
+        <div className="modal-backdrop" onClick={onClose} role="presentation">
+            {/* biome-ignore lint/a11y/useKeyWithClickEvents: só impede que o clique dentro feche */}
+            <div
+                className="modal panel tr-sheet-panel"
+                role="dialog"
+                aria-modal="true"
+                aria-label={title}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <button type="button" className="modal-close" onClick={onClose} aria-label={t('common.ui.close')}>
+                    <HudIcon kind="close" />
+                </button>
+                <h2 className="bc-caption">{title}</h2>
+                {children}
+            </div>
+        </div>
+    );
+}
+
+interface Card {
+    title: string;
+    badge?: string;
+    metal?: Metal;
+    lines: string[];
+    action?: { label: string; run: () => void };
+}
+
 /**
- * Sala de troféus = o que eu ganhei (docs/planos/menus-e-sala.md): o quarto em cima (tocar num móvel leva à seção
- * dele) e as abas Troféus (Copa com o Hall da Fama, Copa do Dia, Duelo, Liga, Platina), Medalhas (com os Destaques
- * do cartão) e Números.
+ * Sala de troféus = o que eu ganhei (docs/planos/sala-brainstorm.md): o quarto em pixel art com luz é o menu. Tocar num
+ * objeto: o resto escurece, a câmera chega perto e o cartão diz o que é, quantos, como ganhar e o histórico (setas
+ * passam pro próximo). O que precisa de espaço (medalhas, números, Hall da Fama, a lista de tudo) abre num painel.
  */
 export function TrophyRoom() {
     const { t, d, lang } = useT();
@@ -69,9 +129,12 @@ export function TrophyRoom() {
     const records = useGame((s) => s.records);
     const view = useMedalView();
     const glass = useCardShowcase().insts;
-    const news = useNews();
-    const [tab, setTab] = useState<Tab>(() => initialTab('trophies'));
-    const [allHall, setAllHall] = useState(false);
+    const [focus, setFocus] = useState<Obj | null>(null);
+    // ?aba=medalhas|numeros (links antigos e prints) abre o painel direto
+    const [sheet, setSheet] = useState<Sheet | null>(() => {
+        const tab = initialTab('trophies');
+        return tab === 'trofeus' ? null : tab;
+    });
 
     const cups = cupCounts(hall);
     const days = dailyCounts(daily);
@@ -80,177 +143,288 @@ export function TrophyRoom() {
     const medals = useMemo(() => medalProgress(view), [view]);
     const platinum = platinumDone(PLATINUM[0], view);
     const lvl = roomLevel(Math.max(records.titles, hall.length));
-    const cap = hall[0] && (hall[0].squad.find((p) => p.captain) ?? hall[0].squad[0]);
-    // o quarto se redesenha a cada render (240x160 pixels: custa nada)
-    const room = {
-        level: lvl.level,
-        club: clubColorHex(profile.clubColor),
+    const capOf = (h: (typeof hall)[number]) => h.squad.find((p) => p.captain) ?? h.squad[0];
+    const metalName = (m: Metal) => t(`trophies.metal.${m}` as TKey);
+    const date = (ms: number) => new Date(ms).toLocaleDateString(lang === 'pt' ? 'pt-BR' : 'en-US');
+    const titleLine = (h: (typeof hall)[number]) =>
+        t('trophies.card.titleLine', {
+            date: date(h.date),
+            club: h.club,
+            a: h.scores.at(-1)?.[0] ?? 0,
+            b: h.scores.at(-1)?.[1] ?? 0,
+        });
+    const fmtList = (items: string[]) =>
+        new Intl.ListFormat(lang === 'pt' ? 'pt-BR' : 'en', { type: 'conjunction' }).format(items);
+    const night = (() => {
+        const h = new Date().getHours();
+        return h >= 18 || h < 6;
+    })();
+    const avatar = profile.avatar;
+    const sceneKey = JSON.stringify([
         cups,
         days,
         weeks,
         duelWins,
-        medals,
         platinum,
-        glass: glass.map((p) => metalOf(viewInstance(p).overall)),
-        tv: cap ? { speciesId: cap.speciesId, shiny: cap.shiny } : null,
-    };
+        medals.map((m) => m.tier),
+        hall.length,
+        glass.length,
+        profile.clubColor,
+        avatar,
+        night,
+    ]);
+    // biome-ignore lint/correctness/useExhaustiveDependencies: o quarto só muda quando o que ele mostra muda (sceneKey)
+    const scene = useMemo(
+        () => ({
+            night,
+            club: `#${clubColorHex(profile.clubColor).toString(16).padStart(6, '0')}`,
+            cups,
+            days,
+            weeks,
+            belts: BELTS.map((b) => duelWins >= b.wins),
+            platinum,
+            pins: medals.map((m) => m.tier),
+            polaroids: hall
+                .slice(0, 4)
+                .map((h) => ({ speciesId: capOf(h)?.speciesId ?? 25, shiny: !!capOf(h)?.shiny })),
+            cards: glass.length,
+            tv: hall[0] ? { speciesId: capOf(hall[0])?.speciesId ?? 25, shiny: !!capOf(hall[0])?.shiny } : null,
+            mon:
+                avatar.kind === 'pokemon'
+                    ? { speciesId: avatar.speciesId, shiny: avatar.shiny === true }
+                    : { speciesId: 25, shiny: false },
+        }),
+        [sceneKey],
+    );
 
-    const metalName = (m: Metal) => t(`trophies.metal.${m}` as TKey);
-    /** Só quando a pessoa pede (o botão da caixa): abre a aba e desliza até a seção, ou a outra porta. */
-    const goTo = (to: RoomTarget) => {
-        setSay(null);
-        if (to === 'album') return openDoor('collection', 'album');
-        if (to === 'clube') return openDoor('profile', 'clube');
-        const next: Tab = to === 'medalhas' || to === 'numeros' ? to : 'trofeus';
-        setTab(next);
-        requestAnimationFrame(() =>
-            document
-                .getElementById(to.startsWith('tr-') ? to : `tr-tab-${next}`)
-                ?.scrollIntoView({ block: 'start', behavior: reduceMotionOn() ? 'auto' : 'smooth' }),
-        );
-    };
-    const [say, setSay] = useState<{ spot: Spot; target: RoomTarget } | null>(null);
-    const list = (n: MetalCount) =>
-        new Intl.ListFormat(lang === 'pt' ? 'pt-BR' : 'en', { type: 'conjunction' }).format(
-            METALS.filter((m) => n[m]).map((m) => t('trophies.say.metalN', { n: n[m], metal: metalName(m) })),
-        );
-    /** O que a caixa diz de cada móvel, e pra onde o botão leva. */
-    const talk = (spot: Spot): { text: string; action?: { label: string; to: RoomTarget } } => {
-        const sum = (n: MetalCount) => n.bronze + n.prata + n.ouro;
+    /** O cartão do objeto: nome, selo (quantos), linhas (como ganhar, histórico) e o botão pra onde ele mora. */
+    const info = (o: Obj): Card => {
         const last = hall[0];
-        switch (spot) {
-            case 'cups':
-                return sum(cups)
-                    ? {
-                          text: t('trophies.say.cups', { list: list(cups) }),
-                          action: { label: t('trophies.act.hall'), to: 'tr-copa' },
-                      }
-                    : { text: t('trophies.say.cupsNone') };
-            case 'daily':
+        switch (o) {
+            case 'copa-bronze':
+            case 'copa-prata':
+            case 'copa-ouro': {
+                const m = o.slice(5) as Metal;
+                const mine = hall.filter((h) => cupMetal(h) === m);
                 return {
-                    text: sum(days)
-                        ? t('trophies.say.daily', { list: list(days), w: weeks })
-                        : t('trophies.say.dailyNone'),
-                    action: { label: t('trophies.act.daily'), to: 'tr-dia' },
-                };
-            case 'duel': {
-                const next = BELTS.find((b) => duelWins < b.wins);
-                return {
-                    text: next
-                        ? t('trophies.say.duel', { n: duelWins, next: next.wins })
-                        : t('trophies.say.duelMax', { n: duelWins }),
-                    action: { label: t('trophies.act.duel'), to: 'tr-duelo' },
+                    title: t('trophies.cup', { metal: metalName(m) }),
+                    metal: m,
+                    badge: mine.length ? t('trophies.times', { n: mine.length }) : t('trophies.card.none'),
+                    lines: [t(`trophies.cupHow.${m}` as TKey), ...mine.slice(0, 3).map(titleLine)],
+                    action: mine.length ? { label: t('trophies.act.hall'), run: () => setSheet('hall') } : undefined,
                 };
             }
             case 'liga':
-                return { text: t('trophies.ligaHow') };
-            case 'diploma': {
+                return { title: t('trophies.liga'), badge: t('trophies.card.soon'), lines: [t('trophies.ligaHow')] };
+            case 'dia': {
+                const got = daily.filter((e) => dailyMetal(e)).slice(0, 3);
+                const any = METALS.some((m) => days[m]);
+                return {
+                    title: t('trophies.sections.dia'),
+                    lines: [
+                        any
+                            ? t('trophies.say.daily', {
+                                  list: fmtList(
+                                      METALS.filter((m) => days[m]).map((m) =>
+                                          t('trophies.say.metalN', { n: days[m], metal: metalName(m) }),
+                                      ),
+                                  ),
+                                  w: weeks,
+                              })
+                            : t('trophies.say.dailyNone'),
+                        ...got.map(
+                            (e) =>
+                                `${e.day.split('-').reverse().join('/')} · ${t('trophies.daily', { metal: metalName(dailyMetal(e) as Metal) })}`,
+                        ),
+                    ],
+                    action: { label: t('trophies.act.daily'), run: () => go('daily') },
+                };
+            }
+            case 'duelo': {
+                const next = BELTS.find((b) => duelWins < b.wins);
+                return {
+                    title: t('trophies.sections.duelo'),
+                    badge: t('trophies.duelWins', { n: duelWins }),
+                    lines: [
+                        next
+                            ? t('trophies.say.duel', { n: duelWins, next: next.wins })
+                            : t('trophies.say.duelMax', { n: duelWins }),
+                        ...BELTS.map(
+                            (b) =>
+                                `${t('trophies.belt', { n: b.wins })}: ${duelWins >= b.wins ? t('trophies.card.got') : `${duelWins}/${b.wins}`}`,
+                        ),
+                    ],
+                    action: { label: t('trophies.act.duel'), run: () => go('duel') },
+                };
+            }
+            case 'medalhas':
+                return {
+                    title: t('trophies.spots.medals'),
+                    badge: `${medals.filter((m) => m.tier > 0).length}/${medals.length}`,
+                    lines: [t('trophies.card.medalsLine')],
+                    action: { label: t('trophies.act.medals'), run: () => setSheet('medalhas') },
+                };
+            case 'numeros':
+                return {
+                    title: t('trophies.spots.pc'),
+                    lines: [t('trophies.say.pc', { m: career.matches, w: career.wins, g: career.goalsFor })],
+                    action: { label: t('trophies.act.numbers'), run: () => setSheet('numeros') },
+                };
+            case 'hall':
+            case 'tv':
+                return {
+                    title: t('trophies.hallTitle'),
+                    badge: hall.length ? t('trophies.times', { n: hall.length }) : undefined,
+                    lines: last ? hall.slice(0, 3).map(titleLine) : [t('trophies.say.tvNone')],
+                    action: last ? { label: t('trophies.act.hall'), run: () => setSheet('hall') } : undefined,
+                };
+            case 'platina': {
                 const items = platinumItems(PLATINUM[0], view);
-                return platinum
-                    ? { text: t('trophies.say.diplomaDone') }
-                    : {
-                          text: t('trophies.say.diploma', {
-                              k: items.filter((i) => i.n >= i.goal).length,
-                              total: items.length,
-                          }),
-                          action: { label: t('trophies.act.platina'), to: 'tr-platina' },
-                      };
-            }
-            case 'medals':
+                const k = items.filter((i) => i.n >= i.goal).length;
                 return {
-                    text: t('trophies.say.medals', {
-                        n: medals.filter((m) => m.tier > 0).length,
-                        total: medals.length,
-                    }),
-                    action: { label: t('trophies.act.medals'), to: 'medalhas' },
+                    title: t('trophies.spots.diploma'),
+                    badge: `${k}/${items.length}`,
+                    lines: [
+                        platinum
+                            ? t('trophies.say.diplomaDone')
+                            : t('trophies.say.diploma', { k, total: items.length }),
+                    ],
+                    action: platinum ? undefined : { label: t('trophies.act.platina'), run: () => setSheet('lista') },
                 };
-            case 'pc':
-                return {
-                    text: t('trophies.say.pc', { m: career.matches, w: career.wins, g: career.goalsFor }),
-                    action: { label: t('trophies.act.numbers'), to: 'numeros' },
-                };
-            case 'tv': {
-                const fin = last?.scores.at(-1);
-                return last && fin
-                    ? {
-                          text: t('trophies.say.tv', { club: last.club, a: fin[0], b: fin[1] }),
-                          action: { label: t('trophies.act.hall'), to: 'tr-copa' },
-                      }
-                    : { text: t('trophies.say.tvNone') };
             }
-            case 'books': {
+            case 'album':
+                return {
+                    title: t('trophies.spots.glass'),
+                    badge: `${glass.length}/3`,
+                    lines: [t('trophies.say.glass', { n: glass.length })],
+                    action: { label: t('trophies.act.album'), run: () => openDoor('collection', 'album') },
+                };
+            case 'livros': {
                 const a = albumCount(view.dex);
                 return {
-                    text: t('trophies.say.books', { got: a.got, total: a.total }),
-                    action: { label: t('trophies.act.album'), to: 'album' },
+                    title: t('trophies.spots.books'),
+                    badge: `${a.got}/${a.total}`,
+                    lines: [t('trophies.say.books', { got: a.got, total: a.total })],
+                    action: { label: t('trophies.act.album'), run: () => openDoor('collection', 'album') },
                 };
             }
-            case 'glass':
+            case 'clube':
                 return {
-                    text: t('trophies.say.glass', { n: glass.length }),
-                    action: { label: t('trophies.act.album'), to: 'album' },
-                };
-            case 'flag':
-                return {
-                    text: t('trophies.say.flag', {
-                        banner: bannerText(profile.banner, profile.clubName || 'Pallet FC'),
-                    }),
-                    action: { label: t('trophies.act.club'), to: 'clube' },
+                    title: t('trophies.spots.flag'),
+                    lines: [
+                        t('trophies.say.flag', {
+                            banner: bannerText(profile.banner, profile.clubName || 'Pallet FC'),
+                        }),
+                    ],
+                    action: { label: t('trophies.act.club'), run: () => openDoor('profile', 'clube') },
                 };
         }
     };
-    const said = say && talk(say.spot);
+    const card = focus && info(focus);
+    const step = (k: number) => {
+        if (!focus) return;
+        const i = ORDER.indexOf(focus);
+        setFocus(ORDER[(i + k + ORDER.length) % ORDER.length]);
+    };
+    // setas do teclado passam de objeto, Esc volta pro quarto inteiro
+    useEffect(() => {
+        if (!focus || sheet) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === 'ArrowRight') step(1);
+            else if (e.key === 'ArrowLeft') step(-1);
+            else if (e.key === 'Escape') setFocus(null);
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    });
 
     return (
         <div className="menu-screen pf tr" style={clubVars(clubColorHex(profile.clubColor))}>
             <MenuHead title={t('trophies.title')} icon="liga" onBack={() => go('home')} />
 
-            <RoomScene data={room} onPick={(target, spot) => setSay({ target, spot })}>
-                {said && (
-                    <RoomDialog
-                        key={say.spot}
-                        text={said.text}
-                        action={said.action && { label: said.action.label, run: () => goTo(said.action!.to) }}
-                        onClose={() => setSay(null)}
+            <div className="room-wrap">
+                <Suspense fallback={<div className="room-stage" />}>
+                    <RoomStage
+                        data={scene}
+                        focus={focus}
+                        onPick={(id) => setFocus((cur) => (cur === id ? null : (id as Obj)))}
                     />
+                </Suspense>
+                {card && (
+                    <aside className="room-card" data-exit aria-live="polite">
+                        <button
+                            type="button"
+                            className="room-card-x"
+                            onClick={() => setFocus(null)}
+                            aria-label={t('common.ui.close')}
+                        >
+                            <HudIcon kind="close" />
+                        </button>
+                        {card.badge && (
+                            <span className={`room-badge${card.metal ? ` m-${card.metal}` : ''}`}>{card.badge}</span>
+                        )}
+                        <b>{card.title}</b>
+                        {card.lines.map((l) => (
+                            <small key={l}>{l}</small>
+                        ))}
+                        <div className="room-card-row">
+                            <button
+                                type="button"
+                                className="btn small"
+                                onClick={() => step(-1)}
+                                aria-label={t('trophies.card.prev')}
+                            >
+                                <HudIcon kind="prev" />
+                            </button>
+                            {card.action && (
+                                <button type="button" className="btn small primary" onClick={card.action.run}>
+                                    {card.action.label}
+                                </button>
+                            )}
+                            <button
+                                type="button"
+                                className="btn small"
+                                onClick={() => step(1)}
+                                aria-label={t('trophies.card.next')}
+                            >
+                                <HudIcon kind="next" />
+                            </button>
+                        </div>
+                    </aside>
                 )}
-            </RoomScene>
-            <p className="tr-level">
-                <b>{t('trophies.levelLine', { n: lvl.n, name: t(`trophies.level.${lvl.level}` as TKey) })}</b>
-                <small>{lvl.next ? t('trophies.nextLevel', { n: lvl.next }) : t('trophies.maxLevel')}</small>
-            </p>
-
-            <div
-                className="pf-tabs bc-tabs"
-                role="tablist"
-                aria-label={t('trophies.title')}
-                style={{ '--n': DOOR_TABS.trophies.length } as CSSProperties}
-            >
-                {DOOR_TABS.trophies.map((id) => (
-                    <button
-                        type="button"
-                        role="tab"
-                        key={id}
-                        id={`tr-tab-${id}`}
-                        aria-selected={tab === id}
-                        aria-controls={`tr-panel-${id}`}
-                        className={`pf-tab${tab === id ? ' active' : ''}`}
-                        onClick={() => setTab(id)}
-                    >
-                        <HudIcon kind={TAB_ICON[id]} />
-                        <span>{d.trophies.tabs[id]}</span>
-                        <NewDot on={id === 'medalhas' && newsCount(news, 'medalhas') > 0} />
-                    </button>
-                ))}
             </div>
 
-            <div role="tabpanel" id={`tr-panel-${tab}`} aria-labelledby={`tr-tab-${tab}`}>
-                {tab === 'medalhas' && <MedalsTab save={updateProfile} />}
-                {tab === 'numeros' && <NumbersTab onOpenDex={() => openDoor('collection', 'dex')} />}
-                {tab === 'trofeus' && (
+            <div className="tr-summary">
+                <span>
+                    <b>{t('trophies.levelLine', { n: lvl.n, name: t(`trophies.level.${lvl.level}` as TKey) })}</b>
+                    <small>{lvl.next ? t('trophies.nextLevel', { n: lvl.next }) : t('trophies.maxLevel')}</small>
+                </span>
+                <small className="muted">{t('trophies.card.hint')}</small>
+                <button type="button" className="btn small" onClick={() => setSheet('lista')}>
+                    {t('trophies.card.list')}
+                </button>
+            </div>
+
+            {sheet === 'medalhas' && (
+                <SheetPanel title={d.trophies.tabs.medalhas} onClose={() => setSheet(null)}>
+                    <MedalsTab save={updateProfile} />
+                </SheetPanel>
+            )}
+            {sheet === 'numeros' && (
+                <SheetPanel title={d.trophies.tabs.numeros} onClose={() => setSheet(null)}>
+                    <NumbersTab onOpenDex={() => openDoor('collection', 'dex')} />
+                </SheetPanel>
+            )}
+            {sheet === 'hall' && (
+                <SheetPanel title={t('trophies.hallTitle')} onClose={() => setSheet(null)}>
+                    <HallList />
+                </SheetPanel>
+            )}
+            {sheet === 'lista' && (
+                <SheetPanel title={t('trophies.card.list')} onClose={() => setSheet(null)}>
                     <div className="tr-sections">
-                        <section id="tr-copa" className="panel pf-card">
-                            <h2>{t('trophies.sections.copa')}</h2>
+                        <section className="pf-card">
+                            <h3 className="bc-lbl">{t('trophies.sections.copa')}</h3>
                             <ul className="tr-cards">
                                 {METALS.map((m) => (
                                     <TrophyCard
@@ -263,27 +437,9 @@ export function TrophyRoom() {
                                     />
                                 ))}
                             </ul>
-                            {hall.length > 0 && (
-                                <>
-                                    <h3 className="bc-lbl">{t('trophies.hallTitle')}</h3>
-                                    <HallList only={allHall ? undefined : hall.slice(0, 3).map((h) => h.id)} />
-                                    {hall.length > 3 && (
-                                        <button
-                                            type="button"
-                                            className="btn tr-go"
-                                            onClick={() => setAllHall(!allHall)}
-                                        >
-                                            {allHall
-                                                ? t('trophies.hallLess')
-                                                : t('trophies.hallAll', { n: hall.length })}
-                                        </button>
-                                    )}
-                                </>
-                            )}
                         </section>
-
-                        <section id="tr-dia" className="panel pf-card">
-                            <h2>{t('trophies.sections.dia')}</h2>
+                        <section className="pf-card">
+                            <h3 className="bc-lbl">{t('trophies.sections.dia')}</h3>
                             <ul className="tr-cards">
                                 {METALS.map((m) => (
                                     <TrophyCard
@@ -303,16 +459,9 @@ export function TrophyRoom() {
                                     how={t('trophies.weekHow')}
                                 />
                             </ul>
-                            <button type="button" className="btn tr-go" onClick={() => go('daily')}>
-                                {t('trophies.go.daily')}
-                            </button>
                         </section>
-
-                        <section id="tr-duelo" className="panel pf-card">
-                            <h2>
-                                {t('trophies.sections.duelo')}{' '}
-                                <span className="pf-count">{t('trophies.duelWins', { n: duelWins })}</span>
-                            </h2>
+                        <section className="pf-card">
+                            <h3 className="bc-lbl">{t('trophies.sections.duelo')}</h3>
                             <ul className="tr-cards">
                                 {BELTS.map((b) => (
                                     <TrophyCard
@@ -325,32 +474,13 @@ export function TrophyRoom() {
                                     />
                                 ))}
                             </ul>
-                            <button type="button" className="btn tr-go" onClick={() => go('duel')}>
-                                {t('trophies.go.duel')}
-                            </button>
                         </section>
-
-                        <section id="tr-liga" className="panel pf-card">
-                            <h2>{t('trophies.sections.liga')}</h2>
-                            <ul className="tr-cards">
-                                <TrophyCard
-                                    kind="taca"
-                                    metal="ouro"
-                                    n={0}
-                                    name={t('trophies.liga')}
-                                    how={t('trophies.ligaHow')}
-                                />
-                            </ul>
-                        </section>
-
-                        <div id="tr-platina">
-                            {PLATINUM.map((p) => (
-                                <PlatinumBlock key={p.gen} p={p} view={view} />
-                            ))}
-                        </div>
+                        {PLATINUM.map((p) => (
+                            <PlatinumBlock key={p.gen} p={p} view={view} />
+                        ))}
                     </div>
-                )}
-            </div>
+                </SheetPanel>
+            )}
         </div>
     );
 }
