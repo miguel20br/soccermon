@@ -7,6 +7,7 @@ import {
     matchIndexOfRow,
     type NodeKind,
     nextNodes,
+    rivalTrainer,
 } from '../../engine/cup-map';
 import { EVO_THRESHOLD, evolutionTarget } from '../../engine/evolution';
 import { viewInstance } from '../../engine/instance';
@@ -19,8 +20,11 @@ import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { cardSprite } from '../components/PokeCard';
 import { Money, SponsorSlots } from '../components/SponsorCard';
+import { reduceMotionOn } from '../settings-sync';
+import { RoomDialog } from '../trophy/RoomDialog';
 import { useHeld } from '../use-held';
 import '../long-cup.css';
+import '../trophy-room.css';
 
 const ICON: Record<NodeKind, HudIconKind> = {
     jogo: 'players',
@@ -32,19 +36,39 @@ const ICON: Record<NodeKind, HudIconKind> = {
     final: 'cup',
 };
 /** Altura de cada linha do mapa (px). */
-const ROW_H = 78;
+const ROW_H = 84;
 
 /**
- * Mapa da Copa longa (docs/planos/copa-longa.md): de baixo pra cima até a Final, estilo Slay the Spire. Tocar numa
- * casa aberta mostra o que ela é (e o rival, nas partidas); "Ir" entra.
+ * Regiões de Kanto no mapa, de baixo pra cima (a história da Copa longa: o clube atravessa Kanto até o Planalto
+ * Índigo). `rows` = primeira e última linha; `wild` = Pokémon selvagens que enfeitam a região; `who` = quem fala.
+ */
+const REGIONS = [
+    { id: 'rota1', rows: [0, 1], wild: [16, 19], who: 'oak' },
+    { id: 'floresta', rows: [2, 3], wild: [10, 25, 13], who: 'blue' },
+    { id: 'mtmoon', rows: [4, 6], wild: [35, 74, 41], who: 'brock' },
+    { id: 'cerulean', rows: [7, 8], wild: [54, 118, 7], who: 'misty' },
+    { id: 'vitoria', rows: [9, 11], wild: [95, 66, 105], who: 'blue' },
+    { id: 'planalto', rows: [12, 12], wild: [149, 131], who: 'lance' },
+] as const;
+type RegionId = (typeof REGIONS)[number]['id'];
+const regionOf = (row: number) => REGIONS.find((r) => row >= r.rows[0] && row <= r.rows[1]) ?? REGIONS[0];
+
+/** Tempo da caminhada do seu Pokémon até a casa escolhida, antes de entrar nela. */
+const WALK_MS = 520;
+
+/**
+ * Mapa da Copa longa (docs/planos/copa-longa.md): de baixo pra cima por Kanto até o Planalto Índigo, estilo Slay the
+ * Spire. O seu capitão fica na casa em que você está e anda até a próxima; cada região tem a sua fala na primeira vez.
  */
 export function CupMap() {
     const live = useGame((s) => s.run);
     const enterNode = useGame((s) => s.enterNode);
+    const tell = useGame((s) => s.tell);
     const go = useGame((s) => s.go);
     const run = useHeld(live?.status === 'map' && live.map ? live : null);
     const [pick, setPick] = useState<string | null>(null);
-    const { t, lang } = useT();
+    const [walking, setWalking] = useState<string | null>(null);
+    const { t, d, lang } = useT();
     const scroller = useRef<HTMLDivElement>(null);
     const map = run?.map;
     const open = useMemo(() => new Set(map ? nextNodes(map, run?.at ?? null).map((n) => n.id) : []), [map, run?.at]);
@@ -63,6 +87,27 @@ export function CupMap() {
     const walked = new Set(path.slice(1).map((id, i) => `${path[i]}>${id}`));
     const chosen = pick ? map.nodes.find((n) => n.id === pick) : undefined;
     const played = run.results.length;
+    // a próxima região do caminho ainda não contada: a fala dela aparece por cima do mapa
+    const nextRow = Math.min(...[...open].map((id) => map.nodes.find((n) => n.id === id)!.row));
+    const region = regionOf(Number.isFinite(nextRow) ? nextRow : 0);
+    const untold = !run.told?.includes(region.id) ? region : null;
+    // o capitão: na casa atual, ou embaixo do mapa antes da 1ª casa; andando até a escolhida
+    const captain = run.picks.find((p) => p.uid === run.captainUid) ?? run.picks[0];
+    const here = walking
+        ? pos(map.nodes.find((n) => n.id === walking)!)
+        : run.at
+          ? pos(map.nodes.find((n) => n.id === run.at)!)
+          : { x: 50, y: H + 26 };
+    const go2 = (id: string) => {
+        playSfx('select');
+        setPick(null);
+        if (reduceMotionOn()) {
+            enterNode(id);
+            return;
+        }
+        setWalking(id);
+        window.setTimeout(() => enterNode(id), WALK_MS);
+    };
 
     return (
         <div className={`menu-screen cm${chosen ? ' has-sheet' : ''}`}>
@@ -87,8 +132,25 @@ export function CupMap() {
             </div>
 
             <div className="cm-scroll" ref={scroller}>
-                <div className="cm-map" style={{ height: H }}>
-                    <svg className="cm-lines" viewBox={`0 0 100 ${H}`} preserveAspectRatio="none" aria-hidden>
+                <div className="cm-map" style={{ height: H + 56 }}>
+                    {REGIONS.map((r) => {
+                        const top = H - (r.rows[1] + 1) * ROW_H;
+                        const h = (r.rows[1] - r.rows[0] + 1) * ROW_H + (r.rows[0] === 0 ? 56 : 0);
+                        return (
+                            <div key={r.id} className={`cm-region rg-${r.id}`} style={{ top, height: h }}>
+                                <span className="cm-region-name">{d.longCup.region[r.id as RegionId]}</span>
+                                {r.wild.map((id, i) => (
+                                    <img
+                                        key={id}
+                                        className={`cm-wild pixel w${i}`}
+                                        src={cardSprite({ speciesId: id, shiny: false })}
+                                        alt=""
+                                    />
+                                ))}
+                            </div>
+                        );
+                    })}
+                    <svg className="cm-lines" viewBox={`0 0 100 ${H + 56}`} preserveAspectRatio="none" aria-hidden>
                         {map.nodes.flatMap((n) =>
                             n.next.map((id) => {
                                 const to = map.nodes.find((x) => x.id === id)!;
@@ -110,7 +172,7 @@ export function CupMap() {
                     </svg>
                     {map.nodes.map((n) => {
                         const p = pos(n);
-                        const isOpen = open.has(n.id);
+                        const isOpen = open.has(n.id) && !walking;
                         const state = n.id === run.at ? ' at' : path.includes(n.id) ? ' done' : isOpen ? ' open' : '';
                         return (
                             <button
@@ -130,11 +192,19 @@ export function CupMap() {
                             </button>
                         );
                     })}
+                    {captain && (
+                        <img
+                            className={`cm-me pixel${walking ? ' walking' : ''}`}
+                            src={cardSprite(captain)}
+                            alt=""
+                            style={{ left: `${here.x}%`, top: here.y } as CSSProperties}
+                        />
+                    )}
                 </div>
             </div>
 
-            {/* no body: a tela de menu tem transform (animação de entrada), que prenderia o fixed dentro dela */}
             {chosen &&
+                !walking &&
                 createPortal(
                     <NodeSheet
                         key={chosen.id}
@@ -142,19 +212,28 @@ export function CupMap() {
                         seed={run.seed}
                         faced={run.opponents.filter(Boolean).map((o) => o.name)}
                         lang={lang}
-                        onGo={() => {
-                            playSfx('select');
-                            setPick(null);
-                            enterNode(chosen.id);
-                        }}
+                        onGo={() => go2(chosen.id)}
                     />,
+                    document.body,
+                )}
+            {untold &&
+                !chosen &&
+                createPortal(
+                    <div className={`cm-story who-${untold.who}`}>
+                        <img className="cm-story-who" src={`assets/trainers/${untold.who}.png`} alt="" />
+                        <RoomDialog
+                            text={`${d.longCup.story[untold.id].who}: ${d.longCup.story[untold.id].text}`}
+                            action={{ label: t('longCup.storyNext'), run: () => tell(untold.id) }}
+                            onClose={() => tell(untold.id)}
+                        />
+                    </div>,
                     document.body,
                 )}
         </div>
     );
 }
 
-/** O que a casa escolhida é (e o rival, se for partida), com o "Ir". */
+/** O que a casa escolhida é (e o rival, se for partida, com o treinador dele), com o "Ir". */
 function NodeSheet({
     node,
     seed,
@@ -173,6 +252,7 @@ function NodeSheet({
         () => (isMatchKind(node.kind) ? longOpponent(seed, matchIndexOfRow(node.row), node.kind, faced) : null),
         [node, seed, faced],
     );
+    const trainer = rival ? rivalTrainer(rival.name) : undefined;
     return (
         <div
             className={`cm-sheet bc-surface bc-stripe k-${node.kind}`}
@@ -181,9 +261,13 @@ function NodeSheet({
             aria-label={t(`longCup.kind.${node.kind}`)}
         >
             <div className="cm-sheet-head">
-                <span className="cm-sheet-icon">
-                    <HudIcon kind={ICON[node.kind]} />
-                </span>
+                {trainer ? (
+                    <img className="cm-sheet-trainer" src={`assets/trainers/${trainer}.png`} alt="" />
+                ) : (
+                    <span className="cm-sheet-icon">
+                        <HudIcon kind={ICON[node.kind]} />
+                    </span>
+                )}
                 <span>
                     <b>{t(`longCup.kind.${node.kind}`)}</b>
                     <small>{t(`longCup.desc.${node.kind}`)}</small>

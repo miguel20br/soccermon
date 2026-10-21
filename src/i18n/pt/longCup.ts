@@ -30,8 +30,42 @@ export const longCup = {
     yellowTitle: 'Cartão amarelo',
     yellowLine: 'A derrota não eliminou: a próxima elimina.',
     out: 'Fim da linha na partida {n}',
+    redTitle: 'Cartão vermelho',
+    redLine: 'Segunda derrota: o time está fora da Copa longa.',
+    blocked: 'Caminho bloqueado',
     backToMap: 'Voltar pro mapa',
     soonEvent: 'Os eventos chegam na próxima etapa: por enquanto o caminho segue.',
+    /** Regiões do mapa, de baixo pra cima. */
+    region: {
+        rota1: 'Rota 1',
+        floresta: 'Floresta de Viridian',
+        mtmoon: 'Mt. Moon',
+        cerulean: 'Cerulean',
+        vitoria: 'Estrada da Vitória',
+        planalto: 'Planalto Índigo',
+    },
+    /** A história: uma fala por região, na primeira vez que o caminho chega nela. */
+    story: {
+        rota1: {
+            who: 'Prof. Carvalho',
+            text: 'Seu clube foi chamado pra Copa da Liga Índigo! São 8 jogos até o Planalto. Um cartão amarelo é tudo que dá pra levar.',
+        },
+        floresta: {
+            who: 'Blue',
+            text: 'Você também vai pro Planalto? Que bom. Assim eu tenho alguém pra deixar pra trás.',
+        },
+        mtmoon: {
+            who: 'Brock',
+            text: 'A montanha separa os times fortes dos sortudos. Encare um ginásio: o líder dá a MT dele pra quem vence.',
+        },
+        cerulean: {
+            who: 'Misty',
+            text: 'Guardou ₽? Em Cerulean tudo é mais caro, mas os juros do que você guarda ajudam.',
+        },
+        vitoria: { who: 'Blue', text: 'Ainda de pé? A Estrada da Vitória é a última chance de reforçar o time.' },
+        planalto: { who: 'Lance', text: 'Bem-vindo ao Planalto Índigo. Mostre o que esse time aprendeu no caminho.' },
+    },
+    storyNext: 'Continuar',
     treino: {
         title: 'Treino',
         evo: 'Treino de evolução',

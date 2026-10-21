@@ -37,6 +37,8 @@ export interface LongRunFields {
     path?: string[];
     /** Cartões amarelos já levados. */
     cards?: number;
+    /** Partes da história já contadas (uma por região do mapa). */
+    told?: string[];
 }
 
 export const newLongFields = (seed: string): LongRunFields => ({

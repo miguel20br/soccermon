@@ -32,8 +32,37 @@ export const longCup: typeof pt = {
     yellowTitle: 'Yellow card',
     yellowLine: 'The loss did not knock you out: the next one will.',
     out: 'The road ends at match {n}',
+    redTitle: 'Red card',
+    redLine: 'Second loss: the team is out of the Long Cup.',
+    blocked: 'Road blocked',
     backToMap: 'Back to the map',
     soonEvent: 'Events arrive in the next step: for now the path goes on.',
+    region: {
+        rota1: 'Route 1',
+        floresta: 'Viridian Forest',
+        mtmoon: 'Mt. Moon',
+        cerulean: 'Cerulean',
+        vitoria: 'Victory Road',
+        planalto: 'Indigo Plateau',
+    },
+    story: {
+        rota1: {
+            who: 'Prof. Oak',
+            text: 'Your club was invited to the Indigo League Cup! 8 matches to the Plateau. One yellow card is all you can take.',
+        },
+        floresta: { who: 'Blue', text: "You're heading to the Plateau too? Good. Now I have someone to leave behind." },
+        mtmoon: {
+            who: 'Brock',
+            text: 'The mountain sorts the strong teams from the lucky ones. Take on a gym: the leader gives their TM to whoever wins.',
+        },
+        cerulean: {
+            who: 'Misty',
+            text: 'Saved some ₽? Everything costs more in Cerulean, but interest on your savings helps.',
+        },
+        vitoria: { who: 'Blue', text: 'Still standing? Victory Road is your last chance to strengthen the team.' },
+        planalto: { who: 'Lance', text: 'Welcome to the Indigo Plateau. Show me what this team learned on the way.' },
+    },
+    storyNext: 'Continue',
     treino: {
         title: 'Training',
         evo: 'Evolution training',

@@ -394,6 +394,8 @@ export interface GameStore {
     enterNode(id: string): void;
     /** Treino da Copa longa: `evo` = enche a barra de evolução de `uid`; `rest` = +1 troca. */
     train(choice: 'evo' | 'rest', uid?: string): void;
+    /** Copa longa: a parte `id` da história já foi contada. */
+    tell(id: string): void;
     abandonRun(): void;
     chooseFormation(id: FormationId): void;
     chooseSlot(slot: SlotRef): void;
@@ -1602,6 +1604,11 @@ export const useGame = create<GameStore>()(
                         setState({ run: { ...base, status: 'treino' }, screen: 'treino' });
                     // ponytail: o Evento "?" ainda passa direto (os eventos entram no passo 7 do plano)
                     else setState({ run: base });
+                },
+
+                tell: (id) => {
+                    const run = getState().run;
+                    if (run && !run.told?.includes(id)) setState({ run: { ...run, told: [...(run.told ?? []), id] } });
                 },
 
                 train: (choice, uid) => {

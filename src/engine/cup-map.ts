@@ -85,27 +85,58 @@ export const nextNodes = (map: CupMap, at: string | null): MapNode[] =>
  * Times da Rota (o "Jogo" da Copa longa): treinadores de Kanto, cada um puxado pros tipos dele. Sem líder: a quadra é a
  * de madeira e não tem técnico IA.
  */
-export const ROUTE_TEAMS: Omit<ClubTemplate, 'leader' | 'city'>[] = [
-    { name: 'Caçadores de Insetos', types: ['Bug', 'Grass'], tactic: 'offensive', color: 0x7fa83a, formation: '2-2' },
+export const ROUTE_TEAMS: (Omit<ClubTemplate, 'leader' | 'city'> & { trainer: string })[] = [
+    {
+        name: 'Caçadores de Insetos',
+        trainer: 'bugcatcher',
+        types: ['Bug', 'Grass'],
+        tactic: 'offensive',
+        color: 0x7fa83a,
+        formation: '2-2',
+    },
     {
         name: 'Montanhistas',
+        trainer: 'hiker',
         types: ['Rock', 'Ground', 'Fighting'],
         tactic: 'defensive',
         color: 0x8a6a45,
         formation: 'ferrolho',
     },
-    { name: 'Nadadores da Rota 19', types: ['Water', 'Ice'], tactic: 'balanced', color: 0x2f7fc4, formation: '1-2-1' },
+    {
+        name: 'Nadadores da Rota 19',
+        trainer: 'swimmer',
+        types: ['Water', 'Ice'],
+        tactic: 'balanced',
+        color: 0x2f7fc4,
+        formation: '1-2-1',
+    },
     {
         name: 'Equipe Rocket',
+        trainer: 'rocket',
         types: ['Poison', 'Normal', 'Psychic'],
         tactic: 'counter',
         color: 0x3a3a46,
         formation: '3-1',
     },
-    { name: 'Ornitólogos', types: ['Flying', 'Normal'], tactic: 'offensive', color: 0xc9a23a, formation: '4-0' },
-    { name: 'Faixas-Pretas', types: ['Fighting'], tactic: 'offensive', color: 0xb8322e, formation: '1-1-2' },
+    {
+        name: 'Ornitólogos',
+        trainer: 'birdkeeper',
+        types: ['Flying', 'Normal'],
+        tactic: 'offensive',
+        color: 0xc9a23a,
+        formation: '4-0',
+    },
+    {
+        name: 'Faixas-Pretas',
+        trainer: 'blackbelt',
+        types: ['Fighting'],
+        tactic: 'offensive',
+        color: 0xb8322e,
+        formation: '1-1-2',
+    },
     {
         name: 'Médiuns de Lavender',
+        trainer: 'channeler',
         types: ['Ghost', 'Psychic'],
         tactic: 'counter',
         color: 0x6a4d8f,
@@ -113,14 +144,33 @@ export const ROUTE_TEAMS: Omit<ClubTemplate, 'leader' | 'city'>[] = [
     },
     {
         name: 'Cientistas da Silph',
+        trainer: 'scientist',
         types: ['Electric', 'Poison'],
         tactic: 'balanced',
         color: 0x4a8fb8,
         formation: '2-2',
     },
-    { name: 'Motoqueiros', types: ['Poison', 'Fire'], tactic: 'offensive', color: 0x8f3f2e, formation: '1-1-2' },
-    { name: 'Pescadores', types: ['Water'], tactic: 'defensive', color: 0x3f6f8f, formation: 'ferrolho' },
+    {
+        name: 'Motoqueiros',
+        trainer: 'biker',
+        types: ['Poison', 'Fire'],
+        tactic: 'offensive',
+        color: 0x8f3f2e,
+        formation: '1-1-2',
+    },
+    {
+        name: 'Pescadores',
+        trainer: 'fisherman',
+        types: ['Water'],
+        tactic: 'defensive',
+        color: 0x3f6f8f,
+        formation: 'ferrolho',
+    },
 ];
+
+/** Sprite do treinador do rival (assets/trainers): a classe da Rota ou o líder do ginásio. */
+export const rivalTrainer = (name: string): string | undefined =>
+    ROUTE_TEAMS.find((t) => t.name === name)?.trainer ?? CLUBS.find((c) => c.name === name)?.leader;
 
 /** Força do rival pela partida (0 a 6 na Rota, 7 = Final): fácil no começo, puxado no fim. Ginásio +1, até 3. */
 const LONG_DIFFICULTY = [-1, -1, 0, 0, 1, 1, 2, 4];
