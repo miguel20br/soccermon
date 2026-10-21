@@ -232,25 +232,49 @@ export const DEFAULT_FORMATION: FormationId = '1-2-1';
 export const formationOf = (id: FormationId | undefined): Formation => FORMATIONS[id ?? DEFAULT_FORMATION];
 
 /**
- * Identidade de cada formação em quadra (docs/planos/formacoes.md, decidido com o Miguel em 21/10/2026).
- * `attrs` multiplica o atributo de todo o time no `eff` (como a tática, só em campo); `role` só o da posição.
- * O resto mexe na IA: deslocamento (soma no TACTIC_SHIFT), passe pro pivô, passe × drible e a bomba do Fixo.
+ * Identidade de cada formação em quadra (docs/planos/formacoes.md): o time JOGA diferente, não só com outro número.
+ * Quase tudo é comportamento da IA (ai-controller.ts): onde cada um fica, que passe procura, quem corre depois do
+ * passe, quem gira de lugar. `attrs`/`role` (multiplicam no `eff`, como a tática) ficam só pra acertar o equilíbrio.
  */
 export interface FormationStyle {
     attrs?: Partial<Record<AttrKey, number>>;
     role?: Partial<Record<Position, Partial<Record<AttrKey, number>>>>;
+    /** Deslocamentos que somam no TACTIC_SHIFT (linha com e sem a bola, pivô plantado, chute, pressão). */
     attack?: number;
     defend?: number;
     pivotHold?: number;
     shootBias?: number;
     pressBias?: number;
-    /** Somado ao valor do passe que vai pro Pivô. */
+    /** Abertura das vagas em relação ao meio (1 = o desenho; <1 por dentro, >1 pelos lados), com e sem a bola. */
+    width?: number;
+    defWidth?: number;
+    /** Quanto o time anda junto com a bola no comprimento (0,35 = o padrão). */
+    follow?: number;
+    /** Distância ideal do apoio ao portador (m; padrão 9) e bônus do apoio aberto na lateral. */
+    supportDist?: number;
+    supportWide?: number;
+    /** Peso do passe pra frente (1 = padrão) e preferência por passe longo (+) ou curto (−), por metro. */
+    fwdPass?: number;
+    passLen?: number;
+    /** Somado ao passe que vai pro Pivô; `longPivot`: a mais quando sai do nosso campo (bola longa, vertical). */
     pivotPass?: number;
+    longPivot?: number;
     /** Somado ao valor de qualquer passe (contra o drible). */
     passBias?: number;
+    /** Passe e corre: quem passa dispara em diagonal pra área por estes segundos. */
+    giveGo?: number;
+    /** Rodízio: a cada N segundos com a bola, os 4 da linha giram uma vaga (losango → ala → frente → ala). */
+    rotate?: number;
+    /** Pivô parede: de costas, segura e devolve pra quem chega de trás. */
+    wallPivot?: boolean;
+    /** Ultrapassagem: com a bola num lado, o de trás daquele lado passa por fora; e o passe rasteiro pra trás na área. */
+    overlap?: boolean;
+    cutback?: number;
+    /** Até quantos metros do gol a IA aceita chutar (padrão 17). */
+    shootRange?: number;
     /** Multiplica a chance da bomba de longe do Fixo. */
     longShot?: number;
-    /** Pedra-papel-tesoura: contra estas, o time todo joga com `COUNTER_FACTOR` em tudo. */
+    /** Vantagem tática: contra estas, o time todo joga com `COUNTER_FACTOR` em tudo. */
     counters?: FormationId[];
 }
 
@@ -258,45 +282,68 @@ export interface FormationStyle {
 export const COUNTER_FACTOR = 1.015;
 
 export const FORMATION_STYLES: Record<FormationId, FormationStyle> = {
-    // o coringa: um tico melhor em tudo que é jogo coletivo, sem vantagem nem desvantagem de confronto
-    '1-2-1': { attrs: { passing: 1.02, positioning: 1.02 } },
-    // pressão e contra-ataque: rouba mais, sai rápido no pivô; passe curto pior (time parado)
+    // triângulos curtos pelo meio: alas por dentro, apoio perto, passe curto, toca mais do que conduz
+    '1-2-1': {
+        width: 0.85,
+        supportDist: 6.5,
+        passLen: -0.012,
+        fwdPass: 0.8,
+        passBias: 0.04,
+        attrs: { passing: 1.03, positioning: 1.02 },
+    },
+    // pelos lados em duplas: bem aberto, ultrapassagem do fixo, passe rasteiro pra trás na área; pressão alta
     '2-2': {
         counters: ['1-1-2'],
-        attrs: { tackling: 1.03, passing: 0.95 },
-        pressBias: 0.015,
-        pivotHold: 1,
-        pivotPass: 0.05,
+        width: 1.45,
+        supportWide: 0.35,
+        overlap: true,
+        cutback: 0.3,
+        defend: 1.5,
+        pressBias: 0.02,
+        attrs: { passing: 0.98 },
     },
-    // bola no pivô: ele vira o artilheiro; time marca pior lá atrás (linha de 3 aberta)
+    // os 3 de trás tocam de lado até achar a bola longa no pivô, que segura de costas e devolve pra quem chega
     '3-1': {
         counters: ['2-2'],
+        width: 1.25,
+        pivotHold: 2,
+        fwdPass: 0.9,
+        pivotPass: 0.3,
+        longPivot: 0.35,
+        wallPivot: true,
         role: { PIVO: { shooting: 1.1, strength: 1.1 } },
-        attrs: { positioning: 0.96 },
-        pivotHold: 1,
-        pivotPass: 0.2,
     },
-    // rodízio: posse, passe e velocidade; ninguém de referência na área (chute e força menores)
+    // os 4 giram de vaga o tempo todo; passe e corre em diagonal
     '4-0': {
         counters: ['ferrolho'],
-        attrs: { passing: 1.08, pace: 1.06, dribble: 1.03, shooting: 0.97, strength: 0.95 },
-        passBias: 0.04,
+        rotate: 3,
+        giveGo: 1,
+        supportDist: 7,
+        passBias: 0.05,
+        attrs: { passing: 1.04, pace: 1.03 },
     },
-    // blitz: todo mundo chuta, ninguém volta
+    // jogo direto: bola pra frente nos dois pivôs, chute cedo e de mais longe
     '1-1-2': {
         counters: ['4-0'],
-        attrs: { shooting: 1.06, strength: 1.05, tackling: 0.94, positioning: 0.95 },
         attack: 1.5,
-        shootBias: -0.01,
+        fwdPass: 1.8,
+        passLen: 0.015,
+        pivotPass: 0.12,
+        shootBias: -0.015,
+        shootRange: 19,
+        attrs: { tackling: 0.97 },
     },
-    // retranca: fecha a área e sai no pivô; ataca pouco e de longe
+    // bloco baixo e fechado; recuperou, bola longa no pivô ou bomba do fixo
     ferrolho: {
         counters: ['3-1'],
-        attrs: { tackling: 1.07, positioning: 1.07, goalkeeping: 1.08, shooting: 0.93, passing: 0.96 },
-        defend: -1.5,
-        pivotHold: 2.5,
-        pivotPass: 0.1,
-        longShot: 1.5,
+        defend: -3,
+        defWidth: 0.7,
+        follow: 0.15,
+        pivotHold: 3,
+        longPivot: 0.4,
+        fwdPass: 1.3,
+        longShot: 1.6,
+        attrs: { tackling: 1.04, goalkeeping: 1.05 },
     },
 };
 

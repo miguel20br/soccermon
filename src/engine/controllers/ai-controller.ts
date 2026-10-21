@@ -23,6 +23,9 @@ const TACTIC_SHIFT: Record<
     counter: { attack: 1, defend: -2, pivotHold: 3.5, shootBias: -0.01, pressBias: 0 },
 };
 
+/** Ordem do giro do Rodízio pelas vagas do 4-0: fundo (1) → ala esquerda (2) → frente (4) → ala direita (3). */
+const ROTATION = [1, 2, 4, 3];
+
 interface TeamContext {
     tick: number;
     attacking: [boolean, boolean];
@@ -212,6 +215,8 @@ export class AIController implements Controller {
         const s = this.s;
         const { width } = s.cfg.pitch;
         const ballRel = toRel(s, team, s.ball.pos);
+        const st = formationStyle(s.teams[team].formation.id);
+        const ideal = st.supportDist ?? 9;
         let best = toWorld(s, team, Math.min(34, ballRel.x + 8), width / 2);
         let bestScore = -Infinity;
         for (let xr = 16; xr <= 36; xr += 4) {
@@ -221,7 +226,8 @@ export class AIController implements Controller {
                 if (d < 4 || d > 16) continue;
                 let score = expectedGoals(spot, goalXFor(s, team), width / 2, s.cfg.pitch.goalWidth) * 4;
                 score += this.passIsSafe(team, s.ball.pos, spot) ? 1 : -1;
-                score -= Math.abs(d - 9) * 0.04;
+                score -= Math.abs(d - ideal) * 0.04;
+                if (st.supportWide && Math.abs(y - width / 2) > width * 0.3) score += st.supportWide;
                 if (score > bestScore) {
                     bestScore = score;
                     best = spot;
@@ -258,6 +264,7 @@ export class AIController implements Controller {
         const distGoal = dist(p.pos, goal);
         const xg = expectedGoals(p.pos, gx, gy, s.cfg.pitch.goalWidth);
         const shootingSkill = eff(s, p, 'shooting') / 99;
+        const style = formationStyle(s.teams[p.team].formation.id);
 
         // golpe máximo do capitão (agência): na janela, de perto do gol ele solta na hora
         const max = s.teams[p.team].agency.max;
@@ -276,7 +283,12 @@ export class AIController implements Controller {
 
         // 1) chute
         const shootThreshold = (pressure > 0.5 ? 0.04 : 0.075) + tactic.shootBias - shootingSkill * 0.03;
-        if (distGoal < 17 && xg > shootThreshold && s.rng.chance(0.9)) {
+        // pivô parede: de costas e marcado, longe da chance boa, segura e devolve pra quem chega de trás
+        if (style.wallPivot && p.role === 'PIVO' && pressure > 0.25 && xg < 0.09 && s.rng.chance(0.7)) {
+            const lay = this.layoff(p);
+            if (lay) return { type: 'pass', target: lay.target, power: 0.85, receiverId: lay.receiver };
+        }
+        if (distGoal < (style.shootRange ?? 17) && xg > shootThreshold && s.rng.chance(0.9)) {
             const cmds: Command[] = [];
             // golpe no chute na chance boa: é o grande momento do lance (a IA chuta com xG ~0,07–0,09, então os
             // limites antigos 0,14/0,22 quase nunca saíam: 0,17 chute com golpe por jogo → ~1,5; Miguel, 17/10/2026)
@@ -407,10 +419,16 @@ export class AIController implements Controller {
             if (d < 2.5 || d > 22) continue;
             const safe = this.passIsSafe(p.team, p.pos, target);
             const rel = toRel(s, p.team, target);
-            let score = (rel.x - myRel.x) * 0.045;
+            let score = (rel.x - myRel.x) * 0.045 * (style.fwdPass ?? 1);
             score += expectedGoals(target, gx, gy, s.cfg.pitch.goalWidth) * 2.2;
             score += Math.min(4, this.openness(mate)) * 0.07;
             score -= d * 0.012;
+            score += d * (style.passLen ?? 0);
+            if (mate.role === 'PIVO' && myRel.x < s.cfg.pitch.length / 2) score += style.longPivot ?? 0;
+            // rasteiro pra trás: da linha de fundo, aberto, pra quem chega no meio da área
+            const mid = s.cfg.pitch.width / 2;
+            if (style.cutback && myRel.x > 30 && Math.abs(myRel.y - mid) > 5 && Math.abs(rel.y - mid) < 4)
+                score += style.cutback;
             if (!safe) score -= 1.2;
             if (keeper) score -= 0.4;
             // golpe máximo aberto: a bola procura o capitão
@@ -561,10 +579,12 @@ export class AIController implements Controller {
                 return this.moveTo(p, this.ballInterceptPoint(p), true);
             }
             if (ctx.chaser[team] === p.idx) return this.moveTo(p, this.ballInterceptPoint(p), true);
-            return this.moveTo(p, this.homePosition(p, ctx), false);
+            return this.giveGoRun(p) ?? this.moveTo(p, this.homePosition(p, ctx), false);
         }
 
         if (ctx.attacking[team]) {
+            const run = this.giveGoRun(p) ?? this.overlapRun(p);
+            if (run) return run;
             if (ctx.supporter[team] === p.idx && ctx.supportSpot[team])
                 return this.moveTo(p, ctx.supportSpot[team], true);
             return this.moveTo(p, this.homePosition(p, ctx), false);
@@ -677,7 +697,14 @@ export class AIController implements Controller {
         const attacking = ctx.attacking[team];
         // posições-base vêm da formação do time (losango, quadrado, linha de 3)
         const formation = s.teams[team].formation;
-        const base = (attacking ? formation.attack : formation.defend)[p.slot] ?? [20, 10];
+        const st = formationStyle(formation.id);
+        let slot = p.slot;
+        // Rodízio: com a bola, os 4 da linha giram uma vaga a cada `rotate` segundos (fundo → ala → frente → ala)
+        if (attacking && st.rotate) {
+            const i = ROTATION.indexOf(slot);
+            if (i >= 0) slot = ROTATION[(i + Math.floor(s.tick / (st.rotate * s.cfg.tickRate))) % ROTATION.length];
+        }
+        const base = (attacking ? formation.attack : formation.defend)[slot] ?? [20, 10];
         const ballRel = toRel(s, team, s.ball.pos);
         const { length, width } = s.cfg.pitch;
         let xr = base[0] * (length / 40) + (attacking ? tactic.attack : tactic.defend);
@@ -685,9 +712,59 @@ export class AIController implements Controller {
         if (p.role === 'PIVO' && p.slot === 4) xr += tactic.pivotHold;
         // Fixo sobe até a intermediária quando o time ataca no campo rival (opção de passe e de chute de longe)
         if (this.leadFixo(p) && attacking && ballRel.x > length / 2) xr += 6;
-        xr += (ballRel.x - length / 2) * 0.35;
-        const y = (base[1] / 20) * width + (s.ball.pos.y - width / 2) * 0.25;
+        xr += (ballRel.x - length / 2) * (st.follow ?? 0.35);
+        const spread = attacking ? (st.width ?? 1) : (st.defWidth ?? st.width ?? 1);
+        const y = ((10 + (base[1] - 10) * spread) / 20) * width + (s.ball.pos.y - width / 2) * 0.25;
         return toWorld(s, team, clamp(xr, 2, length - 2), clamp(y, 1, width - 1));
+    }
+
+    /** Passe e corre: quem acabou de passar dispara em diagonal rumo à área (Rodízio, Losango). */
+    private giveGoRun(p: PlayerState): Command | null {
+        const s = this.s;
+        const st = formationStyle(s.teams[p.team].formation.id);
+        const lk = s.ball.lastKick;
+        if (!st.giveGo || lk?.kind !== 'pass' || lk.by !== p.idx || s.tick - lk.tick > st.giveGo * s.cfg.tickRate)
+            return null;
+        const { length, width } = s.cfg.pitch;
+        const r = toRel(s, p.team, p.pos);
+        return this.moveTo(p, toWorld(s, p.team, clamp(r.x + 7, 2, length - 4), r.y + (width / 2 - r.y) * 0.6), true);
+    }
+
+    /** Ultrapassagem (Quadrado): com a bola de um lado, o fixo daquele lado passa por fora, colado na lateral. */
+    private overlapRun(p: PlayerState): Command | null {
+        const s = this.s;
+        if (p.role !== 'FIXO' || !formationStyle(s.teams[p.team].formation.id).overlap || s.ball.owner === null)
+            return null;
+        const c = s.players[s.ball.owner];
+        const mid = s.cfg.pitch.width / 2;
+        if (c.team !== p.team || c === p || (c.pos.y - mid) * (p.pos.y - mid) <= 0) return null;
+        const cr = toRel(s, p.team, c.pos);
+        if (cr.x < 14) return null;
+        const side = c.pos.y < mid ? 1.5 : s.cfg.pitch.width - 1.5;
+        return this.moveTo(p, toWorld(s, p.team, Math.min(cr.x + 6, s.cfg.pitch.length - 3), side), true);
+    }
+
+    /** Pivô parede: o companheiro que vem de trás (até 12 m), livre, correndo pra frente. */
+    private layoff(p: PlayerState): { target: Vec2; receiver: number } | null {
+        const s = this.s;
+        const myRel = toRel(s, p.team, p.pos);
+        let best: { target: Vec2; receiver: number } | null = null;
+        let bestScore = -Infinity;
+        for (const m of s.players) {
+            if (m.team !== p.team || m.idx === p.idx || m.role === 'GK') continue;
+            const r = toRel(s, p.team, m.pos);
+            // quem chega de trás já perto da área (ele finaliza): devolver pra linha de 3 virava toque sem fim
+            if (r.x > myRel.x - 1.5 || r.x < myRel.x - 12 || r.x < 20) continue;
+            const target = this.clampToPitch(add(m.pos, scale(m.vel, 0.45)));
+            if (!this.passIsSafe(p.team, p.pos, target)) continue;
+            const ahead = p.team === 0 ? m.vel.x : -m.vel.x;
+            const score = ahead * 0.3 + Math.min(4, this.openness(m)) * 0.1 - dist(p.pos, target) * 0.03;
+            if (score > bestScore) {
+                bestScore = score;
+                best = { target, receiver: m.idx };
+            }
+        }
+        return best;
     }
 
     // ------------------------------------------------------------ utilitários
