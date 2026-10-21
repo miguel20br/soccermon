@@ -328,6 +328,12 @@ sprites do Showdown saíram da cena. Fala, letreiro e retrato ficam numa câmera
 também cai em escala inteira. Quadro com as 3 direções (A estilo PMD, escolhida; B Modern Interiors; C palco de
 trailer): as B e C ficaram só no commit d4c12c4.
 
+**Ajuste do Miguel (21/10):** equilíbrio entre A e B. O Modern Interiors entra em tudo que ele tem (parede e piso do
+ginásio, o laboratório inteiro: estantes, janela, planta, globo, mesa); o que falta (Pallet, Rota 1, arquibancada,
+trave, tocha) é pintado no mesmo traço, com o contorno dele (#3a3a50). Treinadores redesenhados mais fiéis ao oficial
+(Red do FRLG, Blue de cabelo dourado espetado, Carvalho grisalho de jaleco); quadro com a versão nova, a anterior, o
+sprite do Showdown como retrato na fala e o overworld oficial só como referência, pro Miguel decidir.
+
 Uma cena é **dados**: uma lista de passos no tempo, em batidas. Um tocador único lê a lista e usa o que o jogo já
 tem. Fica em Phaser (um relógio só pra sprite, câmera, texto e som), carregado sob demanda como o resto do Phaser.
 

@@ -117,6 +117,9 @@ export class StoryScene extends Phaser.Scene {
             preloadSpecies(this, m);
             preloadExtra(this, m);
         }
+        // Modern Interiors (o tileset da Sala de troféus): parede, piso e móveis dos cenários
+        if (!this.textures.exists('mi')) this.load.image('mi', 'assets/room/mi/Interiors_free_32x32.png');
+        if (!this.textures.exists('mi-room')) this.load.image('mi-room', 'assets/room/mi/Room_Builder_free_32x32.png');
         for (const f of cast.faces) {
             const [mon, face] = f.split(':');
             const key = `face-${f}`;
@@ -247,7 +250,14 @@ export class StoryScene extends Phaser.Scene {
 
     private stageTexture(id: StageId) {
         const key = `stage-${id}`;
-        if (!this.textures.exists(key)) this.textures.addCanvas(key, paintStage(id));
+        if (!this.textures.exists(key))
+            this.textures.addCanvas(
+                key,
+                paintStage(id, {
+                    interiors: this.textures.get('mi').getSourceImage() as CanvasImageSource,
+                    room: this.textures.get('mi-room').getSourceImage() as CanvasImageSource,
+                }),
+            );
         return key;
     }
 

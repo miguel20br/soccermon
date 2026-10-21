@@ -1,44 +1,23 @@
 import type { StageId } from '../story/director';
-import { ART_H, ART_W, block, canvas, disc, FLOOR, hash, type Paint, rect, shade } from './story-art';
+import { ART_H, ART_W, canvas, disc, FLOOR, hash, MI_OUT, type Paint, rect, shade } from './story-art';
 
 /**
- * Cenários das cenas do Modo história, em pixel art na grade do PMD (src/game/story-art.ts). Vista de cima em 3/4,
- * como os mapas do Mystery Dungeon: parede ou céu em cima, chão de `FLOOR` pra baixo. O ginásio continua ginásio: a
- * quadra fica dentro dele.
- *
- * Escolhido entre 3 estilos (quadro de 21/10; os outros, Modern Interiors e palco de trailer, ficaram no commit
- * d4c12c4).
+ * Cenários das cenas do Modo história, na grade do PMD (src/game/story-art.ts), vista de cima em 3/4. Decidido com o
+ * Miguel (21/10): o Modern Interiors (o mesmo da Sala de troféus, pela metade, que cai na grade) em tudo que ele tem;
+ * o que falta (Pallet, Rota 1, arquibancada, trave, tocha) é pintado aqui no mesmo traço: contorno #3a3a50, cores
+ * suaves, luz em cima. O ginásio continua ginásio: a quadra fica dentro dele.
  */
+export interface MiSheets {
+    interiors: CanvasImageSource;
+    room: CanvasImageSource;
+}
 
-const OUT = 0x1c1428;
+/** Contorno do Modern Interiors: o mesmo nos cenários pintados, nos treinadores e nos objetos. */
+const OUT = MI_OUT;
 const W = ART_W;
 const H = ART_H;
 
 // ---- peças
-
-function stoneWall(p: Paint, k: number) {
-    rect(p, 0, 0, W, FLOOR, shade(0x3a322c, k));
-    for (let row = 0; row * 8 < FLOOR - 6; row++) {
-        const off = row % 2 ? -8 : 0;
-        for (let x = off; x < W; x += 16) {
-            const t = [0x6a5e52, 0x625649, 0x5b5044][Math.floor(hash(x * 3 + row * 7) * 3)];
-            block(p, x, row * 8, 15, 7, shade(t, k), shade(0x7a6e60, k), shade(0x463c34, k));
-        }
-    }
-    rect(p, 0, FLOOR - 6, W, 6, shade(0x2e2822, k));
-    rect(p, 0, FLOOR - 6, W, 1, shade(0x4a4038, k));
-}
-
-function stoneFloor(p: Paint, k: number) {
-    rect(p, 0, FLOOR, W, H - FLOOR, shade(0x6a6054, k));
-    for (let row = 0; FLOOR + row * 14 < H; row++) {
-        const off = row % 2 ? -12 : 0;
-        for (let x = off; x < W; x += 24) {
-            const t = [0xa89a86, 0xb3a58f, 0x9f917d][Math.floor(hash(x + row * 13) * 3)];
-            block(p, x, FLOOR + row * 14, 23, 13, shade(t, k), shade(0xc4b8a4, k), shade(0x8a7e6c, k));
-        }
-    }
-}
 
 function torch(p: Paint, x: number, y: number) {
     rect(p, x - 2, y, 4, 10, OUT);
@@ -126,7 +105,7 @@ function trees(p: Paint, y: number) {
     for (let i = 0; i < 13; i++) {
         const x = i * 12 + Math.round(hash(i) * 4);
         rect(p, x - 1, y + 5, 3, 6, 0x5a3a22);
-        disc(p, x, y, 7, 6, 0x1c3c24);
+        disc(p, x, y, 7, 6, OUT);
         disc(p, x, y, 6, 5, i % 2 ? 0x2f6e3c : 0x3a804a);
         disc(p, x - 2, y - 2, 2, 2, 0x5aa85a);
     }
@@ -163,21 +142,24 @@ function house(p: Paint, x: number, y: number, w: number, roof: number, roofDark
     }
 }
 
-function gym(p: Paint, lit: boolean) {
-    const k = lit ? 1 : 0.6;
-    stoneWall(p, k);
-    torch(p, 16, 30);
-    torch(p, W - 16, 30);
-    if (lit) crowd(p);
-    stoneFloor(p, k);
+/** Ginásio de Pewter: parede e piso de pedra do Modern Interiors; arquibancada e trave pintadas no mesmo traço. */
+function gym(p: Paint, mi: MiSheets, lit: boolean) {
+    rect(p, 0, 0, W, FLOOR, 0x24222e);
+    tile(p, mi.room, 32, 544, 32, 64, [0, FLOOR - 32, W, 32]);
+    tile(p, mi.room, 448, 160, 32, 32, [0, FLOOR, W, H - FLOOR]);
+    torch(p, 16, FLOOR - 22);
+    torch(p, W - 16, FLOOR - 22);
     if (lit) {
-        courtLines(p, 0xffffff);
-        goal(p, 0xf4f4f4, 0xb8b8c8);
+        crowd(p);
+        courtLines(p, 0xf8f8f8);
+        goal(p, 0xf8f8f8, 0xa9acbc);
     } else {
-        const c = 0x8a8070;
+        const c = 0xb0a8a8;
         frame(p, 16, FLOOR + 16, W - 32, H - FLOOR - 32, c);
         rect(p, 16, 180, W - 32, 1, c);
         ring(p, W / 2, 180, 14, c);
+        // luz apagada: o ginásio de antigamente
+        rect(p, 0, 0, W, H, 0x10101c, 0.45);
     }
 }
 
@@ -200,46 +182,17 @@ function pallet(p: Paint) {
     goal(p, 0x9a6a38, 0x6a4420, 2);
 }
 
-function lab(p: Paint) {
-    rect(p, 0, 0, W, 100, 0xd9d6c8);
-    rect(p, 0, 0, W, 6, 0x3a3442);
-    rect(p, 0, 84, W, 16, 0xb8b4a4);
-    rect(p, 0, 84, W, 1, 0xccc8b8);
-    rect(p, 0, 99, W, 1, 0x8a8678);
-    for (const x0 of [6, 102]) {
-        rect(p, x0 - 1, 27, 38, 74, OUT);
-        rect(p, x0, 28, 36, 72, 0x7a4a26);
-        rect(p, x0, 28, 36, 1, 0x9a6238);
-        for (let s = 0; s < 4; s++) {
-            const y = 31 + s * 17;
-            rect(p, x0 + 2, y, 32, 14, 0x3e2410);
-            for (let b = 0; b < 10; b++) {
-                const c = [0xc8483a, 0x3a7bd5, 0xf0c040, 0x5aa85a, 0xe8e0d0][Math.floor(hash(x0 + s * 9 + b) * 5)];
-                const hgt = 10 + Math.floor(hash(b + s * 3) * 4);
-                rect(p, x0 + 3 + b * 3, y + 14 - hgt, 2, hgt, c);
-            }
-        }
-    }
-    // janela
-    rect(p, 53, 17, 38, 36, OUT);
-    rect(p, 54, 18, 36, 34, 0x8a8a96);
-    rect(p, 56, 20, 32, 30, 0xa6dcf2);
-    rect(p, 71, 20, 2, 30, 0x8a8a96);
-    rect(p, 56, 34, 32, 2, 0x8a8a96);
-    for (let i = 0; i < 6; i++) rect(p, 58 + i, 22 + i, 1, 1, 0xe8f6fc);
-    // piso
-    for (let y = 100; y < H; y += 12)
-        for (let x = 0; x < W; x += 12) rect(p, x, y, 12, 12, ((x + y) / 12) % 2 ? 0xd6d2c4 : 0xe8e4d8);
-    // mesa das Poké Balls
-    disc(p, 72, 140, 34, 3, 0x000000, 0.18);
-    rect(p, 41, 116, 62, 20, OUT);
-    rect(p, 42, 117, 60, 11, 0xa06a3c);
-    rect(p, 42, 117, 60, 1, 0xb88050);
-    rect(p, 42, 128, 60, 6, 0x7a4a26);
-    for (const lx of [44, 97]) {
-        rect(p, lx - 1, 134, 5, 9, OUT);
-        rect(p, lx, 134, 3, 8, 0x5a3418);
-    }
+/** Laboratório do Carvalho: tudo do Modern Interiors (parede, piso, estantes, janela, globo, planta, mesa). */
+function lab(p: Paint, mi: MiSheets) {
+    rect(p, 0, 0, W, 100, 0x24222e);
+    tile(p, mi.room, 32, 608, 32, 64, [0, 68, W, 32]);
+    tile(p, mi.room, 352, 352, 32, 32, [0, 100, W, H - 100]);
+    piece(p, mi.interiors, 294, 782, 50, 40, 60, 72);
+    piece(p, mi.interiors, 160, 448, 64, 128, 2, 36);
+    piece(p, mi.interiors, 160, 448, 64, 128, 110, 36);
+    piece(p, mi.interiors, 334, 1426, 36, 62, 38, 70);
+    piece(p, mi.interiors, 418, 1154, 26, 42, 94, 80);
+    piece(p, mi.interiors, 26, 322, 76, 74, 53, 106);
 }
 
 function route1(p: Paint) {
@@ -266,11 +219,31 @@ function route1(p: Paint) {
     rect(p, 87, 49, 14, 1, 0xc08a50);
 }
 
-export function paintStage(id: StageId): HTMLCanvasElement {
+/** Recorte da folha de 32 px do Modern Interiors pela metade: a arte é de 16 px dobrada, cai certinho na grade. */
+function piece(
+    p: Paint,
+    img: CanvasImageSource,
+    sx: number,
+    sy: number,
+    sw: number,
+    sh: number,
+    dx: number,
+    dy: number,
+) {
+    p.drawImage(img, sx, sy, sw, sh, dx, dy, sw / 2, sh / 2);
+}
+
+function tile(p: Paint, img: CanvasImageSource, sx: number, sy: number, sw: number, sh: number, box: number[]) {
+    const [x0, y0, w, h] = box;
+    for (let y = y0; y < y0 + h; y += sh / 2)
+        for (let x = x0; x < x0 + w; x += sw / 2) piece(p, img, sx, sy, sw, sh, x, y);
+}
+
+export function paintStage(id: StageId, mi: MiSheets): HTMLCanvasElement {
     const [el, p] = canvas(W, H);
-    if (id === 'ginasio' || id === 'quadra') gym(p, id === 'quadra');
+    if (id === 'ginasio' || id === 'quadra') gym(p, mi, id === 'quadra');
     else if (id === 'pallet') pallet(p);
-    else if (id === 'lab') lab(p);
+    else if (id === 'lab') lab(p, mi);
     else route1(p);
     return el;
 }
