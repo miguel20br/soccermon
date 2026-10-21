@@ -176,6 +176,7 @@ export function Shop() {
                             {shop.pack.map((inst, i) => (
                                 <div
                                     key={inst.uid}
+                                    data-cry={inst.speciesId}
                                     className={`shop-offer cpack-card${isBigCard(inst) ? ' big' : ''}${editionOf(inst) ? ' walk' : ''}`}
                                 >
                                     <FutCard
