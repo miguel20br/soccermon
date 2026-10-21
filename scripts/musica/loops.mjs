@@ -63,7 +63,10 @@ function aligned(a, b, at) {
 {
     const n = 44100;
     let seed = 7;
-    const tab = Array.from({ length: 4410 }, () => ((seed = (seed * 16807) % 2147483647) / 2147483647 - 0.5) * 0.02);
+    const tab = Array.from({ length: 4410 }, () => {
+        seed = (seed * 16807) % 2147483647;
+        return (seed / 2147483647 - 0.5) * 0.02;
+    });
     const r = (k) => tab[k % 4410]; // ruído periódico: a volta continua igual
     const good = new Float32Array(n).map((_, i) => 0.5 * Math.sin((2 * Math.PI * 441 * i) / 44100) + r(i));
     const bad = new Float32Array(n).map(
