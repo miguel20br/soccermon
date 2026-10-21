@@ -95,27 +95,30 @@ export function Lineup() {
     return (
         <>
             <Tip id="lineup-synergy">{t('team.lineup.tip')}</Tip>
-            <div className="cup-bug bc-surface">
-                <div className="cup-path">
-                    {d.common.stage.map((label, i) => {
-                        const res = run.results.find((r) => r.stage === i);
-                        const cls = res ? (res.won ? 'won' : 'lost') : i === run.stage ? 'now' : '';
-                        return (
-                            <div key={label} className={`cup-step ${cls}`}>
-                                <b>{label}</b>
-                                <span className="muted">{clubName(run.opponents[i].name, lang)}</span>
-                                {res && (
-                                    <div>
-                                        {res.score[0]} x {res.score[1]}
-                                        {res.shootout &&
-                                            t('team.lineup.pens', { a: res.shootout[0], b: res.shootout[1] })}
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
+            {/* Copa Relâmpago: as 4 fases (na Rota o caminho é o mapa, e os rivais só existem até a casa de agora) */}
+            {!isLong(run) && (
+                <div className="cup-bug bc-surface">
+                    <div className="cup-path">
+                        {d.common.stage.map((label, i) => {
+                            const res = run.results.find((r) => r.stage === i);
+                            const cls = res ? (res.won ? 'won' : 'lost') : i === run.stage ? 'now' : '';
+                            return (
+                                <div key={label} className={`cup-step ${cls}`}>
+                                    <b>{label}</b>
+                                    <span className="muted">{clubName(run.opponents[i].name, lang)}</span>
+                                    {res && (
+                                        <div>
+                                            {res.score[0]} x {res.score[1]}
+                                            {res.shootout &&
+                                                t('team.lineup.pens', { a: res.shootout[0], b: res.shootout[1] })}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Copa Relâmpago: a chave inteira, com você na fase de agora */}
             {!isLong(run) && (
