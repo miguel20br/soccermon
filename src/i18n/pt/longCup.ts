@@ -1,6 +1,6 @@
 /** Copa longa (docs/planos/copa-longa.md). */
 export const longCup = {
-    title: 'Copa longa',
+    title: 'Rota Índigo',
     map: 'Mapa',
     step: 'Partida {n} de {total}',
     final: 'Final',
@@ -31,7 +31,7 @@ export const longCup = {
     yellowLine: 'A derrota não eliminou: a próxima elimina.',
     out: 'Fim da linha na partida {n}',
     redTitle: 'Cartão vermelho',
-    redLine: 'Segunda derrota: o time está fora da Copa longa.',
+    redLine: 'Segunda derrota: o time está fora da Rota Índigo.',
     blocked: 'Caminho bloqueado',
     outStarter: '{name} está fora: troque ele de lugar com alguém do banco.',
     outBench: 'Fora (partidas): {names}.',

@@ -29,13 +29,17 @@ export const home: typeof pt = {
     orNew: 'Or start a new cup',
     teamName: 'Your team name',
     newCup: 'New cup',
-    quickCup: { tag: '4 matches', title: 'Quick Cup', line: 'Draft, 4 matches and the Market between them' },
+    quickCup: {
+        tag: '4 matches',
+        title: 'Lightning Cup',
+        line: 'A 4-match knockout, quick and direct, with the Market in between.',
+    },
     longCup: {
         tag: 'Coming soon',
-        title: 'Long Cup',
-        line: 'A map with events, gyms and treasure',
+        title: 'Indigo Road',
+        line: 'Cross Kanto to the Plateau: 8 matches, events, gyms and one yellow card.',
         soon: 'Coming soon',
-        note: 'The Long Cup arrives in the next version.',
+        note: 'The Indigo Road arrives in the next version.',
     },
     challenge: 'Accept challenge ({seed})',
     rec: {

@@ -312,6 +312,15 @@ export const ICONS = {
     // Copa longa (src/ui/screens/CupMap.tsx)
     chest: 'M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v9H4zM4 12h16M12 10v5',
     question: 'M9 9a3 3 0 1 1 4.5 2.6c-1 .6-1.5 1.2-1.5 2.4M12 18h.01',
+    // eventos da Rota Índigo
+    medkit: 'M4 8h16v12H4zM9 8V5h6v3M12 11v6M9 14h6',
+    briefcase: 'M3 9h18v11H3zM8 9V6h8v3M3 14h18',
+    armband: 'M5 6h14l-1.5 14h-11zM10 10.5a2.5 2.5 0 1 0 0 5h1.5M14 10v6',
+    binoculars:
+        'M3.5 16a3.5 3.5 0 1 0 7 0 3.5 3.5 0 1 0-7 0M13.5 16a3.5 3.5 0 1 0 7 0 3.5 3.5 0 1 0-7 0M5 13l2-7h3l1 7M19 13l-2-7h-3l-1 7M10.5 12h3',
+    mic: 'M9 4a3 3 0 0 1 6 0v6a3 3 0 0 1-6 0zM5 10a7 7 0 0 0 14 0M12 17v4M8 21h8',
+    paw: 'M7 11a2 2 0 1 0 0-.01M17 11a2 2 0 1 0 0-.01M10 7a2 2 0 1 0 0-.01M14 7a2 2 0 1 0 0-.01M8 18c0-3 2-5 4-5s4 2 4 5c0 1.5-1.5 2-4 2s-4-.5-4-2z',
+    dumbbell: 'M3 9v6M6 6v12M18 6v12M21 9v6M6 12h12',
     yellow: 'M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z',
 } as const;
 export type HudIconKind = keyof typeof ICONS;

@@ -16,7 +16,7 @@ import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { cupLength, YELLOW_CARDS } from '../../store/long-cup';
-import { choiceTargets, eventChoices } from '../../store/long-events';
+import { choiceTargets, type EventId, eventChoices } from '../../store/long-events';
 import { FutCard } from '../components/FutCard';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
@@ -45,13 +45,28 @@ const ROW_H = 84;
  * Índigo). `rows` = primeira e última linha; `wild` = Pokémon selvagens que enfeitam a região; `who` = quem fala.
  */
 const REGIONS = [
-    { id: 'rota1', rows: [0, 1], wild: [16, 19], who: 'oak' },
-    { id: 'floresta', rows: [2, 3], wild: [10, 25, 13], who: 'blue' },
-    { id: 'mtmoon', rows: [4, 6], wild: [35, 74, 41], who: 'brock' },
-    { id: 'cerulean', rows: [7, 8], wild: [54, 118, 7], who: 'misty' },
-    { id: 'vitoria', rows: [9, 11], wild: [95, 66, 105], who: 'blue' },
-    { id: 'planalto', rows: [12, 12], wild: [149, 131], who: 'lance' },
+    { id: 'rota1', rows: [0, 1], decor: 'bush', who: 'oak' },
+    { id: 'floresta', rows: [2, 3], decor: 'tree', who: 'blue' },
+    { id: 'mtmoon', rows: [4, 6], decor: 'rock', who: 'brock' },
+    { id: 'cerulean', rows: [7, 8], decor: 'wave', who: 'misty' },
+    { id: 'vitoria', rows: [9, 11], decor: 'rock', who: 'blue' },
+    { id: 'planalto', rows: [12, 12], decor: 'pillar', who: 'lance' },
 ] as const;
+type DecorKind = (typeof REGIONS)[number]['decor'];
+/** Cenário de cada região nas bordas do mapa (árvore, pedra, onda, arbusto, coluna), desenhado em SVG. */
+const DECOR: Record<DecorKind, string> = {
+    bush: 'M2 20c0-6 4-9 8-9 1-4 5-6 9-4 4-2 9 1 9 6 3 1 4 4 4 7z',
+    tree: 'M16 2L5 15h6L4 24h9v6h6v-6h9l-7-9h6z',
+    rock: 'M3 28l4-12 7-6 8 3 6 9 1 6z',
+    wave: 'M1 14c4-5 8-5 12 0s8 5 12 0 6-4 6-4M1 24c4-5 8-5 12 0s8 5 12 0 6-4 6-4',
+    pillar: 'M8 30V8h16v22M5 8h22M6 4h20v4H6z',
+};
+const DECOR_SPOTS = [
+    { x: 4, y: 18 },
+    { x: 96, y: 30 },
+    { x: 5, y: 72 },
+    { x: 95, y: 82 },
+];
 type RegionId = (typeof REGIONS)[number]['id'];
 const regionOf = (row: number) => REGIONS.find((r) => row >= r.rows[0] && row <= r.rows[1]) ?? REGIONS[0];
 
@@ -141,13 +156,16 @@ export function CupMap() {
                         return (
                             <div key={r.id} className={`cm-region rg-${r.id}`} style={{ top, height: h }}>
                                 <span className="cm-region-name">{d.longCup.region[r.id as RegionId]}</span>
-                                {r.wild.map((id, i) => (
-                                    <img
-                                        key={id}
-                                        className={`cm-wild pixel w${i}`}
-                                        src={cardSprite({ speciesId: id, shiny: false })}
-                                        alt=""
-                                    />
+                                {DECOR_SPOTS.map((p) => (
+                                    <svg
+                                        key={`${p.x}-${p.y}`}
+                                        className={`cm-decor d-${r.decor}`}
+                                        viewBox="0 0 32 32"
+                                        style={{ left: `${p.x}%`, top: `${p.y}%` } as CSSProperties}
+                                        aria-hidden
+                                    >
+                                        <path d={DECOR[r.decor]} />
+                                    </svg>
                                 ))}
                             </div>
                         );
@@ -369,6 +387,18 @@ export function Training() {
     );
 }
 
+/** Emblema e cor de cada evento (o desenho do que aconteceu, ao lado de quem conta). */
+const EVENT_ART: Record<EventId, { icon: HudIconKind; color: string }> = {
+    carrinho: { icon: 'medkit', color: '#d9452f' },
+    patrocinador: { icon: 'briefcase', color: '#3a3a46' },
+    capitao: { icon: 'armband', color: '#c9871c' },
+    olheiro: { icon: 'binoculars', color: '#2f7fc4' },
+    entrevista: { icon: 'mic', color: '#7a4bc4' },
+    perdido: { icon: 'paw', color: '#4e8c43' },
+    treinoPuxado: { icon: 'dumbbell', color: '#d1652a' },
+    creche: { icon: 'egg', color: '#c9a23a' },
+};
+
 /** Evento "?" da Copa longa: quem fala, o que aconteceu, as escolhas e, se a escolha pede, com quem. */
 export function EventScreen() {
     const live = useGame((s) => s.run);
@@ -422,7 +452,10 @@ export function EventScreen() {
     return (
         <div className="menu-screen cm">
             <MenuHead title={txt.title} icon="liga" tag={t('longCup.title')} onBack={() => go('home')} />
-            <div className="cm-event bc-surface bc-stripe">
+            <div className="cm-event bc-surface bc-stripe" style={{ '--ev': EVENT_ART[ev.id].color } as CSSProperties}>
+                <span className="cm-event-emblem">
+                    <HudIcon kind={EVENT_ART[ev.id].icon} />
+                </span>
                 <img className="cm-story-who" src={`assets/trainers/${txt.who}.png`} alt="" />
                 <p>{fmtNames(txt.text, ev.uids?.map(nameOf) ?? [])}</p>
             </div>

@@ -2,7 +2,7 @@ import type { longCup as pt } from '../pt/longCup';
 
 /** Long Cup (docs/planos/copa-longa.md). */
 export const longCup: typeof pt = {
-    title: 'Long Cup',
+    title: 'Indigo Road',
     map: 'Map',
     step: 'Match {n} of {total}',
     final: 'Final',
@@ -33,7 +33,7 @@ export const longCup: typeof pt = {
     yellowLine: 'The loss did not knock you out: the next one will.',
     out: 'The road ends at match {n}',
     redTitle: 'Red card',
-    redLine: 'Second loss: the team is out of the Long Cup.',
+    redLine: 'Second loss: the team is out of the Indigo Road.',
     blocked: 'Road blocked',
     outStarter: '{name} is out: swap them with someone on the bench.',
     outBench: 'Out (matches): {names}.',

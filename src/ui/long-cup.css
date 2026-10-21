@@ -408,28 +408,6 @@
     writing-mode: vertical-rl;
     rotate: 180deg;
 }
-/* Pokémon selvagens da região, nos cantos */
-.cm-wild {
-    position: absolute;
-    z-index: 1;
-    width: 44px;
-    height: 44px;
-    opacity: 0.9;
-    pointer-events: none;
-}
-.cm-wild.w0 {
-    right: 4px;
-    top: 8%;
-}
-.cm-wild.w1 {
-    left: 22px;
-    top: 34%;
-    transform: scaleX(-1);
-}
-.cm-wild.w2 {
-    right: 6px;
-    bottom: 22%;
-}
 
 /* ---------- cartão amarelo e vermelho no resultado (src/ui/components/FoulCard.tsx) ---------- */
 .foul {
@@ -667,4 +645,74 @@
 }
 .cm-choice .money.gain {
     color: var(--green);
+}
+
+/* cenário da região nas bordas (src/ui/screens/CupMap.tsx: DECOR) */
+.cm-decor {
+    position: absolute;
+    z-index: 1;
+    width: 34px;
+    height: 34px;
+    translate: -50% -50%;
+    pointer-events: none;
+}
+.cm-decor path {
+    fill: var(--df);
+    stroke: rgb(0 0 0 / 35%);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+}
+.d-bush {
+    --df: #6fae5a;
+}
+.d-tree {
+    --df: #1b4a26;
+}
+.d-rock {
+    --df: #8e7c68;
+}
+.d-wave path {
+    fill: none;
+    stroke: rgb(255 255 255 / 55%);
+    stroke-width: 2.4;
+    stroke-linecap: round;
+}
+.d-pillar {
+    --df: #c9c9f2;
+}
+
+.cm-event {
+    --tc: var(--ev);
+}
+.cm-event-emblem {
+    flex: none;
+    align-self: center;
+    display: grid;
+    place-items: center;
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    border: 3px solid var(--bc-ink);
+    background: var(--ev);
+    color: #fff;
+    box-shadow: 0 4px 0 rgb(0 0 0 / 40%);
+    animation: ev-pop 320ms var(--ease-pop) both;
+}
+.cm-event-emblem .hud-icon {
+    width: 36px;
+    height: 36px;
+}
+@keyframes ev-pop {
+    from {
+        opacity: 0;
+        scale: 0.6;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .cm-event-emblem {
+        animation: none;
+    }
+}
+:root[data-reduce-motion="true"] .cm-event-emblem {
+    animation: none;
 }
