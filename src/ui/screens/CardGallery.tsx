@@ -8,6 +8,7 @@ import { type Edition, EVENT_TYPES, ICONS, type Special, specialBonus } from '..
 import { SPONSOR_IDS } from '../../engine/sponsors';
 import { useT } from '../../i18n/react';
 import { type CareerSeal, type DexEntry, EMPTY_ENTRY } from '../../store/profile';
+import { PackArt } from '../components/CardPack';
 import { PokeCard2 } from '../components/PokeCard2';
 import { Money, SponsorCard, SponsorSlots } from '../components/SponsorCard';
 import { sealTip } from '../profile/seal-tip';
@@ -315,6 +316,18 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
             </div>
 
             <div className="cg-v06">
+                <section className="panel" id="pacotes">
+                    <h2>Pacote de tipo (Mercado) · proposta pro ok do Miguel</h2>
+                    <p className="tactic-desc">
+                        O mesmo lacre do pacote da recompensa, na cor do tipo, com o ícone do tipo no lugar da carta do
+                        logo e a estampa do tipo no fundo. Abre com a mesma animação.
+                    </p>
+                    <div className="cg-row" style={{ '--fut-w': '150px' } as React.CSSProperties}>
+                        {['Fire', 'Water', 'Grass', 'Electric', 'Psychic', 'Ghost', 'Dragon', 'Fighting'].map((ty) => (
+                            <PackArt key={ty} look="" type={ty} label={`Pacote ${TYPE_PT[ty] ?? ty}`} />
+                        ))}
+                    </div>
+                </section>
                 <section className="panel" id="patrocinios">
                     <h2>Patrocínios (Mercado da Copa rápida) · proposta pro ok do Miguel</h2>
                     <p className="tactic-desc">

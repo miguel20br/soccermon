@@ -6,14 +6,12 @@ import { playSfx } from '../../game/audio';
 import { itemDesc, itemName, stageName, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { CardPack, packLookOf } from '../components/CardPack';
+import { CardPack, PackArt, packLookOf } from '../components/CardPack';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { Money, SponsorCard, SponsorSlots } from '../components/SponsorCard';
 import { TmCard } from '../components/TmTeach';
-import { TypeIcon } from '../components/TypeIcon';
 import { Tip } from '../help/Tip';
-import { TYPE_COLOR } from '../type-colors';
 import { GainTarget } from './Reward';
 import '../shop.css';
 
@@ -146,6 +144,7 @@ export function Shop() {
                         sealed
                         look={packLookOf(shop.pack)}
                         label={packName}
+                        type={packOffer?.kind === 'pack' ? packOffer.type : undefined}
                         revealKey={shop.pack.map((c) => c.uid).join()}
                     >
                         <div className="shop-grid">
@@ -261,12 +260,8 @@ function OfferCard({
         return <TmCard move={o.move} leader={o.leader} team={team} selected={selected} onClick={onPick} />;
     if (o.kind === 'pack')
         return (
-            <div className="sp-card shop-pack-card" style={{ '--fam': TYPE_COLOR[o.type] } as React.CSSProperties}>
-                <span className="sp-fam">{t('shop.kind.pack')}</span>
-                <span className="sp-emblem">
-                    <TypeIcon type={o.type} />
-                </span>
-                <b className="sp-name">{t('shop.pack', { type: typeName(o.type, lang) })}</b>
+            <div className="shop-pack-offer">
+                <PackArt look="" type={o.type} label={t('shop.pack', { type: typeName(o.type, lang) })} />
                 <span className="sp-desc">{t('shop.packDesc', { n: packSize, type: typeName(o.type, lang) })}</span>
             </div>
         );

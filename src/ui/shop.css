@@ -242,3 +242,62 @@ button.sp-slot:hover {
         overflow: hidden;
     }
 }
+
+/* ---------- pacote de tipo (o mesmo lacre do pacote da recompensa, na cor e com a estampa do tipo) ---------- */
+.cpack.cpack-type {
+    --seal: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--tc) 35%, #fff),
+        var(--tc) 55%,
+        color-mix(in srgb, var(--tc) 50%, #000)
+    );
+    --edge: var(--tc);
+    --glow: color-mix(in srgb, var(--tc) 45%, transparent);
+}
+.cpack.cpack-type .cpack-body {
+    background:
+        linear-gradient(115deg, transparent 35%, rgb(255 255 255 / 22%) 48%, transparent 60%) -160% 0 / 300% 100%
+        no-repeat,
+        repeating-conic-gradient(from 0deg at 50% 50%, rgb(255 255 255 / 7%) 0 6deg, transparent 6deg 22.5deg),
+        radial-gradient(
+            circle at 50% 45%,
+            color-mix(in srgb, var(--tc) 85%, #fff) 0%,
+            color-mix(in srgb, var(--tc) 60%, #000) 55%,
+            #070a18 100%
+        );
+}
+.cpack.cpack-type .cpack-body::before {
+    background: radial-gradient(closest-side, rgb(255 255 255 / 22%), transparent);
+}
+/* estampa: o ícone do tipo repetido, girado, bem apagado */
+.cpack-pattern {
+    position: absolute;
+    inset: -30%;
+    background: var(--ticon) 0 0 / 14cqw auto repeat;
+    opacity: 0.14;
+    rotate: -18deg;
+}
+.cpack-typeicon {
+    position: relative;
+    width: 40%;
+    height: auto;
+    margin-top: 4cqw;
+    image-rendering: auto;
+    filter: drop-shadow(0 3px 8px rgb(0 0 0 / 60%)) drop-shadow(0 0 14px rgb(255 255 255 / 35%));
+}
+.cpack.cpack-type .cpack-label {
+    color: #fff;
+    text-shadow: 0 2px 0 rgb(0 0 0 / 55%);
+}
+/* na vitrine o pacote fica do tamanho das outras cartas, com o que vem dentro embaixo */
+.shop-pack-offer {
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 8px;
+    width: var(--fut-w);
+    text-align: center;
+}
+.shop-pack-offer .cpack {
+    width: 82%;
+}

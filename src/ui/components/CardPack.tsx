@@ -5,6 +5,7 @@ import { playSfx } from '../../game/audio';
 import { useT } from '../../i18n/react';
 import { metalOf } from '../rarity';
 import { reduceMotionOn } from '../settings-sync';
+import { TYPE_COLOR } from '../type-colors';
 
 /** Pista do melhor conteúdo no pacote fechado: edição especial brilha holográfico, carta ouro (75+) tem borda dourada. */
 export type PackLook = '' | 'gold' | 'special';
@@ -45,6 +46,7 @@ export function CardPack({
     fast = false,
     look,
     label,
+    type,
     onOpen,
     children,
 }: {
@@ -54,6 +56,8 @@ export function CardPack({
     fast?: boolean;
     look: PackLook;
     label?: string;
+    /** Pacote de tipo (Mercado): na cor e com a estampa do tipo. */
+    type?: string;
     onOpen?: () => void;
     children: ReactNode;
 }) {
@@ -165,20 +169,38 @@ export function CardPack({
                     }}
                     aria-label={t(phase === 'closed' ? 'reward.pack.open' : 'reward.pack.skip')}
                 >
-                    {showPack && (
-                        <span className={`cpack${look ? ` cpack-${look}` : ''}`} aria-hidden>
-                            <span className="cpack-body">
-                                <img className="cpack-simbolo" src="assets/ui/simbolo.svg" alt="" />
-                                <img className="cpack-logo" src="assets/ui/logo.svg" alt="" />
-                                {label && <span className="cpack-label">{label}</span>}
-                            </span>
-                            <span className="cpack-top" />
-                            <span className="cpack-burst" />
-                        </span>
-                    )}
+                    {showPack && <PackArt look={look} label={label} type={type} />}
                     {phase === 'closed' && <span className="cpack-hint">{t('reward.pack.tap')}</span>}
                 </button>
             )}
         </div>
+    );
+}
+
+/**
+ * O pacote lacrado (a arte, sem o toque): o do logo, ou o de tipo (Mercado) na cor do tipo, com o ícone no lugar da
+ * carta do logo e a estampa do tipo no fundo.
+ */
+export function PackArt({ look, label, type }: { look: PackLook; label?: string; type?: string }) {
+    const style = type
+        ? ({ '--tc': TYPE_COLOR[type], '--ticon': `url(assets/types/${type.toLowerCase()}.png)` } as CSSProperties)
+        : undefined;
+    return (
+        <span className={`cpack${look ? ` cpack-${look}` : ''}${type ? ' cpack-type' : ''}`} style={style} aria-hidden>
+            <span className="cpack-body">
+                {type ? (
+                    <>
+                        <span className="cpack-pattern" />
+                        <img className="cpack-typeicon" src={`assets/types/${type.toLowerCase()}.png`} alt="" />
+                    </>
+                ) : (
+                    <img className="cpack-simbolo" src="assets/ui/simbolo.svg" alt="" />
+                )}
+                <img className="cpack-logo" src="assets/ui/logo.svg" alt="" />
+                {label && <span className="cpack-label">{label}</span>}
+            </span>
+            <span className="cpack-top" />
+            <span className="cpack-burst" />
+        </span>
     );
 }
