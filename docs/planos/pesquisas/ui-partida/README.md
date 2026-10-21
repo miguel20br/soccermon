@@ -1,3 +1,7 @@
+---
+description: Pesquisa do revamp da interface da partida, com três opções e prints.
+---
+
 # Revamp da interface da partida (pesquisa, 18/10/2026)
 
 Pedido do Miguel: "revamp da interface de jogo pra ficar mais interativo ou até melhor de ver, tipo o que fizemos com

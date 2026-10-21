@@ -3,12 +3,10 @@
 Este arquivo leva para qualquer aparelho (PC, celular, nuvem) o que o Claude precisa saber do projeto e do
 Miguel, o dono. As preferências abaixo valem em toda sessão.
 
-Planos para o futuro: [docs/planos/roadmap.md](docs/planos/roadmap.md). Cópia das memórias do Claude feitas
-no PC (preferências e decisões, com o porquê de cada uma): [docs/memoria/](docs/memoria/), atualizada por
-`scripts/memoria.sh` (no PC, antes de lançar; recusa memória com e-mail). Ao aprender uma preferência nova do Miguel
-em outro aparelho, registre aqui no CLAUDE.md para ela valer em todos. `scripts/docs.test.ts` falha se o CLAUDE.md
-passar de 16 KB, se o "Estado atual" não for a versão do `package.json`, se uma skill faltar na tabela ou se o índice
-de `docs/memoria` não bater com os arquivos.
+Planos: [docs/planos/roadmap.md](docs/planos/roadmap.md). Memórias do Claude (PC): [docs/memoria/](docs/memoria/), via
+`scripts/memoria.sh` (recusa e-mail). Preferência nova do Miguel em outro aparelho: registre aqui. `scripts/docs.test.ts`
+cobra: menos de 16 KB, "Estado atual" na versão do `package.json`, tabela de skills igual à pasta, índice de `docs/memoria`
+e `description` nos docs de planos e adr.
 
 ## Aviso (15/10/2026): histórico reescrito
 
@@ -53,9 +51,7 @@ você é o Claude e `git log` mostrar commits com `miguelcunhabr@`, avise o Migu
 - **Cartas:** minimalistas, bronze/prata/ouro pela nota (≤64 / 65–74 / 75+, padrão FIFA), nota e atributos
   grandes, raridade só como acabamento. Edições especiais (Shiny, Destaque, Ícone, Evento) têm visual próprio.
   Mudança visual de carta: mostrar na galeria `?cards=1` antes de espalhar.
-- **Nada teleporta (20/10/2026, regra do Tutti):** toda troca de tela, entrada, saída e mudança de estado nos menus tem
-  transição (200–300 ms, `--ease-out`), nada pula de posição; com Reduzir movimento fica só o fade. Tela nova já nasce
-  assim; o que já existe está no backlog em `docs/planos/nada-teleporta.md`.
+- **Nada teleporta:** toda troca de tela e mudança de estado nos menus tem transição de 200–300 ms; tela nova já nasce assim ([ADR 0004](docs/adr/0004-nada-teleporta.md), `npm run teleporte`).
 - **Sem emoji na interface do jogo** (golpes, menus, gráficos): use ícones desenhados (SVG ou Phaser). O texto
   de Compartilhar pode ter emoji.
 - **Carta = campo:** `src/engine/modifiers.ts` é a regra única de bônus; carta, painel e motor usam a mesma.
@@ -67,8 +63,7 @@ Fan game de navegador **sem fins lucrativos** (AGPL-3.0): draft roguelike "escol
 respondendo). Repo: github.com/miguel20br/soccermon.
 
 - Stack: Vite 8, React 19, TypeScript, Phaser 4, Zustand (save em IndexedDB), Vitest, Biome.
-- Motor em `src/engine/` é **determinístico** (20 Hz, mesma seed + mesmas ordens = mesma partida): nada de
-  `Math.random()` ou `Date` lá dentro; use o `Rng` do estado. Snapshots com `SNAP_STRIDE = 7`.
+- Motor em `src/engine/` **determinístico** a 20 Hz ([ADR 0001](docs/adr/0001-motor-deterministico-e-engine-version.md)).
 - Visão de longo prazo: **modo carreira** (temporadas, XP, evolução) e **modo jogável** (controlar um Pokémon ou
   o time, estilo FC). Preserve: controllers plugáveis (IA e humano emitem os mesmos Commands), tick fixo,
   BatchRunner + LiveRunner, MatchConfig paramétrico, PokemonInstance (não só espécie).
@@ -97,11 +92,6 @@ npm run fonts    # refaz o subset das Galmuri (public/fonts) quando o teste das 
   (repo público desde 15/10/2026; o e-mail pessoal foi tirado do histórico). Confira `git config user.email`
   em cada aparelho.
 - Antes de fechar uma mudança visual, confira no celular (320 e 390 px), deitado e no desktop.
-- **Primeiro carregamento leve:** Phaser (`src/PhaserGame.tsx`, pré-carregado depois do `load` da Home) e Supabase
-  (`loadCloud()` em `src/cloud/cloud.ts`) vêm em pedaços à parte. Módulo que a Home usa (`EventBus`, `audio`,
-  `animation-manager`…) não pode importar `phaser` em tempo de execução, e `@supabase/supabase-js` fora do
-  `loadCloud` só com `import type`. Confira no build: o `index-*.js` não pode ter `WebGLRenderer` nem `GoTrueClient`.
-  Pedaços com hash ficam em `/bundle` (cache de 1 ano no `vercel.json`).
 
 ## Skills do projeto (`.claude/skills/`)
 
@@ -136,15 +126,14 @@ Aprovadas pelo Miguel ("1a a 9a"); **cada tarefa é avaliada por si**, não é a
 
 ## Regras de desenvolvimento (17/10/2026)
 
-- **`main` = produção.** Nada vai pra `main` sem o "pode subir" do Miguel naquela conversa. Prévia: push numa
+- **`main` = produção.** Nada vai pra `main` sem o "pode subir" do Miguel naquela conversa ([ADR 0007](docs/adr/0007-main-e-producao-com-pode-subir.md)). Prévia: push numa
   branch (`soccermon-git-<branch>-miguel20brs-projects.vercel.app`, atrás do login da Vercel).
 - **Trabalho em paralelo em worktrees** (`.claude/worktrees/<nome>`, ignorado pelo git): um agente por worktree, cada
   um na sua branch; `node_modules` pode ser symlink. Junte numa branch de integração, teste, e depois do lançamento
   remova os worktrees e apague as branches já juntadas (locais e remotas).
-- **Mudou o resultado de partidas** (motor, balanceamento, contas)? Suba `ENGINE_VERSION` em `src/engine/config.ts`.
+- **Mudou o resultado de partidas** (motor, balanceamento, contas)? Suba `ENGINE_VERSION` (`src/engine/config.ts`) e republique a Edge Function `liga` (Armadilhas).
   Mudou o formato do save? Migração em `src/store/` + teste com `scripts/fixtures/backup-v6-*.json`.
 - **A máquina tem 7,5 GB:** uma simulação pesada por vez, `npx vitest run --maxWorkers=2`, um navegador por vez.
-- **Dev server:** `npx vite --config vite/config.dev.mjs --port <porta> --strictPort` (sem o `--config` a Home quebra).
 - **Antes de dizer que está pronto:** `npx tsc --noEmit -p .`, `npm run lint` sem erro, testes, e print headless de
   tudo que é visual (olhe o print).
 - Scripts de análise vão em `scripts/` (os de balanceamento em `scripts/balance/`, com lint relaxado); saídas e
@@ -153,13 +142,34 @@ Aprovadas pelo Miguel ("1a a 9a"); **cada tarefa é avaliada por si**, não é a
 
 ## Estado atual (21/10/2026, v0.9.3.2)
 
-Histórico por versão, "Pendente" antigo e detalhes de arquivos: [docs/planos/historico.md](docs/planos/historico.md).
+No ar: 0.9.3.2, com a Rota Índigo (`LONG_CUP_LIVE`) e a Copa Relâmpago. Liga fechada até `LIGA_OPENS_AT`; a Copa do Dia segue no ar. Histórico por versão e decisões antigas: [docs/planos/historico.md](docs/planos/historico.md). Índice dos docs: `node scripts/indice.mjs`.
 
-- **No ar:** 0.9.3.2, com a **Rota Índigo** ligada (`LONG_CUP_LIVE`, `src/store/long-cup.ts`). Regra: modo novo só vai ao ar depois de jogado de ponta a ponta na tela, não só pelo robô do store (a Rota Índigo quebrou na 1ª partida em produção em 21/10).
-- **Edge Function `liga` leva o motor empacotado:** a cada `ENGINE_VERSION` novo, `npm run edge:liga` e `npx -y supabase@latest functions deploy liga --project-ref vszcxacbcabohhdwxfpb --use-api` (token `SUPABASE_ACCESS_TOKEN` no `.env.local`), senão a Liga recusa as partidas.
-- **Liga fechada** até `LIGA_OPENS_AT` (`src/league/rules.ts`, 01/12/2026 00:00 de Brasília, provisória); reabrir ou adiar = trocar só essa linha e publicar. A Copa do Dia segue no ar.
-- **Supabase (não desfazer sem trocar o código):** Realtime com "Allow public access" desligado e Auth com "Allow anonymous sign-ins" ligado (Duelo).
-- **Decisões de 21/10:** os cartões "Em breve" ficam (só mais leves); a sequência de dias fica (sem perda e sem dinheiro); boas-vindas fora da 1ª visita (passo a passo só na Ajuda).
+## Armadilhas (o porquê de cada uma)
+
+- **Motor sem `Math.random()`/`Date`:** quebra o Duelo, a Liga e os replays (mesma seed tem que dar a mesma partida). Use o `Rng` do estado. Resultado mudou? Suba `ENGINE_VERSION`.
+- **Edge Function `liga` leva o motor empacotado:** a cada `ENGINE_VERSION` novo, `npm run edge:liga` e `npx -y supabase@latest functions deploy liga --project-ref vszcxacbcabohhdwxfpb --use-api` (token no `.env.local`); senão a Liga recusa todas as partidas ([ADR 0002](docs/adr/0002-edge-function-liga-leva-o-motor.md)).
+- **Phaser e Supabase fora do bundle da Home:** módulo que a Home usa (`EventBus`, `audio`, `animation-manager`…) não importa `phaser` em tempo de execução, e `@supabase/supabase-js` só com `import type` fora de `loadCloud()` (`src/cloud/cloud.ts`). Senão o primeiro carregamento volta a ~2,5 MB. Confira no build: `index-*.js` sem `WebGLRenderer` nem `GoTrueClient`. Pedaços com hash em `/bundle` (cache de 1 ano no `vercel.json`).
+- **Dev server com `--config`:** `npx vite --config vite/config.dev.mjs --port <porta> --strictPort`; sem o `--config` a Home quebra.
+- **Supabase (painel):** Realtime com "Allow public access" desligado e Auth com "Allow anonymous sign-ins" ligado; desfazer quebra o Duelo ([ADR 0003](docs/adr/0003-duelo-realtime-privado-e-login-anonimo.md)). Migração de produção só com o ok do Miguel.
+- **Modo novo atrás de bandeira até ser jogado na tela** ([ADR 0005](docs/adr/0005-modo-novo-so-no-ar-depois-de-jogado.md)): robô do store não pega bug de tela.
+- **Liga fechada:** reabrir ou adiar = trocar só `LIGA_OPENS_AT` em `src/league/rules.ts` (01/12/2026 00:00 de Brasília, provisória) e publicar.
+- **Versão com 4 partes:** `version` do `package.json` é semver; o número exibido sai de `displayVersion`.
+- **Repo público, sem dinheiro** ([ADR 0006](docs/adr/0006-sem-dinheiro-nenhum.md)): segredos só no `.env.local`; código de título nunca no repo. Supabase gratuito pausa após 7 dias sem uso.
+
+## Mapa de pastas
+
+`src/engine/` motor puro · `src/game/` Phaser (cenas, sprites) · `src/ui/` React (telas, `patch-notes.ts`) · `src/store/` Zustand e save · `src/cloud/`, `src/net/`, `src/league/` Supabase, Duelo, Liga · `src/i18n/` PT/EN · `supabase/` migrações e funções · `scripts/` ferramentas (`balance/` equilíbrio) · `docs/adr/` decisões · `docs/planos/` planos e pesquisas · `docs/marca/` brand guide · `docs/memoria/` memórias do Claude · `.claude/skills/` skills.
+
+## Convenções de agente
+
+- Não afirme causa que você não viu: reproduza ou leia a saída antes de dizer "o problema é X". Hipótese é hipótese.
+- Valide no alvo que serve o código mudado: prévia da Vercel, servidor local e produção se comportam diferente (variáveis, demos, Supabase). Diga em qual testou.
+- Relate falha com a saída (comando e trecho do erro), nunca resumo verde nem "deu um erro".
+- Nunca `git stash pop` sem `git stash list` antes: a pilha é compartilhada entre worktrees. Prefira commit de WIP.
+- Não mexa na árvore de outra sessão nem em `.claude/` sem pedido; commit cedo, branch própria.
+- Mudou regra de negócio, equilíbrio ou visual de carta? Aponte e pergunte (veja Regras de design).
+- Decisão cara de reverter vira ADR em `docs/adr/` (modelo em `0000-modelo.md`); doc novo em planos/adr/marca leva `description:` de 1 linha.
+- Mesmo PR, mesmo cuidado: teste que falharia sem o conserto e doc atualizada junto.
 
 ## Economia de tokens
 
@@ -167,9 +177,3 @@ Histórico por versão, "Pendente" antigo e detalhes de arquivos: [docs/planos/h
 - Sonnet/Haiku quando a tarefa permite; Opus para motor, equilíbrio, composição e design difícil.
 - No máximo 3 agentes em paralelo. Prints só os essenciais.
 - `npm run calibrate`: n=200 para explorar, n=400 no final. Local: só testes relacionados.
-
-### Riscos que ele já conhece
-
-- Supabase gratuito pausa depois de 7 dias sem uso (o login cai até reativar no painel).
-- Exposição pública aumenta o risco de pedido de retirada pela Nintendo: manter sem dinheiro nenhum (sem doações, sem anúncios).
-- Segredos do banco ficam só no `.env.local` do PC (nunca commitar). Para rodar migração sem o PC, use o SQL Editor do painel do Supabase.

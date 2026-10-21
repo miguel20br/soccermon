@@ -1,3 +1,7 @@
+---
+description: Por que mudança e deploy demoravam e como acelerar; origem das regras de velocidade.
+---
+
 # Pesquisa: por que mudança e deploy demoram tanto, e como acelerar (19/10/2026)
 
 Pedido do Miguel: "toda alteração e deploy demora SÉCULOS pra acontecer... por que? quero uma pesquisa intensa sobre

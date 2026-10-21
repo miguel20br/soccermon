@@ -1,4 +1,5 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import pkg from '../package.json';
 
@@ -33,5 +34,16 @@ describe('contexto do Claude', () => {
                 f,
             ).toEqual([]);
         }
+    });
+
+    it('todo .md de docs/planos e docs/adr tem description no frontmatter (alimenta scripts/indice.mjs)', () => {
+        const walk = (d: string): string[] =>
+            readdirSync(d, { withFileTypes: true }).flatMap((e) =>
+                e.isDirectory() ? walk(join(d, e.name)) : e.name.endsWith('.md') ? [join(d, e.name)] : [],
+            );
+        const sem = [...walk('docs/planos'), ...walk('docs/adr')].filter(
+            (f) => !/^---\n(?:[\s\S]*?\n)?description: \S/.test(readFileSync(f, 'utf8')),
+        );
+        expect(sem).toEqual([]);
     });
 });

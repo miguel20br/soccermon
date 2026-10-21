@@ -8,6 +8,7 @@
   "license": "AGPL-3.0-or-later",
   "type": "module",
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks",
     "dev": "vite --config vite/config.dev.mjs",
     "build": "tsc --noEmit && npm run build:vite",
     "build:vite": "vite build --config vite/config.prod.mjs",

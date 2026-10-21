@@ -1,3 +1,7 @@
+---
+description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
+---
+
 # Histórico do Soccermon
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
