@@ -940,7 +940,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
             {
                 title: 'Market and Profile',
                 lines: [
-                    'An opened pack can be closed without taking any card (I don't want any, move on)',
+                    "An opened pack can be closed without taking any card (I don't want any, move on)",
                     'Your card showcase shows on the Profile card',
                 ],
             },
