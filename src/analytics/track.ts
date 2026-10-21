@@ -143,8 +143,38 @@ function onChange(s: GameState, prev: GameState) {
                     .join(','),
                 captain: run.picks.find((p) => p.uid === run.captainUid)?.speciesId ?? null,
                 auto_from: run.autoFrom ?? null,
+                sponsors: (run.sponsors ?? []).join(',') || null,
             });
         }
+        // Mercado: cada compra (o Patrocínio vai no `what`) e a saída com o ₽ guardado
+        const shop = run.shop ?? old.shop;
+        if (old.status === 'shop' && shop && (run.shop?.sold.length ?? 0) > old.shop!.sold.length) {
+            const o = shop.offers[run.shop!.sold.at(-1)!];
+            track('shop_buy', {
+                stage: run.stage,
+                kind: o.kind,
+                what:
+                    o.kind === 'sponsor'
+                        ? o.id
+                        : o.kind === 'pokemon'
+                          ? o.inst.speciesId
+                          : o.kind === 'pack'
+                            ? o.type
+                            : o.kind === 'item'
+                              ? o.item
+                              : o.move,
+                price: o.price,
+                money: run.money ?? 0,
+            });
+        }
+        if (old.status === 'shop' && run.status !== 'shop')
+            track('shop_leave', {
+                stage: old.stage,
+                money: run.money ?? 0,
+                bought: old.shop?.sold.length ?? 0,
+                rerolls: old.shop?.rerolls ?? 0,
+                sponsors: (run.sponsors ?? []).join(','),
+            });
         if (old.status === 'reward' && (run.status === 'lineup' || run.status === 'shop')) {
             track('reward', { stage: old.stage, rerolls_left: run.rerolls, skipped: run.picks === old.picks });
         }

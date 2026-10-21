@@ -10,6 +10,7 @@ import { ITEMS } from '../../src/engine/items';
 import { ratePlayer } from '../../src/engine/match-stats';
 import { everyoneIn, mvpScore } from '../../src/engine/mvp';
 import { rewardOptions } from '../../src/engine/rewards';
+import { packCards, shopOffers, winEarnings } from '../../src/engine/shop';
 import {
     DESTAQUE_LEVEL_UP_RATING,
     DESTAQUE_MAX_LEVEL,
@@ -17,6 +18,7 @@ import {
     rollSpecial,
     weeklyEventType,
 } from '../../src/engine/specials';
+import { MAX_SPONSORS, SPONSOR_FAMILY } from '../../src/engine/sponsors';
 import { FUTSAL_5, type PokemonInstance, Rng, ratingAt, runMatch, slotAvg, type TeamSetup, viewInstance } from './lib';
 
 const [shard, nshards] = [Number(process.argv[2]), Number(process.argv[3])];
@@ -113,6 +115,10 @@ function cup(seed: string, formation: FormationId) {
     let evolutions = 0;
     const evoTiers: string[] = [];
     let destaques = 0;
+    // Mercado (STRAT 'mercado'): ₽ e Patrocínios da copa
+    let money = 0;
+    const sponsors: string[] = [];
+    const shopLog: string[] = [];
     for (let stage = 0; stage < 4; stage++) {
         const team: TeamSetup = {
             name: 'P',
@@ -123,6 +129,7 @@ function cup(seed: string, formation: FormationId) {
             formation,
             captainUid,
             manualSubs: true,
+            ...(sponsors.length && { sponsors: [...sponsors] }),
         };
         const opp = opponents[stage];
         const eligible = team.lineup.filter(
@@ -248,6 +255,53 @@ function cup(seed: string, formation: FormationId) {
         }
         if (taken === 'skip') rerolls++;
         (stages.at(-1) as Record<string, unknown>).reward = taken;
+        if (STRAT === 'mercado') {
+            money += winEarnings(m.score[0], m.score[1], money, sponsors).total;
+            shop(stage);
+        }
+    }
+
+    /** Robô do Mercado: Patrocínio de campo primeiro, depois o Pokémon (avulso ou do pacote) que mais melhora uma vaga. */
+    function shop(stage: number) {
+        const captain = picks.find((p) => p.uid === captainUid) ?? null;
+        const offers = shopOffers({ seed, stage, reroll: 0, team: picks, sponsors, eventType: EVENT, captain });
+        const sp = offers.find((o) => o.kind === 'sponsor');
+        if (sp?.kind === 'sponsor' && sponsors.length < MAX_SPONSORS && money >= sp.price) {
+            const fieldish = SPONSOR_FAMILY[sp.id] === 'campo' || sponsors.length === 0;
+            if (fieldish) {
+                money -= sp.price;
+                sponsors.push(sp.id);
+                shopLog.push(`sp:${sp.id}`);
+            }
+        }
+        const sign = (inst: PokemonInstance, price: number, what: string) => {
+            let bestGain = 2;
+            let bestK = -1;
+            lineup.forEach((u, k) => {
+                if (u === captainUid) return;
+                const g = ratingAt(inst, slots[k]).rating - ratingAt(byUid(u), slots[k]).rating;
+                if (g > bestGain) {
+                    bestGain = g;
+                    bestK = k;
+                }
+            });
+            if (bestK < 0 || money < price) return false;
+            money -= price;
+            const b = viewInstance(byUid(bench[0])).overall < viewInstance(byUid(bench[1])).overall ? 0 : 1;
+            const leaving = byUid(bench[b]);
+            picks.splice(picks.indexOf(leaving), 1, { ...inst, item: leaving.item ?? null });
+            bench[b] = lineup[bestK];
+            lineup[bestK] = inst.uid;
+            shopLog.push(`${what}+${bestGain}`);
+            return true;
+        };
+        for (const o of offers) if (o.kind === 'pokemon') sign(o.inst, o.price, `mon${o.price}`);
+        const pack = offers.find((o) => o.kind === 'pack');
+        if (pack?.kind === 'pack' && money >= pack.price) {
+            const cards = packCards(seed, stage, pack.type, picks, sponsors, EVENT);
+            const best = cards.reduce((a, c) => (viewInstance(c).overall > viewInstance(a).overall ? c : a), cards[0]);
+            if (best) sign(best, pack.price, 'pack');
+        }
     }
     return {
         seed,
@@ -264,6 +318,9 @@ function cup(seed: string, formation: FormationId) {
         rounds,
         stages,
         rerollsLeft: rerolls,
+        money,
+        sponsors,
+        shop: shopLog,
     };
 }
 

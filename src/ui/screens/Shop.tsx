@@ -12,6 +12,7 @@ import { HudIcon } from '../components/MatchHud';
 import { Money, SponsorCard, SponsorSlots } from '../components/SponsorCard';
 import { TmCard } from '../components/TmTeach';
 import { TypeIcon } from '../components/TypeIcon';
+import { Tip } from '../help/Tip';
 import { TYPE_COLOR } from '../type-colors';
 import { GainTarget } from './Reward';
 import '../shop.css';
@@ -118,6 +119,8 @@ export function Shop() {
                     </button>
                 </div>
             </div>
+
+            <Tip id="shop">{t('shop.tip')}</Tip>
 
             <div className="panel shop-earned">
                 <span className="shop-earned-title">{t('shop.earned.title')}</span>
