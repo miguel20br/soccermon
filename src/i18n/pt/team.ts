@@ -149,6 +149,7 @@ export const team = {
         mods: 'Bônus e penalidades',
         attrs: 'Atributos',
         attrsOnTeam: ' (em campo, com o seu time)',
+        fieldOvr: 'Nota em campo, com o seu time: {n}',
         moves: 'Golpes',
         kindExplain: {
             strike: 'Com bola: chute mais forte. Sem bola: carrinho que derruba o rival.',

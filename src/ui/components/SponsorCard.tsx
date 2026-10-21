@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { isSponsorId, MAX_SPONSORS, SPONSOR_FAMILY, type SponsorId } from '../../engine/sponsors';
 import { sponsorText } from '../../i18n';
 import { useT } from '../../i18n/react';
@@ -79,37 +80,43 @@ const SLOT_KEYS = Array.from({ length: MAX_SPONSORS }, (_, i) => `vaga-${i}`);
 /** As 3 vagas de Patrocínio (Escalação e Mercado). `onPick`: escolher qual sai quando as vagas estão cheias. */
 export function SponsorSlots({ sponsors, onPick }: { sponsors: readonly string[]; onPick?: (id: string) => void }) {
     const { t } = useT();
+    // sem `onPick`: tocar num Patrocínio mostra o que ele faz (no celular não tem o "passar o mouse")
+    const [open, setOpen] = useState<SponsorId | null>(null);
+    const shown = open && sponsors.includes(open) ? open : null;
     return (
-        <ul className="sp-slots" aria-label={t('shop.sponsors')}>
-            {SLOT_KEYS.map((slot, i) => {
-                const id = sponsors[i] as SponsorId | undefined;
-                if (!id)
+        <>
+            <ul className="sp-slots" aria-label={t('shop.sponsors')}>
+                {SLOT_KEYS.map((slot, i) => {
+                    const id = sponsors[i] as SponsorId | undefined;
+                    if (!id)
+                        return (
+                            <li key={slot} className="sp-slot free" title={t('shop.emptySlot')}>
+                                <span className="sp-slot-name">{t('shop.emptySlot')}</span>
+                            </li>
+                        );
+                    const txt = sponsorText(id);
+                    const brand = { '--brand': SPONSOR_BRAND[id] } as React.CSSProperties;
                     return (
-                        <li key={slot} className="sp-slot free" title={t('shop.emptySlot')}>
-                            <span className="sp-slot-name">{t('shop.emptySlot')}</span>
+                        <li key={id} className="sp-slot-li" title={txt.desc} style={brand}>
+                            <button
+                                type="button"
+                                className={`sp-slot${shown === id ? ' on' : ''}`}
+                                style={brand}
+                                aria-expanded={onPick ? undefined : shown === id}
+                                onClick={() => (onPick ? onPick(id) : setOpen(shown === id ? null : id))}
+                            >
+                                <HudIcon kind={SPONSOR_ICON[id]} />
+                                <span className="sp-slot-name">{txt.name}</span>
+                            </button>
                         </li>
                     );
-                const txt = sponsorText(id);
-                const fam = 'sp-slot';
-                const brand = { '--brand': SPONSOR_BRAND[id] } as React.CSSProperties;
-                const body = (
-                    <>
-                        <HudIcon kind={SPONSOR_ICON[id]} />
-                        <span className="sp-slot-name">{txt.name}</span>
-                    </>
-                );
-                return (
-                    <li key={id} className={onPick ? 'sp-slot-li' : fam} title={txt.desc} style={brand}>
-                        {onPick ? (
-                            <button type="button" className={fam} style={brand} onClick={() => onPick(id)}>
-                                {body}
-                            </button>
-                        ) : (
-                            body
-                        )}
-                    </li>
-                );
-            })}
-        </ul>
+                })}
+            </ul>
+            {shown && (
+                <p className="sp-slot-desc" style={{ '--brand': SPONSOR_BRAND[shown] } as React.CSSProperties}>
+                    <b>{sponsorText(shown).name}:</b> {sponsorText(shown).desc}
+                </p>
+            )}
+        </>
     );
 }

@@ -5,7 +5,7 @@ import { type PokemonInstance, viewInstance } from './instance';
 import { ITEM_IDS, ITEMS, TYPE_ITEM_FOR } from './items';
 import { Rng } from './rng';
 import { rollSpecial } from './specials';
-import { has, SPONSOR_IDS, type SponsorId } from './sponsors';
+import { has, SPONSOR_FAMILY, SPONSOR_IDS, type SponsorId } from './sponsors';
 import { rollTmOffer } from './tm';
 
 /**
@@ -113,13 +113,27 @@ interface ShopInput {
     sponsors: readonly string[];
     eventType: string | null;
     captain: PokemonInstance | null;
+    /**
+     * Partidas que ainda faltam. Com 1 (o Mercado antes da Final) só aparecem Patrocínios de campo: os de ₽ e de
+     * Mercado não teriam mais onde valer.
+     */
+    matchesLeft?: number;
 }
 
 /**
  * Vitrine: 2 Pokémon avulsos, 1 pacote de tipo (o da semana ou o do capitão), 1 item ou MT e 1 Patrocínio que você
  * ainda não tem. Loja de Departamentos: +1 Pokémon.
  */
-export function shopOffers({ seed, stage, reroll, team, sponsors, eventType, captain }: ShopInput): ShopOffer[] {
+export function shopOffers({
+    seed,
+    stage,
+    reroll,
+    team,
+    sponsors,
+    eventType,
+    captain,
+    matchesLeft = 99,
+}: ShopInput): ShopOffer[] {
     const rng = new Rng(seed, `shop-${stage}-r${reroll}`);
     const taken = new Set(team.map((p) => p.speciesId));
     const count = 2 + (has(sponsors, 'loja') ? 1 : 0);
@@ -148,7 +162,9 @@ export function shopOffers({ seed, stage, reroll, team, sponsors, eventType, cap
         gear = { kind: 'item', item: rng.pick(pool), price: PRICES.item };
     }
 
-    const free = SPONSOR_IDS.filter((id) => !sponsors.includes(id));
+    const free = SPONSOR_IDS.filter(
+        (id) => !sponsors.includes(id) && (matchesLeft > 1 || SPONSOR_FAMILY[id] === 'campo'),
+    );
     const out: ShopOffer[] = [
         ...mons,
         ...(packType ? [{ kind: 'pack' as const, type: packType, price: PRICES.pack }] : []),

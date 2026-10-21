@@ -497,6 +497,7 @@ function rollShop(run: RunState, reroll: number): ShopOffer[] {
         sponsors: run.sponsors ?? [],
         eventType: run.eventType ?? null,
         captain: run.picks.find((p) => p.uid === run.captainUid) ?? null,
+        matchesLeft: CUP_STAGES.length - run.stage - 1,
     });
 }
 

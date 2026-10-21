@@ -146,6 +146,7 @@ export const team: typeof pt = {
         mods: 'Bonuses and penalties',
         attrs: 'Attributes',
         attrsOnTeam: ' (on the court, with your team)',
+        fieldOvr: 'Rating on the court, with your team: {n}',
         moves: 'Moves',
         kindExplain: {
             strike: 'With the ball: harder shot. Without it: a tackle that knocks the rival down.',

@@ -7610,3 +7610,15 @@ body {
     width: min(720px, 100%);
     margin-inline: auto;
 }
+
+/* carta completa: a nota em campo (com capitão, sinergias e Patrocínios) */
+.modal-field-ovr {
+    margin: -4px 0 8px;
+    font-size: 13px;
+}
+.modal-field-ovr b.up {
+    color: var(--green);
+}
+.modal-field-ovr b.down {
+    color: var(--red);
+}

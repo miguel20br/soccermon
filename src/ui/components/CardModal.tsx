@@ -7,6 +7,7 @@ import {
     computeAttributes,
     POSITIONS,
     physiqueOf,
+    positionRating,
     sizePercentile,
 } from '../../engine/attributes';
 import { MOVES, species } from '../../engine/data';
@@ -114,6 +115,9 @@ export function CardModal() {
             : { role: position ?? null },
     );
     const inField = applyModifiers(computeAttributes(sp, inst.level), mods, position ?? null);
+    const ovrRole = position ?? view.naturalPosition;
+    const cardOvr = positionRating(view.attributes, ovrRole);
+    const fieldOvr = positionRating(inField, ovrRole);
     const moveMods = moveModifiers(inst);
     const physique = physiqueOf(sp);
     const body = d.common.body[sp.shape] ?? { label: physique.body, note: physique.note };
@@ -256,6 +260,16 @@ export function CardModal() {
                             {t('team.modal.attrs')}
                             {onTeam ? t('team.modal.attrsOnTeam') : ''}
                         </h3>
+                        {/* a nota com o time (capitão, sinergias, Patrocínios): o número grande da carta é ela sozinha */}
+                        {onTeam && fieldOvr !== cardOvr && (
+                            <p className="modal-field-ovr">
+                                {t('team.modal.fieldOvr', { n: fieldOvr })}{' '}
+                                <b className={fieldOvr > cardOvr ? 'up' : 'down'}>
+                                    {fieldOvr > cardOvr ? '+' : ''}
+                                    {fieldOvr - cardOvr}
+                                </b>
+                            </p>
+                        )}
                         <div className="attrs modal-attrs">
                             {ALL_ATTRS.map((k) => {
                                 const v = Math.round(view.attributes[k]);

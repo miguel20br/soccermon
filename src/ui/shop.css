@@ -411,3 +411,22 @@ button.sp-slot:hover {
         grid-column: 1 / -1;
     }
 }
+
+/* tocar no Patrocínio mostra o que ele faz */
+.sp-slot.on {
+    box-shadow: 0 0 0 2px var(--yellow);
+}
+.sp-slot-desc {
+    margin: 8px 0 0;
+    padding: 8px 10px;
+    border-left: 4px solid var(--brand);
+    border-radius: 4px;
+    background: var(--bc-ink);
+    font-size: 12px;
+    animation: foul-in 200ms var(--ease-out) both;
+}
+@keyframes foul-in {
+    from {
+        opacity: 0;
+    }
+}

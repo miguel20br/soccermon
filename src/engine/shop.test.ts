@@ -5,7 +5,7 @@ import { createInstance } from './instance';
 import { applyModifiers, attributeModifiers } from './modifiers';
 import { Rng } from './rng';
 import { interestOf, packCards, rerollPrice, shopOffers, winEarnings } from './shop';
-import { SPONSOR_IDS } from './sponsors';
+import { SPONSOR_FAMILY, SPONSOR_IDS } from './sponsors';
 
 const rng = new Rng('t', 'shop-test');
 const team = [6, 9, 3, 25, 143].map((id) => createInstance(id, rng));
@@ -69,6 +69,12 @@ describe('vitrine', () => {
         expect(new Set(sp.map((o) => o.kind === 'sponsor' && o.id)).size).toBe(2);
         const all = SPONSOR_IDS.filter((id) => id !== 'silph');
         expect(shopOffers({ ...base, sponsors: all }).filter((o) => o.kind === 'sponsor')).toHaveLength(1);
+    });
+
+    it('Mercado antes da Final: só Patrocínio de campo (os de ₽ e de Mercado não valeriam mais)', () => {
+        for (let r = 0; r < 20; r++)
+            for (const o of shopOffers({ ...base, reroll: r, matchesLeft: 1 }))
+                if (o.kind === 'sponsor') expect(SPONSOR_FAMILY[o.id]).toBe('campo');
     });
 
     it('pacote de tipo: só do tipo, sem repetir o time; Safari Zone abre 4', () => {
