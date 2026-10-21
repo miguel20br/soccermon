@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useRef } from 'react';
+import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import type { BracketMatch, BracketTeam } from '../../engine/bracket';
 import { clubName, stageName } from '../../i18n';
 import { useT } from '../../i18n/react';
@@ -71,5 +71,27 @@ function Row({ team, goals, won }: { team: BracketTeam; goals?: number; won: boo
             <span className="br-name">{team.you ? team.name : clubName(team.name)}</span>
             <b>{goals ?? ''}</b>
         </span>
+    );
+}
+
+/**
+ * A chave inteira atrás de um toque ("Ver a chave"): a fileira das fases (Escalação) e o caminho do Resultado já dizem
+ * onde você está; a chave é a 3ª leitura. Abre deslizando e fecha recolhendo (nada teleporta).
+ */
+export function BracketPeek(props: Parameters<typeof Bracket>[0]) {
+    const { t } = useT();
+    const [open, setOpen] = useState(false);
+    return (
+        <div className="br-peek">
+            <button type="button" className="btn small ghost" aria-expanded={open} onClick={() => setOpen(!open)}>
+                <HudIcon kind={open ? 'up' : 'down'} />
+                {open ? t('bracket.hide') : t('bracket.show')}
+            </button>
+            {open && (
+                <div className="br-peek-body" data-exit="collapse">
+                    <Bracket {...props} />
+                </div>
+            )}
+        </div>
     );
 }

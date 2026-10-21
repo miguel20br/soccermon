@@ -144,3 +144,25 @@
 .br-round.future .br-game {
     opacity: 0.55;
 }
+
+/* "Ver a chave": a chave inteira num toque (Escalação e Resultado) */
+.br-peek {
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    width: 100%;
+}
+.br-peek-body {
+    width: 100%;
+    animation: br-peek-in 260ms var(--ease-out) both;
+}
+@keyframes br-peek-in {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+}
+:root[data-reduce-motion="true"] .br-peek-body {
+    animation-name: leave-fade;
+    animation-direction: reverse;
+}

@@ -18,7 +18,7 @@ import { useT } from '../../i18n/react';
 import { lineupPosition, useGame } from '../../store/game-store';
 import { cupLength, isFinalStage, isLong } from '../../store/long-cup';
 import { rivalColor } from '../../store/profile';
-import { Bracket } from '../components/Bracket';
+import { BracketPeek } from '../components/Bracket';
 import { ChampionView } from '../components/ChampionView';
 import { CupGains } from '../components/CupGains';
 import { FoulCard } from '../components/FoulCard';
@@ -208,9 +208,9 @@ export function Result() {
                     actions={actions}
                 />
             )}
-            {/* Copa Relâmpago: venceu, você sobe na chave (a fase nova entra com brilho) */}
+            {/* Copa Relâmpago: venceu, você sobe na chave (num toque; a fase nova entra com brilho) */}
             {!champion && run.status === 'reward' && !isLong(run) && (
-                <Bracket
+                <BracketPeek
                     rounds={relampagoBracket(
                         run.seed,
                         { name: run.teamName, color: clubColor },
