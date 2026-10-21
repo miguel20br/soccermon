@@ -600,7 +600,12 @@ function SeriesBox({ s, role }: { s: Shared; role: Role }) {
             <h2>
                 {d.duel.bestOf[3]} · {t('duel.series.score')}{' '}
                 <b data-testid="duel-series-score">
-                    {v.wins[role]} x {v.wins[other(role)]}
+                    {/* série que acabou por W.O.: o placar de jogos ("1 x 1") enganaria */}
+                    {v.over && v.games.at(-1)?.wo
+                        ? v.winner === role
+                            ? t('duel.series.woWon')
+                            : t('duel.series.woLost')
+                        : `${v.wins[role]} x ${v.wins[other(role)]}`}
                 </b>
             </h2>
             {[1, 2, 3].slice(0, v.bestOf).map((n) => {

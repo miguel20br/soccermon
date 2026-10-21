@@ -42,7 +42,8 @@ Pedido do Miguel: "dar a possibilidade de fazer um modo MD3 no x1 também, com o
 - **Saiu entre um jogo e outro = W.O. da série** (Miguel, 21/10): quem ficou toca "Próximo jogo" (o botão fica ligado
   mesmo com o rival fora) e a espera de sempre começa (`blocker`: trava quem não pediu o próximo jogo depois que o
   outro pediu). Depois de 1 minuto aparece "Encerrar com vitória por W.O."; o jogo que acabou vai pra `series`, o
-  `result` vira o W.O. e quem ficou vê a tela de vitória por W.O. com o quadro da série. Na Escalação do jogo seguinte
+  `result` vira o W.O. e quem ficou vê a tela de vitória por W.O. com o quadro da série (o
+  placar da série vira "vitória por W.O." em vez de um "1 x 1" que enganaria; a lista dos jogos fica). Na Escalação do jogo seguinte
   vale a espera de sempre (quem não lacra no tempo fica com o time do jogo anterior). O host que volta aceita esse W.O.
   do convidado só depois da espera (`acceptTakeover`, mesma regra do W.O. no meio do jogo).
 - **Recarregou / versão nova no meio:** o próximo jogo exige os dois lacres e a mesma versão; sem isso volta pro lobby

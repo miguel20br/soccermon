@@ -35,6 +35,8 @@ export const duel = {
         draw: 'Série empatada',
         voided: 'Série anulada',
         rematch: 'Nova série',
+        woWon: 'vitória por W.O.',
+        woLost: 'derrota por W.O.',
         replay: 'Jogo {n} anulado (as telas se separaram): ele vale de novo',
         replayBtn: 'Jogar de novo',
         replayed: '{n} jogo anulado e jogado de novo|{n} jogos anulados e jogados de novo',

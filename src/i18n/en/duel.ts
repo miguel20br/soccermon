@@ -35,6 +35,8 @@ export const duel: typeof pt = {
         draw: 'Series tied',
         voided: 'Series voided',
         rematch: 'New series',
+        woWon: 'won by W.O.',
+        woLost: 'lost by W.O.',
         replay: 'Game {n} voided (the screens drifted apart): it gets replayed',
         replayBtn: 'Replay game',
         replayed: '{n} game voided and replayed|{n} games voided and replayed',
