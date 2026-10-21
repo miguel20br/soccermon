@@ -190,7 +190,9 @@ const FINAL_STAGE = 3;
  * - fim de jogo (35' em diante): +1; gol na final: +1.
  * Empate nos pontos: o mais tarde na copa.
  */
-export function cupGoal(results: { stage: number; final?: boolean; stats?: { digest?: MatchDigest } }[]): CupGoalPick | null {
+export function cupGoal(
+    results: { stage: number; final?: boolean; stats?: { digest?: MatchDigest } }[],
+): CupGoalPick | null {
     let best: CupGoalPick | null = null;
     for (const r of results) {
         const goals = r.stats?.digest?.goals ?? [];
