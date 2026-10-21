@@ -1,4 +1,4 @@
-import type { Position } from './attributes';
+import type { AttrKey, Position } from './attributes';
 
 export type FormationId = '1-2-1' | '2-2' | '3-1' | '4-0' | '1-1-2' | 'ferrolho';
 type Pt = [number, number];
@@ -230,3 +230,79 @@ export const FORMATIONS: Record<FormationId, Formation> = {
 
 export const DEFAULT_FORMATION: FormationId = '1-2-1';
 export const formationOf = (id: FormationId | undefined): Formation => FORMATIONS[id ?? DEFAULT_FORMATION];
+
+/**
+ * PROTÓTIPO (docs/planos/formacoes.md), desligado: identidade de cada formação em quadra.
+ * `attrs` multiplica o atributo de todo o time no `eff` (como a tática); `role` só o da posição.
+ * O resto mexe na IA: deslocamento (como TACTIC_SHIFT), passe pro pivô, passe × drible e a bomba do Fixo.
+ * Com `FORMATION_STYLE.on = false` (padrão) a partida é a de sempre; só o calibrate liga (`--estilos`).
+ */
+export interface FormationStyle {
+    attrs?: Partial<Record<AttrKey, number>>;
+    role?: Partial<Record<Position, Partial<Record<AttrKey, number>>>>;
+    attack?: number;
+    defend?: number;
+    pivotHold?: number;
+    shootBias?: number;
+    pressBias?: number;
+    /** Somado ao valor do passe que vai pro Pivô. */
+    pivotPass?: number;
+    /** Somado ao valor de qualquer passe (contra o drible). */
+    passBias?: number;
+    /** Multiplica a chance da bomba de longe do Fixo. */
+    longShot?: number;
+    /** Pedra-papel-tesoura: contra estas, o time todo joga com `COUNTER_FACTOR` em tudo. */
+    counters?: FormationId[];
+}
+
+/** Vantagem de quem encaixa a formação certa contra a do rival (mostrada no VERSUS e na Escalação). */
+export const COUNTER_FACTOR = 1.03;
+
+export const FORMATION_STYLE = { on: false };
+
+export const FORMATION_STYLES: Record<FormationId, FormationStyle> = {
+    // o coringa: um tico melhor em tudo que é jogo coletivo, sem vantagem nem desvantagem de confronto
+    '1-2-1': { attrs: { passing: 1.02, positioning: 1.02 } },
+    // pressão e contra-ataque: rouba mais, sai rápido no pivô; passe curto pior (time parado)
+    '2-2': {
+        counters: ['1-1-2'],
+        attrs: { tackling: 1.03, passing: 0.95 },
+        pressBias: 0.015,
+        pivotHold: 1,
+        pivotPass: 0.05,
+    },
+    // bola no pivô: ele vira o artilheiro; time marca pior lá atrás (linha de 3 aberta)
+    '3-1': {
+        counters: ['2-2'],
+        role: { PIVO: { shooting: 1.1, strength: 1.1 } },
+        attrs: { positioning: 0.96 },
+        pivotHold: 1,
+        pivotPass: 0.2,
+    },
+    // rodízio: posse, passe e velocidade; ninguém de referência na área (chute e força menores)
+    '4-0': {
+        counters: ['ferrolho'],
+        attrs: { passing: 1.08, pace: 1.06, dribble: 1.03, shooting: 0.97, strength: 0.95 },
+        passBias: 0.04,
+    },
+    // blitz: todo mundo chuta, ninguém volta
+    '1-1-2': {
+        counters: ['4-0'],
+        attrs: { shooting: 1.06, strength: 1.05, tackling: 0.94, positioning: 0.95 },
+        attack: 1.5,
+        shootBias: -0.01,
+    },
+    // retranca: fecha a área e sai no pivô; ataca pouco e de longe
+    ferrolho: {
+        counters: ['3-1'],
+        attrs: { tackling: 1.07, positioning: 1.07, goalkeeping: 1.08, shooting: 0.93, passing: 0.96 },
+        defend: -1.5,
+        pivotHold: 2.5,
+        pivotPass: 0.1,
+        longShot: 1.5,
+    },
+};
+
+const NO_STYLE: FormationStyle = {};
+export const formationStyle = (id: FormationId): FormationStyle =>
+    FORMATION_STYLE.on ? FORMATION_STYLES[id] : NO_STYLE;

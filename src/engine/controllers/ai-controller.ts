@@ -1,6 +1,7 @@
 import { AGENCY, SHOUTS } from '../agency';
 import type { Command, Controller } from '../commands';
 import { eff } from '../effective';
+import { formationStyle } from '../formations';
 import { FRICTION, goalXFor, isInOwnArea, maxSpeed, ownGoalX, TACKLE_RANGE, toRel, toWorld } from '../match';
 import { DRAWBACK, hasTrait, MOVE_TUNING, moveProfile, type Trait } from '../moves';
 import type { MatchState, PlayerState, Tactic } from '../state';
@@ -40,7 +41,15 @@ export class AIController implements Controller {
     /** Deslocamentos da tática, mais o do grito do técnico enquanto ele vale (agência, experimento). */
     private shift(team: 0 | 1): (typeof TACTIC_SHIFT)[Tactic] {
         const s = this.s;
-        const base = TACTIC_SHIFT[s.teams[team].tactic];
+        const t = TACTIC_SHIFT[s.teams[team].tactic];
+        const fs = formationStyle(s.teams[team].formation.id);
+        const base = {
+            attack: t.attack + (fs.attack ?? 0),
+            defend: t.defend + (fs.defend ?? 0),
+            pivotHold: t.pivotHold + (fs.pivotHold ?? 0),
+            shootBias: t.shootBias + (fs.shootBias ?? 0),
+            pressBias: t.pressBias + (fs.pressBias ?? 0),
+        };
         const sh = s.teams[team].agency.shout;
         if (!sh || s.tick >= sh.until) return base;
         const m = SHOUTS[sh.kind];
@@ -273,7 +282,11 @@ export class AIController implements Controller {
 
         // 1b) bomba de longe do Fixo: com espaço na intermediária, ele arrisca
         if (this.leadFixo(p) && distGoal >= 10 && distGoal < 22 && pressure < 0.45) {
-            if (s.rng.chance(0.3 + shootingSkill * 0.25)) {
+            if (
+                s.rng.chance(
+                    (0.3 + shootingSkill * 0.25) * (formationStyle(s.teams[p.team].formation.id).longShot ?? 1),
+                )
+            ) {
                 const cmds: Command[] = [];
                 const slot = this.pickMoveSlot(
                     p,
@@ -368,7 +381,7 @@ export class AIController implements Controller {
         isKeeper = false,
     ): { target: Vec2; receiver: number; score: number } | null {
         const s = this.s;
-        const tactic = this.shift(p.team);
+        const style = formationStyle(s.teams[p.team].formation.id);
         const gx = goalXFor(s, p.team);
         const gy = s.cfg.pitch.width / 2;
         const myRel = toRel(s, p.team, p.pos);
@@ -391,7 +404,9 @@ export class AIController implements Controller {
             // golpe máximo aberto: a bola procura o capitão
             const max = s.teams[p.team].agency.max;
             if (max && max.idx === mate.idx) score += 0.35;
-            if (tactic.pivotHold > 2 && mate.role === 'PIVO') score += 0.1; // contra-ataque: busca o pivô
+            if (TACTIC_SHIFT[s.teams[p.team].tactic].pivotHold > 2 && mate.role === 'PIVO') score += 0.1; // contra-ataque: busca o pivô
+            if (mate.role === 'PIVO') score += style.pivotPass ?? 0;
+            score += style.passBias ?? 0;
             score += s.rng.range(-0.08, 0.08);
             if (isKeeper && !safe) continue;
             if (!best || score > best.score) best = { target, receiver: mate.idx, score };
