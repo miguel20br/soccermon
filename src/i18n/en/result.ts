@@ -56,6 +56,7 @@ export const result: typeof pt = {
         champions: 'CHAMPIONS!',
         win: 'VICTORY!',
         loss: 'END OF THE ROAD',
+        lossAlive: 'DEFEAT',
         cupWon: 'Kanto Cup won!',
         runnerUp: 'Kanto Cup runners-up',
         eliminated: 'Knocked out {stage}',

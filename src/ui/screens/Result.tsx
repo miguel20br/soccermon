@@ -166,7 +166,11 @@ export function Result() {
                     </>
                 ) : (
                     <button type="button" className="btn primary big" onClick={advance}>
-                        {run.status === 'map' ? t('longCup.backToMap') : t('result.chooseReward')}
+                        {run.status === 'map'
+                            ? t('longCup.backToMap')
+                            : run.status === 'group'
+                              ? t('longCup.backToGroup')
+                              : t('result.chooseReward')}
                         <HudIcon kind="next" />
                     </button>
                 )}
