@@ -303,6 +303,37 @@ export function runDevDemo() {
         return;
     }
     // ?demo=momentos: a mesma copa do campeão (cada partida travada como no jogo, então o gol da copa tem replay)
+    // ?demo=eliminado&rota=1: a Rota no meio do mapa, já com um amarelo; o time fraco perde a próxima e cai
+    if (demo === 'eliminado' && new URLSearchParams(window.location.search).get('rota') === '1') {
+        demoLongMap(store, true);
+        const at = useGame.getState().run!;
+        const next = at.map!.nodes.find(
+            (n) => at.map!.nodes.find((x) => x.id === at.at)!.next.includes(n.id) && n.kind === 'jogo',
+        );
+        if (!next) return;
+        useGame.getState().enterNode(next.id);
+        const rng = new Rng('rota-demo', 'demo');
+        const lineup = [129, 10, 13, 16, 19].map((id) => createInstance(id, rng));
+        const cur = useGame.getState().run!;
+        useGame.setState({
+            run: {
+                ...cur,
+                picks: [...lineup, ...cur.picks.filter((p) => cur.bench.includes(p.uid))],
+                // o mapa do demo já traz um resultado nesta partida: sai, pra ela contar
+                results: cur.results.filter((r) => r.stage < cur.stage),
+                lineup: lineup.map((p) => p.uid),
+                captainUid: lineup[4].uid,
+            },
+        });
+        const run = useGame.getState().run!;
+        const team = playerTeam(run);
+        useGame.getState().lockMatch(team);
+        const m = runMatch(FUTSAL_5, team, run.opponents[run.stage], `${run.seed}-stage-${run.stage}`);
+        useGame.getState().recordResult(m);
+        useGame.setState({ match: m, screen: 'result' });
+        console.info(`[demo] rota: ${useGame.getState().run!.status}`);
+        return;
+    }
     // ?demo=eliminado: um time fraco que cai (tela de eliminado: "faltou pouco" e "Nova copa" na barra)
     if (demo === 'campeao' || demo === 'momentos' || demo === 'eliminado') {
         const lose = demo === 'eliminado';

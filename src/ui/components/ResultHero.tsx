@@ -14,6 +14,7 @@ import { useClubColor } from '../profile/club';
 import { CountUp } from './CountUp';
 import { LeaderQuote } from './LeaderQuote';
 import { HudIcon } from './MatchHud';
+import { PmdSprite } from './PmdSprite';
 import { cardSprite } from './PokeCard';
 
 /** Linha de número do topo do resultado (seu time x rival). */
@@ -229,11 +230,31 @@ export function ResultHero({
                                 {t('result.hero.star')}
                             </span>
                         )}
-                        <img
-                            className="pixel"
-                            src={cardSprite({ speciesId: p.speciesId, shiny: p.shiny })}
-                            alt={p.name}
-                        />
+                        {sadCaptain ? (
+                            // eliminado: o time desmaia (PMD Faint; quem não tem, deita pra dormir)
+                            <span role="img" aria-label={p.name}>
+                                <PmdSprite
+                                    id={p.speciesId}
+                                    shiny={p.shiny}
+                                    anim={['Faint', 'Sleep']}
+                                    fit={72}
+                                    className="rh-faint"
+                                    fallback={
+                                        <img
+                                            className="pixel"
+                                            src={cardSprite({ speciesId: p.speciesId, shiny: p.shiny })}
+                                            alt=""
+                                        />
+                                    }
+                                />
+                            </span>
+                        ) : (
+                            <img
+                                className="pixel"
+                                src={cardSprite({ speciesId: p.speciesId, shiny: p.shiny })}
+                                alt={p.name}
+                            />
+                        )}
                     </div>
                 ))}
             </div>
