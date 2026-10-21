@@ -16,6 +16,7 @@ const PAGES = [
     ['/?demo=album&motion=1', ['[role=tab]']],
     ['/?demo=amigos&motion=1', ['.fr-open', '.fr-more']],
     ['/?demo=dia&motion=1', ['.bc-seg button']],
+    ['/?demo=mercado&motion=1', ['.shop-buy']],
 ];
 
 /** Roda dentro da página: vigia o que aparece, some e pula. */

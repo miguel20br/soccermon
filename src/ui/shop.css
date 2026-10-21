@@ -124,3 +124,121 @@ button.sp-slot {
 button.sp-slot:hover {
     transform: translateY(-2px);
 }
+
+/* Patrocínios na Escalação */
+.lineup-sponsors {
+    display: grid;
+    gap: 6px;
+    margin-top: 12px;
+    font-size: 12px;
+}
+.lineup-sponsors .sp-slots {
+    grid-template-columns: 1fr;
+}
+
+/* ---------- tela do Mercado ---------- */
+.shop-wallet {
+    font-family: "Galmuri14", var(--font, inherit);
+    font-size: 22px;
+}
+.shop-earned {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 16px;
+    font-size: 13px;
+}
+.shop-earned-title {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 10px;
+    color: var(--yellow);
+}
+.shop-earned-line b {
+    color: var(--yellow);
+}
+.shop-earned-hint {
+    flex-basis: 100%;
+    font-size: 12px;
+}
+.shop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: var(--gap);
+    justify-items: center;
+    margin: var(--gap) 0;
+    --fut-w: 190px;
+}
+.shop-offer {
+    display: grid;
+    grid-template-rows: 1fr auto;
+    justify-items: center;
+    align-self: stretch;
+    gap: 8px;
+    width: var(--fut-w);
+    transition:
+        opacity 250ms var(--ease-out),
+        transform 250ms var(--ease-out);
+}
+.shop-offer > .card,
+.shop-offer > .sp-card {
+    width: var(--fut-w);
+    min-height: 250px;
+    height: 100%;
+}
+.shop-offer > .btn {
+    width: 100%;
+}
+.shop-offer.sold {
+    opacity: 0.45;
+}
+.shop-offer.chosen {
+    transform: translateY(-4px);
+}
+.shop-pack-card .type-icon {
+    width: 44px;
+    height: 44px;
+    image-rendering: auto;
+}
+/* comprar é secundário: a ação principal da tela é Seguir (vermelho, um por tela) */
+.shop-buy:not(:disabled) {
+    border-color: var(--yellow);
+    color: var(--yellow);
+}
+.shop-sponsors h2 .muted {
+    font-size: 12px;
+    font-weight: 400;
+}
+
+@media (max-width: 480px) {
+    .shop-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        --fut-w: 100%;
+    }
+    .shop-offer > .card,
+    .shop-offer > .sp-card {
+        min-height: 220px;
+    }
+    .sp-slots {
+        grid-template-columns: 1fr;
+    }
+    /* na vitrine o item e a MT ficam em pé, como as outras cartas (fora dela o celular deita a carta) */
+    .shop-grid .shop-offer .item-card {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        text-align: center;
+        padding: 10px 8px;
+    }
+    .shop-grid .shop-offer .item-card > * {
+        grid-column: 1;
+        grid-row: auto;
+    }
+    .shop-offer .item-card .tactic-desc {
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+}

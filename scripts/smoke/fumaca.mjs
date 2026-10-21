@@ -53,7 +53,7 @@ const shot = async (p, name, fullPage = false) => {
             const t = document.body.innerText;
             const out = [];
             const key =
-                /\b(?:common|home|team|match|result|reward|profile|settings|duel|stats|help|account|title|battle)\.[a-z][\w.]+/g;
+                /\b(?:common|home|team|match|result|reward|profile|settings|duel|stats|help|account|title|battle|shop)\.[a-z][\w.]+/g;
             for (const re of [/\bundefined\b/g, /\bNaN\b/g, /\{\w+\}/g, key]) {
                 out.push(...(t.match(re) ?? []).slice(0, 3));
             }

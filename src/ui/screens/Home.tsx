@@ -163,8 +163,8 @@ export function Home() {
     const resumeScreen =
         run && ['formation', 'captain', 'drafting'].includes(run.status)
             ? 'draft'
-            : run?.status === 'reward'
-              ? 'reward'
+            : run?.status === 'reward' || run?.status === 'shop'
+              ? run.status
               : 'lineup';
     const name = () => teamName.trim() || 'Pallet FC';
     /** Começar outra copa apaga a atual: com uma em andamento, pede confirmação antes. */
@@ -190,9 +190,11 @@ export function Home() {
             ? t('home.draftStep', { n: Math.min(run.draftRound + 1, 7) })
             : run?.status === 'reward'
               ? t('home.choosingReward')
-              : run
-                ? stageName(run.stage)
-                : '';
+              : run?.status === 'shop'
+                ? t('home.atMarket')
+                : run
+                  ? stageName(run.stage)
+                  : '';
     const openLab = (q: string) => {
         window.location.search = q;
     };

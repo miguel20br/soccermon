@@ -20,6 +20,7 @@ import { FutCard } from '../components/FutCard';
 import { LinkChips } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
 import { cardSprite, TypeBadge } from '../components/PokeCard';
+import { Money, SponsorSlots } from '../components/SponsorCard';
 import { Tip } from '../help/Tip';
 import { lineupAverage } from '../rating';
 import { agencyOn } from '../settings-sync';
@@ -111,6 +112,7 @@ export function Lineup() {
                 onTactic={setTactic}
                 onCorner={setCorner}
                 onMoveItem={moveItem}
+                sponsors={run.sponsors}
                 side={
                     <div className="panel">
                         <h2>
@@ -156,6 +158,14 @@ export function Lineup() {
                                         })}
                             </button>
                         </div>
+                        {!!run.sponsors?.length && (
+                            <div className="lineup-sponsors">
+                                <span className="muted">
+                                    {t('shop.sponsors')} · <Money n={run.money ?? 0} />
+                                </span>
+                                <SponsorSlots sponsors={run.sponsors} />
+                            </div>
+                        )}
                         {locked && <p className="tactic-desc">{t('team.lineup.lockedNote')}</p>}
                         {error && <p className="error-text">{error}</p>}
                     </div>
@@ -206,6 +216,7 @@ export function LineupEditor({
     onMoveItem,
     side,
     footer,
+    sponsors,
 }: {
     title: string;
     formation: FormationId;
@@ -225,6 +236,8 @@ export function LineupEditor({
     onMoveItem?: (fromUid: string, toUid: string) => void;
     side: ReactNode;
     footer?: ReactNode;
+    /** Patrocínios da copa: os de campo entram na conta da escalação (carta = campo). */
+    sponsors?: readonly string[];
 }) {
     const [selected, setSelected] = useState<SlotRef | null>(null);
     const [detail, setDetail] = useState<string | null>(null);
@@ -246,7 +259,7 @@ export function LineupEditor({
     const cornerField = lineupNow
         .map((inst, i) => {
             const role = slotsNow[i];
-            const mods = attributeModifiers(inst, { lineup: lineupNow, captain: captainNow, role });
+            const mods = attributeModifiers(inst, { lineup: lineupNow, captain: captainNow, role, sponsors });
             const passing = applyModifiers(computeAttributes(species(inst.speciesId), inst.level), mods, role).passing;
             return { inst, role, passing };
         })

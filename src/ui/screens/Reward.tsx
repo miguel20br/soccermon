@@ -3,11 +3,12 @@ import { formationOf } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import type { Reward as RewardDef } from '../../engine/rewards';
+import type { ShopOffer } from '../../engine/shop';
 import { editionOf } from '../../engine/specials';
 import { playSfx } from '../../game/audio';
 import { clubName, itemDesc, itemName, stageName, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
-import { useGame } from '../../store/game-store';
+import { type RunState, useGame } from '../../store/game-store';
 import { useCardModal } from '../card-modal';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { FormationBoard } from '../components/FormationBoard';
@@ -43,8 +44,6 @@ function FitBadge({ fit, item, text, full }: { fit: ItemFit; item: string; text:
 export function Reward() {
     const { run, claimReward, skipReward, rerollReward } = useGame();
     const [chosen, setChosen] = useState<number | null>(null);
-    // item novo pra quem já segura um: quem vai segurar o novo (falta escolher pra quem vai o antigo)
-    const [holder, setHolder] = useState<string | null>(null);
     const { lang, t, tn } = useT();
     // a festa encurta: da 7ª tela de recompensa em diante, o pacote abre rápido e as cartas saem quase juntas
     const [fast] = useState(() => (readCount(PACKS_KEY) ?? 0) >= FAST_AFTER);
@@ -55,16 +54,10 @@ export function Reward() {
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
     const reward = chosen !== null ? run.rewards[chosen] : null;
     const squad = [...run.lineup, ...run.bench].map((u) => byUid.get(u)!).filter(Boolean);
-    const targets =
-        reward?.kind === 'pokemon'
-            ? run.bench.map((u) => byUid.get(u)!).filter((p) => p && p.uid !== run.captainUid)
-            : squad;
     const pick = (i: number) => {
         playSfx('select');
         setChosen(chosen === i ? null : i);
-        setHolder(null);
     };
-    const holding = holder ? byUid.get(holder) : null;
     // item que depende dos golpes (tipo, King's Rock): quantos golpes de cada um ele aproveita
     const fitItem = reward?.kind === 'item' ? reward.item : null;
     const fitOf = (p: PokemonInstance) => (fitItem ? itemFit(fitItem, p) : null);
@@ -190,102 +183,13 @@ export function Reward() {
                 </div>
             </CardPack>
 
-            {reward?.kind === 'tm' && (
-                <TmTeachPanel
-                    move={reward.move}
-                    team={squad}
-                    onTeach={(uid, slot) => {
-                        playSfx('select');
-                        claimReward(chosen!, uid, slot);
-                    }}
+            {reward && (
+                <GainTarget
+                    key={chosen}
+                    gain={reward}
+                    run={run}
+                    onClaim={(uid, slot, passTo) => claimReward(chosen!, uid, slot, passTo)}
                 />
-            )}
-            {reward && reward.kind !== 'tm' && (
-                <div className="panel reward-pick">
-                    <h2>{t(reward.kind === 'pokemon' ? 'reward.swapWhich' : 'reward.giveTo')}</h2>
-                    <div className="squad-strip">
-                        {targets.map((p) => (
-                            <button
-                                key={p.uid}
-                                type="button"
-                                className={`mini target-btn${fitOf(p)?.count === 0 ? ' dim' : ''}`}
-                                aria-pressed={holder === p.uid}
-                                onClick={() => {
-                                    playSfx('select');
-                                    if (reward.kind === 'item' && p.item) {
-                                        setHolder(holder === p.uid ? null : p.uid);
-                                        // o passo de "pra quem vai o antigo" aparece embaixo: no celular, rola até ele
-                                        requestAnimationFrame(() =>
-                                            document
-                                                .querySelector('.reward-pass')
-                                                ?.scrollIntoView({ block: 'nearest' }),
-                                        );
-                                    } else claimReward(chosen!, p.uid);
-                                }}
-                            >
-                                <img className="pixel" src={cardSprite(p)} alt="" />
-                                <span>
-                                    <b>{viewInstance(p).displayName}</b>
-                                    {fitItem && fitOf(p) && (
-                                        <FitBadge fit={fitOf(p)!} item={fitItem} text={fitText(fitOf(p)!)} full />
-                                    )}
-                                    {p.item && (
-                                        <span className="muted">
-                                            {t(
-                                                reward.kind === 'pokemon'
-                                                    ? 'reward.itemGoesToNew'
-                                                    : 'reward.passesItem',
-                                                {
-                                                    item: itemName(p.item),
-                                                },
-                                            )}
-                                        </span>
-                                    )}
-                                </span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
-            {reward?.kind === 'item' && holding?.item && (
-                <div className="panel reward-pick reward-pass">
-                    <h2>{t('reward.passTitle', { item: itemName(holding.item) })}</h2>
-                    <div className="squad-strip">
-                        {squad
-                            .filter((p) => p.uid !== holding.uid)
-                            .map((p) => (
-                                <button
-                                    key={p.uid}
-                                    type="button"
-                                    className="mini target-btn"
-                                    onClick={() => {
-                                        playSfx('select');
-                                        claimReward(chosen!, holding.uid, undefined, p.uid);
-                                    }}
-                                >
-                                    <img className="pixel" src={cardSprite(p)} alt="" />
-                                    <span>
-                                        <b>{viewInstance(p).displayName}</b>
-                                        {p.item && (
-                                            <span className="muted">
-                                                {t('reward.replacesItem', { item: itemName(p.item) })}
-                                            </span>
-                                        )}
-                                    </span>
-                                </button>
-                            ))}
-                    </div>
-                    <button
-                        type="button"
-                        className="btn small ghost"
-                        onClick={() => {
-                            playSfx('select');
-                            claimReward(chosen!, holding.uid);
-                        }}
-                    >
-                        {t('reward.discardItem', { item: itemName(holding.item) })}
-                    </button>
-                </div>
             )}
             <div className="panel reward-team">
                 <h2>{t('reward.yourTeam')}</h2>
@@ -337,6 +241,135 @@ export function Reward() {
                     }}
                 />
             </div>
+        </>
+    );
+}
+
+/** O que a recompensa (ou a compra do Mercado) pede: quem sai do banco, quem aprende a MT ou quem segura o item. */
+export function GainTarget({
+    gain: reward,
+    run,
+    onClaim,
+}: {
+    gain: Exclude<RewardDef | ShopOffer, { kind: 'pack' | 'sponsor' }>;
+    run: RunState;
+    onClaim: (uid: string, forgetSlot?: number, passTo?: string) => void;
+}) {
+    // item novo pra quem já segura um: quem vai segurar o novo (falta escolher pra quem vai o antigo)
+    const [holder, setHolder] = useState<string | null>(null);
+    const { lang, t, tn } = useT();
+    const byUid = new Map(run.picks.map((p) => [p.uid, p]));
+    const squad = [...run.lineup, ...run.bench].map((u) => byUid.get(u)!).filter(Boolean);
+    const targets =
+        reward.kind === 'pokemon'
+            ? run.bench.map((u) => byUid.get(u)!).filter((p) => p && p.uid !== run.captainUid)
+            : squad;
+    const holding = holder ? byUid.get(holder) : null;
+    const fitItem = reward.kind === 'item' ? reward.item : null;
+    const fitOf = (p: PokemonInstance) => (fitItem ? itemFit(fitItem, p) : null);
+    const fitText = (f: ItemFit) =>
+        f.type
+            ? tn('reward.fit.typeCount', f.count, { type: typeName(f.type, lang) })
+            : tn('reward.fit.hitCount', f.count);
+    return (
+        <>
+            {reward.kind === 'tm' && (
+                <TmTeachPanel
+                    move={reward.move}
+                    team={squad}
+                    onTeach={(uid, slot) => {
+                        playSfx('select');
+                        onClaim(uid, slot);
+                    }}
+                />
+            )}
+            {reward.kind !== 'tm' && (
+                <div className="panel reward-pick" data-exit>
+                    <h2>{t(reward.kind === 'pokemon' ? 'reward.swapWhich' : 'reward.giveTo')}</h2>
+                    <div className="squad-strip">
+                        {targets.map((p) => (
+                            <button
+                                key={p.uid}
+                                type="button"
+                                className={`mini target-btn${fitOf(p)?.count === 0 ? ' dim' : ''}`}
+                                aria-pressed={holder === p.uid}
+                                onClick={() => {
+                                    playSfx('select');
+                                    if (reward.kind === 'item' && p.item) {
+                                        setHolder(holder === p.uid ? null : p.uid);
+                                        // o passo de "pra quem vai o antigo" aparece embaixo: no celular, rola até ele
+                                        requestAnimationFrame(() =>
+                                            document
+                                                .querySelector('.reward-pass')
+                                                ?.scrollIntoView({ block: 'nearest' }),
+                                        );
+                                    } else onClaim(p.uid);
+                                }}
+                            >
+                                <img className="pixel" src={cardSprite(p)} alt="" />
+                                <span>
+                                    <b>{viewInstance(p).displayName}</b>
+                                    {fitItem && fitOf(p) && (
+                                        <FitBadge fit={fitOf(p)!} item={fitItem} text={fitText(fitOf(p)!)} full />
+                                    )}
+                                    {p.item && (
+                                        <span className="muted">
+                                            {t(
+                                                reward.kind === 'pokemon'
+                                                    ? 'reward.itemGoesToNew'
+                                                    : 'reward.passesItem',
+                                                {
+                                                    item: itemName(p.item),
+                                                },
+                                            )}
+                                        </span>
+                                    )}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+            {reward.kind === 'item' && holding?.item && (
+                <div className="panel reward-pick reward-pass" data-exit>
+                    <h2>{t('reward.passTitle', { item: itemName(holding.item) })}</h2>
+                    <div className="squad-strip">
+                        {squad
+                            .filter((p) => p.uid !== holding.uid)
+                            .map((p) => (
+                                <button
+                                    key={p.uid}
+                                    type="button"
+                                    className="mini target-btn"
+                                    onClick={() => {
+                                        playSfx('select');
+                                        onClaim(holding.uid, undefined, p.uid);
+                                    }}
+                                >
+                                    <img className="pixel" src={cardSprite(p)} alt="" />
+                                    <span>
+                                        <b>{viewInstance(p).displayName}</b>
+                                        {p.item && (
+                                            <span className="muted">
+                                                {t('reward.replacesItem', { item: itemName(p.item) })}
+                                            </span>
+                                        )}
+                                    </span>
+                                </button>
+                            ))}
+                    </div>
+                    <button
+                        type="button"
+                        className="btn small ghost"
+                        onClick={() => {
+                            playSfx('select');
+                            onClaim(holding.uid);
+                        }}
+                    >
+                        {t('reward.discardItem', { item: itemName(holding.item) })}
+                    </button>
+                </div>
+            )}
         </>
     );
 }

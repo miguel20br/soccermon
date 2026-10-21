@@ -29,6 +29,7 @@ import { Profile } from './ui/screens/Profile';
 import { Result } from './ui/screens/Result';
 import { Reward } from './ui/screens/Reward';
 import { Settings } from './ui/screens/Settings';
+import { Shop } from './ui/screens/Shop';
 import { TrophyRoom } from './ui/screens/TrophyRoom';
 
 // Movedex (?lab=golpes) usa o Phaser: vem num pedaço à parte, como a partida
@@ -186,6 +187,7 @@ export default function App() {
             {screen === 'match' && <Match />}
             {screen === 'result' && <Result />}
             {screen === 'reward' && <Reward />}
+            {screen === 'shop' && <Shop />}
             {screen === 'settings' && <Settings />}
             {screen === 'credits' && <Credits />}
             {screen === 'profile' && <Profile />}

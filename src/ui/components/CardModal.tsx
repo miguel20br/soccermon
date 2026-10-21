@@ -105,7 +105,12 @@ export function CardModal() {
     const mods = attributeModifiers(
         inst,
         onTeam
-            ? { lineup, captain: picks.find((p) => p.uid === run?.captainUid) ?? null, role: position ?? null }
+            ? {
+                  lineup,
+                  captain: picks.find((p) => p.uid === run?.captainUid) ?? null,
+                  role: position ?? null,
+                  sponsors: run?.sponsors,
+              }
             : { role: position ?? null },
     );
     const inField = applyModifiers(computeAttributes(sp, inst.level), mods, position ?? null);

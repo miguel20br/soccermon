@@ -22,7 +22,7 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * partida termina empatada e vai para os pênaltis, já na tela de escalação. `?demo=ditto` monta um time
  * com Ditto e Mew + Mewtwo (sinergia Gênese) cuja primeira partida tem combo. `?demo=evolucao` monta um time
  * de iniciais cuja primeira partida tem evolução do seu time logo no começo (`&rival=1`: do rival). `?demo=campeao` joga uma copa
- * inteira com um time forte e para na tela do título (`?demo=momentos` é a mesma: Melhores momentos e gol da copa). `?demo=mt` abre a recompensa depois das oitavas com
+ * inteira com um time forte e para na tela do título (`?demo=momentos` é a mesma: Melhores momentos e gol da copa). `?demo=mercado` abre o Mercado depois das quartas (₽, 2 Patrocínios). `?demo=mt` abre a recompensa depois das oitavas com
  * uma MT do ginásio entre as 3 cartas (Charmeleon, Caterpie e cia. para testar quem aprende). `?demo=conta&tipo=levar|juntar|juntar1|copa|outra|guardada`
  * mostra a pergunta depois do login (com resumos de mentira; os botões só fecham) ou a copa guardada na tela inicial. `?demo=trailer&cena=<cena>&seed=<seed>` abre na escalação a
  * partida que a caça de lances (scripts/trailer-hunt.ts) escolheu para o trailer. `?demo=escanteio` monta um time de
@@ -54,6 +54,7 @@ export function runDevDemo() {
         demo !== 'momentos' &&
         demo !== 'trailer' &&
         demo !== 'mt' &&
+        demo !== 'mercado' &&
         demo !== 'escanteio' &&
         demo !== 'conta' &&
         demo !== 'lider' &&
@@ -250,6 +251,11 @@ export function runDevDemo() {
         }
         return;
     }
+    // ?demo=mercado: Mercado depois das quartas (demoShop)
+    if (demo === 'mercado') {
+        demoShop(store);
+        return;
+    }
     // ?demo=momentos: a mesma copa do campeão (cada partida travada como no jogo, então o gol da copa tem replay)
     if (demo === 'campeao' || demo === 'momentos') {
         for (let k = 0; k < 40; k++) {
@@ -279,8 +285,9 @@ export function runDevDemo() {
                 useGame.getState().lockMatch(team);
                 m = runMatch(FUTSAL_5, team, cur.opponents[cur.stage], `${cur.seed}-stage-${cur.stage}`);
                 useGame.getState().recordResult(m);
-                if (useGame.getState().run!.status === 'reward') useGame.getState().skipReward();
-                else break;
+                if (useGame.getState().run!.status !== 'reward') break;
+                useGame.getState().skipReward();
+                if (useGame.getState().run!.status === 'shop') useGame.getState().leaveShop();
             }
             if (useGame.getState().run!.status === 'champion') {
                 useGame.setState({ match: m, screen: 'result' });
@@ -698,4 +705,40 @@ function demoBinder() {
         window.history.replaceState(null, '', url);
     }
     g.go('profile');
+}
+
+/** ?demo=mercado: Mercado depois das quartas, com ₽12 guardados, 2 Patrocínios e a vitória por 3 a 0. */
+function demoShop(store: ReturnType<typeof useGame.getState>) {
+    store.newRun('Demo FC', 'mercado-demo');
+    const run = useGame.getState().run!;
+    const rng = new Rng('mercado-demo', 'demo');
+    const lineup = [95, 7, 5, 25, 74].map((id) => createInstance(id, rng));
+    const bench = [10, 92].map((id) => createInstance(id, rng));
+    const result = (stage: number) => ({
+        stage,
+        opponent: run.opponents[stage].name,
+        score: [3, 0] as [number, number],
+        shootout: null,
+        won: true,
+        destaqueUid: null,
+    });
+    useGame.setState({
+        run: {
+            ...run,
+            formation: '1-2-1',
+            picks: [...lineup, ...bench],
+            lineup: lineup.map((p) => p.uid),
+            bench: bench.map((p) => p.uid),
+            captainUid: lineup[2].uid,
+            draftRound: 7,
+            status: 'reward',
+            stage: 1,
+            results: [result(0), result(1)],
+            rewards: [],
+            money: 12,
+            sponsors: ['silph', 'creche'],
+        },
+    });
+    useGame.getState().skipReward();
+    return;
 }

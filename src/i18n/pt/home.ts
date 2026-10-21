@@ -13,6 +13,7 @@ export const home = {
         new: '+{n} novo|+{n} novos',
     },
     choosingReward: 'Escolhendo a recompensa',
+    atMarket: 'No Mercado',
     cupTag: 'Modo principal',
     eventWeek: 'Semana do tipo {type}',
     eventText: 'Cartas Evento do tipo {type} podem aparecer no draft.',
