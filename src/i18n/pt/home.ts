@@ -33,12 +33,12 @@ export const home = {
     quickCup: {
         tag: '4 partidas',
         title: 'Copa Relâmpago',
-        line: 'Mata-mata de 4 jogos, rápido e direto, com o Mercado entre eles.',
+        line: 'Mata-mata de 4 jogos, rápido e direto.',
     },
     longCup: {
         tag: 'Em breve',
         title: 'Rota Índigo',
-        line: 'Atravesse Kanto até o Planalto: 8 jogos, eventos, ginásios e um cartão amarelo.',
+        line: 'Atravesse Kanto até o Planalto: 8 jogos, eventos e ginásios.',
         soon: 'Em breve',
         note: 'A Rota Índigo chega na próxima versão.',
     },

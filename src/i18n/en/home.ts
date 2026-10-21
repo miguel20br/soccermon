@@ -32,12 +32,12 @@ export const home: typeof pt = {
     quickCup: {
         tag: '4 matches',
         title: 'Lightning Cup',
-        line: 'A 4-match knockout, quick and direct, with the Market in between.',
+        line: 'A 4-match knockout, quick and direct.',
     },
     longCup: {
         tag: 'Coming soon',
         title: 'Indigo Road',
-        line: 'Cross Kanto to the Plateau: 8 matches, events, gyms and one yellow card.',
+        line: 'Cross Kanto to the Plateau: 8 matches, events and gyms.',
         soon: 'Coming soon',
         note: 'The Indigo Road arrives in the next version.',
     },
