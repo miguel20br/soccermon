@@ -109,7 +109,7 @@ export function VsStartButton({
     const { t } = useT();
     if (!ready && slow && onRetry)
         return (
-            <button type="button" className="btn yellow vs-start vs-slow" onClick={onRetry}>
+            <button type="button" className="btn outline vs-start vs-slow" onClick={onRetry}>
                 {t('match.vs.retry')}
                 <small role="alert">{t('match.vs.slow')}</small>
             </button>

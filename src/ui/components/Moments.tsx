@@ -204,7 +204,7 @@ export function Moments({
                         <div className="row moments-actions">
                             <button
                                 type="button"
-                                className="btn yellow"
+                                className="btn outline"
                                 onClick={() => file && downloadBlob(file, file.name)}
                             >
                                 {t('moments.download')}
@@ -246,7 +246,7 @@ export function Moments({
                                     )
                                 )}
                                 {mime && (
-                                    <button type="button" className="btn yellow" onClick={record}>
+                                    <button type="button" className="btn outline" onClick={record}>
                                         {t('moments.export')}
                                     </button>
                                 )}
@@ -340,7 +340,7 @@ export function CupGoalCard({ run, match }: { run: RunState; match: MatchResult 
             </span>
             <small className="muted cupgoal-rule">{t('moments.cup.rule')}</small>
             {live || replay ? (
-                <button type="button" className="btn yellow" onClick={watch} disabled={busy}>
+                <button type="button" className="btn outline" onClick={watch} disabled={busy}>
                     <HudIcon kind="play" /> {busy ? t('moments.loading') : t('moments.cup.watch')}
                 </button>
             ) : (

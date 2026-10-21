@@ -479,7 +479,7 @@ export function MoveLab({ onExit, bare }: { onExit: () => void; bare?: boolean }
                                         </button>
                                         <button
                                             type="button"
-                                            className={`btn small yellow${rv?.verdict === 'mudar' ? ' active' : ''}`}
+                                            className={`btn small outline${rv?.verdict === 'mudar' ? ' active' : ''}`}
                                             onClick={() => save(row.id, { verdict: 'mudar' })}
                                         >
                                             {L.reviewChange}

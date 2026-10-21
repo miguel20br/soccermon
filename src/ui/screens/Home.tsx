@@ -335,7 +335,7 @@ export function Home() {
                                 {longSoon ? t('home.longCup.note') : ''}
                             </p>
                             {challengeSeed && (
-                                <button type="button" className="btn yellow" onClick={() => start(challengeSeed)}>
+                                <button type="button" className="btn outline" onClick={() => start(challengeSeed)}>
                                     {t('home.challenge', { seed: challengeSeed })}
                                 </button>
                             )}

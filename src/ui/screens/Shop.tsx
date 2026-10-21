@@ -110,7 +110,7 @@ export function Shop() {
                 />
                 <button
                     type="button"
-                    className="btn small shop-buy"
+                    className="btn small outline shop-buy"
                     disabled={!buyable(o, i)}
                     aria-pressed={chosen === i}
                     onClick={() => choose(i)}

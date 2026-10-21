@@ -135,11 +135,11 @@ export function Result() {
                     <>
                         {run.daily ? (
                             // Copa do Dia: o ranking e o compartilhar (estilo Wordle) ficam na tela do dia
-                            <button type="button" className="btn yellow" onClick={() => go('daily')}>
+                            <button type="button" className="btn outline" onClick={() => go('daily')}>
                                 {t('liga.daily.rankingTitle')}
                             </button>
                         ) : (
-                            <button type="button" className="btn yellow" onClick={share}>
+                            <button type="button" className="btn outline" onClick={share}>
                                 {t('result.share')}
                             </button>
                         )}

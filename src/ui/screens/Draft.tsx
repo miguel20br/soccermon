@@ -66,7 +66,7 @@ function AutoDraft({ captainUid }: { captainUid?: string }) {
                     </button>
                     <button
                         type="button"
-                        className="btn yellow"
+                        className="btn outline"
                         onClick={() => {
                             playSfx('select');
                             autoDraft(captainUid);

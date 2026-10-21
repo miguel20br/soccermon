@@ -634,7 +634,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         />
                     </div>
                     {sceneSlow && !sceneReady && (
-                        <button type="button" className="btn yellow" onClick={() => setSceneKey((k) => k + 1)}>
+                        <button type="button" className="btn outline" onClick={() => setSceneKey((k) => k + 1)}>
                             {t('match.reload')}
                         </button>
                     )}

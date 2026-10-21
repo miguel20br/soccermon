@@ -579,7 +579,7 @@ function DataSettings() {
                     <div>
                         <button
                             type="button"
-                            className="btn small ghost danger"
+                            className="btn small danger"
                             onClick={() => {
                                 setPending(null);
                                 setMsg(null);

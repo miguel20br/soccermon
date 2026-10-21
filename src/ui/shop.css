@@ -217,11 +217,6 @@ button.sp-slot:hover {
 .shop-offer.chosen {
     transform: translateY(-4px);
 }
-/* comprar é secundário: a ação principal da tela é Seguir (vermelho, um por tela) */
-.shop-buy:not(:disabled) {
-    border-color: var(--yellow);
-    color: var(--yellow);
-}
 .shop-sponsors h2 .muted {
     font-size: 12px;
     font-weight: 400;

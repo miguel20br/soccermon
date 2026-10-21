@@ -157,19 +157,34 @@ img.pixel {
     border-color: var(--red-dark);
     box-shadow: 0 3px 0 #6e1615;
 }
-.btn.yellow {
-    background: var(--yellow);
-    color: #2a2a2a;
-    border-color: #c79c00;
-    box-shadow: 0 3px 0 #7d6200;
+/* Sistema de botões (docs/planos/pesquisa-layout-e-game-design.md §3): primário vermelho, um por tela; secundário de
+   contorno amarelo (ação repetida em grade e 2ª ação de fim; o amarelo cheio aposentou); comum; fantasma; perigo de
+   contorno. Desabilitado continua visível (45%) e diz o porquê em .btn-why logo embaixo. */
+.btn.outline {
+    border-color: var(--yellow);
+    color: var(--yellow);
+    box-shadow: 0 3px 0 var(--bc-ink);
 }
-/* amarelo apagado ainda parecia ligado (Substituir depois do apito final) */
-.btn.yellow:disabled {
-    filter: grayscale(0.9);
+.btn.outline:disabled {
+    border-color: var(--line);
+    color: var(--muted);
+}
+.btn-why {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
 }
 .btn.ghost {
     background: transparent;
     border-color: var(--line);
+    box-shadow: none;
+}
+/* perigo: só contorno, nunca na barra do polegar; o "Apagar" de verdade é o primário da confirmação */
+.btn.danger {
+    background: var(--panel);
+    border-color: #ff6b4c;
+    color: #ff6b4c;
     box-shadow: none;
 }
 .btn.small {
@@ -6342,11 +6357,6 @@ p.muted.center a {
     padding: 10px;
     border: 2px solid #ff6b4c;
     border-radius: 10px;
-}
-.btn.danger {
-    background: #c8352a;
-    border-color: #ff6b4c;
-    color: #fff;
 }
 
 /* ---------- Pacote de cartas (CardPack.tsx): recompensa e draft ----------

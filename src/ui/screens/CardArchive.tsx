@@ -140,7 +140,7 @@ export function CardArchive({ onExit }: { onExit: () => void }) {
                                 type="button"
                                 role="tab"
                                 aria-selected={holoTab === c}
-                                className={`btn small${holoTab === c ? ' active' : ''}${c === 'mix' ? ' yellow' : ''}`}
+                                className={`btn small${holoTab === c ? ' active' : ''}${c === 'mix' ? ' outline' : ''}`}
                                 onClick={() => setHoloTab(c)}
                             >
                                 {COLUMN_LABEL(c)}

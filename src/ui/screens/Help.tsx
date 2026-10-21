@@ -80,7 +80,7 @@ export function Help() {
             <div className="help-actions">
                 <button
                     type="button"
-                    className="btn yellow"
+                    className="btn outline"
                     onClick={() => {
                         setOnboarded(false);
                         go('home');

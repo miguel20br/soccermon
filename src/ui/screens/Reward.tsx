@@ -174,7 +174,7 @@ export function Reward() {
                                     )}
                                     <button
                                         type="button"
-                                        className="btn small primary fut-action"
+                                        className="btn small outline fut-action"
                                         aria-pressed={chosen === i}
                                         onClick={() => pick(i)}
                                     >
