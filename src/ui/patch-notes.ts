@@ -32,7 +32,10 @@ export const PATCH_NOTES: PatchNotes[] = [
             },
             {
                 title: 'Menus',
-                lines: ['Tudo mora no Perfil: a Sala de troféus e a Coleção abrem logo abaixo do seu cartão'],
+                lines: [
+                    'A tela inicial separa os dois modos da Copa: a Copa rápida (a de sempre, 4 partidas) e a Copa longa, com mapa, eventos e tesouros (em breve)',
+                    'Tudo mora no Perfil: a Sala de troféus e a Coleção abrem logo abaixo do seu cartão',
+                ],
             },
         ],
     },
@@ -859,6 +862,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
             {
                 title: 'Menus',
                 lines: [
+                    'The home screen splits the two Cup modes: the Quick Cup (the usual one, 4 matches) and the Long Cup, with a map, events and treasure (coming soon)',
                     'Everything lives in the Profile: the Trophy room and the Collection open right below your card',
                 ],
             },

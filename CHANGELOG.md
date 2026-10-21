@@ -17,6 +17,7 @@
 - Os seus Patrocínios aparecem nas placas da beira da quadra
 
 ### Menus
+- A tela inicial separa os dois modos da Copa: a Copa rápida (a de sempre, 4 partidas) e a Copa longa, com mapa, eventos e tesouros (em breve)
 - Tudo mora no Perfil: a Sala de troféus e a Coleção abrem logo abaixo do seu cartão
 
 ## 0.8.9 · Sala de troféus e menus novos
