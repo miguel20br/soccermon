@@ -7,6 +7,34 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.3.1',
+        title: 'Pokédex com texto e Pokémon com mais caras',
+        sections: [
+            {
+                title: 'Coleção',
+                lines: [
+                    'A ficha do Pokémon e a carta aberta do Álbum trazem o texto da Pokédex',
+                ],
+            },
+            {
+                title: 'Pokémon mais vivos',
+                lines: [
+                    'O Pokémon grita quando você escolhe no draft, no VERSUS e na carta grande do pacote',
+                    'Sala de troféus: à noite ele dorme de verdade; de dia às vezes senta ou come',
+                    'Rota Índigo: o time cochila no Descanso, faz cara de dor no carrinho e fica tonto no treino puxado',
+                    'Eliminado: o time aparece caído e o capitão com lágrima',
+                ],
+            },
+            {
+                title: 'Rota Índigo e Copa Relâmpago',
+                lines: [
+                    'O mapa mostra o capitão rival em cada casa de partida e o time dele em ícones',
+                    'A chave da copa mostra o capitão de cada clube',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.3',
         title: 'Golpes revisados',
         sections: [
@@ -1126,6 +1154,34 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.3.1',
+        title: 'Pokédex entries and more faces',
+        sections: [
+            {
+                title: 'Collection',
+                lines: [
+                    'The Pokémon sheet and the open Album card show the Pokédex entry',
+                ],
+            },
+            {
+                title: 'Livelier Pokémon',
+                lines: [
+                    'Pokémon cry when you pick them in the draft, in the VERSUS and on the big pack card',
+                    'Trophy room: at night it really sleeps; in the day it sometimes sits or eats',
+                    'Indigo Road: the team naps at Rest, winces on a tackle and gets dizzy in hard training',
+                    'Knocked out: the team lies on the floor and the captain sheds a tear',
+                ],
+            },
+            {
+                title: 'Indigo Road and Lightning Cup',
+                lines: [
+                    'The map shows the rival captain on each match node and their team as icons',
+                    'The cup bracket shows each club captain',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.3',
         title: 'Moves reviewed',

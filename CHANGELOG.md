@@ -1,5 +1,20 @@
 # Novidades
 
+## 0.9.3.1 · Pokédex com texto e Pokémon com mais caras
+
+### Coleção
+- A ficha do Pokémon e a carta aberta do Álbum trazem o texto da Pokédex
+
+### Pokémon mais vivos
+- O Pokémon grita quando você escolhe no draft, no VERSUS e na carta grande do pacote
+- Sala de troféus: à noite ele dorme de verdade; de dia às vezes senta ou come
+- Rota Índigo: o time cochila no Descanso, faz cara de dor no carrinho e fica tonto no treino puxado
+- Eliminado: o time aparece caído e o capitão com lágrima
+
+### Rota Índigo e Copa Relâmpago
+- O mapa mostra o capitão rival em cada casa de partida e o time dele em ícones
+- A chave da copa mostra o capitão de cada clube
+
 ## 0.9.3 · Golpes revisados
 
 ### Cada um com o seu tipo
