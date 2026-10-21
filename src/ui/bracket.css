@@ -140,3 +140,7 @@
 :root[data-reduce-motion="true"] .br-game.fresh {
     animation: none;
 }
+/* fases que ainda não chegaram: o seu caminho aparece apagado */
+.br-round.future .br-game {
+    opacity: 0.55;
+}

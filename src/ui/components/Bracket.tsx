@@ -26,7 +26,11 @@ export function Bracket({ rounds, current, fresh }: { rounds: BracketMatch[][]; 
         <section className="br" aria-label={t('bracket.title')}>
             <div className="br-scroll" ref={scroller}>
                 {rounds.map((games, r) => (
-                    <div key={stageName(r)} className={`br-round${r === current ? ' now' : ''}`} style={{ '--r': r } as CSSProperties}>
+                    <div
+                        key={stageName(r)}
+                        className={`br-round${r === current ? ' now' : r > current ? ' future' : ''}`}
+                        style={{ '--r': r } as CSSProperties}
+                    >
                         <span className="br-stage">{stageName(r)}</span>
                         <div className="br-games">
                             {games.map((m) => (

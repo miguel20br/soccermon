@@ -1,5 +1,6 @@
 import { type ReactNode, useState } from 'react';
 import { computeAttributes } from '../../engine/attributes';
+import { relampagoBracket } from '../../engine/bracket';
 import { cupRival } from '../../engine/cup';
 import { species } from '../../engine/data';
 import { FORMATIONS, type FormationId } from '../../engine/formations';
@@ -14,8 +15,9 @@ import { playSfx } from '../../game/audio';
 import { clubName, cupStageName, dict, formationText, itemDesc, itemName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { liveOf, playerTeam, type SlotRef, useGame } from '../../store/game-store';
-import { isOut } from '../../store/long-cup';
+import { isLong, isOut } from '../../store/long-cup';
 import { useCardModal } from '../card-modal';
+import { Bracket } from '../components/Bracket';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
 import { LinkChips } from '../components/LinkChips';
@@ -23,6 +25,7 @@ import { HudIcon } from '../components/MatchHud';
 import { cardSprite, TypeBadge } from '../components/PokeCard';
 import { Money, SponsorSlots } from '../components/SponsorCard';
 import { Tip } from '../help/Tip';
+import { useClubColor } from '../profile/club';
 import { lineupAverage } from '../rating';
 import { agencyOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
@@ -53,6 +56,7 @@ export function Lineup() {
     const openCard = useCardModal((s) => s.open);
     const [loading, setLoading] = useState(false);
     const { t, d, lang } = useT();
+    const clubColor = useClubColor();
     if (!run) return null;
 
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
@@ -113,6 +117,18 @@ export function Lineup() {
                 </div>
             </div>
 
+            {/* Copa Relâmpago: a chave inteira, com você na fase de agora */}
+            {!isLong(run) && (
+                <Bracket
+                    rounds={relampagoBracket(
+                        run.seed,
+                        { name: run.teamName, color: clubColor },
+                        run.opponents,
+                        run.results,
+                    )}
+                    current={run.stage}
+                />
+            )}
             <LineupEditor
                 title={t('team.lineup.title', { team: run.teamName })}
                 formation={run.formation}

@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import { track } from '../../analytics/track';
+import { relampagoBracket } from '../../engine/bracket';
 import { species } from '../../engine/data';
 import {
     dangerByPeriod,
@@ -17,6 +18,7 @@ import { useT } from '../../i18n/react';
 import { lineupPosition, useGame } from '../../store/game-store';
 import { cupLength, isFinalStage, isLong } from '../../store/long-cup';
 import { rivalColor } from '../../store/profile';
+import { Bracket } from '../components/Bracket';
 import { ChampionView } from '../components/ChampionView';
 import { CupGains } from '../components/CupGains';
 import { FoulCard } from '../components/FoulCard';
@@ -202,6 +204,19 @@ export function Result() {
                     mvpUid={ourStar?.uid ?? null}
                     stats={heroStats(match, t)}
                     actions={actions}
+                />
+            )}
+            {/* Copa Relâmpago: venceu, você sobe na chave (a fase nova entra com brilho) */}
+            {!champion && run.status === 'reward' && !isLong(run) && (
+                <Bracket
+                    rounds={relampagoBracket(
+                        run.seed,
+                        { name: run.teamName, color: clubColor },
+                        run.opponents,
+                        run.results,
+                    )}
+                    current={run.stage + 1}
+                    fresh
                 />
             )}
             {/* fora do título a fala vem no topo do resultado (ResultHero) */}

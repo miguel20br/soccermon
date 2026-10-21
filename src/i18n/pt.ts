@@ -1,7 +1,7 @@
 import { account } from './pt/account';
 import { battle } from './pt/battle';
-import { commentary } from './pt/commentary';
 import { bracket } from './pt/bracket';
+import { commentary } from './pt/commentary';
 import { common } from './pt/common';
 import { duel } from './pt/duel';
 import { friends } from './pt/friends';
