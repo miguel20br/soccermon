@@ -14,6 +14,7 @@ Soccermon é um fan project sem fins lucrativos criado por **Miguel Cunha** ([@m
 | Técnicas de carta holográfica (reimplementadas, sem texturas copiadas) | [simeydotme/pokemon-cards-css](https://github.com/simeydotme/pokemon-cards-css) | GPL-3.0 |
 | Móveis, piso e parede da Sala de troféus | [Modern Interiors, LimeZu](https://limezu.itch.io/moderninteriors) (versão grátis) | uso não comercial, com crédito (LICENSE em `public/assets/room/mi`) |
 | Móveis 3D da Sala de troféus (protótipo `?lab=sala`) | [KayKit Furniture Bits](https://github.com/KayKit-Game-Assets/KayKit-Furniture-Bits-1.0) (Kay Lousberg) | CC0 1.0 |
+| Ícones de menu (`public/assets/icons`, folhas montadas por `scripts/fetch-icons.ts`) | [msikma/pokesprite](https://github.com/msikma/pokesprite) (Gen 7 e Gen 8; shiny feitos pela comunidade, ver `contributors.md` de lá) e [Pokémon Showdown](https://play.pokemonshowdown.com/sprites/) (`pokemonicons-sheet.png`, só na comparação `?lab=icones`) | código MIT; imagens © Nintendo/Creatures/GAME FREAK; uso não comercial, com crédito |
 | Sprites de treinador | [Pokémon Showdown](https://play.pokemonshowdown.com/sprites/trainers) | imagens © The Pokémon Company; uso não comercial, com crédito |
 | Partículas de efeito | [Pokémon Showdown](https://play.pokemonshowdown.com/fx/) | uso não comercial, com crédito |
 | Fonte Galmuri (subset só com latim e os símbolos do jogo, gerado por `npm run fonts` a partir do pacote npm `galmuri`) | [quiple/galmuri](https://github.com/quiple/galmuri) | SIL OFL 1.1 (`public/fonts/OFL-Galmuri.md`) |

@@ -12,7 +12,7 @@ import {
     rivalTrainer,
 } from '../../engine/cup-map';
 import { EVO_THRESHOLD, evolutionTarget } from '../../engine/evolution';
-import { viewInstance } from '../../engine/instance';
+import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
@@ -21,6 +21,7 @@ import { choiceTargets, type EventId, eventChoices } from '../../store/long-even
 import { FutCard } from '../components/FutCard';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
+import { MonIcon } from '../components/MonIcon';
 import { cardSprite } from '../components/PokeCard';
 import { Money, SponsorSlots } from '../components/SponsorCard';
 import { useClubColor } from '../profile/club';
@@ -90,6 +91,19 @@ export function CupMap() {
     const scroller = useRef<HTMLDivElement>(null);
     const map = run?.map;
     const open = useMemo(() => new Set(map ? nextNodes(map, run?.at ?? null).map((n) => n.id) : []), [map, run?.at]);
+    // o capitão do rival em cada casa de partida aberta (a mesma conta da janela da casa: o mesmo time)
+    const rivalIcons = useMemo(() => {
+        const out = new Map<string, PokemonInstance>();
+        if (!map || !run) return out;
+        const faced = run.opponents.filter(Boolean).map((o) => o.name);
+        for (const n of map.nodes) {
+            if (!open.has(n.id) || !isMatchKind(n.kind)) continue;
+            const r = longOpponent(run.seed, matchIndexOfRow(n.row), n.kind, faced, run.rivalShift ?? 0);
+            const c = r.lineup.find((p) => p.uid === r.captainUid) ?? r.lineup[0];
+            if (c) out.set(n.id, c);
+        }
+        return out;
+    }, [map, open, run]);
 
     // a linha das casas abertas aparece na tela (o mapa começa embaixo)
     useEffect(() => {
@@ -207,6 +221,13 @@ export function CupMap() {
                                 }}
                             >
                                 <HudIcon kind={ICON[n.kind]} />
+                                {rivalIcons.has(n.id) && (
+                                    <MonIcon
+                                        className="cm-node-rival"
+                                        id={rivalIcons.get(n.id)!.speciesId}
+                                        shiny={rivalIcons.get(n.id)!.shiny}
+                                    />
+                                )}
                                 <span className="cm-label">{t(`longCup.kind.${n.kind}`)}</span>
                             </button>
                         );
@@ -302,7 +323,7 @@ function NodeSheet({
                     </span>
                     <span className="cm-rival-team">
                         {rival.lineup.map((p) => (
-                            <img key={p.uid} className="pixel" src={cardSprite(p)} alt="" />
+                            <MonIcon key={p.uid} id={p.speciesId} shiny={p.shiny} label={viewInstance(p).displayName} />
                         ))}
                     </span>
                 </div>

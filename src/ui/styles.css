@@ -7551,3 +7551,12 @@ body {
         animation: screen-in 0.2s var(--ease-out) both;
     }
 }
+
+/* ícone de menu (MonIcon): pixel art em escala inteira, sem suavizar */
+.mon-icon {
+    display: inline-block;
+    flex: none;
+    background-repeat: no-repeat;
+    image-rendering: pixelated;
+    vertical-align: middle;
+}

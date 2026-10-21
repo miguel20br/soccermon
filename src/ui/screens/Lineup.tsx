@@ -16,7 +16,7 @@ import { useT } from '../../i18n/react';
 import { liveOf, playerTeam, type SlotRef, useGame } from '../../store/game-store';
 import { isLong, isOut } from '../../store/long-cup';
 import { useCardModal } from '../card-modal';
-import { BracketPeek } from '../components/Bracket';
+import { BracketPeek, bracketRivals, bracketYou } from '../components/Bracket';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
 import { LinkChips } from '../components/LinkChips';
@@ -124,8 +124,8 @@ export function Lineup() {
                 <BracketPeek
                     rounds={relampagoBracket(
                         run.seed,
-                        { name: run.teamName, color: clubColor },
-                        run.opponents,
+                        bracketYou(run.teamName, clubColor, run.picks, run.captainUid),
+                        bracketRivals(run.opponents),
                         run.results,
                     )}
                     current={run.stage}

@@ -220,9 +220,30 @@
     display: flex;
     gap: 6px;
 }
-.cm-rival-team img {
-    width: 44px;
-    height: 44px;
+.cm-rival-team {
+    flex-wrap: wrap;
+}
+/* o capitão do rival espiando a casa de partida aberta (entra junto com a casa, sem pular) */
+.cm-node-rival {
+    position: absolute;
+    top: -12px;
+    left: calc(50% + 8px);
+    z-index: 1;
+    animation: cm-rival-in 240ms var(--ease-out) both;
+}
+@keyframes cm-rival-in {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+}
+:root[data-reduce-motion="true"] .cm-node-rival {
+    animation-name: cm-fade-in;
+}
+@keyframes cm-fade-in {
+    from {
+        opacity: 0;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -806,4 +827,9 @@
 .gp-pen {
     color: var(--muted);
     font-size: 10px;
+}
+@media (prefers-reduced-motion: reduce) {
+    .cm-node-rival {
+        animation-name: cm-fade-in;
+    }
 }

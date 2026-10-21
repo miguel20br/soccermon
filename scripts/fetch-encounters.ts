@@ -62,7 +62,11 @@ await pool(ids, 6, async (id) => {
                 const byVersion = byMethod.get(d.method.name) ?? new Map();
                 byMethod.set(d.method.name, byVersion);
                 const [c, lo, hi] = byVersion.get(version) ?? [0, 99, 0];
-                byVersion.set(version, [Math.min(100, c + d.chance), Math.min(lo, d.min_level), Math.max(hi, d.max_level)]);
+                byVersion.set(version, [
+                    Math.min(100, c + d.chance),
+                    Math.min(lo, d.min_level),
+                    Math.max(hi, d.max_level),
+                ]);
             }
         }
     }

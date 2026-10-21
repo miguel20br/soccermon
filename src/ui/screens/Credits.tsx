@@ -38,6 +38,11 @@ export function Credits() {
                         })}
                     </li>
                     <li>
+                        {rich(t('settings.credits.icons'), {
+                            link: <a href="https://github.com/msikma/pokesprite">PokéSprite</a>,
+                        })}
+                    </li>
+                    <li>
                         {rich(t('settings.credits.holo'), {
                             link: <a href="https://github.com/simeydotme/pokemon-cards-css">pokemon-cards-css</a>,
                         })}

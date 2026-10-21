@@ -152,6 +152,7 @@ export const settings = {
         spritesTitle: 'Sprites e áudio',
         pmd: 'Sprites de campo e retratos: {link}, licença CC BY-NC 4.0 — autores por Pokémon nos arquivos CREDITS-PMD.md e CREDITS-PORTRAITS.md do projeto. Sprites originais de Pokémon Mystery Dungeon © Nintendo / Spike Chunsoft.',
         bw: 'Sprites animados de Black/White, ícones de itens e ícones de tipo (Pokémon Champions): {link}.',
+        icons: 'Ícones de menu: {link} (msikma; shiny feitos pela comunidade).',
         holo: 'Técnicas das cartas holográficas inspiradas em {link} (simeydotme, GPL-3.0).',
         cries: 'Gritos: {link}.',
         particles: 'Partículas de efeito: {link}.',
