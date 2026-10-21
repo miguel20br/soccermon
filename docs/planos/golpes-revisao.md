@@ -39,6 +39,95 @@ golpes das cartas e liga as mudanças por fora.
 
 ---
 
+## Decisões do Miguel e o que entrou (21/10/2026, branch `golpes`, ENGINE_VERSION 8)
+
+Aprovado como recomendado: perguntas 1, 2 e 5 a 17. Nas 3 e 4:
+- **Gengar:** sai o **Confuse Ray** (o combo Hypnosis → Dream Eater fica) e o golpe Venenoso é **Sludge**, numa exceção
+  fora da Gen 1 só para ele (`LEARNSET_EXTRA` em `src/engine/data.ts`; da Gen 2 em diante ele aprende Sludge Bomb).
+  Gengar = Dream Eater, Night Shade, Sludge, Hypnosis. Haunter e Gastly seguem a regra (Toxic).
+- **Hitmonchan:** Agility ⇒ Counter (os 3 socos ficam).
+- Butterfree fora da regra do tipo; D1 e D4 (fora o Gengar) ficam para depois.
+
+O que entrou no código:
+- **A** regra do tipo próprio no `defaultMoveset` (`ownTypeRule`), as trocas na mão em `MOVESET_SWAP` (Gengar,
+  Hitmonchan, Gyarados: fácil de mudar, uma linha cada) e o Fly levando a bola 2 m (`airCarry`).
+- **B** texto gerado pelos números do motor (`src/i18n/move-text.ts`, PT e EN) para todo golpe sem explicação
+  própria; textos à mão para Harden, Slam, Light Screen, Reflect e Transform.
+- **C** Harden = Defense Curl, Slam com alcance, Amnesia = Special +2, Tri Attack sorteando 3 status, Explosion 4 m,
+  paredes sem o +7%. Os números que o texto usa saíram do `match.ts` para o `MOVE_TUNING`.
+- **D2** sem 2 golpes de mesmo efeito (`moveBehavior`); Ponyta e Tangela ficam de fora até você ver.
+- **D3** Gyarados: Splash ⇒ Hyper Beam.
+- Duelo aceita qualquer golpe do learnset (com a exceção do Gengar): carta salva com o moveset antigo continua valendo.
+- Testes novos em `src/engine/traits.test.ts` (regra do tipo, sem 2 iguais, trocas, Duelo, C1 a C5, Fly);
+  hashes do determinismo novos; `npm run edge:liga` feito (sem deploy).
+
+### Movesets que mudaram (20 espécies)
+
+| Pokémon | Antes | Sai ⇒ entra | Por quê |
+|---|---|---|---|
+| 4 Charmander | Ember, Slash, Swords Dance, Fire Blast | Fire Blast ⇒ Dragon Rage | D2 (Ember = Fire Blast) |
+| 5 Charmeleon | Slash, Flamethrower, Swords Dance, Fire Blast | Fire Blast ⇒ Dragon Rage | D2 |
+| 6 Charizard | Flamethrower, Earthquake, Swords Dance, Fire Blast | Fire Blast ⇒ Fly | A (Voador) |
+| 15 Beedrill | Twineedle, Double-Edge, Agility, Pin Missile | Agility ⇒ Toxic | A (Veneno) |
+| 26 Raichu | Thunder, Slam, Thunder Wave, Thunderbolt | Thunderbolt ⇒ Agility | D2 |
+| 31 Nidoqueen | Body Slam, Earthquake, Counter, Bite | Counter ⇒ Toxic | A |
+| 32 Nidoran♂ | Double Kick, Blizzard, Focus Energy, Thunder | Focus Energy ⇒ Toxic | A |
+| 33 Nidorino | Horn Attack, Double Kick, Focus Energy, Blizzard | Focus Energy ⇒ Toxic | A |
+| 34 Nidoking | Thrash, Earthquake, Focus Energy, Double Kick | Focus Energy ⇒ Toxic | A |
+| 41 Zubat | Leech Life, Wing Attack, Confuse Ray, Supersonic | Supersonic ⇒ Toxic | A |
+| 42 Golbat | Wing Attack, Leech Life, Confuse Ray, Supersonic | Supersonic ⇒ Toxic | A |
+| 59 Arcanine | Fire Blast, Bite, Agility, Flamethrower | Flamethrower ⇒ Take Down | D2 |
+| 92 Gastly | Lick, Night Shade, Confuse Ray, Hypnosis | Hypnosis ⇒ Toxic | A |
+| 93 Haunter | Night Shade, Dream Eater, Confuse Ray, Hypnosis | Hypnosis ⇒ Toxic | A |
+| 94 Gengar | Dream Eater, Night Shade, Confuse Ray, Hypnosis | Confuse Ray ⇒ **Sludge** | decisão do Miguel |
+| 106 Hitmonlee | High Jump Kick, Mega Kick, Focus Energy, Jump Kick | Jump Kick ⇒ Double Kick | D2 |
+| 107 Hitmonchan | Thunder Punch, Fire Punch, Agility, Ice Punch | Agility ⇒ Counter | decisão do Miguel |
+| 120 Staryu | Water Gun, Blizzard, Thunder Wave, Hydro Pump | Hydro Pump ⇒ Psychic | D2 |
+| 130 Gyarados | Hydro Pump, Bite, Splash, Dragon Rage | Splash ⇒ Hyper Beam | D3 |
+| 138 Omanyte | Water Gun, Blizzard, Withdraw, Hydro Pump | Hydro Pump ⇒ Surf | D2 |
+
+Para mudar o Gengar ou o Hitmonchan depois: uma linha em `MOVESET_SWAP` (`src/engine/moves.ts`).
+
+### Textos: 6 exemplos antes ⇒ depois (carta, Golpedex e MT)
+
+| Golpe | Antes | Depois |
+|---|---|---|
+| Explosion | Físico: chute potente com a bola, carrinho forte sem ela | Explode: derruba e empurra todo mundo a 4 m, até companheiro. Quem usou fica 1,6 s no chão, sem fôlego. Com a bola, o chute sai junto. |
+| Double-Edge | Físico: chute potente com a bola, carrinho forte sem ela | Físico: chute potente com a bola, carrinho forte sem ela. Quem usa perde 4% do fôlego. |
+| Thunder Wave | Status no rival perto (paralisia, sono, veneno, confusão) | Paralisa o rival mais perto: fica lento por 6 s. Terra é imune. Acerta 90%. |
+| Sleep Powder | Status no rival perto (paralisia, sono, veneno, confusão) | Faz o rival mais perto dormir: fica parado 2,5 s. Planta é imune. Acerta 75%. |
+| Amnesia | Reforço: sobe atributos por um tempo | Reforço: passe, chute e leitura sobem 14% por 12 s. |
+| Tri Attack | Especial: finalização de longe ou chute colocado | Especial: finalização de longe ou chute colocado. Pode queimar, congelar ou paralisar. |
+
+Em inglês sai o mesmo pelos mesmos números ("Paralyzes the nearest rival: it slows down for 6 s. Ground types are
+immune. 90% accuracy.").
+
+### Calibragem: `npm run calibrate -- --n 400`, antes (main 0.9.2.1, v7) e depois (v8)
+
+| Métrica | Antes (v7) | Depois (v8) | Meta |
+|---|---|---|---|
+| Gols por jogo | 7,59 | 7,64 | 5–7 (já estava acima por causa da Pressão final) |
+| Mais forte (Δ≥3) vence | 62,3% | 62,6% | 60–65% |
+| Empates no tempo normal | 19,0% | 13,5% | — |
+| Goleadas (6+) | 2,0% | 3,3% | — |
+| Golpes por jogo | 30,6 | 30,9 | — |
+| Gols logo após chute com golpe (400 jogos) | 136 | 179 | — |
+| Fly: usos por jogo / gols em 400 jogos | 0 / 0 | 0,39 / 21 | — |
+| Toxic por jogo | 0,55 | 0,99 | — |
+| "Enrola" (Defense Curl e Harden) por jogo | 0,56 | 1,45 | — |
+| Alcance (desarme de longe) por jogo | 0,35 | 0,59 | — |
+| Melhor / pior tipo | Aço 57% (23 jogos) / Dragão 39% | Dragão 56% / Aço 39% (23 jogos) | ≤ 58 / ≥ 42 |
+
+Erro da medida: favorito ±2,9 pp, gols ±0,13, tipo ±5 pp (Aço e Dragão, com 23 e 94 jogos, ±10). Gols e favorito
+não mudaram. Os empates caíram 5,5 pp e as goleadas subiram 1,3 pp: mais gol saindo de golpe (179 × 136, boa parte do
+Fly do Charizard, que mesmo com 2 m faz 21 gols em 400 jogos) desempata mais jogos. O Dragão subiu com o Slam de
+alcance (Dratini e Dragonair) e o Dragon Rage na linha do Charmander não conta (não são Dragão).
+
+**Gengar antes ⇒ depois (pareado, 160 partidas, mesmos times e seeds, só os golpes dele mudam):** com Confuse Ray
+45,0% de vitórias e saldo −0,23; com Sludge 44,4% e −0,16. Erro ±4 pp: **a força dele não mudou.**
+
+---
+
 ## 1. Como um golpe vira jogo (o que o motor olha de verdade)
 
 Só a IA usa golpe (o jogador escolhe time, tática e gritos, não aperta golpe). Cada golpe tem **1 uso por partida** (2
@@ -619,3 +708,71 @@ galeria. D4 e D5 não mudam partida da IA.
     agora**: a regra "learnset da Gen 1" é simples de explicar. Rever quando a Gen 2 chegar.
 17. **Ordem de subida:** A (com Fly 2 m) + B + C juntos numa versão (uma subida de ENGINE_VERSION, um deploy da Liga), D depois, com
     você jogando antes? Recomendo **sim**.
+
+---
+
+## 8. Movesets iguais entre espécies (pedido do Miguel: "queria que cada Pokémon fosse único")
+
+`npx tsx scripts/balance/golpes-revisao.ts unicos` (com os movesets da v8). Regra combinada: **mesma linha evolutiva
+parecida não é problema**; só vale mexer em espécies sem relação, e só se a troca não tirar poder nem deixar o Pokémon
+estranho.
+
+| | Mesma linha evolutiva | Sem relação |
+|---|---|---|
+| Moveset idêntico (4 de 4) | 11 grupos (Ivysaur/Venusaur, Wartortle/Blastoise, Zubat/Golbat, Kadabra/Alakazam...) | **1**: Spearow e Doduo (Peck, Drill Peck, Double-Edge, Agility) |
+| Quase idêntico (3 de 4) | 50 pares | **47 pares** |
+
+Os 47 pares sem relação são quase todos o mesmo "molde": os pós das plantas (Bulbasaur, Oddish, Bellsprout, Tangela,
+Venonat com Poison Powder + Sleep Powder), os pássaros Normal/Voador (Spearow, Fearow, Doduo, Dodrio, Pidgeotto,
+Scyther), os Elétricos com Thunder Wave + Agility (Pikachu, Raichu, Jolteon, Zapdos, e Dratini/Dragonair pelo Slam +
+Thunder Wave + Agility), os Água com Hydro Pump + Blizzard (Squirtle, Horsea, Omastar, Staryu), os Terra com
+Earthquake + Rock Slide (Sandshrew, Diglett, Dugtrio, Rhyhorn) e o trio Psychic + Thunder Wave + Blizzard (Slowbro,
+Starmie, Mewtwo).
+
+### Regra proposta (protótipo, desligado: `UNIQUE_MOVESETS = false` em `src/engine/moves.ts`)
+
+Quando duas espécies de linhas diferentes dividem 3 ou 4 golpes, a de número maior troca 1 golpe dividido pelo
+melhor golpe do learnset dela que nenhuma das duas leva, desde que:
+- seja da mesma classe (dano por dano; status por status; arrancada por arrancada);
+- não repita efeito nem tipo de fora que ela já tem;
+- tenha nota de pelo menos 90% do que sai e, no dano, força de pelo menos 90% e precisão parecida (nada de nocaute ou
+  golpe de risco no lugar);
+- não seja a assinatura nem o único golpe de um tipo dela.
+
+Sem troca que cumpra tudo, fica como está.
+
+| Pokémon | Hoje (v8) | Sai ⇒ entra | Divide com | Leitura |
+|---|---|---|---|---|
+| 33 Nidorino | Horn Attack, Double Kick, Toxic, Blizzard | Blizzard ⇒ Thunder | Nidoran♀ | ok |
+| 40 Wigglytuff | Double Slap, Blizzard, Sing, Double-Edge | Blizzard ⇒ Mega Kick | Clefable, Chansey | **estranho** (3 golpes Normais) |
+| 48 Venonat | Psybeam, Leech Life, Poison Powder, Sleep Powder | Sleep Powder ⇒ Stun Spore | Butterfree | ok |
+| 69 Bellsprout | Vine Whip, Acid, Poison Powder, Sleep Powder | Poison Powder ⇒ Stun Spore | Bulbasaur, Oddish | ok |
+| 70 Weepinbell | Acid, Razor Leaf, Poison Powder, Sleep Powder | Poison Powder ⇒ Stun Spore | Ivysaur, Venusaur, Oddish | ok |
+| 71 Victreebel | Razor Leaf, Slam, Poison Powder, Sleep Powder | Sleep Powder ⇒ Stun Spore | Ivysaur, Venusaur, Tangela | ok |
+| 80 Slowbro | Psychic, Surf, Thunder Wave, Blizzard | Blizzard ⇒ Fire Blast | Starmie, Mewtwo | troca MT por MT |
+| 113 Chansey | Soft-Boiled, Double-Edge, Blizzard, Sing | Blizzard ⇒ Egg Bomb | Jigglypuff, Wigglytuff | ok (Egg Bomb é a cara dela) |
+| 120 Staryu | Water Gun, Blizzard, Thunder Wave, Psychic | Psychic ⇒ Surf | Starmie, Mewtwo | **mais fraco** (2 Água, perde a cobertura) |
+| 135 Jolteon | Thunder, Pin Missile, Thunder Wave, Agility | Agility ⇒ Quick Attack | Raichu, Zapdos | ok |
+
+**10 espécies mudam.** Dos 47 pares sem relação, sobram 26 (o learnset da Gen 1 não tem troca que cumpra a regra; o
+Spearow/Doduo é um deles). Alguns pares novos aparecem (Staryu × Omanyte, Electabuzz × Jolteon), sempre de 3 de 4.
+
+**Números com o protótipo ligado** (só na simulação, `calib 400 uniq.json` e `troca 60 uniq.json`):
+
+| Métrica | v8 | v8 + unicidade |
+|---|---|---|
+| Gols por jogo | 7,64 | 7,70 |
+| Mais forte vence | 62,6% | 63,3% |
+| Goleadas | 3,3% | 3,5% |
+| Partidas pareadas das 10 espécies (600 pares): vitórias / saldo | 39,2% / −0,45 | 40,2% / −0,53 |
+
+Dentro do ruído: a regra não muda a força geral. Por espécie (±9 pp), Wigglytuff (38% ⇒ 32%) e Staryu (42% ⇒ 37%)
+pioram, junto com a leitura de cima.
+
+**Recomendação:** se quiser ligar, ligar **sem Wigglytuff e Staryu** (8 espécies) e olhar as cartas na galeria
+`?cards=1` antes. A unicidade total não dá com o learnset da Gen 1: 26 pares continuam parecidos sem perder poder. O
+que mais "iguala" é o 4º golpe de MT de cobertura (Blizzard, Thunder Wave, Agility); o D1 (MT sem STAB vale menos)
+mexe nisso direto, mas muda 39 cartas.
+
+Pergunta pro Miguel: **ligar a unicidade (8 espécies, sem Wigglytuff e Staryu), ligar com as 10, ou deixar desligada?**
+Recomendo **ligar com 8** só depois de você ver as cartas.

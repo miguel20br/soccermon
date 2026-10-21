@@ -2,27 +2,24 @@
 //   npx tsx scripts/balance/golpes-revisao.ts inventario   tabela de todos os golpes (kind, traços, quem usa)
 //   npx tsx scripts/balance/golpes-revisao.ts iguais       golpes com o mesmo comportamento no motor
 //   npx tsx scripts/balance/golpes-revisao.ts especies     os 151 com o moveset padrão e os casos ruins
-//   npx tsx scripts/balance/golpes-revisao.ts calib [N] [regras]   o calibrate (mesmas seeds) + uso por golpe
-//   npx tsx scripts/balance/golpes-revisao.ts diff [regras]        movesets que mudam com as regras
-//   npx tsx scripts/balance/golpes-revisao.ts troca [M] [regras]   partidas pareadas só com as espécies que mudam
-// regras (separadas por vírgula, sem mexer no código do jogo): tipo (1 golpe de cada tipo próprio),
-// flyfix (Fly/Dig levam a bola 2 m), dupbeh (sem 2 golpes de mesmo comportamento), c (Harden = Defense Curl, Slam com alcance, Amnesia = Special +2)
+//   npx tsx scripts/balance/golpes-revisao.ts unicos [proto]   grupos de movesets iguais (proto: com a regra da unicidade)
+//   npx tsx scripts/balance/golpes-revisao.ts calib [N] [movesets.json]   o calibrate (mesmas seeds) + uso por golpe
+//   npx tsx scripts/balance/golpes-revisao.ts troca [M] movesets.json     partidas pareadas só com as espécies que mudam
+// movesets.json = { "<id>": ["golpe", ...] }: troca os golpes padrão dessas espécies só na simulação.
 
-import levelMoves from '../../src/data/level-moves.json';
-import type { Species } from '../../src/engine/data';
+import { readFileSync } from 'node:fs';
 import { MOVES, SPECIES } from '../../src/engine/data';
 import { aiDraftTeam } from '../../src/engine/draft';
-import type { MoveProfile } from '../../src/engine/moves';
 import {
     DRAIN,
     DRAWBACK,
     defaultMoveset,
     MOVE_EXPLAIN,
     MOVE_TRAITS,
-    MOVE_TUNING,
     moveProfile,
     OHKO,
     TRAP,
+    uniqueMovesets,
 } from '../../src/engine/moves';
 import { SIGNATURE } from '../../src/engine/signature-moves';
 import { FUTSAL_5, Rng, runMatch, viewInstance } from './lib';
@@ -174,190 +171,20 @@ if (mode === 'especies') {
     for (const [k, xs] of flags) console.log(`## ${k} (${xs.length})\n${xs.join('\n')}\n`);
 }
 
-// ---- cópia do defaultMoveset (src/engine/moves.ts) com as regras novas ligáveis; sem regra = igual ao jogo
-const GENERIC_TM = new Set([
-    'doubleedge',
-    'bodyslam',
-    'takedown',
-    'hyperbeam',
-    'skullbash',
-    'megakick',
-    'megapunch',
-    'submission',
-    'seismictoss',
-    'rage',
-    'bide',
-    'mimic',
-    'doubleteam',
-    'substitute',
-    'toxic',
-    'rest',
-    'swift',
-    'triattack',
-]);
-const RISKY = new Set([
-    'fly',
-    'dig',
-    'hyperbeam',
-    'explosion',
-    'selfdestruct',
-    'solarbeam',
-    'skullbash',
-    'skyattack',
-    'razorwind',
-]);
-const LV = levelMoves as Record<string, Record<string, number>>;
-const behKey = (p: MoveProfile) => behavior(p.id);
-function moveset(sp: Species, rules: string[]): string[] {
-    if (sp.id === 129) return ['splash', 'tackle'];
-    const profiles = sp.learnset.filter((m) => !(rules.includes('semsplash') && m === 'splash')).map(moveProfile);
-    const physical = sp.baseStats.atk >= sp.baseStats.spa;
-    const levels = LV[sp.id] ?? {};
-    const cap = !sp.evolvesTo.some((e) => e.id <= 151) ? 100 : sp.prevo ? 42 : 30;
-    const origin = (p: MoveProfile) => (levels[p.id] === undefined ? 0.75 : levels[p.id] <= cap ? 1.4 : 0.85);
-    const damageScore = (p: MoveProfile): number => {
-        if (p.kind !== 'strike' && p.kind !== 'blast') return 0;
-        let sc = p.strength * 100 * origin(p);
-        if (sp.types.includes(p.data.type)) sc *= 1.6;
-        else if (p.data.type === 'Normal') sc *= 0.7;
-        if ((p.kind === 'strike') === physical) sc *= 1.2;
-        if (GENERIC_TM.has(p.id)) sc *= 0.75;
-        if (RISKY.has(p.id)) sc *= 0.55;
-        return sc;
-    };
-    const utilityScore = (p: MoveProfile): number => {
-        const g = (GENERIC_TM.has(p.id) ? 0.6 : 1) * (levels[p.id] !== undefined ? 1.3 : 1);
-        const k = p.kind;
-        if (k === 'status') return (60 + 25 * p.strength) * g;
-        if (k === 'burst') return 65 * g;
-        if (k === 'buff') return (40 + 15 * p.strength) * g;
-        if (k === 'debuff') return (25 + 10 * p.strength) * g;
-        if (k === 'heal') return 30 * g;
-        if (k === 'special') return 50 * g;
-        return 0;
-    };
-    const chosen: MoveProfile[] = [];
-    const best = (score: (p: MoveProfile) => number) => {
-        let top: MoveProfile | null = null;
-        let topScore = 0;
-        for (const p of profiles) {
-            if (chosen.includes(p)) continue;
-            const sc = score(p);
-            if (sc > topScore || (sc === topScore && top && p.id < top.id)) {
-                top = p;
-                topScore = sc;
-            }
-        }
-        if (top) chosen.push(top);
-        return top;
-    };
-    const dupF = (p: MoveProfile) =>
-        rules.includes('dupbeh') && chosen.some((c) => behKey(c) === behKey(p)) ? 0.4 : 1;
-    // D1: no 4º golpe, MT de cobertura (sem STAB, não aprendida por nível) vale menos
-    const coverF = (p: MoveProfile) =>
-        rules.includes('menosmt') && levels[p.id] === undefined && !sp.types.includes(p.data.type) ? 0.6 : 1;
-    const signature = profiles.find((p) => p.id === SIGNATURE[sp.id]);
-    if (signature) chosen.push(signature);
-    const first =
-        signature && (signature.kind === 'strike' || signature.kind === 'blast') ? signature : best(damageScore);
-    best((p) => {
-        const sc = damageScore(p);
-        if (!first) return sc;
-        const sameType = p.data.type === first.data.type;
-        const sameKind = p.kind === first.kind;
-        return sc * dupF(p) * (sameType ? (sameKind ? 0.3 : 0.6) : 1.1);
-    });
-    const isUtility = (p: MoveProfile | undefined) => !!p && p.kind !== 'strike' && p.kind !== 'blast';
-    if (!isUtility(signature)) best(utilityScore);
-    const types = new Set(chosen.map((p) => p.data.type));
-    if (chosen.length < 4) {
-        best((p) =>
-            Math.max(
-                damageScore(p) * (types.has(p.data.type) ? 0.5 : 1) * dupF(p) * coverF(p),
-                utilityScore(p) * 0.9,
-                p.kind === 'flavor' ? 1 : 0,
-            ),
-        );
-    }
-    if (rules.includes('tipo')) {
-        // regra A: pelo menos 1 golpe de cada tipo da espécie, se o learnset tiver. Entra o de melhor nota do tipo;
-        // sai, nesta ordem: mesma classe (dano por dano, utilitário por utilitário), comportamento repetido, tipo de
-        // fora repetido, tipo de fora, tipo próprio repetido; nunca a assinatura nem o único golpe de um tipo próprio.
-        const isD = (p: MoveProfile) => p.kind === 'strike' || p.kind === 'blast';
-        const score = (p: MoveProfile) => Math.max(damageScore(p), utilityScore(p));
-        const own = (t: string) => sp.types.includes(t as never);
-        for (const t of sp.types) {
-            if (chosen.some((p) => p.data.type === t)) continue;
-            let cand: MoveProfile | null = null;
-            for (const p of profiles)
-                if (p.data.type === t && !chosen.includes(p) && (!cand || score(p) > score(cand))) cand = p;
-            if (!cand) continue;
-            const c = cand;
-            const count = (ty: string) => chosen.filter((p) => p.data.type === ty).length;
-            const rank = (p: MoveProfile) =>
-                (isD(p) === isD(c) ? 100 : 0) +
-                (chosen.some((o) => o !== p && behKey(o) === behKey(p)) ? 40 : 0) +
-                (!own(p.data.type) && count(p.data.type) > 1 ? 30 : !own(p.data.type) ? 20 : 10);
-            const victims = chosen
-                .map((p, i) => ({ p, i }))
-                .filter(({ p }) => p !== signature && !(own(p.data.type) && count(p.data.type) === 1))
-                .sort((a, b) => rank(b.p) - rank(a.p) || score(a.p) - score(b.p) || b.i - a.i);
-            if (victims.length) chosen[victims[0].i] = c;
-        }
-    }
-    return chosen.slice(0, 4).map((p) => p.id);
-}
-const rulesArg = (i: number) => (process.argv[i] ?? '').split(',').filter(Boolean);
-// confere a cópia: sem regra, igual ao jogo
-for (const sp of SPECIES) {
-    if (sp.id === 132) continue;
-    const a = moveset(sp, []).join();
-    if (a !== sets.get(sp.id)!.join()) throw new Error(`cópia do defaultMoveset diverge em ${sp.name}: ${a}`);
-}
-const C_MOVES = ['harden', 'slam', 'amnesia'];
-function setC(on: boolean) {
-    if (on) {
-        MOVE_TRAITS.harden = ['curl'];
-        MOVE_TRAITS.slam = ['reach'];
-    } else {
-        delete MOVE_TRAITS.harden;
-        delete MOVE_TRAITS.slam;
-    }
-    (MOVES.amnesia as any).selfBoosts = on ? { spa: 2, spd: 2 } : { spd: 2 };
-}
-function applyRules(rules: string[]) {
-    if (rules.includes('c')) setC(true);
-    // Fly/Dig com a bola levam a bola 2 m em vez de 4 m antes do chute
-    if (rules.includes('flyfix')) MOVE_TUNING.airCarry = 2;
-    const next = new Map<number, string[]>();
-    for (const sp of SPECIES) next.set(sp.id, sp.id === 132 ? sets.get(132)! : moveset(sp, rules));
+// ---- protótipos: um JSON { "<id>": ["golpe", ...] } troca o moveset das espécies listadas, sem mexer no jogo
+function loadSets(path?: string): Map<number, string[]> {
+    const next = new Map(sets);
+    if (path)
+        for (const [id, ms] of Object.entries(JSON.parse(readFileSync(path, 'utf8'))))
+            next.set(Number(id), ms as string[]);
     return next;
 }
 const changed = (next: Map<number, string[]>) =>
     SPECIES.filter((sp) => next.get(sp.id)!.join() !== sets.get(sp.id)!.join());
 
-if (mode === 'diff') {
-    const next = applyRules(rulesArg(3));
-    const ch = changed(next);
-    for (const sp of ch) {
-        const a = sets.get(sp.id)!;
-        const b = next.get(sp.id)!;
-        const out = a.filter((m) => !b.includes(m));
-        const inn = b.filter((m) => !a.includes(m));
-        console.log(
-            `| ${sp.id} ${sp.name} | ${sp.types.join('/')} | ${a.join(', ')} | ${out.join(', ')} ⇒ ${inn.join(', ')} |`,
-        );
-    }
-    console.log(`${ch.length} espécies mudam`);
-    const pool = new Set(SPECIES.flatMap((sp) => next.get(sp.id)!));
-    const before = new Set(SPECIES.flatMap((sp) => sets.get(sp.id)!));
-    console.log('saem de todo moveset padrão:', [...before].filter((m) => !pool.has(m)).join(' ') || '-');
-    console.log('entram em algum moveset padrão:', [...pool].filter((m) => !before.has(m)).join(' ') || '-');
-}
-
 if (mode === 'calib') {
     const N = Number(process.argv[3]) || 400;
-    const next = applyRules(rulesArg(4));
+    const next = loadSets(process.argv[4]);
     const remap = (inst: any) => ({ ...inst, moves: next.get(inst.speciesId)! });
     const rng = new Rng('calibrate');
     const TACTICS = ['balanced', 'offensive', 'defensive', 'counter'] as const;
@@ -425,7 +252,7 @@ if (mode === 'calib') {
         });
     }
     const per = (n: number) => (n / N).toFixed(2);
-    console.log(`regras: ${rulesArg(4).join(',') || 'nenhuma'} · ${N} partidas`);
+    console.log(`movesets: ${process.argv[4] ?? 'os do jogo'} · ${N} partidas`);
     console.log(`gols/jogo: ${(goals / N).toFixed(2)}`);
     console.log(`empates: ${((draws / N) * 100).toFixed(1)}%  goleadas: ${((blow / N) * 100).toFixed(1)}%`);
     console.log(`mais forte (Δ≥3) vence: ${((sw / Math.max(1, dec)) * 100).toFixed(1)}% de ${dec}`);
@@ -467,20 +294,14 @@ if (mode === 'calib') {
 if (mode === 'troca') {
     // cada partida 2 vezes, mesma seed e mesmos times: com o moveset de hoje e com o novo, só na espécie que muda
     const M = Number(process.argv[3]) || 60;
-    const rules = rulesArg(4);
-    const next = applyRules(rules);
-    const cOn = rules.includes('c');
+    const next = loadSets(process.argv[4]);
     const ch = changed(next);
-    if (cOn)
-        for (const sp of SPECIES)
-            if (!ch.includes(sp) && sets.get(sp.id)!.some((m) => C_MOVES.includes(m))) ch.push(sp);
     const tot = { a: { w: 0, d: 0, gd: 0 }, b: { w: 0, d: 0, gd: 0 } };
     console.log('espécie|vitórias hoje|vitórias novo|saldo hoje|saldo novo');
     for (const sp of ch) {
         const res = { a: { w: 0, d: 0, gd: 0 }, b: { w: 0, d: 0, gd: 0 } };
         for (let i = 0; i < M; i++) {
             for (const arm of ['a', 'b'] as const) {
-                if (cOn) setC(arm === 'b');
                 const rng = new Rng(`troca-${sp.id}-${i}`);
                 const h = aiDraftTeam(rng, 1);
                 const aw = aiDraftTeam(rng, 1);
@@ -514,4 +335,35 @@ if (mode === 'troca') {
     console.log(
         `TOTAL (${n} pares)|${((tot.a.w / n) * 100).toFixed(1)}%|${((tot.b.w / n) * 100).toFixed(1)}%|${(tot.a.gd / n).toFixed(2)}|${(tot.b.gd / n).toFixed(2)}`,
     );
+}
+
+if (mode === 'unicos') {
+    // grupos de movesets padrão iguais (mesmos 4 golpes, em qualquer ordem) e quase iguais (3 de 4), separando a
+    // mesma linha evolutiva de espécies sem relação
+    const root = (id: number): number => {
+        const p = SPECIES[id - 1].prevo;
+        return p && p <= 151 ? root(p) : id;
+    };
+    // `unicos proto`: com o protótipo da unicidade (UNIQUE_MOVESETS, desligado no jogo)
+    const S = process.argv[3] === 'proto' ? uniqueMovesets() : sets;
+    const mons = SPECIES.filter((sp) => sp.id <= 151 && sp.id !== 129 && sp.id !== 132);
+    const key = (id: number) => [...S.get(id)!].sort().join(',');
+    const groups = new Map<string, number[]>();
+    for (const sp of mons) groups.set(key(sp.id), [...(groups.get(key(sp.id)) ?? []), sp.id]);
+    const name = (id: number) => `${id} ${SPECIES[id - 1].name}`;
+    const line = (ids: number[]) => new Set(ids.map(root)).size === 1;
+    console.log('## Iguais (4 de 4)');
+    for (const [k, ids] of groups)
+        if (ids.length > 1) console.log(`${line(ids) ? 'linha' : 'SEM RELAÇÃO'} | ${ids.map(name).join(', ')} | ${k}`);
+    console.log('\n## Quase iguais (3 de 4)');
+    for (let i = 0; i < mons.length; i++)
+        for (let j = i + 1; j < mons.length; j++) {
+            const a = S.get(mons[i].id)!;
+            const b = S.get(mons[j].id)!;
+            const same = a.filter((m) => b.includes(m)).length;
+            if (same === 3 && a.length === 4 && b.length === 4)
+                console.log(
+                    `${root(mons[i].id) === root(mons[j].id) ? 'linha' : 'SEM RELAÇÃO'} | ${name(mons[i].id)} × ${name(mons[j].id)} | iguais: ${a.filter((m) => b.includes(m)).join(', ')} | ${a.find((m) => !b.includes(m))} × ${b.find((m) => !a.includes(m))}`,
+                );
+        }
 }
