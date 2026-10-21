@@ -4,7 +4,6 @@ import { dir8 } from '../../engine/vec';
 import type { Lang } from '../../i18n/lang';
 import { storyText } from '../../i18n/story';
 import type { CryStyle } from '../../store/game-store';
-import { trainerSrc } from '../../store/missions';
 import {
     type Compiled,
     castOf,
@@ -27,14 +26,16 @@ import {
     preloadExtra,
     preloadSpecies,
     resolveAnim,
+    shadowSize,
 } from '../animation-manager';
 import { playCrowd, playCry, playSample, playSfx } from '../audio';
-import { ensureBallTexture } from '../court';
-import { drawStage, STAGE_H, STAGE_W } from '../story-stages';
+import { ART_H, ART_W, ballArt, pokeballArt, shadowArt, spotArt, trainerArt } from '../story-art';
+import { type MiSheets, paintStage, type StageStyle } from '../story-stages';
 
 /**
- * Tocador das cenas do Modo história (src/story/director.ts). O palco tem 360×640 (em pé); a câmera do mundo faz
- * corte, zoom e tremida, e uma segunda câmera, parada, desenha letreiro, fala e retrato por cima. O relógio é o da
+ * Tocador das cenas do Modo história (src/story/director.ts). O palco tem 144×256 pixels de arte (a grade do PMD, em
+ * pé) e a câmera do mundo mostra em escala inteira: corte, zoom e tremida. Uma segunda câmera, parada, desenha
+ * letreiro, fala e retrato por cima, numa grade de 360×640 (texto nítido). O relógio é o da
  * cena (`update`), então a gravação quadro a quadro do trailer (`game.step`) funciona igual.
  */
 export interface StoryData {
@@ -43,20 +44,22 @@ export interface StoryData {
     /** Reduzir movimento: sem tremida, zoom nem flash; corte vira fade de 200 ms. */
     reduce: boolean;
     cries: CryStyle;
-    /** Pixels do jogo por pixel do palco (o canvas é do tamanho da tela, pra fonte ficar nítida). */
+    /** Pixels do canvas por pixel de arte (inteiro: uma densidade só no palco). */
     zoom: number;
+    style: StageStyle;
     onEvent: (e: 'handoff' | 'end') => void;
 }
 
-const MON_SCALE = 2.5;
-const TRAINER_SCALE = 1.4;
+/** Grade da fala, do letreiro e do retrato (a câmera parada). */
+const UI_W = 360;
+const UI_H = 640;
 const ACTOR_DEPTH = 1000;
 const FONT = 'Galmuri11, monospace';
 const INK = '#0b1030';
 
 interface Actor {
     obj: Phaser.GameObjects.Sprite | Phaser.GameObjects.Image;
-    shadow?: Phaser.GameObjects.Ellipse;
+    shadow?: Phaser.GameObjects.Image;
     skin?: number;
     kind: 'mon' | 'trainer' | 'prop';
     dir: number;
@@ -75,7 +78,7 @@ export class StoryScene extends Phaser.Scene {
     private paused = false;
     private world!: Phaser.GameObjects.Layer;
     private ui!: Phaser.GameObjects.Layer;
-    private stage!: Phaser.GameObjects.Graphics;
+    private stage!: Phaser.GameObjects.Image;
     private dim!: Phaser.GameObjects.Rectangle;
     private actors = new Map<string, Actor>();
     private spots = new Map<string, Phaser.GameObjects.Image>();
@@ -115,8 +118,10 @@ export class StoryScene extends Phaser.Scene {
             preloadSpecies(this, m);
             preloadExtra(this, m);
         }
-        for (const t of cast.trainers)
-            if (!this.textures.exists(`trainer-${t}`)) this.load.image(`trainer-${t}`, trainerSrc(t));
+        if (this.d.style === 'b' && !this.textures.exists('mi')) {
+            this.load.image('mi', 'assets/room/mi/Interiors_free_32x32.png');
+            this.load.image('mi-room', 'assets/room/mi/Room_Builder_free_32x32.png');
+        }
         for (const f of cast.faces) {
             const [mon, face] = f.split(':');
             const key = `face-${f}`;
@@ -129,20 +134,18 @@ export class StoryScene extends Phaser.Scene {
             createSpeciesAnims(this, m);
             createExtraAnims(this, m);
         }
-        ensureBallTexture(this);
         this.makeTextures();
-        const Z = this.d.zoom;
         this.world = this.add.layer();
         this.ui = this.add.layer();
         const cam = this.cameras.main;
-        cam.setZoom(Z).centerOn(STAGE_W / 2, STAGE_H / 2);
-        const uiCam = this.cameras.add(0, 0, this.scale.width, this.scale.height).setZoom(Z);
-        uiCam.centerOn(STAGE_W / 2, STAGE_H / 2);
+        cam.setZoom(this.d.zoom).centerOn(ART_W / 2, ART_H / 2);
+        const uiCam = this.cameras.add(0, 0, this.scale.width, this.scale.height).setZoom(this.uiZoom);
+        uiCam.centerOn(UI_W / 2, UI_H / 2);
         cam.ignore(this.ui);
         uiCam.ignore(this.world);
 
-        this.stage = this.add.graphics().setDepth(-1000);
-        this.dim = this.add.rectangle(STAGE_W / 2, STAGE_H / 2, STAGE_W * 2, STAGE_H * 2, 0x05060f, 0).setDepth(500);
+        this.stage = this.add.image(0, 0, '__DEFAULT').setOrigin(0).setDepth(-1000);
+        this.dim = this.add.rectangle(ART_W / 2, ART_H / 2, ART_W * 2, ART_H * 2, 0x05060f, 0).setDepth(500);
         this.world.add([this.stage, this.dim]);
         this.makeBox();
         this.input.on('pointerdown', () => this.advance());
@@ -224,6 +227,10 @@ export class StoryScene extends Phaser.Scene {
         }
     }
 
+    private get uiZoom() {
+        return (this.d.zoom * ART_W) / UI_W;
+    }
+
     private get beat() {
         return 60_000 / this.d.script.bpm;
     }
@@ -237,27 +244,43 @@ export class StoryScene extends Phaser.Scene {
             this.actors.clear();
             this.spot(null, true);
             this.clearTransient();
-            drawStage(this.stage, stage);
+            this.stage.setTexture(this.stageTexture(stage));
         }
         this.frame(zoom, focus, 0);
         if (this.d.reduce) cam.fadeIn(200);
     }
 
-    /** Enquadra (zoom 1 a 1,3) num ator, sem mostrar fora do palco. */
+    private stageTexture(id: StageId) {
+        const key = `stage-${id}-${this.d.style}`;
+        if (!this.textures.exists(key)) {
+            const sheets: MiSheets | undefined = this.textures.exists('mi')
+                ? {
+                      interiors: this.textures.get('mi').getSourceImage() as CanvasImageSource,
+                      room: this.textures.get('mi-room').getSourceImage() as CanvasImageSource,
+                  }
+                : undefined;
+            this.textures.addCanvas(key, paintStage(id, this.d.style, sheets));
+        }
+        return key;
+    }
+
+    /** Enquadra (zoom 1 a 1,3, arredondado pra escala inteira) num ator, sem mostrar fora do palco. */
     private frame(zoom: number, focus: string | undefined, ms: number) {
         const cam = this.cameras.main;
-        const z = this.d.reduce ? 1 : zoom;
+        const k = this.d.zoom;
+        const scale = this.d.reduce ? k : Math.max(k, Math.round(k * zoom));
+        const z = scale / k;
         const a = focus ? this.actors.get(focus) : undefined;
-        const halfW = STAGE_W / 2 / z;
-        const halfH = STAGE_H / 2 / z;
-        const x = Phaser.Math.Clamp(a ? a.x : STAGE_W / 2, halfW, STAGE_W - halfW);
-        const y = Phaser.Math.Clamp(a ? a.y - 50 : STAGE_H / 2, halfH, STAGE_H - halfH);
+        const halfW = ART_W / 2 / z;
+        const halfH = ART_H / 2 / z;
+        const x = Math.round(Phaser.Math.Clamp(a ? a.x : ART_W / 2, halfW, ART_W - halfW));
+        const y = Math.round(Phaser.Math.Clamp(a ? a.y - 20 : ART_H / 2, halfH, ART_H - halfH));
         if (ms > 0 && !this.d.reduce) {
-            cam.zoomTo(z * this.d.zoom, ms, 'Sine.easeInOut', true);
+            cam.zoomTo(scale, ms, 'Sine.easeInOut', true);
             cam.pan(x, y, ms, 'Sine.easeInOut', true);
         } else {
             cam.stopFollow();
-            cam.setZoom(z * this.d.zoom).centerOn(x, y);
+            cam.setZoom(scale).centerOn(x, y);
         }
     }
 
@@ -269,30 +292,27 @@ export class StoryScene extends Phaser.Scene {
     private addActor(s: Extract<Step, { do: 'actor' }>, instant: boolean) {
         const old = this.actors.get(s.id);
         if (old) this.destroyActor(old);
-        const x = s.x * STAGE_W;
-        const y = s.y * STAGE_H;
+        const x = Math.round(s.x * ART_W);
+        const y = Math.round(s.y * ART_H);
         const dir = dirRow(s.dir);
         let a: Actor;
         if (s.mon) {
-            const sprite = this.add.sprite(x, y, atlasKey(s.mon)).setScale(MON_SCALE);
-            const shadow = this.add.ellipse(x, y, 30, 10, 0x000000, 0.25);
+            const sprite = this.add.sprite(x, y, atlasKey(s.mon));
+            const shadow = this.add.image(x, y, `story-shadow-${Math.min(3, shadowSize(s.mon) + 1)}`);
             a = { obj: sprite, shadow, skin: s.mon, kind: 'mon', dir, x, y };
             this.world.add([shadow, sprite]);
             this.actors.set(s.id, a);
             this.play(a, s.anim ?? 'Idle', dir, instant);
         } else if (s.trainer) {
-            const img = this.add.image(x, y, `trainer-${s.trainer}`).setOrigin(0.5, 0.92).setScale(TRAINER_SCALE);
-            a = { obj: img, kind: 'trainer', dir, x, y };
-            this.world.add(img);
+            const img = this.add.image(x, y, `story-trainer-${s.trainer}`).setOrigin(0.5, 1);
+            const shadow = this.add.image(x, y, 'story-shadow-1');
+            a = { obj: img, shadow, kind: 'trainer', dir, x, y };
+            this.world.add([shadow, img]);
             this.actors.set(s.id, a);
             if (!instant) this.pop(img);
         } else {
-            const key = s.prop === 'pokeball' ? 'story-pokeball' : 'ball';
-            const img = this.add
-                .image(x, y, key)
-                .setOrigin(0.5, 1)
-                .setScale(s.prop === 'pokeball' ? 1.6 : 1.4);
-            const shadow = this.add.ellipse(x, y, 16, 5, 0x000000, 0.25);
+            const img = this.add.image(x, y, `story-${s.prop ?? 'ball'}`).setOrigin(0.5, 1);
+            const shadow = this.add.image(x, y, 'story-shadow-0');
             a = { obj: img, shadow, kind: 'prop', dir, x, y };
             this.world.add([shadow, img]);
             this.actors.set(s.id, a);
@@ -308,20 +328,21 @@ export class StoryScene extends Phaser.Scene {
             this.tweens.add({ targets: img, alpha: 1, duration: 200 });
             return;
         }
-        img.setY(y - 26).setScale(TRAINER_SCALE * 0.85, TRAINER_SCALE * 1.18);
+        // achatar/esticar em pixels inteiros: 16 de largura vira 14 ou 18, nunca meio pixel
+        img.setY(y - 10).setScale(14 / 16, 26 / 23);
         this.tweens.chain({
             targets: img,
             tweens: [
                 { y, duration: 130, ease: 'Quad.easeIn' },
-                { scaleX: TRAINER_SCALE * 1.18, scaleY: TRAINER_SCALE * 0.82, duration: 70, ease: 'Quad.easeOut' },
-                { scaleX: TRAINER_SCALE, scaleY: TRAINER_SCALE, duration: 140, ease: 'Back.easeOut' },
+                { scaleX: 18 / 16, scaleY: 20 / 23, duration: 70, ease: 'Stepped' },
+                { scaleX: 1, scaleY: 1, duration: 140, ease: 'Stepped' },
             ],
         });
     }
 
     private place(a: Actor, lift: number) {
-        a.obj.setPosition(a.x, a.y - lift).setDepth(ACTOR_DEPTH + a.y);
-        a.shadow?.setPosition(a.x, a.y).setDepth(ACTOR_DEPTH + a.y - 1);
+        a.obj.setPosition(Math.round(a.x), Math.round(a.y - lift)).setDepth(ACTOR_DEPTH + a.y);
+        a.shadow?.setPosition(Math.round(a.x), Math.round(a.y)).setDepth(ACTOR_DEPTH + a.y - 1);
     }
 
     private play(a: Actor, anim: string, dir: number, instant: boolean) {
@@ -355,7 +376,7 @@ export class StoryScene extends Phaser.Scene {
         if (!a) return;
         a.tween?.stop();
         const from = { x: a.x, y: a.y };
-        const to = { x: tx * STAGE_W, y: ty * STAGE_H };
+        const to = { x: tx * ART_W, y: ty * ART_H };
         const dir = dir8({ x: to.x - from.x, y: to.y - from.y }, a.dir);
         if (instant) {
             a.x = to.x;
@@ -365,7 +386,6 @@ export class StoryScene extends Phaser.Scene {
             return;
         }
         this.play(a, 'Walk', dir, false);
-        const base = a.kind === 'prop' ? 1.4 : 1;
         a.tween = this.tweens.addCounter({
             from: 0,
             to: 1,
@@ -375,14 +395,13 @@ export class StoryScene extends Phaser.Scene {
                 a.x = from.x + (to.x - from.x) * p;
                 a.y = from.y + (to.y - from.y) * p;
                 const arc = hops ? Math.abs(Math.sin(p * hops * Math.PI)) : 0;
-                this.place(a, arc * 30 * (1 - p * 0.4));
-                if (a.kind === 'prop' && hops && !this.d.reduce) {
-                    const squash = arc < 0.15 ? 0.75 : 1;
-                    a.obj.setScale(base * (2 - squash), base * squash);
-                }
+                this.place(a, arc * 12 * (1 - p * 0.4));
+                // a bola achata ao bater no chão: 7 pixels viram 9×5
+                if (a.kind === 'prop' && hops && !this.d.reduce)
+                    a.obj.setScale(arc < 0.15 ? 9 / 7 : 1, arc < 0.15 ? 5 / 7 : 1);
             },
             onComplete: () => {
-                if (a.kind === 'prop') a.obj.setScale(base);
+                if (a.kind === 'prop') a.obj.setScale(1);
                 this.play(a, 'Idle', dir, false);
             },
         });
@@ -394,7 +413,7 @@ export class StoryScene extends Phaser.Scene {
         this.actors.delete(id);
         a.tween?.stop();
         if (instant) return this.destroyActor(a);
-        const lift = a.kind === 'trainer' && !this.d.reduce ? { y: a.obj.y - 20 } : {};
+        const lift = a.kind === 'trainer' && !this.d.reduce ? { y: a.obj.y - 8 } : {};
         this.tweens.add({
             targets: [a.obj, a.shadow].filter(Boolean),
             alpha: 0,
@@ -420,12 +439,7 @@ export class StoryScene extends Phaser.Scene {
         if (instant) this.dim.setFillStyle(0x05060f, alpha);
         else this.dimTween = this.tweens.add({ targets: this.dim, fillAlpha: alpha, duration: on ? 160 : 200 });
         for (const id of on ?? []) {
-            const light = this.add
-                .image(0, 0, 'story-light')
-                .setBlendMode(Phaser.BlendModes.ADD)
-                .setDepth(600)
-                .setAlpha(0.8)
-                .setScale(0.7, 0.45);
+            const light = this.add.image(0, 0, 'story-spot').setBlendMode(Phaser.BlendModes.ADD).setDepth(600);
             this.world.add(light);
             this.spots.set(id, light);
         }
@@ -444,13 +458,13 @@ export class StoryScene extends Phaser.Scene {
             stroke: INK,
             strokeThickness: 7,
         };
-        const words = text.split(' ').map((w) => this.add.text(0, 0, w, style).setResolution(this.d.zoom * 2));
+        const words = text.split(' ').map((w) => this.add.text(0, 0, w, style).setResolution(this.uiZoom * 2));
         const gap = 12;
         const lines: Phaser.GameObjects.Text[][] = [[]];
         let width = 0;
         for (const w of words) {
             const line = lines[lines.length - 1];
-            if (line.length && width + gap + w.width > STAGE_W - 40) {
+            if (line.length && width + gap + w.width > UI_W - 40) {
                 lines.push([w]);
                 width = w.width;
             } else {
@@ -463,7 +477,7 @@ export class StoryScene extends Phaser.Scene {
         let k = 0;
         for (const [li, line] of lines.entries()) {
             const lw = line.reduce((s, w) => s + w.width, 0) + gap * (line.length - 1);
-            let x = (STAGE_W - lw) / 2;
+            let x = (UI_W - lw) / 2;
             for (const w of line) {
                 w.setOrigin(0.5).setPosition(x + w.width / 2, top + li * lineH);
                 x += w.width + gap;
@@ -484,7 +498,7 @@ export class StoryScene extends Phaser.Scene {
     }
 
     private makeBox() {
-        const w = STAGE_W - 24;
+        const w = UI_W - 24;
         const h = 88;
         const g = this.add.graphics();
         g.fillStyle(0x2a3050, 1).fillRoundedRect(-3, -3, w + 6, h + 6, 10);
@@ -498,13 +512,13 @@ export class StoryScene extends Phaser.Scene {
                 lineSpacing: 6,
                 wordWrap: { width: w - 32 },
             })
-            .setResolution(this.d.zoom * 2);
+            .setResolution(this.uiZoom * 2);
         const tag = this.add.graphics();
         tag.fillStyle(0x2a3050, 1).fillRoundedRect(10, -22, 150, 26, 6);
         this.boxName = this.add
             .text(20, -9, '', { fontFamily: FONT, fontStyle: 'bold', fontSize: '12px', color: '#f0c040' })
             .setOrigin(0, 0.5)
-            .setResolution(this.d.zoom * 2);
+            .setResolution(this.uiZoom * 2);
         this.box = this.add.container(12, 446, [tag, this.boxName, g, this.boxText]).setAlpha(0);
         this.ui.add(this.box);
     }
@@ -526,12 +540,13 @@ export class StoryScene extends Phaser.Scene {
 
     private portrait(mon: number, face: string, side: 'left' | 'right', until: number) {
         this.faces.get(side)?.obj.destroy();
-        const size = 76;
+        // o retrato é pixel art também: tamanho na tela múltiplo de 40 (escala inteira)
+        const size = (40 * Math.max(1, Math.round((76 * this.uiZoom) / 40))) / this.uiZoom;
         const g = this.add.graphics();
         g.fillStyle(0x2a3050, 1).fillRoundedRect(-size / 2 - 4, -size / 2 - 4, size + 8, size + 8, 8);
         g.fillStyle(0xf8f8f0, 1).fillRect(-size / 2, -size / 2, size, size);
         const img = this.add.image(0, 0, `face-${mon}:${face}`).setDisplaySize(size, size);
-        const x = side === 'left' ? 56 : STAGE_W - 56;
+        const x = side === 'left' ? 56 : UI_W - 56;
         const box = this.add.container(x, 392, [g, img]).setAlpha(0);
         if (!this.d.reduce) box.setScale(0.8);
         this.tweens.add({ targets: box, alpha: 1, scale: 1, duration: 160, ease: 'Back.easeOut' });
@@ -588,7 +603,7 @@ export class StoryScene extends Phaser.Scene {
         }
         for (const [id, light] of this.spots) {
             const a = this.actors.get(id);
-            if (a) light.setPosition(a.x, a.y - 4);
+            if (a) light.setPosition(Math.round(a.x), Math.round(a.y));
         }
     }
 
@@ -600,32 +615,19 @@ export class StoryScene extends Phaser.Scene {
         else playCry(s.cry, this.d.cries, gain);
     }
 
+    /** Arte própria na grade do PMD (src/game/story-art.ts), pintada uma vez por jogo. */
     private makeTextures() {
-        if (!this.textures.exists('story-light')) {
-            const size = 256;
-            const tex = this.textures.createCanvas('story-light', size, size);
-            const ctx = tex?.getContext();
-            if (ctx && tex) {
-                const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-                g.addColorStop(0, 'rgba(255,250,230,0.85)');
-                g.addColorStop(0.45, 'rgba(255,245,220,0.35)');
-                g.addColorStop(1, 'rgba(255,255,255,0)');
-                ctx.fillStyle = g;
-                ctx.fillRect(0, 0, size, size);
-                tex.refresh();
-            }
-        }
-        if (!this.textures.exists('story-pokeball')) {
-            const g = this.make.graphics({ x: 0, y: 0 }, false);
-            g.fillStyle(0x202020, 1).fillCircle(7, 7, 7);
-            g.fillStyle(0xe03a30, 1).fillCircle(7, 7, 6);
-            g.fillStyle(0xf4f4f4, 1).fillRect(1, 7, 12, 6).fillCircle(7, 8, 5);
-            g.fillStyle(0x202020, 1).fillRect(1, 6, 12, 2);
-            g.fillStyle(0xf4f4f4, 1).fillCircle(7, 7, 2);
-            g.lineStyle(1, 0x202020, 1).strokeCircle(7, 7, 2);
-            g.generateTexture('story-pokeball', 14, 14);
-            g.destroy();
-        }
+        const add = (key: string, make: () => HTMLCanvasElement) => {
+            if (!this.textures.exists(key)) this.textures.addCanvas(key, make());
+        };
+        for (const t of ['red', 'blue', 'oak']) add(`story-trainer-${t}`, () => trainerArt(t));
+        add('story-ball', ballArt);
+        add('story-pokeball', pokeballArt);
+        add('story-spot', spotArt);
+        // sombra por tamanho: 0 = bola, 1..3 = shadowSize do PMD
+        [7, 12, 16, 20].forEach((w, i) => {
+            add(`story-shadow-${i}`, () => shadowArt(w));
+        });
     }
 }
 

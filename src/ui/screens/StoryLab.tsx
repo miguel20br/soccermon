@@ -2,6 +2,8 @@ import Phaser from 'phaser';
 import { useEffect, useRef, useState } from 'react';
 import { species } from '../../engine/data';
 import { StoryScene } from '../../game/scenes/StoryScene';
+import { ART_H, ART_W } from '../../game/story-art';
+import type { StageStyle } from '../../game/story-stages';
 import { getLang } from '../../i18n';
 import { useGame } from '../../store/game-store';
 import type { SceneScript } from '../../story/director';
@@ -22,12 +24,14 @@ type Phase = 'play' | 'pick' | 'end';
 export function StoryLab({ onExit }: { onExit: () => void }) {
     const host = useRef<HTMLDivElement>(null);
     const game = useRef<Phaser.Game | null>(null);
+    const scale = useRef(1);
     const [phase, setPhase] = useState<Phase>('play');
     const [canSkip, setCanSkip] = useState(false);
     const [run, setRun] = useState(0);
     const params = new URLSearchParams(window.location.search);
     const reduce = params.get('reduzir') === '1' || reduceMotionOn();
     const auto = Number(params.get('inicial')) as Starter;
+    const style: StageStyle = (['a', 'b', 'c'] as const).find((x) => x === params.get('estilo')) ?? 'a';
 
     const scene = () => game.current?.scene.getScene('Story') as StoryScene | undefined;
 
@@ -40,7 +44,8 @@ export function StoryLab({ onExit }: { onExit: () => void }) {
             lang: getLang(),
             reduce,
             cries: useGame.getState().settings.cries,
-            zoom: (game.current?.scale.width ?? 360) / 360,
+            zoom: scale.current,
+            style,
             onEvent: (e: 'handoff' | 'end') => {
                 if (e === 'end') return setPhase('end');
                 if (STARTERS.includes(auto)) start(palletChoice(auto));
@@ -57,20 +62,22 @@ export function StoryLab({ onExit }: { onExit: () => void }) {
         const el = host.current;
         if (!el) return;
         let dead = false;
-        // canvas do tamanho da tela (até 2x), pra fonte e pixel ficarem nítidos
-        const w = Math.round(Math.min(el.clientWidth * Math.min(window.devicePixelRatio || 1, 2), 900));
+        // escala inteira: cada pixel de arte vira k×k pixels da tela, o maior k que cabe (o resto vira moldura)
+        const dpr = Math.min(window.devicePixelRatio || 1, 3);
+        const k = Math.max(1, Math.floor(Math.min((el.clientWidth * dpr) / ART_W, (el.clientHeight * dpr) / ART_H)));
+        scale.current = k;
         void Promise.all([document.fonts.load('15px Galmuri11'), document.fonts.load('bold 30px Galmuri11')])
             .catch(() => {})
             .then(() => {
                 if (dead) return;
                 game.current = new Phaser.Game({
                     type: Phaser.AUTO,
-                    width: w,
-                    height: Math.round((w * 16) / 9),
+                    width: ART_W * k,
+                    height: ART_H * k,
                     parent: el,
                     pixelArt: true,
                     backgroundColor: '#070a18',
-                    scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+                    scale: { mode: Phaser.Scale.NONE, zoom: 1 / dpr },
                     audio: { noAudio: true },
                     banner: false,
                 });
