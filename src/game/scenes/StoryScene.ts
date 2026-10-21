@@ -2,8 +2,9 @@ import Phaser from 'phaser';
 import { zzfx } from 'zzfx';
 import { dir8 } from '../../engine/vec';
 import type { Lang } from '../../i18n/lang';
-import { storyText } from '../../i18n/story';
+import { type StoryKey, storyText } from '../../i18n/story';
 import type { CryStyle } from '../../store/game-store';
+import { trainerSrc } from '../../store/missions';
 import {
     type Compiled,
     castOf,
@@ -29,7 +30,7 @@ import {
     shadowSize,
 } from '../animation-manager';
 import { playCrowd, playCry, playSample, playSfx } from '../audio';
-import { ART_H, ART_W, ballArt, pokeballArt, shadowArt, spotArt, trainerArt } from '../story-art';
+import { ART_H, ART_W, ballArt, canvas, pokeballArt, shadowArt, spotArt, trainerArt } from '../story-art';
 import { paintStage } from '../story-stages';
 
 /**
@@ -53,6 +54,15 @@ export interface StoryData {
 const UI_W = 360;
 const UI_H = 640;
 const ACTOR_DEPTH = 1000;
+
+/**
+ * Retrato de quem fala, na caixa de fala: o sprite de batalha do Showdown que o jogo já usa (decidido com o Miguel,
+ * 21/10), recortado em 40×40 no rosto, como os retratos PMD dos Pokémon. O Red não fala.
+ */
+const SPEAKERS: Partial<Record<StoryKey, { id: 'blue' | 'oak'; x: number; y: number }>> = {
+    'who.blue': { id: 'blue', x: 22, y: 1 },
+    'who.oak': { id: 'oak', x: 22, y: 1 },
+};
 const FONT = 'Galmuri11, monospace';
 const INK = '#0b1030';
 
@@ -90,7 +100,7 @@ export class StoryScene extends Phaser.Scene {
     private boxName!: Phaser.GameObjects.Text;
     private typing: { full: string; from: number; shown: number } | null = null;
     private sayUntil = Infinity;
-    private faces = new Map<'left' | 'right', { obj: Phaser.GameObjects.Container; until: number }>();
+    private faces = new Map<'left' | 'right', { obj: Phaser.GameObjects.Container; until: number; key: string }>();
 
     constructor() {
         super('Story');
@@ -120,6 +130,11 @@ export class StoryScene extends Phaser.Scene {
         // Modern Interiors (o tileset da Sala de troféus): parede, piso e móveis dos cenários
         if (!this.textures.exists('mi')) this.load.image('mi', 'assets/room/mi/Interiors_free_32x32.png');
         if (!this.textures.exists('mi-room')) this.load.image('mi-room', 'assets/room/mi/Room_Builder_free_32x32.png');
+        for (const s of this.d.script.steps) {
+            const sp = s.do === 'say' ? SPEAKERS[s.who] : undefined;
+            if (sp && !this.textures.exists(`speaker-${sp.id}`))
+                this.load.image(`trainer-src-${sp.id}`, trainerSrc(sp.id));
+        }
         for (const f of cast.faces) {
             const [mon, face] = f.split(':');
             const key = `face-${f}`;
@@ -203,7 +218,11 @@ export class StoryScene extends Phaser.Scene {
             case 'exit':
                 return this.exit(s.id, instant);
             case 'portrait':
-                return this.portrait(s.mon, s.face, s.side ?? 'left', this.elapsed + (s.beats ?? 3) * this.beat);
+                return this.portrait(
+                    `face-${s.mon}:${s.face}`,
+                    s.side ?? 'left',
+                    this.elapsed + (s.beats ?? 3) * this.beat,
+                );
             case 'say':
                 return this.say(s, sayEnd(this.c, index));
             case 'title':
@@ -532,23 +551,30 @@ export class StoryScene extends Phaser.Scene {
         this.typing = { full, from: this.elapsed, shown: 0 };
         this.sayUntil = until - 120;
         this.fadeBox(1, 120);
-        if (s.face) this.portrait(s.face.mon, s.face.face, 'right', until - 120);
+        const sp = SPEAKERS[s.who];
+        if (sp && this.textures.exists(`speaker-${sp.id}`)) this.portrait(`speaker-${sp.id}`, 'left', until - 120);
+        if (s.face) this.portrait(`face-${s.face.mon}:${s.face.face}`, 'right', until - 120);
     }
 
-    private portrait(mon: number, face: string, side: 'left' | 'right', until: number) {
-        this.faces.get(side)?.obj.destroy();
+    /** Retrato num canto, acima da caixa. Trocar o retrato do mesmo canto é um fade de 200 ms; o mesmo fica. */
+    private portrait(key: string, side: 'left' | 'right', until: number) {
+        const old = this.faces.get(side);
+        if (old?.key === key) {
+            old.until = until;
+            return;
+        }
+        if (old) this.tweens.add({ targets: old.obj, alpha: 0, duration: 200, onComplete: () => old.obj.destroy() });
         // o retrato é pixel art também: tamanho na tela múltiplo de 40 (escala inteira)
         const size = (40 * Math.max(1, Math.round((76 * this.uiZoom) / 40))) / this.uiZoom;
         const g = this.add.graphics();
         g.fillStyle(0x2a3050, 1).fillRoundedRect(-size / 2 - 4, -size / 2 - 4, size + 8, size + 8, 8);
         g.fillStyle(0xf8f8f0, 1).fillRect(-size / 2, -size / 2, size, size);
-        const img = this.add.image(0, 0, `face-${mon}:${face}`).setDisplaySize(size, size);
+        const img = this.add.image(0, 0, key).setDisplaySize(size, size);
         const x = side === 'left' ? 56 : UI_W - 56;
-        const box = this.add.container(x, 392, [g, img]).setAlpha(0);
-        if (!this.d.reduce) box.setScale(0.8);
-        this.tweens.add({ targets: box, alpha: 1, scale: 1, duration: 160, ease: 'Back.easeOut' });
+        const box = this.add.container(x, 380, [g, img]).setAlpha(0);
+        this.tweens.add({ targets: box, alpha: 1, duration: 200 });
         this.ui.add(box);
-        this.faces.set(side, { obj: box, until });
+        this.faces.set(side, { obj: box, until, key });
     }
 
     /** Some com o que é passageiro (letreiro, fala, retrato): no corte de cenário, no toque e no fim. */
@@ -596,7 +622,7 @@ export class StoryScene extends Phaser.Scene {
         for (const [side, f] of this.faces) {
             if (now < f.until) continue;
             this.faces.delete(side);
-            this.tweens.add({ targets: f.obj, alpha: 0, duration: 150, onComplete: () => f.obj.destroy() });
+            this.tweens.add({ targets: f.obj, alpha: 0, duration: 200, onComplete: () => f.obj.destroy() });
         }
         for (const [id, light] of this.spots) {
             const a = this.actors.get(id);
@@ -619,6 +645,24 @@ export class StoryScene extends Phaser.Scene {
         };
         for (const t of ['red', 'blue', 'oak']) add(`story-trainer-${t}`, () => trainerArt(t));
         add('story-ball', ballArt);
+        for (const sp of Object.values(SPEAKERS)) {
+            if (!sp || !this.textures.exists(`trainer-src-${sp.id}`)) continue;
+            add(`speaker-${sp.id}`, () => {
+                const [el, p] = canvas(40, 40);
+                p.drawImage(
+                    this.textures.get(`trainer-src-${sp.id}`).getSourceImage() as CanvasImageSource,
+                    sp.x,
+                    sp.y,
+                    40,
+                    40,
+                    0,
+                    0,
+                    40,
+                    40,
+                );
+                return el;
+            });
+        }
         add('story-pokeball', pokeballArt);
         add('story-spot', spotArt);
         // sombra por tamanho: 0 = bola, 1..3 = shadowSize do PMD

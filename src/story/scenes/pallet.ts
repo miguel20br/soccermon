@@ -108,7 +108,7 @@ export function palletChoice(starter: Starter): SceneScript {
             { at: 4, do: 'sound', cry: rival },
             { at: 4.5, do: 'say', who: 'who.blue', text: 'pallet.blue.pick', face: { mon: rival, face: 'determined' } },
             { at: 7, do: 'anim', id: 'meu', anim: 'Hop', dir: 'right' },
-            { at: 7, do: 'portrait', mon: starter, face: 'angry', side: 'left', beats: 1.5 },
+            { at: 7, do: 'portrait', mon: starter, face: 'angry', side: 'right', beats: 1.5 },
             // o Carvalho: a pesquisa e a Pokédex
             { at: 9, do: 'cut', zoom: 1.2, focus: 'oak' },
             { at: 9, do: 'sound', sfx: 'select' },
