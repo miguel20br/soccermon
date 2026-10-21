@@ -1,5 +1,17 @@
 # Novidades
 
+## 0.9.2.1 · Álbum leve e vitrine fácil
+
+### Álbum
+- O Álbum não trava mais ao abrir e virar a página (só a página à vista é montada e o brilho holo anima só na carta em foco)
+- As cartas empilhadas atrás de uma figurinha aparecem só pela borda
+
+### Vitrine
+- Vitrine cheia: Pôr na vitrine pede a carta que sai e troca num toque
+- Um x no canto tira a carta da vitrine
+- Arraste uma carta sobre a outra (ou toque numa e depois na outra) pra mudar a ordem; vale no Perfil, no perfil do amigo e no Duelo
+- No PC, a vitrine do cartão do Perfil ficou maior e centralizada
+
 ## 0.9.2 · Casa arrumada
 
 ### Tela inicial

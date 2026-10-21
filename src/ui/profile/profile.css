@@ -1973,6 +1973,35 @@ fieldset.pf-field,
         grid-auto-flow: column;
     }
 }
+/* PC (pedido do Miguel em 21/10: sem vão no meio do cartão): a vitrine ocupa o que sobra à direita, centralizada, com
+   as cartas maiores e quase lado a lado; o nome encolhe (reticências) antes de a vitrine apertar */
+@media (min-width: 561px) {
+    .pf-head {
+        grid-template-columns: auto minmax(0, max-content) minmax(min-content, 1fr);
+    }
+    .pf-cards,
+    .pf-cards-empty {
+        justify-self: center;
+    }
+}
+@media (min-width: 760px) {
+    .pf-cards .fut-wrap.sm {
+        --fut-w: 120px;
+    }
+    .pf-cards li + li {
+        margin-left: -16px;
+    }
+    .pf-cards li:first-child:not(:last-child) {
+        rotate: -4deg;
+    }
+    .pf-cards li:last-child:not(:first-child) {
+        rotate: 4deg;
+    }
+    .pf-cards-empty {
+        width: 140px;
+        padding: 22px 10px;
+    }
+}
 .pf-public-hint {
     grid-column: 1 / -1;
     color: var(--muted);

@@ -7,6 +7,28 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.2.1',
+        title: 'Álbum leve e vitrine fácil',
+        sections: [
+            {
+                title: 'Álbum',
+                lines: [
+                    'O Álbum não trava mais ao abrir e virar a página (só a página à vista é montada e o brilho holo anima só na carta em foco)',
+                    'As cartas empilhadas atrás de uma figurinha aparecem só pela borda',
+                ],
+            },
+            {
+                title: 'Vitrine',
+                lines: [
+                    'Vitrine cheia: Pôr na vitrine pede a carta que sai e troca num toque',
+                    'Um x no canto tira a carta da vitrine',
+                    'Arraste uma carta sobre a outra (ou toque numa e depois na outra) pra mudar a ordem; vale no Perfil, no perfil do amigo e no Duelo',
+                    'No PC, a vitrine do cartão do Perfil ficou maior e centralizada',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.2',
         title: 'Casa arrumada',
         sections: [
@@ -1038,6 +1060,28 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.2.1',
+        title: 'Light album, easy showcase',
+        sections: [
+            {
+                title: 'Album',
+                lines: [
+                    'The Album no longer stutters when opening and turning pages (only the visible page is built and the holo shine only moves on the card in focus)',
+                    'Cards stacked behind a sticker show only by their edge',
+                ],
+            },
+            {
+                title: 'Showcase',
+                lines: [
+                    'Full showcase: Add to showcase asks which card leaves and swaps in one tap',
+                    'An x in the corner removes a card from the showcase',
+                    'Drag a card onto another (or tap one, then the other) to change the order; it applies to your Profile, your friend view and the Duel',
+                    'On desktop, the showcase on the Profile card is bigger and centred',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.2',
         title: 'House in order',

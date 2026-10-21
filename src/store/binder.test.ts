@@ -27,8 +27,10 @@ import {
     giftInst,
     mergeBinder,
     parseCardShowcase,
+    replaceShowcase,
     resolveCardShowcase,
     returnCard,
+    swapShowcase,
     versionId,
     versionsOf,
 } from './binder';
@@ -277,6 +279,18 @@ describe('fonte única: a conta do Álbum é a da medalha e da platina', () => {
 });
 
 describe('vitrine de cartas', () => {
+    it('cheia: a nova entra no lugar da escolhida; trocar de lugar vale pro Perfil, amigo e Duelo (a ordem é a da lista)', () => {
+        let b: BinderCard[] = [];
+        for (const id of [6, 25, 150, 94]) b = add(b, mon(id, `s${id}`, { shiny: true }));
+        const ids = ['6:shiny', '150:shiny', '25:shiny'];
+        expect(replaceShowcase(ids, 1, '94:shiny')).toEqual(['6:shiny', '94:shiny', '25:shiny']);
+        expect(replaceShowcase(ids, 5, '94:shiny')).toEqual(ids);
+        const swapped = swapShowcase(ids, 0, 1);
+        expect(swapped).toEqual(['150:shiny', '6:shiny', '25:shiny']);
+        expect(swapShowcase(ids, 0, 7)).toEqual(ids);
+        expect(resolveCardShowcase(swapped, b).map((c) => c.inst.speciesId)).toEqual([150, 6, 25]);
+    });
+
     it('só figurinhas do álbum (coladas), no máximo 3, sem repetir', () => {
         let b: BinderCard[] = [];
         for (const id of [6, 25, 94, 143, 150]) b = add(b, mon(id, `s${id}`, { shiny: true }));

@@ -98,17 +98,131 @@
 }
 /* vitrine: 3 vagas do tamanho da carta pequena */
 .bd-slots {
-    --fut-w: min(110px, calc((100vw - 76px) / 3));
+    --fut-w: min(110px, calc((100vw - 92px) / 3));
     display: grid;
     grid-template-columns: repeat(3, var(--fut-w));
     justify-content: center;
-    gap: 8px;
+    /* o "x" de cada carta sai pelo canto: o vão é dele (a carta do lado não o cobre) */
+    gap: 16px;
+    padding-top: 8px;
 }
 .bd-slot {
     width: var(--fut-w);
     aspect-ratio: 63 / 88;
     border: 2px dashed var(--line);
     border-radius: 10px;
+    animation: al-fade 200ms var(--ease-out);
+}
+/* a carta da vitrine: tocar seleciona (tocar noutra troca de lugar), arrastar de lado troca, o "x" tira */
+.bd-card {
+    position: relative;
+    touch-action: pan-y;
+    transition:
+        opacity 200ms var(--ease-out),
+        scale 200ms var(--ease-out),
+        translate 200ms var(--ease-out);
+}
+.bd-card.on {
+    translate: 0 -6px;
+}
+.bd-card.on .bd-card-btn,
+.bd-card.over .bd-card-btn {
+    outline: 3px solid var(--yellow);
+    outline-offset: 3px;
+    border-radius: 8px;
+}
+.bd-card.drag {
+    z-index: 5;
+    scale: 1.06;
+    cursor: grabbing;
+    transition: scale 150ms var(--ease-out);
+}
+.bd-card.out {
+    opacity: 0;
+    scale: 0.85;
+}
+.bd-card.in {
+    animation: bd-in 260ms var(--ease-out) both;
+}
+@keyframes bd-in {
+    from {
+        opacity: 0;
+        scale: 0.85;
+    }
+}
+/* vitrine cheia, carta nova esperando: as 3 piscam a borda pra dizer "toque na que sai" */
+.bd-showcase.picking .bd-card-btn {
+    outline: 2px dashed var(--yellow);
+    outline-offset: 3px;
+    border-radius: 8px;
+}
+.bd-showcase.picking .bd-card:hover .bd-card-btn {
+    outline-style: solid;
+}
+.bd-x {
+    position: absolute;
+    /* acima da carta inclinada pelo ponteiro (.pc2-fx.is-active sobe pra 5) */
+    z-index: 6;
+    top: -10px;
+    right: -12px;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 2px solid var(--line);
+    border-radius: 50%;
+    background: var(--panel);
+    color: var(--muted);
+    box-shadow: 0 2px 0 #000;
+    cursor: pointer;
+    transition:
+        color 150ms var(--ease-out),
+        border-color 150ms var(--ease-out);
+}
+.bd-x svg {
+    width: 14px;
+    height: 14px;
+}
+.bd-x:hover,
+.bd-x:focus-visible {
+    color: var(--text);
+    border-color: var(--red);
+}
+.bd-x:focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: 2px;
+}
+.bd-pick {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: space-between;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 2px solid var(--yellow);
+    background: var(--panel-2);
+    animation: al-fade 200ms var(--ease-out);
+}
+.bd-pick span {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+.bd-pick b {
+    font-size: 13px;
+}
+.bd-pick small {
+    color: var(--muted);
+    font-size: 12px;
+}
+/* Reduzir movimento: só o fade (nada encolhe nem sobe) */
+:root[data-reduce-motion="true"] .bd-card {
+    scale: none;
+    translate: none;
+}
+:root[data-reduce-motion="true"] .bd-card.in {
+    animation-name: al-fade;
 }
 .al-swipe {
     margin: 0;
@@ -515,6 +629,22 @@
 /* figurinha nova espera a folha assentar pra colar */
 .al-book.turning .al-stk.pasting {
     animation-play-state: paused;
+}
+
+/* holo parado nas figurinhas: só a do ponteiro ou do foco brilha. Com o álbum cheio eram ~90 brilhos animando
+   (background-position, que repinta) e a página inteira repintava a cada quadro, inclusive girando a folha.
+   !important: as camadas da carta usam o atalho `animation`, que volta o play-state pra running. */
+.al-page .pc2,
+.al-page .pc2 *,
+.al-page .pc2 *::before,
+.al-page .pc2 *::after {
+    animation-play-state: paused !important;
+}
+.al-slot:is(:hover, :focus-visible) .pc2,
+.al-slot:is(:hover, :focus-visible) .pc2 *,
+.al-slot:is(:hover, :focus-visible) .pc2 *::before,
+.al-slot:is(:hover, :focus-visible) .pc2 *::after {
+    animation-play-state: running !important;
 }
 
 /* mais de uma versão: as outras ficam atrás da da frente, como cartas empilhadas */

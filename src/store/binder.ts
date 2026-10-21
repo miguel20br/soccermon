@@ -369,6 +369,20 @@ export interface ShowcaseCard {
  * A vitrine do seu save: só versões que você tem (`ok`: a figurinha do espaço está colada), no máximo 3. A escolha
  * guarda a versão (`versionId`); a de antes guardava o espaço ("6:icone": a melhor carta dele) ou a carta (uid).
  */
+/** Vitrine cheia: `id` entra no lugar da carta da vaga `at` (as outras ficam onde estão). */
+export function replaceShowcase(ids: readonly string[], at: number, id: string): string[] {
+    if (at < 0 || at >= ids.length) return [...ids];
+    return ids.map((x, i) => (i === at ? id : x)).filter((x, i, all) => all.indexOf(x) === i);
+}
+
+/** Troca duas cartas de lugar na vitrine (arrastar uma sobre a outra, tocar nas duas, setas do teclado). */
+export function swapShowcase(ids: readonly string[], a: number, b: number): string[] {
+    const out = [...ids];
+    if (a === b || !(a in out) || !(b in out)) return out;
+    [out[a], out[b]] = [out[b], out[a]];
+    return out;
+}
+
 export function resolveCardShowcase(
     choice: unknown,
     binder: BinderCard[],

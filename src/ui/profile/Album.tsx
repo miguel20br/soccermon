@@ -1,4 +1,15 @@
-import { type CSSProperties, memo, type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+    type CSSProperties,
+    memo,
+    type PointerEvent,
+    type KeyboardEvent as ReactKeyboardEvent,
+    startTransition,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 import { SPECIES, type Species, species } from '../../engine/data';
 import { type DuelMonRecipe, monRecipe } from '../../engine/duel-validate';
 import type { PokemonInstance } from '../../engine/instance';
@@ -13,9 +24,11 @@ import {
     CARD_SLOTS,
     type CardSlot,
     defaultCard,
+    replaceShowcase,
     resolveCardShowcase,
     type ShowcaseCard,
     slotId,
+    swapShowcase,
     versionId,
     versionsOf,
 } from '../../store/binder';
@@ -27,6 +40,7 @@ import { useCardModal } from '../card-modal';
 import { HudIcon } from '../components/MatchHud';
 import { PokeCard2 } from '../components/PokeCard2';
 import { reduceMotionOn } from '../reduce-motion';
+import { useSwapMotion } from '../swap-motion';
 import { speciesGif } from './club';
 import { NewBadge, useNews } from './news';
 import './album.css';
@@ -180,6 +194,15 @@ export function AlbumView({
     const shownIds = shown.map((s) => s.id);
     const full = shown.length >= CARD_SHOWCASE_MAX;
     const toggle = (id: string) => updateProfile({ cardShowcase: toggleShowcase(shownIds, id) });
+    // vitrine cheia: "Pôr na vitrine" traz a carta pra cá e um toque na que sai faz a troca
+    const [incoming, setIncoming] = useState<{ id: string; name: string } | null>(null);
+    const vitrine = useRef<HTMLElement>(null);
+    const startPick = (id: string, name: string) => {
+        setIncoming({ id, name });
+        requestAnimationFrame(() =>
+            vitrine.current?.scrollIntoView({ block: 'nearest', behavior: reduceMotionOn() ? 'auto' : 'smooth' }),
+        );
+    };
     const rows = useMemo(() => new Map(KANTO.map((sp) => [sp.id, speciesRows(sp, dex, bySlot)])), [dex, bySlot]);
 
     // 6 por página no celular (a carta fica legível no 320), 12 no tablet e no desktop; duas páginas abertas no desktop
@@ -208,12 +231,25 @@ export function AlbumView({
     };
 
     const [page, setPage] = useState(() => (at ? Math.floor((at.id - 1) / per) : 0));
+    const [warm, setWarm] = useState(false);
+    useEffect(() => {
+        if (book !== 'open') return setWarm(false);
+        const idle = window.requestIdleCallback ?? ((f: () => void) => window.setTimeout(f, 300));
+        const stop = window.cancelIdleCallback ?? window.clearTimeout;
+        const id = idle(() => setWarm(true), { timeout: 800 });
+        return () => stop(id);
+    }, [book]);
     const [dir, setDir] = useState<'next' | 'prev' | ''>('');
     const [found, setFound] = useState<number | null>(null);
     const { fresh, done, again } = useFresh();
     /** A folha virando: 1ª página de antes e de depois (some quando a animação acaba). */
     const [leaf, setLeaf] = useState<{ from: number; to: number; n: number; go?: boolean } | null>(null);
     const [fan, setFan] = useState<number | null>(null);
+    /**
+     * A folha assentou: as vizinhas da página nova se montam em transição (o React desenha aos pedaços, sem travar o
+     * quadro); antes era um quadro longo logo depois do giro.
+     */
+    const settle = (n?: number) => startTransition(() => setLeaf((l) => (n === undefined || l?.n === n ? null : l)));
     const turn = (to: number) => {
         const p = Math.max(0, Math.min(pages.length - 1, to));
         if (p === page) return;
@@ -227,7 +263,7 @@ export function AlbumView({
         // 1º quadro demora, a animação não começa já pela metade)
         requestAnimationFrame(() => requestAnimationFrame(() => setLeaf((l) => (l?.n === n ? { ...l, go: true } : l))));
         // some quando a animação acaba (onAnimationEnd); o relógio é só a garantia se ela não rodar
-        window.setTimeout(() => setLeaf((l) => (l?.n === n ? null : l)), LEAF_MS * 3);
+        window.setTimeout(() => settle(n), LEAF_MS * 3);
     };
     // trocou o tamanho da página (girou o celular): fica onde estava o primeiro Pokémon
     const anchor = useRef(1);
@@ -333,9 +369,12 @@ export function AlbumView({
                     ? []
                     : on
                       ? [{ label: t('profile.binder.remove'), onClick: () => toggle(r.id) }]
-                      : full
-                        ? []
-                        : [{ label: t('profile.binder.add'), onClick: () => toggle(r.id) }]),
+                      : [
+                            {
+                                label: t('profile.binder.add'),
+                                onClick: () => (full ? startPick(r.id, `${sp.name} ${nameOf(r)}`) : toggle(r.id)),
+                            },
+                        ]),
                 { label: t('profile.album.sheet'), onClick: () => onSheet(sp.id, [sp.id]) },
             ],
             extra: (
@@ -419,6 +458,8 @@ export function AlbumView({
     /** As páginas vizinhas já ficam desenhadas (invisíveis): virar é só a animação, sem esperar desenhar. */
     const live = (list: Sheet[]): Sheet[] => {
         const have = list.filter(onBook);
+        // ao abrir, só as páginas à vista: as vizinhas vêm quando o navegador folga (abrir desenhava o triplo)
+        if (!warm) return have;
         // vizinhas da página de antes enquanto a folha vira (as novas só depois que ela assenta: nada novo no meio)
         const at = leaf ? leaf.from : cur;
         const near = step === 2 ? [at - 2, at - 1, at + 2, at + 3] : [at - 1, at + 1];
@@ -464,32 +505,20 @@ export function AlbumView({
 
     return (
         <div className="al">
-            <section className="panel pf-card bd-showcase">
+            <section ref={vitrine} className={`panel pf-card bd-showcase${incoming ? ' picking' : ''}`}>
                 <h2>
                     {t('profile.binder.showcase')}{' '}
                     <span className="pf-count">
                         {shown.length}/{CARD_SHOWCASE_MAX}
                     </span>
                 </h2>
-                <div className="bd-slots">
-                    {Array.from({ length: CARD_SHOWCASE_MAX }, (_, i) => {
-                        const c = shown[i];
-                        return c ? (
-                            <button
-                                type="button"
-                                key={c.id}
-                                className="al-cell got"
-                                onClick={() => openRow(species(c.inst.speciesId), c.id)}
-                            >
-                                <PokeCard2 inst={c.inst} variant="metal" />
-                            </button>
-                        ) : (
-                            // biome-ignore lint/suspicious/noArrayIndexKey: 3 vagas fixas
-                            <div key={i} className="bd-slot" aria-hidden />
-                        );
-                    })}
-                </div>
-                <small className="muted">{t('profile.binder.showcaseHelp')}</small>
+                <ShowcaseEditor
+                    shown={shown}
+                    incoming={incoming}
+                    onOpen={(c) => openRow(species(c.inst.speciesId), c.id)}
+                    onSave={(ids) => updateProfile({ cardShowcase: ids })}
+                    onCancel={() => setIncoming(null)}
+                />
             </section>
 
             {book !== 'open' ? (
@@ -581,9 +610,7 @@ export function AlbumView({
                                 inert={sh.role === 'stand' || sh.role === 'front' || undefined}
                                 aria-hidden={sh.role === 'stand' || sh.role === 'front' || undefined}
                                 aria-label={range(pages[sh.idx])}
-                                onAnimationEnd={(e) =>
-                                    sh.role === 'front' && e.target === e.currentTarget && setLeaf(null)
-                                }
+                                onAnimationEnd={(e) => sh.role === 'front' && e.target === e.currentTarget && settle()}
                             >
                                 {pageInner(pages[sh.idx], sh.role === 'stand')}
                             </section>
@@ -628,6 +655,216 @@ export function AlbumView({
                 <small className="muted">{t('profile.album.help')}</small>
             </div>
         </div>
+    );
+}
+
+/** Quanto a carta leva pra sair da vitrine (o CSS usa o mesmo número). */
+const OUT_MS = 200;
+
+/**
+ * A vitrine onde ela se edita (pedido do Miguel em 21/10, "menos burocrática"): o "x" tira em um toque; arrastar uma
+ * carta sobre a outra, tocar nas duas (o "pega e põe" da prancheta) ou as setas do teclado trocam de lugar; com a
+ * vitrine cheia, "Pôr na vitrine" chega aqui com a carta nova (`incoming`) e um toque na que sai faz a troca. A ordem
+ * é a da lista salva no perfil: vale no Perfil, no perfil do amigo e no Duelo.
+ */
+function ShowcaseEditor({
+    shown,
+    incoming,
+    onOpen,
+    onSave,
+    onCancel,
+}: {
+    shown: ShowcaseCard[];
+    incoming: { id: string; name: string } | null;
+    onOpen: (c: ShowcaseCard) => void;
+    onSave: (ids: string[]) => void;
+    onCancel: () => void;
+}) {
+    const { t } = useT();
+    const ids = shown.map((c) => c.id);
+    const box = useRef<HTMLDivElement>(null);
+    const { snapshot } = useSwapMotion(box, ids.join('|'));
+    const [sel, setSel] = useState<number | null>(null);
+    const [over, setOver] = useState<number | null>(null);
+    const [leaving, setLeaving] = useState<string | null>(null);
+    const [arrived, setArrived] = useState<string | null>(null);
+    const focusId = useRef<string | null>(null);
+    const dragged = useRef(false);
+    const drag = useRef<{ i: number; x: number; y: number; on: boolean; el: HTMLElement; slots: DOMRect[] } | null>(
+        null,
+    );
+
+    // trocou pelo teclado: o foco vai junto com a carta
+    useEffect(() => {
+        const id = focusId.current;
+        focusId.current = null;
+        if (id) box.current?.querySelector<HTMLElement>(`[data-uid="${CSS.escape(id)}"] .bd-card-btn`)?.focus();
+    });
+    useEffect(() => {
+        if (!incoming) return;
+        setSel(null);
+        const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onCancel();
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [incoming, onCancel]);
+
+    const nameOf = (c: ShowcaseCard) => species(c.inst.speciesId).name;
+    /** A carta sai com fade (e encolhe, fora do Reduzir movimento) antes de a lista mudar. */
+    const leave = (id: string, then: () => void) => {
+        setLeaving(id);
+        window.setTimeout(() => {
+            setLeaving(null);
+            then();
+        }, OUT_MS);
+    };
+    const swap = (a: number, b: number) => {
+        setSel(null);
+        if (a !== b) onSave(swapShowcase(ids, a, b));
+    };
+    const tap = (i: number) => {
+        if (dragged.current || leaving) return;
+        if (incoming) {
+            const into = incoming.id;
+            onCancel();
+            return leave(ids[i], () => {
+                setArrived(into);
+                onSave(replaceShowcase(ids, i, into));
+            });
+        }
+        if (sel === null) return setSel(i);
+        if (sel === i) {
+            setSel(null);
+            return onOpen(shown[i]);
+        }
+        swap(sel, i);
+    };
+    const onKey = (e: ReactKeyboardEvent, i: number) => {
+        const to = e.key === 'ArrowLeft' ? i - 1 : e.key === 'ArrowRight' ? i + 1 : -1;
+        if (e.key === 'Escape' && sel !== null) setSel(null);
+        if (to < 0 || to >= ids.length || incoming) return;
+        e.preventDefault();
+        focusId.current = ids[i];
+        swap(i, to);
+    };
+
+    // arrastar (mouse e dedo): de lado; na vertical a página rola (touch-action: pan-y)
+    const slotAt = (x: number, y: number) =>
+        drag.current?.slots.findIndex((r) => x >= r.left && x <= r.right && y >= r.top - 24 && y <= r.bottom + 24) ??
+        -1;
+    const onDown = (e: PointerEvent<HTMLElement>, i: number) => {
+        if (incoming || leaving || e.button !== 0 || (e.target as HTMLElement).closest('.bd-x')) return;
+        const slots = [...(box.current?.children ?? [])].map((el) => el.getBoundingClientRect());
+        drag.current = { i, x: e.clientX, y: e.clientY, on: false, el: e.currentTarget, slots };
+    };
+    const onMove = (e: PointerEvent<HTMLElement>) => {
+        const d = drag.current;
+        if (!d) return;
+        const dx = e.clientX - d.x;
+        const dy = e.clientY - d.y;
+        if (!d.on) {
+            if (Math.hypot(dx, dy) < 8) return;
+            d.on = true;
+            d.el.setPointerCapture?.(e.pointerId);
+            d.el.classList.add('drag');
+            setSel(null);
+        }
+        d.el.style.translate = `${dx}px ${dy}px`;
+        const j = slotAt(e.clientX, e.clientY);
+        setOver(j >= 0 && j !== d.i && j < ids.length ? j : null);
+    };
+    const onEnd = (e: PointerEvent<HTMLElement>, drop: boolean) => {
+        const d = drag.current;
+        const j = drop ? slotAt(e.clientX, e.clientY) : -1;
+        drag.current = null;
+        setOver(null);
+        if (!d?.on) return;
+        // o clique que vem junto com o soltar não seleciona nem abre a carta
+        dragged.current = true;
+        window.setTimeout(() => {
+            dragged.current = false;
+        });
+        d.el.classList.remove('drag');
+        if (j >= 0 && j !== d.i && j < ids.length) {
+            // desliza de onde foi solta pro lugar novo (e a outra pro lugar dela)
+            snapshot();
+            d.el.style.translate = '';
+            return swap(d.i, j);
+        }
+        const from = d.el.style.translate;
+        d.el.style.translate = '';
+        if (!reduceMotionOn())
+            d.el.animate?.([{ translate: from }, { translate: '0 0' }], {
+                duration: 220,
+                easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+            });
+    };
+
+    return (
+        <>
+            <div className="bd-slots" ref={box}>
+                {Array.from({ length: CARD_SHOWCASE_MAX }, (_, i) => {
+                    const c = shown[i];
+                    // biome-ignore lint/suspicious/noArrayIndexKey: 3 vagas fixas
+                    if (!c) return <div key={`vaga-${i}`} className="bd-slot" aria-hidden />;
+                    const name = nameOf(c);
+                    return (
+                        <div
+                            key={c.id}
+                            data-uid={c.id}
+                            className={`bd-card${sel === i ? ' on' : ''}${over === i ? ' over' : ''}${
+                                leaving === c.id ? ' out' : ''
+                            }${arrived === c.id ? ' in' : ''}`}
+                            onPointerDown={(e) => onDown(e, i)}
+                            onPointerMove={onMove}
+                            onPointerUp={(e) => onEnd(e, true)}
+                            onPointerCancel={(e) => onEnd(e, false)}
+                            onAnimationEnd={() => arrived === c.id && setArrived(null)}
+                        >
+                            <button
+                                type="button"
+                                className="al-cell got bd-card-btn"
+                                aria-pressed={sel === i}
+                                aria-label={t('profile.binder.slotAria', { name, n: i + 1 })}
+                                aria-keyshortcuts="ArrowLeft ArrowRight"
+                                onClick={() => tap(i)}
+                                onKeyDown={(e) => onKey(e, i)}
+                            >
+                                <PokeCard2 inst={c.inst} variant="metal" />
+                            </button>
+                            {!incoming && (
+                                <button
+                                    type="button"
+                                    className="bd-x"
+                                    aria-label={t('profile.binder.removeAria', { name })}
+                                    onClick={() => leave(c.id, () => onSave(ids.filter((x) => x !== c.id)))}
+                                >
+                                    <HudIcon kind="close" />
+                                </button>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+            {incoming ? (
+                <div className="bd-pick" aria-live="polite">
+                    <span>
+                        <b>{t('profile.binder.pick')}</b>
+                        <small>{t('profile.binder.pickIn', { name: incoming.name })}</small>
+                    </span>
+                    <button type="button" className="btn ghost small" onClick={onCancel}>
+                        {t('common.ui.cancel')}
+                    </button>
+                </div>
+            ) : (
+                <small className="muted" aria-live="polite">
+                    {sel !== null
+                        ? t('profile.binder.picked')
+                        : shown.length > 1
+                          ? t('profile.binder.reorder')
+                          : t('profile.binder.showcaseHelp')}
+                </small>
+            )}
+        </>
     );
 }
 
@@ -679,7 +916,8 @@ const AlbumSlot = memo(function AlbumSlot({
                             className="al-stk behind"
                             style={{ '--rot': `${tilt(sp.id)}deg`, '--k': behind.length - k } as CSSProperties}
                         >
-                            <PokeCard2 inst={x.inst} variant="metal" />
+                            {/* só a beirada aparece: a moldura basta (a carta inteira custava ~90 nós cada) */}
+                            <PokeCard2 inst={x.inst} variant="metal" bare />
                         </span>
                     ))}
                     {top && (

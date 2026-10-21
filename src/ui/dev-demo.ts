@@ -697,7 +697,7 @@ function demoNews() {
 /**
  * `?demo=album` (ou `fichario`): álbum de cartas cheio (Ícones, Shiny, Evento por tipo, Destaque, combos, ×N), a
  * Pokédex com as figurinhas dessas cartas (Lapras com Normal, Shiny e Evento; uma figurinha de antes do álbum, sem
- * carta) e a vitrine com 3 cartas.
+ * carta) e a vitrine com 3 cartas. `&cheio=1`: as 151 espécies com várias versões (pior caso do álbum).
  */
 function demoBinder() {
     const rng = new Rng('demo-fichario');
@@ -705,8 +705,10 @@ function demoBinder() {
     let binder: BinderCard[] = [];
     const now = Date.now();
     const cards: PokemonInstance[] = [];
-    for (let i = 0; i < 140; i++) {
-        const id = i < ICON_IDS.length ? ICON_IDS[i] : 1 + Math.floor(rng.next() * 151);
+    // &cheio=1: as 151 espécies com 4 cartas cada (pra medir o álbum no pior caso)
+    const full = new URLSearchParams(window.location.search).has('cheio');
+    for (let i = 0; i < (full ? 604 : 140); i++) {
+        const id = i < ICON_IDS.length ? ICON_IDS[i] : full ? 1 + (i % 151) : 1 + Math.floor(rng.next() * 151);
         let p: PokemonInstance = { ...createInstance(id, rng), uid: `demo-${i}`, shiny: false };
         const type = species(id).types.find((t) => EVENT_TYPES.includes(t));
         const special: Special | null =
