@@ -30,8 +30,8 @@ Divisão já combinada:
   na rota). Continua sendo escolha do jogador: nada acontece no time sem ele decidir.
 - **Pool que cresce** (21/10): no Modo história o jogador começa com poucos Pokémon possíveis no draft e vai
   desbloqueando opções conforme joga, perde, avança e volta (progressão de roguelite).
-- **Liga de Baixo** (21/10): "Sem juiz" e "Quadra de terra" ficam. "Sem intervalo" saiu (deixa o jogo lento). Mais
-  regras especiais: em aberto (seção 3).
+- **Liga de Baixo** (21/10): regras especiais na seção 3 (aprovadas, a ajustar e fora). "Sem intervalo" saiu (deixa o
+  jogo lento). Momentos bobos ficam no Modo história, com trilha própria.
 
 ---
 
@@ -169,11 +169,25 @@ cânone: o Blue esqueceu de confiar nos Pokémon. Aqui é literal: esqueceu de *
 
 **A virada (Celadon)** é o meio: a Rocket rouba o capitão do Blue (o inicial dele). Ele pede ajuda numa linha e te
 **empresta 2 jogadores só pra aquela partida** (entram com aviso e saem depois). Partida na Liga de Baixo com a
-**regra da casa**: sem juiz, em quadra de terra (precisa do ok de equilíbrio; o `MatchConfig` é paramétrico). Ganhou:
+**regra da casa** da Liga de Baixo (tabela abaixo) (precisa do ok de equilíbrio; o `MatchConfig` é paramétrico). Ganhou:
 os roubados ficam livres e você escolhe 1 de 3 pra levar (Draft do lugar). O Blue: "Isso não muda nada."
 
-**Regras especiais da Liga de Baixo: em aberto.** Aprovadas: sem juiz e quadra de terra. Fora: sem intervalo (deixa o
-jogo lento). O Miguel quer pensar em mais.
+**Regras especiais da Liga de Baixo** (21/10; números e equilíbrio decididos junto, com antes/depois):
+
+| Situação | Regra | O que faz |
+|---|---|---|
+| Aprovada | Sem juiz | sem falta marcada |
+| Aprovada | Quadra de terra | o piso da Liga de Baixo |
+| Aprovada | Gol de longe vale 2 | chute de fora da área conta dois |
+| Aprovada | Aposta | vencer por 3 ou mais dá ₽ extra; perder custa ₽ |
+| Precisa de ajuste | Apagão | a quadra escurece por trechos; passe longo erra; Fantasma e Psíquico se dão bem |
+| Precisa de ajuste | Expulsão armada | 2 minutos com 4 contra 5 |
+| Precisa de ajuste | Juiz comprado | um gol seu é anulado |
+| Precisa de ajuste | Quadra torta | a bola puxa pra um lado |
+| Precisa de ajuste | Morte súbita | — (definir como entra) |
+| Fora | Sem intervalo | deixa o jogo lento |
+
+**Momentos bobos** (piadas e cenas engraçadas) são do Modo história e vão ter uma trilha própria.
 
 **Progressão do Modo história:** o pool do draft começa pequeno e cresce conforme você joga, perde, avança e volta
 (roguelite). Como desbloqueia (por rota, por ginásio, por derrota) fica pro plano do modo.
@@ -402,7 +416,7 @@ segue em aberto: a Cena 1 está sem música, só cries, torcida e efeitos.
    / pode roubar um reserva seu por 1 capítulo.
 5. **Regra da casa na Liga de Baixo** (sem intervalo e sem substituição): **sim, só nessa partida, com antes/depois
    de equilíbrio (recomendo)** / partida normal.
-   *Resposta (21/10): sem juiz e quadra de terra sim; sem intervalo não (deixa o jogo lento). Mais regras em aberto.*
+   *Resposta (21/10): sem intervalo não (deixa o jogo lento); as outras regras estão na tabela da seção 3.*
 6. **Música nas cenas:** **começar sem música, só cries, torcida e efeitos (recomendo)** / um tema curto feito pro
    jogo / música de fã com crédito (como no trailer).
 7. **Primeiro jogo do Modo história:** **inicial + peneira de 4 na Rota 1, depois o Blue no campinho (recomendo)** /
