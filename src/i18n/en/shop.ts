@@ -28,6 +28,7 @@ export const shop: typeof pt = {
     packDesc: '{n} {type} cards. Keep 1.',
     packPick: 'Pick 1 card from the pack',
     packSwap: 'Who leaves the bench?',
+    shelf: { mons: 'Signings', gear: 'Pack and item' },
     sponsors: 'Sponsors',
     slots: '{n} of 3',
     emptySlot: 'Free slot',

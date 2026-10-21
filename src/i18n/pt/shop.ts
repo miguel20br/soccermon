@@ -26,6 +26,7 @@ export const shop = {
     packDesc: '{n} cartas {type}. Você fica com 1.',
     packPick: 'Escolha 1 carta do pacote',
     packSwap: 'Quem sai do banco?',
+    shelf: { mons: 'Contratações', gear: 'Pacote e item' },
     sponsors: 'Patrocínios',
     slots: '{n} de 3',
     emptySlot: 'Vaga livre',

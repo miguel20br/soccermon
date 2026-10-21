@@ -7,6 +7,19 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.0.1',
+        title: 'Mercado organizado',
+        sections: [
+            {
+                title: 'Mercado',
+                lines: [
+                    'O Mercado ficou em prateleiras: Contratações, Pacote e item, e Patrocínios (com as suas 3 vagas logo embaixo)',
+                    'A carta do Patrocínio fica na horizontal, pra não se confundir com as cartas de Pokémon',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.0',
         title: 'Mercado e Patrocínios',
         sections: [
@@ -835,6 +848,19 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.0.1',
+        title: 'Tidier Market',
+        sections: [
+            {
+                title: 'Market',
+                lines: [
+                    'The Market is now split into shelves: Signings, Pack and item, and Sponsors (with your 3 slots right below)',
+                    "The Sponsor card is laid out sideways so it doesn't get mixed up with Pokémon cards",
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.0',
         title: 'Market and Sponsors',
