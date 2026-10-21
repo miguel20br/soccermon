@@ -109,7 +109,7 @@ export function VsStartButton({
     const { t } = useT();
     if (!ready && slow && onRetry)
         return (
-            <button type="button" className="btn yellow vs-start vs-slow" onClick={onRetry}>
+            <button type="button" className="btn outline vs-start vs-slow" onClick={onRetry}>
                 {t('match.vs.retry')}
                 <small role="alert">{t('match.vs.slow')}</small>
             </button>
@@ -304,7 +304,6 @@ export function VersusIntro({
 
     // som do VS batendo; com "reduzir movimento" o VS já aparece no lugar, então o som vem junto
     useEffect(() => {
-        playSfx('select');
         const slam = () => {
             playSfx('shot', final ? 0.5 : 0.7);
             if (final) playSfx('post', 0.6);

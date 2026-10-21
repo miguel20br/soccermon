@@ -93,7 +93,10 @@ async function copa() {
     // ?vel=16: modo fumaça (só em dev, prévia e CI) acelera a quadra
     await step(p, 'home', async () => {
         await p.goto(`${base}/?vel=16`, { waitUntil: 'load' });
-        await p.locator('.ob-skip').waitFor({ timeout: 30000 });
+        await p
+            .getByRole('button', { name: /Nova copa/ })
+            .first()
+            .waitFor({ timeout: 30000 });
         await skipOnboarding(p);
         await p.waitForTimeout(600);
         await shot(p, '01-home', true);

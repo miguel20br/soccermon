@@ -1,19 +1,20 @@
 import { useEffect, useState } from 'react';
+import { formationOf } from '../../engine/formations';
 import { itemSprite } from '../../engine/items';
 import { interestOf, rerollPrice, type ShopOffer } from '../../engine/shop';
 import { editionOf } from '../../engine/specials';
 import { MAX_SPONSORS } from '../../engine/sponsors';
-import { playSfx } from '../../game/audio';
 import { itemDesc, itemName, stageName, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { isLong } from '../../store/long-cup';
+import { useCardModal } from '../card-modal';
 import { CardPack, isBigCard, PackArt, packLookOf } from '../components/CardPack';
+import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { Money, SponsorCard, SponsorSlots } from '../components/SponsorCard';
 import { TmCard } from '../components/TmTeach';
-import { Tip } from '../help/Tip';
 import { useHeld } from '../use-held';
 import { GainTarget } from './Reward';
 import '../shop.css';
@@ -49,6 +50,7 @@ export function Shop() {
     const money = run.money ?? 0;
     const sponsors = run.sponsors ?? [];
     const offer = chosen !== null ? shop.offers[chosen] : null;
+    const byUid = new Map(run.picks.map((p) => [p.uid, p]));
     const packOffer = shop.offers.find((o) => o.kind === 'pack');
     const packName = packOffer?.kind === 'pack' ? t('shop.pack', { type: typeName(packOffer.type, lang) }) : '';
     const reroll = rerollPrice(shop.rerolls, sponsors);
@@ -66,7 +68,6 @@ export function Shop() {
 
     const choose = (i: number) => {
         const o = shop.offers[i];
-        playSfx('select');
         // pacote e Patrocínio com vaga livre: compra direto (não há quem escolher)
         if (o.kind === 'pack' || (o.kind === 'sponsor' && sponsors.length < MAX_SPONSORS)) {
             buyOffer(i);
@@ -91,6 +92,8 @@ export function Shop() {
               : money < o.price
                 ? t('shop.priceShort', { price: o.price, n: o.price - money })
                 : t('shop.buy', { n: o.price });
+    // o que não dá pra comprar fica óbvio sem tocar: cadeado, preço riscado e a carta apagada (o motivo vai no rótulo)
+    const cant = (o: ShopOffer, i: number) => !shop.sold.includes(i) && !buyable(o, i);
 
     const shelf = (kinds: ShopOffer['kind'][]) =>
         shop.offers.map((o, i) => ({ o, i })).filter(({ o }) => kinds.includes(o.kind));
@@ -99,10 +102,11 @@ export function Shop() {
         return (
             <div
                 key={offerKey(o)}
-                className={`shop-offer k-${o.kind}${sold ? ' sold' : ''}${chosen === i ? ' chosen' : ''}`}
+                className={`shop-offer k-${o.kind}${sold ? ' sold' : ''}${cant(o, i) ? ' cant' : ''}${chosen === i ? ' chosen' : ''}`}
             >
                 <OfferCard
                     offer={o}
+                    lack={sold ? 0 : Math.max(0, o.price - money)}
                     selected={chosen === i}
                     team={run.picks}
                     packSize={sponsors.includes('safari') ? 4 : 3}
@@ -110,11 +114,12 @@ export function Shop() {
                 />
                 <button
                     type="button"
-                    className="btn small shop-buy"
+                    className="btn small outline shop-buy"
                     disabled={!buyable(o, i)}
                     aria-pressed={chosen === i}
                     onClick={() => choose(i)}
                 >
+                    {cant(o, i) && <HudIcon kind="lock" />}
                     {buyLabel(o, i)}
                 </button>
             </div>
@@ -133,36 +138,19 @@ export function Shop() {
                     <h1>{t('shop.title')}</h1>
                     <Money n={money} className="shop-wallet" />
                 </div>
-                <div className="row">
-                    <button
-                        type="button"
-                        className="btn small"
-                        disabled={money < reroll || !!shop.pack}
-                        onClick={() => {
-                            playSfx('select');
-                            rerollShop();
-                            setChosen(null);
-                        }}
-                    >
-                        <HudIcon kind="reroll" />
-                        {reroll === 0 ? t('shop.rerollFree') : t('shop.reroll', { n: reroll })}
-                    </button>
-                    <button
-                        type="button"
-                        className="btn small primary"
-                        disabled={!!shop.pack}
-                        onClick={() => {
-                            playSfx('select');
-                            leaveShop();
-                        }}
-                    >
-                        {t('shop.leave')}
-                        <HudIcon kind="next" />
-                    </button>
-                </div>
+                <button
+                    type="button"
+                    className="btn small"
+                    disabled={money < reroll || !!shop.pack}
+                    onClick={() => {
+                        rerollShop();
+                        setChosen(null);
+                    }}
+                >
+                    <HudIcon kind="reroll" />
+                    {reroll === 0 ? t('shop.rerollFree') : t('shop.reroll', { n: reroll })}
+                </button>
             </div>
-
-            <Tip id="shop">{t('shop.tip')}</Tip>
 
             <div className="panel shop-earned">
                 <span className="shop-earned-title">{t('shop.earned.title')}</span>
@@ -197,7 +185,6 @@ export function Shop() {
                                             label: t(packPick === i ? 'reward.chosen' : 'reward.pick'),
                                             primary: true,
                                             onClick: () => {
-                                                playSfx('select');
                                                 setPackPick(packPick === i ? null : i);
                                             },
                                         }}
@@ -210,14 +197,13 @@ export function Shop() {
                         type="button"
                         className="btn small ghost shop-pack-skip"
                         onClick={() => {
-                            playSfx('select');
                             setPackPick(null);
                             skipPack();
                         }}
                     >
                         {t('shop.packSkip')}
                     </button>
-                    {packPick !== null && (
+                    {packPick !== null ? (
                         <GainTarget
                             key={`pack-${packPick}`}
                             gain={{ kind: 'pokemon', inst: shop.pack[packPick], price: 0 }}
@@ -227,6 +213,29 @@ export function Shop() {
                                 setPackPick(null);
                             }}
                         />
+                    ) : (
+                        // o time à vista enquanto escolhe (do lado no PC, embaixo no celular), pra comparar
+                        <div className="panel reward-team shop-pack-team">
+                            <h2>{t('reward.yourTeam')}</h2>
+                            <FormationBoard
+                                formation={run.formation}
+                                lineup={run.lineup}
+                                bench={run.bench}
+                                byUid={byUid}
+                                captainUid={run.captainUid}
+                                onSlot={(ref, uid) => {
+                                    const inst = byUid.get(uid);
+                                    if (!inst) return;
+                                    useCardModal.getState().open(inst, {
+                                        position:
+                                            ref.zone === 'lineup'
+                                                ? formationOf(run.formation).slots[ref.index]
+                                                : undefined,
+                                        captain: inst.uid === run.captainUid,
+                                    });
+                                }}
+                            />
+                        </div>
                     )}
                 </div>
             ) : (
@@ -258,7 +267,6 @@ export function Shop() {
                             <SponsorSlots
                                 sponsors={sponsors}
                                 onPick={(id) => {
-                                    playSfx('select');
                                     buyOffer(chosen!, id);
                                     setChosen(null);
                                 }}
@@ -278,6 +286,26 @@ export function Shop() {
                     )}
                 </>
             )}
+            {/* a ação que avança mora embaixo: Seguir. Com o pacote aberto ele espera a escolha (e diz por quê) */}
+            <div className="bc-thumbbar">
+                {shop.pack && (
+                    <p className="tb-hint" id="shop-leave-why">
+                        {t('shop.packPick')}
+                    </p>
+                )}
+                <button
+                    type="button"
+                    className="btn primary"
+                    disabled={!!shop.pack}
+                    aria-describedby={shop.pack ? 'shop-leave-why' : undefined}
+                    onClick={() => {
+                        leaveShop();
+                    }}
+                >
+                    {t('shop.leave')}
+                    <HudIcon kind="next" />
+                </button>
+            </div>
         </>
     );
 }
@@ -285,12 +313,14 @@ export function Shop() {
 /** A carta de cada coisa da vitrine (o botão de comprar fica embaixo, igual pra todas). */
 function OfferCard({
     offer: o,
+    lack,
     selected,
     team,
     packSize,
     onPick,
 }: {
     offer: ShopOffer;
+    lack: number;
     selected: boolean;
     team: Parameters<typeof TmCard>[0]['team'];
     packSize: number;
@@ -298,7 +328,7 @@ function OfferCard({
 }) {
     const { lang, t } = useT();
     if (o.kind === 'pokemon') return <FutCard inst={o.inst} selected={selected} />;
-    if (o.kind === 'sponsor') return <SponsorCard id={o.id} />;
+    if (o.kind === 'sponsor') return <SponsorCard id={o.id} price={o.price} lack={lack} />;
     if (o.kind === 'tm')
         return <TmCard move={o.move} leader={o.leader} team={team} selected={selected} onClick={onPick} />;
     if (o.kind === 'pack')

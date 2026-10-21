@@ -91,10 +91,10 @@
 }
 
 /* ---------- faixa da semana do tipo: reflexo passando ---------- */
-.home-top .event-banner {
+.cup-event {
     overflow: hidden;
 }
-.home-top .event-banner::after {
+.cup-event::after {
     content: "";
     position: absolute;
     inset: 0 auto 0 0;
@@ -145,7 +145,7 @@
 }
 
 /* ---------- entrada (só na 1ª abertura, .home-enter): faixa desliza, blocos em sequência ---------- */
-.home-enter .home-top .event-banner {
+.home-enter .cup-event {
     animation: hm-slide 0.5s var(--ease-out) both;
 }
 .home-enter .cup-card {
@@ -167,10 +167,10 @@
     .home-hero .logo-img img,
     .home .new-run .btn.primary::after,
     .home .resume-card .rc-go::after,
-    .home-top .event-banner::after,
+    .cup-event::after,
     .duel-card-art img,
     .duel-card-art b,
-    .home-enter .home-top .event-banner,
+    .home-enter .cup-event,
     .home-enter .cup-card,
     .home-enter .duel-card {
         animation: none;
@@ -180,10 +180,10 @@
 :root[data-reduce-motion="true"] .home-hero .logo-img img,
 :root[data-reduce-motion="true"] .home .new-run .btn.primary::after,
 :root[data-reduce-motion="true"] .home .resume-card .rc-go::after,
-:root[data-reduce-motion="true"] .home-top .event-banner::after,
+:root[data-reduce-motion="true"] .cup-event::after,
 :root[data-reduce-motion="true"] .duel-card-art img,
 :root[data-reduce-motion="true"] .duel-card-art b,
-:root[data-reduce-motion="true"] .home-enter .home-top .event-banner,
+:root[data-reduce-motion="true"] .home-enter .cup-event,
 :root[data-reduce-motion="true"] .home-enter .cup-card,
 :root[data-reduce-motion="true"] .home-enter .duel-card {
     animation: none;

@@ -19,6 +19,7 @@ import {
 } from '../../store/game-store';
 import { DEFAULT_PROFILE, EMPTY_CAREER, seenCount } from '../../store/profile';
 import { MenuHead } from '../components/MenuHead';
+import { leaveWith } from '../feedback';
 import { privacyUrl } from '../links';
 import { reduceMotionOn } from '../settings-sync';
 import '../settings.css';
@@ -141,7 +142,8 @@ const onOff = (on: string, off: string) => [
 ];
 
 export function Settings() {
-    const { settings, updateSettings, go, setOnboarded } = useGame();
+    const { settings, updateSettings, go } = useGame();
+    const [more, setMore] = useState(false);
     const set = updateSettings;
     const { t } = useT();
     const lang = useLang();
@@ -180,44 +182,6 @@ export function Settings() {
                         preview={() => playCry(25, settings.cries)}
                     />
                 </Row>
-                <Row title={t('settings.screen.sfx')} hint={t('settings.screen.sfxHint')}>
-                    <VolumeSlider
-                        label={t('settings.screen.sfxVolume')}
-                        value={settings.sfxVolume}
-                        onChange={(sfxVolume) => set({ sfxVolume })}
-                        preview={() => playSfx('kick')}
-                    />
-                </Row>
-                <Row title={t('settings.screen.crowd')} hint={t('settings.screen.crowdHint')}>
-                    <VolumeSlider
-                        label={t('settings.screen.crowdVolume')}
-                        value={settings.crowdVolume}
-                        onChange={(crowdVolume) => set({ crowdVolume })}
-                        preview={() => playCrowd('gol')}
-                    />
-                </Row>
-                <Row title={t('settings.screen.goalCry')} hint={t('settings.screen.goalCryHint')}>
-                    <Segmented
-                        label={t('settings.screen.goalCry')}
-                        value={settings.goalCry}
-                        options={onOff(t('settings.screen.on'), t('settings.screen.off'))}
-                        onPick={(goalCry) => set({ goalCry })}
-                    />
-                </Row>
-                <Row title={t('settings.screen.criesStyle')}>
-                    <Segmented
-                        label={t('settings.screen.criesStyle')}
-                        value={settings.cries}
-                        options={[
-                            { value: 'legacy', label: t('settings.screen.criesLegacy') },
-                            { value: 'latest', label: t('settings.screen.criesLatest') },
-                        ]}
-                        onPick={(cries) => {
-                            set({ cries, criesChosen: true });
-                            playCry(25, cries);
-                        }}
-                    />
-                </Row>
             </Group>
 
             <Group title={t('settings.screen.match')}>
@@ -227,57 +191,6 @@ export function Settings() {
                         value={settings.speed}
                         options={speedOptions(t)}
                         onPick={(speed) => set({ speed })}
-                    />
-                </Row>
-                <Row title={t('settings.screen.cinematic')} hint={t('settings.screen.cinematicHint')}>
-                    <Segmented
-                        label={t('settings.screen.cinematic')}
-                        value={settings.cinematic}
-                        options={onOff(t('settings.screen.cinematicOn'), t('settings.screen.cinematicOff'))}
-                        onPick={(cinematic) => set({ cinematic })}
-                    />
-                </Row>
-                <Row title={t('settings.screen.chance')} hint={t('settings.screen.chanceHint')}>
-                    <Segmented
-                        label={t('settings.screen.chance')}
-                        value={settings.chanceSpeed}
-                        options={chanceOptions(t)}
-                        onPick={(chanceSpeed) => set({ chanceSpeed })}
-                    />
-                </Row>
-                <Row title={t('settings.screen.names')}>
-                    <Segmented
-                        label={t('settings.screen.names')}
-                        value={settings.namesOnField}
-                        options={namesOptions(t)}
-                        onPick={(namesOnField) => set({ namesOnField })}
-                    />
-                </Row>
-                <Row title={t('settings.screen.arrow')} hint={t('settings.screen.arrowHint')}>
-                    <Segmented
-                        label={t('settings.screen.arrow')}
-                        value={settings.arrowSize}
-                        options={arrowOptions(t)}
-                        onPick={(arrowSize) => set({ arrowSize })}
-                    />
-                </Row>
-                <Row title={t('settings.screen.confirmLeave')} hint={t('settings.screen.confirmLeaveHint')}>
-                    <Segmented
-                        label={t('settings.screen.confirmLeaveLabel')}
-                        value={settings.confirmLeave}
-                        options={onOff(t('settings.screen.on'), t('settings.screen.off'))}
-                        onPick={(confirmLeave) => set({ confirmLeave })}
-                    />
-                </Row>
-            </Group>
-
-            <Group title={t('settings.screen.experiments')}>
-                <Row title={t('settings.screen.agency')} hint={t('settings.screen.agencyHint')}>
-                    <Segmented
-                        label={t('settings.screen.agencyLabel')}
-                        value={!!settings.agency}
-                        options={onOff(t('settings.screen.on'), t('settings.screen.off'))}
-                        onPick={(agency) => set({ agency })}
                     />
                 </Row>
             </Group>
@@ -315,21 +228,123 @@ export function Settings() {
                         onPick={(tips) => set({ tips })}
                     />
                 </Row>
-                <Row title={t('settings.screen.welcome')}>
-                    <div>
-                        <button
-                            type="button"
-                            className="btn small"
-                            onClick={() => {
-                                setOnboarded(false);
-                                go('home');
-                            }}
-                        >
-                            {t('settings.screen.welcomeAgain')}
-                        </button>
-                    </div>
-                </Row>
             </Group>
+
+            {/* o que pouca gente muda fica fechado (revisão de design, item 15): à vista só o essencial */}
+            <button
+                type="button"
+                className="btn ghost set-more-toggle"
+                aria-expanded={more}
+                aria-controls="set-more"
+                onClick={() => setMore(!more)}
+            >
+                <HudIcon kind={more ? 'up' : 'down'} />
+                {t('settings.screen.more')}
+            </button>
+            {more && (
+                <div id="set-more" className="set-more" data-exit="collapse">
+                    <Group title={t('settings.screen.sound')}>
+                        <Row title={t('settings.screen.sfx')} hint={t('settings.screen.sfxHint')}>
+                            <VolumeSlider
+                                label={t('settings.screen.sfxVolume')}
+                                value={settings.sfxVolume}
+                                onChange={(sfxVolume) => set({ sfxVolume })}
+                                preview={() => playSfx('kick')}
+                            />
+                        </Row>
+                        <Row title={t('settings.screen.crowd')} hint={t('settings.screen.crowdHint')}>
+                            <VolumeSlider
+                                label={t('settings.screen.crowdVolume')}
+                                value={settings.crowdVolume}
+                                onChange={(crowdVolume) => set({ crowdVolume })}
+                                preview={() => playCrowd('gol')}
+                            />
+                        </Row>
+                        <Row title={t('settings.screen.goalCry')} hint={t('settings.screen.goalCryHint')}>
+                            <Segmented
+                                label={t('settings.screen.goalCry')}
+                                value={settings.goalCry}
+                                options={onOff(t('settings.screen.on'), t('settings.screen.off'))}
+                                onPick={(goalCry) => set({ goalCry })}
+                            />
+                        </Row>
+                        <Row title={t('settings.screen.criesStyle')}>
+                            <Segmented
+                                label={t('settings.screen.criesStyle')}
+                                value={settings.cries}
+                                options={[
+                                    { value: 'legacy', label: t('settings.screen.criesLegacy') },
+                                    { value: 'latest', label: t('settings.screen.criesLatest') },
+                                ]}
+                                onPick={(cries) => {
+                                    set({ cries, criesChosen: true });
+                                    playCry(25, cries);
+                                }}
+                            />
+                        </Row>
+                    </Group>
+                    <Group title={t('settings.screen.match')}>
+                        <Row title={t('settings.screen.cinematic')} hint={t('settings.screen.cinematicHint')}>
+                            <Segmented
+                                label={t('settings.screen.cinematic')}
+                                value={settings.cinematic}
+                                options={onOff(t('settings.screen.cinematicOn'), t('settings.screen.cinematicOff'))}
+                                onPick={(cinematic) => set({ cinematic })}
+                            />
+                        </Row>
+                        <Row title={t('settings.screen.chance')} hint={t('settings.screen.chanceHint')}>
+                            <Segmented
+                                label={t('settings.screen.chance')}
+                                value={settings.chanceSpeed}
+                                options={chanceOptions(t)}
+                                onPick={(chanceSpeed) => set({ chanceSpeed })}
+                            />
+                        </Row>
+                        <Row title={t('settings.screen.names')}>
+                            <Segmented
+                                label={t('settings.screen.names')}
+                                value={settings.namesOnField}
+                                options={namesOptions(t)}
+                                onPick={(namesOnField) => set({ namesOnField })}
+                            />
+                        </Row>
+                        <Row title={t('settings.screen.arrow')} hint={t('settings.screen.arrowHint')}>
+                            <Segmented
+                                label={t('settings.screen.arrow')}
+                                value={settings.arrowSize}
+                                options={arrowOptions(t)}
+                                onPick={(arrowSize) => set({ arrowSize })}
+                            />
+                        </Row>
+                        <Row title={t('settings.screen.confirmLeave')} hint={t('settings.screen.confirmLeaveHint')}>
+                            <Segmented
+                                label={t('settings.screen.confirmLeaveLabel')}
+                                value={settings.confirmLeave}
+                                options={onOff(t('settings.screen.on'), t('settings.screen.off'))}
+                                onPick={(confirmLeave) => set({ confirmLeave })}
+                            />
+                        </Row>
+                        <Row title={t('settings.screen.haptics')} hint={t('settings.screen.hapticsHint')}>
+                            <Segmented
+                                label={t('settings.screen.haptics')}
+                                value={settings.haptics !== false}
+                                options={onOff(t('settings.screen.hapticsOn'), t('settings.screen.hapticsOff'))}
+                                onPick={(haptics) => set({ haptics })}
+                            />
+                        </Row>
+                    </Group>
+                    <Group title={t('settings.screen.experiments')}>
+                        <Row title={t('settings.screen.agency')} hint={t('settings.screen.agencyHint')}>
+                            <Segmented
+                                label={t('settings.screen.agencyLabel')}
+                                value={!!settings.agency}
+                                options={onOff(t('settings.screen.on'), t('settings.screen.off'))}
+                                onPick={(agency) => set({ agency })}
+                            />
+                        </Row>
+                    </Group>
+                </div>
+            )}
 
             <DataSettings />
             <AccountSettings />
@@ -579,7 +594,7 @@ function DataSettings() {
                     <div>
                         <button
                             type="button"
-                            className="btn small ghost danger"
+                            className="btn small danger"
                             onClick={() => {
                                 setPending(null);
                                 setMsg(null);
@@ -599,7 +614,8 @@ function DataSettings() {
                                 type="button"
                                 className="btn small primary"
                                 disabled={wipe === 'busy'}
-                                onClick={() => void wipeDevice()}
+                                data-fx="none"
+                                onClick={() => leaveWith('danger', () => void wipeDevice())}
                             >
                                 {wipe === 'busy' ? t('settings.data.wiping') : t('settings.data.wipeYes')}
                             </button>

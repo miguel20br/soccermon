@@ -1,7 +1,28 @@
 import Phaser from 'phaser';
-import { atlasKey, createSpeciesAnims, footOrigin, preloadSpecies, resolveAnim, skinOf } from '../animation-manager';
+import {
+    atlasKey,
+    bodyHeight,
+    createSpeciesAnims,
+    footOrigin,
+    preloadSpecies,
+    resolveAnim,
+    skinOf,
+} from '../animation-manager';
 import { EventBus } from '../EventBus';
-import { CUP_X, LIGA_X, ROOM_H, ROOM_SPOTS, ROOM_W, type RoomSpot } from '../room-spots';
+import {
+    CUP_X,
+    clampToFloor,
+    FLOOR_PROPS,
+    fitScale,
+    LIGA_X,
+    MI,
+    monScale,
+    ROOM_FLOOR,
+    ROOM_H,
+    ROOM_SPOTS,
+    ROOM_W,
+    type RoomSpot,
+} from '../room-spots';
 
 export { ROOM_H, ROOM_W } from '../room-spots';
 
@@ -42,26 +63,6 @@ export interface RoomSceneData {
     fresh: string[];
 }
 
-/** Recortes do Interiors_free_32x32.png (x, y, w, h). */
-const MI: Record<string, [number, number, number, number]> = {
-    window: [228, 914, 56, 42],
-    frame: [320, 850, 24, 32],
-    cork: [6, 1312, 52, 26],
-    lamp: [352, 1774, 30, 50],
-    fireplace: [288, 2752, 64, 80],
-    cabinetGlass: [292, 1568, 54, 54],
-    bookshelf: [160, 448, 64, 64],
-    plantTree: [334, 1426, 36, 62],
-    plantPalm: [426, 1408, 46, 62],
-    plantSmall: [386, 1444, 28, 46],
-    rug: [424, 356, 80, 120],
-    bench: [256, 576, 96, 52],
-    tvCabinet: [234, 432, 76, 42],
-    tv: [6, 468, 52, 36],
-    desk: [320, 1236, 60, 108],
-    painting: [4, 2324, 26, 30],
-};
-
 const FLOOR_Y = 76;
 
 export class TrophyRoomScene extends Phaser.Scene {
@@ -70,6 +71,8 @@ export class TrophyRoomScene extends Phaser.Scene {
     private spots = new Map<string, Phaser.GameObjects.GameObject[]>();
     private mon: Phaser.GameObjects.Sprite | null = null;
     private monKey = 0;
+    /** Meia largura do corpo do Pokémon (px do quarto): folga pra ele não entrar nos móveis. */
+    private monHalfW = 16;
     private lights2: { light: Phaser.GameObjects.Light; base: number; flicker: number }[] = [];
     private focused: string | null = null;
     private outline!: Phaser.GameObjects.Graphics;
@@ -110,9 +113,16 @@ export class TrophyRoomScene extends Phaser.Scene {
             o.setLighting(true);
             return o;
         };
-        /** Objeto apoiado no chão: origem embaixo, profundidade pela base. */
-        const put = (frame: string, x: number, bottom: number, tex = 'mi') =>
-            lit(this.add.image(x, bottom, tex, frame).setOrigin(0, 1).setDepth(bottom));
+        /** Móvel apoiado no chão (FLOOR_PROPS): origem embaixo, profundidade pela base. */
+        const put = (frame: string) => {
+            const [x, bottom] = FLOOR_PROPS[frame];
+            return lit(this.add.image(x, bottom, 'mi', frame).setOrigin(0, 1).setDepth(bottom));
+        };
+        /** Foto de carta dentro de uma caixa de `box` px, sem esticar (as cartas não são quadradas). */
+        const cardPic = (x: number, y: number, speciesId: number, box: number) => {
+            const img = this.add.image(x, y, `card-${speciesId}`);
+            return img.setScale(fitScale(img.width, img.height, box));
+        };
 
         // ---- quarto: teto, parede de madeira, piso de taco em espinha, bordas
         lit(this.add.tileSprite(0, 12, ROOM_W, 64, 'mi-room', 'wall').setOrigin(0).setDepth(-20));
@@ -155,7 +165,7 @@ export class TrophyRoomScene extends Phaser.Scene {
         };
 
         // esquerda: lareira (enfeite), diploma, polaroids
-        put('fireplace', 6, 122);
+        put('fireplace');
         zone('platina', [wall('mi', 104, 16, 'frame').setAlpha(d.platinum ? 1 : 0.5)]);
         const pol: Phaser.GameObjects.GameObject[] = [];
         d.polaroids.slice(0, 4).forEach((p, i) => {
@@ -163,18 +173,11 @@ export class TrophyRoomScene extends Phaser.Scene {
             const y = 20 + (i % 2) * 3;
             pol.push(wall(canvasTex('polaroid', paintPolaroid()), x, y));
             if (this.textures.exists(`card-${p.speciesId}`))
-                pol.push(
-                    lit(
-                        this.add
-                            .image(x + 9, y + 9, `card-${p.speciesId}`)
-                            .setDisplaySize(12, 12)
-                            .setDepth(-4),
-                    ),
-                );
+                pol.push(lit(cardPic(x + 9, y + 9, p.speciesId, 12).setDepth(-4)));
         });
         if (!pol.length) pol.push(wall(canvasTex('polaroid', paintPolaroid()), 12, 20).setAlpha(0.4));
         zone('hall', pol);
-        put('lamp', 72, 120);
+        put('lamp');
 
         // centro: faixa do clube, as 3 taças da Copa e a Liga
         zone('clube', [wall(canvasTex('banner', paintBanner(d.club)), 164, 14)]);
@@ -240,19 +243,23 @@ export class TrophyRoomScene extends Phaser.Scene {
 
         // embaixo: TV (o último título) e PC (números); a Coleção fica no fundo, à direita
         lit(this.add.image(214, 186, 'mi', 'rug').setAngle(90).setScale(1.1).setDepth(-15));
-        const tvCab = put('tvCabinet', 12, 238);
-        const tv = put('tv', 24, 204);
+        // a TV e o monitor ficam em cima do móvel: desenhados por cima dele
+        const tvCab = put('tvCabinet');
+        const tv = put('tv').setDepth(tvCab.depth + 1);
         const tvParts: Phaser.GameObjects.GameObject[] = [tvCab, tv];
         if (d.tv && this.textures.exists(`card-${d.tv.speciesId}`))
             tvParts.push(
-                this.add.image(50, 186, `card-${d.tv.speciesId}`).setDisplaySize(24, 24).setDepth(205).setAlpha(0.9),
+                cardPic(50, 186, d.tv.speciesId, 24)
+                    .setDepth(tv.depth + 1)
+                    .setAlpha(0.9),
             );
         zone('tv', tvParts);
-        zone('numeros', [put('desk', 96, 240)]);
-        put('plantSmall', 300, 242);
-        put('plantPalm', 352, 248);
-        zone('album', [put('cabinetGlass', 262, 122)]);
-        zone('livros', [put('bookshelf', 318, 120)]);
+        const desk = put('desk');
+        zone('numeros', [desk, put('monitor').setDepth(desk.depth + 1)]);
+        put('plantSmall');
+        put('plantPalm');
+        zone('album', [put('cabinetGlass')]);
+        zone('livros', [put('bookshelf')]);
 
         // contorno do que dá pra tocar (mouse em cima)
         this.outline = this.add.graphics().setDepth(9450);
@@ -301,7 +308,11 @@ export class TrophyRoomScene extends Phaser.Scene {
         createSpeciesAnims(this, skin);
         if (this.textures.exists(atlasKey(skin))) {
             this.monKey = skin;
-            this.mon = this.add.sprite(214, 180, atlasKey(this.monKey)).setScale(1.4).setDepth(220);
+            const scale = monScale(bodyHeight(skin));
+            // ponytail: corpo ~quadrado (0,65 da altura de cada lado); medir a largura do quadro se algum vazar
+            this.monHalfW = Math.ceil(bodyHeight(skin) * scale * 0.65);
+            const at = clampToFloor(214, 180, this.monHalfW);
+            this.mon = this.add.sprite(at.x, at.y, atlasKey(this.monKey)).setScale(scale).setDepth(at.y);
             this.mon.setLighting(true);
             this.wander();
         }
@@ -359,7 +370,12 @@ export class TrophyRoomScene extends Phaser.Scene {
             this.play('Sleep', 0);
             return;
         }
-        const to = { x: Phaser.Math.Between(170, 290), y: Phaser.Math.Between(148, 218) };
+        const f = ROOM_FLOOR;
+        const to = clampToFloor(
+            Phaser.Math.Between(f.x, f.x + f.w),
+            Phaser.Math.Between(f.y, f.y + f.h),
+            this.monHalfW,
+        );
         this.walkTo(to.x, to.y, () => {
             this.play('Idle', 0);
             this.time.delayedCall(Phaser.Math.Between(1800, 4200), () => this.wander());
@@ -369,6 +385,7 @@ export class TrophyRoomScene extends Phaser.Scene {
     private walkTo(x: number, y: number, done: () => void) {
         const mon = this.mon;
         if (!mon) return;
+        ({ x, y } = clampToFloor(x, y, this.monHalfW));
         const dx = x - mon.x;
         const dy = y - mon.y;
         // direção do PMD: 0 = baixo, depois anti-horário em 45°
@@ -415,6 +432,9 @@ export class TrophyRoomScene extends Phaser.Scene {
                     if (d0 !== undefined) img.setDepth(d0 as number);
                 }
         const dur = reduce ? 0 : 320;
+        // toque rápido (tutorial, objeto atrás de objeto): sem o `force`, o Phaser ignora o zoom novo enquanto o anterior
+        // corre e a câmera fica presa aproximada
+        this.tweens.killTweensOf(this.dim);
         this.tweens.add({ targets: this.dim, fillAlpha: id ? 0.62 : 0, duration: dur, ease: 'Cubic.easeOut' });
         if (bounds) {
             const zoom = Phaser.Math.Clamp(
@@ -422,20 +442,16 @@ export class TrophyRoomScene extends Phaser.Scene {
                 1.2,
                 3,
             );
-            cam.pan(bounds.centerX, bounds.centerY, dur, 'Cubic.easeOut');
-            cam.zoomTo(zoom, dur, 'Cubic.easeOut');
+            cam.pan(bounds.centerX, bounds.centerY, dur, 'Cubic.easeOut', true);
+            cam.zoomTo(zoom, dur, 'Cubic.easeOut', true);
             // o Pokémon vai até lá olhar
             if (this.mon) {
                 this.tweens.killTweensOf(this.mon);
-                this.walkTo(
-                    Phaser.Math.Clamp(bounds.centerX + 18, 30, ROOM_W - 30),
-                    Phaser.Math.Clamp(bounds.bottom + 14, 130, ROOM_H - 20),
-                    () => this.play('Idle', 4),
-                );
+                this.walkTo(bounds.centerX + 18, bounds.bottom + 14, () => this.play('Idle', 4));
             }
         } else {
-            cam.pan(ROOM_W / 2, ROOM_H / 2, dur, 'Cubic.easeOut');
-            cam.zoomTo(1, dur, 'Cubic.easeOut');
+            cam.pan(ROOM_W / 2, ROOM_H / 2, dur, 'Cubic.easeOut', true);
+            cam.zoomTo(1, dur, 'Cubic.easeOut', true);
             this.time.delayedCall(dur + 200, () => this.wander());
         }
     }

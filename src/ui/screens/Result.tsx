@@ -13,12 +13,12 @@ import {
 import { matchMvp } from '../../engine/mvp';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { specialBonus } from '../../engine/specials';
-import { clubName } from '../../i18n';
+import { clubName, cupStageName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { lineupPosition, useGame } from '../../store/game-store';
 import { cupLength, isFinalStage, isLong } from '../../store/long-cup';
 import { rivalColor } from '../../store/profile';
-import { Bracket } from '../components/Bracket';
+import { BracketPeek } from '../components/Bracket';
 import { ChampionView } from '../components/ChampionView';
 import { CupGains } from '../components/CupGains';
 import { FoulCard } from '../components/FoulCard';
@@ -29,6 +29,7 @@ import { CupGoalCard, MomentsButton } from '../components/Moments';
 import { cardSprite } from '../components/PokeCard';
 import { type HeroStat, ResultHero } from '../components/ResultHero';
 import { UnlockStrip } from '../components/UnlockNotice';
+import { feedback } from '../feedback';
 import { Tip } from '../help/Tip';
 import { FEEDBACK_URL } from '../links';
 import { useClubColor } from '../profile/club';
@@ -56,6 +57,9 @@ const TABS: Tab[] = ['times', 'jogadores', 'graficos', 'copa'];
 const TAB_ICON: Record<Tab, HudIconKind> = { times: 'team', jogadores: 'players', graficos: 'chart', copa: 'cup' };
 const pctOf = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 
+/** Copa em que o som de eliminado já tocou (voltar pro resultado não toca de novo). */
+let sadSeed: string | null = null;
+
 export function Result() {
     const { run: liveRun, match: liveMatch, advance, newRun, go } = useGame();
     const run = useHeld(liveRun);
@@ -77,6 +81,12 @@ export function Result() {
             live = false;
         };
     }, [run, clubColor]);
+    // caiu: o som de perder (o mesmo de abandonar e sair), uma vez por copa
+    useEffect(() => {
+        if (run?.status !== 'eliminated' || sadSeed === run.seed) return;
+        sadSeed = run.seed;
+        feedback('leave');
+    }, [run?.status, run?.seed]);
     if (!run || !match) return null;
     // fim da copa: abre direto no resumo da copa
     const tab: Tab = ['eliminated', 'champion'].includes(run.status) ? 'copa' : 'times';
@@ -124,39 +134,41 @@ export function Result() {
 
     const actions = (
         <>
+            {eliminated && <NearMiss run={run} />}
             {foul && <FoulCard kind={foul} remaining={cupLength(run) - run.results.length} />}
             {eliminated && <CupGains run={run} />}
             {(eliminated || champion) && <CupGoalCard run={run} match={match} />}
             <div className="row" style={{ justifyContent: 'center' }}>
                 <MomentsButton run={run} match={match} />
+                {(eliminated || champion) &&
+                    (run.daily ? (
+                        // Copa do Dia: o ranking e o compartilhar (estilo Wordle) ficam na tela do dia
+                        <button type="button" className="btn outline" onClick={() => go('daily')}>
+                            {t('liga.daily.rankingTitle')}
+                        </button>
+                    ) : (
+                        <button type="button" className="btn outline" onClick={share}>
+                            {t('result.share')}
+                        </button>
+                    ))}
             </div>
-            <div className="row" style={{ justifyContent: 'center' }}>
+            {/* fim da copa: "Nova copa" em 1 toque na barra do polegar, "Menu" fantasma do lado */}
+            <div className="bc-thumbbar">
                 {eliminated || champion ? (
                     <>
-                        {run.daily ? (
-                            // Copa do Dia: o ranking e o compartilhar (estilo Wordle) ficam na tela do dia
-                            <button type="button" className="btn yellow" onClick={() => go('daily')}>
-                                {t('liga.daily.rankingTitle')}
-                            </button>
-                        ) : (
-                            <button type="button" className="btn yellow" onClick={share}>
-                                {t('result.share')}
-                            </button>
-                        )}
-                        <button type="button" className="btn primary" onClick={() => newRun(run.teamName)}>
-                            {t('result.newCup')}
-                        </button>
                         <button type="button" className="btn ghost" onClick={advance}>
                             {t('result.menu')}
                         </button>
-                    </>
-                ) : (
-                    <div className="bc-thumbbar">
-                        <button type="button" className="btn primary big" onClick={advance}>
-                            {run.status === 'map' ? t('longCup.backToMap') : t('result.chooseReward')}
+                        <button type="button" className="btn primary big" onClick={() => newRun(run.teamName)}>
+                            {t('result.newCup')}
                             <HudIcon kind="next" />
                         </button>
-                    </div>
+                    </>
+                ) : (
+                    <button type="button" className="btn primary big" onClick={advance}>
+                        {run.status === 'map' ? t('longCup.backToMap') : t('result.chooseReward')}
+                        <HudIcon kind="next" />
+                    </button>
                 )}
             </div>
             {shared && (
@@ -206,9 +218,9 @@ export function Result() {
                     actions={actions}
                 />
             )}
-            {/* Copa Relâmpago: venceu, você sobe na chave (a fase nova entra com brilho) */}
+            {/* Copa Relâmpago: venceu, você sobe na chave (num toque; a fase nova entra com brilho) */}
             {!champion && run.status === 'reward' && !isLong(run) && (
-                <Bracket
+                <BracketPeek
                     rounds={relampagoBracket(
                         run.seed,
                         { name: run.teamName, color: clubColor },
@@ -290,6 +302,24 @@ export function Result() {
                 }
             />
         </>
+    );
+}
+
+/** Eliminado: uma linha do quanto faltou (pênaltis, 1 gol, mais), antes do "Nova copa". */
+function NearMiss({ run }: { run: NonNullable<ReturnType<typeof useGame.getState>['run']> }) {
+    const { t } = useT();
+    const last = run.results.at(-1);
+    if (!last || last.won) return null;
+    const stage = cupStageName(run, last.stage);
+    const n = last.score[1] - last.score[0];
+    return (
+        <p className="near-miss">
+            {last.shootout
+                ? t('result.nearMiss.pens', { stage })
+                : n <= 1
+                  ? t('result.nearMiss.one', { stage })
+                  : t('result.nearMiss.more', { stage, n })}
+        </p>
     );
 }
 

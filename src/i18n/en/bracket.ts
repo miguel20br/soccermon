@@ -5,4 +5,5 @@ export const bracket: typeof pt = {
     title: 'Bracket',
     champion: 'Champion',
     show: 'See the bracket',
+    hide: 'Hide the bracket',
 };

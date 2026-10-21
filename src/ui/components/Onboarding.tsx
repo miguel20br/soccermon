@@ -1,5 +1,4 @@
 import { type KeyboardEvent, type PointerEvent, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
-import { playSfx } from '../../game/audio';
 import { type Dict, fmt } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
@@ -104,6 +103,7 @@ const SWIPE_MIN = 45;
 /** Passo a passo de boas-vindas ("Como jogar"): cards que deslizam, aparece na primeira visita. */
 export function Onboarding() {
     const setOnboarded = useGame((s) => s.setOnboarded);
+    const setTour = useGame((s) => s.setTour);
     const { d } = useT();
     const o = d.help.onboarding;
     const SLIDES = useMemo(() => slides(d), [d]);
@@ -118,8 +118,8 @@ export function Onboarding() {
     }, []);
 
     const close = () => {
-        playSfx('select');
         setOnboarded(true);
+        setTour(false);
     };
     const goTo = (i: number) => setIndex(Math.max(0, Math.min(SLIDES.length - 1, i)));
 

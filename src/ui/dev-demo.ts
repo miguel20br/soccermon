@@ -53,6 +53,7 @@ export function runDevDemo() {
         demo !== 'ditto' &&
         demo !== 'evolucao' &&
         demo !== 'campeao' &&
+        demo !== 'eliminado' &&
         demo !== 'momentos' &&
         demo !== 'trailer' &&
         demo !== 'mt' &&
@@ -294,14 +295,18 @@ export function runDevDemo() {
         return;
     }
     // ?demo=momentos: a mesma copa do campeão (cada partida travada como no jogo, então o gol da copa tem replay)
-    if (demo === 'campeao' || demo === 'momentos') {
+    // ?demo=eliminado: um time fraco que cai (tela de eliminado: "faltou pouco" e "Nova copa" na barra)
+    if (demo === 'campeao' || demo === 'momentos' || demo === 'eliminado') {
+        const lose = demo === 'eliminado';
         for (let k = 0; k < 40; k++) {
             store.newRun('Demo FC', `camp${k}`);
             const run = useGame.getState().run!;
             const rng = new Rng(`camp${k}`, 'demo');
             // goleiro Snorlax, fixo Machamp, alas Mew e Aerodactyl, pivô Mewtwo; banco Dragonite e Pikachu
-            const lineup = [143, 68, 151, 142, 150].map((id) => createInstance(id, rng));
-            const bench = [149, 25].map((id) => createInstance(id, rng));
+            const lineup = (lose ? [129, 10, 13, 16, 19] : [143, 68, 151, 142, 150]).map((id) =>
+                createInstance(id, rng),
+            );
+            const bench = (lose ? [11, 14] : [149, 25]).map((id) => createInstance(id, rng));
             useGame.setState({
                 run: {
                     ...run,
@@ -326,7 +331,7 @@ export function runDevDemo() {
                 useGame.getState().skipReward();
                 if (useGame.getState().run!.status === 'shop') useGame.getState().leaveShop();
             }
-            if (useGame.getState().run!.status === 'champion') {
+            if (useGame.getState().run!.status === (lose ? 'eliminated' : 'champion')) {
                 useGame.setState({ match: m, screen: 'result' });
                 console.info(`[demo] copa camp${k}: campeão`);
                 return;

@@ -8,6 +8,11 @@ export const result: typeof pt = {
     share: 'Share',
     newCup: 'New cup',
     menu: 'Menu',
+    nearMiss: {
+        pens: '{stage}: out on penalties. So close!',
+        one: '{stage}: out by 1 goal. So close!',
+        more: '{stage}: out by {n} goals. Next time!',
+    },
     chooseReward: 'Choose a reward',
     feedback: 'Send feedback',
     finalDetails: 'The final in detail',

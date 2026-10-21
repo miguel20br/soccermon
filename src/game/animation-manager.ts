@@ -155,6 +155,13 @@ export function footOrigin(skin: number, anim: string): number {
     return Math.min(0.97, ratio + 0.015 - hover);
 }
 
+/** Altura do corpo no Idle (px do quadro, sem escala): dos pés ao topo da cabeça. */
+export function bodyHeight(skin: number): number {
+    const frameH = PMD[baseOf(skin)]?.anims.Idle?.frameHeight ?? 32;
+    const feet = FEET[baseOf(skin)];
+    return Math.round(((feet?.Idle ?? 0.78) - (feet?.top ?? 0.2)) * frameH);
+}
+
 /** Topo da cabeça no Idle (fração do quadro), pra posicionar a setinha do seu time. */
 export function headTop(skin: number): number {
     return FEET[baseOf(skin)]?.top ?? 0.2;

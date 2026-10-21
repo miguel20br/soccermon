@@ -4,7 +4,6 @@ import { ENGINE_VERSION } from '../../engine/config';
 import { DEFAULT_SPECIAL_LIMIT, SPECIAL_LIMITS, type SpecialLimit } from '../../engine/duel-validate';
 import { matchMvp } from '../../engine/mvp';
 import { isFriendCode, sendPendingChallenge, useFriends } from '../../friends/api';
-import { playSfx } from '../../game/audio';
 import { useT } from '../../i18n/react';
 import {
     DUEL_DURATIONS,
@@ -31,6 +30,7 @@ import { isDraftComplete, type PlaybackSpeed, useGame } from '../../store/game-s
 import { trainerFrame, trainerFx, trainerSrc } from '../../store/missions';
 import { rivalColor } from '../../store/profile';
 import { ResultHero } from '../components/ResultHero';
+import { leaveWith } from '../feedback';
 import { LeaveConfirm } from '../leave-guard';
 import { FEEDBACK_URL } from '../links';
 import { hexCss, peerAvatar, peerTitle } from '../profile/club';
@@ -125,7 +125,6 @@ function DuelEntry({ code }: { code: string | null }) {
     const play = async () => {
         setBusy(true);
         setError(null);
-        playSfx('select');
         const clean = name.trim().slice(0, 20);
         if (clean && clean !== profile.trainerName) updateProfile({ trainerName: clean });
         const r = await signInAnon();
@@ -292,7 +291,6 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
                 disabled={busy}
                 onClick={async () => {
                     setBusy(true);
-                    playSfx('select');
                     const code = await duel.create(peer, mode, speed, local, specialLimit, duration, agencyOn());
                     setUrl(code, local);
                     void sendPendingChallenge(code);
@@ -421,7 +419,6 @@ function InviteBox({ s, local, compact }: { s: Shared; local: boolean; compact: 
             () => flash(link),
         ) ?? flash(link);
     const share = () => {
-        playSfx('select');
         if ('share' in navigator) navigator.share({ title: 'Soccermon', text, url: link }).catch(() => {});
         else void copy();
     };
@@ -518,7 +515,6 @@ function Lobby() {
                 data-testid="duel-ready"
                 disabled={!rivalIn || !!mismatch || (noTeam && !s.ready[role])}
                 onClick={() => {
-                    playSfx('select');
                     void duel.setReady(!s.ready[role]);
                 }}
             >
@@ -608,7 +604,6 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
                 data-testid="duel-rematch"
                 disabled={s.rematch[role] || rivalGone}
                 onClick={() => {
-                    playSfx('select');
                     void duel.rematch();
                 }}
             >
@@ -810,7 +805,12 @@ export function Duel() {
                     {askLeave ? (
                         <span className="row duel-leave-ask">
                             <span>{t('duel.leaveAsk')}</span>
-                            <button type="button" className="btn small" onClick={home}>
+                            <button
+                                type="button"
+                                className="btn small"
+                                data-fx="none"
+                                onClick={() => leaveWith('leave', home)}
+                            >
                                 {t('duel.leaveYes')}
                             </button>
                             <button type="button" className="btn small ghost" onClick={() => setAskLeave(false)}>

@@ -13,7 +13,6 @@ import {
 } from '../../engine/cup-map';
 import { EVO_THRESHOLD, evolutionTarget } from '../../engine/evolution';
 import { viewInstance } from '../../engine/instance';
-import { playSfx } from '../../game/audio';
 import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
@@ -118,7 +117,6 @@ export function CupMap() {
           ? pos(map.nodes.find((n) => n.id === run.at)!)
           : { x: 50, y: H + 26 };
     const go2 = (id: string) => {
-        playSfx('select');
         setPick(null);
         if (reduceMotionOn()) {
             enterNode(id);
@@ -205,7 +203,6 @@ export function CupMap() {
                                 disabled={!isOpen}
                                 aria-label={t(`longCup.kind.${n.kind}`)}
                                 onClick={() => {
-                                    playSfx('select');
                                     setPick(pick === n.id ? null : n.id);
                                 }}
                             >
@@ -351,7 +348,6 @@ export function Training() {
                                     type="button"
                                     className="mini target-btn"
                                     onClick={() => {
-                                        playSfx('select');
                                         train('evo', p!.uid);
                                     }}
                                 >
@@ -377,7 +373,6 @@ export function Training() {
                     type="button"
                     className="btn"
                     onClick={() => {
-                        playSfx('select');
                         train('rest');
                     }}
                 >
@@ -420,7 +415,6 @@ export function EventScreen() {
     const picked = choices.find((c) => c.id === choice);
     const targets = picked ? choiceTargets(run, ev, picked.need) : [];
     const pick = (id: string) => {
-        playSfx('select');
         const c = choices.find((x) => x.id === id)!;
         if (c.need === 'none') chooseEvent(id);
         else {
@@ -439,7 +433,6 @@ export function EventScreen() {
                     className="mini target-btn"
                     aria-pressed={active === u}
                     onClick={() => {
-                        playSfx('select');
                         onPick(u);
                     }}
                 >
@@ -610,7 +603,6 @@ export function GroupScreen() {
                     type="button"
                     className="btn primary wide"
                     onClick={() => {
-                        playSfx('select');
                         playNext();
                     }}
                 >

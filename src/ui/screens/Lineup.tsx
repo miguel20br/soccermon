@@ -11,19 +11,19 @@ import { pickCornerTaker } from '../../engine/match';
 import { applyModifiers, attributeModifiers } from '../../engine/modifiers';
 import { type CornerPlan, TACTIC_LABEL, type Tactic } from '../../engine/state';
 import { computeSynergies } from '../../engine/synergy';
-import { playSfx } from '../../game/audio';
 import { clubName, cupStageName, dict, formationText, itemDesc, itemName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { liveOf, playerTeam, type SlotRef, useGame } from '../../store/game-store';
 import { isLong, isOut } from '../../store/long-cup';
 import { useCardModal } from '../card-modal';
-import { Bracket } from '../components/Bracket';
+import { BracketPeek } from '../components/Bracket';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
 import { LinkChips } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
 import { cardSprite, TypeBadge } from '../components/PokeCard';
 import { Money, SponsorSlots } from '../components/SponsorCard';
+import { leaveWith } from '../feedback';
 import { Tip } from '../help/Tip';
 import { useClubColor } from '../profile/club';
 import { lineupAverage } from '../rating';
@@ -94,7 +94,6 @@ export function Lineup() {
 
     return (
         <>
-            <Tip id="lineup-synergy">{t('team.lineup.tip')}</Tip>
             {/* Copa Relâmpago: as 4 fases (na Rota o caminho é o mapa, e os rivais só existem até a casa de agora) */}
             {!isLong(run) && (
                 <div className="cup-bug bc-surface">
@@ -120,9 +119,9 @@ export function Lineup() {
                 </div>
             )}
 
-            {/* Copa Relâmpago: a chave inteira, com você na fase de agora */}
+            {/* Copa Relâmpago: a chave inteira num toque, com você na fase de agora */}
             {!isLong(run) && (
-                <Bracket
+                <BracketPeek
                     rounds={relampagoBracket(
                         run.seed,
                         { name: run.teamName, color: clubColor },
@@ -132,6 +131,7 @@ export function Lineup() {
                     current={run.stage}
                 />
             )}
+            <Tip id="lineup-synergy">{t('team.lineup.tip')}</Tip>
             <LineupEditor
                 title={t('team.lineup.title', { team: run.teamName })}
                 formation={run.formation}
@@ -223,7 +223,12 @@ export function Lineup() {
                     askAbandon ? (
                         <div className="abandon-ask" role="alert">
                             <span>{t('team.lineup.abandonConfirm')}</span>
-                            <button type="button" className="btn small danger" onClick={abandonRun}>
+                            <button
+                                type="button"
+                                className="btn small danger"
+                                data-fx="none"
+                                onClick={() => leaveWith('leave', abandonRun)}
+                            >
                                 {t('team.lineup.abandon')}
                             </button>
                             <button type="button" className="btn ghost small" onClick={() => setAskAbandon(false)}>
@@ -325,7 +330,6 @@ export function LineupEditor({
         if (locked) return;
         if (giving) {
             if (uid !== giving) {
-                playSfx('select');
                 onMoveItem?.(giving, uid);
             }
             setGiving(null);
@@ -336,7 +340,6 @@ export function LineupEditor({
             return;
         }
         if (selected.zone !== ref.zone || selected.index !== ref.index) {
-            playSfx('select');
             onSwap(selected, ref);
         }
         setSelected(null);
