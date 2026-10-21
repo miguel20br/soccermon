@@ -5,7 +5,6 @@ export const shop: typeof pt = {
     title: 'Market',
     before: 'Next round: {stage}',
     money: '₽{n}',
-    tip: 'Spend or save: saved ₽ earns interest. Sponsors last the whole cup.',
     wallet: 'Your ₽',
     earned: {
         title: 'The win paid',

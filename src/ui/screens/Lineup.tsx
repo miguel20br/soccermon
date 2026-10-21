@@ -17,7 +17,7 @@ import { useT } from '../../i18n/react';
 import { liveOf, playerTeam, type SlotRef, useGame } from '../../store/game-store';
 import { isLong, isOut } from '../../store/long-cup';
 import { useCardModal } from '../card-modal';
-import { Bracket } from '../components/Bracket';
+import { BracketPeek } from '../components/Bracket';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
 import { LinkChips } from '../components/LinkChips';
@@ -94,7 +94,6 @@ export function Lineup() {
 
     return (
         <>
-            <Tip id="lineup-synergy">{t('team.lineup.tip')}</Tip>
             <div className="cup-bug bc-surface">
                 <div className="cup-path">
                     {d.common.stage.map((label, i) => {
@@ -117,9 +116,9 @@ export function Lineup() {
                 </div>
             </div>
 
-            {/* Copa Relâmpago: a chave inteira, com você na fase de agora */}
+            {/* Copa Relâmpago: a chave inteira num toque, com você na fase de agora */}
             {!isLong(run) && (
-                <Bracket
+                <BracketPeek
                     rounds={relampagoBracket(
                         run.seed,
                         { name: run.teamName, color: clubColor },
@@ -129,6 +128,7 @@ export function Lineup() {
                     current={run.stage}
                 />
             )}
+            <Tip id="lineup-synergy">{t('team.lineup.tip')}</Tip>
             <LineupEditor
                 title={t('team.lineup.title', { team: run.teamName })}
                 formation={run.formation}

@@ -16,7 +16,6 @@ import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { Money, SponsorCard, SponsorSlots } from '../components/SponsorCard';
 import { TmCard } from '../components/TmTeach';
-import { Tip } from '../help/Tip';
 import { useHeld } from '../use-held';
 import { GainTarget } from './Reward';
 import '../shop.css';
@@ -154,8 +153,6 @@ export function Shop() {
                     {reroll === 0 ? t('shop.rerollFree') : t('shop.reroll', { n: reroll })}
                 </button>
             </div>
-
-            <Tip id="shop">{t('shop.tip')}</Tip>
 
             <div className="panel shop-earned">
                 <span className="shop-earned-title">{t('shop.earned.title')}</span>

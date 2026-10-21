@@ -3,7 +3,6 @@ export const shop = {
     title: 'Mercado',
     before: 'Próxima fase: {stage}',
     money: '₽{n}',
-    tip: 'Gaste ou guarde: ₽ guardado rende juros. Patrocínio vale até o fim da copa.',
     wallet: 'Seu ₽',
     earned: {
         title: 'A vitória rendeu',

@@ -104,8 +104,6 @@ export function Reward() {
                 </button>
             </div>
 
-            <Tip id="reward-pick">{t('reward.tip')}</Tip>
-
             <CardPack
                 sealed
                 fast={fast}
@@ -180,6 +178,8 @@ export function Reward() {
                     ))}
                 </div>
             </CardPack>
+            {/* a dica fica embaixo das opções que ela explica (só na 1ª copa) */}
+            {!reward && <Tip id="reward-pick">{t('reward.tip')}</Tip>}
 
             {reward && (
                 <GainTarget

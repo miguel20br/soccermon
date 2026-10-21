@@ -243,11 +243,10 @@ export function Draft() {
                 <AutoDraft captainUid={chosen?.uid} hint={title} />
             </div>
 
-            {run.status === 'drafting' && <Tip id="draft-slot">{t('team.draft.tip')}</Tip>}
-
             <div className="draft-grid">
                 <div className="panel board-panel" ref={boardRef}>
                     <h2>{run.teamName}</h2>
+                    {run.status === 'drafting' && !run.draftSlot && <Tip id="draft-slot">{t('team.draft.tip')}</Tip>}
                     <FormationBoard
                         formation={run.formation}
                         lineup={run.lineup}
