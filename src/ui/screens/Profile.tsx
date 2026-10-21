@@ -38,7 +38,8 @@ export function Profile() {
     const googleName = useCloud((s) => s.user?.name ?? null);
     const avatar = useAvatar();
     const showcase = useShowcase();
-    const cards = useCardShowcase().insts;
+    const { cards: shown } = useCardShowcase();
+    const updateProfile = useGame((s) => s.updateProfile);
     const [tab, setTab] = useState<Tab>(() => initialTab('profile'));
     const { t, d } = useT();
     const news = useNews();
@@ -91,12 +92,32 @@ export function Profile() {
                         </button>
                     )}
                 </div>
-                {/* vitrine de cartas no cartão (antes só dentro da Coleção): tocar abre a carta; vazia leva pro Álbum */}
-                {cards.length ? (
-                    <ul className="pf-cards" aria-label={t('profile.card.cards')}>
-                        {cards.map((p) => (
-                            <li key={p.uid}>
-                                <FutCard inst={p} size="sm" />
+                {/* vitrine de cartas no cartão: tocar abre a carta (tirar ou organizar no Álbum); vazia leva pro Álbum */}
+                {shown.length ? (
+                    <ul
+                        className="pf-cards"
+                        aria-label={t('profile.card.cards')}
+                        style={{ '--n': shown.length } as CSSProperties}
+                    >
+                        {shown.map((c) => (
+                            <li key={c.id}>
+                                <FutCard
+                                    inst={c.inst}
+                                    size="sm"
+                                    modalActions={[
+                                        {
+                                            label: t('profile.binder.remove'),
+                                            onClick: () =>
+                                                updateProfile({
+                                                    cardShowcase: shown.map((x) => x.id).filter((x) => x !== c.id),
+                                                }),
+                                        },
+                                        {
+                                            label: t('profile.binder.organize'),
+                                            onClick: () => openDoor('collection', 'album'),
+                                        },
+                                    ]}
+                                />
                             </li>
                         ))}
                     </ul>
