@@ -14,7 +14,7 @@ export const home: typeof pt = {
     },
     choosingReward: 'Choosing the reward',
     atMarket: 'At the Market',
-    cupTag: 'Main mode',
+    cupTag: 'Main modes',
     eventWeek: '{type}-type week',
     eventText: '{type}-type Event cards may show up in the draft.',
     helpAria: 'How to play (see the walkthrough again)',
@@ -29,6 +29,14 @@ export const home: typeof pt = {
     orNew: 'Or start a new cup',
     teamName: 'Your team name',
     newCup: 'New cup',
+    quickCup: { tag: '4 matches', title: 'Quick Cup', line: 'Draft, 4 matches and the Market between them' },
+    longCup: {
+        tag: 'Coming soon',
+        title: 'Long Cup',
+        line: 'A map with events, gyms and treasure',
+        soon: 'Coming soon',
+        note: 'The Long Cup arrives in the next version.',
+    },
     challenge: 'Accept challenge ({seed})',
     rec: {
         titles: 'title|titles',

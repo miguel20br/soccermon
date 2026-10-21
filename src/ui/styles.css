@@ -5433,6 +5433,84 @@ a.home-tile {
     gap: 10px;
     padding: 16px;
 }
+/* Copa rápida e Copa longa: os dois modos principais, lado a lado */
+.cup-modes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+.cup-mode.bc-tile {
+    position: relative;
+    display: grid;
+    align-content: start;
+    justify-items: start;
+    gap: 4px;
+    min-height: 128px;
+    padding: 12px;
+    font: inherit;
+}
+.cup-mode.bc-tile b {
+    font-family: "Galmuri14", var(--font, inherit);
+    font-size: 17px;
+}
+.cup-mode.bc-tile small {
+    font-size: 12px;
+    line-height: 1.3;
+}
+.cup-mode-go {
+    align-self: end;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: var(--bc-ink);
+    font-size: 13px;
+    font-weight: 700;
+}
+.cup-mode-go .hud-icon {
+    width: 16px;
+    height: 16px;
+}
+.cup-mode.main .cup-mode-go {
+    background: var(--red);
+    color: #fff;
+}
+.cup-mode.soon {
+    cursor: default;
+    background: var(--panel);
+    border-style: dashed;
+    box-shadow: none;
+}
+.cup-mode.soon b,
+.cup-mode.soon .cup-mode-go {
+    color: var(--muted);
+}
+.cup-mode.soon .cup-mode-tag {
+    background: var(--line);
+    color: var(--text);
+}
+.cup-soon-note {
+    min-height: 0;
+    margin: 0;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 220ms var(--ease-out);
+}
+.cup-soon-note.on {
+    margin-top: 6px;
+    opacity: 1;
+}
+@media (max-width: 360px) {
+    .cup-modes {
+        grid-template-columns: 1fr;
+    }
+    .cup-mode.bc-tile {
+        min-height: 0;
+    }
+}
 .new-run {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;

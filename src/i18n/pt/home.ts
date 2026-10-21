@@ -14,7 +14,7 @@ export const home = {
     },
     choosingReward: 'Escolhendo a recompensa',
     atMarket: 'No Mercado',
-    cupTag: 'Modo principal',
+    cupTag: 'Modos principais',
     eventWeek: 'Semana do tipo {type}',
     eventText: 'Cartas Evento do tipo {type} podem aparecer no draft.',
     helpAria: 'Como jogar (ver o passo a passo de novo)',
@@ -30,6 +30,14 @@ export const home = {
     orNew: 'Ou comece outra copa',
     teamName: 'Nome do seu time',
     newCup: 'Nova copa',
+    quickCup: { tag: '4 partidas', title: 'Copa rápida', line: 'Draft, 4 jogos e o Mercado entre eles' },
+    longCup: {
+        tag: 'Em breve',
+        title: 'Copa longa',
+        line: 'Mapa com eventos, ginásios e tesouros',
+        soon: 'Em breve',
+        note: 'A Copa longa chega na próxima versão.',
+    },
     challenge: 'Aceitar desafio ({seed})',
     rec: {
         titles: 'título|títulos',

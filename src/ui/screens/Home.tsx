@@ -121,6 +121,7 @@ export function Home() {
     const name = () => teamName.trim() || 'Pallet FC';
     /** Começar outra copa apaga a atual: com uma em andamento, pede confirmação antes. */
     const [confirm, setConfirm] = useState<string | null | undefined>(undefined);
+    const [longSoon, setLongSoon] = useState(false);
     const start = (seed?: string) => {
         if (inProgress && confirm === undefined) setConfirm(seed ?? null);
         else newRun(name(), seed);
@@ -281,25 +282,49 @@ export function Home() {
                             <label className="bc-lbl" htmlFor="team-name">
                                 {inProgress ? t('home.orNew') : t('home.teamName')}
                             </label>
-                            <div className="new-run">
-                                <input
-                                    id="team-name"
-                                    className="team-name-input"
-                                    value={teamName}
-                                    maxLength={22}
-                                    onChange={(e) => {
-                                        setTyped(true);
-                                        setTeamName(e.target.value);
-                                    }}
-                                />
+                            <input
+                                id="team-name"
+                                className="team-name-input"
+                                value={teamName}
+                                maxLength={22}
+                                onChange={(e) => {
+                                    setTyped(true);
+                                    setTeamName(e.target.value);
+                                }}
+                            />
+                            {/* os dois modos principais: a Copa rápida (a de sempre) e a Copa longa (mapa, etapa 2) */}
+                            <div className="cup-modes">
                                 <button
                                     type="button"
-                                    className={`btn ${inProgress ? 'ghost' : 'primary'} big`}
+                                    className={`cup-mode bc-tile${inProgress ? '' : ' main'}`}
                                     onClick={() => start()}
                                 >
-                                    {t('home.newCup')}
+                                    <span className="cup-mode-tag bc-tag">{t('home.quickCup.tag')}</span>
+                                    <b>{t('home.quickCup.title')}</b>
+                                    <small>{t('home.quickCup.line')}</small>
+                                    <span className="cup-mode-go">
+                                        {t('home.newCup')}
+                                        <HudIcon kind="next" />
+                                    </span>
+                                </button>
+                                <button
+                                    type="button"
+                                    className="cup-mode bc-tile soon"
+                                    aria-disabled="true"
+                                    onClick={() => setLongSoon(true)}
+                                >
+                                    <span className="cup-mode-tag bc-tag">{t('home.longCup.tag')}</span>
+                                    <b>{t('home.longCup.title')}</b>
+                                    <small>{t('home.longCup.line')}</small>
+                                    <span className="cup-mode-go">
+                                        <HudIcon kind="lock" />
+                                        {t('home.longCup.soon')}
+                                    </span>
                                 </button>
                             </div>
+                            <p className={`cup-soon-note muted${longSoon ? ' on' : ''}`} role="status">
+                                {longSoon ? t('home.longCup.note') : ''}
+                            </p>
                             {challengeSeed && (
                                 <button type="button" className="btn yellow" onClick={() => start(challengeSeed)}>
                                     {t('home.challenge', { seed: challengeSeed })}
