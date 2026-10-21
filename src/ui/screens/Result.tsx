@@ -29,6 +29,7 @@ import { CupGoalCard, MomentsButton } from '../components/Moments';
 import { cardSprite } from '../components/PokeCard';
 import { type HeroStat, ResultHero } from '../components/ResultHero';
 import { UnlockStrip } from '../components/UnlockNotice';
+import { feedback } from '../feedback';
 import { Tip } from '../help/Tip';
 import { FEEDBACK_URL } from '../links';
 import { useClubColor } from '../profile/club';
@@ -56,6 +57,9 @@ const TABS: Tab[] = ['times', 'jogadores', 'graficos', 'copa'];
 const TAB_ICON: Record<Tab, HudIconKind> = { times: 'team', jogadores: 'players', graficos: 'chart', copa: 'cup' };
 const pctOf = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 
+/** Copa em que o som de eliminado já tocou (voltar pro resultado não toca de novo). */
+let sadSeed: string | null = null;
+
 export function Result() {
     const { run: liveRun, match: liveMatch, advance, newRun, go } = useGame();
     const run = useHeld(liveRun);
@@ -77,6 +81,12 @@ export function Result() {
             live = false;
         };
     }, [run, clubColor]);
+    // caiu: o som de perder (o mesmo de abandonar e sair), uma vez por copa
+    useEffect(() => {
+        if (run?.status !== 'eliminated' || sadSeed === run.seed) return;
+        sadSeed = run.seed;
+        feedback('leave');
+    }, [run?.status, run?.seed]);
     if (!run || !match) return null;
     // fim da copa: abre direto no resumo da copa
     const tab: Tab = ['eliminated', 'champion'].includes(run.status) ? 'copa' : 'times';

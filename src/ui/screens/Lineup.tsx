@@ -11,7 +11,6 @@ import { pickCornerTaker } from '../../engine/match';
 import { applyModifiers, attributeModifiers } from '../../engine/modifiers';
 import { type CornerPlan, TACTIC_LABEL, type Tactic } from '../../engine/state';
 import { computeSynergies } from '../../engine/synergy';
-import { playSfx } from '../../game/audio';
 import { clubName, cupStageName, dict, formationText, itemDesc, itemName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { liveOf, playerTeam, type SlotRef, useGame } from '../../store/game-store';
@@ -24,6 +23,7 @@ import { LinkChips } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
 import { cardSprite, TypeBadge } from '../components/PokeCard';
 import { Money, SponsorSlots } from '../components/SponsorCard';
+import { leaveWith } from '../feedback';
 import { Tip } from '../help/Tip';
 import { useClubColor } from '../profile/club';
 import { lineupAverage } from '../rating';
@@ -220,7 +220,12 @@ export function Lineup() {
                     askAbandon ? (
                         <div className="abandon-ask" role="alert">
                             <span>{t('team.lineup.abandonConfirm')}</span>
-                            <button type="button" className="btn small danger" onClick={abandonRun}>
+                            <button
+                                type="button"
+                                className="btn small danger"
+                                data-fx="none"
+                                onClick={() => leaveWith('leave', abandonRun)}
+                            >
                                 {t('team.lineup.abandon')}
                             </button>
                             <button type="button" className="btn ghost small" onClick={() => setAskAbandon(false)}>
@@ -322,7 +327,6 @@ export function LineupEditor({
         if (locked) return;
         if (giving) {
             if (uid !== giving) {
-                playSfx('select');
                 onMoveItem?.(giving, uid);
             }
             setGiving(null);
@@ -333,7 +337,6 @@ export function LineupEditor({
             return;
         }
         if (selected.zone !== ref.zone || selected.index !== ref.index) {
-            playSfx('select');
             onSwap(selected, ref);
         }
         setSelected(null);

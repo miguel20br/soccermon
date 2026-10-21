@@ -19,6 +19,7 @@ import {
 } from '../../store/game-store';
 import { DEFAULT_PROFILE, EMPTY_CAREER, seenCount } from '../../store/profile';
 import { MenuHead } from '../components/MenuHead';
+import { leaveWith } from '../feedback';
 import { privacyUrl } from '../links';
 import { reduceMotionOn } from '../settings-sync';
 import '../settings.css';
@@ -323,6 +324,14 @@ export function Settings() {
                                 onPick={(confirmLeave) => set({ confirmLeave })}
                             />
                         </Row>
+                        <Row title={t('settings.screen.haptics')} hint={t('settings.screen.hapticsHint')}>
+                            <Segmented
+                                label={t('settings.screen.haptics')}
+                                value={settings.haptics !== false}
+                                options={onOff(t('settings.screen.hapticsOn'), t('settings.screen.hapticsOff'))}
+                                onPick={(haptics) => set({ haptics })}
+                            />
+                        </Row>
                     </Group>
                     <Group title={t('settings.screen.experiments')}>
                         <Row title={t('settings.screen.agency')} hint={t('settings.screen.agencyHint')}>
@@ -605,7 +614,8 @@ function DataSettings() {
                                 type="button"
                                 className="btn small primary"
                                 disabled={wipe === 'busy'}
-                                onClick={() => void wipeDevice()}
+                                data-fx="none"
+                                onClick={() => leaveWith('danger', () => void wipeDevice())}
                             >
                                 {wipe === 'busy' ? t('settings.data.wiping') : t('settings.data.wipeYes')}
                             </button>

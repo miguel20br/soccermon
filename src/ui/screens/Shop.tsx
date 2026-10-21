@@ -4,7 +4,6 @@ import { itemSprite } from '../../engine/items';
 import { interestOf, rerollPrice, type ShopOffer } from '../../engine/shop';
 import { editionOf } from '../../engine/specials';
 import { MAX_SPONSORS } from '../../engine/sponsors';
-import { playSfx } from '../../game/audio';
 import { itemDesc, itemName, stageName, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
@@ -69,7 +68,6 @@ export function Shop() {
 
     const choose = (i: number) => {
         const o = shop.offers[i];
-        playSfx('select');
         // pacote e Patrocínio com vaga livre: compra direto (não há quem escolher)
         if (o.kind === 'pack' || (o.kind === 'sponsor' && sponsors.length < MAX_SPONSORS)) {
             buyOffer(i);
@@ -144,7 +142,6 @@ export function Shop() {
                     className="btn small"
                     disabled={money < reroll || !!shop.pack}
                     onClick={() => {
-                        playSfx('select');
                         rerollShop();
                         setChosen(null);
                     }}
@@ -187,7 +184,6 @@ export function Shop() {
                                             label: t(packPick === i ? 'reward.chosen' : 'reward.pick'),
                                             primary: true,
                                             onClick: () => {
-                                                playSfx('select');
                                                 setPackPick(packPick === i ? null : i);
                                             },
                                         }}
@@ -200,7 +196,6 @@ export function Shop() {
                         type="button"
                         className="btn small ghost shop-pack-skip"
                         onClick={() => {
-                            playSfx('select');
                             setPackPick(null);
                             skipPack();
                         }}
@@ -230,7 +225,6 @@ export function Shop() {
                                 onSlot={(ref, uid) => {
                                     const inst = byUid.get(uid);
                                     if (!inst) return;
-                                    playSfx('select');
                                     useCardModal.getState().open(inst, {
                                         position:
                                             ref.zone === 'lineup'
@@ -272,7 +266,6 @@ export function Shop() {
                             <SponsorSlots
                                 sponsors={sponsors}
                                 onPick={(id) => {
-                                    playSfx('select');
                                     buyOffer(chosen!, id);
                                     setChosen(null);
                                 }}
@@ -305,7 +298,6 @@ export function Shop() {
                     disabled={!!shop.pack}
                     aria-describedby={shop.pack ? 'shop-leave-why' : undefined}
                     onClick={() => {
-                        playSfx('select');
                         leaveShop();
                     }}
                 >

@@ -329,6 +329,8 @@ export interface Settings {
     lang: Lang;
     /** Experimento "beira da quadra" (agência do técnico na partida): desligado por padrão. */
     agency?: boolean;
+    /** Vibração curta nos toques que pesam (Android; o iPhone não vibra pela web). Sem = ligada. */
+    haptics?: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {

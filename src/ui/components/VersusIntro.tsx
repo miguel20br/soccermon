@@ -304,7 +304,6 @@ export function VersusIntro({
 
     // som do VS batendo; com "reduzir movimento" o VS já aparece no lugar, então o som vem junto
     useEffect(() => {
-        playSfx('select');
         const slam = () => {
             playSfx('shot', final ? 0.5 : 0.7);
             if (final) playSfx('post', 0.6);

@@ -45,7 +45,6 @@ function useFriendsPoll() {
 
 /** "Desafiar": guarda o amigo e abre o Duelo; a sala que nascer chama ele (sendPendingChallenge). */
 function startChallenge(r: FriendRow) {
-    playSfx('select');
     useFriends.setState({ challenging: { code: r.code, trainer: r.trainer } });
     useGame.getState().go('duel');
 }
@@ -122,6 +121,7 @@ function FriendLine({ r }: { r: FriendRow }) {
                         <button
                             type="button"
                             className="btn"
+                            data-fx="danger"
                             onClick={() => void friendAction((s) => s.remove(r.code))}
                         >
                             {t('friends.remove')}

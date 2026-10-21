@@ -5,7 +5,6 @@ import { FORMATIONS, type FormationId } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
 import { computeLinks } from '../../engine/links';
 import { computeSynergies } from '../../engine/synergy';
-import { playSfx } from '../../game/audio';
 import { formationText } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { type SlotRef, slotRole, useGame } from '../../store/game-store';
@@ -68,7 +67,6 @@ function AutoDraft({ captainUid, hint }: { captainUid?: string; hint?: string })
                         type="button"
                         className="btn primary"
                         onClick={() => {
-                            playSfx('select');
                             autoDraft(captainUid);
                         }}
                     >
@@ -147,7 +145,6 @@ export function Draft() {
                             type="button"
                             className="bc-tile formation-option"
                             onClick={() => {
-                                playSfx('select');
                                 chooseFormation(f.id);
                             }}
                         >
@@ -195,7 +192,6 @@ export function Draft() {
 
     const onSlot = (slot: SlotRef, uid: string) => {
         if (uid) return;
-        playSfx('select');
         if (isCaptain) {
             if (!chosen) return;
             flyCard(chosen.uid, () => {
@@ -287,7 +283,6 @@ export function Draft() {
                                 className="btn small"
                                 disabled={run.rerolls <= 0}
                                 onClick={() => {
-                                    playSfx('select');
                                     reroll();
                                     setSelected(null);
                                 }}
@@ -371,7 +366,6 @@ export function Draft() {
                                                       : t('team.draft.sign'),
                                                 primary: true,
                                                 onClick: () => {
-                                                    playSfx('select');
                                                     if (isCaptain) setSelected(selected === o.uid ? null : o.uid);
                                                     else flyCard(o.uid, () => pick(o.uid));
                                                 },

@@ -1,5 +1,4 @@
 import { type KeyboardEvent, type PointerEvent, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
-import { playSfx } from '../../game/audio';
 import { type Dict, fmt } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
@@ -119,7 +118,6 @@ export function Onboarding() {
     }, []);
 
     const close = () => {
-        playSfx('select');
         setOnboarded(true);
         setTour(false);
     };
