@@ -1,4 +1,4 @@
-import { type CSSProperties, useMemo, useState, useSyncExternalStore } from 'react';
+import { type CSSProperties, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { FORMATIONS, type FormationId } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
@@ -35,6 +35,12 @@ export interface BoardPlan {
     order: string[];
 }
 
+/** Substituição mandada que ainda não aconteceu na tela. */
+export interface SubPlan {
+    outUid: string;
+    inUid: string;
+}
+
 /** Mesmos jogadores (em qualquer ordem). */
 const sameSet = (a: string[], b: string[]) => a.length === b.length && a.every((u) => b.includes(u));
 
@@ -44,9 +50,9 @@ const sameSet = (a: string[], b: string[]) => a.length === b.length && a.every((
  * o rival é só leitura (abre o painel do jogador). Embaixo da quadra no celular em pé, ao lado no resto.
  *
  * Com `edit`, dá pra mudar a prancheta: a formação no seletor e, tocando num jogador em quadra e depois em outro, os
- * dois trocam de vaga (cada vaga mostra a nota do selecionado naquela posição). Tocar no banco continua substituindo
- * (com um jogador em quadra selecionado, é ele quem sai). Nada vale antes do "Confirmar", e a mudança entra na
- * próxima bola parada.
+ * dois trocam de vaga (cada vaga mostra a nota do selecionado naquela posição). Nada vale antes do "Confirmar", e a
+ * mudança entra na próxima bola parada. Com `onSub`, um em quadra e um do banco (em qualquer ordem) é a
+ * substituição, na hora, sem painel: a troca mandada (`subs`) já aparece feita na prancheta, com o "Entra" no reserva.
  */
 export function Prancheta({
     match,
@@ -56,6 +62,8 @@ export function Prancheta({
     names,
     selectedUid,
     onMine,
+    onSub,
+    subs = [],
     edit,
 }: {
     match: MatchResult;
@@ -64,12 +72,14 @@ export function Prancheta({
     side: 0 | 1;
     tick: number;
     names: [string, string];
-    selectedUid?: string | null;
-    /**
-     * Toque num jogador seu: `idx` é a vaga dele na partida (null = banco). `outUid`: reserva tocado com um jogador
-     * em quadra selecionado (é ele quem sai).
-     */
-    onMine: (uid: string, idx: number | null, outUid?: string) => void;
+    /** Já chega selecionado (o botão Substituir, a sugestão do intervalo): o próximo toque decide. */
+    selectedUid?: { uid: string } | null;
+    /** Toque num jogador seu quando não dá pra mudar nada: `idx` é a vaga dele na partida (null = banco). */
+    onMine: (uid: string, idx: number | null) => void;
+    /** Dá pra substituir agora: sai `outUid`, entra `inUid`. */
+    onSub?: (outUid: string, inUid: string) => void;
+    /** Trocas mandadas que ainda não aconteceram (aparecem feitas, sem toque até acontecerem ou serem desfeitas). */
+    subs?: SubPlan[];
     /** Mudança de prancheta do seu time (sem isto, só leitura). */
     edit?: {
         /** Dá pra mandar ordem agora (tempo normal ou intervalo, sem outra ordem resimulando). */
@@ -85,7 +95,10 @@ export function Prancheta({
     const [team, setTeam] = useState<0 | 1>(side);
     /** Rascunho da prancheta (ainda não confirmado) e o jogador em quadra selecionado pra trocar de vaga. */
     const [draft, setDraft] = useState<BoardPlan | null>(null);
-    const [pick, setPick] = useState<string | null>(null);
+    const [pick, setPick] = useState<string | null>(selectedUid?.uid ?? null);
+    useEffect(() => {
+        if (selectedUid) setPick(selectedUid.uid);
+    }, [selectedUid]);
     const horizontal = useMedia(PORTRAIT);
     const at = Math.floor(tick / STEP_TICKS) * STEP_TICKS;
     const mine = team === side;
@@ -132,7 +145,16 @@ export function Prancheta({
     const shown = editing ? (plan ?? base) : live;
     const changed = !!plan && (plan.formation !== base.formation || plan.order.join() !== base.order.join());
     const canEdit = editing && !!edit?.enabled;
-    const picked = canEdit && pick && shown.order.includes(pick) ? pick : null;
+    // troca mandada: quem sai e quem entra ficam parados até ela acontecer; na tela, ela já aparece feita
+    const swapIn = new Map(subs.map((o) => [o.outUid, o.inUid]));
+    const swapOut = new Map(subs.map((o) => [o.inUid, o.outUid]));
+    const busy = (uid: string) => swapIn.has(uid) || swapOut.has(uid);
+    const subbing = canEdit && !!onSub;
+    const picked =
+        canEdit && pick && !busy(pick) && (shown.order.includes(pick) || (subbing && view.bench.includes(pick)))
+            ? pick
+            : null;
+    const pickedBench = picked && !shown.order.includes(picked) ? picked : null;
     const pickedInst = picked ? view.byUid.get(picked) : undefined;
 
     return (
@@ -197,19 +219,22 @@ export function Prancheta({
             )}
             <FormationBoard
                 formation={shown.formation}
-                lineup={shown.order}
-                bench={view.bench}
+                lineup={shown.order.map((u) => swapIn.get(u) ?? u)}
+                bench={view.bench.map((u) => swapOut.get(u) ?? u)}
                 byUid={view.byUid}
                 captainUid={setup.captainUid}
                 horizontal={horizontal}
                 mirror={team === 1}
                 projection={pickedInst ?? null}
-                stateOf={(_, uid) => (uid && (uid === selectedUid || uid === picked) ? 'selected' : 'idle')}
+                stateOf={(_, uid) =>
+                    uid === picked ? 'selected' : mine && canEdit && uid && busy(uid) ? 'locked' : 'idle'
+                }
                 dimOf={(inst) => view.out.has(inst.uid)}
                 slotAria={() =>
                     !mine ? t('match.board.tapRival') : canEdit ? t('match.board.tapEdit') : t('match.board.tapMine')
                 }
                 badgeOf={(inst) => {
+                    if (swapOut.has(inst.uid)) return <span className="pr-evo">{t('match.board.subIn')}</span>;
                     const l = view.live.get(inst.uid);
                     if (!l) return null;
                     return (
@@ -239,9 +264,15 @@ export function Prancheta({
                         if (idx !== null) EventBus.emit('match:inspect-request', idx);
                     } else if (!canEdit) onMine(uid, idx);
                     else if (ref.zone === 'bench') {
-                        // reserva: substituição (sai quem estava selecionado, se tiver)
+                        // reserva: com alguém em quadra marcado, entra no lugar dele; senão fica marcado
+                        if (!subbing) return;
+                        if (picked && !pickedBench) {
+                            setPick(null);
+                            onSub?.(picked, uid);
+                        } else setPick(picked === uid ? null : uid);
+                    } else if (pickedBench) {
                         setPick(null);
-                        onMine(uid, null, picked ?? undefined);
+                        onSub?.(uid, pickedBench);
                     } else if (!picked || picked === uid) setPick(picked ? null : uid);
                     else {
                         // os dois trocam de vaga no rascunho
@@ -258,9 +289,18 @@ export function Prancheta({
                 {!mine
                     ? t('match.board.hintRival')
                     : pickedInst
-                      ? t('match.board.hintSwap', { name: viewInstance(pickedInst).displayName })
+                      ? t(
+                            pickedBench
+                                ? 'match.board.hintIn'
+                                : subbing
+                                  ? 'match.board.hintSwap'
+                                  : 'match.board.hintMove',
+                            {
+                                name: viewInstance(pickedInst).displayName,
+                            },
+                        )
                       : canEdit
-                        ? t('match.board.hintEdit')
+                        ? t(subbing ? 'match.board.hintEdit' : 'match.board.hintEditNoSub')
                         : edit?.over
                           ? t('match.board.hintOver')
                           : t('match.board.hintMine')}

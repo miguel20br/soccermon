@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { atlasKey, createSpeciesAnims, footOrigin, preloadSpecies, resolveAnim } from '../animation-manager';
+import { atlasKey, createSpeciesAnims, footOrigin, preloadSpecies, resolveAnim, skinOf } from '../animation-manager';
 import { EventBus } from '../EventBus';
 import { CUP_X, LIGA_X, ROOM_H, ROOM_SPOTS, ROOM_W, type RoomSpot } from '../room-spots';
 
@@ -87,7 +87,8 @@ export class TrophyRoomScene extends Phaser.Scene {
     preload() {
         this.load.image('mi', 'assets/room/mi/Interiors_free_32x32.png');
         this.load.image('mi-room', 'assets/room/mi/Room_Builder_free_32x32.png');
-        preloadSpecies(this, this.room.mon.speciesId);
+        // o Pokémon do avatar com a folha certa (shiny se o avatar é shiny)
+        preloadSpecies(this, skinOf(this.room.mon.speciesId, this.room.mon.shiny));
         for (const p of [...this.room.polaroids, ...(this.room.tv ? [this.room.tv] : [])])
             if (!this.textures.exists(`card-${p.speciesId}`))
                 this.load.image(`card-${p.speciesId}`, `assets/cards/${p.speciesId}.gif`);
@@ -296,9 +297,10 @@ export class TrophyRoomScene extends Phaser.Scene {
         this.events.once('destroy', () => EventBus.off('room:focus', onFocus));
 
         // ---- o seu Pokémon
-        createSpeciesAnims(this, d.mon.speciesId);
-        if (this.textures.exists(atlasKey(d.mon.speciesId))) {
-            this.monKey = d.mon.speciesId;
+        const skin = skinOf(d.mon.speciesId, d.mon.shiny);
+        createSpeciesAnims(this, skin);
+        if (this.textures.exists(atlasKey(skin))) {
+            this.monKey = skin;
             this.mon = this.add.sprite(214, 180, atlasKey(this.monKey)).setScale(1.4).setDepth(220);
             this.mon.setLighting(true);
             this.wander();

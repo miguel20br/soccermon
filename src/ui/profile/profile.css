@@ -1450,7 +1450,7 @@ fieldset.pf-field,
 /* ---------- celular ---------- */
 @media (max-width: 560px) {
     .pf-head {
-        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-columns: auto minmax(0, 1fr) auto;
         gap: 10px 12px;
         padding: 12px;
     }
@@ -1901,6 +1901,77 @@ fieldset.pf-field,
 .pf-cups:focus-visible {
     outline: 2px solid var(--yellow);
     outline-offset: 2px;
+}
+/* vitrine de cartas no cartão: as 3 em leque no canto direito */
+.pf-cards {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0 6px 0 0;
+    list-style: none;
+}
+.pf-cards .fut-wrap.sm {
+    --fut-w: 92px;
+}
+.pf-cards li {
+    transition: translate 0.2s var(--ease-out);
+}
+.pf-cards li + li {
+    margin-left: -34px;
+}
+.pf-cards li:first-child:not(:last-child) {
+    rotate: -7deg;
+    translate: 0 4px;
+}
+.pf-cards li:last-child:not(:first-child) {
+    rotate: 7deg;
+    translate: 0 4px;
+}
+.pf-cards li:nth-child(2) {
+    z-index: 1;
+}
+.pf-cards li:hover {
+    translate: 0 -4px;
+    z-index: 2;
+}
+.pf-cards-empty {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    width: 104px;
+    padding: 14px 8px;
+    border: 2px dashed var(--line);
+    border-radius: 10px;
+    background: none;
+    color: var(--muted);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+}
+@media (max-width: 560px) {
+    .pf-cards .fut-wrap.sm {
+        --fut-w: 80px;
+    }
+    .pf-cards li + li {
+        margin-left: -48px;
+    }
+    .pf-cards-empty {
+        width: 76px;
+        padding: 10px 4px;
+        font-size: 11px;
+    }
+}
+/* celular estreito: o nome precisa do espaço; a vitrine desce pra uma linha só dela */
+@media (max-width: 360px) {
+    .pf-cards,
+    .pf-cards-empty {
+        grid-column: 1 / -1;
+        justify-self: center;
+    }
+    .pf-cards-empty {
+        width: auto;
+        grid-auto-flow: column;
+    }
 }
 .pf-public-hint {
     grid-column: 1 / -1;

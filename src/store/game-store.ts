@@ -56,6 +56,7 @@ import {
 import { addDuel, type DuelRecord, duelWins, MAX_DUELS } from './duels';
 import {
     type CupMode,
+    cupLength,
     currentNode,
     groupQualified,
     groupTable,
@@ -467,6 +468,8 @@ export interface GameStore {
     buyOffer(index: number, targetUid?: string, forgetSlot?: number, passTo?: string): void;
     /** Fica com a carta `index` do pacote aberto, no lugar do reserva `targetUid`. */
     claimPack(index: number, targetUid: string): void;
+    /** Fecha o pacote aberto sem pegar nenhuma carta (já foi pago; o time fica como está). */
+    skipPack(): void;
     rerollShop(): void;
     leaveShop(): void;
     advance(): void;
@@ -605,6 +608,7 @@ function rollShop(run: RunState, reroll: number): ShopOffer[] {
         eventType: run.eventType ?? null,
         captain: run.picks.find((p) => p.uid === run.captainUid) ?? null,
         ...(isLong(run) && { long: { key: run.at ?? `m${run.stage}`, round: longRound(run.stage) } }),
+        matchesLeft: cupLength(run) - run.stage - 1,
     });
 }
 
@@ -1627,6 +1631,12 @@ export const useGame = create<GameStore>()(
                         ...gained(run, got.picks, 'mercado'),
                         run: { ...run, ...got, shop: { ...run.shop, pack: undefined } },
                     });
+                },
+
+                skipPack: () => {
+                    const run = getState().run;
+                    if (run?.status !== 'shop' || !run.shop?.pack) return;
+                    setState({ run: { ...run, shop: { ...run.shop, pack: undefined } } });
                 },
 
                 rerollShop: () => {

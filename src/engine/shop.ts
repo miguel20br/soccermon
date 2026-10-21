@@ -5,7 +5,7 @@ import { type PokemonInstance, viewInstance } from './instance';
 import { ITEM_IDS, ITEMS, TYPE_ITEM_FOR } from './items';
 import { Rng } from './rng';
 import { rollSpecial } from './specials';
-import { has, SPONSOR_IDS, type SponsorId } from './sponsors';
+import { has, SPONSOR_FAMILY, SPONSOR_IDS, type SponsorId } from './sponsors';
 import { rollTmOffer } from './tm';
 
 /**
@@ -26,6 +26,9 @@ export const ECONOMY = {
     /** S.S. Anne: a mais por vitória. */
     ssanne: 3,
 } as const;
+
+/** Patrocínios na vitrine de cada Mercado. */
+export const SPONSOR_CHOICES = 2;
 
 export const PRICES = {
     sponsor: 10,
@@ -112,13 +115,28 @@ interface ShopInput {
     captain: PokemonInstance | null;
     /** Copa longa: chave própria do sorteio (a casa do mapa) e raridade pelo andar. Sem = Copa rápida. */
     long?: { key: string; round: number };
+    /**
+     * Partidas que ainda faltam. Com 1 (o Mercado antes da Final) só aparecem Patrocínios de campo: os de ₽ e de
+     * Mercado não teriam mais onde valer.
+     */
+    matchesLeft?: number;
 }
 
 /**
  * Vitrine: 2 Pokémon avulsos, 1 pacote de tipo (o da semana ou o do capitão), 1 item ou MT e 1 Patrocínio que você
  * ainda não tem. Loja de Departamentos: +1 Pokémon.
  */
-export function shopOffers({ seed, stage, reroll, team, sponsors, eventType, captain, long }: ShopInput): ShopOffer[] {
+export function shopOffers({
+    seed,
+    stage,
+    reroll,
+    team,
+    sponsors,
+    eventType,
+    captain,
+    long,
+    matchesLeft = 99,
+}: ShopInput): ShopOffer[] {
     const rng = new Rng(seed, long ? `shop-${long.key}-r${reroll}` : `shop-${stage}-r${reroll}`);
     const taken = new Set(team.map((p) => p.speciesId));
     const count = 2 + (has(sponsors, 'loja') ? 1 : 0);
@@ -154,13 +172,17 @@ export function shopOffers({ seed, stage, reroll, team, sponsors, eventType, cap
         gear = { kind: 'item', item: rng.pick(pool), price: PRICES.item };
     }
 
-    const free = SPONSOR_IDS.filter((id) => !sponsors.includes(id));
+    const free = SPONSOR_IDS.filter(
+        (id) => !sponsors.includes(id) && (matchesLeft > 1 || SPONSOR_FAMILY[id] === 'campo'),
+    );
     const out: ShopOffer[] = [
         ...mons,
         ...(packType ? [{ kind: 'pack' as const, type: packType, price: PRICES.pack }] : []),
         gear,
     ];
-    if (free.length) out.push({ kind: 'sponsor', id: rng.pick(free), price: PRICES.sponsor });
+    // 2 Patrocínios à escolha (pedido do Miguel, 21/10/2026), diferentes e que você ainda não tem
+    for (const id of rng.shuffle([...free]).slice(0, SPONSOR_CHOICES))
+        out.push({ kind: 'sponsor', id, price: PRICES.sponsor });
     return out;
 }
 

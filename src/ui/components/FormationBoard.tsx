@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react';
+import { type CSSProperties, type ReactNode, useRef } from 'react';
 import { species } from '../../engine/data';
 import { EVO_THRESHOLD } from '../../engine/evolution';
 import { type FormationId, formationOf } from '../../engine/formations';
@@ -10,6 +10,7 @@ import { useT } from '../../i18n/react';
 import type { SlotRef } from '../../store/game-store';
 import { editionLabel, finishOf, METAL, metalOf } from '../rarity';
 import { ratingAt } from '../rating';
+import { useSwapMotion } from '../swap-motion';
 import { TYPE_COLOR } from '../type-colors';
 import { HudIcon } from './MatchHud';
 import { cardSprite } from './PokeCard';
@@ -66,6 +67,9 @@ export function FormationBoard({
 }: Props) {
     const f = formationOf(formation);
     const { t, d } = useT();
+    // nada teleporta: quem muda de vaga (troca, substituição) desliza do lugar antigo pro novo
+    const boardRef = useRef<HTMLDivElement>(null);
+    useSwapMotion(boardRef, `${formation}|${lineup.join()}|${bench.join()}|${horizontal}`, 320);
     const emptyLabel = emptyProp ?? t('team.board.empty');
     // sinergia especial completa (os 3 pássaros, os 3 iniciais, Mew + Mewtwo): as cartas brilham juntas
     const aura = new Map<string, string>();
@@ -165,7 +169,7 @@ export function FormationBoard({
     };
 
     return (
-        <div className={`formation-board${horizontal ? ' horizontal' : ''}`}>
+        <div className={`formation-board${horizontal ? ' horizontal' : ''}`} ref={boardRef}>
             <div className="court">
                 {lineup.map((uid, i) =>
                     slot(

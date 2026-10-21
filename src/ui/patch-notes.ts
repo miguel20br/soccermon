@@ -7,6 +7,82 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.0.5',
+        title: 'Tudo na prancheta',
+        sections: [
+            {
+                title: 'Toque direto',
+                lines: [
+                    'Substituição: toque em quem sai e em quem entra na prancheta e a troca já vale, com as cartas deslizando (sai o painel de lista)',
+                    'Recompensa e Mercado: quem recebe o Pokémon ou o item é escolhido tocando na prancheta',
+                    'Escalação: Passar pra outro e tocar em quem recebe o item',
+                    'Pênaltis: toque em dois cobradores pra trocar a ordem',
+                ],
+            },
+            {
+                title: 'Mercado e Perfil',
+                lines: [
+                    'Pacote aberto pode ser fechado sem pegar nenhuma carta (Não quero nenhuma, seguir)',
+                    'A vitrine de cartas aparece no cartão do Perfil',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.0.4',
+        title: 'Golpes e Patrocínios explicados',
+        sections: [
+            {
+                title: 'Mais claro',
+                lines: [
+                    'MT: ao escolher qual golpe esquecer, cada golpe mostra o que faz em quadra',
+                    'Carta completa: a nota em campo, com capitão, sinergias e Patrocínios (o número grande é a carta sozinha)',
+                    'Toque num Patrocínio das suas vagas pra ver o que ele faz',
+                ],
+            },
+            {
+                title: 'Mercado',
+                lines: [
+                    'No Mercado antes da Final só aparecem Patrocínios de campo (os de ₽ não teriam mais onde valer)',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.0.3',
+        title: 'Pacote e Patrocínios',
+        sections: [
+            {
+                title: 'Mercado',
+                lines: [
+                    'O pacote comprado abre de verdade: rasga e as cartas saem uma a uma, e o desenho do tipo ficou nítido',
+                    'Dois Patrocínios pra escolher em cada Mercado',
+                    'O preço mostra quanto falta (₽10 · falta ₽1)',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.0.2',
+        title: 'Ajustes da semana',
+        sections: [
+            {
+                title: 'Consertos',
+                lines: [
+                    'Sala de troféus: se o seu avatar é shiny, o Pokémon que passeia na sala também é',
+                    'VERSUS: o Começar só aparece depois da apresentação dos times',
+                    'A tela não pisca mais ao entrar e sair da partida e da Sala de troféus',
+                ],
+            },
+            {
+                title: 'Mercado',
+                lines: [
+                    'A carta do Patrocínio diz que é Patrocínio, e a prateleira explica as 3 vagas (Pokémon, pacote e item não ocupam vaga)',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.0.1',
         title: 'Mercado organizado',
         sections: [
@@ -848,6 +924,82 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.0.5',
+        title: 'Everything on the board',
+        sections: [
+            {
+                title: 'Direct taps',
+                lines: [
+                    'Substitutions: tap who comes off and who comes on in the board and the swap is set, with the cards sliding (the list panel is gone)',
+                    'Reward and Market: pick who gets the Pokémon or the item by tapping the board',
+                    'Lineup: Give to another and tap who gets the item',
+                    'Penalties: tap two takers to swap their order',
+                ],
+            },
+            {
+                title: 'Market and Profile',
+                lines: [
+                    "An opened pack can be closed without taking any card (I don't want any, move on)",
+                    'Your card showcase shows on the Profile card',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.0.4',
+        title: 'Moves and Sponsors explained',
+        sections: [
+            {
+                title: 'Clearer',
+                lines: [
+                    'TM: when picking which move to forget, each move shows what it does on the court',
+                    'Full card: the rating on the court, with captain, synergies and Sponsors (the big number is the card alone)',
+                    'Tap a Sponsor in your slots to see what it does',
+                ],
+            },
+            {
+                title: 'Market',
+                lines: [
+                    'The Market before the Final only offers field Sponsors (₽ ones would have nowhere left to pay off)',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.0.3',
+        title: 'Packs and Sponsors',
+        sections: [
+            {
+                title: 'Market',
+                lines: [
+                    'Bought packs really open: they tear and the cards come out one by one, and the type art is sharp',
+                    'Two Sponsors to choose from in every Market',
+                    'Prices show how much you still need (₽10 · need ₽1)',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.0.2',
+        title: 'Weekly fixes',
+        sections: [
+            {
+                title: 'Fixes',
+                lines: [
+                    'Trophy room: if your avatar is shiny, the Pokémon walking around is shiny too',
+                    'VERSUS: Start only shows up after the teams are introduced',
+                    'The screen no longer flickers when entering or leaving a match and the Trophy room',
+                ],
+            },
+            {
+                title: 'Market',
+                lines: [
+                    'The Sponsor card says it is a Sponsor, and the shelf explains the 3 slots (Pokémon, packs and items do not take one)',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.0.1',
         title: 'Tidier Market',

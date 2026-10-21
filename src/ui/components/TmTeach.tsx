@@ -175,7 +175,8 @@ export function TmTeachPanel({
             <p className="muted tm-new">
                 {rich(t('reward.tm.newMove'), {
                     move: <b style={{ color: TYPE_COLOR[MOVES[move].type] }}>{newName}</b>,
-                })}
+                })}{' '}
+                <span className="tm-move-desc">{moveFutsal(move)}</span>
             </p>
             <div className="tm-moves">
                 {target.moves.map((m, i) => {
@@ -206,6 +207,8 @@ export function TmTeachPanel({
                                     )}
                                     {target.taught?.includes(m) && t('reward.tm.taughtSuffix')}
                                 </small>
+                                {/* o que o golpe faz em quadra, pra decidir qual esquecer */}
+                                <span className="tm-move-desc">{moveFutsal(m)}</span>
                             </span>
                         </button>
                     );

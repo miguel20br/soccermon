@@ -1,5 +1,44 @@
 # Novidades
 
+## 0.9.0.5 · Tudo na prancheta
+
+### Toque direto
+- Substituição: toque em quem sai e em quem entra na prancheta e a troca já vale, com as cartas deslizando (sai o painel de lista)
+- Recompensa e Mercado: quem recebe o Pokémon ou o item é escolhido tocando na prancheta
+- Escalação: Passar pra outro e tocar em quem recebe o item
+- Pênaltis: toque em dois cobradores pra trocar a ordem
+
+### Mercado e Perfil
+- Pacote aberto pode ser fechado sem pegar nenhuma carta (Não quero nenhuma, seguir)
+- A vitrine de cartas aparece no cartão do Perfil
+
+## 0.9.0.4 · Golpes e Patrocínios explicados
+
+### Mais claro
+- MT: ao escolher qual golpe esquecer, cada golpe mostra o que faz em quadra
+- Carta completa: a nota em campo, com capitão, sinergias e Patrocínios (o número grande é a carta sozinha)
+- Toque num Patrocínio das suas vagas pra ver o que ele faz
+
+### Mercado
+- No Mercado antes da Final só aparecem Patrocínios de campo (os de ₽ não teriam mais onde valer)
+
+## 0.9.0.3 · Pacote e Patrocínios
+
+### Mercado
+- O pacote comprado abre de verdade: rasga e as cartas saem uma a uma, e o desenho do tipo ficou nítido
+- Dois Patrocínios pra escolher em cada Mercado
+- O preço mostra quanto falta (₽10 · falta ₽1)
+
+## 0.9.0.2 · Ajustes da semana
+
+### Consertos
+- Sala de troféus: se o seu avatar é shiny, o Pokémon que passeia na sala também é
+- VERSUS: o Começar só aparece depois da apresentação dos times
+- A tela não pisca mais ao entrar e sair da partida e da Sala de troféus
+
+### Mercado
+- A carta do Patrocínio diz que é Patrocínio, e a prateleira explica as 3 vagas (Pokémon, pacote e item não ocupam vaga)
+
 ## 0.9.0.1 · Mercado organizado
 
 ### Mercado
