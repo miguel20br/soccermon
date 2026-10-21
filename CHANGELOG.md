@@ -1,5 +1,38 @@
 # Novidades
 
+## 0.9.3 · Golpes revisados
+
+### Cada um com o seu tipo
+- Todo Pokémon leva pelo menos 1 golpe de cada tipo dele (quando a Gen 1 deixa)
+- Gengar: Confuse Ray ⇒ Sludge (Dream Eater, Hypnosis, Night Shade, Sludge)
+- Gastly e Haunter: Hypnosis ⇒ Toxic
+- Zubat e Golbat: Supersonic ⇒ Toxic
+- Nidoran♂, Nidorino e Nidoking: Focus Energy ⇒ Toxic; Nidoqueen: Counter ⇒ Toxic
+- Beedrill: Agility ⇒ Toxic
+- Charizard: Fire Blast ⇒ Fly
+- Hitmonchan: Agility ⇒ Counter
+- Gyarados: Splash ⇒ Hyper Beam
+
+### Sem golpe repetido
+- Charmander e Charmeleon: Fire Blast ⇒ Dragon Rage
+- Raichu: Thunderbolt ⇒ Agility
+- Arcanine: Flamethrower ⇒ Take Down
+- Hitmonlee: Jump Kick ⇒ Double Kick
+- Staryu: Hydro Pump ⇒ Psychic
+- Omanyte: Hydro Pump ⇒ Surf
+
+### Golpes que agora fazem o que prometem
+- Harden segura a bola no próximo carrinho (como o Defense Curl)
+- Slam alcança mais longe (2,8 m)
+- Amnesia sobe passe, chute e leitura
+- Tri Attack pode queimar, congelar ou paralisar
+- Explosion pega todo mundo a 4 m
+- Light Screen e Reflect não dão mais chute escondido
+- Fly e Dig com a bola levam ela 2 m (era 4)
+
+### Textos
+- Todo golpe explica o que faz em quadra com os números (quanto tempo, quem é imune, quanto acerta, o preço pra quem usa)
+
 ## 0.9.2.2 · A Rota Índigo volta
 
 ### Rota Índigo

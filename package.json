@@ -1,8 +1,7 @@
 {
   "name": "soccermon",
   "private": true,
-  "version": "0.9.2",
-  "displayVersion": "0.9.2.2",
+  "version": "0.9.3",
   "author": "Miguel Cunha (https://github.com/miguel20br)",
   "description": "Fan game sem fins lucrativos: draft de Pokémon Gen 1 + futsal 5v5 simulado.",
   "license": "AGPL-3.0-or-later",

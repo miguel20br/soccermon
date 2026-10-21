@@ -7,6 +7,55 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.3',
+        title: 'Golpes revisados',
+        sections: [
+            {
+                title: 'Cada um com o seu tipo',
+                lines: [
+                    'Todo Pokémon leva pelo menos 1 golpe de cada tipo dele (quando a Gen 1 deixa)',
+                    'Gengar: Confuse Ray ⇒ Sludge (Dream Eater, Hypnosis, Night Shade, Sludge)',
+                    'Gastly e Haunter: Hypnosis ⇒ Toxic',
+                    'Zubat e Golbat: Supersonic ⇒ Toxic',
+                    'Nidoran♂, Nidorino e Nidoking: Focus Energy ⇒ Toxic; Nidoqueen: Counter ⇒ Toxic',
+                    'Beedrill: Agility ⇒ Toxic',
+                    'Charizard: Fire Blast ⇒ Fly',
+                    'Hitmonchan: Agility ⇒ Counter',
+                    'Gyarados: Splash ⇒ Hyper Beam',
+                ],
+            },
+            {
+                title: 'Sem golpe repetido',
+                lines: [
+                    'Charmander e Charmeleon: Fire Blast ⇒ Dragon Rage',
+                    'Raichu: Thunderbolt ⇒ Agility',
+                    'Arcanine: Flamethrower ⇒ Take Down',
+                    'Hitmonlee: Jump Kick ⇒ Double Kick',
+                    'Staryu: Hydro Pump ⇒ Psychic',
+                    'Omanyte: Hydro Pump ⇒ Surf',
+                ],
+            },
+            {
+                title: 'Golpes que agora fazem o que prometem',
+                lines: [
+                    'Harden segura a bola no próximo carrinho (como o Defense Curl)',
+                    'Slam alcança mais longe (2,8 m)',
+                    'Amnesia sobe passe, chute e leitura',
+                    'Tri Attack pode queimar, congelar ou paralisar',
+                    'Explosion pega todo mundo a 4 m',
+                    'Light Screen e Reflect não dão mais chute escondido',
+                    'Fly e Dig com a bola levam ela 2 m (era 4)',
+                ],
+            },
+            {
+                title: 'Textos',
+                lines: [
+                    'Todo golpe explica o que faz em quadra com os números (quanto tempo, quem é imune, quanto acerta, o preço pra quem usa)',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.2.2',
         title: 'A Rota Índigo volta',
         sections: [
@@ -1077,6 +1126,55 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.3',
+        title: 'Moves reviewed',
+        sections: [
+            {
+                title: 'Each one with its own type',
+                lines: [
+                    'Every Pokémon has at least 1 move of each of its types (when Gen 1 allows it)',
+                    'Gengar: Confuse Ray ⇒ Sludge (Dream Eater, Hypnosis, Night Shade, Sludge)',
+                    'Gastly and Haunter: Hypnosis ⇒ Toxic',
+                    'Zubat and Golbat: Supersonic ⇒ Toxic',
+                    'Nidoran♂, Nidorino and Nidoking: Focus Energy ⇒ Toxic; Nidoqueen: Counter ⇒ Toxic',
+                    'Beedrill: Agility ⇒ Toxic',
+                    'Charizard: Fire Blast ⇒ Fly',
+                    'Hitmonchan: Agility ⇒ Counter',
+                    'Gyarados: Splash ⇒ Hyper Beam',
+                ],
+            },
+            {
+                title: 'No repeated moves',
+                lines: [
+                    'Charmander and Charmeleon: Fire Blast ⇒ Dragon Rage',
+                    'Raichu: Thunderbolt ⇒ Agility',
+                    'Arcanine: Flamethrower ⇒ Take Down',
+                    'Hitmonlee: Jump Kick ⇒ Double Kick',
+                    'Staryu: Hydro Pump ⇒ Psychic',
+                    'Omanyte: Hydro Pump ⇒ Surf',
+                ],
+            },
+            {
+                title: 'Moves that now do what they promise',
+                lines: [
+                    'Harden keeps the ball on the next tackle (like Defense Curl)',
+                    'Slam reaches further (2.8 m)',
+                    'Amnesia raises passing, shooting and reading',
+                    'Tri Attack can burn, freeze or paralyze',
+                    'Explosion hits everyone within 4 m',
+                    'Light Screen and Reflect no longer give hidden shooting',
+                    'Fly and Dig with the ball carry it 2 m (was 4)',
+                ],
+            },
+            {
+                title: 'Texts',
+                lines: [
+                    'Every move explains what it does on the court with numbers (how long, who is immune, how often it hits, the cost to the user)',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.2.2',
         title: 'Indigo Road is back',

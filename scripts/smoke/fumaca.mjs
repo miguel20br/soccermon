@@ -170,7 +170,7 @@ async function copa() {
             await shot(p, '09-recompensa');
             // ganhou: depois da recompensa vem o Mercado (0.9.0); compra o que der e segue pra escalação
             await btn(/^Pular/).click({ timeout: 10000 });
-            await p.locator('.shop-grid').waitFor({ timeout: 15000 });
+            await p.locator('.shop-grid').first().waitFor({ timeout: 15000 });
             await p.waitForTimeout(800);
             await shot(p, '10-mercado', true);
             const buy = p.locator('.shop-offer:has(.sp-card) .shop-buy:not([disabled])');
