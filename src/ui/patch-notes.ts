@@ -7,6 +7,26 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.0.2',
+        title: 'Ajustes da semana',
+        sections: [
+            {
+                title: 'Consertos',
+                lines: [
+                    'Sala de troféus: se o seu avatar é shiny, o Pokémon que passeia na sala também é',
+                    'VERSUS: o Começar só aparece depois da apresentação dos times',
+                    'A tela não pisca mais ao entrar e sair da partida e da Sala de troféus',
+                ],
+            },
+            {
+                title: 'Mercado',
+                lines: [
+                    'A carta do Patrocínio diz que é Patrocínio, e a prateleira explica as 3 vagas (Pokémon, pacote e item não ocupam vaga)',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.0.1',
         title: 'Mercado organizado',
         sections: [
@@ -848,6 +868,26 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.0.2',
+        title: 'Weekly fixes',
+        sections: [
+            {
+                title: 'Fixes',
+                lines: [
+                    'Trophy room: if your avatar is shiny, the Pokémon walking around is shiny too',
+                    'VERSUS: Start only shows up after the teams are introduced',
+                    'The screen no longer flickers when entering or leaving a match and the Trophy room',
+                ],
+            },
+            {
+                title: 'Market',
+                lines: [
+                    'The Sponsor card says it is a Sponsor, and the shelf explains the 3 slots (Pokémon, packs and items do not take one)',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.0.1',
         title: 'Tidier Market',

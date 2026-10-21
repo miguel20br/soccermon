@@ -1,5 +1,15 @@
 # Novidades
 
+## 0.9.0.2 · Ajustes da semana
+
+### Consertos
+- Sala de troféus: se o seu avatar é shiny, o Pokémon que passeia na sala também é
+- VERSUS: o Começar só aparece depois da apresentação dos times
+- A tela não pisca mais ao entrar e sair da partida e da Sala de troféus
+
+### Mercado
+- A carta do Patrocínio diz que é Patrocínio, e a prateleira explica as 3 vagas (Pokémon, pacote e item não ocupam vaga)
+
 ## 0.9.0.1 · Mercado organizado
 
 ### Mercado
