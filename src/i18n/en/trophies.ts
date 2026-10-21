@@ -5,13 +5,15 @@ export const trophies: typeof pt = {
     title: 'Trophy room',
     tabs: { trofeus: 'Trophies', medalhas: 'Medals', numeros: 'Numbers' },
     sections: {
-        copa: 'Cup',
+        copa: 'Lightning Cup',
+        rota: 'Indigo Road',
         dia: 'Daily Cup',
         duelo: 'Duel',
         liga: 'League',
     },
     spots: {
-        cups: 'Shelf: Cup trophies',
+        cups: 'Shelf: Lightning Cup trophies',
+        rota: 'Indigo League trophy',
         daily: 'Shelf: Daily Cup medallions',
         duel: 'Duel belts',
         liga: 'League trophy',
@@ -24,7 +26,8 @@ export const trophies: typeof pt = {
         flag: 'Club banner and crest',
     },
     labels: {
-        copa: 'Cup',
+        copa: 'Lightning',
+        rota: 'Indigo Road',
         liga: 'League',
         dia: 'Daily Cup',
         duelo: 'Duel',
@@ -37,7 +40,7 @@ export const trophies: typeof pt = {
     },
     legendAria: "What's in the room",
     tut: {
-        step1: 'Welcome to your trophy room! The Cup trophies sit in the middle: bronze, silver and gold, by how you won.',
+        step1: 'Welcome to your trophy room! The trophies sit in the middle: the Indigo Road one and the Lightning Cup ones.',
         step2: 'The walls hold what you won outside the Cup: Daily Cup, medals, belts and the Hall of Fame.',
         step3: 'Tap anything or use the buttons below. Hold on the room to see every name.',
         next: 'Next',
@@ -70,6 +73,7 @@ export const trophies: typeof pt = {
         medals: '{n} of {total} medals on the board.',
         pc: '{m} matches, {w} wins and {g} goals in your career.',
         tv: 'Latest title: {club}, final {a}-{b}.',
+        hallCount: 'Lightning: {a} · Indigo Road: {b}',
         tvNone: "The TV shows your latest title. You don't have one yet.",
         books: 'Kanto album: {got} of {total} stickers. Johto is coming soon.',
         glass: 'Card showcase: {n} of 3.',
@@ -77,6 +81,7 @@ export const trophies: typeof pt = {
     },
     act: {
         hall: 'See the Hall of Fame',
+        hallRota: 'See the Indigo Road Hall',
         daily: 'Go to the Daily Cup',
         duel: 'Go to Duel',
         platina: "See what's left",
@@ -92,7 +97,7 @@ export const trophies: typeof pt = {
     metal: { bronze: 'bronze', prata: 'silver', ouro: 'gold' },
     cup: '{metal} trophy',
     cupHow: {
-        bronze: 'Win the Cup.',
+        bronze: 'Win the Lightning Cup.',
         prata: 'Win the Cup winning all 4 matches in regular time (no shootouts).',
         ouro: 'Win the Cup without conceding a goal.',
     },
@@ -109,6 +114,8 @@ export const trophies: typeof pt = {
     beltHow: 'Win {n} duels. You have {have}.',
     duelWins: '{n} wins',
     liga: 'League trophy',
+    rota: 'Indigo League trophy',
+    rotaHow: 'Win the Indigo Road.',
     ligaHow: 'The season trophy goes here when the League opens.',
     go: {
         daily: 'Go to the Daily Cup',
@@ -117,5 +124,6 @@ export const trophies: typeof pt = {
     hallAll: 'See all ({n})',
     hallLess: 'See less',
     hallTitle: 'Hall of Fame',
+    hallTabs: { relampago: 'Lightning Cup', rota: 'Indigo Road' },
     cardTrophies: 'Cup trophies',
 };

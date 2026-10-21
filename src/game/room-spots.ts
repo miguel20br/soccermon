@@ -6,6 +6,8 @@ export const ROOM_H = 256;
 
 export const CUP_X: Record<Metal, number> = { bronze: 150, prata: 178, ouro: 206 };
 export const LIGA_X = 240;
+/** Taça da Liga Índigo (Rota Índigo): à esquerda das taças da Relâmpago, entre o abajur e a estante. */
+export const ROTA_X = 119;
 
 /**
  * Onde fica cada objeto que dá pra tocar (px do quarto). A tela usa o mesmo mapa pros nomes ("segurar mostra o nome
@@ -15,6 +17,7 @@ export const ROOM_SPOTS = {
     hall: { x: 8, y: 16, w: 92, h: 30 },
     platina: { x: 102, y: 14, w: 28, h: 36 },
     clube: { x: 162, y: 12, w: 68, h: 24 },
+    rota: { x: ROTA_X - 16, y: 50, w: 32, h: 72 },
     'copa-bronze': { x: CUP_X.bronze - 14, y: 50, w: 28, h: 72 },
     'copa-prata': { x: CUP_X.prata - 14, y: 50, w: 28, h: 72 },
     'copa-ouro': { x: CUP_X.ouro - 14, y: 50, w: 28, h: 72 },

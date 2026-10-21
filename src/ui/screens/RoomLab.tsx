@@ -215,6 +215,7 @@ const ROOM_SCENE = (night: boolean) => ({
     platinum: false,
     pins: MEDALS_FAKE.map((m) => m.tier),
     polaroids: [6, 9, 3, 25].map((speciesId) => ({ speciesId, shiny: false })),
+    rota: 1,
     cards: 3,
     tv: { speciesId: 6, shiny: true },
     mon: { speciesId: 25, shiny: false },

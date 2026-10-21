@@ -457,7 +457,10 @@ export interface HallEntry {
     club: string;
     clubColor: ClubColorId;
     formation: string;
+    /** Nº do título na carreira (os dois modos juntos; o número de cada Hall sai de `hallNo`). */
     titleNo: number;
+    /** Nº do título no Hall do modo (Relâmpago ou Rota). Títulos de antes da separação não têm: `hallNo` calcula. */
+    no?: number;
     perfect: boolean;
     /** Placares das partidas (4 na rápida, 8 na longa; pênaltis à parte). */
     scores: [number, number][];
@@ -469,12 +472,20 @@ export interface HallEntry {
     trainerTitle?: string;
 }
 
-/** Guarda os últimos 50 títulos, como o Hall of Fame do Red/Blue. */
+/** Guarda os últimos 50 títulos de cada Hall (Relâmpago e Rota), como o Hall of Fame do Red/Blue. */
 export const MAX_HALL = 50;
+
+/** Mais recentes primeiro, até `MAX_HALL` de cada modo (a Rota não sai do Hall por causa de 50 Relâmpagos). */
+export function capHall(list: HallEntry[]): HallEntry[] {
+    const n = { rota: 0, relampago: 0 };
+    return [...list]
+        .sort((x, y) => y.date - x.date)
+        .filter((h) => ++n[h.mode === 'longa' ? 'rota' : 'relampago'] <= MAX_HALL);
+}
 
 /** Junta o Hall da nuvem com o do aparelho: união pela copa, mais recentes primeiro. */
 export function mergeHall(a: HallEntry[] = [], b: HallEntry[] = []): HallEntry[] {
     const byId = new Map<string, HallEntry>();
     for (const e of [...a, ...b]) if (!byId.has(e.id)) byId.set(e.id, e);
-    return [...byId.values()].sort((x, y) => y.date - x.date).slice(0, MAX_HALL);
+    return capHall([...byId.values()]);
 }

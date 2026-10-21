@@ -83,6 +83,7 @@ export const duel: typeof pt = {
         title: 'Pick your team',
         current: 'Current cup',
         hall: 'Champion · title {n}',
+        hallRota: 'Indigo Road champion · title {n}',
         hallNote: 'Hall teams come back with the species and lineup of the title.',
         none: "You don't have a ready team yet. Finish a cup draft or win a title.",
         chosen: 'Your team is set.',

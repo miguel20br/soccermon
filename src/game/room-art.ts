@@ -33,9 +33,12 @@ const canvas = (w: number, h: number) => {
     return { el, c };
 };
 
-/** Taça (24 x 30): bojo, haste, base e duas alças. `big` = a da Liga (36 x 44). */
-export function paintCup(metal: Metal | 'ghost', big = false) {
-    const s = big ? 1.5 : 1;
+/**
+ * Taça (24 x 30): bojo, haste, base e duas alças. `big` = a da Liga (36 x 44), ou a escala. `band` = faixa no bojo
+ * (a índigo da taça da Liga Índigo).
+ */
+export function paintCup(metal: Metal | 'ghost', big: boolean | number = false, band?: string) {
+    const s = big === true ? 1.5 : big || 1;
     const W = Math.round(24 * s);
     const H = Math.round(30 * s);
     const { el, c } = canvas(W, H);
@@ -65,6 +68,17 @@ export function paintCup(metal: Metal | 'ghost', big = false) {
         c.fillStyle = t[2];
         c.fillRect(hx - (side > 0 ? -1 : Math.round(2 * s) - 1), Math.round(4 * s), 1, Math.round(5 * s));
         c.fillStyle = t[0];
+    }
+    // faixa no bojo: contorno escuro, a cor e um brilho em cima
+    if (band) {
+        const y = Math.round(5 * s);
+        const r = Math.round(prof(y) - 0.5);
+        c.fillStyle = t[0];
+        c.fillRect(Math.round(cx - r), y - 1, r * 2, Math.round(3 * s) + 2);
+        c.fillStyle = band;
+        c.fillRect(Math.round(cx - r) + 1, y, r * 2 - 2, Math.round(3 * s));
+        c.fillStyle = 'rgba(255,255,255,0.35)';
+        c.fillRect(Math.round(cx - r) + 1, y, r * 2 - 2, 1);
     }
     // base de madeira
     c.fillStyle = '#3a2214';

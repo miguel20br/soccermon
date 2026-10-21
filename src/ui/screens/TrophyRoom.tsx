@@ -14,6 +14,9 @@ import {
     dailyCounts,
     dailyMetal,
     fullWeeks,
+    type HallMode,
+    hallModeOf,
+    hallOf,
     METALS,
     roomLevel,
 } from '../../store/trophies';
@@ -43,6 +46,7 @@ const ORDER = [
     'dia',
     'medalhas',
     'duelo',
+    'rota',
     'copa-bronze',
     'copa-prata',
     'copa-ouro',
@@ -56,6 +60,7 @@ type Obj = (typeof ORDER)[number];
 
 /** Botões-legenda embaixo do quarto: cada um leva ao objeto (e acende quando o foco está nele). */
 const LEGEND: { label: LabelKey; to: Obj; has: readonly Obj[] }[] = [
+    { label: 'rota', to: 'rota', has: ['rota'] },
     { label: 'copa', to: 'copa-bronze', has: ['copa-bronze', 'copa-prata', 'copa-ouro'] },
     { label: 'liga', to: 'liga', has: ['liga'] },
     { label: 'dia', to: 'dia', has: ['dia'] },
@@ -67,7 +72,18 @@ const LEGEND: { label: LabelKey; to: Obj; has: readonly Obj[] }[] = [
     { label: 'colecao', to: 'album', has: ['album', 'livros'] },
     { label: 'clube', to: 'clube', has: ['clube'] },
 ];
-type LabelKey = 'copa' | 'liga' | 'dia' | 'duelo' | 'medalhas' | 'hall' | 'platina' | 'numeros' | 'colecao' | 'clube';
+type LabelKey =
+    | 'rota'
+    | 'copa'
+    | 'liga'
+    | 'dia'
+    | 'duelo'
+    | 'medalhas'
+    | 'hall'
+    | 'platina'
+    | 'numeros'
+    | 'colecao'
+    | 'clube';
 /** Nome curto de cada objeto (o que aparece ao segurar e ao passar o mouse). */
 const LABEL_OF: Record<Obj, LabelKey> = {
     platina: 'platina',
@@ -76,6 +92,7 @@ const LABEL_OF: Record<Obj, LabelKey> = {
     dia: 'dia',
     medalhas: 'medalhas',
     duelo: 'duelo',
+    rota: 'rota',
     'copa-bronze': 'copa',
     'copa-prata': 'copa',
     'copa-ouro': 'copa',
@@ -90,6 +107,7 @@ const HOLD_LABELS: Obj[] = [
     'platina',
     'hall',
     'clube',
+    'rota',
     'copa-prata',
     'liga',
     'dia',
@@ -212,8 +230,16 @@ export function TrophyRoom() {
         const tab = initialTab('trophies');
         return tab === 'trofeus' ? null : tab;
     });
+    // dois Halls: o da Copa Relâmpago e o da Rota Índigo (as taças de metal são só da Relâmpago)
+    const [hallTab, setHallTab] = useState<HallMode>(() => (hall[0] ? hallModeOf(hall[0]) : 'relampago'));
+    const relampago = hallOf(hall, 'relampago');
+    const rota = hallOf(hall, 'rota');
+    const openHall = (mode: HallMode) => {
+        setHallTab(mode);
+        setSheet('hall');
+    };
 
-    const cups = cupCounts(hall);
+    const cups = cupCounts(relampago);
     const days = dailyCounts(daily);
     const weeks = fullWeeks(daily);
     const duelWins = duelWinsOf(records, view.duels);
@@ -239,6 +265,7 @@ export function TrophyRoom() {
     const avatar = profile.avatar;
     const sceneKey = JSON.stringify([
         cups,
+        rota.length,
         days,
         weeks,
         duelWins,
@@ -256,6 +283,7 @@ export function TrophyRoom() {
             night,
             club: `#${clubColorHex(profile.clubColor).toString(16).padStart(6, '0')}`,
             cups,
+            rota: rota.length,
             days,
             weeks,
             belts: BELTS.map((b) => duelWins >= b.wins),
@@ -286,15 +314,26 @@ export function TrophyRoom() {
             case 'copa-prata':
             case 'copa-ouro': {
                 const m = o.slice(5) as Metal;
-                const mine = hall.filter((h) => cupMetal(h) === m);
+                const mine = relampago.filter((h) => cupMetal(h) === m);
                 return {
                     title: t('trophies.cup', { metal: metalName(m) }),
                     metal: m,
                     badge: mine.length ? t('trophies.times', { n: mine.length }) : t('trophies.card.none'),
                     lines: [t(`trophies.cupHow.${m}` as TKey), ...mine.slice(0, 3).map(titleLine)],
-                    action: mine.length ? { label: t('trophies.act.hall'), run: () => setSheet('hall') } : undefined,
+                    action: mine.length
+                        ? { label: t('trophies.act.hall'), run: () => openHall('relampago') }
+                        : undefined,
                 };
             }
+            case 'rota':
+                return {
+                    title: t('trophies.rota'),
+                    badge: rota.length ? t('trophies.times', { n: rota.length }) : t('trophies.card.none'),
+                    lines: [t('trophies.rotaHow'), ...rota.slice(0, 3).map(titleLine)],
+                    action: rota.length
+                        ? { label: t('trophies.act.hallRota'), run: () => openHall('rota') }
+                        : undefined,
+                };
             case 'liga':
                 return { title: t('trophies.liga'), badge: t('trophies.card.soon'), lines: [t('trophies.ligaHow')] };
             case 'dia': {
@@ -356,8 +395,13 @@ export function TrophyRoom() {
                 return {
                     title: t('trophies.hallTitle'),
                     badge: hall.length ? t('trophies.times', { n: hall.length }) : undefined,
-                    lines: last ? hall.slice(0, 3).map(titleLine) : [t('trophies.say.tvNone')],
-                    action: last ? { label: t('trophies.act.hall'), run: () => setSheet('hall') } : undefined,
+                    lines: last
+                        ? [
+                              t('trophies.say.hallCount', { a: relampago.length, b: rota.length }),
+                              ...hall.slice(0, 3).map(titleLine),
+                          ]
+                        : [t('trophies.say.tvNone')],
+                    action: last ? { label: t('trophies.act.hall'), run: () => openHall(hallModeOf(last)) } : undefined,
                 };
             case 'platina': {
                 const items = platinumItems(PLATINUM[0], view);
@@ -554,12 +598,42 @@ export function TrophyRoom() {
             )}
             {sheet === 'hall' && (
                 <SheetPanel title={t('trophies.hallTitle')} onClose={() => setSheet(null)}>
-                    <HallList />
+                    <div className="bc-seg tr-hall-tabs" role="tablist">
+                        {(['relampago', 'rota'] as const).map((m) => (
+                            <button
+                                key={m}
+                                type="button"
+                                role="tab"
+                                aria-selected={hallTab === m}
+                                className={hallTab === m ? 'on' : undefined}
+                                onClick={() => setHallTab(m)}
+                            >
+                                {m === 'rota' && <HudIcon kind="cup" />}
+                                {d.trophies.hallTabs[m]}
+                                <small>{(m === 'rota' ? rota : relampago).length}</small>
+                            </button>
+                        ))}
+                    </div>
+                    <div key={hallTab} className="tr-hall-pane">
+                        <HallList mode={hallTab} />
+                    </div>
                 </SheetPanel>
             )}
             {sheet === 'lista' && (
                 <SheetPanel title={t('trophies.card.list')} onClose={() => setSheet(null)}>
                     <div className="tr-sections">
+                        <section className="pf-card">
+                            <h3 className="bc-lbl">{t('trophies.sections.rota')}</h3>
+                            <ul className="tr-cards">
+                                <TrophyCard
+                                    kind="liga"
+                                    metal="ouro"
+                                    n={rota.length}
+                                    name={t('trophies.rota')}
+                                    how={t('trophies.rotaHow')}
+                                />
+                            </ul>
+                        </section>
                         <section className="pf-card">
                             <h3 className="bc-lbl">{t('trophies.sections.copa')}</h3>
                             <ul className="tr-cards">

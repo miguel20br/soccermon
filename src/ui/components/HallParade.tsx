@@ -5,6 +5,7 @@ import { useGame } from '../../store/game-store';
 import { trainerFrame } from '../../store/missions';
 import { clubColorHex, type HallEntry } from '../../store/profile';
 import { titleClass } from '../../store/title-codes';
+import { type HallMode, hallNo, hallOf } from '../../store/trophies';
 import { clubVars, titleName } from '../profile/club';
 import { TrainerSprite } from '../profile/TrainerTab';
 import { reduceMotionOn } from '../settings-sync';
@@ -19,6 +20,7 @@ const STEP_MS = 1700;
 export function HallParade({ entry, trainer, onDone }: { entry: HallEntry; trainer: string; onDone: () => void }) {
     const { t } = useT();
     const cries = useGame((s) => s.settings.cries);
+    const hall = useGame((s) => s.hall);
     const total = entry.squad.length;
     // com "reduzir movimento", vai direto para o cartão final
     const [i, setI] = useState(() => (reduceMotionOn() ? total : 0));
@@ -50,7 +52,11 @@ export function HallParade({ entry, trainer, onDone }: { entry: HallEntry; train
                 </div>
             ) : (
                 <div className="hp-end">
-                    <span className="hp-no">{t('title.hall.entry', { n: entry.titleNo })}</span>
+                    <span className="hp-no">
+                        {t(entry.mode === 'longa' ? 'title.hall.entryRota' : 'title.hall.entry', {
+                            n: hallNo(hall, entry),
+                        })}
+                    </span>
                     <b className="hp-club">{entry.club}</b>
                     <div className="hp-trainer">
                         {entry.trainer && <TrainerSprite id={entry.trainer} />}
@@ -78,23 +84,22 @@ export function HallParade({ entry, trainer, onDone }: { entry: HallEntry; train
     );
 }
 
-/** Lista do Hall da Fama (Perfil): um cartão por título, do mais recente ao mais antigo. */
-/** Os títulos do Hall da Fama (`only`: só estes, pela copa; a sala de troféus filtra pelo metal da taça). */
-export function HallList({ only }: { only?: string[] } = {}) {
+/** Um Hall da Fama (Relâmpago ou Rota): um cartão por título, do mais recente ao mais antigo, com o nº daquele Hall. */
+export function HallList({ mode }: { mode: HallMode }) {
     const { t, lang } = useT();
     const all = useGame((s) => s.hall);
-    const hall = only ? all.filter((h) => only.includes(h.id)) : all;
+    const hall = hallOf(all, mode);
     if (!hall.length) return <p className="muted">{t('title.hall.empty')}</p>;
     return (
         <ol className="hall-list">
             {hall.map((h) => (
                 <li
                     key={h.id}
-                    className={`hall-card${trainerFrame(h.trainer)}`}
+                    className={`hall-card${mode === 'rota' ? ' rota' : ''}${trainerFrame(h.trainer)}`}
                     style={clubVars(clubColorHex(h.clubColor))}
                 >
                     <div className="hall-head">
-                        <b>{t('title.hall.entry', { n: h.titleNo })}</b>
+                        <b>{t(mode === 'rota' ? 'title.hall.entryRota' : 'title.hall.entry', { n: h.titleNo })}</b>
                         <span className="muted">
                             {new Date(h.date).toLocaleDateString(lang === 'pt' ? 'pt-BR' : 'en-US')}
                         </span>
@@ -122,7 +127,6 @@ export function HallList({ only }: { only?: string[] } = {}) {
                         ))}
                     </div>
                     <span className="muted hall-scores">
-                        {h.mode === 'longa' && <b className="hall-mode">{t('longCup.title')} · </b>}
                         {h.scores.map((s) => `${s[0]}x${s[1]}`).join(' · ')}
                         {h.perfect && ` · ${t('title.hall.perfect')}`}
                     </span>

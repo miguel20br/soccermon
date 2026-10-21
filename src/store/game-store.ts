@@ -75,6 +75,7 @@ import { activeTitle, activeTrainer, matchView, newMissions, stageView } from '.
 import { withSeenBaseline } from './news';
 import {
     type Career,
+    capHall,
     clubColorHex,
     DEFAULT_PROFILE,
     type Dex,
@@ -84,7 +85,6 @@ import {
     EMPTY_ENTRY,
     editionBits,
     type HallEntry,
-    MAX_HALL,
     type MoveDex,
     markOvr,
     markPlayed,
@@ -101,6 +101,7 @@ import {
     tagFromName,
 } from './profile';
 import { screenTransition } from './screen-transition';
+import { nextHallNo } from './trophies';
 
 /** Edição especial só quando as cartas novas estão no jogo. */
 const rollSpecial: typeof roll = (inst, ev) => (SPECIALS_LIVE ? roll(inst, ev) : inst);
@@ -189,6 +190,8 @@ export interface StageStats {
 /** O que o título trouxe de novo, calculado no apito final (antes de somar no perfil). */
 export interface ChampMemo {
     titleNo: number;
+    /** Nº do título no Hall do modo (Relâmpago ou Rota); títulos de antes da separação não têm. */
+    no?: number;
     /** Nº da copa perfeita (null se não foi perfeita). */
     perfectNo: number | null;
     /** Espécies que bateram a melhor nota de partida delas nesta copa. */
@@ -724,6 +727,7 @@ export function hallEntry(run: RunState, profile: Profile): HallEntry {
         clubColor: profile.clubColor,
         formation: run.formation,
         titleNo: run.champ?.titleNo ?? 1,
+        ...(run.champ?.no && { no: run.champ.no }),
         perfect: isPerfectCup(run),
         scores: run.results.map((r) => [r.score[0], r.score[1]]),
         squad,
@@ -982,7 +986,7 @@ export function migrateSave(old: Partial<PersistedSave>, version: number): Persi
         );
     }
     // v9: álbum de edições (retroativo)
-    const hall = Array.isArray(old.hall) ? old.hall.slice(0, MAX_HALL) : [];
+    const hall = Array.isArray(old.hall) ? capHall(old.hall) : [];
     const parkedRuns =
         version < 3 || !Array.isArray(old.parkedRuns)
             ? []
@@ -1526,11 +1530,14 @@ export const useGame = create<GameStore>()(
                         });
                     let hall = getState().hall;
                     if (status === 'champion') {
-                        next.champ = champMemo(next, records, getState().dex);
-                        hall = [hallEntry(next, getState().profile), ...hall.filter((h) => h.id !== next.seed)].slice(
-                            0,
-                            MAX_HALL,
-                        );
+                        next.champ = {
+                            ...champMemo(next, records, getState().dex),
+                            no: nextHallNo(records, hall, isLong(run)),
+                        };
+                        hall = capHall([
+                            hallEntry(next, getState().profile),
+                            ...hall.filter((h) => h.id !== next.seed),
+                        ]);
                     }
                     const withStar = {
                         ...records,

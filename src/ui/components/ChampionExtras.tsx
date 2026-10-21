@@ -28,7 +28,14 @@ export function TitleRecords({ run, rarity }: { run: RunState; rarity: Rarity | 
     const { t } = useT();
     const c = run.champ;
     if (!c) return null;
-    const items: string[] = [c.titleNo === 1 ? t('title.records.first') : t('title.records.title', { n: c.titleNo })];
+    // o nº do título no Hall do modo (a Rota Índigo tem o dela); títulos de antes da separação: o da carreira
+    const no = c.no ?? c.titleNo;
+    const rota = run.mode === 'longa';
+    const items: string[] = [
+        no === 1
+            ? t(rota ? 'title.records.firstRota' : 'title.records.first')
+            : t(rota ? 'title.records.titleRota' : 'title.records.title', { n: no }),
+    ];
     if (c.perfectNo) items.push(t('title.records.perfect', { n: c.perfectNo }));
     for (const b of c.newBests.slice(0, 2))
         items.push(t('title.records.best', { name: b.name, r: b.rating.toFixed(1) }));

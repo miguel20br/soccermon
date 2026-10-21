@@ -20,6 +20,7 @@ import {
 import { duel, useDuel } from '../../net/session';
 import { isDraftComplete, playerTeam, type SlotRef, useGame } from '../../store/game-store';
 import { clubColorHex, type HallEntry } from '../../store/profile';
+import { hallNo } from '../../store/trophies';
 import { useCardModal } from '../card-modal';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { FormationBoard } from '../components/FormationBoard';
@@ -93,7 +94,12 @@ export function TeamPick({ s, role }: { s: Shared; role: Role }) {
     const options: { key: string; label: string; team: TeamSetup }[] = [];
     if (run && isDraftComplete(run) && run.lineup.length)
         options.push({ key: 'run', label: t('duel.team.current'), team: playerTeam(run, color) });
-    for (const h of hall) options.push({ key: h.id, label: t('duel.team.hall', { n: h.titleNo }), team: hallTeam(h) });
+    for (const h of hall)
+        options.push({
+            key: h.id,
+            label: t(h.mode === 'longa' ? 'duel.team.hallRota' : 'duel.team.hall', { n: hallNo(hall, h) }),
+            team: hallTeam(h),
+        });
     // escolhido: o time fica à vista com o pronto (e o "Mudar algo" volta pra lista enquanto o rival não escolheu)
     if (sealed || bothSealed(s)) {
         return (

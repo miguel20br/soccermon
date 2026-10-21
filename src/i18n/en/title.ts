@@ -22,6 +22,8 @@ export const title: typeof pt = {
     records: {
         title: 'Title #{n}',
         first: 'First title!',
+        titleRota: 'Indigo Road title #{n}',
+        firstRota: 'First Indigo Road title!',
         perfect: 'Perfect cup #{n}',
         best: 'New best for {name}: {r}',
         firstTitle: "{name}'s first title",
@@ -46,6 +48,7 @@ export const title: typeof pt = {
     hall: {
         h: 'Hall of Fame',
         entry: 'Hall of Fame #{n}',
+        entryRota: 'Indigo Road Hall #{n}',
         empty: 'Win a cup to enter the Hall of Fame.',
         skip: 'Tap to skip',
         goals: '{n} goals',

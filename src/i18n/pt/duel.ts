@@ -82,6 +82,7 @@ export const duel = {
         title: 'Escolha seu time',
         current: 'Copa atual',
         hall: 'Campeão · título {n}',
+        hallRota: 'Campeão da Rota · título {n}',
         hallNote: 'Times do Hall voltam com as espécies e a escalação do título.',
         none: 'Você ainda não tem time pronto. Termine o draft de uma copa ou ganhe um título.',
         chosen: 'Seu time está escolhido.',

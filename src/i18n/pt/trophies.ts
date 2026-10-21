@@ -3,14 +3,16 @@ export const trophies = {
     title: 'Sala de troféus',
     tabs: { trofeus: 'Troféus', medalhas: 'Medalhas', numeros: 'Números' },
     sections: {
-        copa: 'Copa',
+        copa: 'Copa Relâmpago',
+        rota: 'Rota Índigo',
         dia: 'Copa do Dia',
         duelo: 'Duelo',
         liga: 'Liga',
     },
     /** O que cada móvel do quarto é (leitor de tela e dica do mouse). */
     spots: {
-        cups: 'Estante: taças da Copa',
+        cups: 'Estante: taças da Copa Relâmpago',
+        rota: 'Taça da Liga Índigo',
         daily: 'Estante: medalhões da Copa do Dia',
         duel: 'Cinturões do Duelo',
         liga: 'Taça da Liga',
@@ -23,7 +25,8 @@ export const trophies = {
         flag: 'Faixa e escudo do clube',
     },
     labels: {
-        copa: 'Copa',
+        copa: 'Relâmpago',
+        rota: 'Rota Índigo',
         liga: 'Liga',
         dia: 'Copa do Dia',
         duelo: 'Duelo',
@@ -36,7 +39,7 @@ export const trophies = {
     },
     legendAria: 'O que tem na sala',
     tut: {
-        step1: 'Bem-vindo à sua sala de troféus! No centro ficam as taças da Copa: bronze, prata e ouro, pela campanha.',
+        step1: 'Bem-vindo à sua sala de troféus! No centro ficam as taças: a da Rota Índigo e as da Copa Relâmpago.',
         step2: 'Nas paredes fica o que você ganhou fora da Copa: Copa do Dia, medalhas, cinturões e o Hall da Fama.',
         step3: 'Toque em qualquer coisa ou use os botões embaixo. Segure na sala pra ver o nome de tudo.',
         next: 'Próximo',
@@ -69,6 +72,7 @@ export const trophies = {
         medals: '{n} de {total} medalhas no quadro.',
         pc: '{m} partidas, {w} vitórias e {g} gols na carreira.',
         tv: 'Último título: {club}, final {a}x{b}.',
+        hallCount: 'Relâmpago: {a} · Rota Índigo: {b}',
         tvNone: 'A TV passa o seu último título. Ainda não tem nenhum.',
         books: 'Álbum de Kanto: {got} de {total} figurinhas. O de Johto chega em breve.',
         glass: 'Vitrine de cartas: {n} de 3.',
@@ -76,6 +80,7 @@ export const trophies = {
     },
     act: {
         hall: 'Ver o Hall da Fama',
+        hallRota: 'Ver o Hall da Rota',
         daily: 'Ir pra Copa do Dia',
         duel: 'Ir pro Duelo',
         platina: 'Ver o que falta',
@@ -91,7 +96,7 @@ export const trophies = {
     metal: { bronze: 'bronze', prata: 'prata', ouro: 'ouro' },
     cup: 'Taça de {metal}',
     cupHow: {
-        bronze: 'Seja campeão da Copa.',
+        bronze: 'Seja campeão da Copa Relâmpago.',
         prata: 'Seja campeão ganhando as 4 partidas no tempo normal (sem pênaltis).',
         ouro: 'Seja campeão sem sofrer nenhum gol.',
     },
@@ -108,6 +113,8 @@ export const trophies = {
     beltHow: 'Vença {n} duelos. Você tem {have}.',
     duelWins: '{n} vitórias',
     liga: 'Taça da Liga',
+    rota: 'Taça da Liga Índigo',
+    rotaHow: 'Seja campeão da Rota Índigo.',
     ligaHow: 'A taça da temporada fica aqui quando a Liga abrir.',
     go: {
         daily: 'Ir pra Copa do Dia',
@@ -116,5 +123,6 @@ export const trophies = {
     hallAll: 'Ver todos ({n})',
     hallLess: 'Ver menos',
     hallTitle: 'Hall da Fama',
+    hallTabs: { relampago: 'Copa Relâmpago', rota: 'Rota Índigo' },
     cardTrophies: 'Taças da Copa',
 };

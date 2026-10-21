@@ -5948,6 +5948,48 @@ a.home-tile {
 .hall-scores {
     font-size: 12px;
 }
+/* Hall da Rota Índigo: o título que vale mais, no índigo da Liga */
+.hall-card.rota {
+    border-color: #6d6fd6;
+    background: linear-gradient(160deg, rgb(109 111 214 / 22%), transparent 60%), var(--panel);
+}
+.hall-card.rota .hall-head b {
+    color: #c9cbff;
+}
+.tr-hall-tabs {
+    margin-bottom: 12px;
+}
+.tr-hall-tabs button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+.tr-hall-tabs small {
+    opacity: 0.75;
+}
+.tr-hall-pane {
+    animation: tr-hall-in 240ms var(--ease-out) both;
+}
+@keyframes tr-hall-in {
+    from {
+        opacity: 0;
+        translate: 0 6px;
+    }
+}
+@keyframes tr-hall-fade {
+    from {
+        opacity: 0;
+    }
+}
+:root[data-reduce-motion="true"] .tr-hall-pane {
+    animation-name: tr-hall-fade;
+}
+@media (prefers-reduced-motion: reduce) {
+    .tr-hall-pane {
+        animation-name: tr-hall-fade;
+    }
+}
 
 /* barra de evolução acumulada na copa (some quando zera; enche até o Pokémon evoluir) */
 /* barra de evolução da vaga: roxa como a da partida e com a setinha de evoluir, pra não parecer fôlego */

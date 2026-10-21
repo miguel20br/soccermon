@@ -1,5 +1,6 @@
 import type { Metal } from '../ui/rarity';
 import { type DailyEntry, winsOf } from './daily';
+import type { Records } from './game-store';
 import type { HallEntry } from './profile';
 
 /**
@@ -26,6 +27,37 @@ export function dailyMetal(e: Pick<DailyEntry, 'results' | 'champion'>): Metal |
     if (e.champion) return 'ouro';
     const w = winsOf(e);
     return w >= 3 ? 'prata' : w >= 2 ? 'bronze' : null;
+}
+
+/**
+ * Dois Halls da Fama (pedido do Miguel, 21/10): o da Copa Relâmpago (com a Copa do Dia) e o da Rota Índigo, cada um
+ * com a sua contagem. O save guarda uma lista só; o modo de cada título separa (`mode: 'longa'` = Rota).
+ */
+export type HallMode = 'relampago' | 'rota';
+export const hallModeOf = (h: Pick<HallEntry, 'mode'>): HallMode => (h.mode === 'longa' ? 'rota' : 'relampago');
+
+/**
+ * Nº do título no Hall do modo dele. Os novos já vêm com `no`; os de antes da separação tinham só o nº da carreira
+ * (os dois modos juntos): na Rota vale a ordem entre os títulos da Rota, na Relâmpago o nº da carreira menos os títulos
+ * da Rota que vieram antes.
+ */
+export function hallNo(hall: readonly HallEntry[], h: HallEntry): number {
+    if (h.no) return h.no;
+    const rotaBefore = (strict: boolean) =>
+        hall.filter((x) => x.mode === 'longa' && (strict ? x.date < h.date : x.date <= h.date)).length;
+    return h.mode === 'longa' ? Math.max(1, rotaBefore(false)) : Math.max(1, h.titleNo - rotaBefore(true));
+}
+
+/** O Hall de um modo, mais recente primeiro, com `titleNo` = o nº naquele Hall. */
+export function hallOf(hall: readonly HallEntry[], mode: HallMode): HallEntry[] {
+    return hall.filter((h) => hallModeOf(h) === mode).map((h) => ({ ...h, titleNo: hallNo(hall, h) }));
+}
+
+/** Nº do próximo título no Hall do modo (antes de somar o título nos recordes). */
+export function nextHallNo(records: Pick<Records, 'titles' | 'longTitles'>, hall: readonly HallEntry[], rota: boolean) {
+    const long = records.longTitles ?? 0;
+    const mine = hallOf(hall, rota ? 'rota' : 'relampago');
+    return Math.max(rota ? long : records.titles - long, mine[0]?.titleNo ?? 0) + 1;
 }
 
 export type MetalCount = Record<Metal, number>;

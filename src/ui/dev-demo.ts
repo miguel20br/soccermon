@@ -643,7 +643,8 @@ function demoCollection() {
 
 /**
  * `?demo=sala`: a carreira do `?demo=colecao` com 9 títulos (taças de bronze, prata e ouro), 12 dias de Copa do Dia
- * (uma semana inteira) e 12 vitórias no Duelo, e abre a Sala de troféus (sala do clube, nível 2). `&titulos=0` deixa
+ * (uma semana inteira) e 12 vitórias no Duelo, e abre a Sala de troféus (sala do clube, nível 2). Um título a cada 4
+ * é da Rota Índigo (vai pro Hall da Rota e pra taça da Liga Índigo). `&titulos=0` deixa
  * a sala vazia (só silhuetas); `&titulos=30` vira a sala do estádio.
  */
 function demoTrophyRoom() {
@@ -659,19 +660,31 @@ function demoTrophyRoom() {
         formation: '2-2',
         titleNo: n - i,
         perfect: i % 4 === 0,
-        scores: (i % 3 === 1
+        ...(i % 4 === 2 && { mode: 'longa' as const }),
+        scores: (i % 4 === 2
             ? [
-                  [3, 1],
+                  [2, 1],
+                  [3, 0],
+                  [1, 2],
                   [2, 0],
+                  [4, 1],
                   [1, 0],
-                  [4, 2],
-              ]
-            : [
-                  [3, 1],
                   [2, 2],
-                  [1, 0],
-                  [4, 2],
-              ]) as [number, number][],
+                  [3, 1],
+              ]
+            : i % 3 === 1
+              ? [
+                    [3, 1],
+                    [2, 0],
+                    [1, 0],
+                    [4, 2],
+                ]
+              : [
+                    [3, 1],
+                    [2, 2],
+                    [1, 0],
+                    [4, 2],
+                ]) as [number, number][],
         squad: [6, 9, 25, 143, 149].map((speciesId, k) => ({
             speciesId,
             shiny: k === 0 && i === 0,
@@ -699,7 +712,13 @@ function demoTrophyRoom() {
     useGame.setState({
         hall,
         daily,
-        records: { ...g.records, titles: n, perfect: hall.filter((h) => h.perfect).length, duelWins: n ? 12 : 0 },
+        records: {
+            ...g.records,
+            titles: n,
+            longTitles: hall.filter((h) => h.mode).length,
+            perfect: hall.filter((h) => h.perfect).length,
+            duelWins: n ? 12 : 0,
+        },
     });
     g.go('trophies');
 }

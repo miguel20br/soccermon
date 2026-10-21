@@ -3,7 +3,7 @@ import '../trophy-room.css';
 
 /**
  * Troféus em pixel art desenhados por código (uma linha = uma fileira de pixels): `o` metal, `h` brilho, `s` sombra,
- * `b` base de madeira, `r` fita (cor do clube), `k` couro do cinturão.
+ * `b` base de madeira, `r` fita (cor do clube), `k` couro do cinturão, `i` faixa índigo (taça da Liga Índigo).
  */
 export const ART = {
     taca: [
@@ -19,6 +19,23 @@ export const ART = {
         '......hoos......',
         '.....hoooos.....',
         '....bbbbbbbb....',
+        '...bbbbbbbbbb...',
+        '...bbbbbbbbbb...',
+    ],
+    /** Taça da Liga Índigo (Rota Índigo): a taça com a faixa índigo no bojo e base mais alta. */
+    liga: [
+        '..hhhhhhhhhhhh..',
+        '.s.hoooooooos.s.',
+        's..hoooooooos..s',
+        's..iiiiiiiiii..s',
+        '.s.hoooooooos.s.',
+        '...shooooooos...',
+        '....shooooos....',
+        '.....shooos.....',
+        '......hoos......',
+        '......hoos......',
+        '.....hoooos.....',
+        '....iiiiiiii....',
         '...bbbbbbbbbb...',
         '...bbbbbbbbbb...',
     ],
@@ -73,8 +90,8 @@ export function PixelTrophy({
 }) {
     const rows = ART[kind];
     const pal: Record<string, string> = gb
-        ? { o: GB_METAL[metal], h: '#9bbc0f', s: '#0f380f', b: '#0f380f', r: '#306230', k: '#0f380f' }
-        : { ...PALETTE[metal], b: '#5a3b24', r: 'var(--tr-ribbon)', k: '#3a2a22' };
+        ? { o: GB_METAL[metal], h: '#9bbc0f', s: '#0f380f', b: '#0f380f', r: '#306230', k: '#0f380f', i: '#306230' }
+        : { ...PALETTE[metal], b: '#5a3b24', r: 'var(--tr-ribbon)', k: '#3a2a22', i: '#4b4fc4' };
     const paths = new Map<string, string>();
     rows.forEach((row, y) => {
         [...row].forEach((c, x) => {

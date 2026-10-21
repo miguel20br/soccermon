@@ -23,6 +23,7 @@ import {
     ROOM_H,
     ROOM_SPOTS,
     ROOM_W,
+    ROTA_X,
     type RoomSpot,
 } from '../room-spots';
 
@@ -52,6 +53,8 @@ export interface RoomSceneData {
     night: boolean;
     club: string;
     cups: Record<Metal, number>;
+    /** Títulos da Rota Índigo (a taça da Liga Índigo, à parte das da Relâmpago). */
+    rota: number;
     days: Record<Metal, number>;
     weeks: number;
     belts: boolean[];
@@ -200,6 +203,32 @@ export class TrophyRoomScene extends Phaser.Scene {
             zone(`copa-${m}`, [base, cup, glass]);
             if (d.cups[m]) this.spot(x, 0xffe9b8, 1.5);
         });
+        // a taça da Liga Índigo (Rota Índigo): maior, mais alta e com a faixa índigo; luz própria quando ganha
+        const rotaBase = lit(
+            this.add
+                .image(ROTA_X, 122, canvasTex('pedestal-rota', paintPedestal(32, 30)))
+                .setOrigin(0.5, 1)
+                .setDepth(122),
+        );
+        const rotaCup = lit(
+            this.add
+                .image(
+                    ROTA_X,
+                    92,
+                    canvasTex(
+                        `cup-rota-${d.rota > 0}`,
+                        paintCup(d.rota ? 'ouro' : 'ghost', 1.25, d.rota ? '#4b4fc4' : undefined),
+                    ),
+                )
+                .setOrigin(0.5, 1)
+                .setDepth(123),
+        );
+        const rotaGlass = this.add
+            .image(ROTA_X, 92, canvasTex('glass-rota', paintGlass(32, 44)))
+            .setOrigin(0.5, 1)
+            .setDepth(124);
+        zone('rota', [rotaBase, rotaCup, rotaGlass]);
+        if (d.rota) this.spot(ROTA_X, 0xb8bcff, 2);
         const ligaBase = lit(
             this.add
                 .image(LIGA_X, 122, canvasTex('pedestal-big', paintPedestal(34, 30)))

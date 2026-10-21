@@ -21,6 +21,8 @@ export const title = {
     records: {
         title: '{n}º título',
         first: 'Primeiro título!',
+        titleRota: '{n}º título da Rota Índigo',
+        firstRota: 'Primeiro título da Rota Índigo!',
         perfect: '{n}ª copa perfeita',
         best: 'Recorde de {name}: nota {r}',
         firstTitle: 'Primeiro título de {name}',
@@ -45,6 +47,7 @@ export const title = {
     hall: {
         h: 'Hall da Fama',
         entry: 'Hall da Fama nº {n}',
+        entryRota: 'Hall da Rota Índigo nº {n}',
         empty: 'Ganhe uma copa para entrar no Hall da Fama.',
         skip: 'Toque para pular',
         goals: '{n} gols',
