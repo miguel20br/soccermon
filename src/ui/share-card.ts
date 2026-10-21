@@ -290,7 +290,7 @@ export async function drawShareCard(data: ShareCardData, format: CardFormat): Pr
     const gap = sq ? 16 : 20;
     const perRow = data.games.length > 4 ? Math.ceil(data.games.length / 2) : data.games.length;
     const rows = Math.ceil(data.games.length / perRow);
-    const gs = rows > 1 ? (sq ? 120 : 200) : sq ? 180 : 225;
+    const gs = rows > 1 ? (sq ? 120 : 160) : sq ? 180 : 225;
     const y0 = y;
     data.games.forEach((g, i) => {
         const inRow = Math.min(perRow, data.games.length - Math.floor(i / perRow) * perRow);
@@ -309,7 +309,7 @@ export async function drawShareCard(data: ShareCardData, format: CardFormat): Pr
         fitFont(ctx, g.opponent, sq ? 22 : 26, gs - 20, false);
         text(ctx, g.opponent, mid, y + gs * 0.88, '#ffffff', 2);
     });
-    y = y0 + rows * gs + (rows - 1) * gap + (sq ? 40 : 70);
+    y = y0 + rows * gs + (rows - 1) * gap + (sq ? 40 : rows > 1 ? 40 : 70);
 
     // time titular: sprites, nome e o C do capitão
     const cw = sq ? 190 : 200;
@@ -343,7 +343,7 @@ export async function drawShareCard(data: ShareCardData, format: CardFormat): Pr
             text(ctx, 'C', bx, by + r * 0.45, INK);
         }
     });
-    y += sh + (sq ? 56 : 110);
+    y += sh + (sq ? 56 : rows > 1 ? 70 : 110);
 
     // artilheiro
     if (data.scorer && scorerImg) {
