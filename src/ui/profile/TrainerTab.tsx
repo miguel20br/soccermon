@@ -1,6 +1,7 @@
 import { type FormEvent, useMemo, useState } from 'react';
 import { species } from '../../engine/data';
 import { useT } from '../../i18n/react';
+import { returnCard } from '../../store/binder';
 import { useGame } from '../../store/game-store';
 import {
     activeTitle,
@@ -25,7 +26,7 @@ import {
 } from '../../store/missions';
 import { newsKey } from '../../store/news';
 import { markPlayed, type Profile } from '../../store/profile';
-import { redeemCode, redeemDexCode, titleClass } from '../../store/title-codes';
+import { redeemCardCode, redeemCode, redeemDexCode, titleClass } from '../../store/title-codes';
 import { missionOfTitle, missionText, titleHow, titleName, trainerHow, trainerName } from './club';
 import { CheckIcon, LockIcon } from './icons';
 import { NewBadge } from './news';
@@ -82,7 +83,15 @@ export function TrainerCard({ save }: { save: (patch: Partial<Profile>) => void 
         setBusy(true);
         const id = await redeemCode(code).catch(() => null);
         const dexFix = id ? null : await redeemDexCode(code).catch(() => null);
+        const gift = id || dexFix ? null : await redeemCardCode(code).catch(() => null);
         setBusy(false);
+        if (gift) {
+            const back = returnCard(useGame.getState(), gift);
+            if (!back) return setCodeMsg({ ok: false, text: t('profile.picker.codeCardHave') });
+            useGame.setState(back);
+            setCode('');
+            return setCodeMsg({ ok: true, text: t('profile.picker.codeCard', { name: species(gift.speciesId).name }) });
+        }
         if (dexFix) {
             useGame.setState((s) => ({ dex: markPlayed(s.dex, dexFix) }));
             setCode('');
