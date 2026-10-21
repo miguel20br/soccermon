@@ -13,7 +13,7 @@ import {
 import { matchMvp } from '../../engine/mvp';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { specialBonus } from '../../engine/specials';
-import { clubName } from '../../i18n';
+import { clubName, cupStageName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { lineupPosition, useGame } from '../../store/game-store';
 import { cupLength, isFinalStage, isLong } from '../../store/long-cup';
@@ -124,39 +124,41 @@ export function Result() {
 
     const actions = (
         <>
+            {eliminated && <NearMiss run={run} />}
             {foul && <FoulCard kind={foul} remaining={cupLength(run) - run.results.length} />}
             {eliminated && <CupGains run={run} />}
             {(eliminated || champion) && <CupGoalCard run={run} match={match} />}
             <div className="row" style={{ justifyContent: 'center' }}>
                 <MomentsButton run={run} match={match} />
+                {(eliminated || champion) &&
+                    (run.daily ? (
+                        // Copa do Dia: o ranking e o compartilhar (estilo Wordle) ficam na tela do dia
+                        <button type="button" className="btn outline" onClick={() => go('daily')}>
+                            {t('liga.daily.rankingTitle')}
+                        </button>
+                    ) : (
+                        <button type="button" className="btn outline" onClick={share}>
+                            {t('result.share')}
+                        </button>
+                    ))}
             </div>
-            <div className="row" style={{ justifyContent: 'center' }}>
+            {/* fim da copa: "Nova copa" em 1 toque na barra do polegar, "Menu" fantasma do lado */}
+            <div className="bc-thumbbar">
                 {eliminated || champion ? (
                     <>
-                        {run.daily ? (
-                            // Copa do Dia: o ranking e o compartilhar (estilo Wordle) ficam na tela do dia
-                            <button type="button" className="btn outline" onClick={() => go('daily')}>
-                                {t('liga.daily.rankingTitle')}
-                            </button>
-                        ) : (
-                            <button type="button" className="btn outline" onClick={share}>
-                                {t('result.share')}
-                            </button>
-                        )}
-                        <button type="button" className="btn primary" onClick={() => newRun(run.teamName)}>
-                            {t('result.newCup')}
-                        </button>
                         <button type="button" className="btn ghost" onClick={advance}>
                             {t('result.menu')}
                         </button>
-                    </>
-                ) : (
-                    <div className="bc-thumbbar">
-                        <button type="button" className="btn primary big" onClick={advance}>
-                            {run.status === 'map' ? t('longCup.backToMap') : t('result.chooseReward')}
+                        <button type="button" className="btn primary big" onClick={() => newRun(run.teamName)}>
+                            {t('result.newCup')}
                             <HudIcon kind="next" />
                         </button>
-                    </div>
+                    </>
+                ) : (
+                    <button type="button" className="btn primary big" onClick={advance}>
+                        {run.status === 'map' ? t('longCup.backToMap') : t('result.chooseReward')}
+                        <HudIcon kind="next" />
+                    </button>
                 )}
             </div>
             {shared && (
@@ -290,6 +292,24 @@ export function Result() {
                 }
             />
         </>
+    );
+}
+
+/** Eliminado: uma linha do quanto faltou (pênaltis, 1 gol, mais), antes do "Nova copa". */
+function NearMiss({ run }: { run: NonNullable<ReturnType<typeof useGame.getState>['run']> }) {
+    const { t } = useT();
+    const last = run.results.at(-1);
+    if (!last || last.won) return null;
+    const stage = cupStageName(run, last.stage);
+    const n = last.score[1] - last.score[0];
+    return (
+        <p className="near-miss">
+            {last.shootout
+                ? t('result.nearMiss.pens', { stage })
+                : n <= 1
+                  ? t('result.nearMiss.one', { stage })
+                  : t('result.nearMiss.more', { stage, n })}
+        </p>
     );
 }
 
