@@ -1,5 +1,11 @@
 # Novidades
 
+## 0.9.0.1 · Mercado organizado
+
+### Mercado
+- O Mercado ficou em prateleiras: Contratações, Pacote e item, e Patrocínios (com as suas 3 vagas logo embaixo)
+- A carta do Patrocínio fica na horizontal, pra não se confundir com as cartas de Pokémon
+
 ## 0.9.0 · Mercado e Patrocínios
 
 ### Mercado
