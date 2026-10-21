@@ -394,6 +394,8 @@ export interface GameStore {
     buyOffer(index: number, targetUid?: string, forgetSlot?: number, passTo?: string): void;
     /** Fica com a carta `index` do pacote aberto, no lugar do reserva `targetUid`. */
     claimPack(index: number, targetUid: string): void;
+    /** Fecha o pacote aberto sem pegar nenhuma carta (já foi pago; o time fica como está). */
+    skipPack(): void;
     rerollShop(): void;
     leaveShop(): void;
     advance(): void;
@@ -1469,6 +1471,12 @@ export const useGame = create<GameStore>()(
                         ...gained(run, got.picks, 'mercado'),
                         run: { ...run, ...got, shop: { ...run.shop, pack: undefined } },
                     });
+                },
+
+                skipPack: () => {
+                    const run = getState().run;
+                    if (run?.status !== 'shop' || !run.shop?.pack) return;
+                    setState({ run: { ...run, shop: { ...run.shop, pack: undefined } } });
                 },
 
                 rerollShop: () => {

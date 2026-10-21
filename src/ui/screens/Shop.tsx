@@ -34,7 +34,7 @@ const offerKey = (o: ShopOffer) =>
  * recompensa (quem sai, quem recebe); pacote abre e você fica com 1; Patrocínio ocupa uma das 3 vagas.
  */
 export function Shop() {
-    const { run: live, buyOffer, claimPack, rerollShop, leaveShop } = useGame();
+    const { run: live, buyOffer, claimPack, skipPack, rerollShop, leaveShop } = useGame();
     const run = useHeld(live?.status === 'shop' && live.shop ? live : null);
     // save estragado (Mercado sem vitrine): segue pra escalação em vez de tela vazia
     useEffect(() => {
@@ -203,6 +203,17 @@ export function Shop() {
                             ))}
                         </div>
                     </CardPack>
+                    <button
+                        type="button"
+                        className="btn small ghost shop-pack-skip"
+                        onClick={() => {
+                            playSfx('select');
+                            setPackPick(null);
+                            skipPack();
+                        }}
+                    >
+                        {t('shop.packSkip')}
+                    </button>
                     {packPick !== null && (
                         <GainTarget
                             key={`pack-${packPick}`}

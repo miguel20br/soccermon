@@ -26,6 +26,7 @@ export const shop = {
     pack: 'Pacote {type}',
     packDesc: '{n} cartas {type}. Você fica com 1.',
     packPick: 'Escolha 1 carta do pacote',
+    packSkip: 'Não quero nenhuma, seguir',
     packSwap: 'Quem sai do banco?',
     shelf: { mons: 'Contratações', gear: 'Pacote e item' },
     sponsorsHint: 'Vale até o fim da copa e ocupa uma das 3 vagas. Pokémon, pacote e item não ocupam vaga.',

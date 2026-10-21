@@ -659,6 +659,20 @@ describe('Mercado (Copa rápida)', () => {
         expect(run.shop!.pack).toBeUndefined();
     });
 
+    it('dá pra fechar o pacote sem pegar nenhuma carta e seguir', () => {
+        useGame.setState({ run: ready('mercado-pular', { money: 20 }) });
+        useGame.getState().skipReward();
+        const run = useGame.getState().run!;
+        const card = { ...createInstance(1, new Rng('pular', 'x')), uid: 'pulada' };
+        useGame.setState({ run: { ...run, shop: { ...run.shop!, pack: [card] } } });
+        useGame.getState().skipPack();
+        const after = useGame.getState().run!;
+        expect(after.shop!.pack).toBeUndefined();
+        expect(after.picks.map((p) => p.uid)).toEqual(run.picks.map((p) => p.uid));
+        useGame.getState().leaveShop();
+        expect(useGame.getState().run!.status).toBe('lineup');
+    });
+
     it('não entra um segundo Pokémon da mesma espécie (pacote e vitrine podem trazer o mesmo)', () => {
         useGame.setState({ run: ready('mercado-repetido', { money: 20 }) });
         useGame.getState().skipReward();
