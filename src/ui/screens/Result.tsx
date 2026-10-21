@@ -16,7 +16,7 @@ import { specialBonus } from '../../engine/specials';
 import { clubName, cupStageName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { lineupPosition, useGame } from '../../store/game-store';
-import { cupLength, isFinalStage, isLong } from '../../store/long-cup';
+import { cupLength, foulOf, isLong } from '../../store/long-cup';
 import { rivalColor } from '../../store/profile';
 import { BracketPeek } from '../components/Bracket';
 import { ChampionView } from '../components/ChampionView';
@@ -121,16 +121,7 @@ export function Result() {
         track('share', { kind: `download-${format}`, result: 'shared', champion });
     };
 
-    // Copa longa: cartão amarelo (1ª derrota fora da Final) ou vermelho (a 2ª), com o resto do caminho bloqueado
-    const lost = run.results.at(-1)?.won === false;
-    const foul =
-        isLong(run) && lost
-            ? run.status === 'map'
-                ? 'yellow'
-                : run.status === 'eliminated' && !isFinalStage(run)
-                  ? 'red'
-                  : null
-            : null;
+    const foul = foulOf(run);
 
     const actions = (
         <>

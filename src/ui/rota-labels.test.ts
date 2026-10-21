@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { type RunState, resumeScreenOf } from '../store/game-store';
+import { foulOf } from '../store/long-cup';
 import { cupStep } from './components/AccountLink';
 import { buildShareText } from './share';
 import { shareCardData } from './share-card';
@@ -80,5 +81,18 @@ describe('Rota Índigo: compartilhar', () => {
         const results = [0, 1, 2, 3, 4, 5, 6, 7].map((s) => result(s, true));
         const d = shareCardData(rota({ status: 'champion', results: results as never }), 0xf2c230, 'pt');
         expect(d.games.map((g) => g.stage)).toEqual(['1/8', '2/8', '3/8', '4/8', '5/8', '6/8', '7/8', 'Final']);
+    });
+});
+
+describe('Rota Índigo: cartão da derrota', () => {
+    const lost = (n: number) => Array.from({ length: n }, (_, s) => result(s, s !== n - 1));
+    it('amarelo no mapa, vermelho na 2ª derrota do mapa', () => {
+        expect(foulOf(rota({ status: 'map', stage: 0, results: lost(1) as never }))).toBe('yellow');
+        expect(foulOf(rota({ status: 'eliminated', stage: 2, results: lost(3) as never }))).toBe('red');
+    });
+    it('cair no grupo ou perder a Final não é cartão vermelho (o cartão aparecia na saída do grupo)', () => {
+        expect(foulOf(rota({ status: 'eliminated', stage: 6, results: lost(7) as never }))).toBeNull();
+        expect(foulOf(rota({ status: 'group', stage: 5, results: lost(6) as never }))).toBeNull();
+        expect(foulOf(rota({ status: 'eliminated', stage: 7, results: lost(8) as never }))).toBeNull();
     });
 });

@@ -165,5 +165,20 @@ export function groupTable(
     );
 }
 
+/**
+ * Cartão da derrota que acabou de acontecer: amarelo (a 1ª no mapa, volta pro mapa) ou vermelho (a 2ª no mapa, fora).
+ * Cair no grupo ou perder a Final não é cartão.
+ */
+export function foulOf(run: {
+    mode?: CupMode;
+    status: string;
+    stage: number;
+    results: { won: boolean }[];
+}): 'yellow' | 'red' | null {
+    if (!isLong(run) || run.results.at(-1)?.won !== false) return null;
+    if (run.status === 'map') return 'yellow';
+    return run.status === 'eliminated' && run.stage < GROUP_START ? 'red' : null;
+}
+
 /** Passou do grupo? (os 2 primeiros vão pra Final; só faz sentido com as 3 rodadas jogadas) */
 export const groupQualified = (rows: GroupRow[]) => rows.findIndex((r) => r.you) < 2;

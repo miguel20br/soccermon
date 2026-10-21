@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 vi.mock('../../game/audio', () => ({ playSfx: () => {} }));
 
-import type { MatchResult } from '../../engine/match';
+import type { MatchResult } from '../../engine/runners/batch-runner';
 import type { TeamSetup } from '../../engine/state';
 import type { RunState } from '../../store/game-store';
 import { ResultHero } from './ResultHero';
