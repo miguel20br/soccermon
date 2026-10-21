@@ -12,9 +12,7 @@ export const PATCH_NOTES: PatchNotes[] = [
         sections: [
             {
                 title: 'Coleção',
-                lines: [
-                    'A ficha do Pokémon e a carta aberta do Álbum trazem o texto da Pokédex',
-                ],
+                lines: ['A ficha do Pokémon e a carta aberta do Álbum trazem o texto da Pokédex'],
             },
             {
                 title: 'Pokémon mais vivos',
@@ -1160,9 +1158,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
         sections: [
             {
                 title: 'Collection',
-                lines: [
-                    'The Pokémon sheet and the open Album card show the Pokédex entry',
-                ],
+                lines: ['The Pokémon sheet and the open Album card show the Pokédex entry'],
             },
             {
                 title: 'Livelier Pokémon',
