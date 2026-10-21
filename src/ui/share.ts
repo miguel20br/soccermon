@@ -1,6 +1,7 @@
 import { viewInstance } from '../engine/instance';
 import { clubName, dict, fmt, getLang, type Lang } from '../i18n';
 import { isPerfectCup, type RunState } from '../store/game-store';
+import { isLong } from '../store/long-cup';
 
 export const SITE_URL = 'https://soccermon.com';
 
@@ -13,7 +14,10 @@ export function buildShareText(run: RunState, lang: Lang = getLang()): string {
             ? isPerfectCup(run)
                 ? tx.perfect
                 : tx.champion
-            : fmt(tx.out, { stage: dict(lang).common.stageIn[run.results.at(-1)?.stage ?? 0] ?? tx.outFallback });
+            : isLong(run)
+              ? // Rota Índigo: as fases da Relâmpago não existem ("Rota Índigo · Fim da linha na partida 3")
+                `${dict(lang).longCup.title} · ${fmt(dict(lang).longCup.out, { n: (run.results.at(-1)?.stage ?? 0) + 1 })}`
+              : fmt(tx.out, { stage: dict(lang).common.stageIn[run.results.at(-1)?.stage ?? 0] ?? tx.outFallback });
     const lines = run.results.map((r) => {
         const pen = r.shootout ? fmt(tx.pens, { a: r.shootout[0], b: r.shootout[1] }) : '';
         return `${r.won ? '🟩' : '🟥'} ${r.score[0]}x${r.score[1]}${pen} ${clubName(r.opponent, lang)}`;
