@@ -130,3 +130,17 @@ Patrocínio.
 Kanto inteiro como uma corrida longa: os 8 ginásios como atos do mapa, Elite Four e Campeão no fim; desbloqueios entre
 corridas (treinadores, Patrocínios novos, a sala de troféus guardando a Jornada); o Modo história em cima. Pesquisa e
 decisões próprias quando a 0.9.1 provar que o mapa diverte.
+
+## Calibragem 1 (20/10/2026, `scripts/balance/cup.ts ... 60 nota|mercado`, 360 copas cada, mesmas seeds)
+
+Robô do Mercado: compra o Patrocínio da vitrine (de campo, ou o primeiro de qualquer família), depois o Pokémon avulso
+que melhora uma vaga em 3+ pontos e o pacote se a melhor carta melhora uma vaga. Não usa item, MT nem troca de vitrine.
+
+| | Sem Mercado | Com Mercado |
+|---|---|---|
+| Título (todas as copas) | 17,2% | 19,4% |
+| Título entre quem passou das oitavas (quem vê o Mercado) | 22,9% | 25,8% (±3,6) |
+| Vitória por fase (oitavas / quartas / semi / final) | 75 / 62 / 64 / 58% | 75 / 62 / 66 / 63% |
+
+- ₽ que sobra no fim da copa: 4,1 em média; compras: 170 Patrocínios, 147 Pokémon avulsos, 62 pacotes.
+- Abaixo da meta (28–32% pra quem usa bem): o Mercado ajuda, mas pouco. Decisão com o Miguel.
