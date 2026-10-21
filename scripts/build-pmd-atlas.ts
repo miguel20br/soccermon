@@ -7,25 +7,35 @@
  *
  * Saídas:
  *   public/assets/field/{id}.png + {id}.json   atlas com frames "Anim/dir/i"
- *   src/data/pmd-anims.json                    durações (em ticks de 1/60 s), tamanho do frame, sombra
+ *   src/data/pmd-anims.json (Gen 1), src/data/gen<N>/pmd-anims.json   durações (em ticks de 1/60 s), tamanho do
+ *                                              frame, sombra
  *   CREDITS-PMD.md                             autores por Pokémon (crédito obrigatório da licença)
  *
- * Uso: npm run assets:field
+ * Com `--extra`: as animações de fora da quadra (dormir, sentar, comer, desmaiar) num atlas à parte,
+ * public/assets/field/extra/{id}.png + {id}.json, com as durações dentro do próprio JSON (chave `anims`): só a Sala
+ * de troféus e as telas da Rota carregam, e nada disso entra no código do jogo.
+ *
+ * Uso: npm run assets:field [-- --gen 1|2] [-- --extra]
  */
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { XMLParser } from 'fast-xml-parser';
 import sharp from 'sharp';
+import gen2 from '../src/data/gen2/pokemon.json' with { type: 'json' };
 import pokemon from '../src/data/pokemon.json' with { type: 'json' };
-import { fetchBuffer, ids151, pmdCreditNames } from './lib/download';
+import { dataDir, fetchBuffer, gensFromArgs, idsOf, pmdCreditNames } from './lib/download';
 
 const REPO = 'https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/sprite';
 const CACHE = '.cache/pmd';
-const OUT = 'public/assets/field';
+const EXTRA = process.argv.includes('--extra');
+const OUT = EXTRA ? 'public/assets/field/extra' : 'public/assets/field';
 
 /** Animações usadas em campo. As opcionais caem em fallback no runtime (game/animation-manager.ts). */
-const WANTED = ['Idle', 'Walk', 'Attack', 'Shoot', 'Hop', 'Hurt', 'Charge', 'Swing', 'Pose', 'Trip'] as const;
-const REQUIRED = new Set(['Idle', 'Walk', 'Attack', 'Hurt', 'Hop']);
+const FIELD = ['Idle', 'Walk', 'Attack', 'Shoot', 'Hop', 'Hurt', 'Charge', 'Swing', 'Pose', 'Trip'] as const;
+/** Fora da quadra (Sala de troféus, Rota): todas opcionais, a tela cai no Idle. */
+const OFF_FIELD = ['Sleep', 'Sit', 'Eat', 'Faint'] as const;
+const WANTED: readonly string[] = EXTRA ? OFF_FIELD : FIELD;
+const REQUIRED = new Set<string>(EXTRA ? [] : ['Idle', 'Walk', 'Attack', 'Hurt', 'Hop']);
 const MAX_TEXTURE = 4096;
 
 interface RawAnim {
@@ -98,6 +108,7 @@ async function buildOne(id: number) {
         sheets.push({ name, img, width, height });
     }
 
+    if (!sheets.length) return null;
     // Empilha as sheets em colunas de no máximo MAX_TEXTURE px de altura (limite seguro de GPU mobile)
     const frames: Record<string, unknown> = {};
     const composites: sharp.OverlayOptions[] = [];
@@ -140,7 +151,12 @@ async function buildOne(id: number) {
         .toFile(`${OUT}/${id}.png`);
     await writeFile(
         `${OUT}/${id}.json`,
-        JSON.stringify({ frames, meta: { image: `${id}.png`, size: { w: atlasW, h: atlasH }, scale: 1 } }),
+        JSON.stringify({
+            frames,
+            meta: { image: `${id}.png`, size: { w: atlasW, h: atlasH }, scale: 1 },
+            // o atlas extra leva as durações junto (o Phaser guarda em texture.customData; a tela lê o JSON)
+            ...(EXTRA ? { anims } : {}),
+        }),
     );
 
     const credits = (await cached(id, 'credits.txt'))?.toString('utf8') ?? '';
@@ -157,11 +173,19 @@ async function buildOne(id: number) {
 }
 
 await mkdir(OUT, { recursive: true });
+const gens = gensFromArgs();
+const ids = gens.flatMap(idsOf);
 const meta: Record<number, { shadowSize: number; anims: Record<string, PmdAnimInfo> }> = {};
+// linhas de crédito de quem não foi refeito agora ficam como estavam
 const creditLines: string[] = [];
+for (const line of (await readFile('CREDITS-PMD.md', 'utf8')).split('\n')) {
+    const m = /^\| (\d+) \|/.exec(line);
+    if (m) creditLines[Number(m[1])] = line;
+}
 const NAMES = await pmdCreditNames();
 const errors: string[] = [];
-const queue = [...ids151];
+const queue = [...ids];
+const names = [...pokemon, ...gen2] as { id: number; name: string }[];
 
 await Promise.all(
     Array.from({ length: 6 }, async () => {
@@ -169,8 +193,9 @@ await Promise.all(
             const id = queue.shift() as number;
             try {
                 const r = await buildOne(id);
+                if (!r) continue;
                 meta[id] = { shadowSize: r.shadowSize, anims: r.anims };
-                const name = pokemon.find((p) => p.id === id)?.name ?? `#${id}`;
+                const name = names.find((p) => p.id === id)?.name ?? `#${id}`;
                 creditLines[id] = `| ${id} | ${name} | ${r.authors.map((a) => NAMES.get(a) ?? a).join(', ') || '—'} |`;
             } catch (e) {
                 errors.push(String((e as Error).message));
@@ -179,7 +204,11 @@ await Promise.all(
     }),
 );
 
-await writeFile('src/data/pmd-anims.json', `${JSON.stringify(meta)}\n`);
+if (!EXTRA)
+    for (const gen of gens) {
+        const mine = Object.fromEntries(idsOf(gen).flatMap((id) => (meta[id] ? [[id, meta[id]]] : [])));
+        await writeFile(`${dataDir(gen)}/pmd-anims.json`, `${JSON.stringify(mine)}\n`);
+    }
 await writeFile(
     'CREDITS-PMD.md',
     [
@@ -196,9 +225,9 @@ await writeFile(
     ].join('\n'),
 );
 
-console.log(`atlas: ${Object.keys(meta).length}/151`);
+console.log(`atlas${EXTRA ? ' extra' : ''}: ${Object.keys(meta).length}/${ids.length}`);
 const missingOptional = WANTED.filter((n) => !REQUIRED.has(n)).map(
-    (n) => `${n}: ${ids151.filter((id) => meta[id] && !meta[id].anims[n]).length} sem`,
+    (n) => `${n}: ${ids.filter((id) => !meta[id]?.anims[n]).length} sem`,
 );
 console.log(`opcionais ausentes → ${missingOptional.join(' · ')}`);
 if (errors.length) {
