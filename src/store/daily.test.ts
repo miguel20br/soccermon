@@ -3,7 +3,19 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
 import { buildCupOpponents } from '../engine/cup';
-import { type DailyEntry, dailyDay, dailySeed, dailyShareText, dailyStreak, mergeDaily, weekOf } from './daily';
+import {
+    bestDailyStreak,
+    type DailyEntry,
+    dailyDay,
+    dailySeed,
+    dailyShareText,
+    dailySticker,
+    dailyStickerCard,
+    dailyStreak,
+    daysInARow,
+    mergeDaily,
+    weekOf,
+} from './daily';
 import { dailyAfter, migrateSave, type RunState, SAVE_VERSION, savePart, seedFromUrl, useGame } from './game-store';
 
 const entry = (day: string, patch: Partial<DailyEntry> = {}): DailyEntry => ({
@@ -139,5 +151,29 @@ describe('Copa do Dia: sequência e compartilhar', () => {
             '4/7 dias na semana',
             'soccermon.com',
         ]);
+    });
+});
+
+describe('dias seguidos e figurinha do dia', () => {
+    const e = (day: string, done = true) => ({
+        day,
+        results: [{ score: [1, 0] as [number, number], shootout: null, won: true, opponent: 'x' }],
+        done,
+        champion: false,
+    });
+
+    it('conta até hoje, ou até ontem se hoje ainda não jogou; um dia sem jogar zera', () => {
+        const list = [e('2026-10-18'), e('2026-10-19'), e('2026-10-20')];
+        expect(daysInARow(list, '2026-10-20')).toBe(3);
+        expect(daysInARow(list, '2026-10-21')).toBe(3);
+        expect(daysInARow(list, '2026-10-22')).toBe(0);
+        expect(daysInARow([...list, e('2026-10-21', false)], '2026-10-21')).toBe(3);
+    });
+
+    it('melhor sequência e a figurinha (a mesma pra todo mundo no dia)', () => {
+        const list = [e('2026-10-01'), e('2026-10-02'), e('2026-10-05'), e('2026-10-06'), e('2026-10-07')];
+        expect(bestDailyStreak(list)).toBe(3);
+        expect(dailySticker('2026-10-21')).toBe(dailySticker('2026-10-21'));
+        expect(dailyStickerCard('2026-10-21').special?.kind).toBe('evento');
     });
 });

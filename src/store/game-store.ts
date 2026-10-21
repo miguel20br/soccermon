@@ -43,7 +43,16 @@ import { MAX_SPONSORS } from '../engine/sponsors';
 import { teachMove } from '../engine/tm';
 import { detectLang, type Lang } from '../i18n/lang';
 import { type BinderCard, binderAdd, binderOf } from './binder';
-import { type DailyEntry, dailyDay, dailyEventType, dailySeed, isDailySeed, mergeDaily, putDaily } from './daily';
+import {
+    type DailyEntry,
+    dailyDay,
+    dailyEventType,
+    dailySeed,
+    dailyStickerCard,
+    isDailySeed,
+    mergeDaily,
+    putDaily,
+} from './daily';
 import { addDuel, type DuelRecord, duelWins, MAX_DUELS } from './duels';
 import {
     type CupMode,
@@ -1478,6 +1487,13 @@ export const useGame = create<GameStore>()(
                             [...next.lineup, ...next.bench].flatMap((uid) => picks.filter((p) => p.uid === uid)),
                             { from: 'draft', at, cup: run.seed, champ: true },
                         );
+                    // Copa do Dia terminada: a figurinha do dia (o mesmo Pokémon pra todo mundo) vai pro Álbum
+                    if (ended && run.daily)
+                        binder = binderAdd(binder, [dailyStickerCard(run.daily)], {
+                            from: 'diario',
+                            at,
+                            cup: run.seed,
+                        });
                     let hall = getState().hall;
                     if (status === 'champion') {
                         next.champ = champMemo(next, records, getState().dex);
@@ -1514,13 +1530,19 @@ export const useGame = create<GameStore>()(
                     };
                     // missões: esta partida (com os titulares do apito inicial) e o save depois dela
                     const profile = getState().profile;
+                    const dailyNext = run.daily ? dailyAfter(getState().daily, next, run.daily) : getState().daily;
                     const fresh = newMissions(
-                        { ...saved, runs: [next, ...getState().parkedRuns], done: profile.missionsDone },
+                        {
+                            ...saved,
+                            daily: dailyNext,
+                            runs: [next, ...getState().parkedRuns],
+                            done: profile.missionsDone,
+                        },
                         [matchView(m, result.stats?.digest ?? matchDigest(m), run.lockedTeam, last)],
                     );
                     setState({
                         ...saved,
-                        ...(run.daily && { daily: dailyAfter(getState().daily, next, run.daily) }),
+                        ...(run.daily && { daily: dailyNext }),
                         ...(fresh.length && {
                             profile: { ...profile, missionsDone: [...profile.missionsDone, ...fresh] },
                         }),

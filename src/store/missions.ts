@@ -6,6 +6,7 @@ import type { GoalNote, MatchDigest } from '../engine/match-stats';
 import type { MatchResult } from '../engine/runners/batch-runner';
 import type { TeamSetup } from '../engine/state';
 import { GYM_TM } from '../engine/tm';
+import { bestDailyStreak, type DailyEntry } from './daily';
 import type { Records, RunState, StageResult } from './game-store';
 import {
     albumCount,
@@ -78,6 +79,7 @@ export const TRAINERS = [
     'redGold',
     'blueGold',
     'oakGold',
+    'lassGold',
     // platina: holográficos, um por geração (100% de tudo da geração)
     'oakHolo',
 ] as const;
@@ -94,6 +96,7 @@ export const GOLD_TRAINERS = {
     red: 'redGold',
     blue: 'blueGold',
     oak: 'oakGold',
+    lass: 'lassGold',
 } as const satisfies Partial<Record<TrainerId, TrainerId>>;
 const GOLD_SET = new Set<string>(Object.values(GOLD_TRAINERS));
 /** Treinador dourado: sprite com brilho e moldura dourada no perfil, VERSUS, duelo e card do título. */
@@ -148,6 +151,7 @@ export const TITLE_IDS = [
     'topPercentage',
     'lendaKanto',
     'artilheiroLendario',
+    'fielCopa',
     'viradaHistorica',
     'todosJogaram',
     'zeNinguem',
@@ -177,6 +181,8 @@ export interface SaveView {
     runs: (RunState | null | undefined)[];
     /** Missões já cumpridas (para as que dependem de outras, como Kanto Completo). */
     done: ReadonlySet<string>;
+    /** Copas do Dia jogadas (sequência de dias). */
+    daily?: DailyEntry[];
 }
 
 /** Uma partida do seu time, do jeito que as missões leem. Titulares vazios = partida antiga (só o resumo). */
@@ -577,6 +583,9 @@ export const MISSIONS: Mission[] = [
         count: (s) => s.records.bestStreak ?? 0,
     },
     { id: 'artilheiroLendario', group: 'lendas', title: 'artilheiroLendario', goal: 12, count: bestScorerCup },
+    // Copa do Dia: 7 e 30 dias seguidos (pedido do Miguel, 21/10/2026)
+    { id: 'fielCopa', group: 'feitos', title: 'fielCopa', goal: 7, count: (s) => bestDailyStreak(s.daily ?? []) },
+    { id: 'lassGold', group: 'lendas', trainer: 'lassGold', goal: 30, count: (s) => bestDailyStreak(s.daily ?? []) },
     {
         id: 'blueGold',
         group: 'lendas',

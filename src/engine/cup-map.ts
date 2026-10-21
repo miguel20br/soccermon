@@ -181,7 +181,7 @@ export const rivalTrainer = (name: string): string | undefined =>
     ROUTE_TEAMS.find((t) => t.name === name)?.trainer ?? CLUBS.find((c) => c.name === name)?.leader;
 
 /** Força do rival pela partida (0 a 6 na Rota, 7 = Final): fácil no começo, puxado no fim. Ginásio +1, até 3. */
-const LONG_DIFFICULTY = [-1, -1, 0, 0, 0, 0, 1, 4];
+const LONG_DIFFICULTY = [-1, 0, 0, 1, 1, 1, 1, 4];
 /** Itens do rival pela partida. */
 const LONG_ITEMS = [0, 0, 0, 1, 0, 0, 1, 3];
 
