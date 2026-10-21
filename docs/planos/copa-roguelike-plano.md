@@ -144,3 +144,20 @@ que melhora uma vaga em 3+ pontos e o pacote se a melhor carta melhora uma vaga.
 
 - ₽ que sobra no fim da copa: 4,1 em média; compras: 170 Patrocínios, 147 Pokémon avulsos, 62 pacotes.
 - Abaixo da meta (28–32% pra quem usa bem): o Mercado ajuda, mas pouco. Decisão com o Miguel.
+
+## Decisões do Miguel (20/10/2026, depois da 1ª prévia)
+
+- **Força do Mercado:** fica como está; ele joga e sente antes de mexer nos números.
+- **Migração dos eventos do Mercado** (`20261021200000_eventos_mercado.sql`): ok pra aplicar na hora do lançamento.
+- **Pacote com cara de pacote, temático do tipo** (feito: o lacre da recompensa na cor e com a estampa do tipo,
+  `PackArt`) e **Patrocínio com cara de patrocínio** (feito: placa da marca + contrato, cor de marca por Patrocínio, e
+  os que você tem viram placas na beira da quadra). Os dois na galeria `?cards=1` pro ok.
+- **Tudo mora no Perfil:** a Home tem só a porta do Perfil; Sala de troféus e Coleção abrem de dentro dele.
+
+## Ideias do amigo pra Copa longa (etapa 2)
+
+- **Pacotes piores no começo e melhores a cada andar:** o time não nasce "stackado" e cada escolha pesa mais (no
+  Mercado de hoje a raridade já sobe por fase, `SHOP_ROUND`; na Copa longa a escada fica mais longa e começa mais
+  baixa).
+- **Mapa com casas de tesouro, inimigo, chefe e "?"** (bom ou ruim), como o Slay the Spire. Referência a olhar: o
+  **Pokelike**, que fez algo parecido com Pokémon.

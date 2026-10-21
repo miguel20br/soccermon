@@ -18,27 +18,53 @@
     font-variant-numeric: tabular-nums;
 }
 
-/* ---------- carta do Patrocínio ---------- */
+/* ---------- carta do Patrocínio: placa da marca em cima, contrato embaixo ---------- */
 .sp-card {
     width: var(--fut-w, 190px);
     min-height: 250px;
     display: grid;
-    grid-template-rows: auto auto auto 1fr auto;
-    justify-items: center;
-    gap: 8px;
-    padding: 12px 12px 14px;
-    background: var(--bc-ink);
-    border: 3px solid var(--fam);
+    grid-template-rows: auto 1fr;
+    overflow: hidden;
+    border: 3px solid var(--brand);
     border-radius: 10px;
     box-shadow: 0 4px 0 rgba(0, 0, 0, 0.45);
+    background: var(--text);
+    color: var(--bc-ink);
     text-align: center;
-    color: var(--text);
+}
+.sp-plate {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    padding: 14px 8px 12px;
+    background: repeating-linear-gradient(135deg, rgb(255 255 255 / 7%) 0 6px, transparent 6px 14px), var(--brand);
+    color: #fff;
+}
+.sp-plate .hud-icon {
+    width: 42px;
+    height: 42px;
+    filter: drop-shadow(0 2px 0 rgb(0 0 0 / 35%));
+}
+.sp-plate b {
+    font-family: "Galmuri14", var(--font, inherit);
+    font-size: 15px;
+    font-style: italic;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-shadow: 0 2px 0 rgb(0 0 0 / 35%);
+}
+.sp-contract {
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 6px;
+    padding: 10px 10px 12px;
 }
 .sp-fam {
     padding: 2px 8px 1px;
     border-radius: 4px;
-    background: var(--fam);
-    color: var(--bc-ink);
+    background: var(--bc-ink);
+    color: var(--fam);
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 1px;
@@ -46,29 +72,25 @@
     text-transform: uppercase;
     white-space: nowrap;
 }
-.sp-emblem {
-    display: grid;
-    place-items: center;
-    width: 76px;
-    height: 76px;
-    margin-top: 4px;
-    border-radius: 50%;
-    border: 3px solid var(--fam);
-    background: color-mix(in srgb, var(--fam) 16%, var(--bc-ink));
-    color: var(--fam);
-}
-.sp-emblem .hud-icon {
-    width: 40px;
-    height: 40px;
-}
 .sp-name {
-    font-family: "Galmuri14", var(--font, inherit);
-    font-size: 15px;
+    font-size: 14px;
     line-height: 1.2;
 }
 .sp-desc {
     font-size: 12px;
     line-height: 1.35;
+}
+.sp-sign {
+    align-self: end;
+    margin-top: 4px;
+    padding-top: 4px;
+    width: 86%;
+    border-top: 1px dashed currentColor;
+    font-size: 10px;
+    opacity: 0.7;
+}
+/* pacote de tipo na vitrine usa .sp-desc no fundo escuro */
+.shop-pack-offer .sp-desc {
     color: var(--muted);
 }
 
@@ -88,9 +110,9 @@
     min-height: 40px;
     padding: 6px 8px;
     border-radius: 6px;
-    background: var(--bc-ink);
-    border: 2px solid var(--fam, var(--line));
-    color: var(--text);
+    background: var(--brand, var(--bc-ink));
+    border: 2px solid var(--brand, var(--line));
+    color: #fff;
     font: inherit;
     font-size: 12px;
     text-align: left;
@@ -102,7 +124,6 @@
     flex: none;
     width: 20px;
     height: 20px;
-    color: var(--fam);
 }
 .sp-slot-name {
     overflow: hidden;
@@ -195,11 +216,6 @@ button.sp-slot:hover {
 }
 .shop-offer.chosen {
     transform: translateY(-4px);
-}
-.shop-pack-card .type-icon {
-    width: 44px;
-    height: 44px;
-    image-rendering: auto;
 }
 /* comprar é secundário: a ação principal da tela é Seguir (vermelho, um por tela) */
 .shop-buy:not(:disabled) {

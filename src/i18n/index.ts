@@ -154,7 +154,8 @@ export const linkText = (id: string, lang: Lang = current) =>
 export const pct = (f: number) => `${f >= 1 ? '+' : '−'}${Math.round(Math.abs(f - 1) * 100)}%`;
 
 /** Patrocínio: nome e efeito. */
-export const sponsorText = (id: string, lang: Lang = current) => DICTS[lang].shop.sponsor[id] ?? { name: id, desc: '' };
+export const sponsorText = (id: string, lang: Lang = current) =>
+    DICTS[lang].shop.sponsor[id] ?? { name: id, short: id, desc: '' };
 
 /** Linha de bônus da carta no idioma do jogo (em português é o próprio rótulo do motor). */
 export function modLabel(m: AttrModifier, lang: Lang = current): string {

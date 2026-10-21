@@ -10,7 +10,7 @@ import { useT } from '../../i18n/react';
 import { type CareerSeal, type DexEntry, EMPTY_ENTRY } from '../../store/profile';
 import { PackArt } from '../components/CardPack';
 import { PokeCard2 } from '../components/PokeCard2';
-import { Money, SponsorCard, SponsorSlots } from '../components/SponsorCard';
+import { SponsorCard, SponsorSlots } from '../components/SponsorCard';
 import { sealTip } from '../profile/seal-tip';
 import { EDITION, FINISH_LABEL, finishOf, METAL, type Metal, metalOf } from '../rarity';
 import { TYPE_PT } from '../type-colors';
@@ -331,15 +331,13 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
                 <section className="panel" id="patrocinios">
                     <h2>Patrocínios (Mercado da Copa rápida) · proposta pro ok do Miguel</h2>
                     <p className="tactic-desc">
-                        Carta própria, sem metal (não é jogador): etiqueta e borda na cor da família (economia amarela,
-                        recompensa azul, campo verde), emblema no traço do HudIcon, nome e efeito. Embaixo, as 3 vagas
-                        como aparecem na Escalação e no Mercado.
+                        Cara de patrocínio: em cima a placa da marca (cor própria, emblema e nome curto, como o patch da
+                        camisa), embaixo o contrato (família, nome, efeito e a linha da assinatura). Os que você tem
+                        aparecem nas placas da beira da quadra. Embaixo, as 3 vagas da Escalação e do Mercado.
                     </p>
                     <div className="cg-row">
                         {SPONSOR_IDS.map((id) => (
-                            <SponsorCard key={id} id={id}>
-                                <Money n={10} />
-                            </SponsorCard>
+                            <SponsorCard key={id} id={id} />
                         ))}
                     </div>
                     <div style={{ maxWidth: 520, marginTop: 16 }}>

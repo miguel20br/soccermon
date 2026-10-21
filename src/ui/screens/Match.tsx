@@ -62,6 +62,7 @@ import {
     SidelineOverlay,
     TimeoutPanel,
 } from '../components/Sideline';
+import { sponsorBoards } from '../components/SponsorCard';
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
 import { RivalEmotes } from '../duel/Emotes';
@@ -208,6 +209,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                       // a faixa da torcida é só a sua (o rival da copa não tem torcida organizada)
                       banners: [bannerText(profileClub.banner, run?.teamName || profileClub.clubName), null],
                       kits: [fieldKit(looks[0]), fieldKit(looks[1])],
+                      boards: liga ? undefined : sponsorBoards(run?.sponsors),
                   }
                 : null,
         [match?.seed],

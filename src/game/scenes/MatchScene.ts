@@ -48,7 +48,7 @@ import { playCrowd, playCry, playGoalCry, playSample, playSfx } from '../audio';
 import { trailParticle, typeBurst } from '../ball-trail';
 import { BattleBox } from '../battle-box';
 import { Cinematics, FOCUS_DEPTH } from '../cinematics';
-import { drawBanner, drawCourt, ensureBallTexture, GAME_H, GAME_W, PPM, toPx } from '../court';
+import { drawBanner, drawBoards, drawCourt, ensureBallTexture, GAME_H, GAME_W, PPM, toPx } from '../court';
 import { COURTS } from '../court-themes';
 import { EventBus } from '../EventBus';
 import { blinkSchedule, evolutionView, RIVAL_EVO_MS } from '../evolution-view';
@@ -74,6 +74,8 @@ export interface MatchSceneData {
     extraSpecies?: number[];
     /** Faixa da torcida de cada time (texto pronto; null = sem faixa). Copa: só a sua; Duelo: a de cada um. */
     banners?: [string | null, string | null];
+    /** Placas dos Patrocínios da sua copa na beira de baixo da quadra (nome curto e cor da marca). */
+    boards?: { text: string; color: number }[];
     /** Uniforme em quadra: cor secundária no disco embaixo do Pokémon (null = liso, só o anel na cor do time). */
     kits?: [{ color2: number } | null, { color2: number } | null];
     /** Duelo curto: toca N vezes mais rápido que a velocidade escolhida (a partida é a mesma). Padrão: 1. */
@@ -475,6 +477,7 @@ export class MatchScene extends Phaser.Scene {
             const text = this.md.banners?.[team];
             if (text) drawBanner(this, team, text, this.md.colors[team], bannerInk(this.md.colors[team]));
         }
+        if (this.md.boards?.length) drawBoards(this, this.md.boards);
         ensureBallTexture(this);
         for (const p of result.roster) {
             createSpeciesAnims(this, skinOf(p.speciesId, p.shiny));
