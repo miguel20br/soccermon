@@ -50,6 +50,9 @@ body,
 }
 
 body {
+    /* viewport-fit=cover (index.html): instalado no iPhone o fundo vai até a borda; o conteúdo recua do entalhe e dos
+       cantos aqui (0 sem entalhe). Embaixo quem cuida é a barra do polegar. */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
     background:
         radial-gradient(1200px 600px at 50% -10%, #2a3570 0%, var(--bg) 60%) fixed,
         var(--bg);
