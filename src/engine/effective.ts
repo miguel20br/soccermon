@@ -1,6 +1,6 @@
 import { SHOUTS } from './agency';
 import type { AttrKey } from './attributes';
-import { COUNTER_FACTOR, formationStyle } from './formations';
+import { COUNTER_FACTOR, formationStyle, hasEdge } from './formations';
 import type { MatchState, PlayerState, Tactic } from './state';
 import { dist2 } from './vec';
 
@@ -80,7 +80,7 @@ export function eff(s: MatchState, p: PlayerState, key: AttrKey): number {
     let v = base * fatigueFactor(p) * (TACTIC_MODS[s.teams[p.team].tactic].attrs[key] ?? 1) * comebackFactor(s, p.team);
     const fs = formationStyle(s.teams[p.team].formation.id);
     v *= (fs.attrs?.[key] ?? 1) * (fs.role?.[p.role]?.[key] ?? 1);
-    if (fs.counters?.includes(s.teams[p.team === 0 ? 1 : 0].formation.id)) v *= COUNTER_FACTOR;
+    if (hasEdge(s.teams[p.team].formation.id, s.teams[p.team === 0 ? 1 : 0].formation.id)) v *= COUNTER_FACTOR;
     if (s.pressure === p.team) v *= FINAL_PRESSURE.attrs[key] ?? 1;
     // grito do técnico (agência, experimento): só multiplica com grito valendo
     const shout = s.teams[p.team].agency.shout;

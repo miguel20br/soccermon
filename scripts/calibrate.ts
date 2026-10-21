@@ -8,7 +8,7 @@ import { writeFileSync } from 'node:fs';
 import { FUTSAL_5 } from '../src/engine/config';
 import { species } from '../src/engine/data';
 import { aiDraftTeam } from '../src/engine/draft';
-import { FORMATION_STYLE, FORMATIONS, type FormationId } from '../src/engine/formations';
+import { FORMATIONS, type FormationId } from '../src/engine/formations';
 import { viewInstance } from '../src/engine/instance';
 import { Rng } from '../src/engine/rng';
 import { runMatch } from '../src/engine/runners/batch-runner';
@@ -18,8 +18,6 @@ const args = process.argv.slice(2);
 const N = Number(args[args.indexOf('--n') + 1]) || 500;
 const csvPath = args.includes('--csv') ? args[args.indexOf('--csv') + 1] : null;
 const TACTICS: Tactic[] = ['balanced', 'offensive', 'defensive', 'counter'];
-// protótipo das formações com identidade (docs/planos/formacoes.md), desligado no jogo
-if (args.includes('--estilos')) FORMATION_STYLE.on = true;
 
 const rng = new Rng('calibrate');
 

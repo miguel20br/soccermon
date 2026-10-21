@@ -232,10 +232,9 @@ export const DEFAULT_FORMATION: FormationId = '1-2-1';
 export const formationOf = (id: FormationId | undefined): Formation => FORMATIONS[id ?? DEFAULT_FORMATION];
 
 /**
- * PROTÓTIPO (docs/planos/formacoes.md), desligado: identidade de cada formação em quadra.
- * `attrs` multiplica o atributo de todo o time no `eff` (como a tática); `role` só o da posição.
- * O resto mexe na IA: deslocamento (como TACTIC_SHIFT), passe pro pivô, passe × drible e a bomba do Fixo.
- * Com `FORMATION_STYLE.on = false` (padrão) a partida é a de sempre; só o calibrate liga (`--estilos`).
+ * Identidade de cada formação em quadra (docs/planos/formacoes.md, decidido com o Miguel em 21/10/2026).
+ * `attrs` multiplica o atributo de todo o time no `eff` (como a tática, só em campo); `role` só o da posição.
+ * O resto mexe na IA: deslocamento (soma no TACTIC_SHIFT), passe pro pivô, passe × drible e a bomba do Fixo.
  */
 export interface FormationStyle {
     attrs?: Partial<Record<AttrKey, number>>;
@@ -255,10 +254,8 @@ export interface FormationStyle {
     counters?: FormationId[];
 }
 
-/** Vantagem de quem encaixa a formação certa contra a do rival (mostrada no VERSUS e na Escalação). */
-export const COUNTER_FACTOR = 1.03;
-
-export const FORMATION_STYLE = { on: false };
+/** Vantagem tática: quem encaixa a formação contra a do rival (leve, pedido do Miguel: 1,5%). */
+export const COUNTER_FACTOR = 1.015;
 
 export const FORMATION_STYLES: Record<FormationId, FormationStyle> = {
     // o coringa: um tico melhor em tudo que é jogo coletivo, sem vantagem nem desvantagem de confronto
@@ -303,6 +300,8 @@ export const FORMATION_STYLES: Record<FormationId, FormationStyle> = {
     },
 };
 
-const NO_STYLE: FormationStyle = {};
-export const formationStyle = (id: FormationId): FormationStyle =>
-    FORMATION_STYLE.on ? FORMATION_STYLES[id] : NO_STYLE;
+export const formationStyle = (id: FormationId): FormationStyle => FORMATION_STYLES[id];
+
+/** A formação `mine` leva vantagem tática contra `theirs`? */
+export const hasEdge = (mine: FormationId, theirs: FormationId): boolean =>
+    !!FORMATION_STYLES[mine].counters?.includes(theirs);
