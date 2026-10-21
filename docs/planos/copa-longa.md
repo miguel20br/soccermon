@@ -21,3 +21,12 @@ Etapa 2 da Copa roguelike ([copa-roguelike-plano.md](copa-roguelike-plano.md)). 
 - **Pacotes e draft:** draft da longa uma linha mais fraco (capitão raro igual), pacotes e reforços sobem a cada andar
   (ideia do amigo), rivais de −2 no começo a +3 no fim, Liga Índigo +4 na Final.
 - **Copa rápida, Copa do Dia e desafio por link ficam idênticos** (teste de regressão nas seeds).
+
+## Decidido com o Miguel (21/10/2026)
+
+Todas as recomendadas: **B** (mapa curto), **cartão amarelo** (uma derrota fora da Final), **8 partidas** (~35 min),
+**Mercado como casa do mapa**, **recompensa grátis continua**, **draft da longa mais fraco** com pacotes e rivais
+subindo por andar, **rivais da Rota** com treinadores de Kanto, **8 primeiros eventos** (1 a 8 da tabela), **regra do
+líder fica pra depois**, **Copa do Dia continua rápida**.
+
+Pedido junto: **Duelo em MD3** (melhor de 3 com o mesmo time), à parte da Copa longa (`docs/planos/duelo-md3.md`).
