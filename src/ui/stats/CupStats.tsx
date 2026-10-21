@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { clubName, stageName } from '../../i18n';
+import { clubName, cupStageName, cupStageShort } from '../../i18n';
 import { useT } from '../../i18n/react';
 import type { StageResult, StageStats } from '../../store/game-store';
+import type { CupMode } from '../../store/long-cup';
 import { cardSprite } from '../components/PokeCard';
 import { awayC, homeC } from './StatsCharts';
 
@@ -84,7 +85,7 @@ export function aggregate(results: StageResult[]): Agg[] {
 export const avg = (a: Agg) => (a.games ? a.ratingSum / a.games : 0);
 
 /** Gols feitos (vermelho) e sofridos (azul) por partida. */
-function GoalsChart({ results }: { results: StageResult[] }) {
+function GoalsChart({ results, run }: { results: StageResult[]; run: { mode?: CupMode } }) {
     const { t, d } = useT();
     const [hover, setHover] = useState<number | null>(null);
     const W = 560;
@@ -133,7 +134,7 @@ function GoalsChart({ results }: { results: StageResult[] }) {
                                 );
                             })}
                             <text x={cx} y={H - 12} fill="var(--muted)" fontSize={10} textAnchor="middle">
-                                {d.stats.cup.stageShort[r.stage] ?? ''}
+                                {cupStageShort(run, r.stage, d.stats.cup.stageShort)}
                             </text>
                             {hover === i && (
                                 <text x={cx} y={H - 1} fill="var(--text)" fontSize={10} textAnchor="middle">
@@ -158,7 +159,8 @@ function GoalsChart({ results }: { results: StageResult[] }) {
     );
 }
 
-export function CupStats({ results }: { results: StageResult[] }) {
+export function CupStats({ results, mode }: { results: StageResult[]; mode?: CupMode }) {
+    const run = { mode };
     const { t, tn, d } = useT();
     if (!results.length) return <p className="muted">{t('stats.cup.empty')}</p>;
     const players = aggregate(results).sort((a, b) => b.goals - a.goals || avg(b) - avg(a));
@@ -217,7 +219,7 @@ export function CupStats({ results }: { results: StageResult[] }) {
                         const star = r.stats?.players.reduce((a, b) => (b.rating > a.rating ? b : a));
                         return (
                             <div key={r.stage} className={`cup-match ${r.won ? 'won' : 'lost'}`}>
-                                <span className="muted">{stageName(r.stage)}</span>
+                                <span className="muted">{cupStageName(run, r.stage)}</span>
                                 <b>
                                     {r.score[0]} x {r.score[1]}
                                     {r.shootout && (
@@ -238,7 +240,7 @@ export function CupStats({ results }: { results: StageResult[] }) {
 
             <div>
                 <h3>{t('stats.cup.goalsPerMatch')}</h3>
-                <GoalsChart results={results} />
+                <GoalsChart results={results} run={run} />
             </div>
 
             <div>

@@ -333,3 +333,44 @@ describe('a tarefa cumprida aparece em tudo que se ganha', () => {
         expect(titleHow('diplomaKanto')).toBe('Platine a Gen 1: 100% de tudo');
     });
 });
+
+describe('missões de gols numa copa (melhor sequência de 4 jogos)', () => {
+    const biker = MISSIONS.find((m) => m.id === 'biker')!;
+    const save = (scores: [number, number][], mode?: 'longa') =>
+        ({
+            dex: {},
+            runs: [],
+            hall: [{ id: 'h', date: 1, perfect: false, scores, squad: [], ...(mode && { mode }) }],
+        }) as unknown as Parameters<NonNullable<typeof biker.count>>[0];
+
+    it('Rota Índigo com 16 gols em 8 jogos (2 por jogo) não bate os 10; 4 jogos seguidos com 10 batem', () => {
+        expect(biker.count!(save(Array(8).fill([2, 0]), 'longa'))).toBe(8);
+        expect(
+            biker.count!(
+                save(
+                    [
+                        [1, 0],
+                        [3, 0],
+                        [3, 0],
+                        [2, 0],
+                        [2, 0],
+                        [0, 1],
+                        [1, 0],
+                        [1, 0],
+                    ],
+                    'longa',
+                ),
+            ),
+        ).toBe(10);
+        expect(
+            biker.count!(
+                save([
+                    [3, 0],
+                    [2, 0],
+                    [4, 1],
+                    [1, 0],
+                ]),
+            ),
+        ).toBe(10);
+    });
+});

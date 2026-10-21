@@ -7,6 +7,61 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.1.1',
+        title: 'Cartas de volta',
+        sections: [
+            {
+                title: 'Consertos',
+                lines: [
+                    'A vitrine mostra a sua melhor carta de verdade daquele Pokémon (antes podia ficar presa na versão padrão, Destaque I ou Ícone sem MVP)',
+                    'Mudança só no Álbum agora sobe pra nuvem',
+                    'Carta perdida de antes do Álbum (19/10) volta por código: Perfil → Treinador → Resgatar código',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.1',
+        title: 'Rota Índigo',
+        sections: [
+            {
+                title: 'Rota Índigo (modo novo)',
+                lines: [
+                    'A copa longa: um mapa de Kanto de baixo pra cima (Rota 1, Floresta de Viridian, Mt. Moon, Cerulean, Estrada da Vitória, Planalto Índigo), com partidas, Ginásios, Mercado, Baú, Treino e eventos "?"',
+                    'Três atos: eliminatórias no mapa, fase de grupos no Planalto (2 primeiros vão pra Final) e a Final contra a Liga Índigo',
+                    'Cartão amarelo: a 1ª derrota fora da Final não elimina; a 2ª é vermelho',
+                    'Treinadores da Rota com falas no VERSUS e no fim do jogo',
+                ],
+            },
+            {
+                title: 'Copa Relâmpago',
+                lines: [
+                    'A Copa rápida virou Copa Relâmpago, com a chave de 16 clubes na tela: você sobe na chave a cada vitória',
+                    'Missões de gols numa copa contam a melhor sequência de 4 jogos (vale igual na Relâmpago e na Rota)',
+                ],
+            },
+            {
+                title: 'Partida',
+                lines: [
+                    'Acréscimos de 1 a 3 minutos por tempo, com a plaquinha no placar',
+                    'Pressão final: do minuto 37 em diante, quem está perdendo ganha um empurrão (chute, passe, drible e velocidade) e sobe o time, igual pros dois lados',
+                ],
+            },
+            {
+                title: 'Copa do Dia',
+                lines: [
+                    'Dias seguidos e o próximo marco na tela do dia',
+                    'Figurinha do dia: o mesmo Pokémon pra todo mundo, carta Evento no Álbum ao terminar',
+                    'Marcos: 7 dias (título Fiel da Copa) e 30 dias (treinadora Garota Dourada)',
+                ],
+            },
+            {
+                title: 'Contas',
+                lines: ['Nome de treinador e de clube são únicos (quem já tinha fica com o nome)'],
+            },
+        ],
+    },
+    {
         version: '0.9.0.5',
         title: 'Tudo na prancheta',
         sections: [
@@ -924,6 +979,61 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.1.1',
+        title: 'Cards back',
+        sections: [
+            {
+                title: 'Fixes',
+                lines: [
+                    'The showcase shows your best real card of that Pokémon (it could get stuck on the default version, Star Player I or Icon without MVP)',
+                    'Changes only in the Album now sync to the cloud',
+                    'A card lost from before the Album (Oct 19) comes back with a code: Profile → Trainer → Redeem code',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.1',
+        title: 'Indigo Road',
+        sections: [
+            {
+                title: 'Indigo Road (new mode)',
+                lines: [
+                    'The long cup: a Kanto map from bottom to top (Route 1, Viridian Forest, Mt. Moon, Cerulean, Victory Road, Indigo Plateau), with matches, Gyms, Market, Chest, Training and "?" events',
+                    'Three acts: knockouts on the map, a group stage at the Plateau (top 2 reach the Final) and the Final against the Indigo League',
+                    'Yellow card: your 1st loss outside the Final does not knock you out; the 2nd is a red',
+                    'Route trainers talk in the VERSUS and at full time',
+                ],
+            },
+            {
+                title: 'Lightning Cup',
+                lines: [
+                    'The Quick Cup is now the Lightning Cup, with the 16-club bracket on screen: you climb it with every win',
+                    'Goal missions in a cup count your best run of 4 matches (same for Lightning and Indigo Road)',
+                ],
+            },
+            {
+                title: 'Match',
+                lines: [
+                    'Stoppage time of 1 to 3 minutes per half, with the board on the scoreboard',
+                    'Final push: from minute 37 on, the team that is behind gets a boost (shooting, passing, dribbling and speed) and pushes up, the same for both sides',
+                ],
+            },
+            {
+                title: 'Daily Cup',
+                lines: [
+                    'Day streak and the next milestone on the daily screen',
+                    'Sticker of the day: the same Pokémon for everyone, an Event card in the Album when you finish',
+                    'Milestones: 7 days (Daily Devotee title) and 30 days (Golden Lass trainer)',
+                ],
+            },
+            {
+                title: 'Accounts',
+                lines: ['Trainer and club names are unique (whoever already had one keeps it)'],
+            },
+        ],
+    },
     {
         version: '0.9.0.5',
         title: 'Everything on the board',

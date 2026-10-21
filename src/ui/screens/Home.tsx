@@ -1,7 +1,6 @@
 import { type CSSProperties, useEffect, useState } from 'react';
-import { CUP_STAGES } from '../../engine/cup';
 import { weeklyEventType } from '../../engine/specials';
-import { stageName, typeName } from '../../i18n';
+import { cupStageName, stageName, typeName } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { isCupInProgress, seedFromUrl, useGame } from '../../store/game-store';
 import { seenCount } from '../../store/profile';
@@ -18,6 +17,7 @@ import { FriendChallenge } from '../profile/FriendsTab';
 import { TYPE_COLOR } from '../type-colors';
 import { HomeDailyCard } from './Daily';
 import '../home-motion.css';
+import { type CupMode, cupLength, LONG_CUP_LIVE } from '../../store/long-cup';
 import { DoorTiles } from '../components/DoorTiles';
 import { HudIcon } from '../components/MatchHud';
 import { TopActions } from '../components/TopActions';
@@ -115,16 +115,23 @@ export function Home() {
     const resumeScreen =
         run && ['formation', 'captain', 'drafting'].includes(run.status)
             ? 'draft'
-            : run?.status === 'reward' || run?.status === 'shop'
+            : run?.status === 'reward' ||
+                run?.status === 'shop' ||
+                run?.status === 'map' ||
+                run?.status === 'treino' ||
+                run?.status === 'group'
               ? run.status
               : 'lineup';
     const name = () => teamName.trim() || 'Pallet FC';
     /** Começar outra copa apaga a atual: com uma em andamento, pede confirmação antes. */
     const [confirm, setConfirm] = useState<string | null | undefined>(undefined);
     const [longSoon, setLongSoon] = useState(false);
-    const start = (seed?: string) => {
+    // modo da copa que vai começar (a Copa longa passa pela mesma confirmação de "apagar a atual")
+    const [pendingMode, setPendingMode] = useState<CupMode | undefined>(undefined);
+    const start = (seed?: string, mode?: CupMode) => {
+        setPendingMode(mode);
         if (inProgress && confirm === undefined) setConfirm(seed ?? null);
-        else newRun(name(), seed);
+        else newRun(name(), seed, undefined, mode);
     };
     /** Copas guardadas (vieram de um conflito entre aparelho e conta): retomar troca de lugar com a atual. */
     const parked = parkedRuns.filter(isCupInProgress);
@@ -145,9 +152,11 @@ export function Home() {
               ? t('home.choosingReward')
               : run?.status === 'shop'
                 ? t('home.atMarket')
-                : run
-                  ? stageName(run.stage)
-                  : '';
+                : run?.status === 'map' || run?.status === 'treino' || run?.status === 'group'
+                  ? `${t('longCup.title')} · ${cupStageName(run, run.results.length)}`
+                  : run
+                    ? stageName(run.stage)
+                    : '';
     const openLab = (q: string) => {
         window.location.search = q;
     };
@@ -222,7 +231,7 @@ export function Home() {
                                 <button
                                     type="button"
                                     className="btn primary"
-                                    onClick={() => newRun(name(), confirm ?? undefined)}
+                                    onClick={() => newRun(name(), confirm ?? undefined, undefined, pendingMode)}
                                 >
                                     {t('home.confirmYes')}
                                 </button>
@@ -243,7 +252,7 @@ export function Home() {
                                     <b className="rc-team">{run.teamName}</b>
                                     <span className="rc-step">{runStep}</span>
                                     <span className="rc-path" title={t('home.cupPath')}>
-                                        {CUP_STAGES.map((st, i) => {
+                                        {Array.from({ length: cupLength(run) }, (_, i) => `p${i}`).map((st, i) => {
                                             const r = run.results.find((x) => x.stage === i);
                                             const cls = r ? (r.won ? 'won' : 'lost') : i === run.stage ? 'now' : '';
                                             return <i key={st} className={cls} />;
@@ -309,16 +318,25 @@ export function Home() {
                                 </button>
                                 <button
                                     type="button"
-                                    className="cup-mode bc-tile soon"
-                                    aria-disabled="true"
-                                    onClick={() => setLongSoon(true)}
+                                    className={`cup-mode bc-tile${LONG_CUP_LIVE ? '' : ' soon'}`}
+                                    aria-disabled={!LONG_CUP_LIVE}
+                                    onClick={() => (LONG_CUP_LIVE ? start(undefined, 'longa') : setLongSoon(true))}
                                 >
                                     <span className="cup-mode-tag bc-tag">{t('home.longCup.tag')}</span>
                                     <b>{t('home.longCup.title')}</b>
                                     <small>{t('home.longCup.line')}</small>
                                     <span className="cup-mode-go">
-                                        <HudIcon kind="lock" />
-                                        {t('home.longCup.soon')}
+                                        {LONG_CUP_LIVE ? (
+                                            <>
+                                                {t('home.newCup')}
+                                                <HudIcon kind="next" />
+                                            </>
+                                        ) : (
+                                            <>
+                                                <HudIcon kind="lock" />
+                                                {t('home.longCup.soon')}
+                                            </>
+                                        )}
                                     </span>
                                 </button>
                             </div>

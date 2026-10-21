@@ -1,5 +1,36 @@
 # Novidades
 
+## 0.9.1.1 · Cartas de volta
+
+### Consertos
+- A vitrine mostra a sua melhor carta de verdade daquele Pokémon (antes podia ficar presa na versão padrão, Destaque I ou Ícone sem MVP)
+- Mudança só no Álbum agora sobe pra nuvem
+- Carta perdida de antes do Álbum (19/10) volta por código: Perfil → Treinador → Resgatar código
+
+## 0.9.1 · Rota Índigo
+
+### Rota Índigo (modo novo)
+- A copa longa: um mapa de Kanto de baixo pra cima (Rota 1, Floresta de Viridian, Mt. Moon, Cerulean, Estrada da Vitória, Planalto Índigo), com partidas, Ginásios, Mercado, Baú, Treino e eventos "?"
+- Três atos: eliminatórias no mapa, fase de grupos no Planalto (2 primeiros vão pra Final) e a Final contra a Liga Índigo
+- Cartão amarelo: a 1ª derrota fora da Final não elimina; a 2ª é vermelho
+- Treinadores da Rota com falas no VERSUS e no fim do jogo
+
+### Copa Relâmpago
+- A Copa rápida virou Copa Relâmpago, com a chave de 16 clubes na tela: você sobe na chave a cada vitória
+- Missões de gols numa copa contam a melhor sequência de 4 jogos (vale igual na Relâmpago e na Rota)
+
+### Partida
+- Acréscimos de 1 a 3 minutos por tempo, com a plaquinha no placar
+- Pressão final: do minuto 37 em diante, quem está perdendo ganha um empurrão (chute, passe, drible e velocidade) e sobe o time, igual pros dois lados
+
+### Copa do Dia
+- Dias seguidos e o próximo marco na tela do dia
+- Figurinha do dia: o mesmo Pokémon pra todo mundo, carta Evento no Álbum ao terminar
+- Marcos: 7 dias (título Fiel da Copa) e 30 dias (treinadora Garota Dourada)
+
+### Contas
+- Nome de treinador e de clube são únicos (quem já tinha fica com o nome)
+
 ## 0.9.0.5 · Tudo na prancheta
 
 ### Toque direto

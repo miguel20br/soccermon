@@ -1,18 +1,20 @@
 import { type CSSProperties, useEffect, useState } from 'react';
 import { useCloud } from '../../cloud/cloud';
 import { CUP_STAGES } from '../../engine/cup';
+import { species } from '../../engine/data';
 import { useFriends } from '../../friends/api';
 import { clubName, dict } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { type DailyRow, isError, league, leagueOnline, publicInfo } from '../../league/api';
 import { ligaCountdown } from '../../league/rules';
-import { dailyDay, dailyShareText, dailyStreak, putDaily, winsOf } from '../../store/daily';
+import { dailyDay, dailyShareText, dailySticker, dailyStreak, daysInARow, putDaily, winsOf } from '../../store/daily';
 import { isCupInProgress, useGame } from '../../store/game-store';
 import { clubColorHex } from '../../store/profile';
 import { AccountBar } from '../components/AccountBar';
 import { HudIcon } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { MenuIcon } from '../components/MenuIcon';
+import { cardSprite } from '../components/PokeCard';
 import { SITE_URL, shareText } from '../share';
 import '../liga.css';
 
@@ -136,6 +138,11 @@ export function Daily() {
     const entry = daily.find((e) => e.day === today);
     const playing = run?.daily === today && isCupInProgress(run);
     const streak = dailyStreak(daily, today);
+    const inARow = daysInARow(daily, today);
+    const nextGoal = [
+        { days: 7, prize: t('profile.titles.fielCopa') },
+        { days: 30, prize: t('profile.trainers.lassGold') },
+    ].find((g) => g.days > inARow);
     const { begin, busy, note } = useDailyBegin();
     const [shared, setShared] = useState(false);
     const [rows, setRows] = useState<DailyRow[] | 'loading' | 'error' | null>(leagueOnline() ? 'loading' : null);
@@ -245,6 +252,25 @@ export function Daily() {
                     ))}
                 </ol>
                 <small>{tn('liga.daily.total', streak.total)}</small>
+                {/* dias seguidos e o próximo marco (7: título Fiel da Copa; 30: a Garota Dourada) */}
+                <p className="lg-inarow">
+                    <b>{tn('liga.daily.inARow', inARow)}</b>{' '}
+                    {nextGoal && (
+                        <span className="muted">
+                            {t('liga.daily.nextGoal', { n: nextGoal.days - inARow, prize: nextGoal.prize })}
+                        </span>
+                    )}
+                </p>
+                {/* a figurinha de hoje: o mesmo Pokémon pra todo mundo que termina a Copa do Dia */}
+                <div className="lg-sticker">
+                    <img className="pixel" src={cardSprite({ speciesId: dailySticker(today), shiny: false })} alt="" />
+                    <span>
+                        <b>{t('liga.daily.stickerTitle', { name: species(dailySticker(today)).name })}</b>
+                        <small className="muted">
+                            {entry?.done ? t('liga.daily.stickerGot') : t('liga.daily.stickerHow')}
+                        </small>
+                    </span>
+                </div>
             </section>
 
             <section className="panel lg-rank bc-surface">

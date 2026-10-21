@@ -1,5 +1,6 @@
 import { type ReactNode, useRef, useState } from 'react';
 import { computeAttributes } from '../../engine/attributes';
+import { relampagoBracket } from '../../engine/bracket';
 import { cupRival } from '../../engine/cup';
 import { species } from '../../engine/data';
 import { FORMATIONS, type FormationId } from '../../engine/formations';
@@ -11,10 +12,12 @@ import { applyModifiers, attributeModifiers } from '../../engine/modifiers';
 import { type CornerPlan, TACTIC_LABEL, type Tactic } from '../../engine/state';
 import { computeSynergies } from '../../engine/synergy';
 import { playSfx } from '../../game/audio';
-import { clubName, dict, formationText, itemDesc, itemName, stageName } from '../../i18n';
+import { clubName, cupStageName, dict, formationText, itemDesc, itemName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { liveOf, playerTeam, type SlotRef, useGame } from '../../store/game-store';
+import { isLong, isOut } from '../../store/long-cup';
 import { useCardModal } from '../card-modal';
+import { Bracket } from '../components/Bracket';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
 import { LinkChips } from '../components/LinkChips';
@@ -22,6 +25,7 @@ import { HudIcon } from '../components/MatchHud';
 import { cardSprite, TypeBadge } from '../components/PokeCard';
 import { Money, SponsorSlots } from '../components/SponsorCard';
 import { Tip } from '../help/Tip';
+import { useClubColor } from '../profile/club';
 import { lineupAverage } from '../rating';
 import { agencyOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
@@ -52,10 +56,15 @@ export function Lineup() {
     const openCard = useCardModal((s) => s.open);
     const [loading, setLoading] = useState(false);
     const { t, d, lang } = useT();
+    const clubColor = useClubColor();
     if (!run) return null;
 
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
     const opponent = run.opponents[run.stage];
+    // Copa longa: quem está fora (lesão, Creche) fica no banco; titular fora trava o Jogar até você trocar
+    const outName = (u: string) => `${viewInstance(byUid.get(u)!).displayName} (${run.out?.[u]})`;
+    const outList = [...run.lineup, ...run.bench].filter((u) => isOut(run, u)).map(outName);
+    const outStarter = run.lineup.filter((u) => isOut(run, u)).map(outName)[0];
     const locked = !!run.lockedTeam;
 
     const play = async () => {
@@ -108,6 +117,18 @@ export function Lineup() {
                 </div>
             </div>
 
+            {/* Copa Relâmpago: a chave inteira, com você na fase de agora */}
+            {!isLong(run) && (
+                <Bracket
+                    rounds={relampagoBracket(
+                        run.seed,
+                        { name: run.teamName, color: clubColor },
+                        run.opponents,
+                        run.results,
+                    )}
+                    current={run.stage}
+                />
+            )}
             <LineupEditor
                 title={t('team.lineup.title', { team: run.teamName })}
                 formation={run.formation}
@@ -128,7 +149,7 @@ export function Lineup() {
                 side={
                     <div className="panel">
                         <h2>
-                            {stageName(run.stage, lang)}: {clubName(opponent.name, lang)}
+                            {cupStageName(run, run.stage, lang)}: {clubName(opponent.name, lang)}
                         </h2>
                         <div className="opponent-strip">
                             {opponent.lineup.map((p) => (
@@ -156,8 +177,20 @@ export function Lineup() {
                                 n: lineupAverage(opponent.lineup, opponent.formation),
                             })}
                         </p>
+                        {outList.length > 0 && (
+                            <p className={outStarter ? 'error-text' : 'tactic-desc'}>
+                                {outStarter
+                                    ? t('longCup.outStarter', { name: outStarter })
+                                    : t('longCup.outBench', { names: outList.join(', ') })}
+                            </p>
+                        )}
                         <div className="bc-thumbbar">
-                            <button type="button" className="btn primary wide" onClick={play} disabled={loading}>
+                            <button
+                                type="button"
+                                className="btn primary wide"
+                                onClick={play}
+                                disabled={loading || !!outStarter}
+                            >
                                 {loading
                                     ? t('team.lineup.warming')
                                     : locked
@@ -165,8 +198,8 @@ export function Lineup() {
                                       : t('team.lineup.play', {
                                             stage:
                                                 lang === 'pt'
-                                                    ? stageName(run.stage, lang).toLowerCase()
-                                                    : stageName(run.stage, lang),
+                                                    ? cupStageName(run, run.stage, lang).toLowerCase()
+                                                    : cupStageName(run, run.stage, lang),
                                         })}
                             </button>
                         </div>

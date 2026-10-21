@@ -9,6 +9,7 @@ import { playSfx } from '../../game/audio';
 import { clubName, itemDesc, itemName, stageName, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { type RunState, useGame } from '../../store/game-store';
+import { isLong } from '../../store/long-cup';
 import { useCardModal } from '../card-modal';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { FormationBoard } from '../components/FormationBoard';
@@ -74,7 +75,9 @@ export function Reward() {
         <>
             <div className="draft-head bc-screenhead">
                 <span className="bc-tag">
-                    {t('reward.nextStage', { stage: stageName(run.stage + 1, lang) || t('reward.cup') })}
+                    {isLong(run)
+                        ? t('longCup.title')
+                        : t('reward.nextStage', { stage: stageName(run.stage + 1, lang) || t('reward.cup') })}
                 </span>
                 <div className="draft-title">
                     <h1>

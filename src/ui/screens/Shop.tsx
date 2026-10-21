@@ -7,6 +7,7 @@ import { playSfx } from '../../game/audio';
 import { itemDesc, itemName, stageName, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
+import { isLong } from '../../store/long-cup';
 import { CardPack, isBigCard, PackArt, packLookOf } from '../components/CardPack';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
@@ -124,7 +125,9 @@ export function Shop() {
         <>
             <div className="draft-head bc-screenhead">
                 <span className="bc-tag">
-                    {t('shop.before', { stage: stageName(run.stage + 1, lang) || t('reward.cup') })}
+                    {isLong(run)
+                        ? t('longCup.title')
+                        : t('shop.before', { stage: stageName(run.stage + 1, lang) || t('reward.cup') })}
                 </span>
                 <div className="draft-title">
                     <h1>{t('shop.title')}</h1>

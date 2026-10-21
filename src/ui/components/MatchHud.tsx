@@ -25,6 +25,8 @@ export interface Clock {
     half: number;
     score: [number, number];
     phase: Phase;
+    /** Acréscimos anunciados do tempo atual (minutos; o relógio para no 20'/40' e o placar mostra "+N'"). */
+    added?: number;
 }
 
 const MATCH_MIN = 40;
@@ -36,6 +38,8 @@ export interface ClockParts {
     text: boolean;
     /** Quanto da partida já passou (0..1), pra barrinha embaixo do relógio. */
     progress: number;
+    /** Acréscimos ("+2'"), ou ''/sem. */
+    added?: string;
 }
 
 export function clockParts(
@@ -59,13 +63,16 @@ export function clockParts(
         sub: dict().match.half[clock.half - 1] ?? '',
         text: false,
         progress: Math.min(1, Math.max(0, clock.minute / MATCH_MIN)),
+        added: clock.added ? t('match.added', { min: clock.added }) : '',
     };
 }
 
-/** Texto do relógio numa linha: intervalo, fim/pênaltis ou "19' · 1º tempo". */
+/** Texto do relógio numa linha: intervalo, fim/pênaltis, "19' · 1º tempo" ou, nos acréscimos, "20' +2' · 1º tempo". */
 export function clockLabel(clock: Clock, over: boolean, shootout: [number, number] | null, halftime = false): string {
     const p = clockParts(clock, over, shootout, halftime);
-    return p.text ? p.main : t('match.clock', { min: Math.min(MATCH_MIN, Math.floor(clock.minute)), half: p.sub });
+    if (p.text) return p.main;
+    const label = t('match.clock', { min: Math.min(MATCH_MIN, Math.floor(clock.minute)), half: p.sub });
+    return p.added ? label.replace(p.main, `${p.main} ${p.added}`) : label;
 }
 
 /** Relógio do placar (reage à troca de idioma). */
@@ -94,6 +101,7 @@ export function Scoreboard({
     className = '',
     coaches,
     looks,
+    pressure,
     children,
 }: {
     names: [string, string];
@@ -109,8 +117,11 @@ export function Scoreboard({
     coaches?: [ReactNode, ReactNode];
     /** Escudo e uniforme de cada time (a faixa do lado ganha o padrão; o escudo vai antes da sigla). */
     looks?: [ClubLook, ClubLook];
+    /** Time na Pressão final agora (selo em cima do lado dele); undefined = a tela não mostra. */
+    pressure?: 0 | 1 | null;
     children?: ReactNode;
 }) {
+    const { t } = useT();
     const team = (i: 0 | 1) => (
         <div
             className={`bc-tm${i ? ' away' : ''}${looks ? ' has-kit' : ''}`}
@@ -137,9 +148,26 @@ export function Scoreboard({
     return (
         <div className={`scoreboard bc-bug${coaches ? ' has-coaches' : ''}${className}`} ref={boardRef}>
             <span className="bc-phase bc-tag">{stage}</span>
+            {pressure !== undefined &&
+                ([0, 1] as const).map((i) => (
+                    // os dois selos ficam montados: o do lado que perde aparece (e some) no fade, nada pula
+                    <span
+                        key={i}
+                        className={`bc-fp${i ? ' away' : ''}${pressure === i ? ' on' : ''}`}
+                        style={{ '--tc': hex(colors[i]) } as CSSProperties}
+                        title={t('match.finalPressureHint')}
+                        aria-hidden={pressure !== i}
+                    >
+                        <HudIcon kind="offensive" />
+                        {t('match.finalPressure')}
+                    </span>
+                ))}
             {team(0)}
             <div className="bc-mid">
-                <span className={`bc-clock${clock.text ? ' txt' : ''}`}>{clock.main}</span>
+                <span className={`bc-clock${clock.text ? ' txt' : ''}`}>
+                    {clock.main}
+                    {clock.added && <span className="bc-add">{clock.added}</span>}
+                </span>
                 {clock.sub && <span className="bc-half">{clock.sub}</span>}
                 <span className="bc-prog">
                     <i style={{ width: `${Math.round(clock.progress * 100)}%` }} />
@@ -305,6 +333,19 @@ export const ICONS = {
     bike: 'M3.5 17a3 3 0 1 0 6 0 3 3 0 1 0-6 0M14.5 17a3 3 0 1 0 6 0 3 3 0 1 0-6 0M6.5 17L10 9h5l2.5 8M10 9l3 8M13 6h3',
     book: 'M3 5h6a3 3 0 0 1 3 3v12a2.5 2.5 0 0 0-2.5-2.5H3zM21 5h-6a3 3 0 0 0-3 3v12a2.5 2.5 0 0 1 2.5-2.5H21z',
     crown: 'M4 19h16M5 16L3 7l5 4 4-6 4 6 5-4-2 9z',
+    // Copa longa (src/ui/screens/CupMap.tsx)
+    chest: 'M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v9H4zM4 12h16M12 10v5',
+    question: 'M9 9a3 3 0 1 1 4.5 2.6c-1 .6-1.5 1.2-1.5 2.4M12 18h.01',
+    // eventos da Rota Índigo
+    medkit: 'M4 8h16v12H4zM9 8V5h6v3M12 11v6M9 14h6',
+    briefcase: 'M3 9h18v11H3zM8 9V6h8v3M3 14h18',
+    armband: 'M5 6h14l-1.5 14h-11zM10 10.5a2.5 2.5 0 1 0 0 5h1.5M14 10v6',
+    binoculars:
+        'M3.5 16a3.5 3.5 0 1 0 7 0 3.5 3.5 0 1 0-7 0M13.5 16a3.5 3.5 0 1 0 7 0 3.5 3.5 0 1 0-7 0M5 13l2-7h3l1 7M19 13l-2-7h-3l-1 7M10.5 12h3',
+    mic: 'M9 4a3 3 0 0 1 6 0v6a3 3 0 0 1-6 0zM5 10a7 7 0 0 0 14 0M12 17v4M8 21h8',
+    paw: 'M7 11a2 2 0 1 0 0-.01M17 11a2 2 0 1 0 0-.01M10 7a2 2 0 1 0 0-.01M14 7a2 2 0 1 0 0-.01M8 18c0-3 2-5 4-5s4 2 4 5c0 1.5-1.5 2-4 2s-4-.5-4-2z',
+    dumbbell: 'M3 9v6M6 6v12M18 6v12M21 9v6M6 12h12',
+    yellow: 'M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z',
 } as const;
 export type HudIconKind = keyof typeof ICONS;
 

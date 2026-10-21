@@ -3,7 +3,7 @@ import { species } from '../../engine/data';
 import { formationOf } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import type { ShotPoint } from '../../engine/match-stats';
-import { clubName, moveName, stageName } from '../../i18n';
+import { clubName, cupStageName, moveName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import type { RunState } from '../../store/game-store';
 import { lineupAverage } from '../rating';
@@ -168,7 +168,7 @@ export function CupGoals({ run }: { run: RunState }) {
                     return (
                         <div key={r.stage} className="ce-tl-row">
                             <span className="ce-tl-label">
-                                {stageName(r.stage)}
+                                {cupStageName(run, r.stage)}
                                 <small>
                                     {r.score[0]} x {r.score[1]} · {clubName(r.opponent)}
                                 </small>

@@ -5,7 +5,7 @@ vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, 
 
 import { ENGINE_VERSION, FUTSAL_5 } from '../engine/config';
 import { bestFit, DRAFT_PICKS } from '../engine/draft';
-import { evolveInstance } from '../engine/evolution';
+import { evolutionTarget, evolveInstance } from '../engine/evolution';
 import { formationOf } from '../engine/formations';
 import { createInstance, type PokemonInstance, slotRating } from '../engine/instance';
 import { playerLines } from '../engine/match-stats';
@@ -30,6 +30,7 @@ import {
     slotRole,
     useGame,
 } from './game-store';
+import { groupTable } from './long-cup';
 import { BANNER_COUNT, bannerOf, EDITION_BIT, EMPTY_ENTRY, recordMatchInDex } from './profile';
 
 describe('save', () => {
@@ -696,5 +697,144 @@ describe('Mercado (Copa rápida)', () => {
         const run = ready('mercado-campo', { sponsors: ['academia'] });
         expect(playerTeam(run, 15221311).sponsors).toEqual(['academia']);
         expect(playerTeam({ ...run, sponsors: [] }, 15221311).sponsors).toBeUndefined();
+    });
+});
+
+describe('Copa longa', () => {
+    const start = (seed: string) => {
+        useGame.getState().newRun('Pallet FC', seed, undefined, 'longa');
+        useGame.getState().autoDraft();
+        return useGame.getState().run!;
+    };
+
+    it('nasce com o mapa e sem rivais; o time pronto vai pro mapa', () => {
+        const run = start('longa-mapa');
+        expect(run.mode).toBe('longa');
+        expect(run.map?.rows).toBe(9);
+        expect(run.opponents).toEqual([]);
+        expect(run.status).toBe('map');
+        expect(useGame.getState().screen).toBe('map');
+    });
+
+    it('casa de partida: rival da prévia na escalação; casa fora do caminho não entra', () => {
+        const run = start('longa-casa');
+        const far = run.map!.nodes.find((n) => n.row === 4)!;
+        useGame.getState().enterNode(far.id);
+        expect(useGame.getState().run!.status).toBe('map');
+        const first = run.map!.nodes.find((n) => n.row === 0)!;
+        useGame.getState().enterNode(first.id);
+        const now = useGame.getState().run!;
+        expect(now.status).toBe('lineup');
+        expect(now.at).toBe(first.id);
+        expect(now.opponents[0]?.name).toBeTruthy();
+    });
+
+    it('vitória vai pra recompensa e depois pro mapa (sem Mercado); derrota fora da Final é cartão amarelo', () => {
+        const run = start('longa-partida');
+        useGame.getState().enterNode(run.map!.nodes.find((n) => n.row === 0)!.id);
+        const cur = useGame.getState().run!;
+        const team = playerTeam(cur, 15221311);
+        useGame.getState().lockMatch(team);
+        const m = runMatch(FUTSAL_5, team, cur.opponents[0], `${cur.seed}-stage-0`);
+        useGame.getState().recordResult(m);
+        const after = useGame.getState().run!;
+        expect(after.results[0].final).toBe(false);
+        if (m.winner === 0) {
+            expect(after.status).toBe('reward');
+            expect(after.money).toBeGreaterThanOrEqual(5);
+            useGame.getState().skipReward();
+            expect(useGame.getState().run!.status).toBe('map');
+        } else {
+            expect(after.status).toBe('map');
+            expect(after.cards).toBe(1);
+        }
+    });
+
+    it('Mercado é casa do mapa: juros ao entrar, sair volta pro mapa', () => {
+        const run = start('longa-mercado');
+        const first = run.map!.nodes.find((n) => n.row === 0)!;
+        const shopNode = first.next
+            .map((id) => run.map!.nodes.find((n) => n.id === id)!)
+            .find((n) => n.kind === 'mercado');
+        if (!shopNode) return;
+        useGame.setState({ run: { ...run, at: first.id, money: 12 } });
+        useGame.getState().enterNode(shopNode.id);
+        const shop = useGame.getState().run!;
+        expect(shop.status).toBe('shop');
+        expect(shop.money).toBe(14);
+        useGame.getState().leaveShop();
+        expect(useGame.getState().run!.status).toBe('map');
+    });
+
+    it('Treino: barra de evolução enche metade, ou +1 troca', () => {
+        const base = start('longa-treino');
+        // Charmander no banco: alguém que evolui com certeza
+        const evolver = { ...createInstance(4, new Rng('treino', 'x')), uid: 'charmander' };
+        const run = { ...base, picks: [...base.picks.slice(0, -1), evolver], bench: [base.bench[0], 'charmander'] };
+        expect(evolutionTarget(evolver.speciesId, evolver.uid)).not.toBeNull();
+        useGame.setState({ run: { ...run, status: 'treino' } });
+        useGame.getState().train('rest');
+        expect(useGame.getState().run!.rerolls).toBe(run.rerolls + 1);
+        useGame.setState({ run: { ...run, status: 'treino' } });
+        useGame.getState().train('evo', evolver.uid);
+        expect(useGame.getState().run!.status).toBe('map');
+        expect(useGame.getState().run!.picks.find((p) => p.uid === evolver.uid)!.evo).toBe(7);
+    });
+});
+
+describe('Rota Índigo: fase de grupos', () => {
+    it('depois do Treino vem o grupo; 3 rodadas; quem fica entre os 2 primeiros joga a Final contra a Liga Índigo', () => {
+        useGame.getState().newRun('Pallet FC', 'grupo-1', undefined, 'longa');
+        useGame.getState().autoDraft();
+        const run = useGame.getState().run!;
+        const treino = run.map!.nodes.find((n) => n.row === run.map!.rows - 1)!;
+        // 4 partidas das eliminatórias "jogadas" (só os resultados), parado no Treino
+        const results = [0, 1, 2, 3].map((stage) => ({
+            stage,
+            opponent: 'x',
+            score: [2, 1] as [number, number],
+            shootout: null,
+            won: true,
+        }));
+        useGame.setState({ run: { ...run, at: treino.id, status: 'treino', results, stage: 3 } });
+        useGame.getState().train('rest');
+        let now = useGame.getState().run!;
+        expect(now.status).toBe('group');
+        expect(now.group?.rivals).toHaveLength(3);
+        for (let md = 0; md < 3; md++) {
+            useGame.getState().playNext();
+            now = useGame.getState().run!;
+            expect(now.status).toBe('lineup');
+            expect(now.stage).toBe(4 + md);
+            expect(now.opponents[now.stage].name).toBe(now.group!.rivals[md].name);
+            const team = playerTeam(now, 15221311);
+            useGame.getState().lockMatch(team);
+            useGame
+                .getState()
+                .recordResult(runMatch(FUTSAL_5, team, now.opponents[now.stage], `${now.seed}-stage-${now.stage}`));
+            now = useGame.getState().run!;
+            if (now.status === 'eliminated') {
+                expect(md).toBe(2);
+                return;
+            }
+            if (now.status === 'reward') useGame.getState().skipReward();
+            expect(useGame.getState().run!.status).toBe('group');
+        }
+        useGame.getState().playNext();
+        now = useGame.getState().run!;
+        expect(now.stage).toBe(7);
+        expect(now.opponents[7].name).toBe('Liga Índigo');
+    });
+
+    it('tabela: vitória 3, vitória nos pênaltis 2, derrota nos pênaltis 1', () => {
+        const rivals = [0, 1, 2].map((i) => ({ name: `R${i}`, color: 0 }) as never);
+        const results = [
+            { stage: 4, score: [3, 1] as [number, number], won: true, shootout: null },
+            { stage: 5, score: [2, 2] as [number, number], won: true, shootout: [4, 3] },
+            { stage: 6, score: [1, 1] as [number, number], won: false, shootout: [2, 4] },
+        ];
+        const rows = groupTable({ seed: 'tab', teamName: 'Eu', group: { rivals }, results }, 0);
+        expect(rows.find((r) => r.you)!.pts).toBe(6);
+        expect(rows.reduce((n, r) => n + r.played, 0)).toBe(12);
     });
 });

@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import { track } from '../../analytics/track';
+import { relampagoBracket } from '../../engine/bracket';
 import { species } from '../../engine/data';
 import {
     dangerByPeriod,
@@ -15,9 +16,12 @@ import { specialBonus } from '../../engine/specials';
 import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { lineupPosition, useGame } from '../../store/game-store';
+import { cupLength, isFinalStage, isLong } from '../../store/long-cup';
 import { rivalColor } from '../../store/profile';
+import { Bracket } from '../components/Bracket';
 import { ChampionView } from '../components/ChampionView';
 import { CupGains } from '../components/CupGains';
+import { FoulCard } from '../components/FoulCard';
 import { FutCard } from '../components/FutCard';
 import { LeaderQuote } from '../components/LeaderQuote';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
@@ -107,8 +111,20 @@ export function Result() {
         track('share', { kind: `download-${format}`, result: 'shared', champion });
     };
 
+    // Copa longa: cartão amarelo (1ª derrota fora da Final) ou vermelho (a 2ª), com o resto do caminho bloqueado
+    const lost = run.results.at(-1)?.won === false;
+    const foul =
+        isLong(run) && lost
+            ? run.status === 'map'
+                ? 'yellow'
+                : run.status === 'eliminated' && !isFinalStage(run)
+                  ? 'red'
+                  : null
+            : null;
+
     const actions = (
         <>
+            {foul && <FoulCard kind={foul} remaining={cupLength(run) - run.results.length} />}
             {eliminated && <CupGains run={run} />}
             {(eliminated || champion) && <CupGoalCard run={run} match={match} />}
             <div className="row" style={{ justifyContent: 'center' }}>
@@ -137,7 +153,7 @@ export function Result() {
                 ) : (
                     <div className="bc-thumbbar">
                         <button type="button" className="btn primary big" onClick={advance}>
-                            {t('result.chooseReward')}
+                            {run.status === 'map' ? t('longCup.backToMap') : t('result.chooseReward')}
                             <HudIcon kind="next" />
                         </button>
                     </div>
@@ -190,6 +206,19 @@ export function Result() {
                     actions={actions}
                 />
             )}
+            {/* Copa Relâmpago: venceu, você sobe na chave (a fase nova entra com brilho) */}
+            {!champion && run.status === 'reward' && !isLong(run) && (
+                <Bracket
+                    rounds={relampagoBracket(
+                        run.seed,
+                        { name: run.teamName, color: clubColor },
+                        run.opponents,
+                        run.results,
+                    )}
+                    current={run.stage + 1}
+                    fresh
+                />
+            )}
             {/* fora do título a fala vem no topo do resultado (ResultHero) */}
             {champion && (
                 <LeaderQuote
@@ -207,7 +236,7 @@ export function Result() {
                 match={match}
                 names={names}
                 initialTab={tab}
-                cupTab={<CupStats results={run.results} />}
+                cupTab={<CupStats results={run.results} mode={run.mode} />}
                 goalsExtra={
                     <>
                         {evolutions.length > 0 && (

@@ -12,6 +12,7 @@ import { EVENT_TYPES, ICONS, type Special } from '../engine/specials';
 import { EventBus } from '../game/EventBus';
 import { type BinderCard, binderAdd } from '../store/binder';
 import { playerTeam, useGame } from '../store/game-store';
+import { EVENT_IDS, type EventId, rollEvent } from '../store/long-events';
 import { earnedKeys, medalViewOf } from '../store/news';
 import { EDITION_BIT, editionBits } from '../store/profile';
 import { agencyOn } from './settings-sync';
@@ -39,7 +40,8 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * platina da Gen 1 sem platinar (Prof. Carvalho holográfico e Diploma de Kanto, já escolhidos) e mostra o aviso na Home.
  * `?demo=vestiario` abre na
  * escalação uma partida que, ao começar, já está a 2 s do intervalo, com 2 no banco e troca do rival no intervalo (o
- * vestiário: várias trocas, desfazer e "O rival trocou").
+ * vestiário: várias trocas, desfazer e "O rival trocou"). `?demo=acrescimos` abre na escalação uma partida que você está
+ * perdendo no fim: ao começar, já está na Pressão final, a 3 s dos acréscimos do 2º tempo ("+N'" no placar).
  */
 let started = false;
 
@@ -55,6 +57,9 @@ export function runDevDemo() {
         demo !== 'trailer' &&
         demo !== 'mt' &&
         demo !== 'mercado' &&
+        demo !== 'mapa' &&
+        demo !== 'evento' &&
+        demo !== 'grupo' &&
         demo !== 'escanteio' &&
         demo !== 'conta' &&
         demo !== 'lider' &&
@@ -67,6 +72,7 @@ export function runDevDemo() {
         demo !== 'amigos' &&
         demo !== 'platina' &&
         demo !== 'vestiario' &&
+        demo !== 'acrescimos' &&
         demo !== 'sala'
     )
         return;
@@ -251,6 +257,37 @@ export function runDevDemo() {
         }
         return;
     }
+    // ?demo=mapa: Copa longa no mapa (`&meio=1`: já andou 5 linhas, com ₽, um cartão amarelo e 2 Patrocínios)
+    // ?demo=evento&id=carrinho|patrocinador|capitao|olheiro|entrevista|perdido|treinoPuxado|creche
+    if (demo === 'evento') {
+        demoLongMap(store, true);
+        const id = (new URLSearchParams(window.location.search).get('id') ?? 'carrinho') as EventId;
+        const run = useGame.getState().run!;
+        const event = rollEvent({ ...run, eventsSeen: EVENT_IDS.filter((x) => x !== id) });
+        useGame.setState({ run: { ...run, status: 'event', event }, screen: 'event' });
+        return;
+    }
+    // ?demo=grupo: Rota Índigo no Planalto, com a 1ª rodada do grupo jogada
+    if (demo === 'grupo') {
+        demoLongMap(store, false);
+        const run = useGame.getState().run!;
+        const last = run.map!.nodes.find((n) => n.row === run.map!.rows - 1)!;
+        const results = [0, 1, 2, 3, 4].map((stage) => ({
+            stage,
+            opponent: 'Montanhistas',
+            score: (stage === 4 ? [2, 2] : [3, 1]) as [number, number],
+            shootout: stage === 4 ? ([4, 3] as [number, number]) : null,
+            won: true,
+            final: false,
+        }));
+        useGame.setState({ run: { ...run, at: last.id, status: 'treino', results, stage: 4, money: 22 } });
+        useGame.getState().train('rest');
+        return;
+    }
+    if (demo === 'mapa') {
+        demoLongMap(store, new URLSearchParams(window.location.search).has('meio'));
+        return;
+    }
     // ?demo=mercado: Mercado depois das quartas (demoShop)
     if (demo === 'mercado') {
         demoShop(store);
@@ -323,6 +360,36 @@ export function runDevDemo() {
             const live = { stage: 0, orders: [], tick: Math.max(0, ht.tick - 40), engine: ENGINE_VERSION };
             useGame.setState({ run: { ...ready, lockedTeam: team, live }, screen: 'lineup' });
             console.info(`[demo] copa ${ready.seed}: intervalo no tick ${ht.tick} com troca do rival`);
+            return;
+        }
+        return;
+    }
+    if (demo === 'acrescimos') {
+        for (let k = 0; k < 120; k++) {
+            store.newRun('Demo FC', `acr${k}`);
+            const base = useGame.getState().run!;
+            const rng = new Rng(`acr${k}`, 'demo');
+            // time fraco (Geodude no gol, Rattata, Pidgey, Spearow, Ekans; banco Weedle e Caterpie): perde no fim
+            const lineup = [74, 19, 16, 21, 23].map((id) => createInstance(id, rng));
+            const bench = [13, 10].map((id) => createInstance(id, rng));
+            const run = {
+                ...base,
+                formation: '1-2-1' as const,
+                picks: [...lineup, ...bench],
+                lineup: lineup.map((p) => p.uid),
+                bench: bench.map((p) => p.uid),
+                captainUid: lineup[4].uid,
+                draftRound: 7,
+                status: 'lineup' as const,
+            };
+            const team = { ...playerTeam(run), manualSubs: true };
+            const r = runMatch(FUTSAL_5, team, run.opponents[0], `${run.seed}-stage-0`, { snapshots: false });
+            const stop = r.events.find((e) => e.type === 'stoppage' && e.half === 2);
+            const press = r.events.find((e) => e.type === 'pressure' && e.team === 0);
+            if (!stop || !press || press.tick > stop.tick - 60) continue;
+            const live = { stage: 0, orders: [], tick: stop.tick - 60, engine: ENGINE_VERSION };
+            useGame.setState({ run: { ...run, lockedTeam: team, live }, screen: 'lineup' });
+            console.info(`[demo] copa ${run.seed}: acréscimos do 2º tempo no tick ${stop.tick}`);
             return;
         }
         return;
@@ -741,4 +808,42 @@ function demoShop(store: ReturnType<typeof useGame.getState>) {
     });
     useGame.getState().skipReward();
     return;
+}
+
+/** ?demo=mapa: Copa longa com o time montado sozinho, parada no mapa. */
+function demoLongMap(store: ReturnType<typeof useGame.getState>, middle: boolean) {
+    store.newRun('Demo FC', 'mapa-demo', undefined, 'longa');
+    useGame.getState().autoDraft();
+    if (!middle) return;
+    const run = useGame.getState().run!;
+    const map = run.map!;
+    // anda pelo primeiro caminho de cada casa até a linha 5 (sem jogar: só pra ver o mapa no meio)
+    const path: string[] = [];
+    let node = map.nodes.find((n) => n.row === 0)!;
+    while (node.row < 5) {
+        path.push(node.id);
+        node = map.nodes.find((n) => n.id === node.next[node.next.length - 1])!;
+    }
+    const results = [0, 1, 2].map((stage) => ({
+        stage,
+        opponent: 'Montanhistas',
+        score: (stage === 1 ? [1, 2] : [3, 1]) as [number, number],
+        shootout: null,
+        won: stage !== 1,
+        final: false,
+    }));
+    useGame.setState({
+        run: {
+            ...run,
+            at: path.at(-1)!,
+            path,
+            stage: 2,
+            results,
+            cards: 1,
+            money: 18,
+            sponsors: ['silph', 'cassino'],
+            status: 'map',
+        },
+        screen: 'map',
+    });
 }
