@@ -375,7 +375,8 @@ export function MomentsButton({ run, match }: { run: RunState; match: MatchResul
     const names: [string, string] = [run.teamName, opponent ? clubName(opponent.name) : t('match.away')];
     return (
         <>
-            <button type="button" className="btn primary" onClick={() => setOpen(true)}>
+            {/* 2ª ação da tela de fim: contorno (o vermelho é o Nova copa / Escolher recompensa da barra) */}
+            <button type="button" className="btn outline" onClick={() => setOpen(true)}>
                 <HudIcon kind="play" /> {t('moments.open')}
             </button>
             {open && (
