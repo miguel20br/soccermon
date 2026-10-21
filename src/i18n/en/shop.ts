@@ -3,7 +3,7 @@ import type { shop as pt } from '../pt/shop';
 /** Market and Sponsors of the Quick Cup (docs/planos/copa-roguelike-plano.md). */
 export const shop: typeof pt = {
     title: 'Market',
-    before: 'Before the {stage}',
+    before: 'Next round: {stage}',
     money: '₽{n}',
     tip: 'Spend or save: saved ₽ earns interest. Sponsors last the whole cup.',
     wallet: 'Your ₽',

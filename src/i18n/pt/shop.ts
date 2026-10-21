@@ -1,7 +1,7 @@
 /** Mercado e Patrocínios da Copa rápida (docs/planos/copa-roguelike-plano.md). */
 export const shop = {
     title: 'Mercado',
-    before: 'Antes da {stage}',
+    before: 'Próxima fase: {stage}',
     money: '₽{n}',
     tip: 'Gaste ou guarde: ₽ guardado rende juros. Patrocínio vale até o fim da copa.',
     wallet: 'Seu ₽',

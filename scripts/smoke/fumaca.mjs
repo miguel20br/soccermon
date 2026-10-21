@@ -165,6 +165,17 @@ async function copa() {
             await reward.click();
             await p.waitForTimeout(1500);
             await shot(p, '09-recompensa');
+            // ganhou: depois da recompensa vem o Mercado (0.9.0); compra o que der e segue pra escalação
+            await btn(/^Pular/).click({ timeout: 10000 });
+            await p.locator('.shop-grid').waitFor({ timeout: 15000 });
+            await p.waitForTimeout(800);
+            await shot(p, '10-mercado', true);
+            const buy = p.locator('.shop-offer:has(.sp-card) .shop-buy:not([disabled])');
+            if (await buy.count()) await buy.first().click();
+            await p.waitForTimeout(600);
+            await btn(/^Seguir/).click({ timeout: 10000 });
+            await p.locator('.btn.primary.wide').waitFor({ timeout: 15000 });
+            await shot(p, '11-escalacao-2', true);
         }
     });
 }
