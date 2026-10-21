@@ -130,7 +130,7 @@ export function ResultHero({
                       : run.status === 'group'
                         ? t('longCup.groupLossLine')
                         : isFinalStage(run)
-                          ? t('result.hero.runnerUp')
+                          ? t('longCup.runnerUp')
                           : t('longCup.out', { n: run.stage + 1 })
                 : won
                   ? d.common.stageWon[run.stage]

@@ -16,7 +16,7 @@ import { specialBonus } from '../../engine/specials';
 import { clubName, cupStageName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { lineupPosition, useGame } from '../../store/game-store';
-import { cupLength, foulOf, isLong } from '../../store/long-cup';
+import { cupLength, foulOf, isLong, nextCupMode } from '../../store/long-cup';
 import { rivalColor } from '../../store/profile';
 import { BracketPeek } from '../components/Bracket';
 import { ChampionView } from '../components/ChampionView';
@@ -150,7 +150,11 @@ export function Result() {
                         <button type="button" className="btn ghost" onClick={advance}>
                             {t('result.menu')}
                         </button>
-                        <button type="button" className="btn primary big" onClick={() => newRun(run.teamName)}>
+                        <button
+                            type="button"
+                            className="btn primary big"
+                            onClick={() => newRun(run.teamName, undefined, undefined, nextCupMode(run))}
+                        >
                             {t('result.newCup')}
                             <HudIcon kind="next" />
                         </button>

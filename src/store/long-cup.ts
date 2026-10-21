@@ -62,6 +62,10 @@ export interface LongRunFields {
     event?: import('./long-events').LongEvent | null;
 }
 
+/** "Nova copa" no fim de uma copa: o mesmo modo (Rota começa outra Rota; Relâmpago e Copa do Dia, a Relâmpago). */
+export const nextCupMode = (run: { mode?: CupMode; daily?: string }): CupMode | undefined =>
+    run.daily ? undefined : run.mode;
+
 /** Está fora (machucado ou na Creche)? */
 export const isOut = (run: LongRunFields, uid: string) => (run.out?.[uid] ?? 0) > 0;
 /** Depois de uma partida, cada um que estava fora tem uma partida a menos pra voltar. */

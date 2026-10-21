@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { type RunState, resumeScreenOf } from '../store/game-store';
-import { foulOf } from '../store/long-cup';
+import { foulOf, nextCupMode } from '../store/long-cup';
 import { cupStep } from './components/AccountLink';
 import { buildShareText } from './share';
 import { shareCardData } from './share-card';
@@ -94,5 +94,20 @@ describe('Rota Índigo: cartão da derrota', () => {
         expect(foulOf(rota({ status: 'eliminated', stage: 6, results: lost(7) as never }))).toBeNull();
         expect(foulOf(rota({ status: 'group', stage: 5, results: lost(6) as never }))).toBeNull();
         expect(foulOf(rota({ status: 'eliminated', stage: 7, results: lost(8) as never }))).toBeNull();
+    });
+});
+
+describe('Rota Índigo: fim da copa', () => {
+    it('Nova copa no fim de uma Rota começa outra Rota; Relâmpago e Copa do Dia seguem Relâmpago', () => {
+        expect(nextCupMode(rota({ status: 'champion' }))).toBe('longa');
+        expect(nextCupMode({})).toBeUndefined();
+        expect(nextCupMode({ daily: '2026-10-21' })).toBeUndefined();
+    });
+    it('vice: "Vice da Rota Índigo" (não "Fim da linha na partida 8"), em PT e EN', () => {
+        const results = [0, 1, 2, 3, 4, 5, 6].map((s) => result(s, true)).concat(result(7, false));
+        const run = rota({ status: 'eliminated', stage: 7, results: results as never });
+        expect(buildShareText(run, 'pt')).toContain('Vice da Rota Índigo');
+        expect(buildShareText(run, 'en')).toContain('Indigo Road runner-up');
+        expect(buildShareText(run, 'pt')).not.toContain('Fim da linha');
     });
 });

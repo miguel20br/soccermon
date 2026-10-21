@@ -49,6 +49,7 @@ export const longCup: typeof pt = {
     pens: '(pens)',
     backToMap: 'Back to the map',
     backToGroup: 'Back to the group',
+    runnerUp: 'Indigo Road runner-up',
     groupLossLine: 'Group loss: the table decides who reaches the Final.',
     soonEvent: 'Events arrive in the next step: for now the path goes on.',
     region: {

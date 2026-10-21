@@ -55,4 +55,10 @@ describe('resultado da Rota Índigo', () => {
         });
         expect(out).toContain('Fim da linha na partida 3');
     });
+    it('vice: a linha é "Vice da Rota Índigo", não a Copa de Kanto', () => {
+        const results = [0, 1, 2, 3, 4, 5, 6].map((s) => res(s, true)).concat(res(7, false));
+        const out = html({ status: 'eliminated', stage: 7, results: results as never });
+        expect(out).toContain('Vice da Rota Índigo');
+        expect(out).not.toContain('Copa de Kanto');
+    });
 });
