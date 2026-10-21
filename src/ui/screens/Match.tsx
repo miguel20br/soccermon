@@ -14,6 +14,7 @@ import {
     type MatchOrder,
     SNAP_STRIDE,
     type Tactic,
+    type TeamSetup,
 } from '../../engine/state';
 import { skinOf } from '../../game/animation-manager';
 import { setVolume } from '../../game/audio';
@@ -56,6 +57,8 @@ import { type BoardPlan, Prancheta, useMedia, WIDE } from '../components/Pranche
 import {
     agencyView,
     MaxBars,
+    MaxCueButton,
+    maxCueAt,
     PenaltyOrderPanel,
     type PenaltyTaker,
     SidelineControls,
@@ -404,21 +407,23 @@ export function Match({ liga = false }: { liga?: boolean }) {
         sendOrder((tick) => ({ tick, team: 0, kind: 'corner', corner }));
     };
 
-    // beira da quadra (experimento): gritos, tempo, goleiro-linha e golpe máximo, pelo mesmo caminho das ordens
-    const sideline = agencyView(match.events, orders, 0, clock.tick);
+    // beira da quadra (experimento): tempo, goleiro-linha e golpe máximo, pelo mesmo caminho das ordens
+    const setups: [TeamSetup, TeamSetup] = [lockedSetup, opponent];
+    const sideline = agencyView(match.events, orders, 0, clock.tick, agency && maxCueAt(match, setups, 0, clock.tick));
     const canAgency = canChangeTactic && penPick === null;
+    // golpe máximo: vale no tick seguinte ao da tela (a quadra espera a partida nova; é um lance, não um plano)
+    const sendMax = () => sendOrder((tick) => ({ tick, team: 0, kind: 'max' }), Math.ceil(tickRef.current) + 1);
     const sidelineControls = (
         <SidelineControls
             view={sideline}
             canAct={canAgency}
-            onShout={(shout) => sendOrder((tick) => ({ tick, team: 0, kind: 'shout', shout }))}
             onTimeout={
                 timeoutAt === null && !halftime
                     ? () => sendOrder((tick) => ({ tick, team: 0, kind: 'timeout' }))
                     : undefined
             }
             onFlyGk={(on) => sendOrder((tick) => ({ tick, team: 0, kind: 'flyGk', on }))}
-            onMax={() => sendOrder((tick) => ({ tick, team: 0, kind: 'max' }))}
+            onMax={sendMax}
         />
     );
 
@@ -468,7 +473,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
         setSubOut(uid ? { uid } : null);
         requestAnimationFrame(() => coachRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
     };
-    // prancheta: sem limite, a última mandada vale na próxima bola parada (pendente até o evento passar na tela)
+    // prancheta: sem limite, a última mandada vale na hora (pendente até o evento passar na tela)
     const lastBoard = orders.filter(isLineupOrder).at(-1);
     const boardEv =
         lastBoard && match.events.find((e) => e.type === 'lineup' && e.team === 0 && e.tick >= lastBoard.tick);
@@ -627,6 +632,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                                 names={teamNames}
                             />
                         )}
+                        {agency && <MaxCueButton view={sideline} canAct={canAgency} onMax={sendMax} />}
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
                         {ended && !auto.held && (
@@ -694,16 +700,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                                     setTimeoutAt(null);
                                     EventBus.emit('match:resume');
                                 }}
-                            >
-                                <SidelineControls
-                                    compact
-                                    view={sideline}
-                                    canAct={canAgency}
-                                    onShout={(shout) => sendOrder((tick) => ({ tick, team: 0, kind: 'shout', shout }))}
-                                    onFlyGk={() => {}}
-                                    onMax={() => {}}
-                                />
-                            </TimeoutPanel>
+                            />
                         </div>
                     )}
                     {penPick !== null && (

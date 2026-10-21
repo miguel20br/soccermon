@@ -45,7 +45,7 @@ export const team = {
         pens: ' (pên. {a}x{b})',
         title: 'Escalação — {team}',
         swapHint: 'Toque em dois jogadores para trocá-los de vaga (inclusive com o banco).',
-        subHint: 'Na partida, Substituir troca quem cansou quando a bola parar.',
+        subHint: 'Na partida, Substituir troca quem cansou na hora.',
         opponentNote: 'Adversário: {name}',
         seeCard: 'Ver carta de {name}',
         oppLine: '{formation} · {tactic} · Média {n}',

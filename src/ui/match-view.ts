@@ -1,3 +1,4 @@
+import { maxCue } from '../engine/agency';
 import type { Position } from '../engine/attributes';
 import { FUTSAL_5 } from '../engine/config';
 import { evolveInstance } from '../engine/evolution';
@@ -21,6 +22,25 @@ export const STATUS_SHORT: Record<number, string> = {
     6: 'Confuso',
     7: 'Apaixonado',
 };
+
+/**
+ * Hora do golpe máximo em algum quadro de `from` a `to` (pelos snapshots). O botão usa só o quadro da tela; a quadra
+ * olha um pouco à frente pra entrar em câmera lenta antes (a hora certa dura ~0,4 s de jogo: o capitão chuta logo).
+ */
+export function maxCueNear(
+    snaps: MatchSnapshot[],
+    from: number,
+    to: number,
+    team: 0 | 1,
+    capIdx: number,
+    capGk: boolean,
+): boolean {
+    if (!snaps.length) return false;
+    const { pitch, teamSize, snapshotEvery } = FUTSAL_5;
+    for (let t = from; t <= to; t += snapshotEvery)
+        if (maxCue(snapAt(snaps, t), team, capIdx, capGk, pitch, teamSize)) return true;
+    return false;
+}
 
 export function snapAt(snaps: MatchSnapshot[], tick: number): MatchSnapshot {
     let lo = 0;

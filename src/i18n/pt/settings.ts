@@ -51,7 +51,7 @@ export const settings = {
         hapticsOn: 'Ligada',
         hapticsOff: 'Desligada',
         agency: 'Beira da quadra (teste)',
-        agencyHint: 'Gritos, tempo, goleiro-linha e golpe máximo. No Duelo vale o do anfitrião.',
+        agencyHint: 'Tempo, goleiro-linha e golpe máximo. No Duelo vale o do anfitrião.',
         agencyLabel: 'Experimento beira da quadra',
         on: 'Ligado',
         off: 'Desligado',

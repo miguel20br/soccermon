@@ -1,16 +1,16 @@
 /**
  * Técnico rival que reage (M10 de docs/planos/pesquisas/agencia.md): na Copa, com o experimento "beira da quadra"
- * ligado, o líder do clube rival usa as mesmas armas que você (gritos, pedido de tempo, goleiro-linha, golpe máximo e
- * tática) por uma regra simples com a personalidade dele. Só lê o estado da partida e gera ordens normais
+ * ligado, o líder do clube rival usa as mesmas armas que você (pedido de tempo, goleiro-linha, golpe máximo e tática)
+ * por uma regra simples com a personalidade dele. Só lê o estado da partida e gera ordens normais
  * (`AgencyOrder`/`TacticChange`) um pouco à frente, pelo mesmo caminho das ordens do técnico: o motor aplica os
- * mesmos limites (3 gritos, 1 tempo por tempo...). Determinístico: o único sorteio (o "humor" do dia, que mexe uns
+ * mesmos limites (1 tempo por tempo, barra cheia...). Determinístico: o único sorteio (o "humor" do dia, que mexe uns
  * minutos nos gatilhos) sai de um Rng próprio da seed da partida, então o resto da partida não muda de sorteio.
  *
  * Sem `TeamSetup.coach` nada disso existe: a partida é bit a bit a de antes.
  * Números daqui são a 1ª proposta (nada aprovado): mexer só com o antes/depois do técnico robô
  * (`scripts/balance/coach.ts`).
  */
-import { AGENCY, maxCharge, type Shout } from './agency';
+import { inMaxZone, maxCharge } from './agency';
 import { emit, minuteOf } from './match';
 import { Rng } from './rng';
 import type { MatchOrder, MatchState, Tactic } from './state';
@@ -30,21 +30,15 @@ export type LeaderId =
 
 /** Personalidade do técnico: quando cada arma sai. Minutos do relógio (0..40). */
 export interface CoachStyle {
-    /** Grito logo no começo, qualquer que seja o placar (Surge). */
-    open?: { shout: Shout; at: number };
-    /** Perdendo: grito (e tática, se tiver) a partir do minuto. */
-    behind: { shout: Shout; at: number; tactic?: Tactic };
-    /** Perdendo no fim: o grito do desespero. */
-    late: { shout: Shout; at: number };
-    /** Ganhando por 1 ou 2: grito (e tática) a partir do minuto; null = segue igual. */
-    lead: { shout: Shout; at: number; tactic?: Tactic } | null;
-    /** Fôlego médio da linha abaixo disso: "Calma!". */
-    calmBelow: number;
+    /** Perdendo: tática a partir do minuto (sem tática, segue a de sempre). */
+    behind: { at: number; tactic?: Tactic };
+    /** Ganhando por 1 ou 2: tática a partir do minuto; null = segue igual. */
+    lead: { at: number; tactic?: Tactic } | null;
     /** Pedido de tempo: quando o time cansa e/ou quando você passa na frente. */
     timeout: { tired: boolean; turned: boolean };
     /** Goleiro-linha perdendo por 1 ou 2 a partir do minuto; null = nunca. */
     fly: number | null;
-    /** Golpe máximo: assim que a barra enche, ou só com o jogo apertado (diferença de até 1). */
+    /** Golpe máximo: na 1ª hora certa com a barra cheia, ou só com o jogo apertado (diferença de até 1). */
     max: 'asap' | 'close';
 }
 
@@ -52,101 +46,80 @@ export interface CoachStyle {
 export const COACH_STYLES: Record<LeaderId, CoachStyle> = {
     // fecha a casinha no 2º tempo ganhando; só ataca no fim
     brock: {
-        behind: { shout: 'attack', at: 30 },
-        late: { shout: 'press', at: 36 },
-        lead: { shout: 'lock', at: 22 },
-        calmBelow: 0.45,
+        behind: { at: 30 },
+        lead: { at: 22 },
         timeout: { tired: true, turned: false },
         fly: null,
         max: 'close',
     },
     // perdendo aos 30' vai pra cima com tudo; pede tempo pra te esfriar quando você passa na frente
     misty: {
-        behind: { shout: 'attack', at: 28, tactic: 'offensive' },
-        late: { shout: 'press', at: 35 },
+        behind: { at: 28, tactic: 'offensive' },
         lead: null,
-        calmBelow: 0.4,
         timeout: { tired: false, turned: true },
         fly: 36,
         max: 'asap',
     },
-    // "Pra cima!" cedo, barulho o jogo todo, golpe máximo na hora
+    // golpe máximo na 1ª chance
     ltsurge: {
-        open: { shout: 'attack', at: 3 },
-        behind: { shout: 'press', at: 20 },
-        late: { shout: 'attack', at: 34 },
+        behind: { at: 20 },
         lead: null,
-        calmBelow: 0.35,
         timeout: { tired: true, turned: false },
         fly: 35,
         max: 'asap',
     },
-    // calma e passe; segura o resultado sem desespero
+    // segura o resultado sem desespero
     erika: {
-        behind: { shout: 'calm', at: 26 },
-        late: { shout: 'attack', at: 35 },
-        lead: { shout: 'lock', at: 30 },
-        calmBelow: 0.6,
+        behind: { at: 26 },
+        lead: { at: 30 },
         timeout: { tired: true, turned: false },
         fly: null,
         max: 'close',
     },
     // ganhando, fecha a casinha cedo e vira retranca
     koga: {
-        behind: { shout: 'press', at: 30 },
-        late: { shout: 'attack', at: 36 },
-        lead: { shout: 'lock', at: 10, tactic: 'defensive' },
-        calmBelow: 0.45,
+        behind: { at: 30 },
+        lead: { at: 10, tactic: 'defensive' },
         timeout: { tired: false, turned: true },
         fly: null,
         max: 'close',
     },
     // lê o jogo: pede tempo quando você passa na frente e responde cedo
     sabrina: {
-        behind: { shout: 'attack', at: 24 },
-        late: { shout: 'press', at: 34 },
-        lead: { shout: 'calm', at: 32 },
-        calmBelow: 0.5,
+        behind: { at: 24 },
+        lead: { at: 32 },
         timeout: { tired: false, turned: true },
         fly: 37,
         max: 'close',
     },
     // esquentado: perdendo, abafa cedo e liga o goleiro-linha
     blaine: {
-        behind: { shout: 'attack', at: 15, tactic: 'offensive' },
-        late: { shout: 'press', at: 30 },
+        behind: { at: 15, tactic: 'offensive' },
         lead: null,
-        calmBelow: 0.35,
         timeout: { tired: true, turned: false },
         fly: 33,
         max: 'asap',
     },
     // frio: pede tempo quando você vira, segura ganhando, goleiro-linha no fim
     giovanni: {
-        behind: { shout: 'attack', at: 30 },
-        late: { shout: 'press', at: 36 },
-        lead: { shout: 'lock', at: 30, tactic: 'defensive' },
-        calmBelow: 0.45,
+        behind: { at: 30 },
+        lead: { at: 30, tactic: 'defensive' },
         timeout: { tired: false, turned: true },
         fly: 34,
         max: 'close',
     },
     // veterana: cozinha o jogo ganhando, cansa você
     agatha: {
-        behind: { shout: 'press', at: 32 },
-        late: { shout: 'attack', at: 36 },
-        lead: { shout: 'lock', at: 25 },
-        calmBelow: 0.5,
+        behind: { at: 32 },
+        lead: { at: 25 },
         timeout: { tired: true, turned: false },
         fly: null,
         max: 'close',
     },
     // a final: usa tudo, golpe máximo assim que enche
     lance: {
-        behind: { shout: 'attack', at: 26 },
-        late: { shout: 'press', at: 34 },
-        lead: { shout: 'lock', at: 34 },
-        calmBelow: 0.45,
+        behind: { at: 26 },
+        lead: { at: 34 },
         timeout: { tired: true, turned: true },
         fly: 36,
         max: 'asap',
@@ -171,7 +144,6 @@ export const RIVAL_COACH = {
 } as const;
 
 export type CoachCall =
-    | { call: 'shout'; shout: Shout }
     | { call: 'timeout' }
     | { call: 'flyGk'; on: boolean }
     | { call: 'max' }
@@ -181,11 +153,8 @@ export type CoachCall =
 export class RivalCoach {
     private readonly style: CoachStyle;
     private readonly shift: number;
-    private lastShout = Number.NEGATIVE_INFINITY;
-    private opened = false;
     private wantFly = false;
     private wantTactic: Tactic;
-    private maxSent = false;
     private prevDiff = 0;
     private turned = false;
     /** Já pediu tempo neste tempo (a ordem só vira `timeoutPending` quando entra, `leadTicks` depois). */
@@ -218,32 +187,10 @@ export class RivalCoach {
         const field = s.players.filter((p) => p.team === team && p.role !== 'GK');
         const energy = field.reduce((a, p) => a + p.energy, 0) / (field.length || 1);
         const calls: CoachCall[] = [];
-        // grito, tempo e golpe máximo não saem no último minuto e meio de cada tempo: a ordem só vale `leadTicks`
-        // depois (10 s, ~1 minuto do relógio) e o apito engoliria o que a narração já avisou
+        // tempo não sai no último minuto e meio de cada tempo: a ordem só vale `leadTicks` depois (10 s, ~1 minuto do
+        // relógio) e o apito engoliria o que a narração já avisou
         const h = s.half - 1;
         const halfEnd = s.cfg.displayHalfMinutes * s.half - 1.5;
-
-        // grito: um por vez, com sobra e fora da recarga
-        const free =
-            min < halfEnd &&
-            ag.shoutsUsed < AGENCY.shoutLimit &&
-            tick >= ag.shoutReadyAt &&
-            s.tick > this.lastShout + RIVAL_COACH.leadTicks;
-        if (free) {
-            let shout: Shout | null = null;
-            if (st.open && !this.opened && at(st.open.at)) {
-                this.opened = true;
-                shout = st.open.shout;
-            } else if (diff < 0 && at(st.late.at)) shout = st.late.shout;
-            else if (diff < 0 && at(st.behind.at)) shout = st.behind.shout;
-            else if (st.lead && diff > 0 && diff <= 2 && at(st.lead.at)) shout = st.lead.shout;
-            else if (energy < st.calmBelow) shout = 'calm';
-            // não repete o grito que ainda vale
-            if (shout && ag.shout?.kind !== shout) {
-                calls.push({ call: 'shout', shout });
-                this.lastShout = s.tick;
-            }
-        }
 
         // pedido de tempo: 1 por tempo (o motor confere)
         if (!this.timeoutSent[h] && !ag.timeouts[h] && min < halfEnd) {
@@ -264,13 +211,11 @@ export class RivalCoach {
             }
         }
 
-        // golpe máximo: 1 por partida, com a barra cheia
-        if (!this.maxSent && !ag.max && min < halfEnd && (st.max === 'asap' || Math.abs(diff) <= 1)) {
+        // golpe máximo: com a barra cheia, na hora certa (o capitão com a bola na zona, ou o rival na zona do goleiro
+        // capitão). Vale no tick seguinte, sem aviso: é um lance, não um plano
+        if (s.phase === 'play' && !ag.max && (st.max === 'asap' || Math.abs(diff) <= 1) && this.maxCue(s)) {
             const c = maxCharge(s.events, team, s.tick, s.cfg.teamSize);
-            if (c.charge >= 1 && !c.used && !c.active) {
-                this.maxSent = true;
-                calls.push({ call: 'max' });
-            }
+            if (c.charge >= 1 && !c.used && !c.active) calls.push({ call: 'max' });
         }
 
         // tática: muda com o placar e volta pra de sempre
@@ -288,15 +233,22 @@ export class RivalCoach {
 
         return calls.map((c) => {
             emit(s, { type: 'coach', team, leader: this.leader, ...c });
-            return toOrder(c, team, tick);
+            return toOrder(c, team, c.call === 'max' ? s.tick + 1 : tick);
         });
+    }
+
+    /** A hora do golpe máximo (a mesma zona do botão do técnico). */
+    private maxCue(s: MatchState): boolean {
+        const cap = s.players.find((p) => p.team === this.team && p.captain);
+        if (!cap || s.ball.owner === null) return false;
+        const carrier = s.players[s.ball.owner];
+        if (cap.role === 'GK' ? carrier.team === this.team : carrier !== cap) return false;
+        return inMaxZone(carrier.pos.x, carrier.pos.y, carrier.team, s.cfg.pitch);
     }
 }
 
 function toOrder(c: CoachCall, team: 0 | 1, tick: number): MatchOrder {
     switch (c.call) {
-        case 'shout':
-            return { tick, team, kind: 'shout', shout: c.shout };
         case 'timeout':
             return { tick, team, kind: 'timeout' };
         case 'flyGk':

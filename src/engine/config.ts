@@ -44,8 +44,10 @@ export const STOPPAGE = { min: 1, max: 3 };
  * 7 = acréscimos de 1 a 3 minutos por tempo e Pressão final (quem perde nos últimos 3 minutos vai pra cima).
  * 8 = revisão dos golpes: 1 golpe de cada tipo próprio, sem 2 golpes iguais, Gengar com Sludge, Harden/Slam/Amnesia/
  *     Tri Attack/Explosion/paredes consertados e o Fly levando a bola 2 m (docs/planos/golpes-revisao.md).
+ * 9 = beira da quadra 2 (docs/planos/beira-da-quadra-2.md): troca e prancheta volantes (na hora), golpe máximo na hora
+ *     certa e defesa máxima, sem gritos, goleiro-linha balanceado.
  */
-export const ENGINE_VERSION = 8;
+export const ENGINE_VERSION = 9;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',

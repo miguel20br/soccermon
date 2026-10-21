@@ -1,4 +1,4 @@
-import { SHOUTS } from './agency';
+import { AGENCY } from './agency';
 import type { AttrKey } from './attributes';
 import type { MatchState, PlayerState, Tactic } from './state';
 import { dist2 } from './vec';
@@ -78,9 +78,12 @@ export function eff(s: MatchState, p: PlayerState, key: AttrKey): number {
     const base = compressed(p.attr[key]);
     let v = base * fatigueFactor(p) * (TACTIC_MODS[s.teams[p.team].tactic].attrs[key] ?? 1) * comebackFactor(s, p.team);
     if (s.pressure === p.team) v *= FINAL_PRESSURE.attrs[key] ?? 1;
-    // grito do técnico (agência, experimento): só multiplica com grito valendo
-    const shout = s.teams[p.team].agency.shout;
-    if (shout && s.tick < shout.until) v *= SHOUTS[shout.kind].attrs[key] ?? 1;
+    // goleiro-linha (beira da quadra): com a bola, 5 contra 4
+    if ((key === 'passing' || key === 'shooting') && s.teams[p.team].agency.flyGk && p.role !== 'GK') {
+        const owner = s.ball.owner;
+        if (owner !== null && s.players[owner].team === p.team)
+            v *= key === 'passing' ? AGENCY.flyPass : AGENCY.flyShot;
+    }
     for (const b of p.buffs) if (b.attr === key) v *= b.factor;
     if (p.status) {
         v *= STATUS_MODS[p.status.kind]?.[key] ?? 1;

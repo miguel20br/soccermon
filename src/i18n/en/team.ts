@@ -46,7 +46,7 @@ export const team: typeof pt = {
         pens: ' (pens {a}-{b})',
         title: 'Lineup — {team}',
         swapHint: 'Tap two players to swap their slots (bench included).',
-        subHint: 'In the match, Substitute swaps a tired player when the ball stops.',
+        subHint: 'In the match, Substitute swaps a tired player right away.',
         opponentNote: 'Opponent: {name}',
         seeCard: "See {name}'s card",
         oppLine: '{formation} · {tactic} · Average {n}',

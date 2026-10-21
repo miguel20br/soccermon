@@ -420,19 +420,16 @@ describe('log de ordens', () => {
         expect(out.log[0].tick).toBeGreaterThan(3900);
     });
 
-    it('beira da quadra: só com o experimento do host ligado na sala, 3 gritos, pênaltis só com quem é do time', () => {
-        const shout = (seq: number): Intent => ({
-            k: 'order',
-            order: { kind: 'shout', shout: 'attack' },
-            tick: 0,
-            seq,
-        });
+    it('beira da quadra: só com o experimento do host ligado na sala, sem grito, pênaltis só com quem é do time', () => {
+        const max = (seq: number): Intent => ({ k: 'order', order: { kind: 'max' }, tick: 0, seq });
         const off = inMatch();
-        expect(reduce(off, shout(1), 'host', ctx())).toBe(off);
+        expect(reduce(off, max(1), 'host', ctx())).toBe(off);
         let s: Shared = { ...inMatch(), agency: true };
-        for (let seq = 1; seq <= 4; seq++) s = reduce(s, shout(seq), 'guest', ctx(0, { tick: seq * 600 }));
-        expect(s.log.filter((o) => o.kind === 'shout')).toHaveLength(3);
-        expect(s.log[0]).toMatchObject({ team: 1, kind: 'shout', shout: 'attack', seq: 1 });
+        // o grito saiu (21/10/2026): o pedido de uma tela antiga não entra no log
+        const shout = { k: 'order', order: { kind: 'shout', shout: 'attack' }, tick: 0, seq: 1 } as unknown as Intent;
+        expect(reduce(s, shout, 'guest', ctx(0, { tick: 600 }))).toBe(s);
+        s = reduce(s, max(1), 'guest', ctx(0, { tick: 600 }));
+        expect(s.log[0]).toMatchObject({ team: 1, kind: 'max', seq: 1 });
         const mine = s.teams.guest!.lineup.map((p) => p.uid);
         const theirs = s.teams.host!.lineup.map((p) => p.uid);
         const pens = (order: string[], seq: number): Intent => ({

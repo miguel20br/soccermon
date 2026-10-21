@@ -2,11 +2,12 @@ import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { en } from '../i18n/en';
 import { pt } from '../i18n/pt';
+import { AGENCY } from './agency';
 import { FUTSAL_5 } from './config';
 import { CLUBS, clubLeader, cupRival } from './cup';
 import { matchHash } from './determinism';
 import { aiDraftTeam } from './draft';
-import { COACH_LEADERS, RIVAL_COACH } from './rival-coach';
+import { COACH_LEADERS } from './rival-coach';
 import { Rng } from './rng';
 import { runMatch } from './runners/batch-runner';
 import type { MatchEvent, MatchOrder, TeamSetup } from './state';
@@ -62,11 +63,17 @@ describe('técnico rival que reage (beira da quadra)', () => {
                 expect(c.team).toBe(1);
                 expect(c.leader).toBe(leader);
             }
-            // cada grito avisado sai `leadTicks` depois, e nunca mais de 3 por jogo
-            const shouts = r1.events.filter((e) => e.type === 'shout' && e.team === 1);
-            expect(shouts.length).toBeLessThanOrEqual(3);
-            for (const c of calls.filter((c) => c.call === 'shout'))
-                expect(shouts.some((s) => s.tick === c.tick + RIVAL_COACH.leadTicks)).toBe(true);
+            // o golpe máximo é na hora certa: sai logo depois de chamado, sem aviso
+            for (const c of calls.filter((c) => c.call === 'max'))
+                expect(
+                    r1.events.some(
+                        (e) =>
+                            e.type === 'max' &&
+                            e.team === 1 &&
+                            e.tick > c.tick &&
+                            e.tick <= c.tick + AGENCY.maxArmTicks,
+                    ),
+                ).toBe(true);
             // 1 pedido de tempo por tempo
             const tos = r1.events.filter((e) => e.type === 'timeout' && e.team === 1);
             expect(new Set(tos.map((e) => e.half)).size).toBe(tos.length);
@@ -80,7 +87,7 @@ describe('técnico rival que reage (beira da quadra)', () => {
         const T = 2400;
         const orders: MatchOrder[] = [
             { tick: T, team: 0, tactic: 'offensive' },
-            { tick: T, team: 0, kind: 'shout', shout: 'attack' },
+            { tick: T, team: 0, kind: 'flyGk', on: true },
         ];
         const mine = runMatch(FUTSAL_5, A, away, 'rc-react', { snapshots: false, orders });
         const earlier = (evs: MatchEvent[]) => coachEvents(evs).filter((e) => e.tick < T);

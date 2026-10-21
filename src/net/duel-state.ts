@@ -1,4 +1,3 @@
-import { AGENCY, SHOUT_KINDS, type Shout } from '../engine/agency';
 import type { Position } from '../engine/attributes';
 import { captainOptions, DRAFT_PICKS, draftOptions, playerDraftOptions } from '../engine/draft';
 import {
@@ -253,7 +252,6 @@ export type OrderBody =
     | { kind: 'corner'; corner: CornerPlan }
     | { kind: 'lineup'; formation: FormationId; order: string[] }
     // beira da quadra (só com `Shared.agency`)
-    | { kind: 'shout'; shout: Shout }
     | { kind: 'timeout' }
     | { kind: 'flyGk'; on: boolean }
     | { kind: 'max' }
@@ -550,7 +548,7 @@ export function stampOrder(
             return u;
         });
         if (resolved.length !== field.length || !field.every((u) => resolved.includes(u))) return null;
-    } else if (!stampAgency(s, team, mine, i.order)) return null;
+    } else if (!stampAgency(s, team, i.order)) return null;
     // "do intervalo" só até o 2º tempo começar: a que chega depois do apito vale como ordem ao vivo (no tick do
     // intervalo ela ficaria no passado das duas telas)
     const base =
@@ -581,14 +579,13 @@ export function stampOrder(
 }
 
 /**
- * Ordem da beira da quadra: só com o experimento ligado na sala, e com o limite que dá pra conferir pelo log (3
- * gritos; pênaltis só com quem é do time). O resto (barra cheia, tempo já pedido) o motor confere nos dois lados.
+ * Ordem da beira da quadra: só com o experimento ligado na sala, e com o que dá pra conferir pelo log (pênaltis só com
+ * quem é do time). O resto (barra cheia, tempo já pedido) o motor confere nos dois lados. O grito saiu (21/10/2026):
+ * pedido de grito de uma tela antiga cai no `default` e não entra.
  */
-function stampAgency(s: Shared, team: TeamSetup, mine: StampedOrder[], o: OrderBody): boolean {
+function stampAgency(s: Shared, team: TeamSetup, o: OrderBody): boolean {
     if (!s.agency) return false;
     switch (o.kind) {
-        case 'shout':
-            return SHOUT_KINDS.includes(o.shout) && mine.filter((x) => x.kind === 'shout').length < AGENCY.shoutLimit;
         case 'flyGk':
             return typeof o.on === 'boolean';
         case 'timeout':
@@ -605,8 +602,6 @@ function stampAgency(s: Shared, team: TeamSetup, mine: StampedOrder[], o: OrderB
 
 function agencyStamp(o: OrderBody, tick: number, team: 0 | 1, seq: number): StampedOrder | null {
     switch (o.kind) {
-        case 'shout':
-            return { tick, team, seq, kind: 'shout', shout: o.shout };
         case 'timeout':
             return { tick, team, seq, kind: 'timeout' };
         case 'flyGk':

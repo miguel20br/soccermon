@@ -52,7 +52,7 @@ export const settings: typeof pt = {
         hapticsOn: 'On',
         hapticsOff: 'Off',
         agency: 'Touchline (test)',
-        agencyHint: 'Shouts, time-outs, flying keeper and max move. In a Duel the host decides.',
+        agencyHint: 'Time-outs, flying keeper and max move. In a Duel the host decides.',
         agencyLabel: 'Touchline experiment',
         on: 'On',
         off: 'Off',

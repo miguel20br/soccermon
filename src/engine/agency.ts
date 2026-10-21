@@ -1,98 +1,90 @@
 /**
- * Agência do técnico na partida (EXPERIMENTO, docs/planos/pesquisas/agencia.md): gritos, pedido de tempo,
- * goleiro-linha, golpe máximo do capitão e ordem dos pênaltis. Tudo entra só por ordem do técnico (`MatchOrder`):
- * sem ordem nova, a partida é bit a bit a de antes (o interruptor fica na tela, não no motor).
+ * Agência do técnico na partida (EXPERIMENTO, docs/planos/pesquisas/agencia.md e beira-da-quadra-2.md): pedido de
+ * tempo, goleiro-linha, golpe máximo do capitão e ordem dos pênaltis. Tudo entra só por ordem do técnico
+ * (`MatchOrder`): sem ordem nova, a partida é bit a bit a de antes (o interruptor fica na tela, não no motor).
+ * Os gritos saíram em 21/10/2026 (Miguel: confundiam mais que ajudavam; a tática já faz esse papel).
  *
- * Números daqui são a 1ª proposta pro Miguel testar (nada aprovado): mexer só com o antes/depois do técnico robô
- * (`scripts/balance/coach.ts`).
+ * Mexer nos números só com o antes/depois do técnico robô (`scripts/balance/coach.ts`) e do
+ * `scripts/balance/goleiro-linha.ts`.
  */
-import type { AttrKey } from './attributes';
-import type { MatchEvent } from './state';
-
-export type Shout = 'attack' | 'lock' | 'calm' | 'press';
-export const SHOUT_KINDS: readonly Shout[] = ['attack', 'lock', 'calm', 'press'];
-
-/** Efeito de cada grito: atributos do time, fôlego (gasto × e recuperação por segundo) e viés da IA. */
-export interface ShoutFx {
-    attrs: Partial<Record<AttrKey, number>>;
-    drain: number;
-    regen: number;
-    /** Somados ao TACTIC_SHIFT da tática atual (ai-controller.ts). */
-    attack: number;
-    defend: number;
-    shootBias: number;
-    pressBias: number;
-}
-
-export const SHOUTS: Record<Shout, ShoutFx> = {
-    // Pra cima!: chuta mais e pressiona, gasta fôlego 1,5x
-    attack: {
-        attrs: { shooting: 1.06 },
-        drain: 1.5,
-        regen: 0,
-        attack: 1,
-        defend: 1,
-        shootBias: -0.01,
-        pressBias: 0.03,
-    },
-    // Fecha a casinha!: +desarme e +posicionamento, recua; chute pior
-    lock: {
-        attrs: { tackling: 1.06, positioning: 1.06, shooting: 0.95 },
-        drain: 1,
-        regen: 0,
-        attack: -1,
-        defend: -1.5,
-        shootBias: 0.005,
-        pressBias: 0,
-    },
-    // Calma!: +passe, gasta menos e recupera um pouco o fôlego; chuta menos
-    calm: {
-        attrs: { passing: 1.06 },
-        drain: 0.7,
-        regen: 0.003,
-        attack: 0,
-        defend: 0,
-        shootBias: 0.005,
-        pressBias: 0,
-    },
-    // Abafa!: marcação lá em cima, o marcador dá bote mais vezes; fôlego 2x
-    press: {
-        attrs: { tackling: 1.03 },
-        drain: 2,
-        regen: 0,
-        attack: 0.5,
-        defend: 2.5,
-        shootBias: 0,
-        pressBias: 0.08,
-    },
-};
+import { type MatchEvent, type MatchSnapshot, SNAP_STRIDE } from './state';
+import { expectedGoals } from './xg';
 
 export const AGENCY = {
-    /** Gritos por partida, duração e recarga (ticks a 20 Hz: 2,5 e 3 minutos do relógio no futsal 5). */
-    shoutLimit: 3,
-    shoutTicks: 450,
-    shoutCooldownTicks: 540,
     /** Pedido de tempo: 1 por tempo, fôlego +5% pra quem pediu e +3% pro rival (Miguel, 18/10/2026), parada de 3 s. */
     timeoutEnergy: 0.05,
     timeoutRivalEnergy: 0.03,
     timeoutTicks: 60,
-    /** Golpe máximo: janela de 20 s pra sair (Miguel, 18/10/2026); se passar, a barra volta pela metade. */
-    maxTicks: 400,
+    /**
+     * Golpe máximo (21/10/2026): o botão só acende na hora certa (capitão de linha com a bola na zona de chute; capitão
+     * goleiro com um rival na zona) e o toque solta na hora. A ordem fica armada esse tanto (o Duelo e o rival mandam
+     * a ordem um pouco à frente); passou sem a hora certa, nada acontece e a barra continua cheia.
+     */
+    maxArmTicks: 100,
+    /** Defesa máxima: por 4 s, o chute no gol que o goleiro alcança é defendido; sem chute, a barra volta pela metade. */
+    maxGkTicks: 80,
     maxRefund: 0.5,
     /** Pontos pra encher a barra (lances do time; ver `MAX_POINTS`). */
-    maxFull: 22,
+    maxFull: 18,
     /** Perdendo por 1 enche 1,5x; por 2 ou mais, 2x. */
     maxBehind: [1, 1.5, 2],
-    /** Reforço do capitão durante a janela (a aura) e o chute máximo. */
-    maxBuff: { shooting: 1.15, pace: 1.08, dribble: 1.1 } as Partial<Record<AttrKey, number>>,
-    maxGkBuff: 1.3,
+    /** O chute máximo: bem mais forte e mais certeiro que o golpe normal. */
     maxShot: { power: 1.55, accuracy: 1.6 },
-    /** Distância do gol em que o capitão solta o golpe máximo. */
-    maxRange: 20,
-    /** Goleiro-linha: o rival chuta no gol vazio de até aqui, se o goleiro estiver longe do gol. */
+    /** Zona do golpe máximo: até essa distância do gol e com ângulo (xG mínimo, a mesma conta da IA pra chutar). */
+    maxRange: 15,
+    maxZoneXg: 0.06,
+    /**
+     * Defesa máxima: alcance do goleiro no chute. Com 1,8 e o time arrancando +15% no contra-ataque, o robô ganhava
+     * +7 pp (o golpe de linha, +1,5): ficou 1,25 e só a saída rápida (beira-da-quadra-2.md).
+     */
+    maxGkReach: 1.25,
+    /**
+     * Goleiro-linha (5 contra 4): com a bola, a linha passa e chuta melhor e sobe mais (metros a mais na posição de
+     * ataque). O custo: o rival chuta no gol vazio de até `emptyNetRange`, se o goleiro estiver a mais de
+     * `emptyNetGkAway` do gol. Ajustado com scripts/balance/goleiro-linha.ts (beira-da-quadra-2.md).
+     */
+    flyPass: 1.12,
+    flyShot: 1.1,
+    flyPush: 2,
     emptyNetRange: 26,
     emptyNetGkAway: 7,
 } as const;
+
+interface Pitch {
+    length: number;
+    width: number;
+    goalWidth: number;
+}
+
+/** Na zona do golpe máximo de quem ataca o gol do time `team` (o time 0 ataca o gol de x = length). */
+export function inMaxZone(x: number, y: number, team: 0 | 1, pitch: Pitch): boolean {
+    const gx = team === 0 ? pitch.length : 0;
+    const gy = pitch.width / 2;
+    const dx = x - gx;
+    const dy = y - gy;
+    if (dx * dx + dy * dy >= AGENCY.maxRange * AGENCY.maxRange) return false;
+    return expectedGoals({ x, y }, gx, gy, pitch.goalWidth) >= AGENCY.maxZoneXg;
+}
+
+/**
+ * Hora do golpe máximo no quadro (a tela acende o botão por aqui; o motor usa a mesma zona): o capitão de linha com a
+ * bola na zona, ou, com o capitão no gol, um rival com a bola na zona do gol dele.
+ */
+export function maxCue(
+    snap: Pick<MatchSnapshot, 'owner' | 'p' | 'phase'>,
+    team: 0 | 1,
+    capIdx: number | null,
+    capGk: boolean,
+    pitch: Pitch,
+    teamSize = 5,
+): boolean {
+    if (capIdx === null || snap.phase !== 'play' || snap.owner < 0) return false;
+    const ownerTeam = snap.owner < teamSize ? 0 : 1;
+    if (capGk ? ownerTeam === team : snap.owner !== capIdx) return false;
+    const x = snap.p[snap.owner * SNAP_STRIDE];
+    const y = snap.p[snap.owner * SNAP_STRIDE + 1];
+    return inMaxZone(x, y, ownerTeam, pitch);
+}
 
 /** Lances que enchem a barra do golpe máximo (pontos por lance do time). */
 const MAX_POINTS = { tackle: 1, interception: 0.5, save: 1, shot: 0.5, move: 0.5, goal: 1 } as const;
@@ -100,7 +92,7 @@ const MAX_POINTS = { tackle: 1, interception: 0.5, save: 1, shot: 0.5, move: 0.5
 export interface MaxCharge {
     /** 0..1 */
     charge: number;
-    /** Janela aberta (soltou e o golpe ainda não saiu). */
+    /** Defesa máxima valendo (o goleiro espera o chute). */
     active: boolean;
     /** Já saiu (1 por partida). */
     used: boolean;
@@ -154,17 +146,3 @@ export function maxCharge(
     }
     return { charge: used ? 0 : pts / full, active, used };
 }
-
-/** Grito ativo de um time no tick (pelos eventos; a tela usa pra mostrar o balão). */
-export function shoutAt(events: readonly MatchEvent[], team: 0 | 1, tick: number): Shout | null {
-    for (let i = events.length - 1; i >= 0; i--) {
-        const e = events[i];
-        if (e.tick > tick || e.type !== 'shout' || e.team !== team) continue;
-        return tick < e.tick + AGENCY.shoutTicks ? e.shout : null;
-    }
-    return null;
-}
-
-/** Quantos gritos o time já deu até o tick. */
-export const shoutsUsed = (events: readonly MatchEvent[], team: 0 | 1, tick = Number.POSITIVE_INFINITY) =>
-    events.filter((e) => e.type === 'shout' && e.team === team && e.tick <= tick).length;

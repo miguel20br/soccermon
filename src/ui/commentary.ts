@@ -398,20 +398,11 @@ export class Commentator {
                 const vars = {
                     leader: dict().match.leaders[e.leader].name,
                     team: this.teamNames[e.team],
-                    shout: e.call === 'shout' ? dict().match.agency.shout[e.shout] : '',
                     tactic: e.call === 'tactic' ? dict().common.tactic[e.tactic] : '',
                 };
-                const text =
-                    e.call === 'flyGk' ? (e.on ? k.flyGkOn : k.flyGkOff) : e.call === 'shout' ? k.shout : k[e.call];
+                const text = e.call === 'flyGk' ? (e.on ? k.flyGkOn : k.flyGkOff) : k[e.call];
                 return line(say(text, vars), e.call === 'timeout' || e.call === 'max' ? 'big' : 'whistle', e.team);
             }
-            case 'shout':
-                if (this.coached[e.team]) return null;
-                return line(
-                    say(c.shout, { team: this.teamNames[e.team], shout: dict().match.agency.shout[e.shout] }),
-                    'whistle',
-                    e.team,
-                );
             case 'timeout':
                 return line(say(c.timeout, { team: this.teamNames[e.team] }), 'whistle', e.team);
             case 'flyGk':

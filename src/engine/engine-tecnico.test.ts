@@ -63,19 +63,27 @@ describe('prancheta no meio da partida', () => {
     // goleiro vira pivô e o pivô vai pro gol, em 2-2
     const swap = [u[4], u[1], u[2], u[3], u[0]];
 
-    it('entra na próxima bola parada: formação, vaga, posição e nota pela posição nova', () => {
+    /** Fase da partida sem ordem nenhuma no começo do tick `t`. */
+    const phaseAt = (t: number) => {
+        const r = new LiveRunner(FUTSAL_5, home, away, 7);
+        while (r.state.tick < t) r.step();
+        return r.state.phase;
+    };
+
+    it('entra na hora (volante): formação, vaga, posição e nota pela posição nova', () => {
         const base = runMatch(FUTSAL_5, home, away, 7, { snapshots: false });
         const T = 1200;
+        expect(phaseAt(T)).toBe('play');
         const orders: MatchOrder[] = [{ tick: T, team: 0, kind: 'lineup', formation: '2-2', order: swap }];
         const runner = new LiveRunner(FUTSAL_5, home, away, 7, orders);
         const s = runner.state;
         while (!runner.finished && !s.events.some((e) => e.type === 'lineup')) runner.step();
         const ev = s.events.find((e) => e.type === 'lineup');
-        expect(ev?.type === 'lineup' && ev.tick >= T).toBe(true);
+        expect(ev?.tick).toBe(T);
         if (ev?.type !== 'lineup') return;
-        // só na bola parada: até ela a partida é igual à sem a ordem
+        // até a ordem, a partida é igual à sem ela
         expect(s.events.filter((e) => e.tick < T)).toEqual(base.events.filter((e) => e.tick < T));
-        expect(['kickoff', 'restart', 'corner', 'halftime']).toContain(s.phase);
+        expect(s.phase).toBe('play');
         expect(ev).toMatchObject({ formation: '2-2', idx: [4, 1, 2, 3, 0] });
         expect(s.teams[0].formation.id).toBe('2-2');
         expect(s.teams[0].lineup.map((p) => p.uid)).toEqual(swap);
@@ -111,8 +119,11 @@ describe('prancheta no meio da partida', () => {
         expect(validOrder({ tick: 900, team: 0, kind: 'lineup', formation: '2-2', order: swap })).toBe(true);
     });
 
-    it('a nova substitui a pendente; troca pendente com quem saiu vale pra quem entrou', () => {
-        const T = 1200;
+    it('na bola parada a nova substitui a pendente; troca pendente com quem saiu vale pra quem entrou', () => {
+        // logo depois de um gol (a comemoração para a bola): tudo espera a saída de bola
+        const goal = runMatch(FUTSAL_5, home, away, 7, { snapshots: false }).events.find((e) => e.type === 'goal')!;
+        const T = goal.tick + 5;
+        expect(phaseAt(T + 2)).toBe('goal');
         const inn = home.bench[0].uid;
         const r = runMatch(FUTSAL_5, home, away, 7, {
             snapshots: false,

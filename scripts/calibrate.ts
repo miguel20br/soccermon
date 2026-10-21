@@ -2,7 +2,8 @@
  * Calibração headless: roda N partidas entre times sorteados pelo draft da IA e imprime métricas.
  * Metas: 5–7 gols/jogo · time mais forte vence ~60–65% · nenhum tipo > 55% de vitórias.
  *
- * Uso: npm run calibrate -- --n 2000 [--csv out.csv]
+ * Uso: npm run calibrate -- --n 2000 [--csv out.csv] [--agencia]
+ * --agencia: os dois times com o técnico IA da beira da quadra (src/engine/rival-coach.ts), líderes em rodízio.
  */
 import { writeFileSync } from 'node:fs';
 import { FUTSAL_5 } from '../src/engine/config';
@@ -10,6 +11,7 @@ import { species } from '../src/engine/data';
 import { aiDraftTeam } from '../src/engine/draft';
 import { FORMATIONS, type FormationId } from '../src/engine/formations';
 import { viewInstance } from '../src/engine/instance';
+import { COACH_LEADERS } from '../src/engine/rival-coach';
 import { Rng } from '../src/engine/rng';
 import { runMatch } from '../src/engine/runners/batch-runner';
 import type { MatchEventType, Tactic, TeamSetup } from '../src/engine/state';
@@ -18,6 +20,7 @@ const args = process.argv.slice(2);
 const N = Number(args[args.indexOf('--n') + 1]) || 500;
 const csvPath = args.includes('--csv') ? args[args.indexOf('--csv') + 1] : null;
 const TACTICS: Tactic[] = ['balanced', 'offensive', 'defensive', 'counter'];
+const AGENCIA = args.includes('--agencia');
 
 const rng = new Rng('calibrate');
 
@@ -124,6 +127,10 @@ let stoppageGoalMatches = 0;
 let lateGoals = 0;
 let behindAtLate = 0;
 let comebacks = 0;
+// --agencia: golpe máximo que saiu e virou gol (do mesmo jogador, em até 4 s), goleiro-linha ligado
+let maxHits = 0;
+let maxGoals = 0;
+let gkMax = 0;
 const rows: string[] = ['seed,home,away,strHome,strAway,tactHome,tactAway,shootout'];
 const t0 = performance.now();
 
@@ -134,6 +141,10 @@ for (let i = 0; i < N; i++) {
     };
     const home = mk('A');
     const away = mk('B');
+    if (AGENCIA) {
+        home.coach = COACH_LEADERS[i % COACH_LEADERS.length];
+        away.coach = COACH_LEADERS[(i + 3) % COACH_LEADERS.length];
+    }
     const r = runMatch(FUTSAL_5, home, away, i, { snapshots: false });
     const total = r.score[0] + r.score[1];
     goals += total;
@@ -146,6 +157,17 @@ for (let i = 0; i < N; i++) {
         if (e.type === 'trait') traitFx.set(e.fx, (traitFx.get(e.fx) ?? 0) + 1);
     }
 
+    let hit: { tick: number; by: number } | null = null;
+    for (const e of r.events) {
+        if (e.type === 'max' && e.phase === 'hit') {
+            maxHits++;
+            if (r.roster[e.by]?.role === 'GK') gkMax++;
+            hit = { tick: e.tick, by: e.by };
+        } else if (e.type === 'goal' && hit) {
+            if (e.by === hit.by && e.tick - hit.tick < 80) maxGoals++;
+            hit = null;
+        }
+    }
     const goalEvs = r.events.filter((e) => e.type === 'goal');
     // nos acréscimos o relógio para no fim do tempo (minuto 20 ou 40 cravado)
     if (goalEvs.some((e) => e.minute >= e.half * FUTSAL_5.displayHalfMinutes)) stoppageGoalMatches++;
@@ -240,4 +262,8 @@ console.log(
         .map(([t, r]) => `${t}=${((r.w / r.g) * 100).toFixed(0)}%(${r.g})`)
         .join(' '),
 );
+if (AGENCIA)
+    console.log(
+        `golpe máximo: ${per(maxHits)} saíram/jogo (${per(gkMax)} de goleiro), ${per(maxGoals)} viraram gol/jogo`,
+    );
 if (csvPath) writeFileSync(csvPath, rows.join('\n'));

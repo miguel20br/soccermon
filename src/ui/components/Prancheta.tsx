@@ -51,7 +51,7 @@ const sameSet = (a: string[], b: string[]) => a.length === b.length && a.every((
  *
  * Com `edit`, dá pra mudar a prancheta: a formação no seletor e, tocando num jogador em quadra e depois em outro, os
  * dois trocam de vaga (cada vaga mostra a nota do selecionado naquela posição). Nada vale antes do "Confirmar", e a
- * mudança entra na próxima bola parada. Com `onSub`, um em quadra e um do banco (em qualquer ordem) é a
+ * mudança vale na hora (volante). Com `onSub`, um em quadra e um do banco (em qualquer ordem) é a
  * substituição, na hora, sem painel: a troca mandada (`subs`) já aparece feita na prancheta, com o "Entra" no reserva.
  */
 export function Prancheta({

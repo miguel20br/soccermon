@@ -368,7 +368,7 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
                     ['Tática', 'mude quantas vezes quiser durante a partida (veja abaixo).'],
                     [
                         'Substituir',
-                        'escolha quem sai e quem entra. A troca acontece na próxima bola parada (saída de bola, tiro de meta ou intervalo). Nada é automático no seu time.',
+                        'escolha quem sai e quem entra. A troca é na hora: quem entra vem da lateral. Nada é automático no seu time.',
                     ],
                     [
                         'Painel',

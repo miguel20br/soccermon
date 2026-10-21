@@ -1,7 +1,17 @@
-import { AGENCY, SHOUTS } from '../agency';
+import { AGENCY } from '../agency';
 import type { Command, Controller } from '../commands';
 import { eff, FINAL_PRESSURE } from '../effective';
-import { FRICTION, goalXFor, isInOwnArea, maxSpeed, ownGoalX, TACKLE_RANGE, toRel, toWorld } from '../match';
+import {
+    FRICTION,
+    goalXFor,
+    inMaxZoneOf,
+    isInOwnArea,
+    maxSpeed,
+    ownGoalX,
+    TACKLE_RANGE,
+    toRel,
+    toWorld,
+} from '../match';
 import { DRAWBACK, hasTrait, MOVE_TUNING, moveProfile, type Trait } from '../moves';
 import type { MatchState, PlayerState, Tactic } from '../state';
 import { add, clamp, dist, len, norm, pointSegment, scale, sub, type Vec2, v } from '../vec';
@@ -37,10 +47,7 @@ export class AIController implements Controller {
 
     constructor(private readonly s: MatchState) {}
 
-    /**
-     * Deslocamentos da tática, mais o do grito do técnico enquanto ele vale (agência, experimento) e o da Pressão
-     * final (quem perde no fim vai pra cima).
-     */
+    /** Deslocamentos da tática, mais o da Pressão final (quem perde no fim vai pra cima) e o do goleiro-linha. */
     private shift(team: 0 | 1): (typeof TACTIC_SHIFT)[Tactic] {
         const s = this.s;
         let base = TACTIC_SHIFT[s.teams[team].tactic];
@@ -53,16 +60,9 @@ export class AIController implements Controller {
                 pressBias: base.pressBias + fp.pressBias,
             };
         }
-        const sh = s.teams[team].agency.shout;
-        if (!sh || s.tick >= sh.until) return base;
-        const m = SHOUTS[sh.kind];
-        return {
-            attack: base.attack + m.attack,
-            defend: base.defend + m.defend,
-            pivotHold: base.pivotHold,
-            shootBias: base.shootBias + m.shootBias,
-            pressBias: base.pressBias + m.pressBias,
-        };
+        // goleiro-linha: a linha sobe mais (o goleiro cobre atrás)
+        if (s.teams[team].agency.flyGk) base = { ...base, attack: base.attack + AGENCY.flyPush };
+        return base;
     }
 
     /** Goleiro-linha ligado: o goleiro do time joga como 5º de linha no ataque. */
@@ -240,6 +240,10 @@ export class AIController implements Controller {
             cmds.push({ type: 'shoot', target: this.shotTarget(p), power: 0.9 });
             return cmds;
         }
+        // golpe máximo armado (beira da quadra): o capitão na zona solta na hora, sem esperar a próxima decisão
+        const max = s.teams[p.team].agency.max;
+        if (max && !max.live && max.idx === p.idx && p.role !== 'GK' && inMaxZoneOf(s, p))
+            return { type: 'shoot', target: this.shotTarget(p), power: 1 };
         // segura a bola um instante depois de dominar (e na saída de bola)
         if (s.tick < p.ai.holdUntil) return this.dribbleCommand(p, goal, false);
         // decisões a cada ~0.3s, ou já se estiver sob pressão
@@ -250,11 +254,6 @@ export class AIController implements Controller {
         const xg = expectedGoals(p.pos, gx, gy, s.cfg.pitch.goalWidth);
         const shootingSkill = eff(s, p, 'shooting') / 99;
 
-        // golpe máximo do capitão (agência): na janela, de perto do gol ele solta na hora
-        const max = s.teams[p.team].agency.max;
-        if (max && max.idx === p.idx && p.role !== 'GK' && distGoal < AGENCY.maxRange) {
-            return { type: 'shoot', target: this.shotTarget(p), power: 1 };
-        }
         // gol vazio (goleiro-linha do rival): de longe, com o caminho livre, chuta
         if (
             distGoal < AGENCY.emptyNetRange &&
@@ -400,9 +399,9 @@ export class AIController implements Controller {
             score -= d * 0.012;
             if (!safe) score -= 1.2;
             if (keeper) score -= 0.4;
-            // golpe máximo aberto: a bola procura o capitão
+            // golpe máximo armado: a bola procura o capitão de linha
             const max = s.teams[p.team].agency.max;
-            if (max && max.idx === mate.idx) score += 0.35;
+            if (max && !max.live && max.idx === mate.idx && mate.role !== 'GK') score += 0.35;
             if (tactic.pivotHold > 2 && mate.role === 'PIVO') score += 0.1; // contra-ataque: busca o pivô
             score += s.rng.range(-0.08, 0.08);
             if (isKeeper && !safe) continue;

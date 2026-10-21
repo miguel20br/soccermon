@@ -74,7 +74,15 @@ import {
 import { PlayerInspect } from '../components/PlayerInspect';
 import { cardSprite } from '../components/PokeCard';
 import { type BoardPlan, Prancheta, useMedia, WIDE } from '../components/Prancheta';
-import { agencyView, MaxBars, PenaltyOrderPanel, SidelineControls, SidelineOverlay } from '../components/Sideline';
+import {
+    agencyView,
+    MaxBars,
+    MaxCueButton,
+    maxCueAt,
+    PenaltyOrderPanel,
+    SidelineControls,
+    SidelineOverlay,
+} from '../components/Sideline';
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
 import { captainAt, clockExtrasAt, roleAt, snapAt } from '../match-view';
@@ -417,7 +425,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const myIdx = match.roster.filter((r) => r.team === side).map((r) => r.idx);
     // posição agora de quem está em cada vaga (a prancheta pode ter mudado)
     const slots = myIdx.map((idx) => roleAt(match, setups, idx, tickRef.current));
-    // prancheta: sem limite, a última mandada vale na próxima bola parada (pendente até o evento passar na tela)
+    // prancheta: sem limite, a última mandada vale na hora (pendente até o evento passar na tela)
     const lastBoard = (mineLog.filter((o) => isLineupOrder(o)) as LineupOrder[]).at(-1);
     const boardEv =
         lastBoard && match.events.find((e) => e.type === 'lineup' && e.team === side && e.tick >= lastBoard.tick);
@@ -512,17 +520,24 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     );
     // beira da quadra (experimento): só com a sala do host ligada; as ordens passam pelo carimbo do host
     const agency = !!s.agency;
-    const sideline = agencyView(match.events, s.log, side, clock.tick);
+    const sideline = agencyView(
+        match.events,
+        s.log,
+        side,
+        clock.tick,
+        agency && maxCueAt(match, setups, side, clock.tick),
+    );
+    // golpe máximo: o carimbo do host põe a ordem um pouco à frente (rede); o motor deixa armada `AGENCY.maxArmTicks`
+    const sendMax = () => order({ kind: 'max' });
     const tactics = agency ? (
         <>
             {tacticControls}
             <SidelineControls
                 view={sideline}
                 canAct={canChange}
-                onShout={(shout) => order({ kind: 'shout', shout })}
                 onTimeout={halftime ? undefined : () => order({ kind: 'timeout' })}
                 onFlyGk={(on) => order({ kind: 'flyGk', on })}
-                onMax={() => order({ kind: 'max' })}
+                onMax={sendMax}
                 onPens={() => setPensOpen(true)}
             />
         </>
@@ -598,6 +613,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                                 names={teamNames}
                             />
                         )}
+                        {agency && <MaxCueButton view={sideline} canAct={canChange} onMax={sendMax} />}
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
                         {ended && !auto.held && (

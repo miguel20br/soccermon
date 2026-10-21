@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { maxCharge } from '../../engine/agency';
 import { computeAttributes } from '../../engine/attributes';
 import { FUTSAL_5 } from '../../engine/config';
 import { ABILITIES, MOVES, species } from '../../engine/data';
@@ -28,7 +29,7 @@ import { dir8 } from '../../engine/vec';
 import { dict, linkText, t as tr } from '../../i18n';
 import type { ArrowSize, ChanceSpeed, CryStyle, NamesOnField, PlaybackSpeed } from '../../store/game-store';
 import { bannerInk } from '../../store/profile';
-import { halftimeEnd } from '../../ui/match-view';
+import { halftimeEnd, maxCueNear } from '../../ui/match-view';
 import { hexToNumber, TYPE_COLOR } from '../../ui/type-colors';
 import {
     animForAction,
@@ -165,6 +166,12 @@ type PenaltyEvent = Extract<MatchEvent, { type: 'penalty' }>;
 
 const SPRITE_SCALE = 1.8;
 const TICK_RATE = FUTSAL_5.tickRate;
+/**
+ * Câmera lenta do golpe máximo: a quadra cai pra essa velocidade `MAX_CUE_LEAD` ticks antes do botão acender e enquanto
+ * ele está aceso (a hora certa dura ~0,4 s de jogo: assim fica ~1,5 s na tela).
+ */
+const MAX_CUE_SLOW = 0.25;
+const MAX_CUE_LEAD = 12;
 /** Ticks antes de gol/trave/defesa em que a câmera lenta começa. */
 const DRAMA_LEAD = 12;
 /**
@@ -193,7 +200,7 @@ export interface MatchEvolution {
 
 /** Faixa de gol/defesa que a tela React mostra no canto do time. */
 export interface MatchHighlight {
-    kind: 'goal' | 'owngoal' | 'save' | 'sub' | 'rivalEvolve' | 'tactic' | 'shout' | 'timeout' | 'flyGk' | 'max';
+    kind: 'goal' | 'owngoal' | 'save' | 'sub' | 'rivalEvolve' | 'tactic' | 'timeout' | 'flyGk' | 'max';
     team: 0 | 1;
     speciesId: number;
     shiny: boolean;
@@ -624,6 +631,26 @@ export class MatchScene extends Phaser.Scene {
         }
         if ((this.maxSpans.length || this.flySpans.length) && !this.agencyG)
             this.agencyG = this.add.graphics().setBlendMode(Phaser.BlendModes.ADD);
+    }
+
+    /** O botão do golpe máximo do seu time está aceso agora ou vai acender já (`MAX_CUE_LEAD`; a conta é a da tela). */
+    private maxCueNow(): boolean {
+        // no Duelo a quadra dos dois anda junta: só na Copa
+        if (!this.md.agency || this.md.replay || this.md.duel) return false;
+        const team = this.mine as 0 | 1;
+        const c = maxCharge(this.matchEvents, team, this.playTick);
+        if (c.charge < 1 || c.used || c.active) return false;
+        const cap = this.players.findIndex((v) => v.team === team && v.captain);
+        if (cap < 0) return false;
+        const gk = this.md.result.roster[cap]?.role === 'GK';
+        return maxCueNear(
+            this.snaps,
+            Math.floor(this.playTick),
+            Math.floor(this.playTick) + MAX_CUE_LEAD,
+            team,
+            cap,
+            gk,
+        );
     }
 
     /** Desenha as auras (a cada quadro, embaixo do jogador): dourada pulsando no golpe máximo, amarela no goleiro-linha. */
@@ -1292,6 +1319,8 @@ export class MatchScene extends Phaser.Scene {
         if (!slow) return base;
         const goal = this.goalTicks.find((t) => t >= this.playTick);
         if (goal !== undefined && goal - this.playTick <= GOAL_LEAD) base = Math.min(base, slow);
+        // golpe máximo na hora certa (beira da quadra): câmera lenta enquanto o botão está aceso, pra dar tempo de tocar
+        if (this.maxCueNow()) base = Math.min(base, MAX_CUE_SLOW);
         if (!this.md.cinematic) return base;
         // câmera lenta chegando no gol/trave/defesa
         const next = this.dramaTicks.find((t) => t >= this.playTick);
@@ -1609,9 +1638,10 @@ export class MatchScene extends Phaser.Scene {
                 this.swapSpecies(view, e.inSpeciesId, e.in, e.inShiny);
                 this.updateUiScale();
                 if (!silent) {
-                    // quem sai anda até a lateral (perto do banco do time); quem entra sai de lá e vai para a quadra
+                    // quem sai anda até a lateral (perto do banco do time); quem entra sai de lá e vai para a quadra.
+                    // Troca volante (bola rolando): o motor já põe quem entra na lateral e a partida não para
                     playSample('apito-curto');
-                    this.walkSub(view, e.outSpeciesId, at);
+                    this.walkSub(view, e.outSpeciesId, at, !!e.fly);
                     this.popText(e.outIdx, '⇅', '#7dff8a');
                     const h: MatchHighlight = {
                         kind: 'sub',
@@ -2112,24 +2142,6 @@ export class MatchScene extends Phaser.Scene {
                 }
                 break;
             }
-            case 'shout': {
-                const face =
-                    this.players.find((v) => v.team === e.team && v.captain) ??
-                    this.players.find((v) => v.team === e.team);
-                const text = dict().match.agency.shout[e.shout];
-                this.players.forEach((v, i) => {
-                    if (v.team === e.team) this.popText(i, text.toUpperCase(), '#ffd447');
-                });
-                if (face)
-                    EventBus.emit('match:highlight', {
-                        kind: 'shout',
-                        team: e.team,
-                        speciesId: face.speciesId,
-                        shiny: face.shiny,
-                        name: text,
-                    } satisfies MatchHighlight);
-                break;
-            }
             case 'timeout': {
                 playSample('apito-curto');
                 const face =
@@ -2155,12 +2167,20 @@ export class MatchScene extends Phaser.Scene {
             case 'max': {
                 const cap = this.players[e.by];
                 if (!cap) break;
-                if (e.phase === 'start') {
+                // 'start' = a defesa máxima do goleiro começou a valer; o chute máximo vem direto no 'hit'
+                // a defesa máxima abre com 'start'; o chute máximo não (é um lance só)
+                const gkSave =
+                    e.phase === 'hit' &&
+                    this.matchEvents.some(
+                        (x) => x.type === 'max' && x.team === e.team && x.phase === 'start' && x.tick <= e.tick,
+                    );
+                if (e.phase === 'start' || (e.phase === 'hit' && !gkSave)) {
                     playSfx('move');
                     this.popText(e.by, dict().match.agency.max.toUpperCase(), '#ffd447');
-                    this.punch('hit');
                     this.highlight('max', cap);
-                } else if (e.phase === 'hit') {
+                }
+                if (e.phase === 'start') this.punch('hit');
+                else if (e.phase === 'hit') {
                     this.punch('boom');
                     if (cinematic) {
                         this.cine.drama(`${dict().match.agency.max.toUpperCase()}!`, {
@@ -2203,13 +2223,13 @@ export class MatchScene extends Phaser.Scene {
     }
 
     /** Substituição andando: a partida para enquanto quem sai vai até a lateral e quem entra vem de lá. */
-    private walkSub(view: PlayerView, outSpecies: number, at: { x: number; y: number }) {
+    private walkSub(view: PlayerView, outSpecies: number, at: { x: number; y: number }, fly = false) {
         const top = toPx(0, 0).y;
         const bench = { x: GAME_W / 2 + (view.team === 0 ? -70 : 70), y: top - 14 };
         const now = this.time.now;
         const outMs = 1100;
         const inMs = 1300;
-        this.holdReal = Math.max(this.holdReal, now + outMs + inMs - 200);
+        if (!fly) this.holdReal = Math.max(this.holdReal, now + outMs + inMs - 200);
         // fantasma de quem sai, andando até a lateral
         const walk = resolveAnim(outSpecies, 'Walk');
         const facing = dir8({ x: bench.x - at.x, y: bench.y - at.y }, 4);
@@ -2229,7 +2249,7 @@ export class MatchScene extends Phaser.Scene {
             onComplete: () =>
                 this.tweens.add({ targets: ghost, alpha: 0, duration: 200, onComplete: () => ghost.destroy() }),
         });
-        view.enter = { from: bench, start: now + outMs - 200, dur: inMs };
+        if (!fly) view.enter = { from: bench, start: now + outMs - 200, dur: inMs };
     }
 
     /**

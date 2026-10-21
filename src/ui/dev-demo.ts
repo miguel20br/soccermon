@@ -1,13 +1,16 @@
 import { type LinkAsk, useCloud } from '../cloud/cloud';
 import type { SaveSummary } from '../cloud/reconcile-plan';
+import { maxCharge } from '../engine/agency';
 import { ENGINE_VERSION, FUTSAL_5 } from '../engine/config';
 import { clubLeader, cupRival } from '../engine/cup';
 import { species } from '../engine/data';
 import { aiDraftTeam } from '../engine/draft';
 import { createInstance, type PokemonInstance } from '../engine/instance';
+import { inMaxZoneOf } from '../engine/match';
 import { rewardOptions } from '../engine/rewards';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
+import { LiveRunner } from '../engine/runners/live-runner';
 import { EVENT_TYPES, ICONS, type Special } from '../engine/specials';
 import { EventBus } from '../game/EventBus';
 import { type BinderCard, binderAdd } from '../store/binder';
@@ -42,6 +45,8 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * escalação uma partida que, ao começar, já está a 2 s do intervalo, com 2 no banco e troca do rival no intervalo (o
  * vestiário: várias trocas, desfazer e "O rival trocou"). `?demo=acrescimos` abre na escalação uma partida que você está
  * perdendo no fim: ao começar, já está na Pressão final, a 3 s dos acréscimos do 2º tempo ("+N'" no placar).
+ * `?demo=maximo&agencia=1` abre na escalação uma partida que, ao começar, está a 2 s do botão do golpe máximo aceso
+ * (barra cheia, capitão Dragonite com a bola na zona); `&goleiro=1`: capitão Snorlax no gol (defesa máxima).
  */
 let started = false;
 
@@ -75,6 +80,7 @@ export function runDevDemo() {
         demo !== 'platina' &&
         demo !== 'vestiario' &&
         demo !== 'acrescimos' &&
+        demo !== 'maximo' &&
         demo !== 'sala'
     )
         return;
@@ -434,6 +440,45 @@ export function runDevDemo() {
             const live = { stage: 0, orders: [], tick: stop.tick - 60, engine: ENGINE_VERSION };
             useGame.setState({ run: { ...run, lockedTeam: team, live }, screen: 'lineup' });
             console.info(`[demo] copa ${run.seed}: acréscimos do 2º tempo no tick ${stop.tick}`);
+            return;
+        }
+        return;
+    }
+    if (demo === 'maximo') {
+        const gk = new URLSearchParams(window.location.search).get('goleiro') === '1';
+        for (let k = 0; k < 120; k++) {
+            store.newRun('Demo FC', `max${k}`);
+            const base = useGame.getState().run!;
+            const rng = new Rng(`max${k}`, 'demo');
+            // goleiro Snorlax, fixo Machamp, alas Gyarados e Pidgeot, pivô Dragonite; banco Onix e Pikachu
+            const lineup = [143, 68, 130, 18, 149].map((id) => createInstance(id, rng));
+            const bench = [95, 25].map((id) => createInstance(id, rng));
+            const run = {
+                ...base,
+                formation: '1-2-1' as const,
+                picks: [...lineup, ...bench],
+                lineup: lineup.map((p) => p.uid),
+                bench: bench.map((p) => p.uid),
+                captainUid: lineup[gk ? 0 : 4].uid,
+                draftRound: 7,
+                status: 'lineup' as const,
+            };
+            const team = { ...playerTeam(run), manualSubs: true };
+            // a hora certa: barra cheia e o capitão com a bola na zona (ou o rival na zona do goleiro capitão)
+            const live = new LiveRunner(FUTSAL_5, team, cupRival(run.opponents[0], true), `${run.seed}-stage-0`);
+            const s = live.state;
+            let at: number | null = null;
+            while (!live.finished && at === null && s.tick < 6000) {
+                live.step();
+                const owner = s.ball.owner === null ? null : s.players[s.ball.owner];
+                const cap = s.players.find((p) => p.team === 0 && p.captain);
+                if (s.phase !== 'play' || !owner || !cap || maxCharge(s.events, 0, s.tick).charge < 1) continue;
+                if (gk ? owner.team === 1 && inMaxZoneOf(s, owner) : owner === cap && inMaxZoneOf(s, cap)) at = s.tick;
+            }
+            if (at === null || at < 200) continue;
+            const saved = { stage: 0, orders: [], tick: at - 40, engine: ENGINE_VERSION };
+            useGame.setState({ run: { ...run, lockedTeam: team, live: saved }, screen: 'lineup' });
+            console.info(`[demo] copa ${run.seed}: golpe máximo na hora no tick ${at}`);
             return;
         }
         return;
