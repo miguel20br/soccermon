@@ -1,0 +1,89 @@
+/* ?lab=cenas: o palco das cenas do Modo história (src/ui/screens/StoryLab.tsx). Palco em pé (9:16); deitado e no
+   desktop ele enquadra o mesmo palco pela altura. */
+.story-lab {
+    display: grid;
+    gap: 12px;
+}
+.story-lab > p {
+    margin: 0;
+}
+.story-stage {
+    position: relative;
+    width: min(100%, calc((100svh - 24px) * 9 / 16));
+    aspect-ratio: 9 / 16;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #070a18;
+}
+.story-canvas {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+.story-skip {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    animation: story-in 250ms var(--ease-out) both;
+}
+.story-pick {
+    position: absolute;
+    inset: auto 0 18% 0;
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    padding: 0 16px;
+    animation: story-in 250ms var(--ease-out) both;
+}
+.story-pick .bc-caption {
+    color: var(--text);
+    text-shadow: 0 2px 0 #000;
+}
+.story-pick-row {
+    display: flex;
+    gap: 10px;
+}
+.story-pick-mon {
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    padding: 8px;
+    border: 2px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+    color: var(--text);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition: transform 200ms var(--ease-out);
+}
+.story-pick-mon:hover {
+    transform: translateY(-3px);
+}
+@keyframes story-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .story-skip,
+    .story-pick {
+        animation-name: story-fade;
+    }
+}
+[data-reduce-motion="true"] .story-skip,
+[data-reduce-motion="true"] .story-pick {
+    animation-name: story-fade;
+}
+@keyframes story-fade {
+    from {
+        opacity: 0;
+    }
+}
