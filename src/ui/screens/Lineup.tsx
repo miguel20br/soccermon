@@ -1,7 +1,7 @@
 import { type ReactNode, useRef, useState } from 'react';
 import { computeAttributes } from '../../engine/attributes';
 import { relampagoBracket } from '../../engine/bracket';
-import { cupRival } from '../../engine/cup';
+import { CLUBS, cupRival } from '../../engine/cup';
 import { species } from '../../engine/data';
 import { FORMATIONS, type FormationId, hasEdge } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
@@ -18,14 +18,14 @@ import { isLong, isOut } from '../../store/long-cup';
 import { useCardModal } from '../card-modal';
 import { BracketPeek } from '../components/Bracket';
 import { FormationBoard } from '../components/FormationBoard';
-import { FormationIdentity } from '../components/FormationIdentity';
+import { EdgeMark, FormationIdentity } from '../components/FormationIdentity';
 import { FutCard } from '../components/FutCard';
 import { LinkChips } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
 import { cardSprite, TypeBadge } from '../components/PokeCard';
 import { Money, SponsorSlots } from '../components/SponsorCard';
 import { leaveWith } from '../feedback';
-import { edgeAgainst } from '../formation-info';
+import { edgeAgainst, FORMATION_ICON } from '../formation-info';
 import { Tip } from '../help/Tip';
 import { useClubColor } from '../profile/club';
 import { lineupAverage } from '../rating';
@@ -183,15 +183,17 @@ export function Lineup() {
                                 n: lineupAverage(opponent.lineup, opponent.formation),
                             })}
                         </p>
-                        {edgeAgainst(opponent.formation ?? '1-2-1') && (
-                            <p className="fi-rival">
-                                {t('team.lineup.edgeLine', {
-                                    club: clubName(opponent.name, lang),
-                                    formation: formationText(opponent.formation ?? '1-2-1', lang).short,
-                                    counter: formationText(edgeAgainst(opponent.formation ?? '1-2-1')!, lang).short,
-                                })}
-                            </p>
-                        )}
+                        <p className="fi-rival">
+                            <span>
+                                {clubCity(opponent.name)} → {formationText(opponent.formation ?? '1-2-1', lang).name}
+                            </span>
+                            {edgeAgainst(opponent.formation ?? '1-2-1') && (
+                                <span className="fi-rival-edge">
+                                    <EdgeMark />
+                                    {formationText(edgeAgainst(opponent.formation ?? '1-2-1')!, lang).name}
+                                </span>
+                            )}
+                        </p>
                         {outList.length > 0 && (
                             <p className={outStarter ? 'error-text' : 'tactic-desc'}>
                                 {outStarter
@@ -270,6 +272,9 @@ export function Lineup() {
  * instrução e cobrador de escanteio, sinergias e a carta de quem foi tocado. O que muda de um modo pro outro
  * (rival, botão de jogar, abandonar) entra por `side` e `footer`.
  */
+/** "Pewter" em vez de "Pewter Rochedo" na linha curta do rival. */
+const clubCity = (name: string) => CLUBS.find((c) => c.name === name)?.city ?? name;
+
 export function LineupEditor({
     title,
     formation,
@@ -381,6 +386,7 @@ export function LineupEditor({
                             disabled={locked}
                             onClick={() => onFormation(f.id)}
                         >
+                            <HudIcon kind={FORMATION_ICON[f.id]} />
                             {formationText(f.id, lang).name}
                         </button>
                     ))}

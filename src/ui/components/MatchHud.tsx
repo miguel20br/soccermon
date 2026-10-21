@@ -352,6 +352,8 @@ export const ICONS = {
     fPivot: 'M4 20h4M10 20h4M16 20h4M12 16V5M8 9l4-4 4 4',
     fRotation: 'M20 12a8 8 0 0 1-14 5.3M4 12a8 8 0 0 1 14-5.3M18 3v3.7h-3.7M6 21v-3.7h3.7',
     fTwin: 'M7 20V6M3 10l4-4 4 4M17 20V6M13 10l4-4 4 4',
+    // vantagem tática (a formação que encaixa contra a do rival)
+    edge: 'M3 17l6-6 4 4 8-8M15 7h6v6',
 } as const;
 export type HudIconKind = keyof typeof ICONS;
 

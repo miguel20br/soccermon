@@ -1067,11 +1067,11 @@ button,
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--gap);
 }
-/* identidade da formação (FormationIdentity): frase com ícone, + forte, − fraco e o selo de vantagem tática.
+/* formação (FormationIdentity): ícone + forte/fraco curtos, selo de vantagem tática só com ícone.
    Trocar de formação refaz o bloco com fade (nada teleporta). */
 .fi {
     display: grid;
-    gap: 3px;
+    gap: 4px;
     margin-top: 8px;
     font-size: 12px;
     line-height: 1.35;
@@ -1079,13 +1079,15 @@ button,
     animation: row-in 220ms var(--ease-out) both;
 }
 .fi-say {
+    color: var(--muted);
+}
+.fi-tags {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 6px;
-    font-weight: 600;
+    gap: 4px 8px;
 }
-.fi-say .hud-icon {
+.fi-tags > .hud-icon {
     flex: none;
     width: 16px;
     height: 16px;
@@ -1098,19 +1100,31 @@ button,
     color: #ff9a9a;
 }
 .fi-edge {
-    padding: 1px 6px;
+    display: inline-grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
     border-radius: 999px;
-    border: 1px solid var(--yellow);
+    border: 1.5px solid var(--yellow);
     color: var(--yellow);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    white-space: nowrap;
+}
+.fi-edge .hud-icon {
+    width: 13px;
+    height: 13px;
 }
 .fi-rival {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 10px;
     margin: 4px 0 0;
-    font-size: 11px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.fi-rival-edge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     color: var(--yellow);
 }
 .formation-option .fi {
@@ -1227,7 +1241,24 @@ button,
 
 /* ---------- escalação ---------- */
 .formation-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     margin-bottom: 4px;
+}
+/* nome + desenho + ícone: duas linhas no celular em vez de cortar */
+.formation-tabs button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 5px 4px;
+    white-space: normal;
+    line-height: 1.15;
+}
+.formation-tabs .hud-icon {
+    flex: none;
+    width: 14px;
+    height: 14px;
 }
 .side-stack .bc-styles {
     margin: 2px 0 8px;

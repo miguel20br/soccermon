@@ -1,26 +1,43 @@
 import type { FormationId } from '../../engine/formations';
 import { formationText } from '../../i18n';
 import { useT } from '../../i18n/react';
-import { edgePct, FORMATION_ICON, formationLines } from '../formation-info';
+import { FORMATION_ICON } from '../formation-info';
 import { HudIcon } from './MatchHud';
 
-/** (Só spans: entra também dentro do botão da escolha de formação.) Frase, ponto forte e fraco da formação; `edge` = encaixa contra a do rival (selo "Vantagem tática"). */
-export function FormationIdentity({ id, edge = false }: { id: FormationId; edge?: boolean }) {
-    const { t, lang } = useT();
-    const { up, down } = formationLines(id, lang);
+/** Selo da vantagem tática: só o ícone (o nome fica no rótulo pra leitor de tela). */
+export function EdgeMark() {
+    const { t } = useT();
+    return (
+        <span className="fi-edge" role="img" aria-label={t('team.lineup.edgeBadge')} title={t('team.lineup.edgeBadge')}>
+            <HudIcon kind="edge" />
+        </span>
+    );
+}
+
+/**
+ * Ícone + forte/fraco curtos ("+Passe +Vel −Chute"); `phrase` põe a descrição em cima (só na escolha antes do
+ * draft); `edge` = encaixa contra a do rival. Só spans: entra também dentro do botão da escolha.
+ */
+export function FormationIdentity({
+    id,
+    edge = false,
+    phrase = false,
+}: {
+    id: FormationId;
+    edge?: boolean;
+    phrase?: boolean;
+}) {
+    const { lang } = useT();
+    const text = formationText(id, lang);
     return (
         <span className="fi" key={id}>
-            <span className="fi-say">
+            {phrase && <span className="fi-say">{text.description}</span>}
+            <span className="fi-tags">
                 <HudIcon kind={FORMATION_ICON[id]} />
-                <span>{formationText(id, lang).description}</span>
-                {edge && (
-                    <span className="fi-edge" title={t('team.lineup.edgeHint', { pct: edgePct(lang) })}>
-                        {t('team.lineup.edgeBadge')}
-                    </span>
-                )}
+                {text.up && <b className="fi-up">{text.up}</b>}
+                {text.down && <b className="fi-down">{text.down}</b>}
+                {edge && <EdgeMark />}
             </span>
-            {up.length > 0 && <span className="fi-up">+ {up.join(' · ')}</span>}
-            {down.length > 0 && <span className="fi-down">− {down.join(' · ')}</span>}
         </span>
     );
 }

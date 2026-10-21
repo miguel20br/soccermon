@@ -1,6 +1,6 @@
 import type { AttrKey, Position } from '../engine/attributes';
 import { COUNTER_FACTOR, FORMATION_STYLES, FORMATIONS, type FormationId, hasEdge } from '../engine/formations';
-import { dict, formationText, pct } from '../i18n';
+import { dict, pct } from '../i18n';
 import type { Lang } from '../i18n/lang';
 import type { HudIconKind } from './components/MatchHud';
 
@@ -16,7 +16,7 @@ export const FORMATION_ICON: Record<FormationId, HudIconKind> = {
 
 /**
  * Ponto forte e fraco da formação, tirados da mesma tabela do motor (FORMATION_STYLES, carta = campo).
- * Com `role`, só o que vale pra essa posição (painel do Pokémon); sem, tudo, mais o jeito de jogar (seletor).
+ * Com `role`, só o que vale pra essa posição (painel do Pokémon na partida).
  */
 export function formationLines(id: FormationId, lang: Lang, role?: Position): { up: string[]; down: string[] } {
     const d = dict(lang);
@@ -32,8 +32,6 @@ export function formationLines(id: FormationId, lang: Lang, role?: Position): { 
         const list = (Object.entries(attrs) as [AttrKey, number][]).map(([k, f]) => `${d.common.attr[k]} ${pct(f)}`);
         up.push(role ? list.join(', ') : `${d.common.pos[r]}: ${list.join(', ')}`);
     }
-    const trait = formationText(id, lang).trait;
-    if (!role && trait) up.push(trait);
     return { up, down };
 }
 

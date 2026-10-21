@@ -152,7 +152,7 @@ export function Draft() {
                             <FormationDiagram id={f.id} />
                             <b>{formationText(f.id, lang).name}</b>
                             <span className="muted">{f.slots.map((s) => d.common.pos[s]).join(' · ')}</span>
-                            <FormationIdentity id={f.id} />
+                            <FormationIdentity id={f.id} phrase />
                         </button>
                     ))}
                 </div>

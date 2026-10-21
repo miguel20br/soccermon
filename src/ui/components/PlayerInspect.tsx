@@ -135,7 +135,7 @@ export function PlayerInspect({
     };
     const myFormation = formationAt(who.team);
     const fl = formationLines(myFormation, lang, who.role);
-    const fName = formationText(myFormation, lang).short;
+    const fName = formationText(myFormation, lang).name;
     if (fl.up.length)
         live.push({ up: true, text: t('team.inspect.formation', { formation: fName, list: fl.up.join(', ') }) });
     if (fl.down.length)
