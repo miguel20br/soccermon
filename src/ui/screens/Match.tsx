@@ -537,7 +537,8 @@ export function Match({ liga = false }: { liga?: boolean }) {
             onTactic={changeTactic}
             onCorner={changeCorner}
             canSub={canSub}
-            onSub={() => openBoard(tired ? tiredSlot.uid : undefined)}
+            // no intervalo o Substituir mora no painel do intervalo (antes aparecia duas vezes)
+            onSub={halftime ? undefined : () => openBoard(tired ? tiredSlot.uid : undefined)}
             tired={tired}
         />
     );
@@ -638,7 +639,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         />
                     </div>
                     {sceneSlow && !sceneReady && (
-                        <button type="button" className="btn yellow" onClick={() => setSceneKey((k) => k + 1)}>
+                        <button type="button" className="btn outline" onClick={() => setSceneKey((k) => k + 1)}>
                             {t('match.reload')}
                         </button>
                     )}
@@ -770,19 +771,22 @@ export function Match({ liga = false }: { liga?: boolean }) {
                     {!ended ? (
                         <>
                             <fieldset className="bc-seg speed-seg" aria-label={t('match.coach.speed')}>
-                                {SPEEDS.map((s) => (
-                                    <button
-                                        key={String(s.value)}
-                                        type="button"
-                                        className={settings.speed === s.value ? 'on' : undefined}
-                                        aria-pressed={settings.speed === s.value}
-                                        disabled={!sceneReady}
-                                        onClick={() => setSpeed(s.value)}
-                                        title={s.value === 'highlights' ? t('match.highlightsHint') : undefined}
-                                    >
-                                        {s.label || t('match.highlights')}
-                                    </button>
-                                ))}
+                                {/* "Lances" (a velocidade) só aparece se for a escolhida nas Configurações: o nome é o da aba */}
+                                {SPEEDS.filter((s) => s.value !== 'highlights' || settings.speed === 'highlights').map(
+                                    (s) => (
+                                        <button
+                                            key={String(s.value)}
+                                            type="button"
+                                            className={settings.speed === s.value ? 'on' : undefined}
+                                            aria-pressed={settings.speed === s.value}
+                                            disabled={!sceneReady}
+                                            onClick={() => setSpeed(s.value)}
+                                            title={s.value === 'highlights' ? t('match.highlightsHint') : undefined}
+                                        >
+                                            {s.label || t('match.highlights')}
+                                        </button>
+                                    ),
+                                )}
                             </fieldset>
                             <button
                                 type="button"

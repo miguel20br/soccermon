@@ -156,7 +156,17 @@ commit). Prévias da Vercel têm os atalhos de demo e `?vel=N` (quadra até 64x)
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (21/10/2026, v0.9.1 · Rota Índigo)
+## Estado atual (21/10/2026, v0.9.2 · Casa arrumada)
+
+**0.9.2 (21/10):** onda 1 da revisão de design (`docs/planos/revisao-design.md`, `pesquisa-layout-e-game-design.md`):
+botões `.btn.outline`/`.btn.danger` em contorno, barra do polegar nas telas da copa, Home com "Nova copa" grande, faixa
+"Vem aí", 3 portas, chave num toque, dicas só na 1ª copa, sem boas-vindas na 1ª visita, retorno de toque central em
+`src/ui/feedback.ts` (som por tipo de botão, saída triste ao abandonar), Configurações com "Mais opções", e a Sala de
+troféus consertada (escala inteira, chão livre em `room-spots.ts`). **A Rota Índigo está desligada de novo**
+(`LONG_CUP_LIVE = false`): quebrou na 1ª partida em produção (21/10); religar só depois de jogada inteira no navegador.
+
+### 0.9.1 · Rota Índigo
+
 
 **0.9.1 (21/10):** Rota Índigo no ar (`LONG_CUP_LIVE` em `src/store/long-cup.ts`; mapa, eventos, fase de grupos e Final,
 `?demo=mapa`, `?demo=grupo`), a Copa rápida virou **Copa Relâmpago** com a chave de 16 clubes, Copa do Dia com dias

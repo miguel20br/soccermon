@@ -975,12 +975,6 @@
     cursor: default;
     filter: grayscale(1) brightness(0.65);
 }
-.al-cover .al-cover-dot {
-    top: 8px;
-    right: 8px;
-    left: auto;
-    bottom: auto;
-}
 /* a capa gira pra esquerda como capa de livro e mostra o papel de dentro (e volta ao fechar) */
 .al-cover.opening .al-cover-face {
     animation: al-cover-open 520ms var(--ease-in-out, ease-in-out) forwards;

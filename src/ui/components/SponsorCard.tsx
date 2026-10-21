@@ -53,7 +53,21 @@ export function Money({ n, className }: { n: number; className?: string }) {
  * Carta do Patrocínio (os "Jokers" da copa) com cara de patrocínio: em cima a placa da marca (a cor dela, o emblema e o
  * nome curto, como o patch da camisa), embaixo o contrato (família, nome, o efeito e a linha da assinatura).
  */
-export function SponsorCard({ id, children }: { id: SponsorId; children?: React.ReactNode }) {
+/**
+ * Carta do Patrocínio. `price` (Mercado): o preço fica no contrato, como uma etiqueta; `lack` = quanto falta (apaga
+ * e leva o cadeado, igual aos outros itens).
+ */
+export function SponsorCard({
+    id,
+    price,
+    lack = 0,
+    children,
+}: {
+    id: SponsorId;
+    price?: number;
+    lack?: number;
+    children?: React.ReactNode;
+}) {
     const { t } = useT();
     const fam = SPONSOR_FAMILY[id];
     const txt = sponsorText(id);
@@ -68,7 +82,15 @@ export function SponsorCard({ id, children }: { id: SponsorId; children?: React.
                 <span className="sp-fam">{t(`shop.family.${fam}`)}</span>
                 <b className="sp-name">{txt.name}</b>
                 <span className="sp-desc">{txt.desc}</span>
-                <span className="sp-sign">{t('shop.contract')}</span>
+                <span className="sp-sign">
+                    {t('shop.contract')}
+                    {price !== undefined && (
+                        <b className={`sp-price${lack > 0 ? ' lack' : ''}`}>
+                            {lack > 0 && <HudIcon kind="lock" />}
+                            {lack > 0 ? t('shop.priceShort', { price, n: lack }) : t('shop.money', { n: price })}
+                        </b>
+                    )}
+                </span>
             </span>
             {children}
         </div>

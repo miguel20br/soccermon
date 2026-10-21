@@ -144,7 +144,6 @@ export function TmTeachPanel({
                                 className="mini target-btn"
                                 disabled={!ok}
                                 onClick={() => {
-                                    playSfx('select');
                                     setUid(p.uid);
                                     setSlot(null);
                                 }}
@@ -190,7 +189,6 @@ export function TmTeachPanel({
                             style={{ '--tc': TYPE_COLOR[data.type] } as CSSProperties}
                             disabled={locked}
                             onClick={() => {
-                                playSfx('select');
                                 setSlot(i);
                             }}
                         >
@@ -218,7 +216,6 @@ export function TmTeachPanel({
                         type="button"
                         className={`tm-move free${slot === target.moves.length ? ' selected' : ''}`}
                         onClick={() => {
-                            playSfx('select');
                             setSlot(target.moves.length);
                         }}
                     >
@@ -256,7 +253,6 @@ export function TmTeachPanel({
                         className="btn small primary"
                         disabled={slot === null}
                         onClick={() => {
-                            playSfx('select');
                             setTaught(true);
                         }}
                     >

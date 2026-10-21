@@ -180,7 +180,7 @@ export function HalftimePanel({
                 </section>
             )}
             <div className="ht-actions">
-                <button type="button" className="btn yellow" disabled={!canSub} onClick={onSub}>
+                <button type="button" className="btn outline" disabled={!canSub} onClick={onSub}>
                     {mySubs.length ? t('match.ht.subMore') : t('match.substitute')}
                 </button>
                 {ready ?? (

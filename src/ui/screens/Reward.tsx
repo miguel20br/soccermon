@@ -5,7 +5,6 @@ import { itemSprite } from '../../engine/items';
 import type { Reward as RewardDef } from '../../engine/rewards';
 import type { ShopOffer } from '../../engine/shop';
 import { editionOf } from '../../engine/specials';
-import { playSfx } from '../../game/audio';
 import { clubName, itemDesc, itemName, stageName, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { type RunState, useGame } from '../../store/game-store';
@@ -57,7 +56,6 @@ export function Reward() {
     const reward = chosen !== null ? run.rewards[chosen] : null;
     const squad = [...run.lineup, ...run.bench].map((u) => byUid.get(u)!).filter(Boolean);
     const pick = (i: number) => {
-        playSfx('select');
         setChosen(chosen === i ? null : i);
     };
     // item que depende dos golpes (tipo, King's Rock): quantos golpes de cada um ele aproveita
@@ -70,6 +68,13 @@ export function Reward() {
     const sampleFit = fitItem && squad[0] ? fitOf(squad[0]) : null;
     const slots = formationOf(run.formation).slots;
     const openCard = useCardModal.getState().open;
+    const title = reward
+        ? reward.kind === 'pokemon'
+            ? t('reward.whoLeaves')
+            : reward.kind === 'tm'
+              ? t('reward.whoLearns')
+              : t('reward.whoHolds')
+        : t('reward.choose');
 
     return (
         <>
@@ -80,37 +85,21 @@ export function Reward() {
                         : t('reward.nextStage', { stage: stageName(run.stage + 1, lang) || t('reward.cup') })}
                 </span>
                 <div className="draft-title">
-                    <h1>
-                        {reward
-                            ? reward.kind === 'pokemon'
-                                ? t('reward.whoLeaves')
-                                : reward.kind === 'tm'
-                                  ? t('reward.whoLearns')
-                                  : t('reward.whoHolds')
-                            : t('reward.choose')}
-                    </h1>
+                    <h1>{title}</h1>
                 </div>
-                <div className="row">
-                    <button
-                        type="button"
-                        className="btn small"
-                        disabled={run.rerolls <= 0}
-                        onClick={() => {
-                            playSfx('select');
-                            rerollReward();
-                            setChosen(null);
-                        }}
-                    >
-                        <HudIcon kind="reroll" />
-                        {t('reward.reroll', { n: run.rerolls })}
-                    </button>
-                    <button type="button" className="btn small ghost" onClick={skipReward}>
-                        {t('reward.skip')}
-                    </button>
-                </div>
+                <button
+                    type="button"
+                    className="btn small"
+                    disabled={run.rerolls <= 0}
+                    onClick={() => {
+                        rerollReward();
+                        setChosen(null);
+                    }}
+                >
+                    <HudIcon kind="reroll" />
+                    {t('reward.reroll', { n: run.rerolls })}
+                </button>
             </div>
-
-            <Tip id="reward-pick">{t('reward.tip')}</Tip>
 
             <CardPack
                 sealed
@@ -143,7 +132,6 @@ export function Reward() {
                                         ),
                                         primary: true,
                                         onClick: () => {
-                                            playSfx('select');
                                             setChosen(chosen === i ? null : i);
                                         },
                                     }}
@@ -174,7 +162,7 @@ export function Reward() {
                                     )}
                                     <button
                                         type="button"
-                                        className="btn small primary fut-action"
+                                        className="btn small outline fut-action"
                                         aria-pressed={chosen === i}
                                         onClick={() => pick(i)}
                                     >
@@ -186,6 +174,8 @@ export function Reward() {
                     ))}
                 </div>
             </CardPack>
+            {/* a dica fica embaixo das opções que ela explica (só na 1ª copa) */}
+            {!reward && <Tip id="reward-pick">{t('reward.tip')}</Tip>}
 
             {reward && (
                 <GainTarget
@@ -226,7 +216,6 @@ export function Reward() {
                         onSlot={(ref, uid) => {
                             const inst = byUid.get(uid);
                             if (!inst) return;
-                            playSfx('select');
                             openCard(inst, {
                                 position: ref.zone === 'lineup' ? slots[ref.index] : undefined,
                                 captain: inst.uid === run.captainUid,
@@ -245,6 +234,13 @@ export function Reward() {
                     />
                 </div>
             )}
+            {/* pular é discreto (fantasma à esquerda da barra); à direita, o que fazer agora */}
+            <div className="bc-thumbbar">
+                <button type="button" className="btn ghost" onClick={skipReward}>
+                    {t('reward.skip')}
+                </button>
+                <p className="tb-hint">{title}</p>
+            </div>
         </>
     );
 }
@@ -285,7 +281,6 @@ export function GainTarget({
                     move={reward.move}
                     team={squad}
                     onTeach={(uid, slot) => {
-                        playSfx('select');
                         onClaim(uid, slot);
                     }}
                 />
@@ -309,7 +304,6 @@ export function GainTarget({
                         stateOf={(_ref, uid) => (uid === holder ? 'selected' : canPick.has(uid) ? 'target' : 'locked')}
                         onSlot={(_ref, uid) => {
                             if (!canPick.has(uid)) return;
-                            playSfx('select');
                             if (passing) onClaim(holder!, undefined, uid);
                             else if (reward.kind === 'item' && byUid.get(uid)?.item) setHolder(uid);
                             else onClaim(uid);
@@ -333,7 +327,6 @@ export function GainTarget({
                                 type="button"
                                 className="btn small ghost"
                                 onClick={() => {
-                                    playSfx('select');
                                     onClaim(holder!);
                                 }}
                             >

@@ -19,7 +19,7 @@ import type { TeamSetup } from '../engine/state';
 export type CupMode = 'longa';
 
 /** A Copa longa aparece na Home quando a 0.9.1 estiver pronta (até lá, só pelo `?demo=mapa`). */
-export const LONG_CUP_LIVE = true;
+export const LONG_CUP_LIVE = false;
 
 /** Cartões amarelos: na Copa longa uma derrota fora da Final não elimina; a segunda é o vermelho. */
 export const YELLOW_CARDS = 1;

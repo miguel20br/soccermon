@@ -1,5 +1,42 @@
 # Novidades
 
+## 0.9.2 · Casa arrumada
+
+### Tela inicial
+- Nova copa grande e no topo; Duelo e Copa do Dia lado a lado, do tamanho do conteúdo
+- Vem aí: o que está pra chegar numa faixa de cartõezinhos (toque pra ver o que é)
+- Perfil, Coleção e Sala de troféus como três portas; o "?" leva pra Ajuda
+- O botão de idioma não pula mais de lugar ao trocar
+- Quem chega pela 1ª vez já cai no jogo (o passo a passo está na Ajuda)
+
+### Na copa
+- A ação principal fica embaixo, na barra do polegar, em todas as telas da copa
+- Um botão vermelho por tela; os outros viram contorno
+- A chave da copa abre num toque (Ver a chave) na escalação e no resultado
+- Dicas só na 1ª copa, perto do que explicam
+- Eliminado: Nova copa num toque e quanto faltou
+
+### Mercado
+- Com o pacote aberto, o seu time aparece junto pra comparar
+- O que não dá pra comprar tem cadeado e mostra quanto falta
+- Trocar vitrine virou Novas ofertas (vitrine agora é só a das cartas)
+- Textos dos Patrocínios reescritos, mais curtos e com o número do efeito; o preço aparece no contrato
+
+### Partida
+- Aba Time no PC: nome e posição inteiros
+- Substituir não aparece mais duas vezes no intervalo
+
+### Toque e som
+- Cada tipo de botão tem o seu som (avançar, voltar, sair, apagar)
+- Abandonar copa, sair do Duelo e apagar dados têm uma saída triste, com animação e som
+- Vibração curta no Android (dá pra desligar em Configurações → Mais opções)
+- Configurações mais curtas: o resto fica em Mais opções
+
+### Sala de troféus
+- O Pokémon que passeia não fica mais esticado nem passa por dentro dos móveis
+- O PC aparece inteiro, a TV na frente do móvel e as fotos das cartas sem esticar
+- A câmera não fica mais presa aproximada depois de um toque rápido
+
 ## 0.9.1.1 · Cartas de volta
 
 ### Consertos

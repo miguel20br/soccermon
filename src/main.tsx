@@ -10,6 +10,7 @@ import { startFriendsLive } from './friends/api';
 import { startLeagueSync } from './league/sync';
 import { ErrorBoundary } from './ui/components/ErrorBoundary';
 import { startExitMotion } from './ui/exit-motion';
+import { startTapFeedback } from './ui/feedback';
 import { startSettingsSync } from './ui/settings-sync';
 import { startTabSlide } from './ui/tab-slide';
 import { startScreenTransitions } from './ui/view-transition';
@@ -31,6 +32,7 @@ void importFromOldDomain();
 startScreenTransitions();
 startTabSlide();
 startExitMotion();
+startTapFeedback();
 
 // contas e save na nuvem (só liga se o Supabase estiver configurado)
 startCloudSync();

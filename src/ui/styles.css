@@ -50,6 +50,9 @@ body,
 }
 
 body {
+    /* viewport-fit=cover (index.html): instalado no iPhone o fundo vai até a borda; o conteúdo recua do entalhe e dos
+       cantos aqui (0 sem entalhe). Embaixo quem cuida é a barra do polegar. */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
     background:
         radial-gradient(1200px 600px at 50% -10%, #2a3570 0%, var(--bg) 60%) fixed,
         var(--bg);
@@ -100,6 +103,9 @@ img.pixel {
 .brand img {
     width: auto;
     height: 30px;
+}
+.brand .brand-symbol {
+    display: none;
 }
 
 /* ---------- painéis e botões ---------- */
@@ -157,19 +163,34 @@ img.pixel {
     border-color: var(--red-dark);
     box-shadow: 0 3px 0 #6e1615;
 }
-.btn.yellow {
-    background: var(--yellow);
-    color: #2a2a2a;
-    border-color: #c79c00;
-    box-shadow: 0 3px 0 #7d6200;
+/* Sistema de botões (docs/planos/pesquisa-layout-e-game-design.md §3): primário vermelho, um por tela; secundário de
+   contorno amarelo (ação repetida em grade e 2ª ação de fim; o amarelo cheio aposentou); comum; fantasma; perigo de
+   contorno. Desabilitado continua visível (45%) e diz o porquê em .btn-why logo embaixo. */
+.btn.outline {
+    border-color: var(--yellow);
+    color: var(--yellow);
+    box-shadow: 0 3px 0 var(--bc-ink);
 }
-/* amarelo apagado ainda parecia ligado (Substituir depois do apito final) */
-.btn.yellow:disabled {
-    filter: grayscale(0.9);
+.btn.outline:disabled {
+    border-color: var(--line);
+    color: var(--muted);
+}
+.btn-why {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
 }
 .btn.ghost {
     background: transparent;
     border-color: var(--line);
+    box-shadow: none;
+}
+/* perigo: só contorno, nunca na barra do polegar; o "Apagar" de verdade é o primário da confirmação */
+.btn.danger {
+    background: var(--panel);
+    border-color: #ff6b4c;
+    color: #ff6b4c;
     box-shadow: none;
 }
 .btn.small {
@@ -453,6 +474,10 @@ img.pixel {
     .draft-auto.ask {
         flex: 1 1 100%;
     }
+    /* no PC o título já está do lado */
+    .draft-auto-hint {
+        display: none;
+    }
 }
 .steps span {
     width: 26px;
@@ -724,7 +749,8 @@ img.pixel {
 }
 .tp-row {
     display: grid;
-    grid-template-columns: 30px minmax(0, 1fr) 52px 18px 18px 38px;
+    /* o nome (e a posição embaixo) tem prioridade sobre a barra de fôlego; colunas iguais em toda linha (alinhadas) */
+    grid-template-columns: 30px minmax(72px, 1.4fr) minmax(28px, 1fr) 18px 18px 38px;
     align-items: center;
     gap: 6px;
     width: 100%;
@@ -845,7 +871,7 @@ img.pixel {
 }
 @media (min-width: 1051px) {
     .tp-row {
-        grid-template-columns: 34px minmax(0, 1fr) 160px 26px 26px 46px;
+        grid-template-columns: 34px minmax(84px, 1.2fr) minmax(36px, 1fr) 26px 26px 46px;
     }
 }
 
@@ -2852,27 +2878,6 @@ button,
 }
 
 /* ---------- faixa do evento da semana / Destaque no resultado ---------- */
-.event-banner {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 7px 12px 7px 18px;
-    max-width: 420px;
-    margin: 0 auto;
-}
-.event-banner div {
-    display: flex;
-    flex-direction: column;
-    font-size: 12px;
-}
-.event-banner b {
-    font-size: 14px;
-    color: var(--yellow);
-}
-.event-banner .type-icon {
-    width: 28px;
-    height: 28px;
-}
 .destaque-box {
     display: grid;
     justify-items: center;
@@ -3045,48 +3050,6 @@ button,
     margin: 0;
 }
 
-/* ---------- em breve (Home) ---------- */
-.soon {
-    width: min(720px, 100%);
-    display: grid;
-    gap: 10px;
-}
-.soon h2.bc-caption {
-    margin: 0 auto;
-}
-.soon-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 10px;
-}
-.soon-card {
-    display: grid;
-    justify-items: center;
-    align-content: start;
-    gap: 4px;
-    padding: 12px 8px;
-    border: 2px dashed var(--line);
-    border-radius: 10px;
-    background: rgb(255 255 255 / 3%);
-}
-.soon-card img {
-    height: 40px;
-    filter: grayscale(0.6) brightness(0.85);
-}
-.soon-card b {
-    font-size: 13px;
-}
-.soon-card span {
-    font-size: 11px;
-    color: var(--muted);
-    line-height: 1.3;
-}
-@media (max-width: 640px) {
-    .soon-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 6px;
-    }
-}
 .mh-out {
     width: clamp(34px, 5vw, 56px);
     opacity: 0.7;
@@ -4936,15 +4899,6 @@ button,
     justify-content: space-between;
     gap: 8px;
 }
-.home-top .event-banner {
-    flex: 0 1 auto;
-    min-width: 0;
-    margin: 0;
-    text-align: left;
-}
-.home-top .lang-toggle {
-    margin-left: auto;
-}
 /* PT | EN: troca rápida de idioma (as Configurações também têm); o .bc-seg do kit */
 .lang-toggle {
     flex: none;
@@ -4955,12 +4909,6 @@ button,
     min-height: 38px;
     font-size: 12px;
     letter-spacing: 0.04em;
-}
-/* celular estreito: com o Perfil no canto, fica só o botão do outro idioma (o "EN" num site em português) */
-@media (max-width: 374px) {
-    .home-top .lang-toggle.bc-seg button.on {
-        display: none;
-    }
 }
 /* "?" do Como jogar: rever o passo a passo de boas-vindas */
 .help-fab {
@@ -5365,84 +5313,6 @@ a.home-tile {
     gap: 10px;
     padding: 16px;
 }
-/* Copa rápida e Copa longa: os dois modos principais, lado a lado */
-.cup-modes {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    margin-top: 10px;
-}
-.cup-mode.bc-tile {
-    position: relative;
-    display: grid;
-    align-content: start;
-    justify-items: start;
-    gap: 4px;
-    min-height: 128px;
-    padding: 12px;
-    font: inherit;
-}
-.cup-mode.bc-tile b {
-    font-family: "Galmuri14", var(--font, inherit);
-    font-size: 17px;
-}
-.cup-mode.bc-tile small {
-    font-size: 12px;
-    line-height: 1.3;
-}
-.cup-mode-go {
-    align-self: end;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 6px;
-    padding: 6px 12px;
-    border-radius: 6px;
-    background: var(--bc-ink);
-    font-size: 13px;
-    font-weight: 700;
-}
-.cup-mode-go .hud-icon {
-    width: 16px;
-    height: 16px;
-}
-.cup-mode.main .cup-mode-go {
-    background: var(--red);
-    color: #fff;
-}
-.cup-mode.soon {
-    cursor: default;
-    background: var(--panel);
-    border-style: dashed;
-    box-shadow: none;
-}
-.cup-mode.soon b,
-.cup-mode.soon .cup-mode-go {
-    color: var(--muted);
-}
-.cup-mode.soon .cup-mode-tag {
-    background: var(--line);
-    color: var(--text);
-}
-.cup-soon-note {
-    min-height: 0;
-    margin: 0;
-    font-size: 12px;
-    opacity: 0;
-    transition: opacity 220ms var(--ease-out);
-}
-.cup-soon-note.on {
-    margin-top: 6px;
-    opacity: 1;
-}
-@media (max-width: 360px) {
-    .cup-modes {
-        grid-template-columns: 1fr;
-    }
-    .cup-mode.bc-tile {
-        min-height: 0;
-    }
-}
 .new-run {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -5617,50 +5487,10 @@ a.home-tile {
     font-weight: 700;
 }
 
-/* em breve: cartas "trancadas" */
-.home .soon-card {
-    position: relative;
-    overflow: hidden;
-    border-style: solid;
-    background: linear-gradient(180deg, rgb(255 255 255 / 5%), rgb(0 0 0 / 15%));
-}
-.home .soon-card::after {
-    content: attr(data-ribbon);
-    position: absolute;
-    top: 9px;
-    right: -26px;
-    padding: 1px 28px;
-    rotate: 35deg;
-    background: var(--yellow);
-    color: #141a33;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-}
-.home .soon-card img {
-    height: 46px;
-    filter: grayscale(1) brightness(0.7) contrast(1.2);
-}
-
 @media (max-width: 640px) {
     /* celular: faixa do evento numa linha e quadra baixa, pro "Nova copa" ficar na primeira tela (até 320x568) */
     .home {
         gap: 12px;
-    }
-    .home-top .event-banner {
-        padding: 5px 10px 5px 14px;
-        gap: 8px;
-    }
-    .home-top .event-banner span {
-        display: none;
-    }
-    .home-top .event-banner b {
-        font-size: 12px;
-        line-height: 1.25;
-    }
-    .home-top .event-banner .type-icon {
-        width: 22px;
-        height: 22px;
     }
     .home-court {
         height: 96px;
@@ -5858,7 +5688,7 @@ a.home-tile {
         gap: 10px;
     }
     .home-court,
-    .event-banner span {
+    .cup-event span {
         display: none;
     }
     .home-hero .logo {
@@ -6342,11 +6172,6 @@ p.muted.center a {
     padding: 10px;
     border: 2px solid #ff6b4c;
     border-radius: 10px;
-}
-.btn.danger {
-    background: #c8352a;
-    border-color: #ff6b4c;
-    color: #fff;
 }
 
 /* ---------- Pacote de cartas (CardPack.tsx): recompensa e draft ----------
@@ -7477,11 +7302,6 @@ body {
     font-size: 15px;
     color: var(--yellow);
 }
-.door > .new-dot.door-dot {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-}
 @media (max-width: 899px) {
     .door {
         min-height: 60px;
@@ -7528,8 +7348,9 @@ body {
     position: static;
     border-width: 1px;
 }
-.footer-links .lang-toggle {
-    margin-left: 4px;
+/* linha própria e centrada: o PT | EN fica no mesmo lugar nos dois idiomas */
+.home-footer .lang-toggle {
+    justify-self: center;
 }
 .home-footer .disclaimer {
     text-align: center;
@@ -7550,4 +7371,183 @@ body {
 }
 .modal-field-ovr b.down {
     color: var(--red);
+}
+
+/* Eliminado: o quanto faltou, logo antes do "Nova copa" */
+.near-miss {
+    margin: 12px 0 4px;
+    text-align: center;
+    font-weight: 700;
+    color: var(--yellow);
+}
+
+/* ---------- Vem aí (ComingSoon.tsx): o que ainda não dá pra jogar, numa fileira de cartõezinhos ----------
+ * Silhueta + cadeado, ~1/4 da altura dos antigos cartões "Em breve". Mais que cabe: rola pro lado, com a borda
+ * apagando pra dizer que tem mais. Tocar abre a folha (embaixo no celular, no meio no PC). */
+.soon-strip {
+    width: min(460px, 100%);
+    display: grid;
+    gap: 6px;
+}
+@media (min-width: 900px) {
+    .soon-strip {
+        width: min(820px, 100%);
+    }
+}
+.soon-strip .bc-lbl {
+    margin: 0;
+}
+.soon-row {
+    display: flex;
+    gap: 6px;
+    margin: 0;
+    padding: 0 0 4px;
+    list-style: none;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent);
+}
+.soon-row::-webkit-scrollbar {
+    display: none;
+}
+.soon-row > li {
+    flex: 1 0 66px;
+    scroll-snap-align: start;
+}
+.soon-tile {
+    position: relative;
+    width: 100%;
+    height: 80px;
+    display: grid;
+    grid-template-rows: 1fr auto auto;
+    justify-items: center;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 4px 5px;
+    border: 2px dashed var(--line);
+    border-radius: 8px;
+    background: var(--bg-2);
+    color: var(--muted);
+    font: inherit;
+    cursor: pointer;
+    transition:
+        transform 0.06s ease,
+        border-color 0.2s var(--ease-out),
+        color 0.2s var(--ease-out);
+}
+.soon-tile:hover,
+.soon-tile:focus-visible {
+    border-color: var(--yellow);
+    color: var(--text);
+}
+.soon-tile:active {
+    transform: translateY(2px);
+}
+.soon-tile:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+}
+.soon-art {
+    display: grid;
+    place-items: center;
+    height: 30px;
+}
+/* silhueta: o que vem ainda está no escuro */
+.soon-art img,
+.soon-art .menu-icon {
+    width: auto;
+    height: 30px;
+    max-width: 44px;
+    filter: brightness(0) invert(0.5);
+}
+.soon-art .menu-icon {
+    width: 30px;
+}
+.soon-tile b {
+    display: -webkit-box;
+    max-width: 100%;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: 10px;
+    line-height: 1.15;
+    text-align: center;
+}
+.soon-tile small {
+    font-size: 10px;
+    line-height: 1;
+    color: var(--yellow);
+    font-variant-numeric: tabular-nums;
+}
+.soon-lock {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 12px;
+    height: 12px;
+}
+/* a folha do teaser: a arte sai da sombra */
+.soon-sheet {
+    width: min(380px, 100%);
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    text-align: center;
+}
+.soon-sheet-art {
+    display: grid;
+    place-items: center;
+    height: 72px;
+}
+.soon-sheet-art img {
+    max-width: 120px;
+    width: auto;
+    height: 72px;
+}
+.soon-sheet-art .menu-icon {
+    width: 72px;
+    height: 72px;
+}
+.soon-sheet h3 {
+    margin: 0;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 22px;
+    color: var(--text);
+}
+.soon-sheet p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--muted);
+}
+.soon-sheet .soon-note {
+    color: var(--yellow);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+@media (max-width: 640px) {
+    .soon-backdrop {
+        align-items: end;
+        padding: 0;
+    }
+    .soon-backdrop .soon-sheet {
+        width: 100%;
+        padding-bottom: calc(20px + env(safe-area-inset-bottom));
+        border-radius: 12px 12px 0 0;
+        animation: soon-up 260ms var(--ease-out) both;
+    }
+}
+@keyframes soon-up {
+    from {
+        transform: translateY(100%);
+    }
+}
+:root[data-reduce-motion="true"] .soon-backdrop .soon-sheet {
+    animation: screen-in 0.2s var(--ease-out) both;
+}
+@media (prefers-reduced-motion: reduce) {
+    .soon-backdrop .soon-sheet {
+        animation: screen-in 0.2s var(--ease-out) both;
+    }
 }

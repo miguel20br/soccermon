@@ -322,7 +322,7 @@ export function TimeoutPanel({
             <p className="ht-tip">{a.sub}</p>
             {children}
             <div className="ht-actions">
-                <button type="button" className="btn yellow" disabled={!canSub} onClick={onSub}>
+                <button type="button" className="btn outline" disabled={!canSub} onClick={onSub}>
                     {t('match.substitute')}
                 </button>
                 <button type="button" className="btn primary" onClick={onBack}>
