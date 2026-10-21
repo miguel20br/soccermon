@@ -13,6 +13,7 @@ import {
     applyPreview,
     bestFor,
     clockAdjust,
+    type DuelBestOf,
     type DuelDuration,
     type DuelMode,
     duelPace,
@@ -288,13 +289,24 @@ class DuelSession {
         specialLimit: SpecialLimit = DEFAULT_SPECIAL_LIMIT,
         duration: DuelDuration = 'normal',
         agency = false,
+        bestOf: DuelBestOf = 1,
     ): Promise<string> {
         const room = roomCode((n) => {
             const b = new Uint32Array(1);
             crypto.getRandomValues(b);
             return b[0] % n;
         });
-        const shared = newShared(room, peer, mode, speed, randomSecret().slice(0, 16), specialLimit, duration, agency);
+        const shared = newShared(
+            room,
+            peer,
+            mode,
+            speed,
+            randomSecret().slice(0, 16),
+            specialLimit,
+            duration,
+            agency,
+            bestOf,
+        );
         this.kept = { role: 'host', shared, tops: {} };
         writeKept(room, peer.id, this.kept);
         this.open(room, peer, local, 'host', shared, false);

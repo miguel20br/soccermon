@@ -21,6 +21,12 @@ export interface DuelRecord {
     /** Vitória ou derrota por W.O. */
     wo?: boolean;
     /**
+     * Melhor de 3: a série inteira é um duelo (o placar é o de vitórias na série e o resultado, o da série); `games` é o
+     * placar de cada jogo, o seu lado primeiro. Sem o campo = 1 jogo.
+     */
+    bestOf?: 3;
+    games?: [number, number][];
+    /**
      * Registro do duelo (src/net/record.ts): tudo pra refazer a partida (dessincronização, replay). Só os mais
      * recentes guardam (cabe na nuvem).
      */

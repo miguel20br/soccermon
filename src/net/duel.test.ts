@@ -18,6 +18,7 @@ import {
     acceptTakeover,
     applyPreview,
     autoLineup,
+    bestOfOf,
     blocker,
     type Ctx,
     canClaimWO,
@@ -25,6 +26,7 @@ import {
     clockAdjust,
     disputaOptions,
     duelNames,
+    duelOutcome,
     duelPace,
     duelTags,
     emoteAllowed,
@@ -41,6 +43,7 @@ import {
     reduce,
     roomCode,
     type Shared,
+    seriesOf,
     tagTeam,
     tickTimers,
     trainerNames,
@@ -50,6 +53,7 @@ import { applyPatch, diff } from './patch';
 import { buildRegistro, registroInputs } from './record';
 import {
     abrir,
+    baseSeedOf,
     CHAIN_LEN,
     checkReveal,
     holdTick,
@@ -1192,5 +1196,177 @@ describe('Eevee no duelo', () => {
             expect(evolutionTarget(133, `${uid}~g`)).toBe(card);
         }
         expect(new Set(uids.map((u) => evolutionTarget(133, u))).size).toBeGreaterThan(1);
+    });
+});
+
+describe('melhor de 3', () => {
+    const win = (w: 0 | 1, score: [number, number] = w === 0 ? [2, 1] : [0, 3]) => ({
+        score,
+        shootout: null,
+        winner: w,
+    });
+    const md3 = (): Shared => ({ ...inMatch(), bestOf: 3 });
+    const end = (s: Shared, w: 0 | 1, score?: [number, number]) =>
+        reduce(s, { k: 'ended' }, 'host', ctx(1000, { final: win(w, score) }));
+    /** "Próximo jogo" dos dois, cada um com o lacre da partida seguinte. */
+    const next = (s: Shared, n: number) => {
+        s = reduce(s, { k: 'rematch', commit: H(String(n)) }, 'guest', ctx(2000));
+        return reduce(s, { k: 'rematch', commit: H(String((n + 1) % 10)) }, 'host', ctx(2000, { newSeed: 'nova' }));
+    };
+    const cfgOf = (tm: TeamSetup) => ({
+        formation: tm.formation ?? '1-2-1',
+        tactic: tm.tactic,
+        order: [...tm.lineup, ...tm.bench].map((p) => p.uid),
+    });
+    /** Os dois lacram e abrem a escalação (`cfg` muda a do host). */
+    const play = (s: Shared, hostCfg = cfgOf(s.teams.host!)) => {
+        s = reduce(s, { k: 'choiceSeal', seal: H('5') }, 'host', ctx(3000));
+        s = reduce(s, { k: 'choiceSeal', seal: H('6') }, 'guest', ctx(3000));
+        s = reduce(s, { k: 'choiceOpen', value: hostCfg, salt: 'a' }, 'host', ctx(3000));
+        return reduce(s, { k: 'choiceOpen', value: cfgOf(s.teams.guest!), salt: 'b' }, 'guest', ctx(3000));
+    };
+    const roster = (tm: TeamSetup) =>
+        JSON.stringify([...tm.lineup, ...tm.bench].sort((a, b) => (a.uid < b.uid ? -1 : 1)));
+
+    it('1 jogo fica igual a hoje: sem campo novo, acaba no 1º e a revanche volta pro time', () => {
+        const s = inMatch();
+        expect('bestOf' in s || 'series' in s).toBe(false);
+        expect(bestOfOf(s)).toBe(1);
+        const done = end(s, 1);
+        expect(seriesOf(done)).toMatchObject({ over: true, winner: 'guest', game: 1 });
+        const again = next(done, 7);
+        expect(again.phase).toBe('team');
+        expect('series' in again || 'bestOf' in again).toBe(false);
+    });
+
+    it('2 x 0 acaba no jogo 2; a revanche abre uma série nova', () => {
+        let s = end(md3(), 0);
+        expect(seriesOf(s)).toMatchObject({ over: false, wins: { host: 1, guest: 0 } });
+        s = next(s, 7);
+        expect(s).toMatchObject({ phase: 'preview', game: 2, bestOf: 3 });
+        expect(s.series).toHaveLength(1);
+        expect(seriesOf(s).game).toBe(2);
+        s = end(play(s), 0, [4, 0]);
+        const view = seriesOf(s);
+        expect(view).toMatchObject({ over: true, winner: 'host', wins: { host: 2, guest: 0 } });
+        expect(view.games.map((g) => g.score)).toEqual([
+            [2, 1],
+            [4, 0],
+        ]);
+        // série decidida: o "de novo" é a revanche de sempre (Time pronto volta pra escolha do time), ainda MD3
+        s = next(s, 9);
+        expect(s).toMatchObject({ phase: 'team', game: 3, bestOf: 3 });
+        expect(s.series).toBeUndefined();
+    });
+
+    it('1 x 1 vai pro jogo 3, que decide', () => {
+        let s = next(end(md3(), 0), 7);
+        s = end(play(s), 1);
+        expect(seriesOf(s)).toMatchObject({ over: false, wins: { host: 1, guest: 1 } });
+        s = next(s, 9);
+        expect(seriesOf(s).game).toBe(3);
+        s = end(play(s), 1, [1, 2]);
+        expect(seriesOf(s)).toMatchObject({ over: true, winner: 'guest', wins: { host: 1, guest: 2 } });
+    });
+
+    it('cada jogo tem seed e lacres novos, e o estado sai igual nos dois lados', () => {
+        const run = () => next(end(md3(), 0), 7);
+        const a = run();
+        expect(JSON.stringify(run())).toBe(JSON.stringify(a));
+        expect(a.commits).toEqual({ host: H('8'), guest: H('7') });
+        expect(baseSeedOf(a.room, a.game)).not.toBe(baseSeedOf(a.room, a.game - 1));
+        // nada da partida anterior: ordens, segredos e hashes zerados
+        expect([a.log, a.reveals, a.segHash]).toEqual([[], { host: [], guest: [] }, { host: {}, guest: {} }]);
+        // o patch do jogo novo aplicado no estado de antes dá o mesmo estado
+        const before = end(md3(), 0);
+        expect(applyPatch(before, diff(before, a))).toEqual(a);
+    });
+
+    it('o time volta igual a cada jogo (a evolução da partida não passa) e a escalação nova vale', () => {
+        let s = md3();
+        const before = { host: roster(s.teams.host!), guest: roster(s.teams.guest!) };
+        // a partida não mexe no time da sala (evolução, troca, fôlego ficam na simulação)
+        runMatch(FUTSAL_5, s.teams.host!, s.teams.guest!, 'base');
+        s = next(end(s, 0), 7);
+        expect({ host: roster(s.teams.host!), guest: roster(s.teams.guest!) }).toEqual(before);
+        // o host muda a escalação no jogo 2: quem estava no banco começa e a formação muda
+        const cfg = cfgOf(s.teams.host!);
+        const order = [...cfg.order];
+        [order[0], order[5]] = [order[5], order[0]];
+        s = play(s, { ...cfg, order, formation: '2-2' });
+        expect(s.phase).toBe('match');
+        expect(s.teams.host!.lineup[0].uid).toBe(order[0]);
+        expect(s.teams.host!.formation).toBe('2-2');
+        // o jogo 3 começa da escalação do jogo 2, com os mesmos Pokémon
+        s = next(end(s, 1), 9);
+        expect(s.teams.host!.formation).toBe('2-2');
+        expect(roster(s.teams.host!)).toBe(before.host);
+    });
+
+    it('o jogo seguinte só começa com os dois confirmando (ou o tempo da escalação acabando)', () => {
+        let s = next(end(md3(), 0), 7);
+        s = reduce(s, { k: 'choiceSeal', seal: H('5') }, 'host', ctx(3000));
+        // só um lacrou: não abre nem começa
+        expect(reduce(s, { k: 'choiceOpen', value: cfgOf(s.teams.host!), salt: 'a' }, 'host', ctx(3000))).toBe(s);
+        expect(tickTimers(s, ctx(3000)).phase).toBe('preview');
+        // o tempo acabou: quem não confirmou fica com a escalação do jogo anterior; abre o do host e começa
+        s = tickTimers(s, ctx(s.choice!.until! + 6000));
+        expect(s.phase).toBe('preview');
+        s = reduce(
+            s,
+            { k: 'choiceOpen', value: cfgOf(s.teams.host!), salt: 'a' },
+            'host',
+            ctx(s.choice!.until! + 6000),
+        );
+        expect(s.phase).toBe('match');
+    });
+
+    it('no histórico a série é um duelo só (placar de vitórias e de cada jogo, o seu lado primeiro)', () => {
+        let s = next(end(md3(), 0, [3, 1]), 7);
+        s = next(end(play(s), 1, [0, 2]), 9);
+        s = end(play(s), 1, [1, 4]);
+        expect(duelOutcome(s, 'guest')).toEqual({
+            score: [2, 1],
+            shootout: null,
+            result: 'win',
+            wo: undefined,
+            bestOf: 3,
+            games: [
+                [1, 3],
+                [2, 0],
+                [4, 1],
+            ],
+        });
+        expect(duelOutcome(s, 'host')).toMatchObject({ score: [1, 2], result: 'loss' });
+        // 1 jogo: o de sempre
+        expect(duelOutcome(end(inMatch(), 1, [1, 2]), 'guest')).toEqual({
+            score: [2, 1],
+            shootout: null,
+            result: 'win',
+            wo: undefined,
+        });
+    });
+
+    it('W.O. encerra a série pra quem ficou; partida anulada anula a série', () => {
+        const s = next(end(md3(), 1), 7);
+        const wo = { score: [0, 0] as [number, number], shootout: null, winner: 'host' as const, wo: true };
+        expect(seriesOf({ ...s, phase: 'done', result: wo })).toMatchObject({ over: true, winner: 'host' });
+        const desync = { score: [0, 0] as [number, number], shootout: null, winner: null, desync: true };
+        expect(seriesOf({ ...s, phase: 'done', result: desync })).toMatchObject({ over: true, winner: null });
+    });
+
+    it('o host que volta aceita o próximo jogo aberto pelo convidado só com o mesmo time do host', () => {
+        let cur = end(md3(), 0);
+        cur = reduce(cur, { k: 'rematch', commit: H('8') }, 'host', ctx(2000));
+        // o convidado assumiu e abriu o jogo 2 com o lacre que o host mandou
+        const legit = reduce(cur, { k: 'rematch', commit: H('7') }, 'guest', ctx(2000));
+        expect(legit.game).toBe(cur.game + 1);
+        expect(acceptTakeover(cur, legit, 2000)).toBe(true);
+        const h = legit.teams.host!;
+        const magikarp = { ...h, lineup: h.lineup.map((p) => ({ ...p, speciesId: 129 })) };
+        expect(acceptTakeover(cur, { ...legit, teams: { ...legit.teams, host: magikarp } }, 2000)).toBe(false);
+        // série inventada (o convidado "ganhou" o jogo 1)
+        const forged = { ...legit, series: [{ ...cur.result!, winner: 'guest' as const }] };
+        expect(acceptTakeover(cur, forged, 2000)).toBe(false);
     });
 });

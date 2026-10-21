@@ -7,12 +7,16 @@ import { isFriendCode, sendPendingChallenge, useFriends } from '../../friends/ap
 import { playSfx } from '../../game/audio';
 import { useT } from '../../i18n/react';
 import {
+    bestOfOf,
+    DUEL_BEST_OF,
     DUEL_DURATIONS,
     DUEL_MODES,
     DUEL_SPEEDS,
+    type DuelBestOf,
     type DuelDuration,
     type DuelMode,
     duelNames,
+    duelOutcome,
     durationOf,
     isRoomCode,
     other,
@@ -20,6 +24,7 @@ import {
     type Role,
     type Shared,
     SIDE,
+    seriesOf,
     specialLimitOf,
     trainerNames,
     versionsOk,
@@ -197,6 +202,7 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
     const [joinCode, setJoinCode] = useState('');
     const [specialLimit, setSpecialLimit] = useState<SpecialLimit>(DEFAULT_SPECIAL_LIMIT);
     const [duration, setDuration] = useState<DuelDuration>('normal');
+    const [bestOf, setBestOf] = useState<DuelBestOf>(1);
     // "Desafiar" na lista de amigos: a sala que nascer aqui chama esse amigo
     const challenging = useFriends((s) => s.challenging);
     return (
@@ -286,6 +292,24 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
                 </div>
                 <small className="muted">{t('duel.durationHint')}</small>
             </fieldset>
+            <fieldset className="duel-speeds">
+                <legend className="bc-lbl">{t('duel.bestOfLabel')}</legend>
+                <div className="bc-seg segmented">
+                    {DUEL_BEST_OF.map((b) => (
+                        <button
+                            key={b}
+                            type="button"
+                            className={bestOf === b ? 'on' : undefined}
+                            aria-pressed={bestOf === b}
+                            data-testid={`duel-bestof-${b}`}
+                            onClick={() => setBestOf(b)}
+                        >
+                            {d.duel.bestOf[b]}
+                        </button>
+                    ))}
+                </div>
+                <small className="muted">{t('duel.bestOfHint')}</small>
+            </fieldset>
             <button
                 type="button"
                 className="btn primary big"
@@ -293,7 +317,16 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
                 onClick={async () => {
                     setBusy(true);
                     playSfx('select');
-                    const code = await duel.create(peer, mode, speed, local, specialLimit, duration, agencyOn());
+                    const code = await duel.create(
+                        peer,
+                        mode,
+                        speed,
+                        local,
+                        specialLimit,
+                        duration,
+                        agencyOn(),
+                        bestOf,
+                    );
                     setUrl(code, local);
                     void sendPendingChallenge(code);
                 }}
@@ -493,6 +526,7 @@ function Lobby() {
                 <span className="bc-tag">
                     {d.duel.modes[s.mode][0]} · {speedLabel(s.speed, t('match.highlights'))}
                     {durationOf(s) === 'short' && ` · ${d.duel.durations.short}`}
+                    {bestOfOf(s) === 3 && ` · ${d.duel.bestOf[3]}`}
                     {s.mode === 'ready' && (
                         <>
                             {' · '}
@@ -555,8 +589,54 @@ function WaitBanner({ s, role }: { s: Shared; role: Role }) {
     );
 }
 
+/** Melhor de 3: placar da série e o de cada jogo (o seu lado primeiro). */
+function SeriesBox({ s, role }: { s: Shared; role: Role }) {
+    const { t, d } = useT();
+    const v = seriesOf(s);
+    if (v.bestOf === 1) return null;
+    const mine = (p: [number, number]) => (role === 'host' ? p : [p[1], p[0]]);
+    return (
+        <div className="panel duel-history duel-series" data-testid="duel-series">
+            <h2>
+                {d.duel.bestOf[3]} · {t('duel.series.score')}{' '}
+                <b data-testid="duel-series-score">
+                    {v.wins[role]} x {v.wins[other(role)]}
+                </b>
+            </h2>
+            {[1, 2, 3].slice(0, v.bestOf).map((n) => {
+                const g = v.games[n - 1];
+                const res = !g ? '' : g.desync ? 'void' : g.winner === role ? 'win' : g.winner ? 'loss' : 'draw';
+                const [a, b] = g ? mine(g.score) : [0, 0];
+                const pens = g?.shootout ? mine(g.shootout) : null;
+                return (
+                    <div key={n} className={`duel-hrow${g ? '' : ' muted'}`}>
+                        <i className={res}>
+                            {res === 'win'
+                                ? t('duel.result.win')
+                                : res === 'loss'
+                                  ? t('duel.result.loss')
+                                  : res === 'void'
+                                    ? t('duel.result.voidShort')
+                                    : res
+                                      ? t('duel.result.drawShort')
+                                      : '·'}
+                        </i>
+                        <span>{t('duel.series.game', { n })}</span>
+                        <b>
+                            {!g ? '-' : g.wo ? 'W.O.' : `${a} x ${b}`}
+                            {pens && (
+                                <small className="muted"> ({t('match.penalties', { a: pens[0], b: pens[1] })})</small>
+                            )}
+                        </b>
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
 function DuelResultView({ onHome }: { onHome: () => void }) {
-    const { t, tn } = useT();
+    const { t, tn, d } = useT();
     const s = useDuel((st) => st.shared)!;
     const role = useDuel((st) => st.role)!;
     const online = useDuel((st) => st.online);
@@ -584,17 +664,36 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
     // gráficos e tabelas da partida nas cores do placar do duelo (antes de desenhar; volta pro da copa ao sair)
     setChartColors([colors[side], colors[side === 0 ? 1 : 0]], side);
     useEffect(() => () => setChartColors(null, 0), []);
-    const head = r.desync
-        ? t('duel.result.desync')
-        : r.wo
-          ? r.winner === role
-              ? t('duel.result.wo', { name: rival })
-              : t('duel.result.woLost')
-          : r.winner === role
-            ? t('duel.result.won')
-            : r.winner
-              ? t('duel.result.lost', { name: rival })
-              : t('duel.result.draw');
+    const series = seriesOf(s);
+    const md3 = series.bestOf === 3;
+    // série aberta: o "de novo" é o próximo jogo, com o mesmo time
+    const nextUp = md3 && !series.over;
+    const gameHead =
+        r.winner === role
+            ? t('duel.series.gameWon', { n: series.game })
+            : t('duel.series.gameLost', { name: rival, n: series.game });
+    const seriesHead =
+        series.winner === role
+            ? t('duel.series.won')
+            : series.winner
+              ? t('duel.series.lost', { name: rival })
+              : t('duel.series.draw');
+    const head =
+        md3 && !r.wo && !r.desync
+            ? nextUp
+                ? gameHead
+                : seriesHead
+            : r.desync
+              ? t('duel.result.desync')
+              : r.wo
+                ? r.winner === role
+                    ? t('duel.result.wo', { name: rival })
+                    : t('duel.result.woLost')
+                : r.winner === role
+                  ? t('duel.result.won')
+                  : r.winner
+                    ? t('duel.result.lost', { name: rival })
+                    : t('duel.result.draw');
     const actions = (
         <div className="row duel-share">
             {rivalGone && (
@@ -612,13 +711,15 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
                     void duel.rematch();
                 }}
             >
-                {rivalGone
-                    ? t('duel.result.rematch')
+                {rivalGone || (!s.rematch[role] && !s.rematch[other(role)])
+                    ? nextUp
+                        ? t('duel.series.next')
+                        : md3
+                          ? t('duel.series.rematch')
+                          : t('duel.result.rematch')
                     : s.rematch[role]
-                      ? t('duel.result.rematchWait', { name: rival })
-                      : s.rematch[other(role)]
-                        ? t('duel.result.rematchAsk', { name: rival })
-                        : t('duel.result.rematch')}
+                      ? t(nextUp ? 'duel.series.nextWait' : 'duel.result.rematchWait', { name: rival })
+                      : t(nextUp ? 'duel.series.nextAsk' : 'duel.result.rematchAsk', { name: rival })}
             </button>
             <button type="button" className="btn ghost" onClick={onHome}>
                 {t('duel.result.home')}
@@ -642,7 +743,9 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
                         stats={heroStats(m, t)}
                         duel={{
                             side,
-                            stage: t('duel.title'),
+                            stage: md3
+                                ? `${d.duel.bestOf[3]} · ${t('duel.series.game', { n: series.game })}`
+                                : t('duel.title'),
                             title:
                                 r.winner === role
                                     ? t('result.hero.win')
@@ -654,6 +757,7 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
                         }}
                         actions={actions}
                     />
+                    <SeriesBox s={s} role={role} />
                     <MatchDetails match={m} names={names} side={side} />
                 </>
             ) : (
@@ -676,6 +780,7 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
                     {actions}
                 </div>
             )}
+            {!m && <SeriesBox s={s} role={role} />}
             {history.length > 0 && (
                 <div className="panel duel-history">
                     <h2>{t('duel.result.history')}</h2>
@@ -698,7 +803,10 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
                                         : t('duel.result.drawShort')}
                             </i>
                             <span>{t('duel.result.vs', { name: h.rival })}</span>
-                            <b>{h.wo ? 'W.O.' : `${h.score[0]} x ${h.score[1]}`}</b>
+                            <b>
+                                {h.bestOf === 3 && `${t('duel.series.short')} `}
+                                {h.wo ? 'W.O.' : `${h.score[0]} x ${h.score[1]}`}
+                            </b>
                         </div>
                     ))}
                 </div>
@@ -738,6 +846,10 @@ export function Duel() {
         if (!duel.markRecorded(s.game)) return;
         const mine = SIDE[role];
         const r = s.result;
+        // Pokédex: quem jogou pelo seu lado vira "jogou", em cada jogo da série (partida anulada ou W.O. não conta)
+        if (duel.result && !r.desync && !r.wo) recordDuelDex(duel.result, mine);
+        // histórico: o jogo; no melhor de 3, a série inteira quando ela acaba (uma série = um duelo)
+        if (!seriesOf(s).over) return;
         const rival = s.peers[other(role)];
         const secret = duel.topOf(s.game);
         const top = secret ? { side: mine, top: secret } : undefined;
@@ -748,16 +860,12 @@ export function Duel() {
             rival: rival?.name ?? '?',
             rivalClub: rival?.clubName ?? '',
             rivalCode: isFriendCode(rival?.code ?? '') ? rival?.code : undefined,
-            score: mine === 0 ? r.score : [r.score[1], r.score[0]],
-            shootout: r.shootout ? (mine === 0 ? r.shootout : [r.shootout[1], r.shootout[0]]) : null,
-            result: r.desync ? 'void' : r.winner === role ? 'win' : r.winner ? 'loss' : 'draw',
-            wo: r.wo,
-            // tudo pra refazer a partida (dessincronização, replay; no futuro, a entrada do ranqueado)
+            ...duelOutcome(s, role),
+            // tudo pra refazer a partida (dessincronização, replay; no futuro, a entrada do ranqueado). Na série, a do
+            // último jogo
             registro:
                 s.teams.host && s.teams.guest ? buildRegistro(s, ENGINE_VERSION, __APP_VERSION__, top) : undefined,
         });
-        // Pokédex: quem jogou pelo seu lado vira "jogou" (partida anulada ou W.O. não conta)
-        if (duel.result && !r.desync && !r.wo) recordDuelDex(duel.result, mine);
     }, [s?.phase, s?.game, role]);
 
     const home = () => {
