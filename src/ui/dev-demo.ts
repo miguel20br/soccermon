@@ -63,6 +63,7 @@ export function runDevDemo() {
         demo !== 'treino' &&
         demo !== 'evento' &&
         demo !== 'grupo' &&
+        demo !== 'fora' &&
         demo !== 'escanteio' &&
         demo !== 'conta' &&
         demo !== 'lider' &&
