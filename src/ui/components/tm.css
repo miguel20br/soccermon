@@ -180,3 +180,12 @@
         min-height: 44px;
     }
 }
+
+/* o que o golpe faz (painel de esquecer golpe da MT) */
+.tm-move-desc {
+    display: block;
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.3;
+}

@@ -8,10 +8,12 @@ import { clubColorHex } from '../../store/profile';
 import { titleClass } from '../../store/title-codes';
 import { cupCounts, METALS } from '../../store/trophies';
 import { DoorTiles } from '../components/DoorTiles';
+import { FutCard } from '../components/FutCard';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { PixelTrophy } from '../components/PixelTrophy';
 import { DOOR_TABS, type DoorTab, initialTab, legacyDoor, openDoor } from '../doors';
+import { useCardShowcase } from '../profile/Album';
 import { ClubTab } from '../profile/ClubTab';
 import { Crest } from '../profile/Crest';
 import { clubVars, titleName, trainerLabel, useAvatar } from '../profile/club';
@@ -36,6 +38,7 @@ export function Profile() {
     const googleName = useCloud((s) => s.user?.name ?? null);
     const avatar = useAvatar();
     const showcase = useShowcase();
+    const cards = useCardShowcase().insts;
     const [tab, setTab] = useState<Tab>(() => initialTab('profile'));
     const { t, d } = useT();
     const news = useNews();
@@ -88,6 +91,21 @@ export function Profile() {
                         </button>
                     )}
                 </div>
+                {/* vitrine de cartas no cartão (antes só dentro da Coleção): tocar abre a carta; vazia leva pro Álbum */}
+                {cards.length ? (
+                    <ul className="pf-cards" aria-label={t('profile.card.cards')}>
+                        {cards.map((p) => (
+                            <li key={p.uid}>
+                                <FutCard inst={p} size="sm" />
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <button type="button" className="pf-cards-empty" onClick={() => openDoor('collection', 'album')}>
+                        <HudIcon kind="max" />
+                        {t('profile.card.addCards')}
+                    </button>
+                )}
                 <small className="pf-public-hint">{t('profile.publicHint')}</small>
             </header>
 

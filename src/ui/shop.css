@@ -289,16 +289,18 @@ button.sp-slot:hover {
 .cpack-pattern {
     position: absolute;
     inset: -30%;
-    background: var(--ticon) 0 0 / 14cqw auto repeat;
+    background: var(--ticon) 0 0 / 15cqw auto repeat;
+    image-rendering: pixelated;
     opacity: 0.14;
     rotate: -18deg;
 }
 .cpack-typeicon {
     position: relative;
-    width: 40%;
+    width: 44%;
     height: auto;
     margin-top: 4cqw;
-    image-rendering: auto;
+    /* o ícone do tipo é pixel art de 36 px: esticado com pixelated fica nítido (com borrão ficava ruim) */
+    image-rendering: pixelated;
     filter: drop-shadow(0 3px 8px rgb(0 0 0 / 60%)) drop-shadow(0 0 14px rgb(255 255 255 / 35%));
 }
 .cpack.cpack-type .cpack-label {
@@ -368,4 +370,63 @@ button.sp-slot:hover {
 }
 .shelf-sponsor {
     grid-column: 1 / -1;
+}
+
+/* a carta diz que é Patrocínio (não é carta de Pokémon) */
+.sp-plate {
+    position: relative;
+}
+.sp-ribbon {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: rgb(0 0 0 / 55%);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.sp-card .sp-plate {
+    padding-top: 22px;
+}
+.shop-shelf-hint {
+    margin: -2px 0 8px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+/* desktop: os 2 Patrocínios da vitrine lado a lado */
+@media (min-width: 900px) {
+    .shelf-sponsor {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0 16px;
+    }
+    .shelf-sponsor > .shop-shelf-title,
+    .shelf-sponsor > .shop-shelf-hint,
+    .shelf-sponsor > .sp-slots {
+        grid-column: 1 / -1;
+    }
+}
+
+/* tocar no Patrocínio mostra o que ele faz */
+.sp-slot.on {
+    box-shadow: 0 0 0 2px var(--yellow);
+}
+.sp-slot-desc {
+    margin: 8px 0 0;
+    padding: 8px 10px;
+    border: 1px solid var(--brand);
+    border-radius: 6px;
+    background: var(--bc-ink);
+    font-size: 12px;
+    animation: foul-in 200ms var(--ease-out) both;
+}
+@keyframes foul-in {
+    from {
+        opacity: 0;
+    }
 }
