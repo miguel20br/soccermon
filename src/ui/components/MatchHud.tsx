@@ -309,6 +309,10 @@ export const ICONS = {
     bike: 'M3.5 17a3 3 0 1 0 6 0 3 3 0 1 0-6 0M14.5 17a3 3 0 1 0 6 0 3 3 0 1 0-6 0M6.5 17L10 9h5l2.5 8M10 9l3 8M13 6h3',
     book: 'M3 5h6a3 3 0 0 1 3 3v12a2.5 2.5 0 0 0-2.5-2.5H3zM21 5h-6a3 3 0 0 0-3 3v12a2.5 2.5 0 0 1 2.5-2.5H21z',
     crown: 'M4 19h16M5 16L3 7l5 4 4-6 4 6 5-4-2 9z',
+    // Copa longa (src/ui/screens/CupMap.tsx)
+    chest: 'M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v9H4zM4 12h16M12 10v5',
+    question: 'M9 9a3 3 0 1 1 4.5 2.6c-1 .6-1.5 1.2-1.5 2.4M12 18h.01',
+    yellow: 'M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z',
 } as const;
 export type HudIconKind = keyof typeof ICONS;
 

@@ -7,6 +7,7 @@ import { friends } from './en/friends';
 import { help } from './en/help';
 import { home } from './en/home';
 import { liga } from './en/liga';
+import { longCup } from './en/longCup';
 import { match } from './en/match';
 import { moments } from './en/moments';
 import { profile } from './en/profile';
@@ -42,4 +43,5 @@ export const en: Dict = {
     friends,
     trophies,
     shop,
+    longCup,
 };

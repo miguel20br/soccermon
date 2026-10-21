@@ -19,7 +19,7 @@ import { skinOf } from '../../game/animation-manager';
 import { setVolume } from '../../game/audio';
 import { EventBus } from '../../game/EventBus';
 import type { MatchSceneData } from '../../game/scenes/MatchScene';
-import { clubName, formationText, stageName } from '../../i18n';
+import { clubName, cupStageName, cupStageShort, formationText } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { ligaRun, useLiga } from '../../league/liga-store';
 import { PhaserGame } from '../../PhaserGame';
@@ -493,7 +493,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
         return p ? cardSprite(p) : '';
     };
 
-    const stage = liga ? t('liga.stage') : stageName(run.stage) || t('match.cup');
+    const stage = liga ? t('liga.stage') : cupStageName(run, run.stage) || t('match.cup');
 
     const finishIntro = () => {
         if (introDoneRef.current) return;
@@ -591,7 +591,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         looks={looks}
                         score={clock.score}
                         clock={clockParts}
-                        stage={liga ? t('liga.stageShort') : (d.match.stageShort[run.stage] ?? stage)}
+                        stage={liga ? t('liga.stageShort') : cupStageShort(run, run.stage, d.match.stageShort) || stage}
                     >
                         <RivalEmotes
                             plan={rivalPlan}

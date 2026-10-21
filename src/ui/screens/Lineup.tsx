@@ -11,7 +11,7 @@ import { applyModifiers, attributeModifiers } from '../../engine/modifiers';
 import { type CornerPlan, TACTIC_LABEL, type Tactic } from '../../engine/state';
 import { computeSynergies } from '../../engine/synergy';
 import { playSfx } from '../../game/audio';
-import { clubName, dict, formationText, itemDesc, itemName, stageName } from '../../i18n';
+import { clubName, cupStageName, dict, formationText, itemDesc, itemName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { liveOf, playerTeam, type SlotRef, useGame } from '../../store/game-store';
 import { useCardModal } from '../card-modal';
@@ -128,7 +128,7 @@ export function Lineup() {
                 side={
                     <div className="panel">
                         <h2>
-                            {stageName(run.stage, lang)}: {clubName(opponent.name, lang)}
+                            {cupStageName(run, run.stage, lang)}: {clubName(opponent.name, lang)}
                         </h2>
                         <div className="opponent-strip">
                             {opponent.lineup.map((p) => (
@@ -165,8 +165,8 @@ export function Lineup() {
                                       : t('team.lineup.play', {
                                             stage:
                                                 lang === 'pt'
-                                                    ? stageName(run.stage, lang).toLowerCase()
-                                                    : stageName(run.stage, lang),
+                                                    ? cupStageName(run, run.stage, lang).toLowerCase()
+                                                    : cupStageName(run, run.stage, lang),
                                         })}
                             </button>
                         </div>

@@ -1,0 +1,255 @@
+/* Copa longa: mapa (docs/planos/copa-longa.md). De baixo pra cima até a Final. */
+.cm-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+}
+.cm-money {
+    font-family: "Galmuri14", var(--font, inherit);
+    font-size: 18px;
+}
+.cm-cards {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 700;
+    color: var(--muted);
+}
+.cm-cards .hud-icon {
+    width: 18px;
+    height: 18px;
+}
+.cm-cards.used {
+    color: var(--yellow);
+}
+.cm-cards.used .hud-icon {
+    fill: var(--yellow);
+}
+.cm-status .sp-slots {
+    flex: 1 1 260px;
+}
+
+.cm-scroll {
+    max-height: min(70vh, 720px);
+    overflow-y: auto;
+    border-radius: 10px;
+    background: radial-gradient(circle at 50% 0%, rgb(255 203 5 / 10%), transparent 40%), var(--bg-2);
+    border: 2px solid var(--line);
+}
+.cm-map {
+    position: relative;
+    width: min(100%, 520px);
+    margin: 0 auto;
+}
+.cm-lines {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+.cm-lines line {
+    stroke: var(--line);
+    stroke-width: 3;
+    stroke-dasharray: 2 6;
+    stroke-linecap: round;
+}
+.cm-lines line.walked {
+    stroke: var(--yellow);
+    stroke-dasharray: none;
+}
+
+.cm-node {
+    position: absolute;
+    translate: -50% -50%;
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    width: 64px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    font: inherit;
+    cursor: default;
+}
+.cm-node .hud-icon {
+    box-sizing: content-box;
+    width: 24px;
+    height: 24px;
+    padding: 10px;
+    border-radius: 50%;
+    border: 3px solid var(--line);
+    background: var(--panel);
+    transition:
+        transform 200ms var(--ease-out),
+        border-color 200ms var(--ease-out),
+        background-color 200ms var(--ease-out);
+}
+.cm-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0.55;
+    transition: opacity 200ms var(--ease-out);
+}
+.cm-node.open {
+    color: var(--text);
+    cursor: pointer;
+}
+.cm-node.open .hud-icon {
+    border-color: var(--yellow);
+    background: var(--panel-2);
+    animation: cm-pulse 1.6s var(--ease-out) infinite;
+}
+.cm-node.open .cm-label,
+.cm-node.at .cm-label {
+    opacity: 1;
+}
+.cm-node.open:hover .hud-icon,
+.cm-node.picked .hud-icon {
+    transform: scale(1.12);
+}
+.cm-node.picked .hud-icon {
+    background: var(--yellow);
+    color: var(--bc-ink);
+    animation: none;
+}
+.cm-node.done .hud-icon {
+    border-color: var(--yellow);
+    background: color-mix(in srgb, var(--yellow) 22%, var(--panel));
+    color: var(--yellow);
+}
+.cm-node.at .hud-icon {
+    border-color: var(--yellow);
+    background: var(--yellow);
+    color: var(--bc-ink);
+}
+.cm-node.k-ginasio .hud-icon {
+    border-style: double;
+    border-width: 4px;
+}
+.cm-node.k-final .hud-icon {
+    width: 32px;
+    height: 32px;
+    border-color: var(--yellow);
+    color: var(--yellow);
+}
+@keyframes cm-pulse {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgb(255 203 5 / 45%);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgb(255 203 5 / 0%);
+    }
+}
+
+/* a casa escolhida: sobe de baixo, fica presa embaixo da tela */
+.cm-sheet.bc-surface {
+    position: fixed;
+    left: 50%;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    z-index: 30;
+    width: min(520px, calc(100% - 24px));
+    translate: -50% 0;
+    display: grid;
+    gap: 10px;
+    box-shadow: 0 10px 30px rgb(0 0 0 / 55%);
+    padding: 14px 14px 14px 20px;
+    animation: cm-sheet-in 240ms var(--ease-out) both;
+}
+@keyframes cm-sheet-in {
+    from {
+        opacity: 0;
+        translate: -50% 16px;
+    }
+}
+/* espaço embaixo pra a ficha da casa não cobrir o fim da página */
+.cm.has-sheet {
+    padding-bottom: 220px;
+}
+.cm-sheet-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.cm-sheet-head b {
+    display: block;
+    font-family: "Galmuri14", var(--font, inherit);
+    font-size: 17px;
+}
+.cm-sheet-head small {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+}
+.cm-sheet-icon .hud-icon {
+    width: 28px;
+    height: 28px;
+    padding: 8px;
+    border-radius: 50%;
+    background: var(--yellow);
+    color: var(--bc-ink);
+}
+.cm-rival {
+    display: grid;
+    gap: 6px;
+    font-size: 13px;
+}
+.cm-rival-team {
+    display: flex;
+    gap: 6px;
+}
+.cm-rival-team img {
+    width: 44px;
+    height: 44px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cm-node.open .hud-icon,
+    .cm-sheet {
+        animation: none;
+    }
+}
+:root[data-reduce-motion="true"] .cm-node.open .hud-icon,
+:root[data-reduce-motion="true"] .cm-sheet {
+    animation: none;
+}
+.cm-train h2 {
+    margin-top: 0;
+}
+.cm-evo {
+    display: block;
+    width: 90px;
+    height: 6px;
+    margin-top: 4px;
+    border-radius: 3px;
+    background: var(--bc-ink);
+    overflow: hidden;
+}
+.cm-evo i {
+    display: block;
+    width: var(--p);
+    height: 100%;
+    background: var(--green);
+}
+
+/* no celular os Patrocínios do mapa viram só o emblema (o nome aparece ao tocar, no title) */
+@media (max-width: 480px) {
+    .cm-status .sp-slots {
+        flex-basis: 100%;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .cm-status .sp-slot {
+        justify-content: center;
+        min-height: 34px;
+    }
+    .cm-status .sp-slot-name {
+        display: none;
+    }
+}

@@ -1,0 +1,45 @@
+import type { longCup as pt } from '../pt/longCup';
+
+/** Long Cup (docs/planos/copa-longa.md). */
+export const longCup: typeof pt = {
+    title: 'Long Cup',
+    map: 'Map',
+    step: 'Match {n} of {total}',
+    final: 'Final',
+    kind: {
+        jogo: 'Match',
+        ginasio: 'Gym',
+        mercado: 'Market',
+        evento: 'Event',
+        treino: 'Training',
+        bau: 'Chest',
+        final: 'Final',
+    },
+    desc: {
+        jogo: 'A Route team. A win pays ₽ and the reward.',
+        ginasio: "The leader's club: stronger, with their TM. Better reward.",
+        mercado: 'Spend ₽ on Pokémon, packs, items or Sponsors. Interest on your savings when you arrive.',
+        evento: 'Could be good, could be bad. You always choose.',
+        treino: "Fill someone's evolution bar or rest (+1 reroll).",
+        bau: 'A free pack, one rarity higher.',
+        final: 'The Indigo League. No yellow card here.',
+    },
+    go: 'Go',
+    rival: 'Rival',
+    choose: 'Pick your path',
+    cards: 'Yellow card',
+    cardsHint: 'One loss outside the Final does not knock you out. The second is the red card.',
+    yellowTitle: 'Yellow card',
+    yellowLine: 'The loss did not knock you out: the next one will.',
+    out: 'The road ends at match {n}',
+    backToMap: 'Back to the map',
+    soonEvent: 'Events arrive in the next step: for now the path goes on.',
+    treino: {
+        title: 'Training',
+        evo: 'Evolution training',
+        evoLine: "Fills half of a Pokémon's evolution bar. Evolving still happens in a match.",
+        rest: 'Rest',
+        restLine: '+1 reroll (for reward and Market draws).',
+        none: 'Nobody on the team can evolve yet.',
+    },
+};

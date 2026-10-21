@@ -55,6 +55,7 @@ export function runDevDemo() {
         demo !== 'trailer' &&
         demo !== 'mt' &&
         demo !== 'mercado' &&
+        demo !== 'mapa' &&
         demo !== 'escanteio' &&
         demo !== 'conta' &&
         demo !== 'lider' &&
@@ -249,6 +250,11 @@ export function runDevDemo() {
             console.info(`[demo] copa mt${k}: MT do ${opp.name}`);
             return;
         }
+        return;
+    }
+    // ?demo=mapa: Copa longa no mapa (`&meio=1`: já andou 5 linhas, com ₽, um cartão amarelo e 2 Patrocínios)
+    if (demo === 'mapa') {
+        demoLongMap(store, new URLSearchParams(window.location.search).has('meio'));
         return;
     }
     // ?demo=mercado: Mercado depois das quartas (demoShop)
@@ -741,4 +747,42 @@ function demoShop(store: ReturnType<typeof useGame.getState>) {
     });
     useGame.getState().skipReward();
     return;
+}
+
+/** ?demo=mapa: Copa longa com o time montado sozinho, parada no mapa. */
+function demoLongMap(store: ReturnType<typeof useGame.getState>, middle: boolean) {
+    store.newRun('Demo FC', 'mapa-demo', undefined, 'longa');
+    useGame.getState().autoDraft();
+    if (!middle) return;
+    const run = useGame.getState().run!;
+    const map = run.map!;
+    // anda pelo primeiro caminho de cada casa até a linha 5 (sem jogar: só pra ver o mapa no meio)
+    const path: string[] = [];
+    let node = map.nodes.find((n) => n.row === 0)!;
+    while (node.row < 5) {
+        path.push(node.id);
+        node = map.nodes.find((n) => n.id === node.next[node.next.length - 1])!;
+    }
+    const results = [0, 1, 2].map((stage) => ({
+        stage,
+        opponent: 'Montanhistas',
+        score: (stage === 1 ? [1, 2] : [3, 1]) as [number, number],
+        shootout: null,
+        won: stage !== 1,
+        final: false,
+    }));
+    useGame.setState({
+        run: {
+            ...run,
+            at: path.at(-1)!,
+            path,
+            stage: 2,
+            results,
+            cards: 1,
+            money: 18,
+            sponsors: ['silph', 'cassino'],
+            status: 'map',
+        },
+        screen: 'map',
+    });
 }

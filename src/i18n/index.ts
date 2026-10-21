@@ -2,6 +2,7 @@ import { ABILITIES, MOVES } from '../engine/data';
 import { ITEMS } from '../engine/items';
 import type { AttrModifier, MoveModifier } from '../engine/modifiers';
 import { DRAIN, type ExplainMoveId, MOVE_EXPLAIN, moveProfile } from '../engine/moves';
+import { type CupMode, cupLength, isFinalStage, isLong } from '../store/long-cup';
 import { en } from './en';
 import { moveExplainEn } from './en/move-explain';
 import { detectLang, type Lang } from './lang';
@@ -134,6 +135,18 @@ export function statusName(s: string | number, lang: Lang = current): string {
 
 /** Fase da copa: "Semifinal" / "Semi-final". */
 export const stageName = (stage: number, lang: Lang = current): string => DICTS[lang].common.stage[stage] ?? '';
+
+/** Nome da partida da copa: a fase da rápida ("Semifinal") ou "Partida 3 de 8" / "Final" na Copa longa. */
+export function cupStageName(run: { mode?: CupMode }, stage: number, lang: Lang = current): string {
+    if (!isLong(run)) return stageName(stage, lang);
+    const d = DICTS[lang].longCup;
+    return isFinalStage({ ...run, stage }) ? d.final : fmt(d.step, { n: stage + 1, total: cupLength(run) });
+}
+/** Versão curta (placar da partida, gráficos): "Semi" na rápida, "3/8" na longa. */
+export function cupStageShort(run: { mode?: CupMode }, stage: number, short: readonly string[]): string {
+    if (!isLong(run)) return short[stage] ?? '';
+    return isFinalStage({ ...run, stage }) ? (short.at(-1) ?? '') : `${stage + 1}/${cupLength(run)}`;
+}
 
 /** Nome do clube rival (o save guarda o nome em português do motor). */
 export const clubName = (name: string, lang: Lang = current): string => DICTS[lang].common.club[name] ?? name;

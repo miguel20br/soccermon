@@ -7,6 +7,7 @@ import { friends } from './pt/friends';
 import { help } from './pt/help';
 import { home } from './pt/home';
 import { liga } from './pt/liga';
+import { longCup } from './pt/longCup';
 import { match } from './pt/match';
 import { moments } from './pt/moments';
 import { profile } from './pt/profile';
@@ -46,6 +47,7 @@ export const pt = {
     friends,
     trophies,
     shop,
+    longCup,
 };
 
 export type Dict = typeof pt;

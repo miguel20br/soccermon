@@ -137,7 +137,7 @@ export function Result() {
                 ) : (
                     <div className="bc-thumbbar">
                         <button type="button" className="btn primary big" onClick={advance}>
-                            {t('result.chooseReward')}
+                            {run.status === 'map' ? t('longCup.backToMap') : t('result.chooseReward')}
                             <HudIcon kind="next" />
                         </button>
                     </div>
@@ -207,7 +207,7 @@ export function Result() {
                 match={match}
                 names={names}
                 initialTab={tab}
-                cupTab={<CupStats results={run.results} />}
+                cupTab={<CupStats results={run.results} mode={run.mode} />}
                 goalsExtra={
                     <>
                         {evolutions.length > 0 && (
