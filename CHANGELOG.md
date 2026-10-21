@@ -1,5 +1,17 @@
 # Novidades
 
+## 0.9.0.5 · Tudo na prancheta
+
+### Toque direto
+- Substituição: toque em quem sai e em quem entra na prancheta e a troca já vale, com as cartas deslizando (sai o painel de lista)
+- Recompensa e Mercado: quem recebe o Pokémon ou o item é escolhido tocando na prancheta
+- Escalação: Passar pra outro e tocar em quem recebe o item
+- Pênaltis: toque em dois cobradores pra trocar a ordem
+
+### Mercado e Perfil
+- Pacote aberto pode ser fechado sem pegar nenhuma carta (Não quero nenhuma, seguir)
+- A vitrine de cartas aparece no cartão do Perfil
+
 ## 0.9.0.4 · Golpes e Patrocínios explicados
 
 ### Mais claro

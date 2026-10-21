@@ -7,6 +7,28 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.0.5',
+        title: 'Tudo na prancheta',
+        sections: [
+            {
+                title: 'Toque direto',
+                lines: [
+                    'Substituição: toque em quem sai e em quem entra na prancheta e a troca já vale, com as cartas deslizando (sai o painel de lista)',
+                    'Recompensa e Mercado: quem recebe o Pokémon ou o item é escolhido tocando na prancheta',
+                    'Escalação: Passar pra outro e tocar em quem recebe o item',
+                    'Pênaltis: toque em dois cobradores pra trocar a ordem',
+                ],
+            },
+            {
+                title: 'Mercado e Perfil',
+                lines: [
+                    'Pacote aberto pode ser fechado sem pegar nenhuma carta (Não quero nenhuma, seguir)',
+                    'A vitrine de cartas aparece no cartão do Perfil',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.0.4',
         title: 'Golpes e Patrocínios explicados',
         sections: [
@@ -902,6 +924,28 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.0.5',
+        title: 'Everything on the board',
+        sections: [
+            {
+                title: 'Direct taps',
+                lines: [
+                    'Substitutions: tap who comes off and who comes on in the board and the swap is set, with the cards sliding (the list panel is gone)',
+                    'Reward and Market: pick who gets the Pokémon or the item by tapping the board',
+                    'Lineup: Give to another and tap who gets the item',
+                    'Penalties: tap two takers to swap their order',
+                ],
+            },
+            {
+                title: 'Market and Profile',
+                lines: [
+                    'An opened pack can be closed without taking any card (I don't want any, move on)',
+                    'Your card showcase shows on the Profile card',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.0.4',
         title: 'Moves and Sponsors explained',
