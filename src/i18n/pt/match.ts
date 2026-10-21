@@ -232,6 +232,67 @@ export const match = {
             win: 'Ainda falta para virar campeão.',
             lose: 'É isso! Você é o novo campeão de Kanto!',
         },
+        // times da Rota (classes de treinador de Kanto, docs/planos/campeonato.md)
+        bugcatcher: {
+            name: 'Caçador de Insetos',
+            pre: 'Meus insetos estão com fome de gol!',
+            win: 'Viu só? Inseto pequeno pica forte!',
+            lose: 'Ah, não! Volto pra floresta treinar mais.',
+        },
+        hiker: {
+            name: 'Montanhista',
+            pre: 'Já subi o Mt. Moon três vezes. Você é só mais uma pedra.',
+            win: 'Firme como a montanha! Hahaha!',
+            lose: 'Essa doeu mais que escalada sem corda.',
+        },
+        swimmer: {
+            name: 'Nadador',
+            pre: 'Na Rota 19 a gente nada contra a corrente. E ganha.',
+            win: 'Te deixei na marola!',
+            lose: 'Engoli água... você joga bem.',
+        },
+        rocket: {
+            name: 'Equipe Rocket',
+            pre: 'Prepare-se para encrenca... e encrenca em dobro!',
+            win: 'A Equipe Rocket decola de novo... pra vitória!',
+            lose: 'A Equipe Rocket decolou de novo...',
+        },
+        birdkeeper: {
+            name: 'Ornitólogo',
+            pre: 'Meus pássaros enxergam a quadra inteira lá de cima.',
+            win: 'Voo livre até o gol!',
+            lose: 'Hoje o vento não ajudou.',
+        },
+        blackbelt: {
+            name: 'Faixa-Preta',
+            pre: 'Disciplina, força e chute. Nessa ordem.',
+            win: 'Mais um treino concluído. Hai!',
+            lose: 'Respeito. Você tem a faixa que eu não tenho.',
+        },
+        channeler: {
+            name: 'Médium',
+            pre: 'Os espíritos já me contaram o placar...',
+            win: 'Eu avisei... os espíritos não erram.',
+            lose: 'Os espíritos... mentiram pra mim?',
+        },
+        scientist: {
+            name: 'Cientista',
+            pre: 'Calculei 94% de chance de vitória pra Silph.',
+            win: 'Hipótese confirmada. Vitória.',
+            lose: 'Erro nos cálculos. Vou revisar os dados.',
+        },
+        biker: {
+            name: 'Motoqueiro',
+            pre: 'Sai da frente que a gente não freia!',
+            win: 'Vrum! Comeu poeira!',
+            lose: 'Furou o pneu... mas a gente volta.',
+        },
+        fisherman: {
+            name: 'Pescador',
+            pre: 'Paciência. O gol vem igual peixe: na hora certa.',
+            win: 'Fisgado! Que peixão!',
+            lose: 'Esse escapou do anzol...',
+        },
     },
     courtLab: {
         title: 'Treinadores e quadras',
