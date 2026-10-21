@@ -1,6 +1,4 @@
 import { type CSSProperties, type ReactNode, type Ref, useEffect, useMemo, useRef, useState } from 'react';
-import type { Position } from '../../engine/attributes';
-import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { CORNER_PLANS } from '../../engine/runners/live-runner';
 import { type CornerPlan, type Phase, TACTIC_LABEL, type Tactic } from '../../engine/state';
@@ -10,8 +8,6 @@ import type { ClubLook } from '../../store/club-kit';
 import type { CommentLine } from '../commentary';
 import { PRESSURE_BINS, pressureUntil } from '../match-view';
 import { Crest, kitBackground } from '../profile/Crest';
-import { ratingAt } from '../rating';
-import { cardSprite } from './PokeCard';
 import './broadcast.css';
 
 /**
@@ -389,127 +385,6 @@ export function CoachTabs({
     );
 }
 
-/**
- * Painel da substituição: quem está em quadra (posição e fôlego) e o banco à vista desde o começo. Dá pra começar por
- * quem sai (depois quem entra, com a nota na vaga dele) ou por quem entra (depois quem sai).
- */
-export function SubPanel({
-    panelRef,
-    subOut,
-    setSubOut,
-    onClose,
-    onField,
-    benchNow,
-    byUid,
-    slots,
-    energyAt,
-    nameOf,
-    onPick,
-    busy,
-}: {
-    /** Quem já vai sair numa troca marcada (vestiário): não aparece de novo. */
-    busy?: ReadonlySet<string>;
-    panelRef?: Ref<HTMLDivElement>;
-    subOut: string | null;
-    setSubOut: (uid: string | null) => void;
-    onClose: () => void;
-    onField: string[];
-    benchNow: string[];
-    byUid: Map<string, PokemonInstance>;
-    slots: readonly Position[];
-    /** Fôlego (0..1) agora de quem está na vaga `i`. */
-    energyAt: (i: number) => number;
-    nameOf: (uid: string) => string;
-    onPick: (outUid: string, inUid: string) => void;
-}) {
-    const { t, d } = useT();
-    /** Quem entra, quando o técnico começa pelo banco. */
-    const [inFirst, setInFirst] = useState<string | null>(null);
-    const picking = subOut ?? inFirst;
-    return (
-        <div className="panel sub-panel" ref={panelRef}>
-            <div className="sub-head">
-                <b>
-                    {subOut
-                        ? t('match.whoIn', { name: nameOf(subOut) })
-                        : inFirst
-                          ? t('match.whoOutFor', { name: nameOf(inFirst) })
-                          : t('match.whoOut')}
-                </b>
-                <button
-                    type="button"
-                    className="btn small ghost"
-                    onClick={() => (subOut ? setSubOut(null) : inFirst ? setInFirst(null) : onClose())}
-                >
-                    {picking ? t('common.ui.back') : t('common.ui.close')}
-                </button>
-            </div>
-            <div className="sub-list">
-                {(subOut ? benchNow : onField).map((uid) => {
-                    const p = byUid.get(uid);
-                    if (!p || (!subOut && busy?.has(uid))) return null;
-                    // quem sai: posição e fôlego agora; quem entra: a nota na vaga de quem sai
-                    const slot = onField.indexOf(subOut ?? uid);
-                    const role = slots[slot];
-                    const r = role ? ratingAt(p, role) : null;
-                    const energy = subOut ? null : energyAt(slot);
-                    return (
-                        <button
-                            key={uid}
-                            type="button"
-                            className="sub-pick"
-                            onClick={() =>
-                                subOut ? onPick(subOut, uid) : inFirst ? onPick(uid, inFirst) : setSubOut(uid)
-                            }
-                        >
-                            <img className="pixel" src={cardSprite(p)} alt="" />
-                            <span>{nameOf(uid)}</span>
-                            <small className={`slot-rating ${r?.fit ?? ''}`}>
-                                {role && `${d.common.pos[role]} `}
-                                {r?.display ?? viewInstance(p).overall}
-                            </small>
-                            {energy !== null && (
-                                <i
-                                    className="sub-energy"
-                                    title={t('team.panel.staminaPct', { n: Math.round(energy * 100) })}
-                                    style={{ '--e': energy } as CSSProperties}
-                                />
-                            )}
-                        </button>
-                    );
-                })}
-            </div>
-            {!subOut && benchNow.length > 0 && (
-                <>
-                    <span className="sub-bench-lbl">{t('common.ui.bench')}</span>
-                    <div className="sub-list">
-                        {benchNow.map((uid) => {
-                            const p = byUid.get(uid);
-                            if (!p) return null;
-                            const v = viewInstance(p);
-                            return (
-                                <button
-                                    key={uid}
-                                    type="button"
-                                    className={`sub-pick bench${inFirst === uid ? ' on' : ''}`}
-                                    aria-pressed={inFirst === uid}
-                                    onClick={() => setInFirst(inFirst === uid ? null : uid)}
-                                >
-                                    <img className="pixel" src={cardSprite(p)} alt="" />
-                                    <span>{nameOf(uid)}</span>
-                                    <small className="slot-rating">
-                                        {`${d.common.pos[v.naturalPosition]} ${v.overall}`}
-                                    </small>
-                                </button>
-                            );
-                        })}
-                    </div>
-                </>
-            )}
-        </div>
-    );
-}
-
 /** Quem do seu time está mais cansado (só avisa no botão Substituir; nada troca sozinho). */
 export interface TiredHint {
     name: string;
@@ -563,9 +438,8 @@ export function TacticControls({
     error,
     onTactic,
     onCorner,
-    subOpen,
     canSub,
-    onToggleSub,
+    onSub,
     tired,
 }: {
     tactic: Tactic;
@@ -575,9 +449,9 @@ export function TacticControls({
     error?: string | null;
     onTactic: (t: Tactic) => void;
     onCorner: (c: CornerPlan) => void;
-    subOpen: boolean;
     canSub: boolean;
-    onToggleSub: () => void;
+    /** Leva pra prancheta (a troca é tocando em quem sai e em quem entra). */
+    onSub: () => void;
     tired?: TiredHint | null;
 }) {
     const { t, d } = useT();
@@ -656,13 +530,7 @@ export function TacticControls({
                     </button>
                 ))}
             </div>
-            <button
-                type="button"
-                className={`bc-subbtn${subOpen ? ' on' : ''}`}
-                aria-expanded={subOpen}
-                disabled={!canSub}
-                onClick={onToggleSub}
-            >
+            <button type="button" className="bc-subbtn" disabled={!canSub} onClick={onSub}>
                 <HudIcon kind="sub" />
                 <b>{t('match.substitute')}</b>
                 {tired && (

@@ -41,7 +41,6 @@ import {
     PressureBar,
     ResultButton,
     Scoreboard,
-    SubPanel,
     subSuggestion,
     TacticControls,
     TIRED_HINT,
@@ -115,11 +114,10 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const [orders, setOrders] = useState<MatchOrder[]>(() => resume?.orders ?? []);
     /** Substituições que já aconteceram em campo (uid de quem entrou). */
     const [subsDone, setSubsDone] = useState<string[]>([]);
-    const [subOpen, setSubOpen] = useState(false);
     /** A partida está parada no intervalo esperando o técnico. */
     const [halftime, setHalftime] = useState(false);
     const halftimeRef = useRef<HTMLDivElement>(null);
-    const [subOut, setSubOut] = useState<string | null>(null);
+    const [subOut, setSubOut] = useState<{ uid: string } | null>(null);
     const [pending, setPending] = useState(false);
     /** A cena Phaser só escuta comandos depois de carregar; até lá os controles ficam travados. */
     const [sceneReady, setSceneReady] = useState(false);
@@ -146,7 +144,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const recorded = useRef(false);
     const tickRef = useRef(0);
     const scoreboardRef = useRef<HTMLDivElement>(null);
-    const subPanelRef = useRef<HTMLDivElement>(null);
+    const coachRef = useRef<HTMLDivElement>(null);
     // celular deitado: placar no topo da tela pra quadra caber inteira (depois do scrollTo(0) do App)
     useEffect(() => {
         if (!window.matchMedia('(orientation: landscape) and (max-height: 520px)').matches) return;
@@ -156,10 +154,6 @@ export function Match({ liga = false }: { liga?: boolean }) {
     useEffect(() => {
         if (halftime) halftimeRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }, [halftime]);
-    // painel de substituição pode abrir abaixo da dobra (deitado): traz pra tela
-    useEffect(() => {
-        if (subOpen) subPanelRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    }, [subOpen]);
 
     const opponent = run?.opponents[run.stage];
     // cor do seu clube (Perfil); o rival troca para o uniforme reserva se a cor dele for parecida
@@ -440,8 +434,6 @@ export function Match({ liga = false }: { liga?: boolean }) {
         const j = benchNow.indexOf(o.inUid);
         if (j >= 0) benchNow.splice(j, 1);
     }
-    // posição agora de quem está em cada vaga (a prancheta pode ter mudado)
-    const slots = onField.map((_, i) => roleAt(match, [lockedSetup, opponent], i, tickRef.current));
     /** Fôlego (0..1) agora de quem está na vaga `i` do seu time. */
     const energyAt = (i: number, tick = tickRef.current) => snapAt(match.snapshots, tick).p[i * SNAP_STRIDE + 6] ?? 1;
     const pendingSub = subOrders.find((o) => !subsDone.includes(o.inUid)) ?? null;
@@ -462,10 +454,15 @@ export function Match({ liga = false }: { liga?: boolean }) {
         );
     };
     const orderSub = (outUid: string, inUid: string) => {
-        setSubOpen(false);
         setSubOut(null);
         if (!canSub) return;
         sendOrder((tick) => ({ tick, team: 0, kind: 'sub', outUid, inUid }));
+    };
+    // Substituir (botão, intervalo, pedido de tempo, sugestão): abre a prancheta, já com quem sai marcado se tiver
+    const openBoard = (uid?: string) => {
+        setTab('board');
+        setSubOut(uid ? { uid } : null);
+        requestAnimationFrame(() => coachRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
     };
     // prancheta: sem limite, a última mandada vale na próxima bola parada (pendente até o evento passar na tela)
     const lastBoard = orders.filter(isLineupOrder).at(-1);
@@ -536,9 +533,8 @@ export function Match({ liga = false }: { liga?: boolean }) {
             error={tacticError}
             onTactic={changeTactic}
             onCorner={changeCorner}
-            subOpen={subOpen}
             canSub={canSub}
-            onToggleSub={() => setSubOpen((v) => !v)}
+            onSub={() => openBoard(tired ? tiredSlot.uid : undefined)}
             tired={tired}
         />
     );
@@ -658,17 +654,14 @@ export function Match({ liga = false }: { liga?: boolean }) {
                                     return sub && sub.type === 'sub' ? sub.in : match.roster[idx].name;
                                 }}
                                 canSub={canSub}
-                                onSub={() => setSubOpen(true)}
+                                onSub={() => openBoard()}
                                 suggest={
                                     htSuggest && {
                                         text: t('match.ht.suggest', {
                                             name: nameOf(htSuggest.uid),
                                             p: Math.round(htSuggest.energy * 100),
                                         }),
-                                        onPick: () => {
-                                            setSubOut(htSuggest.uid);
-                                            setSubOpen(true);
-                                        },
+                                        onPick: () => openBoard(htSuggest.uid),
                                     }
                                 }
                                 mySubs={htSubs.map((o) => ({
@@ -690,7 +683,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         <div className="ht-wrap">
                             <TimeoutPanel
                                 canSub={canSub}
-                                onSub={() => setSubOpen(true)}
+                                onSub={() => openBoard()}
                                 onBack={() => {
                                     setTimeoutAt(null);
                                     EventBus.emit('match:resume');
@@ -730,26 +723,10 @@ export function Match({ liga = false }: { liga?: boolean }) {
                             {t('match.boardPending', { formation: formationText(pendingBoard.formation).name })}
                         </div>
                     )}
-                    {subOpen && canSub && (
-                        <SubPanel
-                            panelRef={subPanelRef}
-                            subOut={subOut}
-                            setSubOut={setSubOut}
-                            onClose={() => setSubOpen(false)}
-                            onField={onField}
-                            benchNow={benchFree}
-                            busy={leaving}
-                            byUid={byUid}
-                            slots={slots}
-                            energyAt={energyNow}
-                            nameOf={nameOf}
-                            onPick={orderSub}
-                        />
-                    )}
                     {wide && <div className="bc-deskbar">{tactics}</div>}
                 </div>
 
-                <div className="panel bc-coach" onPointerDownCapture={auto.hold}>
+                <div className="panel bc-coach" ref={coachRef} onPointerDownCapture={auto.hold}>
                     <CoachTabs tabs={tabs} active={tab} onPick={setTab} />
                     <div className={`bc-pane pane-${tab}`} role="tabpanel">
                         {tab === 'tactic' && tactics}
@@ -760,13 +737,10 @@ export function Match({ liga = false }: { liga?: boolean }) {
                                 side={0}
                                 tick={clock.tick}
                                 names={teamNames}
-                                selectedUid={subOpen ? subOut : null}
-                                onMine={(uid, idx, outUid) => {
-                                    if (canSub) {
-                                        setSubOut(outUid ?? (onField.includes(uid) ? uid : null));
-                                        setSubOpen(true);
-                                    } else if (idx !== null) EventBus.emit('match:inspect-request', idx);
-                                }}
+                                selectedUid={subOut}
+                                onMine={(_, idx) => idx !== null && EventBus.emit('match:inspect-request', idx)}
+                                onSub={canSub ? orderSub : undefined}
+                                subs={subOrders.filter((o) => !subsDone.includes(o.inUid))}
                                 edit={{ enabled: canChangeTactic, pending: pendingBoard, onConfirm: orderBoard, over }}
                             />
                         )}
