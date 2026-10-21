@@ -16,6 +16,8 @@ export const CODE_TITLES: Readonly<Record<string, string>> = {
     cffbb440db026334b04a1ed02f5b3ee98078cbc0c4d1302cf5809d430c38b93a: 'criador',
     // Davi, 1º gametester (17/10/2026)
     '3ad01be87b2c8319fcd8ebebfb5f701dd2c7bef673d3bcd5ba1dce42b3953776': 'goat',
+    // 1º KFC, pedido do Miguel (20/10/2026)
+    f52f0051e171d2dafcb7a4fad167d79cbd40310de71f3561cd3b7b939daa84ff: 'kfc1',
 };
 
 /**
@@ -31,6 +33,7 @@ export const CODE_DEX: Readonly<Record<string, number[]>> = {
 export const CUSTOM_TITLES: Readonly<Record<string, { pt: string; en: string; look?: 'shine' | 'holo' }>> = {
     gametester: { pt: 'Gametester', en: 'Gametester' },
     goat: { pt: 'GOAT', en: 'GOAT', look: 'shine' },
+    kfc1: { pt: '1º KFC', en: '1st KFC', look: 'shine' },
     criador: { pt: 'Criador do Soccermon', en: 'Soccermon Creator', look: 'holo' },
 };
 
