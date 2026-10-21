@@ -628,7 +628,7 @@ export function matchView(
 /** Partida guardada no save (sem os titulares: vale só para os feitos de gol, placar, pênaltis e evolução). */
 export function stageView(r: StageResult): MatchView {
     const digest = r.stats?.digest ?? { goals: [], half: null, moves: {}, evolutions: [] };
-    return matchView({ score: r.score, shootout: r.shootout, winner: r.won ? 0 : 1 }, digest, null, r.stage === 3);
+    return matchView({ score: r.score, shootout: r.shootout, winner: r.won ? 0 : 1 }, digest, null, r.final ?? r.stage === 3);
 }
 
 // ------------------------------------------------------------------------------------------- progresso

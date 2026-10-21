@@ -335,6 +335,9 @@ export interface Records {
     cups: number;
     titles: number;
     perfect: number;
+    /** Copas longas jogadas e ganhas (também contam em `cups`/`titles`: um título é um título). */
+    longCups?: number;
+    longTitles?: number;
     /** Cartas Destaque conquistadas e Ícones escalados. */
     destaques?: number;
     icones?: number;
@@ -654,6 +657,7 @@ export function hallEntry(run: RunState, profile: Profile): HallEntry {
         squad,
         trainer: activeTrainer(profile),
         trainerTitle: activeTitle(profile),
+        ...(run.mode && { mode: run.mode }),
     };
 }
 
@@ -1448,6 +1452,10 @@ export const useGame = create<GameStore>()(
                                   titles: records.titles + (status === 'champion' ? 1 : 0),
                                   perfect: records.perfect + (isPerfectCup(next) ? 1 : 0),
                                   ...streakAfter(records, status === 'champion'),
+                                  ...(isLong(run) && {
+                                      longCups: (records.longCups ?? 0) + 1,
+                                      longTitles: (records.longTitles ?? 0) + (status === 'champion' ? 1 : 0),
+                                  }),
                               }
                             : withStar,
                     };
