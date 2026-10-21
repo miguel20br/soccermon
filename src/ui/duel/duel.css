@@ -1,7 +1,8 @@
 /* Duelo ao vivo: sala, lobby, draft, prévia, partida e resultado. */
 
-/* Home: a Copa é o modo principal (placar com etiqueta, botão vermelho); o Duelo vem do lado/embaixo, compacto e
-   com botão secundário */
+/* Home: a Copa é o modo principal (cartão de borda amarela com o "Nova copa" grande); Duelo e Copa do Dia são dois
+   cartões irmãos menores, com a mesma linha (arte, título, botão comum). No PC os dois ficam empilhados do lado da
+   Copa, cada um do tamanho do conteúdo (sem buraco). */
 .home .mode-cards {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -10,9 +11,22 @@
 }
 @media (min-width: 900px) {
     .home .mode-cards {
-        grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+        grid-template-rows: auto auto 1fr;
         width: min(820px, 100%);
-        align-items: stretch;
+        align-items: start;
+    }
+    .home .cup-card {
+        grid-row: 1 / span 3;
+    }
+    /* coluna da direita é estreita: o botão desce pra baixo do título (sem texto espremido) */
+    .home .duel-card .dc-row,
+    .home .daily-card .dc-row {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+    .home .duel-card .dc-go,
+    .home .daily-card .dc-go {
+        grid-column: 1 / -1;
     }
 }
 .home .mode-cards .menu {
@@ -23,8 +37,7 @@
     text-align: left;
 }
 .cup-card .mode-head {
-    flex-direction: column;
-    align-items: flex-start;
+    display: grid;
     gap: 2px;
 }
 .cup-card .mode-head b {
@@ -33,62 +46,72 @@
     line-height: 1.15;
     color: var(--text);
 }
-.cup-card .mode-head span:not(.bc-tag) {
+.cup-card .mode-head span {
     color: var(--muted);
     font-size: 12px;
+}
+.cup-card .cup-go {
+    width: 100%;
+    min-height: 52px;
+    font-size: 16px;
+}
+/* a semana do tipo: uma linha dentro da Copa (era uma faixa solta no topo da Home) */
+.cup-event {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 6px 10px 6px 14px;
+    border-radius: 6px;
+    background: var(--bc-ink);
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--muted);
+}
+.cup-event .type-icon {
+    flex: none;
+}
+.cup-event b {
+    color: var(--yellow);
+}
+.home .duel-card {
+    display: grid;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--bg-2);
+    border-color: var(--line);
+    box-shadow: none;
+    text-align: left;
 }
 .duel-card .mode-head {
     display: grid;
     gap: 2px;
-    text-align: left;
 }
 .duel-card .mode-head b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 18px;
+    font-size: 16px;
     color: var(--text);
 }
 .duel-card .mode-head span {
     color: var(--muted);
     font-size: 12px;
 }
-.home .duel-card {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-        "head art"
-        "go go";
-    align-content: space-between;
-    gap: 8px 10px;
-    padding: 12px 14px;
-    background: var(--bg-2);
-    border-color: var(--line);
-    box-shadow: none;
-}
-.duel-card .mode-head {
-    grid-area: head;
-}
-.duel-card .duel-go {
-    grid-area: go;
-    min-height: 44px;
-}
 .duel-card-art {
-    grid-area: art;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 4px;
-    /* a faixa BETA fica no canto de cima: a arte desce um pouco */
-    padding-top: 14px;
+    gap: 2px;
 }
 .duel-card-art img {
-    height: 40px;
+    height: 30px;
 }
 .duel-card-art .flip {
     transform: scaleX(-1);
 }
 .duel-card-art b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 16px;
+    font-size: 13px;
     color: var(--red);
     text-shadow: 2px 2px 0 #0e1430;
 }

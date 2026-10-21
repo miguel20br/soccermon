@@ -11,7 +11,6 @@ import { dailyDay, dailyShareText, dailySticker, dailyStreak, daysInARow, putDai
 import { isCupInProgress, useGame } from '../../store/game-store';
 import { clubColorHex } from '../../store/profile';
 import { AccountBar } from '../components/AccountBar';
-import { HudIcon } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { MenuIcon } from '../components/MenuIcon';
 import { cardSprite } from '../components/PokeCard';
@@ -402,46 +401,18 @@ export function HomeDailyCard() {
 }
 
 /**
- * Linha da Liga no cartão da Home. Fechada até `LIGA_OPENS_AT` (src/league/rules.ts): "Em breve", a contagem e, no
- * toque, o porquê. Na data ela abre sozinha (a contagem roda a cada 30 s).
+ * Linha da Liga no cartão da Home, só depois que ela abre (`LIGA_OPENS_AT`, src/league/rules.ts). Fechada, ela mora
+ * na faixa "Vem aí" (ComingSoon) com a contagem; na data aparece aqui sozinha (a conferência roda a cada 30 s).
  */
 function LigaHomeRow() {
     const { t } = useT();
     const go = useGame((s) => s.go);
     const [left, setLeft] = useState(() => ligaCountdown());
-    const [why, setWhy] = useState(false);
     useEffect(() => {
         const id = window.setInterval(() => setLeft(ligaCountdown()), 30000);
         return () => clearInterval(id);
     }, []);
-    if (left)
-        return (
-            <div className="dc-liga">
-                <button
-                    type="button"
-                    className="dc-row dc-locked"
-                    aria-expanded={why}
-                    aria-controls="dc-liga-why"
-                    onClick={() => setWhy(!why)}
-                >
-                    <span className="dc-icon" aria-hidden>
-                        <MenuIcon kind="liga" />
-                    </span>
-                    <span className="mode-head">
-                        <b>
-                            {t('liga.home.ligaTag')} <span className="bc-tag">{t('liga.home.ligaSoon')}</span>
-                        </b>
-                        <span>{t('liga.home.ligaOpensIn', left)}</span>
-                    </span>
-                    <HudIcon kind="lock" className="dc-lock" />
-                </button>
-                {why && (
-                    <p id="dc-liga-why" className="lg-note">
-                        {t('liga.home.ligaClosed')}
-                    </p>
-                )}
-            </div>
-        );
+    if (left) return null;
     return (
         <div className="dc-row">
             <span className="dc-icon" aria-hidden>
