@@ -4,6 +4,7 @@ import { ENGINE_VERSION, FUTSAL_5 } from '../engine/config';
 import { clubLeader, cupRival } from '../engine/cup';
 import { species } from '../engine/data';
 import { aiDraftTeam } from '../engine/draft';
+import { FORMATIONS, type FormationId } from '../engine/formations';
 import { createInstance, type PokemonInstance } from '../engine/instance';
 import { rewardOptions } from '../engine/rewards';
 import { Rng } from '../engine/rng';
@@ -161,10 +162,12 @@ export function runDevDemo() {
             const idx = run.opponents.findIndex((o) => clubLeader(o.name) === want);
             if (idx < 0) continue;
             const team = aiDraftTeam(new Rng(`lider${k}`, 'demo'), 2);
+            // &formacao=4-0: o mesmo time em outra formação (clipes de comparação, docs/planos/formacoes.md)
+            const f = new URLSearchParams(window.location.search).get('formacao');
             const ready = {
                 ...run,
                 opponents: [run.opponents[idx], ...run.opponents.filter((_, i) => i !== idx)],
-                formation: '1-2-1' as const,
+                formation: f && f in FORMATIONS ? (f as FormationId) : ('1-2-1' as const),
                 picks: [...team.lineup, ...team.bench],
                 lineup: team.lineup.map((p) => p.uid),
                 bench: team.bench.map((p) => p.uid),

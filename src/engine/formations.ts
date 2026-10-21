@@ -265,7 +265,7 @@ export interface FormationStyle {
     giveGo?: number;
     /** Rodízio: a cada N segundos com a bola, os 4 da linha giram uma vaga (losango → ala → frente → ala). */
     rotate?: number;
-    /** Pivô parede: de costas, segura e devolve pra quem chega de trás. */
+    /** Pivô parede: vem buscar a bola no nosso campo, segura de costas e devolve pra quem chega de trás. */
     wallPivot?: boolean;
     /** Ultrapassagem: com a bola num lado, o de trás daquele lado passa por fora; e o passe rasteiro pra trás na área. */
     overlap?: boolean;
@@ -294,13 +294,13 @@ export const FORMATION_STYLES: Record<FormationId, FormationStyle> = {
     // pelos lados em duplas: bem aberto, ultrapassagem do fixo, passe rasteiro pra trás na área; pressão alta
     '2-2': {
         counters: ['1-1-2'],
-        width: 1.45,
-        supportWide: 0.35,
+        width: 1.35,
+        supportWide: 0.3,
         overlap: true,
-        cutback: 0.3,
-        defend: 1.5,
-        pressBias: 0.02,
-        attrs: { passing: 0.98 },
+        cutback: 0.15,
+        defend: 0.5,
+        pressBias: 0.01,
+        attrs: { passing: 0.95, shooting: 0.95, tackling: 0.97 },
     },
     // os 3 de trás tocam de lado até achar a bola longa no pivô, que segura de costas e devolve pra quem chega
     '3-1': {
@@ -311,16 +311,17 @@ export const FORMATION_STYLES: Record<FormationId, FormationStyle> = {
         pivotPass: 0.3,
         longPivot: 0.35,
         wallPivot: true,
+        attrs: { passing: 1.03, shooting: 1.03 },
         role: { PIVO: { shooting: 1.1, strength: 1.1 } },
     },
     // os 4 giram de vaga o tempo todo; passe e corre em diagonal
     '4-0': {
         counters: ['ferrolho'],
-        rotate: 3,
+        rotate: 1.5,
         giveGo: 1,
         supportDist: 7,
         passBias: 0.05,
-        attrs: { passing: 1.04, pace: 1.03 },
+        attrs: { passing: 1.05, pace: 1.04, positioning: 1.03 },
     },
     // jogo direto: bola pra frente nos dois pivôs, chute cedo e de mais longe
     '1-1-2': {

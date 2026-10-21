@@ -282,13 +282,24 @@ export class AIController implements Controller {
         }
 
         // 1) chute
-        const shootThreshold = (pressure > 0.5 ? 0.04 : 0.075) + tactic.shootBias - shootingSkill * 0.03;
-        // pivô parede: de costas e marcado, longe da chance boa, segura e devolve pra quem chega de trás
-        if (style.wallPivot && p.role === 'PIVO' && pressure > 0.25 && xg < 0.09 && s.rng.chance(0.7)) {
+        // pivô parede: de costas e marcado na frente da área, segura e devolve pra quem chega de trás, que bate
+        // de primeira (chute mais fácil e de mais longe)
+        const lk = s.ball.lastKick;
+        const fromWall =
+            !!style.wallPivot &&
+            lk?.kind === 'pass' &&
+            lk.by !== p.idx &&
+            s.tick - lk.tick < 40 &&
+            s.players[lk.by].role === 'PIVO' &&
+            s.players[lk.by].team === p.team;
+        const shootThreshold =
+            (pressure > 0.5 ? 0.04 : 0.075) + tactic.shootBias - shootingSkill * 0.03 - (fromWall ? 0.035 : 0);
+        const myX = toRel(s, p.team, p.pos).x;
+        if (style.wallPivot && p.role === 'PIVO' && myX > 24 && pressure > 0.15 && xg < 0.09 && s.rng.chance(0.8)) {
             const lay = this.layoff(p);
             if (lay) return { type: 'pass', target: lay.target, power: 0.85, receiverId: lay.receiver };
         }
-        if (distGoal < (style.shootRange ?? 17) && xg > shootThreshold && s.rng.chance(0.9)) {
+        if (distGoal < (fromWall ? 19 : (style.shootRange ?? 17)) && xg > shootThreshold && s.rng.chance(0.9)) {
             const cmds: Command[] = [];
             // golpe no chute na chance boa: é o grande momento do lance (a IA chuta com xG ~0,07–0,09, então os
             // limites antigos 0,14/0,22 quase nunca saíam: 0,17 chute com golpe por jogo → ~1,5; Miguel, 17/10/2026)
@@ -436,6 +447,9 @@ export class AIController implements Controller {
             if (max && max.idx === mate.idx) score += 0.35;
             if (TACTIC_SHIFT[s.teams[p.team].tactic].pivotHold > 2 && mate.role === 'PIVO') score += 0.1; // contra-ataque: busca o pivô
             if (mate.role === 'PIVO') score += style.pivotPass ?? 0;
+            // recebeu a parede: vai pra cima, não devolve pro pivô (virava pingue-pongue)
+            const lk = s.ball.lastKick;
+            if (style.wallPivot && lk?.by === mate.idx && mate.role === 'PIVO' && s.tick - lk.tick < 60) score -= 0.8;
             score += style.passBias ?? 0;
             score += s.rng.range(-0.08, 0.08);
             if (isKeeper && !safe) continue;
@@ -583,7 +597,7 @@ export class AIController implements Controller {
         }
 
         if (ctx.attacking[team]) {
-            const run = this.giveGoRun(p) ?? this.overlapRun(p);
+            const run = this.giveGoRun(p) ?? this.overlapRun(p) ?? this.pivotShow(p);
             if (run) return run;
             if (ctx.supporter[team] === p.idx && ctx.supportSpot[team])
                 return this.moveTo(p, ctx.supportSpot[team], true);
@@ -730,6 +744,34 @@ export class AIController implements Controller {
         return this.moveTo(p, toWorld(s, p.team, clamp(r.x + 7, 2, length - 4), r.y + (width / 2 - r.y) * 0.6), true);
     }
 
+    /**
+     * Pivô que vem buscar (Linha de 3): com a bola ainda no nosso campo, o pivô sai da marcação e se mostra uns 9 m
+     * à frente da bola, numa linha de passe livre, pra receber de costas e fazer a parede.
+     */
+    private pivotShow(p: PlayerState): Command | null {
+        const s = this.s;
+        if (p.role !== 'PIVO' || !formationStyle(s.teams[p.team].formation.id).wallPivot || s.ball.owner === null)
+            return null;
+        const c = s.players[s.ball.owner];
+        const cr = toRel(s, p.team, c.pos);
+        if (c.team !== p.team || c === p || cr.x > 24) return null;
+        const mid = s.cfg.pitch.width / 2;
+        let best: Vec2 | null = null;
+        let bestScore = -Infinity;
+        for (let dx = 6; dx <= 12; dx += 3) {
+            for (const dy of [-4, 0, 4]) {
+                const spot = toWorld(s, p.team, cr.x + dx, mid + dy);
+                const score =
+                    (this.passIsSafe(p.team, c.pos, spot) ? 1 : 0) - Math.abs(dy) * 0.04 - dist(p.pos, spot) * 0.02;
+                if (score > bestScore) {
+                    bestScore = score;
+                    best = spot;
+                }
+            }
+        }
+        return best && this.moveTo(p, best, true);
+    }
+
     /** Ultrapassagem (Quadrado): com a bola de um lado, o fixo daquele lado passa por fora, colado na lateral. */
     private overlapRun(p: PlayerState): Command | null {
         const s = this.s;
@@ -753,11 +795,11 @@ export class AIController implements Controller {
         for (const m of s.players) {
             if (m.team !== p.team || m.idx === p.idx || m.role === 'GK') continue;
             const r = toRel(s, p.team, m.pos);
-            // quem chega de trás já perto da área (ele finaliza): devolver pra linha de 3 virava toque sem fim
-            if (r.x > myRel.x - 1.5 || r.x < myRel.x - 12 || r.x < 20) continue;
+            // quem chega de trás (até 14 m) e já passou do nosso terço: devolver pro goleiro virava toque sem fim
+            if (r.x > myRel.x - 1 || r.x < myRel.x - 14 || r.x < 13) continue;
             const target = this.clampToPitch(add(m.pos, scale(m.vel, 0.45)));
-            if (!this.passIsSafe(p.team, p.pos, target)) continue;
             const ahead = p.team === 0 ? m.vel.x : -m.vel.x;
+            if (ahead < 0.5 || !this.passIsSafe(p.team, p.pos, target)) continue;
             const score = ahead * 0.3 + Math.min(4, this.openness(m)) * 0.1 - dist(p.pos, target) * 0.03;
             if (score > bestScore) {
                 bestScore = score;

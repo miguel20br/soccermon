@@ -133,7 +133,7 @@ describe('agência do técnico (experimento)', () => {
         let hits = 0;
         // o capitão chuta dentro da janela em ~6% das partidas: seeds em que sai (ENGINE_VERSION 9; achadas varrendo 0–89).
         // Mudou o motor e o teste falhou? Varra de novo e troque a lista (varrer tudo aqui estourava o tempo no CI).
-        for (const k of [0, 19]) {
+        for (const k of [2, 6]) {
             const seed = `ag-max-${k}`;
             const plain = runMatch(FUTSAL_5, A, B, seed, { snapshots: false });
             const full = plain.events.find((e) => maxCharge(plain.events, 0, e.tick).charge >= 1);

@@ -318,6 +318,79 @@ Quadrado 56 ⇒ 52 (o Quadrado novo pressiona mais e come o +1,5%).
 - Testes: dois testes presos a seed foram refeitos (golpe máximo: seeds novas varridas 0–89; escanteio: o time do
   teste sem troca automática, pra o cobrador escolhido ficar em quadra).
 
+## Etapa 2: formações que jogam diferente (21/10/2026, esperando o ok do Miguel)
+
+A etapa 1 mexia quase só em número (bônus de atributo): na quadra, as 6 continuavam jogando parecido. Agora cada
+formação tem um **comportamento próprio da IA** (`FORMATION_STYLES` em `src/engine/formations.ts`, lido no
+`ai-controller.ts`); os bônus de atributo ficaram pequenos e servem só pra acertar o equilíbrio. Continua
+`ENGINE_VERSION` 9 (ainda não subiu pra produção), encaixe +1,5%.
+
+| Formação | O que a IA faz agora | Atributo (só pra equilibrar) |
+|---|---|---|
+| **Losango** (triângulos) | alas por dentro (largura 0,85), apoio a 6,5 m em vez de 9, prefere passe curto e de lado, toca mais do que conduz | Passe +3%, Leitura +2% |
+| **Quadrado** (pelos lados) | vagas bem abertas (1,35), apoio procura a lateral, **ultrapassagem**: com a bola de um lado, o fixo daquele lado passa por fora; da linha de fundo, rasteiro pra trás | Passe −5%, Chute −5%, Desarme −3% |
+| **Linha de 3** (pivô parede) | o **pivô vem buscar** a bola no nosso campo numa linha de passe livre; na frente da área, de costas e marcado, **devolve pra quem chega de trás**, que bate de primeira (de até 19 m); quem recebe a parede não devolve pro pivô | Passe e Chute +3%; Pivô Chute e Força +10% |
+| **Rodízio** (giro) | com a bola, os 4 **trocam de vaga a cada 1,5 s** (fundo → ala → frente → ala); quem passa dispara em diagonal pra área por 1 s | Passe +5%, Vel +4%, Leitura +3% |
+| **Dois pivôs** (jogo direto) | passe pra frente vale quase o dobro, gosta de passe longo, procura os pivôs, chuta mais cedo e de até 19 m | Desarme −3% |
+| **Ferrolho** (bloco baixo) | sem a bola, bloco 3 m mais baixo e fechado (largura 0,7), quase não acompanha a bola; recuperou, bola longa no pivô ou bomba do fixo | Desarme +4%, Goleiro +5% |
+
+### Comportamento: motor 8 (main) ⇒ agora
+
+`npx tsx scripts/balance/formacoes-comportamento.ts 60`: cada formação × Losango, 60 jogos, olhando só o time da
+formação. Em **negrito** a métrica de identidade de cada uma.
+
+| Formação | Passes/jogo | Passe curto (<7 m) | Tabelas e triângulos/jogo | Recebe pelos lados | Largura c/ bola | Chutes de passe do pivô | Troca do último homem/min c/ bola | Recuperação → chute | Bloco sem a bola (altura, largura) | Chutes sofridos |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Losango | 132 ⇒ 150 | 74% ⇒ **90%** | 55 ⇒ **61** | 10% ⇒ **4%** | 3,0 ⇒ 2,6 m | 19% ⇒ 23% | 1,8 ⇒ 2,9 | 5,6 ⇒ 5,7 s | 16,3/2,9 ⇒ 16,2/2,5 m | 18,6 ⇒ 16,9 |
+| Quadrado | 101 ⇒ 125 | 72% ⇒ 32% | 46 ⇒ 72 | 6% ⇒ **55%** | 3,4 ⇒ **4,9 m** | 18% ⇒ 16% | 11,6 ⇒ 12,2 | 4,7 ⇒ 7,6 s | 15,3/3,2 ⇒ 15,7/4,1 m | 16,3 ⇒ 14,0 |
+| Linha de 3 | 148 ⇒ 159 | 64% ⇒ 40% | 69 ⇒ 86 | 21% ⇒ 44% | 3,4 ⇒ 4,1 m | 20% ⇒ **34%** | 4,8 ⇒ 3,8 | 6,9 ⇒ 8,8 s | 15,7/3,4 ⇒ 15,5/4,2 m | 16,8 ⇒ 15,4 |
+| Rodízio | 164 ⇒ 128 | 75% ⇒ 79% | 68 ⇒ 38 | 18% ⇒ 7% | 3,4 ⇒ 2,4 m | — | 6,5 ⇒ **13,9** | 7,6 ⇒ 4,4 s | 15,7/3,4 ⇒ 16,1/3,0 m | 16,7 ⇒ 21,3 |
+| Dois pivôs | 164 ⇒ 140 | 88% ⇒ 87% | 66 ⇒ 57 | 5% ⇒ 5% | 2,6 ⇒ 2,5 m | 26% ⇒ 21% | 5,1 ⇒ 4,6 | 7,1 ⇒ **4,9 s** | 15,6/2,3 ⇒ 15,6/2,2 m | 18,4 ⇒ 19,3 |
+| Ferrolho | 166 ⇒ 120 | 75% ⇒ 77% | 74 ⇒ 44 | 22% ⇒ 13% | 3,5 ⇒ 3,0 m | 10% ⇒ 9% | 16,8 ⇒ 15,1 | 7,2 ⇒ **4,4 s** | 16,4/3,3 ⇒ **14,5/2,5 m** | 17,5 ⇒ 20,4 |
+
+Leitura: o Quadrado passou a receber **mais da metade** das bolas pelos lados (era 6%); na Linha de 3, **1 em cada 3
+chutes** sai de passe do pivô (era 1 em 5); o Rodízio troca o último homem **2×** mais; o Losango é o que mais toca
+curto e por dentro; Dois pivôs e Ferrolho chegam ao chute em ~4,5 s depois de recuperar (eram ~7 s). O Ferrolho
+fecha mais baixo e estreito, e por isso **sofre mais chutes** (de fora); os gols contra ficam iguais.
+O que não apareceu: o "passe longo" do Dois pivôs (passes de 10 m+ pra frente seguem em ~1% pra todo mundo; o jogo
+direto aparece como menos passes e chute mais cedo). O Rodízio virou time de ataque rápido (menos passes, mais
+chutes pros dois lados), não de posse.
+
+### Vitória: motor 8 ⇒ etapa 1 ⇒ agora (`npm run calibrate -- --n 400 --formations`, 12.000 partidas, ±1,6)
+
+| Formação | Vitória | Gols pró/contra (agora) | Posse | Chutes | Passes | Gols Pivô/Ala/Fixo |
+|---|---|---|---|---|---|---|
+| Losango | 51% ⇒ 49% ⇒ **48%** | 3,8/3,8 | 47% | 17,9 | 146 | 49/48/3% |
+| Quadrado | 48% ⇒ 52% ⇒ **50%** | 4,3/4,3 | 51% | 22,9 | 116 | 51/43/5% |
+| Linha de 3 | 52% ⇒ 47% ⇒ **48%** | 3,6/3,7 | 64% | 17,3 | 168 | 49/47/4% |
+| Rodízio | 47% ⇒ 49% ⇒ **50%** | 4,6/4,6 | 42% | 22,3 | 126 | 0/91/9% |
+| Dois pivôs | 55% ⇒ 53% ⇒ **51%** | 4,4/4,3 | 45% | 22,2 | 139 | 83/15/2% |
+| Ferrolho | 48% ⇒ 50% ⇒ **53%** | 4,8/4,6 | 51% | 24,4 | 126 | 71/0/29% |
+
+Encaixes do ciclo (linha contra coluna, motor 8 ⇒ etapa 1 ⇒ agora; ±3,5): Rodízio × Ferrolho 47 ⇒ 55 ⇒ **58**,
+Ferrolho × Linha de 3 51 ⇒ 60 ⇒ **60**, Dois pivôs × Rodízio 56 ⇒ 57 ⇒ **56**, Quadrado × Dois pivôs 47 ⇒ 49 ⇒
+**58**, Linha de 3 × Quadrado 56 ⇒ 52 ⇒ **54**. Os 5 pares agora pesam pro lado certo. Fora do ciclo, o maior é
+**Dois pivôs × Losango 62%** (era 55%): o Losango fechado por dentro sofre com os dois pivôs.
+
+- **Ninguém domina:** 48% a 53% (meta 45–55%). Na exploração (n = 200) o Quadrado novo foi a 59%; caiu pra 50%
+  com Passe/Chute −5%, Desarme −3%, linha 1 m mais baixa e menos pressão (`pressBias` 0,02 ⇒ 0,01).
+- **Gols por jogo subiram:** 7,3 a 9,4 (antes 7,2 a 8,4). Rodízio e Ferrolho são os jogos mais abertos.
+- Ressalvas: IA contra IA na tática Equilibrado, draft pela nota, sem MT nem jogador humano; a combinação com as
+  outras táticas não foi medida. Simulação não é diversão: precisa jogar (`?demo=lider&clube=<id>&formacao=4-0` mostra
+  o mesmo time em outra formação).
+- Testes: hashes do determinismo novos; o teste do golpe máximo ganhou seeds novas (2 e 6, varridas de 0 a 89).
+
+### Decisões pro Miguel (etapa 2)
+
+1. **O comportamento de cada formação (tabela acima)?** Recomendo **aprovar e jogar na prévia** antes de subir:
+   o que mais aparece a olho é o Quadrado pelos lados, o pivô da Linha de 3 vindo buscar e o giro do Rodízio.
+2. **Os bônus de atributo pra equilibrar (Quadrado −5% Passe/Chute, −3% Desarme; Rodízio +5/+4/+3%)?** Recomendo
+   **sim**: deixam as 6 entre 48% e 53%.
+3. **Gols por jogo subindo pra 7–9?** Recomendo **deixar** (diversão > realismo).
+4. **Rodízio virou time de ataque rápido, não de posse.** Recomendo **aceitar** (combina com "passe e corre") e
+   trocar o texto se você preferir; dá pra devolver a posse tirando o "passe e corre", mas o giro some no meio.
+5. **Dois pivôs × Losango 62% fora do ciclo.** Recomendo **deixar por enquanto** e olhar de novo depois de jogar.
+
 ## Fontes
 
 - [FA: Attacking systems in futsal](https://community.thefa.com/coaching/futsal/b/game-guide/posts/attacking-systems-in-futsal-)

@@ -44,7 +44,8 @@ export const STOPPAGE = { min: 1, max: 3 };
  * 7 = acréscimos de 1 a 3 minutos por tempo e Pressão final (quem perde nos últimos 3 minutos vai pra cima).
  * 8 = revisão dos golpes: 1 golpe de cada tipo próprio, sem 2 golpes iguais, Gengar com Sludge, Harden/Slam/Amnesia/
  *     Tri Attack/Explosion/paredes consertados e o Fly levando a bola 2 m (docs/planos/golpes-revisao.md).
- * 9 = formações com identidade: ponto forte e fraco de cada uma e vantagem tática de 1,5% (docs/planos/formacoes.md).
+ * 9 = formações que jogam diferente (IA: triângulos, lados, pivô parede, rodízio, jogo direto, bloco baixo) e
+ *     vantagem tática de 1,5% (docs/planos/formacoes.md).
  */
 export const ENGINE_VERSION = 9;
 
