@@ -31,6 +31,7 @@ export const profile = {
         openAria: 'Ver o perfil de {name}',
         cards: 'Cartas da vitrine',
         noCards: 'Nenhuma carta na vitrine ainda.',
+        addCards: 'Pôr cartas na vitrine',
         numbers: 'Números',
         played: 'Pokédex (jogou)',
         noVitrine: '{name} ainda não abriu a versão nova: os números aparecem quando abrir.',

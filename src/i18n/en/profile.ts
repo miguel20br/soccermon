@@ -31,6 +31,7 @@ export const profile: typeof pt = {
         openAria: "See {name}'s profile",
         cards: 'Showcase cards',
         noCards: 'No cards in the showcase yet.',
+        addCards: 'Add cards to your showcase',
         numbers: 'Numbers',
         played: 'Pokédex (played)',
         noVitrine: "{name} hasn't opened the new version yet: the numbers show up when they do.",
