@@ -5,8 +5,6 @@ export const duel: typeof pt = {
     beta: 'BETA',
     betaNote: 'Duels are in beta: if anything weird happens,',
     betaLink: 'let us know.',
-    cupTitle: 'Cup',
-    cupLine: 'Draft 7 Pokémon and pick how long the cup is',
     line: 'Challenge a friend live: send the link and play together',
     createRoom: 'Create room',
     newDuel: 'New duel',

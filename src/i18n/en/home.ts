@@ -37,7 +37,7 @@ export const home: typeof pt = {
         tag: '8 matches',
         title: 'Indigo Road',
         line: 'Cross Kanto to the Plateau: 8 matches, events and gyms.',
-        short: 'map, events and gyms',
+        go: 'Start the Road',
         note: 'The Indigo Road arrives in the next version.',
     },
     challenge: 'Accept challenge ({seed})',
