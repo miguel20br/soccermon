@@ -11,6 +11,7 @@ import { type SlotRef, slotRole, useGame } from '../../store/game-store';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { CountUp } from '../components/CountUp';
 import { FormationBoard } from '../components/FormationBoard';
+import { FormationIdentity } from '../components/FormationIdentity';
 import { FutCard } from '../components/FutCard';
 import { LinkChip, LinkChips, newLinks } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
@@ -151,7 +152,7 @@ export function Draft() {
                             <FormationDiagram id={f.id} />
                             <b>{formationText(f.id, lang).name}</b>
                             <span className="muted">{f.slots.map((s) => d.common.pos[s]).join(' · ')}</span>
-                            <span className="tactic-desc">{formationText(f.id, lang).description}</span>
+                            <FormationIdentity id={f.id} />
                         </button>
                     ))}
                 </div>

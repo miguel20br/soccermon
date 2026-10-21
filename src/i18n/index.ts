@@ -159,7 +159,7 @@ export const iconTitle = (speciesId: number, saved?: string, lang: Lang = curren
 
 /** Formação: nome e descrição. */
 export const formationText = (id: string, lang: Lang = current) =>
-    DICTS[lang].common.formation[id] ?? { name: id, description: '' };
+    DICTS[lang].common.formation[id] ?? { name: id, short: id, description: '', trait: '' };
 
 /** Sinergia de história: nome, descrição e combo. */
 export const linkText = (id: string, lang: Lang = current) =>

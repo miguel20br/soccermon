@@ -3,7 +3,7 @@ import { computeAttributes } from '../../engine/attributes';
 import { relampagoBracket } from '../../engine/bracket';
 import { cupRival } from '../../engine/cup';
 import { species } from '../../engine/data';
-import { FORMATIONS, type FormationId } from '../../engine/formations';
+import { FORMATIONS, type FormationId, hasEdge } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { computeLinks } from '../../engine/links';
@@ -18,12 +18,14 @@ import { isLong, isOut } from '../../store/long-cup';
 import { useCardModal } from '../card-modal';
 import { BracketPeek } from '../components/Bracket';
 import { FormationBoard } from '../components/FormationBoard';
+import { FormationIdentity } from '../components/FormationIdentity';
 import { FutCard } from '../components/FutCard';
 import { LinkChips } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
 import { cardSprite, TypeBadge } from '../components/PokeCard';
 import { Money, SponsorSlots } from '../components/SponsorCard';
 import { leaveWith } from '../feedback';
+import { edgeAgainst } from '../formation-info';
 import { Tip } from '../help/Tip';
 import { useClubColor } from '../profile/club';
 import { lineupAverage } from '../rating';
@@ -149,6 +151,7 @@ export function Lineup() {
                 onCorner={setCorner}
                 onMoveItem={moveItem}
                 sponsors={run.sponsors}
+                rivalFormation={opponent.formation ?? '1-2-1'}
                 side={
                     <div className="panel">
                         <h2>
@@ -180,6 +183,15 @@ export function Lineup() {
                                 n: lineupAverage(opponent.lineup, opponent.formation),
                             })}
                         </p>
+                        {edgeAgainst(opponent.formation ?? '1-2-1') && (
+                            <p className="fi-rival">
+                                {t('team.lineup.edgeLine', {
+                                    club: clubName(opponent.name, lang),
+                                    formation: formationText(opponent.formation ?? '1-2-1', lang).short,
+                                    counter: formationText(edgeAgainst(opponent.formation ?? '1-2-1')!, lang).short,
+                                })}
+                            </p>
+                        )}
                         {outList.length > 0 && (
                             <p className={outStarter ? 'error-text' : 'tactic-desc'}>
                                 {outStarter
@@ -277,6 +289,7 @@ export function LineupEditor({
     side,
     footer,
     sponsors,
+    rivalFormation,
 }: {
     title: string;
     formation: FormationId;
@@ -298,6 +311,8 @@ export function LineupEditor({
     footer?: ReactNode;
     /** Patrocínios da copa: os de campo entram na conta da escalação (carta = campo). */
     sponsors?: readonly string[];
+    /** Formação do rival, quando se sabe (selo "Vantagem tática" se a sua encaixa). */
+    rivalFormation?: FormationId;
 }) {
     const [selected, setSelected] = useState<SlotRef | null>(null);
     const [detail, setDetail] = useState<string | null>(null);
@@ -370,6 +385,7 @@ export function LineupEditor({
                         </button>
                     ))}
                 </div>
+                <FormationIdentity id={formation} edge={!!rivalFormation && hasEdge(formation, rivalFormation)} />
                 <p className="muted" style={{ marginTop: 8 }}>
                     {givingItem ? t('team.lineup.giveHint', { item: itemName(givingItem) }) : t('team.lineup.swapHint')}
                 </p>

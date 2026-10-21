@@ -140,29 +140,41 @@ export const common = {
     formation: {
         '1-2-1': {
             name: 'Losango (1-2-1)',
-            description: 'Equilíbrio clássico: um fixo, dois alas abertos e um pivô de referência.',
+            short: 'Losango',
+            description: 'O coringa: sem fraqueza e sem trunfo.',
+            trait: '',
         },
         '2-2': {
             name: 'Quadrado (2-2)',
-            description: 'Dois fixos protegendo atrás, ala e pivô na frente. Sólido e direto.',
+            short: 'Quadrado',
+            description: 'Marca em cima e sai rápido no pivô.',
+            trait: 'pressiona mais',
         },
         '3-1': {
             name: 'Linha de 3 (3-1)',
-            description: 'Linha recuada de três e um pivô sozinho lá na frente.',
+            short: 'Linha de 3',
+            description: 'Toda bola no pivô.',
+            trait: 'o passe procura o pivô',
         },
         '4-0': {
             name: 'Rodízio (4-0)',
-            description: 'Sem pivô: quatro trocando de lugar. Muita posse e passe.',
+            short: 'Rodízio',
+            description: 'Posse e troca de lugar, ninguém parado.',
+            trait: 'prefere passar',
         },
         '1-1-2': {
             name: 'Dois pivôs (1-1-2)',
-            description: 'Ataque pesado: dois pivôs na área rival e um fixo atrás.',
+            short: 'Dois pivôs',
+            description: 'Blitz: todo mundo chuta, ninguém volta.',
+            trait: 'linha alta, chuta mais',
         },
         ferrolho: {
             name: 'Ferrolho (3 fixos)',
-            description: 'Três fixos na frente do goleiro e um pivô pro contra-ataque.',
+            short: 'Ferrolho',
+            description: 'Tranca a área e solta a bomba de longe.',
+            trait: 'Fixo chuta de longe',
         },
-    } as Record<string, { name: string; description: string }>,
+    } as Record<string, { name: string; short: string; description: string; trait: string }>,
     /** Sinergias de história (engine/links.ts). */
     link: {
         genese: { name: 'Gênese', desc: 'Mew e Mewtwo, o original e o clone.', combo: 'Psíquico Duplo' },
