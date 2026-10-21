@@ -41,7 +41,7 @@ export const trophies: typeof pt = {
     legendAria: "What's in the room",
     tut: {
         step1: 'Welcome to your trophy room! The trophies sit in the middle: the Indigo Road one and the Lightning Cup ones.',
-        step2: 'The walls hold what you won outside the Cup: Daily Cup, medals, belts and the Hall of Fame.',
+        step2: 'The walls hold the Daily Cup, medals, belts and the Hall of Fame.',
         step3: 'Tap anything or use the buttons below. Hold on the room to see every name.',
         next: 'Next',
         done: 'Got it',

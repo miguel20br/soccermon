@@ -40,7 +40,7 @@ export const trophies = {
     legendAria: 'O que tem na sala',
     tut: {
         step1: 'Bem-vindo à sua sala de troféus! No centro ficam as taças: a da Rota Índigo e as da Copa Relâmpago.',
-        step2: 'Nas paredes fica o que você ganhou fora da Copa: Copa do Dia, medalhas, cinturões e o Hall da Fama.',
+        step2: 'Nas paredes ficam a Copa do Dia, as medalhas, os cinturões e o Hall da Fama.',
         step3: 'Toque em qualquer coisa ou use os botões embaixo. Segure na sala pra ver o nome de tudo.',
         next: 'Próximo',
         done: 'Entendi',
