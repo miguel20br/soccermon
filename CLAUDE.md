@@ -156,7 +156,22 @@ commit). Prévias da Vercel têm os atalhos de demo e `?vel=N` (quadra até 64x)
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (20/10/2026, v0.8.9 · Sala de troféus e menus novos, no ar)
+## Estado atual (20/10/2026, v0.9.0 · Mercado e Patrocínios)
+
+**0.9.0 (Copa roguelike, etapa 1; proposta e análise em `docs/planos/copa-roguelike.md`, plano em
+`docs/planos/copa-roguelike-plano.md`):** a Copa de hoje é a **Copa rápida**; a **Copa longa** (mapa, eventos, etapa 2)
+e a **Jornada** (Kanto inteiro, rumo à 1.0) vêm depois. Depois da recompensa de cada vitória (menos a final e a Copa do
+Dia, `hasShop`) abre o **Mercado** (`src/engine/shop.ts`, `src/ui/screens/Shop.tsx`, `?demo=mercado`): ₽ por vitória,
+gol e sem sofrer gol, juros do guardado, vitrine pela seed (2 Pokémon, pacote de tipo `PackArt`, item ou MT,
+Patrocínio). **12 Patrocínios** (`src/engine/sponsors.ts`, até 3 por copa; os de campo entram pela regra única de
+bônus como origem `patrocinio`, carta = campo; viram placas na beira da quadra, `drawBoards`). `RunState` ganhou
+`money`, `sponsors`, `shop`, `packs` (opcionais, sem migração) e o status/tela `shop`; o painel de "quem sai/quem
+recebe" é o mesmo da recompensa (`GainTarget`). Estatísticas `shop_buy`/`shop_leave` e Patrocínios no `run_end`
+(migração `20261021200000_eventos_mercado.sql` aplicada em 20/10); seção Mercado no `npm run stats`; robô do Mercado em
+`scripts/balance/cup.ts ... mercado`. **Tudo mora no Perfil** (pedido do Miguel em 20/10): a Home tem só a porta do
+Perfil e o Perfil tem as da Sala de troféus e da Coleção (`DoorTiles`). Conserto de raiz: trocar de tela adiava o
+estado inteiro até a animação; agora só a `screen` espera (`src/store/screen-transition.ts`, com teste). Força do
+Mercado: o Miguel joga e sente antes de mexer nos números (calibragem 1 no plano).
 
 Tudo que subiu em 19/10 foi separado nas Novidades em 4 números (decisão do Miguel, 19/10): **0.8.8** Ícone MVP e
 conquistas retroativas (o conserto da manhã); **0.8.8.1** Melhores momentos, Copa do Dia e medalhas (o pacotão:

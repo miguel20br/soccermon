@@ -1,5 +1,24 @@
 # Novidades
 
+## 0.9.0 · Mercado e Patrocínios
+
+### Mercado
+- Depois da recompensa de cada vitória, a Copa ganha um Mercado: gaste ₽ (Pokédólar) em Pokémon, pacote de tipo, item, MT ou Patrocínio
+- Cada vitória rende ₽: 5 da vitória, 1 por gol (até 3) e 2 se não sofrer gol. Guardar rende juros: ₽1 a cada ₽5, até ₽3
+- Pacote de tipo: 3 cartas do tipo da semana ou do seu capitão, você fica com 1. Abre como o pacote da recompensa, na cor do tipo
+- Trocar a vitrine custa ₽2 e sobe ₽1 a cada troca no mesmo Mercado
+- O ₽ só vale dentro da copa e some quando ela acaba. A Copa do Dia continua sem Mercado
+
+### Patrocínios
+- 12 Patrocínios de Kanto, com até 3 por copa: valem até o fim dela
+- Economia: Fã-Clube Pokémon, Cassino de Celadon, S.S. Anne e Loja de Departamentos mexem no ₽ e na vitrine
+- Recompensa: Laboratório de Cinnabar (4 opções na recompensa), Creche Pokémon (1ª troca grátis) e Safari Zone (pacote com 4 cartas)
+- Campo: Silph Co., Bicicletaria de Cerulean, Academia de Saffron, Torcida de Vermilion e Patrocínio Master dão bônus em quadra, que a carta mostra
+- Os seus Patrocínios aparecem nas placas da beira da quadra
+
+### Menus
+- Tudo mora no Perfil: a Sala de troféus e a Coleção abrem logo abaixo do seu cartão
+
 ## 0.8.9 · Sala de troféus e menus novos
 
 ### Sala de troféus

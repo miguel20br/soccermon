@@ -7,6 +7,36 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.0',
+        title: 'Mercado e Patrocínios',
+        sections: [
+            {
+                title: 'Mercado',
+                lines: [
+                    'Depois da recompensa de cada vitória, a Copa ganha um Mercado: gaste ₽ (Pokédólar) em Pokémon, pacote de tipo, item, MT ou Patrocínio',
+                    'Cada vitória rende ₽: 5 da vitória, 1 por gol (até 3) e 2 se não sofrer gol. Guardar rende juros: ₽1 a cada ₽5, até ₽3',
+                    'Pacote de tipo: 3 cartas do tipo da semana ou do seu capitão, você fica com 1. Abre como o pacote da recompensa, na cor do tipo',
+                    'Trocar a vitrine custa ₽2 e sobe ₽1 a cada troca no mesmo Mercado',
+                    'O ₽ só vale dentro da copa e some quando ela acaba. A Copa do Dia continua sem Mercado',
+                ],
+            },
+            {
+                title: 'Patrocínios',
+                lines: [
+                    '12 Patrocínios de Kanto, com até 3 por copa: valem até o fim dela',
+                    'Economia: Fã-Clube Pokémon, Cassino de Celadon, S.S. Anne e Loja de Departamentos mexem no ₽ e na vitrine',
+                    'Recompensa: Laboratório de Cinnabar (4 opções na recompensa), Creche Pokémon (1ª troca grátis) e Safari Zone (pacote com 4 cartas)',
+                    'Campo: Silph Co., Bicicletaria de Cerulean, Academia de Saffron, Torcida de Vermilion e Patrocínio Master dão bônus em quadra, que a carta mostra',
+                    'Os seus Patrocínios aparecem nas placas da beira da quadra',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: ['Tudo mora no Perfil: a Sala de troféus e a Coleção abrem logo abaixo do seu cartão'],
+            },
+        ],
+    },
+    {
         version: '0.8.9',
         title: 'Sala de troféus e menus novos',
         sections: [
@@ -802,6 +832,38 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.0',
+        title: 'Market and Sponsors',
+        sections: [
+            {
+                title: 'Market',
+                lines: [
+                    'After the reward of every win, the Cup now has a Market: spend ₽ (Pokédollars) on Pokémon, type packs, items, TMs or Sponsors',
+                    'Every win pays ₽: 5 for the win, 1 per goal (up to 3) and 2 for a clean sheet. Saving pays interest: ₽1 per ₽5, up to ₽3',
+                    "Type pack: 3 cards of the weekly type or your captain's type, keep 1. It opens like the reward pack, in the type's colors",
+                    'Rerolling the stock costs ₽2, plus ₽1 for each reroll in the same Market',
+                    '₽ only exists inside the cup and is gone when it ends. The Daily Cup has no Market for now',
+                ],
+            },
+            {
+                title: 'Sponsors',
+                lines: [
+                    '12 Kanto Sponsors, up to 3 per cup: they last until the end of it',
+                    'Economy: Pokémon Fan Club, Celadon Game Corner, S.S. Anne and Celadon Dept. Store boost your ₽ and the stock',
+                    'Reward: Cinnabar Lab (4 reward options), Pokémon Day Care (first reroll free) and Safari Zone (4-card packs)',
+                    'Field: Silph Co., Cerulean Bike Shop, Saffron Dojo, Vermilion Fans and Master Sponsor give on-court bonuses, shown on the card',
+                    'Your Sponsors show up on the boards along the court',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Everything lives in the Profile: the Trophy room and the Collection open right below your card',
+                ],
+            },
+        ],
+    },
     {
         version: '0.8.9',
         title: 'Trophy room and new menus',
