@@ -1,3 +1,7 @@
+---
+description: Brand guide do Soccermon: cores, tipos, logo, voz e o que não fazer.
+---
+
 # Soccermon: brand guide
 
 Versão de 19/10/2026 (0.8.8). Página visual com as amostras: [`docs/marca/index.html`](index.html) (abre direto no

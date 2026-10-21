@@ -1,3 +1,7 @@
+---
+description: Proposta do modo Ultimate Team, o segundo modo principal.
+---
+
 # Ultimate Team (proposta, 20/10/2026)
 
 Pedido do Miguel (20/10): o Soccermon vai ter **dois modos principais**, o futsal casual (a Copa de hoje) e o

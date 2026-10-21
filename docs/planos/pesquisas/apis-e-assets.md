@@ -1,3 +1,7 @@
+---
+description: APIs e assets de Pokémon que existem e onde usar no jogo.
+---
+
 # APIs e assets de Pokémon: o que existe e onde usar (21/10/2026)
 
 Pedido do Miguel: "pesquisar mais APIs e assets de Pokémon que existem [...] e ao mesmo tempo pensar em onde os

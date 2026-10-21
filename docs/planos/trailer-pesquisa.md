@@ -1,3 +1,7 @@
+---
+description: Pesquisa de como produzir o trailer de lançamento.
+---
+
 # Pesquisa: trailer de lançamento feito pelo Claude (Opus 5.5) — 15/10/2026
 
 Pesquisa pedida pelo Miguel antes de produzir o trailer da beta aberta. Complementa

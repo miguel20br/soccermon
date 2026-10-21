@@ -1,3 +1,7 @@
+---
+description: O que ficou pendente na tradução para o inglês.
+---
+
 # Tradução para o inglês: o que ficou pendente
 
 A tradução (branch `traducao`) cobriu toda a interface, menos os arquivos que estavam sendo mexidos ao mesmo

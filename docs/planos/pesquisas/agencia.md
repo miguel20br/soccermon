@@ -1,3 +1,7 @@
+---
+description: Proposta de dar mais agência ao técnico durante a partida.
+---
+
 # Agência do técnico na partida (pesquisa e proposta, 18/10/2026)
 
 Pedido do Miguel: "pensar em maneiras de deixar os jogadores com mais AGÊNCIA sobre a partida, mas sem fazer eles

@@ -1,3 +1,7 @@
+---
+description: Pesquisa e proposta do escanteio, com a opção escolhida.
+---
+
 # Escanteio (pesquisa e proposta, 17/10/2026)
 
 Pedido: escanteio na 0.8.5 (junto com o duelo ao vivo, ver `lancamento.md`). A ideia já foi aprovada em 16/10
