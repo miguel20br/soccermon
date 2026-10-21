@@ -35,7 +35,7 @@ export const home: typeof pt = {
         line: 'A 4-match knockout, quick and direct.',
     },
     longCup: {
-        tag: '8 matches',
+        tag: 'Coming soon',
         title: 'Indigo Road',
         line: 'Cross Kanto to the Plateau: 8 matches, events and gyms.',
         soon: 'Coming soon',

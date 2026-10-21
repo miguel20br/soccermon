@@ -36,7 +36,7 @@ export const home = {
         line: 'Mata-mata de 4 jogos, rápido e direto.',
     },
     longCup: {
-        tag: '8 jogos',
+        tag: 'Em breve',
         title: 'Rota Índigo',
         line: 'Atravesse Kanto até o Planalto: 8 jogos, eventos e ginásios.',
         soon: 'Em breve',
