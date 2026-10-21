@@ -28,7 +28,7 @@ import { HudIcon } from '../components/MatchHud';
 import { PokeCard2 } from '../components/PokeCard2';
 import { reduceMotionOn } from '../reduce-motion';
 import { speciesGif } from './club';
-import { NewBadge, NewDot, useNews } from './news';
+import { NewBadge, useNews } from './news';
 import './album.css';
 
 /** Sem importar a ficha (que puxa o som do grito): o Perfil público usa o Álbum. */
@@ -369,7 +369,6 @@ export function AlbumView({
 
     const total = albumCount(dex);
     const withSticker = KANTO.filter((sp) => rows.get(sp.id)?.length).length;
-    const freshAny = KANTO.some((sp) => fresh.has(sp.id));
 
     /** Um espaço da página; `quiet`: página vizinha escondida (não cola nem conta como vista). */
     const slotEl = (sp: Species, i: number, quiet = false) => {
@@ -525,7 +524,6 @@ export function AlbumView({
                                 ) : (
                                     <small className="al-cover-n">{t('home.soonRibbon')}</small>
                                 )}
-                                {g.live && <NewDot on={freshAny} className="al-cover-dot" />}
                             </span>
                         </button>
                     ))}

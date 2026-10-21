@@ -7299,11 +7299,6 @@ body {
     font-size: 15px;
     color: var(--yellow);
 }
-.door > .new-dot.door-dot {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-}
 @media (max-width: 899px) {
     .door {
         min-height: 60px;
