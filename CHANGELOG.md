@@ -1,5 +1,12 @@
 # Novidades
 
+## 0.9.0.3 · Pacote e Patrocínios
+
+### Mercado
+- O pacote comprado abre de verdade: rasga e as cartas saem uma a uma, e o desenho do tipo ficou nítido
+- Dois Patrocínios pra escolher em cada Mercado
+- O preço mostra quanto falta (₽10 · falta ₽1)
+
 ## 0.9.0.2 · Ajustes da semana
 
 ### Consertos

@@ -7,6 +7,20 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.0.3',
+        title: 'Pacote e Patrocínios',
+        sections: [
+            {
+                title: 'Mercado',
+                lines: [
+                    'O pacote comprado abre de verdade: rasga e as cartas saem uma a uma, e o desenho do tipo ficou nítido',
+                    'Dois Patrocínios pra escolher em cada Mercado',
+                    'O preço mostra quanto falta (₽10 · falta ₽1)',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.0.2',
         title: 'Ajustes da semana',
         sections: [
@@ -868,6 +882,20 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.0.3',
+        title: 'Packs and Sponsors',
+        sections: [
+            {
+                title: 'Market',
+                lines: [
+                    'Bought packs really open: they tear and the cards come out one by one, and the type art is sharp',
+                    'Two Sponsors to choose from in every Market',
+                    'Prices show how much you still need (₽10 · need ₽1)',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.0.2',
         title: 'Weekly fixes',
