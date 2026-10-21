@@ -20,7 +20,7 @@ export const longCup: typeof pt = {
         jogo: 'A win pays ₽ and a reward.',
         ginasio: "Tougher rival. Better reward, with the leader's TM.",
         mercado: 'Spend your ₽. What you saved earns interest.',
-        evento: 'Something happens on the road. You decide.',
+        evento: 'Something happens on the road.',
         treino: 'Half an evolution bar for one Pokémon, or +1 reroll.',
         bau: 'A free pack, one rarity higher.',
         final: 'One match against the Indigo League.',
@@ -29,11 +29,12 @@ export const longCup: typeof pt = {
     rival: 'Rival',
     choose: 'Pick your path',
     cards: 'Yellow card',
-    cardsHint: '1st loss: yellow. 2nd: out.',
+    cardsHint:
+        "On the Indigo Road you get 2 chances and can lose only once, earning a yellow card. On your second loss, you're out.",
     yellowTitle: 'Yellow card',
     out: 'The road ends at match {n}',
     redTitle: 'Red card',
-    redLine: 'Second yellow. Your Road ends here.',
+    redLine: 'Second yellow. End of the line.',
     blocked: 'Road blocked',
     outStarter: '{name} is out. Swap in someone from the bench.',
     outTag: {

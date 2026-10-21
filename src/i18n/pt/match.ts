@@ -241,7 +241,7 @@ export const match = {
         // times da Rota (classes de treinador de Kanto, docs/planos/campeonato.md)
         bugcatcher: {
             name: 'Caçador de Insetos',
-            pre: 'Ei, você tem Pokémon! Bora jogar!',
+            pre: 'Ei, você tem Pokémon! Meus insetos tão com fome de gol!',
             win: 'Viu? Inseto também faz gol!',
             lose: 'Ah, não! Volto pra floresta treinar.',
         },

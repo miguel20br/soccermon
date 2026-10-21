@@ -18,7 +18,7 @@ export const longCup = {
         jogo: 'Vitória dá ₽ e recompensa.',
         ginasio: 'Rival mais forte. Recompensa melhor, com a MT do líder.',
         mercado: 'Compre com ₽. O que você guardou rende juros.',
-        evento: 'Algo acontece no caminho. Você decide.',
+        evento: 'Algo acontece no caminho.',
         treino: 'Meia barra de evolução pra um Pokémon, ou +1 troca.',
         bau: 'Pacote grátis, uma raridade acima.',
         final: 'Jogo único contra a Liga Índigo.',
@@ -27,11 +27,12 @@ export const longCup = {
     rival: 'Rival',
     choose: 'Escolha o caminho',
     cards: 'Cartão amarelo',
-    cardsHint: '1ª derrota: amarelo. 2ª: fora.',
+    cardsHint:
+        'Na Rota Índigo, você tem 2 chances e pode perder uma única vez, ganhando um cartão amarelo. Na sua segunda derrota, você está fora.',
     yellowTitle: 'Cartão amarelo',
     out: 'Fim da linha na partida {n}',
     redTitle: 'Cartão vermelho',
-    redLine: 'Segundo amarelo. Fim da Rota.',
+    redLine: 'Segundo amarelo. Fim da linha.',
     blocked: 'Caminho bloqueado',
     outStarter: '{name} está fora. Troque por alguém do banco.',
     /** Selo de quem está fora (na carta do banco e da quadra), com as partidas que faltam. */

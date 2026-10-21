@@ -6,7 +6,7 @@ Revisão de todos os textos da Rota (pedido do Miguel em 21/10/2026, depois de j
 - Curto. Sem "não é X, é Y", sem trio de efeito, sem dois-pontos dramático.
 - Nada de lembrete óbvio: "Nada muda." e "Evoluir continua sendo na partida." saíram. Escolha que não faz nada
   fica só com o nome.
-- O cartão amarelo tem uma regra só, a mesma em todo lugar: **"1ª derrota: amarelo. 2ª: fora."** Aparece no status
+- O cartão amarelo tem uma regra só, a mesma em todo lugar (texto do Miguel, 21/10): **"Na Rota Índigo, você tem 2 chances e pode perder uma única vez, ganhando um cartão amarelo. Na sua segunda derrota, você está fora."** Aparece no status
   do mapa no começo da Rota (com o cartão vazio do lado) e no cartão que cai no resultado.
 
 Os nomes dos líderes nas partidas de ginásio (Brock, Misty…) são os mesmos da Copa Relâmpago e não mudaram. Os
@@ -20,12 +20,12 @@ só com o nome.
 | `longCup.desc.jogo` | Um time da Rota. Vitória dá ₽ e a recompensa. | Vitória dá ₽ e recompensa. | A Route team. A win pays ₽ and the reward. | A win pays ₽ and a reward. |
 | `longCup.desc.ginasio` | O clube do líder: mais forte, com a MT dele. Recompensa melhor. | Rival mais forte. Recompensa melhor, com a MT do líder. | The leader's club: stronger, with their TM. Better reward. | Tougher rival. Better reward, with the leader's TM. |
 | `longCup.desc.mercado` | Gaste ₽ em Pokémon, pacote, item ou Patrocínio. Juros do guardado ao chegar. | Compre com ₽. O que você guardou rende juros. | Spend ₽ on Pokémon, packs, items or Sponsors. Interest on your savings when you arrive. | Spend your ₽. What you saved earns interest. |
-| `longCup.desc.evento` | Pode ser bom, pode ser ruim. Você sempre escolhe. | Algo acontece no caminho. Você decide. | Could be good, could be bad. You always choose. | Something happens on the road. You decide. |
+| `longCup.desc.evento` | Pode ser bom, pode ser ruim. Você sempre escolhe. | Algo acontece no caminho. | Could be good, could be bad. You always choose. | Something happens on the road. You decide. |
 | `longCup.desc.treino` | Encha a barra de evolução de alguém ou descanse (+1 troca). | Meia barra de evolução pra um Pokémon, ou +1 troca. | Fill someone's evolution bar or rest (+1 reroll). | Half an evolution bar for one Pokémon, or +1 reroll. |
 | `longCup.desc.final` | A Liga Índigo. Aqui não tem cartão amarelo. | Jogo único contra a Liga Índigo. | The Indigo League. No yellow card here. | One match against the Indigo League. |
-| `longCup.cardsHint` | Uma derrota fora da Final não elimina. A segunda é o vermelho. | 1ª derrota: amarelo. 2ª: fora. | One loss outside the Final does not knock you out. The second is the red card. | 1st loss: yellow. 2nd: out. |
+| `longCup.cardsHint` | Uma derrota fora da Final não elimina. A segunda é o vermelho. | Na Rota Índigo, você tem 2 chances e pode perder uma única vez, ganhando um cartão amarelo. Na sua segunda derrota, você está fora. | One loss outside the Final does not knock you out. The second is the red card. | 1st loss: yellow. 2nd: out. |
 | `longCup.yellowLine` | A derrota não eliminou: a próxima elimina. | (sai) | The loss did not knock you out: the next one will. | (sai) |
-| `longCup.redLine` | Segunda derrota: o time está fora da Rota Índigo. | Segundo amarelo. Fim da Rota. | Second loss: the team is out of the Indigo Road. | Second yellow. Your Road ends here. |
+| `longCup.redLine` | Segunda derrota: o time está fora da Rota Índigo. | Segundo amarelo. Fim da linha. | Second loss: the team is out of the Indigo Road. | Second yellow. Your Road ends here. |
 | `longCup.outStarter` | {name} está fora: troque ele de lugar com alguém do banco. | {name} está fora. Troque por alguém do banco. | {name} is out: swap them with someone on the bench. | {name} is out. Swap in someone from the bench. |
 | `longCup.outBench` | Fora (partidas): {names}. | (sai) | Out (matches): {names}. | (sai) |
 | `longCup.groupNote` | Os 2 primeiros vão pra Final. Vitória 3, vitória nos pênaltis 2, derrota nos pênaltis 1. | Os 2 primeiros vão pra Final. Vitória 3, nos pênaltis 2, derrota nos pênaltis 1. | Top 2 go to the Final. Win 3, win on penalties 2, loss on penalties 1. | Top 2 go to the Final. Win 3, on penalties 2, loss on penalties 1. |
@@ -79,7 +79,7 @@ só com o nome.
 | `longCup.outTag.fora` | (novo) | Fora | (novo) | Out |
 | `longCup.outLeft` | (novo) | {n} jogo\|{n} jogos | (novo) | {n} match\|{n} matches |
 | `longCup.outAria` | (novo) | {tag}, volta em {n} partida\|{tag}, volta em {n} partidas | (novo) | {tag}, back in {n} match\|{tag}, back in {n} matches |
-| `match.leaders.bugcatcher.pre` | Meus insetos estão com fome de gol! | Ei, você tem Pokémon! Bora jogar! | My bugs are hungry for goals! | Hey! You have Pokémon! Let's play! |
+| `match.leaders.bugcatcher.pre` | Meus insetos estão com fome de gol! | Ei, você tem Pokémon! Meus insetos tão com fome de gol! | My bugs are hungry for goals! | Hey! You have Pokémon! Let's play! |
 | `match.leaders.bugcatcher.win` | Viu só? Inseto pequeno pica forte! | Viu? Inseto também faz gol! | See? Small bugs sting hard! | See? Bugs score too! |
 | `match.leaders.bugcatcher.lose` | Ah, não! Volto pra floresta treinar mais. | Ah, não! Volto pra floresta treinar. | Oh no! Back to the forest to train. | Oh no! Back to the forest to train. |
 | `match.leaders.hiker.pre` | Já subi o Mt. Moon três vezes. Você é só mais uma pedra. | Hahaha! Quero ver você jogar, pequeno! | I've climbed Mt. Moon three times. You're just another rock. | Hahaha! Let's see how you play, kid! |

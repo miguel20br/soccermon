@@ -223,7 +223,7 @@ export const match: typeof pt = {
         // times da Rota (classes de treinador de Kanto, docs/planos/campeonato.md)
         bugcatcher: {
             name: 'Bug Catcher',
-            pre: "Hey! You have Pokémon! Let's play!",
+            pre: 'Hey! You have Pokémon! My bugs are hungry for goals!',
             win: 'See? Bugs score too!',
             lose: 'Oh no! Back to the forest to train.',
         },
