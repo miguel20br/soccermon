@@ -35,9 +35,16 @@ Pedido do Miguel: "dar a possibilidade de fazer um modo MD3 no x1 também, com o
 
 - **Caiu no meio da série:** igual a hoje dentro do jogo (espera, W.O. pelo botão depois de 1 minuto). **W.O. encerra
   a série** a favor de quem ficou.
-- **Partida anulada** (as telas se separaram): a série inteira fica anulada (não dá pra confiar no placar).
-- **Saiu entre um jogo e outro:** "Próximo jogo" fica desligado com o rival fora (como a revanche). Na Escalação do
-  jogo seguinte vale a espera de sempre (quem não lacra no tempo fica com o time do jogo anterior).
+- **Partida anulada** (as telas se separaram) **é jogada de novo** (decidido pelo Miguel em 21/10): só aquele jogo,
+  com o mesmo placar da série e lacres novos (outra seed). O resultado mostra "Jogo 2 anulado: ele vale de novo" e o
+  botão **Jogar de novo**; o anulado fica em `series` mas não conta em nada (`seriesOf().played`), e o quadro da série
+  avisa "1 jogo anulado e jogado de novo". Na sala de 1 jogo a anulada continua anulada, como hoje.
+- **Saiu entre um jogo e outro = W.O. da série** (Miguel, 21/10): quem ficou toca "Próximo jogo" (o botão fica ligado
+  mesmo com o rival fora) e a espera de sempre começa (`blocker`: trava quem não pediu o próximo jogo depois que o
+  outro pediu). Depois de 1 minuto aparece "Encerrar com vitória por W.O."; o jogo que acabou vai pra `series`, o
+  `result` vira o W.O. e quem ficou vê a tela de vitória por W.O. com o quadro da série. Na Escalação do jogo seguinte
+  vale a espera de sempre (quem não lacra no tempo fica com o time do jogo anterior). O host que volta aceita esse W.O.
+  do convidado só depois da espera (`acceptTakeover`, mesma regra do W.O. no meio do jogo).
 - **Recarregou / versão nova no meio:** o próximo jogo exige os dois lacres e a mesma versão; sem isso volta pro lobby
   (série perdida, como a revanche de versão antiga).
 - **Revanche** depois da série decidida: série nova, mesmo formato.
@@ -47,6 +54,8 @@ Pedido do Miguel: "dar a possibilidade de fazer um modo MD3 no x1 também, com o
 - A série é **um duelo** no histórico (`DuelRecord` com `bestOf: 3`, placar = vitórias na série e `games` = o placar
   de cada jogo, o seu lado primeiro). Vitória na série conta 1 em `duelWins`, medalha Duelista, cinturões da Sala de
   troféus e retrospecto (`headToHead`). Registro antigo continua igual (campos opcionais).
+- O W.O. entre jogos fecha a série no mesmo jogo da sala: o histórico grava uma vez por série (`duelo-<nº>` no
+  `recorded` da sala) e o efeito roda de novo quando o `wo` chega.
 - A Pokédex conta **cada jogo** (`recordDuelDex` no fim de cada um).
 - Estatísticas: o Duelo não manda evento hoje; nada novo.
 
@@ -54,4 +63,6 @@ Pedido do Miguel: "dar a possibilidade de fazer um modo MD3 no x1 também, com o
 
 1 jogo igual a hoje; 2 x 0 acaba no jogo 2; 1 x 1 vai pro jogo 3; seed base e lacres diferentes por jogo e o mesmo
 estado nos dois lados; times de volta ao de antes da série; mudança da Escalação entre jogos vale; jogo não começa sem
-os dois confirmarem; W.O. encerra a série; volta do host no próximo jogo.
+os dois confirmarem; W.O. no meio do jogo encerra a série; jogo anulado é jogado de novo e a série segue; sair entre
+um jogo e outro é W.O. da série (espera de 1 minuto, botão de quem ficou); volta do host no próximo jogo e no W.O.
+entre jogos.

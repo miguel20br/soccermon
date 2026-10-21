@@ -35,6 +35,9 @@ export const duel = {
         draw: 'Série empatada',
         voided: 'Série anulada',
         rematch: 'Nova série',
+        replay: 'Jogo {n} anulado (as telas se separaram): ele vale de novo',
+        replayBtn: 'Jogar de novo',
+        replayed: '{n} jogo anulado e jogado de novo|{n} jogos anulados e jogados de novo',
     },
     modes: {
         ready: ['Meu time', 'Cada um entra com o time da copa ou um campeão do Hall.'],

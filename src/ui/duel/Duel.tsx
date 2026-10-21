@@ -591,7 +591,7 @@ function WaitBanner({ s, role }: { s: Shared; role: Role }) {
 
 /** Melhor de 3: placar da série e o de cada jogo (o seu lado primeiro). */
 function SeriesBox({ s, role }: { s: Shared; role: Role }) {
-    const { t, d } = useT();
+    const { t, tn, d } = useT();
     const v = seriesOf(s);
     if (v.bestOf === 1) return null;
     const mine = (p: [number, number]) => (role === 'host' ? p : [p[1], p[0]]);
@@ -604,7 +604,7 @@ function SeriesBox({ s, role }: { s: Shared; role: Role }) {
                 </b>
             </h2>
             {[1, 2, 3].slice(0, v.bestOf).map((n) => {
-                const g = v.games[n - 1];
+                const g = v.played[n - 1];
                 const res = !g ? '' : g.desync ? 'void' : g.winner === role ? 'win' : g.winner ? 'loss' : 'draw';
                 const [a, b] = g ? mine(g.score) : [0, 0];
                 const pens = g?.shootout ? mine(g.shootout) : null;
@@ -631,6 +631,11 @@ function SeriesBox({ s, role }: { s: Shared; role: Role }) {
                     </div>
                 );
             })}
+            {v.games.length > v.played.length && (
+                <p className="muted small" data-testid="duel-series-replayed">
+                    {tn('duel.series.replayed', v.games.length - v.played.length)}
+                </p>
+            )}
         </div>
     );
 }
@@ -679,21 +684,23 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
               ? t('duel.series.lost', { name: rival })
               : t('duel.series.draw');
     const head =
-        md3 && !r.wo && !r.desync
-            ? nextUp
-                ? gameHead
-                : seriesHead
-            : r.desync
-              ? t('duel.result.desync')
-              : r.wo
-                ? r.winner === role
-                    ? t('duel.result.wo', { name: rival })
-                    : t('duel.result.woLost')
-                : r.winner === role
-                  ? t('duel.result.won')
-                  : r.winner
-                    ? t('duel.result.lost', { name: rival })
-                    : t('duel.result.draw');
+        md3 && r.desync && nextUp
+            ? t('duel.series.replay', { n: series.game })
+            : md3 && !r.wo && !r.desync
+              ? nextUp
+                  ? gameHead
+                  : seriesHead
+              : r.desync
+                ? t('duel.result.desync')
+                : r.wo
+                  ? r.winner === role
+                      ? t('duel.result.wo', { name: rival })
+                      : t('duel.result.woLost')
+                  : r.winner === role
+                    ? t('duel.result.won')
+                    : r.winner
+                      ? t('duel.result.lost', { name: rival })
+                      : t('duel.result.draw');
     const actions = (
         <div className="row duel-share">
             {rivalGone && (
@@ -705,15 +712,18 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
                 type="button"
                 className="btn primary big"
                 data-testid="duel-rematch"
-                disabled={s.rematch[role] || rivalGone}
+                // na série, quem ficou pede o próximo jogo mesmo com o rival fora: a espera do W.O. começa aí
+                disabled={s.rematch[role] || (rivalGone && !nextUp)}
                 onClick={() => {
                     playSfx('select');
                     void duel.rematch();
                 }}
             >
-                {rivalGone || (!s.rematch[role] && !s.rematch[other(role)])
+                {(rivalGone && !nextUp) || (!s.rematch[role] && (!s.rematch[other(role)] || rivalGone))
                     ? nextUp
-                        ? t('duel.series.next')
+                        ? r.desync
+                            ? t('duel.series.replayBtn')
+                            : t('duel.series.next')
                         : md3
                           ? t('duel.series.rematch')
                           : t('duel.result.rematch')
@@ -843,13 +853,12 @@ export function Duel() {
     // biome-ignore lint/correctness/useExhaustiveDependencies: grava quando a partida da sala termina
     useEffect(() => {
         if (!s?.result || !role || s.phase !== 'done') return;
-        if (!duel.markRecorded(s.game)) return;
         const mine = SIDE[role];
         const r = s.result;
         // Pokédex: quem jogou pelo seu lado vira "jogou", em cada jogo da série (partida anulada ou W.O. não conta)
-        if (duel.result && !r.desync && !r.wo) recordDuelDex(duel.result, mine);
+        if (duel.markRecorded(s.game) && duel.result && !r.desync && !r.wo) recordDuelDex(duel.result, mine);
         // histórico: o jogo; no melhor de 3, a série inteira quando ela acaba (uma série = um duelo)
-        if (!seriesOf(s).over) return;
+        if (!seriesOf(s).over || !duel.markRecorded(`duelo-${s.game}`)) return;
         const rival = s.peers[other(role)];
         const secret = duel.topOf(s.game);
         const top = secret ? { side: mine, top: secret } : undefined;
@@ -866,7 +875,8 @@ export function Duel() {
             registro:
                 s.teams.host && s.teams.guest ? buildRegistro(s, ENGINE_VERSION, __APP_VERSION__, top) : undefined,
         });
-    }, [s?.phase, s?.game, role]);
+        // o W.O. da série entre um jogo e outro chega no mesmo jogo (por isso o `wo` nas dependências)
+    }, [s?.phase, s?.game, s?.result?.wo, role]);
 
     const home = () => {
         duel.leave(s?.phase === 'done');
