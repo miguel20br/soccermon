@@ -4,8 +4,11 @@ Este arquivo leva para qualquer aparelho (PC, celular, nuvem) o que o Claude pre
 Miguel, o dono. As preferências abaixo valem em toda sessão.
 
 Planos para o futuro: [docs/planos/roadmap.md](docs/planos/roadmap.md). Cópia das memórias do Claude feitas
-no PC (preferências e decisões, com o porquê de cada uma): [docs/memoria/](docs/memoria/). Ao aprender uma
-preferência nova do Miguel em outro aparelho, registre aqui no CLAUDE.md para ela valer em todos.
+no PC (preferências e decisões, com o porquê de cada uma): [docs/memoria/](docs/memoria/), atualizada por
+`scripts/memoria.sh` (no PC, antes de lançar; recusa memória com e-mail). Ao aprender uma preferência nova do Miguel
+em outro aparelho, registre aqui no CLAUDE.md para ela valer em todos. `scripts/docs.test.ts` falha se o CLAUDE.md
+passar de 16 KB, se o "Estado atual" não for a versão do `package.json`, se uma skill faltar na tabela ou se o índice
+de `docs/memoria` não bater com os arquivos.
 
 ## Aviso (15/10/2026): histórico reescrito
 
@@ -81,7 +84,7 @@ respondendo). Repo: github.com/miguel20br/soccermon.
 npm run lint     # Biome
 npm test         # Vitest (~1 min; o teste de evolução é o mais lento)
 npm run build    # tsc + Vite
-npm run calibrate -- --n 400 [--formations|--tactics]   # equilíbrio headless
+npm run calibrate -- --n 200 [--formations|--tactics]   # equilíbrio headless (n 400 só no número final)
 npm run stats [-- --dias 7 | --md]   # placar do jogo no ar
 npm run fonts    # refaz o subset das Galmuri (public/fonts) quando o teste das fontes acusar caractere novo
 ```
@@ -114,7 +117,7 @@ Leia a skill antes de começar a tarefa dela:
 | `soccermon-assets` | vídeo, logo, imagem e texto de divulgação |
 | `soccermon-social` | redes do jogo: pauta da semana, clipes, agendar no TikTok/Instagram/Shorts, comentários, placar |
 | `soccermon-marca` | antes de mexer em qualquer visual, ícone, texto de interface ou asset: checklist de padronização (brand guide em `docs/marca/`) |
-| `soccermon-musica` | compor e mexer na trilha sonora |
+| `supabase` | qualquer coisa de Supabase (banco, Auth, Edge Functions, Realtime, migrações) |
 
 ## Regras de velocidade (19/10/2026, `docs/planos/pesquisas/velocidade.md`)
 
