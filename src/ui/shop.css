@@ -425,3 +425,30 @@ button.sp-slot:hover {
         opacity: 0;
     }
 }
+
+/* não dá pra comprar (falta ₽, já está no time): a carta apaga e o botão leva o cadeado */
+.shop-offer.cant > :not(.btn) {
+    opacity: 0.55;
+    filter: saturate(0.4);
+}
+
+/* pacote aberto: o seu time do lado (PC) ou embaixo (celular), pra comparar antes de escolher */
+.shop-pack-team {
+    margin-top: 12px;
+}
+@media (min-width: 1000px) {
+    .shop-pack:has(> .shop-pack-team) {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+        column-gap: 16px;
+        align-items: start;
+    }
+    .shop-pack > :not(.shop-pack-team) {
+        grid-column: 1;
+    }
+    .shop-pack > .shop-pack-team {
+        grid-column: 2;
+        grid-row: 1 / span 3;
+        margin: 0;
+    }
+}
