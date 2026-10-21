@@ -10,6 +10,11 @@ export const match = {
     penalties: 'Pênaltis {a} x {b}',
     fulltime: 'Fim de jogo',
     clock: "{min}' · {half}",
+    /** Acréscimos no placar. */
+    added: "+{min}'",
+    /** Pressão final: quem perde nos últimos minutos vai pra cima (a mesma regra pros dois times). */
+    finalPressure: 'Pressão final',
+    finalPressureHint: 'Quem perde nos últimos 3 minutos ataca com tudo (vale pros dois times)',
     half: ['1º tempo', '2º tempo'],
     subPending: 'Troca marcada: {in} entra no lugar de {out} quando a bola parar',
     /** No intervalo a troca entra na volta do 2º tempo. */

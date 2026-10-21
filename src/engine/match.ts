@@ -12,7 +12,7 @@ import type { Command } from './commands';
 import { type MatchConfig, segmentTicks } from './config';
 import { MOVES, species, type TypeName } from './data';
 import { dpow } from './dmath';
-import { compressed, eff, fatigueFactor, isIncapacitated, TACTIC_MODS } from './effective';
+import { compressed, eff, fatigueFactor, finalPressureTeam, isIncapacitated, TACTIC_MODS } from './effective';
 import { evolutionTarget, evolveInstance, evoNeeded, evoProgress, evoScore } from './evolution';
 import { FORMATIONS, formationOf } from './formations';
 import type { PokemonInstance } from './instance';
@@ -107,9 +107,10 @@ const typesOf = (p: PlayerState): readonly TypeName[] => p.fx.typeCopy?.types ??
 /** Fora do alcance de todo mundo (voando com Fly ou cavando com Dig). */
 const hidden = (p: PlayerState) => p.fx.air !== null;
 
+/** Minuto do relógio exibido (0–40 no futsal): nos acréscimos ele fica parado no fim do tempo (20' ou 40'). */
 export function minuteOf(s: MatchState): number {
     const perHalf = s.cfg.displayHalfMinutes;
-    return (s.half - 1) * perHalf + (s.time / s.cfg.halfSeconds) * perHalf;
+    return (s.half - 1) * perHalf + (Math.min(s.time, s.cfg.halfSeconds) / s.cfg.halfSeconds) * perHalf;
 }
 
 // ---------------------------------------------------------------- criação
@@ -239,6 +240,8 @@ export function createMatch(
         tick: 0,
         half: 1,
         time: 0,
+        added: null,
+        pressure: null,
         phase: 'kickoff',
         phaseTimer: 1,
         kickoffTeam: 0,
@@ -536,14 +539,36 @@ export function step(s: MatchState, commands: (Command | Command[])[]) {
     if (s.ball.owner !== null) s.teams[s.players[s.ball.owner].team].possessionTicks++;
 
     s.time += dt;
-    if (s.time >= s.cfg.halfSeconds && s.phase === 'play') endHalf(s);
+    if (s.phase === 'play') updateClock(s);
     enterSegment(s);
+}
+
+/**
+ * Fim do tempo normal: sorteia os acréscimos (`cfg.stoppage`, no `rng` da partida) e apita quando eles acabam. No
+ * fim do 2º tempo, quem perde entra na Pressão final (`finalPressureTeam`).
+ */
+function updateClock(s: MatchState) {
+    const cfg = s.cfg;
+    if (s.added === null && s.time >= cfg.halfSeconds) {
+        s.added = cfg.stoppage ? s.rng.int(cfg.stoppage.min, cfg.stoppage.max) : 0;
+        if (s.added > 0) emit(s, { type: 'stoppage', minutes: s.added });
+    }
+    if (s.added !== null && s.time >= cfg.halfSeconds + (s.added * cfg.halfSeconds) / cfg.displayHalfMinutes) {
+        endHalf(s);
+        return;
+    }
+    const press = finalPressureTeam(s);
+    if (press !== s.pressure) {
+        s.pressure = press;
+        emit(s, { type: 'pressure', team: press });
+    }
 }
 
 /** Trecho do relógio de jogo em que a partida está (0–19 no tempo normal; 20 = pênaltis). */
 export function segmentOf(s: MatchState): number {
     const halfTicks = Math.round(s.cfg.halfSeconds * s.cfg.tickRate);
-    const played = (s.half - 1) * halfTicks + Math.round(s.time * s.cfg.tickRate);
+    // acréscimos: o relógio parou no fim do tempo, o trecho também (o mesmo `floor(minute / 2)` da tela)
+    const played = (s.half - 1) * halfTicks + Math.min(halfTicks, Math.round(s.time * s.cfg.tickRate));
     return Math.floor(played / segmentTicks(s.cfg));
 }
 
@@ -581,6 +606,7 @@ function updatePhase(s: MatchState, dt: number, commands: (Command | Command[])[
     } else if (s.phase === 'halftime' && s.phaseTimer <= 0) {
         s.half = 2;
         s.time = 0;
+        s.added = null;
         setupKickoff(s, 1);
     }
     void commands;
