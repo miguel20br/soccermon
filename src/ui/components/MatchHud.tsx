@@ -491,8 +491,8 @@ export function TacticControls({
     onTactic: (t: Tactic) => void;
     onCorner: (c: CornerPlan) => void;
     canSub: boolean;
-    /** Leva pra prancheta (a troca é tocando em quem sai e em quem entra). */
-    onSub: () => void;
+    /** Leva pra prancheta (a troca é tocando em quem sai e em quem entra). Sem = sem botão (no intervalo o painel já tem). */
+    onSub?: () => void;
     tired?: TiredHint | null;
 }) {
     const { t, d } = useT();
@@ -571,16 +571,18 @@ export function TacticControls({
                     </button>
                 ))}
             </div>
-            <button type="button" className="bc-subbtn" disabled={!canSub} onClick={onSub}>
-                <HudIcon kind="sub" />
-                <b>{t('match.substitute')}</b>
-                {tired && (
-                    <span className="bc-warn">
-                        {t('match.coach.tired', { name: tired.name, p: Math.round(tired.energy * 100) })}
-                        <img className="pixel" src={tired.sprite} alt="" />
-                    </span>
-                )}
-            </button>
+            {onSub && (
+                <button type="button" className="bc-subbtn" disabled={!canSub} onClick={onSub}>
+                    <HudIcon kind="sub" />
+                    <b>{t('match.substitute')}</b>
+                    {tired && (
+                        <span className="bc-warn">
+                            {t('match.coach.tired', { name: tired.name, p: Math.round(tired.energy * 100) })}
+                            <img className="pixel" src={tired.sprite} alt="" />
+                        </span>
+                    )}
+                </button>
+            )}
         </div>
     );
 }

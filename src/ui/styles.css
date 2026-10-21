@@ -101,6 +101,9 @@ img.pixel {
     width: auto;
     height: 30px;
 }
+.brand .brand-symbol {
+    display: none;
+}
 
 /* ---------- painéis e botões ---------- */
 .panel {
@@ -743,7 +746,8 @@ img.pixel {
 }
 .tp-row {
     display: grid;
-    grid-template-columns: 30px minmax(0, 1fr) 52px 18px 18px 38px;
+    /* o nome (e a posição embaixo) tem prioridade sobre a barra de fôlego; colunas iguais em toda linha (alinhadas) */
+    grid-template-columns: 30px minmax(72px, 1.4fr) minmax(28px, 1fr) 18px 18px 38px;
     align-items: center;
     gap: 6px;
     width: 100%;
@@ -864,7 +868,7 @@ img.pixel {
 }
 @media (min-width: 1051px) {
     .tp-row {
-        grid-template-columns: 34px minmax(0, 1fr) 160px 26px 26px 46px;
+        grid-template-columns: 34px minmax(84px, 1.2fr) minmax(36px, 1fr) 26px 26px 46px;
     }
 }
 

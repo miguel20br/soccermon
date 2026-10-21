@@ -176,7 +176,9 @@ export default function App() {
                         }
                         aria-label={t('common.ui.backHome')}
                     >
-                        <img src="assets/ui/logo.svg" alt="" width="1441" height="300" />
+                        <img className="brand-logo" src="assets/ui/logo.svg" alt="" width="1441" height="300" />
+                        {/* na partida o logo inteiro ficava ilegível (~40 px): lá vai o símbolo, no mínimo de 24 px do guia */}
+                        <img className="brand-symbol" src="assets/ui/simbolo.svg" alt="" width="28" height="28" />
                     </button>
                     {/* telas de menu: Configurações e Perfil no canto, como na Home (na partida e no draft, não) */}
                     {MENU_SCREENS.includes(screen) && <TopActions />}
