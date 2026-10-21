@@ -517,6 +517,22 @@
     animation-play-state: paused;
 }
 
+/* holo parado nas figurinhas: só a do ponteiro ou do foco brilha. Com o álbum cheio eram ~90 brilhos animando
+   (background-position, que repinta) e a página inteira repintava a cada quadro, inclusive girando a folha.
+   !important: as camadas da carta usam o atalho `animation`, que volta o play-state pra running. */
+.al-page .pc2,
+.al-page .pc2 *,
+.al-page .pc2 *::before,
+.al-page .pc2 *::after {
+    animation-play-state: paused !important;
+}
+.al-slot:is(:hover, :focus-visible) .pc2,
+.al-slot:is(:hover, :focus-visible) .pc2 *,
+.al-slot:is(:hover, :focus-visible) .pc2 *::before,
+.al-slot:is(:hover, :focus-visible) .pc2 *::after {
+    animation-play-state: running !important;
+}
+
 /* mais de uma versão: as outras ficam atrás da da frente, como cartas empilhadas */
 .al-stk.behind {
     z-index: 0;

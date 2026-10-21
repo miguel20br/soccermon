@@ -208,6 +208,14 @@ export function AlbumView({
     };
 
     const [page, setPage] = useState(() => (at ? Math.floor((at.id - 1) / per) : 0));
+    const [warm, setWarm] = useState(false);
+    useEffect(() => {
+        if (book !== 'open') return setWarm(false);
+        const idle = window.requestIdleCallback ?? ((f: () => void) => window.setTimeout(f, 300));
+        const stop = window.cancelIdleCallback ?? window.clearTimeout;
+        const id = idle(() => setWarm(true), { timeout: 800 });
+        return () => stop(id);
+    }, [book]);
     const [dir, setDir] = useState<'next' | 'prev' | ''>('');
     const [found, setFound] = useState<number | null>(null);
     const { fresh, done, again } = useFresh();
@@ -420,6 +428,8 @@ export function AlbumView({
     /** As páginas vizinhas já ficam desenhadas (invisíveis): virar é só a animação, sem esperar desenhar. */
     const live = (list: Sheet[]): Sheet[] => {
         const have = list.filter(onBook);
+        // ao abrir, só as páginas à vista: as vizinhas vêm quando o navegador folga (abrir desenhava o triplo)
+        if (!warm) return have;
         // vizinhas da página de antes enquanto a folha vira (as novas só depois que ela assenta: nada novo no meio)
         const at = leaf ? leaf.from : cur;
         const near = step === 2 ? [at - 2, at - 1, at + 2, at + 3] : [at - 1, at + 1];
@@ -681,7 +691,8 @@ const AlbumSlot = memo(function AlbumSlot({
                             className="al-stk behind"
                             style={{ '--rot': `${tilt(sp.id)}deg`, '--k': behind.length - k } as CSSProperties}
                         >
-                            <PokeCard2 inst={x.inst} variant="metal" />
+                            {/* só a beirada aparece: a moldura basta (a carta inteira custava ~90 nós cada) */}
+                            <PokeCard2 inst={x.inst} variant="metal" bare />
                         </span>
                     ))}
                     {top && (

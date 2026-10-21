@@ -1880,10 +1880,13 @@ button.pc2.pc2-fx:hover {
     }
 }
 
-/* cartas fora da tela: pausa as animações de fundo */
+/* cartas fora da tela: pausa as animações de fundo (!important: as camadas usam o atalho `animation`, que volta o
+   play-state pra running e ganhava desta regra) */
 .pc2.pc2-offscreen,
-.pc2.pc2-offscreen * {
-    animation-play-state: paused;
+.pc2.pc2-offscreen *,
+.pc2.pc2-offscreen *::before,
+.pc2.pc2-offscreen *::after {
+    animation-play-state: paused !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

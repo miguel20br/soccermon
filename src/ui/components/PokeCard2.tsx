@@ -1,4 +1,4 @@
-import { type CSSProperties, useRef } from 'react';
+import { type CSSProperties, memo, useRef } from 'react';
 import { type AttrKey, computeAttributes, type Position } from '../../engine/attributes';
 import { MOVES, SPECIES, type Tier } from '../../engine/data';
 import { evolvedRating } from '../../engine/evolution';
@@ -84,6 +84,11 @@ interface PokeCard2Props {
     seal?: { kind: CareerSeal; tip: string };
     /** Dicas dos selos entram no Tab (fora de botão; a carta clicável já diz a edição no aria-label). */
     tipFocus?: boolean;
+    /**
+     * Só a moldura (fundo do metal/edição, sem o miolo nem o brilho): a carta de trás da pilha no álbum, que mostra
+     * só a beirada. Uma carta inteira são ~90 nós; o álbum cheio tinha 2 delas escondidas atrás de cada figurinha.
+     */
+    bare?: boolean;
 }
 
 /**
@@ -144,7 +149,8 @@ function cardData(inst: PokemonInstance, tr: Translator, position?: Position) {
 type Data = ReturnType<typeof cardData>;
 type VariantProps = { inst: PokemonInstance; d: Data; captain?: boolean };
 
-export function PokeCard2({
+/** memo: a mesma carta (mesmo `inst`) não refaz as contas de atributo a cada desenho da tela de fora. */
+export const PokeCard2 = memo(function PokeCard2({
     inst,
     variant,
     position,
@@ -156,6 +162,7 @@ export function PokeCard2({
     size,
     seal,
     tipFocus,
+    bare,
 }: PokeCard2Props) {
     const tr = useT();
     const d = cardData(inst, tr, position);
@@ -184,7 +191,7 @@ export function PokeCard2({
                         : 'holo'
                   : null;
     const ref = useRef<HTMLElement | null>(null);
-    useHoloPointer(ref, { enabled: fin !== null, maxTilt: showcase ? 14 : 10 });
+    useHoloPointer(ref, { enabled: fin !== null && !bare, maxTilt: showcase ? 14 : 10 });
     const classes = ['pc2', holo ? 'pc2-holo' : fig ? 'pc2-fig' : `pc2-${variant}`, `tier-${d.sp.tier}`];
     if (size) classes.push(`size-${size}`);
     if (metal) {
@@ -208,6 +215,12 @@ export function PokeCard2({
     if (holo) classes.push(`holo-${d.sp.types[0].toLowerCase()}`);
     if (weak) classes.push('is-weak');
     if (showcase) classes.push('pc2-showcase');
+    if (bare) {
+        const frame = classes.filter((c) => c !== 'pc2-fx' && !c.startsWith('fin-'));
+        return (
+            <div className={`${frame.join(' ')} pc2-bare`} style={metalStyle(inst, d, metal, edition)} aria-hidden />
+        );
+    }
     const label = tr.t('team.card.ariaFull', {
         name: d.view.displayName,
         rating: d.display,
@@ -216,11 +229,7 @@ export function PokeCard2({
         edition: edition ? tr.t('team.card.editionAria', { label: tr.d.common.edition[edition] }) : '',
         evo: d.evo ? tr.t('team.card.evoAria', { name: SPECIES[d.evo.into - 1].name, r: d.evo.rating }) : '',
     });
-    // Evento: a cor é a do tipo do evento (não a do 1º tipo do Pokémon)
-    const style =
-        metal && edition === 'evento'
-            ? ({ ...d.style, '--t1': TYPE_COLOR[inst.special?.type ?? ''] ?? '#888' } as CSSProperties)
-            : d.style;
+    const style = metalStyle(inst, d, metal, edition);
     const base = metal ? (
         <Metal
             inst={inst}
@@ -278,7 +287,13 @@ export function PokeCard2({
             {body}
         </div>
     );
-}
+});
+
+/** Evento: a cor é a do tipo do evento (não a do 1º tipo do Pokémon). */
+const metalStyle = (inst: PokemonInstance, d: Data, metal: boolean, edition: Edition | null) =>
+    metal && edition === 'evento'
+        ? ({ ...d.style, '--t1': TYPE_COLOR[inst.special?.type ?? ''] ?? '#888' } as CSSProperties)
+        : d.style;
 
 function Types({ types, tr }: { types: string[]; tr: Translator }) {
     return (
