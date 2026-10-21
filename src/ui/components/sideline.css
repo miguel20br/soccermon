@@ -325,6 +325,27 @@
 .sl-pens small {
     color: var(--muted);
 }
+/* tocar em um e depois em outro troca os dois */
+.sl-pen-who {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    min-height: 36px;
+    padding: 0 4px;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.2s var(--ease-out);
+}
+.sl-pen-who.on {
+    border-color: var(--yellow);
+}
 .sl-pen-n {
     width: 18px;
     color: var(--yellow);

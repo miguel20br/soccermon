@@ -141,7 +141,7 @@ export const match: typeof pt = {
         },
         pens: {
             title: 'Penalty order',
-            hint: 'Who shoots first? Use the arrows to change it.',
+            hint: 'Who shoots first? Tap two to swap them.',
             confirm: 'Confirm order',
             keep: 'Keep shooting order',
             up: 'Move {name} up',

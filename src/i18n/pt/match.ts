@@ -152,7 +152,7 @@ export const match = {
         },
         pens: {
             title: 'Ordem dos pênaltis',
-            hint: 'Quem bate primeiro? Use as setas pra mudar.',
+            hint: 'Quem bate primeiro? Toque em dois pra trocar de lugar.',
             confirm: 'Confirmar ordem',
             keep: 'Pela ordem do chute',
             up: 'Subir {name}',

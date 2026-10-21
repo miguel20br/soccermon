@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, useLayoutEffect, useRef } from 'react';
+import { type CSSProperties, type ReactNode, useRef } from 'react';
 import { species } from '../../engine/data';
 import { EVO_THRESHOLD } from '../../engine/evolution';
 import { type FormationId, formationOf } from '../../engine/formations';
@@ -10,7 +10,7 @@ import { useT } from '../../i18n/react';
 import type { SlotRef } from '../../store/game-store';
 import { editionLabel, finishOf, METAL, metalOf } from '../rarity';
 import { ratingAt } from '../rating';
-import { reduceMotionOn } from '../reduce-motion';
+import { useSwapMotion } from '../swap-motion';
 import { TYPE_COLOR } from '../type-colors';
 import { HudIcon } from './MatchHud';
 import { cardSprite } from './PokeCard';
@@ -69,37 +69,7 @@ export function FormationBoard({
     const { t, d } = useT();
     // nada teleporta: quem muda de vaga (troca, substituição) desliza do lugar antigo pro novo
     const boardRef = useRef<HTMLDivElement>(null);
-    const lastRects = useRef(new Map<string, { left: number; top: number }>());
-    const seat = `${formation}|${lineup.join()}|${bench.join()}|${horizontal}`;
-    // biome-ignore lint/correctness/useExhaustiveDependencies: mede de novo só quando alguém muda de vaga
-    useLayoutEffect(() => {
-        const measure = (animate: boolean) => {
-            const rects = new Map<string, { left: number; top: number }>();
-            const box = boardRef.current?.getBoundingClientRect();
-            for (const el of boardRef.current?.querySelectorAll<HTMLElement>('[data-uid]') ?? []) {
-                // relativo à prancheta: rolar a página não conta como mudar de vaga
-                const b = el.getBoundingClientRect();
-                const r = { left: b.left - (box?.left ?? 0), top: b.top - (box?.top ?? 0) };
-                const was = lastRects.current.get(el.dataset.uid ?? '');
-                rects.set(el.dataset.uid ?? '', r);
-                if (!animate || !was || !el.animate || reduceMotionOn() || (was.left === r.left && was.top === r.top))
-                    continue;
-                el.animate(
-                    [
-                        // `translate` (não `transform`): a vaga já usa o transform pra se centralizar
-                        { translate: `${was.left - r.left}px ${was.top - r.top}px`, zIndex: 3 },
-                        { translate: '0 0', zIndex: 3 },
-                    ],
-                    { duration: 280, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
-                );
-            }
-            lastRects.current = rects;
-        };
-        measure(true);
-        // a troca de formação anda pelo CSS (left/top): mede de novo quando ela termina
-        const id = window.setTimeout(() => measure(false), 320);
-        return () => clearTimeout(id);
-    }, [seat]);
+    useSwapMotion(boardRef, `${formation}|${lineup.join()}|${bench.join()}|${horizontal}`, 320);
     const emptyLabel = emptyProp ?? t('team.board.empty');
     // sinergia especial completa (os 3 pássaros, os 3 iniciais, Mew + Mewtwo): as cartas brilham juntas
     const aura = new Map<string, string>();
