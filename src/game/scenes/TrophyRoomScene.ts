@@ -415,6 +415,9 @@ export class TrophyRoomScene extends Phaser.Scene {
                     if (d0 !== undefined) img.setDepth(d0 as number);
                 }
         const dur = reduce ? 0 : 320;
+        // toque rápido (tutorial, objeto atrás de objeto): sem o `force`, o Phaser ignora o zoom novo enquanto o anterior
+        // corre e a câmera fica presa aproximada
+        this.tweens.killTweensOf(this.dim);
         this.tweens.add({ targets: this.dim, fillAlpha: id ? 0.62 : 0, duration: dur, ease: 'Cubic.easeOut' });
         if (bounds) {
             const zoom = Phaser.Math.Clamp(
@@ -422,8 +425,8 @@ export class TrophyRoomScene extends Phaser.Scene {
                 1.2,
                 3,
             );
-            cam.pan(bounds.centerX, bounds.centerY, dur, 'Cubic.easeOut');
-            cam.zoomTo(zoom, dur, 'Cubic.easeOut');
+            cam.pan(bounds.centerX, bounds.centerY, dur, 'Cubic.easeOut', true);
+            cam.zoomTo(zoom, dur, 'Cubic.easeOut', true);
             // o Pokémon vai até lá olhar
             if (this.mon) {
                 this.tweens.killTweensOf(this.mon);
@@ -434,8 +437,8 @@ export class TrophyRoomScene extends Phaser.Scene {
                 );
             }
         } else {
-            cam.pan(ROOM_W / 2, ROOM_H / 2, dur, 'Cubic.easeOut');
-            cam.zoomTo(1, dur, 'Cubic.easeOut');
+            cam.pan(ROOM_W / 2, ROOM_H / 2, dur, 'Cubic.easeOut', true);
+            cam.zoomTo(1, dur, 'Cubic.easeOut', true);
             this.time.delayedCall(dur + 200, () => this.wander());
         }
     }
