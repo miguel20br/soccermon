@@ -221,7 +221,7 @@ export const cupSummary = (r: RunState | null | undefined): CupSummary | null =>
               status: r.status,
               stage: r.stage,
               draftRound: r.draftRound,
-              mode: r.mode,
+              ...(r.mode && { mode: r.mode }),
               played: r.results.length,
           }
         : null;
