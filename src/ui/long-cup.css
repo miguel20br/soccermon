@@ -716,3 +716,94 @@
 :root[data-reduce-motion="true"] .cm-event-emblem {
     animation: none;
 }
+
+/* ---------- fase de grupos no Planalto ---------- */
+.gp-table {
+    display: grid;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+}
+.gp-row {
+    display: grid;
+    grid-template-columns: 24px 1fr 36px 40px 40px;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+    font-variant-numeric: tabular-nums;
+    border-bottom: 1px solid var(--line);
+}
+.gp-row > :nth-child(n + 3) {
+    text-align: center;
+}
+.gp-head {
+    min-height: 26px;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.gp-row.up .gp-pos {
+    color: var(--green);
+}
+.gp-row.you {
+    color: var(--yellow);
+}
+.gp-team {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.gp-team i {
+    flex: none;
+    width: 6px;
+    height: 20px;
+    border-radius: 2px;
+    background: var(--tc);
+}
+.gp-note {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 11px;
+}
+.gp-days {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.gp-day {
+    display: grid;
+    gap: 4px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: var(--panel);
+    border: 2px solid var(--line);
+    font-size: 13px;
+}
+.gp-day.now {
+    border-color: var(--yellow);
+}
+.gp-day-tag {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.gp-game {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.gp-trainer {
+    width: 28px;
+    height: auto;
+    image-rendering: pixelated;
+}
+.gp-pen {
+    color: var(--muted);
+    font-size: 10px;
+}

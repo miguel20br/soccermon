@@ -4,9 +4,10 @@ import {
     buildCupMap,
     type CupMap,
     isMatchKind,
-    LONG_MATCHES,
     LONG_ROWS,
+    longGroup,
     longOpponent,
+    MAP_MATCHES,
     type MapNode,
     nextNodes,
     nodeById,
@@ -31,7 +32,7 @@ describe('mapa da Copa longa', () => {
         expect(buildCupMap('a')).not.toEqual(buildCupMap('b'));
     });
 
-    it('em 300 seeds: toda rota tem 8 partidas, termina na Final, com Baú e Treino antes dela', () => {
+    it('em 300 seeds: toda rota das eliminatórias tem 4 partidas, passa no Baú e termina no Treino', () => {
         for (let s = 0; s < 300; s++) {
             const map = buildCupMap(`seed-${s}`);
             expect(map.rows).toBe(LONG_ROWS);
@@ -39,9 +40,8 @@ describe('mapa da Copa longa', () => {
             expect(all.length).toBeGreaterThan(1);
             for (const p of all) {
                 expect(p).toHaveLength(LONG_ROWS);
-                expect(p.filter((n) => isMatchKind(n.kind))).toHaveLength(LONG_MATCHES);
-                expect(p.at(-1)!.kind).toBe('final');
-                expect(p.at(-2)!.kind).toBe('treino');
+                expect(p.filter((n) => isMatchKind(n.kind))).toHaveLength(MAP_MATCHES);
+                expect(p.at(-1)!.kind).toBe('treino');
                 expect(p.some((n) => n.kind === 'bau')).toBe(true);
             }
             // toda linha de parada tem Mercado e Evento à escolha
@@ -54,7 +54,7 @@ describe('mapa da Copa longa', () => {
             const reached = new Set(map.nodes.flatMap((n) => n.next));
             for (const n of map.nodes) {
                 if (n.row > 0) expect(reached.has(n.id)).toBe(true);
-                if (n.kind !== 'final') expect(n.next.length).toBeGreaterThan(0);
+                if (n.kind !== 'treino') expect(n.next.length).toBeGreaterThan(0);
             }
         }
     });
@@ -90,7 +90,8 @@ describe('rivais da Copa longa', () => {
     it('mesmo time na prévia e na partida; nunca repete o rival; Final é a Liga Índigo', () => {
         expect(longOpponent('s', 2, 'jogo', [])).toEqual(longOpponent('s', 2, 'jogo', []));
         const faced: string[] = [];
-        for (let m = 0; m < 7; m++) faced.push(longOpponent('s', m, m % 3 === 2 ? 'ginasio' : 'jogo', faced).name);
+        for (let m = 0; m < 4; m++) faced.push(longOpponent('s', m, m % 3 === 2 ? 'ginasio' : 'jogo', faced).name);
+        faced.push(...longGroup('s', faced).map((o) => o.name));
         expect(new Set(faced).size).toBe(7);
         expect(longOpponent('s', 7, 'final', faced).name).toBe('Liga Índigo');
         expect(ROUTE_TEAMS.map((t) => t.name)).toContain(longOpponent('s', 0, 'jogo', []).name);

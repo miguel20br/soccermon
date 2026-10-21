@@ -58,6 +58,7 @@ export function runDevDemo() {
         demo !== 'mercado' &&
         demo !== 'mapa' &&
         demo !== 'evento' &&
+        demo !== 'grupo' &&
         demo !== 'escanteio' &&
         demo !== 'conta' &&
         demo !== 'lider' &&
@@ -262,6 +263,23 @@ export function runDevDemo() {
         const run = useGame.getState().run!;
         const event = rollEvent({ ...run, eventsSeen: EVENT_IDS.filter((x) => x !== id) });
         useGame.setState({ run: { ...run, status: 'event', event }, screen: 'event' });
+        return;
+    }
+    // ?demo=grupo: Rota Índigo no Planalto, com a 1ª rodada do grupo jogada
+    if (demo === 'grupo') {
+        demoLongMap(store, false);
+        const run = useGame.getState().run!;
+        const last = run.map!.nodes.find((n) => n.row === run.map!.rows - 1)!;
+        const results = [0, 1, 2, 3, 4].map((stage) => ({
+            stage,
+            opponent: 'Montanhistas',
+            score: (stage === 4 ? [2, 2] : [3, 1]) as [number, number],
+            shootout: stage === 4 ? ([4, 3] as [number, number]) : null,
+            won: true,
+            final: false,
+        }));
+        useGame.setState({ run: { ...run, at: last.id, status: 'treino', results, stage: 4, money: 22 } });
+        useGame.getState().train('rest');
         return;
     }
     if (demo === 'mapa') {

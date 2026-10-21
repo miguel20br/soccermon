@@ -115,7 +115,11 @@ export function Home() {
     const resumeScreen =
         run && ['formation', 'captain', 'drafting'].includes(run.status)
             ? 'draft'
-            : run?.status === 'reward' || run?.status === 'shop' || run?.status === 'map' || run?.status === 'treino'
+            : run?.status === 'reward' ||
+                run?.status === 'shop' ||
+                run?.status === 'map' ||
+                run?.status === 'treino' ||
+                run?.status === 'group'
               ? run.status
               : 'lineup';
     const name = () => teamName.trim() || 'Pallet FC';
@@ -148,7 +152,7 @@ export function Home() {
               ? t('home.choosingReward')
               : run?.status === 'shop'
                 ? t('home.atMarket')
-                : run?.status === 'map' || run?.status === 'treino'
+                : run?.status === 'map' || run?.status === 'treino' || run?.status === 'group'
                   ? `${t('longCup.title')} · ${cupStageName(run, run.results.length)}`
                   : run
                     ? stageName(run.stage)

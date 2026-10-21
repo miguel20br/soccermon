@@ -37,6 +37,16 @@ export const longCup: typeof pt = {
     blocked: 'Road blocked',
     outStarter: '{name} is out: swap them with someone on the bench.',
     outBench: 'Out (matches): {names}.',
+    groupTag: 'Indigo Road · Group stage',
+    groupTable: 'Group',
+    colPlayed: 'P',
+    colGd: 'GD',
+    colPts: 'Pts',
+    groupNote: 'Top 2 go to the Final. Win 3, win on penalties 2, loss on penalties 1.',
+    matchday: 'Matchday {n}',
+    playMatchday: 'Play matchday {n}',
+    playFinal: 'Play the Final',
+    pens: '(pens)',
     backToMap: 'Back to the map',
     soonEvent: 'Events arrive in the next step: for now the path goes on.',
     region: {
@@ -50,7 +60,7 @@ export const longCup: typeof pt = {
     story: {
         rota1: {
             who: 'Prof. Oak',
-            text: 'Your club was invited to the Indigo League Cup! 8 matches to the Plateau. One yellow card is all you can take.',
+            text: 'The Indigo League Cup qualifiers have begun! 4 matches across Kanto to the Plateau. Then the group stage and the Final.',
         },
         floresta: { who: 'Blue', text: "You're heading to the Plateau too? Good. Now I have someone to leave behind." },
         mtmoon: {
@@ -61,8 +71,14 @@ export const longCup: typeof pt = {
             who: 'Misty',
             text: 'Saved some ₽? Everything costs more in Cerulean, but interest on your savings helps.',
         },
-        vitoria: { who: 'Blue', text: 'Still standing? Victory Road is your last chance to strengthen the team.' },
-        planalto: { who: 'Lance', text: 'Welcome to the Indigo Plateau. Show me what this team learned on the way.' },
+        vitoria: {
+            who: 'Blue',
+            text: 'Last stop before the Plateau. Only gym champions up there. See you in the group... if you make it.',
+        },
+        planalto: {
+            who: 'Lance',
+            text: 'Welcome to the Indigo Plateau group stage. The top 2 of the group play the Final against me.',
+        },
     },
     storyNext: 'Continue',
     events: {

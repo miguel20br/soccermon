@@ -35,6 +35,16 @@ export const longCup = {
     blocked: 'Caminho bloqueado',
     outStarter: '{name} está fora: troque ele de lugar com alguém do banco.',
     outBench: 'Fora (partidas): {names}.',
+    groupTag: 'Rota Índigo · Fase de grupos',
+    groupTable: 'Grupo',
+    colPlayed: 'J',
+    colGd: 'SG',
+    colPts: 'Pts',
+    groupNote: 'Os 2 primeiros vão pra Final. Vitória 3, vitória nos pênaltis 2, derrota nos pênaltis 1.',
+    matchday: 'Rodada {n}',
+    playMatchday: 'Jogar a rodada {n}',
+    playFinal: 'Jogar a Final',
+    pens: '(pên.)',
     backToMap: 'Voltar pro mapa',
     soonEvent: 'Os eventos chegam na próxima etapa: por enquanto o caminho segue.',
     /** Regiões do mapa, de baixo pra cima. */
@@ -50,7 +60,7 @@ export const longCup = {
     story: {
         rota1: {
             who: 'Prof. Carvalho',
-            text: 'Seu clube foi chamado pra Copa da Liga Índigo! São 8 jogos até o Planalto. Um cartão amarelo é tudo que dá pra levar.',
+            text: 'As eliminatórias da Copa da Liga Índigo começaram! São 4 jogos por Kanto até o Planalto. Lá, a fase de grupos e a Final.',
         },
         floresta: {
             who: 'Blue',
@@ -64,8 +74,14 @@ export const longCup = {
             who: 'Misty',
             text: 'Guardou ₽? Em Cerulean tudo é mais caro, mas os juros do que você guarda ajudam.',
         },
-        vitoria: { who: 'Blue', text: 'Ainda de pé? A Estrada da Vitória é a última chance de reforçar o time.' },
-        planalto: { who: 'Lance', text: 'Bem-vindo ao Planalto Índigo. Mostre o que esse time aprendeu no caminho.' },
+        vitoria: {
+            who: 'Blue',
+            text: 'Última parada antes do Planalto. Lá em cima só tem campeão de ginásio. Te espero no grupo... se você chegar.',
+        },
+        planalto: {
+            who: 'Lance',
+            text: 'Bem-vindo à fase de grupos do Planalto Índigo. Os 2 melhores do grupo jogam a Final contra mim.',
+        },
     },
     storyNext: 'Continuar',
     /** Eventos "?": quem fala (sprite em assets/trainers), o texto e cada escolha (rótulo e o que acontece). */

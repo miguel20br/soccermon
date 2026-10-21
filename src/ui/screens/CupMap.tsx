@@ -1,6 +1,8 @@
 import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
+    FINAL_MATCH,
+    GROUP_START,
     isMatchKind,
     longOpponent,
     type MapNode,
@@ -15,13 +17,14 @@ import { playSfx } from '../../game/audio';
 import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { cupLength, YELLOW_CARDS } from '../../store/long-cup';
+import { cupLength, groupOthers, groupTable, isGroupStage, YELLOW_CARDS } from '../../store/long-cup';
 import { choiceTargets, type EventId, eventChoices } from '../../store/long-events';
 import { FutCard } from '../components/FutCard';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { cardSprite } from '../components/PokeCard';
 import { Money, SponsorSlots } from '../components/SponsorCard';
+import { useClubColor } from '../profile/club';
 import { reduceMotionOn } from '../settings-sync';
 import { RoomDialog } from '../trophy/RoomDialog';
 import { useHeld } from '../use-held';
@@ -47,10 +50,9 @@ const ROW_H = 84;
 const REGIONS = [
     { id: 'rota1', rows: [0, 1], decor: 'bush', who: 'oak' },
     { id: 'floresta', rows: [2, 3], decor: 'tree', who: 'blue' },
-    { id: 'mtmoon', rows: [4, 6], decor: 'rock', who: 'brock' },
-    { id: 'cerulean', rows: [7, 8], decor: 'wave', who: 'misty' },
-    { id: 'vitoria', rows: [9, 11], decor: 'rock', who: 'blue' },
-    { id: 'planalto', rows: [12, 12], decor: 'pillar', who: 'lance' },
+    { id: 'mtmoon', rows: [4, 5], decor: 'rock', who: 'brock' },
+    { id: 'cerulean', rows: [6, 7], decor: 'wave', who: 'misty' },
+    { id: 'vitoria', rows: [8, 8], decor: 'pillar', who: 'blue' },
 ] as const;
 type DecorKind = (typeof REGIONS)[number]['decor'];
 /** Cenário de cada região nas bordas do mapa (árvore, pedra, onda, arbusto, coluna), desenhado em SVG. */
@@ -521,3 +523,113 @@ export function EventScreen() {
 
 /** "{a} e {b}" com os nomes dos envolvidos. */
 const fmtNames = (text: string, names: string[]) => text.replace('{a}', names[0] ?? '').replace('{b}', names[1] ?? '');
+
+/**
+ * Fase de grupos da Rota Índigo, no Planalto (docs/planos/campeonato.md): a tabela (os 2 primeiros vão pra Final), as
+ * 3 rodadas com o seu jogo e o dos outros, e o botão da próxima partida. A fala do Lance abre o Planalto.
+ */
+export function GroupScreen() {
+    const live = useGame((s) => s.run);
+    const playNext = useGame((s) => s.playNext);
+    const tell = useGame((s) => s.tell);
+    const go = useGame((s) => s.go);
+    const run = useHeld(live?.status === 'group' && live.group ? live : null);
+    const color = useClubColor();
+    const { t, d, lang } = useT();
+    if (!run?.group) return null;
+    const rows = groupTable(run, color);
+    const others = groupOthers(run.seed);
+    const played = run.results.filter((r) => isGroupStage(r.stage)).length;
+    const toFinal = run.results.length >= FINAL_MATCH;
+    const teamName = (i: number) => (i === 0 ? run.teamName : clubName(run.group!.rivals[i - 1].name, lang));
+    const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
+    const untold = !run.told?.includes('planalto');
+    return (
+        <div className="menu-screen cm">
+            <MenuHead
+                title={t('longCup.region.planalto')}
+                icon="liga"
+                tag={t('longCup.groupTag')}
+                onBack={() => go('home')}
+            />
+            <section className="gp-table bc-surface" aria-label={t('longCup.groupTable')}>
+                <div className="gp-row gp-head">
+                    <span />
+                    <span>{t('longCup.groupTable')}</span>
+                    <span>{t('longCup.colPlayed')}</span>
+                    <span>{t('longCup.colGd')}</span>
+                    <span>{t('longCup.colPts')}</span>
+                </div>
+                {rows.map((r, i) => (
+                    <div
+                        key={r.name}
+                        className={`gp-row${r.you ? ' you' : ''}${i < 2 ? ' up' : ''}`}
+                        style={{ '--tc': hex(r.color) } as CSSProperties}
+                    >
+                        <b className="gp-pos">{i + 1}</b>
+                        <span className="gp-team">
+                            <i />
+                            {r.you ? r.name : clubName(r.name, lang)}
+                        </span>
+                        <span>{r.played}</span>
+                        <span>{r.gf - r.ga > 0 ? `+${r.gf - r.ga}` : r.gf - r.ga}</span>
+                        <b>{r.pts}</b>
+                    </div>
+                ))}
+                <small className="gp-note">{t('longCup.groupNote')}</small>
+            </section>
+
+            <div className="gp-days">
+                {run.group.rivals.map((rival, md) => {
+                    const mine = run.results.find((x) => x.stage === GROUP_START + md);
+                    const o = others[md];
+                    const trainer = rivalTrainer(rival.name);
+                    return (
+                        <div key={rival.name} className={`gp-day${md === played && !toFinal ? ' now' : ''}`}>
+                            <span className="gp-day-tag">{t('longCup.matchday', { n: md + 1 })}</span>
+                            <span className="gp-game mine">
+                                {trainer && (
+                                    <img className="gp-trainer" src={`assets/trainers/${trainer}.png`} alt="" />
+                                )}
+                                {run.teamName} <b>{mine ? `${mine.score[0]} x ${mine.score[1]}` : 'x'}</b>
+                                {mine?.shootout && <small className="gp-pen">{t('longCup.pens')}</small>}{' '}
+                                {clubName(rival.name, lang)}
+                            </span>
+                            <span className="gp-game muted">
+                                {teamName(o.a)} <b>{mine ? `${o.score[0]} x ${o.score[1]}` : 'x'}</b>
+                                {mine && o.shootout && <small className="gp-pen">{t('longCup.pens')}</small>}{' '}
+                                {teamName(o.b)}
+                            </span>
+                        </div>
+                    );
+                })}
+            </div>
+
+            <div className="bc-thumbbar">
+                <button
+                    type="button"
+                    className="btn primary wide"
+                    onClick={() => {
+                        playSfx('select');
+                        playNext();
+                    }}
+                >
+                    {toFinal ? t('longCup.playFinal') : t('longCup.playMatchday', { n: played + 1 })}
+                    <HudIcon kind="next" />
+                </button>
+            </div>
+            {untold &&
+                createPortal(
+                    <div className="cm-story who-lance">
+                        <img className="cm-story-who" src="assets/trainers/lance.png" alt="" />
+                        <RoomDialog
+                            text={`${d.longCup.story.planalto.who}: ${d.longCup.story.planalto.text}`}
+                            action={{ label: t('longCup.storyNext'), run: () => tell('planalto') }}
+                            onClose={() => tell('planalto')}
+                        />
+                    </div>,
+                    document.body,
+                )}
+        </div>
+    );
+}

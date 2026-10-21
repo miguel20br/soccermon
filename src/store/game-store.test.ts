@@ -30,6 +30,7 @@ import {
     slotRole,
     useGame,
 } from './game-store';
+import { groupTable } from './long-cup';
 import { BANNER_COUNT, bannerOf, EDITION_BIT, EMPTY_ENTRY, recordMatchInDex } from './profile';
 
 describe('save', () => {
@@ -695,7 +696,7 @@ describe('Copa longa', () => {
     it('nasce com o mapa e sem rivais; o time pronto vai pro mapa', () => {
         const run = start('longa-mapa');
         expect(run.mode).toBe('longa');
-        expect(run.map?.rows).toBe(13);
+        expect(run.map?.rows).toBe(9);
         expect(run.opponents).toEqual([]);
         expect(run.status).toBe('map');
         expect(useGame.getState().screen).toBe('map');
@@ -764,5 +765,62 @@ describe('Copa longa', () => {
         useGame.getState().train('evo', evolver.uid);
         expect(useGame.getState().run!.status).toBe('map');
         expect(useGame.getState().run!.picks.find((p) => p.uid === evolver.uid)!.evo).toBe(7);
+    });
+});
+
+describe('Rota Índigo: fase de grupos', () => {
+    it('depois do Treino vem o grupo; 3 rodadas; quem fica entre os 2 primeiros joga a Final contra a Liga Índigo', () => {
+        useGame.getState().newRun('Pallet FC', 'grupo-1', undefined, 'longa');
+        useGame.getState().autoDraft();
+        const run = useGame.getState().run!;
+        const treino = run.map!.nodes.find((n) => n.row === run.map!.rows - 1)!;
+        // 4 partidas das eliminatórias "jogadas" (só os resultados), parado no Treino
+        const results = [0, 1, 2, 3].map((stage) => ({
+            stage,
+            opponent: 'x',
+            score: [2, 1] as [number, number],
+            shootout: null,
+            won: true,
+        }));
+        useGame.setState({ run: { ...run, at: treino.id, status: 'treino', results, stage: 3 } });
+        useGame.getState().train('rest');
+        let now = useGame.getState().run!;
+        expect(now.status).toBe('group');
+        expect(now.group?.rivals).toHaveLength(3);
+        for (let md = 0; md < 3; md++) {
+            useGame.getState().playNext();
+            now = useGame.getState().run!;
+            expect(now.status).toBe('lineup');
+            expect(now.stage).toBe(4 + md);
+            expect(now.opponents[now.stage].name).toBe(now.group!.rivals[md].name);
+            const team = playerTeam(now, 15221311);
+            useGame.getState().lockMatch(team);
+            useGame
+                .getState()
+                .recordResult(runMatch(FUTSAL_5, team, now.opponents[now.stage], `${now.seed}-stage-${now.stage}`));
+            now = useGame.getState().run!;
+            if (now.status === 'eliminated') {
+                expect(md).toBe(2);
+                return;
+            }
+            if (now.status === 'reward') useGame.getState().skipReward();
+            expect(useGame.getState().run!.status).toBe('group');
+        }
+        useGame.getState().playNext();
+        now = useGame.getState().run!;
+        expect(now.stage).toBe(7);
+        expect(now.opponents[7].name).toBe('Liga Índigo');
+    });
+
+    it('tabela: vitória 3, vitória nos pênaltis 2, derrota nos pênaltis 1', () => {
+        const rivals = [0, 1, 2].map((i) => ({ name: `R${i}`, color: 0 }) as never);
+        const results = [
+            { stage: 4, score: [3, 1] as [number, number], won: true, shootout: null },
+            { stage: 5, score: [2, 2] as [number, number], won: true, shootout: [4, 3] },
+            { stage: 6, score: [1, 1] as [number, number], won: false, shootout: [2, 4] },
+        ];
+        const rows = groupTable({ seed: 'tab', teamName: 'Eu', group: { rivals }, results }, 0);
+        expect(rows.find((r) => r.you)!.pts).toBe(6);
+        expect(rows.reduce((n, r) => n + r.played, 0)).toBe(12);
     });
 });

@@ -3,7 +3,15 @@ import { create } from 'zustand';
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 import type { Position } from '../engine/attributes';
 import { buildCupOpponents } from '../engine/cup';
-import { isMatchKind, longOpponent, matchIndexOfRow, nextNodes } from '../engine/cup-map';
+import {
+    FINAL_MATCH,
+    GROUP_START,
+    isMatchKind,
+    longGroup,
+    longOpponent,
+    matchIndexOfRow,
+    nextNodes,
+} from '../engine/cup-map';
 import { BENCH_SIZE, bestFit, captainOptions, DRAFT_PICKS, playerDraftOptions } from '../engine/draft';
 import { EVO_THRESHOLD, evolutionTarget, evolveInstance, evoProgress } from '../engine/evolution';
 import { DEFAULT_FORMATION, type FormationId, formationOf } from '../engine/formations';
@@ -40,7 +48,10 @@ import { addDuel, type DuelRecord, duelWins, MAX_DUELS } from './duels';
 import {
     type CupMode,
     currentNode,
+    groupQualified,
+    groupTable,
     isFinalStage,
+    isGroupStage,
     isLong,
     isOut,
     type LongRunFields,
@@ -107,7 +118,8 @@ export type Screen =
     | 'shop'
     | 'map'
     | 'treino'
-    | 'event';
+    | 'event'
+    | 'group';
 export type CryStyle = 'legacy' | 'latest';
 export type PlaybackSpeed = 1 | 2 | 4 | 8 | 'highlights';
 
@@ -187,6 +199,7 @@ export type RunStatus =
     | 'map'
     | 'treino'
     | 'event'
+    | 'group'
     | 'eliminated'
     | 'champion';
 
@@ -404,6 +417,8 @@ export interface GameStore {
     train(choice: 'evo' | 'rest', uid?: string): void;
     /** Copa longa: a parte `id` da história já foi contada. */
     tell(id: string): void;
+    /** Rota Índigo, no Planalto: joga a próxima rodada do grupo (ou a Final). */
+    playNext(): void;
     /** Evento "?" da Copa longa: aplica a escolha (com quem, qual carta, o novo capitão) e volta pro mapa. */
     chooseEvent(choice: string, target?: string, card?: number, captain?: string): void;
     abandonRun(): void;
@@ -548,6 +563,27 @@ function grant(
 const toLineup = (run: RunState): RunState => ({ ...run, status: 'lineup', stage: run.stage + 1 });
 /** Copa longa: de volta pro mapa (a próxima partida é a casa que você escolher). */
 const toMap = (run: RunState): RunState => ({ ...run, status: 'map', shop: null, rewards: [] });
+/**
+ * Rota Índigo: depois do mapa (Treino da última linha) e entre as partidas do grupo, a tabela do grupo no Planalto.
+ * Os rivais do grupo são sorteados na primeira vez (clubes de ginásio que você ainda não enfrentou).
+ */
+const toGroup = (run: RunState): RunState => ({
+    ...run,
+    status: 'group',
+    shop: null,
+    rewards: [],
+    group: run.group ?? {
+        rivals: longGroup(
+            run.seed,
+            run.opponents.filter(Boolean).map((o) => o.name),
+        ),
+    },
+});
+/** Volta pro lugar certo da Rota: o grupo (já chegou no Planalto) ou o mapa. */
+const backToRoute = (run: RunState): { run: RunState; screen: Screen } =>
+    run.group || (run.map && nextNodes(run.map, run.at ?? null).length === 0)
+        ? { run: toGroup(run), screen: 'group' }
+        : { run: toMap(run), screen: 'map' };
 
 /** Vitrine do Mercado desta fase (a `reroll`-ésima troca). */
 function rollShop(run: RunState, reroll: number): ShopOffer[] {
@@ -973,7 +1009,7 @@ export const useGame = create<GameStore>()(
             /** Saindo da recompensa: Mercado (com o ₽ da vitória) ou direto pra escalação da próxima fase. */
             const afterReward = (run: RunState): Partial<GameStore> => {
                 const done = { ...run, rewards: [] };
-                if (isLong(run)) return { run: toMap(done), match: null, screen: 'map' };
+                if (isLong(run)) return { ...backToRoute(done), match: null };
                 const res = run.results.find((r) => r.stage === run.stage);
                 if (!hasShop(run) || !res) return { run: toLineup(done), match: null, screen: 'lineup' };
                 const sponsors = run.sponsors ?? [];
@@ -1358,9 +1394,26 @@ export const useGame = create<GameStore>()(
                         };
                     const last = isFinalStage(run);
                     result.final = last;
-                    // Copa longa: a 1ª derrota fora da Final é um cartão amarelo (volta pro mapa); a 2ª, o vermelho
-                    const yellow = !won && isLong(run) && !last && (run.cards ?? 0) < YELLOW_CARDS;
-                    const status: RunStatus = won ? (last ? 'champion' : 'reward') : yellow ? 'map' : 'eliminated';
+                    // Rota Índigo: nas eliminatórias (mapa) a 1ª derrota é um cartão amarelo (volta pro mapa) e a 2ª, o
+                    // vermelho; no grupo a derrota só dá menos pontos, e quem não fica entre os 2 primeiros sai na 3ª rodada
+                    const longRun = isLong(run);
+                    const yellow = !won && longRun && run.stage < GROUP_START && (run.cards ?? 0) < YELLOW_CARDS;
+                    const inGroup = longRun && isGroupStage(run.stage);
+                    const groupOut =
+                        inGroup &&
+                        run.stage === FINAL_MATCH - 1 &&
+                        !groupQualified(groupTable({ ...run, results: [...run.results, result] }, 0));
+                    const status: RunStatus = groupOut
+                        ? 'eliminated'
+                        : won
+                          ? last
+                              ? 'champion'
+                              : 'reward'
+                          : yellow
+                            ? 'map'
+                            : inGroup
+                              ? 'group'
+                              : 'eliminated';
                     const next: RunState = {
                         ...run,
                         picks,
@@ -1656,7 +1709,7 @@ export const useGame = create<GameStore>()(
                     const run = getState().run;
                     if (run?.status !== 'treino') return;
                     if (choice === 'rest') {
-                        setState({ run: { ...toMap(run), rerolls: run.rerolls + 1 }, screen: 'map' });
+                        setState(backToRoute({ ...run, rerolls: run.rerolls + 1 }));
                         return;
                     }
                     // treino de evolução: a barra enche metade (evoluir continua sendo na partida, com a animação dela)
@@ -1664,7 +1717,27 @@ export const useGame = create<GameStore>()(
                     if (!target || evolutionTarget(target.speciesId, target.uid) === null) return;
                     const evo = Math.min(EVO_THRESHOLD, (target.evo ?? 0) + EVO_THRESHOLD / 2);
                     const picks = run.picks.map((p) => (p.uid === uid ? { ...p, evo } : p));
-                    setState({ run: { ...toMap(run), picks }, screen: 'map' });
+                    setState(backToRoute({ ...run, picks }));
+                },
+
+                playNext: () => {
+                    const run = getState().run;
+                    if (run?.status !== 'group' || !run.group) return;
+                    // próxima partida: a rodada do grupo, ou a Final contra a Liga Índigo
+                    const stage = run.results.length;
+                    if (stage < GROUP_START || stage > FINAL_MATCH) return;
+                    const faced = run.opponents.filter(Boolean).map((o) => o.name);
+                    const opp =
+                        stage < FINAL_MATCH
+                            ? run.group.rivals[stage - GROUP_START]
+                            : longOpponent(run.seed, FINAL_MATCH, 'final', faced);
+                    const opponents = [...run.opponents];
+                    opponents[stage] = opp;
+                    setState({
+                        run: { ...run, stage, opponents, status: 'lineup' },
+                        screen: 'lineup',
+                        dex: seenDex([...opp.lineup, ...opp.bench]),
+                    });
                 },
 
                 rerollReward: () => {
@@ -1683,6 +1756,7 @@ export const useGame = create<GameStore>()(
                     if (run?.status === 'reward') setState({ screen: 'reward' });
                     else if (run?.status === 'shop') setState({ screen: 'shop' });
                     else if (run?.status === 'map') setState({ match: null, screen: 'map' });
+                    else if (run?.status === 'group') setState({ match: null, screen: 'group' });
                     else setState({ match: null, screen: 'home' });
                 },
 

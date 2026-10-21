@@ -94,6 +94,7 @@ function play(seed: string) {
             if (i >= 0 && (run.sponsors?.length ?? 0) < 3) g().buyOffer(i);
             g().leaveShop();
         } else if (run.status === 'treino') g().train('rest');
+        else if (run.status === 'group') g().playNext();
         else if (run.status === 'event') {
             const c = eventChoices(run, run.event!).find((x) => x.ok && x.need === 'none');
             if (c) g().chooseEvent(c.id);

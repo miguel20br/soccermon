@@ -28,25 +28,33 @@ export interface CupMap {
     rows: number;
 }
 
-/** O que cada linha é: partida (M), parada sorteada (S), Baú, Treino e a Final. */
-const LAYOUT = ['M', 'S', 'M', 'M', 'S', 'B', 'M', 'M', 'S', 'M', 'M', 'T', 'F'] as const;
+/**
+ * As eliminatórias (o mapa): 4 partidas, com paradas entre elas, Baú no meio e Treino no fim. Depois do mapa vem a fase
+ * de grupos no Planalto (3 partidas) e a Final (docs/planos/campeonato.md, opção B).
+ */
+const LAYOUT = ['M', 'S', 'M', 'S', 'B', 'M', 'S', 'M', 'T'] as const;
 export const LONG_ROWS = LAYOUT.length;
+/** Partidas das eliminatórias (o mapa). */
+export const MAP_MATCHES = LAYOUT.filter((r) => r === 'M').length;
+/** Primeira partida da fase de grupos e a Final (índices de partida da copa). */
+export const GROUP_START = MAP_MATCHES;
+export const GROUP_GAMES = 3;
+export const FINAL_MATCH = GROUP_START + GROUP_GAMES;
 /** Partidas de uma Copa longa (contando a Final). */
-export const LONG_MATCHES = LAYOUT.filter((r) => r === 'M' || r === 'F').length;
+export const LONG_MATCHES = FINAL_MATCH + 1;
 
 export const isMatchKind = (k: NodeKind) => k === 'jogo' || k === 'ginasio' || k === 'final';
 
 /** Quantas partidas vêm antes desta linha (a 1ª partida é a 0). */
-export const matchIndexOfRow = (row: number) => LAYOUT.slice(0, row).filter((r) => r === 'M' || r === 'F').length;
+export const matchIndexOfRow = (row: number) => LAYOUT.slice(0, row).filter((r) => r === 'M').length;
 
 export function buildCupMap(seed: string): CupMap {
     const rng = new Rng(seed, 'long-map');
-    const widths = LAYOUT.map((r, i) => (r === 'T' || r === 'F' ? 1 : i === 0 ? 3 : rng.int(2, 3)));
+    const widths = LAYOUT.map((r, i) => (r === 'T' ? 1 : i === 0 ? 3 : rng.int(2, 3)));
     const rows: MapNode[][] = LAYOUT.map((r, row) => {
         const w = widths[row];
         let kinds: NodeKind[];
-        if (r === 'F') kinds = ['final'];
-        else if (r === 'T') kinds = ['treino'];
+        if (r === 'T') kinds = ['treino'];
         else if (r === 'B') kinds = Array(w).fill('bau');
         else if (r === 'S') {
             // toda linha de parada tem Mercado e Evento (sempre dá pra escolher); a 3ª casa é Treino
@@ -55,7 +63,7 @@ export function buildCupMap(seed: string): CupMap {
             // Ginásio (elite opcional) só a partir da 3ª partida, no máximo 1 por linha, sempre com um Jogo ao lado
             kinds = Array(w).fill('jogo');
             const nth = matchIndexOfRow(row);
-            if (nth >= 2 && rng.chance(nth >= 4 ? 0.85 : 0.6)) {
+            if (nth >= 2 && rng.chance(0.75)) {
                 kinds[rng.int(0, w - 1)] = 'ginasio';
             }
         }
@@ -173,9 +181,9 @@ export const rivalTrainer = (name: string): string | undefined =>
     ROUTE_TEAMS.find((t) => t.name === name)?.trainer ?? CLUBS.find((c) => c.name === name)?.leader;
 
 /** Força do rival pela partida (0 a 6 na Rota, 7 = Final): fácil no começo, puxado no fim. Ginásio +1, até 3. */
-const LONG_DIFFICULTY = [-1, -1, 0, 0, 1, 1, 2, 4];
+const LONG_DIFFICULTY = [-1, -1, 0, 0, 0, 0, 1, 4];
 /** Itens do rival pela partida. */
-const LONG_ITEMS = [0, 0, 0, 1, 1, 1, 2, 3];
+const LONG_ITEMS = [0, 0, 0, 1, 0, 0, 1, 3];
 
 /**
  * Rival de uma casa de partida. `faced` = nomes já enfrentados nesta copa (nunca repete). Sorteio próprio por partida
@@ -218,4 +226,15 @@ export function longOpponent(
         formation: club.formation,
         captainUid: d.captainUid,
     };
+}
+
+/**
+ * Fase de grupos no Planalto: os 3 rivais do seu grupo (clubes de ginásio que você ainda não enfrentou), um por rodada,
+ * com o líder e a MT dele. Sorteio próprio por rodada, como os rivais do mapa.
+ */
+export function longGroup(seed: string, faced: readonly string[]): TeamSetup[] {
+    const out: TeamSetup[] = [];
+    for (let i = 0; i < GROUP_GAMES; i++)
+        out.push(longOpponent(seed, GROUP_START + i, 'ginasio', [...faced, ...out.map((o) => o.name)]));
+    return out;
 }
