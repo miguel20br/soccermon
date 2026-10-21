@@ -55,3 +55,11 @@ E missões novas da Rota: "Campeão da Rota Índigo", "Vencer 3 Ginásios numa R
 Título **16%** (meta ~30%); 25% chegam na Final; 93% usam o amarelo. Quem perde, perde no meio (partidas 3 a 6). Se a
 opção B entrar, o grupo muda a conta: recalibrar depois do formato. Sem B, a proposta é amaciar o meio
 (`LONG_DIFFICULTY` −1 nas partidas 3 a 6).
+
+## Decidido com o Miguel (21/10/2026)
+
+- **Opção B:** treinadores com falas e times temáticos nos 2 modos, chave na Relâmpago (mostrando você avançar na
+  chave) e a Rota como eliminatórias (mapa) → grupos → final. Precisa de arte pra chave e pra tabela do grupo.
+- **Missões de gols:** opção 1 (melhor sequência de 4 jogos de qualquer copa).
+- Ideia em aberto: acréscimos de 1 a 3 minutos e gols mais fáceis no fim da partida (estilo "acréscimos do FIFA") pra
+  deixar a taxa de vitória saudável no singleplayer.
