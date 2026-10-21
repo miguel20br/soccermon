@@ -468,6 +468,10 @@ img.pixel {
     .draft-auto.ask {
         flex: 1 1 100%;
     }
+    /* no PC o título já está do lado */
+    .draft-auto-hint {
+        display: none;
+    }
 }
 .steps span {
     width: 26px;
@@ -7560,4 +7564,12 @@ body {
 }
 .modal-field-ovr b.down {
     color: var(--red);
+}
+
+/* Eliminado: o quanto faltou, logo antes do "Nova copa" */
+.near-miss {
+    margin: 12px 0 4px;
+    text-align: center;
+    font-weight: 700;
+    color: var(--yellow);
 }

@@ -70,6 +70,13 @@ export function Reward() {
     const sampleFit = fitItem && squad[0] ? fitOf(squad[0]) : null;
     const slots = formationOf(run.formation).slots;
     const openCard = useCardModal.getState().open;
+    const title = reward
+        ? reward.kind === 'pokemon'
+            ? t('reward.whoLeaves')
+            : reward.kind === 'tm'
+              ? t('reward.whoLearns')
+              : t('reward.whoHolds')
+        : t('reward.choose');
 
     return (
         <>
@@ -80,34 +87,21 @@ export function Reward() {
                         : t('reward.nextStage', { stage: stageName(run.stage + 1, lang) || t('reward.cup') })}
                 </span>
                 <div className="draft-title">
-                    <h1>
-                        {reward
-                            ? reward.kind === 'pokemon'
-                                ? t('reward.whoLeaves')
-                                : reward.kind === 'tm'
-                                  ? t('reward.whoLearns')
-                                  : t('reward.whoHolds')
-                            : t('reward.choose')}
-                    </h1>
+                    <h1>{title}</h1>
                 </div>
-                <div className="row">
-                    <button
-                        type="button"
-                        className="btn small"
-                        disabled={run.rerolls <= 0}
-                        onClick={() => {
-                            playSfx('select');
-                            rerollReward();
-                            setChosen(null);
-                        }}
-                    >
-                        <HudIcon kind="reroll" />
-                        {t('reward.reroll', { n: run.rerolls })}
-                    </button>
-                    <button type="button" className="btn small ghost" onClick={skipReward}>
-                        {t('reward.skip')}
-                    </button>
-                </div>
+                <button
+                    type="button"
+                    className="btn small"
+                    disabled={run.rerolls <= 0}
+                    onClick={() => {
+                        playSfx('select');
+                        rerollReward();
+                        setChosen(null);
+                    }}
+                >
+                    <HudIcon kind="reroll" />
+                    {t('reward.reroll', { n: run.rerolls })}
+                </button>
             </div>
 
             <Tip id="reward-pick">{t('reward.tip')}</Tip>
@@ -245,6 +239,13 @@ export function Reward() {
                     />
                 </div>
             )}
+            {/* pular é discreto (fantasma à esquerda da barra); à direita, o que fazer agora */}
+            <div className="bc-thumbbar">
+                <button type="button" className="btn ghost" onClick={skipReward}>
+                    {t('reward.skip')}
+                </button>
+                <p className="tb-hint">{title}</p>
+            </div>
         </>
     );
 }

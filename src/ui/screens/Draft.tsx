@@ -51,7 +51,7 @@ function TeamAvg({ avg }: { avg: number }) {
  * "Monta pra mim": completa o draft com a melhor carta pra cada vaga (escolha do jogador, pede confirmação).
  * No celular fica na barra do polegar (à vista o draft inteiro); no PC, no cabeçalho.
  */
-function AutoDraft({ captainUid }: { captainUid?: string }) {
+function AutoDraft({ captainUid, hint }: { captainUid?: string; hint?: string }) {
     const { run, autoDraft } = useGame();
     const { t, lang } = useT();
     const [ask, setAsk] = useState(false);
@@ -66,7 +66,7 @@ function AutoDraft({ captainUid }: { captainUid?: string }) {
                     </button>
                     <button
                         type="button"
-                        className="btn outline"
+                        className="btn primary"
                         onClick={() => {
                             playSfx('select');
                             autoDraft(captainUid);
@@ -76,10 +76,14 @@ function AutoDraft({ captainUid }: { captainUid?: string }) {
                     </button>
                 </>
             ) : (
-                <button type="button" className="btn" onClick={() => setAsk(true)}>
-                    <HudIcon kind="skip" />
-                    {t('team.draft.auto')}
-                </button>
+                // fantasma à esquerda; à direita, a instrução da vez (no celular o cabeçalho já rolou pra cima)
+                <>
+                    <button type="button" className="btn ghost" onClick={() => setAsk(true)}>
+                        <HudIcon kind="skip" />
+                        {t('team.draft.auto')}
+                    </button>
+                    {hint && <p className="tb-hint draft-auto-hint">{hint}</p>}
+                </>
             )}
         </div>
     );
@@ -236,7 +240,7 @@ export function Draft() {
                         />
                     ))}
                 </div>
-                <AutoDraft captainUid={chosen?.uid} />
+                <AutoDraft captainUid={chosen?.uid} hint={title} />
             </div>
 
             {run.status === 'drafting' && <Tip id="draft-slot">{t('team.draft.tip')}</Tip>}
