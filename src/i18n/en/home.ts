@@ -49,7 +49,7 @@ export const home: typeof pt = {
     },
     news: 'Patch notes',
     doors: {
-        profile: ['Profile', 'Trainer, club and friends'],
+        profile: ['Profile', 'Trainer, club, friends, collection and trophies'],
         collection: ['Collection', 'Pokédex, Album and Movedex'],
         trophies: ['Trophy room', 'Trophies, medals and numbers'],
     },

@@ -421,7 +421,7 @@ export function TrophyRoom() {
 
     return (
         <div className="menu-screen pf tr" style={clubVars(clubColorHex(profile.clubColor))}>
-            <MenuHead title={t('trophies.title')} icon="liga" onBack={() => go('home')} />
+            <MenuHead title={t('trophies.title')} icon="liga" onBack={() => go('profile')} />
 
             <div className="room-wrap">
                 <Suspense fallback={<div className="room-stage" />}>

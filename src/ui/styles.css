@@ -7435,7 +7435,7 @@ body {
 @media (min-width: 900px) {
     .doors {
         width: min(820px, 100%);
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr));
         gap: 12px;
     }
 }

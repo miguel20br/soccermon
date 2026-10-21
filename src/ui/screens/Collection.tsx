@@ -21,7 +21,7 @@ export function Collection() {
     const news = useNews();
     return (
         <div className="menu-screen pf">
-            <MenuHead title={t('profile.collection')} icon="dex" onBack={() => go('home')} />
+            <MenuHead title={t('profile.collection')} icon="dex" onBack={() => go('profile')} />
             <div
                 className="pf-tabs bc-tabs"
                 role="tablist"
@@ -48,7 +48,7 @@ export function Collection() {
             <div role="tabpanel" id={`col-panel-${tab}`} aria-labelledby={`col-tab-${tab}`}>
                 {tab === 'golpedex' ? (
                     <Suspense fallback={<p className="muted">{t('common.ui.loading')}</p>}>
-                        <MoveLab bare onExit={() => go('home')} />
+                        <MoveLab bare onExit={() => go('profile')} />
                     </Suspense>
                 ) : (
                     <DexTab view={tab} onView={setTab} />

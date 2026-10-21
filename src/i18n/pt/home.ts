@@ -50,7 +50,7 @@ export const home = {
     },
     news: 'Notas da versão',
     doors: {
-        profile: ['Perfil', 'Treinador, clube e amigos'],
+        profile: ['Perfil', 'Treinador, clube, amigos, coleção e troféus'],
         collection: ['Coleção', 'Pokédex, Álbum e Golpedex'],
         trophies: ['Sala de troféus', 'Taças, medalhas e números'],
     },

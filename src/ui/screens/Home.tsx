@@ -9,9 +9,7 @@ import { AccountBar } from '../components/AccountBar';
 import { cupStep } from '../components/AccountLink';
 import { CountUp } from '../components/CountUp';
 import { HomeCourt } from '../components/HomeCourt';
-import { MenuIcon } from '../components/MenuIcon';
 import { cardSprite } from '../components/PokeCard';
-import { Trophy } from '../components/Trophy';
 import { TypeIcon } from '../components/TypeIcon';
 import { FEEDBACK_URL, privacyUrl } from '../links';
 import { readCount, writeCount } from '../local-count';
@@ -20,12 +18,9 @@ import { FriendChallenge } from '../profile/FriendsTab';
 import { TYPE_COLOR } from '../type-colors';
 import { HomeDailyCard } from './Daily';
 import '../home-motion.css';
-import { NEWS_DOORS } from '../../store/news';
+import { DoorTiles } from '../components/DoorTiles';
 import { HudIcon } from '../components/MatchHud';
 import { TopActions } from '../components/TopActions';
-import { type Door, openDoor } from '../doors';
-import { useAvatar } from '../profile/club';
-import { NewDot, newsCount, useNews } from '../profile/news';
 
 /** O que vem por aí (só vitrine: nada disso é clicável ainda). Os textos ficam em i18n (home.soon). */
 const SOON_IMG = ['assets/cards/25.gif', 'assets/ui/simbolo.svg', 'assets/cards/143.gif', 'assets/ui/poke-ball.png'];
@@ -85,49 +80,6 @@ function LangToggle() {
                 </button>
             ))}
         </fieldset>
-    );
-}
-
-/** As três portas (docs/planos/menus-e-sala.md): Perfil, Coleção e Sala de troféus, com o pontinho de novidade. */
-function Doors() {
-    const { d, t } = useT();
-    const news = useNews();
-    const avatar = useAvatar();
-    const seen = useGame((s) => seenCount(s.dex));
-    const titles = useGame((s) => s.records.titles);
-    const doors: { door: Door; icon: React.ReactNode; count?: string }[] = [
-        {
-            door: 'profile',
-            icon: (
-                <img
-                    className={`door-av${avatar.google ? '' : ' pixel'}`}
-                    src={avatar.src}
-                    alt=""
-                    referrerPolicy="no-referrer"
-                />
-            ),
-        },
-        { door: 'collection', icon: <MenuIcon kind="dex" />, count: `${seen}/${DEX_TOTAL}` },
-        { door: 'trophies', icon: <Trophy size={32} />, count: titles ? String(titles) : undefined },
-    ];
-    return (
-        <nav className="doors" aria-label={t('home.doorsAria')}>
-            {doors.map(({ door, icon, count }) => {
-                const [title, sub] = d.home.doors[door];
-                const fresh = NEWS_DOORS[door].some((tab) => newsCount(news, tab) > 0);
-                return (
-                    <button key={door} type="button" className="door bc-tile" onClick={() => openDoor(door)}>
-                        {icon}
-                        <span>
-                            <b>{title}</b>
-                            <small>{sub}</small>
-                        </span>
-                        {count && <em className="door-count">{count}</em>}
-                        <NewDot on={fresh} className="door-dot" />
-                    </button>
-                );
-            })}
-        </nav>
     );
 }
 
@@ -377,7 +329,7 @@ export function Home() {
             {/* entrar com o Google: embaixo dos modos, pro "Nova copa" ficar na primeira tela do celular */}
             <AccountBar />
 
-            <Doors />
+            <DoorTiles which={['profile']} />
             {notesOpen && (
                 // biome-ignore lint/a11y/noStaticElementInteractions: clicar fora fecha; o botão fecha pelo teclado
                 <div className="modal-backdrop" onClick={() => setNotesOpen(false)} role="presentation">

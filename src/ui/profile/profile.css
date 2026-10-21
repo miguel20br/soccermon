@@ -1907,3 +1907,9 @@ fieldset.pf-field,
     color: var(--muted);
     font-size: 11px;
 }
+
+/* portas da Sala de troféus e da Coleção dentro do Perfil */
+.pf .doors {
+    width: 100%;
+    margin: 12px 0;
+}

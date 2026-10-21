@@ -7,6 +7,7 @@ import { activeTitle, activeTrainer, trainerFrame } from '../../store/missions';
 import { clubColorHex } from '../../store/profile';
 import { titleClass } from '../../store/title-codes';
 import { cupCounts, METALS } from '../../store/trophies';
+import { DoorTiles } from '../components/DoorTiles';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { PixelTrophy } from '../components/PixelTrophy';
@@ -25,7 +26,7 @@ const TAB_ICON: Record<Tab, HudIconKind> = { treinador: 'person', clube: 'defens
 
 /**
  * Perfil = quem eu sou (docs/planos/menus-e-sala.md): o topo é o seu cartão público (o que os outros jogadores veem),
- * e as abas mudam o que ele mostra: Treinador (nome, avatar, treinador e título, com as missões que liberam cada
+ * logo abaixo as portas da Sala de troféus e da Coleção (tudo mora no Perfil, pedido do Miguel em 20/10), e as abas mudam o que ele mostra: Treinador (nome, avatar, treinador e título, com as missões que liberam cada
  * um), Clube (cor, escudo, uniforme, faixa) e Amigos.
  */
 export function Profile() {
@@ -89,6 +90,8 @@ export function Profile() {
                 </div>
                 <small className="pf-public-hint">{t('profile.publicHint')}</small>
             </header>
+
+            <DoorTiles which={['trophies', 'collection']} />
 
             <div
                 className="pf-tabs bc-tabs"
