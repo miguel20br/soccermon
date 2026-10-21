@@ -17,7 +17,7 @@ import { PlayerCardModal } from './ui/profile/PlayerCard';
 import { CardGallery } from './ui/screens/CardGallery';
 import { Collection } from './ui/screens/Collection';
 import { Credits } from './ui/screens/Credits';
-import { CupMap, Training } from './ui/screens/CupMap';
+import { CupMap, EventScreen, Training } from './ui/screens/CupMap';
 import { Daily } from './ui/screens/Daily';
 import { Draft } from './ui/screens/Draft';
 import { Help } from './ui/screens/Help';
@@ -191,6 +191,7 @@ export default function App() {
             {screen === 'shop' && <Shop />}
             {screen === 'map' && <CupMap />}
             {screen === 'treino' && <Training />}
+            {screen === 'event' && <EventScreen />}
             {screen === 'settings' && <Settings />}
             {screen === 'credits' && <Credits />}
             {screen === 'profile' && <Profile />}

@@ -39,6 +39,23 @@ export interface LongRunFields {
     cards?: number;
     /** Partes da história já contadas (uma por região do mapa). */
     told?: string[];
+    /** Quem está fora e por quantas partidas (lesão, Creche, treino puxado). Fica no banco e não entra. */
+    out?: Record<string, number>;
+    /** Evento da entrevista: o próximo rival entra mais fraco (−1) ou mais forte (+1). */
+    rivalShift?: number;
+    /** Eventos já vistos nesta copa (não repetem). */
+    eventsSeen?: string[];
+    /** Evento aberto (status 'event'). */
+    event?: import('./long-events').LongEvent | null;
+}
+
+/** Está fora (machucado ou na Creche)? */
+export const isOut = (run: LongRunFields, uid: string) => (run.out?.[uid] ?? 0) > 0;
+/** Depois de uma partida, cada um que estava fora tem uma partida a menos pra voltar. */
+export function tickOut(out: Record<string, number> | undefined): Record<string, number> | undefined {
+    if (!out) return out;
+    const next = Object.fromEntries(Object.entries(out).flatMap(([u, n]) => (n > 1 ? [[u, n - 1]] : [])));
+    return Object.keys(next).length ? next : undefined;
 }
 
 export const newLongFields = (seed: string): LongRunFields => ({

@@ -16,6 +16,8 @@ import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { cupLength, YELLOW_CARDS } from '../../store/long-cup';
+import { choiceTargets, eventChoices } from '../../store/long-events';
+import { FutCard } from '../components/FutCard';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { cardSprite } from '../components/PokeCard';
@@ -211,6 +213,7 @@ export function CupMap() {
                         node={chosen}
                         seed={run.seed}
                         faced={run.opponents.filter(Boolean).map((o) => o.name)}
+                        shift={run.rivalShift ?? 0}
                         lang={lang}
                         onGo={() => go2(chosen.id)}
                     />,
@@ -238,19 +241,21 @@ function NodeSheet({
     node,
     seed,
     faced,
+    shift,
     lang,
     onGo,
 }: {
     node: MapNode;
     seed: string;
     faced: string[];
+    shift: number;
     lang: 'pt' | 'en';
     onGo: () => void;
 }) {
     const { t } = useT();
     const rival = useMemo(
-        () => (isMatchKind(node.kind) ? longOpponent(seed, matchIndexOfRow(node.row), node.kind, faced) : null),
-        [node, seed, faced],
+        () => (isMatchKind(node.kind) ? longOpponent(seed, matchIndexOfRow(node.row), node.kind, faced, shift) : null),
+        [node, seed, faced, shift],
     );
     const trainer = rival ? rivalTrainer(rival.name) : undefined;
     return (
@@ -363,3 +368,123 @@ export function Training() {
         </div>
     );
 }
+
+/** Evento "?" da Copa longa: quem fala, o que aconteceu, as escolhas e, se a escolha pede, com quem. */
+export function EventScreen() {
+    const live = useGame((s) => s.run);
+    const chooseEvent = useGame((s) => s.chooseEvent);
+    const go = useGame((s) => s.go);
+    const run = useHeld(live?.status === 'event' && live.event ? live : null);
+    const [choice, setChoice] = useState<string | null>(null);
+    const [card, setCard] = useState(0);
+    const [sub, setSub] = useState<string | null>(null);
+    const { t, d } = useT();
+    if (!run?.event) return null;
+    const ev = run.event;
+    const txt = d.longCup.events[ev.id];
+    const byUid = new Map(run.picks.map((p) => [p.uid, p]));
+    const nameOf = (u: string) => (byUid.get(u) ? viewInstance(byUid.get(u)!).displayName : '');
+    const choices = eventChoices(run, ev);
+    const picked = choices.find((c) => c.id === choice);
+    const targets = picked ? choiceTargets(run, ev, picked.need) : [];
+    const pick = (id: string) => {
+        playSfx('select');
+        const c = choices.find((x) => x.id === id)!;
+        if (c.need === 'none') chooseEvent(id);
+        else {
+            setChoice(choice === id ? null : id);
+            setSub(null);
+        }
+    };
+    // venda do capitão: depois do reserva, o novo capitão sai da escalação com ele na vaga
+    const lineupAfter = sub ? run.lineup.map((u) => (u === run.captainUid ? sub : u)) : [];
+    const strip = (uids: string[], onPick: (u: string) => void, active?: string | null) => (
+        <div className="squad-strip">
+            {uids.map((u) => (
+                <button
+                    key={u}
+                    type="button"
+                    className="mini target-btn"
+                    aria-pressed={active === u}
+                    onClick={() => {
+                        playSfx('select');
+                        onPick(u);
+                    }}
+                >
+                    <img className="pixel" src={cardSprite(byUid.get(u)!)} alt="" />
+                    <span>
+                        <b>{nameOf(u)}</b>
+                    </span>
+                </button>
+            ))}
+        </div>
+    );
+    return (
+        <div className="menu-screen cm">
+            <MenuHead title={txt.title} icon="liga" tag={t('longCup.title')} onBack={() => go('home')} />
+            <div className="cm-event bc-surface bc-stripe">
+                <img className="cm-story-who" src={`assets/trainers/${txt.who}.png`} alt="" />
+                <p>{fmtNames(txt.text, ev.uids?.map(nameOf) ?? [])}</p>
+            </div>
+            {!!ev.cards?.length && (
+                <div className="cm-event-cards">
+                    {ev.cards.map((c, i) => (
+                        <FutCard
+                            key={c.uid}
+                            inst={c}
+                            size="sm"
+                            selected={ev.cards!.length > 1 && card === i}
+                            action={
+                                ev.cards!.length > 1
+                                    ? { label: t('longCup.pickCard'), onClick: () => setCard(i) }
+                                    : undefined
+                            }
+                        />
+                    ))}
+                </div>
+            )}
+            <div className="cm-choices">
+                {choices.map((c) => {
+                    const [label, effect] = txt.choices[c.id] ?? [c.id, ''];
+                    return (
+                        <button
+                            key={c.id}
+                            type="button"
+                            className={`cm-choice bc-tile${choice === c.id ? ' on' : ''}`}
+                            disabled={!c.ok}
+                            onClick={() => pick(c.id)}
+                        >
+                            <span>
+                                <b>{label}</b>
+                                <small>{effect}</small>
+                            </span>
+                            {c.cost !== 0 && (
+                                <span className={`money ${c.cost > 0 ? 'cost' : 'gain'}`}>
+                                    {c.cost > 0 ? '−' : '+'}
+                                    {t('shop.money', { n: Math.abs(c.cost) })}
+                                </span>
+                            )}
+                        </button>
+                    );
+                })}
+            </div>
+            {picked && (
+                <div className="panel reward-pick" data-exit>
+                    <h2>{t(picked.need === 'captainSale' ? 'longCup.pickSub' : 'longCup.pickWho')}</h2>
+                    {picked.need === 'captainSale'
+                        ? strip(targets, setSub, sub)
+                        : strip(targets, (u) => chooseEvent(picked.id, u, card))}
+                    {picked.need === 'captainSale' && sub && (
+                        <>
+                            <h2>{t('longCup.pickCaptain')}</h2>
+                            {strip(lineupAfter, (u) => chooseEvent(picked.id, sub, 0, u))}
+                        </>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
+
+/** "{a} e {b}" com os nomes dos envolvidos. */
+const fmtNames = (text: string, names: string[]) => text.replace('{a}', names[0] ?? '').replace('{b}', names[1] ?? '');

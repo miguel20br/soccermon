@@ -42,11 +42,14 @@ import {
     currentNode,
     isFinalStage,
     isLong,
+    isOut,
     type LongRunFields,
     longRound,
     newLongFields,
+    tickOut,
     YELLOW_CARDS,
 } from './long-cup';
+import { resolveEvent, rollEvent } from './long-events';
 import { activeTitle, activeTrainer, matchView, newMissions, stageView } from './missions';
 import { withSeenBaseline } from './news';
 import {
@@ -103,7 +106,8 @@ export type Screen =
     | 'trophies'
     | 'shop'
     | 'map'
-    | 'treino';
+    | 'treino'
+    | 'event';
 export type CryStyle = 'legacy' | 'latest';
 export type PlaybackSpeed = 1 | 2 | 4 | 8 | 'highlights';
 
@@ -182,6 +186,7 @@ export type RunStatus =
     | 'shop'
     | 'map'
     | 'treino'
+    | 'event'
     | 'eliminated'
     | 'champion';
 
@@ -396,6 +401,8 @@ export interface GameStore {
     train(choice: 'evo' | 'rest', uid?: string): void;
     /** Copa longa: a parte `id` da história já foi contada. */
     tell(id: string): void;
+    /** Evento "?" da Copa longa: aplica a escolha (com quem, qual carta, o novo capitão) e volta pro mapa. */
+    chooseEvent(choice: string, target?: string, card?: number, captain?: string): void;
     abandonRun(): void;
     chooseFormation(id: FormationId): void;
     chooseSlot(slot: SlotRef): void;
@@ -558,7 +565,8 @@ export function playerTeam(run: RunState, color = clubColorHex(useGame.getState(
     return {
         name: run.teamName,
         lineup: run.lineup.map((u) => byUid.get(u)!),
-        bench: run.bench.map((u) => byUid.get(u)!),
+        // quem está fora (Copa longa: lesão, Creche) não vai pro banco da partida, então não tem como entrar
+        bench: run.bench.filter((u) => !isOut(run, u)).map((u) => byUid.get(u)!),
         tactic: run.tactic,
         color,
         ...(run.sponsors?.length && { sponsors: run.sponsors }),
@@ -1225,7 +1233,8 @@ export const useGame = create<GameStore>()(
 
                 lockMatch: (team) => {
                     const run = getState().run;
-                    if (run?.status === 'lineup' && !run.lockedTeam) {
+                    // titular que está fora não joga: a escalação pede pra trocar antes (nada automático)
+                    if (run?.status === 'lineup' && !run.lockedTeam && !run.lineup.some((u) => isOut(run, u))) {
                         const opp = run.opponents[run.stage];
                         setState({
                             run: {
@@ -1356,6 +1365,7 @@ export const useGame = create<GameStore>()(
                         lockedTeam: null,
                         live: null,
                         ...(yellow && { cards: (run.cards ?? 0) + 1 }),
+                        ...(isLong(run) && { out: tickOut(run.out) }),
                         // na longa o ₽ da vitória entra na hora (os juros só quando você entra num Mercado)
                         ...(won &&
                             isLong(run) && {
@@ -1568,11 +1578,11 @@ export const useGame = create<GameStore>()(
                         // o rival é o mesmo da prévia do mapa (mesmo sorteio, mesmos já enfrentados)
                         const stage = matchIndexOfRow(node.row);
                         const faced = run.opponents.filter(Boolean).map((o) => o.name);
-                        const opp = longOpponent(run.seed, stage, node.kind, faced);
+                        const opp = longOpponent(run.seed, stage, node.kind, faced, run.rivalShift ?? 0);
                         const opponents = [...run.opponents];
                         opponents[stage] = opp;
                         setState({
-                            run: { ...base, stage, opponents, status: 'lineup' },
+                            run: { ...base, stage, opponents, status: 'lineup', rivalShift: undefined },
                             screen: 'lineup',
                             dex: mons([...opp.lineup, ...opp.bench]),
                         });
@@ -1602,8 +1612,31 @@ export const useGame = create<GameStore>()(
                         });
                     } else if (node.kind === 'treino')
                         setState({ run: { ...base, status: 'treino' }, screen: 'treino' });
-                    // ponytail: o Evento "?" ainda passa direto (os eventos entram no passo 7 do plano)
-                    else setState({ run: base });
+                    else {
+                        const event = rollEvent(base);
+                        setState({
+                            run: { ...base, status: 'event', event },
+                            screen: 'event',
+                            dex: mons(event.cards ?? []),
+                        });
+                    }
+                },
+
+                chooseEvent: (choice, target, card, captain) => {
+                    const run = getState().run;
+                    if (run?.status !== 'event' || !run.event) return;
+                    const next = resolveEvent(run, run.event, choice, target, card, captain);
+                    if (!next) return;
+                    const incoming = next.picks.filter((p) => !run.picks.some((o) => o.uid === p.uid));
+                    setState({
+                        ...(incoming.length && gained(run, next.picks, 'recompensa')),
+                        run: {
+                            ...toMap(next),
+                            event: null,
+                            eventsSeen: [...(run.eventsSeen ?? []), run.event.id],
+                        },
+                        screen: 'map',
+                    });
                 },
 
                 tell: (id) => {

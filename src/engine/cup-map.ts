@@ -181,7 +181,14 @@ const LONG_ITEMS = [0, 0, 0, 1, 1, 1, 2, 3];
  * Rival de uma casa de partida. `faced` = nomes já enfrentados nesta copa (nunca repete). Sorteio próprio por partida
  * (`long-<n>-<tipo>`): a prévia do mapa e a partida dão o mesmo time.
  */
-export function longOpponent(seed: string, match: number, kind: NodeKind, faced: readonly string[]): TeamSetup {
+export function longOpponent(
+    seed: string,
+    match: number,
+    kind: NodeKind,
+    faced: readonly string[],
+    /** Evento (entrevista): o próximo rival entra mais fraco (−1) ou mais forte (+1). */
+    shift = 0,
+): TeamSetup {
     const rng = new Rng(seed, `long-${match}-${kind}`);
     const indigo = CLUBS[CLUBS.length - 1];
     let club: Omit<ClubTemplate, 'leader' | 'city'>;
@@ -192,7 +199,7 @@ export function longOpponent(seed: string, match: number, kind: NodeKind, faced:
         club = rng.pick(fresh.length ? fresh : pool);
     }
     const base = LONG_DIFFICULTY[Math.min(match, LONG_DIFFICULTY.length - 1)];
-    const difficulty = kind === 'ginasio' ? Math.min(3, base + 1) : base;
+    const difficulty = Math.max(-1, Math.min(4, (kind === 'ginasio' ? Math.min(3, base + 1) : base) + shift));
     const d = aiDraftTeam(rng, difficulty, club.types, club.formation);
     const items = LONG_ITEMS[Math.min(match, LONG_ITEMS.length - 1)] + (kind === 'ginasio' ? 1 : 0);
     for (const h of rng.shuffle([...d.lineup]).slice(0, items)) {

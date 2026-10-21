@@ -613,3 +613,58 @@
     animation-duration: 1ms !important;
     animation-delay: 0ms !important;
 }
+
+/* ---------- evento "?" ---------- */
+.cm-event {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    padding: 14px 14px 14px 20px;
+    margin-bottom: 12px;
+}
+.cm-event p {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.4;
+}
+.cm-event-cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    --fut-w: 150px;
+}
+.cm-choices {
+    display: grid;
+    gap: 8px;
+}
+.cm-choice.bc-tile {
+    justify-content: space-between;
+    min-height: 60px;
+    padding: 10px 14px;
+    font: inherit;
+}
+.cm-choice.bc-tile b {
+    font-size: 15px;
+}
+.cm-choice.bc-tile small {
+    font-size: 12px;
+}
+.cm-choice.on {
+    border-color: var(--yellow);
+}
+.cm-choice:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+.cm-choice .money {
+    flex: none;
+    white-space: nowrap;
+}
+.cm-choice .money.cost {
+    color: var(--red);
+}
+.cm-choice .money.gain {
+    color: var(--green);
+}

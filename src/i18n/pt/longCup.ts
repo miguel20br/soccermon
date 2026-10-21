@@ -33,6 +33,8 @@ export const longCup = {
     redTitle: 'Cartão vermelho',
     redLine: 'Segunda derrota: o time está fora da Copa longa.',
     blocked: 'Caminho bloqueado',
+    outStarter: '{name} está fora: troque ele de lugar com alguém do banco.',
+    outBench: 'Fora (partidas): {names}.',
     backToMap: 'Voltar pro mapa',
     soonEvent: 'Os eventos chegam na próxima etapa: por enquanto o caminho segue.',
     /** Regiões do mapa, de baixo pra cima. */
@@ -66,6 +68,87 @@ export const longCup = {
         planalto: { who: 'Lance', text: 'Bem-vindo ao Planalto Índigo. Mostre o que esse time aprendeu no caminho.' },
     },
     storyNext: 'Continuar',
+    /** Eventos "?": quem fala (sprite em assets/trainers), o texto e cada escolha (rótulo e o que acontece). */
+    events: {
+        carrinho: {
+            who: 'oak',
+            title: 'Carrinho no treino',
+            text: 'No coletivo, {a} e {b} se trombaram. Um precisa parar.',
+            choices: {
+                parar: ['Escolher quem para', 'Fica fora 2 partidas.'],
+                fisio: ['Fisioterapeuta', 'Ninguém fica fora.'],
+            },
+        },
+        patrocinador: {
+            who: 'gentleman',
+            title: 'Patrocinador misterioso',
+            text: 'Um homem de terno quer os seus dois reservas por esta carta.',
+            choices: {
+                aceitar: ['Aceitar', 'Os 2 reservas saem; a carta entra no banco.'],
+                recusar: ['Recusar', 'Nada muda.'],
+            },
+        },
+        capitao: {
+            who: 'giovanni',
+            title: 'Proposta pelo capitão',
+            text: 'Um clube rico quer o seu capitão. Agora.',
+            choices: {
+                vender: ['Vender', 'O capitão sai; um reserva entra e você escolhe o novo capitão.'],
+                recusar: ['Recusar', 'O capitão fica.'],
+            },
+        },
+        olheiro: {
+            who: 'supernerd',
+            title: 'Olheiro da Liga',
+            text: 'Um olheiro conhece dois Pokémon sem clube na Rota.',
+            choices: {
+                contratar: ['Contratar um', 'Escolhe a carta e quem sai do banco.'],
+                seguir: ['Seguir', 'Nada muda.'],
+            },
+        },
+        entrevista: {
+            who: 'beauty',
+            title: 'Entrevista coletiva',
+            text: 'Os repórteres querem uma frase antes do próximo jogo.',
+            choices: {
+                respeito: ['"Respeito o rival"', 'O próximo rival entra mais fraco.'],
+                provocar: ['Provocar', 'O próximo rival entra mais forte.'],
+                sair: ['Sair sem falar', 'Nada muda.'],
+            },
+        },
+        perdido: {
+            who: 'youngster',
+            title: 'Pokémon perdido na Rota',
+            text: 'Um Pokémon selvagem está seguindo o ônibus do time.',
+            choices: {
+                contratar: ['Levar junto', 'Escolhe quem sai do banco.'],
+                soltar: ['Deixar ir', 'Nada muda.'],
+            },
+        },
+        treinoPuxado: {
+            who: 'blackbelt',
+            title: 'Treino puxado',
+            text: 'O preparador quer dobrar a carga de alguém.',
+            choices: {
+                puxado: ['Dobrar a carga', 'Barra de evolução +metade; fica fora da próxima partida.'],
+                leve: ['Treino leve', '+1 troca.'],
+                folga: ['Folga', 'Nada muda.'],
+            },
+        },
+        creche: {
+            who: 'gentleman',
+            title: 'Creche Pokémon',
+            text: 'A creche cuida de um dos seus por uns dias.',
+            choices: {
+                deixar: ['Deixar um', 'Fica fora 2 partidas e volta com a barra de evolução cheia.'],
+                recusar: ['Recusar', 'Nada muda.'],
+            },
+        },
+    } as Record<string, { who: string; title: string; text: string; choices: Record<string, [string, string]> }>,
+    pickWho: 'Quem?',
+    pickCard: 'Qual carta?',
+    pickCaptain: 'Novo capitão',
+    pickSub: 'Quem entra no lugar do capitão?',
     treino: {
         title: 'Treino',
         evo: 'Treino de evolução',

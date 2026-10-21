@@ -14,6 +14,7 @@ import { playSfx } from '../../game/audio';
 import { clubName, cupStageName, dict, formationText, itemDesc, itemName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { liveOf, playerTeam, type SlotRef, useGame } from '../../store/game-store';
+import { isOut } from '../../store/long-cup';
 import { useCardModal } from '../card-modal';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
@@ -56,6 +57,10 @@ export function Lineup() {
 
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
     const opponent = run.opponents[run.stage];
+    // Copa longa: quem está fora (lesão, Creche) fica no banco; titular fora trava o Jogar até você trocar
+    const outName = (u: string) => `${viewInstance(byUid.get(u)!).displayName} (${run.out?.[u]})`;
+    const outList = [...run.lineup, ...run.bench].filter((u) => isOut(run, u)).map(outName);
+    const outStarter = run.lineup.filter((u) => isOut(run, u)).map(outName)[0];
     const locked = !!run.lockedTeam;
 
     const play = async () => {
@@ -156,8 +161,20 @@ export function Lineup() {
                                 n: lineupAverage(opponent.lineup, opponent.formation),
                             })}
                         </p>
+                        {outList.length > 0 && (
+                            <p className={outStarter ? 'error-text' : 'tactic-desc'}>
+                                {outStarter
+                                    ? t('longCup.outStarter', { name: outStarter })
+                                    : t('longCup.outBench', { names: outList.join(', ') })}
+                            </p>
+                        )}
                         <div className="bc-thumbbar">
-                            <button type="button" className="btn primary wide" onClick={play} disabled={loading}>
+                            <button
+                                type="button"
+                                className="btn primary wide"
+                                onClick={play}
+                                disabled={loading || !!outStarter}
+                            >
                                 {loading
                                     ? t('team.lineup.warming')
                                     : locked

@@ -35,6 +35,8 @@ export const longCup: typeof pt = {
     redTitle: 'Red card',
     redLine: 'Second loss: the team is out of the Long Cup.',
     blocked: 'Road blocked',
+    outStarter: '{name} is out: swap them with someone on the bench.',
+    outBench: 'Out (matches): {names}.',
     backToMap: 'Back to the map',
     soonEvent: 'Events arrive in the next step: for now the path goes on.',
     region: {
@@ -63,6 +65,86 @@ export const longCup: typeof pt = {
         planalto: { who: 'Lance', text: 'Welcome to the Indigo Plateau. Show me what this team learned on the way.' },
     },
     storyNext: 'Continue',
+    events: {
+        carrinho: {
+            who: 'oak',
+            title: 'Training collision',
+            text: '{a} and {b} crashed into each other in practice. One has to stop.',
+            choices: {
+                parar: ['Pick who stops', 'Out for 2 matches.'],
+                fisio: ['Physio', 'Nobody sits out.'],
+            },
+        },
+        patrocinador: {
+            who: 'gentleman',
+            title: 'Mysterious sponsor',
+            text: 'A man in a suit wants your two subs for this card.',
+            choices: {
+                aceitar: ['Accept', 'Both subs leave; the card joins the bench.'],
+                recusar: ['Decline', 'Nothing changes.'],
+            },
+        },
+        capitao: {
+            who: 'giovanni',
+            title: 'Offer for your captain',
+            text: 'A rich club wants your captain. Right now.',
+            choices: {
+                vender: ['Sell', 'The captain leaves; a sub steps in and you pick the new captain.'],
+                recusar: ['Decline', 'The captain stays.'],
+            },
+        },
+        olheiro: {
+            who: 'supernerd',
+            title: 'League scout',
+            text: 'A scout knows two Pokémon without a club on the Route.',
+            choices: {
+                contratar: ['Sign one', 'Pick the card and who leaves the bench.'],
+                seguir: ['Move on', 'Nothing changes.'],
+            },
+        },
+        entrevista: {
+            who: 'beauty',
+            title: 'Press conference',
+            text: 'The reporters want a quote before the next match.',
+            choices: {
+                respeito: ['"I respect them"', 'The next rival comes in weaker.'],
+                provocar: ['Trash talk', 'The next rival comes in stronger.'],
+                sair: ['No comment', 'Nothing changes.'],
+            },
+        },
+        perdido: {
+            who: 'youngster',
+            title: 'Lost Pokémon on the Route',
+            text: 'A wild Pokémon is following the team bus.',
+            choices: {
+                contratar: ['Bring it along', 'Pick who leaves the bench.'],
+                soltar: ['Let it go', 'Nothing changes.'],
+            },
+        },
+        treinoPuxado: {
+            who: 'blackbelt',
+            title: 'Heavy training',
+            text: "The coach wants to double someone's workload.",
+            choices: {
+                puxado: ['Double the load', 'Evolution bar +half; out for the next match.'],
+                leve: ['Light training', '+1 reroll.'],
+                folga: ['Day off', 'Nothing changes.'],
+            },
+        },
+        creche: {
+            who: 'gentleman',
+            title: 'Pokémon Day Care',
+            text: 'The Day Care looks after one of yours for a few days.',
+            choices: {
+                deixar: ['Leave one', 'Out for 2 matches, back with a full evolution bar.'],
+                recusar: ['Decline', 'Nothing changes.'],
+            },
+        },
+    },
+    pickWho: 'Who?',
+    pickCard: 'Which card?',
+    pickCaptain: 'New captain',
+    pickSub: "Who takes the captain's spot?",
     treino: {
         title: 'Training',
         evo: 'Evolution training',
