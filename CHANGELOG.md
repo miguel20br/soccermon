@@ -1,5 +1,15 @@
 # Novidades
 
+## 0.9.2.2 · A Rota Índigo volta
+
+### Rota Índigo
+- A Rota está de volta: a 1ª partida quebrava a escalação (consertado) e ela foi jogada inteira antes de voltar
+- Continuar num evento "?" volta pro evento (antes caía na escalação e repetia a partida)
+- Cartão amarelo e derrota no grupo dizem DERROTA (não Fim da linha); o vermelho só sai na 2ª derrota no mapa
+- A copa salva, o campeão (x/8), o gol da copa e o card do título falam da partida da Rota, não das Oitavas
+- Nova copa no fim de uma Rota começa outra Rota
+- Titular machucado: o aviso aparece do lado do Jogar
+
 ## 0.9.2.1 · Álbum leve e vitrine fácil
 
 ### Álbum

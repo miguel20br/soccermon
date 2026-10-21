@@ -1,8 +1,8 @@
 import { type CSSProperties, useEffect, useState } from 'react';
 import { weeklyEventType } from '../../engine/specials';
-import { cupStageName, stageName, typeName } from '../../i18n';
+import { typeName } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
-import { isCupInProgress, seedFromUrl, useGame } from '../../store/game-store';
+import { isCupInProgress, resumeScreenOf, seedFromUrl, useGame } from '../../store/game-store';
 import { seenCount } from '../../store/profile';
 import { AccountBar } from '../components/AccountBar';
 import { cupStep } from '../components/AccountLink';
@@ -110,16 +110,7 @@ export function Home() {
     }, [notesOpen]);
     const challengeSeed = seedFromUrl();
     const inProgress = run && !['eliminated', 'champion'].includes(run.status);
-    const resumeScreen =
-        run && ['formation', 'captain', 'drafting'].includes(run.status)
-            ? 'draft'
-            : run?.status === 'reward' ||
-                run?.status === 'shop' ||
-                run?.status === 'map' ||
-                run?.status === 'treino' ||
-                run?.status === 'group'
-              ? run.status
-              : 'lineup';
+    const resumeScreen = run ? resumeScreenOf(run.status) : 'lineup';
     const name = () => teamName.trim() || 'Pallet FC';
     /** Começar outra copa apaga a atual: com uma em andamento, pede confirmação antes. */
     const [confirm, setConfirm] = useState<string | null | undefined>(undefined);
@@ -142,18 +133,7 @@ export function Home() {
     const eventType = weeklyEventType(new Date());
     const byUid = new Map(run?.picks.map((p) => [p.uid, p]) ?? []);
     const squad = run ? run.lineup.flatMap((u) => byUid.get(u) ?? []) : [];
-    const runStep =
-        run && ['formation', 'captain', 'drafting'].includes(run.status)
-            ? t('home.draftStep', { n: Math.min(run.draftRound + 1, 7) })
-            : run?.status === 'reward'
-              ? t('home.choosingReward')
-              : run?.status === 'shop'
-                ? t('home.atMarket')
-                : run?.status === 'map' || run?.status === 'treino' || run?.status === 'group'
-                  ? `${t('longCup.title')} · ${cupStageName(run, run.results.length)}`
-                  : run
-                    ? stageName(run.stage)
-                    : '';
+    const runStep = run ? cupStep({ ...run, played: run.results.length }) : '';
     const openLab = (q: string) => {
         window.location.search = q;
     };
@@ -259,7 +239,10 @@ export function Home() {
                                     <span className="pr-text">
                                         <span className="pr-label">{t('account.parkedLabel')}</span>
                                         <span>
-                                            <b>{p.teamName}</b> <span className="pr-step">· {cupStep(p)}</span>
+                                            <b>{p.teamName}</b>{' '}
+                                            <span className="pr-step">
+                                                · {cupStep({ ...p, played: p.results.length })}
+                                            </span>
                                         </span>
                                     </span>
                                     <button type="button" className="btn small" onClick={() => resume(p.seed)}>

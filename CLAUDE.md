@@ -162,8 +162,9 @@ commit). Prévias da Vercel têm os atalhos de demo e `?vel=N` (quadra até 64x)
 botões `.btn.outline`/`.btn.danger` em contorno, barra do polegar nas telas da copa, Home com "Nova copa" grande, faixa
 "Vem aí", 3 portas, chave num toque, dicas só na 1ª copa, sem boas-vindas na 1ª visita, retorno de toque central em
 `src/ui/feedback.ts` (som por tipo de botão, saída triste ao abandonar), Configurações com "Mais opções", e a Sala de
-troféus consertada (escala inteira, chão livre em `room-spots.ts`). **A Rota Índigo está desligada de novo**
-(`LONG_CUP_LIVE = false`): quebrou na 1ª partida em produção (21/10); religar só depois de jogada inteira no navegador.
+troféus consertada (escala inteira, chão livre em `room-spots.ts`). **A Rota Índigo** quebrou na 1ª partida
+em produção (21/10), saiu do ar e voltou na 0.9.2.2 depois de jogada inteira no navegador (9 bugs consertados). Regra:
+modo novo só vai ao ar depois de jogado de ponta a ponta na tela, não só pelo robô do store.
 
 ### 0.9.1 · Rota Índigo
 

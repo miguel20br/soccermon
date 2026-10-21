@@ -46,6 +46,9 @@ export const longCup = {
     playFinal: 'Jogar a Final',
     pens: '(pên.)',
     backToMap: 'Voltar pro mapa',
+    backToGroup: 'Voltar pro grupo',
+    runnerUp: 'Vice da Rota Índigo',
+    groupLossLine: 'Derrota no grupo: a tabela decide quem vai pra Final.',
     soonEvent: 'Os eventos chegam na próxima etapa: por enquanto o caminho segue.',
     /** Regiões do mapa, de baixo pra cima. */
     region: {

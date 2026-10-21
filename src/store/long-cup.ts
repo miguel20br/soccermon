@@ -19,7 +19,7 @@ import type { TeamSetup } from '../engine/state';
 export type CupMode = 'longa';
 
 /** A Copa longa aparece na Home quando a 0.9.1 estiver pronta (até lá, só pelo `?demo=mapa`). */
-export const LONG_CUP_LIVE = false;
+export const LONG_CUP_LIVE = true;
 
 /** Cartões amarelos: na Copa longa uma derrota fora da Final não elimina; a segunda é o vermelho. */
 export const YELLOW_CARDS = 1;
@@ -61,6 +61,10 @@ export interface LongRunFields {
     /** Evento aberto (status 'event'). */
     event?: import('./long-events').LongEvent | null;
 }
+
+/** "Nova copa" no fim de uma copa: o mesmo modo (Rota começa outra Rota; Relâmpago e Copa do Dia, a Relâmpago). */
+export const nextCupMode = (run: { mode?: CupMode; daily?: string }): CupMode | undefined =>
+    run.daily ? undefined : run.mode;
 
 /** Está fora (machucado ou na Creche)? */
 export const isOut = (run: LongRunFields, uid: string) => (run.out?.[uid] ?? 0) > 0;
@@ -163,6 +167,21 @@ export function groupTable(
     return [...rows].sort(
         (x, y) => y.pts - x.pts || y.gf - y.ga - (x.gf - x.ga) || y.gf - x.gf || (y.you ? 1 : 0) - (x.you ? 1 : 0),
     );
+}
+
+/**
+ * Cartão da derrota que acabou de acontecer: amarelo (a 1ª no mapa, volta pro mapa) ou vermelho (a 2ª no mapa, fora).
+ * Cair no grupo ou perder a Final não é cartão.
+ */
+export function foulOf(run: {
+    mode?: CupMode;
+    status: string;
+    stage: number;
+    results: { won: boolean }[];
+}): 'yellow' | 'red' | null {
+    if (!isLong(run) || run.results.at(-1)?.won !== false) return null;
+    if (run.status === 'map') return 'yellow';
+    return run.status === 'eliminated' && run.stage < GROUP_START ? 'red' : null;
 }
 
 /** Passou do grupo? (os 2 primeiros vão pra Final; só faz sentido com as 3 rodadas jogadas) */

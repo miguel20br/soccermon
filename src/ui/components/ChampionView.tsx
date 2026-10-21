@@ -1,11 +1,11 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useCloud } from '../../cloud/cloud';
-import { CUP_STAGES } from '../../engine/cup';
 import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
 import { clubName, cupStageName } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { isPerfectCup, type RunState, useGame } from '../../store/game-store';
+import { cupLength } from '../../store/long-cup';
 import { trainerLabel } from '../profile/club';
 import { aggregate, avg } from '../stats/CupStats';
 import { CupAwards, CupFinal, CupGoals, CupXI, FormSpark, TitleRecords, useRarity } from './ChampionExtras';
@@ -79,7 +79,7 @@ export function ChampionView({ run, actions }: { run: RunState; actions: ReactNo
                 <div className="cup-totals champ-totals">
                     <div>
                         <b>
-                            {run.results.filter((r) => r.won).length}/{CUP_STAGES.length}
+                            {run.results.filter((r) => r.won).length}/{cupLength(run)}
                         </b>
                         <span>{t('result.champ.wins')}</span>
                     </div>

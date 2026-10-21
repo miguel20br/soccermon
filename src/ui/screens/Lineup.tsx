@@ -94,27 +94,30 @@ export function Lineup() {
 
     return (
         <>
-            <div className="cup-bug bc-surface">
-                <div className="cup-path">
-                    {d.common.stage.map((label, i) => {
-                        const res = run.results.find((r) => r.stage === i);
-                        const cls = res ? (res.won ? 'won' : 'lost') : i === run.stage ? 'now' : '';
-                        return (
-                            <div key={label} className={`cup-step ${cls}`}>
-                                <b>{label}</b>
-                                <span className="muted">{clubName(run.opponents[i].name, lang)}</span>
-                                {res && (
-                                    <div>
-                                        {res.score[0]} x {res.score[1]}
-                                        {res.shootout &&
-                                            t('team.lineup.pens', { a: res.shootout[0], b: res.shootout[1] })}
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
+            {/* Copa Relâmpago: as 4 fases (na Rota o caminho é o mapa, e os rivais só existem até a casa de agora) */}
+            {!isLong(run) && (
+                <div className="cup-bug bc-surface">
+                    <div className="cup-path">
+                        {d.common.stage.map((label, i) => {
+                            const res = run.results.find((r) => r.stage === i);
+                            const cls = res ? (res.won ? 'won' : 'lost') : i === run.stage ? 'now' : '';
+                            return (
+                                <div key={label} className={`cup-step ${cls}`}>
+                                    <b>{label}</b>
+                                    <span className="muted">{clubName(run.opponents[i].name, lang)}</span>
+                                    {res && (
+                                        <div>
+                                            {res.score[0]} x {res.score[1]}
+                                            {res.shootout &&
+                                                t('team.lineup.pens', { a: res.shootout[0], b: res.shootout[1] })}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Copa Relâmpago: a chave inteira num toque, com você na fase de agora */}
             {!isLong(run) && (
@@ -185,11 +188,18 @@ export function Lineup() {
                             </p>
                         )}
                         <div className="bc-thumbbar">
+                            {/* Rota Índigo: titular machucado trava o Jogar; o porquê fica do lado do botão */}
+                            {outStarter && (
+                                <p className="tb-hint" id="lineup-play-why">
+                                    {t('longCup.outStarter', { name: outStarter })}
+                                </p>
+                            )}
                             <button
                                 type="button"
                                 className="btn primary wide"
                                 onClick={play}
                                 disabled={loading || !!outStarter}
+                                aria-describedby={outStarter ? 'lineup-play-why' : undefined}
                             >
                                 {loading
                                     ? t('team.lineup.warming')
