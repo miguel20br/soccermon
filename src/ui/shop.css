@@ -419,8 +419,8 @@ button.sp-slot:hover {
 .sp-slot-desc {
     margin: 8px 0 0;
     padding: 8px 10px;
-    border-left: 4px solid var(--brand);
-    border-radius: 4px;
+    border: 1px solid var(--brand);
+    border-radius: 6px;
     background: var(--bc-ink);
     font-size: 12px;
     animation: foul-in 200ms var(--ease-out) both;
