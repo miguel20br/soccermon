@@ -77,6 +77,10 @@ export function sponsorBonuses(
         out.push({ id: 'torcida', attrs: ['strength'], add: 3 });
     // +2, e mais +1 por cada outro Patrocínio do time
     if (has(sponsors, 'master') && captain?.uid === inst.uid)
-        out.push({ id: 'master', attrs: 'all', add: 2 + sponsors.filter((s) => s !== 'master').length });
+        out.push({
+            id: 'master',
+            attrs: 'all',
+            add: 2 + sponsors.filter((s) => s !== 'master' && isSponsorId(s)).length,
+        });
     return out;
 }

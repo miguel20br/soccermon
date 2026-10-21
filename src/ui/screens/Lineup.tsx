@@ -25,6 +25,7 @@ import { Tip } from '../help/Tip';
 import { lineupAverage } from '../rating';
 import { agencyOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
+import { useHeld } from '../use-held';
 
 /** Descrição das táticas em português (o texto de cada idioma está em i18n: team.lineup.tacticDesc). */
 export const TACTIC_DESC: Record<Tactic, string> = dict('pt').team.lineup.tacticDesc;
@@ -33,8 +34,19 @@ export const TACTIC_DESC: Record<Tactic, string> = dict('pt').team.lineup.tactic
 export const CORNER_PLANS: CornerPlan[] = ['area', 'short', 'mixed'];
 
 export function Lineup() {
-    const { run, swapSlots, setTactic, setCorner, setFormation, moveItem, setMatch, go, abandonRun, lockMatch } =
-        useGame();
+    const {
+        run: live,
+        swapSlots,
+        setTactic,
+        setCorner,
+        setFormation,
+        moveItem,
+        setMatch,
+        go,
+        abandonRun,
+        lockMatch,
+    } = useGame();
+    const run = useHeld(live);
     const [error, setError] = useState<string | null>(null);
     const [askAbandon, setAskAbandon] = useState(false);
     const openCard = useCardModal((s) => s.open);

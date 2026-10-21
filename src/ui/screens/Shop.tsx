@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { itemSprite } from '../../engine/items';
 import { interestOf, rerollPrice, type ShopOffer } from '../../engine/shop';
 import { MAX_SPONSORS } from '../../engine/sponsors';
@@ -12,6 +12,7 @@ import { HudIcon } from '../components/MatchHud';
 import { Money, SponsorCard, SponsorSlots } from '../components/SponsorCard';
 import { TmCard } from '../components/TmTeach';
 import { Tip } from '../help/Tip';
+import { useHeld } from '../use-held';
 import { GainTarget } from './Reward';
 import '../shop.css';
 
@@ -32,7 +33,12 @@ const offerKey = (o: ShopOffer) =>
  * recompensa (quem sai, quem recebe); pacote abre e você fica com 1; Patrocínio ocupa uma das 3 vagas.
  */
 export function Shop() {
-    const { run, buyOffer, claimPack, rerollShop, leaveShop } = useGame();
+    const { run: live, buyOffer, claimPack, rerollShop, leaveShop } = useGame();
+    const run = useHeld(live?.status === 'shop' && live.shop ? live : null);
+    // save estragado (Mercado sem vitrine): segue pra escalação em vez de tela vazia
+    useEffect(() => {
+        if (live?.status === 'shop' && !live.shop) leaveShop();
+    }, [live, leaveShop]);
     const [chosen, setChosen] = useState<number | null>(null);
     const [packPick, setPackPick] = useState<number | null>(null);
     const { lang, t } = useT();
@@ -72,12 +78,17 @@ export function Shop() {
             );
         }
     };
+    // Pokémon que já está no time (veio do pacote): não compra outro da mesma espécie
+    const owned = (o: ShopOffer) => o.kind === 'pokemon' && run.picks.some((p) => p.speciesId === o.inst.speciesId);
+    const buyable = (o: ShopOffer, i: number) => !shop.sold.includes(i) && !owned(o) && money >= o.price;
     const buyLabel = (o: ShopOffer, i: number) =>
         shop.sold.includes(i)
             ? t('shop.sold')
-            : money < o.price
-              ? t('shop.short', { n: o.price - money })
-              : t('shop.buy', { n: o.price });
+            : owned(o)
+              ? t('shop.owned')
+              : money < o.price
+                ? t('shop.short', { n: o.price - money })
+                : t('shop.buy', { n: o.price });
 
     return (
         <>
@@ -193,12 +204,12 @@ export function Shop() {
                                         selected={chosen === i}
                                         team={run.picks}
                                         packSize={sponsors.includes('safari') ? 4 : 3}
-                                        onPick={() => !sold && money >= o.price && choose(i)}
+                                        onPick={() => buyable(o, i) && choose(i)}
                                     />
                                     <button
                                         type="button"
                                         className="btn small shop-buy"
-                                        disabled={sold || money < o.price}
+                                        disabled={!buyable(o, i)}
                                         aria-pressed={chosen === i}
                                         onClick={() => choose(i)}
                                     >

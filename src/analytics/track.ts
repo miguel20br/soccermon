@@ -148,7 +148,7 @@ function onChange(s: GameState, prev: GameState) {
         }
         // Mercado: cada compra (o Patrocínio vai no `what`) e a saída com o ₽ guardado
         const shop = run.shop ?? old.shop;
-        if (old.status === 'shop' && shop && (run.shop?.sold.length ?? 0) > old.shop!.sold.length) {
+        if (old.status === 'shop' && shop && (run.shop?.sold.length ?? 0) > (old.shop?.sold.length ?? 0)) {
             const o = shop.offers[run.shop!.sold.at(-1)!];
             track('shop_buy', {
                 stage: run.stage,

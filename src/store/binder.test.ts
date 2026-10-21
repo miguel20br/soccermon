@@ -134,6 +134,11 @@ describe('álbum: migração do fichário, retroativo e nuvem', () => {
         expect(cleanBinder(JSON.parse(JSON.stringify(b)))).toEqual(b);
     });
 
+    it('carta comprada no Mercado sobrevive a salvar e carregar (antes sumia do álbum)', () => {
+        const b = binderAdd([], [icon('m1')], { from: 'mercado', at: 1, cup: 'c' });
+        expect(cleanBinder(JSON.parse(JSON.stringify(b)))).toEqual(b);
+    });
+
     const run = (seed: string, status: RunState['status']): RunState => {
         const picks = [
             mon(10, `${seed}-0`),

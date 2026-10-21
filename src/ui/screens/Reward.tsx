@@ -20,6 +20,7 @@ import { TypeIcon } from '../components/TypeIcon';
 import { Tip } from '../help/Tip';
 import { type ItemFit, itemFit } from '../item-fit';
 import { readCount, writeCount } from '../local-count';
+import { useHeld } from '../use-held';
 
 /** Quantas telas de recompensa a pessoa já abriu (neste navegador): da 7ª em diante, a abertura é rápida. */
 const PACKS_KEY = 'soccermon-packs-opened';
@@ -42,7 +43,8 @@ function FitBadge({ fit, item, text, full }: { fit: ItemFit; item: string; text:
  * ou pular e ganhar +1 reroll.
  */
 export function Reward() {
-    const { run, claimReward, skipReward, rerollReward } = useGame();
+    const { run: live, claimReward, skipReward, rerollReward } = useGame();
+    const run = useHeld(live?.status === 'reward' ? live : null);
     const [chosen, setChosen] = useState<number | null>(null);
     const { lang, t, tn } = useT();
     // a festa encurta: da 7ª tela de recompensa em diante, o pacote abre rápido e as cartas saem quase juntas

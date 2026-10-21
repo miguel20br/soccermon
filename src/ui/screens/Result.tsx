@@ -44,6 +44,7 @@ import {
     ShotMapChart,
     TeamLegend,
 } from '../stats/StatsCharts';
+import { useHeld } from '../use-held';
 
 type Tab = 'times' | 'jogadores' | 'graficos' | 'copa';
 /** Abas (o rótulo vem do dicionário: result.tabs). */
@@ -52,7 +53,9 @@ const TAB_ICON: Record<Tab, HudIconKind> = { times: 'team', jogadores: 'players'
 const pctOf = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 
 export function Result() {
-    const { run, match, advance, newRun, go } = useGame();
+    const { run: liveRun, match: liveMatch, advance, newRun, go } = useGame();
+    const run = useHeld(liveRun);
+    const match = useHeld(liveMatch);
     const { t } = useT();
     const [shared, setShared] = useState<string | null>(null);
     const clubColor = useClubColor();

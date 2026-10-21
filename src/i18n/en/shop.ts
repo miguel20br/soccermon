@@ -21,6 +21,7 @@ export const shop: typeof pt = {
     leave: 'Continue',
     buy: 'Buy · ₽{n}',
     sold: 'Bought',
+    owned: 'Already on your team',
     short: 'Need ₽{n}',
     kind: { pokemon: 'Pokémon', pack: 'Pack', item: 'Item', tm: 'TM', sponsor: 'Sponsor' },
     pack: '{type} pack',

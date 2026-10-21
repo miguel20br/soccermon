@@ -659,6 +659,16 @@ describe('Mercado (Copa rápida)', () => {
         expect(run.shop!.pack).toBeUndefined();
     });
 
+    it('não entra um segundo Pokémon da mesma espécie (pacote e vitrine podem trazer o mesmo)', () => {
+        useGame.setState({ run: ready('mercado-repetido', { money: 20 }) });
+        useGame.getState().skipReward();
+        const run = useGame.getState().run!;
+        const twin = { ...createInstance(run.picks[0].speciesId, new Rng('gemeo', 'x')), uid: 'gemeo' };
+        useGame.setState({ run: { ...run, shop: { ...run.shop!, pack: [twin] } } });
+        useGame.getState().claimPack(0, run.bench[0]);
+        expect(useGame.getState().run!.picks.some((p) => p.uid === 'gemeo')).toBe(false);
+    });
+
     it('Copa do Dia e copa sem resultado (save antigo) não têm Mercado', () => {
         useGame.setState({ run: ready('mercado-dia', { daily: '2026-10-20' }) });
         useGame.getState().skipReward();

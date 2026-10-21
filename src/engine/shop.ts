@@ -125,9 +125,12 @@ export function shopOffers({ seed, stage, reroll, team, sponsors, eventType, cap
         return { kind: 'pokemon', inst, price: PRICES.pokemon[metalOf(viewInstance(inst).overall)] };
     });
 
+    // o tipo da semana, o do capitão ou um sorteado, desde que ainda tenha carta fora do seu time (pacote vazio travava)
     const capType = captain ? species(captain.speciesId).types[0] : null;
-    const packType = (eventType ?? capType ?? rng.pick(SPECIES).types[0]) as TypeName;
-    const pack: ShopOffer = { kind: 'pack', type: packType, price: PRICES.pack };
+    const left = (t: string) => SPECIES.filter((sp) => sp.types.includes(t) && !taken.has(sp.id)).length;
+    const packType = [eventType, capType, ...rng.shuffle(SPECIES.map((sp) => sp.types[0]))].find(
+        (t): t is TypeName => !!t && left(t) >= 3,
+    );
 
     const tm = rng.chance(0.35) ? rollTmOffer(rng, team) : null;
     let gear: ShopOffer;
@@ -143,7 +146,11 @@ export function shopOffers({ seed, stage, reroll, team, sponsors, eventType, cap
     }
 
     const free = SPONSOR_IDS.filter((id) => !sponsors.includes(id));
-    const out: ShopOffer[] = [...mons, pack, gear];
+    const out: ShopOffer[] = [
+        ...mons,
+        ...(packType ? [{ kind: 'pack' as const, type: packType, price: PRICES.pack }] : []),
+        gear,
+    ];
     if (free.length) out.push({ kind: 'sponsor', id: rng.pick(free), price: PRICES.sponsor });
     return out;
 }

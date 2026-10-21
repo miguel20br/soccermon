@@ -51,6 +51,18 @@ describe('vitrine', () => {
         expect(loja).toHaveLength(3);
     });
 
+    it('pacote nunca sai de um tipo que o time já tem inteiro (pacote vazio travava o Mercado)', () => {
+        const ghosts = [92, 93, 94, 1, 4].map((id) => createInstance(id, rng));
+        for (let r = 0; r < 20; r++) {
+            const pack = shopOffers({ ...base, reroll: r, team: ghosts, eventType: 'Ghost', captain: ghosts[2] }).find(
+                (o) => o.kind === 'pack',
+            );
+            expect(pack?.kind === 'pack' && pack.type).not.toBe('Ghost');
+            if (pack?.kind === 'pack')
+                expect(packCards('s1', 0, pack.type, ghosts, [], null).length).toBeGreaterThan(0);
+        }
+    });
+
     it('pacote de tipo: só do tipo, sem repetir o time; Safari Zone abre 4', () => {
         for (const type of ['Fire', 'Ice', 'Ghost', 'Dragon']) {
             const cards = packCards('s1', 1, type, team, [], null);

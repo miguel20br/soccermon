@@ -454,6 +454,8 @@ function grant(
     let picks = run.picks;
     let bench = run.bench;
     if (reward.kind === 'pokemon') {
+        // nunca dois da mesma espécie (pacote e vitrine do Mercado podem trazer o mesmo Pokémon)
+        if (run.picks.some((p) => p.speciesId === reward.inst.speciesId && p.uid !== targetUid)) return null;
         // reforço entra no banco no lugar do reserva escolhido (nunca o capitão);
         // o item do reserva que sai passa para o reforço
         const benchIdx = run.bench.indexOf(targetUid);
@@ -1440,6 +1442,8 @@ export const useGame = create<GameStore>()(
                             run.eventType ?? null,
                             n,
                         );
+                        // pacote vazio (o time já tem todos do tipo): não cobra nem abre, senão o Mercado travava
+                        if (!pack.length) return;
                         setState({
                             run: { ...paid, packs: n + 1, shop: { ...shop, sold, pack } },
                             dex: seenDex(pack),

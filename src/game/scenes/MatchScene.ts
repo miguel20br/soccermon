@@ -74,7 +74,7 @@ export interface MatchSceneData {
     extraSpecies?: number[];
     /** Faixa da torcida de cada time (texto pronto; null = sem faixa). Copa: só a sua; Duelo: a de cada um. */
     banners?: [string | null, string | null];
-    /** Placas dos Patrocínios da sua copa na beira de baixo da quadra (nome curto e cor da marca). */
+    /** Placas dos Patrocínios da sua copa na beira de cima da quadra, na metade do rival (nome curto e cor da marca). */
     boards?: { text: string; color: number }[];
     /** Uniforme em quadra: cor secundária no disco embaixo do Pokémon (null = liso, só o anel na cor do time). */
     kits?: [{ color2: number } | null, { color2: number } | null];
