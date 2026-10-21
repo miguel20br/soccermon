@@ -178,8 +178,8 @@ export function Home() {
             <div className="mode-cards">
                 <div className="menu panel mode-card cup-card">
                     <div className="mode-head">
-                        <b>{t('home.quickCup.title')}</b>
-                        <span>{t('home.quickCup.line')}</span>
+                        <b>{t('duel.cupTitle')}</b>
+                        <span>{t('duel.cupLine')}</span>
                     </div>
                     {parkedAsk && parkedTarget ? (
                         <div className="confirm-new">
@@ -287,18 +287,33 @@ export function Home() {
                                     setTeamName(e.target.value);
                                 }}
                             />
-                            {/* a ação do jogo: grande, vermelha, largura cheia (com copa em andamento o vermelho é o Continuar) */}
+                            {/* a ação do jogo: "Nova copa" (a Relâmpago) grande e vermelha, largura cheia; a Rota Índigo
+                                é o outro tamanho, em contorno. Com copa em andamento o vermelho é o Continuar. */}
                             <button
                                 type="button"
                                 className={`btn big cup-go ${inProgress ? 'outline' : 'primary'}`}
                                 onClick={() => start()}
                             >
-                                {t('home.newCup')}
+                                <span className="cup-go-txt">
+                                    <b>{t('home.newCup')}</b>
+                                    <small>
+                                        {t('home.quickCup.title')} · {t('home.quickCup.tag')}
+                                    </small>
+                                </span>
                                 <HudIcon kind="next" />
                             </button>
                             {LONG_CUP_LIVE && (
-                                <button type="button" className="btn outline" onClick={() => start(undefined, 'longa')}>
-                                    {t('home.longCup.title')}
+                                <button
+                                    type="button"
+                                    className="btn outline cup-go cup-go-long"
+                                    onClick={() => start(undefined, 'longa')}
+                                >
+                                    <span className="cup-go-txt">
+                                        <b>{t('home.longCup.title')}</b>
+                                        <small>
+                                            {t('home.longCup.tag')} · {t('home.longCup.short')}
+                                        </small>
+                                    </span>
                                     <HudIcon kind="next" />
                                 </button>
                             )}

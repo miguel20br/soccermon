@@ -30,12 +30,15 @@ export const home = {
     teamName: 'Nome do seu time',
     newCup: 'Nova copa',
     quickCup: {
+        tag: '4 jogos',
         title: 'Copa Relâmpago',
         line: 'Mata-mata de 4 jogos, rápido e direto.',
     },
     longCup: {
+        tag: '8 jogos',
         title: 'Rota Índigo',
         line: 'Atravesse Kanto até o Planalto: 8 jogos, eventos e ginásios.',
+        short: 'mapa, eventos e ginásios',
         note: 'A Rota Índigo chega na próxima versão.',
     },
     challenge: 'Aceitar desafio ({seed})',

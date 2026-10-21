@@ -25,6 +25,8 @@ export interface Clock {
     half: number;
     score: [number, number];
     phase: Phase;
+    /** Acréscimos anunciados do tempo atual (minutos; o relógio para no 20'/40' e o placar mostra "+N'"). */
+    added?: number;
 }
 
 const MATCH_MIN = 40;
@@ -36,6 +38,8 @@ export interface ClockParts {
     text: boolean;
     /** Quanto da partida já passou (0..1), pra barrinha embaixo do relógio. */
     progress: number;
+    /** Acréscimos ("+2'"), ou ''/sem. */
+    added?: string;
 }
 
 export function clockParts(
@@ -59,13 +63,16 @@ export function clockParts(
         sub: dict().match.half[clock.half - 1] ?? '',
         text: false,
         progress: Math.min(1, Math.max(0, clock.minute / MATCH_MIN)),
+        added: clock.added ? t('match.added', { min: clock.added }) : '',
     };
 }
 
-/** Texto do relógio numa linha: intervalo, fim/pênaltis ou "19' · 1º tempo". */
+/** Texto do relógio numa linha: intervalo, fim/pênaltis, "19' · 1º tempo" ou, nos acréscimos, "20' +2' · 1º tempo". */
 export function clockLabel(clock: Clock, over: boolean, shootout: [number, number] | null, halftime = false): string {
     const p = clockParts(clock, over, shootout, halftime);
-    return p.text ? p.main : t('match.clock', { min: Math.min(MATCH_MIN, Math.floor(clock.minute)), half: p.sub });
+    if (p.text) return p.main;
+    const label = t('match.clock', { min: Math.min(MATCH_MIN, Math.floor(clock.minute)), half: p.sub });
+    return p.added ? label.replace(p.main, `${p.main} ${p.added}`) : label;
 }
 
 /** Relógio do placar (reage à troca de idioma). */
@@ -94,6 +101,7 @@ export function Scoreboard({
     className = '',
     coaches,
     looks,
+    pressure,
     children,
 }: {
     names: [string, string];
@@ -109,8 +117,11 @@ export function Scoreboard({
     coaches?: [ReactNode, ReactNode];
     /** Escudo e uniforme de cada time (a faixa do lado ganha o padrão; o escudo vai antes da sigla). */
     looks?: [ClubLook, ClubLook];
+    /** Time na Pressão final agora (selo em cima do lado dele); undefined = a tela não mostra. */
+    pressure?: 0 | 1 | null;
     children?: ReactNode;
 }) {
+    const { t } = useT();
     const team = (i: 0 | 1) => (
         <div
             className={`bc-tm${i ? ' away' : ''}${looks ? ' has-kit' : ''}`}
@@ -137,9 +148,26 @@ export function Scoreboard({
     return (
         <div className={`scoreboard bc-bug${coaches ? ' has-coaches' : ''}${className}`} ref={boardRef}>
             <span className="bc-phase bc-tag">{stage}</span>
+            {pressure !== undefined &&
+                ([0, 1] as const).map((i) => (
+                    // os dois selos ficam montados: o do lado que perde aparece (e some) no fade, nada pula
+                    <span
+                        key={i}
+                        className={`bc-fp${i ? ' away' : ''}${pressure === i ? ' on' : ''}`}
+                        style={{ '--tc': hex(colors[i]) } as CSSProperties}
+                        title={t('match.finalPressureHint')}
+                        aria-hidden={pressure !== i}
+                    >
+                        <HudIcon kind="offensive" />
+                        {t('match.finalPressure')}
+                    </span>
+                ))}
             {team(0)}
             <div className="bc-mid">
-                <span className={`bc-clock${clock.text ? ' txt' : ''}`}>{clock.main}</span>
+                <span className={`bc-clock${clock.text ? ' txt' : ''}`}>
+                    {clock.main}
+                    {clock.added && <span className="bc-add">{clock.added}</span>}
+                </span>
                 {clock.sub && <span className="bc-half">{clock.sub}</span>}
                 <span className="bc-prog">
                     <i style={{ width: `${Math.round(clock.progress * 100)}%` }} />

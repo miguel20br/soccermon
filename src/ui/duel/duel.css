@@ -53,7 +53,24 @@
 .cup-card .cup-go {
     width: 100%;
     min-height: 52px;
-    font-size: 16px;
+    justify-content: space-between;
+    text-align: left;
+}
+.cup-go-txt {
+    display: grid;
+    gap: 2px;
+}
+.cup-go-txt b {
+    font-size: 18px;
+    line-height: 1.1;
+}
+.cup-go-txt small {
+    font-size: 12px;
+    font-weight: 400;
+    opacity: 0.9;
+}
+.cup-card .cup-go-long .cup-go-txt b {
+    font-size: 15px;
 }
 /* a semana do tipo: uma linha dentro da Copa (era uma faixa solta no topo da Home) */
 .cup-event {

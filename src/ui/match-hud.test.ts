@@ -6,12 +6,13 @@ import {
     AUTO_RESULT_MS,
     autoResultStep,
     type Clock,
+    clockLabel,
     clockParts,
     finalOutcome,
     pickTab,
     subSuggestion,
 } from './components/MatchHud';
-import { PRESSURE_BINS, pressureUntil } from './match-view';
+import { clockExtrasAt, PRESSURE_BINS, pressureUntil } from './match-view';
 
 const ev = (e: Partial<MatchEvent> & { type: MatchEvent['type'] }) => ({ half: 1, ...e }) as MatchEvent;
 
@@ -71,6 +72,29 @@ describe('relógio do placar em duas linhas', () => {
         expect(clockParts(clock, false, null)).toMatchObject({ main: "19'", sub: '1º tempo', text: false });
         expect(clockParts(clock, false, null, true)).toMatchObject({ main: 'Intervalo', text: true, progress: 0.5 });
         expect(clockParts(clock, true, [3, 2])).toMatchObject({ main: 'Pênaltis 3 x 2', progress: 1 });
+    });
+
+    it('acréscimos: o relógio parado no 20\' com a plaquinha "+2\'"; a Pressão final segue o último aviso do motor', () => {
+        setLang('pt');
+        const events = [
+            ev({ type: 'stoppage', minutes: 2, tick: 100, half: 1 }),
+            ev({ type: 'halftime', score: [0, 0], tick: 500, half: 1 }),
+            ev({ type: 'pressure', team: 1, tick: 900, half: 2 }),
+            ev({ type: 'pressure', team: null, tick: 950, half: 2 }),
+            ev({ type: 'pressure', team: 0, tick: 980, half: 2 }),
+            ev({ type: 'fulltime', score: [1, 2], tick: 1200, half: 2 }),
+        ];
+        expect(clockExtrasAt(events, 99, 1)).toEqual({ added: 0, pressure: null });
+        expect(clockExtrasAt(events, 120, 1)).toEqual({ added: 2, pressure: null });
+        // no 2º tempo os acréscimos do 1º não valem
+        expect(clockExtrasAt(events, 920, 2)).toEqual({ added: 0, pressure: 1 });
+        expect(clockExtrasAt(events, 960, 2).pressure).toBe(null);
+        expect(clockExtrasAt(events, 1000, 2).pressure).toBe(0);
+        expect(clockExtrasAt(events, 1300, 2).pressure).toBe(null);
+        const clock: Clock = { tick: 120, minute: 20, half: 1, score: [0, 0], phase: 'play', added: 2 };
+        expect(clockParts(clock, false, null)).toMatchObject({ main: "20'", added: "+2'" });
+        expect(clockLabel(clock, false, null)).toBe("20' +2' · 1º tempo");
+        expect(clockParts({ ...clock, added: 0 }, false, null).added).toBe('');
     });
 });
 

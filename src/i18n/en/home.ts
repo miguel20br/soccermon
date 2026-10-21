@@ -29,12 +29,15 @@ export const home: typeof pt = {
     teamName: 'Your team name',
     newCup: 'New cup',
     quickCup: {
+        tag: '4 matches',
         title: 'Lightning Cup',
         line: 'A 4-match knockout, quick and direct.',
     },
     longCup: {
+        tag: '8 matches',
         title: 'Indigo Road',
         line: 'Cross Kanto to the Plateau: 8 matches, events and gyms.',
+        short: 'map, events and gyms',
         note: 'The Indigo Road arrives in the next version.',
     },
     challenge: 'Accept challenge ({seed})',

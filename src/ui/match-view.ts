@@ -4,7 +4,7 @@ import { evolveInstance } from '../engine/evolution';
 import { DEFAULT_FORMATION, type FormationId, formationOf } from '../engine/formations';
 import type { PokemonInstance } from '../engine/instance';
 import type { MatchResult } from '../engine/runners/batch-runner';
-import type { MatchSnapshot, PlayerStats, TeamSetup } from '../engine/state';
+import type { MatchEvent, MatchSnapshot, PlayerStats, TeamSetup } from '../engine/state';
 
 /**
  * Leitura da partida num tick a partir do resultado já simulado (eventos + snapshots): quem está em cada vaga,
@@ -31,6 +31,26 @@ export function snapAt(snaps: MatchSnapshot[], tick: number): MatchSnapshot {
         else hi = mid;
     }
     return snaps[lo];
+}
+
+/**
+ * O que o placar mostra no `tick` além do minuto: os acréscimos do tempo `half` (minutos, 0 = tempo normal) e o time
+ * na Pressão final (o último aviso `pressure` do motor; acaba no apito final).
+ */
+export function clockExtrasAt(
+    events: readonly MatchEvent[],
+    tick: number,
+    half: number,
+): { added: number; pressure: 0 | 1 | null } {
+    let added = 0;
+    let pressure: 0 | 1 | null = null;
+    for (const e of events) {
+        if (e.tick > tick) break;
+        if (e.type === 'stoppage' && e.half === half) added = e.minutes;
+        else if (e.type === 'pressure') pressure = e.team;
+        else if (e.type === 'fulltime') pressure = null;
+    }
+    return { added, pressure };
 }
 
 /**

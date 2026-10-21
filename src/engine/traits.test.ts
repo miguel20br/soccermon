@@ -316,10 +316,11 @@ describe('traços de golpe', () => {
     });
 });
 
-/** Leva o relógio para o último tick do tempo: o próximo `run` apita (intervalo ou fim de jogo). */
+/** Leva o relógio para o último tick do tempo, sem acréscimos: o próximo `run` apita (intervalo ou fim de jogo). */
 const toWhistle = (s: MatchState, half: 1 | 2) => {
     s.half = half;
     s.time = s.cfg.halfSeconds - 0.5 / s.cfg.tickRate;
+    s.added = 0;
 };
 
 describe('traços de golpe: bola parada, intervalo e fim', () => {
