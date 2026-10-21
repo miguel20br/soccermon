@@ -4,8 +4,6 @@ export const duel = {
     beta: 'BETA',
     betaNote: 'Duelo em beta: se algo estranho acontecer,',
     betaLink: 'conta pra gente.',
-    cupTitle: 'Copa',
-    cupLine: 'Monte o time com 7 Pokémon e escolha o tamanho da copa',
     line: 'Desafie um amigo ao vivo: mande o link e joguem juntos',
     createRoom: 'Criar sala',
     newDuel: 'Novo duelo',

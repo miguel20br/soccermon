@@ -1,5 +1,12 @@
 # Novidades
 
+## 0.9.3.2 · Rota Índigo na frente
+
+### Tela inicial
+- Rota Índigo e Copa Relâmpago lado a lado no PC, com a Rota maior e o selo NOVO
+- Duelo e Copa do Dia embaixo, um do lado do outro
+- No celular, o botão da Rota ocupa a largura toda
+
 ## 0.9.3.1 · Pokédex com texto e Pokémon com mais caras
 
 ### Coleção

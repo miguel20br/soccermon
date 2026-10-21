@@ -7,6 +7,20 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.3.2',
+        title: 'Rota Índigo na frente',
+        sections: [
+            {
+                title: 'Tela inicial',
+                lines: [
+                    'Rota Índigo e Copa Relâmpago lado a lado no PC, com a Rota maior e o selo NOVO',
+                    'Duelo e Copa do Dia embaixo, um do lado do outro',
+                    'No celular, o botão da Rota ocupa a largura toda',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.3.1',
         title: 'Pokédex com texto e Pokémon com mais caras',
         sections: [
@@ -1152,6 +1166,20 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.3.2',
+        title: 'Indigo Road up front',
+        sections: [
+            {
+                title: 'Home screen',
+                lines: [
+                    'Indigo Road and Lightning Cup side by side on desktop, with the Road bigger and a NEW tag',
+                    'Duel and Daily Cup below, next to each other',
+                    'On phones, the Road button takes the full width',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.3.1',
         title: 'Pokédex entries and more faces',

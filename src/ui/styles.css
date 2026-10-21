@@ -3043,6 +3043,7 @@ button,
 
 .confirm-new {
     display: grid;
+    align-content: center;
     gap: 10px;
     text-align: center;
 }
@@ -5702,7 +5703,8 @@ a.home-tile {
         font-size: 12px;
     }
     /* o placar da Copa fica só com o título; a linha de explicação volta em pé */
-    .cup-card .mode-head span:not(.bc-tag) {
+    .cup-card .mode-head span:not(.bc-tag),
+    .rota-card .mode-head > span {
         display: none;
     }
     .home .menu {

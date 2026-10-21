@@ -1,32 +1,35 @@
 /* Duelo ao vivo: sala, lobby, draft, prévia, partida e resultado. */
 
-/* Home: a Copa é o modo principal (cartão de borda amarela com o "Nova copa" grande); Duelo e Copa do Dia são dois
-   cartões irmãos menores, com a mesma linha (arte, título, botão comum). No PC os dois ficam empilhados do lado da
-   Copa, cada um do tamanho do conteúdo (sem buraco). */
-.home .mode-cards {
+/* Home: os modos. No celular, empilhados (Rota Índigo, Copa Relâmpago, Duelo, Copa do Dia). No PC, em cima a Rota
+   (um pouco mais larga) e a Relâmpago com o mesmo peso e a mesma altura; embaixo Duelo e Copa do Dia lado a lado
+   (.mode-pair), da mesma largura e altura. */
+.home .mode-cards,
+.home .mode-pair {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 12px;
     width: min(460px, 100%);
 }
+.home .mode-pair {
+    width: 100%;
+}
 @media (min-width: 900px) {
     .home .mode-cards {
-        grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-        grid-template-rows: auto auto 1fr;
-        width: min(820px, 100%);
-        align-items: start;
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+        width: min(880px, 100%);
     }
-    .home .cup-card {
-        grid-row: 1 / span 3;
-    }
-    /* coluna da direita é estreita: o botão desce pra baixo do título (sem texto espremido) */
-    .home .duel-card .dc-row,
-    .home .daily-card .dc-row {
-        grid-template-columns: auto minmax(0, 1fr);
-    }
-    .home .duel-card .dc-go,
-    .home .daily-card .dc-go {
+    .home .mode-pair {
         grid-column: 1 / -1;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+    /* a Relâmpago tem mais coisa (nome do time, semana do tipo): na Rota a arte ocupa a sobra, o botão fica embaixo */
+    .home .rota-card {
+        grid-template-rows: auto minmax(0, 1fr) auto;
+    }
+    /* Duelo e Copa do Dia: o botão desce pra baixo do título e fica no pé do cartão */
+    .home .duel-card,
+    .home .daily-card {
+        align-content: start;
     }
 }
 .home .mode-cards .menu {
@@ -38,21 +41,61 @@
     border-color: var(--yellow);
     text-align: left;
 }
-.cup-card .mode-head {
+.home .rota-card {
+    grid-template-columns: minmax(0, 1fr);
+    border-color: var(--yellow);
+    text-align: left;
+}
+.cup-card .mode-head,
+.rota-card .mode-head {
     display: grid;
     gap: 2px;
 }
-.cup-card .mode-head b {
+.cup-card .mode-head b,
+.rota-card .mode-head b {
     font-family: "Galmuri14", "Galmuri11", monospace;
     font-size: 22px;
     line-height: 1.15;
     color: var(--text);
 }
-.cup-card .mode-head span {
+.cup-card .mode-head span,
+.rota-card .mode-head span:not(.bc-tag) {
     color: var(--muted);
     font-size: 12px;
 }
-.cup-card .cup-go {
+.rota-card .mode-head b {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    font-size: 26px;
+}
+.rota-new {
+    font-family: inherit;
+}
+/* os 8 líderes de ginásio numa trilha pontilhada: a rota até o Planalto */
+.rota-art {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 4px;
+}
+.rota-art::before {
+    content: "";
+    position: absolute;
+    inset: 50% 8px auto;
+    border-top: 3px dotted var(--line);
+}
+.rota-art img {
+    position: relative;
+    width: 11.5%;
+    max-width: 64px;
+    aspect-ratio: 1;
+    image-rendering: auto;
+}
+.cup-card .cup-go,
+.rota-card .cup-go {
     width: 100%;
     min-width: 0;
     min-height: 52px;
@@ -73,9 +116,6 @@
     font-size: 12px;
     font-weight: 400;
     opacity: 0.9;
-}
-.cup-card .cup-go-long .cup-go-txt b {
-    font-size: 15px;
 }
 /* a semana do tipo: uma linha dentro da Copa (era uma faixa solta no topo da Home) */
 .cup-event {
