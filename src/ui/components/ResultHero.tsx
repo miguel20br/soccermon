@@ -9,6 +9,7 @@ import { useT } from '../../i18n/react';
 import type { RunState } from '../../store/game-store';
 import { cupLength, isFinalStage, isLong } from '../../store/long-cup';
 import { rivalColor } from '../../store/profile';
+import { portraitSrc } from '../portrait';
 import { useClubColor } from '../profile/club';
 import { CountUp } from './CountUp';
 import { LeaderQuote } from './LeaderQuote';
@@ -138,6 +139,9 @@ export function ResultHero({
                     ? t('result.hero.runnerUp')
                     : t('result.hero.eliminated', { stage: d.common.stageIn[run.stage] ?? '' }));
     const squad = match.finalRoster.filter((p) => p.team === side);
+    // eliminado: o capitão aparece com lágrima (retrato PMD Teary-Eyed; sem ele, triste ou chorando)
+    const sadCaptain =
+        run?.status === 'eliminated' ? run.picks.find((p) => p.uid === run.captainUid)?.speciesId : undefined;
     const next = run && won && !champion ? run.opponents[run.stage + 1] : null;
     // seu time na cor do clube (Perfil); o rival no uniforme reserva se as cores baterem
     const homeColor = useClubColor();
@@ -152,6 +156,15 @@ export function ResultHero({
         <section className={`panel rh rh-${mood}`} style={style} aria-label={t('result.hero.aria')} onClick={finish}>
             {mood !== 'loss' && <Confetti count={mood === 'champ' ? 60 : 36} />}
             <div className="rh-stage bc-tag">{duel ? duel.stage : run ? cupStageName(run, run.stage) : ''}</div>
+            {sadCaptain && (
+                <img
+                    className="rh-sad pixel"
+                    src={portraitSrc(sadCaptain, ['teary', 'sad', 'crying'])}
+                    alt=""
+                    width="40"
+                    height="40"
+                />
+            )}
             <h1 className="rh-title" aria-label={title}>
                 {[...title].map((ch, i) => (
                     // biome-ignore lint/suspicious/noArrayIndexKey: letras do título

@@ -54,6 +54,18 @@ export interface PmdAnimInfo {
     rows: number;
     durations: number[];
     hitFrame: number | null;
+    /** Só no atlas extra: onde fica o pé, em fração da altura do quadro (1º quadro, de frente). */
+    foot?: number;
+}
+
+/** Última linha com pixel visível do 1º quadro (de frente), em fração da altura: o pé (como build-sprite-feet.ts). */
+async function footOf(img: Buffer, fw: number, fh: number): Promise<number> {
+    const { data } = await sharp(img).ensureAlpha().extract({ left: 0, top: 0, width: fw, height: fh }).raw().toBuffer({
+        resolveWithObject: true,
+    });
+    let last = 0;
+    for (let y = 0; y < fh; y++) for (let x = 0; x < fw; x++) if (data[(y * fw + x) * 4 + 3] > 20) last = y;
+    return Number(((last + 1) / fh).toFixed(3));
 }
 
 async function cached(id: number, file: string): Promise<Buffer | null> {
@@ -105,6 +117,7 @@ async function buildOne(id: number) {
             durations,
             hitFrame: raw.HitFrame != null ? Number(raw.HitFrame) : null,
         };
+        if (EXTRA) anims[name].foot = await footOf(img, fw, fh);
         sheets.push({ name, img, width, height });
     }
 

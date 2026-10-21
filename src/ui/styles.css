@@ -7560,3 +7560,43 @@ body {
     image-rendering: pixelated;
     vertical-align: middle;
 }
+
+/* eliminado: o rosto do capitão com lágrima embaixo da fase, entrando depois do título */
+.rh-sad {
+    display: block;
+    width: 80px;
+    height: 80px;
+    margin: 6px auto 0;
+    border: 3px solid var(--bc-ink);
+    border-radius: 8px;
+    background: var(--panel-2);
+    box-shadow: 0 3px 0 rgb(0 0 0 / 35%);
+    animation: rh-sad-in 280ms 500ms var(--ease-out) both;
+}
+@keyframes rh-sad-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+}
+:root[data-reduce-motion="true"] .rh-sad {
+    animation-name: fade-in-only;
+}
+@media (prefers-reduced-motion: reduce) {
+    .rh-sad {
+        animation-name: fade-in-only;
+    }
+}
+@keyframes fade-in-only {
+    from {
+        opacity: 0;
+    }
+}
+
+/* sprite PMD animado nas telas de menu (PmdSprite): pixel art em escala inteira */
+.pmd-sprite {
+    display: inline-block;
+    flex: none;
+    background-repeat: no-repeat;
+    image-rendering: pixelated;
+}

@@ -76,3 +76,16 @@ describe.each(ACTIVE_GENS)('texto da Pokédex da Gen %i', (gen) => {
         expect(bad).toEqual([]);
     });
 });
+
+// Fora da quadra (Sala de troféus, Treino da Rota): atlas extra do PMD com o Sleep de todos e o pé de cada animação.
+describe.each(ACTIVE_GENS)('atlas extra do PMD da Gen %i', (gen) => {
+    it('todo Pokémon dorme, e cada animação sabe onde fica o pé', () => {
+        const bad = idsOf(gen).filter((id) => {
+            const path = `public/assets/field/extra/${id}.json`;
+            if (!existsSync(path) || !existsSync(`public/assets/field/extra/${id}.png`)) return true;
+            const { anims } = json<{ anims: Record<string, { foot?: number }> }>(path);
+            return !anims.Sleep || Object.values(anims).some((a) => !(a.foot && a.foot > 0 && a.foot <= 1));
+        });
+        expect(bad).toEqual([]);
+    });
+});

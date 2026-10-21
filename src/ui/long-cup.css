@@ -833,3 +833,57 @@
         animation-name: cm-fade-in;
     }
 }
+
+/* Treino › Descansar: o time cochilando (PMD Sleep), encostado um no outro */
+.cm-rest-squad {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 0 4px;
+    margin: 4px 0 10px;
+}
+/* rosto PMD no lugar do sprite: dor no carrinho, tontura no treino puxado */
+.cm-face,
+.mini img.cm-face {
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    background: var(--panel-2);
+}
+.cm-event-faces {
+    display: flex;
+    flex: none;
+    gap: 6px;
+    margin-left: auto;
+    animation: cm-rival-in 240ms 120ms var(--ease-out) both;
+}
+.cm-event-faces .cm-face {
+    width: 56px;
+    height: 56px;
+    border: 2px solid var(--bc-ink);
+}
+@media (prefers-reduced-motion: reduce) {
+    .cm-event-faces {
+        animation-name: cm-fade-in;
+    }
+}
+:root[data-reduce-motion="true"] .cm-event-faces {
+    animation-name: cm-fade-in;
+}
+/* celular: os dois rostos sobem pro canto de cima da caixa (do lado do texto não cabem) */
+@media (max-width: 560px) {
+    .cm-event:has(.cm-event-faces) {
+        position: relative;
+        padding-top: 58px;
+    }
+    .cm-event-faces {
+        position: absolute;
+        top: 10px;
+        right: 12px;
+    }
+    .cm-event-faces .cm-face {
+        width: 40px;
+        height: 40px;
+    }
+}

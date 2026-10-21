@@ -22,8 +22,10 @@ import { FutCard } from '../components/FutCard';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { MonIcon } from '../components/MonIcon';
+import { PmdSprite } from '../components/PmdSprite';
 import { cardSprite } from '../components/PokeCard';
 import { Money, SponsorSlots } from '../components/SponsorCard';
+import { portraitSrc } from '../portrait';
 import { useClubColor } from '../profile/club';
 import { reduceMotionOn } from '../settings-sync';
 import { RoomDialog } from '../trophy/RoomDialog';
@@ -390,6 +392,23 @@ export function Training() {
             <div className="panel cm-train">
                 <h2>{t('longCup.treino.rest')}</h2>
                 <p className="muted">{t('longCup.treino.restLine')}</p>
+                {/* o time tirando um cochilo (PMD Sleep; quem não tem, o sprite da carta) */}
+                <div className="cm-rest-squad" aria-hidden>
+                    {run.lineup
+                        .map((u) => byUid.get(u))
+                        .map(
+                            (p) =>
+                                p && (
+                                    <PmdSprite
+                                        key={p.uid}
+                                        id={p.speciesId}
+                                        shiny={p.shiny}
+                                        anim="Sleep"
+                                        fallback={<img className="pixel" src={cardSprite(p)} alt="" />}
+                                    />
+                                ),
+                        )}
+                </div>
                 <button
                     type="button"
                     className="btn"
@@ -445,7 +464,10 @@ export function EventScreen() {
     };
     // venda do capitão: depois do reserva, o novo capitão sai da escalação com ele na vaga
     const lineupAfter = sub ? run.lineup.map((u) => (u === run.captainUid ? sub : u)) : [];
-    const strip = (uids: string[], onPick: (u: string) => void, active?: string | null) => (
+    // carrinho: quem pode parar aparece com cara de dor; treino puxado: com cara de tonto (fica 1 partida fora)
+    const face =
+        picked?.need === 'involved' ? ['pain', 'dizzy'] : picked?.need === 'evolver' ? ['dizzy', 'sigh'] : null;
+    const strip = (uids: string[], onPick: (u: string) => void, active?: string | null, faces?: string[] | null) => (
         <div className="squad-strip">
             {uids.map((u) => (
                 <button
@@ -457,7 +479,17 @@ export function EventScreen() {
                         onPick(u);
                     }}
                 >
-                    <img className="pixel" src={cardSprite(byUid.get(u)!)} alt="" />
+                    {faces ? (
+                        <img
+                            className="pixel cm-face"
+                            src={portraitSrc(byUid.get(u)!.speciesId, faces)}
+                            alt=""
+                            width="40"
+                            height="40"
+                        />
+                    ) : (
+                        <img className="pixel" src={cardSprite(byUid.get(u)!)} alt="" />
+                    )}
                     <span>
                         <b>{nameOf(u)}</b>
                     </span>
@@ -474,6 +506,22 @@ export function EventScreen() {
                 </span>
                 <img className="cm-story-who" src={`assets/trainers/${txt.who}.png`} alt="" />
                 <p>{fmtNames(txt.text, ev.uids?.map(nameOf) ?? [])}</p>
+                {ev.id === 'carrinho' && !!ev.uids?.length && (
+                    <span className="cm-event-faces" aria-hidden>
+                        {ev.uids.map((u) =>
+                            byUid.get(u) ? (
+                                <img
+                                    key={u}
+                                    className="pixel cm-face"
+                                    src={portraitSrc(byUid.get(u)!.speciesId, ['pain', 'dizzy'])}
+                                    alt=""
+                                    width="40"
+                                    height="40"
+                                />
+                            ) : null,
+                        )}
+                    </span>
+                )}
             </div>
             {!!ev.cards?.length && (
                 <div className="cm-event-cards">
@@ -522,7 +570,7 @@ export function EventScreen() {
                     <h2>{t(picked.need === 'captainSale' ? 'longCup.pickSub' : 'longCup.pickWho')}</h2>
                     {picked.need === 'captainSale'
                         ? strip(targets, setSub, sub)
-                        : strip(targets, (u) => chooseEvent(picked.id, u, card))}
+                        : strip(targets, (u) => chooseEvent(picked.id, u, card), null, face)}
                     {picked.need === 'captainSale' && sub && (
                         <>
                             <h2>{t('longCup.pickCaptain')}</h2>

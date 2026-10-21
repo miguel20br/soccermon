@@ -59,6 +59,7 @@ export function runDevDemo() {
         demo !== 'mt' &&
         demo !== 'mercado' &&
         demo !== 'mapa' &&
+        demo !== 'treino' &&
         demo !== 'evento' &&
         demo !== 'grupo' &&
         demo !== 'escanteio' &&
@@ -283,6 +284,13 @@ export function runDevDemo() {
         }));
         useGame.setState({ run: { ...run, at: last.id, status: 'treino', results, stage: 4, money: 22 } });
         useGame.getState().train('rest');
+        return;
+    }
+    // ?demo=treino: casa de Treino da Rota (encher a evolução de alguém ou descansar, com o time cochilando)
+    if (demo === 'treino') {
+        demoLongMap(store, true);
+        const run = useGame.getState().run!;
+        useGame.setState({ run: { ...run, status: 'treino' }, screen: 'treino' });
         return;
     }
     if (demo === 'mapa') {
