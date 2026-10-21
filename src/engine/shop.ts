@@ -110,17 +110,26 @@ interface ShopInput {
     sponsors: readonly string[];
     eventType: string | null;
     captain: PokemonInstance | null;
+    /** Copa longa: chave própria do sorteio (a casa do mapa) e raridade pelo andar. Sem = Copa rápida. */
+    long?: { key: string; round: number };
 }
 
 /**
  * Vitrine: 2 Pokémon avulsos, 1 pacote de tipo (o da semana ou o do capitão), 1 item ou MT e 1 Patrocínio que você
  * ainda não tem. Loja de Departamentos: +1 Pokémon.
  */
-export function shopOffers({ seed, stage, reroll, team, sponsors, eventType, captain }: ShopInput): ShopOffer[] {
-    const rng = new Rng(seed, `shop-${stage}-r${reroll}`);
+export function shopOffers({ seed, stage, reroll, team, sponsors, eventType, captain, long }: ShopInput): ShopOffer[] {
+    const rng = new Rng(seed, long ? `shop-${long.key}-r${reroll}` : `shop-${stage}-r${reroll}`);
     const taken = new Set(team.map((p) => p.speciesId));
     const count = 2 + (has(sponsors, 'loja') ? 1 : 0);
-    const mons: ShopOffer[] = draftOptions(rng, SHOP_ROUND[Math.min(stage, 2)], taken, count, [], 'ANY').map((m) => {
+    const mons: ShopOffer[] = draftOptions(
+        rng,
+        long?.round ?? SHOP_ROUND[Math.min(stage, 2)],
+        taken,
+        count,
+        [],
+        'ANY',
+    ).map((m) => {
         const inst = rollSpecial(m, eventType);
         return { kind: 'pokemon', inst, price: PRICES.pokemon[metalOf(viewInstance(inst).overall)] };
     });
@@ -164,10 +173,12 @@ export function packCards(
     sponsors: readonly string[],
     eventType: string | null,
     n = 0,
+    /** Copa longa: raridade pelo andar. */
+    longRound?: number,
 ): PokemonInstance[] {
     const rng = new Rng(seed, `pack-${stage}-${type}-${n}`);
     const taken = new Set(team.map((p) => p.speciesId));
     const count = has(sponsors, 'safari') ? 4 : 3;
-    const round = SHOP_ROUND[Math.min(stage, 2)];
+    const round = longRound ?? SHOP_ROUND[Math.min(stage, 2)];
     return draftOptions(rng, round, taken, count, [], 'ANY', undefined, type).map((m) => rollSpecial(m, eventType));
 }

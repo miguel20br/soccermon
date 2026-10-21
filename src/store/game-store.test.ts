@@ -5,7 +5,7 @@ vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, 
 
 import { ENGINE_VERSION, FUTSAL_5 } from '../engine/config';
 import { bestFit, DRAFT_PICKS } from '../engine/draft';
-import { evolveInstance } from '../engine/evolution';
+import { evolutionTarget, evolveInstance } from '../engine/evolution';
 import { formationOf } from '../engine/formations';
 import { createInstance, type PokemonInstance, slotRating } from '../engine/instance';
 import { playerLines } from '../engine/match-stats';
@@ -682,5 +682,87 @@ describe('Mercado (Copa rápida)', () => {
         const run = ready('mercado-campo', { sponsors: ['academia'] });
         expect(playerTeam(run, 15221311).sponsors).toEqual(['academia']);
         expect(playerTeam({ ...run, sponsors: [] }, 15221311).sponsors).toBeUndefined();
+    });
+});
+
+describe('Copa longa', () => {
+    const start = (seed: string) => {
+        useGame.getState().newRun('Pallet FC', seed, undefined, 'longa');
+        useGame.getState().autoDraft();
+        return useGame.getState().run!;
+    };
+
+    it('nasce com o mapa e sem rivais; o time pronto vai pro mapa', () => {
+        const run = start('longa-mapa');
+        expect(run.mode).toBe('longa');
+        expect(run.map?.rows).toBe(13);
+        expect(run.opponents).toEqual([]);
+        expect(run.status).toBe('map');
+        expect(useGame.getState().screen).toBe('map');
+    });
+
+    it('casa de partida: rival da prévia na escalação; casa fora do caminho não entra', () => {
+        const run = start('longa-casa');
+        const far = run.map!.nodes.find((n) => n.row === 4)!;
+        useGame.getState().enterNode(far.id);
+        expect(useGame.getState().run!.status).toBe('map');
+        const first = run.map!.nodes.find((n) => n.row === 0)!;
+        useGame.getState().enterNode(first.id);
+        const now = useGame.getState().run!;
+        expect(now.status).toBe('lineup');
+        expect(now.at).toBe(first.id);
+        expect(now.opponents[0]?.name).toBeTruthy();
+    });
+
+    it('vitória vai pra recompensa e depois pro mapa (sem Mercado); derrota fora da Final é cartão amarelo', () => {
+        const run = start('longa-partida');
+        useGame.getState().enterNode(run.map!.nodes.find((n) => n.row === 0)!.id);
+        const cur = useGame.getState().run!;
+        const team = playerTeam(cur, 15221311);
+        useGame.getState().lockMatch(team);
+        const m = runMatch(FUTSAL_5, team, cur.opponents[0], `${cur.seed}-stage-0`);
+        useGame.getState().recordResult(m);
+        const after = useGame.getState().run!;
+        expect(after.results[0].final).toBe(false);
+        if (m.winner === 0) {
+            expect(after.status).toBe('reward');
+            expect(after.money).toBeGreaterThanOrEqual(5);
+            useGame.getState().skipReward();
+            expect(useGame.getState().run!.status).toBe('map');
+        } else {
+            expect(after.status).toBe('map');
+            expect(after.cards).toBe(1);
+        }
+    });
+
+    it('Mercado é casa do mapa: juros ao entrar, sair volta pro mapa', () => {
+        const run = start('longa-mercado');
+        const first = run.map!.nodes.find((n) => n.row === 0)!;
+        const shopNode = first.next
+            .map((id) => run.map!.nodes.find((n) => n.id === id)!)
+            .find((n) => n.kind === 'mercado');
+        if (!shopNode) return;
+        useGame.setState({ run: { ...run, at: first.id, money: 12 } });
+        useGame.getState().enterNode(shopNode.id);
+        const shop = useGame.getState().run!;
+        expect(shop.status).toBe('shop');
+        expect(shop.money).toBe(14);
+        useGame.getState().leaveShop();
+        expect(useGame.getState().run!.status).toBe('map');
+    });
+
+    it('Treino: barra de evolução enche metade, ou +1 troca', () => {
+        const base = start('longa-treino');
+        // Charmander no banco: alguém que evolui com certeza
+        const evolver = { ...createInstance(4, new Rng('treino', 'x')), uid: 'charmander' };
+        const run = { ...base, picks: [...base.picks.slice(0, -1), evolver], bench: [base.bench[0], 'charmander'] };
+        expect(evolutionTarget(evolver.speciesId, evolver.uid)).not.toBeNull();
+        useGame.setState({ run: { ...run, status: 'treino' } });
+        useGame.getState().train('rest');
+        expect(useGame.getState().run!.rerolls).toBe(run.rerolls + 1);
+        useGame.setState({ run: { ...run, status: 'treino' } });
+        useGame.getState().train('evo', evolver.uid);
+        expect(useGame.getState().run!.status).toBe('map');
+        expect(useGame.getState().run!.picks.find((p) => p.uid === evolver.uid)!.evo).toBe(7);
     });
 });

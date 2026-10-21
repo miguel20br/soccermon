@@ -28,8 +28,10 @@ export function rewardOptions(
     defeated?: { name: string; players: readonly PokemonInstance[] },
     /** Opções a mais (Patrocínio Laboratório de Cinnabar: 4 em vez de 3), sempre itens. */
     extra = 0,
+    /** Copa longa: chave própria do sorteio (casa do mapa) e raridade do reforço pelo andar. Sem = Copa rápida. */
+    long?: { key: string; round: number },
 ): Reward[] {
-    const rng = new Rng(seed, `reward-${stage}-r${reroll}`);
+    const rng = new Rng(seed, long ? `reward-${long.key}-r${reroll}` : `reward-${stage}-r${reroll}`);
     const taken = new Set(team.map((p) => p.speciesId));
 
     let pokemon: Reward | null = null;
@@ -41,7 +43,7 @@ export function rewardOptions(
         const inst: PokemonInstance = { ...star, uid: `${star.uid}-c${stage}`, item: null };
         pokemon = { kind: 'pokemon', inst, from: defeated.name };
     } else {
-        const [inst] = draftOptions(rng, REINFORCEMENT_ROUND[Math.min(stage, 2)], taken, 1, [], 'ANY');
+        const [inst] = draftOptions(rng, long?.round ?? REINFORCEMENT_ROUND[Math.min(stage, 2)], taken, 1, [], 'ANY');
         if (inst) pokemon = { kind: 'pokemon', inst, from: null };
     }
 
@@ -58,7 +60,7 @@ export function rewardOptions(
     if (pokemon) options.splice(rng.int(0, options.length), 0, pokemon);
 
     // MT no lugar do último item; sorteio à parte para não mudar o reforço e os itens da mesma seed
-    const tmRng = new Rng(seed, `reward-tm-${stage}-r${reroll}`);
+    const tmRng = new Rng(seed, long ? `reward-tm-${long.key}-r${reroll}` : `reward-tm-${stage}-r${reroll}`);
     const offer = tmRng.chance(TM_REWARD_CHANCE) ? rollTmOffer(tmRng, team, defeated?.name) : null;
     const last = options.map((o) => o.kind).lastIndexOf('item');
     if (offer && last >= 0) options[last] = { kind: 'tm', ...offer };

@@ -2,9 +2,10 @@ import { del, get, set } from 'idb-keyval';
 import { create } from 'zustand';
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 import type { Position } from '../engine/attributes';
-import { buildCupOpponents, CUP_STAGES } from '../engine/cup';
+import { buildCupOpponents } from '../engine/cup';
+import { isMatchKind, longOpponent, matchIndexOfRow, nextNodes } from '../engine/cup-map';
 import { BENCH_SIZE, bestFit, captainOptions, DRAFT_PICKS, playerDraftOptions } from '../engine/draft';
-import { evolutionTarget, evolveInstance, evoProgress } from '../engine/evolution';
+import { EVO_THRESHOLD, evolutionTarget, evolveInstance, evoProgress } from '../engine/evolution';
 import { DEFAULT_FORMATION, type FormationId, formationOf } from '../engine/formations';
 import type { PokemonInstance } from '../engine/instance';
 import { viewInstance } from '../engine/instance';
@@ -13,7 +14,15 @@ import { everyoneIn, mvpScore } from '../engine/mvp';
 import { type Reward, rewardOptions } from '../engine/rewards';
 import { Rng } from '../engine/rng';
 import type { MatchResult } from '../engine/runners/batch-runner';
-import { packCards, rerollPrice, type ShopOffer, type ShopState, shopOffers, winEarnings } from '../engine/shop';
+import {
+    interestOf,
+    packCards,
+    rerollPrice,
+    type ShopOffer,
+    type ShopState,
+    shopOffers,
+    winEarnings,
+} from '../engine/shop';
 import {
     DESTAQUE_LEVEL_UP_RATING,
     DESTAQUE_MAX_LEVEL,
@@ -28,6 +37,16 @@ import { detectLang, type Lang } from '../i18n/lang';
 import { type BinderCard, binderAdd, binderOf } from './binder';
 import { type DailyEntry, dailyDay, dailyEventType, dailySeed, isDailySeed, mergeDaily, putDaily } from './daily';
 import { addDuel, type DuelRecord, duelWins, MAX_DUELS } from './duels';
+import {
+    type CupMode,
+    currentNode,
+    isFinalStage,
+    isLong,
+    type LongRunFields,
+    longRound,
+    newLongFields,
+    YELLOW_CARDS,
+} from './long-cup';
 import { activeTitle, activeTrainer, matchView, newMissions, stageView } from './missions';
 import { withSeenBaseline } from './news';
 import {
@@ -82,7 +101,9 @@ export type Screen =
     | 'liga-match'
     | 'collection'
     | 'trophies'
-    | 'shop';
+    | 'shop'
+    | 'map'
+    | 'treino';
 export type CryStyle = 'legacy' | 'latest';
 export type PlaybackSpeed = 1 | 2 | 4 | 8 | 'highlights';
 
@@ -98,6 +119,8 @@ export interface StageResult {
     won: boolean;
     /** Craque do seu time que virou carta Destaque nesta partida. */
     destaqueUid?: string | null;
+    /** Foi a Final (Copa longa tem 8 partidas: a 4ª não é a final). Partidas antigas: `stage === 3`. */
+    final?: boolean;
     /** Resumo da partida para as estatísticas da copa (partidas antigas não têm). */
     stats?: StageStats;
     /**
@@ -150,10 +173,20 @@ export interface ChampMemo {
     paraded?: boolean;
 }
 
-export type RunStatus = 'formation' | 'captain' | 'drafting' | 'lineup' | 'reward' | 'shop' | 'eliminated' | 'champion';
+export type RunStatus =
+    | 'formation'
+    | 'captain'
+    | 'drafting'
+    | 'lineup'
+    | 'reward'
+    | 'shop'
+    | 'map'
+    | 'treino'
+    | 'eliminated'
+    | 'champion';
 
 /** Run do modo copa (roguelike). Separada do futuro CareerSave. */
-export interface RunState {
+export interface RunState extends LongRunFields {
     schemaVersion: 3;
     seed: string;
     teamName: string;
@@ -213,7 +246,7 @@ export interface RunState {
 }
 
 /** O Mercado vem depois da recompensa de cada vitória, menos na Copa do Dia (e não há Mercado depois da final). */
-export const hasShop = (run: Pick<RunState, 'daily'>) => !run.daily;
+export const hasShop = (run: Pick<RunState, 'daily' | 'mode'>) => !run.daily && !isLong(run);
 
 export interface LiveMatch {
     stage: number;
@@ -356,7 +389,11 @@ export interface GameStore {
     /** O aviso do primeiro da fila já passou. */
     shiftUnlock(): void;
     go(screen: Screen): void;
-    newRun(teamName?: string, seed?: string, daily?: string): void;
+    newRun(teamName?: string, seed?: string, daily?: string, mode?: CupMode): void;
+    /** Copa longa: entra numa casa do mapa (partida, Mercado, Baú, Treino ou Evento). */
+    enterNode(id: string): void;
+    /** Treino da Copa longa: `evo` = enche a barra de evolução de `uid`; `rest` = +1 troca. */
+    train(choice: 'evo' | 'rest', uid?: string): void;
     abandonRun(): void;
     chooseFormation(id: FormationId): void;
     chooseSlot(slot: SlotRef): void;
@@ -432,13 +469,24 @@ function rollOptions(run: RunState, slot: SlotRef): PokemonInstance[] {
     const taken = new Set(run.picks.map((p) => p.speciesId));
     const role = slotRole(run, slot);
     const rng = new Rng(run.seed, `draft-${run.draftRound}-${role}-r${run.rerollsUsed}`);
-    return playerDraftOptions(rng, run.draftRound, taken, role).map((o) => rollSpecial(o, run.eventType ?? null));
+    // Copa longa: o time começa mais fraco (uma linha abaixo; o capitão continua raro) e cresce pelo mapa
+    const round = isLong(run) ? Math.max(0, run.draftRound - 1) : run.draftRound;
+    return playerDraftOptions(rng, round, taken, role).map((o) => rollSpecial(o, run.eventType ?? null));
 }
 
 /** Recompensas da fase; o reforço sorteado (não o contratado do adversário) pode vir com edição especial. */
 function rollRewards(run: RunState, reroll: number): Reward[] {
     const extra = run.sponsors?.includes('cinnabar') ? 1 : 0;
-    return rewardOptions(run.seed, run.stage, reroll, run.picks, defeatedOf(run), extra).map((r) =>
+    // Copa longa: sorteio pela casa do mapa e raridade pelo andar (o Baú vem uma linha acima)
+    const node = currentNode(run);
+    const long = isLong(run)
+        ? {
+              key: run.at ?? `m${run.stage}`,
+              round: Math.min(6, longRound(run.stage) + (node?.kind === 'bau' ? 1 : 0)),
+          }
+        : undefined;
+    const defeated = node?.kind === 'bau' ? undefined : defeatedOf(run);
+    return rewardOptions(run.seed, run.stage, reroll, run.picks, defeated, extra, long).map((r) =>
         r.kind === 'pokemon' && !r.from ? { ...r, inst: rollSpecial(r.inst, run.eventType ?? null) } : r,
     );
 }
@@ -486,6 +534,8 @@ function grant(
 
 /** Próxima fase: escalação. */
 const toLineup = (run: RunState): RunState => ({ ...run, status: 'lineup', stage: run.stage + 1 });
+/** Copa longa: de volta pro mapa (a próxima partida é a casa que você escolher). */
+const toMap = (run: RunState): RunState => ({ ...run, status: 'map', shop: null, rewards: [] });
 
 /** Vitrine do Mercado desta fase (a `reroll`-ésima troca). */
 function rollShop(run: RunState, reroll: number): ShopOffer[] {
@@ -497,6 +547,7 @@ function rollShop(run: RunState, reroll: number): ShopOffer[] {
         sponsors: run.sponsors ?? [],
         eventType: run.eventType ?? null,
         captain: run.picks.find((p) => p.uid === run.captainUid) ?? null,
+        ...(isLong(run) && { long: { key: run.at ?? `m${run.stage}`, round: longRound(run.stage) } }),
     });
 }
 
@@ -908,6 +959,7 @@ export const useGame = create<GameStore>()(
             /** Saindo da recompensa: Mercado (com o ₽ da vitória) ou direto pra escalação da próxima fase. */
             const afterReward = (run: RunState): Partial<GameStore> => {
                 const done = { ...run, rewards: [] };
+                if (isLong(run)) return { run: toMap(done), match: null, screen: 'map' };
                 const res = run.results.find((r) => r.stage === run.stage);
                 if (!hasShop(run) || !res) return { run: toLineup(done), match: null, screen: 'lineup' };
                 const sponsors = run.sponsors ?? [];
@@ -977,7 +1029,7 @@ export const useGame = create<GameStore>()(
 
                 go: (screen) => setState({ screen }),
 
-                newRun: (teamName = getState().profile.clubName || 'Pallet FC', seed, daily) => {
+                newRun: (teamName = getState().profile.clubName || 'Pallet FC', seed, daily, mode) => {
                     const runSeed = seed ?? Math.floor(Math.random() * 1e9).toString(36);
                     const run: RunState = {
                         schemaVersion: 3,
@@ -995,7 +1047,7 @@ export const useGame = create<GameStore>()(
                         bench: Array(BENCH_SIZE).fill(''),
                         captainUid: null,
                         tactic: 'balanced',
-                        opponents: buildCupOpponents(runSeed),
+                        opponents: mode ? [] : buildCupOpponents(runSeed),
                         stage: 0,
                         results: [],
                         rewards: [],
@@ -1004,6 +1056,7 @@ export const useGame = create<GameStore>()(
                         eventType: daily ? dailyEventType(daily) : weeklyEventType(new Date()),
                         startedAt: Date.now(),
                         ...(daily && { daily }),
+                        ...(mode && !daily && newLongFields(runSeed)),
                         startCounts: {
                             seen: seenCount(getState().dex),
                             moves: movesFound(getState().moves, getState().dex),
@@ -1082,8 +1135,9 @@ export const useGame = create<GameStore>()(
                         cup: run.seed,
                     });
                     if (isDraftComplete(next) || next.picks.length >= DRAFT_PICKS) {
-                        next.status = 'lineup';
-                        setState({ run: next, screen: 'lineup', dex, binder });
+                        // Copa longa: o time pronto vai pro mapa; a rápida, pra escalação da 1ª partida
+                        next.status = isLong(next) ? 'map' : 'lineup';
+                        setState({ run: next, screen: next.status, dex, binder });
                     } else {
                         setState({ run: next, dex, binder });
                     }
@@ -1287,8 +1341,11 @@ export const useGame = create<GameStore>()(
                             orders: liveOf(run)?.orders ?? [],
                             engine: ENGINE_VERSION,
                         };
-                    const last = run.stage === CUP_STAGES.length - 1;
-                    const status: RunStatus = !won ? 'eliminated' : last ? 'champion' : 'reward';
+                    const last = isFinalStage(run);
+                    result.final = last;
+                    // Copa longa: a 1ª derrota fora da Final é um cartão amarelo (volta pro mapa); a 2ª, o vermelho
+                    const yellow = !won && isLong(run) && !last && (run.cards ?? 0) < YELLOW_CARDS;
+                    const status: RunStatus = won ? (last ? 'champion' : 'reward') : yellow ? 'map' : 'eliminated';
                     const next: RunState = {
                         ...run,
                         picks,
@@ -1296,6 +1353,13 @@ export const useGame = create<GameStore>()(
                         status,
                         lockedTeam: null,
                         live: null,
+                        ...(yellow && { cards: (run.cards ?? 0) + 1 }),
+                        // na longa o ₽ da vitória entra na hora (os juros só quando você entra num Mercado)
+                        ...(won &&
+                            isLong(run) && {
+                                money:
+                                    (run.money ?? 0) + winEarnings(m.score[0], m.score[1], 0, run.sponsors ?? []).total,
+                            }),
                     };
                     if (status === 'reward') next.rewards = rollRewards(next, 0);
                     // Pokédex: seu time (1+ minuto) "jogou", o rival e as recompensas ficam "vistos"
@@ -1487,7 +1551,72 @@ export const useGame = create<GameStore>()(
                 leaveShop: () => {
                     const run = getState().run;
                     if (run?.status !== 'shop' || run.shop?.pack) return;
-                    setState({ run: toLineup({ ...run, shop: null }), match: null, screen: 'lineup' });
+                    if (isLong(run)) setState({ run: toMap(run), match: null, screen: 'map' });
+                    else setState({ run: toLineup({ ...run, shop: null }), match: null, screen: 'lineup' });
+                },
+
+                enterNode: (id) => {
+                    const run = getState().run;
+                    if (run?.status !== 'map' || !run.map) return;
+                    const node = nextNodes(run.map, run.at ?? null).find((n) => n.id === id);
+                    if (!node) return;
+                    const base: RunState = { ...run, at: id, path: [...(run.path ?? []), id] };
+                    const mons = (list: readonly { speciesId: number }[]) => seenDex([...list]);
+                    if (isMatchKind(node.kind)) {
+                        // o rival é o mesmo da prévia do mapa (mesmo sorteio, mesmos já enfrentados)
+                        const stage = matchIndexOfRow(node.row);
+                        const faced = run.opponents.filter(Boolean).map((o) => o.name);
+                        const opp = longOpponent(run.seed, stage, node.kind, faced);
+                        const opponents = [...run.opponents];
+                        opponents[stage] = opp;
+                        setState({
+                            run: { ...base, stage, opponents, status: 'lineup' },
+                            screen: 'lineup',
+                            dex: mons([...opp.lineup, ...opp.bench]),
+                        });
+                    } else if (node.kind === 'mercado') {
+                        // os juros do que você guardou entram ao chegar no Mercado
+                        const sponsors = run.sponsors ?? [];
+                        const interest = interestOf(run.money ?? 0, sponsors);
+                        const earned = { win: 0, goals: 0, clean: 0, bonus: 0, interest, total: interest };
+                        const paid = { ...base, money: (run.money ?? 0) + interest };
+                        const offers = rollShop(paid, 0);
+                        setState({
+                            run: {
+                                ...paid,
+                                status: 'shop',
+                                shop: { stage: run.stage, rerolls: 0, offers, sold: [], earned },
+                            },
+                            screen: 'shop',
+                            dex: mons(offers.flatMap((o) => (o.kind === 'pokemon' ? [o.inst] : []))),
+                        });
+                    } else if (node.kind === 'bau') {
+                        const open: RunState = { ...base, status: 'reward' };
+                        open.rewards = rollRewards(open, 0);
+                        setState({
+                            run: open,
+                            screen: 'reward',
+                            dex: mons(open.rewards.flatMap((r) => (r.kind === 'pokemon' ? [r.inst] : []))),
+                        });
+                    } else if (node.kind === 'treino')
+                        setState({ run: { ...base, status: 'treino' }, screen: 'treino' });
+                    // ponytail: o Evento "?" ainda passa direto (os eventos entram no passo 7 do plano)
+                    else setState({ run: base });
+                },
+
+                train: (choice, uid) => {
+                    const run = getState().run;
+                    if (run?.status !== 'treino') return;
+                    if (choice === 'rest') {
+                        setState({ run: { ...toMap(run), rerolls: run.rerolls + 1 }, screen: 'map' });
+                        return;
+                    }
+                    // treino de evolução: a barra enche metade (evoluir continua sendo na partida, com a animação dela)
+                    const target = run.picks.find((p) => p.uid === uid);
+                    if (!target || evolutionTarget(target.speciesId, target.uid) === null) return;
+                    const evo = Math.min(EVO_THRESHOLD, (target.evo ?? 0) + EVO_THRESHOLD / 2);
+                    const picks = run.picks.map((p) => (p.uid === uid ? { ...p, evo } : p));
+                    setState({ run: { ...toMap(run), picks }, screen: 'map' });
                 },
 
                 rerollReward: () => {
@@ -1505,6 +1634,7 @@ export const useGame = create<GameStore>()(
                     const run = getState().run;
                     if (run?.status === 'reward') setState({ screen: 'reward' });
                     else if (run?.status === 'shop') setState({ screen: 'shop' });
+                    else if (run?.status === 'map') setState({ match: null, screen: 'map' });
                     else setState({ match: null, screen: 'home' });
                 },
 
