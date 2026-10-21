@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useRef, useState } from 'react';
 import { computeAttributes } from '../../engine/attributes';
 import { cupRival } from '../../engine/cup';
 import { species } from '../../engine/data';
@@ -253,12 +253,15 @@ export function LineupEditor({
 }) {
     const [selected, setSelected] = useState<SlotRef | null>(null);
     const [detail, setDetail] = useState<string | null>(null);
+    /** Passando o item: quem tem o item que vai pra outro (o próximo toque na prancheta decide quem recebe). */
+    const [giving, setGiving] = useState<string | null>(null);
+    const givingItem = giving ? byUid.get(giving)?.item : undefined;
+    const boardRef = useRef<HTMLDivElement>(null);
     const { t, d, lang } = useT();
     const picks = [...lineup, ...bench].flatMap((u) => byUid.get(u) ?? []);
     const detailInst = byUid.get(detail ?? lineup[0]) ?? picks[0];
     const synergies = computeSynergies(lineup.map((u) => byUid.get(u)!));
     const links = computeLinks(lineup.map((u) => byUid.get(u)!));
-    const holders = picks.filter((p) => p.uid !== detailInst?.uid);
     const slotsNow = FORMATIONS[formation].slots;
     const positionOf = (uid: string) => {
         const i = lineup.indexOf(uid);
@@ -284,6 +287,14 @@ export function LineupEditor({
     const onSlot = (ref: SlotRef, uid: string) => {
         setDetail(uid);
         if (locked) return;
+        if (giving) {
+            if (uid !== giving) {
+                playSfx('select');
+                onMoveItem?.(giving, uid);
+            }
+            setGiving(null);
+            return;
+        }
         if (!selected) {
             setSelected(ref);
             return;
@@ -297,7 +308,7 @@ export function LineupEditor({
 
     return (
         <div className="lineup-grid">
-            <div className="panel">
+            <div className="panel" ref={boardRef}>
                 <h2>{title}</h2>
                 <div className="formation-tabs bc-seg segmented">
                     {Object.values(FORMATIONS).map((f) => (
@@ -314,7 +325,7 @@ export function LineupEditor({
                     ))}
                 </div>
                 <p className="muted" style={{ marginTop: 8 }}>
-                    {t('team.lineup.swapHint')}
+                    {givingItem ? t('team.lineup.giveHint', { item: itemName(givingItem) }) : t('team.lineup.swapHint')}
                 </p>
                 <FormationBoard
                     formation={formation}
@@ -323,10 +334,18 @@ export function LineupEditor({
                     byUid={byUid}
                     captainUid={captainUid}
                     projection={
-                        selected ? byUid.get((selected.zone === 'lineup' ? lineup : bench)[selected.index]) : null
+                        !giving && selected
+                            ? byUid.get((selected.zone === 'lineup' ? lineup : bench)[selected.index])
+                            : null
                     }
-                    stateOf={(ref) =>
-                        selected?.zone === ref.zone && selected.index === ref.index ? 'selected' : 'idle'
+                    stateOf={(ref, uid) =>
+                        giving
+                            ? uid === giving
+                                ? 'selected'
+                                : 'target'
+                            : selected?.zone === ref.zone && selected.index === ref.index
+                              ? 'selected'
+                              : 'idle'
                     }
                     onSlot={onSlot}
                     footer={
@@ -458,22 +477,20 @@ export function LineupEditor({
                                 <span>
                                     <b>{itemName(detailInst.item)}</b> — {itemDesc(detailInst.item, lang)}
                                 </span>
-                                <label className="muted">
-                                    {t('team.lineup.giveTo')}{' '}
-                                    <select
-                                        value=""
-                                        disabled={locked}
-                                        onChange={(e) => e.target.value && onMoveItem(detailInst.uid, e.target.value)}
-                                    >
-                                        <option value="">…</option>
-                                        {holders.map((h) => (
-                                            <option key={h.uid} value={h.uid}>
-                                                {viewInstance(h).displayName}
-                                                {h.item ? t('team.lineup.swapWith', { item: itemName(h.item) }) : ''}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </label>
+                                <button
+                                    type="button"
+                                    className={`btn small${giving === detailInst.uid ? ' ghost' : ''}`}
+                                    aria-pressed={giving === detailInst.uid}
+                                    disabled={locked}
+                                    onClick={() => {
+                                        setSelected(null);
+                                        setGiving(giving === detailInst.uid ? null : detailInst.uid);
+                                        // no celular a prancheta fica lá em cima: traz ela pra tela
+                                        boardRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                                    }}
+                                >
+                                    {giving === detailInst.uid ? t('team.lineup.giveCancel') : t('team.lineup.giveTo')}
+                                </button>
                             </div>
                         )}
                     </>
