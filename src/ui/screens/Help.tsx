@@ -57,7 +57,7 @@ function searchIndex(lang: Parameters<typeof helpSections>[0]) {
 /** Ajuda: como jogar, todas as mecânicas (com busca) e perguntas frequentes. */
 export function Help() {
     const go = useGame((s) => s.go);
-    const setOnboarded = useGame((s) => s.setOnboarded);
+    const setTour = useGame((s) => s.setTour);
     const tipsOn = useGame((s) => s.settings.tips);
     const { d, lang } = useT();
     const tx = d.help.screen;
@@ -82,7 +82,7 @@ export function Help() {
                     type="button"
                     className="btn outline"
                     onClick={() => {
-                        setOnboarded(false);
+                        setTour(true);
                         go('home');
                     }}
                 >

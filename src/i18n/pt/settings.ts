@@ -62,8 +62,6 @@ export const settings = {
         help: 'Ajuda',
         tips: 'Dicas nas telas',
         tipsHint: 'Lembretes curtos de como jogar.',
-        welcome: 'Boas-vindas',
-        welcomeAgain: 'Ver o passo a passo de novo',
         privacy: 'Privacidade e termos',
     },
     data: {

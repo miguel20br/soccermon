@@ -44,7 +44,7 @@ const CourtLab = lazy(() => import('./ui/screens/CourtLab').then((m) => ({ defau
 const EmoteLab = lazy(() => import('./ui/duel/EmoteLab').then((m) => ({ default: m.EmoteLab })));
 
 export default function App() {
-    const { screen, go, settings, onboarded } = useGame();
+    const { screen, go, settings, tour } = useGame();
     // idioma: o App redesenha na troca e leva junto as telas que usam t() fora de hook
     const { t } = useT();
     // passo a passo de boas-vindas: só depois de o save carregar (senão aparece para quem já jogou)
@@ -209,7 +209,7 @@ export default function App() {
             <FriendVitrine />
             <AccountLink />
             <UnlockNotice />
-            {hydrated && !onboarded && screen === 'home' && <Onboarding />}
+            {hydrated && tour && screen === 'home' && <Onboarding />}
         </div>
     );
 }

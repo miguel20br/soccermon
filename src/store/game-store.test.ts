@@ -56,6 +56,13 @@ describe('save', () => {
         expect(out.profile.clubName).toBe('Pallet FC');
     });
 
+    it('a 1ª copa é a entrada no jogo: sem passo a passo na 1ª visita, começar marca onboarded (funil)', () => {
+        useGame.setState({ onboarded: false, tour: false });
+        useGame.getState().newRun('Pallet FC', 'teste-entrada');
+        expect(useGame.getState().onboarded).toBe(true);
+        expect(useGame.getState().tour).toBe(false);
+    });
+
     it('draft marca as opções como vistas e a nova copa usa o nome do clube', () => {
         useGame.setState({ dex: {}, profile: { ...useGame.getState().profile, clubName: 'Lavender FC' } });
         useGame.getState().newRun(undefined, 'teste-dex');

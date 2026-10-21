@@ -63,8 +63,6 @@ export const settings: typeof pt = {
         help: 'Help',
         tips: 'On-screen tips',
         tipsHint: 'Short reminders on how to play.',
-        welcome: 'Welcome',
-        welcomeAgain: 'Show the walkthrough again',
         privacy: 'Privacy and terms',
     },
     data: {

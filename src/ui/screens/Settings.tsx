@@ -141,7 +141,7 @@ const onOff = (on: string, off: string) => [
 ];
 
 export function Settings() {
-    const { settings, updateSettings, go, setOnboarded } = useGame();
+    const { settings, updateSettings, go } = useGame();
     const set = updateSettings;
     const { t } = useT();
     const lang = useLang();
@@ -314,20 +314,6 @@ export function Settings() {
                         options={onOff(t('settings.screen.onPl'), t('settings.screen.offPl'))}
                         onPick={(tips) => set({ tips })}
                     />
-                </Row>
-                <Row title={t('settings.screen.welcome')}>
-                    <div>
-                        <button
-                            type="button"
-                            className="btn small"
-                            onClick={() => {
-                                setOnboarded(false);
-                                go('home');
-                            }}
-                        >
-                            {t('settings.screen.welcomeAgain')}
-                        </button>
-                    </div>
                 </Row>
             </Group>
 
