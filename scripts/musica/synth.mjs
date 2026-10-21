@@ -57,6 +57,68 @@ export function ins(o) {
     return [...k, ...k2].map((n) => o[n] ?? null);
 }
 
+/** Gerador fixo: a mesma peça sai igual toda vez. */
+function rng(seed) {
+    let s = seed;
+    return () => {
+        s = (s * 16807) % 2147483647;
+        return s / 2147483647;
+    };
+}
+
+/** Filtro passa-faixa (biquad RBJ). */
+function bandpass(x, f0, q) {
+    const w = (2 * Math.PI * f0) / SR;
+    const al = Math.sin(w) / (2 * q);
+    const [b0, b2, a0, a1, a2] = [al, -al, 1 + al, -2 * Math.cos(w), 1 - al];
+    const y = new Float32Array(x.length);
+    let [x1, x2, y1, y2] = [0, 0, 0, 0];
+    for (let i = 0; i < x.length; i++) {
+        y[i] = (b0 * x[i] + b2 * x2 - a1 * y1 - a2 * y2) / a0;
+        [x2, x1, y2, y1] = [x1, x[i], y1, y[i]];
+    }
+    return y;
+}
+
+/**
+ * Palma de verdade (rodada 6): cada pessoa é ruído em duas faixas (corpo ~1,1 kHz e estalo ~2,5 kHz) com 3 batidas
+ * rápidas (as palmas das mãos não se encontram de uma vez) e um rabo curto de sala. `gente` pessoas, cada uma um
+ * pouco fora do tempo (`espalha` segundos) e com a mão de outro tamanho (faixa ±25%). Instrumento de bateria: `pitch`
+ * sobe ou desce a faixa (palma pesada = grave).
+ */
+function palmas({ gente, espalha, rabo = 0.045 }) {
+    const cache = new Map();
+    return (pitch = 0) => {
+        if (cache.has(pitch)) return cache.get(pitch);
+        const r = rng(4242 + gente);
+        const len = Math.round((espalha + 0.03 + rabo * 6) * SR);
+        const out = new Float32Array(len);
+        for (let g = 0; g < gente; g++) {
+            const off = Math.round(r() * espalha * SR);
+            const f = 2 ** (pitch / 12) * (0.8 + r() * 0.45);
+            const n = new Float32Array(len - off);
+            for (let i = 0; i < n.length; i++) n[i] = r() * 2 - 1;
+            const body = bandpass(n, 1100 * f, 1.1);
+            const snap = bandpass(n, 2500 * f, 1.6);
+            const ga = 0.7 + r() * 0.3;
+            const hits = [0, 0.008 + r() * 0.003, 0.017 + r() * 0.004];
+            for (let i = 0; i < n.length; i++) {
+                const t = i / SR;
+                let env = Math.min(1, t / 0.0004);
+                env *=
+                    hits.reduce((a, h, k) => a + (t >= h ? (1 - 0.15 * k) * Math.exp(-(t - h) / 0.0028) : 0), 0) +
+                    (t >= 0.026 ? Math.exp(-(t - 0.026) / rabo) * 0.85 : 0);
+                out[off + i] += (body[i] + 0.55 * snap[i]) * env * ga;
+            }
+        }
+        let pk = 1e-9;
+        for (const v of out) pk = Math.max(pk, Math.abs(v));
+        for (let i = 0; i < len; i++) out[i] *= 0.55 / pk;
+        cache.set(pitch, out);
+        return out;
+    };
+}
+
 /** Paleta. Melódicos: a frequência vem da nota. Bateria: frequência fixa (`pitch` em semitons ajusta). */
 export const I = {
     lead: ins({ vol: 0.42, a: 0.006, r: 0.08, shape: 5, curve: 0.5, sv: 0.65, d: 0.06 }), // quadrada
@@ -88,7 +150,8 @@ export const I = {
     // bateria (bumbo, caixa e chimbal vêm do exemplo "depp" do ZzFXM, MIT)
     kick: [1.6, 0, 170, 0.003, null, 0.008, null, 0.97, -35, 53, null, null, null, null, null, 0.1],
     snare: [0.45, 0, 86, null, null, null, null, 0.7, null, null, null, 0.5, null, 6.7, 1, 0.05],
-    clap: [0.4, 0, 160, null, null, 0.07, null, 0.7, null, null, null, 0.5, null, 8, 1, 0.05],
+    clap: palmas({ gente: 3, espalha: 0.012 }), // palma de verdade (3 pessoas juntas)
+    palmas: palmas({ gente: 9, espalha: 0.03, rabo: 0.07 }), // a torcida batendo palma (resposta do gancho)
     hat: [0.3, 0, 2200, null, null, 0.04, 3, 2, null, null, 800, 0.02, null, 4.8, null, 0.01, 0.1],
     ohat: [0.22, 0, 2200, null, null, 0.22, 3, 2, null, null, 800, 0.02, null, 4.8, null, 0.01, 0.1],
     shaker: [0.12, 0, 3000, 0.008, null, 0.03, 3, 2, null, null, 800, 0.02, null, 6, null, 0.01],
@@ -97,15 +160,6 @@ export const I = {
     tom: [0.6, 0, 120, 0.002, 0.02, 0.25, 0, 1, -0.3],
     timp: [1, 0, 82, 0.004, 0.05, 0.6, 0, 1, -0.08],
 };
-
-/** Gerador fixo: a mesma peça sai igual toda vez. */
-function rng(seed) {
-    let s = seed;
-    return () => {
-        s = (s * 16807) % 2147483647;
-        return s / 2147483647;
-    };
-}
 
 const cache = new Map();
 function samples(params, dur) {
@@ -163,6 +217,10 @@ export class Song {
      * @param {((seg: number) => number) | null} [o.masterAt] volume geral no tempo (crescendo da peça inteira)
      * @param {((bar: number) => number) | null} [o.bpmAt] andamento por compasso (acelerar); sem ele, `bpm` fixo
      * @param {16 | 8} [o.swingUnit] 16 = balança as semicolcheias (funk, samba); 8 = as colcheias (jazz, shuffle)
+     * @param {{ nome: string, de: number, loop: boolean, intensidade?: number }[] | null} [o.secoes] trechos do arquivo
+     *   (compasso de início; vai até o próximo). Cada `loop` dobra o próprio rabo no seu começo (loop sem costura);
+     *   o trecho sem loop no meio é cortado no fim (introdução, virada), o último guarda o rabo. Sem `secoes`, sai do
+     *   `loopFrom`: nulo = um trecho só; 0 = um loop; n = introdução + loop. O mapa (segundos, BPM) fica em `mapa`.
      */
     constructor({
         bpm,
@@ -175,6 +233,7 @@ export class Song {
         masterAt = null,
         bpmAt = null,
         swingUnit = 16,
+        secoes = null,
     }) {
         Object.assign(this, { bpm, bars, barLen, swing, loopFrom, masterAt, bpmAt, swingUnit });
         this.row = 60 / bpm / 4;
@@ -183,9 +242,28 @@ export class Song {
             this.starts = [0];
             for (let b = 0; b < bars + 1; b++) this.starts.push(this.starts[b] + (barLen * 60) / bpmAt(b) / 4);
         }
-        this.len = Math.ceil((this.timeOfBar(bars) + tail) * SR);
         this.parts = [];
         this.rnd = rng(seed);
+        const auto =
+            loopFrom == null
+                ? [{ nome: 'tudo', de: 0, loop: false }]
+                : loopFrom === 0
+                  ? [{ nome: 'loop', de: 0, loop: true }]
+                  : [
+                        { nome: 'intro', de: 0, loop: false },
+                        { nome: 'loop', de: loopFrom, loop: true },
+                    ];
+        this.secoes = (secoes ?? auto).map((x, i, a) => {
+            const ate = a[i + 1]?.de ?? bars;
+            const t0 = this.timeOfBar(x.de);
+            const t1 = this.timeOfBar(ate);
+            return { ...x, ate, t0, t1, len: Math.ceil((t1 - t0 + tail) * SR) };
+        });
+        this.secOfBar = (b) => {
+            let k = 0;
+            while (k + 1 < this.secoes.length && this.secoes[k + 1].de <= b) k++;
+            return k;
+        };
     }
     get barSec() {
         return this.barLen * this.row;
@@ -216,25 +294,69 @@ export class Song {
      * Uma faixa. `gainAt(seg)` muda o volume no tempo (camadas); `echo` = { rows, fb, mix }; `rev` = envio do reverb.
      */
     part(name, inst, { pan = 0, gain = 1, echo = null, rev = 0, drum = false, gainAt = null } = {}) {
-        const p = { name, inst, pan, gain, echo, rev, drum, gainAt, buf: new Float32Array(this.len), song: this };
+        const bufs = this.secoes.map((x) => new Float32Array(x.len));
+        const p = { name, inst, pan, gain, echo, rev, drum, gainAt, bufs, song: this };
         p.note = (t, m, len = 1, vel = 1) => {
-            const params = [...inst];
-            if (!drum) params[2] = hz(m);
-            else if (m) params[2] = inst[2] * 2 ** (m / 12); // na bateria, m = semitons de ajuste
-            const s = samples(params, drum ? null : len * this.rowAt(Math.floor(t / this.barLen)));
-            const at = Math.round(this.sec(t) * SR);
+            let s;
+            if (typeof inst === 'function')
+                s = inst(m); // amostra pronta (palmas)
+            else {
+                const params = [...inst];
+                if (!drum) params[2] = hz(m);
+                else if (m) params[2] = inst[2] * 2 ** (m / 12); // na bateria, m = semitons de ajuste
+                s = samples(params, drum ? null : len * this.rowAt(Math.floor(t / this.barLen)));
+            }
+            // a nota é do trecho em que começa (o rabo dela vai junto: dobra no loop ou é cortado)
+            const k = this.secOfBar(Math.floor(t / this.barLen));
+            const buf = bufs[k];
+            const at = Math.round((this.sec(t) - this.secoes[k].t0) * SR);
             const v = vel * (0.95 + this.rnd() * 0.08);
-            for (let i = 0; i < s.length && at + i < p.buf.length; i++) p.buf[at + i] += s[i] * v;
+            for (let i = 0; i < s.length && at + i < buf.length; i++) buf[at + i] += s[i] * v;
         };
         this.parts.push(p);
         return p;
     }
     render({ rms = false } = {}) {
-        const L = new Float32Array(this.len);
-        const R = new Float32Array(this.len);
-        const send = new Float32Array(this.len);
+        if (rms)
+            for (const p of this.parts) {
+                let e = 0;
+                let n = 0;
+                let pk = 0;
+                for (const b of p.bufs)
+                    for (let i = 0; i < b.length; i += 4) {
+                        e += b[i] * b[i];
+                        n++;
+                        pk = Math.max(pk, Math.abs(b[i]));
+                    }
+                const r = (p.gain * Math.sqrt(e / n)).toFixed(3);
+                console.log('  ', p.name.padEnd(12), 'rms', r, 'pico', (p.gain * pk).toFixed(2));
+            }
+        const outs = this.secoes.map((_, k) => this.renderSecao(k));
+        const total = outs.reduce((a, o) => a + o[0].length, 0);
+        const L = new Float32Array(total);
+        const R = new Float32Array(total);
+        let at = 0;
+        this.mapa = this.secoes.map((x, k) => {
+            L.set(outs[k][0], at);
+            R.set(outs[k][1], at);
+            const fim = at + Math.round((x.t1 - x.t0) * SR);
+            const m = { nome: x.nome, de: x.de, ate: x.ate, loop: x.loop, inicio: at, fim };
+            if (x.intensidade != null) m.intensidade = x.intensidade;
+            m.bpm = Math.round((this.bpmAt ? this.bpmAt(x.de) : this.bpm) * 100) / 100;
+            at += outs[k][0].length;
+            return m;
+        });
+        return [L, R];
+    }
+    /** Mistura um trecho (eco, pan, camadas, reverb, volume geral) e fecha: loop dobra o rabo, meio corta, fim guarda. */
+    renderSecao(k) {
+        const x = this.secoes[k];
+        const n = x.len;
+        const L = new Float32Array(n);
+        const R = new Float32Array(n);
+        const send = new Float32Array(n);
         for (const p of this.parts) {
-            let b = p.buf;
+            let b = p.bufs[k];
             if (p.echo) {
                 const d = Math.round(p.echo.rows * this.row * SR);
                 const wet = new Float32Array(b.length);
@@ -243,20 +365,10 @@ export class Song {
                 for (let i = 0; i < b.length; i++) out[i] = b[i] + p.echo.mix * wet[i];
                 b = out;
             }
-            if (rms) {
-                let e = 0;
-                let pk = 0;
-                for (let i = 0; i < b.length; i += 4) {
-                    e += b[i] * b[i];
-                    pk = Math.max(pk, Math.abs(b[i]));
-                }
-                const r = (p.gain * Math.sqrt(e / (b.length / 4))).toFixed(3);
-                console.log('  ', p.name.padEnd(12), 'rms', r, 'pico', (p.gain * pk).toFixed(2));
-            }
             const gl = p.gain * Math.cos(((p.pan + 1) * Math.PI) / 4) * Math.SQRT2;
             const gr = p.gain * Math.sin(((p.pan + 1) * Math.PI) / 4) * Math.SQRT2;
             for (let i = 0; i < b.length; i++) {
-                const g = p.gainAt ? p.gainAt(i / SR) : 1;
+                const g = p.gainAt ? p.gainAt(x.t0 + i / SR) : 1;
                 L[i] += b[i] * gl * g;
                 R[i] += b[i] * gr * g;
                 if (p.rev) send[i] += b[i] * p.gain * g * p.rev;
@@ -265,26 +377,31 @@ export class Song {
         if (this.parts.some((p) => p.rev)) {
             const rl = reverb(send, false);
             const rr = reverb(send, true);
-            for (let i = 0; i < this.len; i++) {
+            for (let i = 0; i < n; i++) {
                 L[i] += rl[i];
                 R[i] += rr[i];
             }
         }
         if (this.masterAt)
-            for (let i = 0; i < this.len; i++) {
-                const g = this.masterAt(i / SR);
+            for (let i = 0; i < n; i++) {
+                const g = this.masterAt(x.t0 + i / SR);
                 L[i] *= g;
                 R[i] *= g;
             }
-        return this.loopFrom == null ? [L, R] : this.fold(L, R);
-    }
-    /** Loop sem costura: corta no fim do último compasso e soma o rabo (eco, reverb, notas soando) no começo do loop. */
-    fold(L, R) {
-        const end = Math.round(this.timeOfBar(this.bars) * SR);
-        const start = Math.round(this.timeOfBar(this.loopFrom) * SR);
+        const end = Math.round((x.t1 - x.t0) * SR);
+        if (x.loop) return this.fold(L, R, end);
+        if (k === this.secoes.length - 1) return [L, R];
+        // trecho do meio sem loop (introdução, virada): corta no fim, com 5 ms de saída pra não estalar
         const out = [L.slice(0, end), R.slice(0, end)];
-        for (let i = end; i < this.len; i++) {
-            const j = start + ((i - end) % (end - start));
+        const f = Math.round(0.005 * SR);
+        for (let i = 0; i < f; i++) for (const c of out) c[end - 1 - i] *= i / f;
+        return out;
+    }
+    /** Loop sem costura: corta no fim do trecho e soma o rabo (eco, reverb, notas soando) no começo dele. */
+    fold(L, R, end) {
+        const out = [L.slice(0, end), R.slice(0, end)];
+        for (let i = end; i < L.length; i++) {
+            const j = (i - end) % end;
             out[0][j] += L[i];
             out[1][j] += R[i];
         }

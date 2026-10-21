@@ -5,7 +5,7 @@ description: Como compor, arranjar, renderizar e escolher a música do Soccermon
 
 # Música do Soccermon
 
-Aprendido em 5 rodadas com o Miguel (20 e 21/10/2026). "No geral, as músicas SÓ MELHORAM" (rodada 5). Pesquisa, catálogo de fontes e mapa tela → faixa em
+Aprendido em 6 rodadas com o Miguel (20 e 21/10/2026). "No geral, as músicas SÓ MELHORAM" (rodada 5). Pesquisa, catálogo de fontes e mapa tela → faixa em
 `docs/planos/pesquisas/musica.md`. Leia as armadilhas (§7) antes de mexer no sequenciador.
 
 ## 1. Regras da casa (não negociáveis)
@@ -29,8 +29,14 @@ Aprendido em 5 rodadas com o Miguel (20 e 21/10/2026). "No geral, as músicas S�
   gancho), vibrafone e flauta (jazz, trocando de 4 em 4), fanfarra e torcida. A referência pode ser o gancho inteiro,
   só o ritmo 3-3-2 nas palmas, ou uma citação num solo.
 - **Palmas na frente**: abafadas ele não ouve (na Abertura com gancho foram de 2 pra 4 de ganho, com reverb).
+  **Palma de verdade** (rodada 6): `I.clap` (3 pessoas) e `I.palmas` (a torcida, 9 pessoas) são ruído filtrado com
+  3 batidas e rabo de sala, não o "clap" de bateria eletrônica. Mas sem exagero: no A final da Abertura ele pediu menos.
+- **Cada personagem tem tema próprio** (rodada 6) e a partida dele cita o motivo (2 compassos exportados como
+  `MOTIVO` no `tema-<nome>.mjs`, usado no `cita` do `partidaBase`).
+- **Tudo em loop sem costura** (rodada 6): toda música de tela termina levando ao começo do loop e sai com o `.json`
+  de trechos. Partida em dois arquivos (1º e 2º tempo), trechos por intensidade.
 
-- **A Abertura é a referência** ("MUITO boa, esse refrão é bem legal; a vibe meio funk combinou com nosso estilo").
+- **A Abertura com gancho é a música da Home** (rodada 6). **A Abertura é a referência** ("MUITO boa, esse refrão é bem legal; a vibe meio funk combinou com nosso estilo").
   Samba-funk em chiptune: swing leve, baixo slap sincopado, acordes no contratempo, agogô, ghost notes, refrão em
   terças. Não mexer nela sem pedido (`pecas/abertura.mjs` tem que renderizar idêntica).
 - **Mudança de tom é "SOBERBA"**: use em mais músicas (subida de 1 tom ou meio tom na volta final, com virada antes).
@@ -74,7 +80,11 @@ Aprendido em 5 rodadas com o Miguel (20 e 21/10/2026). "No geral, as músicas S�
    ```bash
    node scripts/musica/render.mjs [peça ...] --out <pasta>   # .wav + .ogg a −16 LUFS (jingle: meta.lufs = −15)
    node scripts/musica/render.mjs <peça> --rms --so-wav      # volume de cada faixa, pra equilibrar a mistura
+   node scripts/musica/loops.mjs <pasta>                      # confere a emenda de cada loop no .ogg (sai 1 se falhar)
    ```
+   Cada arquivo sai com um `.json`: trechos (`nome`, `intensidade`, `loop`, `inicio`/`fim` em segundos e amostras a
+   44,1 kHz, `bpm`, `compassos`). No jogo: `AudioBufferSourceNode` com `loopStart`/`loopEnd` do trecho; trocar de trecho
+   na virada da volta (a página de amostras faz igual, botões por trecho).
    Lote grande: `scripts/pesado.sh node scripts/musica/render.mjs` (fila pesada, regra 7).
 4. **Conferir pelos números** (§6) e só então montar a página de escuta: um `index.html` no scratchpad com players por
    tela, autor, licença, duração, ★ do que ele gostou. Rodadas antigas em `<details>`.
@@ -87,7 +97,7 @@ Aprendido em 5 rodadas com o Miguel (20 e 21/10/2026). "No geral, as músicas S�
 
 | Peça | Uso |
 |---|---|
-| `new Song({ bpm, bars, barLen, swing, tail, loopFrom, masterAt })` | `barLen` 16 = 4/4, 12 = 3/4 ou 6/8, 8 = 2/4. `loopFrom` dobra o rabo pro começo do loop |
+| `new Song({ bpm, bars, barLen, swing, tail, loopFrom, masterAt, secoes })` | `barLen` 16 = 4/4, 12 = 3/4 ou 6/8, 8 = 2/4. `loopFrom` n = intro (toca uma vez, cortada) + loop do n ao fim. `secoes: [{ nome, de, loop, intensidade }]` = vários trechos num arquivo: cada nota é do trecho em que começa, cada loop dobra o próprio rabo no seu começo, trecho do meio sem loop é cortado com 5 ms de saída, o último guarda o rabo. Mapa em `S.mapa` depois do `render` |
 | `S.part(nome, I.x, { pan, gain, echo: { rows, fb, mix }, rev, drum, gainAt })` | uma faixa; `rev` = envio pro reverb; `gainAt(seg)` = camada |
 | `mel(P, compasso, ['E5:2 r:2 C5+E5:4!'], { shift, harm, vel })` | melodia por compasso (confere a soma); `shift` modula; `harm: thirdBelow(MAJOR(0))` faz a segunda voz |
 | `drum(P, compasso, n, 'X..xo...', { pitch })` | X forte, x normal, o fantasma |
@@ -95,7 +105,8 @@ Aprendido em 5 rodadas com o Miguel (20 e 21/10/2026). "No geral, as músicas S�
 | `stabs`, `arp`, `padChord`, `voicing`, `transpose`, `layer` | acordes curtos, arpejo, acorde longo, modulação, envelope de camada |
 | `GANCHO.em({ grau, tom, oitava, menor })`, `GANCHO.palmas` | o leitmotiv do Soccermon num compasso, e as palmas que respondem |
 | `bpmAt`, `swingUnit`, `masterAt` (no `Song`) | acelerar por compasso, swing de colcheia, volume geral no tempo |
-| `partidaBase(cfg)` em `partida-base.mjs` | a Partida v4 como molde: passe tom, acordes, tema, riff, timbres, padrões e `extra`; sem nada sai a v4 idêntica (`barLen: 12` pra 12/8) |
+| `partidaBase(cfg)` em `partida-base.mjs` | a Partida v4 como molde (rodada 6: devolve `{ '1t', '2t' }` em trechos nivel1-3, virada, pressao, fim): passe tom, acordes, tema, riff, timbres, padrões, `cita` (motivo do tema do personagem) e `extra` (`barLen: 12` pra 12/8) |
+| `I.clap`, `I.palmas` | palma de verdade (3 pessoas) e a torcida (9): função, não parâmetros do ZzFX; `pitch` desce a faixa (palma pesada) |
 | `I.coin`, `I.anvil`, `I.block` | moeda (ZzFX clássico), bigorna (ele não gostou), bloco de madeira |
 | `I` | paleta: lead (quadrada), pulse (25%), thin (12,5%), counter (triangular), slap, chank, clav, stab, organ, epiano, pizz, bassoon, bell, strings, pad, brass, tuba, piccolo, agogo, block, whistle; bateria kick, snare, clap, hat, ohat, shaker, sleigh, crash, tom, timp |
 
@@ -132,7 +143,10 @@ com virada de caixa ou apito no compasso de antes, ou um V7 do tom novo (A7 ante
 subidas (Partida: +2 e depois +1). Em loop, a volta pro tom original é aceitável se a última seção termina num corte.
 
 **Loop sem costura.** `loopFrom` soma o rabo (eco, reverb, nota soando) no começo do loop; termine num acorde que leva
-ao primeiro (V → I). Intro fica antes do `loopFrom`. Arquivo em Opus/Vorbis (mp3 tem silêncio de codificador).
+ao primeiro (V → I, ou um compasso de virada no tom do começo depois de uma subida de tom). Intro fica antes do
+`loopFrom` e é cortada (o rabo dela não pode voltar a cada volta). Arquivo em Opus/Vorbis (mp3 tem silêncio de
+codificador). Conferir sempre com `loops.mjs` (emenda < 1 = mais lisa que as 0,1% piores passagens da própria música).
+Na troca entre trechos (nível 1 → 2) o rabo que soa é o do trecho novo: no jogo, crossfade de ~30 ms se estalar.
 
 **Acelerar.** `new Song({ bpmAt: (compasso) => bpm })`: o andamento muda na virada do compasso (Partida v4: 120 →
 136 no 1º tempo, 124 → 142 no 2º). No jogo, ou camadas renderizadas em 3 ou 4 andamentos trocadas na virada, ou
@@ -194,13 +208,15 @@ ficam perto de −18; console pede −24: no jogo a música fica abaixo de efeit
 ## 9. Partidas por personagem (rodada 5)
 
 Molde: `partidaBase()` (a Partida v4). Cada um muda tom, levada, timbre e um elemento de assinatura; a forma
-(acelera em cada tempo, sobe de tom, SOC-CER-MON com palmas no fim de cada tempo) fica.
+(acelera em cada tempo, sobe de tom, SOC-CER-MON com palmas no fim de cada tempo) fica. Personagem novo = primeiro o
+`tema-<nome>.mjs` (tema próprio com `MOTIVO` de 2 compassos no tom da partida, último acorde levando à tônica), depois a
+partida com `cita: MOTIVO`.
 
 | Personagem | Ideia | Estado |
 |---|---|---|
-| Brock (pedra) | Mi menor, meio-tempo pesado, baixo sujo, metais, taiko | feito (`partida-brock`) |
-| Misty (água) | Si menor em 12/8, sino bembé, sinos em onda, bolhas | feito (`partida-misty`) |
-| Equipe Rocket | Dó menor, funk de espionagem, órgão cromático, nota blue | feito (`partida-rocket`) |
+| Brock (pedra) | Mi menor, meio-tempo pesado, baixo sujo, metais, taiko | feito (`partida-brock` cita `tema-brock`) |
+| Misty (água) | Si menor em 12/8, sino bembé, sinos em onda, bolhas | feito (`partida-misty` cita `tema-misty`) |
+| Equipe Rocket | Dó menor, funk de espionagem, órgão cromático, nota blue | feito (`partida-rocket` cita `tema-rocket`) |
 | Lt. Surge (elétrico) | Fá# menor, 140+ BPM, arpejo de 16 avos, pulso 12,5%, "choque" (slide) | proposta |
 | Erika (planta) | samba-bossa animado, flauta e marimba, Ré mixolídio | proposta |
 | Koga (veneno, ninja) | escala in-sen, taiko, flauta com slide, Lá frígio | proposta |

@@ -18,7 +18,7 @@ export default function campeao() {
     const k = S.part('kick', I.kick, { drum: true });
     const ti = S.part('timp', I.timp, { gain: 0.5, drum: true });
     const cr = S.part('crash', I.crash, { drum: true, pan: 0.2 });
-    const gang = S.part('palmas', I.clap, { drum: true, gain: 4, rev: 0.2 });
+    const gang = S.part('palmas', I.palmas, { drum: true, gain: 4, rev: 0.2 });
 
     drum(sn, 0, 1, 'oooooooxxxxxXXXX');
     drum(ti, 0, 1, 'X.......X...X.X.');

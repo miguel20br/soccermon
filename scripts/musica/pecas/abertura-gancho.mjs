@@ -2,12 +2,15 @@
 // 3 notas em 3-3-2 (como grito de torcida), desce uma terça e salta uma sexta (G5 E5 C6: "Soc-cer-MON!"), e palmas
 // respondem "hey hey". Ele abre a música, volta numa etiqueta depois do refrão (subindo em sequência) e fecha.
 // É o leitmotiv proposto pra Partida, Planalto Índigo e vitória (ver GANCHO em ../synth.mjs).
+// Rodada 6: virou a música da Home. Palmas de verdade (I.palmas, a torcida), menos palmas no A final (só a resposta
+// do gancho no fim), e loop sem costura: a introdução (compassos 0 a 3) toca uma vez, o loop vai do 4 ao fim; o
+// gancho do fim vira a virada de volta pro A.
 import { arp, bass, drum, GANCHO, I, MAJOR, mel, padChord, Song, stabs, thirdBelow } from '../synth.mjs';
 
-export const meta = { titulo: 'Abertura com gancho', tela: 'Home (alternativa)' };
+export const meta = { titulo: 'Abertura com gancho', tela: 'Home' };
 
 export default function aberturaGancho() {
-    const S = new Song({ bpm: 136, bars: 53, swing: 0.15, tail: 2 });
+    const S = new Song({ bpm: 136, bars: 53, swing: 0.15, tail: 2, loopFrom: 4 });
     const lead = S.part('lead', I.lead, { pan: -0.1, gain: 1, echo: { rows: 3, fb: 0.3, mix: 0.22 } });
     const harm = S.part('harm', I.pulse, { pan: 0.25, gain: 0.7 });
     const counter = S.part('counter', I.counter, { pan: -0.35, gain: 0.8 });
@@ -23,7 +26,7 @@ export default function aberturaGancho() {
     const ag = S.part('agogo', I.agogo, { drum: true, pan: -0.25 });
     const cr = S.part('crash', I.crash, { drum: true, pan: 0.2 });
     const tm = S.part('tom', I.tom, { drum: true });
-    const gang = S.part('palmas', I.clap, { drum: true, gain: 4, pan: 0.1, rev: 0.15 });
+    const gang = S.part('palmas', I.palmas, { drum: true, gain: 4, pan: 0.1, rev: 0.15 });
     const horns = S.part('metais', I.brass, { pan: 0.25, gain: 0.8, rev: 0.15 });
 
     const KICK = 'X.....x.X..x....';
@@ -33,12 +36,12 @@ export default function aberturaGancho() {
     const AGOGO_LO = '..x.....x.x.x...';
     const GROOVE = '0:2 8:1~ 0:1 r:1 5:1 8:2 0:1 r:1 8:1~ s:2 5:1 3:2';
     const STAB = [3, 6, [10, 2], 14];
-    const groove = (bar, n, { full = true, agogo = true } = {}) => {
+    const groove = (bar, n, { full = true, agogo = true, palmas = true } = {}) => {
         drum(k, bar, n, KICK);
         drum(sn, bar, n, SNARE);
         drum(hh, bar, n, HATS);
         drum(sh, bar, n, 'xoxoxoxoxoxoxoxo', { vel: full ? 1 : 0.7 });
-        drum(gang, bar, n, '....x.......x...', { vel: 0.45 }); // palmas no 2 e no 4
+        if (palmas) drum(gang, bar, n, '....x.......x...', { vel: 0.45 }); // palmas no 2 e no 4
         if (agogo) {
             drum(ag, bar, n, AGOGO_HI);
             drum(ag, bar, n, AGOGO_LO, { pitch: -5 });
@@ -214,7 +217,7 @@ export default function aberturaGancho() {
         stabs(st, 44 + i, c, STAB);
         arp(ar, 44 + i, c, { low: 64, step: 1 });
     });
-    groove(44, 8);
+    groove(44, 8, { palmas: false }); // rodada 6: menos palmas no fim
     drum(cr, 44, 1, 'X...............');
     mel(lead, 44, A_MEL.slice(0, 4).concat(A_MEL.slice(4).map((s) => s)), {});
     mel(harm, 48, A_MEL.slice(4), { shift: 12, vel: 0.6 });
@@ -232,5 +235,6 @@ export default function aberturaGancho() {
     bass(bs, 52, 'C', '0:3 0:3 8:6 r:4');
     drum(k, 52, 1, 'X..X..X.........');
     drum(cr, 52, 1, '......X.........');
+    drum(sn, 52, 1, '............xxXX'); // virada de volta pro A (loop)
     return S;
 }

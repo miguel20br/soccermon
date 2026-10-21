@@ -12,6 +12,50 @@ Regras desta pesquisa:
 **Amostras pra ouvir:** abra `index.html` na pasta de amostras do scratchpad (caminho no fim deste doc). A Rodada 2
 vem em cima (72 faixas por tela, ★ nas que o Miguel gostou) e a Rodada 1 fica recolhida embaixo.
 
+## Rodada 6 (21/10): temas próprios, palmas de verdade e tudo em loop
+
+Pedidos: palmas com timbre de palma (e menos no fim da Abertura com gancho v2, que vira a Home); temas próprios de
+Brock, Misty e Equipe Rocket citados nas partidas deles; Planalto com o SOC-CER-MON mais evidente; o Mercado no groove
+do funk v2; tudo loopável sem costura, partida em 1º e 2º tempo com trechos por intensidade e um JSON por faixa.
+
+| Pedido | O que mudou |
+|---|---|
+| Palmas | `I.clap` (3 pessoas) e `I.palmas` (torcida, 9) no `synth.mjs`: ruído em duas faixas (~1,1 e ~2,5 kHz), 3 batidas rápidas e rabo de sala, cada pessoa um pouco fora do tempo. Mesmo volume RMS da palma antiga. Vale em todas as peças |
+| Home | **Abertura com gancho v3**: palmas novas, sem as palmas no 2 e no 4 do A final (só a resposta do gancho no fim), intro de 4 compassos que toca uma vez e loop do 4 ao fim (o gancho final vira a virada de volta pro A) |
+| Temas próprios | `tema-brock` (Mi menor, rock meio-tempo, taiko 3-3-2, trompete pergunta e tuba/fagote respondem, Sol maior no meio com SOC-CER-MON, volta um tom acima), `tema-misty` (Si menor 12/8, flauta pergunta e sinos respondem, Ré lídio no meio com SOC-CER-MON nos sinos, volta um tom acima), `tema-rocket` (Dó menor com swing, órgão e o "trio" de três acordes dos vilões, SOC-CER-MON debochado com três palmas, "o plano" em Lá♭, volta meio tom acima). Cada um exporta `MOTIVO` (2 compassos) |
+| Partidas | os compassos 13 a 16 de cada nível citam o motivo do tema: o lead pergunta, os metais respondem uma oitava abaixo |
+| Planalto v4 | fanfarra de entrada = o gancho em bloco com a torcida respondendo; o tema A começa com ele (Fá-Ré-SI♭, e Ré-Si♭-SOL em Sol menor); parte nova de 4 compassos com a banda inteira gritando o gancho subindo (Si♭, Dó menor) e palmas de volta; volta final termina em Fá7 pra voltar ao Si♭ |
+| Mercado funk v3 | os 16 compassos da v2 iguais (o modelo) + parte B de 8 no mesmo groove (Sol♭maj7, lead pergunta e metais respondem, "plim" e moedas seguem); loop de ~55 s |
+| Loop | `Song({ secoes })`: vários trechos num arquivo, cada nota pertence ao trecho em que começa, cada loop dobra o próprio rabo no seu começo; a intro é cortada (antes o rabo dela voltava em toda volta do loop). `render.mjs` grava o `.json` de cada faixa; `loops.mjs` confere as emendas no `.ogg` |
+
+**Partida em dois tempos** (um `.ogg` + `.json` por tempo; base, Brock, Misty e Rocket):
+
+| Trecho | 1º tempo | 2º tempo |
+|---|---|---|
+| nivel1 (loop, 16 compassos) | 120 BPM, groove + tema | 124, um tom acima, com terças |
+| nivel2 (loop) | 128, agogô e arpejo o tempo todo, terças e cordas na 2ª volta | 133 |
+| nivel3 (loop) | 136, bumbo e chimbal quentes, metais, cordas | 142 |
+| virada (1 compasso, uma vez) | | V7 do tom novo, caixa e apito |
+| pressao (loop) | | 144, meio tom acima |
+| fim (uma vez) | SOC-CER-MON com palmas + apito do intervalo | SOC-CER-MON com palmas + acorde final |
+
+(Os líderes têm os andamentos deles: Brock 108 → 122 e 112 → 132, Misty 72 → 82 e 76 → 90, Rocket 118 → 134 e
+122 → 142.) No jogo: tocar o trecho com `loopStart`/`loopEnd`, subir de nível na virada da volta conforme o minuto e
+a pressão, e o `fim` quando o tempo acaba. A música só lê o estado da partida.
+
+**Conferido pelos números:** `node scripts/musica/loops.mjs` nos `.ogg` desta rodada: 37 loops (as faixas novas e
+Cerulean, Sala, Estrada), todos com emenda entre 0,05 e 0,43 (abaixo de 1 = mais lisa que as 0,1% piores passagens de
+amostra da própria música; o teste da medida dá 0,56 num loop bom de mentira e 13,8 num estalo), e o `.ogg` alinhado
+com o `.wav` em todos os pontos do mapa. Abertura, Cerulean, Sala e Vitória saem idênticas byte a byte depois da
+mudança no sequenciador (`cmp`). Volume por nível da partida (1º tempo): −17,9 → −16,9 → −16,1 dB; 2º tempo −17,3 →
+−17,0 → −16,2 → pressão −16,1. Nos temas, taiko e baixos baixados até ficarem abaixo do lead (`--rms`). O que só o
+ouvido dele decide: se a palma soa como palma, o clima de cada tema e a força de cada nível. A troca de um nível pro
+outro (como está no arquivo) também mede abaixo de 1 (pior 0,95); se estalar no jogo, ~30 ms de crossfade resolve.
+
+Perguntas: (1) a palma nova soa como palma? (2) Os três temas têm a cara de cada um? Sigo com Lt. Surge e Erika?
+(3) Na partida, os níveis estão bem separados (dá pra sentir a subida)? (4) Planalto: o gancho ficou evidente o
+bastante, ou demais?
+
 ## Rodada 5 (21/10): pergunta e resposta, partidas por personagem, Natal
 
 "No geral, as músicas SÓ MELHORAM." Regra nova pra todas as trilhas: **pergunta e resposta e, quando der, uma

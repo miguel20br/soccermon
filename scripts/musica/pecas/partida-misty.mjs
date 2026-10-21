@@ -1,8 +1,11 @@
 // Partida contra a Misty (rodada 5, variação da Partida v4): água em 12/8, o balanço de Cerulean com energia de
 // jogo. Si menor, sino bembé (x.x.xx.x.x.x), baixo em tercinas, arpejo de sinos como ondas, bolhas subindo. Cada
 // linha é uma colcheia (o pulso é a semínima pontuada: ~96 → 110 e ~101 → 117). Mesma forma da Partida v4.
+// Rodada 6: 1º e 2º tempo em arquivos separados, com trechos em loop por intensidade (ver partida-base.mjs), e o
+// motivo do Tema da Misty (tema-misty.mjs) citado em cada nível.
 import { partidaBase } from '../partida-base.mjs';
 import { I } from '../synth.mjs';
+import { MOTIVO } from './tema-misty.mjs';
 
 export const meta = { titulo: 'Partida: Misty', tela: 'Partida (ginásio de Cerulean)' };
 
@@ -10,7 +13,7 @@ export default function partidaMisty() {
     return partidaBase({
         barLen: 12,
         swing: 0,
-        bpm: { start1: 72, end1: 82, intervalo: 72, start2: 76, end2: 88 },
+        bpm: { start1: 72, end1: 82, start2: 76, end2: 88 },
         chords: ['Bm7', 'Bm7', 'Gmaj7', 'A', 'Bm7', 'Em7', 'Gmaj7', 'F#7'],
         riff: 'B4:1 B4:1 r:1 D5:1 r:1 E5:1 F#5:2 r:1 A5:1 F#5:1 E5:1',
         riffShift: [0, 0, null, null, 0, null, null, null],
@@ -24,6 +27,7 @@ export default function partidaMisty() {
             'F#5:2 G5:1 A5:2 B5:1 D6:3 C#6:3',
             'A#5:6 F#5:3 C#5:3',
         ],
+        cita: MOTIVO, // rodada 6: o motivo do tema próprio nos compassos 13 a 16 de cada nível
         tonic: 11,
         hook: { tom: -1, menor: true },
         inst: { lead: I.pulse, arp: I.bell },

@@ -1,15 +1,18 @@
 // Partida contra o Brock (rodada 5, variação da Partida v4): pedra, peso. Mi menor, mais lento (108 → 122 e
 // 112 → 130 BPM), meio-tempo pesado (caixa só no 3), baixo sujo (bitcrush), metais no lugar da flauta, taiko na
 // percussão. Mesma forma: acelera em cada tempo, sobe de tom, SOC-CER-MON em Mi menor no fim de cada tempo.
+// Rodada 6: 1º e 2º tempo em arquivos separados, com trechos em loop por intensidade (ver partida-base.mjs), e o
+// motivo do Tema do Brock (tema-brock.mjs) citado em cada nível.
 import { partidaBase } from '../partida-base.mjs';
 import { I, ins } from '../synth.mjs';
+import { MOTIVO } from './tema-brock.mjs';
 
 export const meta = { titulo: 'Partida: Brock', tela: 'Partida (ginásio de Pewter)' };
 
 export default function partidaBrock() {
     return partidaBase({
         swing: 0,
-        bpm: { start1: 108, end1: 122, intervalo: 108, start2: 112, end2: 130 },
+        bpm: { start1: 108, end1: 122, start2: 112, end2: 130 },
         chords: ['Em', 'Em', 'C', 'D', 'Em', 'G', 'C', 'B7'],
         riff: 'E4:2 E4:1 G4:1 r:2 A4:2 r:1 A4:1 G4:2 E4:2 D4:2',
         riffShift: [0, 0, null, null, 0, null, null, null],
@@ -23,6 +26,7 @@ export default function partidaBrock() {
             'E5:2 G5:2 C6:4 B5:2 A5:2 G5:4',
             'F#5:4 D#5:4 B4:8',
         ],
+        cita: MOTIVO, // rodada 6: o motivo do tema próprio nos compassos 13 a 16 de cada nível
         tonic: 4,
         hook: { tom: 4, menor: true },
         inst: {
