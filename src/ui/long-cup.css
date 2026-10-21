@@ -5,7 +5,6 @@
     align-items: center;
     gap: 8px 14px;
     padding: 10px 14px;
-    margin-bottom: 10px;
 }
 .cm-money {
     font-family: "Galmuri14", var(--font, inherit);
@@ -18,15 +17,45 @@
     font-weight: 700;
     color: var(--muted);
 }
-.cm-cards .hud-icon {
-    width: 18px;
+/* o cartão amarelo do status: vazio (tracejado) até a 1ª derrota, depois cheio */
+.cm-card {
+    width: 13px;
     height: 18px;
+    border-radius: 2px;
+    border: 2px dashed var(--yellow);
+    opacity: 0.7;
+}
+.cm-card.on {
+    border: 0;
+    background: var(--yellow);
+    box-shadow: 0 2px 0 rgb(0 0 0 / 40%);
+    opacity: 1;
+    rotate: -8deg;
+    animation: cm-card-in 300ms var(--ease-out) both;
+}
+@keyframes cm-card-in {
+    from {
+        opacity: 0;
+        translate: 0 -10px;
+    }
 }
 .cm-cards.used {
     color: var(--yellow);
 }
-.cm-cards.used .hud-icon {
-    fill: var(--yellow);
+.cm-rule {
+    flex: 1 1 auto;
+    color: var(--text);
+    font-size: 12px;
+}
+.cm-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+}
+.cm-side {
+    display: grid;
+    gap: 12px;
+    align-content: start;
 }
 .cm-status .sp-slots {
     flex: 1 1 260px;
@@ -415,11 +444,12 @@
     position: absolute;
     left: 3px;
     top: 50%;
-    z-index: 1;
+    /* por cima do cenário da borda */
+    z-index: 2;
     translate: 0 -50%;
     padding: 6px 2px;
     border-radius: 4px;
-    background: rgb(0 0 0 / 45%);
+    background: var(--bc-ink);
     color: #fff;
     font-size: 9px;
     font-weight: 700;
@@ -886,4 +916,99 @@
         width: 40px;
         height: 40px;
     }
+}
+
+/* ---------- desktop: o mapa ocupa a altura da tela e o painel do lado tem o status, a ficha da casa e as falas ---------- */
+@media (min-width: 1000px) {
+    .menu-screen.cm-route {
+        width: min(1240px, 100% - 48px);
+    }
+    .cm-body {
+        grid-template-columns: minmax(0, 1fr) 340px;
+        gap: 18px;
+        align-items: start;
+    }
+    .cm-side {
+        order: 2;
+        position: sticky;
+        top: 12px;
+    }
+    .cm-scroll {
+        max-height: calc(100vh - 150px);
+    }
+    .cm-status {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 10px 14px;
+    }
+    .cm-rule {
+        grid-column: 1 / -1;
+    }
+    .cm-status .sp-slots {
+        grid-column: 1 / -1;
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .cm.has-sheet {
+        padding-bottom: 0;
+    }
+    .cm-side .cm-sheet.bc-surface,
+    .cm-side .cm-story {
+        position: static;
+        width: auto;
+        translate: none;
+        box-shadow: 0 4px 0 rgb(0 0 0 / 35%);
+        animation: cm-side-in 240ms var(--ease-out) both;
+    }
+    .cm-side .cm-story {
+        flex-direction: column;
+        align-items: center;
+        box-shadow: none;
+    }
+    .cm-side .cm-story .room-dialog {
+        align-self: stretch;
+    }
+    /* pixel art em escala inteira: o treinador a 2x, o da ficha e o capitão no tamanho do sprite */
+    .cm-side .cm-story-who {
+        width: 160px;
+    }
+    .cm-side .cm-sheet-trainer {
+        width: 80px;
+    }
+    .cm-me {
+        width: auto;
+        height: auto;
+    }
+    .cm-choose {
+        margin: 0;
+        padding: 14px;
+        border: 2px dashed var(--line);
+        border-radius: 8px;
+        text-align: center;
+    }
+    /* nome da região na horizontal, no canto da faixa */
+    .cm-region-name {
+        top: 8px;
+        left: 8px;
+        translate: none;
+        padding: 3px 7px 2px;
+        font-size: 10px;
+        writing-mode: horizontal-tb;
+        rotate: none;
+    }
+}
+@keyframes cm-side-in {
+    from {
+        opacity: 0;
+        translate: 0 8px;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .cm-side .cm-sheet.bc-surface,
+    .cm-side .cm-story {
+        animation-name: cm-fade-in;
+    }
+}
+:root[data-reduce-motion="true"] .cm-side .cm-sheet.bc-surface,
+:root[data-reduce-motion="true"] .cm-side .cm-story {
+    animation-name: cm-fade-in;
 }

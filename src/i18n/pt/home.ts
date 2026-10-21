@@ -37,7 +37,7 @@ export const home = {
     longCup: {
         tag: '8 jogos',
         title: 'Rota Índigo',
-        line: 'Atravesse Kanto até o Planalto: 8 jogos, eventos e ginásios.',
+        line: 'Atravesse Kanto até o Planalto Índigo.',
         short: 'mapa, eventos e ginásios',
         note: 'A Rota Índigo chega na próxima versão.',
     },

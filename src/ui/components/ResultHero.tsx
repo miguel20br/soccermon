@@ -125,15 +125,14 @@ export function ResultHero({
               ? t('result.hero.cupWon')
               : isLong(run)
                 ? // Copa longa: "Partida 3 de 8", o cartão amarelo ou o fim
-                  won
+                  // amarelo: a regra fica no cartão que cai logo embaixo
+                  won || run.status === 'map'
                     ? cupStageName(run, run.stage)
-                    : run.status === 'map'
-                      ? t('longCup.yellowLine')
-                      : run.status === 'group'
-                        ? t('longCup.groupLossLine')
-                        : isFinalStage(run)
-                          ? t('longCup.runnerUp')
-                          : t('longCup.out', { n: run.stage + 1 })
+                    : run.status === 'group'
+                      ? t('longCup.groupLossLine')
+                      : isFinalStage(run)
+                        ? t('longCup.runnerUp')
+                        : t('longCup.out', { n: run.stage + 1 })
                 : won
                   ? d.common.stageWon[run.stage]
                   : run.stage === CUP_STAGES.length - 1
