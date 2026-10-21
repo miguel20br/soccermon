@@ -46,6 +46,7 @@ export const settings: typeof pt = {
         confirmLeaveHint: 'Asks before you quit a match halfway.',
         confirmLeaveLabel: 'Confirm before leaving the match',
         experiments: 'Experiments',
+        more: 'More options',
         agency: 'Touchline (test)',
         agencyHint: 'Shouts, time-outs, flying keeper and max move. In a Duel the host decides.',
         agencyLabel: 'Touchline experiment',

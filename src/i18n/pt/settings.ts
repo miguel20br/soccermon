@@ -45,6 +45,7 @@ export const settings = {
         confirmLeaveHint: 'Pergunta antes de largar uma partida no meio.',
         confirmLeaveLabel: 'Confirmar antes de sair da partida',
         experiments: 'Experimentos',
+        more: 'Mais opções',
         agency: 'Beira da quadra (teste)',
         agencyHint: 'Gritos, tempo, goleiro-linha e golpe máximo. No Duelo vale o do anfitrião.',
         agencyLabel: 'Experimento beira da quadra',
