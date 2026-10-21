@@ -2,6 +2,7 @@ import { type LinkAsk, useCloud } from '../cloud/cloud';
 import type { SaveSummary } from '../cloud/reconcile-plan';
 import { ENGINE_VERSION, FUTSAL_5 } from '../engine/config';
 import { clubLeader, cupRival } from '../engine/cup';
+import { isMatchKind } from '../engine/cup-map';
 import { species } from '../engine/data';
 import { aiDraftTeam } from '../engine/draft';
 import { createInstance, type PokemonInstance } from '../engine/instance';
@@ -303,9 +304,29 @@ export function runDevDemo() {
         return;
     }
     // ?demo=momentos: a mesma copa do campeão (cada partida travada como no jogo, então o gol da copa tem replay)
+    // ?demo=fora: Rota na escalação com um reserva na Creche (2 partidas) e um titular machucado (1)
+    if (demo === 'fora') {
+        demoLongMap(store, true);
+        const at = useGame.getState().run!;
+        const next = at.map!.nodes.find(
+            (n) => at.map!.nodes.find((x) => x.id === at.at)!.next.includes(n.id) && isMatchKind(n.kind),
+        );
+        if (!next) return;
+        useGame.getState().enterNode(next.id);
+        const run = useGame.getState().run!;
+        const [creche] = run.bench;
+        const hurt = run.lineup[3];
+        useGame.setState({
+            run: { ...run, out: { [creche]: 2, [hurt]: 1 }, outWhy: { [creche]: 'creche', [hurt]: 'lesao' } },
+        });
+        return;
+    }
     // ?demo=eliminado&rota=1: a Rota no meio do mapa, já com um amarelo; o time fraco perde a próxima e cai
+    // (`&amarelo=1`: sem cartão ainda, a derrota vira o 1º amarelo e volta pro mapa)
     if (demo === 'eliminado' && new URLSearchParams(window.location.search).get('rota') === '1') {
         demoLongMap(store, true);
+        if (new URLSearchParams(window.location.search).has('amarelo'))
+            useGame.setState({ run: { ...useGame.getState().run!, cards: 0 } });
         const at = useGame.getState().run!;
         const next = at.map!.nodes.find(
             (n) => at.map!.nodes.find((x) => x.id === at.at)!.next.includes(n.id) && n.kind === 'jogo',

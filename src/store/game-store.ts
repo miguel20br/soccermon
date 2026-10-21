@@ -64,6 +64,7 @@ import {
     isGroupStage,
     isLong,
     isOut,
+    putsOutOnCourt,
     type LongRunFields,
     longRound,
     newLongFields,
@@ -1280,7 +1281,8 @@ export const useGame = create<GameStore>()(
 
                 swapSlots: (a, b) => {
                     const run = getState().run;
-                    if (!run) return;
+                    // Rota Índigo: quem está fora (lesão, Creche) não entra em quadra
+                    if (!run || putsOutOnCourt(run, a, b)) return;
                     const lineup = [...run.lineup];
                     const bench = [...run.bench];
                     const zone = (r: SlotRef) => (r.zone === 'lineup' ? lineup : bench);
