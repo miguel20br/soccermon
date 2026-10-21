@@ -320,6 +320,14 @@ e `src/ui/screens/StoryLab.tsx` (`?lab=cenas`, dev e prévias; `&reduzir=1` for�
 escolhe sozinho no draft). O relógio da cena anda com o `update` do Phaser; pra gravar quadro a quadro, além do
 `game.step`, o `Date.now` precisa andar junto (os tweens do Phaser leem o `Date.now`).
 
+**Visual (21/10, depois da prévia: "estilos visuais conflitantes"):** o palco virou uma grade só de 144×256 pixels de
+arte, a densidade do PMD (Pokémon em 1x), mostrada em escala inteira (o canvas é 144k × 256k; zoom de câmera arredonda
+pra inteiro). Treinadores, bolas, sombras, holofote e cenários são pixel art própria (`src/game/story-art.ts`,
+`src/game/story-stages.ts`): contorno escuro, 2 ou 3 tons e vista de cima em 3/4, como os mapas do Mystery Dungeon. Os
+sprites do Showdown saíram da cena. Fala, letreiro e retrato ficam numa câmera parada com texto nítido; o retrato
+também cai em escala inteira. Quadro com as 3 direções (A estilo PMD, escolhida; B Modern Interiors; C palco de
+trailer): as B e C ficaram só no commit d4c12c4.
+
 Uma cena é **dados**: uma lista de passos no tempo, em batidas. Um tocador único lê a lista e usa o que o jogo já
 tem. Fica em Phaser (um relógio só pra sprite, câmera, texto e som), carregado sob demanda como o resto do Phaser.
 

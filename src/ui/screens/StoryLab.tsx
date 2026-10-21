@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from 'react';
 import { species } from '../../engine/data';
 import { StoryScene } from '../../game/scenes/StoryScene';
 import { ART_H, ART_W } from '../../game/story-art';
-import type { StageStyle } from '../../game/story-stages';
 import { getLang } from '../../i18n';
 import { useGame } from '../../store/game-store';
 import type { SceneScript } from '../../story/director';
@@ -31,7 +30,6 @@ export function StoryLab({ onExit }: { onExit: () => void }) {
     const params = new URLSearchParams(window.location.search);
     const reduce = params.get('reduzir') === '1' || reduceMotionOn();
     const auto = Number(params.get('inicial')) as Starter;
-    const style: StageStyle = (['a', 'b', 'c'] as const).find((x) => x === params.get('estilo')) ?? 'a';
 
     const scene = () => game.current?.scene.getScene('Story') as StoryScene | undefined;
 
@@ -45,7 +43,6 @@ export function StoryLab({ onExit }: { onExit: () => void }) {
             reduce,
             cries: useGame.getState().settings.cries,
             zoom: scale.current,
-            style,
             onEvent: (e: 'handoff' | 'end') => {
                 if (e === 'end') return setPhase('end');
                 if (STARTERS.includes(auto)) start(palletChoice(auto));

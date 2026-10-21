@@ -30,7 +30,7 @@ import {
 } from '../animation-manager';
 import { playCrowd, playCry, playSample, playSfx } from '../audio';
 import { ART_H, ART_W, ballArt, pokeballArt, shadowArt, spotArt, trainerArt } from '../story-art';
-import { type MiSheets, paintStage, type StageStyle } from '../story-stages';
+import { paintStage } from '../story-stages';
 
 /**
  * Tocador das cenas do Modo história (src/story/director.ts). O palco tem 144×256 pixels de arte (a grade do PMD, em
@@ -46,7 +46,6 @@ export interface StoryData {
     cries: CryStyle;
     /** Pixels do canvas por pixel de arte (inteiro: uma densidade só no palco). */
     zoom: number;
-    style: StageStyle;
     onEvent: (e: 'handoff' | 'end') => void;
 }
 
@@ -117,10 +116,6 @@ export class StoryScene extends Phaser.Scene {
         for (const m of cast.mons) {
             preloadSpecies(this, m);
             preloadExtra(this, m);
-        }
-        if (this.d.style === 'b' && !this.textures.exists('mi')) {
-            this.load.image('mi', 'assets/room/mi/Interiors_free_32x32.png');
-            this.load.image('mi-room', 'assets/room/mi/Room_Builder_free_32x32.png');
         }
         for (const f of cast.faces) {
             const [mon, face] = f.split(':');
@@ -251,16 +246,8 @@ export class StoryScene extends Phaser.Scene {
     }
 
     private stageTexture(id: StageId) {
-        const key = `stage-${id}-${this.d.style}`;
-        if (!this.textures.exists(key)) {
-            const sheets: MiSheets | undefined = this.textures.exists('mi')
-                ? {
-                      interiors: this.textures.get('mi').getSourceImage() as CanvasImageSource,
-                      room: this.textures.get('mi-room').getSourceImage() as CanvasImageSource,
-                  }
-                : undefined;
-            this.textures.addCanvas(key, paintStage(id, this.d.style, sheets));
-        }
+        const key = `stage-${id}`;
+        if (!this.textures.exists(key)) this.textures.addCanvas(key, paintStage(id));
         return key;
     }
 

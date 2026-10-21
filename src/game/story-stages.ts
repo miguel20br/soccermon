@@ -6,14 +6,9 @@ import { ART_H, ART_W, block, canvas, disc, FLOOR, hash, type Paint, rect, shade
  * como os mapas do Mystery Dungeon: parede ou céu em cima, chão de `FLOOR` pra baixo. O ginásio continua ginásio: a
  * quadra fica dentro dele.
  *
- * Estilos (comparação em ?lab=cenas&estilo=): `a` = tudo no estilo PMD (o escolhido), `b` = Modern Interiors nos
- * interiores, `c` = palco de trailer (fundo da marca e silhuetas).
+ * Escolhido entre 3 estilos (quadro de 21/10; os outros, Modern Interiors e palco de trailer, ficaram no commit
+ * d4c12c4).
  */
-export type StageStyle = 'a' | 'b' | 'c';
-export interface MiSheets {
-    interiors: CanvasImageSource;
-    room: CanvasImageSource;
-}
 
 const OUT = 0x1c1428;
 const W = ART_W;
@@ -168,9 +163,7 @@ function house(p: Paint, x: number, y: number, w: number, roof: number, roofDark
     }
 }
 
-// ---- estilo A (PMD)
-
-function gymA(p: Paint, lit: boolean) {
+function gym(p: Paint, lit: boolean) {
     const k = lit ? 1 : 0.6;
     stoneWall(p, k);
     torch(p, 16, 30);
@@ -188,7 +181,7 @@ function gymA(p: Paint, lit: boolean) {
     }
 }
 
-function palletA(p: Paint) {
+function pallet(p: Paint) {
     sky(p);
     trees(p, 46);
     grass(p, 52, FLOOR);
@@ -207,7 +200,7 @@ function palletA(p: Paint) {
     goal(p, 0x9a6a38, 0x6a4420, 2);
 }
 
-function labA(p: Paint) {
+function lab(p: Paint) {
     rect(p, 0, 0, W, 100, 0xd9d6c8);
     rect(p, 0, 0, W, 6, 0x3a3442);
     rect(p, 0, 84, W, 16, 0xb8b4a4);
@@ -249,7 +242,7 @@ function labA(p: Paint) {
     }
 }
 
-function route1A(p: Paint) {
+function route1(p: Paint) {
     trees(p, 8);
     trees(p, 24);
     grass(p, 32, H);
@@ -273,101 +266,11 @@ function route1A(p: Paint) {
     rect(p, 87, 49, 14, 1, 0xc08a50);
 }
 
-// ---- estilo B (Modern Interiors nos interiores; o exterior não tem: Pallet sai no estilo A)
-
-/** Recorte da folha de 32 px do Modern Interiors pela metade (a arte é de 16 px dobrada: cai certinho na grade). */
-function mi(p: Paint, img: CanvasImageSource, sx: number, sy: number, sw: number, sh: number, dx: number, dy: number) {
-    p.drawImage(img, sx, sy, sw, sh, Math.round(dx), Math.round(dy), sw / 2, sh / 2);
-}
-
-function tile(p: Paint, img: CanvasImageSource, sx: number, sy: number, sw: number, sh: number, box: number[]) {
-    const [x0, y0, w, h] = box;
-    for (let y = y0; y < y0 + h; y += sh / 2)
-        for (let x = x0; x < x0 + w; x += sw / 2) mi(p, img, sx, sy, sw, sh, x, y);
-}
-
-function gymB(p: Paint, s: MiSheets, lit: boolean) {
-    rect(p, 0, 0, W, FLOOR, 0x23222c);
-    tile(p, s.room, 32, 544, 32, 64, [0, FLOOR - 32, W, 32]);
-    tile(p, s.room, 448, 160, 32, 32, [0, FLOOR, W, H - FLOOR]);
-    if (lit) {
-        crowd(p);
-        courtLines(p, 0xffffff);
-        goal(p, 0xf4f4f4, 0xb8b8c8);
-    } else rect(p, 0, 0, W, H, 0x05060f, 0.4);
-}
-
-function labB(p: Paint, s: MiSheets) {
-    rect(p, 0, 0, W, 100, 0x23222c);
-    tile(p, s.room, 32, 608, 32, 64, [0, 36, W, 64]);
-    tile(p, s.room, 352, 352, 32, 32, [0, 100, W, H - 100]);
-    mi(p, s.interiors, 160, 448, 64, 64, 6, 68);
-    mi(p, s.interiors, 160, 448, 64, 64, 106, 68);
-    mi(p, s.interiors, 426, 1408, 46, 62, 44, 69);
-    mi(p, s.interiors, 338, 1236, 56, 44, 58, 114);
-}
-
-// ---- estilo C (palco de trailer: fundo da marca, cenário só em silhueta)
-
-function brand(p: Paint) {
-    const cx = W / 2;
-    const cy = 110;
-    const tones = [0x2a3a7a, 0x223268, 0x1b2856, 0x141f44, 0x0e1632, 0x070a18];
-    for (let y = 0; y < H; y++)
-        for (let x = 0; x < W; x++) {
-            const d = Math.hypot(x - cx, (y - cy) * 0.75) / 24;
-            const i = Math.min(tones.length - 1, Math.floor(d + ((x + y) % 2) * 0.5));
-            const ray = Math.floor(((Math.atan2(y - cy, x - cx) + Math.PI) / (Math.PI * 2)) * 16) % 2;
-            rect(p, x, y, 1, 1, ray && i > 0 ? shade(tones[i], 1.12) : tones[i]);
-        }
-}
-
-function silhouette(p: Paint, id: StageId) {
-    const S = 0x0b1030;
-    const R = 0x3a4a8a;
-    rect(p, 0, FLOOR, W, H - FLOOR, 0x0e1632, 0.65);
-    rect(p, 0, FLOOR, W, 1, R);
-    if (id === 'pallet') {
-        for (const [x, y, w] of [
-            [6, 40, 38],
-            [86, 34, 52],
-        ]) {
-            rect(p, x - 1, y - 1, w + 2, FLOOR - y + 1, R);
-            rect(p, x, y, w, FLOOR - y, S);
-        }
-    }
-    if (id === 'lab') {
-        for (const x0 of [6, 102]) {
-            rect(p, x0 - 1, 27, 38, 74, R);
-            rect(p, x0, 28, 36, 72, S);
-        }
-        rect(p, 41, 116, 62, 20, R);
-        rect(p, 42, 117, 60, 18, S);
-    }
-    if (id === 'ginasio' || id === 'quadra' || id === 'pallet') {
-        rect(p, 53, FLOOR - 17, 39, 3, R);
-        rect(p, 53, FLOOR - 17, 3, 25, R);
-        rect(p, 89, FLOOR - 17, 3, 25, R);
-    }
-    if (id === 'ginasio' || id === 'quadra') {
-        torch(p, 16, 30);
-        torch(p, W - 16, 30);
-    }
-}
-
-export function paintStage(id: StageId, style: StageStyle, sheets?: MiSheets): HTMLCanvasElement {
+export function paintStage(id: StageId): HTMLCanvasElement {
     const [el, p] = canvas(W, H);
-    if (style === 'c') {
-        brand(p);
-        silhouette(p, id);
-        if (id === 'ginasio') rect(p, 0, 0, W, H, 0x000000, 0.35);
-        return el;
-    }
-    if (style === 'b' && sheets && (id === 'ginasio' || id === 'quadra')) gymB(p, sheets, id === 'quadra');
-    else if (style === 'b' && sheets && id === 'lab') labB(p, sheets);
-    else if (id === 'ginasio' || id === 'quadra') gymA(p, id === 'quadra');
-    else if (id === 'pallet') palletA(p);
-    else if (id === 'lab') labA(p);
-    else route1A(p);
+    if (id === 'ginasio' || id === 'quadra') gym(p, id === 'quadra');
+    else if (id === 'pallet') pallet(p);
+    else if (id === 'lab') lab(p);
+    else route1(p);
     return el;
 }
