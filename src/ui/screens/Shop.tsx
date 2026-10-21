@@ -106,6 +106,7 @@ export function Shop() {
             >
                 <OfferCard
                     offer={o}
+                    lack={sold ? 0 : Math.max(0, o.price - money)}
                     selected={chosen === i}
                     team={run.picks}
                     packSize={sponsors.includes('safari') ? 4 : 3}
@@ -312,12 +313,14 @@ export function Shop() {
 /** A carta de cada coisa da vitrine (o botão de comprar fica embaixo, igual pra todas). */
 function OfferCard({
     offer: o,
+    lack,
     selected,
     team,
     packSize,
     onPick,
 }: {
     offer: ShopOffer;
+    lack: number;
     selected: boolean;
     team: Parameters<typeof TmCard>[0]['team'];
     packSize: number;
@@ -325,7 +328,7 @@ function OfferCard({
 }) {
     const { lang, t } = useT();
     if (o.kind === 'pokemon') return <FutCard inst={o.inst} selected={selected} />;
-    if (o.kind === 'sponsor') return <SponsorCard id={o.id} />;
+    if (o.kind === 'sponsor') return <SponsorCard id={o.id} price={o.price} lack={lack} />;
     if (o.kind === 'tm')
         return <TmCard move={o.move} leader={o.leader} team={team} selected={selected} onClick={onPick} />;
     if (o.kind === 'pack')
