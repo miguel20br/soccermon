@@ -289,16 +289,18 @@ button.sp-slot:hover {
 .cpack-pattern {
     position: absolute;
     inset: -30%;
-    background: var(--ticon) 0 0 / 14cqw auto repeat;
+    background: var(--ticon) 0 0 / 15cqw auto repeat;
+    image-rendering: pixelated;
     opacity: 0.14;
     rotate: -18deg;
 }
 .cpack-typeicon {
     position: relative;
-    width: 40%;
+    width: 44%;
     height: auto;
     margin-top: 4cqw;
-    image-rendering: auto;
+    /* o ícone do tipo é pixel art de 36 px: esticado com pixelated fica nítido (com borrão ficava ruim) */
+    image-rendering: pixelated;
     filter: drop-shadow(0 3px 8px rgb(0 0 0 / 60%)) drop-shadow(0 0 14px rgb(255 255 255 / 35%));
 }
 .cpack.cpack-type .cpack-label {
@@ -394,4 +396,18 @@ button.sp-slot:hover {
     margin: -2px 0 8px;
     color: var(--muted);
     font-size: 12px;
+}
+
+/* desktop: os 2 Patrocínios da vitrine lado a lado */
+@media (min-width: 900px) {
+    .shelf-sponsor {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0 16px;
+    }
+    .shelf-sponsor > .shop-shelf-title,
+    .shelf-sponsor > .shop-shelf-hint,
+    .shelf-sponsor > .sp-slots {
+        grid-column: 1 / -1;
+    }
 }

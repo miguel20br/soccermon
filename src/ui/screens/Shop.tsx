@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { itemSprite } from '../../engine/items';
 import { interestOf, rerollPrice, type ShopOffer } from '../../engine/shop';
+import { editionOf } from '../../engine/specials';
 import { MAX_SPONSORS } from '../../engine/sponsors';
 import { playSfx } from '../../game/audio';
 import { itemDesc, itemName, stageName, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { CardPack, PackArt, packLookOf } from '../components/CardPack';
+import { CardPack, isBigCard, PackArt, packLookOf } from '../components/CardPack';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { Money, SponsorCard, SponsorSlots } from '../components/SponsorCard';
@@ -87,7 +88,7 @@ export function Shop() {
             : owned(o)
               ? t('shop.owned')
               : money < o.price
-                ? t('shop.short', { n: o.price - money })
+                ? t('shop.priceShort', { price: o.price, n: o.price - money })
                 : t('shop.buy', { n: o.price });
 
     const shelf = (kinds: ShopOffer['kind'][]) =>
@@ -182,7 +183,10 @@ export function Shop() {
                     >
                         <div className="shop-grid">
                             {shop.pack.map((inst, i) => (
-                                <div key={inst.uid} className="shop-offer">
+                                <div
+                                    key={inst.uid}
+                                    className={`shop-offer cpack-card${isBigCard(inst) ? ' big' : ''}${editionOf(inst) ? ' walk' : ''}`}
+                                >
                                     <FutCard
                                         inst={inst}
                                         selected={packPick === i}

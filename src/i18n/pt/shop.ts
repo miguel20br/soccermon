@@ -20,6 +20,7 @@ export const shop = {
     buy: 'Comprar · ₽{n}',
     sold: 'Comprado',
     owned: 'Já está no time',
+    priceShort: '₽{price} · falta ₽{n}',
     short: 'Falta ₽{n}',
     kind: { pokemon: 'Pokémon', pack: 'Pacote', item: 'Item', tm: 'MT', sponsor: 'Patrocínio' },
     pack: 'Pacote {type}',

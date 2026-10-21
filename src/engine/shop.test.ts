@@ -63,6 +63,14 @@ describe('vitrine', () => {
         }
     });
 
+    it('2 Patrocínios diferentes na vitrine (1 quando só falta 1)', () => {
+        const sp = shopOffers(base).filter((o) => o.kind === 'sponsor');
+        expect(sp).toHaveLength(2);
+        expect(new Set(sp.map((o) => o.kind === 'sponsor' && o.id)).size).toBe(2);
+        const all = SPONSOR_IDS.filter((id) => id !== 'silph');
+        expect(shopOffers({ ...base, sponsors: all }).filter((o) => o.kind === 'sponsor')).toHaveLength(1);
+    });
+
     it('pacote de tipo: só do tipo, sem repetir o time; Safari Zone abre 4', () => {
         for (const type of ['Fire', 'Ice', 'Ghost', 'Dragon']) {
             const cards = packCards('s1', 1, type, team, [], null);

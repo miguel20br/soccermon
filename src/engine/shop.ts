@@ -27,6 +27,9 @@ export const ECONOMY = {
     ssanne: 3,
 } as const;
 
+/** Patrocínios na vitrine de cada Mercado. */
+export const SPONSOR_CHOICES = 2;
+
 export const PRICES = {
     sponsor: 10,
     /** Pelo metal da carta (bronze ≤64, prata 65–74, ouro 75+). */
@@ -151,7 +154,9 @@ export function shopOffers({ seed, stage, reroll, team, sponsors, eventType, cap
         ...(packType ? [{ kind: 'pack' as const, type: packType, price: PRICES.pack }] : []),
         gear,
     ];
-    if (free.length) out.push({ kind: 'sponsor', id: rng.pick(free), price: PRICES.sponsor });
+    // 2 Patrocínios à escolha (pedido do Miguel, 21/10/2026), diferentes e que você ainda não tem
+    for (const id of rng.shuffle([...free]).slice(0, SPONSOR_CHOICES))
+        out.push({ kind: 'sponsor', id, price: PRICES.sponsor });
     return out;
 }
 
