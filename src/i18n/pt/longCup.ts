@@ -1,6 +1,7 @@
 /** Copa longa (docs/planos/copa-longa.md). */
 export const longCup = {
     title: 'Rota Índigo',
+    trophy: 'Taça da Rota Índigo',
     map: 'Mapa',
     step: 'Partida {n} de {total}',
     final: 'Final',

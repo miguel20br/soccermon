@@ -681,6 +681,7 @@ function demoTrophyRoom() {
         formation: '2-2',
         titleNo: n - i,
         perfect: i % 4 === 0,
+        ...(i % 4 === 2 && { mode: 'longa' as const }),
         scores: (i % 3 === 1
             ? [
                   [3, 1],

@@ -2,6 +2,7 @@ import type { longCup as pt } from '../pt/longCup';
 
 /** Long Cup (docs/planos/copa-longa.md). */
 export const longCup: typeof pt = {
+    trophy: 'Indigo Road Cup',
     title: 'Indigo Road',
     map: 'Map',
     step: 'Match {n} of {total}',
