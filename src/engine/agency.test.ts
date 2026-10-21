@@ -76,7 +76,7 @@ describe('agência do técnico (experimento)', () => {
         const r = run([
             { tick: T, team: 0, kind: 'timeout' },
             { tick: T + 400, team: 0, kind: 'timeout' },
-            { tick: 4500, team: 0, kind: 'timeout' },
+            { tick: 6000, team: 0, kind: 'timeout' },
         ]);
         expect(of(r.events, 'timeout').map((e) => e.half)).toEqual([1, 2]);
     });
@@ -131,7 +131,8 @@ describe('agência do técnico (experimento)', () => {
 
     it('golpe máximo: só com a barra cheia, o capitão brilha e o chute sai com o golpe dele', () => {
         let hits = 0;
-        for (let k = 0; k < 24 && hits < 2; k++) {
+        // o capitão chuta dentro da janela em ~6% das partidas (v8): procura até achar 2
+        for (let k = 0; k < 90 && hits < 2; k++) {
             const seed = `ag-max-${k}`;
             const plain = runMatch(FUTSAL_5, A, B, seed, { snapshots: false });
             const full = plain.events.find((e) => maxCharge(plain.events, 0, e.tick).charge >= 1);

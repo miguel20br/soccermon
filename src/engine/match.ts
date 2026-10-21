@@ -19,7 +19,20 @@ import type { PokemonInstance } from './instance';
 import { ITEMS } from './items';
 import { type ActiveLink, computeLinks } from './links';
 import { applyModifiers, attributeModifiers, captainFactor } from './modifiers';
-import { DRAIN, DRAWBACK, hasTrait, moveProfile, OHKO, type StatusKind, MOVE_TUNING as T, TRAP } from './moves';
+import {
+    BOOST_TO_ATTR,
+    DRAIN,
+    DRAWBACK,
+    hasTrait,
+    moveProfile,
+    OHKO,
+    SECONDARY_PICK,
+    STATUS_DURATION,
+    type StatusKind,
+    selfBoostsOf,
+    MOVE_TUNING as T,
+    TRAP,
+} from './moves';
 import { Rng } from './rng';
 import { SIGNATURE } from './signature-moves';
 import {
@@ -1250,8 +1263,8 @@ function tryTackle(s: MatchState, p: PlayerState, targetId: number) {
             if (TRAP.has(id)) trap(carrier, id);
             // nocaute (Fissure, Guillotine, Horn Drill): fica um bom tempo no chão
             if (OHKO.has(id)) {
-                carrier.stun = Math.max(carrier.stun, 2.2);
-                setAction(carrier, Action.Hurt, 2.2);
+                carrier.stun = Math.max(carrier.stun, T.ohkoStun);
+                setAction(carrier, Action.Hurt, T.ohkoStun);
             }
             // Seismic Toss: arremesso de tempo fixo, sem depender da força
             if (hasTrait(id, 'throw')) {
@@ -1337,26 +1350,6 @@ export function nearestOpponent(
     return best;
 }
 
-const BOOST_TO_ATTR: Record<string, AttrKey[]> = {
-    atk: ['shooting', 'strength'],
-    def: ['tackling', 'strength'],
-    spa: ['passing', 'shooting'],
-    spd: ['positioning'],
-    spe: ['pace'],
-    accuracy: ['passing'],
-    evasion: ['dribble'],
-};
-
-const STATUS_DURATION: Record<string, number> = {
-    par: 6,
-    slp: 2.5,
-    psn: 10,
-    brn: 8,
-    frz: 2.5,
-    confusion: 4,
-    infatuation: 1.5,
-};
-
 export function applyStatus(
     s: MatchState,
     target: PlayerState,
@@ -1431,6 +1424,9 @@ function applySecondary(s: MatchState, user: PlayerState, target: PlayerState, m
     if (!sec) return false;
     const chance = Math.min(0.65, (sec.chance / 100) * 3 + 0.05) * (user.ability.statusChanceBoost ?? 1);
     if (!s.rng.chance(chance)) return false;
+    // Tri Attack: sorteia queimar, congelar ou paralisar
+    const pick = SECONDARY_PICK[moveId];
+    if (pick) return applyStatus(s, target, s.rng.pick(pick), user.idx, moveId);
     if (sec.status && SECONDARY_STATUS[sec.status]) {
         return applyStatus(s, target, SECONDARY_STATUS[sec.status], user.idx, moveId);
     }
@@ -1444,7 +1440,7 @@ function applySecondary(s: MatchState, user: PlayerState, target: PlayerState, m
     if (sec.boosts && !target.ability.immuneDebuff) {
         for (const [stat, stages] of Object.entries(sec.boosts)) {
             for (const attr of BOOST_TO_ATTR[stat] ?? []) {
-                target.buffs.push({ attr, factor: 1 + 0.1 * (stages ?? -1), timer: 10 });
+                target.buffs.push({ attr, factor: 1 + 0.1 * (stages ?? -1), timer: T.debuffTime });
             }
         }
         return true;
@@ -1561,9 +1557,9 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0, ch
                 hit = false;
                 // Jump Kick/High Jump Kick: errou, se machucou
                 if (DRAWBACK[moveId] === 'crash') {
-                    p.energy = Math.max(0, p.energy - 0.08);
-                    p.stun = Math.max(p.stun, 0.6);
-                    setAction(p, Action.Hurt, 0.6);
+                    p.energy = Math.max(0, p.energy - T.crashEnergy);
+                    p.stun = Math.max(p.stun, T.crashStun);
+                    setAction(p, Action.Hurt, T.crashStun);
                 }
                 break;
             }
@@ -1680,9 +1676,9 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0, ch
             }
             break;
         case 'buff':
-            for (const [stat, stages] of Object.entries(prof.data.selfBoosts ?? { atk: 1 })) {
+            for (const [stat, stages] of Object.entries(selfBoostsOf(moveId))) {
                 for (const attr of BOOST_TO_ATTR[stat] ?? []) {
-                    p.buffs.push({ attr, factor: 1 + 0.07 * Math.max(1, stages ?? 1), timer: 12 });
+                    p.buffs.push({ attr, factor: 1 + T.buffStep * Math.max(1, stages ?? 1), timer: T.buffTime });
                 }
             }
             // paredes valem para o time inteiro
@@ -1721,7 +1717,7 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0, ch
                 landedOn++;
                 for (const [stat, stages] of Object.entries(prof.data.targetBoosts ?? {})) {
                     for (const attr of BOOST_TO_ATTR[stat] ?? []) {
-                        v.buffs.push({ attr, factor: 1 + 0.08 * (stages ?? -1), timer: 10 });
+                        v.buffs.push({ attr, factor: 1 + T.debuffStep * (stages ?? -1), timer: T.debuffTime });
                     }
                 }
                 // Leer: a encarada trava um instante
@@ -1778,7 +1774,7 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0, ch
             break;
         }
         case 'heal': {
-            const gain = moveId === 'rest' ? 1 : 0.3 * k + 0.1;
+            const gain = moveId === 'rest' ? 1 : T.healBase + T.healPower * k;
             if (moveId === 'rest') {
                 p.energy = 1;
                 applyStatus(s, p, 'slp', p.idx, 'rest');
@@ -1944,24 +1940,25 @@ function drawback(s: MatchState, p: PlayerState, moveId: string) {
     switch (DRAWBACK[moveId]) {
         case 'faint':
             // explode em área: empurra quem estiver perto e fica no chão sem fôlego
+            // Explosion pega mais longe que Self-Destruct (Gen 1: 170 × 130)
             for (const o of s.players) {
-                if (o.idx !== p.idx && !hidden(o) && dist(o.pos, p.pos) < 3) {
+                if (o.idx !== p.idx && !hidden(o) && dist(o.pos, p.pos) < (T.blastRadius[moveId] ?? 3)) {
                     o.stun = Math.max(o.stun, 0.8);
                     knockback(s, o, p, 1.8, moveId);
                 }
             }
-            p.energy = Math.min(p.energy, 0.15);
-            p.stun = Math.max(p.stun, 1.6);
-            setAction(p, Action.Hurt, 1.6);
+            p.energy = Math.min(p.energy, T.faintEnergy);
+            p.stun = Math.max(p.stun, T.faintStun);
+            setAction(p, Action.Hurt, T.faintStun);
             break;
         case 'recharge':
-            p.stun = Math.max(p.stun, 0.9);
+            p.stun = Math.max(p.stun, T.rechargeStun);
             break;
         case 'recoil':
-            p.energy = Math.max(0, p.energy - 0.04);
+            p.energy = Math.max(0, p.energy - T.recoilEnergy);
             break;
         case 'rampage':
-            if (s.rng.chance(0.5)) applyStatus(s, p, 'confusion', p.idx, moveId);
+            if (s.rng.chance(T.rampageChance)) applyStatus(s, p, 'confusion', p.idx, moveId);
             break;
     }
 }

@@ -58,7 +58,15 @@ export interface AbilityData {
     descPt: string | null;
 }
 
-export const SPECIES: Species[] = pokemonJson as Species[];
+/**
+ * Exceções fora do learnset da Gen 1 (decididas com o Miguel, uma por uma). Valem em tudo: moveset padrão, MT e
+ * validação do Duelo.
+ * - Gengar: Sludge. Na Gen 1 o único golpe Venenoso dele era o Toxic; da Gen 2 em diante ele aprende Sludge Bomb.
+ */
+export const LEARNSET_EXTRA: Readonly<Record<number, readonly string[]>> = { 94: ['sludge'] };
+export const SPECIES: Species[] = (pokemonJson as Species[]).map((sp) =>
+    LEARNSET_EXTRA[sp.id] ? { ...sp, learnset: [...sp.learnset, ...LEARNSET_EXTRA[sp.id]] } : sp,
+);
 export const SPECIES_BY_ID = new Map(SPECIES.map((s) => [s.id, s]));
 export const MOVES = movesJson as unknown as Record<string, MoveData>;
 export const ABILITIES = abilitiesJson as Record<string, AbilityData>;
