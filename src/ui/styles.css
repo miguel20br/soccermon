@@ -1130,6 +1130,18 @@ button,
 .formation-option .fi {
     margin-top: 0;
     font-size: 11px;
+    text-align: center;
+}
+.formation-option .fi-tags {
+    justify-content: center;
+}
+@media (max-width: 700px) {
+    .formation-option .fi {
+        text-align: left;
+    }
+    .formation-option .fi-tags {
+        justify-content: flex-start;
+    }
 }
 /* formações: peças do kit (.bc-tile) com o desenho da quadra */
 .formation-option.bc-tile {

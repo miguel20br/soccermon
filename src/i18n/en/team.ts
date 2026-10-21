@@ -50,6 +50,7 @@ export const team: typeof pt = {
         opponentNote: 'Opponent: {name}',
         seeCard: "See {name}'s card",
         oppLine: '{formation} · {tactic} · Average {n}',
+        oppTactic: '{tactic} · Average {n}',
         edgeBadge: 'Tactical edge',
         warming: 'Warming up…',
         backToMatch: 'Back to the match',

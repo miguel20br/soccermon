@@ -176,13 +176,6 @@ export function Lineup() {
                                 </button>
                             ))}
                         </div>
-                        <p className="muted" style={{ fontSize: 11 }}>
-                            {t('team.lineup.oppLine', {
-                                formation: formationText(opponent.formation ?? '1-2-1', lang).name,
-                                tactic: d.common.tactic[opponent.tactic],
-                                n: lineupAverage(opponent.lineup, opponent.formation),
-                            })}
-                        </p>
                         <p className="fi-rival">
                             <span>
                                 {clubCity(opponent.name)} → {formationText(opponent.formation ?? '1-2-1', lang).name}
@@ -193,6 +186,12 @@ export function Lineup() {
                                     {formationText(edgeAgainst(opponent.formation ?? '1-2-1')!, lang).name}
                                 </span>
                             )}
+                        </p>
+                        <p className="muted" style={{ fontSize: 11 }}>
+                            {t('team.lineup.oppTactic', {
+                                tactic: d.common.tactic[opponent.tactic],
+                                n: lineupAverage(opponent.lineup, opponent.formation),
+                            })}
                         </p>
                         {outList.length > 0 && (
                             <p className={outStarter ? 'error-text' : 'tactic-desc'}>
