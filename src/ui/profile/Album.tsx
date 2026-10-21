@@ -3,6 +3,7 @@ import {
     memo,
     type PointerEvent,
     type KeyboardEvent as ReactKeyboardEvent,
+    startTransition,
     useCallback,
     useEffect,
     useMemo,
@@ -244,6 +245,11 @@ export function AlbumView({
     /** A folha virando: 1ª página de antes e de depois (some quando a animação acaba). */
     const [leaf, setLeaf] = useState<{ from: number; to: number; n: number; go?: boolean } | null>(null);
     const [fan, setFan] = useState<number | null>(null);
+    /**
+     * A folha assentou: as vizinhas da página nova se montam em transição (o React desenha aos pedaços, sem travar o
+     * quadro); antes era um quadro longo logo depois do giro.
+     */
+    const settle = (n?: number) => startTransition(() => setLeaf((l) => (n === undefined || l?.n === n ? null : l)));
     const turn = (to: number) => {
         const p = Math.max(0, Math.min(pages.length - 1, to));
         if (p === page) return;
@@ -257,7 +263,7 @@ export function AlbumView({
         // 1º quadro demora, a animação não começa já pela metade)
         requestAnimationFrame(() => requestAnimationFrame(() => setLeaf((l) => (l?.n === n ? { ...l, go: true } : l))));
         // some quando a animação acaba (onAnimationEnd); o relógio é só a garantia se ela não rodar
-        window.setTimeout(() => setLeaf((l) => (l?.n === n ? null : l)), LEAF_MS * 3);
+        window.setTimeout(() => settle(n), LEAF_MS * 3);
     };
     // trocou o tamanho da página (girou o celular): fica onde estava o primeiro Pokémon
     const anchor = useRef(1);
@@ -606,9 +612,7 @@ export function AlbumView({
                                 inert={sh.role === 'stand' || sh.role === 'front' || undefined}
                                 aria-hidden={sh.role === 'stand' || sh.role === 'front' || undefined}
                                 aria-label={range(pages[sh.idx])}
-                                onAnimationEnd={(e) =>
-                                    sh.role === 'front' && e.target === e.currentTarget && setLeaf(null)
-                                }
+                                onAnimationEnd={(e) => sh.role === 'front' && e.target === e.currentTarget && settle()}
                             >
                                 {pageInner(pages[sh.idx], sh.role === 'stand')}
                             </section>

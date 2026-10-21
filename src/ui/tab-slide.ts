@@ -28,16 +28,30 @@ function place(bar: HTMLElement) {
 export function startTabSlide() {
     if (typeof MutationObserver === 'undefined') return;
     let queued = false;
-    const sync = () => {
-        queued = false;
-        for (const bar of document.querySelectorAll<HTMLElement>(BARS)) place(bar);
-    };
     const later = () => {
         if (queued) return;
         queued = true;
         requestAnimationFrame(sync);
     };
-    new MutationObserver(later).observe(document.body, {
+    // só o que mexe numa barra (ou põe uma na página) reposiciona; o resto (a folha do álbum girando, a carta
+    // inclinando com o ponteiro) mudava classe a cada quadro e forçava o layout da página inteira aqui. Barra que muda
+    // de tamanho ou aparece (painel escondido que abre) chega pelo ResizeObserver.
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(later);
+    const watched = new WeakSet<Element>();
+    const touches = (r: MutationRecord) =>
+        (r.target instanceof Element && !!r.target.closest(BARS)) ||
+        [...r.addedNodes].some((n) => n instanceof Element && (n.matches(BARS) || !!n.querySelector(BARS)));
+    const sync = () => {
+        queued = false;
+        for (const bar of document.querySelectorAll<HTMLElement>(BARS)) {
+            place(bar);
+            if (ro && !watched.has(bar)) {
+                watched.add(bar);
+                ro.observe(bar);
+            }
+        }
+    };
+    new MutationObserver((list) => list.some(touches) && later()).observe(document.body, {
         subtree: true,
         childList: true,
         attributes: true,
