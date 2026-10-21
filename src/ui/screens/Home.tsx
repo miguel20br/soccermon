@@ -326,8 +326,17 @@ export function Home() {
                                     <b>{t('home.longCup.title')}</b>
                                     <small>{t('home.longCup.line')}</small>
                                     <span className="cup-mode-go">
-                                        <HudIcon kind="lock" />
-                                        {t('home.longCup.soon')}
+                                        {LONG_CUP_LIVE ? (
+                                            <>
+                                                {t('home.newCup')}
+                                                <HudIcon kind="next" />
+                                            </>
+                                        ) : (
+                                            <>
+                                                <HudIcon kind="lock" />
+                                                {t('home.longCup.soon')}
+                                            </>
+                                        )}
                                     </span>
                                 </button>
                             </div>
