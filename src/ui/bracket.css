@@ -1,0 +1,142 @@
+/* Chave da Copa Relâmpago (src/ui/components/Bracket.tsx): colunas por fase, o seu caminho em amarelo, a taça no fim */
+.br {
+    margin: 12px 0;
+    border-radius: 10px;
+    background: var(--bc-ink);
+    border-bottom: 2px solid var(--bc-edge, #000);
+}
+.br-scroll {
+    display: flex;
+    gap: 18px;
+    padding: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+}
+.br-round {
+    flex: none;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 8px;
+    width: 150px;
+    scroll-snap-align: start;
+}
+.br-stage {
+    justify-self: start;
+    padding: 2px 8px 1px;
+    border-radius: 4px;
+    background: var(--panel-2);
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.br-round.now .br-stage {
+    background: var(--yellow);
+    color: var(--bc-ink);
+}
+.br-games {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    gap: 8px;
+}
+.br-game {
+    position: relative;
+    display: grid;
+    border-radius: 6px;
+    background: var(--panel);
+    border: 2px solid var(--line);
+    overflow: hidden;
+}
+/* a linha até a próxima fase */
+.br-game::after {
+    content: "";
+    position: absolute;
+    right: -20px;
+    top: 50%;
+    width: 18px;
+    border-top: 2px solid var(--line);
+}
+.br-round:nth-last-child(2) .br-game::after {
+    width: 18px;
+}
+.br-game.mine {
+    border-color: var(--yellow);
+    box-shadow: 0 0 0 2px rgb(255 203 5 / 25%);
+}
+.br-game.mine::after {
+    border-color: var(--yellow);
+}
+.br-game.fresh {
+    animation: br-in 520ms var(--ease-pop) both;
+}
+@keyframes br-in {
+    from {
+        opacity: 0;
+        transform: translateX(-24px) scale(0.92);
+    }
+}
+.br-team {
+    display: grid;
+    grid-template-columns: 6px 1fr auto;
+    align-items: center;
+    gap: 6px;
+    min-height: 24px;
+    padding-right: 8px;
+    font-size: 11px;
+    color: var(--muted);
+}
+.br-team + .br-team {
+    border-top: 1px solid var(--line);
+}
+.br-team i {
+    align-self: stretch;
+    background: var(--tc);
+}
+.br-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.br-team.won {
+    color: var(--text);
+    font-weight: 700;
+}
+.br-team.you {
+    color: var(--yellow);
+}
+.br-team b {
+    font-variant-numeric: tabular-nums;
+}
+.br-trophy {
+    align-content: center;
+}
+.br-cup {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    padding: 14px 8px;
+    border-radius: 8px;
+    border: 2px dashed var(--line);
+    color: var(--muted);
+    text-align: center;
+    font-size: 12px;
+}
+.br-cup .hud-icon {
+    width: 40px;
+    height: 40px;
+}
+.br-cup.you {
+    border-style: solid;
+    border-color: var(--yellow);
+    color: var(--yellow);
+}
+@media (prefers-reduced-motion: reduce) {
+    .br-game.fresh {
+        animation: none;
+    }
+}
+:root[data-reduce-motion="true"] .br-game.fresh {
+    animation: none;
+}

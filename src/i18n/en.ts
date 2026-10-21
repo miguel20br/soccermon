@@ -1,6 +1,7 @@
 import { account } from './en/account';
 import { battle } from './en/battle';
 import { commentary } from './en/commentary';
+import { bracket } from './en/bracket';
 import { common } from './en/common';
 import { duel } from './en/duel';
 import { friends } from './en/friends';
@@ -44,4 +45,5 @@ export const en: Dict = {
     trophies,
     shop,
     longCup,
+    bracket,
 };

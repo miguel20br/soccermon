@@ -1,6 +1,7 @@
 import { account } from './pt/account';
 import { battle } from './pt/battle';
 import { commentary } from './pt/commentary';
+import { bracket } from './pt/bracket';
 import { common } from './pt/common';
 import { duel } from './pt/duel';
 import { friends } from './pt/friends';
@@ -48,6 +49,7 @@ export const pt = {
     trophies,
     shop,
     longCup,
+    bracket,
 };
 
 export type Dict = typeof pt;
