@@ -32,7 +32,7 @@ export const longCup = {
     yellowTitle: 'Cartão amarelo',
     out: 'Fim da linha na partida {n}',
     redTitle: 'Cartão vermelho',
-    redLine: 'Segundo amarelo. Fim da linha.',
+    redLine: 'Segundo amarelo. Você está fora.',
     blocked: 'Caminho bloqueado',
     outStarter: '{name} está fora. Troque por alguém do banco.',
     /** Selo de quem está fora (na carta do banco e da quadra), com as partidas que faltam. */

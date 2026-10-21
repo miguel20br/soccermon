@@ -34,7 +34,7 @@ export const longCup: typeof pt = {
     yellowTitle: 'Yellow card',
     out: 'The road ends at match {n}',
     redTitle: 'Red card',
-    redLine: 'Second yellow. End of the line.',
+    redLine: "Second yellow. You're out.",
     blocked: 'Road blocked',
     outStarter: '{name} is out. Swap in someone from the bench.',
     outTag: {
