@@ -169,7 +169,7 @@ cânone: o Blue esqueceu de confiar nos Pokémon. Aqui é literal: esqueceu de *
 
 **A virada (Celadon)** é o meio: a Rocket rouba o capitão do Blue (o inicial dele). Ele pede ajuda numa linha e te
 **empresta 2 jogadores só pra aquela partida** (entram com aviso e saem depois). Partida na Liga de Baixo com a
-**regra da casa** da Liga de Baixo (tabela abaixo) (precisa do ok de equilíbrio; o `MatchConfig` é paramétrico). Ganhou:
+**regra da casa** da Liga de Baixo (tabela abaixo; precisa do ok de equilíbrio, o `MatchConfig` é paramétrico). Ganhou:
 os roubados ficam livres e você escolhe 1 de 3 pra levar (Draft do lugar). O Blue: "Isso não muda nada."
 
 **Regras especiais da Liga de Baixo** (21/10; números e equilíbrio decididos junto, com antes/depois):
