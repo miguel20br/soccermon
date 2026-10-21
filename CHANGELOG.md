@@ -1,5 +1,17 @@
 # Novidades
 
+## 0.9.4 · Duelo melhor de 3 e Rota polida
+
+### Duelo
+- Melhor de 3 com o mesmo time: a série tem placar de jogos no quadro
+- Jogo anulado é jogado de novo; sair entre os jogos dá vitória por W.O. pra quem ficou
+
+### Rota Índigo
+- Textos revistos: cartão amarelo explicado em uma regra só, "Fim da linha" e eventos mais curtos
+- O mapa usa a tela toda no PC
+- Quem está fora aparece com o motivo (lesão, creche ou cansaço) e não entra em quadra
+- Hall da Fama separado em Copa Relâmpago e Rota Índigo, com taça índigo própria
+
 ## 0.9.3.2 · Rota Índigo na frente
 
 ### Tela inicial

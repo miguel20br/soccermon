@@ -7,6 +7,28 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.4',
+        title: 'Duelo melhor de 3 e Rota polida',
+        sections: [
+            {
+                title: 'Duelo',
+                lines: [
+                    'Melhor de 3 com o mesmo time: a série tem placar de jogos no quadro',
+                    'Jogo anulado é jogado de novo; sair entre os jogos dá vitória por W.O. pra quem ficou',
+                ],
+            },
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'Textos revistos: cartão amarelo explicado em uma regra só, "Fim da linha" e eventos mais curtos',
+                    'O mapa usa a tela toda no PC',
+                    'Quem está fora aparece com o motivo (lesão, creche ou cansaço) e não entra em quadra',
+                    'Hall da Fama separado em Copa Relâmpago e Rota Índigo, com taça índigo própria',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.3.2',
         title: 'Rota Índigo na frente',
         sections: [
@@ -1166,6 +1188,28 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.4',
+        title: 'Best-of-3 Duel and a polished Road',
+        sections: [
+            {
+                title: 'Duel',
+                lines: [
+                    'Best of 3 with the same team: the scoreboard shows the series score',
+                    'A voided game is replayed; leaving between games is a walkover win for whoever stayed',
+                ],
+            },
+            {
+                title: 'Indigo Road',
+                lines: [
+                    'Rewritten texts: one yellow card rule, "End of the road" and shorter events',
+                    'The map uses the whole screen on desktop',
+                    'Players who are out show why (injury, daycare or tired) and stay off the court',
+                    'Hall of Fame split into Lightning Cup and Indigo Road, with its own indigo trophy',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.3.2',
         title: 'Indigo Road up front',

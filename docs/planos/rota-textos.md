@@ -1,3 +1,7 @@
+---
+description: Revisão dos textos da Rota Índigo, antes e depois.
+---
+
 # Rota Índigo: textos antes ⇒ depois
 
 Revisão de todos os textos da Rota (pedido do Miguel em 21/10/2026, depois de jogar). Regras usadas:

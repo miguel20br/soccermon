@@ -1,3 +1,7 @@
+---
+description: Decisões do Miguel para o Modo história e a Liga de Baixo.
+---
+
 # Modo história: por que os Pokémon jogam futsal? (pesquisa, 21/10/2026)
 
 Pergunta do Miguel: "Queria já ir pensando melhor na história. Por que nesse mundo os Pokémon jogam futsal?" Com

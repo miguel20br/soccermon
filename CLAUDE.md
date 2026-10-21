@@ -140,9 +140,9 @@ Aprovadas pelo Miguel ("1a a 9a"); **cada tarefa é avaliada por si**, não é a
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (21/10/2026, v0.9.3.2)
+## Estado atual (21/10/2026, v0.9.4)
 
-No ar: 0.9.3.2, com a Rota Índigo (`LONG_CUP_LIVE`) e a Copa Relâmpago. Liga fechada até `LIGA_OPENS_AT`; a Copa do Dia segue no ar. Histórico por versão e decisões antigas: [docs/planos/historico.md](docs/planos/historico.md). Índice dos docs: `node scripts/indice.mjs`.
+Pronta (0.9.4, aguardando o pode subir): Duelo melhor de 3, Rota Índigo polida e `?lab=cenas`; `ENGINE_VERSION` 8 segue. No ar até lá: 0.9.3.2, com a Rota Índigo (`LONG_CUP_LIVE`) e a Copa Relâmpago. Liga fechada até `LIGA_OPENS_AT`; a Copa do Dia segue no ar. Histórico por versão e decisões antigas: [docs/planos/historico.md](docs/planos/historico.md). Índice dos docs: `node scripts/indice.mjs`.
 
 ## Armadilhas (o porquê de cada uma)
 

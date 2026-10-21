@@ -1,3 +1,7 @@
+---
+description: Plano e decisões do Duelo melhor de 3 (série, anulada e W.O.).
+---
+
 # Duelo: Melhor de 3 (21/10/2026)
 
 Pedido do Miguel: "dar a possibilidade de fazer um modo MD3 no x1 também, com o mesmo time". Decidido pelo Claude
