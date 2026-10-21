@@ -79,6 +79,12 @@ export function Credits() {
                         })}
                     </li>
                     <li>
+                        {rich(t('settings.credits.dexText'), {
+                            tcgdex: <a href="https://tcgdex.dev">TCGdex</a>,
+                            pokeapi: <a href="https://pokeapi.co">PokeAPI</a>,
+                        })}
+                    </li>
+                    <li>
                         {rich(t('settings.credits.arch'), {
                             pac: <a href="https://github.com/keldaanCommunity/pokemonAutoChess">Pokémon Auto Chess</a>,
                             fs: (

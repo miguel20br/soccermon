@@ -160,6 +160,8 @@ export const settings = {
         dataTitle: 'Dados e referências',
         dex: 'Dados de Pokémon, golpes e tipos: {pkmn} (MIT), derivado do {showdown}.',
         ptDesc: 'Descrições em português: {link} (AGPL-3.0).',
+        dexText:
+            'Textos da Pokédex: em português, os das cartas do TCG Pocket, pelo {tcgdex}; em inglês, os de Red/Blue, pela {pokeapi}.',
         arch: 'Referências de arquitetura: {pac}, {fs} e o “Simple Soccer” do livro {book} (Mat Buckland).',
     },
 };

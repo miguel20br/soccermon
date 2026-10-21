@@ -29,6 +29,8 @@ Soccermon é um fan project sem fins lucrativos criado por **Miguel Cunha** ([@m
 |---|---|---|
 | Pokédex, golpes, habilidades, tabela de tipos | [@pkmn/dex / @pkmn/data](https://github.com/pkmn/ps) (dados do [Pokémon Showdown](https://github.com/smogon/pokemon-showdown)) | MIT |
 | Descrições em português | [pokerogue-locales](https://github.com/pagefaultgames/pokerogue-locales) | AGPL-3.0 |
+| Texto da Pokédex em português (cartas do TCG Pocket), `src/data/dex-text.json` | [TCGdex](https://tcgdex.dev) ([cards-database](https://github.com/tcgdex/cards-database)) | banco MIT; texto © The Pokémon Company |
+| Texto da Pokédex em inglês (Red/Blue; Gold na Gen 2), encontros, habitats, cor e forma | [PokeAPI](https://pokeapi.co) ([api-data](https://github.com/PokeAPI/api-data)) | BSD-3; dados © The Pokémon Company |
 
 ## Referências de design e arquitetura
 

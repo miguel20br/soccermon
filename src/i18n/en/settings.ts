@@ -161,6 +161,8 @@ export const settings: typeof pt = {
         dataTitle: 'Data and references',
         dex: 'Pokémon, move and type data: {pkmn} (MIT), derived from {showdown}.',
         ptDesc: 'Portuguese descriptions: {link} (AGPL-3.0).',
+        dexText:
+            'Pokédex entries: Portuguese from the TCG Pocket cards via {tcgdex}; English from Red/Blue via {pokeapi}.',
         arch: 'Architecture references: {pac}, {fs} and the “Simple Soccer” from the book {book} (Mat Buckland).',
     },
 };

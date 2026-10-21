@@ -64,3 +64,15 @@ it('o jogo usa só a Gen 1 (a Gen 2 não entra sem decisão)', () => {
     expect(ACTIVE_GENS).toEqual([1]);
     expect(json<unknown[]>('src/data/pokemon.json')).toHaveLength(151);
 });
+
+// Ficha da espécie e Álbum (scripts/fetch-dex-text.ts): PT-BR do TCG Pocket e EN do Red/Blue pra todo Pokémon do jogo.
+describe.each(ACTIVE_GENS)('texto da Pokédex da Gen %i', (gen) => {
+    const texts = json<Record<'pt' | 'en', Record<string, string>>>(`${dataDir(gen)}/dex-text.json`);
+    it.each(['pt', 'en'] as const)('%s: todos, numa linha e sem a caixa alta do cartucho', (lang) => {
+        const bad = idsOf(gen).filter((id) => {
+            const s = texts[lang][id];
+            return !s || s.length < 20 || /[\n\f]|POKéMON/.test(s);
+        });
+        expect(bad).toEqual([]);
+    });
+});
