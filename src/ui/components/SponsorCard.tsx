@@ -59,6 +59,7 @@ export function SponsorCard({ id, children }: { id: SponsorId; children?: React.
     return (
         <div className={`sp-card fam-${fam}`} style={{ '--brand': SPONSOR_BRAND[id] } as React.CSSProperties}>
             <span className="sp-plate">
+                <span className="sp-ribbon">{t('shop.kind.sponsor')}</span>
                 <HudIcon kind={SPONSOR_ICON[id]} />
                 <b>{txt.short}</b>
             </span>

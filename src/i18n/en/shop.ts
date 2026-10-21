@@ -29,6 +29,8 @@ export const shop: typeof pt = {
     packPick: 'Pick 1 card from the pack',
     packSwap: 'Who leaves the bench?',
     shelf: { mons: 'Signings', gear: 'Pack and item' },
+    sponsorsHint:
+        'Lasts until the end of the cup and takes one of the 3 slots. Pokémon, packs and items do not take a slot.',
     sponsors: 'Sponsors',
     slots: '{n} of 3',
     emptySlot: 'Free slot',

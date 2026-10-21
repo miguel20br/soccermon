@@ -27,6 +27,7 @@ export const shop = {
     packPick: 'Escolha 1 carta do pacote',
     packSwap: 'Quem sai do banco?',
     shelf: { mons: 'Contratações', gear: 'Pacote e item' },
+    sponsorsHint: 'Vale até o fim da copa e ocupa uma das 3 vagas. Pokémon, pacote e item não ocupam vaga.',
     sponsors: 'Patrocínios',
     slots: '{n} de 3',
     emptySlot: 'Vaga livre',

@@ -369,3 +369,29 @@ button.sp-slot:hover {
 .shelf-sponsor {
     grid-column: 1 / -1;
 }
+
+/* a carta diz que é Patrocínio (não é carta de Pokémon) */
+.sp-plate {
+    position: relative;
+}
+.sp-ribbon {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: rgb(0 0 0 / 55%);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.sp-card .sp-plate {
+    padding-top: 22px;
+}
+.shop-shelf-hint {
+    margin: -2px 0 8px;
+    color: var(--muted);
+    font-size: 12px;
+}

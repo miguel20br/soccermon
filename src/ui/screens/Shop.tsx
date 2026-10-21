@@ -228,6 +228,7 @@ export function Shop() {
                                 {t('shop.sponsors')}{' '}
                                 <span className="muted">{t('shop.slots', { n: sponsors.length })}</span>
                             </h2>
+                            <p className="shop-shelf-hint">{t('shop.sponsorsHint')}</p>
                             {shelf(['sponsor']).map(offerTile)}
                             <SponsorSlots sponsors={sponsors} />
                         </section>

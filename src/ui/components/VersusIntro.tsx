@@ -22,6 +22,8 @@ import { cardSprite } from './PokeCard';
 import './versus.css';
 
 const AUTO_START_MS = 4500;
+/** Fim da animação de entrada (times, VS, fala do líder: versus.css); antes disso o Começar não aparece. */
+const INTRO_MS = 1650;
 /** A quadra não ficou pronta nesse tempo: aviso e "Tentar de novo" (rede lenta ou carregamento travado). */
 export const SLOW_MS = 15000;
 /** Quando o VS bate na tela (casa com o atraso + 60% de `vsp-slam` no versus.css). */
@@ -287,6 +289,14 @@ export function VersusIntro({
     // a função pode mudar a cada render da tela; o timer não pode reiniciar por isso
     const done = useRef(onDone);
     done.current = onDone;
+    // o Começar só vale depois da introdução (antes dava pra pular a cena no PC clicando/teclando cedo)
+    const [introDone, setIntroDone] = useState(() => reduceMotionOn());
+    useEffect(() => {
+        if (introDone) return;
+        const id = window.setTimeout(() => setIntroDone(true), INTRO_MS);
+        return () => window.clearTimeout(id);
+    }, [introDone]);
+    const canStart = ready && introDone;
 
     const club = CLUBS.find((c) => c.name === away.name);
     const final = club?.city === 'Indigo Plateau';
@@ -322,7 +332,7 @@ export function VersusIntro({
 
     const timed = startsIn !== undefined;
     useEffect(() => {
-        if (!ready || timed) return;
+        if (!canStart || timed) return;
         const timer = window.setTimeout(() => done.current(), AUTO_START_MS);
         const onKey = (e: KeyboardEvent) => {
             if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') done.current();
@@ -332,7 +342,7 @@ export function VersusIntro({
             clearTimeout(timer);
             window.removeEventListener('keydown', onKey);
         };
-    }, [ready, timed]);
+    }, [canStart, timed]);
 
     // seu time sempre na cor do clube (Perfil); o rival no uniforme reserva se as cores baterem
     const homeColor = useClubColor();
@@ -414,7 +424,7 @@ export function VersusIntro({
                 <div className="vs-stage vsp-stage">{final ? t('match.vs.final') : stage}</div>
             </div>
             <div className="vsp-flash" />
-            <VsStartButton ready={ready} slow={slow} startsIn={startsIn} onStart={onDone} onRetry={retry} />
+            <VsStartButton ready={canStart} slow={slow} startsIn={startsIn} onStart={onDone} onRetry={retry} />
             {ready && startsIn === undefined && (
                 <div className="vs-progress" style={{ animationDuration: `${AUTO_START_MS}ms` }} />
             )}
