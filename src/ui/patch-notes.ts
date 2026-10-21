@@ -7,6 +7,26 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.0.4',
+        title: 'Golpes e Patrocínios explicados',
+        sections: [
+            {
+                title: 'Mais claro',
+                lines: [
+                    'MT: ao escolher qual golpe esquecer, cada golpe mostra o que faz em quadra',
+                    'Carta completa: a nota em campo, com capitão, sinergias e Patrocínios (o número grande é a carta sozinha)',
+                    'Toque num Patrocínio das suas vagas pra ver o que ele faz',
+                ],
+            },
+            {
+                title: 'Mercado',
+                lines: [
+                    'No Mercado antes da Final só aparecem Patrocínios de campo (os de ₽ não teriam mais onde valer)',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.0.3',
         title: 'Pacote e Patrocínios',
         sections: [
@@ -882,6 +902,26 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.0.4',
+        title: 'Moves and Sponsors explained',
+        sections: [
+            {
+                title: 'Clearer',
+                lines: [
+                    'TM: when picking which move to forget, each move shows what it does on the court',
+                    'Full card: the rating on the court, with captain, synergies and Sponsors (the big number is the card alone)',
+                    'Tap a Sponsor in your slots to see what it does',
+                ],
+            },
+            {
+                title: 'Market',
+                lines: [
+                    'The Market before the Final only offers field Sponsors (₽ ones would have nowhere left to pay off)',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.0.3',
         title: 'Packs and Sponsors',

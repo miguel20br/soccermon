@@ -1,5 +1,15 @@
 # Novidades
 
+## 0.9.0.4 · Golpes e Patrocínios explicados
+
+### Mais claro
+- MT: ao escolher qual golpe esquecer, cada golpe mostra o que faz em quadra
+- Carta completa: a nota em campo, com capitão, sinergias e Patrocínios (o número grande é a carta sozinha)
+- Toque num Patrocínio das suas vagas pra ver o que ele faz
+
+### Mercado
+- No Mercado antes da Final só aparecem Patrocínios de campo (os de ₽ não teriam mais onde valer)
+
 ## 0.9.0.3 · Pacote e Patrocínios
 
 ### Mercado
