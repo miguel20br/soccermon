@@ -267,6 +267,57 @@ Recomendação primeiro em cada uma. Responder no formato de sempre ("1, ok; 2, 
 9. **Liberar na próxima versão (precisa `ENGINE_VERSION` novo e republicar a Edge Function da Liga)?** Recomendo
    **sim, junto com outra mudança de motor**, pra não zerar os replays guardados duas vezes.
 
+## Decidido com o Miguel (21/10/2026)
+
+1. Sim: manter as 6, cada uma com identidade.
+2. Sim: a tabela de bônus do §4 como ponto de partida.
+3. "Talvez, mas deixar menos importante a diferença de formação": o encaixe vale **+1,5%** (não +3%).
+4. "Acho que sim, mas não sei como me sinto com esse sistema meio pedra-papel-tesoura": o ciclo fica, **discreto**.
+   Nada de falar em pedra-papel-tesoura no jogo. Só uma linha na prévia do rival ("Pewter Rochedo joga de Ferrolho:
+   a vantagem é de quem vem de Rodízio") e um selo pequeno **Vantagem tática** quando a sua encaixa.
+5. Sim: frase + forte/fraco + ícone SVG no seletor; a formação no painel do Pokémon.
+6. Cada líder fica na formação fixa do clube.
+7. Não criar o 5x4.
+8. Losango continua padrão, com as 6 em grade e a frase de cada.
+9. Sobe sozinha como motor novo (`ENGINE_VERSION` 9).
+
+### Como ficou (implementado)
+
+- Motor: `FORMATION_STYLES` sempre ligado (`src/engine/formations.ts`), `COUNTER_FACTOR` 1,015, `hasEdge`;
+  `ENGINE_VERSION` 9, hashes do determinismo novos, teste do ciclo (`formations.test.ts`). A Edge Function da Liga
+  foi reempacotada (`npm run edge:liga`); **falta o deploy** (`npx -y supabase@latest functions deploy liga
+  --project-ref vszcxacbcabohhdwxfpb --use-api`) junto com a subida.
+- Tela (rótulos curtos, pedido do Miguel: nada de frase de efeito): abas da Escalação com nome, desenho e ícone;
+  embaixo, ícone + forte/fraco em 2–3 palavras ("+Passe +Vel", "−Chute −Força") e o selo de vantagem só com ícone;
+  prévia do rival "Pewter → Ferrolho (3 fixos)" + ícone de vantagem com "Rodízio (4-0)". A frase de cada formação
+  ficou só na escolha antes do draft e na Ajuda, mais curta. No painel do Pokémon na partida, a linha da formação
+  pra posição dele (com os números) e "Vantagem tática +1,5%". Trocar de formação refaz o bloco com fade.
+- O Duelo usa a mesma Escalação sem a linha do rival (a formação do outro só aparece na partida); o encaixe vale
+  igual em quadra.
+
+### Antes ⇒ depois na 0.9.3 (motor 8 ⇒ 9, encaixe +1,5%; n = 400, 12.000 partidas cada)
+
+| Formação | Vitória | Gols pró | Gols contra | Posse | Chutes | Passes | Desarmes | Gols do Pivô / Ala / Fixo |
+|---|---|---|---|---|---|---|---|---|
+| Losango 1-2-1 | 51% ⇒ **49%** | 3,6 ⇒ 3,6 | 3,6 ⇒ 3,6 | 46% ⇒ 47% | 17,0 ⇒ 17,3 | 140 ⇒ 143 | 5,8 ⇒ 6,0 | 44/52/3 ⇒ 46/51/3% |
+| Quadrado 2-2 | 48% ⇒ **52%** | 4,0 ⇒ 4,3 | 4,1 ⇒ 4,1 | 40% ⇒ 39% | 20,0 ⇒ **21,6** | 101 ⇒ 96 | 5,5 ⇒ 6,5 | 51/42/7 ⇒ 56/38/6% |
+| Linha de 3 (3-1) | 52% ⇒ **47%** | 3,6 ⇒ 3,7 | 3,5 ⇒ 3,8 | 55% ⇒ 55% | 17,4 ⇒ 17,2 | 157 ⇒ 161 | 5,0 ⇒ 5,5 | 43/53/4 ⇒ **54/42/3%** |
+| Rodízio 4-0 | 47% ⇒ **49%** | 3,5 ⇒ 3,5 | 3,7 ⇒ 3,6 | 54% ⇒ 55% | 17,4 ⇒ 17,5 | 161 ⇒ **172** | 3,9 ⇒ 4,1 | 0/94/6 ⇒ 0/95/5% |
+| Dois pivôs 1-1-2 | 55% ⇒ **53%** | 3,9 ⇒ 4,0 | 3,6 ⇒ 3,9 | 50% ⇒ 49% | 18,1 ⇒ 18,0 | 160 ⇒ 160 | 5,0 ⇒ 4,8 | 84/12/4 ⇒ 81/14/5% |
+| Ferrolho | 48% ⇒ **50%** | 3,6 ⇒ 3,7 | 3,8 ⇒ 3,7 | 56% ⇒ 55% | 17,8 ⇒ 19,5 | 173 ⇒ **159** | 5,8 ⇒ **6,9** | 56/0/44 ⇒ **69/0/31%** |
+
+Encaixes do ciclo (linha contra coluna, antes ⇒ depois; ±3,5 por célula): Rodízio × Ferrolho 47 ⇒ **55**,
+Ferrolho × Linha de 3 51 ⇒ **60**, Dois pivôs × Rodízio 56 ⇒ 57, Quadrado × Dois pivôs 47 ⇒ 49, Linha de 3 ×
+Quadrado 56 ⇒ 52 (o Quadrado novo pressiona mais e come o +1,5%).
+
+- **Ninguém domina:** 47% a 53% (antes 47% a 55%; o Dois pivôs, que era o melhor sem custo, desceu pra 53%).
+- **O encaixe ficou leve, como o Miguel pediu:** pesa de verdade em 2 pares (+8 e +9 pontos), quase nada nos outros.
+- Gols por jogo: 7,2 a 8,4 (o motor 8 já tinha subido os gols com acréscimos e Pressão final).
+- Estilos: Quadrado mais direto (21,6 chutes, 39% de posse), Rodízio o que mais passa (172), pivô da Linha de 3
+  com 54% dos gols (era 43%), Ferrolho desarma mais (6,9) e o pivô dele faz 69% dos gols.
+- Testes: dois testes presos a seed foram refeitos (golpe máximo: seeds novas varridas 0–89; escanteio: o time do
+  teste sem troca automática, pra o cobrador escolhido ficar em quadra).
+
 ## Fontes
 
 - [FA: Attacking systems in futsal](https://community.thefa.com/coaching/futsal/b/game-guide/posts/attacking-systems-in-futsal-)
