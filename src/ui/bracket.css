@@ -148,6 +148,8 @@
 /* "Ver a chave": a chave inteira num toque (Escalação e Resultado) */
 .br-peek {
     display: grid;
+    /* coluna que encolhe: a chave rola por dentro (sem isto a largura dela empurrava o botão pra fora da tela) */
+    grid-template-columns: minmax(0, 1fr);
     justify-items: center;
     gap: 8px;
     width: 100%;
