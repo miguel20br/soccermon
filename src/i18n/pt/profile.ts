@@ -44,6 +44,8 @@ export const profile = {
     club: {
         saved: 'Salvo',
         trainerTitle: 'Treinador',
+        nameTaken: 'Esse nome já é de outro treinador. Escolha outro.',
+        clubTaken: 'Esse nome de clube já é de outro treinador. Escolha outro.',
         yourName: 'Seu nome',
         avatar: 'Avatar',
         googlePhoto: 'Foto da conta Google',
