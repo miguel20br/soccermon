@@ -90,6 +90,35 @@ export function Shop() {
                 ? t('shop.short', { n: o.price - money })
                 : t('shop.buy', { n: o.price });
 
+    const shelf = (kinds: ShopOffer['kind'][]) =>
+        shop.offers.map((o, i) => ({ o, i })).filter(({ o }) => kinds.includes(o.kind));
+    const offerTile = ({ o, i }: { o: ShopOffer; i: number }) => {
+        const sold = shop.sold.includes(i);
+        return (
+            <div
+                key={offerKey(o)}
+                className={`shop-offer k-${o.kind}${sold ? ' sold' : ''}${chosen === i ? ' chosen' : ''}`}
+            >
+                <OfferCard
+                    offer={o}
+                    selected={chosen === i}
+                    team={run.picks}
+                    packSize={sponsors.includes('safari') ? 4 : 3}
+                    onPick={() => buyable(o, i) && choose(i)}
+                />
+                <button
+                    type="button"
+                    className="btn small shop-buy"
+                    disabled={!buyable(o, i)}
+                    aria-pressed={chosen === i}
+                    onClick={() => choose(i)}
+                >
+                    {buyLabel(o, i)}
+                </button>
+            </div>
+        );
+    };
+
     return (
         <>
             <div className="draft-head bc-screenhead">
@@ -141,13 +170,6 @@ export function Shop() {
                 <span className="muted shop-earned-hint">{t('shop.interestHint', { cap })}</span>
             </div>
 
-            <div className="panel shop-sponsors">
-                <h2>
-                    {t('shop.sponsors')} <span className="muted">{t('shop.slots', { n: sponsors.length })}</span>
-                </h2>
-                <SponsorSlots sponsors={sponsors} />
-            </div>
-
             {shop.pack ? (
                 <div className="panel shop-pack">
                     <h2>{t('shop.packPick')}</h2>
@@ -191,33 +213,24 @@ export function Shop() {
                 </div>
             ) : (
                 <>
-                    <div className="shop-grid">
-                        {shop.offers.map((o, i) => {
-                            const sold = shop.sold.includes(i);
-                            return (
-                                <div
-                                    key={offerKey(o)}
-                                    className={`shop-offer${sold ? ' sold' : ''}${chosen === i ? ' chosen' : ''}`}
-                                >
-                                    <OfferCard
-                                        offer={o}
-                                        selected={chosen === i}
-                                        team={run.picks}
-                                        packSize={sponsors.includes('safari') ? 4 : 3}
-                                        onPick={() => buyable(o, i) && choose(i)}
-                                    />
-                                    <button
-                                        type="button"
-                                        className="btn small shop-buy"
-                                        disabled={!buyable(o, i)}
-                                        aria-pressed={chosen === i}
-                                        onClick={() => choose(i)}
-                                    >
-                                        {buyLabel(o, i)}
-                                    </button>
-                                </div>
-                            );
-                        })}
+                    {/* prateleiras: Pokémon, pacote e item, Patrocínio (antes tudo junto numa grade só confundia) */}
+                    <div className="shop-shelves">
+                        <section className="shop-shelf">
+                            <h2 className="shop-shelf-title">{t('shop.shelf.mons')}</h2>
+                            <div className="shop-grid">{shelf(['pokemon']).map(offerTile)}</div>
+                        </section>
+                        <section className="shop-shelf">
+                            <h2 className="shop-shelf-title">{t('shop.shelf.gear')}</h2>
+                            <div className="shop-grid">{shelf(['pack', 'item', 'tm']).map(offerTile)}</div>
+                        </section>
+                        <section className="shop-shelf shelf-sponsor">
+                            <h2 className="shop-shelf-title">
+                                {t('shop.sponsors')}{' '}
+                                <span className="muted">{t('shop.slots', { n: sponsors.length })}</span>
+                            </h2>
+                            {shelf(['sponsor']).map(offerTile)}
+                            <SponsorSlots sponsors={sponsors} />
+                        </section>
                     </div>
 
                     {offer?.kind === 'sponsor' && (

@@ -317,3 +317,55 @@ button.sp-slot:hover {
 .shop-pack-offer .cpack {
     width: 82%;
 }
+
+/* ---------- prateleiras do Mercado (contratações, pacote e item, Patrocínio) ---------- */
+.shop-shelf {
+    margin-top: 14px;
+}
+.shop-shelf-title {
+    display: inline-block;
+    margin: 0 0 8px;
+    padding: 3px 10px 2px;
+    border-radius: 4px;
+    background: var(--bc-ink);
+    color: var(--yellow);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.shop-shelf .shop-grid {
+    margin: 0;
+}
+/* o Patrocínio na horizontal: placa da marca à esquerda, contrato à direita, comprar embaixo */
+.shelf-sponsor .shop-offer {
+    width: 100%;
+    max-width: 560px;
+    grid-template-rows: auto auto;
+    margin-bottom: 10px;
+}
+.shelf-sponsor .sp-card {
+    width: 100%;
+    min-height: 0;
+    grid-template-columns: 132px 1fr;
+    grid-template-rows: none;
+}
+.shelf-sponsor .sp-plate {
+    align-content: center;
+}
+.shelf-sponsor .sp-contract {
+    justify-items: start;
+    text-align: left;
+}
+.shelf-sponsor .sp-sign {
+    width: 100%;
+}
+
+/* desktop: contratações e pacote/item lado a lado, Patrocínio embaixo de ponta a ponta */
+.shop-shelves {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
+    gap: 0 24px;
+}
+.shelf-sponsor {
+    grid-column: 1 / -1;
+}
