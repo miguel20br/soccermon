@@ -8,7 +8,7 @@ Soccermon é um fan project sem fins lucrativos criado por **Miguel Cunha** ([@m
 |---|---|---|
 | Sprites de campo (8 direções) | [PMDCollab/SpriteCollab](https://github.com/PMDCollab/SpriteCollab) | CC BY-NC 4.0 — autores em [CREDITS-PMD.md](CREDITS-PMD.md) |
 | Retratos (faixa de gol/defesa) | [PMDCollab/SpriteCollab](https://github.com/PMDCollab/SpriteCollab) | CC BY-NC 4.0 — autores em [CREDITS-PORTRAITS.md](CREDITS-PORTRAITS.md) |
-| Sprites animados de Black/White, pokébola | [PokeAPI/sprites](https://github.com/PokeAPI/sprites) | CC0 (imagens © The Pokémon Company) |
+| Sprites animados de Black/White, pokébola, sprites do Red/Blue (proposta da edição Retrô, `public/assets/retro`, `scripts/fetch-retro.ts`) | [PokeAPI/sprites](https://github.com/PokeAPI/sprites) | CC0 (imagens © The Pokémon Company) |
 | Gritos legacy e modernos | [PokeAPI/cries](https://github.com/PokeAPI/cries) | CC0 (áudio © The Pokémon Company) |
 | Ícones de tipo (símbolo recortado do selo de Pokémon Champions) | [PokeAPI/sprites](https://github.com/PokeAPI/sprites) | CC0 (imagens © The Pokémon Company) |
 | Técnicas de carta holográfica (reimplementadas, sem texturas copiadas) | [simeydotme/pokemon-cards-css](https://github.com/simeydotme/pokemon-cards-css) | GPL-3.0 |
