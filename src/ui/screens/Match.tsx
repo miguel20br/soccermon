@@ -67,7 +67,7 @@ import { VersusIntro } from '../components/VersusIntro';
 import { RivalEmotes } from '../duel/Emotes';
 import { rivalEmotes } from '../duel/emote-faces';
 import { LeaveConfirm } from '../leave-guard';
-import { captainAt, roleAt, snapAt } from '../match-view';
+import { captainAt, clockExtrasAt, roleAt, snapAt } from '../match-view';
 import { bannerText, useClubColor } from '../profile/club';
 import { agencyOn, reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
@@ -314,7 +314,10 @@ export function Match({ liga = false }: { liga?: boolean }) {
         };
     }, [match?.seed]);
 
-    const clockParts = useClockParts(clock, fulltime || ended, shootout, halftime);
+    // acréscimos ("+2'") e Pressão final do tick da tela (eventos do motor)
+    const extras = clockExtrasAt(match?.events ?? [], clock.tick, clock.half);
+    const clockParts = useClockParts({ ...clock, added: extras.added }, fulltime || ended, shootout, halftime);
+    const pressureNow = halftime || fulltime || ended ? null : extras.pressure;
     // o capitão do líder rival reage aos gols (emote do Duelo, só na tela)
     const rivalPlan = useMemo(() => (match ? rivalEmotes(match.events, 1) : []), [match]);
     // fim de jogo: vai sozinho pro resultado; um toque na quadra ou no painel segura
@@ -587,6 +590,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         looks={looks}
                         score={clock.score}
                         clock={clockParts}
+                        pressure={pressureNow}
                         stage={liga ? t('liga.stageShort') : cupStageShort(run, run.stage, d.match.stageShort) || stage}
                     >
                         <RivalEmotes

@@ -40,7 +40,8 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * platina da Gen 1 sem platinar (Prof. Carvalho holográfico e Diploma de Kanto, já escolhidos) e mostra o aviso na Home.
  * `?demo=vestiario` abre na
  * escalação uma partida que, ao começar, já está a 2 s do intervalo, com 2 no banco e troca do rival no intervalo (o
- * vestiário: várias trocas, desfazer e "O rival trocou").
+ * vestiário: várias trocas, desfazer e "O rival trocou"). `?demo=acrescimos` abre na escalação uma partida que você está
+ * perdendo no fim: ao começar, já está na Pressão final, a 3 s dos acréscimos do 2º tempo ("+N'" no placar).
  */
 let started = false;
 
@@ -71,6 +72,7 @@ export function runDevDemo() {
         demo !== 'amigos' &&
         demo !== 'platina' &&
         demo !== 'vestiario' &&
+        demo !== 'acrescimos' &&
         demo !== 'sala'
     )
         return;
@@ -358,6 +360,36 @@ export function runDevDemo() {
             const live = { stage: 0, orders: [], tick: Math.max(0, ht.tick - 40), engine: ENGINE_VERSION };
             useGame.setState({ run: { ...ready, lockedTeam: team, live }, screen: 'lineup' });
             console.info(`[demo] copa ${ready.seed}: intervalo no tick ${ht.tick} com troca do rival`);
+            return;
+        }
+        return;
+    }
+    if (demo === 'acrescimos') {
+        for (let k = 0; k < 120; k++) {
+            store.newRun('Demo FC', `acr${k}`);
+            const base = useGame.getState().run!;
+            const rng = new Rng(`acr${k}`, 'demo');
+            // time fraco (Geodude no gol, Rattata, Pidgey, Spearow, Ekans; banco Weedle e Caterpie): perde no fim
+            const lineup = [74, 19, 16, 21, 23].map((id) => createInstance(id, rng));
+            const bench = [13, 10].map((id) => createInstance(id, rng));
+            const run = {
+                ...base,
+                formation: '1-2-1' as const,
+                picks: [...lineup, ...bench],
+                lineup: lineup.map((p) => p.uid),
+                bench: bench.map((p) => p.uid),
+                captainUid: lineup[4].uid,
+                draftRound: 7,
+                status: 'lineup' as const,
+            };
+            const team = { ...playerTeam(run), manualSubs: true };
+            const r = runMatch(FUTSAL_5, team, run.opponents[0], `${run.seed}-stage-0`, { snapshots: false });
+            const stop = r.events.find((e) => e.type === 'stoppage' && e.half === 2);
+            const press = r.events.find((e) => e.type === 'pressure' && e.team === 0);
+            if (!stop || !press || press.tick > stop.tick - 60) continue;
+            const live = { stage: 0, orders: [], tick: stop.tick - 60, engine: ENGINE_VERSION };
+            useGame.setState({ run: { ...run, lockedTeam: team, live }, screen: 'lineup' });
+            console.info(`[demo] copa ${run.seed}: acréscimos do 2º tempo no tick ${stop.tick}`);
             return;
         }
         return;
