@@ -1,5 +1,39 @@
 # Novidades
 
+## 0.9.4 · Duelo melhor de 3 e Rota polida
+
+### Duelo
+- Melhor de 3 com o mesmo time: a série tem placar de jogos no quadro
+- Jogo anulado é jogado de novo; sair entre os jogos dá vitória por W.O. pra quem ficou
+
+### Rota Índigo
+- Textos revistos: cartão amarelo explicado em uma regra só, "Fim da linha" e eventos mais curtos
+- O mapa usa a tela toda no PC
+- Quem está fora aparece com o motivo (lesão, creche ou cansaço) e não entra em quadra
+- Hall da Fama separado em Copa Relâmpago e Rota Índigo, com taça índigo própria
+
+## 0.9.3.2 · Rota Índigo na frente
+
+### Tela inicial
+- Rota Índigo e Copa Relâmpago lado a lado no PC, com a Rota maior e o selo NOVO
+- Duelo e Copa do Dia embaixo, um do lado do outro
+- No celular, o botão da Rota ocupa a largura toda
+
+## 0.9.3.1 · Pokédex com texto e Pokémon com mais caras
+
+### Coleção
+- A ficha do Pokémon e a carta aberta do Álbum trazem o texto da Pokédex
+
+### Pokémon mais vivos
+- O Pokémon grita quando você escolhe no draft, no VERSUS e na carta grande do pacote
+- Sala de troféus: à noite ele dorme de verdade; de dia às vezes senta ou come
+- Rota Índigo: o time cochila no Descanso, faz cara de dor no carrinho e fica tonto no treino puxado
+- Eliminado: o time aparece caído e o capitão com lágrima
+
+### Rota Índigo e Copa Relâmpago
+- O mapa mostra o capitão rival em cada casa de partida e o time dele em ícones
+- A chave da copa mostra o capitão de cada clube
+
 ## 0.9.3 · Golpes revisados
 
 ### Cada um com o seu tipo

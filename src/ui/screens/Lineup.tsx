@@ -11,12 +11,12 @@ import { pickCornerTaker } from '../../engine/match';
 import { applyModifiers, attributeModifiers } from '../../engine/modifiers';
 import { type CornerPlan, TACTIC_LABEL, type Tactic } from '../../engine/state';
 import { computeSynergies } from '../../engine/synergy';
-import { clubName, cupStageName, dict, formationText, itemDesc, itemName } from '../../i18n';
+import { clubName, cupStageName, dict, formationText, itemDesc, itemName, tn } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { liveOf, playerTeam, type SlotRef, useGame } from '../../store/game-store';
-import { isLong, isOut } from '../../store/long-cup';
+import { isLong, isOut, type OutWhy, outOf } from '../../store/long-cup';
 import { useCardModal } from '../card-modal';
-import { BracketPeek } from '../components/Bracket';
+import { BracketPeek, bracketRivals, bracketYou } from '../components/Bracket';
 import { FormationBoard } from '../components/FormationBoard';
 import { EdgeMark, FormationIdentity } from '../components/FormationIdentity';
 import { FutCard } from '../components/FutCard';
@@ -63,10 +63,8 @@ export function Lineup() {
 
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
     const opponent = run.opponents[run.stage];
-    // Copa longa: quem está fora (lesão, Creche) fica no banco; titular fora trava o Jogar até você trocar
-    const outName = (u: string) => `${viewInstance(byUid.get(u)!).displayName} (${run.out?.[u]})`;
-    const outList = [...run.lineup, ...run.bench].filter((u) => isOut(run, u)).map(outName);
-    const outStarter = run.lineup.filter((u) => isOut(run, u)).map(outName)[0];
+    // Copa longa: quem está fora (lesão, Creche) tem o selo na carta; titular fora trava o Jogar até você trocar
+    const outStarter = run.lineup.filter((u) => isOut(run, u)).map((u) => viewInstance(byUid.get(u)!).displayName)[0];
     const locked = !!run.lockedTeam;
 
     const play = async () => {
@@ -126,8 +124,8 @@ export function Lineup() {
                 <BracketPeek
                     rounds={relampagoBracket(
                         run.seed,
-                        { name: run.teamName, color: clubColor },
-                        run.opponents,
+                        bracketYou(run.teamName, clubColor, run.picks, run.captainUid),
+                        bracketRivals(run.opponents),
                         run.results,
                     )}
                     current={run.stage}
@@ -152,6 +150,7 @@ export function Lineup() {
                 onMoveItem={moveItem}
                 sponsors={run.sponsors}
                 rivalFormation={opponent.formation ?? '1-2-1'}
+                outOf={(u) => outOf(run, u)}
                 side={
                     <div className="panel">
                         <h2>
@@ -193,13 +192,6 @@ export function Lineup() {
                                 n: lineupAverage(opponent.lineup, opponent.formation),
                             })}
                         </p>
-                        {outList.length > 0 && (
-                            <p className={outStarter ? 'error-text' : 'tactic-desc'}>
-                                {outStarter
-                                    ? t('longCup.outStarter', { name: outStarter })
-                                    : t('longCup.outBench', { names: outList.join(', ') })}
-                            </p>
-                        )}
                         <div className="bc-thumbbar">
                             {/* Rota Índigo: titular machucado trava o Jogar; o porquê fica do lado do botão */}
                             {outStarter && (
@@ -294,6 +286,7 @@ export function LineupEditor({
     footer,
     sponsors,
     rivalFormation,
+    outOf,
 }: {
     title: string;
     formation: FormationId;
@@ -317,6 +310,8 @@ export function LineupEditor({
     sponsors?: readonly string[];
     /** Formação do rival, quando se sabe (selo "Vantagem tática" se a sua encaixa). */
     rivalFormation?: FormationId;
+    /** Rota Índigo: quem está fora (lesão, Creche) e por quantas partidas. No banco fica travado. */
+    outOf?: (uid: string) => { why: OutWhy | 'fora'; n: number } | null;
 }) {
     const [selected, setSelected] = useState<SlotRef | null>(null);
     const [detail, setDetail] = useState<string | null>(null);
@@ -406,15 +401,18 @@ export function LineupEditor({
                             : null
                     }
                     stateOf={(ref, uid) =>
-                        giving
-                            ? uid === giving
+                        ref.zone === 'bench' && outOf?.(uid)
+                            ? 'locked'
+                            : giving
+                              ? uid === giving
+                                  ? 'selected'
+                                  : 'target'
+                              : selected?.zone === ref.zone && selected.index === ref.index
                                 ? 'selected'
-                                : 'target'
-                            : selected?.zone === ref.zone && selected.index === ref.index
-                              ? 'selected'
-                              : 'idle'
+                                : 'idle'
                     }
                     onSlot={onSlot}
+                    badgeOf={outOf && ((inst) => <OutBadge out={outOf(inst.uid)} />)}
                     footer={
                         <p className="muted center" style={{ fontSize: 11, marginBottom: 0 }}>
                             {t('team.lineup.subHint')}
@@ -566,5 +564,21 @@ export function LineupEditor({
                 {footer}
             </div>
         </div>
+    );
+}
+
+const OUT_ICON = { lesao: 'medkit', creche: 'egg', cansado: 'dumbbell', fora: 'lock' } as const;
+
+/** Selo de quem está fora na Rota (Na creche, Machucado…) com quantas partidas faltam pra voltar. */
+export function OutBadge({ out }: { out: { why: OutWhy | 'fora'; n: number } | null }) {
+    const { d } = useT();
+    if (!out) return null;
+    const tag = d.longCup.outTag[out.why];
+    return (
+        <span className={`slot-out why-${out.why}`} role="img" aria-label={tn('longCup.outAria', out.n, { tag })}>
+            <HudIcon kind={OUT_ICON[out.why]} />
+            <b>{tag}</b>
+            <small>{tn('longCup.outLeft', out.n)}</small>
+        </span>
     );
 }

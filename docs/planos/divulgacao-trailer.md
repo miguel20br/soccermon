@@ -1,3 +1,7 @@
+---
+description: Plano do trailer e dos posts de lançamento no LinkedIn e no X.
+---
+
 # Trailer e divulgação: LinkedIn + X (14/10/2026)
 
 Plano pra gravar um trailer curto e postar o lançamento em dois tons diferentes: LinkedIn como projeto

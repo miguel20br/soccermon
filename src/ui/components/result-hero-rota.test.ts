@@ -35,16 +35,16 @@ const html = (run: Partial<RunState>) =>
 
 /** Na Rota Índigo perder nem sempre é o fim: cartão amarelo no mapa e derrota no grupo seguem a copa. */
 describe('resultado da Rota Índigo', () => {
-    it('cartão amarelo: DERROTA e a linha do amarelo, não "Fim da linha"', () => {
+    it('cartão amarelo: DERROTA e a partida (a regra vai no cartão), não "Fim da linha"', () => {
         const out = html({ status: 'map', stage: 0, results: [res(0, false)] as never });
         expect(out).toContain('DERROTA');
-        expect(out).toContain('A derrota não eliminou');
+        expect(out).toContain('<div class="rh-sub">Partida 1 de 8</div>');
         expect(out).not.toMatch(/FIM DA LINHA|Fim da linha/);
     });
     it('derrota no grupo: DERROTA e a tabela decide, não "Fim da linha"', () => {
         const results = [0, 1, 2, 3, 4].map((s) => res(s, true)).concat(res(5, false));
         const out = html({ status: 'group', stage: 5, results: results as never });
-        expect(out).toContain('Derrota no grupo');
+        expect(out).toContain('Vale a tabela do grupo');
         expect(out).not.toMatch(/FIM DA LINHA|Fim da linha|Oitavas|Semifinal/);
     });
     it('eliminado de verdade (vermelho): Fim da linha', () => {

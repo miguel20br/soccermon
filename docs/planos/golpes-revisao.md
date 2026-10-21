@@ -1,3 +1,7 @@
+---
+description: Revisão a fundo dos golpes confusos ou repetidos.
+---
+
 # Golpes: revisão a fundo (21/10/2026)
 
 Pedido do Miguel: "Vários golpes estão meio confusos, meio iguais, ou então sem fazer muito sentido. Vamos fazer uma

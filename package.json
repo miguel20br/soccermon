@@ -1,12 +1,13 @@
 {
   "name": "soccermon",
   "private": true,
-  "version": "0.9.3",
+  "version": "0.9.4",
   "author": "Miguel Cunha (https://github.com/miguel20br)",
   "description": "Fan game sem fins lucrativos: draft de Pokémon Gen 1 + futsal 5v5 simulado.",
   "license": "AGPL-3.0-or-later",
   "type": "module",
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks",
     "dev": "vite --config vite/config.dev.mjs",
     "build": "tsc --noEmit && npm run build:vite",
     "build:vite": "vite build --config vite/config.prod.mjs",

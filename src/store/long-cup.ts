@@ -52,6 +52,8 @@ export interface LongRunFields {
     told?: string[];
     /** Quem está fora e por quantas partidas (lesão, Creche, treino puxado). Fica no banco e não entra. */
     out?: Record<string, number>;
+    /** Por que cada um de `out` está fora (sem = save de antes: só "Fora"). Sobra de quem já voltou não importa. */
+    outWhy?: Record<string, OutWhy>;
     /** Evento da entrevista: o próximo rival entra mais fraco (−1) ou mais forte (+1). */
     rivalShift?: number;
     /** Eventos já vistos nesta copa (não repetem). */
@@ -68,6 +70,29 @@ export const nextCupMode = (run: { mode?: CupMode; daily?: string }): CupMode | 
 
 /** Está fora (machucado ou na Creche)? */
 export const isOut = (run: LongRunFields, uid: string) => (run.out?.[uid] ?? 0) > 0;
+
+/** Motivo de estar fora: carrinho no treino, Creche ou treino puxado. */
+export type OutWhy = 'lesao' | 'creche' | 'cansado';
+/** Selo de quem está fora: o motivo e quantas partidas faltam pra voltar (null = está disponível). */
+export const outOf = (run: LongRunFields, uid: string): { why: OutWhy | 'fora'; n: number } | null =>
+    isOut(run, uid) ? { why: run.outWhy?.[uid] ?? 'fora', n: run.out![uid] } : null;
+
+/**
+ * Troca na escalação que põe em quadra alguém que está fora? (quem está fora fica no banco; tirar ele da quadra pode)
+ * `a` e `b` são as duas vagas da troca.
+ */
+export function putsOutOnCourt(
+    run: LongRunFields & { lineup: string[]; bench: string[] },
+    a: { zone: 'lineup' | 'bench'; index: number },
+    b: { zone: 'lineup' | 'bench'; index: number },
+): boolean {
+    const uidAt = (r: typeof a) => (r.zone === 'lineup' ? run.lineup : run.bench)[r.index];
+    // quem vai pra quadra: o da vaga do banco, se a outra é da quadra
+    if (a.zone === b.zone) return false;
+    const fromBench = a.zone === 'bench' ? a : b;
+    const u = uidAt(fromBench);
+    return !!u && isOut(run, u);
+}
 /** Depois de uma partida, cada um que estava fora tem uma partida a menos pra voltar. */
 export function tickOut(out: Record<string, number> | undefined): Record<string, number> | undefined {
     if (!out) return out;

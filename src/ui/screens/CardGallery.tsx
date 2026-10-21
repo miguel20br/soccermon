@@ -21,6 +21,8 @@ import { TYPE_PT } from '../type-colors';
  * (?cards=1&arquivo=1, `CardArchive.tsx`, carregado só nessa rota).
  */
 const CardArchive = lazy(() => import('./CardArchive').then((m) => ({ default: m.CardArchive })));
+/** Proposta da edição Retrô (sprite de Game Boy): pedaço à parte, só na galeria. */
+const RetroCards = lazy(() => import('./RetroCards').then((m) => ({ default: m.RetroCards })));
 
 function sample(speciesId: number, opts: { shiny?: boolean; item?: string | null } = {}): PokemonInstance {
     const inst = createInstance(speciesId, new Rng(`galeria-${speciesId}`));
@@ -317,6 +319,9 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
             </div>
 
             <div className="cg-v06">
+                <Suspense fallback={null}>
+                    <RetroCards />
+                </Suspense>
                 <section className="panel" id="cartoes">
                     <h2>Cartão amarelo e vermelho (Copa longa, tela de resultado)</h2>
                     <p className="tactic-desc">

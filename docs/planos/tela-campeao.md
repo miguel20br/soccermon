@@ -1,3 +1,7 @@
+---
+description: Referências e plano da tela de campeão.
+---
+
 # Tela de campeão: referências e plano (16/10/2026)
 
 Objetivo: o título ser o momento de orgulho e de compartilhar (o Soccermon como febre entre jogos de Pokémon).

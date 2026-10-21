@@ -7,6 +7,68 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.4',
+        title: 'Duelo melhor de 3 e Rota polida',
+        sections: [
+            {
+                title: 'Duelo',
+                lines: [
+                    'Melhor de 3 com o mesmo time: a série tem placar de jogos no quadro',
+                    'Jogo anulado é jogado de novo; sair entre os jogos dá vitória por W.O. pra quem ficou',
+                ],
+            },
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'Textos revistos: cartão amarelo explicado em uma regra só, "Fim da linha" e eventos mais curtos',
+                    'O mapa usa a tela toda no PC',
+                    'Quem está fora aparece com o motivo (lesão, creche ou cansaço) e não entra em quadra',
+                    'Hall da Fama separado em Copa Relâmpago e Rota Índigo, com taça índigo própria',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.3.2',
+        title: 'Rota Índigo na frente',
+        sections: [
+            {
+                title: 'Tela inicial',
+                lines: [
+                    'Rota Índigo e Copa Relâmpago lado a lado no PC, com a Rota maior e o selo NOVO',
+                    'Duelo e Copa do Dia embaixo, um do lado do outro',
+                    'No celular, o botão da Rota ocupa a largura toda',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.3.1',
+        title: 'Pokédex com texto e Pokémon com mais caras',
+        sections: [
+            {
+                title: 'Coleção',
+                lines: ['A ficha do Pokémon e a carta aberta do Álbum trazem o texto da Pokédex'],
+            },
+            {
+                title: 'Pokémon mais vivos',
+                lines: [
+                    'O Pokémon grita quando você escolhe no draft, no VERSUS e na carta grande do pacote',
+                    'Sala de troféus: à noite ele dorme de verdade; de dia às vezes senta ou come',
+                    'Rota Índigo: o time cochila no Descanso, faz cara de dor no carrinho e fica tonto no treino puxado',
+                    'Eliminado: o time aparece caído e o capitão com lágrima',
+                ],
+            },
+            {
+                title: 'Rota Índigo e Copa Relâmpago',
+                lines: [
+                    'O mapa mostra o capitão rival em cada casa de partida e o time dele em ícones',
+                    'A chave da copa mostra o capitão de cada clube',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.3',
         title: 'Golpes revisados',
         sections: [
@@ -1126,6 +1188,68 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.4',
+        title: 'Best-of-3 Duel and a polished Road',
+        sections: [
+            {
+                title: 'Duel',
+                lines: [
+                    'Best of 3 with the same team: the scoreboard shows the series score',
+                    'A voided game is replayed; leaving between games is a walkover win for whoever stayed',
+                ],
+            },
+            {
+                title: 'Indigo Road',
+                lines: [
+                    'Rewritten texts: one yellow card rule, "End of the road" and shorter events',
+                    'The map uses the whole screen on desktop',
+                    'Players who are out show why (injury, daycare or tired) and stay off the court',
+                    'Hall of Fame split into Lightning Cup and Indigo Road, with its own indigo trophy',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.3.2',
+        title: 'Indigo Road up front',
+        sections: [
+            {
+                title: 'Home screen',
+                lines: [
+                    'Indigo Road and Lightning Cup side by side on desktop, with the Road bigger and a NEW tag',
+                    'Duel and Daily Cup below, next to each other',
+                    'On phones, the Road button takes the full width',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.3.1',
+        title: 'Pokédex entries and more faces',
+        sections: [
+            {
+                title: 'Collection',
+                lines: ['The Pokémon sheet and the open Album card show the Pokédex entry'],
+            },
+            {
+                title: 'Livelier Pokémon',
+                lines: [
+                    'Pokémon cry when you pick them in the draft, in the VERSUS and on the big pack card',
+                    'Trophy room: at night it really sleeps; in the day it sometimes sits or eats',
+                    'Indigo Road: the team naps at Rest, winces on a tackle and gets dizzy in hard training',
+                    'Knocked out: the team lies on the floor and the captain sheds a tear',
+                ],
+            },
+            {
+                title: 'Indigo Road and Lightning Cup',
+                lines: [
+                    'The map shows the rival captain on each match node and their team as icons',
+                    'The cup bracket shows each club captain',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.3',
         title: 'Moves reviewed',

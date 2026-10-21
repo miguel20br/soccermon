@@ -3136,6 +3136,7 @@ button,
 
 .confirm-new {
     display: grid;
+    align-content: center;
     gap: 10px;
     text-align: center;
 }
@@ -5795,7 +5796,8 @@ a.home-tile {
         font-size: 12px;
     }
     /* o placar da Copa fica só com o título; a linha de explicação volta em pé */
-    .cup-card .mode-head span:not(.bc-tag) {
+    .cup-card .mode-head span:not(.bc-tag),
+    .rota-card .mode-head > span {
         display: none;
     }
     .home .menu {
@@ -7643,4 +7645,125 @@ body {
     .soon-backdrop .soon-sheet {
         animation: screen-in 0.2s var(--ease-out) both;
     }
+}
+
+/* ícone de menu (MonIcon): pixel art em escala inteira, sem suavizar */
+.mon-icon {
+    display: inline-block;
+    flex: none;
+    background-repeat: no-repeat;
+    image-rendering: pixelated;
+    vertical-align: middle;
+}
+
+/* eliminado: o rosto do capitão com lágrima embaixo da fase, entrando depois do título */
+.rh-sad {
+    display: block;
+    width: 80px;
+    height: 80px;
+    margin: 6px auto 0;
+    border: 3px solid var(--bc-ink);
+    border-radius: 8px;
+    background: var(--panel-2);
+    box-shadow: 0 3px 0 rgb(0 0 0 / 35%);
+    animation: rh-sad-in 280ms 500ms var(--ease-out) both;
+}
+@keyframes rh-sad-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+}
+:root[data-reduce-motion="true"] .rh-sad {
+    animation-name: fade-in-only;
+}
+@media (prefers-reduced-motion: reduce) {
+    .rh-sad {
+        animation-name: fade-in-only;
+    }
+}
+@keyframes fade-in-only {
+    from {
+        opacity: 0;
+    }
+}
+
+/* sprite PMD animado nas telas de menu (PmdSprite): pixel art em escala inteira */
+.pmd-sprite {
+    display: inline-block;
+    flex: none;
+    background-repeat: no-repeat;
+    image-rendering: pixelated;
+}
+
+/* Rota Índigo: selo de quem está fora (Na creche, Machucado, Cansado) na carta da escalação; a carta fica apagada */
+.formation-board .slot:has(.slot-out) > :not(.slot-out) {
+    opacity: 0.4;
+    filter: grayscale(0.7);
+}
+.slot-out {
+    position: absolute;
+    left: 50%;
+    top: 38%;
+    z-index: 2;
+    translate: -50% -50%;
+    display: grid;
+    justify-items: center;
+    gap: 1px;
+    min-width: 76%;
+    padding: 4px 6px 3px;
+    border-radius: 6px;
+    border-bottom: 2px solid #000;
+    background: var(--bc-ink);
+    color: var(--ok, var(--yellow));
+    line-height: 1.1;
+    pointer-events: none;
+    animation: slot-out-in 240ms var(--ease-out) both;
+}
+.slot-out .hud-icon {
+    width: 16px;
+    height: 16px;
+}
+.slot-out b {
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.slot-out small {
+    color: #fff;
+    font-size: 10px;
+    white-space: nowrap;
+}
+.slot-out.why-creche {
+    --ok: var(--yellow);
+}
+.slot-out.why-lesao,
+.slot-out.why-fora {
+    --ok: #ff6b4c;
+}
+.slot-out.why-cansado {
+    --ok: #ffa04c;
+}
+@keyframes slot-out-in {
+    from {
+        opacity: 0;
+    }
+}
+
+/* Hall da Fama: Relâmpago e Rota em blocos separados, cada um com a sua taça */
+.hall-groups {
+    display: grid;
+    gap: 18px;
+}
+.hall-group-h {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px;
+    font-size: 13px;
+    text-transform: uppercase;
+}
+.hall-group-h .muted {
+    margin-left: auto;
 }

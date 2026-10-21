@@ -39,7 +39,9 @@ então **nada vai pra `main` sem o "pode subir" do Miguel** na conversa, mesmo c
    `package.json` (`__APP_VERSION__` = `displayVersion ?? version` em `vite/config.prod.mjs` e `config.dev.mjs`:
    Home, Novidades, Duelo e estatísticas mostram esse). Na próxima X.Y.Z, apague o `displayVersion`. A `version` das
    Novidades é o mesmo número de 4 partes.
-8. Atualize o "Estado atual" do `CLAUDE.md` e a tabela de versões de `docs/planos/lancamento.md` (✓ na versão).
+8. Atualize o "Estado atual" do `CLAUDE.md` (o número tem que ser o do `package.json`, `scripts/docs.test.ts` cobra;
+   histórico da versão anterior vai pra `docs/planos/historico.md`, o CLAUDE.md fica abaixo de 16 KB), a tabela de
+   versões de `docs/planos/lancamento.md` (✓ na versão) e, no PC, rode `scripts/memoria.sh` (memórias → `docs/memoria`).
 9. Confira os e-mails dos commits: `git log --format=%ae origin/main..HEAD | sort -u` tem que dar só
    `105948884+miguel20br@users.noreply.github.com`.
 

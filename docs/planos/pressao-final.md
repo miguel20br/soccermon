@@ -1,3 +1,7 @@
+---
+description: Acréscimos e Pressão final no fim do 2º tempo.
+---
+
 # Acréscimos e Pressão final (21/10/2026, branch `pressao`)
 
 Pedido do Miguel: "adicionar acréscimos de 1 a 3 minutos no jogo" e, no lugar de um empurrão escondido pro gol no fim

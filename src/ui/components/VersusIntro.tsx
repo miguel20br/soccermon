@@ -6,7 +6,7 @@ import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
 import type { TeamSetup } from '../../engine/state';
 import { GYM_TM } from '../../engine/tm';
-import { playSfx } from '../../game/audio';
+import { playCry, playSfx } from '../../game/audio';
 import { clubName, formationText } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { type ClubLook, lookOfCupClub, lookOfProfile, matchLooks } from '../../store/club-kit';
@@ -29,6 +29,8 @@ const INTRO_MS = 1650;
 export const SLOW_MS = 15000;
 /** Quando o VS bate na tela (casa com o atraso + 60% de `vsp-slam` no versus.css). */
 const SLAM_MS = 1000;
+/** Entre o grito do capitão rival e o do seu (o do rival acaba antes do seu começar, quase sempre). */
+const CRY_GAP_MS = 900;
 const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 /** Tamanho natural moderado: o Pikachu fica um pouco menor que o Dragonite, sem sumir. */
 const sizeOf = (heightm: number) => Math.min(1.1, Math.max(0.86, 0.94 + 0.1 * Math.log2(Math.max(0.1, heightm))));
@@ -302,18 +304,25 @@ export function VersusIntro({
     const club = CLUBS.find((c) => c.name === away.name);
     const final = club?.city === 'Indigo Plateau';
 
-    // som do VS batendo; com "reduzir movimento" o VS já aparece no lugar, então o som vem junto
+    // som do VS batendo e, logo depois, o grito dos dois capitães (o rival, depois o seu); com "reduzir movimento" o VS
+    // já aparece no lugar, então o som vem junto
+    const captainOf = (t: TeamSetup) => (t.lineup.find((p) => p.uid === t.captainUid) ?? t.lineup[0])?.speciesId;
+    const cryIds = useRef([captainOf(away), captainOf(home)]);
     useEffect(() => {
+        const timers: number[] = [];
         const slam = () => {
             playSfx('shot', final ? 0.5 : 0.7);
             if (final) playSfx('post', 0.6);
+            const cries = useGame.getState().settings.cries;
+            cryIds.current.forEach((id, i) => {
+                if (id) timers.push(window.setTimeout(() => playCry(id, cries, 0.8), 250 + i * CRY_GAP_MS));
+            });
         };
-        if (reduceMotionOn()) {
-            slam();
-            return;
-        }
-        const timer = window.setTimeout(slam, SLAM_MS);
-        return () => clearTimeout(timer);
+        if (reduceMotionOn()) slam();
+        else timers.push(window.setTimeout(slam, SLAM_MS));
+        return () => {
+            for (const id of timers) clearTimeout(id);
+        };
     }, [final]);
 
     // quadra demorando: depois de SLOW_MS sem ficar pronta, troca o botão pelo aviso (cada tentativa zera a conta)

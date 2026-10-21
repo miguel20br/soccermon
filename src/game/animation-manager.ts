@@ -16,6 +16,8 @@ interface PmdAnimInfo {
     rows: number;
     durations: number[];
     hitFrame: number | null;
+    /** Atlas extra: o pé em fração da altura do quadro (o sprite-feet.json só tem as de quadra). */
+    foot?: number;
 }
 
 const PMD = pmdAnims as unknown as Record<string, { shadowSize: number; anims: Record<string, PmdAnimInfo> }>;
@@ -31,7 +33,7 @@ const FALLBACK: Record<string, string[]> = {
     Hurt: ['Idle'],
 };
 
-const LOOPING = new Set(['Idle', 'Walk', 'Hop', 'Charge']);
+const LOOPING = new Set(['Idle', 'Walk', 'Hop', 'Charge', 'Sleep', 'Sit', 'Eat']);
 
 /**
  * "Skin" do sprite em campo: o número da espécie, ou espécie + SHINY_SKIN para a folha shiny de verdade
@@ -56,6 +58,7 @@ export function preloadSpecies(scene: Phaser.Scene, skin: number) {
 }
 
 export function resolveAnim(skin: number, anim: string): string {
+    if (EXTRA.get(skin)?.[anim]) return anim;
     const info = PMD[baseOf(skin)]?.anims;
     if (!info) return 'Idle';
     if (info[anim]) return anim;
@@ -68,9 +71,39 @@ export function resolveAnim(skin: number, anim: string): string {
  * sem quadros, ficaria guardada assim (o `exists` não refaz) e o `play` dela quebra o Phaser (getFirstTick).
  */
 export function createSpeciesAnims(scene: Phaser.Scene, skin: number) {
-    const info = PMD[baseOf(skin)]?.anims ?? {};
     const key = atlasKey(skin);
     if (!scene.textures.exists(key)) return;
+    addAnims(scene, skin, key, PMD[baseOf(skin)]?.anims ?? {});
+}
+
+/**
+ * Animações de fora da quadra (Sleep, Sit, Eat, Faint), num atlas à parte (scripts/build-pmd-atlas.ts --extra): só
+ * quem usa (a Sala de troféus) carrega. As durações vêm no próprio JSON (o Phaser guarda em texture.customData).
+ */
+const EXTRA = new Map<number, Record<string, PmdAnimInfo>>();
+export const extraKey = (skin: number) => `pmd-x-${skin}`;
+
+export function preloadExtra(scene: Phaser.Scene, skin: number) {
+    const key = extraKey(skin);
+    const id = baseOf(skin);
+    if (!scene.textures.exists(key))
+        scene.load.atlas(
+            key,
+            `assets/field/extra/${isShinySkin(skin) ? 'shiny/' : ''}${id}.png`,
+            `assets/field/extra/${id}.json`,
+        );
+}
+
+/** Cria as animações do atlas extra (sem a folha carregada, nada: a tela cai no Idle pelo `resolveAnim`). */
+export function createExtraAnims(scene: Phaser.Scene, skin: number) {
+    const key = extraKey(skin);
+    if (!scene.textures.exists(key)) return;
+    const info = (scene.textures.get(key).customData as { anims?: Record<string, PmdAnimInfo> }).anims ?? {};
+    EXTRA.set(skin, info);
+    addAnims(scene, skin, key, info);
+}
+
+function addAnims(scene: Phaser.Scene, skin: number, key: string, info: Record<string, PmdAnimInfo>) {
     for (const [name, a] of Object.entries(info)) {
         for (let dir = 0; dir < 8; dir++) {
             const animKey = `${skin}/${name}/${dir}`;
@@ -150,7 +183,7 @@ const HOVER = 0.05;
  */
 export function footOrigin(skin: number, anim: string): number {
     const feet = FEET[baseOf(skin)];
-    const ratio = feet?.[anim] ?? feet?.Idle ?? 0.78;
+    const ratio = EXTRA.get(skin)?.[anim]?.foot ?? feet?.[anim] ?? feet?.Idle ?? 0.78;
     const hover = HOVER_SHAPES.has(species(baseOf(skin)).shape) ? HOVER : 0;
     return Math.min(0.97, ratio + 0.015 - hover);
 }

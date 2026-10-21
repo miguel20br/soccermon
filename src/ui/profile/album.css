@@ -1051,3 +1051,9 @@
 .al-versions small {
     margin-left: 0;
 }
+
+/* texto da Pokédex na carta aberta do Álbum, entre as ações e as versões */
+.al-dex-text {
+    margin-top: 10px;
+    text-align: left;
+}

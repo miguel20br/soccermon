@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import portraits from '../../data/portraits.json';
 import { EventBus } from '../../game/EventBus';
 import type { MatchHighlight as Highlight } from '../../game/scenes/MatchScene';
 import { useT } from '../../i18n/react';
+import { portraitSrc } from '../portrait';
 import { ShinySpark } from '../profile/icons';
 import { HudIcon } from './MatchHud';
 
-const EMOTIONS = portraits as Record<string, string[]>;
 /** Quanto tempo (real) a faixa fica na tela; a evolução do rival fica mais (era 2,6 s). */
 const SHOW_MS = 2600;
 const RIVAL_EVO_SHOW_MS = 3500;
@@ -14,8 +13,7 @@ const RIVAL_EVO_SHOW_MS = 3500;
 /** Rostinho do PMDCollab: comemorando no gol, concentrado na defesa (cai no normal se não tiver). */
 function portraitOf(speciesId: number, kind: Highlight['kind']): string {
     const want = kind === 'save' ? 'determined' : kind === 'goal' || kind === 'rivalEvolve' ? 'happy' : null;
-    const has = want && EMOTIONS[speciesId]?.includes(want);
-    return `assets/portraits/${speciesId}${has ? `-${want}` : ''}.png`;
+    return portraitSrc(speciesId, want ? [want] : []);
 }
 
 /** Faixa diagonal no canto do time com o rosto, o nome e o time de quem fez o gol ou a defesa. */

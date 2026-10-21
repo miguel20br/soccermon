@@ -36,8 +36,8 @@ export const home: typeof pt = {
     longCup: {
         tag: '8 matches',
         title: 'Indigo Road',
-        line: 'Cross Kanto to the Plateau: 8 matches, events and gyms.',
-        short: 'map, events and gyms',
+        line: 'Cross Kanto to the Indigo Plateau.',
+        go: 'Start the Road',
         note: 'The Indigo Road arrives in the next version.',
     },
     challenge: 'Accept challenge ({seed})',

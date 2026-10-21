@@ -1,0 +1,137 @@
+/* Proposta da edição Retrô (RetroCards.tsx, só na galeria ?cards=1) */
+.retro-group h3 {
+    margin: 14px 0 6px;
+    font-size: 13px;
+}
+.retro-group h3 small {
+    font-weight: 400;
+}
+.retro-card {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+.retro-tag {
+    position: absolute;
+    top: 0.2em;
+    left: 50%;
+    z-index: 20;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    transform: translateX(-50%);
+    padding: 0.15em 0.7em;
+    border-radius: 1em;
+    background: var(--lcd-dark);
+    color: var(--lcd);
+    font-family: "Galmuri14", monospace;
+    font-size: min(10px, calc(100cqw / 22));
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.retro-tag .pr-spark {
+    width: 1.1em;
+    height: 1.1em;
+}
+
+/* moldura de plástico: a cor de cada aparelho por cima do metal (bronze/prata/ouro somem, como nas outras edições) */
+.retro-card .pc2.pc2-metal.pc2-metal.pc2-metal {
+    --ink: #2b2a3a;
+    --ink-soft: rgba(43, 42, 58, 0.65);
+    --edge: #f4f2ed;
+    --line: rgba(43, 42, 58, 0.22);
+    background:
+        repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.025) 0 0.06em, transparent 0.06em 0.18em),
+        linear-gradient(160deg, #e2e0db 0%, #c9c6c0 55%, #a9a69f 100%);
+}
+.retro-card.rv-pocket .pc2.pc2-metal.pc2-metal.pc2-metal {
+    --ink: #1f2228;
+    --edge: #ffffff;
+    background:
+        linear-gradient(115deg, transparent 25%, rgba(255, 255, 255, 0.5) 38%, transparent 50%),
+        linear-gradient(160deg, #f1f3f6 0%, #b9bec7 50%, #868c97 100%);
+}
+.retro-card.rv-light .pc2.pc2-metal.pc2-metal.pc2-metal {
+    --ink: #3a2a00;
+    --ink-soft: rgba(58, 42, 0, 0.65);
+    --edge: #fff2b8;
+    --line: rgba(58, 42, 0, 0.25);
+    background:
+        linear-gradient(115deg, transparent 25%, rgba(255, 255, 255, 0.45) 38%, transparent 50%),
+        linear-gradient(160deg, #fbe7a1 0%, #d9b24a 50%, #9c7a1c 100%);
+}
+/* sem o foil, a moldura dupla e o brilho dourado do metal (raro, lendário): a edição manda na moldura */
+.retro-card .pc2.pc2-metal.pc2-metal.pc2-metal {
+    box-shadow:
+        0 0.25em 0 rgba(0, 0, 0, 0.35),
+        inset 0 0 0 0.12em var(--edge),
+        inset 0 0 0 0.32em rgba(0, 0, 0, 0.06);
+}
+.retro-card .pc2.pc2-metal.pc2-metal.pc2-metal::before {
+    display: none;
+}
+.retro-card .pc2.pc2-metal .m-ovr.m-ovr {
+    color: var(--ink);
+}
+/* o símbolo do tipo some: no lugar dele, a tela */
+.retro-card .m-mark {
+    display: none;
+}
+/* a tela de cristal líquido: moldura escura, o tom mais claro da paleta e a grade de pontos */
+.retro-card .m-top::before {
+    content: "";
+    position: absolute;
+    top: 0.25em;
+    right: 0;
+    bottom: 0.2em;
+    left: 4.2em;
+    z-index: 1;
+    border-radius: 0.35em 0.35em 1.4em 0.35em;
+    background:
+        repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.07) 0 0.05em, transparent 0.05em 0.22em),
+        repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.07) 0 0.05em, transparent 0.05em 0.22em),
+        radial-gradient(ellipse 90% 80% at 40% 35%, color-mix(in srgb, var(--lcd) 80%, #fff), var(--lcd));
+    box-shadow:
+        0 0 0 0.35em #3f4150,
+        0 0 0 0.45em rgba(0, 0, 0, 0.35),
+        inset 0 0.15em 0.3em rgba(0, 0, 0, 0.35);
+}
+.retro-card.rv-light .m-top::before {
+    box-shadow:
+        0 0 0 0.35em #2a2416,
+        0 0 0 0.45em rgba(0, 0, 0, 0.35),
+        inset 0 0 0.6em color-mix(in srgb, var(--lcd-mid) 70%, transparent),
+        inset 0 0.15em 0.3em rgba(0, 0, 0, 0.3);
+}
+/* o sprite: 4 tons de cinza pintados pela paleta (filtro SVG), sem suavizar */
+.retro-card .m-art {
+    image-rendering: pixelated;
+    right: 0.2em;
+    bottom: 0.3em;
+    width: 9em;
+    height: 9em;
+}
+.retro-card.rv-dmg .m-art {
+    filter: url(#gb-dmg);
+}
+.retro-card.rv-pocket .m-art {
+    filter: url(#gb-pocket);
+}
+.retro-card.rv-light .m-art {
+    filter: url(#gb-light);
+}
+/* luz de "ligado" no canto da tela */
+.retro-card .m-top::after {
+    content: "";
+    position: absolute;
+    left: 4.45em;
+    bottom: 0.55em;
+    z-index: 3;
+    width: 0.45em;
+    height: 0.45em;
+    border-radius: 50%;
+    background: #e8423f;
+    box-shadow: 0 0 0.35em #e8423f;
+}

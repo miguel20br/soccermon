@@ -55,7 +55,7 @@ export function ChampionView({ run, actions }: { run: RunState; actions: ReactNo
             <section className="panel rh rh-champ champ" aria-label={t('result.champ.aria')}>
                 <Confetti count={70} />
                 <div className="champ-trophy">
-                    <Trophy size={150} />
+                    <Trophy size={150} rota={run.mode === 'longa'} />
                 </div>
                 <h1 className="rh-title champ-title" aria-label={t('result.champ.titleAria')}>
                     {[...t('result.champ.title')].map((ch, i) => (

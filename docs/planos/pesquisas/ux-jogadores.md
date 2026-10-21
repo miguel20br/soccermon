@@ -1,3 +1,7 @@
+---
+description: Pesquisa do que os jogadores pediram de UX na rodada 0.8.8.
+---
+
 # Pesquisa: UX que os jogadores pediram (19/10/2026, rodada 0.8.8)
 
 Pedido do Miguel com sugestões de jogadores: evolução do rival, tática mais intuitiva, tirar o "ir pra prancheta",

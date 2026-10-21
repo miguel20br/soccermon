@@ -1,3 +1,7 @@
+---
+description: Revisão dos menus em três portas e da arte da Sala de troféus.
+---
+
 # Menus coesos e a arte da sala (revisão, 20/10/2026)
 
 Pedido do Miguel (20/10, depois de ver a Sala de troféus na `v089`): "não sei se gostei das pixel arts, acho que tá

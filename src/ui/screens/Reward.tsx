@@ -113,6 +113,7 @@ export function Reward() {
                     {run.rewards.map((r, i) => (
                         <div
                             key={rewardKey(r)}
+                            data-cry={r.kind === 'pokemon' ? r.inst.speciesId : undefined}
                             className={`option cpack-card${r.kind === 'tm' ? ' option-tm' : ''}${
                                 r.kind === 'pokemon' && isBigCard(r.inst) ? ' big' : ''
                             }${!fast && r.kind === 'pokemon' && editionOf(r.inst) ? ' walk' : ''}`}
