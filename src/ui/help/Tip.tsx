@@ -36,11 +36,11 @@ export function resetTips() {
 }
 
 /**
- * Dica contextual de uma linha. Aparece só com "Dicas" ligado nas configurações e até o jogador fechar;
- * fechada, não volta mais neste aparelho.
+ * Dica contextual de uma linha, perto da coisa que ela explica. Aparece só na 1ª copa (até terminar uma), com "Dicas"
+ * ligado nas configurações e até o jogador fechar; fechada, não volta mais neste aparelho.
  */
 export function Tip({ id, children }: { id: string; children: ReactNode }) {
-    const enabled = useGame((s) => s.settings.tips);
+    const enabled = useGame((s) => s.settings.tips && s.records.cups === 0);
     const [hidden, setHidden] = useState(() => readDismissed().includes(id));
     const { d } = useT();
     if (!enabled || hidden) return null;

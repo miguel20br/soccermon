@@ -122,6 +122,7 @@ export function HallList({ only }: { only?: string[] } = {}) {
                         ))}
                     </div>
                     <span className="muted hall-scores">
+                        {h.mode === 'longa' && <b className="hall-mode">{t('longCup.title')} · </b>}
                         {h.scores.map((s) => `${s[0]}x${s[1]}`).join(' · ')}
                         {h.perfect && ` · ${t('title.hall.perfect')}`}
                     </span>

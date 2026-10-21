@@ -45,7 +45,6 @@ function useFriendsPoll() {
 
 /** "Desafiar": guarda o amigo e abre o Duelo; a sala que nascer chama ele (sendPendingChallenge). */
 function startChallenge(r: FriendRow) {
-    playSfx('select');
     useFriends.setState({ challenging: { code: r.code, trainer: r.trainer } });
     useGame.getState().go('duel');
 }
@@ -97,11 +96,11 @@ function FriendLine({ r }: { r: FriendRow }) {
             </button>
             <span className="fr-actions">
                 {r.room ? (
-                    <button type="button" className="btn primary" onClick={() => joinRoom(r.room!)}>
+                    <button type="button" className="btn outline" onClick={() => joinRoom(r.room!)}>
                         {t('friends.enter')}
                     </button>
                 ) : (
-                    <button type="button" className="btn primary" onClick={() => startChallenge(r)}>
+                    <button type="button" className="btn outline" onClick={() => startChallenge(r)}>
                         <HudIcon kind="play" /> {t('friends.challenge')}
                     </button>
                 )}
@@ -122,6 +121,7 @@ function FriendLine({ r }: { r: FriendRow }) {
                         <button
                             type="button"
                             className="btn"
+                            data-fx="danger"
                             onClick={() => void friendAction((s) => s.remove(r.code))}
                         >
                             {t('friends.remove')}
@@ -223,7 +223,7 @@ function AddByCode() {
                         setMsg(null);
                     }}
                 />
-                <button type="submit" className="btn primary" disabled={!isFriendCode(code) || busy}>
+                <button type="submit" className="btn outline" disabled={!isFriendCode(code) || busy}>
                     <HudIcon kind="addFriend" /> {t('friends.add')}
                 </button>
             </div>
@@ -252,7 +252,7 @@ export function FriendsTab() {
         return (
             <section className="panel fr-note bc-surface">
                 <p>{t('friends.needGoogle')}</p>
-                <button type="button" className="btn primary" onClick={() => void signInWithGoogle()}>
+                <button type="button" className="btn outline" onClick={() => void signInWithGoogle()}>
                     {t('friends.login')}
                 </button>
             </section>
@@ -286,7 +286,7 @@ export function FriendsTab() {
                                         {r.club} · {r.club_tag}
                                     </small>
                                 </span>
-                                <button type="button" className="btn primary" onClick={() => joinRoom(r.room!)}>
+                                <button type="button" className="btn outline" onClick={() => joinRoom(r.room!)}>
                                     {t('friends.enter')}
                                 </button>
                             </li>
@@ -311,7 +311,7 @@ export function FriendsTab() {
                                 <span className="fr-actions">
                                     <button
                                         type="button"
-                                        className="btn primary"
+                                        className="btn outline"
                                         onClick={() => void friendAction((s) => s.respond(r.code, true))}
                                     >
                                         <HudIcon kind="check" /> {t('friends.accept')}
@@ -399,7 +399,7 @@ export function FriendChallenge() {
         <div className="fr-home" style={stripe(first.club_color)} data-testid="friend-challenge">
             <HudIcon kind="friends" />
             <span>{t('friends.challengeLine', { name: first.trainer })}</span>
-            <button type="button" className="btn primary" onClick={() => joinRoom(first.room!)}>
+            <button type="button" className="btn outline" onClick={() => joinRoom(first.room!)}>
                 {t('friends.enter')}
             </button>
         </div>
@@ -441,7 +441,7 @@ export function FriendInvite() {
                     {first.club} · {first.club_tag}
                 </small>
             </span>
-            <button type="button" className="btn primary" onClick={() => joinRoom(first.room!)}>
+            <button type="button" className="btn outline" onClick={() => joinRoom(first.room!)}>
                 {t('friends.enter')}
             </button>
             <button type="button" className="btn fr-toast-x" onClick={close} aria-label={t('common.ui.close')}>

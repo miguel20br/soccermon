@@ -179,6 +179,67 @@
     border-radius: 4px 4px 0 0;
 }
 
+/* acréscimos: a plaquinha "+2'" do lado do relógio parado no 20'/40' */
+.bc-add {
+    display: inline-block;
+    margin-left: 4px;
+    padding: 1px 3px 0;
+    border-radius: 3px;
+    background: #f4f1e6;
+    color: #0e1430;
+    font-size: 12px;
+    line-height: 15px;
+    vertical-align: 3px;
+    animation: bc-add-in 250ms var(--ease-out);
+}
+@keyframes bc-add-in {
+    from {
+        opacity: 0;
+    }
+}
+/* Pressão final: selo em cima do placar, do lado de quem perde (os dois ficam montados e trocam no fade) */
+.bc-fp {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 8px 1px 6px;
+    border-radius: 4px 4px 0 0;
+    background: var(--red);
+    box-shadow: inset 0 -2px 0 var(--tc);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    line-height: 14px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-100%) translateY(3px);
+    transition:
+        opacity 250ms var(--ease-out),
+        transform 250ms var(--ease-out);
+}
+.bc-fp.away {
+    left: auto;
+    right: 0;
+    padding: 2px 6px 1px 8px;
+}
+.bc-fp.on {
+    opacity: 1;
+    transform: translateY(-100%);
+}
+.bc-fp .hud-icon {
+    width: 12px;
+    height: 12px;
+}
+:root[data-reduce-motion="true"] .bc-fp {
+    transform: translateY(-100%);
+}
+
 /* ---------- barra de pressão ---------- */
 .bc-pressure {
     position: relative;
@@ -461,11 +522,12 @@
     min-height: 48px;
     min-width: 0;
     padding: 4px 12px;
-    border: 3px solid #0e1430;
+    border: 3px solid var(--yellow);
     border-radius: 8px;
-    background: var(--yellow);
+    /* contorno amarelo (o amarelo cheio aposentou: competia com o vermelho e é a ação mais rara da tela) */
+    background: var(--panel-2);
     box-shadow: 0 3px 0 #0e1430;
-    color: #1d1d1d;
+    color: var(--yellow);
     font-size: 14px;
     text-align: left;
     cursor: pointer;
@@ -648,9 +710,13 @@
 .app:has(.bc) > .topbar .brand span {
     font-size: 16px;
 }
-.app:has(.bc) > .topbar .brand img {
-    width: 22px;
-    height: 22px;
+.app:has(.bc) > .topbar .brand .brand-logo {
+    display: none;
+}
+.app:has(.bc) > .topbar .brand .brand-symbol {
+    display: block;
+    width: auto;
+    height: 30px;
 }
 /* duelo: a linha da sala (código e Sair) sobe pra linha do logo durante a partida (sobra quadra no celular);
    a pergunta "Sair no meio do duelo?" volta pro lugar de sempre */

@@ -181,6 +181,12 @@ const typeRecord = new Map<string, { w: number; g: number }>();
 const tacticRecord = new Map<Tactic, { w: number; g: number }>();
 const moveKinds = new Map<string, number>();
 const traitFx = new Map<string, number>();
+// drama do fim (docs/planos/pressao-final.md): gol nos acréscimos, virada/empate de quem perdia no minuto 37
+const LATE_MIN = FUTSAL_5.displayHalfMinutes * 2 - 3;
+let stoppageGoalMatches = 0;
+let lateGoals = 0;
+let behindAtLate = 0;
+let comebacks = 0;
 const rows: string[] = ['seed,home,away,strHome,strAway,tactHome,tactAway,shootout'];
 const t0 = performance.now();
 
@@ -201,6 +207,18 @@ for (let i = 0; i < N; i++) {
         eventCounts.set(e.type, (eventCounts.get(e.type) ?? 0) + 1);
         if (e.type === 'move') moveKinds.set(e.kind, (moveKinds.get(e.kind) ?? 0) + 1);
         if (e.type === 'trait') traitFx.set(e.fx, (traitFx.get(e.fx) ?? 0) + 1);
+    }
+
+    const goalEvs = r.events.filter((e) => e.type === 'goal');
+    // nos acréscimos o relógio para no fim do tempo (minuto 20 ou 40 cravado)
+    if (goalEvs.some((e) => e.minute >= e.half * FUTSAL_5.displayHalfMinutes)) stoppageGoalMatches++;
+    lateGoals += goalEvs.filter((e) => e.half === 2 && e.minute >= LATE_MIN).length;
+    const at = [0, 0];
+    for (const e of goalEvs) if (e.type === 'goal' && (e.half === 1 || e.minute < LATE_MIN)) at[e.team]++;
+    if (at[0] !== at[1]) {
+        behindAtLate++;
+        const loser = at[0] < at[1] ? 0 : 1;
+        if (r.score[loser] >= r.score[1 - loser]) comebacks++;
     }
 
     const sh = strength(home);
@@ -245,6 +263,12 @@ console.log(`empates no tempo normal: ${((draws / N) * 100).toFixed(1)}%`);
 console.log(`goleadas (6+ de diferença): ${((blowouts / N) * 100).toFixed(1)}%`);
 console.log(
     `mais forte (Δ≥3) vence: ${((strongerWins / Math.max(1, decisive)) * 100).toFixed(1)}% de ${decisive}   (meta 60–65%)`,
+);
+console.log(
+    `jogos com gol nos acréscimos: ${((stoppageGoalMatches / N) * 100).toFixed(1)}% · gols do minuto ${LATE_MIN} em diante: ${per(lateGoals)}/jogo`,
+);
+console.log(
+    `quem perdia no minuto ${LATE_MIN} empatou ou virou: ${((comebacks / Math.max(1, behindAtLate)) * 100).toFixed(1)}% de ${behindAtLate}`,
 );
 console.log(
     'distribuição de gols:',

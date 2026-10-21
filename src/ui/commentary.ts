@@ -372,6 +372,10 @@ export class Commentator {
                 return line(say(c.sub, { team: this.teamNames[e.team], out: e.out, in: e.in }), 'whistle', e.team);
             case 'halftime':
                 return line(say(c.halftime, { score: this.score(e.score) }), 'whistle');
+            case 'stoppage':
+                return line(say(c.stoppage, { min: e.minutes }), 'whistle');
+            case 'pressure':
+                return e.team === null ? null : line(say(c.pressure, { team: this.teamNames[e.team] }), 'big', e.team);
             case 'fulltime':
                 return line(
                     say(e.score[0] === e.score[1] ? c.fulltimeDraw : c.fulltime, { score: this.score(e.score) }),

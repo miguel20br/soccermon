@@ -199,6 +199,10 @@ export interface CupSummary {
     status: RunState['status'];
     stage: number;
     draftRound: number;
+    /** Rota Índigo (sem = Copa Relâmpago). */
+    mode?: RunState['mode'];
+    /** Partidas jogadas (na Rota a próxima partida é essa, contada do mapa). */
+    played?: number;
 }
 
 export interface SaveSummary {
@@ -211,7 +215,16 @@ export interface SaveSummary {
 }
 
 export const cupSummary = (r: RunState | null | undefined): CupSummary | null =>
-    isCupInProgress(r) ? { team: r.teamName, status: r.status, stage: r.stage, draftRound: r.draftRound } : null;
+    isCupInProgress(r)
+        ? {
+              team: r.teamName,
+              status: r.status,
+              stage: r.stage,
+              draftRound: r.draftRound,
+              ...(r.mode && { mode: r.mode }),
+              played: r.results.length,
+          }
+        : null;
 
 /** O que mostrar de cada lado na pergunta (time do clube, copa em andamento e fase, copas, Pokédex). */
 export function summarize(s: Partial<PersistedSave> | undefined): SaveSummary {

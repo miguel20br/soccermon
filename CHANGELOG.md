@@ -1,5 +1,128 @@
 # Novidades
 
+## 0.9.3 · Golpes revisados
+
+### Cada um com o seu tipo
+- Todo Pokémon leva pelo menos 1 golpe de cada tipo dele (quando a Gen 1 deixa)
+- Gengar: Confuse Ray ⇒ Sludge (Dream Eater, Hypnosis, Night Shade, Sludge)
+- Gastly e Haunter: Hypnosis ⇒ Toxic
+- Zubat e Golbat: Supersonic ⇒ Toxic
+- Nidoran♂, Nidorino e Nidoking: Focus Energy ⇒ Toxic; Nidoqueen: Counter ⇒ Toxic
+- Beedrill: Agility ⇒ Toxic
+- Charizard: Fire Blast ⇒ Fly
+- Hitmonchan: Agility ⇒ Counter
+- Gyarados: Splash ⇒ Hyper Beam
+
+### Sem golpe repetido
+- Charmander e Charmeleon: Fire Blast ⇒ Dragon Rage
+- Raichu: Thunderbolt ⇒ Agility
+- Arcanine: Flamethrower ⇒ Take Down
+- Hitmonlee: Jump Kick ⇒ Double Kick
+- Staryu: Hydro Pump ⇒ Psychic
+- Omanyte: Hydro Pump ⇒ Surf
+
+### Golpes que agora fazem o que prometem
+- Harden segura a bola no próximo carrinho (como o Defense Curl)
+- Slam alcança mais longe (2,8 m)
+- Amnesia sobe passe, chute e leitura
+- Tri Attack pode queimar, congelar ou paralisar
+- Explosion pega todo mundo a 4 m
+- Light Screen e Reflect não dão mais chute escondido
+- Fly e Dig com a bola levam ela 2 m (era 4)
+
+### Textos
+- Todo golpe explica o que faz em quadra com os números (quanto tempo, quem é imune, quanto acerta, o preço pra quem usa)
+
+## 0.9.2.2 · A Rota Índigo volta
+
+### Rota Índigo
+- A Rota está de volta: a 1ª partida quebrava a escalação (consertado) e ela foi jogada inteira antes de voltar
+- Continuar num evento "?" volta pro evento (antes caía na escalação e repetia a partida)
+- Cartão amarelo e derrota no grupo dizem DERROTA (não Fim da linha); o vermelho só sai na 2ª derrota no mapa
+- A copa salva, o campeão (x/8), o gol da copa e o card do título falam da partida da Rota, não das Oitavas
+- Nova copa no fim de uma Rota começa outra Rota
+- Titular machucado: o aviso aparece do lado do Jogar
+
+## 0.9.2.1 · Álbum leve e vitrine fácil
+
+### Álbum
+- O Álbum não trava mais ao abrir e virar a página (só a página à vista é montada e o brilho holo anima só na carta em foco)
+- As cartas empilhadas atrás de uma figurinha aparecem só pela borda
+
+### Vitrine
+- Vitrine cheia: Pôr na vitrine pede a carta que sai e troca num toque
+- Um x no canto tira a carta da vitrine
+- Arraste uma carta sobre a outra (ou toque numa e depois na outra) pra mudar a ordem; vale no Perfil, no perfil do amigo e no Duelo
+- No PC, a vitrine do cartão do Perfil ficou maior e centralizada
+
+## 0.9.2 · Casa arrumada
+
+### Tela inicial
+- Nova copa grande e no topo; Duelo e Copa do Dia lado a lado, do tamanho do conteúdo
+- Vem aí: o que está pra chegar numa faixa de cartõezinhos (toque pra ver o que é)
+- Perfil, Coleção e Sala de troféus como três portas; o "?" leva pra Ajuda
+- O botão de idioma não pula mais de lugar ao trocar
+- Quem chega pela 1ª vez já cai no jogo (o passo a passo está na Ajuda)
+
+### Na copa
+- A ação principal fica embaixo, na barra do polegar, em todas as telas da copa
+- Um botão vermelho por tela; os outros viram contorno
+- A chave da copa abre num toque (Ver a chave) na escalação e no resultado
+- Dicas só na 1ª copa, perto do que explicam
+- Eliminado: Nova copa num toque e quanto faltou
+
+### Mercado
+- Com o pacote aberto, o seu time aparece junto pra comparar
+- O que não dá pra comprar tem cadeado e mostra quanto falta
+- Trocar vitrine virou Novas ofertas (vitrine agora é só a das cartas)
+- Textos dos Patrocínios reescritos, mais curtos e com o número do efeito; o preço aparece no contrato
+
+### Partida
+- Aba Time no PC: nome e posição inteiros
+- Substituir não aparece mais duas vezes no intervalo
+
+### Toque e som
+- Cada tipo de botão tem o seu som (avançar, voltar, sair, apagar)
+- Abandonar copa, sair do Duelo e apagar dados têm uma saída triste, com animação e som
+- Vibração curta no Android (dá pra desligar em Configurações → Mais opções)
+- Configurações mais curtas: o resto fica em Mais opções
+
+### Sala de troféus
+- O Pokémon que passeia não fica mais esticado nem passa por dentro dos móveis
+- O PC aparece inteiro, a TV na frente do móvel e as fotos das cartas sem esticar
+- A câmera não fica mais presa aproximada depois de um toque rápido
+
+## 0.9.1.1 · Cartas de volta
+
+### Consertos
+- A vitrine mostra a sua melhor carta de verdade daquele Pokémon (antes podia ficar presa na versão padrão, Destaque I ou Ícone sem MVP)
+- Mudança só no Álbum agora sobe pra nuvem
+- Carta perdida de antes do Álbum (19/10) volta por código: Perfil → Treinador → Resgatar código
+
+## 0.9.1 · Rota Índigo
+
+### Rota Índigo (modo novo)
+- A copa longa: um mapa de Kanto de baixo pra cima (Rota 1, Floresta de Viridian, Mt. Moon, Cerulean, Estrada da Vitória, Planalto Índigo), com partidas, Ginásios, Mercado, Baú, Treino e eventos "?"
+- Três atos: eliminatórias no mapa, fase de grupos no Planalto (2 primeiros vão pra Final) e a Final contra a Liga Índigo
+- Cartão amarelo: a 1ª derrota fora da Final não elimina; a 2ª é vermelho
+- Treinadores da Rota com falas no VERSUS e no fim do jogo
+
+### Copa Relâmpago
+- A Copa rápida virou Copa Relâmpago, com a chave de 16 clubes na tela: você sobe na chave a cada vitória
+- Missões de gols numa copa contam a melhor sequência de 4 jogos (vale igual na Relâmpago e na Rota)
+
+### Partida
+- Acréscimos de 1 a 3 minutos por tempo, com a plaquinha no placar
+- Pressão final: do minuto 37 em diante, quem está perdendo ganha um empurrão (chute, passe, drible e velocidade) e sobe o time, igual pros dois lados
+
+### Copa do Dia
+- Dias seguidos e o próximo marco na tela do dia
+- Figurinha do dia: o mesmo Pokémon pra todo mundo, carta Evento no Álbum ao terminar
+- Marcos: 7 dias (título Fiel da Copa) e 30 dias (treinadora Garota Dourada)
+
+### Contas
+- Nome de treinador e de clube são únicos (quem já tinha fica com o nome)
+
 ## 0.9.0.5 · Tudo na prancheta
 
 ### Toque direto

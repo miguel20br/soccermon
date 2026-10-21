@@ -7,6 +7,12 @@ export const result = {
     share: 'Compartilhar',
     newCup: 'Nova copa',
     menu: 'Menu',
+    /** Eliminado: o quanto faltou, numa linha. */
+    nearMiss: {
+        pens: '{stage}: caiu nos pênaltis. Faltou muito pouco!',
+        one: '{stage}: caiu por 1 gol. Faltou pouco!',
+        more: '{stage}: caiu por {n} gols. Na próxima vai!',
+    },
     chooseReward: 'Escolher recompensa',
     feedback: 'Dar feedback',
     finalDetails: 'A final em detalhes',
@@ -50,6 +56,8 @@ export const result = {
         champions: 'CAMPEÕES!',
         win: 'VITÓRIA!',
         loss: 'FIM DA LINHA',
+        /** Rota Índigo: perdeu, mas segue (cartão amarelo no mapa, derrota no grupo). */
+        lossAlive: 'DERROTA',
         cupWon: 'Copa de Kanto conquistada!',
         runnerUp: 'Vice-campeão da Copa de Kanto',
         eliminated: 'Eliminado {stage}',

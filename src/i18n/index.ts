@@ -2,9 +2,11 @@ import { ABILITIES, MOVES } from '../engine/data';
 import { ITEMS } from '../engine/items';
 import type { AttrModifier, MoveModifier } from '../engine/modifiers';
 import { DRAIN, type ExplainMoveId, MOVE_EXPLAIN, moveProfile } from '../engine/moves';
+import { type CupMode, cupLength, isFinalStage, isLong } from '../store/long-cup';
 import { en } from './en';
 import { moveExplainEn } from './en/move-explain';
 import { detectLang, type Lang } from './lang';
+import { generatedMoveText } from './move-text';
 import { type Dict, pt } from './pt';
 
 export type { Lang } from './lang';
@@ -93,12 +95,13 @@ export function moveDesc(id: string, lang: Lang = current): string {
 }
 
 /**
- * O que o golpe faz no futsal (golpes especiais e os que ganharam traço; os outros: undefined e a tela usa o
- * texto do tipo de golpe). Português: MOVE_EXPLAIN do motor; inglês: src/i18n/en/move-explain.ts.
+ * O que o golpe faz no futsal: a explicação própria (MOVE_EXPLAIN do motor; inglês em src/i18n/en/move-explain.ts) ou o
+ * texto gerado pelos números do motor (src/i18n/move-text.ts). Golpe comum: undefined e a tela usa o texto do tipo.
  */
 export function moveExplain(id: string, lang: Lang = current): string | undefined {
     const pt = MOVE_EXPLAIN[id];
-    if (!pt || lang === 'pt') return pt;
+    if (!pt) return generatedMoveText(id, lang, DICTS[lang].stats.lab.kind[moveProfile(id).kind] ?? '');
+    if (lang === 'pt') return pt;
     return moveExplainEn[id as ExplainMoveId] ?? pt;
 }
 
@@ -134,6 +137,18 @@ export function statusName(s: string | number, lang: Lang = current): string {
 
 /** Fase da copa: "Semifinal" / "Semi-final". */
 export const stageName = (stage: number, lang: Lang = current): string => DICTS[lang].common.stage[stage] ?? '';
+
+/** Nome da partida da copa: a fase da rápida ("Semifinal") ou "Partida 3 de 8" / "Final" na Copa longa. */
+export function cupStageName(run: { mode?: CupMode }, stage: number, lang: Lang = current): string {
+    if (!isLong(run)) return stageName(stage, lang);
+    const d = DICTS[lang].longCup;
+    return isFinalStage({ ...run, stage }) ? d.final : fmt(d.step, { n: stage + 1, total: cupLength(run) });
+}
+/** Versão curta (placar da partida, gráficos): "Semi" na rápida, "3/8" na longa. */
+export function cupStageShort(run: { mode?: CupMode }, stage: number, short: readonly string[]): string {
+    if (!isLong(run)) return short[stage] ?? '';
+    return isFinalStage({ ...run, stage }) ? (short.at(-1) ?? '') : `${stage + 1}/${cupLength(run)}`;
+}
 
 /** Nome do clube rival (o save guarda o nome em português do motor). */
 export const clubName = (name: string, lang: Lang = current): string => DICTS[lang].common.club[name] ?? name;

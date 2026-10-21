@@ -404,7 +404,7 @@ function ReviewCard({
                         </button>
                         <button
                             type="button"
-                            className={`btn small yellow${rv?.verdict === 'mudar' ? ' active' : ''}`}
+                            className={`btn small outline${rv?.verdict === 'mudar' ? ' active' : ''}`}
                             onClick={() => save({ verdict: 'mudar' })}
                         >
                             Mudar

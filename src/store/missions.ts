@@ -6,6 +6,7 @@ import type { GoalNote, MatchDigest } from '../engine/match-stats';
 import type { MatchResult } from '../engine/runners/batch-runner';
 import type { TeamSetup } from '../engine/state';
 import { GYM_TM } from '../engine/tm';
+import { bestDailyStreak, type DailyEntry } from './daily';
 import type { Records, RunState, StageResult } from './game-store';
 import {
     albumCount,
@@ -78,6 +79,7 @@ export const TRAINERS = [
     'redGold',
     'blueGold',
     'oakGold',
+    'lassGold',
     // platina: holográficos, um por geração (100% de tudo da geração)
     'oakHolo',
 ] as const;
@@ -94,6 +96,7 @@ export const GOLD_TRAINERS = {
     red: 'redGold',
     blue: 'blueGold',
     oak: 'oakGold',
+    lass: 'lassGold',
 } as const satisfies Partial<Record<TrainerId, TrainerId>>;
 const GOLD_SET = new Set<string>(Object.values(GOLD_TRAINERS));
 /** Treinador dourado: sprite com brilho e moldura dourada no perfil, VERSUS, duelo e card do título. */
@@ -148,6 +151,7 @@ export const TITLE_IDS = [
     'topPercentage',
     'lendaKanto',
     'artilheiroLendario',
+    'fielCopa',
     'viradaHistorica',
     'todosJogaram',
     'zeNinguem',
@@ -177,6 +181,8 @@ export interface SaveView {
     runs: (RunState | null | undefined)[];
     /** Missões já cumpridas (para as que dependem de outras, como Kanto Completo). */
     done: ReadonlySet<string>;
+    /** Copas do Dia jogadas (sequência de dias). */
+    daily?: DailyEntry[];
 }
 
 /** Uma partida do seu time, do jeito que as missões leem. Titulares vazios = partida antiga (só o resumo). */
@@ -236,12 +242,26 @@ const titles = (s: SaveView) => Math.max(s.records.titles, s.hall.length);
 const seen = (s: SaveView) => seenCount(s.dex);
 const results = (s: SaveView) => s.runs.flatMap((r) => r?.results ?? []);
 const allPicks = (s: SaveView) => s.runs.flatMap((r) => r?.picks ?? []);
+/**
+ * "Numa copa" = na melhor sequência de 4 jogos seguidos de uma copa (decidido em 21/10/2026): a Copa Relâmpago tem 4
+ * jogos, a Rota Índigo tem 8, e a meta fica igual nas duas (a Rota só dá mais chances de bater).
+ */
+const CUP_WINDOW = 4;
+const bestWindow = (xs: number[]) => {
+    let best = 0;
+    for (let i = 0; i < Math.max(1, xs.length - CUP_WINDOW + 1); i++)
+        best = Math.max(
+            best,
+            xs.slice(i, i + CUP_WINDOW).reduce((a, b) => a + b, 0),
+        );
+    return best;
+};
 /** Mais gols do seu time numa copa só (copas guardadas e Hall da Fama). */
 const bestCupGoals = (s: SaveView) =>
     Math.max(
         0,
-        ...s.runs.map((r) => (r?.results ?? []).reduce((n, x) => n + x.score[0], 0)),
-        ...s.hall.map((h) => h.scores.reduce((n, x) => n + x[0], 0)),
+        ...s.runs.map((r) => bestWindow((r?.results ?? []).map((x) => x.score[0]))),
+        ...s.hall.map((h) => bestWindow(h.scores.map((x) => x[0]))),
     );
 
 /** Mais gols de um Pokémon só numa copa (resumos das copas guardadas e Hall da Fama). */
@@ -249,12 +269,14 @@ const bestScorerCup = (s: SaveView) =>
     Math.max(
         0,
         ...s.runs.flatMap((r) => {
-            const by = new Map<string, number>();
-            for (const x of r?.results ?? [])
-                for (const p of x.stats?.players ?? []) by.set(p.uid, (by.get(p.uid) ?? 0) + p.goals);
-            return [...by.values()];
+            const results = r?.results ?? [];
+            const uids = new Set(results.flatMap((x) => (x.stats?.players ?? []).map((p) => p.uid)));
+            return [...uids].map((uid) =>
+                bestWindow(results.map((x) => x.stats?.players?.find((p) => p.uid === uid)?.goals ?? 0)),
+            );
         }),
-        ...s.hall.flatMap((h) => h.squad.map((p) => p.goals)),
+        // o Hall guarda só o total da copa: vale pra Relâmpago (4 jogos); a Rota conta pelas copas guardadas
+        ...s.hall.filter((h) => !h.mode).flatMap((h) => h.squad.map((p) => p.goals)),
     );
 /** Campeão: a final vencida, com os titulares do apito inicial. */
 const champion = (m: MatchView) => m.final && m.won;
@@ -561,6 +583,9 @@ export const MISSIONS: Mission[] = [
         count: (s) => s.records.bestStreak ?? 0,
     },
     { id: 'artilheiroLendario', group: 'lendas', title: 'artilheiroLendario', goal: 12, count: bestScorerCup },
+    // Copa do Dia: 7 e 30 dias seguidos (pedido do Miguel, 21/10/2026)
+    { id: 'fielCopa', group: 'feitos', title: 'fielCopa', goal: 7, count: (s) => bestDailyStreak(s.daily ?? []) },
+    { id: 'lassGold', group: 'lendas', trainer: 'lassGold', goal: 30, count: (s) => bestDailyStreak(s.daily ?? []) },
     {
         id: 'blueGold',
         group: 'lendas',
@@ -628,7 +653,12 @@ export function matchView(
 /** Partida guardada no save (sem os titulares: vale só para os feitos de gol, placar, pênaltis e evolução). */
 export function stageView(r: StageResult): MatchView {
     const digest = r.stats?.digest ?? { goals: [], half: null, moves: {}, evolutions: [] };
-    return matchView({ score: r.score, shootout: r.shootout, winner: r.won ? 0 : 1 }, digest, null, r.stage === 3);
+    return matchView(
+        { score: r.score, shootout: r.shootout, winner: r.won ? 0 : 1 },
+        digest,
+        null,
+        r.final ?? r.stage === 3,
+    );
 }
 
 // ------------------------------------------------------------------------------------------- progresso

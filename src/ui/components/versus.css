@@ -529,9 +529,13 @@
     .vsp .vsp-stage {
         top: 10px;
     }
+    /* no lugar da barra do polegar: largura cheia embaixo, como em toda tela do loop */
     .vsp .vs-start {
-        bottom: 12px;
-        min-width: 180px;
+        left: max(12px, env(safe-area-inset-left));
+        right: max(12px, env(safe-area-inset-right));
+        bottom: calc(12px + env(safe-area-inset-bottom));
+        width: auto;
+        min-height: 52px;
     }
 }
 

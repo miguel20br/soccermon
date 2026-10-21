@@ -1,5 +1,6 @@
 import { type ReactNode, useRef, useState } from 'react';
 import { computeAttributes } from '../../engine/attributes';
+import { relampagoBracket } from '../../engine/bracket';
 import { cupRival } from '../../engine/cup';
 import { species } from '../../engine/data';
 import { FORMATIONS, type FormationId } from '../../engine/formations';
@@ -10,18 +11,21 @@ import { pickCornerTaker } from '../../engine/match';
 import { applyModifiers, attributeModifiers } from '../../engine/modifiers';
 import { type CornerPlan, TACTIC_LABEL, type Tactic } from '../../engine/state';
 import { computeSynergies } from '../../engine/synergy';
-import { playSfx } from '../../game/audio';
-import { clubName, dict, formationText, itemDesc, itemName, stageName } from '../../i18n';
+import { clubName, cupStageName, dict, formationText, itemDesc, itemName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { liveOf, playerTeam, type SlotRef, useGame } from '../../store/game-store';
+import { isLong, isOut } from '../../store/long-cup';
 import { useCardModal } from '../card-modal';
+import { BracketPeek } from '../components/Bracket';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
 import { LinkChips } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
 import { cardSprite, TypeBadge } from '../components/PokeCard';
 import { Money, SponsorSlots } from '../components/SponsorCard';
+import { leaveWith } from '../feedback';
 import { Tip } from '../help/Tip';
+import { useClubColor } from '../profile/club';
 import { lineupAverage } from '../rating';
 import { agencyOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
@@ -52,10 +56,15 @@ export function Lineup() {
     const openCard = useCardModal((s) => s.open);
     const [loading, setLoading] = useState(false);
     const { t, d, lang } = useT();
+    const clubColor = useClubColor();
     if (!run) return null;
 
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
     const opponent = run.opponents[run.stage];
+    // Copa longa: quem está fora (lesão, Creche) fica no banco; titular fora trava o Jogar até você trocar
+    const outName = (u: string) => `${viewInstance(byUid.get(u)!).displayName} (${run.out?.[u]})`;
+    const outList = [...run.lineup, ...run.bench].filter((u) => isOut(run, u)).map(outName);
+    const outStarter = run.lineup.filter((u) => isOut(run, u)).map(outName)[0];
     const locked = !!run.lockedTeam;
 
     const play = async () => {
@@ -85,29 +94,44 @@ export function Lineup() {
 
     return (
         <>
-            <Tip id="lineup-synergy">{t('team.lineup.tip')}</Tip>
-            <div className="cup-bug bc-surface">
-                <div className="cup-path">
-                    {d.common.stage.map((label, i) => {
-                        const res = run.results.find((r) => r.stage === i);
-                        const cls = res ? (res.won ? 'won' : 'lost') : i === run.stage ? 'now' : '';
-                        return (
-                            <div key={label} className={`cup-step ${cls}`}>
-                                <b>{label}</b>
-                                <span className="muted">{clubName(run.opponents[i].name, lang)}</span>
-                                {res && (
-                                    <div>
-                                        {res.score[0]} x {res.score[1]}
-                                        {res.shootout &&
-                                            t('team.lineup.pens', { a: res.shootout[0], b: res.shootout[1] })}
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
+            {/* Copa Relâmpago: as 4 fases (na Rota o caminho é o mapa, e os rivais só existem até a casa de agora) */}
+            {!isLong(run) && (
+                <div className="cup-bug bc-surface">
+                    <div className="cup-path">
+                        {d.common.stage.map((label, i) => {
+                            const res = run.results.find((r) => r.stage === i);
+                            const cls = res ? (res.won ? 'won' : 'lost') : i === run.stage ? 'now' : '';
+                            return (
+                                <div key={label} className={`cup-step ${cls}`}>
+                                    <b>{label}</b>
+                                    <span className="muted">{clubName(run.opponents[i].name, lang)}</span>
+                                    {res && (
+                                        <div>
+                                            {res.score[0]} x {res.score[1]}
+                                            {res.shootout &&
+                                                t('team.lineup.pens', { a: res.shootout[0], b: res.shootout[1] })}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
-            </div>
+            )}
 
+            {/* Copa Relâmpago: a chave inteira num toque, com você na fase de agora */}
+            {!isLong(run) && (
+                <BracketPeek
+                    rounds={relampagoBracket(
+                        run.seed,
+                        { name: run.teamName, color: clubColor },
+                        run.opponents,
+                        run.results,
+                    )}
+                    current={run.stage}
+                />
+            )}
+            <Tip id="lineup-synergy">{t('team.lineup.tip')}</Tip>
             <LineupEditor
                 title={t('team.lineup.title', { team: run.teamName })}
                 formation={run.formation}
@@ -128,7 +152,7 @@ export function Lineup() {
                 side={
                     <div className="panel">
                         <h2>
-                            {stageName(run.stage, lang)}: {clubName(opponent.name, lang)}
+                            {cupStageName(run, run.stage, lang)}: {clubName(opponent.name, lang)}
                         </h2>
                         <div className="opponent-strip">
                             {opponent.lineup.map((p) => (
@@ -156,8 +180,27 @@ export function Lineup() {
                                 n: lineupAverage(opponent.lineup, opponent.formation),
                             })}
                         </p>
+                        {outList.length > 0 && (
+                            <p className={outStarter ? 'error-text' : 'tactic-desc'}>
+                                {outStarter
+                                    ? t('longCup.outStarter', { name: outStarter })
+                                    : t('longCup.outBench', { names: outList.join(', ') })}
+                            </p>
+                        )}
                         <div className="bc-thumbbar">
-                            <button type="button" className="btn primary wide" onClick={play} disabled={loading}>
+                            {/* Rota Índigo: titular machucado trava o Jogar; o porquê fica do lado do botão */}
+                            {outStarter && (
+                                <p className="tb-hint" id="lineup-play-why">
+                                    {t('longCup.outStarter', { name: outStarter })}
+                                </p>
+                            )}
+                            <button
+                                type="button"
+                                className="btn primary wide"
+                                onClick={play}
+                                disabled={loading || !!outStarter}
+                                aria-describedby={outStarter ? 'lineup-play-why' : undefined}
+                            >
                                 {loading
                                     ? t('team.lineup.warming')
                                     : locked
@@ -165,8 +208,8 @@ export function Lineup() {
                                       : t('team.lineup.play', {
                                             stage:
                                                 lang === 'pt'
-                                                    ? stageName(run.stage, lang).toLowerCase()
-                                                    : stageName(run.stage, lang),
+                                                    ? cupStageName(run, run.stage, lang).toLowerCase()
+                                                    : cupStageName(run, run.stage, lang),
                                         })}
                             </button>
                         </div>
@@ -187,7 +230,12 @@ export function Lineup() {
                     askAbandon ? (
                         <div className="abandon-ask" role="alert">
                             <span>{t('team.lineup.abandonConfirm')}</span>
-                            <button type="button" className="btn small danger" onClick={abandonRun}>
+                            <button
+                                type="button"
+                                className="btn small danger"
+                                data-fx="none"
+                                onClick={() => leaveWith('leave', abandonRun)}
+                            >
                                 {t('team.lineup.abandon')}
                             </button>
                             <button type="button" className="btn ghost small" onClick={() => setAskAbandon(false)}>
@@ -289,7 +337,6 @@ export function LineupEditor({
         if (locked) return;
         if (giving) {
             if (uid !== giving) {
-                playSfx('select');
                 onMoveItem?.(giving, uid);
             }
             setGiving(null);
@@ -300,7 +347,6 @@ export function LineupEditor({
             return;
         }
         if (selected.zone !== ref.zone || selected.index !== ref.index) {
-            playSfx('select');
             onSwap(selected, ref);
         }
         setSelected(null);

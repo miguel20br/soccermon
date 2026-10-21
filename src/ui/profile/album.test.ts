@@ -128,4 +128,29 @@ describe('álbum (livro por geração, um espaço por Pokémon)', () => {
         expect(frontRow(rows, rows[2].id)).toBe(rows[2]);
         expect(frontRow(rows, 'lixo')).toBe(rows[0]);
     });
+
+    it('álbum cheio leve: abre só com a página à vista e uma carta inteira por espaço (as de trás são só a moldura)', () => {
+        // as 151 espécies com Normal, Shiny e Evento (3 versões cada): antes abria 2 páginas com 3 cartas inteiras por espaço
+        const r = new Rng('album-cheio');
+        const all = Array.from({ length: 151 }, (_, i) => i + 1);
+        const b = binderAdd(
+            [],
+            all.flatMap((id) => [
+                { ...createInstance(id, r), uid: `s${id}`, shiny: true },
+                { ...createInstance(id, r), uid: `e${id}`, shiny: false, special: { kind: 'evento' as const } },
+            ]),
+            { from: 'draft', at: 1 },
+        );
+        const full = Object.fromEntries(
+            all.map((id) => [id, { ...entry, editions: EDITION_BIT.normal | EDITION_BIT.shiny | EDITION_BIT.evento }]),
+        );
+        Object.assign(state, { dex: full, binder: b, moves: {}, settings: { cries: 0 }, profile: DEFAULT_PROFILE });
+        const html = render(createElement(AlbumView, { at: { id: 1, n: 1 }, onSheet() {} }));
+        const slots = html.match(/class="al-slot/g)?.length ?? 0;
+        const cards = html.match(/class="pc2 [^"]*"/g) ?? [];
+        const whole = cards.filter((c) => !c.includes('pc2-bare')).length;
+        expect(slots).toBe(12);
+        expect(whole).toBe(12);
+        expect(cards.length - whole).toBe(24);
+    });
 });

@@ -1,6 +1,6 @@
 import { AGENCY, SHOUTS } from '../agency';
 import type { Command, Controller } from '../commands';
-import { eff } from '../effective';
+import { eff, FINAL_PRESSURE } from '../effective';
 import { formationStyle } from '../formations';
 import { FRICTION, goalXFor, isInOwnArea, maxSpeed, ownGoalX, TACKLE_RANGE, toRel, toWorld } from '../match';
 import { DRAWBACK, hasTrait, MOVE_TUNING, moveProfile, type Trait } from '../moves';
@@ -38,18 +38,30 @@ export class AIController implements Controller {
 
     constructor(private readonly s: MatchState) {}
 
-    /** Deslocamentos da tática, mais o do grito do técnico enquanto ele vale (agência, experimento). */
+    /**
+     * Deslocamentos da tática, mais o do grito do técnico enquanto ele vale (agência, experimento) e o da Pressão
+     * final (quem perde no fim vai pra cima).
+     */
     private shift(team: 0 | 1): (typeof TACTIC_SHIFT)[Tactic] {
         const s = this.s;
         const t = TACTIC_SHIFT[s.teams[team].tactic];
         const fs = formationStyle(s.teams[team].formation.id);
-        const base = {
+        let base = {
             attack: t.attack + (fs.attack ?? 0),
             defend: t.defend + (fs.defend ?? 0),
             pivotHold: t.pivotHold + (fs.pivotHold ?? 0),
             shootBias: t.shootBias + (fs.shootBias ?? 0),
             pressBias: t.pressBias + (fs.pressBias ?? 0),
         };
+        if (s.pressure === team) {
+            const fp = FINAL_PRESSURE;
+            base = {
+                ...base,
+                attack: base.attack + fp.attack,
+                defend: base.defend + fp.defend,
+                pressBias: base.pressBias + fp.pressBias,
+            };
+        }
         const sh = s.teams[team].agency.shout;
         if (!sh || s.tick >= sh.until) return base;
         const m = SHOUTS[sh.kind];

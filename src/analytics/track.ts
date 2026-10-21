@@ -100,7 +100,12 @@ function onChange(s: GameState, prev: GameState) {
     const old = prev.run;
     // retomar uma copa guardada não é começar copa nova
     if (run && run.seed !== old?.seed && !(prev.parkedRuns ?? []).some((p) => p.seed === run.seed))
-        track('run_start', { challenge: new URLSearchParams(location.search).has('seed'), daily: !!run.daily });
+        track('run_start', {
+            challenge: new URLSearchParams(location.search).has('seed'),
+            daily: !!run.daily,
+            // Rota Índigo ('longa'): 8 partidas, então `stage` não é a fase da Relâmpago
+            mode: run.mode ?? null,
+        });
     if (run && old && run.seed === old.seed) {
         if (old.status === 'formation' && run.status === 'captain') track('formation', { formation: run.formation });
         if (run.picks.length > old.picks.length) {
@@ -119,6 +124,7 @@ function onChange(s: GameState, prev: GameState) {
             const r = run.results.at(-1)!;
             track('match_end', {
                 stage: r.stage,
+                mode: run.mode ?? null,
                 won: r.won,
                 gf: r.score[0],
                 ga: r.score[1],
@@ -135,6 +141,7 @@ function onChange(s: GameState, prev: GameState) {
             track('run_end', {
                 champion: run.status === 'champion',
                 stage: r?.stage ?? 0,
+                mode: run.mode ?? null,
                 perfect: run.status === 'champion' && run.results.every((x) => x.won && x.score[1] === 0),
                 // raridade na tela do título ("só 3% dos campeões tinham..."): espécies do elenco e o capitão
                 squad: [...run.lineup, ...run.bench]

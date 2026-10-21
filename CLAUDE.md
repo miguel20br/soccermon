@@ -72,7 +72,7 @@ respondendo). Repo: github.com/miguel20br/soccermon.
 - Contas: login Google + save na nuvem via Supabase (projeto `vszcxacbcabohhdwxfpb`, integração da Vercel).
   Regras de acesso em `supabase/migrations/` (cada um só lê e escreve o próprio save). Sem as variáveis de
   ambiente o jogo roda 100% local.
-- Atalhos de dev (`npm run dev`, porta 8080): `?demo=penaltis|ditto|evolucao|campeao|escanteio` (`escanteio&defesa=1`: espalmada que vira escanteio; `evolucao&rival=1`: evolução do rival), `?cards=1`,
+- Atalhos de dev (`npm run dev`, porta 8080): `?demo=penaltis|ditto|evolucao|campeao|escanteio` (`escanteio&defesa=1`: espalmada que vira escanteio; `evolucao&rival=1`: evolução do rival; `acrescimos`: Pressão final e "+N'" no fim do 2º tempo), `?cards=1`,
   `?lab=posicoes`, `?demo=crash` (força o aviso de erro do `ErrorBoundary`). Público: `?lab=golpes` (com `&revisao=1` mostra a ferramenta de revisão ok/mudar).
 
 ## Rotina de trabalho
@@ -156,7 +156,26 @@ commit). Prévias da Vercel têm os atalhos de demo e `?vel=N` (quadra até 64x)
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (20/10/2026, v0.9.0 · Mercado e Patrocínios)
+## Estado atual (21/10/2026, v0.9.2 · Casa arrumada)
+
+**0.9.2 (21/10):** onda 1 da revisão de design (`docs/planos/revisao-design.md`, `pesquisa-layout-e-game-design.md`):
+botões `.btn.outline`/`.btn.danger` em contorno, barra do polegar nas telas da copa, Home com "Nova copa" grande, faixa
+"Vem aí", 3 portas, chave num toque, dicas só na 1ª copa, sem boas-vindas na 1ª visita, retorno de toque central em
+`src/ui/feedback.ts` (som por tipo de botão, saída triste ao abandonar), Configurações com "Mais opções", e a Sala de
+troféus consertada (escala inteira, chão livre em `room-spots.ts`). **A Rota Índigo** quebrou na 1ª partida
+em produção (21/10), saiu do ar e voltou na 0.9.2.2 depois de jogada inteira no navegador (9 bugs consertados). Regra:
+modo novo só vai ao ar depois de jogado de ponta a ponta na tela, não só pelo robô do store.
+
+### 0.9.1 · Rota Índigo
+
+
+**0.9.1 (21/10):** Rota Índigo no ar (`LONG_CUP_LIVE` em `src/store/long-cup.ts`; mapa, eventos, fase de grupos e Final,
+`?demo=mapa`, `?demo=grupo`), a Copa rápida virou **Copa Relâmpago** com a chave de 16 clubes, Copa do Dia com dias
+seguidos e figurinha do dia, nomes únicos, e acréscimos + Pressão final (`ENGINE_VERSION` 7,
+`docs/planos/pressao-final.md`). Na 0.9.0.5, tudo na prancheta (substituir, quem recebe, passar item, pênaltis
+tocando). **Decisões de 21/10:** o Miguel gosta dos cartões "Em breve" (não tirar: deixar mais leves); a sequência de
+dias fica (é sem perda e sem dinheiro); as boas-vindas saem da 1ª visita (passo a passo só na Ajuda, medir o funil).
+
 
 **0.9.0 (Copa roguelike, etapa 1; proposta e análise em `docs/planos/copa-roguelike.md`, plano em
 `docs/planos/copa-roguelike-plano.md`):** a Copa de hoje é a **Copa rápida**; a **Copa longa** (mapa, eventos, etapa 2)

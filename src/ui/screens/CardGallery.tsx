@@ -9,6 +9,7 @@ import { SPONSOR_IDS } from '../../engine/sponsors';
 import { useT } from '../../i18n/react';
 import { type CareerSeal, type DexEntry, EMPTY_ENTRY } from '../../store/profile';
 import { PackArt } from '../components/CardPack';
+import { FoulCard } from '../components/FoulCard';
 import { PokeCard2 } from '../components/PokeCard2';
 import { SponsorCard, SponsorSlots } from '../components/SponsorCard';
 import { sealTip } from '../profile/seal-tip';
@@ -316,6 +317,14 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
             </div>
 
             <div className="cg-v06">
+                <section className="panel" id="cartoes">
+                    <h2>Cartão amarelo e vermelho (Copa longa, tela de resultado)</h2>
+                    <p className="tactic-desc">
+                        Amarelo: 1ª derrota fora da Final, o cartão cai girando e bate. Vermelho: a 2ª; o segundo
+                        amarelo encosta, os dois viram vermelho e o resto do caminho é bloqueado. Toque pra repetir.
+                    </p>
+                    <FoulReplay />
+                </section>
                 <section className="panel" id="pacotes">
                     <h2>Pacote de tipo (Mercado) · proposta pro ok do Miguel</h2>
                     <p className="tactic-desc">
@@ -457,6 +466,20 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
                     arquivo
                 </a>
             </footer>
+        </div>
+    );
+}
+
+/** Os dois cartões da Copa longa, com um botão pra ver a animação de novo. */
+function FoulReplay() {
+    const [n, setN] = useState(0);
+    return (
+        <div key={n}>
+            <FoulCard kind="yellow" />
+            <FoulCard kind="red" remaining={4} />
+            <button type="button" className="btn small" onClick={() => setN(n + 1)}>
+                Repetir
+            </button>
         </div>
     );
 }

@@ -37,6 +37,34 @@ export function comebackFactor(s: MatchState, team: 0 | 1): number {
     return behind >= 3 ? Math.min(1.14, 1.06 + 0.03 * (behind - 3)) : 1;
 }
 
+/**
+ * Pressão final (docs/planos/pressao-final.md): nos últimos `lastMinutes` do 2º tempo e nos acréscimos, quem está
+ * perdendo vai pra cima. Regra aberta e igual pros dois lados (vale no Duelo e na Liga) e aparece no placar.
+ * `attrs` multiplica o atributo de quem pressiona; `attack`/`defend`/`pressBias` empurram o time pra frente na IA,
+ * como a tática (TACTIC_SHIFT em controllers/ai-controller.ts).
+ */
+export const FINAL_PRESSURE: {
+    lastMinutes: number;
+    attrs: Partial<Record<AttrKey, number>>;
+    attack: number;
+    defend: number;
+    pressBias: number;
+} = {
+    lastMinutes: 3,
+    attrs: { shooting: 1.06, passing: 1.04, dribble: 1.04, pace: 1.03 },
+    attack: 1.5,
+    defend: 1,
+    pressBias: 0.03,
+};
+
+/** Quem está na Pressão final agora: o time que perde, do minuto 37 (futsal) até o apito final. */
+export function finalPressureTeam(s: MatchState): 0 | 1 | null {
+    const cfg = s.cfg;
+    if (s.half !== 2 || s.score[0] === s.score[1]) return null;
+    if (s.time < cfg.halfSeconds * (1 - FINAL_PRESSURE.lastMinutes / cfg.displayHalfMinutes)) return null;
+    return s.score[0] < s.score[1] ? 0 : 1;
+}
+
 export function fatigueFactor(p: PlayerState): number {
     return 0.72 + 0.28 * p.energy;
 }
@@ -53,6 +81,7 @@ export function eff(s: MatchState, p: PlayerState, key: AttrKey): number {
     const fs = formationStyle(s.teams[p.team].formation.id);
     v *= (fs.attrs?.[key] ?? 1) * (fs.role?.[p.role]?.[key] ?? 1);
     if (fs.counters?.includes(s.teams[p.team === 0 ? 1 : 0].formation.id)) v *= COUNTER_FACTOR;
+    if (s.pressure === p.team) v *= FINAL_PRESSURE.attrs[key] ?? 1;
     // grito do técnico (agência, experimento): só multiplica com grito valendo
     const shout = s.teams[p.team].agency.shout;
     if (shout && s.tick < shout.until) v *= SHOUTS[shout.kind].attrs[key] ?? 1;

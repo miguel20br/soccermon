@@ -4,9 +4,10 @@ import { viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import type { TeamSetup } from '../../engine/state';
 import { playSfx } from '../../game/audio';
-import { clubName, stageName } from '../../i18n';
+import { clubName, cupStageName, cupStageShort } from '../../i18n';
 import { useT } from '../../i18n/react';
 import type { RunState } from '../../store/game-store';
+import { cupLength, isFinalStage, isLong } from '../../store/long-cup';
 import { rivalColor } from '../../store/profile';
 import { useClubColor } from '../profile/club';
 import { CountUp } from './CountUp';
@@ -103,19 +104,39 @@ export function ResultHero({
     const { t, d } = useT();
     const champion = run?.status === 'champion';
     const mood = champion ? 'champ' : won ? 'win' : 'loss';
+    // Rota Índigo: perder com o cartão amarelo (volta pro mapa) ou no grupo não é o fim da linha
+    const alive = !won && (run?.status === 'map' || run?.status === 'group');
     const title =
-        duel?.title ?? (champion ? t('result.hero.champions') : won ? t('result.hero.win') : t('result.hero.loss'));
+        duel?.title ??
+        (champion
+            ? t('result.hero.champions')
+            : won
+              ? t('result.hero.win')
+              : alive
+                ? t('result.hero.lossAlive')
+                : t('result.hero.loss'));
     const sub =
         duel?.sub ??
         (!run
             ? ''
             : champion
               ? t('result.hero.cupWon')
-              : won
-                ? d.common.stageWon[run.stage]
-                : run.stage === CUP_STAGES.length - 1
-                  ? t('result.hero.runnerUp')
-                  : t('result.hero.eliminated', { stage: d.common.stageIn[run.stage] ?? '' }));
+              : isLong(run)
+                ? // Copa longa: "Partida 3 de 8", o cartão amarelo ou o fim
+                  won
+                    ? cupStageName(run, run.stage)
+                    : run.status === 'map'
+                      ? t('longCup.yellowLine')
+                      : run.status === 'group'
+                        ? t('longCup.groupLossLine')
+                        : isFinalStage(run)
+                          ? t('longCup.runnerUp')
+                          : t('longCup.out', { n: run.stage + 1 })
+                : won
+                  ? d.common.stageWon[run.stage]
+                  : run.stage === CUP_STAGES.length - 1
+                    ? t('result.hero.runnerUp')
+                    : t('result.hero.eliminated', { stage: d.common.stageIn[run.stage] ?? '' }));
     const squad = match.finalRoster.filter((p) => p.team === side);
     const next = run && won && !champion ? run.opponents[run.stage + 1] : null;
     // seu time na cor do clube (Perfil); o rival no uniforme reserva se as cores baterem
@@ -130,7 +151,7 @@ export function ResultHero({
         // biome-ignore lint/a11y/useKeyWithClickEvents: toque pra pular a contagem; o teclado chega aos botões, que também completam
         <section className={`panel rh rh-${mood}`} style={style} aria-label={t('result.hero.aria')} onClick={finish}>
             {mood !== 'loss' && <Confetti count={mood === 'champ' ? 60 : 36} />}
-            <div className="rh-stage bc-tag">{duel ? duel.stage : run ? stageName(run.stage) : ''}</div>
+            <div className="rh-stage bc-tag">{duel ? duel.stage : run ? cupStageName(run, run.stage) : ''}</div>
             <h1 className="rh-title" aria-label={title}>
                 {[...title].map((ch, i) => (
                     // biome-ignore lint/suspicious/noArrayIndexKey: letras do título
@@ -206,7 +227,7 @@ export function ResultHero({
 
             {run && (
                 <ol className="rh-path" aria-label={t('result.hero.path')}>
-                    {CUP_STAGES.map((label, i) => {
+                    {Array.from({ length: cupLength(run) }, (_, i) => CUP_STAGES[i] ?? `p${i}`).map((label, i) => {
                         const res = run.results.find((r) => r.stage === i);
                         const state = res ? (res.won ? 'won' : 'lost') : i === run.stage + 1 && won ? 'next' : 'todo';
                         return (
@@ -220,7 +241,7 @@ export function ResultHero({
                                         i + 1
                                     )}
                                 </span>
-                                <span>{d.result.hero.stageShort[i] ?? label}</span>
+                                <span>{cupStageShort(run, i, d.result.hero.stageShort)}</span>
                                 {res && (
                                     <small>
                                         {res.score[0]}x{res.score[1]}
@@ -234,7 +255,7 @@ export function ResultHero({
 
             {run && next && (
                 <div className="rh-next">
-                    <span className="muted">{t('result.hero.next', { stage: stageName(run.stage + 1) })}</span>
+                    <span className="muted">{t('result.hero.next', { stage: cupStageName(run, run.stage + 1) })}</span>
                     <b>{clubName(next.name)}</b>
                     <div className="rh-next-squad">
                         {next.lineup.map((p) => (

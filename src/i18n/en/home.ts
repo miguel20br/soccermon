@@ -14,7 +14,6 @@ export const home: typeof pt = {
     },
     choosingReward: 'Choosing the reward',
     atMarket: 'At the Market',
-    cupTag: 'Main modes',
     eventWeek: '{type}-type week',
     eventText: '{type}-type Event cards may show up in the draft.',
     helpAria: 'How to play (see the walkthrough again)',
@@ -29,13 +28,17 @@ export const home: typeof pt = {
     orNew: 'Or start a new cup',
     teamName: 'Your team name',
     newCup: 'New cup',
-    quickCup: { tag: '4 matches', title: 'Quick Cup', line: 'Draft, 4 matches and the Market between them' },
+    quickCup: {
+        tag: '4 matches',
+        title: 'Lightning Cup',
+        line: 'A 4-match knockout, quick and direct.',
+    },
     longCup: {
-        tag: 'Coming soon',
-        title: 'Long Cup',
-        line: 'A map with events, gyms and treasure',
-        soon: 'Coming soon',
-        note: 'The Long Cup arrives in the next version.',
+        tag: '8 matches',
+        title: 'Indigo Road',
+        line: 'Cross Kanto to the Plateau: 8 matches, events and gyms.',
+        short: 'map, events and gyms',
+        note: 'The Indigo Road arrives in the next version.',
     },
     challenge: 'Accept challenge ({seed})',
     rec: {
@@ -57,7 +60,7 @@ export const home: typeof pt = {
     },
     news: 'Patch notes',
     doors: {
-        profile: ['Profile', 'Trainer, club, friends, collection and trophies'],
+        profile: ['Profile', 'Trainer, club and friends'],
         collection: ['Collection', 'Pokédex, Album and Movedex'],
         trophies: ['Trophy room', 'Trophies, medals and numbers'],
     },
@@ -65,7 +68,9 @@ export const home: typeof pt = {
     footerAria: 'More',
     version: 'Version {v} · {title}',
     soonTitle: 'Coming soon',
-    soonRibbon: 'SOON',
+    soonRibbon: 'Coming soon',
+    /** Contagem da Liga no cartãozinho do Vem aí. */
+    soonDays: '{d}d',
     disclaimer:
         'Soccermon v{v} · Made by Miguel Cunha · Non-profit fan game. Pokémon and all related names, sprites and sounds are © Nintendo, Game Freak, Creatures Inc. and The Pokémon Company. This project is not affiliated with or endorsed by them.',
     privacy: 'Privacy and terms',

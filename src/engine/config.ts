@@ -21,7 +21,15 @@ export interface MatchConfig {
     knockout: boolean; // empate vai para os pênaltis
     penaltyKicks: number;
     halftimeRecovery: number; // fôlego recuperado no intervalo
+    /** Acréscimos de cada tempo, em minutos do relógio exibido (sorteados no `rng` da partida); sem = não tem. */
+    stoppage?: { min: number; max: number };
 }
+
+/**
+ * Acréscimos (docs/planos/pressao-final.md): no fim de cada tempo, 1 a 3 minutos a mais do relógio exibido, sorteados
+ * na hora em que o tempo normal acaba. O relógio fica parado no 20' (ou 40') e o placar mostra "+N'".
+ */
+export const STOPPAGE = { min: 1, max: 3 };
 
 /**
  * Versão do motor: sobe a cada mudança que altera partidas já jogadas (mesma seed + mesmas ordens dando outro
@@ -33,8 +41,11 @@ export interface MatchConfig {
  *     pra forma da carta).
  * 5 = 0.8.8 (barra cheia de antes só evolui depois de ele fazer algo na partida: nada de evoluir no apito inicial).
  * 6 = 0.8.8 (edições em camadas: shiny +1 junto de outra edição, Evento leva MVP, MVP +1 por nível; sem teto além do 99 do atributo).
+ * 7 = acréscimos de 1 a 3 minutos por tempo e Pressão final (quem perde nos últimos 3 minutos vai pra cima).
+ * 8 = revisão dos golpes: 1 golpe de cada tipo próprio, sem 2 golpes iguais, Gengar com Sludge, Harden/Slam/Amnesia/
+ *     Tri Attack/Explosion/paredes consertados e o Fly levando a bola 2 m (docs/planos/golpes-revisao.md).
  */
-export const ENGINE_VERSION = 6;
+export const ENGINE_VERSION = 8;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',
@@ -48,12 +59,14 @@ export const FUTSAL_5: MatchConfig = {
     knockout: true,
     penaltyKicks: 5,
     halftimeRecovery: 0.3,
+    stoppage: STOPPAGE,
 };
 
 /**
  * Trecho da seed do duelo: 2 minutos do relógio exibido (no futsal 5: 18 s de jogo = 360 ticks). O relógio para
  * fora da fase `play`, então o trecho k vai do minuto 2k ao 2k+2 (o 1º tempo tem os trechos 0–9, o 2º os 10–19 e
- * os pênaltis são o 20). A tela acha o trecho pelo snapshot: `floor(minute / 2)`.
+ * os pênaltis são o 20). A tela acha o trecho pelo snapshot: `floor(minute / 2)`. Nos acréscimos o relógio fica no
+ * 20' (40'), então os do 1º tempo caem no trecho 10 e os do 2º no 20, junto dos pênaltis.
  */
 export const SEGMENT_MINUTES = 2;
 export const segmentTicks = (cfg: MatchConfig) =>

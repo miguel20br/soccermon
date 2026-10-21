@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useCloud } from '../../cloud/cloud';
+import { reserveName } from '../../cloud/names';
 import { species } from '../../engine/data';
 import { useT } from '../../i18n/react';
 import {
@@ -73,6 +74,36 @@ export function ClubTab({ part }: { part: 'trainer' | 'club' }) {
         updateProfile(patch);
         flash();
     };
+    // nomes únicos: ao sair do campo, o servidor confere se o nome é de outra conta; se for, volta pro que era
+    const before = useRef({ trainerName: profile.trainerName, clubName: profile.clubName });
+    const [taken, setTaken] = useState<'treinador' | 'clube' | null>(null);
+    const claim = async (kind: 'treinador' | 'clube', name: string, revert: Partial<Profile>) => {
+        const res = await reserveName(kind, name);
+        if (res === 'ocupado') {
+            updateProfile(revert);
+            setTaken(kind);
+        } else {
+            setTaken(null);
+            before.current = {
+                ...before.current,
+                ...(kind === 'treinador' ? { trainerName: name } : { clubName: name }),
+            };
+        }
+    };
+
+    // ao abrir com conta: confere os nomes de agora (quem já usava um nome repetido antes da regra vê o aviso)
+    // biome-ignore lint/correctness/useExhaustiveDependencies: só quando a conta aparece
+    useEffect(() => {
+        if (!user) return;
+        let alive = true;
+        const kind = part === 'trainer' ? 'treinador' : 'clube';
+        void reserveName(kind, part === 'trainer' ? profile.trainerName : profile.clubName).then(
+            (r) => alive && r === 'ocupado' && setTaken(kind),
+        );
+        return () => {
+            alive = false;
+        };
+    }, [!!user, part]);
 
     // a sigla tem estado próprio enquanto a pessoa digita (1–2 letras ainda não valem)
     const [tag, setTag] = useState(profile.clubTag);
@@ -116,9 +147,12 @@ export function ClubTab({ part }: { part: 'trainer' | 'club' }) {
                             onBlur={(e) => {
                                 const v = e.target.value.trim();
                                 if (v !== profile.trainerName) save({ trainerName: v });
+                                if (v !== before.current.trainerName)
+                                    void claim('treinador', v, { trainerName: before.current.trainerName });
                             }}
                         />
                     </label>
+                    {taken === 'treinador' && <p className="error-text">{t('profile.club.nameTaken')}</p>}
                     <fieldset className="pf-field">
                         <legend>{t('profile.club.avatar')}</legend>
                         {user?.avatar && (
@@ -257,11 +291,17 @@ export function ClubTab({ part }: { part: 'trainer' | 'club' }) {
                                 }}
                                 onBlur={(e) => {
                                     const name = e.target.value.trim() || DEFAULT_PROFILE.clubName;
+                                    if (name !== before.current.clubName)
+                                        void claim('clube', name, {
+                                            clubName: before.current.clubName,
+                                            clubTag: tagFromName(before.current.clubName),
+                                        });
                                     if (name === profile.clubName) return;
                                     const auto = profile.clubTag === tagFromName(profile.clubName);
                                     save(auto ? { clubName: name, clubTag: tagFromName(name) } : { clubName: name });
                                 }}
                             />
+                            {taken === 'clube' && <p className="error-text">{t('profile.club.clubTaken')}</p>}
                         </label>
                         <label className="pf-field pf-tag-field">
                             <span>{t('profile.club.tag')}</span>

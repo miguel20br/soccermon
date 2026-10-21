@@ -1,9 +1,8 @@
 import { type CSSProperties, useEffect, useState } from 'react';
-import { CUP_STAGES } from '../../engine/cup';
 import { weeklyEventType } from '../../engine/specials';
-import { stageName, typeName } from '../../i18n';
+import { typeName } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
-import { isCupInProgress, seedFromUrl, useGame } from '../../store/game-store';
+import { isCupInProgress, resumeScreenOf, seedFromUrl, useGame } from '../../store/game-store';
 import { seenCount } from '../../store/profile';
 import { AccountBar } from '../components/AccountBar';
 import { cupStep } from '../components/AccountLink';
@@ -18,12 +17,11 @@ import { FriendChallenge } from '../profile/FriendsTab';
 import { TYPE_COLOR } from '../type-colors';
 import { HomeDailyCard } from './Daily';
 import '../home-motion.css';
+import { type CupMode, cupLength, LONG_CUP_LIVE } from '../../store/long-cup';
+import { ComingSoon } from '../components/ComingSoon';
 import { DoorTiles } from '../components/DoorTiles';
 import { HudIcon } from '../components/MatchHud';
 import { TopActions } from '../components/TopActions';
-
-/** O que vem por aí (só vitrine: nada disso é clicável ainda). Os textos ficam em i18n (home.soon). */
-const SOON_IMG = ['assets/cards/25.gif', 'assets/ui/simbolo.svg', 'assets/cards/143.gif', 'assets/ui/poke-ball.png'];
 
 const DEX_KEY = 'soccermon-dex-last';
 const DEX_TOTAL = 151;
@@ -60,7 +58,7 @@ function DexProgress() {
     );
 }
 
-/** Troca rápida de idioma no topo da tela inicial (as Configurações também têm). */
+/** Troca rápida de idioma no rodapé da tela inicial (as Configurações também têm). */
 function LangToggle() {
     const { lang, t } = useT();
     const updateSettings = useGame((s) => s.updateSettings);
@@ -94,7 +92,7 @@ export function Home() {
     useEffect(() => {
         homeEntered = true;
     }, []);
-    const { run, newRun, go, profile, setOnboarded, parkedRuns, resumeParked, discardParked } = useGame();
+    const { run, newRun, go, profile, parkedRuns, resumeParked, discardParked } = useGame();
     const { t, d, lang } = useT();
     const notes = patchNotes(lang);
     const [teamName, setTeamName] = useState(profile.clubName || 'Pallet FC');
@@ -112,19 +110,16 @@ export function Home() {
     }, [notesOpen]);
     const challengeSeed = seedFromUrl();
     const inProgress = run && !['eliminated', 'champion'].includes(run.status);
-    const resumeScreen =
-        run && ['formation', 'captain', 'drafting'].includes(run.status)
-            ? 'draft'
-            : run?.status === 'reward' || run?.status === 'shop'
-              ? run.status
-              : 'lineup';
+    const resumeScreen = run ? resumeScreenOf(run.status) : 'lineup';
     const name = () => teamName.trim() || 'Pallet FC';
     /** Começar outra copa apaga a atual: com uma em andamento, pede confirmação antes. */
     const [confirm, setConfirm] = useState<string | null | undefined>(undefined);
-    const [longSoon, setLongSoon] = useState(false);
-    const start = (seed?: string) => {
+    // modo da copa que vai começar (a Copa longa passa pela mesma confirmação de "apagar a atual")
+    const [pendingMode, setPendingMode] = useState<CupMode | undefined>(undefined);
+    const start = (seed?: string, mode?: CupMode) => {
+        setPendingMode(mode);
         if (inProgress && confirm === undefined) setConfirm(seed ?? null);
-        else newRun(name(), seed);
+        else newRun(name(), seed, undefined, mode);
     };
     /** Copas guardadas (vieram de um conflito entre aparelho e conta): retomar troca de lugar com a atual. */
     const parked = parkedRuns.filter(isCupInProgress);
@@ -138,16 +133,7 @@ export function Home() {
     const eventType = weeklyEventType(new Date());
     const byUid = new Map(run?.picks.map((p) => [p.uid, p]) ?? []);
     const squad = run ? run.lineup.flatMap((u) => byUid.get(u) ?? []) : [];
-    const runStep =
-        run && ['formation', 'captain', 'drafting'].includes(run.status)
-            ? t('home.draftStep', { n: Math.min(run.draftRound + 1, 7) })
-            : run?.status === 'reward'
-              ? t('home.choosingReward')
-              : run?.status === 'shop'
-                ? t('home.atMarket')
-                : run
-                  ? stageName(run.stage)
-                  : '';
+    const runStep = run ? cupStep({ ...run, played: run.results.length }) : '';
     const openLab = (q: string) => {
         window.location.search = q;
     };
@@ -155,17 +141,7 @@ export function Home() {
     return (
         <div className={`home${entering ? ' home-enter' : ''}${HOME_FORTE ? ' home-forte' : ''}`}>
             <div className="home-top">
-                <div
-                    className="event-banner bc-surface bc-stripe"
-                    style={{ '--tc': TYPE_COLOR[eventType] } as CSSProperties}
-                >
-                    <TypeIcon type={eventType} size={28} />
-                    <div>
-                        <b>{t('home.eventWeek', { type: typeName(eventType) })}</b>
-                        <span>{t('home.eventText', { type: typeName(eventType) })}</span>
-                    </div>
-                </div>
-                <TopActions help={() => setOnboarded(false)} />
+                <TopActions help={() => go('help')} />
             </div>
 
             <section className="home-hero">
@@ -181,8 +157,7 @@ export function Home() {
 
             <div className="mode-cards">
                 <div className="menu panel mode-card cup-card">
-                    <div className="mode-head bc-screenhead">
-                        <span className="bc-tag">{t('home.cupTag')}</span>
+                    <div className="mode-head">
                         <b>{t('duel.cupTitle')}</b>
                         <span>{t('duel.cupLine')}</span>
                     </div>
@@ -222,7 +197,7 @@ export function Home() {
                                 <button
                                     type="button"
                                     className="btn primary"
-                                    onClick={() => newRun(name(), confirm ?? undefined)}
+                                    onClick={() => newRun(name(), confirm ?? undefined, undefined, pendingMode)}
                                 >
                                     {t('home.confirmYes')}
                                 </button>
@@ -243,7 +218,7 @@ export function Home() {
                                     <b className="rc-team">{run.teamName}</b>
                                     <span className="rc-step">{runStep}</span>
                                     <span className="rc-path" title={t('home.cupPath')}>
-                                        {CUP_STAGES.map((st, i) => {
+                                        {Array.from({ length: cupLength(run) }, (_, i) => `p${i}`).map((st, i) => {
                                             const r = run.results.find((x) => x.stage === i);
                                             const cls = r ? (r.won ? 'won' : 'lost') : i === run.stage ? 'now' : '';
                                             return <i key={st} className={cls} />;
@@ -264,7 +239,10 @@ export function Home() {
                                     <span className="pr-text">
                                         <span className="pr-label">{t('account.parkedLabel')}</span>
                                         <span>
-                                            <b>{p.teamName}</b> <span className="pr-step">· {cupStep(p)}</span>
+                                            <b>{p.teamName}</b>{' '}
+                                            <span className="pr-step">
+                                                · {cupStep({ ...p, played: p.results.length })}
+                                            </span>
                                         </span>
                                     </span>
                                     <button type="button" className="btn small" onClick={() => resume(p.seed)}>
@@ -292,41 +270,48 @@ export function Home() {
                                     setTeamName(e.target.value);
                                 }}
                             />
-                            {/* os dois modos principais: a Copa rápida (a de sempre) e a Copa longa (mapa, etapa 2) */}
-                            <div className="cup-modes">
+                            {/* a ação do jogo: "Nova copa" (a Relâmpago) grande e vermelha, largura cheia; a Rota Índigo
+                                é o outro tamanho, em contorno. Com copa em andamento o vermelho é o Continuar. */}
+                            <button
+                                type="button"
+                                className={`btn big cup-go ${inProgress ? 'outline' : 'primary'}`}
+                                onClick={() => start()}
+                            >
+                                <span className="cup-go-txt">
+                                    <b>{t('home.newCup')}</b>
+                                    <small>
+                                        {t('home.quickCup.title')} · {t('home.quickCup.tag')}
+                                    </small>
+                                </span>
+                                <HudIcon kind="next" />
+                            </button>
+                            {LONG_CUP_LIVE && (
                                 <button
                                     type="button"
-                                    className={`cup-mode bc-tile${inProgress ? '' : ' main'}`}
-                                    onClick={() => start()}
+                                    className="btn outline cup-go cup-go-long"
+                                    onClick={() => start(undefined, 'longa')}
                                 >
-                                    <span className="cup-mode-tag bc-tag">{t('home.quickCup.tag')}</span>
-                                    <b>{t('home.quickCup.title')}</b>
-                                    <small>{t('home.quickCup.line')}</small>
-                                    <span className="cup-mode-go">
-                                        {t('home.newCup')}
-                                        <HudIcon kind="next" />
+                                    <span className="cup-go-txt">
+                                        <b>{t('home.longCup.title')}</b>
+                                        <small>
+                                            {t('home.longCup.tag')} · {t('home.longCup.short')}
+                                        </small>
                                     </span>
+                                    <HudIcon kind="next" />
                                 </button>
-                                <button
-                                    type="button"
-                                    className="cup-mode bc-tile soon"
-                                    aria-disabled="true"
-                                    onClick={() => setLongSoon(true)}
-                                >
-                                    <span className="cup-mode-tag bc-tag">{t('home.longCup.tag')}</span>
-                                    <b>{t('home.longCup.title')}</b>
-                                    <small>{t('home.longCup.line')}</small>
-                                    <span className="cup-mode-go">
-                                        <HudIcon kind="lock" />
-                                        {t('home.longCup.soon')}
-                                    </span>
-                                </button>
-                            </div>
-                            <p className={`cup-soon-note muted${longSoon ? ' on' : ''}`} role="status">
-                                {longSoon ? t('home.longCup.note') : ''}
+                            )}
+                            <p
+                                className="cup-event bc-stripe"
+                                style={{ '--tc': TYPE_COLOR[eventType] } as CSSProperties}
+                            >
+                                <TypeIcon type={eventType} size={20} />
+                                <span>
+                                    <b>{t('home.eventWeek', { type: typeName(eventType) })}</b>{' '}
+                                    {t('home.eventText', { type: typeName(eventType) })}
+                                </span>
                             </p>
                             {challengeSeed && (
-                                <button type="button" className="btn yellow" onClick={() => start(challengeSeed)}>
+                                <button type="button" className="btn outline" onClick={() => start(challengeSeed)}>
                                     {t('home.challenge', { seed: challengeSeed })}
                                 </button>
                             )}
@@ -334,19 +319,21 @@ export function Home() {
                     )}
                 </div>
                 <div className="panel mode-card duel-card beta-ribbon" data-ribbon={t('duel.beta')}>
-                    <div className="mode-head">
-                        <b>{t('duel.title')}</b>
-                        <span>{t('duel.line')}</span>
+                    <div className="dc-row">
+                        <span className="duel-card-art" aria-hidden>
+                            <img className="pixel" src="assets/cards/25.gif" alt="" />
+                            <b>VS</b>
+                            <img className="pixel flip" src="assets/cards/133.gif" alt="" />
+                        </span>
+                        <div className="mode-head">
+                            <b>{t('duel.title')}</b>
+                            <span>{t('duel.line')}</span>
+                        </div>
+                        <button type="button" className="btn dc-go duel-go" onClick={() => go('duel')}>
+                            {t('duel.createRoom')}
+                        </button>
                     </div>
-                    <span className="duel-card-art" aria-hidden>
-                        <img className="pixel" src="assets/cards/25.gif" alt="" />
-                        <b>VS</b>
-                        <img className="pixel flip" src="assets/cards/133.gif" alt="" />
-                    </span>
                     <FriendChallenge />
-                    <button type="button" className="btn duel-go" onClick={() => go('duel')}>
-                        {t('duel.createRoom')}
-                    </button>
                 </div>
                 <HomeDailyCard />
             </div>
@@ -354,7 +341,9 @@ export function Home() {
             {/* entrar com o Google: embaixo dos modos, pro "Nova copa" ficar na primeira tela do celular */}
             <AccountBar />
 
-            <DoorTiles which={['profile']} />
+            <ComingSoon />
+
+            <DoorTiles which={['profile', 'collection', 'trophies']} />
             {notesOpen && (
                 // biome-ignore lint/a11y/noStaticElementInteractions: clicar fora fecha; o botão fecha pelo teclado
                 <div className="modal-backdrop" onClick={() => setNotesOpen(false)} role="presentation">
@@ -394,18 +383,6 @@ export function Home() {
                     </div>
                 </div>
             )}
-            <section className="soon" aria-label={t('home.soonTitle')}>
-                <h2 className="bc-caption">{t('home.soonTitle')}</h2>
-                <div className="soon-grid">
-                    {d.home.soon.map((c, i) => (
-                        <div key={SOON_IMG[i]} className="soon-card" data-ribbon={t('home.soonRibbon')}>
-                            <img className="pixel" src={SOON_IMG[i]} alt="" />
-                            <b>{c.title}</b>
-                            <span>{c.text}</span>
-                        </div>
-                    ))}
-                </div>
-            </section>
             <footer className="home-footer">
                 <nav className="footer-links" aria-label={t('home.footerAria')}>
                     <button type="button" className="link-btn" onClick={() => setNotesOpen(true)}>
@@ -431,8 +408,9 @@ export function Home() {
                             {d.home.tiles.cards[0]}
                         </button>
                     )}
-                    <LangToggle />
                 </nav>
+                {/* fora da linha dos links: ao trocar o idioma os links mudam de largura e o botão ficava pulando */}
+                <LangToggle />
                 <p className="disclaimer">{t('home.disclaimer', { v: __APP_VERSION__.replace(/\.0$/, '') })}</p>
             </footer>
         </div>

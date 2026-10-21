@@ -17,7 +17,7 @@
     --bc-paper: #f4f1e6;
     --bc-edge: #000;
     /* altura da barra do polegar (o fim da página não fica embaixo dela) */
-    --bc-thumb-h: 68px;
+    --bc-thumb-h: 72px;
 }
 
 .hud-icon {
@@ -309,7 +309,23 @@ h3.bc-lbl {
     opacity: 0.45;
 }
 
-/* ---------- barra do polegar: a ação principal fixa embaixo no celular ---------- */
+/* ---------- barra do polegar: a ação principal fixa embaixo no celular ----------
+ * Em toda tela do loop (Draft, Recompensa, Mercado, Escalação, Resultado, Eliminado, Campeão). No máximo 2 coisas:
+ * fantasma (ou a instrução da vez, .tb-hint) à esquerda em 1/3 e o primário à direita em 2/3. No PC fica no fim do
+ * bloco, centralizada. */
+:where(.bc-thumbbar) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+.tb-hint {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.3;
+    color: var(--muted);
+}
 @media (max-width: 700px), (orientation: landscape) and (max-height: 520px) {
     .bc-thumbbar {
         position: fixed;
@@ -323,13 +339,29 @@ h3.bc-lbl {
         margin: 0;
         padding: 8px max(12px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom))
             max(12px, env(safe-area-inset-left));
+        flex-wrap: nowrap;
         background: var(--bc-ink);
         border-top: 3px solid var(--line);
     }
+    .bc-thumbbar.ask {
+        flex-wrap: wrap;
+    }
     .bc-thumbbar > * {
-        flex: 1;
+        flex: 1 1 0;
         min-width: 0;
         margin: 0;
+    }
+    /* fantasma: 1/3 (ou o que o rótulo pedir, sem quebrar linha); o primário ou a instrução ficam com o resto */
+    .bc-thumbbar > .btn.ghost {
+        flex: 0 0 auto;
+        min-width: calc((100% - 8px) / 3);
+        white-space: nowrap;
+    }
+    .bc-thumbbar > .btn.primary {
+        min-height: 52px;
+    }
+    .bc-thumbbar > .btn {
+        min-height: 44px;
     }
     .app:has(.bc-thumbbar) {
         padding-bottom: calc(var(--bc-thumb-h) + 16px + env(safe-area-inset-bottom));
@@ -345,9 +377,17 @@ h3.bc-lbl {
     .bc-thumbbar {
         padding-block: 6px calc(6px + env(safe-area-inset-bottom));
     }
-    .bc-thumbbar > * {
+    .bc-thumbbar {
+        justify-content: center;
+    }
+    .bc-thumbbar > *,
+    .bc-thumbbar > .btn.ghost {
+        flex: 0 1 210px;
+        min-width: 0;
+    }
+    .bc-thumbbar > .btn.primary,
+    .bc-thumbbar > .tb-hint {
         flex: 0 1 420px;
-        margin-inline: auto;
     }
 }
 

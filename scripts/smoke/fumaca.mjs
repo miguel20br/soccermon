@@ -93,7 +93,10 @@ async function copa() {
     // ?vel=16: modo fumaça (só em dev, prévia e CI) acelera a quadra
     await step(p, 'home', async () => {
         await p.goto(`${base}/?vel=16`, { waitUntil: 'load' });
-        await p.locator('.ob-skip').waitFor({ timeout: 30000 });
+        await p
+            .getByRole('button', { name: /Nova copa/ })
+            .first()
+            .waitFor({ timeout: 30000 });
         await skipOnboarding(p);
         await p.waitForTimeout(600);
         await shot(p, '01-home', true);
@@ -167,7 +170,7 @@ async function copa() {
             await shot(p, '09-recompensa');
             // ganhou: depois da recompensa vem o Mercado (0.9.0); compra o que der e segue pra escalação
             await btn(/^Pular/).click({ timeout: 10000 });
-            await p.locator('.shop-grid').waitFor({ timeout: 15000 });
+            await p.locator('.shop-grid').first().waitFor({ timeout: 15000 });
             await p.waitForTimeout(800);
             await shot(p, '10-mercado', true);
             const buy = p.locator('.shop-offer:has(.sp-card) .shop-buy:not([disabled])');

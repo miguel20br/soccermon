@@ -1,11 +1,11 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useCloud } from '../../cloud/cloud';
-import { CUP_STAGES } from '../../engine/cup';
 import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
-import { clubName, stageName } from '../../i18n';
+import { clubName, cupStageName } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { isPerfectCup, type RunState, useGame } from '../../store/game-store';
+import { cupLength } from '../../store/long-cup';
 import { trainerLabel } from '../profile/club';
 import { aggregate, avg } from '../stats/CupStats';
 import { CupAwards, CupFinal, CupGoals, CupXI, FormSpark, TitleRecords, useRarity } from './ChampionExtras';
@@ -79,7 +79,7 @@ export function ChampionView({ run, actions }: { run: RunState; actions: ReactNo
                 <div className="cup-totals champ-totals">
                     <div>
                         <b>
-                            {run.results.filter((r) => r.won).length}/{CUP_STAGES.length}
+                            {run.results.filter((r) => r.won).length}/{cupLength(run)}
                         </b>
                         <span>{t('result.champ.wins')}</span>
                     </div>
@@ -123,7 +123,7 @@ export function ChampionView({ run, actions }: { run: RunState; actions: ReactNo
                         const best = r.stats?.players.reduce((a, b) => (b.rating > a.rating ? b : a));
                         return (
                             <li key={r.stage} className="champ-step">
-                                <span className="champ-stage">{stageName(r.stage)}</span>
+                                <span className="champ-stage">{cupStageName(run, r.stage)}</span>
                                 <b className="champ-score">
                                     {r.score[0]} x {r.score[1]}
                                 </b>

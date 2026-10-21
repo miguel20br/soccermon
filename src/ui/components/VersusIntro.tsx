@@ -1,5 +1,6 @@
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
-import { CLUBS, clubLeader } from '../../engine/cup';
+import { CLUBS } from '../../engine/cup';
+import { rivalTrainer } from '../../engine/cup-map';
 import { species } from '../../engine/data';
 import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
@@ -11,7 +12,7 @@ import { useT } from '../../i18n/react';
 import { type ClubLook, lookOfCupClub, lookOfProfile, matchLooks } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
 import type { ShowItem, Tier } from '../../store/medals';
-import { activeTrainer, leaderTrainerOf, type TrainerId, trainerFx, trainerSrc } from '../../store/missions';
+import { activeTrainer, type TrainerId, trainerFx, trainerSrc } from '../../store/missions';
 import { tagFromName } from '../../store/profile';
 import { Crest, kitOverlay } from '../profile/Crest';
 import { useClubColor } from '../profile/club';
@@ -108,7 +109,7 @@ export function VsStartButton({
     const { t } = useT();
     if (!ready && slow && onRetry)
         return (
-            <button type="button" className="btn yellow vs-start vs-slow" onClick={onRetry}>
+            <button type="button" className="btn outline vs-start vs-slow" onClick={onRetry}>
                 {t('match.vs.retry')}
                 <small role="alert">{t('match.vs.slow')}</small>
             </button>
@@ -303,7 +304,6 @@ export function VersusIntro({
 
     // som do VS batendo; com "reduzir movimento" o VS já aparece no lugar, então o som vem junto
     useEffect(() => {
-        playSfx('select');
         const slam = () => {
             playSfx('shot', final ? 0.5 : 0.7);
             if (final) playSfx('post', 0.6);
@@ -356,8 +356,9 @@ export function VersusIntro({
     );
     const looks = { home: homeLook ?? home0, away: awayLook ?? away0 };
     // Copa: o treinador do clube fala antes do jogo (no Duelo o rival é gente: sem fala)
-    const host = awayTrainer || awayCoach ? undefined : clubLeader(away.name);
-    const hostText = host ? d.match.leaders[host] : undefined;
+    // o treinador do rival: o líder do ginásio ou, nos times da Rota, a classe de treinador (Caçador de Insetos…)
+    const host = awayTrainer || awayCoach ? undefined : rivalTrainer(away.name);
+    const hostText = host ? d.match.leaders[host as keyof typeof d.match.leaders] : undefined;
     const style = {
         '--home': hex(looks.home.color),
         '--away': hex(looks.away.color),
@@ -375,7 +376,7 @@ export function VersusIntro({
                 <Side
                     team={away}
                     side="away"
-                    trainer={awayTrainer ?? leaderTrainerOf(away.name)}
+                    trainer={awayTrainer ?? (rivalTrainer(away.name) as TrainerId | undefined)}
                     name={awayName}
                     coach={awayCoach}
                     look={looks.away}
@@ -388,7 +389,7 @@ export function VersusIntro({
                               ? t('match.vs.leader', { leader, city: club.city })
                               : hostText && club
                                 ? t('match.vs.host', { leader: hostText.name, city: club.city })
-                                : t('match.vs.rival'))
+                                : (hostText?.name ?? t('match.vs.rival')))
                     }
                     quote={hostText?.pre}
                 />

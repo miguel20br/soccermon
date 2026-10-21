@@ -5,7 +5,6 @@ import { FORMATIONS, type FormationId } from '../../engine/formations';
 import { createInstance, type PokemonInstance, viewInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
 import type { TeamSetup } from '../../engine/state';
-import { playSfx } from '../../game/audio';
 import { formationText } from '../../i18n';
 import { useT } from '../../i18n/react';
 import {
@@ -145,7 +144,6 @@ export function TeamPick({ s, role }: { s: Shared; role: Role }) {
                             className="panel duel-team-opt"
                             disabled={problems.length > 0 || tooMany}
                             onClick={() => {
-                                playSfx('select');
                                 setChosen(o.team);
                                 void duel.chooseTeam(recipe);
                             }}
@@ -399,7 +397,6 @@ export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
                                                                 : t('team.draft.signAs', { pos: slotLabel }),
                                                           primary: true,
                                                           onClick: () => {
-                                                              playSfx('select');
                                                               if (disputa) duel.dispatch({ k: 'pick', uid: o.uid });
                                                               else void duel.packPick(o.uid);
                                                           },
@@ -522,7 +519,6 @@ export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
                             label={t('duel.preview.ready')}
                             note={t('duel.ready.timeNote')}
                             onReady={() => {
-                                playSfx('select');
                                 void duel.sealChoice(cfg);
                             }}
                             onUndo={() => duel.unsealChoice()}

@@ -7,6 +7,208 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.3',
+        title: 'Golpes revisados',
+        sections: [
+            {
+                title: 'Cada um com o seu tipo',
+                lines: [
+                    'Todo Pokémon leva pelo menos 1 golpe de cada tipo dele (quando a Gen 1 deixa)',
+                    'Gengar: Confuse Ray ⇒ Sludge (Dream Eater, Hypnosis, Night Shade, Sludge)',
+                    'Gastly e Haunter: Hypnosis ⇒ Toxic',
+                    'Zubat e Golbat: Supersonic ⇒ Toxic',
+                    'Nidoran♂, Nidorino e Nidoking: Focus Energy ⇒ Toxic; Nidoqueen: Counter ⇒ Toxic',
+                    'Beedrill: Agility ⇒ Toxic',
+                    'Charizard: Fire Blast ⇒ Fly',
+                    'Hitmonchan: Agility ⇒ Counter',
+                    'Gyarados: Splash ⇒ Hyper Beam',
+                ],
+            },
+            {
+                title: 'Sem golpe repetido',
+                lines: [
+                    'Charmander e Charmeleon: Fire Blast ⇒ Dragon Rage',
+                    'Raichu: Thunderbolt ⇒ Agility',
+                    'Arcanine: Flamethrower ⇒ Take Down',
+                    'Hitmonlee: Jump Kick ⇒ Double Kick',
+                    'Staryu: Hydro Pump ⇒ Psychic',
+                    'Omanyte: Hydro Pump ⇒ Surf',
+                ],
+            },
+            {
+                title: 'Golpes que agora fazem o que prometem',
+                lines: [
+                    'Harden segura a bola no próximo carrinho (como o Defense Curl)',
+                    'Slam alcança mais longe (2,8 m)',
+                    'Amnesia sobe passe, chute e leitura',
+                    'Tri Attack pode queimar, congelar ou paralisar',
+                    'Explosion pega todo mundo a 4 m',
+                    'Light Screen e Reflect não dão mais chute escondido',
+                    'Fly e Dig com a bola levam ela 2 m (era 4)',
+                ],
+            },
+            {
+                title: 'Textos',
+                lines: [
+                    'Todo golpe explica o que faz em quadra com os números (quanto tempo, quem é imune, quanto acerta, o preço pra quem usa)',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.2.2',
+        title: 'A Rota Índigo volta',
+        sections: [
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'A Rota está de volta: a 1ª partida quebrava a escalação (consertado) e ela foi jogada inteira antes de voltar',
+                    'Continuar num evento "?" volta pro evento (antes caía na escalação e repetia a partida)',
+                    'Cartão amarelo e derrota no grupo dizem DERROTA (não Fim da linha); o vermelho só sai na 2ª derrota no mapa',
+                    'A copa salva, o campeão (x/8), o gol da copa e o card do título falam da partida da Rota, não das Oitavas',
+                    'Nova copa no fim de uma Rota começa outra Rota',
+                    'Titular machucado: o aviso aparece do lado do Jogar',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.2.1',
+        title: 'Álbum leve e vitrine fácil',
+        sections: [
+            {
+                title: 'Álbum',
+                lines: [
+                    'O Álbum não trava mais ao abrir e virar a página (só a página à vista é montada e o brilho holo anima só na carta em foco)',
+                    'As cartas empilhadas atrás de uma figurinha aparecem só pela borda',
+                ],
+            },
+            {
+                title: 'Vitrine',
+                lines: [
+                    'Vitrine cheia: Pôr na vitrine pede a carta que sai e troca num toque',
+                    'Um x no canto tira a carta da vitrine',
+                    'Arraste uma carta sobre a outra (ou toque numa e depois na outra) pra mudar a ordem; vale no Perfil, no perfil do amigo e no Duelo',
+                    'No PC, a vitrine do cartão do Perfil ficou maior e centralizada',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.2',
+        title: 'Casa arrumada',
+        sections: [
+            {
+                title: 'Tela inicial',
+                lines: [
+                    'Nova copa grande e no topo; Duelo e Copa do Dia lado a lado, do tamanho do conteúdo',
+                    'Vem aí: o que está pra chegar numa faixa de cartõezinhos (toque pra ver o que é)',
+                    'Perfil, Coleção e Sala de troféus como três portas; o "?" leva pra Ajuda',
+                    'O botão de idioma não pula mais de lugar ao trocar',
+                    'Quem chega pela 1ª vez já cai no jogo (o passo a passo está na Ajuda)',
+                ],
+            },
+            {
+                title: 'Na copa',
+                lines: [
+                    'A ação principal fica embaixo, na barra do polegar, em todas as telas da copa',
+                    'Um botão vermelho por tela; os outros viram contorno',
+                    'A chave da copa abre num toque (Ver a chave) na escalação e no resultado',
+                    'Dicas só na 1ª copa, perto do que explicam',
+                    'Eliminado: Nova copa num toque e quanto faltou',
+                ],
+            },
+            {
+                title: 'Mercado',
+                lines: [
+                    'Com o pacote aberto, o seu time aparece junto pra comparar',
+                    'O que não dá pra comprar tem cadeado e mostra quanto falta',
+                    'Trocar vitrine virou Novas ofertas (vitrine agora é só a das cartas)',
+                    'Textos dos Patrocínios reescritos, mais curtos e com o número do efeito; o preço aparece no contrato',
+                ],
+            },
+            {
+                title: 'Partida',
+                lines: [
+                    'Aba Time no PC: nome e posição inteiros',
+                    'Substituir não aparece mais duas vezes no intervalo',
+                ],
+            },
+            {
+                title: 'Toque e som',
+                lines: [
+                    'Cada tipo de botão tem o seu som (avançar, voltar, sair, apagar)',
+                    'Abandonar copa, sair do Duelo e apagar dados têm uma saída triste, com animação e som',
+                    'Vibração curta no Android (dá pra desligar em Configurações → Mais opções)',
+                    'Configurações mais curtas: o resto fica em Mais opções',
+                ],
+            },
+            {
+                title: 'Sala de troféus',
+                lines: [
+                    'O Pokémon que passeia não fica mais esticado nem passa por dentro dos móveis',
+                    'O PC aparece inteiro, a TV na frente do móvel e as fotos das cartas sem esticar',
+                    'A câmera não fica mais presa aproximada depois de um toque rápido',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.1.1',
+        title: 'Cartas de volta',
+        sections: [
+            {
+                title: 'Consertos',
+                lines: [
+                    'A vitrine mostra a sua melhor carta de verdade daquele Pokémon (antes podia ficar presa na versão padrão, Destaque I ou Ícone sem MVP)',
+                    'Mudança só no Álbum agora sobe pra nuvem',
+                    'Carta perdida de antes do Álbum (19/10) volta por código: Perfil → Treinador → Resgatar código',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.1',
+        title: 'Rota Índigo',
+        sections: [
+            {
+                title: 'Rota Índigo (modo novo)',
+                lines: [
+                    'A copa longa: um mapa de Kanto de baixo pra cima (Rota 1, Floresta de Viridian, Mt. Moon, Cerulean, Estrada da Vitória, Planalto Índigo), com partidas, Ginásios, Mercado, Baú, Treino e eventos "?"',
+                    'Três atos: eliminatórias no mapa, fase de grupos no Planalto (2 primeiros vão pra Final) e a Final contra a Liga Índigo',
+                    'Cartão amarelo: a 1ª derrota fora da Final não elimina; a 2ª é vermelho',
+                    'Treinadores da Rota com falas no VERSUS e no fim do jogo',
+                ],
+            },
+            {
+                title: 'Copa Relâmpago',
+                lines: [
+                    'A Copa rápida virou Copa Relâmpago, com a chave de 16 clubes na tela: você sobe na chave a cada vitória',
+                    'Missões de gols numa copa contam a melhor sequência de 4 jogos (vale igual na Relâmpago e na Rota)',
+                ],
+            },
+            {
+                title: 'Partida',
+                lines: [
+                    'Acréscimos de 1 a 3 minutos por tempo, com a plaquinha no placar',
+                    'Pressão final: do minuto 37 em diante, quem está perdendo ganha um empurrão (chute, passe, drible e velocidade) e sobe o time, igual pros dois lados',
+                ],
+            },
+            {
+                title: 'Copa do Dia',
+                lines: [
+                    'Dias seguidos e o próximo marco na tela do dia',
+                    'Figurinha do dia: o mesmo Pokémon pra todo mundo, carta Evento no Álbum ao terminar',
+                    'Marcos: 7 dias (título Fiel da Copa) e 30 dias (treinadora Garota Dourada)',
+                ],
+            },
+            {
+                title: 'Contas',
+                lines: ['Nome de treinador e de clube são únicos (quem já tinha fica com o nome)'],
+            },
+        ],
+    },
+    {
         version: '0.9.0.5',
         title: 'Tudo na prancheta',
         sections: [
@@ -924,6 +1126,208 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.3',
+        title: 'Moves reviewed',
+        sections: [
+            {
+                title: 'Each one with its own type',
+                lines: [
+                    'Every Pokémon has at least 1 move of each of its types (when Gen 1 allows it)',
+                    'Gengar: Confuse Ray ⇒ Sludge (Dream Eater, Hypnosis, Night Shade, Sludge)',
+                    'Gastly and Haunter: Hypnosis ⇒ Toxic',
+                    'Zubat and Golbat: Supersonic ⇒ Toxic',
+                    'Nidoran♂, Nidorino and Nidoking: Focus Energy ⇒ Toxic; Nidoqueen: Counter ⇒ Toxic',
+                    'Beedrill: Agility ⇒ Toxic',
+                    'Charizard: Fire Blast ⇒ Fly',
+                    'Hitmonchan: Agility ⇒ Counter',
+                    'Gyarados: Splash ⇒ Hyper Beam',
+                ],
+            },
+            {
+                title: 'No repeated moves',
+                lines: [
+                    'Charmander and Charmeleon: Fire Blast ⇒ Dragon Rage',
+                    'Raichu: Thunderbolt ⇒ Agility',
+                    'Arcanine: Flamethrower ⇒ Take Down',
+                    'Hitmonlee: Jump Kick ⇒ Double Kick',
+                    'Staryu: Hydro Pump ⇒ Psychic',
+                    'Omanyte: Hydro Pump ⇒ Surf',
+                ],
+            },
+            {
+                title: 'Moves that now do what they promise',
+                lines: [
+                    'Harden keeps the ball on the next tackle (like Defense Curl)',
+                    'Slam reaches further (2.8 m)',
+                    'Amnesia raises passing, shooting and reading',
+                    'Tri Attack can burn, freeze or paralyze',
+                    'Explosion hits everyone within 4 m',
+                    'Light Screen and Reflect no longer give hidden shooting',
+                    'Fly and Dig with the ball carry it 2 m (was 4)',
+                ],
+            },
+            {
+                title: 'Texts',
+                lines: [
+                    'Every move explains what it does on the court with numbers (how long, who is immune, how often it hits, the cost to the user)',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.2.2',
+        title: 'Indigo Road is back',
+        sections: [
+            {
+                title: 'Indigo Road',
+                lines: [
+                    'The Road is back: the 1st match broke the lineup screen (fixed) and it was played start to finish before coming back',
+                    'Continuing on a "?" event goes back to the event (it used to open the lineup and replay the match)',
+                    'A yellow card or a group loss says DEFEAT (not End of the line); the red card only comes on the 2nd loss on the map',
+                    'The saved cup, champion screen (x/8), goal of the cup and title card name the Road match, not the Round of 16',
+                    'New cup at the end of a Road starts another Road',
+                    'Injured starter: the warning shows next to Play',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.2.1',
+        title: 'Light album, easy showcase',
+        sections: [
+            {
+                title: 'Album',
+                lines: [
+                    'The Album no longer stutters when opening and turning pages (only the visible page is built and the holo shine only moves on the card in focus)',
+                    'Cards stacked behind a sticker show only by their edge',
+                ],
+            },
+            {
+                title: 'Showcase',
+                lines: [
+                    'Full showcase: Add to showcase asks which card leaves and swaps in one tap',
+                    'An x in the corner removes a card from the showcase',
+                    'Drag a card onto another (or tap one, then the other) to change the order; it applies to your Profile, your friend view and the Duel',
+                    'On desktop, the showcase on the Profile card is bigger and centred',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.2',
+        title: 'House in order',
+        sections: [
+            {
+                title: 'Home screen',
+                lines: [
+                    'New cup big and on top; Duel and Daily Cup side by side, sized to their content',
+                    'Coming up: what is on the way in a strip of small cards (tap to see what it is)',
+                    'Profile, Collection and Trophy room as three doors; the "?" opens Help',
+                    'The language button no longer jumps around when you switch',
+                    'First-time players go straight into the game (the walkthrough is in Help)',
+                ],
+            },
+            {
+                title: 'In the cup',
+                lines: [
+                    'The main action sits at the bottom, in the thumb bar, on every cup screen',
+                    'One red button per screen; the others are outlined',
+                    'The cup bracket opens with a tap (See the bracket) on the lineup and result screens',
+                    'Tips only in your 1st cup, next to what they explain',
+                    'Knocked out: New cup in one tap and how close you came',
+                ],
+            },
+            {
+                title: 'Market',
+                lines: [
+                    'With a pack open, your team shows alongside to compare',
+                    'What you cannot afford has a lock and shows how much is missing',
+                    'Reroll stock is now New offers',
+                    'Sponsor texts rewritten, shorter and with the effect number; the price shows on the contract',
+                ],
+            },
+            {
+                title: 'Match',
+                lines: [
+                    'Team tab on desktop: full names and positions',
+                    'Substitute no longer shows twice at half-time',
+                ],
+            },
+            {
+                title: 'Touch and sound',
+                lines: [
+                    'Each kind of button has its own sound (go on, back, leave, delete)',
+                    'Abandoning a cup, leaving a Duel and deleting data get a sad exit, with animation and sound',
+                    'Short vibration on Android (turn it off in Settings → More options)',
+                    'Shorter Settings: the rest lives in More options',
+                ],
+            },
+            {
+                title: 'Trophy room',
+                lines: [
+                    'The Pokémon walking around is no longer stretched and no longer walks through furniture',
+                    'The PC shows whole, the TV sits in front of its stand and card photos are not stretched',
+                    'The camera no longer gets stuck zoomed in after a quick tap',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.1.1',
+        title: 'Cards back',
+        sections: [
+            {
+                title: 'Fixes',
+                lines: [
+                    'The showcase shows your best real card of that Pokémon (it could get stuck on the default version, Star Player I or Icon without MVP)',
+                    'Changes only in the Album now sync to the cloud',
+                    'A card lost from before the Album (Oct 19) comes back with a code: Profile → Trainer → Redeem code',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.1',
+        title: 'Indigo Road',
+        sections: [
+            {
+                title: 'Indigo Road (new mode)',
+                lines: [
+                    'The long cup: a Kanto map from bottom to top (Route 1, Viridian Forest, Mt. Moon, Cerulean, Victory Road, Indigo Plateau), with matches, Gyms, Market, Chest, Training and "?" events',
+                    'Three acts: knockouts on the map, a group stage at the Plateau (top 2 reach the Final) and the Final against the Indigo League',
+                    'Yellow card: your 1st loss outside the Final does not knock you out; the 2nd is a red',
+                    'Route trainers talk in the VERSUS and at full time',
+                ],
+            },
+            {
+                title: 'Lightning Cup',
+                lines: [
+                    'The Quick Cup is now the Lightning Cup, with the 16-club bracket on screen: you climb it with every win',
+                    'Goal missions in a cup count your best run of 4 matches (same for Lightning and Indigo Road)',
+                ],
+            },
+            {
+                title: 'Match',
+                lines: [
+                    'Stoppage time of 1 to 3 minutes per half, with the board on the scoreboard',
+                    'Final push: from minute 37 on, the team that is behind gets a boost (shooting, passing, dribbling and speed) and pushes up, the same for both sides',
+                ],
+            },
+            {
+                title: 'Daily Cup',
+                lines: [
+                    'Day streak and the next milestone on the daily screen',
+                    'Sticker of the day: the same Pokémon for everyone, an Event card in the Album when you finish',
+                    'Milestones: 7 days (Daily Devotee title) and 30 days (Golden Lass trainer)',
+                ],
+            },
+            {
+                title: 'Accounts',
+                lines: ['Trainer and club names are unique (whoever already had one keeps it)'],
+            },
+        ],
+    },
     {
         version: '0.9.0.5',
         title: 'Everything on the board',

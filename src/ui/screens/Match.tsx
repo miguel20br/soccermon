@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FUTSAL_5 } from '../../engine/config';
-import { CUP_STAGES, clubLeader, cupRival } from '../../engine/cup';
+import { clubLeader, cupRival } from '../../engine/cup';
 import { species } from '../../engine/data';
 import { viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
@@ -19,12 +19,13 @@ import { skinOf } from '../../game/animation-manager';
 import { setVolume } from '../../game/audio';
 import { EventBus } from '../../game/EventBus';
 import type { MatchSceneData } from '../../game/scenes/MatchScene';
-import { clubName, formationText, stageName } from '../../i18n';
+import { clubName, cupStageName, cupStageShort, formationText } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { ligaRun, useLiga } from '../../league/liga-store';
 import { PhaserGame } from '../../PhaserGame';
 import { fieldKit, lookOfCupClub, lookOfProfile, matchLooks } from '../../store/club-kit';
 import { liveOf, type PlaybackSpeed, playerTeam, useGame } from '../../store/game-store';
+import { isFinalStage } from '../../store/long-cup';
 import { rivalColor, tagFromName } from '../../store/profile';
 import { Commentator, type CommentLine } from '../commentary';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
@@ -67,7 +68,7 @@ import { VersusIntro } from '../components/VersusIntro';
 import { RivalEmotes } from '../duel/Emotes';
 import { rivalEmotes } from '../duel/emote-faces';
 import { LeaveConfirm } from '../leave-guard';
-import { captainAt, roleAt, snapAt } from '../match-view';
+import { captainAt, clockExtrasAt, roleAt, snapAt } from '../match-view';
 import { bannerText, useClubColor } from '../profile/club';
 import { agencyOn, reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
@@ -196,7 +197,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                       ),
                       startPaused: true,
                       startTick: resume?.tick || undefined,
-                      final: !liga && run?.stage === CUP_STAGES.length - 1,
+                      final: !liga && !!run && isFinalStage(run),
                       agency,
                       // o rival joga em casa: a quadra do ginásio dele
                       court: opponent ? clubLeader(opponent.name) : undefined,
@@ -314,7 +315,10 @@ export function Match({ liga = false }: { liga?: boolean }) {
         };
     }, [match?.seed]);
 
-    const clockParts = useClockParts(clock, fulltime || ended, shootout, halftime);
+    // acréscimos ("+2'") e Pressão final do tick da tela (eventos do motor)
+    const extras = clockExtrasAt(match?.events ?? [], clock.tick, clock.half);
+    const clockParts = useClockParts({ ...clock, added: extras.added }, fulltime || ended, shootout, halftime);
+    const pressureNow = halftime || fulltime || ended ? null : extras.pressure;
     // o capitão do líder rival reage aos gols (emote do Duelo, só na tela)
     const rivalPlan = useMemo(() => (match ? rivalEmotes(match.events, 1) : []), [match]);
     // fim de jogo: vai sozinho pro resultado; um toque na quadra ou no painel segura
@@ -490,7 +494,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
         return p ? cardSprite(p) : '';
     };
 
-    const stage = liga ? t('liga.stage') : stageName(run.stage) || t('match.cup');
+    const stage = liga ? t('liga.stage') : cupStageName(run, run.stage) || t('match.cup');
 
     const finishIntro = () => {
         if (introDoneRef.current) return;
@@ -534,7 +538,8 @@ export function Match({ liga = false }: { liga?: boolean }) {
             onTactic={changeTactic}
             onCorner={changeCorner}
             canSub={canSub}
-            onSub={() => openBoard(tired ? tiredSlot.uid : undefined)}
+            // no intervalo o Substituir mora no painel do intervalo (antes aparecia duas vezes)
+            onSub={halftime ? undefined : () => openBoard(tired ? tiredSlot.uid : undefined)}
             tired={tired}
         />
     );
@@ -587,7 +592,8 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         looks={looks}
                         score={clock.score}
                         clock={clockParts}
-                        stage={liga ? t('liga.stageShort') : (d.match.stageShort[run.stage] ?? stage)}
+                        pressure={pressureNow}
+                        stage={liga ? t('liga.stageShort') : cupStageShort(run, run.stage, d.match.stageShort) || stage}
                     >
                         <RivalEmotes
                             plan={rivalPlan}
@@ -634,7 +640,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         />
                     </div>
                     {sceneSlow && !sceneReady && (
-                        <button type="button" className="btn yellow" onClick={() => setSceneKey((k) => k + 1)}>
+                        <button type="button" className="btn outline" onClick={() => setSceneKey((k) => k + 1)}>
                             {t('match.reload')}
                         </button>
                     )}
@@ -766,19 +772,22 @@ export function Match({ liga = false }: { liga?: boolean }) {
                     {!ended ? (
                         <>
                             <fieldset className="bc-seg speed-seg" aria-label={t('match.coach.speed')}>
-                                {SPEEDS.map((s) => (
-                                    <button
-                                        key={String(s.value)}
-                                        type="button"
-                                        className={settings.speed === s.value ? 'on' : undefined}
-                                        aria-pressed={settings.speed === s.value}
-                                        disabled={!sceneReady}
-                                        onClick={() => setSpeed(s.value)}
-                                        title={s.value === 'highlights' ? t('match.highlightsHint') : undefined}
-                                    >
-                                        {s.label || t('match.highlights')}
-                                    </button>
-                                ))}
+                                {/* "Lances" (a velocidade) só aparece se for a escolhida nas Configurações: o nome é o da aba */}
+                                {SPEEDS.filter((s) => s.value !== 'highlights' || settings.speed === 'highlights').map(
+                                    (s) => (
+                                        <button
+                                            key={String(s.value)}
+                                            type="button"
+                                            className={settings.speed === s.value ? 'on' : undefined}
+                                            aria-pressed={settings.speed === s.value}
+                                            disabled={!sceneReady}
+                                            onClick={() => setSpeed(s.value)}
+                                            title={s.value === 'highlights' ? t('match.highlightsHint') : undefined}
+                                        >
+                                            {s.label || t('match.highlights')}
+                                        </button>
+                                    ),
+                                )}
                             </fieldset>
                             <button
                                 type="button"

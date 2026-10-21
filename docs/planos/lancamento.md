@@ -50,8 +50,8 @@ Ainda pendente do antigo "Primeiro minuto" (o maior vazamento é entre começar 
 | **0.8.8.3** ✓ | Cartas em camadas e álbum de figurinhas | Shiny por cima, selo MVP, Destaque por nível, Evento por tipo, bônus sem teto (`ENGINE_VERSION` 6), dicas ao passar o mouse, Álbum dentro da Pokédex | coleção com mais o que caçar |
 | ~~0.8.9~~ | (Pacotão) | Virou a 0.8.8.1 (19/10) | |
 | **0.8.9** ✓ | Sala de troféus e menus novos | Sala de troféus em pixel art com luz, menus em portas, perfil do amigo, "nada pula" | casa pros troféus |
-| **0.9.0** | Mercado e Patrocínios | Etapa 1 da Copa roguelike (`docs/planos/copa-roguelike-plano.md`): ₽, Mercado depois da recompensa, 12 Patrocínios, pacote de tipo; tudo dentro do Perfil | mais decisões entre as partidas |
-| **0.9.1** | Copa longa | Etapa 2: mapa estilo Slay the Spire, eventos "?", lesão, Ginásio, Treino e Baú; pacotes que começam piores e melhoram | copas diferentes entre si |
+| **0.9.0** ✓ | Mercado e Patrocínios | Etapa 1 da Copa roguelike (`docs/planos/copa-roguelike-plano.md`): ₽, Mercado depois da recompensa, 12 Patrocínios, pacote de tipo; tudo dentro do Perfil | mais decisões entre as partidas |
+| **0.9.1** ✓ | Rota Índigo (Copa longa) | Etapa 2: mapa estilo Slay the Spire, eventos "?", lesão, Ginásio, Treino e Baú; pacotes que começam piores e melhoram | copas diferentes entre si |
 | **0.8.x** | Liga ranqueada (versão a combinar; era a 0.8.7) | Times "fantasma", Elo com divisões nas cores das cartas, temporada mensal, **Copa do Dia** (mesma seed pra todo mundo, ranking do dia; era o "Desafio diário"), replay por link | motivo diário pra voltar + competição |
 | **0.8.8** | Melhores momentos | Replay dos gols e golpes, "gol da copa" com câmera lenta, **exportar clipe** (WebM/GIF curto) pro TikTok | conteúdo que se espalha sozinho |
 | **0.8.9** | Treinadores e quadras | Líderes de ginásio com sprite e fala no VERSUS, quadra temática por ginásio, insígnias ganhas na copa | identidade Pokémon e base do Modo história |

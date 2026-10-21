@@ -4,7 +4,7 @@ import { ENGINE_VERSION } from '../../engine/config';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { EventBus } from '../../game/EventBus';
 import type { MatchSceneData } from '../../game/scenes/MatchScene';
-import { clubName, fmt, moveName, stageName } from '../../i18n';
+import { clubName, cupStageName, fmt, moveName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { PhaserGame } from '../../PhaserGame';
 import { type RunState, useGame } from '../../store/game-store';
@@ -204,7 +204,7 @@ export function Moments({
                         <div className="row moments-actions">
                             <button
                                 type="button"
-                                className="btn yellow"
+                                className="btn outline"
                                 onClick={() => file && downloadBlob(file, file.name)}
                             >
                                 {t('moments.download')}
@@ -246,7 +246,7 @@ export function Moments({
                                     )
                                 )}
                                 {mime && (
-                                    <button type="button" className="btn yellow" onClick={record}>
+                                    <button type="button" className="btn outline" onClick={record}>
                                         {t('moments.export')}
                                     </button>
                                 )}
@@ -331,7 +331,7 @@ export function CupGoalCard({ run, match }: { run: RunState; match: MatchResult 
                 {t('moments.cup.line', {
                     name: pick.goal.name,
                     team: clubName(stage.opponent),
-                    stage: stageName(pick.stage),
+                    stage: cupStageName(run, pick.stage),
                     min: pick.goal.minute,
                 })}
             </span>
@@ -340,7 +340,7 @@ export function CupGoalCard({ run, match }: { run: RunState; match: MatchResult 
             </span>
             <small className="muted cupgoal-rule">{t('moments.cup.rule')}</small>
             {live || replay ? (
-                <button type="button" className="btn yellow" onClick={watch} disabled={busy}>
+                <button type="button" className="btn outline" onClick={watch} disabled={busy}>
                     <HudIcon kind="play" /> {busy ? t('moments.loading') : t('moments.cup.watch')}
                 </button>
             ) : (
@@ -375,7 +375,8 @@ export function MomentsButton({ run, match }: { run: RunState; match: MatchResul
     const names: [string, string] = [run.teamName, opponent ? clubName(opponent.name) : t('match.away')];
     return (
         <>
-            <button type="button" className="btn primary" onClick={() => setOpen(true)}>
+            {/* 2ª ação da tela de fim: contorno (o vermelho é o Nova copa / Escolher recompensa da barra) */}
+            <button type="button" className="btn outline" onClick={() => setOpen(true)}>
                 <HudIcon kind="play" /> {t('moments.open')}
             </button>
             {open && (

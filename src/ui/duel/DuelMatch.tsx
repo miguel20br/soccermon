@@ -77,7 +77,7 @@ import { type BoardPlan, Prancheta, useMedia, WIDE } from '../components/Pranche
 import { agencyView, MaxBars, PenaltyOrderPanel, SidelineControls, SidelineOverlay } from '../components/Sideline';
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
-import { captainAt, roleAt, snapAt } from '../match-view';
+import { captainAt, clockExtrasAt, roleAt, snapAt } from '../match-view';
 import { bannerText, peerAvatar, peerTitle } from '../profile/club';
 import { peerInfo, usePlayerCard } from '../profile/PlayerCard';
 import { reduceMotionOn } from '../settings-sync';
@@ -343,7 +343,10 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     }, [halftime]);
     const htLeft = useCountdown(halftime ? s.halftime?.until : undefined);
     const kickLeft = useCountdown(kicked ? undefined : s.kickoffAt);
-    const clockParts = useClockParts(clock, fulltime || ended, shootout, halftime);
+    // acréscimos ("+2'") e Pressão final do tick da tela (eventos do motor)
+    const extras = clockExtrasAt(match?.events ?? [], clock.tick, clock.half);
+    const clockParts = useClockParts({ ...clock, added: extras.added }, fulltime || ended, shootout, halftime);
+    const pressureNow = halftime || fulltime || ended ? null : extras.pressure;
     // fim de jogo: vai sozinho pro resultado; um toque na quadra ou no painel segura
     const auto = useAutoResult(ended, onSeeResult);
     // fim de jogo: a quadra volta pra tela (no celular a página pode ter ficado rolada desde o intervalo)
@@ -557,6 +560,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                         looks={looks}
                         score={clock.score}
                         clock={clockParts}
+                        pressure={pressureNow}
                         stage={t('duel.title')}
                         coaches={[badge(s.peers.host), badge(s.peers.guest)]}
                     >
