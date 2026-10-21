@@ -13,6 +13,7 @@ import {
     applyPreview,
     bestFor,
     clockAdjust,
+    type DuelBestOf,
     type DuelDuration,
     type DuelMode,
     duelPace,
@@ -144,7 +145,8 @@ interface Kept {
     shared: Shared;
     /** Topo da corrente de cada partida da sala (nº da partida → segredo). */
     tops: Record<number, string>;
-    recorded?: number[];
+    /** O que já foi pro save: o nº da partida (Pokédex) e `duelo-<nº>` (histórico; a série grava no fim). */
+    recorded?: (number | string)[];
     /** Escolhas lacradas de "cada um com seus pacotes" (partida, cartas e sais). */
     packs?: { game: number; picks: PokemonInstance[]; salts: string[] };
     /** Escolha lacrada da fase (time pronto ou prévia); sem ela = desfiz o pronto (ou ainda não dei). */
@@ -288,13 +290,24 @@ class DuelSession {
         specialLimit: SpecialLimit = DEFAULT_SPECIAL_LIMIT,
         duration: DuelDuration = 'normal',
         agency = false,
+        bestOf: DuelBestOf = 1,
     ): Promise<string> {
         const room = roomCode((n) => {
             const b = new Uint32Array(1);
             crypto.getRandomValues(b);
             return b[0] % n;
         });
-        const shared = newShared(room, peer, mode, speed, randomSecret().slice(0, 16), specialLimit, duration, agency);
+        const shared = newShared(
+            room,
+            peer,
+            mode,
+            speed,
+            randomSecret().slice(0, 16),
+            specialLimit,
+            duration,
+            agency,
+            bestOf,
+        );
         this.kept = { role: 'host', shared, tops: {} };
         writeKept(room, peer.id, this.kept);
         this.open(room, peer, local, 'host', shared, false);
@@ -1083,10 +1096,10 @@ class DuelSession {
         this.dispatch({ k: 'rematch', commit: chain[0] });
     }
 
-    /** Já gravei o histórico desta partida? (marca na hora). */
-    markRecorded(game: number): boolean {
-        if (!this.kept || this.kept.recorded?.includes(game)) return false;
-        this.kept.recorded = [...(this.kept.recorded ?? []), game];
+    /** Já gravei isto desta partida? (marca na hora). */
+    markRecorded(key: number | string): boolean {
+        if (!this.kept || this.kept.recorded?.includes(key)) return false;
+        this.kept.recorded = [...(this.kept.recorded ?? []), key];
         const { room, me } = this.view;
         if (room) writeKept(room, me, this.kept);
         return true;
