@@ -114,6 +114,7 @@ Leia a skill antes de começar a tarefa dela:
 | `soccermon-assets` | vídeo, logo, imagem e texto de divulgação |
 | `soccermon-social` | redes do jogo: pauta da semana, clipes, agendar no TikTok/Instagram/Shorts, comentários, placar |
 | `soccermon-marca` | antes de mexer em qualquer visual, ícone, texto de interface ou asset: checklist de padronização (brand guide em `docs/marca/`) |
+| `soccermon-musica` | compor, renderizar ou escolher música (temas em `scripts/musica/`, faixas CC0/CC BY, PokéRogue) e o gosto do Miguel pra ela |
 
 ## Regras de velocidade (19/10/2026, `docs/planos/pesquisas/velocidade.md`)
 
