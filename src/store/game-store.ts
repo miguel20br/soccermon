@@ -493,6 +493,21 @@ export interface GameStore {
 /** Quantas copas guardadas cabem no save (passou disso, sai a mais antiga). */
 export const MAX_PARKED = 3;
 
+/** Tela em que a copa continua (Continuar na Home): a do status; partida e fim de partida voltam pra escalação. */
+export function resumeScreenOf(status: RunStatus): Screen {
+    if (status === 'formation' || status === 'captain' || status === 'drafting') return 'draft';
+    if (
+        status === 'reward' ||
+        status === 'shop' ||
+        status === 'map' ||
+        status === 'treino' ||
+        status === 'event' ||
+        status === 'group'
+    )
+        return status;
+    return 'lineup';
+}
+
 /** Copa ainda em jogo (não terminou em título nem em eliminação). */
 export const isCupInProgress = (run: RunState | null | undefined): run is RunState =>
     !!run && run.status !== 'eliminated' && run.status !== 'champion';
