@@ -1,5 +1,12 @@
 # Novidades
 
+## 0.9.1.1 · Cartas de volta
+
+### Consertos
+- A vitrine mostra a sua melhor carta de verdade daquele Pokémon (antes podia ficar presa na versão padrão, Destaque I ou Ícone sem MVP)
+- Mudança só no Álbum agora sobe pra nuvem
+- Carta perdida de antes do Álbum (19/10) volta por código: Perfil → Treinador → Resgatar código
+
 ## 0.9.1 · Rota Índigo
 
 ### Rota Índigo (modo novo)

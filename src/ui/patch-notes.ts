@@ -7,6 +7,20 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.1.1',
+        title: 'Cartas de volta',
+        sections: [
+            {
+                title: 'Consertos',
+                lines: [
+                    'A vitrine mostra a sua melhor carta de verdade daquele Pokémon (antes podia ficar presa na versão padrão, Destaque I ou Ícone sem MVP)',
+                    'Mudança só no Álbum agora sobe pra nuvem',
+                    'Carta perdida de antes do Álbum (19/10) volta por código: Perfil → Treinador → Resgatar código',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.1',
         title: 'Rota Índigo',
         sections: [
@@ -965,6 +979,20 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.1.1',
+        title: 'Cards back',
+        sections: [
+            {
+                title: 'Fixes',
+                lines: [
+                    'The showcase shows your best real card of that Pokémon (it could get stuck on the default version, Star Player I or Icon without MVP)',
+                    'Changes only in the Album now sync to the cloud',
+                    'A card lost from before the Album (Oct 19) comes back with a code: Profile → Trainer → Redeem code',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.1',
         title: 'Indigo Road',

@@ -4,7 +4,8 @@ import { DEFAULT_LEVEL, type PokemonInstance, viewInstance } from '../engine/ins
 import { defaultMoveset } from '../engine/moves';
 import { EVENT_TYPES, ICONS, mvpLevel } from '../engine/specials';
 import type { RunState } from './game-store';
-import type { AlbumEdition, HallEntry } from './profile';
+import { type AlbumEdition, type Dex, editionBits, type HallEntry, recordEditions } from './profile';
+import type { CardGift } from './title-codes';
 
 /**
  * Álbum de cartas (as figurinhas da Pokédex): só as cartas especiais (Shiny, Evento, Ícone, Destaque), uma por
@@ -15,8 +16,8 @@ import type { AlbumEdition, HallEntry } from './profile';
  * Se a figurinha está colada ou não é a Pokédex que diz (`DexEntry.editions`, a mesma conta da medalha e da platina):
  * aqui fica só a carta que aparece nela.
  */
-export type BinderFrom = 'draft' | 'recompensa' | 'mercado' | 'diario' | 'evolucao' | 'hall';
-const FROMS: BinderFrom[] = ['draft', 'recompensa', 'mercado', 'diario', 'evolucao', 'hall'];
+export type BinderFrom = 'draft' | 'recompensa' | 'mercado' | 'diario' | 'evolucao' | 'hall' | 'resgate';
+const FROMS: BinderFrom[] = ['draft', 'recompensa', 'mercado', 'diario', 'evolucao', 'hall', 'resgate'];
 
 /** Edições que viram figurinha no álbum de cartas (a Normal não entra). */
 export type CardSlot = Exclude<AlbumEdition, 'normal'>;
@@ -327,6 +328,23 @@ export function defaultCard(sp: Species, ed?: CardSlot): PokemonInstance {
     };
 }
 
+/** A carta de um código de carta devolvida (title-codes.ts): a padrão da espécie com a edição; o uid marca o resgate. */
+export function giftInst(g: CardGift): PokemonInstance {
+    const sp = SPECIES_BY_ID.get(g.speciesId) as Species;
+    const special = g.special?.kind === 'icone' ? { title: ICONS[sp.id], ...g.special } : g.special;
+    return { ...defaultCard(sp), uid: `resgate-${g.id}`, shiny: g.shiny, special };
+}
+
+/** Devolve a carta do código: no álbum (origem 'resgate') e a figurinha na Pokédex; null se ela já voltou. */
+export function returnCard(s: { binder: BinderCard[]; dex: Dex }, g: CardGift, at = Date.now()) {
+    const p = giftInst(g);
+    if (s.binder.some((c) => c.seen.includes(p.uid) || versionsOf(c).some((v) => v.uid === p.uid))) return null;
+    return {
+        binder: binderAdd(s.binder, [p], { from: 'resgate', at }),
+        dex: recordEditions(s.dex, [[p.speciesId, editionBits(p)]]),
+    };
+}
+
 /** Figurinha de antes do álbum (colada, sem carta guardada): a vitrine e "Suas versões" usam a carta padrão. */
 export const OLD_VERSION = 'padrao';
 
@@ -364,14 +382,15 @@ export function resolveCardShowcase(
         const [slot, key] = raw.split('#');
         const [spId, ed] = slot.split(':');
         const sp = SPECIES_BY_ID.get(Number(spId));
-        if (key === OLD_VERSION) {
+        const c =
+            binder.find((x) => x.id === slot) ??
+            (key ? undefined : binder.find((x) => x.uid === raw || x.seen.includes(raw)));
+        // figurinha de antes do álbum: a carta padrão só enquanto a de verdade não chega (aí vale a melhor do espaço)
+        if (key === OLD_VERSION && !c) {
             if (sp && CARD_SLOTS.includes(ed as CardSlot) && ok(slot))
                 push({ id: raw, inst: defaultCard(sp, ed as CardSlot), v: null });
             continue;
         }
-        const c =
-            binder.find((x) => x.id === slot) ??
-            (key ? undefined : binder.find((x) => x.uid === raw || x.seen.includes(raw)));
         if (!c || !ok(c.id)) continue;
         const vs = versionsOf(c);
         const v = (key && vs.find((x) => versionKey(x.card) === key)) || vs[0];
