@@ -141,9 +141,9 @@ Aprovadas pelo Miguel ("1a a 9a"); **cada tarefa é avaliada por si**, não é a
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (22/10/2026, v0.9.6)
+## Estado atual (22/10/2026, v0.9.7)
 
-No ar: 0.9.6 (beira da quadra pra todos: golpe máximo com zona por posição, defesa máxima, goleiro-linha, pedido de tempo; MTs mais fortes; `ENGINE_VERSION` 10, Edge Function `liga` com o motor 10), Rota Índigo (`LONG_CUP_LIVE`), Copa Relâmpago e Duelo melhor de 3. Liga fechada até `LIGA_OPENS_AT`; a Copa do Dia segue no ar. Histórico: [docs/planos/historico.md](docs/planos/historico.md). Índice dos docs: `node scripts/indice.mjs`.
+No ar: 0.9.7 (música própria em todas as telas, mapa da Rota com bifurcações, tutorial em balões, rivais da Rota por tipo; `ENGINE_VERSION` 10, Edge Function `liga` com o motor 10), Rota Índigo (`LONG_CUP_LIVE`), Copa Relâmpago e Duelo melhor de 3. Liga fechada até `LIGA_OPENS_AT`; a Copa do Dia segue no ar. Histórico: [docs/planos/historico.md](docs/planos/historico.md). Índice dos docs: `node scripts/indice.mjs`.
 
 ## Armadilhas (o porquê de cada uma)
 

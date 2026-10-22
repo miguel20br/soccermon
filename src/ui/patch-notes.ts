@@ -7,6 +7,46 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.7',
+        title: 'Música no jogo e Rota com escolhas',
+        sections: [
+            {
+                title: 'Música',
+                lines: [
+                    'Trilha própria em todas as telas: Abertura, draft, escalação, Mercado, partidas, Planalto e Sala de troféus',
+                    'Brock, Misty e Equipe Rocket têm tema e música de partida próprios',
+                    'Rota 1, Mt. Moon e Cerulean tocam a música da região no mapa',
+                    'Virou o placar no 2º tempo? Toca a vinheta da virada',
+                    'Volume da música nas Configurações (zero desliga)',
+                ],
+            },
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'O mapa agora tem bifurcações de verdade: quase toda rota tem escolha',
+                    'Os treinadores da Rota jogam com o tipo deles (Ornitólogo tem pássaro)',
+                    'Treino sem ninguém pra evoluir vira Treino de técnica: escolha um item ou MT',
+                    'Resultado mostra o ₽ ganho, e o evento diz o que aconteceu',
+                    'Mapa melhor no celular, em pé e deitado',
+                    'Quem cai no grupo não vê mais "Vitória!"',
+                    'Quem estava no meio de uma Rota pode ver rivais diferentes nas próximas casas',
+                ],
+            },
+            {
+                title: 'Primeira vez',
+                lines: ['Balões curtos mostram onde tocar na primeira vez em cada modo; dá pra pular e rever na Ajuda'],
+            },
+            {
+                title: 'Acessibilidade e consertos',
+                lines: [
+                    'Jogo inteiro pelo teclado, com foco visível, e o golpe máximo avisa o leitor de tela',
+                    '"Sorteio" é o nome único pra sortear de novo',
+                    'O Duelo ganhou cabeçalho e botão de voltar',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.6',
         title: 'Beira da quadra e MTs mais fortes',
         sections: [
