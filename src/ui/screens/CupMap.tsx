@@ -58,8 +58,12 @@ const ICON: Record<NodeKind, HudIconKind> = {
     final: 'cup',
 };
 /** Altura de cada linha do mapa (px): cabe na altura da tela, entre o mínimo que dá pra tocar e o máximo que respira. */
-const ROW_MIN = 56;
+/** Altura da casa (ícone de 50 px + rótulo = 67 px) com folga: linha mais baixa que isso põe uma casa por cima da outra. */
+const ROW_MIN = 72;
 const ROW_MAX = 84;
+/** Faixa do nome no alto de cada região: o nome fica nela e nunca embaixo de uma casa. */
+const NAME_H = 20;
+const regionIndex = (row: number) => MAP_REGIONS.findIndex((r) => row >= r.rows[0] && row <= r.rows[1]);
 /** Altura que o cabeçalho e o status tomam no celular em pé (o resto da tela é do mapa). */
 const MOBILE_CHROME = 250;
 /** Desktop e celular deitado: mapa à esquerda, ficha da casa e status num painel ao lado (o mesmo CSS, long-cup.css). */
@@ -168,12 +172,15 @@ export function CupMap() {
 
     if (!run || !map) return null;
     const rowH = wide
-        ? Math.max(vh < 600 ? 52 : 72, Math.min(112, Math.floor((vh - 190) / (map.rows + 0.7))))
+        ? Math.max(ROW_MIN, Math.min(112, Math.floor((vh - 190) / (map.rows + 0.7))))
         : Math.max(ROW_MIN, Math.min(ROW_MAX, Math.floor((vh - MOBILE_CHROME) / (map.rows + 0.7))));
     const pad = Math.round(rowH * 0.67);
-    const H = map.rows * rowH;
+    const H = map.rows * rowH + MAP_REGIONS.length * NAME_H;
     const width = (row: number) => map.nodes.filter((x) => x.row === row).length;
-    const pos = (n: MapNode) => ({ x: nodeX(n.col, width(n.row)), y: H - (n.row + 0.5) * rowH });
+    const pos = (n: MapNode) => ({
+        x: nodeX(n.col, width(n.row)),
+        y: H - (n.row + 0.5) * rowH - regionIndex(n.row) * NAME_H,
+    });
     const path = run.path ?? [];
     const walked = new Set(path.slice(1).map((id, i) => `${path[i]}>${id}`));
     const chosen = pick ? map.nodes.find((n) => n.id === pick) : undefined;
@@ -248,15 +255,13 @@ export function CupMap() {
                         </span>
                         <span
                             className={`cm-cards${cards > 0 ? ' used' : ''}`}
-                            title={t('longCup.cardsHint')}
                             aria-label={`${t('longCup.cards')}: ${cards}/${YELLOW_CARDS}`}
                             role="img"
                         >
                             <i className={`cm-card${cards > 0 ? ' on' : ''}`} />
                             {cards}/{YELLOW_CARDS}
                         </span>
-                        {/* a regra do amarelo aparece no começo da Rota; depois, só quando o cartão cai */}
-                        {played === 0 && <small className="cm-rule">{t('longCup.cardsHint')}</small>}
+                        {/* a regra do amarelo: o balão do mapa ensina e o cartão do resultado explica quando cai */}
                         {!!run.sponsors?.length && <SponsorSlots sponsors={run.sponsors} />}
                     </div>
                     {run.eventNote && <EventNote note={run.eventNote} picks={run.picks} />}
@@ -265,9 +270,9 @@ export function CupMap() {
 
                 <div className="cm-scroll" ref={scroller}>
                     <div className="cm-map" style={{ height: H + pad }}>
-                        {REGIONS.map((r) => {
-                            const top = H - (r.rows[1] + 1) * rowH;
-                            const h = (r.rows[1] - r.rows[0] + 1) * rowH + (r.rows[0] === 0 ? pad : 0);
+                        {REGIONS.map((r, i) => {
+                            const top = H - (r.rows[1] + 1) * rowH - (i + 1) * NAME_H;
+                            const h = (r.rows[1] - r.rows[0] + 1) * rowH + NAME_H + (r.rows[0] === 0 ? pad : 0);
                             return (
                                 <div key={r.id} className={`cm-region rg-${r.id}`} style={{ top, height: h }}>
                                     <span className="cm-region-name">{d.longCup.region[r.id as RegionId]}</span>

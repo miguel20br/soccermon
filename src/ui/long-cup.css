@@ -42,11 +42,6 @@
 .cm-cards.used {
     color: var(--yellow);
 }
-.cm-rule {
-    flex: 1 1 auto;
-    color: var(--text);
-    font-size: 12px;
-}
 .cm-body {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -349,8 +344,14 @@
         justify-content: center;
         min-height: 34px;
     }
+    /* só o ícone na tela; o nome fica pro leitor de tela (com display: none o botão era só "botão") */
     .cm-status .sp-slot-name {
-        display: none;
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
     }
 }
 
@@ -471,24 +472,22 @@
 .rg-planalto {
     --rg: radial-gradient(circle at 50% 70%, #6d6fd6, #2e2f7a 70%);
 }
+/* nome da região na horizontal, na faixa de cima da região (NAME_H no CupMap.tsx), fora do caminho das casas */
 .cm-region-name {
     position: absolute;
-    left: 3px;
-    top: 50%;
+    left: 6px;
+    top: 2px;
     /* por cima do cenário da borda */
     z-index: 2;
-    translate: 0 -50%;
-    padding: 6px 2px;
+    padding: 3px 7px 2px;
     border-radius: 4px;
     background: var(--bc-ink);
     color: #fff;
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 700;
     letter-spacing: 1px;
     text-transform: uppercase;
     white-space: nowrap;
-    writing-mode: vertical-rl;
-    rotate: 180deg;
 }
 
 /* ---------- cartão amarelo e vermelho no resultado (src/ui/components/FoulCard.tsx) ---------- */
@@ -983,9 +982,6 @@
         grid-template-columns: auto 1fr;
         gap: 10px 14px;
     }
-    .cm-rule {
-        grid-column: 1 / -1;
-    }
     .cm-status .sp-slots {
         grid-column: 1 / -1;
         grid-template-columns: minmax(0, 1fr);
@@ -1028,16 +1024,6 @@
         border: 2px dashed var(--line);
         border-radius: 8px;
         text-align: center;
-    }
-    /* nome da região na horizontal, no canto da faixa */
-    .cm-region-name {
-        top: 8px;
-        left: 8px;
-        translate: none;
-        padding: 3px 7px 2px;
-        font-size: 10px;
-        writing-mode: horizontal-tb;
-        rotate: none;
     }
 }
 @keyframes cm-side-in {

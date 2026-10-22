@@ -7,7 +7,7 @@ import { playSfx } from '../../game/audio';
 import { clubName, cupStageName, cupStageShort } from '../../i18n';
 import { useT } from '../../i18n/react';
 import type { RunState } from '../../store/game-store';
-import { cupLength, groupTable, isFinalStage, isLong, longWinEarnings } from '../../store/long-cup';
+import { cupLength, groupTable, isFinalStage, isGroupStage, isLong, longWinEarnings } from '../../store/long-cup';
 import { rivalColor } from '../../store/profile';
 import { portraitSrc } from '../portrait';
 import { useClubColor } from '../profile/club';
@@ -108,8 +108,8 @@ export function ResultHero({
     const won = match.winner === side;
     const { t, d } = useT();
     const champion = run?.status === 'champion';
-    // Rota Índigo: ganhou a última rodada do grupo, mas ficou fora dos 2 primeiros (a Final não vem)
-    const groupOut = won && run?.status === 'eliminated';
+    // Rota Índigo: acabou o grupo fora dos 2 primeiros (ganhando ou perdendo a última rodada): a Final não vem
+    const groupOut = !!run && isLong(run) && run.status === 'eliminated' && isGroupStage(run.stage);
     const mood = champion ? 'champ' : won && !groupOut ? 'win' : 'loss';
     // Rota Índigo: perder com o cartão amarelo (volta pro mapa) ou no grupo não é o fim da linha
     const alive = !won && (run?.status === 'map' || run?.status === 'group');

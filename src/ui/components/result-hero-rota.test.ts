@@ -78,6 +78,19 @@ describe('resultado da Rota Índigo', () => {
         expect(out).not.toContain('rh-next');
         expect(out).not.toContain('class="next"');
     });
+    it('perdeu a última rodada e ficou fora do grupo: FORA DA FINAL e a posição, não "Fim da linha na partida 7"', () => {
+        const results = [0, 1, 2, 3, 4].map((s) => res(s, true)).concat(res(5, false));
+        const out = html({
+            status: 'eliminated',
+            stage: 5,
+            results: results as never,
+            group: { rivals: [opponent, opponent, opponent] } as never,
+            opponents: [opponent, opponent, opponent, opponent, opponent, opponent, opponent, opponent],
+        });
+        expect(out).toContain('FORA DA FINAL');
+        expect(out).toContain('no grupo');
+        expect(out).not.toMatch(/FIM DA LINHA|Fim da linha/);
+    });
     it('Rota: o ₽ da vitória aparece no resultado', () => {
         const wonMatch = { ...match, winner: 0, score: [2, 0] } as unknown as MatchResult;
         const out = renderToStaticMarkup(
