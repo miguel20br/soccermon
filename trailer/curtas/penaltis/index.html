@@ -1,0 +1,252 @@
+<!doctype html>
+<!--
+  Curta promocional 2 (22/10/2026): "Disputa de pênaltis", 9:16, na música da categoria livre (livre-penaltis) editada
+  na partitura por ../musica.mjs: as 5 rodadas inteiras (compassos 2 a 22 da peça, 96 → 112 BPM, meio tom acima a cada
+  rodada) e a festa encurtada (23–24 em Mi, 27–28 em Fá#, 31). Cada cobrança são dois compassos: o apito corta pro
+  batedor, ele anda um passo por nota das cordas, o coração pulsa a borda da tela, e o resultado cai no som (rede, trave,
+  luva). A câmera aperta a cada rodada; o compasso de silêncio é um quadro parado; a luva do Hitmonchan defende a última
+  e o SOC-CER-MON explode com o logo piscando (como no trailer v3). Tempos: C.T(compasso, linha).
+  Placar da música: gol, gol | gol, gol | trave, gol (2 a 3) | gol, defesa (3 a 3) | gol, defesa (4 a 3).
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920" />
+<title>Soccermon · Disputa de pênaltis</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script src="midia/sprites.js"></script>
+<script src="midia/som/penaltis.js"></script>
+<script src="comum.js"></script>
+<style>
+#pulso { position: absolute; inset: 0; z-index: 36; opacity: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 50%, transparent 50%, rgb(120 0 30 / 70%) 100%); }
+#placar { position: absolute; left: 225px; width: 630px; top: 150px; z-index: 45; box-sizing: border-box; padding: 18px 26px;
+  background: #10183d; border: 6px solid #f8f8f0; border-radius: 18px; box-shadow: 0 0 0 5px #0e1430, 0 12px 0 rgb(0 0 0 / 35%); opacity: 0; }
+#placar .linha { display: flex; align-items: center; gap: 16px; height: 86px; }
+#placar img { width: 76px; height: 76px; image-rendering: pixelated; border: 4px solid #f8f8f0; border-radius: 10px; background: #2a3a7a; margin-right: 14px; }
+#placar .p { position: relative; width: 62px; height: 62px; border-radius: 50%; box-sizing: border-box; border: 5px solid #5a679e; background: #0b1130; }
+#placar .p i { position: absolute; inset: -5px; border-radius: 50%; opacity: 0; }
+#placar .p .g { background: #ffcb05; border: 5px solid #0e1430; box-sizing: border-box; }
+#placar .p .e { background: #e8423f; border: 5px solid #0e1430; box-sizing: border-box; }
+#placar .p .e::before, #placar .p .e::after { content: ""; position: absolute; left: 50%; top: 50%; width: 34px; height: 8px; margin: -4px 0 0 -17px; background: #fff; border-radius: 3px; transform: rotate(45deg); }
+#placar .p .e::after { transform: rotate(-45deg); }
+#apito { position: absolute; left: 0; top: 0; z-index: 46; opacity: 0; }
+#time-final { position: absolute; inset: 0; }
+#calor { position: absolute; inset: 0; opacity: 0; background: radial-gradient(circle at 50% 40%, rgb(255 190 60 / 45%), transparent 65%); }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="60.5">
+  <div id="cena" class="clip" data-start="0" data-duration="48.434">
+    <div id="cam" class="camada"></div>
+    <div id="pulso"></div>
+    <div id="frente" class="camada" style="z-index:50"></div>
+    <div id="placar">
+      <div class="linha" id="nos"><img src="midia/25.png" alt="" /></div>
+      <div class="linha" id="eles"><img src="midia/150.png" alt="" /></div>
+    </div>
+    <svg id="apito" width="180" height="125" viewBox="0 0 26 18"><g stroke="#0e1430" stroke-width="1.6" stroke-linejoin="round" fill="#f8f8f0"><path d="M3 9a6 6 0 1 0 12 0V6h9V3H9A6 6 0 0 0 3 9z"/><rect x="7" y="7" width="4" height="4" rx="1" fill="#0e1430"/></g></svg>
+    <div class="legenda" id="gancho" style="top:120px;height:260px"><span>DISPUTA DE <b>PÊNALTIS</b></span></div>
+  </div>
+  <div id="final" class="clip palco" data-start="48.434" data-duration="12.066">
+    <div class="raios" id="raios-final"></div>
+    <div id="calor"></div>
+    <div id="time-final"></div>
+  </div>
+  <div class="flash" id="flash"></div>
+  <audio id="a-musica" class="clip" src="midia/som/penaltis-14.wav" data-start="0" data-duration="60.5" data-media-start="0" data-fade-out="1.5"></audio>
+
+  <script>
+    const { T, div, quadra, ator, anim, quadro, passos, bola, estouro, poeira, treme, flash, torcida, torcidaAnim, torcidaPulo, telaFinal, piscada } = C;
+    const tl = gsap.timeline({ paused: true });
+    const cam = document.getElementById('cam');
+    quadra(cam, 'sabrina', { K: 90, gy: 640 });
+    const MARCA = { x: 540, y: 1180 };
+    const PE_GOL = 662;
+    const GOLEIRO = { nos: ator(cam, 107, { escala: 8, z: 11, x: 540, y: PE_GOL, opacity: 0 }), eles: ator(cam, 76, { escala: 8, z: 11, x: 540, y: PE_GOL, opacity: 0 }) };
+    const bl = bola(cam, { d: 70, z: 13, x: MARCA.x, y: MARCA.y });
+    const fila = torcida(document.getElementById('frente'));
+    // [compasso da corrida, batedor, time, resultado, canto (-1 esquerda, 1 direita)]
+    const COBRANCAS = [
+      [0, 6, 'nos', 'gol', 1], [2, 94, 'eles', 'gol', -1],
+      [4, 7, 'nos', 'gol', -1], [6, 68, 'eles', 'gol', 1],
+      [8, 54, 'nos', 'trave', -1], [10, 65, 'eles', 'gol', 1],
+      [12, 1, 'nos', 'gol', 1], [14, 124, 'eles', 'defesa', 1],
+      [16, 25, 'nos', 'gol', -1], [18, 150, 'eles', 'defesa', -1],
+    ];
+    const ZOOM = [1, 1.08, 1.16, 1.25, 1.35];
+    const placar = { nos: 0, eles: 0 };
+    for (const lado of ['nos', 'eles']) for (let k = 0; k < 5; k++) document.getElementById(lado).insertAdjacentHTML('beforeend', `<div class="p"><i class="g" id="${lado}-g${k}"></i><i class="e" id="${lado}-e${k}"></i></div>`);
+    const marcar = (lado, ok, t) => {
+      const el = `#${lado}-${ok ? 'g' : 'e'}${placar[lado]++}`;
+      tl.set(el, { opacity: 1 }, t);
+      tl.fromTo(el, { scale: 1.8 }, { scale: 1, duration: 0.25, ease: 'back.out(3)', immediateRender: false }, t);
+    };
+    const mover = (a, t0, t1, x, y, ease = 'none') => tl.to(a.el, { x, y, duration: t1 - t0, ease }, t0);
+    const pulo = (a, t, h, d = 0.25) => tl.to(a.corpo, { keyframes: { y: [-h, 0] }, duration: d, ease: 'power1.inOut' }, t);
+
+    // ===== gancho e placar =====
+    tl.from('#gancho', { y: 60, scale: 0.8, opacity: 0, duration: 0.22, ease: 'back.out(2.5)' }, 0.03);
+    tl.to('#gancho', { opacity: 0, y: -40, duration: 0.2 }, T(0, 12));
+    tl.fromTo('#placar', { y: -80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, T(0, 13));
+    torcidaAnim(tl, fila, 'Idle', 0, T(19, 0));
+
+    COBRANCAS.forEach(([c, id, lado, res, canto], n) => {
+      const ultima = n === 9;
+      const rodada = Math.floor(n / 2);
+      const bat = ator(cam, id, { escala: 8, z: 14, x: 590, y: 1630, opacity: 0 });
+      const gol = GOLEIRO[lado === 'nos' ? 'eles' : 'nos'];
+      const t0 = T(c, 0);
+      const tk = T(ultima ? c + 2 : c + 1, 0); // a última tem o compasso de silêncio no meio
+      const tr = T(ultima ? c + 2 : c + 1, 2);
+      const fim = T(ultima ? c + 3 : c + 2, 0);
+
+      // corte no apito: batedor, goleiro e bola no lugar; a câmera aperta a cada rodada
+      tl.set(bat.el, { opacity: 1, x: 590, y: 1630 }, t0);
+      tl.set(bat.el, { opacity: 0 }, fim);
+      tl.set(gol.el, { opacity: 1, x: 540 }, t0);
+      tl.set(gol.corpo, { rotation: 0, y: 0 }, t0);
+      tl.set(gol.el, { opacity: 0 }, fim);
+      tl.set(bl.el, { x: MARCA.x, y: MARCA.y }, t0);
+      tl.set(bl.corpo, { y: 0 }, t0);
+      tl.set(cam, { scale: ZOOM[rodada], transformOrigin: '540px 700px' }, t0);
+      tl.to(cam, { scale: ZOOM[rodada] + 0.07, duration: T(c + 1, 0) - t0, ease: 'none' }, t0);
+      tl.fromTo('#apito', { x: 150, y: 470, scale: 0.4, rotation: -20, opacity: 1 }, { scale: 1, rotation: 0, duration: 0.18, ease: 'back.out(3)', immediateRender: false }, t0);
+      tl.to('#apito', { opacity: 0, duration: 0.15 }, t0 + 0.45);
+
+      // a corrida: um passo a cada 2 notas das cordas; o coração pulsa a borda; o goleiro balança
+      const ts = [0, 2, 4, 6, 8, 10, 12, 14].map((r) => T(c, r));
+      passos(tl, bat, 'Walk', 4, ts);
+      ts.forEach((t, k) => tl.to(bat.el, { x: 590 - 4 * (k + 1), y: 1630 - 46 * (k + 1), duration: 0.16, ease: 'power2.out' }, t));
+      for (const r of [0, 3, 8, 11]) {
+        tl.fromTo('#pulso', { opacity: r % 8 ? 0.5 : 0.8 }, { opacity: 0, duration: 0.28, ease: 'power2.out', immediateRender: false }, T(c, r));
+        tl.to(gol.el, { x: 540 + (r % 8 ? 22 : -22), duration: 0.25, ease: 'sine.inOut' }, T(c, r));
+      }
+      anim(tl, gol, 'Idle', 0, t0, ultima ? T(c + 1, 0) : tk);
+
+      if (ultima) {
+        // ===== o coração para: um compasso de silêncio, quadro parado e apertado =====
+        const ts0 = T(c + 1, 0);
+        tl.set(cam, { scale: 1.45, transformOrigin: '540px 700px' }, ts0);
+        tl.set('#cam', { filter: 'saturate(0.35) brightness(0.85)' }, ts0);
+        tl.set('#cam', { filter: 'none' }, tk);
+        tl.set(cam, { scale: 1.5 }, tk);
+        quadro(tl, gol, 'Idle', 0, 0, ts0);
+      }
+
+      // ===== o chute (o quadro do golpe no tk) e o resultado na linha 2 =====
+      const A = SPR[id].anims.Shoot;
+      const antes = A.dur.slice(0, A.hit).reduce((s, d) => s + d, 0) / 60;
+      anim(tl, bat, 'Shoot', 4, tk - antes, tk + 0.6, { loop: false });
+      const alvo = res === 'trave' ? { x: 408, y: 645 } : res === 'defesa' ? { x: 540 + canto * 150, y: 625 } : { x: 540 + canto * 92, y: 590 };
+      tl.to(bl.el, { x: alvo.x, y: alvo.y, duration: tr - tk, ease: 'none' }, tk);
+      tl.to(bl.corpo, { keyframes: { y: [-70, -30] }, duration: tr - tk, ease: 'none' }, tk);
+      tl.to(bl.gira, { rotation: '+=540', duration: tr - tk, ease: 'none' }, tk);
+      // o goleiro pula: pro lado certo na defesa, pro errado no gol
+      const lado2 = res === 'defesa' ? canto : -canto;
+      tl.to(gol.el, { x: 540 + lado2 * 110, duration: 0.2, ease: 'power2.out' }, tk + 0.04);
+      tl.to(gol.corpo, { rotation: lado2 * 72, y: -24, duration: 0.2, ease: 'power2.out' }, tk + 0.04);
+      quadro(tl, gol, 'Hurt', 0, 0, tk + 0.04);
+      tl.to(gol.corpo, { y: 0, duration: 0.25, ease: 'bounce.out' }, tr + 0.1);
+      const nosso = lado === 'nos';
+      if (res === 'gol') {
+        tl.fromTo('#rede', { scaleY: 1 }, { keyframes: { scaleY: [1.4, 0.92, 1.1, 1] }, duration: 0.7, ease: 'none', immediateRender: false, svgOrigin: '0 0' }, tr);
+        estouro(tl, cam, alvo.x, alvo.y - 30, tr, { tam: 180 });
+        flash(tl, tr, nosso ? 0.5 : 0.25, 0.25);
+        treme(tl, '#cena', tr, nosso ? 0.9 : 0.5, 0.3);
+        if (nosso) {
+          torcidaPulo(tl, fila, tr, { h: 90, d: 0.4 });
+          torcidaPulo(tl, fila, T(c + 1, 6), { h: 60, d: 0.35 });
+        } else {
+          // a torcida deles lá longe; a nossa murcha
+          fila.forEach((a) => tl.to(a.corpo, { keyframes: { scaleY: [0.86, 0.86, 1] }, duration: 1.4, ease: 'none' }, tr + 0.1));
+        }
+        // os metais (linhas 4 e 6): o batedor comemora
+        anim(tl, bat, SPR[id].anims.Pose ? 'Pose' : 'Hop', 0, T(c + 1, 4), fim, { loop: false });
+        pulo(bat, T(c + 1, 4), 50, 0.22);
+        pulo(bat, T(c + 1, 6), 70, 0.3);
+      }
+      if (res === 'trave') {
+        // DONG: a trave acende, a bola espirra pra fora; "óóó" na linha 3; os metais caindo, mão na cabeça
+        tl.fromTo('#trave-e', { fill: '#ffcb05' }, { fill: '#ffffff', duration: 0.5, ease: 'power2.in', immediateRender: false }, tr);
+        estouro(tl, cam, 405, 600, tr, { tam: 200, cor: '#fff' });
+        treme(tl, '#cena', tr, 1.2, 0.35);
+        tl.to(bl.el, { x: 120, y: 300, duration: 0.5, ease: 'power2.out' }, tr);
+        tl.to(bl.corpo, { y: -120, duration: 0.5, ease: 'power1.out' }, tr);
+        torcidaPulo(tl, fila, T(c + 1, 3), { h: 50, d: 0.5 });
+        anim(tl, bat, 'Hurt', 4, T(c + 1, 6), fim, { loop: false });
+        tl.to(bat.corpo, { scaleY: 0.85, scaleX: 1.08, duration: 0.6, ease: 'sine.in' }, T(c + 1, 6));
+        tl.set(bat.corpo, { scaleY: 1, scaleX: 1 }, fim);
+      }
+      if (res === 'defesa') {
+        // LUVA: a bola gruda na luva do Hitmonchan
+        tl.set(bl.el, { x: alvo.x, y: alvo.y }, tr);
+        tl.to(bl.el, { x: 540 + canto * 120, y: PE_GOL - 10, duration: 0.4, ease: 'power2.out' }, tr + 0.05);
+        tl.to(bl.corpo, { y: -60, duration: 0.3, ease: 'power2.out' }, tr);
+        estouro(tl, cam, alvo.x, alvo.y - 40, tr, { tam: ultima ? 340 : 240 });
+        torcidaPulo(tl, fila, T(c + 1, 3), { h: 90, d: 0.4 });
+        anim(tl, bat, 'Hurt', 4, T(c + 1, 6), fim, { loop: false });
+        if (ultima) {
+          // o quadro de impacto do trailer: invertido, clarão e tremida
+          tl.set('#cam', { filter: 'invert(1) contrast(1.6)' }, tr);
+          tl.set('#cam', { filter: 'none' }, tr + 0.067);
+          flash(tl, tr + 0.067, 0.85, 0.35);
+          treme(tl, '#cena', tr, 1.8, 0.4);
+        } else {
+          flash(tl, tr, 0.35, 0.2);
+          treme(tl, '#cena', tr, 1, 0.3);
+        }
+      }
+      marcar(lado, res === 'gol', tr);
+      if (!ultima) tl.to(cam, { scale: ZOOM[rodada] + 0.13, duration: 0.12, yoyo: true, repeat: 1, ease: 'power2.out' }, tr);
+    });
+
+    // ===== a última defesa: a caixa rufando, a câmera abre, o Hitmonchan levanta com a bola =====
+    const hc = GOLEIRO.nos;
+    tl.to(cam, { scale: 1, transformOrigin: '540px 700px', duration: T(21, 0) - T(20, 8), ease: 'power2.inOut' }, T(20, 8));
+    tl.set(hc.corpo, { rotation: 0, y: 0 }, T(20, 8));
+    tl.to(hc.el, { x: 540, duration: 0.2 }, T(20, 8));
+    anim(tl, hc, 'Idle', 0, T(20, 8), T(21, 0));
+    tl.to(bl.el, { x: 540, y: PE_GOL + 2, duration: 0.2 }, T(20, 8));
+    tl.to(bl.corpo, { y: -120, duration: 0.2 }, T(20, 8));
+    // pula com a bola no alto (o Hop do PMD sobe demais com a câmera fechada)
+    for (const r of [10, 12, 14]) {
+      pulo(hc, T(20, r), 45, 0.22);
+      tl.to(bl.corpo, { keyframes: { y: [-165, -120] }, duration: 0.22, ease: 'power1.inOut' }, T(20, r));
+    }
+    torcidaAnim(tl, fila, 'Idle', T(20, 3), T(21, 0), { vel: 1.5 });
+    for (const r of [8, 10, 12, 14]) torcidaPulo(tl, fila, T(20, r), { h: 80, d: 0.22, atraso: 0.01 });
+
+    // ===== a festa: SOC-CER-MON em Mi (logo piscando), sobe um tom pra Fá# (pisca de novo), fecha =====
+    const FIM = T(21, 0);
+    telaFinal(document.getElementById('final'));
+    const tf = document.getElementById('time-final');
+    [6, 7, 54, 107, 1, 25].forEach((id, i) => {
+      const a = ator(tf, id, { escala: 7, z: 5 + (i % 2), x: 150 + i * 156, y: 1440 + (i % 2) * 40 });
+      anim(tl, a, 'Hop', 0, FIM + 0.04 * i, T(25, 0) + 0.04 * i, { vel: 0.9 });
+      quadro(tl, a, 'Idle', 0, 0, T(25, 0) + 0.04 * i);
+    });
+    flash(tl, FIM, 1, 0.35);
+    tl.to('#raios-final', { rotation: 18, duration: T(23, 0) - FIM, ease: 'none' }, FIM);
+    tl.to('#raios-final', { rotation: 60, duration: 60.5 - T(23, 0), ease: 'power1.out' }, T(23, 0));
+    tl.set('#logo', { opacity: 1 }, FIM);
+    tl.fromTo('#logo', { scale: 0.7 }, { scale: 1, duration: 0.45, ease: 'back.out(3)', immediateRender: false }, FIM);
+    piscada(tl, [0, 3, 6].map((r) => T(21, r)), '#final');
+    tl.set('#tag', { opacity: 1 }, T(22, 0));
+    tl.from('#tag', { scale: 1.6, duration: 0.25, ease: 'back.out(2)' }, T(22, 0));
+    // sobe um tom: o palco esquenta, o logo cresce um degrau e pisca de novo
+    tl.to('#calor', { opacity: 1, duration: 0.3 }, T(23, 0));
+    flash(tl, T(23, 0), 0.6, 0.25);
+    tl.to('#logo', { scale: 1.07, duration: 0.3, ease: 'back.out(3)' }, T(23, 0));
+    piscada(tl, [0, 3, 6].map((r) => T(23, r)), '#final');
+    tl.to(['#site', '#selo'], { opacity: 1, duration: 0.2 }, T(24, 0));
+    tl.from('#selo', { y: 40, duration: 0.25, ease: 'back.out(2)' }, T(24, 0));
+    flash(tl, T(25, 0), 0.4, 0.3);
+    tl.to('#credito', { opacity: 1, duration: 0.3 }, T(25, 0));
+
+    window.__timelines = window.__timelines || {};
+    window.__timelines.root = tl;
+  </script>
+</div>
+</body>
+</html>
