@@ -383,6 +383,11 @@ export function onGanchoHit(cb: (i: number) => void) {
     };
 }
 
+/** A Abertura está saindo no alto-falante (áudio liberado, volume acima de zero): as piscadas do logo seguem o som. */
+export function aberturaAudible(): boolean {
+    return !!zz && current?.id === 'abertura-gancho' && level() > 0 && ctx().state === 'running';
+}
+
 function startHits() {
     if (raf) return;
     const tick = () => {

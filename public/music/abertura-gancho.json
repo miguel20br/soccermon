@@ -32,7 +32,7 @@
   }
  ],
  "gancho": {
-  "comentario": "3 batidas SOC-CER-MON (G5 E5 C6, 3-3-2 com swing 0,15) medidas no .ogg: compassos 0 (intro) e 52 (fim do loop)",
+  "comentario": "3 batidas SOC-CER-MON (G5 E5 C6, 3-3-2 com swing 0,15) no .webm/.mp3: compassos 0 e 1 (intro), a etiqueta 36 a 42 (chamada do lead nos pares, resposta dos metais nos ímpares, mesmo ritmo) e 52 (fim do loop); cada batida confere com um ataque medido no áudio (+5 a +26 ms do previsto)",
   "batidas": [
    0,
    0.347,
@@ -40,6 +40,14 @@
   ],
   "compassos": [
    0,
+   1.765,
+   63.529,
+   65.294,
+   67.059,
+   68.824,
+   70.588,
+   72.353,
+   74.118,
    91.765
   ]
  }
