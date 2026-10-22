@@ -1,0 +1,22 @@
+{
+ "faixa": "estrada-da-vitoria",
+ "titulo": "Estrada da Vitória",
+ "tela": "Rota: Estrada da Vitória",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 43.636372,
+ "secoes": [
+  {
+   "nome": "loop",
+   "loop": true,
+   "inicio": 0,
+   "fim": 43.636372,
+   "amostras": [
+    0,
+    1924364
+   ],
+   "bpm": 132,
+   "compassos": 24
+  }
+ ]
+}

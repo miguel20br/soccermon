@@ -1,0 +1,22 @@
+{
+ "faixa": "sala",
+ "titulo": "Sala de troféus v3 (jazz)",
+ "tela": "Sala de troféus",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 82,
+ "secoes": [
+  {
+   "nome": "loop",
+   "loop": true,
+   "inicio": 0,
+   "fim": 82,
+   "amostras": [
+    0,
+    3616200
+   ],
+   "bpm": 120,
+   "compassos": 41
+  }
+ ]
+}

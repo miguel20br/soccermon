@@ -225,6 +225,7 @@ function onChange(s: GameState, prev: GameState) {
             k !== 'criesVolume' &&
             k !== 'sfxVolume' &&
             k !== 'crowdVolume' &&
+            k !== 'musicVolume' &&
             s.settings[k] !== prev.settings[k]
         ) {
             track('setting', { key: k, value: String(s.settings[k]) });

@@ -1,0 +1,34 @@
+{
+ "faixa": "recompensa",
+ "titulo": "Recompensa",
+ "tela": "Recompensa",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 32.90322,
+ "secoes": [
+  {
+   "nome": "intro",
+   "loop": false,
+   "inicio": 0,
+   "fim": 1.935488,
+   "amostras": [
+    0,
+    85355
+   ],
+   "bpm": 124,
+   "compassos": 1
+  },
+  {
+   "nome": "loop",
+   "loop": true,
+   "inicio": 1.935488,
+   "fim": 32.90322,
+   "amostras": [
+    85355,
+    1451032
+   ],
+   "bpm": 124,
+   "compassos": 16
+  }
+ ]
+}

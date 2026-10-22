@@ -1,0 +1,34 @@
+{
+ "faixa": "cerulean",
+ "titulo": "Cerulean v2",
+ "tela": "Mapa: Cerulean",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 12,
+ "duracao": 63.636372,
+ "secoes": [
+  {
+   "nome": "intro",
+   "loop": false,
+   "inicio": 0,
+   "fim": 3.636372,
+   "amostras": [
+    0,
+    160364
+   ],
+   "bpm": 99,
+   "compassos": 2
+  },
+  {
+   "nome": "loop",
+   "loop": true,
+   "inicio": 3.636372,
+   "fim": 63.636372,
+   "amostras": [
+    160364,
+    2806364
+   ],
+   "bpm": 99,
+   "compassos": 33
+  }
+ ]
+}

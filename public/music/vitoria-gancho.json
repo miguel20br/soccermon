@@ -1,0 +1,22 @@
+{
+ "faixa": "vitoria-gancho",
+ "titulo": "Vitória v2 (com gancho)",
+ "tela": "Resultado: vitória",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 7.301655,
+ "secoes": [
+  {
+   "nome": "tudo",
+   "loop": false,
+   "inicio": 0,
+   "fim": 5.901633,
+   "amostras": [
+    0,
+    260262
+   ],
+   "bpm": 122,
+   "compassos": 3
+  }
+ ]
+}

@@ -11,6 +11,7 @@ import { startLeagueSync } from './league/sync';
 import { ErrorBoundary } from './ui/components/ErrorBoundary';
 import { startExitMotion } from './ui/exit-motion';
 import { startTapFeedback } from './ui/feedback';
+import { startMusicSync } from './ui/music-sync';
 import { startSettingsSync } from './ui/settings-sync';
 import { startTabSlide } from './ui/tab-slide';
 import { startScreenTransitions } from './ui/view-transition';
@@ -42,6 +43,8 @@ startLeagueSync();
 startFriendsLive();
 // volume por canal e "reduzir movimento" (Configurações)
 startSettingsSync();
+// música de cada tela (baixa só a faixa da tela atual; toca depois do primeiro toque)
+startMusicSync();
 // visitas e velocidade (Vercel, sem cookie) e estatísticas anônimas do jogo (Supabase)
 if (import.meta.env.PROD) {
     inject();

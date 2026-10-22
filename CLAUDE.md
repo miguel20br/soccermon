@@ -108,6 +108,7 @@ Leia a skill antes de começar a tarefa dela:
 | `soccermon-social` | redes do jogo: pauta da semana, clipes, agendar no TikTok/Instagram/Shorts, comentários, placar |
 | `soccermon-marca` | antes de mexer em qualquer visual, ícone, texto de interface ou asset: checklist de padronização (brand guide em `docs/marca/`) |
 | `supabase` | qualquer coisa de Supabase (banco, Auth, Edge Functions, Realtime, migrações) |
+| `soccermon-musica` | música: compor, renderizar, escolher; gosto do Miguel |
 
 ## Regras de velocidade (19/10/2026, `docs/planos/pesquisas/velocidade.md`)
 

@@ -5,10 +5,13 @@ import {
     GROUP_START,
     isMatchKind,
     longOpponent,
+    MAP_REGIONS,
     type MapNode,
+    type MapRegion,
     matchIndexOfRow,
     type NodeKind,
     nextNodes,
+    regionOfRow,
     rivalTrainer,
     rivalTypes,
 } from '../../engine/cup-map';
@@ -79,14 +82,15 @@ const useViewportH = () =>
  * Regiões de Kanto no mapa, de baixo pra cima (a história da Copa longa: o clube atravessa Kanto até o Planalto
  * Índigo). `rows` = primeira e última linha; `wild` = Pokémon selvagens que enfeitam a região; `who` = quem fala.
  */
-const REGIONS = [
-    { id: 'rota1', rows: [0, 1], decor: 'bush', who: 'oak' },
-    { id: 'floresta', rows: [2, 3], decor: 'tree', who: 'blue' },
-    { id: 'mtmoon', rows: [4, 5], decor: 'rock', who: 'brock' },
-    { id: 'cerulean', rows: [6, 7], decor: 'wave', who: 'misty' },
-    { id: 'vitoria', rows: [8, 8], decor: 'pillar', who: 'blue' },
-] as const;
-type DecorKind = (typeof REGIONS)[number]['decor'];
+const LOOK = {
+    rota1: { decor: 'bush', who: 'oak' },
+    floresta: { decor: 'tree', who: 'blue' },
+    mtmoon: { decor: 'rock', who: 'brock' },
+    cerulean: { decor: 'wave', who: 'misty' },
+    vitoria: { decor: 'pillar', who: 'blue' },
+} as const satisfies Record<MapRegion, { decor: string; who: string }>;
+const REGIONS = MAP_REGIONS.map((r) => ({ ...r, ...LOOK[r.id] }));
+type DecorKind = (typeof LOOK)[MapRegion]['decor'];
 /** Cenário de cada região nas bordas do mapa (árvore, pedra, onda, arbusto, coluna), desenhado em SVG. */
 const DECOR: Record<DecorKind, string> = {
     bush: 'M2 20c0-6 4-9 8-9 1-4 5-6 9-4 4-2 9 1 9 6 3 1 4 4 4 7z',
@@ -101,8 +105,11 @@ const DECOR_SPOTS = [
     { x: 5, y: 72 },
     { x: 95, y: 82 },
 ];
-type RegionId = (typeof REGIONS)[number]['id'];
-const regionOf = (row: number) => REGIONS.find((r) => row >= r.rows[0] && row <= r.rows[1]) ?? REGIONS[0];
+type RegionId = MapRegion;
+const regionOf = (row: number) => {
+    const r = regionOfRow(row);
+    return { ...r, ...LOOK[r.id] };
+};
 
 /** Tempo da caminhada do seu Pokémon até a casa escolhida, antes de entrar nela. */
 const WALK_MS = 520;

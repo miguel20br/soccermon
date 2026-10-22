@@ -43,6 +43,18 @@ export const FINAL_MATCH = GROUP_START + GROUP_GAMES;
 /** Partidas de uma Copa longa (contando a Final). */
 export const LONG_MATCHES = FINAL_MATCH + 1;
 
+/** Regiões de Kanto no mapa, de baixo pra cima: primeira e última linha (a tela desenha, a música troca por elas). */
+export const MAP_REGIONS = [
+    { id: 'rota1', rows: [0, 1] },
+    { id: 'floresta', rows: [2, 3] },
+    { id: 'mtmoon', rows: [4, 5] },
+    { id: 'cerulean', rows: [6, 7] },
+    { id: 'vitoria', rows: [8, 8] },
+] as const;
+export type MapRegion = (typeof MAP_REGIONS)[number]['id'];
+export const regionOfRow = (row: number) =>
+    MAP_REGIONS.find((r) => row >= r.rows[0] && row <= r.rows[1]) ?? MAP_REGIONS[0];
+
 export const isMatchKind = (k: NodeKind) => k === 'jogo' || k === 'ginasio' || k === 'final';
 
 /** Quantas partidas vêm antes desta linha (a 1ª partida é a 0). */

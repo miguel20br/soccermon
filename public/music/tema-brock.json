@@ -1,0 +1,34 @@
+{
+ "faixa": "tema-brock",
+ "titulo": "Tema do Brock",
+ "tela": "Brock (ginásio de Pewter)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 64.8,
+ "secoes": [
+  {
+   "nome": "intro",
+   "loop": false,
+   "inicio": 0,
+   "fim": 4.8,
+   "amostras": [
+    0,
+    211680
+   ],
+   "bpm": 100,
+   "compassos": 2
+  },
+  {
+   "nome": "loop",
+   "loop": true,
+   "inicio": 4.8,
+   "fim": 64.8,
+   "amostras": [
+    211680,
+    2857680
+   ],
+   "bpm": 100,
+   "compassos": 25
+  }
+ ]
+}

@@ -260,6 +260,14 @@ export function Settings() {
                                 preview={() => playCrowd('gol')}
                             />
                         </Row>
+                        <Row title={t('settings.screen.music')} hint={t('settings.screen.musicHint')}>
+                            <VolumeSlider
+                                label={t('settings.screen.musicVolume')}
+                                value={settings.musicVolume ?? DEFAULT_SETTINGS.musicVolume}
+                                onChange={(musicVolume) => set({ musicVolume })}
+                                preview={() => undefined}
+                            />
+                        </Row>
                         <Row title={t('settings.screen.goalCry')} hint={t('settings.screen.goalCryHint')}>
                             <Segmented
                                 label={t('settings.screen.goalCry')}

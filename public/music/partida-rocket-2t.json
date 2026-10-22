@@ -1,0 +1,86 @@
+{
+ "faixa": "partida-rocket-2t",
+ "titulo": "Partida: Equipe Rocket",
+ "tela": "Partida (Equipe Rocket)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 125.019773,
+ "secoes": [
+  {
+   "nome": "nivel1",
+   "intensidade": 1,
+   "loop": true,
+   "inicio": 0,
+   "fim": 31.47542,
+   "amostras": [
+    0,
+    1388066
+   ],
+   "bpm": 122,
+   "compassos": 16
+  },
+  {
+   "nome": "nivel2",
+   "intensidade": 2,
+   "loop": true,
+   "inicio": 31.47542,
+   "fim": 60.78839,
+   "amostras": [
+    1388066,
+    2680768
+   ],
+   "bpm": 131,
+   "compassos": 16
+  },
+  {
+   "nome": "nivel3",
+   "intensidade": 3,
+   "loop": true,
+   "inicio": 60.78839,
+   "fim": 88.216961,
+   "amostras": [
+    2680768,
+    3890368
+   ],
+   "bpm": 140,
+   "compassos": 16
+  },
+  {
+   "nome": "virada",
+   "loop": false,
+   "inicio": 88.216961,
+   "fim": 89.907098,
+   "amostras": [
+    3890368,
+    3964903
+   ],
+   "bpm": 142,
+   "compassos": 1
+  },
+  {
+   "nome": "pressao",
+   "intensidade": 4,
+   "loop": true,
+   "inicio": 89.907098,
+   "fim": 116.949342,
+   "amostras": [
+    3964903,
+    5157466
+   ],
+   "bpm": 142,
+   "compassos": 16
+  },
+  {
+   "nome": "fim",
+   "loop": false,
+   "inicio": 116.949342,
+   "fim": 122.019773,
+   "amostras": [
+    5157466,
+    5381072
+   ],
+   "bpm": 142,
+   "compassos": 3
+  }
+ ]
+}

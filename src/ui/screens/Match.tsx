@@ -19,6 +19,7 @@ import {
 import { skinOf } from '../../game/animation-manager';
 import { setVolume } from '../../game/audio';
 import { EventBus } from '../../game/EventBus';
+import { playVirada } from '../../game/music';
 import type { MatchSceneData } from '../../game/scenes/MatchScene';
 import { clubName, cupStageName, cupStageShort, formationText } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
@@ -73,6 +74,7 @@ import { RivalEmotes } from '../duel/Emotes';
 import { rivalEmotes } from '../duel/emote-faces';
 import { LeaveConfirm } from '../leave-guard';
 import { captainAt, clockExtrasAt, roleAt, snapAt } from '../match-view';
+import { matchMusic } from '../music-sync';
 import { bannerText, useClubColor } from '../profile/club';
 import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
@@ -321,6 +323,30 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const extras = clockExtrasAt(match?.events ?? [], clock.tick, clock.half);
     const clockParts = useClockParts({ ...clock, added: extras.added }, fulltime || ended, shootout, halftime);
     const pressureNow = halftime || fulltime || ended ? null : extras.pressure;
+    // música da partida: faixa do tempo e trecho pela intensidade (troca na linha do compasso)
+    const pressing = pressureNow !== null;
+    // partida retomada: espera o 1º tick (senão buscaria a faixa do 1º tempo à toa)
+    const musicOn = clock.tick > 0 || !resume?.tick;
+    useEffect(() => {
+        if (musicOn)
+            matchMusic({
+                half: clock.half,
+                minute: clock.minute,
+                pressure: pressing,
+                opponent: opponent?.name,
+                intro: !introDone,
+                ended: ended || fulltime,
+            });
+    }, [musicOn, clock.half, clock.minute, pressing, opponent?.name, introDone, ended, fulltime]);
+    // virada no placar: no 2º tempo, o seu time estava perdendo ou empatando e passou à frente (a música abaixa e a
+    // vinheta entra na batida). A 1ª leitura (partida retomada) só guarda o placar.
+    const lastScore = useRef<readonly [number, number] | null>(null);
+    useEffect(() => {
+        const [a, b] = clock.score;
+        const prev = lastScore.current;
+        lastScore.current = [a, b];
+        if (prev && clock.half === 2 && prev[0] <= prev[1] && a > b) void playVirada();
+    }, [clock.score[0], clock.score[1], clock.half]);
     // o capitão do líder rival reage aos gols (emote do Duelo, só na tela)
     const rivalPlan = useMemo(() => (match ? rivalEmotes(match.events, 1) : []), [match]);
     // fim de jogo: vai sozinho pro resultado; um toque na quadra ou no painel segura
