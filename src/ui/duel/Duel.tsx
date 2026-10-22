@@ -34,6 +34,7 @@ import { duel, localId, makePeer, useDuel } from '../../net/session';
 import { isDraftComplete, type PlaybackSpeed, useGame } from '../../store/game-store';
 import { trainerFrame, trainerFx, trainerSrc } from '../../store/missions';
 import { rivalColor } from '../../store/profile';
+import { Coach } from '../coach/Coach';
 import { MenuHead } from '../components/MenuHead';
 import { ResultHero } from '../components/ResultHero';
 import { leaveWith } from '../feedback';
@@ -143,6 +144,7 @@ function DuelEntry({ code }: { code: string | null }) {
         <>
             {/* mesmo cabeçalho das outras telas de menu: voltar pra Home e a etiqueta de beta */}
             <MenuHead title={t('duel.title')} icon="liga" tag={t('duel.beta')} onBack={() => go('home')} />
+            <Coach id="duelo" targets={['[data-testid="duel-play-now"]']} />
             <div className="panel duel-center duel-entry">
                 {code ? (
                     <>
@@ -209,6 +211,7 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
     const challenging = useFriends((s) => s.challenging);
     return (
         <div className="duel-create">
+            <Coach id="dueloSala" targets={['[data-testid="duel-bestof-3"]', '.duel-create > .btn.primary.big']} />
             <header className="bc-screenhead">
                 <span className="bc-tag">{t('duel.title')}</span>
                 <h1>{t('duel.newDuel')}</h1>

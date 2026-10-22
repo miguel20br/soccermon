@@ -20,6 +20,7 @@ import { divisionOf, ELO_START, seasonDaysLeft, seasonOf } from '../../league/ru
 import { dailyDay } from '../../store/daily';
 import { isDraftComplete, playerTeam, useGame } from '../../store/game-store';
 import { clubColorHex } from '../../store/profile';
+import { Coach } from '../coach/Coach';
 import { AccountBar } from '../components/AccountBar';
 import { MenuHead } from '../components/MenuHead';
 import { cardSprite } from '../components/PokeCard';
@@ -156,6 +157,7 @@ export function Liga() {
     return (
         <div className="menu-screen lg">
             {head}
+            <Coach id="liga" targets={['.lg-elo-num', '.lg .btn.primary.big']} when={st !== null} />
             <section
                 className="panel lg-hero lg-season bc-surface bc-stripe"
                 style={{ '--tc': `var(--div-${div.id})` } as CSSProperties}

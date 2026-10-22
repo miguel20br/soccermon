@@ -1,7 +1,8 @@
 import { Fragment, type ReactNode, useMemo, useState } from 'react';
 import { fmt } from '../../i18n';
 import { useT } from '../../i18n/react';
-import { useGame } from '../../store/game-store';
+import { COACH_GROUPS, COACH_REPLAY, type CoachId } from '../../store/coach';
+import { type Screen, useGame } from '../../store/game-store';
 import { MenuHead } from '../components/MenuHead';
 import { blockText, faqEntries, type HelpBlock, helpSections, normalize } from '../help/content';
 import { resetTips } from '../help/Tip';
@@ -64,6 +65,17 @@ export function Help() {
     const index = useMemo(() => searchIndex(lang), [lang]);
     const [query, setQuery] = useState('');
     const [tipsReset, setTipsReset] = useState(false);
+    const c = d.help.coach.replay;
+    const updateProfile = useGame((s) => s.updateProfile);
+    const [redone, setRedone] = useState<CoachId[]>([]);
+    // "Como funciona": o balão do modo volta; nos modos com tela própria já abre a tela
+    const replayCoach = (id: CoachId) => {
+        const drop = COACH_GROUPS[id];
+        updateProfile({ coach: (useGame.getState().profile.coach ?? []).filter((x) => !drop.includes(x as CoachId)) });
+        const screen: Partial<Record<CoachId, Screen>> = { intro: 'home', duelo: 'duel', dia: 'daily', liga: 'liga' };
+        if (screen[id]) go(screen[id]);
+        else setRedone([...redone, id]);
+    };
     const q = normalize(query.trim());
     const terms = q.split(/\s+/).filter(Boolean);
     const match = (text: string) => terms.every((t) => text.includes(t));
@@ -102,6 +114,26 @@ export function Help() {
                     </button>
                 )}
             </div>
+
+            <section className="help-coach" aria-labelledby="help-coach-title">
+                <h2 id="help-coach-title" className="bc-lbl">
+                    {c.title}
+                </h2>
+                <div className="help-actions">
+                    {COACH_REPLAY.map((id) => (
+                        <button
+                            key={id}
+                            type="button"
+                            className="btn outline small"
+                            disabled={redone.includes(id)}
+                            onClick={() => replayCoach(id)}
+                        >
+                            {redone.includes(id) ? c.done : (c as Record<string, string>)[id]}
+                        </button>
+                    ))}
+                </div>
+                <small className="muted">{c.hint}</small>
+            </section>
 
             <label className="help-search">
                 <HudIcon kind="search" className="help-search-icon" />
