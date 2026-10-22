@@ -12,6 +12,9 @@ export type TrackId =
     | 'tema-brock'
     | 'tema-misty'
     | 'tema-rocket'
+    | 'tema-ltsurge'
+    | 'ultima-partida'
+    | `penaltis-${'espera' | 'ganhou' | 'perdeu'}`
     | 'draft'
     | 'escalacao'
     | 'recompensa'
@@ -35,6 +38,8 @@ interface Section {
 }
 interface Meta {
     secoes: Section[];
+    /** Linhas (16 avos da batida do `bpm`) por compasso: 16 = 4/4; 12 = 12/8 (a Misty). */
+    linhasPorCompasso?: number;
     /** Duração do áudio (s), sem o atraso do codificador. */
     duracao?: number;
     /** Batidas do gancho SOC-CER-MON (segundos depois do começo de cada compasso do gancho). */
@@ -161,6 +166,16 @@ function prune() {
     for (const id of cache.keys()) if (id !== current?.id && id !== want.id && !STINGS.includes(id)) cache.delete(id);
 }
 
+/**
+ * Grade do trecho em segundos: compasso e pulso. 4/4: pulso = semínima (4 linhas). 12/8: pulso = semínima pontuada
+ * (3 linhas), e o compasso tem 12 linhas, não 16 (antes a troca de trecho da Misty caía fora da linha do compasso).
+ */
+export function gridOf(l: Pick<Loaded, 'meta'>, sec: Pick<Section, 'bpm'>) {
+    const line = 15 / sec.bpm;
+    const n = l.meta.linhasPorCompasso ?? 16;
+    return { bar: n * line, pulse: (n % 3 === 0 ? 3 : 4) * line };
+}
+
 const sectionOf = (l: Loaded, name?: string): Section =>
     l.meta.secoes.find((s) => s.nome === name) ?? l.meta.secoes.find((s) => s.loop) ?? l.meta.secoes[0];
 
@@ -229,7 +244,7 @@ async function apply() {
     if (current && current.id === id) {
         if (current.sec === sec) return;
         // mesma faixa, outro trecho: troca na linha do compasso (corte limpo, sem fade)
-        const at = nextLine(current, 240 / current.sec.bpm);
+        const at = nextLine(current, gridOf(current.loaded, current.sec).bar);
         // trecho de entrada sem loop colado no loop (virada -> pressao): entra por ele
         const lead = leadIn(loaded, sec);
         const off = lead?.inicio ?? sec.inicio;
@@ -273,8 +288,9 @@ function endSting(now: number) {
 }
 
 /**
- * Virada no placar: a música da partida abaixa ~10 dB em 150 ms, a vinheta entra na próxima batida (meio tom acima
- * na Pressão final) e a música volta em 600 ms depois que ela acaba. Só o duck mexe no volume: a troca de trecho da
+ * Virada no placar: a música da partida abaixa ~10 dB em 150 ms, a vinheta entra no próximo pulso (meio tom acima
+ * na Pressão final) e a música volta em 600 ms depois que ela acaba. Desligada no jogo desde 22/10/2026 (o Miguel não
+ * gostou da vinheta por cima; a virada vai virar uma transição dentro da música da partida): `Match.tsx` não chama mais. Só o duck mexe no volume: a troca de trecho da
  * partida (no ganho da faixa) segue normal por baixo.
  */
 export async function playVirada() {
@@ -283,7 +299,7 @@ export async function playVirada() {
     if (!loaded) return;
     const p = current;
     const now = ctx().currentTime;
-    const at = p ? nextLine(p, 60 / p.sec.bpm) : now;
+    const at = p ? nextLine(p, gridOf(p.loaded, p.sec).pulse) : now;
     const g = bus().gain;
     g.cancelScheduledValues(now);
     g.setValueAtTime(g.value, now);
