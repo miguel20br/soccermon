@@ -201,6 +201,9 @@ export const rivalTrainer = (name: string): string | undefined =>
 export const rivalTypes = (name: string): string[] =>
     ROUTE_TEAMS.find((t) => t.name === name)?.types ?? CLUBS.find((c) => c.name === name)?.types ?? [];
 
+/** Titulares do tipo do treinador num time da Rota (o Ornitólogo tem pássaros). */
+export const ROUTE_THEME_MIN = 3;
+
 /** Força do rival pela partida (0 a 6 na Rota, 7 = Final): fácil no começo, puxado no fim. Ginásio +1, até 3. */
 const LONG_DIFFICULTY = [-1, 0, 0, 1, 1, 1, 1, 4];
 /** Itens do rival pela partida. */
@@ -229,7 +232,8 @@ export function longOpponent(
     }
     const base = LONG_DIFFICULTY[Math.min(match, LONG_DIFFICULTY.length - 1)];
     const difficulty = Math.max(-1, Math.min(4, (kind === 'ginasio' ? Math.min(3, base + 1) : base) + shift));
-    const d = aiDraftTeam(rng, difficulty, club.types, club.formation);
+    // treinador da Rota joga com o tipo dele: pelo menos 3 dos 5 titulares
+    const d = aiDraftTeam(rng, difficulty, club.types, club.formation, kind === 'jogo' ? ROUTE_THEME_MIN : 0);
     const items = LONG_ITEMS[Math.min(match, LONG_ITEMS.length - 1)] + (kind === 'ginasio' ? 1 : 0);
     for (const h of rng.shuffle([...d.lineup]).slice(0, items)) {
         const own = species(h.speciesId).types.flatMap((t) => TYPE_ITEM_FOR[t] ?? []);

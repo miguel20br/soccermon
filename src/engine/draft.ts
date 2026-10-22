@@ -229,6 +229,24 @@ export function aiPick(rng: Rng, options: PokemonInstance[], need: Position | 'A
     return best;
 }
 
+/** Um Pokémon dos `types` que joga em `need`, com a nota na vaga mais perto da de `like`. */
+function themedLike(
+    rng: Rng,
+    like: PokemonInstance,
+    need: Position | 'ANY',
+    taken: ReadonlySet<number>,
+    types: readonly string[],
+): PokemonInstance | null {
+    const target = speciesSlotRating(species(like.speciesId), need);
+    const pool = SPECIES.filter(
+        (sp) => !taken.has(sp.id) && canPlay(sp, need) && sp.types.some((t) => types.includes(t)),
+    );
+    if (!pool.length) return null;
+    const gap = (sp: Species) => Math.abs(speciesSlotRating(sp, need) - target);
+    const best = Math.min(...pool.map(gap));
+    return createInstance(rng.pick(pool.filter((sp) => gap(sp) === best)).id, rng);
+}
+
 /**
  * Monta um time da IA completo (adversários da copa), vaga por vaga da formação.
  * Dificuldade: -1 = estreante (raridade de começo de draft, escolhe sempre no chute) · 0 = escolhe meio no chute · 1 = melhor de 3 · 2 = melhor de 4 · 3 = melhor de 5 com raridade antecipada.
@@ -238,8 +256,12 @@ export function aiDraftTeam(
     difficulty: number,
     preferTypes: readonly string[] = [],
     formation?: FormationId,
+    /** Titulares mínimos dos `preferTypes` (times da Rota: o Ornitólogo tem pássaros). 0 = só a preferência de 75%. */
+    themeMin = 0,
 ): { lineup: PokemonInstance[]; bench: PokemonInstance[]; captainUid: string } {
     const needs: (Position | 'ANY')[] = [...formationOf(formation).slots, 'ANY', 'ANY'];
+    const starters = needs.length - BENCH_SIZE;
+    const themed = (p: PokemonInstance) => species(p.speciesId).types.some((t) => preferTypes.includes(t));
     const taken = new Set<number>();
     const picks: PokemonInstance[] = [];
     const extra = Math.max(0, difficulty - 1);
@@ -248,7 +270,12 @@ export function aiDraftTeam(
         const r = difficulty < 0 ? 0 : Math.min(6, round + extra);
         const options = draftOptions(rng, r, taken, 3 + extra, preferTypes, need);
         const random = difficulty < 0 || (difficulty === 0 && rng.chance(0.6));
-        const pick = random ? rng.pick(options) : aiPick(rng, options, need);
+        let pick = random ? rng.pick(options) : aiPick(rng, options, need);
+        // tema no limite: só as vagas que faltam dão conta do mínimo, então esta tem que ser do tipo. Entra o do tipo
+        // com a nota na vaga mais perto da escolhida, pra força do time não mudar
+        const missing = themeMin - picks.filter(themed).length;
+        if (round < starters && missing > 0 && missing >= starters - round && !themed(pick))
+            pick = themedLike(rng, pick, need, taken, preferTypes) ?? pick;
         taken.add(pick.speciesId);
         picks.push(pick);
     });

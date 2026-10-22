@@ -451,7 +451,7 @@ function NodeSheet({
     );
 }
 
-/** Casa Treino: encher a barra de evolução de alguém (metade) ou descansar (+1 troca). */
+/** Casa Treino: encher a barra de evolução de alguém (metade), ou 1 de 2 itens se ninguém evolui; ou descansar (+1 sorteio). */
 export function Training() {
     const live = useGame((s) => s.run);
     const train = useGame((s) => s.train);
@@ -471,7 +471,6 @@ export function Training() {
                 tag={t('longCup.title')}
                 onBack={() => go('home')}
             />
-            {/* ninguém evolui: sem o painel vazio, só o descanso */}
             {evolvers.length > 0 && (
                 <div className="panel cm-train">
                     <h2>{t('longCup.treino.evo')}</h2>
@@ -499,6 +498,23 @@ export function Training() {
                             );
                         })}
                     </div>
+                </div>
+            )}
+            {/* ninguém evolui: treino de técnica, 1 de 2 itens (sem ele, o último Treino era um clique morto) */}
+            {evolvers.length === 0 && (
+                <div className="panel cm-train">
+                    <h2>{t('longCup.treino.item')}</h2>
+                    <p className="muted">{t('longCup.treino.itemLine')}</p>
+                    <button
+                        type="button"
+                        className="btn primary"
+                        onClick={() => {
+                            train('item');
+                        }}
+                    >
+                        <HudIcon kind="bag" />
+                        {t('longCup.treino.item')}
+                    </button>
                 </div>
             )}
             <div className="panel cm-train">

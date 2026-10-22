@@ -294,9 +294,16 @@ export function runDevDemo() {
         return;
     }
     // ?demo=treino: casa de Treino da Rota (encher a evolução de alguém ou descansar, com o time cochilando)
+    // `&pronto=1`: ninguém evolui (Tauros, Lapras, Snorlax...): aparece o treino de técnica (1 de 2 itens)
     if (demo === 'treino') {
         demoLongMap(store, true);
-        const run = useGame.getState().run!;
+        let run = useGame.getState().run!;
+        if (new URLSearchParams(window.location.search).has('pronto')) {
+            const ids = [128, 131, 143, 115, 123, 127, 142];
+            const picks = run.picks.map((p, i) => ({ ...p, speciesId: ids[i % ids.length], item: null }));
+            const last = run.map!.nodes.find((n) => n.row === run.map!.rows - 1)!;
+            run = { ...run, picks, at: last.id };
+        }
         useGame.setState({ run: { ...run, status: 'treino' }, screen: 'treino' });
         return;
     }

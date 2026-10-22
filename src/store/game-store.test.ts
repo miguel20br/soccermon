@@ -786,6 +786,46 @@ describe('Copa longa', () => {
         useGame.getState().train('evo', evolver.uid);
         expect(useGame.getState().run!.status).toBe('map');
         expect(useGame.getState().run!.picks.find((p) => p.uid === evolver.uid)!.evo).toBe(7);
+        // com alguém que evolui, o treino de técnica não vale
+        useGame.setState({ run: { ...run, status: 'treino' } });
+        useGame.getState().train('item');
+        expect(useGame.getState().run!.status).toBe('treino');
+    });
+
+    it('Treino sem ninguém que evolua: 1 de 2 itens (sem Pokémon, também no sorteio); depois o grupo', () => {
+        const base = start('longa-treino-item');
+        // time de quem não evolui mais (Tauros, Lapras, Snorlax, Kangaskhan, Scyther, Pinsir, Aerodactyl)
+        const done = [128, 131, 143, 115, 123, 127, 142].map((id, i) => ({
+            ...createInstance(id, new Rng('treino-item', `${i}`)),
+            uid: `d${i}`,
+        }));
+        expect(done.every((p) => evolutionTarget(p.speciesId, p.uid) === null)).toBe(true);
+        const last = base.map!.nodes.find((n) => n.row === base.map!.rows - 1)!;
+        const run = {
+            ...base,
+            picks: done,
+            lineup: done.slice(0, 5).map((p) => p.uid),
+            bench: done.slice(5).map((p) => p.uid),
+            captainUid: 'd0',
+            at: last.id,
+            rerolls: 1,
+            status: 'treino' as const,
+        };
+        useGame.setState({ run });
+        useGame.getState().train('item');
+        let now = useGame.getState().run!;
+        expect(now.status).toBe('reward');
+        expect(now.rewards).toHaveLength(2);
+        expect(now.rewards.every((r) => r.kind !== 'pokemon')).toBe(true);
+        useGame.getState().rerollReward();
+        now = useGame.getState().run!;
+        expect(now.rewards.every((r) => r.kind !== 'pokemon')).toBe(true);
+        const i = now.rewards.findIndex((r) => r.kind === 'item');
+        if (i >= 0) {
+            useGame.getState().claimReward(i, 'd1');
+            expect(useGame.getState().run!.picks.find((p) => p.uid === 'd1')!.item).toBeTruthy();
+        } else useGame.getState().skipReward();
+        expect(useGame.getState().run!.status).toBe('group');
     });
 });
 
