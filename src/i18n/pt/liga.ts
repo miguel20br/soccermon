@@ -45,6 +45,7 @@ export const liga = {
         scopeFriends: 'Amigos',
         rankingTitle: 'Ranking do dia',
         rankingEmpty: 'Ninguém no ranking ainda. Seja o primeiro!',
+        captain: 'capitão',
         rankingLogin:
             'O ranking é de quem entra com Google. Aparece só o nome do treinador e o do clube (Perfil), nunca o da conta.',
         rankingOff: 'O ranking precisa do servidor do jogo. A Copa do Dia funciona igual sem ele.',
