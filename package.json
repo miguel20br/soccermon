@@ -8,6 +8,7 @@
   "type": "module",
   "scripts": {
     "prepare": "git config core.hooksPath .githooks",
+    "midi": "node scripts/musica/midi.mjs",
     "dev": "vite --config vite/config.dev.mjs",
     "build": "tsc --noEmit && npm run build:vite",
     "build:vite": "vite build --config vite/config.prod.mjs",

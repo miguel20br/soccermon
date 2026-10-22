@@ -258,6 +258,8 @@ function reverb(x, right, { escala = 1, fb = 0.8 } = {}) {
 }
 
 export class Song {
+    /** `true` = cada faixa guarda as notas em `rec` ([linha, midi, duração, vel]); só o `midi.mjs` liga, o áudio não muda. */
+    static recording = false;
     /**
      * @param {object} o
      * @param {number} o.bpm semínimas por minuto
@@ -349,8 +351,22 @@ export class Song {
      */
     part(name, inst, { pan = 0, gain = 1, echo = null, rev = 0, drum = false, gainAt = null, corte = 0 } = {}) {
         const bufs = this.secoes.map((x) => new Float32Array(x.len));
-        const p = { name, inst, pan, gain, echo, rev, drum, gainAt, corte, bufs, song: this };
+        const p = {
+            name,
+            inst,
+            pan,
+            gain,
+            echo,
+            rev,
+            drum,
+            gainAt,
+            corte,
+            bufs,
+            song: this,
+            rec: Song.recording ? [] : null,
+        };
         p.note = (t, m, len = 1, vel = 1) => {
+            p.rec?.push([t, m, len, vel]);
             let s;
             if (typeof inst === 'function')
                 s = inst(m); // amostra pronta (palmas)
