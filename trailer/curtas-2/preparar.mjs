@@ -9,11 +9,10 @@ import { homedir } from 'node:os';
 const OUT = 'trailer/curtas-2/midia';
 const A = 'public/assets';
 const MUSICA = process.env.MUSICA ?? `${homedir()}/Música/soccermon-amostras`;
-// ginásio: 66 Machop (o moleque), 67 Machoke (o zelador), 106 Hitmonlee (o zagueiro fantasma da final) e a torcida
-// imaginada na arquibancada ·
+// ginásio: 66 Machop (o moleque), 67 Machoke (o zelador) e a torcida imaginada na arquibancada ·
 // luzes: 25 Pikachu, 4 Charmander, 7 Squirtle, 1 Bulbasaur e 54 Psyduck (o atrasado)
 export const TORCIDA = [39, 52, 133, 35, 79, 104, 37, 16, 43, 60, 113, 132, 19, 129];
-const ESPECIES = [66, 67, 106, 25, 4, 7, 1, 54, ...TORCIDA];
+const ESPECIES = [66, 67, 25, 4, 7, 1, 54, ...TORCIDA];
 
 mkdirSync(`${OUT}/sp`, { recursive: true });
 mkdirSync(`${OUT}/som`, { recursive: true });
@@ -49,6 +48,8 @@ copyFileSync('public/fonts/Galmuri11-Bold.woff2', `${OUT}/Galmuri11-Bold.woff2`)
 copyFileSync(`${MUSICA}/livre-ginasio.ogg`, `${OUT}/som/ginasio.ogg`);
 copyFileSync(`${MUSICA}/livre-abertura-album.ogg`, `${OUT}/som/abertura.ogg`);
 execFileSync('node', ['trailer/curtas-2/eventos.mjs', `${OUT}/som`], { stdio: 'inherit' });
+// v3: o rabo da tela final do Ginásio (o Ré m7 do fim segurando por baixo do cartão)
+execFileSync('node', ['trailer/curtas-2/rabo.mjs', `${OUT}/som`], { stdio: 'inherit' });
 // cada curta é uma pasta do HyperFrames (uma composição raiz por pasta) com midia/ e comum.js apontando pra cá
 for (const c of ['ginasio', 'luzes']) {
     mkdirSync(`trailer/curtas-2/${c}`, { recursive: true });

@@ -31,8 +31,7 @@
     <div class="legenda" id="falta"><span>FALTA <b>UM</b></span></div>
     <div class="legenda" id="chama"><span>CHAMA OS <b>AMIGOS</b></span></div>
   </div>
-  <div id="final" class="clip palco" data-start="32.7672" data-duration="7.9328">
-    <div class="raios" id="raios-final"></div>
+  <div id="final" class="clip" data-start="32.7672" data-duration="7.9328">
     <div id="final-cena" class="camada"></div>
   </div>
   <div id="marca"></div>
@@ -40,7 +39,7 @@
   <audio id="a-musica" class="clip" src="midia/som/abertura.ogg" data-start="0" data-duration="40.7" data-media-start="0" data-fade-out="0.4"></audio>
 
   <script>
-    const { T, notas, instantes, div, PISO, PORTA, GOL, ginasio, luz, ator, anim, quadro, bola, trajeto, estouro, anelPiso, nota, etiqueta, rangido, poeira, treme, flash, telaFinal, piscada } = C;
+    const { T, notas, instantes, div, PISO, PORTA, GOL, ginasio, luz, ator, anim, quadro, bola, percurso, pintaBola, porQuadro, estouro, anelPiso, nota, rangido, poeira, treme, flash, telaFinal, piscada } = C;
     const tl = gsap.timeline({ paused: true });
     const cam = document.getElementById('cam');
     const BANCOS = [190, 420, 660, 890];
@@ -60,6 +59,7 @@
     ];
     const am = IDS.map((id, i) => ator(cam, id, { escala: 7, z: 20 + (CHEGA[i][1] > 1450 ? 2 : 0), x: CHEGA[i][0], y: CHEGA[i][1], opacity: 0 }));
     const psy = am[4];
+    am[3].el.style.zIndex = 28; // o Bulbasaur fica na frente da trave de perto (está mais perto da câmera que ela)
     const zel = ator(cam, 67, { escala: 5, z: 12, x: JX, y: JY, opacity: 0 });
     const B = bola(cam, { d: 64, z: 24, x: 545, y: 1510 });
     const apito = div(cam, 'apito');
@@ -79,10 +79,27 @@
     });
     treme(tl, '#cam', 0, 0.4, 0.2);
 
-    // a bola esquecida cai e quica até parar no meio
+    // a bola esquecida no degrau de cima da arquibancada: o TUNK da primeira luz treme o ginásio, ela rola até a beira,
+    // despenca e quica até parar no meio da quadra (cada quique numa nota da bola; a profundidade anda cada vez menos)
     const queda = notas('bola', 0, 8);
-    const toques = [{ t: 0.1, x: 545, y: -140 }];
-    queda.forEach((n, i) => toques.push({ t: n.t, x: 545 + i * 3, y: 1510, n }));
+    const DEGRAU = { y: PISO + 4, h: PISO - 760 };
+    const tBeira = queda[0].t - Math.sqrt((2 * DEGRAU.h) / 2600);
+    const toques = [
+      { t: 0, x: 545, y: DEGRAU.y, h: DEGRAU.h, g: 0, por: 'parada', semSombra: true },
+      { t: 0.08, x: 545, y: DEGRAU.y, h: DEGRAU.h, g: 0, por: 'tranco', semSombra: true },
+      { t: tBeira, x: 545, y: DEGRAU.y + 22, h: DEGRAU.h, por: 'beira' },
+    ];
+    {
+      let y = DEGRAU.y + 22;
+      let vy = 150;
+      queda.forEach((n, i) => {
+        y += vy * (n.t - (i ? queda[i - 1].t : tBeira));
+        vy *= 0.72;
+        toques.push({ t: n.t, x: 545 + i * 3, y, por: 'chao', n });
+      });
+      toques.at(-1).g = 0;
+    }
+    const REPOUSO = toques.at(-1);
     // o placar testa: os amigos olham pra cima; o Psyduck entra rangendo o tênis; o zelador apita
     const [p1] = notas('placar');
     G.digs.forEach((d) => tl.to(d, { opacity: 1, duration: 0.1 }, p1.t));
@@ -100,6 +117,7 @@
     tl.to(G.portaLuz, { opacity: 1, duration: 0.2 }, tPorta);
     tl.set('#porta-vao', { attr: { fill: '#ffd68c' } }, tPorta);
     tl.set(psy.el, { x: JX, y: JY + 20, opacity: 1 }, tPorta);
+    quadro(tl, psy, 'Walk', 1, 0, tPorta);
     const PP = [[JX, JY + 20], [230, 1300], [330, 1420], [430, 1520], [500, 1580], [540, 1600]];
     tenis.forEach((n, i) => {
       const [x, y] = PP[i + 1];
@@ -165,10 +183,15 @@
     // na escala do lead (a chama do rabo cresce) · 11 chute de fogo na caixa · 12–13 tabelinha de um toque, cada bumbo um
     // passe com a marca de quem toca · 14 o chute do Pikachu entra no prato da mudança de tom.
     const [PK, CH, SQ, BU, PS] = am;
-    const XR = GOL.x + 70;
-    const YR = 1300;
+    const YG = 1440; // a profundidade em que as bolas entram no gol
+    const XG = GOL.boca(YG) + 110;
+    /** A bola entra: bate no fundo da rede, afunda com ela e é devolvida (contatos da física). */
+    const entra = (t, h, forca = 1) => {
+      const r = G.rede.bate(t, h, { forca, y: YG, r: 32 });
+      toques.push({ t, x: r.x, y: YG, h, por: 'rede', g: 0 }, { t: r.t1, x: r.xMax, y: YG, h: Math.max(0, h - 8), por: 'rede' });
+      return { x: r.x + 26, y: YG - h - 32 };
+    };
     const lerp = (a, b, f) => a + (b - a) * f;
-    const meio = (dur = 1.6) => ({ haste: 60, dur });
     flash(tl, tFunk, 0.9, 0.3);
     const P0 = [[120, 1600], [610, 1400], [90, 1760], [760, 1590], [300, 1370]];
     const DIR0 = [2, 2, 2, 6, 2];
@@ -206,16 +229,14 @@
       estouro(tl, cam, x, y, t, { tam: 100 * tam, cor: '#ff7a1c', anel: false, dur: 0.3 });
       estouro(tl, cam, x, y, t, { tam: 55 * tam, cor: '#ffd23f', anel: false, dur: 0.25, z: 61 });
     };
-    const golNaRede = (t, n, cor = '#ffcb05') => {
-      tl.fromTo('#rede', { scaleX: 1.4, scaleY: 1.06 }, { scaleX: 1, scaleY: 1, duration: 0.6, ease: 'elastic.out(1, 0.35)', immediateRender: false }, t);
-      estouro(tl, cam, GOL.x + 90, 1215, t, { tam: 260, cor, borda: 10, z: 26 });
+    const golNaRede = (t, n, ponto, cor = '#ffcb05') => {
+      estouro(tl, cam, ponto.x, ponto.y, t, { tam: 200, cor, borda: 10, z: 27 });
       treme(tl, '#cam', t, 0.9, 0.3);
       tl.set(G.digs[0], { textContent: String(n) }, t);
       tl.fromTo(G.digs[0], { scale: 1.6 }, { scale: 1, duration: 0.35, ease: 'back.out(3)', immediateRender: false }, t);
       am.forEach((a, i) => tl.to(a.corpo, { keyframes: { y: [-60, 0] }, duration: 0.3, ease: 'power1.inOut' }, t + 0.05 + i * 0.03));
     };
     const ocupado = []; // [amigo, t0, t1]: enquanto faz o lance dele, não fica olhando a bola
-    const nome = (txt, a, t, x, y) => etiqueta(tl, cam, txt, x, y - 200, t, meio());
     const lead = (b) => notas('lead', T(b, 0) - 0.01, T(b + 1, 0) - 0.01);
     const metaisDe = (b) => instantes(notas('metais', T(b, 0) - 0.01, T(b + 1, 0) - 0.01));
     const bumbos = (b) => notas('bumbo', T(b, 0) - 0.01, T(b + 1, 0) - 0.01).map((n) => n.t);
@@ -223,20 +244,20 @@
     // 6 · Pikachu: zigue-zague, faísca em cada nota do lead
     const ZZ = [[120, 1600], [190, 1680], [260, 1560], [330, 1670], [400, 1570], [450, 1650]];
     const l6 = lead(6);
-    toques.push({ t: tFunk - 0.02, x: 165, y: 1604, alto: 0 });
+    // o corte do prato (clarão): todo mundo já está em posição, a bola no pé do Pikachu
+    toques.push({ t: tFunk - 0.001, x: REPOUSO.x, y: REPOUSO.y, g: 0, por: 'corte' }, { t: tFunk, x: 165, y: 1604, g: 0, por: 'pe' });
     l6.forEach((n, i) => {
       const [x, y] = ZZ[i];
       if (i) tl.to(PK.el, { x, y, duration: n.t - l6[i - 1].t, ease: 'sine.inOut' }, l6[i - 1].t);
-      if (i) toques.push({ t: n.t, x: x + 45, y: y + 4, alto: 35 });
+      if (i) toques.push({ t: n.t, x: x + 45, y: y + 4, g: 0, por: 'pe' });
       faisca(x + 45, y - 30, n.t);
     });
     anim(tl, PK, 'Walk', 2, tFunk, T(7, 0) - 0.04, { vel: 2.2 });
     tl.to(PK.el, { x: 490, y: 1620, duration: T(7, 0) - l6.at(-1).t, ease: 'sine.inOut' }, l6.at(-1).t);
-    nome('PIKACHU', PK, tFunk + 0.1, 300, 1560);
     ocupado.push([PK, tFunk, T(8, 0)]);
     // 7 · Squirtle responde nos metais: desliza de barriga (rastro d'água, gotas em cada nota) e rouba a bola
     const t7 = T(7, 0);
-    toques.push({ t: t7, x: 535, y: 1624, alto: 30 });
+    toques.push({ t: t7, x: 535, y: 1624, g: 0, por: 'pe' });
     quadro(tl, PK, 'Shoot', 3, window.SPR[25].anims.Shoot.hit, t7 - 0.03);
     quadro(tl, PK, 'Idle', 3, 0, t7 + 0.16);
     raio(535, 1590, t7, { tam: 2 });
@@ -255,41 +276,39 @@
     tl.to(rastro, { scaleX: 1, duration: tS1 - tS0, ease: 'power1.out' }, tS0);
     tl.to(rastro, { opacity: 0, duration: 0.5 }, T(8, 2));
     for (const t of metaisDe(7)) gotas(SX(t) + 30, 1745, t);
-    toques.push({ t: tS1, x: 550, y: 1744, alto: 10 });
+    toques.push({ t: tS1, x: 550, y: 1744, g: 0, por: 'barriga' });
     gotas(550, 1740, tS1);
     tl.to(SQ.corpo, { rotation: 0, duration: 0.15 }, T(7, 12));
     const t7p = bumbos(7).at(-1);
-    toques.push({ t: t7p, x: 565, y: 1740, alto: 0 });
+    toques.push({ t: t7p, x: 565, y: 1740, por: 'pe' });
     quadro(tl, SQ, 'Shoot', 1, window.SPR[7].anims.Shoot.hit, t7p - 0.03);
     quadro(tl, SQ, 'Idle', 1, 0, t7p + 0.16);
     gotas(565, 1735, t7p);
-    nome('SQUIRTLE', SQ, tS0, 330, 1760);
     ocupado.push([SQ, tS0, T(8, 0)]);
     // 8 · Bulbasaur: embaixadinha de cipó no lead e o lançamento na cabeça do Psyduck
     const l8 = lead(8).map((n) => n.t);
     const BV = [720, 1520]; // de onde saem os cipós
     const vinha = [
-      { t: l8[0], x: 640, y: 1590, h: 30, alto: 40 },
-      { t: l8[1], x: 665, y: 1585, h: 170, alto: 90 },
-      { t: l8[2], x: 650, y: 1585, h: 200, alto: 110 },
-      { t: l8[3], x: 640, y: 1585, h: 210, alto: 60 },
+      { t: l8[0], x: 640, y: 1590, h: 30, por: 'cipo' },
+      { t: l8[1], x: 665, y: 1585, h: 170, por: 'cipo' },
+      { t: l8[2], x: 650, y: 1585, h: 200, por: 'cipo' },
+      { t: l8[3], x: 640, y: 1585, h: 210, por: 'cipo' },
     ];
     for (const q of vinha) {
       toques.push(q);
       cipo(q.t, BV[0], BV[1], q.x + 10, q.y - q.h - 30);
-      quadro(tl, BU, 'Attack', 6, window.SPR[1].anims.Attack.hit, q.t - 0.04);
+      quadro(tl, BU, 'Shoot', 6, window.SPR[1].anims.Shoot.hit, q.t - 0.04);
       quadro(tl, BU, 'Idle', 6, 0, q.t + 0.18);
     }
     for (const t of l8.slice(4)) tl.to(BU.corpo, { keyframes: { y: [-35, 0] }, duration: 0.2 }, t - 0.05);
-    nome('BULBASAUR', BU, l8[0], 820, 1590);
     ocupado.push([BU, l8[0] - 0.1, T(9, 0)]);
     // 9 · Psyduck responde: a bola bate na cabeça, sobe, bate de novo, ele fica tonto e ela entra mesmo assim
     const t9 = T(9, 0);
     const HP = [330, 1374, 150];
-    toques.push({ t: t9, x: HP[0], y: HP[1], h: HP[2], alto: 200 });
-    toques.push({ t: T(9, 6), x: HP[0] + 5, y: HP[1], h: HP[2], alto: 280 });
+    toques.push({ t: t9, x: HP[0], y: HP[1], h: HP[2], por: 'cabeca' });
+    toques.push({ t: T(9, 6), x: HP[0] + 5, y: HP[1], h: HP[2], por: 'cabeca' });
     const t9g = T(9, 12);
-    toques.push({ t: t9g, x: XR, y: YR, h: 60, alto: 230 });
+    const gol1 = entra(t9g, 90);
     for (const t of [t9, T(9, 6)]) {
       estouro(tl, cam, HP[0], HP[1] - HP[2] - 20, t, { tam: 110, cor: '#fff', borda: 6 });
       quadro(tl, PS, 'Hurt', 0, 0, t);
@@ -298,19 +317,17 @@
       quadro(tl, PS, 'Idle', [0, 2, 4, 6][i % 4], 0, t);
       pergunta(300 + (i % 2 ? 60 : -50), 1140 - i * 20, t, 0.9);
     });
-    golNaRede(t9g, 1);
+    golNaRede(t9g, 1, gol1);
     pergunta(300, 1120, t9g, 1.6);
-    quadro(tl, PS, 'Hurt', 0, 1, t9g);
+    quadro(tl, PS, 'Hurt', 0, 0, t9g);
     quadro(tl, PS, 'Idle', 2, 0, T(10, 0));
-    nome('PSYDUCK', PS, t9 - 0.1, 300, 1370);
     ocupado.push([PS, t9, T(10, 0)]);
-    toques.push({ t: T(9, 14), x: XR - 30, y: 1340, alto: 20 });
+    toques.push({ t: T(9, 14.5), por: 'chao' }); // a rede devolve: quica e rola até o Charmander
     // 10 · Charmander levanta a bola na escala do lead e a chama do rabo cresce · 11 chute de fogo na caixa
     const cauda = div(CH.el, '', 'position:absolute;left:-62px;top:-96px;width:44px;height:44px;border-radius:50%;background:radial-gradient(#fff3a0 15%,#ffb02e 45%,#ff5a1c 65%,transparent 72%);opacity:0;z-index:5');
     const l10 = lead(10).map((n) => n.t);
-    const ALTO = [60, 90, 120, 160, 100, 120];
     l10.forEach((t, i) => {
-      toques.push({ t, x: 655, y: 1404, alto: ALTO[i] });
+      toques.push({ t, x: 655, y: 1404, por: 'pe' });
       quadro(tl, CH, 'Shoot', 2, window.SPR[4].anims.Shoot.hit, t - 0.03);
       quadro(tl, CH, 'Idle', 2, 0, t + 0.14);
       chama(655, 1390, t, 0.6);
@@ -318,48 +335,48 @@
     });
     const t11 = T(11, 0);
     const t11g = T(11, 4);
-    toques.push({ t: t11, x: 665, y: 1404, h: 120, alto: 220 });
-    toques.push({ t: t11g, x: XR, y: YR, h: 70, alto: 15 });
+    toques.push({ t: t11, x: 665, y: 1404, h: 40, por: 'chute' });
+    const gol2 = entra(t11g, 70);
     quadro(tl, CH, 'Shoot', 2, window.SPR[4].anims.Shoot.hit, t11 - 0.03);
     quadro(tl, CH, 'Idle', 2, 0, t11 + 0.25);
-    chama(675, 1260, t11, 1.6);
-    for (let i = 1; i <= 6; i++) chama(lerp(675, XR, i / 7), lerp(1404 - 120, YR - 70, i / 7) - 30, lerp(t11, t11g, i / 7), 0.8);
-    golNaRede(t11g, 2, '#ff7a1c');
-    for (const n of lead(11).slice(1)) poeira(tl, cam, XR, 1200, n.t, { n: 5, r: 90, tam: 46, cor: '#8a8fa8' });
+    chama(665, 1404 - 40 - 32, t11, 1.6);
+    for (let i = 1; i <= 6; i++) chama(lerp(665, gol2.x, i / 7), lerp(1404 - 72, gol2.y, i / 7), lerp(t11, t11g, i / 7), 0.8);
+    golNaRede(t11g, 2, gol2, '#ff7a1c');
+    for (const n of lead(11).slice(1)) poeira(tl, cam, gol2.x + 30, gol2.y - 40, n.t, { n: 5, r: 90, tam: 46, cor: '#8a8fa8' });
     tl.to(cauda, { opacity: 0, scale: 1, duration: 0.6 }, T(11, 8));
-    nome('CHARMANDER', CH, l10[0] - 0.1, 610, 1400);
     ocupado.push([CH, l10[0] - 0.1, T(11, 6)]);
-    toques.push({ t: T(11, 6), x: XR - 30, y: 1340, alto: 20 });
+    toques.push({ t: T(11, 6.5), por: 'chao', g: 0 }); // devolvida: quica e rola até o Charmander, que abre a tabelinha
 
     // 12–13 · tabelinha de um toque: os cinco se espalham e cada bumbo é um passe com a marca de quem toca
-    const TP = [[660, 1390], [450, 1760], [300, 1690], [590, 1600], [290, 1420]]; // Pikachu, Charmander, Squirtle, Bulbasaur, Psyduck
+    const TP = [[430, 1360], [680, 1470], [300, 1700], [600, 1630], [230, 1400]]; // Pikachu, Charmander, Squirtle, Bulbasaur, Psyduck
     const ANTES = [[200, 1540], [610, 1400], [505, 1740], [760, 1590], [300, 1370]]; // onde cada um terminou o seu lance
     am.forEach((a, i) => {
       tl.to(a.el, { x: TP[i][0], y: TP[i][1], duration: T(12, 0) - T(11, 6) - 0.05, ease: 'sine.inOut' }, T(11, 6));
       anim(tl, a, 'Walk', TP[i][0] > ANTES[i][0] ? 2 : 6, T(11, 6), T(12, 0) - 0.05, { vel: 1.8 });
     });
     const tab = [...bumbos(12), ...bumbos(13)];
-    const QUEM = [SQ, BU, PS, CH, SQ, BU, CH, PK];
+    const QUEM = [CH, SQ, BU, PS, CH, SQ, BU, PK];
     const ponto = (a, alvo) => {
       const [x, y] = TP[am.indexOf(a)];
       if (a === PS) return { x: x + 25, y: y + 4, h: 140 };
       if (a === BU) {
         const d = Math.hypot(alvo[0] - x, alvo[1] - y) || 1;
-        return { x: x + ((alvo[0] - x) / d) * 110, y: y + ((alvo[1] - y) / d) * 60, h: 20 };
+        return { x: x + ((alvo[0] - x) / d) * 110, y: y + ((alvo[1] - y) / d) * 60, h: 0 };
       }
       return { x: x + (alvo[0] > x ? 45 : -45), y: y + 4, h: 0 };
     };
     tab.forEach((t, k) => {
       const a = QUEM[k];
-      const alvo = k + 1 < tab.length ? TP[am.indexOf(QUEM[k + 1])] : [XR, YR];
+      const alvo = k + 1 < tab.length ? TP[am.indexOf(QUEM[k + 1])] : [XG, YG];
       const p = ponto(a, alvo);
       const proxPS = QUEM[k + 1] === PS;
-      toques.push({ t, ...p, alto: a === PS ? 120 : 30 });
+      // passe rasteiro rolando; pra cabeça do Psyduck (e da cabeça dele) vai por cima
+      toques.push({ t, ...p, por: a === PS ? 'cabeca' : a === BU ? 'cipo' : 'pe', g: a === PS || proxPS || k === tab.length - 1 ? undefined : 0 });
       const [x, y] = TP[am.indexOf(a)];
       const d = dir8(alvo[0] - x, alvo[1] - y);
       if (a === BU) {
         cipo(t, x - 30, y - 70, p.x, p.y - p.h - 30);
-        quadro(tl, BU, 'Attack', d, window.SPR[1].anims.Attack.hit, t - 0.04);
+        quadro(tl, BU, 'Shoot', d, window.SPR[1].anims.Shoot.hit, t - 0.04);
       } else if (a === PS) {
         quadro(tl, PS, 'Hurt', 0, 0, t);
         estouro(tl, cam, p.x, p.y - p.h - 20, t, { tam: 90, cor: '#fff', anel: false, dur: 0.2 });
@@ -369,16 +386,14 @@
       if (a === SQ) gotas(p.x, p.y - 4, t);
       if (a === CH) chama(p.x, p.y - 20, t, 0.7);
       if (a === PK) faisca(p.x, p.y - 30, t);
-      if (proxPS) toques.at(-1).alto = 120;
     });
-    etiqueta(tl, cam, 'TABELINHA', 540, 1240, tab[0], { haste: 40, dur: 1.6 });
     // 14 · o chute do Pikachu entra no prato da mudança de tom: raio do teto na rede
-    toques.push({ t: tFinal, x: XR, y: YR, h: 60, alto: 40 });
-    trajeto(tl, B, toques, { g: 1400, teto: 200 });
-    for (const q of toques.filter((q) => q.n)) anelPiso(tl, cam, q.x, q.y, q.t, { w: 50 + 100 * q.n.v, cor: '#fff', borda: 6 });
-    raio(XR - 20, 1000, tFinal, { tam: 8, dur: 0.35 });
+    const gol3 = entra(tFinal, 80, 1.5);
+    const P = percurso(toques, { nome: 'luzes' });
+    for (const q of P.C.filter((q) => q.n)) anelPiso(tl, cam, q.x, q.y, q.t, { w: 50 + 100 * q.n.v, cor: '#fff', borda: 6 });
+    raio(gol3.x, gol3.y - 260, tFinal, { tam: 8, dur: 0.35 });
     // quem não está no lance olha pra bola
-    for (const q of toques.filter((q) => q.t >= tFunk && q.t < tFinal))
+    for (const q of P.C.filter((q) => q.t >= tFunk && q.t < tFinal))
       am.forEach((a, i) => {
         if (ocupado.some(([o, t0, t1]) => o === a && q.t >= t0 && q.t < t1)) return;
         if (q.t >= T(11, 6) && q.t < T(12, 0)) return;
@@ -397,8 +412,8 @@
     tl.to('#cam', { scale: 1, duration: T(8, 0) - tFunk, ease: 'sine.out' }, tFunk);
     tl.to('#cam', { scale: 1.12, transformOrigin: '600px 1300px', duration: tFinal - T(13, 0), ease: 'power2.in' }, T(13, 0));
     // o gol no prato
-    golNaRede(tFinal, 3);
-    estouro(tl, cam, GOL.x + 90, 1215, tFinal, { tam: 360, borda: 12, z: 26 });
+    golNaRede(tFinal, 3, gol3);
+    estouro(tl, cam, gol3.x, gol3.y, tFinal, { tam: 360, borda: 12, z: 27 });
     am.forEach((a, i) => anim(tl, a, 'Hop', 0, tFinal + i * 0.05, tCorte, { loop: false, vel: 1.3 }));
 
     // ===== textos =====
@@ -413,12 +428,16 @@
     // ===== tela final: SOC-CER-MON em Ré pisca o logo, os cinco em fila embaixo =====
     flash(tl, tFinal, 0.7, 0.3);
     flash(tl, tCorte, 1, 0.3);
-    tl.to('#raios-final', { rotation: 30, duration: FIM - tCorte, ease: 'none' }, tCorte);
     tl.set('#logo', { opacity: 1, y: 0 }, tFinal);
     tl.fromTo('#logo', { scale: 0.7 }, { scale: 1, duration: 0.45, ease: 'back.out(3)', immediateRender: false }, tFinal);
     piscada(tl, tGancho(14), '#final-cena');
     const fc = document.getElementById('final-cena');
-    const fila = IDS.map((id, i) => ator(fc, id, { escala: 7, z: 5, x: 540 + (i - 2) * 150, y: 1430 }));
+    // a tela final é o ginásio aceso: os cinco em fila embaixo dos quatro bancos, o placar com o 3 a 0
+    const G2 = ginasio(fc, { bancos: BANCOS, cone: 520, larg: 200 });
+    gsap.set(G2.noite, { opacity: 0.12 });
+    gsap.set([...G2.tubos, ...G2.cones, ...G2.digs, G2.rel], { opacity: 1 });
+    gsap.set(G2.pl, { opacity: 0 }); // o placar ficaria atrás do logo
+    const fila = IDS.map((id, i) => ator(fc, id, { escala: 7, z: 20, x: 470 + (i - 2) * 125, y: 1430 }));
     fila.forEach((a) => anim(tl, a, 'Idle', 0, tCorte, T(16, 0)));
     for (const n of notas('palmas', tFinal)) fila.forEach((a, i) => tl.to(a.corpo, { keyframes: { y: [-70, 0] }, duration: 0.26, ease: 'power1.inOut' }, n.t - 0.13 + i * 0.02));
     tl.set('#tag', { opacity: 1 }, T(15, 0));
@@ -432,19 +451,44 @@
     for (const n of notas('apitoCurto')) nota(tl, fc, 240, 1150, n.t, { cor: '#ffcb05', sobe: 120, dx: -40, dur: 0.7, tam: 0.9 });
     // a última bola cai, quica pela frente e sai; o Psyduck vai atrás
     const ult = notas('bola', 30);
-    const BF = bola(fc, { d: 64, z: 8, x: 160, y: 1520 });
-    const fim = [{ t: ult[0].t - 0.45, x: 120, y: 1100, alto: 0 }];
-    ult.forEach((n, i) => fim.push({ t: n.t, x: 200 + 960 * (1 - 0.8 ** (i + 1)), y: 1530, n }));
-    fim.push({ t: FIM, x: 1200, y: 1530, alto: 0 });
-    gsap.set(BF.el, { opacity: 0 });
-    tl.set(BF.el, { opacity: 1 }, fim[0].t);
-    trajeto(tl, BF, fim, { g: 2600, teto: 380 });
-    for (const q of fim.filter((q) => q.n)) anelPiso(tl, fc, q.x, q.y, q.t, { w: 50 + 100 * q.n.v, cor: '#fff', borda: 6, z: 7 });
+    // a bola parada no pé do Pikachu: ele dá um toquinho por cima no fim e ela sai quicando pela frente do gol
+    const BF = bola(fc, { d: 64, z: 28, x: 268, y: 1446 });
+    const tToqueF = ult[0].t - 0.55;
+    const fim = [
+      { t: tCorte, x: 268, y: 1446, g: 0, por: 'parada' },
+      { t: tToqueF, x: 268, y: 1446, por: 'pe' },
+    ];
+    {
+      let x = 268;
+      let vx = 390;
+      ult.forEach((n, i) => {
+        x += vx * (n.t - (i ? ult[i - 1].t : tToqueF));
+        vx *= 0.95;
+        fim.push({ t: n.t, x, y: Math.min(1650, 1446 + (n.t - tToqueF) * 160), por: 'chao', n });
+      });
+      fim.at(-1).g = 0;
+      fim.push({ t: FIM, x: x + vx * (FIM - ult.at(-1).t), y: fim.at(-1).y, por: 'rola' });
+    }
+    quadro(tl, fila[0], 'Shoot', 2, window.SPR[25].anims.Shoot.hit, tToqueF - 0.03);
+    anim(tl, fila[0], 'Pose', 0, tToqueF + 0.2, FIM, { loop: false, de: 2 });
+    const PF = percurso(fim, { nome: 'final' });
+    for (const q of PF.C.filter((q) => q.n)) anelPiso(tl, fc, q.x, q.y, q.t, { w: 50 + 100 * q.n.v, cor: '#fff', borda: 6, z: 7 });
     const ps = fila[4];
     quadro(tl, ps, 'Idle', 2, 0, ult[1].t);
     anim(tl, ps, 'Walk', 2, ult[2].t, FIM, { vel: 1.6 });
-    tl.to(ps.el, { x: 1250, duration: FIM - ult[2].t, ease: 'power1.in' }, ult[2].t);
+    tl.to(ps.el, { x: 1250, y: 1660, duration: FIM - ult[2].t, ease: 'power1.in' }, ult[2].t);
+    tl.set(ps.el, { zIndex: 29 }, ult[2].t);
 
+    // por quadro: as duas bolas e as duas redes (funções só do tempo)
+    tl.set({}, {}, FIM);
+    porQuadro(tl, (t) => {
+      pintaBola(B, P, t, { d: 64 });
+      pintaBola(BF, PF, t, { d: 64 });
+      G.rede.pinta(t);
+      G2.rede.pinta(t);
+    });
+    window.__luzes = { P, PF };
+    if (window.__avisos?.length) console.warn(`física: ${window.__avisos.length} aviso(s)\n${window.__avisos.join('\n')}`);
     window.__timelines = window.__timelines || {};
     window.__timelines.root = tl;
   </script>
