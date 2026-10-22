@@ -373,11 +373,12 @@ img { image-rendering: pixelated; }
     tl.from("#selo", { y: 40, duration: 0.25, ease: "back.out(2)" }, B(76));
     tl.to("#credito", { opacity: 1, duration: 0.3 }, B(76));
     // as sílabas do logo piscam nas 3 batidas do gancho SOC-CER-MON (linhas 0, 3 e 6 do compasso; o swing de 0,06 atrasa
-    // a linha 3), em B72 e B76, como na Home (Home.tsx, LogoHits: brilho 1,9 e opacidade 0,95 → 0 em 0,3 s)
+    // a linha 3), em B72 e B76, como na Home (Home.tsx, LogoHits: brilho e opacidade → 0 em 0,3 s;
+    // sem o drop-shadow da Home: no logo grande ele virava uma caixa clara do tamanho da sílaba)
     const GANCHO = [0, 3.06, 6].map((r) => (r * b) / 4);
     for (const t0 of [B(72), B(76)])
-      GANCHO.forEach((dt, i) => tl.fromTo(`#hit${i}`, { opacity: 0.95, filter: "brightness(1.9) drop-shadow(0 0 30px #fff)" },
-        { opacity: 0, filter: "brightness(1) drop-shadow(0 0 0px #fff)", duration: 0.3, ease: "power1.out", immediateRender: false }, t0 + dt));
+      GANCHO.forEach((dt, i) => tl.fromTo(`#hit${i}`, { opacity: 1, filter: "brightness(2.3)" },
+        { opacity: 0, filter: "brightness(1)", duration: 0.3, ease: "power1.out", immediateRender: false }, t0 + dt));
 
     window.__timelines = window.__timelines || {};
     window.__timelines.root = tl;
