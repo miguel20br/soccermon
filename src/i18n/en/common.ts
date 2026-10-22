@@ -326,5 +326,6 @@ export const common: typeof pt = {
         offPosition: 'Out of position: {pct}',
         moveBoost: '{name}: +{n}%',
         choiceLocked: 'Choice Band: locked',
+        taughtMove: 'Trained move (TM): +{n}%',
     },
 };

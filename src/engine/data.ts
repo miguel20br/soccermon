@@ -69,6 +69,17 @@ export const SPECIES: Species[] = (pokemonJson as Species[]).map((sp) =>
 );
 export const SPECIES_BY_ID = new Map(SPECIES.map((s) => [s.id, s]));
 export const MOVES = movesJson as unknown as Record<string, MoveData>;
+/**
+ * Ajustes de jogo nos dados da Gen 1 (o `build-data` refaz o JSON; o ajuste fica aqui e vale na carta e em campo).
+ * 22/10/2026, MTs que ninguém pegava (Miguel, opção A nas 3 piores): Mega Drain 40 ⇒ 100, BubbleBeam 65 ⇒ 100,
+ * Fissure 30% ⇒ 50% de acerto.
+ */
+const MOVE_DATA_TUNING: Readonly<Record<string, Partial<MoveData>>> = {
+    megadrain: { power: 100 },
+    bubblebeam: { power: 100 },
+    fissure: { accuracy: 50, descPt: MOVES.fissure?.descPt?.replace('30%', '50%') ?? null },
+};
+for (const [id, patch] of Object.entries(MOVE_DATA_TUNING)) MOVES[id] = { ...MOVES[id], ...patch };
 export const ABILITIES = abilitiesJson as Record<string, AbilityData>;
 // no Soccermon o Imposter do Ditto copia o melhor da posição dele em campo, de qualquer time
 if (ABILITIES.imposter) {

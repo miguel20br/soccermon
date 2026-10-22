@@ -18,7 +18,14 @@ import { FORMATIONS, formationOf } from './formations';
 import type { PokemonInstance } from './instance';
 import { ITEMS } from './items';
 import { type ActiveLink, computeLinks } from './links';
-import { applyModifiers, attributeModifiers, captainFactor } from './modifiers';
+import {
+    applyModifiers,
+    attributeModifiers,
+    captainFactor,
+    isTaught,
+    TAUGHT_MOVE,
+    moveUses as usesOf,
+} from './modifiers';
 import {
     BOOST_TO_ATTR,
     DRAIN,
@@ -174,7 +181,7 @@ function createPlayer(
     const attr = applyModifiers(computeAttributes(sp, inst.level), mods, role);
     const ability = abilityEffect(inst.ability);
     const item = inst.item && ITEMS[inst.item] ? inst.item : null;
-    const moveUses = inst.moves.map((m, i) => (item === 'choiceband' && i > 0 ? 0 : moveProfile(m).uses));
+    const moveUses = inst.moves.map((m, i) => (item === 'choiceband' && i > 0 ? 0 : usesOf(inst, m)));
     return {
         idx,
         team,
@@ -1520,9 +1527,11 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0, ch
     const technician =
         p.ability.weakMoveBoost && prof.data.power > 0 && prof.data.power <= 60 ? p.ability.weakMoveBoost : 1;
     const typeItem = p.item && ITEMS[p.item]?.type === prof.data.type ? 1.2 : 1;
+    // golpe treinado (MT): o que o próprio jogador usa, não o que o Metronome/Mimic sorteia
+    const taught = depth === 0 && isTaught(p.inst, moveId) ? TAUGHT_MOVE.power : 1;
     const k = charged
-        ? Math.min(1.6, prof.strength * technician * typeItem * T.chargePower)
-        : Math.min(1.25, prof.strength * technician * typeItem);
+        ? Math.min(1.6, prof.strength * technician * typeItem * taught * T.chargePower)
+        : Math.min(1.25, prof.strength * technician * typeItem * taught);
     let target: PlayerState | null = null;
     let effectiveness: number | null = null;
     let hit = true;

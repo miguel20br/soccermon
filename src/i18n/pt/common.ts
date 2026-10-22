@@ -327,5 +327,6 @@ export const common = {
         offPosition: 'Fora da posição: {pct}',
         moveBoost: '{name}: +{n}%',
         choiceLocked: 'Choice Band: travado',
+        taughtMove: 'Golpe treinado (MT): +{n}%',
     },
 };

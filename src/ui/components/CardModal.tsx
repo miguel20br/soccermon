@@ -15,7 +15,7 @@ import { EVO_THRESHOLD, evolutionTarget } from '../../engine/evolution';
 import { viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { linksOf } from '../../engine/links';
-import { applyModifiers, attributeModifiers, moveModifiers } from '../../engine/modifiers';
+import { applyModifiers, attributeModifiers, moveModifiers, moveUses } from '../../engine/modifiers';
 import { DRAIN, moveProfile } from '../../engine/moves';
 import {
     abilityDesc,
@@ -338,7 +338,7 @@ export function CardModal() {
                                                 </div>
                                             ))}
                                         <div className="tactic-desc">
-                                            {tn('team.modal.uses', prof.uses)}
+                                            {tn('team.modal.uses', moveUses(inst, m))}
                                             {t('team.modal.perMatch')}
                                             {data.power > 0 && t('team.modal.power', { n: data.power })}
                                             {sec && ` · ${sec}`}

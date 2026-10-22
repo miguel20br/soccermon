@@ -17,6 +17,7 @@ import { TYPE_COLOR } from '../type-colors';
 import { cardSprite } from './PokeCard';
 import './pokecard2.css';
 import { Tip } from './Tip';
+import { TaughtMark } from './TmTeach';
 import { TypeIcons } from './TypeIcon';
 import { useHoloPointer } from './useHoloPointer';
 
@@ -662,7 +663,10 @@ function Tcg({ inst, d, captain }: VariantProps) {
                                     />
                                 ))}
                             </span>
-                            <b className="tcg-atk-name">{moveName(m)}</b>
+                            <b className="tcg-atk-name">
+                                {moveName(m)}
+                                <TaughtMark inst={inst} move={m} />
+                            </b>
                             <span className="tcg-dmg">{data.power || ''}</span>
                             <small className="tcg-atk-desc">{d.tr.d.team.card.kindTcg[moveProfile(m).kind]}</small>
                         </span>

@@ -279,6 +279,7 @@ export function TmTeachPanel({
                                   })
                                 : rich(t('reward.tm.learned', { name }), { move: <b>{newName}</b> })}
                         </p>
+                        <p className={`tm-done-text tm-trained${ready ? ' show' : ''}`}>{t('reward.tm.trained')}</p>
                         <button
                             type="button"
                             className="btn primary"

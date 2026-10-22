@@ -9,7 +9,7 @@ import { Rng } from './rng';
  * Golden master: mudou de propósito o resultado das partidas? Atualize os hashes aqui e suba `ENGINE_VERSION`
  * no mesmo commit. `npm run determinismo` confere os mesmos hashes no Chromium, Firefox e WebKit.
  */
-const EXPECTED_HASHES = ['5f13216e', '1f8e1cfc', '0b97b0bb', '70ae5bec', '157caf76', 'f402aea6', '02178b54'];
+const EXPECTED_HASHES = ['df10813c', '94093615', '1b2ef9e5', '45ed92f6', '650fe49f', '3cd48072', '246d5965'];
 
 describe('determinismo entre navegadores', () => {
     it('partidas fixas dão sempre o mesmo hash', () => {

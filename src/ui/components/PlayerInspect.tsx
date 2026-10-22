@@ -3,8 +3,7 @@ import { aerialLevel, aerialScore, computeAttributes, sizePercentile } from '../
 import { MOVES, species } from '../../engine/data';
 import { evolutionTarget, evoNeeded, evoProgress } from '../../engine/evolution';
 import { DEFAULT_FORMATION, type FormationId, hasEdge } from '../../engine/formations';
-import { applyModifiers, attributeModifiers, moveModifiers } from '../../engine/modifiers';
-import { moveProfile } from '../../engine/moves';
+import { applyModifiers, attributeModifiers, moveModifiers, moveUses } from '../../engine/modifiers';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { FLAG_BUFF, FLAG_CHARGED, FLAG_DEBUFF, SNAP_STRIDE, type Tactic, type TeamSetup } from '../../engine/state';
 import { EventBus } from '../../game/EventBus';
@@ -246,7 +245,7 @@ export function PlayerInspect({
                             {inst.moves.map((m) => {
                                 const data = MOVES[m];
                                 if (!data) return null;
-                                const left = Math.max(0, moveProfile(m).uses - (used.get(m) ?? 0));
+                                const left = Math.max(0, moveUses(inst, m) - (used.get(m) ?? 0));
                                 const locked = moveMods.some((mm) => mm.moveId === m && mm.factor === 0);
                                 const boost = moveMods.find((mm) => mm.moveId === m && mm.factor > 1);
                                 return (

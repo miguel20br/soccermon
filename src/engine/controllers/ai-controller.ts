@@ -13,6 +13,7 @@ import {
     toRel,
     toWorld,
 } from '../match';
+import { isTaught } from '../modifiers';
 import { DRAWBACK, hasTrait, MOVE_TUNING, moveProfile, type Trait } from '../moves';
 import type { MatchState, PlayerState, Tactic } from '../state';
 import { add, clamp, dist, len, norm, pointSegment, scale, sub, type Vec2, v } from '../vec';
@@ -871,7 +872,9 @@ export class AIController implements Controller {
             .map((m, i) => ({ i, m, prof: moveProfile(m) }))
             .filter(({ i, prof, m }) => p.moveUses[i] > 0 && kinds.includes(prof.kind) && ok(m));
         if (!slots.length) return null;
-        return this.s.rng.pick(slots).i;
+        // golpe treinado (MT) primeiro: o técnico ensinou pra ele usar
+        const taught = slots.filter(({ m }) => isTaught(p.inst, m));
+        return this.s.rng.pick(taught.length ? taught : slots).i;
     }
 }
 

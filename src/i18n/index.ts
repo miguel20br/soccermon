@@ -223,6 +223,7 @@ export function moveModLabel(m: MoveModifier, lang: Lang = current): string {
     if (lang === 'pt' || !m.ref) return m.label;
     const c = DICTS[lang].common;
     if (m.factor === 0) return c.mod.choiceLocked;
+    if (m.ref === 'mt') return fmt(c.mod.taughtMove, { n: Math.round((m.factor - 1) * 100) });
     const name = ITEMS[m.ref] ? itemName(m.ref) : abilityName(m.ref);
     return fmt(c.mod.moveBoost, { name, n: Math.round((m.factor - 1) * 100) });
 }
