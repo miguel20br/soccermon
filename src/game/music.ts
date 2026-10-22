@@ -1,7 +1,9 @@
 /**
  * Música das telas: faixas Opus `.webm` (reserva `.mp3`) em `public/music/<faixa>` + `.json` de trechos (loop, BPM), baixadas só quando a
  * tela pede. Toca no mesmo AudioContext dos efeitos (ZzFX), sem importar `phaser` (a Home usa este módulo).
- * Loop sem costura por `loopStart`/`loopEnd`; troca de tela com crossfade de 250 ms; troca de trecho na linha do compasso.
+ * Loop sem costura por `loopStart`/`loopEnd`. Troca de tela encaixada no tempo da faixa que sai (próxima batida, ou o
+ * compasso se ele chega em até 0,7 s; andamentos que casam entram na mesma batida); a tela não espera, só o áudio.
+ * Troca de trecho na linha do compasso.
  */
 export type TrackId =
     | 'abertura-gancho'
@@ -22,8 +24,6 @@ export type TrackId =
     | 'mt-moon'
     | 'cerulean'
     | 'sala'
-    | 'virada'
-    | 'virada-pressao'
     | `partida-${'' | 'brock-' | 'misty-' | 'rocket-'}${'1t' | '2t'}`;
 
 interface Section {
@@ -35,6 +35,8 @@ interface Section {
 }
 interface Meta {
     secoes: Section[];
+    /** Linhas (16 avos da batida do `bpm`) por compasso: 16 = 4/4; 12 = 12/8 (a Misty). */
+    linhasPorCompasso?: number;
     /** Duração do áudio (s), sem o atraso do codificador. */
     duracao?: number;
     /** Batidas do gancho SOC-CER-MON (segundos depois do começo de cada compasso do gancho). */
@@ -58,16 +60,20 @@ interface Playing {
     off: number;
 }
 
+/** Fade de entrada quando não há faixa saindo (o primeiro som, ou depois do silêncio) e de saída pro silêncio. */
 export const FADE_S = 0.25;
+/** Troca encaixada no tempo: a faixa nova entra em 30 ms (sem estalo) e a que sai decai (constante de 60 ms). */
+const IN_S = 0.03;
+const OUT_TAU = 0.06;
+/** Corte da troca de trecho: o trecho que sai some nos últimos 10 ms antes da linha (sem estalo). */
+const CUT_S = 0.01;
+/** Antecedência mínima pra agendar no AudioContext (s). */
+const LEAD_S = 0.03;
+/** Troca de tela espera a linha do compasso só se ela chega em até isso (s); senão, a próxima batida. */
+export const BAR_WAIT_S = 0.7;
 const vol = { master: 0.6, music: 0.4 };
-/** Virada: a música da partida abaixa ~10 dB enquanto a vinheta toca. */
-const DUCK = 10 ** (-10 / 20);
-const DUCK_IN_S = 0.15;
-const DUCK_OUT_S = 0.6;
 /** Só o que está em uso (`prune`): cada faixa decodificada ocupa ~25-50 MB (28 faixas juntas passavam de 690 MB). */
 const cache = new Map<TrackId, Promise<Loaded | null>>();
-/** As vinhetas da virada ficam (curtas, e tocam na hora do gol). */
-const STINGS: readonly TrackId[] = ['virada', 'virada-pressao'];
 /**
  * Atraso do codificador do mp3 (LAME: 1105 amostras a 44,1 kHz = 25,06 ms, o `start_time` do ffprobe). Medido em
  * 22/10/2026: o WebKit não corta (o mp3 sai 25,1 ms adiantado e 30-50 ms mais longo que o `duracao` do `.json`); o
@@ -76,10 +82,9 @@ const STINGS: readonly TrackId[] = ['virada', 'virada-pressao'];
 export const MP3_DELAY_S = 1105 / 44100;
 let webmBroken = false;
 let out: GainNode | null = null;
-/** Entre as faixas e o volume: só a vinheta mexe nele (troca de trecho e crossfade mexem no ganho de cada faixa). */
-let duck: GainNode | null = null;
-let sting: AudioBufferSourceNode | null = null;
 let current: Playing | null = null;
+/** A faixa que está saindo numa troca agendada (até a nova entrar, é ela que dá o tempo). */
+let leaving: Playing | null = null;
 /** O que a tela pediu (pode esperar o toque que libera o áudio ou o download). */
 let want: { id: TrackId | null; section?: string } = { id: null };
 let gestureHooked = false;
@@ -92,22 +97,14 @@ let zz: typeof import('zzfx') | null = null;
 const ctx = (): AudioContext => (zz as typeof import('zzfx')).ZZFX.audioContext;
 const level = () => vol.master * vol.music;
 
-function output(): GainNode {
+/** Onde as faixas entram: o volume da música. */
+function bus(): GainNode {
     if (!out) {
         out = ctx().createGain();
         out.connect(ctx().destination);
     }
     out.gain.value = level();
     return out;
-}
-
-/** Onde as faixas entram: o duck, que vai pro volume. A vinheta entra direto no volume (não abaixa junto). */
-function bus(): GainNode {
-    if (!duck) {
-        duck = ctx().createGain();
-        duck.connect(output());
-    }
-    return duck;
 }
 
 /** Volume geral e da música (0..1). Zero desliga de vez (nem baixa); saiu do zero, volta a faixa da tela. */
@@ -156,10 +153,47 @@ function load(id: TrackId): Promise<Loaded | null> {
     return p;
 }
 
-/** Solta as faixas fora de uso (a que toca, a pedida e as vinhetas ficam): a memória volta com o coletor. */
+/** Solta as faixas fora de uso (a que toca e a pedida ficam): a memória volta com o coletor. */
 function prune() {
-    for (const id of cache.keys()) if (id !== current?.id && id !== want.id && !STINGS.includes(id)) cache.delete(id);
+    for (const id of cache.keys()) if (id !== current?.id && id !== want.id) cache.delete(id);
 }
+
+/**
+ * Grade do trecho em segundos: compasso e pulso. 4/4: pulso = semínima (4 linhas). 12/8: pulso = semínima pontuada
+ * (3 linhas), e o compasso tem 12 linhas, não 16 (antes a troca de trecho da Misty caía fora da linha do compasso).
+ */
+export function gridOf(l: Pick<Loaded, 'meta'>, sec: Pick<Section, 'bpm'>) {
+    const line = 15 / sec.bpm;
+    const n = l.meta.linhasPorCompasso ?? 16;
+    return { bar: n * line, pulse: (n % 3 === 0 ? 3 : 4) * line };
+}
+
+type Grid = ReturnType<typeof gridOf>;
+const mod = (a: number, m: number) => ((a % m) + m) % m;
+
+/** Espera (s) de `x` (s desde a origem da grade) até a próxima linha de `step` que esteja a pelo menos `min` s. */
+export const untilLine = (x: number, step: number, min = LEAD_S) => Math.ceil((x + min) / step - 1e-9) * step - x;
+
+/** Em que batida do compasso (0, 1, 2…) cai `x` (s desde a origem da grade, numa linha de batida). */
+export const beatOf = (x: number, g: Grid) => Math.round(mod(x, g.bar) / g.pulse) % Math.round(g.bar / g.pulse);
+
+/**
+ * Troca de tela encaixada no tempo da faixa que sai (`x` = s desde a origem da grade dela): na linha do compasso se
+ * ela chega em até BAR_WAIT_S, senão na próxima batida. `beatOnly` (andamentos que casam): sempre na batida.
+ */
+export function swapWait(x: number, g: Grid, beatOnly = false): number {
+    const bar = untilLine(x, g.bar);
+    return !beatOnly && bar <= BAR_WAIT_S ? bar : untilLine(x, g.pulse);
+}
+
+/** Pulsos que casam: mesmo andamento (até 4% de diferença, que some na troca de 30 ms) ou o dobro, ou a metade. */
+export const sameTempo = (a: number, b: number) => [0.5, 1, 2].some((k) => Math.abs(a / b / k - 1) <= 0.04);
+
+/**
+ * Onde a faixa nova entra quando os andamentos casam: na mesma batida do compasso em que a outra está (entrou na 3ª
+ * batida, começa da 3ª batida dela), contada a partir de `start` (começo do trecho ou da introdução).
+ */
+export const phaseOffset = (beat: number, g: Grid) => mod(beat * g.pulse, g.bar);
 
 const sectionOf = (l: Loaded, name?: string): Section =>
     l.meta.secoes.find((s) => s.nome === name) ?? l.meta.secoes.find((s) => s.loop) ?? l.meta.secoes[0];
@@ -190,12 +224,21 @@ function heardTime(): number {
     return o?.contextTime ? o.contextTime + (performance.now() - (o.performanceTime ?? 0)) / 1000 : c.currentTime;
 }
 
-/** Posição (s) no arquivo agora (`heard`: a que se ouve, pro olho cair junto do ouvido). */
-function position(p: Playing, heard = false): number {
-    const x = p.off + (heard ? heardTime() : ctx().currentTime) - p.t0;
+/** Posição (s) no arquivo no tempo `t` do contexto. */
+function posAt(p: Playing, t: number): number {
+    const x = p.off + t - p.t0;
     const { inicio, fim, loop } = p.sec;
     return loop && x >= fim ? inicio + ((x - inicio) % (fim - inicio)) : x;
 }
+
+/** Posição (s) no arquivo agora (`heard`: a que se ouve, pro olho cair junto do ouvido). */
+const position = (p: Playing, heard = false) => posAt(p, heard ? heardTime() : ctx().currentTime);
+
+/** Segundos desde a origem da grade (o começo do trecho; a introdução fica antes, em compassos inteiros). */
+const gridX = (p: Playing, t: number) => posAt(p, t) - p.sec.inicio;
+
+/** O trecho ainda soa no tempo `t` (o jingle que acabou não dá mais o tempo). */
+const sounding = (p: Playing, t: number) => p.sec.loop || posAt(p, t) < p.sec.fim;
 
 function stopAfter(p: Playing, at: number) {
     try {
@@ -205,8 +248,33 @@ function stopAfter(p: Playing, at: number) {
     }
 }
 
+/** Ganho novo pra faixa que entra em `at`: de 0 a 1 em `ramp` s. */
+function rampIn(at: number, ramp: number): GainNode {
+    const g = ctx().createGain();
+    g.gain.setValueAtTime(0, at);
+    g.gain.linearRampToValueAtTime(1, at + ramp);
+    g.connect(bus());
+    return g;
+}
+
+/** Troca de trecho da mesma faixa: o novo entra em `at` (linha do compasso) num ganho próprio; o velho some nos 10 ms antes. */
+function switchSection(p: Playing, sec: Section, at: number): Playing {
+    // trecho de entrada sem loop colado no loop (virada -> pressao): entra por ele
+    const off = leadIn(p.loaded, sec)?.inicio ?? sec.inicio;
+    const gain = ctx().createGain();
+    gain.connect(bus());
+    const g = p.gain.gain;
+    const from = Math.max(ctx().currentTime, at - CUT_S);
+    g.cancelScheduledValues(from);
+    g.setValueAtTime(1, from);
+    g.linearRampToValueAtTime(0, at);
+    stopAfter(p, at + 0.01);
+    leaving = p;
+    return { ...p, sec, gain, t0: at, off, src: makeSource(p.loaded, sec, gain, at, off) };
+}
+
 async function apply() {
-    const { id, section } = want;
+    const { id } = want;
     // silêncio ou volume zero: nada de baixar nem decodificar
     if (id === null || level() === 0) {
         fadeOut(current);
@@ -224,100 +292,63 @@ async function apply() {
     const loaded = await load(id);
     // a tela (ou o volume) pode ter mudado enquanto baixava
     if (!loaded || want.id !== id || level() === 0) return;
-    const sec = sectionOf(loaded, section);
+    // e o trecho também: vale o último pedido
+    const sec = sectionOf(loaded, want.section);
     const now = c.currentTime;
     if (current && current.id === id) {
-        if (current.sec === sec) return;
-        // mesma faixa, outro trecho: troca na linha do compasso (corte limpo, sem fade)
-        const at = nextLine(current, 240 / current.sec.bpm);
-        // trecho de entrada sem loop colado no loop (virada -> pressao): entra por ele
-        const lead = leadIn(loaded, sec);
-        const off = lead?.inicio ?? sec.inicio;
-        const next: Playing = { ...current, sec, t0: at, off, src: makeSource(loaded, sec, current.gain, at, off) };
-        stopAfter(current, at);
-        current = next;
+        // mesma faixa, outro trecho: troca na linha do compasso (o trecho que ainda vai entrar troca na mesma hora)
+        if (current.sec !== sec)
+            current = switchSection(
+                current,
+                sec,
+                now + untilLine(gridX(current, now), gridOf(loaded, current.sec).bar),
+            );
         return;
     }
-    // faixa nova: crossfade de 250 ms (e a vinheta da virada, se ainda tocava, sai junto)
-    fadeOut(current);
-    endSting(now);
-    const gain = c.createGain();
-    gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(1, now + FADE_S);
-    gain.connect(bus());
-    // loop com introdução logo antes (Abertura): entra pela introdução
-    const off = leadIn(loaded, sec)?.inicio ?? sec.inicio;
-    current = { id, loaded, gain, sec, t0: now, off, src: makeSource(loaded, sec, gain, now, off) };
+    const start = leadIn(loaded, sec)?.inicio ?? sec.inicio;
+    const g = gridOf(loaded, sec);
+    // faixa nova, encaixada no tempo da que sai: troca agendada que ainda não soou cede o lugar (mesma hora, mesma batida)
+    let ref = current;
+    let at = now;
+    if (current && current.t0 > now + LEAD_S) {
+        at = current.t0;
+        ref = leaving;
+        current.gain.gain.cancelScheduledValues(now);
+        current.gain.gain.setValueAtTime(0, now);
+        stopAfter(current, now);
+    } else if (current) {
+        leaving = current;
+    }
+    let off = start;
+    if (ref && sounding(ref, at)) {
+        const rg = gridOf(ref.loaded, ref.sec);
+        const same = sameTempo(rg.pulse, g.pulse);
+        if (at === now) at += swapWait(gridX(ref, now), rg, same);
+        if (same && sec.loop) off += phaseOffset(beatOf(gridX(ref, at), rg), g);
+    }
+    if (ref && ref === current) fadeOut(ref, at);
+    const gain = rampIn(at, ref ? IN_S : FADE_S);
+    current = { id, loaded, gain, sec, t0: at, off, src: makeSource(loaded, sec, gain, at, off) };
     prune();
     lastPos = off - 0.001;
     startHits();
 }
 
-/** Próxima linha da grade (`step` s: compasso ou batida) do trecho tocando, em tempo do contexto. */
-function nextLine(p: Playing, step: number): number {
-    const x = position(p) - (p.sec.loop ? p.sec.inicio : 0);
-    return ctx().currentTime + (Math.ceil(x / step) * step - x);
-}
-
-function endSting(now: number) {
-    if (!sting || !duck) return;
-    try {
-        sting.stop(now + 0.05);
-    } catch {
-        // já parou
-    }
-    sting = null;
-    duck.gain.cancelScheduledValues(now);
-    duck.gain.setValueAtTime(duck.gain.value, now);
-    duck.gain.linearRampToValueAtTime(1, now + FADE_S);
-}
-
-/**
- * Virada no placar: a música da partida abaixa ~10 dB em 150 ms, a vinheta entra na próxima batida (meio tom acima
- * na Pressão final) e a música volta em 600 ms depois que ela acaba. Só o duck mexe no volume: a troca de trecho da
- * partida (no ganho da faixa) segue normal por baixo.
- */
-export async function playVirada() {
-    if (!zz || ctx().state !== 'running' || level() === 0) return;
-    const loaded = await load(current?.sec.nome === 'pressao' ? 'virada-pressao' : 'virada');
-    if (!loaded) return;
-    const p = current;
-    const now = ctx().currentTime;
-    const at = p ? nextLine(p, 60 / p.sec.bpm) : now;
-    const g = bus().gain;
-    g.cancelScheduledValues(now);
-    g.setValueAtTime(g.value, now);
-    g.linearRampToValueAtTime(DUCK, now + DUCK_IN_S);
-    const end = at + loaded.buf.duration;
-    g.setValueAtTime(DUCK, end);
-    g.linearRampToValueAtTime(1, end + DUCK_OUT_S);
-    try {
-        sting?.stop();
-    } catch {
-        // já parou
-    }
-    const src = ctx().createBufferSource();
-    src.buffer = loaded.buf;
-    src.connect(output());
-    src.onended = () => {
-        if (sting === src) sting = null;
-    };
-    src.start(at, loaded.shift);
-    sting = src;
-}
-
-/** Baixa antes da hora (as vinhetas da virada no 2º tempo), se a música já está ligada. */
-export function prefetchMusic(...ids: TrackId[]) {
-    if (zz && level() > 0) for (const id of ids) void load(id);
-}
-
-function fadeOut(p: Playing | null) {
+/** A faixa sai: fica inteira até `at` e decai dali (troca no tempo), ou some em 250 ms já (silêncio). */
+function fadeOut(p: Playing | null, at?: number) {
     if (!p) return;
     const now = ctx().currentTime;
-    p.gain.gain.cancelScheduledValues(now);
-    p.gain.gain.setValueAtTime(p.gain.gain.value, now);
-    p.gain.gain.linearRampToValueAtTime(0, now + FADE_S);
-    stopAfter(p, now + FADE_S + 0.05);
+    const g = p.gain.gain;
+    g.cancelScheduledValues(now);
+    if (at === undefined) {
+        g.setValueAtTime(g.value, now);
+        g.linearRampToValueAtTime(0, now + FADE_S);
+        stopAfter(p, now + FADE_S + 0.05);
+        return;
+    }
+    g.setValueAtTime(g.value, now);
+    g.setTargetAtTime(0, at, OUT_TAU);
+    stopAfter(p, at + 8 * OUT_TAU);
 }
 
 /**

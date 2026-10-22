@@ -105,8 +105,19 @@ precisando do "pode subir".
    tela, autor, licença, duração, ★ do que ele gostou. Rodadas antigas em `<details>`.
 5. **Doc**: atualizar `docs/planos/pesquisas/musica.md` (retorno dele, o que mudou, mapa tela → faixa, perguntas).
 6. **Pro jogo (quando ele mandar)**: Opus 64 kbps (`.webm`) + mp3 de reserva; `src/game/music.ts` ao lado do
-   `audio.ts`, no mesmo `ZZFX.audioContext`, sem importar `phaser`; volume "Música" nas Configurações; crossfade de
-   250 ms; carregar sob demanda depois do `load` da Home. Detalhes na seção 4 do doc.
+   `audio.ts`, no mesmo `ZZFX.audioContext`, sem importar `phaser`; volume "Música" nas Configurações; carregar sob
+   demanda depois do `load` da Home. Detalhes na seção 4 do doc.
+7. **Troca de tela "só encaixando no tempo"** (22/10/2026, `src/game/music.ts`): a tela troca na hora; o áudio espera
+   a linha do compasso da faixa que sai se ela chega em até 0,7 s, senão a próxima batida (`swapWait`). Andamentos que
+   casam (até 4% de diferença, ou o dobro/metade: `sameTempo`) trocam na batida e a faixa nova entra **na mesma
+   batida do compasso** (`phaseOffset`). A nova sobe em 30 ms, a velha decai (constante de 60 ms). Grade em
+   `gridOf` (12/8 = 12 linhas, pulso de 3). Sem faixa saindo (1º som, depois do silêncio): fade de 250 ms. Troca de
+   trecho (nível da partida) na linha do compasso, num ganho novo (a velha some em 10 ms, sem estalo); vale o último
+   pedido. A tela `match` não silencia a música: a partida pede a dela e a troca da Escalação também cai no tempo.
+8. **Virada no placar: tentada e recusada** (22/10/2026). 1ª versão: vinheta por cima da partida com a música
+   abaixando ~10 dB (`virada.mjs`, `virada-pressao.mjs`): o Miguel não gostou. 2ª ideia (breque + virada de bateria +
+   torcida + subir de nível) foi descartada antes de entrar: a música da partida só segue os trechos pelo minuto e
+   pela pressão. Não proponha de novo sem ele pedir.
 
 ## 4. O sequenciador (`scripts/musica/synth.mjs`)
 
