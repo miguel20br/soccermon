@@ -182,6 +182,9 @@ describe('backup antigo (scripts/fixtures)', () => {
             for (const e of played) expect((e.editions ?? 0) & EDITION_BIT.normal).toBeTruthy();
             for (const e of Object.values(save.dex).filter((x) => x.matches === 0)) expect(e.editions).toBeUndefined();
             expect(save.settings.goalCry).toBe(true);
+            // 0.9.7: volume da música (configuração) e balões do tutorial (perfil) migram juntos
+            expect(save.settings.musicVolume).toBe(DEFAULT_SETTINGS.musicVolume);
+            expect(save.profile.coach).toContain('intro');
             // faixa da torcida (0.8.7): campo opcional, save antigo fica com a 1ª frase
             expect(save.profile.banner).toBeUndefined();
             expect(bannerOf(save.profile.banner)).toBe(0);

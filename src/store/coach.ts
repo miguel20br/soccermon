@@ -2,7 +2,7 @@ import type { PersistedSave } from './game-store';
 
 /**
  * Balões do tutorial (coach marks): cada um aparece uma vez por modo. O que já foi visto fica em `profile.coach`
- * (no save e na nuvem, então trocar de aparelho não repete). Save sem o campo (antes da 0.9.6) ganha o que dá pra
+ * (no save e na nuvem, então trocar de aparelho não repete). Save sem o campo (antes da 0.9.7) ganha o que dá pra
  * inferir do histórico: quem já jogou o modo não vê o balão dele.
  */
 export const COACH_IDS = [

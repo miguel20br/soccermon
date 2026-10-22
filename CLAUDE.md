@@ -31,7 +31,7 @@ você é o Claude e `git log` mostrar commits com `miguelcunhabr@`, avise o Migu
   hashtags, e postar. Antes de clicar em Post, confirme numa linha com ele. Upload pela extensão só até 10 MB:
   comprimir com ffmpeg 2 passes (~1,45 Mbps de vídeo, 1080x1920). Link clicável na bio só com 1000 seguidores:
   `soccermon.com` vai escrito na legenda. Todo post ganha um comentário com o link; fixar comentário só pelo app
-  (o site não tem a opção). Mudança de perfil (foto/bio) demora uns minutos pra aparecer: não repetir.
+  (o site não tem a opção). Mudança de perfil (foto/bio) demora uns minutos: não repetir.
 - **Social media (20/10/2026):** o Miguel passou as redes pro Claude ("masterize a arte de ser meu social media").
   Skill `soccermon-social`: pauta numerada por semana em `docs/marketing/pauta.md`, ele aprova numa linha ("ok 1–5")
   e o Claude grava, agenda e acompanha; nada vai ao ar fora de uma pauta aprovada.
@@ -155,7 +155,7 @@ No ar: 0.9.6 (beira da quadra pra todos: golpe máximo com zona por posição, d
 - **Modo novo atrás de bandeira até ser jogado na tela** ([ADR 0005](docs/adr/0005-modo-novo-so-no-ar-depois-de-jogado.md)): robô do store não pega bug de tela.
 - **Liga fechada:** reabrir ou adiar = trocar só `LIGA_OPENS_AT` em `src/league/rules.ts` (01/12/2026 00:00 de Brasília, provisória) e publicar.
 - **Versão com 4 partes:** `version` do `package.json` é semver; o número exibido sai de `displayVersion`.
-- **Repo público, sem dinheiro** ([ADR 0006](docs/adr/0006-sem-dinheiro-nenhum.md)): segredos só no `.env.local`; código de título nunca no repo. Supabase gratuito pausa após 7 dias sem uso.
+- **Repo público, sem dinheiro** ([ADR 0006](docs/adr/0006-sem-dinheiro-nenhum.md)): segredos só no `.env.local`; código de título nunca no repo. Supabase grátis pausa após 7 dias parado.
 
 ## Mapa de pastas
 
@@ -177,4 +177,4 @@ No ar: 0.9.6 (beira da quadra pra todos: golpe máximo com zona por posição, d
 - Agente novo por rodada, com brief curto; não retomar agente de contexto enorme.
 - Sonnet/Haiku quando a tarefa permite; Opus para motor, equilíbrio, composição e design difícil.
 - No máximo 3 agentes em paralelo. Prints só os essenciais.
-- `npm run calibrate`: n=200 para explorar, n=400 no final. Local: só testes relacionados.
+- `npm run calibrate`: n=200 explora, n=400 no final. Local: só testes relacionados.
