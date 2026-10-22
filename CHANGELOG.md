@@ -1,5 +1,22 @@
 # Novidades
 
+## 0.9.10 · Time no ranking e acabamento
+
+### Copa do Dia
+- O ranking mostra o time de cada treinador, com o capitão marcado
+- A formação avisa quando a tentativa não entra no ranking
+
+### Rota Índigo
+- Final perdida aparece como vice, e o segundo amarelo como cartão vermelho
+- Patrocínios do mapa com ícone e nome no celular
+- A formação da Rota tem botão de voltar
+
+### Acabamento
+- Tecla M dispara o golpe máximo
+- O volume da música não estala mais ao mexer
+- Na Sala de troféus a fala não tampa as taças no celular
+- Derrota perdoada fica amarela na barra da Home
+
 ## 0.9.9 · Música no tempo e voltar do Android
 
 ### Música

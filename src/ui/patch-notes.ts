@@ -7,6 +7,36 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.10',
+        title: 'Time no ranking e acabamento',
+        sections: [
+            {
+                title: 'Copa do Dia',
+                lines: [
+                    'O ranking mostra o time de cada treinador, com o capitão marcado',
+                    'A formação avisa quando a tentativa não entra no ranking',
+                ],
+            },
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'Final perdida aparece como vice, e o segundo amarelo como cartão vermelho',
+                    'Patrocínios do mapa com ícone e nome no celular',
+                    'A formação da Rota tem botão de voltar',
+                ],
+            },
+            {
+                title: 'Acabamento',
+                lines: [
+                    'Tecla M dispara o golpe máximo',
+                    'O volume da música não estala mais ao mexer',
+                    'Na Sala de troféus a fala não tampa as taças no celular',
+                    'Derrota perdoada fica amarela na barra da Home',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.9',
         title: 'Música no tempo e voltar do Android',
         sections: [
