@@ -1,5 +1,11 @@
 # Novidades
 
+## 0.9.8 · Gritos mais baixos
+
+### Som
+- Escolher no draft agora é silencioso: só a música toca
+- Os gritos dos Pokémon ficaram bem mais baixos, atrás da música
+
 ## 0.9.7 · Música no jogo e Rota com escolhas
 
 ### Música

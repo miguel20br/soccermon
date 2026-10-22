@@ -7,6 +7,19 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.8',
+        title: 'Gritos mais baixos',
+        sections: [
+            {
+                title: 'Som',
+                lines: [
+                    'Escolher no draft agora é silencioso: só a música toca',
+                    'Os gritos dos Pokémon ficaram bem mais baixos, atrás da música',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.7',
         title: 'Música no jogo e Rota com escolhas',
         sections: [
