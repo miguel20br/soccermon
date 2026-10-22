@@ -5,7 +5,6 @@ import { FORMATIONS, type FormationId } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
 import { computeLinks } from '../../engine/links';
 import { computeSynergies } from '../../engine/synergy';
-import { playCry } from '../../game/audio';
 import { formationText } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { coachSeen } from '../../store/coach';
@@ -112,7 +111,6 @@ function FormationDiagram({ id }: { id: FormationId }) {
  */
 export function Draft() {
     const { run, chooseFormation, chooseSlot, pick, reroll } = useGame();
-    const cries = useGame((s) => s.settings.cries);
     const [selected, setSelected] = useState<string | null>(null);
     const [coachOn, setCoachOn] = useState(false);
     const coachSeenDraft = useGame((s) => coachSeen(s.profile.coach, 'relampagoDraft'));
@@ -330,7 +328,6 @@ export function Draft() {
                                         key={o.uid}
                                         className={`option cpack-card${isBigCard(o) ? ' big' : ''}`}
                                         data-fly={o.uid}
-                                        data-cry={o.speciesId}
                                     >
                                         {!isCaptain && role !== 'ANY' && newLinks(filled, o).length > 0 && (
                                             <div className="option-links">
@@ -393,8 +390,7 @@ export function Draft() {
                                                       : t('team.draft.sign'),
                                                 primary: true,
                                                 onClick: () => {
-                                                    // escolheu: o grito dele (no volume e no estilo de gritos das Configurações)
-                                                    if (!isCaptain || selected !== o.uid) playCry(o.speciesId, cries);
+                                                    // sem grito: no draft só a música (o Miguel, 22/10/2026)
                                                     if (isCaptain) setSelected(selected === o.uid ? null : o.uid);
                                                     else flyCard(o.uid, () => pick(o.uid));
                                                 },

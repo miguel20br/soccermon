@@ -381,7 +381,6 @@ export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
                                 {options.map((o) => (
                                     <div
                                         key={o.uid}
-                                        data-cry={o.speciesId}
                                         className={`option cpack-card${isBigCard(o) ? ' big' : ''}${myTurn ? '' : ' duel-locked'}`}
                                     >
                                         <FutCard

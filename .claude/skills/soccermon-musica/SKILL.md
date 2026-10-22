@@ -188,6 +188,23 @@ ficam perto de −18; console pede −24: no jogo a música fica abaixo de efeit
 - Abertura idêntica: `cmp` do `.wav` contra a versão aprovada se mexer no `synth.mjs`.
 - Diga o que foi conferido pelos números e o que só o ouvido dele decide.
 
+### Níveis no jogo (22/10/2026)
+
+Configurações no padrão (geral 0,6, música 0,4, canais 1), medidos como saem: `npx tsx scripts/niveis-audio.ts`
+(ebur128; ganhos base em `GAIN`, `src/game/audio.ts`). O grito é **tempero**: atrás da música (o Miguel achou alto).
+O `audio.test.ts` barra grito acima da música.
+
+| Canal | Alvo (LUFS) | Antes | Agora | Ganho base |
+|---|---|---|---|---|
+| Música (loops, integrado; M máx) | −28 (picos −25) | −28,4 (−25,3) | igual | geral × música; arquivo a −16 |
+| Gritos (M máx, mediana do estilo `latest`; p90) | −30 (p90 −28) | −17,3 (−15,7) | −29,9 (−28,3) | `GAIN.cry` 0,55 → 0,13 |
+| Efeitos ZzFX (M máx: apito 21, gol 24, chute 26, defesa 30) | −21 a −30 | igual | igual | `GAIN.sfx` 0,35 |
+| Apito e torcida gravados (M máx) | −19 a −21 | igual | igual | `GAIN.sample` 0,7 |
+
+Os controles das Configurações multiplicam por cima (0 a 1: dá pra baixar, não passar do padrão). Faixa nova: meça
+com o script e confira que o grito fica uns 1,5 dB abaixo do integrado da música. Draft (e o do Duelo) sem grito:
+escolher é silencioso, só a música.
+
 ## 7. Armadilhas (custaram tempo)
 
 - **Parâmetro em branco do ZzFX é `null`, não 0.** Com 0 o `release` some e a caixa sai muda (a v1 não tinha caixa).
