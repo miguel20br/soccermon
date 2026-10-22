@@ -3,6 +3,10 @@
   TESTE (22/10/2026): o trailer 2 v3 com música nossa, a Abertura com gancho em versão de batalha
   (scripts/musica/pecas/trailer-abertura.mjs, renderizada em som/), e as sílabas SOC-CER-MON do logo piscando nas 3
   batidas do gancho (B72 e B76), como na Home. O resto é cópia do trailer/v2/index.html (o publicado; não mexa nele).
+  v2 (22/10/2026): tema v2 (som/trailer-abertura-v2.wav: bateria inteira, sub, camadas largas, subidas e impactos) e a
+  piscada que não passa batido: cada sílaba pula (1 → 1,25 → 1 em 0,18 s), acende branca e volta à cor, uma estrela
+  dourada chapada e um anel branco estouram atrás dela, e no MON a tela treme. O clarão e o logo entram meio tempo antes
+  (B71,5, no respiro da música) pra o SOC de B72 não sumir debaixo do clarão.
   Trailer 2 do Soccermon, VERTICAL 9:16 (Instagram, TikTok, Reels, Shorts), seguindo o storyboard v3
   (trailer/v2/storyboard/, aprovado pelo Miguel em 19/10/2026). midia/ vem do preparar.sh (fora do git).
   Versão 2 (ritmo mais calmo, partida inteira na mesma quadra, enquadrada seguindo a bola). Grade: a música entra em 7,96 s (começando 0,5 s dentro da faixa); 1ª batida em 8,428 s; 178 BPM (batida 0,3371 s,
@@ -74,9 +78,17 @@ img { image-rendering: pixelated; }
   rgb(255 255 255 / 80%) 82deg, transparent 90deg, transparent 360deg);
   -webkit-mask-image: radial-gradient(circle, #000 15%, transparent 55%); mask-image: radial-gradient(circle, #000 15%, transparent 55%); }
 #simbolo { position: absolute; width: 280px; image-rendering: auto; filter: drop-shadow(0 0 50px rgb(255 240 180 / 80%)); opacity: 0; }
-#logo { position: absolute; left: 140px; top: 520px; width: 800px; image-rendering: auto; filter: drop-shadow(0 16px 30px rgb(0 0 0 / 55%)); opacity: 0; }
+#logo { position: absolute; left: 140px; top: 520px; width: 800px; image-rendering: auto; opacity: 0; isolation: isolate; }
 #logo img { display: block; width: 100%; image-rendering: auto; }
-#logo .hit { position: absolute; left: 0; top: 0; opacity: 0; }
+#logo .base { position: relative; z-index: 1; filter: drop-shadow(0 16px 30px rgb(0 0 0 / 55%)); }
+/* piscada do gancho: por sílaba, a cópia que pula (cor + branca por cima) e, atrás do logo, estrela e anel chapados */
+#logo .pop { position: absolute; inset: 0; z-index: 2; opacity: 0; }
+#logo .pop img { position: absolute; left: 0; top: 0; }
+#logo .pop .branco { filter: brightness(0) invert(1); }
+#logo .estrela, #logo .anel { position: absolute; top: 50%; width: 38%; aspect-ratio: 1; z-index: 0; opacity: 0; }
+#logo .estrela { width: 46%; }
+#logo .estrela { background: #ffcb05; }
+#logo .anel { box-sizing: border-box; border: 12px solid #fff; border-radius: 50%; }
 .tag { position: absolute; left: 110px; width: 860px; top: 750px; text-align: center; font-size: 66px; letter-spacing: 3px; color: #ffcb05; text-shadow: 7px 8px 0 #0e1430; white-space: nowrap; opacity: 0; }
 .site { position: absolute; left: 110px; width: 860px; top: 890px; text-align: center; font-size: 62px; letter-spacing: 2px; color: #fff; opacity: 0; }
 .selo { position: absolute; left: 110px; width: 860px; top: 1000px; display: flex; justify-content: center; opacity: 0; }
@@ -178,7 +190,7 @@ img { image-rendering: pixelated; }
       <img id="pacote-corpo" src="midia/pacote-corpo.png" style="position:absolute;left:0;top:99px;width:618px;image-rendering:auto" alt="" />
       <img id="pacote-tampa" src="midia/pacote-tampa.png" style="position:absolute;left:0;top:0;width:618px;image-rendering:auto" alt="" />
     </div>
-    <div id="logo"><img src="midia/logo-horizontal.svg" alt="" /><img class="hit" id="hit0" src="midia/logo-horizontal.svg" style="clip-path:inset(0 65.3% 0 0)" alt="" /><img class="hit" id="hit1" src="midia/logo-horizontal.svg" style="clip-path:inset(0 32.3% 0 34.7%)" alt="" /><img class="hit" id="hit2" src="midia/logo-horizontal.svg" style="clip-path:inset(0 0 0 67.7%)" alt="" /></div>
+    <div id="logo"><img class="base" src="midia/logo-horizontal.svg" alt="" /></div>
     <div class="tag" id="tag"></div>
     <div class="site" id="site">soccermon.com</div>
     <div class="selo" id="selo"><span id="selo-txt"></span></div>
@@ -193,7 +205,7 @@ img { image-rendering: pixelated; }
   <audio id="a-tum1" class="clip" src="midia/tum.wav" data-start="4.510" data-duration="0.35" data-volume="0.9"></audio>
   <audio id="a-apito" class="clip" src="midia/apito.wav" data-start="5.5" data-duration="1.5" data-volume="1.6"></audio>
   <!-- o tema começa 1 compasso antes da batida B0 (a anacruse depois do apito; o 1º som em 5,90 s) -->
-  <audio id="a-musica" class="clip" src="som/trailer-abertura.wav" data-start="5.0597" data-duration="28.3143" data-media-start="0" data-fade-out="0.8"></audio>
+  <audio id="a-musica" class="clip" src="som/trailer-abertura-v2.wav" data-start="5.0597" data-duration="28.3143" data-media-start="0" data-fade-out="0.8"></audio>
   <audio id="a-zard" class="clip" src="midia/grito-6.ogg" data-start="15.93" data-duration="1.2" data-volume="0.45"></audio>
   <audio id="a-imp1" class="clip" src="midia/impacto.wav" data-start="17.895" data-duration="0.6" data-volume="0.7"></audio>
   <audio id="a-uuh" class="clip" src="midia/torcida-uuh-1.mp3" data-start="17.93" data-duration="0.6" data-volume="0.6" data-fade-out="0.2"></audio>
@@ -361,25 +373,50 @@ img { image-rendering: pixelated; }
     tl.to("#leque", { rotation: 25, duration: 8 * b, ease: "none" }, B(69));
     // a carta holo fica atrás do pacote e sai de dentro dele pela boca rasgada
     tl.set("#simbolo", { opacity: 1 }, B(69) + 0.05);
-    tl.fromTo("#simbolo", { y: 0, scale: 0.6, rotationY: 0 }, { y: -420, scale: 1.25, rotationY: 720, duration: 3 * b - 0.05, ease: "power2.out", immediateRender: false }, B(69) + 0.05);
+    tl.fromTo("#simbolo", { y: 0, scale: 0.6, rotationY: 0 }, { y: -420, scale: 1.25, rotationY: 720, duration: 2.5 * b - 0.05, ease: "power2.out", immediateRender: false }, B(69) + 0.05);
     tl.to("#pacote", { y: 900, opacity: 0, duration: 0.5, ease: "power2.in" }, B(70.5));
-    flash(B(72), 1, 0.35);
-    tl.set("#simbolo", { opacity: 0 }, B(72));
-    tl.set("#logo", { opacity: 1 }, B(72));
-    tl.fromTo("#logo", { scale: 0.7 }, { scale: 1, duration: 0.45, ease: "back.out(3)", immediateRender: false }, B(72));
-    tl.to("#leque", { opacity: 0.45, y: -140, duration: 0.4 }, B(72));
+    // o logo entra meio tempo antes do gancho (B71,5, no respiro da música): em B72 o clarão já foi e o SOC aparece
+    flash(B(71.5), 1, 0.25);
+    tl.set("#simbolo", { opacity: 0 }, B(71.5));
+    tl.set("#logo", { opacity: 1 }, B(71.5));
+    tl.fromTo("#logo", { scale: 0.7 }, { scale: 1, duration: 0.16, ease: "back.out(2)", immediateRender: false }, B(71.5));
+    tl.to("#leque", { opacity: 0.45, y: -140, duration: 0.4 }, B(71.5));
     tl.set("#tag", { opacity: 1 }, B(74));
     tl.from("#tag", { scale: 1.6, duration: 0.25, ease: "back.out(2)" }, B(74));
     tl.to(["#site", "#selo"], { opacity: 1, duration: 0.2 }, B(76));
     tl.from("#selo", { y: 40, duration: 0.25, ease: "back.out(2)" }, B(76));
     tl.to("#credito", { opacity: 1, duration: 0.3 }, B(76));
     // as sílabas do logo piscam nas 3 batidas do gancho SOC-CER-MON (linhas 0, 3 e 6 do compasso; o swing de 0,06 atrasa
-    // a linha 3), em B72 e B76, como na Home (Home.tsx, LogoHits: brilho e opacidade → 0 em 0,3 s;
-    // sem o drop-shadow da Home: no logo grande ele virava uma caixa clara do tamanho da sílaba)
+    // a linha 3), em B72 e B76. Cada uma: pula 1 → 1,25 → 1 em 0,18 s, nasce branca e volta à cor em 0,15 s, e atrás
+    // dela uma estrela dourada e um anel branco (chapados, sem brilho borrado: brand guide) abrem e somem em 0,3 s.
+    // No MON a tela treme. Sílabas em % da largura do logo, as mesmas da Home (Home.tsx, SYLLABLES).
+    const SILABAS = [[0, 34.7], [34.7, 67.7], [67.7, 100]];
+    const logo = document.getElementById("logo");
+    const estrela = Array.from({ length: 24 }, (_, k) => {
+      const a = (k * Math.PI) / 12, r = k % 2 ? 30 : 50;
+      return `${(50 + r * Math.sin(a)).toFixed(1)}% ${(50 - r * Math.cos(a)).toFixed(1)}%`;
+    }).join(",");
+    SILABAS.forEach(([a, z], i) => {
+      const c = (a + z) / 2, corte = `clip-path:inset(0 ${(100 - z).toFixed(1)}% 0 ${a}%)`, src = "midia/logo-horizontal.svg";
+      logo.insertAdjacentHTML("afterbegin", `<div class="estrela" id="est${i}" style="left:${c}%;clip-path:polygon(${estrela})"></div><div class="anel" id="anel${i}" style="left:${c}%"></div>`);
+      logo.insertAdjacentHTML("beforeend", `<div class="pop" id="pop${i}" style="transform-origin:${c}% 50%"><img src="${src}" style="${corte}" alt="" /><img class="branco" id="branco${i}" src="${src}" style="${corte}" alt="" /></div>`);
+    });
+    gsap.set("#logo .estrela, #logo .anel", { xPercent: -50, yPercent: -50 });
     const GANCHO = [0, 3.06, 6].map((r) => (r * b) / 4);
     for (const t0 of [B(72), B(76)])
-      GANCHO.forEach((dt, i) => tl.fromTo(`#hit${i}`, { opacity: 1, filter: "brightness(2.3)" },
-        { opacity: 0, filter: "brightness(1)", duration: 0.3, ease: "power1.out", immediateRender: false }, t0 + dt));
+      GANCHO.forEach((dt, i) => {
+        const t = t0 + dt;
+        tl.set(`#pop${i}`, { opacity: 1 }, t);
+        tl.fromTo(`#pop${i}`, { scale: 1 }, { keyframes: [{ scale: 1.25, duration: 0.06, ease: "power2.out" }, { scale: 1, duration: 0.12, ease: "power2.in" }], immediateRender: false }, t);
+        tl.set(`#pop${i}`, { opacity: 0 }, t + 0.18);
+        tl.fromTo(`#branco${i}`, { opacity: 1 }, { opacity: 0, duration: 0.15, ease: "power1.in", immediateRender: false }, t);
+        // abre rápido e só some no fim (opacidade em power2.in: a cor fica cheia no começo)
+        tl.fromTo(`#est${i}`, { scale: 0.4, rotation: 0 }, { scale: 1.5, rotation: 20, duration: 0.3, ease: "power2.out", immediateRender: false }, t);
+        tl.fromTo(`#anel${i}`, { scale: 0.5 }, { scale: 2, duration: 0.3, ease: "power2.out", immediateRender: false }, t);
+        tl.fromTo([`#est${i}`, `#anel${i}`], { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power2.in", immediateRender: false }, t);
+        // a tela treme no MON; o zoom de 3% esconde a borda que o tremor abriria
+        if (i === 2) tl.to("#final", { keyframes: { x: [16, -13, 9, -5, 2, 0], y: [-8, 7, -4, 3, -1, 0], scale: [1.03, 1.03, 1.03, 1.02, 1.01, 1] }, duration: 0.25, ease: "none" }, t);
+      });
 
     window.__timelines = window.__timelines || {};
     window.__timelines.root = tl;
