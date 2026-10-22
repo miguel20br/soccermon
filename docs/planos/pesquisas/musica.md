@@ -12,6 +12,31 @@ Regras desta pesquisa:
 **Amostras pra ouvir:** abra `index.html` na pasta de amostras do scratchpad (caminho no fim deste doc). A Rodada 2
 vem em cima (72 faixas por tela, ★ nas que o Miguel gostou) e a Rodada 1 fica recolhida embaixo.
 
+## Rodada 8 (22/10): as telas sem música e os extras
+
+Pedido: música pro Draft, Escalação, Recompensa e Resultado (vitória, derrota, eliminado), mais a vinheta da virada
+no placar (aprovada) e as peças antigas sem tela levadas pra régua do Tema da Rocket. Página: `r8-*.ogg`.
+
+| Tela | Peça | O que é |
+|---|---|---|
+| Draft | `draft` (nova) | Fá maior, 108 BPM, funk leve. Assinatura: as três cartas (sinos em 3-3-2, esquerda/meio/direita, com "flip" de carta; o baralho embaralha na virada). Flauta pergunta, pizzicato responde; SOC-CER-MON no fim do B; ½ tom acima no fim. Loop de 73 s |
+| Escalação | `escalacao` (Vestiário polido) | o Vestiário (aprovado) com lead × metais, SOC-CER-MON em Mi menor, clap 808, parte só de groove, ½ tom acima. Assinatura: a prancheta (5 peças magnéticas). Loop de 68 s. O Vestiário original pode ficar no intervalo |
+| Recompensa | `recompensa` (nova) | primo do Draft a 124 BPM, groove cheio, SOC-CER-MON em sequência. Loop de 31 s |
+| Vitória | `vitoria-gancho` | a v1 com o SOC-CER-MON e o clap 808 no lugar da subida; mesmo tamanho (~6,5 s com rabo) |
+| Derrota | `derrota` (nova) | ~3,6 s: o gancho murcho em Lá menor, para no Mi maior (bola pra frente) |
+| Eliminado da copa | `eliminado` (v4, sem mudança) | ele achou a v3 perfeita |
+| Virada no placar | `virada` (nova) | Si, 133 BPM (2º tempo, nível 2): escala de blues nos metais, SOC-CER-MON em Si maior, fecha num Si sem terça. Na pressão (Dó dórico): `shift: 1` |
+
+Extras (propostas de tela): `extra-rota-1` (mapa, Rota 1), `extra-mt-moon` (mapa, Mt. Moon), `extra-cerulean`
+(mapa, Cerulean), `extra-sala` (Sala de troféus), `extra-cutscene-boba` (cenas bobas do Modo história). Cada uma
+ganhou pergunta e resposta, SOC-CER-MON e ½ tom acima na volta final; as originais ficam como estão.
+
+**Conferido pelos números:** `--rms` com percussão abaixo do lead em todas e baixo entre 59% e 78% do lead;
+`loops.mjs` 8 loops, 0 falhas (emendas: Draft 0,02, Escalação 0,08, Recompensa 0,05, Rota 1 0,17, Mt. Moon 0,31,
+Cerulean 0,18, Sala 0,12, Na ponta do pé 0,04). Jingle com o acorde final no rabo (mapa termina na batida dele), senão
+o `.ogg` cortado fica mais curto que o mapa. O que só o ouvido dele decide: se as cartas e a prancheta soam como
+cartas e prancheta, e se o Draft cansa.
+
 ## Rodada 7b (22/10): o clap do 808 mais suave
 
 Retorno da rodada 7: gostou do clap, mas achou alto. A amostra é a mesma nas três (identidade do jogo); cada faixa
