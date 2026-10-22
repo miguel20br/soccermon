@@ -1,3 +1,7 @@
+---
+description: Formações com identidade: pesquisa, decisões do Miguel e números da etapa 1 e da etapa 2 (ENGINE_VERSION 9).
+---
+
 # Formações com identidade (pesquisa e protótipo, 21/10/2026)
 
 Pedido do Miguel: "Sinto falta de umas formações melhores talvez. Será que a gente adiciona mais? Mais variedade? Ou
@@ -318,7 +322,7 @@ Quadrado 56 ⇒ 52 (o Quadrado novo pressiona mais e come o +1,5%).
 - Testes: dois testes presos a seed foram refeitos (golpe máximo: seeds novas varridas 0–89; escanteio: o time do
   teste sem troca automática, pra o cobrador escolhido ficar em quadra).
 
-## Etapa 2: formações que jogam diferente (21/10/2026, esperando o ok do Miguel)
+## Etapa 2: formações que jogam diferente (21/10/2026, aprovada pelo Miguel)
 
 A etapa 1 mexia quase só em número (bônus de atributo): na quadra, as 6 continuavam jogando parecido. Agora cada
 formação tem um **comportamento próprio da IA** (`FORMATION_STYLES` em `src/engine/formations.ts`, lido no
@@ -327,7 +331,7 @@ formação tem um **comportamento próprio da IA** (`FORMATION_STYLES` em `src/e
 
 | Formação | O que a IA faz agora | Atributo (só pra equilibrar) |
 |---|---|---|
-| **Losango** (triângulos) | alas por dentro (largura 0,85), apoio a 6,5 m em vez de 9, prefere passe curto e de lado, toca mais do que conduz | Passe +3%, Leitura +2% |
+| **Losango** (triângulos) | alas por dentro (largura 0,85), apoio a 6,5 m em vez de 9, prefere passe curto e de lado, toca mais do que conduz; sem a bola, volta pra largura do desenho e anda menos atrás da bola (ajuste final, abaixo) | Passe +3%, Leitura +2% |
 | **Quadrado** (pelos lados) | vagas bem abertas (1,35), apoio procura a lateral, **ultrapassagem**: com a bola de um lado, o fixo daquele lado passa por fora; da linha de fundo, rasteiro pra trás | Passe −5%, Chute −5%, Desarme −3% |
 | **Linha de 3** (pivô parede) | o **pivô vem buscar** a bola no nosso campo numa linha de passe livre; na frente da área, de costas e marcado, **devolve pra quem chega de trás**, que bate de primeira (de até 19 m); quem recebe a parede não devolve pro pivô | Passe e Chute +3%; Pivô Chute e Força +10% |
 | **Rodízio** (giro) | com a bola, os 4 **trocam de vaga a cada 1,5 s** (fundo → ala → frente → ala); quem passa dispara em diagonal pra área por 1 s | Passe +5%, Vel +4%, Leitura +3% |
@@ -389,7 +393,54 @@ Ferrolho × Linha de 3 51 ⇒ 60 ⇒ **60**, Dois pivôs × Rodízio 56 ⇒ 57 �
 3. **Gols por jogo subindo pra 7–9?** Recomendo **deixar** (diversão > realismo).
 4. **Rodízio virou time de ataque rápido, não de posse.** Recomendo **aceitar** (combina com "passe e corre") e
    trocar o texto se você preferir; dá pra devolver a posse tirando o "passe e corre", mas o giro some no meio.
-5. **Dois pivôs × Losango 62% fora do ciclo.** Recomendo **deixar por enquanto** e olhar de novo depois de jogar.
+5. **Dois pivôs × Losango 62% fora do ciclo.** O Miguel pediu pra baixar: feito no ajuste final (55%).
+
+Decididas em 21/10: 1 a 4 aprovadas como recomendado; a 5 virou o ajuste abaixo.
+
+### Ajuste final (21/10/2026): Dois pivôs × Losango e movesets únicos
+
+Pedido do Miguel: baixar o Dois pivôs × Losango (62%, fora do ciclo) pra perto de 50–55% sem estragar o resto, mexendo
+o mínimo e de preferência no comportamento. Na mesma `ENGINE_VERSION` 9 entram os **movesets únicos**
+(`UNIQUE_MOVESETS = true`, 8 espécies, `docs/planos/golpes-revisao.md` §8).
+
+**A causa:** o Losango herdava a largura do ataque (0,85, por dentro) também sem a bola e corria atrás dela com o time
+todo; os dois pivôs abertos do 1-1-2 ficavam sem ninguém. **O ajuste (só comportamento, nenhum atributo):** sem a bola o
+Losango volta pra largura do desenho (`defWidth: 1`) e o time anda menos atrás da bola no comprimento (`follow` 0,35 ⇒
+0,25). Outras opções medidas no par (n = 200, mesmas seeds): só a largura 59%, bloco 1 m mais baixo 57%, Dois pivôs com
+passe pra frente mais fraco 60%; o Dois pivôs chutando só até 18 m dava 53%, mas mexia em todos os jogos dele (e no
+encaixe dele contra o Rodízio), então ficou de fora.
+
+**Movesets únicos sozinhos** (n = 200, antes do ajuste): dentro do ruído, nenhuma formação mudou mais de 1 ponto
+(Dois pivôs × Losango 62% ⇒ 63%).
+
+Vitória por formação, antes (etapa 2, n = 400) ⇒ final (n = 400, 12.000 partidas, ±1,6; com os movesets únicos):
+
+| Formação | Vitória | Gols pró/contra (final) | Posse | Chutes | Passes |
+|---|---|---|---|---|---|
+| Losango | 48% ⇒ **50%** | 4,0/4,0 | 47% | 19,1 | 141 |
+| Quadrado | 50% ⇒ **50%** | 4,3/4,3 | 51% | 23,1 | 116 |
+| Linha de 3 | 48% ⇒ **47%** | 3,7/3,8 | 64% | 17,4 | 168 |
+| Rodízio | 50% ⇒ **50%** | 4,7/4,6 | 42% | 22,4 | 126 |
+| Dois pivôs | 51% ⇒ **50%** | 4,4/4,3 | 46% | 22,1 | 139 |
+| Ferrolho | 53% ⇒ **53%** | 4,8/4,7 | 51% | 24,5 | 125 |
+
+Confronto final (% de vitória da linha contra a coluna, mando somado; ±3,5 por célula):
+
+| | Losango | Quadrado | Linha de 3 | Rodízio | Dois pivôs | Ferrolho |
+|---|---|---|---|---|---|---|
+| **Losango** | — | 51% | 52% | 54% | 45% | 49% |
+| **Quadrado** | 49% | — | 54% | 49% | **58%** | 42% |
+| **Linha de 3** | 49% | 46% | — | 48% | 52% | 41% |
+| **Rodízio** | 46% | 51% | 52% | — | 44% | **58%** |
+| **Dois pivôs** | 55% | 42% | 48% | **56%** | — | 47% |
+| **Ferrolho** | 51% | 58% | **59%** | 42% | 53% | — |
+
+- **Dois pivôs × Losango: 62% ⇒ 55%.** O Losango também melhorou um pouco no geral (48% ⇒ 50%).
+- **Ciclo** (antes ⇒ final): Rodízio × Ferrolho 58 ⇒ **58**, Ferrolho × Linha de 3 60 ⇒ **59**, Dois pivôs × Rodízio
+  56 ⇒ **56**, Quadrado × Dois pivôs 58 ⇒ **58**, Linha de 3 × Quadrado 54 ⇒ **54**. Os 5 seguem entre 54% e 60%.
+- **Ninguém domina:** 47% a 53%. Fora do ciclo, o maior agora é Ferrolho × Quadrado 58%.
+- **Gols por jogo:** 7,5 (Linha de 3) a 9,5 (Ferrolho), como antes.
+- Testes: hashes do determinismo novos e seeds novas do golpe máximo (17 e 23, varridas de 0 a 89).
 
 ## Fontes
 

@@ -282,9 +282,13 @@ export interface FormationStyle {
 export const COUNTER_FACTOR = 1.015;
 
 export const FORMATION_STYLES: Record<FormationId, FormationStyle> = {
-    // triângulos curtos pelo meio: alas por dentro, apoio perto, passe curto, toca mais do que conduz
+    // triângulos curtos pelo meio: alas por dentro, apoio perto, passe curto, toca mais do que conduz. Sem a bola, as
+    // vagas voltam pra largura do desenho e o time anda menos atrás da bola (fechado por dentro, os dois pivôs do
+    // 1-1-2 ficavam livres: 63% ⇒ 55%)
     '1-2-1': {
         width: 0.85,
+        defWidth: 1,
+        follow: 0.25,
         supportDist: 6.5,
         passLen: -0.012,
         fwdPass: 0.8,
