@@ -45,7 +45,8 @@ function seam(chs, ini, fim, a = ini, b = fim) {
  */
 function aligned(a, b, at) {
     const n = 4096;
-    const s = Math.max(64, Math.min(at, b.length - n - 64));
+    // a janela (com o atraso de ±64) cabe nos dois: o mapa do jingle pode ir até o fim exato do .ogg
+    const s = Math.max(64, Math.min(at, a.length - n - 64, b.length - n - 64));
     const c = (d) => {
         let v = 0;
         for (let i = s; i < s + n; i++) v += a[i + d] * b[i];

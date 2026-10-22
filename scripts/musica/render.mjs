@@ -37,6 +37,19 @@ for (const name of todo) {
         const [L, R] = song.render({ rms: flag('--rms') });
         writeWav(wav, [L, R]);
         const last = song.secoes.at(-1);
+        // jingle (um trecho só, sem loop): o .ogg sai sem o silêncio do fim; o resto sai no comprimento exato do mapa
+        const jingle = song.secoes.length === 1 && !last.loop;
+        const trim = jingle ? 'areverse,silenceremove=start_periods=1:start_threshold=-60dB,areverse,' : '';
+        // e o mapa do jingle não passa do fim do áudio (o Eliminado v4 acabava antes do último compasso)
+        const cut = jingle
+            ? execFileSync(
+                  'ffmpeg',
+                  ['-v', 'error', '-i', wav, '-af', trim.slice(0, -1), '-ac', '1', '-f', 'f32le', '-'],
+                  {
+                      maxBuffer: 1 << 30,
+                  },
+              ).length / 4
+            : Number.POSITIVE_INFINITY;
         writeFileSync(
             join(OUT, `${file}.json`),
             `${JSON.stringify(
@@ -53,8 +66,8 @@ for (const name of todo) {
                         ...(m.intensidade != null && { intensidade: m.intensidade }),
                         loop: m.loop,
                         inicio: s6(m.inicio),
-                        fim: s6(m.fim),
-                        amostras: [m.inicio, m.fim],
+                        fim: s6(Math.min(m.fim, cut)),
+                        amostras: [m.inicio, Math.min(m.fim, cut)],
                         bpm: m.bpm,
                         compassos: m.ate - m.de,
                     })),
@@ -64,9 +77,6 @@ for (const name of todo) {
             )}\n`,
         );
         if (!flag('--so-wav')) {
-            // jingle (um trecho só, sem loop): corta o silêncio do fim; o resto sai no comprimento exato do mapa
-            const jingle = song.secoes.length === 1 && !last.loop;
-            const trim = jingle ? 'areverse,silenceremove=start_periods=1:start_threshold=-60dB,areverse,' : '';
             // ganho fixo (linear): o loudnorm de uma passada vira compressor e achata crescendos
             const target = mod.meta?.lufs ?? -16;
             const probe = spawnSync(
