@@ -16,8 +16,8 @@ import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
 import { cardSprite } from './PokeCard';
 import './pokecard2.css';
+import { TaughtMark } from './TaughtMark';
 import { Tip } from './Tip';
-import { TaughtMark } from './TmTeach';
 import { TypeIcons } from './TypeIcon';
 import { useHoloPointer } from './useHoloPointer';
 

@@ -15,7 +15,7 @@ import { lineupAt, snapAt, statsUntil, whoAt } from '../match-view';
 import { TYPE_COLOR } from '../type-colors';
 import { FutCard } from './FutCard';
 import { HudIcon } from './MatchHud';
-import { TaughtMark } from './TmTeach';
+import { TaughtMark } from './TaughtMark';
 
 /** Setinha "abre mais" nos golpes, desenhada em SVG. */
 function ChevronIcon() {

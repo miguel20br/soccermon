@@ -12,7 +12,7 @@ import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
 import { TypeBadge } from './PokeCard';
 import { PokeCard2 } from './PokeCard2';
-import { TaughtMark } from './TmTeach';
+import { TaughtMark } from './TaughtMark';
 
 /** Nomes dos atributos em português (no idioma do jogo: `dict().common.attr`). */
 export const ATTR_SHORT: Record<AttrKey, string> = dict('pt').common.attr;

@@ -39,7 +39,7 @@ import { FutCard } from './FutCard';
 import { LinkChip } from './LinkChips';
 import { HudIcon } from './MatchHud';
 import { TypeBadge } from './PokeCard';
-import { TaughtMark } from './TmTeach';
+import { TaughtMark } from './TaughtMark';
 
 const ALL_ATTRS: AttrKey[] = [
     'pace',

@@ -120,6 +120,7 @@ export default function App() {
         return (
             <div className="app">
                 <CardGallery onExit={exit} />
+                <CardModal />
             </div>
         );
     }

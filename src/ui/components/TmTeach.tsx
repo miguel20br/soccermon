@@ -34,17 +34,6 @@ export const tmTag = (move: string, lang?: Lang) =>
     tmLabel(move, t('reward.tm.tm', undefined, lang), t('reward.tm.hm', undefined, lang)) ??
     t('reward.tm.rareMove', undefined, lang);
 
-/** Selo "MT" ao lado do nome do golpe nas listas de golpes (carta, painel). */
-export function TaughtMark({ inst, move }: { inst: PokemonInstance; move: string }) {
-    const { t } = useT();
-    if (!inst.taught?.includes(move)) return null;
-    return (
-        <span className="tm-mark" title={t('reward.tm.taughtTitle')}>
-            {t('reward.tm.tm')}
-        </span>
-    );
-}
-
 export function TmCard({
     move,
     leader,
