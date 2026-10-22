@@ -54,13 +54,16 @@ describe('resultado da Rota Índigo', () => {
             stage: 2,
             results: [res(0, false), res(1, true), res(2, false)] as never,
         });
-        expect(out).toContain('Fim da linha na partida 3');
+        expect(out).toContain('CARTÃO VERMELHO');
+        expect(out).toContain('Fora na partida 3 de 8');
+        expect(out).not.toMatch(/FIM DA LINHA|Fim da linha/);
     });
     it('vice: a linha é "Vice da Rota Índigo", não a Copa de Kanto', () => {
         const results = [0, 1, 2, 3, 4, 5, 6].map((s) => res(s, true)).concat(res(7, false));
         const out = html({ status: 'eliminated', stage: 7, results: results as never });
-        expect(out).toContain('Vice da Rota Índigo');
-        expect(out).not.toContain('Copa de Kanto');
+        expect(out).toContain('aria-label="VICE"');
+        expect(out).toContain('Perdeu a Final da Rota Índigo');
+        expect(out).not.toMatch(/Copa de Kanto|FIM DA LINHA|Fim da linha/);
     });
     it('ganhou a última rodada mas ficou fora do grupo: FORA DA FINAL, sem "VITÓRIA!" nem Final como próxima', () => {
         const results = [0, 1, 2, 3, 4].map((s) => res(s, true)).concat(res(5, true));

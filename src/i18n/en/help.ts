@@ -587,7 +587,7 @@ export const help: typeof pt = {
             'A loss is a yellow card. The second one is red.',
             'Wins pay ₽. Spend it at the Market or save it to earn interest.',
         ],
-        rotaGrupo: ['The top 2 go to the Final. Losing here costs no card.'],
+        rotaGrupo: ['Losing here costs no card.'],
         relampago: ['4-game knockout: lose and you are out. Pick a formation.'],
         relampagoDraft: ['Tap a slot: 3 show up and you keep 1.'],
         relampagoJogo: ['Change tactics and make subs during the match. Players who play a lot evolve.'],

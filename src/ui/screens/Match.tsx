@@ -60,6 +60,7 @@ import {
     MaxBars,
     MaxCueButton,
     maxCueAt,
+    maxLit,
     PenaltyOrderPanel,
     type PenaltyTaker,
     SidelineControls,
@@ -349,6 +350,18 @@ export function Match({ liga = false }: { liga?: boolean }) {
         if (ended)
             scoreboardRef.current?.scrollIntoView({ block: 'nearest', behavior: reduceMotionOn() ? 'auto' : 'smooth' });
     }, [ended]);
+    // atalho do teclado: M dispara o golpe máximo na hora certa (o botão grande só aparece por ~1 s)
+    const maxKey = useRef<() => void>(() => {});
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key.toLowerCase() !== 'm' || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+            if (e.target instanceof HTMLElement && e.target.matches('input, textarea, select, [contenteditable]'))
+                return;
+            maxKey.current();
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, []);
     if (!run || !match || !sceneData || !opponent) return null;
 
     const lockedSetup = run.lockedTeam ? { ...run.lockedTeam, manualSubs: true } : playerTeam(run);
@@ -432,6 +445,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
     // golpe máximo: vale já no quadro da tela, antes da decisão do capitão (com +1 a IA chutava antes e o lance
     // passava; a quadra espera a partida nova; é um lance, não um plano)
     const sendMax = () => sendOrder((tick) => ({ tick, team: 0, kind: 'max' }), Math.ceil(tickRef.current));
+    maxKey.current = () => canAgency && maxLit(sideline) && sendMax();
     const sidelineControls = (
         <SidelineControls
             view={sideline}

@@ -91,7 +91,9 @@ export function Shop() {
               ? t('shop.owned')
               : money < o.price
                 ? t('shop.priceShort', { price: o.price, n: o.price - money })
-                : t('shop.buy', { n: o.price });
+                : o.kind === 'sponsor'
+                  ? t('shop.buyPlain') // o preço já está no contrato da carta
+                  : t('shop.buy', { n: o.price });
     // o que não dá pra comprar fica óbvio sem tocar: cadeado, preço riscado e a carta apagada (o motivo vai no rótulo)
     const cant = (o: ShopOffer, i: number) => !shop.sold.includes(i) && !buyable(o, i);
 

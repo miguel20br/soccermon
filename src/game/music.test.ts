@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { beatOf, gridOf, phaseOffset, sameTempo, swapWait, untilLine } from './music';
+import { beatOf, gridOf, phaseOffset, sameTempo, sectionSwitchAt, swapWait, untilLine } from './music';
 
 interface Sec {
     nome: string;
@@ -15,14 +15,28 @@ function fakeAudio(opts: { webmFails?: boolean; extra?: number; metas?: Record<s
     const fetched: string[] = [];
     const started: { id: string; when: number; off: number; loopStart: number; rate: number; stop?: number }[] = [];
     let decodes = 0;
-    const param = () => ({
-        value: 1,
-        setValueAtTime() {},
-        linearRampToValueAtTime() {},
-        exponentialRampToValueAtTime() {},
-        setTargetAtTime() {},
-        cancelScheduledValues() {},
-    });
+    /** Valores escritos direto em `gain.value` (degrau) e alvos de rampa (`setTargetAtTime`). */
+    const steps: number[] = [];
+    const targets: number[] = [];
+    const param = () => {
+        let v = 1;
+        return {
+            get value() {
+                return v;
+            },
+            set value(x: number) {
+                steps.push(x);
+                v = x;
+            },
+            setValueAtTime() {},
+            linearRampToValueAtTime() {},
+            exponentialRampToValueAtTime() {},
+            setTargetAtTime(x: number) {
+                targets.push(x);
+            },
+            cancelScheduledValues() {},
+        };
+    };
     const node = () => ({ gain: param(), connect() {} });
     const ctx = {
         state: 'running',
@@ -65,7 +79,7 @@ function fakeAudio(opts: { webmFails?: boolean; extra?: number; metas?: Record<s
             arrayBuffer: async () => ({ ext, id }),
         };
     });
-    return { ctx, fetched, started, decodes: () => decodes };
+    return { ctx, fetched, started, steps, targets, decodes: () => decodes };
 }
 
 const settle = () => new Promise((r) => setTimeout(r, 5));
@@ -79,6 +93,13 @@ describe('troca no tempo (contas)', () => {
         expect(untilLine(0.49, 0.5)).toBeCloseTo(0.51, 9); // a de 10 ms não dá tempo: a seguinte
         expect(untilLine(1, 0.5)).toBeCloseTo(0.5, 9); // em cima da linha: a próxima
         expect(untilLine(-0.3, 2)).toBeCloseTo(0.3, 9); // ainda na introdução (antes da origem)
+    });
+
+    it('troca de trecho nunca é agendada antes de uma troca que ainda não soou', () => {
+        // o loop volta em 0,5 s, mas a troca pendente só entra em 3 s: a nova espera por ela
+        expect(sectionSwitchAt(10, -3, 2, 13)).toBe(13);
+        expect(sectionSwitchAt(10, 0.3, 2)).toBeCloseTo(11.7, 9); // sem pendência: a próxima linha do compasso
+        expect(sectionSwitchAt(10, 1.9, 2, 10)).toBeCloseTo(10.1, 9); // pendência já passou: vale a linha
     });
 
     it('compasso se chega em até 0,7 s; senão a próxima batida; andamento que casa vai na batida', () => {
@@ -135,6 +156,17 @@ describe('música', () => {
         await settle();
         expect(a.decodes()).toBe(1);
         expect(a.started).toHaveLength(1);
+    });
+
+    it('mexer no volume é uma rampa curta, não um degrau (o degrau estala)', async () => {
+        const a = fakeAudio();
+        const m = await import('./music');
+        m.playMusic('draft');
+        await settle();
+        const before = a.steps.length;
+        m.setMusicVolumes({ music: 0.2 });
+        expect(a.steps.length).toBe(before);
+        expect(a.targets.at(-1)).toBeCloseTo(0.6 * 0.2, 9);
     });
 
     it('webm que não decodifica cai pro mp3, e o atraso do mp3 não cortado anda os tempos', async () => {

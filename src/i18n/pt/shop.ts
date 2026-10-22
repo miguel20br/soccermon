@@ -19,6 +19,7 @@ export const shop = {
     rerollFree: 'Novas ofertas · grátis',
     leave: 'Seguir',
     buy: 'Comprar · ₽{n}',
+    buyPlain: 'Comprar',
     sold: 'Comprado',
     owned: 'Já está no time',
     priceShort: '₽{price} · falta ₽{n}',

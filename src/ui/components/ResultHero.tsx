@@ -123,7 +123,10 @@ export function ResultHero({
                 ? t('result.hero.win')
                 : alive
                   ? t('result.hero.lossAlive')
-                  : t('result.hero.loss'));
+                  : run && isLong(run) && run.status === 'eliminated'
+                    ? // Rota: a Final perdida é VICE; o segundo amarelo é o vermelho (não "fim da linha" nos dois)
+                      t(isFinalStage(run) ? 'longCup.runnerUpTitle' : 'longCup.redCardTitle')
+                    : t('result.hero.loss'));
     const sub =
         duel?.sub ??
         (!run
@@ -140,8 +143,8 @@ export function ResultHero({
                       : run.status === 'group'
                         ? t('longCup.groupLossLine')
                         : isFinalStage(run)
-                          ? t('longCup.runnerUp')
-                          : t('longCup.out', { n: run.stage + 1 })
+                          ? t('longCup.runnerUpLine')
+                          : t('longCup.outHero', { n: run.stage + 1, total: cupLength(run) })
                 : won
                   ? d.common.stageWon[run.stage]
                   : run.stage === CUP_STAGES.length - 1

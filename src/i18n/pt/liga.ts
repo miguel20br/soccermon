@@ -30,6 +30,7 @@ export const liga = {
         wins: '1 vitória|{n} vitórias',
         abandoned: 'Copa encerrada',
         unranked: 'fora do ranking',
+        unrankedNote: 'Esta Copa do Dia não entra no ranking.',
         next: 'Próxima Copa do Dia em {h}h{m}',
         share: 'Compartilhar',
         copied: 'Copiado!',

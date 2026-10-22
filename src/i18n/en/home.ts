@@ -25,7 +25,6 @@ export const home: typeof pt = {
     inProgress: 'Cup in progress',
     cupPath: 'Cup stages',
     resume: 'Continue',
-    orNew: 'Or start a new cup',
     teamName: 'Your team name',
     newCup: 'New cup',
     quickCup: {

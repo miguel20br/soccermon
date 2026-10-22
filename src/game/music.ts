@@ -68,6 +68,8 @@ export const FADE_S = 0.25;
 /** Troca encaixada no tempo: a faixa nova entra em 30 ms (sem estalo) e a que sai decai (constante de 60 ms). */
 const IN_S = 0.03;
 const OUT_TAU = 0.06;
+/** Mexer no slider de volume: constante de tempo da rampa (s), sem estalo. */
+const VOL_TAU = 0.03;
 /** Corte da troca de trecho: o trecho que sai some nos últimos 10 ms antes da linha (sem estalo). */
 const CUT_S = 0.01;
 /** Antecedência mínima pra agendar no AudioContext (s). */
@@ -105,8 +107,8 @@ function bus(): GainNode {
     if (!out) {
         out = ctx().createGain();
         out.connect(ctx().destination);
+        out.gain.value = level();
     }
-    out.gain.value = level();
     return out;
 }
 
@@ -115,7 +117,8 @@ export function setMusicVolumes(v: { master?: number; music?: number }) {
     const was = level();
     if (typeof v.master === 'number') vol.master = v.master;
     if (typeof v.music === 'number') vol.music = v.music;
-    if (out) out.gain.value = level();
+    // rampa curta: `gain.value` direto num valor novo é um degrau, e o degrau estala
+    if (out) out.gain.setTargetAtTime(level(), ctx().currentTime, VOL_TAU);
     if ((was === 0) !== (level() === 0)) void apply();
 }
 
@@ -176,6 +179,13 @@ const mod = (a: number, m: number) => ((a % m) + m) % m;
 
 /** Espera (s) de `x` (s desde a origem da grade) até a próxima linha de `step` que esteja a pelo menos `min` s. */
 export const untilLine = (x: number, step: number, min = LEAD_S) => Math.ceil((x + min) / step - 1e-9) * step - x;
+
+/**
+ * Hora (contexto) da troca de trecho da mesma faixa: a próxima linha do compasso, mas nunca antes de uma troca que
+ * ainda não soou (`pendingAt`). Sem isso, pedir outro trecho antes do 1º entrar agendava a troca fora de ordem.
+ */
+export const sectionSwitchAt = (now: number, x: number, bar: number, pendingAt = 0) =>
+    Math.max(now + untilLine(x, bar), pendingAt);
 
 /** Em que batida do compasso (0, 1, 2…) cai `x` (s desde a origem da grade, numa linha de batida). */
 export const beatOf = (x: number, g: Grid) => Math.round(mod(x, g.bar) / g.pulse) % Math.round(g.bar / g.pulse);
@@ -272,7 +282,8 @@ function switchSection(p: Playing, sec: Section, at: number): Playing {
     g.setValueAtTime(1, from);
     g.linearRampToValueAtTime(0, at);
     stopAfter(p, at + 0.01);
-    leaving = p;
+    // quem sai da tela é a faixa que está soando; uma troca que ainda não soou nunca chega a ser "a que sai"
+    if (p.t0 <= ctx().currentTime) leaving = p;
     return { ...p, sec, gain, t0: at, off, src: makeSource(p.loaded, sec, gain, at, off) };
 }
 
@@ -304,7 +315,12 @@ async function apply() {
             current = switchSection(
                 current,
                 sec,
-                now + untilLine(gridX(current, now), gridOf(loaded, current.sec).bar),
+                sectionSwitchAt(
+                    now,
+                    gridX(current, now),
+                    gridOf(loaded, current.sec).bar,
+                    current.t0 > now ? current.t0 : 0,
+                ),
             );
         return;
     }

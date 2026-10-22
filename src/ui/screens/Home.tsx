@@ -18,7 +18,7 @@ import { FriendChallenge } from '../profile/FriendsTab';
 import { TYPE_COLOR } from '../type-colors';
 import { HomeDailyCard } from './Daily';
 import '../home-motion.css';
-import { type CupMode, cupLength, isLong, LONG_CUP_LIVE } from '../../store/long-cup';
+import { type CupMode, cupLength, isLong, LONG_CUP_LIVE, lossColor } from '../../store/long-cup';
 import { Coach } from '../coach/Coach';
 import { ComingSoon } from '../components/ComingSoon';
 import { DoorTiles } from '../components/DoorTiles';
@@ -171,7 +171,7 @@ export function Home() {
             <span className="rc-path" title={t('home.cupPath')}>
                 {Array.from({ length: cupLength(run) }, (_, i) => `p${i}`).map((st, i) => {
                     const r = run.results.find((x) => x.stage === i);
-                    const cls = r ? (r.won ? 'won' : 'lost') : i === run.stage ? 'now' : '';
+                    const cls = r ? (r.won ? 'won' : `lost-${lossColor(run, i)}`) : i === run.stage ? 'now' : '';
                     return <i key={st} className={cls} />;
                 })}
             </span>
@@ -204,6 +204,23 @@ export function Home() {
 
             <Coach id="intro" targets={['[data-coach="quick"]', '[data-coach="help"]']} />
             <DexProgress />
+
+            {/* o nome vale pra Rota e pra Relâmpago: fica acima dos dois cartões */}
+            <div className="team-name-row">
+                <label className="bc-lbl" htmlFor="team-name">
+                    {t('home.teamName')}
+                </label>
+                <input
+                    id="team-name"
+                    className="team-name-input"
+                    value={teamName}
+                    maxLength={22}
+                    onChange={(e) => {
+                        setTyped(true);
+                        setTeamName(e.target.value);
+                    }}
+                />
+            </div>
 
             <div className="mode-cards">
                 {LONG_CUP_LIVE && (
@@ -305,19 +322,6 @@ export function Home() {
                                     </button>
                                 </div>
                             ))}
-                            <label className="bc-lbl" htmlFor="team-name">
-                                {inProgress ? t('home.orNew') : t('home.teamName')}
-                            </label>
-                            <input
-                                id="team-name"
-                                className="team-name-input"
-                                value={teamName}
-                                maxLength={22}
-                                onChange={(e) => {
-                                    setTyped(true);
-                                    setTeamName(e.target.value);
-                                }}
-                            />
                             <button
                                 type="button"
                                 data-coach="quick"

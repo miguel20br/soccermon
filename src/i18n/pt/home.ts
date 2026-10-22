@@ -26,7 +26,6 @@ export const home = {
     inProgress: 'Copa em andamento',
     cupPath: 'Fases da copa',
     resume: 'Continuar',
-    orNew: 'Ou comece outra copa',
     teamName: 'Nome do seu time',
     newCup: 'Nova copa',
     quickCup: {

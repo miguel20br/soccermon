@@ -120,6 +120,20 @@ export const currentNode = (run: LongRunFields): MapNode | undefined =>
 
 /** A partida `stage` é da fase de grupos? */
 export const isGroupStage = (stage: number) => stage >= GROUP_START && stage < FINAL_MATCH;
+/**
+ * Cor da derrota na barrinha da copa: vermelho = eliminou (na Rota, só o 2º amarelo); amarelo = a derrota que a
+ * Rota perdoa no mapa; neutro = derrota no grupo (não dá cartão).
+ */
+export const lossColor = (
+    run: { mode?: CupMode; status: string; results: readonly { stage: number }[] },
+    stage: number,
+): 'red' | 'yellow' | 'plain' =>
+    !isLong(run) || (run.status === 'eliminated' && stage === run.results.at(-1)?.stage)
+        ? 'red'
+        : isGroupStage(stage)
+          ? 'plain'
+          : 'yellow';
+
 /** Pontos no grupo: vitória 3, vitória nos pênaltis 2, derrota nos pênaltis 1, derrota 0. */
 export const groupPoints = (won: boolean, shootout: boolean) => (won ? (shootout ? 2 : 3) : shootout ? 1 : 0);
 

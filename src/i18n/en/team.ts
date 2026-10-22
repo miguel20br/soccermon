@@ -3,6 +3,7 @@ import type { team as pt } from '../pt/team';
 export const team: typeof pt = {
     draft: {
         beforeDraft: 'Before the draft',
+        beforeDraftRota: 'Indigo Road · before the draft',
         chooseFormation: 'Choose your formation',
         theBench: 'the bench',
         whereCaptain: 'Which slot will {name} play in?',
@@ -30,7 +31,7 @@ export const team: typeof pt = {
         sign: 'Sign',
         signAs: 'Sign ({pos})',
         auto: 'Auto-draft',
-        autoAsk: 'Fill the rest of the team ({formation}) with the best cards? You can swap later.',
+        autoAsk: 'Fill the rest of {formation} with the best cards? You can swap later.',
         autoGo: 'Draft it',
         autoBack: 'Back',
     },

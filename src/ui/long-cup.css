@@ -334,24 +334,31 @@
     background: var(--green);
 }
 
-/* no celular os Patrocínios do mapa viram só o emblema (o nome aparece ao tocar, no title) */
+/* no celular os Patrocínios do mapa ficam numa linha de 3 (ícone + nome curto, cortado com reticências; tocar abre o efeito) */
 @media (max-width: 480px) {
     .cm-status .sp-slots {
         flex-basis: 100%;
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
-    .cm-status .sp-slot {
-        justify-content: center;
-        min-height: 34px;
+    .cm-status .sp-slot-li {
+        min-width: 0;
     }
-    /* só o ícone na tela; o nome fica pro leitor de tela (com display: none o botão era só "botão") */
     .cm-status .sp-slot-name {
-        position: absolute;
-        width: 1px;
-        height: 1px;
+        display: none;
+    }
+    .cm-status .sp-slot-short {
+        display: block;
         overflow: hidden;
-        clip-path: inset(50%);
+        text-overflow: ellipsis;
         white-space: nowrap;
+    }
+    .cm-status .sp-slot {
+        min-width: 0;
+        overflow: hidden;
+        min-height: 34px;
+        padding: 4px 6px;
+        gap: 4px;
+        font-size: 11px;
     }
 }
 

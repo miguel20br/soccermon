@@ -14,7 +14,7 @@ import { computeSynergies } from '../../engine/synergy';
 import { clubName, cupStageName, dict, formationText, itemDesc, itemName, tn } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { liveOf, playerTeam, type SlotRef, useGame } from '../../store/game-store';
-import { isLong, isOut, type OutWhy, outOf } from '../../store/long-cup';
+import { isFinalStage, isLong, isOut, type OutWhy, outOf } from '../../store/long-cup';
 import { useCardModal } from '../card-modal';
 import { BracketPeek, bracketRivals, bracketYou } from '../components/Bracket';
 import { Fold, foldOpenByDefault } from '../components/Fold';
@@ -210,12 +210,14 @@ export function Lineup() {
                                     ? t('team.lineup.warming')
                                     : locked
                                       ? t('team.lineup.backToMatch')
-                                      : t('team.lineup.play', {
-                                            stage:
-                                                lang === 'pt'
-                                                    ? cupStageName(run, run.stage, lang).toLowerCase()
-                                                    : cupStageName(run, run.stage, lang),
-                                        })}
+                                      : isFinalStage(run)
+                                        ? t('longCup.playFinal')
+                                        : t('team.lineup.play', {
+                                              stage:
+                                                  lang === 'pt'
+                                                      ? cupStageName(run, run.stage, lang).toLowerCase()
+                                                      : cupStageName(run, run.stage, lang),
+                                          })}
                             </button>
                         </div>
                         {!!run.sponsors?.length && (

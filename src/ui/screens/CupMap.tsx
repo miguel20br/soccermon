@@ -525,7 +525,7 @@ export function Training() {
                         }}
                     >
                         <HudIcon kind="bag" />
-                        {t('longCup.treino.item')}
+                        {t('longCup.treino.itemGo')}
                     </button>
                 </div>
             )}
@@ -557,7 +557,7 @@ export function Training() {
                     }}
                 >
                     <HudIcon kind="reroll" />
-                    {t('longCup.treino.rest')}
+                    {t('longCup.treino.restGo')}
                 </button>
             </div>
         </div>

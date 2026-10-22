@@ -2,6 +2,7 @@
 export const team = {
     draft: {
         beforeDraft: 'Antes do draft',
+        beforeDraftRota: 'Rota Índigo · antes do draft',
         chooseFormation: 'Escolha a formação',
         theBench: 'o banco',
         whereCaptain: 'Em que vaga {name} vai jogar?',
@@ -29,7 +30,7 @@ export const team = {
         sign: 'Escalar',
         signAs: 'Escalar ({pos})',
         auto: 'Monta pra mim',
-        autoAsk: 'Montar o resto do time ({formation}) com as melhores cartas? Dá pra trocar depois.',
+        autoAsk: 'Montar o resto do {formation} com as melhores cartas? Dá pra trocar depois.',
         autoGo: 'Montar',
         autoBack: 'Voltar',
     },

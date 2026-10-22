@@ -161,9 +161,16 @@ function Balloon({
     });
 
     // foco no balão e de volta pra quem tinha
+    const lit = useRef<Element | null>(null);
+    lit.current = el;
     useEffect(() => {
         const before = document.activeElement as HTMLElement | null;
-        return () => before?.focus?.({ preventScroll: true });
+        return () => {
+            // ninguém tinha o foco (o balão abre sozinho na entrada): ele vai pro alvo aceso, se der pra focar
+            const target =
+                before && before !== document.body ? before : lit.current?.closest('button, a, input, [tabindex]');
+            (target as HTMLElement | null)?.focus?.({ preventScroll: true });
+        };
     }, []);
     useEffect(() => {
         if (shown) balloon.current?.focus({ preventScroll: true });

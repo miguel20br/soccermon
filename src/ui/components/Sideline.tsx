@@ -144,6 +144,7 @@ export function SidelineControls({
                     type="button"
                     className={`sl-btn sl-max${lit ? ' ready' : full ? ' full' : ''}${view.max.active ? ' live' : ''}`}
                     title={a.maxHint}
+                    aria-keyshortcuts="M"
                     // aria-disabled e não disabled: fica no Tab e o leitor acha o botão antes de ele acender
                     aria-disabled={!lit}
                     onClick={() => lit && onMax()}
@@ -191,7 +192,7 @@ export function MaxCueButton({ view, canAct, onMax }: { view: AgencyView; canAct
     const { d } = useT();
     if (!canAct || !maxLit(view)) return null;
     return (
-        <button type="button" className="sl-cue" data-exit onClick={onMax}>
+        <button type="button" className="sl-cue" data-exit aria-keyshortcuts="M" onClick={onMax}>
             <HudIcon kind="max" />
             <b>{d.match.agency.max}</b>
         </button>

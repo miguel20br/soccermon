@@ -134,7 +134,8 @@ export const match = {
         flyGkOn: 'Ligado',
         flyGkOff: 'Desligado',
         max: 'Golpe máximo',
-        maxHint: 'Enche com os lances do time. Cheia, acende na hora do chute do capitão (no gol: no chute do rival).',
+        maxHint:
+            'Enche com os lances do time. Cheia, acende na hora do chute do capitão (no gol: no chute do rival). Atalho: M.',
         maxFull: 'Cheia',
         maxReady: 'Agora!',
         maxActive: 'No ar!',

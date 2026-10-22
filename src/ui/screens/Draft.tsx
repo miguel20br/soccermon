@@ -18,9 +18,11 @@ import { FormationIdentity } from '../components/FormationIdentity';
 import { FutCard } from '../components/FutCard';
 import { LinkChip, LinkChips, newLinks } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
+import { MenuIcon } from '../components/MenuIcon';
 import { cardSprite, TypeBadge } from '../components/PokeCard';
 import { EvoBadge } from '../components/PokeCard2';
 import { Tip } from '../help/Tip';
+import { requestLeave } from '../leave-guard';
 import { lineupAverage, ratingAt } from '../rating';
 import { reduceMotionOn } from '../settings-sync';
 import { flyCard } from '../view-transition';
@@ -67,9 +69,12 @@ function AutoDraft({ captainUid, hint }: { captainUid?: string; hint?: string })
                     <button type="button" className="btn ghost" onClick={() => setAsk(false)}>
                         {t('team.draft.autoBack')}
                     </button>
+                    {/* o diálogo abre com o foco no "Montar": Enter confirma, Esc/Voltar cancela pelo teclado */}
                     <button
                         type="button"
                         className="btn primary"
+                        // biome-ignore lint/a11y/noAutofocus: o diálogo acabou de abrir por um clique; o foco tem que entrar nele
+                        autoFocus
                         onClick={() => {
                             autoDraft(captainUid);
                         }}
@@ -163,7 +168,7 @@ function FormationDiagram({ id }: { id: FormationId }) {
  * vaga e saem 3 Pokémon que jogam naquela posição.
  */
 export function Draft() {
-    const { run, chooseFormation, chooseSlot, pick, reroll } = useGame();
+    const { run, chooseFormation, chooseSlot, pick, reroll, go, daily } = useGame();
     const [selected, setSelected] = useState<string | null>(null);
     const [coachOn, setCoachOn] = useState(false);
     const coachSeenDraft = useGame((s) => coachSeen(s.profile.coach, 'relampagoDraft'));
@@ -200,10 +205,23 @@ export function Draft() {
             <>
                 {quick && <Coach id="relampago" targets={['.draft-head h1']} />}
                 <div className="draft-head bc-screenhead">
-                    <span className="bc-tag">{t('team.draft.beforeDraft')}</span>
+                    <span className="bc-tag">
+                        {t(isLong(run) ? 'team.draft.beforeDraftRota' : 'team.draft.beforeDraft')}
+                    </span>
+                    <button
+                        type="button"
+                        className="btn ghost back-btn"
+                        onClick={() => requestLeave(() => go('home'))}
+                        aria-label={t('common.ui.back')}
+                    >
+                        <MenuIcon kind="back" />
+                    </button>
                     <h1>{t('team.draft.chooseFormation')}</h1>
                     <AutoDraft />
                 </div>
+                {run.daily && daily.find((e) => e.day === run.daily)?.ranked === false && (
+                    <p className="muted center">{t('liga.daily.unrankedNote')}</p>
+                )}
                 <div className="formation-picker">
                     {Object.values(FORMATIONS).map((f) => (
                         <button

@@ -616,7 +616,7 @@ export const help = {
             'Uma derrota vale cartão amarelo. A segunda, vermelho.',
             'Vitória dá ₽. Gaste no Mercado ou guarde pra render juros.',
         ],
-        rotaGrupo: ['Os 2 primeiros vão pra Final. Aqui a derrota não dá cartão.'],
+        rotaGrupo: ['Aqui a derrota não dá cartão.'],
         relampago: ['Mata-mata de 4 jogos: perdeu, acabou. Escolha a formação.'],
         relampagoDraft: ['Toque numa vaga: saem 3 e você leva 1.'],
         relampagoJogo: ['Mude a tática e troque jogadores durante o jogo. Quem joga muito evolui.'],

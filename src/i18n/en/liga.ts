@@ -31,6 +31,7 @@ export const liga: typeof pt = {
         wins: '1 win|{n} wins',
         abandoned: 'Cup ended',
         unranked: 'unranked',
+        unrankedNote: "Today's cup is not ranked.",
         next: 'Next Daily Cup in {h}h{m}',
         share: 'Share',
         copied: 'Copied!',

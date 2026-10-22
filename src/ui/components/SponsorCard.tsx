@@ -124,11 +124,15 @@ export function SponsorSlots({ sponsors, onPick }: { sponsors: readonly string[]
                                 type="button"
                                 className={`sp-slot${shown === id ? ' on' : ''}`}
                                 style={brand}
+                                aria-label={txt.name}
                                 aria-expanded={onPick ? undefined : shown === id}
                                 onClick={() => (onPick ? onPick(id) : setOpen(shown === id ? null : id))}
                             >
                                 <HudIcon kind={SPONSOR_ICON[id]} />
                                 <span className="sp-slot-name">{txt.name}</span>
+                                <span className="sp-slot-short" aria-hidden="true">
+                                    {txt.short}
+                                </span>
                             </button>
                         </li>
                     );
