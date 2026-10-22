@@ -5,3 +5,5 @@
 - [Texto sem cara de IA](feedback-texto-sem-cara-de-ia.md) — falas curtas e naturais; ginásio continua ginásio (não "quadra")
 - [Economia de tokens](feedback-economia-de-tokens.md) — agente novo por rodada, Sonnet/Haiku quando der, máx. 3 em paralelo, CLAUDE.md enxuto
 - [Retomar frentes (21/10)](retomar-frentes-21-10.md) — LER PRIMEIRO: frentes paradas pelo limite, worktree e próximo passo de cada
+- [Gosto musical](feedback-gosto-musical.md) — Rocket é a régua; sons criativos (moedas); clap clássico 808/909 em vez do sintetizado
+- [Música aprovada entra na hora](feedback-musica-aprovou-entra.md) — aprovou no localhost:8000 → converte e liga na branch musica-jogo sem perguntar de novo
