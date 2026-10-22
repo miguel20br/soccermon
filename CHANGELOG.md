@@ -1,5 +1,21 @@
 # Novidades
 
+## 0.9.9 · Música no tempo e voltar do Android
+
+### Música
+- A logo da Abertura pisca a cada SOC-CER-MON da música
+- A música troca de tela no tempo da batida
+- Disputa de pênaltis com música própria até a cobrança decisiva
+- Os Créditos tocam "A última partida"
+- Lt. Surge ganhou tema próprio antes da partida
+- A Pressão final segura a música até o apito
+- Saiu a vinheta da virada no placar
+
+### Celular
+- O botão voltar do Android sai da tela em vez de fechar o jogo
+- Resultado e escalação mais curtos, com partes que abrem e fecham
+- No draft em pé, as vagas do time ficam fixas no topo
+
 ## 0.9.8 · Gritos mais baixos
 
 ### Som

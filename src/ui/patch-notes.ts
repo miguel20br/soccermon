@@ -7,6 +7,32 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.9',
+        title: 'Música no tempo e voltar do Android',
+        sections: [
+            {
+                title: 'Música',
+                lines: [
+                    'A logo da Abertura pisca a cada SOC-CER-MON da música',
+                    'A música troca de tela no tempo da batida',
+                    'Disputa de pênaltis com música própria até a cobrança decisiva',
+                    'Os Créditos tocam "A última partida"',
+                    'Lt. Surge ganhou tema próprio antes da partida',
+                    'A Pressão final segura a música até o apito',
+                    'Saiu a vinheta da virada no placar',
+                ],
+            },
+            {
+                title: 'Celular',
+                lines: [
+                    'O botão voltar do Android sai da tela em vez de fechar o jogo',
+                    'Resultado e escalação mais curtos, com partes que abrem e fecham',
+                    'No draft em pé, as vagas do time ficam fixas no topo',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.8',
         title: 'Gritos mais baixos',
         sections: [
