@@ -96,7 +96,6 @@ export function SidelineControls({
                 <span className="bc-lbl">
                     <HudIcon kind="shout" />
                     {a.title}
-                    <span className="sl-beta">{a.beta}</span>
                 </span>
             </div>
             <div className={`sl-actions${onPens ? ' four' : ''}`}>

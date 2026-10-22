@@ -124,7 +124,6 @@ export const match = {
     /** Agência do técnico (beira da quadra). */
     agency: {
         title: 'Beira da quadra',
-        beta: 'teste',
         timeout: 'Pedir tempo',
         timeoutHint: '1 por tempo. Para quando a bola parar: descansa e faz trocas',
         timeoutUsed: 'Tempo já pedido',

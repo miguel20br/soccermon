@@ -111,7 +111,6 @@ export const match: typeof pt = {
     },
     agency: {
         title: 'Touchline',
-        beta: 'test',
         timeout: 'Time-out',
         timeoutHint: '1 per half. Stops when the ball stops: rest and make subs',
         timeoutUsed: 'Time-out used',

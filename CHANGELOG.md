@@ -1,5 +1,20 @@
 # Novidades
 
+## 0.9.6 · Beira da quadra e MTs mais fortes
+
+### Beira da quadra
+- Golpe máximo: a barra enche com os lances do time e o botão acende na hora do chute do capitão
+- A zona do chute muda com a posição do capitão: pivô 15 m, ala 18 m, fixo 22 m
+- Capitão no gol vira defesa máxima: o próximo chute que ele alcança é defesa
+- Goleiro-linha: o goleiro sobe e o time ataca com 5 contra 4, com o gol vazio atrás
+- Pedido de tempo: 1 por tempo, o time recupera fôlego e as trocas valem na hora
+- O treinador rival da Copa usa as mesmas armas
+- Troca e prancheta valem na hora, com a bola rolando; os gritos do técnico saíram
+
+### MTs
+- O golpe ensinado por MT sai mais vezes, bate mais forte e ganha o selo MT
+- Mega Drain 40 ⇒ 100 de poder, BubbleBeam 65 ⇒ 100, Fissure acerta 30% ⇒ 50%
+
 ## 0.9.5 · Cada formação joga de um jeito
 
 ### Formações

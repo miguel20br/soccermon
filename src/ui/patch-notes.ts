@@ -7,6 +7,31 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.6',
+        title: 'Beira da quadra e MTs mais fortes',
+        sections: [
+            {
+                title: 'Beira da quadra',
+                lines: [
+                    'Golpe máximo: a barra enche com os lances do time e o botão acende na hora do chute do capitão',
+                    'A zona do chute muda com a posição do capitão: pivô 15 m, ala 18 m, fixo 22 m',
+                    'Capitão no gol vira defesa máxima: o próximo chute que ele alcança é defesa',
+                    'Goleiro-linha: o goleiro sobe e o time ataca com 5 contra 4, com o gol vazio atrás',
+                    'Pedido de tempo: 1 por tempo, o time recupera fôlego e as trocas valem na hora',
+                    'O treinador rival da Copa usa as mesmas armas',
+                    'Troca e prancheta valem na hora, com a bola rolando; os gritos do técnico saíram',
+                ],
+            },
+            {
+                title: 'MTs',
+                lines: [
+                    'O golpe ensinado por MT sai mais vezes, bate mais forte e ganha o selo MT',
+                    'Mega Drain 40 ⇒ 100 de poder, BubbleBeam 65 ⇒ 100, Fissure acerta 30% ⇒ 50%',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.5',
         title: 'Cada formação joga de um jeito',
         sections: [
@@ -1212,6 +1237,31 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.6',
+        title: 'Touchline and stronger TMs',
+        sections: [
+            {
+                title: 'Touchline',
+                lines: [
+                    "Max move: your team's plays fill the bar and the button lights up when your captain can shoot",
+                    'The shooting zone depends on the captain: pivot 15 m, winger 18 m, defender 22 m',
+                    'A captain in goal gets a max save: the next shot he can reach is saved',
+                    'Flying keeper: the keeper joins the attack for 5 against 4, leaving the goal empty',
+                    'Time-out: 1 per half, the team gets its breath back and subs apply right away',
+                    'Cup rival coaches use the same tools',
+                    'Subs and board changes apply right away, with the ball in play; coach shouts are gone',
+                ],
+            },
+            {
+                title: 'TMs',
+                lines: [
+                    'A move taught by TM comes out more often, hits harder and gets the TM badge',
+                    'Mega Drain 40 ⇒ 100 power, BubbleBeam 65 ⇒ 100, Fissure accuracy 30% ⇒ 50%',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.5',
         title: 'Every formation plays its own way',

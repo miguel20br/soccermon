@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.5 · Cada formação joga de um jeito (22/10/2026)
+
+No ar: 0.9.5 (formações com comportamento próprio e movesets únicos, `ENGINE_VERSION` 9, Edge Function `liga` com o motor 9), Rota Índigo (`LONG_CUP_LIVE`), Copa Relâmpago e Duelo melhor de 3. Liga fechada até `LIGA_OPENS_AT`; a Copa do Dia segue no ar. Histórico por versão e decisões antigas: [docs/planos/historico.md](docs/planos/historico.md). Índice dos docs: `node scripts/indice.mjs`.
+
 ## Estado atual (antigo) (21/10/2026, v0.9.2 · Casa arrumada)
 
 **0.9.2 (21/10):** onda 1 da revisão de design (`docs/planos/revisao-design.md`, `pesquisa-layout-e-game-design.md`):

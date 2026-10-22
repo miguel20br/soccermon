@@ -1,18 +1,8 @@
-/* Beira da quadra (agência do técnico, experimento): no kit da transmissão (broadcast-kit.css). */
+/* Beira da quadra (agência do técnico): no kit da transmissão (broadcast-kit.css). */
 .sl {
     display: grid;
     gap: 8px;
     margin-top: 4px;
-}
-.sl-beta {
-    margin-left: 6px;
-    padding: 0 6px;
-    border-radius: 4px;
-    background: var(--yellow);
-    color: var(--bc-ink);
-    font-size: 9px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
 }
 .sl {
     min-width: 0;
