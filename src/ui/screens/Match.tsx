@@ -73,7 +73,7 @@ import { RivalEmotes } from '../duel/Emotes';
 import { rivalEmotes } from '../duel/emote-faces';
 import { LeaveConfirm } from '../leave-guard';
 import { captainAt, clockExtrasAt, roleAt, snapAt } from '../match-view';
-import { matchMusic } from '../music-sync';
+import { matchMusic, penaltyMusic } from '../music-sync';
 import { bannerText, useClubColor } from '../profile/club';
 import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
@@ -326,6 +326,8 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const pressing = pressureNow !== null;
     // partida retomada: espera o 1º tick (senão buscaria a faixa do 1º tempo à toa)
     const musicOn = clock.tick > 0 || !resume?.tick;
+    // disputa de pênaltis: espera entre as cobranças, e o fim na cobrança decisiva
+    const penaltis = fulltime || ended ? penaltyMusic(match?.events ?? [], clock.tick) : null;
     useEffect(() => {
         if (musicOn)
             matchMusic({
@@ -335,8 +337,9 @@ export function Match({ liga = false }: { liga?: boolean }) {
                 opponent: opponent?.name,
                 intro: !introDone,
                 ended: ended || fulltime,
+                penaltis,
             });
-    }, [musicOn, clock.half, clock.minute, pressing, opponent?.name, introDone, ended, fulltime]);
+    }, [musicOn, clock.half, clock.minute, pressing, opponent?.name, introDone, ended, fulltime, penaltis]);
     // o capitão do líder rival reage aos gols (emote do Duelo, só na tela)
     const rivalPlan = useMemo(() => (match ? rivalEmotes(match.events, 1) : []), [match]);
     // fim de jogo: vai sozinho pro resultado; um toque na quadra ou no painel segura

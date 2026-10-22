@@ -14,6 +14,9 @@ export type TrackId =
     | 'tema-brock'
     | 'tema-misty'
     | 'tema-rocket'
+    | 'tema-ltsurge'
+    | 'ultima-partida'
+    | `penaltis-${'espera' | 'ganhou' | 'perdeu'}`
     | 'draft'
     | 'escalacao'
     | 'recompensa'

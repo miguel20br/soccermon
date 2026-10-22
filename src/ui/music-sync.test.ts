@@ -1,7 +1,14 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { buildCupMap } from '../engine/cup-map';
+import type { MatchEvent } from '../engine/state';
 import type { useGame } from '../store/game-store';
-import { trackOf } from './music-sync';
+import { matchMusic, penaltyMusic, trackOf } from './music-sync';
+
+const music = vi.hoisted(() => ({ played: [] as [string | null, string | undefined][] }));
+vi.mock('../game/music', async (orig) => ({
+    ...(await orig<typeof import('../game/music')>()),
+    playMusic: (id: string | null, section?: string) => music.played.push([id, section]),
+}));
 
 type S = ReturnType<typeof useGame.getState>;
 const map = buildCupMap('musica');
@@ -32,5 +39,51 @@ describe('música por tela', () => {
         expect(trackOf(st('lineup', {}))).toBe('escalacao');
         expect(trackOf(st('reward', {}))).toBe('recompensa');
         expect(trackOf(st('trophies', {}))).toBe('sala');
+        expect(trackOf(st('credits', {}))).toBe('ultima-partida');
+    });
+
+    it('Pressão final: começou, fica até o apito mesmo com o placar empatado', () => {
+        music.played.length = 0;
+        const brock = { opponent: 'Pewter Rochedo', half: 2 }; // o clube do Brock
+        matchMusic({ ...brock, minute: 15, pressure: false });
+        matchMusic({ ...brock, minute: 18, pressure: true });
+        matchMusic({ ...brock, minute: 19, pressure: false }); // empatou: o motor encerra a pressão
+        matchMusic({ ...brock, minute: 20, pressure: false });
+        matchMusic({ ...brock, minute: 20, pressure: false, ended: true });
+        expect(music.played.map(([, sec]) => sec)).toEqual(['nivel1', 'pressao', 'pressao', 'pressao', 'fim']);
+        expect(music.played[0][0]).toBe('partida-brock-2t');
+        // partida nova: o 1º tempo zera, e o 2º tempo começa sem pressão
+        matchMusic({ ...brock, half: 1, minute: 1, pressure: false });
+        matchMusic({ ...brock, minute: 11, pressure: false });
+        expect(music.played.at(-1)).toEqual(['partida-brock-2t', 'nivel1']);
+    });
+
+    it('Lt. Surge: o tema dele no VERSUS, a partida padrão', () => {
+        music.played.length = 0;
+        const surge = { opponent: 'Vermilion Voltagem', half: 1, minute: 0, pressure: false };
+        matchMusic({ ...surge, intro: true });
+        matchMusic(surge);
+        expect(music.played).toEqual([
+            ['tema-ltsurge', undefined],
+            ['partida-1t', 'nivel1'],
+        ]);
+    });
+
+    it('pênaltis: espera entre as cobranças, e o fim na decisiva (ganhou ou perdeu pelo placar dela)', () => {
+        const pen = (tick: number, shootout: [number, number]) =>
+            ({ type: 'penalty', tick, shootout, by: 0, gk: 0, scored: true, round: 1 }) as unknown as MatchEvent;
+        const ganhou = [pen(100, [1, 0]), pen(140, [1, 1]), pen(180, [2, 1])];
+        expect(penaltyMusic([], 50)).toBeNull();
+        expect(penaltyMusic(ganhou, 90)).toBe('espera');
+        expect(penaltyMusic(ganhou, 179)).toBe('espera');
+        expect(penaltyMusic(ganhou, 180)).toBe('ganhou');
+        expect(penaltyMusic([pen(100, [0, 1])], 120)).toBe('perdeu');
+        music.played.length = 0;
+        matchMusic({ half: 2, minute: 20, pressure: true, ended: true, penaltis: 'espera' });
+        matchMusic({ half: 2, minute: 20, pressure: true, ended: true, penaltis: 'perdeu' });
+        expect(music.played).toEqual([
+            ['penaltis-espera', undefined],
+            ['penaltis-perdeu', undefined],
+        ]);
     });
 });

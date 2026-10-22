@@ -1,5 +1,6 @@
 import { FUTSAL_5 } from '../engine/config';
 import { type MapRegion, nodeById, regionOfRow, rivalTrainer } from '../engine/cup-map';
+import type { MatchEvent } from '../engine/state';
 import { playMusic, startMusicLifecycle, type TrackId } from '../game/music';
 import { type Screen, useGame } from '../store/game-store';
 
@@ -7,7 +8,7 @@ import { type Screen, useGame } from '../store/game-store';
 const TRACK: Partial<Record<Screen, TrackId>> = {
     home: 'abertura-gancho',
     settings: 'abertura-gancho',
-    credits: 'abertura-gancho',
+    credits: 'ultima-partida',
     help: 'abertura-gancho',
     profile: 'abertura-gancho',
     collection: 'abertura-gancho',
@@ -23,12 +24,25 @@ const TRACK: Partial<Record<Screen, TrackId>> = {
 /** Região do mapa da Rota Índigo com faixa própria (as outras tocam a Estrada da Vitória). */
 const REGION_TRACK: Partial<Record<MapRegion, TrackId>> = { rota1: 'rota-1', mtmoon: 'mt-moon', cerulean: 'cerulean' };
 
-/** Líderes (e a Rocket) com tema e partida próprios. */
+/** Líderes (e a Rocket) com partida própria; o Lt. Surge só tem o tema (a partida dele é a padrão). */
 const OWN: readonly string[] = ['brock', 'misty', 'rocket'];
-const ownOf = (opponent?: string) => {
-    const who = opponent ? rivalTrainer(opponent) : undefined;
-    return who && OWN.includes(who) ? who : null;
-};
+const THEME: readonly string[] = [...OWN, 'ltsurge'];
+const trainerOf = (opponent?: string) => (opponent ? rivalTrainer(opponent) : undefined);
+
+/** Fase da música na disputa de pênaltis (depois do apito final): espera, ou o fim na cobrança decisiva. */
+export function penaltyMusic(events: readonly MatchEvent[], tick: number): 'espera' | 'ganhou' | 'perdeu' | null {
+    const pens = events.filter((e): e is Extract<MatchEvent, { type: 'penalty' }> => e.type === 'penalty');
+    const last = pens[pens.length - 1];
+    if (!last) return null;
+    if (tick < last.tick) return 'espera';
+    return last.shootout[0] > last.shootout[1] ? 'ganhou' : 'perdeu';
+}
+
+/**
+ * A Pressão final começou neste 2º tempo: a música fica no trecho `pressao` até o apito, mesmo que o placar empate e a
+ * pressão do motor acabe (a tensão segura até o fim). Só a música lembra disso; o motor não muda.
+ */
+let pressaoFica = false;
 
 /**
  * Partida: faixa do rival e do tempo, trecho pela intensidade (cada tempo acelera até o fim; 2º tempo tem Pressão final).
@@ -41,14 +55,18 @@ export function matchMusic(m: {
     opponent?: string;
     intro?: boolean;
     ended?: boolean;
+    penaltis?: 'espera' | 'ganhou' | 'perdeu' | null;
 }) {
-    const own = ownOf(m.opponent);
-    if (m.intro && own) return playMusic(`tema-${own}` as TrackId);
+    if (m.penaltis) return playMusic(`penaltis-${m.penaltis}`);
+    const who = trainerOf(m.opponent);
+    const own = who && OWN.includes(who) ? who : null;
+    pressaoFica = m.half === 2 && !m.intro && (pressaoFica || m.pressure);
+    if (m.intro && who && THEME.includes(who)) return playMusic(`tema-${who}` as TrackId);
     const h = FUTSAL_5.displayHalfMinutes;
     const k = (m.minute - (m.half - 1) * h) / h;
     const nivel = k < 1 / 3 ? 'nivel1' : k < 2 / 3 ? 'nivel2' : 'nivel3';
     const id = `partida-${own ? `${own}-` : ''}${m.half === 2 ? '2t' : '1t'}` as TrackId;
-    playMusic(id, m.ended ? 'fim' : m.half === 2 && m.pressure ? 'pressao' : nivel);
+    playMusic(id, m.ended ? 'fim' : pressaoFica ? 'pressao' : nivel);
 }
 
 /**

@@ -47,7 +47,7 @@ const add = (canal: string, o: string, g: number, x: { i: number; m: number }) =
 const music = readdirSync('public/music').filter((f) => f.endsWith('.webm'));
 const gm = MASTER * MUSIC;
 const mus = music.map((f) => ({ f, ...file(`public/music/${f}`) }));
-const loops = mus.filter((x) => !/^(virada|vitoria|derrota|eliminado|campeao)/.test(x.f));
+const loops = mus.filter((x) => !/^(vitoria|derrota|eliminado|campeao)/.test(x.f));
 add('música', `loops (mediana de ${loops.length})`, gm, {
     i: median(loops.map((x) => x.i)),
     m: median(loops.map((x) => x.m)),

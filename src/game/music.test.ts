@@ -220,4 +220,20 @@ describe('música', () => {
         expect(later[0].off).toBe(64); // a Pressão entra pela `virada` da faixa
         expect(a.started[0].stop).toBeCloseTo(4.01, 6);
     });
+
+    it('12/8 (Misty): troca de trecho na linha do compasso de 12 linhas', async () => {
+        // 90 BPM: linha = 1/6 s; compasso de 12 linhas = 2 s (4/4 dava 240/90 = 2,67 s: fora do compasso)
+        const secoes = [
+            { nome: 'nivel1', loop: true, inicio: 0, fim: 8, bpm: 90 },
+            { nome: 'nivel2', loop: true, inicio: 8, fim: 16, bpm: 90 },
+        ];
+        const a = fakeAudio({ metas: { 'partida-misty-2t': { duracao: 16, linhasPorCompasso: 12, secoes } } });
+        const m = await import('./music');
+        m.playMusic('partida-misty-2t', 'nivel1');
+        await settle();
+        a.ctx.currentTime = 0.6;
+        m.playMusic('partida-misty-2t', 'nivel2');
+        await settle();
+        expect(a.started[1].when).toBeCloseTo(2, 6);
+    });
 });

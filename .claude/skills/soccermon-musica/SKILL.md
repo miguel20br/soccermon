@@ -115,7 +115,7 @@ precisando do "pode subir".
    trecho (nível da partida) na linha do compasso, num ganho novo (a velha some em 10 ms, sem estalo); vale o último
    pedido. A tela `match` não silencia a música: a partida pede a dela e a troca da Escalação também cai no tempo.
 8. **Virada no placar: tentada e recusada** (22/10/2026). 1ª versão: vinheta por cima da partida com a música
-   abaixando ~10 dB (`virada.mjs`, `virada-pressao.mjs`): o Miguel não gostou. 2ª ideia (breque + virada de bateria +
+   abaixando ~10 dB (peças e arquivos `virada*` apagados): o Miguel não gostou. 2ª ideia (breque + virada de bateria +
    torcida + subir de nível) foi descartada antes de entrar: a música da partida só segue os trechos pelo minuto e
    pela pressão. Não proponha de novo sem ele pedir.
 
