@@ -7,6 +7,19 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.12',
+        title: 'No ritmo da música',
+        sections: [
+            {
+                title: 'Música',
+                lines: [
+                    'A logo pisca no SOC-CER-MON de qualquer música, não só na Abertura',
+                    'As cartas do draft viram na batida da música',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.11',
         title: 'Viradas na música e temas dos líderes',
         sections: [

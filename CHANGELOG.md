@@ -1,5 +1,11 @@
 # Novidades
 
+## 0.9.12 · No ritmo da música
+
+### Música
+- A logo pisca no SOC-CER-MON de qualquer música, não só na Abertura
+- As cartas do draft viram na batida da música
+
 ## 0.9.11 · Viradas na música e temas dos líderes
 
 ### Música
