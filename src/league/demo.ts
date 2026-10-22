@@ -24,6 +24,8 @@ const row = (pos: number, trainer: string, club: string, color: string, extra: P
     ga: 4,
     done: true,
     me: false,
+    squad: [pos * 3, 25, 6 + pos, 94, 130],
+    captain: pos % 5,
     ...extra,
 });
 
@@ -32,7 +34,7 @@ const DAILY_ROWS: DailyRow[] = [
     row(2, 'Ana Clara', 'Lavender Assombro', 'roxo', { champion: true, gf: 11, ga: 5 }),
     row(3, 'Miguel', 'Pallet FC', 'vermelho', { wins: 3, gf: 10, ga: 6, me: true }),
     row(4, 'Treinador', 'Cinnabar Chama Eterna Futebol', 'laranja', { wins: 2, gf: 7, ga: 7 }),
-    row(5, 'Bia', 'Cerulean', 'azul', { wins: 1, gf: 3, ga: 2, done: false }),
+    row(5, 'Bia', 'Cerulean', 'azul', { wins: 1, gf: 3, ga: 2, done: false, squad: null, captain: null }),
 ];
 
 const LIGA_ROWS: LigaRow[] = [

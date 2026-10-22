@@ -247,6 +247,44 @@
     height: 20px;
 }
 
+/* time em ícones: segunda linha da linha do ranking; capitão com a plaquinha C */
+.lg-squad {
+    grid-column: 2 / -1;
+    display: flex;
+    gap: 2px;
+    min-width: 0;
+    overflow: hidden;
+    animation: lg-squad-in 250ms ease-out both;
+}
+.lg-squad-mon {
+    position: relative;
+    flex: none;
+    line-height: 0;
+}
+.lg-squad-mon.cap::after {
+    content: "C";
+    position: absolute;
+    right: -1px;
+    top: 0;
+    padding: 0 3px;
+    border-radius: 3px;
+    background: var(--yellow);
+    color: var(--bc-ink);
+    font:
+        9px / 12px "Galmuri11",
+        monospace;
+}
+@keyframes lg-squad-in {
+    from {
+        opacity: 0;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .lg-squad {
+        animation: none;
+    }
+}
+
 /* divisão: escudo na cor do metal */
 .lg-div {
     display: inline-flex;

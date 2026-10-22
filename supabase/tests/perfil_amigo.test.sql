@@ -45,6 +45,7 @@ insert into auth.users
 \ir ../migrations/20261019180000_copa_do_dia_e_liga.sql
 \ir ../migrations/20261020120000_amigos.sql
 \ir ../migrations/20261021120000_perfil_do_amigo.sql
+\ir ../migrations/20261023120000_ranking_time.sql
 
 create function pg_temp.como(n int, anonimo boolean default false) returns void language plpgsql as $$
 begin
@@ -144,5 +145,35 @@ select pg_temp.como(5);
 select pg_temp.igual((select string_agg(pos || ':' || trainer, ',') from public.copa_dia_ranking_amigos()),
     '1:Bia', 'sem amigos, só você');
 reset role;
+
+-- time no ranking (0.9.10): o gatilho tira os 5 titulares e o capitão de matches; JSON ruim não derruba nem aparece
+update public.daily_runs set matches = jsonb_build_array(
+    jsonb_build_object('gf', 3, 'ga', 1, 'team', jsonb_build_object('captainUid', 'c', 'lineup', jsonb_build_array(
+        jsonb_build_object('uid', 'a', 'speciesId', 1), jsonb_build_object('uid', 'b', 'speciesId', 4),
+        jsonb_build_object('uid', 'c', 'speciesId', 7), jsonb_build_object('uid', 'd', 'speciesId', 25),
+        jsonb_build_object('uid', 'e', 'speciesId', 150)))),
+    jsonb_build_object('gf', 2, 'ga', 2, 'team', '{}'::jsonb))
+    where trainer = 'Miguel';
+update public.daily_runs set matches = jsonb_build_array(jsonb_build_object('team', jsonb_build_object('lineup',
+    jsonb_build_array('x', jsonb_build_object('speciesId', 'abc'), jsonb_build_object('speciesId', 1.5),
+        jsonb_build_object('speciesId', 99999), jsonb_build_object('speciesId', 7)))))
+    where trainer = 'Davi';
+set role authenticated;
+select pg_temp.como(1);
+select pg_temp.igual((select string_agg(trainer || ':' || coalesce(squad::text, '-') || ':' || coalesce(captain::text, '-'),
+    ',' order by pos) from public.copa_dia_ranking_amigos()), 'Davi:-:-,Miguel:{1,4,7,25,150}:2', 'time dos amigos');
+select pg_temp.igual((select squad::text || captain from public.copa_dia_ranking() where trainer = 'Miguel'),
+    '{1,4,7,25,150}2', 'time no ranking geral');
+select pg_temp.igual((select squad::text from public.copa_dia_ranking() where trainer = 'Ana'), null, 'sem time, sem ícones');
+reset role;
+-- a limpeza dos 30 dias tira o time de matches; o squad fica
+update public.daily_runs set matches = (select jsonb_agg(m - 'team') from jsonb_array_elements(matches) m)
+    where trainer = 'Miguel';
+select pg_temp.igual((select squad::text from public.daily_runs where trainer = 'Miguel'), '{1,4,7,25,150}', 'squad sobrevive à limpeza');
+do $$ begin
+    update public.daily_runs set squad = '{1,2}' where trainer = 'Ana';
+    raise exception 'aceitou squad de 2';
+exception when check_violation then null;
+end $$;
 
 select 'ok: perfil do amigo' as resultado;
