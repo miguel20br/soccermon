@@ -126,27 +126,39 @@ export const common: typeof pt = {
     formation: {
         '1-2-1': {
             name: 'Diamond (1-2-1)',
-            description: 'Classic balance: one defender, two wide wingers and a target pivot.',
+            description: 'Short triangles through the middle.',
+            up: '+Short passing +Narrow',
+            down: '−Depth',
         },
         '2-2': {
             name: 'Square (2-2)',
-            description: 'Two defenders at the back, a winger and a pivot up front.',
+            description: 'Plays wide in pairs, with the defender overlapping.',
+            up: '+Wide play +Overlaps',
+            down: '−Short passing',
         },
         '3-1': {
             name: 'Back Three (3-1)',
-            description: 'A deep line of three and a lone pivot up front.',
+            description: 'Passes at the back until it finds the pivot, who lays it off.',
+            up: '+Pivot target +Layoff',
+            down: '−Slow',
         },
         '4-0': {
             name: 'Rotation (4-0)',
-            description: 'No pivot: four players swapping places. Lots of possession and passing.',
+            description: 'No pivot: all four rotate, pass and run.',
+            up: '+Rotation +Pass and run',
+            down: '−No pivot',
         },
         '1-1-2': {
             name: 'Twin Pivots (1-1-2)',
-            description: 'Heavy attack: two pivots in the box and a defender at the back.',
+            description: 'Quick balls to the front two and early shots.',
+            up: '+Direct play +Shooting',
+            down: '−Tackling',
         },
         ferrolho: {
             name: 'Lockdown (3 DEF)',
-            description: 'Three defenders in front of the keeper and a pivot for the counter.',
+            description: 'Shuts the back and hits on the break.',
+            up: '+Low block +Counter',
+            down: '−Less possession',
         },
     },
     link: {

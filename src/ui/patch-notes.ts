@@ -7,6 +7,66 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.5',
+        title: 'Cada formação joga de um jeito',
+        sections: [
+            {
+                title: 'Formações',
+                lines: [
+                    'Losango: triângulos e passe curto por dentro',
+                    'Quadrado: a bola vai pelos lados',
+                    'Linha de 3: o pivô vem buscar, faz a parede e quem chega bate de primeira',
+                    'Rodízio: os quatro trocam de vaga o tempo todo e saem rápido no contra-ataque',
+                    'Dois pivôs: jogo direto, chute logo depois de roubar a bola',
+                    'Ferrolho: bloco baixo e fechado, saída rápida',
+                    'Cada formação leva vantagem contra outra; o ícone na escalação mostra quando encaixa',
+                ],
+            },
+            {
+                title: 'Golpes',
+                lines: [
+                    'Nidorino, Venonat, Bellsprout, Weepinbell, Victreebel, Slowbro, Chansey e Jolteon têm golpes próprios',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.4',
+        title: 'Duelo melhor de 3 e Rota polida',
+        sections: [
+            {
+                title: 'Duelo',
+                lines: [
+                    'Melhor de 3 com o mesmo time: a série tem placar de jogos no quadro',
+                    'Jogo anulado é jogado de novo; sair entre os jogos dá vitória por W.O. pra quem ficou',
+                ],
+            },
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'Textos revistos: cartão amarelo explicado em uma regra só, "Fim da linha" e eventos mais curtos',
+                    'O mapa usa a tela toda no PC',
+                    'Quem está fora aparece com o motivo (lesão, creche ou cansaço) e não entra em quadra',
+                    'Hall da Fama separado em Copa Relâmpago e Rota Índigo, com taça índigo própria',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.3.2',
+        title: 'Rota Índigo na frente',
+        sections: [
+            {
+                title: 'Tela inicial',
+                lines: [
+                    'Rota Índigo e Copa Relâmpago lado a lado no PC, com a Rota maior e o selo NOVO',
+                    'Duelo e Copa do Dia embaixo, um do lado do outro',
+                    'No celular, o botão da Rota ocupa a largura toda',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.3.1',
         title: 'Pokédex com texto e Pokémon com mais caras',
         sections: [
@@ -1152,6 +1212,66 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.5',
+        title: 'Every formation plays its own way',
+        sections: [
+            {
+                title: 'Formations',
+                lines: [
+                    'Diamond: triangles and short passes through the middle',
+                    'Square: the ball goes down the flanks',
+                    'Back Three: the pivot drops, lays it off and the runner shoots first time',
+                    'Rotation: all four swap spots all the time and break fast',
+                    'Twin Pivots: direct play, shooting right after winning the ball',
+                    'Lockdown: low, compact block and a quick break',
+                    'Each formation has an edge over another; the icon on the lineup shows when it fits',
+                ],
+            },
+            {
+                title: 'Moves',
+                lines: [
+                    'Nidorino, Venonat, Bellsprout, Weepinbell, Victreebel, Slowbro, Chansey and Jolteon have their own moves',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.4',
+        title: 'Best-of-3 Duel and a polished Road',
+        sections: [
+            {
+                title: 'Duel',
+                lines: [
+                    'Best of 3 with the same team: the scoreboard shows the series score',
+                    'A voided game is replayed; leaving between games is a walkover win for whoever stayed',
+                ],
+            },
+            {
+                title: 'Indigo Road',
+                lines: [
+                    'Rewritten texts: one yellow card rule, "End of the road" and shorter events',
+                    'The map uses the whole screen on desktop',
+                    'Players who are out show why (injury, daycare or tired) and stay off the court',
+                    'Hall of Fame split into Lightning Cup and Indigo Road, with its own indigo trophy',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.3.2',
+        title: 'Indigo Road up front',
+        sections: [
+            {
+                title: 'Home screen',
+                lines: [
+                    'Indigo Road and Lightning Cup side by side on desktop, with the Road bigger and a NEW tag',
+                    'Duel and Daily Cup below, next to each other',
+                    'On phones, the Road button takes the full width',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.3.1',
         title: 'Pokédex entries and more faces',

@@ -214,39 +214,39 @@ export const match: typeof pt = {
         // times da Rota (classes de treinador de Kanto, docs/planos/campeonato.md)
         bugcatcher: {
             name: 'Bug Catcher',
-            pre: 'My bugs are hungry for goals!',
-            win: 'See? Small bugs sting hard!',
+            pre: 'Hey! You have Pokémon! My bugs are hungry for goals!',
+            win: 'See? Bugs score too!',
             lose: 'Oh no! Back to the forest to train.',
         },
         hiker: {
             name: 'Hiker',
-            pre: "I've climbed Mt. Moon three times. You're just another rock.",
+            pre: "Hahaha! Let's see how you play, kid!",
             win: 'Steady as a mountain! Hahaha!',
-            lose: 'That hurt more than climbing without a rope.',
+            lose: "Whew! You're tougher than rock!",
         },
         swimmer: {
             name: 'Swimmer',
-            pre: 'On Route 19 we swim against the current. And win.',
+            pre: 'Hey! The water is great today!',
             win: 'Left you in my wake!',
             lose: 'Swallowed some water... you play well.',
         },
         rocket: {
             name: 'Team Rocket',
             pre: 'Prepare for trouble... and make it double!',
-            win: 'Team Rocket is blasting off... to victory!',
+            win: 'Hah! That one goes to Team Rocket!',
             lose: "Team Rocket's blasting off again...",
         },
         birdkeeper: {
             name: 'Bird Keeper',
-            pre: 'My birds see the whole court from up there.',
-            win: 'Free flight to the goal!',
+            pre: 'My birds see everything from up there!',
+            win: 'Straight from the sky into the goal!',
             lose: "The wind wasn't on our side today.",
         },
         blackbelt: {
             name: 'Black Belt',
-            pre: 'Discipline, strength and shooting. In that order.',
-            win: 'Another training done. Hai!',
-            lose: "Respect. You've got the belt I don't.",
+            pre: 'Hai! My fighters never get tired!',
+            win: "Hai! That's how you train!",
+            lose: "Oof! You're the real deal.",
         },
         channeler: {
             name: 'Channeler',
@@ -257,8 +257,8 @@ export const match: typeof pt = {
         scientist: {
             name: 'Scientist',
             pre: 'I calculated a 94% chance of victory for Silph.',
-            win: 'Hypothesis confirmed. Victory.',
-            lose: 'Calculation error. I must review the data.',
+            win: 'Exactly as I calculated.',
+            lose: 'Impossible! I need to redo the math.',
         },
         biker: {
             name: 'Biker',
@@ -268,7 +268,7 @@ export const match: typeof pt = {
         },
         fisherman: {
             name: 'Fisherman',
-            pre: 'Patience. Goals come like fish: at the right time.',
+            pre: "Hey! Don't scare away the fish!",
             win: 'Hooked! What a catch!',
             lose: 'That one got off the hook...',
         },

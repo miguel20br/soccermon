@@ -1,3 +1,7 @@
+---
+description: Revisão a fundo dos golpes confusos ou repetidos.
+---
+
 # Golpes: revisão a fundo (21/10/2026)
 
 Pedido do Miguel: "Vários golpes estão meio confusos, meio iguais, ou então sem fazer muito sentido. Vamos fazer uma
@@ -729,7 +733,7 @@ Thunder Wave + Agility), os Água com Hydro Pump + Blizzard (Squirtle, Horsea, O
 Earthquake + Rock Slide (Sandshrew, Diglett, Dugtrio, Rhyhorn) e o trio Psychic + Thunder Wave + Blizzard (Slowbro,
 Starmie, Mewtwo).
 
-### Regra proposta (protótipo, desligado: `UNIQUE_MOVESETS = false` em `src/engine/moves.ts`)
+### Regra (ligada em 21/10/2026 com o ok do Miguel, `ENGINE_VERSION` 9: `UNIQUE_MOVESETS = true` em `src/engine/moves.ts`, sem Wigglytuff e Staryu)
 
 Quando duas espécies de linhas diferentes dividem 3 ou 4 golpes, a de número maior troca 1 golpe dividido pelo
 melhor golpe do learnset dela que nenhuma das duas leva, desde que:
@@ -774,5 +778,5 @@ pioram, junto com a leitura de cima.
 que mais "iguala" é o 4º golpe de MT de cobertura (Blizzard, Thunder Wave, Agility); o D1 (MT sem STAB vale menos)
 mexe nisso direto, mas muda 39 cartas.
 
-Pergunta pro Miguel: **ligar a unicidade (8 espécies, sem Wigglytuff e Staryu), ligar com as 10, ou deixar desligada?**
-Recomendo **ligar com 8** só depois de você ver as cartas.
+**Decidido (21/10/2026):** ligada com 8 espécies. Wigglytuff e Staryu ficam de fora junto com os pares deles
+(`UNIQUE_SKIP`), então mudam só Nidorino, Venonat, Bellsprout, Weepinbell, Victreebel, Slowbro, Chansey e Jolteon.

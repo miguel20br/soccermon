@@ -140,29 +140,41 @@ export const common = {
     formation: {
         '1-2-1': {
             name: 'Losango (1-2-1)',
-            description: 'Equilíbrio clássico: um fixo, dois alas abertos e um pivô de referência.',
+            description: 'Triângulos curtos pelo meio.',
+            up: '+Toque curto +Por dentro',
+            down: '−Profundidade',
         },
         '2-2': {
             name: 'Quadrado (2-2)',
-            description: 'Dois fixos protegendo atrás, ala e pivô na frente. Sólido e direto.',
+            description: 'Joga aberto, em duplas, com o fixo passando por fora.',
+            up: '+Pelos lados +Ultrapassagem',
+            down: '−Toque curto',
         },
         '3-1': {
             name: 'Linha de 3 (3-1)',
-            description: 'Linha recuada de três e um pivô sozinho lá na frente.',
+            description: 'Toca atrás até achar o pivô, que devolve pra quem chega.',
+            up: '+Bola no pivô +Parede',
+            down: '−Lenta',
         },
         '4-0': {
             name: 'Rodízio (4-0)',
-            description: 'Sem pivô: quatro trocando de lugar. Muita posse e passe.',
+            description: 'Sem pivô: os quatro giram de lugar, passam e correm.',
+            up: '+Giro +Passe e corre',
+            down: '−Sem pivô',
         },
         '1-1-2': {
             name: 'Dois pivôs (1-1-2)',
-            description: 'Ataque pesado: dois pivôs na área rival e um fixo atrás.',
+            description: 'Bola rápida pros dois da frente e chute cedo.',
+            up: '+Jogo direto +Chute',
+            down: '−Desarme',
         },
         ferrolho: {
             name: 'Ferrolho (3 fixos)',
-            description: 'Três fixos na frente do goleiro e um pivô pro contra-ataque.',
+            description: 'Fecha atrás e sai no contra-ataque.',
+            up: '+Bloco baixo +Contra-ataque',
+            down: '−Pouca posse',
         },
-    } as Record<string, { name: string; description: string }>,
+    } as Record<string, { name: string; description: string; up: string; down: string }>,
     /** Sinergias de história (engine/links.ts). */
     link: {
         genese: { name: 'Gênese', desc: 'Mew e Mewtwo, o original e o clone.', combo: 'Psíquico Duplo' },

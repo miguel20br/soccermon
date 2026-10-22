@@ -101,7 +101,8 @@ describe('escanteio (0.8.5)', () => {
             const taker = a.lineup[2];
             const r = runMatch(
                 FUTSAL_5,
-                { ...a, cornerTakerUid: taker.uid, corner: 'area' },
+                // sem troca automática: o cobrador escolhido fica em quadra a partida toda
+                { ...a, cornerTakerUid: taker.uid, corner: 'area', manualSubs: true },
                 team(`esc-b${i}`, 'B'),
                 i,
                 {

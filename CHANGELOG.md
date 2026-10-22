@@ -1,5 +1,38 @@
 # Novidades
 
+## 0.9.5 · Cada formação joga de um jeito
+
+### Formações
+- Losango: triângulos e passe curto por dentro
+- Quadrado: a bola vai pelos lados
+- Linha de 3: o pivô vem buscar, faz a parede e quem chega bate de primeira
+- Rodízio: os quatro trocam de vaga o tempo todo e saem rápido no contra-ataque
+- Dois pivôs: jogo direto, chute logo depois de roubar a bola
+- Ferrolho: bloco baixo e fechado, saída rápida
+- Cada formação leva vantagem contra outra; o ícone na escalação mostra quando encaixa
+
+### Golpes
+- Nidorino, Venonat, Bellsprout, Weepinbell, Victreebel, Slowbro, Chansey e Jolteon têm golpes próprios
+
+## 0.9.4 · Duelo melhor de 3 e Rota polida
+
+### Duelo
+- Melhor de 3 com o mesmo time: a série tem placar de jogos no quadro
+- Jogo anulado é jogado de novo; sair entre os jogos dá vitória por W.O. pra quem ficou
+
+### Rota Índigo
+- Textos revistos: cartão amarelo explicado em uma regra só, "Fim da linha" e eventos mais curtos
+- O mapa usa a tela toda no PC
+- Quem está fora aparece com o motivo (lesão, creche ou cansaço) e não entra em quadra
+- Hall da Fama separado em Copa Relâmpago e Rota Índigo, com taça índigo própria
+
+## 0.9.3.2 · Rota Índigo na frente
+
+### Tela inicial
+- Rota Índigo e Copa Relâmpago lado a lado no PC, com a Rota maior e o selo NOVO
+- Duelo e Copa do Dia embaixo, um do lado do outro
+- No celular, o botão da Rota ocupa a largura toda
+
 ## 0.9.3.1 · Pokédex com texto e Pokémon com mais caras
 
 ### Coleção

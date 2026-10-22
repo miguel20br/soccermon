@@ -69,6 +69,23 @@ function flush(keepalive = false) {
     });
 }
 
+type Run = NonNullable<GameState['run']>;
+
+/** Qual das recompensas oferecidas entrou no time (o store não guarda o índice escolhido). */
+export function pickedReward(old: Run, run: Run): Run['rewards'][number] | null {
+    const before = new Map(old.picks.map((p) => [p.uid, p]));
+    return (
+        old.rewards.find((r) =>
+            run.picks.some((p) => {
+                const was = before.get(p.uid);
+                if (r.kind === 'pokemon') return p.uid === r.inst.uid && !was;
+                if (r.kind === 'tm') return !!was && p.moves.includes(r.move) && !was.moves.includes(r.move);
+                return !!was && p.item === r.item && was.item !== r.item;
+            }),
+        ) ?? null
+    );
+}
+
 export function track(name: string, props: Props = {}) {
     // antes de o save carregar, `stats` ainda é o padrão (pode ser de quem desligou)
     if (!ENABLED || !useGame.persist.hasHydrated() || !useGame.getState().settings.stats) return;
@@ -183,7 +200,20 @@ function onChange(s: GameState, prev: GameState) {
                 sponsors: (run.sponsors ?? []).join(','),
             });
         if (old.status === 'reward' && (run.status === 'lineup' || run.status === 'shop')) {
-            track('reward', { stage: old.stage, rerolls_left: run.rerolls, skipped: run.picks === old.picks });
+            const got = pickedReward(old, run);
+            track('reward', {
+                stage: old.stage,
+                rerolls_left: run.rerolls,
+                skipped: run.picks === old.picks,
+                kind: got?.kind ?? null,
+                what: got
+                    ? got.kind === 'pokemon'
+                        ? got.inst.speciesId
+                        : got.kind === 'tm'
+                          ? got.move
+                          : got.item
+                    : null,
+            });
         }
     }
     if (old && !run) track('run_abandon', { stage: old.stage, status: old.status });

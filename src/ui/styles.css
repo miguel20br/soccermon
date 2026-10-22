@@ -1067,6 +1067,82 @@ button,
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--gap);
 }
+/* formação (FormationIdentity): ícone + forte/fraco curtos, selo de vantagem tática só com ícone.
+   Trocar de formação refaz o bloco com fade (nada teleporta). */
+.fi {
+    display: grid;
+    gap: 4px;
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 1.35;
+    text-align: left;
+    animation: row-in 220ms var(--ease-out) both;
+}
+.fi-say {
+    color: var(--muted);
+}
+.fi-tags {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+}
+.fi-tags > .hud-icon {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    color: var(--yellow);
+}
+.fi-up {
+    color: #7dff8a;
+}
+.fi-down {
+    color: #ff9a9a;
+}
+.fi-edge {
+    display: inline-grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    border: 1.5px solid var(--yellow);
+    color: var(--yellow);
+}
+.fi-edge .hud-icon {
+    width: 13px;
+    height: 13px;
+}
+.fi-rival {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    margin: 4px 0 0;
+    font-size: 12px;
+    font-weight: 600;
+}
+.fi-rival-edge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--yellow);
+}
+.formation-option .fi {
+    margin-top: 0;
+    font-size: 11px;
+    text-align: center;
+}
+.formation-option .fi-tags {
+    justify-content: center;
+}
+@media (max-width: 700px) {
+    .formation-option .fi {
+        text-align: left;
+    }
+    .formation-option .fi-tags {
+        justify-content: flex-start;
+    }
+}
 /* formações: peças do kit (.bc-tile) com o desenho da quadra */
 .formation-option.bc-tile {
     display: grid;
@@ -1177,7 +1253,24 @@ button,
 
 /* ---------- escalação ---------- */
 .formation-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     margin-bottom: 4px;
+}
+/* nome + desenho + ícone: duas linhas no celular em vez de cortar */
+.formation-tabs button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 5px 4px;
+    white-space: normal;
+    line-height: 1.15;
+}
+.formation-tabs .hud-icon {
+    flex: none;
+    width: 14px;
+    height: 14px;
 }
 .side-stack .bc-styles {
     margin: 2px 0 8px;
@@ -3043,6 +3136,7 @@ button,
 
 .confirm-new {
     display: grid;
+    align-content: center;
     gap: 10px;
     text-align: center;
 }
@@ -5702,7 +5796,8 @@ a.home-tile {
         font-size: 12px;
     }
     /* o placar da Copa fica só com o título; a linha de explicação volta em pé */
-    .cup-card .mode-head span:not(.bc-tag) {
+    .cup-card .mode-head span:not(.bc-tag),
+    .rota-card .mode-head > span {
         display: none;
     }
     .home .menu {
@@ -7599,4 +7694,76 @@ body {
     flex: none;
     background-repeat: no-repeat;
     image-rendering: pixelated;
+}
+
+/* Rota Índigo: selo de quem está fora (Na creche, Machucado, Cansado) na carta da escalação; a carta fica apagada */
+.formation-board .slot:has(.slot-out) > :not(.slot-out) {
+    opacity: 0.4;
+    filter: grayscale(0.7);
+}
+.slot-out {
+    position: absolute;
+    left: 50%;
+    top: 38%;
+    z-index: 2;
+    translate: -50% -50%;
+    display: grid;
+    justify-items: center;
+    gap: 1px;
+    min-width: 76%;
+    padding: 4px 6px 3px;
+    border-radius: 6px;
+    border-bottom: 2px solid #000;
+    background: var(--bc-ink);
+    color: var(--ok, var(--yellow));
+    line-height: 1.1;
+    pointer-events: none;
+    animation: slot-out-in 240ms var(--ease-out) both;
+}
+.slot-out .hud-icon {
+    width: 16px;
+    height: 16px;
+}
+.slot-out b {
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.slot-out small {
+    color: #fff;
+    font-size: 10px;
+    white-space: nowrap;
+}
+.slot-out.why-creche {
+    --ok: var(--yellow);
+}
+.slot-out.why-lesao,
+.slot-out.why-fora {
+    --ok: #ff6b4c;
+}
+.slot-out.why-cansado {
+    --ok: #ffa04c;
+}
+@keyframes slot-out-in {
+    from {
+        opacity: 0;
+    }
+}
+
+/* Hall da Fama: Relâmpago e Rota em blocos separados, cada um com a sua taça */
+.hall-groups {
+    display: grid;
+    gap: 18px;
+}
+.hall-group-h {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px;
+    font-size: 13px;
+    text-transform: uppercase;
+}
+.hall-group-h .muted {
+    margin-left: auto;
 }

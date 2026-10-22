@@ -1,3 +1,7 @@
+---
+description: Referências de jogos onde o jogador decide durante a simulação.
+---
+
 # Agência do técnico durante a partida simulada: referências (pesquisa web, 18/10/2026)
 
 Como ler: cada item diz **o que o jogador decide · quando · custo/limite · o que funciona / do que reclamam**.

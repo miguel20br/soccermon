@@ -1,3 +1,7 @@
+---
+description: Como a branch pronta chega ao ar: CI, fila própria e trilhas rápida e completa.
+---
+
 # Esteira: da branch pronta ao ar (19/10/2026)
 
 Regras 2, 3, 4, 6, 7 e 9 de "Regras de velocidade" do `CLAUDE.md` (pesquisa em

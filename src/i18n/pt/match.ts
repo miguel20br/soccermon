@@ -231,39 +231,39 @@ export const match = {
         // times da Rota (classes de treinador de Kanto, docs/planos/campeonato.md)
         bugcatcher: {
             name: 'Caçador de Insetos',
-            pre: 'Meus insetos estão com fome de gol!',
-            win: 'Viu só? Inseto pequeno pica forte!',
-            lose: 'Ah, não! Volto pra floresta treinar mais.',
+            pre: 'Ei, você tem Pokémon! Meus insetos tão com fome de gol!',
+            win: 'Viu? Inseto também faz gol!',
+            lose: 'Ah, não! Volto pra floresta treinar.',
         },
         hiker: {
             name: 'Montanhista',
-            pre: 'Já subi o Mt. Moon três vezes. Você é só mais uma pedra.',
+            pre: 'Hahaha! Quero ver você jogar, pequeno!',
             win: 'Firme como a montanha! Hahaha!',
-            lose: 'Essa doeu mais que escalada sem corda.',
+            lose: 'Ufa! Você é mais duro que pedra!',
         },
         swimmer: {
             name: 'Nadador',
-            pre: 'Na Rota 19 a gente nada contra a corrente. E ganha.',
+            pre: 'Ei! A água tá ótima hoje!',
             win: 'Te deixei na marola!',
             lose: 'Engoli água... você joga bem.',
         },
         rocket: {
             name: 'Equipe Rocket',
             pre: 'Prepare-se para encrenca... e encrenca em dobro!',
-            win: 'A Equipe Rocket decola de novo... pra vitória!',
+            win: 'Hah! Essa foi da Equipe Rocket!',
             lose: 'A Equipe Rocket decolou de novo...',
         },
         birdkeeper: {
             name: 'Ornitólogo',
-            pre: 'Meus pássaros enxergam a quadra inteira lá de cima.',
-            win: 'Voo livre até o gol!',
+            pre: 'Meus pássaros veem tudo lá de cima!',
+            win: 'Direto do céu pro gol!',
             lose: 'Hoje o vento não ajudou.',
         },
         blackbelt: {
             name: 'Faixa-Preta',
-            pre: 'Disciplina, força e chute. Nessa ordem.',
-            win: 'Mais um treino concluído. Hai!',
-            lose: 'Respeito. Você tem a faixa que eu não tenho.',
+            pre: 'Hai! Meus lutadores não cansam nunca!',
+            win: 'Hai! Treino bom é assim!',
+            lose: 'Uff! Você é forte de verdade.',
         },
         channeler: {
             name: 'Médium',
@@ -274,8 +274,8 @@ export const match = {
         scientist: {
             name: 'Cientista',
             pre: 'Calculei 94% de chance de vitória pra Silph.',
-            win: 'Hipótese confirmada. Vitória.',
-            lose: 'Erro nos cálculos. Vou revisar os dados.',
+            win: 'Exatamente como eu calculei.',
+            lose: 'Impossível! Vou refazer as contas.',
         },
         biker: {
             name: 'Motoqueiro',
@@ -285,7 +285,7 @@ export const match = {
         },
         fisherman: {
             name: 'Pescador',
-            pre: 'Paciência. O gol vem igual peixe: na hora certa.',
+            pre: 'Ei! Não espanta os peixes!',
             win: 'Fisgado! Que peixão!',
             lose: 'Esse escapou do anzol...',
         },

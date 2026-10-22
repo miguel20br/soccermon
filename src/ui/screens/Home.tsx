@@ -17,13 +17,15 @@ import { FriendChallenge } from '../profile/FriendsTab';
 import { TYPE_COLOR } from '../type-colors';
 import { HomeDailyCard } from './Daily';
 import '../home-motion.css';
-import { type CupMode, cupLength, LONG_CUP_LIVE } from '../../store/long-cup';
+import { type CupMode, cupLength, isLong, LONG_CUP_LIVE } from '../../store/long-cup';
 import { ComingSoon } from '../components/ComingSoon';
 import { DoorTiles } from '../components/DoorTiles';
 import { HudIcon } from '../components/MatchHud';
 import { TopActions } from '../components/TopActions';
 
 const DEX_KEY = 'soccermon-dex-last';
+/** Os 8 líderes de ginásio de Kanto, a arte do cartão da Rota Índigo. */
+const GYM_LEADERS = ['brock', 'misty', 'ltsurge', 'erika', 'koga', 'sabrina', 'blaine', 'giovanni'];
 const DEX_TOTAL = 151;
 
 /**
@@ -92,7 +94,7 @@ export function Home() {
     useEffect(() => {
         homeEntered = true;
     }, []);
-    const { run, newRun, go, profile, parkedRuns, resumeParked, discardParked } = useGame();
+    const { run, newRun, go, profile, records, parkedRuns, resumeParked, discardParked } = useGame();
     const { t, d, lang } = useT();
     const notes = patchNotes(lang);
     const [teamName, setTeamName] = useState(profile.clubName || 'Pallet FC');
@@ -138,6 +140,50 @@ export function Home() {
         window.location.search = q;
     };
 
+    /** A Rota Índigo é NOVO até a 1ª Rota (terminada ou em andamento). */
+    const rotaNew = LONG_CUP_LIVE && !records.longCups && !isLong(run);
+    /** Um vermelho por tela: Continuar com copa em andamento; senão a Rota enquanto é NOVO; depois, a Nova copa. */
+    const red = inProgress ? 'resume' : rotaNew ? 'rota' : 'quick';
+    const confirmBox = (
+        <div className="confirm-new">
+            <p>{rich(t('home.confirmNew'), { team: <b>{run?.teamName}</b> })}</p>
+            <div className="row" style={{ justifyContent: 'center' }}>
+                <button
+                    type="button"
+                    className="btn primary"
+                    onClick={() => newRun(name(), confirm ?? undefined, undefined, pendingMode)}
+                >
+                    {t('home.confirmYes')}
+                </button>
+                <button type="button" className="btn ghost" onClick={() => setConfirm(undefined)}>
+                    {t('common.ui.cancel')}
+                </button>
+            </div>
+        </div>
+    );
+    const resumeCard = run && (
+        <button type="button" className="resume-card bc-surface bc-stripe" onClick={() => go(resumeScreen)}>
+            <span className="rc-label bc-tag">{t('home.inProgress')}</span>
+            <b className="rc-team">{run.teamName}</b>
+            <span className="rc-step">{runStep}</span>
+            <span className="rc-path" title={t('home.cupPath')}>
+                {Array.from({ length: cupLength(run) }, (_, i) => `p${i}`).map((st, i) => {
+                    const r = run.results.find((x) => x.stage === i);
+                    const cls = r ? (r.won ? 'won' : 'lost') : i === run.stage ? 'now' : '';
+                    return <i key={st} className={cls} />;
+                })}
+            </span>
+            {squad.length > 0 && (
+                <span className="rc-squad">
+                    {squad.map((p) => (
+                        <img key={p.uid} className="pixel" src={cardSprite(p)} alt="" />
+                    ))}
+                </span>
+            )}
+            <span className="btn primary rc-go">{t('home.resume')}</span>
+        </button>
+    );
+
     return (
         <div className={`home${entering ? ' home-enter' : ''}${HOME_FORTE ? ' home-forte' : ''}`}>
             <div className="home-top">
@@ -156,10 +202,47 @@ export function Home() {
             <DexProgress />
 
             <div className="mode-cards">
+                {LONG_CUP_LIVE && (
+                    <div className="menu panel mode-card rota-card">
+                        <div className="mode-head">
+                            <b>
+                                {t('home.longCup.title')}
+                                {rotaNew && <span className="bc-tag rota-new">{t('profile.news.badge')}</span>}
+                            </b>
+                            <span>{t('home.longCup.line')}</span>
+                        </div>
+                        {confirm !== undefined && pendingMode === 'longa' ? (
+                            confirmBox
+                        ) : (
+                            <>
+                                {inProgress && isLong(run) ? (
+                                    resumeCard
+                                ) : (
+                                    <span className="rota-art" aria-hidden>
+                                        {GYM_LEADERS.map((id) => (
+                                            <img key={id} src={`assets/trainers/${id}.png`} alt="" />
+                                        ))}
+                                    </span>
+                                )}
+                                <button
+                                    type="button"
+                                    className={`btn big cup-go cup-go-long ${red === 'rota' ? 'primary' : 'outline'}`}
+                                    onClick={() => start(undefined, 'longa')}
+                                >
+                                    <span className="cup-go-txt">
+                                        <b>{t('home.longCup.go')}</b>
+                                        <small>{t('home.longCup.tag')}</small>
+                                    </span>
+                                    <HudIcon kind="next" />
+                                </button>
+                            </>
+                        )}
+                    </div>
+                )}
                 <div className="menu panel mode-card cup-card">
                     <div className="mode-head">
-                        <b>{t('duel.cupTitle')}</b>
-                        <span>{t('duel.cupLine')}</span>
+                        <b>{t('home.quickCup.title')}</b>
+                        <span>{t('home.quickCup.line')}</span>
                     </div>
                     {parkedAsk && parkedTarget ? (
                         <div className="confirm-new">
@@ -190,50 +273,11 @@ export function Home() {
                                 </button>
                             </div>
                         </div>
-                    ) : confirm !== undefined ? (
-                        <div className="confirm-new">
-                            <p>{rich(t('home.confirmNew'), { team: <b>{run?.teamName}</b> })}</p>
-                            <div className="row" style={{ justifyContent: 'center' }}>
-                                <button
-                                    type="button"
-                                    className="btn primary"
-                                    onClick={() => newRun(name(), confirm ?? undefined, undefined, pendingMode)}
-                                >
-                                    {t('home.confirmYes')}
-                                </button>
-                                <button type="button" className="btn ghost" onClick={() => setConfirm(undefined)}>
-                                    {t('common.ui.cancel')}
-                                </button>
-                            </div>
-                        </div>
+                    ) : confirm !== undefined && pendingMode !== 'longa' ? (
+                        confirmBox
                     ) : (
                         <>
-                            {inProgress && run && (
-                                <button
-                                    type="button"
-                                    className="resume-card bc-surface bc-stripe"
-                                    onClick={() => go(resumeScreen)}
-                                >
-                                    <span className="rc-label bc-tag">{t('home.inProgress')}</span>
-                                    <b className="rc-team">{run.teamName}</b>
-                                    <span className="rc-step">{runStep}</span>
-                                    <span className="rc-path" title={t('home.cupPath')}>
-                                        {Array.from({ length: cupLength(run) }, (_, i) => `p${i}`).map((st, i) => {
-                                            const r = run.results.find((x) => x.stage === i);
-                                            const cls = r ? (r.won ? 'won' : 'lost') : i === run.stage ? 'now' : '';
-                                            return <i key={st} className={cls} />;
-                                        })}
-                                    </span>
-                                    {squad.length > 0 && (
-                                        <span className="rc-squad">
-                                            {squad.map((p) => (
-                                                <img key={p.uid} className="pixel" src={cardSprite(p)} alt="" />
-                                            ))}
-                                        </span>
-                                    )}
-                                    <span className="btn primary rc-go">{t('home.resume')}</span>
-                                </button>
-                            )}
+                            {inProgress && !isLong(run) && resumeCard}
                             {parked.map((p) => (
                                 <div key={p.seed} className="parked-row">
                                     <span className="pr-text">
@@ -270,36 +314,17 @@ export function Home() {
                                     setTeamName(e.target.value);
                                 }}
                             />
-                            {/* a ação do jogo: "Nova copa" (a Relâmpago) grande e vermelha, largura cheia; a Rota Índigo
-                                é o outro tamanho, em contorno. Com copa em andamento o vermelho é o Continuar. */}
                             <button
                                 type="button"
-                                className={`btn big cup-go ${inProgress ? 'outline' : 'primary'}`}
+                                className={`btn big cup-go cup-go-quick ${red === 'quick' ? 'primary' : 'outline'}`}
                                 onClick={() => start()}
                             >
                                 <span className="cup-go-txt">
                                     <b>{t('home.newCup')}</b>
-                                    <small>
-                                        {t('home.quickCup.title')} · {t('home.quickCup.tag')}
-                                    </small>
+                                    <small>{t('home.quickCup.tag')}</small>
                                 </span>
                                 <HudIcon kind="next" />
                             </button>
-                            {LONG_CUP_LIVE && (
-                                <button
-                                    type="button"
-                                    className="btn outline cup-go cup-go-long"
-                                    onClick={() => start(undefined, 'longa')}
-                                >
-                                    <span className="cup-go-txt">
-                                        <b>{t('home.longCup.title')}</b>
-                                        <small>
-                                            {t('home.longCup.tag')} · {t('home.longCup.short')}
-                                        </small>
-                                    </span>
-                                    <HudIcon kind="next" />
-                                </button>
-                            )}
                             <p
                                 className="cup-event bc-stripe"
                                 style={{ '--tc': TYPE_COLOR[eventType] } as CSSProperties}
@@ -318,24 +343,27 @@ export function Home() {
                         </>
                     )}
                 </div>
-                <div className="panel mode-card duel-card beta-ribbon" data-ribbon={t('duel.beta')}>
-                    <div className="dc-row">
-                        <span className="duel-card-art" aria-hidden>
-                            <img className="pixel" src="assets/cards/25.gif" alt="" />
-                            <b>VS</b>
-                            <img className="pixel flip" src="assets/cards/133.gif" alt="" />
-                        </span>
-                        <div className="mode-head">
-                            <b>{t('duel.title')}</b>
-                            <span>{t('duel.line')}</span>
+                {/* Duelo e Copa do Dia: no PC lado a lado, com a mesma largura e altura */}
+                <div className="mode-pair">
+                    <div className="panel mode-card duel-card beta-ribbon" data-ribbon={t('duel.beta')}>
+                        <div className="dc-row">
+                            <span className="duel-card-art" aria-hidden>
+                                <img className="pixel" src="assets/cards/25.gif" alt="" />
+                                <b>VS</b>
+                                <img className="pixel flip" src="assets/cards/133.gif" alt="" />
+                            </span>
+                            <div className="mode-head">
+                                <b>{t('duel.title')}</b>
+                                <span>{t('duel.line')}</span>
+                            </div>
+                            <button type="button" className="btn dc-go duel-go" onClick={() => go('duel')}>
+                                {t('duel.createRoom')}
+                            </button>
                         </div>
-                        <button type="button" className="btn dc-go duel-go" onClick={() => go('duel')}>
-                            {t('duel.createRoom')}
-                        </button>
+                        <FriendChallenge />
                     </div>
-                    <FriendChallenge />
+                    <HomeDailyCard />
                 </div>
-                <HomeDailyCard />
             </div>
 
             {/* entrar com o Google: embaixo dos modos, pro "Nova copa" ficar na primeira tela do celular */}

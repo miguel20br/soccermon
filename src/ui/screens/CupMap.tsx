@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import {
     FINAL_MATCH,
@@ -24,6 +24,7 @@ import { MenuHead } from '../components/MenuHead';
 import { MonIcon } from '../components/MonIcon';
 import { PmdSprite } from '../components/PmdSprite';
 import { cardSprite } from '../components/PokeCard';
+import { useMedia } from '../components/Prancheta';
 import { Money, SponsorSlots } from '../components/SponsorCard';
 import { portraitSrc } from '../portrait';
 import { useClubColor } from '../profile/club';
@@ -42,8 +43,21 @@ const ICON: Record<NodeKind, HudIconKind> = {
     bau: 'chest',
     final: 'cup',
 };
-/** Altura de cada linha do mapa (px). */
+/** Altura de cada linha do mapa (px) no celular; no desktop a linha cresce até o mapa caber na altura da tela. */
 const ROW_H = 84;
+/** Desktop: mapa à esquerda, ficha da casa e status num painel ao lado. */
+const WIDE = '(min-width: 1000px)';
+/** As casas ficam entre 10% e 90% da largura (as bordas são do cenário e do nome da região). */
+const nodeX = (col: number, width: number) => 10 + ((col + 0.5) / width) * 80;
+
+const useViewportH = () =>
+    useSyncExternalStore(
+        (cb) => {
+            window.addEventListener('resize', cb);
+            return () => window.removeEventListener('resize', cb);
+        },
+        () => window.innerHeight,
+    );
 
 /**
  * Regiões de Kanto no mapa, de baixo pra cima (a história da Copa longa: o clube atravessa Kanto até o Planalto
@@ -91,6 +105,8 @@ export function CupMap() {
     const [walking, setWalking] = useState<string | null>(null);
     const { t, d, lang } = useT();
     const scroller = useRef<HTMLDivElement>(null);
+    const wide = useMedia(WIDE);
+    const vh = useViewportH();
     const map = run?.map;
     const open = useMemo(() => new Set(map ? nextNodes(map, run?.at ?? null).map((n) => n.id) : []), [map, run?.at]);
     // o capitão do rival em cada casa de partida aberta (a mesma conta da janela da casa: o mesmo time)
@@ -114,9 +130,11 @@ export function CupMap() {
     }, []);
 
     if (!run || !map) return null;
-    const H = map.rows * ROW_H;
+    const rowH = wide ? Math.max(72, Math.min(112, Math.floor((vh - 190) / (map.rows + 0.7)))) : ROW_H;
+    const pad = Math.round(rowH * 0.67);
+    const H = map.rows * rowH;
     const width = (row: number) => map.nodes.filter((x) => x.row === row).length;
-    const pos = (n: MapNode) => ({ x: ((n.col + 0.5) / width(n.row)) * 100, y: H - (n.row + 0.5) * ROW_H });
+    const pos = (n: MapNode) => ({ x: nodeX(n.col, width(n.row)), y: H - (n.row + 0.5) * rowH });
     const path = run.path ?? [];
     const walked = new Set(path.slice(1).map((id, i) => `${path[i]}>${id}`));
     const chosen = pick ? map.nodes.find((n) => n.id === pick) : undefined;
@@ -131,7 +149,7 @@ export function CupMap() {
         ? pos(map.nodes.find((n) => n.id === walking)!)
         : run.at
           ? pos(map.nodes.find((n) => n.id === run.at)!)
-          : { x: 50, y: H + 26 };
+          : { x: 50, y: H + pad / 2 };
     const go2 = (id: string) => {
         setPick(null);
         if (reduceMotionOn()) {
@@ -141,137 +159,143 @@ export function CupMap() {
         setWalking(id);
         window.setTimeout(() => enterNode(id), WALK_MS);
     };
+    const cards = run.cards ?? 0;
+    // no desktop a ficha e a fala ficam no painel ao lado; no celular, presas embaixo da tela
+    const sheet = chosen && !walking && (
+        <NodeSheet
+            key={chosen.id}
+            node={chosen}
+            seed={run.seed}
+            faced={run.opponents.filter(Boolean).map((o) => o.name)}
+            shift={run.rivalShift ?? 0}
+            lang={lang}
+            onGo={() => go2(chosen.id)}
+        />
+    );
+    const story = untold && !chosen && (
+        <div key={untold.id} className={`cm-story who-${untold.who}`}>
+            <img className="cm-story-who" src={`assets/trainers/${untold.who}.png`} alt="" />
+            <RoomDialog
+                text={`${d.longCup.story[untold.id].who}: ${d.longCup.story[untold.id].text}`}
+                action={{ label: t('longCup.storyNext'), run: () => tell(untold.id) }}
+                onClose={() => tell(untold.id)}
+            />
+        </div>
+    );
 
     return (
-        <div className={`menu-screen cm${chosen ? ' has-sheet' : ''}`}>
+        <div className={`menu-screen cm cm-route${chosen ? ' has-sheet' : ''}`}>
             <MenuHead
                 title={t('longCup.title')}
                 icon="liga"
                 tag={t('longCup.step', { n: Math.min(played + 1, cupLength(run)), total: cupLength(run) })}
                 onBack={() => go('home')}
             />
-            <div className="cm-status bc-surface">
-                <Money n={run.money ?? 0} className="cm-money" />
-                <span
-                    className={`cm-cards${(run.cards ?? 0) > 0 ? ' used' : ''}`}
-                    title={t('longCup.cardsHint')}
-                    aria-label={`${t('longCup.cards')}: ${run.cards ?? 0}/${YELLOW_CARDS}`}
-                    role="img"
-                >
-                    <HudIcon kind="yellow" />
-                    {run.cards ?? 0}/{YELLOW_CARDS}
-                </span>
-                {!!run.sponsors?.length && <SponsorSlots sponsors={run.sponsors} />}
-            </div>
+            <div className="cm-body">
+                <aside className="cm-side">
+                    <div className="cm-status bc-surface">
+                        <Money n={run.money ?? 0} className="cm-money" />
+                        <span
+                            className={`cm-cards${cards > 0 ? ' used' : ''}`}
+                            title={t('longCup.cardsHint')}
+                            aria-label={`${t('longCup.cards')}: ${cards}/${YELLOW_CARDS}`}
+                            role="img"
+                        >
+                            <i className={`cm-card${cards > 0 ? ' on' : ''}`} />
+                            {cards}/{YELLOW_CARDS}
+                        </span>
+                        {/* a regra do amarelo aparece no começo da Rota; depois, só quando o cartão cai */}
+                        {played === 0 && <small className="cm-rule">{t('longCup.cardsHint')}</small>}
+                        {!!run.sponsors?.length && <SponsorSlots sponsors={run.sponsors} />}
+                    </div>
+                    {wide && (sheet || story || <p className="cm-choose muted">{t('longCup.choose')}</p>)}
+                </aside>
 
-            <div className="cm-scroll" ref={scroller}>
-                <div className="cm-map" style={{ height: H + 56 }}>
-                    {REGIONS.map((r) => {
-                        const top = H - (r.rows[1] + 1) * ROW_H;
-                        const h = (r.rows[1] - r.rows[0] + 1) * ROW_H + (r.rows[0] === 0 ? 56 : 0);
-                        return (
-                            <div key={r.id} className={`cm-region rg-${r.id}`} style={{ top, height: h }}>
-                                <span className="cm-region-name">{d.longCup.region[r.id as RegionId]}</span>
-                                {DECOR_SPOTS.map((p) => (
-                                    <svg
-                                        key={`${p.x}-${p.y}`}
-                                        className={`cm-decor d-${r.decor}`}
-                                        viewBox="0 0 32 32"
-                                        style={{ left: `${p.x}%`, top: `${p.y}%` } as CSSProperties}
-                                        aria-hidden
-                                    >
-                                        <path d={DECOR[r.decor]} />
-                                    </svg>
-                                ))}
-                            </div>
-                        );
-                    })}
-                    <svg className="cm-lines" viewBox={`0 0 100 ${H + 56}`} preserveAspectRatio="none" aria-hidden>
-                        {map.nodes.flatMap((n) =>
-                            n.next.map((id) => {
-                                const to = map.nodes.find((x) => x.id === id)!;
-                                const a = pos(n);
-                                const b = pos(to);
-                                return (
-                                    <line
-                                        key={`${n.id}>${id}`}
-                                        className={walked.has(`${n.id}>${id}`) ? 'walked' : ''}
-                                        x1={a.x}
-                                        y1={a.y}
-                                        x2={b.x}
-                                        y2={b.y}
-                                        vectorEffect="non-scaling-stroke"
-                                    />
-                                );
-                            }),
+                <div className="cm-scroll" ref={scroller}>
+                    <div className="cm-map" style={{ height: H + pad }}>
+                        {REGIONS.map((r) => {
+                            const top = H - (r.rows[1] + 1) * rowH;
+                            const h = (r.rows[1] - r.rows[0] + 1) * rowH + (r.rows[0] === 0 ? pad : 0);
+                            return (
+                                <div key={r.id} className={`cm-region rg-${r.id}`} style={{ top, height: h }}>
+                                    <span className="cm-region-name">{d.longCup.region[r.id as RegionId]}</span>
+                                    {DECOR_SPOTS.map((p) => (
+                                        <svg
+                                            key={`${p.x}-${p.y}`}
+                                            className={`cm-decor d-${r.decor}`}
+                                            viewBox="0 0 32 32"
+                                            style={{ left: `${p.x}%`, top: `${p.y}%` } as CSSProperties}
+                                            aria-hidden
+                                        >
+                                            <path d={DECOR[r.decor]} />
+                                        </svg>
+                                    ))}
+                                </div>
+                            );
+                        })}
+                        <svg className="cm-lines" viewBox={`0 0 100 ${H + pad}`} preserveAspectRatio="none" aria-hidden>
+                            {map.nodes.flatMap((n) =>
+                                n.next.map((id) => {
+                                    const to = map.nodes.find((x) => x.id === id)!;
+                                    const a = pos(n);
+                                    const b = pos(to);
+                                    return (
+                                        <line
+                                            key={`${n.id}>${id}`}
+                                            className={walked.has(`${n.id}>${id}`) ? 'walked' : ''}
+                                            x1={a.x}
+                                            y1={a.y}
+                                            x2={b.x}
+                                            y2={b.y}
+                                            vectorEffect="non-scaling-stroke"
+                                        />
+                                    );
+                                }),
+                            )}
+                        </svg>
+                        {map.nodes.map((n) => {
+                            const p = pos(n);
+                            const isOpen = open.has(n.id) && !walking;
+                            const state =
+                                n.id === run.at ? ' at' : path.includes(n.id) ? ' done' : isOpen ? ' open' : '';
+                            return (
+                                <button
+                                    key={n.id}
+                                    type="button"
+                                    className={`cm-node k-${n.kind}${state}${pick === n.id ? ' picked' : ''}`}
+                                    style={{ left: `${p.x}%`, top: p.y } as CSSProperties}
+                                    disabled={!isOpen}
+                                    aria-label={t(`longCup.kind.${n.kind}`)}
+                                    onClick={() => {
+                                        setPick(pick === n.id ? null : n.id);
+                                    }}
+                                >
+                                    <HudIcon kind={ICON[n.kind]} />
+                                    {rivalIcons.has(n.id) && (
+                                        <MonIcon
+                                            className="cm-node-rival"
+                                            id={rivalIcons.get(n.id)!.speciesId}
+                                            shiny={rivalIcons.get(n.id)!.shiny}
+                                        />
+                                    )}
+                                    <span className="cm-label">{t(`longCup.kind.${n.kind}`)}</span>
+                                </button>
+                            );
+                        })}
+                        {captain && (
+                            <img
+                                className={`cm-me pixel${walking ? ' walking' : ''}`}
+                                src={cardSprite(captain)}
+                                alt=""
+                                style={{ left: `${here.x}%`, top: here.y } as CSSProperties}
+                            />
                         )}
-                    </svg>
-                    {map.nodes.map((n) => {
-                        const p = pos(n);
-                        const isOpen = open.has(n.id) && !walking;
-                        const state = n.id === run.at ? ' at' : path.includes(n.id) ? ' done' : isOpen ? ' open' : '';
-                        return (
-                            <button
-                                key={n.id}
-                                type="button"
-                                className={`cm-node k-${n.kind}${state}${pick === n.id ? ' picked' : ''}`}
-                                style={{ left: `${p.x}%`, top: p.y } as CSSProperties}
-                                disabled={!isOpen}
-                                aria-label={t(`longCup.kind.${n.kind}`)}
-                                onClick={() => {
-                                    setPick(pick === n.id ? null : n.id);
-                                }}
-                            >
-                                <HudIcon kind={ICON[n.kind]} />
-                                {rivalIcons.has(n.id) && (
-                                    <MonIcon
-                                        className="cm-node-rival"
-                                        id={rivalIcons.get(n.id)!.speciesId}
-                                        shiny={rivalIcons.get(n.id)!.shiny}
-                                    />
-                                )}
-                                <span className="cm-label">{t(`longCup.kind.${n.kind}`)}</span>
-                            </button>
-                        );
-                    })}
-                    {captain && (
-                        <img
-                            className={`cm-me pixel${walking ? ' walking' : ''}`}
-                            src={cardSprite(captain)}
-                            alt=""
-                            style={{ left: `${here.x}%`, top: here.y } as CSSProperties}
-                        />
-                    )}
+                    </div>
                 </div>
             </div>
 
-            {chosen &&
-                !walking &&
-                createPortal(
-                    <NodeSheet
-                        key={chosen.id}
-                        node={chosen}
-                        seed={run.seed}
-                        faced={run.opponents.filter(Boolean).map((o) => o.name)}
-                        shift={run.rivalShift ?? 0}
-                        lang={lang}
-                        onGo={() => go2(chosen.id)}
-                    />,
-                    document.body,
-                )}
-            {untold &&
-                !chosen &&
-                createPortal(
-                    <div className={`cm-story who-${untold.who}`}>
-                        <img className="cm-story-who" src={`assets/trainers/${untold.who}.png`} alt="" />
-                        <RoomDialog
-                            text={`${d.longCup.story[untold.id].who}: ${d.longCup.story[untold.id].text}`}
-                            action={{ label: t('longCup.storyNext'), run: () => tell(untold.id) }}
-                            onClose={() => tell(untold.id)}
-                        />
-                    </div>,
-                    document.body,
-                )}
+            {!wide && sheet && createPortal(sheet, document.body)}
+            {!wide && story && createPortal(story, document.body)}
         </div>
     );
 }
@@ -553,7 +577,7 @@ export function EventScreen() {
                         >
                             <span>
                                 <b>{label}</b>
-                                <small>{effect}</small>
+                                {effect && <small>{effect}</small>}
                             </span>
                             {c.cost !== 0 && (
                                 <span className={`money ${c.cost > 0 ? 'cost' : 'gain'}`}>

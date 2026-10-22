@@ -344,6 +344,14 @@ export const ICONS = {
     paw: 'M7 11a2 2 0 1 0 0-.01M17 11a2 2 0 1 0 0-.01M10 7a2 2 0 1 0 0-.01M14 7a2 2 0 1 0 0-.01M8 18c0-3 2-5 4-5s4 2 4 5c0 1.5-1.5 2-4 2s-4-.5-4-2z',
     dumbbell: 'M3 9v6M6 6v12M18 6v12M21 9v6M6 12h12',
     yellow: 'M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z',
+    // formações (src/ui/formation-info.ts; o Ferrolho usa o cadeado)
+    fDiamond: 'M12 3l8 9-8 9-8-9z',
+    fSquare: 'M4 4h16v16H4zM12 16V8M8.5 11.5L12 8l3.5 3.5',
+    fPivot: 'M4 20h4M10 20h4M16 20h4M12 16V5M8 9l4-4 4 4',
+    fRotation: 'M20 12a8 8 0 0 1-14 5.3M4 12a8 8 0 0 1 14-5.3M18 3v3.7h-3.7M6 21v-3.7h3.7',
+    fTwin: 'M7 20V6M3 10l4-4 4 4M17 20V6M13 10l4-4 4 4',
+    // vantagem tática (a formação que encaixa contra a do rival)
+    edge: 'M3 17l6-6 4 4 8-8M15 7h6v6',
 } as const;
 export type HudIconKind = keyof typeof ICONS;
 

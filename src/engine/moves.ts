@@ -814,10 +814,10 @@ const DUP_RULE_SKIP = new Set([77, 114]);
 const MOVESET_CACHE = new Map<number, readonly string[]>();
 
 /**
- * Protótipo (desligado, para o Miguel decidir): espécies SEM relação não dividem 3 ou 4 golpes do moveset padrão.
+ * Espécies SEM relação não dividem 3 ou 4 golpes do moveset padrão (aprovado pelo Miguel, ENGINE_VERSION 9).
  * Ligado, o `defaultMoveset` usa `uniqueMovesets()`. Ver docs/planos/golpes-revisao.md, seção 8.
  */
-export const UNIQUE_MOVESETS = false;
+export const UNIQUE_MOVESETS = true;
 
 export function defaultMoveset(sp: Species): string[] {
     if (FIXED_MOVESET[sp.id]) return [...FIXED_MOVESET[sp.id]];
@@ -839,6 +839,12 @@ const lineRoot = (id: number): number => {
     return p && p <= 151 ? lineRoot(p) : id;
 };
 
+/**
+ * Fora da unicidade (Miguel, 21/10/2026), junto com os pares deles: a troca deixaria o Wigglytuff estranho e o Staryu
+ * mais fraco. Ficam as 8 trocas aprovadas.
+ */
+const UNIQUE_SKIP = new Set([40, 120]);
+
 let uniqueCache: Map<number, string[]> | null = null;
 /**
  * Regra da unicidade (protótipo): quando duas espécies de linhas evolutivas diferentes dividem 3 ou 4 golpes, a de
@@ -857,7 +863,8 @@ export function uniqueMovesets(): Map<number, string[]> {
         let changed = false;
         for (const a of mons)
             for (const b of mons) {
-                if (b.id <= a.id || lineRoot(a.id) === lineRoot(b.id)) continue;
+                if (b.id <= a.id || lineRoot(a.id) === lineRoot(b.id) || UNIQUE_SKIP.has(a.id) || UNIQUE_SKIP.has(b.id))
+                    continue;
                 const ma = sets.get(a.id)!;
                 const mb = sets.get(b.id)!;
                 if (shared(ma, mb).length < 3) continue;
