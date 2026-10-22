@@ -1,6 +1,6 @@
 import { FUTSAL_5 } from '../engine/config';
 import { type MapRegion, nodeById, regionOfRow, rivalTrainer } from '../engine/cup-map';
-import { playMusic, prefetchMusic, startMusicLifecycle, type TrackId } from '../game/music';
+import { playMusic, startMusicLifecycle, type TrackId } from '../game/music';
 import { type Screen, useGame } from '../store/game-store';
 
 /** Faixa de cada tela (sem entrada = silêncio). A partida escolhe a dela por `matchMusic`. */
@@ -48,7 +48,6 @@ export function matchMusic(m: {
     const k = (m.minute - (m.half - 1) * h) / h;
     const nivel = k < 1 / 3 ? 'nivel1' : k < 2 / 3 ? 'nivel2' : 'nivel3';
     const id = `partida-${own ? `${own}-` : ''}${m.half === 2 ? '2t' : '1t'}` as TrackId;
-    if (m.half === 2) prefetchMusic('virada', 'virada-pressao');
     playMusic(id, m.ended ? 'fim' : m.half === 2 && m.pressure ? 'pressao' : nivel);
 }
 
@@ -78,7 +77,8 @@ export function startMusicSync() {
     startMusicLifecycle();
     playMusic(trackOf(useGame.getState()));
     useGame.subscribe((s, prev) => {
-        if (s.screen !== prev.screen || (s.screen !== 'match' && s.run?.status !== prev.run?.status))
-            playMusic(trackOf(s));
+        // a partida pede a dela (`matchMusic`): sem o silêncio no meio, a troca da Escalação cai no tempo
+        if (s.screen === 'match') return;
+        if (s.screen !== prev.screen || s.run?.status !== prev.run?.status) playMusic(trackOf(s));
     });
 }
