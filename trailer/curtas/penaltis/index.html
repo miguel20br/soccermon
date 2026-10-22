@@ -8,6 +8,12 @@
   e o SOC-CER-MON explode com o logo piscando (como no trailer v3). Tempos: C.T(compasso, linha).
   Placar da música: gol, gol | gol, gol | trave, gol (2 a 3) | gol, defesa (3 a 3) | gol, defesa (4 a 3).
   Render: npx hyperframes render penaltis -q high -w 1 --no-browser-gpu (com a GPU deu "Unable to capture screenshot").
+  v2 (pedido do Miguel: "falta ficar mais claro pra quem a gente tem que torcer"): a gente é vermelho (a cor padrão
+  do clube no jogo), o rival é azul. O placar abre grande como apresentação (SEU TIME × RIVAL) e sobe pro alto; cada
+  batedor tem a etiqueta do time em cima da cabeça e o anel da cor no pé; a linha de quem bate acende; a nossa
+  torcida embaixo segura a faixa "SEM MEDO DE MEWTWO" (frase de faixa do jogo); a deles fica pequena e azul atrás
+  do gol e só pula nos gols deles (o som dela já vinha de longe na música); "NOSSO GOLEIRO" no Hitmonchan na 1ª
+  cobrança deles e no compasso parado antes da última.
 -->
 <html lang="pt-BR">
 <head>
@@ -19,17 +25,30 @@
 <script src="midia/som/penaltis.js"></script>
 <script src="comum.js"></script>
 <style>
-#pulso { position: absolute; inset: 0; z-index: 36; opacity: 0; pointer-events: none;
+#pulso, #pulso-e { position: absolute; inset: 0; z-index: 36; opacity: 0; pointer-events: none;
   background: radial-gradient(ellipse at 50% 50%, transparent 50%, rgb(120 0 30 / 70%) 100%); }
-#placar { position: absolute; left: 225px; width: 630px; top: 150px; z-index: 45; box-sizing: border-box; padding: 18px 26px;
-  background: #10183d; border: 6px solid #f8f8f0; border-radius: 18px; box-shadow: 0 0 0 5px #0e1430, 0 12px 0 rgb(0 0 0 / 35%); opacity: 0; }
-#placar .linha { display: flex; align-items: center; gap: 16px; height: 86px; }
-#placar img { width: 76px; height: 76px; image-rendering: pixelated; border: 4px solid #f8f8f0; border-radius: 10px; background: #2a3a7a; margin-right: 14px; }
-#placar .p { position: relative; width: 62px; height: 62px; border-radius: 50%; box-sizing: border-box; border: 5px solid #5a679e; background: #0b1130; }
+#pulso-e { background: radial-gradient(ellipse at 50% 50%, transparent 50%, rgb(10 40 140 / 70%) 100%); }
+/* a gente: vermelho (cor padrão do clube, CLUB_COLORS) · o rival: azul */
+#nos { --c: #e8423f; --t: #ff6f66; }
+#eles { --c: #2f6fde; --t: #7fa8f0; }
+#placar { position: absolute; left: 110px; width: 860px; top: 150px; z-index: 47; box-sizing: border-box; padding: 16px 20px;
+  background: #10183d; border: 6px solid #f8f8f0; border-radius: 18px; box-shadow: 0 0 0 5px #0e1430, 0 12px 0 rgb(0 0 0 / 35%); opacity: 0; transform-origin: 50% 0; }
+#placar .linha { display: flex; align-items: center; gap: 12px; height: 86px; padding-left: 12px; border-left: 14px solid var(--c); border-radius: 8px; background: rgb(255 255 255 / 0%); }
+#placar .linha + .linha { margin-top: 8px; }
+#placar img { width: 72px; height: 72px; image-rendering: pixelated; border: 4px solid var(--c); border-radius: 10px; background: #2a3a7a; }
+#placar .nome { width: 240px; font-size: 40px; letter-spacing: 1px; color: var(--t); white-space: nowrap; }
+#placar .n { width: 64px; text-align: right; font-size: 72px; color: var(--t); text-shadow: 0 6px 0 #0e1430; }
+#placar .p { position: relative; width: 54px; height: 54px; border-radius: 50%; box-sizing: border-box; border: 5px solid #5a679e; background: #0b1130; }
 #placar .p i { position: absolute; inset: -5px; border-radius: 50%; opacity: 0; }
-#placar .p .g { background: #ffcb05; border: 5px solid #0e1430; box-sizing: border-box; }
-#placar .p .e { background: #e8423f; border: 5px solid #0e1430; box-sizing: border-box; }
-#placar .p .e::before, #placar .p .e::after { content: ""; position: absolute; left: 50%; top: 50%; width: 34px; height: 8px; margin: -4px 0 0 -17px; background: #fff; border-radius: 3px; transform: rotate(45deg); }
+#placar .p .g { background: var(--c); border: 5px solid #f8f8f0; box-sizing: border-box; }
+#placar .p .e { background: #3a3f4b; border: 5px solid #0e1430; box-sizing: border-box; }
+#placar .p .e::before, #placar .p .e::after { content: ""; position: absolute; left: 50%; top: 50%; width: 30px; height: 7px; margin: -3.5px 0 0 -15px; background: #fff; border-radius: 3px; transform: rotate(45deg); }
+/* etiqueta do time (em cima do batedor; "NOSSO GOLEIRO" embaixo do Hitmonchan) */
+.rotulo { position: absolute; left: 0; width: 0; height: 0; opacity: 0; }
+.rotulo span { position: absolute; left: 0; bottom: 0; transform: translateX(-50%); padding: 6px 18px 4px; border-radius: 10px; border: 5px solid #f8f8f0;
+  background: var(--c); color: #fff; font-size: 40px; letter-spacing: 2px; white-space: nowrap; box-shadow: 0 0 0 4px #0e1430, 0 8px 0 #0e1430; }
+.faixa { position: absolute; left: 70px; width: 940px; top: 1828px; height: 84px; z-index: 53; box-sizing: border-box; display: flex; align-items: center; justify-content: center;
+  background: #e8423f; border: 5px solid #f8f8f0; border-radius: 8px; box-shadow: 0 0 0 4px #0e1430, 0 8px 0 #8c1d1b; color: #fff; font-size: 50px; letter-spacing: 3px; }
 #placar .p .e::after { transform: rotate(-45deg); }
 #apito { position: absolute; left: 0; top: 0; z-index: 46; opacity: 0; }
 #time-final { position: absolute; inset: 0; }
@@ -41,11 +60,13 @@
   <div id="cena" class="clip" data-start="0" data-duration="48.434">
     <div id="cam" class="camada"></div>
     <div id="pulso"></div>
-    <div id="frente" class="camada" style="z-index:50"></div>
+    <div id="pulso-e"></div>
+    <div id="frente" class="camada" style="z-index:50"><div class="faixa" id="faixa">SEM MEDO DE MEWTWO</div></div>
     <div id="placar">
-      <div class="linha" id="nos"><img src="midia/25.png" alt="" /></div>
-      <div class="linha" id="eles"><img src="midia/150.png" alt="" /></div>
+      <div class="linha" id="nos"><img src="midia/25.png" alt="" /><span class="nome">SEU TIME</span><span class="b" style="display:contents"></span><span class="n" id="nos-n">0</span></div>
+      <div class="linha" id="eles"><img src="midia/150.png" alt="" /><span class="nome">RIVAL</span><span class="b" style="display:contents"></span><span class="n" id="eles-n">0</span></div>
     </div>
+    <div class="rotulo" id="goleiro" style="--c:#e8423f;z-index:46"><span>NOSSO GOLEIRO</span></div>
     <svg id="apito" width="180" height="125" viewBox="0 0 26 18"><g stroke="#0e1430" stroke-width="1.6" stroke-linejoin="round" fill="#f8f8f0"><path d="M3 9a6 6 0 1 0 12 0V6h9V3H9A6 6 0 0 0 3 9z"/><rect x="7" y="7" width="4" height="4" rx="1" fill="#0e1430"/></g></svg>
     <div class="legenda" id="gancho" style="top:120px;height:260px"><span>DISPUTA DE <b>PÊNALTIS</b></span></div>
   </div>
@@ -77,25 +98,59 @@
     ];
     const ZOOM = [1, 1.08, 1.16, 1.25, 1.35];
     const placar = { nos: 0, eles: 0 };
-    for (const lado of ['nos', 'eles']) for (let k = 0; k < 5; k++) document.getElementById(lado).insertAdjacentHTML('beforeend', `<div class="p"><i class="g" id="${lado}-g${k}"></i><i class="e" id="${lado}-e${k}"></i></div>`);
+    for (const lado of ['nos', 'eles']) for (let k = 0; k < 5; k++) document.querySelector(`#${lado} .b`).insertAdjacentHTML('beforeend', `<div class="p"><i class="g" id="${lado}-g${k}"></i><i class="e" id="${lado}-e${k}"></i></div>`);
+    const gols = { nos: 0, eles: 0 };
     const marcar = (lado, ok, t) => {
       const el = `#${lado}-${ok ? 'g' : 'e'}${placar[lado]++}`;
       tl.set(el, { opacity: 1 }, t);
       tl.fromTo(el, { scale: 1.8 }, { scale: 1, duration: 0.25, ease: 'back.out(3)', immediateRender: false }, t);
+      if (!ok) return;
+      tl.set(`#${lado}-n`, { textContent: ++gols[lado] }, t);
+      tl.fromTo(`#${lado}-n`, { scale: 1.7 }, { scale: 1, duration: 0.3, ease: 'back.out(3)', immediateRender: false }, t);
+    };
+    // cor do time: anel no pé (no lugar da sombra) e etiqueta em cima da cabeça
+    const COR = { nos: '#e8423f', eles: '#2f6fde' };
+    const anelPe = (a, lado) => {
+      a.sh.style.background = `${COR[lado]}66`;
+      a.sh.style.border = `6px solid ${COR[lado]}`;
+      a.sh.style.boxSizing = 'border-box';
+    };
+    const etiqueta = (a, lado) => {
+      const W = SPR[a.id].anims.Walk;
+      const r = div(a.el, 'rotulo', `--c:${COR[lado]};top:${-W.pe * W.h * a.escala + 6}px`);
+      r.innerHTML = `<span>${lado === 'nos' ? 'SEU TIME' : 'RIVAL'}</span>`;
+      return r;
+    };
+    anelPe(GOLEIRO.nos, 'nos');
+    anelPe(GOLEIRO.eles, 'eles');
+    // a torcida deles: pequena, azul e lá longe, atrás do gol (pula só nos gols deles)
+    const longe = [[175, 585], [265, 570], [355, 585], [725, 585], [815, 570], [905, 585]].map(([x, y], i) =>
+      ator(cam, [104, 132, 60, 19, 43, 113][i], { escala: 3, z: 5, sombra: false, x, y }));
+    for (const a of longe) a.el.style.filter = 'grayscale(1) brightness(0.75) sepia(1) hue-rotate(185deg) saturate(4)';
+    longe.forEach((a, i) => anim(tl, a, 'Idle', 0, 0, T(21, 0), { de: i % 4 }));
+    const nosGoleiro = (t0, t1, zoom, tam = 1) => {
+      tl.set('#goleiro', { x: 540, y: 700 + (PE_GOL + 92 - 700) * zoom }, t0);
+      tl.fromTo('#goleiro', { opacity: 1, scale: 0.3 }, { scale: tam, duration: 0.22, ease: 'back.out(3)', immediateRender: false }, t0);
+      tl.to('#goleiro', { opacity: 0, duration: 0.15 }, t1 - 0.15);
     };
     const mover = (a, t0, t1, x, y, ease = 'none') => tl.to(a.el, { x, y, duration: t1 - t0, ease }, t0);
     const pulo = (a, t, h, d = 0.25) => tl.to(a.corpo, { keyframes: { y: [-h, 0] }, duration: d, ease: 'power1.inOut' }, t);
 
-    // ===== gancho e placar =====
+    // ===== gancho: o placar abre grande como apresentação (SEU TIME × RIVAL) e sobe pro alto =====
     tl.from('#gancho', { y: 60, scale: 0.8, opacity: 0, duration: 0.22, ease: 'back.out(2.5)' }, 0.03);
     tl.to('#gancho', { opacity: 0, y: -40, duration: 0.2 }, T(0, 12));
-    tl.fromTo('#placar', { y: -80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, T(0, 13));
+    tl.fromTo('#placar', { y: 330, scale: 0.6, opacity: 0 }, { y: 330, scale: 1.12, opacity: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, 0.1);
+    tl.from('#nos', { x: -120, opacity: 0, duration: 0.2, ease: 'power2.out' }, 0.25);
+    tl.from('#eles', { x: 120, opacity: 0, duration: 0.2, ease: 'power2.out' }, 0.45);
+    tl.to('#placar', { y: 0, scale: 1, duration: 0.3, ease: 'power2.inOut' }, T(0, 12));
     torcidaAnim(tl, fila, 'Idle', 0, T(19, 0));
 
     COBRANCAS.forEach(([c, id, lado, res, canto], n) => {
       const ultima = n === 9;
       const rodada = Math.floor(n / 2);
       const bat = ator(cam, id, { escala: 8, z: 14, x: 590, y: 1630, opacity: 0 });
+      anelPe(bat, lado);
+      const rot = etiqueta(bat, lado);
       const gol = GOLEIRO[lado === 'nos' ? 'eles' : 'nos'];
       const t0 = T(c, 0);
       const tk = T(ultima ? c + 2 : c + 1, 0); // a última tem o compasso de silêncio no meio
@@ -114,13 +169,19 @@
       tl.to(cam, { scale: ZOOM[rodada] + 0.07, duration: T(c + 1, 0) - t0, ease: 'none' }, t0);
       tl.fromTo('#apito', { x: 150, y: 470, scale: 0.4, rotation: -20, opacity: 1 }, { scale: 1, rotation: 0, duration: 0.18, ease: 'back.out(3)', immediateRender: false }, t0);
       tl.to('#apito', { opacity: 0, duration: 0.15 }, t0 + 0.45);
+      // quem bate: a etiqueta do time na cabeça e a linha dele acesa no placar
+      tl.fromTo(rot, { opacity: 1, scale: 0.3 }, { scale: 1, duration: 0.2, ease: 'back.out(3)', immediateRender: false }, t0 + 0.05);
+      tl.set(rot, { opacity: 0 }, ultima ? T(c + 1, 0) : tk);
+      tl.fromTo(`#${lado}`, { backgroundColor: 'rgb(255 255 255 / 0%)' }, { backgroundColor: lado === 'nos' ? 'rgb(232 66 63 / 30%)' : 'rgb(47 111 222 / 35%)', duration: 0.15, immediateRender: false }, t0);
+      tl.to(`#${lado}`, { backgroundColor: 'rgb(255 255 255 / 0%)', duration: 0.3 }, fim - 0.3);
+      if (n === 1) nosGoleiro(t0 + 0.3, tk, ZOOM[0] + 0.04);
 
       // a corrida: um passo a cada 2 notas das cordas; o coração pulsa a borda; o goleiro balança
       const ts = [0, 2, 4, 6, 8, 10, 12, 14].map((r) => T(c, r));
       passos(tl, bat, 'Walk', 4, ts);
       ts.forEach((t, k) => tl.to(bat.el, { x: 590 - 4 * (k + 1), y: 1630 - 46 * (k + 1), duration: 0.16, ease: 'power2.out' }, t));
       for (const r of [0, 3, 8, 11]) {
-        tl.fromTo('#pulso', { opacity: r % 8 ? 0.5 : 0.8 }, { opacity: 0, duration: 0.28, ease: 'power2.out', immediateRender: false }, T(c, r));
+        tl.fromTo(lado === 'nos' ? '#pulso' : '#pulso-e', { opacity: r % 8 ? 0.5 : 0.8 }, { opacity: 0, duration: 0.28, ease: 'power2.out', immediateRender: false }, T(c, r));
         tl.to(gol.el, { x: 540 + (r % 8 ? 22 : -22), duration: 0.25, ease: 'sine.inOut' }, T(c, r));
       }
       anim(tl, gol, 'Idle', 0, t0, ultima ? T(c + 1, 0) : tk);
@@ -133,6 +194,7 @@
         tl.set('#cam', { filter: 'none' }, tk);
         tl.set(cam, { scale: 1.5 }, tk);
         quadro(tl, gol, 'Idle', 0, 0, ts0);
+        nosGoleiro(ts0 + 0.05, tk, 1.45, 1.3);
       }
 
       // ===== o chute (o quadro do golpe no tk) e o resultado na linha 2 =====
@@ -158,9 +220,13 @@
         if (nosso) {
           torcidaPulo(tl, fila, tr, { h: 90, d: 0.4 });
           torcidaPulo(tl, fila, T(c + 1, 6), { h: 60, d: 0.35 });
+          tl.to('#faixa', { keyframes: { y: [-70, 0] }, duration: 0.4, ease: 'power1.inOut' }, tr);
+          tl.to('#faixa', { keyframes: { y: [-45, 0] }, duration: 0.35, ease: 'power1.inOut' }, T(c + 1, 6));
         } else {
-          // a torcida deles lá longe; a nossa murcha
+          // a torcida deles lá longe pula; a nossa murcha (a faixa baixa)
+          longe.forEach((a, i) => tl.to(a.corpo, { keyframes: { y: [-28, 0, -20, 0] }, duration: 0.7, ease: 'none' }, tr + 0.03 * i));
           fila.forEach((a) => tl.to(a.corpo, { keyframes: { scaleY: [0.86, 0.86, 1] }, duration: 1.4, ease: 'none' }, tr + 0.1));
+          tl.to('#faixa', { keyframes: { y: [24, 24, 0] }, duration: 1.4, ease: 'none' }, tr + 0.1);
         }
         // os metais (linhas 4 e 6): o batedor comemora
         anim(tl, bat, SPR[id].anims.Pose ? 'Pose' : 'Hop', 0, T(c + 1, 4), fim, { loop: false });
@@ -216,7 +282,10 @@
       tl.to(bl.corpo, { keyframes: { y: [-165, -120] }, duration: 0.22, ease: 'power1.inOut' }, T(20, r));
     }
     torcidaAnim(tl, fila, 'Idle', T(20, 3), T(21, 0), { vel: 1.5 });
-    for (const r of [8, 10, 12, 14]) torcidaPulo(tl, fila, T(20, r), { h: 80, d: 0.22, atraso: 0.01 });
+    for (const r of [8, 10, 12, 14]) {
+      torcidaPulo(tl, fila, T(20, r), { h: 80, d: 0.22, atraso: 0.01 });
+      tl.to('#faixa', { keyframes: { y: [-60, 0] }, duration: 0.22, ease: 'power1.inOut' }, T(20, r));
+    }
 
     // ===== a festa: SOC-CER-MON em Mi (logo piscando), sobe um tom pra Fá# (pisca de novo), fecha =====
     const FIM = T(21, 0);
