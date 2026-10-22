@@ -68,7 +68,7 @@
       quadro(tl, sn, 'Walk', 6, k % 4, t);
       tl.to(sn.el, { x: 900 - 110 * (k + 1), duration: 0.3, ease: 'power3.out' }, t);
       tl.fromTo(sn.corpo, { scaleY: 0.92, scaleX: 1.06 }, { scaleY: 1, scaleX: 1, duration: 0.25, ease: 'power2.out', immediateRender: false }, t);
-      treme(tl, '#cena', t, 0.5, 0.25);
+      treme(tl, ['#cam', '#frente'], t, 0.5, 0.25);
       poeira(tl, cam, 900 - 110 * (k + 1), PE_SN + 10, t, { n: 5, r: 90, tam: 30 });
     });
     const tBuum = T(0, 12);
@@ -76,7 +76,7 @@
     tl.to(sn.el, { x: 540, duration: 0.2, ease: 'power1.inOut' }, tBuum - 0.2);
     tl.to(sn.corpo, { keyframes: { y: [-110, 0] }, duration: 0.2, ease: 'power1.inOut' }, tBuum - 0.2);
     tl.fromTo(sn.corpo, { scaleX: 1.28, scaleY: 0.78 }, { scaleX: 1, scaleY: 1, duration: 0.6, ease: 'elastic.out(1, 0.4)', immediateRender: false }, tBuum);
-    treme(tl, '#cena', tBuum, 1.6, 0.4);
+    treme(tl, ['#cam', '#frente'], tBuum, 1.6, 0.4);
     flash(tl, tBuum, 0.3, 0.2);
     poeira(tl, cam, 540, PE_SN + 10, tBuum, { n: 9, r: 300, tam: 44 });
     tl.fromTo('#rede', { scaleY: 1.25 }, { scaleY: 1, duration: 0.5, ease: 'elastic.out(1, 0.3)', immediateRender: false, svgOrigin: '0 0' }, tBuum);
@@ -110,7 +110,7 @@
     const boing = (tb, f) => {
       tl.fromTo(sn.corpo, { scaleX: 1 + 0.22 * f, scaleY: 1 - 0.16 * f }, { scaleX: 1, scaleY: 1, duration: 0.7, ease: 'elastic.out(1.2, 0.25)', immediateRender: false }, tb);
       estouro(tl, cam, 540, BARRIGA - 40, tb, { tam: 200 * f });
-      treme(tl, '#cena', tb, 0.7 * f, 0.3);
+      treme(tl, ['#cam', '#frente'], tb, 0.7 * f, 0.3);
     };
     chute(T(3, 0), T(3, 1));
     boing(T(3, 1), 1);
@@ -167,7 +167,7 @@
     tl.set(sn.corpo, { scaleX: 1, scaleY: 1 }, T(7, 0));
     anim(tl, sn, 'Sleep', 0, T(7, 0), T(13, 0), { id: '143x', vel: 0.5 });
     pulo(sn, T(7, 0), 40, 0.22);
-    treme(tl, '#cena', T(7, 0), 0.5, 0.25);
+    treme(tl, ['#cam', '#frente'], T(7, 0), 0.5, 0.25);
     const NARIZ = { x: SX + 150, y: PE_SN - 120 };
     const ronco = (t, nx = NARIZ.x, ny = NARIZ.y, pai = cam, sobe = 1) => {
       const b = div(pai, 'bolha');
@@ -253,7 +253,7 @@
     tl.set(sn.el, { x: 520 }, tVira);
     anim(tl, sn, 'Sleep', 0, tVira, FIM, { id: '143x', vel: 0.5, flip: true });
     pulo(sn, tVira, 70, 0.25);
-    treme(tl, '#cena', tVira + 0.12, 1.3, 0.35);
+    treme(tl, ['#cam', '#frente'], tVira + 0.12, 1.3, 0.35);
     poeira(tl, cam, 520, PE_SN + 10, tVira + 0.12, { n: 7, r: 240, tam: 40 });
     tl.to('#noite', { opacity: 0.38, duration: 0.6 }, tVira + 0.2);
     ronco(T(14, 3), 520 - 150, PE_SN - 120);
