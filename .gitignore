@@ -54,3 +54,12 @@ supabase/functions/liga/engine.js
 trailer/v2-16x9/midia
 trailer/v2-16x9/.hyperframes/
 trailer/v2-16x9/render/
+trailer/v2/midia
+trailer/v2-abertura/midia
+trailer/v2-abertura/som/
+trailer/v2-abertura/.hyperframes/
+trailer/v2-abertura/render/
+trailer/v2-abertura-16x9/midia
+trailer/v2-abertura-16x9/som
+trailer/v2-abertura-16x9/.hyperframes/
+trailer/v2-abertura-16x9/render/

@@ -1,12 +1,14 @@
 """Gera trailer/v2-16x9/index.html (1920x1080) a partir do trailer/v2/index.html (9:16): mesmos tempos, textos e
 animações; layout próprio pro horizontal (jogo em tela cheia com os clipes recortados em 16:9, cartas lado a lado,
 caixa do Game Boy larga). Rode depois de mexer no 9:16:  python3 trailer/v2/horizontal.py
+Outra pasta (o teste com a Abertura):  python3 trailer/v2/horizontal.py trailer/v2-abertura trailer/v2-abertura-16x9
 Mira e letreiro do golpe: posição do Charizard no clipe golpe-h.mp4 (MIRA abaixo).
 """
-import os, re
+import os, re, sys
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
-s = open(os.path.join(AQUI, "index.html")).read()
+ORIGEM, DESTINO = sys.argv[1:3] if len(sys.argv) > 2 else (AQUI, os.path.join(AQUI, "..", "v2-16x9"))
+s = open(os.path.join(ORIGEM, "index.html")).read()
 MIRA = (os.environ.get("MIRA_X", "905"), os.environ.get("MIRA_Y", "430"))
 
 css = {
@@ -82,5 +84,5 @@ s = re.sub(r'<video id="([a-z-]+)"', r'<video id="\1-h"', s)
 s = s.replace('impacto("#v-defesa"', 'impacto("#v-defesa-h"').replace('impacto("#v-gol"', 'impacto("#v-gol-h"')
 s = s.replace('<img class="jogo" src="midia/saida-vazia.png" style="top:0;box-shadow:none"', '<img class="jogo" src="midia/saida-vazia.png" style="top:0"')
 s = s.replace('<img class="jogo" id="com-times" src="midia/saida.png" style="top:0;box-shadow:none;opacity:0"', '<img class="jogo" id="com-times" src="midia/saida.png" style="top:0;opacity:0"')
-open(os.path.join(AQUI, "..", "v2-16x9", "index.html"), "w").write(s)
-print("trailer/v2-16x9/index.html")
+open(os.path.join(DESTINO, "index.html"), "w").write(s)
+print(os.path.join(DESTINO, "index.html"))
