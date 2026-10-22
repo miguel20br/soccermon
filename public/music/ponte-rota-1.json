@@ -1,0 +1,21 @@
+{
+ "faixa": "ponte-rota-1",
+ "titulo": "Ponte pra rota-1: o baixo a galope e o pizzicato subindo",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 2.102834,
+ "secoes": [
+  {
+   "nome": "ponte",
+   "loop": false,
+   "inicio": 0,
+   "fim": 2,
+   "amostras": [
+    0,
+    88200
+   ],
+   "bpm": 120,
+   "compassos": 1
+  }
+ ]
+}

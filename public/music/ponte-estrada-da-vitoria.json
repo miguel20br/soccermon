@@ -1,0 +1,21 @@
+{
+ "faixa": "ponte-estrada-da-vitoria",
+ "titulo": "Ponte pra estrada-da-vitoria: o taiko em 3-3-2 e o clap 808 seco",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 2.353039,
+ "secoes": [
+  {
+   "nome": "ponte",
+   "loop": false,
+   "inicio": 0,
+   "fim": 1.818186,
+   "amostras": [
+    0,
+    80182
+   ],
+   "bpm": 132,
+   "compassos": 1
+  }
+ ]
+}

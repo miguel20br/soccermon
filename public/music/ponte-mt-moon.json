@@ -1,0 +1,21 @@
+{
+ "faixa": "ponte-mt-moon",
+ "titulo": "Ponte pra mt-moon: as gotas com eco da caverna e o sininho de Clefairy",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 3.363016,
+ "secoes": [
+  {
+   "nome": "ponte",
+   "loop": false,
+   "inicio": 0,
+   "fim": 1.818186,
+   "amostras": [
+    0,
+    80182
+   ],
+   "bpm": 132,
+   "compassos": 1
+  }
+ ]
+}

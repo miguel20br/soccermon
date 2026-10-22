@@ -498,7 +498,9 @@ async function apply() {
     }
     const start = leadIn(loaded, sec)?.inicio ?? sec.inicio;
     const g = gridOf(loaded, sec);
-    const plan = current ? planOf({ move, pending: !!trans, since: since(pair, now) }) : 'tempo';
+    // o pedido pode ter esperado o download: a faixa que soa agora é a que vale pro par
+    const key = current ? `${current.id}>${id}` : pair;
+    const plan = current ? planOf({ move, pending: !!trans, since: since(key, now) }) : 'tempo';
     if (plan === 'corta' && current) {
         // regra 4: cancela a virada e a ponte; a mais nova entra na próxima batida do que está soando
         const at = now + nextBeat(now);
@@ -560,7 +562,7 @@ async function apply() {
             t0 = D + ps.fim;
         }
         trans = { end: t0, fill, ponte: p };
-        lastPair.set(pair, now);
+        lastPair.set(key, now);
         enter(id, loaded, sec, t0, start, IN_S);
         trace(p ? 'ponte' : 'virada', id, now, fillAt, t0);
         if (p) trace('ponte-entra', `ponte-${id}`, now, D, t0);
@@ -576,7 +578,7 @@ async function apply() {
             fill: null,
             ponte: { ...shot(ponteOk.buf, at, ponteOk.shift), g: gridOf(ponteOk, ps) },
         };
-        lastPair.set(pair, now);
+        lastPair.set(key, now);
         enter(id, loaded, sec, at + ps.fim, start, IN_S);
         trace('ponte', id, now, at, at + ps.fim);
         return;

@@ -1,0 +1,21 @@
+{
+ "faixa": "ponte-tema-koga",
+ "titulo": "Ponte pra tema-koga: as bolhas de veneno e o taiko em 3-3-2 (com riser e prato)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 3.451406,
+ "secoes": [
+  {
+   "nome": "ponte",
+   "loop": false,
+   "inicio": 0,
+   "fim": 2,
+   "amostras": [
+    0,
+    88200
+   ],
+   "bpm": 120,
+   "compassos": 1
+  }
+ ]
+}

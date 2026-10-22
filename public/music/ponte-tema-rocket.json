@@ -1,0 +1,21 @@
+{
+ "faixa": "ponte-tema-rocket",
+ "titulo": "Ponte pra tema-rocket: o trio dos três vilões e o baixo na ponta do pé (com riser e prato)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 3.610522,
+ "secoes": [
+  {
+   "nome": "ponte",
+   "loop": false,
+   "inicio": 0,
+   "fim": 2.142857,
+   "amostras": [
+    0,
+    94500
+   ],
+   "bpm": 112,
+   "compassos": 1
+  }
+ ]
+}
