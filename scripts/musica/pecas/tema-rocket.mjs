@@ -5,6 +5,8 @@
 // Forma: intro (2): baixo na ponta do pé e o trio | A (8): o órgão pergunta, os metais respondem embaixo; no fim,
 // SOC-CER-MON em menor, debochado, com três palmas | B (8): "o plano", Lá♭ lídio, órgão e lead trocando de compasso em
 // compasso | A' (8) meio tom acima (Dó# menor) | virada (1) em Sol7b9. Loop do compasso 2 ao fim.
+// Rodada 7: as três palmas do SOC-CER-MON viraram o clap clássico do 808 (I.clap808); o resto igual.
+// Rodada 7b: só o clap mudou: −5 dB, passa-baixa em 6,5 kHz, sala mais molhada e 1 semitom abaixo (debochado).
 import { bass, drum, GANCHO, I, MINOR, mel, padChord, Song, stabs, thirdBelow, transpose } from '../synth.mjs';
 
 export const meta = { titulo: 'Tema da Equipe Rocket', tela: 'Equipe Rocket' };
@@ -28,7 +30,11 @@ export default function temaRocket() {
     const sn = S.part('caixa', I.snare, { drum: true });
     const hh = S.part('chimbal', I.hat, { drum: true, pan: 0.3, gain: 1.4 });
     const bl = S.part('bloco', I.block, { drum: true, pan: -0.3, gain: 1.2 });
-    const gang = S.part('palmas', I.palmas, { drum: true, gain: 2.2, rev: 0.15 });
+    const gang = S.part('palmas', I.clap808.com({ ganho: 0.56, corte: 6500, sala: 0.5, tom: -1 }), {
+        drum: true,
+        gain: 1.6,
+        rev: 0.25,
+    });
     const cr = S.part('crash', I.crash, { drum: true });
 
     const BASS = '0:1 r:1 8:1 r:1 3:1 r:1 4:1 5:2 r:1 s:1 5:1 4:1 3:1 r:2';

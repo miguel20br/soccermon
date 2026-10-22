@@ -1,7 +1,9 @@
 // Campeão v3: mais lenta que a v2 (100 BPM) e misturando as duas: a melodia da v1 ("pam pam-pam PAAM") com o
 // rufar, os tímpanos, as terças e a subida de Dó pra Ré da v2. Final em Ré com nona, arpejo e prato.
 // Rodada 5 (pergunta e resposta): a fanfarra pergunta, a torcida responde com SOC-CER-MON e palmas; no fim, o
-// gancho em Ré no agudo e o "hey hey".
+// gancho em Ré no agudo e o "hey hey". Rodada 7: as palmas viraram o clap clássico do 808 (I.clap808).
+// Rodada 7b: torcida. O clap dobrado (o segundo 11 ms depois e um pouco mais agudo), um de cada lado, −5 dB somados,
+// sem o agudo áspero e com sala curta: atrás dos metais.
 import { arp, bass, drum, GANCHO, I, MAJOR, mel, padChord, Song, thirdBelow } from '../synth.mjs';
 
 export const meta = { titulo: 'Campeão v3', tela: 'Campeão', lufs: -15 };
@@ -18,7 +20,14 @@ export default function campeao() {
     const k = S.part('kick', I.kick, { drum: true });
     const ti = S.part('timp', I.timp, { gain: 0.5, drum: true });
     const cr = S.part('crash', I.crash, { drum: true, pan: 0.2 });
-    const gang = S.part('palmas', I.palmas, { drum: true, gain: 4, rev: 0.2 });
+    const clap = I.clap808.com({ ganho: 0.4, corte: 6500, sala: 0.3 });
+    const gang = S.part('palmas', clap, { drum: true, pan: -0.4, gain: 2.2, rev: 0.15 });
+    const gang2 = S.part('palmas2', clap.com({ atraso: 0.011, tom: 0.4 }), {
+        drum: true,
+        pan: 0.4,
+        gain: 2.2,
+        rev: 0.15,
+    });
 
     drum(sn, 0, 1, 'oooooooxxxxxXXXX');
     drum(ti, 0, 1, 'X.......X...X.X.');
@@ -39,8 +48,10 @@ export default function campeao() {
     mel(br, 6, ['D6:16', 'D6:12 r:4']);
     mel(br2, 6, ['A5:16', 'A5:12 r:4']);
     mel(lead, 6, ['r:8 F#6:2 A6:2 D7:4', GANCHO.em({ tom: 2 })]);
-    drum(gang, 3, 1, 'X..X..X.....X.X.');
-    drum(gang, 7, 1, 'X..X..X.....X.X.');
+    for (const g of [gang, gang2]) {
+        drum(g, 3, 1, 'X..X..X.....X.X.');
+        drum(g, 7, 1, 'X..X..X.....X.X.');
+    }
     // acordes de meio em meio compasso
     const HALF = [null, ['C', 'C'], ['F', 'G'], ['C', 'G'], ['D', 'D'], ['G', 'A']];
     for (let b = 1; b <= 5; b++) {

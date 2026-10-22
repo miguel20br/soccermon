@@ -16,6 +16,70 @@ Regras desta pesquisa:
 **Amostras pra ouvir:** abra `index.html` na pasta de amostras do scratchpad (caminho no fim deste doc). A Rodada 2
 vem em cima (72 faixas por tela, ★ nas que o Miguel gostou) e a Rodada 1 fica recolhida embaixo.
 
+## Rodada 8 (22/10): as telas sem música e os extras
+
+Pedido: música pro Draft, Escalação, Recompensa e Resultado (vitória, derrota, eliminado), mais a vinheta da virada
+no placar (aprovada) e as peças antigas sem tela levadas pra régua do Tema da Rocket. Página: `r8-*.ogg`.
+
+| Tela | Peça | O que é |
+|---|---|---|
+| Draft | `draft` (nova) | Fá maior, 108 BPM, funk leve. Assinatura: as três cartas (sinos em 3-3-2, esquerda/meio/direita, com "flip" de carta; o baralho embaralha na virada). Flauta pergunta, pizzicato responde; SOC-CER-MON no fim do B; ½ tom acima no fim. Loop de 73 s |
+| Escalação | `escalacao` (Vestiário polido) | o Vestiário (aprovado) com lead × metais, SOC-CER-MON em Mi menor, clap 808, parte só de groove, ½ tom acima. Assinatura: a prancheta (5 peças magnéticas). Loop de 68 s. O Vestiário original pode ficar no intervalo |
+| Recompensa | `recompensa` (nova) | primo do Draft a 124 BPM, groove cheio, SOC-CER-MON em sequência. Loop de 31 s |
+| Vitória | `vitoria-gancho` | a v1 com o SOC-CER-MON e o clap 808 no lugar da subida; mesmo tamanho (~6,5 s com rabo) |
+| Derrota | `derrota` (nova) | ~3,6 s: o gancho murcho em Lá menor, para no Mi maior (bola pra frente) |
+| Eliminado da copa | `eliminado` (v4, sem mudança) | ele achou a v3 perfeita |
+| Virada no placar | `virada` (nova) | Si, 133 BPM (2º tempo, nível 2): escala de blues nos metais, SOC-CER-MON em Si maior, fecha num Si sem terça. Na pressão (Dó dórico): `shift: 1` |
+
+Extras (propostas de tela): `extra-rota-1` (mapa, Rota 1), `extra-mt-moon` (mapa, Mt. Moon), `extra-cerulean`
+(mapa, Cerulean), `extra-sala` (Sala de troféus), `extra-cutscene-boba` (cenas bobas do Modo história). Cada uma
+ganhou pergunta e resposta, SOC-CER-MON e ½ tom acima na volta final; as originais ficam como estão.
+
+**Conferido pelos números:** `--rms` com percussão abaixo do lead em todas e baixo entre 59% e 78% do lead;
+`loops.mjs` 8 loops, 0 falhas (emendas: Draft 0,02, Escalação 0,08, Recompensa 0,05, Rota 1 0,17, Mt. Moon 0,31,
+Cerulean 0,18, Sala 0,12, Na ponta do pé 0,04). Jingle com o acorde final no rabo (mapa termina na batida dele), senão
+o `.ogg` cortado fica mais curto que o mapa. O que só o ouvido dele decide: se as cartas e a prancheta soam como
+cartas e prancheta, e se o Draft cansa.
+
+## Rodada 7b (22/10): o clap do 808 mais suave
+
+Retorno da rodada 7: gostou do clap, mas achou alto. A amostra é a mesma nas três (identidade do jogo); cada faixa
+ganhou o próprio tratamento, por parâmetros no instrumento (`I.clap808.com({ ganho, corte, sala, tom, atraso })`),
+sem instrumento novo. Padrão (`I.clap808` puro) continua idêntico à rodada 7.
+
+| Faixa | Tratamento | RMS do clap (r7 → r7b) | Lead |
+|---|---|---|---|
+| Comum | ~−5 dB, passa-baixa suave (12 dB/oitava) em 6,5 a 7 kHz, sala curta (~0,25 s) assada na batida | | |
+| Estrada da Vitória | quase seco e justo: sala 0,15, reverb grande 0,2 → 0,04, corte 7 kHz | 0,173 → 0,088 (−5,9 dB) | metais 0,218 |
+| Campeão | torcida: clap dobrado, o segundo 11 ms depois e +0,4 semitom, um de cada lado (pan ±0,4), sala 0,3 | 0,169 → ~0,084 somados (−6 dB) | metais 0,172 |
+| Tema da Rocket | mais molhado (sala 0,5, reverb grande 0,1 → 0,25) e 1 semitom abaixo; o resto idêntico (RMS das outras faixas igual) | 0,056 → 0,030 (−5,4 dB) | órgão 0,165, lead 0,077 |
+
+`loops.mjs`: Estrada emenda 0,10, Tema da Rocket 0,05, 0 falhas (Campeão é jingle). Páginas: `r7b-*.ogg`.
+
+## Rodada 7 (22/10): o clap clássico de bateria eletrônica
+
+Retorno da rodada 6: aprovou todas as partidas, o Planalto v4, os temas de Brock, Misty e Rocket (o da Rocket, o
+favorito de longe) e o Mercado funk v3 (amou as palmas novas e as moedas ali). Mas a palma sintetizada nova, no geral,
+não: ele quer "aquele clap clássico daqueles teclados" (o clap da TR-808/909).
+
+| Pedido | O que mudou |
+|---|---|
+| Clap clássico | `I.clap808` no `synth.mjs`: amostra gravada de uma **Roland TR-08** (a reedição Boutique da TR-808), `scripts/musica/amostras/clap-808.wav` (0,9 s, mono, cortada com saída suave). As 3 batidas rápidas e o rabo do 808 vêm da própria amostra; `pitch` reamostra como num sampler |
+| Fonte | ["TR08_Clap01.WAV" de Karman_Lyne no Freesound](https://freesound.org/people/Karman_Lyne/sounds/519305/) (pack "Roland TR08 100% gain, default tuning"), **CC0 1.0**: sem crédito obrigatório, cabe no repo público. Crédito de cortesia: "clap: Karman_Lyne (Freesound), CC0". Baixado da prévia HQ (mp3 128 kbps; o .wav original pede login), o que basta pra um clap |
+| Estrada da Vitória | a palma pesada do contratempo do 2 e do 4 virou o clap do 808, no tom original (a antiga era 6 semitons abaixo); ganho 3 → 2, reverb 0,3 → 0,2 |
+| Campeão | as palmas do SOC-CER-MON e do "hey hey" viraram o clap do 808 (ganho 4 → 2,2) |
+| Tema da Rocket | só as três palmas do SOC-CER-MON debochado viraram o clap do 808 (ganho 2,2 → 1,6); o resto idêntico |
+| Ficam como estavam | Brock e Misty (palmas de verdade, ele gostou ali), Mercado (palmas e moedas), Abertura, partidas, Planalto |
+
+**Conferido pelos números:** `--rms`: o clap fica abaixo do lead nas três (Estrada 0,173 contra metais 0,218;
+Campeão ~0,17 contra metais 0,172; Rocket 0,056 contra órgão 0,165); a amostra tem rabo mais longo que a palma antiga,
+por isso o RMS sobe mesmo com ganho menor. `loops.mjs`: Estrada emenda 0,09, Tema da Rocket 0,05 (Campeão é jingle,
+sem loop). Abertura idêntica byte a byte (`cmp`) depois da mudança no sequenciador. O que só o ouvido dele decide: se
+é "aquele" clap e se ficou alto ou baixo demais em cada uma.
+
+Perguntas: (1) é esse o clap? Se quiser o da 909 (mais seco e brilhante), dá pra trocar a amostra. (2) Vale levar o
+clap do 808 pra mais alguma (partidas, Planalto)?
+
 ## Rodada 6 (21/10): temas próprios, palmas de verdade e tudo em loop
 
 Pedidos: palmas com timbre de palma (e menos no fim da Abertura com gancho v2, que vira a Home); temas próprios de
@@ -442,6 +506,7 @@ Conferido em 21/10/2026.
 | [FreePD](https://freepd.com/) | Era domínio público | — | — | — | **Fechou em 2025** (o site diz "permanently closed"). Fora |
 | itch.io (packs grátis) | Cada pack tem a sua. Muitos "free" usam licença própria que proíbe redistribuir o arquivo | Só CC0/CC BY | Conforme o pack | | Filtrar por licença CC0/CC BY e ler o texto. Licença própria = fora (repo público) |
 | [PokéRogue, trilhas de fã](https://github.com/pagefaultgames/pokerogue-assets/blob/main/audio/REUSE.toml) | **CC BY-NC-SA 4.0** (só as de fã; ver abaixo) | Cabe como asset separado, como os sprites PMD (CC BY-NC) | Obrigatório, por autor | ~35 faixas, mp3 de 2 a 5 MB | Cara de Pokémon de verdade (é o charme e o risco) |
+| [Freesound](https://freesound.org/) (amostras de bateria) | **muda por som** (CC0, CC BY, CC BY-NC): ler na página de cada um | CC0/CC BY sim | Conforme o som | prévias HQ (mp3) sem login; o original pede conta | Clap do 808 (rodada 7): [TR08_Clap01, Karman_Lyne](https://freesound.org/people/Karman_Lyne/sounds/519305/), CC0 |
 | [ZzFXM](https://github.com/keithclark/ZzFXM) (tema próprio) | Player MIT; a música é nossa | Sim | Nosso | Música de 27 s = **3,5 KB de dados** (495 bytes com gzip) | O mesmo som dos efeitos ZzFX que já temos |
 | [BeepBox](https://www.beepbox.co) / JummBox (tema próprio) | Ferramenta MIT; a música é de quem compõe | Sim | Nosso | A música inteira mora no link; exporta .wav/.mp3 | Chiptune fácil de compor no navegador |
 
