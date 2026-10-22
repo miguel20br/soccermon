@@ -122,27 +122,52 @@ function palmas({ gente, espalha, rabo = 0.045 }) {
 /**
  * Amostra gravada (WAV 16 bit mono, 44,1 kHz, em `scripts/musica/amostras/`), normalizada no pico 0,55 como as
  * palmas. Instrumento de bateria: `pitch` em semitons reamostra (grave = mais lento, como no sampler).
+ * Tratamento (rodada 7b), sem mexer na amostra: `ganho` (linear), `corte` (Hz, passa-baixa suave de 12 dB/oitava),
+ * `sala` (envio pra uma sala curta, ~0,25 s, assada na própria batida), `tom` (semitons somados ao `pitch`) e
+ * `atraso` (segundos de silêncio antes: dobra de torcida). `I.clap808.com({ ... })` devolve o mesmo clap tratado.
  */
-function amostra(arquivo) {
+function amostra(arquivo, { ganho = 1, corte = 0, sala = 0, tom = 0, atraso = 0 } = {}) {
     const b = readFileSync(new URL(`./amostras/${arquivo}`, import.meta.url));
     const d = b.indexOf('data') + 8;
     const x = Float32Array.from({ length: (b.length - d) >> 1 }, (_, i) => b.readInt16LE(d + 2 * i));
     const pk = x.reduce((m, v) => Math.max(m, Math.abs(v)), 1e-9);
     for (let i = 0; i < x.length; i++) x[i] *= 0.55 / pk;
     const cache = new Map();
-    return (pitch = 0) => {
+    const fn = (pitch = 0) => {
         if (!cache.has(pitch)) {
-            const r = 2 ** (pitch / 12);
-            const y = new Float32Array(Math.floor((x.length - 1) / r));
-            for (let i = 0; i < y.length; i++) {
+            const r = 2 ** ((pitch + tom) / 12);
+            const pre = Math.round(atraso * SR);
+            const cauda = sala ? Math.round(0.3 * SR) : 0;
+            let y = new Float32Array(pre + Math.floor((x.length - 1) / r) + cauda);
+            for (let i = 0; pre + i < y.length - cauda; i++) {
                 const p = i * r;
                 const j = Math.floor(p);
-                y[i] = x[j] + (x[j + 1] - x[j]) * (p - j);
+                y[pre + i] = x[j] + (x[j + 1] - x[j]) * (p - j);
             }
+            if (corte) y = lowpass(lowpass(y, corte), corte);
+            if (sala) {
+                const w = reverb(y, false, { escala: 0.35, fb: 0.7 });
+                for (let i = 0; i < y.length; i++) y[i] += sala * w[i];
+            }
+            if (ganho !== 1) for (let i = 0; i < y.length; i++) y[i] *= ganho;
             cache.set(pitch, y);
         }
         return cache.get(pitch);
     };
+    fn.com = (o) => amostra(arquivo, { ganho, corte, sala, tom, atraso, ...o });
+    return fn;
+}
+
+/** Passa-baixa de um polo (6 dB/oitava); duas passadas = 12 dB/oitava, suave. */
+function lowpass(x, f) {
+    const a = 1 - Math.exp((-2 * Math.PI * f) / SR);
+    const y = new Float32Array(x.length);
+    let v = 0;
+    for (let i = 0; i < x.length; i++) {
+        v += a * (x[i] - v);
+        y[i] = v;
+    }
+    return y;
 }
 
 /** Paleta. Melódicos: a frequência vem da nota. Bateria: frequência fixa (`pitch` em semitons ajusta). */
@@ -205,15 +230,15 @@ function samples(params, dur) {
 }
 
 /** Reverb de Schroeder (4 pentes + 2 passa-tudo), mono → estéreo levemente diferente. */
-function reverb(x, right) {
-    const combs = [1557, 1617, 1491, 1422].map((d) => d + (right ? 23 : 0));
+function reverb(x, right, { escala = 1, fb = 0.8 } = {}) {
+    const combs = [1557, 1617, 1491, 1422].map((d) => Math.round(d * escala) + (right ? 23 : 0));
     const y = new Float32Array(x.length);
     for (const d of combs) {
         const buf = new Float32Array(d);
         let p = 0;
         for (let i = 0; i < x.length; i++) {
             const o = buf[p];
-            buf[p] = x[i] + o * 0.8;
+            buf[p] = x[i] + o * fb;
             p = (p + 1) % d;
             y[i] += o / 4;
         }

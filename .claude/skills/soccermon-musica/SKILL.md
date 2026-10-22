@@ -32,7 +32,7 @@ Aprendido em 7 rodadas com o Miguel (20 a 22/10/2026). "No geral, as músicas S�
   **Palma de verdade** (rodada 6): `I.clap` (3 pessoas) e `I.palmas` (a torcida, 9 pessoas) são ruído filtrado com
   3 batidas e rabo de sala. Mas sem exagero: no A final da Abertura ele pediu menos. **Rodada 7**: no geral ele quer
   "aquele clap clássico daqueles teclados" (`I.clap808`, amostra CC0 de uma TR-08): Estrada, Campeão e Tema da
-  Rocket usam. Brock, Misty e Mercado ficaram com a palma de verdade (ele gostou ali). Peça nova: comece pelo clap808.
+  Rocket usam. Brock, Misty e Mercado ficaram com a palma de verdade (ele gostou ali). Peça nova: comece pelo clap808. **Rodada 7b**: achou o clap alto; mesmo clap, tratado por faixa (−5 dB, passa-baixa, sala curta), sempre abaixo do lead.
 - **Cada personagem tem tema próprio** (rodada 6) e a partida dele cita o motivo (2 compassos exportados como
   `MOTIVO` no `tema-<nome>.mjs`, usado no `cita` do `partidaBase`).
 - **Tudo em loop sem costura** (rodada 6): toda música de tela termina levando ao começo do loop e sai com o `.json`
@@ -109,7 +109,7 @@ Aprendido em 7 rodadas com o Miguel (20 a 22/10/2026). "No geral, as músicas S�
 | `bpmAt`, `swingUnit`, `masterAt` (no `Song`) | acelerar por compasso, swing de colcheia, volume geral no tempo |
 | `partidaBase(cfg)` em `partida-base.mjs` | a Partida v4 como molde (rodada 6: devolve `{ '1t', '2t' }` em trechos nivel1-3, virada, pressao, fim): passe tom, acordes, tema, riff, timbres, padrões, `cita` (motivo do tema do personagem) e `extra` (`barLen: 12` pra 12/8) |
 | `I.clap`, `I.palmas` | palma de verdade (3 pessoas) e a torcida (9): função, não parâmetros do ZzFX; `pitch` desce a faixa (palma pesada) |
-| `I.clap808` | o clap clássico do 808 (rodada 7): amostra em `scripts/musica/amostras/clap-808.wav`, "TR08_Clap01" de Karman_Lyne no [Freesound](https://freesound.org/people/Karman_Lyne/sounds/519305/), CC0 1.0. `amostra(arquivo)` no `synth.mjs` lê qualquer WAV 16 bit mono 44,1 kHz dessa pasta; `pitch` reamostra. Amostra nova: só CC0 ou CC BY (crédito no doc), numa pasta própria ao baixar |
+| `I.clap808` | o clap clássico do 808 (rodada 7): amostra em `scripts/musica/amostras/clap-808.wav`, "TR08_Clap01" de Karman_Lyne no [Freesound](https://freesound.org/people/Karman_Lyne/sounds/519305/), CC0 1.0. `amostra(arquivo)` no `synth.mjs` lê qualquer WAV 16 bit mono 44,1 kHz dessa pasta; `pitch` reamostra. `I.clap808.com({ ganho, corte, sala, tom, atraso })` = o mesmo clap tratado (rodada 7b). Amostra nova: só CC0 ou CC BY (crédito no doc), numa pasta própria ao baixar |
 | `I.coin`, `I.anvil`, `I.block` | moeda (ZzFX clássico), bigorna (ele não gostou), bloco de madeira |
 | `I` | paleta: lead (quadrada), pulse (25%), thin (12,5%), counter (triangular), slap, chank, clav, stab, organ, epiano, pizz, bassoon, bell, strings, pad, brass, tuba, piccolo, agogo, block, whistle; bateria kick, snare, clap, hat, ohat, shaker, sleigh, crash, tom, timp |
 

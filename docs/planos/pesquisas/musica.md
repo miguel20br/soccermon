@@ -12,6 +12,21 @@ Regras desta pesquisa:
 **Amostras pra ouvir:** abra `index.html` na pasta de amostras do scratchpad (caminho no fim deste doc). A Rodada 2
 vem em cima (72 faixas por tela, ★ nas que o Miguel gostou) e a Rodada 1 fica recolhida embaixo.
 
+## Rodada 7b (22/10): o clap do 808 mais suave
+
+Retorno da rodada 7: gostou do clap, mas achou alto. A amostra é a mesma nas três (identidade do jogo); cada faixa
+ganhou o próprio tratamento, por parâmetros no instrumento (`I.clap808.com({ ganho, corte, sala, tom, atraso })`),
+sem instrumento novo. Padrão (`I.clap808` puro) continua idêntico à rodada 7.
+
+| Faixa | Tratamento | RMS do clap (r7 → r7b) | Lead |
+|---|---|---|---|
+| Comum | ~−5 dB, passa-baixa suave (12 dB/oitava) em 6,5 a 7 kHz, sala curta (~0,25 s) assada na batida | | |
+| Estrada da Vitória | quase seco e justo: sala 0,15, reverb grande 0,2 → 0,04, corte 7 kHz | 0,173 → 0,088 (−5,9 dB) | metais 0,218 |
+| Campeão | torcida: clap dobrado, o segundo 11 ms depois e +0,4 semitom, um de cada lado (pan ±0,4), sala 0,3 | 0,169 → ~0,084 somados (−6 dB) | metais 0,172 |
+| Tema da Rocket | mais molhado (sala 0,5, reverb grande 0,1 → 0,25) e 1 semitom abaixo; o resto idêntico (RMS das outras faixas igual) | 0,056 → 0,030 (−5,4 dB) | órgão 0,165, lead 0,077 |
+
+`loops.mjs`: Estrada emenda 0,10, Tema da Rocket 0,05, 0 falhas (Campeão é jingle). Páginas: `r7b-*.ogg`.
+
 ## Rodada 7 (22/10): o clap clássico de bateria eletrônica
 
 Retorno da rodada 6: aprovou todas as partidas, o Planalto v4, os temas de Brock, Misty e Rocket (o da Rocket, o

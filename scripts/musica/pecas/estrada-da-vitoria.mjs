@@ -2,7 +2,8 @@
 // tambores; a estrada sobe: cada volta um tom acima (Mi → Fá# → Sol#), com virada antes de cada subida.
 // Rodada 4: ganhou percussão que marca: tambor grande (taiko) em 3-3-2. Rodada 5: a bigorna saiu; no lugar, palma
 // pesada (grave, com reverb) junto com um aro de caixa no contratempo do 2 e do 4. Rodada 7: a palma virou o clap
-// clássico de bateria eletrônica (I.clap808, amostra do TR-08), no tom original.
+// clássico de bateria eletrônica (I.clap808, amostra do TR-08), no tom original. Rodada 7b: o clap −5 dB, sem o agudo
+// áspero (passa-baixa em 7 kHz) e quase seco (sala curta pouca, sem o reverb grande): justo, embaixo dos metais.
 import { bass, drum, I, MINOR, mel, padChord, Song, stabs, thirdBelow, transpose } from '../synth.mjs';
 
 export const meta = { titulo: 'Estrada da Vitória', tela: 'Rota: Estrada da Vitória' };
@@ -20,7 +21,12 @@ export default function estrada() {
     const ti = S.part('timp', I.timp, { gain: 0.6, drum: true });
     const cr = S.part('crash', I.crash, { drum: true });
     const taiko = S.part('taiko', I.timp, { drum: true, gain: 0.16, rev: 0.2 });
-    const clapP = S.part('palmaPesada', I.clap808, { drum: true, pan: 0.2, gain: 2, rev: 0.2 });
+    const clapP = S.part('palmaPesada', I.clap808.com({ ganho: 0.56, corte: 7000, sala: 0.15 }), {
+        drum: true,
+        pan: 0.2,
+        gain: 2,
+        rev: 0.04,
+    });
     const aro = S.part('aro', I.block, { drum: true, pan: 0.3, gain: 1.6 });
 
     const M = [
