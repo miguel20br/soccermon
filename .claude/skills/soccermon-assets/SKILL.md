@@ -154,6 +154,19 @@ reajusta alpha/visible a cada quadro, então setAlpha não basta). Quadra vazia:
   gulosa apagando blocos vizinhos (compare a lista de `id` antes/depois).
 - Conferir sempre com folha de contato dos quadros-chave e `volumedetect` nos trechos de áudio (apito audível?).
 
+## QA de quadros antes de entregar
+
+Obrigatório pra toda cena com sprites PMD (`trailer/curtas/*`, curtas-2) antes do render final e antes de entregar.
+O Snorlax v1 saiu com um quadro (13,60 s) com o Pikachu em dobro, uma lasca "!" e sombra solta: um `anim` que
+ainda trocava o quadro depois do próximo começar (corrigido no `anim` do `comum.js`: a animação mais nova manda).
+
+1. `node trailer/qa-quadros.mjs trailer/curtas/<cena>` (da raiz da worktree; ~10 s, headless): anda a linha do tempo
+   a 30 fps e confere em cada quadro recorte exato da folha (quadro do AnimData, dentro da folha), fragmento solto
+   na borda do quadro, personagem (ator com sombra) no máximo uma vez, sombra embaixo do dono e escondida com ele,
+   bola visível exatamente uma vez. Tem que dar **0 problema(s)**; o relatório diz o tempo e a causa.
+2. Depois do render: folha de contato do mp4 nos tempos da NOTA (`ffmpeg -ss <t> -frames:v 1` + `hstack`/`tile`)
+   e quadro inteiro onde algo parecer estranho. Olhe as imagens antes de dizer que está pronto.
+
 ## Áudio
 
 - Música: `musica-analisar.py` (BPM por autocorrelação + energia por segundo) e `musica-fase.py` (onde cai a 1ª

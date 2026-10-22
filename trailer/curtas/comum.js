@@ -148,8 +148,15 @@ html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; backgro
      * Toca a animação `nome` na direção `dir` (0 = de frente, 2 = direita, 4 = de costas, 6 = esquerda) de t0 a t1,
      * trocando o quadro pelas durações do AnimData (1/60 s). `vel` acelera; `de` = quadro inicial; sem `loop` para no
      * último; `id` troca a folha (o Sleep do Snorlax mora no atlas extra, '143x'); `flip` espelha.
+     * A animação que começou por último manda: ela apaga as trocas de quadro que uma anterior ainda tinha agendado
+     * de t0 em diante e para onde começa uma posterior. Sem isso o Walk que terminava depois do Shoot começar punha o
+     * quadro do Walk no retângulo do Shoot (maior) e aparecia um pedaço dos quadros vizinhos: o Pikachu em dobro em 13,6 s.
      */
     function anim(tl, a, nome, dir, t0, t1, { vel = 1, loop = true, de = 0, id = a.id, flip = false } = {}) {
+        a.inicios ??= [];
+        for (const tw of tl.getTweensOf(a.spr)) if (tw.data <= t0 + 1e-6 && tw.startTime() >= t0 - 1e-6) tw.kill();
+        t1 = Math.min(t1, ...a.inicios.filter((u) => u > t0 + 1e-6));
+        a.inicios.push(t0);
         const S = SPR[id];
         const A = S.anims[nome];
         const rects = A.rects[A.rects.length === 1 ? 0 : dir];
@@ -167,6 +174,7 @@ html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; backgro
                 backgroundPosition: pos(de),
                 scaleX: flip ? -1 : 1,
                 transformOrigin: '50% 50%',
+                data: t0,
             },
             t0,
         );
@@ -180,7 +188,7 @@ html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; backgro
                 if (!loop) break;
                 i = 0;
             }
-            tl.set(a.spr, { backgroundPosition: pos(i) }, t);
+            tl.set(a.spr, { backgroundPosition: pos(i), data: t0 }, t);
         }
     }
     /** Um quadro parado. */
