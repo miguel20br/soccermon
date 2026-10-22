@@ -68,6 +68,7 @@ import { RivalEmotes } from '../duel/Emotes';
 import { rivalEmotes } from '../duel/emote-faces';
 import { LeaveConfirm } from '../leave-guard';
 import { captainAt, clockExtrasAt, roleAt, snapAt } from '../match-view';
+import { matchMusic } from '../music-sync';
 import { bannerText, useClubColor } from '../profile/club';
 import { agencyOn, reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
@@ -318,6 +319,13 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const extras = clockExtrasAt(match?.events ?? [], clock.tick, clock.half);
     const clockParts = useClockParts({ ...clock, added: extras.added }, fulltime || ended, shootout, halftime);
     const pressureNow = halftime || fulltime || ended ? null : extras.pressure;
+    // música da partida: faixa do tempo e trecho pela intensidade (troca na linha do compasso)
+    const pressing = pressureNow !== null;
+    // partida retomada: espera o 1º tick (senão buscaria a faixa do 1º tempo à toa)
+    const musicOn = clock.tick > 0 || !resume?.tick;
+    useEffect(() => {
+        if (musicOn) matchMusic(clock.half, clock.minute, pressing);
+    }, [musicOn, clock.half, clock.minute, pressing]);
     // o capitão do líder rival reage aos gols (emote do Duelo, só na tela)
     const rivalPlan = useMemo(() => (match ? rivalEmotes(match.events, 1) : []), [match]);
     // fim de jogo: vai sozinho pro resultado; um toque na quadra ou no painel segura

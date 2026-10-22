@@ -1,7 +1,8 @@
 import { setGoalCry, setVolumes } from '../game/audio';
+import { setMusicVolumes } from '../game/music';
 import { setLang } from '../i18n';
 import { detectLang, htmlLang } from '../i18n/lang';
-import { type Settings, useGame } from '../store/game-store';
+import { DEFAULT_SETTINGS, type Settings, useGame } from '../store/game-store';
 import './motion.css';
 
 import { REDUCE_QUERY, reduceMotionOn } from './reduce-motion';
@@ -35,6 +36,7 @@ function apply(settings: Settings) {
         sfx: settings.sfxVolume,
         crowd: settings.crowdVolume,
     });
+    setMusicVolumes({ master: settings.volume, music: settings.musicVolume ?? DEFAULT_SETTINGS.musicVolume });
     setGoalCry(settings.goalCry !== false);
 }
 

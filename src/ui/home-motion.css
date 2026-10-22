@@ -62,6 +62,14 @@
     }
 }
 
+/* sílabas do logo que piscam com o gancho da Abertura (Home.tsx, LogoHits): a respiração é a mesma do logo */
+.home-hero .logo-img img.logo-hit {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
 /* ---------- brilho correndo no "Nova copa" (só quando ele é o botão principal) ---------- */
 .home .new-run .btn.primary,
 .home .resume-card .rc-go {

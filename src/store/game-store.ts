@@ -306,6 +306,8 @@ export interface Settings {
     criesVolume: number;
     sfxVolume: number;
     crowdVolume: number;
+    /** Volume da música das telas (0..1), por cima do volume geral. Save antigo não tem: `withSettingDefaults`. */
+    musicVolume: number;
     /** Grito de gol: o cry do capitão toca junto com a torcida no seu gol. */
     goalCry: boolean;
     /** Velocidade com que a partida começa. */
@@ -340,6 +342,7 @@ export const DEFAULT_SETTINGS: Settings = {
     criesVolume: 1,
     sfxVolume: 1,
     crowdVolume: 1,
+    musicVolume: 0.4,
     goalCry: true,
     // quem nunca jogou começa em 1x pra ver a partida (decidido em 18/10/2026); a velocidade que a pessoa escolher na
     // partida ou em Configurações fica salva e vira a dela
@@ -800,6 +803,11 @@ const runShapeOk = (r: unknown): r is RunState => {
 /** Estilo dos gritos: quem nunca escolheu em Configurações fica no padrão (o Novo). */
 export function withCryDefault(settings: Settings): Settings {
     return settings.criesChosen ? settings : { ...settings, cries: DEFAULT_SETTINGS.cries };
+}
+
+/** Campo de configuração novo: o save antigo não tem, e o `merge` do persist troca as configurações inteiras. */
+export function withSettingDefaults(settings: Settings): Settings {
+    return { ...settings, musicVolume: settings.musicVolume ?? DEFAULT_SETTINGS.musicVolume };
 }
 
 /** Versão atual do save (a mesma do `persist`). */
@@ -1839,7 +1847,9 @@ export const useGame = create<GameStore>()(
             // missão nova (ou que virou retroativa) sai já ao abrir o jogo, sem esperar a próxima partida
             merge: (persisted, current) => {
                 const saved = persisted as PersistedSave | undefined;
-                const p = saved?.settings ? { ...saved, settings: withCryDefault(saved.settings) } : saved;
+                const p = saved?.settings
+                    ? { ...saved, settings: withSettingDefaults(withCryDefault(saved.settings)) }
+                    : saved;
                 if (!p?.profile) return { ...current, ...p };
                 const runs = [p.run, ...(p.parkedRuns ?? [])];
                 // figurinhas de edição das copas guardadas (quem jogou 1+ minuto) e do Hall: sempre, não só na v9

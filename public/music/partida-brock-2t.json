@@ -1,0 +1,86 @@
+{
+ "faixa": "partida-brock-2t",
+ "titulo": "Partida: Brock",
+ "tela": "Partida (ginásio de Pewter)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 134.923356,
+ "secoes": [
+  {
+   "nome": "nivel1",
+   "intensidade": 1,
+   "loop": true,
+   "inicio": 0,
+   "fim": 34.285714,
+   "amostras": [
+    0,
+    1512000
+   ],
+   "bpm": 112,
+   "compassos": 16
+  },
+  {
+   "nome": "nivel2",
+   "intensidade": 2,
+   "loop": true,
+   "inicio": 34.285714,
+   "fim": 66.021247,
+   "amostras": [
+    1512000,
+    2911537
+   ],
+   "bpm": 121,
+   "compassos": 16
+  },
+  {
+   "nome": "nivel3",
+   "intensidade": 3,
+   "loop": true,
+   "inicio": 66.021247,
+   "fim": 95.559705,
+   "amostras": [
+    2911537,
+    4214183
+   ],
+   "bpm": 130,
+   "compassos": 16
+  },
+  {
+   "nome": "virada",
+   "loop": false,
+   "inicio": 95.559705,
+   "fim": 97.377891,
+   "amostras": [
+    4214183,
+    4294365
+   ],
+   "bpm": 132,
+   "compassos": 1
+  },
+  {
+   "nome": "pressao",
+   "intensidade": 4,
+   "loop": true,
+   "inicio": 97.377891,
+   "fim": 126.468798,
+   "amostras": [
+    4294365,
+    5577274
+   ],
+   "bpm": 132,
+   "compassos": 16
+  },
+  {
+   "nome": "fim",
+   "loop": false,
+   "inicio": 126.468798,
+   "fim": 131.923333,
+   "amostras": [
+    5577274,
+    5817819
+   ],
+   "bpm": 132,
+   "compassos": 3
+  }
+ ]
+}

@@ -26,9 +26,11 @@ import {
     playerTeam,
     type RunState,
     SAVE_VERSION,
+    type Settings,
     type SlotRef,
     slotRole,
     useGame,
+    withSettingDefaults,
 } from './game-store';
 import { groupTable } from './long-cup';
 import { BANNER_COUNT, bannerOf, EDITION_BIT, EMPTY_ENTRY, recordMatchInDex } from './profile';
@@ -843,5 +845,15 @@ describe('Rota Índigo: fase de grupos', () => {
         const rows = groupTable({ seed: 'tab', teamName: 'Eu', group: { rivals }, results }, 0);
         expect(rows.find((r) => r.you)!.pts).toBe(6);
         expect(rows.reduce((n, r) => n + r.played, 0)).toBe(12);
+    });
+});
+
+describe('Música (configuração nova)', () => {
+    it('save antigo sem musicVolume ganha o padrão e mantém o resto', () => {
+        const { musicVolume: _m, ...old } = { ...DEFAULT_SETTINGS, volume: 0.2 };
+        const s = withSettingDefaults(old as Settings);
+        expect(s.musicVolume).toBe(DEFAULT_SETTINGS.musicVolume);
+        expect(s.volume).toBe(0.2);
+        expect(withSettingDefaults({ ...DEFAULT_SETTINGS, musicVolume: 0 }).musicVolume).toBe(0);
     });
 });
