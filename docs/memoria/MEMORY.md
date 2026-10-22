@@ -1,9 +1,9 @@
 - [Navegador sem janela](feedback-browser-sem-janela.md) — testes sempre headless; contas pessoais no Brave/perfil pessoal do Chrome
 - [Não travar com questionário](feedback-nao-travar-com-questionario.md) — com entrega esperando, perguntar em texto e seguir entregando
 - [Social media em lote](feedback-social-media-em-lote.md) — Claude cuida das redes; só vai ao ar o que está na pauta semanal que ele aprovou numa linha
-- [Lembrete: ícones no ranking](lembrete-icones-ranking.md) — Miguel pediu pra lembrar; depende do servidor mandar o time (Supabase prod)
 - [Texto sem cara de IA](feedback-texto-sem-cara-de-ia.md) — falas curtas e naturais; ginásio continua ginásio (não "quadra")
 - [Economia de tokens](feedback-economia-de-tokens.md) — agente novo por rodada, Sonnet/Haiku quando der, máx. 3 em paralelo, CLAUDE.md enxuto
 - [Retomar frentes (21/10)](retomar-frentes-21-10.md) — LER PRIMEIRO: frentes paradas pelo limite, worktree e próximo passo de cada
 - [Gosto musical](feedback-gosto-musical.md) — Rocket é a régua; sons criativos (moedas); clap clássico 808/909 em vez do sintetizado
-- [Música aprovada entra na hora](feedback-musica-aprovou-entra.md) — aprovou no localhost:8000 → converte e liga na branch musica-jogo sem perguntar de novo
+- [Música aprovada entra na hora](feedback-musica-aprovou-entra.md) — aprovou no localhost:8000 → converte e liga numa branch de música sem perguntar de novo
+- [Versão 1.0 ainda não](feedback-sem-1-0-ainda.md) — Miguel não quer lançar a 1.0 ainda; seguir 0.9.x (0.9.10, 0.9.11…)

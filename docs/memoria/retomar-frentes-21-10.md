@@ -77,3 +77,29 @@ Log completo: scratchpad/noite.md da sessão 860a4e4b.
 - voltar à tela final do trailer publicado (a do Trailer 2 original; confirmar se ele quis dizer o Trailer 1), mantendo a piscada nova.
 
 Entra quando abrir vaga (agora: logo, transição e virada-lider).
+
+**22/10 ~17h40, ESTADO PRA RETOMAR (o Miguel ficou sem tokens):**
+- **No ar:** 0.9.11. TikTok agendado: trailer v3 às 19h e Snorlax às 21h. O trailer antigo do remix foi apagado pelo Miguel.
+- **Chrome do Soccermon:** o perfil pessoal do Miguel no workspace 3. Depois de `/login` é preciso `/mcp` → reconectar o claude-in-chrome. Nunca usar `switch_browser`: o pedido aparece nos PCs do trabalho.
+- **Kit pra IG e YT,** que o Miguel posta: ~/Vídeos/soccermon-postar (vídeos, capas e LEGENDAS.txt).
+- **Parados no meio, retomar com agente novo:**
+  - `ritmo`: logo no SOC-CER-MON de qualquer faixa, relógio de batida, cartas do draft na batida;
+  - `curtas-2` v3: gol novo, sem etiquetas, a bola nunca se mexe sozinha mas lances cartunescos valem, sem fantasma, "a quadra é a banda" explícito, tela de CTA com elemento do curta, QA `trailer/qa-quadros.mjs`.
+- **Aprovado e não começado:**
+  - pré-evoluções na Rota com semente travada (anti-reset);
+  - golpe máximo com barra em 3 níveis, timing na batida e defesa com timing;
+  - patrocínios novos (olheiro, agente, preparador, torcida, clube formador);
+  - golpe máximo por tipo e depois por Pokémon;
+  - curtas das trilhas novas (Magikarp, Gengar, Ditto, Psyduck, Eevee).
+**Lançamentos (22/10, ~17h30):** o Miguel voltou atrás e prefere "ir upando enquanto vai fazendo". Cada frente pronta, com CI verde, sobe na sua própria versão 0.9.x. A 0.9.12 (ritmo) já está no ar.
+- `ritmo` pronto na branch (efb1599f, CI verde), sem versão. Falta medir o logo piscando no gancho do draft.json no navegador; as cartas já foram medidas, com erro de até 3 ms.
+
+**FIM DE 22/10 (~17h45).** No ar a 0.9.13: Novidades com data, a versão mais recente em destaque e as antigas recolhidas. TikTok com o trailer v3 às 19h e o Snorlax às 21h. O kit do Instagram e do YouTube está em ~/Vídeos/soccermon-postar, e é o Miguel quem posta. Próximas frentes, cada uma subindo na sua 0.9.x:
+1. golpe máximo com 3 níveis, timing na batida e defesa com timing;
+2. pré-evoluções na Rota (a "copa baby") com a semente travada;
+3. patrocínios novos;
+4. golpe por tipo;
+5. curtas v3 (Ginásio e Luzes) e os curtas das trilhas novas;
+6. sound design (fase 2 do ritmo).
+
+Também vale apagar o vídeo antigo do TikTok de 16/10, item 6 da pauta.
