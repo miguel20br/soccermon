@@ -7,6 +7,30 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.5',
+        title: 'Cada formação joga de um jeito',
+        sections: [
+            {
+                title: 'Formações',
+                lines: [
+                    'Losango: triângulos e passe curto por dentro',
+                    'Quadrado: a bola vai pelos lados',
+                    'Linha de 3: o pivô vem buscar, faz a parede e quem chega bate de primeira',
+                    'Rodízio: os quatro trocam de vaga o tempo todo e saem rápido no contra-ataque',
+                    'Dois pivôs: jogo direto, chute logo depois de roubar a bola',
+                    'Ferrolho: bloco baixo e fechado, saída rápida',
+                    'Cada formação leva vantagem contra outra; o ícone na escalação mostra quando encaixa',
+                ],
+            },
+            {
+                title: 'Golpes',
+                lines: [
+                    'Nidorino, Venonat, Bellsprout, Weepinbell, Victreebel, Slowbro, Chansey e Jolteon têm golpes próprios',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.4',
         title: 'Duelo melhor de 3 e Rota polida',
         sections: [
@@ -1188,6 +1212,30 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.5',
+        title: 'Every formation plays its own way',
+        sections: [
+            {
+                title: 'Formations',
+                lines: [
+                    'Diamond: triangles and short passes through the middle',
+                    'Square: the ball goes down the flanks',
+                    'Back Three: the pivot drops, lays it off and the runner shoots first time',
+                    'Rotation: all four swap spots all the time and break fast',
+                    'Twin Pivots: direct play, shooting right after winning the ball',
+                    'Lockdown: low, compact block and a quick break',
+                    'Each formation has an edge over another; the icon on the lineup shows when it fits',
+                ],
+            },
+            {
+                title: 'Moves',
+                lines: [
+                    'Nidorino, Venonat, Bellsprout, Weepinbell, Victreebel, Slowbro, Chansey and Jolteon have their own moves',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.4',
         title: 'Best-of-3 Duel and a polished Road',

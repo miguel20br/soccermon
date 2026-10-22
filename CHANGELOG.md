@@ -1,5 +1,19 @@
 # Novidades
 
+## 0.9.5 · Cada formação joga de um jeito
+
+### Formações
+- Losango: triângulos e passe curto por dentro
+- Quadrado: a bola vai pelos lados
+- Linha de 3: o pivô vem buscar, faz a parede e quem chega bate de primeira
+- Rodízio: os quatro trocam de vaga o tempo todo e saem rápido no contra-ataque
+- Dois pivôs: jogo direto, chute logo depois de roubar a bola
+- Ferrolho: bloco baixo e fechado, saída rápida
+- Cada formação leva vantagem contra outra; o ícone na escalação mostra quando encaixa
+
+### Golpes
+- Nidorino, Venonat, Bellsprout, Weepinbell, Victreebel, Slowbro, Chansey e Jolteon têm golpes próprios
+
 ## 0.9.4 · Duelo melhor de 3 e Rota polida
 
 ### Duelo
