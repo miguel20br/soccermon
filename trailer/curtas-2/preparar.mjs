@@ -9,10 +9,11 @@ import { homedir } from 'node:os';
 const OUT = 'trailer/curtas-2/midia';
 const A = 'public/assets';
 const MUSICA = process.env.MUSICA ?? `${homedir()}/Música/soccermon-amostras`;
-// ginásio: 66 Machop (o moleque), 67 Machoke (o zelador) e a torcida imaginada na arquibancada ·
+// ginásio: 66 Machop (o moleque), 67 Machoke (o zelador), 106 Hitmonlee (o zagueiro fantasma da final) e a torcida
+// imaginada na arquibancada ·
 // luzes: 25 Pikachu, 4 Charmander, 7 Squirtle, 1 Bulbasaur e 54 Psyduck (o atrasado)
 export const TORCIDA = [39, 52, 133, 35, 79, 104, 37, 16, 43, 60, 113, 132, 19, 129];
-const ESPECIES = [66, 67, 25, 4, 7, 1, 54, ...TORCIDA];
+const ESPECIES = [66, 67, 106, 25, 4, 7, 1, 54, ...TORCIDA];
 
 mkdirSync(`${OUT}/sp`, { recursive: true });
 mkdirSync(`${OUT}/som`, { recursive: true });

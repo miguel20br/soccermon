@@ -257,8 +257,8 @@ html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; backgro
     }
     /**
      * A bola passa por cada toque `{ t, x, y }` exatamente no instante dele, em arcos de parábola (mais tempo entre
-     * toques = arco mais alto, até `teto`). `ate` = o pé na altura do chão (toque no chão ou no pé). Gira na direção
-     * do movimento.
+     * toques = arco mais alto, até `teto`; `alto` força o arco). `h` = altura da bola no toque (0 = no chão ou no pé;
+     * joelho, cabeça e bicicleta tocam no ar). Gira na direção do movimento.
      */
     function trajeto(tl, B, toques, { g = 2600, teto = 560 } = {}) {
         for (let k = 0; k + 1 < toques.length; k++) {
@@ -267,12 +267,21 @@ html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; backgro
             const d = b.t - a.t;
             if (d <= 0) continue;
             tl.to(B.el, { x: b.x, y: b.y, duration: d, ease: 'none' }, a.t);
-            const h = b.alto ?? Math.min(teto, (g * d * d) / 8);
-            if (h > 4) {
-                tl.to(B.corpo, { y: -h, duration: d / 2, ease: 'quad.out' }, a.t);
-                tl.to(B.corpo, { y: 0, duration: d / 2, ease: 'quad.in' }, a.t + d / 2);
-                tl.to(B.sh, { scale: Math.max(0.35, 1 - h / 700), opacity: 0.6, duration: d / 2, ease: 'quad.out' }, a.t);
-                tl.to(B.sh, { scale: 1, opacity: 1, duration: d / 2, ease: 'quad.in' }, a.t + d / 2);
+            const ha = a.h ?? 0;
+            const hb = b.h ?? 0;
+            const arco = b.alto ?? Math.min(teto, (g * d * d) / 8);
+            const sombra = (h) => Math.max(0.35, 1 - h / 700);
+            if (arco > 4) {
+                // sobe até o topo e desce até a altura do próximo toque; o tempo de cada metade segue a física (raiz da queda)
+                const topo = Math.max(ha, hb) + arco;
+                const f = Math.sqrt(topo - ha) / (Math.sqrt(topo - ha) + Math.sqrt(topo - hb));
+                tl.to(B.corpo, { y: -topo, duration: d * f, ease: 'quad.out' }, a.t);
+                tl.to(B.corpo, { y: -hb, duration: d * (1 - f), ease: 'quad.in' }, a.t + d * f);
+                tl.to(B.sh, { scale: sombra(topo), opacity: 0.6, duration: d * f, ease: 'quad.out' }, a.t);
+                tl.to(B.sh, { scale: sombra(hb), opacity: hb ? 0.6 : 1, duration: d * (1 - f), ease: 'quad.in' }, a.t + d * f);
+            } else if (ha !== hb) {
+                tl.to(B.corpo, { y: -hb, duration: d, ease: 'none' }, a.t);
+                tl.to(B.sh, { scale: sombra(hb), duration: d, ease: 'none' }, a.t);
             }
             tl.to(B.gira, { rotation: `+=${(b.x - a.x) * 1.6 + 40}`, duration: d, ease: 'none' }, a.t);
         }

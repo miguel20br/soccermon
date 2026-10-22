@@ -5,7 +5,9 @@
   na altura da nota), cada chute é o bumbo (estrela no pé), o tênis rangendo é o chimbal (o passo do Machop muda só
   nele), a rede é a caixa (estufa), a sirene do placar são os metais (lâmpadas), a torcida imaginada é o pad (os
   fantasmas na arquibancada balançam em cada acorde), o assovio do moleque (notas brancas) e o apito do zelador
-  (notas douradas) conversam. Tempos tirados da partitura (midia/som/ginasio.js, ../eventos.mjs): nada é chutado.
+  (notas douradas) conversam. v2: cada caixa é um gol (o bumbo do 10 chuta, a rede estufa no 12) e o jogo tem arco:
+  treino (A) com lances nas viradas, o sonho (B) com o placar contando e a torcida chegando em ondas, e a final (A')
+  contra um zagueiro fantasma, decidida de bicicleta. Tempos tirados da partitura (midia/som/ginasio.js, ../eventos.mjs): nada é chutado.
   midia/ e comum.js são links (../preparar.mjs monta a midia, fora do git).
 -->
 <html lang="pt-BR">
@@ -73,14 +75,27 @@
     apito.innerHTML = '<svg width="60" height="34" viewBox="0 0 60 34"><path d="M4 10 H34 A12 12 0 1 1 22 26 H4 Z" fill="#c9ced8" stroke="#0e1430" stroke-width="5"/><circle cx="34" cy="22" r="5" fill="#0e1430"/></svg>';
     gsap.set(apito, { x: JX + 18, y: JY - 175 });
 
-    // ===== caminho do moleque (x no tempo; a bola e os efeitos leem daqui) =====
-    const KX = [
-      [0, -200], [T(1, 4), -200], [T(2, 0) - 0.06, 440],
-      [T(6, 0), 470], [T(8, 0), 430], [T(10, 0), 470], [T(12, 0), 450],
-      [T(13, 8), 300], [T(15, 8), 610], [T(17, 8), 360], [T(19, 12), 470],
-      [T(22, 0), 500], [T(24, 0), 470], [T(26, 0), 500], [tChute, 560],
-      [T(28, 0), 560], [T(29, 0), 500], [T(30, 0), 480], [T(31, 0) - 0.5, 150], [FIM, 150],
-    ];
+    // ===== o roteiro do jogo, compasso a compasso (o mini-arco) =====
+    // A (4–11) treino: cada caixa é um gol (bumbo no 10 = chute, rede no 12), a bola volta quicando no baixo e cai no
+    // pé no 1 do compasso seguinte; nos compassos de virada, um drible de efeito. B (12–19) o sonho: o placar liga e
+    // conta cada gol, a torcida chega em 4 ondas (cada subida do coro). A' (20–27) a final: o zagueiro fantasma
+    // (Hitmonlee) dá o bote em todo compasso e a bola passa por cima; o gol do título, no golpe grande, é de bicicleta.
+    const LANCE = { 7: 'lambreta', 9: 'roleta', 11: 'embaixadinha', 13: 'voleio', 15: 'roleta', 17: 'cabecada', 19: 'lambreta', 21: 'lambreta', 23: 'roleta', 27: 'bicicleta' };
+    const NOME = { lambreta: 'LAMBRETA', roleta: 'ROLETA', embaixadinha: 'EMBAIXADINHA', voleio: 'VOLEIO', cabecada: 'CABEÇADA', bicicleta: 'BICICLETA' };
+    const AEREO = new Set(['lambreta', 'voleio', 'cabecada', 'bicicleta']);
+    const BASE = (b) => [430, 450, 470, 450][b % 4] - (b >= 12 && b < 20 ? 30 : 0);
+    const C0 = window.EV.compassos;
+    const barDe = (t) => C0.findIndex((c, i) => t >= c - 1e-3 && t < C0[i + 1] - 1e-3);
+    const linha = (t) => {
+      const b = barDe(t);
+      return ((t - C0[b]) * 16) / (C0[b + 1] - C0[b]);
+    };
+    const perto = (r, alvo) => Math.abs(r - alvo) < 0.6;
+
+    // ===== caminho do moleque (x no tempo; a bola e os efeitos leem daqui): avança driblando até o chute, recua na volta da bola =====
+    const KX = [[0, -200], [T(1, 4), -200], [T(2, 0) - 0.06, 440], [T(4, 0), BASE(4)]];
+    for (let b = 4; b < 27; b++) KX.push([T(b, 10), BASE(b) + 50], [T(b + 1, 0), BASE(b + 1)]);
+    KX.push([T(27, 7), BASE(27) + 30], [T(28, 0), 500], [T(29, 0), 500], [T(30, 0), 480], [T(31, 0) - 0.5, 150], [FIM, 150]);
     const kx = (t) => {
       for (let k = 0; k + 1 < KX.length; k++) {
         const [a, xa] = KX[k];
@@ -92,7 +107,7 @@
     const lado = (t) => (kx(t + 0.05) < kx(t) - 0.5 ? -1 : 1);
     for (let k = 0; k + 1 < KX.length; k++) tl.to(kid.el, { x: KX[k + 1][1], duration: KX[k + 1][0] - KX[k][0], ease: 'none' }, KX[k][0]);
 
-    // ===== a bola: cada toque é um som (quique, baixo, drible = chão; chute = pé) =====
+    // ===== a bola: cada toque é um som (quique, baixo, drible = chão; chute = pé; rede = caixa) =====
     const toques = [{ t: 0, x: 610, y: -140 }];
     const queda = notas('quique', 0, T(2, 0) - 0.08).filter((n) => n.v < 0.8 || n.t < T(1, 0));
     queda.forEach((n, i) => toques.push({ t: n.t, x: 610 - i * 4, y: BY, tipo: 'queda', n }));
@@ -109,24 +124,74 @@
       g.pe = true;
       grupos.set(n.t.toFixed(3), g);
     }
-    let alt = 1;
     const XR = GOL.x + 70;
+    const YR = 1320;
+    const lerp = (a, b, f) => a + (b - a) * f;
+    const redeDe = new Map(); // compasso → a caixa (o gol daquele compasso)
+    for (const n of notas('rede')) if (!redeDe.has(barDe(n.t))) redeDe.set(barDe(n.t), n.t);
+    for (let b = 4; b < 27; b++) toques.push({ t: redeDe.get(b), x: XR, y: YR, h: 50, alto: 30, tipo: 'rede' });
+    let alt = 1;
+    let chuteX = 0;
     for (const g of [...grupos.values()].sort((a, b) => a.t - b.t)) {
-      const s = lado(g.t);
+      const b = barDe(g.t);
+      const r = linha(g.t);
       const k = kx(g.t);
+      const L = LANCE[b];
+      const baixo = g.chao.find((n) => n.m > 20);
       if (g.t > tGol + 0.01) {
         // a bola volta da rede quicando cada vez mais rápido até o pé do moleque (chute aqui é o pulo da festa)
         if (!g.chao.length) continue;
         const f = Math.min(1, (g.t - tGol) / (T(29, 0) - tGol));
-        toques.push({ t: g.t, x: XR + (kx(T(29, 0)) + 70 - XR) * f, y: BY, tipo: 'volta', n: g.chao[0], baixo: g.chao.find((n) => n.m > 20) });
-      } else if (Math.abs(g.t - tGol) < 0.01) toques.push({ t: g.t, x: XR, y: 1250, tipo: 'gol', alto: 60 });
-      else if (g.pe && g.chao.length) toques.push({ t: g.t, x: k + s * 88, y: BY, tipo: 'pisa', baixo: g.chao.find((n) => n.m > 20) });
-      else if (g.pe) toques.push({ t: g.t, x: k + s * 100, y: BY - 80, tipo: 'pe' });
+        toques.push({ t: g.t, x: XR + (kx(T(29, 0)) + 70 - XR) * f, y: BY, tipo: 'volta', n: g.chao[0], baixo });
+        continue;
+      }
+      if (Math.abs(g.t - tGol) < 0.01) {
+        toques.push({ t: g.t, x: XR, y: 1250, h: 40, alto: 30, tipo: 'gol' });
+        continue;
+      }
+      const tR = redeDe.get(b);
+      if (b >= 4 && b < 27 && g.t > tR - 0.01) {
+        // depois do gol: a bola cai do gol e volta quicando no baixo até o pé (chute sem bola = ele comemora)
+        if (g.t < tR + 0.01 || !g.chao.length) continue;
+        const f = (g.t - tR) / (T(b + 1, 0) - tR);
+        toques.push({ t: g.t, x: lerp(XR, kx(T(b + 1, 0)) + 88, f), y: lerp(YR, BY, Math.min(1, f * 1.6)), tipo: 'chao', baixo });
+        continue;
+      }
+      if (b >= 4 && r > 10.4) {
+        // entre o chute e a rede: o rasteiro quica no caminho (o aéreo vai direto)
+        if (!AEREO.has(L)) toques.push({ t: g.t, x: lerp(chuteX, XR, 0.55), y: lerp(BY, YR, 0.55), tipo: 'chao', baixo });
+        continue;
+      }
+      if (b >= 4 && perto(r, 10)) {
+        // o chute (bumbo) que vai virar a caixa
+        const q = { t: g.t, x: k + 95, y: BY, tipo: 'chute' };
+        if (L === 'lambreta') Object.assign(q, { h: 90, alto: 300 });
+        if (L === 'voleio') Object.assign(q, { h: 110 });
+        if (L === 'cabecada') Object.assign(q, { x: k + 25, h: 250, alto: 200, tipo: 'cabeca' });
+        if (L === 'bicicleta') Object.assign(q, { x: k + 15, h: 240, alto: 170, tipo: 'bici' });
+        chuteX = q.x;
+        toques.push(q);
+        continue;
+      }
+      // antes do chute: o drible, com o lance do compasso
+      if (L === 'lambreta' && perto(r, 4)) toques.push({ t: g.t, x: k + 15, y: BY, tipo: 'chao', baixo });
+      else if (L === 'lambreta' && perto(r, 6)) toques.push({ t: g.t, x: k - 35, y: BY, tipo: 'pe' });
+      else if ((L === 'lambreta' || L === 'cabecada' || L === 'bicicleta') && r > 6.5) continue;
+      else if (L === 'embaixadinha' && perto(r, 3.1)) toques.push({ t: g.t, x: k + 60, y: BY, h: 110, tipo: 'joelho' });
+      else if (L === 'embaixadinha' && perto(r, 4)) continue;
+      else if (L === 'embaixadinha' && perto(r, 6)) toques.push({ t: g.t, x: k + 30, y: BY, h: 235, tipo: 'cabeca' });
+      else if ((L === 'cabecada' || L === 'bicicleta') && perto(r, 6)) toques.push({ t: g.t, x: k + 60, y: BY, tipo: 'pe' });
+      else if (L === 'voleio' && perto(r, 8)) toques.push({ t: g.t, x: k + 80, y: BY, tipo: 'pe', baixo });
+      else if (g.pe && g.chao.length) toques.push({ t: g.t, x: k + 88, y: BY, tipo: 'pisa', baixo });
+      else if (g.pe) toques.push({ t: g.t, x: k + 100, y: BY, h: 80, tipo: 'pe' });
       else {
         alt = -alt;
-        toques.push({ t: g.t, x: k + s * (88 + alt * 28), y: BY, tipo: 'chao', baixo: g.chao.find((n) => n.m > 20) });
+        // na final a bola pula a perna do fantasma (o bote é no 6, ela cai no 8)
+        const pulo = b >= 20 && perto(r, 8) ? { alto: 150 } : {};
+        toques.push({ t: g.t, x: k + 88 + alt * 28, y: BY, tipo: 'chao', baixo, ...pulo });
       }
     }
+    toques.sort((a, b) => a.t - b.t);
     // fim: a bola descansa no pé, vai rolando com ele até a porta, ele devolve com um toquinho e ela quica até a lua
     const tSai = T(31, 0) - 0.35;
     toques.push({ t: T(30, 0), x: kx(T(30, 0)) + 70, y: BY, alto: 0 });
@@ -139,6 +204,7 @@
 
     // o que cada toque mostra
     for (const q of toques) {
+      const yv = q.y - (q.h ?? 0);
       if (q.tipo === 'queda') {
         anelPiso(tl, cam, q.x, q.y, q.t, { w: 50 + 110 * q.n.v, cor: '#fff', borda: 6 });
       } else if (q.tipo === 'chao' || q.tipo === 'volta' || q.tipo === 'pisa') {
@@ -148,30 +214,78 @@
         } else anelPiso(tl, cam, q.x, q.y, q.t, { w: 70, cor: '#f4f1e6', borda: 6, dur: 0.25 });
         if (q.tipo === 'pisa') estouro(tl, cam, q.x, q.y - 30, q.t, { tam: 80, cor: '#fff', anel: false, dur: 0.22 });
       } else if (q.tipo === 'pe' && !q.mudo) {
-        estouro(tl, cam, q.x, q.y - 30, q.t, { tam: 80, cor: '#fff', anel: false, dur: 0.22 });
+        estouro(tl, cam, q.x, yv - 30, q.t, { tam: 80, cor: '#fff', anel: false, dur: 0.22 });
+      } else if (q.tipo === 'chute' || q.tipo === 'joelho' || q.tipo === 'cabeca') {
+        const forte = q.tipo === 'chute' || q.h > 240;
+        estouro(tl, cam, q.x, yv - 30, q.t, { tam: forte ? 120 : 80, cor: '#fff', anel: forte, borda: 6, dur: 0.25 });
+      } else if (q.tipo === 'bici') {
+        estouro(tl, cam, q.x, yv - 30, q.t, { tam: 260, borda: 10, dur: 0.4 });
+      }
+    }
+    // o chute que vai pra rede deixa um rastro (três bolinhas que somem): dá pra ver o bumbo virar caixa
+    for (const q of toques.filter((q) => ['chute', 'cabeca', 'bici'].includes(q.tipo) && barDe(q.t) >= 4)) {
+      const tR = barDe(q.t) === 27 ? tGol : redeDe.get(barDe(q.t));
+      for (let i = 1; i <= 3; i++) {
+        const f = i / 4;
+        const rastro = div(cam, 'fx', 'z-index:23');
+        rastro.innerHTML = '<div style="position:absolute;width:44px;height:44px;left:-22px;top:-22px;border-radius:50%;background:#fff"></div>';
+        gsap.set(rastro, { x: lerp(q.x, XR, f), y: lerp(q.y - (q.h ?? 0) - 38, YR - 80, f), opacity: 0 });
+        tl.fromTo(rastro, { opacity: 0.55 - i * 0.1 }, { opacity: 0, duration: 0.35, immediateRender: false }, q.t + (tR - q.t) * f);
       }
     }
 
     // ===== o moleque: o quadro só muda no som (tênis = passo, chute = chute) =====
-    const passosK = [...notas('tenis', 0, tChute - 0.15).map((n) => ({ t: n.t, k: 'passo' })), ...pes.filter((n) => n.t < tChute - 0.01).map((n) => ({ t: n.t, k: 'chute' }))].sort((a, b) => a.t - b.t);
-    const dirDe = (t) => (lado(t) < 0 ? 6 : 2);
+    const tBici = T(27, 10);
+    const GIRO = new Map(); // roleta: cada som entre o 1 e o chute vira ¼ de volta (frente, esquerda, costas, direita)
+    const passosK = [
+      ...notas('tenis', 0, T(27, 7)).map((n) => ({ t: n.t, k: 'passo', m: n.m })),
+      ...pes.filter((n) => n.t < T(27, 7)).map((n) => ({ t: n.t, k: 'chute' })),
+    ].sort((a, b) => a.t - b.t);
+    for (const p of passosK) {
+      const b = barDe(p.t);
+      const r = linha(p.t);
+      if (p.k === 'chute' && b >= 4 && r > 12.5) p.k = 'festa';
+      if (LANCE[b] === 'roleta' && r > 0.5 && r < 9) p.k = 'passo';
+    }
+    for (const [b, L] of Object.entries(LANCE)) {
+      if (L !== 'roleta') continue;
+      const giro = passosK.filter((p) => barDe(p.t) === Number(b) && linha(p.t) > 0.5 && linha(p.t) < 9);
+      giro.forEach((p, i) => GIRO.set(p.t.toFixed(3), [0, 6, 4, 2][i % 4]));
+      estouro(tl, cam, kx(T(Number(b), 4)), BY - 90, T(Number(b), 2), { tam: 300, anel: true, estrela: false, borda: 6, dur: 0.9 });
+    }
+    const emJogo = (t) => t >= T(2, 0) && t < T(28, 0);
+    const dirDe = (t) => GIRO.get(t.toFixed(3)) ?? (emJogo(t) || lado(t) > 0 ? 2 : 6);
     let wi = 0;
     quadro(tl, kid, 'Walk', 2, 0, 0);
     passosK.forEach((p, i) => {
       const d = dirDe(p.t);
-      if (p.k === 'passo') {
+      const L = LANCE[barDe(p.t)];
+      if (p.k === 'passo' || p.k === 'festa') {
         wi = (wi + 1) % 4;
         quadro(tl, kid, 'Walk', d, wi, p.t);
-        if (p.t > T(1, 0)) rangido(tl, cam, kx(p.t) - 20 * (wi % 2 ? 1 : -1), BY - 8, p.t, { lado: wi % 2 ? -1 : 1, cor: notas('tenis').find((n) => n.t === p.t)?.m ? '#ffcb05' : '#fff' });
+        if (p.k === 'festa') tl.to(kid.corpo, { keyframes: { y: [-45, 0] }, duration: 0.22, ease: 'power1.inOut' }, p.t - 0.06);
+        else if (p.t > T(1, 0)) rangido(tl, cam, kx(p.t) - 20 * (wi % 2 ? 1 : -1), BY - 8, p.t, { lado: wi % 2 ? -1 : 1, cor: p.m ? '#ffcb05' : '#fff' });
+      } else if (L === 'cabecada' && perto(linha(p.t), 10)) {
+        // cabeçada: ele sobe pra bola (quadro parado, pulo) e cabeceia no bumbo
+        quadro(tl, kid, 'Walk', 2, 0, p.t - 0.25);
+        tl.to(kid.corpo, { keyframes: { y: [-70, -80, 0] }, duration: 0.55, ease: 'power1.inOut' }, p.t - 0.25);
       } else {
         quadro(tl, kid, 'Shoot', d, window.SPR[66].anims.Shoot.hit, p.t - 0.02);
+        if (L === 'voleio' && perto(linha(p.t), 10)) tl.to(kid.corpo, { keyframes: { y: [-40, 0] }, duration: 0.3 }, p.t - 0.1);
         const prox = passosK[i + 1]?.t ?? p.t + 1;
         if (prox > p.t + 0.14) quadro(tl, kid, 'Walk', d, wi, p.t + 0.13);
       }
     });
-    // o gol: o chute forte e a festa (pose, e cada bumbo vira um pulo)
-    anim(tl, kid, 'Shoot', 2, tChute - 0.12, tChute + 0.2, { loop: false, de: 0, vel: 1.4 });
-    anim(tl, kid, 'Pose', 0, tGol + 0.1, T(28, 0), { loop: false });
+    // a bicicleta: sobe de costas no 7, chuta de cabeça pra baixo no bumbo do 10, cai no 13
+    gsap.set(kid.corpo, { transformOrigin: '0px -100px' });
+    quadro(tl, kid, 'Walk', 2, 0, T(27, 7));
+    tl.to(kid.corpo, { y: -170, rotation: -170, duration: tBici - T(27, 7), ease: 'power2.out' }, T(27, 7));
+    quadro(tl, kid, 'Shoot', 2, window.SPR[66].anims.Shoot.hit, tBici - 0.02);
+    tl.to(kid.corpo, { y: 0, rotation: -360, duration: T(27, 13) - tBici, ease: 'power2.in' }, tBici);
+    tl.set(kid.corpo, { rotation: 0 }, T(27, 13));
+    poeira(tl, cam, kx(T(27, 13)), BY, T(27, 13), { n: 6, r: 140 });
+    // a festa: pose, e cada bumbo vira um pulo
+    anim(tl, kid, 'Pose', 0, T(27, 13), T(28, 0), { loop: false });
     notas('chute', tGol + 0.01, T(29, 0)).forEach((n) => tl.to(kid.corpo, { keyframes: { y: [-60, 0] }, duration: 0.24, ease: 'power1.inOut' }, n.t - 0.12));
     anim(tl, kid, 'Walk', 6, T(28, 0), T(29, 0), { vel: 1.6 });
     anim(tl, kid, 'Idle', 2, T(29, 0), T(30, 0));
@@ -179,6 +293,31 @@
     anim(tl, kid, 'Shoot', 2, tSai - 0.15, tSai + 0.3, { loop: false, vel: 1.2 });
     anim(tl, kid, 'Walk', 6, tSai + 0.35, FIM);
     tl.to(kid.el, { x: 60, opacity: 0, duration: 1.2, ease: 'none' }, tSai + 0.6);
+    // o nome de cada lance, colado no moleque
+    for (const [b, L] of Object.entries(LANCE)) {
+      const t = L === 'bicicleta' ? T(27, 7) : T(Number(b), 1);
+      etiqueta(tl, cam, NOME[L], kx(t) + 40, BY - 430, t, { haste: 40, dur: L === 'bicicleta' ? 1.2 : 1.4 });
+    }
+
+    // ===== o zagueiro fantasma da final (A'): bote no 6 de cada compasso, a bola passa por cima; na bicicleta ele cai =====
+    const zag = ator(cam, 106, { escala: 7, z: 21, x: 700, y: BY - 50, opacity: 0 });
+    zag.el.classList.add('fantasma');
+    const tZag = T(20, 0);
+    tl.set(zag.el, { x: kx(tZag) + 240 }, tZag - 0.01);
+    tl.to(zag.el, { opacity: 0.8, duration: 0.4 }, tZag);
+    estouro(tl, cam, kx(tZag) + 240, BY - 200, tZag, { tam: 200, cor: '#9fc4ff', borda: 8 });
+    anim(tl, zag, 'Idle', 6, tZag, T(20, 4));
+    for (let b = 20; b <= 27; b++) {
+      tl.to(zag.el, { x: kx(T(b, 6)) + 115, duration: T(b, 6) - T(b, 4), ease: 'power2.in' }, T(b, 4));
+      anim(tl, zag, 'Attack', 6, T(b, 4), T(b, 8), { loop: false, vel: 1.4 });
+      if (b === 27) break;
+      anim(tl, zag, 'Idle', 6, T(b, 8), T(b + 1, 4));
+      tl.to(zag.el, { x: kx(T(b + 1, 0)) + 240, duration: T(b + 1, 0) - T(b, 12), ease: 'sine.inOut' }, T(b, 12));
+    }
+    anim(tl, zag, 'Hurt', 6, T(27, 8), tGol + 1);
+    tl.to(zag.el, { x: '+=60', duration: 0.4, ease: 'power2.out' }, T(27, 8));
+    tl.to(zag.el, { opacity: 0, duration: 0.8 }, tGol + 0.2);
+    etiqueta(tl, cam, 'ZAGUEIRO FANTASMA', kx(tZag) + 240, BY - 330, tZag + 0.2, { haste: 60, dur: 1.6 });
 
     // ===== o assovio do moleque (notas brancas da cabeça, na altura da nota) =====
     for (const n of notas('assovio')) {
@@ -248,11 +387,17 @@
     tl.to([...G.digs, G.rel], { opacity: 0, duration: 1.2 }, T(29, 4));
     for (let s = Math.ceil(tGol - tCoro); s >= 1; s--) tl.set(G.rel, { textContent: `0:${String(s).padStart(2, '0')}` }, tGol + 0.5 - s);
     tl.set(G.rel, { textContent: '0:00' }, tGol + 0.5);
-    tl.set(G.digs[0], { textContent: '1' }, tGol);
-    tl.fromTo(G.digs[0], { scale: 1.6 }, { scale: 1, duration: 0.4, ease: 'back.out(3)', immediateRender: false }, tGol);
+    // o placar conta cada gol do sonho (cada caixa do B em diante); o do título é o 16º
+    notas('rede', tCoro - 0.01, tGol + 0.01).forEach((n, i) => {
+      tl.set(G.digs[0], { textContent: String(i + 1), fontSize: i + 1 >= 10 ? '78px' : '112px' }, n.t);
+      tl.fromTo(G.digs[0], { scale: 1.6 }, { scale: 1, duration: n.t === tGol ? 0.4 : 0.25, ease: 'back.out(3)', immediateRender: false }, n.t);
+    });
     for (const t of instantes(notas('placar'))) tl.fromTo(G.lamps, { opacity: 1 }, { opacity: 0, duration: 0.35, ease: 'power1.in', immediateRender: false }, t);
+    // a torcida imaginada chega em 4 ondas, uma em cada subida do coro (4, 4, 3 e 3 fantasmas)
+    const ondas = notas('torcida');
+    const onda = (i) => (i < 4 ? 0 : i < 8 ? 1 : i < 11 ? 2 : 3);
     torcida.forEach((a, i) => {
-      tl.to(a.el, { opacity: 0.6, duration: 1.2 }, tCoro + i * 0.06);
+      tl.to(a.el, { opacity: 0.6, duration: 0.5 }, ondas[onda(i)].t + (i % 4) * 0.15);
       anim(tl, a, 'Idle', 0, tCoro, T(30, 0), { vel: 0.7 });
       tl.to(a.el, { opacity: 0, duration: 1.4 }, T(29, 2) + i * 0.05);
     });
