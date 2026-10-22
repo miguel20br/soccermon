@@ -17,6 +17,8 @@ export const result = {
     feedback: 'Dar feedback',
     finalDetails: 'A final em detalhes',
     highlights: 'Destaques da partida',
+    foldHighlights: 'Destaques e gols',
+    foldStats: 'Estatísticas e gráficos',
     goals: 'Gols',
     noGoals: 'Nenhum gol.',
     ownGoal: ' (contra)',

@@ -17,6 +17,8 @@ export const result: typeof pt = {
     feedback: 'Send feedback',
     finalDetails: 'The final in detail',
     highlights: 'Match highlights',
+    foldHighlights: 'Highlights and goals',
+    foldStats: 'Stats and charts',
     goals: 'Goals',
     noGoals: 'No goals.',
     ownGoal: ' (own goal)',

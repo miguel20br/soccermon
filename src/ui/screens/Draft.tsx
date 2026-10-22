@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { DRAFT_PICKS } from '../../engine/draft';
 import { evolvedRating } from '../../engine/evolution';
 import { FORMATIONS, type FormationId } from '../../engine/formations';
-import { viewInstance } from '../../engine/instance';
+import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { computeLinks } from '../../engine/links';
 import { computeSynergies } from '../../engine/synergy';
 import { playCry } from '../../game/audio';
@@ -19,7 +19,7 @@ import { FormationIdentity } from '../components/FormationIdentity';
 import { FutCard } from '../components/FutCard';
 import { LinkChip, LinkChips, newLinks } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
-import { TypeBadge } from '../components/PokeCard';
+import { cardSprite, TypeBadge } from '../components/PokeCard';
 import { EvoBadge } from '../components/PokeCard2';
 import { Tip } from '../help/Tip';
 import { lineupAverage, ratingAt } from '../rating';
@@ -93,6 +93,59 @@ function AutoDraft({ captainUid, hint }: { captainUid?: string; hint?: string })
 }
 
 /** Desenho mini da formação (bolinhas nas posições da UI). */
+/**
+ * Celular em pé: a quadra sai da tela quando as cartas sobem. Esta faixa fica fixa no topo com as vagas (titulares e
+ * banco): você vê onde a carta vai cair e toca numa vaga sem rolar de volta. Só aparece nessa tela (CSS); o leitor de
+ * tela usa a quadra, que tem os mesmos botões.
+ */
+function DraftStrip({
+    run,
+    byUid,
+    stateOf,
+    onSlot,
+}: {
+    run: NonNullable<ReturnType<typeof useGame.getState>['run']>;
+    byUid: Map<string, PokemonInstance>;
+    stateOf: (slot: SlotRef, uid: string) => 'locked' | 'target' | 'selected';
+    onSlot: (slot: SlotRef, uid: string) => void;
+}) {
+    const { t, d } = useT();
+    const roles = FORMATIONS[run.formation].slots;
+    const chips: { ref: SlotRef; uid: string; label: string }[] = [
+        ...run.lineup.map((uid, index) => ({
+            ref: { zone: 'lineup', index } as SlotRef,
+            uid,
+            label: d.team.board.slot[roles[index]],
+        })),
+        ...run.bench.map((uid, index) => ({
+            ref: { zone: 'bench', index } as SlotRef,
+            uid,
+            label: t('common.ui.bench'),
+        })),
+    ];
+    return (
+        <div className="draft-strip" aria-hidden="true">
+            {chips.map(({ ref, uid, label }) => {
+                const inst = uid ? byUid.get(uid) : undefined;
+                const state = stateOf(ref, uid);
+                return (
+                    <button
+                        type="button"
+                        key={`${ref.zone}-${ref.index}`}
+                        tabIndex={-1}
+                        className={`ds-chip ${inst ? 'filled' : 'empty'} ${state}`}
+                        disabled={state === 'locked'}
+                        onClick={() => onSlot(ref, uid)}
+                    >
+                        {inst ? <img className="pixel" src={cardSprite(inst)} alt="" /> : <i />}
+                        <span>{label}</span>
+                    </button>
+                );
+            })}
+        </div>
+    );
+}
+
 function FormationDiagram({ id }: { id: FormationId }) {
     const f = FORMATIONS[id];
     return (
@@ -262,6 +315,7 @@ export function Draft() {
                     onActive={setCoachOn}
                 />
             )}
+            <DraftStrip run={run} byUid={byUid} stateOf={slotState} onSlot={onSlot} />
             <div className="draft-grid">
                 <div className="panel board-panel" ref={boardRef}>
                     <h2>{run.teamName}</h2>
