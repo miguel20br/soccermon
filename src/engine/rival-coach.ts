@@ -1,7 +1,6 @@
 /**
- * Técnico rival que reage (M10 de docs/planos/pesquisas/agencia.md): na Copa, com o experimento "beira da quadra"
- * ligado, o líder do clube rival usa as mesmas armas que você (pedido de tempo, goleiro-linha, golpe máximo e tática)
- * por uma regra simples com a personalidade dele. Só lê o estado da partida e gera ordens normais
+ * Técnico rival que reage (M10 de docs/planos/pesquisas/agencia.md): na Copa (`cupRival`), o líder do clube rival
+ * usa as mesmas armas que você (pedido de tempo, goleiro-linha, golpe máximo e tática) por uma regra simples com a personalidade dele. Só lê o estado da partida e gera ordens normais
  * (`AgencyOrder`/`TacticChange`) um pouco à frente, pelo mesmo caminho das ordens do técnico: o motor aplica os
  * mesmos limites (1 tempo por tempo, barra cheia...). Determinístico: o único sorteio (o "humor" do dia, que mexe uns
  * minutos nos gatilhos) sai de um Rng próprio da seed da partida, então o resto da partida não muda de sorteio.
@@ -243,7 +242,7 @@ export class RivalCoach {
         if (!cap || s.ball.owner === null) return false;
         const carrier = s.players[s.ball.owner];
         if (cap.role === 'GK' ? carrier.team === this.team : carrier !== cap) return false;
-        return inMaxZone(carrier.pos.x, carrier.pos.y, carrier.team, s.cfg.pitch);
+        return inMaxZone(carrier.pos.x, carrier.pos.y, carrier.team, s.cfg.pitch, cap.role);
     }
 }
 

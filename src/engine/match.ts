@@ -3307,8 +3307,12 @@ export function maxMoveOf(moves: readonly string[], speciesId: number): string |
     return moves.find(attack) ?? (sig && moves.includes(sig) ? sig : (moves[0] ?? null));
 }
 
-/** O capitão de linha está na zona do golpe máximo (perto do gol atacado e com ângulo). */
-export const inMaxZoneOf = (s: MatchState, p: PlayerState) => inMaxZone(p.pos.x, p.pos.y, p.team, s.cfg.pitch);
+/**
+ * `p` está na zona do golpe máximo (perto do gol atacado e com ângulo), com a zona da posição `role` (padrão: a de `p`,
+ * o capitão de linha; na defesa máxima, `p` é o rival com a bola e a zona é a do goleiro).
+ */
+export const inMaxZoneOf = (s: MatchState, p: PlayerState, role: Position = p.role) =>
+    inMaxZone(p.pos.x, p.pos.y, p.team, s.cfg.pitch, role);
 
 /**
  * Pede o golpe máximo: com a barra cheia, fica armado `maxArmTicks`. O de linha sai no chute da zona (a IA chuta na
@@ -3340,7 +3344,7 @@ function updateMax(s: MatchState) {
         }
         if (max.live || cap.role !== 'GK' || s.phase !== 'play' || s.ball.owner === null) continue;
         const carrier = s.players[s.ball.owner];
-        if (carrier.team === team || !inMaxZoneOf(s, carrier)) continue;
+        if (carrier.team === team || !inMaxZoneOf(s, carrier, 'GK')) continue;
         max.live = true;
         max.until = s.tick + AGENCY.maxGkTicks;
         emit(s, { type: 'max', team, by: cap.idx, phase: 'start', moveId: null });

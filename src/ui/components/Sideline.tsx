@@ -9,7 +9,7 @@ import { HudIcon, hex } from './MatchHud';
 import './sideline.css';
 
 /**
- * Beira da quadra (agência do técnico, EXPERIMENTO atrás de Configurações → Experimentos ou `?agencia=1`): pedido de
+ * Beira da quadra (agência do técnico, ligada pra todos desde a 0.9.6): pedido de
  * tempo, goleiro-linha, golpe máximo do capitão e a ordem dos pênaltis. A copa e o duelo usam as mesmas peças; o estado
  * sai dos eventos da partida (o que já passou na tela) e das ordens que ainda não entraram.
  */
@@ -63,7 +63,7 @@ export function agencyView(
 export function maxCueAt(m: MatchResult, setups: [TeamSetup, TeamSetup], side: 0 | 1, tick: number): boolean {
     const cap = captainAt(m, setups, side, tick).idx;
     if (cap === null) return false;
-    return maxCueNear(m.snapshots, tick - MAX_CUE_LATCH, tick, side, cap, roleAt(m, setups, cap, tick) === 'GK');
+    return maxCueNear(m.snapshots, tick - MAX_CUE_LATCH, tick, side, cap, roleAt(m, setups, cap, tick));
 }
 
 /** Golpe máximo pronto e na hora certa (o botão acende). */

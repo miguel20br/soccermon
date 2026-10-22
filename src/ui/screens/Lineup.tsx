@@ -29,7 +29,6 @@ import { edgeAgainst, FORMATION_ICON } from '../formation-info';
 import { Tip } from '../help/Tip';
 import { useClubColor } from '../profile/club';
 import { lineupAverage } from '../rating';
-import { agencyOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
 import { useHeld } from '../use-held';
 
@@ -79,7 +78,7 @@ export function Lineup() {
         try {
             // retomando: as mesmas ordens do técnico (tática/substituições) dão a mesma partida
             const orders = liveOf(useGame.getState().run)?.orders ?? [];
-            const result = await simulateMatch(team, cupRival(opponent, agencyOn()), `${seed}-stage-${stage}`, orders);
+            const result = await simulateMatch(team, cupRival(opponent, true), `${seed}-stage-${stage}`, orders);
             // só abre a partida se o jogador ainda está nesta tela, nesta run e nesta fase
             const now = useGame.getState();
             if (now.screen !== 'lineup' || now.run?.seed !== seed || now.run.stage !== stage) return;

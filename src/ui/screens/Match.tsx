@@ -73,7 +73,7 @@ import { rivalEmotes } from '../duel/emote-faces';
 import { LeaveConfirm } from '../leave-guard';
 import { captainAt, clockExtrasAt, roleAt, snapAt } from '../match-view';
 import { bannerText, useClubColor } from '../profile/club';
-import { agencyOn, reduceMotionOn } from '../settings-sync';
+import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
 
 /** Velocidades (o rótulo de 'highlights' vem do dicionário: "Lances"). */
@@ -133,8 +133,6 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const [sceneKey, setSceneKey] = useState(0);
     const [fulltime, setFulltime] = useState(false);
     const [tacticError, setTacticError] = useState<string | null>(null);
-    /** Beira da quadra (experimento): ligado na entrada da partida, não muda no meio. */
-    const agency = useRef(agencyOn(settings.agency)).current;
     /** Tick do pedido de tempo em que a quadra está parada (null = jogando). */
     const [timeoutAt, setTimeoutAt] = useState<number | null>(null);
     /** Tick do apito final, parado pra escolher a ordem dos pênaltis. */
@@ -201,7 +199,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                       startPaused: true,
                       startTick: resume?.tick || undefined,
                       final: !liga && !!run && isFinalStage(run),
-                      agency,
+                      agency: true,
                       // o rival joga em casa: a quadra do ginásio dele
                       court: opponent ? clubLeader(opponent.name) : undefined,
                       // a faixa da torcida é só a sua (o rival da copa não tem torcida organizada)
@@ -383,7 +381,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
         try {
             const result = await simulateMatch(
                 lockedSetup,
-                cupRival(opponent, agency),
+                cupRival(opponent, true),
                 `${run.seed}-stage-${run.stage}`,
                 schedule,
             );
@@ -407,9 +405,9 @@ export function Match({ liga = false }: { liga?: boolean }) {
         sendOrder((tick) => ({ tick, team: 0, kind: 'corner', corner }));
     };
 
-    // beira da quadra (experimento): tempo, goleiro-linha e golpe máximo, pelo mesmo caminho das ordens
+    // beira da quadra: tempo, goleiro-linha e golpe máximo, pelo mesmo caminho das ordens
     const setups: [TeamSetup, TeamSetup] = [lockedSetup, opponent];
-    const sideline = agencyView(match.events, orders, 0, clock.tick, agency && maxCueAt(match, setups, 0, clock.tick));
+    const sideline = agencyView(match.events, orders, 0, clock.tick, maxCueAt(match, setups, 0, clock.tick));
     const canAgency = canChangeTactic && penPick === null;
     // golpe máximo: vale já no quadro da tela, antes da decisão do capitão (com +1 a IA chutava antes e o lance
     // passava; a quadra espera a partida nova; é um lance, não um plano)
@@ -549,13 +547,11 @@ export function Match({ liga = false }: { liga?: boolean }) {
             tired={tired}
         />
     );
-    const tactics = agency ? (
+    const tactics = (
         <>
             {tacticControls}
             {sidelineControls}
         </>
-    ) : (
-        tacticControls
     );
     // ordem dos pênaltis: quem está em quadra no apito final, na ordem do motor (pelo chute); o goleiro no fim
     const penaltyTakers = (): PenaltyTaker[] => {
@@ -614,7 +610,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         />
                     </Scoreboard>
                     <PressureBar match={match} tick={clock.tick} minute={clock.minute} colors={colors} over={over} />
-                    {agency && <MaxBars events={match.events} tick={clock.tick} colors={colors} />}
+                    <MaxBars events={match.events} tick={clock.tick} colors={colors} />
                 </div>
 
                 <div className="bc-stage" onPointerDownCapture={auto.hold}>
@@ -625,15 +621,8 @@ export function Match({ liga = false }: { liga?: boolean }) {
                             <div className="phaser-container" />
                         )}
                         <Ticker lines={lines} colors={colors} />
-                        {agency && (
-                            <SidelineOverlay
-                                events={match.events}
-                                tick={clock.tick}
-                                colors={colors}
-                                names={teamNames}
-                            />
-                        )}
-                        {agency && <MaxCueButton view={sideline} canAct={canAgency} onMax={sendMax} />}
+                        <SidelineOverlay events={match.events} tick={clock.tick} colors={colors} names={teamNames} />
+                        <MaxCueButton view={sideline} canAct={canAgency} onMax={sendMax} />
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
                         {ended && !auto.held && (

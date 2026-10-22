@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { maxCharge } from '../../engine/agency';
-import { computeAttributes } from '../../engine/attributes';
+import { computeAttributes, type Position } from '../../engine/attributes';
 import { FUTSAL_5 } from '../../engine/config';
 import { ABILITIES, MOVES, species } from '../../engine/data';
 import { ITEMS } from '../../engine/items';
@@ -642,14 +642,14 @@ export class MatchScene extends Phaser.Scene {
         if (c.charge < 1 || c.used || c.active) return false;
         const cap = this.players.findIndex((v) => v.team === team && v.captain);
         if (cap < 0) return false;
-        const gk = this.md.result.roster[cap]?.role === 'GK';
+        const role = (this.md.result.roster[cap]?.role ?? 'PIVO') as Position;
         return maxCueNear(
             this.snaps,
             Math.floor(this.playTick) - MAX_CUE_LATCH,
             Math.floor(this.playTick) + MAX_CUE_LEAD,
             team,
             cap,
-            gk,
+            role,
         );
     }
 

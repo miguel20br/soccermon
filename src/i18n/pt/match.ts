@@ -121,7 +121,7 @@ export const match = {
         flyGk: 'GOLEIRO-LINHA',
         max: 'GOLPE MÁXIMO',
     },
-    /** Agência do técnico (experimento, Configurações → Experimentos). */
+    /** Agência do técnico (beira da quadra). */
     agency: {
         title: 'Beira da quadra',
         beta: 'teste',

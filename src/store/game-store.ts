@@ -328,8 +328,6 @@ export interface Settings {
     stats: boolean;
     /** Idioma (o padrão segue o navegador). */
     lang: Lang;
-    /** Experimento "beira da quadra" (agência do técnico na partida): desligado por padrão. */
-    agency?: boolean;
     /** Vibração curta nos toques que pesam (Android; o iPhone não vibra pela web). Sem = ligada. */
     haptics?: boolean;
 }
@@ -354,7 +352,6 @@ export const DEFAULT_SETTINGS: Settings = {
     confirmLeave: true,
     stats: true,
     lang: detectLang(),
-    agency: false,
 };
 
 export interface Records {

@@ -42,7 +42,6 @@ import { hexCss, peerAvatar, peerTitle } from '../profile/club';
 import { peerInfo, usePlayerCard, usePublicPeer } from '../profile/PlayerCard';
 import { qrPath } from '../qr';
 import { heroStats, MatchDetails } from '../screens/Result';
-import { agencyOn } from '../settings-sync';
 import { setChartColors } from '../stats/StatsCharts';
 import { DuelDraft, DuelPreview, specialRuleText, TeamPick } from './DuelDraft';
 import { DuelMatch, useCountdown } from './DuelMatch';
@@ -315,16 +314,7 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
                 disabled={busy}
                 onClick={async () => {
                     setBusy(true);
-                    const code = await duel.create(
-                        peer,
-                        mode,
-                        speed,
-                        local,
-                        specialLimit,
-                        duration,
-                        agencyOn(),
-                        bestOf,
-                    );
+                    const code = await duel.create(peer, mode, speed, local, specialLimit, duration, true, bestOf);
                     setUrl(code, local);
                     void sendPendingChallenge(code);
                 }}
@@ -532,7 +522,6 @@ function Lobby() {
                             </span>
                         </>
                     )}
-                    {s.agency && <> · {t('match.agency.title')}</>}
                 </span>
             </div>
             <InviteBox s={s} local={local} compact={rivalIn} />

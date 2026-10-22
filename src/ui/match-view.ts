@@ -40,12 +40,12 @@ export function maxCueNear(
     to: number,
     team: 0 | 1,
     capIdx: number,
-    capGk: boolean,
+    capRole: Position,
 ): boolean {
     if (!snaps.length) return false;
     const { pitch, teamSize, snapshotEvery } = FUTSAL_5;
     for (let t = from; t <= to; t += snapshotEvery)
-        if (maxCue(snapAt(snaps, t), team, capIdx, capGk, pitch, teamSize)) return true;
+        if (maxCue(snapAt(snaps, t), team, capIdx, capRole, pitch, teamSize)) return true;
     return false;
 }
 

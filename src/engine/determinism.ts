@@ -66,9 +66,11 @@ export function determinismHashes(): string[] {
         { tick: 5000, team: 0, kind: 'flyGk', on: true },
     ];
     const agAway: TeamSetup = { ...team('det-ag-b', 'B', 2), coach: 'lance' };
+    // capitão ala: o golpe máximo sai a ~17 m, fora da zona do pivô (zona por posição)
+    const agHome = team('det-ag-a', 'A', 2, { manualSubs: true });
     hashes.push(
         matchHash(
-            runMatch(FUTSAL_5, team('det-ag-a', 'A', 2, { manualSubs: true }), agAway, 'det-agency', {
+            runMatch(FUTSAL_5, { ...agHome, captainUid: agHome.lineup[2].uid }, agAway, 'det-agency', {
                 orders: agOrders,
             }),
         ),

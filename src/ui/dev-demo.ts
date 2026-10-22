@@ -20,7 +20,6 @@ import { playerTeam, useGame } from '../store/game-store';
 import { EVENT_IDS, type EventId, rollEvent } from '../store/long-events';
 import { earnedKeys, medalViewOf } from '../store/news';
 import { EDITION_BIT, editionBits } from '../store/profile';
-import { agencyOn } from './settings-sync';
 import { isTrailerScene, trailerPicks } from './trailer-scenes';
 
 /**
@@ -38,7 +37,7 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * enche o álbum de cartas (edições, combos, ×N) e a Pokédex, escolhe 3 pra vitrine e abre a Pokédex no Álbum.
  * `?demo=lider&clube=<id>` (brock,
  * misty, ltsurge, erika, koga, sabrina, blaine, giovanni, agatha, lance) põe o clube desse treinador na primeira
- * partida (VERSUS com a fala, a quadra do ginásio); com `&agencia=1`, uma partida em que o rival reage cedo.
+ * partida (VERSUS com a fala, a quadra do ginásio), uma em que o rival reage cedo.
  * `?demo=amigos` abre Perfil → Amigos com um servidor de mentira (`&tela=home`: o convite na Home; `&cartao=1|anon`: o
  * botão "Adicionar amigo" num cartão do treinador de mentira).
  * `?demo=platina` libera a
@@ -47,7 +46,7 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * escalação uma partida que, ao começar, já está a 2 s do intervalo, com 2 no banco e troca do rival no intervalo (o
  * vestiário: várias trocas, desfazer e "O rival trocou"). `?demo=acrescimos` abre na escalação uma partida que você está
  * perdendo no fim: ao começar, já está na Pressão final, a 3 s dos acréscimos do 2º tempo ("+N'" no placar).
- * `?demo=maximo&agencia=1` abre na escalação uma partida que, ao começar, está a 2 s do botão do golpe máximo aceso
+ * `?demo=maximo` abre na escalação uma partida que, ao começar, está a 2 s do botão do golpe máximo aceso
  * (barra cheia, capitão Dragonite com a bola na zona); `&goleiro=1`: capitão Snorlax no gol (defesa máxima).
  */
 let started = false;
@@ -164,7 +163,6 @@ export function runDevDemo() {
     }
     if (demo === 'lider') {
         const want = new URLSearchParams(window.location.search).get('clube') ?? 'ltsurge';
-        const agency = agencyOn();
         for (let k = 0; k < 300; k++) {
             store.newRun('Demo FC', `lider${k}`);
             const run = useGame.getState().run!;
@@ -184,19 +182,17 @@ export function runDevDemo() {
                 draftRound: 7,
                 status: 'lineup' as const,
             };
-            if (agency) {
-                // o rival tem que reagir logo (aviso do técnico antes dos 12')
-                const r = runMatch(
-                    FUTSAL_5,
-                    playerTeam(ready),
-                    cupRival(ready.opponents[0], true),
-                    `${ready.seed}-stage-0`,
-                    {
-                        snapshots: false,
-                    },
-                );
-                if (!r.events.some((e) => e.type === 'coach' && e.minute < 12)) continue;
-            }
+            // o rival tem que reagir logo (aviso do técnico antes dos 12')
+            const r = runMatch(
+                FUTSAL_5,
+                playerTeam(ready),
+                cupRival(ready.opponents[0], true),
+                `${ready.seed}-stage-0`,
+                {
+                    snapshots: false,
+                },
+            );
+            if (!r.events.some((e) => e.type === 'coach' && e.minute < 12)) continue;
             useGame.setState({ run: ready, screen: 'lineup' });
             console.info(`[demo] copa ${ready.seed}: contra ${ready.opponents[0].name}`);
             return;
@@ -498,7 +494,8 @@ export function runDevDemo() {
                 const owner = s.ball.owner === null ? null : s.players[s.ball.owner];
                 const cap = s.players.find((p) => p.team === 0 && p.captain);
                 if (s.phase !== 'play' || !owner || !cap || maxCharge(s.events, 0, s.tick).charge < 1) continue;
-                if (gk ? owner.team === 1 && inMaxZoneOf(s, owner) : owner === cap && inMaxZoneOf(s, cap)) at = s.tick;
+                if (gk ? owner.team === 1 && inMaxZoneOf(s, owner, 'GK') : owner === cap && inMaxZoneOf(s, cap))
+                    at = s.tick;
             }
             if (at === null || at < 200) continue;
             const saved = { stage: 0, orders: [], tick: at - 40, engine: ENGINE_VERSION };

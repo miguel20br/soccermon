@@ -20,7 +20,7 @@ const MECHS = (process.argv[5] ?? 'timeout,flyGk,max,pens,all').split(',');
 const CAP_GK = process.env.CAP === 'gk';
 const LEAD = 40 * SPEED;
 const RIVAL = process.env.RIVAL === '1';
-// variantes pra comparar (ex.: AG_maxRange=14): mexe só nesta rodada do robô, nunca no jogo
+// variantes pra comparar (ex.: AG_maxGkReach=1.4): mexe só nesta rodada do robô, nunca no jogo
 for (const [k, v] of Object.entries(process.env)) {
     if (k.startsWith('AG_') && v) (AGENCY as unknown as Record<string, number>)[k.slice(3)] = Number(v);
     // técnico IA rival (ex.: RC_leadTicks=200: avisa 10 s antes)
@@ -95,7 +95,7 @@ function play(i: number, mech: string, policy: Policy): Out {
         const owner = s.ball.owner === null ? null : s.players[s.ball.owner];
         if (!cap || !owner) return;
         const cue =
-            cap.role === 'GK' ? owner.team === 1 && inMaxZoneOf(s, owner) : owner === cap && inMaxZoneOf(s, cap);
+            cap.role === 'GK' ? owner.team === 1 && inMaxZoneOf(s, owner, 'GK') : owner === cap && inMaxZoneOf(s, cap);
         if (!cue) return;
         const c = maxCharge(s.events, 0, s.tick, FUTSAL_5.teamSize);
         if (c.charge < 1 || c.used || c.active) return;

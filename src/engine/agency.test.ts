@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AGENCY, maxCharge } from './agency';
+import { AGENCY, inMaxZone, maxCharge, maxCue } from './agency';
 import { FUTSAL_5, withConfig } from './config';
 import { matchHash } from './determinism';
 import { aiDraftTeam } from './draft';
@@ -8,7 +8,7 @@ import { applyAgencyOrder, benchSpot, createMatch, inMaxZoneOf, maxMoveOf, toRel
 import { Rng } from './rng';
 import { runMatch } from './runners/batch-runner';
 import { LiveRunner } from './runners/live-runner';
-import type { MatchEvent, MatchOrder, TeamSetup } from './state';
+import { type MatchEvent, type MatchOrder, SNAP_STRIDE, type TeamSetup } from './state';
 
 function team(seed: string, name: string): TeamSetup {
     return { name, ...aiDraftTeam(new Rng(seed, 'team'), 1), tactic: 'balanced', color: 0, manualSubs: true };
@@ -136,6 +136,26 @@ describe('agência do técnico (experimento)', () => {
     }
     const capOf = (live: LiveRunner) => live.state.players.find((p) => p.team === 0 && p.captain)!;
 
+    it('zona do golpe máximo pela posição do capitão: pivô 15 m, ala 18 m, fixo 22 m (o goleiro, 15 m do rival)', () => {
+        const { pitch } = FUTSAL_5;
+        const y = pitch.width / 2;
+        // time 0 ataca o gol de x = 40: d metros do gol, de frente
+        const at = (d: number, role: Parameters<typeof inMaxZone>[4]) => inMaxZone(pitch.length - d, y, 0, pitch, role);
+        expect([at(14, 'PIVO'), at(14, 'ALA'), at(14, 'FIXO'), at(14, 'GK')]).toEqual([true, true, true, true]);
+        expect([at(17, 'PIVO'), at(17, 'ALA'), at(17, 'FIXO'), at(17, 'GK')]).toEqual([false, true, true, false]);
+        expect([at(21, 'PIVO'), at(21, 'ALA'), at(21, 'FIXO')]).toEqual([false, false, true]);
+        expect(at(22.5, 'FIXO')).toBe(false);
+        // o ângulo continua valendo: da linha de fundo, colado na lateral, nada acende
+        expect(inMaxZone(pitch.length - 1, 0.5, 0, pitch, 'FIXO')).toBe(false);
+        // a tela usa a mesma regra (snapshot com o capitão fixo de bola a 20 m)
+        const p: number[] = new Array(10 * SNAP_STRIDE).fill(0);
+        p[3 * SNAP_STRIDE] = pitch.length - 20;
+        p[3 * SNAP_STRIDE + 1] = y;
+        const snap = { owner: 3, p, phase: 'play' as const };
+        expect(maxCue(snap, 0, 3, 'FIXO', pitch)).toBe(true);
+        expect(maxCue(snap, 0, 3, 'PIVO', pitch)).toBe(false);
+    });
+
     it('golpe máximo de linha: na hora certa sai na hora, com o golpe do capitão; fora dela não sai sozinho', () => {
         // capitão no pivô: o fixo quase nunca chega na zona com a bola (formações da 0.9.5)
         const P = { ...A, captainUid: A.lineup[4].uid };
@@ -184,7 +204,7 @@ describe('agência do técnico (experimento)', () => {
             const at = firstCue(H, seed, (live) => {
                 const s = live.state;
                 const owner = s.ball.owner === null ? null : s.players[s.ball.owner];
-                return !!owner && owner.team === 1 && inMaxZoneOf(s, owner);
+                return !!owner && owner.team === 1 && inMaxZoneOf(s, owner, 'GK');
             });
             if (at === null) continue;
             const r = runMatch(FUTSAL_5, H, B, seed, {

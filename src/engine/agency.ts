@@ -1,5 +1,5 @@
 /**
- * Agência do técnico na partida (EXPERIMENTO, docs/planos/pesquisas/agencia.md e beira-da-quadra-2.md): pedido de
+ * Agência do técnico na partida (beira da quadra, no ar desde a 0.9.6; docs/planos/beira-da-quadra-2.md): pedido de
  * tempo, goleiro-linha, golpe máximo do capitão e ordem dos pênaltis. Tudo entra só por ordem do técnico
  * (`MatchOrder`): sem ordem nova, a partida é bit a bit a de antes (o interruptor fica na tela, não no motor).
  * Os gritos saíram em 21/10/2026 (Miguel: confundiam mais que ajudavam; a tática já faz esse papel).
@@ -7,6 +7,7 @@
  * Mexer nos números só com o antes/depois do técnico robô (`scripts/balance/coach.ts`) e do
  * `scripts/balance/goleiro-linha.ts`.
  */
+import type { Position } from './attributes';
 import { type MatchEvent, type MatchSnapshot, SNAP_STRIDE } from './state';
 import { expectedGoals } from './xg';
 
@@ -30,9 +31,17 @@ export const AGENCY = {
     maxBehind: [1, 1.5, 2],
     /** O chute máximo: bem mais forte e mais certeiro que o golpe normal. */
     maxShot: { power: 1.55, accuracy: 1.6 },
-    /** Zona do golpe máximo: até essa distância do gol e com ângulo (xG mínimo, a mesma conta da IA pra chutar). */
-    maxRange: 15,
-    maxZoneXg: 0.06,
+    /**
+     * Zona do golpe máximo pela posição do capitão (Miguel, 22/10/2026: com 15 m pra todos o fixo quase nunca tinha a
+     * hora certa): até `range` metros do gol e com ângulo (xG mínimo, a mesma conta da IA pra chutar). O xG de 0,06 só
+     * chega a ~19,8 m no meio, então o fixo tem o dele. O goleiro é a zona do rival na defesa máxima.
+     */
+    maxZone: {
+        GK: { range: 15, xg: 0.06 },
+        PIVO: { range: 15, xg: 0.06 },
+        ALA: { range: 18, xg: 0.06 },
+        FIXO: { range: 22, xg: 0.05 },
+    },
     /**
      * Defesa máxima: alcance do goleiro no chute. Com 1,8 e o time arrancando +15% no contra-ataque, o robô ganhava
      * +7 pp (o golpe de linha, +1,5): ficou 1,25 e só a saída rápida (beira-da-quadra-2.md).
@@ -56,14 +65,18 @@ interface Pitch {
     goalWidth: number;
 }
 
-/** Na zona do golpe máximo de quem ataca o gol do time `team` (o time 0 ataca o gol de x = length). */
-export function inMaxZone(x: number, y: number, team: 0 | 1, pitch: Pitch): boolean {
+/**
+ * Na zona do golpe máximo de quem ataca o gol do time `team` (o time 0 ataca o gol de x = length), pela posição do
+ * capitão `role` (`AGENCY.maxZone`). Regra única: botão da tela, motor, IA, técnico rival e robô passam por aqui.
+ */
+export function inMaxZone(x: number, y: number, team: 0 | 1, pitch: Pitch, role: Position): boolean {
+    const { range, xg } = AGENCY.maxZone[role];
     const gx = team === 0 ? pitch.length : 0;
     const gy = pitch.width / 2;
     const dx = x - gx;
     const dy = y - gy;
-    if (dx * dx + dy * dy >= AGENCY.maxRange * AGENCY.maxRange) return false;
-    return expectedGoals({ x, y }, gx, gy, pitch.goalWidth) >= AGENCY.maxZoneXg;
+    if (dx * dx + dy * dy >= range * range) return false;
+    return expectedGoals({ x, y }, gx, gy, pitch.goalWidth) >= xg;
 }
 
 /**
@@ -74,16 +87,16 @@ export function maxCue(
     snap: Pick<MatchSnapshot, 'owner' | 'p' | 'phase'>,
     team: 0 | 1,
     capIdx: number | null,
-    capGk: boolean,
+    capRole: Position,
     pitch: Pitch,
     teamSize = 5,
 ): boolean {
     if (capIdx === null || snap.phase !== 'play' || snap.owner < 0) return false;
     const ownerTeam = snap.owner < teamSize ? 0 : 1;
-    if (capGk ? ownerTeam === team : snap.owner !== capIdx) return false;
+    if (capRole === 'GK' ? ownerTeam === team : snap.owner !== capIdx) return false;
     const x = snap.p[snap.owner * SNAP_STRIDE];
     const y = snap.p[snap.owner * SNAP_STRIDE + 1];
-    return inMaxZone(x, y, ownerTeam, pitch);
+    return inMaxZone(x, y, ownerTeam, pitch, capRole);
 }
 
 /** Lances que enchem a barra do golpe máximo (pontos por lance do time). */
