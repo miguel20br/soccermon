@@ -6,6 +6,7 @@ import { preloadGame } from './PhaserGame';
 import { type Screen, useGame } from './store/game-store';
 import { AccountLink } from './ui/components/AccountLink';
 import { CardModal } from './ui/components/CardModal';
+import { LogoHits } from './ui/components/LogoHits';
 import { Onboarding } from './ui/components/Onboarding';
 import { TopActions } from './ui/components/TopActions';
 import { UnlockNotice } from './ui/components/UnlockNotice';
@@ -189,7 +190,10 @@ export default function App() {
                         }
                         aria-label={t('common.ui.backHome')}
                     >
-                        <img className="brand-logo" src="assets/ui/logo.svg" alt="" width="1441" height="300" />
+                        <span className="brand-logo logo-blink">
+                            <img src="assets/ui/logo.svg" alt="" width="1441" height="300" />
+                            <LogoHits />
+                        </span>
                         {/* na partida o logo inteiro ficava ilegível (~40 px): lá vai o símbolo, no mínimo de 24 px do guia */}
                         <img className="brand-symbol" src="assets/ui/simbolo.svg" alt="" width="28" height="28" />
                     </button>

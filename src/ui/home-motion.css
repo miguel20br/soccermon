@@ -62,12 +62,75 @@
     }
 }
 
-/* sílabas do logo que piscam com o gancho da Abertura (Home.tsx, LogoHits): a respiração é a mesma do logo */
-.home-hero .logo-img img.logo-hit {
+/* sílabas do logo que piscam com o gancho da Abertura (LogoHits.tsx; Home e logo da barra de cima): a respiração é a mesma do logo */
+.logo-img,
+.logo-blink {
+    position: relative;
+    isolation: isolate;
+}
+.logo-blink {
+    display: inline-flex;
+}
+.logo-blink .logo-hit {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    pointer-events: none;
+}
+.logo-img .logo-hit {
     position: absolute;
     inset: 0;
     opacity: 0;
     pointer-events: none;
+}
+/* atrás da sílaba: estrela dourada e anel branco chapados (sem brilho, brand guide); só transform e opacity */
+.logo-star,
+.logo-ring {
+    position: absolute;
+    top: 50%;
+    translate: -50% -50%;
+    z-index: -1;
+    opacity: 0;
+    pointer-events: none;
+    aspect-ratio: 1;
+}
+.logo-star {
+    width: 40%;
+    background: var(--yellow);
+    clip-path: polygon(
+        50% 0%,
+        57.8% 18.5%,
+        75% 6.7%,
+        70.7% 29.3%,
+        93.3% 25%,
+        81.5% 42.2%,
+        100% 50%,
+        81.5% 57.8%,
+        93.3% 75%,
+        70.7% 70.7%,
+        75% 93.3%,
+        57.8% 81.5%,
+        50% 100%,
+        42.2% 81.5%,
+        25% 93.3%,
+        29.3% 70.7%,
+        6.7% 75%,
+        18.5% 57.8%,
+        0% 50%,
+        18.5% 42.2%,
+        6.7% 25%,
+        29.3% 29.3%,
+        25% 6.7%,
+        42.2% 18.5%
+    );
+}
+.logo-ring {
+    width: 30%;
+    box-sizing: border-box;
+    border: 4px solid #fff;
+    border-radius: 50%;
 }
 
 /* ---------- brilho correndo no "Nova copa" (só quando ele é o botão principal) ---------- */

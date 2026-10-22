@@ -1,6 +1,5 @@
-import { type CSSProperties, useEffect, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useState } from 'react';
 import { weeklyEventType } from '../../engine/specials';
-import { onGanchoHit } from '../../game/music';
 import { typeName } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { isCupInProgress, resumeScreenOf, seedFromUrl, useGame } from '../../store/game-store';
@@ -9,6 +8,7 @@ import { AccountBar } from '../components/AccountBar';
 import { cupStep } from '../components/AccountLink';
 import { CountUp } from '../components/CountUp';
 import { HomeCourt } from '../components/HomeCourt';
+import { LogoHits } from '../components/LogoHits';
 import { cardSprite } from '../components/PokeCard';
 import { TypeIcon } from '../components/TypeIcon';
 import { FEEDBACK_URL, privacyUrl } from '../links';
@@ -63,45 +63,6 @@ function DexProgress() {
 }
 
 /** Troca rápida de idioma no rodapé da tela inicial (as Configurações também têm). */
-/** Sílabas do logo (SOC, CER, MON) em % da largura; cada uma acende na batida do gancho da Abertura. */
-const SYLLABLES: [number, number][] = [
-    [0, 34.7],
-    [34.7, 67.7],
-    [67.7, 100],
-];
-
-/** Cópias do logo recortadas por sílaba, por cima dele: piscam (só opacidade e brilho) nas 3 batidas "SOC-CER-MON". */
-function LogoHits() {
-    const refs = useRef<(HTMLImageElement | null)[]>([]);
-    useEffect(
-        () =>
-            onGanchoHit((i) => {
-                if (document.documentElement.dataset.reduceMotion === 'true') return;
-                refs.current[i]?.animate(
-                    [
-                        { opacity: 0.95, filter: 'brightness(1.9) drop-shadow(0 0 14px #fff)' },
-                        { opacity: 0, filter: 'brightness(1) drop-shadow(0 0 0 #fff)' },
-                    ],
-                    { duration: 300, easing: 'ease-out' },
-                );
-            }),
-        [],
-    );
-    return SYLLABLES.map(([a, b], i) => (
-        <img
-            key={a}
-            ref={(el) => {
-                refs.current[i] = el;
-            }}
-            className="logo-hit"
-            src="assets/ui/logo.svg"
-            alt=""
-            aria-hidden="true"
-            style={{ clipPath: `inset(0 ${100 - b}% 0 ${a}%)` }}
-        />
-    ));
-}
-
 function LangToggle() {
     const { lang, t } = useT();
     const updateSettings = useGame((s) => s.updateSettings);
