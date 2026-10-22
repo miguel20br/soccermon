@@ -114,7 +114,34 @@ precisando do "pode subir".
    `gridOf` (12/8 = 12 linhas, pulso de 3). Sem faixa saindo (1º som, depois do silêncio): fade de 250 ms. Troca de
    trecho (nível da partida) na linha do compasso, num ganho novo (a velha some em 10 ms, sem estalo); vale o último
    pedido. A tela `match` não silencia a música: a partida pede a dela e a troca da Escalação também cai no tempo.
-8. **Virada no placar: tentada e recusada** (22/10/2026). 1ª versão: vinheta por cima da partida com a música
+8. **Troca de tela com virada e ponte** (22/10/2026, a C da demo A/B/C, `scripts/musica/transicao-ab.mjs`; o Miguel
+   aprovou as regras). Quem diz a regra é `moveOf(de, para)` em `src/ui/music-sync.ts`; quem toca é `src/game/music.ts`
+   (`planOf`, `fillWindow`):
+   - **Avançar na copa** (Home → Draft → Escalação → Partida → Resultado → Recompensa, mapa → Evento/Mercado/Treino,
+     Mercado → Escalação): **virada** no andamento da faixa que sai, da próxima batida (a 100 ms pelo menos) até o 1 do
+     compasso seguinte (1 a 4 batidas; a que sai vai pro fundo: passa-baixa de 9 → 1 kHz e −25%), depois a **ponte**
+     (1 compasso no tom e no andamento da que entra, com o som de assinatura dela), depois a faixa (do começo, intro
+     inclusa). Espera típica: 2 a 4 s; a tela troca na hora.
+   - **Entrar na partida**: igual, e a ponte tem riser no compasso e prato com bumbo no 1. O VERSUS cobre a espera. Com
+     líder, a ponte é a do tema dele (`ponte-tema-<nome>`).
+   - **Voltar** (Home, `‹`, voltar do Android, sair de uma parada pro mapa) e menus (Configurações, Ajuda, Perfil… que
+     dividem a Abertura com a Home): só encaixada no tempo (o item 7).
+   - **Navegou de novo antes da ponte acabar**: cancela virada e ponte; a mais nova entra na próxima batida do que soa
+     (a ponte, ou a faixa que sai). Voltou pra faixa que ainda sai, no meio da virada: ela continua do mesmo ponto.
+     Nunca duas viradas.
+   - **A mesma troca (faixa → faixa) de novo em até 30 s** (`REPEAT_S`): só a virada, sem a ponte.
+   - Faixa que sai já acabou (jingle): sem virada; a ponte entra já. Faixa sem ponte (`PONTES`): só a virada.
+
+   **Virada**: feita na hora (`src/game/virada.ts`) com o ZzFX (bumbo, caixa, 3 toms, prato) e o clap 808 da receita 7b
+   em `public/music/clap-808.wav` (16 bits mono, lido à mão, sem `decodeAudioData`); termina no SOC-CER-MON (3-3-2) de
+   caixa e clap; swing da faixa que sai (`SWING`). Nível fixo: RMS 0,6 × o das faixas (−16 LUFS ≈ 0,106), pico ≤ 0,4.
+   **Pontes**: `scripts/pesado.sh node scripts/musica/pontes.mjs [id]` renderiza 1 compasso por faixa que entra
+   (dominante do tom com o baixo andando até a tônica + assinatura) em `public/music/ponte-<id>.webm/.mp3/.json`
+   (trecho `ponte` de 1 compasso; o arquivo leva o rabo, que soa por cima da entrada), no nível 0,75 × RMS dos 4 s
+   iniciais da faixa, e confere o alinhamento do `.webm` e a emenda ponte → faixa (a medida do `loops.mjs`, < 1).
+   Faixa nova que entra avançando: ponte nova no `PONTES` do `pontes.mjs` e no `PONTES` do `music.ts`.
+   Linha do tempo das trocas em dev: `window.__musica` (tempos do AudioContext).
+9. **Virada no placar: tentada e recusada** (22/10/2026). 1ª versão: vinheta por cima da partida com a música
    abaixando ~10 dB (peças e arquivos `virada*` apagados): o Miguel não gostou. 2ª ideia (breque + virada de bateria +
    torcida + subir de nível) foi descartada antes de entrar: a música da partida só segue os trechos pelo minuto e
    pela pressão. Não proponha de novo sem ele pedir.

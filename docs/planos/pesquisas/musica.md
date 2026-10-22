@@ -57,6 +57,14 @@ faixas de `public/music` (o jogo não mudou). Quatro pares reais: Home → Draft
 - Se entrar no jogo: a virada pode ser feita na hora com o ZzFX no andamento da faixa que sai (caixa, toms) mais a
   amostra do clap 808; sem arquivo novo por faixa.
 
+**Decisão (22/10):** o Miguel preferiu a **C** (virada + ponte) e aprovou as regras: avançar na copa = virada no
+tempo da que sai + ponte de 1 compasso com o som da que entra; entrar na partida = virada + ponte + riser e prato (o
+VERSUS cobre a espera); voltar (Android, botão de sair, Home) = só no tempo; navegar de novo antes da ponte acabar =
+cancela e a nova entra na próxima batida; a mesma troca de novo em ~30 s = só a virada. Configurações, Ajuda, Perfil
+etc. seguem com a Abertura (sem troca). No jogo na 0.9.11 (branch `viradas`): virada feita na hora com o ZzFX e o clap
+808, 23 pontes em `public/music/ponte-*` (`scripts/musica/pontes.mjs`). Regras e detalhes na skill
+`soccermon-musica` (§3, item 8).
+
 ## Virada, Pressão final, pênaltis, Créditos e Lt. Surge no jogo (22/10)
 
 - **Virada fora.** O Miguel não gostou da vinheta por cima da partida: saiu `playVirada()`, os arquivos `virada*` de

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { buildCupMap } from '../engine/cup-map';
 import type { MatchEvent } from '../engine/state';
 import type { useGame } from '../store/game-store';
-import { matchMusic, penaltyMusic, trackOf } from './music-sync';
+import { matchMusic, moveOf, penaltyMusic, trackOf } from './music-sync';
 
 const music = vi.hoisted(() => ({ played: [] as [string | null, string | undefined][] }));
 vi.mock('../game/music', async (orig) => ({
@@ -16,6 +16,31 @@ const at = (row: number) => map.nodes.find((n) => n.row === row)?.id ?? null;
 const st = (screen: string, run: object) => ({ screen, run }) as unknown as S;
 
 describe('música por tela', () => {
+    it('regra da troca: avançar na copa, entrar na partida, voltar (Home, sair de uma parada, menus)', () => {
+        for (const [a, b] of [
+            ['home', 'draft'],
+            ['draft', 'lineup'],
+            ['match', 'result'],
+            ['result', 'reward'],
+            ['reward', 'map'],
+            ['map', 'shop'],
+            ['map', 'event'],
+            ['shop', 'lineup'],
+        ] as const)
+            expect(moveOf(a, b)).toBe('avanca');
+        expect(moveOf('lineup', 'match')).toBe('partida');
+        for (const [a, b] of [
+            ['draft', 'home'],
+            ['result', 'home'],
+            ['shop', 'map'],
+            ['treino', 'map'],
+            ['home', 'settings'],
+            ['profile', 'trophies'],
+        ] as const)
+            expect(moveOf(a, b)).toBe('volta');
+        expect(moveOf('result', 'result')).toBeUndefined();
+    });
+
     it('resultado: vitória, derrota, eliminado e campeão', () => {
         const res = (won: boolean, status = 'reward') => ({ status, stage: 2, results: [{ stage: 2, won }] });
         expect(trackOf(st('result', res(true)))).toBe('vitoria-gancho');

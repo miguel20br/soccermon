@@ -1,7 +1,7 @@
 import { FUTSAL_5 } from '../engine/config';
 import { type MapRegion, nodeById, regionOfRow, rivalTrainer } from '../engine/cup-map';
 import type { MatchEvent } from '../engine/state';
-import { playMusic, startMusicLifecycle, type TrackId } from '../game/music';
+import { type Move, playMusic, startMusicLifecycle, type TrackId } from '../game/music';
 import { type Screen, useGame } from '../store/game-store';
 
 /** Faixa de cada tela (sem entrada = silêncio). A partida escolhe a dela por `matchMusic`. */
@@ -20,6 +20,36 @@ const TRACK: Partial<Record<Screen, TrackId>> = {
     lineup: 'escalacao',
     reward: 'recompensa',
 };
+
+/** Telas da copa (a ida por elas é "avançar"). Menus (Configurações, Ajuda, Perfil…) dividem a Abertura com a Home. */
+const RUN: readonly Screen[] = [
+    'draft',
+    'lineup',
+    'match',
+    'result',
+    'reward',
+    'shop',
+    'map',
+    'treino',
+    'event',
+    'group',
+];
+/** Paradas do mapa: sair delas de volta pro mapa é o botão de sair (regra 3), não avançar. */
+const STOPS: readonly Screen[] = ['shop', 'event', 'treino'];
+
+/**
+ * Regra da troca de música entre telas (22/10/2026, `Move` em `src/game/music.ts`): avançar na copa tem virada e
+ * ponte; entrar na partida, + riser e prato; voltar pra Home, sair de uma parada pro mapa ou ir pra um menu, só no tempo.
+ */
+export function moveOf(from: Screen, to: Screen): Move | undefined {
+    if (from === to) return undefined;
+    if (to === 'match') return 'partida';
+    if (to === 'home' || !RUN.includes(to)) return 'volta';
+    if (to === 'map' && STOPS.includes(from)) return 'volta';
+    return 'avanca';
+}
+/** A partida pede a faixa dela depois que a tela entra (`matchMusic`): leva o `Move` da entrada no 1º pedido. */
+let entrada: Move | undefined;
 
 /** Região do mapa da Rota Índigo com faixa própria (as outras tocam a Estrada da Vitória). */
 const REGION_TRACK: Partial<Record<MapRegion, TrackId>> = { rota1: 'rota-1', mtmoon: 'mt-moon', cerulean: 'cerulean' };
@@ -57,16 +87,18 @@ export function matchMusic(m: {
     ended?: boolean;
     penaltis?: 'espera' | 'ganhou' | 'perdeu' | null;
 }) {
-    if (m.penaltis) return playMusic(`penaltis-${m.penaltis}`);
+    const move = entrada;
+    entrada = undefined;
+    if (m.penaltis) return playMusic(`penaltis-${m.penaltis}`, undefined, move);
     const who = trainerOf(m.opponent);
     const own = who && OWN.includes(who) ? who : null;
     pressaoFica = m.half === 2 && !m.intro && (pressaoFica || m.pressure);
-    if (m.intro && who && THEME.includes(who)) return playMusic(`tema-${who}` as TrackId);
+    if (m.intro && who && THEME.includes(who)) return playMusic(`tema-${who}` as TrackId, undefined, move);
     const h = FUTSAL_5.displayHalfMinutes;
     const k = (m.minute - (m.half - 1) * h) / h;
     const nivel = k < 1 / 3 ? 'nivel1' : k < 2 / 3 ? 'nivel2' : 'nivel3';
     const id = `partida-${own ? `${own}-` : ''}${m.half === 2 ? '2t' : '1t'}` as TrackId;
-    playMusic(id, m.ended ? 'fim' : pressaoFica ? 'pressao' : nivel);
+    playMusic(id, m.ended ? 'fim' : pressaoFica ? 'pressao' : nivel, move);
 }
 
 /**
@@ -96,7 +128,11 @@ export function startMusicSync() {
     playMusic(trackOf(useGame.getState()));
     useGame.subscribe((s, prev) => {
         // a partida pede a dela (`matchMusic`): sem o silêncio no meio, a troca da Escalação cai no tempo
-        if (s.screen === 'match') return;
-        if (s.screen !== prev.screen || s.run?.status !== prev.run?.status) playMusic(trackOf(s));
+        if (s.screen === 'match') {
+            if (prev.screen !== 'match') entrada = moveOf(prev.screen, 'match');
+            return;
+        }
+        if (s.screen !== prev.screen || s.run?.status !== prev.run?.status)
+            playMusic(trackOf(s), undefined, moveOf(prev.screen, s.screen));
     });
 }

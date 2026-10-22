@@ -3,8 +3,10 @@
  * tela pede. Toca no mesmo AudioContext dos efeitos (ZzFX), sem importar `phaser` (a Home usa este módulo).
  * Loop sem costura por `loopStart`/`loopEnd`. Troca de tela encaixada no tempo da faixa que sai (próxima batida, ou o
  * compasso se ele chega em até 0,7 s; andamentos que casam entram na mesma batida); a tela não espera, só o áudio.
- * Troca de trecho na linha do compasso.
+ * Troca de trecho na linha do compasso. Avançar na copa: virada de bateria + ponte de 1 compasso (`Move`, `planOf`).
  */
+import { type BuildSamples, mixVirada, wavMono } from './virada';
+
 export type TrackId =
     | 'abertura-gancho'
     | 'mercado-funk'
@@ -56,11 +58,12 @@ interface Loaded {
     /** Atraso (s) do começo do arquivo que o navegador não cortou (mp3 no WebKit): os tempos do `.json` andam isso. */
     shift: number;
 }
-/** Faixa tocando: um nó de ganho próprio (pro crossfade) e a fonte do trecho atual. */
+/** Faixa tocando: um nó de ganho próprio (pro crossfade), o passa-baixa (a virada fecha) e a fonte do trecho atual. */
 interface Playing {
     id: TrackId;
     loaded: Loaded;
     gain: GainNode;
+    lp: BiquadFilterNode;
     src: AudioBufferSourceNode;
     sec: Section;
     /** Tempo do contexto em que a fonte começou e posição (s) do arquivo nesse instante. */
@@ -81,9 +84,11 @@ const CUT_S = 0.01;
 const LEAD_S = 0.03;
 /** Troca de tela espera a linha do compasso só se ela chega em até isso (s); senão, a próxima batida. */
 export const BAR_WAIT_S = 0.7;
+/** A virada começa na batida que esteja a pelo menos isso (s): dá tempo de montar o som dela antes. */
+const FILL_LEAD_S = 0.1;
 const vol = { master: 0.6, music: 0.4 };
 /** Só o que está em uso (`prune`): cada faixa decodificada ocupa ~25-50 MB (28 faixas juntas passavam de 690 MB). */
-const cache = new Map<TrackId, Promise<Loaded | null>>();
+const cache = new Map<string, Promise<Loaded | null>>();
 /**
  * Atraso do codificador do mp3 (LAME: 1105 amostras a 44,1 kHz = 25,06 ms, o `start_time` do ffprobe). Medido em
  * 22/10/2026: o WebKit não corta (o mp3 sai 25,1 ms adiantado e 30-50 ms mais longo que o `duracao` do `.json`); o
@@ -96,7 +101,83 @@ let current: Playing | null = null;
 /** A faixa que está saindo numa troca agendada (até a nova entrar, é ela que dá o tempo). */
 let leaving: Playing | null = null;
 /** O que a tela pediu (pode esperar o toque que libera o áudio ou o download). */
-let want: { id: TrackId | null; section?: string } = { id: null };
+let want: { id: TrackId | null; section?: string; move?: Move } = { id: null };
+
+/**
+ * Regras da troca de tela (aprovadas pelo Miguel em 22/10/2026, a C da demo A/B/C):
+ * 1. `avanca` (Home → Draft → Escalação, Resultado, mapa → Mercado…): virada no andamento da faixa que sai até o 1 do
+ *    compasso seguinte, depois a PONTE (1 compasso no tom e no andamento da que entra, com o som dela), depois a faixa.
+ * 2. `partida` (entrar na partida, ou no tema do líder no VERSUS): igual, e a ponte tem riser e prato no 1.
+ * 3. `volta` (Home, botão de sair, voltar do Android) ou sem `move`: só encaixada no tempo (`swapWait`).
+ * 4. Navegou de novo antes da ponte acabar: cancela virada e ponte; a mais nova entra na próxima batida (nunca duas viradas).
+ * 5. A mesma troca (faixa → faixa) de novo em até REPEAT_S: só a virada, sem a ponte.
+ */
+export type Move = 'avanca' | 'volta' | 'partida';
+export type Plan = 'tempo' | 'virada' | 'ponte' | 'corta';
+export const REPEAT_S = 30;
+/** Qual regra vale: `pending` = virada ou ponte ainda tocando; `since` = s desde a mesma troca (faixa → faixa). */
+export function planOf(o: { move?: Move; pending?: boolean; since?: number }): Plan {
+    if (o.pending) return 'corta';
+    if (o.move !== 'avanca' && o.move !== 'partida') return 'tempo';
+    return o.since !== undefined && o.since < REPEAT_S ? 'virada' : 'ponte';
+}
+/** Faixas com ponte (`public/music/ponte-<id>`, `scripts/musica/pontes.mjs`); as outras ficam só com a virada. */
+export const PONTES: ReadonlySet<TrackId> = new Set<TrackId>([
+    'draft',
+    'escalacao',
+    'recompensa',
+    'mercado-funk',
+    'rota-1',
+    'mt-moon',
+    'cerulean',
+    'estrada-da-vitoria',
+    'planalto-indigo',
+    'vitoria-gancho',
+    'derrota',
+    'eliminado',
+    'campeao',
+    'partida-1t',
+    'tema-brock',
+    'tema-misty',
+    'tema-rocket',
+    'tema-ltsurge',
+    'tema-erika',
+    'tema-koga',
+    'tema-sabrina',
+    'tema-blaine',
+    'tema-giovanni',
+]);
+/** Swing (fração da semicolcheia, o `swing` da peça) das faixas que balançam: a virada balança junto. */
+const SWING: Partial<Record<TrackId, number>> = {
+    'abertura-gancho': 0.15,
+    draft: 0.1,
+    recompensa: 0.1,
+    'mercado-funk': 0.14,
+    'tema-rocket': 0.12,
+    'partida-1t': 0.06,
+    'partida-2t': 0.06,
+};
+/** Virada e ponte em curso: até `end` (a faixa nova entra) navegar de novo cancela (regra 4). */
+interface Trans {
+    end: number;
+    fill: Shot | null;
+    ponte: (Shot & { g: Grid }) | null;
+}
+interface Shot {
+    src: AudioBufferSourceNode;
+    gain: GainNode;
+    at: number;
+}
+let trans: Trans | null = null;
+/** Hora (contexto) da última troca com virada de cada par `de>para` (regra 5). */
+const lastPair = new Map<string, number>();
+/** Linha do tempo das trocas no AudioContext; em dev fica em `window.__musica` (o teste do navegador lê). */
+export const musicTrace: { ev: string; id: string | null; now: number; at: number; fim?: number }[] = [];
+if (import.meta.env?.DEV && typeof window !== 'undefined')
+    (window as unknown as { __musica: typeof musicTrace }).__musica = musicTrace;
+const trace = (ev: string, id: string | null, now: number, at: number, fim?: number) => {
+    if (musicTrace.length < 500) musicTrace.push({ ev, id, now, at, ...(fim !== undefined && { fim }) });
+};
 let gestureHooked = false;
 let raf = 0;
 let lastPos = 0;
@@ -131,7 +212,7 @@ export function setMusicVolumes(v: { master?: number; music?: number }) {
 const ext = () =>
     !webmBroken && document.createElement('audio').canPlayType('audio/webm; codecs="opus"') ? 'webm' : 'mp3';
 
-async function fetchDecode(id: TrackId, meta: Meta): Promise<Loaded> {
+async function fetchDecode(id: string, meta: Meta): Promise<Loaded> {
     const e = ext();
     const raw = await fetch(`music/${id}.${e}`).then((r) => r.arrayBuffer());
     try {
@@ -146,7 +227,7 @@ async function fetchDecode(id: TrackId, meta: Meta): Promise<Loaded> {
     }
 }
 
-function load(id: TrackId): Promise<Loaded | null> {
+function load(id: string): Promise<Loaded | null> {
     let p = cache.get(id);
     if (!p) {
         p = (async () => {
@@ -173,7 +254,7 @@ function prune() {
  * Grade do trecho em segundos: compasso e pulso. 4/4: pulso = semínima (4 linhas). 12/8: pulso = semínima pontuada
  * (3 linhas), e o compasso tem 12 linhas, não 16 (antes a troca de trecho da Misty caía fora da linha do compasso).
  */
-export function gridOf(l: Pick<Loaded, 'meta'>, sec: Pick<Section, 'bpm'>) {
+export function gridOf(l: { meta: Partial<Meta> }, sec: Pick<Section, 'bpm'>) {
     const line = 15 / sec.bpm;
     const n = l.meta.linhasPorCompasso ?? 16;
     return { bar: n * line, pulse: (n % 3 === 0 ? 3 : 4) * line };
@@ -202,6 +283,16 @@ export const beatOf = (x: number, g: Grid) => Math.round(mod(x, g.bar) / g.pulse
 export function swapWait(x: number, g: Grid, beatOnly = false): number {
     const bar = untilLine(x, g.bar);
     return !beatOnly && bar <= BAR_WAIT_S ? bar : untilLine(x, g.pulse);
+}
+
+/**
+ * Virada (regra 1): começa na próxima batida a pelo menos FILL_LEAD_S (`at`) e termina na linha do compasso que esteja
+ * a pelo menos meia batida dela (`end`, o 1 onde entra a ponte); `beats` = 1 a 4. Segundos a partir de `x`.
+ */
+export function fillWindow(x: number, g: Grid) {
+    const at = untilLine(x, g.pulse, FILL_LEAD_S);
+    const end = at + untilLine(x + at, g.bar, g.pulse / 2);
+    return { at, end, beats: Math.round((end - at) / g.pulse) };
 }
 
 /** Pulsos que casam: mesmo andamento (até 4% de diferença, que some na troca de 30 ms) ou o dobro, ou a metade. */
@@ -266,13 +357,74 @@ function stopAfter(p: Playing, at: number) {
     }
 }
 
-/** Ganho novo pra faixa que entra em `at`: de 0 a 1 em `ramp` s. */
-function rampIn(at: number, ramp: number): GainNode {
+/** Ganho novo pra faixa que entra em `at` (de 0 a 1 em `ramp` s), passando por um passa-baixa aberto (a virada fecha). */
+function rampIn(at: number, ramp: number): { gain: GainNode; lp: BiquadFilterNode } {
     const g = ctx().createGain();
     g.gain.setValueAtTime(0, at);
     g.gain.linearRampToValueAtTime(1, at + ramp);
-    g.connect(bus());
-    return g;
+    const lp = ctx().createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.Q.value = 0;
+    lp.frequency.value = ctx().sampleRate / 2;
+    g.connect(lp);
+    lp.connect(bus());
+    return { gain: g, lp };
+}
+
+/** Toca um som pronto (virada, ponte) em `at`, num ganho próprio (pra cancelar sem estalo). */
+function shot(buf: AudioBuffer, at: number, off = 0): Shot {
+    const gain = ctx().createGain();
+    gain.connect(bus());
+    const src = ctx().createBufferSource();
+    src.buffer = buf;
+    src.connect(gain);
+    src.start(at, off);
+    return { src, gain, at };
+}
+/** Cala um som pronto a partir de `at` (decai em OUT_TAU; se ainda não começou, nem toca). */
+function hush(s: Shot | null, at: number) {
+    if (!s) return;
+    const now = ctx().currentTime;
+    s.gain.gain.cancelScheduledValues(now);
+    s.gain.gain.setValueAtTime(1, now);
+    s.gain.gain.setTargetAtTime(0, at, OUT_TAU);
+    try {
+        // ainda não começou: nem toca
+        s.src.stop(at <= s.at ? s.at : at + 8 * OUT_TAU);
+    } catch {
+        // já parou
+    }
+}
+
+/** O clap 808 da virada (`public/music/clap-808.wav`, 16 bits mono a 44,1 kHz). Sem ele, a virada sai sem clap. */
+let clapP: Promise<Float32Array | null> | null = null;
+const loadClap = () =>
+    (clapP ??= fetch('music/clap-808.wav')
+        .then((r) => r.arrayBuffer())
+        .then(wavMono)
+        .catch(() => {
+            clapP = null;
+            return null;
+        }));
+
+/** A virada (já no nível) como AudioBuffer a 44,1 kHz. */
+function fillBuffer(o: Parameters<typeof mixVirada>[0]): AudioBuffer {
+    const Z = (zz as typeof import('zzfx')).ZZFX;
+    const build = (Z as unknown as { buildSamples: BuildSamples }).buildSamples.bind(Z);
+    const [L, R] = mixVirada(o, build, Z.sampleRate);
+    const b = ctx().createBuffer(2, L.length, Z.sampleRate);
+    b.copyToChannel(L, 0);
+    b.copyToChannel(R, 1);
+    return b;
+}
+
+/** Próxima batida (s a partir de `now`) do que está soando: a ponte, ou a faixa que sai (durante a virada). */
+function nextBeat(now: number): number {
+    const p = trans?.ponte;
+    if (p && now >= p.at) return untilLine(now - p.at, p.g.pulse);
+    if (leaving && leaving.t0 <= now && sounding(leaving, now))
+        return untilLine(gridX(leaving, now), gridOf(leaving.loaded, leaving.sec).pulse);
+    return LEAD_S;
 }
 
 /** Troca de trecho da mesma faixa: o novo entra em `at` (linha do compasso) num ganho próprio; o velho some nos 10 ms antes. */
@@ -280,7 +432,7 @@ function switchSection(p: Playing, sec: Section, at: number): Playing {
     // trecho de entrada sem loop colado no loop (virada -> pressao): entra por ele
     const off = leadIn(p.loaded, sec)?.inicio ?? sec.inicio;
     const gain = ctx().createGain();
-    gain.connect(bus());
+    gain.connect(p.lp);
     const g = p.gain.gain;
     const from = Math.max(ctx().currentTime, at - CUT_S);
     g.cancelScheduledValues(from);
@@ -293,9 +445,16 @@ function switchSection(p: Playing, sec: Section, at: number): Playing {
 }
 
 async function apply() {
-    const { id } = want;
+    const { id, move } = want;
     // silêncio ou volume zero: nada de baixar nem decodificar
     if (id === null || level() === 0) {
+        if (trans) {
+            const now = ctx().currentTime;
+            hush(trans.fill, now);
+            hush(trans.ponte, now);
+            fadeOut(leaving);
+            trans = null;
+        }
         fadeOut(current);
         current = null;
         prune();
@@ -308,12 +467,20 @@ async function apply() {
         hookGesture();
         return;
     }
-    const loaded = await load(id);
+    // a regra (pra saber o que baixar junto): ponte e clap só quando a troca vai ter virada
+    const pair = current ? `${current.id}>${id}` : '';
+    const first = current && current.id !== id ? planOf({ move, since: since(pair, c.currentTime) }) : 'tempo';
+    const [loaded, ponte, clap] = await Promise.all([
+        load(id),
+        first === 'ponte' && PONTES.has(id) ? load(`ponte-${id}`) : null,
+        first !== 'tempo' ? loadClap() : null,
+    ]);
     // a tela (ou o volume) pode ter mudado enquanto baixava
     if (!loaded || want.id !== id || level() === 0) return;
     // e o trecho também: vale o último pedido
     const sec = sectionOf(loaded, want.section);
     const now = c.currentTime;
+    if (trans && trans.end <= now) trans = null;
     if (current && current.id === id) {
         // mesma faixa, outro trecho: troca na linha do compasso (o trecho que ainda vai entrar troca na mesma hora)
         if (current.sec !== sec)
@@ -331,6 +498,89 @@ async function apply() {
     }
     const start = leadIn(loaded, sec)?.inicio ?? sec.inicio;
     const g = gridOf(loaded, sec);
+    const plan = current ? planOf({ move, pending: !!trans, since: since(pair, now) }) : 'tempo';
+    if (plan === 'corta' && current) {
+        // regra 4: cancela a virada e a ponte; a mais nova entra na próxima batida do que está soando
+        const at = now + nextBeat(now);
+        const t = trans as Trans;
+        hush(t.fill, at);
+        hush(t.ponte, at);
+        current.gain.gain.cancelScheduledValues(now);
+        current.gain.gain.setValueAtTime(0, now);
+        stopAfter(current, now);
+        trans = null;
+        const back = leaving;
+        // voltou pra faixa que ainda sai (a virada não acabou): ela fica, sem recomeçar
+        if (back && back.id === id && back.sec.nome === sec.nome && now < (t.ponte?.at ?? t.end) - LEAD_S) {
+            undoFill(back, now, at);
+            current = back;
+            leaving = null;
+            trace('volta', id, now, at);
+            prune();
+            return;
+        }
+        fadeOut(back, at);
+        enter(id, loaded, sec, at, start, IN_S);
+        trace('corta', id, now, at);
+        return;
+    }
+    const playing = current && current.t0 <= now && sounding(current, now) ? current : null;
+    const ponteOk = plan === 'ponte' && ponte ? ponte : null;
+    if (playing && (plan === 'virada' || plan === 'ponte')) {
+        // regras 1, 2 e 5: virada no andamento da que sai até o 1; a que sai vai pro fundo (passa-baixa fechando)
+        const rg = gridOf(playing.loaded, playing.sec);
+        const w = fillWindow(gridX(playing, now), rg);
+        const lines = (playing.loaded.meta.linhasPorCompasso ?? 16) % 3 ? 4 : 3;
+        const buf = fillBuffer({
+            beats: w.beats,
+            pulse: rg.pulse,
+            swing: lines === 4 ? ((SWING[playing.id] ?? 0) * rg.pulse) / 4 : 0,
+            crash: move === 'partida' && !ponteOk,
+            clap,
+        });
+        const fillAt = now + w.at;
+        const D = now + w.end;
+        const fill = shot(buf, fillAt);
+        const lp = playing.lp.frequency;
+        lp.cancelScheduledValues(now);
+        lp.setValueAtTime(9000, fillAt);
+        lp.exponentialRampToValueAtTime(1000, D);
+        const pg = playing.gain.gain;
+        pg.cancelScheduledValues(now);
+        pg.setValueAtTime(1, fillAt);
+        pg.linearRampToValueAtTime(0.75, D);
+        pg.setTargetAtTime(0, D, OUT_TAU);
+        stopAfter(playing, D + 8 * OUT_TAU);
+        leaving = playing;
+        let t0 = D;
+        let p: Trans['ponte'] = null;
+        if (ponteOk) {
+            const ps = ponteOk.meta.secoes[0];
+            p = { ...shot(ponteOk.buf, D, ponteOk.shift), g: gridOf(ponteOk, ps) };
+            t0 = D + ps.fim;
+        }
+        trans = { end: t0, fill, ponte: p };
+        lastPair.set(pair, now);
+        enter(id, loaded, sec, t0, start, IN_S);
+        trace(p ? 'ponte' : 'virada', id, now, fillAt, t0);
+        if (p) trace('ponte-entra', `ponte-${id}`, now, D, t0);
+        return;
+    }
+    if (ponteOk && (!current || current.t0 <= now)) {
+        // a que sai já acabou (o jingle): sem tempo pra virada, a ponte entra já e a faixa no fim dela
+        const at = now + LEAD_S;
+        const ps = ponteOk.meta.secoes[0];
+        fadeOut(current);
+        trans = {
+            end: at + ps.fim,
+            fill: null,
+            ponte: { ...shot(ponteOk.buf, at, ponteOk.shift), g: gridOf(ponteOk, ps) },
+        };
+        lastPair.set(pair, now);
+        enter(id, loaded, sec, at + ps.fim, start, IN_S);
+        trace('ponte', id, now, at, at + ps.fim);
+        return;
+    }
     // faixa nova, encaixada no tempo da que sai: troca agendada que ainda não soou cede o lugar (mesma hora, mesma batida)
     let ref = current;
     let at = now;
@@ -351,11 +601,40 @@ async function apply() {
         if (same && sec.loop) off += phaseOffset(beatOf(gridX(ref, at), rg), g);
     }
     if (ref && ref === current) fadeOut(ref, at);
-    const gain = rampIn(at, ref ? IN_S : FADE_S);
-    current = { id, loaded, gain, sec, t0: at, off, src: makeSource(loaded, sec, gain, at, off) };
+    enter(id, loaded, sec, at, off, ref ? IN_S : FADE_S);
+    trace('tempo', id, now, at);
+}
+
+/** Segundos desde a última troca com virada do par `de>para` (regra 5); nunca houve: undefined. */
+const since = (pair: string, now: number) => {
+    const t = lastPair.get(pair);
+    return t === undefined ? undefined : now - t;
+};
+
+/** A faixa nova entra em `at` (de `off` no arquivo), subindo em `ramp`. */
+function enter(id: TrackId, loaded: Loaded, sec: Section, at: number, off: number, ramp: number) {
+    const { gain, lp } = rampIn(at, ramp);
+    current = { id, loaded, gain, lp, sec, t0: at, off, src: makeSource(loaded, sec, gain, at, off) };
     prune();
     lastPos = off - 0.001;
     startHits();
+}
+
+/** Desfaz a saída de uma faixa no meio da virada: o volume volta já e o passa-baixa abre até a batida `at`. */
+function undoFill(p: Playing, now: number, at: number) {
+    const g = p.gain.gain;
+    g.cancelScheduledValues(now);
+    g.setValueAtTime(g.value, now);
+    g.linearRampToValueAtTime(1, now + IN_S);
+    const f = p.lp.frequency;
+    f.cancelScheduledValues(now);
+    f.setValueAtTime(f.value, now);
+    f.exponentialRampToValueAtTime(ctx().sampleRate / 2, at);
+    // a fonte tinha parada marcada pro fim da virada: para na batida (a última parada vale) e uma igual, do mesmo
+    // ponto, continua dali, sem emenda
+    const off = posAt(p, at);
+    stopAfter(p, at);
+    Object.assign(p, { src: makeSource(p.loaded, p.sec, p.gain, at, off), t0: at, off });
 }
 
 /** A faixa sai: fica inteira até `at` e decai dali (troca no tempo), ou some em 250 ms já (silêncio). */
@@ -407,9 +686,12 @@ function watchState(c: AudioContext) {
     });
 }
 
-/** Pede a faixa da tela (null = silêncio). Mesma faixa em duas telas segue tocando; `section` troca o trecho. */
-export function playMusic(id: TrackId | null, section?: string) {
-    want = { id, section };
+/**
+ * Pede a faixa da tela (null = silêncio). Mesma faixa em duas telas segue tocando; `section` troca o trecho; `move`
+ * diz a regra da troca (avançar: virada e ponte; voltar ou nada: só no tempo).
+ */
+export function playMusic(id: TrackId | null, section?: string, move?: Move) {
+    want = { id, section, move };
     prune();
     void apply();
 }

@@ -1,5 +1,17 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { beatOf, gridOf, phaseOffset, sameTempo, sectionSwitchAt, swapWait, untilLine } from './music';
+import {
+    beatOf,
+    fillWindow,
+    gridOf,
+    phaseOffset,
+    planOf,
+    REPEAT_S,
+    sameTempo,
+    sectionSwitchAt,
+    swapWait,
+    untilLine,
+} from './music';
+import { FILL_PEAK, mixVirada, viradaHits } from './virada';
 
 interface Sec {
     nome: string;
@@ -38,12 +50,24 @@ function fakeAudio(opts: { webmFails?: boolean; extra?: number; metas?: Record<s
         };
     };
     const node = () => ({ gain: param(), connect() {} });
+    /** Parâmetro que não conta como degrau (o passa-baixa de cada faixa). */
+    const quiet = () => ({
+        value: 0,
+        setValueAtTime() {},
+        linearRampToValueAtTime() {},
+        exponentialRampToValueAtTime() {},
+        setTargetAtTime() {},
+        cancelScheduledValues() {},
+    });
     const ctx = {
         state: 'running',
         currentTime: 0,
+        sampleRate: 48000,
         destination: {},
         addEventListener() {},
         createGain: node,
+        createBiquadFilter: () => ({ type: '', Q: quiet(), frequency: quiet(), connect() {} }),
+        createBuffer: () => ({ id: 'virada', copyToChannel() {} }),
         createBufferSource() {
             const s = {
                 buffer: null as null | { id: string },
@@ -67,7 +91,7 @@ function fakeAudio(opts: { webmFails?: boolean; extra?: number; metas?: Record<s
             return { id: raw.id, duration: 10 + (raw.ext === 'mp3' ? (opts.extra ?? 0) : 0) };
         },
     };
-    vi.doMock('zzfx', () => ({ ZZFX: { audioContext: ctx } }));
+    vi.doMock('zzfx', () => ({ ZZFX: { audioContext: ctx, sampleRate: 44100, buildSamples: () => [0.5, 0.25] } }));
     vi.stubGlobal('document', { hidden: false, createElement: () => ({ canPlayType: () => 'probably' }) });
     vi.stubGlobal('requestAnimationFrame', () => 1);
     vi.stubGlobal('fetch', async (url: string) => {
@@ -267,5 +291,152 @@ describe('música', () => {
         m.playMusic('partida-misty-2t', 'nivel2');
         await settle();
         expect(a.started[1].when).toBeCloseTo(2, 6);
+    });
+});
+
+describe('troca entre telas: virada e ponte (regras de 22/10)', () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+        vi.resetModules();
+    });
+
+    it('a regra: avançar = ponte; voltar ou sem move = só no tempo; a mesma troca em 30 s = só virada; no meio = corta', () => {
+        expect(planOf({ move: 'avanca' })).toBe('ponte');
+        expect(planOf({ move: 'partida' })).toBe('ponte');
+        expect(planOf({ move: 'volta' })).toBe('tempo');
+        expect(planOf({})).toBe('tempo');
+        expect(planOf({ move: 'avanca', since: 12 })).toBe('virada');
+        expect(planOf({ move: 'avanca', since: REPEAT_S + 1 })).toBe('ponte');
+        expect(planOf({ move: 'volta', pending: true })).toBe('corta');
+        expect(planOf({ move: 'avanca', pending: true })).toBe('corta');
+    });
+
+    it('a virada vai da próxima batida até o 1 do compasso seguinte (1 a 4 batidas)', () => {
+        const g = { bar: 2, pulse: 0.5 }; // 4/4 a 120
+        for (const [x, beats] of [
+            [0.3, 3], // batida em 0,5; compasso em 2
+            [1.2, 1], // batida em 1,5; o 1 em 2 (meia batida de folga)
+            [1.45, 4], // a batida de 1,5 está a 50 ms (menos que a folga de 100 ms): começa no 2 e vai até o 4
+        ]) {
+            const w = fillWindow(x, g);
+            expect(onGrid(x + w.at, g.pulse)).toBe(true);
+            expect(onGrid(x + w.end, g.bar)).toBe(true);
+            expect(w.at).toBeGreaterThanOrEqual(0.1 - 1e-9);
+            expect(w.beats).toBe(beats);
+            expect(w.end - w.at).toBeCloseTo(beats * g.pulse, 9);
+        }
+        // as batidas: a primeira no começo da virada, o SOC-CER-MON termina meia batida antes do 1; prato só no 1
+        for (const beats of [1, 2, 3, 4]) {
+            const rows = viradaHits(beats).map((h) => h.row);
+            expect(Math.min(...rows)).toBe(16 - 4 * beats);
+            expect(Math.max(...rows)).toBeLessThan(16);
+        }
+        expect(
+            viradaHits(3)
+                .filter((h) => h.inst === 'clap')
+                .map((h) => h.row),
+        ).toEqual([8, 11, 14]);
+        expect(
+            viradaHits(2, true)
+                .filter((h) => h.row === 16)
+                .map((h) => h.inst),
+        ).toEqual(['crash', 'kick']);
+        // mistura: a 1ª batida é a amostra 0 do som; o nível não passa do pico
+        const [L] = mixVirada({ beats: 3, pulse: 0.5 }, () => [1, 0.5], 1000);
+        expect(L[0]).not.toBe(0);
+        expect(L[1]).not.toBe(0);
+        expect(L[2]).toBe(0);
+        expect(Math.max(...L.map(Math.abs))).toBeLessThanOrEqual(FILL_PEAK + 1e-6);
+        expect(L[(8 - 4) * 125]).not.toBe(0); // o SOC do SOC-CER-MON: 4 linhas depois (1 batida = 500 amostras)
+    });
+
+    const intro = (bpm: number, bar: number) => ({
+        duracao: 60,
+        secoes: [
+            { nome: 'intro', loop: false, inicio: 0, fim: bar, bpm },
+            { nome: 'loop', loop: true, inicio: bar, fim: 60, bpm },
+        ],
+    });
+    const ponte = (bpm: number) => ({
+        duracao: 4,
+        secoes: [{ nome: 'ponte', loop: false, inicio: 0, fim: 240 / bpm, bpm }],
+    });
+    const metas = {
+        'abertura-gancho': intro(136, 240 / 136),
+        draft: intro(108, 240 / 108),
+        escalacao: intro(116, 240 / 116),
+        'ponte-draft': ponte(108),
+        'ponte-escalacao': ponte(116),
+    };
+
+    it('avançar: virada no tempo da que sai, ponte no 1, a faixa no fim da ponte; repetir em 30 s: só a virada', async () => {
+        const a = fakeAudio({ metas });
+        const m = await import('./music');
+        m.playMusic('abertura-gancho');
+        await settle();
+        a.ctx.currentTime = 1.3;
+        m.playMusic('draft', undefined, 'avanca');
+        await settle();
+        const [fill, br, draft] = a.started.slice(1);
+        expect(fill.id).toBe('virada');
+        expect(onGrid(fill.when, 60 / 136)).toBe(true);
+        expect(br.id).toBe('ponte-draft');
+        expect(onGrid(br.when, 240 / 136)).toBe(true); // o 1 do compasso da Abertura
+        expect(draft.id).toBe('draft');
+        expect(draft.when).toBeCloseTo(br.when + 240 / 108, 9); // 1 compasso a 108
+        expect(a.fetched).toContain('music/clap-808.wav');
+        // volta pra Home (só no tempo) e avança de novo em menos de 30 s: virada sem ponte
+        a.ctx.currentTime = draft.when + 3;
+        m.playMusic('abertura-gancho', undefined, 'volta');
+        await settle();
+        expect(a.started.at(-1)?.id).toBe('abertura-gancho');
+        a.ctx.currentTime += 5;
+        const n = a.started.length;
+        m.playMusic('draft', undefined, 'avanca');
+        await settle();
+        expect(a.started.slice(n).map((x) => x.id)).toEqual(['virada', 'draft']);
+        expect(onGrid(a.started.at(-1)!.when - a.started.at(-3)!.when, 60 / 136)).toBe(true);
+    });
+
+    it('navegar de novo no meio da ponte: cancela, e a mais nova entra na próxima batida da ponte (sem outra virada)', async () => {
+        const a = fakeAudio({ metas });
+        const m = await import('./music');
+        m.playMusic('abertura-gancho');
+        await settle();
+        a.ctx.currentTime = 1.3;
+        m.playMusic('draft', undefined, 'avanca');
+        await settle();
+        const [, br, draft] = a.started.slice(1);
+        a.ctx.currentTime = br.when + 0.7; // no meio da ponte (108 BPM: batida de 0,556 s)
+        m.playMusic('escalacao', undefined, 'avanca');
+        await settle();
+        const e = a.started.at(-1)!;
+        expect(e.id).toBe('escalacao');
+        expect(a.started.filter((x) => x.id === 'virada')).toHaveLength(1);
+        expect(e.when).toBeCloseTo(br.when + 2 * (60 / 108), 9);
+        expect(draft.stop).toBe(a.ctx.currentTime); // a Draft agendada nem entra
+        expect(br.stop).toBeGreaterThan(e.when); // a ponte decai da batida em diante
+        expect(br.stop).toBeLessThan(e.when + 0.5);
+    });
+
+    it('voltar pra faixa que ainda sai, no meio da virada: ela continua de onde está, sem recomeçar', async () => {
+        const a = fakeAudio({ metas });
+        const m = await import('./music');
+        m.playMusic('abertura-gancho');
+        await settle();
+        a.ctx.currentTime = 1.3;
+        m.playMusic('draft', undefined, 'avanca');
+        await settle();
+        const [fill, br, draft] = a.started.slice(1);
+        a.ctx.currentTime = fill.when + 0.05;
+        m.playMusic('abertura-gancho', undefined, 'volta');
+        await settle();
+        const back = a.started.at(-1)!;
+        expect(back.id).toBe('abertura-gancho');
+        expect(onGrid(back.when, 60 / 136)).toBe(true);
+        expect(back.off).toBeCloseTo(back.when, 6); // o mesmo ponto do arquivo (começou em 0)
+        expect(a.started[0].stop).toBeCloseTo(back.when, 9);
+        expect(br.stop).toBe(br.when); // a ponte nem toca
+        expect(draft.stop).toBe(a.ctx.currentTime);
     });
 });
