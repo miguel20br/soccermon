@@ -63,3 +63,7 @@ trailer/v2-abertura-16x9/midia
 trailer/v2-abertura-16x9/som
 trailer/v2-abertura-16x9/.hyperframes/
 trailer/v2-abertura-16x9/render/
+trailer/curtas-2/midia/
+trailer/curtas-2/*/midia
+trailer/curtas-2/*/.hyperframes/
+trailer/curtas-2/*/render/
