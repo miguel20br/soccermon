@@ -12,7 +12,9 @@ import {
     nextNodes,
     nodeById,
     ROUTE_TEAMS,
+    ROUTE_THEME_MIN,
 } from './cup-map';
+import { species } from './data';
 import { Rng } from './rng';
 
 /** Todas as rotas do começo até a Final. */
@@ -132,6 +134,28 @@ describe('rivais da Copa longa', () => {
         expect(new Set(faced).size).toBe(7);
         expect(longOpponent('s', 7, 'final', faced).name).toBe('Liga Índigo');
         expect(ROUTE_TEAMS.map((t) => t.name)).toContain(longOpponent('s', 0, 'jogo', []).name);
+    });
+
+    it('todo treinador da Rota joga com o tipo dele: 3+ dos 5 titulares (Ornitólogo com pássaros)', () => {
+        const names = ROUTE_TEAMS.map((t) => t.name);
+        for (const team of ROUTE_TEAMS)
+            for (let s = 0; s < 30; s++)
+                for (let m = 0; m < MAP_MATCHES + 3; m++) {
+                    const opp = longOpponent(
+                        `tema-${s}`,
+                        m,
+                        'jogo',
+                        names.filter((n) => n !== team.name),
+                        (s % 3) - 1,
+                    );
+                    expect(opp.name).toBe(team.name);
+                    const themed = opp.lineup.filter((p) =>
+                        species(p.speciesId).types.some((t) => team.types.includes(t)),
+                    );
+                    expect(themed.length, `${team.name} seed ${s} partida ${m}`).toBeGreaterThanOrEqual(
+                        ROUTE_THEME_MIN,
+                    );
+                }
     });
 
     it('a Copa rápida não muda (Copa do Dia e desafio por link)', () => {

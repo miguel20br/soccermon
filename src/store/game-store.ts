@@ -433,7 +433,8 @@ export interface GameStore {
     /** Copa longa: entra numa casa do mapa (partida, Mercado, Baú, Treino ou Evento). */
     enterNode(id: string): void;
     /** Treino da Copa longa: `evo` = enche a barra de evolução de `uid`; `rest` = +1 troca. */
-    train(choice: 'evo' | 'rest', uid?: string): void;
+    /** Treino da Rota: meia barra de evolução, descanso (+1 sorteio) ou, se ninguém evolui, 1 de 2 itens. */
+    train(choice: 'evo' | 'rest' | 'item', uid?: string): void;
     /** Copa longa: a parte `id` da história já foi contada. */
     tell(id: string): void;
     /** Rota Índigo, no Planalto: joga a próxima rodada do grupo (ou a Final). */
@@ -543,14 +544,17 @@ function rollRewards(run: RunState, reroll: number): Reward[] {
     const extra = run.sponsors?.includes('cinnabar') ? 1 : 0;
     // Copa longa: sorteio pela casa do mapa e raridade pelo andar (o Baú vem uma linha acima)
     const node = currentNode(run);
+    // treino de técnica (Treino sem ninguém que evolua): só os itens, sem o Pokémon. No grupo `at` ainda é o Treino.
+    const training = isLong(run) && node?.kind === 'treino' && !run.group;
     const long = isLong(run)
         ? {
-              key: run.at ?? `m${run.stage}`,
+              key: training ? `${run.at}-treino` : (run.at ?? `m${run.stage}`),
               round: Math.min(6, longRound(run.stage) + (node?.kind === 'bau' ? 1 : 0)),
           }
         : undefined;
-    const defeated = node?.kind === 'bau' ? undefined : defeatedOf(run);
-    return rewardOptions(run.seed, run.stage, reroll, run.picks, defeated, extra, long).map((r) =>
+    const defeated = node?.kind === 'bau' || training ? undefined : defeatedOf(run);
+    const options = rewardOptions(run.seed, run.stage, reroll, run.picks, defeated, extra, long);
+    return (training ? options.filter((r) => r.kind !== 'pokemon') : options).map((r) =>
         r.kind === 'pokemon' && !r.from ? { ...r, inst: rollSpecial(r.inst, run.eventType ?? null) } : r,
     );
 }
@@ -1776,6 +1780,14 @@ export const useGame = create<GameStore>()(
                     if (run?.status !== 'treino') return;
                     if (choice === 'rest') {
                         setState(backToRoute({ ...run, rerolls: run.rerolls + 1 }));
+                        return;
+                    }
+                    if (choice === 'item') {
+                        // treino de técnica: só quando ninguém evolui (sem ele, o último Treino era um clique morto)
+                        if (run.picks.some((p) => evolutionTarget(p.speciesId, p.uid) !== null)) return;
+                        const open: RunState = { ...run, status: 'reward' };
+                        open.rewards = rollRewards(open, 0);
+                        setState({ run: open, screen: 'reward' });
                         return;
                     }
                     // treino de evolução: a barra enche metade (evoluir continua sendo na partida, com a animação dela)

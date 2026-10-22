@@ -37,6 +37,8 @@ export const reward = {
         skip: 'Mostrar as cartas',
         /** Escrito no pacote da recompensa, embaixo do logo. */
         label: 'Pacote da vitória',
+        /** Treino de técnica da Rota (ninguém evolui): só itens. */
+        training: 'Pacote do treino',
     },
     /** Item que depende dos golpes de quem segura (tipo, King's Rock): src/ui/item-fit.ts. */
     fit: {
