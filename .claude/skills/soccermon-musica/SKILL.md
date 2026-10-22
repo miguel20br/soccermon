@@ -5,7 +5,7 @@ description: Como compor, arranjar, renderizar e escolher a música do Soccermon
 
 # Música do Soccermon
 
-Aprendido em 7 rodadas com o Miguel (20 a 22/10/2026). "No geral, as músicas SÓ MELHORAM" (rodada 5). Pesquisa, catálogo de fontes e mapa tela → faixa em
+Aprendido em 8 rodadas com o Miguel (20 a 22/10/2026). "No geral, as músicas SÓ MELHORAM" (rodada 5). Pesquisa, catálogo de fontes e mapa tela → faixa em
 `docs/planos/pesquisas/musica.md`. Leia as armadilhas (§7) antes de mexer no sequenciador.
 
 ## 1. Regras da casa (não negociáveis)
@@ -22,53 +22,66 @@ Aprendido em 7 rodadas com o Miguel (20 a 22/10/2026). "No geral, as músicas S�
 - **Temas nossos**: proposta de licença CC BY 4.0 (crédito "Soccermon"). Nada vai pro jogo sem o ok do Miguel
   ("pode subir").
 
-## 2. O gosto do Miguel
+## 2. Gosto do Miguel
 
-- **REGRA GERAL (rodada 5, vale pra TODA trilha): pergunta e resposta, e, quando der, uma referência ao tema
-  SOC-CER-MON** (o `GANCHO`). Quem pergunta e quem responde: lead e metais, lead e torcida (palmas no ritmo do
-  gancho), vibrafone e flauta (jazz, trocando de 4 em 4), fanfarra e torcida. A referência pode ser o gancho inteiro,
-  só o ritmo 3-3-2 nas palmas, ou uma citação num solo.
-- **Palmas na frente**: abafadas ele não ouve (na Abertura com gancho foram de 2 pra 4 de ganho, com reverb).
-  **Palma de verdade** (rodada 6): `I.clap` (3 pessoas) e `I.palmas` (a torcida, 9 pessoas) são ruído filtrado com
-  3 batidas e rabo de sala. Mas sem exagero: no A final da Abertura ele pediu menos. **Rodada 7**: no geral ele quer
-  "aquele clap clássico daqueles teclados" (`I.clap808`, amostra CC0 de uma TR-08): Estrada, Campeão e Tema da
-  Rocket usam. Brock, Misty e Mercado ficaram com a palma de verdade (ele gostou ali). Peça nova: comece pelo clap808. **Rodada 7b**: achou o clap alto; mesmo clap, tratado por faixa (−5 dB, passa-baixa, sala curta), sempre abaixo do lead.
-- **Cada personagem tem tema próprio** (rodada 6) e a partida dele cita o motivo (2 compassos exportados como
-  `MOTIVO` no `tema-<nome>.mjs`, usado no `cita` do `partidaBase`).
-- **Tudo em loop sem costura** (rodada 6): toda música de tela termina levando ao começo do loop e sai com o `.json`
-  de trechos. Partida em dois arquivos (1º e 2º tempo), trechos por intensidade.
+Juntado das rodadas 1 a 8 (20 a 22/10/2026) e das memórias. "No geral, as músicas SÓ MELHORAM" (rodada 5).
 
-- **A Abertura com gancho é a música da Home** (rodada 6). **A Abertura é a referência** ("MUITO boa, esse refrão é bem legal; a vibe meio funk combinou com nosso estilo").
-  Samba-funk em chiptune: swing leve, baixo slap sincopado, acordes no contratempo, agogô, ghost notes, refrão em
-  terças. Não mexer nela sem pedido (`pecas/abertura.mjs` tem que renderizar idêntica).
-- **Mudança de tom é "SOBERBA"**: use em mais músicas (subida de 1 tom ou meio tom na volta final, com virada antes).
-- **Mais complexo > simples**: camadas, contracanto, variação, ponte. Os rascunhos de uma voz só ele achou simples.
-- **Groove > "só 8-bit"**: o que ele ama no PokéRogue é o groove e a instrumentação, não o timbre de NES.
-- **A Partida v4 é o molde** (`scripts/musica/partida-base.mjs`): cada personagem é uma variação dela (lista em §9).
-- **Partida ANIMADA** (energia, tensão boa de jogo), não alegre nem esperançosa nem épica; base funk. **Já começa
-  animada** (tema desde o 1º compasso, nada grave sozinho abrindo) e **acelera até o fim de cada tempo** (os dois).
-- **Vestiário tenso** (hora de estrategizar), mas com balanço (referência: "Disco Cat", Komiku).
-- **Funk é a casa.** Ele gosta de variar gênero (ska, marchinha), mas o coração cai pro funk: tenha sempre uma opção
-  funk da tela.
-- **Mercado**: marchinha/polca um pouco lenta e não alegre demais; reggae se mais rápido; ama a instrumentação de
-  "Mt Fox Shop" (BoxCat Games, Si♭ menor pela análise). O Mercado funk ficou PERFEITO: som de caixa registradora e
-  moedas bem na frente.
-- **Rota**: mapa mais simples = mais feliz, mas "feliz" do jeito do Komiku ("Champ de tournesol", "Fouler l'horizon":
-  tom menor que sobe, timbre quente, ~110 a 126 BPM), não alegria de desenho. Uma faixa por região. Cerulean em 6/8
-  ficou ÓTIMA. Estrada da Vitória precisa de percussão que marca (taiko 3-3-2, bigorna). Planalto: swing e épico.
-- **Campeão** elaborado mas não corrido (v3 = campeão final; a vitória de uma partida é a versão de ~5 s);
-  **eliminado** leve, ~6 s (estilo GameOver 3 e 4 do Ninja Adventure).
-- Ele **não gosta de bigorna** como percussão; quer "algo que marque" com outro timbre (palma pesada, aro, tambor de
-  metal, cowbell grave).
-- **Jazz com improviso** = "obra-prima": tema, depois um chorus de solo trocando de 4 em 4 com citação do gancho.
-- **Natal**: as valsas românticas com melodia de domínio público ("Noite Feliz", "We Wish You a Merry Christmas")
-  e o jazz da Sala com "Jingle Bells"; ele quer usar várias.
-- **Sala**: jazz de verdade (swing de colcheia, ii-V, condução); a calma fica com a Village 4. **Natal**: romântico,
-  com melodia natalina de domínio público ("Noite Feliz" já entrou) arranjada por nós.
-- **Momentos bobos** = Modo história (cenas engraçadas), não partida.
-- Ele **não gosta** de: tema "misterioso demais" em tela de decisão, faixas soturnas no intervalo, música de festa,
-  faixas "chatas" repetitivas sem desenvolvimento, polca do MacLeod (batida demais).
-- Ele escuta tudo e responde tela por tela. Mostre sempre: a nova + as que ele marcou (★) + a referência.
+**A régua.** O Tema da Rocket (rodada 6, `pecas/tema-rocket.mjs`): "brilhou meus olhos demais". Peça nova se mede
+por ele. O que ele mais quer é **música que conta uma história**: no "Na ponta do pé v2" o B sobe pelo cromático,
+tropeça, faz "bonk" e para no silêncio; ele chamou de genial, e os apitos deram o charme. Pense na cena (o plano, o
+tropeço, a volta) antes das notas.
+
+**Regra geral (rodada 5): pergunta e resposta** em toda trilha (lead × metais, lead × torcida, vibrafone × flauta de
+4 em 4) e, quando der, **o SOC-CER-MON** (o `GANCHO` inteiro, só o 3-3-2 nas palmas, ou citado num solo).
+
+**Um som de assinatura por faixa**, criativo, tirado da tela: as moedas e a caixa registradora do Mercado (as
+favoritas: "gosto muito de ideias criativas como essa das moedas"), as 3 cartas virando no Draft, a prancheta
+(5 peças magnéticas) na Escalação, as gotas e o eco da caverna no Mt. Moon, a gaivota e as bolhas na Cerulean, o
+tique de relógio no Vestiário. Prefira isso a um clap genérico.
+
+**Palmas.** O clap clássico do 808 (`I.clap808`, rodada 7) em tudo que é novo, na receita da 7b ("masterizou a
+masterização, uma aula"): a mesma amostra, ~−6 dB, passa-baixa entre 6,5 e 7 kHz, sala curta, e um tratamento por
+faixa (seco na Estrada, dobrado como torcida no Campeão, molhado e um semitom abaixo na Rocket). A palma sintetizada
+da rodada 6 foi recusada no geral (ficou só em Brock, Misty e Mercado, onde ele gostou). Abafada demais ele não ouve.
+
+**Timbre.** Tela que se ouve por muito tempo (Escalação, Draft, mapa, Sala) pede timbre **quente**: nada áspero ou
+metálico. A Escalação v1 saiu "meio metálica demais" (pulso fino de 12,5%, clavinete de 7,5%, metais abertos): na 8b
+ganhou ataque mais lento, passa-baixa mais fechado e onda mais redonda. Groove e instrumentação > "só 8-bit".
+
+**Mistura.** Percussão (clap, chimbal, prato) **bem abaixo do lead**; baixo ~60% do lead. Confira com `--rms`.
+
+**Clima por tela.**
+- **Funk é a casa** (a Abertura com gancho é a Home e a referência: samba-funk em chiptune). Sempre tenha uma opção
+  funk; variar gênero (ska, marchinha, jazz, 6/8) pode. Não mexa na Abertura sem pedido (`pecas/abertura.mjs` e
+  `abertura-gancho.mjs` têm que renderizar idênticas: `cmp` do `.wav`). Momentos bobos = cenas do Modo história.
+- **Mudança de tom é "SOBERBA"**: ½ tom ou 1 tom acima na volta final, com virada antes. **Mais complexo > simples**
+  (camadas, contracanto, ponte). Nada "chato" repetitivo sem desenvolvimento.
+- Partida: **animada** (não alegre, não épica), funk, tema desde o 1º compasso, acelera até o fim de cada tempo;
+  cada personagem tem tema próprio e a partida dele cita o motivo (§9).
+- Vestiário/Escalação: tenso com balanço ("Disco Cat"). Mercado: o funk com moedas ficou PERFEITO. Rota: "feliz"
+  do jeito do Komiku (menor que sobe, timbre quente, 110 a 126 BPM), uma faixa por região; Cerulean em 6/8 "ÓTIMA".
+  Sala: jazz de verdade com improviso de 4 em 4 ("obra-prima"). Campeão elaborado e não corrido; Vitória ~5 s;
+  Eliminado leve, ~6 s; Derrota curta, "bola pra frente". Natal: melodia de domínio público, romântica.
+- **Não gosta**: bigorna (quer outra coisa que marque: palma pesada, aro, cowbell grave), tema misterioso demais em
+  tela de decisão, faixa soturna no intervalo, música de festa, polca do MacLeod (batida demais).
+
+**O que ele aprovou, rodada a rodada.**
+
+| Rodada | Aprovado |
+|---|---|
+| 2 | Abertura v2 (Home), Funk Game Loop no Draft; PokéRogue de fã "gostei de TODAS" pelo groove |
+| 3 | Cena boba, Draft, Vestiário, Floresta, Mt. Moon, Cerulean ("ÓTIMA"); Eliminado v3 "perfeita" |
+| 4 | o GANCHO SOC-CER-MON como leitmotiv; Eliminado v4 (a v3 mais longa) |
+| 5 | pergunta e resposta como regra; Partida v4 como molde; Brock, Misty e Rocket |
+| 6 | todas as partidas, Planalto v4, temas de Brock, Misty e Rocket (a régua), Mercado funk v3, Abertura com gancho na Home |
+| 7/7b | o clap do 808 (Estrada, Campeão, Rocket) e a receita suave da 7b |
+| 8 | Draft, Recompensa, Vitória v2 (gancho), Derrota, Virada, Rota 1 v3, Mt. Moon v2, Cerulean v2, Sala v3 (jazz), Na ponta do pé v2 ("genial"); Escalação voltou pra 8b (menos metálica) e a Derrota com o "toc toc" mais alto |
+
+**Fluxo.** Ele ouve na página de amostras (localhost:8000) e responde tela por tela; mostre sempre a nova, as que
+ele marcou (★) e a referência, com antes e depois lado a lado. **Aprovou, entra no jogo na hora**, na branch
+`musica-jogo` (`webm` Opus 64 kbps + `mp3` 80 kbps + `.json` em `public/music/`, `loops.mjs` na cópia decodificada a
+44,1 kHz, faixa ligada em `src/ui/music-sync.ts`), commit e aviso numa linha, sem perguntar de novo. Produção continua
+precisando do "pode subir".
 
 ## 3. Pipeline
 
@@ -100,7 +113,7 @@ Aprendido em 7 rodadas com o Miguel (20 a 22/10/2026). "No geral, as músicas S�
 | Peça | Uso |
 |---|---|
 | `new Song({ bpm, bars, barLen, swing, tail, loopFrom, masterAt, secoes })` | `barLen` 16 = 4/4, 12 = 3/4 ou 6/8, 8 = 2/4. `loopFrom` n = intro (toca uma vez, cortada) + loop do n ao fim. `secoes: [{ nome, de, loop, intensidade }]` = vários trechos num arquivo: cada nota é do trecho em que começa, cada loop dobra o próprio rabo no seu começo, trecho do meio sem loop é cortado com 5 ms de saída, o último guarda o rabo. Mapa em `S.mapa` depois do `render` |
-| `S.part(nome, I.x, { pan, gain, echo: { rows, fb, mix }, rev, drum, gainAt })` | uma faixa; `rev` = envio pro reverb; `gainAt(seg)` = camada |
+| `S.part(nome, I.x, { pan, gain, echo: { rows, fb, mix }, rev, drum, gainAt, corte })` | uma faixa; `rev` = envio pro reverb; `gainAt(seg)` = camada; `corte` (Hz) = passa-baixa suave de 12 dB/oitava sem ressonância (rodada 8b: o jeito de esquentar um timbre) |
 | `mel(P, compasso, ['E5:2 r:2 C5+E5:4!'], { shift, harm, vel })` | melodia por compasso (confere a soma); `shift` modula; `harm: thirdBelow(MAJOR(0))` faz a segunda voz |
 | `drum(P, compasso, n, 'X..xo...', { pitch })` | X forte, x normal, o fantasma |
 | `bass(P, compasso, 'Dm7', '0:2 8:1~ 5:2 s:2 ...')` | 0 tônica, 3 terça, 5 quinta, 8 oitava, s sétima/sexta, l quinta abaixo, 7 décima |
@@ -181,6 +194,10 @@ ficam perto de −18; console pede −24: no jogo a música fica abaixo de efeit
 - **Saturar antes de normalizar** destrói a mistura (−5 LUFS de distorção). Normalize pelo pico e depois `tanh` leve.
 - **`loudnorm` de uma passada é compressor** e achata crescendo. O `render.mjs` mede e aplica ganho fixo (`volume`).
 - O JSON do `loudnorm` sai no stderr, com lixo depois: `spawnSync(...).stderr` e cortar entre `{` e `}`.
+- **O `filter` do ZzFX ressoa** (biquad com Q 2; o corte real é 2× o valor): baixar ele pra "abafar" põe um pico em
+  2 a 5 kHz e soa MAIS metálico (a 1ª tentativa da Escalação 8b subiu a banda de 2 a 4 kHz). Pra esquentar, use o
+  `corte` da faixa e meça as bandas: `ffmpeg -af highpass=f=2000:poles=2,highpass=f=2000:poles=2,volumedetect`
+  (e 4000, 8000) contra o total, antes e depois.
 - `ZZFX.buildSamples` desafina 5% por padrão (`randomness`): o sequenciador zera.
 - Importar `zzfx` no Node cria `AudioContext`: o `synth.mjs` põe um dublê antes do `import()`.
 - O gerador de "humanizar" tem semente por peça; se for global, a ordem das peças muda o resultado.

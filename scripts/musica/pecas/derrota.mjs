@@ -1,7 +1,7 @@
 // Derrota (rodada 8): perdeu uma partida, mas a copa segue. ~3 s, leve, sem drama: o SOC-CER-MON murcho (o ritmo
 // 3-3-2 do gancho descendo em Lá menor), um "toc toc" de consolo no bloco, e a resposta sobe e para no Mi maior (a
 // dominante, sem resolver): bola pra frente. Mesma família do Eliminado (pulso em terças, baixo triangular).
-// Pro "eliminado da copa" fica o Eliminado v4, que o Miguel já aprovou.
+// Pro "eliminado da copa" fica o Eliminado v4, que o Miguel já aprovou. Rodada 8b: o "toc toc" ~4 dB mais alto.
 import { arp, drum, I, MINOR, mel, Song, thirdBelow } from '../synth.mjs';
 
 export const meta = { titulo: 'Derrota (bola pra frente)', tela: 'Resultado: derrota', lufs: -15 };
@@ -12,7 +12,7 @@ export default function derrota() {
     const harm = S.part('terças', I.thin, { pan: 0.3, gain: 0.6 });
     const bs = S.part('baixo', I.counter, { gain: 1 });
     const ar = S.part('arp', I.arp, { pan: 0.4, gain: 1.2 });
-    const bl = S.part('bloco', I.block, { drum: true, pan: 0.3, gain: 1.2 });
+    const bl = S.part('bloco', I.block, { drum: true, pan: 0.3, gain: 1.9 });
 
     const M = ['E5:3 C5:3 A4:6 r:4', 'r:4 D5:2 E5:2 F5:4 E5:4', 'G#4+B4+E5:6 r:10'];
     mel(lead, 0, M);

@@ -16,6 +16,28 @@ Regras desta pesquisa:
 **Amostras pra ouvir:** abra `index.html` na pasta de amostras do scratchpad (caminho no fim deste doc). A Rodada 2
 vem em cima (72 faixas por tela, ★ nas que o Miguel gostou) e a Rodada 1 fica recolhida embaixo.
 
+## Rodada 8b (22/10): Escalação mais macia, Derrota e a virada no jogo
+
+Retorno da rodada 8: aprovou Draft, Recompensa, Vitória v2, Rota 1 v3, Mt. Moon v2, Cerulean v2, Sala v3 (jazz) e
+Na ponta do pé v2 (o B que sobe no cromático, tropeça, faz "bonk" e para no silêncio: "genial", os apitos deram o
+charme). Derrota aprovada, com o "toc toc" um pouco mais alto. Escalação "meio metálica demais". Virada: gostou e
+perguntou como entra por cima da música que já toca. Página: `r8b-*.ogg`, velha e nova lado a lado.
+
+| Faixa | O que mudou |
+|---|---|
+| Escalação | lead e terças de pulso 12,5% pra 25%, clavinete de 7,5% pra 20%, metais com ataque de 30 → 60 ms; passa-baixa suave sem ressonância por faixa (`corte` novo no `S.part`: lead 2,6 kHz, terças 2,2, metais e clavinete 1,8); chimbal e prato a 60%. Melodia e prancheta iguais. Banda acima de 2 kHz −3,2 dB, acima de 4 kHz −4 dB, acima de 8 kHz −3,8 dB (relativo ao total, mesmo volume) |
+| Derrota | bloco de madeira com ganho 1,2 → 1,9 (~+4 dB) |
+| Virada na pressão | `virada-pressao`: a mesma vinheta meio tom acima (Dó) e a 144 BPM, o tom e o andamento do trecho `pressao`. A `virada` sai idêntica à aprovada |
+
+A 1ª tentativa da Escalação baixou o `filter` do ZzFX e ficou mais brilhante (a banda de 2 a 4 kHz subiu): esse
+filtro ressoa no corte. Daí o `corte` por faixa no sequenciador (padrão desligado; a Abertura com gancho sai idêntica,
+conferido amostra a amostra).
+
+**Conferido pelos números:** as aprovadas re-renderizadas saem idênticas às que ele ouviu (PCM igual: Draft,
+Recompensa, Vitória, Rota 1, Mt. Moon, Cerulean, Sala, Na ponta do pé, Eliminado v4, Virada). Escalação `--rms`:
+lead 0,149, metais 0,086, clap 0,033, chimbal 0,015. O que só o ouvido dele decide: se a Escalação ficou quente o
+bastante sem perder o "disco tenso".
+
 ## Rodada 8 (22/10): as telas sem música e os extras
 
 Pedido: música pro Draft, Escalação, Recompensa e Resultado (vitória, derrota, eliminado), mais a vinheta da virada
