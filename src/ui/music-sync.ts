@@ -24,9 +24,9 @@ const TRACK: Partial<Record<Screen, TrackId>> = {
 /** Região do mapa da Rota Índigo com faixa própria (as outras tocam a Estrada da Vitória). */
 const REGION_TRACK: Partial<Record<MapRegion, TrackId>> = { rota1: 'rota-1', mtmoon: 'mt-moon', cerulean: 'cerulean' };
 
-/** Líderes (e a Rocket) com partida própria; o Lt. Surge só tem o tema (a partida dele é a padrão). */
+/** Líderes (e a Rocket) com partida própria; Surge, Erika, Koga, Sabrina, Blaine e Giovanni só têm o tema (a partida dele é a padrão). */
 const OWN: readonly string[] = ['brock', 'misty', 'rocket'];
-const THEME: readonly string[] = [...OWN, 'ltsurge'];
+const THEME: readonly string[] = [...OWN, 'ltsurge', 'erika', 'koga', 'sabrina', 'blaine', 'giovanni'];
 const trainerOf = (opponent?: string) => (opponent ? rivalTrainer(opponent) : undefined);
 
 /** Fase da música na disputa de pênaltis (depois do apito final): espera, ou o fim na cobrança decisiva. */

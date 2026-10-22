@@ -27,6 +27,7 @@ vem em cima (72 faixas por tela, ★ nas que o Miguel gostou) e a Rodada 1 fica 
   as cobranças, a partir do apito final), `penaltis-ganhou` (SOC-CER-MON em Mi maior, ~4 s) e `penaltis-perdeu` (a
   torcida deles e os metais caindo, ~2,5 s), na cobrança decisiva.
 - **Créditos:** "A última partida" (`ultima-partida`, toca uma vez, ~1min50, sem loop).
+- **Erika, Koga, Sabrina, Blaine e Giovanni (lideres-jogo):** `tema-<nome>` no VERSUS, partida padrão, como o Surge.
 - **Lt. Surge:** o tema dele (`tema-ltsurge`) no VERSUS das partidas contra a Vermilion Voltagem, como o do Brock;
   a partida dele usa a padrão.
 - De quebra: a grade de 12/8 (a Misty) usa 12 linhas por compasso (a troca de trecho caía fora do compasso).

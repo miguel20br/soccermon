@@ -15,6 +15,11 @@ export type TrackId =
     | 'tema-misty'
     | 'tema-rocket'
     | 'tema-ltsurge'
+    | 'tema-erika'
+    | 'tema-koga'
+    | 'tema-sabrina'
+    | 'tema-blaine'
+    | 'tema-giovanni'
     | 'ultima-partida'
     | `penaltis-${'espera' | 'ganhou' | 'perdeu'}`
     | 'draft'

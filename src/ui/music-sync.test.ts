@@ -69,6 +69,20 @@ describe('música por tela', () => {
         ]);
     });
 
+    it('Erika, Koga, Sabrina, Blaine e Giovanni: tema no VERSUS, partida padrão', () => {
+        for (const [club, id] of [
+            ['Celadon Arco-Íris', 'erika'],
+            ['Fuchsia Ninjas', 'koga'],
+            ['Saffron Mentes', 'sabrina'],
+            ['Cinnabar Vulcão', 'blaine'],
+            ['Viridian Terra', 'giovanni'],
+        ]) {
+            music.played.length = 0;
+            matchMusic({ opponent: club, half: 1, minute: 0, pressure: false, intro: true });
+            expect(music.played, club).toEqual([[`tema-${id}`, undefined]]);
+        }
+    });
+
     it('pênaltis: espera entre as cobranças, e o fim na decisiva (ganhou ou perdeu pelo placar dela)', () => {
         const pen = (tick: number, shootout: [number, number]) =>
             ({ type: 'penalty', tick, shootout, by: 0, gk: 0, scored: true, round: 1 }) as unknown as MatchEvent;

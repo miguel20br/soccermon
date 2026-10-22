@@ -1,0 +1,34 @@
+{
+ "faixa": "tema-koga",
+ "titulo": "Tema do Koga",
+ "tela": "Líder de ginásio: Koga (Fuchsia)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 54,
+ "secoes": [
+  {
+   "nome": "intro",
+   "loop": false,
+   "inicio": 0,
+   "fim": 4,
+   "amostras": [
+    0,
+    176400
+   ],
+   "bpm": 120,
+   "compassos": 2
+  },
+  {
+   "nome": "loop",
+   "loop": true,
+   "inicio": 4,
+   "fim": 54,
+   "amostras": [
+    176400,
+    2381400
+   ],
+   "bpm": 120,
+   "compassos": 25
+  }
+ ]
+}

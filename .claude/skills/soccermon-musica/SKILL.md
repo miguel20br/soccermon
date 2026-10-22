@@ -266,11 +266,11 @@ partida com `cita: MOTIVO`.
 | Misty (água) | Si menor em 12/8, sino bembé, sinos em onda, bolhas | feito (`partida-misty` cita `tema-misty`) |
 | Equipe Rocket | Dó menor, funk de espionagem, órgão cromático, nota blue | feito (`partida-rocket` cita `tema-rocket`) |
 | Lt. Surge (elétrico) | Fá# menor, 140+ BPM, arpejo de 16 avos, pulso 12,5%, "choque" (slide) | proposta |
-| Erika (planta) | samba-bossa animado, flauta e marimba, Ré mixolídio | proposta |
-| Koga (veneno, ninja) | escala in-sen, taiko, flauta com slide, Lá frígio | proposta |
-| Sabrina (psíquico) | tons inteiros, eco longo, viradas em 7/8, Si♭ lídio | proposta |
-| Blaine (fogo) | salsa/mambo, metais, cowbell, montuno, Dó menor | proposta |
-| Giovanni (chefe Rocket) | o riff da Rocket mais lento e pesado, órgão de igreja, Fá# menor | proposta |
+| Erika (planta) | samba-bossa animado, flauta e marimba, Ré mixolídio | tema feito, no jogo (`tema-erika`) |
+| Koga (veneno, ninja) | escala in-sen, taiko, flauta com slide, Lá frígio | tema feito, no jogo (`tema-koga`) |
+| Sabrina (psíquico) | tons inteiros, eco longo, viradas em 7/8, Si♭ lídio | tema feito, no jogo (`tema-sabrina`) |
+| Blaine (fogo) | salsa/mambo, metais, cowbell, montuno, Dó menor | tema feito, no jogo (`tema-blaine`) |
+| Giovanni (chefe Rocket) | o riff da Rocket mais lento e pesado, órgão de igreja, Fá# menor | tema feito, no jogo (`tema-giovanni`) |
 | Blue (rival) | a partida em maior com rock, três subidas de tom, Mi maior | proposta |
 | Elite dos Quatro | Lorelei (gelo, celesta, 12/8), Bruno (taiko e metais), Agatha (órgão e slide), Lance (épico com coro) | proposta |
 
