@@ -24,6 +24,13 @@ export const STATUS_SHORT: Record<number, string> = {
 };
 
 /**
+ * O botão do golpe máximo fica aceso esse tanto depois da hora certa passar (0,3 s de jogo, ~1,2 s na câmera lenta): o
+ * capitão entra e sai da zona driblando e o botão piscava. Tocou nesse resto, a ordem fica armada (`AGENCY.maxArmTicks`)
+ * e a bola procura o capitão.
+ */
+export const MAX_CUE_LATCH = 6;
+
+/**
  * Hora do golpe máximo em algum quadro de `from` a `to` (pelos snapshots). O botão usa só o quadro da tela; a quadra
  * olha um pouco à frente pra entrar em câmera lenta antes (a hora certa dura ~0,4 s de jogo: o capitão chuta logo).
  */

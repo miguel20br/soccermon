@@ -411,8 +411,9 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const setups: [TeamSetup, TeamSetup] = [lockedSetup, opponent];
     const sideline = agencyView(match.events, orders, 0, clock.tick, agency && maxCueAt(match, setups, 0, clock.tick));
     const canAgency = canChangeTactic && penPick === null;
-    // golpe máximo: vale no tick seguinte ao da tela (a quadra espera a partida nova; é um lance, não um plano)
-    const sendMax = () => sendOrder((tick) => ({ tick, team: 0, kind: 'max' }), Math.ceil(tickRef.current) + 1);
+    // golpe máximo: vale já no quadro da tela, antes da decisão do capitão (com +1 a IA chutava antes e o lance
+    // passava; a quadra espera a partida nova; é um lance, não um plano)
+    const sendMax = () => sendOrder((tick) => ({ tick, team: 0, kind: 'max' }), Math.ceil(tickRef.current));
     const sidelineControls = (
         <SidelineControls
             view={sideline}

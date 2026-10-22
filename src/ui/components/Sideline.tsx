@@ -3,7 +3,7 @@ import { AGENCY, type MaxCharge, maxCharge } from '../../engine/agency';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { isAgencyOrder, type MatchEvent, type MatchOrder, type TeamSetup } from '../../engine/state';
 import { useT } from '../../i18n/react';
-import { captainAt, maxCueNear, roleAt } from '../match-view';
+import { captainAt, MAX_CUE_LATCH, maxCueNear, roleAt } from '../match-view';
 import { useSwapMotion } from '../swap-motion';
 import { HudIcon, hex } from './MatchHud';
 import './sideline.css';
@@ -63,7 +63,7 @@ export function agencyView(
 export function maxCueAt(m: MatchResult, setups: [TeamSetup, TeamSetup], side: 0 | 1, tick: number): boolean {
     const cap = captainAt(m, setups, side, tick).idx;
     if (cap === null) return false;
-    return maxCueNear(m.snapshots, tick, tick, side, cap, roleAt(m, setups, cap, tick) === 'GK');
+    return maxCueNear(m.snapshots, tick - MAX_CUE_LATCH, tick, side, cap, roleAt(m, setups, cap, tick) === 'GK');
 }
 
 /** Golpe máximo pronto e na hora certa (o botão acende). */

@@ -212,7 +212,7 @@ export class RivalCoach {
         }
 
         // golpe máximo: com a barra cheia, na hora certa (o capitão com a bola na zona, ou o rival na zona do goleiro
-        // capitão). Vale no tick seguinte, sem aviso: é um lance, não um plano
+        // capitão). Vale já neste passo (antes da decisão dos jogadores), sem aviso: é um lance, não um plano
         if (s.phase === 'play' && !ag.max && (st.max === 'asap' || Math.abs(diff) <= 1) && this.maxCue(s)) {
             const c = maxCharge(s.events, team, s.tick, s.cfg.teamSize);
             if (c.charge >= 1 && !c.used && !c.active) calls.push({ call: 'max' });
@@ -233,7 +233,7 @@ export class RivalCoach {
 
         return calls.map((c) => {
             emit(s, { type: 'coach', team, leader: this.leader, ...c });
-            return toOrder(c, team, c.call === 'max' ? s.tick + 1 : tick);
+            return toOrder(c, team, c.call === 'max' ? s.tick : tick);
         });
     }
 

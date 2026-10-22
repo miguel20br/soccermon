@@ -29,7 +29,7 @@ import { dir8 } from '../../engine/vec';
 import { dict, linkText, t as tr } from '../../i18n';
 import type { ArrowSize, ChanceSpeed, CryStyle, NamesOnField, PlaybackSpeed } from '../../store/game-store';
 import { bannerInk } from '../../store/profile';
-import { halftimeEnd, maxCueNear } from '../../ui/match-view';
+import { halftimeEnd, MAX_CUE_LATCH, maxCueNear } from '../../ui/match-view';
 import { hexToNumber, TYPE_COLOR } from '../../ui/type-colors';
 import {
     animForAction,
@@ -645,7 +645,7 @@ export class MatchScene extends Phaser.Scene {
         const gk = this.md.result.roster[cap]?.role === 'GK';
         return maxCueNear(
             this.snaps,
-            Math.floor(this.playTick),
+            Math.floor(this.playTick) - MAX_CUE_LATCH,
             Math.floor(this.playTick) + MAX_CUE_LEAD,
             team,
             cap,

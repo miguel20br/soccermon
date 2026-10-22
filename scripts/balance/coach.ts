@@ -2,7 +2,7 @@
 // Uso: npx tsx scripts/balance/coach.ts <partidas> <out.json> [velocidade=4] [mecânicas=timeout,flyGk,max,pens,all]
 // O time 0 é o robô; o time 1, a IA de sempre (sem mecânica). Mesmas seeds em todas as políticas (comparação pareada).
 // Políticas: never (nunca usa = a partida de hoje), random (usa em horas sorteadas), good (regra simples e sensata);
-// A ordem vale `40 × velocidade` ticks à frente, como na copa; o golpe máximo, no tick seguinte (o botão só acende na
+// A ordem vale `40 × velocidade` ticks à frente, como na copa; o golpe máximo, no próprio tick (o botão só acende na
 // hora certa: `maxCue`). CAP=gk: o capitão do robô é o goleiro (defesa máxima).
 // RIVAL=1: o time 1 ganha o técnico IA que reage (src/engine/rival-coach.ts), um líder por partida (em rodízio).
 import { writeFileSync } from 'node:fs';
@@ -103,7 +103,7 @@ function play(i: number, mech: string, policy: Policy): Out {
         fullAt ??= min;
         // aleatório: deixa passar umas chances antes de tocar; bom: toca na 1ª com o jogo apertado (ou perdendo)
         const go = policy === 'random' ? min >= fullAt + plan.maxDelay : s.score[0] - s.score[1] <= 1;
-        if (go) order({ kind: 'max' }, 1);
+        if (go) order({ kind: 'max' }, 0);
     }
     function decide() {
         const min = minuteOf(s);

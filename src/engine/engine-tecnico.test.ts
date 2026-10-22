@@ -72,7 +72,10 @@ describe('prancheta no meio da partida', () => {
 
     it('entra na hora (volante): formação, vaga, posição e nota pela posição nova', () => {
         const base = runMatch(FUTSAL_5, home, away, 7, { snapshots: false });
-        const T = 1200;
+        // primeiro tick com a bola rolando depois do minuto 1:00 de partida
+        const probe = new LiveRunner(FUTSAL_5, home, away, 7);
+        while (probe.state.tick < 1200 || probe.state.phase !== 'play') probe.step();
+        const T = probe.state.tick;
         expect(phaseAt(T)).toBe('play');
         const orders: MatchOrder[] = [{ tick: T, team: 0, kind: 'lineup', formation: '2-2', order: swap }];
         const runner = new LiveRunner(FUTSAL_5, home, away, 7, orders);

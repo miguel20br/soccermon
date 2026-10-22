@@ -137,17 +137,21 @@ describe('agência do técnico (experimento)', () => {
     const capOf = (live: LiveRunner) => live.state.players.find((p) => p.team === 0 && p.captain)!;
 
     it('golpe máximo de linha: na hora certa sai na hora, com o golpe do capitão; fora dela não sai sozinho', () => {
+        // capitão no pivô: o fixo quase nunca chega na zona com a bola (formações da 0.9.5)
+        const P = { ...A, captainUid: A.lineup[4].uid };
+        const runP = (orders: MatchOrder[], seed: string) =>
+            runMatch(FUTSAL_5, P, B, seed, { snapshots: false, orders });
         let checked = 0;
         for (let k = 0; k < 20 && checked < 2; k++) {
             const seed = `ag-max-${k}`;
-            if (A.lineup.find((p) => p.uid === A.captainUid) === A.lineup[0]) throw new Error('capitão no gol');
-            const at = firstCue(A, seed, (live) => {
+
+            const at = firstCue(P, seed, (live) => {
                 const cap = capOf(live);
                 return live.state.ball.owner === cap.idx && cap.role !== 'GK' && inMaxZoneOf(live.state, cap);
             });
             if (at === null) continue;
             checked++;
-            const r = run([{ tick: at, team: 0, kind: 'max' }], seed);
+            const r = runP([{ tick: at, team: 0, kind: 'max' }], seed);
             const hit = of(r.events, 'max')[0];
             expect(hit?.phase).toBe('hit');
             // na hora: o chute sai no tick seguinte ao da ordem, com a versão máxima do golpe dele
@@ -156,14 +160,14 @@ describe('agência do técnico (experimento)', () => {
             expect(cap.captain).toBe(true);
             const shot = of(r.events, 'shot').find((e) => e.tick === hit.tick);
             expect(shot?.by).toBe(hit.by);
-            const inst = A.lineup.find((p) => p.uid === cap.uid)!;
+            const inst = P.lineup.find((p) => p.uid === cap.uid)!;
             expect(shot?.moveId).toBe(maxMoveOf(inst.moves, inst.speciesId));
             // 1 por partida
             expect(maxCharge(r.events, 0)).toEqual({ charge: 0, active: false, used: true });
 
             // fora da hora certa (o capitão sem a bola): fica armada um instante; se não vier a hora, nada gasta
-            const early = firstCue(A, seed, (live) => live.state.ball.owner !== capOf(live).idx);
-            const r2 = run([{ tick: early!, team: 0, kind: 'max' }], seed);
+            const early = firstCue(P, seed, (live) => live.state.ball.owner !== capOf(live).idx);
+            const r2 = runP([{ tick: early!, team: 0, kind: 'max' }], seed);
             const hit2 = of(r2.events, 'max')[0];
             if (hit2) expect(hit2.tick - early!).toBeLessThanOrEqual(AGENCY.maxArmTicks);
             else expect(maxCharge(r2.events, 0, early! + AGENCY.maxArmTicks + 1).charge).toBe(1);
