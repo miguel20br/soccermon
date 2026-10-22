@@ -32,7 +32,7 @@ const lp = (x, f) => {
     return y;
 };
 /** `seg` segundos; `faz(p, r)` devolve a função por amostra `(t) => valor` (com estado: fase, filtro). */
-const som = (seg, faz, { pk = 0.55, corte = 0 } = {}) => {
+export const som = (seg, faz, { pk = 0.55, corte = 0 } = {}) => {
     const cache = new Map();
     return (p = 0) => {
         if (!cache.has(p)) {
@@ -48,7 +48,7 @@ const som = (seg, faz, { pk = 0.55, corte = 0 } = {}) => {
         return cache.get(p);
     };
 };
-const k12 = (p) => 2 ** (p / 12);
+export const k12 = (p) => 2 ** (p / 12);
 
 /** A bola quicando no piso de madeira, afinada na nota (instrumento melódico: baixo). Baque que cai de altura,
  * "poc" do couro e o anel oco da bola. */
