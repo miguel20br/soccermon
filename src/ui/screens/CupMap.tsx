@@ -26,6 +26,7 @@ import {
     YELLOW_CARDS,
 } from '../../store/long-cup';
 import { choiceTargets, type EventId, eventChoices } from '../../store/long-events';
+import { Coach } from '../coach/Coach';
 import { CountUp } from '../components/CountUp';
 import { FutCard } from '../components/FutCard';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
@@ -221,6 +222,11 @@ export function CupMap() {
                 icon="liga"
                 tag={t('longCup.step', { n: Math.min(played + 1, cupLength(run)), total: cupLength(run) })}
                 onBack={() => go('home')}
+            />
+            <Coach
+                id="rota"
+                targets={['.cm-node.open', '.cm-cards', '.cm-money']}
+                when={played === 0 && !story && !chosen}
             />
             <div className="cm-body">
                 <aside className="cm-side">
@@ -790,6 +796,7 @@ export function GroupScreen() {
                     <HudIcon kind="next" />
                 </button>
             </div>
+            <Coach id="rotaGrupo" targets={['.gp-table']} when={!untold} />
             {untold &&
                 createPortal(
                     <div className="cm-story who-lance">

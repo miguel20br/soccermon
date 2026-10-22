@@ -32,6 +32,10 @@ const newPage = async () => {
         hasTouch: mobile,
         isMobile: mobile,
     });
+    // balões do tutorial (Coach.tsx) cobrem a tela: a fumaça testa o jogo, então pula todos que aparecerem
+    await ctx.addInitScript(() => {
+        setInterval(() => document.querySelector('.coach-skip')?.click(), 300);
+    });
     const p = await ctx.newPage();
     p.on('pageerror', (e) => errors.add(`pageerror: ${e.message}`));
     p.on('console', (m) => {

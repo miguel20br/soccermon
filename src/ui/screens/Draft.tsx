@@ -9,6 +9,8 @@ import { playCry } from '../../game/audio';
 import { formationText } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { type SlotRef, slotRole, useGame } from '../../store/game-store';
+import { isLong } from '../../store/long-cup';
+import { Coach } from '../coach/Coach';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { CountUp } from '../components/CountUp';
 import { FormationBoard } from '../components/FormationBoard';
@@ -133,9 +135,12 @@ export function Draft() {
     }, [focus, run?.draftRound]);
     if (!run) return null;
 
+    // Copa Relâmpago: a 1ª formação e o 1º draft (a Rota e a Copa do Dia não entram)
+    const quick = !run.daily && !isLong(run);
     if (run.status === 'formation') {
         return (
             <>
+                {quick && <Coach id="relampago" targets={['.draft-head h1']} />}
                 <div className="draft-head bc-screenhead">
                     <span className="bc-tag">{t('team.draft.beforeDraft')}</span>
                     <h1>{t('team.draft.chooseFormation')}</h1>
@@ -242,6 +247,13 @@ export function Draft() {
                 <AutoDraft captainUid={chosen?.uid} hint={title} />
             </div>
 
+            {quick && (
+                <Coach
+                    id="relampagoDraft"
+                    targets={['.slot.empty']}
+                    when={run.status === 'drafting' && !run.draftSlot}
+                />
+            )}
             <div className="draft-grid">
                 <div className="panel board-panel" ref={boardRef}>
                     <h2>{run.teamName}</h2>

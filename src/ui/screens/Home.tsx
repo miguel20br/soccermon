@@ -18,6 +18,7 @@ import { TYPE_COLOR } from '../type-colors';
 import { HomeDailyCard } from './Daily';
 import '../home-motion.css';
 import { type CupMode, cupLength, isLong, LONG_CUP_LIVE } from '../../store/long-cup';
+import { Coach } from '../coach/Coach';
 import { ComingSoon } from '../components/ComingSoon';
 import { DoorTiles } from '../components/DoorTiles';
 import { HudIcon } from '../components/MatchHud';
@@ -199,6 +200,7 @@ export function Home() {
                 <p className="tagline">{t('home.tagline')}</p>
             </section>
 
+            <Coach id="intro" targets={['[data-coach="quick"]', '[data-coach="help"]']} />
             <DexProgress />
 
             <div className="mode-cards">
@@ -316,6 +318,7 @@ export function Home() {
                             />
                             <button
                                 type="button"
+                                data-coach="quick"
                                 className={`btn big cup-go cup-go-quick ${red === 'quick' ? 'primary' : 'outline'}`}
                                 onClick={() => start()}
                             >

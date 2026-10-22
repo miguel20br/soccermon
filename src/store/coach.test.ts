@@ -1,0 +1,97 @@
+import { readFileSync } from 'node:fs';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
+
+import { placeBalloon } from '../ui/coach/place';
+import { COACH_GROUPS, COACH_IDS, coachSeen } from './coach';
+import { DEFAULT_SETTINGS, migrateSave, type PersistedSave, withUnlocks } from './game-store';
+import { mergeProfileUnlocks } from './missions';
+import { DEFAULT_PROFILE, EMPTY_CAREER } from './profile';
+
+const save = (patch: Partial<PersistedSave> = {}): PersistedSave => ({
+    run: null,
+    settings: { ...DEFAULT_SETTINGS, lang: 'pt' },
+    records: { cups: 0, titles: 0, perfect: 0 },
+    profile: { ...DEFAULT_PROFILE, seen: [] },
+    dex: {},
+    moves: {},
+    binder: [],
+    career: EMPTY_CAREER,
+    onboarded: false,
+    parkedRuns: [],
+    hall: [],
+    duels: [],
+    daily: [],
+    ...patch,
+});
+
+describe('balões do tutorial: o que já foi jogado não aparece', () => {
+    it('backup v6 de verdade (4 copas rápidas, Hall): Home e Relâmpago vistos; o resto continua novo', () => {
+        for (const lang of ['pt', 'en']) {
+            const backup = JSON.parse(readFileSync(`scripts/fixtures/backup-v6-${lang}.json`, 'utf8'));
+            const s = migrateSave(backup.save, backup.version);
+            const coach = s.profile.coach;
+            expect(Array.isArray(coach)).toBe(true);
+            expect(coachSeen(coach, 'intro')).toBe(true);
+            for (const id of COACH_GROUPS.relampago) expect(coachSeen(coach, id)).toBe(true);
+            for (const id of ['rota', 'rotaGrupo', 'duelo', 'dueloSala', 'dia', 'liga'] as const)
+                expect(coachSeen(coach, id)).toBe(false);
+        }
+    });
+
+    it('quem nunca jogou vê tudo', () => {
+        expect(withUnlocks(save()).profile.coach).toEqual([]);
+    });
+
+    it('Duelo e Copa do Dia jogados contam; Rota jogada conta, sem apagar a Relâmpago', () => {
+        const s = withUnlocks(
+            save({
+                onboarded: true,
+                records: { cups: 1, titles: 0, perfect: 0, longCups: 1, duelWins: 2 },
+                daily: [{ day: '2026-10-20' } as PersistedSave['daily'][number]],
+            }),
+        );
+        const c = s.profile.coach;
+        expect(['rota', 'rotaGrupo', 'duelo', 'dueloSala', 'dia'].every((id) => c?.includes(id))).toBe(true);
+        expect(coachSeen(c, 'relampago')).toBe(false);
+        expect(coachSeen(c, 'liga')).toBe(false);
+    });
+
+    it('o campo existente não é recalculado, e a nuvem junta os dois lados', () => {
+        const s = withUnlocks(save({ profile: { ...DEFAULT_PROFILE, seen: [], coach: ['dia'] }, onboarded: true }));
+        expect(s.profile.coach).toEqual(['dia']);
+        const merged = mergeProfileUnlocks({ ...DEFAULT_PROFILE, coach: ['dia'] }, { coach: ['liga', 'dia'] });
+        expect(merged.coach).toEqual(expect.arrayContaining(['dia', 'liga']));
+    });
+
+    it('todo id tem grupo e Pular vale pro grupo do próprio id', () => {
+        for (const id of COACH_IDS) expect(COACH_GROUPS[id]).toContain(id);
+    });
+});
+
+describe('placeBalloon: o balão nunca cobre o alvo', () => {
+    const overlaps = (a: { left: number; top: number; width: number; height: number }, b: typeof a) =>
+        a.left < b.left + b.width && b.left < a.left + a.width && a.top < b.top + b.height && b.top < a.top + a.height;
+    const sizes: [number, number][] = [
+        [320, 568],
+        [390, 844],
+        [844, 390],
+        [1440, 900],
+    ];
+    it.each(sizes)('em %ix%i, alvos de vários tamanhos e lugares', (vw, vh) => {
+        const b = { width: Math.min(300, vw - 16), height: 110 };
+        for (const fy of [0.05, 0.4, 0.9]) {
+            for (const fx of [0.05, 0.5, 0.9]) {
+                const hole = { left: vw * fx - 40, top: vh * fy - 20, width: 80, height: 40 };
+                const p = placeBalloon(hole, b, vw, vh);
+                expect(p.side).not.toBe('inside');
+                expect(overlaps({ ...b, left: p.left, top: p.top }, hole)).toBe(false);
+                expect(p.left).toBeGreaterThanOrEqual(0);
+                expect(p.left + b.width).toBeLessThanOrEqual(vw);
+                expect(p.top).toBeGreaterThanOrEqual(0);
+                expect(p.top + b.height).toBeLessThanOrEqual(vh);
+            }
+        }
+    });
+});

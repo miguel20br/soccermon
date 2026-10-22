@@ -10,6 +10,7 @@ import { ligaCountdown } from '../../league/rules';
 import { dailyDay, dailyShareText, dailySticker, dailyStreak, daysInARow, putDaily, winsOf } from '../../store/daily';
 import { isCupInProgress, useGame } from '../../store/game-store';
 import { clubColorHex } from '../../store/profile';
+import { Coach } from '../coach/Coach';
 import { AccountBar } from '../components/AccountBar';
 import { MenuHead } from '../components/MenuHead';
 import { MenuIcon } from '../components/MenuIcon';
@@ -182,6 +183,7 @@ export function Daily() {
     return (
         <div className="menu-screen lg">
             <MenuHead title={t('liga.daily.tag')} tag={t('liga.daily.tag')} icon="daily" onBack={() => go('home')} />
+            <Coach id="dia" targets={['.lg-hero .lg-line', '.lg-start .btn']} when={!entry} />
 
             <section className="panel lg-hero bc-surface bc-stripe">
                 <span className="lg-date">{dayLabel(today, lang)}</span>

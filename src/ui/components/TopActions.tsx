@@ -17,6 +17,7 @@ export function TopActions({ help }: { help?: () => void }) {
                 <button
                     type="button"
                     className="help-fab"
+                    data-coach="help"
                     aria-label={t('home.helpAria')}
                     title={t('home.helpTitle')}
                     onClick={help}

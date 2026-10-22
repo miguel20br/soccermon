@@ -25,8 +25,9 @@ import { ligaRun, useLiga } from '../../league/liga-store';
 import { PhaserGame } from '../../PhaserGame';
 import { fieldKit, lookOfCupClub, lookOfProfile, matchLooks } from '../../store/club-kit';
 import { liveOf, type PlaybackSpeed, playerTeam, useGame } from '../../store/game-store';
-import { isFinalStage } from '../../store/long-cup';
+import { isFinalStage, isLong } from '../../store/long-cup';
 import { rivalColor, tagFromName } from '../../store/profile';
+import { Coach } from '../coach/Coach';
 import { Commentator, type CommentLine } from '../commentary';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
 import { HalftimePanel, rivalHtSubs } from '../components/HalftimePanel';
@@ -733,6 +734,11 @@ export function Match({ liga = false }: { liga?: boolean }) {
                 </div>
 
                 <div className="panel bc-coach" ref={coachRef} onPointerDownCapture={auto.hold}>
+                    <Coach
+                        id="relampagoJogo"
+                        targets={['.bc-coach .bc-tabs']}
+                        when={!liga && !!run && !run.daily && !isLong(run) && run.results.length === 0}
+                    />
                     <CoachTabs tabs={tabs} active={tab} onPick={setTab} />
                     <div className={`bc-pane pane-${tab}`} role="tabpanel">
                         {tab === 'tactic' && tactics}
