@@ -1,5 +1,16 @@
 # Novidades
 
+## 0.9.11 · Viradas na música e temas dos líderes
+
+### Música
+- Avançar na copa troca a música com virada de bateria e uma ponte
+- Cada ponte tem o som da tela que entra
+- O VERSUS entra com virada, ponte e prato
+- Voltar pra Home continua trocando só no tempo da batida
+
+### Líderes
+- Erika, Koga, Sabrina, Blaine e Giovanni ganharam tema próprio antes da partida
+
 ## 0.9.10 · Time no ranking e acabamento
 
 ### Copa do Dia
