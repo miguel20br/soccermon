@@ -49,7 +49,9 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * `?demo=maximo` abre na escalação uma partida que, ao começar, está a 2 s do botão do golpe máximo aceso
  * (barra cheia, capitão Dragonite com a bola na zona); `&goleiro=1`: capitão Snorlax no gol (defesa máxima).
  * `?demo=virada` abre na escalação uma partida que, ao começar, está a 4 s do gol que põe o seu time na frente no
- * 2º tempo (a música abaixa e entra a vinheta da virada).
+ * 2º tempo. `&clube=<id>` (brock, misty, rocket…): contra o clube desse treinador (a música dele); `&pressao=1`: a
+ * virada vem depois de o seu time entrar na Pressão final, e a partida abre 2 s antes dela (a música entra no trecho
+ * `pressao` e fica nele até o apito, mesmo com o empate).
  */
 let started = false;
 
@@ -516,15 +518,21 @@ export function runDevDemo() {
         return;
     }
     if (demo === 'virada') {
+        const q = new URLSearchParams(window.location.search);
+        const clube = q.get('clube');
+        const pressao = q.get('pressao') === '1';
         for (let k = 0; k < 300; k++) {
             store.newRun('Demo FC', `vir${k}`);
             const base = useGame.getState().run!;
+            const idx = clube ? base.opponents.findIndex((o) => clubLeader(o.name) === clube) : 0;
+            if (idx < 0) continue;
             const rng = new Rng(`vir${k}`, 'demo');
             // time médio (Onix no gol, Machoke, Ponyta, Wartortle, Nidorino; banco Pidgeotto e Ivysaur)
             const lineup = [95, 67, 77, 8, 33].map((id) => createInstance(id, rng));
             const bench = [17, 2].map((id) => createInstance(id, rng));
             const run = {
                 ...base,
+                opponents: [base.opponents[idx], ...base.opponents.filter((_, i) => i !== idx)],
                 formation: '1-2-1' as const,
                 picks: [...lineup, ...bench],
                 lineup: lineup.map((p) => p.uid),
@@ -534,17 +542,21 @@ export function runDevDemo() {
                 status: 'lineup' as const,
             };
             const team = { ...playerTeam(run), manualSubs: true };
-            const r = runMatch(FUTSAL_5, team, run.opponents[0], `${run.seed}-stage-0`, { snapshots: false });
+            const rival = cupRival(run.opponents[0], true); // como a partida de verdade (o líder no banco)
+            const r = runMatch(FUTSAL_5, team, rival, `${run.seed}-stage-0`, { snapshots: false });
             const ht = r.events.find((e) => e.type === 'halftime');
+            const press = r.events.find((e) => e.type === 'pressure' && e.team === 0);
             const goal = r.events.find(
                 (e) =>
                     e.type === 'goal' &&
                     e.team === 0 &&
                     e.tick > (ht?.tick ?? Infinity) &&
-                    e.score[0] === e.score[1] + 1,
+                    e.score[0] === e.score[1] + 1 &&
+                    (!pressao || (press !== undefined && press.tick < e.tick)),
             );
             if (!ht || !goal) continue;
-            const live = { stage: 0, orders: [], tick: Math.max(ht.tick + 1, goal.tick - 80), engine: ENGINE_VERSION };
+            const from = pressao && press ? press.tick - 40 : goal.tick - 80;
+            const live = { stage: 0, orders: [], tick: Math.max(ht.tick + 1, from), engine: ENGINE_VERSION };
             useGame.setState({ run: { ...run, lockedTeam: team, live }, screen: 'lineup' });
             console.info(`[demo] copa ${run.seed}: gol da virada no tick ${goal.tick}`);
             return;

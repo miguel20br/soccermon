@@ -16,6 +16,23 @@ Regras desta pesquisa:
 **Amostras pra ouvir:** abra `index.html` na pasta de amostras do scratchpad (caminho no fim deste doc). A Rodada 2
 vem em cima (72 faixas por tela, ★ nas que o Miguel gostou) e a Rodada 1 fica recolhida embaixo.
 
+## Virada, Pressão final, pênaltis, Créditos e Lt. Surge no jogo (22/10)
+
+- **Virada desligada no jogo.** O Miguel não gostou da vinheta por cima da partida: a virada vai virar uma transição
+  no tempo, dentro da música da partida (outra frente). `Match.tsx` não chama mais `playVirada()`; os arquivos
+  `virada*` ficam em `public/music`. As vinhetas por líder (`virada-brock`, `-misty`, `-rocket` e as `-pressao`,
+  peças `pecas/virada-*.mjs`) ficaram só na página de amostras ("Viradas dos líderes"), fora do jogo.
+- **Pressão final até o apito.** Começou, a música fica no trecho `pressao` até o apito final, mesmo que o placar
+  empate e a pressão do motor acabe (`matchMusic` em `src/ui/music-sync.ts`; o motor não muda).
+- **Pênaltis.** A "Disputa de pênaltis" (livre) conta uma disputa inventada, cobrança por cobrança, e não segue a de
+  verdade. No jogo vão três pedaços dela (`pecas/penaltis.mjs`): `penaltis-espera` (loop do coração e do relógio entre
+  as cobranças, a partir do apito final), `penaltis-ganhou` (SOC-CER-MON em Mi maior, ~4 s) e `penaltis-perdeu` (a
+  torcida deles e os metais caindo, ~2,5 s), na cobrança decisiva.
+- **Créditos:** "A última partida" (`ultima-partida`, toca uma vez, ~1min50, sem loop).
+- **Lt. Surge:** o tema dele (`tema-ltsurge`) no VERSUS das partidas contra a Vermilion Voltagem, como o do Brock;
+  a partida dele usa a padrão.
+- De quebra: a grade de 12/8 (a Misty) usa 12 linhas por compasso (a troca de trecho caía fora do compasso).
+
 ## Rodada 8b (22/10): Escalação mais macia, Derrota e a virada no jogo
 
 Retorno da rodada 8: aprovou Draft, Recompensa, Vitória v2, Rota 1 v3, Mt. Moon v2, Cerulean v2, Sala v3 (jazz) e
@@ -645,4 +662,4 @@ do que ele disser ("mais rápido", "mais Kanto", "menos samba").
 - `campeao` na tela de resultado da copa campeã; `planalto-indigo` na fase de grupos (tela `group`). `pressao` entra pela `virada` (trecho de entrada colado no loop) e `fim` toca no apito final.
 - Rodada 8 (22/10): `draft` no Draft, `escalacao` (8b) na Escalação, `recompensa` na Recompensa, `sala` na Sala de troféus. Resultado: `vitoria-gancho` depois de vencer, `derrota` depois de perder sem cair (Rota), `eliminado` (v4) quando a copa acaba, `campeao` no título. Mapa da Rota Índigo por região (`MAP_REGIONS` em `src/engine/cup-map.ts`, as mesmas faixas de linhas que a tela desenha): `rota-1` na Rota 1, `mt-moon` no Mt. Moon, `cerulean` na Cerulean; Floresta de Viridian e Estrada da Vitória seguem na `estrada-da-vitoria`. No mapa vale a região da próxima linha; no Evento e no Treino, a da casa atual.
 - `cutscene-boba` (Na ponta do pé v2) está em `public/music/` mas não tocada: é do Modo história (ligar na branch `historia` quando as cenas entrarem).
-- **Virada no placar:** no 2º tempo, quando o seu time estava perdendo ou empatando e passa à frente (`Match.tsx`), `playVirada()` (`src/game/music.ts`): a música da partida abaixa −10 dB em 150 ms num ganho próprio (o "duck", entre as faixas e o volume), a vinheta entra na próxima batida do trecho tocando (`virada-pressao`, meio tom acima e a 144 BPM, se o trecho é `pressao`) e a música volta em 600 ms depois do fim dela. A troca de trecho da partida mexe no ganho da faixa, não no duck: as duas não brigam. Troca de faixa no meio (apito final) corta a vinheta e solta o duck. `?demo=virada` abre a 4 s de um gol desses. Na prática a `virada-pressao` quase não toca: a Pressão final acaba no empate (`finalPressureTeam`), e a música sai do trecho `pressao` no compasso seguinte, antes do gol que vira.
+- **Virada no placar:** no 2º tempo, quando o seu time estava perdendo ou empatando e passa à frente (`Match.tsx`), `playVirada()` (`src/game/music.ts`): a música da partida abaixa −10 dB em 150 ms num ganho próprio (o "duck", entre as faixas e o volume), a vinheta entra na próxima batida do trecho tocando (`virada-pressao`, meio tom acima e a 144 BPM, se o trecho é `pressao`) e a música volta em 600 ms depois do fim dela. A troca de trecho da partida mexe no ganho da faixa, não no duck: as duas não brigam. Troca de faixa no meio (apito final) corta a vinheta e solta o duck. `?demo=virada` abre a 4 s de um gol desses. Desligada no jogo desde 22/10 (ver o topo do doc); a Pressão final segura a música no trecho `pressao` até o apito.
