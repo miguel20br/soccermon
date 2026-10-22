@@ -12,6 +12,18 @@ export type TrackId =
     | 'tema-brock'
     | 'tema-misty'
     | 'tema-rocket'
+    | 'draft'
+    | 'escalacao'
+    | 'recompensa'
+    | 'vitoria-gancho'
+    | 'derrota'
+    | 'eliminado'
+    | 'rota-1'
+    | 'mt-moon'
+    | 'cerulean'
+    | 'sala'
+    | 'virada'
+    | 'virada-pressao'
     | `partida-${'' | 'brock-' | 'misty-' | 'rocket-'}${'1t' | '2t'}`;
 
 interface Section {
@@ -44,8 +56,15 @@ interface Playing {
 
 export const FADE_S = 0.25;
 const vol = { master: 0.6, music: 0.4 };
+/** Virada: a música da partida abaixa ~10 dB enquanto a vinheta toca. */
+const DUCK = 10 ** (-10 / 20);
+const DUCK_IN_S = 0.15;
+const DUCK_OUT_S = 0.6;
 const cache = new Map<TrackId, Promise<Loaded | null>>();
 let out: GainNode | null = null;
+/** Entre as faixas e o volume: só a vinheta mexe nele (troca de trecho e crossfade mexem no ganho de cada faixa). */
+let duck: GainNode | null = null;
+let sting: AudioBufferSourceNode | null = null;
 let current: Playing | null = null;
 /** O que a tela pediu (pode esperar o toque que libera o áudio ou o download). */
 let want: { id: TrackId | null; section?: string } = { id: null };
@@ -66,6 +85,15 @@ function output(): GainNode {
     }
     out.gain.value = level();
     return out;
+}
+
+/** Onde as faixas entram: o duck, que vai pro volume. A vinheta entra direto no volume (não abaixa junto). */
+function bus(): GainNode {
+    if (!duck) {
+        duck = ctx().createGain();
+        duck.connect(output());
+    }
+    return duck;
 }
 
 /** Volume geral e da música (0..1). */
@@ -164,10 +192,7 @@ async function apply() {
     if (current && current.id === id) {
         if (current.sec === sec) return;
         // mesma faixa, outro trecho: troca na linha do compasso (corte limpo, sem fade)
-        const barS = 240 / current.sec.bpm;
-        const pos = position(current);
-        const start = current.sec.loop ? current.sec.inicio : 0;
-        const at = now + (Math.ceil((pos - start) / barS) * barS - (pos - start));
+        const at = nextLine(current, 240 / current.sec.bpm);
         // trecho de entrada sem loop colado no loop (virada -> pressao): entra por ele
         const lead = leadIn(loaded, sec);
         const off = lead?.inicio ?? sec.inicio;
@@ -176,17 +201,76 @@ async function apply() {
         current = next;
         return;
     }
-    // faixa nova: crossfade de 250 ms
+    // faixa nova: crossfade de 250 ms (e a vinheta da virada, se ainda tocava, sai junto)
     fadeOut(current);
+    endSting(now);
     const gain = c.createGain();
     gain.gain.setValueAtTime(0, now);
     gain.gain.linearRampToValueAtTime(1, now + FADE_S);
-    gain.connect(output());
+    gain.connect(bus());
     // loop com introdução logo antes (Abertura): entra pela introdução
     const off = leadIn(loaded, sec)?.inicio ?? sec.inicio;
     current = { id, loaded, gain, sec, t0: now, off, src: makeSource(loaded, sec, gain, now, off) };
     lastPos = off - 0.001;
     startHits();
+}
+
+/** Próxima linha da grade (`step` s: compasso ou batida) do trecho tocando, em tempo do contexto. */
+function nextLine(p: Playing, step: number): number {
+    const x = position(p) - (p.sec.loop ? p.sec.inicio : 0);
+    return ctx().currentTime + (Math.ceil(x / step) * step - x);
+}
+
+function endSting(now: number) {
+    if (!sting || !duck) return;
+    try {
+        sting.stop(now + 0.05);
+    } catch {
+        // já parou
+    }
+    sting = null;
+    duck.gain.cancelScheduledValues(now);
+    duck.gain.setValueAtTime(duck.gain.value, now);
+    duck.gain.linearRampToValueAtTime(1, now + FADE_S);
+}
+
+/**
+ * Virada no placar: a música da partida abaixa ~10 dB em 150 ms, a vinheta entra na próxima batida (meio tom acima
+ * na Pressão final) e a música volta em 600 ms depois que ela acaba. Só o duck mexe no volume: a troca de trecho da
+ * partida (no ganho da faixa) segue normal por baixo.
+ */
+export async function playVirada() {
+    if (!zz || ctx().state !== 'running') return;
+    const loaded = await load(current?.sec.nome === 'pressao' ? 'virada-pressao' : 'virada');
+    if (!loaded) return;
+    const p = current;
+    const now = ctx().currentTime;
+    const at = p ? nextLine(p, 60 / p.sec.bpm) : now;
+    const g = bus().gain;
+    g.cancelScheduledValues(now);
+    g.setValueAtTime(g.value, now);
+    g.linearRampToValueAtTime(DUCK, now + DUCK_IN_S);
+    const end = at + loaded.buf.duration;
+    g.setValueAtTime(DUCK, end);
+    g.linearRampToValueAtTime(1, end + DUCK_OUT_S);
+    try {
+        sting?.stop();
+    } catch {
+        // já parou
+    }
+    const src = ctx().createBufferSource();
+    src.buffer = loaded.buf;
+    src.connect(output());
+    src.onended = () => {
+        if (sting === src) sting = null;
+    };
+    src.start(at);
+    sting = src;
+}
+
+/** Baixa antes da hora (as vinhetas da virada no 2º tempo), se a música já está ligada. */
+export function prefetchMusic(...ids: TrackId[]) {
+    if (zz) for (const id of ids) void load(id);
 }
 
 function fadeOut(p: Playing | null) {

@@ -1,0 +1,34 @@
+{
+ "faixa": "rota-1",
+ "titulo": "Rota 1 v3",
+ "tela": "Mapa: Rota 1",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 70,
+ "secoes": [
+  {
+   "nome": "intro",
+   "loop": false,
+   "inicio": 0,
+   "fim": 4,
+   "amostras": [
+    0,
+    176400
+   ],
+   "bpm": 120,
+   "compassos": 2
+  },
+  {
+   "nome": "loop",
+   "loop": true,
+   "inicio": 4,
+   "fim": 70,
+   "amostras": [
+    176400,
+    3087000
+   ],
+   "bpm": 120,
+   "compassos": 33
+  }
+ ]
+}
