@@ -1,13 +1,30 @@
 /** Notas da atualização mostradas na Home ("Novidades"). A mais nova primeiro. */
 export interface PatchNotes {
     version: string;
+    /** Dia do lançamento, AAAA-MM-DD (da tag). */
+    date: string;
     title: string;
     sections: { title: string; lines: string[] }[];
 }
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.13',
+        date: '2026-10-22',
+        title: 'Novidades mais fáceis de ler',
+        sections: [
+            {
+                title: 'Novidades',
+                lines: [
+                    'A versão mais nova fica no topo, em destaque, com a data',
+                    'As antigas ficam recolhidas: toque para abrir',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.12',
+        date: '2026-10-22',
         title: 'No ritmo da música',
         sections: [
             {
@@ -21,6 +38,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.11',
+        date: '2026-10-22',
         title: 'Viradas na música e temas dos líderes',
         sections: [
             {
@@ -40,6 +58,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.10',
+        date: '2026-10-22',
         title: 'Time no ranking e acabamento',
         sections: [
             {
@@ -70,6 +89,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.9',
+        date: '2026-10-22',
         title: 'Música no tempo e voltar do Android',
         sections: [
             {
@@ -96,6 +116,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.8',
+        date: '2026-10-22',
         title: 'Gritos mais baixos',
         sections: [
             {
@@ -109,6 +130,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.7',
+        date: '2026-10-22',
         title: 'Música no jogo e Rota com escolhas',
         sections: [
             {
@@ -149,6 +171,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.6',
+        date: '2026-10-22',
         title: 'Beira da quadra e MTs mais fortes',
         sections: [
             {
@@ -174,6 +197,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.5',
+        date: '2026-10-21',
         title: 'Cada formação joga de um jeito',
         sections: [
             {
@@ -198,6 +222,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.4',
+        date: '2026-10-21',
         title: 'Duelo melhor de 3 e Rota polida',
         sections: [
             {
@@ -220,6 +245,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.3.2',
+        date: '2026-10-21',
         title: 'Rota Índigo na frente',
         sections: [
             {
@@ -234,6 +260,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.3.1',
+        date: '2026-10-21',
         title: 'Pokédex com texto e Pokémon com mais caras',
         sections: [
             {
@@ -260,6 +287,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.3',
+        date: '2026-10-21',
         title: 'Golpes revisados',
         sections: [
             {
@@ -309,6 +337,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.2.2',
+        date: '2026-10-21',
         title: 'A Rota Índigo volta',
         sections: [
             {
@@ -326,6 +355,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.2.1',
+        date: '2026-10-21',
         title: 'Álbum leve e vitrine fácil',
         sections: [
             {
@@ -348,6 +378,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.2',
+        date: '2026-10-21',
         title: 'Casa arrumada',
         sections: [
             {
@@ -407,6 +438,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.1.1',
+        date: '2026-10-21',
         title: 'Cartas de volta',
         sections: [
             {
@@ -421,6 +453,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.1',
+        date: '2026-10-21',
         title: 'Rota Índigo',
         sections: [
             {
@@ -462,6 +495,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.0.5',
+        date: '2026-10-21',
         title: 'Tudo na prancheta',
         sections: [
             {
@@ -484,6 +518,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.0.4',
+        date: '2026-10-21',
         title: 'Golpes e Patrocínios explicados',
         sections: [
             {
@@ -504,6 +539,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.0.3',
+        date: '2026-10-21',
         title: 'Pacote e Patrocínios',
         sections: [
             {
@@ -518,6 +554,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.0.2',
+        date: '2026-10-21',
         title: 'Ajustes da semana',
         sections: [
             {
@@ -538,6 +575,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.0.1',
+        date: '2026-10-21',
         title: 'Mercado organizado',
         sections: [
             {
@@ -551,6 +589,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.0',
+        date: '2026-10-20',
         title: 'Mercado e Patrocínios',
         sections: [
             {
@@ -584,6 +623,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.9',
+        date: '2026-10-20',
         title: 'Sala de troféus e menus novos',
         sections: [
             {
@@ -625,6 +665,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.8.4',
+        date: '2026-10-20',
         title: 'Álbum em livro',
         sections: [
             {
@@ -646,6 +687,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.8.3',
+        date: '2026-10-19',
         title: 'Cartas em camadas e álbum de figurinhas',
         sections: [
             {
@@ -699,6 +741,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.8.2',
+        date: '2026-10-19',
         title: 'Logo novo e faixas da torcida',
         sections: [
             {
@@ -723,6 +766,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.8.1',
+        date: '2026-10-19',
         title: 'Melhores momentos, Copa do Dia e medalhas',
         sections: [
             {
@@ -839,6 +883,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.8',
+        date: '2026-10-19',
         title: 'Ícone MVP e conquistas retroativas',
         sections: [
             {
@@ -852,6 +897,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.7',
+        date: '2026-10-19',
         title: 'Emotes, selos e faixa da torcida',
         sections: [
             {
@@ -889,6 +935,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.6',
+        date: '2026-10-18',
         title: 'Lendas douradas e prancheta ao vivo',
         sections: [
             {
@@ -971,6 +1018,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.5',
+        date: '2026-10-18',
         title: 'Escanteio e duelo ao vivo',
         sections: [
             {
@@ -1010,6 +1058,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.4',
+        date: '2026-10-17',
         title: 'Balanceamento geral e o seu treinador',
         sections: [
             {
@@ -1084,6 +1133,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.3',
+        date: '2026-10-16',
         title: 'Partida com peso, pacote de cartas e torcida',
         sections: [
             {
@@ -1149,6 +1199,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.2',
+        date: '2026-10-16',
         title: 'Hall da Fama e o título do jeito que merece',
         sections: [
             {
@@ -1181,6 +1232,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.1',
+        date: '2026-10-15',
         title: 'Ajustes do lançamento',
         sections: [
             {
@@ -1191,6 +1243,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.0',
+        date: '2026-10-15',
         title: 'Perfil, Pokédex e golpes novos',
         sections: [
             {
@@ -1242,6 +1295,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.7.3',
+        date: '2026-10-14',
         title: 'Beta aberta',
         sections: [
             {
@@ -1276,6 +1330,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.7.2',
+        date: '2026-10-14',
         title: 'Trocas que contam e privacidade',
         sections: [
             {
@@ -1297,6 +1352,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.7.1',
+        date: '2026-10-14',
         title: 'Revisão completa',
         sections: [
             {
@@ -1326,6 +1382,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.7',
+        date: '2026-10-14',
         title: 'Contas, evolução e golpes de verdade',
         sections: [
             {
@@ -1379,7 +1436,22 @@ export const PATCH_NOTES: PatchNotes[] = [
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
     {
+        version: '0.9.13',
+        date: '2026-10-22',
+        title: 'Patch notes that are easier to read',
+        sections: [
+            {
+                title: 'Patch notes',
+                lines: [
+                    'The newest version sits on top, highlighted, with its date',
+                    'Older ones are collapsed: tap to open',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.6',
+        date: '2026-10-22',
         title: 'Touchline and stronger TMs',
         sections: [
             {
@@ -1405,6 +1477,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.5',
+        date: '2026-10-21',
         title: 'Every formation plays its own way',
         sections: [
             {
@@ -1429,6 +1502,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.4',
+        date: '2026-10-21',
         title: 'Best-of-3 Duel and a polished Road',
         sections: [
             {
@@ -1451,6 +1525,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.3.2',
+        date: '2026-10-21',
         title: 'Indigo Road up front',
         sections: [
             {
@@ -1465,6 +1540,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.3.1',
+        date: '2026-10-21',
         title: 'Pokédex entries and more faces',
         sections: [
             {
@@ -1491,6 +1567,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.3',
+        date: '2026-10-21',
         title: 'Moves reviewed',
         sections: [
             {
@@ -1540,6 +1617,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.2.2',
+        date: '2026-10-21',
         title: 'Indigo Road is back',
         sections: [
             {
@@ -1557,6 +1635,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.2.1',
+        date: '2026-10-21',
         title: 'Light album, easy showcase',
         sections: [
             {
@@ -1579,6 +1658,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.2',
+        date: '2026-10-21',
         title: 'House in order',
         sections: [
             {
@@ -1638,6 +1718,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.1.1',
+        date: '2026-10-21',
         title: 'Cards back',
         sections: [
             {
@@ -1652,6 +1733,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.1',
+        date: '2026-10-21',
         title: 'Indigo Road',
         sections: [
             {
@@ -1693,6 +1775,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.0.5',
+        date: '2026-10-21',
         title: 'Everything on the board',
         sections: [
             {
@@ -1715,6 +1798,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.0.4',
+        date: '2026-10-21',
         title: 'Moves and Sponsors explained',
         sections: [
             {
@@ -1735,6 +1819,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.0.3',
+        date: '2026-10-21',
         title: 'Packs and Sponsors',
         sections: [
             {
@@ -1749,6 +1834,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.0.2',
+        date: '2026-10-21',
         title: 'Weekly fixes',
         sections: [
             {
@@ -1769,6 +1855,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.0.1',
+        date: '2026-10-21',
         title: 'Tidier Market',
         sections: [
             {
@@ -1782,6 +1869,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.0',
+        date: '2026-10-20',
         title: 'Market and Sponsors',
         sections: [
             {
@@ -1815,6 +1903,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.9',
+        date: '2026-10-20',
         title: 'Trophy room and new menus',
         sections: [
             {
@@ -1856,6 +1945,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.8.4',
+        date: '2026-10-20',
         title: 'The album is a book',
         sections: [
             {
@@ -1877,6 +1967,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.8.3',
+        date: '2026-10-19',
         title: 'Layered cards and sticker album',
         sections: [
             {
@@ -1930,6 +2021,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.8.2',
+        date: '2026-10-19',
         title: 'New logo and fan banners',
         sections: [
             {
@@ -1954,6 +2046,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.8.1',
+        date: '2026-10-19',
         title: 'Highlights, Daily Cup and medals',
         sections: [
             {
@@ -2070,6 +2163,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.8',
+        date: '2026-10-19',
         title: 'Icon MVP and retroactive achievements',
         sections: [
             {
@@ -2083,6 +2177,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.7',
+        date: '2026-10-19',
         title: 'Emotes, seals and supporter banners',
         sections: [
             {
@@ -2120,6 +2215,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.6',
+        date: '2026-10-18',
         title: 'Golden legends and live tactics board',
         sections: [
             {
@@ -2202,6 +2298,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.5',
+        date: '2026-10-18',
         title: 'Corners and live duels',
         sections: [
             {
@@ -2241,6 +2338,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.4',
+        date: '2026-10-17',
         title: 'Full rebalance and your trainer',
         sections: [
             {
@@ -2315,6 +2413,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.3',
+        date: '2026-10-16',
         title: 'Weighty matches, card packs and a crowd',
         sections: [
             {
@@ -2380,6 +2479,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.2',
+        date: '2026-10-16',
         title: 'Hall of Fame and a title screen worth the trophy',
         sections: [
             {
@@ -2412,6 +2512,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.1',
+        date: '2026-10-15',
         title: 'Launch fixes',
         sections: [
             {
@@ -2422,6 +2523,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.0',
+        date: '2026-10-15',
         title: 'Profile, Pokédex and new moves',
         sections: [
             {
@@ -2473,6 +2575,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.7.3',
+        date: '2026-10-14',
         title: 'Open beta',
         sections: [
             {
@@ -2507,6 +2610,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.7.2',
+        date: '2026-10-14',
         title: 'Substitutions that count and privacy',
         sections: [
             {
@@ -2528,6 +2632,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.7.1',
+        date: '2026-10-14',
         title: 'Full review',
         sections: [
             {
@@ -2557,6 +2662,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.7',
+        date: '2026-10-14',
         title: 'Accounts, evolution and real moves',
         sections: [
             {

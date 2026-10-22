@@ -13,7 +13,7 @@ import { cardSprite } from '../components/PokeCard';
 import { TypeIcon } from '../components/TypeIcon';
 import { FEEDBACK_URL, privacyUrl } from '../links';
 import { readCount, writeCount } from '../local-count';
-import { patchNotes } from '../patch-notes';
+import { type PatchNotes, patchNotes } from '../patch-notes';
 import { FriendChallenge } from '../profile/FriendsTab';
 import { TYPE_COLOR } from '../type-colors';
 import { HomeDailyCard } from './Daily';
@@ -90,6 +90,56 @@ const HOME_FORTE = new URLSearchParams(window.location.search).get('home') === '
 
 /** A entrada da Home (título sobe, botões em cascata) só na 1ª vez que o jogo abre; voltar pra Home é na hora. */
 let homeEntered = false;
+
+function PatchBody({ n }: { n: PatchNotes }) {
+    return n.sections.map((sec) => (
+        <div key={sec.title}>
+            <h3>{sec.title}</h3>
+            <ul>
+                {sec.lines.map((l) => (
+                    <li key={l}>{l}</li>
+                ))}
+            </ul>
+        </div>
+    ));
+}
+
+/** A mais nova vem aberta e em destaque; as antigas ficam recolhidas (versão, título, data). */
+function PatchVersion({ n, latest, lang }: { n: PatchNotes; latest: boolean; lang: 'pt' | 'en' }) {
+    const { t } = useT();
+    const [open, setOpen] = useState(false);
+    const date = new Date(`${n.date}T12:00:00Z`).toLocaleDateString(lang === 'pt' ? 'pt-BR' : 'en-US', {
+        day: 'numeric',
+        month: 'short',
+        timeZone: 'UTC',
+    });
+    if (latest) {
+        return (
+            <section className="patch-version patch-latest">
+                <p className="patch-meta">
+                    <span className="bc-tag">{t('home.latest')}</span>
+                    <time dateTime={n.date}>{date}</time>
+                </p>
+                <h2 className="bc-caption">{t('home.version', { v: n.version, title: n.title })}</h2>
+                <PatchBody n={n} />
+            </section>
+        );
+    }
+    return (
+        <section className={`patch-version patch-old${open ? ' open' : ''}`}>
+            <button type="button" className="patch-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
+                <span className="patch-old-title">{t('home.version', { v: n.version, title: n.title })}</span>
+                <time dateTime={n.date}>{date}</time>
+                <HudIcon kind="down" />
+            </button>
+            <div className="patch-fold" inert={!open}>
+                <div>
+                    <PatchBody n={n} />
+                </div>
+            </div>
+        </section>
+    );
+}
 
 export function Home() {
     const [entering] = useState(() => !homeEntered);
@@ -402,20 +452,8 @@ export function Home() {
                         >
                             <HudIcon kind="close" />
                         </button>
-                        {notes.map((n) => (
-                            <div key={n.version} className="patch-version">
-                                <h2 className="bc-caption">{t('home.version', { v: n.version, title: n.title })}</h2>
-                                {n.sections.map((sec) => (
-                                    <div key={sec.title}>
-                                        <h3>{sec.title}</h3>
-                                        <ul>
-                                            {sec.lines.map((l) => (
-                                                <li key={l}>{l}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                ))}
-                            </div>
+                        {notes.map((n, i) => (
+                            <PatchVersion key={n.version} n={n} latest={i === 0} lang={lang} />
                         ))}
                     </div>
                 </div>

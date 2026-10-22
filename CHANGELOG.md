@@ -1,12 +1,18 @@
 # Novidades
 
-## 0.9.12 · No ritmo da música
+## 0.9.13 · Novidades mais fáceis de ler (2026-10-22)
+
+### Novidades
+- A versão mais nova fica no topo, em destaque, com a data
+- As antigas ficam recolhidas: toque para abrir
+
+## 0.9.12 · No ritmo da música (2026-10-22)
 
 ### Música
 - A logo pisca no SOC-CER-MON de qualquer música, não só na Abertura
 - As cartas do draft viram na batida da música
 
-## 0.9.11 · Viradas na música e temas dos líderes
+## 0.9.11 · Viradas na música e temas dos líderes (2026-10-22)
 
 ### Música
 - Avançar na copa troca a música com virada de bateria e uma ponte
@@ -17,7 +23,7 @@
 ### Líderes
 - Erika, Koga, Sabrina, Blaine e Giovanni ganharam tema próprio antes da partida
 
-## 0.9.10 · Time no ranking e acabamento
+## 0.9.10 · Time no ranking e acabamento (2026-10-22)
 
 ### Copa do Dia
 - O ranking mostra o time de cada treinador, com o capitão marcado
@@ -34,7 +40,7 @@
 - Na Sala de troféus a fala não tampa as taças no celular
 - Derrota perdoada fica amarela na barra da Home
 
-## 0.9.9 · Música no tempo e voltar do Android
+## 0.9.9 · Música no tempo e voltar do Android (2026-10-22)
 
 ### Música
 - A logo da Abertura pisca a cada SOC-CER-MON da música
@@ -50,13 +56,13 @@
 - Resultado e escalação mais curtos, com partes que abrem e fecham
 - No draft em pé, as vagas do time ficam fixas no topo
 
-## 0.9.8 · Gritos mais baixos
+## 0.9.8 · Gritos mais baixos (2026-10-22)
 
 ### Som
 - Escolher no draft agora é silencioso: só a música toca
 - Os gritos dos Pokémon ficaram bem mais baixos, atrás da música
 
-## 0.9.7 · Música no jogo e Rota com escolhas
+## 0.9.7 · Música no jogo e Rota com escolhas (2026-10-22)
 
 ### Música
 - Trilha própria em todas as telas: Abertura, draft, escalação, Mercado, partidas, Planalto e Sala de troféus
@@ -82,7 +88,7 @@
 - "Sorteio" é o nome único pra sortear de novo
 - O Duelo ganhou cabeçalho e botão de voltar
 
-## 0.9.6 · Beira da quadra e MTs mais fortes
+## 0.9.6 · Beira da quadra e MTs mais fortes (2026-10-22)
 
 ### Beira da quadra
 - Golpe máximo: a barra enche com os lances do time e o botão acende na hora do chute do capitão
@@ -97,7 +103,7 @@
 - O golpe ensinado por MT sai mais vezes, bate mais forte e ganha o selo MT
 - Mega Drain 40 ⇒ 100 de poder, BubbleBeam 65 ⇒ 100, Fissure acerta 30% ⇒ 50%
 
-## 0.9.5 · Cada formação joga de um jeito
+## 0.9.5 · Cada formação joga de um jeito (2026-10-21)
 
 ### Formações
 - Losango: triângulos e passe curto por dentro
@@ -111,7 +117,7 @@
 ### Golpes
 - Nidorino, Venonat, Bellsprout, Weepinbell, Victreebel, Slowbro, Chansey e Jolteon têm golpes próprios
 
-## 0.9.4 · Duelo melhor de 3 e Rota polida
+## 0.9.4 · Duelo melhor de 3 e Rota polida (2026-10-21)
 
 ### Duelo
 - Melhor de 3 com o mesmo time: a série tem placar de jogos no quadro
@@ -123,14 +129,14 @@
 - Quem está fora aparece com o motivo (lesão, creche ou cansaço) e não entra em quadra
 - Hall da Fama separado em Copa Relâmpago e Rota Índigo, com taça índigo própria
 
-## 0.9.3.2 · Rota Índigo na frente
+## 0.9.3.2 · Rota Índigo na frente (2026-10-21)
 
 ### Tela inicial
 - Rota Índigo e Copa Relâmpago lado a lado no PC, com a Rota maior e o selo NOVO
 - Duelo e Copa do Dia embaixo, um do lado do outro
 - No celular, o botão da Rota ocupa a largura toda
 
-## 0.9.3.1 · Pokédex com texto e Pokémon com mais caras
+## 0.9.3.1 · Pokédex com texto e Pokémon com mais caras (2026-10-21)
 
 ### Coleção
 - A ficha do Pokémon e a carta aberta do Álbum trazem o texto da Pokédex
@@ -145,7 +151,7 @@
 - O mapa mostra o capitão rival em cada casa de partida e o time dele em ícones
 - A chave da copa mostra o capitão de cada clube
 
-## 0.9.3 · Golpes revisados
+## 0.9.3 · Golpes revisados (2026-10-21)
 
 ### Cada um com o seu tipo
 - Todo Pokémon leva pelo menos 1 golpe de cada tipo dele (quando a Gen 1 deixa)
@@ -178,7 +184,7 @@
 ### Textos
 - Todo golpe explica o que faz em quadra com os números (quanto tempo, quem é imune, quanto acerta, o preço pra quem usa)
 
-## 0.9.2.2 · A Rota Índigo volta
+## 0.9.2.2 · A Rota Índigo volta (2026-10-21)
 
 ### Rota Índigo
 - A Rota está de volta: a 1ª partida quebrava a escalação (consertado) e ela foi jogada inteira antes de voltar
@@ -188,7 +194,7 @@
 - Nova copa no fim de uma Rota começa outra Rota
 - Titular machucado: o aviso aparece do lado do Jogar
 
-## 0.9.2.1 · Álbum leve e vitrine fácil
+## 0.9.2.1 · Álbum leve e vitrine fácil (2026-10-21)
 
 ### Álbum
 - O Álbum não trava mais ao abrir e virar a página (só a página à vista é montada e o brilho holo anima só na carta em foco)
@@ -200,7 +206,7 @@
 - Arraste uma carta sobre a outra (ou toque numa e depois na outra) pra mudar a ordem; vale no Perfil, no perfil do amigo e no Duelo
 - No PC, a vitrine do cartão do Perfil ficou maior e centralizada
 
-## 0.9.2 · Casa arrumada
+## 0.9.2 · Casa arrumada (2026-10-21)
 
 ### Tela inicial
 - Nova copa grande e no topo; Duelo e Copa do Dia lado a lado, do tamanho do conteúdo
@@ -237,14 +243,14 @@
 - O PC aparece inteiro, a TV na frente do móvel e as fotos das cartas sem esticar
 - A câmera não fica mais presa aproximada depois de um toque rápido
 
-## 0.9.1.1 · Cartas de volta
+## 0.9.1.1 · Cartas de volta (2026-10-21)
 
 ### Consertos
 - A vitrine mostra a sua melhor carta de verdade daquele Pokémon (antes podia ficar presa na versão padrão, Destaque I ou Ícone sem MVP)
 - Mudança só no Álbum agora sobe pra nuvem
 - Carta perdida de antes do Álbum (19/10) volta por código: Perfil → Treinador → Resgatar código
 
-## 0.9.1 · Rota Índigo
+## 0.9.1 · Rota Índigo (2026-10-21)
 
 ### Rota Índigo (modo novo)
 - A copa longa: um mapa de Kanto de baixo pra cima (Rota 1, Floresta de Viridian, Mt. Moon, Cerulean, Estrada da Vitória, Planalto Índigo), com partidas, Ginásios, Mercado, Baú, Treino e eventos "?"
@@ -268,7 +274,7 @@
 ### Contas
 - Nome de treinador e de clube são únicos (quem já tinha fica com o nome)
 
-## 0.9.0.5 · Tudo na prancheta
+## 0.9.0.5 · Tudo na prancheta (2026-10-21)
 
 ### Toque direto
 - Substituição: toque em quem sai e em quem entra na prancheta e a troca já vale, com as cartas deslizando (sai o painel de lista)
@@ -280,7 +286,7 @@
 - Pacote aberto pode ser fechado sem pegar nenhuma carta (Não quero nenhuma, seguir)
 - A vitrine de cartas aparece no cartão do Perfil
 
-## 0.9.0.4 · Golpes e Patrocínios explicados
+## 0.9.0.4 · Golpes e Patrocínios explicados (2026-10-21)
 
 ### Mais claro
 - MT: ao escolher qual golpe esquecer, cada golpe mostra o que faz em quadra
@@ -290,14 +296,14 @@
 ### Mercado
 - No Mercado antes da Final só aparecem Patrocínios de campo (os de ₽ não teriam mais onde valer)
 
-## 0.9.0.3 · Pacote e Patrocínios
+## 0.9.0.3 · Pacote e Patrocínios (2026-10-21)
 
 ### Mercado
 - O pacote comprado abre de verdade: rasga e as cartas saem uma a uma, e o desenho do tipo ficou nítido
 - Dois Patrocínios pra escolher em cada Mercado
 - O preço mostra quanto falta (₽10 · falta ₽1)
 
-## 0.9.0.2 · Ajustes da semana
+## 0.9.0.2 · Ajustes da semana (2026-10-21)
 
 ### Consertos
 - Sala de troféus: se o seu avatar é shiny, o Pokémon que passeia na sala também é
@@ -307,13 +313,13 @@
 ### Mercado
 - A carta do Patrocínio diz que é Patrocínio, e a prateleira explica as 3 vagas (Pokémon, pacote e item não ocupam vaga)
 
-## 0.9.0.1 · Mercado organizado
+## 0.9.0.1 · Mercado organizado (2026-10-21)
 
 ### Mercado
 - O Mercado ficou em prateleiras: Contratações, Pacote e item, e Patrocínios (com as suas 3 vagas logo embaixo)
 - A carta do Patrocínio fica na horizontal, pra não se confundir com as cartas de Pokémon
 
-## 0.9.0 · Mercado e Patrocínios
+## 0.9.0 · Mercado e Patrocínios (2026-10-20)
 
 ### Mercado
 - Depois da recompensa de cada vitória, a Copa ganha um Mercado: gaste ₽ (Pokédólar) em Pokémon, pacote de tipo, item, MT ou Patrocínio
@@ -333,7 +339,7 @@
 - A tela inicial separa os dois modos da Copa: a Copa rápida (a de sempre, 4 partidas) e a Copa longa, com mapa, eventos e tesouros (em breve)
 - Tudo mora no Perfil: a Sala de troféus e a Coleção abrem logo abaixo do seu cartão
 
-## 0.8.9 · Sala de troféus e menus novos
+## 0.8.9 · Sala de troféus e menus novos (2026-10-20)
 
 ### Sala de troféus
 - Uma sala de verdade, em pixel art, pra tudo que você ganhou: taças da Copa (bronze, prata e ouro pela campanha), a Liga, medalhões da Copa do Dia, cinturões do Duelo, broches das medalhas, o diploma da Platina e o Hall da Fama em polaroids
@@ -358,7 +364,7 @@
 - Toda troca de tela tem transição; as abas deslizam; janelas saem com fade; no draft, a carta contratada voa até a vaga
 - Celular em pé: nomes de Pokémon colados na quadra somem com fade em vez de se embolar
 
-## 0.8.8.4 · Álbum em livro
+## 0.8.8.4 · Álbum em livro (2026-10-20)
 
 ### Álbum de figurinhas
 - O álbum virou livro: uma estante com o Álbum da Geração 1 (Kanto). Toque na capa e ele abre
@@ -371,7 +377,7 @@
 ### Correções
 - "Ver todos na Pokédex" (Números) agora sobe até a Pokédex em vez de abrir no meio da lista
 
-## 0.8.8.3 · Cartas em camadas e álbum de figurinhas
+## 0.8.8.3 · Cartas em camadas e álbum de figurinhas (2026-10-19)
 
 ### Cartas em camadas
 - O shiny vai por cima de qualquer edição e soma +1: Shiny Ícone, Shiny Evento, Shiny Destaque
@@ -405,7 +411,7 @@
 ### Correções
 - VERSUS: o botão só deixa começar com a quadra carregada (antes levava a uma partida vazia). Se demorar, aparece "Tentar de novo"
 
-## 0.8.8.2 · Logo novo e faixas da torcida
+## 0.8.8.2 · Logo novo e faixas da torcida (2026-10-19)
 
 ### Logo novo
 - Logo novo: a carta holo com a bola (também na aba do navegador, no ícone do celular e na prévia do link)
@@ -418,7 +424,7 @@
 ### Liga
 - Liga ranqueada fechada por enquanto: o timer na Home mostra quando ela abre
 
-## 0.8.8.1 · Melhores momentos, Copa do Dia e medalhas
+## 0.8.8.1 · Melhores momentos, Copa do Dia e medalhas (2026-10-19)
 
 ### Copa do Dia
 - Copa do Dia: a mesma copa pra todo mundo (mesmo draft, mesmos rivais), uma tentativa por dia e ranking do dia. Sem conta, você joga fora do ranking
@@ -497,13 +503,13 @@
 - Avatar shiny: toque no Pokémon com o brilho no canto e escolha a versão normal ou a shiny
 - Avatares centralizados e o shiny não passa mais da borda
 
-## 0.8.8 · Ícone MVP e conquistas retroativas
+## 0.8.8 · Ícone MVP e conquistas retroativas (2026-10-19)
 
 ### Consertos
 - Carta Ícone agora pode ser o craque da partida: continua Ícone (com o fundo de galáxia), ganha o selo "MVP", "MVP 2" e "MVP 3" e +1 em todos os atributos por selo (até +5). Antes o prêmio pulava pro próximo jogador
 - Quem foi campeão com Mew e Mewtwo, com os 3 pássaros lendários ou com um Rattata antes dessas missões existirem agora ganha a conquista ao abrir o jogo (sai do Hall da Fama)
 
-## 0.8.7 · Emotes, selos e faixa da torcida
+## 0.8.7 · Emotes, selos e faixa da torcida (2026-10-19)
 
 ### Duelo
 - Emotes novos: o seu capitão aparece grandão com cara de alegria, choro ou bronca, e grita junto. 8 emotes, com "Nãão!" e "Grrr!" novos
@@ -524,7 +530,7 @@
 - Pedido de tempo (1 por tempo): +5% de fôlego pro seu time e +3% pro rival, e uma pausa pra trocar e mexer na prancheta
 - Goleiro-linha, golpe máximo do capitão (a barra enche mais rápido quando você está perdendo) e a ordem dos pênaltis
 
-## 0.8.6 · Lendas douradas e prancheta ao vivo
+## 0.8.6 · Lendas douradas e prancheta ao vivo (2026-10-18)
 
 ### Missões lendárias
 - 6 treinadores dourados por feitos absurdos: Ash (copa perfeita, sem sofrer gol), Lance (campeão com os 3 pássaros na final), Joey (campeão com um Rattata), Red (5 copas seguidas), Blue (virar a final depois de perder por 3) e Prof. Carvalho (jogar com os 151)
@@ -578,7 +584,7 @@
 - Ajuda sem cortar no celular, aviso de desbloqueio sem cobrir o topo e botões maiores pra tocar
 - Treinadores lendários bloqueados com brilho dourado, pra dar vontade de caçar
 
-## 0.8.5 · Escanteio e duelo ao vivo
+## 0.8.5 · Escanteio e duelo ao vivo (2026-10-18)
 
 ### Duelo ao vivo (BETA)
 - Desafie um amigo por link: os dois veem a mesma partida ao mesmo tempo
@@ -604,7 +610,7 @@
 - A mesma partida em todo navegador (contas próprias no motor)
 - Partida que estava no meio na hora da atualização recomeça do 0 a 0 (a copa e o time ficam)
 
-## 0.8.4 · Balanceamento geral e o seu treinador
+## 0.8.4 · Balanceamento geral e o seu treinador (2026-10-17)
 
 ### Seu treinador
 - 38 treinadores de Kanto (Red, Leaf, líderes de ginásio, Elite 4, Prof. Carvalho, Equipe Rocket...) destravados por 42 missões
@@ -653,7 +659,7 @@
 - Draft no celular deitado: faixa numa linha só e cartas alinhadas
 - Partida que estava no meio na hora da atualização recomeça do 0 a 0 (a copa e o time ficam)
 
-## 0.8.3 · Partida com peso, pacote de cartas e torcida
+## 0.8.3 · Partida com peso, pacote de cartas e torcida (2026-10-16)
 
 ### Partida
 - Torcida de verdade: murmúrio que cresce quando a bola chega perto do gol, grito no gol, "uuuh" na trave e na defesa e palmas no fim; o apito é de juiz de verdade
@@ -699,7 +705,7 @@
 - Marcador não gasta mais golpe dando bote de longe
 - Som das cartas saindo do pacote corrigido
 
-## 0.8.2 · Hall da Fama e o título do jeito que merece
+## 0.8.2 · Hall da Fama e o título do jeito que merece (2026-10-16)
 
 ### Tela de campeão
 - Hall da Fama: no título, o elenco desfila um por um com o grito, como no Red/Blue, e a copa fica guardada para sempre na aba Hall da Fama do Perfil
@@ -718,12 +724,12 @@
 - Mimic como na Gen 1: o golpe copiado fica no lugar dele até o fim da partida
 - Movedex não passa mais da largura da tela no celular
 
-## 0.8.1 · Ajustes do lançamento
+## 0.8.1 · Ajustes do lançamento (2026-10-15)
 
 ### Corrigido
 - As marcas de tipo no fundo das cartas voltaram a aparecer (a imagem não carregava no site)
 
-## 0.8.0 · Perfil, Pokédex e golpes novos
+## 0.8.0 · Perfil, Pokédex e golpes novos (2026-10-15)
 
 ### Golpes novos
 - Os golpes agora fazem o que faziam nos jogos: Earthquake e Surf pegam todo mundo em volta (até companheiro), Slash e Karate Chop dão crítico, Solar Beam e Sky Attack carregam, Fly e Dig somem do mapa, Swift nunca erra, Night Shade e Dragon Rage dão dano fixo, Toxic piora com o tempo, Double Team cria clones e muito mais
@@ -755,7 +761,7 @@
 - Entrar na conta depois de jogar como visitante não perde mais os recordes da nuvem
 - Descrição da tática Equilibrado: ela dá +3% de passe e posicionamento
 
-## 0.7.3 · Beta aberta
+## 0.7.3 · Beta aberta (2026-10-14)
 
 ### Lançamento
 - O Soccermon agora é beta aberta: o jogo está completo e segue recebendo ajustes
@@ -776,7 +782,7 @@
 - Ícone próprio ao adicionar o jogo à tela inicial
 - Novidades com as versões separadas
 
-## 0.7.2 · Trocas que contam e privacidade
+## 0.7.2 · Trocas que contam e privacidade (2026-10-14)
 
 ### Alterado
 - Quem entra na troca passa a contar para sinergia de tipo, duplas de história e capitão
@@ -787,7 +793,7 @@
 - Apagar minha conta, em Configurações: remove login, perfil e save da nuvem
 - Página de privacidade e termos
 
-## 0.7.1 · Revisão completa
+## 0.7.1 · Revisão completa (2026-10-14)
 
 ### Corrigido
 - Save na nuvem: abrir o jogo em outro aparelho não apaga mais a copa salva
@@ -806,7 +812,7 @@
 - Gráficos sem emoji: bolinhas desenhadas marcam os gols
 - Esc e teclado funcionam na evolução e nas Novidades
 
-## 0.7 · Contas, evolução e golpes de verdade
+## 0.7 · Contas, evolução e golpes de verdade (2026-10-14)
 
 ### Adicionado
 - Entrar com Google: copa e recordes salvos na nuvem

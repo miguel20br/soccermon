@@ -66,6 +66,7 @@ export const home: typeof pt = {
     doorsAria: 'Your game',
     footerAria: 'More',
     version: 'Version {v} · {title}',
+    latest: 'Latest',
     soonTitle: 'Coming soon',
     soonRibbon: 'Coming soon',
     /** Contagem da Liga no cartãozinho do Vem aí. */

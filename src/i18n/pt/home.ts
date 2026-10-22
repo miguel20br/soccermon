@@ -67,6 +67,7 @@ export const home = {
     doorsAria: 'Seu jogo',
     footerAria: 'Mais',
     version: 'Versão {v} · {title}',
+    latest: 'Mais recente',
     soonTitle: 'Vem aí',
     soonRibbon: 'Em breve',
     /** Contagem da Liga no cartãozinho do Vem aí. */
