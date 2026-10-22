@@ -67,6 +67,7 @@ import {
     type LongRunFields,
     longRound,
     newLongFields,
+    putsOutOnCourt,
     tickOut,
     YELLOW_CARDS,
 } from './long-cup';
@@ -495,6 +496,21 @@ export interface GameStore {
 
 /** Quantas copas guardadas cabem no save (passou disso, sai a mais antiga). */
 export const MAX_PARKED = 3;
+
+/** Tela em que a copa continua (Continuar na Home): a do status; partida e fim de partida voltam pra escalação. */
+export function resumeScreenOf(status: RunStatus): Screen {
+    if (status === 'formation' || status === 'captain' || status === 'drafting') return 'draft';
+    if (
+        status === 'reward' ||
+        status === 'shop' ||
+        status === 'map' ||
+        status === 'treino' ||
+        status === 'event' ||
+        status === 'group'
+    )
+        return status;
+    return 'lineup';
+}
 
 /** Copa ainda em jogo (não terminou em título nem em eliminação). */
 export const isCupInProgress = (run: RunState | null | undefined): run is RunState =>
@@ -1273,7 +1289,8 @@ export const useGame = create<GameStore>()(
 
                 swapSlots: (a, b) => {
                     const run = getState().run;
-                    if (!run) return;
+                    // Rota Índigo: quem está fora (lesão, Creche) não entra em quadra
+                    if (!run || putsOutOnCourt(run, a, b)) return;
                     const lineup = [...run.lineup];
                     const bench = [...run.bench];
                     const zone = (r: SlotRef) => (r.zone === 'lineup' ? lineup : bench);

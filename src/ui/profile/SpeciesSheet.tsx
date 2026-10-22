@@ -28,6 +28,7 @@ import { TypeIcon } from '../components/TypeIcon';
 import { METAL, metalOf } from '../rarity';
 import { TYPE_COLOR } from '../type-colors';
 import { speciesGif } from './club';
+import { DexText } from './DexText';
 import { BallMark, CareerSealIcon, ChampionRibbon, Chevron, EvoArrow, LockIcon, SpeakerIcon } from './icons';
 import { useMedalView } from './Medals';
 import { sealTip } from './seal-tip';
@@ -251,6 +252,7 @@ function SeenBody({ sp, dex, moves, onNav }: { sp: Species; dex: Dex; moves: Mov
 
     return (
         <div className="pf-sheet-body">
+            <DexText id={sp.id} />
             <section className="pf-block">
                 <h3>{t('profile.sheet.positions')}</h3>
                 <div className="pf-chips">

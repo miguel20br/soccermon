@@ -1,10 +1,12 @@
 /**
- * Mede o volume (RMS) e a duração dos 151 gritos nos dois estilos e grava o ganho de cada um em
- * src/data/cry-levels.json: todo grito toca no volume da mediana do estilo (os arquivos ficam como estão).
- * Precisa do ffmpeg/ffprobe. Uso: npx tsx scripts/cry-levels.ts (rodar de novo se os gritos mudarem).
+ * Mede o volume (RMS) e a duração dos gritos de cada geração nos dois estilos e grava o ganho de cada um em
+ * src/data/cry-levels.json (Gen 1) e src/data/gen<N>/cry-levels.json: todo grito toca no volume da mediana do estilo
+ * (os arquivos ficam como estão; a mediana é a da geração).
+ * Precisa do ffmpeg/ffprobe. Uso: npx tsx scripts/cry-levels.ts [--gen 1|2] (rodar de novo se os gritos mudarem).
  */
 import { execFileSync, spawnSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
+import { dataDir, gensFromArgs, idsOf } from './lib/download';
 
 const STYLES = ['legacy', 'latest'] as const;
 /** Ganho máximo pra cima ou pra baixo (dB): ninguém some nem estoura por causa da conta. */
@@ -34,16 +36,18 @@ const median = (xs: number[]) => {
     return s[Math.floor(s.length / 2)];
 };
 
-const out: Record<string, [number, number][]> = {};
-for (const style of STYLES) {
-    const m = Array.from({ length: 151 }, (_, i) => measure(`public/assets/cries/${style}/${i + 1}.ogg`));
-    const target = median(m.map((x) => x.rms));
-    // [ganho em dB, duração em ms]
-    out[style] = m.map((x) => [
-        Math.round(Math.max(-MAX_DB, Math.min(MAX_DB, target - x.rms)) * 10) / 10,
-        Math.round(x.dur * 1000),
-    ]);
-    const gains = out[style].map(([g]) => g);
-    console.log(`${style}: mediana ${target} dB, ganho de ${Math.min(...gains)} a ${Math.max(...gains)} dB`);
+for (const gen of gensFromArgs()) {
+    const out: Record<string, [number, number][]> = {};
+    for (const style of STYLES) {
+        const m = idsOf(gen).map((id) => measure(`public/assets/cries/${style}/${id}.ogg`));
+        const target = median(m.map((x) => x.rms));
+        // [ganho em dB, duração em ms]
+        out[style] = m.map((x) => [
+            Math.round(Math.max(-MAX_DB, Math.min(MAX_DB, target - x.rms)) * 10) / 10,
+            Math.round(x.dur * 1000),
+        ]);
+        const gains = out[style].map(([g]) => g);
+        console.log(`${style}: mediana ${target} dB, ganho de ${Math.min(...gains)} a ${Math.max(...gains)} dB`);
+    }
+    writeFileSync(`${dataDir(gen)}/cry-levels.json`, `${JSON.stringify(out)}\n`);
 }
-writeFileSync('src/data/cry-levels.json', `${JSON.stringify(out)}\n`);

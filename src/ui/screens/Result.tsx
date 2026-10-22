@@ -16,9 +16,9 @@ import { specialBonus } from '../../engine/specials';
 import { clubName, cupStageName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { lineupPosition, useGame } from '../../store/game-store';
-import { cupLength, isFinalStage, isLong } from '../../store/long-cup';
+import { cupLength, foulOf, isLong, nextCupMode } from '../../store/long-cup';
 import { rivalColor } from '../../store/profile';
-import { BracketPeek } from '../components/Bracket';
+import { BracketPeek, bracketRivals, bracketYou } from '../components/Bracket';
 import { ChampionView } from '../components/ChampionView';
 import { CupGains } from '../components/CupGains';
 import { FoulCard } from '../components/FoulCard';
@@ -121,16 +121,7 @@ export function Result() {
         track('share', { kind: `download-${format}`, result: 'shared', champion });
     };
 
-    // Copa longa: cartão amarelo (1ª derrota fora da Final) ou vermelho (a 2ª), com o resto do caminho bloqueado
-    const lost = run.results.at(-1)?.won === false;
-    const foul =
-        isLong(run) && lost
-            ? run.status === 'map'
-                ? 'yellow'
-                : run.status === 'eliminated' && !isFinalStage(run)
-                  ? 'red'
-                  : null
-            : null;
+    const foul = foulOf(run);
 
     const actions = (
         <>
@@ -159,14 +150,22 @@ export function Result() {
                         <button type="button" className="btn ghost" onClick={advance}>
                             {t('result.menu')}
                         </button>
-                        <button type="button" className="btn primary big" onClick={() => newRun(run.teamName)}>
+                        <button
+                            type="button"
+                            className="btn primary big"
+                            onClick={() => newRun(run.teamName, undefined, undefined, nextCupMode(run))}
+                        >
                             {t('result.newCup')}
                             <HudIcon kind="next" />
                         </button>
                     </>
                 ) : (
                     <button type="button" className="btn primary big" onClick={advance}>
-                        {run.status === 'map' ? t('longCup.backToMap') : t('result.chooseReward')}
+                        {run.status === 'map'
+                            ? t('longCup.backToMap')
+                            : run.status === 'group'
+                              ? t('longCup.backToGroup')
+                              : t('result.chooseReward')}
                         <HudIcon kind="next" />
                     </button>
                 )}
@@ -223,8 +222,8 @@ export function Result() {
                 <BracketPeek
                     rounds={relampagoBracket(
                         run.seed,
-                        { name: run.teamName, color: clubColor },
-                        run.opponents,
+                        bracketYou(run.teamName, clubColor, run.picks, run.captainUid),
+                        bracketRivals(run.opponents),
                         run.results,
                     )}
                     current={run.stage + 1}

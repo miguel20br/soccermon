@@ -1,3 +1,7 @@
+---
+description: Rascunho e decisões do balanceamento geral da 0.8.4: espécies, golpes, itens e posições.
+---
+
 # Balanceamento geral (próximo update, rascunho de 17/10/2026)
 
 Pedido do Miguel: o próximo update é o balanceamento do jogo inteiro (151 Pokémon, golpes, itens, habilidades,

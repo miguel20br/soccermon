@@ -1,3 +1,7 @@
+---
+description: Patch da fórmula A: Ala conta chute, Pivô conta velocidade.
+---
+
 # Patch da fórmula: Ala contando chute, Pivô contando velocidade (aprovado em 19/10/2026, na 0.8.8)
 
 **Aplicada a fórmula A** (`DEFAULT_FORMULAS` em `src/engine/attributes.ts`) com o Dragonite mantido Pivô 89

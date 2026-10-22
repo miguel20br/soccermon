@@ -1,3 +1,7 @@
+---
+description: Auditoria dos golpes dos 151 por tipo, para cada Pokémon ter golpe do seu tipo.
+---
+
 # Golpes por tipo: auditoria dos 151 (21/10/2026)
 
 Pedido do Miguel: "Gengar, tipo Venenoso e Fantasma, não tem um ataque venenoso e tem dois psíquicos. Confira se isso

@@ -4,7 +4,7 @@ import { type PokemonInstance, viewInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { rollSpecial } from '../engine/specials';
 import type { RunState } from './game-store';
-import { isOut } from './long-cup';
+import { isOut, type OutWhy } from './long-cup';
 
 /**
  * Eventos "?" da Copa longa (docs/planos/copa-longa-referencias.md, os 8 primeiros). Regras: uma tela, 2–3 escolhas,
@@ -138,7 +138,10 @@ export function resolveEvent(
     if (!choice?.ok) return null;
     if (choice.need !== 'none' && (!target || !choiceTargets(run, ev, choice.need).includes(target))) return null;
     const next: RunState = { ...run, money: (run.money ?? 0) - choice.cost };
-    const out = (uid: string, n: number) => ({ ...(next.out ?? {}), [uid]: n });
+    const out = (uid: string, n: number, why: OutWhy) => ({
+        out: { ...(next.out ?? {}), [uid]: n },
+        outWhy: { ...(next.outWhy ?? {}), [uid]: why },
+    });
     const evoFill = (uid: string, amount: number) =>
         next.picks.map((p) => (p.uid === uid ? { ...p, evo: Math.min(EVO_THRESHOLD, (p.evo ?? 0) + amount) } : p));
     const swapIn = (inst: PokemonInstance, leaving: string): RunState => ({
@@ -148,7 +151,7 @@ export function resolveEvent(
     });
     switch (`${ev.id}:${choiceId}`) {
         case 'carrinho:parar':
-            return { ...next, out: out(target!, 2) };
+            return { ...next, ...out(target!, 2, 'lesao') };
         case 'patrocinador:aceitar': {
             // dois por um: os dois reservas vão embora e a carta lacrada entra no banco
             const leaving = benchFree(run).slice(0, 2);
@@ -181,11 +184,11 @@ export function resolveEvent(
         case 'entrevista:provocar':
             return { ...next, rivalShift: 1 };
         case 'treinoPuxado:puxado':
-            return { ...next, picks: evoFill(target!, EVO_THRESHOLD / 2), out: out(target!, 1) };
+            return { ...next, picks: evoFill(target!, EVO_THRESHOLD / 2), ...out(target!, 1, 'cansado') };
         case 'treinoPuxado:leve':
             return { ...next, rerolls: next.rerolls + 1 };
         case 'creche:deixar':
-            return { ...next, picks: evoFill(target!, EVO_THRESHOLD), out: out(target!, 2) };
+            return { ...next, picks: evoFill(target!, EVO_THRESHOLD), ...out(target!, 2, 'creche') };
         default:
             // recusar, seguir, sair, folga, soltar, fisioterapeuta: só o ₽ da escolha
             return next;

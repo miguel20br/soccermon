@@ -1,18 +1,20 @@
 /**
- * Retratos (o "rostinho" 40×40) do PMDCollab/SpriteCollab (CC BY-NC 4.0), usados na faixa de gol/defesa da partida e
- * nos emotes do Duelo (o capitão com a cara do emote). Baixa o Normal e, quando existe, cada emoção abaixo.
+ * Retratos (o "rostinho" 40×40) do PMDCollab/SpriteCollab (CC BY-NC 4.0), usados na faixa de gol/defesa da partida,
+ * nos emotes do Duelo (o capitão com a cara do emote) e nas telas da Rota (dor, tontura, choro). Baixa o Normal e,
+ * quando existe, cada emoção abaixo. Roda todas as gerações (o que já foi baixado não baixa de novo).
  *
  * Saídas:
  *   public/assets/portraits/{id}.png, {id}-happy.png, {id}-determined.png, {id}-joyous.png...
- *   src/data/portraits.json   quais emoções existem por espécie
+ *   src/data/portraits.json, src/data/gen2/portraits.json   quais emoções existem por espécie
  *   CREDITS-PORTRAITS.md      autores por Pokémon (crédito obrigatório da licença)
  *
  * Uso: npm run assets:portraits
  */
 import { existsSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
+import gen2 from '../src/data/gen2/pokemon.json' with { type: 'json' };
 import pokemon from '../src/data/pokemon.json' with { type: 'json' };
-import { fetchBuffer, fetchText, ids151, pmdCreditNames } from './lib/download';
+import { ALL_GENS, dataDir, fetchBuffer, fetchText, genOf, idsOf, pmdCreditNames } from './lib/download';
 
 const REPO = 'https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/portrait';
 const OUT = 'public/assets/portraits';
@@ -27,7 +29,14 @@ const EMOTIONS = [
     ['Shouting', 'shouting'],
     ['Crying', 'crying'],
     ['Angry', 'angry'],
+    // Rota e resultado: carrinho (dor), treino puxado (tontura), eliminação (triste, com lágrima)
+    ['Pain', 'pain'],
+    ['Dizzy', 'dizzy'],
+    ['Sad', 'sad'],
+    ['Teary-Eyed', 'teary'],
 ] as const;
+const ids = ALL_GENS.flatMap(idsOf);
+const names = [...pokemon, ...gen2] as { id: number; name: string }[];
 
 await mkdir(OUT, { recursive: true });
 const pad = (id: number) => String(id).padStart(4, '0');
@@ -47,8 +56,8 @@ const NAMES = await pmdCreditNames();
 
 let next = 0;
 async function worker() {
-    while (next < ids151.length) {
-        const id = ids151[next++];
+    while (next < ids.length) {
+        const id = ids[next++];
         if (!(await grab(id, 'Normal', `${OUT}/${id}.png`))) {
             missing.push(id);
             continue;
@@ -68,13 +77,20 @@ async function worker() {
                     .map((a) => NAMES.get(a) ?? a),
             ),
         ];
-        const name = (pokemon as { id: number; name: string }[]).find((p) => p.id === id)?.name ?? `#${id}`;
+        const name = names.find((p) => p.id === id)?.name ?? `#${id}`;
         credits[id] = `- #${id} ${name}: ${authors.join(', ') || 'PMDCollab'}`;
     }
 }
 await Promise.all(Array.from({ length: 8 }, worker));
 
-await writeFile('src/data/portraits.json', `${JSON.stringify(index)}\n`);
+for (const gen of ALL_GENS) {
+    const mine = Object.fromEntries(
+        Object.entries(index)
+            .filter(([id]) => genOf(Number(id)) === gen)
+            .sort(([a], [b]) => Number(a) - Number(b)),
+    );
+    await writeFile(`${dataDir(gen)}/portraits.json`, `${JSON.stringify(mine)}\n`);
+}
 await writeFile(
     'CREDITS-PORTRAITS.md',
     [
@@ -87,5 +103,5 @@ await writeFile(
         '',
     ].join('\n'),
 );
-console.log(`retratos: ${Object.keys(index).length}/151`);
+console.log(`retratos: ${Object.keys(index).length}/${ids.length}`);
 if (missing.length) console.error('sem retrato:', missing.join(', '));

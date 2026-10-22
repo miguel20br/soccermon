@@ -4,15 +4,17 @@ import { viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import type { TeamSetup } from '../../engine/state';
 import { playSfx } from '../../game/audio';
-import { clubName, cupStageName, cupStageShort, stageName } from '../../i18n';
+import { clubName, cupStageName, cupStageShort } from '../../i18n';
 import { useT } from '../../i18n/react';
 import type { RunState } from '../../store/game-store';
 import { cupLength, isFinalStage, isLong } from '../../store/long-cup';
 import { rivalColor } from '../../store/profile';
+import { portraitSrc } from '../portrait';
 import { useClubColor } from '../profile/club';
 import { CountUp } from './CountUp';
 import { LeaderQuote } from './LeaderQuote';
 import { HudIcon } from './MatchHud';
+import { PmdSprite } from './PmdSprite';
 import { cardSprite } from './PokeCard';
 
 /** Linha de número do topo do resultado (seu time x rival). */
@@ -104,8 +106,17 @@ export function ResultHero({
     const { t, d } = useT();
     const champion = run?.status === 'champion';
     const mood = champion ? 'champ' : won ? 'win' : 'loss';
+    // Rota Índigo: perder com o cartão amarelo (volta pro mapa) ou no grupo não é o fim da linha
+    const alive = !won && (run?.status === 'map' || run?.status === 'group');
     const title =
-        duel?.title ?? (champion ? t('result.hero.champions') : won ? t('result.hero.win') : t('result.hero.loss'));
+        duel?.title ??
+        (champion
+            ? t('result.hero.champions')
+            : won
+              ? t('result.hero.win')
+              : alive
+                ? t('result.hero.lossAlive')
+                : t('result.hero.loss'));
     const sub =
         duel?.sub ??
         (!run
@@ -114,12 +125,13 @@ export function ResultHero({
               ? t('result.hero.cupWon')
               : isLong(run)
                 ? // Copa longa: "Partida 3 de 8", o cartão amarelo ou o fim
-                  won
+                  // amarelo: a regra fica no cartão que cai logo embaixo
+                  won || run.status === 'map'
                     ? cupStageName(run, run.stage)
-                    : run.status === 'map'
-                      ? t('longCup.yellowLine')
+                    : run.status === 'group'
+                      ? t('longCup.groupLossLine')
                       : isFinalStage(run)
-                        ? t('result.hero.runnerUp')
+                        ? t('longCup.runnerUp')
                         : t('longCup.out', { n: run.stage + 1 })
                 : won
                   ? d.common.stageWon[run.stage]
@@ -127,6 +139,9 @@ export function ResultHero({
                     ? t('result.hero.runnerUp')
                     : t('result.hero.eliminated', { stage: d.common.stageIn[run.stage] ?? '' }));
     const squad = match.finalRoster.filter((p) => p.team === side);
+    // eliminado: o capitão aparece com lágrima (retrato PMD Teary-Eyed; sem ele, triste ou chorando)
+    const sadCaptain =
+        run?.status === 'eliminated' ? run.picks.find((p) => p.uid === run.captainUid)?.speciesId : undefined;
     const next = run && won && !champion ? run.opponents[run.stage + 1] : null;
     // seu time na cor do clube (Perfil); o rival no uniforme reserva se as cores baterem
     const homeColor = useClubColor();
@@ -141,6 +156,15 @@ export function ResultHero({
         <section className={`panel rh rh-${mood}`} style={style} aria-label={t('result.hero.aria')} onClick={finish}>
             {mood !== 'loss' && <Confetti count={mood === 'champ' ? 60 : 36} />}
             <div className="rh-stage bc-tag">{duel ? duel.stage : run ? cupStageName(run, run.stage) : ''}</div>
+            {sadCaptain && (
+                <img
+                    className="rh-sad pixel"
+                    src={portraitSrc(sadCaptain, ['teary', 'sad', 'crying'])}
+                    alt=""
+                    width="40"
+                    height="40"
+                />
+            )}
             <h1 className="rh-title" aria-label={title}>
                 {[...title].map((ch, i) => (
                     // biome-ignore lint/suspicious/noArrayIndexKey: letras do título
@@ -205,11 +229,31 @@ export function ResultHero({
                                 {t('result.hero.star')}
                             </span>
                         )}
-                        <img
-                            className="pixel"
-                            src={cardSprite({ speciesId: p.speciesId, shiny: p.shiny })}
-                            alt={p.name}
-                        />
+                        {sadCaptain ? (
+                            // eliminado: o time desmaia (PMD Faint; quem não tem, deita pra dormir)
+                            <span role="img" aria-label={p.name}>
+                                <PmdSprite
+                                    id={p.speciesId}
+                                    shiny={p.shiny}
+                                    anim={['Faint', 'Sleep']}
+                                    fit={72}
+                                    className="rh-faint"
+                                    fallback={
+                                        <img
+                                            className="pixel"
+                                            src={cardSprite({ speciesId: p.speciesId, shiny: p.shiny })}
+                                            alt=""
+                                        />
+                                    }
+                                />
+                            </span>
+                        ) : (
+                            <img
+                                className="pixel"
+                                src={cardSprite({ speciesId: p.speciesId, shiny: p.shiny })}
+                                alt={p.name}
+                            />
+                        )}
                     </div>
                 ))}
             </div>
@@ -244,7 +288,7 @@ export function ResultHero({
 
             {run && next && (
                 <div className="rh-next">
-                    <span className="muted">{t('result.hero.next', { stage: stageName(run.stage + 1) })}</span>
+                    <span className="muted">{t('result.hero.next', { stage: cupStageName(run, run.stage + 1) })}</span>
                     <b>{clubName(next.name)}</b>
                     <div className="rh-next-squad">
                         {next.lineup.map((p) => (

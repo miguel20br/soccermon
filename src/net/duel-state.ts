@@ -62,6 +62,12 @@ export const durationOf = (s: Pick<Shared, 'duration'>): DuelDuration => (s.dura
 /** Quantas vezes a sala toca mais rápido que a velocidade escolhida (a cena e as contas em ticks por segundo real). */
 export const duelPace = (s: Pick<Shared, 'duration'>): number => (durationOf(s) === 'short' ? 2 : 1);
 
+/** Série (o host escolhe ao criar a sala): 1 jogo ou melhor de 3 com o mesmo time (docs/planos/duelo-md3.md). */
+export type DuelBestOf = 1 | 3;
+export const DUEL_BEST_OF: DuelBestOf[] = [1, 3];
+/** Sala sem o campo (a de 1 jogo e as de antes da opção) é de 1 jogo. */
+export const bestOfOf = (s: Pick<Shared, 'bestOf'>): DuelBestOf => (s.bestOf === 3 ? 3 : 1);
+
 export const PICK_MS = 20_000;
 export const CAPTAIN_PICK_MS = 30_000;
 export const PREVIEW_MS = 30_000;
@@ -167,6 +173,10 @@ export interface Shared {
     specialLimit: SpecialLimit;
     /** Duração da partida (sem = normal: sala guardada antes da opção). */
     duration?: DuelDuration;
+    /** Melhor de 3 (sem o campo = 1 jogo, como a sala de antes da opção). */
+    bestOf?: 3;
+    /** Jogos que já acabaram nesta série (o atual fica em `result`); sem o campo = jogo 1. */
+    series?: DuelResult[];
     /** Beira da quadra (agência do técnico, experimento): a do host, pros dois. Sem o campo = desligado. */
     agency?: boolean;
     /** Seed pública da sala (só decide quem abre a Disputa); os pacotes saem das seeds das rodadas. */
@@ -212,6 +222,7 @@ export function newShared(
     specialLimit: SpecialLimit = DEFAULT_SPECIAL_LIMIT,
     duration: DuelDuration = 'normal',
     agency = false,
+    bestOf: DuelBestOf = 1,
 ): Shared {
     return {
         rev: 1,
@@ -221,6 +232,7 @@ export function newShared(
         speed,
         specialLimit: SPECIAL_LIMITS.includes(specialLimit) ? specialLimit : DEFAULT_SPECIAL_LIMIT,
         duration: durationOf({ duration }),
+        ...(bestOf === 3 ? { bestOf: 3 as const } : {}),
         ...(agency ? { agency: true } : {}),
         seed,
         phase: 'lobby',
@@ -666,6 +678,86 @@ function startPlay(s: Shared, now: number): Shared {
     };
 }
 
+export interface SeriesView {
+    bestOf: DuelBestOf;
+    /** Jogo da série (1, 2, 3). */
+    game: number;
+    /** Jogos que acabaram (o atual entra quando a fase é `done`), com os anulados. */
+    games: DuelResult[];
+    /** Os que valem (sem os anulados, que são jogados de novo). */
+    played: DuelResult[];
+    wins: Record<Role, number>;
+    over: boolean;
+    /** Quem levou a série (null = ainda não acabou, anulada ou empate). */
+    winner: Role | null;
+}
+
+/**
+ * Placar da série. Acaba com 2 vitórias ou W.O. (vale pra quem ficou, inclusive quem não volta pro próximo jogo).
+ * Partida anulada não conta: o mesmo jogo é jogado de novo (lacres novos). Empate não acontece (mata-mata), mas se
+ * acontecer o jogo não conta pra ninguém e a série para no 3º.
+ */
+export function seriesOf(s: Pick<Shared, 'bestOf' | 'series' | 'result' | 'phase'>): SeriesView {
+    const bestOf = bestOfOf(s);
+    const past = s.series ?? [];
+    const games = [...past, ...(s.phase === 'done' && s.result ? [s.result] : [])];
+    // jogo anulado não conta: é jogado de novo (Miguel, 21/10/2026)
+    const played = games.filter((g) => !g.desync);
+    const wins = both(0);
+    for (const g of played) if (g.winner) wins[g.winner]++;
+    const last = games.at(-1);
+    const need = Math.ceil(bestOf / 2);
+    const over =
+        !!last &&
+        (bestOf === 1 ||
+            (!last.desync && (!!last.wo || played.length >= bestOf || ROLES.some((r) => wins[r] >= need))));
+    const lead: Role | null = wins.host > wins.guest ? 'host' : wins.guest > wins.host ? 'guest' : null;
+    const winner = !over || !last || last.desync ? null : last.wo ? last.winner : lead;
+    return { bestOf, game: past.filter((g) => !g.desync).length + 1, games, played, wins, over, winner };
+}
+
+/** O que entra no histórico de quem é `role` (o seu lado primeiro): o jogo, ou a série inteira no melhor de 3. */
+export function duelOutcome(s: Pick<Shared, 'bestOf' | 'series' | 'result' | 'phase'>, role: Role) {
+    const r = s.result!;
+    const mine = <T>(p: [T, T]): [T, T] => (role === 'host' ? [p[0], p[1]] : [p[1], p[0]]);
+    const series = seriesOf(s);
+    // na série, o anulado é jogado de novo: só a sala de 1 jogo termina anulada
+    const void_ = !!r.desync;
+    const winner = series.bestOf === 3 ? series.winner : r.winner;
+    const result: 'win' | 'loss' | 'draw' | 'void' = void_
+        ? 'void'
+        : winner === role
+          ? 'win'
+          : winner
+            ? 'loss'
+            : 'draw';
+    if (series.bestOf === 1)
+        return { score: mine(r.score), shootout: r.shootout ? mine(r.shootout) : null, result, wo: r.wo };
+    return {
+        score: [series.wins[role], series.wins[other(role)]] as [number, number],
+        shootout: null,
+        result,
+        wo: r.wo,
+        bestOf: 3 as const,
+        games: series.played.map((g) => mine(g.score)),
+    };
+}
+
+/** Próximo jogo da série: partida nova (lacres novos), os mesmos times e direto pra escalação lacrada. */
+function nextSeriesGame(s: Shared, commits: Record<Role, string>, now: number): Shared {
+    return {
+        ...newShared(s.room, s.peers.host!, s.mode, s.speed, s.seed, specialLimitOf(s), durationOf(s), !!s.agency, 3),
+        peers: s.peers,
+        game: s.game + 1,
+        series: [...(s.series ?? []), s.result!],
+        ready: both(true),
+        commits,
+        phase: 'preview',
+        teams: { host: s.teams.host, guest: s.teams.guest },
+        choice: emptyChoice(now + PREVIEW_MS),
+    };
+}
+
 /** Os dois deram pronto na escolha (time pronto / escalação): a fase já vai andar, não dá mais pra desfazer. */
 export const bothSealed = (s: Pick<Shared, 'choice'>) => !!s.choice && ROLES.every((r) => s.choice!.seal[r]);
 
@@ -905,13 +997,28 @@ function apply(s: Shared, i: Intent, by: Role, ctx: Ctx): Shared {
         }
         case 'claimWO': {
             if (!canClaimWO(s, by, now)) return s;
-            return { ...s, phase: 'done', result: { score: [0, 0], shootout: null, winner: by, wo: true } };
+            const wo: DuelResult = { score: [0, 0], shootout: null, winner: by, wo: true };
+            // entre um jogo e outro: o jogo que acabou vai pra série e o W.O. fecha a série pra quem ficou
+            if (s.phase === 'done')
+                return { ...s, series: [...(s.series ?? []), s.result!], result: wo, waitFor: undefined };
+            return { ...s, phase: 'done', result: wo };
         }
         case 'rematch': {
             if (s.phase !== 'done') return s;
             const rematch = { ...s.rematch, [by]: true };
             const commits = { ...s.rematchCommits, [by]: isHex64(i.commit) ? i.commit : undefined };
             if (!(rematch.host && rematch.guest)) return { ...s, rematch, rematchCommits: commits };
+            // série aberta: o "de novo" é o próximo jogo, com o mesmo time (sem lacre ou com versões diferentes cai
+            // na revanche de sempre: volta pro lobby e a série recomeça)
+            if (
+                !seriesOf(s).over &&
+                isHex64(commits.host) &&
+                isHex64(commits.guest) &&
+                versionsOk(s) &&
+                s.teams.host &&
+                s.teams.guest
+            )
+                return nextSeriesGame(s, { host: commits.host!, guest: commits.guest! }, now);
             const fresh: Shared = {
                 ...newShared(
                     s.room,
@@ -922,6 +1029,7 @@ function apply(s: Shared, i: Intent, by: Role, ctx: Ctx): Shared {
                     specialLimitOf(s),
                     durationOf(s),
                     !!s.agency,
+                    bestOfOf(s),
                 ),
                 peers: s.peers,
                 game: s.game + 1,
@@ -957,6 +1065,12 @@ export function acceptTakeover(cur: Shared, next: Shared, awayMs: number): boole
     if (!next?.peers || !next.reveals || !next.roundReveals || !next.segHash || !Array.isArray(next.log)) return false;
     if (next.room !== cur.room || next.rev <= cur.rev || next.peers.host?.id !== cur.peers.host?.id) return false;
     const same = next.game === cur.game;
+    // próximo jogo da série: o time do host vem junto, e tem que ser o mesmo
+    const seriesNext =
+        bestOfOf(cur) === 3 &&
+        bestOfOf(next) === 3 &&
+        !seriesOf(cur).over &&
+        JSON.stringify(next.series ?? []) === JSON.stringify([...(cur.series ?? []), cur.result]);
     // revanche sem o host: só se ele já tinha pedido (e com o lacre que ele mandou)
     const rematchOk =
         next.game === cur.game + 1 &&
@@ -970,6 +1084,15 @@ export function acceptTakeover(cur: Shared, next: Shared, awayMs: number): boole
         if (next.commits?.host !== cur.commits.host) return false;
         // as regras da sala são do host: o convidado não liga nem desliga o experimento nem troca a duração
         if (!!next.agency !== !!cur.agency || durationOf(next) !== durationOf(cur)) return false;
+        // W.O. da série entre um jogo e outro (o host não voltou pro próximo jogo): o jogo que acabou vai pra série
+        const seriesWo =
+            cur.phase === 'done' &&
+            !!cur.result &&
+            !seriesOf(cur).over &&
+            !!next.result?.wo &&
+            JSON.stringify(next.series) === JSON.stringify([...(cur.series ?? []), cur.result]);
+        if (bestOfOf(next) !== bestOfOf(cur)) return false;
+        if (!seriesWo && JSON.stringify(next.series) !== JSON.stringify(cur.series)) return false;
         if (next.reveals.host.some((x, k) => x && x !== cur.reveals.host[k])) return false;
         if (next.roundReveals.host.some((x, r) => x && x !== cur.roundReveals.host[r])) return false;
         if (hostOrders(next) !== hostOrders(cur) || hostHashes(next) !== hostHashes(cur)) return false;
@@ -978,17 +1101,24 @@ export function acceptTakeover(cur: Shared, next: Shared, awayMs: number): boole
         if (teamKey(next.teams.host) !== teamKey(cur.teams.host)) return false;
         // no lobby a partida só começa com o "pronto" do host
         if (cur.phase === 'lobby' && next.phase !== 'lobby' && !cur.ready.host) return false;
-        if (cur.result) return JSON.stringify(next.result) === JSON.stringify(cur.result);
-    } else if (next.teams.host || next.log.some((o) => o.team === 0) || Object.keys(next.segHash.host ?? {}).length)
+        if (cur.result && !seriesWo) return JSON.stringify(next.result) === JSON.stringify(cur.result);
+    } else if (
+        (next.teams.host && !(seriesNext && teamKey(next.teams.host) === teamKey(cur.teams.host))) ||
+        next.log.some((o) => o.team === 0) ||
+        Object.keys(next.segHash.host ?? {}).length
+    )
         return false;
     const r = next.result;
     return !r || (!!r.wo && r.winner === 'guest' && awayMs >= WO_WAIT_MS - GRACE_MS);
 }
 
 /** Quem ficou pode encerrar por W.O.: o outro está travando a sala há pelo menos `WO_WAIT_MS`. */
+/** Resultado de um jogo da série que não decide (o próximo jogo ainda vem). */
+export const betweenGames = (s: Shared) => s.phase === 'done' && !!s.result && !seriesOf(s).over;
+
 export const canClaimWO = (s: Shared, by: Role, now: number) =>
     s.phase !== 'lobby' &&
-    s.phase !== 'done' &&
+    (s.phase !== 'done' || betweenGames(s)) &&
     s.waitFor === other(by) &&
     s.waitSince !== undefined &&
     now - s.waitSince >= WO_WAIT_MS;
@@ -1015,6 +1145,8 @@ export function blocker(s: Shared, ctx: Pick<Ctx, 'now' | 'atHold'>): Role | nul
         if (s.phase === 'preview' && now < (c.until ?? 0) + GRACE_MS) return null;
         return one(ROLES.filter((r) => c.seal[r] !== '-' && !c.opened[r]));
     }
+    // entre um jogo e outro da série: trava quem não pediu o próximo jogo depois que o outro pediu
+    if (s.phase === 'done' && betweenGames(s)) return one(ROLES.filter((r) => !s.rematch[r] && s.rematch[other(r)]));
     if (s.phase === 'match' && !s.result) {
         const opened = openedSegments(s.reveals.host, s.reveals.guest);
         // antes do apito ninguém trava; parado no fim do último trecho aberto, trava quem não abriu o seguinte

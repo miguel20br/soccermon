@@ -1,3 +1,7 @@
+---
+description: Ideia da Sala de troféus e do Soccermon físico.
+---
+
 # Sala de troféus e o Soccermon "físico" (brainstorm, 20/10/2026)
 
 Pedido do Miguel: deixar mais **físicos** os itens que hoje são lista ou número: uma **sala de troféus** com os

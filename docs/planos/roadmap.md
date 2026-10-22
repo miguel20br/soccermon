@@ -1,3 +1,7 @@
+---
+description: Roadmap do Soccermon: o que vem depois.
+---
+
 # Roadmap do Soccermon (atualizado em 16/10/2026)
 
 **Plano de lançamento e versões 0.8.3 → 1.0: [lancamento.md](lancamento.md).** Tela de campeão: [tela-campeao.md](tela-campeao.md).

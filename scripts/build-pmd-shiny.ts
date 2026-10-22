@@ -4,17 +4,21 @@
  * (public/assets/field/{id}.json) e só a imagem muda (public/assets/field/shiny/{id}.png).
  * Espécie sem shiny completo fica de fora (o jogo cai no sprite normal com tinta).
  *
- * Uso: npx tsx scripts/build-pmd-shiny.ts   (depois de scripts/build-pmd-atlas.ts)
+ * Com `--extra`: o mesmo pro atlas de fora da quadra (public/assets/field/extra/shiny/{id}.png); o JSON do atlas
+ * extra ganha `"shiny": true` quando a folha shiny existe.
+ *
+ * Uso: npx tsx scripts/build-pmd-shiny.ts [--gen 1|2] [--extra]   (depois de scripts/build-pmd-atlas.ts)
  */
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { XMLParser } from 'fast-xml-parser';
 import sharp from 'sharp';
-import { fetchBuffer, ids151 } from './lib/download';
+import { dataDir, fetchBuffer, gensFromArgs, idsOf } from './lib/download';
 
 const REPO = 'https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master/sprite';
 const CACHE = '.cache/pmd-shiny';
-const FIELD = 'public/assets/field';
+const EXTRA = process.argv.includes('--extra');
+const FIELD = EXTRA ? 'public/assets/field/extra' : 'public/assets/field';
 const OUT = `${FIELD}/shiny`;
 
 async function cached(id: number, file: string): Promise<Buffer | null> {
@@ -29,6 +33,7 @@ async function cached(id: number, file: string): Promise<Buffer | null> {
 }
 
 async function buildOne(id: number): Promise<boolean> {
+    if (!existsSync(`${FIELD}/${id}.json`)) return false;
     const atlas = JSON.parse(await readFile(`${FIELD}/${id}.json`, 'utf8')) as {
         frames: Record<string, { frame: { x: number; y: number } }>;
         meta: { size: { w: number; h: number } };
@@ -55,19 +60,25 @@ async function buildOne(id: number): Promise<boolean> {
         .composite(composites)
         .png({ compressionLevel: 9, palette: true })
         .toFile(`${OUT}/${id}.png`);
+    if (EXTRA) await writeFile(`${FIELD}/${id}.json`, JSON.stringify({ ...atlas, shiny: true }));
     return true;
 }
 
 await mkdir(OUT, { recursive: true });
-const missing: number[] = [];
-const queue = [...ids151];
-await Promise.all(
-    Array.from({ length: 8 }, async () => {
-        for (let id = queue.shift(); id !== undefined; id = queue.shift()) {
-            if (!(await buildOne(id).catch(() => false))) missing.push(id);
-        }
-    }),
-);
-missing.sort((a, b) => a - b);
-await writeFile('src/data/pmd-shiny-missing.json', `${JSON.stringify(missing)}\n`);
-console.log(`shiny: ${151 - missing.length}/151 (sem shiny: ${missing.join(', ') || 'nenhum'})`);
+for (const gen of gensFromArgs()) {
+    const ids = idsOf(gen);
+    const missing: number[] = [];
+    const queue = [...ids];
+    await Promise.all(
+        Array.from({ length: 8 }, async () => {
+            for (let id = queue.shift(); id !== undefined; id = queue.shift()) {
+                if (!(await buildOne(id).catch(() => false))) missing.push(id);
+            }
+        }),
+    );
+    missing.sort((a, b) => a - b);
+    if (!EXTRA) await writeFile(`${dataDir(gen)}/pmd-shiny-missing.json`, `${JSON.stringify(missing)}\n`);
+    console.log(
+        `gen ${gen}${EXTRA ? ' extra' : ''} shiny: ${ids.length - missing.length}/${ids.length} (sem shiny: ${missing.join(', ') || 'nenhum'})`,
+    );
+}

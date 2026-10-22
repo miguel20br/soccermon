@@ -1,16 +1,24 @@
 import { useState } from 'react';
 import { answerLink, declineLink, dismissNotice, type LinkAsk, useCloud } from '../../cloud/cloud';
 import type { CupSummary, SaveSummary, Side } from '../../cloud/reconcile-plan';
-import { stageName, t } from '../../i18n';
+import { cupStageName, stageName, t } from '../../i18n';
 import { useT } from '../../i18n/react';
+import { isLong } from '../../store/long-cup';
 import './account-link.css';
 
-/** Fase da copa como na tela inicial: "Draft · escolha 3 de 7", "Escolhendo a recompensa", "Semifinal". */
-export function cupStep(cup: Pick<CupSummary, 'status' | 'stage' | 'draftRound'>): string {
+/**
+ * Fase da copa como na tela inicial: "Draft · escolha 3 de 7", "Escolhendo a recompensa", "Semifinal". Na Rota Índigo
+ * nunca é uma fase da Relâmpago: "Rota Índigo · Partida 3 de 8" (a de agora na escalação; fora dela, a próxima).
+ */
+export function cupStep(cup: Pick<CupSummary, 'status' | 'stage' | 'draftRound' | 'mode' | 'played'>): string {
     if (cup.status === 'formation' || cup.status === 'captain' || cup.status === 'drafting')
         return t('home.draftStep', { n: Math.min(cup.draftRound + 1, 7) });
     if (cup.status === 'reward') return t('home.choosingReward');
     if (cup.status === 'shop') return t('home.atMarket');
+    if (isLong(cup)) {
+        const at = cup.status === 'lineup' ? cup.stage : (cup.played ?? cup.stage);
+        return `${t('longCup.title')} · ${cupStageName(cup, at)}`;
+    }
     return stageName(cup.stage);
 }
 

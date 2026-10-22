@@ -1,8 +1,9 @@
 import { type CSSProperties, type ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { editionOf } from '../../engine/specials';
-import { playSfx } from '../../game/audio';
+import { playCry, playSfx } from '../../game/audio';
 import { useT } from '../../i18n/react';
+import { useGame } from '../../store/game-store';
 import { metalOf } from '../rarity';
 import { reduceMotionOn } from '../settings-sync';
 import { TYPE_COLOR } from '../type-colors';
@@ -30,11 +31,22 @@ const WALKOUT_MS = 1200;
 /** Tom sobe carta a carta (dó, mi, sol, dó), como a contagem do Balatro. */
 const pitchOf = (i: number) => 2 ** (([0, 4, 7, 12][i] ?? 12) / 12);
 
+/**
+ * Carta grande (ouro, Shiny, edição especial) solta o grito do Pokémon quando aparece (`data-cry` = espécie). As
+ * outras não: três gritos em 0,3 s viravam barulho.
+ */
+function cryOf(el: HTMLElement) {
+    const id = Number(el.dataset.cry);
+    if (id && (el.classList.contains('big') || el.classList.contains('walk')))
+        playCry(id, useGame.getState().settings.cries, 0.8);
+}
+
 type Phase = 'closed' | 'opening' | 'flip' | 'done';
 
 /**
  * Pacote de cartas com o logo (recompensa e draft). Envolve a grade de cartas: cada carta marcada com
- * `.cpack-card` (`.big` segura mais e brilha; `.walk` sobe com luz atrás, o walkout). Fechado (`sealed`), espera
+ * `.cpack-card` (`.big` segura mais e brilha; `.walk` sobe com luz atrás, o walkout; `data-cry` = espécie, pro grito da
+ * carta grande). Fechado (`sealed`), espera
  * um toque; aberto, a tampa rasga e as cartas saem do pacote uma de cada vez com o tom subindo. Um toque durante
  * a abertura pula tudo. `revealKey` novo = cartas novas: no draft abre outro pacote, na recompensa (já aberta)
  * as cartas só viram. Com "reduzir movimento" as cartas aparecem na hora (fica o som).
@@ -100,6 +112,10 @@ export function CardPack({
         const cards = [...stage.querySelectorAll<HTMLElement>('.cpack-card')];
         if (reduceMotionOn()) {
             playSfx(cards.some((c) => c.classList.contains('walk')) ? 'goal' : 'select');
+            const big = cards.find(
+                (c) => c.dataset.cry && (c.classList.contains('big') || c.classList.contains('walk')),
+            );
+            if (big) cryOf(big);
             setPhase('done');
             return;
         }
@@ -123,7 +139,12 @@ export function CardPack({
             el.style.setProperty('--rd', `${at}ms`);
             const walk = el.classList.contains('walk');
             const d = at;
-            timers.push(window.setTimeout(() => playSfx(walk ? 'goal' : 'select', walk ? 1 : pitchOf(i)), d));
+            timers.push(
+                window.setTimeout(() => {
+                    playSfx(walk ? 'goal' : 'select', walk ? 1 : pitchOf(i));
+                    cryOf(el);
+                }, d),
+            );
             end = Math.max(end, d + (walk ? WALKOUT_MS : tm.card));
             at += tm.gap + (el.classList.contains('big') ? tm.hold : 0);
         });

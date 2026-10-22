@@ -156,6 +156,7 @@ export const settings: typeof pt = {
         spritesTitle: 'Sprites and audio',
         pmd: 'Court sprites and portraits: {link}, CC BY-NC 4.0 license — authors per Pokémon in the project files CREDITS-PMD.md and CREDITS-PORTRAITS.md. Original Pokémon Mystery Dungeon sprites © Nintendo / Spike Chunsoft.',
         bw: 'Black/White animated sprites, item icons and type icons (Pokémon Champions): {link}.',
+        icons: 'Menu icons: {link} (msikma; community-made shinies).',
         holo: 'Holographic card techniques inspired by {link} (simeydotme, GPL-3.0).',
         cries: 'Cries: {link}.',
         particles: 'Effect particles: {link}.',
@@ -164,6 +165,8 @@ export const settings: typeof pt = {
         dataTitle: 'Data and references',
         dex: 'Pokémon, move and type data: {pkmn} (MIT), derived from {showdown}.',
         ptDesc: 'Portuguese descriptions: {link} (AGPL-3.0).',
+        dexText:
+            'Pokédex entries: Portuguese from the TCG Pocket cards via {tcgdex}; English from Red/Blue via {pokeapi}.',
         arch: 'Architecture references: {pac}, {fs} and the “Simple Soccer” from the book {book} (Mat Buckland).',
     },
 };

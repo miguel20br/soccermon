@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FUTSAL_5 } from '../../engine/config';
-import { CUP_STAGES, clubLeader, cupRival } from '../../engine/cup';
+import { clubLeader, cupRival } from '../../engine/cup';
 import { species } from '../../engine/data';
 import { viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
@@ -25,6 +25,7 @@ import { ligaRun, useLiga } from '../../league/liga-store';
 import { PhaserGame } from '../../PhaserGame';
 import { fieldKit, lookOfCupClub, lookOfProfile, matchLooks } from '../../store/club-kit';
 import { liveOf, type PlaybackSpeed, playerTeam, useGame } from '../../store/game-store';
+import { isFinalStage } from '../../store/long-cup';
 import { rivalColor, tagFromName } from '../../store/profile';
 import { Commentator, type CommentLine } from '../commentary';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
@@ -197,7 +198,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                       ),
                       startPaused: true,
                       startTick: resume?.tick || undefined,
-                      final: !liga && run?.stage === CUP_STAGES.length - 1,
+                      final: !liga && !!run && isFinalStage(run),
                       agency,
                       // o rival joga em casa: a quadra do ginásio dele
                       court: opponent ? clubLeader(opponent.name) : undefined,

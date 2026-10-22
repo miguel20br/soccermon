@@ -42,8 +42,12 @@ export const STOPPAGE = { min: 1, max: 3 };
  * 5 = 0.8.8 (barra cheia de antes só evolui depois de ele fazer algo na partida: nada de evoluir no apito inicial).
  * 6 = 0.8.8 (edições em camadas: shiny +1 junto de outra edição, Evento leva MVP, MVP +1 por nível; sem teto além do 99 do atributo).
  * 7 = acréscimos de 1 a 3 minutos por tempo e Pressão final (quem perde nos últimos 3 minutos vai pra cima).
+ * 8 = revisão dos golpes: 1 golpe de cada tipo próprio, sem 2 golpes iguais, Gengar com Sludge, Harden/Slam/Amnesia/
+ *     Tri Attack/Explosion/paredes consertados e o Fly levando a bola 2 m (docs/planos/golpes-revisao.md).
+ * 9 = formações que jogam diferente (IA: triângulos, lados, pivô parede, rodízio, jogo direto, bloco baixo) e
+ *     vantagem tática de 1,5% (docs/planos/formacoes.md).
  */
-export const ENGINE_VERSION = 7;
+export const ENGINE_VERSION = 9;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',

@@ -1,3 +1,7 @@
+---
+description: Pesquisa sobre layout de botões, telas e game design da copa.
+---
+
 # Pesquisa: layout dos botões, telas e game design da copa
 
 21/10/2026, madrugada. Pedido do Miguel: "pesquisas mais extensas sobre game design e melhorias nos layouts dos botões e

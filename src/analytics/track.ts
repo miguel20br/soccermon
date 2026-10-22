@@ -69,6 +69,23 @@ function flush(keepalive = false) {
     });
 }
 
+type Run = NonNullable<GameState['run']>;
+
+/** Qual das recompensas oferecidas entrou no time (o store não guarda o índice escolhido). */
+export function pickedReward(old: Run, run: Run): Run['rewards'][number] | null {
+    const before = new Map(old.picks.map((p) => [p.uid, p]));
+    return (
+        old.rewards.find((r) =>
+            run.picks.some((p) => {
+                const was = before.get(p.uid);
+                if (r.kind === 'pokemon') return p.uid === r.inst.uid && !was;
+                if (r.kind === 'tm') return !!was && p.moves.includes(r.move) && !was.moves.includes(r.move);
+                return !!was && p.item === r.item && was.item !== r.item;
+            }),
+        ) ?? null
+    );
+}
+
 export function track(name: string, props: Props = {}) {
     // antes de o save carregar, `stats` ainda é o padrão (pode ser de quem desligou)
     if (!ENABLED || !useGame.persist.hasHydrated() || !useGame.getState().settings.stats) return;
@@ -100,7 +117,12 @@ function onChange(s: GameState, prev: GameState) {
     const old = prev.run;
     // retomar uma copa guardada não é começar copa nova
     if (run && run.seed !== old?.seed && !(prev.parkedRuns ?? []).some((p) => p.seed === run.seed))
-        track('run_start', { challenge: new URLSearchParams(location.search).has('seed'), daily: !!run.daily });
+        track('run_start', {
+            challenge: new URLSearchParams(location.search).has('seed'),
+            daily: !!run.daily,
+            // Rota Índigo ('longa'): 8 partidas, então `stage` não é a fase da Relâmpago
+            mode: run.mode ?? null,
+        });
     if (run && old && run.seed === old.seed) {
         if (old.status === 'formation' && run.status === 'captain') track('formation', { formation: run.formation });
         if (run.picks.length > old.picks.length) {
@@ -119,6 +141,7 @@ function onChange(s: GameState, prev: GameState) {
             const r = run.results.at(-1)!;
             track('match_end', {
                 stage: r.stage,
+                mode: run.mode ?? null,
                 won: r.won,
                 gf: r.score[0],
                 ga: r.score[1],
@@ -135,6 +158,7 @@ function onChange(s: GameState, prev: GameState) {
             track('run_end', {
                 champion: run.status === 'champion',
                 stage: r?.stage ?? 0,
+                mode: run.mode ?? null,
                 perfect: run.status === 'champion' && run.results.every((x) => x.won && x.score[1] === 0),
                 // raridade na tela do título ("só 3% dos campeões tinham..."): espécies do elenco e o capitão
                 squad: [...run.lineup, ...run.bench]
@@ -176,7 +200,20 @@ function onChange(s: GameState, prev: GameState) {
                 sponsors: (run.sponsors ?? []).join(','),
             });
         if (old.status === 'reward' && (run.status === 'lineup' || run.status === 'shop')) {
-            track('reward', { stage: old.stage, rerolls_left: run.rerolls, skipped: run.picks === old.picks });
+            const got = pickedReward(old, run);
+            track('reward', {
+                stage: old.stage,
+                rerolls_left: run.rerolls,
+                skipped: run.picks === old.picks,
+                kind: got?.kind ?? null,
+                what: got
+                    ? got.kind === 'pokemon'
+                        ? got.inst.speciesId
+                        : got.kind === 'tm'
+                          ? got.move
+                          : got.item
+                    : null,
+            });
         }
     }
     if (old && !run) track('run_abandon', { stage: old.stage, status: old.status });

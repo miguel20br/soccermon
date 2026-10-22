@@ -35,8 +35,10 @@ import {
     ordersOf,
     other,
     type Role,
+    type Shared,
     SIDE,
     SPEED_ASK_MS,
+    seriesOf,
     trainerNames,
 } from '../../net/duel-state';
 import { baseSeedOf, holdTick, openedSegments } from '../../net/seal';
@@ -85,6 +87,13 @@ import { simulateMatch } from '../sim-client';
 import { EmoteBar, EmoteBubbles } from './Emotes';
 import { ReadyBar } from './ReadyBar';
 
+/** Melhor de 3: "Jogo 2 · 1 x 0" (o seu lado primeiro); null na sala de 1 jogo. */
+export function seriesLabel(s: Shared, role: Role, t: ReturnType<typeof useT>['t']): string | null {
+    const v = seriesOf(s);
+    if (v.bestOf === 1) return null;
+    return t('duel.series.tag', { n: v.game, a: v.wins[role], b: v.wins[other(role)] });
+}
+
 /** Segundos que faltam até `at` (relógio da sala), atualizando sozinho. */
 export function useCountdown(at: number | undefined): number {
     const [, force] = useState(0);
@@ -119,6 +128,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const away = s.teams.guest!;
     const setups: [typeof home, typeof away] = [home, away];
     const myTeam = setups[side];
+    const stage = seriesLabel(s, role, t) ?? t('duel.title');
 
     const [match, setMatch] = useState<MatchResult | null>(null);
     /** Versão do log (`logVersion`) que a partida na tela já tem. */
@@ -536,7 +546,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                 <VersusIntro
                     home={myTeam}
                     away={setups[side === 0 ? 1 : 0]}
-                    stage={t('duel.title')}
+                    stage={stage}
                     ready={sceneReady}
                     onDone={() => {}}
                     awayTrainer={rivalPeer?.trainer as TrainerId | undefined}
@@ -561,7 +571,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                         score={clock.score}
                         clock={clockParts}
                         pressure={pressureNow}
-                        stage={t('duel.title')}
+                        stage={stage}
                         coaches={[badge(s.peers.host), badge(s.peers.guest)]}
                     >
                         <EmoteBubbles

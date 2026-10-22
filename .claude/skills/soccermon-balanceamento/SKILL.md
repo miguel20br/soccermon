@@ -25,7 +25,8 @@ Diversão > realismo: muito gol não é problema. Método completo e histórico 
 | Auditoria de posições e atributos dos 151 | `npx tsx scripts/positions-audit.ts` → `?lab=posicoes&revisao=1` | segundos |
 | Placar do jogo no ar | `npm run stats [-- --dias 7 \| --md]` | — |
 
-Saídas de script vão pro scratchpad, nunca pro repo.
+Saídas de script vão pro scratchpad, nunca pro repo. **Economia:** explore com `--n 200` e use `--n 400` só no número
+final que vai pro Miguel; toda simulação pesada passa por `scripts/pesado.sh <cmd>` (fila única com vídeo e testes).
 
 ## Armadilhas que custaram horas
 
