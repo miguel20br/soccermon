@@ -168,12 +168,15 @@ export function runDevDemo() {
     }
     if (demo === 'lider') {
         const want = new URLSearchParams(window.location.search).get('clube') ?? 'ltsurge';
-        for (let k = 0; k < 300; k++) {
-            store.newRun('Demo FC', `lider${k}`);
+        let semAviso: number | null = null; // líder calmo (Erika) pode nunca avisar antes dos 12': usa a 1ª semente com ele
+        for (let k = 0; k <= 300; k++) {
+            if (k === 300 && semAviso === null) break;
+            store.newRun('Demo FC', `lider${k === 300 ? semAviso : k}`);
             const run = useGame.getState().run!;
             const idx = run.opponents.findIndex((o) => clubLeader(o.name) === want);
             if (idx < 0) continue;
-            const team = aiDraftTeam(new Rng(`lider${k}`, 'demo'), 2);
+            const seedK = k === 300 ? semAviso : k;
+            const team = aiDraftTeam(new Rng(`lider${seedK}`, 'demo'), 2);
             // &formacao=4-0: o mesmo time em outra formação (clipes de comparação, docs/planos/formacoes.md)
             const f = new URLSearchParams(window.location.search).get('formacao');
             const ready = {
@@ -197,7 +200,10 @@ export function runDevDemo() {
                     snapshots: false,
                 },
             );
-            if (!r.events.some((e) => e.type === 'coach' && e.minute < 12)) continue;
+            if (k < 300 && !r.events.some((e) => e.type === 'coach' && e.minute < 12)) {
+                semAviso ??= k;
+                continue;
+            }
             useGame.setState({ run: ready, screen: 'lineup' });
             console.info(`[demo] copa ${ready.seed}: contra ${ready.opponents[0].name}`);
             return;
