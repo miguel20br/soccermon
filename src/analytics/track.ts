@@ -21,6 +21,44 @@ interface Row {
 /** Só no site oficial: prévias da Vercel, staging e o endereço antigo não sujam as estatísticas. */
 const ENABLED = import.meta.env.PROD && !!cloudApi && window.location.hostname === 'soccermon.com';
 const FLUSH_MS = 8000;
+
+/**
+ * Nomes que o banco aceita (`game_events_name_check`, última migração em `supabase/migrations/`). Um nome fora da
+ * lista faz o POST do lote inteiro dar 400 e o lote some; por isso `track` só aceita estes e confere de novo na hora.
+ */
+export const EVENT_NAMES = [
+    'session_start',
+    'screen',
+    'onboarding_done',
+    'run_start',
+    'formation',
+    'pick',
+    'match_end',
+    'run_end',
+    'reward',
+    'run_abandon',
+    'club_color',
+    'setting',
+    'login',
+    'error',
+    'share',
+    'shop_buy',
+    'shop_leave',
+    'coach_shown',
+    'coach_next',
+    'coach_skip',
+] as const;
+export type EventName = (typeof EVENT_NAMES)[number];
+
+/**
+ * Balões do tutorial (`coach_*`): desligados até a migração `20261022180000_eventos_tutorial.sql` entrar em produção.
+ * Aplicou? Troque pra `true`.
+ */
+export const COACH_EVENTS = false;
+
+/** Vai pro banco: está na lista e, se é do tutorial, a migração já entrou. */
+export const sendable = (name: string) =>
+    (EVENT_NAMES as readonly string[]).includes(name) && (COACH_EVENTS || !name.startsWith('coach_'));
 const MAX_QUEUE = 50;
 
 const session = (() => {
@@ -86,9 +124,9 @@ export function pickedReward(old: Run, run: Run): Run['rewards'][number] | null 
     );
 }
 
-export function track(name: string, props: Props = {}) {
+export function track(name: EventName, props: Props = {}) {
     // antes de o save carregar, `stats` ainda é o padrão (pode ser de quem desligou)
-    if (!ENABLED || !useGame.persist.hasHydrated() || !useGame.getState().settings.stats) return;
+    if (!ENABLED || !sendable(name) || !useGame.persist.hasHydrated() || !useGame.getState().settings.stats) return;
     queue.push({ session, name, props, app_version: __APP_VERSION__, device: device() });
     if (queue.length >= MAX_QUEUE) flush();
     else timer ??= setTimeout(() => flush(), FLUSH_MS);
