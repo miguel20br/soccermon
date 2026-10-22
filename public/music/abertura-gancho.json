@@ -1,0 +1,46 @@
+{
+ "faixa": "abertura-gancho",
+ "titulo": "Abertura com gancho",
+ "tela": "Home",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 93.52941,
+ "secoes": [
+  {
+   "nome": "intro",
+   "loop": false,
+   "inicio": 0,
+   "fim": 7.058821,
+   "amostras": [
+    0,
+    311294
+   ],
+   "bpm": 136,
+   "compassos": 4
+  },
+  {
+   "nome": "loop",
+   "loop": true,
+   "inicio": 7.058821,
+   "fim": 93.52941,
+   "amostras": [
+    311294,
+    4124647
+   ],
+   "bpm": 136,
+   "compassos": 49
+  }
+ ],
+ "gancho": {
+  "comentario": "3 batidas SOC-CER-MON (G5 E5 C6, 3-3-2 com swing 0,15) medidas no .ogg: compassos 0 (intro) e 52 (fim do loop)",
+  "batidas": [
+   0,
+   0.347,
+   0.662
+  ],
+  "compassos": [
+   0,
+   91.765
+  ]
+ }
+}

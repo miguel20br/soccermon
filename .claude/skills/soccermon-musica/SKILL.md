@@ -188,6 +188,23 @@ ficam perto de −18; console pede −24: no jogo a música fica abaixo de efeit
 - Abertura idêntica: `cmp` do `.wav` contra a versão aprovada se mexer no `synth.mjs`.
 - Diga o que foi conferido pelos números e o que só o ouvido dele decide.
 
+### Níveis no jogo (22/10/2026)
+
+Configurações no padrão (geral 0,6, música 0,4, canais 1), medidos como saem: `npx tsx scripts/niveis-audio.ts`
+(ebur128; ganhos base em `GAIN`, `src/game/audio.ts`). O grito é **tempero**: atrás da música (o Miguel achou alto).
+O `audio.test.ts` barra grito acima da música.
+
+| Canal | Alvo (LUFS) | Antes | Agora | Ganho base |
+|---|---|---|---|---|
+| Música (loops, integrado; M máx) | −28 (picos −25) | −28,4 (−25,3) | igual | geral × música; arquivo a −16 |
+| Gritos (M máx, mediana do estilo `latest`; p90) | −30 (p90 −28) | −17,3 (−15,7) | −29,9 (−28,3) | `GAIN.cry` 0,55 → 0,13 |
+| Efeitos ZzFX (M máx: apito 21, gol 24, chute 26, defesa 30) | −21 a −30 | igual | igual | `GAIN.sfx` 0,35 |
+| Apito e torcida gravados (M máx) | −19 a −21 | igual | igual | `GAIN.sample` 0,7 |
+
+Os controles das Configurações multiplicam por cima (0 a 1: dá pra baixar, não passar do padrão). Faixa nova: meça
+com o script e confira que o grito fica uns 1,5 dB abaixo do integrado da música. Draft (e o do Duelo) sem grito:
+escolher é silencioso, só a música.
+
 ## 7. Armadilhas (custaram tempo)
 
 - **Parâmetro em branco do ZzFX é `null`, não 0.** Com 0 o `release` some e a caixa sai muda (a v1 não tinha caixa).
@@ -245,3 +262,23 @@ partida com `cita: MOTIVO`.
 | Giovanni (chefe Rocket) | o riff da Rocket mais lento e pesado, órgão de igreja, Fá# menor | proposta |
 | Blue (rival) | a partida em maior com rock, três subidas de tom, Mi maior | proposta |
 | Elite dos Quatro | Lorelei (gelo, celesta, 12/8), Bruno (taiko e metais), Agatha (órgão e slide), Lance (épico com coro) | proposta |
+
+## 10. As OSTs que o Miguel ama e o que tirar delas (22/10/2026)
+
+Ele citou Inscryption, Persona, Undertale e Sonic Mania. O que torna cada uma marcante:
+
+| OST | Mecânica | No Soccermon |
+|---|---|---|
+| **Undertale** (Toby Fox) | Poucos leitmotivs disfarçados na trilha toda (outro andamento, modo, timbre); o final costura os temas de todo mundo; a música reage às escolhas (rota genocida lenta e desafinada); silêncio como arma | O SOC-CER-MON é o leitmotiv do jogo, e cada personagem tem um motivo. **Final do Planalto que costura o gancho com os motivos dos líderes enfrentados naquela Rota.** Música da eliminação diferente se caiu cedo ou na Final |
+| **Sonic Mania** (Tee Lopes) | Ato 1 e Ato 2: mesma melodia, outro arranjo; harmonia jazz-fusion (7ª e 9ª), baixo slap que é melodia; timbre FM do Mega Drive com produção moderna | **Estrada da Vitória como tema-mãe, rearranjado por região** (Rota 1 de dia, Mt. Moon na caverna, Cerulean na água). Acordes com extensão e baixo melódico nas partidas |
+| **Persona** (Shoji Meguro) | Um gênero de identidade (acid jazz e J-pop); variação por contexto (chuva, noite, estação); faixa que repete muito é tranquila e vive de groove; menu e batalha viram hino | **Copa do Dia com versão de dia e de noite, ou uma por dia da semana**, do mesmo tema. O funk e o jazz aprovados viram "o som Soccermon". Telas longas, sem lead cansativo |
+| **Inscryption** (Jonah Senzel) | Camadas entram conforme o jogador progride; o mesmo tema troca de roupa com o estilo de cada ato; o som do mundo vira instrumento (madeira, carta, balança) | **Camadas na partida pelo placar**: metais entram quando você está ganhando, o arranjo fica seco quando está perdendo, a torcida canta no tempo. Sons do jogo como instrumento (bola, apito, rede, cartas, moedas), como no Ginásio vazio |
+
+O que vale pra toda peça nova:
+1. **Gancho nos 2 primeiros compassos**, cantável e com ritmo próprio.
+2. **Leitmotiv com transformação**: o mesmo motivo muda de andamento, modo e instrumento conforme o contexto, e a recompensa vem quando os temas se juntam.
+3. **Paleta própria**: funk/jazz, clap 808 suave, baixo melódico e timbres quentes.
+4. **A música muda com o estado do jogo**, por camadas verticais e trechos horizontais, sempre no tempo (batida ou compasso).
+5. **O som do jogo vira instrumento.**
+6. **Silêncio e contenção nos momentos certos**: antes do último pênalti, no apito de uma Final perdida.
+7. **Contar uma história** (veja a seção 2): é o que o Miguel mais quer.

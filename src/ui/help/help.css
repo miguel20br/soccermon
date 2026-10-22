@@ -647,3 +647,12 @@
     width: 16px;
     height: 16px;
 }
+
+/* ---------- Como funciona (rever os balões do tutorial) ---------- */
+.help-coach {
+    display: grid;
+    gap: 8px;
+}
+.help-coach h2 {
+    margin: 0;
+}

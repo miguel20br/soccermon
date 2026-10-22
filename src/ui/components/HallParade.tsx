@@ -9,6 +9,7 @@ import { clubVars, titleName } from '../profile/club';
 import { TrainerSprite } from '../profile/TrainerTab';
 import { reduceMotionOn } from '../settings-sync';
 import { cardSprite } from './PokeCard';
+import { Trophy } from './Trophy';
 
 const STEP_MS = 1700;
 
@@ -78,56 +79,70 @@ export function HallParade({ entry, trainer, onDone }: { entry: HallEntry; train
     );
 }
 
-/** Lista do Hall da Fama (Perfil): um cartão por título, do mais recente ao mais antigo. */
 /** Os títulos do Hall da Fama (`only`: só estes, pela copa; a sala de troféus filtra pelo metal da taça). */
 export function HallList({ only }: { only?: string[] } = {}) {
     const { t, lang } = useT();
     const all = useGame((s) => s.hall);
     const hall = only ? all.filter((h) => only.includes(h.id)) : all;
     if (!hall.length) return <p className="muted">{t('title.hall.empty')}</p>;
+    // Relâmpago e Rota ficam separadas, cada uma com a sua taça
+    const groups = [
+        { rota: false, name: t('home.quickCup.title'), list: hall.filter((h) => h.mode !== 'longa') },
+        { rota: true, name: t('longCup.title'), list: hall.filter((h) => h.mode === 'longa') },
+    ].filter((g) => g.list.length);
     return (
-        <ol className="hall-list">
-            {hall.map((h) => (
-                <li
-                    key={h.id}
-                    className={`hall-card${trainerFrame(h.trainer)}`}
-                    style={clubVars(clubColorHex(h.clubColor))}
-                >
-                    <div className="hall-head">
-                        <b>{t('title.hall.entry', { n: h.titleNo })}</b>
-                        <span className="muted">
-                            {new Date(h.date).toLocaleDateString(lang === 'pt' ? 'pt-BR' : 'en-US')}
-                        </span>
-                    </div>
-                    <div className="hall-club-row">
-                        {h.trainer && <TrainerSprite id={h.trainer} className="hall-trainer" />}
-                        <span className="hall-club">
-                            {h.club}
-                            {h.trainerTitle && (
-                                <small className={titleClass(h.trainerTitle).trim() || undefined}>
-                                    {titleName(h.trainerTitle)}
-                                </small>
-                            )}
-                        </span>
-                    </div>
-                    <div className="hall-squad">
-                        {h.squad.map((m) => (
-                            <img
-                                key={`${m.speciesId}-${m.name}`}
-                                className="pixel"
-                                src={cardSprite(m)}
-                                alt={m.name}
-                                title={m.name}
-                            />
+        <div className="hall-groups">
+            {groups.map((g) => (
+                <section key={g.name} className="hall-group">
+                    <h3 className="hall-group-h">
+                        <Trophy size={28} rota={g.rota} />
+                        {g.name}
+                        <span className="muted">{g.list.length}</span>
+                    </h3>
+                    <ol className="hall-list">
+                        {g.list.map((h) => (
+                            <li
+                                key={h.id}
+                                className={`hall-card${trainerFrame(h.trainer)}`}
+                                style={clubVars(clubColorHex(h.clubColor))}
+                            >
+                                <div className="hall-head">
+                                    <b>{t('title.hall.entry', { n: h.titleNo })}</b>
+                                    <span className="muted">
+                                        {new Date(h.date).toLocaleDateString(lang === 'pt' ? 'pt-BR' : 'en-US')}
+                                    </span>
+                                </div>
+                                <div className="hall-club-row">
+                                    {h.trainer && <TrainerSprite id={h.trainer} className="hall-trainer" />}
+                                    <span className="hall-club">
+                                        {h.club}
+                                        {h.trainerTitle && (
+                                            <small className={titleClass(h.trainerTitle).trim() || undefined}>
+                                                {titleName(h.trainerTitle)}
+                                            </small>
+                                        )}
+                                    </span>
+                                </div>
+                                <div className="hall-squad">
+                                    {h.squad.map((m) => (
+                                        <img
+                                            key={`${m.speciesId}-${m.name}`}
+                                            className="pixel"
+                                            src={cardSprite(m)}
+                                            alt={m.name}
+                                            title={m.name}
+                                        />
+                                    ))}
+                                </div>
+                                <span className="muted hall-scores">
+                                    {h.scores.map((s) => `${s[0]}x${s[1]}`).join(' · ')}
+                                    {h.perfect && ` · ${t('title.hall.perfect')}`}
+                                </span>
+                            </li>
                         ))}
-                    </div>
-                    <span className="muted hall-scores">
-                        {h.mode === 'longa' && <b className="hall-mode">{t('longCup.title')} · </b>}
-                        {h.scores.map((s) => `${s[0]}x${s[1]}`).join(' · ')}
-                        {h.perfect && ` · ${t('title.hall.perfect')}`}
-                    </span>
-                </li>
+                    </ol>
+                </section>
             ))}
-        </ol>
+        </div>
     );
 }

@@ -10,6 +10,7 @@ import {
     nodeById,
 } from '../engine/cup-map';
 import { Rng } from '../engine/rng';
+import { winEarnings } from '../engine/shop';
 import type { TeamSetup } from '../engine/state';
 
 /**
@@ -19,7 +20,11 @@ import type { TeamSetup } from '../engine/state';
 export type CupMode = 'longa';
 
 /** A Copa longa aparece na Home quando a 0.9.1 estiver pronta (até lá, só pelo `?demo=mapa`). */
-export const LONG_CUP_LIVE = false;
+export const LONG_CUP_LIVE = true;
+
+/** O ₽ que uma vitória na Rota rende na hora (os juros só entram ao abrir um Mercado). Resultado e store usam esta conta. */
+export const longWinEarnings = (score: readonly number[], sponsors: readonly string[] = []) =>
+    winEarnings(score[0], score[1], 0, sponsors);
 
 /** Cartões amarelos: na Copa longa uma derrota fora da Final não elimina; a segunda é o vermelho. */
 export const YELLOW_CARDS = 1;
@@ -52,18 +57,49 @@ export interface LongRunFields {
     told?: string[];
     /** Quem está fora e por quantas partidas (lesão, Creche, treino puxado). Fica no banco e não entra. */
     out?: Record<string, number>;
+    /** Por que cada um de `out` está fora (sem = save de antes: só "Fora"). Sobra de quem já voltou não importa. */
+    outWhy?: Record<string, OutWhy>;
     /** Evento da entrevista: o próximo rival entra mais fraco (−1) ou mais forte (+1). */
     rivalShift?: number;
     /** Eventos já vistos nesta copa (não repetem). */
     eventsSeen?: string[];
     /** Fase de grupos no Planalto: os 3 rivais do seu grupo, na ordem das rodadas. */
     group?: { rivals: TeamSetup[] } | null;
+    /** O que a última escolha de evento fez (a nota no mapa até a próxima casa). */
+    eventNote?: { id: string; choice: string; target?: string; cost: number } | null;
     /** Evento aberto (status 'event'). */
     event?: import('./long-events').LongEvent | null;
 }
 
+/** "Nova copa" no fim de uma copa: o mesmo modo (Rota começa outra Rota; Relâmpago e Copa do Dia, a Relâmpago). */
+export const nextCupMode = (run: { mode?: CupMode; daily?: string }): CupMode | undefined =>
+    run.daily ? undefined : run.mode;
+
 /** Está fora (machucado ou na Creche)? */
 export const isOut = (run: LongRunFields, uid: string) => (run.out?.[uid] ?? 0) > 0;
+
+/** Motivo de estar fora: carrinho no treino, Creche ou treino puxado. */
+export type OutWhy = 'lesao' | 'creche' | 'cansado';
+/** Selo de quem está fora: o motivo e quantas partidas faltam pra voltar (null = está disponível). */
+export const outOf = (run: LongRunFields, uid: string): { why: OutWhy | 'fora'; n: number } | null =>
+    isOut(run, uid) ? { why: run.outWhy?.[uid] ?? 'fora', n: run.out![uid] } : null;
+
+/**
+ * Troca na escalação que põe em quadra alguém que está fora? (quem está fora fica no banco; tirar ele da quadra pode)
+ * `a` e `b` são as duas vagas da troca.
+ */
+export function putsOutOnCourt(
+    run: LongRunFields & { lineup: string[]; bench: string[] },
+    a: { zone: 'lineup' | 'bench'; index: number },
+    b: { zone: 'lineup' | 'bench'; index: number },
+): boolean {
+    const uidAt = (r: typeof a) => (r.zone === 'lineup' ? run.lineup : run.bench)[r.index];
+    // quem vai pra quadra: o da vaga do banco, se a outra é da quadra
+    if (a.zone === b.zone) return false;
+    const fromBench = a.zone === 'bench' ? a : b;
+    const u = uidAt(fromBench);
+    return !!u && isOut(run, u);
+}
 /** Depois de uma partida, cada um que estava fora tem uma partida a menos pra voltar. */
 export function tickOut(out: Record<string, number> | undefined): Record<string, number> | undefined {
     if (!out) return out;
@@ -163,6 +199,21 @@ export function groupTable(
     return [...rows].sort(
         (x, y) => y.pts - x.pts || y.gf - y.ga - (x.gf - x.ga) || y.gf - x.gf || (y.you ? 1 : 0) - (x.you ? 1 : 0),
     );
+}
+
+/**
+ * Cartão da derrota que acabou de acontecer: amarelo (a 1ª no mapa, volta pro mapa) ou vermelho (a 2ª no mapa, fora).
+ * Cair no grupo ou perder a Final não é cartão.
+ */
+export function foulOf(run: {
+    mode?: CupMode;
+    status: string;
+    stage: number;
+    results: { won: boolean }[];
+}): 'yellow' | 'red' | null {
+    if (!isLong(run) || run.results.at(-1)?.won !== false) return null;
+    if (run.status === 'map') return 'yellow';
+    return run.status === 'eliminated' && run.stage < GROUP_START ? 'red' : null;
 }
 
 /** Passou do grupo? (os 2 primeiros vão pra Final; só faz sentido com as 3 rodadas jogadas) */

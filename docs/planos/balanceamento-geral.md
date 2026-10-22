@@ -1,3 +1,7 @@
+---
+description: Rascunho e decisões do balanceamento geral da 0.8.4: espécies, golpes, itens e posições.
+---
+
 # Balanceamento geral (próximo update, rascunho de 17/10/2026)
 
 Pedido do Miguel: o próximo update é o balanceamento do jogo inteiro (151 Pokémon, golpes, itens, habilidades,
@@ -177,3 +181,41 @@ Pivô (90 ⇒ 89; `SPECIES_TUNING` goleiro −5, desarme −6, chute +4, força 
 | Dragonite | Pivô 90 | Pivô 89 |
 
 Calibragem (400 partidas): 6,84 gols por jogo (meta 5–7), favorito vence 62,6% (meta 60–65%), goleadas 1,8%.
+
+## MTs mais fortes: aprovado pelo Miguel em 21/10 (opção B + A nas 3 piores), ENGINE_VERSION 10
+
+Queixa: ele "quase nunca fica em dúvida entre pegar" a MT. Medido: a MT saía 0,40 vez por partida e ensinar não mudava a
+vitória (+0,5 ±2,4 pp, 1600 pares). Regra em `src/engine/modifiers.ts` (`TAUGHT_MOVE`, carta = campo); dados em
+`src/engine/data.ts` (`MOVE_DATA_TUNING`). Vale também pras MTs do rival da copa (`equipRivalTms`).
+
+| O quê | Antes ⇒ depois |
+|---|---|
+| Golpe treinado (ensinado por MT) | +1 uso, força x1,3, a IA escolhe ele primeiro, selo MT onde o golpe aparece |
+| Mega Drain / BubbleBeam (poder) | 40 ⇒ 100 / 65 ⇒ 100 |
+| Fissure (acerto) | 30% ⇒ 50% |
+
+MT ensinada × não ensinada (mesmo time, mesma seed, 200 pares por MT, ±2σ):
+
+| MT | usos/jogo antes ⇒ depois | Δ vitória antes | Δ vitória depois |
+|---|---|---:|---:|
+| Bide | 0,96 ⇒ 1,86 | −1,0 ±8,0 | −1,5 ±8,3 |
+| BubbleBeam | 0,28 ⇒ 0,63 | 0,0 ±7,1 | +4,0 ±7,5 |
+| Thunderbolt | 0,27 ⇒ 0,56 | +1,5 ±5,8 | +1,0 ±6,6 |
+| Mega Drain | 0,28 ⇒ 0,71 | −1,0 ±5,8 | 0,0 ±5,5 |
+| Toxic | 0,65 ⇒ 1,19 | +1,5 ±7,2 | +6,0 ±7,8 |
+| Psywave | 0,23 ⇒ 0,58 | +2,5 ±6,1 | −3,0 ±6,8 |
+| Fire Blast | 0,35 ⇒ 0,63 | −2,5 ±6,9 | −0,5 ±6,9 |
+| Fissure | 0,20 ⇒ 0,39 | +3,0 ±6,6 | −1,5 ±7,3 |
+| **Todas** | **0,40 ⇒ 0,82** | **+0,5 ±2,4** | **+0,6 ±2,5** |
+
+O uso dobrou; o efeito na vitória continua dentro do ruído (um golpe a mais por partida pesa pouco num jogo de ~300
+passes). Nenhuma MT ficou dominante (a maior, Toxic +6, está dentro do erro). Calibrate n=200: gols/jogo 7,72 ⇒ 7,88,
+favorito 66,7% ⇒ 68,8% (ruído; o draft da IA não ensina MT). Formações (n=200): nenhuma mexeu mais que 2 pp
+(1-2-1 51/51, 2-2 50/50, 3-1 47/47, 4-0 50/51, 1-1-2 50/50, Ferrolho 53/51). Copa (360 copas, rival com MT): oitavas
+78% ⇒ 76%, quartas 70% ⇒ 65%, semi 59% ⇒ 61%, final 55% ⇒ 52%, título 18% ⇒ 16% (erro de ~±4 pp no título).
+
+## Golpe máximo: zona por posição, aprovada pelo Miguel em 22/10 (0.9.6, ENGINE_VERSION 10)
+
+Pivô 15 m, ala 18 m, fixo 22 m (xG mínimo 0,05 no fixo; `AGENCY.maxZone`). Hora certa por capitão: pivô 62% ⇒ 62%, ala
+34% ⇒ 88%, fixo 6% ⇒ 67% das partidas. Técnico robô (n=400): golpe máximo random +1,3 ⇒ +1,8 pp, good +2,5 ⇒ +3,5 pp
+(dentro do erro). Números, copa com o técnico IA do rival e ressalvas em [beira-da-quadra-2.md](beira-da-quadra-2.md).

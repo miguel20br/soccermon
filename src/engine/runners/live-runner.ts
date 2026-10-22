@@ -1,10 +1,9 @@
-import { SHOUT_KINDS } from '../agency';
 import type { Command, Controller } from '../commands';
 import type { MatchConfig } from '../config';
 import { AIController } from '../controllers/ai-controller';
 import { TACTIC_MODS } from '../effective';
 import { FORMATIONS } from '../formations';
-import { applyAgencyOrder, applyPendingSubs, createMatch, emit, snapshot, step } from '../match';
+import { applyAgencyOrder, applyFlyingSubs, applyPendingSubs, createMatch, emit, snapshot, step } from '../match';
 import { RIVAL_COACH, RivalCoach } from '../rival-coach';
 import {
     type AgencyOrder,
@@ -52,11 +51,12 @@ export const validOrder = (o: MatchOrder) =>
                 ? validAgency(o)
                 : Object.hasOwn(TACTIC_MODS, o.tactic)));
 
-/** Ordem da agência bem formada (se vale na hora, o motor decide: grito sobrando, barra cheia...). */
+/**
+ * Ordem da agência bem formada (se vale na hora, o motor decide: barra cheia, tempo já pedido...). Tipo que não existe
+ * (o grito, que saiu em 21/10/2026, vindo de uma tela antiga do Duelo) é ignorado.
+ */
 function validAgency(o: AgencyOrder): boolean {
     switch (o.kind) {
-        case 'shout':
-            return SHOUT_KINDS.includes(o.shout);
         case 'flyGk':
             return typeof o.on === 'boolean';
         case 'penalties':
@@ -66,8 +66,11 @@ function validAgency(o: AgencyOrder): boolean {
                 o.order.every((u) => typeof u === 'string') &&
                 new Set(o.order).size === o.order.length
             );
-        default:
+        case 'timeout':
+        case 'max':
             return true;
+        default:
+            return false;
     }
 }
 export const CORNER_PLANS: readonly CornerPlan[] = ['area', 'short', 'mixed'];
@@ -95,10 +98,10 @@ export class LiveRunner {
      * - a ordem do tick T vale no começo do tick T (quando `state.tick` chega a T); ordem que chega com o tick já
      *   passado (`addOrder` com T < `state.tick`) é ignorada;
      * - tática e instrução de escanteio sem limite de trocas (decidido em 18/10/2026); repetir a atual é ignorada;
-     * - substituição só com quem está no banco agora e em quadra agora (quem entrou não entra de novo; a que não
-     *   der certo na hora da bola parada é ignorada em `applyPendingSubs`);
-     * - prancheta (formação + vagas) sem limite, na próxima bola parada como a substituição; uma nova do mesmo time
-     *   substitui a que ainda está esperando.
+     * - substituição volante (21/10/2026): entra no tick dela, quem entra vem da lateral (`applyFlyingSubs`); só com
+     *   quem está no banco agora e em quadra agora (quem entrou não entra de novo; a que não der certo é ignorada);
+     * - prancheta (formação + vagas) sem limite, na hora como a substituição; uma nova do mesmo time substitui a que
+     *   ainda está esperando.
      */
     constructor(
         cfg: MatchConfig,
@@ -163,9 +166,10 @@ export class LiveRunner {
             else if (isAgencyOrder(order)) applyAgencyOrder(s, order);
             else this.changeTactic(order.team, order.tactic);
         }
-        // troca (e prancheta) pedida no intervalo entra no vestiário, não na 1ª bola parada do 2º tempo; no pedido
-        // de tempo, entra na hora (a bola está parada esperando o técnico)
+        // troca (e prancheta) pedida no intervalo entra no vestiário; no pedido de tempo, entra na hora (a bola está
+        // parada esperando o técnico); com a bola rolando, é volante; nas outras bolas paradas, entra na arrumação dela
         if (s.phase === 'halftime' || s.tick < s.pauseUntil) applyPendingSubs(s);
+        else if (s.phase === 'play' && s.pendingSubs.length) applyFlyingSubs(s);
         const commands: (Command | Command[])[] = s.players.map((p) =>
             (this.overrides.get(p.idx) ?? this.ai).decide(p.idx),
         );

@@ -1,18 +1,8 @@
-/* Beira da quadra (agência do técnico, experimento): no kit da transmissão (broadcast-kit.css). */
+/* Beira da quadra (agência do técnico): no kit da transmissão (broadcast-kit.css). */
 .sl {
     display: grid;
     gap: 8px;
     margin-top: 4px;
-}
-.sl-beta {
-    margin-left: 6px;
-    padding: 0 6px;
-    border-radius: 4px;
-    background: var(--yellow);
-    color: var(--bc-ink);
-    font-size: 9px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
 }
 .sl {
     min-width: 0;
@@ -21,36 +11,8 @@
     flex-wrap: wrap;
     row-gap: 2px;
 }
-.sl-count {
-    margin-left: auto;
-    text-align: right;
-}
-.sl-shouts {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 6px;
-}
-.bc .sl-shout {
-    flex-direction: column;
-    justify-content: center;
-    gap: 4px;
-    min-height: 54px;
-    padding: 4px;
-    text-align: center;
-}
-.bc .sl-shout b {
-    font-size: 11px;
-    line-height: 1.15;
-}
-.bc .sl-shout.on,
-.bc .sl-shout.on:disabled {
-    background: var(--yellow);
-    color: var(--bc-ink);
-    opacity: 1;
-    filter: none;
-}
-.sl-shout:disabled:not(.on),
-.sl-btn:disabled {
+.sl-btn:disabled,
+.sl-btn[aria-disabled="true"] {
     opacity: 0.45;
     cursor: not-allowed;
 }
@@ -122,8 +84,54 @@
 .sl-max.ready small {
     color: var(--bc-ink);
 }
+.sl-max.full {
+    outline: 2px dashed var(--yellow);
+    outline-offset: -1px;
+}
 .sl-max.live {
     outline: 3px solid #fff;
+}
+/* o botão grande na quadra: aparece só na hora certa, embaixo, no meio */
+.sl-cue {
+    position: absolute;
+    left: 50%;
+    bottom: 10%;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 8px 18px;
+    border: 3px solid var(--bc-ink);
+    border-radius: 10px;
+    background: var(--yellow);
+    box-shadow: 0 4px 0 var(--bc-ink);
+    color: var(--bc-ink);
+    font: inherit;
+    font-size: 15px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+    transform: translateX(-50%);
+    animation:
+        sl-cue-in 0.2s var(--ease-out),
+        sl-pulse 0.6s ease-in-out 0.2s infinite alternate;
+}
+.sl-cue:active {
+    transform: translateX(-50%) translateY(2px);
+}
+.sl-cue .hud-icon {
+    width: 20px;
+    height: 20px;
+}
+.sl-cue.is-leaving {
+    animation: leave-fade 180ms var(--ease-out) both;
+}
+@keyframes sl-cue-in {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) scale(0.8);
+    }
 }
 @keyframes sl-pulse {
     to {
@@ -192,40 +200,6 @@
     right: 8px;
     align-items: flex-end;
 }
-.sl-balloon {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px 4px 8px;
-    border: 2px solid var(--bc-ink);
-    border-left: 5px solid var(--tc);
-    border-radius: 10px;
-    background: var(--bc-paper);
-    color: var(--bc-ink);
-    font-size: 12px;
-    text-transform: uppercase;
-    box-shadow: 0 2px 0 var(--bc-ink);
-    animation: sl-pop 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
-}
-/* rabinho do balão */
-.sl-balloon::after {
-    content: "";
-    position: absolute;
-    bottom: -7px;
-    left: 14px;
-    border: 6px solid transparent;
-    border-top-color: var(--bc-ink);
-    border-bottom: 0;
-}
-.sl-side.t1 .sl-balloon {
-    border-left: 2px solid var(--bc-ink);
-    border-right: 5px solid var(--tc);
-}
-.sl-side.t1 .sl-balloon::after {
-    left: auto;
-    right: 14px;
-}
 .sl-tag {
     display: flex;
     align-items: center;
@@ -239,8 +213,7 @@
     letter-spacing: 0.5px;
     text-transform: uppercase;
 }
-.sl-tag .hud-icon,
-.sl-balloon .hud-icon {
+.sl-tag .hud-icon {
     width: 14px;
     height: 14px;
 }
@@ -288,9 +261,6 @@
 }
 
 /* painel do tempo e dos pênaltis (o mesmo do intervalo) */
-.sl-panel .sl-compact {
-    margin: 4px 0 8px;
-}
 .sl-pens {
     display: grid;
     gap: 4px;
@@ -369,9 +339,6 @@
 }
 
 @media (max-width: 360px) {
-    .bc .sl-shout b {
-        font-size: 10px;
-    }
     .sl-btn {
         gap: 4px;
         padding: 4px 5px;
@@ -385,6 +352,14 @@
     }
 }
 
+[data-reduce-motion="true"] .sl-cue {
+    animation: sl-fade-in 0.2s var(--ease-out);
+}
+@keyframes sl-fade-in {
+    from {
+        opacity: 0;
+    }
+}
 [data-reduce-motion="true"] .sl-max.ready,
 [data-reduce-motion="true"] .sl-maxbar i,
 [data-reduce-motion="true"] .sl-tag-max {

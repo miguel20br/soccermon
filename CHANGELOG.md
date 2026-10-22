@@ -1,5 +1,143 @@
 # Novidades
 
+## 0.9.8 · Gritos mais baixos
+
+### Som
+- Escolher no draft agora é silencioso: só a música toca
+- Os gritos dos Pokémon ficaram bem mais baixos, atrás da música
+
+## 0.9.7 · Música no jogo e Rota com escolhas
+
+### Música
+- Trilha própria em todas as telas: Abertura, draft, escalação, Mercado, partidas, Planalto e Sala de troféus
+- Brock, Misty e Equipe Rocket têm tema e música de partida próprios
+- Rota 1, Mt. Moon e Cerulean tocam a música da região no mapa
+- Virou o placar no 2º tempo? Toca a vinheta da virada
+- Volume da música nas Configurações (zero desliga)
+
+### Rota Índigo
+- O mapa agora tem bifurcações de verdade: quase toda rota tem escolha
+- Os treinadores da Rota jogam com o tipo deles (Ornitólogo tem pássaro)
+- Treino sem ninguém pra evoluir vira Treino de técnica: escolha um item ou MT
+- Resultado mostra o ₽ ganho, e o evento diz o que aconteceu
+- Mapa melhor no celular, em pé e deitado
+- Quem cai no grupo não vê mais "Vitória!"
+- Quem estava no meio de uma Rota pode ver rivais diferentes nas próximas casas
+
+### Primeira vez
+- Balões curtos mostram onde tocar na primeira vez em cada modo; dá pra pular e rever na Ajuda
+
+### Acessibilidade e consertos
+- Jogo inteiro pelo teclado, com foco visível, e o golpe máximo avisa o leitor de tela
+- "Sorteio" é o nome único pra sortear de novo
+- O Duelo ganhou cabeçalho e botão de voltar
+
+## 0.9.6 · Beira da quadra e MTs mais fortes
+
+### Beira da quadra
+- Golpe máximo: a barra enche com os lances do time e o botão acende na hora do chute do capitão
+- A zona do chute muda com a posição do capitão: pivô 15 m, ala 18 m, fixo 22 m
+- Capitão no gol vira defesa máxima: o próximo chute que ele alcança é defesa
+- Goleiro-linha: o goleiro sobe e o time ataca com 5 contra 4, com o gol vazio atrás
+- Pedido de tempo: 1 por tempo, o time recupera fôlego e as trocas valem na hora
+- O treinador rival da Copa usa as mesmas armas
+- Troca e prancheta valem na hora, com a bola rolando; os gritos do técnico saíram
+
+### MTs
+- O golpe ensinado por MT sai mais vezes, bate mais forte e ganha o selo MT
+- Mega Drain 40 ⇒ 100 de poder, BubbleBeam 65 ⇒ 100, Fissure acerta 30% ⇒ 50%
+
+## 0.9.5 · Cada formação joga de um jeito
+
+### Formações
+- Losango: triângulos e passe curto por dentro
+- Quadrado: a bola vai pelos lados
+- Linha de 3: o pivô vem buscar, faz a parede e quem chega bate de primeira
+- Rodízio: os quatro trocam de vaga o tempo todo e saem rápido no contra-ataque
+- Dois pivôs: jogo direto, chute logo depois de roubar a bola
+- Ferrolho: bloco baixo e fechado, saída rápida
+- Cada formação leva vantagem contra outra; o ícone na escalação mostra quando encaixa
+
+### Golpes
+- Nidorino, Venonat, Bellsprout, Weepinbell, Victreebel, Slowbro, Chansey e Jolteon têm golpes próprios
+
+## 0.9.4 · Duelo melhor de 3 e Rota polida
+
+### Duelo
+- Melhor de 3 com o mesmo time: a série tem placar de jogos no quadro
+- Jogo anulado é jogado de novo; sair entre os jogos dá vitória por W.O. pra quem ficou
+
+### Rota Índigo
+- Textos revistos: cartão amarelo explicado em uma regra só, "Fim da linha" e eventos mais curtos
+- O mapa usa a tela toda no PC
+- Quem está fora aparece com o motivo (lesão, creche ou cansaço) e não entra em quadra
+- Hall da Fama separado em Copa Relâmpago e Rota Índigo, com taça índigo própria
+
+## 0.9.3.2 · Rota Índigo na frente
+
+### Tela inicial
+- Rota Índigo e Copa Relâmpago lado a lado no PC, com a Rota maior e o selo NOVO
+- Duelo e Copa do Dia embaixo, um do lado do outro
+- No celular, o botão da Rota ocupa a largura toda
+
+## 0.9.3.1 · Pokédex com texto e Pokémon com mais caras
+
+### Coleção
+- A ficha do Pokémon e a carta aberta do Álbum trazem o texto da Pokédex
+
+### Pokémon mais vivos
+- O Pokémon grita quando você escolhe no draft, no VERSUS e na carta grande do pacote
+- Sala de troféus: à noite ele dorme de verdade; de dia às vezes senta ou come
+- Rota Índigo: o time cochila no Descanso, faz cara de dor no carrinho e fica tonto no treino puxado
+- Eliminado: o time aparece caído e o capitão com lágrima
+
+### Rota Índigo e Copa Relâmpago
+- O mapa mostra o capitão rival em cada casa de partida e o time dele em ícones
+- A chave da copa mostra o capitão de cada clube
+
+## 0.9.3 · Golpes revisados
+
+### Cada um com o seu tipo
+- Todo Pokémon leva pelo menos 1 golpe de cada tipo dele (quando a Gen 1 deixa)
+- Gengar: Confuse Ray ⇒ Sludge (Dream Eater, Hypnosis, Night Shade, Sludge)
+- Gastly e Haunter: Hypnosis ⇒ Toxic
+- Zubat e Golbat: Supersonic ⇒ Toxic
+- Nidoran♂, Nidorino e Nidoking: Focus Energy ⇒ Toxic; Nidoqueen: Counter ⇒ Toxic
+- Beedrill: Agility ⇒ Toxic
+- Charizard: Fire Blast ⇒ Fly
+- Hitmonchan: Agility ⇒ Counter
+- Gyarados: Splash ⇒ Hyper Beam
+
+### Sem golpe repetido
+- Charmander e Charmeleon: Fire Blast ⇒ Dragon Rage
+- Raichu: Thunderbolt ⇒ Agility
+- Arcanine: Flamethrower ⇒ Take Down
+- Hitmonlee: Jump Kick ⇒ Double Kick
+- Staryu: Hydro Pump ⇒ Psychic
+- Omanyte: Hydro Pump ⇒ Surf
+
+### Golpes que agora fazem o que prometem
+- Harden segura a bola no próximo carrinho (como o Defense Curl)
+- Slam alcança mais longe (2,8 m)
+- Amnesia sobe passe, chute e leitura
+- Tri Attack pode queimar, congelar ou paralisar
+- Explosion pega todo mundo a 4 m
+- Light Screen e Reflect não dão mais chute escondido
+- Fly e Dig com a bola levam ela 2 m (era 4)
+
+### Textos
+- Todo golpe explica o que faz em quadra com os números (quanto tempo, quem é imune, quanto acerta, o preço pra quem usa)
+
+## 0.9.2.2 · A Rota Índigo volta
+
+### Rota Índigo
+- A Rota está de volta: a 1ª partida quebrava a escalação (consertado) e ela foi jogada inteira antes de voltar
+- Continuar num evento "?" volta pro evento (antes caía na escalação e repetia a partida)
+- Cartão amarelo e derrota no grupo dizem DERROTA (não Fim da linha); o vermelho só sai na 2ª derrota no mapa
+- A copa salva, o campeão (x/8), o gol da copa e o card do título falam da partida da Rota, não das Oitavas
+- Nova copa no fim de uma Rota começa outra Rota
+- Titular machucado: o aviso aparece do lado do Jogar
+
 ## 0.9.2.1 · Álbum leve e vitrine fácil
 
 ### Álbum

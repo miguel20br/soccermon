@@ -6,10 +6,12 @@ import { createInstance, evolutionBonus, type PokemonInstance, viewInstance } fr
 import { Rng } from '../../engine/rng';
 import { type Edition, EVENT_TYPES, ICONS, type Special, specialBonus } from '../../engine/specials';
 import { SPONSOR_IDS } from '../../engine/sponsors';
+import { isProtectedMove, teachMove } from '../../engine/tm';
 import { useT } from '../../i18n/react';
 import { type CareerSeal, type DexEntry, EMPTY_ENTRY } from '../../store/profile';
 import { PackArt } from '../components/CardPack';
 import { FoulCard } from '../components/FoulCard';
+import { FutCard } from '../components/FutCard';
 import { PokeCard2 } from '../components/PokeCard2';
 import { SponsorCard, SponsorSlots } from '../components/SponsorCard';
 import { sealTip } from '../profile/seal-tip';
@@ -21,6 +23,8 @@ import { TYPE_PT } from '../type-colors';
  * (?cards=1&arquivo=1, `CardArchive.tsx`, carregado só nessa rota).
  */
 const CardArchive = lazy(() => import('./CardArchive').then((m) => ({ default: m.CardArchive })));
+/** Proposta da edição Retrô (sprite de Game Boy): pedaço à parte, só na galeria. */
+const RetroCards = lazy(() => import('./RetroCards').then((m) => ({ default: m.RetroCards })));
 
 function sample(speciesId: number, opts: { shiny?: boolean; item?: string | null } = {}): PokemonInstance {
     const inst = createInstance(speciesId, new Rng(`galeria-${speciesId}`));
@@ -28,6 +32,13 @@ function sample(speciesId: number, opts: { shiny?: boolean; item?: string | null
 }
 
 const SHOWCASE_DEFAULT = sample(150, { item: 'twistedspoon' });
+
+/** Golpe treinado: Clefairy com Thunderbolt ensinado por MT (selo "MT" onde o golpe aparece). */
+const TAUGHT_SAMPLE = (() => {
+    const inst = sample(35);
+    const slot = inst.moves.findIndex((_, i) => !isProtectedMove(inst, i));
+    return teachMove(inst, 'thunderbolt', slot) ?? inst;
+})();
 
 /** A mesma carta em cada edição especial (pra vitrine e pra galeria). */
 function withEdition(inst: PokemonInstance, ed: Edition | 'none'): PokemonInstance {
@@ -317,6 +328,9 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
             </div>
 
             <div className="cg-v06">
+                <Suspense fallback={null}>
+                    <RetroCards />
+                </Suspense>
                 <section className="panel" id="cartoes">
                     <h2>Cartão amarelo e vermelho (Copa longa, tela de resultado)</h2>
                     <p className="tactic-desc">
@@ -450,6 +464,18 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
                                 <figcaption className="muted">{s.label}</figcaption>
                             </figure>
                         ))}
+                    </div>
+                </section>
+                <section className="panel" id="mt">
+                    <h2>Golpe treinado (MT)</h2>
+                    <p className="tactic-desc">
+                        Golpe ensinado por MT: +1 uso por partida, 30% mais forte e a IA usa ele primeiro. O selo MT
+                        aparece em todo lugar que mostra o golpe (carta, painel, prévia). Toque na carta pra ver a
+                        lista.
+                    </p>
+                    <div className="cg-row">
+                        <FutCard inst={TAUGHT_SAMPLE} fullButton />
+                        <PokeCard2 inst={TAUGHT_SAMPLE} variant="tcg" size="md" />
                     </div>
                 </section>
                 <section className="panel">

@@ -185,7 +185,19 @@ export function applyModifiers(base: Attributes, mods: readonly AttrModifier[], 
     return out;
 }
 
-/** Golpes fortalecidos ou travados (item de tipo, Technician, Choice Band). */
+/**
+ * Golpe treinado (ensinado por MT, `inst.taught`; Miguel, 22/10/2026): +1 uso por partida, força x1,3 e a IA escolhe
+ * ele primeiro entre os golpes que servem na hora. Antes a MT saía 0,38 vez por partida e ensinar não mudava nada.
+ */
+export const TAUGHT_MOVE = { power: 1.3, uses: 1 } as const;
+
+export const isTaught = (inst: PokemonInstance, moveId: string) => inst.taught?.includes(moveId) ?? false;
+
+/** Usos do golpe por partida (sem a trava da Choice Band, que o motor aplica por vaga). */
+export const moveUses = (inst: PokemonInstance, moveId: string) =>
+    moveProfile(moveId).uses + (isTaught(inst, moveId) ? TAUGHT_MOVE.uses : 0);
+
+/** Golpes fortalecidos ou travados (item de tipo, Technician, golpe treinado, Choice Band). */
 export function moveModifiers(inst: PokemonInstance): MoveModifier[] {
     const out: MoveModifier[] = [];
     const ability = abilityEffect(inst.ability);
@@ -203,6 +215,8 @@ export function moveModifiers(inst: PokemonInstance): MoveModifier[] {
                 factor: ability.weakMoveBoost,
             });
         }
+        if (isTaught(inst, m))
+            out.push({ moveId: m, label: 'Golpe treinado (MT): +30%', ref: 'mt', factor: TAUGHT_MOVE.power });
         if (inst.item === 'choiceband' && i > 0)
             out.push({ moveId: m, label: 'Choice Band: travado', ref: 'choiceband', factor: 0 });
     });

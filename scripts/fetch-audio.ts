@@ -1,9 +1,9 @@
 /**
  * Gritos (legacy 8-bit da Gen 1 + latest) do PokeAPI/cries e partículas de efeito do Pokémon Showdown.
  * Tudo é hospedado localmente (sem hotlink).
- * Uso: npm run assets:audio
+ * Uso: npm run assets:audio [-- --gen 1|2] (sem --gen: todas as gerações)
  */
-import { downloadAll, ids151 } from './lib/download';
+import { downloadAll, idsFromArgs } from './lib/download';
 
 const CRIES = 'https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon';
 const FX = 'https://play.pokemonshowdown.com/fx';
@@ -61,7 +61,7 @@ export const FX_NAMES = [
     'stare',
 ];
 
-const cryJobs = ids151.flatMap((id) => [
+const cryJobs = idsFromArgs().flatMap((id) => [
     { url: `${CRIES}/legacy/${id}.ogg`, dest: `public/assets/cries/legacy/${id}.ogg` },
     { url: `${CRIES}/latest/${id}.ogg`, dest: `public/assets/cries/latest/${id}.ogg` },
 ]);

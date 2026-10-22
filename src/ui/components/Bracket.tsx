@@ -1,11 +1,36 @@
 import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import type { BracketMatch, BracketTeam } from '../../engine/bracket';
+import type { PokemonInstance } from '../../engine/instance';
+import type { TeamSetup } from '../../engine/state';
 import { clubName, stageName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { HudIcon } from './MatchHud';
+import { MonIcon } from './MonIcon';
 import '../bracket.css';
 
 const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
+
+const iconOf = (p?: PokemonInstance) => (p ? { speciesId: p.speciesId, shiny: p.shiny } : undefined);
+
+/** Os rivais da copa na chave, com o ícone do capitão de cada um. */
+export const bracketRivals = (opponents: readonly TeamSetup[]): BracketTeam[] =>
+    opponents.map((o) => ({
+        name: o.name,
+        color: o.color,
+        icon: iconOf(o.lineup.find((p) => p.uid === o.captainUid) ?? o.lineup[0]),
+    }));
+
+/** O seu time na chave, com o ícone do seu capitão. */
+export const bracketYou = (
+    name: string,
+    color: number,
+    picks: readonly PokemonInstance[],
+    captainUid: string | null,
+) => ({
+    name,
+    color,
+    icon: iconOf(picks.find((p) => p.uid === captainUid)),
+});
 
 /**
  * Chave da Copa Relâmpago (docs/planos/campeonato.md): uma coluna por fase (oitavas → final), o seu caminho em
@@ -68,7 +93,14 @@ function Row({ team, goals, won }: { team: BracketTeam; goals?: number; won: boo
             style={{ '--tc': hex(team.color) } as CSSProperties}
         >
             <i />
-            <span className="br-name">{team.you ? team.name : clubName(team.name)}</span>
+            {team.icon ? (
+                <span className="br-name has-icon">
+                    <MonIcon id={team.icon.speciesId} shiny={team.icon.shiny} />
+                    <span>{team.you ? team.name : clubName(team.name)}</span>
+                </span>
+            ) : (
+                <span className="br-name">{team.you ? team.name : clubName(team.name)}</span>
+            )}
             <b>{goals ?? ''}</b>
         </span>
     );

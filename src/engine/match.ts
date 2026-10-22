@@ -1,5 +1,5 @@
 import { abilityEffect, isStatusImmune } from './abilities';
-import { AGENCY, maxCharge, SHOUT_KINDS, SHOUTS } from './agency';
+import { AGENCY, inMaxZone, maxCharge } from './agency';
 import {
     type AttrKey,
     aerialScore,
@@ -18,8 +18,28 @@ import { FORMATIONS, formationOf } from './formations';
 import type { PokemonInstance } from './instance';
 import { ITEMS } from './items';
 import { type ActiveLink, computeLinks } from './links';
-import { applyModifiers, attributeModifiers, captainFactor } from './modifiers';
-import { DRAIN, DRAWBACK, hasTrait, moveProfile, OHKO, type StatusKind, MOVE_TUNING as T, TRAP } from './moves';
+import {
+    applyModifiers,
+    attributeModifiers,
+    captainFactor,
+    isTaught,
+    TAUGHT_MOVE,
+    moveUses as usesOf,
+} from './modifiers';
+import {
+    BOOST_TO_ATTR,
+    DRAIN,
+    DRAWBACK,
+    hasTrait,
+    moveProfile,
+    OHKO,
+    SECONDARY_PICK,
+    STATUS_DURATION,
+    type StatusKind,
+    selfBoostsOf,
+    MOVE_TUNING as T,
+    TRAP,
+} from './moves';
 import { Rng } from './rng';
 import { SIGNATURE } from './signature-moves';
 import {
@@ -45,6 +65,7 @@ import {
     type PlayerState,
     type SetPiece,
     STATUS_CODE,
+    type SubOrder,
     type TeamSetup,
     type TraitFx,
     type TraitState,
@@ -160,7 +181,7 @@ function createPlayer(
     const attr = applyModifiers(computeAttributes(sp, inst.level), mods, role);
     const ability = abilityEffect(inst.ability);
     const item = inst.item && ITEMS[inst.item] ? inst.item : null;
-    const moveUses = inst.moves.map((m, i) => (item === 'choiceband' && i > 0 ? 0 : moveProfile(m).uses));
+    const moveUses = inst.moves.map((m, i) => (item === 'choiceband' && i > 0 ? 0 : usesOf(inst, m)));
     return {
         idx,
         team,
@@ -491,7 +512,7 @@ export function step(s: MatchState, commands: (Command | Command[])[]) {
     if (s.finished) return;
     const dt = 1 / s.cfg.tickRate;
     s.tick++;
-    if (s.teams[0].agency.max || s.teams[1].agency.max) expireMax(s);
+    if (s.teams[0].agency.max || s.teams[1].agency.max) updateMax(s);
     for (const t of s.teams) {
         t.screens.light = Math.max(0, t.screens.light - dt);
         t.screens.reflect = Math.max(0, t.screens.reflect - dt);
@@ -655,14 +676,10 @@ function tickTimers(s: MatchState, p: PlayerState, dt: number) {
         (0.0008 + 0.0035 * speedFrac * speedFrac) *
         (1.3 - (0.6 * p.attr.stamina) / 99) *
         TACTIC_MODS[s.teams[p.team].tactic].drain;
-    const shout = s.teams[p.team].agency.shout;
-    const sfx = shout && s.tick < shout.until ? SHOUTS[shout.kind] : null;
-    if (sfx) drain *= sfx.drain;
     for (const o of s.players) {
         if (o.team !== p.team && o.ability.drainAura && dist(o.pos, p.pos) < 4) drain *= o.ability.drainAura;
     }
-    let regen = (p.ability.regen ?? 0) + (p.item === 'leftovers' ? 0.0015 : 0);
-    if (sfx) regen += sfx.regen;
+    const regen = (p.ability.regen ?? 0) + (p.item === 'leftovers' ? 0.0015 : 0);
     p.energy = clamp(p.energy - drain * dt + regen * dt, 0, 1);
     if (p.ability.clutch && !p.clutchAnnounced && p.energy < 0.45 && s.phase === 'play') {
         p.clutchAnnounced = true;
@@ -1041,9 +1058,9 @@ function kick(
         ball.assistCandidate = p.idx;
         emit(s, { type: 'pass', by: p.idx, to: receiverId ?? null });
     } else {
-        // golpe máximo do capitão: o chute da janela sai com a versão máxima do golpe dele
+        // golpe máximo do capitão: armado, o chute da zona sai com a versão máxima do golpe dele
         const max = s.teams[p.team].agency.max;
-        if (max && max.idx === p.idx && p.captain && p.role !== 'GK') maxShot(s, p);
+        if (max && !max.live && max.idx === p.idx && p.captain && p.role !== 'GK' && inMaxZoneOf(s, p)) maxShot(s, p);
         const shooting = eff(s, p, 'shooting');
         const bonus = p.shotBonus;
         // Scope Lens: chute crítico
@@ -1250,8 +1267,8 @@ function tryTackle(s: MatchState, p: PlayerState, targetId: number) {
             if (TRAP.has(id)) trap(carrier, id);
             // nocaute (Fissure, Guillotine, Horn Drill): fica um bom tempo no chão
             if (OHKO.has(id)) {
-                carrier.stun = Math.max(carrier.stun, 2.2);
-                setAction(carrier, Action.Hurt, 2.2);
+                carrier.stun = Math.max(carrier.stun, T.ohkoStun);
+                setAction(carrier, Action.Hurt, T.ohkoStun);
             }
             // Seismic Toss: arremesso de tempo fixo, sem depender da força
             if (hasTrait(id, 'throw')) {
@@ -1337,26 +1354,6 @@ export function nearestOpponent(
     return best;
 }
 
-const BOOST_TO_ATTR: Record<string, AttrKey[]> = {
-    atk: ['shooting', 'strength'],
-    def: ['tackling', 'strength'],
-    spa: ['passing', 'shooting'],
-    spd: ['positioning'],
-    spe: ['pace'],
-    accuracy: ['passing'],
-    evasion: ['dribble'],
-};
-
-const STATUS_DURATION: Record<string, number> = {
-    par: 6,
-    slp: 2.5,
-    psn: 10,
-    brn: 8,
-    frz: 2.5,
-    confusion: 4,
-    infatuation: 1.5,
-};
-
 export function applyStatus(
     s: MatchState,
     target: PlayerState,
@@ -1431,6 +1428,9 @@ function applySecondary(s: MatchState, user: PlayerState, target: PlayerState, m
     if (!sec) return false;
     const chance = Math.min(0.65, (sec.chance / 100) * 3 + 0.05) * (user.ability.statusChanceBoost ?? 1);
     if (!s.rng.chance(chance)) return false;
+    // Tri Attack: sorteia queimar, congelar ou paralisar
+    const pick = SECONDARY_PICK[moveId];
+    if (pick) return applyStatus(s, target, s.rng.pick(pick), user.idx, moveId);
     if (sec.status && SECONDARY_STATUS[sec.status]) {
         return applyStatus(s, target, SECONDARY_STATUS[sec.status], user.idx, moveId);
     }
@@ -1444,7 +1444,7 @@ function applySecondary(s: MatchState, user: PlayerState, target: PlayerState, m
     if (sec.boosts && !target.ability.immuneDebuff) {
         for (const [stat, stages] of Object.entries(sec.boosts)) {
             for (const attr of BOOST_TO_ATTR[stat] ?? []) {
-                target.buffs.push({ attr, factor: 1 + 0.1 * (stages ?? -1), timer: 10 });
+                target.buffs.push({ attr, factor: 1 + 0.1 * (stages ?? -1), timer: T.debuffTime });
             }
         }
         return true;
@@ -1527,9 +1527,11 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0, ch
     const technician =
         p.ability.weakMoveBoost && prof.data.power > 0 && prof.data.power <= 60 ? p.ability.weakMoveBoost : 1;
     const typeItem = p.item && ITEMS[p.item]?.type === prof.data.type ? 1.2 : 1;
+    // golpe treinado (MT): o que o próprio jogador usa, não o que o Metronome/Mimic sorteia
+    const taught = depth === 0 && isTaught(p.inst, moveId) ? TAUGHT_MOVE.power : 1;
     const k = charged
-        ? Math.min(1.6, prof.strength * technician * typeItem * T.chargePower)
-        : Math.min(1.25, prof.strength * technician * typeItem);
+        ? Math.min(1.6, prof.strength * technician * typeItem * taught * T.chargePower)
+        : Math.min(1.25, prof.strength * technician * typeItem * taught);
     let target: PlayerState | null = null;
     let effectiveness: number | null = null;
     let hit = true;
@@ -1561,9 +1563,9 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0, ch
                 hit = false;
                 // Jump Kick/High Jump Kick: errou, se machucou
                 if (DRAWBACK[moveId] === 'crash') {
-                    p.energy = Math.max(0, p.energy - 0.08);
-                    p.stun = Math.max(p.stun, 0.6);
-                    setAction(p, Action.Hurt, 0.6);
+                    p.energy = Math.max(0, p.energy - T.crashEnergy);
+                    p.stun = Math.max(p.stun, T.crashStun);
+                    setAction(p, Action.Hurt, T.crashStun);
                 }
                 break;
             }
@@ -1680,9 +1682,9 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0, ch
             }
             break;
         case 'buff':
-            for (const [stat, stages] of Object.entries(prof.data.selfBoosts ?? { atk: 1 })) {
+            for (const [stat, stages] of Object.entries(selfBoostsOf(moveId))) {
                 for (const attr of BOOST_TO_ATTR[stat] ?? []) {
-                    p.buffs.push({ attr, factor: 1 + 0.07 * Math.max(1, stages ?? 1), timer: 12 });
+                    p.buffs.push({ attr, factor: 1 + T.buffStep * Math.max(1, stages ?? 1), timer: T.buffTime });
                 }
             }
             // paredes valem para o time inteiro
@@ -1721,7 +1723,7 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0, ch
                 landedOn++;
                 for (const [stat, stages] of Object.entries(prof.data.targetBoosts ?? {})) {
                     for (const attr of BOOST_TO_ATTR[stat] ?? []) {
-                        v.buffs.push({ attr, factor: 1 + 0.08 * (stages ?? -1), timer: 10 });
+                        v.buffs.push({ attr, factor: 1 + T.debuffStep * (stages ?? -1), timer: T.debuffTime });
                     }
                 }
                 // Leer: a encarada trava um instante
@@ -1778,7 +1780,7 @@ function moveEffect(s: MatchState, p: PlayerState, moveId: string, depth = 0, ch
             break;
         }
         case 'heal': {
-            const gain = moveId === 'rest' ? 1 : 0.3 * k + 0.1;
+            const gain = moveId === 'rest' ? 1 : T.healBase + T.healPower * k;
             if (moveId === 'rest') {
                 p.energy = 1;
                 applyStatus(s, p, 'slp', p.idx, 'rest');
@@ -1944,24 +1946,25 @@ function drawback(s: MatchState, p: PlayerState, moveId: string) {
     switch (DRAWBACK[moveId]) {
         case 'faint':
             // explode em área: empurra quem estiver perto e fica no chão sem fôlego
+            // Explosion pega mais longe que Self-Destruct (Gen 1: 170 × 130)
             for (const o of s.players) {
-                if (o.idx !== p.idx && !hidden(o) && dist(o.pos, p.pos) < 3) {
+                if (o.idx !== p.idx && !hidden(o) && dist(o.pos, p.pos) < (T.blastRadius[moveId] ?? 3)) {
                     o.stun = Math.max(o.stun, 0.8);
                     knockback(s, o, p, 1.8, moveId);
                 }
             }
-            p.energy = Math.min(p.energy, 0.15);
-            p.stun = Math.max(p.stun, 1.6);
-            setAction(p, Action.Hurt, 1.6);
+            p.energy = Math.min(p.energy, T.faintEnergy);
+            p.stun = Math.max(p.stun, T.faintStun);
+            setAction(p, Action.Hurt, T.faintStun);
             break;
         case 'recharge':
-            p.stun = Math.max(p.stun, 0.9);
+            p.stun = Math.max(p.stun, T.rechargeStun);
             break;
         case 'recoil':
-            p.energy = Math.max(0, p.energy - 0.04);
+            p.energy = Math.max(0, p.energy - T.recoilEnergy);
             break;
         case 'rampage':
-            if (s.rng.chance(0.5)) applyStatus(s, p, 'confusion', p.idx, moveId);
+            if (s.rng.chance(T.rampageChance)) applyStatus(s, p, 'confusion', p.idx, moveId);
             break;
     }
 }
@@ -2255,7 +2258,12 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
         if (p.role === 'GK') {
             // chute que ia para fora não vira "defesa" (era 1/3 das defesas e gerava "QUE DEFESA!" à toa)
             if (shot.gkChecked || !shot.onTarget) continue;
-            const reach = (0.55 + (1.0 * eff(s, p, 'goalkeeping')) / 99) * (lob ? T.lobGkReach : 1);
+            // defesa máxima (beira da quadra): alcança bem mais longe e não deixa passar
+            const maxSave = gkMaxLive(s, p);
+            const reach =
+                (0.55 + (1.0 * eff(s, p, 'goalkeeping')) / 99) *
+                (lob ? T.lobGkReach : 1) *
+                (maxSave ? AGENCY.maxGkReach : 1);
             if (d > reach) continue;
             shot.gkChecked = true;
             const gkTypeMult = fixed ? 1 : typeMultiplier(typesOf(p), [shot.moveType]);
@@ -2278,9 +2286,9 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
                 p.itemUsed = true;
                 emit(s, { type: 'item', by: p.idx, item: 'focussash', effect: 'save' });
             }
-            if (sash || s.rng.chance(pSave)) {
+            if (maxSave || sash || s.rng.chance(pSave)) {
                 p.stats.saves++;
-                const caught = felt < 17 && s.rng.chance(0.55 + (0.3 * gk) / 99);
+                const caught = maxSave || (felt < 17 && s.rng.chance(0.55 + (0.3 * gk) / 99));
                 emit(s, { type: 'save', by: p.idx, shooter: shooter.idx, caught });
                 ball.shot = null;
                 // o contato nunca fica atrás do goleiro (entre ele e o gol): a bola parecia ter passado e virava
@@ -2297,6 +2305,7 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
                     ball.lastTouch = p.idx;
                     ball.assistCandidate = null;
                     p.ai.holdUntil = s.tick + Math.round(0.8 * s.cfg.tickRate);
+                    if (maxSave) gkMaxSave(s, p);
                 } else if (!tryRebound(s, shooter, moveId, ball.pos)) {
                     ball.lastTouch = p.idx;
                     ball.lastKick = { by: p.idx, kind: 'clear', tick: s.tick };
@@ -3035,8 +3044,11 @@ function endHalf(s: MatchState) {
     s.finished = true;
 }
 
-/** Troca `out` pelo reserva `inst` (mesma vaga e posição). */
-function substitute(s: MatchState, out: PlayerState, inst: PokemonInstance) {
+/**
+ * Troca `out` pelo reserva `inst` (mesma vaga e posição). `fly`: troca volante, com a bola rolando: quem entra vem da
+ * lateral perto do banco (o goleiro troca no lugar, pra não deixar o gol vazio).
+ */
+function substitute(s: MatchState, out: PlayerState, inst: PokemonInstance, fly = false) {
     const rt = s.teams[out.team];
     rt.bench = rt.bench.filter((b) => b.uid !== inst.uid);
     // quem entra assume a vaga na escalação: sinergias, duplas e capitão passam a contar com ele
@@ -3044,6 +3056,11 @@ function substitute(s: MatchState, out: PlayerState, inst: PokemonInstance) {
     const fresh = createPlayer(out.idx, out.team, out.slot, inst, out.role, bonusesOf(s, out.team));
     s.subbedOut.push(out);
     fresh.pos = out.pos;
+    // entra pela lateral, de frente pra quadra
+    if (fly && out.role !== 'GK') {
+        fresh.pos = benchSpot(s, out.team);
+        fresh.heading = v(0, 1);
+    }
     s.players[out.idx] = fresh;
     emit(s, {
         type: 'sub',
@@ -3056,6 +3073,7 @@ function substitute(s: MatchState, out: PlayerState, inst: PokemonInstance) {
         outSpeciesId: out.inst.speciesId,
         inSpeciesId: inst.speciesId,
         inShiny: inst.shiny,
+        ...(fly ? { fly } : {}),
     });
     transformDittos(s, [fresh]);
     refreshTeamBonuses(s, out.team);
@@ -3112,6 +3130,37 @@ export function applyPendingSubs(s: MatchState): boolean {
     }
     refreshAuras(s);
     return changed;
+}
+
+/** Zona de substituição do time: na lateral de cima, perto do meio, do lado do campo dele (onde a tela põe o banco). */
+export const benchSpot = (s: MatchState, team: 0 | 1): Vec2 =>
+    v(s.cfg.pitch.length / 2 - attackSign(team) * BENCH_OFFSET, 0.4);
+const BENCH_OFFSET = 3.2;
+
+/**
+ * Troca volante e prancheta com a bola rolando (21/10/2026): entram na hora, cada um corre pro lugar novo. A troca de
+ * quem está com a bola espera ele soltar.
+ */
+export function applyFlyingSubs(s: MatchState) {
+    const wait: (SubOrder | LineupOrder)[] = [];
+    let changed = false;
+    for (const order of s.pendingSubs) {
+        if (order.kind === 'lineup') {
+            changed = applyLineup(s, order) || changed;
+            continue;
+        }
+        const out = s.players.find((p) => p.team === order.team && (p.origin ?? p.inst).uid === order.outUid);
+        const inst = s.teams[order.team].bench.find((b) => b.uid === order.inUid);
+        if (!out || !inst) continue;
+        if (s.ball.owner === out.idx) {
+            wait.push(order);
+            continue;
+        }
+        substitute(s, out, inst, true);
+        changed = true;
+    }
+    s.pendingSubs = wait;
+    if (changed) refreshAuras(s);
 }
 
 /** No intervalo, o time da IA tira o mais cansado se ele estiver bem abaixo do resto. */
@@ -3184,13 +3233,9 @@ function penaltyShootout(s: MatchState) {
 // ---------------------------------------------------------------- agência do técnico (experimento, agency.ts)
 export function freshAgency(): AgencyRuntime {
     return {
-        shout: null,
-        shoutsUsed: 0,
-        shoutReadyAt: 0,
         timeouts: [false, false],
         timeoutPending: false,
         flyGk: false,
-        flyGkPending: null,
         max: null,
         penaltyOrder: null,
     };
@@ -3210,21 +3255,16 @@ export function applyAgencyOrder(s: MatchState, o: AgencyOrder) {
     if (s.phase === 'fulltime') return;
     const ag = s.teams[o.team].agency;
     switch (o.kind) {
-        case 'shout':
-            if (!SHOUT_KINDS.includes(o.shout) || ag.shoutsUsed >= AGENCY.shoutLimit || s.tick < ag.shoutReadyAt)
-                return;
-            ag.shoutsUsed++;
-            ag.shout = { kind: o.shout, until: s.tick + AGENCY.shoutTicks };
-            ag.shoutReadyAt = s.tick + AGENCY.shoutCooldownTicks;
-            emit(s, { type: 'shout', team: o.team, shout: o.shout });
-            return;
         case 'timeout':
             if (s.phase === 'halftime' || ag.timeoutPending || ag.timeouts[s.half - 1]) return;
             ag.timeoutPending = true;
             return;
         case 'flyGk': {
-            if (o.on === (ag.flyGkPending ?? ag.flyGk)) return;
-            ag.flyGkPending = o.on === ag.flyGk ? null : o.on;
+            // na hora, como a troca volante (21/10/2026): no fim do jogo, esperar a bola parar gastava o tempo todo
+            if (o.on === ag.flyGk) return;
+            ag.flyGk = o.on;
+            const gk = s.players.find((p) => p.team === o.team && p.role === 'GK');
+            emit(s, { type: 'flyGk', team: o.team, on: o.on, by: gk?.idx ?? -1 });
             return;
         }
         case 'max':
@@ -3236,18 +3276,11 @@ export function applyAgencyOrder(s: MatchState, o: AgencyOrder) {
     }
 }
 
-/** Bola parada: entram o pedido de tempo (fôlego e parada) e a troca do goleiro-linha. */
+/** Bola parada: entra o pedido de tempo (fôlego e parada). */
 function applyDeadBallAgency(s: MatchState): boolean {
     let changed = false;
     for (const team of [0, 1] as const) {
         const ag = s.teams[team].agency;
-        if (ag.flyGkPending !== null) {
-            ag.flyGk = ag.flyGkPending;
-            ag.flyGkPending = null;
-            const gk = s.players.find((p) => p.team === team && p.role === 'GK');
-            emit(s, { type: 'flyGk', team, on: ag.flyGk, by: gk?.idx ?? -1 });
-            changed = true;
-        }
         if (ag.timeoutPending) {
             ag.timeoutPending = false;
             ag.timeouts[s.half - 1] = true;
@@ -3274,33 +3307,55 @@ export function maxMoveOf(moves: readonly string[], speciesId: number): string |
     return moves.find(attack) ?? (sig && moves.includes(sig) ? sig : (moves[0] ?? null));
 }
 
+/**
+ * `p` está na zona do golpe máximo (perto do gol atacado e com ângulo), com a zona da posição `role` (padrão: a de `p`,
+ * o capitão de linha; na defesa máxima, `p` é o rival com a bola e a zona é a do goleiro).
+ */
+export const inMaxZoneOf = (s: MatchState, p: PlayerState, role: Position = p.role) =>
+    inMaxZone(p.pos.x, p.pos.y, p.team, s.cfg.pitch, role);
+
+/**
+ * Pede o golpe máximo: com a barra cheia, fica armado `maxArmTicks`. O de linha sai no chute da zona (a IA chuta na
+ * hora, `AIController.carrier`); o do goleiro vira a defesa máxima quando um rival com a bola entra na zona.
+ */
 function startMax(s: MatchState, team: 0 | 1) {
     const ag = s.teams[team].agency;
     const cap = s.players.find((p) => p.team === team && p.captain);
     if (!cap || ag.max) return;
     const c = maxCharge(s.events, team, s.tick, s.cfg.teamSize);
     if (c.used || c.active || c.charge < 1) return;
-    ag.max = { idx: cap.idx, until: s.tick + AGENCY.maxTicks };
-    const timer = AGENCY.maxTicks / s.cfg.tickRate;
-    const buffs: Partial<Record<AttrKey, number>> =
-        cap.role === 'GK' ? { goalkeeping: AGENCY.maxGkBuff } : AGENCY.maxBuff;
-    for (const [attr, factor] of Object.entries(buffs) as [AttrKey, number][])
-        cap.buffs.push({ attr, factor, timer, src: 'max' });
-    emit(s, { type: 'max', team, by: cap.idx, phase: 'start', moveId: maxMoveOf(cap.inst.moves, cap.inst.speciesId) });
+    ag.max = { idx: cap.idx, until: s.tick + AGENCY.maxArmTicks, live: false };
 }
 
-/** A janela do golpe máximo acabou: o do goleiro valeu (defesa reforçada); o de linha não saiu e volta pela metade. */
-function expireMax(s: MatchState) {
+/**
+ * A cada tick com golpe máximo pedido: o goleiro arma a defesa máxima quando o rival com a bola entra na zona; o pedido
+ * que passou sem a hora certa some sem gastar nada; a defesa máxima sem chute volta pela metade.
+ */
+function updateMax(s: MatchState) {
     for (const team of [0, 1] as const) {
         const ag = s.teams[team].agency;
-        if (!ag.max || s.tick < ag.max.until) continue;
-        const by = ag.max.idx;
-        ag.max = null;
-        emit(s, { type: 'max', team, by, phase: s.players[by].role === 'GK' ? 'hit' : 'miss' });
+        const max = ag.max;
+        if (!max) continue;
+        const cap = s.players[max.idx];
+        if (!cap.captain || s.tick >= max.until) {
+            ag.max = null;
+            if (max.live) emit(s, { type: 'max', team, by: max.idx, phase: 'miss' });
+            continue;
+        }
+        if (max.live || cap.role !== 'GK' || s.phase !== 'play') continue;
+        // o rival com a bola na zona; ou o chute dele da zona ainda no ar (tocou na folga do botão, depois do chute:
+        // sem isso o toque não fazia nada, visto jogando em 22/10/2026)
+        const shot = s.ball.owner === null ? s.ball.shot : null;
+        const carrier =
+            s.ball.owner !== null ? s.players[s.ball.owner] : shot && !shot.gkChecked ? s.players[shot.by] : null;
+        if (!carrier || carrier.team === team || !inMaxZoneOf(s, carrier, 'GK')) continue;
+        max.live = true;
+        max.until = s.tick + AGENCY.maxGkTicks;
+        emit(s, { type: 'max', team, by: cap.idx, phase: 'start', moveId: null });
     }
 }
 
-/** O chute do capitão na janela: a versão máxima do golpe dele (bem mais forte e mais certeiro). */
+/** O chute do capitão armado na zona: a versão máxima do golpe dele (bem mais forte e mais certeiro). */
 function maxShot(s: MatchState, p: PlayerState) {
     const moveId = maxMoveOf(p.inst.moves, p.inst.speciesId);
     s.teams[p.team].agency.max = null;
@@ -3312,6 +3367,19 @@ function maxShot(s: MatchState, p: PlayerState) {
         timer: 1,
     };
     emit(s, { type: 'max', team: p.team, by: p.idx, phase: 'hit', moveId });
+}
+
+/** Defesa máxima do goleiro valendo agora (o próximo chute no gol é dele). */
+const gkMaxLive = (s: MatchState, gk: PlayerState) => {
+    const max = s.teams[gk.team].agency.max;
+    return !!max?.live && max.idx === gk.idx;
+};
+
+/** A defesa máxima saiu: segura a bola e sai jogando na hora (0,15 s em vez de 0,8 s), puxando o contra-ataque. */
+function gkMaxSave(s: MatchState, gk: PlayerState) {
+    s.teams[gk.team].agency.max = null;
+    emit(s, { type: 'max', team: gk.team, by: gk.idx, phase: 'hit', moveId: null });
+    gk.ai.holdUntil = s.tick + 3;
 }
 
 /** Cobradores na ordem: a do técnico (quem saiu vale como quem entrou), senão pelo chute, como sempre. */

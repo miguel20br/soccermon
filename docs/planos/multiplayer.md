@@ -1,3 +1,7 @@
+---
+description: Rascunho e decisões do multiplayer: duelo ao vivo por link e depois liga.
+---
+
 # Multiplayer (rascunho para pensar junto, 17/10/2026)
 
 Decidido com o Miguel: a ordem é **duelo ao vivo amistoso por link → liga ranqueada (fantasmas, Elo, divisões,

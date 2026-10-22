@@ -154,21 +154,19 @@ export const commentary = {
     win: '{team} vence!',
     score: '{home} {a} x {b} {away}',
     // agência do técnico (experimento)
-    shout: '{team} ouve o técnico: "{shout}"',
     timeout: 'Tempo pedido pelo {team}: todo mundo na beira da quadra.',
     flyGkOn: 'Goleiro-linha no {team}! {x} sobe pro ataque e deixa o gol vazio.',
     flyGkOff: '{x} volta pro gol: acabou o goleiro-linha do {team}.',
-    maxStart: '{x} carrega o golpe máximo! A quadra inteira sente.',
+    maxStart: '{x} fecha o gol: defesa máxima!',
     maxHit: 'GOLPE MÁXIMO! {x} solta {m} no limite!',
-    maxGk: '{x} fechou o gol com o golpe máximo.',
-    maxMiss: 'O golpe máximo de {x} não saiu: a barra volta pela metade.',
+    maxGk: 'DEFESA MÁXIMA! {x} pega e já sai jogando.',
+    maxMiss: 'Ninguém chutou na defesa máxima de {x}: a barra volta pela metade.',
     /** Técnico rival que reage (beira da quadra): o aviso sai antes de a ordem valer. */
     coach: {
-        shout: '{leader} grita da beira da quadra: "{shout}"',
         timeout: '{leader} pediu tempo! A quadra para na próxima bola parada.',
         flyGkOn: '{leader} manda o goleiro subir: vem goleiro-linha!',
         flyGkOff: '{leader} chama o goleiro de volta pro gol.',
-        max: '{leader} chama o golpe máximo do capitão!',
+        max: '{leader} grita: golpe máximo!',
         tactic: '{leader} muda o {team}: {tactic}.',
     },
 };

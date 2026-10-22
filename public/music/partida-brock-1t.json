@@ -1,0 +1,61 @@
+{
+ "faixa": "partida-brock-1t",
+ "titulo": "Partida: Brock",
+ "tela": "Partida (ginásio de Pewter)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 109.323946,
+ "secoes": [
+  {
+   "nome": "nivel1",
+   "intensidade": 1,
+   "loop": true,
+   "inicio": 0,
+   "fim": 35.555556,
+   "amostras": [
+    0,
+    1568000
+   ],
+   "bpm": 108,
+   "compassos": 16
+  },
+  {
+   "nome": "nivel2",
+   "intensidade": 2,
+   "loop": true,
+   "inicio": 35.555556,
+   "fim": 68.946871,
+   "amostras": [
+    1568000,
+    3040557
+   ],
+   "bpm": 115,
+   "compassos": 16
+  },
+  {
+   "nome": "nivel3",
+   "intensidade": 3,
+   "loop": true,
+   "inicio": 68.946871,
+   "fim": 100.42229,
+   "amostras": [
+    3040557,
+    4428623
+   ],
+   "bpm": 122,
+   "compassos": 16
+  },
+  {
+   "nome": "fim",
+   "loop": false,
+   "inicio": 100.42229,
+   "fim": 106.323923,
+   "amostras": [
+    4428623,
+    4688885
+   ],
+   "bpm": 122,
+   "compassos": 3
+  }
+ ]
+}

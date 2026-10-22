@@ -79,7 +79,7 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
                 ],
             },
             {
-                p: '**Sortear de novo (reroll):** troca as 3 opções. Você começa com {rerolls}, e eles valem pra copa toda: servem no draft e nas recompensas. Pular uma recompensa dá +1.',
+                p: '**Sortear de novo:** troca as 3 opções. Você começa com {rerolls}, e eles valem pra copa toda: servem no draft e nas recompensas. Pular uma recompensa dá +1.',
             },
         ],
     },
@@ -368,7 +368,7 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
                     ['Tática', 'mude quantas vezes quiser durante a partida (veja abaixo).'],
                     [
                         'Substituir',
-                        'escolha quem sai e quem entra. A troca acontece na próxima bola parada (saída de bola, tiro de meta ou intervalo). Nada é automático no seu time.',
+                        'escolha quem sai e quem entra. A troca é na hora: quem entra vem da lateral. Nada é automático no seu time.',
                     ],
                     [
                         'Painel',
@@ -440,7 +440,7 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
                 list: [
                     'O Pokémon novo entra **no lugar de um reserva** (nunca do capitão) e herda o item de quem saiu.',
                     'O item vai pra qualquer jogador; se ele já tinha um, o item antigo é substituído (e some).',
-                    'Sortear de novo gasta 1 reroll. **Pular** não pega nada, mas dá +1 reroll.',
+                    'Sortear de novo gasta 1 sorteio. **Pular** não pega nada, mas dá +1 sorteio.',
                 ],
             },
             {
@@ -600,5 +600,47 @@ export const help = {
         coachText: 'Mude a tática e troque quem cansar. Quem joga muito **evolui no meio do jogo**!',
         tactic: 'Tática',
         sub: 'Substituir',
+    },
+    coach: {
+        skip: 'Pular',
+        next: 'Próximo',
+        done: 'Entendi',
+        count: '{n} de {total}',
+        label: 'Dica do tutorial',
+        intro: [
+            'Primeira vez? Comece pela Copa Relâmpago: 4 jogos, uns 10 minutos.',
+            'Regras e o passo a passo ficam aqui.',
+        ],
+        rota: [
+            'Toque numa casa acesa e depois em Ir.',
+            'Uma derrota vale cartão amarelo. A segunda, vermelho.',
+            'Vitória dá ₽. Gaste no Mercado ou guarde pra render juros.',
+        ],
+        rotaGrupo: ['Os 2 primeiros vão pra Final. Aqui a derrota não dá cartão.'],
+        relampago: ['Mata-mata de 4 jogos: perdeu, acabou. Escolha a formação.'],
+        relampagoDraft: ['Toque numa vaga: saem 3 e você leva 1.'],
+        relampagoJogo: ['Mude a tática e troque jogadores durante o jogo. Quem joga muito evolui.'],
+        duelo: ['Entre sem conta. Depois você cria a sala e manda o link.'],
+        dueloSala: [
+            'Melhor de 3: mesmo time nos jogos, escalação ajustável entre eles.',
+            'Crie a sala e mande o link pro amigo.',
+        ],
+        dia: ['Mesmo draft e mesmos rivais pra todo mundo hoje.', 'Só a primeira tentativa conta pro ranking.'],
+        liga: [
+            'Ganhar sobe o Elo, perder desce.',
+            'Você enfrenta o time salvo de outro treinador. Ele não precisa estar online.',
+        ],
+        replay: {
+            title: 'Como funciona',
+            hint: 'Os balões voltam na próxima vez que você entrar no modo.',
+            done: 'Vai aparecer de novo',
+            intro: 'Home',
+            rota: 'Rota Índigo',
+            rotaGrupo: 'Planalto',
+            relampago: 'Copa Relâmpago',
+            duelo: 'Duelo',
+            dia: 'Copa do Dia',
+            liga: 'Liga',
+        },
     },
 };

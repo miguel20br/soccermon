@@ -92,6 +92,7 @@ function VolumeSlider({
         <div className="volume-row">
             <input
                 aria-label={label}
+                aria-valuetext={`${Math.round(value * 100)}%`}
                 type="range"
                 min={0}
                 max={1}
@@ -260,6 +261,14 @@ export function Settings() {
                                 preview={() => playCrowd('gol')}
                             />
                         </Row>
+                        <Row title={t('settings.screen.music')} hint={t('settings.screen.musicHint')}>
+                            <VolumeSlider
+                                label={t('settings.screen.musicVolume')}
+                                value={settings.musicVolume ?? DEFAULT_SETTINGS.musicVolume}
+                                onChange={(musicVolume) => set({ musicVolume })}
+                                preview={() => undefined}
+                            />
+                        </Row>
                         <Row title={t('settings.screen.goalCry')} hint={t('settings.screen.goalCryHint')}>
                             <Segmented
                                 label={t('settings.screen.goalCry')}
@@ -330,16 +339,6 @@ export function Settings() {
                                 value={settings.haptics !== false}
                                 options={onOff(t('settings.screen.hapticsOn'), t('settings.screen.hapticsOff'))}
                                 onPick={(haptics) => set({ haptics })}
-                            />
-                        </Row>
-                    </Group>
-                    <Group title={t('settings.screen.experiments')}>
-                        <Row title={t('settings.screen.agency')} hint={t('settings.screen.agencyHint')}>
-                            <Segmented
-                                label={t('settings.screen.agencyLabel')}
-                                value={!!settings.agency}
-                                options={onOff(t('settings.screen.on'), t('settings.screen.off'))}
-                                onPick={(agency) => set({ agency })}
                             />
                         </Row>
                     </Group>

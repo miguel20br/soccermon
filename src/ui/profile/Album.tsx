@@ -42,6 +42,7 @@ import { PokeCard2 } from '../components/PokeCard2';
 import { reduceMotionOn } from '../reduce-motion';
 import { useSwapMotion } from '../swap-motion';
 import { speciesGif } from './club';
+import { DexText } from './DexText';
 import { NewBadge, useNews } from './news';
 import './album.css';
 
@@ -378,14 +379,17 @@ export function AlbumView({
                 { label: t('profile.album.sheet'), onClick: () => onSheet(sp.id, [sp.id]) },
             ],
             extra: (
-                <Versions
-                    rows={list}
-                    current={r.id}
-                    front={frontId}
-                    shown={shownIds}
-                    name={nameOf}
-                    onPick={(x) => openRow(sp, x)}
-                />
+                <>
+                    <DexText id={sp.id} className="al-dex-text" />
+                    <Versions
+                        rows={list}
+                        current={r.id}
+                        front={frontId}
+                        shown={shownIds}
+                        name={nameOf}
+                        onPick={(x) => openRow(sp, x)}
+                    />
+                </>
             ),
         });
     };

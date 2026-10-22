@@ -12,6 +12,7 @@ import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
 import { TypeBadge } from './PokeCard';
 import { PokeCard2 } from './PokeCard2';
+import { TaughtMark } from './TaughtMark';
 
 /** Nomes dos atributos em português (no idioma do jogo: `dict().common.attr`). */
 export const ATTR_SHORT: Record<AttrKey, string> = dict('pt').common.attr;
@@ -184,6 +185,7 @@ export function FutCard({
                             {inst.moves.map((m) => (
                                 <i key={m} style={{ borderColor: TYPE_COLOR[MOVES[m].type] }}>
                                     {moveName(m)}
+                                    <TaughtMark inst={inst} move={m} />
                                 </i>
                             ))}
                         </span>

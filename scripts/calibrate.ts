@@ -2,7 +2,8 @@
  * Calibração headless: roda N partidas entre times sorteados pelo draft da IA e imprime métricas.
  * Metas: 5–7 gols/jogo · time mais forte vence ~60–65% · nenhum tipo > 55% de vitórias.
  *
- * Uso: npm run calibrate -- --n 2000 [--csv out.csv]
+ * Uso: npm run calibrate -- --n 2000 [--csv out.csv] [--agencia]
+ * --agencia: os dois times com o técnico IA da beira da quadra (src/engine/rival-coach.ts), líderes em rodízio.
  */
 import { writeFileSync } from 'node:fs';
 import { FUTSAL_5 } from '../src/engine/config';
@@ -10,6 +11,7 @@ import { species } from '../src/engine/data';
 import { aiDraftTeam } from '../src/engine/draft';
 import { FORMATIONS, type FormationId } from '../src/engine/formations';
 import { viewInstance } from '../src/engine/instance';
+import { COACH_LEADERS } from '../src/engine/rival-coach';
 import { Rng } from '../src/engine/rng';
 import { runMatch } from '../src/engine/runners/batch-runner';
 import type { MatchEventType, Tactic, TeamSetup } from '../src/engine/state';
@@ -18,13 +20,20 @@ const args = process.argv.slice(2);
 const N = Number(args[args.indexOf('--n') + 1]) || 500;
 const csvPath = args.includes('--csv') ? args[args.indexOf('--csv') + 1] : null;
 const TACTICS: Tactic[] = ['balanced', 'offensive', 'defensive', 'counter'];
+const AGENCIA = args.includes('--agencia');
 
 const rng = new Rng('calibrate');
 
-// --formations: cada time é draftado para a própria formação; mede vitórias por formação
+// --formations: cada time é draftado para a própria formação; mede vitórias e estilo por formação
+// (gols pró/contra, posse, chutes, xG por chute, passes, desarmes certos, de quem são os gols) contra todas as outras
 if (args.includes('--formations')) {
     const ids = Object.keys(FORMATIONS) as FormationId[];
-    const rec = new Map<FormationId, { w: number; g: number }>(ids.map((f) => [f, { w: 0, g: 0 }]));
+    const keys = ['w', 'g', 'gf', 'ga', 'pos', 'sh', 'shA', 'xg', 'pa', 'tk', 'gPivo', 'gAla', 'gFixo', 'gGk'] as const;
+    type Rec = Record<(typeof keys)[number], number>;
+    const blank = (): Rec => Object.fromEntries(keys.map((k) => [k, 0])) as Rec;
+    const rec = new Map<FormationId, Rec>(ids.map((f) => [f, blank()]));
+    const vs = new Map<string, { w: number; l: number; g: number }>();
+    const t0 = performance.now();
     for (let i = 0; i < N; i++) {
         for (const fa of ids) {
             for (const fb of ids) {
@@ -44,21 +53,76 @@ if (args.includes('--formations')) {
                     formation: fb,
                 };
                 const r = runMatch(FUTSAL_5, home, away, `${i}-${fa}-${fb}`, { snapshots: false });
-                for (const [f, won] of [
-                    [fa, r.winner === 0],
-                    [fb, r.winner === 1],
-                ] as const) {
-                    const x = rec.get(f)!;
+                const side = [blank(), blank()];
+                for (const e of r.events) {
+                    if (e.type === 'shot') {
+                        const x = side[r.roster[e.by].team];
+                        x.sh++;
+                        x.xg += e.xg;
+                    } else if (e.type === 'pass') side[r.roster[e.by].team].pa++;
+                    else if (e.type === 'tackle' && e.success) side[r.roster[e.by].team].tk++;
+                    else if (e.type === 'goal' && !e.ownGoal) {
+                        const role = r.roster[e.by].role;
+                        const x = side[e.team];
+                        if (role === 'PIVO') x.gPivo++;
+                        else if (role === 'ALA') x.gAla++;
+                        else if (role === 'FIXO') x.gFixo++;
+                        else x.gGk++;
+                    }
+                }
+                for (const t of [0, 1] as const) {
+                    const x = rec.get(t === 0 ? fa : fb)!;
+                    const won = r.winner === t;
                     x.g++;
                     if (won) x.w++;
+                    x.gf += r.score[t];
+                    x.ga += r.score[1 - t];
+                    x.pos += r.possession[t];
+                    x.sh += side[t].sh;
+                    x.shA += side[1 - t].sh;
+                    x.xg += side[t].xg;
+                    x.pa += side[t].pa;
+                    x.tk += side[t].tk;
+                    x.gPivo += side[t].gPivo;
+                    x.gAla += side[t].gAla;
+                    x.gFixo += side[t].gFixo;
+                    x.gGk += side[t].gGk;
                 }
+                const k = `${fa}|${fb}`;
+                const m = vs.get(k) ?? { w: 0, l: 0, g: 0 };
+                m.g++;
+                if (r.winner === 0) m.w++;
+                if (r.winner === 1) m.l++;
+                vs.set(k, m);
             }
         }
     }
+    const f1 = (n: number) => n.toFixed(1);
     console.log(
-        'vitórias por formação:',
-        [...rec.entries()].map(([f, x]) => `${f}=${Math.round((x.w / x.g) * 100)}% (${x.g})`).join(' '),
+        `formações: ${N} rodadas, ${((performance.now() - t0) / 1000).toFixed(0)}s (por jogo, contra as outras)`,
     );
+    console.log(
+        '| Formação | Vitória | Gols pró | Gols contra | Posse | Chutes | Chutes contra | xG/chute | Passes | Desarmes | Gols Pivô/Ala/Fixo |',
+    );
+    console.log('|---|---|---|---|---|---|---|---|---|---|---|');
+    for (const [f, x] of rec) {
+        const goals = Math.max(1, x.gPivo + x.gAla + x.gFixo + x.gGk);
+        const share = (n: number) => `${Math.round((n / goals) * 100)}`;
+        console.log(
+            `| ${f} | ${Math.round((x.w / x.g) * 100)}% | ${f1(x.gf / x.g)} | ${f1(x.ga / x.g)} | ${Math.round((x.pos / x.g) * 100)}% | ${f1(x.sh / x.g)} | ${f1(x.shA / x.g)} | ${(x.xg / Math.max(1, x.sh)).toFixed(3)} | ${Math.round(x.pa / x.g)} | ${f1(x.tk / x.g)} | ${share(x.gPivo)}/${share(x.gAla)}/${share(x.gFixo)}% |`,
+        );
+    }
+    console.log('\nconfronto (% de vitória da linha, mando somado):');
+    console.log(['', ...ids].map((t) => t.padEnd(9)).join(''));
+    for (const fa of ids) {
+        const cells = ids.map((fb) => {
+            if (fa === fb) return '—'.padEnd(9);
+            const a = vs.get(`${fa}|${fb}`)!;
+            const b = vs.get(`${fb}|${fa}`)!;
+            return `${Math.round(((a.w + b.l) / (a.g + b.g)) * 100)}%`.padEnd(9);
+        });
+        console.log(`${fa.padEnd(9)}${cells.join('')}`);
+    }
     process.exit(0);
 }
 
@@ -124,6 +188,10 @@ let stoppageGoalMatches = 0;
 let lateGoals = 0;
 let behindAtLate = 0;
 let comebacks = 0;
+// --agencia: golpe máximo que saiu e virou gol (do mesmo jogador, em até 4 s), goleiro-linha ligado
+let maxHits = 0;
+let maxGoals = 0;
+let gkMax = 0;
 const rows: string[] = ['seed,home,away,strHome,strAway,tactHome,tactAway,shootout'];
 const t0 = performance.now();
 
@@ -134,6 +202,10 @@ for (let i = 0; i < N; i++) {
     };
     const home = mk('A');
     const away = mk('B');
+    if (AGENCIA) {
+        home.coach = COACH_LEADERS[i % COACH_LEADERS.length];
+        away.coach = COACH_LEADERS[(i + 3) % COACH_LEADERS.length];
+    }
     const r = runMatch(FUTSAL_5, home, away, i, { snapshots: false });
     const total = r.score[0] + r.score[1];
     goals += total;
@@ -146,6 +218,17 @@ for (let i = 0; i < N; i++) {
         if (e.type === 'trait') traitFx.set(e.fx, (traitFx.get(e.fx) ?? 0) + 1);
     }
 
+    let hit: { tick: number; by: number } | null = null;
+    for (const e of r.events) {
+        if (e.type === 'max' && e.phase === 'hit') {
+            maxHits++;
+            if (r.roster[e.by]?.role === 'GK') gkMax++;
+            hit = { tick: e.tick, by: e.by };
+        } else if (e.type === 'goal' && hit) {
+            if (e.by === hit.by && e.tick - hit.tick < 80) maxGoals++;
+            hit = null;
+        }
+    }
     const goalEvs = r.events.filter((e) => e.type === 'goal');
     // nos acréscimos o relógio para no fim do tempo (minuto 20 ou 40 cravado)
     if (goalEvs.some((e) => e.minute >= e.half * FUTSAL_5.displayHalfMinutes)) stoppageGoalMatches++;
@@ -240,4 +323,8 @@ console.log(
         .map(([t, r]) => `${t}=${((r.w / r.g) * 100).toFixed(0)}%(${r.g})`)
         .join(' '),
 );
+if (AGENCIA)
+    console.log(
+        `golpe máximo: ${per(maxHits)} saíram/jogo (${per(gkMax)} de goleiro), ${per(maxGoals)} viraram gol/jogo`,
+    );
 if (csvPath) writeFileSync(csvPath, rows.join('\n'));

@@ -26,7 +26,7 @@ export function FoulCard({ kind, remaining = 0 }: { kind: 'yellow' | 'red'; rema
             </div>
             <div className="foul-text">
                 <b>{t(kind === 'yellow' ? 'longCup.yellowTitle' : 'longCup.redTitle')}</b>
-                <small>{t(kind === 'yellow' ? 'longCup.yellowLine' : 'longCup.redLine')}</small>
+                <small>{t(kind === 'yellow' ? 'longCup.cardsHint' : 'longCup.redLine')}</small>
             </div>
             {kind === 'red' && remaining > 0 && (
                 <div className="foul-road">

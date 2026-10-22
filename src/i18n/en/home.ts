@@ -34,10 +34,10 @@ export const home: typeof pt = {
         line: 'A 4-match knockout, quick and direct.',
     },
     longCup: {
-        tag: 'Coming soon',
+        tag: '8 matches',
         title: 'Indigo Road',
-        line: 'Cross Kanto to the Plateau: 8 matches, events and gyms.',
-        short: 'map, events and gyms',
+        line: 'Cross Kanto to the Indigo Plateau.',
+        go: 'Start the Road',
         note: 'The Indigo Road arrives in the next version.',
     },
     challenge: 'Accept challenge ({seed})',

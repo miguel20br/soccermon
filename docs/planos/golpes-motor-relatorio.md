@@ -1,3 +1,7 @@
+---
+description: Relatório das 12 famílias de golpes implementadas no motor.
+---
+
 # Golpes no motor: as 12 famílias (relatório da branch `golpes-motor`)
 
 > Implementação da seção 3 da [proposta de golpes](golpes-proposta.md) (Fase 1: motor). A MT do ginásio

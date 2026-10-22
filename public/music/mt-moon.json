@@ -1,0 +1,34 @@
+{
+ "faixa": "mt-moon",
+ "titulo": "Mt. Moon v2",
+ "tela": "Mapa: Mt. Moon",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 49.090907,
+ "secoes": [
+  {
+   "nome": "intro",
+   "loop": false,
+   "inicio": 0,
+   "fim": 3.636372,
+   "amostras": [
+    0,
+    160364
+   ],
+   "bpm": 132,
+   "compassos": 2
+  },
+  {
+   "nome": "loop",
+   "loop": true,
+   "inicio": 3.636372,
+   "fim": 49.090907,
+   "amostras": [
+    160364,
+    2164909
+   ],
+   "bpm": 132,
+   "compassos": 25
+  }
+ ]
+}

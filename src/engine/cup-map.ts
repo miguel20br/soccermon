@@ -43,6 +43,18 @@ export const FINAL_MATCH = GROUP_START + GROUP_GAMES;
 /** Partidas de uma Copa longa (contando a Final). */
 export const LONG_MATCHES = FINAL_MATCH + 1;
 
+/** Regiões de Kanto no mapa, de baixo pra cima: primeira e última linha (a tela desenha, a música troca por elas). */
+export const MAP_REGIONS = [
+    { id: 'rota1', rows: [0, 1] },
+    { id: 'floresta', rows: [2, 3] },
+    { id: 'mtmoon', rows: [4, 5] },
+    { id: 'cerulean', rows: [6, 7] },
+    { id: 'vitoria', rows: [8, 8] },
+] as const;
+export type MapRegion = (typeof MAP_REGIONS)[number]['id'];
+export const regionOfRow = (row: number) =>
+    MAP_REGIONS.find((r) => row >= r.rows[0] && row <= r.rows[1]) ?? MAP_REGIONS[0];
+
 export const isMatchKind = (k: NodeKind) => k === 'jogo' || k === 'ginasio' || k === 'final';
 
 /** Quantas partidas vêm antes desta linha (a 1ª partida é a 0). */
@@ -78,6 +90,23 @@ export function buildCupMap(seed: string): CupMap {
             const hi = Math.max(lo, Math.ceil(((i + 1) * b) / a) - 1);
             for (let j = lo; j <= hi; j++) n.next.push(rows[row + 1][j].id);
         });
+    }
+    // Uma diagonal a mais por vão entre casas vizinhas que não dividem destino (plano: copa-longa-tecnico.md). Ou a da
+    // esquerda ganha a casa à direita do seu destino, ou a da direita a da esquerda; nunca as duas, senão cruza. Sorteio
+    // próprio: o resto do mapa não muda.
+    const diag = new Rng(seed, 'long-map-diag');
+    const col = (id: string) => Number(id.slice(id.indexOf('c') + 1));
+    for (let row = 0; row < rows.length - 1; row++) {
+        const up = rows[row + 1];
+        if (up.length === 1) continue;
+        for (let i = 0; i < rows[row].length - 1; i++) {
+            const [left, right] = [rows[row][i], rows[row][i + 1]];
+            const maxL = Math.max(...left.next.map(col));
+            const minR = Math.min(...right.next.map(col));
+            if (maxL >= minR) continue; // já dividem uma casa: já tem escolha
+            if (diag.chance(0.5) && maxL + 1 < up.length) left.next.push(up[maxL + 1].id);
+            else if (minR - 1 >= 0) right.next.unshift(up[minR - 1].id);
+        }
     }
     return { nodes: rows.flat(), rows: LAYOUT.length };
 }
@@ -180,6 +209,13 @@ export const ROUTE_TEAMS: (Omit<ClubTemplate, 'leader' | 'city'> & { trainer: st
 export const rivalTrainer = (name: string): string | undefined =>
     ROUTE_TEAMS.find((t) => t.name === name)?.trainer ?? CLUBS.find((c) => c.name === name)?.leader;
 
+/** Tipos do rival (o time da Rota ou o clube do ginásio) pelo nome. */
+export const rivalTypes = (name: string): string[] =>
+    ROUTE_TEAMS.find((t) => t.name === name)?.types ?? CLUBS.find((c) => c.name === name)?.types ?? [];
+
+/** Titulares do tipo do treinador num time da Rota (o Ornitólogo tem pássaros). */
+export const ROUTE_THEME_MIN = 3;
+
 /** Força do rival pela partida (0 a 6 na Rota, 7 = Final): fácil no começo, puxado no fim. Ginásio +1, até 3. */
 const LONG_DIFFICULTY = [-1, 0, 0, 1, 1, 1, 1, 4];
 /** Itens do rival pela partida. */
@@ -208,7 +244,8 @@ export function longOpponent(
     }
     const base = LONG_DIFFICULTY[Math.min(match, LONG_DIFFICULTY.length - 1)];
     const difficulty = Math.max(-1, Math.min(4, (kind === 'ginasio' ? Math.min(3, base + 1) : base) + shift));
-    const d = aiDraftTeam(rng, difficulty, club.types, club.formation);
+    // treinador da Rota joga com o tipo dele: pelo menos 3 dos 5 titulares
+    const d = aiDraftTeam(rng, difficulty, club.types, club.formation, kind === 'jogo' ? ROUTE_THEME_MIN : 0);
     const items = LONG_ITEMS[Math.min(match, LONG_ITEMS.length - 1)] + (kind === 'ginasio' ? 1 : 0);
     for (const h of rng.shuffle([...d.lineup]).slice(0, items)) {
         const own = species(h.speciesId).types.flatMap((t) => TYPE_ITEM_FOR[t] ?? []);

@@ -1,0 +1,86 @@
+{
+ "faixa": "partida-2t",
+ "titulo": "Partida v4 (base)",
+ "tela": "Partida",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 123.21551,
+ "secoes": [
+  {
+   "nome": "nivel1",
+   "intensidade": 1,
+   "loop": true,
+   "inicio": 0,
+   "fim": 30.967732,
+   "amostras": [
+    0,
+    1365677
+   ],
+   "bpm": 124,
+   "compassos": 16
+  },
+  {
+   "nome": "nivel2",
+   "intensidade": 2,
+   "loop": true,
+   "inicio": 30.967732,
+   "fim": 59.839909,
+   "amostras": [
+    1365677,
+    2638940
+   ],
+   "bpm": 133,
+   "compassos": 16
+  },
+  {
+   "nome": "nivel3",
+   "intensidade": 3,
+   "loop": true,
+   "inicio": 59.839909,
+   "fim": 86.882154,
+   "amostras": [
+    2638940,
+    3831503
+   ],
+   "bpm": 142,
+   "compassos": 16
+  },
+  {
+   "nome": "virada",
+   "loop": false,
+   "inicio": 86.882154,
+   "fim": 88.548821,
+   "amostras": [
+    3831503,
+    3905003
+   ],
+   "bpm": 144,
+   "compassos": 1
+  },
+  {
+   "nome": "pressao",
+   "intensidade": 4,
+   "loop": true,
+   "inicio": 88.548821,
+   "fim": 115.215488,
+   "amostras": [
+    3905003,
+    5081003
+   ],
+   "bpm": 144,
+   "compassos": 16
+  },
+  {
+   "nome": "fim",
+   "loop": false,
+   "inicio": 115.215488,
+   "fim": 120.215488,
+   "amostras": [
+    5081003,
+    5301503
+   ],
+   "bpm": 144,
+   "compassos": 3
+  }
+ ]
+}

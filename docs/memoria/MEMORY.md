@@ -1,6 +1,9 @@
-- [Soccermon project](soccermon-project.md) — fan game Pokémon Gen1 + futsal sim, AGPL, sem lucro; arquitetura deve suportar carreira/modo jogável futuro
-- [Miguel é fã de Pokémon](user-pokemon-fan.md) — conhece a franquia; gosta de pesquisa ampla de repos/skills antes de planejar
-- [Diversão > realismo no Soccermon](feedback-fun-over-realism.md) — não otimizar gols/passes realistas; priorizar golpes/stats visíveis e ritmo
-- [Posições: decidir junto](feedback-collaborate-balance.md) — mudanças de posição/fórmula só com ok do Miguel; mostrar antes/depois e perguntar
-- [Design de cartas](feedback-card-design.md) — minimalista, bronze/prata/ouro pela nota, nota e atributos grandes, raridade só como acabamento
-- [Agência do jogador](feedback-player-agency.md) — nada automático no time dele (substituição só se pedir); eventos grandes com animação e gatilho exigente
+- [Navegador sem janela](feedback-browser-sem-janela.md) — testes sempre headless; contas pessoais no Brave/perfil pessoal do Chrome
+- [Não travar com questionário](feedback-nao-travar-com-questionario.md) — com entrega esperando, perguntar em texto e seguir entregando
+- [Social media em lote](feedback-social-media-em-lote.md) — Claude cuida das redes; só vai ao ar o que está na pauta semanal que ele aprovou numa linha
+- [Lembrete: ícones no ranking](lembrete-icones-ranking.md) — Miguel pediu pra lembrar; depende do servidor mandar o time (Supabase prod)
+- [Texto sem cara de IA](feedback-texto-sem-cara-de-ia.md) — falas curtas e naturais; ginásio continua ginásio (não "quadra")
+- [Economia de tokens](feedback-economia-de-tokens.md) — agente novo por rodada, Sonnet/Haiku quando der, máx. 3 em paralelo, CLAUDE.md enxuto
+- [Retomar frentes (21/10)](retomar-frentes-21-10.md) — LER PRIMEIRO: frentes paradas pelo limite, worktree e próximo passo de cada
+- [Gosto musical](feedback-gosto-musical.md) — Rocket é a régua; sons criativos (moedas); clap clássico 808/909 em vez do sintetizado
+- [Música aprovada entra na hora](feedback-musica-aprovou-entra.md) — aprovou no localhost:8000 → converte e liga na branch musica-jogo sem perguntar de novo

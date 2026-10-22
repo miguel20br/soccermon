@@ -1,0 +1,61 @@
+{
+ "faixa": "partida-rocket-1t",
+ "titulo": "Partida: Equipe Rocket",
+ "tela": "Partida (Equipe Rocket)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 100.048435,
+ "secoes": [
+  {
+   "nome": "nivel1",
+   "intensidade": 1,
+   "loop": true,
+   "inicio": 0,
+   "fim": 32.542381,
+   "amostras": [
+    0,
+    1435119
+   ],
+   "bpm": 118,
+   "compassos": 16
+  },
+  {
+   "nome": "nivel2",
+   "intensidade": 2,
+   "loop": true,
+   "inicio": 32.542381,
+   "fim": 63.018571,
+   "amostras": [
+    1435119,
+    2779119
+   ],
+   "bpm": 126,
+   "compassos": 16
+  },
+  {
+   "nome": "nivel3",
+   "intensidade": 3,
+   "loop": true,
+   "inicio": 63.018571,
+   "fim": 91.675283,
+   "amostras": [
+    2779119,
+    4042880
+   ],
+   "bpm": 134,
+   "compassos": 16
+  },
+  {
+   "nome": "fim",
+   "loop": false,
+   "inicio": 91.675283,
+   "fim": 97.048413,
+   "amostras": [
+    4042880,
+    4279835
+   ],
+   "bpm": 134,
+   "compassos": 3
+  }
+ ]
+}

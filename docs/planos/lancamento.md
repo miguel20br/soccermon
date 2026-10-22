@@ -1,3 +1,7 @@
+---
+description: Roadmap de lançamento da 0.8.3 até a 1.0.
+---
+
 # Roadmap de lançamento: o plano pra deixar o Soccermon incrível (16/10/2026)
 
 Meta: virar **o jogo de Pokémon de navegador que todo mundo manda pro amigo**. Sem dinheiro nenhum (fan game,

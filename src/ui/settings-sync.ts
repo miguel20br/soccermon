@@ -1,22 +1,13 @@
 import { setGoalCry, setVolumes } from '../game/audio';
+import { setMusicVolumes } from '../game/music';
 import { setLang } from '../i18n';
 import { detectLang, htmlLang } from '../i18n/lang';
-import { type Settings, useGame } from '../store/game-store';
+import { DEFAULT_SETTINGS, type Settings, useGame } from '../store/game-store';
 import './motion.css';
 
 import { REDUCE_QUERY, reduceMotionOn } from './reduce-motion';
 
 export { reduceMotionOn };
-
-/** Experimento "beira da quadra" ligado: em Configurações ou pelo link com `?agencia=1`. */
-export function agencyOn(pref: boolean | undefined = useGame.getState().settings.agency): boolean {
-    if (pref) return true;
-    try {
-        return new URLSearchParams(window.location.search).get('agencia') === '1';
-    } catch {
-        return false;
-    }
-}
 
 /**
  * Marca o <html> (o CSS em settings.css desliga animações, flashes e transições, e `lang` segue o idioma),
@@ -35,6 +26,7 @@ function apply(settings: Settings) {
         sfx: settings.sfxVolume,
         crowd: settings.crowdVolume,
     });
+    setMusicVolumes({ master: settings.volume, music: settings.musicVolume ?? DEFAULT_SETTINGS.musicVolume });
     setGoalCry(settings.goalCry !== false);
 }
 

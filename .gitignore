@@ -47,3 +47,42 @@ trailer/atualizacao/render/
 
 # motor empacotado pra Edge Function da Liga (npm run edge:liga antes do deploy)
 supabase/functions/liga/engine.js
+
+# Gen 2 (152 a 251): assets pesados fora do git e do deploy, gerados pelos scripts quando a Gen 2 for ligada
+# (npm run assets:cards|assets:audio|assets:field -- --gen 2, build-pmd-shiny.ts --gen 2, assets:portraits)
+/public/assets/cards/15[2-9].gif
+/public/assets/cards/1[6-9][0-9].gif
+/public/assets/cards/2[0-4][0-9].gif
+/public/assets/cards/25[01].gif
+/public/assets/cards/shiny/15[2-9].gif
+/public/assets/cards/shiny/1[6-9][0-9].gif
+/public/assets/cards/shiny/2[0-4][0-9].gif
+/public/assets/cards/shiny/25[01].gif
+/public/assets/field/15[2-9].png
+/public/assets/field/1[6-9][0-9].png
+/public/assets/field/2[0-4][0-9].png
+/public/assets/field/25[01].png
+/public/assets/field/15[2-9].json
+/public/assets/field/1[6-9][0-9].json
+/public/assets/field/2[0-4][0-9].json
+/public/assets/field/25[01].json
+/public/assets/field/shiny/15[2-9].png
+/public/assets/field/shiny/1[6-9][0-9].png
+/public/assets/field/shiny/2[0-4][0-9].png
+/public/assets/field/shiny/25[01].png
+/public/assets/cries/legacy/15[2-9].ogg
+/public/assets/cries/legacy/1[6-9][0-9].ogg
+/public/assets/cries/legacy/2[0-4][0-9].ogg
+/public/assets/cries/legacy/25[01].ogg
+/public/assets/cries/latest/15[2-9].ogg
+/public/assets/cries/latest/1[6-9][0-9].ogg
+/public/assets/cries/latest/2[0-4][0-9].ogg
+/public/assets/cries/latest/25[01].ogg
+/public/assets/portraits/15[2-9].png
+/public/assets/portraits/1[6-9][0-9].png
+/public/assets/portraits/2[0-4][0-9].png
+/public/assets/portraits/25[01].png
+/public/assets/portraits/15[2-9]-*.png
+/public/assets/portraits/1[6-9][0-9]-*.png
+/public/assets/portraits/2[0-4][0-9]-*.png
+/public/assets/portraits/25[01]-*.png

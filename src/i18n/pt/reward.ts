@@ -8,8 +8,8 @@ export const reward = {
     whoHolds: 'Quem vai segurar o item?',
     choose: 'Escolha uma recompensa',
     reroll: 'Sortear de novo ({n})',
-    skip: 'Pular (+1 reroll)',
-    tip: 'Ganhou! Pegue um Pokémon do rival, um item ou uma MT. Pular dá +1 reroll.',
+    skip: 'Pular (+1 sorteio)',
+    tip: 'Ganhou! Pegue um Pokémon do rival, um item ou uma MT. Pular dá +1 sorteio.',
     fromClub: 'Do {club}',
     reinforcement: 'Reforço',
     chosen: 'Escolhido',
@@ -37,6 +37,8 @@ export const reward = {
         skip: 'Mostrar as cartas',
         /** Escrito no pacote da recompensa, embaixo do logo. */
         label: 'Pacote da vitória',
+        /** Treino de técnica da Rota (ninguém evolui): só itens. */
+        training: 'Pacote do treino',
     },
     /** Item que depende dos golpes de quem segura (tipo, King's Rock): src/ui/item-fit.ts. */
     fit: {
@@ -55,7 +57,8 @@ export const reward = {
         rareChest: 'Baú raro',
         learners: '{n} do seu time aprende|{n} do seu time aprendem',
         rarelyUsed: ' · quase ninguém usa',
-        taughtTitle: 'Ensinado por MT',
+        taughtTitle: 'Golpe treinado (MT): +1 uso e 30% mais forte',
+        trained: 'Golpe treinado: +1 uso por partida e 30% mais forte.',
         whoLearns: 'Quem aprende {move}?',
         alreadyKnows: 'já sabe',
         cantLearn: 'não aprende',

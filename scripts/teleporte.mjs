@@ -68,10 +68,15 @@ function watch() {
         const busy = layoutMoving();
         for (const el of document.querySelectorAll('button, .panel, li, h1, h2, .slot, .tr-obj')) {
             const r = el.getBoundingClientRect();
-            const p = [r.left + scrollX, r.top + scrollY];
+            // posição na tela e na página: pulo é mudar nas duas (a rolagem mexe só numa; o fixo/sticky, só na outra)
+            const p = [r.left, r.top, scrollX, scrollY];
             const old = pos.get(el);
-            if (old && !busy && Math.hypot(p[0] - old[0], p[1] - old[1]) > 6 && big(r) && !moving(el))
-                events.push({ kind: 'pula', el: name(el) });
+            const d = (dx, dy) => Math.hypot(dx, dy) > 6;
+            const jumped =
+                old &&
+                d(p[0] - old[0], p[1] - old[1]) &&
+                d(p[0] + p[2] - old[0] - old[2], p[1] + p[3] - old[1] - old[3]);
+            if (jumped && !busy && big(r) && !moving(el)) events.push({ kind: 'pula', el: name(el) });
             pos.set(el, p);
         }
         requestAnimationFrame(tick);

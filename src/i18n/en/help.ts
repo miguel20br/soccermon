@@ -345,7 +345,7 @@ export const help: typeof pt = {
                         ['Tactic', 'change it as often as you like during the match (see below).'],
                         [
                             'Substitute',
-                            'choose who comes off and who comes on. The swap happens at the next dead ball (kick-off, goal kick or half-time). Nothing on your team is automatic.',
+                            'choose who comes off and who comes on. The swap is instant: the new player runs on from the touchline. Nothing on your team is automatic.',
                         ],
                         [
                             'Panel',
@@ -571,5 +571,47 @@ export const help: typeof pt = {
         coachText: 'Change the tactic and sub whoever gets tired. Players who shine **evolve mid-match**!',
         tactic: 'Tactic',
         sub: 'Substitute',
+    },
+    coach: {
+        skip: 'Skip',
+        next: 'Next',
+        done: 'Got it',
+        count: '{n} of {total}',
+        label: 'Tutorial tip',
+        intro: [
+            'First time? Start with the Lightning Cup: 4 games, about 10 minutes.',
+            'Rules and the walkthrough live here.',
+        ],
+        rota: [
+            'Tap a lit node, then Go.',
+            'A loss is a yellow card. The second one is red.',
+            'Wins pay ₽. Spend it at the Market or save it to earn interest.',
+        ],
+        rotaGrupo: ['The top 2 go to the Final. Losing here costs no card.'],
+        relampago: ['4-game knockout: lose and you are out. Pick a formation.'],
+        relampagoDraft: ['Tap a slot: 3 show up and you keep 1.'],
+        relampagoJogo: ['Change tactics and make subs during the match. Players who play a lot evolve.'],
+        duelo: ['Join without an account. Then you create the room and send the link.'],
+        dueloSala: [
+            'Best of 3: same team in every game, lineup can change between them.',
+            'Create the room and send the link to your friend.',
+        ],
+        dia: ['Same draft and same rivals for everyone today.', 'Only the first attempt counts for the ranking.'],
+        liga: [
+            'Winning raises your Elo, losing lowers it.',
+            "You face another trainer's saved team. They don't need to be online.",
+        ],
+        replay: {
+            title: 'How it works',
+            hint: 'The balloons come back the next time you enter the mode.',
+            done: 'Will show again',
+            intro: 'Home',
+            rota: 'Indigo Road',
+            rotaGrupo: 'Plateau',
+            relampago: 'Lightning Cup',
+            duelo: 'Duel',
+            dia: 'Daily Cup',
+            liga: 'League',
+        },
     },
 };

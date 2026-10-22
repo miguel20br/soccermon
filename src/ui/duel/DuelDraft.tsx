@@ -28,7 +28,7 @@ import { cardSprite } from '../components/PokeCard';
 import { lineupAverage } from '../rating';
 import { LineupEditor } from '../screens/Lineup';
 import { reduceMotionOn } from '../settings-sync';
-import { useCountdown } from './DuelMatch';
+import { seriesLabel, useCountdown } from './DuelMatch';
 import { ReadyBar } from './ReadyBar';
 
 const avgOf = (t: TeamSetup) => lineupAverage(t.lineup, t.formation);
@@ -458,7 +458,9 @@ export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
     return (
         <div className="duel-preview">
             <div className="draft-head bc-screenhead">
-                <span className="bc-tag">{t('duel.preview.kicker')}</span>
+                <span className="bc-tag" data-testid="duel-series-tag">
+                    {seriesLabel(s, role, t) ?? t('duel.preview.kicker')}
+                </span>
                 <div className="draft-title">
                     <h1>{t('duel.preview.title')}</h1>
                     <p className="muted">{t('duel.preview.hint')}</p>

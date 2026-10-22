@@ -8,7 +8,7 @@ import { editionOf } from '../../engine/specials';
 import { clubName, itemDesc, itemName, stageName, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { type RunState, useGame } from '../../store/game-store';
-import { isLong } from '../../store/long-cup';
+import { currentNode, isLong } from '../../store/long-cup';
 import { useCardModal } from '../card-modal';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { FormationBoard } from '../components/FormationBoard';
@@ -51,6 +51,8 @@ export function Reward() {
     if (run?.status !== 'reward') return null;
     const countOpen = () => writeCount(PACKS_KEY, (readCount(PACKS_KEY) ?? 0) + 1);
     const mons = run.rewards.flatMap((r) => (r.kind === 'pokemon' ? [r.inst] : []));
+    // treino de técnica da Rota (ninguém evolui): pacote do treino, só itens
+    const training = isLong(run) && !run.group && currentNode(run)?.kind === 'treino';
 
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
     const reward = chosen !== null ? run.rewards[chosen] : null;
@@ -105,7 +107,7 @@ export function Reward() {
                 sealed
                 fast={fast}
                 look={packLookOf(mons)}
-                label={t('reward.pack.label')}
+                label={t(training ? 'reward.pack.training' : 'reward.pack.label')}
                 revealKey={run.rewards.map(rewardKey).join()}
                 onOpen={countOpen}
             >
@@ -113,6 +115,7 @@ export function Reward() {
                     {run.rewards.map((r, i) => (
                         <div
                             key={rewardKey(r)}
+                            data-cry={r.kind === 'pokemon' ? r.inst.speciesId : undefined}
                             className={`option cpack-card${r.kind === 'tm' ? ' option-tm' : ''}${
                                 r.kind === 'pokemon' && isBigCard(r.inst) ? ' big' : ''
                             }${!fast && r.kind === 'pokemon' && editionOf(r.inst) ? ' walk' : ''}`}
@@ -175,7 +178,7 @@ export function Reward() {
                 </div>
             </CardPack>
             {/* a dica fica embaixo das opções que ela explica (só na 1ª copa) */}
-            {!reward && <Tip id="reward-pick">{t('reward.tip')}</Tip>}
+            {!reward && !training && <Tip id="reward-pick">{t('reward.tip')}</Tip>}
 
             {reward && (
                 <GainTarget

@@ -263,7 +263,7 @@ describe('resumo para a pergunta', () => {
         });
         expect(summarize(s)).toEqual({
             club: 'Pallet FC',
-            cup: { team: 'Pallet FC', status: 'lineup', stage: 2, draftRound: 7 },
+            cup: { team: 'Pallet FC', status: 'lineup', stage: 2, draftRound: 7, played: 2 },
             cups: 3,
             titles: 1,
             seen: 3,

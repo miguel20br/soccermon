@@ -35,8 +35,10 @@ import {
     ordersOf,
     other,
     type Role,
+    type Shared,
     SIDE,
     SPEED_ASK_MS,
+    seriesOf,
     trainerNames,
 } from '../../net/duel-state';
 import { baseSeedOf, holdTick, openedSegments } from '../../net/seal';
@@ -74,7 +76,15 @@ import {
 import { PlayerInspect } from '../components/PlayerInspect';
 import { cardSprite } from '../components/PokeCard';
 import { type BoardPlan, Prancheta, useMedia, WIDE } from '../components/Prancheta';
-import { agencyView, MaxBars, PenaltyOrderPanel, SidelineControls, SidelineOverlay } from '../components/Sideline';
+import {
+    agencyView,
+    MaxBars,
+    MaxCueButton,
+    maxCueAt,
+    PenaltyOrderPanel,
+    SidelineControls,
+    SidelineOverlay,
+} from '../components/Sideline';
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
 import { captainAt, clockExtrasAt, roleAt, snapAt } from '../match-view';
@@ -84,6 +94,13 @@ import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
 import { EmoteBar, EmoteBubbles } from './Emotes';
 import { ReadyBar } from './ReadyBar';
+
+/** Melhor de 3: "Jogo 2 · 1 x 0" (o seu lado primeiro); null na sala de 1 jogo. */
+export function seriesLabel(s: Shared, role: Role, t: ReturnType<typeof useT>['t']): string | null {
+    const v = seriesOf(s);
+    if (v.bestOf === 1) return null;
+    return t('duel.series.tag', { n: v.game, a: v.wins[role], b: v.wins[other(role)] });
+}
 
 /** Segundos que faltam até `at` (relógio da sala), atualizando sozinho. */
 export function useCountdown(at: number | undefined): number {
@@ -119,6 +136,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const away = s.teams.guest!;
     const setups: [typeof home, typeof away] = [home, away];
     const myTeam = setups[side];
+    const stage = seriesLabel(s, role, t) ?? t('duel.title');
 
     const [match, setMatch] = useState<MatchResult | null>(null);
     /** Versão do log (`logVersion`) que a partida na tela já tem. */
@@ -417,7 +435,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const myIdx = match.roster.filter((r) => r.team === side).map((r) => r.idx);
     // posição agora de quem está em cada vaga (a prancheta pode ter mudado)
     const slots = myIdx.map((idx) => roleAt(match, setups, idx, tickRef.current));
-    // prancheta: sem limite, a última mandada vale na próxima bola parada (pendente até o evento passar na tela)
+    // prancheta: sem limite, a última mandada vale na hora (pendente até o evento passar na tela)
     const lastBoard = (mineLog.filter((o) => isLineupOrder(o)) as LineupOrder[]).at(-1);
     const boardEv =
         lastBoard && match.events.find((e) => e.type === 'lineup' && e.team === side && e.tick >= lastBoard.tick);
@@ -512,17 +530,24 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     );
     // beira da quadra (experimento): só com a sala do host ligada; as ordens passam pelo carimbo do host
     const agency = !!s.agency;
-    const sideline = agencyView(match.events, s.log, side, clock.tick);
+    const sideline = agencyView(
+        match.events,
+        s.log,
+        side,
+        clock.tick,
+        agency && maxCueAt(match, setups, side, clock.tick),
+    );
+    // golpe máximo: o carimbo do host põe a ordem um pouco à frente (rede); o motor deixa armada `AGENCY.maxArmTicks`
+    const sendMax = () => order({ kind: 'max' });
     const tactics = agency ? (
         <>
             {tacticControls}
             <SidelineControls
                 view={sideline}
                 canAct={canChange}
-                onShout={(shout) => order({ kind: 'shout', shout })}
                 onTimeout={halftime ? undefined : () => order({ kind: 'timeout' })}
                 onFlyGk={(on) => order({ kind: 'flyGk', on })}
-                onMax={() => order({ kind: 'max' })}
+                onMax={sendMax}
                 onPens={() => setPensOpen(true)}
             />
         </>
@@ -536,7 +561,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                 <VersusIntro
                     home={myTeam}
                     away={setups[side === 0 ? 1 : 0]}
-                    stage={t('duel.title')}
+                    stage={stage}
                     ready={sceneReady}
                     onDone={() => {}}
                     awayTrainer={rivalPeer?.trainer as TrainerId | undefined}
@@ -561,7 +586,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                         score={clock.score}
                         clock={clockParts}
                         pressure={pressureNow}
-                        stage={t('duel.title')}
+                        stage={stage}
                         coaches={[badge(s.peers.host), badge(s.peers.guest)]}
                     >
                         <EmoteBubbles
@@ -598,6 +623,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                                 names={teamNames}
                             />
                         )}
+                        {agency && <MaxCueButton view={sideline} canAct={canChange} onMax={sendMax} />}
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
                         {ended && !auto.held && (

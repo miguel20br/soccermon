@@ -62,6 +62,14 @@
     }
 }
 
+/* sílabas do logo que piscam com o gancho da Abertura (Home.tsx, LogoHits): a respiração é a mesma do logo */
+.home-hero .logo-img img.logo-hit {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
 /* ---------- brilho correndo no "Nova copa" (só quando ele é o botão principal) ---------- */
 .home .new-run .btn.primary,
 .home .resume-card .rc-go {
@@ -148,6 +156,9 @@
 .home-enter .cup-event {
     animation: hm-slide 0.5s var(--ease-out) both;
 }
+.home-enter .rota-card {
+    animation: home-rise 0.45s var(--ease-out) 0.06s both;
+}
 .home-enter .cup-card {
     animation: home-rise 0.45s var(--ease-out) 0.1s both;
 }
@@ -171,6 +182,7 @@
     .duel-card-art img,
     .duel-card-art b,
     .home-enter .cup-event,
+    .home-enter .rota-card,
     .home-enter .cup-card,
     .home-enter .duel-card {
         animation: none;
@@ -184,6 +196,7 @@
 :root[data-reduce-motion="true"] .duel-card-art img,
 :root[data-reduce-motion="true"] .duel-card-art b,
 :root[data-reduce-motion="true"] .home-enter .cup-event,
+:root[data-reduce-motion="true"] .home-enter .rota-card,
 :root[data-reduce-motion="true"] .home-enter .cup-card,
 :root[data-reduce-motion="true"] .home-enter .duel-card {
     animation: none;

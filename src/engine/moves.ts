@@ -1,5 +1,6 @@
 import levelMoves from '../data/level-moves.json';
-import { MOVES, type MoveData, type Species } from './data';
+import type { AttrKey } from './attributes';
+import { MOVES, type MoveData, SPECIES, type Species } from './data';
 import { SIGNATURE } from './signature-moves';
 
 /**
@@ -164,6 +165,8 @@ export const MOVE_TRAITS: Record<string, Trait[]> = {
     doublekick: ['multi2'],
     twineedle: ['multi2'],
     bonemerang: ['multi2', 'rebound', 'reach'],
+    // Slam: cauda longa ou vinha (Pikachu, Tangela, Dratini...): desarme de longe
+    slam: ['reach'],
     furyattack: ['multi25'],
     furyswipes: ['multi25'],
     doubleslap: ['multi25'],
@@ -190,6 +193,8 @@ export const MOVE_TRAITS: Record<string, Trait[]> = {
     acidarmor: ['melt'],
     withdraw: ['shell'],
     defensecurl: ['curl'],
+    // Harden: na Gen 1 era igual ao Defense Curl e ao Withdraw (Def +1)
+    harden: ['curl'],
     barrier: ['wall'],
     stomp: ['stompMini'],
     // F12
@@ -232,7 +237,8 @@ export const MOVE_TUNING = {
     chargePower: 1.3,
     // F4 voo / buraco
     airTime: 0.8,
-    airCarry: 4,
+    /** Com a bola, o voo/buraco leva a bola tantos metros rumo ao gol antes do chute (era 4: virava gol fácil). */
+    airCarry: 2,
     airPounceRange: 8,
     // F5 prioridade
     quickRange: 3.3,
@@ -309,7 +315,65 @@ export const MOVE_TUNING = {
     gkSaveTime: 1.2,
     coinRadius: 3,
     coinStun: 0.4,
+    // reforço e enfraquecimento: fator por estágio da Gen 1 e duração
+    buffStep: 0.07,
+    buffTime: 12,
+    debuffStep: 0.08,
+    debuffTime: 10,
+    /** Cura (Recover, Soft-Boiled...): fôlego = base + força × golpe. Rest enche tudo. */
+    healBase: 0.1,
+    healPower: 0.3,
+    // o preço dos golpes fortíssimos (DRAWBACK)
+    recoilEnergy: 0.04,
+    crashEnergy: 0.08,
+    crashStun: 0.6,
+    rampageChance: 0.5,
+    rechargeStun: 0.9,
+    faintEnergy: 0.15,
+    faintStun: 1.6,
+    /** Raio da explosão (Gen 1: Explosion 170 × Self-Destruct 130). */
+    blastRadius: { explosion: 4, selfdestruct: 3 } as Record<string, number>,
+    /** Nocaute que acerta: segundos no chão. */
+    ohkoStun: 2.2,
 };
+
+/** Atributos que cada estágio da Gen 1 mexe em campo. */
+export const BOOST_TO_ATTR: Record<string, AttrKey[]> = {
+    atk: ['shooting', 'strength'],
+    def: ['tackling', 'strength'],
+    spa: ['passing', 'shooting'],
+    spd: ['positioning'],
+    spe: ['pace'],
+    accuracy: ['passing'],
+    evasion: ['dribble'],
+};
+
+/** Quanto dura cada status (s). */
+export const STATUS_DURATION: Record<string, number> = {
+    par: 6,
+    slp: 2.5,
+    psn: 10,
+    brn: 8,
+    frz: 2.5,
+    confusion: 4,
+    infatuation: 1.5,
+};
+
+/**
+ * Reforço próprio do golpe, no lugar do dado: Amnesia é o Special +2 da Gen 1 (ataque e defesa especial juntos);
+ * as paredes não sobem atributo (o efeito delas é a parede).
+ */
+const SELF_BOOSTS: Record<string, Partial<Record<string, number>>> = {
+    amnesia: { spa: 2, spd: 2 },
+    lightscreen: {},
+    reflect: {},
+};
+/** O que o golpe de reforço sobe (sem dado: Focus Energy e companhia sobem chute/força). */
+export const selfBoostsOf = (moveId: string): Partial<Record<string, number>> =>
+    SELF_BOOSTS[moveId] ?? MOVES[moveId]?.selfBoosts ?? { atk: 1 };
+
+/** Secundário sorteado: Tri Attack queima, congela ou paralisa (Gen 2 em diante). */
+export const SECONDARY_PICK: Record<string, StatusKind[]> = { triattack: ['brn', 'frz', 'par'] };
 
 /**
  * O que cada golpe faz no futsal (os especiais e os que ganharam traço). Os outros usam o texto do tipo.
@@ -333,7 +397,8 @@ const EXPLAIN = {
     roar: 'Rugido: o rival mais perto foge de volta para o campo dele e larga a bola.',
     whirlwind: 'Ventania que empurra os rivais em volta e sopra a bola solta para longe.',
     splash: 'Pula e espirra água: fica difícil de desarmar por um instante (mas é só isso mesmo).',
-    transform: 'Vira uma cópia do rival mais perto: pega os atributos melhores dele por 12 segundos.',
+    transform:
+        'Vira uma cópia do rival mais perto: pega os atributos melhores dele por 12 segundos. (O Ditto já entra transformado pela habilidade Impostor.)',
     // F1 área
     acid: 'Com a bola: chute colocado. Sem a bola: jato de ácido em todos os rivais a 4 m.',
     blizzard:
@@ -407,6 +472,7 @@ const EXPLAIN = {
     pinmissile: 'De 2 a 5 tentativas de desarme; o chute pode voltar para o pé dele se for defendido.',
     spikecannon: 'De 2 a 5 tentativas de desarme; o chute pode voltar para o pé dele se for defendido.',
     vinewhip: 'Chicote: desarme de longe (2,8 m).',
+    slam: 'Pancada com a cauda ou a vinha: com a bola, chute forte; sem a bola, desarme de longe (2,8 m).',
     boneclub: 'Osso na mão: desarme de longe (2,8 m), que pode fazer o rival hesitar.',
     rockthrow: 'Pedrada: desarme de longe (2,8 m).',
     // F9 prender
@@ -423,6 +489,9 @@ const EXPLAIN = {
     acidarmor: 'Derrete: por 3 s os carrinhos passam direto por ele.',
     withdraw: 'Entra no casco 1,5 s: ninguém tira a bola dele, mas anda devagar.',
     defensecurl: 'Enrola: o próximo carrinho que sofrer não tira a bola.',
+    harden: 'Endurece: o próximo carrinho que sofrer não tira a bola.',
+    lightscreen: 'Parede de luz: por 15 s, golpes especiais e de status contra o seu time pegam pela metade.',
+    reflect: 'Parede: por 15 s, os carrinhos contra o seu time saem 30% mais fracos.',
     barrier: 'Muro invisível 3 s na frente dele: bloqueia o próximo chute que passar perto.',
     stomp: 'Pisão: com a bola, chute forte; sem a bola, desarme que pode fazer hesitar e ignora quem está pequenininho (Minimize).',
     // F12 controle de campo
@@ -687,20 +756,163 @@ function stageCap(sp: Species): number {
 }
 
 /**
+ * O que o golpe faz em campo, além da força, da precisão e do tipo: dois golpes com a mesma chave são "iguais" (Ember e
+ * Fire Blast; Thunder e Thunderbolt). Usado para não pôr dois iguais no mesmo moveset.
+ */
+export function moveBehavior(id: string): string {
+    const p = moveProfile(id);
+    const sec = p.data.secondary;
+    return [
+        p.kind,
+        (MOVE_TRAITS[id] ?? []).join('+'),
+        DRAWBACK[id] ?? '',
+        DRAIN[id] ? 'drain' : '',
+        TRAP.has(id) ? 'trap' : '',
+        OHKO.has(id) ? 'ohko' : '',
+        p.status ?? '',
+        sec?.status ?? sec?.volatile ?? '',
+        sec?.boosts ? Object.keys(sec.boosts).join('/') : '',
+        p.kind === 'buff' || p.kind === 'debuff' || p.kind === 'special' ? id : '',
+    ].join('|');
+}
+
+/**
  * Moveset padrão com cara de "jogo de verdade":
  * 0) golpe-assinatura da espécie (src/engine/signature-moves.ts)
  * 1) melhor golpe STAB da categoria mais forte da espécie (Atk vs SpA)
  * 2) melhor golpe de dano de outro tipo ou outra categoria (cobertura)
  * 3) utilitário: status > arrancada > buff > debuff > cura
  * 4) melhor restante, preferindo um tipo ainda não coberto
- * Espécies com learnset curto (Magikarp, Ditto…) ficam com menos de 4.
+ * Em 2 e 4, golpe de mesmo efeito de um que já entrou vale bem menos (sem Flamethrower + Fire Blast).
+ * Depois: as trocas decididas com o Miguel (MOVESET_SWAP) e a regra do tipo próprio (1 golpe de cada tipo da espécie,
+ * se o learnset da Gen 1 tiver). Espécies com learnset curto (Magikarp, Ditto…) ficam com menos de 4.
  */
 /** Quem tem moveset fixo de propósito: o Magikarp é o Magikarp (a graça é evoluir). */
 const FIXED_MOVESET: Record<number, string[]> = { 129: ['splash', 'tackle'] };
 
+/**
+ * Trocas na mão (sai → entra), decididas com o Miguel em 21/10/2026. Rodam antes da regra do tipo próprio, então
+ * uma troca que já põe o tipo que faltava dispensa a regra.
+ * - Gengar: o Confuse Ray vira Sludge (exceção fora da Gen 1, `LEARNSET_EXTRA` em data.ts) e o combo Hypnosis →
+ *   Dream Eater fica. Sem a linha, a regra do tipo próprio tiraria o Hypnosis e poria o Toxic.
+ * - Hitmonchan: os 3 socos ficam e entra o Counter (Lutador, nível 53) no lugar do Agility.
+ * - Gyarados: o Splash herdado do Magikarp vira Hyper Beam (nível 52 na Gen 1).
+ */
+export const MOVESET_SWAP: Readonly<Record<number, Readonly<Record<string, string>>>> = {
+    94: { confuseray: 'sludge' },
+    107: { agility: 'counter' },
+    130: { splash: 'hyperbeam' },
+};
+/** Fora da regra do tipo próprio: a Butterfree guarda os pós (o único Inseto dela seria String Shot). */
+const TYPE_RULE_SKIP = new Set([12]);
+/**
+ * Fora da regra "sem 2 iguais" (o Miguel não viu a troca ainda): o Ponyta guarda Ember + Fire Blast (a regra daria
+ * Toxic) e a Tangela guarda Vine Whip + Slam (os dois com alcance; a regra daria Solar Beam).
+ */
+const DUP_RULE_SKIP = new Set([77, 114]);
+
+const MOVESET_CACHE = new Map<number, readonly string[]>();
+
+/**
+ * Espécies SEM relação não dividem 3 ou 4 golpes do moveset padrão (aprovado pelo Miguel, ENGINE_VERSION 9).
+ * Ligado, o `defaultMoveset` usa `uniqueMovesets()`. Ver docs/planos/golpes-revisao.md, seção 8.
+ */
+export const UNIQUE_MOVESETS = true;
+
 export function defaultMoveset(sp: Species): string[] {
-    if (FIXED_MOVESET[sp.id]) return FIXED_MOVESET[sp.id];
-    const profiles = sp.learnset.map(moveProfile);
+    if (FIXED_MOVESET[sp.id]) return [...FIXED_MOVESET[sp.id]];
+    if (UNIQUE_MOVESETS) return [...(uniqueMovesets().get(sp.id) ?? baseMoveset(sp))];
+    return [...baseMoveset(sp)];
+}
+
+function baseMoveset(sp: Species): readonly string[] {
+    let ms = MOVESET_CACHE.get(sp.id);
+    if (!ms) {
+        ms = buildMoveset(sp);
+        MOVESET_CACHE.set(sp.id, ms);
+    }
+    return ms;
+}
+
+const lineRoot = (id: number): number => {
+    const p = SPECIES[id - 1]?.prevo;
+    return p && p <= 151 ? lineRoot(p) : id;
+};
+
+/**
+ * Fora da unicidade (Miguel, 21/10/2026), junto com os pares deles: a troca deixaria o Wigglytuff estranho e o Staryu
+ * mais fraco. Ficam as 8 trocas aprovadas.
+ */
+const UNIQUE_SKIP = new Set([40, 120]);
+
+let uniqueCache: Map<number, string[]> | null = null;
+/**
+ * Regra da unicidade (protótipo): quando duas espécies de linhas evolutivas diferentes dividem 3 ou 4 golpes, a de
+ * número maior troca 1 golpe dividido pelo melhor golpe do learnset dela que nenhuma das duas leva. O novo é da mesma
+ * classe (dano por dano, status por status), não repete efeito nem tipo de fora, tem nota de pelo menos 90% e, no
+ * dano, força de pelo menos 90% e precisão parecida (não tira poder). Nunca sai a assinatura nem o único golpe de um
+ * tipo da espécie. Sem troca boa, fica como está. Mesma linha evolutiva parecida não é problema (Miguel, 21/10/2026).
+ */
+export function uniqueMovesets(): Map<number, string[]> {
+    if (uniqueCache) return uniqueCache;
+    const mons = SPECIES.filter((sp) => sp.id <= 151 && !FIXED_MOVESET[sp.id] && sp.learnset.length > 1);
+    const sets = new Map(mons.map((sp) => [sp.id, [...baseMoveset(sp)]]));
+    const shared = (a: string[], b: string[]) => a.filter((m) => b.includes(m));
+    const isDamage = (m: string) => ['strike', 'blast'].includes(moveProfile(m).kind);
+    for (let pass = 0; pass < 3; pass++) {
+        let changed = false;
+        for (const a of mons)
+            for (const b of mons) {
+                if (b.id <= a.id || lineRoot(a.id) === lineRoot(b.id) || UNIQUE_SKIP.has(a.id) || UNIQUE_SKIP.has(b.id))
+                    continue;
+                const ma = sets.get(a.id)!;
+                const mb = sets.get(b.id)!;
+                if (shared(ma, mb).length < 3) continue;
+                const fix = trySwap(b, mb, ma) ?? trySwap(a, ma, mb);
+                if (fix) {
+                    sets.set(fix.id, fix.moves);
+                    changed = true;
+                }
+            }
+        if (!changed) break;
+    }
+    function trySwap(sp: Species, mine: string[], other: string[]): { id: number; moves: string[] } | null {
+        const { damageScore, utilityScore } = scorer(sp);
+        const score = (m: string) => Math.max(damageScore(moveProfile(m)), utilityScore(moveProfile(m)));
+        const ownCount = (t: string) => mine.filter((m) => MOVES[m].type === t).length;
+        const outs = shared(mine, other)
+            .filter((m) => m !== SIGNATURE[sp.id])
+            .filter((m) => !(sp.types.includes(MOVES[m].type) && ownCount(MOVES[m].type) === 1))
+            .sort((x, y) => score(x) - score(y));
+        // não tira poder: dano com força e precisão parecidas (nada de nocaute ou golpe de risco no lugar); utilitário
+        // do mesmo jeito (status por status, arrancada por arrancada)
+        const weaker = (m: string, out: string) => {
+            const [pm, po] = [moveProfile(m), moveProfile(out)];
+            if (!isDamage(out)) return pm.kind !== po.kind;
+            if ((OHKO.has(m) || RISKY.has(m)) && !OHKO.has(out) && !RISKY.has(out)) return true;
+            return pm.strength < 0.9 * po.strength || pm.data.accuracy < po.data.accuracy - 10;
+        };
+        for (const out of outs) {
+            const rest = mine.filter((m) => m !== out);
+            let best: string | null = null;
+            for (const m of sp.learnset) {
+                if (mine.includes(m) || other.includes(m) || isDamage(m) !== isDamage(out)) continue;
+                if (rest.some((r) => moveBehavior(r) === moveBehavior(m))) continue;
+                const t = MOVES[m].type;
+                if (!sp.types.includes(t) && rest.some((r) => MOVES[r].type === t)) continue;
+                if (score(m) < 0.9 * score(out) || weaker(m, out)) continue;
+                if (!best || score(m) > score(best)) best = m;
+            }
+            if (best) return { id: sp.id, moves: mine.map((m) => (m === out ? best! : m)) };
+        }
+        return null;
+    }
+    uniqueCache = sets;
+    return sets;
+}
+
+/** As notas que o moveset padrão dá a cada golpe da espécie (dano e utilitário). */
+function scorer(sp: Species) {
     const physical = sp.baseStats.atk >= sp.baseStats.spa;
     const levels = LEVEL_MOVES[sp.id] ?? {};
     const cap = stageCap(sp);
@@ -739,6 +951,12 @@ export function defaultMoveset(sp: Species): string[] {
                 return 0;
         }
     };
+    return { damageScore, utilityScore };
+}
+
+function buildMoveset(sp: Species): string[] {
+    const profiles = sp.learnset.map(moveProfile);
+    const { damageScore, utilityScore } = scorer(sp);
     const chosen: MoveProfile[] = [];
     const best = (score: (p: MoveProfile) => number) => {
         let top: MoveProfile | null = null;
@@ -754,6 +972,9 @@ export function defaultMoveset(sp: Species): string[] {
         if (top) chosen.push(top);
         return top;
     };
+    // golpe de mesmo efeito de um que já entrou vale bem menos
+    const dup = (p: MoveProfile) =>
+        !DUP_RULE_SKIP.has(sp.id) && chosen.some((c) => moveBehavior(c.id) === moveBehavior(p.id)) ? 0.4 : 1;
     const signature = profiles.find((p) => p.id === SIGNATURE[sp.id]);
     if (signature) chosen.push(signature);
     const first =
@@ -763,7 +984,7 @@ export function defaultMoveset(sp: Species): string[] {
         if (!first) return sc;
         const sameType = p.data.type === first.data.type;
         const sameKind = p.kind === first.kind;
-        return sc * (sameType ? (sameKind ? 0.3 : 0.6) : 1.1);
+        return sc * dup(p) * (sameType ? (sameKind ? 0.3 : 0.6) : 1.1);
     });
     // assinatura de suporte (Sing, Glare…) já é o utilitário
     const isUtility = (p: MoveProfile | undefined) => !!p && p.kind !== 'strike' && p.kind !== 'blast';
@@ -772,11 +993,53 @@ export function defaultMoveset(sp: Species): string[] {
     if (chosen.length < 4) {
         best((p) =>
             Math.max(
-                damageScore(p) * (types.has(p.data.type) ? 0.5 : 1),
+                damageScore(p) * (types.has(p.data.type) ? 0.5 : 1) * dup(p),
                 utilityScore(p) * 0.9,
                 p.kind === 'flavor' ? 1 : 0,
             ),
         );
     }
+    for (const [out, inn] of Object.entries(MOVESET_SWAP[sp.id] ?? {})) {
+        const i = chosen.findIndex((p) => p.id === out);
+        if (i >= 0 && sp.learnset.includes(inn)) chosen[i] = moveProfile(inn);
+    }
+    if (!TYPE_RULE_SKIP.has(sp.id)) ownTypeRule(sp, profiles, chosen, signature, damageScore, utilityScore);
     return chosen.slice(0, 4).map((p) => p.id);
+}
+
+/**
+ * Regra do tipo próprio (Miguel, 21/10/2026: o Gengar não tinha golpe Venenoso): para cada tipo da espécie sem
+ * golpe, entra o golpe do tipo de melhor nota (dano ou utilitário), se o learnset tiver. Sai, nesta ordem: um da
+ * mesma classe (dano por dano, utilitário por utilitário), um de efeito repetido, um de tipo de fora repetido, um de
+ * tipo de fora, um do tipo próprio repetido. Nunca sai a assinatura nem o único golpe de um tipo da espécie.
+ */
+function ownTypeRule(
+    sp: Species,
+    profiles: MoveProfile[],
+    chosen: MoveProfile[],
+    signature: MoveProfile | undefined,
+    damageScore: (p: MoveProfile) => number,
+    utilityScore: (p: MoveProfile) => number,
+) {
+    const isDamage = (p: MoveProfile) => p.kind === 'strike' || p.kind === 'blast';
+    const score = (p: MoveProfile) => Math.max(damageScore(p), utilityScore(p));
+    const own = (t: string) => sp.types.includes(t as never);
+    for (const t of sp.types) {
+        if (chosen.some((p) => p.data.type === t)) continue;
+        let cand: MoveProfile | null = null;
+        for (const p of profiles)
+            if (p.data.type === t && !chosen.includes(p) && (!cand || score(p) > score(cand))) cand = p;
+        if (!cand) continue;
+        const c = cand;
+        const count = (ty: string) => chosen.filter((p) => p.data.type === ty).length;
+        const rank = (p: MoveProfile) =>
+            (isDamage(p) === isDamage(c) ? 100 : 0) +
+            (chosen.some((o) => o !== p && moveBehavior(o.id) === moveBehavior(p.id)) ? 40 : 0) +
+            (!own(p.data.type) && count(p.data.type) > 1 ? 30 : !own(p.data.type) ? 20 : 10);
+        const victims = chosen
+            .map((p, i) => ({ p, i }))
+            .filter(({ p }) => p !== signature && !(own(p.data.type) && count(p.data.type) === 1))
+            .sort((a, b) => rank(b.p) - rank(a.p) || score(a.p) - score(b.p) || b.i - a.i);
+        if (victims.length) chosen[victims[0].i] = c;
+    }
 }

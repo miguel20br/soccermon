@@ -1,7 +1,7 @@
-// Copa inteira como um jogador razoável. Uso: npx tsx cup.ts <shard> <nshards> <out> [cupsPorFormação]
+// Copa inteira como um jogador razoável. Uso: [RIVAL=0] npx tsx cup.ts <shard> <nshards> <out> [cupsPorFormação]
 import { writeFileSync } from 'node:fs';
 import type { Position } from '../../src/engine/attributes';
-import { buildCupOpponents } from '../../src/engine/cup';
+import { buildCupOpponents, cupRival } from '../../src/engine/cup';
 import { MOVES } from '../../src/engine/data';
 import { captainOptions, playerDraftOptions } from '../../src/engine/draft';
 import { evolutionTarget, evolveInstance, evoProgress } from '../../src/engine/evolution';
@@ -131,7 +131,8 @@ function cup(seed: string, formation: FormationId) {
             manualSubs: true,
             ...(sponsors.length && { sponsors: [...sponsors] }),
         };
-        const opp = opponents[stage];
+        // o rival com o técnico IA da beira da quadra, como no jogo (0.9.6; RIVAL=0 tira)
+        const opp = cupRival(opponents[stage], process.env.RIVAL !== '0');
         const eligible = team.lineup.filter(
             (p) => p.ability !== 'imposter' && evolutionTarget(p.speciesId, p.uid) !== null,
         ).length;
