@@ -30,11 +30,17 @@
 // - subidas de ruído e impactos (grave caindo + estouro) nos cortes: B0, B24, Raichu (B40), gol (B48) e logo (B72);
 // - passa-baixa nas quadradas (o chiado de cima some, o brilho fica nos 2–6 kHz);
 // - meio tempo de silêncio antes do logo (B71,5): o vídeo põe o clarão e o logo ali, e o SOC cai limpo em B72.
-// No vídeo entra com um acabamento no ffmpeg (presença +4 dB em 4 kHz e corte em 16 kHz, onde o v1 tinha o chiado da
-// saturação do writeWav), a 48 kHz:
+//
+// v3 (22/10/2026). "Bem melhor"; faltava presença: a banda de 2–6 kHz ainda 1,5 a 3 dB abaixo do remix (e o logo 2 dB
+// acima). No arranjo: um estalo (ruído em 2,2 e 4 kHz, 40 ms) junto da caixa no 2 e no 4 e nos rufares; uma serra
+// dobrada curta nos acordes (passa-baixa 6,5 kHz) no A, na batalha, na evolução, no gol e no pacote; a dupla larga uma
+// oitava acima na batalha e os metais do FIRE BLAST uma oitava acima; no logo menos brilho (oitava, sino, prato, dupla e
+// quadrada mais baixos) e +1,8 dB no volume geral pra o gancho não perder força. Presença a 0,5 dB do remix em cada trecho.
+// No vídeo entra com um acabamento no ffmpeg (presença +5 dB em 3,5 kHz, corte em 14 kHz pra o chiado acima de 12 kHz
+// ficar abaixo do v2, e 3 dB de folga pra o realce não estourar), a 48 kHz:
 //   node scripts/musica/render.mjs trailer-abertura --so-wav --out <pasta>
-//   ffmpeg -i <pasta>/trailer-abertura.wav -af "equalizer=f=4000:t=o:w=2:g=4,lowpass=f=16000:p=2" -ar 48000 \
-//     trailer/v2-abertura/som/trailer-abertura-v2.wav
+//   ffmpeg -i <pasta>/trailer-abertura.wav -af "equalizer=f=3500:t=o:w=1.5:g=5,lowpass=f=14000:p=2,volume=-3dB" \
+//     -ar 48000 trailer/v2-abertura/som/trailer-abertura-v3.wav
 import {
     arp,
     bass,
@@ -53,7 +59,7 @@ import {
 } from '../synth.mjs';
 import { FLIP } from './draft.mjs';
 
-export const meta = { titulo: 'Trailer 2 com a Abertura (teste v2)', tela: 'Trailer', lufs: -14 };
+export const meta = { titulo: 'Trailer 2 com a Abertura (teste v3)', tela: 'Trailer', lufs: -14 };
 
 /** Ruído fixo (a peça sai igual toda vez). */
 function ruido(seed) {
@@ -117,8 +123,33 @@ function impacto() {
     return pronto(y);
 }
 
+/** Estalo da caixa: ruído em dois passa-faixas (2,2 e 4 kHz) que fecha em ~40 ms; a presença vem daqui, sem chiado. */
+function estalo() {
+    const r = ruido(33);
+    const y = new Float32Array(Math.round(0.15 * SR));
+    const bp = (f0, q) => {
+        const w = (2 * Math.PI * f0) / SR;
+        const al = Math.sin(w) / (2 * q);
+        const [b0, a0, a1, a2] = [al, 1 + al, -2 * Math.cos(w), 1 - al];
+        let [x1, x2, y1, y2] = [0, 0, 0, 0];
+        return (x) => {
+            const v = (b0 * x - b0 * x2 - a1 * y1 - a2 * y2) / a0;
+            [x2, x1, y2, y1] = [x1, x, y1, v];
+            return v;
+        };
+    };
+    const [f1, f2] = [bp(2200, 1.2), bp(4000, 1.4)];
+    for (let i = 0; i < y.length; i++) {
+        const t = i / SR;
+        const x = r() * Math.exp(-t / 0.04) * Math.min(1, t / 0.0005);
+        y[i] = f1(x) + 0.8 * f2(x);
+    }
+    return pronto(y);
+}
+
 const SERRA = ins({ vol: 0.3, a: 0.006, r: 0.1, shape: 2, sv: 0.75, d: 0.06 }); // lead largo
 const SUPER = ins({ vol: 0.12, a: 0.05, r: 0.35, shape: 2, sv: 1 }); // pad largo
+const MEIO = ins({ vol: 0.16, a: 0.003, r: 0.07, shape: 2, sv: 0.55, d: 0.09 }); // serra curta do meio (acordes)
 const SUB = ins({ vol: 0.6, a: 0.008, r: 0.06, shape: 0, sv: 1 }); // seno
 
 /**
@@ -128,7 +159,14 @@ const SUB = ins({ vol: 0.6, a: 0.008, r: 0.06, shape: 0, sv: 1 }); // seno
 const desafina = (P, c, dt = 0) => ({ ...P, note: (t, m, len, v) => P.note(t + dt, m + c, len, v) });
 
 export default function trailerAbertura() {
-    const S = new Song({ bpm: 178, bars: 21, swing: 0.06, tail: 2.5 });
+    // v3: o logo perdeu brilho de propósito (presença acima do remix) e ganha volume inteiro de volta (+1,8 dB)
+    const S = new Song({
+        bpm: 178,
+        bars: 21,
+        swing: 0.06,
+        tail: 2.5,
+        masterAt: (t) => (t >= 19 * S.barSec - 0.01 ? 1.23 : 1),
+    });
     const BATIDA = 60 / 178;
     // bombeado leve no que segura (sub e camadas largas) onde o bumbo vai nos 4 tempos
     const BOMBA = new Set([7, 8, 10, 11, 13, 14, 15, 16]);
@@ -155,7 +193,10 @@ export default function trailerAbertura() {
         pan: -0.1,
         gain: 0.9,
         // nos ganchos e no refrão quem leva é a dupla larga; a quadrada do meio abaixa 3 dB
-        gainAt: (t) => ([13, 14, 15, 16, 19, 20].includes(Math.floor(t / S.barSec)) ? 0.7 : 1),
+        gainAt: (t) => {
+            const c = Math.floor(t / S.barSec);
+            return c >= 19 ? 0.55 : [13, 14, 15, 16].includes(c) ? 0.7 : 1;
+        },
         echo: { rows: 3, fb: 0.25, mix: 0.18 },
         rev: 0.08,
         corte: 8000,
@@ -167,6 +208,9 @@ export default function trailerAbertura() {
     const bs = S.part('baixo', I.slap, { gain: 0.75 });
     const sub = S.part('sub', SUB, { gain: 0.45, gainAt: bomba(0.35) });
     const st = S.part('acordes', I.stab, { pan: 0.3, gain: 0.85 });
+    // v3: a camada brilhante do meio (serra dobrada nos acordes, passa-baixa em 5,5 kHz): presença sem chiado
+    const meio = par('meio', MEIO, { gain: 1.3, cents: 0.1, rev: 0.1, corte: 6500 });
+    const meioAc = (bar, sym, rows, vel = 1) => nos(meio, (P) => stabs(P, bar, sym, rows, { low: 72, len: 2, vel }));
     const clav = S.part('clavinete', I.clav, { pan: 0.4, gain: 0.9, corte: 6000 });
     const ar = S.part('arpejo', I.arp, { pan: 0.55, gain: 0.7, echo: { rows: 2, fb: 0.2, mix: 0.25 }, corte: 7000 });
     const pad = S.part('pad', I.pad, { gain: 0.6 });
@@ -176,6 +220,7 @@ export default function trailerAbertura() {
     const flip = S.part('carta', FLIP, { drum: true, pan: -0.2, gain: 1.4 });
     const k = S.part('bumbo', bumbo(), { drum: true, gain: 1.4 });
     const sn = S.part('caixa', I.snare, { drum: true, gain: 0.8 });
+    const est = S.part('estalo', estalo(), { drum: true, gain: 2.8, rev: 0.1 });
     const hh = S.part('chimbal', I.hat, { drum: true, pan: 0.35, gain: 1.3 });
     const oh = S.part('chimbal aberto', I.ohat, { drum: true, pan: -0.3, gain: 1 });
     const sh = S.part('shaker', I.shaker, { drum: true, pan: -0.45, gain: 0.8 });
@@ -205,6 +250,7 @@ export default function trailerAbertura() {
     const groove = (bar, n, { kick = 'X.....x.X.....x.', backbeat = true } = {}) => {
         drum(k, bar, n, kick);
         drum(sn, bar, n, '....X..o.o..X..o');
+        drum(est, bar, n, '....x.......x...', { vel: 0.8 });
         drum(hh, bar, n, 'xoxoxoxoxoxoxoxo');
         drum(sh, bar, n, 'x.o.x.o.x.o.x.o.');
         if (backbeat) drum(cl, bar, n, '....x.......x...', { vel: 0.7 });
@@ -213,6 +259,7 @@ export default function trailerAbertura() {
     const kit = (bar, n, kick = 'X...X...X...X...') => {
         drum(k, bar, n, kick);
         drum(sn, bar, n, '....X..o.o..X..o');
+        drum(est, bar, n, '....X.......X...');
         drum(cl, bar, n, '....x.......x...', { vel: 0.85 });
         drum(hh, bar, n, 'x.xxx.xxx.xxx.xx', { vel: 0.9 });
         drum(oh, bar, n, '..x...x...x...x.');
@@ -284,6 +331,7 @@ export default function trailerAbertura() {
         bass(bs, 3 + i, c, FUNK);
         bass(sub, 3 + i, c, '0:6 r:2 0:8');
         stabs(st, 3 + i, c, STAB);
+        meioAc(3 + i, c, STAB, 0.5);
         nos(sup, (P) => padChord(P, 3 + i, c, 16, { low: 55, n: 4, vel: 0.8 }));
         if (i >= 2) arp(ar, 3 + i, c, { low: 64, step: 1 });
     });
@@ -304,10 +352,15 @@ export default function trailerAbertura() {
     mel(clav, 7, [RIFF]);
     mel(clav, 8, [RIFF], { shift: 5, vel: 0.7 });
     mel(lead, 7, ['E5:2 E5:1 E5:1 G5:2 A5:2 r:2 G5:1 E5:1 D5:2 C5:2']);
-    nos(largo, (P) => mel(P, 7, ['E5:2 E5:1 E5:1 G5:2 A5:2 r:2 G5:1 E5:1 D5:2 C5:2'], { vel: 0.6 }));
+    // v3: a dupla larga uma oitava acima na batalha (o tema no meio, o brilho na presença)
+    nos(largo, (P) => mel(P, 7, ['E5:2 E5:1 E5:1 G5:2 A5:2 r:2 G5:1 E5:1 D5:2 C5:2'], { vel: 0.6, shift: 12 }));
     bass(bs, 7, 'Am7', BATALHA);
     bass(sub, 7, 'Am7', '0:16');
     stabs(st, 7, 'Am7', [[0, 2], 6, 10, 14]);
+    const CONTRA = [2, 6, 10, 14];
+    meioAc(7, 'Am7', CONTRA, 1.25);
+    meioAc(8, 'D7', CONTRA, 1.25);
+    meioAc(9, 'Fmaj7', [0, 3, 6]);
     nos(sup, (P) => {
         padChord(P, 7, 'Am7', 16, { low: 57, n: 4 });
         padChord(P, 8, 'D7', 16, { low: 57, n: 4 });
@@ -317,8 +370,8 @@ export default function trailerAbertura() {
     // FIRE BLAST (B28): os metais e o lead gritam o gancho em menor (3-3-2)
     const hookMenor = GANCHO.em({ tom: -3, menor: true }); // E5 C5 A5
     mel(lead, 8, [hookMenor]);
-    nos(largo, (P) => mel(P, 8, [hookMenor], { vel: 0.9 }));
-    mel(horns, 8, [GANCHO.em({ tom: -3, menor: true, oitava: -1 })]);
+    nos(largo, (P) => mel(P, 8, [hookMenor], { vel: 0.9, shift: 12 }));
+    mel(horns, 8, [hookMenor]); // v3: uma oitava acima (junto do lead), o grito na presença
     bass(bs, 8, 'D7', BATALHA);
     bass(sub, 8, 'D7', '0:16');
     stabs(
@@ -346,6 +399,7 @@ export default function trailerAbertura() {
     drum(sn, 8, 1, '..............xx', { vel: 0.9 });
     drum(k, 9, 1, 'X...X...X.......');
     drum(sn, 9, 1, '....X..o........');
+    drum(est, 9, 1, '....X...........');
     drum(hh, 9, 1, 'x.xxx.xx........');
     drum(oh, 9, 1, '..x...x.........');
     drum(sh, 9, 1, 'x.o.x.o.........');
@@ -371,6 +425,8 @@ export default function trailerAbertura() {
             padChord(P, b, c2, 8, { at: 8, low: 57, n: 3 });
         });
         stabs(st, b, c2, [[8, 2]], { vel: 1.1 });
+        meioAc(b, c1, [2, 6], 0.8);
+        meioAc(b, c2, [10, 14], 0.9);
     }
     // o arpejo do 2º acorde de cada compasso (o arp sempre começa na linha 0)
     for (const [b, , c2] of SUBIDA) {
@@ -394,6 +450,7 @@ export default function trailerAbertura() {
     mel(counter, 12, ['D5:8 C#5:8']);
     drum(k, 12, 1, 'X.......X...X.X.');
     drum(sn, 12, 1, '........xoxoxxXX', { vel: 0.9 });
+    drum(est, 12, 1, '........x.x.xxXX', { vel: 0.45 });
     drum(ti, 12, 1, 'X.......x...x...');
     em(sobe.um, 12, 0);
 
@@ -415,6 +472,7 @@ export default function trailerAbertura() {
         bass(bs, 13 + i, c, FUNK);
         bass(sub, 13 + i, c, '0:16');
         stabs(st, 13 + i, c, STAB);
+        meioAc(13 + i, c, STAB);
         arp(ar, 13 + i, c, { low: 67, step: 1 });
         padChord(pad, 13 + i, c, 16, { vel: 0.6 });
         nos(sup, (P) => padChord(P, 13 + i, c, 16, { low: 59, n: 4 }));
@@ -438,15 +496,20 @@ export default function trailerAbertura() {
     bass(sub, 17, 'A7sus4', 'r:8 0:4 r:4');
     stabs(st, 17, 'Em7', [3, 6]);
     stabs(st, 17, 'A7sus4', [[8, 3]], { vel: 1.2 });
+    meioAc(17, 'Em7', [3, 6]);
+    meioAc(17, 'A7sus4', [8], 1.1);
+    meioAc(18, 'A7', [4, 8, 10, 12], 0.9);
     drum(k, 17, 1, 'X...X...X.......');
     drum(sn, 17, 1, '....X..o........');
     drum(hh, 17, 1, 'x.xxx.xx........');
     drum(oh, 17, 1, '..x...x.........');
     drum(cl, 17, 1, '....x...........', { vel: 0.85 });
+    drum(est, 17, 1, '....X...........');
     drum(ti, 17, 1, '........X...x...');
     drum(ti, 18, 1, 'X...............');
     // rasga (B69, linha 4) e sobe até B71,5; a última meia batida fica em silêncio (o logo entra no vídeo ali)
     drum(sn, 18, 1, 'xoxoxoxoxxxxXX..', { vel: 0.9 });
+    drum(est, 18, 1, '........x.x.xX..', { vel: 0.8 });
     drum(cr, 18, 1, '....X...........');
     drum(k, 18, 1, '....X...X...X...');
     mel(horns, 18, ['r:4 A4+C#5+E5+G5:10 r:2']);
@@ -461,11 +524,11 @@ export default function trailerAbertura() {
     em(imp, 20, 0, 0.6);
     const hookRe = GANCHO.em({ tom: 2 }); // A5 F#5 D6
     mel(lead, 19, [hookRe, 'A5:3 F#5:3 D6:10']);
-    nos(largo, (P) => mel(P, 19, [hookRe, 'A5:3 F#5:3 D6:10']));
-    mel(brilho, 19, [hookRe, 'A5:3 F#5:3 D6:10'], { shift: 12, vel: 0.8 });
-    mel(harm, 19, [hookRe, 'A5:3 F#5:3 D6:10'], { harm: REMAJ });
-    mel(horns, 19, [GANCHO.em({ tom: 2, oitava: -1 }), 'A4:3 F#4:3 D5:10']);
-    mel(sino, 19, ['r:6 D7:6 r:4', 'r:6 D7:10']);
+    nos(largo, (P) => mel(P, 19, [hookRe, 'A5:3 F#5:3 D6:10'], { vel: 0.6 }));
+    mel(brilho, 19, [hookRe, 'A5:3 F#5:3 D6:10'], { shift: 12, vel: 0.25 }); // v3: 0,8 → 0,25 (o logo já brilhava demais)
+    mel(harm, 19, [hookRe, 'A5:3 F#5:3 D6:10'], { harm: REMAJ, vel: 0.6 });
+    mel(horns, 19, [GANCHO.em({ tom: 2, oitava: -1 }), 'A4:3 F#4:3 D5:10'], { vel: 0.75 });
+    mel(sino, 19, ['r:6 D7:6 r:4', 'r:6 D7:10'], { vel: 0.35 });
     for (const b of [19, 20]) {
         stabs(
             st,
@@ -480,7 +543,7 @@ export default function trailerAbertura() {
         );
         drum(k, b, 1, 'X..X..X.........');
         drum(ti, b, 1, 'X..x..X.........');
-        drum(cr, b, 1, 'X.....X.........');
+        drum(cr, b, 1, 'X.....X.........', { vel: 0.45 });
         hey(b);
     }
     bass(bs, 19, 'D', '0:3 0:3 8:6 r:4');
