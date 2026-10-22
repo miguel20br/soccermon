@@ -16,6 +16,26 @@ Regras desta pesquisa:
 **Amostras pra ouvir:** abra `index.html` na pasta de amostras do scratchpad (caminho no fim deste doc). A Rodada 2
 vem em cima (72 faixas por tela, ★ nas que o Miguel gostou) e a Rodada 1 fica recolhida embaixo.
 
+## Trilhas pra curtas (22/10)
+
+O Miguel amou os curtas feitos com as peças livres (o do Snorlax "perfeito": cada som é uma piada que se vê) e pediu
+"outras OSTs pra outros curtas". Cinco peças `scripts/musica/pecas/curta-*.mjs`, compostas como trilha de vídeo:
+30 a 60 s, gancho no 1º segundo, uma história, SOC-CER-MON no desfecho, clap 808 suave e os sons do personagem como
+instrumento. Cada evento é marcado com `ev()` junto da nota (`scripts/musica/curtas.mjs`) e o `render.mjs` escreve
+o roteiro no `.json` (`premissa`, `cenas`, `eventos` com `t` em segundos, o som e o que se vê). Na página de
+amostras, "Trilhas pra curtas" no topo, com o roteiro de cada uma (gerada por `fonte/index-curtas.py`).
+
+| Peça | Duração | O motivo que conta a história |
+|---|---|---|
+| O grande dia do Magikarp | ~47 s | o PLOF é o 3-3-2 do gancho caindo; depois da evolução vira 3 pancadas de tímpano (os zagueiros voando) e o SOC-CER-MON subindo |
+| Gengar, o goleiro fantasma | ~33 s | swing com teremim × surdina; some, aparece, risadinha e lambida são instrumentos |
+| Ditto copia todo mundo | ~36 s | tudo é pergunta e resposta: o Ditto repete num kazoo mole; no fim a banda copia o Ditto |
+| Psyduck e a dor de cabeça | ~36 s | o latejo marca o tempo, acelera, e explode em tons inteiros com notas ao contrário |
+| Eevee escolhe | ~30 a 32 s × 3 | o motivo passa de pedra em pedra; o vídeo para no branco pra votação; três finais (Vaporeon lídio, Jolteon a 132, Flareon mambo) |
+
+`synth.mjs`: instrumento feito à mão (função) agora recebe também a duração da nota (as vozes: teremim, kazoo,
+grasnado). Abertura e Snorlax renderizam idênticos (`cmp` do `.wav`).
+
 ## Virada, Pressão final, pênaltis, Créditos e Lt. Surge no jogo (22/10)
 
 - **Virada fora.** O Miguel não gostou da vinheta por cima da partida: saiu `playVirada()`, os arquivos `virada*` de

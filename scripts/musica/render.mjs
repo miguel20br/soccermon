@@ -1,4 +1,4 @@
-// Renderiza as peças de scripts/musica/pecas/ em .wav, .ogg (−16 LUFS) e .json (trechos, pontos de loop, BPM).
+// Renderiza as peças de scripts/musica/pecas/ em .wav, .ogg (−16 LUFS) e .json (trechos, pontos de loop, BPM; curta-*: roteiro).
 //   node scripts/musica/render.mjs [peça ...] [--out pasta] [--rms] [--so-wav]
 // Sem nome = todas. Saída padrão: /tmp/soccermon-musica (nunca no repo). Lote grande: scripts/pesado.sh na frente.
 // A peça devolve um Song, ou { sufixo: Song } quando é mais de um arquivo (partida: { '1t', '2t' }).
@@ -20,7 +20,8 @@ const todo = names.length ? names : all;
 const unknown = todo.filter((n) => !all.includes(n));
 if (unknown.length) throw new Error(`peça desconhecida: ${unknown.join(', ')} (tem: ${all.join(', ')})`);
 
-const s6 = (n) => Math.round((n / SR) * 1e6) / 1e6;
+const r6 = (s) => Math.round(s * 1e6) / 1e6;
+const s6 = (n) => r6(n / SR);
 
 mkdirSync(OUT, { recursive: true });
 for (const name of todo) {
@@ -57,6 +58,7 @@ for (const name of todo) {
                     faixa: file,
                     titulo: mod.meta?.titulo,
                     tela: mod.meta?.tela,
+                    premissa: mod.meta?.premissa,
                     sampleRate: SR,
                     linhasPorCompasso: song.barLen, // 16 = 4/4; 12 = 12/8 ou 3/4; bpm = 4 linhas por batida
                     duracao: s6(L.length),
@@ -71,6 +73,17 @@ for (const name of todo) {
                         bpm: m.bpm,
                         compassos: m.ate - m.de,
                     })),
+                    // trilha pra curta: as cenas e cada evento musical com o que se VÊ (roteiro do vídeo, em segundos)
+                    ...(song.roteiro && {
+                        cenas: song.roteiro.cenas.map((c, i, a) => ({
+                            nome: c.nome,
+                            inicio: r6(song.timeOfBar(c.de)),
+                            fim: r6(song.timeOfBar(a[i + 1]?.de ?? song.bars)),
+                        })),
+                        eventos: song.roteiro.eventos
+                            .map((e) => ({ t: r6(song.sec(e.compasso * song.barLen + e.linha)), ...e }))
+                            .sort((a, b) => a.t - b.t),
+                    }),
                 },
                 null,
                 1,

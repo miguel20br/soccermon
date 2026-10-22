@@ -15,7 +15,7 @@ export const meta = { titulo: 'Snorlax na pequena área', tela: 'Modo história 
 
 // bocejo: metal que escorrega pra baixo a nota inteira; "uá-uá": trombone com surdina (a altura cai e volta)
 const BOCEJO = ins({ vol: 0.38, a: 0.08, r: 0.3, shape: 2, curve: 0.8, sv: 0.9, d: 0.1, slide: -0.12 });
-const UA = ins({
+export const UA = ins({
     vol: 0.38,
     a: 0.03,
     r: 0.12,

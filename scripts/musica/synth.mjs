@@ -353,7 +353,7 @@ export class Song {
         p.note = (t, m, len = 1, vel = 1) => {
             let s;
             if (typeof inst === 'function')
-                s = inst(m); // amostra pronta (palmas)
+                s = inst(m, len * this.rowAt(Math.floor(t / this.barLen))); // amostra pronta (palmas) ou voz à mão (nota, segundos)
             else {
                 const params = [...inst];
                 if (!drum) params[2] = hz(m);
