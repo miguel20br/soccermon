@@ -213,3 +213,9 @@ passes). Nenhuma MT ficou dominante (a maior, Toxic +6, está dentro do erro). C
 favorito 66,7% ⇒ 68,8% (ruído; o draft da IA não ensina MT). Formações (n=200): nenhuma mexeu mais que 2 pp
 (1-2-1 51/51, 2-2 50/50, 3-1 47/47, 4-0 50/51, 1-1-2 50/50, Ferrolho 53/51). Copa (360 copas, rival com MT): oitavas
 78% ⇒ 76%, quartas 70% ⇒ 65%, semi 59% ⇒ 61%, final 55% ⇒ 52%, título 18% ⇒ 16% (erro de ~±4 pp no título).
+
+## Golpe máximo: zona por posição, aprovada pelo Miguel em 22/10 (0.9.6, ENGINE_VERSION 10)
+
+Pivô 15 m, ala 18 m, fixo 22 m (xG mínimo 0,05 no fixo; `AGENCY.maxZone`). Hora certa por capitão: pivô 62% ⇒ 62%, ala
+34% ⇒ 88%, fixo 6% ⇒ 67% das partidas. Técnico robô (n=400): golpe máximo random +1,3 ⇒ +1,8 pp, good +2,5 ⇒ +3,5 pp
+(dentro do erro). Números, copa com o técnico IA do rival e ressalvas em [beira-da-quadra-2.md](beira-da-quadra-2.md).

@@ -4,11 +4,12 @@ description: Beira da quadra 2 (agência do técnico): golpe máximo na hora cer
 
 # Beira da quadra 2 (21–22/10/2026)
 
-Segunda rodada da agência do técnico (pesquisa em [pesquisas/agencia.md](pesquisas/agencia.md)). Continua
-**experimento** (Configurações → Experimentos ou `?agencia=1`). Pedido do Miguel em 21/10:
+Segunda rodada da agência do técnico (pesquisa em [pesquisas/agencia.md](pesquisas/agencia.md)). **Sai do experimento na
+0.9.6** (Miguel, 22/10): ligada pra todos, sem a opção em Configurações nem o `?agencia=1`; na Copa o rival sempre tem o
+técnico IA. Pedido do Miguel em 21/10:
 
 - **Golpe máximo** só acende na hora certa e sai na hora do toque: capitão de linha com a bola na zona de chute (até
-  15 m do gol e xG ≥ 0,06); capitão goleiro = **defesa máxima** (rival com a bola na zona dele: 4 s em que o chute que
+  15 m do gol e xG ≥ 0,06; desde 22/10, zona pela posição, ver abaixo); capitão goleiro = **defesa máxima** (rival com a bola na zona dele: 4 s em que o chute que
   ele alcança é defendido, alcance x1,25, segura e sai jogando; sem chute, a barra volta pela metade). Barra 22 ⇒ 18.
   Botão grande na quadra e câmera lenta enquanto acende (só Copa). Rival IA usa na hora certa, sem aviso.
 - **Gritos fora** (regra, tela, narração, técnico rival). Ordem de grito antiga (Duelo, save) é ignorada.
@@ -70,13 +71,41 @@ hora certa depois da barra cheia):
 | Fixo | 100% | 11% |
 | Saiu de quadra antes | 86% | 0% |
 
+## Zona por posição (aprovada em 22/10, 0.9.6)
+
+Decisão do Miguel: pivô 15 m, ala 18 m, fixo 22 m (`AGENCY.maxZone` em `src/engine/agency.ts`, regra única de botão,
+motor, IA, técnico rival e robô). O xG mínimo de 0,06 só chega a ~19,8 m no meio, então o fixo usa 0,05 (a 22 m de
+frente dá 0,055). O goleiro capitão (defesa máxima) continua com o rival a 15 m.
+
+Hora certa por capitão (`scripts/balance/maximo-zona.ts 100`, 1-2-1, sem ordem; % das partidas com o capitão de bola
+na zona com a barra cheia). A conta é mais justa que a da tabela acima (lá não contava a troca do capitão):
+
+| Capitão | antes | depois | horas certas/jogo antes ⇒ depois | saiu de quadra antes da hora |
+|---|---:|---:|---|---:|
+| Pivô | 62% | 62% | 1,45 ⇒ 1,45 | 32% |
+| Ala | 34% | 88% | 0,44 ⇒ 3,19 | 15% ⇒ 10% |
+| Fixo | 6% | 67% | 0,08 ⇒ 1,49 | 0% |
+
+O pivô fica atrás do ala porque a IA troca o pivô cansado (32% das partidas ele sai antes da hora certa).
+
+Técnico robô, golpe máximo (`coach.ts 400 … 4 max`, capitão do draft; ±1σ):
+
+| Política | Δ vs nunca antes ⇒ depois (pp) | sai/jogo | gol/jogo |
+|---|---|---|---|
+| random | +1,3 ±1,0 ⇒ +1,8 ±1,6 | 0,21 ⇒ 0,49 | 0,05 ⇒ 0,16 |
+| good | +2,5 ±1,8 ⇒ +3,5 ±2,4 | 0,41 ⇒ 0,64 | 0,10 ⇒ 0,18 |
+
+Números finais da 0.9.6 (n=400): calibrate 7,92 gols/jogo (meta 5–7, igual à 0.9.5 com MTs), favorito 65,8%,
+goleadas 1,8%. Formações: 1-2-1 50%, 2-2 51%, 3-1 47%, 4-0 50%, 1-1-2 51%, Ferrolho 52%. Copa (360 copas, agora com o
+técnico IA do rival, como no jogo; o jogador simulado não usa a beira da quadra): oitavas 76% ⇒ 74%, quartas 65% ⇒ 62%,
+semi 61% ⇒ 58%, final 52% ⇒ 49%, título 16% ⇒ 13% (±4 pp). O rival com técnico deixa a copa ~3 pp mais difícil por
+fase pra quem não usa a beira da quadra.
+
 ## Em aberto (decisão do Miguel)
 
-1. **Capitão fixo quase nunca tem golpe máximo** (11% das partidas; ala 45%, pivô 88%). Opções: zona maior pro fixo
-   (ex.: 20 m), ou o fixo também acende ao roubar a bola no campo de ataque, ou deixar assim (escolher capitão pivô
-   vira parte da estratégia). Recomendo zona por posição (pivô 15 m, ala 18 m, fixo 22 m), medindo de novo.
+1. ~~Capitão fixo quase nunca tem golpe máximo~~: zona por posição, aprovada e medida acima.
 2. **Golpe máximo de linha vale pouco** (−2 a +1,5 pp, dentro do ruído; 1 gol a cada ~10 partidas). A defesa máxima
    vale mais (+2 a +6 pp). Se a ideia é ser um momento grande, dá pra subir o chute máximo (hoje força x1,55 e
    precisão x1,6).
-3. **Sai do experimento?** Os números não mostram nada quebrado. Falta ele jogar umas partidas no link de prévia
+3. ~~Sai do experimento?~~ Sai na 0.9.6. Os números não mostram nada quebrado. Falta ele jogar umas partidas no link de prévia
    (simulação não é diversão), principalmente o botão grande e a câmera lenta no celular.
