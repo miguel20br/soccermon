@@ -8,6 +8,7 @@ import { computeSynergies } from '../../engine/synergy';
 import { playCry } from '../../game/audio';
 import { formationText } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
+import { coachSeen } from '../../store/coach';
 import { type SlotRef, slotRole, useGame } from '../../store/game-store';
 import { isLong } from '../../store/long-cup';
 import { Coach } from '../coach/Coach';
@@ -113,6 +114,8 @@ export function Draft() {
     const { run, chooseFormation, chooseSlot, pick, reroll } = useGame();
     const cries = useGame((s) => s.settings.cries);
     const [selected, setSelected] = useState<string | null>(null);
+    const [coachOn, setCoachOn] = useState(false);
+    const coachSeenDraft = useGame((s) => coachSeen(s.profile.coach, 'relampagoDraft'));
     const tr = useT();
     const { t, d, lang } = tr;
     // celular em pé: a quadra ocupa a tela e as cartas ficam lá embaixo. Leva até as cartas quando elas saem e
@@ -129,6 +132,8 @@ export function Draft() {
         }
         const el = (focus === 'options' ? optionsRef : boardRef).current;
         if (!el) return;
+        // teclado: escolheu o capitão (ou a carta), o foco vai pra 1ª vaga livre; sem isso o Tab seguia nas cartas
+        if (focus === 'board') el.querySelector<HTMLElement>('.slot.target')?.focus({ preventScroll: true });
         const top = el.getBoundingClientRect().top;
         if (top >= 0 && top < window.innerHeight * 0.5) return;
         el.scrollIntoView({ behavior: reduceMotionOn() ? 'auto' : 'smooth', block: 'start' });
@@ -137,6 +142,8 @@ export function Draft() {
 
     // Copa Relâmpago: a 1ª formação e o 1º draft (a Rota e a Copa do Dia não entram)
     const quick = !run.daily && !isLong(run);
+    // o balão do draft ainda vai abrir (o Coach decide no efeito, depois do 1º desenho)
+    const coachDue = quick && !coachSeenDraft;
     if (run.status === 'formation') {
         return (
             <>
@@ -252,12 +259,16 @@ export function Draft() {
                     id="relampagoDraft"
                     targets={['.slot.empty']}
                     when={run.status === 'drafting' && !run.draftSlot}
+                    onActive={setCoachOn}
                 />
             )}
             <div className="draft-grid">
                 <div className="panel board-panel" ref={boardRef}>
                     <h2>{run.teamName}</h2>
-                    {run.status === 'drafting' && !run.draftSlot && <Tip id="draft-slot">{t('team.draft.tip')}</Tip>}
+                    {/* a dica diz o mesmo que o balão: só depois dele (ou sem ele) */}
+                    {run.status === 'drafting' && !run.draftSlot && !coachOn && !coachDue && (
+                        <Tip id="draft-slot">{t('team.draft.tip')}</Tip>
+                    )}
                     <FormationBoard
                         formation={run.formation}
                         lineup={run.lineup}

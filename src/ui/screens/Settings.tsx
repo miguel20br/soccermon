@@ -92,6 +92,7 @@ function VolumeSlider({
         <div className="volume-row">
             <input
                 aria-label={label}
+                aria-valuetext={`${Math.round(value * 100)}%`}
                 type="range"
                 min={0}
                 max={1}

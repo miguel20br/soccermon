@@ -201,8 +201,19 @@ img.pixel {
     outline: 3px solid var(--yellow);
     outline-offset: 1px;
 }
+/* só pro leitor de tela */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
 /* foco do teclado: branco e mais afastado, pra não confundir com o selecionado (.active, amarelo) */
-.btn:focus-visible {
+.btn:focus-visible,
+.slot:focus-visible,
+.tp-tab:focus-visible {
     outline: 3px solid #fff;
     outline-offset: 3px;
 }

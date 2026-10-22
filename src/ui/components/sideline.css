@@ -11,7 +11,8 @@
     flex-wrap: wrap;
     row-gap: 2px;
 }
-.sl-btn:disabled {
+.sl-btn:disabled,
+.sl-btn[aria-disabled="true"] {
     opacity: 0.45;
     cursor: not-allowed;
 }

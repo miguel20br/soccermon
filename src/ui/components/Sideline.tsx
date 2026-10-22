@@ -144,8 +144,9 @@ export function SidelineControls({
                     type="button"
                     className={`sl-btn sl-max${lit ? ' ready' : full ? ' full' : ''}${view.max.active ? ' live' : ''}`}
                     title={a.maxHint}
-                    disabled={!lit}
-                    onClick={onMax}
+                    // aria-disabled e não disabled: fica no Tab e o leitor acha o botão antes de ele acender
+                    aria-disabled={!lit}
+                    onClick={() => lit && onMax()}
                     style={{ '--fill': view.max.used ? 1 : view.max.charge } as CSSProperties}
                 >
                     <HudIcon kind="max" />
@@ -165,6 +166,10 @@ export function SidelineControls({
                     </span>
                     <i className="sl-fill" aria-hidden />
                 </button>
+                {/* o leitor de tela avisa quando acende (o texto do botão muda a cada %; aqui só a hora certa) */}
+                <span className="sr-only" aria-live="polite">
+                    {lit ? `${a.max}: ${a.maxReady}` : ''}
+                </span>
                 {onPens && (
                     <button type="button" className="sl-btn" disabled={!canAct} onClick={onPens}>
                         <HudIcon kind="team" />

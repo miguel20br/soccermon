@@ -38,7 +38,18 @@ function markSeen(ids: readonly CoachId[]) {
  * (o flag vai pro save assim que o 1º balão aparece), respeita "Dicas" nas configurações, sempre dá pra pular, e
  * volta pela Ajuda. Se o elemento ainda não existe (ou sumiu), espera ele aparecer.
  */
-export function Coach({ id, targets, when = true }: { id: CoachId; targets: readonly string[]; when?: boolean }) {
+export function Coach({
+    id,
+    targets,
+    when = true,
+    onActive,
+}: {
+    id: CoachId;
+    targets: readonly string[];
+    when?: boolean;
+    /** Avisa quando o balão abre e fecha (a tela esconde a dica que diria o mesmo). */
+    onActive?: (on: boolean) => void;
+}) {
     const { d } = useT();
     const hydrated = useHydrated();
     const [active, setActive] = useState(false);
@@ -53,6 +64,7 @@ export function Coach({ id, targets, when = true }: { id: CoachId; targets: read
         const g = useGame.getState();
         if (g.settings.tips && !g.tour && !coachSeen(g.profile.coach, id)) setActive(true);
     }, [hydrated, when, id]);
+    useEffect(() => onActive?.(active), [active, onActive]);
 
     return active ? (
         <Balloon id={id} targets={targets.slice(0, total)} lines={lines} onEnd={() => setActive(false)} />
@@ -211,39 +223,18 @@ function Balloon({
     const text = lines[i];
     return (
         <div className={`coach${shown ? ' on' : ''}${moving ? ' moving' : ''}`}>
-            {/* quatro pedaços transparentes em volta do alvo: tocar fora fecha, e o alvo continua tocável */}
-            <button
-                type="button"
-                tabIndex={-1}
-                aria-hidden="true"
-                className="coach-block"
-                onClick={skip}
-                style={{ left: 0, top: 0, width: vw, height: rect.top }}
-            />
-            <button
-                type="button"
-                tabIndex={-1}
-                aria-hidden="true"
-                className="coach-block"
-                onClick={skip}
-                style={{ left: 0, top: bottom, width: vw, height: Math.max(0, vh - bottom) }}
-            />
-            <button
-                type="button"
-                tabIndex={-1}
-                aria-hidden="true"
-                className="coach-block"
-                onClick={skip}
-                style={{ left: 0, top: rect.top, width: rect.left, height: rect.height }}
-            />
-            <button
-                type="button"
-                tabIndex={-1}
-                aria-hidden="true"
-                className="coach-block"
-                onClick={skip}
-                style={{ left: right, top: rect.top, width: Math.max(0, vw - right), height: rect.height }}
-            />
+            {/* quatro pedaços transparentes em volta do alvo: tocar fora fecha, e o alvo continua tocável.
+                Div e não botão: fora do Tab e do leitor (o teclado pula com Esc ou "Pular"). */}
+            {(
+                [
+                    ['cima', { left: 0, top: 0, width: vw, height: rect.top }],
+                    ['baixo', { left: 0, top: bottom, width: vw, height: Math.max(0, vh - bottom) }],
+                    ['esq', { left: 0, top: rect.top, width: rect.left, height: rect.height }],
+                    ['dir', { left: right, top: rect.top, width: Math.max(0, vw - right), height: rect.height }],
+                ] as const
+            ).map(([k, style]) => (
+                <div key={k} aria-hidden="true" className="coach-block" onClick={skip} style={style} />
+            ))}
             <div
                 className="coach-hole"
                 aria-hidden="true"
