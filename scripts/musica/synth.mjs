@@ -343,11 +343,13 @@ export class Song {
         return this.starts[b] + (t - b * this.barLen + sw) * this.rowAt(b);
     }
     /**
-     * Uma faixa. `gainAt(seg)` muda o volume no tempo (camadas); `echo` = { rows, fb, mix }; `rev` = envio do reverb.
+     * Uma faixa. `gainAt(seg)` muda o volume no tempo (camadas); `echo` = { rows, fb, mix }; `rev` = envio do reverb;
+     * `corte` (Hz) = passa-baixa suave de 12 dB/oitava, sem ressonância (o `filter` do ZzFX ressoa no corte e soa
+     * metálico perto de 2 a 5 kHz: rodada 8b).
      */
-    part(name, inst, { pan = 0, gain = 1, echo = null, rev = 0, drum = false, gainAt = null } = {}) {
+    part(name, inst, { pan = 0, gain = 1, echo = null, rev = 0, drum = false, gainAt = null, corte = 0 } = {}) {
         const bufs = this.secoes.map((x) => new Float32Array(x.len));
-        const p = { name, inst, pan, gain, echo, rev, drum, gainAt, bufs, song: this };
+        const p = { name, inst, pan, gain, echo, rev, drum, gainAt, corte, bufs, song: this };
         p.note = (t, m, len = 1, vel = 1) => {
             let s;
             if (typeof inst === 'function')
@@ -409,6 +411,7 @@ export class Song {
         const send = new Float32Array(n);
         for (const p of this.parts) {
             let b = p.bufs[k];
+            if (p.corte) b = lowpass(lowpass(b, p.corte), p.corte);
             if (p.echo) {
                 const d = Math.round(p.echo.rows * this.row * SR);
                 const wet = new Float32Array(b.length);

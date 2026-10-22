@@ -8,6 +8,9 @@
 // Forma: intro (2) | A (8) | B (8): o refrão, cordas embaixo, termina no SOC-CER-MON em Mi menor nos metais |
 // C (8): a prancheta, sem lead (clavinete, cordas, baixo) | A' (8) meio tom acima (Fá menor), lead em terças |
 // virada (1): Si7b9, de volta pro Mi menor. Loop do compasso 2 ao fim (~72 s).
+// Rodada 8b: "meio metálica demais". Metais, lead, terças e clavinete com ataque mais lento, onda mais cheia (o pulso
+// de 12,5% e o clavinete de 7,5% eram os mais finos) e passa-baixa suave sem ressonância (`corte` da faixa: o
+// `filter` do ZzFX ressoa e piorava); chimbal e crash mais baixos. Melodia e prancheta iguais.
 import { bass, drum, GANCHO, I, ins, MINOR, mel, padChord, Song, stabs, thirdBelow, transpose } from '../synth.mjs';
 
 export const meta = { titulo: 'Escalação (prancheta)', tela: 'Escalação' };
@@ -15,13 +18,23 @@ export const meta = { titulo: 'Escalação (prancheta)', tela: 'Escalação' };
 // peça magnética na prancheta: "tok" grave de madeira com um estalo
 const PECA = ins({ vol: 0.4, freq: 520, a: 0.001, r: 0.05, shape: 1, slide: -3, sv: 0.15, d: 0.012 });
 const PECAS = [0, 3, 6, 10, 12];
+// timbres mais quentes (8b): ataque mais lento e onda mais cheia que os de I; o abafado vem do `corte` da faixa
+const METAIS = ins({ vol: 0.38, a: 0.06, r: 0.16, shape: 2, curve: 0.8, sv: 0.8, d: 0.1, filter: -3200 });
+const PULSO = ins({ vol: 0.34, a: 0.012, r: 0.1, shape: 5, curve: 0.5, sv: 0.6, d: 0.05 });
+const CLAV = ins({ vol: 0.22, a: 0.004, r: 0.05, shape: 5, curve: 0.4, sv: 0.3, d: 0.06, filter: -3000 });
 
 export default function escalacao() {
     const S = new Song({ bpm: 116, bars: 35, swing: 0.04, tail: 3, loopFrom: 2 });
-    const lead = S.part('lead', I.pulse, { pan: -0.1, gain: 1.1, echo: { rows: 3, fb: 0.3, mix: 0.22 }, rev: 0.15 });
-    const harm = S.part('terças', I.pulse, { pan: 0.35, gain: 0.45 });
-    const met = S.part('metais', I.brass, { pan: 0.25, gain: 0.9, rev: 0.15 });
-    const clav = S.part('clav', I.clav, { pan: 0.4, gain: 0.6 });
+    const lead = S.part('lead', PULSO, {
+        pan: -0.1,
+        gain: 1.1,
+        corte: 2600,
+        echo: { rows: 3, fb: 0.3, mix: 0.22 },
+        rev: 0.15,
+    });
+    const harm = S.part('terças', PULSO, { pan: 0.35, gain: 0.45, corte: 2200 });
+    const met = S.part('metais', METAIS, { pan: 0.25, gain: 0.9, corte: 1800, rev: 0.15 });
+    const clav = S.part('clav', CLAV, { pan: 0.4, gain: 0.6, corte: 1800 });
     const str = S.part('cordas', I.strings, { gain: 1, rev: 0.25 });
     const bs = S.part('baixo', I.slap, { gain: 0.5 });
     const pecas = PECAS.map((_, i) =>
@@ -30,10 +43,10 @@ export default function escalacao() {
     const tick = S.part('relógio', I.block, { drum: true, pan: -0.25, gain: 1.2 });
     const k = S.part('bumbo', I.kick, { drum: true, gain: 0.9 });
     const cl = S.part('clap', I.clap808.com({ ganho: 0.5, corte: 6500, sala: 0.25 }), { drum: true, gain: 1 });
-    const oh = S.part('chimbal', I.ohat, { drum: true, pan: 0.3 });
+    const oh = S.part('chimbal', I.ohat, { drum: true, pan: 0.3, gain: 0.6 });
     const sh = S.part('shaker', I.shaker, { drum: true, pan: -0.4 });
     const tm = S.part('tom', I.tom, { drum: true });
-    const cr = S.part('crash', I.crash, { drum: true });
+    const cr = S.part('crash', I.crash, { drum: true, gain: 0.6 });
 
     /** As cinco peças na prancheta (uma por jogador). */
     const prancheta = (b, vel = 1) =>
