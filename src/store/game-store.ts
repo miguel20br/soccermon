@@ -66,6 +66,7 @@ import {
     isOut,
     type LongRunFields,
     longRound,
+    longWinEarnings,
     newLongFields,
     putsOutOnCourt,
     tickOut,
@@ -1464,8 +1465,7 @@ export const useGame = create<GameStore>()(
                         // na longa o ₽ da vitória entra na hora (os juros só quando você entra num Mercado)
                         ...(won &&
                             isLong(run) && {
-                                money:
-                                    (run.money ?? 0) + winEarnings(m.score[0], m.score[1], 0, run.sponsors ?? []).total,
+                                money: (run.money ?? 0) + longWinEarnings(m.score, run.sponsors).total,
                             }),
                     };
                     if (status === 'reward') next.rewards = rollRewards(next, 0);
@@ -1690,7 +1690,7 @@ export const useGame = create<GameStore>()(
                     if (run?.status !== 'map' || !run.map) return;
                     const node = nextNodes(run.map, run.at ?? null).find((n) => n.id === id);
                     if (!node) return;
-                    const base: RunState = { ...run, at: id, path: [...(run.path ?? []), id] };
+                    const base: RunState = { ...run, at: id, path: [...(run.path ?? []), id], eventNote: null };
                     const mons = (list: readonly { speciesId: number }[]) => seenDex([...list]);
                     if (isMatchKind(node.kind)) {
                         // o rival é o mesmo da prévia do mapa (mesmo sorteio, mesmos já enfrentados)
@@ -1752,6 +1752,12 @@ export const useGame = create<GameStore>()(
                             ...toMap(next),
                             event: null,
                             eventsSeen: [...(run.eventsSeen ?? []), run.event.id],
+                            eventNote: {
+                                id: run.event.id,
+                                choice,
+                                ...(target && { target }),
+                                cost: (run.money ?? 0) - (next.money ?? 0),
+                            },
                         },
                         screen: 'map',
                     });

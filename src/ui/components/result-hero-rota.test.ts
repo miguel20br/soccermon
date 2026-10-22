@@ -13,7 +13,7 @@ import { ResultHero } from './ResultHero';
 const opponent = { name: 'Ginásio de Pewter', color: 0x888888, lineup: [], bench: [] } as unknown as TeamSetup;
 const match = { winner: 1, score: [1, 2], shootout: null, finalRoster: [], events: [] } as unknown as MatchResult;
 const res = (stage: number, won: boolean) => ({ stage, opponent: opponent.name, score: won ? [2, 0] : [1, 2], won });
-const html = (run: Partial<RunState>) =>
+const html = (run: Partial<RunState> & { match?: MatchResult }) =>
     renderToStaticMarkup(
         createElement(ResultHero, {
             run: {
@@ -25,7 +25,7 @@ const html = (run: Partial<RunState>) =>
                 opponents: [opponent, null, null, null, null, opponent],
                 ...run,
             } as unknown as RunState,
-            match,
+            match: run.match ?? match,
             opponent,
             names: ['Pallet FC', 'Ginásio de Pewter'],
             mvpUid: null,
@@ -38,7 +38,8 @@ describe('resultado da Rota Índigo', () => {
     it('cartão amarelo: DERROTA e a partida (a regra vai no cartão), não "Fim da linha"', () => {
         const out = html({ status: 'map', stage: 0, results: [res(0, false)] as never });
         expect(out).toContain('DERROTA');
-        expect(out).toContain('<div class="rh-sub">Partida 1 de 8</div>');
+        expect(out).toContain('>Partida 1 de 8<');
+        expect(out).not.toContain('rh-sub');
         expect(out).not.toMatch(/FIM DA LINHA|Fim da linha/);
     });
     it('derrota no grupo: DERROTA e a tabela decide, não "Fim da linha"', () => {
@@ -60,5 +61,44 @@ describe('resultado da Rota Índigo', () => {
         const out = html({ status: 'eliminated', stage: 7, results: results as never });
         expect(out).toContain('Vice da Rota Índigo');
         expect(out).not.toContain('Copa de Kanto');
+    });
+    it('ganhou a última rodada mas ficou fora do grupo: FORA DA FINAL, sem "VITÓRIA!" nem Final como próxima', () => {
+        const results = [0, 1, 2, 3, 4].map((s) => res(s, true)).concat(res(5, true));
+        const group = { rivals: [opponent, opponent, opponent] };
+        const out = html({
+            match: { ...match, winner: 0, score: [2, 0] } as unknown as MatchResult,
+            status: 'eliminated',
+            stage: 5,
+            results: results as never,
+            group: group as never,
+            opponents: [opponent, opponent, opponent, opponent, opponent, opponent, opponent, opponent],
+        });
+        expect(out).toContain('FORA DA FINAL');
+        expect(out).not.toContain('VITÓRIA');
+        expect(out).not.toContain('rh-next');
+        expect(out).not.toContain('class="next"');
+    });
+    it('Rota: o ₽ da vitória aparece no resultado', () => {
+        const wonMatch = { ...match, winner: 0, score: [2, 0] } as unknown as MatchResult;
+        const out = renderToStaticMarkup(
+            createElement(ResultHero, {
+                run: {
+                    teamName: 'P',
+                    mode: 'longa',
+                    seed: 'r',
+                    picks: [],
+                    status: 'reward',
+                    stage: 0,
+                    results: [],
+                    opponents: [opponent],
+                } as unknown as RunState,
+                match: wonMatch,
+                opponent,
+                names: ['P', 'R'],
+                mvpUid: null,
+                actions: null,
+            }),
+        );
+        expect(out).toContain('rh-gain');
     });
 });

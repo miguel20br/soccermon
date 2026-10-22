@@ -62,8 +62,6 @@
 }
 
 .cm-scroll {
-    max-height: min(72vh, 760px);
-    overflow-y: auto;
     border-radius: 10px;
     background: var(--bg-2);
     border: 3px solid var(--bc-ink);
@@ -125,17 +123,16 @@
 .cm-label {
     padding: 0 4px;
     border-radius: 3px;
-    background: rgb(0 0 0 / 45%);
+    background: rgb(0 0 0 / 72%);
     color: #fff;
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     white-space: nowrap;
-    opacity: 0.7;
-    transition: opacity 200ms var(--ease-out);
 }
 .cm-node.open {
+    z-index: 5;
     color: var(--text);
     cursor: pointer;
 }
@@ -143,10 +140,6 @@
     border-color: var(--yellow);
     background: var(--panel-2);
     animation: cm-pulse 1.6s var(--ease-out) infinite;
-}
-.cm-node.open .cm-label,
-.cm-node.at .cm-label {
-    opacity: 1;
 }
 .cm-node.open:hover .hud-icon,
 .cm-node.picked .hud-icon {
@@ -212,6 +205,34 @@
 .cm.has-sheet {
     padding-bottom: 220px;
 }
+/* a fala da região também prende embaixo: dá espaço pra casa aberta subir acima dela */
+.cm.has-story {
+    padding-bottom: 200px;
+}
+/* o que o último evento fez, numa linha acima do mapa */
+.cm-note {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    line-height: 1.35;
+    animation: cm-fade-in 240ms var(--ease-out) both;
+}
+.cm-note-icon {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--ev);
+    color: #fff;
+}
+.cm-note-icon .hud-icon {
+    width: 18px;
+    height: 18px;
+}
 .cm-sheet-head {
     display: flex;
     align-items: center;
@@ -244,6 +265,16 @@
     display: grid;
     gap: 6px;
     font-size: 13px;
+}
+.cm-rival-name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 8px;
+}
+.cm-types {
+    display: inline-flex;
+    gap: 4px;
 }
 .cm-rival-team {
     display: flex;
@@ -355,14 +386,14 @@
     z-index: 4;
     width: 52px;
     height: 52px;
-    translate: -50% -100%;
-    margin-top: -18px;
+    translate: 34px -50%;
     pointer-events: none;
     filter: drop-shadow(0 3px 0 rgb(0 0 0 / 45%));
     animation: cm-bob 1.2s ease-in-out infinite;
     transition:
         left 520ms var(--ease-out),
-        top 520ms var(--ease-out);
+        top 520ms var(--ease-out),
+        translate 520ms var(--ease-out);
 }
 @keyframes cm-bob {
     50% {
@@ -849,8 +880,18 @@
     align-items: center;
     gap: 6px;
 }
+.gp-day-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.gp-types {
+    display: inline-flex;
+    gap: 6px;
+}
 .gp-trainer {
-    width: 28px;
+    width: 32px;
     height: auto;
     image-rendering: pixelated;
 }
@@ -919,7 +960,7 @@
 }
 
 /* ---------- desktop: o mapa ocupa a altura da tela e o painel do lado tem o status, a ficha da casa e as falas ---------- */
-@media (min-width: 1000px) {
+@media (min-width: 1000px), (min-width: 700px) and (max-height: 500px) {
     .menu-screen.cm-route {
         width: min(1240px, 100% - 48px);
     }
@@ -935,6 +976,7 @@
     }
     .cm-scroll {
         max-height: calc(100vh - 150px);
+        overflow-y: auto;
     }
     .cm-status {
         display: grid;
@@ -948,7 +990,8 @@
         grid-column: 1 / -1;
         grid-template-columns: minmax(0, 1fr);
     }
-    .cm.has-sheet {
+    .cm.has-sheet,
+    .cm.has-story {
         padding-bottom: 0;
     }
     .cm-side .cm-sheet.bc-surface,
@@ -977,6 +1020,7 @@
     .cm-me {
         width: auto;
         height: auto;
+        max-height: 64px;
     }
     .cm-choose {
         margin: 0;
@@ -1011,4 +1055,35 @@
 :root[data-reduce-motion="true"] .cm-side .cm-sheet.bc-surface,
 :root[data-reduce-motion="true"] .cm-side .cm-story {
     animation-name: cm-fade-in;
+}
+
+/* evento no desktop: a tela aproveita a largura (treinador a 2x, texto maior, escolhas lado a lado) */
+@media (min-width: 1000px) {
+    .menu-screen.cm-ev {
+        width: min(1040px, 100% - 48px);
+    }
+    .cm-ev .cm-event {
+        gap: 24px;
+        padding: 20px 28px 20px 32px;
+    }
+    .cm-ev .cm-event p {
+        font-size: 18px;
+    }
+    .cm-ev .cm-story-who {
+        width: 144px;
+    }
+    .cm-ev .cm-choices {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 12px;
+    }
+}
+/* celular deitado: painel mais estreito e a janela do mapa com a altura da tela */
+@media (max-height: 500px) and (min-width: 700px) and (max-width: 999px) {
+    .cm-body {
+        grid-template-columns: minmax(0, 1fr) 270px;
+        gap: 12px;
+    }
+    .cm-scroll {
+        max-height: calc(100vh - 90px);
+    }
 }

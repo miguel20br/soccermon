@@ -95,6 +95,7 @@ describe('eventos da Copa longa', () => {
         const back = useGame.getState().run!;
         expect(back.status).toBe('map');
         expect(back.eventsSeen).toEqual([open.event!.id]);
+        expect(back.eventNote).toEqual({ id: open.event!.id, choice: none.id, cost: none.cost });
     });
 
     it('quem está fora tem selo com o motivo e as partidas, e não entra em quadra pela escalação', () => {

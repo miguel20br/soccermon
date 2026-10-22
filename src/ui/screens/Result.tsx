@@ -126,7 +126,6 @@ export function Result() {
     const actions = (
         <>
             {eliminated && <NearMiss run={run} />}
-            {foul && <FoulCard kind={foul} remaining={cupLength(run) - run.results.length} />}
             {eliminated && <CupGains run={run} />}
             {(eliminated || champion) && <CupGoalCard run={run} match={match} />}
             <div className="row" style={{ justifyContent: 'center' }}>
@@ -214,6 +213,7 @@ export function Result() {
                     names={names}
                     mvpUid={ourStar?.uid ?? null}
                     stats={heroStats(match, t)}
+                    foul={foul && <FoulCard kind={foul} remaining={cupLength(run) - run.results.length} />}
                     actions={actions}
                 />
             )}

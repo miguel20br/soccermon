@@ -26,6 +26,7 @@ export const longCup: typeof pt = {
         final: 'One match against the Indigo League.',
     },
     go: 'Go',
+    avg: 'Avg {n}',
     rival: 'Rival',
     choose: 'Pick your path',
     cards: 'Yellow card',
@@ -58,6 +59,8 @@ export const longCup: typeof pt = {
     backToMap: 'Back to the map',
     backToGroup: 'Back to the group',
     runnerUp: 'Indigo Road runner-up',
+    groupOut: 'OUT OF THE FINAL',
+    groupOutLine: 'You finished #{n} in the group. The top 2 reach the Final.',
     groupLossLine: 'The group table decides.',
     region: {
         rota1: 'Route 1',
@@ -171,7 +174,7 @@ export const longCup: typeof pt = {
         },
     },
     pickWho: 'Who?',
-    pickCard: 'Which card?',
+    pickCard: 'Pick',
     pickCaptain: 'New captain',
     pickSub: "Who takes the captain's spot?",
     treino: {

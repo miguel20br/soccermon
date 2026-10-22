@@ -13,6 +13,7 @@ import {
     nodeById,
     ROUTE_TEAMS,
 } from './cup-map';
+import { Rng } from './rng';
 
 /** Todas as rotas do começo até a Final. */
 function paths(map: CupMap): MapNode[][] {
@@ -83,6 +84,42 @@ describe('mapa da Copa longa', () => {
                     if (a.next.length && b.next.length) expect(maxA).toBeLessThanOrEqual(minB);
                 }
         }
+    });
+});
+
+describe('escolhas no mapa', () => {
+    it('em 400 seeds, 95%+ das rotas ao acaso passam por uma bifurcação entre tipos diferentes', () => {
+        let withChoice = 0;
+        let total = 0;
+        for (let s = 0; s < 400; s++) {
+            const map = buildCupMap(`seed-${s}`);
+            for (const start of nextNodes(map, null)) {
+                let n = start;
+                let real = false;
+                const rng = new Rng(`w${s}${start.id}`, 'x');
+                while (n.next.length) {
+                    if (new Set(n.next.map((id) => nodeById(map, id)!.kind)).size > 1) real = true;
+                    n = nodeById(map, rng.pick(n.next))!;
+                }
+                total++;
+                if (real) withChoice++;
+            }
+        }
+        expect(withChoice / total).toBeGreaterThanOrEqual(0.95);
+    });
+
+    it('save antigo: mapa salvo sem diagonais continua andando (o mapa vive no RunState, não é refeito da seed)', () => {
+        const old: CupMap = {
+            rows: 2,
+            nodes: [
+                { id: 'r0c0', row: 0, col: 0, kind: 'jogo', next: ['r1c0'] },
+                { id: 'r0c1', row: 0, col: 1, kind: 'jogo', next: ['r1c1'] },
+                { id: 'r1c0', row: 1, col: 0, kind: 'evento', next: [] },
+                { id: 'r1c1', row: 1, col: 1, kind: 'mercado', next: [] },
+            ],
+        };
+        expect(nextNodes(old, 'r0c0').map((n) => n.id)).toEqual(['r1c0']);
+        expect(nextNodes(old, null)).toHaveLength(2);
     });
 });
 
