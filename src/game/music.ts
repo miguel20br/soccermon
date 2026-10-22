@@ -35,12 +35,16 @@ interface Section {
 }
 interface Meta {
     secoes: Section[];
+    /** Duração do áudio (s), sem o atraso do codificador. */
+    duracao?: number;
     /** Batidas do gancho SOC-CER-MON (segundos depois do começo de cada compasso do gancho). */
     gancho?: { batidas: number[]; compassos: number[] };
 }
 interface Loaded {
     buf: AudioBuffer;
     meta: Meta;
+    /** Atraso (s) do começo do arquivo que o navegador não cortou (mp3 no WebKit): os tempos do `.json` andam isso. */
+    shift: number;
 }
 /** Faixa tocando: um nó de ganho próprio (pro crossfade) e a fonte do trecho atual. */
 interface Playing {
@@ -60,7 +64,17 @@ const vol = { master: 0.6, music: 0.4 };
 const DUCK = 10 ** (-10 / 20);
 const DUCK_IN_S = 0.15;
 const DUCK_OUT_S = 0.6;
+/** Só o que está em uso (`prune`): cada faixa decodificada ocupa ~25-50 MB (28 faixas juntas passavam de 690 MB). */
 const cache = new Map<TrackId, Promise<Loaded | null>>();
+/** As vinhetas da virada ficam (curtas, e tocam na hora do gol). */
+const STINGS: readonly TrackId[] = ['virada', 'virada-pressao'];
+/**
+ * Atraso do codificador do mp3 (LAME: 1105 amostras a 44,1 kHz = 25,06 ms, o `start_time` do ffprobe). Medido em
+ * 22/10/2026: o WebKit não corta (o mp3 sai 25,1 ms adiantado e 30-50 ms mais longo que o `duracao` do `.json`); o
+ * Chromium corta (duração exata).
+ */
+export const MP3_DELAY_S = 1105 / 44100;
+let webmBroken = false;
 let out: GainNode | null = null;
 /** Entre as faixas e o volume: só a vinheta mexe nele (troca de trecho e crossfade mexem no ganho de cada faixa). */
 let duck: GainNode | null = null;
@@ -96,35 +110,55 @@ function bus(): GainNode {
     return duck;
 }
 
-/** Volume geral e da música (0..1). */
+/** Volume geral e da música (0..1). Zero desliga de vez (nem baixa); saiu do zero, volta a faixa da tela. */
 export function setMusicVolumes(v: { master?: number; music?: number }) {
+    const was = level();
     if (typeof v.master === 'number') vol.master = v.master;
     if (typeof v.music === 'number') vol.music = v.music;
     if (out) out.gain.value = level();
+    if ((was === 0) !== (level() === 0)) void apply();
 }
 
-/** Opus em WebM (64 kbps) onde o navegador toca; mp3 de reserva (Safari antigo). */
-const ext = () => (document.createElement('audio').canPlayType('audio/webm; codecs="opus"') ? 'webm' : 'mp3');
+/** Opus em WebM (64 kbps) onde o navegador toca; mp3 de reserva (Safari antigo, ou se o webm não decodificar). */
+const ext = () =>
+    !webmBroken && document.createElement('audio').canPlayType('audio/webm; codecs="opus"') ? 'webm' : 'mp3';
+
+async function fetchDecode(id: TrackId, meta: Meta): Promise<Loaded> {
+    const e = ext();
+    const raw = await fetch(`music/${id}.${e}`).then((r) => r.arrayBuffer());
+    try {
+        const buf = await ctx().decodeAudioData(raw);
+        const shift = e === 'mp3' && buf.duration - (meta.duracao ?? buf.duration) > 0.02 ? MP3_DELAY_S : 0;
+        return { meta, buf, shift };
+    } catch (err) {
+        if (e !== 'webm') throw err;
+        // diz que toca Opus mas não decodifica (Safari antigo diz "probably"): mp3 daqui em diante
+        webmBroken = true;
+        return fetchDecode(id, meta);
+    }
+}
 
 function load(id: TrackId): Promise<Loaded | null> {
     let p = cache.get(id);
     if (!p) {
         p = (async () => {
             try {
-                const [meta, raw] = await Promise.all([
-                    fetch(`music/${id}.json`).then((r) => r.json() as Promise<Meta>),
-                    fetch(`music/${id}.${ext()}`).then((r) => r.arrayBuffer()),
-                ]);
-                return { meta, buf: await ctx().decodeAudioData(raw) };
+                const meta = await fetch(`music/${id}.json`).then((r) => r.json() as Promise<Meta>);
+                return await fetchDecode(id, meta);
             } catch {
                 // sem rede ou navegador sem Opus nem mp3: fica sem música, o jogo segue
-                cache.delete(id);
+                if (cache.get(id) === p) cache.delete(id);
                 return null;
             }
         })();
         cache.set(id, p);
     }
     return p;
+}
+
+/** Solta as faixas fora de uso (a que toca, a pedida e as vinhetas ficam): a memória volta com o coletor. */
+function prune() {
+    for (const id of cache.keys()) if (id !== current?.id && id !== want.id && !STINGS.includes(id)) cache.delete(id);
 }
 
 const sectionOf = (l: Loaded, name?: string): Section =>
@@ -140,12 +174,12 @@ function makeSource(l: Loaded, sec: Section, to: AudioNode, when: number, off: n
     src.buffer = l.buf;
     if (sec.loop) {
         src.loop = true;
-        src.loopStart = sec.inicio;
-        src.loopEnd = sec.fim;
+        src.loopStart = sec.inicio + l.shift;
+        src.loopEnd = sec.fim + l.shift;
     }
     src.connect(to);
     // ponytail: trecho sem loop toca até o fim do arquivo (fim/virada são os últimos); cortar no `fim` se precisar
-    src.start(when, off);
+    src.start(when, off + l.shift);
     return src;
 }
 
@@ -172,21 +206,24 @@ function stopAfter(p: Playing, at: number) {
 }
 
 async function apply() {
-    zz ??= await import('zzfx');
     const { id, section } = want;
-    const c = ctx();
-    if (id === null) {
+    // silêncio ou volume zero: nada de baixar nem decodificar
+    if (id === null || level() === 0) {
         fadeOut(current);
         current = null;
+        prune();
         return;
     }
+    zz ??= await import('zzfx');
+    const c = ctx();
+    watchState(c);
     if (c.state !== 'running') {
         hookGesture();
         return;
     }
     const loaded = await load(id);
-    // a tela pode ter mudado enquanto baixava
-    if (!loaded || want.id !== id) return;
+    // a tela (ou o volume) pode ter mudado enquanto baixava
+    if (!loaded || want.id !== id || level() === 0) return;
     const sec = sectionOf(loaded, section);
     const now = c.currentTime;
     if (current && current.id === id) {
@@ -211,6 +248,7 @@ async function apply() {
     // loop com introdução logo antes (Abertura): entra pela introdução
     const off = leadIn(loaded, sec)?.inicio ?? sec.inicio;
     current = { id, loaded, gain, sec, t0: now, off, src: makeSource(loaded, sec, gain, now, off) };
+    prune();
     lastPos = off - 0.001;
     startHits();
 }
@@ -240,7 +278,7 @@ function endSting(now: number) {
  * partida (no ganho da faixa) segue normal por baixo.
  */
 export async function playVirada() {
-    if (!zz || ctx().state !== 'running') return;
+    if (!zz || ctx().state !== 'running' || level() === 0) return;
     const loaded = await load(current?.sec.nome === 'pressao' ? 'virada-pressao' : 'virada');
     if (!loaded) return;
     const p = current;
@@ -264,13 +302,13 @@ export async function playVirada() {
     src.onended = () => {
         if (sting === src) sting = null;
     };
-    src.start(at);
+    src.start(at, loaded.shift);
     sting = src;
 }
 
 /** Baixa antes da hora (as vinhetas da virada no 2º tempo), se a música já está ligada. */
 export function prefetchMusic(...ids: TrackId[]) {
-    if (zz) for (const id of ids) void load(id);
+    if (zz && level() > 0) for (const id of ids) void load(id);
 }
 
 function fadeOut(p: Playing | null) {
@@ -282,24 +320,42 @@ function fadeOut(p: Playing | null) {
     stopAfter(p, now + FADE_S + 0.05);
 }
 
-/** O navegador só libera o áudio depois de um toque: o primeiro toque acorda o contexto e começa a música. */
+/**
+ * O navegador só libera o áudio depois de um gesto: o primeiro acorda o contexto e começa a música. `pointerdown` de
+ * toque não conta como ativação no Chrome do Android (`pointerup`, `touchend` e `click` contam).
+ */
+const GESTURES = ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'];
 function hookGesture() {
     if (gestureHooked || typeof window === 'undefined') return;
     gestureHooked = true;
     const go = () => {
         gestureHooked = false;
-        for (const ev of ['pointerdown', 'keydown']) window.removeEventListener(ev, go, true);
+        for (const ev of GESTURES) window.removeEventListener(ev, go, true);
         ctx()
             .resume()
             .then(apply)
             .catch(() => {});
     };
-    for (const ev of ['pointerdown', 'keydown']) window.addEventListener(ev, go, true);
+    for (const ev of GESTURES) window.addEventListener(ev, go, true);
+}
+
+/**
+ * iOS: ligação, Siri ou outro app deixam o contexto `interrupted` (não `suspended`) e ele não volta sozinho. Parou com a
+ * aba à vista e música pedida: o próximo gesto retoma.
+ */
+let stateWatched = false;
+function watchState(c: AudioContext) {
+    if (stateWatched) return;
+    stateWatched = true;
+    c.addEventListener('statechange', () => {
+        if (c.state !== 'running' && !document.hidden && want.id && level() > 0) hookGesture();
+    });
 }
 
 /** Pede a faixa da tela (null = silêncio). Mesma faixa em duas telas segue tocando; `section` troca o trecho. */
 export function playMusic(id: TrackId | null, section?: string) {
     want = { id, section };
+    prune();
     void apply();
 }
 
@@ -310,7 +366,12 @@ export function startMusicLifecycle() {
         const c = ctx();
         if (document.hidden) {
             if (c.state === 'running' && current) void c.suspend();
-        } else if (c.state === 'suspended' && current) void c.resume();
+        } else if (c.state !== 'running' && want.id && level() > 0) {
+            // 'suspended' (a aba escondeu) ou 'interrupted' (iOS): tenta já; se o iOS pedir gesto, o próximo toque retoma
+            c.resume()
+                .then(() => (c.state === 'running' ? apply() : hookGesture()))
+                .catch(hookGesture);
+        }
     });
 }
 
