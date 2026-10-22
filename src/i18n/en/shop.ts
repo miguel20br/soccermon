@@ -8,6 +8,7 @@ export const shop: typeof pt = {
     wallet: 'Your ₽',
     earned: {
         title: 'The win paid',
+        titleInterest: 'Your ₽ paid interest',
         win: 'Win',
         goals: 'Goals',
         clean: 'Clean sheet',

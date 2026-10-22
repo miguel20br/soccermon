@@ -4361,6 +4361,22 @@ button,
 .rh-team i {
     display: none;
 }
+.rh-gain {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: baseline;
+    gap: 2px 10px;
+    font-size: 14px;
+}
+.rh-gain b {
+    color: var(--green);
+    font-family: "Galmuri14", var(--font, inherit);
+    font-size: 18px;
+}
+.rh-gain small {
+    color: var(--muted);
+}
 .rh-pens {
     font-size: 14px;
     color: var(--yellow);
@@ -4514,6 +4530,15 @@ button,
     .rh-team {
         flex-direction: column;
         font-size: 12px;
+    }
+    /* nome do rival inteiro (em até 2 linhas), em vez de cortar com "…" */
+    .rh-team span {
+        overflow: visible;
+        text-align: center;
+        text-overflow: clip;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        line-height: 1.15;
     }
     .rh-team.away {
         flex-direction: column-reverse;

@@ -34,6 +34,7 @@ import { duel, localId, makePeer, useDuel } from '../../net/session';
 import { isDraftComplete, type PlaybackSpeed, useGame } from '../../store/game-store';
 import { trainerFrame, trainerFx, trainerSrc } from '../../store/missions';
 import { rivalColor } from '../../store/profile';
+import { MenuHead } from '../components/MenuHead';
 import { ResultHero } from '../components/ResultHero';
 import { leaveWith } from '../feedback';
 import { LeaveConfirm } from '../leave-guard';
@@ -123,6 +124,7 @@ function DuelEntry({ code }: { code: string | null }) {
     const { t } = useT();
     const profile = useGame((g) => g.profile);
     const updateProfile = useGame((g) => g.updateProfile);
+    const go = useGame((g) => g.go);
     const [name, setName] = useState(profile.trainerName);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<'disabled' | 'error' | null>(null);
@@ -139,46 +141,48 @@ function DuelEntry({ code }: { code: string | null }) {
         }
     };
     return (
-        <div className="panel duel-center duel-entry">
-            {code ? (
-                <>
-                    <span className="muted">{t('duel.entry.kicker', { code })}</span>
-                    <h1>{inviter ? t('duel.entry.invited', { name: inviter }) : t('duel.entry.invitedAnon')}</h1>
-                </>
-            ) : (
-                <h1>{t('duel.newDuel')}</h1>
-            )}
-            <p className="muted">{t('duel.entry.text')}</p>
-            <label className="duel-name">
-                <span className="muted">{t('duel.entry.nameLabel')}</span>
-                <input
-                    value={name}
-                    maxLength={20}
-                    placeholder={t('profile.trainer')}
-                    autoComplete="nickname"
-                    onChange={(e) => setName(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && !busy && void play()}
-                />
-            </label>
-            <button
-                type="button"
-                className="btn primary big"
-                data-testid="duel-play-now"
-                disabled={busy}
-                onClick={() => void play()}
-            >
-                {busy ? t('duel.entry.entering') : t('duel.entry.playNow')}
-            </button>
-            {error && (
-                <p className="error-text" role="alert">
-                    {error === 'disabled' ? t('duel.entry.anonOff') : t('duel.entry.failed')}
-                </p>
-            )}
-            <button type="button" className="duel-google" onClick={() => void signInWithGoogle()}>
-                {t('duel.entry.google')}
-            </button>
-            <BetaNote />
-        </div>
+        <>
+            {/* mesmo cabeçalho das outras telas de menu: voltar pra Home e a etiqueta de beta */}
+            <MenuHead title={t('duel.title')} icon="liga" tag={t('duel.beta')} onBack={() => go('home')} />
+            <div className="panel duel-center duel-entry">
+                {code ? (
+                    <>
+                        <span className="muted">{t('duel.entry.kicker', { code })}</span>
+                        <h1>{inviter ? t('duel.entry.invited', { name: inviter }) : t('duel.entry.invitedAnon')}</h1>
+                    </>
+                ) : null}
+                <p className="muted">{t('duel.entry.text')}</p>
+                <label className="duel-name">
+                    <span className="muted">{t('duel.entry.nameLabel')}</span>
+                    <input
+                        value={name}
+                        maxLength={20}
+                        placeholder={t('profile.trainer')}
+                        autoComplete="nickname"
+                        onChange={(e) => setName(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && !busy && void play()}
+                    />
+                </label>
+                <button
+                    type="button"
+                    className="btn primary big"
+                    data-testid="duel-play-now"
+                    disabled={busy}
+                    onClick={() => void play()}
+                >
+                    {busy ? t('duel.entry.entering') : t('duel.entry.playNow')}
+                </button>
+                {error && (
+                    <p className="error-text" role="alert">
+                        {error === 'disabled' ? t('duel.entry.anonOff') : t('duel.entry.failed')}
+                    </p>
+                )}
+                <button type="button" className="duel-google" onClick={() => void signInWithGoogle()}>
+                    {t('duel.entry.google')}
+                </button>
+                <BetaNote />
+            </div>
+        </>
     );
 }
 

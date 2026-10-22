@@ -10,6 +10,7 @@ import {
     nodeById,
 } from '../engine/cup-map';
 import { Rng } from '../engine/rng';
+import { winEarnings } from '../engine/shop';
 import type { TeamSetup } from '../engine/state';
 
 /**
@@ -20,6 +21,10 @@ export type CupMode = 'longa';
 
 /** A Copa longa aparece na Home quando a 0.9.1 estiver pronta (até lá, só pelo `?demo=mapa`). */
 export const LONG_CUP_LIVE = true;
+
+/** O ₽ que uma vitória na Rota rende na hora (os juros só entram ao abrir um Mercado). Resultado e store usam esta conta. */
+export const longWinEarnings = (score: readonly number[], sponsors: readonly string[] = []) =>
+    winEarnings(score[0], score[1], 0, sponsors);
 
 /** Cartões amarelos: na Copa longa uma derrota fora da Final não elimina; a segunda é o vermelho. */
 export const YELLOW_CARDS = 1;
@@ -60,6 +65,8 @@ export interface LongRunFields {
     eventsSeen?: string[];
     /** Fase de grupos no Planalto: os 3 rivais do seu grupo, na ordem das rodadas. */
     group?: { rivals: TeamSetup[] } | null;
+    /** O que a última escolha de evento fez (a nota no mapa até a próxima casa). */
+    eventNote?: { id: string; choice: string; target?: string; cost: number } | null;
     /** Evento aberto (status 'event'). */
     event?: import('./long-events').LongEvent | null;
 }

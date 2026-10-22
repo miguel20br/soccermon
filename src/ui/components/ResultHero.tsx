@@ -7,7 +7,7 @@ import { playSfx } from '../../game/audio';
 import { clubName, cupStageName, cupStageShort } from '../../i18n';
 import { useT } from '../../i18n/react';
 import type { RunState } from '../../store/game-store';
-import { cupLength, isFinalStage, isLong } from '../../store/long-cup';
+import { cupLength, groupTable, isFinalStage, isLong, longWinEarnings } from '../../store/long-cup';
 import { rivalColor } from '../../store/profile';
 import { portraitSrc } from '../portrait';
 import { useClubColor } from '../profile/club';
@@ -63,6 +63,7 @@ export function ResultHero({
     mvpUid,
     stats = [],
     actions,
+    foul,
     duel,
 }: {
     /** Duelo: sem copa (nem caminho, nem próximo rival); o título, o lado e as cores vêm daqui. */
@@ -76,6 +77,8 @@ export function ResultHero({
     /** Números que entram linha a linha depois do placar. */
     stats?: HeroStat[];
     actions: ReactNode;
+    /** Cartão da Rota (amarelo/vermelho): a notícia da derrota fica logo abaixo do placar, antes da fala e das estatísticas. */
+    foul?: ReactNode;
 }) {
     // um de cada vez: placar rola, as linhas entram a cada 150 ms e o craque vem por último, com batida.
     // Um toque em qualquer lugar do bloco mostra tudo na hora.
@@ -105,18 +108,22 @@ export function ResultHero({
     const won = match.winner === side;
     const { t, d } = useT();
     const champion = run?.status === 'champion';
-    const mood = champion ? 'champ' : won ? 'win' : 'loss';
+    // Rota Índigo: ganhou a última rodada do grupo, mas ficou fora dos 2 primeiros (a Final não vem)
+    const groupOut = won && run?.status === 'eliminated';
+    const mood = champion ? 'champ' : won && !groupOut ? 'win' : 'loss';
     // Rota Índigo: perder com o cartão amarelo (volta pro mapa) ou no grupo não é o fim da linha
     const alive = !won && (run?.status === 'map' || run?.status === 'group');
     const title =
         duel?.title ??
         (champion
             ? t('result.hero.champions')
-            : won
-              ? t('result.hero.win')
-              : alive
-                ? t('result.hero.lossAlive')
-                : t('result.hero.loss'));
+            : groupOut
+              ? t('longCup.groupOut')
+              : won
+                ? t('result.hero.win')
+                : alive
+                  ? t('result.hero.lossAlive')
+                  : t('result.hero.loss'));
     const sub =
         duel?.sub ??
         (!run
@@ -126,23 +133,35 @@ export function ResultHero({
               : isLong(run)
                 ? // Copa longa: "Partida 3 de 8", o cartão amarelo ou o fim
                   // amarelo: a regra fica no cartão que cai logo embaixo
-                  won || run.status === 'map'
-                    ? cupStageName(run, run.stage)
-                    : run.status === 'group'
-                      ? t('longCup.groupLossLine')
-                      : isFinalStage(run)
-                        ? t('longCup.runnerUp')
-                        : t('longCup.out', { n: run.stage + 1 })
+                  groupOut
+                    ? t('longCup.groupOutLine', { n: groupTable(run, 0).findIndex((r) => r.you) + 1 })
+                    : won || run.status === 'map'
+                      ? cupStageName(run, run.stage)
+                      : run.status === 'group'
+                        ? t('longCup.groupLossLine')
+                        : isFinalStage(run)
+                          ? t('longCup.runnerUp')
+                          : t('longCup.out', { n: run.stage + 1 })
                 : won
                   ? d.common.stageWon[run.stage]
                   : run.stage === CUP_STAGES.length - 1
                     ? t('result.hero.runnerUp')
                     : t('result.hero.eliminated', { stage: d.common.stageIn[run.stage] ?? '' }));
+    // Rota: o ₽ que a vitória acabou de render (o mapa só mostra o total)
+    const gain =
+        run && isLong(run) && !duel && won && !champion && !groupOut
+            ? longWinEarnings(match.score, run.sponsors)
+            : null;
+    const gainParts = gain
+        ? (['win', 'goals', 'clean', 'bonus'] as const).flatMap((k) =>
+              gain[k] > 0 ? [`${t(`shop.earned.${k}`)} +${gain[k]}`] : [],
+          )
+        : [];
     const squad = match.finalRoster.filter((p) => p.team === side);
     // eliminado: o capitão aparece com lágrima (retrato PMD Teary-Eyed; sem ele, triste ou chorando)
     const sadCaptain =
         run?.status === 'eliminated' ? run.picks.find((p) => p.uid === run.captainUid)?.speciesId : undefined;
-    const next = run && won && !champion ? run.opponents[run.stage + 1] : null;
+    const next = run && won && !champion && !groupOut ? run.opponents[run.stage + 1] : null;
     // seu time na cor do clube (Perfil); o rival no uniforme reserva se as cores baterem
     const homeColor = useClubColor();
     const style = (
@@ -173,7 +192,10 @@ export function ResultHero({
                     </span>
                 ))}
             </h1>
-            <div className="rh-sub">{sub}</div>
+            {/* a tag em cima já diz a partida: não repete embaixo */}
+            {sub !== (duel ? duel.stage : run ? cupStageName(run, run.stage) : '') && (
+                <div className="rh-sub">{sub}</div>
+            )}
 
             <div className="rh-score">
                 <div className="rh-team home">
@@ -195,6 +217,14 @@ export function ResultHero({
             {match.shootout && (
                 <div className="rh-pens">{t('result.hero.pens', { a: match.shootout[0], b: match.shootout[1] })}</div>
             )}
+
+            {gain && (
+                <div className="rh-gain">
+                    <b>+{t('shop.money', { n: gain.total })}</b>
+                    <small>{gainParts.join(' · ')}</small>
+                </div>
+            )}
+            {foul}
 
             {run && !duel && (
                 <LeaderQuote club={opponent.name} won={won} color={hex(rivalColor(homeColor, opponent.color))} />
@@ -262,7 +292,13 @@ export function ResultHero({
                 <ol className="rh-path" aria-label={t('result.hero.path')}>
                     {Array.from({ length: cupLength(run) }, (_, i) => CUP_STAGES[i] ?? `p${i}`).map((label, i) => {
                         const res = run.results.find((r) => r.stage === i);
-                        const state = res ? (res.won ? 'won' : 'lost') : i === run.stage + 1 && won ? 'next' : 'todo';
+                        const state = res
+                            ? res.won
+                                ? 'won'
+                                : 'lost'
+                            : i === run.stage + 1 && won && !groupOut
+                              ? 'next'
+                              : 'todo';
                         return (
                             <li key={label} className={state}>
                                 <span className="rh-dot">

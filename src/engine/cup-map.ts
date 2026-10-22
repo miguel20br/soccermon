@@ -79,6 +79,23 @@ export function buildCupMap(seed: string): CupMap {
             for (let j = lo; j <= hi; j++) n.next.push(rows[row + 1][j].id);
         });
     }
+    // Uma diagonal a mais por vão entre casas vizinhas que não dividem destino (plano: copa-longa-tecnico.md). Ou a da
+    // esquerda ganha a casa à direita do seu destino, ou a da direita a da esquerda; nunca as duas, senão cruza. Sorteio
+    // próprio: o resto do mapa não muda.
+    const diag = new Rng(seed, 'long-map-diag');
+    const col = (id: string) => Number(id.slice(id.indexOf('c') + 1));
+    for (let row = 0; row < rows.length - 1; row++) {
+        const up = rows[row + 1];
+        if (up.length === 1) continue;
+        for (let i = 0; i < rows[row].length - 1; i++) {
+            const [left, right] = [rows[row][i], rows[row][i + 1]];
+            const maxL = Math.max(...left.next.map(col));
+            const minR = Math.min(...right.next.map(col));
+            if (maxL >= minR) continue; // já dividem uma casa: já tem escolha
+            if (diag.chance(0.5) && maxL + 1 < up.length) left.next.push(up[maxL + 1].id);
+            else if (minR - 1 >= 0) right.next.unshift(up[minR - 1].id);
+        }
+    }
     return { nodes: rows.flat(), rows: LAYOUT.length };
 }
 
@@ -179,6 +196,10 @@ export const ROUTE_TEAMS: (Omit<ClubTemplate, 'leader' | 'city'> & { trainer: st
 /** Sprite do treinador do rival (assets/trainers): a classe da Rota ou o líder do ginásio. */
 export const rivalTrainer = (name: string): string | undefined =>
     ROUTE_TEAMS.find((t) => t.name === name)?.trainer ?? CLUBS.find((c) => c.name === name)?.leader;
+
+/** Tipos do rival (o time da Rota ou o clube do ginásio) pelo nome. */
+export const rivalTypes = (name: string): string[] =>
+    ROUTE_TEAMS.find((t) => t.name === name)?.types ?? CLUBS.find((c) => c.name === name)?.types ?? [];
 
 /** Força do rival pela partida (0 a 6 na Rota, 7 = Final): fácil no começo, puxado no fim. Ginásio +1, até 3. */
 const LONG_DIFFICULTY = [-1, 0, 0, 1, 1, 1, 1, 4];

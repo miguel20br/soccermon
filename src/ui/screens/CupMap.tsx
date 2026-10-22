@@ -10,14 +10,23 @@ import {
     type NodeKind,
     nextNodes,
     rivalTrainer,
+    rivalTypes,
 } from '../../engine/cup-map';
 import { EVO_THRESHOLD, evolutionTarget } from '../../engine/evolution';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { cupLength, groupOthers, groupTable, isGroupStage, YELLOW_CARDS } from '../../store/long-cup';
+import {
+    cupLength,
+    groupOthers,
+    groupTable,
+    isGroupStage,
+    type LongRunFields,
+    YELLOW_CARDS,
+} from '../../store/long-cup';
 import { choiceTargets, type EventId, eventChoices } from '../../store/long-events';
+import { CountUp } from '../components/CountUp';
 import { FutCard } from '../components/FutCard';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
@@ -25,7 +34,8 @@ import { MonIcon } from '../components/MonIcon';
 import { PmdSprite } from '../components/PmdSprite';
 import { cardSprite } from '../components/PokeCard';
 import { useMedia } from '../components/Prancheta';
-import { Money, SponsorSlots } from '../components/SponsorCard';
+import { SponsorSlots } from '../components/SponsorCard';
+import { TypeIcons } from '../components/TypeIcon';
 import { portraitSrc } from '../portrait';
 import { useClubColor } from '../profile/club';
 import { reduceMotionOn } from '../settings-sync';
@@ -43,10 +53,15 @@ const ICON: Record<NodeKind, HudIconKind> = {
     bau: 'chest',
     final: 'cup',
 };
-/** Altura de cada linha do mapa (px) no celular; no desktop a linha cresce até o mapa caber na altura da tela. */
-const ROW_H = 84;
-/** Desktop: mapa à esquerda, ficha da casa e status num painel ao lado. */
-const WIDE = '(min-width: 1000px)';
+/** Altura de cada linha do mapa (px): cabe na altura da tela, entre o mínimo que dá pra tocar e o máximo que respira. */
+const ROW_MIN = 56;
+const ROW_MAX = 84;
+/** Altura que o cabeçalho e o status tomam no celular em pé (o resto da tela é do mapa). */
+const MOBILE_CHROME = 250;
+/** Desktop e celular deitado: mapa à esquerda, ficha da casa e status num painel ao lado (o mesmo CSS, long-cup.css). */
+const WIDE = '(min-width: 1000px), (min-width: 700px) and (max-height: 500px)';
+/** ₽ que o mapa mostrou da última vez: a próxima vez que abrir, o número rola até o novo (a vitória rendeu). */
+let lastMapMoney: { seed: string; n: number } | null = null;
 /** As casas ficam entre 10% e 90% da largura (as bordas são do cenário e do nome da região). */
 const nodeX = (col: number, width: number) => 10 + ((col + 0.5) / width) * 80;
 
@@ -129,8 +144,24 @@ export function CupMap() {
         first?.scrollIntoView({ block: 'center' });
     }, []);
 
+    // a casa escolhida sobe pro meio da tela, acima da ficha presa embaixo (no desktop a ficha tem o painel ao lado)
+    useEffect(() => {
+        if (!pick || wide) return;
+        scroller.current
+            ?.querySelector<HTMLElement>('.cm-node.picked')
+            ?.scrollIntoView({ block: 'center', behavior: reduceMotionOn() ? 'auto' : 'smooth' });
+    }, [pick, wide]);
+
+    const moneyNow = run?.money ?? 0;
+    const seedNow = run?.seed;
+    useEffect(() => {
+        if (seedNow) lastMapMoney = { seed: seedNow, n: moneyNow };
+    }, [moneyNow, seedNow]);
+
     if (!run || !map) return null;
-    const rowH = wide ? Math.max(72, Math.min(112, Math.floor((vh - 190) / (map.rows + 0.7)))) : ROW_H;
+    const rowH = wide
+        ? Math.max(vh < 600 ? 52 : 72, Math.min(112, Math.floor((vh - 190) / (map.rows + 0.7))))
+        : Math.max(ROW_MIN, Math.min(ROW_MAX, Math.floor((vh - MOBILE_CHROME) / (map.rows + 0.7))));
     const pad = Math.round(rowH * 0.67);
     const H = map.rows * rowH;
     const width = (row: number) => map.nodes.filter((x) => x.row === row).length;
@@ -184,7 +215,7 @@ export function CupMap() {
     );
 
     return (
-        <div className={`menu-screen cm cm-route${chosen ? ' has-sheet' : ''}`}>
+        <div className={`menu-screen cm cm-route${chosen ? ' has-sheet' : ''}${story ? ' has-story' : ''}`}>
             <MenuHead
                 title={t('longCup.title')}
                 icon="liga"
@@ -194,7 +225,14 @@ export function CupMap() {
             <div className="cm-body">
                 <aside className="cm-side">
                     <div className="cm-status bc-surface">
-                        <Money n={run.money ?? 0} className="cm-money" />
+                        <span className="money cm-money">
+                            <CountUp
+                                to={run.money ?? 0}
+                                from={lastMapMoney?.seed === run.seed ? lastMapMoney.n : (run.money ?? 0)}
+                                ms={300}
+                                format={(n) => t('shop.money', { n })}
+                            />
+                        </span>
                         <span
                             className={`cm-cards${cards > 0 ? ' used' : ''}`}
                             title={t('longCup.cardsHint')}
@@ -208,6 +246,7 @@ export function CupMap() {
                         {played === 0 && <small className="cm-rule">{t('longCup.cardsHint')}</small>}
                         {!!run.sponsors?.length && <SponsorSlots sponsors={run.sponsors} />}
                     </div>
+                    {run.eventNote && <EventNote note={run.eventNote} picks={run.picks} />}
                     {wide && (sheet || story || <p className="cm-choose muted">{t('longCup.choose')}</p>)}
                 </aside>
 
@@ -268,6 +307,8 @@ export function CupMap() {
                                     aria-label={t(`longCup.kind.${n.kind}`)}
                                     onClick={() => {
                                         setPick(pick === n.id ? null : n.id);
+                                        // quem já escolheu o caminho não precisa mais da fala por cima do mapa
+                                        if (untold) tell(untold.id);
                                     }}
                                 >
                                     <HudIcon kind={ICON[n.kind]} />
@@ -287,7 +328,14 @@ export function CupMap() {
                                 className={`cm-me pixel${walking ? ' walking' : ''}`}
                                 src={cardSprite(captain)}
                                 alt=""
-                                style={{ left: `${here.x}%`, top: here.y } as CSSProperties}
+                                style={
+                                    {
+                                        left: `${here.x}%`,
+                                        top: here.y,
+                                        // ao lado da casa, pro lado do meio do mapa: nunca em cima da próxima casa
+                                        translate: here.x <= 50 ? '34px -50%' : 'calc(-100% - 34px) -50%',
+                                    } as CSSProperties
+                                }
                             />
                         )}
                     </div>
@@ -296,6 +344,34 @@ export function CupMap() {
 
             {!wide && sheet && createPortal(sheet, document.body)}
             {!wide && story && createPortal(story, document.body)}
+        </div>
+    );
+}
+
+/** Escolhas de evento em que o alvo é quem sofre o efeito (o nome dele abre a linha). */
+const AFFECTS_TARGET = new Set(['carrinho:parar', 'treinoPuxado:puxado', 'creche:deixar']);
+
+/** O que a última escolha de evento fez, numa linha acima do mapa, até a próxima casa. */
+function EventNote({
+    note,
+    picks,
+}: {
+    note: NonNullable<LongRunFields['eventNote']>;
+    picks: readonly PokemonInstance[];
+}) {
+    const { t, d } = useT();
+    const ev = d.longCup.events[note.id];
+    const [label, effect] = ev?.choices[note.choice] ?? ['', ''];
+    const mon = note.target ? picks.find((p) => p.uid === note.target) : undefined;
+    const who = mon && AFFECTS_TARGET.has(`${note.id}:${note.choice}`) ? viewInstance(mon).displayName : label;
+    const money = note.cost ? ` ${note.cost > 0 ? '−' : '+'}${t('shop.money', { n: Math.abs(note.cost) })}` : '';
+    if (!effect && !money) return null;
+    return (
+        <div className="cm-note bc-surface" role="status">
+            <span className="cm-note-icon" style={{ '--ev': EVENT_ART[note.id as EventId].color } as CSSProperties}>
+                <HudIcon kind={EVENT_ART[note.id as EventId].icon} />
+            </span>
+            <span>{`${who}${effect ? `: ${effect}` : ''}${money}`}</span>
         </div>
     );
 }
@@ -322,6 +398,9 @@ function NodeSheet({
         [node, seed, faced, shift],
     );
     const trainer = rival ? rivalTrainer(rival.name) : undefined;
+    const avg = rival
+        ? Math.round(rival.lineup.reduce((s, p) => s + viewInstance(p).overall, 0) / (rival.lineup.length || 1))
+        : 0;
     return (
         <div
             className={`cm-sheet bc-surface bc-stripe k-${node.kind}`}
@@ -344,8 +423,12 @@ function NodeSheet({
             </div>
             {rival && (
                 <div className="cm-rival">
-                    <span className="muted">
+                    <span className="muted cm-rival-name">
                         {t('longCup.rival')}: <b>{clubName(rival.name, lang)}</b>
+                        <span className="cm-types">
+                            <TypeIcons types={rivalTypes(rival.name)} size={16} />
+                        </span>
+                        <span>{t('longCup.avg', { n: avg })}</span>
                     </span>
                     <span className="cm-rival-team">
                         {rival.lineup.map((p) => (
@@ -382,10 +465,11 @@ export function Training() {
                 tag={t('longCup.title')}
                 onBack={() => go('home')}
             />
-            <div className="panel cm-train">
-                <h2>{t('longCup.treino.evo')}</h2>
-                <p className="muted">{t('longCup.treino.evoLine')}</p>
-                {evolvers.length ? (
+            {/* ninguém evolui: sem o painel vazio, só o descanso */}
+            {evolvers.length > 0 && (
+                <div className="panel cm-train">
+                    <h2>{t('longCup.treino.evo')}</h2>
+                    <p className="muted">{t('longCup.treino.evoLine')}</p>
                     <div className="squad-strip">
                         {evolvers.map((p) => {
                             const pct = Math.min(100, Math.round(((p!.evo ?? 0) / EVO_THRESHOLD) * 100));
@@ -409,10 +493,8 @@ export function Training() {
                             );
                         })}
                     </div>
-                ) : (
-                    <p className="muted">{t('longCup.treino.none')}</p>
-                )}
-            </div>
+                </div>
+            )}
             <div className="panel cm-train">
                 <h2>{t('longCup.treino.rest')}</h2>
                 <p className="muted">{t('longCup.treino.restLine')}</p>
@@ -522,7 +604,7 @@ export function EventScreen() {
         </div>
     );
     return (
-        <div className="menu-screen cm">
+        <div className="menu-screen cm cm-ev">
             <MenuHead title={txt.title} icon="liga" tag={t('longCup.title')} onBack={() => go('home')} />
             <div className="cm-event bc-surface bc-stripe" style={{ '--ev': EVENT_ART[ev.id].color } as CSSProperties}>
                 <span className="cm-event-emblem">
@@ -672,7 +754,12 @@ export function GroupScreen() {
                     const trainer = rivalTrainer(rival.name);
                     return (
                         <div key={rival.name} className={`gp-day${md === played && !toFinal ? ' now' : ''}`}>
-                            <span className="gp-day-tag">{t('longCup.matchday', { n: md + 1 })}</span>
+                            <span className="gp-day-head">
+                                <span className="gp-day-tag">{t('longCup.matchday', { n: md + 1 })}</span>
+                                <span className="gp-types">
+                                    <TypeIcons types={rivalTypes(rival.name)} label size={16} />
+                                </span>
+                            </span>
                             <span className="gp-game mine">
                                 {trainer && (
                                     <img className="gp-trainer" src={`assets/trainers/${trainer}.png`} alt="" />

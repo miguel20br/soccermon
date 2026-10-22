@@ -79,7 +79,7 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
                 ],
             },
             {
-                p: '**Sortear de novo (reroll):** troca as 3 opções. Você começa com {rerolls}, e eles valem pra copa toda: servem no draft e nas recompensas. Pular uma recompensa dá +1.',
+                p: '**Sortear de novo:** troca as 3 opções. Você começa com {rerolls}, e eles valem pra copa toda: servem no draft e nas recompensas. Pular uma recompensa dá +1.',
             },
         ],
     },
@@ -440,7 +440,7 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
                 list: [
                     'O Pokémon novo entra **no lugar de um reserva** (nunca do capitão) e herda o item de quem saiu.',
                     'O item vai pra qualquer jogador; se ele já tinha um, o item antigo é substituído (e some).',
-                    'Sortear de novo gasta 1 reroll. **Pular** não pega nada, mas dá +1 reroll.',
+                    'Sortear de novo gasta 1 sorteio. **Pular** não pega nada, mas dá +1 sorteio.',
                 ],
             },
             {

@@ -19,11 +19,12 @@ export const longCup = {
         ginasio: 'Rival mais forte. Recompensa melhor, com a MT do líder.',
         mercado: 'Compre com ₽. O que você guardou rende juros.',
         evento: 'Algo acontece no caminho.',
-        treino: 'Meia barra de evolução pra um Pokémon, ou +1 troca.',
+        treino: 'Meia barra de evolução pra um Pokémon, ou +1 sorteio.',
         bau: 'Pacote grátis, uma raridade acima.',
         final: 'Jogo único contra a Liga Índigo.',
     },
     go: 'Ir',
+    avg: 'Média {n}',
     rival: 'Rival',
     choose: 'Escolha o caminho',
     cards: 'Cartão amarelo',
@@ -57,6 +58,8 @@ export const longCup = {
     backToMap: 'Voltar pro mapa',
     backToGroup: 'Voltar pro grupo',
     runnerUp: 'Vice da Rota Índigo',
+    groupOut: 'FORA DA FINAL',
+    groupOutLine: '{n}º no grupo. Os 2 primeiros vão pra Final.',
     groupLossLine: 'Vale a tabela do grupo.',
     /** Regiões do mapa, de baixo pra cima. */
     region: {
@@ -158,7 +161,7 @@ export const longCup = {
             text: 'Hai! Me empresta um dos seus que eu treino ele em dobro!',
             choices: {
                 puxado: ['Treino em dobro', 'Meia barra de evolução. Fora por 1 partida.'],
-                leve: ['Treino leve', '+1 troca.'],
+                leve: ['Treino leve', '+1 sorteio.'],
                 folga: ['Folga', ''],
             },
         },
@@ -173,7 +176,7 @@ export const longCup = {
         },
     } as Record<string, { who: string; title: string; text: string; choices: Record<string, [string, string]> }>,
     pickWho: 'Quem?',
-    pickCard: 'Qual carta?',
+    pickCard: 'Escolher',
     pickCaptain: 'Novo capitão',
     pickSub: 'Quem entra no lugar do capitão?',
     treino: {
@@ -181,7 +184,7 @@ export const longCup = {
         evo: 'Treino de evolução',
         evoLine: 'Meia barra de evolução pra um Pokémon.',
         rest: 'Descanso',
-        restLine: '+1 troca.',
+        restLine: '+1 sorteio.',
         none: 'Ninguém do time evolui.',
     },
 };
