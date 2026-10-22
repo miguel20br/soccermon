@@ -325,8 +325,16 @@ export function Match({ liga = false }: { liga?: boolean }) {
     // partida retomada: espera o 1º tick (senão buscaria a faixa do 1º tempo à toa)
     const musicOn = clock.tick > 0 || !resume?.tick;
     useEffect(() => {
-        if (musicOn) matchMusic(clock.half, clock.minute, pressing);
-    }, [musicOn, clock.half, clock.minute, pressing]);
+        if (musicOn)
+            matchMusic({
+                half: clock.half,
+                minute: clock.minute,
+                pressure: pressing,
+                opponent: opponent?.name,
+                intro: !introDone,
+                ended: ended || fulltime,
+            });
+    }, [musicOn, clock.half, clock.minute, pressing, opponent?.name, introDone, ended, fulltime]);
     // o capitão do líder rival reage aos gols (emote do Duelo, só na tela)
     const rivalPlan = useMemo(() => (match ? rivalEmotes(match.events, 1) : []), [match]);
     // fim de jogo: vai sozinho pro resultado; um toque na quadra ou no painel segura

@@ -1,3 +1,7 @@
+---
+description: Pesquisa, rodadas de escuta e mapa tela para faixa da música do jogo (temas próprios, partidas por personagem, arquivos Opus)
+---
+
 # Música de fundo: pesquisa, amostras e proposta
 
 21/10/2026. Pedido do Miguel: "sim, mas eu queria que você me ajudasse com isso". Hoje o jogo não tem música: só
@@ -546,3 +550,9 @@ do que ele disser ("mais rápido", "mais Kanto", "menos samba").
 - [ZzFXM](https://github.com/keithclark/ZzFXM) e o [tracker](https://keithclark.github.io/ZzFXM/tracker/)
 - [REUSE.toml do PokéRogue (áudio)](https://github.com/pagefaultgames/pokerogue-assets/blob/main/audio/REUSE.toml)
 - Pesquisa anterior: `docs/planos/pesquisas/apis-e-assets.md` (worktree `pesquisa-apis`), seção 2.4 e decisão 4
+
+## No jogo (22/10/2026)
+
+- Arquivos em `public/music/`: Opus `.webm` 64 kbps (13 MB) + `.mp3` 80 kbps de reserva (14 MB, escolhido por `canPlayType`); o `.ogg` saiu (27 MB). Emendas conferidas no `.webm` com o `loops.mjs` adaptado (decodifica a 44,1 kHz): 35 loops, pior 0,74.
+- Rival com `rivalTrainer` brock/misty/rocket: tema na apresentação (VERSUS) e `partida-<nome>-1t/2t`; os outros líderes seguem em `partida-1t/2t`.
+- `campeao` na tela de resultado da copa campeã; `planalto-indigo` na fase de grupos (tela `group`). `pressao` entra pela `virada` (trecho de entrada colado no loop) e `fim` toca no apito final.

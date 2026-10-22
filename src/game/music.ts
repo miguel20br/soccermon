@@ -1,5 +1,5 @@
 /**
- * Música das telas: faixas .ogg em `public/music/<faixa>.ogg` + `.json` de trechos (loop, BPM), baixadas só quando a
+ * Música das telas: faixas Opus `.webm` (reserva `.mp3`) em `public/music/<faixa>` + `.json` de trechos (loop, BPM), baixadas só quando a
  * tela pede. Toca no mesmo AudioContext dos efeitos (ZzFX), sem importar `phaser` (a Home usa este módulo).
  * Loop sem costura por `loopStart`/`loopEnd`; troca de tela com crossfade de 250 ms; troca de trecho na linha do compasso.
  */
@@ -9,8 +9,10 @@ export type TrackId =
     | 'estrada-da-vitoria'
     | 'planalto-indigo'
     | 'campeao'
-    | 'partida-1t'
-    | 'partida-2t';
+    | 'tema-brock'
+    | 'tema-misty'
+    | 'tema-rocket'
+    | `partida-${'' | 'brock-' | 'misty-' | 'rocket-'}${'1t' | '2t'}`;
 
 interface Section {
     nome: string;
@@ -73,6 +75,9 @@ export function setMusicVolumes(v: { master?: number; music?: number }) {
     if (out) out.gain.value = level();
 }
 
+/** Opus em WebM (64 kbps) onde o navegador toca; mp3 de reserva (Safari antigo). */
+const ext = () => (document.createElement('audio').canPlayType('audio/webm; codecs="opus"') ? 'webm' : 'mp3');
+
 function load(id: TrackId): Promise<Loaded | null> {
     let p = cache.get(id);
     if (!p) {
@@ -80,11 +85,11 @@ function load(id: TrackId): Promise<Loaded | null> {
             try {
                 const [meta, raw] = await Promise.all([
                     fetch(`music/${id}.json`).then((r) => r.json() as Promise<Meta>),
-                    fetch(`music/${id}.ogg`).then((r) => r.arrayBuffer()),
+                    fetch(`music/${id}.${ext()}`).then((r) => r.arrayBuffer()),
                 ]);
                 return { meta, buf: await ctx().decodeAudioData(raw) };
             } catch {
-                // sem rede ou navegador sem Vorbis: fica sem música, o jogo segue
+                // sem rede ou navegador sem Opus nem mp3: fica sem música, o jogo segue
                 cache.delete(id);
                 return null;
             }
@@ -96,6 +101,10 @@ function load(id: TrackId): Promise<Loaded | null> {
 
 const sectionOf = (l: Loaded, name?: string): Section =>
     l.meta.secoes.find((s) => s.nome === name) ?? l.meta.secoes.find((s) => s.loop) ?? l.meta.secoes[0];
+
+/** Trecho sem loop que termina onde o loop começa (introdução da Abertura, virada da partida). */
+const leadIn = (l: Loaded, sec: Section) =>
+    sec.loop ? l.meta.secoes.find((x) => !x.loop && x.fim === sec.inicio) : undefined;
 
 /** Fonte do trecho: loop = do começo do arquivo (intro inclusa) até o fim do loop, depois só o loop. */
 function makeSource(l: Loaded, sec: Section, to: AudioNode, when: number, off: number) {
@@ -159,13 +168,10 @@ async function apply() {
         const pos = position(current);
         const start = current.sec.loop ? current.sec.inicio : 0;
         const at = now + (Math.ceil((pos - start) / barS) * barS - (pos - start));
-        const next: Playing = {
-            ...current,
-            sec,
-            t0: at,
-            off: sec.inicio,
-            src: makeSource(loaded, sec, current.gain, at, sec.inicio),
-        };
+        // trecho de entrada sem loop colado no loop (virada -> pressao): entra por ele
+        const lead = leadIn(loaded, sec);
+        const off = lead?.inicio ?? sec.inicio;
+        const next: Playing = { ...current, sec, t0: at, off, src: makeSource(loaded, sec, current.gain, at, off) };
         stopAfter(current, at);
         current = next;
         return;
@@ -177,8 +183,7 @@ async function apply() {
     gain.gain.linearRampToValueAtTime(1, now + FADE_S);
     gain.connect(output());
     // loop com introdução logo antes (Abertura): entra pela introdução
-    const intro = loaded.meta.secoes.find((x) => !x.loop && x.fim === sec.inicio);
-    const off = sec.loop && intro ? intro.inicio : sec.inicio;
+    const off = leadIn(loaded, sec)?.inicio ?? sec.inicio;
     current = { id, loaded, gain, sec, t0: now, off, src: makeSource(loaded, sec, gain, now, off) };
     lastPos = off - 0.001;
     startHits();
