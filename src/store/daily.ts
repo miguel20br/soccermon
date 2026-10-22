@@ -1,3 +1,6 @@
+import { SPECIES, species } from '../engine/data';
+import { createInstance, type PokemonInstance } from '../engine/instance';
+import { Rng } from '../engine/rng';
 import { weeklyEventType } from '../engine/specials';
 
 /**
@@ -119,4 +122,51 @@ export function dailyShareText(
         fill(tx.week, { n: week.weekCount }),
         url,
     ].join('\n');
+}
+
+/** O dia anterior ('2026-10-21' → '2026-10-20'). */
+const prevDay = (day: string): string => {
+    const d = new Date(`${day}T12:00:00Z`);
+    d.setUTCDate(d.getUTCDate() - 1);
+    return d.toISOString().slice(0, 10);
+};
+/** Dias em que a Copa do Dia foi jogada até o fim (pelo menos uma partida). */
+const playedDays = (list: DailyEntry[]) =>
+    new Set(list.filter((e) => e.done && e.results.length > 0).map((e) => e.day));
+
+/**
+ * Dias seguidos jogando a Copa do Dia até o fim (os marcos de 7 e 30 dias), contando até hoje (ou até ontem, se hoje
+ * ainda não jogou: só cai quando passa um dia inteiro sem jogar). A "sequência gentil" da semana (`dailyStreak`) continua.
+ */
+export function daysInARow(list: DailyEntry[], today: string = dailyDay()): number {
+    const days = playedDays(list);
+    let d = days.has(today) ? today : prevDay(today);
+    let n = 0;
+    while (days.has(d)) {
+        n++;
+        d = prevDay(d);
+    }
+    return n;
+}
+
+/** A maior sequência que o save guarda (os últimos `MAX_DAILY` dias). */
+export function bestDailyStreak(list: DailyEntry[]): number {
+    const days = [...playedDays(list)].sort();
+    let best = 0;
+    let run = 0;
+    for (let i = 0; i < days.length; i++) {
+        run = i > 0 && prevDay(days[i]) === days[i - 1] ? run + 1 : 1;
+        best = Math.max(best, run);
+    }
+    return best;
+}
+
+/** Figurinha do dia: o mesmo Pokémon pra todo mundo que termina a Copa do Dia daquele dia (vai pro Álbum). */
+export const dailySticker = (day: string): number => new Rng(`sticker-${day}`, 'sticker').pick(SPECIES).id;
+
+/** A carta da figurinha do dia: o Pokémon do dia na edição Evento do tipo dele (o Álbum guarda as edições especiais). */
+export function dailyStickerCard(day: string): PokemonInstance {
+    const id = dailySticker(day);
+    const inst = createInstance(id, new Rng(`sticker-${day}`, 'card'));
+    return { ...inst, uid: `dia-${day}`, special: { kind: 'evento', type: species(id).types[0] } };
 }

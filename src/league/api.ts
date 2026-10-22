@@ -100,7 +100,8 @@ export interface LigaStatus {
 export interface LeagueServer {
     dailyBegin(info: PublicInfo): Promise<{ day: string } | { error: string }>;
     dailyReport(a: DailyReport): Promise<boolean>;
-    dailyRanking(day: string): Promise<DailyRow[] | null>;
+    /** `friends`: só você e os seus amigos (precisa de conta Google). */
+    dailyRanking(day: string, friends?: boolean): Promise<DailyRow[] | null>;
     ligaStatus(day: string): Promise<LigaStatus | null>;
     ligaRanking(season: string): Promise<LigaRow[] | null>;
     liga<T>(
@@ -154,10 +155,10 @@ const real: LeagueServer = {
         // fora de ordem / já acabou: o servidor já sabe dessa partida, não adianta mandar de novo
         return !error || ['fora_de_ordem', 'ja_acabou', 'expirou', 'sem_tentativa'].includes(codeOf(error.message));
     },
-    async dailyRanking(day) {
-        const sb = await loadCloud().catch(() => null);
+    async dailyRanking(day, friends) {
+        const sb = friends ? await sbOrNull() : await loadCloud().catch(() => null);
         if (!sb) return null;
-        const { data, error } = await sb.rpc('copa_dia_ranking', { p_day: day });
+        const { data, error } = await sb.rpc(friends ? 'copa_dia_ranking_amigos' : 'copa_dia_ranking', { p_day: day });
         return error ? null : (data as DailyRow[]);
     },
     async ligaStatus(day) {

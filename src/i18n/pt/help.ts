@@ -464,7 +464,7 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
         ],
     },
     pokedex: {
-        title: 'Pokédex, Golpedex e Perfil',
+        title: 'Perfil, Coleção e Sala de troféus',
         blocks: [
             {
                 list: [
@@ -473,7 +473,10 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
                         '**visto** = apareceu no seu draft, nas recompensas ou no time adversário. **Jogou** = entrou em quadra pelo seu time por pelo menos 1 minuto. Guarda partidas, títulos e a maior nota de cada um.',
                     ],
                     ['Golpedex', 'os golpes entram quando aparecem em campo nas suas partidas (dos dois times).'],
-                    ['Perfil', 'nome, sigla e cor do seu clube, seu avatar e os números da sua carreira de técnico.'],
+                    [
+                        'Três portas na tela inicial',
+                        '**Perfil** (treinador, título, clube e amigos), **Coleção** (Pokédex, Álbum e Golpedex) e **Sala de troféus** (taças, medalhas e números da carreira).',
+                    ],
                 ],
             },
         ],

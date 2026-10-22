@@ -2,6 +2,7 @@
 export const home = {
     soon: [
         { title: 'Modo história', text: 'Ginásios, insígnias e a Liga Índigo' },
+        { title: 'Ultimate Team', text: 'O time da temporada, montado abrindo pacotes' },
         { title: 'Futebol de campo', text: 'Partidas 11 contra 11' },
         { title: 'Geração 2', text: 'Os Pokémon de Johto' },
     ],
@@ -12,7 +13,7 @@ export const home = {
         new: '+{n} novo|+{n} novos',
     },
     choosingReward: 'Escolhendo a recompensa',
-    cupTag: 'Modo principal',
+    atMarket: 'No Mercado',
     eventWeek: 'Semana do tipo {type}',
     eventText: 'Cartas Evento do tipo {type} podem aparecer no draft.',
     helpAria: 'Como jogar (ver o passo a passo de novo)',
@@ -28,6 +29,18 @@ export const home = {
     orNew: 'Ou comece outra copa',
     teamName: 'Nome do seu time',
     newCup: 'Nova copa',
+    quickCup: {
+        tag: '4 jogos',
+        title: 'Copa Relâmpago',
+        line: 'Mata-mata de 4 jogos, rápido e direto.',
+    },
+    longCup: {
+        tag: 'Em breve',
+        title: 'Rota Índigo',
+        line: 'Atravesse Kanto até o Planalto: 8 jogos, eventos e ginásios.',
+        short: 'mapa, eventos e ginásios',
+        note: 'A Rota Índigo chega na próxima versão.',
+    },
     challenge: 'Aceitar desafio ({seed})',
     rec: {
         titles: 'título|títulos',
@@ -40,18 +53,27 @@ export const home = {
     tiles: {
         moves: ['Golpedex', 'Os golpes que você já viu em campo'],
         help: ['Ajuda', 'Como jogar e todas as mecânicas'],
-        news: ['Novidades', 'O que mudou na versão {v}'],
+        news: ['Notas da versão', 'O que mudou na versão {v}'],
         settings: ['Configurações', 'Som, gritos e efeitos'],
         credits: ['Créditos', 'Sprites, sons e dados'],
         feedback: ['Dar feedback', 'Ideia, elogio ou bug: conta pra gente'],
         cards: ['Cartas (teste)', 'Galeria de desenvolvimento'],
     },
-    news: 'Novidades',
+    news: 'Notas da versão',
+    doors: {
+        profile: ['Perfil', 'Treinador, clube e amigos'],
+        collection: ['Coleção', 'Pokédex, Álbum e Golpedex'],
+        trophies: ['Sala de troféus', 'Taças, medalhas e números'],
+    },
+    doorsAria: 'Seu jogo',
+    footerAria: 'Mais',
     version: 'Versão {v} · {title}',
-    soonTitle: 'Em breve',
-    soonRibbon: 'EM BREVE',
+    soonTitle: 'Vem aí',
+    soonRibbon: 'Em breve',
+    /** Contagem da Liga no cartãozinho do Vem aí. */
+    soonDays: '{d}d',
     disclaimer:
-        'Soccermon v{v} · Criado por Miguel Cunha · Fan game sem fins lucrativos. Pokémon e todos os nomes, sprites e sons relacionados são © Nintendo, Game Freak, Creatures Inc. e The Pokémon Company. Este projeto não é afiliado nem endossado por eles. ·',
+        'Soccermon v{v} · Criado por Miguel Cunha · Fan game sem fins lucrativos. Pokémon e todos os nomes, sprites e sons relacionados são © Nintendo, Game Freak, Creatures Inc. e The Pokémon Company. Este projeto não é afiliado nem endossado por eles.',
     privacy: 'Privacidade e termos',
     github: 'Código no GitHub',
     langAria: 'Idioma / Language',

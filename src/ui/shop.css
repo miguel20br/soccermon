@@ -1,0 +1,479 @@
+/* Mercado e Patrocínios (docs/planos/copa-roguelike-plano.md). Família: economia amarela, recompensa azul, campo verde. */
+.fam-economia {
+    --fam: var(--yellow);
+}
+.fam-recompensa {
+    --fam: var(--blue);
+}
+.fam-campo {
+    --fam: var(--green);
+}
+
+.money {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 700;
+    color: var(--yellow);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------- carta do Patrocínio: placa da marca em cima, contrato embaixo ---------- */
+.sp-card {
+    width: var(--fut-w, 190px);
+    min-height: 250px;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    overflow: hidden;
+    border: 3px solid var(--brand);
+    border-radius: 10px;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.45);
+    background: var(--text);
+    color: var(--bc-ink);
+    text-align: center;
+}
+.sp-plate {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    padding: 14px 8px 12px;
+    background: repeating-linear-gradient(135deg, rgb(255 255 255 / 7%) 0 6px, transparent 6px 14px), var(--brand);
+    color: #fff;
+}
+.sp-plate .hud-icon {
+    width: 42px;
+    height: 42px;
+    filter: drop-shadow(0 2px 0 rgb(0 0 0 / 35%));
+}
+.sp-plate b {
+    font-family: "Galmuri14", var(--font, inherit);
+    font-size: 15px;
+    font-style: italic;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-shadow: 0 2px 0 rgb(0 0 0 / 35%);
+}
+.sp-contract {
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 6px;
+    padding: 10px 10px 12px;
+}
+.sp-fam {
+    padding: 2px 8px 1px;
+    border-radius: 4px;
+    background: var(--bc-ink);
+    color: var(--fam);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    line-height: 14px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.sp-name {
+    font-size: 14px;
+    line-height: 1.2;
+}
+.sp-desc {
+    font-size: 12px;
+    line-height: 1.35;
+}
+.sp-sign {
+    align-self: end;
+    margin-top: 4px;
+    padding-top: 4px;
+    width: 86%;
+    border-top: 1px dashed currentColor;
+    font-size: 10px;
+    opacity: 0.7;
+}
+/* pacote de tipo na vitrine usa .sp-desc no fundo escuro */
+.shop-pack-offer .sp-desc {
+    color: var(--muted);
+}
+
+/* ---------- as 3 vagas ---------- */
+.sp-slots {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+.sp-slot {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: var(--brand, var(--bc-ink));
+    border: 2px solid var(--brand, var(--line));
+    color: #fff;
+    font: inherit;
+    font-size: 12px;
+    text-align: left;
+    transition:
+        transform 200ms var(--ease-out),
+        background-color 200ms var(--ease-out);
+}
+.sp-slot .hud-icon {
+    flex: none;
+    width: 20px;
+    height: 20px;
+}
+.sp-slot-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.sp-slot.free {
+    border-style: dashed;
+    border-color: var(--line);
+    background: transparent;
+    color: var(--muted);
+}
+.sp-slot-li {
+    display: grid;
+}
+button.sp-slot {
+    cursor: pointer;
+}
+button.sp-slot:hover {
+    transform: translateY(-2px);
+}
+
+/* Patrocínios na Escalação */
+.lineup-sponsors {
+    display: grid;
+    gap: 6px;
+    margin-top: 12px;
+    font-size: 12px;
+}
+.lineup-sponsors .sp-slots {
+    grid-template-columns: 1fr;
+}
+
+/* ---------- tela do Mercado ---------- */
+.shop-wallet {
+    font-family: "Galmuri14", var(--font, inherit);
+    font-size: 22px;
+}
+.shop-earned {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 16px;
+    font-size: 13px;
+}
+.shop-earned-title {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 10px;
+    color: var(--yellow);
+}
+.shop-earned-line b {
+    color: var(--yellow);
+}
+.shop-earned-hint {
+    flex-basis: 100%;
+    font-size: 12px;
+}
+.shop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: var(--gap);
+    justify-items: center;
+    margin: var(--gap) 0;
+    --fut-w: 190px;
+}
+.shop-offer {
+    display: grid;
+    grid-template-rows: 1fr auto;
+    justify-items: center;
+    align-self: stretch;
+    gap: 8px;
+    width: var(--fut-w);
+    transition:
+        opacity 250ms var(--ease-out),
+        transform 250ms var(--ease-out);
+}
+.shop-offer > .card,
+.shop-offer > .sp-card {
+    width: var(--fut-w);
+    min-height: 250px;
+    height: 100%;
+}
+.shop-offer > .btn {
+    width: 100%;
+}
+.shop-offer.sold {
+    opacity: 0.45;
+}
+.shop-offer.chosen {
+    transform: translateY(-4px);
+}
+.shop-sponsors h2 .muted {
+    font-size: 12px;
+    font-weight: 400;
+}
+
+@media (max-width: 480px) {
+    .shop-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        --fut-w: 100%;
+    }
+    .shop-offer > .card,
+    .shop-offer > .sp-card {
+        min-height: 220px;
+    }
+    .sp-slots {
+        grid-template-columns: 1fr;
+    }
+    /* na vitrine o item e a MT ficam em pé, como as outras cartas (fora dela o celular deita a carta) */
+    .shop-grid .shop-offer .item-card {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        text-align: center;
+        padding: 10px 8px;
+    }
+    .shop-grid .shop-offer .item-card > * {
+        grid-column: 1;
+        grid-row: auto;
+    }
+    .shop-offer .item-card .tactic-desc {
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+}
+
+/* ---------- pacote de tipo (o mesmo lacre do pacote da recompensa, na cor e com a estampa do tipo) ---------- */
+.cpack.cpack-type {
+    --seal: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--tc) 35%, #fff),
+        var(--tc) 55%,
+        color-mix(in srgb, var(--tc) 50%, #000)
+    );
+    --edge: var(--tc);
+    --glow: color-mix(in srgb, var(--tc) 45%, transparent);
+}
+.cpack.cpack-type .cpack-body {
+    background:
+        linear-gradient(115deg, transparent 35%, rgb(255 255 255 / 22%) 48%, transparent 60%) -160% 0 / 300% 100%
+        no-repeat,
+        repeating-conic-gradient(from 0deg at 50% 50%, rgb(255 255 255 / 7%) 0 6deg, transparent 6deg 22.5deg),
+        radial-gradient(
+            circle at 50% 45%,
+            color-mix(in srgb, var(--tc) 85%, #fff) 0%,
+            color-mix(in srgb, var(--tc) 60%, #000) 55%,
+            #070a18 100%
+        );
+}
+.cpack.cpack-type .cpack-body::before {
+    background: radial-gradient(closest-side, rgb(255 255 255 / 22%), transparent);
+}
+/* estampa: o ícone do tipo repetido, girado, bem apagado */
+.cpack-pattern {
+    position: absolute;
+    inset: -30%;
+    background: var(--ticon) 0 0 / 15cqw auto repeat;
+    image-rendering: pixelated;
+    opacity: 0.14;
+    rotate: -18deg;
+}
+.cpack-typeicon {
+    position: relative;
+    width: 44%;
+    height: auto;
+    margin-top: 4cqw;
+    /* o ícone do tipo é pixel art de 36 px: esticado com pixelated fica nítido (com borrão ficava ruim) */
+    image-rendering: pixelated;
+    filter: drop-shadow(0 3px 8px rgb(0 0 0 / 60%)) drop-shadow(0 0 14px rgb(255 255 255 / 35%));
+}
+.cpack.cpack-type .cpack-label {
+    color: #fff;
+    text-shadow: 0 2px 0 rgb(0 0 0 / 55%);
+}
+/* na vitrine o pacote fica do tamanho das outras cartas, com o que vem dentro embaixo */
+.shop-pack-offer {
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 8px;
+    width: var(--fut-w);
+    text-align: center;
+}
+.shop-pack-offer .cpack {
+    width: 82%;
+}
+
+/* ---------- prateleiras do Mercado (contratações, pacote e item, Patrocínio) ---------- */
+.shop-shelf {
+    margin-top: 14px;
+}
+.shop-shelf-title {
+    display: inline-block;
+    margin: 0 0 8px;
+    padding: 3px 10px 2px;
+    border-radius: 4px;
+    background: var(--bc-ink);
+    color: var(--yellow);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.shop-shelf .shop-grid {
+    margin: 0;
+}
+/* o Patrocínio na horizontal: placa da marca à esquerda, contrato à direita, comprar embaixo */
+.shelf-sponsor .shop-offer {
+    width: 100%;
+    max-width: 560px;
+    grid-template-rows: auto auto;
+    margin-bottom: 10px;
+}
+.shelf-sponsor .sp-card {
+    width: 100%;
+    min-height: 0;
+    grid-template-columns: 132px 1fr;
+    grid-template-rows: none;
+}
+.shelf-sponsor .sp-plate {
+    align-content: center;
+}
+.shelf-sponsor .sp-contract {
+    justify-items: start;
+    text-align: left;
+}
+.shelf-sponsor .sp-sign {
+    width: 100%;
+}
+
+/* desktop: contratações e pacote/item lado a lado, Patrocínio embaixo de ponta a ponta */
+.shop-shelves {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
+    gap: 0 24px;
+}
+.shelf-sponsor {
+    grid-column: 1 / -1;
+}
+
+/* a carta diz que é Patrocínio (não é carta de Pokémon) */
+.sp-plate {
+    position: relative;
+}
+.sp-ribbon {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: rgb(0 0 0 / 55%);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.sp-card .sp-plate {
+    padding-top: 22px;
+}
+.shop-shelf-hint {
+    margin: -2px 0 8px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+/* desktop: os 2 Patrocínios da vitrine lado a lado */
+@media (min-width: 900px) {
+    .shelf-sponsor {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0 16px;
+    }
+    .shelf-sponsor > .shop-shelf-title,
+    .shelf-sponsor > .shop-shelf-hint,
+    .shelf-sponsor > .sp-slots {
+        grid-column: 1 / -1;
+    }
+}
+
+/* tocar no Patrocínio mostra o que ele faz */
+.sp-slot.on {
+    box-shadow: 0 0 0 2px var(--yellow);
+}
+.sp-slot-desc {
+    margin: 8px 0 0;
+    padding: 8px 10px;
+    border: 1px solid var(--brand);
+    border-radius: 6px;
+    background: var(--bc-ink);
+    font-size: 12px;
+    animation: foul-in 200ms var(--ease-out) both;
+}
+@keyframes foul-in {
+    from {
+        opacity: 0;
+    }
+}
+
+/* não dá pra comprar (falta ₽, já está no time): a carta apaga e o botão leva o cadeado */
+.shop-offer.cant > :not(.btn) {
+    opacity: 0.55;
+    filter: saturate(0.4);
+}
+
+/* pacote aberto: o seu time do lado (PC) ou embaixo (celular), pra comparar antes de escolher */
+.shop-pack-team {
+    margin-top: 12px;
+}
+@media (min-width: 1000px) {
+    .shop-pack:has(> .shop-pack-team) {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+        column-gap: 16px;
+        align-items: start;
+    }
+    .shop-pack > :not(.shop-pack-team) {
+        grid-column: 1;
+    }
+    .shop-pack > .shop-pack-team {
+        grid-column: 2;
+        grid-row: 1 / span 3;
+        margin: 0;
+    }
+}
+
+/* preço do Patrocínio no próprio contrato (como etiqueta); sem ₽, cadeado e quanto falta */
+.sp-sign:has(.sp-price) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2px 8px;
+    opacity: 1;
+}
+.sp-price {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 13px;
+    color: #1a2a12;
+}
+.sp-price.lack {
+    font-size: 11px;
+    color: #6b6b6b;
+}
+.sp-price .hud-icon {
+    width: 12px;
+    height: 12px;
+}

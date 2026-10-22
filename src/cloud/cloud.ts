@@ -461,6 +461,7 @@ export function startCloudSync() {
             'hall',
             'duels',
             'daily',
+            'binder',
         ] as const;
         if (keys.every((k) => s[k] === prev[k])) return;
         // o carregamento do save do IndexedDB não é "mudança": senão o local parece sempre mais novo que a nuvem

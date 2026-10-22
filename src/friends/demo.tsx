@@ -57,6 +57,43 @@ const RIVAL = {
     cards: [],
 };
 
+/** A vitrine do Davi (o Gabriel, sem vitrine, mostra o aviso de versão antiga). */
+const DAVI = {
+    name: 'Davi',
+    avatar: 'assets/cards/1.gif',
+    avatarGoogle: false,
+    trainer: 'brock',
+    title: '',
+    titleId: 'campeao',
+    clubName: 'Viridian Verde',
+    clubTag: 'VIR',
+    clubColor: 0x3fae5a,
+    showcase: ['m:campeao:2', 'm:artilheiro:1'],
+    cards: [],
+    code: 'VRDN4GRN',
+    numbers: { matches: 48, wins: 31, goals: 140, titles: 6, perfect: 1, bestStreak: 3, duelWins: 4, played: 57 },
+    hall: [
+        {
+            date: Date.now() - 864e5,
+            club: 'Viridian Verde',
+            color: 'verde',
+            final: [3, 1],
+            perfect: false,
+            captain: 3,
+            shiny: false,
+        },
+        {
+            date: Date.now() - 3 * 864e5,
+            club: 'Viridian Verde',
+            color: 'verde',
+            final: [2, 0],
+            perfect: true,
+            captain: 6,
+            shiny: true,
+        },
+    ],
+};
+
 export function startFriendsDemo(params: URLSearchParams) {
     let rows: FriendRow[] = [
         { ...row('VRDN4GRN', 'Davi', 'Viridian Verde', 'verde', 'amigo', true), room: 'K7M2QX', room_at: ago(2) },
@@ -95,6 +132,8 @@ export function startFriendsDemo(params: URLSearchParams) {
         block: async (code) => set(code, 'bloqueado'),
         unblock: async (code) => set(code, null),
         challenge: async () => 'enviado',
+        vitrine: async () => true,
+        profile: async (code) => (code === 'VRDN4GRN' ? DAVI : null),
         ping: async () => {},
         listen: (on) => {
             if (tela !== 'config') return () => {};

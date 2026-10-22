@@ -144,7 +144,6 @@ export function TmTeachPanel({
                                 className="mini target-btn"
                                 disabled={!ok}
                                 onClick={() => {
-                                    playSfx('select');
                                     setUid(p.uid);
                                     setSlot(null);
                                 }}
@@ -175,7 +174,8 @@ export function TmTeachPanel({
             <p className="muted tm-new">
                 {rich(t('reward.tm.newMove'), {
                     move: <b style={{ color: TYPE_COLOR[MOVES[move].type] }}>{newName}</b>,
-                })}
+                })}{' '}
+                <span className="tm-move-desc">{moveFutsal(move)}</span>
             </p>
             <div className="tm-moves">
                 {target.moves.map((m, i) => {
@@ -189,7 +189,6 @@ export function TmTeachPanel({
                             style={{ '--tc': TYPE_COLOR[data.type] } as CSSProperties}
                             disabled={locked}
                             onClick={() => {
-                                playSfx('select');
                                 setSlot(i);
                             }}
                         >
@@ -206,6 +205,8 @@ export function TmTeachPanel({
                                     )}
                                     {target.taught?.includes(m) && t('reward.tm.taughtSuffix')}
                                 </small>
+                                {/* o que o golpe faz em quadra, pra decidir qual esquecer */}
+                                <span className="tm-move-desc">{moveFutsal(m)}</span>
                             </span>
                         </button>
                     );
@@ -215,7 +216,6 @@ export function TmTeachPanel({
                         type="button"
                         className={`tm-move free${slot === target.moves.length ? ' selected' : ''}`}
                         onClick={() => {
-                            playSfx('select');
                             setSlot(target.moves.length);
                         }}
                     >
@@ -253,7 +253,6 @@ export function TmTeachPanel({
                         className="btn small primary"
                         disabled={slot === null}
                         onClick={() => {
-                            playSfx('select');
                             setTaught(true);
                         }}
                     >

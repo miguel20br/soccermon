@@ -13,19 +13,26 @@ import { avatarOptions, GENERATIONS, hasSticker, kantoComplete, type Profile, to
  * ponytail: `seen` guarda uma chave por item (~1.000 numa carreira cheia, ~10 KB); se pesar, guardar só a contagem
  * por categoria.
  */
-export type NewsTab = 'clube' | 'medalhas' | 'dex';
+/** Onde cada novidade aparece (docs/planos/menus-e-sala.md): Perfil (treinador, clube), Coleção (Pokédex, Álbum), Sala. */
+export type NewsTab = 'treinador' | 'clube' | 'dex' | 'album' | 'medalhas';
+/** As três portas da Home e as abas de cada uma. */
+export const NEWS_DOORS = {
+    profile: ['treinador', 'clube'],
+    collection: ['dex', 'album'],
+    trophies: ['medalhas'],
+} as const satisfies Record<string, readonly NewsTab[]>;
 
 const TAB_OF: Record<string, NewsTab> = {
-    tr: 'clube',
-    ti: 'clube',
-    av: 'clube',
+    tr: 'treinador',
+    ti: 'treinador',
+    av: 'treinador',
     kit: 'clube',
     md: 'medalhas',
     col: 'medalhas',
-    sl: 'medalhas',
-    fig: 'dex',
+    sl: 'dex',
+    fig: 'album',
 };
-export const newsTabOf = (key: string): NewsTab => TAB_OF[key.slice(0, key.indexOf(':'))] ?? 'clube';
+export const newsTabOf = (key: string): NewsTab => TAB_OF[key.slice(0, key.indexOf(':'))] ?? 'treinador';
 
 /** Chaves de uma peça do Perfil (as mesmas que o selo procura na tela). */
 export const newsKey = {

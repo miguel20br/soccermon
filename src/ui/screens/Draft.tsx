@@ -5,7 +5,6 @@ import { FORMATIONS, type FormationId } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
 import { computeLinks } from '../../engine/links';
 import { computeSynergies } from '../../engine/synergy';
-import { playSfx } from '../../game/audio';
 import { formationText } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { type SlotRef, slotRole, useGame } from '../../store/game-store';
@@ -20,6 +19,7 @@ import { EvoBadge } from '../components/PokeCard2';
 import { Tip } from '../help/Tip';
 import { lineupAverage, ratingAt } from '../rating';
 import { reduceMotionOn } from '../settings-sync';
+import { flyCard } from '../view-transition';
 
 /** "Média dos titulares" que rola até o valor novo e mostra o quanto a escolha mudou (+4 / −2) por 1,5 s. */
 function TeamAvg({ avg }: { avg: number }) {
@@ -50,7 +50,7 @@ function TeamAvg({ avg }: { avg: number }) {
  * "Monta pra mim": completa o draft com a melhor carta pra cada vaga (escolha do jogador, pede confirmação).
  * No celular fica na barra do polegar (à vista o draft inteiro); no PC, no cabeçalho.
  */
-function AutoDraft({ captainUid }: { captainUid?: string }) {
+function AutoDraft({ captainUid, hint }: { captainUid?: string; hint?: string }) {
     const { run, autoDraft } = useGame();
     const { t, lang } = useT();
     const [ask, setAsk] = useState(false);
@@ -65,9 +65,8 @@ function AutoDraft({ captainUid }: { captainUid?: string }) {
                     </button>
                     <button
                         type="button"
-                        className="btn yellow"
+                        className="btn primary"
                         onClick={() => {
-                            playSfx('select');
                             autoDraft(captainUid);
                         }}
                     >
@@ -75,10 +74,14 @@ function AutoDraft({ captainUid }: { captainUid?: string }) {
                     </button>
                 </>
             ) : (
-                <button type="button" className="btn" onClick={() => setAsk(true)}>
-                    <HudIcon kind="skip" />
-                    {t('team.draft.auto')}
-                </button>
+                // fantasma à esquerda; à direita, a instrução da vez (no celular o cabeçalho já rolou pra cima)
+                <>
+                    <button type="button" className="btn ghost" onClick={() => setAsk(true)}>
+                        <HudIcon kind="skip" />
+                        {t('team.draft.auto')}
+                    </button>
+                    {hint && <p className="tb-hint draft-auto-hint">{hint}</p>}
+                </>
             )}
         </div>
     );
@@ -142,7 +145,6 @@ export function Draft() {
                             type="button"
                             className="bc-tile formation-option"
                             onClick={() => {
-                                playSfx('select');
                                 chooseFormation(f.id);
                             }}
                         >
@@ -190,11 +192,12 @@ export function Draft() {
 
     const onSlot = (slot: SlotRef, uid: string) => {
         if (uid) return;
-        playSfx('select');
         if (isCaptain) {
             if (!chosen) return;
-            pick(chosen.uid, slot);
-            setSelected(null);
+            flyCard(chosen.uid, () => {
+                pick(chosen.uid, slot);
+                setSelected(null);
+            });
         } else {
             chooseSlot(slot);
         }
@@ -233,14 +236,13 @@ export function Draft() {
                         />
                     ))}
                 </div>
-                <AutoDraft captainUid={chosen?.uid} />
+                <AutoDraft captainUid={chosen?.uid} hint={title} />
             </div>
-
-            {run.status === 'drafting' && <Tip id="draft-slot">{t('team.draft.tip')}</Tip>}
 
             <div className="draft-grid">
                 <div className="panel board-panel" ref={boardRef}>
                     <h2>{run.teamName}</h2>
+                    {run.status === 'drafting' && !run.draftSlot && <Tip id="draft-slot">{t('team.draft.tip')}</Tip>}
                     <FormationBoard
                         formation={run.formation}
                         lineup={run.lineup}
@@ -281,7 +283,6 @@ export function Draft() {
                                 className="btn small"
                                 disabled={run.rerolls <= 0}
                                 onClick={() => {
-                                    playSfx('select');
                                     reroll();
                                     setSelected(null);
                                 }}
@@ -299,7 +300,11 @@ export function Draft() {
                         >
                             <div className="options">
                                 {run.options.map((o) => (
-                                    <div key={o.uid} className={`option cpack-card${isBigCard(o) ? ' big' : ''}`}>
+                                    <div
+                                        key={o.uid}
+                                        className={`option cpack-card${isBigCard(o) ? ' big' : ''}`}
+                                        data-fly={o.uid}
+                                    >
                                         {!isCaptain && role !== 'ANY' && newLinks(filled, o).length > 0 && (
                                             <div className="option-links">
                                                 {t('team.draft.activates')}{' '}
@@ -361,9 +366,8 @@ export function Draft() {
                                                       : t('team.draft.sign'),
                                                 primary: true,
                                                 onClick: () => {
-                                                    playSfx('select');
                                                     if (isCaptain) setSelected(selected === o.uid ? null : o.uid);
-                                                    else pick(o.uid);
+                                                    else flyCard(o.uid, () => pick(o.uid));
                                                 },
                                             }}
                                         />

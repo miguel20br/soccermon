@@ -10,6 +10,7 @@ export function cupStep(cup: Pick<CupSummary, 'status' | 'stage' | 'draftRound'>
     if (cup.status === 'formation' || cup.status === 'captain' || cup.status === 'drafting')
         return t('home.draftStep', { n: Math.min(cup.draftRound + 1, 7) });
     if (cup.status === 'reward') return t('home.choosingReward');
+    if (cup.status === 'shop') return t('home.atMarket');
     return stageName(cup.stage);
 }
 

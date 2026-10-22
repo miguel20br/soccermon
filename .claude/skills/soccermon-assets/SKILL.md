@@ -97,6 +97,14 @@ nem renderizado antes de ele aprovar o storyboard.** Modelo: `trailer/v2/storybo
 **Pra vertical (Reels/TikTok):** o gancho tem que estar nos primeiros 1–2 s (a abertura não pode demorar a mostrar
 algo que se mexe), e textos e logo ficam na área segura: fora dos ~15% de baixo (legenda e botões do app) e da
 faixa da direita (curtir/comentar).
+**Mas tudo centrado em x 540** (o centro dos raios e das legendas): a área segura limita a largura, não desloca o
+centro. No trailer 2 o logo, o pacote e as cartas ficaram em x 490 "pra fugir dos botões" e o Miguel achou
+desalinhado (20/10/2026).
+
+**Controle de qualidade antes de entregar** (todo vídeo): folha de contato do vídeo inteiro a 2 quadros/s com a hora
+e uma linha vermelha no centro (`ffmpeg -vf "fps=2,scale=180:-1,drawtext=...,drawbox=x=89:y=0:w=2:h=ih:color=red,tile=12x6"`)
+e, em tamanho grande, os quadros da tela final. Conferir: centro, nada cortado na borda, quadro vazio entre planos,
+texto pequeno demais pro celular, dois elementos iguais sobrepostos, e o ritmo (abertura sem música curta).
 
 ## Gravar lances do jogo
 

@@ -45,6 +45,8 @@ export interface TeamSetup {
      * a partida é a de sempre.
      */
     coach?: LeaderId;
+    /** Patrocínios da copa (src/engine/sponsors.ts): os de campo dão bônus pela regra única (modifiers.ts). */
+    sponsors?: string[];
 }
 
 /** Mudança de tática agendada (tática ao vivo: a partida é resimulada com a agenda). */
@@ -438,6 +440,10 @@ export type MatchEvent = MatchEventBase &
               dur?: number;
           }
         | { type: 'halftime'; score: [number, number] }
+        /** O tempo normal acabou: `minutes` de acréscimo (relógio exibido) antes do apito. */
+        | { type: 'stoppage'; minutes: number }
+        /** Pressão final: `team` (o que perde) foi pra cima; null = acabou (empatou ou o placar virou de lado). */
+        | { type: 'pressure'; team: 0 | 1 | null }
         | {
               type: 'sub';
               team: 0 | 1;
@@ -563,8 +569,12 @@ export interface MatchState {
     segment: number;
     tick: number;
     half: 1 | 2;
-    /** Segundos de simulação dentro do tempo atual. */
+    /** Segundos de simulação dentro do tempo atual (passa de `halfSeconds` nos acréscimos). */
     time: number;
+    /** Acréscimos do tempo atual em minutos do relógio (null = o tempo normal ainda não acabou). */
+    added: number | null;
+    /** Time na Pressão final agora (o que perde nos últimos minutos; ver `FINAL_PRESSURE` em effective.ts). */
+    pressure: 0 | 1 | null;
     phase: Phase;
     phaseTimer: number;
     kickoffTeam: 0 | 1;

@@ -1,5 +1,6 @@
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
-import { CLUBS, clubLeader } from '../../engine/cup';
+import { CLUBS } from '../../engine/cup';
+import { rivalTrainer } from '../../engine/cup-map';
 import { species } from '../../engine/data';
 import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
@@ -11,7 +12,7 @@ import { useT } from '../../i18n/react';
 import { type ClubLook, lookOfCupClub, lookOfProfile, matchLooks } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
 import type { ShowItem, Tier } from '../../store/medals';
-import { activeTrainer, leaderTrainerOf, type TrainerId, trainerFx, trainerSrc } from '../../store/missions';
+import { activeTrainer, type TrainerId, trainerFx, trainerSrc } from '../../store/missions';
 import { tagFromName } from '../../store/profile';
 import { Crest, kitOverlay } from '../profile/Crest';
 import { useClubColor } from '../profile/club';
@@ -22,6 +23,8 @@ import { cardSprite } from './PokeCard';
 import './versus.css';
 
 const AUTO_START_MS = 4500;
+/** Fim da animação de entrada (times, VS, fala do líder: versus.css); antes disso o Começar não aparece. */
+const INTRO_MS = 1650;
 /** A quadra não ficou pronta nesse tempo: aviso e "Tentar de novo" (rede lenta ou carregamento travado). */
 export const SLOW_MS = 15000;
 /** Quando o VS bate na tela (casa com o atraso + 60% de `vsp-slam` no versus.css). */
@@ -106,7 +109,7 @@ export function VsStartButton({
     const { t } = useT();
     if (!ready && slow && onRetry)
         return (
-            <button type="button" className="btn yellow vs-start vs-slow" onClick={onRetry}>
+            <button type="button" className="btn outline vs-start vs-slow" onClick={onRetry}>
                 {t('match.vs.retry')}
                 <small role="alert">{t('match.vs.slow')}</small>
             </button>
@@ -287,13 +290,20 @@ export function VersusIntro({
     // a função pode mudar a cada render da tela; o timer não pode reiniciar por isso
     const done = useRef(onDone);
     done.current = onDone;
+    // o Começar só vale depois da introdução (antes dava pra pular a cena no PC clicando/teclando cedo)
+    const [introDone, setIntroDone] = useState(() => reduceMotionOn());
+    useEffect(() => {
+        if (introDone) return;
+        const id = window.setTimeout(() => setIntroDone(true), INTRO_MS);
+        return () => window.clearTimeout(id);
+    }, [introDone]);
+    const canStart = ready && introDone;
 
     const club = CLUBS.find((c) => c.name === away.name);
     const final = club?.city === 'Indigo Plateau';
 
     // som do VS batendo; com "reduzir movimento" o VS já aparece no lugar, então o som vem junto
     useEffect(() => {
-        playSfx('select');
         const slam = () => {
             playSfx('shot', final ? 0.5 : 0.7);
             if (final) playSfx('post', 0.6);
@@ -322,7 +332,7 @@ export function VersusIntro({
 
     const timed = startsIn !== undefined;
     useEffect(() => {
-        if (!ready || timed) return;
+        if (!canStart || timed) return;
         const timer = window.setTimeout(() => done.current(), AUTO_START_MS);
         const onKey = (e: KeyboardEvent) => {
             if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') done.current();
@@ -332,7 +342,7 @@ export function VersusIntro({
             clearTimeout(timer);
             window.removeEventListener('keydown', onKey);
         };
-    }, [ready, timed]);
+    }, [canStart, timed]);
 
     // seu time sempre na cor do clube (Perfil); o rival no uniforme reserva se as cores baterem
     const homeColor = useClubColor();
@@ -346,8 +356,9 @@ export function VersusIntro({
     );
     const looks = { home: homeLook ?? home0, away: awayLook ?? away0 };
     // Copa: o treinador do clube fala antes do jogo (no Duelo o rival é gente: sem fala)
-    const host = awayTrainer || awayCoach ? undefined : clubLeader(away.name);
-    const hostText = host ? d.match.leaders[host] : undefined;
+    // o treinador do rival: o líder do ginásio ou, nos times da Rota, a classe de treinador (Caçador de Insetos…)
+    const host = awayTrainer || awayCoach ? undefined : rivalTrainer(away.name);
+    const hostText = host ? d.match.leaders[host as keyof typeof d.match.leaders] : undefined;
     const style = {
         '--home': hex(looks.home.color),
         '--away': hex(looks.away.color),
@@ -365,7 +376,7 @@ export function VersusIntro({
                 <Side
                     team={away}
                     side="away"
-                    trainer={awayTrainer ?? leaderTrainerOf(away.name)}
+                    trainer={awayTrainer ?? (rivalTrainer(away.name) as TrainerId | undefined)}
                     name={awayName}
                     coach={awayCoach}
                     look={looks.away}
@@ -378,7 +389,7 @@ export function VersusIntro({
                               ? t('match.vs.leader', { leader, city: club.city })
                               : hostText && club
                                 ? t('match.vs.host', { leader: hostText.name, city: club.city })
-                                : t('match.vs.rival'))
+                                : (hostText?.name ?? t('match.vs.rival')))
                     }
                     quote={hostText?.pre}
                 />
@@ -414,7 +425,7 @@ export function VersusIntro({
                 <div className="vs-stage vsp-stage">{final ? t('match.vs.final') : stage}</div>
             </div>
             <div className="vsp-flash" />
-            <VsStartButton ready={ready} slow={slow} startsIn={startsIn} onStart={onDone} onRetry={retry} />
+            <VsStartButton ready={canStart} slow={slow} startsIn={startsIn} onStart={onDone} onRetry={retry} />
             {ready && startsIn === undefined && (
                 <div className="vs-progress" style={{ animationDuration: `${AUTO_START_MS}ms` }} />
             )}

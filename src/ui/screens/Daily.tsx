@@ -1,17 +1,19 @@
 import { type CSSProperties, useEffect, useState } from 'react';
 import { useCloud } from '../../cloud/cloud';
 import { CUP_STAGES } from '../../engine/cup';
+import { species } from '../../engine/data';
+import { useFriends } from '../../friends/api';
 import { clubName, dict } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { type DailyRow, isError, league, leagueOnline, publicInfo } from '../../league/api';
 import { ligaCountdown } from '../../league/rules';
-import { dailyDay, dailyShareText, dailyStreak, putDaily, winsOf } from '../../store/daily';
+import { dailyDay, dailyShareText, dailySticker, dailyStreak, daysInARow, putDaily, winsOf } from '../../store/daily';
 import { isCupInProgress, useGame } from '../../store/game-store';
 import { clubColorHex } from '../../store/profile';
 import { AccountBar } from '../components/AccountBar';
-import { HudIcon } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { MenuIcon } from '../components/MenuIcon';
+import { cardSprite } from '../components/PokeCard';
 import { SITE_URL, shareText } from '../share';
 import '../liga.css';
 
@@ -135,9 +137,18 @@ export function Daily() {
     const entry = daily.find((e) => e.day === today);
     const playing = run?.daily === today && isCupInProgress(run);
     const streak = dailyStreak(daily, today);
+    const inARow = daysInARow(daily, today);
+    const nextGoal = [
+        { days: 7, prize: t('profile.titles.fielCopa') },
+        { days: 30, prize: t('profile.trainers.lassGold') },
+    ].find((g) => g.days > inARow);
     const { begin, busy, note } = useDailyBegin();
     const [shared, setShared] = useState(false);
     const [rows, setRows] = useState<DailyRow[] | 'loading' | 'error' | null>(leagueOnline() ? 'loading' : null);
+    // ranking só com os amigos (aparece quando tem amigo na lista)
+    const hasFriends = useFriends((s) => !!s.rows?.some((r) => r.status === 'amigo'));
+    const [onlyFriends, setOnlyFriends] = useState(false);
+    const friendsView = onlyFriends && hasFriends && !!user;
     const [clock, setClock] = useState(untilNext);
     useEffect(() => {
         const id = window.setInterval(() => setClock(untilNext()), 30000);
@@ -149,12 +160,12 @@ export function Daily() {
         let alive = true;
         setRows('loading');
         league()
-            .dailyRanking(today)
+            .dailyRanking(today, friendsView)
             .then((r) => alive && setRows(r ?? 'error'));
         return () => {
             alive = false;
         };
-    }, [today, user, entry?.done, entry?.reported]);
+    }, [today, user, entry?.done, entry?.reported, friendsView]);
 
     const share = async () => {
         if (!entry) return;
@@ -240,10 +251,44 @@ export function Daily() {
                     ))}
                 </ol>
                 <small>{tn('liga.daily.total', streak.total)}</small>
+                {/* dias seguidos e o próximo marco (7: título Fiel da Copa; 30: a Garota Dourada) */}
+                <p className="lg-inarow">
+                    <b>{tn('liga.daily.inARow', inARow)}</b>{' '}
+                    {nextGoal && (
+                        <span className="muted">
+                            {t('liga.daily.nextGoal', { n: nextGoal.days - inARow, prize: nextGoal.prize })}
+                        </span>
+                    )}
+                </p>
+                {/* a figurinha de hoje: o mesmo Pokémon pra todo mundo que termina a Copa do Dia */}
+                <div className="lg-sticker">
+                    <img className="pixel" src={cardSprite({ speciesId: dailySticker(today), shiny: false })} alt="" />
+                    <span>
+                        <b>{t('liga.daily.stickerTitle', { name: species(dailySticker(today)).name })}</b>
+                        <small className="muted">
+                            {entry?.done ? t('liga.daily.stickerGot') : t('liga.daily.stickerHow')}
+                        </small>
+                    </span>
+                </div>
             </section>
 
             <section className="panel lg-rank bc-surface">
                 <h2 className="bc-caption">{t('liga.daily.rankingTitle')}</h2>
+                {hasFriends && user && (
+                    <div className="bc-seg segmented lg-scope">
+                        {[false, true].map((f) => (
+                            <button
+                                key={String(f)}
+                                type="button"
+                                className={onlyFriends === f ? 'on' : undefined}
+                                aria-pressed={onlyFriends === f}
+                                onClick={() => setOnlyFriends(f)}
+                            >
+                                {f ? t('liga.daily.scopeFriends') : t('liga.daily.scopeAll')}
+                            </button>
+                        ))}
+                    </div>
+                )}
                 {!leagueOnline() ? (
                     <p className="lg-hint">{t('liga.daily.rankingOff')}</p>
                 ) : rows === 'loading' ? (
@@ -356,46 +401,18 @@ export function HomeDailyCard() {
 }
 
 /**
- * Linha da Liga no cartão da Home. Fechada até `LIGA_OPENS_AT` (src/league/rules.ts): "Em breve", a contagem e, no
- * toque, o porquê. Na data ela abre sozinha (a contagem roda a cada 30 s).
+ * Linha da Liga no cartão da Home, só depois que ela abre (`LIGA_OPENS_AT`, src/league/rules.ts). Fechada, ela mora
+ * na faixa "Vem aí" (ComingSoon) com a contagem; na data aparece aqui sozinha (a conferência roda a cada 30 s).
  */
 function LigaHomeRow() {
     const { t } = useT();
     const go = useGame((s) => s.go);
     const [left, setLeft] = useState(() => ligaCountdown());
-    const [why, setWhy] = useState(false);
     useEffect(() => {
         const id = window.setInterval(() => setLeft(ligaCountdown()), 30000);
         return () => clearInterval(id);
     }, []);
-    if (left)
-        return (
-            <div className="dc-liga">
-                <button
-                    type="button"
-                    className="dc-row dc-locked"
-                    aria-expanded={why}
-                    aria-controls="dc-liga-why"
-                    onClick={() => setWhy(!why)}
-                >
-                    <span className="dc-icon" aria-hidden>
-                        <MenuIcon kind="liga" />
-                    </span>
-                    <span className="mode-head">
-                        <b>
-                            {t('liga.home.ligaTag')} <span className="bc-tag">{t('liga.home.ligaSoon')}</span>
-                        </b>
-                        <span>{t('liga.home.ligaOpensIn', left)}</span>
-                    </span>
-                    <HudIcon kind="lock" className="dc-lock" />
-                </button>
-                {why && (
-                    <p id="dc-liga-why" className="lg-note">
-                        {t('liga.home.ligaClosed')}
-                    </p>
-                )}
-            </div>
-        );
+    if (left) return null;
     return (
         <div className="dc-row">
             <span className="dc-icon" aria-hidden>

@@ -20,8 +20,8 @@ As memórias de preferência do Miguel (cópia das do Claude no PC) estão em [.
 
 ## Agora (antes de divulgar)
 
-- [ ] Botão oficial do Google ligado com o Client ID (tira o endereço do Supabase da tela de login)
-- [ ] Tela de consentimento OAuth em produção, com nome, logo e link de privacidade
+- [x] Botão oficial do Google ligado com o Client ID (tira o endereço do Supabase da tela de login) (16/10/2026)
+- [x] Tela de consentimento OAuth em produção, com nome, logo e link de privacidade (15/10/2026)
 - [x] Repositório público + descrição, site e tópicos; Discussions ligado (15/10/2026, v0.7.3 · Beta aberta)
 - [x] Ditto no painel da partida mostrando a forma copiada (14/10/2026)
 
@@ -73,6 +73,15 @@ Plano do trailer e dos posts de lançamento (LinkedIn como projeto pessoal, X co
 - **Geração 2**: os Pokémon de Johto.
 - **1.0 = lançamento oficial** com tudo do "Em breve" (decisão do Miguel, 16/10/2026). Depois da 1.0: modo jogável,
   Gens 3 a 9, personalização absurda e modo Ultimate Team (detalhes em [lancamento.md](lancamento.md)).
+- **Pokédex por geração (sugestão do Triple M, 20/10/2026):** quando a Gen 2 sair, a Pokédex separa em duas, como os
+  livros do Álbum (Kanto e Johto), cada uma com a sua conta e a sua platina.
+- **Sala de troféus (20/10/2026):** deixar físico o que hoje é lista (troféus da Copa, Copa do Dia, Duelo, Liga,
+  medalhas, escudo, camisa, faixa). Brainstorm e decisões em [sala-de-trofeus.md](sala-de-trofeus.md).
+- **Nada teleporta (20/10/2026):** menus e telas com transição em tudo, como no Tutti; regra e retrofit em
+  [nada-teleporta.md](nada-teleporta.md).
+- **Ultimate Team no Em breve (20/10/2026):** o Miguel quer dois modos principais, o futsal casual (Copa) e o
+  Ultimate Team (time da temporada, pacotes, reset por temporada). Proposta com opções e decisões em
+  [ultimate-team.md](ultimate-team.md); se entra na 1.0 é a decisão 6 de lá.
 
 ## Decisões que continuam valendo
 

@@ -48,7 +48,7 @@ import { playCrowd, playCry, playGoalCry, playSample, playSfx } from '../audio';
 import { trailParticle, typeBurst } from '../ball-trail';
 import { BattleBox } from '../battle-box';
 import { Cinematics, FOCUS_DEPTH } from '../cinematics';
-import { drawBanner, drawCourt, ensureBallTexture, GAME_H, GAME_W, PPM, toPx } from '../court';
+import { drawBanner, drawBoards, drawCourt, ensureBallTexture, GAME_H, GAME_W, PPM, toPx } from '../court';
 import { COURTS } from '../court-themes';
 import { EventBus } from '../EventBus';
 import { blinkSchedule, evolutionView, RIVAL_EVO_MS } from '../evolution-view';
@@ -74,6 +74,8 @@ export interface MatchSceneData {
     extraSpecies?: number[];
     /** Faixa da torcida de cada time (texto pronto; null = sem faixa). Copa: só a sua; Duelo: a de cada um. */
     banners?: [string | null, string | null];
+    /** Placas dos Patrocínios da sua copa na beira de cima da quadra, na metade do rival (nome curto e cor da marca). */
+    boards?: { text: string; color: number }[];
     /** Uniforme em quadra: cor secundária no disco embaixo do Pokémon (null = liso, só o anel na cor do time). */
     kits?: [{ color2: number } | null, { color2: number } | null];
     /** Duelo curto: toca N vezes mais rápido que a velocidade escolhida (a partida é a mesma). Padrão: 1. */
@@ -116,6 +118,10 @@ export interface ReplayClip {
 
 /** Velocidade da câmera lenta do replay no clímax (chute até o gol). */
 const REPLAY_SLOW = 0.35;
+/** Quadra mostrada com menos que isso de largura (celular em pé): nome colado em outro some em vez de descer. */
+const COMPACT_W = 560;
+/** Fade do nome que some/volta por estar colado em outro. */
+const CROWD_FADE_MS = 180;
 /** Modo fumaça (dev e prévias, nunca produção): `?vel=N` multiplica o ritmo da quadra (até 64x) pra fumaça andar rápido. */
 const SMOKE_VEL = __SMOKE__
     ? Math.min(64, Math.max(1, Number(new URLSearchParams(location.search).get('vel')) || 1))
@@ -375,6 +381,8 @@ interface PlayerView {
     glowing: boolean;
     /** Pose do capitão no "Vamooo!" (hora real em que começou; 0 = nenhuma). Só visual: o lance sempre vence. */
     pose: number;
+    /** Nome aparecendo (1) ou escondido por estar colado em outro (0), com fade entre os dois (celular em pé). */
+    crowd: number;
 }
 
 /** Pose do capitão (emote "Vamooo!"): quanto dura e quanto dela é juntando força antes da pose (tempo real). */
@@ -469,6 +477,7 @@ export class MatchScene extends Phaser.Scene {
             const text = this.md.banners?.[team];
             if (text) drawBanner(this, team, text, this.md.colors[team], bannerInk(this.md.colors[team]));
         }
+        if (this.md.boards?.length) drawBoards(this, this.md.boards);
         ensureBallTexture(this);
         for (const p of result.roster) {
             createSpeciesAnims(this, skinOf(p.speciesId, p.shiny));
@@ -851,6 +860,7 @@ export class MatchScene extends Phaser.Scene {
             clones: [],
             glowing: false,
             pose: 0,
+            crowd: 1,
         };
         this.refreshTint(view);
         // tocar no Pokémon abre o painel dele (src/ui/components/PlayerInspect.tsx) e pausa a partida
@@ -886,11 +896,34 @@ export class MatchScene extends Phaser.Scene {
     }
 
     /**
-     * Nomes não se embolam: quando dois Pokémon ficam lado a lado (fila dos pênaltis, saída de bola), o nome de
-     * baixo desce até sair de cima do outro, e o status acompanha.
+     * Nomes não se embolam. Celular em pé (quadra pequena na tela, decidido com o Miguel em 20/10): quando dois nomes
+     * se encostam, o de menos prioridade some com fade (fica quem está com a bola, depois o seu time, depois o
+     * capitão) e volta quando eles se afastam; o status sobe pro lugar do nome. Tela larga: o nome de baixo desce até
+     * sair de cima do outro (fila dos pênaltis, saída de bola), e o status acompanha.
      */
-    private declutterLabels() {
+    private declutterLabels(owner: number, dt: number) {
         const placed: { x0: number; x1: number; y0: number; y1: number }[] = [];
+        const hit = (x0: number, x1: number, y0: number, y1: number) =>
+            placed.some((r) => x0 < r.x1 && x1 > r.x0 && y0 < r.y1 && y1 > r.y0);
+        if (this.scale.displaySize.width < COMPACT_W) {
+            const rank = (v: PlayerView) =>
+                (this.players.indexOf(v) === owner ? 0 : 4) + (v.team === this.mine ? 0 : 2) + (v.captain ? 0 : 1);
+            const views = this.players
+                .filter((v) => v.label.visible && this.showsName(v.team))
+                .sort((a, b) => rank(a) - rank(b));
+            const step = Math.min(1, dt / CROWD_FADE_MS);
+            for (const v of views) {
+                const w = v.label.width;
+                const h = v.label.height;
+                const x0 = v.label.x - w / 2;
+                const crowded = hit(x0, x0 + w, v.label.y, v.label.y + h);
+                if (!crowded) placed.push({ x0, x1: x0 + w, y0: v.label.y, y1: v.label.y + h });
+                v.crowd = Phaser.Math.Clamp(v.crowd + (crowded ? -step : step), 0, 1);
+                v.label.setAlpha(v.crowd);
+                v.badge.y = v.label.y + h * v.crowd;
+            }
+            return;
+        }
         const views = this.players
             .filter((v) => v.label.visible && v.label.alpha > 0)
             .sort((a, b) => a.label.y - b.label.y);
@@ -1377,7 +1410,7 @@ export class MatchScene extends Phaser.Scene {
             for (const o of [view.label, view.badge, view.ring, view.shadow, view.arrow]) o?.setVisible(!arriving);
             if (view.status === 1) view.sprite.x += Math.sin(this.time.now / 40) * 1.2; // paralisia: tremidinha
         }
-        this.declutterLabels();
+        this.declutterLabels(a.owner, this.game.loop.delta);
         if (focusPos.size) this.cine.followSpots(focusPos);
         this.drawAgency(pxOf);
         const bx = a.bx + (b.bx - a.bx) * k;

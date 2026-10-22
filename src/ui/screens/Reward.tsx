@@ -1,24 +1,25 @@
 import { useState } from 'react';
 import { formationOf } from '../../engine/formations';
-import { type PokemonInstance, viewInstance } from '../../engine/instance';
+import type { PokemonInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import type { Reward as RewardDef } from '../../engine/rewards';
+import type { ShopOffer } from '../../engine/shop';
 import { editionOf } from '../../engine/specials';
-import { playSfx } from '../../game/audio';
 import { clubName, itemDesc, itemName, stageName, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
-import { useGame } from '../../store/game-store';
+import { type RunState, useGame } from '../../store/game-store';
+import { isLong } from '../../store/long-cup';
 import { useCardModal } from '../card-modal';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { FormationBoard } from '../components/FormationBoard';
 import { ExpandIcon, FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
-import { cardSprite } from '../components/PokeCard';
 import { TmCard, TmTeachPanel } from '../components/TmTeach';
 import { TypeIcon } from '../components/TypeIcon';
 import { Tip } from '../help/Tip';
 import { type ItemFit, itemFit } from '../item-fit';
 import { readCount, writeCount } from '../local-count';
+import { useHeld } from '../use-held';
 
 /** Quantas telas de recompensa a pessoa já abriu (neste navegador): da 7ª em diante, a abertura é rápida. */
 const PACKS_KEY = 'soccermon-packs-opened';
@@ -41,10 +42,9 @@ function FitBadge({ fit, item, text, full }: { fit: ItemFit; item: string; text:
  * ou pular e ganhar +1 reroll.
  */
 export function Reward() {
-    const { run, claimReward, skipReward, rerollReward } = useGame();
+    const { run: live, claimReward, skipReward, rerollReward } = useGame();
+    const run = useHeld(live?.status === 'reward' ? live : null);
     const [chosen, setChosen] = useState<number | null>(null);
-    // item novo pra quem já segura um: quem vai segurar o novo (falta escolher pra quem vai o antigo)
-    const [holder, setHolder] = useState<string | null>(null);
     const { lang, t, tn } = useT();
     // a festa encurta: da 7ª tela de recompensa em diante, o pacote abre rápido e as cartas saem quase juntas
     const [fast] = useState(() => (readCount(PACKS_KEY) ?? 0) >= FAST_AFTER);
@@ -55,16 +55,9 @@ export function Reward() {
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
     const reward = chosen !== null ? run.rewards[chosen] : null;
     const squad = [...run.lineup, ...run.bench].map((u) => byUid.get(u)!).filter(Boolean);
-    const targets =
-        reward?.kind === 'pokemon'
-            ? run.bench.map((u) => byUid.get(u)!).filter((p) => p && p.uid !== run.captainUid)
-            : squad;
     const pick = (i: number) => {
-        playSfx('select');
         setChosen(chosen === i ? null : i);
-        setHolder(null);
     };
-    const holding = holder ? byUid.get(holder) : null;
     // item que depende dos golpes (tipo, King's Rock): quantos golpes de cada um ele aproveita
     const fitItem = reward?.kind === 'item' ? reward.item : null;
     const fitOf = (p: PokemonInstance) => (fitItem ? itemFit(fitItem, p) : null);
@@ -75,45 +68,38 @@ export function Reward() {
     const sampleFit = fitItem && squad[0] ? fitOf(squad[0]) : null;
     const slots = formationOf(run.formation).slots;
     const openCard = useCardModal.getState().open;
+    const title = reward
+        ? reward.kind === 'pokemon'
+            ? t('reward.whoLeaves')
+            : reward.kind === 'tm'
+              ? t('reward.whoLearns')
+              : t('reward.whoHolds')
+        : t('reward.choose');
 
     return (
         <>
             <div className="draft-head bc-screenhead">
                 <span className="bc-tag">
-                    {t('reward.nextStage', { stage: stageName(run.stage + 1, lang) || t('reward.cup') })}
+                    {isLong(run)
+                        ? t('longCup.title')
+                        : t('reward.nextStage', { stage: stageName(run.stage + 1, lang) || t('reward.cup') })}
                 </span>
                 <div className="draft-title">
-                    <h1>
-                        {reward
-                            ? reward.kind === 'pokemon'
-                                ? t('reward.whoLeaves')
-                                : reward.kind === 'tm'
-                                  ? t('reward.whoLearns')
-                                  : t('reward.whoHolds')
-                            : t('reward.choose')}
-                    </h1>
+                    <h1>{title}</h1>
                 </div>
-                <div className="row">
-                    <button
-                        type="button"
-                        className="btn small"
-                        disabled={run.rerolls <= 0}
-                        onClick={() => {
-                            playSfx('select');
-                            rerollReward();
-                            setChosen(null);
-                        }}
-                    >
-                        <HudIcon kind="reroll" />
-                        {t('reward.reroll', { n: run.rerolls })}
-                    </button>
-                    <button type="button" className="btn small ghost" onClick={skipReward}>
-                        {t('reward.skip')}
-                    </button>
-                </div>
+                <button
+                    type="button"
+                    className="btn small"
+                    disabled={run.rerolls <= 0}
+                    onClick={() => {
+                        rerollReward();
+                        setChosen(null);
+                    }}
+                >
+                    <HudIcon kind="reroll" />
+                    {t('reward.reroll', { n: run.rerolls })}
+                </button>
             </div>
-
-            <Tip id="reward-pick">{t('reward.tip')}</Tip>
 
             <CardPack
                 sealed
@@ -146,7 +132,6 @@ export function Reward() {
                                         ),
                                         primary: true,
                                         onClick: () => {
-                                            playSfx('select');
                                             setChosen(chosen === i ? null : i);
                                         },
                                     }}
@@ -177,7 +162,7 @@ export function Reward() {
                                     )}
                                     <button
                                         type="button"
-                                        className="btn small primary fut-action"
+                                        className="btn small outline fut-action"
                                         aria-pressed={chosen === i}
                                         onClick={() => pick(i)}
                                     >
@@ -189,154 +174,171 @@ export function Reward() {
                     ))}
                 </div>
             </CardPack>
+            {/* a dica fica embaixo das opções que ela explica (só na 1ª copa) */}
+            {!reward && <Tip id="reward-pick">{t('reward.tip')}</Tip>}
 
-            {reward?.kind === 'tm' && (
+            {reward && (
+                <GainTarget
+                    key={chosen}
+                    gain={reward}
+                    run={run}
+                    onClaim={(uid, slot, passTo) => claimReward(chosen!, uid, slot, passTo)}
+                />
+            )}
+            {/* com Pokémon ou item escolhido, a prancheta de escolher fica no lugar desta */}
+            {(!reward || reward.kind === 'tm') && (
+                <div className="panel reward-team">
+                    <h2>{t('reward.yourTeam')}</h2>
+                    <p className="muted" style={{ marginTop: 0 }}>
+                        {t('reward.compare')}
+                    </p>
+                    <p className="muted reward-open-hint">
+                        <ExpandIcon />
+                        {t('reward.openCard')}
+                    </p>
+                    {fitItem && sampleFit && (
+                        <p className="reward-fit-legend">
+                            <FitBadge fit={{ ...sampleFit, count: 1 }} item={fitItem} text="" />
+                            {sampleFit.type
+                                ? t('reward.fit.typeLegend', {
+                                      item: itemName(fitItem),
+                                      type: typeName(sampleFit.type, lang),
+                                  })
+                                : t('reward.fit.hitLegend', { item: itemName(fitItem) })}
+                        </p>
+                    )}
+                    <FormationBoard
+                        formation={run.formation}
+                        lineup={run.lineup}
+                        bench={run.bench}
+                        byUid={byUid}
+                        captainUid={run.captainUid}
+                        onSlot={(ref, uid) => {
+                            const inst = byUid.get(uid);
+                            if (!inst) return;
+                            openCard(inst, {
+                                position: ref.zone === 'lineup' ? slots[ref.index] : undefined,
+                                captain: inst.uid === run.captainUid,
+                            });
+                        }}
+                        badgeOf={(p) => {
+                            const f = fitOf(p);
+                            // na quadra só quem aproveita ganha o selo (quem não aproveita já fica apagado)
+                            return f?.count && fitItem ? <FitBadge fit={f} item={fitItem} text={fitText(f)} /> : null;
+                        }}
+                        dimOf={(p) => fitOf(p)?.count === 0}
+                        slotAria={(p) => {
+                            const f = fitOf(p);
+                            return `${f ? `, ${fitText(f)}` : ''}${t('reward.openAria')}`;
+                        }}
+                    />
+                </div>
+            )}
+            {/* pular é discreto (fantasma à esquerda da barra); à direita, o que fazer agora */}
+            <div className="bc-thumbbar">
+                <button type="button" className="btn ghost" onClick={skipReward}>
+                    {t('reward.skip')}
+                </button>
+                <p className="tb-hint">{title}</p>
+            </div>
+        </>
+    );
+}
+
+/** O que a recompensa (ou a compra do Mercado) pede: quem sai do banco, quem aprende a MT ou quem segura o item. */
+export function GainTarget({
+    gain: reward,
+    run,
+    onClaim,
+}: {
+    gain: Exclude<RewardDef | ShopOffer, { kind: 'pack' | 'sponsor' }>;
+    run: RunState;
+    onClaim: (uid: string, forgetSlot?: number, passTo?: string) => void;
+}) {
+    // item novo pra quem já segura um: quem vai segurar o novo (falta escolher pra quem vai o antigo)
+    const [holder, setHolder] = useState<string | null>(null);
+    const { lang, t, tn } = useT();
+    const byUid = new Map(run.picks.map((p) => [p.uid, p]));
+    const squad = [...run.lineup, ...run.bench].map((u) => byUid.get(u)!).filter(Boolean);
+    const targets =
+        reward.kind === 'pokemon'
+            ? run.bench.map((u) => byUid.get(u)!).filter((p) => p && p.uid !== run.captainUid)
+            : squad;
+    const holding = holder ? byUid.get(holder) : null;
+    // 2º passo do item: quem segurava já tinha um item, falta escolher quem fica com o antigo
+    const passing = reward.kind === 'item' && !!holding?.item;
+    const canPick = new Set((passing ? squad.filter((p) => p.uid !== holder) : targets).map((p) => p.uid));
+    const fitItem = reward.kind === 'item' ? reward.item : null;
+    const fitOf = (p: PokemonInstance) => (fitItem ? itemFit(fitItem, p) : null);
+    const fitText = (f: ItemFit) =>
+        f.type
+            ? tn('reward.fit.typeCount', f.count, { type: typeName(f.type, lang) })
+            : tn('reward.fit.hitCount', f.count);
+    return (
+        <>
+            {reward.kind === 'tm' && (
                 <TmTeachPanel
                     move={reward.move}
                     team={squad}
                     onTeach={(uid, slot) => {
-                        playSfx('select');
-                        claimReward(chosen!, uid, slot);
+                        onClaim(uid, slot);
                     }}
                 />
             )}
-            {reward && reward.kind !== 'tm' && (
-                <div className="panel reward-pick">
-                    <h2>{t(reward.kind === 'pokemon' ? 'reward.swapWhich' : 'reward.giveTo')}</h2>
-                    <div className="squad-strip">
-                        {targets.map((p) => (
+            {reward.kind !== 'tm' && (
+                // na prancheta: toca em quem sai do banco / em quem segura o item; se ele já tem item, toca em quem
+                // fica com o antigo (ou descarta). As cartas que podem ser escolhidas acendem, as outras apagam.
+                <div className="panel reward-pick" data-exit>
+                    <h2>
+                        {passing
+                            ? t('reward.passTitle', { item: itemName(holding!.item!) })
+                            : t(reward.kind === 'pokemon' ? 'reward.swapWhich' : 'reward.giveTo')}
+                    </h2>
+                    <FormationBoard
+                        formation={run.formation}
+                        lineup={run.lineup}
+                        bench={run.bench}
+                        byUid={byUid}
+                        captainUid={run.captainUid}
+                        projection={reward.kind === 'pokemon' ? reward.inst : null}
+                        stateOf={(_ref, uid) => (uid === holder ? 'selected' : canPick.has(uid) ? 'target' : 'locked')}
+                        onSlot={(_ref, uid) => {
+                            if (!canPick.has(uid)) return;
+                            if (passing) onClaim(holder!, undefined, uid);
+                            else if (reward.kind === 'item' && byUid.get(uid)?.item) setHolder(uid);
+                            else onClaim(uid);
+                        }}
+                        badgeOf={(p) => {
+                            const f = fitOf(p);
+                            return f?.count && fitItem && !passing ? (
+                                <FitBadge fit={f} item={fitItem} text={fitText(f)} />
+                            ) : null;
+                        }}
+                        dimOf={(p) => !passing && fitOf(p)?.count === 0}
+                        slotAria={(p) =>
+                            p.item
+                                ? `, ${t(reward.kind === 'pokemon' ? 'reward.itemGoesToNew' : passing ? 'reward.replacesItem' : 'reward.passesItem', { item: itemName(p.item) })}`
+                                : ''
+                        }
+                    />
+                    {passing && (
+                        <div className="row reward-pass-actions">
                             <button
-                                key={p.uid}
                                 type="button"
-                                className={`mini target-btn${fitOf(p)?.count === 0 ? ' dim' : ''}`}
-                                aria-pressed={holder === p.uid}
+                                className="btn small ghost"
                                 onClick={() => {
-                                    playSfx('select');
-                                    if (reward.kind === 'item' && p.item) {
-                                        setHolder(holder === p.uid ? null : p.uid);
-                                        // o passo de "pra quem vai o antigo" aparece embaixo: no celular, rola até ele
-                                        requestAnimationFrame(() =>
-                                            document
-                                                .querySelector('.reward-pass')
-                                                ?.scrollIntoView({ block: 'nearest' }),
-                                        );
-                                    } else claimReward(chosen!, p.uid);
+                                    onClaim(holder!);
                                 }}
                             >
-                                <img className="pixel" src={cardSprite(p)} alt="" />
-                                <span>
-                                    <b>{viewInstance(p).displayName}</b>
-                                    {fitItem && fitOf(p) && (
-                                        <FitBadge fit={fitOf(p)!} item={fitItem} text={fitText(fitOf(p)!)} full />
-                                    )}
-                                    {p.item && (
-                                        <span className="muted">
-                                            {t(
-                                                reward.kind === 'pokemon'
-                                                    ? 'reward.itemGoesToNew'
-                                                    : 'reward.passesItem',
-                                                {
-                                                    item: itemName(p.item),
-                                                },
-                                            )}
-                                        </span>
-                                    )}
-                                </span>
+                                {t('reward.discardItem', { item: itemName(holding!.item!) })}
                             </button>
-                        ))}
-                    </div>
+                            <button type="button" className="btn small ghost" onClick={() => setHolder(null)}>
+                                {t('common.ui.back')}
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
-            {reward?.kind === 'item' && holding?.item && (
-                <div className="panel reward-pick reward-pass">
-                    <h2>{t('reward.passTitle', { item: itemName(holding.item) })}</h2>
-                    <div className="squad-strip">
-                        {squad
-                            .filter((p) => p.uid !== holding.uid)
-                            .map((p) => (
-                                <button
-                                    key={p.uid}
-                                    type="button"
-                                    className="mini target-btn"
-                                    onClick={() => {
-                                        playSfx('select');
-                                        claimReward(chosen!, holding.uid, undefined, p.uid);
-                                    }}
-                                >
-                                    <img className="pixel" src={cardSprite(p)} alt="" />
-                                    <span>
-                                        <b>{viewInstance(p).displayName}</b>
-                                        {p.item && (
-                                            <span className="muted">
-                                                {t('reward.replacesItem', { item: itemName(p.item) })}
-                                            </span>
-                                        )}
-                                    </span>
-                                </button>
-                            ))}
-                    </div>
-                    <button
-                        type="button"
-                        className="btn small ghost"
-                        onClick={() => {
-                            playSfx('select');
-                            claimReward(chosen!, holding.uid);
-                        }}
-                    >
-                        {t('reward.discardItem', { item: itemName(holding.item) })}
-                    </button>
-                </div>
-            )}
-            <div className="panel reward-team">
-                <h2>{t('reward.yourTeam')}</h2>
-                <p className="muted" style={{ marginTop: 0 }}>
-                    {reward?.kind === 'pokemon'
-                        ? t('reward.positionsHint', { name: viewInstance(reward.inst).displayName })
-                        : t('reward.compare')}
-                </p>
-                <p className="muted reward-open-hint">
-                    <ExpandIcon />
-                    {t('reward.openCard')}
-                </p>
-                {fitItem && sampleFit && (
-                    <p className="reward-fit-legend">
-                        <FitBadge fit={{ ...sampleFit, count: 1 }} item={fitItem} text="" />
-                        {sampleFit.type
-                            ? t('reward.fit.typeLegend', {
-                                  item: itemName(fitItem),
-                                  type: typeName(sampleFit.type, lang),
-                              })
-                            : t('reward.fit.hitLegend', { item: itemName(fitItem) })}
-                    </p>
-                )}
-                <FormationBoard
-                    formation={run.formation}
-                    lineup={run.lineup}
-                    bench={run.bench}
-                    byUid={byUid}
-                    captainUid={run.captainUid}
-                    projection={reward?.kind === 'pokemon' ? reward.inst : null}
-                    onSlot={(ref, uid) => {
-                        const inst = byUid.get(uid);
-                        if (!inst) return;
-                        playSfx('select');
-                        openCard(inst, {
-                            position: ref.zone === 'lineup' ? slots[ref.index] : undefined,
-                            captain: inst.uid === run.captainUid,
-                        });
-                    }}
-                    badgeOf={(p) => {
-                        const f = fitOf(p);
-                        // na quadra só quem aproveita ganha o selo (quem não aproveita já fica apagado)
-                        return f?.count && fitItem ? <FitBadge fit={f} item={fitItem} text={fitText(f)} /> : null;
-                    }}
-                    dimOf={(p) => fitOf(p)?.count === 0}
-                    slotAria={(p) => {
-                        const f = fitOf(p);
-                        return `${f ? `, ${fitText(f)}` : ''}${t('reward.openAria')}`;
-                    }}
-                />
-            </div>
         </>
     );
 }

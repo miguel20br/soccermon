@@ -7,6 +7,7 @@ import { getLang, moveName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { defaultCard } from '../../store/binder';
 import { useGame } from '../../store/game-store';
+import { resolveShowcase, SHOWCASE_MAX, showKey, toggleShowcase } from '../../store/medals';
 import {
     albumCount,
     CAREER_SEALS,
@@ -28,6 +29,7 @@ import { METAL, metalOf } from '../rarity';
 import { TYPE_COLOR } from '../type-colors';
 import { speciesGif } from './club';
 import { BallMark, CareerSealIcon, ChampionRibbon, Chevron, EvoArrow, LockIcon, SpeakerIcon } from './icons';
+import { useMedalView } from './Medals';
 import { sealTip } from './seal-tip';
 
 const STATS: StatKey[] = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'];
@@ -358,7 +360,7 @@ function SeenBody({ sp, dex, moves, onNav }: { sp: Species; dex: Dex; moves: Mov
                 {found < moveIds.length && <p className="pf-note">{t('profile.sheet.movesHelp')}</p>}
             </section>
 
-            {entry && isPlayed(entry) && <Seals entry={entry} dex={dex} />}
+            {entry && isPlayed(entry) && <Seals id={sp.id} entry={entry} dex={dex} />}
 
             <section className="pf-block">
                 <h3>{t('profile.sheet.career')}</h3>
@@ -401,8 +403,15 @@ function SeenBody({ sp, dex, moves, onNav }: { sp: Species; dex: Dex; moves: Mov
 }
 
 /** Os 4 degraus do selo de carreira com o quanto falta (retroativo: sai dos números da Dex). */
-function Seals({ entry, dex }: { entry: DexEntry; dex: Dex }) {
+function Seals({ id, entry, dex }: { id: number; entry: DexEntry; dex: Dex }) {
     const { t, d } = useT();
+    // destacar o selo no cartão (os destaques de medalha e coleção ficam na Sala de troféus)
+    const view = useMedalView();
+    const choice = useGame((s) => s.profile.showcase);
+    const updateProfile = useGame((s) => s.updateProfile);
+    const shown = resolveShowcase(choice, view).map(showKey);
+    const key = `s:${id}`;
+    const on = shown.includes(key);
     const played = playedCount(dex);
     const got = sealsOf(entry, kantoComplete(dex));
     const progress: Record<CareerSeal, number> = {
@@ -442,6 +451,17 @@ function Seals({ entry, dex }: { entry: DexEntry; dex: Dex }) {
                 })}
             </ul>
             <p className="pf-note">{t('profile.sheet.sealsHelp')}</p>
+            {got.length > 0 && (
+                <button
+                    type="button"
+                    className={`btn small md-show${on ? ' active' : ''}`}
+                    aria-pressed={on}
+                    disabled={!on && shown.length >= SHOWCASE_MAX}
+                    onClick={() => updateProfile({ showcase: toggleShowcase(shown, key) })}
+                >
+                    {on ? t('profile.medals.unpick') : t('profile.medals.pick')}
+                </button>
+            )}
         </section>
     );
 }

@@ -96,7 +96,13 @@ export function startLeagueDemo(kind: 'dia' | 'liga', state: string | null) {
     const server: LeagueServer = {
         dailyBegin: async () => ({ day: dailyDay() }),
         dailyReport: async () => true,
-        dailyRanking: async () => DAILY_ROWS,
+        dailyRanking: async (_day, friends) =>
+            friends
+                ? DAILY_ROWS.filter((r) => r.me || ['Davi', 'Ana Clara'].includes(r.trainer)).map((r, i) => ({
+                      ...r,
+                      pos: i + 1,
+                  }))
+                : DAILY_ROWS,
         ligaStatus: async (day): Promise<LigaStatus> => ({
             season: day.slice(0, 7),
             elo,

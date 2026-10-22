@@ -1,15 +1,16 @@
-import type { CSSProperties, ReactNode } from 'react';
+import { type CSSProperties, type ReactNode, useRef } from 'react';
 import { species } from '../../engine/data';
 import { EVO_THRESHOLD } from '../../engine/evolution';
 import { type FormationId, formationOf } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { computeLinks } from '../../engine/links';
-import { editionOf } from '../../engine/specials';
+import { cardTypeOf, editionOf } from '../../engine/specials';
 import { useT } from '../../i18n/react';
 import type { SlotRef } from '../../store/game-store';
 import { editionLabel, finishOf, METAL, metalOf } from '../rarity';
 import { ratingAt } from '../rating';
+import { useSwapMotion } from '../swap-motion';
 import { TYPE_COLOR } from '../type-colors';
 import { HudIcon } from './MatchHud';
 import { cardSprite } from './PokeCard';
@@ -66,6 +67,9 @@ export function FormationBoard({
 }: Props) {
     const f = formationOf(formation);
     const { t, d } = useT();
+    // nada teleporta: quem muda de vaga (troca, substituição) desliza do lugar antigo pro novo
+    const boardRef = useRef<HTMLDivElement>(null);
+    useSwapMotion(boardRef, `${formation}|${lineup.join()}|${bench.join()}|${horizontal}`, 320);
     const emptyLabel = emptyProp ?? t('team.board.empty');
     // sinergia especial completa (os 3 pássaros, os 3 iniciais, Mew + Mewtwo): as cartas brilham juntas
     const aura = new Map<string, string>();
@@ -103,7 +107,8 @@ export function FormationBoard({
                   ? 'sc sc-lendario'
                   : `sc sc-${metalOf(viewInstance(inst).overall)}${tier && finishOf(tier) === 'brilhante' ? ' sc-brilhante' : ''}`
             : '';
-        const t1 = inst ? TYPE_COLOR[species(inst.speciesId).types[0]] : undefined;
+        // Evento: a cor (e o fundo da vaga) é a do tipo do evento, não a do 1º tipo do Pokémon (Kabutops de Água, não de Pedra)
+        const t1 = inst ? TYPE_COLOR[cardTypeOf(inst)] : undefined;
         const rarStyle = ring ? ({ ...style, '--rar': ring, '--t1': t1 } as CSSProperties) : style;
         const dim = inst && dimOf?.(inst) ? ' dim' : '';
         const glow = inst && ref.zone === 'lineup' && aura.has(inst.uid) ? ` aura aura-${aura.get(inst.uid)}` : '';
@@ -113,6 +118,7 @@ export function FormationBoard({
                 key={`${ref.zone}-${ref.index}`}
                 className={`slot ${inst ? 'filled' : 'empty'} ${state}${projClass}${tier ? ` rar-${tier}` : ''}${dim}${glow} ${look}`}
                 style={rarStyle}
+                data-uid={inst?.uid}
                 disabled={!clickable}
                 onClick={() => onSlot?.(ref, uid)}
                 aria-label={`${fullLabel}${inst ? `: ${viewInstance(inst).displayName}${slotAria ? slotAria(inst) : ''}` : ` (${emptyLabel})`}`}
@@ -163,7 +169,7 @@ export function FormationBoard({
     };
 
     return (
-        <div className={`formation-board${horizontal ? ' horizontal' : ''}`}>
+        <div className={`formation-board${horizontal ? ' horizontal' : ''}`} ref={boardRef}>
             <div className="court">
                 {lineup.map((uid, i) =>
                     slot(

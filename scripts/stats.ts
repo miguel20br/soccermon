@@ -464,6 +464,42 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
     const cores = by('club_color');
     if (cores.length) item('Cor do clube trocada', `${fmt(cores.length)}x`);
 
+    // Mercado (0.9.0): o que se compra, Patrocínios e se quem patrocina ganha mais
+    const compras = by('shop_buy');
+    const saidas = by('shop_leave');
+    if (saidas.length) {
+        line();
+        line(MD ? '**Mercado**' : '  Mercado');
+        item(
+            'Visitas ao Mercado',
+            `${fmt(saidas.length)} (${pct(saidas.filter((e) => num(e.props.bought) === 0).length, saidas.length)} sem comprar)`,
+        );
+        item(
+            'Compras por tipo',
+            listaCurta(
+                count(compras, (e) => str(e.props.kind)),
+                compras.length,
+            ),
+        );
+        const pats = compras.filter((e) => e.props.kind === 'sponsor');
+        if (pats.length)
+            item(
+                'Patrocínios',
+                listaCurta(
+                    count(pats, (e) => str(e.props.what)),
+                    pats.length,
+                    12,
+                ),
+            );
+        const guardado = saidas.reduce((a, e) => a + num(e.props.money), 0) / saidas.length;
+        item('₽ guardado ao sair (média)', guardado.toFixed(1));
+        const fins = by('run_end');
+        const com = fins.filter((e) => e.props.sponsors);
+        const sem = fins.filter((e) => !e.props.sponsors);
+        const tit = (l: Ev[]) => pct(l.filter((e) => bool(e.props.champion)).length, l.length);
+        item('Título com / sem Patrocínio', `${tit(com)} (${com.length}) / ${tit(sem)} (${sem.length})`);
+    }
+
     // 6. Erros
     titulo('6. Erros');
     const erros = by('error');

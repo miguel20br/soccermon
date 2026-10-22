@@ -6,6 +6,7 @@ import { ITEMS } from './items';
 import { computeLinks, linkFactor } from './links';
 import { moveProfile } from './moves';
 import { specialBonus } from './specials';
+import { sponsorBonuses } from './sponsors';
 import { computeSynergies, SYNERGY_CAP, synergyFactor } from './synergy';
 
 /**
@@ -14,6 +15,7 @@ import { computeSynergies, SYNERGY_CAP, synergyFactor } from './synergy';
  *
  * - intrínsecos (vão com a carta): edição especial (+2 em tudo), habilidade, item, tipo Fada
  * - do time (dependem da escalação): capitão, sinergia de tipo, sinergia de história, posição em que joga
+ * - da copa: Patrocínios de campo (src/engine/sponsors.ts)
  */
 export type ModSource =
     | 'edicao'
@@ -24,7 +26,8 @@ export type ModSource =
     | 'capitao'
     | 'sinergia'
     | 'historia'
-    | 'posicao';
+    | 'posicao'
+    | 'patrocinio';
 
 export interface AttrModifier {
     source: ModSource;
@@ -52,6 +55,8 @@ export interface TeamContext {
     lineup?: readonly PokemonInstance[];
     captain?: PokemonInstance | null;
     role?: Position | null;
+    /** Patrocínios da copa (ids). Os de campo somam pontos; sem eles a partida é a de sempre. */
+    sponsors?: readonly string[];
 }
 
 const ALL: AttrKey[] = [
@@ -136,6 +141,16 @@ export function attributeModifiers(inst: PokemonInstance, ctx: TeamContext = {})
                 factor: f,
             });
         }
+    }
+    for (const b of sponsorBonuses(inst, ctx.sponsors, ctx.captain, ctx.role)) {
+        const what = b.attrs === 'all' ? 'em tudo' : ATTR_NAME[b.attrs[0]].toLowerCase();
+        mods.push({
+            source: 'patrocinio',
+            label: `Patrocínio: +${b.add} ${what}`,
+            ref: b.id,
+            attrs: b.attrs,
+            add: b.add,
+        });
     }
     if (lineup.length) {
         const syn = synergyFactor(computeSynergies(lineup), sp.types);

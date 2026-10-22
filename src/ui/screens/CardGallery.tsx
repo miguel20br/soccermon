@@ -5,9 +5,13 @@ import { evolveInstance } from '../../engine/evolution';
 import { createInstance, evolutionBonus, type PokemonInstance, viewInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
 import { type Edition, EVENT_TYPES, ICONS, type Special, specialBonus } from '../../engine/specials';
+import { SPONSOR_IDS } from '../../engine/sponsors';
 import { useT } from '../../i18n/react';
 import { type CareerSeal, type DexEntry, EMPTY_ENTRY } from '../../store/profile';
+import { PackArt } from '../components/CardPack';
+import { FoulCard } from '../components/FoulCard';
 import { PokeCard2 } from '../components/PokeCard2';
+import { SponsorCard, SponsorSlots } from '../components/SponsorCard';
 import { sealTip } from '../profile/seal-tip';
 import { EDITION, FINISH_LABEL, finishOf, METAL, type Metal, metalOf } from '../rarity';
 import { TYPE_PT } from '../type-colors';
@@ -313,6 +317,42 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
             </div>
 
             <div className="cg-v06">
+                <section className="panel" id="cartoes">
+                    <h2>Cartão amarelo e vermelho (Copa longa, tela de resultado)</h2>
+                    <p className="tactic-desc">
+                        Amarelo: 1ª derrota fora da Final, o cartão cai girando e bate. Vermelho: a 2ª; o segundo
+                        amarelo encosta, os dois viram vermelho e o resto do caminho é bloqueado. Toque pra repetir.
+                    </p>
+                    <FoulReplay />
+                </section>
+                <section className="panel" id="pacotes">
+                    <h2>Pacote de tipo (Mercado) · proposta pro ok do Miguel</h2>
+                    <p className="tactic-desc">
+                        O mesmo lacre do pacote da recompensa, na cor do tipo, com o ícone do tipo no lugar da carta do
+                        logo e a estampa do tipo no fundo. Abre com a mesma animação.
+                    </p>
+                    <div className="cg-row" style={{ '--fut-w': '150px' } as React.CSSProperties}>
+                        {['Fire', 'Water', 'Grass', 'Electric', 'Psychic', 'Ghost', 'Dragon', 'Fighting'].map((ty) => (
+                            <PackArt key={ty} look="" type={ty} label={`Pacote ${TYPE_PT[ty] ?? ty}`} />
+                        ))}
+                    </div>
+                </section>
+                <section className="panel" id="patrocinios">
+                    <h2>Patrocínios (Mercado da Copa rápida) · proposta pro ok do Miguel</h2>
+                    <p className="tactic-desc">
+                        Cara de patrocínio: em cima a placa da marca (cor própria, emblema e nome curto, como o patch da
+                        camisa), embaixo o contrato (família, nome, efeito e a linha da assinatura). Os que você tem
+                        aparecem nas placas da beira da quadra. Embaixo, as 3 vagas da Escalação e do Mercado.
+                    </p>
+                    <div className="cg-row">
+                        {SPONSOR_IDS.map((id) => (
+                            <SponsorCard key={id} id={id} />
+                        ))}
+                    </div>
+                    <div style={{ maxWidth: 520, marginTop: 16 }}>
+                        <SponsorSlots sponsors={['silph', 'cassino']} />
+                    </div>
+                </section>
                 <section className="panel">
                     <h2>Bronze, prata e ouro (pela nota) · fosco = comum, brilhante = raro</h2>
                     <div className="cg-row">
@@ -426,6 +466,20 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
                     arquivo
                 </a>
             </footer>
+        </div>
+    );
+}
+
+/** Os dois cartões da Copa longa, com um botão pra ver a animação de novo. */
+function FoulReplay() {
+    const [n, setN] = useState(0);
+    return (
+        <div key={n}>
+            <FoulCard kind="yellow" />
+            <FoulCard kind="red" remaining={4} />
+            <button type="button" className="btn small" onClick={() => setN(n + 1)}>
+                Repetir
+            </button>
         </div>
     );
 }

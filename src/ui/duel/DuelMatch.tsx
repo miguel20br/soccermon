@@ -63,7 +63,6 @@ import {
     PressureBar,
     ResultButton,
     Scoreboard,
-    SubPanel,
     subSuggestion,
     TacticControls,
     TIRED_HINT,
@@ -78,7 +77,7 @@ import { type BoardPlan, Prancheta, useMedia, WIDE } from '../components/Pranche
 import { agencyView, MaxBars, PenaltyOrderPanel, SidelineControls, SidelineOverlay } from '../components/Sideline';
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
-import { captainAt, roleAt, snapAt } from '../match-view';
+import { captainAt, clockExtrasAt, roleAt, snapAt } from '../match-view';
 import { bannerText, peerAvatar, peerTitle } from '../profile/club';
 import { peerInfo, usePlayerCard } from '../profile/PlayerCard';
 import { reduceMotionOn } from '../settings-sync';
@@ -134,8 +133,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const [halftime, setHalftime] = useState(false);
     const [ended, setEnded] = useState(false);
     const [subsDone, setSubsDone] = useState<string[]>([]);
-    const [subOpen, setSubOpen] = useState(false);
-    const [subOut, setSubOut] = useState<string | null>(null);
+    const [subOut, setSubOut] = useState<{ uid: string } | null>(null);
     const [lines, setLines] = useState<(CommentLine & { id: number })[]>([]);
     const lineId = useRef(0);
     // painel do técnico: no desktop a Tática fica embaixo da quadra e as abas abrem na Prancheta
@@ -151,7 +149,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const tickRef = useRef(0);
     const scoreboardRef = useRef<HTMLDivElement>(null);
     const halftimeRef = useRef<HTMLDivElement>(null);
-    const subPanelRef = useRef<HTMLDivElement>(null);
+    const coachRef = useRef<HTMLDivElement>(null);
     // como na copa: celular deitado deixa o placar no topo (a quadra cabe inteira) e o intervalo vem pra tela;
     // o placar só existe depois que a partida chega (antes é o "preparando")
     const hasMatch = !!match;
@@ -260,7 +258,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
             if (e.type === 'fulltime') {
                 // apito final: nada de velocidade nem troca (o painel aberto fecha)
                 setFulltime(true);
-                setSubOpen(false);
+                setSubOut(null);
             }
             const line = commentator.lineFor(e);
             if (line) setLines((prev) => [{ ...line, id: lineId.current++ }, ...prev].slice(0, 200));
@@ -335,7 +333,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     useEffect(() => {
         if (halftime && s.secondHalf && simCount === logLen) {
             setHalftime(false);
-            setSubOpen(false);
+            setSubOut(null);
             EventBus.emit('match:resume');
         }
     }, [halftime, s.secondHalf, simCount, logLen]);
@@ -343,13 +341,12 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     useEffect(() => {
         if (halftime) halftimeRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }, [halftime]);
-    // painel de substituição (aberto pela prancheta ou pelo botão) pode abrir abaixo da dobra: traz pra tela
-    useEffect(() => {
-        if (subOpen) subPanelRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    }, [subOpen]);
     const htLeft = useCountdown(halftime ? s.halftime?.until : undefined);
     const kickLeft = useCountdown(kicked ? undefined : s.kickoffAt);
-    const clockParts = useClockParts(clock, fulltime || ended, shootout, halftime);
+    // acréscimos ("+2'") e Pressão final do tick da tela (eventos do motor)
+    const extras = clockExtrasAt(match?.events ?? [], clock.tick, clock.half);
+    const clockParts = useClockParts({ ...clock, added: extras.added }, fulltime || ended, shootout, halftime);
+    const pressureNow = halftime || fulltime || ended ? null : extras.pressure;
     // fim de jogo: vai sozinho pro resultado; um toque na quadra ou no painel segura
     const auto = useAutoResult(ended, onSeeResult);
     // fim de jogo: a quadra volta pra tela (no celular a página pode ter ficado rolada desde o intervalo)
@@ -468,11 +465,11 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
             </button>
         ) : null;
     };
-    const onMine = (uid: string, idx: number | null, outUid?: string) => {
-        if (canSub) {
-            setSubOut(outUid ?? (onField.includes(uid) ? uid : null));
-            setSubOpen(true);
-        } else if (idx !== null) EventBus.emit('match:inspect-request', idx);
+    // Substituir (botão, intervalo, pedido de tempo, sugestão): abre a prancheta, já com quem sai marcado se tiver
+    const openBoard = (uid?: string) => {
+        setTab('board');
+        setSubOut(uid ? { uid } : null);
+        requestAnimationFrame(() => coachRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
     };
 
     // fôlego que vale na tela: no intervalo, o com que cada um começaria o 2º tempo (o mesmo número no "Mais
@@ -508,9 +505,8 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
             pending={pendingOrder}
             onTactic={(tc) => tc !== currentTactic && order({ kind: 'tactic', tactic: tc })}
             onCorner={(pl) => pl !== currentCorner && order({ kind: 'corner', corner: pl })}
-            subOpen={subOpen}
             canSub={canSub}
-            onToggleSub={() => setSubOpen((v) => !v)}
+            onSub={() => openBoard(tired ? tiredSlot.uid : undefined)}
             tired={tired}
         />
     );
@@ -564,6 +560,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                         looks={looks}
                         score={clock.score}
                         clock={clockParts}
+                        pressure={pressureNow}
                         stage={t('duel.title')}
                         coaches={[badge(s.peers.host), badge(s.peers.guest)]}
                     >
@@ -629,17 +626,14 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                                     return sub && sub.type === 'sub' ? sub.in : match.roster[idx].name;
                                 }}
                                 canSub={canSub}
-                                onSub={() => setSubOpen(true)}
+                                onSub={() => openBoard()}
                                 suggest={
                                     htSuggest && {
                                         text: t('match.ht.suggest', {
                                             name: nameOf(htSuggest.uid),
                                             p: Math.round(htSuggest.energy * 100),
                                         }),
-                                        onPick: () => {
-                                            setSubOut(htSuggest.uid);
-                                            setSubOpen(true);
-                                        },
+                                        onPick: () => openBoard(htSuggest.uid),
                                     }
                                 }
                                 onContinue={() => duel.dispatch({ k: 'htReady' })}
@@ -666,7 +660,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                                         starting={s.secondHalf || (htMine && (!!htReady?.[rivalRole] || awayRival))}
                                         label={t('match.ht.continue')}
                                         onReady={() => {
-                                            setSubOpen(false);
+                                            setSubOut(null);
                                             duel.dispatch({ k: 'htReady' });
                                         }}
                                         onUndo={() => duel.dispatch({ k: 'htReady', ready: false })}
@@ -707,30 +701,10 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                             {t('match.boardPending', { formation: formationText(pendingBoard.formation).name })}
                         </div>
                     )}
-                    {subOpen && canSub && (
-                        <SubPanel
-                            panelRef={subPanelRef}
-                            subOut={subOut}
-                            setSubOut={setSubOut}
-                            onClose={() => setSubOpen(false)}
-                            onField={onField}
-                            benchNow={benchNow}
-                            busy={leaving}
-                            byUid={byUid}
-                            slots={slots}
-                            energyAt={energyNow}
-                            nameOf={nameOf}
-                            onPick={(outUid, inUid) => {
-                                setSubOpen(false);
-                                setSubOut(null);
-                                order({ kind: 'sub', outUid, inUid });
-                            }}
-                        />
-                    )}
                     {wide && <div className="bc-deskbar">{tactics}</div>}
                 </div>
 
-                <div className="panel bc-coach" onPointerDownCapture={auto.hold}>
+                <div className="panel bc-coach" ref={coachRef} onPointerDownCapture={auto.hold}>
                     <CoachTabs tabs={tabs} active={tab} onPick={setTab} />
                     <div className={`bc-pane pane-${tab}`} role="tabpanel">
                         {tab === 'tactic' && tactics}
@@ -741,8 +715,17 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                                 side={side}
                                 tick={clock.tick}
                                 names={teamNames}
-                                selectedUid={subOpen ? subOut : null}
-                                onMine={onMine}
+                                selectedUid={subOut}
+                                onMine={(_, idx) => idx !== null && EventBus.emit('match:inspect-request', idx)}
+                                onSub={
+                                    canSub
+                                        ? (outUid, inUid) => {
+                                              setSubOut(null);
+                                              order({ kind: 'sub', outUid, inUid });
+                                          }
+                                        : undefined
+                                }
+                                subs={subOrders.filter((o) => !subsDone.includes(o.inUid))}
                                 edit={{
                                     enabled: canChange,
                                     pending: pendingBoard,

@@ -65,6 +65,64 @@
     justify-items: start;
     text-align: left;
 }
+/* o pedaço da sala de troféus: as taças da Copa por metal */
+.pcard-cups {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+}
+.pcard-cup {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+}
+.pcard-cup .tr-taca {
+    width: 32px;
+}
+.pcard-cup b {
+    font-size: 12px;
+}
+/* perfil do amigo: últimos títulos (capitão + clube + final) e o retrospecto no Duelo */
+.pcard-titles {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+}
+.pcard-titles li {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    padding: 4px 10px 4px 4px;
+    border-radius: 6px;
+    border-left: 4px solid var(--tc);
+    background: var(--bc-ink-2);
+}
+.pcard-titles img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+.pcard-titles span {
+    display: grid;
+    min-width: 0;
+}
+.pcard-titles b,
+.pcard-titles small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.pcard-titles small {
+    color: var(--muted);
+    font-size: 12px;
+}
+.pcard-h2h {
+    margin: 0;
+    font-size: 14px;
+}
 @media (max-width: 560px) {
     .modal.pcard {
         padding: 14px 12px 16px 16px;
@@ -138,9 +196,13 @@
 }
 
 /* Perfil: "Ver meu perfil público" embaixo do cabeçalho */
-.pf-public {
+.pf-head-btns {
     grid-column: 1 / -1;
-    justify-self: start;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.pf-public {
     display: inline-flex;
     align-items: center;
     gap: 8px;

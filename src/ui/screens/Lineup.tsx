@@ -1,5 +1,6 @@
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useRef, useState } from 'react';
 import { computeAttributes } from '../../engine/attributes';
+import { relampagoBracket } from '../../engine/bracket';
 import { cupRival } from '../../engine/cup';
 import { species } from '../../engine/data';
 import { FORMATIONS, type FormationId } from '../../engine/formations';
@@ -10,20 +11,25 @@ import { pickCornerTaker } from '../../engine/match';
 import { applyModifiers, attributeModifiers } from '../../engine/modifiers';
 import { type CornerPlan, TACTIC_LABEL, type Tactic } from '../../engine/state';
 import { computeSynergies } from '../../engine/synergy';
-import { playSfx } from '../../game/audio';
-import { clubName, dict, formationText, itemDesc, itemName, stageName } from '../../i18n';
+import { clubName, cupStageName, dict, formationText, itemDesc, itemName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { liveOf, playerTeam, type SlotRef, useGame } from '../../store/game-store';
+import { isLong, isOut } from '../../store/long-cup';
 import { useCardModal } from '../card-modal';
+import { BracketPeek } from '../components/Bracket';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
 import { LinkChips } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
 import { cardSprite, TypeBadge } from '../components/PokeCard';
+import { Money, SponsorSlots } from '../components/SponsorCard';
+import { leaveWith } from '../feedback';
 import { Tip } from '../help/Tip';
+import { useClubColor } from '../profile/club';
 import { lineupAverage } from '../rating';
 import { agencyOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
+import { useHeld } from '../use-held';
 
 /** Descrição das táticas em português (o texto de cada idioma está em i18n: team.lineup.tacticDesc). */
 export const TACTIC_DESC: Record<Tactic, string> = dict('pt').team.lineup.tacticDesc;
@@ -32,17 +38,33 @@ export const TACTIC_DESC: Record<Tactic, string> = dict('pt').team.lineup.tactic
 export const CORNER_PLANS: CornerPlan[] = ['area', 'short', 'mixed'];
 
 export function Lineup() {
-    const { run, swapSlots, setTactic, setCorner, setFormation, moveItem, setMatch, go, abandonRun, lockMatch } =
-        useGame();
+    const {
+        run: live,
+        swapSlots,
+        setTactic,
+        setCorner,
+        setFormation,
+        moveItem,
+        setMatch,
+        go,
+        abandonRun,
+        lockMatch,
+    } = useGame();
+    const run = useHeld(live);
     const [error, setError] = useState<string | null>(null);
     const [askAbandon, setAskAbandon] = useState(false);
     const openCard = useCardModal((s) => s.open);
     const [loading, setLoading] = useState(false);
     const { t, d, lang } = useT();
+    const clubColor = useClubColor();
     if (!run) return null;
 
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
     const opponent = run.opponents[run.stage];
+    // Copa longa: quem está fora (lesão, Creche) fica no banco; titular fora trava o Jogar até você trocar
+    const outName = (u: string) => `${viewInstance(byUid.get(u)!).displayName} (${run.out?.[u]})`;
+    const outList = [...run.lineup, ...run.bench].filter((u) => isOut(run, u)).map(outName);
+    const outStarter = run.lineup.filter((u) => isOut(run, u)).map(outName)[0];
     const locked = !!run.lockedTeam;
 
     const play = async () => {
@@ -72,7 +94,6 @@ export function Lineup() {
 
     return (
         <>
-            <Tip id="lineup-synergy">{t('team.lineup.tip')}</Tip>
             <div className="cup-bug bc-surface">
                 <div className="cup-path">
                     {d.common.stage.map((label, i) => {
@@ -95,6 +116,19 @@ export function Lineup() {
                 </div>
             </div>
 
+            {/* Copa Relâmpago: a chave inteira num toque, com você na fase de agora */}
+            {!isLong(run) && (
+                <BracketPeek
+                    rounds={relampagoBracket(
+                        run.seed,
+                        { name: run.teamName, color: clubColor },
+                        run.opponents,
+                        run.results,
+                    )}
+                    current={run.stage}
+                />
+            )}
+            <Tip id="lineup-synergy">{t('team.lineup.tip')}</Tip>
             <LineupEditor
                 title={t('team.lineup.title', { team: run.teamName })}
                 formation={run.formation}
@@ -111,10 +145,11 @@ export function Lineup() {
                 onTactic={setTactic}
                 onCorner={setCorner}
                 onMoveItem={moveItem}
+                sponsors={run.sponsors}
                 side={
                     <div className="panel">
                         <h2>
-                            {stageName(run.stage, lang)}: {clubName(opponent.name, lang)}
+                            {cupStageName(run, run.stage, lang)}: {clubName(opponent.name, lang)}
                         </h2>
                         <div className="opponent-strip">
                             {opponent.lineup.map((p) => (
@@ -142,8 +177,20 @@ export function Lineup() {
                                 n: lineupAverage(opponent.lineup, opponent.formation),
                             })}
                         </p>
+                        {outList.length > 0 && (
+                            <p className={outStarter ? 'error-text' : 'tactic-desc'}>
+                                {outStarter
+                                    ? t('longCup.outStarter', { name: outStarter })
+                                    : t('longCup.outBench', { names: outList.join(', ') })}
+                            </p>
+                        )}
                         <div className="bc-thumbbar">
-                            <button type="button" className="btn primary wide" onClick={play} disabled={loading}>
+                            <button
+                                type="button"
+                                className="btn primary wide"
+                                onClick={play}
+                                disabled={loading || !!outStarter}
+                            >
                                 {loading
                                     ? t('team.lineup.warming')
                                     : locked
@@ -151,11 +198,19 @@ export function Lineup() {
                                       : t('team.lineup.play', {
                                             stage:
                                                 lang === 'pt'
-                                                    ? stageName(run.stage, lang).toLowerCase()
-                                                    : stageName(run.stage, lang),
+                                                    ? cupStageName(run, run.stage, lang).toLowerCase()
+                                                    : cupStageName(run, run.stage, lang),
                                         })}
                             </button>
                         </div>
+                        {!!run.sponsors?.length && (
+                            <div className="lineup-sponsors">
+                                <span className="muted">
+                                    {t('shop.sponsors')} · <Money n={run.money ?? 0} />
+                                </span>
+                                <SponsorSlots sponsors={run.sponsors} />
+                            </div>
+                        )}
                         {locked && <p className="tactic-desc">{t('team.lineup.lockedNote')}</p>}
                         {error && <p className="error-text">{error}</p>}
                     </div>
@@ -165,7 +220,12 @@ export function Lineup() {
                     askAbandon ? (
                         <div className="abandon-ask" role="alert">
                             <span>{t('team.lineup.abandonConfirm')}</span>
-                            <button type="button" className="btn small danger" onClick={abandonRun}>
+                            <button
+                                type="button"
+                                className="btn small danger"
+                                data-fx="none"
+                                onClick={() => leaveWith('leave', abandonRun)}
+                            >
                                 {t('team.lineup.abandon')}
                             </button>
                             <button type="button" className="btn ghost small" onClick={() => setAskAbandon(false)}>
@@ -206,6 +266,7 @@ export function LineupEditor({
     onMoveItem,
     side,
     footer,
+    sponsors,
 }: {
     title: string;
     formation: FormationId;
@@ -225,15 +286,20 @@ export function LineupEditor({
     onMoveItem?: (fromUid: string, toUid: string) => void;
     side: ReactNode;
     footer?: ReactNode;
+    /** Patrocínios da copa: os de campo entram na conta da escalação (carta = campo). */
+    sponsors?: readonly string[];
 }) {
     const [selected, setSelected] = useState<SlotRef | null>(null);
     const [detail, setDetail] = useState<string | null>(null);
+    /** Passando o item: quem tem o item que vai pra outro (o próximo toque na prancheta decide quem recebe). */
+    const [giving, setGiving] = useState<string | null>(null);
+    const givingItem = giving ? byUid.get(giving)?.item : undefined;
+    const boardRef = useRef<HTMLDivElement>(null);
     const { t, d, lang } = useT();
     const picks = [...lineup, ...bench].flatMap((u) => byUid.get(u) ?? []);
     const detailInst = byUid.get(detail ?? lineup[0]) ?? picks[0];
     const synergies = computeSynergies(lineup.map((u) => byUid.get(u)!));
     const links = computeLinks(lineup.map((u) => byUid.get(u)!));
-    const holders = picks.filter((p) => p.uid !== detailInst?.uid);
     const slotsNow = FORMATIONS[formation].slots;
     const positionOf = (uid: string) => {
         const i = lineup.indexOf(uid);
@@ -246,7 +312,7 @@ export function LineupEditor({
     const cornerField = lineupNow
         .map((inst, i) => {
             const role = slotsNow[i];
-            const mods = attributeModifiers(inst, { lineup: lineupNow, captain: captainNow, role });
+            const mods = attributeModifiers(inst, { lineup: lineupNow, captain: captainNow, role, sponsors });
             const passing = applyModifiers(computeAttributes(species(inst.speciesId), inst.level), mods, role).passing;
             return { inst, role, passing };
         })
@@ -259,12 +325,18 @@ export function LineupEditor({
     const onSlot = (ref: SlotRef, uid: string) => {
         setDetail(uid);
         if (locked) return;
+        if (giving) {
+            if (uid !== giving) {
+                onMoveItem?.(giving, uid);
+            }
+            setGiving(null);
+            return;
+        }
         if (!selected) {
             setSelected(ref);
             return;
         }
         if (selected.zone !== ref.zone || selected.index !== ref.index) {
-            playSfx('select');
             onSwap(selected, ref);
         }
         setSelected(null);
@@ -272,7 +344,7 @@ export function LineupEditor({
 
     return (
         <div className="lineup-grid">
-            <div className="panel">
+            <div className="panel" ref={boardRef}>
                 <h2>{title}</h2>
                 <div className="formation-tabs bc-seg segmented">
                     {Object.values(FORMATIONS).map((f) => (
@@ -289,7 +361,7 @@ export function LineupEditor({
                     ))}
                 </div>
                 <p className="muted" style={{ marginTop: 8 }}>
-                    {t('team.lineup.swapHint')}
+                    {givingItem ? t('team.lineup.giveHint', { item: itemName(givingItem) }) : t('team.lineup.swapHint')}
                 </p>
                 <FormationBoard
                     formation={formation}
@@ -298,10 +370,18 @@ export function LineupEditor({
                     byUid={byUid}
                     captainUid={captainUid}
                     projection={
-                        selected ? byUid.get((selected.zone === 'lineup' ? lineup : bench)[selected.index]) : null
+                        !giving && selected
+                            ? byUid.get((selected.zone === 'lineup' ? lineup : bench)[selected.index])
+                            : null
                     }
-                    stateOf={(ref) =>
-                        selected?.zone === ref.zone && selected.index === ref.index ? 'selected' : 'idle'
+                    stateOf={(ref, uid) =>
+                        giving
+                            ? uid === giving
+                                ? 'selected'
+                                : 'target'
+                            : selected?.zone === ref.zone && selected.index === ref.index
+                              ? 'selected'
+                              : 'idle'
                     }
                     onSlot={onSlot}
                     footer={
@@ -433,22 +513,20 @@ export function LineupEditor({
                                 <span>
                                     <b>{itemName(detailInst.item)}</b> — {itemDesc(detailInst.item, lang)}
                                 </span>
-                                <label className="muted">
-                                    {t('team.lineup.giveTo')}{' '}
-                                    <select
-                                        value=""
-                                        disabled={locked}
-                                        onChange={(e) => e.target.value && onMoveItem(detailInst.uid, e.target.value)}
-                                    >
-                                        <option value="">…</option>
-                                        {holders.map((h) => (
-                                            <option key={h.uid} value={h.uid}>
-                                                {viewInstance(h).displayName}
-                                                {h.item ? t('team.lineup.swapWith', { item: itemName(h.item) }) : ''}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </label>
+                                <button
+                                    type="button"
+                                    className={`btn small${giving === detailInst.uid ? ' ghost' : ''}`}
+                                    aria-pressed={giving === detailInst.uid}
+                                    disabled={locked}
+                                    onClick={() => {
+                                        setSelected(null);
+                                        setGiving(giving === detailInst.uid ? null : detailInst.uid);
+                                        // no celular a prancheta fica lá em cima: traz ela pra tela
+                                        boardRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                                    }}
+                                >
+                                    {giving === detailInst.uid ? t('team.lineup.giveCancel') : t('team.lineup.giveTo')}
+                                </button>
                             </div>
                         )}
                     </>

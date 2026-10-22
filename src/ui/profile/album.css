@@ -98,70 +98,135 @@
 }
 /* vitrine: 3 vagas do tamanho da carta pequena */
 .bd-slots {
-    --fut-w: min(110px, calc((100vw - 76px) / 3));
+    --fut-w: min(110px, calc((100vw - 92px) / 3));
     display: grid;
     grid-template-columns: repeat(3, var(--fut-w));
     justify-content: center;
-    gap: 8px;
+    /* o "x" de cada carta sai pelo canto: o vão é dele (a carta do lado não o cobre) */
+    gap: 16px;
+    padding-top: 8px;
 }
 .bd-slot {
     width: var(--fut-w);
     aspect-ratio: 63 / 88;
     border: 2px dashed var(--line);
     border-radius: 10px;
+    animation: al-fade 200ms var(--ease-out);
 }
-.al-commons,
+/* a carta da vitrine: tocar seleciona (tocar noutra troca de lugar), arrastar de lado troca, o "x" tira */
+.bd-card {
+    position: relative;
+    touch-action: pan-y;
+    transition:
+        opacity 200ms var(--ease-out),
+        scale 200ms var(--ease-out),
+        translate 200ms var(--ease-out);
+}
+.bd-card.on {
+    translate: 0 -6px;
+}
+.bd-card.on .bd-card-btn,
+.bd-card.over .bd-card-btn {
+    outline: 3px solid var(--yellow);
+    outline-offset: 3px;
+    border-radius: 8px;
+}
+.bd-card.drag {
+    z-index: 5;
+    scale: 1.06;
+    cursor: grabbing;
+    transition: scale 150ms var(--ease-out);
+}
+.bd-card.out {
+    opacity: 0;
+    scale: 0.85;
+}
+.bd-card.in {
+    animation: bd-in 260ms var(--ease-out) both;
+}
+@keyframes bd-in {
+    from {
+        opacity: 0;
+        scale: 0.85;
+    }
+}
+/* vitrine cheia, carta nova esperando: as 3 piscam a borda pra dizer "toque na que sai" */
+.bd-showcase.picking .bd-card-btn {
+    outline: 2px dashed var(--yellow);
+    outline-offset: 3px;
+    border-radius: 8px;
+}
+.bd-showcase.picking .bd-card:hover .bd-card-btn {
+    outline-style: solid;
+}
+.bd-x {
+    position: absolute;
+    /* acima da carta inclinada pelo ponteiro (.pc2-fx.is-active sobe pra 5) */
+    z-index: 6;
+    top: -10px;
+    right: -12px;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 2px solid var(--line);
+    border-radius: 50%;
+    background: var(--panel);
+    color: var(--muted);
+    box-shadow: 0 2px 0 #000;
+    cursor: pointer;
+    transition:
+        color 150ms var(--ease-out),
+        border-color 150ms var(--ease-out);
+}
+.bd-x svg {
+    width: 14px;
+    height: 14px;
+}
+.bd-x:hover,
+.bd-x:focus-visible {
+    color: var(--text);
+    border-color: var(--red);
+}
+.bd-x:focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: 2px;
+}
+.bd-pick {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: space-between;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 2px solid var(--yellow);
+    background: var(--panel-2);
+    animation: al-fade 200ms var(--ease-out);
+}
+.bd-pick span {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+.bd-pick b {
+    font-size: 13px;
+}
+.bd-pick small {
+    color: var(--muted);
+    font-size: 12px;
+}
+/* Reduzir movimento: só o fade (nada encolhe nem sobe) */
+:root[data-reduce-motion="true"] .bd-card {
+    scale: none;
+    translate: none;
+}
+:root[data-reduce-motion="true"] .bd-card.in {
+    animation-name: al-fade;
+}
 .al-swipe {
     margin: 0;
     text-align: center;
-}
-
-/* índice das seções: o nome, o contador e a barrinha */
-.al-index {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 4px;
-}
-.al-tab {
-    position: relative;
-    display: grid;
-    gap: 1px;
-    padding: 7px 2px 9px;
-    border: 0;
-    border-bottom: 2px solid #000;
-    border-radius: 6px;
-    background: var(--bc-ink);
-    color: var(--muted);
-    font: inherit;
-    cursor: pointer;
-    overflow: hidden;
-}
-.al-tab b {
-    font-size: 11px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.al-tab small {
-    font-size: 10px;
-}
-.al-tab i {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    height: 3px;
-    background: var(--yellow);
-}
-.al-tab.on {
-    background: var(--yellow);
-    color: var(--bc-ink);
-}
-.al-tab.on i {
-    background: var(--bc-ink);
-}
-.al-tab:focus-visible {
-    outline: 3px solid var(--yellow);
-    outline-offset: 2px;
 }
 
 .al-nav {
@@ -185,14 +250,12 @@
 
 /* o livro: uma página no celular, duas abertas no desktop */
 .al-book {
-    --ed-icone: #8a5cf0;
-    --ed-shiny: conic-gradient(from 200deg, #ff5ea8, #ffd75e, #5eeaff, #b16bff, #ff5ea8);
-    --ed-destaque: #f2c53d;
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 560px);
     justify-content: center;
     touch-action: pan-y;
     user-select: none;
-    perspective: 1600px;
+    perspective: 3400px;
 }
 .al-page {
     position: relative;
@@ -249,19 +312,6 @@
     font-size: 11px;
     font-weight: 700;
 }
-.al-page.al-ed-icone {
-    --ed: var(--ed-icone);
-}
-.al-page.al-ed-destaque,
-.al-page.al-ed-raras {
-    --ed: var(--ed-destaque);
-}
-.al-page.al-ed-evento {
-    --ed: var(--ev, var(--yellow));
-}
-.al-page.al-ed-shiny .al-ph {
-    border-image: var(--ed-shiny) 1;
-}
 .al-folio {
     grid-row: 4;
     font-size: 10px;
@@ -272,14 +322,6 @@
 .al-page.right .al-folio {
     text-align: left;
 }
-.al-rare-help {
-    grid-row: 2;
-    margin: 0;
-    font-size: 12px;
-    color: rgba(14, 20, 48, 0.7);
-}
-
-/* a grade: 2×3 no celular em pé, 6 numa linha deitado, 4×3 no tablet e no desktop */
 .al-pgrid {
     grid-row: 3;
     list-style: none;
@@ -297,8 +339,8 @@
     }
 }
 @media (orientation: landscape) and (max-height: 500px) {
-    .al-page {
-        width: min(100%, 820px);
+    .al-book {
+        grid-template-columns: minmax(0, 820px);
     }
     .al-pgrid {
         grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -306,10 +348,8 @@
 }
 @media (min-width: 1000px) and (min-height: 600px) {
     .al-book {
-        gap: 6px;
-    }
-    .al-page {
-        width: min(49%, 560px);
+        grid-template-columns: repeat(2, minmax(0, 560px));
+        gap: 0 6px;
     }
 }
 
@@ -377,16 +417,6 @@
     top: -6px;
     right: -6px;
 }
-.al-cap {
-    font-size: 11px;
-    font-weight: 700;
-    text-align: center;
-    color: var(--bc-ink);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
 /* a figurinha: a carta de verdade, colada levemente torta, com a fita em cima */
 .al-stk {
     position: absolute;
@@ -448,31 +478,303 @@
     }
 }
 
-/* virar a página */
-.al-page.turn-next {
+/* o livro acabou de abrir: a página aparece com a capa saindo da frente */
+.al-page.enter {
+    animation: al-page-in 320ms var(--ease-out);
+}
+@keyframes al-page-in {
+    from {
+        transform: scale(0.96);
+        opacity: 0;
+    }
+}
+
+/* virar a folha: a própria página que sai gira pela lombada (frente); no livro aberto a que chega gira junto do
+   outro lado (verso), escondida até passar da metade. No celular a folha sai de lado e some. */
+.al-book > .al-page {
+    grid-row: 1;
+    width: auto;
+    /* cada folha é um mundo: mexer numa não refaz o layout das outras */
+    contain: layout style;
+}
+.al-page.leaf-front,
+.al-page.leaf-back {
+    z-index: 4;
+    backface-visibility: hidden;
+    /* em longhand: o minificador do build troca "animation: 640ms … both" (sem nome) por "none" */
+    animation-duration: 640ms;
+    animation-timing-function: cubic-bezier(0.45, 0.05, 0.35, 1);
+    animation-fill-mode: both;
+}
+.al-page.leaf-back {
+    z-index: 3;
+}
+/* antes do giro: o verso espera escondido (a frente fica parada por cima) */
+.al-page.leaf-back:not(.go) {
+    opacity: 0;
+}
+.al-page.leaf-front.next {
     transform-origin: left center;
-    animation: al-flip-next 380ms var(--ease-out);
 }
-.al-page.turn-prev {
+.al-page.leaf-front.next.go {
+    animation-name: al-leaf-out-next;
+}
+.al-page.leaf-front.prev {
     transform-origin: right center;
-    animation: al-flip-prev 380ms var(--ease-out);
 }
-@keyframes al-flip-next {
-    from {
-        transform: rotateY(-28deg) translateX(6%);
+.al-page.leaf-front.prev.go {
+    animation-name: al-leaf-out-prev;
+}
+.al-page.leaf-back.next {
+    transform-origin: right center;
+}
+.al-page.leaf-back.next.go {
+    animation-name: al-leaf-in-next;
+}
+.al-page.leaf-back.prev {
+    transform-origin: left center;
+}
+.al-page.leaf-back.prev.go {
+    animation-name: al-leaf-in-prev;
+}
+/* a vizinha já desenhada, esperando a vez */
+.al-page.stand {
+    z-index: 0;
+    /* fora da conta (sem layout nem pintura), mas pronta: mostrar depois é rápido */
+    content-visibility: hidden;
+    pointer-events: none;
+}
+/* sombra da dobra: escurece no meio do giro */
+.al-page.leaf-front.go::after,
+.al-page.leaf-back.go::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: rgb(0 0 0 / 30%);
+    opacity: 0;
+    pointer-events: none;
+    animation: al-leaf-shade 640ms ease-in-out;
+}
+/* cada face some ao passar dos 90° (as cartas têm camada própria e apareceriam espelhadas no verso) */
+@keyframes al-leaf-out-next {
+    0% {
+        transform: rotateY(0deg);
+        opacity: 1;
+    }
+    49% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+    100% {
+        transform: rotateY(-180deg);
         opacity: 0;
     }
 }
-@keyframes al-flip-prev {
-    from {
-        transform: rotateY(28deg) translateX(-6%);
+@keyframes al-leaf-out-prev {
+    0% {
+        transform: rotateY(0deg);
+        opacity: 1;
+    }
+    49% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+    100% {
+        transform: rotateY(180deg);
         opacity: 0;
     }
 }
+@keyframes al-leaf-in-next {
+    0% {
+        transform: rotateY(180deg);
+        opacity: 0;
+    }
+    50% {
+        opacity: 0;
+    }
+    51% {
+        opacity: 1;
+    }
+    100% {
+        transform: rotateY(0deg);
+        opacity: 1;
+    }
+}
+@keyframes al-leaf-in-prev {
+    0% {
+        transform: rotateY(-180deg);
+        opacity: 0;
+    }
+    50% {
+        opacity: 0;
+    }
+    51% {
+        opacity: 1;
+    }
+    100% {
+        transform: rotateY(0deg);
+        opacity: 1;
+    }
+}
+@keyframes al-leaf-shade {
+    50% {
+        opacity: 1;
+    }
+}
+/* figurinha nova espera a folha assentar pra colar */
+.al-book.turning .al-stk.pasting {
+    animation-play-state: paused;
+}
+
+/* holo parado nas figurinhas: só a do ponteiro ou do foco brilha. Com o álbum cheio eram ~90 brilhos animando
+   (background-position, que repinta) e a página inteira repintava a cada quadro, inclusive girando a folha.
+   !important: as camadas da carta usam o atalho `animation`, que volta o play-state pra running. */
+.al-page .pc2,
+.al-page .pc2 *,
+.al-page .pc2 *::before,
+.al-page .pc2 *::after {
+    animation-play-state: paused !important;
+}
+.al-slot:is(:hover, :focus-visible) .pc2,
+.al-slot:is(:hover, :focus-visible) .pc2 *,
+.al-slot:is(:hover, :focus-visible) .pc2 *::before,
+.al-slot:is(:hover, :focus-visible) .pc2 *::after {
+    animation-play-state: running !important;
+}
+
+/* mais de uma versão: as outras ficam atrás da da frente, como cartas empilhadas */
+.al-stk.behind {
+    z-index: 0;
+    filter: brightness(0.82) drop-shadow(1px 2px 0 rgba(14, 20, 48, 0.3));
+    transform: rotate(calc(var(--rot, 0deg) + var(--k) * 5deg)) translate(calc(var(--k) * 6%), calc(var(--k) * -3%));
+}
+.al-stk.behind::after {
+    display: none;
+}
+.al-slot:hover .al-stk.behind {
+    transform: rotate(calc(var(--rot, 0deg) + var(--k) * 8deg)) translate(calc(var(--k) * 10%), calc(var(--k) * -4%));
+}
+
+/* as versões espalhadas por cima da página */
+.al-fan {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+}
+.al-fan-bg {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: rgb(7 10 24 / 92%);
+    backdrop-filter: blur(3px);
+    cursor: pointer;
+    animation: al-fade 200ms var(--ease-out);
+}
+.al-fan-box {
+    position: relative;
+    display: grid;
+    gap: 12px;
+    width: min(100%, 760px);
+    max-height: calc(100dvh - 32px);
+    overflow: auto;
+}
+.al-fan-box header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.al-fan-box header b {
+    font-family: "Galmuri14", monospace;
+    font-weight: 400;
+    font-size: 18px;
+}
+.al-fan-box header span {
+    color: var(--muted);
+    font-size: 12px;
+}
+.al-fan-box header .btn {
+    margin-left: auto;
+}
+.al-fan-box ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 14px 12px;
+}
+.al-fan-box li {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    text-align: center;
+    animation: al-fan-in 380ms var(--ease-pop) calc(var(--i) * 60ms) both;
+}
+.al-fan-box li b {
+    font-size: 12px;
+}
+.al-fan-card {
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    container-type: inline-size;
+    transition: transform 150ms var(--ease-out);
+}
+.al-fan-card .pc2 {
+    font-size: calc(100cqi / 15);
+}
+.al-fan-card:hover {
+    transform: translateY(-3px);
+}
+.al-fan-card:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 3px;
+    border-radius: 8px;
+}
+.al-fan-on {
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: var(--yellow);
+    color: var(--bc-ink);
+    font-size: 11px;
+    font-weight: 700;
+}
+@keyframes al-fan-in {
+    from {
+        transform: translateY(40px) scale(0.6) rotate(calc((var(--i) - 1) * 6deg));
+        opacity: 0;
+    }
+}
+@keyframes al-fade {
+    from {
+        opacity: 0;
+    }
+}
+@media (max-width: 380px) {
+    .al-fan-box ul {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .al-stk.pasting,
-    .al-page.turn-next,
-    .al-page.turn-prev,
+    .al-page.leaf-front,
+    .al-page.leaf-back,
+    .al-fan-box li,
+    .al-fan-bg,
+    .al-page.enter,
+    .al-cover.opening .al-cover-face,
+    .al-cover.closing .al-cover-face,
     .al-slot.found .al-box {
         animation: none;
     }
@@ -575,18 +877,6 @@
     box-shadow: inset 0 0 0 2px var(--yellow);
 }
 
-/* 320: o índice em 2 linhas (3 + 2) pra caber o nome inteiro */
-@media (max-width: 380px) {
-    .al-index {
-        grid-template-columns: repeat(6, minmax(0, 1fr));
-    }
-    .al-tab {
-        grid-column: span 2;
-    }
-    .al-tab:nth-child(n + 4) {
-        grid-column: span 3;
-    }
-}
 /* desktop: o livro aberto sai da coluna do perfil, pra carta ficar do tamanho de ler */
 @media (min-width: 1000px) and (min-height: 600px) {
     .al-book {
@@ -595,12 +885,169 @@
         margin-inline: calc((100% - var(--w)) / 2);
     }
 }
-/* seção com figurinha nova: o pontinho no canto da aba */
-.al-tab i.new-dot.al-tab-dot {
-    top: 4px;
-    right: 4px;
-    left: auto;
-    bottom: auto;
-    width: 9px;
-    height: 9px;
+
+/* estante: um livro por geração; tocar na capa abre */
+.al-shelf {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 220px));
+    justify-content: center;
+    gap: 14px;
+    perspective: 1400px;
+}
+.al-cover {
+    position: relative;
+    padding: 0;
+    border: 0;
+    background: var(--bc-paper);
+    border-radius: 6px 12px 12px 6px;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    box-shadow: 4px 6px 0 rgba(0, 0, 0, 0.45);
+}
+.al-cover:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 3px;
+}
+.al-cover-face {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 6px;
+    aspect-ratio: 3 / 4;
+    padding: 16px 10px 12px 18px;
+    box-sizing: border-box;
+    border: 3px solid #f2c53d;
+    border-radius: 6px 12px 12px 6px;
+    background:
+        repeating-conic-gradient(rgb(255 255 255 / 5%) 0 7deg, transparent 7deg 15deg) 50% 60% / 260% 260%,
+        radial-gradient(circle at 50% 40%, #2c3d86, #10183d 75%);
+    box-shadow: inset 10px 0 0 -2px rgb(0 0 0 / 35%);
+    color: var(--text);
+    transform-origin: left center;
+    backface-visibility: hidden;
+    transition: transform 150ms var(--ease-out);
+}
+.al-cover:not(:disabled):hover .al-cover-face {
+    transform: rotateY(-8deg);
+}
+.al-cover-logo {
+    width: 88%;
+    height: auto;
+    image-rendering: auto;
+}
+.al-cover-title {
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.al-cover-gen {
+    font-family: "Galmuri14", monospace;
+    font-size: 18px;
+    color: var(--yellow);
+}
+.al-cover-region {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+}
+.al-cover-mon {
+    width: 46%;
+    height: auto;
+}
+.al-cover-n {
+    font-size: 12px;
+    font-weight: 700;
+}
+.al-cover-cta {
+    margin-top: auto;
+    padding: 4px 12px;
+    border-radius: 6px;
+    background: var(--yellow);
+    color: var(--bc-ink);
+    font-size: 12px;
+    font-weight: 700;
+    box-shadow: 0 3px 0 #000;
+}
+.al-cover.soon {
+    cursor: default;
+    filter: grayscale(1) brightness(0.65);
+}
+/* a capa gira pra esquerda como capa de livro e mostra o papel de dentro (e volta ao fechar) */
+.al-cover.opening .al-cover-face {
+    animation: al-cover-open 520ms var(--ease-in-out, ease-in-out) forwards;
+}
+.al-cover.closing .al-cover-face {
+    animation: al-cover-open 520ms var(--ease-in-out, ease-in-out) reverse both;
+}
+@keyframes al-cover-open {
+    to {
+        transform: rotateY(-160deg);
+    }
+}
+
+/* edições do Pokémon embaixo do espaço: Normal, Shiny, Evento, Ícone, Destaque (acesa = tem) */
+.al-dots {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    min-height: 8px;
+}
+.al-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1.5px rgba(14, 20, 48, 0.3);
+}
+.al-dot.on {
+    box-shadow: 0 1px 0 rgba(14, 20, 48, 0.5);
+}
+.al-dot-normal.on {
+    background: #8e97b3;
+}
+.al-dot-shiny.on {
+    background: conic-gradient(#ff5ea8, #ffd75e, #5eeaff, #b16bff, #ff5ea8);
+}
+.al-dot-evento.on {
+    background: #3fbf7f;
+}
+.al-dot-icone.on {
+    background: #8a5cf0;
+}
+.al-dot-destaque.on {
+    background: #f2c53d;
+}
+
+.al-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+/* Suas versões em carta pequena (a carta grande troca ao tocar) */
+.al-versions ul {
+    grid-auto-flow: column;
+    grid-auto-columns: 92px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+.al-versions button {
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    text-align: center;
+}
+.al-vcard {
+    width: 100%;
+    container-type: inline-size;
+}
+.al-vcard .pc2 {
+    font-size: calc(100cqi / 15);
+}
+.al-versions small {
+    margin-left: 0;
 }

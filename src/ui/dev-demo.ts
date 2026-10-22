@@ -12,6 +12,7 @@ import { EVENT_TYPES, ICONS, type Special } from '../engine/specials';
 import { EventBus } from '../game/EventBus';
 import { type BinderCard, binderAdd } from '../store/binder';
 import { playerTeam, useGame } from '../store/game-store';
+import { EVENT_IDS, type EventId, rollEvent } from '../store/long-events';
 import { earnedKeys, medalViewOf } from '../store/news';
 import { EDITION_BIT, editionBits } from '../store/profile';
 import { agencyOn } from './settings-sync';
@@ -22,7 +23,7 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * partida termina empatada e vai para os pênaltis, já na tela de escalação. `?demo=ditto` monta um time
  * com Ditto e Mew + Mewtwo (sinergia Gênese) cuja primeira partida tem combo. `?demo=evolucao` monta um time
  * de iniciais cuja primeira partida tem evolução do seu time logo no começo (`&rival=1`: do rival). `?demo=campeao` joga uma copa
- * inteira com um time forte e para na tela do título (`?demo=momentos` é a mesma: Melhores momentos e gol da copa). `?demo=mt` abre a recompensa depois das oitavas com
+ * inteira com um time forte e para na tela do título (`?demo=momentos` é a mesma: Melhores momentos e gol da copa). `?demo=mercado` abre o Mercado depois das quartas (₽, 2 Patrocínios). `?demo=mt` abre a recompensa depois das oitavas com
  * uma MT do ginásio entre as 3 cartas (Charmeleon, Caterpie e cia. para testar quem aprende). `?demo=conta&tipo=levar|juntar|juntar1|copa|outra|guardada`
  * mostra a pergunta depois do login (com resumos de mentira; os botões só fecham) ou a copa guardada na tela inicial. `?demo=trailer&cena=<cena>&seed=<seed>` abre na escalação a
  * partida que a caça de lances (scripts/trailer-hunt.ts) escolheu para o trailer. `?demo=escanteio` monta um time de
@@ -39,7 +40,8 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * platina da Gen 1 sem platinar (Prof. Carvalho holográfico e Diploma de Kanto, já escolhidos) e mostra o aviso na Home.
  * `?demo=vestiario` abre na
  * escalação uma partida que, ao começar, já está a 2 s do intervalo, com 2 no banco e troca do rival no intervalo (o
- * vestiário: várias trocas, desfazer e "O rival trocou").
+ * vestiário: várias trocas, desfazer e "O rival trocou"). `?demo=acrescimos` abre na escalação uma partida que você está
+ * perdendo no fim: ao começar, já está na Pressão final, a 3 s dos acréscimos do 2º tempo ("+N'" no placar).
  */
 let started = false;
 
@@ -51,9 +53,14 @@ export function runDevDemo() {
         demo !== 'ditto' &&
         demo !== 'evolucao' &&
         demo !== 'campeao' &&
+        demo !== 'eliminado' &&
         demo !== 'momentos' &&
         demo !== 'trailer' &&
         demo !== 'mt' &&
+        demo !== 'mercado' &&
+        demo !== 'mapa' &&
+        demo !== 'evento' &&
+        demo !== 'grupo' &&
         demo !== 'escanteio' &&
         demo !== 'conta' &&
         demo !== 'lider' &&
@@ -65,7 +72,9 @@ export function runDevDemo() {
         demo !== 'liga' &&
         demo !== 'amigos' &&
         demo !== 'platina' &&
-        demo !== 'vestiario'
+        demo !== 'vestiario' &&
+        demo !== 'acrescimos' &&
+        demo !== 'sala'
     )
         return;
     started = true;
@@ -78,6 +87,10 @@ export function runDevDemo() {
     }
     if (demo === 'novidades') {
         demoNews();
+        return;
+    }
+    if (demo === 'sala') {
+        demoTrophyRoom();
         return;
     }
     if (demo === 'fichario' || demo === 'album') {
@@ -245,15 +258,55 @@ export function runDevDemo() {
         }
         return;
     }
+    // ?demo=mapa: Copa longa no mapa (`&meio=1`: já andou 5 linhas, com ₽, um cartão amarelo e 2 Patrocínios)
+    // ?demo=evento&id=carrinho|patrocinador|capitao|olheiro|entrevista|perdido|treinoPuxado|creche
+    if (demo === 'evento') {
+        demoLongMap(store, true);
+        const id = (new URLSearchParams(window.location.search).get('id') ?? 'carrinho') as EventId;
+        const run = useGame.getState().run!;
+        const event = rollEvent({ ...run, eventsSeen: EVENT_IDS.filter((x) => x !== id) });
+        useGame.setState({ run: { ...run, status: 'event', event }, screen: 'event' });
+        return;
+    }
+    // ?demo=grupo: Rota Índigo no Planalto, com a 1ª rodada do grupo jogada
+    if (demo === 'grupo') {
+        demoLongMap(store, false);
+        const run = useGame.getState().run!;
+        const last = run.map!.nodes.find((n) => n.row === run.map!.rows - 1)!;
+        const results = [0, 1, 2, 3, 4].map((stage) => ({
+            stage,
+            opponent: 'Montanhistas',
+            score: (stage === 4 ? [2, 2] : [3, 1]) as [number, number],
+            shootout: stage === 4 ? ([4, 3] as [number, number]) : null,
+            won: true,
+            final: false,
+        }));
+        useGame.setState({ run: { ...run, at: last.id, status: 'treino', results, stage: 4, money: 22 } });
+        useGame.getState().train('rest');
+        return;
+    }
+    if (demo === 'mapa') {
+        demoLongMap(store, new URLSearchParams(window.location.search).has('meio'));
+        return;
+    }
+    // ?demo=mercado: Mercado depois das quartas (demoShop)
+    if (demo === 'mercado') {
+        demoShop(store);
+        return;
+    }
     // ?demo=momentos: a mesma copa do campeão (cada partida travada como no jogo, então o gol da copa tem replay)
-    if (demo === 'campeao' || demo === 'momentos') {
+    // ?demo=eliminado: um time fraco que cai (tela de eliminado: "faltou pouco" e "Nova copa" na barra)
+    if (demo === 'campeao' || demo === 'momentos' || demo === 'eliminado') {
+        const lose = demo === 'eliminado';
         for (let k = 0; k < 40; k++) {
             store.newRun('Demo FC', `camp${k}`);
             const run = useGame.getState().run!;
             const rng = new Rng(`camp${k}`, 'demo');
             // goleiro Snorlax, fixo Machamp, alas Mew e Aerodactyl, pivô Mewtwo; banco Dragonite e Pikachu
-            const lineup = [143, 68, 151, 142, 150].map((id) => createInstance(id, rng));
-            const bench = [149, 25].map((id) => createInstance(id, rng));
+            const lineup = (lose ? [129, 10, 13, 16, 19] : [143, 68, 151, 142, 150]).map((id) =>
+                createInstance(id, rng),
+            );
+            const bench = (lose ? [11, 14] : [149, 25]).map((id) => createInstance(id, rng));
             useGame.setState({
                 run: {
                     ...run,
@@ -274,10 +327,11 @@ export function runDevDemo() {
                 useGame.getState().lockMatch(team);
                 m = runMatch(FUTSAL_5, team, cur.opponents[cur.stage], `${cur.seed}-stage-${cur.stage}`);
                 useGame.getState().recordResult(m);
-                if (useGame.getState().run!.status === 'reward') useGame.getState().skipReward();
-                else break;
+                if (useGame.getState().run!.status !== 'reward') break;
+                useGame.getState().skipReward();
+                if (useGame.getState().run!.status === 'shop') useGame.getState().leaveShop();
             }
-            if (useGame.getState().run!.status === 'champion') {
+            if (useGame.getState().run!.status === (lose ? 'eliminated' : 'champion')) {
                 useGame.setState({ match: m, screen: 'result' });
                 console.info(`[demo] copa camp${k}: campeão`);
                 return;
@@ -311,6 +365,36 @@ export function runDevDemo() {
             const live = { stage: 0, orders: [], tick: Math.max(0, ht.tick - 40), engine: ENGINE_VERSION };
             useGame.setState({ run: { ...ready, lockedTeam: team, live }, screen: 'lineup' });
             console.info(`[demo] copa ${ready.seed}: intervalo no tick ${ht.tick} com troca do rival`);
+            return;
+        }
+        return;
+    }
+    if (demo === 'acrescimos') {
+        for (let k = 0; k < 120; k++) {
+            store.newRun('Demo FC', `acr${k}`);
+            const base = useGame.getState().run!;
+            const rng = new Rng(`acr${k}`, 'demo');
+            // time fraco (Geodude no gol, Rattata, Pidgey, Spearow, Ekans; banco Weedle e Caterpie): perde no fim
+            const lineup = [74, 19, 16, 21, 23].map((id) => createInstance(id, rng));
+            const bench = [13, 10].map((id) => createInstance(id, rng));
+            const run = {
+                ...base,
+                formation: '1-2-1' as const,
+                picks: [...lineup, ...bench],
+                lineup: lineup.map((p) => p.uid),
+                bench: bench.map((p) => p.uid),
+                captainUid: lineup[4].uid,
+                draftRound: 7,
+                status: 'lineup' as const,
+            };
+            const team = { ...playerTeam(run), manualSubs: true };
+            const r = runMatch(FUTSAL_5, team, run.opponents[0], `${run.seed}-stage-0`, { snapshots: false });
+            const stop = r.events.find((e) => e.type === 'stoppage' && e.half === 2);
+            const press = r.events.find((e) => e.type === 'pressure' && e.team === 0);
+            if (!stop || !press || press.tick > stop.tick - 60) continue;
+            const live = { stage: 0, orders: [], tick: stop.tick - 60, engine: ENGINE_VERSION };
+            useGame.setState({ run: { ...run, lockedTeam: team, live }, screen: 'lineup' });
+            console.info(`[demo] copa ${run.seed}: acréscimos do 2º tempo no tick ${stop.tick}`);
             return;
         }
         return;
@@ -519,6 +603,69 @@ function demoCollection() {
 }
 
 /**
+ * `?demo=sala`: a carreira do `?demo=colecao` com 9 títulos (taças de bronze, prata e ouro), 12 dias de Copa do Dia
+ * (uma semana inteira) e 12 vitórias no Duelo, e abre a Sala de troféus (sala do clube, nível 2). `&titulos=0` deixa
+ * a sala vazia (só silhuetas); `&titulos=30` vira a sala do estádio.
+ */
+function demoTrophyRoom() {
+    demoCollection();
+    const g = useGame.getState();
+    const n = Number(new URLSearchParams(window.location.search).get('titulos') ?? 9);
+    const day = 864e5;
+    const hall = Array.from({ length: n }, (_, i) => ({
+        id: `demo-${i}`,
+        date: Date.now() - i * 3 * day,
+        club: g.profile.clubName || 'Pallet FC',
+        clubColor: g.profile.clubColor,
+        formation: '2-2',
+        titleNo: n - i,
+        perfect: i % 4 === 0,
+        scores: (i % 3 === 1
+            ? [
+                  [3, 1],
+                  [2, 0],
+                  [1, 0],
+                  [4, 2],
+              ]
+            : [
+                  [3, 1],
+                  [2, 2],
+                  [1, 0],
+                  [4, 2],
+              ]) as [number, number][],
+        squad: [6, 9, 25, 143, 149].map((speciesId, k) => ({
+            speciesId,
+            shiny: k === 0 && i === 0,
+            name: '',
+            ovr: 80,
+            goals: k,
+            captain: k === i % 5,
+        })),
+    }));
+    const iso = (t: number) => new Date(t).toISOString().slice(0, 10);
+    // segunda 12/10/2026 a domingo 18/10 inteira, e mais uns dias soltos
+    const daily = [...Array.from({ length: 7 }, (_, i) => Date.UTC(2026, 9, 12 + i)), Date.UTC(2026, 9, 20)]
+        .slice(0, n ? 8 : 0)
+        .map((t, i) => ({
+            day: iso(t),
+            done: true,
+            champion: i % 3 === 0,
+            results: Array.from({ length: 4 }, (_, k) => ({
+                score: [k < 2 + (i % 3) ? 2 : 0, 1] as [number, number],
+                shootout: null,
+                won: k < 2 + (i % 3),
+                opponent: 'x',
+            })),
+        }));
+    useGame.setState({
+        hall,
+        daily,
+        records: { ...g.records, titles: n, perfect: hall.filter((h) => h.perfect).length, duelWins: n ? 12 : 0 },
+    });
+    g.go('trophies');
+}
+
+/**
  * `?demo=novidades`: a carreira do `?demo=colecao` com algumas coisas ainda não vistas (selo NOVO): treinadores e
  * títulos das missões, 3 medalhas, as coleções, 3 selos, 6 avatares, as peças do escudo e 4 figurinhas. Abre na
  * Home (o pontinho no botão do Perfil); `&perfil=<aba>` abre direto no Perfil.
@@ -550,7 +697,7 @@ function demoNews() {
 /**
  * `?demo=album` (ou `fichario`): álbum de cartas cheio (Ícones, Shiny, Evento por tipo, Destaque, combos, ×N), a
  * Pokédex com as figurinhas dessas cartas (Lapras com Normal, Shiny e Evento; uma figurinha de antes do álbum, sem
- * carta) e a vitrine com 3 cartas.
+ * carta) e a vitrine com 3 cartas. `&cheio=1`: as 151 espécies com várias versões (pior caso do álbum).
  */
 function demoBinder() {
     const rng = new Rng('demo-fichario');
@@ -558,8 +705,10 @@ function demoBinder() {
     let binder: BinderCard[] = [];
     const now = Date.now();
     const cards: PokemonInstance[] = [];
-    for (let i = 0; i < 140; i++) {
-        const id = i < ICON_IDS.length ? ICON_IDS[i] : 1 + Math.floor(rng.next() * 151);
+    // &cheio=1: as 151 espécies com 4 cartas cada (pra medir o álbum no pior caso)
+    const full = new URLSearchParams(window.location.search).has('cheio');
+    for (let i = 0; i < (full ? 604 : 140); i++) {
+        const id = i < ICON_IDS.length ? ICON_IDS[i] : full ? 1 + (i % 151) : 1 + Math.floor(rng.next() * 151);
         let p: PokemonInstance = { ...createInstance(id, rng), uid: `demo-${i}`, shiny: false };
         const type = species(id).types.find((t) => EVENT_TYPES.includes(t));
         const special: Special | null =
@@ -630,4 +779,78 @@ function demoBinder() {
         window.history.replaceState(null, '', url);
     }
     g.go('profile');
+}
+
+/** ?demo=mercado: Mercado depois das quartas, com ₽12 guardados, 2 Patrocínios e a vitória por 3 a 0. */
+function demoShop(store: ReturnType<typeof useGame.getState>) {
+    store.newRun('Demo FC', 'mercado-demo');
+    const run = useGame.getState().run!;
+    const rng = new Rng('mercado-demo', 'demo');
+    const lineup = [95, 7, 5, 25, 74].map((id) => createInstance(id, rng));
+    const bench = [10, 92].map((id) => createInstance(id, rng));
+    const result = (stage: number) => ({
+        stage,
+        opponent: run.opponents[stage].name,
+        score: [3, 0] as [number, number],
+        shootout: null,
+        won: true,
+        destaqueUid: null,
+    });
+    useGame.setState({
+        run: {
+            ...run,
+            formation: '1-2-1',
+            picks: [...lineup, ...bench],
+            lineup: lineup.map((p) => p.uid),
+            bench: bench.map((p) => p.uid),
+            captainUid: lineup[2].uid,
+            draftRound: 7,
+            status: 'reward',
+            stage: 1,
+            results: [result(0), result(1)],
+            rewards: [],
+            money: 12,
+            sponsors: ['silph', 'creche'],
+        },
+    });
+    useGame.getState().skipReward();
+    return;
+}
+
+/** ?demo=mapa: Copa longa com o time montado sozinho, parada no mapa. */
+function demoLongMap(store: ReturnType<typeof useGame.getState>, middle: boolean) {
+    store.newRun('Demo FC', 'mapa-demo', undefined, 'longa');
+    useGame.getState().autoDraft();
+    if (!middle) return;
+    const run = useGame.getState().run!;
+    const map = run.map!;
+    // anda pelo primeiro caminho de cada casa até a linha 5 (sem jogar: só pra ver o mapa no meio)
+    const path: string[] = [];
+    let node = map.nodes.find((n) => n.row === 0)!;
+    while (node.row < 5) {
+        path.push(node.id);
+        node = map.nodes.find((n) => n.id === node.next[node.next.length - 1])!;
+    }
+    const results = [0, 1, 2].map((stage) => ({
+        stage,
+        opponent: 'Montanhistas',
+        score: (stage === 1 ? [1, 2] : [3, 1]) as [number, number],
+        shootout: null,
+        won: stage !== 1,
+        final: false,
+    }));
+    useGame.setState({
+        run: {
+            ...run,
+            at: path.at(-1)!,
+            path,
+            stage: 2,
+            results,
+            cards: 1,
+            money: 18,
+            sponsors: ['silph', 'cassino'],
+            status: 'map',
+        },
+        screen: 'map',
+    });
 }

@@ -97,7 +97,7 @@ export function PlayerInspect({
     // a escalação de agora (com trocas e evoluções), igual à do motor
     const lineupNow = lineupAt(match, setups, who.team, tick);
     const captain = lineupNow.find((p) => p.uid === setup.captainUid) ?? null;
-    const mods = attributeModifiers(inst, { lineup: lineupNow, captain, role: who.role });
+    const mods = attributeModifiers(inst, { lineup: lineupNow, captain, role: who.role, sponsors: setup.sponsors });
     const behind = snap.score[who.team === 0 ? 1 : 0] - snap.score[who.team];
     // mesma conta do motor (effective.ts: 0.72 + 0.28 × fôlego)
     const fatigue = Math.round(0.28 * (1 - energy) * 100);

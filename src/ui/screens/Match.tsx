@@ -19,7 +19,7 @@ import { skinOf } from '../../game/animation-manager';
 import { setVolume } from '../../game/audio';
 import { EventBus } from '../../game/EventBus';
 import type { MatchSceneData } from '../../game/scenes/MatchScene';
-import { clubName, formationText, stageName } from '../../i18n';
+import { clubName, cupStageName, cupStageShort, formationText } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { ligaRun, useLiga } from '../../league/liga-store';
 import { PhaserGame } from '../../PhaserGame';
@@ -41,7 +41,6 @@ import {
     PressureBar,
     ResultButton,
     Scoreboard,
-    SubPanel,
     subSuggestion,
     TacticControls,
     TIRED_HINT,
@@ -62,12 +61,13 @@ import {
     SidelineOverlay,
     TimeoutPanel,
 } from '../components/Sideline';
+import { sponsorBoards } from '../components/SponsorCard';
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
 import { RivalEmotes } from '../duel/Emotes';
 import { rivalEmotes } from '../duel/emote-faces';
 import { LeaveConfirm } from '../leave-guard';
-import { captainAt, roleAt, snapAt } from '../match-view';
+import { captainAt, clockExtrasAt, roleAt, snapAt } from '../match-view';
 import { bannerText, useClubColor } from '../profile/club';
 import { agencyOn, reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
@@ -114,11 +114,10 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const [orders, setOrders] = useState<MatchOrder[]>(() => resume?.orders ?? []);
     /** Substituições que já aconteceram em campo (uid de quem entrou). */
     const [subsDone, setSubsDone] = useState<string[]>([]);
-    const [subOpen, setSubOpen] = useState(false);
     /** A partida está parada no intervalo esperando o técnico. */
     const [halftime, setHalftime] = useState(false);
     const halftimeRef = useRef<HTMLDivElement>(null);
-    const [subOut, setSubOut] = useState<string | null>(null);
+    const [subOut, setSubOut] = useState<{ uid: string } | null>(null);
     const [pending, setPending] = useState(false);
     /** A cena Phaser só escuta comandos depois de carregar; até lá os controles ficam travados. */
     const [sceneReady, setSceneReady] = useState(false);
@@ -145,7 +144,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const recorded = useRef(false);
     const tickRef = useRef(0);
     const scoreboardRef = useRef<HTMLDivElement>(null);
-    const subPanelRef = useRef<HTMLDivElement>(null);
+    const coachRef = useRef<HTMLDivElement>(null);
     // celular deitado: placar no topo da tela pra quadra caber inteira (depois do scrollTo(0) do App)
     useEffect(() => {
         if (!window.matchMedia('(orientation: landscape) and (max-height: 520px)').matches) return;
@@ -155,10 +154,6 @@ export function Match({ liga = false }: { liga?: boolean }) {
     useEffect(() => {
         if (halftime) halftimeRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }, [halftime]);
-    // painel de substituição pode abrir abaixo da dobra (deitado): traz pra tela
-    useEffect(() => {
-        if (subOpen) subPanelRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    }, [subOpen]);
 
     const opponent = run?.opponents[run.stage];
     // cor do seu clube (Perfil); o rival troca para o uniforme reserva se a cor dele for parecida
@@ -208,6 +203,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                       // a faixa da torcida é só a sua (o rival da copa não tem torcida organizada)
                       banners: [bannerText(profileClub.banner, run?.teamName || profileClub.clubName), null],
                       kits: [fieldKit(looks[0]), fieldKit(looks[1])],
+                      boards: liga ? undefined : sponsorBoards(run?.sponsors),
                   }
                 : null,
         [match?.seed],
@@ -318,7 +314,10 @@ export function Match({ liga = false }: { liga?: boolean }) {
         };
     }, [match?.seed]);
 
-    const clockParts = useClockParts(clock, fulltime || ended, shootout, halftime);
+    // acréscimos ("+2'") e Pressão final do tick da tela (eventos do motor)
+    const extras = clockExtrasAt(match?.events ?? [], clock.tick, clock.half);
+    const clockParts = useClockParts({ ...clock, added: extras.added }, fulltime || ended, shootout, halftime);
+    const pressureNow = halftime || fulltime || ended ? null : extras.pressure;
     // o capitão do líder rival reage aos gols (emote do Duelo, só na tela)
     const rivalPlan = useMemo(() => (match ? rivalEmotes(match.events, 1) : []), [match]);
     // fim de jogo: vai sozinho pro resultado; um toque na quadra ou no painel segura
@@ -438,8 +437,6 @@ export function Match({ liga = false }: { liga?: boolean }) {
         const j = benchNow.indexOf(o.inUid);
         if (j >= 0) benchNow.splice(j, 1);
     }
-    // posição agora de quem está em cada vaga (a prancheta pode ter mudado)
-    const slots = onField.map((_, i) => roleAt(match, [lockedSetup, opponent], i, tickRef.current));
     /** Fôlego (0..1) agora de quem está na vaga `i` do seu time. */
     const energyAt = (i: number, tick = tickRef.current) => snapAt(match.snapshots, tick).p[i * SNAP_STRIDE + 6] ?? 1;
     const pendingSub = subOrders.find((o) => !subsDone.includes(o.inUid)) ?? null;
@@ -460,10 +457,15 @@ export function Match({ liga = false }: { liga?: boolean }) {
         );
     };
     const orderSub = (outUid: string, inUid: string) => {
-        setSubOpen(false);
         setSubOut(null);
         if (!canSub) return;
         sendOrder((tick) => ({ tick, team: 0, kind: 'sub', outUid, inUid }));
+    };
+    // Substituir (botão, intervalo, pedido de tempo, sugestão): abre a prancheta, já com quem sai marcado se tiver
+    const openBoard = (uid?: string) => {
+        setTab('board');
+        setSubOut(uid ? { uid } : null);
+        requestAnimationFrame(() => coachRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
     };
     // prancheta: sem limite, a última mandada vale na próxima bola parada (pendente até o evento passar na tela)
     const lastBoard = orders.filter(isLineupOrder).at(-1);
@@ -491,7 +493,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
         return p ? cardSprite(p) : '';
     };
 
-    const stage = liga ? t('liga.stage') : stageName(run.stage) || t('match.cup');
+    const stage = liga ? t('liga.stage') : cupStageName(run, run.stage) || t('match.cup');
 
     const finishIntro = () => {
         if (introDoneRef.current) return;
@@ -534,9 +536,9 @@ export function Match({ liga = false }: { liga?: boolean }) {
             error={tacticError}
             onTactic={changeTactic}
             onCorner={changeCorner}
-            subOpen={subOpen}
             canSub={canSub}
-            onToggleSub={() => setSubOpen((v) => !v)}
+            // no intervalo o Substituir mora no painel do intervalo (antes aparecia duas vezes)
+            onSub={halftime ? undefined : () => openBoard(tired ? tiredSlot.uid : undefined)}
             tired={tired}
         />
     );
@@ -589,7 +591,8 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         looks={looks}
                         score={clock.score}
                         clock={clockParts}
-                        stage={liga ? t('liga.stageShort') : (d.match.stageShort[run.stage] ?? stage)}
+                        pressure={pressureNow}
+                        stage={liga ? t('liga.stageShort') : cupStageShort(run, run.stage, d.match.stageShort) || stage}
                     >
                         <RivalEmotes
                             plan={rivalPlan}
@@ -636,7 +639,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         />
                     </div>
                     {sceneSlow && !sceneReady && (
-                        <button type="button" className="btn yellow" onClick={() => setSceneKey((k) => k + 1)}>
+                        <button type="button" className="btn outline" onClick={() => setSceneKey((k) => k + 1)}>
                             {t('match.reload')}
                         </button>
                     )}
@@ -656,17 +659,14 @@ export function Match({ liga = false }: { liga?: boolean }) {
                                     return sub && sub.type === 'sub' ? sub.in : match.roster[idx].name;
                                 }}
                                 canSub={canSub}
-                                onSub={() => setSubOpen(true)}
+                                onSub={() => openBoard()}
                                 suggest={
                                     htSuggest && {
                                         text: t('match.ht.suggest', {
                                             name: nameOf(htSuggest.uid),
                                             p: Math.round(htSuggest.energy * 100),
                                         }),
-                                        onPick: () => {
-                                            setSubOut(htSuggest.uid);
-                                            setSubOpen(true);
-                                        },
+                                        onPick: () => openBoard(htSuggest.uid),
                                     }
                                 }
                                 mySubs={htSubs.map((o) => ({
@@ -688,7 +688,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         <div className="ht-wrap">
                             <TimeoutPanel
                                 canSub={canSub}
-                                onSub={() => setSubOpen(true)}
+                                onSub={() => openBoard()}
                                 onBack={() => {
                                     setTimeoutAt(null);
                                     EventBus.emit('match:resume');
@@ -728,26 +728,10 @@ export function Match({ liga = false }: { liga?: boolean }) {
                             {t('match.boardPending', { formation: formationText(pendingBoard.formation).name })}
                         </div>
                     )}
-                    {subOpen && canSub && (
-                        <SubPanel
-                            panelRef={subPanelRef}
-                            subOut={subOut}
-                            setSubOut={setSubOut}
-                            onClose={() => setSubOpen(false)}
-                            onField={onField}
-                            benchNow={benchFree}
-                            busy={leaving}
-                            byUid={byUid}
-                            slots={slots}
-                            energyAt={energyNow}
-                            nameOf={nameOf}
-                            onPick={orderSub}
-                        />
-                    )}
                     {wide && <div className="bc-deskbar">{tactics}</div>}
                 </div>
 
-                <div className="panel bc-coach" onPointerDownCapture={auto.hold}>
+                <div className="panel bc-coach" ref={coachRef} onPointerDownCapture={auto.hold}>
                     <CoachTabs tabs={tabs} active={tab} onPick={setTab} />
                     <div className={`bc-pane pane-${tab}`} role="tabpanel">
                         {tab === 'tactic' && tactics}
@@ -758,13 +742,10 @@ export function Match({ liga = false }: { liga?: boolean }) {
                                 side={0}
                                 tick={clock.tick}
                                 names={teamNames}
-                                selectedUid={subOpen ? subOut : null}
-                                onMine={(uid, idx, outUid) => {
-                                    if (canSub) {
-                                        setSubOut(outUid ?? (onField.includes(uid) ? uid : null));
-                                        setSubOpen(true);
-                                    } else if (idx !== null) EventBus.emit('match:inspect-request', idx);
-                                }}
+                                selectedUid={subOut}
+                                onMine={(_, idx) => idx !== null && EventBus.emit('match:inspect-request', idx)}
+                                onSub={canSub ? orderSub : undefined}
+                                subs={subOrders.filter((o) => !subsDone.includes(o.inUid))}
                                 edit={{ enabled: canChangeTactic, pending: pendingBoard, onConfirm: orderBoard, over }}
                             />
                         )}
@@ -790,19 +771,22 @@ export function Match({ liga = false }: { liga?: boolean }) {
                     {!ended ? (
                         <>
                             <fieldset className="bc-seg speed-seg" aria-label={t('match.coach.speed')}>
-                                {SPEEDS.map((s) => (
-                                    <button
-                                        key={String(s.value)}
-                                        type="button"
-                                        className={settings.speed === s.value ? 'on' : undefined}
-                                        aria-pressed={settings.speed === s.value}
-                                        disabled={!sceneReady}
-                                        onClick={() => setSpeed(s.value)}
-                                        title={s.value === 'highlights' ? t('match.highlightsHint') : undefined}
-                                    >
-                                        {s.label || t('match.highlights')}
-                                    </button>
-                                ))}
+                                {/* "Lances" (a velocidade) só aparece se for a escolhida nas Configurações: o nome é o da aba */}
+                                {SPEEDS.filter((s) => s.value !== 'highlights' || settings.speed === 'highlights').map(
+                                    (s) => (
+                                        <button
+                                            key={String(s.value)}
+                                            type="button"
+                                            className={settings.speed === s.value ? 'on' : undefined}
+                                            aria-pressed={settings.speed === s.value}
+                                            disabled={!sceneReady}
+                                            onClick={() => setSpeed(s.value)}
+                                            title={s.value === 'highlights' ? t('match.highlightsHint') : undefined}
+                                        >
+                                            {s.label || t('match.highlights')}
+                                        </button>
+                                    ),
+                                )}
                             </fieldset>
                             <button
                                 type="button"

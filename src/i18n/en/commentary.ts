@@ -137,6 +137,8 @@ export const commentary: typeof pt = {
     itemEndure: '{x} hung on using its {item}!',
     sub: 'Substitution for {team}: {out} off, {in} on.',
     halftime: 'Half-time. {score}',
+    stoppage: 'Added time: +{min}',
+    pressure: 'Final push! {team} go all-out for a goal.',
     fulltimeDraw: "Full-time! {score} — it's going to penalties!",
     fulltime: 'Full-time! {score}',
     penaltyScored: 'Penalty {round}: {x} scores! ({a}–{b})',

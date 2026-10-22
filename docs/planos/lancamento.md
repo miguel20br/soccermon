@@ -46,13 +46,17 @@ Ainda pendente do antigo "Primeiro minuto" (o maior vazamento é entre começar 
 | **0.8.8** ✓ | Ícone MVP e conquistas retroativas | Conserto rápido da manhã de 19/10: Ícone leva MVP com selo "MVP n", missões lendárias do Hall da Fama | pedido de jogadores |
 | **0.8.8.1** ✓ | Melhores momentos, Copa do Dia e medalhas | O pacotão de 19/10 (era a 0.8.9): melhores momentos e clipe, medalhas/vitrine/escudo/uniforme, líderes com fala e quadras + rival que reage, emotes 2 e vincular conta, consertos da caça-bugs, conquistas com a tarefa + platina, UX da pesquisa com jogadores, vestiário e pronto com desfazer, 404 e Home, fórmula A (`ENGINE_VERSION` 4) e barra de evolução (5), Copa do Dia, avatares por geração e shiny | tudo que já estava aprovado, no ar aos poucos |
 | **0.8.8.2** ✓ | Logo novo e faixas da torcida | Marca nova (logo, título chapado, ícones padronizados, brand guide), faixas da torcida novas, pacote com o logo, Liga fechada com timer | a cara do jogo pro trailer 2 |
+| **0.8.8.4** ✓ | Álbum em livro | Estante por geração, capa que abre, folha que vira, um espaço por Pokémon com a carta da frente escolhida, versões espalhadas | coleção com cara de álbum |
 | **0.8.8.3** ✓ | Cartas em camadas e álbum de figurinhas | Shiny por cima, selo MVP, Destaque por nível, Evento por tipo, bônus sem teto (`ENGINE_VERSION` 6), dicas ao passar o mouse, Álbum dentro da Pokédex | coleção com mais o que caçar |
 | ~~0.8.9~~ | (Pacotão) | Virou a 0.8.8.1 (19/10) | |
+| **0.8.9** ✓ | Sala de troféus e menus novos | Sala de troféus em pixel art com luz, menus em portas, perfil do amigo, "nada pula" | casa pros troféus |
+| **0.9.0** ✓ | Mercado e Patrocínios | Etapa 1 da Copa roguelike (`docs/planos/copa-roguelike-plano.md`): ₽, Mercado depois da recompensa, 12 Patrocínios, pacote de tipo; tudo dentro do Perfil | mais decisões entre as partidas |
+| **0.9.1** ✓ | Rota Índigo (Copa longa) | Etapa 2: mapa estilo Slay the Spire, eventos "?", lesão, Ginásio, Treino e Baú; pacotes que começam piores e melhoram | copas diferentes entre si |
 | **0.8.x** | Liga ranqueada (versão a combinar; era a 0.8.7) | Times "fantasma", Elo com divisões nas cores das cartas, temporada mensal, **Copa do Dia** (mesma seed pra todo mundo, ranking do dia; era o "Desafio diário"), replay por link | motivo diário pra voltar + competição |
 | **0.8.8** | Melhores momentos | Replay dos gols e golpes, "gol da copa" com câmera lenta, **exportar clipe** (WebM/GIF curto) pro TikTok | conteúdo que se espalha sozinho |
 | **0.8.9** | Treinadores e quadras | Líderes de ginásio com sprite e fala no VERSUS, quadra temática por ginásio, insígnias ganhas na copa | identidade Pokémon e base do Modo história |
 | ~~Medalhas~~ | (antiga 0.8.9) | Virou as missões da 0.8.4 | |
-| **0.9** | **Modo história** | Kanto em capítulos: 8 ginásios em sequência com insígnias, rival recorrente, Liga Índigo e Elite 4, time que evolui e ganha XP ao longo da campanha, save por capítulo | primeira promessa do "Em breve" |
+| **1.0 (Jornada)** | **Modo história** | Kanto em capítulos: 8 ginásios em sequência com insígnias, rival recorrente, Liga Índigo e Elite 4, time que evolui e ganha XP ao longo da campanha, save por capítulo | primeira promessa do "Em breve" |
 | **0.10** | **Copas entre amigos** | Copa privada de 4 a 8 treinadores e Copa Semanal oficial (chave no domingo, troféu no Hall da Fama) | multiplayer social |
 | **0.11** | **Futebol de campo** | 7v7 primeiro, 11v11 depois (o `MatchConfig` já é paramétrico): formações novas, campo maior, câmera | terceira promessa |
 | **0.12** | **Geração 2** | Os 100 de Johto, tipos Dark/Steel, golpes novos, Copa de Johto | quarta promessa |
@@ -65,7 +69,7 @@ Ainda pendente do antigo "Primeiro minuto" (o maior vazamento é entre começar 
   líderes e golpes; habilidades e tipos novos entram junto (Fairy na Gen 6).
 - **Personalização absurda:** escudo desenhado, uniforme (cores, listras, número), mascote, quadra/estádio do clube,
   torcida, música e grito de gol, cartas e molduras próprias, apelido dos Pokémon.
-- **Modo Ultimate Team:** montar o clube com as cartas que você ganha (edições especiais, Shiny, Ícones, Eventos),
+- **Modo Ultimate Team** (proposta em [ultimate-team.md](ultimate-team.md), no Em breve desde 20/10/2026): montar o clube com as cartas que você ganha (edições especiais, Shiny, Ícones, Eventos),
   química por tipo e sinergia, desafios de montagem (SBC) e temporadas. Sem dinheiro nenhum: tudo se ganha jogando.
 - Mais ideias que já surgiram: Nuzlocke opcional, ranking por temporada, quadras temáticas extras, torneios da
   comunidade.

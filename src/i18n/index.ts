@@ -2,6 +2,7 @@ import { ABILITIES, MOVES } from '../engine/data';
 import { ITEMS } from '../engine/items';
 import type { AttrModifier, MoveModifier } from '../engine/modifiers';
 import { DRAIN, type ExplainMoveId, MOVE_EXPLAIN, moveProfile } from '../engine/moves';
+import { type CupMode, cupLength, isFinalStage, isLong } from '../store/long-cup';
 import { en } from './en';
 import { moveExplainEn } from './en/move-explain';
 import { detectLang, type Lang } from './lang';
@@ -135,6 +136,18 @@ export function statusName(s: string | number, lang: Lang = current): string {
 /** Fase da copa: "Semifinal" / "Semi-final". */
 export const stageName = (stage: number, lang: Lang = current): string => DICTS[lang].common.stage[stage] ?? '';
 
+/** Nome da partida da copa: a fase da rápida ("Semifinal") ou "Partida 3 de 8" / "Final" na Copa longa. */
+export function cupStageName(run: { mode?: CupMode }, stage: number, lang: Lang = current): string {
+    if (!isLong(run)) return stageName(stage, lang);
+    const d = DICTS[lang].longCup;
+    return isFinalStage({ ...run, stage }) ? d.final : fmt(d.step, { n: stage + 1, total: cupLength(run) });
+}
+/** Versão curta (placar da partida, gráficos): "Semi" na rápida, "3/8" na longa. */
+export function cupStageShort(run: { mode?: CupMode }, stage: number, short: readonly string[]): string {
+    if (!isLong(run)) return short[stage] ?? '';
+    return isFinalStage({ ...run, stage }) ? (short.at(-1) ?? '') : `${stage + 1}/${cupLength(run)}`;
+}
+
 /** Nome do clube rival (o save guarda o nome em português do motor). */
 export const clubName = (name: string, lang: Lang = current): string => DICTS[lang].common.club[name] ?? name;
 
@@ -153,8 +166,21 @@ export const linkText = (id: string, lang: Lang = current) =>
 /** "+5%" / "−3%" (mesmo formato das linhas de bônus do motor). */
 export const pct = (f: number) => `${f >= 1 ? '+' : '−'}${Math.round(Math.abs(f - 1) * 100)}%`;
 
+/** Patrocínio: nome e efeito. */
+export const sponsorText = (id: string, lang: Lang = current) =>
+    DICTS[lang].shop.sponsor[id] ?? { name: id, short: id, desc: '' };
+
 /** Linha de bônus da carta no idioma do jogo (em português é o próprio rótulo do motor). */
 export function modLabel(m: AttrModifier, lang: Lang = current): string {
+    if (m.source === 'patrocinio') {
+        const d = DICTS[lang];
+        const k = Array.isArray(m.attrs) ? m.attrs[0] : undefined;
+        return fmt(d.shop.mod, {
+            name: sponsorText(m.ref ?? '', lang).name,
+            n: m.add ?? 0,
+            what: k ? d.common.attr[k].toLowerCase() : d.shop.allAttrs,
+        });
+    }
     if (lang === 'pt') return m.label;
     const c = DICTS[lang].common;
     const f = m.factor ?? 1;

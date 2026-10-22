@@ -8,9 +8,9 @@ import { mergeSaves } from '../cloud/reconcile-plan';
 import { FUTSAL_5 } from '../engine/config';
 import { CUP_STAGES } from '../engine/cup';
 import { SPECIES } from '../engine/data';
-import { monRecipe } from '../engine/duel-validate';
+import { monProblems, monRecipe } from '../engine/duel-validate';
 import { evolveInstance } from '../engine/evolution';
-import { createInstance, type PokemonInstance } from '../engine/instance';
+import { createInstance, type PokemonInstance, viewInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
 import {
@@ -24,9 +24,13 @@ import {
     CARD_SLOTS,
     cardSlots,
     cleanBinder,
+    giftInst,
     mergeBinder,
     parseCardShowcase,
+    replaceShowcase,
     resolveCardShowcase,
+    returnCard,
+    swapShowcase,
     versionId,
     versionsOf,
 } from './binder';
@@ -34,6 +38,7 @@ import { backfillEditions, migrateSave, playerTeam, type RunState, SAVE_VERSION,
 import { MEDALS, type MedalView } from './medals';
 import { PLATINUM, platinumItems } from './missions';
 import { ALBUM_EDITIONS, albumCount, type Dex, EDITION_BIT } from './profile';
+import { CODE_CARDS } from './title-codes';
 
 const rng = new Rng('binder-test');
 const mon = (id: number, uid: string, extra: Partial<PokemonInstance> = {}): PokemonInstance => ({
@@ -131,6 +136,11 @@ describe('álbum: migração do fichário, retroativo e nuvem', () => {
         // a vitrine antiga (guardava a carta) acha o espaço dela
         expect(resolveCardShowcase(['i3', 'pk', 'comum'], b).map((c) => slotOf(c.id))).toEqual(['6:icone', '25:shiny']);
         // e o save novo lê de volta igual
+        expect(cleanBinder(JSON.parse(JSON.stringify(b)))).toEqual(b);
+    });
+
+    it('carta comprada no Mercado sobrevive a salvar e carregar (antes sumia do álbum)', () => {
+        const b = binderAdd([], [icon('m1')], { from: 'mercado', at: 1, cup: 'c' });
         expect(cleanBinder(JSON.parse(JSON.stringify(b)))).toEqual(b);
     });
 
@@ -269,6 +279,18 @@ describe('fonte única: a conta do Álbum é a da medalha e da platina', () => {
 });
 
 describe('vitrine de cartas', () => {
+    it('cheia: a nova entra no lugar da escolhida; trocar de lugar vale pro Perfil, amigo e Duelo (a ordem é a da lista)', () => {
+        let b: BinderCard[] = [];
+        for (const id of [6, 25, 150, 94]) b = add(b, mon(id, `s${id}`, { shiny: true }));
+        const ids = ['6:shiny', '150:shiny', '25:shiny'];
+        expect(replaceShowcase(ids, 1, '94:shiny')).toEqual(['6:shiny', '94:shiny', '25:shiny']);
+        expect(replaceShowcase(ids, 5, '94:shiny')).toEqual(ids);
+        const swapped = swapShowcase(ids, 0, 1);
+        expect(swapped).toEqual(['150:shiny', '6:shiny', '25:shiny']);
+        expect(swapShowcase(ids, 0, 7)).toEqual(ids);
+        expect(resolveCardShowcase(swapped, b).map((c) => c.inst.speciesId)).toEqual([150, 6, 25]);
+    });
+
     it('só figurinhas do álbum (coladas), no máximo 3, sem repetir', () => {
         let b: BinderCard[] = [];
         for (const id of [6, 25, 94, 143, 150]) b = add(b, mon(id, `s${id}`, { shiny: true }));
@@ -325,6 +347,51 @@ describe('vitrine de cartas', () => {
         expect(resolveCardShowcase([old], b, () => false)).toEqual([]);
         // e o rival no Duelo aceita a carta padrão
         expect(parseCardShowcase([monRecipe(shown[0].inst)])).toHaveLength(1);
+    });
+
+    it('carta de antes do álbum (Mewtwo Destaque III, Arcanine Shiny Ícone MVP 3): a vitrine mostrava a padrão; o código devolve a de verdade', () => {
+        // save da 0.8.6 (backup v6): o Hall só guarda espécie, Shiny e nota; as figurinhas foram coladas na Pokédex
+        const backup = JSON.parse(readFileSync('scripts/fixtures/backup-v6-pt.json', 'utf8'));
+        const entry = { matches: 4, minutes: 40, goals: 3, assists: 1, wins: 4, titles: 1, bestRating: 9 };
+        backup.save.hall[0].squad.push(
+            { speciesId: 150, shiny: false, name: 'Mewtwo', ovr: 97, goals: 3, captain: false },
+            { speciesId: 59, shiny: true, name: 'Arcanine', ovr: 93, goals: 0, captain: false },
+        );
+        backup.save.dex[150] = { ...entry, bestOvr: 97, editions: EDITION_BIT.normal | EDITION_BIT.destaque };
+        backup.save.dex[59] = {
+            ...entry,
+            bestOvr: 93,
+            editions: EDITION_BIT.normal | EDITION_BIT.icone | EDITION_BIT.shiny,
+        };
+        const save = migrateSave(backup.save, backup.version);
+        const stuck = (slot: string) => {
+            const [id, ed] = slot.split(':');
+            return !!((save.dex[Number(id)]?.editions ?? 0) & EDITION_BIT[ed as keyof typeof EDITION_BIT]);
+        };
+        // o álbum (0.8.8.4) só tinha a carta padrão pra pôr na vitrine: Destaque I e Ícone sem MVP e sem Shiny
+        const choice = ['150:destaque#padrao', '59:icone#padrao'];
+        const before = resolveCardShowcase(choice, save.binder, stuck).map((c) => c.inst);
+        expect(before.map((p) => [p.shiny, p.special?.level ?? 1])).toEqual([
+            [false, 1],
+            [false, 1],
+        ]);
+        let s = { binder: save.binder, dex: save.dex };
+        for (const g of Object.values(CODE_CARDS)) s = returnCard(s, g, 9) ?? s;
+        const after = resolveCardShowcase(choice, s.binder, stuck).map((c) => c.inst);
+        expect(after.map((p) => [p.speciesId, p.shiny, p.special?.kind, p.special?.level])).toEqual([
+            [150, false, 'destaque', 3],
+            [59, true, 'icone', 3],
+        ]);
+        expect(after.map((p) => viewInstance(p).overall)).toEqual([97, 93]);
+        // uma vez por save, sobrevive a salvar/carregar e à nuvem, e o rival do Duelo aceita a carta
+        expect(returnCard(s, Object.values(CODE_CARDS)[0])).toBeNull();
+        const back = cleanBinder(JSON.parse(JSON.stringify(s.binder)));
+        expect(back.find((c) => c.id === '150:destaque')).toMatchObject({ from: 'resgate', n: 1 });
+        expect(parseCardShowcase(after.map(monRecipe))).toHaveLength(2);
+    });
+
+    it('carta devolvida por código é uma carta que a copa poderia dar', () => {
+        for (const g of Object.values(CODE_CARDS)) expect(monProblems(monRecipe(giftInst(g)), g.id)).toEqual([]);
     });
 
     it('álbum de antes das versões: a versão é a própria melhor carta', () => {

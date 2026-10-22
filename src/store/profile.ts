@@ -80,6 +80,8 @@ export interface Profile {
     showcase?: string[];
     /** Vitrine de cartas: até 3 cartas do fichário (binder.ts: id da carta). */
     cardShowcase?: string[];
+    /** Álbum: a versão que fica na frente de cada espécie (`versionId` ou `<espécie>:normal`); sem = a melhor. */
+    albumFront?: Record<string, string>;
     /** Sprite do treinador e título embaixo do nome (missions.ts). */
     trainer: TrainerId;
     title: string;
@@ -457,8 +459,10 @@ export interface HallEntry {
     formation: string;
     titleNo: number;
     perfect: boolean;
-    /** Placares das 4 partidas (pênaltis à parte). */
+    /** Placares das partidas (4 na rápida, 8 na longa; pênaltis à parte). */
     scores: [number, number][];
+    /** Copa longa (sem = a rápida). */
+    mode?: 'longa';
     squad: { speciesId: number; shiny: boolean; name: string; ovr: number; goals: number; captain: boolean }[];
     /** Treinador e título de quem ganhou (títulos antes da 0.8.3 não têm). */
     trainer?: TrainerId;

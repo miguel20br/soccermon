@@ -1,7 +1,8 @@
-import { type CSSProperties, type ReactNode, useState } from 'react';
+import { type CSSProperties, type ReactNode, useRef, useState } from 'react';
 import { AGENCY, type MaxCharge, maxCharge, SHOUT_KINDS, type Shout, shoutAt } from '../../engine/agency';
 import { isAgencyOrder, type MatchEvent, type MatchOrder } from '../../engine/state';
 import { useT } from '../../i18n/react';
+import { useSwapMotion } from '../swap-motion';
 import { HudIcon, type HudIconKind, hex } from './MatchHud';
 import './sideline.css';
 
@@ -321,7 +322,7 @@ export function TimeoutPanel({
             <p className="ht-tip">{a.sub}</p>
             {children}
             <div className="ht-actions">
-                <button type="button" className="btn yellow" disabled={!canSub} onClick={onSub}>
+                <button type="button" className="btn outline" disabled={!canSub} onClick={onSub}>
                     {t('match.substitute')}
                 </button>
                 <button type="button" className="btn primary" onClick={onBack}>
@@ -339,7 +340,7 @@ export interface PenaltyTaker {
     gk: boolean;
 }
 
-/** Ordem dos cobradores: lista com setas (sem arrastar, funciona no toque e no teclado). */
+/** Ordem dos cobradores: tocar em um e depois em outro troca os dois; as setas sobem e descem (teclado). */
 export function PenaltyOrderPanel({
     takers,
     onConfirm,
@@ -355,30 +356,41 @@ export function PenaltyOrderPanel({
     const { t, d } = useT();
     const a = d.match.agency.pens;
     const [list, setList] = useState(takers);
-    const move = (i: number, by: -1 | 1) => {
-        const j = i + by;
+    const [pick, setPick] = useState<number | null>(null);
+    const listRef = useRef<HTMLOListElement>(null);
+    useSwapMotion(listRef, list.map((p) => p.uid).join());
+    const swap = (i: number, j: number) => {
         if (j < 0 || j >= list.length) return;
         const next = [...list];
         [next[i], next[j]] = [next[j], next[i]];
         setList(next);
+        setPick(null);
     };
+    const tap = (i: number) => (pick === null ? setPick(i) : pick === i ? setPick(null) : swap(pick, i));
     return (
         <div className="ht-panel sl-panel" role="dialog" aria-label={a.title}>
             <span className="ht-title">{a.title}</span>
             <p className="ht-tip">{a.hint}</p>
-            <ol className="sl-pens">
+            <ol className="sl-pens" ref={listRef}>
                 {list.map((p, i) => (
-                    <li key={p.uid} className={i < 5 ? 'in' : undefined}>
+                    <li key={p.uid} data-uid={p.uid} className={i < 5 ? 'in' : undefined}>
                         <span className="sl-pen-n">{i + 1}</span>
-                        <img className="pixel" src={p.sprite} alt="" />
-                        <b>{p.name}</b>
-                        {p.gk && <small>{a.gk}</small>}
+                        <button
+                            type="button"
+                            className={`sl-pen-who${pick === i ? ' on' : ''}`}
+                            aria-pressed={pick === i}
+                            onClick={() => tap(i)}
+                        >
+                            <img className="pixel" src={p.sprite} alt="" />
+                            <b>{p.name}</b>
+                            {p.gk && <small>{a.gk}</small>}
+                        </button>
                         <button
                             type="button"
                             className="sl-arrow"
                             disabled={i === 0}
                             aria-label={t('match.agency.pens.up', { name: p.name })}
-                            onClick={() => move(i, -1)}
+                            onClick={() => swap(i, i - 1)}
                         >
                             <HudIcon kind="up" />
                         </button>
@@ -387,7 +399,7 @@ export function PenaltyOrderPanel({
                             className="sl-arrow"
                             disabled={i === list.length - 1}
                             aria-label={t('match.agency.pens.down', { name: p.name })}
-                            onClick={() => move(i, 1)}
+                            onClick={() => swap(i, i + 1)}
                         >
                             <HudIcon kind="down" />
                         </button>

@@ -64,6 +64,11 @@ export function editionOf(inst: PokemonInstance): Edition | null {
     return inst.special?.kind ?? (inst.shiny ? 'shiny' : null);
 }
 
+/** O tipo que pinta a carta: o do evento na carta Evento, senão o 1º tipo do Pokémon. */
+export function cardTypeOf(inst: Pick<PokemonInstance, 'speciesId' | 'special'>): string {
+    return inst.special?.kind === 'evento' && inst.special.type ? inst.special.type : species(inst.speciesId).types[0];
+}
+
 export const DESTAQUE_MAX_LEVEL = 3;
 /** Nota mínima na partida pra um Destaque subir de nível (senão o prêmio vai pro próximo craque). */
 export const DESTAQUE_LEVEL_UP_RATING = 8;

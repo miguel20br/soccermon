@@ -1,5 +1,188 @@
 # Novidades
 
+## 0.9.2.1 · Álbum leve e vitrine fácil
+
+### Álbum
+- O Álbum não trava mais ao abrir e virar a página (só a página à vista é montada e o brilho holo anima só na carta em foco)
+- As cartas empilhadas atrás de uma figurinha aparecem só pela borda
+
+### Vitrine
+- Vitrine cheia: Pôr na vitrine pede a carta que sai e troca num toque
+- Um x no canto tira a carta da vitrine
+- Arraste uma carta sobre a outra (ou toque numa e depois na outra) pra mudar a ordem; vale no Perfil, no perfil do amigo e no Duelo
+- No PC, a vitrine do cartão do Perfil ficou maior e centralizada
+
+## 0.9.2 · Casa arrumada
+
+### Tela inicial
+- Nova copa grande e no topo; Duelo e Copa do Dia lado a lado, do tamanho do conteúdo
+- Vem aí: o que está pra chegar numa faixa de cartõezinhos (toque pra ver o que é)
+- Perfil, Coleção e Sala de troféus como três portas; o "?" leva pra Ajuda
+- O botão de idioma não pula mais de lugar ao trocar
+- Quem chega pela 1ª vez já cai no jogo (o passo a passo está na Ajuda)
+
+### Na copa
+- A ação principal fica embaixo, na barra do polegar, em todas as telas da copa
+- Um botão vermelho por tela; os outros viram contorno
+- A chave da copa abre num toque (Ver a chave) na escalação e no resultado
+- Dicas só na 1ª copa, perto do que explicam
+- Eliminado: Nova copa num toque e quanto faltou
+
+### Mercado
+- Com o pacote aberto, o seu time aparece junto pra comparar
+- O que não dá pra comprar tem cadeado e mostra quanto falta
+- Trocar vitrine virou Novas ofertas (vitrine agora é só a das cartas)
+- Textos dos Patrocínios reescritos, mais curtos e com o número do efeito; o preço aparece no contrato
+
+### Partida
+- Aba Time no PC: nome e posição inteiros
+- Substituir não aparece mais duas vezes no intervalo
+
+### Toque e som
+- Cada tipo de botão tem o seu som (avançar, voltar, sair, apagar)
+- Abandonar copa, sair do Duelo e apagar dados têm uma saída triste, com animação e som
+- Vibração curta no Android (dá pra desligar em Configurações → Mais opções)
+- Configurações mais curtas: o resto fica em Mais opções
+
+### Sala de troféus
+- O Pokémon que passeia não fica mais esticado nem passa por dentro dos móveis
+- O PC aparece inteiro, a TV na frente do móvel e as fotos das cartas sem esticar
+- A câmera não fica mais presa aproximada depois de um toque rápido
+
+## 0.9.1.1 · Cartas de volta
+
+### Consertos
+- A vitrine mostra a sua melhor carta de verdade daquele Pokémon (antes podia ficar presa na versão padrão, Destaque I ou Ícone sem MVP)
+- Mudança só no Álbum agora sobe pra nuvem
+- Carta perdida de antes do Álbum (19/10) volta por código: Perfil → Treinador → Resgatar código
+
+## 0.9.1 · Rota Índigo
+
+### Rota Índigo (modo novo)
+- A copa longa: um mapa de Kanto de baixo pra cima (Rota 1, Floresta de Viridian, Mt. Moon, Cerulean, Estrada da Vitória, Planalto Índigo), com partidas, Ginásios, Mercado, Baú, Treino e eventos "?"
+- Três atos: eliminatórias no mapa, fase de grupos no Planalto (2 primeiros vão pra Final) e a Final contra a Liga Índigo
+- Cartão amarelo: a 1ª derrota fora da Final não elimina; a 2ª é vermelho
+- Treinadores da Rota com falas no VERSUS e no fim do jogo
+
+### Copa Relâmpago
+- A Copa rápida virou Copa Relâmpago, com a chave de 16 clubes na tela: você sobe na chave a cada vitória
+- Missões de gols numa copa contam a melhor sequência de 4 jogos (vale igual na Relâmpago e na Rota)
+
+### Partida
+- Acréscimos de 1 a 3 minutos por tempo, com a plaquinha no placar
+- Pressão final: do minuto 37 em diante, quem está perdendo ganha um empurrão (chute, passe, drible e velocidade) e sobe o time, igual pros dois lados
+
+### Copa do Dia
+- Dias seguidos e o próximo marco na tela do dia
+- Figurinha do dia: o mesmo Pokémon pra todo mundo, carta Evento no Álbum ao terminar
+- Marcos: 7 dias (título Fiel da Copa) e 30 dias (treinadora Garota Dourada)
+
+### Contas
+- Nome de treinador e de clube são únicos (quem já tinha fica com o nome)
+
+## 0.9.0.5 · Tudo na prancheta
+
+### Toque direto
+- Substituição: toque em quem sai e em quem entra na prancheta e a troca já vale, com as cartas deslizando (sai o painel de lista)
+- Recompensa e Mercado: quem recebe o Pokémon ou o item é escolhido tocando na prancheta
+- Escalação: Passar pra outro e tocar em quem recebe o item
+- Pênaltis: toque em dois cobradores pra trocar a ordem
+
+### Mercado e Perfil
+- Pacote aberto pode ser fechado sem pegar nenhuma carta (Não quero nenhuma, seguir)
+- A vitrine de cartas aparece no cartão do Perfil
+
+## 0.9.0.4 · Golpes e Patrocínios explicados
+
+### Mais claro
+- MT: ao escolher qual golpe esquecer, cada golpe mostra o que faz em quadra
+- Carta completa: a nota em campo, com capitão, sinergias e Patrocínios (o número grande é a carta sozinha)
+- Toque num Patrocínio das suas vagas pra ver o que ele faz
+
+### Mercado
+- No Mercado antes da Final só aparecem Patrocínios de campo (os de ₽ não teriam mais onde valer)
+
+## 0.9.0.3 · Pacote e Patrocínios
+
+### Mercado
+- O pacote comprado abre de verdade: rasga e as cartas saem uma a uma, e o desenho do tipo ficou nítido
+- Dois Patrocínios pra escolher em cada Mercado
+- O preço mostra quanto falta (₽10 · falta ₽1)
+
+## 0.9.0.2 · Ajustes da semana
+
+### Consertos
+- Sala de troféus: se o seu avatar é shiny, o Pokémon que passeia na sala também é
+- VERSUS: o Começar só aparece depois da apresentação dos times
+- A tela não pisca mais ao entrar e sair da partida e da Sala de troféus
+
+### Mercado
+- A carta do Patrocínio diz que é Patrocínio, e a prateleira explica as 3 vagas (Pokémon, pacote e item não ocupam vaga)
+
+## 0.9.0.1 · Mercado organizado
+
+### Mercado
+- O Mercado ficou em prateleiras: Contratações, Pacote e item, e Patrocínios (com as suas 3 vagas logo embaixo)
+- A carta do Patrocínio fica na horizontal, pra não se confundir com as cartas de Pokémon
+
+## 0.9.0 · Mercado e Patrocínios
+
+### Mercado
+- Depois da recompensa de cada vitória, a Copa ganha um Mercado: gaste ₽ (Pokédólar) em Pokémon, pacote de tipo, item, MT ou Patrocínio
+- Cada vitória rende ₽: 5 da vitória, 1 por gol (até 3) e 2 se não sofrer gol. Guardar rende juros: ₽1 a cada ₽5, até ₽3
+- Pacote de tipo: 3 cartas do tipo da semana ou do seu capitão, você fica com 1. Abre como o pacote da recompensa, na cor do tipo
+- Trocar a vitrine custa ₽2 e sobe ₽1 a cada troca no mesmo Mercado
+- O ₽ só vale dentro da copa e some quando ela acaba. A Copa do Dia continua sem Mercado
+
+### Patrocínios
+- 12 Patrocínios de Kanto, com até 3 por copa: valem até o fim dela
+- Economia: Fã-Clube Pokémon, Cassino de Celadon, S.S. Anne e Loja de Departamentos mexem no ₽ e na vitrine
+- Recompensa: Laboratório de Cinnabar (4 opções na recompensa), Creche Pokémon (1ª troca grátis) e Safari Zone (pacote com 4 cartas)
+- Campo: Silph Co., Bicicletaria de Cerulean, Academia de Saffron, Torcida de Vermilion e Patrocínio Master dão bônus em quadra, que a carta mostra
+- Os seus Patrocínios aparecem nas placas da beira da quadra
+
+### Menus
+- A tela inicial separa os dois modos da Copa: a Copa rápida (a de sempre, 4 partidas) e a Copa longa, com mapa, eventos e tesouros (em breve)
+- Tudo mora no Perfil: a Sala de troféus e a Coleção abrem logo abaixo do seu cartão
+
+## 0.8.9 · Sala de troféus e menus novos
+
+### Sala de troféus
+- Uma sala de verdade, em pixel art, pra tudo que você ganhou: taças da Copa (bronze, prata e ouro pela campanha), a Liga, medalhões da Copa do Dia, cinturões do Duelo, broches das medalhas, o diploma da Platina e o Hall da Fama em polaroids
+- De noite (18 h às 6 h) os holofotes acendem nas vitrines, a lareira e a TV piscam; de dia, a sala fica clara
+- O seu Pokémon do avatar mora lá: passeia, vai até o que você toca e dorme no tapete de madrugada
+- Toque em qualquer coisa: a câmera chega perto e um cartão diz o que é, quantos você tem, como ganhar e o histórico. Ou use os botões embaixo da sala
+- Segure na sala pra ver o nome de tudo. Na primeira visita, um tutorial curto mostra cada parte
+- A sala sobe de nível com os títulos: quarto em Pallet, sala do clube, sala do estádio
+
+### Menus em três portas
+- A tela inicial ficou com os modos de jogo e três portas: Perfil (quem você é), Coleção (o que você coleciona) e Sala de troféus (o que você ganhou)
+- Perfil: o topo é o seu cartão público; abas Treinador (com as missões que liberam cada treinador e título), Clube e Amigos
+- Coleção: Pokédex, Álbum e Golpedex juntos. Os selos de carreira ficam na ficha de cada Pokémon, com "Destacar"
+- Configurações na engrenagem do canto de cima, em toda tela de menu. Notas da versão, Ajuda, Créditos e feedback no rodapé
+- O NOVO some sozinho quando a coisa aparece na tela (sem as barras de "Marcar como visto")
+
+### Amigos
+- Toque num amigo pra ver o perfil dele: cartão, vitrine, números, últimos títulos e o retrospecto de vocês no Duelo
+- Ranking da Copa do Dia com Todos ou só Amigos
+
+### Nada pula
+- Toda troca de tela tem transição; as abas deslizam; janelas saem com fade; no draft, a carta contratada voa até a vaga
+- Celular em pé: nomes de Pokémon colados na quadra somem com fade em vez de se embolar
+
+## 0.8.8.4 · Álbum em livro
+
+### Álbum de figurinhas
+- O álbum virou livro: uma estante com o Álbum da Geração 1 (Kanto). Toque na capa e ele abre
+- A folha vira de verdade, pela lombada, arrastando pro lado ou nas setas
+- Um espaço por Pokémon, na ordem da Pokédex, com a carta da frente colada. As bolinhas embaixo mostram quais edições você tem (Normal, Shiny, Evento, Ícone, Destaque)
+- Tem mais de uma versão? Elas aparecem empilhadas atrás. Toque e todas se espalham na tela, do tamanho de ler
+- Escolha qual fica na frente ("Mostrar na frente"). Sem escolher, fica a melhor
+- Figurinha nova cai e cola no espaço quando a página dela aparece
+
+### Correções
+- "Ver todos na Pokédex" (Números) agora sobe até a Pokédex em vez de abrir no meio da lista
+
 ## 0.8.8.3 · Cartas em camadas e álbum de figurinhas
 
 ### Cartas em camadas

@@ -557,3 +557,7 @@ button.gdx-cell:hover {
     color: var(--muted);
     font-size: 11px;
 }
+/* o palco do golpe fica pronto depois da aba abrir: a descrição entra com fade (nada aparece de repente) */
+.ml-info {
+    animation: screen-in 200ms var(--ease-out) both;
+}

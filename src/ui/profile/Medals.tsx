@@ -19,18 +19,18 @@ import {
 } from '../../store/medals';
 import { MISSIONS } from '../../store/missions';
 import { newsKey } from '../../store/news';
-import { kantoComplete, type Profile, topSeal } from '../../store/profile';
+import type { Profile } from '../../store/profile';
 import { Tip } from '../components/Tip';
 import { symbolArt } from './Crest';
 import { speciesGif, titleName } from './club';
 import { CareerSealIcon, CheckIcon } from './icons';
-import { NewBadge, useNews } from './news';
+import { NewBadge } from './news';
 import { sealTip } from './seal-tip';
 import { useSaveView } from './TrainerTab';
 import './medals.css';
 
 /** Desenho no meio de cada medalha (os mesmos símbolos do escudo). */
-const MEDAL_GLYPH: Record<string, CrestSymbol> = {
+export const MEDAL_GLYPH: Record<string, CrestSymbol> = {
     pokedex: 'pokebola',
     elenco: 'punho',
     partidas: 'bola',
@@ -141,7 +141,6 @@ export function MedalsTab({ save }: { save: (patch: Partial<Profile>) => void })
     const choice = useGame((s) => s.profile.showcase);
     const { t, d } = useT();
     const progress = useMemo(() => medalProgress(view), [view]);
-    const kanto = useMemo(() => kantoComplete(view.dex), [view.dex]);
     const shown = resolveShowcase(choice, view);
     const shownKeys = new Set(shown.map(showKey));
     const full = shown.length >= SHOWCASE_MAX;
@@ -151,18 +150,6 @@ export function MedalsTab({ save }: { save: (patch: Partial<Profile>) => void })
     const earned = progress.filter((p) => p.tier > 0).length;
 
     const collections = MISSIONS.filter((m) => m.group === 'colecoes' && view.done.has(m.id));
-    // selos: os mais altos primeiro, até 12 (os escolhidos sempre aparecem)
-    const SEAL_ORDER = ['ouro', 'prisma', 'holo', 'folha'];
-    const allSeals = Object.entries(view.dex)
-        .map(([id, e]) => ({ id: Number(id), seal: topSeal(e, kanto) }))
-        .filter((x) => x.seal)
-        .sort((a, b) => SEAL_ORDER.indexOf(a.seal!) - SEAL_ORDER.indexOf(b.seal!) || a.id - b.id);
-    // os novos também aparecem (senão o NOVO ficava escondido)
-    const news = useNews();
-    const seals = allSeals.filter(
-        (x, i) => i < 12 || shownKeys.has(`s:${x.id}`) || news.has(newsKey.seal(x.id, x.seal!)),
-    );
-
     const pickBtn = (key: string, label: string, children: React.ReactNode, fresh?: string) => {
         const on = shownKeys.has(key);
         return (
@@ -211,7 +198,7 @@ export function MedalsTab({ save }: { save: (patch: Partial<Profile>) => void })
                     })}
                 </div>
                 <small className="muted">{t('profile.medals.showcaseHelp')}</small>
-                {(collections.length > 0 || seals.length > 0) && (
+                {collections.length > 0 && (
                     <div className="md-extra">
                         {collections.length > 0 && (
                             <div>
@@ -223,21 +210,6 @@ export function MedalsTab({ save }: { save: (patch: Partial<Profile>) => void })
                                             titleName(m.id),
                                             <ShowBadge it={{ kind: 'c', id: m.id }} />,
                                             newsKey.collection(m.id),
-                                        ),
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                        {seals.length > 0 && (
-                            <div>
-                                <b>{t('profile.medals.seals')}</b>
-                                <div className="md-picks">
-                                    {seals.map(({ id, seal }) =>
-                                        pickBtn(
-                                            `s:${id}`,
-                                            showLabel({ kind: 's', speciesId: id, seal: seal! }, d),
-                                            <ShowBadge it={{ kind: 's', speciesId: id, seal: seal! }} />,
-                                            newsKey.seal(id, seal!),
                                         ),
                                     )}
                                 </div>

@@ -11,6 +11,8 @@ export interface DuelRecord {
     /** Nome do treinador e do clube do rival. */
     rival: string;
     rivalClub: string;
+    /** Código de amigo do rival (sala de antes da 0.8.9 não manda). */
+    rivalCode?: string;
     /** Placar do seu lado primeiro. */
     score: [number, number];
     shootout: [number, number] | null;
@@ -41,6 +43,19 @@ export function mergeDuels(a: DuelRecord[] = [], b: DuelRecord[] = []): DuelReco
     const byId = new Map<string, DuelRecord>();
     for (const d of [...a, ...b]) if (d && typeof d.id === 'string' && !byId.has(d.id)) byId.set(d.id, d);
     return trim([...byId.values()].sort((x, y) => y.date - x.date));
+}
+
+/**
+ * Retrospecto contra um amigo: pelo código de amigo; duelo de antes do código, pelo nome do treinador e do clube.
+ * Partida anulada não conta.
+ */
+export function headToHead(duels: DuelRecord[], rival: { code: string; trainer: string; club: string }) {
+    const n = { win: 0, draw: 0, loss: 0 };
+    for (const d of duels) {
+        const vs = d.rivalCode ? d.rivalCode === rival.code : d.rival === rival.trainer && d.rivalClub === rival.club;
+        if (vs && d.result !== 'void') n[d.result]++;
+    }
+    return n;
 }
 
 /** Vitórias no Duelo: o contador (o histórico guarda só os 30 últimos) ou o histórico, o que for maior. */

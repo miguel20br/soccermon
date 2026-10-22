@@ -145,6 +145,8 @@ export const commentary = {
     itemEndure: '{x} resiste graças à {item}!',
     sub: 'Substituição no {team}: sai {out}, entra {in}.',
     halftime: 'Fim do primeiro tempo. {score}',
+    stoppage: 'Acréscimos: +{min}',
+    pressure: 'Pressão final! {team} vai pra cima com tudo.',
     fulltimeDraw: 'Fim de jogo! {score} — vamos para os pênaltis!',
     fulltime: 'Fim de jogo! {score}',
     penaltyScored: 'Pênalti {round}: {x} converte! ({a} x {b})',

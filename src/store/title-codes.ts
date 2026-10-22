@@ -1,3 +1,5 @@
+import type { Special } from '../engine/specials';
+
 /**
  * Títulos por código (para os primeiros gametesters). O cliente só guarda o SHA-256 do código, nunca o código:
  * quem lê o repositório vê o nome do título, mas não consegue resgatar.
@@ -16,6 +18,8 @@ export const CODE_TITLES: Readonly<Record<string, string>> = {
     cffbb440db026334b04a1ed02f5b3ee98078cbc0c4d1302cf5809d430c38b93a: 'criador',
     // Davi, 1º gametester (17/10/2026)
     '3ad01be87b2c8319fcd8ebebfb5f701dd2c7bef673d3bcd5ba1dce42b3953776': 'goat',
+    // 1º KFC, pedido do Miguel (20/10/2026)
+    f52f0051e171d2dafcb7a4fad167d79cbd40310de71f3561cd3b7b939daa84ff: 'kfc1',
 };
 
 /**
@@ -27,10 +31,39 @@ export const CODE_DEX: Readonly<Record<string, number[]>> = {
     adef2a8034aaa56f8f99d7ef71c348d78b68fb63b1ec7d24630cc587f75c3afb: [16],
 };
 
+/**
+ * Códigos de carta devolvida: a carta que alguém perdeu (ganha antes do álbum existir, 19/10/2026 17:50, ela só ficou
+ * como figurinha; o álbum desenhava a carta padrão, Destaque I / Ícone sem MVP). Entra no álbum com origem 'resgate',
+ * uma vez por save (o `id` vira o uid da carta). Mesmo esquema dos títulos: só o hash fica no repositório.
+ */
+export interface CardGift {
+    id: string;
+    speciesId: number;
+    shiny: boolean;
+    special: Special | null;
+}
+export const CODE_CARDS: Readonly<Record<string, CardGift>> = {
+    // Miguel: Mewtwo Destaque III (21/10/2026)
+    '81ec2848f9ed6e6c528955fddf274b71369f79d4dfeba725aba59df5b102a76f': {
+        id: 'miguel-mewtwo-d3',
+        speciesId: 150,
+        shiny: false,
+        special: { kind: 'destaque', level: 3 },
+    },
+    // Davi: Arcanine Shiny Ícone MVP 3, nota 93 (21/10/2026)
+    '5ba2815500d6e808e2172e30620d5fd7257e8460393fedc3ab28ad061fa25881': {
+        id: 'davi-arcanine-icone3',
+        speciesId: 59,
+        shiny: true,
+        special: { kind: 'icone', level: 3 },
+    },
+};
+
 /** Nome dos títulos de código (o resto dos títulos fica no dicionário: profile.titles). */
 export const CUSTOM_TITLES: Readonly<Record<string, { pt: string; en: string; look?: 'shine' | 'holo' }>> = {
     gametester: { pt: 'Gametester', en: 'Gametester' },
     goat: { pt: 'GOAT', en: 'GOAT', look: 'shine' },
+    kfc1: { pt: '1º KFC', en: '1st KFC', look: 'shine' },
     criador: { pt: 'Criador do Soccermon', en: 'Soccermon Creator', look: 'holo' },
 };
 
@@ -77,4 +110,11 @@ export async function redeemDexCode(code: string): Promise<number[] | null> {
     const clean = normalizeCode(code);
     if (!clean) return null;
     return CODE_DEX[await sha256Hex(clean)] ?? null;
+}
+
+/** Carta que um código de carta devolvida entrega, ou null. */
+export async function redeemCardCode(code: string): Promise<CardGift | null> {
+    const clean = normalizeCode(code);
+    if (!clean) return null;
+    return CODE_CARDS[await sha256Hex(clean)] ?? null;
 }

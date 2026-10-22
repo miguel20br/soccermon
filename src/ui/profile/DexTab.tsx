@@ -3,22 +3,15 @@ import { SPECIES } from '../../engine/data';
 import { typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import {
-    type AlbumEdition,
-    albumCount,
-    albumSlots,
-    type DexEntry,
-    hasSticker,
-    isPlayed,
-    topSeal,
-} from '../../store/profile';
+import { newsKey } from '../../store/news';
+import { type AlbumEdition, albumSlots, type DexEntry, hasSticker, isPlayed, topSeal } from '../../store/profile';
 import { HudIcon } from '../components/MatchHud';
 import { Tip } from '../components/Tip';
 import { TypeIcon } from '../components/TypeIcon';
 import { AlbumView } from './Album';
 import { speciesGif } from './club';
 import { BallMark, CareerSealIcon, ChampionRibbon } from './icons';
-import { NewDot, newsCount, useNews } from './news';
+import { NewBadge } from './news';
 import { dexNo, SpeciesSheet } from './SpeciesSheet';
 import { sealTip } from './seal-tip';
 
@@ -40,17 +33,16 @@ const stickersGot = (id: number, e: DexEntry | undefined) =>
 export type DexView = 'dex' | 'album';
 
 /** Pokédex: os 151 com o que você já viu e quem já jogou pelo seu time; e o Álbum de cartas especiais. */
-export function DexTab({ initial = 'dex' }: { initial?: DexView }) {
+/** Coleção → Pokédex ou Álbum (a aba escolhida vem da tela da Coleção; "Ver no álbum" da ficha troca pra lá). */
+export function DexTab({ view, onView }: { view: DexView; onView: (v: DexView) => void }) {
     const dex = useGame((s) => s.dex);
-    const [view, setView] = useState<DexView>(initial);
+    const setView = onView;
     const [filter, setFilter] = useState<Filter>('all');
     const [type, setType] = useState<string | null>(null);
     const [open, setOpen] = useState<{ id: number; order?: number[] } | null>(null);
     // "Ver no álbum" da ficha: abre o Álbum na página do Pokémon (n muda a cada pedido)
     const [at, setAt] = useState<{ id: number; n: number } | null>(null);
     const { t, tn, d, lang } = useT();
-    const album = albumCount(dex);
-    const news = useNews();
 
     const counts = useMemo(() => {
         const c = { all: TOTAL, played: 0, seen: 0, unseen: 0, missing: 0 };
@@ -93,35 +85,16 @@ export function DexTab({ initial = 'dex' }: { initial?: DexView }) {
             }}
         />
     );
-    const tabs = (
-        <div className="bc-seg pf-dexview" role="tablist" aria-label={d.profile.tabs.dex}>
-            {(['dex', 'album'] as DexView[]).map((v) => (
-                <button
-                    type="button"
-                    role="tab"
-                    key={v}
-                    aria-selected={view === v}
-                    className={view === v ? 'on' : undefined}
-                    onClick={() => setView(v)}
-                >
-                    <HudIcon kind={v === 'dex' ? 'dex' : 'cards'} /> {d.profile.album.views[v]}
-                    {v === 'album' && <NewDot on={view !== 'album' && newsCount(news, 'dex') > 0} />}
-                </button>
-            ))}
-        </div>
-    );
     if (view === 'album')
         return (
-            <div className="pf-dex">
-                {tabs}
+            <div className="pf-dex" key={view}>
                 <AlbumView at={at} paused={!!open} onSheet={(id, o) => setOpen({ id, order: o })} />
                 {sheet}
             </div>
         );
 
     return (
-        <div className="pf-dex">
-            {tabs}
+        <div className="pf-dex" key={view}>
             <div className="pf-dex-progress">
                 <div className="pf-dex-counts">
                     <span>
@@ -140,23 +113,6 @@ export function DexTab({ initial = 'dex' }: { initial?: DexView }) {
                     <i className="played" style={{ width: `${(counts.played / TOTAL) * 100}%` }} />
                 </div>
             </div>
-
-            <button type="button" className="pf-album pf-album-link" onClick={() => setView('album')}>
-                <span className="pf-album-label">{t('profile.dex.stickers')}</span>
-                <b className="pf-album-n">
-                    <span aria-hidden>
-                        {album.got}
-                        <small>/{album.total}</small>
-                    </span>
-                    <span className="pf-sr">{t('profile.dex.stickersAria', { n: album.got, total: album.total })}</span>
-                </b>
-                <div className="pf-bar" aria-hidden>
-                    <i className="played" style={{ width: `${(album.got / album.total) * 100}%` }} />
-                </div>
-                <small className="muted">
-                    {t('profile.dex.stickersHelp')} <b className="pf-album-go">{t('profile.album.see')}</b>
-                </small>
-            </button>
 
             <fieldset className="pf-filters">
                 <legend className="pf-sr">{t('profile.dex.filterStatus')}</legend>
@@ -240,6 +196,7 @@ export function DexTab({ initial = 'dex' }: { initial?: DexView }) {
                                     ) : (
                                         st === 'played' && <BallMark className="pf-ball pf-cell-mark" />
                                     )}
+                                    {seal && <NewBadge k={newsKey.seal(sp.id, seal)} className="corner" />}
                                     {titles > 0 && <ChampionRibbon n={titles} className="pf-ribbon pf-cell-ribbon" />}
                                     {/* figurinhas da espécie: "3/5" com o ícone de carta (a dica diz quais) */}
                                     {known && (

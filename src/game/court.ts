@@ -100,6 +100,38 @@ export function drawBanner(scene: Phaser.Scene, team: 0 | 1, text: string, color
     for (let i = 1; i < 6; i++) g.fillStyle(0x000000, 0.1).fillRect(x + (i * w) / 6 - 3, y, 6, h);
 }
 
+/**
+ * Placas de patrocínio (Patrocínios da copa, src/engine/sponsors.ts) na beira de cima da metade do rival (na Copa o
+ * rival não tem faixa): cor da marca, nome curto em branco e um brilho de LED. Ficam embaixo dos jogadores.
+ */
+export function drawBoards(scene: Phaser.Scene, boards: readonly { text: string; color: number }[]) {
+    const h = 34;
+    const y = 8;
+    const half = (L * PPM) / 2;
+    const gap = 10;
+    const w = Math.min(200, (half - 20 - gap * (boards.length - 1)) / boards.length);
+    const x0 = MARGIN + half + (half - (w * boards.length + gap * (boards.length - 1))) / 2;
+    const g = scene.add.graphics().setDepth(-999);
+    boards.forEach((b, i) => {
+        const x = x0 + i * (w + gap);
+        g.fillStyle(0x000000, 0.4).fillRect(x, y + 3, w, h);
+        g.fillStyle(b.color, 1).fillRect(x, y, w, h);
+        g.fillStyle(0xffffff, 0.2).fillRect(x, y, w, 5);
+        g.fillStyle(0x000000, 0.2).fillRect(x, y + h - 5, w, 5);
+        const label = scene.add
+            .text(x + w / 2, y + h / 2 + 1, b.text, {
+                fontFamily: 'Galmuri11, monospace',
+                fontSize: '24px',
+                fontStyle: 'bold italic',
+                color: '#ffffff',
+            })
+            .setOrigin(0.5)
+            .setResolution(3)
+            .setDepth(-998);
+        label.setScale(Math.min(1, (w - 12) / label.width));
+    });
+}
+
 /** Área do futsal: dois quartos de círculo de 6 m a partir das traves, unidos por um segmento. */
 function areaPath(g: Phaser.GameObjects.Graphics, side: 0 | 1, fill: boolean) {
     const r = 6 * PPM;

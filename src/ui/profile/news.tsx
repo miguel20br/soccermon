@@ -104,25 +104,3 @@ export function NewDot({ on, className = '' }: { on: boolean; className?: string
         </i>
     );
 }
-
-/** Barra da aba: quantas novidades e "Marcar como visto" (some quando não há nada novo). */
-export function NewsBar({ tab }: { tab: NewsTab }) {
-    const { t, tn } = useT();
-    const news = useNews();
-    const n = newsCount(news, tab);
-    if (!n) return null;
-    return (
-        <div className="pf-news" role="status">
-            <span className="new-badge">{t('profile.news.badge')}</span>
-            <span className="pf-news-n">{tn('profile.news.count', n)}</span>
-            <button type="button" className="btn small ghost" onClick={() => markAllSeen(tab)}>
-                {t('profile.news.markTab')}
-            </button>
-            {news.size > n && (
-                <button type="button" className="btn small ghost" onClick={() => markAllSeen()}>
-                    {t('profile.news.markAll', { n: news.size })}
-                </button>
-            )}
-        </div>
-    );
-}

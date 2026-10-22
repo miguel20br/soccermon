@@ -31,6 +31,9 @@ você é o Claude e `git log` mostrar commits com `miguelcunhabr@`, avise o Migu
   comprimir com ffmpeg 2 passes (~1,45 Mbps de vídeo, 1080x1920). Link clicável na bio só com 1000 seguidores:
   `soccermon.com` vai escrito na legenda. Todo post ganha um comentário com o link; fixar comentário só pelo app
   (o site não tem a opção). Mudança de perfil (foto/bio) demora uns minutos pra aparecer: não repetir.
+- **Social media (20/10/2026):** o Miguel passou as redes pro Claude ("masterize a arte de ser meu social media").
+  Skill `soccermon-social`: pauta numerada por semana em `docs/marketing/pauta.md`, ele aprova numa linha ("ok 1–5")
+  e o Claude grava, agenda e acompanha; nada vai ao ar fora de uma pauta aprovada.
 - Antes de planejar algo grande e novo, ele gosta de uma pesquisa ampla de referências (repos do GitHub, libs,
   assets, skills de game design).
 
@@ -47,6 +50,9 @@ você é o Claude e `git log` mostrar commits com `miguelcunhabr@`, avise o Migu
 - **Cartas:** minimalistas, bronze/prata/ouro pela nota (≤64 / 65–74 / 75+, padrão FIFA), nota e atributos
   grandes, raridade só como acabamento. Edições especiais (Shiny, Destaque, Ícone, Evento) têm visual próprio.
   Mudança visual de carta: mostrar na galeria `?cards=1` antes de espalhar.
+- **Nada teleporta (20/10/2026, regra do Tutti):** toda troca de tela, entrada, saída e mudança de estado nos menus tem
+  transição (200–300 ms, `--ease-out`), nada pula de posição; com Reduzir movimento fica só o fade. Tela nova já nasce
+  assim; o que já existe está no backlog em `docs/planos/nada-teleporta.md`.
 - **Sem emoji na interface do jogo** (golpes, menus, gráficos): use ícones desenhados (SVG ou Phaser). O texto
   de Compartilhar pode ter emoji.
 - **Carta = campo:** `src/engine/modifiers.ts` é a regra única de bônus; carta, painel e motor usam a mesma.
@@ -66,7 +72,7 @@ respondendo). Repo: github.com/miguel20br/soccermon.
 - Contas: login Google + save na nuvem via Supabase (projeto `vszcxacbcabohhdwxfpb`, integração da Vercel).
   Regras de acesso em `supabase/migrations/` (cada um só lê e escreve o próprio save). Sem as variáveis de
   ambiente o jogo roda 100% local.
-- Atalhos de dev (`npm run dev`, porta 8080): `?demo=penaltis|ditto|evolucao|campeao|escanteio` (`escanteio&defesa=1`: espalmada que vira escanteio; `evolucao&rival=1`: evolução do rival), `?cards=1`,
+- Atalhos de dev (`npm run dev`, porta 8080): `?demo=penaltis|ditto|evolucao|campeao|escanteio` (`escanteio&defesa=1`: espalmada que vira escanteio; `evolucao&rival=1`: evolução do rival; `acrescimos`: Pressão final e "+N'" no fim do 2º tempo), `?cards=1`,
   `?lab=posicoes`, `?demo=crash` (força o aviso de erro do `ErrorBoundary`). Público: `?lab=golpes` (com `&revisao=1` mostra a ferramenta de revisão ok/mudar).
 
 ## Rotina de trabalho
@@ -106,7 +112,9 @@ Leia a skill antes de começar a tarefa dela:
 | `soccermon-lancamento` | versão nova: checklist, "pode subir", merge, tag, release, conferir o ar |
 | `soccermon-titulos` | título por código pra gametester/amigo |
 | `soccermon-assets` | vídeo, logo, imagem e texto de divulgação |
+| `soccermon-social` | redes do jogo: pauta da semana, clipes, agendar no TikTok/Instagram/Shorts, comentários, placar |
 | `soccermon-marca` | antes de mexer em qualquer visual, ícone, texto de interface ou asset: checklist de padronização (brand guide em `docs/marca/`) |
+| `soccermon-musica` | compor, renderizar ou escolher música (temas em `scripts/musica/`, faixas CC0/CC BY, PokéRogue) e o gosto do Miguel pra ela |
 
 ## Regras de velocidade (19/10/2026, `docs/planos/pesquisas/velocidade.md`)
 
@@ -149,7 +157,40 @@ commit). Prévias da Vercel têm os atalhos de demo e `?vel=N` (quadra até 64x)
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (19/10/2026, v0.8.8.3 · Cartas em camadas e álbum de figurinhas)
+## Estado atual (21/10/2026, v0.9.2 · Casa arrumada)
+
+**0.9.2 (21/10):** onda 1 da revisão de design (`docs/planos/revisao-design.md`, `pesquisa-layout-e-game-design.md`):
+botões `.btn.outline`/`.btn.danger` em contorno, barra do polegar nas telas da copa, Home com "Nova copa" grande, faixa
+"Vem aí", 3 portas, chave num toque, dicas só na 1ª copa, sem boas-vindas na 1ª visita, retorno de toque central em
+`src/ui/feedback.ts` (som por tipo de botão, saída triste ao abandonar), Configurações com "Mais opções", e a Sala de
+troféus consertada (escala inteira, chão livre em `room-spots.ts`). **A Rota Índigo está desligada de novo**
+(`LONG_CUP_LIVE = false`): quebrou na 1ª partida em produção (21/10); religar só depois de jogada inteira no navegador.
+
+### 0.9.1 · Rota Índigo
+
+
+**0.9.1 (21/10):** Rota Índigo no ar (`LONG_CUP_LIVE` em `src/store/long-cup.ts`; mapa, eventos, fase de grupos e Final,
+`?demo=mapa`, `?demo=grupo`), a Copa rápida virou **Copa Relâmpago** com a chave de 16 clubes, Copa do Dia com dias
+seguidos e figurinha do dia, nomes únicos, e acréscimos + Pressão final (`ENGINE_VERSION` 7,
+`docs/planos/pressao-final.md`). Na 0.9.0.5, tudo na prancheta (substituir, quem recebe, passar item, pênaltis
+tocando). **Decisões de 21/10:** o Miguel gosta dos cartões "Em breve" (não tirar: deixar mais leves); a sequência de
+dias fica (é sem perda e sem dinheiro); as boas-vindas saem da 1ª visita (passo a passo só na Ajuda, medir o funil).
+
+
+**0.9.0 (Copa roguelike, etapa 1; proposta e análise em `docs/planos/copa-roguelike.md`, plano em
+`docs/planos/copa-roguelike-plano.md`):** a Copa de hoje é a **Copa rápida**; a **Copa longa** (mapa, eventos, etapa 2)
+e a **Jornada** (Kanto inteiro, rumo à 1.0) vêm depois. Depois da recompensa de cada vitória (menos a final e a Copa do
+Dia, `hasShop`) abre o **Mercado** (`src/engine/shop.ts`, `src/ui/screens/Shop.tsx`, `?demo=mercado`): ₽ por vitória,
+gol e sem sofrer gol, juros do guardado, vitrine pela seed (2 Pokémon, pacote de tipo `PackArt`, item ou MT,
+Patrocínio). **12 Patrocínios** (`src/engine/sponsors.ts`, até 3 por copa; os de campo entram pela regra única de
+bônus como origem `patrocinio`, carta = campo; viram placas na beira da quadra, `drawBoards`). `RunState` ganhou
+`money`, `sponsors`, `shop`, `packs` (opcionais, sem migração) e o status/tela `shop`; o painel de "quem sai/quem
+recebe" é o mesmo da recompensa (`GainTarget`). Estatísticas `shop_buy`/`shop_leave` e Patrocínios no `run_end`
+(migração `20261021200000_eventos_mercado.sql` aplicada em 20/10); seção Mercado no `npm run stats`; robô do Mercado em
+`scripts/balance/cup.ts ... mercado`. **Tudo mora no Perfil** (pedido do Miguel em 20/10): a Home tem só a porta do
+Perfil e o Perfil tem as da Sala de troféus e da Coleção (`DoorTiles`). Conserto de raiz: trocar de tela adiava o
+estado inteiro até a animação; agora só a `screen` espera (`src/store/screen-transition.ts`, com teste). Força do
+Mercado: o Miguel joga e sente antes de mexer nos números (calibragem 1 no plano).
 
 Tudo que subiu em 19/10 foi separado nas Novidades em 4 números (decisão do Miguel, 19/10): **0.8.8** Ícone MVP e
 conquistas retroativas (o conserto da manhã); **0.8.8.1** Melhores momentos, Copa do Dia e medalhas (o pacotão:
@@ -206,6 +247,21 @@ Duelo sai de `"displayVersion"` no `package.json` (`__APP_VERSION__` = `displayV
 **0.8.8.2:** logo novo (a carta holo com a bola, `public/assets/ui/logo.svg`), título chapado, ícones no traço do
 `HudIcon`, brand guide em `docs/marca/` (skill `soccermon-marca`), faixas da torcida escritas pelo Miguel, pacote de
 cartas com o logo, bola original na Home e a Liga fechada com contagem.
+
+**0.8.9 (no ar desde 20/10):** perfil do amigo (Amigos → tocar no nome: vitrine, números, últimos
+títulos, "vocês no Duelo"; ranking da Copa do Dia Todos/Amigos; migração `20261021120000_perfil_do_amigo.sql` **aplicada
+em produção em 20/10** com o ok do Miguel), Sala de troféus (`src/ui/screens/TrophyRoom.tsx`, `src/store/trophies.ts`,
+`?demo=sala`), o retrofit do "nada teleporta" (`src/ui/view-transition.ts`, `tab-slide.ts`, `exit-motion.ts`,
+`npm run teleporte`) e os **menus em três portas** (decidido em 20/10, `docs/planos/menus-e-sala.md`): a Home tem os
+modos de jogo + **Perfil** (Treinador com as missões, Clube, Amigos), **Coleção** (Pokédex, Álbum, Golpedex) e **Sala de
+troféus** (quarto em pixel art do Modern Interiors grátis com a luz 2D do Phaser, `src/game/scenes/TrophyRoomScene.ts`,
+`src/game/room-spots.ts`; o quarto é o menu, com cartão, botões-legenda, nomes ao segurar e tutorial na 1ª visita); engrenagem e
+Perfil no canto de cima de toda tela de menu; `?aba=` abre a aba, `?perfil=` antigo é redirecionado (`src/ui/doors.ts`).
+
+**0.8.8.4 (20/10):** o Álbum virou livro (`src/ui/profile/Album.tsx`, `?demo=album`): estante com um livro por geração
+(Gen 2 fechada, Em breve), capa que abre, folha que vira pela lombada (`.al-leaf`), um espaço por Pokémon com a carta da
+frente (`profile.albumFront`, sem = a melhor; `speciesRows`/`frontRow`), versões empilhadas e espalhadas ao tocar
+(`VersionsFan`). Some a página Raridades e as seções por edição.
 
 **0.8.8.3:** cartas em camadas (shiny +1 por cima de outra edição, selo MVP 1 a 3 no Ícone e no Evento, Destaque por
 nível, Evento com o desenho do tipo, bônus que passa de 99 vai pros outros atributos; `src/engine/specials.ts`,
@@ -341,8 +397,8 @@ Plano do trailer e dos posts de lançamento: [docs/planos/divulgacao-trailer.md]
    LinkedIn (texto em `docs/marketing/textos-divulgacao.md` §7), clipes, Reddit, TabNews, Show HN. itch.io
    descartado (16/10: dá trabalho manter e traz pouca gente). Posts nas contas dele: o Claude prepara e para antes de publicar.
 6. **Sinais do 1º dia para olhar no placar:** maior vazamento entre "começou copa" e "jogou partida" (draft longo
-   no celular?); 73% jogam em 8x (começar mais rápido?); Dragonite capitão em 50% das copas (forte demais? decidir
-   junto, com calibragem).
+   no celular?); 73% jogam em 8x (começar mais rápido?). Dragonite capitão caiu de 50% (1º dia) pra 11% em 20/10
+   (Arcanine, Snorlax e Ditto 7%): sem mudança.
 7. **Ambiente de dev** (`docs/planos/ambiente-dev.md`): branch `staging` + staging.soccermon.com protegido,
    variáveis do Supabase só em Production, regra de CI na `main`, `ignoreCommand` no vercel.json. Depois do
    lançamento. O vercel.app hoje leva o save por JS (`src/cloud/domain-move.ts`): trocar por 308 no painel da
@@ -358,9 +414,10 @@ Plano do trailer e dos posts de lançamento: [docs/planos/divulgacao-trailer.md]
 11. **Depois da 0.8.5 (18/10/2026):** clipe combo 0.8.4 + 0.8.5 pro TikTok (rascunho da 0.8.4 em
    `trailer/atualizacao/`; falta gravar escanteio e duelo e o Miguel escolher a música; confirmar antes de postar).
    Duelo: confirmar no ar que o "Partida anulada" sumiu (corrigido na 0.8.5; só testado em duas abas no PC).
-   Pequenos: prancheta mostra quem saiu por 1–3 s depois do intervalo (celular); barra "Escanteios 0 x 0" do gráfico
-   com um risco vermelho; vincular conta anônima ao Google (precisa ligar "manual linking" no Supabase). Ideia
-   solta: patch da fórmula (Ala contando chute, Pivô contando velocidade), com antes/depois pro ok dele.
+   (Prancheta depois do intervalo, risco na barra "Escanteios 0 x 0" e vincular conta anônima: feitos, com teste.)
+12. **Copa do Dia refeita no servidor:** o draft e as recompensas mudam o time de uma partida pra outra, então
+   conferir de verdade = refazer a copa inteira (draft, recompensas e as 4 partidas) numa Edge Function, como a da Liga.
+   Plano em `docs/planos/liga.md`; não é coisa pequena (precisa tirar o draft do `game-store` pra funções puras).
 
 ### Riscos que ele já conhece
 

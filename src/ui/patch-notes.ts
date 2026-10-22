@@ -7,6 +7,326 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.2.1',
+        title: 'Álbum leve e vitrine fácil',
+        sections: [
+            {
+                title: 'Álbum',
+                lines: [
+                    'O Álbum não trava mais ao abrir e virar a página (só a página à vista é montada e o brilho holo anima só na carta em foco)',
+                    'As cartas empilhadas atrás de uma figurinha aparecem só pela borda',
+                ],
+            },
+            {
+                title: 'Vitrine',
+                lines: [
+                    'Vitrine cheia: Pôr na vitrine pede a carta que sai e troca num toque',
+                    'Um x no canto tira a carta da vitrine',
+                    'Arraste uma carta sobre a outra (ou toque numa e depois na outra) pra mudar a ordem; vale no Perfil, no perfil do amigo e no Duelo',
+                    'No PC, a vitrine do cartão do Perfil ficou maior e centralizada',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.2',
+        title: 'Casa arrumada',
+        sections: [
+            {
+                title: 'Tela inicial',
+                lines: [
+                    'Nova copa grande e no topo; Duelo e Copa do Dia lado a lado, do tamanho do conteúdo',
+                    'Vem aí: o que está pra chegar numa faixa de cartõezinhos (toque pra ver o que é)',
+                    'Perfil, Coleção e Sala de troféus como três portas; o "?" leva pra Ajuda',
+                    'O botão de idioma não pula mais de lugar ao trocar',
+                    'Quem chega pela 1ª vez já cai no jogo (o passo a passo está na Ajuda)',
+                ],
+            },
+            {
+                title: 'Na copa',
+                lines: [
+                    'A ação principal fica embaixo, na barra do polegar, em todas as telas da copa',
+                    'Um botão vermelho por tela; os outros viram contorno',
+                    'A chave da copa abre num toque (Ver a chave) na escalação e no resultado',
+                    'Dicas só na 1ª copa, perto do que explicam',
+                    'Eliminado: Nova copa num toque e quanto faltou',
+                ],
+            },
+            {
+                title: 'Mercado',
+                lines: [
+                    'Com o pacote aberto, o seu time aparece junto pra comparar',
+                    'O que não dá pra comprar tem cadeado e mostra quanto falta',
+                    'Trocar vitrine virou Novas ofertas (vitrine agora é só a das cartas)',
+                    'Textos dos Patrocínios reescritos, mais curtos e com o número do efeito; o preço aparece no contrato',
+                ],
+            },
+            {
+                title: 'Partida',
+                lines: [
+                    'Aba Time no PC: nome e posição inteiros',
+                    'Substituir não aparece mais duas vezes no intervalo',
+                ],
+            },
+            {
+                title: 'Toque e som',
+                lines: [
+                    'Cada tipo de botão tem o seu som (avançar, voltar, sair, apagar)',
+                    'Abandonar copa, sair do Duelo e apagar dados têm uma saída triste, com animação e som',
+                    'Vibração curta no Android (dá pra desligar em Configurações → Mais opções)',
+                    'Configurações mais curtas: o resto fica em Mais opções',
+                ],
+            },
+            {
+                title: 'Sala de troféus',
+                lines: [
+                    'O Pokémon que passeia não fica mais esticado nem passa por dentro dos móveis',
+                    'O PC aparece inteiro, a TV na frente do móvel e as fotos das cartas sem esticar',
+                    'A câmera não fica mais presa aproximada depois de um toque rápido',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.1.1',
+        title: 'Cartas de volta',
+        sections: [
+            {
+                title: 'Consertos',
+                lines: [
+                    'A vitrine mostra a sua melhor carta de verdade daquele Pokémon (antes podia ficar presa na versão padrão, Destaque I ou Ícone sem MVP)',
+                    'Mudança só no Álbum agora sobe pra nuvem',
+                    'Carta perdida de antes do Álbum (19/10) volta por código: Perfil → Treinador → Resgatar código',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.1',
+        title: 'Rota Índigo',
+        sections: [
+            {
+                title: 'Rota Índigo (modo novo)',
+                lines: [
+                    'A copa longa: um mapa de Kanto de baixo pra cima (Rota 1, Floresta de Viridian, Mt. Moon, Cerulean, Estrada da Vitória, Planalto Índigo), com partidas, Ginásios, Mercado, Baú, Treino e eventos "?"',
+                    'Três atos: eliminatórias no mapa, fase de grupos no Planalto (2 primeiros vão pra Final) e a Final contra a Liga Índigo',
+                    'Cartão amarelo: a 1ª derrota fora da Final não elimina; a 2ª é vermelho',
+                    'Treinadores da Rota com falas no VERSUS e no fim do jogo',
+                ],
+            },
+            {
+                title: 'Copa Relâmpago',
+                lines: [
+                    'A Copa rápida virou Copa Relâmpago, com a chave de 16 clubes na tela: você sobe na chave a cada vitória',
+                    'Missões de gols numa copa contam a melhor sequência de 4 jogos (vale igual na Relâmpago e na Rota)',
+                ],
+            },
+            {
+                title: 'Partida',
+                lines: [
+                    'Acréscimos de 1 a 3 minutos por tempo, com a plaquinha no placar',
+                    'Pressão final: do minuto 37 em diante, quem está perdendo ganha um empurrão (chute, passe, drible e velocidade) e sobe o time, igual pros dois lados',
+                ],
+            },
+            {
+                title: 'Copa do Dia',
+                lines: [
+                    'Dias seguidos e o próximo marco na tela do dia',
+                    'Figurinha do dia: o mesmo Pokémon pra todo mundo, carta Evento no Álbum ao terminar',
+                    'Marcos: 7 dias (título Fiel da Copa) e 30 dias (treinadora Garota Dourada)',
+                ],
+            },
+            {
+                title: 'Contas',
+                lines: ['Nome de treinador e de clube são únicos (quem já tinha fica com o nome)'],
+            },
+        ],
+    },
+    {
+        version: '0.9.0.5',
+        title: 'Tudo na prancheta',
+        sections: [
+            {
+                title: 'Toque direto',
+                lines: [
+                    'Substituição: toque em quem sai e em quem entra na prancheta e a troca já vale, com as cartas deslizando (sai o painel de lista)',
+                    'Recompensa e Mercado: quem recebe o Pokémon ou o item é escolhido tocando na prancheta',
+                    'Escalação: Passar pra outro e tocar em quem recebe o item',
+                    'Pênaltis: toque em dois cobradores pra trocar a ordem',
+                ],
+            },
+            {
+                title: 'Mercado e Perfil',
+                lines: [
+                    'Pacote aberto pode ser fechado sem pegar nenhuma carta (Não quero nenhuma, seguir)',
+                    'A vitrine de cartas aparece no cartão do Perfil',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.0.4',
+        title: 'Golpes e Patrocínios explicados',
+        sections: [
+            {
+                title: 'Mais claro',
+                lines: [
+                    'MT: ao escolher qual golpe esquecer, cada golpe mostra o que faz em quadra',
+                    'Carta completa: a nota em campo, com capitão, sinergias e Patrocínios (o número grande é a carta sozinha)',
+                    'Toque num Patrocínio das suas vagas pra ver o que ele faz',
+                ],
+            },
+            {
+                title: 'Mercado',
+                lines: [
+                    'No Mercado antes da Final só aparecem Patrocínios de campo (os de ₽ não teriam mais onde valer)',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.0.3',
+        title: 'Pacote e Patrocínios',
+        sections: [
+            {
+                title: 'Mercado',
+                lines: [
+                    'O pacote comprado abre de verdade: rasga e as cartas saem uma a uma, e o desenho do tipo ficou nítido',
+                    'Dois Patrocínios pra escolher em cada Mercado',
+                    'O preço mostra quanto falta (₽10 · falta ₽1)',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.0.2',
+        title: 'Ajustes da semana',
+        sections: [
+            {
+                title: 'Consertos',
+                lines: [
+                    'Sala de troféus: se o seu avatar é shiny, o Pokémon que passeia na sala também é',
+                    'VERSUS: o Começar só aparece depois da apresentação dos times',
+                    'A tela não pisca mais ao entrar e sair da partida e da Sala de troféus',
+                ],
+            },
+            {
+                title: 'Mercado',
+                lines: [
+                    'A carta do Patrocínio diz que é Patrocínio, e a prateleira explica as 3 vagas (Pokémon, pacote e item não ocupam vaga)',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.0.1',
+        title: 'Mercado organizado',
+        sections: [
+            {
+                title: 'Mercado',
+                lines: [
+                    'O Mercado ficou em prateleiras: Contratações, Pacote e item, e Patrocínios (com as suas 3 vagas logo embaixo)',
+                    'A carta do Patrocínio fica na horizontal, pra não se confundir com as cartas de Pokémon',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.0',
+        title: 'Mercado e Patrocínios',
+        sections: [
+            {
+                title: 'Mercado',
+                lines: [
+                    'Depois da recompensa de cada vitória, a Copa ganha um Mercado: gaste ₽ (Pokédólar) em Pokémon, pacote de tipo, item, MT ou Patrocínio',
+                    'Cada vitória rende ₽: 5 da vitória, 1 por gol (até 3) e 2 se não sofrer gol. Guardar rende juros: ₽1 a cada ₽5, até ₽3',
+                    'Pacote de tipo: 3 cartas do tipo da semana ou do seu capitão, você fica com 1. Abre como o pacote da recompensa, na cor do tipo',
+                    'Trocar a vitrine custa ₽2 e sobe ₽1 a cada troca no mesmo Mercado',
+                    'O ₽ só vale dentro da copa e some quando ela acaba. A Copa do Dia continua sem Mercado',
+                ],
+            },
+            {
+                title: 'Patrocínios',
+                lines: [
+                    '12 Patrocínios de Kanto, com até 3 por copa: valem até o fim dela',
+                    'Economia: Fã-Clube Pokémon, Cassino de Celadon, S.S. Anne e Loja de Departamentos mexem no ₽ e na vitrine',
+                    'Recompensa: Laboratório de Cinnabar (4 opções na recompensa), Creche Pokémon (1ª troca grátis) e Safari Zone (pacote com 4 cartas)',
+                    'Campo: Silph Co., Bicicletaria de Cerulean, Academia de Saffron, Torcida de Vermilion e Patrocínio Master dão bônus em quadra, que a carta mostra',
+                    'Os seus Patrocínios aparecem nas placas da beira da quadra',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'A tela inicial separa os dois modos da Copa: a Copa rápida (a de sempre, 4 partidas) e a Copa longa, com mapa, eventos e tesouros (em breve)',
+                    'Tudo mora no Perfil: a Sala de troféus e a Coleção abrem logo abaixo do seu cartão',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.8.9',
+        title: 'Sala de troféus e menus novos',
+        sections: [
+            {
+                title: 'Sala de troféus',
+                lines: [
+                    'Uma sala de verdade, em pixel art, pra tudo que você ganhou: taças da Copa (bronze, prata e ouro pela campanha), a Liga, medalhões da Copa do Dia, cinturões do Duelo, broches das medalhas, o diploma da Platina e o Hall da Fama em polaroids',
+                    'De noite (18 h às 6 h) os holofotes acendem nas vitrines, a lareira e a TV piscam; de dia, a sala fica clara',
+                    'O seu Pokémon do avatar mora lá: passeia, vai até o que você toca e dorme no tapete de madrugada',
+                    'Toque em qualquer coisa: a câmera chega perto e um cartão diz o que é, quantos você tem, como ganhar e o histórico. Ou use os botões embaixo da sala',
+                    'Segure na sala pra ver o nome de tudo. Na primeira visita, um tutorial curto mostra cada parte',
+                    'A sala sobe de nível com os títulos: quarto em Pallet, sala do clube, sala do estádio',
+                ],
+            },
+            {
+                title: 'Menus em três portas',
+                lines: [
+                    'A tela inicial ficou com os modos de jogo e três portas: Perfil (quem você é), Coleção (o que você coleciona) e Sala de troféus (o que você ganhou)',
+                    'Perfil: o topo é o seu cartão público; abas Treinador (com as missões que liberam cada treinador e título), Clube e Amigos',
+                    'Coleção: Pokédex, Álbum e Golpedex juntos. Os selos de carreira ficam na ficha de cada Pokémon, com "Destacar"',
+                    'Configurações na engrenagem do canto de cima, em toda tela de menu. Notas da versão, Ajuda, Créditos e feedback no rodapé',
+                    'O NOVO some sozinho quando a coisa aparece na tela (sem as barras de "Marcar como visto")',
+                ],
+            },
+            {
+                title: 'Amigos',
+                lines: [
+                    'Toque num amigo pra ver o perfil dele: cartão, vitrine, números, últimos títulos e o retrospecto de vocês no Duelo',
+                    'Ranking da Copa do Dia com Todos ou só Amigos',
+                ],
+            },
+            {
+                title: 'Nada pula',
+                lines: [
+                    'Toda troca de tela tem transição; as abas deslizam; janelas saem com fade; no draft, a carta contratada voa até a vaga',
+                    'Celular em pé: nomes de Pokémon colados na quadra somem com fade em vez de se embolar',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.8.8.4',
+        title: 'Álbum em livro',
+        sections: [
+            {
+                title: 'Álbum de figurinhas',
+                lines: [
+                    'O álbum virou livro: uma estante com o Álbum da Geração 1 (Kanto). Toque na capa e ele abre',
+                    'A folha vira de verdade, pela lombada, arrastando pro lado ou nas setas',
+                    'Um espaço por Pokémon, na ordem da Pokédex, com a carta da frente colada. As bolinhas embaixo mostram quais edições você tem (Normal, Shiny, Evento, Ícone, Destaque)',
+                    'Tem mais de uma versão? Elas aparecem empilhadas atrás. Toque e todas se espalham na tela, do tamanho de ler',
+                    'Escolha qual fica na frente ("Mostrar na frente"). Sem escolher, fica a melhor',
+                    'Figurinha nova cai e cola no espaço quando a página dela aparece',
+                ],
+            },
+            {
+                title: 'Correções',
+                lines: ['"Ver todos na Pokédex" (Números) agora sobe até a Pokédex em vez de abrir no meio da lista'],
+            },
+        ],
+    },
+    {
         version: '0.8.8.3',
         title: 'Cartas em camadas e álbum de figurinhas',
         sections: [
@@ -740,6 +1060,326 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.2.1',
+        title: 'Light album, easy showcase',
+        sections: [
+            {
+                title: 'Album',
+                lines: [
+                    'The Album no longer stutters when opening and turning pages (only the visible page is built and the holo shine only moves on the card in focus)',
+                    'Cards stacked behind a sticker show only by their edge',
+                ],
+            },
+            {
+                title: 'Showcase',
+                lines: [
+                    'Full showcase: Add to showcase asks which card leaves and swaps in one tap',
+                    'An x in the corner removes a card from the showcase',
+                    'Drag a card onto another (or tap one, then the other) to change the order; it applies to your Profile, your friend view and the Duel',
+                    'On desktop, the showcase on the Profile card is bigger and centred',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.2',
+        title: 'House in order',
+        sections: [
+            {
+                title: 'Home screen',
+                lines: [
+                    'New cup big and on top; Duel and Daily Cup side by side, sized to their content',
+                    'Coming up: what is on the way in a strip of small cards (tap to see what it is)',
+                    'Profile, Collection and Trophy room as three doors; the "?" opens Help',
+                    'The language button no longer jumps around when you switch',
+                    'First-time players go straight into the game (the walkthrough is in Help)',
+                ],
+            },
+            {
+                title: 'In the cup',
+                lines: [
+                    'The main action sits at the bottom, in the thumb bar, on every cup screen',
+                    'One red button per screen; the others are outlined',
+                    'The cup bracket opens with a tap (See the bracket) on the lineup and result screens',
+                    'Tips only in your 1st cup, next to what they explain',
+                    'Knocked out: New cup in one tap and how close you came',
+                ],
+            },
+            {
+                title: 'Market',
+                lines: [
+                    'With a pack open, your team shows alongside to compare',
+                    'What you cannot afford has a lock and shows how much is missing',
+                    'Reroll stock is now New offers',
+                    'Sponsor texts rewritten, shorter and with the effect number; the price shows on the contract',
+                ],
+            },
+            {
+                title: 'Match',
+                lines: [
+                    'Team tab on desktop: full names and positions',
+                    'Substitute no longer shows twice at half-time',
+                ],
+            },
+            {
+                title: 'Touch and sound',
+                lines: [
+                    'Each kind of button has its own sound (go on, back, leave, delete)',
+                    'Abandoning a cup, leaving a Duel and deleting data get a sad exit, with animation and sound',
+                    'Short vibration on Android (turn it off in Settings → More options)',
+                    'Shorter Settings: the rest lives in More options',
+                ],
+            },
+            {
+                title: 'Trophy room',
+                lines: [
+                    'The Pokémon walking around is no longer stretched and no longer walks through furniture',
+                    'The PC shows whole, the TV sits in front of its stand and card photos are not stretched',
+                    'The camera no longer gets stuck zoomed in after a quick tap',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.1.1',
+        title: 'Cards back',
+        sections: [
+            {
+                title: 'Fixes',
+                lines: [
+                    'The showcase shows your best real card of that Pokémon (it could get stuck on the default version, Star Player I or Icon without MVP)',
+                    'Changes only in the Album now sync to the cloud',
+                    'A card lost from before the Album (Oct 19) comes back with a code: Profile → Trainer → Redeem code',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.1',
+        title: 'Indigo Road',
+        sections: [
+            {
+                title: 'Indigo Road (new mode)',
+                lines: [
+                    'The long cup: a Kanto map from bottom to top (Route 1, Viridian Forest, Mt. Moon, Cerulean, Victory Road, Indigo Plateau), with matches, Gyms, Market, Chest, Training and "?" events',
+                    'Three acts: knockouts on the map, a group stage at the Plateau (top 2 reach the Final) and the Final against the Indigo League',
+                    'Yellow card: your 1st loss outside the Final does not knock you out; the 2nd is a red',
+                    'Route trainers talk in the VERSUS and at full time',
+                ],
+            },
+            {
+                title: 'Lightning Cup',
+                lines: [
+                    'The Quick Cup is now the Lightning Cup, with the 16-club bracket on screen: you climb it with every win',
+                    'Goal missions in a cup count your best run of 4 matches (same for Lightning and Indigo Road)',
+                ],
+            },
+            {
+                title: 'Match',
+                lines: [
+                    'Stoppage time of 1 to 3 minutes per half, with the board on the scoreboard',
+                    'Final push: from minute 37 on, the team that is behind gets a boost (shooting, passing, dribbling and speed) and pushes up, the same for both sides',
+                ],
+            },
+            {
+                title: 'Daily Cup',
+                lines: [
+                    'Day streak and the next milestone on the daily screen',
+                    'Sticker of the day: the same Pokémon for everyone, an Event card in the Album when you finish',
+                    'Milestones: 7 days (Daily Devotee title) and 30 days (Golden Lass trainer)',
+                ],
+            },
+            {
+                title: 'Accounts',
+                lines: ['Trainer and club names are unique (whoever already had one keeps it)'],
+            },
+        ],
+    },
+    {
+        version: '0.9.0.5',
+        title: 'Everything on the board',
+        sections: [
+            {
+                title: 'Direct taps',
+                lines: [
+                    'Substitutions: tap who comes off and who comes on in the board and the swap is set, with the cards sliding (the list panel is gone)',
+                    'Reward and Market: pick who gets the Pokémon or the item by tapping the board',
+                    'Lineup: Give to another and tap who gets the item',
+                    'Penalties: tap two takers to swap their order',
+                ],
+            },
+            {
+                title: 'Market and Profile',
+                lines: [
+                    "An opened pack can be closed without taking any card (I don't want any, move on)",
+                    'Your card showcase shows on the Profile card',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.0.4',
+        title: 'Moves and Sponsors explained',
+        sections: [
+            {
+                title: 'Clearer',
+                lines: [
+                    'TM: when picking which move to forget, each move shows what it does on the court',
+                    'Full card: the rating on the court, with captain, synergies and Sponsors (the big number is the card alone)',
+                    'Tap a Sponsor in your slots to see what it does',
+                ],
+            },
+            {
+                title: 'Market',
+                lines: [
+                    'The Market before the Final only offers field Sponsors (₽ ones would have nowhere left to pay off)',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.0.3',
+        title: 'Packs and Sponsors',
+        sections: [
+            {
+                title: 'Market',
+                lines: [
+                    'Bought packs really open: they tear and the cards come out one by one, and the type art is sharp',
+                    'Two Sponsors to choose from in every Market',
+                    'Prices show how much you still need (₽10 · need ₽1)',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.0.2',
+        title: 'Weekly fixes',
+        sections: [
+            {
+                title: 'Fixes',
+                lines: [
+                    'Trophy room: if your avatar is shiny, the Pokémon walking around is shiny too',
+                    'VERSUS: Start only shows up after the teams are introduced',
+                    'The screen no longer flickers when entering or leaving a match and the Trophy room',
+                ],
+            },
+            {
+                title: 'Market',
+                lines: [
+                    'The Sponsor card says it is a Sponsor, and the shelf explains the 3 slots (Pokémon, packs and items do not take one)',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.0.1',
+        title: 'Tidier Market',
+        sections: [
+            {
+                title: 'Market',
+                lines: [
+                    'The Market is now split into shelves: Signings, Pack and item, and Sponsors (with your 3 slots right below)',
+                    "The Sponsor card is laid out sideways so it doesn't get mixed up with Pokémon cards",
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.0',
+        title: 'Market and Sponsors',
+        sections: [
+            {
+                title: 'Market',
+                lines: [
+                    'After the reward of every win, the Cup now has a Market: spend ₽ (Pokédollars) on Pokémon, type packs, items, TMs or Sponsors',
+                    'Every win pays ₽: 5 for the win, 1 per goal (up to 3) and 2 for a clean sheet. Saving pays interest: ₽1 per ₽5, up to ₽3',
+                    "Type pack: 3 cards of the weekly type or your captain's type, keep 1. It opens like the reward pack, in the type's colors",
+                    'Rerolling the stock costs ₽2, plus ₽1 for each reroll in the same Market',
+                    '₽ only exists inside the cup and is gone when it ends. The Daily Cup has no Market for now',
+                ],
+            },
+            {
+                title: 'Sponsors',
+                lines: [
+                    '12 Kanto Sponsors, up to 3 per cup: they last until the end of it',
+                    'Economy: Pokémon Fan Club, Celadon Game Corner, S.S. Anne and Celadon Dept. Store boost your ₽ and the stock',
+                    'Reward: Cinnabar Lab (4 reward options), Pokémon Day Care (first reroll free) and Safari Zone (4-card packs)',
+                    'Field: Silph Co., Cerulean Bike Shop, Saffron Dojo, Vermilion Fans and Master Sponsor give on-court bonuses, shown on the card',
+                    'Your Sponsors show up on the boards along the court',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'The home screen splits the two Cup modes: the Quick Cup (the usual one, 4 matches) and the Long Cup, with a map, events and treasure (coming soon)',
+                    'Everything lives in the Profile: the Trophy room and the Collection open right below your card',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.8.9',
+        title: 'Trophy room and new menus',
+        sections: [
+            {
+                title: 'Trophy room',
+                lines: [
+                    'A real pixel art room for everything you won: Cup trophies (bronze, silver and gold by how you won), the League, Daily Cup medallions, Duel belts, medal pins, the Platinum diploma and the Hall of Fame in polaroids',
+                    'At night (6 pm to 6 am) the spotlights turn on over the cases and the fireplace and TV flicker; by day the room is bright',
+                    'Your avatar Pokémon lives there: it walks around, goes to what you tap and sleeps on the rug late at night',
+                    'Tap anything: the camera moves in and a card tells you what it is, how many you have, how to earn it and the history. Or use the buttons below the room',
+                    'Hold on the room to see every name. On your first visit, a short tutorial shows each part',
+                    'The room levels up with your titles: Pallet bedroom, club room, stadium room',
+                ],
+            },
+            {
+                title: 'Menus in three doors',
+                lines: [
+                    'The start screen has the game modes and three doors: Profile (who you are), Collection (what you collect) and Trophy room (what you won)',
+                    'Profile: the top is your public card; Trainer (with the missions that unlock each trainer and title), Club and Friends tabs',
+                    'Collection: Pokédex, Album and Movedex together. Career seals live on each Pokémon page, with "Highlight"',
+                    'Settings in the gear at the top corner of every menu screen. Patch notes, Help, Credits and feedback in the footer',
+                    'NEW disappears by itself once you see the item (no more "Mark as seen" bars)',
+                ],
+            },
+            {
+                title: 'Friends',
+                lines: [
+                    'Tap a friend to see their profile: card, showcase, numbers, latest titles and your Duel record against each other',
+                    'Daily Cup ranking with Everyone or Friends only',
+                ],
+            },
+            {
+                title: 'Nothing jumps',
+                lines: [
+                    'Every screen change has a transition; tabs slide; windows fade out; in the draft, the signed card flies to its slot',
+                    'Phone in portrait: Pokémon names that overlap on the court fade out instead of piling up',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.8.8.4',
+        title: 'The album is a book',
+        sections: [
+            {
+                title: 'Sticker album',
+                lines: [
+                    'The album is now a book: a shelf with the Generation 1 (Kanto) album. Tap the cover and it opens',
+                    'Pages really turn, over the spine, by swiping or with the arrows',
+                    'One slot per Pokémon, in Pokédex order, with the front card stuck in. The dots below show which editions you have (Regular, Shiny, Event, Icon, Star Player)',
+                    'More than one version? They stack up behind it. Tap and they all spread across the screen, big enough to read',
+                    'Pick which one goes on the front ("Put on the front"). If you never pick, the best one shows',
+                    'A new sticker falls and sticks into its slot when its page shows up',
+                ],
+            },
+            {
+                title: 'Fixes',
+                lines: ['"See all in the Pokédex" (Numbers) now scrolls up to the Pokédex instead of landing mid-list'],
+            },
+        ],
+    },
     {
         version: '0.8.8.3',
         title: 'Layered cards and sticker album',

@@ -42,10 +42,6 @@
     height: 16px;
     flex: none;
 }
-.btn.danger {
-    color: #ff8a87;
-    border-color: rgba(232, 66, 63, 0.6);
-}
 .set-confirm {
     display: grid;
     gap: 6px;
@@ -97,4 +93,24 @@
 }
 .set-label a {
     color: var(--yellow);
+}
+
+/* "Mais opções": o que pouca gente muda, fechado; abre deslizando, fecha recolhendo */
+.set-more-toggle {
+    justify-self: center;
+}
+.set-more {
+    display: grid;
+    gap: inherit;
+    animation: set-more-in 240ms var(--ease-out) both;
+}
+@keyframes set-more-in {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+}
+:root[data-reduce-motion="true"] .set-more {
+    animation-name: leave-fade;
+    animation-direction: reverse;
 }
