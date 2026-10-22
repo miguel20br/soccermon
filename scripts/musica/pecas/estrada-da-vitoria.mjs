@@ -1,7 +1,8 @@
 // Estrada da Vitória: subida difícil, tensão boa. No lugar de "La montagne" (Komiku). Mi menor, 132 BPM, metais,
 // tambores; a estrada sobe: cada volta um tom acima (Mi → Fá# → Sol#), com virada antes de cada subida.
 // Rodada 4: ganhou percussão que marca: tambor grande (taiko) em 3-3-2. Rodada 5: a bigorna saiu; no lugar, palma
-// pesada (grave, com reverb) junto com um aro de caixa no contratempo do 2 e do 4.
+// pesada (grave, com reverb) junto com um aro de caixa no contratempo do 2 e do 4. Rodada 7: a palma virou o clap
+// clássico de bateria eletrônica (I.clap808, amostra do TR-08), no tom original.
 import { bass, drum, I, MINOR, mel, padChord, Song, stabs, thirdBelow, transpose } from '../synth.mjs';
 
 export const meta = { titulo: 'Estrada da Vitória', tela: 'Rota: Estrada da Vitória' };
@@ -19,7 +20,7 @@ export default function estrada() {
     const ti = S.part('timp', I.timp, { gain: 0.6, drum: true });
     const cr = S.part('crash', I.crash, { drum: true });
     const taiko = S.part('taiko', I.timp, { drum: true, gain: 0.16, rev: 0.2 });
-    const clapP = S.part('palmaPesada', I.clap, { drum: true, pan: 0.2, gain: 3, rev: 0.3 });
+    const clapP = S.part('palmaPesada', I.clap808, { drum: true, pan: 0.2, gain: 2, rev: 0.2 });
     const aro = S.part('aro', I.block, { drum: true, pan: 0.3, gain: 1.6 });
 
     const M = [
@@ -56,7 +57,7 @@ export default function estrada() {
     // a marca: taiko em 3-3-2 (a partir da 2ª volta, mais forte) e palma pesada e aro no contratempo do 2 e do 4
     drum(taiko, 0, 24, 'X..X..X...X..X..', { pitch: -9 });
     drum(taiko, 8, 16, '......x.......xx', { pitch: -4 });
-    drum(clapP, 0, 24, '......x.......x.', { pitch: -6 });
+    drum(clapP, 0, 24, '......x.......x.');
     drum(aro, 0, 24, '......x.......x.', { pitch: -9 });
     return S;
 }

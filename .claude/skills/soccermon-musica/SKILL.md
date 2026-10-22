@@ -5,7 +5,7 @@ description: Como compor, arranjar, renderizar e escolher a música do Soccermon
 
 # Música do Soccermon
 
-Aprendido em 6 rodadas com o Miguel (20 e 21/10/2026). "No geral, as músicas SÓ MELHORAM" (rodada 5). Pesquisa, catálogo de fontes e mapa tela → faixa em
+Aprendido em 7 rodadas com o Miguel (20 a 22/10/2026). "No geral, as músicas SÓ MELHORAM" (rodada 5). Pesquisa, catálogo de fontes e mapa tela → faixa em
 `docs/planos/pesquisas/musica.md`. Leia as armadilhas (§7) antes de mexer no sequenciador.
 
 ## 1. Regras da casa (não negociáveis)
@@ -30,7 +30,9 @@ Aprendido em 6 rodadas com o Miguel (20 e 21/10/2026). "No geral, as músicas S�
   só o ritmo 3-3-2 nas palmas, ou uma citação num solo.
 - **Palmas na frente**: abafadas ele não ouve (na Abertura com gancho foram de 2 pra 4 de ganho, com reverb).
   **Palma de verdade** (rodada 6): `I.clap` (3 pessoas) e `I.palmas` (a torcida, 9 pessoas) são ruído filtrado com
-  3 batidas e rabo de sala, não o "clap" de bateria eletrônica. Mas sem exagero: no A final da Abertura ele pediu menos.
+  3 batidas e rabo de sala. Mas sem exagero: no A final da Abertura ele pediu menos. **Rodada 7**: no geral ele quer
+  "aquele clap clássico daqueles teclados" (`I.clap808`, amostra CC0 de uma TR-08): Estrada, Campeão e Tema da
+  Rocket usam. Brock, Misty e Mercado ficaram com a palma de verdade (ele gostou ali). Peça nova: comece pelo clap808.
 - **Cada personagem tem tema próprio** (rodada 6) e a partida dele cita o motivo (2 compassos exportados como
   `MOTIVO` no `tema-<nome>.mjs`, usado no `cita` do `partidaBase`).
 - **Tudo em loop sem costura** (rodada 6): toda música de tela termina levando ao começo do loop e sai com o `.json`
@@ -107,6 +109,7 @@ Aprendido em 6 rodadas com o Miguel (20 e 21/10/2026). "No geral, as músicas S�
 | `bpmAt`, `swingUnit`, `masterAt` (no `Song`) | acelerar por compasso, swing de colcheia, volume geral no tempo |
 | `partidaBase(cfg)` em `partida-base.mjs` | a Partida v4 como molde (rodada 6: devolve `{ '1t', '2t' }` em trechos nivel1-3, virada, pressao, fim): passe tom, acordes, tema, riff, timbres, padrões, `cita` (motivo do tema do personagem) e `extra` (`barLen: 12` pra 12/8) |
 | `I.clap`, `I.palmas` | palma de verdade (3 pessoas) e a torcida (9): função, não parâmetros do ZzFX; `pitch` desce a faixa (palma pesada) |
+| `I.clap808` | o clap clássico do 808 (rodada 7): amostra em `scripts/musica/amostras/clap-808.wav`, "TR08_Clap01" de Karman_Lyne no [Freesound](https://freesound.org/people/Karman_Lyne/sounds/519305/), CC0 1.0. `amostra(arquivo)` no `synth.mjs` lê qualquer WAV 16 bit mono 44,1 kHz dessa pasta; `pitch` reamostra. Amostra nova: só CC0 ou CC BY (crédito no doc), numa pasta própria ao baixar |
 | `I.coin`, `I.anvil`, `I.block` | moeda (ZzFX clássico), bigorna (ele não gostou), bloco de madeira |
 | `I` | paleta: lead (quadrada), pulse (25%), thin (12,5%), counter (triangular), slap, chank, clav, stab, organ, epiano, pizz, bassoon, bell, strings, pad, brass, tuba, piccolo, agogo, block, whistle; bateria kick, snare, clap, hat, ohat, shaker, sleigh, crash, tom, timp |
 

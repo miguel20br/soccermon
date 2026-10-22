@@ -1,7 +1,7 @@
 // Campeão v3: mais lenta que a v2 (100 BPM) e misturando as duas: a melodia da v1 ("pam pam-pam PAAM") com o
 // rufar, os tímpanos, as terças e a subida de Dó pra Ré da v2. Final em Ré com nona, arpejo e prato.
 // Rodada 5 (pergunta e resposta): a fanfarra pergunta, a torcida responde com SOC-CER-MON e palmas; no fim, o
-// gancho em Ré no agudo e o "hey hey".
+// gancho em Ré no agudo e o "hey hey". Rodada 7: as palmas viraram o clap clássico do 808 (I.clap808).
 import { arp, bass, drum, GANCHO, I, MAJOR, mel, padChord, Song, thirdBelow } from '../synth.mjs';
 
 export const meta = { titulo: 'Campeão v3', tela: 'Campeão', lufs: -15 };
@@ -18,7 +18,7 @@ export default function campeao() {
     const k = S.part('kick', I.kick, { drum: true });
     const ti = S.part('timp', I.timp, { gain: 0.5, drum: true });
     const cr = S.part('crash', I.crash, { drum: true, pan: 0.2 });
-    const gang = S.part('palmas', I.palmas, { drum: true, gain: 4, rev: 0.2 });
+    const gang = S.part('palmas', I.clap808, { drum: true, gain: 2.2, rev: 0.15 });
 
     drum(sn, 0, 1, 'oooooooxxxxxXXXX');
     drum(ti, 0, 1, 'X.......X...X.X.');
