@@ -3,11 +3,17 @@ import {
     beatOf,
     fillWindow,
     gridOf,
+    type Lines,
+    linesAhead,
+    nextLine,
+    onLines,
     phaseOffset,
     planOf,
     REPEAT_S,
+    SLOW_BEAT_S,
     sameTempo,
     sectionSwitchAt,
+    stepOf,
     swapWait,
     untilLine,
 } from './music';
@@ -438,5 +444,58 @@ describe('troca entre telas: virada e ponte (regras de 22/10)', () => {
         expect(a.started[0].stop).toBeCloseTo(back.when, 9);
         expect(br.stop).toBe(br.when); // a ponte nem toca
         expect(draft.stop).toBe(a.ctx.currentTime);
+    });
+});
+
+describe('relógio de batidas', () => {
+    // 120 BPM em 4/4: linha = 0,125 s, batida = 0,5 s, compasso = 2 s
+    const funk: Lines = { row: 0.125, lines: 16, swing: 0.1, swingEm: 16 };
+
+    it('batida e compasso em 4/4: o swing das semicolcheias não mexe na batida nem na colcheia', () => {
+        expect(nextLine(0.1, funk, stepOf(funk)).d).toBeCloseTo(0.4, 9);
+        expect(nextLine(0.5, funk, stepOf(funk), 1e-6).t).toBe(8); // a batida em 0,5 s já passou: a próxima, a 3ª
+        expect(nextLine(0.3, funk, 16).d).toBeCloseTo(1.7, 9);
+        expect(linesAhead(0, funk, stepOf(funk, true), 3, 0.01)).toEqual([0.25, 0.5, 0.75]);
+        // a semicolcheia ímpar atrasa 0,1 linha
+        expect(linesAhead(0, funk, 1, 2, 0.01).map((d) => +d.toFixed(4))).toEqual([0.1375, 0.25]);
+    });
+
+    it('swing de jazz (colcheias): o contratempo atrasa 2 × swing linhas, a batida não', () => {
+        const jazz: Lines = { row: 0.125, lines: 16, swing: 0.33, swingEm: 8 };
+        expect(linesAhead(0, jazz, stepOf(jazz, true), 3, 0.01).map((d) => +d.toFixed(4))).toEqual([
+            0.3325, 0.5, 0.8325,
+        ]);
+        expect(nextLine(0.01, jazz, stepOf(jazz)).d).toBeCloseTo(0.49, 9);
+    });
+
+    it('12/8: a batida é a semínima pontuada (3 linhas) e a subdivisão é a colcheia (1 linha)', () => {
+        const misty: Lines = { row: 15 / 90, lines: 12 };
+        expect(stepOf(misty)).toBe(3);
+        expect(stepOf(misty, true)).toBe(1);
+        expect(nextLine(0.1, misty, 3).d).toBeCloseTo(0.5 - 0.1, 9);
+        expect(nextLine(0.1, misty, misty.lines).d).toBeCloseTo(2 - 0.1, 9);
+        // posição negativa (na introdução, antes da origem do trecho) também cai na grade
+        expect(nextLine(-0.6, misty, 3).d).toBeCloseTo(0.1, 9);
+    });
+
+    it('cartas no tempo: o 1º espera menos que uma linha, os outros em linhas seguidas (ou guardam o espaço)', () => {
+        // Draft a 108 BPM: batida de 556 ms passa de SLOW_BEAT_S, então colcheias de 278 ms
+        const beat = 60000 / 108;
+        expect(beat / 1000).toBeGreaterThan(SLOW_BEAT_S);
+        for (const phase of [0, 50, 139, 270]) {
+            const lines = Array.from({ length: 24 }, (_, k) => phase + (k * beat) / 2);
+            const base = [480, 600, 720];
+            const t = onLines(base, lines);
+            expect(t[0] - base[0]).toBeGreaterThanOrEqual(-0.5);
+            expect(t[0] - base[0]).toBeLessThan(beat / 2 + 1e-6); // nunca mais que uma linha (e uma linha < uma batida)
+            for (const x of t) expect(lines).toContain(x);
+            expect(lines.indexOf(t[1])).toBe(lines.indexOf(t[0]) + 1);
+            expect(lines.indexOf(t[2])).toBe(lines.indexOf(t[0]) + 2);
+            // carta grande (segura 280 ms) guarda o espaço: pula uma linha
+            const big = onLines([480, 760, 880], lines);
+            expect(lines.indexOf(big[1])).toBe(lines.indexOf(big[0]) + 2);
+        }
+        // sem linhas (a grade acabou): fica no horário pedido
+        expect(onLines([0, 100], [])).toEqual([0, 100]);
     });
 });

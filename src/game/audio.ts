@@ -56,13 +56,27 @@ export function setGoalCry(on: boolean) {
     goalCryOn = on;
 }
 
-/** `pitch` multiplica a frequência (1 = normal; 2^(1/12) ≈ 1,06 = um semitom acima). */
-export function playSfx(name: SfxName, pitch = 1) {
+/**
+ * `pitch` multiplica a frequência (1 = normal; 2^(1/12) ≈ 1,06 = um semitom acima). `at` = hora do AudioContext em
+ * que o som sai (no tempo da música: `heardAt` em `music.ts`); sem ela, já. Devolve a fonte (pra calar antes).
+ */
+export function playSfx(name: SfxName, pitch = 1, at?: number): AudioBufferSourceNode | undefined {
     if (vol.master * vol.sfx <= 0) return;
     try {
         const p = [...SFX[name]] as number[];
         p[2] *= pitch;
-        zzfx(...p);
+        if (at === undefined) return zzfx(...p);
+        const c = ZZFX.audioContext;
+        const s = ZZFX.buildSamples(...p);
+        const b = c.createBuffer(1, s.length, ZZFX.sampleRate);
+        b.getChannelData(0).set(s);
+        const src = c.createBufferSource();
+        src.buffer = b;
+        const g = c.createGain();
+        g.gain.value = ZZFX.volume;
+        src.connect(g).connect(c.destination);
+        src.start(Math.max(at, c.currentTime));
+        return src;
     } catch {
         // contexto de áudio ainda bloqueado pelo navegador (antes da primeira interação)
     }

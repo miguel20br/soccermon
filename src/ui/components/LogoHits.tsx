@@ -1,21 +1,22 @@
 import { useEffect, useRef } from 'react';
-import { aberturaAudible, onGanchoHit } from '../../game/music';
+import { musicAudible, onGanchoHit } from '../../game/music';
 
-/** Sílabas do logo (SOC, CER, MON) em % da largura; cada uma pisca na batida do gancho da Abertura. */
+/** Sílabas do logo (SOC, CER, MON) em % da largura; cada uma pisca na batida do gancho da faixa que toca. */
 const SYLLABLES: [number, number][] = [
     [0, 34.7],
     [34.7, 67.7],
     [67.7, 100],
 ];
-/** Sem som (áudio travado ou música no zero), o logo bate o SOC-CER-MON sozinho, no ritmo do gancho, a cada tanto. */
+/** Sem som (áudio travado ou música no zero), o logo da Home bate o SOC-CER-MON sozinho, no ritmo do gancho, a cada tanto. */
 const IDLE_EVERY_MS = 8000;
 const IDLE_BEATS_MS = [0, 347, 662];
 
 /**
- * Cópias do logo recortadas por sílaba (e um brilho atrás de cada uma) que piscam nas 3 batidas "SOC-CER-MON".
- * Vai dentro de um pai `position: relative` que tem o logo; só transform, opacity e filter (WAAPI).
+ * Cópias do logo recortadas por sílaba (e um brilho atrás de cada uma) que piscam nas 3 batidas "SOC-CER-MON" de
+ * qualquer faixa que toque (`gancho.hits` do .json, e o fim da virada). Vai dentro de um pai `position: relative` que
+ * tem o logo; só transform, opacity e filter (WAAPI). `idle` (só a Home): sem som, pisca sozinho a cada 8 s.
  */
-export function LogoHits() {
+export function LogoHits({ idle = false }: { idle?: boolean }) {
     const hit = useRef<(HTMLImageElement | null)[]>([]);
     const star = useRef<(HTMLSpanElement | null)[]>([]);
     const ring = useRef<(HTMLSpanElement | null)[]>([]);
@@ -85,9 +86,10 @@ export function LogoHits() {
                 );
         };
         const off = onGanchoHit(play);
+        if (!idle) return off;
         const timers = new Set<number>();
         const idleHits = () => {
-            if (document.hidden || aberturaAudible()) return;
+            if (document.hidden || musicAudible()) return;
             for (const [i, ms] of IDLE_BEATS_MS.entries()) {
                 const t = window.setTimeout(() => {
                     timers.delete(t);
@@ -96,15 +98,15 @@ export function LogoHits() {
                 timers.add(t);
             }
         };
-        const idle = window.setInterval(idleHits, IDLE_EVERY_MS);
+        const every = window.setInterval(idleHits, IDLE_EVERY_MS);
         const first = window.setTimeout(idleHits, 1500);
         return () => {
             off();
-            window.clearInterval(idle);
+            window.clearInterval(every);
             window.clearTimeout(first);
             for (const t of timers) window.clearTimeout(t);
         };
-    }, []);
+    }, [idle]);
     return SYLLABLES.map(([a, b], i) => (
         <span key={a} aria-hidden="true">
             <span

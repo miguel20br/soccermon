@@ -25,7 +25,7 @@ describe('mapa do SOC-CER-MON (ganchos.mjs)', () => {
             [4, 4 + 3.1 * row, 4 + 6 * row],
         ];
         expect(hits).toHaveLength(2);
-        hits.flat().forEach((t: number, i: number) => expect(t).toBeCloseTo(want.flat()[i], 2));
+        for (const [i, t] of hits.flat().entries()) expect(t).toBeCloseTo(want.flat()[i], 2);
     });
 
     it('acha o gancho aumentado (6-6-4) e no 12/8', () => {

@@ -49,8 +49,13 @@ interface Meta {
     linhasPorCompasso?: number;
     /** Duração do áudio (s), sem o atraso do codificador. */
     duracao?: number;
-    /** Batidas do gancho SOC-CER-MON (segundos depois do começo de cada compasso do gancho). */
-    gancho?: { batidas: number[]; compassos: number[] };
+    /** Cada SOC-CER-MON da faixa: as 3 batidas (s no arquivo), achadas nas notas pelo `scripts/musica/ganchos.mjs`. */
+    gancho?: { hits: number[][] };
+    /** Swing da peça (fração da linha) e em que nota ele cai (16 = semicolcheias ímpares, 8 = colcheias do contratempo). */
+    swing?: number;
+    swingEm?: 8 | 16;
+    /** Mudanças de andamento dentro de um trecho: [s no arquivo (linha do compasso), bpm]. */
+    tempos?: [number, number][];
 }
 interface Loaded {
     buf: AudioBuffer;
@@ -161,7 +166,7 @@ const SWING: Partial<Record<TrackId, number>> = {
 interface Trans {
     end: number;
     fill: Shot | null;
-    ponte: (Shot & { g: Grid }) | null;
+    ponte: (Shot & { g: Grid; l: Lines }) | null;
 }
 interface Shot {
     src: AudioBufferSourceNode;
@@ -182,6 +187,17 @@ let gestureHooked = false;
 let raf = 0;
 let lastPos = 0;
 const hitListeners = new Set<(i: number) => void>();
+const beatListeners = new Set<(beat: number) => void>();
+/** Batidas do gancho que não vêm do arquivo (o SOC-CER-MON da virada): hora do contexto e qual das 3. */
+let extraHits: { t: number; i: number }[] = [];
+if (import.meta.env?.DEV && typeof window !== 'undefined')
+    // o teste do navegador lê o relógio (a ordem das declarações não importa: só é chamado depois)
+    (window as unknown as { __relogio: object }).__relogio = {
+        beatNow: () => beatNow(),
+        nextBeatIn: (sub?: boolean) => nextBeatIn(sub),
+        musicLines: (n: number) => musicLines(n),
+        heardAt: (sec: number) => heardAt(sec),
+    };
 
 /** zzfx cria o AudioContext ao ser importado: só entra quando a música toca (e não nos testes, que não têm áudio). */
 let zz: typeof import('zzfx') | null = null;
@@ -340,9 +356,6 @@ function posAt(p: Playing, t: number): number {
     return loop && x >= fim ? inicio + ((x - inicio) % (fim - inicio)) : x;
 }
 
-/** Posição (s) no arquivo agora (`heard`: a que se ouve, pro olho cair junto do ouvido). */
-const position = (p: Playing, heard = false) => posAt(p, heard ? heardTime() : ctx().currentTime);
-
 /** Segundos desde a origem da grade (o começo do trecho; a introdução fica antes, em compassos inteiros). */
 const gridX = (p: Playing, t: number) => posAt(p, t) - p.sec.inicio;
 
@@ -452,6 +465,7 @@ async function apply() {
             const now = ctx().currentTime;
             hush(trans.fill, now);
             hush(trans.ponte, now);
+            extraHits = [];
             fadeOut(leaving);
             trans = null;
         }
@@ -506,6 +520,7 @@ async function apply() {
         const at = now + nextBeat(now);
         const t = trans as Trans;
         hush(t.fill, at);
+        extraHits = extraHits.filter((x) => x.t < at);
         hush(t.ponte, at);
         current.gain.gain.cancelScheduledValues(now);
         current.gain.gain.setValueAtTime(0, now);
@@ -543,6 +558,15 @@ async function apply() {
         const fillAt = now + w.at;
         const D = now + w.end;
         const fill = shot(buf, fillAt);
+        // a virada termina no SOC-CER-MON (linhas 8, 11 e 14 do compasso dela): o logo pisca junto
+        if (w.beats >= 2) {
+            const sw = lines === 4 ? ((SWING[playing.id] ?? 0) * rg.pulse) / 4 : 0;
+            extraHits = [8, 11, 14].map((row, i) => ({
+                t: fillAt + ((row - 16 + 4 * w.beats) / 4) * rg.pulse + (row % 2 ? sw : 0),
+                i,
+            }));
+            startHits();
+        }
         const lp = playing.lp.frequency;
         lp.cancelScheduledValues(now);
         lp.setValueAtTime(9000, fillAt);
@@ -558,7 +582,7 @@ async function apply() {
         let p: Trans['ponte'] = null;
         if (ponteOk) {
             const ps = ponteOk.meta.secoes[0];
-            p = { ...shot(ponteOk.buf, D, ponteOk.shift), g: gridOf(ponteOk, ps) };
+            p = { ...shot(ponteOk.buf, D, ponteOk.shift), g: gridOf(ponteOk, ps), l: linesOf(ponteOk.meta, ps.bpm) };
             t0 = D + ps.fim;
         }
         trans = { end: t0, fill, ponte: p };
@@ -576,7 +600,11 @@ async function apply() {
         trans = {
             end: at + ps.fim,
             fill: null,
-            ponte: { ...shot(ponteOk.buf, at, ponteOk.shift), g: gridOf(ponteOk, ps) },
+            ponte: {
+                ...shot(ponteOk.buf, at, ponteOk.shift),
+                g: gridOf(ponteOk, ps),
+                l: linesOf(ponteOk.meta, ps.bpm),
+            },
         };
         lastPair.set(key, now);
         enter(id, loaded, sec, at + ps.fim, start, IN_S);
@@ -618,7 +646,6 @@ function enter(id: TrackId, loaded: Loaded, sec: Section, at: number, off: numbe
     const { gain, lp } = rampIn(at, ramp);
     current = { id, loaded, gain, lp, sec, t0: at, off, src: makeSource(loaded, sec, gain, at, off) };
     prune();
-    lastPos = off - 0.001;
     startHits();
 }
 
@@ -714,36 +741,210 @@ export function startMusicLifecycle() {
     });
 }
 
-/** Avisa quando cai uma das 3 batidas do gancho SOC-CER-MON da Abertura (0, 1, 2). */
+/** Avisa quando cai uma das 3 batidas de um SOC-CER-MON da faixa que toca, ou da virada (0, 1, 2). */
 export function onGanchoHit(cb: (i: number) => void) {
     hitListeners.add(cb);
+    startHits();
     return () => {
         hitListeners.delete(cb);
     };
 }
 
-/** A Abertura está saindo no alto-falante (áudio liberado, volume acima de zero): as piscadas do logo seguem o som. */
-export function aberturaAudible(): boolean {
-    return !!zz && current?.id === 'abertura-gancho' && level() > 0 && ctx().state === 'running';
+/** Avisa a cada batida que sai no alto-falante (`beat` = 0 no 1 do compasso). */
+export function onBeat(cb: (beat: number) => void) {
+    beatListeners.add(cb);
+    startHits();
+    return () => {
+        beatListeners.delete(cb);
+    };
 }
 
+/** Avisa no 1 de cada compasso. */
+export const onBar = (cb: () => void) => onBeat((b) => b === 0 && cb());
+
+/** Tem música saindo no alto-falante (áudio liberado, volume acima de zero): o logo segue o som dela. */
+export function musicAudible(): boolean {
+    return !!zz && !!current && level() > 0 && ctx().state === 'running';
+}
+
+/** Grade de linhas do relógio (16 avos; no 12/8, colcheias): duração da linha, linhas por compasso e swing. */
+export interface Lines {
+    row: number;
+    lines: number;
+    swing?: number;
+    swingEm?: 8 | 16;
+}
+const linesOf = (meta: Partial<Meta>, bpm: number): Lines => ({
+    row: 15 / bpm,
+    lines: meta.linhasPorCompasso ?? 16,
+    swing: meta.swing ?? 0,
+    swingEm: meta.swingEm ?? 16,
+});
+/** Linhas por batida (4; no 12/8, 3) ou por subdivisão (`sub`: colcheia = 2; no 12/8, 1). */
+export const stepOf = (l: Lines, sub = false) => (l.lines % 3 === 0 ? (sub ? 1 : 3) : sub ? 2 : 4);
+/** Atraso do swing na linha `t` (em linhas), como no `synth.mjs`: semicolcheias ímpares, ou colcheias do contratempo. */
+const lateOf = (l: Lines, t: number) => {
+    const k = mod(t, l.lines);
+    return (l.swingEm === 8 ? k % 4 === 2 : k % 2 === 1) ? (l.swing ?? 0) * (l.swingEm === 8 ? 2 : 1) : 0;
+};
+/**
+ * Próxima linha múltipla de `step` a pelo menos `min` s de `x` (s desde a origem da grade, no 1 de um compasso):
+ * `d` = espera (s), `t` = a linha (pra saber em que batida do compasso cai).
+ */
+export function nextLine(x: number, l: Lines, step: number, min = 0): { d: number; t: number } {
+    for (let t = Math.floor(x / l.row / step) * step - step; ; t += step) {
+        const d = (t + lateOf(l, t)) * l.row - x;
+        if (d >= min - 1e-9) return { d, t };
+    }
+}
+/** Espera (s) até as próximas `n` linhas múltiplas de `step`, a partir de `min` s. */
+export function linesAhead(x: number, l: Lines, step: number, n: number, min = 0): number[] {
+    const out: number[] = [];
+    let m = min;
+    while (out.length < n) {
+        const { d } = nextLine(x, l, step, m);
+        out.push(d);
+        m = d + 1e-6;
+    }
+    return out;
+}
+
+/**
+ * O que se ouve agora (hora do contexto `h`): a ponte, a faixa (ou a que sai, durante a virada), com a posição na
+ * grade dela. Mudança de andamento dentro do trecho (`tempos`): a grade recomeça na linha do compasso dela.
+ */
+function heard(h: number): { x: number; l: Lines } | null {
+    const pt = trans?.ponte;
+    if (pt && trans && h >= pt.at && h < trans.end) return { x: h - pt.at, l: pt.l };
+    const p = current && h >= current.t0 ? current : leaving && h >= leaving.t0 ? leaving : null;
+    if (!p || !sounding(p, h)) return null;
+    const pos = posAt(p, h);
+    let origin = p.sec.inicio;
+    let bpm = p.sec.bpm;
+    for (const [t, b] of p.loaded.meta.tempos ?? [])
+        if (t > p.sec.inicio && t <= pos && t < p.sec.fim) [origin, bpm] = [t, b];
+    return { x: pos - origin, l: linesOf(p.loaded.meta, bpm) };
+}
+
+const clock = () => (zz && ctx().state === 'running' && level() > 0 ? heard(heardTime()) : null);
+
+/** Segundos até a próxima batida que se ouve (`sub`: a próxima colcheia, com swing); sem música, null. */
+export function nextBeatIn(sub = false): number | null {
+    const c = clock();
+    return c && nextLine(c.x, c.l, stepOf(c.l, sub)).d;
+}
+
+/** Segundos até o próximo 1 de compasso que se ouve; sem música, null. */
+export function nextBarIn(): number | null {
+    const c = clock();
+    return c && nextLine(c.x, c.l, c.l.lines).d;
+}
+
+/** Andamento e fase de agora: `bpm` do pulso (no 12/8, a semínima pontuada), `beat` no compasso, `phase` 0..1 na batida. */
+export function beatNow(): { bpm: number; beat: number; beats: number; phase: number } | null {
+    const c = clock();
+    if (!c) return null;
+    const step = stepOf(c.l);
+    const pulse = step * c.l.row;
+    const { d, t } = nextLine(c.x, c.l, step, 1e-6);
+    const beats = c.l.lines / step;
+    return { bpm: 60 / pulse, beat: mod(t / step - 1, beats), beats, phase: Math.min(1, Math.max(0, 1 - d / pulse)) };
+}
+
+/** Batida longa (acima disso, s) conta em colcheias quando a tela quer um evento por linha (cartas virando). */
+export const SLOW_BEAT_S = 0.45;
+
+/**
+ * Linhas pra marcar eventos de tela no tempo (ms a partir de agora, que se ouvem): as próximas `n` batidas, ou
+ * colcheias se a batida passa de SLOW_BEAT_S, seguindo o que vai soar (no meio de uma troca: a virada no andamento
+ * da que sai, a ponte e a faixa nova). `beat` = ms de uma batida agora. Sem música, null.
+ */
+export function musicLines(n: number): { lines: number[]; beat: number } | null {
+    if (!clock()) return null;
+    const h = heardTime();
+    const lines: number[] = [];
+    let beat = 0;
+    for (let t = h; lines.length < n; ) {
+        const c = heard(t);
+        if (!c) break;
+        const b = stepOf(c.l) * c.l.row;
+        beat ||= b;
+        t += nextLine(c.x, c.l, stepOf(c.l, b > SLOW_BEAT_S), lines.length ? 1e-4 : 0).d;
+        lines.push((t - h) * 1000);
+    }
+    return { lines, beat: beat * 1000 };
+}
+
+/** Hora do contexto em que um som agendado agora sai no alto-falante daqui a `sec` s (sem áudio, undefined). */
+export const heardAt = (sec: number): number | undefined => (zz ? heardTime() + sec : undefined);
+
+/**
+ * Revelação no tempo (cartas do pacote): cada evento cai numa das `lines` (ms a partir de agora, crescentes) — o 1º
+ * na primeira a partir do seu horário (`base`, ms), os outros na seguinte que guarde o espaço do `base` entre eles
+ * (no mínimo uma linha depois). O 1º nunca espera mais que uma linha. Faltou linha: fica no horário pedido.
+ */
+export function onLines(base: readonly number[], lines: readonly number[]): number[] {
+    const out: number[] = [];
+    let j = 0;
+    base.forEach((b, i) => {
+        const min = i === 0 ? b : out[i - 1] + Math.max(1, b - base[i - 1]);
+        while (j < lines.length && lines[j] < min - 0.5) j++;
+        out.push(j < lines.length ? lines[j++] : Math.max(min, b));
+    });
+    return out;
+}
+
+/** Batida do gancho que passou há mais que isso (s), num quadro que travou ou na aba que voltou: não pisca atrasada. */
+const LATE_S = 0.15;
+let lastP: Playing | null = null;
+/** O tempo que se ouve anda em saltos (`getOutputTimestamp`) e às vezes volta uns ms: o relógio dos quadros não volta. */
+let lastH = 0;
+let beatAt = Number.POSITIVE_INFINITY;
+let beatT = 0;
 function startHits() {
-    if (raf) return;
+    if (raf || typeof requestAnimationFrame === 'undefined') return;
     const tick = () => {
         raf = requestAnimationFrame(tick);
+        if (!zz || (hitListeners.size === 0 && beatListeners.size === 0)) return;
+        const h = Math.max(heardTime(), lastH);
+        lastH = h;
+        // a virada
+        for (const x of extraHits)
+            if (x.t <= h && h - x.t < LATE_S) {
+                trace('gancho-virada', null, h, x.t);
+                for (const f of hitListeners) f(x.i);
+            }
+        extraHits = extraHits.filter((x) => x.t > h);
+        // o relógio: avisa quando a batida esperada passa, e mira a próxima
+        const c = beatListeners.size ? heard(h) : null;
+        if (c) {
+            const step = stepOf(c.l);
+            if (h >= beatAt) for (const f of beatListeners) f(mod(beatT / step, c.l.lines / step));
+            const n = nextLine(c.x, c.l, step, 1e-4);
+            beatAt = h + n.d;
+            beatT = n.t;
+        } else beatAt = Number.POSITIVE_INFINITY;
+        // o gancho da faixa: as batidas que passaram desde o último quadro (trecho novo recomeça a conta)
         const p = current;
-        const g = p?.loaded.meta.gancho;
-        if (!p || !g || hitListeners.size === 0) return;
-        const pos = position(p, true);
+        const hits = p?.loaded.meta.gancho?.hits;
+        if (!p || !hits || hitListeners.size === 0) return;
+        const pos = posAt(p, h);
         if (pos < p.off) return; // ainda não saiu no alto-falante
-        const wrapped = pos < lastPos;
-        for (const bar of g.compassos) {
-            g.batidas.forEach((b, i) => {
-                const h = bar + b;
-                if (wrapped ? h > lastPos || (h >= p.sec.inicio && h <= pos) : h > lastPos && h <= pos)
-                    for (const f of hitListeners) f(i);
-            });
+        if (p !== lastP) {
+            lastP = p;
+            lastPos = p.off - 0.001;
         }
+        // voltou mais de 1 s: deu a volta no loop (a posição só volta assim; troca de faixa ou trecho recomeça acima)
+        const wrapped = pos < lastPos - 1;
+        if (pos < lastPos && !wrapped) return;
+        for (const g of hits)
+            g.forEach((t, i) => {
+                const passed = wrapped ? t > lastPos || (t >= p.sec.inicio && t <= pos) : t > lastPos && t <= pos;
+                if (passed && (wrapped || pos - t < LATE_S)) {
+                    trace('gancho', p.id, h, t, pos);
+                    for (const f of hitListeners) f(i);
+                }
+            });
         lastPos = pos;
     };
     raf = requestAnimationFrame(tick);
