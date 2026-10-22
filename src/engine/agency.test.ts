@@ -233,6 +233,32 @@ describe('agência do técnico (experimento)', () => {
         expect(saves).toBeGreaterThan(0);
     });
 
+    it('defesa máxima tocada na folga do botão, com o chute do rival já no ar: pega esse chute', () => {
+        const H = { ...A, captainUid: A.lineup[0].uid };
+        let checked = 0;
+        for (let k = 0; k < 40 && checked < 2; k++) {
+            const seed = `ag-gk-air-${k}`;
+            // o rival chutou da zona e a bola ainda não passou pelo goleiro
+            const at = firstCue(H, seed, (live) => {
+                const s = live.state;
+                const shot = s.ball.owner === null ? s.ball.shot : null;
+                if (!shot || shot.gkChecked) return false;
+                const by = s.players[shot.by];
+                return by.team === 1 && inMaxZoneOf(s, by, 'GK');
+            });
+            if (at === null) continue;
+            checked++;
+            const r = runMatch(FUTSAL_5, H, B, seed, {
+                snapshots: false,
+                orders: [{ tick: at, team: 0, kind: 'max' }],
+            });
+            const start = of(r.events, 'max')[0];
+            expect(start?.phase).toBe('start');
+            expect(start.tick - at).toBeLessThanOrEqual(2);
+        }
+        expect(checked).toBeGreaterThan(0);
+    });
+
     it('troca volante: com a bola rolando entra na hora, vindo da lateral perto do banco', () => {
         const S = A;
         const out = S.lineup[2];

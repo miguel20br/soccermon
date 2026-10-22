@@ -3342,9 +3342,13 @@ function updateMax(s: MatchState) {
             if (max.live) emit(s, { type: 'max', team, by: max.idx, phase: 'miss' });
             continue;
         }
-        if (max.live || cap.role !== 'GK' || s.phase !== 'play' || s.ball.owner === null) continue;
-        const carrier = s.players[s.ball.owner];
-        if (carrier.team === team || !inMaxZoneOf(s, carrier, 'GK')) continue;
+        if (max.live || cap.role !== 'GK' || s.phase !== 'play') continue;
+        // o rival com a bola na zona; ou o chute dele da zona ainda no ar (tocou na folga do botão, depois do chute:
+        // sem isso o toque não fazia nada, visto jogando em 22/10/2026)
+        const shot = s.ball.owner === null ? s.ball.shot : null;
+        const carrier =
+            s.ball.owner !== null ? s.players[s.ball.owner] : shot && !shot.gkChecked ? s.players[shot.by] : null;
+        if (!carrier || carrier.team === team || !inMaxZoneOf(s, carrier, 'GK')) continue;
         max.live = true;
         max.until = s.tick + AGENCY.maxGkTicks;
         emit(s, { type: 'max', team, by: cap.idx, phase: 'start', moveId: null });
