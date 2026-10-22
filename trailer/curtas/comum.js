@@ -261,9 +261,9 @@ html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; backgro
     function torcidaPulo(tl, fila, t, { h = 45, d = 0.3, atraso = 0.03 } = {}) {
         fila.forEach((a, i) => tl.to(a.corpo, { keyframes: { y: [-h, 0] }, duration: d, ease: 'power1.inOut' }, t + ((i * 7) % 5) * atraso));
     }
-    /** A torcida no `Idle`, com um atraso em cada um pra não sair em bloco. */
-    function torcidaAnim(tl, fila, nome, t0, t1, { dir = 4, vel = 1, atraso = 0.035 } = {}) {
-        fila.forEach((a, i) => anim(tl, a, nome, dir, t0 + ((i * 7) % 5) * atraso, t1, { vel }));
+    /** A torcida numa animação, cada um num quadro diferente pra não sair em bloco (todos desenhados desde o t0). */
+    function torcidaAnim(tl, fila, nome, t0, t1, { dir = 4, vel = 1 } = {}) {
+        fila.forEach((a, i) => anim(tl, a, nome, dir, t0, t1, { vel, de: i % SPR[a.id].anims[nome].rects[0].length }));
     }
 
     // ===== caixa de fala do PMD =====
