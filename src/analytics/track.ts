@@ -51,10 +51,10 @@ export const EVENT_NAMES = [
 export type EventName = (typeof EVENT_NAMES)[number];
 
 /**
- * Balões do tutorial (`coach_*`): desligados até a migração `20261022180000_eventos_tutorial.sql` entrar em produção.
- * Aplicou? Troque pra `true`.
+ * Balões do tutorial (`coach_*`): ligados desde que a migração `20261022180000_eventos_tutorial.sql` entrou em produção
+ * (22/10/2026). Nome novo de evento: migração antes, senão o servidor recusa.
  */
-export const COACH_EVENTS = false;
+export const COACH_EVENTS = true;
 
 /** Vai pro banco: está na lista e, se é do tutorial, a migração já entrou. */
 export const sendable = (name: string) =>
