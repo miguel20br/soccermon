@@ -27,7 +27,7 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * partida termina empatada e vai para os pênaltis, já na tela de escalação. `?demo=ditto` monta um time
  * com Ditto e Mew + Mewtwo (sinergia Gênese) cuja primeira partida tem combo. `?demo=evolucao` monta um time
  * de iniciais cuja primeira partida tem evolução do seu time logo no começo (`&rival=1`: do rival). `?demo=campeao` joga uma copa
- * inteira com um time forte e para na tela do título (`?demo=momentos` é a mesma: Melhores momentos e gol da copa). `?demo=mercado` abre o Mercado depois das quartas (₽, 2 Patrocínios). `?demo=mt` abre a recompensa depois das oitavas com
+ * inteira com um time forte e para na tela do título (`?demo=momentos` é a mesma: Melhores momentos e gol da copa). `?demo=mercado` abre o Mercado depois das quartas (₽, 2 Patrocínios; `&novos=1` com os 4 de 23/10). `?demo=mt` abre a recompensa depois das oitavas com
  * uma MT do ginásio entre as 3 cartas (Charmeleon, Caterpie e cia. para testar quem aprende). `?demo=conta&tipo=levar|juntar|juntar1|copa|outra|guardada`
  * mostra a pergunta depois do login (com resumos de mentira; os botões só fecham) ou a copa guardada na tela inicial. `?demo=trailer&cena=<cena>&seed=<seed>` abre na escalação a
  * partida que a caça de lances (scripts/trailer-hunt.ts) escolheu para o trailer. `?demo=escanteio` monta um time de
@@ -956,6 +956,7 @@ function demoBinder() {
 
 /** ?demo=mercado: Mercado depois das quartas, com ₽12 guardados, 2 Patrocínios e a vitória por 3 a 0. */
 function demoShop(store: ReturnType<typeof useGame.getState>) {
+    const novos = new URLSearchParams(window.location.search).has('novos');
     store.newRun('Demo FC', 'mercado-demo');
     const run = useGame.getState().run!;
     const rng = new Rng('mercado-demo', 'demo');
@@ -983,11 +984,18 @@ function demoShop(store: ReturnType<typeof useGame.getState>) {
             results: [result(0), result(1)],
             rewards: [],
             money: 12,
-            sponsors: ['silph', 'creche'],
+            sponsors: novos ? ['olheiro', 'preparador'] : ['silph', 'creche'],
         },
     });
     useGame.getState().skipReward();
-    return;
+    // &novos=1: os Patrocínios de 23/10 (Olheiro e Preparador nas vagas, Charanga e Clube Formador na vitrine)
+    const shop = novos ? useGame.getState().run?.shop : null;
+    if (shop) {
+        const ids = ['charanga', 'formador'] as const;
+        let k = 0;
+        const offers = shop.offers.map((o) => (o.kind === 'sponsor' ? { ...o, id: ids[k++ % 2] } : o));
+        useGame.setState({ run: { ...useGame.getState().run!, money: 24, shop: { ...shop, offers } } });
+    }
 }
 
 /** ?demo=mapa: Copa longa com o time montado sozinho, parada no mapa. */

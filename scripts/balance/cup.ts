@@ -1,4 +1,4 @@
-// Copa inteira como um jogador razoável. Uso: [RIVAL=0] npx tsx cup.ts <shard> <nshards> <out> [cupsPorFormação]
+// Copa inteira como um jogador razoável. Uso: [RIVAL=0] [SPONSORS=a,b] npx tsx cup.ts <shard> <nshards> <out> [cupsPorFormação]
 import { writeFileSync } from 'node:fs';
 import type { Position } from '../../src/engine/attributes';
 import { buildCupOpponents, cupRival } from '../../src/engine/cup';
@@ -117,7 +117,8 @@ function cup(seed: string, formation: FormationId) {
     let destaques = 0;
     // Mercado (STRAT 'mercado'): ₽ e Patrocínios da copa
     let money = 0;
-    const sponsors: string[] = [];
+    // SPONSORS=preparador,charanga: Patrocínios desde a 1ª partida (título por Patrocínio, patrocinios-novos.md)
+    const sponsors: string[] = process.env.SPONSORS?.split(',').filter(Boolean) ?? [];
     const shopLog: string[] = [];
     for (let stage = 0; stage < 4; stage++) {
         const team: TeamSetup = {

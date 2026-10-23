@@ -80,5 +80,13 @@ export const shop: typeof pt = {
             short: 'MASTER',
             desc: 'Captain gets +2 to everything, +1 per other Sponsor.',
         },
+        olheiro: { name: 'Viridian Scout', short: 'SCOUT', desc: 'Rarer Pokémon in the Market and packs.' },
+        preparador: { name: 'Lavender Trainer', short: 'LAVENDER', desc: '+6 stamina for the whole team.' },
+        charanga: { name: 'Pewter Drum Band', short: 'DRUM BAND', desc: '+4 to everything while losing.' },
+        formador: {
+            name: 'Pallet Youth Club',
+            short: 'PALLET',
+            desc: "Your team's evolution bar fills 40% faster.",
+        },
     },
 };

@@ -1,13 +1,13 @@
 import { type CSSProperties, type ReactNode, useRef } from 'react';
 import { species } from '../../engine/data';
-import { EVO_THRESHOLD } from '../../engine/evolution';
+import { evoThreshold } from '../../engine/evolution';
 import { type FormationId, formationOf } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { computeLinks } from '../../engine/links';
 import { cardTypeOf, editionOf } from '../../engine/specials';
 import { useT } from '../../i18n/react';
-import type { SlotRef } from '../../store/game-store';
+import { type SlotRef, useGame } from '../../store/game-store';
 import { editionLabel, finishOf, METAL, metalOf } from '../rarity';
 import { ratingAt } from '../rating';
 import { useSwapMotion } from '../swap-motion';
@@ -71,6 +71,8 @@ export function FormationBoard({
     const boardRef = useRef<HTMLDivElement>(null);
     useSwapMotion(boardRef, `${formation}|${lineup.join()}|${bench.join()}|${horizontal}`, 320);
     const emptyLabel = emptyProp ?? t('team.board.empty');
+    // barra de evolução: o limiar do seu time (Clube Formador baixa)
+    const evoMax = evoThreshold(useGame((s) => s.run?.sponsors));
     // sinergia especial completa (os 3 pássaros, os 3 iniciais, Mew + Mewtwo): as cartas brilham juntas
     const aura = new Map<string, string>();
     for (const l of computeLinks(lineup.flatMap((u) => byUid.get(u) ?? []))) {
@@ -150,9 +152,9 @@ export function FormationBoard({
                             <i
                                 className="slot-evo"
                                 title={t('team.board.evo', {
-                                    n: Math.min(100, Math.round((inst.evo / EVO_THRESHOLD) * 100)),
+                                    n: Math.min(100, Math.round((inst.evo / evoMax) * 100)),
                                 })}
-                                style={{ '--evo': Math.min(1, inst.evo / EVO_THRESHOLD) } as CSSProperties}
+                                style={{ '--evo': Math.min(1, inst.evo / evoMax) } as CSSProperties}
                             />
                         ) : null}
                         {edition && (

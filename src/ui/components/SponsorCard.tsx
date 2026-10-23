@@ -18,6 +18,10 @@ export const SPONSOR_ICON: Record<SponsorId, HudIconKind> = {
     academia: 'book',
     torcida: 'shout',
     master: 'crown',
+    olheiro: 'binoculars',
+    preparador: 'stopwatch',
+    charanga: 'drum',
+    formador: 'sprout',
 };
 
 /** Cor de marca de cada Patrocínio (placa da carta, vaga e placa na beira da quadra). */
@@ -34,6 +38,10 @@ export const SPONSOR_BRAND: Record<SponsorId, string> = {
     academia: '#b8681c',
     torcida: '#d93a2b',
     master: '#7238b0',
+    olheiro: '#1d7f73',
+    preparador: '#6a5fb0',
+    charanga: '#8a5a3c',
+    formador: '#3f8f3a',
 };
 
 /** Placas da beira da quadra: os Patrocínios da copa com o nome curto e a cor da marca. */

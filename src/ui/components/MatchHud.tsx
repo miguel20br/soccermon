@@ -331,6 +331,10 @@ export const ICONS = {
     bike: 'M3.5 17a3 3 0 1 0 6 0 3 3 0 1 0-6 0M14.5 17a3 3 0 1 0 6 0 3 3 0 1 0-6 0M6.5 17L10 9h5l2.5 8M10 9l3 8M13 6h3',
     book: 'M3 5h6a3 3 0 0 1 3 3v12a2.5 2.5 0 0 0-2.5-2.5H3zM21 5h-6a3 3 0 0 0-3 3v12a2.5 2.5 0 0 1 2.5-2.5H21z',
     crown: 'M4 19h16M5 16L3 7l5 4 4-6 4 6 5-4-2 9z',
+    // Patrocínios de 23/10/2026: Preparador (cronômetro), Charanga (bumbo com baquetas), Clube Formador (broto)
+    stopwatch: 'M12 21a8 8 0 1 0 0-16 8 8 0 1 0 0 16M12 9v4l2.5 2.5M10 2h4M12 2v3M18.5 6.5L20 5',
+    drum: 'M4 10a8 3 0 1 0 16 0a8 3 0 1 0-16 0M4 10v7c0 1.7 3.6 3 8 3s8-1.3 8-3v-7M8 12.7v7M16 12.7v7M6 2l4 5M18 2l-4 5',
+    sprout: 'M12 21v-9M12 12C12 8 9 6 5 6c0 4 3 6 7 6zM12 10c0-4 3-6 7-6 0 4-3 6-7 6zM7 21h10',
     // Copa longa (src/ui/screens/CupMap.tsx)
     chest: 'M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v9H4zM4 12h16M12 10v5',
     question: 'M9 9a3 3 0 1 1 4.5 2.6c-1 .6-1.5 1.2-1.5 2.4M12 18h.01',

@@ -57,6 +57,8 @@ export interface TeamContext {
     role?: Position | null;
     /** Patrocínios da copa (ids). Os de campo somam pontos; sem eles a partida é a de sempre. */
     sponsors?: readonly string[];
+    /** O time perde no placar agora (Charanga de Pewter). Fora da partida é sempre falso. */
+    losing?: boolean;
 }
 
 const ALL: AttrKey[] = [
@@ -142,7 +144,7 @@ export function attributeModifiers(inst: PokemonInstance, ctx: TeamContext = {})
             });
         }
     }
-    for (const b of sponsorBonuses(inst, ctx.sponsors, ctx.captain, ctx.role)) {
+    for (const b of sponsorBonuses(inst, ctx.sponsors, ctx.captain, ctx.role, ctx.losing)) {
         const what = b.attrs === 'all' ? 'em tudo' : ATTR_NAME[b.attrs[0]].toLowerCase();
         mods.push({
             source: 'patrocinio',

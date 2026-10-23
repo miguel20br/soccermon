@@ -142,15 +142,18 @@ interface TeamBonuses {
     links: ActiveLink[];
     captain: PokemonInstance | null;
     sponsors?: readonly string[];
+    /** Perdendo no placar agora (Charanga de Pewter). */
+    losing?: boolean;
 }
 
 /** Bônus pela escalação de agora (`lineup`): capitão substituído leva a aura junto. */
-function teamBonuses(lineup: readonly PokemonInstance[], setup: TeamSetup): TeamBonuses {
+function teamBonuses(lineup: readonly PokemonInstance[], setup: TeamSetup, losing = false): TeamBonuses {
     const captain = lineup.find((p) => p.uid === setup.captainUid) ?? null;
-    return { lineup, links: computeLinks(lineup), captain, sponsors: setup.sponsors };
+    return { lineup, links: computeLinks(lineup), captain, sponsors: setup.sponsors, losing };
 }
 
-const bonusesOf = (s: MatchState, team: 0 | 1) => teamBonuses(s.teams[team].lineup, s.teams[team].setup);
+const bonusesOf = (s: MatchState, team: 0 | 1) =>
+    teamBonuses(s.teams[team].lineup, s.teams[team].setup, s.score[team] < s.score[team === 0 ? 1 : 0]);
 
 /**
  * A escalação mudou (troca ou evolução): recalcula para o time inteiro o que depende dela — sinergia de tipo,
@@ -445,7 +448,11 @@ export function checkEvolutions(s: MatchState) {
         // parada em que entra) escondia a forma de antes (a quadra já abria com a nova, sem a tela de evolução)
         if (evoScore(p.stats, p.role) <= 0) continue;
         const into = evolutionTarget(p.inst.speciesId, p.inst.uid);
-        if (into === null || evoProgress(p.inst, p.stats, p.role) < evoNeeded(p.team, s.teams[p.team].setup.manualSubs))
+        if (
+            into === null ||
+            evoProgress(p.inst, p.stats, p.role) <
+                evoNeeded(p.team, s.teams[p.team].setup.manualSubs, s.teams[p.team].setup.sponsors)
+        )
             continue;
         const inst = { ...evolveInstance(p.inst, into, p.role), evo: 0 };
         // a forma nova entra na escalação (tipo novo pode ligar ou desligar sinergias)
@@ -2446,6 +2453,8 @@ function scoreGoal(s: MatchState, team: 0 | 1) {
     const ownGoal = !!toucher && toucher.team !== team;
     const scorer = ownGoal ? toucher : (toucher ?? s.players.find((p) => p.team === team)!);
     s.score[team]++;
+    // Charanga de Pewter: liga com o placar contra e desliga no empate (os dois lados podem ter mudado)
+    for (const t of [0, 1] as const) if (s.teams[t].setup.sponsors?.includes('charanga')) refreshTeamBonuses(s, t);
     let assist: number | null = null;
     if (!ownGoal && scorer) {
         scorer.stats.goals++;

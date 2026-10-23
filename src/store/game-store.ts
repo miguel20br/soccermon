@@ -21,7 +21,7 @@ import {
     playerDraftOptions,
     ROUTE_START_BANNED,
 } from '../engine/draft';
-import { EVO_THRESHOLD, evolutionTarget, evolveInstance, evoProgress } from '../engine/evolution';
+import { evolutionTarget, evolveInstance, evoProgress, evoThreshold } from '../engine/evolution';
 import { DEFAULT_FORMATION, type FormationId, formationOf } from '../engine/formations';
 import type { PokemonInstance } from '../engine/instance';
 import { viewInstance } from '../engine/instance';
@@ -1846,7 +1846,8 @@ export const useGame = create<GameStore>()(
                     // treino de evolução: a barra enche metade (evoluir continua sendo na partida, com a animação dela)
                     const target = run.picks.find((p) => p.uid === uid);
                     if (!target || evolutionTarget(target.speciesId, target.uid) === null) return;
-                    const evo = Math.min(EVO_THRESHOLD, (target.evo ?? 0) + EVO_THRESHOLD / 2);
+                    const max = evoThreshold(run.sponsors);
+                    const evo = Math.min(max, (target.evo ?? 0) + max / 2);
                     const picks = run.picks.map((p) => (p.uid === uid ? { ...p, evo } : p));
                     setState(backToRoute({ ...run, picks }));
                 },

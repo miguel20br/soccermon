@@ -98,14 +98,22 @@ export function PlayerInspect({
     // a escalação de agora (com trocas e evoluções), igual à do motor
     const lineupNow = lineupAt(match, setups, who.team, tick);
     const captain = lineupNow.find((p) => p.uid === setup.captainUid) ?? null;
-    const mods = attributeModifiers(inst, { lineup: lineupNow, captain, role: who.role, sponsors: setup.sponsors });
     const behind = snap.score[who.team === 0 ? 1 : 0] - snap.score[who.team];
+    const mods = attributeModifiers(inst, {
+        lineup: lineupNow,
+        captain,
+        role: who.role,
+        sponsors: setup.sponsors,
+        losing: behind > 0,
+    });
     // mesma conta do motor (effective.ts: 0.72 + 0.28 × fôlego)
     const fatigue = Math.round(0.28 * (1 - energy) * 100);
     const target = evolutionTarget(inst.speciesId, inst.uid);
     const evoPct = Math.min(
         100,
-        Math.round((evoProgress(inst, stats, who.role) / evoNeeded(who.team, setup?.manualSubs)) * 100),
+        Math.round(
+            (evoProgress(inst, stats, who.role) / evoNeeded(who.team, setup?.manualSubs, setup?.sponsors)) * 100,
+        ),
     );
     const moveMods = moveModifiers(inst);
     const captainHere = inst.uid === setup.captainUid;

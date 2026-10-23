@@ -1,6 +1,7 @@
 import type { Position } from './attributes';
 import { SPECIES, species } from './data';
 import { type PokemonInstance, slotRating } from './instance';
+import { has } from './sponsors';
 import type { PlayerStats } from './state';
 import { movesAfterEvolution } from './tm';
 
@@ -34,13 +35,19 @@ const ROLE_SCALE: Record<Position, number> = { GK: 1.5, FIXO: 3.5, ALA: 0.7, PIV
  */
 export const EVO_THRESHOLD = 14;
 export const RIVAL_EVO_THRESHOLD = 10;
+/** Clube Formador de Pallet (Patrocínio): o seu time evolui com 10 em vez de 14 (Miguel, 23/10/2026). */
+export const FORMADOR_EVO_THRESHOLD = 10;
+
+/** Limiar do seu time com os Patrocínios da copa (a barra da carta e a partida usam o mesmo). */
+export const evoThreshold = (sponsors?: readonly string[]) =>
+    has(sponsors, 'formador') ? FORMADOR_EVO_THRESHOLD : EVO_THRESHOLD;
 
 /** Barra de evolução agora: o que ele trouxe das partidas anteriores + o que fez nesta. */
 export const evoProgress = (inst: PokemonInstance, stats: PlayerStats, role: Position) =>
     (inst.evo ?? 0) + evoScore(stats, role);
 /** Limiar de quem evolui: o seu time e todo time de técnico humano (os dois lados do Duelo, decidido em 18/10) usam o alto. */
-export const evoNeeded = (team: 0 | 1, humanCoach = false) =>
-    team === 0 || humanCoach ? EVO_THRESHOLD : RIVAL_EVO_THRESHOLD;
+export const evoNeeded = (team: 0 | 1, humanCoach = false, sponsors?: readonly string[]) =>
+    team === 0 || humanCoach ? evoThreshold(sponsors) : RIVAL_EVO_THRESHOLD;
 
 export function evoScore(stats: PlayerStats, role: Position): number {
     let total = 0;
