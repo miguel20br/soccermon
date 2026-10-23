@@ -8,6 +8,7 @@
 - Alakazam curva a bola, Dugtrio derruba os zagueiros a até 6 m do gol e Scyther solta o Enxame: o goleiro pode pular na isca
 - Pikachu solta o Raio: bola x1,15 mais rápida e quem bloquear ou defender fica paralisado por 1,5 s
 - O ícone do tipo aparece no botão: apagado nos níveis 1 e 2, aceso no 3
+- Botão Esperar: guarda o golpe máximo pro próximo nível sem câmera lenta
 - Capitão de dois tipos: vale o tipo do golpe máximo, se for um dos tipos dele
 - Os líderes rivais também usam o efeito do capitão deles
 - O chute do nível 3 mira mais pro meio do gol: bem menos bola pra fora

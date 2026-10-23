@@ -31,6 +31,8 @@ export interface AgencyView {
     maxCue: boolean;
     /** Golpe máximo por tipo: o efeito do N3 do capitão (a prévia no botão). */
     fxType?: string;
+    /** O jogador tocou em "Esperar" (`maxWaitNext`): o aviso fica apagado. */
+    maxWaiting?: boolean;
 }
 
 /** Estado da beira da quadra de um time no tick da tela. `cue`: é a hora do golpe máximo (`maxCueAt`). */
@@ -107,7 +109,8 @@ function FxBadge({ view }: { view: AgencyView }) {
 }
 
 /** Golpe máximo pronto e na hora certa (o botão acende). */
-export const maxLit = (v: AgencyView) => v.maxCue && v.max.level >= 1 && !v.max.active && !v.maxPending;
+export const maxLit = (v: AgencyView) =>
+    v.maxCue && v.max.level >= 1 && !v.max.active && !v.maxPending && !v.maxWaiting;
 
 /**
  * Toque no golpe máximo: a nota sai da distância até a batida no `pointerdown` (o `click` chega depois de soltar o dedo
@@ -245,37 +248,51 @@ export function SidelineControls({
 
 /**
  * O botão grande do golpe máximo em cima da quadra: só aparece na hora certa (o da aba Tática acende junto), pra
- * dar tempo de tocar de qualquer aba.
+ * dar tempo de tocar de qualquer aba. `onWait` (só na copa): o "Esperar" ao lado apaga o aviso e a câmera lenta.
  */
 export function MaxCueButton({
     view,
     canAct,
     onMax,
+    onWait,
 }: {
     view: AgencyView;
     canAct: boolean;
     onMax: (q: MaxGrade) => void;
+    onWait?: () => void;
 }) {
     const { d } = useT();
     const a = d.match.agency;
     const tap = useMaxTap(onMax);
     if (!canAct || !maxLit(view)) return null;
     return (
-        <button
-            type="button"
-            className="sl-cue lv3"
-            data-exit
-            aria-keyshortcuts="M"
-            title={a.maxBeatHint}
-            onPointerDown={tap.onPointerDown}
-            onClick={tap.tap}
-        >
-            <BeatRing />
-            <HudIcon kind="max" />
-            <b>{a.max}</b>
-            <small className="sl-cue-lv">{maxLevelLabel(view.max.level, a.maxLevelShort)}</small>
-            <FxBadge view={view} />
-        </button>
+        <div className="sl-cue-row" data-exit>
+            <button
+                type="button"
+                className="sl-cue lv3"
+                aria-keyshortcuts="M"
+                title={a.maxBeatHint}
+                onPointerDown={tap.onPointerDown}
+                onClick={tap.tap}
+            >
+                <BeatRing />
+                <HudIcon kind="max" />
+                <b>{a.max}</b>
+                <small className="sl-cue-lv">{maxLevelLabel(view.max.level, a.maxLevelShort)}</small>
+                <FxBadge view={view} />
+            </button>
+            {onWait && (
+                <button
+                    type="button"
+                    className="sl-cue sl-wait"
+                    aria-keyshortcuts={a.maxWaitKey}
+                    title={view.max.level >= 3 ? a.maxWaitHint3 : a.maxWaitHint}
+                    onClick={onWait}
+                >
+                    <b>{a.maxWait}</b>
+                </button>
+            )}
+        </div>
     );
 }
 

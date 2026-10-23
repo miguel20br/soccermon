@@ -4,7 +4,7 @@ import { aiDraftTeam } from '../engine/draft';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
 import type { TeamSetup } from '../engine/state';
-import { captainAt, halftimeEnd, whoAt } from './match-view';
+import { captainAt, halftimeEnd, type MaxWait, maxWaitNext, whoAt } from './match-view';
 
 const team = (seed: string, name: string): TeamSetup => ({
     name,
@@ -57,5 +57,45 @@ describe('capitão na partida (cara dos emotes e pose do "Vamooo!")', () => {
         const m = fake([{ type: 'sub', tick: 50, team: 0, outUid: cap.uid, inUid: home.bench[0].uid, outIdx: capIdx }]);
         expect(captainAt(m, [home, away], 0, 49).idx).toBe(capIdx);
         expect(captainAt(m, [home, away], 0, 50).idx).toBeNull();
+    });
+});
+
+describe('"Esperar" no golpe máximo (maxWaitNext)', () => {
+    /** Passa a barra e a hora certa quadro a quadro; devolve se o aviso estava apagado em cada um. */
+    const run = (from: number, frames: [level: number, cue: boolean][]) => {
+        let w: MaxWait | null = { level: from };
+        return frames.map(([level, cue]) => {
+            w = maxWaitNext(w, level, cue);
+            return w !== null;
+        });
+    };
+
+    it('N1 e N2: apaga até a barra subir de nível, mesmo passando por outras horas certas', () => {
+        for (const lv of [1, 2])
+            expect(
+                run(lv, [
+                    [lv, true],
+                    [lv, false],
+                    [lv, true],
+                    [lv + 1, true],
+                    [lv + 1, true],
+                ]),
+            ).toEqual([true, true, true, false, false]);
+    });
+
+    it('N3: pula só esta hora certa; a próxima janela acende de novo', () => {
+        expect(
+            run(3, [
+                [3, true],
+                [3, true],
+                [3, false],
+                [3, true],
+            ]),
+        ).toEqual([true, true, false, false]);
+    });
+
+    it('golpe usado (a barra zera): o "Esperar" acaba', () => {
+        expect(maxWaitNext({ level: 2 }, 0, false)).toBeNull();
+        expect(maxWaitNext(null, 1, true)).toBeNull();
     });
 });

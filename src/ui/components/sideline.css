@@ -91,12 +91,22 @@
 .sl-max.live {
     outline: 3px solid #fff;
 }
-/* o botão grande na quadra: aparece só na hora certa, embaixo, no meio */
-.sl-cue {
+/* o botão grande na quadra: aparece só na hora certa, embaixo, no meio ("Esperar" ao lado) */
+.sl-cue-row {
     position: absolute;
     left: 50%;
     bottom: 10%;
     z-index: 5;
+    display: flex;
+    gap: 8px;
+    max-width: calc(100% - 16px);
+    transform: translateX(-50%);
+}
+.sl-cue-row.is-leaving {
+    animation: leave-fade 180ms var(--ease-out) both;
+}
+.sl-cue {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -112,25 +122,28 @@
     text-transform: uppercase;
     white-space: nowrap;
     cursor: pointer;
-    transform: translateX(-50%);
     animation:
         sl-cue-in 0.2s var(--ease-out),
         sl-pulse 0.6s ease-in-out 0.2s infinite alternate;
 }
 .sl-cue:active {
-    transform: translateX(-50%) translateY(2px);
+    transform: translateY(2px);
+}
+/* "Esperar": o mesmo botão, sem o amarelo nem o pulso (o golpe é o chamariz) */
+.sl-cue.sl-wait {
+    padding: 8px 14px;
+    background: var(--panel-2);
+    color: var(--text);
+    animation: sl-cue-in 0.2s var(--ease-out);
 }
 .sl-cue .hud-icon {
     width: 20px;
     height: 20px;
 }
-.sl-cue.is-leaving {
-    animation: leave-fade 180ms var(--ease-out) both;
-}
 @keyframes sl-cue-in {
     from {
         opacity: 0;
-        transform: translateX(-50%) scale(0.8);
+        transform: scale(0.8);
     }
 }
 @keyframes sl-pulse {
@@ -501,4 +514,33 @@
 [data-reduce-motion="true"] .sl-maxbar i,
 [data-reduce-motion="true"] .sl-tag-max {
     animation: none;
+}
+
+/* celular deitado: a barra de velocidade (fixa embaixo) cobre o pé da quadra; o golpe e o "Esperar" sobem acima dela */
+@media (orientation: landscape) and (max-height: 520px) {
+    .sl-cue-row {
+        bottom: calc(10% + 44px);
+    }
+}
+/* 320 deitado: a quadra tem ~230 px de largura e os dois não cabem lado a lado; o "Esperar" vai pra baixo, menor */
+@media (orientation: landscape) and (max-height: 360px) {
+    .sl-cue-row {
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+    }
+    .sl-cue.sl-wait {
+        min-height: 32px;
+    }
+    .sl-cue,
+    .sl-cue.sl-wait {
+        gap: 5px;
+        min-height: 40px;
+        padding: 5px 8px;
+        font-size: 12px;
+    }
+    .sl-cue .hud-icon {
+        width: 16px;
+        height: 16px;
+    }
 }

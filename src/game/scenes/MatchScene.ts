@@ -498,6 +498,11 @@ export class MatchScene extends Phaser.Scene {
     private viewPos = new Map<number, { x: number; y: number }>();
     private uiScale = 1;
     private unbind?: () => void;
+    /** O jogador tocou em "Esperar" no golpe máximo (Match.tsx, `maxWaitNext`): sem câmera lenta até a tela soltar. */
+    private maxWait = false;
+    private onMaxWait = (on: boolean) => {
+        this.maxWait = on;
+    };
 
     constructor() {
         super('Match');
@@ -563,7 +568,10 @@ export class MatchScene extends Phaser.Scene {
         EventBus.on('match:seg-hold', this.onSegHold, this);
         EventBus.on('replay:next', this.nextClip, this);
         EventBus.on('match:captain-pose', this.onCaptainPose, this);
+        this.maxWait = false;
+        EventBus.on('match:max-wait', this.onMaxWait, this);
         this.unbind = () => {
+            EventBus.off('match:max-wait', this.onMaxWait, this);
             EventBus.off('replay:next', this.nextClip, this);
             EventBus.off('match:captain-pose', this.onCaptainPose, this);
             EventBus.off('match:rate', this.onRate, this);
@@ -682,7 +690,7 @@ export class MatchScene extends Phaser.Scene {
     /** O botão do golpe máximo do seu time está aceso agora ou vai acender já (`MAX_CUE_LEAD`; a conta é a da tela). */
     private maxCueNow(): boolean {
         // no Duelo a quadra dos dois anda junta: só na Copa
-        if (!this.md.agency || this.md.replay || this.md.duel) return false;
+        if (!this.md.agency || this.md.replay || this.md.duel || this.maxWait) return false;
         const team = this.mine as 0 | 1;
         const c = maxCharge(this.matchEvents, team, this.playTick, 5);
         if (c.level < 1 || c.active) return false;
