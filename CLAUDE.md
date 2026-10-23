@@ -141,9 +141,9 @@ Aprovadas pelo Miguel ("1a a 9a"); **cada tarefa é avaliada por si**, não é a
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (22/10/2026, v0.9.13)
+## Estado atual (23/10/2026, v0.9.14)
 
-No ar: 0.9.12 (viradas e pontes na música, temas de Erika a Giovanni, time no ranking; `ENGINE_VERSION` 10, Edge Function `liga` com o motor 10), Rota Índigo (`LONG_CUP_LIVE`), Copa Relâmpago e Duelo melhor de 3. Liga fechada até `LIGA_OPENS_AT`; a Copa do Dia segue no ar. Histórico: [docs/planos/historico.md](docs/planos/historico.md). Índice dos docs: `node scripts/indice.mjs`.
+No ar: 0.9.14 (golpe máximo em 3 níveis na batida da música, defesa máxima por nível; `ENGINE_VERSION` 11, Edge Function `liga` com o motor 11), Rota Índigo (`LONG_CUP_LIVE`), Copa Relâmpago e Duelo melhor de 3. Liga fechada até `LIGA_OPENS_AT`; a Copa do Dia segue no ar. Histórico: [docs/planos/historico.md](docs/planos/historico.md). Índice dos docs: `node scripts/indice.mjs`.
 
 ## Armadilhas (o porquê de cada uma)
 

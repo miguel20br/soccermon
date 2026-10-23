@@ -1,5 +1,20 @@
 # Novidades
 
+## 0.9.14 · Golpe máximo em 3 níveis, na batida (2026-10-23)
+
+### Golpe máximo
+- A barra agora tem 3 níveis e enche de novo depois de usar: golpe máximo por partida 1 ⇒ vários (a barra recarrega)
+- Solte no nível 1 ou segure pro nível 3, o chute mais forte do jogo: força do chute x1,55 ⇒ x1,25 / x1,55 / x2,2 (níveis 1 / 2 / 3)
+- No nível 3 o goleiro rival fica com alcance x0,7 nesse chute
+- Toque quando o anel fechar no botão, na batida da música: PERFEITO! sai mais forte
+- Sem som, o anel segue um pulso na tela
+- Tocou um pouco antes de acender? O golpe sai no próximo chute
+- Os líderes também tocam na batida, e o Lance quase sempre acerta
+
+### Defesa máxima
+- Com o capitão no gol, o nível dá mais tempo de defesa: 4 s ⇒ 0,75 s / 4 s / 6 s (níveis 1 / 2 / 3)
+- O toque perfeito segura a bola
+
 ## 0.9.13 · Novidades mais fáceis de ler (2026-10-22)
 
 ### Novidades

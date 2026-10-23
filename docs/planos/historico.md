@@ -273,3 +273,6 @@ Plano do trailer e dos posts de lançamento: [docs/planos/divulgacao-trailer.md]
    conferir de verdade = refazer a copa inteira (draft, recompensas e as 4 partidas) numa Edge Function, como a da Liga.
    Plano em `docs/planos/liga.md`; não é coisa pequena (precisa tirar o draft do `game-store` pra funções puras).
 
+## 0.9.13 · Novidades mais fáceis de ler (22/10/2026)
+
+No ar: 0.9.12 (viradas e pontes na música, temas de Erika a Giovanni, time no ranking; `ENGINE_VERSION` 10, Edge Function `liga` com o motor 10), Rota Índigo (`LONG_CUP_LIVE`), Copa Relâmpago e Duelo melhor de 3. Liga fechada até `LIGA_OPENS_AT`; a Copa do Dia segue no ar. Histórico: [docs/planos/historico.md](docs/planos/historico.md). Índice dos docs: `node scripts/indice.mjs`.

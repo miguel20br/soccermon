@@ -9,6 +9,32 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.14',
+        date: '2026-10-23',
+        title: 'Golpe máximo em 3 níveis, na batida',
+        sections: [
+            {
+                title: 'Golpe máximo',
+                lines: [
+                    'A barra agora tem 3 níveis e enche de novo depois de usar: golpe máximo por partida 1 ⇒ vários (a barra recarrega)',
+                    'Solte no nível 1 ou segure pro nível 3, o chute mais forte do jogo: força do chute x1,55 ⇒ x1,25 / x1,55 / x2,2 (níveis 1 / 2 / 3)',
+                    'No nível 3 o goleiro rival fica com alcance x0,7 nesse chute',
+                    'Toque quando o anel fechar no botão, na batida da música: PERFEITO! sai mais forte',
+                    'Sem som, o anel segue um pulso na tela',
+                    'Tocou um pouco antes de acender? O golpe sai no próximo chute',
+                    'Os líderes também tocam na batida, e o Lance quase sempre acerta',
+                ],
+            },
+            {
+                title: 'Defesa máxima',
+                lines: [
+                    'Com o capitão no gol, o nível dá mais tempo de defesa: 4 s ⇒ 0,75 s / 4 s / 6 s (níveis 1 / 2 / 3)',
+                    'O toque perfeito segura a bola',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.13',
         date: '2026-10-22',
         title: 'Novidades mais fáceis de ler',
@@ -1435,6 +1461,32 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.14',
+        date: '2026-10-23',
+        title: 'Max move in 3 levels, on the beat',
+        sections: [
+            {
+                title: 'Max move',
+                lines: [
+                    'The bar now has 3 levels and refills after use: max moves per match 1 ⇒ several (the bar recharges)',
+                    'Release at level 1 or hold for level 3, the strongest shot in the game: shot power x1.55 ⇒ x1.25 / x1.55 / x2.2 (levels 1 / 2 / 3)',
+                    'At level 3 the rival keeper has x0.7 reach on that shot',
+                    'Tap when the ring closes on the button, on the beat of the music: PERFECT! hits harder',
+                    'With no sound, the ring follows an on-screen pulse',
+                    'Tapped a bit before it lit up? The move comes out on the next shot',
+                    'Leaders also tap on the beat, and Lance almost always nails it',
+                ],
+            },
+            {
+                title: 'Max save',
+                lines: [
+                    'With the captain in goal, the level gives more save time: 4 s ⇒ 0.75 s / 4 s / 6 s (levels 1 / 2 / 3)',
+                    'A perfect tap holds the ball',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.13',
         date: '2026-10-22',
