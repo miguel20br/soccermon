@@ -112,9 +112,13 @@ export function mergeSettings(
 /** Recordes nunca diminuem: junta pelo maior de cada contador. */
 export function mergeRecords(a: Records, b: Partial<Records> | undefined): Records {
     const out: Records = { ...a };
-    for (const [k, v] of Object.entries(b ?? {}) as [keyof Records, number | undefined][]) {
+    for (const [k, v] of Object.entries(b ?? {}) as [Exclude<keyof Records, 'routeLock'>, number | undefined][]) {
         if (typeof v === 'number') out[k] = Math.max(out[k] ?? 0, v);
     }
+    // Rota travada: vale a que andou mais (maior n); empate, o menor sal (os dois lados escolhem o mesmo)
+    const [x, y] = [a.routeLock, b?.routeLock];
+    if (x && y) out.routeLock = x.n !== y.n ? (x.n > y.n ? x : y) : x.salt <= y.salt ? x : y;
+    else if (y) out.routeLock = y;
     return out;
 }
 

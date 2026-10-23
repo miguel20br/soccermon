@@ -141,6 +141,64 @@
     }
 }
 
+/* golpe máximo em 3 níveis: anel da batida que fecha no botão, o nível ao lado e a barra em 3 gomos */
+.sl-cue.lv3 {
+    overflow: visible;
+}
+.sl-ring {
+    position: absolute;
+    inset: -6px;
+    border: 3px solid #fff;
+    border-radius: 14px;
+    pointer-events: none;
+    /* --beat: 0 logo depois da batida, 1 na próxima (o anel encosta no botão) */
+    transform: scale(calc(1 + (1 - var(--beat, 0)) * 0.55));
+    opacity: calc(0.25 + var(--beat, 0) * 0.75);
+    box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.6);
+}
+.sl-cue-lv {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--bc-ink);
+    color: var(--yellow);
+    font-size: 12px;
+}
+.sl-max.lv3 .sl-fill,
+.sl-maxbar.lv3 i {
+    /* os 3 gomos: duas divisas fixas por cima do enchimento */
+    -webkit-mask:
+        linear-gradient(
+            90deg,
+            #000 calc(33.33% - 1px),
+            transparent 0 calc(33.33% + 1px),
+            #000 0 calc(66.66% - 1px),
+            transparent 0 calc(66.66% + 1px),
+            #000 0
+        )
+        0 0 / calc(100% / var(--fill, 1)) 100% no-repeat;
+    mask:
+        linear-gradient(
+            90deg,
+            #000 calc(33.33% - 1px),
+            transparent 0 calc(33.33% + 1px),
+            #000 0 calc(66.66% - 1px),
+            transparent 0 calc(66.66% + 1px),
+            #000 0
+        )
+        0 0 / calc(100% / var(--fill, 1)) 100% no-repeat;
+}
+.sl-maxbar.lv3 {
+    height: 5px;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.14) calc(33.33% - 1px),
+        transparent 0 calc(33.33% + 1px),
+        rgba(255, 255, 255, 0.14) 0 calc(66.66% - 1px),
+        transparent 0 calc(66.66% + 1px),
+        rgba(255, 255, 255, 0.14) 0
+    );
+}
+
 /* barrinhas do golpe máximo embaixo do placar */
 .sl-maxbars {
     display: flex;
@@ -359,6 +417,10 @@
     from {
         opacity: 0;
     }
+}
+/* sem movimento: o anel não cresce, só acende na batida */
+[data-reduce-motion="true"] .sl-ring {
+    transform: none;
 }
 [data-reduce-motion="true"] .sl-max.ready,
 [data-reduce-motion="true"] .sl-maxbar i,

@@ -104,9 +104,11 @@ export interface LineupOrder {
 export type AgencyOrder =
     | { tick: number; team: 0 | 1; seq?: number; kind: 'timeout' }
     | { tick: number; team: 0 | 1; seq?: number; kind: 'flyGk'; on: boolean }
-    | { tick: number; team: 0 | 1; seq?: number; kind: 'max' }
+    /** `q`: nota do toque na batida (0 fora, 1 bom, 2 perfeito; sem = bom). */
+    | { tick: number; team: 0 | 1; seq?: number; kind: 'max'; q?: MaxGrade }
     | { tick: number; team: 0 | 1; seq?: number; kind: 'penalties'; order: string[] };
 export type AgencyKind = AgencyOrder['kind'];
+export type MaxGrade = 0 | 1 | 2;
 export const AGENCY_KINDS: readonly AgencyKind[] = ['timeout', 'flyGk', 'max', 'penalties'];
 
 /** Ordens do técnico durante a partida (a partida é resimulada com a agenda inteira). */
@@ -265,6 +267,8 @@ export interface ShotInfo {
     onTarget: boolean;
     /** Drill Peck/Cut: já furou o primeiro bloqueio. */
     pierced?: boolean;
+    /** Golpe máximo N3: alcance do goleiro rival nesse chute (`AGENCY.maxLevelShot`). */
+    gkReach?: number;
 }
 
 export interface BallState {
@@ -345,7 +349,7 @@ export interface AgencyRuntime {
      * Golpe máximo pedido: quem (índice do capitão) e até que tick vale. `live` = defesa máxima valendo (goleiro); sem
      * `live`, a ordem está armada esperando a hora certa (`inMaxZone`).
      */
-    max: { idx: number; until: number; live: boolean } | null;
+    max: { idx: number; until: number; live: boolean; level: 1 | 2 | 3; q: MaxGrade } | null;
     /** Ordem dos cobradores de pênalti (uids; null = pelo chute, como sempre). */
     penaltyOrder: string[] | null;
 }
@@ -471,7 +475,16 @@ export type MatchEvent = MatchEventBase &
          * Golpe máximo: `hit` = saiu (o chute do capitão de linha, ou a defesa máxima do goleiro); `start` = a defesa
          * máxima começou a valer (goleiro); `miss` = ninguém chutou nela (a barra volta pela metade).
          */
-        | { type: 'max'; team: 0 | 1; by: number; phase: 'start' | 'hit' | 'miss'; moveId?: string | null }
+        | {
+              type: 'max';
+              team: 0 | 1;
+              by: number;
+              phase: 'start' | 'hit' | 'miss';
+              moveId?: string | null;
+              /** Nível que saiu e nota do toque (a tela mostra "PERFEITO!"). */
+              level?: 1 | 2 | 3;
+              q?: MaxGrade;
+          }
         /** Técnico IA avisou a ordem (vale `RIVAL_COACH.leadTicks` depois; src/engine/rival-coach.ts). */
         | ({ type: 'coach'; team: 0 | 1; leader: LeaderId } & CoachCall)
     );

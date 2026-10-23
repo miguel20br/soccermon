@@ -12,7 +12,15 @@ import {
     matchIndexOfRow,
     nextNodes,
 } from '../engine/cup-map';
-import { BENCH_SIZE, bestFit, captainOptions, DRAFT_PICKS, playerDraftOptions } from '../engine/draft';
+import {
+    BENCH_SIZE,
+    babyOptions,
+    bestFit,
+    captainOptions,
+    DRAFT_PICKS,
+    playerDraftOptions,
+    ROUTE_START_BANNED,
+} from '../engine/draft';
 import { EVO_THRESHOLD, evolutionTarget, evolveInstance, evoProgress } from '../engine/evolution';
 import { DEFAULT_FORMATION, type FormationId, formationOf } from '../engine/formations';
 import type { PokemonInstance } from '../engine/instance';
@@ -376,6 +384,11 @@ export interface Records {
     bestStreak?: number;
     /** Vitórias no Duelo (o histórico guarda só os 30 últimos; a medalha Duelista conta por aqui). */
     duelWins?: number;
+    /**
+     * Rota Índigo: a seed vem de `rota-<salt>-<n>`. `n` só sobe quando a Rota termina (título ou eliminação), então
+     * abandonar e recomeçar traz a mesma Rota (docs/planos/rota-pre-evolucoes.md).
+     */
+    routeLock?: { salt: string; n: number };
 }
 
 export type SlotRef = { zone: 'lineup' | 'bench'; index: number };
@@ -522,13 +535,23 @@ const idbStorage: StateStorage = {
     removeItem: (name) => del(name),
 };
 
+/** Seed da Rota travada: a mesma até a Rota terminar. */
+export const routeSeed = (l: { salt: string; n: number }) => `rota-${l.salt}-${l.n}`;
+
 export const isDraftComplete = (run: RunState) => [...run.lineup, ...run.bench].every((u) => u !== '');
 export const slotRole = (run: RunState, slot: SlotRef) =>
     slot.zone === 'bench' ? 'ANY' : formationOf(run.formation).slots[slot.index];
 
 function rollCaptains(run: RunState): PokemonInstance[] {
     const rng = new Rng(run.seed, `captain-r${run.rerollsUsed}`);
-    return captainOptions(rng, new Set()).map((o) => rollSpecial(o, run.eventType ?? null));
+    // Rota: capitão na forma-base da linha e sem os sem-linha fortes (entram pelo Baú e reforços)
+    if (!isLong(run)) return captainOptions(rng, new Set()).map((o) => rollSpecial(o, run.eventType ?? null));
+    const opts = babyOptions(
+        captainOptions(rng, ROUTE_START_BANNED),
+        new Rng(run.seed, `baby-cap-r${run.rerollsUsed}`),
+        new Set(),
+    );
+    return opts.map((o) => rollSpecial(o, run.eventType ?? null));
 }
 
 function rollOptions(run: RunState, slot: SlotRef): PokemonInstance[] {
@@ -537,7 +560,16 @@ function rollOptions(run: RunState, slot: SlotRef): PokemonInstance[] {
     const rng = new Rng(run.seed, `draft-${run.draftRound}-${role}-r${run.rerollsUsed}`);
     // Copa longa: o time começa mais fraco (uma linha abaixo; o capitão continua raro) e cresce pelo mapa
     const round = isLong(run) ? Math.max(0, run.draftRound - 1) : run.draftRound;
-    return playerDraftOptions(rng, round, taken, role).map((o) => rollSpecial(o, run.eventType ?? null));
+    if (!isLong(run))
+        return playerDraftOptions(rng, round, taken, role).map((o) => rollSpecial(o, run.eventType ?? null));
+    // Rota: forma-base da linha (o time cresce evoluindo) e sem os sem-linha fortes
+    const banned = new Set([...taken, ...ROUTE_START_BANNED]);
+    const opts = babyOptions(
+        playerDraftOptions(rng, round, banned, role),
+        new Rng(run.seed, `baby-${run.draftRound}-${role}-r${run.rerollsUsed}`),
+        taken,
+    );
+    return opts.map((o) => rollSpecial(o, run.eventType ?? null));
 }
 
 /** Recompensas da fase; o reforço sorteado (não o contratado do adversário) pode vir com edição especial. */
@@ -1131,7 +1163,12 @@ export const useGame = create<GameStore>()(
                 go: (screen) => setState({ screen }),
 
                 newRun: (teamName = getState().profile.clubName || 'Pallet FC', seed, daily, mode) => {
-                    const runSeed = seed ?? Math.floor(Math.random() * 1e9).toString(36);
+                    const lockOn = mode === 'longa' && !seed && !daily;
+                    const lock = getState().records.routeLock ?? {
+                        salt: Math.floor(Math.random() * 1e9).toString(36),
+                        n: 0,
+                    };
+                    const runSeed = seed ?? (lockOn ? routeSeed(lock) : Math.floor(Math.random() * 1e9).toString(36));
                     const run: RunState = {
                         schemaVersion: 3,
                         seed: runSeed,
@@ -1173,8 +1210,12 @@ export const useGame = create<GameStore>()(
                         // a 1ª copa é a entrada no jogo (era o fim do passo a passo de boas-vindas)
                         onboarded: true,
                         daily: closeDaily(getState()),
-                        ...(isCupInProgress(getState().run) && {
-                            records: { ...records, ...streakAfter(records, false) },
+                        ...((isCupInProgress(getState().run) || lockOn) && {
+                            records: {
+                                ...records,
+                                ...(isCupInProgress(getState().run) && streakAfter(records, false)),
+                                ...(lockOn && { routeLock: lock }),
+                            },
                         }),
                     });
                 },
@@ -1565,6 +1606,10 @@ export const useGame = create<GameStore>()(
                                   titles: records.titles + (status === 'champion' ? 1 : 0),
                                   perfect: records.perfect + (isPerfectCup(next) ? 1 : 0),
                                   ...streakAfter(records, status === 'champion'),
+                                  ...(records.routeLock &&
+                                      run.seed === routeSeed(records.routeLock) && {
+                                          routeLock: { ...records.routeLock, n: records.routeLock.n + 1 },
+                                      }),
                                   ...(isLong(run) && {
                                       longCups: (records.longCups ?? 0) + 1,
                                       longTitles: (records.longTitles ?? 0) + (status === 'champion' ? 1 : 0),

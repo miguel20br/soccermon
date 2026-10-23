@@ -1,5 +1,5 @@
 import { abilityEffect, isStatusImmune } from './abilities';
-import { AGENCY, inMaxZone, maxCharge } from './agency';
+import { AGENCY, inMaxZone, maxCharge, maxGraded } from './agency';
 import {
     type AttrKey,
     aerialScore,
@@ -62,6 +62,7 @@ import {
     type MatchEvent,
     type MatchSnapshot,
     type MatchState,
+    type MaxGrade,
     type PlayerState,
     type SetPiece,
     STATUS_CODE,
@@ -1060,7 +1061,10 @@ function kick(
     } else {
         // golpe máximo do capitão: armado, o chute da zona sai com a versão máxima do golpe dele
         const max = s.teams[p.team].agency.max;
-        if (max && !max.live && max.idx === p.idx && p.captain && p.role !== 'GK' && inMaxZoneOf(s, p)) maxShot(s, p);
+        const maxReach =
+            max && !max.live && max.idx === p.idx && p.captain && p.role !== 'GK' && inMaxZoneOf(s, p)
+                ? maxShot(s, p, max)
+                : 1;
         const shooting = eff(s, p, 'shooting');
         const bonus = p.shotBonus;
         // Scope Lens: chute crítico
@@ -1106,6 +1110,7 @@ function kick(
         p.stats.shots++;
         const xg = expectedGoals(p.pos, goalXFor(s, p.team), s.cfg.pitch.width / 2, s.cfg.pitch.goalWidth);
         ball.shot = { by: p.idx, xg, moveId, moveType, gkChecked: false, blockedBy: [], onTarget: false };
+        if (maxReach !== 1) ball.shot.gkReach = maxReach;
         emit(s, { type: 'shot', by: p.idx, xg, moveId });
     }
 
@@ -2259,11 +2264,13 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
             // chute que ia para fora não vira "defesa" (era 1/3 das defesas e gerava "QUE DEFESA!" à toa)
             if (shot.gkChecked || !shot.onTarget) continue;
             // defesa máxima (beira da quadra): alcança bem mais longe e não deixa passar
-            const maxSave = gkMaxLive(s, p);
+            const max = s.teams[p.team].agency.max;
+            const maxSave = gkMaxLive(s, p) && max ? max : null;
             const reach =
                 (0.55 + (1.0 * eff(s, p, 'goalkeeping')) / 99) *
                 (lob ? T.lobGkReach : 1) *
-                (maxSave ? AGENCY.maxGkReach : 1);
+                (maxSave ? gkMaxReach(maxSave) : 1) *
+                (shot.gkReach ?? 1);
             if (d > reach) continue;
             shot.gkChecked = true;
             const gkTypeMult = fixed ? 1 : typeMultiplier(typesOf(p), [shot.moveType]);
@@ -2288,7 +2295,7 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
             }
             if (maxSave || sash || s.rng.chance(pSave)) {
                 p.stats.saves++;
-                const caught = maxSave || (felt < 17 && s.rng.chance(0.55 + (0.3 * gk) / 99));
+                const caught = maxSave ? maxSave.q === 2 : felt < 17 && s.rng.chance(0.55 + (0.3 * gk) / 99);
                 emit(s, { type: 'save', by: p.idx, shooter: shooter.idx, caught });
                 ball.shot = null;
                 // o contato nunca fica atrás do goleiro (entre ele e o gol): a bola parecia ter passado e virava
@@ -2305,8 +2312,9 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
                     ball.lastTouch = p.idx;
                     ball.assistCandidate = null;
                     p.ai.holdUntil = s.tick + Math.round(0.8 * s.cfg.tickRate);
-                    if (maxSave) gkMaxSave(s, p);
-                } else if (!tryRebound(s, shooter, moveId, ball.pos)) {
+                }
+                if (maxSave) gkMaxSave(s, p, maxSave, caught);
+                if (!caught && !tryRebound(s, shooter, moveId, ball.pos)) {
                     ball.lastTouch = p.idx;
                     ball.lastKick = { by: p.idx, kind: 'clear', tick: s.tick };
                     // chute no canto às vezes vai pra fora (escanteio); senão espalma para o lado, pra frente
@@ -3268,7 +3276,7 @@ export function applyAgencyOrder(s: MatchState, o: AgencyOrder) {
             return;
         }
         case 'max':
-            startMax(s, o.team);
+            startMax(s, o.team, o.q ?? 1);
             return;
         case 'penalties':
             ag.penaltyOrder = [...o.order];
@@ -3318,14 +3326,17 @@ export const inMaxZoneOf = (s: MatchState, p: PlayerState, role: Position = p.ro
  * Pede o golpe máximo: com a barra cheia, fica armado `maxArmTicks`. O de linha sai no chute da zona (a IA chuta na
  * hora, `AIController.carrier`); o do goleiro vira a defesa máxima quando um rival com a bola entra na zona.
  */
-function startMax(s: MatchState, team: 0 | 1) {
+function startMax(s: MatchState, team: 0 | 1, q: MaxGrade) {
     const ag = s.teams[team].agency;
     const cap = s.players.find((p) => p.team === team && p.captain);
     if (!cap || ag.max) return;
     const c = maxCharge(s.events, team, s.tick, s.cfg.teamSize);
-    if (c.used || c.active || c.charge < 1) return;
-    ag.max = { idx: cap.idx, until: s.tick + AGENCY.maxArmTicks, live: false };
+    if (c.active || c.level < 1) return;
+    ag.max = { idx: cap.idx, until: s.tick + AGENCY.maxArmTicks, live: false, level: c.level as 1 | 2 | 3, q };
 }
+
+/** Nível e nota no evento `max` (a tela mostra "PERFEITO!"). */
+const maxTag = (max: { level: 1 | 2 | 3; q: MaxGrade }) => ({ level: max.level, q: max.q });
 
 /**
  * A cada tick com golpe máximo pedido: o goleiro arma a defesa máxima quando o rival com a bola entra na zona; o pedido
@@ -3339,7 +3350,7 @@ function updateMax(s: MatchState) {
         const cap = s.players[max.idx];
         if (!cap.captain || s.tick >= max.until) {
             ag.max = null;
-            if (max.live) emit(s, { type: 'max', team, by: max.idx, phase: 'miss' });
+            if (max.live) emit(s, { type: 'max', team, by: max.idx, phase: 'miss', ...maxTag(max) });
             continue;
         }
         if (max.live || cap.role !== 'GK' || s.phase !== 'play') continue;
@@ -3350,23 +3361,26 @@ function updateMax(s: MatchState) {
             s.ball.owner !== null ? s.players[s.ball.owner] : shot && !shot.gkChecked ? s.players[shot.by] : null;
         if (!carrier || carrier.team === team || !inMaxZoneOf(s, carrier, 'GK')) continue;
         max.live = true;
-        max.until = s.tick + AGENCY.maxGkTicks;
-        emit(s, { type: 'max', team, by: cap.idx, phase: 'start', moveId: null });
+        max.until = s.tick + AGENCY.maxLevelGk[max.level].ticks;
+        emit(s, { type: 'max', team, by: cap.idx, phase: 'start', moveId: null, ...maxTag(max) });
     }
 }
 
 /** O chute do capitão armado na zona: a versão máxima do golpe dele (bem mais forte e mais certeiro). */
-function maxShot(s: MatchState, p: PlayerState) {
+function maxShot(s: MatchState, p: PlayerState, max: { level: 1 | 2 | 3; q: MaxGrade }) {
     const moveId = maxMoveOf(p.inst.moves, p.inst.speciesId);
     s.teams[p.team].agency.max = null;
+    const fx = AGENCY.maxLevelShot[max.level];
     p.shotBonus = {
-        power: AGENCY.maxShot.power,
-        accuracy: AGENCY.maxShot.accuracy,
+        power: maxGraded(fx.power, max.q),
+        accuracy: maxGraded(fx.accuracy, max.q),
         moveType: moveId ? (MOVES[moveId]?.type ?? typesOf(p)[0]) : typesOf(p)[0],
         moveId: moveId ?? '',
         timer: 1,
     };
-    emit(s, { type: 'max', team: p.team, by: p.idx, phase: 'hit', moveId });
+    emit(s, { type: 'max', team: p.team, by: p.idx, phase: 'hit', moveId, ...maxTag(max) });
+    // alcance do goleiro rival nesse chute (N3)
+    return maxGraded(fx.rivalReach, max.q);
 }
 
 /** Defesa máxima do goleiro valendo agora (o próximo chute no gol é dele). */
@@ -3375,12 +3389,18 @@ const gkMaxLive = (s: MatchState, gk: PlayerState) => {
     return !!max?.live && max.idx === gk.idx;
 };
 
-/** A defesa máxima saiu: segura a bola e sai jogando na hora (0,15 s em vez de 0,8 s), puxando o contra-ataque. */
-function gkMaxSave(s: MatchState, gk: PlayerState) {
+/**
+ * A defesa máxima saiu: segurando, sai jogando na hora (0,15 s em vez de 0,8 s), puxando o contra-ataque. Em níveis, só
+ * o toque perfeito segura; bom e fora espalmam.
+ */
+function gkMaxSave(s: MatchState, gk: PlayerState, max: { level: 1 | 2 | 3; q: MaxGrade }, caught: boolean) {
     s.teams[gk.team].agency.max = null;
-    emit(s, { type: 'max', team: gk.team, by: gk.idx, phase: 'hit', moveId: null });
-    gk.ai.holdUntil = s.tick + 3;
+    emit(s, { type: 'max', team: gk.team, by: gk.idx, phase: 'hit', moveId: null, ...maxTag(max) });
+    if (caught) gk.ai.holdUntil = s.tick + 3;
 }
+
+/** Alcance da defesa máxima no nível e na nota. */
+const gkMaxReach = (max: { level: 1 | 2 | 3; q: MaxGrade }) => maxGraded(AGENCY.maxLevelGk[max.level].reach, max.q);
 
 /** Cobradores na ordem: a do técnico (quem saiu vale como quem entrou), senão pelo chute, como sempre. */
 function penaltyTakers(s: MatchState, team: 0 | 1): PlayerState[] {

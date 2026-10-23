@@ -7,7 +7,7 @@ import { FUTSAL_5 } from './config';
 import { CLUBS, clubLeader, cupRival } from './cup';
 import { matchHash } from './determinism';
 import { aiDraftTeam } from './draft';
-import { COACH_LEADERS } from './rival-coach';
+import { COACH_LEADERS, RIVAL_COACH } from './rival-coach';
 import { Rng } from './rng';
 import { runMatch } from './runners/batch-runner';
 import type { MatchEvent, MatchOrder, TeamSetup } from './state';
@@ -92,5 +92,24 @@ describe('técnico rival que reage (beira da quadra)', () => {
         const mine = runMatch(FUTSAL_5, A, away, 'rc-react', { snapshots: false, orders });
         const earlier = (evs: MatchEvent[]) => coachEvents(evs).filter((e) => e.tick < T);
         expect(earlier(mine.events)).toEqual(earlier(base.events));
+    });
+});
+
+describe('técnico rival com o golpe máximo em 3 níveis', () => {
+    it('sorteia a nota (determinística) e solta no N2/N3, ou no N1 perdendo no fim', () => {
+        let calls = 0;
+        for (const [k, leader] of COACH_LEADERS.entries()) {
+            const away = { ...B, coach: leader };
+            const r = runMatch(FUTSAL_5, A, away, `rc-lv-${k}`, { snapshots: false });
+            expect(matchHash(runMatch(FUTSAL_5, A, away, `rc-lv-${k}`, { snapshots: false }))).toBe(matchHash(r));
+            for (const c of coachEvents(r.events).filter((c) => c.call === 'max')) {
+                calls++;
+                expect([0, 1, 2]).toContain(c.call === 'max' && c.q);
+                const hit = r.events.find((e) => e.type === 'max' && e.team === 1 && e.tick > c.tick);
+                if (hit?.type !== 'max' || hit.level !== 1) continue;
+                expect(c.minute).toBeGreaterThanOrEqual(RIVAL_COACH.maxN1From);
+            }
+        }
+        expect(calls).toBeGreaterThan(0);
     });
 });

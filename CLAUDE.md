@@ -86,6 +86,7 @@ npm run fonts    # refaz o subset das Galmuri (public/fonts) quando o teste das 
 
 - **Deploy:** push na `main` publica sozinho em produção (Vercel ligada ao GitHub). O CI do GitHub roda lint,
   testes e build em todo push e PR.
+- **Ritmo:** versões menos frequentes e polidas, revisão dupla antes do "pode subir", trailerzinho 9:16.
 - **Versão nova:** atualize `src/ui/patch-notes.ts` (aparece em Novidades no jogo), gere o `CHANGELOG.md` a
   partir dele, suba `version` no `package.json` e crie a tag `vX.Y.Z`. Commits em português, terminando com a
   linha `Co-Authored-By` do Claude. **E-mail dos commits: `105948884+miguel20br@users.noreply.github.com`**
@@ -141,9 +142,9 @@ Aprovadas pelo Miguel ("1a a 9a"); **cada tarefa é avaliada por si**, não é a
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (22/10/2026, v0.9.13)
+## Estado atual (23/10/2026, v0.9.15)
 
-No ar: 0.9.12 (viradas e pontes na música, temas de Erika a Giovanni, time no ranking; `ENGINE_VERSION` 10, Edge Function `liga` com o motor 10), Rota Índigo (`LONG_CUP_LIVE`), Copa Relâmpago e Duelo melhor de 3. Liga fechada até `LIGA_OPENS_AT`; a Copa do Dia segue no ar. Histórico: [docs/planos/historico.md](docs/planos/historico.md). Índice dos docs: `node scripts/indice.mjs`.
+No ar: 0.9.15 (Rota de baby) e 0.9.14 (golpe máximo em 3 níveis; `ENGINE_VERSION` 11, `liga` com o motor 11), Rota Índigo (`LONG_CUP_LIVE`), Copa Relâmpago e Duelo melhor de 3. Liga fechada até `LIGA_OPENS_AT`. Histórico: [docs/planos/historico.md](docs/planos/historico.md). Índice dos docs: `node scripts/indice.mjs`.
 
 ## Armadilhas (o porquê de cada uma)
 

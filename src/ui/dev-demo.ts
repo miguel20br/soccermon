@@ -485,6 +485,8 @@ export function runDevDemo() {
     }
     if (demo === 'maximo') {
         const gk = new URLSearchParams(window.location.search).get('goleiro') === '1';
+        // &nivel=N espera a barra chegar no gomo N (1 a 3)
+        const nivel = Math.min(3, Math.max(1, Number(new URLSearchParams(window.location.search).get('nivel')) || 1));
         for (let k = 0; k < 120; k++) {
             store.newRun('Demo FC', `max${k}`);
             const base = useGame.getState().run!;
@@ -511,7 +513,7 @@ export function runDevDemo() {
                 live.step();
                 const owner = s.ball.owner === null ? null : s.players[s.ball.owner];
                 const cap = s.players.find((p) => p.team === 0 && p.captain);
-                if (s.phase !== 'play' || !owner || !cap || maxCharge(s.events, 0, s.tick).charge < 1) continue;
+                if (s.phase !== 'play' || !owner || !cap || maxCharge(s.events, 0, s.tick, 5).level < nivel) continue;
                 if (gk ? owner.team === 1 && inMaxZoneOf(s, owner, 'GK') : owner === cap && inMaxZoneOf(s, cap))
                     at = s.tick;
             }

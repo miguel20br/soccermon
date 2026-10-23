@@ -1,6 +1,6 @@
 // Progressão da Rota Índigo (docs/planos/rota-progressao.md): o robô da Copa longa com o time e o rival medidos por
 // partida, e as opções de draft mais fraco no começo simuladas sem mexer no jogo (vi.mock no draft).
-// Uso: SIM=200 OPCAO=hoje|teto|vagas|raridade [CAP=80] [RIVAL=-1,0,0,0] SIM_OUT=saida.json \
+// Uso: SIM=200 OPCAO=hoje|teto|vagas|raridade|baby [EVO_AT=n] [CAP_FULL=1] [CAP=80] [RIVAL=-1,0,0,0] SIM_OUT=saida.json \
 //      npx vitest run scripts/balance/rota-progressao.sim.test.ts   (sem SIM, pulado no CI)
 import { writeFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
@@ -46,6 +46,24 @@ vi.mock('../../src/engine/draft', async (orig) => {
             );
             return pool.length ? createInstance(rng.pick(pool).id, rng) : o;
         });
+    /** Pré-evolução (docs/planos/rota-pre-evolucoes.md): cada opção vira a forma-base da linha; sem pré-evolução fica como está. */
+    const rootOf = (id: number) => {
+        let sp = SPECIES[id - 1];
+        while (sp.prevo) sp = SPECIES[sp.prevo - 1];
+        return sp.id;
+    };
+    const babyfy = (out: ReturnType<typeof m.draftOptions>, taken: ReadonlySet<number>) => {
+        const used = new Set<number>();
+        return out.map((o) => {
+            const root = rootOf(o.speciesId);
+            if (root === o.speciesId || taken.has(root) || used.has(root)) {
+                used.add(o.speciesId);
+                return o;
+            }
+            used.add(root);
+            return { ...createInstance(root, new Rng(o.uid, 'baby')), uid: o.uid };
+        });
+    };
     return {
         ...m,
         playerDraftOptions: (...a: Parameters<typeof m.playerDraftOptions>) => {
@@ -65,6 +83,7 @@ vi.mock('../../src/engine/draft', async (orig) => {
                 );
             if (op === 'raridade')
                 return clamp(rng, out, need, taken, (sp) => sp.tier !== 'epic' && sp.tier !== 'legendary');
+            if (op === 'baby') return babyfy(out, taken);
             return out;
         },
         captainOptions: (...a: Parameters<typeof m.captainOptions>) => {
@@ -72,6 +91,7 @@ vi.mock('../../src/engine/draft', async (orig) => {
             let out = m.captainOptions(...a);
             if (!phase.__draft) return out;
             if (op === 'raridade') out = clamp(rng, out, 'ANY', taken, (sp) => sp.tier === 'rare');
+            if (op === 'baby' && !process.env.CAP_FULL) out = babyfy(out, taken);
             if (cap)
                 out = clamp(
                     rng,
@@ -116,6 +136,7 @@ import { FUTSAL_5 } from '../../src/engine/config';
 import { nextNodes } from '../../src/engine/cup-map';
 import { SPECIES } from '../../src/engine/data';
 import { bestFit, canPlay, captainOptions, playerDraftOptions } from '../../src/engine/draft';
+import { evolutionTarget, evolveInstance } from '../../src/engine/evolution';
 import { formationOf } from '../../src/engine/formations';
 import { createInstance, type PokemonInstance, slotRating } from '../../src/engine/instance';
 import { Rng } from '../../src/engine/rng';
@@ -250,6 +271,20 @@ function star(seed: string) {
     });
 }
 
+/** EVO_AT=n: depois da vitória na partida n-1 (0 = Rota 1), todo o time que tem evolução evolui (a regra "evolui na Rota"). */
+const EVO_AT = Number(process.env.EVO_AT ?? 0);
+function evolveAll() {
+    const run = g().run!;
+    const slots = formationOf(run.formation).slots;
+    const picks = run.picks.map((p) => {
+        const into = evolutionTarget(p.speciesId, p.uid);
+        if (into === null || p.ability === 'imposter') return p;
+        const k = run.lineup.indexOf(p.uid);
+        return evolveInstance(p, into, k >= 0 ? slots[k] : undefined);
+    });
+    useGame.setState({ run: { ...run, picks } });
+}
+
 interface Stage {
     stage: number;
     me: number;
@@ -300,6 +335,7 @@ function play(seed: string) {
             const won = g().run!.results.at(-1)!.won;
             stages.push({ stage: cur.stage, me: avg(cur.lockedTeam!), rival: avg(opp), won });
             if (OP === 'vagas' && won && cur.stage < 3) openSlot(seed, rookie, cur.stage);
+            if (OP === 'baby' && EVO_AT && won && cur.stage === EVO_AT - 1) evolveAll();
         } else if (run.status === 'reward') takeReward();
         else if (run.status === 'shop') {
             const i = run.shop!.offers.findIndex((o) => o.kind === 'sponsor' && o.price <= (run.money ?? 0));
