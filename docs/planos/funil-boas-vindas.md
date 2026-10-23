@@ -61,7 +61,8 @@ reconhecido pela origem (`utm_source`/referrer), então quem entra por ali sem o
 ```
 
 Leitura: abriu → começou a 1ª copa é **41%** nas novas (celular 67%, desktop 25%, tablet 10%); começou → jogou a 1ª
-partida, 17 de 25 (68%). O vazamento da entrada é de desktop e tablet, não de celular.
+partida, 17 de 25 (68%). O vazamento da entrada é de desktop e tablet, não de celular. A seção **Desktop**, logo
+abaixo, mostra que ele é quase todo de sessões sem nenhum clique.
 
 ## 2. É medição? Em parte, sim
 
@@ -151,6 +152,94 @@ O que chamou atenção:
 
 A carga pesa no celular em rede ruim, mas não explica 41%. Em rede boa a Home aparece em meio segundo e a queda
 continua.
+
+## Desktop: os 25% são, na maior parte, sessão sem nenhum clique
+
+Pergunta: por que no desktop só 25% das sessões novas começam a 1ª copa (celular 67%, tablet 10%)? Resposta curta:
+**não achei nada quebrado no desktop.** A diferença vem de sessões que abrem e não clicam em nada, e boa parte delas
+tem cara de robô.
+
+### Os dados (`npm run stats`, 23/10 às 19h, 7 e 14 dias)
+
+O script ganhou a tabela "Sessões novas por aparelho: toque e origem". "Sem nenhum toque" é a sessão que só mandou o
+`session_start` (e o `coach_shown`, que aparece sozinho): ninguém clicou nem no balão.
+
+| Aparelho (7 dias) | Novas | Sem nenhum toque | Das que tocaram, começaram a copa | Origens |
+|---|---:|---:|---:|---|
+| celular | 27 | 6 (22%) | 18 de 21 | direto 15, google 9, vercel.app 2, share 1 |
+| desktop | 24 | 13 (54%) | 6 de 11 | direto 14, google 5, vercel.app 3, facebook 1 |
+| tablet | 10 | 8 (80%) | 1 de 2 | direto 9, google 1 |
+
+Em 14 dias o desenho é o mesmo: desktop 18 de 33 sem toque (55%), celular 7 de 34 (21%).
+
+- **Quem toca em alguma coisa no desktop começa a copa.** As 5 de 11 que tocaram e não começaram são todas do fluxo
+  antigo (até a 0.9.1): passaram pelas boas-vindas em tela cheia e pararam na Home. Esse fluxo não existe mais.
+  Desde a 0.9.2 foram só 4 sessões novas de desktop: 1 jogou, 3 sem nenhum toque.
+- **De onde vêm:** das 18 de desktop sem toque em 14 dias, **14 não têm origem nenhuma** ("direto"); 1 veio do
+  Google, 1 do X (t.co), 1 do vercel.app e 1 do Facebook (com um "Script error.", cara de prévia de link). Quem vem do
+  Google no desktop (5 sessões) clica: 1 jogou e 3 passaram das boas-vindas antigas. Nada do GitHub.
+- **Onde param:** na Home. Nenhuma das sem toque abriu outra tela nem fechou o balão (zero `coach_skip`, que sai
+  quando alguém clica fora dele).
+- **Quanto tempo ficam:** não dá pra medir. Os eventos vão em lote (a cada 8 s ou ao fechar a aba) e o `created_at`
+  é a hora do lote, então uma sessão de um lote só tem duração zero, tenha ficado 2 s ou 2 min.
+
+### A 1ª visita no desktop: nada quebrado
+
+`soccermon.com` sem save, Playwright sem janela, com o envio das estatísticas bloqueado (`route` no `game_events`)
+pra não sujar o placar. Clique de mouse de verdade no centro do Nova copa.
+
+| Navegador | Tamanho | Home pronta | Nova copa | 1º clique | Erros |
+|---|---|---:|---|---|---|
+| Chromium | 1440x900, 1366x768, 1920x1080 | 0,8–2,1 s | na dobra (y 600–673) | abre a formação | nenhum |
+| Chromium | 1280x720 | 0,7 s | na tela; a página abre rolada 291 px (o balão rola até o botão, o logo sai) | abre a formação | nenhum |
+| Firefox | 1440x900, 1366x768, 1280x720 | 1,3–1,6 s | igual ao Chromium | abre a formação | só avisos: AudioContext antes do 1º toque (ZzFX) e o botão do Google |
+| WebKit | 1440x900, 1366x768 | 1,3–1,7 s | igual | abre a formação | nenhum |
+| Chromium (comparação) | 390x844 celular | 0,7 s | y 661–730 | abre a formação | nenhum |
+
+Sem rolagem pro lado, WebGL disponível nos três, fontes Galmuri carregadas, nenhuma resposta HTTP de erro. A Home não
+usa Phaser (zero `canvas`), então WebGL não trava a entrada. O áudio não bloqueia nada: o Firefox só avisa que o
+contexto espera o primeiro toque. O único problema de toque é o já conhecido: com o balão aberto, clicar no vermelho
+"Começar a Rota" só fecha o balão (consertado nesta branch, em `Coach.tsx`). Mas quem faz isso gera um `coach_skip`,
+e as sessões sem toque não têm nenhum.
+
+### Robôs: dá pra reconhecer em parte
+
+O evento não grava user agent, e o log da API do Supabase (que tem) não abre com o token daqui
+(`analytics_logs_read`). Mesmo assim:
+
+1. **Todo navegador automatizado cai em "desktop" ou "tablet".** O `device` sai do tamanho da janela. O Playwright
+   abre em 1280x720 (desktop) e o Puppeteer e o `chrome --headless --screenshot` em 800x600 (tablet). Nos três
+   navegadores do Playwright `navigator.webdriver` é `true`.
+2. **Nossos próprios testes no ar contaram.** O teste do Claude em 17/10 (`prod.js`, 01:43 UTC, vários tamanhos)
+   bate segundo a segundo com 6 sessões "novas" (4 celular, 1 deitado, 1 desktop, três delas às 01:48:09). Essas
+   jogaram, então incharam o celular, não derrubaram o desktop.
+3. **O tablet tem um robô com hora marcada.** Das 8 sessões de tablet sem toque em 14 dias, 7 começaram entre os
+   minutos :15 e :19 de alguma hora (UTC), quase todas entre 23h e 3h no Brasil, todas sem origem. Ao acaso, cair
+   7 de 8 numa janela qualquer de 5 minutos tem chance menor que 1 em 100 mil. É um agendador, não gente.
+4. **Desktop sem toque não tem um padrão tão limpo.** Minutos espalhados, metade de dia. Parte é robô (sem origem,
+   madrugada, 1280x720), parte é gente do Google que olha e sai. Os dados de hoje não separam as duas.
+
+Não bateu com hora de deploy (testei a distância de cada sessão pro deploy de produção mais próximo).
+
+### O que mudou nesta branch
+
+- **`src/analytics/track.ts`: robô não manda estatística.** `isBot` liga quando `navigator.webdriver` é `true`
+  (Playwright, Puppeteer, Selenium, inclusive os nossos testes no ar) ou o user agent é de rastreador conhecido
+  (Googlebot, Bingbot, HeadlessChrome, Lighthouse…), pela lista de nomes e não por "bot" solto (celular CUBOT tem
+  "bot" no nome). Teste em `track.test.ts`.
+- **`scripts/stats.ts`:** a tabela "toque e origem" por aparelho, acima.
+
+### Proposta
+
+1. **Subir o filtro de robô** (é conserto de medição, sobe sem perguntar pela regra 5) e **esperar 1 a 2 semanas**
+   antes de mexer na tela por causa do desktop. Se o tablet cair pra quase zero e o desktop sem toque cair junto,
+   era robô.
+2. **Ler o funil pela coluna "Tocou → começou"** além do "Abriu → começou": ela mostra a entrada de quem de fato
+   interagiu. Hoje dá celular 18/21 e desktop 6/11 (e 100% desde a 0.9.2, mas com 1 sessão).
+3. **Se depois do filtro o desktop sem toque continuar acima de ~30%,** é gente olhando e saindo. Aí a resposta é a
+   mesma do celular, não uma tela própria pro desktop: a Home de um botão (opção B), que no desktop também tiraria o
+   balão rolando a página em 1280x720 (o logo e a quadra somem no 1º segundo).
+4. **Não proponho layout próprio pro desktop:** nada nos prints indica corte, botão escondido ou erro.
 
 ## 4. Como os outros fazem
 

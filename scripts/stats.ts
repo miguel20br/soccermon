@@ -309,6 +309,29 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
         ['Aparelho', ...FH],
         count(novasDentro, tipo).map(([a]) => [a, ...funilDe(novasDentro.filter((s) => tipo(s) === a))]),
     );
+    // Sem nenhum toque: só o session_start (e o balão que aparece sozinho). Robô que roda JavaScript e quem fecha a aba
+    // sem clicar em nada ficam aqui; o tempo na página não dá pra medir (os eventos chegam em lote, created_at é do lote).
+    const PASSIVO = new Set(['session_start', 'coach_shown', 'error']);
+    const semToque = (s: string) => [...(nomesPorSessao.get(s) ?? [])].every((n) => PASSIVO.has(n));
+    line();
+    line(MD ? '**Sessões novas por aparelho: toque e origem**' : '  Sessões novas por aparelho: toque e origem');
+    tabela(
+        ['Aparelho', 'Novas', 'Sem nenhum toque', 'Tocou → começou', 'Origens (novas)'],
+        count(novasDentro, tipo).map(([a]) => {
+            const ss = novasDentro.filter((s) => tipo(s) === a);
+            const tocou = ss.filter((s) => !semToque(s));
+            return [
+                a,
+                ss.length,
+                `${ss.length - tocou.length} (${pct(ss.length - tocou.length, ss.length)})`,
+                `${tocou.filter((s) => etapa(s) >= 1).length}/${tocou.length}`,
+                count(ss, canalDe)
+                    .slice(0, 4)
+                    .map(([c, n]) => `${c} ${n}`)
+                    .join(' · '),
+            ];
+        }),
+    );
     line();
     line(MD ? '**Fora do funil (só sessões novas)**' : '  Fora do funil (só sessões novas)');
     tabela(

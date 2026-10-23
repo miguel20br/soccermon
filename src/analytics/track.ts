@@ -18,8 +18,19 @@ interface Row {
     device: string;
 }
 
-/** Só no site oficial: prévias da Vercel, staging e o endereço antigo não sujam as estatísticas. */
-const ENABLED = import.meta.env.PROD && !!cloudApi && window.location.hostname === 'soccermon.com';
+/**
+ * Robô não é jogador: navegador automatizado (Playwright, Puppeteer, Selenium: `navigator.webdriver`, inclusive os
+ * nossos testes no ar, que abrem em 1280x720 e contavam como "desktop novo") e os rastreadores que rodam JavaScript.
+ * Pela lista de nomes, não por "bot" solto: celular CUBOT tem "bot" no user agent.
+ */
+export const isBot = (nav: { webdriver?: boolean; userAgent?: string }) =>
+    nav.webdriver === true ||
+    /googlebot|google-inspectiontool|bingbot|yandex|baiduspider|duckduckbot|applebot|ahrefs|semrush|petalbot|bytespider|gptbot|claudebot|headlesschrome|lighthouse|crawler|spider/i.test(
+        nav.userAgent ?? '',
+    );
+
+/** Só no site oficial: prévias da Vercel, staging e o endereço antigo não sujam as estatísticas. Robô também não. */
+const ENABLED = import.meta.env.PROD && !!cloudApi && window.location.hostname === 'soccermon.com' && !isBot(navigator);
 const FLUSH_MS = 8000;
 
 /**
