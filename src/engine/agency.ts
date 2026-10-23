@@ -32,6 +32,25 @@ export const AGENCY = {
     /** O chute máximo: bem mais forte e mais certeiro que o golpe normal. */
     maxShot: { power: 1.55, accuracy: 1.6 },
     /**
+     * Golpe máximo em 3 níveis (`MatchConfig.maxLevels`, atrás de `?maximo3=1`; docs/planos/golpe-maximo-niveis.md):
+     * a barra tem 3 gomos de `maxLevelPts`, o toque gasta a barra toda e o golpe sai no nível dela; depois volta a
+     * encher. Índice = nível (o 0 não solta). N2 = o máximo de 1 nível. `rivalReach`: alcance do goleiro rival nesse
+     * chute. Goleiro: `ticks` de defesa máxima e alcance.
+     */
+    maxLevelPts: 12,
+    maxLevelShot: [
+        null,
+        { power: 1.25, accuracy: 1.3, rivalReach: 1 },
+        { power: 1.55, accuracy: 1.6, rivalReach: 1 },
+        { power: 1.8, accuracy: 2, rivalReach: 0.8 },
+    ],
+    maxLevelGk: [null, { ticks: 40, reach: 1.1 }, { ticks: 80, reach: 1.25 }, { ticks: 120, reach: 1.4 }],
+    /**
+     * Nota do toque na batida (`q` da ordem: 0 fora, 1 bom, 2 perfeito): quanto da parte extra do nível vale. Fora nunca
+     * zera (diversão antes de punição). Ordem sem `q` vale como bom.
+     */
+    maxGrade: [0.4, 0.7, 1],
+    /**
      * Zona do golpe máximo pela posição do capitão (Miguel, 22/10/2026: com 15 m pra todos o fixo quase nunca tinha a
      * hora certa): até `range` metros do gol e com ângulo (xG mínimo, a mesma conta da IA pra chutar). O xG de 0,06 só
      * chega a ~19,8 m no meio, então o fixo tem o dele. O goleiro é a zona do rival na defesa máxima.
@@ -105,6 +124,8 @@ const MAX_POINTS = { tackle: 1, interception: 0.5, save: 1, shot: 0.5, move: 0.5
 export interface MaxCharge {
     /** 0..1 */
     charge: number;
+    /** Gomos cheios (0–3) com `maxLevels`; sem, 1 com a barra cheia. */
+    level: number;
     /** Defesa máxima valendo (o goleiro espera o chute). */
     active: boolean;
     /** Já saiu (1 por partida). */
@@ -120,12 +141,14 @@ export function maxCharge(
     team: 0 | 1,
     upTo = Number.POSITIVE_INFINITY,
     teamSize = 5,
+    levels = false,
 ): MaxCharge {
     let pts = 0;
     let active = false;
     let used = false;
     let behind = 0;
-    const full = AGENCY.maxFull;
+    const per = AGENCY.maxLevelPts;
+    const full = levels ? 3 * per : AGENCY.maxFull;
     // o time 0 tem os índices 0..teamSize-1 (createMatch)
     const teamOf = (idx: number) => (idx < teamSize ? 0 : 1);
     for (const e of events) {
@@ -137,10 +160,12 @@ export function maxCharge(
                 pts = 0;
             } else if (e.phase === 'hit') {
                 active = false;
-                used = true;
+                // em níveis o toque gasta a barra toda e ela volta a encher
+                if (levels) pts = 0;
+                else used = true;
             } else {
                 active = false;
-                pts = full * AGENCY.maxRefund;
+                pts = levels ? (e.level ?? 1) * per * AGENCY.maxRefund : full * AGENCY.maxRefund;
             }
             continue;
         }
@@ -157,5 +182,9 @@ export function maxCharge(
         const k = AGENCY.maxBehind[Math.min(2, Math.max(0, behind))];
         pts = Math.min(full, pts + p * k);
     }
-    return { charge: used ? 0 : pts / full, active, used };
+    const charge = used ? 0 : pts / full;
+    return { charge, level: levels ? Math.floor(pts / per) : charge >= 1 ? 1 : 0, active, used };
 }
+
+/** Força do efeito no nível e na nota do toque: a nota escala só a parte extra (perfeito 100%, bom 70%, fora 40%). */
+export const maxGraded = (x: number, q: 0 | 1 | 2) => (q === 2 ? x : 1 + (x - 1) * AGENCY.maxGrade[q]);

@@ -20,6 +20,7 @@ import {
     isSubOrder,
     isTacticOrder,
     type MatchOrder,
+    type MaxGrade,
     type SubOrder,
     type Tactic,
     type TacticChange,
@@ -266,7 +267,7 @@ export type OrderBody =
     // beira da quadra (só com `Shared.agency`)
     | { kind: 'timeout' }
     | { kind: 'flyGk'; on: boolean }
-    | { kind: 'max' }
+    | { kind: 'max'; q?: MaxGrade }
     | { kind: 'penalties'; order: string[] };
 
 export type Intent =
@@ -619,7 +620,7 @@ function agencyStamp(o: OrderBody, tick: number, team: 0 | 1, seq: number): Stam
         case 'flyGk':
             return { tick, team, seq, kind: 'flyGk', on: o.on };
         case 'max':
-            return { tick, team, seq, kind: 'max' };
+            return o.q === undefined ? { tick, team, seq, kind: 'max' } : { tick, team, seq, kind: 'max', q: o.q };
         case 'penalties':
             return { tick, team, seq, kind: 'penalties', order: [...o.order] };
         default:
