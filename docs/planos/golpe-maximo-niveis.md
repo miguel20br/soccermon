@@ -6,8 +6,10 @@ description: Golpe máximo com barra em 3 níveis, toque na batida da música e 
 
 Ideia aprovada pelo Miguel em 22/10 ("golpe máximo com barra em 3 níveis, timing na batida e defesa com timing").
 Em 23/10 ele aprovou as decisões 1 a 6 e 8 como recomendadas e **mudou a 7** (rival IA sorteia a nota; ver
-[Decisões](#decisões-pro-miguel-recomendação-primeiro)). Implementado na branch `golpe-max` atrás de `?maximo3=1`
-(motor 11); os números de força ainda esperam o ok dele ([Medida](#medida-23102026-n200)). Base: [beira-da-quadra-2.md](beira-da-quadra-2.md)
+[Decisões](#decisões-pro-miguel-recomendação-primeiro)). Implementado na branch `golpe-max` (motor 11). Ainda em 23/10
+ele aprovou os ajustes da [2ª medida](#ajustes-aprovados-e-2ª-medida-23102026-n200) (N3 mais forte, defesa N1 mais
+curta, rival tocando melhor, toque um pouco cedo valendo) e mandou **ligar pra todo mundo**: a bandeira `?maximo3=1`
+saiu e os 3 níveis viraram o padrão. Base: [beira-da-quadra-2.md](beira-da-quadra-2.md)
 (golpe máximo de hoje), [balanceamento-geral.md](balanceamento-geral.md) §"Golpe máximo" (zona por posição) e o
 relógio de batida da fase 1 do ritmo (`src/game/music.ts`, commit efb1599f).
 
@@ -114,8 +116,10 @@ partida). A chance depende do rival (`RIVAL_COACH.maxGradeOdds`):
 
 | Rival | perfeito | bom | fora |
 |---|---:|---:|---:|
-| comum: os líderes de ginásio (Brock a Giovanni, Agatha) | 25% | 55% | 20% |
-| final: o Lance (Liga Índigo, final da Copa e da Rota) | 55% | 35% | 10% |
+| comum: os líderes de ginásio (Brock a Giovanni, Agatha) | ~~25%~~ 55% | ~~55%~~ 35% | ~~20%~~ 10% |
+| final: o Lance (Liga Índigo, final da Copa e da Rota) | ~~55%~~ 70% | ~~35%~~ 25% | ~~10%~~ 5% |
+
+(Tachado: a 1ª proposta; os números novos são do ajuste de 23/10.)
 
 Hoje só líder tem técnico IA (treinador de rota da Rota Índigo não tem, `cupRival`), então "comum" são os líderes e
 "líder/final" ficou sendo o Lance. Se quiser os líderes de ginásio também na tabela de cima, é uma linha. Solta no N2
@@ -158,11 +162,12 @@ nova e pede medida própria; dá pra fazer depois.
 - Testes: `determinism.ts` (agenda com `q`), `agency.test.ts` (perfeito > fora no mesmo lance; N3 > N1; ordem sem `q`
   = bom; a barra volta a encher depois do uso) e o teste da Liga recusando `q: 7`.
 - Save: nada a migrar (o campo é opcional na ordem guardada).
-- Atrás de bandeira (`?maximo3=1`) até o Miguel jogar na tela ([ADR 0005](../adr/0005-modo-novo-so-no-ar-depois-de-jogado.md)).
+- ~~Atrás de bandeira (`?maximo3=1`)~~: ligado pra todos em 23/10 (o golpe máximo de 1 nível saiu do motor; o Duelo
+  e o lobby comparam só `ENGINE_VERSION` 11).
 
 ## Medida (23/10/2026, n=200)
 
-Números da Opção 1 como estão na tabela (nada ajustado: força final espera o ok do Miguel). Robô
+1ª medida, com os números da Opção 1 como estão na tabela (o ajuste veio depois, na seção seguinte). Robô
 (`scripts/balance/coach.ts`, rival parado, 200 partidas pareadas, ordem na hora certa, `MAX3=1` sorteia a nota 40/40/20)
 e `npm run calibrate -- --n 200 --agencia [--maximo3]` (técnico IA nos dois times). "Antes" = motor 10 (1 nível; conta
 como N2). ± = 1 desvio da diferença pareada.
@@ -209,6 +214,82 @@ O que dá pra ler (com o erro de ±3 pp, quase tudo é ruído no golpe de linha)
 Ajustes possíveis pro Miguel decidir (nada aplicado): (a) N3 mais forte e/ou gomo de 10 pontos pra o N3 chegar ~min 26;
 (b) N1 de goleiro mais curto (1,5 s) ou sem o alcance extra; (c) N1 de linha x1,15 pra deixar a espera valer.
 
+## Ajustes aprovados e 2ª medida (23/10/2026, n=200)
+
+O Miguel aprovou: N3 mais forte (chute x2,0 a x2,2, goleiro rival com alcance x0,7), defesa N1 mais curta (tirar a
+defesa dos +5,5 a +7 pp), N1 de linha igual, rival IA melhor no toque (tabela acima), toque um pouco cedo valendo e
+**ligar pra todos** (sem `?maximo3=1`). Metas: segurar pro N3 render ≥ +1 pp sobre soltar no N1, e defesa máxima em
+até +4 pp.
+
+**Números finais (motor 11)**
+
+| | N1 | N2 | N3 |
+|---|---|---|---|
+| Chute do capitão (força / precisão / alcance do goleiro rival) | x1,25 / x1,3 / 1 | x1,55 / x1,6 / 1 | **x2,2** / x2,0 / **x0,7** |
+| Defesa máxima (duração / alcance) | **0,75 s** (era 2 s) / x1,1 | 4 s / x1,25 | 6 s / x1,4 |
+
+Rodadas do robô (mesmas 200 seeds pareadas, ± ≈ 2 a 3,5 pp):
+
+| Rodada | Linha: n1 / n3 / bom / aleatório (Δ pp) | Goleiro: n1 / n3 / bom / aleatório (Δ pp) |
+|---|---|---|
+| 1ª medida (N3 x1,8 e x0,8; defesa N1 2 s) | +1,5 / −0,5 / +0,5 / +5,0 | +7,0 / +0,5 / +5,5 / — |
+| v1: N3 x2,0 e x0,7; defesa N1 1 s | +1,5 / +1,5 / +0,5 / +2,5 | +8,0 / +0,5 / +6,5 / +4,0 |
+| v2: N3 x2,2; defesa N1 0,5 s | +1,5 / +0,0 / +0,0 / +2,5 | −0,5 / +0,5 / −0,5 / +2,5 |
+| **v3 (final): N3 x2,2; defesa N1 0,75 s** | **+0,5 / +0,0 / −0,5 / +3,0** | **+0,0 / +0,5 / −1,0 / +4,0** |
+
+Final em detalhe:
+
+| Capitão de linha | Vitória (Δ) | Golpes/jogo (N1 / N2 / N3) | Gols do máximo/jogo (N1 / N2 / N3) |
+|---|---|---|---|
+| nunca | 47,5% | — | — |
+| n1 (solta no 1º gomo) | 48,0% (+0,5 ± 3,4) | 1,26 (0,95 / 0,24 / 0,07) | 0,28 (0,18 / 0,07 / 0,02) |
+| n3 (segura pro 3º) | 47,5% (+0,0 ± 2,1) | 0,44 (— / — / 0,44) | 0,10 |
+| bom | 47,0% (−0,5 ± 3,3) | 1,06 (0,79 / 0,20 / 0,07) | 0,24 |
+| aleatório | 50,5% (+3,0 ± 2,4) | 0,78 (0,30 / 0,24 / 0,23) | 0,24 (0,11 / 0,05 / 0,08) |
+
+| Capitão goleiro | Vitória (Δ) | Defesas/jogo (N1 / N2 / N3) |
+|---|---|---|
+| nunca | 51,0% | — |
+| n1 | 51,0% (+0,0 ± 2,7) | 0,54 (0,34 / 0,14 / 0,06) |
+| n3 | 51,5% (+0,5 ± 1,3) | 0,28 (só N3) |
+| bom | 50,0% (−1,0 ± 2,4) | 0,39 (0,23 / 0,11 / 0,04) |
+| aleatório | 55,0% (+4,0 ± 2,1) | 0,43 (0,13 / 0,19 / 0,11) |
+
+Calibrate com o técnico IA nos dois times (`npm run calibrate -- --n 200 --agencia`):
+
+| | Gols/jogo | Favorito vence | Goleadas | Golpes máximos/jogo (N1 / N2 / N3) | Viraram gol | Notas (fora / bom / perfeito) |
+|---|---:|---:|---:|---|---:|---|
+| 1ª medida | 7,84 | 62,3% | 1,5% | 0,56 (0,02 / 0,39 / 0,15) | 0,17 | 0,10 / 0,28 / 0,18 |
+| final | 7,99 | 64,5% | 1,5% | 0,61 (0,04 / 0,41 / 0,15; 0,11 de goleiro) | 0,22 | 0,06 / 0,17 / 0,38 |
+
+O que dá pra ler:
+- **Defesa: meta batida.** Com 0,75 s a defesa N1 ainda sai (0,34 por jogo soltando a cada gomo), e nenhuma política
+  passa de +4 pp. Com 1 s voltava a +8 pp; com 0,5 s a N1 quase nunca pegava chute (0,06 por jogo).
+- **Linha: meta não batida dentro da faixa.** Segurar pro N3 ficou igual a soltar no N1 (+0,0 contra +0,5 pp, dentro do
+  erro). O gol do N3 ficou em 0,10 por jogo com x2,0 e com x2,2: a força já não é o gargalo. O gargalo é o volume
+  (0,44 golpes N3 por jogo; o capitão quase não tem mais a bola na zona com a barra cheia). Ficou x2,2 (o teto
+  aprovado). Pra segurar compensar, a alavanca fora da faixa seria gomo de 10 pontos (N3 ~min 26), N3 com precisão
+  maior ou o N3 acender numa zona maior. **Fica pro Miguel decidir.**
+- O rival IA tocando melhor quase não mexe no geral: gols e favorito dentro do erro de antes.
+
+**Toque um pouco cedo (buffer).** A tela acende o botão `MAX_CUE_EARLY` = 6 ticks (0,3 s de jogo) antes da hora certa
+(`src/ui/match-view.ts`; a quadra já está na câmera lenta, então dá ~1,2 s de tela em 1x). O toque vira a ordem de
+sempre, com o tick do toque e a nota; o motor deixa ela armada `AGENCY.maxArmTicks` (100) e o golpe sai no próximo
+chute da zona (ou defesa, no goleiro). Nada lê relógio no motor, então Copa, Duelo, Liga e replay dão a mesma partida.
+Teste: `agency.test.ts` (ordem 6 ticks antes da hora certa sai no chute seguinte).
+
+### Rascunho das Novidades da 0.9.14
+
+Título: **Golpe máximo em 3 níveis, na batida**
+
+- Golpe máximo: a barra agora tem 3 níveis e enche de novo depois de usar
+- Solte no nível 1 ou segure pro nível 3, o chute mais forte do jogo
+- Toque quando o anel fechar no botão, na batida da música: PERFEITO! sai mais forte
+- Sem som, o anel segue um pulso na tela
+- Com o capitão no gol, o nível dá mais tempo de defesa máxima; o toque perfeito segura a bola
+- Tocou um pouco antes de acender? O golpe sai no próximo chute
+- Os líderes também tocam na batida, e o Lance quase sempre acerta
+
 ## Decisões pro Miguel (recomendação primeiro)
 
 1. **Formato da barra:** Opção 1 (solta o que tiver, 3 gomos), a 2 (gomo como moeda) ou a 3 (cada nível é outra
@@ -233,4 +314,5 @@ Ajustes possíveis pro Miguel decidir (nada aplicado): (a) N3 mais forte e/ou go
    (skill soccermon-balanceamento). Os números vão pro Miguel antes de fechar.
 3. Tela: barra de 3 gomos no `Sideline`, anel da batida no botão, "PERFEITO!/BOM" (PT/EN, sem emoji), `?demo=maximo`
    com nível e nota. Prints em 320/390/1440 e deitado.
-4. Miguel joga na prévia. Com o ok, tira a bandeira, faz as Novidades, `edge:liga` e o deploy, e publica numa 0.9.x.
+4. ~~Miguel joga na prévia. Com o ok, tira a bandeira~~ (bandeira tirada em 23/10). Falta: Novidades no
+   `patch-notes.ts` (rascunho acima), `edge:liga` e o deploy da Edge Function e a publicação na 0.9.14.
