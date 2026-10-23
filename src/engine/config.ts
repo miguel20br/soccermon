@@ -24,8 +24,8 @@ export interface MatchConfig {
     /** Acréscimos de cada tempo, em minutos do relógio exibido (sorteados no `rng` da partida); sem = não tem. */
     stoppage?: { min: number; max: number };
     /**
-     * Efeito do tipo do capitão no golpe máximo N3 (fase 1 de docs/planos/golpe-maximo-por-tipo.md), atrás de `?tipo=1`
-     * até o Miguel jogar (ADR 0005). Sem = o N3 de força pura.
+     * Efeito do tipo do capitão no golpe máximo N3 (fase 1 de docs/planos/golpe-maximo-por-tipo.md): ligado pra todo
+     * mundo no FUTSAL_5 desde a 0.9.16 (copa, Duelo e Liga). Sem = o N3 de força pura.
      */
     maxType?: boolean;
 }
@@ -74,6 +74,7 @@ export const FUTSAL_5: MatchConfig = {
     penaltyKicks: 5,
     halftimeRecovery: 0.3,
     stoppage: STOPPAGE,
+    maxType: true,
 };
 
 /**

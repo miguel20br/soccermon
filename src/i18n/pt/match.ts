@@ -146,7 +146,7 @@ export const match = {
         maxPerfect: 'PERFEITO!',
         maxGood: 'BOM',
         maxBeatHint: 'Toque quando o anel fechar no botão, na batida da música.',
-        /** Golpe máximo por tipo (?tipo=1): nome do efeito do N3 e o que aparece em quem ele pega. */
+        /** Golpe máximo por tipo: nome do efeito do N3 e o que aparece em quem ele pega. */
         maxFx: {
             Normal: ['Mega Impacto', 'Caiu!'],
             Fire: ['Bola em chamas', 'Queimou!'],

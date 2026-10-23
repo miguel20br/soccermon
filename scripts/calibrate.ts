@@ -21,7 +21,7 @@ const N = Number(args[args.indexOf('--n') + 1]) || 500;
 const csvPath = args.includes('--csv') ? args[args.indexOf('--csv') + 1] : null;
 const TACTICS: Tactic[] = ['balanced', 'offensive', 'defensive', 'counter'];
 const AGENCIA = args.includes('--agencia');
-// --tipo: golpe máximo com o efeito do tipo do capitão no N3 (`maxType`, ?tipo=1; golpe-maximo-por-tipo.md)
+// --tipo: golpe máximo com o efeito do tipo do capitão no N3 (`maxType`; golpe-maximo-por-tipo.md)
 const CFG = args.includes('--tipo') ? withConfig({ maxType: true }) : FUTSAL_5;
 
 const rng = new Rng('calibrate');

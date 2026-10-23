@@ -219,7 +219,7 @@ interface DiveInfo {
 
 const DRAMA = new Set(['goal', 'post', 'save', 'fulltime']);
 
-/** Golpe máximo por tipo (?tipo=1): a receita de golpe (move-fx.ts) que anima o efeito de cada tipo no N3. */
+/** Golpe máximo por tipo: a receita de golpe (move-fx.ts) que anima o efeito de cada tipo no N3. */
 const MAX_FX_RECIPE: Record<string, string> = {
     Normal: 'megapunch',
     Fire: 'fireblast',
@@ -2207,7 +2207,7 @@ export class MatchScene extends Phaser.Scene {
                 if (e.phase === 'start') this.punch('hit');
                 else if (e.phase === 'hit') {
                     this.punch('boom');
-                    // golpe máximo por tipo (?tipo=1): a faixa grande leva o nome do efeito, na cor do tipo
+                    // golpe máximo por tipo: a faixa grande leva o nome do efeito, na cor do tipo
                     const fx = this.matchEvents.find(
                         (x) => x.type === 'maxFx' && x.step === 'shot' && x.tick === e.tick && x.by === e.by,
                     );

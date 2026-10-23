@@ -108,7 +108,7 @@ describe('golpe máximo por tipo (fase 1)', () => {
         expect(maxFxType(['tackle'], 0, ['Steel'])).toBe('Normal');
     });
 
-    it('sem a bandeira (?tipo=1) o N3 não tem efeito, e o N3 mira mais pro meio do gol (decisão 12)', () => {
+    it('com maxType desligado o N3 não tem efeito, e o N3 mira mais pro meio do gol (decisão 12)', () => {
         const s = scene('Fire', { flag: false });
         expect(s.ball.shot?.fx).toBeUndefined();
         expect(of(s, 'maxFx')).toHaveLength(0);
@@ -222,6 +222,6 @@ describe('golpe máximo por tipo (fase 1)', () => {
             idle(b, 60);
             expect(JSON.stringify(a.events)).toBe(JSON.stringify(b.events));
         }
-        expect(FUTSAL_5.maxType).toBeUndefined();
+        expect(FUTSAL_5.maxType).toBe(true);
     });
 });
