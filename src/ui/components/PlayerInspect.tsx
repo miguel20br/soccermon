@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { aerialLevel, aerialScore, computeAttributes, sizePercentile } from '../../engine/attributes';
-import { MOVES, species } from '../../engine/data';
+import { ABILITIES, MOVES, species } from '../../engine/data';
 import { evolutionTarget, evoNeeded, evoProgress } from '../../engine/evolution';
 import { DEFAULT_FORMATION, type FormationId, hasEdge } from '../../engine/formations';
 import { applyModifiers, attributeModifiers, moveModifiers, moveUses } from '../../engine/modifiers';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { FLAG_BUFF, FLAG_CHARGED, FLAG_DEBUFF, SNAP_STRIDE, type Tactic, type TeamSetup } from '../../engine/state';
 import { EventBus } from '../../game/EventBus';
+import { statusNow } from '../../game/hit-react';
 import { formationText, modLabel, moveModLabel, moveName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useCardModal } from '../card-modal';
@@ -127,6 +128,14 @@ export function PlayerInspect({
     if (flags & FLAG_BUFF) live.push({ up: true, text: t('team.inspect.buffed') });
     if (flags & FLAG_DEBUFF) live.push({ up: false, text: t('team.inspect.debuffed') });
     if (flags & FLAG_CHARGED) live.push({ up: true, text: t('team.inspect.charged') });
+    // quem causou e quanto falta: "Zubat foi confundido por Psychic (2 s)"
+    const cause = statusNow(match, idx, tick);
+    if (cause?.source && d.battle.statusBy[cause.kind]) {
+        const src = cause.source;
+        const m = src === 'maxfx' ? d.match.agency.max : MOVES[src] ? moveName(src) : (ABILITIES[src]?.name ?? src);
+        const x = inst.nickname ?? species(inst.speciesId).name;
+        live.push({ up: false, text: t(`battle.statusBy.${cause.kind}`, { x, m, n: cause.left }) });
+    }
     if (statusText) live.push({ up: false, text: statusText });
     if (fatigue > 0) live.push({ up: false, text: t('team.inspect.fatigue', { n: fatigue }) });
     if (behind >= 3) live.push({ up: true, text: t('team.inspect.grit', { n: behind }) });

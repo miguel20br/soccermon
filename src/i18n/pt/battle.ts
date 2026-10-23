@@ -145,4 +145,29 @@ export const battle = {
         wallBlock: 'O muro de {w} segurou o chute!',
         coins: 'Chuva de moedas: todo mundo parou para olhar!',
     },
+    /** Palavra em cima de quem é atingido por um golpe de efeito (src/game/hit-react.ts), ~1 s na cor do tipo. */
+    react: {
+        par: 'PARALISADO',
+        slp: 'DORMINDO',
+        psn: 'ENVENENADO',
+        brn: 'QUEIMADO',
+        frz: 'CONGELADO',
+        confusion: 'CONFUSO',
+        infatuation: 'APAIXONADO',
+        flinch: 'ATORDOADO',
+        seed: 'SEMEADO',
+        down: 'DERRUBADO',
+        push: 'EMPURRADO',
+        soak: 'MOLHADO',
+    } as Record<string, string>,
+    /** Painel do jogador: quem causou o status e quanto falta. */
+    statusBy: {
+        par: '{x} foi paralisado por {m} ({n} s)',
+        slp: '{x} dormiu com {m} ({n} s)',
+        psn: '{x} foi envenenado por {m} ({n} s)',
+        brn: '{x} foi queimado por {m} ({n} s)',
+        frz: '{x} foi congelado por {m} ({n} s)',
+        confusion: '{x} foi confundido por {m} ({n} s)',
+        infatuation: '{x} se apaixonou com {m} ({n} s)',
+    } as Record<string, string>,
 };

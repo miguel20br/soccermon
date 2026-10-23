@@ -522,25 +522,44 @@
         bottom: calc(10% + 44px);
     }
 }
-/* 320 deitado: a quadra tem ~230 px de largura e os dois não cabem lado a lado; o "Esperar" vai pra baixo, menor */
+/*
+ * Deitado baixinho (568x320, 320 de altura): empilhados, os dois tampavam metade da quadra. Viram duas pílulas lado a
+ * lado no pé da quadra, menores: o golpe fica com ícone, nível e tipo (o nome continua pro leitor de tela), toque de 44 px.
+ */
 @media (orientation: landscape) and (max-height: 360px) {
     .sl-cue-row {
-        flex-direction: column;
-        align-items: center;
+        bottom: calc(44px + 2px);
         gap: 6px;
-    }
-    .sl-cue.sl-wait {
-        min-height: 32px;
     }
     .sl-cue,
     .sl-cue.sl-wait {
-        gap: 5px;
-        min-height: 40px;
-        padding: 5px 8px;
-        font-size: 12px;
+        gap: 4px;
+        min-height: 36px;
+        padding: 3px 10px;
+        border-width: 2px;
+        border-radius: 22px;
+        box-shadow: 0 3px 0 var(--bc-ink);
+        font-size: 11px;
+    }
+    .sl-cue .sl-ring {
+        border-radius: 26px;
     }
     .sl-cue .hud-icon {
         width: 16px;
         height: 16px;
+    }
+    /* desenho de 36 px, toque de 44: a área de toque passa 4 px pra fora de cada lado (+2 da borda) */
+    .sl-cue::after {
+        content: "";
+        position: absolute;
+        inset: -6px;
+    }
+    .sl-cue-name {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
     }
 }

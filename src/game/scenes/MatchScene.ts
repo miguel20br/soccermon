@@ -26,10 +26,11 @@ import {
     type TraitFx,
 } from '../../engine/state';
 import { dir8 } from '../../engine/vec';
-import { dict, linkText, t as tr } from '../../i18n';
+import { dict, linkText, t as tr, typeName } from '../../i18n';
 import type { ArrowSize, ChanceSpeed, CryStyle, NamesOnField, PlaybackSpeed } from '../../store/game-store';
 import { bannerInk } from '../../store/profile';
 import { halftimeEnd, MAX_CUE_LATCH, maxCueNear } from '../../ui/match-view';
+import { portraitSrc } from '../../ui/portrait';
 import { hexToNumber, TYPE_COLOR } from '../../ui/type-colors';
 import {
     animForAction,
@@ -53,6 +54,8 @@ import { drawBanner, drawBoards, drawCourt, ensureBallTexture, GAME_H, GAME_W, P
 import { COURTS } from '../court-themes';
 import { EventBus } from '../EventBus';
 import { blinkSchedule, evolutionView, RIVAL_EVO_MS } from '../evolution-view';
+import { drawStars, drawStatusIcon, dust, effectWord, readableColor, shockwave } from '../hit-fx';
+import { hurtSecondsAt, type Reaction, reactionFor, spanAt, WORD_RANK } from '../hit-react';
 import { castMove, preloadMoveFx } from '../move-fx';
 
 export { GAME_H, GAME_W } from '../court';
@@ -179,6 +182,10 @@ const DRAMA_LEAD = 12;
  * (só a caixa de narração e os textos de drama ficam por cima): nunca some atrás de alguém.
  */
 const BALL_DEPTH = FOCUS_DEPTH + 200;
+/** Reação do atingido (ícone, estrelinhas, palavra) e faixa do especial: acima do escurecimento, abaixo da bola. */
+const REACT_DEPTH = BALL_DEPTH - 6;
+/** Hitstop do N3: a quadra congela no toque (tempo real), menos em 8x. */
+const N3_HITSTOP_MS = 300;
 /** Rastro da bola: quantos ticks de jogo para trás ele alcança. */
 const TRAIL_TICKS = 5;
 /** Mergulho do goleiro: começa alguns ticks antes do contato e volta depois. */
@@ -252,15 +259,15 @@ const HIGHLIGHT = new Set([
     'aerial',
 ]);
 
-/** Status por código do snapshot: rótulo, cor do rótulo e tinta do sprite. */
-const STATUS_VIEW: Record<number, { label: string; color: string; tint: number }> = {
-    1: { label: 'PAR', color: '#ffe14d', tint: 0xfff07a },
-    2: { label: 'Zzz', color: '#cfd8ff', tint: 0x9aa8c8 },
-    3: { label: 'PSN', color: '#d48cff', tint: 0xd9a3ff },
-    4: { label: 'BRN', color: '#ff8a5c', tint: 0xffa98a },
-    5: { label: 'FRZ', color: '#a8ecff', tint: 0xbfefff },
-    6: { label: '???', color: '#ffffff', tint: 0xffffff },
-    7: { label: '♥', color: '#ff8fc8', tint: 0xffc6e3 },
+/** Tinta do sprite por código de status do snapshot (o ícone desenhado fica em hit-fx.ts). */
+const STATUS_VIEW: Record<number, { tint: number }> = {
+    1: { tint: 0xfff07a },
+    2: { tint: 0x9aa8c8 },
+    3: { tint: 0xd9a3ff },
+    4: { tint: 0xffa98a },
+    5: { tint: 0xbfefff },
+    6: { tint: 0xffffff },
+    7: { tint: 0xffc6e3 },
 };
 const STATUS_KIND_TO_CODE: Record<string, number> = {
     par: 1,
@@ -410,6 +417,12 @@ interface PlayerView {
     pose: number;
     /** Nome aparecendo (1) ou escondido por estar colado em outro (0), com fade entre os dois (celular em pé). */
     crowd: number;
+    /** No chão (tombo) ou tonto (estrelinhas), em ticks de jogo; `dir` = lado pro qual tomba. */
+    down: { from: number; to: number; dir: number; tumble: boolean } | null;
+    /** Trecho (ticks) do status atual, pro anel de contagem do ícone. */
+    stSpan: { code: number; from: number; to: number } | null;
+    /** Palavra de reação na tela agora (uma por vez; a de mais prioridade vence). */
+    word: { obj: Phaser.GameObjects.Text; rank: number; at: number; text: string } | null;
 }
 
 /** Pose do capitão (emote "Vamooo!"): quanto dura e quanto dela é juntando força antes da pose (tempo real). */
@@ -437,6 +450,10 @@ export class MatchScene extends Phaser.Scene {
     }
     private players: PlayerView[] = [];
     private ball!: Phaser.GameObjects.Image;
+    /** Ícones de status com anel de contagem e estrelinhas de tonto (redesenhados a cada quadro). */
+    private reactG!: Phaser.GameObjects.Graphics;
+    /** Chute N3 no ar: o impacto (gol, defesa, bloqueio, trave) solta a onda de choque do tipo. */
+    private n3Shot: { tick: number; type: string } | null = null;
     private ballGlow!: Phaser.GameObjects.Arc;
     private ballShadow!: Phaser.GameObjects.Ellipse;
     private trailG!: Phaser.GameObjects.Graphics;
@@ -495,6 +512,14 @@ export class MatchScene extends Phaser.Scene {
         this.md = this.registry.get('matchData') as MatchSceneData;
         for (const id of this.allSpecies()) preloadSpecies(this, id);
         preloadMoveFx(this);
+        // retrato PMD dos capitães (e da forma evoluída) pra faixa do especial N3
+        for (const p of [...this.md.result.roster, ...this.md.result.finalRoster]) {
+            if (!p.captain) continue;
+            for (const id of [p.speciesId, ...species(p.speciesId).evolvesTo.map((e) => e.id)]) {
+                const key = `portrait-${id}`;
+                if (id <= 151 && !this.textures.exists(key)) this.load.image(key, portraitSrc(id, ['determined']));
+            }
+        }
     }
 
     create() {
@@ -521,6 +546,7 @@ export class MatchScene extends Phaser.Scene {
         this.trailG = this.add.graphics();
         this.ballGlow = this.add.circle(0, 0, 13, 0xffffff, 0).setBlendMode(Phaser.BlendModes.ADD);
         this.ball = this.add.image(0, 0, 'ball').setDepth(BALL_DEPTH);
+        this.reactG = this.add.graphics().setDepth(REACT_DEPTH);
         this.battleBox = new BattleBox(this, GAME_W / 2, GAME_H - 30, 560);
         this.cine = new Cinematics(this);
 
@@ -916,6 +942,9 @@ export class MatchScene extends Phaser.Scene {
             glowing: false,
             pose: 0,
             crowd: 1,
+            down: null,
+            stSpan: null,
+            word: null,
         };
         this.refreshTint(view);
         // tocar no Pokémon abre o painel dele (src/ui/components/PlayerInspect.tsx) e pausa a partida
@@ -1056,10 +1085,10 @@ export class MatchScene extends Phaser.Scene {
         if (status === view.status && flags === view.flags) return;
         view.status = status;
         view.flags = flags;
-        const st = STATUS_VIEW[status];
+        // o status é o ícone desenhado com o anel de contagem (drawReactions); o rótulo fica só com as setinhas
         const arrows = (flags & FLAG_BUFF ? '▲' : '') + (flags & FLAG_DEBUFF ? '▼' : '');
-        view.badge.setText([st?.label, arrows].filter(Boolean).join(' '));
-        view.badge.setColor(st ? st.color : flags & FLAG_BUFF ? '#7dff8a' : '#ff7a7a');
+        view.badge.setText(arrows);
+        view.badge.setColor(flags & FLAG_BUFF ? '#7dff8a' : '#ff7a7a');
         view.ring.setStrokeStyle(
             flags & FLAG_CHARGED ? 4 : 2.5,
             flags & FLAG_CHARGED ? 0xffe14d : this.md.colors[view.team],
@@ -1388,6 +1417,7 @@ export class MatchScene extends Phaser.Scene {
         const prev = this.snaps[Math.max(0, index - 1)];
         const next = this.snaps[Math.min(index + 2, this.snaps.length - 1)];
         const smooth = lerpOk && prev.phase === a.phase && next.phase === b.phase;
+        this.reactG.clear();
         for (let i = 0; i < this.players.length; i++) {
             const view = this.players[i];
             const o = i * SNAP_STRIDE;
@@ -1466,6 +1496,7 @@ export class MatchScene extends Phaser.Scene {
             if (arriving || posing) view.sprite.anims.timeScale = 1;
             for (const o of [view.label, view.badge, view.ring, view.shadow, view.arrow]) o?.setVisible(!arriving);
             if (view.status === 1) view.sprite.x += Math.sin(this.time.now / 40) * 1.2; // paralisia: tremidinha
+            if (!arriving) this.drawReaction(view, k < 0.5 ? index : Math.min(index + 1, this.snaps.length - 1), i);
         }
         this.declutterLabels(a.owner, this.game.loop.delta);
         if (focusPos.size) this.cine.followSpots(focusPos);
@@ -1727,6 +1758,14 @@ export class MatchScene extends Phaser.Scene {
         }
         const cries = this.md.cries;
         const cinematic = this.md.cinematic;
+        const reaction = reactionFor(e, this.reactCtx);
+        if (reaction) this.react(reaction, e.tick);
+        // o chute N3 chegou (gol, defesa, bloqueio, trave): onda de choque do tipo onde a bola está
+        if (this.n3Shot && (e.type === 'goal' || e.type === 'save' || e.type === 'block' || e.type === 'post')) {
+            if (e.tick - this.n3Shot.tick <= TICK_RATE * 3)
+                shockwave(this, this.ball.x, this.ball.y, this.n3Shot.type, BALL_DEPTH - 3, !this.md.reduceMotion);
+            this.n3Shot = null;
+        } else if (e.type === 'wide') this.n3Shot = null;
         switch (e.type) {
             case 'kickoff':
             case 'halftime':
@@ -2202,6 +2241,7 @@ export class MatchScene extends Phaser.Scene {
                     this.matchEvents.some(
                         (x) => x.type === 'max' && x.team === e.team && x.phase === 'start' && x.tick <= e.tick,
                     );
+                const n3 = e.phase === 'hit' && !gkSave && e.level === 3;
                 if (e.phase === 'start' || (e.phase === 'hit' && !gkSave)) {
                     playSfx('move');
                     const a = dict().match.agency;
@@ -2210,11 +2250,13 @@ export class MatchScene extends Phaser.Scene {
                     this.popText(e.by, `${a.max.toUpperCase()}${lv}`, '#ffd447');
                     if (e.q === 2) this.popText(e.by, a.maxPerfect, '#7dffb0', 22);
                     else if (e.q === 1) this.popText(e.by, a.maxGood, '#9be7ff', 22);
-                    this.highlight('max', cap);
+                    // no N3 a faixa do especial (retrato, golpe e tipo) entra no lugar da faixa do canto
+                    if (!n3) this.highlight('max', cap);
                 }
                 if (e.phase === 'start') this.punch('hit');
                 else if (e.phase === 'hit') {
-                    this.punch('boom');
+                    // N3: o hitstop com a cor do tipo entra no lugar da pausa e do clarão branco
+                    this.punch(n3 ? 'whisper' : 'boom');
                     // golpe máximo por tipo: a faixa grande leva o nome do efeito, na cor do tipo
                     const fx = this.matchEvents.find(
                         (x) => x.type === 'maxFx' && x.step === 'shot' && x.tick === e.tick && x.by === e.by,
@@ -2234,6 +2276,8 @@ export class MatchScene extends Phaser.Scene {
                             },
                         );
                     }
+                    if (n3) this.superMove(cap, e.moveId ?? null, fxType, e.tick);
+                    else if (!gkSave && !cinematic) this.lightZoom(cap);
                 }
                 break;
             }
@@ -2259,7 +2303,9 @@ export class MatchScene extends Phaser.Scene {
                     if (e.fx === 'Ground') this.cameras.main.shake(260, 0.008);
                     if (!cinematic) this.popText(e.by, name[0].toUpperCase(), color, 22);
                 } else if (e.target !== null && this.players[e.target]) {
-                    this.popText(e.target, name[1], color);
+                    // Normal e Terrestre derrubam (a reação diz DERRUBADO); Fogo e Elétrico já vêm no evento de status
+                    if (!['Normal', 'Ground', 'Fire', 'Electric'].includes(e.fx))
+                        this.popText(e.target, name[1], color);
                     const t = this.players[e.target];
                     this.impact(t.sprite.x, t.sprite.y - 16, e.fx);
                 }
@@ -2617,6 +2663,152 @@ export class MatchScene extends Phaser.Scene {
                 onComplete: () => puff.destroy(),
             });
         }
+    }
+
+    private readonly reactCtx = {
+        moveType: (id: string) => MOVES[id]?.type,
+        hurtSeconds: (target: number, tick: number) => hurtSecondsAt(this.snaps, target, tick),
+    };
+
+    /** Reação de quem foi atingido: empurrão pra trás, tombo ou tontura e a palavra do efeito na cor do tipo. */
+    private react(r: Reaction, tick: number) {
+        const view = this.players[r.target];
+        if (!view || view.evolving) return;
+        const sp = view.sprite;
+        const by = r.by !== null && r.by !== r.target ? this.players[r.by] : null;
+        // empurrão pra trás: afasta de quem causou (o deslocamento volta sozinho)
+        if (by) {
+            const dx = sp.x - by.sprite.x;
+            const dy = sp.y - by.sprite.y;
+            const d = Math.hypot(dx, dy) || 1;
+            this.tweens.add({
+                targets: view.lunge,
+                x: (dx / d) * 10,
+                y: (dy / d) * 6,
+                duration: 90,
+                yoyo: true,
+                ease: 'Quad.easeOut',
+            });
+        }
+        if (r.fall) {
+            const secs = Math.max(0.6, hurtSecondsAt(this.snaps, r.target, tick));
+            const dir = by && sp.x < by.sprite.x ? -1 : 1;
+            const lying = view.down?.tumble && view.down.to > tick;
+            // tonto (hesitou) no mesmo lance de um tombo: continua no chão
+            if (lying && view.down && r.fall === 'dizzy')
+                view.down.to = Math.max(view.down.to, tick + secs * TICK_RATE);
+            else view.down = { from: tick, to: tick + secs * TICK_RATE, dir, tumble: r.fall === 'tumble' };
+            if (r.fall === 'tumble') this.time.delayedCall(120, () => dust(this, sp.x, sp.y, 7, sp.depth - 1));
+        }
+        // a palavra: uma por vez em cada um (o status vence o empurrão do mesmo golpe)
+        const rank = WORD_RANK[r.word];
+        const old = view.word;
+        const fresh = old?.obj.active && this.time.now - old.at < 600;
+        if (fresh && old && (old.rank > rank || old.text === r.word)) return;
+        if (old?.obj.active) {
+            this.tweens.killTweensOf(old.obj);
+            old.obj.destroy();
+        }
+        const s = Math.min(this.uiScale, 2);
+        const head = sp.y - (sp.originY - headTop(view.skin)) * sp.frame.realHeight * sp.scaleY;
+        const text = (dict().battle.react as Record<string, string>)[r.word] ?? r.word.toUpperCase();
+        const obj = effectWord(this, sp.x, head - 12 * s, text, readableColor(r.type), s, REACT_DEPTH + 1);
+        view.word = { obj, rank, at: this.time.now, text: r.word };
+    }
+
+    /**
+     * Reação a cada quadro: tombo (o sprite deita pro lado e levanta), estrelinhas girando em cima de quem está no chão
+     * ou tonto e o ícone do status com o anel de contagem enquanto ele dura. Tudo vem do tick (o replay e o salto pra
+     * trás mostram certo).
+     */
+    private drawReaction(view: PlayerView, n: number, i: number) {
+        const sp = view.sprite;
+        const s = Math.min(this.uiScale, 2.3);
+        const h = sp.frame.realHeight * sp.scaleY;
+        const head = sp.y - (sp.originY - headTop(view.skin)) * h;
+        const d = view.down;
+        const t = this.playTick;
+        let rot = 0;
+        if (d && t >= d.from && t < d.to) {
+            if (d.tumble) {
+                // cai em 3 ticks, fica no chão e levanta nos 4 últimos
+                const k = Math.min(1, (t - d.from) / 3, (d.to - t) / 4);
+                rot = d.dir * 1.45 * Phaser.Math.Easing.Cubic.Out(k);
+            }
+            const lying = Math.abs(rot) / 1.45;
+            const sx = sp.x + d.dir * h * 0.6 * lying;
+            const sy = head + (sp.y - 8 - head) * lying - 5 * s;
+            drawStars(this.reactG, sx, sy, s * 0.8, this.time.now);
+        } else if (d && (t >= d.to || t < d.from)) view.down = null;
+        if (sp.rotation !== rot) sp.setRotation(rot);
+        const code = this.snaps[n]?.p[i * SNAP_STRIDE + 4] ?? 0;
+        if (code <= 0) {
+            view.stSpan = null;
+            return;
+        }
+        let span = view.stSpan;
+        if (!span || span.code !== code || t < span.from || t > span.to) {
+            const found = spanAt(this.snaps, n, i, 4, code);
+            span = view.stSpan = found ? { code, ...found } : null;
+        }
+        if (!span) return;
+        const r = 9 * s;
+        drawStatusIcon(
+            this.reactG,
+            code,
+            sp.x + 8 * s + r,
+            head - r * 0.3,
+            r,
+            (span.to - t) / Math.max(1, span.to - span.from),
+        );
+    }
+
+    /**
+     * N3 com cara de especial de luta: hitstop (a quadra congela 0,3 s com a tela na cor do tipo; não em 8x), faixa
+     * diagonal com o retrato do capitão, o golpe e o tipo, zoom forte e tremida no chute. O rastro do tipo vai na bola
+     * (bfx do motor) e a onda de choque sai no impacto (`n3Shot`).
+     */
+    private superMove(cap: PlayerView, moveId: string | null, fxType: string | null, tick: number) {
+        const move = moveId ? MOVES[moveId] : undefined;
+        const type = fxType ?? move?.type ?? species(cap.speciesId).types[0];
+        const color = hexToNumber(TYPE_COLOR[type] ?? '#ffd447');
+        const reduce = !!this.md.reduceMotion;
+        if (this.speed !== 8) {
+            this.holdReal = Math.max(this.holdReal, this.time.now + N3_HITSTOP_MS);
+            this.cine.hitTint(color, N3_HITSTOP_MS + 120, reduce ? 0.16 : 0.4, REACT_DEPTH - 1);
+        }
+        const portrait = `portrait-${cap.speciesId}`;
+        this.cine.superBanner({
+            portrait: this.textures.exists(portrait) ? portrait : null,
+            move: move?.name ?? dict().match.agency.max,
+            typeLabel: typeName(type),
+            color,
+            typeInk: readableColor(type),
+            fromRight: cap.team === 1,
+            reduce,
+            depth: REACT_DEPTH + 2,
+        });
+        const cam = this.cameras.main;
+        cam.pan(cap.sprite.x, cap.sprite.y - 14, 160, 'Sine.easeOut', true);
+        cam.zoomTo(1.35, 160, 'Cubic.easeOut', true);
+        cam.shake(420, 0.014);
+        // sem "Efeitos cinematográficos" o drama não devolve a câmera: devolve aqui
+        if (!this.md.cinematic) this.time.delayedCall(N3_HITSTOP_MS + 600, () => this.cameraHome());
+        this.n3Shot = { tick, type };
+    }
+
+    /** N1 e N2 (sem "Efeitos cinematográficos", que já aproximam): só um zoom leve em quem chutou. */
+    private lightZoom(cap: PlayerView) {
+        const cam = this.cameras.main;
+        cam.pan(cap.sprite.x, cap.sprite.y - 14, 200, 'Sine.easeOut', true);
+        cam.zoomTo(1.1, 200, 'Sine.easeOut', true);
+        this.time.delayedCall(700, () => this.cameraHome());
+    }
+
+    private cameraHome() {
+        const cam = this.cameras.main;
+        cam.pan(GAME_W / 2, GAME_H / 2, 300, 'Sine.easeInOut', true);
+        cam.zoomTo(1, 300, 'Sine.easeInOut', true);
     }
 
     /** Aplica um nível de impacto: pausa curta (tempo real), tremida que decai e clarão. */
