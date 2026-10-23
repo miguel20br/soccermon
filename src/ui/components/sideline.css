@@ -524,7 +524,7 @@
 }
 /*
  * Deitado baixinho (568x320, 320 de altura): empilhados, os dois tampavam metade da quadra. Viram duas pílulas lado a
- * lado no pé da quadra, menores: o golpe fica com ícone, nível e tipo (o nome continua pro leitor de tela), toque ≥44 px.
+ * lado no pé da quadra, menores: o golpe fica com ícone, nível e tipo (o nome continua pro leitor de tela), toque de 44 px.
  */
 @media (orientation: landscape) and (max-height: 360px) {
     .sl-cue-row {
