@@ -960,6 +960,17 @@ export class MatchScene extends Phaser.Scene {
         const placed: { x0: number; x1: number; y0: number; y1: number }[] = [];
         const hit = (x0: number, x1: number, y0: number, y1: number) =>
             placed.some((r) => x0 < r.x1 && x1 > r.x0 && y0 < r.y1 && y1 > r.y0);
+        // PROTÓTIPO (nomes-quadra, não subir): ?nomes=bola|curto|num|bolacurto
+        const proto = new URLSearchParams(window.location.search).get('nomes');
+        if (proto) {
+            this.players.forEach((v, i) => {
+                const short = proto.includes('curto') ? v.name.slice(0, 4) : proto === 'num' ? String(i % 5 + 1) : v.name;
+                const t = v.captain ? `C·${short}` : short;
+                if (v.label.text !== t) v.label.setText(t);
+                const keep = !proto.startsWith('bola') || i === owner || v.captain;
+                if (!keep) v.crowd = 0;
+            });
+        }
         if (this.scale.displaySize.width < COMPACT_W) {
             const rank = (v: PlayerView) =>
                 (this.players.indexOf(v) === owner ? 0 : 4) + (v.team === this.mine ? 0 : 2) + (v.captain ? 0 : 1);
@@ -974,7 +985,7 @@ export class MatchScene extends Phaser.Scene {
                 const crowded = hit(x0, x0 + w, v.label.y, v.label.y + h);
                 if (!crowded) placed.push({ x0, x1: x0 + w, y0: v.label.y, y1: v.label.y + h });
                 v.crowd = Phaser.Math.Clamp(v.crowd + (crowded ? -step : step), 0, 1);
-                v.label.setAlpha(v.crowd);
+                v.label.setAlpha(proto?.startsWith('bola') && !(this.players.indexOf(v) === owner || v.captain) ? 0 : v.crowd);
                 v.badge.y = v.label.y + h * v.crowd;
             }
             return;
