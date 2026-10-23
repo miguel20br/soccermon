@@ -35,7 +35,7 @@ Ritmo novo: versões menos frequentes e polidas, revisão dupla antes do "pode s
   nova do funil ([funil-boas-vindas.md](funil-boas-vindas.md)).
 - **Decidir com o Miguel:** Home da 1ª visita com um botão só e "Monta pra mim" como principal na 1ª copa (funil);
   nomes que se embolam na quadra em pé; títulos dos creators (branch `titulos-creators`, nunca juntada).
-- **Depois:** golpe máximo por tipo fase 2 (12 assinaturas) e goleiro por tipo
+- **Depois:** golpe máximo por tipo fase 2 (12 assinaturas, feita na branch `assinaturas` atrás de `?assinatura=1`, motor 13) e goleiro por tipo
   ([golpe-maximo-por-tipo.md](golpe-maximo-por-tipo.md)); patrocínio Agente (botão Vender) e revisão do S.S. Anne
   ([patrocinios-novos.md](patrocinios-novos.md)); jogo de ritmo como ideia.
 

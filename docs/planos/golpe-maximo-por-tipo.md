@@ -364,3 +364,90 @@ Título: **Golpe máximo com a cara do capitão**
 - O ícone do tipo aparece no botão: apagado no nível 1 e 2, aceso no 3
 - Capitão de dois tipos: vale o tipo do golpe máximo, se for do tipo dele
 - Os líderes também usam: o Lance solta a Fúria do dragão
+
+## Fase 2 no código (23/10): as 12 assinaturas
+
+Decisão 9 (versão própria). Branch `assinaturas`, **atrás de `?assinatura=1`** até o Miguel jogar (ADR 0005). Com a
+bandeira o motor é o **13** (`ENGINE_VERSION_SIG`; o Duelo compara essa e recusa quem está sem); sem ela o motor 12 fica
+igual bit a bit (as 11 partidas antigas do golden master não mudaram; entraram 3 novas com as assinaturas). A Liga roda
+sem a bandeira.
+
+- **Peças:** cada efeito de tipo da fase 1 virou um conjunto de peças (`MAX_FX_PIECES` em `agency.ts`: `pierceAll`,
+  `wave`, `burn`, `volley`…) e cada assinatura é outro conjunto (`AGENCY.maxSig`), com 7 peças novas (estrela de fogo,
+  nevasca, voo, raio em cadeia, tsunami, fúria na hora e o 2º canhão). Espécie ⇒ assinatura em `MAX_SIGNATURE`
+  (`signature-moves.ts`). Números novos em `AGENCY.maxSigFx`.
+- **Tela:** receita própria por assinatura (`sig:<efeito>` em `move-fx.ts`), faixa grande com o nome, ícone do tipo da
+  assinatura no botão. Demo: `?demo=maximo&nivel=3&capitao=<id>&assinatura=1` (`&goleiro=1`: Snorlax no gol).
+- **Testes:** `src/engine/max-sig.test.ts` (um por assinatura, bandeira desligada, determinismo).
+- **Robô:** `SIG=1 CAPID=<id> POLS=n3 npx tsx scripts/balance/coach.ts 200 out.json 4 max` (`CAP=gk` pro Snorlax no gol).
+
+### As 12 (e o Snorlax no gol)
+
+Números de partida; a fase 1 ajustou parecido (o goleiro nunca fica parado, senão o N3 vira gol certo).
+
+| Pokémon | Assinatura | Efeito no N3 | Peças |
+|---|---|---|---|
+| Dragonite | Hiper Raio (Hyper Beam) | Raio laranja que fura todos os bloqueios; goleiro x0,85. Errou: recarrega 1 s (o Hyper Beam de sempre) | `pierceAll` |
+| Snorlax | Pancada do Snorlax (Body Slam) | Fura os bloqueios; o goleiro que defende cai e fica paralisado | Normal + `shock` |
+| Snorlax no gol | Soneca no gol | Na defesa máxima N3 deita na frente do gol: alcance x1,8 em vez de x1,4 | `wallReach` |
+| Arcanine | Estrela de fogo (Fire Blast) | Estrela de fogo na frente do gol: quem está a 4 m cai 0,6 s e se queima | `star` |
+| Articuno | Nevasca (Blizzard) | A área rival inteira congela 1,2 s; o goleiro escorrega (x0,9) | `snowArea` |
+| Blastoise | Dois canhões (Hydro Pump) | A onda abre a linha; defendeu ou bloqueou, a bola volta pro Blastoise de qualquer distância e ele emenda | `wave` + `cannon` |
+| Charizard | Voo em chamas (Flamethrower) | Voa 2 m rumo ao gol e chuta por cima; o goleiro que defende se queima e espalma curto | `flyIn` + `lob` + `burn` |
+| Pikachu | Raio em cadeia (Thunderbolt) | Bola 15% mais rápida; o raio salta do goleiro pros 2 rivais mais perto (paralisia 1,5 s) | `fast` + `chain` + `shock` |
+| Gengar | Come-sonho (Dream Eater) | Atravessa a defesa; o goleiro dorme (x0,75), até o Normal | `sure` |
+| Mewtwo | Telecinese (Psychic) | Curva até ~11° pro canto longe do goleiro (o tipo: ~8°); goleiro x0,9 | `curve` |
+| Gyarados | Tsunami (Hydro Pump) | Empurra todos os rivais 3 m (o goleiro 1 m) e fica em fúria 6 s | `tsunami` + `furyNow` |
+| Mew | Metrônomo (Metronome) | Sorteia um dos 16 efeitos de tipo a cada N3 (`rng` da partida: o replay e o Duelo dão igual) | sorteio |
+| Ditto | Transformação (Transform) | Copia o efeito do capitão rival (assinatura ou tipo); Ditto contra Ditto, Normal | cópia |
+
+### Medida (n=200)
+
+`SIG=0|1 CAPID=<id> POLS=n3 coach.ts 200`: o capitão do robô é a espécie, política "segura pro N3" contra "nunca usa",
+mesmas seeds. "Tipo" = o mesmo capitão com o efeito do tipo dele (motor 12); "assinatura − tipo" é a diferença pareada.
+
+| Capitão | Δ com a assinatura (pp) | Δ com o tipo (pp) | Assinatura − tipo (pp) | N3/jogo | Gol do N3/jogo (assin. / tipo) |
+|---|---:|---:|---:|---:|---|
+| Dragonite | +2,0 ± 1,4 | +1,5 ± 1,5 | +0,5 ± 0,5 | 0,45 | 0,34 / 0,27 |
+| Snorlax (linha) | −1,5 ± 1,3 | −1,5 ± 1,3 | +0,0 ± 0,0 | 0,27 | 0,22 / 0,22 |
+| Snorlax (gol) | −0,5 ± 1,5 | −1,0 ± 1,4 | +0,5 ± 0,5 | 0,34 defesas | — |
+| Arcanine | −1,0 ± 1,9 | −1,0 ± 1,4 | +0,0 ± 1,9 | 0,26 | 0,14 / 0,18 |
+| Articuno | +1,5 ± 2,1 | +1,5 ± 1,8 | +0,0 ± 1,7 | 0,52 | 0,23 / 0,31 |
+| Blastoise | +1,5 ± 1,1 | +1,5 ± 1,1 | +0,0 ± 0,0 | 0,22 | 0,15 / 0,15 |
+| Charizard | +3,5 ± 2,5 | +3,5 ± 2,2 | +0,0 ± 2,7 | 0,52 | 0,16 / 0,29 |
+| Pikachu | +1,0 ± 1,4 | +1,5 ± 1,7 | −0,5 ± 1,3 | 0,27 | 0,15 / 0,15 |
+| Gengar | +2,5 ± 2,6 | +2,5 ± 2,6 | +0,0 ± 0,7 | 0,53 | 0,33 / 0,32 |
+| Mewtwo | **+9,5** ± 2,4 | **+8,5** ± 2,4 | +1,0 ± 0,7 | 0,69 | 0,57 / 0,58 |
+| Gyarados | +4,0 ± 2,1 | +4,5 ± 2,3 | −0,5 ± 1,8 | 0,44 | 0,39 / 0,37 |
+| Mew | +3,5 ± 2,9 | +2,0 ± 2,6 | **+1,5** ± 2,6 | 0,61 | 0,40 / 0,53 |
+| Ditto | +0,5 ± 2,1 | +0,5 ± 2,4 | +0,0 ± 2,2 | 0,62 | 0,42 / 0,42 |
+
+O que dá pra ler:
+
+- **Meta (nenhuma assinatura mais de 1,5 pp acima): bate, medindo a assinatura contra o efeito do tipo do mesmo
+  capitão.** A maior é o Mew (+1,5 ± 2,6, no limite e quase tudo ruído), depois o Mewtwo (+1,0 ± 0,7) e o Dragonite
+  (+0,5). As outras ficam entre −0,5 e +0,0: a assinatura vale pela cena, quase nada pelo placar.
+- **Mewtwo, Gyarados, Charizard e Mew passam da faixa da média dos tipos (+1,7 + 1,5 = 3,2) já com o efeito do tipo.**
+  Isso é o capitão, não a assinatura: o Mewtwo chega na zona 0,69 vez por jogo e converte 83%. Se incomodar, é
+  conversa de nota/atributo (balanceamento), não desta frente.
+- Snorlax de linha e Blastoise saem iguais ao tipo nas 200 (a paralisia em cima do "cai 1 s" do Normal e o 2º canhão
+  quase não aparecem: o goleiro defendeu 0 vez nos N3 medidos). Charizard e Mew fazem menos gol de N3 que o tipo e
+  ganham igual: ruído de 0,5 N3 por jogo.
+- Ressalva: n=200 (± 1 a 3 pp). Pra cravar o Mew e o Mewtwo, 384 partidas. O robô não usa MT nem joga no Duelo.
+
+Prints (headless, `?demo=maximo&nivel=3&capitao=149|6|25|130&assinatura=1`, 390 e 1440): faixa "HIPER RAIO!" com o
+raio laranja, "VOO EM CHAMAS!" com o Charizard no alto, o raio em cadeia do Pikachu (a faixa do combo "Eu escolho você"
+cobriu a da assinatura nesse lance) e "TSUNAMI!". Ícone do tipo aceso no botão no N3. Pra ver de verdade: jogar na
+prévia com `?assinatura=1`.
+
+### Rascunho das Novidades
+
+Título: **Golpe máximo com assinatura**
+
+- (com `?assinatura=1`, até o Miguel jogar) 12 Pokémon ganham um golpe máximo nível 3 só deles
+- Dragonite solta o Hiper Raio e fura a defesa inteira; Snorlax no gol deita na frente da trave
+- Arcanine explode uma estrela de fogo na área, Articuno congela a área toda, Gyarados solta um tsunami
+- Charizard voa com a bola e chuta em chamas, Pikachu solta um raio que salta de rival em rival
+- Gengar põe o goleiro pra dormir, Mewtwo curva a bola no ar, Blastoise emenda com o 2º canhão
+- Mew sorteia o efeito a cada golpe, Ditto copia o do capitão rival
+- Evoluiu pra forma final no meio da copa? A assinatura vem junto
