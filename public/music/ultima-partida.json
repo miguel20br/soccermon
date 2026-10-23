@@ -1,0 +1,46 @@
+{
+ "faixa": "ultima-partida",
+ "titulo": "A última partida",
+ "tela": "Créditos / fim de carreira",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 112.62458,
+ "secoes": [
+  {
+   "nome": "tudo",
+   "loop": false,
+   "inicio": 0,
+   "fim": 106.624558,
+   "amostras": [
+    0,
+    4702143
+   ],
+   "bpm": 72,
+   "compassos": 35
+  }
+ ],
+ "tempos": [
+  [
+   26.666667,
+   100
+  ],
+  [
+   43.466667,
+   76
+  ]
+ ],
+ "gancho": {
+  "hits": [
+   [
+    41.067,
+    41.517,
+    41.967
+   ],
+   [
+    78.204,
+    79.388,
+    80.572
+   ]
+  ]
+ }
+}

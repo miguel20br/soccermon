@@ -83,6 +83,24 @@
         ],
         "createdAt": "2026-10-20T19:28:54.421Z",
         "reason": "Faixa lateral na cor (tipo do golpe, clube) é o padrão do kit da transmissão do brand guide (docs/marca, .bc-stripe); regras de 0.8.0, anteriores a esta sessão"
+      },
+      {
+        "rule": "buried-raster",
+        "value": "*",
+        "files": [
+          ".claude/worktrees/curtas-2/trailer/curtas-2/ginasio/index.html"
+        ],
+        "createdAt": "2026-10-22T17:12:17.236Z",
+        "reason": "Claude (agente dos curtas): ginásio começa escuro de propósito, a camada cai pra 18% no primeiro TUNK (0 s); quadros conferidos mostram os sprites"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          ".claude/worktrees/curtas/trailer/curtas/penaltis/index.html"
+        ],
+        "createdAt": "2026-10-22T18:10:47.168Z",
+        "reason": "Claude: faixa lateral na cor do clube é padrão do brand guide (docs/marca, .bc-stripe); no curta dos pênaltis marca o time pra quem torcer"
       }
     ]
   }

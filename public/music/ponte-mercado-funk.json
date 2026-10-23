@@ -1,0 +1,21 @@
+{
+ "faixa": "ponte-mercado-funk",
+ "titulo": "Ponte pra mercado-funk: as moedas caindo e o \"plim\" da caixa registradora",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 2.636961,
+ "secoes": [
+  {
+   "nome": "ponte",
+   "loop": false,
+   "inicio": 0,
+   "fim": 2.307687,
+   "amostras": [
+    0,
+    101769
+   ],
+   "bpm": 104,
+   "compassos": 1
+  }
+ ]
+}

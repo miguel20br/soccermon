@@ -17,6 +17,8 @@ export const result = {
     feedback: 'Dar feedback',
     finalDetails: 'A final em detalhes',
     highlights: 'Destaques da partida',
+    foldHighlights: 'Destaques e gols',
+    foldStats: 'Estatísticas e gráficos',
     goals: 'Gols',
     noGoals: 'Nenhum gol.',
     ownGoal: ' (contra)',
@@ -56,6 +58,8 @@ export const result = {
         champions: 'CAMPEÕES!',
         win: 'VITÓRIA!',
         loss: 'FIM DA LINHA',
+        /** Rota Índigo: perdeu, mas segue (cartão amarelo no mapa, derrota no grupo). */
+        lossAlive: 'DERROTA',
         cupWon: 'Copa de Kanto conquistada!',
         runnerUp: 'Vice-campeão da Copa de Kanto',
         eliminated: 'Eliminado {stage}',

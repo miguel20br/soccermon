@@ -2,19 +2,20 @@ import { useCallback, useEffect, useState } from 'react';
 import { aerialLevel, aerialScore, computeAttributes, sizePercentile } from '../../engine/attributes';
 import { MOVES, species } from '../../engine/data';
 import { evolutionTarget, evoNeeded, evoProgress } from '../../engine/evolution';
-import { applyModifiers, attributeModifiers, moveModifiers } from '../../engine/modifiers';
-import { moveProfile } from '../../engine/moves';
+import { DEFAULT_FORMATION, type FormationId, hasEdge } from '../../engine/formations';
+import { applyModifiers, attributeModifiers, moveModifiers, moveUses } from '../../engine/modifiers';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { FLAG_BUFF, FLAG_CHARGED, FLAG_DEBUFF, SNAP_STRIDE, type Tactic, type TeamSetup } from '../../engine/state';
 import { EventBus } from '../../game/EventBus';
-import { modLabel, moveModLabel, moveName } from '../../i18n';
+import { formationText, modLabel, moveModLabel, moveName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useCardModal } from '../card-modal';
+import { edgePct, formationLines } from '../formation-info';
 import { lineupAt, snapAt, statsUntil, whoAt } from '../match-view';
 import { TYPE_COLOR } from '../type-colors';
 import { FutCard } from './FutCard';
 import { HudIcon } from './MatchHud';
-import { TaughtMark } from './TmTeach';
+import { TaughtMark } from './TaughtMark';
 
 /** Setinha "abre mais" nos golpes, desenhada em SVG. */
 function ChevronIcon() {
@@ -122,6 +123,24 @@ export function PlayerInspect({
     if (fatigue > 0) live.push({ up: false, text: t('team.inspect.fatigue', { n: fatigue }) });
     if (behind >= 3) live.push({ up: true, text: t('team.inspect.grit', { n: behind }) });
     live.push({ up: true, text: t('team.inspect.tactic', { tactic: d.common.tactic[tactics[who.team]] }) });
+    // formação de agora (a prancheta pode ter trocado no meio do jogo): o ponto forte/fraco pra esta posição
+    const formationAt = (team: 0 | 1): FormationId => {
+        let f = setups[team].formation ?? DEFAULT_FORMATION;
+        for (const e of match.events) {
+            if (e.tick > tick) break;
+            if (e.type === 'lineup' && e.team === team) f = e.formation;
+        }
+        return f;
+    };
+    const myFormation = formationAt(who.team);
+    const fl = formationLines(myFormation, lang, who.role);
+    const fName = formationText(myFormation, lang).name;
+    if (fl.up.length)
+        live.push({ up: true, text: t('team.inspect.formation', { formation: fName, list: fl.up.join(', ') }) });
+    if (fl.down.length)
+        live.push({ up: false, text: t('team.inspect.formation', { formation: fName, list: fl.down.join(', ') }) });
+    if (hasEdge(myFormation, formationAt(who.team === 0 ? 1 : 0)))
+        live.push({ up: true, text: t('team.inspect.edge', { pct: edgePct(lang) }) });
     // selo "Jogo aéreo": a mesma conta da disputa no alto do escanteio (carta = campo)
     const fieldAttr = applyModifiers(computeAttributes(species(inst.speciesId), inst.level), mods, who.role);
     const aerial = aerialLevel(
@@ -226,7 +245,7 @@ export function PlayerInspect({
                             {inst.moves.map((m) => {
                                 const data = MOVES[m];
                                 if (!data) return null;
-                                const left = Math.max(0, moveProfile(m).uses - (used.get(m) ?? 0));
+                                const left = Math.max(0, moveUses(inst, m) - (used.get(m) ?? 0));
                                 const locked = moveMods.some((mm) => mm.moveId === m && mm.factor === 0);
                                 const boost = moveMods.find((mm) => mm.moveId === m && mm.factor > 1);
                                 return (

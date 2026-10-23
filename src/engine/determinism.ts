@@ -59,5 +59,35 @@ export function determinismHashes(): string[] {
     // partida curtinha que termina empatada e vai pros pênaltis
     const short = runMatch(withConfig({ halfSeconds: 4 }), team('pk-a0', 'A', 0), team('pk-b0', 'B', 0), 'pk-0');
     hashes.push(matchHash(short));
+    // beira da quadra: tempo, goleiro-linha, golpe máximo pedido algumas vezes e o rival com técnico IA
+    const agOrders: MatchOrder[] = [
+        { tick: 1000, team: 0, kind: 'timeout' },
+        ...[3000, 3400, 3800, 4200, 4600].map((tick) => ({ tick, team: 0 as const, kind: 'max' as const })),
+        { tick: 5000, team: 0, kind: 'flyGk', on: true },
+    ];
+    const agAway: TeamSetup = { ...team('det-ag-b', 'B', 2), coach: 'lance' };
+    // capitão ala: o golpe máximo sai a ~17 m, fora da zona do pivô (zona por posição)
+    const agHome = team('det-ag-a', 'A', 2, { manualSubs: true });
+    hashes.push(
+        matchHash(
+            runMatch(FUTSAL_5, { ...agHome, captainUid: agHome.lineup[2].uid }, agAway, 'det-agency', {
+                orders: agOrders,
+            }),
+        ),
+    );
+    // golpe máximo em 3 níveis com a nota do toque e o Lance sorteando a dele
+    const lvOrders: MatchOrder[] = [1500, 2600, 3700, 4800].map((tick, k) => ({
+        tick,
+        team: 0,
+        kind: 'max',
+        q: (k % 3) as 0 | 1 | 2,
+    }));
+    hashes.push(
+        matchHash(
+            runMatch(FUTSAL_5, { ...agHome, captainUid: agHome.lineup[2].uid }, agAway, 'det-max3', {
+                orders: lvOrders,
+            }),
+        ),
+    );
     return hashes;
 }

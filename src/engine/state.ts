@@ -1,5 +1,4 @@
 import type { AbilityEffect } from './abilities';
-import type { Shout } from './agency';
 import type { Attributes, AttrKey, Position } from './attributes';
 import type { MatchConfig } from './config';
 import type { Species, TypeName } from './data';
@@ -59,7 +58,10 @@ export interface TacticChange {
     tactic: Tactic;
 }
 
-/** Substituição pedida pelo técnico: entra na próxima saída de bola depois de `tick`. */
+/**
+ * Substituição pedida pelo técnico: volante, entra no tick dela (quem entra vem da lateral perto do banco). Se quem sai
+ * está com a bola, espera ele soltar; na bola parada e no intervalo entra no lugar dele, como antes.
+ */
 export interface SubOrder {
     tick: number;
     team: 0 | 1;
@@ -80,8 +82,8 @@ export interface CornerOrder {
 
 /**
  * Mudança de prancheta: formação nova e quem joga em cada vaga (`order[i]` = uid de quem vai pra vaga i, uma
- * permutação de quem está em quadra). Entra na próxima bola parada depois de `tick`, como a substituição; sem limite,
- * mas só uma pendente por time (a nova substitui a que ainda não entrou). Quem saiu numa troca vale como quem entrou
+ * permutação de quem está em quadra). Vale na hora, como a substituição (volante, 21/10/2026); sem limite, mas só uma
+ * pendente por time (a nova substitui a que ainda não entrou). Quem saiu numa troca vale como quem entrou
  * no lugar dele (troca e prancheta na mesma bola parada dão o mesmo resultado em qualquer ordem).
  */
 export interface LineupOrder {
@@ -94,18 +96,20 @@ export interface LineupOrder {
 }
 
 /**
- * Agência do técnico (experimento, src/engine/agency.ts): grito (vale na hora), pedido de tempo e goleiro-linha (na
- * próxima bola parada), golpe máximo do capitão (na hora, se a barra estiver cheia) e a ordem dos cobradores de
- * pênalti (uids, guardada até a disputa). Sem essas ordens a partida é a de sempre.
+ * Agência do técnico (experimento, src/engine/agency.ts): pedido de tempo (na próxima bola parada), goleiro-linha (na
+ * hora), golpe máximo do capitão (armado na hora, sai na hora certa se a barra estiver cheia) e a ordem dos cobradores de
+ * pênalti (uids, guardada até a disputa). Sem essas ordens a partida é a de sempre. O grito saiu (21/10/2026): ordem
+ * antiga com `kind: 'shout'` não passa no `validOrder` e é ignorada.
  */
 export type AgencyOrder =
-    | { tick: number; team: 0 | 1; seq?: number; kind: 'shout'; shout: Shout }
     | { tick: number; team: 0 | 1; seq?: number; kind: 'timeout' }
     | { tick: number; team: 0 | 1; seq?: number; kind: 'flyGk'; on: boolean }
-    | { tick: number; team: 0 | 1; seq?: number; kind: 'max' }
+    /** `q`: nota do toque na batida (0 fora, 1 bom, 2 perfeito; sem = bom). */
+    | { tick: number; team: 0 | 1; seq?: number; kind: 'max'; q?: MaxGrade }
     | { tick: number; team: 0 | 1; seq?: number; kind: 'penalties'; order: string[] };
 export type AgencyKind = AgencyOrder['kind'];
-export const AGENCY_KINDS: readonly AgencyKind[] = ['shout', 'timeout', 'flyGk', 'max', 'penalties'];
+export type MaxGrade = 0 | 1 | 2;
+export const AGENCY_KINDS: readonly AgencyKind[] = ['timeout', 'flyGk', 'max', 'penalties'];
 
 /** Ordens do técnico durante a partida (a partida é resimulada com a agenda inteira). */
 export type MatchOrder = TacticChange | SubOrder | CornerOrder | LineupOrder | AgencyOrder;
@@ -263,6 +267,8 @@ export interface ShotInfo {
     onTarget: boolean;
     /** Drill Peck/Cut: já furou o primeiro bloqueio. */
     pierced?: boolean;
+    /** Golpe máximo N3: alcance do goleiro rival nesse chute (`AGENCY.maxLevelShot`). */
+    gkReach?: number;
 }
 
 export interface BallState {
@@ -334,18 +340,16 @@ export interface TeamRuntime {
 }
 
 export interface AgencyRuntime {
-    shout: { kind: Shout; until: number } | null;
-    shoutsUsed: number;
-    /** Próximo grito só a partir deste tick (recarga). */
-    shoutReadyAt: number;
     /** Pedido de tempo já usado em cada tempo, e o que espera a próxima bola parada. */
     timeouts: [boolean, boolean];
     timeoutPending: boolean;
-    /** Goleiro-linha ligado agora e a troca que espera a próxima bola parada (null = nenhuma). */
+    /** Goleiro-linha ligado agora (liga e desliga na hora). */
     flyGk: boolean;
-    flyGkPending: boolean | null;
-    /** Golpe máximo solto: quem (índice do capitão) e até que tick a janela vale. */
-    max: { idx: number; until: number } | null;
+    /**
+     * Golpe máximo pedido: quem (índice do capitão) e até que tick vale. `live` = defesa máxima valendo (goleiro); sem
+     * `live`, a ordem está armada esperando a hora certa (`inMaxZone`).
+     */
+    max: { idx: number; until: number; live: boolean; level: 1 | 2 | 3; q: MaxGrade } | null;
     /** Ordem dos cobradores de pênalti (uids; null = pelo chute, como sempre). */
     penaltyOrder: string[] | null;
 }
@@ -455,6 +459,8 @@ export type MatchEvent = MatchEventBase &
               outSpeciesId: number;
               inSpeciesId: number;
               inShiny: boolean;
+              /** Troca volante (com a bola rolando): quem entra vem da lateral perto do banco. */
+              fly?: boolean;
           }
         /** Mudança de prancheta: a formação nova e o jogador (`idx`) em cada vaga, na ordem das vagas. */
         | { type: 'lineup'; team: 0 | 1; formation: FormationId; idx: number[] }
@@ -462,12 +468,23 @@ export type MatchEvent = MatchEventBase &
         | { type: 'penalty'; by: number; gk: number; scored: boolean; round: number; shootout: [number, number] }
         | { type: 'end'; winner: 0 | 1 | null; score: [number, number]; shootout: [number, number] | null }
         // agência do técnico (experimento)
-        | { type: 'shout'; team: 0 | 1; shout: Shout }
         | { type: 'timeout'; team: 0 | 1 }
         /** Goleiro-linha ligou/desligou (`by` = o goleiro). */
         | { type: 'flyGk'; team: 0 | 1; on: boolean; by: number }
-        /** Golpe máximo: abriu a janela, saiu (`hit`: o chute, ou a janela do goleiro) ou passou sem sair (`miss`). */
-        | { type: 'max'; team: 0 | 1; by: number; phase: 'start' | 'hit' | 'miss'; moveId?: string | null }
+        /**
+         * Golpe máximo: `hit` = saiu (o chute do capitão de linha, ou a defesa máxima do goleiro); `start` = a defesa
+         * máxima começou a valer (goleiro); `miss` = ninguém chutou nela (a barra volta pela metade).
+         */
+        | {
+              type: 'max';
+              team: 0 | 1;
+              by: number;
+              phase: 'start' | 'hit' | 'miss';
+              moveId?: string | null;
+              /** Nível que saiu e nota do toque (a tela mostra "PERFEITO!"). */
+              level?: 1 | 2 | 3;
+              q?: MaxGrade;
+          }
         /** Técnico IA avisou a ordem (vale `RIVAL_COACH.leadTicks` depois; src/engine/rival-coach.ts). */
         | ({ type: 'coach'; team: 0 | 1; leader: LeaderId } & CoachCall)
     );

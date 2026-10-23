@@ -1,0 +1,22 @@
+{
+ "faixa": "penaltis-perdeu",
+ "titulo": "Pênaltis (jogo)",
+ "tela": "Partida: disputa de pênaltis",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 5,
+ "secoes": [
+  {
+   "nome": "tudo",
+   "loop": false,
+   "inicio": 0,
+   "fim": 2.5,
+   "amostras": [
+    0,
+    110250
+   ],
+   "bpm": 96,
+   "compassos": 1
+  }
+ ]
+}

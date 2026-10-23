@@ -1,8 +1,10 @@
 import { type CSSProperties, type ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { editionOf } from '../../engine/specials';
-import { playSfx } from '../../game/audio';
+import { playCry, playSfx } from '../../game/audio';
+import { heardAt, musicLines, onLines } from '../../game/music';
 import { useT } from '../../i18n/react';
+import { useGame } from '../../store/game-store';
 import { metalOf } from '../rarity';
 import { reduceMotionOn } from '../settings-sync';
 import { TYPE_COLOR } from '../type-colors';
@@ -27,14 +29,27 @@ const TIMING = {
     fast: { open: 200, gap: 50, hold: 0, card: 320 },
 };
 const WALKOUT_MS = 1200;
+/** Animações da carta que contam o `--rd` (a saída, o walkout, os raios e o brilho da carta grande). */
+const REVEAL_ANIMS = ['cpack-out', 'cpack-walk', 'cpack-rays', 'opt-glow'];
 /** Tom sobe carta a carta (dó, mi, sol, dó), como a contagem do Balatro. */
 const pitchOf = (i: number) => 2 ** (([0, 4, 7, 12][i] ?? 12) / 12);
+
+/**
+ * Carta grande (ouro, Shiny, edição especial) solta o grito do Pokémon quando aparece (`data-cry` = espécie). As
+ * outras não: três gritos em 0,3 s viravam barulho.
+ */
+function cryOf(el: HTMLElement) {
+    const id = Number(el.dataset.cry);
+    if (id && (el.classList.contains('big') || el.classList.contains('walk')))
+        playCry(id, useGame.getState().settings.cries, 0.8);
+}
 
 type Phase = 'closed' | 'opening' | 'flip' | 'done';
 
 /**
  * Pacote de cartas com o logo (recompensa e draft). Envolve a grade de cartas: cada carta marcada com
- * `.cpack-card` (`.big` segura mais e brilha; `.walk` sobe com luz atrás, o walkout). Fechado (`sealed`), espera
+ * `.cpack-card` (`.big` segura mais e brilha; `.walk` sobe com luz atrás, o walkout; `data-cry` = espécie, pro grito da
+ * carta grande). Fechado (`sealed`), espera
  * um toque; aberto, a tampa rasga e as cartas saem do pacote uma de cada vez com o tom subindo. Um toque durante
  * a abertura pula tudo. `revealKey` novo = cartas novas: no draft abre outro pacote, na recompensa (já aberta)
  * as cartas só viram. Com "reduzir movimento" as cartas aparecem na hora (fica o som).
@@ -99,11 +114,23 @@ export function CardPack({
         if (!stage) return;
         const cards = [...stage.querySelectorAll<HTMLElement>('.cpack-card')];
         if (reduceMotionOn()) {
-            playSfx(cards.some((c) => c.classList.contains('walk')) ? 'goal' : 'select');
+            // as cartas aparecem já; o som cai na próxima linha da música (a mesma regra, sem animação)
+            const g = musicLines(1);
+            playSfx(
+                cards.some((c) => c.classList.contains('walk')) ? 'goal' : 'select',
+                1,
+                g ? heardAt(g.lines[0] / 1000) : undefined,
+            );
+            const big = cards.find(
+                (c) => c.dataset.cry && (c.classList.contains('big') || c.classList.contains('walk')),
+            );
+            if (big) cryOf(big);
             setPhase('done');
             return;
         }
         const timers: number[] = [];
+        /** Sons já agendados no tempo da música: um toque (pular) cala os que ainda não soaram. */
+        const sounds: { src?: AudioBufferSourceNode; at: number }[] = [];
         running.current = true;
         const lead = phase === 'opening' ? tm.open : 0;
         if (phase === 'opening' && !compact) playSfx('kick', 1.7);
@@ -113,24 +140,44 @@ export function CardPack({
             el.style.removeProperty('--fy');
         }
         const s = stage.getBoundingClientRect();
+        // horário de cada carta: depois da tampa, uma de cada vez (a grande segura mais)
+        const base: number[] = [];
         let at = lead;
+        for (const el of cards) {
+            base.push(at);
+            at += tm.gap + (el.classList.contains('big') ? tm.hold : 0);
+        }
+        // com música, cada carta cai numa batida (colcheia, se a batida é longa) e o som dela sai nessa linha; o rápido
+        // (da 7ª recompensa em diante) fica como era. Um toque continua pulando tudo na hora.
+        const grid = fast ? null : musicLines(cards.length * 4 + 8);
+        const pNow = performance.now();
+        const times = grid ? onLines(base, grid.lines) : base;
         let end = 0;
         cards.forEach((el, i) => {
             const r = el.getBoundingClientRect();
             const fly = phase === 'opening';
             el.style.setProperty('--fx', `${fly ? s.left + s.width / 2 - (r.left + r.width / 2) : 0}px`);
             el.style.setProperty('--fy', `${fly ? s.top + s.height / 2 - (r.top + r.height / 2) : 0}px`);
-            el.style.setProperty('--rd', `${at}ms`);
+            const d = times[i];
+            el.style.setProperty('--rd', `${d}ms`);
             const walk = el.classList.contains('walk');
-            const d = at;
-            timers.push(window.setTimeout(() => playSfx(walk ? 'goal' : 'select', walk ? 1 : pitchOf(i)), d));
+            // no tempo da música, o som vai já pro AudioContext (a saída do áudio atrasa até 200 ms: um timer chegaria tarde)
+            const when = grid ? heardAt(d / 1000) : undefined;
+            const sfx = () => playSfx(walk ? 'goal' : 'select', walk ? 1 : pitchOf(i), when);
+            if (when === undefined) timers.push(window.setTimeout(sfx, d));
+            else sounds.push({ src: sfx(), at: when });
+            timers.push(window.setTimeout(() => cryOf(el), d));
             end = Math.max(end, d + (walk ? WALKOUT_MS : tm.card));
-            at += tm.gap + (el.classList.contains('big') ? tm.hold : 0);
+            // o atraso conta de agora, não do quadro em que a animação nasceu (pode ter sido 100 ms antes, num quadro
+            // pesado, ou quando o pacote entrou na tela): a carta cai na linha junto do som dela
+            for (const a of el.getAnimations({ subtree: true }))
+                if (REVEAL_ANIMS.includes((a as CSSAnimation).animationName)) a.startTime = pNow;
         });
         timers.push(window.setTimeout(() => setPhase('done'), end));
         return () => {
             running.current = false;
             for (const id of timers) clearTimeout(id);
+            for (const { src, at } of sounds) if (src && at > src.context.currentTime) src.stop();
         };
     }, [phase, revealKey, inView]);
 

@@ -168,3 +168,17 @@
     animation-name: leave-fade;
     animation-direction: reverse;
 }
+/* ícone do capitão (você e os seus rivais): não aumenta a linha, o nome corta com reticências do lado */
+.br-name.has-icon {
+    display: flex;
+    align-items: center;
+    overflow: visible;
+    min-width: 0;
+}
+.br-name.has-icon > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.br-name .mon-icon {
+    margin: -4px 2px -4px -4px;
+}

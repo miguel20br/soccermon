@@ -6,7 +6,7 @@ import { CRY_FADE_AT, CRY_MAX_MS, cryGain, cryPlayMs } from './cry-level';
  * Áudio da partida: gritos dos Pokémon (arquivos .ogg do PokeAPI/cries) + efeitos procedurais (ZzFX).
  * Os efeitos não precisam de arquivo — são gerados na hora.
  */
-const SFX = {
+export const SFX = {
     // parâmetros gerados no editor do ZzFX (killedbyapixel.github.io/ZzFX)
     kick: [0.9, 0.05, 140, 0, 0.01, 0.06, 4, 2.2, -8, 0, 0, 0, 0, 0.3, 0, 0, 0, 0.6, 0.02],
     shot: [1.2, 0.05, 90, 0, 0.02, 0.12, 4, 2.6, -6, 0, 0, 0, 0, 0.6, 0, 0.1, 0, 0.5, 0.04],
@@ -25,13 +25,19 @@ const SFX = {
 
 export type SfxName = keyof typeof SFX;
 
+/**
+ * Ganho base de cada canal (antes de `geral × canal` das Configurações). Medidos com `npx tsx scripts/niveis-audio.ts`;
+ * alvos na skill soccermon-musica (§6): o grito é tempero, fica atrás da música (era 0,55: ~12 dB acima dela).
+ */
+export const GAIN = { cry: 0.13, sfx: 0.35, sample: 0.7 };
+
 /** Volume geral e de cada canal (0..1). Gritos e efeitos tocam com `geral × canal`. */
 const vol = { master: 0.6, cries: 1, sfx: 1, crowd: 1 };
 /** Grito de gol do capitão ligado (Configurações). */
 let goalCryOn = true;
 
 const applyZzfx = () => {
-    ZZFX.volume = 0.35 * vol.master * vol.sfx;
+    ZZFX.volume = GAIN.sfx * vol.master * vol.sfx;
 };
 
 /** Volume geral (compatível com as chamadas antigas). */
@@ -50,13 +56,27 @@ export function setGoalCry(on: boolean) {
     goalCryOn = on;
 }
 
-/** `pitch` multiplica a frequência (1 = normal; 2^(1/12) ≈ 1,06 = um semitom acima). */
-export function playSfx(name: SfxName, pitch = 1) {
+/**
+ * `pitch` multiplica a frequência (1 = normal; 2^(1/12) ≈ 1,06 = um semitom acima). `at` = hora do AudioContext em
+ * que o som sai (no tempo da música: `heardAt` em `music.ts`); sem ela, já. Devolve a fonte (pra calar antes).
+ */
+export function playSfx(name: SfxName, pitch = 1, at?: number): AudioBufferSourceNode | undefined {
     if (vol.master * vol.sfx <= 0) return;
     try {
         const p = [...SFX[name]] as number[];
         p[2] *= pitch;
-        zzfx(...p);
+        if (at === undefined) return zzfx(...p);
+        const c = ZZFX.audioContext;
+        const s = ZZFX.buildSamples(...p);
+        const b = c.createBuffer(1, s.length, ZZFX.sampleRate);
+        b.getChannelData(0).set(s);
+        const src = c.createBufferSource();
+        src.buffer = b;
+        const g = c.createGain();
+        g.gain.value = ZZFX.volume;
+        src.connect(g).connect(c.destination);
+        src.start(Math.max(at, c.currentTime));
+        return src;
     } catch {
         // contexto de áudio ainda bloqueado pelo navegador (antes da primeira interação)
     }
@@ -87,7 +107,7 @@ function play(name: SampleName, level: number) {
         const ctx = ZZFX.audioContext;
         if (!buf || ctx.state !== 'running') return;
         const g = ctx.createGain();
-        g.gain.value = 0.7 * level;
+        g.gain.value = GAIN.sample * level;
         const src = ctx.createBufferSource();
         src.buffer = buf;
         src.connect(g).connect(ctx.destination);
@@ -144,7 +164,7 @@ function cry(speciesId: number, style: CryStyle, volume: number, rate = 1) {
         cryCache.set(url, audio);
     }
     const node = audio.cloneNode(true) as HTMLAudioElement;
-    const level = Math.min(1, 0.55 * volume * cryGain(speciesId, style));
+    const level = Math.min(1, GAIN.cry * volume * cryGain(speciesId, style));
     node.volume = level;
     if (rate !== 1) {
         node.preservesPitch = false;

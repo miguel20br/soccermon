@@ -2,21 +2,27 @@ import { useEffect, useRef, useState } from 'react';
 import { DRAFT_PICKS } from '../../engine/draft';
 import { evolvedRating } from '../../engine/evolution';
 import { FORMATIONS, type FormationId } from '../../engine/formations';
-import { viewInstance } from '../../engine/instance';
+import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { computeLinks } from '../../engine/links';
 import { computeSynergies } from '../../engine/synergy';
 import { formationText } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
+import { coachSeen } from '../../store/coach';
 import { type SlotRef, slotRole, useGame } from '../../store/game-store';
+import { isLong } from '../../store/long-cup';
+import { Coach } from '../coach/Coach';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { CountUp } from '../components/CountUp';
 import { FormationBoard } from '../components/FormationBoard';
+import { FormationIdentity } from '../components/FormationIdentity';
 import { FutCard } from '../components/FutCard';
 import { LinkChip, LinkChips, newLinks } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
-import { TypeBadge } from '../components/PokeCard';
+import { MenuIcon } from '../components/MenuIcon';
+import { cardSprite, TypeBadge } from '../components/PokeCard';
 import { EvoBadge } from '../components/PokeCard2';
 import { Tip } from '../help/Tip';
+import { requestLeave } from '../leave-guard';
 import { lineupAverage, ratingAt } from '../rating';
 import { reduceMotionOn } from '../settings-sync';
 import { flyCard } from '../view-transition';
@@ -63,9 +69,12 @@ function AutoDraft({ captainUid, hint }: { captainUid?: string; hint?: string })
                     <button type="button" className="btn ghost" onClick={() => setAsk(false)}>
                         {t('team.draft.autoBack')}
                     </button>
+                    {/* o diálogo abre com o foco no "Montar": Enter confirma, Esc/Voltar cancela pelo teclado */}
                     <button
                         type="button"
                         className="btn primary"
+                        // biome-ignore lint/a11y/noAutofocus: o diálogo acabou de abrir por um clique; o foco tem que entrar nele
+                        autoFocus
                         onClick={() => {
                             autoDraft(captainUid);
                         }}
@@ -88,6 +97,59 @@ function AutoDraft({ captainUid, hint }: { captainUid?: string; hint?: string })
 }
 
 /** Desenho mini da formação (bolinhas nas posições da UI). */
+/**
+ * Celular em pé: a quadra sai da tela quando as cartas sobem. Esta faixa fica fixa no topo com as vagas (titulares e
+ * banco): você vê onde a carta vai cair e toca numa vaga sem rolar de volta. Só aparece nessa tela (CSS); o leitor de
+ * tela usa a quadra, que tem os mesmos botões.
+ */
+function DraftStrip({
+    run,
+    byUid,
+    stateOf,
+    onSlot,
+}: {
+    run: NonNullable<ReturnType<typeof useGame.getState>['run']>;
+    byUid: Map<string, PokemonInstance>;
+    stateOf: (slot: SlotRef, uid: string) => 'locked' | 'target' | 'selected';
+    onSlot: (slot: SlotRef, uid: string) => void;
+}) {
+    const { t, d } = useT();
+    const roles = FORMATIONS[run.formation].slots;
+    const chips: { ref: SlotRef; uid: string; label: string }[] = [
+        ...run.lineup.map((uid, index) => ({
+            ref: { zone: 'lineup', index } as SlotRef,
+            uid,
+            label: d.team.board.slot[roles[index]],
+        })),
+        ...run.bench.map((uid, index) => ({
+            ref: { zone: 'bench', index } as SlotRef,
+            uid,
+            label: t('common.ui.bench'),
+        })),
+    ];
+    return (
+        <div className="draft-strip" aria-hidden="true">
+            {chips.map(({ ref, uid, label }) => {
+                const inst = uid ? byUid.get(uid) : undefined;
+                const state = stateOf(ref, uid);
+                return (
+                    <button
+                        type="button"
+                        key={`${ref.zone}-${ref.index}`}
+                        tabIndex={-1}
+                        className={`ds-chip ${inst ? 'filled' : 'empty'} ${state}`}
+                        disabled={state === 'locked'}
+                        onClick={() => onSlot(ref, uid)}
+                    >
+                        {inst ? <img className="pixel" src={cardSprite(inst)} alt="" /> : <i />}
+                        <span>{label}</span>
+                    </button>
+                );
+            })}
+        </div>
+    );
+}
+
 function FormationDiagram({ id }: { id: FormationId }) {
     const f = FORMATIONS[id];
     return (
@@ -106,8 +168,10 @@ function FormationDiagram({ id }: { id: FormationId }) {
  * vaga e saem 3 Pokémon que jogam naquela posição.
  */
 export function Draft() {
-    const { run, chooseFormation, chooseSlot, pick, reroll } = useGame();
+    const { run, chooseFormation, chooseSlot, pick, reroll, go, daily } = useGame();
     const [selected, setSelected] = useState<string | null>(null);
+    const [coachOn, setCoachOn] = useState(false);
+    const coachSeenDraft = useGame((s) => coachSeen(s.profile.coach, 'relampagoDraft'));
     const tr = useT();
     const { t, d, lang } = tr;
     // celular em pé: a quadra ocupa a tela e as cartas ficam lá embaixo. Leva até as cartas quando elas saem e
@@ -124,20 +188,40 @@ export function Draft() {
         }
         const el = (focus === 'options' ? optionsRef : boardRef).current;
         if (!el) return;
+        // teclado: escolheu o capitão (ou a carta), o foco vai pra 1ª vaga livre; sem isso o Tab seguia nas cartas
+        if (focus === 'board') el.querySelector<HTMLElement>('.slot.target')?.focus({ preventScroll: true });
         const top = el.getBoundingClientRect().top;
         if (top >= 0 && top < window.innerHeight * 0.5) return;
         el.scrollIntoView({ behavior: reduceMotionOn() ? 'auto' : 'smooth', block: 'start' });
     }, [focus, run?.draftRound]);
     if (!run) return null;
 
+    // Copa Relâmpago: a 1ª formação e o 1º draft (a Rota e a Copa do Dia não entram)
+    const quick = !run.daily && !isLong(run);
+    // o balão do draft ainda vai abrir (o Coach decide no efeito, depois do 1º desenho)
+    const coachDue = quick && !coachSeenDraft;
     if (run.status === 'formation') {
         return (
             <>
+                {quick && <Coach id="relampago" targets={['.draft-head h1']} />}
                 <div className="draft-head bc-screenhead">
-                    <span className="bc-tag">{t('team.draft.beforeDraft')}</span>
+                    <span className="bc-tag">
+                        {t(isLong(run) ? 'team.draft.beforeDraftRota' : 'team.draft.beforeDraft')}
+                    </span>
+                    <button
+                        type="button"
+                        className="btn ghost back-btn"
+                        onClick={() => requestLeave(() => go('home'))}
+                        aria-label={t('common.ui.back')}
+                    >
+                        <MenuIcon kind="back" />
+                    </button>
                     <h1>{t('team.draft.chooseFormation')}</h1>
                     <AutoDraft />
                 </div>
+                {run.daily && daily.find((e) => e.day === run.daily)?.ranked === false && (
+                    <p className="muted center">{t('liga.daily.unrankedNote')}</p>
+                )}
                 <div className="formation-picker">
                     {Object.values(FORMATIONS).map((f) => (
                         <button
@@ -151,7 +235,7 @@ export function Draft() {
                             <FormationDiagram id={f.id} />
                             <b>{formationText(f.id, lang).name}</b>
                             <span className="muted">{f.slots.map((s) => d.common.pos[s]).join(' · ')}</span>
-                            <span className="tactic-desc">{formationText(f.id, lang).description}</span>
+                            <FormationIdentity id={f.id} phrase />
                         </button>
                     ))}
                 </div>
@@ -239,10 +323,22 @@ export function Draft() {
                 <AutoDraft captainUid={chosen?.uid} hint={title} />
             </div>
 
+            {quick && (
+                <Coach
+                    id="relampagoDraft"
+                    targets={['.slot.empty']}
+                    when={run.status === 'drafting' && !run.draftSlot}
+                    onActive={setCoachOn}
+                />
+            )}
+            <DraftStrip run={run} byUid={byUid} stateOf={slotState} onSlot={onSlot} />
             <div className="draft-grid">
                 <div className="panel board-panel" ref={boardRef}>
                     <h2>{run.teamName}</h2>
-                    {run.status === 'drafting' && !run.draftSlot && <Tip id="draft-slot">{t('team.draft.tip')}</Tip>}
+                    {/* a dica diz o mesmo que o balão: só depois dele (ou sem ele) */}
+                    {run.status === 'drafting' && !run.draftSlot && !coachOn && !coachDue && (
+                        <Tip id="draft-slot">{t('team.draft.tip')}</Tip>
+                    )}
                     <FormationBoard
                         formation={run.formation}
                         lineup={run.lineup}
@@ -366,6 +462,7 @@ export function Draft() {
                                                       : t('team.draft.sign'),
                                                 primary: true,
                                                 onClick: () => {
+                                                    // sem grito: no draft só a música (o Miguel, 22/10/2026)
                                                     if (isCaptain) setSelected(selected === o.uid ? null : o.uid);
                                                     else flyCard(o.uid, () => pick(o.uid));
                                                 },

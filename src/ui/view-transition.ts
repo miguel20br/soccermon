@@ -42,11 +42,15 @@ export function run(apply: () => void, after?: () => void) {
         });
         for (const st of steps) st.after?.();
     });
-    void vt.finished.finally(() => {
+    // pulada (a tela mudou de tamanho no meio, aba escondida): a troca já valeu, só a animação não; sem o catch,
+    // vira "promessa rejeitada sem tratamento" no console
+    vt.ready.catch(() => {});
+    const done = vt.finished.catch(() => {});
+    void done.finally(() => {
         animating = false;
         document.documentElement.classList.remove('vt-screen');
     });
-    return vt;
+    return { finished: done };
 }
 
 export function startScreenTransitions() {
@@ -67,6 +71,6 @@ export function flyCard(uid: string, apply: () => void) {
         if (from) from.style.viewTransitionName = '';
         if (to) to.style.viewTransitionName = '';
     };
-    if (vt) void vt.finished.finally(clear);
+    if (vt) void vt.finished.then(clear);
     else clear();
 }

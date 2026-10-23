@@ -1,0 +1,103 @@
+/* ?lab=icones: comparação das fontes de ícone de menu (IconLab.tsx) */
+.il {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 12px 16px 40px;
+}
+.il-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+}
+.il-head > div:first-child {
+    flex: 1 1 260px;
+}
+.il-head h1 {
+    margin: 6px 0 4px;
+    font-size: 20px;
+}
+.il-head p {
+    margin: 0;
+    font-size: 12px;
+}
+.il-head .bc-seg {
+    width: 150px;
+}
+.il-legend {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px;
+    margin: 12px 0;
+    padding: 0;
+    list-style: none;
+}
+.il-legend li {
+    display: grid;
+    gap: 4px;
+    padding: 8px 10px;
+    border: 2px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+    font-size: 12px;
+}
+.il-legend li.on {
+    border-color: var(--yellow);
+}
+.il-legend small {
+    color: var(--muted);
+    line-height: 1.4;
+}
+/* um cartão por Pokémon: as três fontes lado a lado (normal e shiny); cabem vários por linha no PC */
+.il-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, calc(var(--s) * 220px + 40px)), 1fr));
+    gap: 8px;
+}
+.il-row {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    justify-content: space-between;
+    gap: 4px 6px;
+    padding: 6px 8px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+}
+.il-name {
+    grid-column: 1 / -1;
+    overflow: hidden;
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.il-name small {
+    color: var(--muted);
+}
+.il-cell {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    padding: 2px 4px;
+    border-radius: 6px;
+}
+.il-cell.on {
+    background: color-mix(in srgb, var(--yellow) 14%, transparent);
+}
+.il-cell > small {
+    color: var(--muted);
+    font-size: 9px;
+}
+.il-pair {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+}
+.il-none {
+    width: calc(var(--s) * 34px);
+    color: var(--muted);
+    font-size: 8px;
+    line-height: 1.1;
+    text-align: center;
+}

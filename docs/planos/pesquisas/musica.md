@@ -1,3 +1,7 @@
+---
+description: Pesquisa, rodadas de escuta e mapa tela para faixa da música do jogo (temas próprios, partidas por personagem, arquivos Opus)
+---
+
 # Música de fundo: pesquisa, amostras e proposta
 
 21/10/2026. Pedido do Miguel: "sim, mas eu queria que você me ajudasse com isso". Hoje o jogo não tem música: só
@@ -11,6 +15,71 @@ Regras desta pesquisa:
 
 **Amostras pra ouvir:** abra `index.html` na pasta de amostras do scratchpad (caminho no fim deste doc). A Rodada 2
 vem em cima (72 faixas por tela, ★ nas que o Miguel gostou) e a Rodada 1 fica recolhida embaixo.
+
+## Troca de música entre telas: A, B ou C (22/10)
+
+Pergunta do Miguel: "o que deixa uma OST sem costura: troca encaixada no tempo ou virada? Qual soa melhor?" Ele acha
+que vai gostar de viradas. Demo pra decidir de ouvido na página de amostras, seção "Troca de música: A, B ou C"
+(`ab-*.ogg`), feita por `scripts/musica/transicao-ab.mjs` com as funções do próprio `src/game/music.ts` em cima das
+faixas de `public/music` (o jogo não mudou). Quatro pares reais: Home → Draft, Draft → Escalação, Escalação → Partida
+(1º tempo) e Partida → Vitória (o apito pede o `fim` e o resultado vem 3 s depois, como no jogo).
+
+- **A, só no tempo (o jogo hoje):** a nova entra no compasso (se chega em até 0,7 s) ou na batida; responde na hora.
+- **B, + virada:** a virada da casa no andamento da faixa que sai (caixa, toms, 3-3-2 na caixa e no clap 808 da 7b),
+  da próxima batida até o 1 do compasso seguinte (1 batida a 1 compasso); a faixa que sai vai pro fundo (passa-baixa
+  fechando) e a nova entra no 1. Espera mais: 0,6 a 1,8 s nos clipes.
+- **C, + virada e prato/riser** (entrar na partida, fim de jogo) **ou + ponte** (1 compasso no andamento e no tom da
+  faixa que entra, com a assinatura dela: as três cartas no Draft, a prancheta na Escalação). A ponte custa ~3 s.
+
+**Como os jogos fazem.** Nas ferramentas de áudio de jogo (Wwise, FMOD) a troca é uma regra: a faixa sai num ponto
+(*exit cue*: imediato, próxima batida, próximo compasso, ou um marcador escrito pelo compositor), pode passar por um
+*transition segment* (um trecho curto feito pra ligar as duas) e a nova entra num ponto dela; por cima, *stingers*
+(frases curtas no tempo da música que toca). É o nosso A (exit cue na batida/compasso), B e C (segmento de transição).
+- **Undertale:** corta seco, quase sempre com um som na frente (o "!" e o som do encontro antes da batalha) e usa o
+  silêncio; a costura vem do leitmotiv (a mesma melodia em várias faixas), não da emenda.
+- **Sonic Mania:** jingles que interrompem e devolvem a música (vida extra, fim de ato) e o Ato 1 → Ato 2 com a mesma
+  melodia em outro arranjo: a troca soa "da mesma família" porque as faixas são parentes.
+- **Persona:** a troca de tela é um evento visual com som (no 3 e no 4, a tela quebrando como vidro na entrada da batalha) e a música nova
+  já entra no gancho; o fim da batalha tem jingle de resultado. O efeito sonoro esconde o corte.
+- **Hades:** música em trechos com saídas escritas: quando o último inimigo cai, o combate fecha com um final no tempo
+  em vez de sumir em fade. É o "exit cue" musical, o mais perto do nosso B.
+- Famílias de tom e andamento: faixas no mesmo andamento (ou dobro/metade) e tons vizinhos trocam no compasso sem
+  ninguém notar (o nosso `sameTempo` + `phaseOffset` já faz isso na Escalação → Partida).
+
+**Recomendação (o ouvido do Miguel decide):**
+- **Menu ↔ menu (Home, Draft, Escalação, Mercado, Sala): A.** O jogador vai e volta rápido; virada a cada clique
+  cansa e atrasa até 2 s. O que costura aqui são as famílias de tom e o gancho, não a emenda.
+- **Entrar na partida: C com prato e riser.** É um momento (o VERSUS já é um evento), a espera some no apito; com
+  líder, a troca é Escalação → tema do líder, e vale o mesmo.
+- **Fim de partida: B.** A virada termina no 1 da fanfarra e a Vitória soa como resposta do SOC-CER-MON do `fim`.
+  Variante mais barata: a vinheta sempre entra no fim do trecho `fim` (o exit cue do Hades), sem virada.
+- **Ponte (C):** só em virada de capítulo com andamentos muito diferentes (entrar no Planalto, a Final), nunca em menu.
+- Se entrar no jogo: a virada pode ser feita na hora com o ZzFX no andamento da faixa que sai (caixa, toms) mais a
+  amostra do clap 808; sem arquivo novo por faixa.
+
+**Decisão (22/10):** o Miguel preferiu a **C** (virada + ponte) e aprovou as regras: avançar na copa = virada no
+tempo da que sai + ponte de 1 compasso com o som da que entra; entrar na partida = virada + ponte + riser e prato (o
+VERSUS cobre a espera); voltar (Android, botão de sair, Home) = só no tempo; navegar de novo antes da ponte acabar =
+cancela e a nova entra na próxima batida; a mesma troca de novo em ~30 s = só a virada. Configurações, Ajuda, Perfil
+etc. seguem com a Abertura (sem troca). No jogo na 0.9.11 (branch `viradas`): virada feita na hora com o ZzFX e o clap
+808, 23 pontes em `public/music/ponte-*` (`scripts/musica/pontes.mjs`). Regras e detalhes na skill
+`soccermon-musica` (§3, item 8).
+
+## Virada, Pressão final, pênaltis, Créditos e Lt. Surge no jogo (22/10)
+
+- **Virada fora.** O Miguel não gostou da vinheta por cima da partida: saiu `playVirada()`, os arquivos `virada*` de
+  `public/music` e as peças `pecas/virada*.mjs` (inclusive as vinhetas por líder). Ver "Virada no placar: recusada".
+- **Pressão final até o apito.** Começou, a música fica no trecho `pressao` até o apito final, mesmo que o placar
+  empate e a pressão do motor acabe (`matchMusic` em `src/ui/music-sync.ts`; o motor não muda).
+- **Pênaltis.** A "Disputa de pênaltis" (livre) conta uma disputa inventada, cobrança por cobrança, e não segue a de
+  verdade. No jogo vão três pedaços dela (`pecas/penaltis.mjs`): `penaltis-espera` (loop do coração e do relógio entre
+  as cobranças, a partir do apito final), `penaltis-ganhou` (SOC-CER-MON em Mi maior, ~4 s) e `penaltis-perdeu` (a
+  torcida deles e os metais caindo, ~2,5 s), na cobrança decisiva.
+- **Créditos:** "A última partida" (`ultima-partida`, toca uma vez, ~1min50, sem loop).
+- **Erika, Koga, Sabrina, Blaine e Giovanni (lideres-jogo):** `tema-<nome>` no VERSUS, partida padrão, como o Surge.
+- **Lt. Surge:** o tema dele (`tema-ltsurge`) no VERSUS das partidas contra a Vermilion Voltagem, como o do Brock;
+  a partida dele usa a padrão.
+- De quebra: a grade de 12/8 (a Misty) usa 12 linhas por compasso (a troca de trecho caía fora do compasso).
 
 ## Rodada 8b (22/10): Escalação mais macia, Derrota e a virada no jogo
 
@@ -633,3 +702,14 @@ do que ele disser ("mais rápido", "mais Kanto", "menos samba").
 - [ZzFXM](https://github.com/keithclark/ZzFXM) e o [tracker](https://keithclark.github.io/ZzFXM/tracker/)
 - [REUSE.toml do PokéRogue (áudio)](https://github.com/pagefaultgames/pokerogue-assets/blob/main/audio/REUSE.toml)
 - Pesquisa anterior: `docs/planos/pesquisas/apis-e-assets.md` (worktree `pesquisa-apis`), seção 2.4 e decisão 4
+
+## No jogo (22/10/2026)
+
+- Arquivos em `public/music/`: Opus `.webm` 64 kbps (13 MB) + `.mp3` 80 kbps de reserva (14 MB, escolhido por `canPlayType`); o `.ogg` saiu (27 MB). Emendas conferidas no `.webm` com o `loops.mjs` adaptado (decodifica a 44,1 kHz): 35 loops, pior 0,74.
+- Rival com `rivalTrainer` brock/misty/rocket: tema na apresentação (VERSUS) e `partida-<nome>-1t/2t`; os outros líderes seguem em `partida-1t/2t`.
+- `campeao` na tela de resultado da copa campeã; `planalto-indigo` na fase de grupos (tela `group`). `pressao` entra pela `virada` (trecho de entrada colado no loop) e `fim` toca no apito final.
+- Rodada 8 (22/10): `draft` no Draft, `escalacao` (8b) na Escalação, `recompensa` na Recompensa, `sala` na Sala de troféus. Resultado: `vitoria-gancho` depois de vencer, `derrota` depois de perder sem cair (Rota), `eliminado` (v4) quando a copa acaba, `campeao` no título. Mapa da Rota Índigo por região (`MAP_REGIONS` em `src/engine/cup-map.ts`, as mesmas faixas de linhas que a tela desenha): `rota-1` na Rota 1, `mt-moon` no Mt. Moon, `cerulean` na Cerulean; Floresta de Viridian e Estrada da Vitória seguem na `estrada-da-vitoria`. No mapa vale a região da próxima linha; no Evento e no Treino, a da casa atual.
+- `cutscene-boba` (Na ponta do pé v2) saiu de `public/music/` (nenhuma tela tocava): é do Modo história; renderize de novo (`pecas/cutscene-boba.mjs`) na branch `historia` quando as cenas entrarem.
+- **Virada no placar: recusada (22/10/2026).** A vinheta por cima (música abaixando −10 dB) não agradou, e a ideia seguinte (breque, virada de bateria, torcida e subir de nível) foi descartada pelo Miguel. Saíram `playVirada`, a chamada no `Match.tsx` e `virada`/`virada-pressao` de `public/music/`, junto com as peças `pecas/virada*.mjs` (as dos líderes também). A partida só segue os trechos pelo minuto e pela pressão.
+- **Troca de tela no tempo (22/10/2026):** sem crossfade cego; o áudio espera a próxima batida (ou o compasso, se chega em até 0,7 s) da faixa que sai, e andamentos que casam entram na mesma batida. Skill §3.7.
+- **Gritos (branch `audio-mix`):** saíram do Draft (e do draft do Duelo): escolher é silencioso, só a música. Base dos gritos −12,7 dB (atrás da música); tabela de níveis na skill §6.

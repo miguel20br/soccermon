@@ -22,7 +22,8 @@ export const moveExplainEn: Record<ExplainMoveId, string> = {
     roar: 'Roar: the nearest rival flees back to its own half and drops the ball.',
     whirlwind: 'A gust that pushes nearby rivals and blows a loose ball far away.',
     splash: "Flops and splashes: hard to tackle for a moment (and that's really all it does).",
-    transform: 'Becomes a copy of the nearest rival: takes its better attributes for 12 seconds.',
+    transform:
+        'Becomes a copy of the nearest rival: takes its better attributes for 12 seconds. (Ditto already starts transformed by its Imposter ability.)',
     // F1 area
     acid: 'With the ball: a placed shot. Without it: sprays acid on every rival within 4 m.',
     blizzard:
@@ -97,6 +98,7 @@ export const moveExplainEn: Record<ExplainMoveId, string> = {
     pinmissile: 'Hits 2 to 5 times as tackle attempts; its shot may come back to its feet if saved.',
     spikecannon: 'Hits 2 to 5 times as tackle attempts; its shot may come back to its feet if saved.',
     vinewhip: 'A whip: a long-range tackle (2.8 m).',
+    slam: 'Slams with a tail or vine: with the ball, a power shot; without it, a long-range tackle (2.8 m).',
     boneclub: 'Bone in hand: a long-range tackle (2.8 m) that can make the rival flinch.',
     rockthrow: 'A thrown rock: a long-range tackle (2.8 m).',
     // F9 trapping
@@ -113,6 +115,9 @@ export const moveExplainEn: Record<ExplainMoveId, string> = {
     acidarmor: 'Melts: for 3 s slide tackles slip right through it.',
     withdraw: 'Withdraws into its shell for 1.5 s: nobody can take the ball off it, but it moves slowly.',
     defensecurl: "Curls up: the next slide tackle it takes doesn't win the ball.",
+    harden: "Hardens: the next slide tackle it takes doesn't win the ball.",
+    lightscreen: 'Light Screen: for 15 s, special and status moves against your team are halved.',
+    reflect: 'Reflect: for 15 s, slide tackles against your team are 30% weaker.',
     barrier: 'An invisible wall in front of it for 3 s: blocks the next shot that passes close.',
     stomp: 'A stomp: with the ball, a power shot; without it, a tackle that may cause flinching and ignores anyone who used Minimize.',
     // F12 field control

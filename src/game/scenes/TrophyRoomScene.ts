@@ -2,8 +2,10 @@ import Phaser from 'phaser';
 import {
     atlasKey,
     bodyHeight,
+    createExtraAnims,
     createSpeciesAnims,
     footOrigin,
+    preloadExtra,
     preloadSpecies,
     resolveAnim,
     skinOf,
@@ -92,6 +94,8 @@ export class TrophyRoomScene extends Phaser.Scene {
         this.load.image('mi-room', 'assets/room/mi/Room_Builder_free_32x32.png');
         // o Pokémon do avatar com a folha certa (shiny se o avatar é shiny)
         preloadSpecies(this, skinOf(this.room.mon.speciesId, this.room.mon.shiny));
+        // dormir à noite, sentar e comer quando para (atlas de fora da quadra; sem ele, fica no Idle)
+        preloadExtra(this, skinOf(this.room.mon.speciesId, this.room.mon.shiny));
         for (const p of [...this.room.polaroids, ...(this.room.tv ? [this.room.tv] : [])])
             if (!this.textures.exists(`card-${p.speciesId}`))
                 this.load.image(`card-${p.speciesId}`, `assets/cards/${p.speciesId}.gif`);
@@ -306,6 +310,7 @@ export class TrophyRoomScene extends Phaser.Scene {
         // ---- o seu Pokémon
         const skin = skinOf(d.mon.speciesId, d.mon.shiny);
         createSpeciesAnims(this, skin);
+        createExtraAnims(this, skin);
         if (this.textures.exists(atlasKey(skin))) {
             this.monKey = skin;
             const scale = monScale(bodyHeight(skin));
@@ -377,8 +382,11 @@ export class TrophyRoomScene extends Phaser.Scene {
             this.monHalfW,
         );
         this.walkTo(to.x, to.y, () => {
-            this.play('Idle', 0);
-            this.time.delayedCall(Phaser.Math.Between(1800, 4200), () => this.wander());
+            // às vezes senta ou come um pouco (quem tem a animação no PMD); senão fica parado olhando
+            const rest = ['Sit', 'Eat'].filter((a) => resolveAnim(this.monKey, a) === a);
+            const pause = rest.length && Math.random() < 0.4;
+            this.play(pause ? rest[Math.floor(Math.random() * rest.length)] : 'Idle', 0);
+            this.time.delayedCall(Phaser.Math.Between(1800, 4200) + (pause ? 2500 : 0), () => this.wander());
         });
     }
 

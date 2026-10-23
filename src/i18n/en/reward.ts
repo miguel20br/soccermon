@@ -32,6 +32,7 @@ export const reward: typeof pt = {
         tap: 'Tap to open',
         skip: 'Show the cards',
         label: 'Victory pack',
+        training: 'Training pack',
     },
     fit: {
         typeCount: '{n} {type} move|{n} {type} moves',
@@ -48,7 +49,8 @@ export const reward: typeof pt = {
         rareChest: 'Rare chest',
         learners: '{n} on your team can learn it|{n} on your team can learn it',
         rarelyUsed: ' · almost nobody uses it',
-        taughtTitle: 'Taught by TM',
+        taughtTitle: 'Trained move (TM): +1 use and 30% stronger',
+        trained: 'Trained move: +1 use per match and 30% stronger.',
         whoLearns: 'Teach {move} to which Pokémon?',
         alreadyKnows: 'already knows it',
         cantLearn: 'not compatible',

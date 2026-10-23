@@ -105,8 +105,46 @@ precisando do "pode subir".
    tela, autor, licença, duração, ★ do que ele gostou. Rodadas antigas em `<details>`.
 5. **Doc**: atualizar `docs/planos/pesquisas/musica.md` (retorno dele, o que mudou, mapa tela → faixa, perguntas).
 6. **Pro jogo (quando ele mandar)**: Opus 64 kbps (`.webm`) + mp3 de reserva; `src/game/music.ts` ao lado do
-   `audio.ts`, no mesmo `ZZFX.audioContext`, sem importar `phaser`; volume "Música" nas Configurações; crossfade de
-   250 ms; carregar sob demanda depois do `load` da Home. Detalhes na seção 4 do doc.
+   `audio.ts`, no mesmo `ZZFX.audioContext`, sem importar `phaser`; volume "Música" nas Configurações; carregar sob
+   demanda depois do `load` da Home. Detalhes na seção 4 do doc.
+7. **Troca de tela "só encaixando no tempo"** (22/10/2026, `src/game/music.ts`): a tela troca na hora; o áudio espera
+   a linha do compasso da faixa que sai se ela chega em até 0,7 s, senão a próxima batida (`swapWait`). Andamentos que
+   casam (até 4% de diferença, ou o dobro/metade: `sameTempo`) trocam na batida e a faixa nova entra **na mesma
+   batida do compasso** (`phaseOffset`). A nova sobe em 30 ms, a velha decai (constante de 60 ms). Grade em
+   `gridOf` (12/8 = 12 linhas, pulso de 3). Sem faixa saindo (1º som, depois do silêncio): fade de 250 ms. Troca de
+   trecho (nível da partida) na linha do compasso, num ganho novo (a velha some em 10 ms, sem estalo); vale o último
+   pedido. A tela `match` não silencia a música: a partida pede a dela e a troca da Escalação também cai no tempo.
+8. **Troca de tela com virada e ponte** (22/10/2026, a C da demo A/B/C, `scripts/musica/transicao-ab.mjs`; o Miguel
+   aprovou as regras). Quem diz a regra é `moveOf(de, para)` em `src/ui/music-sync.ts`; quem toca é `src/game/music.ts`
+   (`planOf`, `fillWindow`):
+   - **Avançar na copa** (Home → Draft → Escalação → Partida → Resultado → Recompensa, mapa → Evento/Mercado/Treino,
+     Mercado → Escalação): **virada** no andamento da faixa que sai, da próxima batida (a 100 ms pelo menos) até o 1 do
+     compasso seguinte (1 a 4 batidas; a que sai vai pro fundo: passa-baixa de 9 → 1 kHz e −25%), depois a **ponte**
+     (1 compasso no tom e no andamento da que entra, com o som de assinatura dela), depois a faixa (do começo, intro
+     inclusa). Espera típica: 2 a 4 s; a tela troca na hora.
+   - **Entrar na partida**: igual, e a ponte tem riser no compasso e prato com bumbo no 1. O VERSUS cobre a espera. Com
+     líder, a ponte é a do tema dele (`ponte-tema-<nome>`).
+   - **Voltar** (Home, `‹`, voltar do Android, sair de uma parada pro mapa) e menus (Configurações, Ajuda, Perfil… que
+     dividem a Abertura com a Home): só encaixada no tempo (o item 7).
+   - **Navegou de novo antes da ponte acabar**: cancela virada e ponte; a mais nova entra na próxima batida do que soa
+     (a ponte, ou a faixa que sai). Voltou pra faixa que ainda sai, no meio da virada: ela continua do mesmo ponto.
+     Nunca duas viradas.
+   - **A mesma troca (faixa → faixa) de novo em até 30 s** (`REPEAT_S`): só a virada, sem a ponte.
+   - Faixa que sai já acabou (jingle): sem virada; a ponte entra já. Faixa sem ponte (`PONTES`): só a virada.
+
+   **Virada**: feita na hora (`src/game/virada.ts`) com o ZzFX (bumbo, caixa, 3 toms, prato) e o clap 808 da receita 7b
+   em `public/music/clap-808.wav` (16 bits mono, lido à mão, sem `decodeAudioData`); termina no SOC-CER-MON (3-3-2) de
+   caixa e clap; swing da faixa que sai (`SWING`). Nível fixo: RMS 0,6 × o das faixas (−16 LUFS ≈ 0,106), pico ≤ 0,4.
+   **Pontes**: `scripts/pesado.sh node scripts/musica/pontes.mjs [id]` renderiza 1 compasso por faixa que entra
+   (dominante do tom com o baixo andando até a tônica + assinatura) em `public/music/ponte-<id>.webm/.mp3/.json`
+   (trecho `ponte` de 1 compasso; o arquivo leva o rabo, que soa por cima da entrada), no nível 0,75 × RMS dos 4 s
+   iniciais da faixa, e confere o alinhamento do `.webm` e a emenda ponte → faixa (a medida do `loops.mjs`, < 1).
+   Faixa nova que entra avançando: ponte nova no `PONTES` do `pontes.mjs` e no `PONTES` do `music.ts`.
+   Linha do tempo das trocas em dev: `window.__musica` (tempos do AudioContext).
+9. **Virada no placar: tentada e recusada** (22/10/2026). 1ª versão: vinheta por cima da partida com a música
+   abaixando ~10 dB (peças e arquivos `virada*` apagados): o Miguel não gostou. 2ª ideia (breque + virada de bateria +
+   torcida + subir de nível) foi descartada antes de entrar: a música da partida só segue os trechos pelo minuto e
+   pela pressão. Não proponha de novo sem ele pedir.
 
 ## 4. O sequenciador (`scripts/musica/synth.mjs`)
 
@@ -188,6 +226,23 @@ ficam perto de −18; console pede −24: no jogo a música fica abaixo de efeit
 - Abertura idêntica: `cmp` do `.wav` contra a versão aprovada se mexer no `synth.mjs`.
 - Diga o que foi conferido pelos números e o que só o ouvido dele decide.
 
+### Níveis no jogo (22/10/2026)
+
+Configurações no padrão (geral 0,6, música 0,4, canais 1), medidos como saem: `npx tsx scripts/niveis-audio.ts`
+(ebur128; ganhos base em `GAIN`, `src/game/audio.ts`). O grito é **tempero**: atrás da música (o Miguel achou alto).
+O `audio.test.ts` barra grito acima da música.
+
+| Canal | Alvo (LUFS) | Antes | Agora | Ganho base |
+|---|---|---|---|---|
+| Música (loops, integrado; M máx) | −28 (picos −25) | −28,4 (−25,3) | igual | geral × música; arquivo a −16 |
+| Gritos (M máx, mediana do estilo `latest`; p90) | −30 (p90 −28) | −17,3 (−15,7) | −29,9 (−28,3) | `GAIN.cry` 0,55 → 0,13 |
+| Efeitos ZzFX (M máx: apito 21, gol 24, chute 26, defesa 30) | −21 a −30 | igual | igual | `GAIN.sfx` 0,35 |
+| Apito e torcida gravados (M máx) | −19 a −21 | igual | igual | `GAIN.sample` 0,7 |
+
+Os controles das Configurações multiplicam por cima (0 a 1: dá pra baixar, não passar do padrão). Faixa nova: meça
+com o script e confira que o grito fica uns 1,5 dB abaixo do integrado da música. Draft (e o do Duelo) sem grito:
+escolher é silencioso, só a música.
+
 ## 7. Armadilhas (custaram tempo)
 
 - **Parâmetro em branco do ZzFX é `null`, não 0.** Com 0 o `release` some e a caixa sai muda (a v1 não tinha caixa).
@@ -238,10 +293,30 @@ partida com `cita: MOTIVO`.
 | Misty (água) | Si menor em 12/8, sino bembé, sinos em onda, bolhas | feito (`partida-misty` cita `tema-misty`) |
 | Equipe Rocket | Dó menor, funk de espionagem, órgão cromático, nota blue | feito (`partida-rocket` cita `tema-rocket`) |
 | Lt. Surge (elétrico) | Fá# menor, 140+ BPM, arpejo de 16 avos, pulso 12,5%, "choque" (slide) | proposta |
-| Erika (planta) | samba-bossa animado, flauta e marimba, Ré mixolídio | proposta |
-| Koga (veneno, ninja) | escala in-sen, taiko, flauta com slide, Lá frígio | proposta |
-| Sabrina (psíquico) | tons inteiros, eco longo, viradas em 7/8, Si♭ lídio | proposta |
-| Blaine (fogo) | salsa/mambo, metais, cowbell, montuno, Dó menor | proposta |
-| Giovanni (chefe Rocket) | o riff da Rocket mais lento e pesado, órgão de igreja, Fá# menor | proposta |
+| Erika (planta) | samba-bossa animado, flauta e marimba, Ré mixolídio | tema feito, no jogo (`tema-erika`) |
+| Koga (veneno, ninja) | escala in-sen, taiko, flauta com slide, Lá frígio | tema feito, no jogo (`tema-koga`) |
+| Sabrina (psíquico) | tons inteiros, eco longo, viradas em 7/8, Si♭ lídio | tema feito, no jogo (`tema-sabrina`) |
+| Blaine (fogo) | salsa/mambo, metais, cowbell, montuno, Dó menor | tema feito, no jogo (`tema-blaine`) |
+| Giovanni (chefe Rocket) | o riff da Rocket mais lento e pesado, órgão de igreja, Fá# menor | tema feito, no jogo (`tema-giovanni`) |
 | Blue (rival) | a partida em maior com rock, três subidas de tom, Mi maior | proposta |
 | Elite dos Quatro | Lorelei (gelo, celesta, 12/8), Bruno (taiko e metais), Agatha (órgão e slide), Lance (épico com coro) | proposta |
+
+## 10. As OSTs que o Miguel ama e o que tirar delas (22/10/2026)
+
+Ele citou Inscryption, Persona, Undertale e Sonic Mania. O que torna cada uma marcante:
+
+| OST | Mecânica | No Soccermon |
+|---|---|---|
+| **Undertale** (Toby Fox) | Poucos leitmotivs disfarçados na trilha toda (outro andamento, modo, timbre); o final costura os temas de todo mundo; a música reage às escolhas (rota genocida lenta e desafinada); silêncio como arma | O SOC-CER-MON é o leitmotiv do jogo, e cada personagem tem um motivo. **Final do Planalto que costura o gancho com os motivos dos líderes enfrentados naquela Rota.** Música da eliminação diferente se caiu cedo ou na Final |
+| **Sonic Mania** (Tee Lopes) | Ato 1 e Ato 2: mesma melodia, outro arranjo; harmonia jazz-fusion (7ª e 9ª), baixo slap que é melodia; timbre FM do Mega Drive com produção moderna | **Estrada da Vitória como tema-mãe, rearranjado por região** (Rota 1 de dia, Mt. Moon na caverna, Cerulean na água). Acordes com extensão e baixo melódico nas partidas |
+| **Persona** (Shoji Meguro) | Um gênero de identidade (acid jazz e J-pop); variação por contexto (chuva, noite, estação); faixa que repete muito é tranquila e vive de groove; menu e batalha viram hino | **Copa do Dia com versão de dia e de noite, ou uma por dia da semana**, do mesmo tema. O funk e o jazz aprovados viram "o som Soccermon". Telas longas, sem lead cansativo |
+| **Inscryption** (Jonah Senzel) | Camadas entram conforme o jogador progride; o mesmo tema troca de roupa com o estilo de cada ato; o som do mundo vira instrumento (madeira, carta, balança) | **Camadas na partida pelo placar**: metais entram quando você está ganhando, o arranjo fica seco quando está perdendo, a torcida canta no tempo. Sons do jogo como instrumento (bola, apito, rede, cartas, moedas), como no Ginásio vazio |
+
+O que vale pra toda peça nova:
+1. **Gancho nos 2 primeiros compassos**, cantável e com ritmo próprio.
+2. **Leitmotiv com transformação**: o mesmo motivo muda de andamento, modo e instrumento conforme o contexto, e a recompensa vem quando os temas se juntam.
+3. **Paleta própria**: funk/jazz, clap 808 suave, baixo melódico e timbres quentes.
+4. **A música muda com o estado do jogo**, por camadas verticais e trechos horizontais, sempre no tempo (batida ou compasso).
+5. **O som do jogo vira instrumento.**
+6. **Silêncio e contenção nos momentos certos**: antes do último pênalti, no apito de uma Final perdida.
+7. **Contar uma história** (veja a seção 2): é o que o Miguel mais quer.

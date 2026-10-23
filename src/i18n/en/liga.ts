@@ -31,6 +31,7 @@ export const liga: typeof pt = {
         wins: '1 win|{n} wins',
         abandoned: 'Cup ended',
         unranked: 'unranked',
+        unrankedNote: "Today's cup is not ranked.",
         next: 'Next Daily Cup in {h}h{m}',
         share: 'Share',
         copied: 'Copied!',
@@ -46,6 +47,7 @@ export const liga: typeof pt = {
         scopeFriends: 'Friends',
         rankingTitle: "Today's ranking",
         rankingEmpty: 'Nobody in the ranking yet. Be the first!',
+        captain: 'captain',
         rankingLogin:
             "The ranking is for players signed in with Google. It only shows your trainer and club names (Profile), never the account's.",
         rankingOff: 'The ranking needs the game server. The Daily Cup works the same without it.',

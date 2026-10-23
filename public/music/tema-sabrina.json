@@ -1,0 +1,45 @@
+{
+ "faixa": "tema-sabrina",
+ "titulo": "Tema da Sabrina",
+ "tela": "Líder de ginásio: Sabrina (Saffron)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 62.307687,
+ "secoes": [
+  {
+   "nome": "intro",
+   "loop": false,
+   "inicio": 0,
+   "fim": 4.615374,
+   "amostras": [
+    0,
+    203538
+   ],
+   "bpm": 104,
+   "compassos": 2
+  },
+  {
+   "nome": "loop",
+   "loop": true,
+   "inicio": 4.615374,
+   "fim": 62.307687,
+   "amostras": [
+    203538,
+    2747769
+   ],
+   "bpm": 104,
+   "compassos": 25
+  }
+ ],
+ "swing": 0.04,
+ "swingEm": 16,
+ "gancho": {
+  "hits": [
+   [
+    57.692,
+    58.131,
+    58.558
+   ]
+  ]
+ }
+}

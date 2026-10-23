@@ -1,13 +1,404 @@
 /** Notas da atualização mostradas na Home ("Novidades"). A mais nova primeiro. */
 export interface PatchNotes {
     version: string;
+    /** Dia do lançamento, AAAA-MM-DD (da tag). */
+    date: string;
     title: string;
     sections: { title: string; lines: string[] }[];
 }
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.15',
+        date: '2026-10-23',
+        title: 'Rota de baby',
+        sections: [
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'A Rota começa na forma-base: o capitão e o draft saem como Charmander, Machop, Magikarp, e o time evolui pelo caminho',
+                    'Nota média do time no começo da Rota: 79,5 ⇒ 64,6',
+                    'Os mais fortes sem evolução (Snorlax, Lapras, lendários) só aparecem de reforço, depois do começo',
+                    'Sair da Rota e voltar traz o mesmo sorteio: a Rota só muda quando você termina uma',
+                    'Os rivais do começo ficaram mais fracos: 1ª partida -1 ⇒ -2 e 2ª partida 0 ⇒ -1',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.14',
+        date: '2026-10-23',
+        title: 'Golpe máximo em 3 níveis, na batida',
+        sections: [
+            {
+                title: 'Golpe máximo',
+                lines: [
+                    'A barra agora tem 3 níveis e enche de novo depois de usar: golpe máximo por partida 1 ⇒ vários (a barra recarrega)',
+                    'Solte no nível 1 ou segure pro nível 3, o chute mais forte do jogo: força do chute x1,55 ⇒ x1,25 / x1,55 / x2,2 (níveis 1 / 2 / 3)',
+                    'No nível 3 o goleiro rival fica com alcance x0,7 nesse chute',
+                    'Toque quando o anel fechar no botão, na batida da música: PERFEITO! sai mais forte',
+                    'Sem som, o anel segue um pulso na tela',
+                    'Tocou um pouco antes de acender? O golpe sai no próximo chute',
+                    'Os líderes também tocam na batida, e o Lance quase sempre acerta',
+                ],
+            },
+            {
+                title: 'Defesa máxima',
+                lines: [
+                    'Com o capitão no gol, o nível dá mais tempo de defesa: 4 s ⇒ 0,75 s / 4 s / 6 s (níveis 1 / 2 / 3)',
+                    'O toque perfeito segura a bola',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.13',
+        date: '2026-10-22',
+        title: 'Novidades mais fáceis de ler',
+        sections: [
+            {
+                title: 'Novidades',
+                lines: [
+                    'A versão mais nova fica no topo, em destaque, com a data',
+                    'As antigas ficam recolhidas: toque para abrir',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.12',
+        date: '2026-10-22',
+        title: 'No ritmo da música',
+        sections: [
+            {
+                title: 'Música',
+                lines: [
+                    'A logo pisca no SOC-CER-MON de qualquer música, não só na Abertura',
+                    'As cartas do draft viram na batida da música',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.11',
+        date: '2026-10-22',
+        title: 'Viradas na música e temas dos líderes',
+        sections: [
+            {
+                title: 'Música',
+                lines: [
+                    'Avançar na copa troca a música com virada de bateria e uma ponte',
+                    'Cada ponte tem o som da tela que entra',
+                    'O VERSUS entra com virada, ponte e prato',
+                    'Voltar pra Home continua trocando só no tempo da batida',
+                ],
+            },
+            {
+                title: 'Líderes',
+                lines: ['Erika, Koga, Sabrina, Blaine e Giovanni ganharam tema próprio antes da partida'],
+            },
+        ],
+    },
+    {
+        version: '0.9.10',
+        date: '2026-10-22',
+        title: 'Time no ranking e acabamento',
+        sections: [
+            {
+                title: 'Copa do Dia',
+                lines: [
+                    'O ranking mostra o time de cada treinador, com o capitão marcado',
+                    'A formação avisa quando a tentativa não entra no ranking',
+                ],
+            },
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'Final perdida aparece como vice, e o segundo amarelo como cartão vermelho',
+                    'Patrocínios do mapa com ícone e nome no celular',
+                    'A formação da Rota tem botão de voltar',
+                ],
+            },
+            {
+                title: 'Acabamento',
+                lines: [
+                    'Tecla M dispara o golpe máximo',
+                    'O volume da música não estala mais ao mexer',
+                    'Na Sala de troféus a fala não tampa as taças no celular',
+                    'Derrota perdoada fica amarela na barra da Home',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.9',
+        date: '2026-10-22',
+        title: 'Música no tempo e voltar do Android',
+        sections: [
+            {
+                title: 'Música',
+                lines: [
+                    'A logo da Abertura pisca a cada SOC-CER-MON da música',
+                    'A música troca de tela no tempo da batida',
+                    'Disputa de pênaltis com música própria até a cobrança decisiva',
+                    'Os Créditos tocam "A última partida"',
+                    'Lt. Surge ganhou tema próprio antes da partida',
+                    'A Pressão final segura a música até o apito',
+                    'Saiu a vinheta da virada no placar',
+                ],
+            },
+            {
+                title: 'Celular',
+                lines: [
+                    'O botão voltar do Android sai da tela em vez de fechar o jogo',
+                    'Resultado e escalação mais curtos, com partes que abrem e fecham',
+                    'No draft em pé, as vagas do time ficam fixas no topo',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.8',
+        date: '2026-10-22',
+        title: 'Gritos mais baixos',
+        sections: [
+            {
+                title: 'Som',
+                lines: [
+                    'Escolher no draft agora é silencioso: só a música toca',
+                    'Os gritos dos Pokémon ficaram bem mais baixos, atrás da música',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.7',
+        date: '2026-10-22',
+        title: 'Música no jogo e Rota com escolhas',
+        sections: [
+            {
+                title: 'Música',
+                lines: [
+                    'Trilha própria em todas as telas: Abertura, draft, escalação, Mercado, partidas, Planalto e Sala de troféus',
+                    'Brock, Misty e Equipe Rocket têm tema e música de partida próprios',
+                    'Rota 1, Mt. Moon e Cerulean tocam a música da região no mapa',
+                    'Virou o placar no 2º tempo? Toca a vinheta da virada',
+                    'Volume da música nas Configurações (zero desliga)',
+                ],
+            },
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'O mapa agora tem bifurcações de verdade: quase toda rota tem escolha',
+                    'Os treinadores da Rota jogam com o tipo deles (Ornitólogo tem pássaro)',
+                    'Treino sem ninguém pra evoluir vira Treino de técnica: escolha um item ou MT',
+                    'Resultado mostra o ₽ ganho, e o evento diz o que aconteceu',
+                    'Mapa melhor no celular, em pé e deitado',
+                    'Quem cai no grupo não vê mais "Vitória!"',
+                    'Quem estava no meio de uma Rota pode ver rivais diferentes nas próximas casas',
+                ],
+            },
+            {
+                title: 'Primeira vez',
+                lines: ['Balões curtos mostram onde tocar na primeira vez em cada modo; dá pra pular e rever na Ajuda'],
+            },
+            {
+                title: 'Acessibilidade e consertos',
+                lines: [
+                    'Jogo inteiro pelo teclado, com foco visível, e o golpe máximo avisa o leitor de tela',
+                    '"Sorteio" é o nome único pra sortear de novo',
+                    'O Duelo ganhou cabeçalho e botão de voltar',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.6',
+        date: '2026-10-22',
+        title: 'Beira da quadra e MTs mais fortes',
+        sections: [
+            {
+                title: 'Beira da quadra',
+                lines: [
+                    'Golpe máximo: a barra enche com os lances do time e o botão acende na hora do chute do capitão',
+                    'A zona do chute muda com a posição do capitão: pivô 15 m, ala 18 m, fixo 22 m',
+                    'Capitão no gol vira defesa máxima: o próximo chute que ele alcança é defesa',
+                    'Goleiro-linha: o goleiro sobe e o time ataca com 5 contra 4, com o gol vazio atrás',
+                    'Pedido de tempo: 1 por tempo, o time recupera fôlego e as trocas valem na hora',
+                    'O treinador rival da Copa usa as mesmas armas',
+                    'Troca e prancheta valem na hora, com a bola rolando; os gritos do técnico saíram',
+                ],
+            },
+            {
+                title: 'MTs',
+                lines: [
+                    'O golpe ensinado por MT sai mais vezes, bate mais forte e ganha o selo MT',
+                    'Mega Drain 40 ⇒ 100 de poder, BubbleBeam 65 ⇒ 100, Fissure acerta 30% ⇒ 50%',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.5',
+        date: '2026-10-21',
+        title: 'Cada formação joga de um jeito',
+        sections: [
+            {
+                title: 'Formações',
+                lines: [
+                    'Losango: triângulos e passe curto por dentro',
+                    'Quadrado: a bola vai pelos lados',
+                    'Linha de 3: o pivô vem buscar, faz a parede e quem chega bate de primeira',
+                    'Rodízio: os quatro trocam de vaga o tempo todo e saem rápido no contra-ataque',
+                    'Dois pivôs: jogo direto, chute logo depois de roubar a bola',
+                    'Ferrolho: bloco baixo e fechado, saída rápida',
+                    'Cada formação leva vantagem contra outra; o ícone na escalação mostra quando encaixa',
+                ],
+            },
+            {
+                title: 'Golpes',
+                lines: [
+                    'Nidorino, Venonat, Bellsprout, Weepinbell, Victreebel, Slowbro, Chansey e Jolteon têm golpes próprios',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.4',
+        date: '2026-10-21',
+        title: 'Duelo melhor de 3 e Rota polida',
+        sections: [
+            {
+                title: 'Duelo',
+                lines: [
+                    'Melhor de 3 com o mesmo time: a série tem placar de jogos no quadro',
+                    'Jogo anulado é jogado de novo; sair entre os jogos dá vitória por W.O. pra quem ficou',
+                ],
+            },
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'Textos revistos: cartão amarelo explicado em uma regra só, "Fim da linha" e eventos mais curtos',
+                    'O mapa usa a tela toda no PC',
+                    'Quem está fora aparece com o motivo (lesão, creche ou cansaço) e não entra em quadra',
+                    'Hall da Fama separado em Copa Relâmpago e Rota Índigo, com taça índigo própria',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.3.2',
+        date: '2026-10-21',
+        title: 'Rota Índigo na frente',
+        sections: [
+            {
+                title: 'Tela inicial',
+                lines: [
+                    'Rota Índigo e Copa Relâmpago lado a lado no PC, com a Rota maior e o selo NOVO',
+                    'Duelo e Copa do Dia embaixo, um do lado do outro',
+                    'No celular, o botão da Rota ocupa a largura toda',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.3.1',
+        date: '2026-10-21',
+        title: 'Pokédex com texto e Pokémon com mais caras',
+        sections: [
+            {
+                title: 'Coleção',
+                lines: ['A ficha do Pokémon e a carta aberta do Álbum trazem o texto da Pokédex'],
+            },
+            {
+                title: 'Pokémon mais vivos',
+                lines: [
+                    'O Pokémon grita quando você escolhe no draft, no VERSUS e na carta grande do pacote',
+                    'Sala de troféus: à noite ele dorme de verdade; de dia às vezes senta ou come',
+                    'Rota Índigo: o time cochila no Descanso, faz cara de dor no carrinho e fica tonto no treino puxado',
+                    'Eliminado: o time aparece caído e o capitão com lágrima',
+                ],
+            },
+            {
+                title: 'Rota Índigo e Copa Relâmpago',
+                lines: [
+                    'O mapa mostra o capitão rival em cada casa de partida e o time dele em ícones',
+                    'A chave da copa mostra o capitão de cada clube',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.3',
+        date: '2026-10-21',
+        title: 'Golpes revisados',
+        sections: [
+            {
+                title: 'Cada um com o seu tipo',
+                lines: [
+                    'Todo Pokémon leva pelo menos 1 golpe de cada tipo dele (quando a Gen 1 deixa)',
+                    'Gengar: Confuse Ray ⇒ Sludge (Dream Eater, Hypnosis, Night Shade, Sludge)',
+                    'Gastly e Haunter: Hypnosis ⇒ Toxic',
+                    'Zubat e Golbat: Supersonic ⇒ Toxic',
+                    'Nidoran♂, Nidorino e Nidoking: Focus Energy ⇒ Toxic; Nidoqueen: Counter ⇒ Toxic',
+                    'Beedrill: Agility ⇒ Toxic',
+                    'Charizard: Fire Blast ⇒ Fly',
+                    'Hitmonchan: Agility ⇒ Counter',
+                    'Gyarados: Splash ⇒ Hyper Beam',
+                ],
+            },
+            {
+                title: 'Sem golpe repetido',
+                lines: [
+                    'Charmander e Charmeleon: Fire Blast ⇒ Dragon Rage',
+                    'Raichu: Thunderbolt ⇒ Agility',
+                    'Arcanine: Flamethrower ⇒ Take Down',
+                    'Hitmonlee: Jump Kick ⇒ Double Kick',
+                    'Staryu: Hydro Pump ⇒ Psychic',
+                    'Omanyte: Hydro Pump ⇒ Surf',
+                ],
+            },
+            {
+                title: 'Golpes que agora fazem o que prometem',
+                lines: [
+                    'Harden segura a bola no próximo carrinho (como o Defense Curl)',
+                    'Slam alcança mais longe (2,8 m)',
+                    'Amnesia sobe passe, chute e leitura',
+                    'Tri Attack pode queimar, congelar ou paralisar',
+                    'Explosion pega todo mundo a 4 m',
+                    'Light Screen e Reflect não dão mais chute escondido',
+                    'Fly e Dig com a bola levam ela 2 m (era 4)',
+                ],
+            },
+            {
+                title: 'Textos',
+                lines: [
+                    'Todo golpe explica o que faz em quadra com os números (quanto tempo, quem é imune, quanto acerta, o preço pra quem usa)',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.2.2',
+        date: '2026-10-21',
+        title: 'A Rota Índigo volta',
+        sections: [
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'A Rota está de volta: a 1ª partida quebrava a escalação (consertado) e ela foi jogada inteira antes de voltar',
+                    'Continuar num evento "?" volta pro evento (antes caía na escalação e repetia a partida)',
+                    'Cartão amarelo e derrota no grupo dizem DERROTA (não Fim da linha); o vermelho só sai na 2ª derrota no mapa',
+                    'A copa salva, o campeão (x/8), o gol da copa e o card do título falam da partida da Rota, não das Oitavas',
+                    'Nova copa no fim de uma Rota começa outra Rota',
+                    'Titular machucado: o aviso aparece do lado do Jogar',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.2.1',
+        date: '2026-10-21',
         title: 'Álbum leve e vitrine fácil',
         sections: [
             {
@@ -30,6 +421,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.2',
+        date: '2026-10-21',
         title: 'Casa arrumada',
         sections: [
             {
@@ -89,6 +481,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.1.1',
+        date: '2026-10-21',
         title: 'Cartas de volta',
         sections: [
             {
@@ -103,6 +496,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.1',
+        date: '2026-10-21',
         title: 'Rota Índigo',
         sections: [
             {
@@ -144,6 +538,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.0.5',
+        date: '2026-10-21',
         title: 'Tudo na prancheta',
         sections: [
             {
@@ -166,6 +561,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.0.4',
+        date: '2026-10-21',
         title: 'Golpes e Patrocínios explicados',
         sections: [
             {
@@ -186,6 +582,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.0.3',
+        date: '2026-10-21',
         title: 'Pacote e Patrocínios',
         sections: [
             {
@@ -200,6 +597,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.0.2',
+        date: '2026-10-21',
         title: 'Ajustes da semana',
         sections: [
             {
@@ -220,6 +618,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.0.1',
+        date: '2026-10-21',
         title: 'Mercado organizado',
         sections: [
             {
@@ -233,6 +632,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.0',
+        date: '2026-10-20',
         title: 'Mercado e Patrocínios',
         sections: [
             {
@@ -266,6 +666,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.9',
+        date: '2026-10-20',
         title: 'Sala de troféus e menus novos',
         sections: [
             {
@@ -307,6 +708,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.8.4',
+        date: '2026-10-20',
         title: 'Álbum em livro',
         sections: [
             {
@@ -328,6 +730,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.8.3',
+        date: '2026-10-19',
         title: 'Cartas em camadas e álbum de figurinhas',
         sections: [
             {
@@ -381,6 +784,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.8.2',
+        date: '2026-10-19',
         title: 'Logo novo e faixas da torcida',
         sections: [
             {
@@ -405,6 +809,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.8.1',
+        date: '2026-10-19',
         title: 'Melhores momentos, Copa do Dia e medalhas',
         sections: [
             {
@@ -521,6 +926,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.8',
+        date: '2026-10-19',
         title: 'Ícone MVP e conquistas retroativas',
         sections: [
             {
@@ -534,6 +940,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.7',
+        date: '2026-10-19',
         title: 'Emotes, selos e faixa da torcida',
         sections: [
             {
@@ -571,6 +978,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.6',
+        date: '2026-10-18',
         title: 'Lendas douradas e prancheta ao vivo',
         sections: [
             {
@@ -653,6 +1061,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.5',
+        date: '2026-10-18',
         title: 'Escanteio e duelo ao vivo',
         sections: [
             {
@@ -692,6 +1101,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.4',
+        date: '2026-10-17',
         title: 'Balanceamento geral e o seu treinador',
         sections: [
             {
@@ -766,6 +1176,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.3',
+        date: '2026-10-16',
         title: 'Partida com peso, pacote de cartas e torcida',
         sections: [
             {
@@ -831,6 +1242,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.2',
+        date: '2026-10-16',
         title: 'Hall da Fama e o título do jeito que merece',
         sections: [
             {
@@ -863,6 +1275,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.1',
+        date: '2026-10-15',
         title: 'Ajustes do lançamento',
         sections: [
             {
@@ -873,6 +1286,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.0',
+        date: '2026-10-15',
         title: 'Perfil, Pokédex e golpes novos',
         sections: [
             {
@@ -924,6 +1338,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.7.3',
+        date: '2026-10-14',
         title: 'Beta aberta',
         sections: [
             {
@@ -958,6 +1373,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.7.2',
+        date: '2026-10-14',
         title: 'Trocas que contam e privacidade',
         sections: [
             {
@@ -979,6 +1395,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.7.1',
+        date: '2026-10-14',
         title: 'Revisão completa',
         sections: [
             {
@@ -1008,6 +1425,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.7',
+        date: '2026-10-14',
         title: 'Contas, evolução e golpes de verdade',
         sections: [
             {
@@ -1061,7 +1479,249 @@ export const PATCH_NOTES: PatchNotes[] = [
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
     {
+        version: '0.9.15',
+        date: '2026-10-23',
+        title: 'Baby route',
+        sections: [
+            {
+                title: 'Indigo Route',
+                lines: [
+                    'The Route starts at base forms: the captain and the draft come out as Charmander, Machop, Magikarp, and the team evolves along the way',
+                    'Average team rating at the start of the Route: 79.5 ⇒ 64.6',
+                    'The strongest Pokémon with no evolution (Snorlax, Lapras, legendaries) only show up as reinforcements, after the start',
+                    'Leave the Route and come back to the same draw: the Route only changes when you finish one',
+                    'The early rivals got weaker: match 1 -1 ⇒ -2 and match 2 0 ⇒ -1',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.14',
+        date: '2026-10-23',
+        title: 'Max move in 3 levels, on the beat',
+        sections: [
+            {
+                title: 'Max move',
+                lines: [
+                    'The bar now has 3 levels and refills after use: max moves per match 1 ⇒ several (the bar recharges)',
+                    'Release at level 1 or hold for level 3, the strongest shot in the game: shot power x1.55 ⇒ x1.25 / x1.55 / x2.2 (levels 1 / 2 / 3)',
+                    'At level 3 the rival keeper has x0.7 reach on that shot',
+                    'Tap when the ring closes on the button, on the beat of the music: PERFECT! hits harder',
+                    'With no sound, the ring follows an on-screen pulse',
+                    'Tapped a bit before it lit up? The move comes out on the next shot',
+                    'Leaders also tap on the beat, and Lance almost always nails it',
+                ],
+            },
+            {
+                title: 'Max save',
+                lines: [
+                    'With the captain in goal, the level gives more save time: 4 s ⇒ 0.75 s / 4 s / 6 s (levels 1 / 2 / 3)',
+                    'A perfect tap holds the ball',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.13',
+        date: '2026-10-22',
+        title: 'Patch notes that are easier to read',
+        sections: [
+            {
+                title: 'Patch notes',
+                lines: [
+                    'The newest version sits on top, highlighted, with its date',
+                    'Older ones are collapsed: tap to open',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.6',
+        date: '2026-10-22',
+        title: 'Touchline and stronger TMs',
+        sections: [
+            {
+                title: 'Touchline',
+                lines: [
+                    "Max move: your team's plays fill the bar and the button lights up when your captain can shoot",
+                    'The shooting zone depends on the captain: pivot 15 m, winger 18 m, defender 22 m',
+                    'A captain in goal gets a max save: the next shot he can reach is saved',
+                    'Flying keeper: the keeper joins the attack for 5 against 4, leaving the goal empty',
+                    'Time-out: 1 per half, the team gets its breath back and subs apply right away',
+                    'Cup rival coaches use the same tools',
+                    'Subs and board changes apply right away, with the ball in play; coach shouts are gone',
+                ],
+            },
+            {
+                title: 'TMs',
+                lines: [
+                    'A move taught by TM comes out more often, hits harder and gets the TM badge',
+                    'Mega Drain 40 ⇒ 100 power, BubbleBeam 65 ⇒ 100, Fissure accuracy 30% ⇒ 50%',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.5',
+        date: '2026-10-21',
+        title: 'Every formation plays its own way',
+        sections: [
+            {
+                title: 'Formations',
+                lines: [
+                    'Diamond: triangles and short passes through the middle',
+                    'Square: the ball goes down the flanks',
+                    'Back Three: the pivot drops, lays it off and the runner shoots first time',
+                    'Rotation: all four swap spots all the time and break fast',
+                    'Twin Pivots: direct play, shooting right after winning the ball',
+                    'Lockdown: low, compact block and a quick break',
+                    'Each formation has an edge over another; the icon on the lineup shows when it fits',
+                ],
+            },
+            {
+                title: 'Moves',
+                lines: [
+                    'Nidorino, Venonat, Bellsprout, Weepinbell, Victreebel, Slowbro, Chansey and Jolteon have their own moves',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.4',
+        date: '2026-10-21',
+        title: 'Best-of-3 Duel and a polished Road',
+        sections: [
+            {
+                title: 'Duel',
+                lines: [
+                    'Best of 3 with the same team: the scoreboard shows the series score',
+                    'A voided game is replayed; leaving between games is a walkover win for whoever stayed',
+                ],
+            },
+            {
+                title: 'Indigo Road',
+                lines: [
+                    'Rewritten texts: one yellow card rule, "End of the road" and shorter events',
+                    'The map uses the whole screen on desktop',
+                    'Players who are out show why (injury, daycare or tired) and stay off the court',
+                    'Hall of Fame split into Lightning Cup and Indigo Road, with its own indigo trophy',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.3.2',
+        date: '2026-10-21',
+        title: 'Indigo Road up front',
+        sections: [
+            {
+                title: 'Home screen',
+                lines: [
+                    'Indigo Road and Lightning Cup side by side on desktop, with the Road bigger and a NEW tag',
+                    'Duel and Daily Cup below, next to each other',
+                    'On phones, the Road button takes the full width',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.3.1',
+        date: '2026-10-21',
+        title: 'Pokédex entries and more faces',
+        sections: [
+            {
+                title: 'Collection',
+                lines: ['The Pokémon sheet and the open Album card show the Pokédex entry'],
+            },
+            {
+                title: 'Livelier Pokémon',
+                lines: [
+                    'Pokémon cry when you pick them in the draft, in the VERSUS and on the big pack card',
+                    'Trophy room: at night it really sleeps; in the day it sometimes sits or eats',
+                    'Indigo Road: the team naps at Rest, winces on a tackle and gets dizzy in hard training',
+                    'Knocked out: the team lies on the floor and the captain sheds a tear',
+                ],
+            },
+            {
+                title: 'Indigo Road and Lightning Cup',
+                lines: [
+                    'The map shows the rival captain on each match node and their team as icons',
+                    'The cup bracket shows each club captain',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.3',
+        date: '2026-10-21',
+        title: 'Moves reviewed',
+        sections: [
+            {
+                title: 'Each one with its own type',
+                lines: [
+                    'Every Pokémon has at least 1 move of each of its types (when Gen 1 allows it)',
+                    'Gengar: Confuse Ray ⇒ Sludge (Dream Eater, Hypnosis, Night Shade, Sludge)',
+                    'Gastly and Haunter: Hypnosis ⇒ Toxic',
+                    'Zubat and Golbat: Supersonic ⇒ Toxic',
+                    'Nidoran♂, Nidorino and Nidoking: Focus Energy ⇒ Toxic; Nidoqueen: Counter ⇒ Toxic',
+                    'Beedrill: Agility ⇒ Toxic',
+                    'Charizard: Fire Blast ⇒ Fly',
+                    'Hitmonchan: Agility ⇒ Counter',
+                    'Gyarados: Splash ⇒ Hyper Beam',
+                ],
+            },
+            {
+                title: 'No repeated moves',
+                lines: [
+                    'Charmander and Charmeleon: Fire Blast ⇒ Dragon Rage',
+                    'Raichu: Thunderbolt ⇒ Agility',
+                    'Arcanine: Flamethrower ⇒ Take Down',
+                    'Hitmonlee: Jump Kick ⇒ Double Kick',
+                    'Staryu: Hydro Pump ⇒ Psychic',
+                    'Omanyte: Hydro Pump ⇒ Surf',
+                ],
+            },
+            {
+                title: 'Moves that now do what they promise',
+                lines: [
+                    'Harden keeps the ball on the next tackle (like Defense Curl)',
+                    'Slam reaches further (2.8 m)',
+                    'Amnesia raises passing, shooting and reading',
+                    'Tri Attack can burn, freeze or paralyze',
+                    'Explosion hits everyone within 4 m',
+                    'Light Screen and Reflect no longer give hidden shooting',
+                    'Fly and Dig with the ball carry it 2 m (was 4)',
+                ],
+            },
+            {
+                title: 'Texts',
+                lines: [
+                    'Every move explains what it does on the court with numbers (how long, who is immune, how often it hits, the cost to the user)',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.2.2',
+        date: '2026-10-21',
+        title: 'Indigo Road is back',
+        sections: [
+            {
+                title: 'Indigo Road',
+                lines: [
+                    'The Road is back: the 1st match broke the lineup screen (fixed) and it was played start to finish before coming back',
+                    'Continuing on a "?" event goes back to the event (it used to open the lineup and replay the match)',
+                    'A yellow card or a group loss says DEFEAT (not End of the line); the red card only comes on the 2nd loss on the map',
+                    'The saved cup, champion screen (x/8), goal of the cup and title card name the Road match, not the Round of 16',
+                    'New cup at the end of a Road starts another Road',
+                    'Injured starter: the warning shows next to Play',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.2.1',
+        date: '2026-10-21',
         title: 'Light album, easy showcase',
         sections: [
             {
@@ -1084,6 +1744,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.2',
+        date: '2026-10-21',
         title: 'House in order',
         sections: [
             {
@@ -1143,6 +1804,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.1.1',
+        date: '2026-10-21',
         title: 'Cards back',
         sections: [
             {
@@ -1157,6 +1819,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.1',
+        date: '2026-10-21',
         title: 'Indigo Road',
         sections: [
             {
@@ -1198,6 +1861,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.0.5',
+        date: '2026-10-21',
         title: 'Everything on the board',
         sections: [
             {
@@ -1220,6 +1884,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.0.4',
+        date: '2026-10-21',
         title: 'Moves and Sponsors explained',
         sections: [
             {
@@ -1240,6 +1905,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.0.3',
+        date: '2026-10-21',
         title: 'Packs and Sponsors',
         sections: [
             {
@@ -1254,6 +1920,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.0.2',
+        date: '2026-10-21',
         title: 'Weekly fixes',
         sections: [
             {
@@ -1274,6 +1941,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.0.1',
+        date: '2026-10-21',
         title: 'Tidier Market',
         sections: [
             {
@@ -1287,6 +1955,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.0',
+        date: '2026-10-20',
         title: 'Market and Sponsors',
         sections: [
             {
@@ -1320,6 +1989,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.9',
+        date: '2026-10-20',
         title: 'Trophy room and new menus',
         sections: [
             {
@@ -1361,6 +2031,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.8.4',
+        date: '2026-10-20',
         title: 'The album is a book',
         sections: [
             {
@@ -1382,6 +2053,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.8.3',
+        date: '2026-10-19',
         title: 'Layered cards and sticker album',
         sections: [
             {
@@ -1435,6 +2107,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.8.2',
+        date: '2026-10-19',
         title: 'New logo and fan banners',
         sections: [
             {
@@ -1459,6 +2132,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.8.1',
+        date: '2026-10-19',
         title: 'Highlights, Daily Cup and medals',
         sections: [
             {
@@ -1575,6 +2249,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.8',
+        date: '2026-10-19',
         title: 'Icon MVP and retroactive achievements',
         sections: [
             {
@@ -1588,6 +2263,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.7',
+        date: '2026-10-19',
         title: 'Emotes, seals and supporter banners',
         sections: [
             {
@@ -1625,6 +2301,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.6',
+        date: '2026-10-18',
         title: 'Golden legends and live tactics board',
         sections: [
             {
@@ -1707,6 +2384,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.5',
+        date: '2026-10-18',
         title: 'Corners and live duels',
         sections: [
             {
@@ -1746,6 +2424,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.4',
+        date: '2026-10-17',
         title: 'Full rebalance and your trainer',
         sections: [
             {
@@ -1820,6 +2499,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.3',
+        date: '2026-10-16',
         title: 'Weighty matches, card packs and a crowd',
         sections: [
             {
@@ -1885,6 +2565,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.2',
+        date: '2026-10-16',
         title: 'Hall of Fame and a title screen worth the trophy',
         sections: [
             {
@@ -1917,6 +2598,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.1',
+        date: '2026-10-15',
         title: 'Launch fixes',
         sections: [
             {
@@ -1927,6 +2609,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.0',
+        date: '2026-10-15',
         title: 'Profile, Pokédex and new moves',
         sections: [
             {
@@ -1978,6 +2661,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.7.3',
+        date: '2026-10-14',
         title: 'Open beta',
         sections: [
             {
@@ -2012,6 +2696,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.7.2',
+        date: '2026-10-14',
         title: 'Substitutions that count and privacy',
         sections: [
             {
@@ -2033,6 +2718,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.7.1',
+        date: '2026-10-14',
         title: 'Full review',
         sections: [
             {
@@ -2062,6 +2748,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.7',
+        date: '2026-10-14',
         title: 'Accounts, evolution and real moves',
         sections: [
             {

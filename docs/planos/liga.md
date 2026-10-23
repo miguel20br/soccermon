@@ -1,3 +1,7 @@
+---
+description: Copa do Dia e Liga ranqueada com times fantasma: regras, servidor e abertura.
+---
+
 # Copa do Dia e Liga ranqueada (times fantasma)
 
 Feito em 19/10/2026 na branch `liga`. Base: `docs/planos/multiplayer.md` (ordem: duelo amistoso → liga ranqueada) e

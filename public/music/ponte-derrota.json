@@ -1,0 +1,21 @@
+{
+ "faixa": "ponte-derrota",
+ "titulo": "Ponte pra derrota: o \"toc toc\" de consolo no bloco",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 1.818186,
+ "secoes": [
+  {
+   "nome": "ponte",
+   "loop": false,
+   "inicio": 0,
+   "fim": 1.818186,
+   "amostras": [
+    0,
+    80182
+   ],
+   "bpm": 132,
+   "compassos": 1
+  }
+ ]
+}

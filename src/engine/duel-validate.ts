@@ -107,7 +107,9 @@ export function monProblems(m: DuelMonRecipe, where: string): string[] {
         bad(`habilidade ${m.ability}`);
     const taught = m.taught ?? [];
     if (!Array.isArray(taught) || !taught.every((x) => isStr(x) && MOVES[x] && sp.learnset.includes(x))) bad('MT');
-    const allowed = new Set([...defaultMoveset(sp), ...taught]);
+    // qualquer golpe do learnset (o `taught` já aceitava todos): carta salva com o moveset padrão de uma versão
+    // anterior (Gengar com Confuse Ray de antes da regra do tipo) continua valendo
+    const allowed = new Set([...sp.learnset, ...defaultMoveset(sp), ...taught]);
     if (
         !Array.isArray(m.moves) ||
         m.moves.length < 1 ||

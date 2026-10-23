@@ -1,3 +1,7 @@
+---
+description: Plano de implementação da Copa roguelike em etapas, com o que o Miguel decidiu.
+---
+
 # Copa roguelike: plano de implementação (20/10/2026)
 
 Proposta e análise em [copa-roguelike.md](copa-roguelike.md). **Decidido com o Miguel (20/10):** todas as

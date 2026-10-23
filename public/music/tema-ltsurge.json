@@ -1,0 +1,45 @@
+{
+ "faixa": "tema-ltsurge",
+ "titulo": "Tema do Lt. Surge",
+ "tela": "Líder de ginásio: Lt. Surge",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 45,
+ "secoes": [
+  {
+   "nome": "intro",
+   "loop": false,
+   "inicio": 0,
+   "fim": 3.333333,
+   "amostras": [
+    0,
+    147000
+   ],
+   "bpm": 144,
+   "compassos": 2
+  },
+  {
+   "nome": "loop",
+   "loop": true,
+   "inicio": 3.333333,
+   "fim": 45,
+   "amostras": [
+    147000,
+    1984500
+   ],
+   "bpm": 144,
+   "compassos": 25
+  }
+ ],
+ "swing": 0.06,
+ "swingEm": 16,
+ "gancho": {
+  "hits": [
+   [
+    41.667,
+    41.985,
+    42.292
+   ]
+  ]
+ }
+}

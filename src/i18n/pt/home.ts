@@ -26,7 +26,6 @@ export const home = {
     inProgress: 'Copa em andamento',
     cupPath: 'Fases da copa',
     resume: 'Continuar',
-    orNew: 'Ou comece outra copa',
     teamName: 'Nome do seu time',
     newCup: 'Nova copa',
     quickCup: {
@@ -35,10 +34,10 @@ export const home = {
         line: 'Mata-mata de 4 jogos, rápido e direto.',
     },
     longCup: {
-        tag: 'Em breve',
+        tag: '8 jogos',
         title: 'Rota Índigo',
-        line: 'Atravesse Kanto até o Planalto: 8 jogos, eventos e ginásios.',
-        short: 'mapa, eventos e ginásios',
+        line: 'Atravesse Kanto até o Planalto Índigo.',
+        go: 'Começar a Rota',
         note: 'A Rota Índigo chega na próxima versão.',
     },
     challenge: 'Aceitar desafio ({seed})',
@@ -68,6 +67,7 @@ export const home = {
     doorsAria: 'Seu jogo',
     footerAria: 'Mais',
     version: 'Versão {v} · {title}',
+    latest: 'Mais recente',
     soonTitle: 'Vem aí',
     soonRibbon: 'Em breve',
     /** Contagem da Liga no cartãozinho do Vem aí. */

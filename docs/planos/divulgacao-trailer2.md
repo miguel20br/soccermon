@@ -1,3 +1,7 @@
+---
+description: Plano de divulgação do segundo trailer, decidido em 19/10.
+---
+
 # Divulgação do trailer 2 (decidido com o Miguel em 19/10/2026)
 
 Substitui o plano de 4 semanas de `pesquisas/marketing.md` (feito antes da Liga, Copa do Dia, Melhores momentos e do

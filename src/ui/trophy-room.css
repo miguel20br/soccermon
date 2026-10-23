@@ -204,6 +204,13 @@
 .room-dialog-go {
     flex: none;
 }
+/* celular: a sala é pequena, a caixa em cima dela tampava as taças de que ela fala; fica logo embaixo da cena */
+@media (max-width: 600px) {
+    .room-dialog {
+        position: static;
+        margin-top: 8px;
+    }
+}
 @media (max-width: 420px) {
     .room-dialog {
         flex-direction: column;

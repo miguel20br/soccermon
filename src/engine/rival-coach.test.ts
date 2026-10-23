@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { en } from '../i18n/en';
 import { pt } from '../i18n/pt';
+import { AGENCY } from './agency';
 import { FUTSAL_5 } from './config';
 import { CLUBS, clubLeader, cupRival } from './cup';
 import { matchHash } from './determinism';
@@ -62,11 +63,17 @@ describe('técnico rival que reage (beira da quadra)', () => {
                 expect(c.team).toBe(1);
                 expect(c.leader).toBe(leader);
             }
-            // cada grito avisado sai `leadTicks` depois, e nunca mais de 3 por jogo
-            const shouts = r1.events.filter((e) => e.type === 'shout' && e.team === 1);
-            expect(shouts.length).toBeLessThanOrEqual(3);
-            for (const c of calls.filter((c) => c.call === 'shout'))
-                expect(shouts.some((s) => s.tick === c.tick + RIVAL_COACH.leadTicks)).toBe(true);
+            // o golpe máximo é na hora certa: sai logo depois de chamado, sem aviso
+            for (const c of calls.filter((c) => c.call === 'max'))
+                expect(
+                    r1.events.some(
+                        (e) =>
+                            e.type === 'max' &&
+                            e.team === 1 &&
+                            e.tick > c.tick &&
+                            e.tick <= c.tick + AGENCY.maxArmTicks,
+                    ),
+                ).toBe(true);
             // 1 pedido de tempo por tempo
             const tos = r1.events.filter((e) => e.type === 'timeout' && e.team === 1);
             expect(new Set(tos.map((e) => e.half)).size).toBe(tos.length);
@@ -80,10 +87,29 @@ describe('técnico rival que reage (beira da quadra)', () => {
         const T = 2400;
         const orders: MatchOrder[] = [
             { tick: T, team: 0, tactic: 'offensive' },
-            { tick: T, team: 0, kind: 'shout', shout: 'attack' },
+            { tick: T, team: 0, kind: 'flyGk', on: true },
         ];
         const mine = runMatch(FUTSAL_5, A, away, 'rc-react', { snapshots: false, orders });
         const earlier = (evs: MatchEvent[]) => coachEvents(evs).filter((e) => e.tick < T);
         expect(earlier(mine.events)).toEqual(earlier(base.events));
+    });
+});
+
+describe('técnico rival com o golpe máximo em 3 níveis', () => {
+    it('sorteia a nota (determinística) e solta no N2/N3, ou no N1 perdendo no fim', () => {
+        let calls = 0;
+        for (const [k, leader] of COACH_LEADERS.entries()) {
+            const away = { ...B, coach: leader };
+            const r = runMatch(FUTSAL_5, A, away, `rc-lv-${k}`, { snapshots: false });
+            expect(matchHash(runMatch(FUTSAL_5, A, away, `rc-lv-${k}`, { snapshots: false }))).toBe(matchHash(r));
+            for (const c of coachEvents(r.events).filter((c) => c.call === 'max')) {
+                calls++;
+                expect([0, 1, 2]).toContain(c.call === 'max' && c.q);
+                const hit = r.events.find((e) => e.type === 'max' && e.team === 1 && e.tick > c.tick);
+                if (hit?.type !== 'max' || hit.level !== 1) continue;
+                expect(c.minute).toBeGreaterThanOrEqual(RIVAL_COACH.maxN1From);
+            }
+        }
+        expect(calls).toBeGreaterThan(0);
     });
 });

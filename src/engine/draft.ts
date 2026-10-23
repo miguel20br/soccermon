@@ -229,17 +229,48 @@ export function aiPick(rng: Rng, options: PokemonInstance[], need: Position | 'A
     return best;
 }
 
+/** Um Pokémon dos `types` que joga em `need`, com a nota na vaga mais perto da de `like`. */
+function themedLike(
+    rng: Rng,
+    like: PokemonInstance,
+    need: Position | 'ANY',
+    taken: ReadonlySet<number>,
+    types: readonly string[],
+): PokemonInstance | null {
+    const target = speciesSlotRating(species(like.speciesId), need);
+    const pool = SPECIES.filter(
+        (sp) => !taken.has(sp.id) && canPlay(sp, need) && sp.types.some((t) => types.includes(t)),
+    );
+    if (!pool.length) return null;
+    const gap = (sp: Species) => Math.abs(speciesSlotRating(sp, need) - target);
+    const best = Math.min(...pool.map(gap));
+    return createInstance(rng.pick(pool.filter((sp) => gap(sp) === best)).id, rng);
+}
+
+/** Opção de pior nota na vaga (dificuldade -2). */
+function weakestPick(options: PokemonInstance[], need: Position | 'ANY'): PokemonInstance {
+    const score = (i: PokemonInstance) => {
+        const r = speciesProfile(species(i.speciesId)).ratings;
+        return need === 'ANY' ? Math.max(...Object.values(r)) : r[need];
+    };
+    return options.reduce((w, o) => (score(o) < score(w) ? o : w));
+}
+
 /**
  * Monta um time da IA completo (adversários da copa), vaga por vaga da formação.
- * Dificuldade: -1 = estreante (raridade de começo de draft, escolhe sempre no chute) · 0 = escolhe meio no chute · 1 = melhor de 3 · 2 = melhor de 4 · 3 = melhor de 5 com raridade antecipada.
+ * Dificuldade: -2 = piso da Rota 1 (fica com a pior das opções) · -1 = estreante (raridade de começo de draft, escolhe sempre no chute) · 0 = escolhe meio no chute · 1 = melhor de 3 · 2 = melhor de 4 · 3 = melhor de 5 com raridade antecipada.
  */
 export function aiDraftTeam(
     rng: Rng,
     difficulty: number,
     preferTypes: readonly string[] = [],
     formation?: FormationId,
+    /** Titulares mínimos dos `preferTypes` (times da Rota: o Ornitólogo tem pássaros). 0 = só a preferência de 75%. */
+    themeMin = 0,
 ): { lineup: PokemonInstance[]; bench: PokemonInstance[]; captainUid: string } {
     const needs: (Position | 'ANY')[] = [...formationOf(formation).slots, 'ANY', 'ANY'];
+    const starters = needs.length - BENCH_SIZE;
+    const themed = (p: PokemonInstance) => species(p.speciesId).types.some((t) => preferTypes.includes(t));
     const taken = new Set<number>();
     const picks: PokemonInstance[] = [];
     const extra = Math.max(0, difficulty - 1);
@@ -248,7 +279,13 @@ export function aiDraftTeam(
         const r = difficulty < 0 ? 0 : Math.min(6, round + extra);
         const options = draftOptions(rng, r, taken, 3 + extra, preferTypes, need);
         const random = difficulty < 0 || (difficulty === 0 && rng.chance(0.6));
-        const pick = random ? rng.pick(options) : aiPick(rng, options, need);
+        let pick =
+            difficulty < -1 ? weakestPick(options, need) : random ? rng.pick(options) : aiPick(rng, options, need);
+        // tema no limite: só as vagas que faltam dão conta do mínimo, então esta tem que ser do tipo. Entra o do tipo
+        // com a nota na vaga mais perto da escolhida, pra força do time não mudar
+        const missing = themeMin - picks.filter(themed).length;
+        if (round < starters && missing > 0 && missing >= starters - round && !themed(pick))
+            pick = themedLike(rng, pick, need, taken, preferTypes) ?? pick;
         taken.add(pick.speciesId);
         picks.push(pick);
     });
@@ -258,4 +295,50 @@ export function aiDraftTeam(
         Math.max(...Object.values(speciesProfile(SPECIES[p.speciesId - 1]).ratings));
     const captain = lineup.reduce((best, p) => (overall(p) > overall(best) ? p : best));
     return { lineup, bench: picks.slice(needs.length - BENCH_SIZE), captainUid: captain.uid };
+}
+
+// ------------------------------------------------------------------------------ Rota: pré-evoluções (docs/planos/rota-pre-evolucoes.md)
+
+/** Forma-base da linha evolutiva (a própria espécie se não tem `prevo`). */
+export function rootOf(id: number): number {
+    let sp = species(id);
+    while (sp.prevo) sp = species(sp.prevo);
+    return sp.id;
+}
+
+/** Nota máxima da espécie em qualquer posição que ela joga. */
+const bestRating = (sp: Species) => Math.max(...Object.values(speciesProfile(sp).ratings));
+/** Sem linha evolutiva dentro dos 151 (nem `prevo`, nem quem evolua dela). */
+const loneSpecies = (sp: Species) => !sp.prevo && !SPECIES.some((o) => o.prevo === sp.id);
+/** Nota máxima que um sem-linha pode ter no draft inicial da Rota; os mais fortes entram por Baú e reforços. */
+export const LONE_START_MAX = 82;
+
+/** Espécies que não saem no draft inicial nem no capitão da Rota: sem linha e acima de `LONE_START_MAX`. */
+export const ROUTE_START_BANNED: ReadonlySet<number> = new Set(
+    SPECIES.filter((sp) => loneSpecies(sp) && bestRating(sp) > LONE_START_MAX).map((sp) => sp.id),
+);
+
+/**
+ * Cada opção vira a forma-base da linha (Charizard sai Charmander). Fica como está se a base já está no time
+ * (`taken`) ou já saiu nesta mesma rodada. Mantém o `uid` da opção.
+ */
+export function babyOptions(options: PokemonInstance[], rng: Rng, taken: ReadonlySet<number>): PokemonInstance[] {
+    const used = new Set<number>();
+    // base que já saiu na rodada ou está no time: a opção não pode ficar evoluída, sorteia outra forma-base
+    const spare = SPECIES.filter((sp) => !sp.prevo && !ROUTE_START_BANNED.has(sp.id) && !taken.has(sp.id));
+    return options.map((o) => {
+        const root = rootOf(o.speciesId);
+        if (root === o.speciesId) {
+            used.add(root);
+            return o;
+        }
+        if (taken.has(root) || used.has(root)) {
+            const free = spare.filter((sp) => !used.has(sp.id) && !options.some((x) => x.speciesId === sp.id));
+            const sp = rng.pick(free);
+            used.add(sp.id);
+            return { ...createInstance(sp.id, rng), uid: o.uid };
+        }
+        used.add(root);
+        return { ...createInstance(root, rng), uid: o.uid };
+    });
 }

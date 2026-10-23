@@ -8,12 +8,13 @@ Soccermon é um fan project sem fins lucrativos criado por **Miguel Cunha** ([@m
 |---|---|---|
 | Sprites de campo (8 direções) | [PMDCollab/SpriteCollab](https://github.com/PMDCollab/SpriteCollab) | CC BY-NC 4.0 — autores em [CREDITS-PMD.md](CREDITS-PMD.md) |
 | Retratos (faixa de gol/defesa) | [PMDCollab/SpriteCollab](https://github.com/PMDCollab/SpriteCollab) | CC BY-NC 4.0 — autores em [CREDITS-PORTRAITS.md](CREDITS-PORTRAITS.md) |
-| Sprites animados de Black/White, pokébola | [PokeAPI/sprites](https://github.com/PokeAPI/sprites) | CC0 (imagens © The Pokémon Company) |
+| Sprites animados de Black/White, pokébola, sprites do Red/Blue (proposta da edição Retrô, `public/assets/retro`, `scripts/fetch-retro.ts`) | [PokeAPI/sprites](https://github.com/PokeAPI/sprites) | CC0 (imagens © The Pokémon Company) |
 | Gritos legacy e modernos | [PokeAPI/cries](https://github.com/PokeAPI/cries) | CC0 (áudio © The Pokémon Company) |
 | Ícones de tipo (símbolo recortado do selo de Pokémon Champions) | [PokeAPI/sprites](https://github.com/PokeAPI/sprites) | CC0 (imagens © The Pokémon Company) |
 | Técnicas de carta holográfica (reimplementadas, sem texturas copiadas) | [simeydotme/pokemon-cards-css](https://github.com/simeydotme/pokemon-cards-css) | GPL-3.0 |
 | Móveis, piso e parede da Sala de troféus | [Modern Interiors, LimeZu](https://limezu.itch.io/moderninteriors) (versão grátis) | uso não comercial, com crédito (LICENSE em `public/assets/room/mi`) |
 | Móveis 3D da Sala de troféus (protótipo `?lab=sala`) | [KayKit Furniture Bits](https://github.com/KayKit-Game-Assets/KayKit-Furniture-Bits-1.0) (Kay Lousberg) | CC0 1.0 |
+| Ícones de menu (`public/assets/icons`, folhas montadas por `scripts/fetch-icons.ts`) | [msikma/pokesprite](https://github.com/msikma/pokesprite) (Gen 7 e Gen 8; shiny feitos pela comunidade, ver `contributors.md` de lá) e [Pokémon Showdown](https://play.pokemonshowdown.com/sprites/) (`pokemonicons-sheet.png`, só na comparação `?lab=icones`) | código MIT; imagens © Nintendo/Creatures/GAME FREAK; uso não comercial, com crédito |
 | Sprites de treinador | [Pokémon Showdown](https://play.pokemonshowdown.com/sprites/trainers) | imagens © The Pokémon Company; uso não comercial, com crédito |
 | Partículas de efeito | [Pokémon Showdown](https://play.pokemonshowdown.com/fx/) | uso não comercial, com crédito |
 | Fonte Galmuri (subset só com latim e os símbolos do jogo, gerado por `npm run fonts` a partir do pacote npm `galmuri`) | [quiple/galmuri](https://github.com/quiple/galmuri) | SIL OFL 1.1 (`public/fonts/OFL-Galmuri.md`) |
@@ -29,6 +30,8 @@ Soccermon é um fan project sem fins lucrativos criado por **Miguel Cunha** ([@m
 |---|---|---|
 | Pokédex, golpes, habilidades, tabela de tipos | [@pkmn/dex / @pkmn/data](https://github.com/pkmn/ps) (dados do [Pokémon Showdown](https://github.com/smogon/pokemon-showdown)) | MIT |
 | Descrições em português | [pokerogue-locales](https://github.com/pagefaultgames/pokerogue-locales) | AGPL-3.0 |
+| Texto da Pokédex em português (cartas do TCG Pocket), `src/data/dex-text.json` | [TCGdex](https://tcgdex.dev) ([cards-database](https://github.com/tcgdex/cards-database)) | banco MIT; texto © The Pokémon Company |
+| Texto da Pokédex em inglês (Red/Blue; Gold na Gen 2), encontros, habitats, cor e forma | [PokeAPI](https://pokeapi.co) ([api-data](https://github.com/PokeAPI/api-data)) | BSD-3; dados © The Pokémon Company |
 
 ## Referências de design e arquitetura
 

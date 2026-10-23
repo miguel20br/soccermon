@@ -2,7 +2,12 @@
 
 declare module 'zzfx' {
     export function zzfx(...parameters: number[]): AudioBufferSourceNode;
-    export const ZZFX: { volume: number; sampleRate: number; audioContext: AudioContext };
+    export const ZZFX: {
+        volume: number;
+        sampleRate: number;
+        audioContext: AudioContext;
+        buildSamples(...parameters: number[]): number[];
+    };
 }
 
 declare const __APP_VERSION__: string;

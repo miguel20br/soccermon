@@ -154,3 +154,103 @@ Retratos de [PMDCollab/SpriteCollab](https://github.com/PMDCollab/SpriteCollab),
 - #149 Dragonite: CHUNSOFT, "motherhenna(Helen)", Emboarger, AlexGroeger
 - #150 Mewtwo: CHUNSOFT, baronessfaron
 - #151 Mew: CHUNSOFT, Mojo, G〜, baronessfaron
+- #152 Chikorita: CHUNSOFT, baronessfaron
+- #153 Bayleef: CHUNSOFT, C_Pariah
+- #154 Meganium: CHUNSOFT, 0palite
+- #155 Cyndaquil: CHUNSOFT
+- #156 Quilava: CHUNSOFT, C_Pariah
+- #157 Typhlosion: CHUNSOFT, 0palite
+- #158 Totodile: CHUNSOFT
+- #159 Croconaw: CHUNSOFT, C_Pariah
+- #160 Feraligatr: CHUNSOFT, Noo
+- #161 Sentret: CHUNSOFT, JFain, Deleca7755, Emmuffin
+- #162 Furret: CHUNSOFT, RelicCipher
+- #163 Hoothoot: CHUNSOFT, JFain
+- #164 Noctowl: CHUNSOFT, G〜, Magu
+- #165 Ledyba: CHUNSOFT, JFain
+- #166 Ledian: CHUNSOFT, JFain
+- #167 Spinarak: CHUNSOFT, JFain
+- #168 Ariados: CHUNSOFT, G〜
+- #169 Crobat: CHUNSOFT, <ElGian>, Emmuffin
+- #170 Chinchou: CHUNSOFT, JFain
+- #171 Lanturn: CHUNSOFT, <@!571847167489343507>
+- #172 Pichu: CHUNSOFT, C_Pariah
+- #173 Cleffa: CHUNSOFT, JFain, Deleca7755, baronessfaron
+- #174 Igglybuff: CHUNSOFT, Gust
+- #175 Togepi: CHUNSOFT, JFain, baronessfaron
+- #176 Togetic: CHUNSOFT, Emmuffin
+- #177 Natu: CHUNSOFT, JFain
+- #178 Xatu: CHUNSOFT, <@!104090628937220096>, G〜, Top_Kec
+- #179 Mareep: CHUNSOFT, Felis-Licht
+- #180 Flaaffy: CHUNSOFT, <@!436940337865293834>
+- #181 Ampharos: CHUNSOFT, Soulja
+- #182 Bellossom: CHUNSOFT, gromchurch
+- #183 Marill: CHUNSOFT, Fearless-Quit, Jarleypeño
+- #184 Azumarill: CHUNSOFT, Emmuffin, ShyStarryRain
+- #185 Sudowoodo: CHUNSOFT, <@!589906152708505648>
+- #186 Politoed: CHUNSOFT, Caitemis
+- #187 Hoppip: CHUNSOFT, JFain
+- #188 Skiploom: CHUNSOFT, JFain, Morei, Emmuffin
+- #189 Jumpluff: CHUNSOFT, Deleca7755
+- #190 Aipom: CHUNSOFT, JFain, baronessfaron
+- #191 Sunkern: CHUNSOFT, JFain, MeepTheMareep02, Top_Kec
+- #192 Sunflora: CHUNSOFT, Gust
+- #193 Yanma: CHUNSOFT, JFain
+- #194 Wooper: CHUNSOFT, Felis-Licht, Emmuffin, ShyStarryRain
+- #195 Quagsire: CHUNSOFT, Emmuffin
+- #196 Espeon: CHUNSOFT, 0palite, baronessfaron
+- #197 Umbreon: CHUNSOFT, Mojo, Emmuffin
+- #198 Murkrow: CHUNSOFT, JFain, baronessfaron, Emmuffin
+- #199 Slowking: CHUNSOFT, Emmuffin
+- #200 Misdreavus: CHUNSOFT, RoyalRust, Morei
+- #201 Unown: CHUNSOFT, Magu
+- #202 Wobbuffet: CHUNSOFT, Tainted#3886, Gust
+- #203 Girafarig: CHUNSOFT, Bluetails_the_Buizel, Emmuffin, Emboarger, Noo, Deeshura
+- #204 Pineco: CHUNSOFT, JFain
+- #205 Forretress: CHUNSOFT
+- #206 Dunsparce: CHUNSOFT, Blanca, G〜, Caitemis
+- #207 Gligar: CHUNSOFT, NeroIntruder
+- #208 Steelix: CHUNSOFT
+- #209 Snubbull: CHUNSOFT, JFain, Gust
+- #210 Granbull: CHUNSOFT
+- #211 Qwilfish: CHUNSOFT, brookriver
+- #212 Scizor: CHUNSOFT, Emboarger
+- #213 Shuckle: CHUNSOFT, Emmuffin
+- #214 Heracross: CHUNSOFT, JFain
+- #215 Sneasel: CHUNSOFT, JFain, Emboarger, Morei, cosmosully
+- #216 Teddiursa: CHUNSOFT, Gust, PhillipsYoung
+- #217 Ursaring: CHUNSOFT, baronessfaron, Tainted#3886, PhillipsYoung
+- #218 Slugma: CHUNSOFT, JFain
+- #219 Magcargo: CHUNSOFT, JFain
+- #220 Swinub: CHUNSOFT, JFain
+- #221 Piloswine: CHUNSOFT, Emmuffin
+- #222 Corsola: CHUNSOFT, Emmuffin, Fearless-Quit
+- #223 Remoraid: CHUNSOFT, JFain, Caitemis
+- #224 Octillery: CHUNSOFT, Top_Kec
+- #225 Delibird: CHUNSOFT, C_Pariah
+- #226 Mantine: CHUNSOFT, Emmuffin
+- #227 Skarmory: CHUNSOFT, Noo
+- #228 Houndour: CHUNSOFT, JFain, Gust
+- #229 Houndoom: CHUNSOFT, PhillipsYoung, <@!967585139485999154>, Morei
+- #230 Kingdra: CHUNSOFT, Emmuffin
+- #231 Phanpy: CHUNSOFT
+- #232 Donphan: CHUNSOFT, Emboarger, G〜
+- #233 Porygon2: CHUNSOFT, Blanca, bwappi
+- #234 Stantler: CHUNSOFT, G〜
+- #235 Smeargle: CHUNSOFT, Fearless-Quit
+- #236 Tyrogue: CHUNSOFT, JFain, PhillipsYoung
+- #237 Hitmontop: CHUNSOFT, Noo
+- #238 Smoochum: CHUNSOFT, Gust
+- #239 Elekid: CHUNSOFT, Angels-Snack, Morei
+- #240 Magby: CHUNSOFT, JFain
+- #241 Miltank: CHUNSOFT, Vex, Emboarger
+- #242 Blissey: CHUNSOFT, JFain
+- #243 Raikou: CHUNSOFT, programmedsleepstate
+- #244 Entei: CHUNSOFT, Top_Kec
+- #245 Suicune: CHUNSOFT, Emmuffin
+- #246 Larvitar: CHUNSOFT, Emmuffin
+- #247 Pupitar: CHUNSOFT
+- #248 Tyranitar: CHUNSOFT, Ichor
+- #249 Lugia: CHUNSOFT, G〜
+- #250 Ho-Oh: CHUNSOFT, CamusZekeSirius
+- #251 Celebi: CHUNSOFT, leafia_barrett

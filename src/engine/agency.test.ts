@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { AGENCY, maxCharge, SHOUTS, shoutAt } from './agency';
+import { AGENCY, inMaxZone, maxCharge, maxCue, maxGraded } from './agency';
 import { FUTSAL_5, withConfig } from './config';
 import { matchHash } from './determinism';
 import { aiDraftTeam } from './draft';
 import { eff } from './effective';
-import { applyAgencyOrder, createMatch, maxMoveOf, toRel } from './match';
+import { applyAgencyOrder, benchSpot, createMatch, inMaxZoneOf, maxMoveOf, toRel } from './match';
 import { Rng } from './rng';
 import { runMatch } from './runners/batch-runner';
-import { LiveRunner } from './runners/live-runner';
-import type { MatchEvent, MatchOrder, TeamSetup } from './state';
+import { LiveRunner, validOrder } from './runners/live-runner';
+import { type MatchEvent, type MatchOrder, SNAP_STRIDE, type TeamSetup } from './state';
 
 function team(seed: string, name: string): TeamSetup {
     return { name, ...aiDraftTeam(new Rng(seed, 'team'), 1), tactic: 'balanced', color: 0, manualSubs: true };
@@ -26,28 +26,11 @@ describe('agência do técnico (experimento)', () => {
         expect(matchHash(same)).toBe(matchHash(base));
     });
 
-    it('grito: atributo do time na hora, 3 por jogo e com recarga', () => {
-        const s = createMatch(FUTSAL_5, A, B, 'ag-eff');
-        const p = s.players[3];
-        const before = eff(s, p, 'shooting');
-        applyAgencyOrder(s, { tick: 0, team: 0, kind: 'shout', shout: 'attack' });
-        expect(eff(s, p, 'shooting') / before).toBeCloseTo(SHOUTS.attack.attrs.shooting ?? 1, 10);
-        // o rival não ganha nada
-        const rival = s.players[8];
-        expect(shoutAt(s.events, 1, 0)).toBeNull();
-        expect(eff(s, rival, 'shooting')).toBe(eff(createMatch(FUTSAL_5, A, B, 'ag-eff'), rival, 'shooting'));
-
-        const gap = AGENCY.shoutCooldownTicks;
-        const r = run([
-            { tick: 100, team: 0, kind: 'shout', shout: 'lock' },
-            { tick: 150, team: 0, kind: 'shout', shout: 'attack' }, // na recarga: não vale
-            { tick: 100 + gap, team: 0, kind: 'shout', shout: 'calm' },
-            { tick: 100 + 2 * gap, team: 0, kind: 'shout', shout: 'press' },
-            { tick: 100 + 3 * gap, team: 0, kind: 'shout', shout: 'attack' }, // o 4º: não vale
-        ]);
-        expect(of(r.events, 'shout').map((e) => e.shout)).toEqual(['lock', 'calm', 'press']);
-        expect(shoutAt(r.events, 0, 100 + AGENCY.shoutTicks - 1)).toBe('lock');
-        expect(shoutAt(r.events, 0, 100 + AGENCY.shoutTicks)).toBeNull();
+    it('o grito saiu: ordem antiga de grito (tela velha do Duelo, save da Copa) não muda nada', () => {
+        const base = runMatch(FUTSAL_5, A, B, 'ag');
+        const shout = { tick: 100, team: 0, kind: 'shout', shout: 'attack' } as unknown as MatchOrder;
+        const same = runMatch(FUTSAL_5, A, B, 'ag', { orders: [shout] });
+        expect(matchHash(same)).toBe(matchHash(base));
     });
 
     it('pedido de tempo: na bola parada seguinte, +5% de fôlego pra quem pediu, +3% pro rival e a bola espera', () => {
@@ -76,12 +59,12 @@ describe('agência do técnico (experimento)', () => {
         const r = run([
             { tick: T, team: 0, kind: 'timeout' },
             { tick: T + 400, team: 0, kind: 'timeout' },
-            { tick: 4500, team: 0, kind: 'timeout' },
+            { tick: 6000, team: 0, kind: 'timeout' },
         ]);
         expect(of(r.events, 'timeout').map((e) => e.half)).toEqual([1, 2]);
     });
 
-    it('goleiro-linha: liga na bola parada e o goleiro sobe como 5º no ataque', () => {
+    it('goleiro-linha: liga na hora, o goleiro sobe como 5º no ataque e a linha joga 5 contra 4', () => {
         const T = 400;
         const maxUp = (orders: MatchOrder[]) => {
             const live = new LiveRunner(FUTSAL_5, A, B, 'ag', orders);
@@ -99,68 +82,196 @@ describe('agência do técnico (experimento)', () => {
         expect(on.best).toBeGreaterThan(12);
         const ev = of(on.events, 'flyGk');
         expect(ev[0]?.on).toBe(true);
-        expect(ev[0].tick).toBeGreaterThanOrEqual(T);
+        expect(ev[0].tick).toBe(T);
+        // 5 contra 4: com a bola, a linha passa e chuta melhor; sem a bola, nada muda
+        const s = createMatch(FUTSAL_5, A, B, 'ag-fly');
+        const p = s.players[3];
+        s.ball.owner = 2;
+        const pass = eff(s, p, 'passing');
+        const shot = eff(s, p, 'shooting');
+        applyAgencyOrder(s, { tick: 0, team: 0, kind: 'flyGk', on: true });
+        expect(eff(s, p, 'passing') / pass).toBeCloseTo(AGENCY.flyPass, 10);
+        expect(eff(s, p, 'shooting') / shot).toBeCloseTo(AGENCY.flyShot, 10);
+        s.ball.owner = 7;
+        expect(eff(s, p, 'passing')).toBe(pass);
     });
 
-    it('barra do golpe máximo: lances do time, mais rápido perdendo, metade de volta se não sair', () => {
-        const at = (tick: number, e: Record<string, unknown>) =>
-            ({ ...e, tick, half: 1, minute: 0 }) as unknown as MatchEvent;
-        const tackles = (n: number, from: number) =>
-            Array.from({ length: n }, (_, i) => at(from + i, { type: 'tackle', by: 1, victim: 6, success: true }));
-        const even = maxCharge(tackles(4, 10), 0).charge;
-        const behind = maxCharge(
-            [at(1, { type: 'goal', by: 6, assist: null, team: 1, score: [0, 1], ownGoal: false }), ...tackles(4, 10)],
-            0,
-        ).charge;
-        expect(even).toBeCloseTo(4 / AGENCY.maxFull, 10);
-        expect(behind / even).toBeCloseTo(AGENCY.maxBehind[1], 10);
-        // o lance do rival não enche a minha
-        expect(maxCharge(tackles(4, 10), 1).charge).toBe(0);
-        const full = tackles(AGENCY.maxFull, 10);
-        expect(maxCharge(full, 0).charge).toBe(1);
-        const miss = [...full, at(100, { type: 'max', team: 0, by: 1, phase: 'start' })];
-        expect(maxCharge(miss, 0)).toEqual({ charge: 0, active: true, used: false });
-        miss.push(at(300, { type: 'max', team: 0, by: 1, phase: 'miss' }));
-        expect(maxCharge(miss, 0).charge).toBe(AGENCY.maxRefund);
-        miss.push(
-            at(400, { type: 'max', team: 0, by: 1, phase: 'start' }),
-            at(410, { type: 'max', team: 0, by: 1, phase: 'hit' }),
-        );
-        expect(maxCharge([...miss, ...tackles(30, 500)], 0)).toEqual({ charge: 0, active: false, used: true });
-    });
-
-    it('golpe máximo: só com a barra cheia, o capitão brilha e o chute sai com o golpe dele', () => {
-        let hits = 0;
-        for (let k = 0; k < 24 && hits < 2; k++) {
-            const seed = `ag-max-${k}`;
-            const plain = runMatch(FUTSAL_5, A, B, seed, { snapshots: false });
-            const full = plain.events.find((e) => maxCharge(plain.events, 0, e.tick).charge >= 1);
-            if (!full) continue;
-            const live = new LiveRunner(FUTSAL_5, A, B, seed, [{ tick: full.tick + 1, team: 0, kind: 'max' }]);
-            let start: MatchEvent | undefined;
-            while (!live.finished && !start) {
-                live.step();
-                start = live.state.events.find((e) => e.type === 'max');
-            }
-            if (start?.type !== 'max') throw new Error('o golpe máximo não abriu com a barra cheia');
-            const cap = live.state.players[start.by];
-            expect(cap.captain).toBe(true);
-            expect(cap.buffs.some((b) => b.src === 'max')).toBe(true);
-            while (!live.finished) live.step();
-            const evs = live.state.events;
-            const end = evs.find((e) => e.type === 'max' && e.phase !== 'start');
-            expect(end).toBeDefined();
-            if (end?.type === 'max' && end.phase === 'hit' && cap.role !== 'GK') {
-                hits++;
-                const shot = evs.find((e) => e.type === 'shot' && e.tick === end.tick);
-                expect(shot?.type === 'shot' && shot.by).toBe(start.by);
-                expect(shot?.type === 'shot' && shot.moveId).toBe(maxMoveOf(cap.inst.moves, cap.inst.speciesId));
-            }
-            // 1 por partida: depois de sair, outra ordem não abre de novo
-            const used = maxCharge(evs, 0);
-            if (used.used) expect(evs.filter((e) => e.type === 'max' && e.phase === 'start')).toHaveLength(1);
+    /** Primeiro tick (com o 1º gomo cheio) em que `cue` vale, andando a partida sem ordem nenhuma. */
+    function firstCue(home: TeamSetup, seed: string, cue: (live: LiveRunner) => boolean, from = 0) {
+        const live = new LiveRunner(FUTSAL_5, home, B, seed);
+        while (!live.finished) {
+            const s = live.state;
+            if (s.tick >= from && s.phase === 'play' && maxCharge(s.events, 0, s.tick).level >= 1 && cue(live))
+                return s.tick;
+            live.step();
         }
-        expect(hits).toBeGreaterThan(0);
+        return null;
+    }
+    const capOf = (live: LiveRunner) => live.state.players.find((p) => p.team === 0 && p.captain)!;
+
+    it('zona do golpe máximo pela posição do capitão: pivô 15 m, ala 18 m, fixo 22 m (o goleiro, 15 m do rival)', () => {
+        const { pitch } = FUTSAL_5;
+        const y = pitch.width / 2;
+        // time 0 ataca o gol de x = 40: d metros do gol, de frente
+        const at = (d: number, role: Parameters<typeof inMaxZone>[4]) => inMaxZone(pitch.length - d, y, 0, pitch, role);
+        expect([at(14, 'PIVO'), at(14, 'ALA'), at(14, 'FIXO'), at(14, 'GK')]).toEqual([true, true, true, true]);
+        expect([at(17, 'PIVO'), at(17, 'ALA'), at(17, 'FIXO'), at(17, 'GK')]).toEqual([false, true, true, false]);
+        expect([at(21, 'PIVO'), at(21, 'ALA'), at(21, 'FIXO')]).toEqual([false, false, true]);
+        expect(at(22.5, 'FIXO')).toBe(false);
+        // o ângulo continua valendo: da linha de fundo, colado na lateral, nada acende
+        expect(inMaxZone(pitch.length - 1, 0.5, 0, pitch, 'FIXO')).toBe(false);
+        // a tela usa a mesma regra (snapshot com o capitão fixo de bola a 20 m)
+        const p: number[] = new Array(10 * SNAP_STRIDE).fill(0);
+        p[3 * SNAP_STRIDE] = pitch.length - 20;
+        p[3 * SNAP_STRIDE + 1] = y;
+        const snap = { owner: 3, p, phase: 'play' as const };
+        expect(maxCue(snap, 0, 3, 'FIXO', pitch)).toBe(true);
+        expect(maxCue(snap, 0, 3, 'PIVO', pitch)).toBe(false);
+    });
+
+    it('golpe máximo de linha: na hora certa sai na hora, com o golpe do capitão; fora dela não sai sozinho', () => {
+        // capitão no pivô: o fixo quase nunca chega na zona com a bola (formações da 0.9.5)
+        const P = { ...A, captainUid: A.lineup[4].uid };
+        const runP = (orders: MatchOrder[], seed: string) =>
+            runMatch(FUTSAL_5, P, B, seed, { snapshots: false, orders });
+        let checked = 0;
+        for (let k = 0; k < 20 && checked < 2; k++) {
+            const seed = `ag-max-${k}`;
+
+            const at = firstCue(P, seed, (live) => {
+                const cap = capOf(live);
+                return live.state.ball.owner === cap.idx && cap.role !== 'GK' && inMaxZoneOf(live.state, cap);
+            });
+            if (at === null) continue;
+            checked++;
+            const r = runP([{ tick: at, team: 0, kind: 'max' }], seed);
+            const hit = of(r.events, 'max')[0];
+            expect(hit?.phase).toBe('hit');
+            // na hora: o chute sai no tick seguinte ao da ordem, com a versão máxima do golpe dele
+            expect(hit.tick - at).toBeLessThanOrEqual(2);
+            const cap = r.roster[hit.by];
+            expect(cap.captain).toBe(true);
+            const shot = of(r.events, 'shot').find((e) => e.tick === hit.tick);
+            expect(shot?.by).toBe(hit.by);
+            const inst = P.lineup.find((p) => p.uid === cap.uid)!;
+            expect(shot?.moveId).toBe(maxMoveOf(inst.moves, inst.speciesId));
+            // gastou a barra toda (o próprio chute já começa a encher de novo)
+            expect(maxCharge(r.events, 0, hit.tick)).toMatchObject({ level: 0, active: false });
+
+            // fora da hora certa (o capitão sem a bola): fica armada um instante; se não vier a hora, nada gasta
+            const early = firstCue(P, seed, (live) => live.state.ball.owner !== capOf(live).idx);
+            const r2 = runP([{ tick: early!, team: 0, kind: 'max' }], seed);
+            const hit2 = of(r2.events, 'max')[0];
+            if (hit2) expect(hit2.tick - early!).toBeLessThanOrEqual(AGENCY.maxArmTicks);
+            else expect(maxCharge(r2.events, 0, early! + AGENCY.maxArmTicks + 1).level).toBeGreaterThanOrEqual(1);
+
+            // o toque um pouco antes de acender (a tela acende MAX_CUE_EARLY = 6 ticks antes) não se perde: sai no
+            // próximo chute da zona
+            const r3 = runP([{ tick: at - 6, team: 0, kind: 'max' }], seed);
+            const hit3 = of(r3.events, 'max')[0];
+            expect(hit3?.phase).toBe('hit');
+            expect(hit3.tick - (at - 6)).toBeLessThanOrEqual(AGENCY.maxArmTicks);
+        }
+        expect(checked).toBeGreaterThan(0);
+    });
+
+    it('defesa máxima (capitão no gol): o próximo chute no gol é defendido e o time sai rápido', () => {
+        const gkUid = A.lineup[0].uid;
+        const H = { ...A, captainUid: gkUid };
+        let saves = 0;
+        for (let k = 0; k < 30 && saves < 2; k++) {
+            const seed = `ag-gk-${k}`;
+            const at = firstCue(H, seed, (live) => {
+                const s = live.state;
+                const owner = s.ball.owner === null ? null : s.players[s.ball.owner];
+                return !!owner && owner.team === 1 && inMaxZoneOf(s, owner, 'GK');
+            });
+            if (at === null) continue;
+            // toque perfeito: segura e sai jogando (bom e fora espalmam)
+            const r = runMatch(FUTSAL_5, H, B, seed, {
+                snapshots: false,
+                orders: [{ tick: at, team: 0, kind: 'max', q: 2 }],
+            });
+            const evs = of(r.events, 'max');
+            expect(evs[0]?.phase).toBe('start');
+            expect(r.roster[evs[0].by].uid).toBe(gkUid);
+            const end = evs[1];
+            const level = evs[0].level!;
+            expect(end && end.tick - evs[0].tick).toBeLessThanOrEqual(AGENCY.maxLevelGk[level].ticks);
+            // nada de gol do rival enquanto ela vale
+            expect(
+                r.events.some((e) => e.type === 'goal' && e.team === 1 && e.tick > evs[0].tick && e.tick < end.tick),
+            ).toBe(false);
+            if (end.phase === 'hit') {
+                saves++;
+                const save = r.events.find((e) => e.type === 'save' && e.tick === end.tick);
+                expect(save?.type === 'save' && save.caught).toBe(true);
+                expect(maxCharge(r.events, 0, end.tick).charge).toBe(0);
+            } else {
+                expect(end.phase).toBe('miss');
+                expect(maxCharge(r.events, 0, end.tick).charge).toBeCloseTo((level * AGENCY.maxRefund) / 3, 10);
+            }
+        }
+        expect(saves).toBeGreaterThan(0);
+    });
+
+    it('defesa máxima tocada na folga do botão, com o chute do rival já no ar: pega esse chute', () => {
+        const H = { ...A, captainUid: A.lineup[0].uid };
+        let checked = 0;
+        for (let k = 0; k < 40 && checked < 2; k++) {
+            const seed = `ag-gk-air-${k}`;
+            // o rival chutou da zona e a bola ainda não passou pelo goleiro
+            const at = firstCue(H, seed, (live) => {
+                const s = live.state;
+                const shot = s.ball.owner === null ? s.ball.shot : null;
+                if (!shot || shot.gkChecked) return false;
+                const by = s.players[shot.by];
+                return by.team === 1 && inMaxZoneOf(s, by, 'GK');
+            });
+            if (at === null) continue;
+            checked++;
+            const r = runMatch(FUTSAL_5, H, B, seed, {
+                snapshots: false,
+                orders: [{ tick: at, team: 0, kind: 'max' }],
+            });
+            const start = of(r.events, 'max')[0];
+            expect(start?.phase).toBe('start');
+            expect(start.tick - at).toBeLessThanOrEqual(2);
+        }
+        expect(checked).toBeGreaterThan(0);
+    });
+
+    it('troca volante: com a bola rolando entra na hora, vindo da lateral perto do banco', () => {
+        const S = A;
+        const out = S.lineup[2];
+        const inn = S.bench[0];
+        if (!inn) throw new Error('time sem reserva');
+        const seed = 'ag-sub';
+        // um tick com a bola rolando e quem sai sem a bola
+        const live = new LiveRunner(FUTSAL_5, S, B, seed);
+        while (!(live.state.tick > 600 && live.state.phase === 'play' && live.state.ball.owner !== 2)) live.step();
+        const T = live.state.tick;
+        const runner = new LiveRunner(FUTSAL_5, S, B, seed, [
+            { tick: T, team: 0, kind: 'sub', outUid: out.uid, inUid: inn.uid },
+        ]);
+        while (runner.state.tick <= T) runner.step();
+        const sub = of(runner.state.events, 'sub')[0];
+        expect(sub).toMatchObject({ outUid: out.uid, inUid: inn.uid, fly: true });
+        expect(sub.tick).toBe(T);
+        // quem entrou saiu da lateral, do lado do banco, e já está correndo pra vaga
+        const fresh = runner.state.players[sub.outIdx];
+        expect(fresh.inst.uid).toBe(inn.uid);
+        const bench = benchSpot(runner.state, 0);
+        expect(Math.hypot(fresh.pos.x - bench.x, fresh.pos.y - bench.y)).toBeLessThan(1);
+        expect(toRel(runner.state, 0, fresh.pos).x).toBeLessThan(FUTSAL_5.pitch.length / 2);
+
+        // quem está com a bola só sai quando soltar
+        const own = new LiveRunner(FUTSAL_5, S, B, seed);
+        while (!(own.state.tick > 600 && own.state.phase === 'play' && own.state.ball.owner === 2)) own.step();
+        const T2 = own.state.tick;
+        const r = run([{ tick: T2, team: 0, kind: 'sub', outUid: out.uid, inUid: inn.uid }], seed);
+        const sub2 = of(r.events, 'sub')[0];
+        expect(sub2.tick).toBeGreaterThan(T2);
     });
 
     it('ordem dos pênaltis: o técnico escolhe quem bate primeiro', () => {
@@ -186,5 +297,94 @@ describe('agência do técnico (experimento)', () => {
             return;
         }
         throw new Error('nenhuma partida foi pros pênaltis');
+    });
+});
+
+describe('golpe máximo em 3 níveis (golpe-maximo-niveis.md)', () => {
+    const at = (tick: number, e: Record<string, unknown>) =>
+        ({ ...e, tick, half: 1, minute: 0 }) as unknown as MatchEvent;
+    const tackles = (n: number, from: number) =>
+        Array.from({ length: n }, (_, i) => at(from + i, { type: 'tackle', by: 1, victim: 6, success: true }));
+
+    it('barra: 3 gomos de 12, o toque gasta tudo e ela volta a encher; sem chute, metade do nível de volta', () => {
+        const per = AGENCY.maxLevelPts;
+        // só lances do meu time; perdendo enche mais rápido
+        expect(maxCharge(tackles(4, 10), 1).charge).toBe(0);
+        const goal = at(1, { type: 'goal', by: 6, assist: null, team: 1, score: [0, 1], ownGoal: false });
+        expect(maxCharge([goal, ...tackles(4, 10)], 0).charge / maxCharge(tackles(4, 10), 0).charge).toBeCloseTo(
+            AGENCY.maxBehind[1],
+            10,
+        );
+        expect(maxCharge(tackles(per - 1, 10), 0).level).toBe(0);
+        expect(maxCharge(tackles(per, 10), 0).level).toBe(1);
+        expect(maxCharge(tackles(3 * per + 5, 10), 0)).toMatchObject({ charge: 1, level: 3 });
+        const hit = [...tackles(2 * per, 10), at(100, { type: 'max', team: 0, by: 1, phase: 'hit', level: 2, q: 2 })];
+        expect(maxCharge(hit, 0)).toMatchObject({ charge: 0, level: 0 });
+        expect(maxCharge([...hit, ...tackles(per, 200)], 0).level).toBe(1);
+        const miss = [
+            ...tackles(3 * per, 10),
+            at(100, { type: 'max', team: 0, by: 0, phase: 'start', level: 3, q: 1 }),
+            at(200, { type: 'max', team: 0, by: 0, phase: 'miss', level: 3, q: 1 }),
+        ];
+        expect(maxCharge(miss, 0).charge).toBeCloseTo(AGENCY.maxRefund, 10);
+    });
+
+    it('a nota escala só a parte extra (perfeito 100%, bom 70%, fora 40%) e o N3 é o mais forte', () => {
+        const n2 = AGENCY.maxLevelShot[2].power;
+        expect(maxGraded(n2, 2)).toBe(n2);
+        expect(maxGraded(n2, 1)).toBeCloseTo(1 + (n2 - 1) * 0.7, 10);
+        expect(maxGraded(n2, 0)).toBeGreaterThan(1);
+        const [, n1, , n3] = AGENCY.maxLevelShot;
+        expect(n3.power > n1.power && n3.accuracy > n1.accuracy && n3.rivalReach < 1).toBe(true);
+        expect(AGENCY.maxLevelGk[3].reach).toBeGreaterThan(AGENCY.maxLevelGk[1].reach);
+    });
+
+    it('no mesmo lance, perfeito sai mais forte que fora; ordem sem nota vale como bom; a barra volta a encher', () => {
+        const P = { ...A, captainUid: A.lineup[4].uid };
+        let checked = 0;
+        for (let k = 0; k < 20 && checked < 2; k++) {
+            const seed = `ag-lv-${k}`;
+            const live = new LiveRunner(FUTSAL_5, P, B, seed);
+            let cue: number | null = null;
+            while (!live.finished && cue === null) {
+                const s = live.state;
+                const cap = s.players.find((p) => p.team === 0 && p.captain)!;
+                if (
+                    s.phase === 'play' &&
+                    maxCharge(s.events, 0, s.tick).level >= 1 &&
+                    s.ball.owner === cap.idx &&
+                    inMaxZoneOf(s, cap)
+                )
+                    cue = s.tick;
+                else live.step();
+            }
+            if (cue === null) continue;
+            checked++;
+            const level = maxCharge(live.state.events, 0, cue).level;
+            /** Velocidade da bola logo depois do chute máximo. */
+            const shotSpeed = (q?: 0 | 1 | 2) => {
+                const r = new LiveRunner(FUTSAL_5, P, B, seed, [{ tick: cue!, team: 0, kind: 'max', q }]);
+                while (!r.state.events.some((e) => e.type === 'max')) r.step();
+                const hit = r.state.events.find((e) => e.type === 'max')!;
+                expect(hit).toMatchObject({ phase: 'hit', level, q: q ?? 1 });
+                return Math.hypot(r.state.ball.vel.x, r.state.ball.vel.y);
+            };
+            expect(shotSpeed(2)).toBeGreaterThan(shotSpeed(0));
+            const run = (q?: 0 | 1 | 2) =>
+                runMatch(FUTSAL_5, P, B, seed, { snapshots: false, orders: [{ tick: cue, team: 0, kind: 'max', q }] });
+            const noQ = run();
+            expect(matchHash(noQ)).toBe(matchHash(run(1)));
+            // gastou e voltou a encher: nada de "1 por partida"
+            expect(maxCharge(noQ.events, 0).charge).toBeGreaterThan(0);
+        }
+        expect(checked).toBeGreaterThan(0);
+    });
+
+    it('nota inválida não entra (Liga e Duelo passam pelo mesmo validOrder)', () => {
+        const base = runMatch(FUTSAL_5, A, B, 'ag-q');
+        const bad = { tick: 30, team: 0, kind: 'max', q: 7 } as unknown as MatchOrder;
+        expect(matchHash(runMatch(FUTSAL_5, A, B, 'ag-q', { orders: [bad] }))).toBe(matchHash(base));
+        expect(validOrder(bad)).toBe(false);
+        expect(validOrder({ tick: 30, team: 0, kind: 'max', q: 2 })).toBe(true);
     });
 });

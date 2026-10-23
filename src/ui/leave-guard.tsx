@@ -26,6 +26,12 @@ export function requestLeave(leave: () => void) {
     else leave();
 }
 
+/** Voltar do sistema: com partida rolando abre a confirmação mesmo se a configuração pedir para não perguntar. */
+export function requestBack(leave: () => void) {
+    if (matchInProgress()) useLeave.setState({ pending: leave });
+    else leave();
+}
+
 /** Janela "Sair da partida?" (fica montada na tela da partida). */
 export function LeaveConfirm() {
     const pending = useLeave((s) => s.pending);

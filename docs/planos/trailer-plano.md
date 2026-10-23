@@ -1,3 +1,7 @@
+---
+description: Plano do trailer de lançamento, aprovado em 15/10.
+---
+
 # Plano do trailer de lançamento (15/10/2026, revisado com o Miguel)
 
 > **Estado (15/10/2026, fim do dia):** trailer aprovado pelo Miguel ("ta ótimo, gostei demais"), 44 s, em

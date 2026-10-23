@@ -1,0 +1,21 @@
+{
+ "faixa": "ponte-eliminado",
+ "titulo": "Ponte pra eliminado: o pulso em terças descendo (a família do Eliminado)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 1.853401,
+ "secoes": [
+  {
+   "nome": "ponte",
+   "loop": false,
+   "inicio": 0,
+   "fim": 1.818186,
+   "amostras": [
+    0,
+    80182
+   ],
+   "bpm": 132,
+   "compassos": 1
+  }
+ ]
+}

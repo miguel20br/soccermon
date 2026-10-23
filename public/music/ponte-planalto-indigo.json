@@ -1,0 +1,21 @@
+{
+ "faixa": "ponte-planalto-indigo",
+ "titulo": "Ponte pra planalto-indigo: o rufo de caixa de banda e o tímpano",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 2.937982,
+ "secoes": [
+  {
+   "nome": "ponte",
+   "loop": false,
+   "inicio": 0,
+   "fim": 2.222222,
+   "amostras": [
+    0,
+    98000
+   ],
+   "bpm": 108,
+   "compassos": 1
+  }
+ ]
+}

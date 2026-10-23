@@ -1,29 +1,33 @@
 import { type CSSProperties, useEffect, useState } from 'react';
 import { weeklyEventType } from '../../engine/specials';
-import { cupStageName, stageName, typeName } from '../../i18n';
+import { typeName } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
-import { isCupInProgress, seedFromUrl, useGame } from '../../store/game-store';
+import { isCupInProgress, resumeScreenOf, seedFromUrl, useGame } from '../../store/game-store';
 import { seenCount } from '../../store/profile';
 import { AccountBar } from '../components/AccountBar';
 import { cupStep } from '../components/AccountLink';
 import { CountUp } from '../components/CountUp';
 import { HomeCourt } from '../components/HomeCourt';
+import { LogoHits } from '../components/LogoHits';
 import { cardSprite } from '../components/PokeCard';
 import { TypeIcon } from '../components/TypeIcon';
 import { FEEDBACK_URL, privacyUrl } from '../links';
 import { readCount, writeCount } from '../local-count';
-import { patchNotes } from '../patch-notes';
+import { type PatchNotes, patchNotes } from '../patch-notes';
 import { FriendChallenge } from '../profile/FriendsTab';
 import { TYPE_COLOR } from '../type-colors';
 import { HomeDailyCard } from './Daily';
 import '../home-motion.css';
-import { type CupMode, cupLength, LONG_CUP_LIVE } from '../../store/long-cup';
+import { type CupMode, cupLength, isLong, LONG_CUP_LIVE, lossColor } from '../../store/long-cup';
+import { Coach } from '../coach/Coach';
 import { ComingSoon } from '../components/ComingSoon';
 import { DoorTiles } from '../components/DoorTiles';
 import { HudIcon } from '../components/MatchHud';
 import { TopActions } from '../components/TopActions';
 
 const DEX_KEY = 'soccermon-dex-last';
+/** Os 8 líderes de ginásio de Kanto, a arte do cartão da Rota Índigo. */
+const GYM_LEADERS = ['brock', 'misty', 'ltsurge', 'erika', 'koga', 'sabrina', 'blaine', 'giovanni'];
 const DEX_TOTAL = 151;
 
 /**
@@ -87,12 +91,62 @@ const HOME_FORTE = new URLSearchParams(window.location.search).get('home') === '
 /** A entrada da Home (título sobe, botões em cascata) só na 1ª vez que o jogo abre; voltar pra Home é na hora. */
 let homeEntered = false;
 
+function PatchBody({ n }: { n: PatchNotes }) {
+    return n.sections.map((sec) => (
+        <div key={sec.title}>
+            <h3>{sec.title}</h3>
+            <ul>
+                {sec.lines.map((l) => (
+                    <li key={l}>{l}</li>
+                ))}
+            </ul>
+        </div>
+    ));
+}
+
+/** A mais nova vem aberta e em destaque; as antigas ficam recolhidas (versão, título, data). */
+function PatchVersion({ n, latest, lang }: { n: PatchNotes; latest: boolean; lang: 'pt' | 'en' }) {
+    const { t } = useT();
+    const [open, setOpen] = useState(false);
+    const date = new Date(`${n.date}T12:00:00Z`).toLocaleDateString(lang === 'pt' ? 'pt-BR' : 'en-US', {
+        day: 'numeric',
+        month: 'short',
+        timeZone: 'UTC',
+    });
+    if (latest) {
+        return (
+            <section className="patch-version patch-latest">
+                <p className="patch-meta">
+                    <span className="bc-tag">{t('home.latest')}</span>
+                    <time dateTime={n.date}>{date}</time>
+                </p>
+                <h2 className="bc-caption">{t('home.version', { v: n.version, title: n.title })}</h2>
+                <PatchBody n={n} />
+            </section>
+        );
+    }
+    return (
+        <section className={`patch-version patch-old${open ? ' open' : ''}`}>
+            <button type="button" className="patch-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
+                <span className="patch-old-title">{t('home.version', { v: n.version, title: n.title })}</span>
+                <time dateTime={n.date}>{date}</time>
+                <HudIcon kind="down" />
+            </button>
+            <div className="patch-fold" inert={!open}>
+                <div>
+                    <PatchBody n={n} />
+                </div>
+            </div>
+        </section>
+    );
+}
+
 export function Home() {
     const [entering] = useState(() => !homeEntered);
     useEffect(() => {
         homeEntered = true;
     }, []);
-    const { run, newRun, go, profile, parkedRuns, resumeParked, discardParked } = useGame();
+    const { run, newRun, go, profile, records, parkedRuns, resumeParked, discardParked } = useGame();
     const { t, d, lang } = useT();
     const notes = patchNotes(lang);
     const [teamName, setTeamName] = useState(profile.clubName || 'Pallet FC');
@@ -110,16 +164,7 @@ export function Home() {
     }, [notesOpen]);
     const challengeSeed = seedFromUrl();
     const inProgress = run && !['eliminated', 'champion'].includes(run.status);
-    const resumeScreen =
-        run && ['formation', 'captain', 'drafting'].includes(run.status)
-            ? 'draft'
-            : run?.status === 'reward' ||
-                run?.status === 'shop' ||
-                run?.status === 'map' ||
-                run?.status === 'treino' ||
-                run?.status === 'group'
-              ? run.status
-              : 'lineup';
+    const resumeScreen = run ? resumeScreenOf(run.status) : 'lineup';
     const name = () => teamName.trim() || 'Pallet FC';
     /** Começar outra copa apaga a atual: com uma em andamento, pede confirmação antes. */
     const [confirm, setConfirm] = useState<string | null | undefined>(undefined);
@@ -142,21 +187,54 @@ export function Home() {
     const eventType = weeklyEventType(new Date());
     const byUid = new Map(run?.picks.map((p) => [p.uid, p]) ?? []);
     const squad = run ? run.lineup.flatMap((u) => byUid.get(u) ?? []) : [];
-    const runStep =
-        run && ['formation', 'captain', 'drafting'].includes(run.status)
-            ? t('home.draftStep', { n: Math.min(run.draftRound + 1, 7) })
-            : run?.status === 'reward'
-              ? t('home.choosingReward')
-              : run?.status === 'shop'
-                ? t('home.atMarket')
-                : run?.status === 'map' || run?.status === 'treino' || run?.status === 'group'
-                  ? `${t('longCup.title')} · ${cupStageName(run, run.results.length)}`
-                  : run
-                    ? stageName(run.stage)
-                    : '';
+    const runStep = run ? cupStep({ ...run, played: run.results.length }) : '';
     const openLab = (q: string) => {
         window.location.search = q;
     };
+
+    /** A Rota Índigo é NOVO até a 1ª Rota (terminada ou em andamento). */
+    const rotaNew = LONG_CUP_LIVE && !records.longCups && !isLong(run);
+    /** Um vermelho por tela: Continuar com copa em andamento; senão a Rota enquanto é NOVO; depois, a Nova copa. */
+    const red = inProgress ? 'resume' : rotaNew ? 'rota' : 'quick';
+    const confirmBox = (
+        <div className="confirm-new">
+            <p>{rich(t('home.confirmNew'), { team: <b>{run?.teamName}</b> })}</p>
+            <div className="row" style={{ justifyContent: 'center' }}>
+                <button
+                    type="button"
+                    className="btn primary"
+                    onClick={() => newRun(name(), confirm ?? undefined, undefined, pendingMode)}
+                >
+                    {t('home.confirmYes')}
+                </button>
+                <button type="button" className="btn ghost" onClick={() => setConfirm(undefined)}>
+                    {t('common.ui.cancel')}
+                </button>
+            </div>
+        </div>
+    );
+    const resumeCard = run && (
+        <button type="button" className="resume-card bc-surface bc-stripe" onClick={() => go(resumeScreen)}>
+            <span className="rc-label bc-tag">{t('home.inProgress')}</span>
+            <b className="rc-team">{run.teamName}</b>
+            <span className="rc-step">{runStep}</span>
+            <span className="rc-path" title={t('home.cupPath')}>
+                {Array.from({ length: cupLength(run) }, (_, i) => `p${i}`).map((st, i) => {
+                    const r = run.results.find((x) => x.stage === i);
+                    const cls = r ? (r.won ? 'won' : `lost-${lossColor(run, i)}`) : i === run.stage ? 'now' : '';
+                    return <i key={st} className={cls} />;
+                })}
+            </span>
+            {squad.length > 0 && (
+                <span className="rc-squad">
+                    {squad.map((p) => (
+                        <img key={p.uid} className="pixel" src={cardSprite(p)} alt="" />
+                    ))}
+                </span>
+            )}
+            <span className="btn primary rc-go">{t('home.resume')}</span>
+        </button>
+    );
 
     return (
         <div className={`home${entering ? ' home-enter' : ''}${HOME_FORTE ? ' home-forte' : ''}`}>
@@ -169,17 +247,73 @@ export function Home() {
                 {/* logo (trailer/arte/logo/final: o O é a carta holo com a bola; publicar.mjs copia pra cá) */}
                 <h1 className="logo logo-img">
                     <img src="assets/ui/logo.svg" alt="Soccermon" width="1441" height="300" />
+                    <LogoHits idle />
                 </h1>
                 <p className="tagline">{t('home.tagline')}</p>
             </section>
 
+            <Coach id="intro" targets={['[data-coach="quick"]', '[data-coach="help"]']} />
             <DexProgress />
 
+            {/* o nome vale pra Rota e pra Relâmpago: fica acima dos dois cartões */}
+            <div className="team-name-row">
+                <label className="bc-lbl" htmlFor="team-name">
+                    {t('home.teamName')}
+                </label>
+                <input
+                    id="team-name"
+                    className="team-name-input"
+                    value={teamName}
+                    maxLength={22}
+                    onChange={(e) => {
+                        setTyped(true);
+                        setTeamName(e.target.value);
+                    }}
+                />
+            </div>
+
             <div className="mode-cards">
+                {LONG_CUP_LIVE && (
+                    <div className="menu panel mode-card rota-card">
+                        <div className="mode-head">
+                            <b>
+                                {t('home.longCup.title')}
+                                {rotaNew && <span className="bc-tag rota-new">{t('profile.news.badge')}</span>}
+                            </b>
+                            <span>{t('home.longCup.line')}</span>
+                        </div>
+                        {confirm !== undefined && pendingMode === 'longa' ? (
+                            confirmBox
+                        ) : (
+                            <>
+                                {inProgress && isLong(run) ? (
+                                    resumeCard
+                                ) : (
+                                    <span className="rota-art" aria-hidden>
+                                        {GYM_LEADERS.map((id) => (
+                                            <img key={id} src={`assets/trainers/${id}.png`} alt="" />
+                                        ))}
+                                    </span>
+                                )}
+                                <button
+                                    type="button"
+                                    className={`btn big cup-go cup-go-long ${red === 'rota' ? 'primary' : 'outline'}`}
+                                    onClick={() => start(undefined, 'longa')}
+                                >
+                                    <span className="cup-go-txt">
+                                        <b>{t('home.longCup.go')}</b>
+                                        <small>{t('home.longCup.tag')}</small>
+                                    </span>
+                                    <HudIcon kind="next" />
+                                </button>
+                            </>
+                        )}
+                    </div>
+                )}
                 <div className="menu panel mode-card cup-card">
                     <div className="mode-head">
-                        <b>{t('duel.cupTitle')}</b>
-                        <span>{t('duel.cupLine')}</span>
+                        <b>{t('home.quickCup.title')}</b>
+                        <span>{t('home.quickCup.line')}</span>
                     </div>
                     {parkedAsk && parkedTarget ? (
                         <div className="confirm-new">
@@ -210,56 +344,20 @@ export function Home() {
                                 </button>
                             </div>
                         </div>
-                    ) : confirm !== undefined ? (
-                        <div className="confirm-new">
-                            <p>{rich(t('home.confirmNew'), { team: <b>{run?.teamName}</b> })}</p>
-                            <div className="row" style={{ justifyContent: 'center' }}>
-                                <button
-                                    type="button"
-                                    className="btn primary"
-                                    onClick={() => newRun(name(), confirm ?? undefined, undefined, pendingMode)}
-                                >
-                                    {t('home.confirmYes')}
-                                </button>
-                                <button type="button" className="btn ghost" onClick={() => setConfirm(undefined)}>
-                                    {t('common.ui.cancel')}
-                                </button>
-                            </div>
-                        </div>
+                    ) : confirm !== undefined && pendingMode !== 'longa' ? (
+                        confirmBox
                     ) : (
                         <>
-                            {inProgress && run && (
-                                <button
-                                    type="button"
-                                    className="resume-card bc-surface bc-stripe"
-                                    onClick={() => go(resumeScreen)}
-                                >
-                                    <span className="rc-label bc-tag">{t('home.inProgress')}</span>
-                                    <b className="rc-team">{run.teamName}</b>
-                                    <span className="rc-step">{runStep}</span>
-                                    <span className="rc-path" title={t('home.cupPath')}>
-                                        {Array.from({ length: cupLength(run) }, (_, i) => `p${i}`).map((st, i) => {
-                                            const r = run.results.find((x) => x.stage === i);
-                                            const cls = r ? (r.won ? 'won' : 'lost') : i === run.stage ? 'now' : '';
-                                            return <i key={st} className={cls} />;
-                                        })}
-                                    </span>
-                                    {squad.length > 0 && (
-                                        <span className="rc-squad">
-                                            {squad.map((p) => (
-                                                <img key={p.uid} className="pixel" src={cardSprite(p)} alt="" />
-                                            ))}
-                                        </span>
-                                    )}
-                                    <span className="btn primary rc-go">{t('home.resume')}</span>
-                                </button>
-                            )}
+                            {inProgress && !isLong(run) && resumeCard}
                             {parked.map((p) => (
                                 <div key={p.seed} className="parked-row">
                                     <span className="pr-text">
                                         <span className="pr-label">{t('account.parkedLabel')}</span>
                                         <span>
-                                            <b>{p.teamName}</b> <span className="pr-step">· {cupStep(p)}</span>
+                                            <b>{p.teamName}</b>{' '}
+                                            <span className="pr-step">
+                                                · {cupStep({ ...p, played: p.results.length })}
+                                            </span>
                                         </span>
                                     </span>
                                     <button type="button" className="btn small" onClick={() => resume(p.seed)}>
@@ -274,49 +372,18 @@ export function Home() {
                                     </button>
                                 </div>
                             ))}
-                            <label className="bc-lbl" htmlFor="team-name">
-                                {inProgress ? t('home.orNew') : t('home.teamName')}
-                            </label>
-                            <input
-                                id="team-name"
-                                className="team-name-input"
-                                value={teamName}
-                                maxLength={22}
-                                onChange={(e) => {
-                                    setTyped(true);
-                                    setTeamName(e.target.value);
-                                }}
-                            />
-                            {/* a ação do jogo: "Nova copa" (a Relâmpago) grande e vermelha, largura cheia; a Rota Índigo
-                                é o outro tamanho, em contorno. Com copa em andamento o vermelho é o Continuar. */}
                             <button
                                 type="button"
-                                className={`btn big cup-go ${inProgress ? 'outline' : 'primary'}`}
+                                data-coach="quick"
+                                className={`btn big cup-go cup-go-quick ${red === 'quick' ? 'primary' : 'outline'}`}
                                 onClick={() => start()}
                             >
                                 <span className="cup-go-txt">
                                     <b>{t('home.newCup')}</b>
-                                    <small>
-                                        {t('home.quickCup.title')} · {t('home.quickCup.tag')}
-                                    </small>
+                                    <small>{t('home.quickCup.tag')}</small>
                                 </span>
                                 <HudIcon kind="next" />
                             </button>
-                            {LONG_CUP_LIVE && (
-                                <button
-                                    type="button"
-                                    className="btn outline cup-go cup-go-long"
-                                    onClick={() => start(undefined, 'longa')}
-                                >
-                                    <span className="cup-go-txt">
-                                        <b>{t('home.longCup.title')}</b>
-                                        <small>
-                                            {t('home.longCup.tag')} · {t('home.longCup.short')}
-                                        </small>
-                                    </span>
-                                    <HudIcon kind="next" />
-                                </button>
-                            )}
                             <p
                                 className="cup-event bc-stripe"
                                 style={{ '--tc': TYPE_COLOR[eventType] } as CSSProperties}
@@ -335,24 +402,27 @@ export function Home() {
                         </>
                     )}
                 </div>
-                <div className="panel mode-card duel-card beta-ribbon" data-ribbon={t('duel.beta')}>
-                    <div className="dc-row">
-                        <span className="duel-card-art" aria-hidden>
-                            <img className="pixel" src="assets/cards/25.gif" alt="" />
-                            <b>VS</b>
-                            <img className="pixel flip" src="assets/cards/133.gif" alt="" />
-                        </span>
-                        <div className="mode-head">
-                            <b>{t('duel.title')}</b>
-                            <span>{t('duel.line')}</span>
+                {/* Duelo e Copa do Dia: no PC lado a lado, com a mesma largura e altura */}
+                <div className="mode-pair">
+                    <div className="panel mode-card duel-card beta-ribbon" data-ribbon={t('duel.beta')}>
+                        <div className="dc-row">
+                            <span className="duel-card-art" aria-hidden>
+                                <img className="pixel" src="assets/cards/25.gif" alt="" />
+                                <b>VS</b>
+                                <img className="pixel flip" src="assets/cards/133.gif" alt="" />
+                            </span>
+                            <div className="mode-head">
+                                <b>{t('duel.title')}</b>
+                                <span>{t('duel.line')}</span>
+                            </div>
+                            <button type="button" className="btn dc-go duel-go" onClick={() => go('duel')}>
+                                {t('duel.createRoom')}
+                            </button>
                         </div>
-                        <button type="button" className="btn dc-go duel-go" onClick={() => go('duel')}>
-                            {t('duel.createRoom')}
-                        </button>
+                        <FriendChallenge />
                     </div>
-                    <FriendChallenge />
+                    <HomeDailyCard />
                 </div>
-                <HomeDailyCard />
             </div>
 
             {/* entrar com o Google: embaixo dos modos, pro "Nova copa" ficar na primeira tela do celular */}
@@ -382,20 +452,8 @@ export function Home() {
                         >
                             <HudIcon kind="close" />
                         </button>
-                        {notes.map((n) => (
-                            <div key={n.version} className="patch-version">
-                                <h2 className="bc-caption">{t('home.version', { v: n.version, title: n.title })}</h2>
-                                {n.sections.map((sec) => (
-                                    <div key={sec.title}>
-                                        <h3>{sec.title}</h3>
-                                        <ul>
-                                            {sec.lines.map((l) => (
-                                                <li key={l}>{l}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                ))}
-                            </div>
+                        {notes.map((n, i) => (
+                            <PatchVersion key={n.version} n={n} latest={i === 0} lang={lang} />
                         ))}
                     </div>
                 </div>

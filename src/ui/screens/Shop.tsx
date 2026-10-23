@@ -91,7 +91,9 @@ export function Shop() {
               ? t('shop.owned')
               : money < o.price
                 ? t('shop.priceShort', { price: o.price, n: o.price - money })
-                : t('shop.buy', { n: o.price });
+                : o.kind === 'sponsor'
+                  ? t('shop.buyPlain') // o preço já está no contrato da carta
+                  : t('shop.buy', { n: o.price });
     // o que não dá pra comprar fica óbvio sem tocar: cadeado, preço riscado e a carta apagada (o motivo vai no rótulo)
     const cant = (o: ShopOffer, i: number) => !shop.sold.includes(i) && !buyable(o, i);
 
@@ -153,7 +155,9 @@ export function Shop() {
             </div>
 
             <div className="panel shop-earned">
-                <span className="shop-earned-title">{t('shop.earned.title')}</span>
+                <span className="shop-earned-title">
+                    {t(e.win > 0 ? 'shop.earned.title' : 'shop.earned.titleInterest')}
+                </span>
                 {earnedLines.map(([k, n]) => (
                     <span key={k} className="shop-earned-line">
                         {t(`shop.earned.${k}`)} <b>+{t('shop.money', { n })}</b>
@@ -176,6 +180,7 @@ export function Shop() {
                             {shop.pack.map((inst, i) => (
                                 <div
                                     key={inst.uid}
+                                    data-cry={inst.speciesId}
                                     className={`shop-offer cpack-card${isBigCard(inst) ? ' big' : ''}${editionOf(inst) ? ' walk' : ''}`}
                                 >
                                     <FutCard

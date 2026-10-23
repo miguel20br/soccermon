@@ -1,5 +1,6 @@
 // Confere os loops no .ogg que vai pro jogo (decodificado pelo ffmpeg), pelos pontos do .json:
-//   node scripts/musica/loops.mjs [pasta]      (padrão: /tmp/soccermon-musica, a saída do render.mjs)
+//   node scripts/musica/loops.mjs [pasta]      (padrão: /tmp/soccermon-musica, a saída do render.mjs; decodifica a
+//   44,1 kHz: o Opus do jogo (.webm) entra num link com nome .ogg ao lado do .json, sem .wav)
 // 1. Alinhamento: em cada ponto do mapa, o .ogg bate com o .wav sem atraso (o codificador não deslocou nada).
 // 2. Emenda: o salto fim → início do loop, medido como erro de prever a amostra seguinte pelas duas anteriores, em
 //    relação ao percentil 99,9 desse erro dentro do trecho. Nota < 1 = mais liso que as 0,1% piores passagens da
@@ -10,7 +11,7 @@ import { join } from 'node:path';
 
 const DIR = process.argv[2] ?? '/tmp/soccermon-musica';
 const decode = (file) => {
-    const raw = execFileSync('ffmpeg', ['-v', 'error', '-i', file, '-f', 'f32le', '-ac', '2', '-'], {
+    const raw = execFileSync('ffmpeg', ['-v', 'error', '-i', file, '-f', 'f32le', '-ac', '2', '-ar', '44100', '-'], {
         maxBuffer: 1 << 30,
     });
     const f = new Float32Array(raw.buffer, raw.byteOffset, raw.length / 4);

@@ -12,7 +12,15 @@ import {
     matchIndexOfRow,
     nextNodes,
 } from '../engine/cup-map';
-import { BENCH_SIZE, bestFit, captainOptions, DRAFT_PICKS, playerDraftOptions } from '../engine/draft';
+import {
+    BENCH_SIZE,
+    babyOptions,
+    bestFit,
+    captainOptions,
+    DRAFT_PICKS,
+    playerDraftOptions,
+    ROUTE_START_BANNED,
+} from '../engine/draft';
 import { EVO_THRESHOLD, evolutionTarget, evolveInstance, evoProgress } from '../engine/evolution';
 import { DEFAULT_FORMATION, type FormationId, formationOf } from '../engine/formations';
 import type { PokemonInstance } from '../engine/instance';
@@ -43,6 +51,7 @@ import { MAX_SPONSORS } from '../engine/sponsors';
 import { teachMove } from '../engine/tm';
 import { detectLang, type Lang } from '../i18n/lang';
 import { type BinderCard, binderAdd, binderOf } from './binder';
+import { withCoachBaseline } from './coach';
 import {
     type DailyEntry,
     dailyDay,
@@ -66,7 +75,9 @@ import {
     isOut,
     type LongRunFields,
     longRound,
+    longWinEarnings,
     newLongFields,
+    putsOutOnCourt,
     tickOut,
     YELLOW_CARDS,
 } from './long-cup';
@@ -306,6 +317,8 @@ export interface Settings {
     criesVolume: number;
     sfxVolume: number;
     crowdVolume: number;
+    /** Volume da música das telas (0..1), por cima do volume geral. Save antigo não tem: `withSettingDefaults`. */
+    musicVolume: number;
     /** Grito de gol: o cry do capitão toca junto com a torcida no seu gol. */
     goalCry: boolean;
     /** Velocidade com que a partida começa. */
@@ -327,8 +340,6 @@ export interface Settings {
     stats: boolean;
     /** Idioma (o padrão segue o navegador). */
     lang: Lang;
-    /** Experimento "beira da quadra" (agência do técnico na partida): desligado por padrão. */
-    agency?: boolean;
     /** Vibração curta nos toques que pesam (Android; o iPhone não vibra pela web). Sem = ligada. */
     haptics?: boolean;
 }
@@ -340,6 +351,7 @@ export const DEFAULT_SETTINGS: Settings = {
     criesVolume: 1,
     sfxVolume: 1,
     crowdVolume: 1,
+    musicVolume: 0.4,
     goalCry: true,
     // quem nunca jogou começa em 1x pra ver a partida (decidido em 18/10/2026); a velocidade que a pessoa escolher na
     // partida ou em Configurações fica salva e vira a dela
@@ -353,7 +365,6 @@ export const DEFAULT_SETTINGS: Settings = {
     confirmLeave: true,
     stats: true,
     lang: detectLang(),
-    agency: false,
 };
 
 export interface Records {
@@ -373,6 +384,11 @@ export interface Records {
     bestStreak?: number;
     /** Vitórias no Duelo (o histórico guarda só os 30 últimos; a medalha Duelista conta por aqui). */
     duelWins?: number;
+    /**
+     * Rota Índigo: a seed vem de `rota-<salt>-<n>`. `n` só sobe quando a Rota termina (título ou eliminação), então
+     * abandonar e recomeçar traz a mesma Rota (docs/planos/rota-pre-evolucoes.md).
+     */
+    routeLock?: { salt: string; n: number };
 }
 
 export type SlotRef = { zone: 'lineup' | 'bench'; index: number };
@@ -431,7 +447,8 @@ export interface GameStore {
     /** Copa longa: entra numa casa do mapa (partida, Mercado, Baú, Treino ou Evento). */
     enterNode(id: string): void;
     /** Treino da Copa longa: `evo` = enche a barra de evolução de `uid`; `rest` = +1 troca. */
-    train(choice: 'evo' | 'rest', uid?: string): void;
+    /** Treino da Rota: meia barra de evolução, descanso (+1 sorteio) ou, se ninguém evolui, 1 de 2 itens. */
+    train(choice: 'evo' | 'rest' | 'item', uid?: string): void;
     /** Copa longa: a parte `id` da história já foi contada. */
     tell(id: string): void;
     /** Rota Índigo, no Planalto: joga a próxima rodada do grupo (ou a Final). */
@@ -493,6 +510,21 @@ export interface GameStore {
 /** Quantas copas guardadas cabem no save (passou disso, sai a mais antiga). */
 export const MAX_PARKED = 3;
 
+/** Tela em que a copa continua (Continuar na Home): a do status; partida e fim de partida voltam pra escalação. */
+export function resumeScreenOf(status: RunStatus): Screen {
+    if (status === 'formation' || status === 'captain' || status === 'drafting') return 'draft';
+    if (
+        status === 'reward' ||
+        status === 'shop' ||
+        status === 'map' ||
+        status === 'treino' ||
+        status === 'event' ||
+        status === 'group'
+    )
+        return status;
+    return 'lineup';
+}
+
 /** Copa ainda em jogo (não terminou em título nem em eliminação). */
 export const isCupInProgress = (run: RunState | null | undefined): run is RunState =>
     !!run && run.status !== 'eliminated' && run.status !== 'champion';
@@ -503,13 +535,23 @@ const idbStorage: StateStorage = {
     removeItem: (name) => del(name),
 };
 
+/** Seed da Rota travada: a mesma até a Rota terminar. */
+export const routeSeed = (l: { salt: string; n: number }) => `rota-${l.salt}-${l.n}`;
+
 export const isDraftComplete = (run: RunState) => [...run.lineup, ...run.bench].every((u) => u !== '');
 export const slotRole = (run: RunState, slot: SlotRef) =>
     slot.zone === 'bench' ? 'ANY' : formationOf(run.formation).slots[slot.index];
 
 function rollCaptains(run: RunState): PokemonInstance[] {
     const rng = new Rng(run.seed, `captain-r${run.rerollsUsed}`);
-    return captainOptions(rng, new Set()).map((o) => rollSpecial(o, run.eventType ?? null));
+    // Rota: capitão na forma-base da linha e sem os sem-linha fortes (entram pelo Baú e reforços)
+    if (!isLong(run)) return captainOptions(rng, new Set()).map((o) => rollSpecial(o, run.eventType ?? null));
+    const opts = babyOptions(
+        captainOptions(rng, ROUTE_START_BANNED),
+        new Rng(run.seed, `baby-cap-r${run.rerollsUsed}`),
+        new Set(),
+    );
+    return opts.map((o) => rollSpecial(o, run.eventType ?? null));
 }
 
 function rollOptions(run: RunState, slot: SlotRef): PokemonInstance[] {
@@ -518,7 +560,16 @@ function rollOptions(run: RunState, slot: SlotRef): PokemonInstance[] {
     const rng = new Rng(run.seed, `draft-${run.draftRound}-${role}-r${run.rerollsUsed}`);
     // Copa longa: o time começa mais fraco (uma linha abaixo; o capitão continua raro) e cresce pelo mapa
     const round = isLong(run) ? Math.max(0, run.draftRound - 1) : run.draftRound;
-    return playerDraftOptions(rng, round, taken, role).map((o) => rollSpecial(o, run.eventType ?? null));
+    if (!isLong(run))
+        return playerDraftOptions(rng, round, taken, role).map((o) => rollSpecial(o, run.eventType ?? null));
+    // Rota: forma-base da linha (o time cresce evoluindo) e sem os sem-linha fortes
+    const banned = new Set([...taken, ...ROUTE_START_BANNED]);
+    const opts = babyOptions(
+        playerDraftOptions(rng, round, banned, role),
+        new Rng(run.seed, `baby-${run.draftRound}-${role}-r${run.rerollsUsed}`),
+        taken,
+    );
+    return opts.map((o) => rollSpecial(o, run.eventType ?? null));
 }
 
 /** Recompensas da fase; o reforço sorteado (não o contratado do adversário) pode vir com edição especial. */
@@ -526,14 +577,17 @@ function rollRewards(run: RunState, reroll: number): Reward[] {
     const extra = run.sponsors?.includes('cinnabar') ? 1 : 0;
     // Copa longa: sorteio pela casa do mapa e raridade pelo andar (o Baú vem uma linha acima)
     const node = currentNode(run);
+    // treino de técnica (Treino sem ninguém que evolua): só os itens, sem o Pokémon. No grupo `at` ainda é o Treino.
+    const training = isLong(run) && node?.kind === 'treino' && !run.group;
     const long = isLong(run)
         ? {
-              key: run.at ?? `m${run.stage}`,
+              key: training ? `${run.at}-treino` : (run.at ?? `m${run.stage}`),
               round: Math.min(6, longRound(run.stage) + (node?.kind === 'bau' ? 1 : 0)),
           }
         : undefined;
-    const defeated = node?.kind === 'bau' ? undefined : defeatedOf(run);
-    return rewardOptions(run.seed, run.stage, reroll, run.picks, defeated, extra, long).map((r) =>
+    const defeated = node?.kind === 'bau' || training ? undefined : defeatedOf(run);
+    const options = rewardOptions(run.seed, run.stage, reroll, run.picks, defeated, extra, long);
+    return (training ? options.filter((r) => r.kind !== 'pokemon') : options).map((r) =>
         r.kind === 'pokemon' && !r.from ? { ...r, inst: rollSpecial(r.inst, run.eventType ?? null) } : r,
     );
 }
@@ -802,6 +856,11 @@ export function withCryDefault(settings: Settings): Settings {
     return settings.criesChosen ? settings : { ...settings, cries: DEFAULT_SETTINGS.cries };
 }
 
+/** Campo de configuração novo: o save antigo não tem, e o `merge` do persist troca as configurações inteiras. */
+export function withSettingDefaults(settings: Settings): Settings {
+    return { ...settings, musicVolume: settings.musicVolume ?? DEFAULT_SETTINGS.musicVolume };
+}
+
 /** Versão atual do save (a mesma do `persist`). */
 export const SAVE_VERSION = 9;
 
@@ -921,10 +980,12 @@ export function withUnlocks(saved: PersistedSave): PersistedSave {
         runs.flatMap((r) => r?.results ?? []).map(stageView),
     );
     // selo NOVO: save de antes dele conta o que já tinha como visto (depois das missões retroativas)
-    return withSeenBaseline(
-        fresh.length
-            ? { ...save, profile: { ...save.profile, missionsDone: [...save.profile.missionsDone, ...fresh] } }
-            : save,
+    return withCoachBaseline(
+        withSeenBaseline(
+            fresh.length
+                ? { ...save, profile: { ...save.profile, missionsDone: [...save.profile.missionsDone, ...fresh] } }
+                : save,
+        ),
     );
 }
 
@@ -1049,7 +1110,7 @@ export const useGame = create<GameStore>()(
                 run: null,
                 settings: DEFAULT_SETTINGS,
                 records: { cups: 0, titles: 0, perfect: 0 },
-                profile: { ...DEFAULT_PROFILE, seen: [] },
+                profile: { ...DEFAULT_PROFILE, seen: [], coach: [] },
                 dex: {},
                 moves: {},
                 career: EMPTY_CAREER,
@@ -1102,7 +1163,12 @@ export const useGame = create<GameStore>()(
                 go: (screen) => setState({ screen }),
 
                 newRun: (teamName = getState().profile.clubName || 'Pallet FC', seed, daily, mode) => {
-                    const runSeed = seed ?? Math.floor(Math.random() * 1e9).toString(36);
+                    const lockOn = mode === 'longa' && !seed && !daily;
+                    const lock = getState().records.routeLock ?? {
+                        salt: Math.floor(Math.random() * 1e9).toString(36),
+                        n: 0,
+                    };
+                    const runSeed = seed ?? (lockOn ? routeSeed(lock) : Math.floor(Math.random() * 1e9).toString(36));
                     const run: RunState = {
                         schemaVersion: 3,
                         seed: runSeed,
@@ -1144,8 +1210,12 @@ export const useGame = create<GameStore>()(
                         // a 1ª copa é a entrada no jogo (era o fim do passo a passo de boas-vindas)
                         onboarded: true,
                         daily: closeDaily(getState()),
-                        ...(isCupInProgress(getState().run) && {
-                            records: { ...records, ...streakAfter(records, false) },
+                        ...((isCupInProgress(getState().run) || lockOn) && {
+                            records: {
+                                ...records,
+                                ...(isCupInProgress(getState().run) && streakAfter(records, false)),
+                                ...(lockOn && { routeLock: lock }),
+                            },
                         }),
                     });
                 },
@@ -1265,7 +1335,8 @@ export const useGame = create<GameStore>()(
 
                 swapSlots: (a, b) => {
                     const run = getState().run;
-                    if (!run) return;
+                    // Rota Índigo: quem está fora (lesão, Creche) não entra em quadra
+                    if (!run || putsOutOnCourt(run, a, b)) return;
                     const lineup = [...run.lineup];
                     const bench = [...run.bench];
                     const zone = (r: SlotRef) => (r.zone === 'lineup' ? lineup : bench);
@@ -1450,8 +1521,7 @@ export const useGame = create<GameStore>()(
                         // na longa o ₽ da vitória entra na hora (os juros só quando você entra num Mercado)
                         ...(won &&
                             isLong(run) && {
-                                money:
-                                    (run.money ?? 0) + winEarnings(m.score[0], m.score[1], 0, run.sponsors ?? []).total,
+                                money: (run.money ?? 0) + longWinEarnings(m.score, run.sponsors).total,
                             }),
                     };
                     if (status === 'reward') next.rewards = rollRewards(next, 0);
@@ -1536,6 +1606,10 @@ export const useGame = create<GameStore>()(
                                   titles: records.titles + (status === 'champion' ? 1 : 0),
                                   perfect: records.perfect + (isPerfectCup(next) ? 1 : 0),
                                   ...streakAfter(records, status === 'champion'),
+                                  ...(records.routeLock &&
+                                      run.seed === routeSeed(records.routeLock) && {
+                                          routeLock: { ...records.routeLock, n: records.routeLock.n + 1 },
+                                      }),
                                   ...(isLong(run) && {
                                       longCups: (records.longCups ?? 0) + 1,
                                       longTitles: (records.longTitles ?? 0) + (status === 'champion' ? 1 : 0),
@@ -1676,7 +1750,7 @@ export const useGame = create<GameStore>()(
                     if (run?.status !== 'map' || !run.map) return;
                     const node = nextNodes(run.map, run.at ?? null).find((n) => n.id === id);
                     if (!node) return;
-                    const base: RunState = { ...run, at: id, path: [...(run.path ?? []), id] };
+                    const base: RunState = { ...run, at: id, path: [...(run.path ?? []), id], eventNote: null };
                     const mons = (list: readonly { speciesId: number }[]) => seenDex([...list]);
                     if (isMatchKind(node.kind)) {
                         // o rival é o mesmo da prévia do mapa (mesmo sorteio, mesmos já enfrentados)
@@ -1738,6 +1812,12 @@ export const useGame = create<GameStore>()(
                             ...toMap(next),
                             event: null,
                             eventsSeen: [...(run.eventsSeen ?? []), run.event.id],
+                            eventNote: {
+                                id: run.event.id,
+                                choice,
+                                ...(target && { target }),
+                                cost: (run.money ?? 0) - (next.money ?? 0),
+                            },
                         },
                         screen: 'map',
                     });
@@ -1753,6 +1833,14 @@ export const useGame = create<GameStore>()(
                     if (run?.status !== 'treino') return;
                     if (choice === 'rest') {
                         setState(backToRoute({ ...run, rerolls: run.rerolls + 1 }));
+                        return;
+                    }
+                    if (choice === 'item') {
+                        // treino de técnica: só quando ninguém evolui (sem ele, o último Treino era um clique morto)
+                        if (run.picks.some((p) => evolutionTarget(p.speciesId, p.uid) !== null)) return;
+                        const open: RunState = { ...run, status: 'reward' };
+                        open.rewards = rollRewards(open, 0);
+                        setState({ run: open, screen: 'reward' });
                         return;
                     }
                     // treino de evolução: a barra enche metade (evoluir continua sendo na partida, com a animação dela)
@@ -1839,7 +1927,9 @@ export const useGame = create<GameStore>()(
             // missão nova (ou que virou retroativa) sai já ao abrir o jogo, sem esperar a próxima partida
             merge: (persisted, current) => {
                 const saved = persisted as PersistedSave | undefined;
-                const p = saved?.settings ? { ...saved, settings: withCryDefault(saved.settings) } : saved;
+                const p = saved?.settings
+                    ? { ...saved, settings: withSettingDefaults(withCryDefault(saved.settings)) }
+                    : saved;
                 if (!p?.profile) return { ...current, ...p };
                 const runs = [p.run, ...(p.parkedRuns ?? [])];
                 // figurinhas de edição das copas guardadas (quem jogou 1+ minuto) e do Hall: sempre, não só na v9

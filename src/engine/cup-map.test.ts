@@ -12,7 +12,10 @@ import {
     nextNodes,
     nodeById,
     ROUTE_TEAMS,
+    ROUTE_THEME_MIN,
 } from './cup-map';
+import { species } from './data';
+import { Rng } from './rng';
 
 /** Todas as rotas do começo até a Final. */
 function paths(map: CupMap): MapNode[][] {
@@ -86,6 +89,42 @@ describe('mapa da Copa longa', () => {
     });
 });
 
+describe('escolhas no mapa', () => {
+    it('em 400 seeds, 95%+ das rotas ao acaso passam por uma bifurcação entre tipos diferentes', () => {
+        let withChoice = 0;
+        let total = 0;
+        for (let s = 0; s < 400; s++) {
+            const map = buildCupMap(`seed-${s}`);
+            for (const start of nextNodes(map, null)) {
+                let n = start;
+                let real = false;
+                const rng = new Rng(`w${s}${start.id}`, 'x');
+                while (n.next.length) {
+                    if (new Set(n.next.map((id) => nodeById(map, id)!.kind)).size > 1) real = true;
+                    n = nodeById(map, rng.pick(n.next))!;
+                }
+                total++;
+                if (real) withChoice++;
+            }
+        }
+        expect(withChoice / total).toBeGreaterThanOrEqual(0.95);
+    });
+
+    it('save antigo: mapa salvo sem diagonais continua andando (o mapa vive no RunState, não é refeito da seed)', () => {
+        const old: CupMap = {
+            rows: 2,
+            nodes: [
+                { id: 'r0c0', row: 0, col: 0, kind: 'jogo', next: ['r1c0'] },
+                { id: 'r0c1', row: 0, col: 1, kind: 'jogo', next: ['r1c1'] },
+                { id: 'r1c0', row: 1, col: 0, kind: 'evento', next: [] },
+                { id: 'r1c1', row: 1, col: 1, kind: 'mercado', next: [] },
+            ],
+        };
+        expect(nextNodes(old, 'r0c0').map((n) => n.id)).toEqual(['r1c0']);
+        expect(nextNodes(old, null)).toHaveLength(2);
+    });
+});
+
 describe('rivais da Copa longa', () => {
     it('mesmo time na prévia e na partida; nunca repete o rival; Final é a Liga Índigo', () => {
         expect(longOpponent('s', 2, 'jogo', [])).toEqual(longOpponent('s', 2, 'jogo', []));
@@ -95,6 +134,28 @@ describe('rivais da Copa longa', () => {
         expect(new Set(faced).size).toBe(7);
         expect(longOpponent('s', 7, 'final', faced).name).toBe('Liga Índigo');
         expect(ROUTE_TEAMS.map((t) => t.name)).toContain(longOpponent('s', 0, 'jogo', []).name);
+    });
+
+    it('todo treinador da Rota joga com o tipo dele: 3+ dos 5 titulares (Ornitólogo com pássaros)', () => {
+        const names = ROUTE_TEAMS.map((t) => t.name);
+        for (const team of ROUTE_TEAMS)
+            for (let s = 0; s < 30; s++)
+                for (let m = 0; m < MAP_MATCHES + 3; m++) {
+                    const opp = longOpponent(
+                        `tema-${s}`,
+                        m,
+                        'jogo',
+                        names.filter((n) => n !== team.name),
+                        (s % 3) - 1,
+                    );
+                    expect(opp.name).toBe(team.name);
+                    const themed = opp.lineup.filter((p) =>
+                        species(p.speciesId).types.some((t) => team.types.includes(t)),
+                    );
+                    expect(themed.length, `${team.name} seed ${s} partida ${m}`).toBeGreaterThanOrEqual(
+                        ROUTE_THEME_MIN,
+                    );
+                }
     });
 
     it('a Copa rápida não muda (Copa do Dia e desafio por link)', () => {

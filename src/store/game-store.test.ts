@@ -26,9 +26,11 @@ import {
     playerTeam,
     type RunState,
     SAVE_VERSION,
+    type Settings,
     type SlotRef,
     slotRole,
     useGame,
+    withSettingDefaults,
 } from './game-store';
 import { groupTable } from './long-cup';
 import { BANNER_COUNT, bannerOf, EDITION_BIT, EMPTY_ENTRY, recordMatchInDex } from './profile';
@@ -180,6 +182,9 @@ describe('backup antigo (scripts/fixtures)', () => {
             for (const e of played) expect((e.editions ?? 0) & EDITION_BIT.normal).toBeTruthy();
             for (const e of Object.values(save.dex).filter((x) => x.matches === 0)) expect(e.editions).toBeUndefined();
             expect(save.settings.goalCry).toBe(true);
+            // 0.9.7: volume da música (configuração) e balões do tutorial (perfil) migram juntos
+            expect(save.settings.musicVolume).toBe(DEFAULT_SETTINGS.musicVolume);
+            expect(save.profile.coach).toContain('intro');
             // faixa da torcida (0.8.7): campo opcional, save antigo fica com a 1ª frase
             expect(save.profile.banner).toBeUndefined();
             expect(bannerOf(save.profile.banner)).toBe(0);
@@ -786,6 +791,46 @@ describe('Copa longa', () => {
         useGame.getState().train('evo', evolver.uid);
         expect(useGame.getState().run!.status).toBe('map');
         expect(useGame.getState().run!.picks.find((p) => p.uid === evolver.uid)!.evo).toBe(7);
+        // com alguém que evolui, o treino de técnica não vale
+        useGame.setState({ run: { ...run, status: 'treino' } });
+        useGame.getState().train('item');
+        expect(useGame.getState().run!.status).toBe('treino');
+    });
+
+    it('Treino sem ninguém que evolua: 1 de 2 itens (sem Pokémon, também no sorteio); depois o grupo', () => {
+        const base = start('longa-treino-item');
+        // time de quem não evolui mais (Tauros, Lapras, Snorlax, Kangaskhan, Scyther, Pinsir, Aerodactyl)
+        const done = [128, 131, 143, 115, 123, 127, 142].map((id, i) => ({
+            ...createInstance(id, new Rng('treino-item', `${i}`)),
+            uid: `d${i}`,
+        }));
+        expect(done.every((p) => evolutionTarget(p.speciesId, p.uid) === null)).toBe(true);
+        const last = base.map!.nodes.find((n) => n.row === base.map!.rows - 1)!;
+        const run = {
+            ...base,
+            picks: done,
+            lineup: done.slice(0, 5).map((p) => p.uid),
+            bench: done.slice(5).map((p) => p.uid),
+            captainUid: 'd0',
+            at: last.id,
+            rerolls: 1,
+            status: 'treino' as const,
+        };
+        useGame.setState({ run });
+        useGame.getState().train('item');
+        let now = useGame.getState().run!;
+        expect(now.status).toBe('reward');
+        expect(now.rewards).toHaveLength(2);
+        expect(now.rewards.every((r) => r.kind !== 'pokemon')).toBe(true);
+        useGame.getState().rerollReward();
+        now = useGame.getState().run!;
+        expect(now.rewards.every((r) => r.kind !== 'pokemon')).toBe(true);
+        const i = now.rewards.findIndex((r) => r.kind === 'item');
+        if (i >= 0) {
+            useGame.getState().claimReward(i, 'd1');
+            expect(useGame.getState().run!.picks.find((p) => p.uid === 'd1')!.item).toBeTruthy();
+        } else useGame.getState().skipReward();
+        expect(useGame.getState().run!.status).toBe('group');
     });
 });
 
@@ -843,5 +888,15 @@ describe('Rota Índigo: fase de grupos', () => {
         const rows = groupTable({ seed: 'tab', teamName: 'Eu', group: { rivals }, results }, 0);
         expect(rows.find((r) => r.you)!.pts).toBe(6);
         expect(rows.reduce((n, r) => n + r.played, 0)).toBe(12);
+    });
+});
+
+describe('Música (configuração nova)', () => {
+    it('save antigo sem musicVolume ganha o padrão e mantém o resto', () => {
+        const { musicVolume: _m, ...old } = { ...DEFAULT_SETTINGS, volume: 0.2 };
+        const s = withSettingDefaults(old as Settings);
+        expect(s.musicVolume).toBe(DEFAULT_SETTINGS.musicVolume);
+        expect(s.volume).toBe(0.2);
+        expect(withSettingDefaults({ ...DEFAULT_SETTINGS, musicVolume: 0 }).musicVolume).toBe(0);
     });
 });

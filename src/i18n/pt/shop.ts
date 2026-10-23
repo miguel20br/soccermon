@@ -6,6 +6,8 @@ export const shop = {
     wallet: 'Seu ₽',
     earned: {
         title: 'A vitória rendeu',
+        /** Mercado da Rota sem vitória nova (vindo de um amarelo): só os juros. */
+        titleInterest: 'Seu ₽ rendeu',
         win: 'Vitória',
         goals: 'Gols',
         clean: 'Sem sofrer gol',
@@ -17,6 +19,7 @@ export const shop = {
     rerollFree: 'Novas ofertas · grátis',
     leave: 'Seguir',
     buy: 'Comprar · ₽{n}',
+    buyPlain: 'Comprar',
     sold: 'Comprado',
     owned: 'Já está no time',
     priceShort: '₽{price} · falta ₽{n}',

@@ -37,6 +37,17 @@ export interface DailyRow {
     ga: number;
     done: boolean;
     me: boolean;
+    /** Os 5 titulares (ids de espécie) e a vaga do capitão (0 a 4). Nulos em linha sem time (e em servidor sem a migração). */
+    squad?: number[] | null;
+    captain?: number | null;
+}
+
+/** Os ícones do ranking: só aceita 5 ids inteiros válidos; qualquer outra coisa vira "sem time". */
+export function squadOf(r: Pick<DailyRow, 'squad' | 'captain'>): { ids: number[]; captain: number } | null {
+    const ids = r.squad;
+    if (!Array.isArray(ids) || ids.length !== 5 || !ids.every((n) => Number.isInteger(n) && n >= 1)) return null;
+    const c = r.captain;
+    return { ids, captain: typeof c === 'number' && Number.isInteger(c) && c >= 0 && c < 5 ? c : -1 };
 }
 
 export interface LigaRow {

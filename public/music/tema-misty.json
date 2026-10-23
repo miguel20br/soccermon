@@ -1,0 +1,43 @@
+{
+ "faixa": "tema-misty",
+ "titulo": "Tema da Misty",
+ "tela": "Misty (ginásio de Cerulean)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 12,
+ "duracao": 57.857143,
+ "secoes": [
+  {
+   "nome": "intro",
+   "loop": false,
+   "inicio": 0,
+   "fim": 4.285714,
+   "amostras": [
+    0,
+    189000
+   ],
+   "bpm": 84,
+   "compassos": 2
+  },
+  {
+   "nome": "loop",
+   "loop": true,
+   "inicio": 4.285714,
+   "fim": 57.857143,
+   "amostras": [
+    189000,
+    2551500
+   ],
+   "bpm": 84,
+   "compassos": 25
+  }
+ ],
+ "gancho": {
+  "hits": [
+   [
+    34.286,
+    34.821,
+    35.357
+   ]
+  ]
+ }
+}

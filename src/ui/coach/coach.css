@@ -1,0 +1,98 @@
+/* Balões do tutorial (Coach.tsx): o resto da tela escurece, o alvo fica aceso e o balão fica ao lado, nunca em cima. */
+.coach {
+    position: fixed;
+    inset: 0;
+    z-index: 130;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 220ms var(--ease-out);
+}
+.coach.on {
+    opacity: 1;
+}
+.coach-block {
+    position: fixed;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    pointer-events: auto;
+    cursor: default;
+}
+.coach-hole {
+    position: fixed;
+    border-radius: 10px;
+    outline: 2px solid var(--yellow);
+    box-shadow: 0 0 0 100vmax rgba(5, 7, 18, 0.72);
+    pointer-events: none;
+}
+.coach.moving .coach-hole,
+.coach.moving .coach-balloon {
+    transition:
+        left 240ms var(--ease-out),
+        top 240ms var(--ease-out),
+        width 240ms var(--ease-out),
+        height 240ms var(--ease-out);
+}
+.coach-balloon {
+    position: fixed;
+    width: min(300px, calc(100vw - 16px));
+    display: grid;
+    gap: 8px;
+    padding: 10px 14px 8px 20px;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.45);
+    pointer-events: auto;
+    outline: none;
+}
+.coach-text {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.4;
+}
+.coach-foot {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+}
+.coach-count {
+    margin-right: auto;
+}
+.coach-foot .btn {
+    min-height: 44px;
+}
+/* ponta apontando pro alvo */
+.coach-balloon::after {
+    content: "";
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: var(--bc-ink);
+    transform: rotate(45deg);
+}
+.coach-balloon.side-below::after {
+    top: -6px;
+    left: calc(var(--arrow) - 6px);
+}
+.coach-balloon.side-above::after {
+    bottom: -6px;
+    left: calc(var(--arrow) - 6px);
+}
+.coach-balloon.side-right::after {
+    left: -6px;
+    top: calc(var(--arrow) - 6px);
+}
+.coach-balloon.side-left::after {
+    right: -6px;
+    top: calc(var(--arrow) - 6px);
+}
+.coach-balloon.side-inside::after {
+    display: none;
+}
+:root[data-reduce-motion="true"] .coach.moving .coach-hole,
+:root[data-reduce-motion="true"] .coach.moving .coach-balloon {
+    transition: none;
+}
+:root[data-reduce-motion="true"] .coach {
+    transition-duration: 120ms;
+}

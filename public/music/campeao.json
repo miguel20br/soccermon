@@ -1,0 +1,36 @@
+{
+ "faixa": "campeao",
+ "titulo": "Campeão v3",
+ "tela": "Campeão",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 22.2,
+ "secoes": [
+  {
+   "nome": "tudo",
+   "loop": false,
+   "inicio": 0,
+   "fim": 19.2,
+   "amostras": [
+    0,
+    846720
+   ],
+   "bpm": 100,
+   "compassos": 8
+  }
+ ],
+ "gancho": {
+  "hits": [
+   [
+    7.2,
+    7.65,
+    8.1
+   ],
+   [
+    16.8,
+    17.25,
+    17.7
+   ]
+  ]
+ }
+}

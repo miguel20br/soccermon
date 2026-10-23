@@ -4,7 +4,7 @@ import { ENGINE_VERSION } from '../../engine/config';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { EventBus } from '../../game/EventBus';
 import type { MatchSceneData } from '../../game/scenes/MatchScene';
-import { clubName, fmt, moveName, stageName } from '../../i18n';
+import { clubName, cupStageName, fmt, moveName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { PhaserGame } from '../../PhaserGame';
 import { type RunState, useGame } from '../../store/game-store';
@@ -331,7 +331,7 @@ export function CupGoalCard({ run, match }: { run: RunState; match: MatchResult 
                 {t('moments.cup.line', {
                     name: pick.goal.name,
                     team: clubName(stage.opponent),
-                    stage: stageName(pick.stage),
+                    stage: cupStageName(run, pick.stage),
                     min: pick.goal.minute,
                 })}
             </span>

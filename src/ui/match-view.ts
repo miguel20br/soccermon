@@ -1,3 +1,4 @@
+import { maxCue } from '../engine/agency';
 import type { Position } from '../engine/attributes';
 import { FUTSAL_5 } from '../engine/config';
 import { evolveInstance } from '../engine/evolution';
@@ -21,6 +22,38 @@ export const STATUS_SHORT: Record<number, string> = {
     6: 'Confuso',
     7: 'Apaixonado',
 };
+
+/**
+ * O botão do golpe máximo fica aceso esse tanto depois da hora certa passar (0,3 s de jogo, ~1,2 s na câmera lenta): o
+ * capitão entra e sai da zona driblando e o botão piscava. Tocou nesse resto, a ordem fica armada (`AGENCY.maxArmTicks`)
+ * e a bola procura o capitão.
+ */
+export const MAX_CUE_LATCH = 6;
+/**
+ * E acende esse tanto antes da hora certa (0,3 s de jogo): o toque um pouco cedo, já na câmera lenta, não se perde. O
+ * motor deixa a ordem armada (`AGENCY.maxArmTicks`) e o golpe sai no próximo chute ou defesa da zona; a ordem leva o
+ * tick do toque, então a partida continua a mesma em todo lugar.
+ */
+export const MAX_CUE_EARLY = 6;
+
+/**
+ * Hora do golpe máximo em algum quadro de `from` a `to` (pelos snapshots). O botão usa só o quadro da tela; a quadra
+ * olha um pouco à frente pra entrar em câmera lenta antes (a hora certa dura ~0,4 s de jogo: o capitão chuta logo).
+ */
+export function maxCueNear(
+    snaps: MatchSnapshot[],
+    from: number,
+    to: number,
+    team: 0 | 1,
+    capIdx: number,
+    capRole: Position,
+): boolean {
+    if (!snaps.length) return false;
+    const { pitch, teamSize, snapshotEvery } = FUTSAL_5;
+    for (let t = from; t <= to; t += snapshotEvery)
+        if (maxCue(snapAt(snaps, t), team, capIdx, capRole, pitch, teamSize)) return true;
+    return false;
+}
 
 export function snapAt(snaps: MatchSnapshot[], tick: number): MatchSnapshot {
     let lo = 0;

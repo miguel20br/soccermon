@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FUTSAL_5 } from '../../engine/config';
-import { CUP_STAGES, clubLeader, cupRival } from '../../engine/cup';
+import { clubLeader, cupRival } from '../../engine/cup';
 import { species } from '../../engine/data';
 import { viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
@@ -12,8 +12,10 @@ import {
     isTacticOrder,
     type MatchEvent,
     type MatchOrder,
+    type MaxGrade,
     SNAP_STRIDE,
     type Tactic,
+    type TeamSetup,
 } from '../../engine/state';
 import { skinOf } from '../../game/animation-manager';
 import { setVolume } from '../../game/audio';
@@ -25,7 +27,9 @@ import { ligaRun, useLiga } from '../../league/liga-store';
 import { PhaserGame } from '../../PhaserGame';
 import { fieldKit, lookOfCupClub, lookOfProfile, matchLooks } from '../../store/club-kit';
 import { liveOf, type PlaybackSpeed, playerTeam, useGame } from '../../store/game-store';
+import { isFinalStage, isLong } from '../../store/long-cup';
 import { rivalColor, tagFromName } from '../../store/profile';
+import { Coach } from '../coach/Coach';
 import { Commentator, type CommentLine } from '../commentary';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
 import { HalftimePanel, rivalHtSubs } from '../components/HalftimePanel';
@@ -55,6 +59,9 @@ import { type BoardPlan, Prancheta, useMedia, WIDE } from '../components/Pranche
 import {
     agencyView,
     MaxBars,
+    MaxCueButton,
+    maxCueAt,
+    maxLit,
     PenaltyOrderPanel,
     type PenaltyTaker,
     SidelineControls,
@@ -68,8 +75,10 @@ import { RivalEmotes } from '../duel/Emotes';
 import { rivalEmotes } from '../duel/emote-faces';
 import { LeaveConfirm } from '../leave-guard';
 import { captainAt, clockExtrasAt, roleAt, snapAt } from '../match-view';
+import { maxGradeNow } from '../max-beat';
+import { matchMusic, penaltyMusic } from '../music-sync';
 import { bannerText, useClubColor } from '../profile/club';
-import { agencyOn, reduceMotionOn } from '../settings-sync';
+import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
 
 /** Velocidades (o rótulo de 'highlights' vem do dicionário: "Lances"). */
@@ -129,8 +138,6 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const [sceneKey, setSceneKey] = useState(0);
     const [fulltime, setFulltime] = useState(false);
     const [tacticError, setTacticError] = useState<string | null>(null);
-    /** Beira da quadra (experimento): ligado na entrada da partida, não muda no meio. */
-    const agency = useRef(agencyOn(settings.agency)).current;
     /** Tick do pedido de tempo em que a quadra está parada (null = jogando). */
     const [timeoutAt, setTimeoutAt] = useState<number | null>(null);
     /** Tick do apito final, parado pra escolher a ordem dos pênaltis. */
@@ -196,8 +203,8 @@ export function Match({ liga = false }: { liga?: boolean }) {
                       ),
                       startPaused: true,
                       startTick: resume?.tick || undefined,
-                      final: !liga && run?.stage === CUP_STAGES.length - 1,
-                      agency,
+                      final: !liga && !!run && isFinalStage(run),
+                      agency: true,
                       // o rival joga em casa: a quadra do ginásio dele
                       court: opponent ? clubLeader(opponent.name) : undefined,
                       // a faixa da torcida é só a sua (o rival da copa não tem torcida organizada)
@@ -318,6 +325,24 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const extras = clockExtrasAt(match?.events ?? [], clock.tick, clock.half);
     const clockParts = useClockParts({ ...clock, added: extras.added }, fulltime || ended, shootout, halftime);
     const pressureNow = halftime || fulltime || ended ? null : extras.pressure;
+    // música da partida: faixa do tempo e trecho pela intensidade (troca na linha do compasso)
+    const pressing = pressureNow !== null;
+    // partida retomada: espera o 1º tick (senão buscaria a faixa do 1º tempo à toa)
+    const musicOn = clock.tick > 0 || !resume?.tick;
+    // disputa de pênaltis: espera entre as cobranças, e o fim na cobrança decisiva
+    const penaltis = fulltime || ended ? penaltyMusic(match?.events ?? [], clock.tick) : null;
+    useEffect(() => {
+        if (musicOn)
+            matchMusic({
+                half: clock.half,
+                minute: clock.minute,
+                pressure: pressing,
+                opponent: opponent?.name,
+                intro: !introDone,
+                ended: ended || fulltime,
+                penaltis,
+            });
+    }, [musicOn, clock.half, clock.minute, pressing, opponent?.name, introDone, ended, fulltime, penaltis]);
     // o capitão do líder rival reage aos gols (emote do Duelo, só na tela)
     const rivalPlan = useMemo(() => (match ? rivalEmotes(match.events, 1) : []), [match]);
     // fim de jogo: vai sozinho pro resultado; um toque na quadra ou no painel segura
@@ -327,6 +352,18 @@ export function Match({ liga = false }: { liga?: boolean }) {
         if (ended)
             scoreboardRef.current?.scrollIntoView({ block: 'nearest', behavior: reduceMotionOn() ? 'auto' : 'smooth' });
     }, [ended]);
+    // atalho do teclado: M dispara o golpe máximo na hora certa (o botão grande só aparece por ~1 s)
+    const maxKey = useRef<() => void>(() => {});
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key.toLowerCase() !== 'm' || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+            if (e.target instanceof HTMLElement && e.target.matches('input, textarea, select, [contenteditable]'))
+                return;
+            maxKey.current();
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, []);
     if (!run || !match || !sceneData || !opponent) return null;
 
     const lockedSetup = run.lockedTeam ? { ...run.lockedTeam, manualSubs: true } : playerTeam(run);
@@ -379,7 +416,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
         try {
             const result = await simulateMatch(
                 lockedSetup,
-                cupRival(opponent, agency),
+                cupRival(opponent, true),
                 `${run.seed}-stage-${run.stage}`,
                 schedule,
             );
@@ -403,21 +440,26 @@ export function Match({ liga = false }: { liga?: boolean }) {
         sendOrder((tick) => ({ tick, team: 0, kind: 'corner', corner }));
     };
 
-    // beira da quadra (experimento): gritos, tempo, goleiro-linha e golpe máximo, pelo mesmo caminho das ordens
-    const sideline = agencyView(match.events, orders, 0, clock.tick);
+    // beira da quadra: tempo, goleiro-linha e golpe máximo, pelo mesmo caminho das ordens
+    const setups: [TeamSetup, TeamSetup] = [lockedSetup, opponent];
+    const sideline = agencyView(match.events, orders, 0, clock.tick, maxCueAt(match, setups, 0, clock.tick));
     const canAgency = canChangeTactic && penPick === null;
+    // golpe máximo: vale já no quadro da tela, antes da decisão do capitão (com +1 a IA chutava antes e o lance
+    // passava; a quadra espera a partida nova; é um lance, não um plano)
+    const sendMax = (q: MaxGrade) =>
+        sendOrder((tick) => ({ tick, team: 0, kind: 'max', q }), Math.ceil(tickRef.current));
+    maxKey.current = () => canAgency && maxLit(sideline) && sendMax(maxGradeNow());
     const sidelineControls = (
         <SidelineControls
             view={sideline}
             canAct={canAgency}
-            onShout={(shout) => sendOrder((tick) => ({ tick, team: 0, kind: 'shout', shout }))}
             onTimeout={
                 timeoutAt === null && !halftime
                     ? () => sendOrder((tick) => ({ tick, team: 0, kind: 'timeout' }))
                     : undefined
             }
             onFlyGk={(on) => sendOrder((tick) => ({ tick, team: 0, kind: 'flyGk', on }))}
-            onMax={() => sendOrder((tick) => ({ tick, team: 0, kind: 'max' }))}
+            onMax={sendMax}
         />
     );
 
@@ -467,7 +509,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
         setSubOut(uid ? { uid } : null);
         requestAnimationFrame(() => coachRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
     };
-    // prancheta: sem limite, a última mandada vale na próxima bola parada (pendente até o evento passar na tela)
+    // prancheta: sem limite, a última mandada vale na hora (pendente até o evento passar na tela)
     const lastBoard = orders.filter(isLineupOrder).at(-1);
     const boardEv =
         lastBoard && match.events.find((e) => e.type === 'lineup' && e.team === 0 && e.tick >= lastBoard.tick);
@@ -542,13 +584,11 @@ export function Match({ liga = false }: { liga?: boolean }) {
             tired={tired}
         />
     );
-    const tactics = agency ? (
+    const tactics = (
         <>
             {tacticControls}
             {sidelineControls}
         </>
-    ) : (
-        tacticControls
     );
     // ordem dos pênaltis: quem está em quadra no apito final, na ordem do motor (pelo chute); o goleiro no fim
     const penaltyTakers = (): PenaltyTaker[] => {
@@ -607,7 +647,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         />
                     </Scoreboard>
                     <PressureBar match={match} tick={clock.tick} minute={clock.minute} colors={colors} over={over} />
-                    {agency && <MaxBars events={match.events} tick={clock.tick} colors={colors} />}
+                    <MaxBars events={match.events} tick={clock.tick} colors={colors} />
                 </div>
 
                 <div className="bc-stage" onPointerDownCapture={auto.hold}>
@@ -618,14 +658,8 @@ export function Match({ liga = false }: { liga?: boolean }) {
                             <div className="phaser-container" />
                         )}
                         <Ticker lines={lines} colors={colors} />
-                        {agency && (
-                            <SidelineOverlay
-                                events={match.events}
-                                tick={clock.tick}
-                                colors={colors}
-                                names={teamNames}
-                            />
-                        )}
+                        <SidelineOverlay events={match.events} tick={clock.tick} colors={colors} names={teamNames} />
+                        <MaxCueButton view={sideline} canAct={canAgency} onMax={sendMax} />
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
                         {ended && !auto.held && (
@@ -693,16 +727,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                                     setTimeoutAt(null);
                                     EventBus.emit('match:resume');
                                 }}
-                            >
-                                <SidelineControls
-                                    compact
-                                    view={sideline}
-                                    canAct={canAgency}
-                                    onShout={(shout) => sendOrder((tick) => ({ tick, team: 0, kind: 'shout', shout }))}
-                                    onFlyGk={() => {}}
-                                    onMax={() => {}}
-                                />
-                            </TimeoutPanel>
+                            />
                         </div>
                     )}
                     {penPick !== null && (
@@ -732,6 +757,11 @@ export function Match({ liga = false }: { liga?: boolean }) {
                 </div>
 
                 <div className="panel bc-coach" ref={coachRef} onPointerDownCapture={auto.hold}>
+                    <Coach
+                        id="relampagoJogo"
+                        targets={['.bc-coach .bc-tabs']}
+                        when={!liga && !!run && !run.daily && !isLong(run) && run.results.length === 0}
+                    />
                     <CoachTabs tabs={tabs} active={tab} onPick={setTab} />
                     <div className={`bc-pane pane-${tab}`} role="tabpanel">
                         {tab === 'tactic' && tactics}

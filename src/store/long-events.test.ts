@@ -5,6 +5,7 @@ vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, 
 import { createInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { type RunState, useGame } from './game-store';
+import { outOf } from './long-cup';
 import { EVENT_IDS, eventChoices, type LongEvent, resolveEvent, rollEvent } from './long-events';
 
 /** Copa longa pronta, com um Charmander (evolui) no banco. */
@@ -94,5 +95,31 @@ describe('eventos da Copa longa', () => {
         const back = useGame.getState().run!;
         expect(back.status).toBe('map');
         expect(back.eventsSeen).toEqual([open.event!.id]);
+        expect(back.eventNote).toEqual({ id: open.event!.id, choice: none.id, cost: none.cost });
+    });
+
+    it('quem está fora tem selo com o motivo e as partidas, e não entra em quadra pela escalação', () => {
+        const run = longRun('ev-out');
+        const creche = resolveEvent(run, { id: 'creche' }, 'deixar', 'charm')!;
+        expect(outOf(creche, 'charm')).toEqual({ why: 'creche', n: 2 });
+        const ev: LongEvent = { id: 'carrinho', uids: [run.lineup[1], run.lineup[2]] };
+        const hurt = resolveEvent(creche, ev, 'parar', run.lineup[2])!;
+        expect(outOf(hurt, run.lineup[2])).toEqual({ why: 'lesao', n: 2 });
+        expect(outOf(hurt, 'charm')).toEqual({ why: 'creche', n: 2 });
+        expect(outOf(hurt, run.lineup[0])).toBeNull();
+        // save de antes do motivo: só "Fora"
+        expect(outOf({ out: { x: 1 } }, 'x')).toEqual({ why: 'fora', n: 1 });
+
+        useGame.setState({ run: { ...hurt, status: 'lineup' } });
+        const charmAt = { zone: 'bench' as const, index: hurt.bench.indexOf('charm') };
+        // o da Creche não entra no lugar de um titular (nem tocando primeiro no titular)
+        useGame.getState().swapSlots(charmAt, { zone: 'lineup', index: 0 });
+        useGame.getState().swapSlots({ zone: 'lineup', index: 0 }, charmAt);
+        expect(useGame.getState().run!.bench).toEqual(hurt.bench);
+        // o titular machucado sai pro banco no lugar de um reserva disponível
+        const free = { zone: 'bench' as const, index: hurt.bench.findIndex((u) => u !== 'charm') };
+        useGame.getState().swapSlots({ zone: 'lineup', index: 2 }, free);
+        expect(useGame.getState().run!.bench).toContain(run.lineup[2]);
+        expect(useGame.getState().run!.lineup).not.toContain(run.lineup[2]);
     });
 });

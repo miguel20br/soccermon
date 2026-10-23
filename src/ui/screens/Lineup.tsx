@@ -1,9 +1,9 @@
 import { type ReactNode, useRef, useState } from 'react';
 import { computeAttributes } from '../../engine/attributes';
 import { relampagoBracket } from '../../engine/bracket';
-import { cupRival } from '../../engine/cup';
+import { CLUBS, cupRival } from '../../engine/cup';
 import { species } from '../../engine/data';
-import { FORMATIONS, type FormationId } from '../../engine/formations';
+import { FORMATIONS, type FormationId, hasEdge } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { computeLinks } from '../../engine/links';
@@ -11,23 +11,25 @@ import { pickCornerTaker } from '../../engine/match';
 import { applyModifiers, attributeModifiers } from '../../engine/modifiers';
 import { type CornerPlan, TACTIC_LABEL, type Tactic } from '../../engine/state';
 import { computeSynergies } from '../../engine/synergy';
-import { clubName, cupStageName, dict, formationText, itemDesc, itemName } from '../../i18n';
+import { clubName, cupStageName, dict, formationText, itemDesc, itemName, tn } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { liveOf, playerTeam, type SlotRef, useGame } from '../../store/game-store';
-import { isLong, isOut } from '../../store/long-cup';
+import { isFinalStage, isLong, isOut, type OutWhy, outOf } from '../../store/long-cup';
 import { useCardModal } from '../card-modal';
-import { BracketPeek } from '../components/Bracket';
+import { BracketPeek, bracketRivals, bracketYou } from '../components/Bracket';
+import { Fold, foldOpenByDefault } from '../components/Fold';
 import { FormationBoard } from '../components/FormationBoard';
+import { EdgeMark, FormationIdentity } from '../components/FormationIdentity';
 import { FutCard } from '../components/FutCard';
 import { LinkChips } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
 import { cardSprite, TypeBadge } from '../components/PokeCard';
 import { Money, SponsorSlots } from '../components/SponsorCard';
 import { leaveWith } from '../feedback';
+import { edgeAgainst, FORMATION_ICON } from '../formation-info';
 import { Tip } from '../help/Tip';
 import { useClubColor } from '../profile/club';
 import { lineupAverage } from '../rating';
-import { agencyOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
 import { useHeld } from '../use-held';
 
@@ -61,10 +63,8 @@ export function Lineup() {
 
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
     const opponent = run.opponents[run.stage];
-    // Copa longa: quem está fora (lesão, Creche) fica no banco; titular fora trava o Jogar até você trocar
-    const outName = (u: string) => `${viewInstance(byUid.get(u)!).displayName} (${run.out?.[u]})`;
-    const outList = [...run.lineup, ...run.bench].filter((u) => isOut(run, u)).map(outName);
-    const outStarter = run.lineup.filter((u) => isOut(run, u)).map(outName)[0];
+    // Copa longa: quem está fora (lesão, Creche) tem o selo na carta; titular fora trava o Jogar até você trocar
+    const outStarter = run.lineup.filter((u) => isOut(run, u)).map((u) => viewInstance(byUid.get(u)!).displayName)[0];
     const locked = !!run.lockedTeam;
 
     const play = async () => {
@@ -79,7 +79,7 @@ export function Lineup() {
         try {
             // retomando: as mesmas ordens do técnico (tática/substituições) dão a mesma partida
             const orders = liveOf(useGame.getState().run)?.orders ?? [];
-            const result = await simulateMatch(team, cupRival(opponent, agencyOn()), `${seed}-stage-${stage}`, orders);
+            const result = await simulateMatch(team, cupRival(opponent, true), `${seed}-stage-${stage}`, orders);
             // só abre a partida se o jogador ainda está nesta tela, nesta run e nesta fase
             const now = useGame.getState();
             if (now.screen !== 'lineup' || now.run?.seed !== seed || now.run.stage !== stage) return;
@@ -94,35 +94,38 @@ export function Lineup() {
 
     return (
         <>
-            <div className="cup-bug bc-surface">
-                <div className="cup-path">
-                    {d.common.stage.map((label, i) => {
-                        const res = run.results.find((r) => r.stage === i);
-                        const cls = res ? (res.won ? 'won' : 'lost') : i === run.stage ? 'now' : '';
-                        return (
-                            <div key={label} className={`cup-step ${cls}`}>
-                                <b>{label}</b>
-                                <span className="muted">{clubName(run.opponents[i].name, lang)}</span>
-                                {res && (
-                                    <div>
-                                        {res.score[0]} x {res.score[1]}
-                                        {res.shootout &&
-                                            t('team.lineup.pens', { a: res.shootout[0], b: res.shootout[1] })}
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
+            {/* Copa Relâmpago: as 4 fases (na Rota o caminho é o mapa, e os rivais só existem até a casa de agora) */}
+            {!isLong(run) && (
+                <div className="cup-bug bc-surface">
+                    <div className="cup-path">
+                        {d.common.stage.map((label, i) => {
+                            const res = run.results.find((r) => r.stage === i);
+                            const cls = res ? (res.won ? 'won' : 'lost') : i === run.stage ? 'now' : '';
+                            return (
+                                <div key={label} className={`cup-step ${cls}`}>
+                                    <b>{label}</b>
+                                    <span className="muted">{clubName(run.opponents[i].name, lang)}</span>
+                                    {res && (
+                                        <div>
+                                            {res.score[0]} x {res.score[1]}
+                                            {res.shootout &&
+                                                t('team.lineup.pens', { a: res.shootout[0], b: res.shootout[1] })}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Copa Relâmpago: a chave inteira num toque, com você na fase de agora */}
             {!isLong(run) && (
                 <BracketPeek
                     rounds={relampagoBracket(
                         run.seed,
-                        { name: run.teamName, color: clubColor },
-                        run.opponents,
+                        bracketYou(run.teamName, clubColor, run.picks, run.captainUid),
+                        bracketRivals(run.opponents),
                         run.results,
                     )}
                     current={run.stage}
@@ -146,6 +149,8 @@ export function Lineup() {
                 onCorner={setCorner}
                 onMoveItem={moveItem}
                 sponsors={run.sponsors}
+                rivalFormation={opponent.formation ?? '1-2-1'}
+                outOf={(u) => outOf(run, u)}
                 side={
                     <div className="panel">
                         <h2>
@@ -170,37 +175,49 @@ export function Lineup() {
                                 </button>
                             ))}
                         </div>
+                        <p className="fi-rival">
+                            <span>
+                                {clubCity(opponent.name)} → {formationText(opponent.formation ?? '1-2-1', lang).name}
+                            </span>
+                            {edgeAgainst(opponent.formation ?? '1-2-1') && (
+                                <span className="fi-rival-edge">
+                                    <EdgeMark />
+                                    {formationText(edgeAgainst(opponent.formation ?? '1-2-1')!, lang).name}
+                                </span>
+                            )}
+                        </p>
                         <p className="muted" style={{ fontSize: 11 }}>
-                            {t('team.lineup.oppLine', {
-                                formation: formationText(opponent.formation ?? '1-2-1', lang).name,
+                            {t('team.lineup.oppTactic', {
                                 tactic: d.common.tactic[opponent.tactic],
                                 n: lineupAverage(opponent.lineup, opponent.formation),
                             })}
                         </p>
-                        {outList.length > 0 && (
-                            <p className={outStarter ? 'error-text' : 'tactic-desc'}>
-                                {outStarter
-                                    ? t('longCup.outStarter', { name: outStarter })
-                                    : t('longCup.outBench', { names: outList.join(', ') })}
-                            </p>
-                        )}
                         <div className="bc-thumbbar">
+                            {/* Rota Índigo: titular machucado trava o Jogar; o porquê fica do lado do botão */}
+                            {outStarter && (
+                                <p className="tb-hint" id="lineup-play-why">
+                                    {t('longCup.outStarter', { name: outStarter })}
+                                </p>
+                            )}
                             <button
                                 type="button"
                                 className="btn primary wide"
                                 onClick={play}
                                 disabled={loading || !!outStarter}
+                                aria-describedby={outStarter ? 'lineup-play-why' : undefined}
                             >
                                 {loading
                                     ? t('team.lineup.warming')
                                     : locked
                                       ? t('team.lineup.backToMatch')
-                                      : t('team.lineup.play', {
-                                            stage:
-                                                lang === 'pt'
-                                                    ? cupStageName(run, run.stage, lang).toLowerCase()
-                                                    : cupStageName(run, run.stage, lang),
-                                        })}
+                                      : isFinalStage(run)
+                                        ? t('longCup.playFinal')
+                                        : t('team.lineup.play', {
+                                              stage:
+                                                  lang === 'pt'
+                                                      ? cupStageName(run, run.stage, lang).toLowerCase()
+                                                      : cupStageName(run, run.stage, lang),
+                                          })}
                             </button>
                         </div>
                         {!!run.sponsors?.length && (
@@ -248,6 +265,9 @@ export function Lineup() {
  * instrução e cobrador de escanteio, sinergias e a carta de quem foi tocado. O que muda de um modo pro outro
  * (rival, botão de jogar, abandonar) entra por `side` e `footer`.
  */
+/** "Pewter" em vez de "Pewter Rochedo" na linha curta do rival. */
+const clubCity = (name: string) => CLUBS.find((c) => c.name === name)?.city ?? name;
+
 export function LineupEditor({
     title,
     formation,
@@ -267,6 +287,8 @@ export function LineupEditor({
     side,
     footer,
     sponsors,
+    rivalFormation,
+    outOf,
 }: {
     title: string;
     formation: FormationId;
@@ -288,6 +310,10 @@ export function LineupEditor({
     footer?: ReactNode;
     /** Patrocínios da copa: os de campo entram na conta da escalação (carta = campo). */
     sponsors?: readonly string[];
+    /** Formação do rival, quando se sabe (selo "Vantagem tática" se a sua encaixa). */
+    rivalFormation?: FormationId;
+    /** Rota Índigo: quem está fora (lesão, Creche) e por quantas partidas. No banco fica travado. */
+    outOf?: (uid: string) => { why: OutWhy | 'fora'; n: number } | null;
 }) {
     const [selected, setSelected] = useState<SlotRef | null>(null);
     const [detail, setDetail] = useState<string | null>(null);
@@ -356,10 +382,12 @@ export function LineupEditor({
                             disabled={locked}
                             onClick={() => onFormation(f.id)}
                         >
+                            <HudIcon kind={FORMATION_ICON[f.id]} />
                             {formationText(f.id, lang).name}
                         </button>
                     ))}
                 </div>
+                <FormationIdentity id={formation} edge={!!rivalFormation && hasEdge(formation, rivalFormation)} />
                 <p className="muted" style={{ marginTop: 8 }}>
                     {givingItem ? t('team.lineup.giveHint', { item: itemName(givingItem) }) : t('team.lineup.swapHint')}
                 </p>
@@ -375,15 +403,18 @@ export function LineupEditor({
                             : null
                     }
                     stateOf={(ref, uid) =>
-                        giving
-                            ? uid === giving
+                        ref.zone === 'bench' && outOf?.(uid)
+                            ? 'locked'
+                            : giving
+                              ? uid === giving
+                                  ? 'selected'
+                                  : 'target'
+                              : selected?.zone === ref.zone && selected.index === ref.index
                                 ? 'selected'
-                                : 'target'
-                            : selected?.zone === ref.zone && selected.index === ref.index
-                              ? 'selected'
-                              : 'idle'
+                                : 'idle'
                     }
                     onSlot={onSlot}
+                    badgeOf={outOf && ((inst) => <OutBadge out={outOf(inst.uid)} />)}
                     footer={
                         <p className="muted center" style={{ fontSize: 11, marginBottom: 0 }}>
                             {t('team.lineup.subHint')}
@@ -397,116 +428,151 @@ export function LineupEditor({
 
                 <div className="panel">
                     <h2>{t('team.lineup.tactic')}</h2>
-                    <span className="bc-lbl">{t('match.coach.style')}</span>
-                    <div className="bc-styles">
-                        {(Object.keys(TACTIC_LABEL) as Tactic[]).map((tc) => (
-                            <button
-                                key={tc}
-                                type="button"
-                                className={`bc-tile${tactic === tc ? ' on' : ''}`}
-                                aria-pressed={tactic === tc}
-                                disabled={locked}
-                                onClick={() => onTactic(tc)}
-                            >
-                                <HudIcon kind={tc} />
-                                <span>
-                                    <b>{d.common.tactic[tc]}</b>
-                                    <small>{d.match.coach.styleShort[tc]}</small>
-                                </span>
-                            </button>
-                        ))}
-                    </div>
-                    <p className="tactic-desc">
-                        {d.team.lineup.tacticDesc[tactic]} {t('team.lineup.canChange')}
-                    </p>
                     {captainBenched && <p className="error-text">{t('team.lineup.captainBenched')}</p>}
-                    <h3 className="bc-lbl">
-                        <HudIcon kind="flag" />
-                        {t('team.lineup.corner')}
-                    </h3>
-                    <div className="bc-seg">
-                        {CORNER_PLANS.map((pl) => (
-                            <button
-                                key={pl}
-                                type="button"
-                                className={cornerPlan === pl ? 'on' : undefined}
-                                aria-pressed={cornerPlan === pl}
+                    <Fold
+                        label={t('match.coach.style')}
+                        summary={d.common.tactic[tactic]}
+                        defaultOpen={foldOpenByDefault()}
+                    >
+                        <div className="bc-styles">
+                            {(Object.keys(TACTIC_LABEL) as Tactic[]).map((tc) => (
+                                <button
+                                    key={tc}
+                                    type="button"
+                                    className={`bc-tile${tactic === tc ? ' on' : ''}`}
+                                    aria-pressed={tactic === tc}
+                                    disabled={locked}
+                                    onClick={() => onTactic(tc)}
+                                >
+                                    <HudIcon kind={tc} />
+                                    <span>
+                                        <b>{d.common.tactic[tc]}</b>
+                                        <small>{d.match.coach.styleShort[tc]}</small>
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+                        <p className="tactic-desc">
+                            {d.team.lineup.tacticDesc[tactic]} {t('team.lineup.canChange')}
+                        </p>
+                    </Fold>
+                    <Fold
+                        label={t('team.lineup.corner')}
+                        summary={d.common.cornerPlan[cornerPlan]}
+                        defaultOpen={foldOpenByDefault()}
+                    >
+                        <div className="bc-seg">
+                            {CORNER_PLANS.map((pl) => (
+                                <button
+                                    key={pl}
+                                    type="button"
+                                    className={cornerPlan === pl ? 'on' : undefined}
+                                    aria-pressed={cornerPlan === pl}
+                                    disabled={locked}
+                                    onClick={() => onCorner({ cornerPlan: pl })}
+                                >
+                                    {d.common.cornerPlan[pl]}
+                                </button>
+                            ))}
+                        </div>
+                        <p className="tactic-desc">
+                            {d.team.lineup.cornerDesc[cornerPlan]} {t('team.lineup.canChange')}
+                        </p>
+                    </Fold>
+                    <Fold
+                        label={t('team.lineup.cornerTaker')}
+                        summary={
+                            chosenTaker
+                                ? viewInstance(chosenTaker).displayName
+                                : autoTaker
+                                  ? viewInstance(autoTaker).displayName
+                                  : '?'
+                        }
+                        defaultOpen={foldOpenByDefault()}
+                    >
+                        <label className="corner-taker">
+                            <span>{t('team.lineup.cornerTaker')}</span>
+                            <select
+                                value={cornerTakerUid ?? ''}
                                 disabled={locked}
-                                onClick={() => onCorner({ cornerPlan: pl })}
+                                onChange={(e) => onCorner({ cornerTakerUid: e.target.value || null })}
                             >
-                                {d.common.cornerPlan[pl]}
-                            </button>
-                        ))}
-                    </div>
-                    <p className="tactic-desc">
-                        {d.team.lineup.cornerDesc[cornerPlan]} {t('team.lineup.canChange')}
-                    </p>
-                    <label className="corner-taker">
-                        <span>{t('team.lineup.cornerTaker')}</span>
-                        <select
-                            value={cornerTakerUid ?? ''}
-                            disabled={locked}
-                            onChange={(e) => onCorner({ cornerTakerUid: e.target.value || null })}
-                        >
-                            <option value="">
-                                {t('team.lineup.cornerAuto', {
-                                    name: autoTaker ? viewInstance(autoTaker).displayName : '?',
-                                })}
-                            </option>
-                            {cornerField.map((f) => (
-                                <option key={f.inst.uid} value={f.inst.uid}>
-                                    {t('team.lineup.cornerTakerOpt', {
-                                        name: viewInstance(f.inst).displayName,
-                                        pos: d.common.pos[f.role],
-                                        n: Math.round(f.passing),
+                                <option value="">
+                                    {t('team.lineup.cornerAuto', {
+                                        name: autoTaker ? viewInstance(autoTaker).displayName : '?',
                                     })}
                                 </option>
-                            ))}
-                            {chosenTaker && takerOff && (
-                                <option value={chosenTaker.uid}>{viewInstance(chosenTaker).displayName}</option>
-                            )}
-                        </select>
-                    </label>
-                    {chosenTaker && takerOff && (
-                        <p className="tactic-desc">
-                            {t('team.lineup.cornerTakerOff', { name: viewInstance(chosenTaker).displayName })}
-                        </p>
-                    )}
-                    <h3 className="bc-lbl">{t('team.lineup.typeSynergies')}</h3>
-                    {synergies.length === 0 ? (
-                        <p className="tactic-desc">{t('team.lineup.typeSynEmpty')}</p>
-                    ) : (
-                        <div className="row" style={{ gap: 8 }}>
-                            {synergies.map((s) => (
-                                <span key={s.type} className="row" style={{ gap: 4 }}>
-                                    <TypeBadge type={s.type} />
-                                    <span className="tactic-desc">
-                                        ×{s.count} · +{Math.round((s.bonus - 1) * 100)}%
+                                {cornerField.map((f) => (
+                                    <option key={f.inst.uid} value={f.inst.uid}>
+                                        {t('team.lineup.cornerTakerOpt', {
+                                            name: viewInstance(f.inst).displayName,
+                                            pos: d.common.pos[f.role],
+                                            n: Math.round(f.passing),
+                                        })}
+                                    </option>
+                                ))}
+                                {chosenTaker && takerOff && (
+                                    <option value={chosenTaker.uid}>{viewInstance(chosenTaker).displayName}</option>
+                                )}
+                            </select>
+                        </label>
+                        {chosenTaker && takerOff && (
+                            <p className="tactic-desc">
+                                {t('team.lineup.cornerTakerOff', { name: viewInstance(chosenTaker).displayName })}
+                            </p>
+                        )}
+                    </Fold>
+                    <Fold
+                        label={t('team.lineup.typeSynergies')}
+                        summary={synergies.length}
+                        defaultOpen={foldOpenByDefault()}
+                    >
+                        {synergies.length === 0 ? (
+                            <p className="tactic-desc">{t('team.lineup.typeSynEmpty')}</p>
+                        ) : (
+                            <div className="row" style={{ gap: 8 }}>
+                                {synergies.map((s) => (
+                                    <span key={s.type} className="row" style={{ gap: 4 }}>
+                                        <TypeBadge type={s.type} />
+                                        <span className="tactic-desc">
+                                            ×{s.count} · +{Math.round((s.bonus - 1) * 100)}%
+                                        </span>
                                     </span>
-                                </span>
-                            ))}
-                        </div>
-                    )}
-                    <h3 className="bc-lbl">{t('team.lineup.storySynergies')}</h3>
-                    {links.length === 0 ? (
-                        <p className="tactic-desc">{t('team.lineup.storySynEmpty')}</p>
-                    ) : (
-                        <div className="row" style={{ gap: 6 }}>
-                            <LinkChips links={links} />
-                        </div>
-                    )}
+                                ))}
+                            </div>
+                        )}
+                    </Fold>
+                    <Fold
+                        label={t('team.lineup.storySynergies')}
+                        summary={links.length}
+                        defaultOpen={foldOpenByDefault()}
+                    >
+                        {links.length === 0 ? (
+                            <p className="tactic-desc">{t('team.lineup.storySynEmpty')}</p>
+                        ) : (
+                            <div className="row" style={{ gap: 6 }}>
+                                <LinkChips links={links} />
+                            </div>
+                        )}
+                    </Fold>
                 </div>
 
                 {detailInst && (
                     <>
-                        <div className="detail-card">
-                            <FutCard
-                                inst={detailInst}
-                                captain={detailInst.uid === captainUid}
-                                position={positionOf(detailInst.uid)}
-                                fullButton
-                            />
-                        </div>
+                        <Fold
+                            label={viewInstance(detailInst).displayName}
+                            summary={t('team.lineup.cardFold')}
+                            defaultOpen={foldOpenByDefault()}
+                        >
+                            <div className="detail-card">
+                                <FutCard
+                                    inst={detailInst}
+                                    captain={detailInst.uid === captainUid}
+                                    position={positionOf(detailInst.uid)}
+                                    fullButton
+                                />
+                            </div>
+                        </Fold>
                         {detailInst.item && onMoveItem && (
                             <div className="panel item-move">
                                 <img className="pixel" src={itemSprite(detailInst.item)} alt="" />
@@ -535,5 +601,21 @@ export function LineupEditor({
                 {footer}
             </div>
         </div>
+    );
+}
+
+const OUT_ICON = { lesao: 'medkit', creche: 'egg', cansado: 'dumbbell', fora: 'lock' } as const;
+
+/** Selo de quem está fora na Rota (Na creche, Machucado…) com quantas partidas faltam pra voltar. */
+export function OutBadge({ out }: { out: { why: OutWhy | 'fora'; n: number } | null }) {
+    const { d } = useT();
+    if (!out) return null;
+    const tag = d.longCup.outTag[out.why];
+    return (
+        <span className={`slot-out why-${out.why}`} role="img" aria-label={tn('longCup.outAria', out.n, { tag })}>
+            <HudIcon kind={OUT_ICON[out.why]} />
+            <b>{tag}</b>
+            <small>{tn('longCup.outLeft', out.n)}</small>
+        </span>
     );
 }

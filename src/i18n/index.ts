@@ -6,6 +6,7 @@ import { type CupMode, cupLength, isFinalStage, isLong } from '../store/long-cup
 import { en } from './en';
 import { moveExplainEn } from './en/move-explain';
 import { detectLang, type Lang } from './lang';
+import { generatedMoveText } from './move-text';
 import { type Dict, pt } from './pt';
 
 export type { Lang } from './lang';
@@ -94,12 +95,13 @@ export function moveDesc(id: string, lang: Lang = current): string {
 }
 
 /**
- * O que o golpe faz no futsal (golpes especiais e os que ganharam traço; os outros: undefined e a tela usa o
- * texto do tipo de golpe). Português: MOVE_EXPLAIN do motor; inglês: src/i18n/en/move-explain.ts.
+ * O que o golpe faz no futsal: a explicação própria (MOVE_EXPLAIN do motor; inglês em src/i18n/en/move-explain.ts) ou o
+ * texto gerado pelos números do motor (src/i18n/move-text.ts). Golpe comum: undefined e a tela usa o texto do tipo.
  */
 export function moveExplain(id: string, lang: Lang = current): string | undefined {
     const pt = MOVE_EXPLAIN[id];
-    if (!pt || lang === 'pt') return pt;
+    if (!pt) return generatedMoveText(id, lang, DICTS[lang].stats.lab.kind[moveProfile(id).kind] ?? '');
+    if (lang === 'pt') return pt;
     return moveExplainEn[id as ExplainMoveId] ?? pt;
 }
 
@@ -157,7 +159,7 @@ export const iconTitle = (speciesId: number, saved?: string, lang: Lang = curren
 
 /** Formação: nome e descrição. */
 export const formationText = (id: string, lang: Lang = current) =>
-    DICTS[lang].common.formation[id] ?? { name: id, description: '' };
+    DICTS[lang].common.formation[id] ?? { name: id, description: '', up: '', down: '' };
 
 /** Sinergia de história: nome, descrição e combo. */
 export const linkText = (id: string, lang: Lang = current) =>
@@ -221,6 +223,7 @@ export function moveModLabel(m: MoveModifier, lang: Lang = current): string {
     if (lang === 'pt' || !m.ref) return m.label;
     const c = DICTS[lang].common;
     if (m.factor === 0) return c.mod.choiceLocked;
+    if (m.ref === 'mt') return fmt(c.mod.taughtMove, { n: Math.round((m.factor - 1) * 100) });
     const name = ITEMS[m.ref] ? itemName(m.ref) : abilityName(m.ref);
     return fmt(c.mod.moveBoost, { name, n: Math.round((m.factor - 1) * 100) });
 }

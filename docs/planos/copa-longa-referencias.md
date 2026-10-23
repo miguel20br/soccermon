@@ -1,3 +1,7 @@
+---
+description: Pesquisa de referências de roguelike em mapa para a Copa longa, com opções.
+---
+
 # Copa longa: referências e opções (pesquisa, 20/10/2026)
 
 Pesquisa pra etapa 2 do [plano da Copa roguelike](copa-roguelike-plano.md): a **Copa longa** em mapa (Jogo, Ginásio,

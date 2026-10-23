@@ -130,6 +130,10 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+/* nome curto: só onde o nome inteiro não cabe (status do mapa no celular) */
+.sp-slot-short {
+    display: none;
+}
 .sp-slot.free {
     border-style: dashed;
     border-color: var(--line);

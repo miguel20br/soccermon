@@ -1,0 +1,21 @@
+{
+ "faixa": "ponte-tema-misty",
+ "titulo": "Ponte pra tema-misty: a harpa e as bolhas subindo (com riser e prato)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 12,
+ "duracao": 3.523878,
+ "secoes": [
+  {
+   "nome": "ponte",
+   "loop": false,
+   "inicio": 0,
+   "fim": 2.142857,
+   "amostras": [
+    0,
+    94500
+   ],
+   "bpm": 84,
+   "compassos": 1
+  }
+ ]
+}

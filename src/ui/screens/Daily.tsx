@@ -1,18 +1,20 @@
 import { type CSSProperties, useEffect, useState } from 'react';
 import { useCloud } from '../../cloud/cloud';
 import { CUP_STAGES } from '../../engine/cup';
-import { species } from '../../engine/data';
+import { SPECIES_BY_ID, species } from '../../engine/data';
 import { useFriends } from '../../friends/api';
 import { clubName, dict } from '../../i18n';
 import { useT } from '../../i18n/react';
-import { type DailyRow, isError, league, leagueOnline, publicInfo } from '../../league/api';
+import { type DailyRow, isError, league, leagueOnline, publicInfo, squadOf } from '../../league/api';
 import { ligaCountdown } from '../../league/rules';
 import { dailyDay, dailyShareText, dailySticker, dailyStreak, daysInARow, putDaily, winsOf } from '../../store/daily';
 import { isCupInProgress, useGame } from '../../store/game-store';
 import { clubColorHex } from '../../store/profile';
+import { Coach } from '../coach/Coach';
 import { AccountBar } from '../components/AccountBar';
 import { MenuHead } from '../components/MenuHead';
 import { MenuIcon } from '../components/MenuIcon';
+import { MonIcon } from '../components/MonIcon';
 import { cardSprite } from '../components/PokeCard';
 import { SITE_URL, shareText } from '../share';
 import '../liga.css';
@@ -101,6 +103,7 @@ export function RankLine({
     trainer,
     club,
     me,
+    squad,
     children,
 }: {
     pos: number;
@@ -108,6 +111,8 @@ export function RankLine({
     trainer: string;
     club: string;
     me: boolean;
+    /** Time em ícones (só a Copa do Dia manda). */
+    squad?: ReturnType<typeof squadOf>;
     children: React.ReactNode;
 }) {
     const { t } = useT();
@@ -125,6 +130,19 @@ export function RankLine({
                 <small>{club}</small>
             </span>
             <span className="lg-num">{children}</span>
+            {squad && (
+                <span className="lg-squad">
+                    {squad.ids.map((id, i) => (
+                        // biome-ignore lint/suspicious/noArrayIndexKey: 5 vagas fixas, a mesma espécie pode repetir
+                        <span key={i} className={`lg-squad-mon${i === squad.captain ? ' cap' : ''}`}>
+                            <MonIcon
+                                id={id}
+                                label={`${SPECIES_BY_ID.get(id)?.name ?? id}${i === squad.captain ? `, ${t('liga.daily.captain')}` : ''}`}
+                            />
+                        </span>
+                    ))}
+                </span>
+            )}
         </li>
     );
 }
@@ -182,6 +200,7 @@ export function Daily() {
     return (
         <div className="menu-screen lg">
             <MenuHead title={t('liga.daily.tag')} tag={t('liga.daily.tag')} icon="daily" onBack={() => go('home')} />
+            <Coach id="dia" targets={['.lg-hero .lg-line', '.lg-start .btn']} when={!entry} />
 
             <section className="panel lg-hero bc-surface bc-stripe">
                 <span className="lg-date">{dayLabel(today, lang)}</span>
@@ -307,6 +326,7 @@ export function Daily() {
                                 trainer={r.trainer}
                                 club={r.club}
                                 me={r.me}
+                                squad={squadOf(r)}
                             >
                                 <b>{r.champion ? <TrophyMini /> : `${r.wins}/4`}</b>
                                 <small>

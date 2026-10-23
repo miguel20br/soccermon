@@ -16,6 +16,7 @@ import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
 import { cardSprite } from './PokeCard';
 import './pokecard2.css';
+import { TaughtMark } from './TaughtMark';
 import { Tip } from './Tip';
 import { TypeIcons } from './TypeIcon';
 import { useHoloPointer } from './useHoloPointer';
@@ -89,6 +90,8 @@ interface PokeCard2Props {
      * só a beirada. Uma carta inteira são ~90 nós; o álbum cheio tinha 2 delas escondidas atrás de cada figurinha.
      */
     bare?: boolean;
+    /** Outra imagem no lugar do sprite (carta Metal): a proposta da edição Retrô na galeria. */
+    art?: string;
 }
 
 /**
@@ -163,6 +166,7 @@ export const PokeCard2 = memo(function PokeCard2({
     seal,
     tipFocus,
     bare,
+    art,
 }: PokeCard2Props) {
     const tr = useT();
     const d = cardData(inst, tr, position);
@@ -239,6 +243,7 @@ export const PokeCard2 = memo(function PokeCard2({
             metalLabel={metalLabel(tr, metalTier, metalFinish)}
             seal={seal}
             tipFocus={!!tipFocus && !onClick}
+            art={art}
         />
     ) : fig ? (
         <Figurinha inst={inst} d={d} captain={captain} edition={edition} />
@@ -346,11 +351,13 @@ function Metal({
     metalLabel: label,
     seal,
     tipFocus,
+    art,
 }: VariantProps & {
     edition: Edition | null;
     metalLabel: string;
     seal?: PokeCard2Props['seal'];
     tipFocus: boolean;
+    art?: string;
 }) {
     const theme =
         edition === 'evento' && inst.special?.type
@@ -386,7 +393,7 @@ function Metal({
                     {captain && <span className="pc2-captain">C</span>}
                     {d.evo && <EvoBadge evo={d.evo} now={d.rating} tr={d.tr} />}
                 </span>
-                <img className="pixel m-art" src={cardSprite(inst)} alt="" loading="lazy" draggable={false} />
+                <img className="pixel m-art" src={art ?? cardSprite(inst)} alt="" loading="lazy" draggable={false} />
                 {d.item && <img className="pixel m-item" src={itemSprite(d.item.id)} alt={d.item.name} />}
                 {tag && (
                     <Tip className="m-tag" text={editionTip(tr, inst, edition)} focusable={tipFocus}>
@@ -656,7 +663,10 @@ function Tcg({ inst, d, captain }: VariantProps) {
                                     />
                                 ))}
                             </span>
-                            <b className="tcg-atk-name">{moveName(m)}</b>
+                            <b className="tcg-atk-name">
+                                {moveName(m)}
+                                <TaughtMark inst={inst} move={m} />
+                            </b>
                             <span className="tcg-dmg">{data.power || ''}</span>
                             <small className="tcg-atk-desc">{d.tr.d.team.card.kindTcg[moveProfile(m).kind]}</small>
                         </span>

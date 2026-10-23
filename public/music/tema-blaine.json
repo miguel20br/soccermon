@@ -1,0 +1,45 @@
+{
+ "faixa": "tema-blaine",
+ "titulo": "Tema do Blaine",
+ "tela": "Líder de ginásio: Blaine (Cinnabar)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 55.862063,
+ "secoes": [
+  {
+   "nome": "intro",
+   "loop": false,
+   "inicio": 0,
+   "fim": 4.137937,
+   "amostras": [
+    0,
+    182483
+   ],
+   "bpm": 116,
+   "compassos": 2
+  },
+  {
+   "nome": "loop",
+   "loop": true,
+   "inicio": 4.137937,
+   "fim": 55.862063,
+   "amostras": [
+    182483,
+    2463517
+   ],
+   "bpm": 116,
+   "compassos": 25
+  }
+ ],
+ "swing": 0.04,
+ "swingEm": 16,
+ "gancho": {
+  "hits": [
+   [
+    51.724,
+    52.117,
+    52.5
+   ]
+  ]
+ }
+}

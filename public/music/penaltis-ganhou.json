@@ -1,0 +1,31 @@
+{
+ "faixa": "penaltis-ganhou",
+ "titulo": "Pênaltis (jogo)",
+ "tela": "Partida: disputa de pênaltis",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 6.309524,
+ "secoes": [
+  {
+   "nome": "tudo",
+   "loop": false,
+   "inicio": 0,
+   "fim": 3.809524,
+   "amostras": [
+    0,
+    168000
+   ],
+   "bpm": 126,
+   "compassos": 2
+  }
+ ],
+ "gancho": {
+  "hits": [
+   [
+    0,
+    0.357,
+    0.714
+   ]
+  ]
+ }
+}
