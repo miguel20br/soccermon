@@ -105,6 +105,21 @@ Nota: a **Rota 1 já estava no piso** (dificuldade -1 é o mínimo do `aiDraftTe
 
 **Fora da faixa: Rota 1 (29%) e título (11%). Não ajustei nada, parei aqui.** Por quê: a simulação da proposta deixava os 25 sem-linha nas opções (Scyther, Hitmonlee, Kangaskhan...), e foram eles que seguraram o começo em 68 e o capitão em 77. Com a decisão 3 aplicada (fora do começo os de nota acima de 74) o time sai em 62 e o capitão em 63: o salto até o Planalto continua (62 → 84, mesma chegada de hoje), mas a Rota 1 vira moeda ao vento contra o rival do piso (65,1). Opções pro Miguel, sem aplicar nenhuma: (a) deixar os sem-linha fracos-médios no começo (teto de 74 vira ~80); (b) capitão de base com 1 carta "dona de linha" garantida; (c) piso novo (-2) pro rival da Rota 1; (d) aceitar (título 11% é abaixo da Copa rápida, ~16%).
 
+### Rodada final (23/10): teto 82, piso -2 na Rota 1 e conserto do `babyOptions`
+
+Aprovado pelo Miguel: (a) `LONE_START_MAX` de 74 para ~80, (c) piso -2 no `aiDraftTeam` só pro rival da Rota 1 (`LONG_DIFFICULTY[0] = -2`: fica com a pior das 3 opções em cada vaga) e o conserto: quando a base de uma opção já saiu na rodada ou já está no time, a opção não fica evoluída, sorteia outra forma-base (fora dos banidos, sem repetir) com o mesmo Rng. Teste: `src/engine/baby-options.test.ts` (falhou sem o conserto, passou com ele). Mesmo comando, n=400:
+
+| | Teto 80 | **Teto 82 (final)** | Meta |
+|---|---|---|---|
+| Nota inicial · capitão | 62,9 · 66,1 | 64,6 · 67,8 | |
+| Vitória Rota 1 | 50% | **54%** | 50 a 60% |
+| Vitória Rota 2 · 3 · 4 | 52 · 59 · 56% | 52 · 57 · 54% | |
+| Grupo 1 · 2 · 3 | 56 · 51 · 58% | 52 · 58 · 60% | |
+| Final | 56% | 68% | |
+| Planalto · Final · **título** | 38% · 22% · 13% | 37% · 23% · **15%** | título 15 a 22% |
+
+Teto 80 deixou o título em 13% (fora); 82 entra na faixa, no limite de baixo (erro ±2 pp). Rival da Rota 1 cai para nota 54,1.
+
 ### Prints (headless, 390x844 e 1440x900)
 
 Draft da Rota com formas-base (Squirtle, Koffing e Exeggcute de capitão; Oddish, Paras e Magikarp com o selo "vira N"). Uma carta evoluída sai quando a base dela já está na mesma rodada (Seel + Dewgong), como previsto.
@@ -114,6 +129,6 @@ Draft da Rota com formas-base (Squirtle, Koffing e Exeggcute de capitão; Oddish
 
 Título: "Rota de baby"
 - A Rota Índigo agora começa na forma-base: o capitão e o draft saem como Charmander, Machop, Magikarp, e o time evolui pelo caminho
-- Os mais fortes sem evolução (Snorlax, Lapras, Tauros, lendários) só aparecem de reforço, depois do começo
+- Os mais fortes sem evolução (Snorlax, Lapras, lendários) só aparecem de reforço, depois do começo
 - Sair da Rota e voltar traz o mesmo sorteio: a Rota só muda quando você termina uma
-- O rival da 2ª partida ficou mais fraco
+- O rival da 1ª partida ficou bem mais fraco e o da 2ª também
