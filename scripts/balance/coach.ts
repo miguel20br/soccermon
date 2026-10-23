@@ -17,7 +17,7 @@ import { inMaxZoneOf, maxFxType, minuteOf } from '../../src/engine/match';
 import { COACH_LEADERS, RIVAL_COACH } from '../../src/engine/rival-coach';
 import { LiveRunner } from '../../src/engine/runners/live-runner';
 import type { MatchState } from '../../src/engine/state';
-import { baseTeams, FUTSAL_5, insertSpecies, Rng, SPECIES, species, type TeamSetup } from './lib';
+import { baseTeams, createInstance, FUTSAL_5, insertSpecies, Rng, SPECIES, species, type TeamSetup } from './lib';
 
 const N = Number(process.argv[2]) || 100;
 const OUT = process.argv[3] ?? 'coach.json';
@@ -46,6 +46,13 @@ function withCapType(t: TeamSetup, i: number): TeamSetup {
         const pos = team.lineup.indexOf(inst);
         if (pos === 0 || maxFxType(inst.moves, id, species(id).types) !== CAPTYPE) continue;
         return { ...team, captainUid: inst.uid };
+    }
+    // sem vaga natural de linha (Clefairy e Clefable são goleiros): entra de pivô
+    for (const id of capPool) {
+        const inst = createInstance(id, new Rng(`ins-${i}-${id}`));
+        if (maxFxType(inst.moves, id, species(id).types) !== CAPTYPE) continue;
+        const lineup = t.lineup.map((p, k) => (k === t.lineup.length - 1 ? inst : p));
+        return { ...t, lineup, captainUid: inst.uid };
     }
     throw new Error(`sem capitão ${CAPTYPE} na partida ${i}`);
 }

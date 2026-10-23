@@ -4,7 +4,8 @@ description: Golpe máximo N3 com efeito do tipo do capitão (15 tipos da Gen 1)
 
 # Golpe máximo por tipo, e depois por Pokémon (proposta, 23/10/2026)
 
-Ideia aprovada pelo Miguel em 22/10. **É só proposta: nada foi mudado no código.** Base: [golpe-maximo-niveis.md](golpe-maximo-niveis.md)
+Ideia aprovada pelo Miguel em 22/10; as decisões, como recomendadas, em 23/10. **Fase 1 implementada (motor 12, branch
+`golpe-tipo`, atrás de `?tipo=1`): ver [Fase 1 no código](#fase-1-no-código-2310).** Base: [golpe-maximo-niveis.md](golpe-maximo-niveis.md)
 (3 níveis, motor 11, na 0.9.14), que deixou o efeito especial do N3 pra esta frente, e
 [golpes-por-tipo.md](golpes-por-tipo.md) (de onde vem o golpe de cada um). Código lido: `src/engine/agency.ts`
 (`AGENCY.maxLevelShot`, `maxCharge`), `src/engine/match.ts` (`maxShot`, `maxMoveOf`, o laço de bloqueio e defesa do
@@ -256,3 +257,110 @@ Fase 1 inteira: uma versão (0.9.15 ou 0.9.16), ~1 semana com revisão. Fase 2: 
 10. **Volume do N3:** se a medida mostrar a política "segura pro N3" abaixo de +1 pp com o efeito, baixar o gomo pra
     10 pontos (N3 ~min 26)? *Recomendo medir o efeito primeiro e trazer o gomo de 10 como 2º passo, com antes/depois.*
 11. **Bandeira:** fase 1 atrás de `?maximo-tipo=1` até você jogar na prévia (ADR 0005)? *Recomendo sim.*
+
+12. **Precisão do N3:** 43% dos chutes N3 iam pra fora. Dar mais precisão ao N3, sem bandeira (vale também pro golpe
+    máximo de hoje)? *Aprovado em 23/10.*
+
+## Fase 1 no código (23/10)
+
+O que entrou (motor 12; a integração junta com os patrocínios, que também usam o 12):
+
+- **Decisão 12, sem bandeira:** o alvo do chute N3 chega pro meio do gol (`AGENCY.maxAim` = 0,6 da distância do meio;
+  a IA mirava a 0,3 m da trave). N1 e N2 iguais bit a bit (as 8 partidas antigas do golden master não mudaram).
+- **Efeito do tipo, atrás de `?tipo=1` (ou `?maximo-tipo=1`, `MatchConfig.maxType`):** só no N3, com o ícone do tipo
+  apagado no botão no N1 e no N2 e aceso no N3 (prévia, decisão 1). Tipo = o do golpe máximo se for STAB, senão o 1º
+  (`maxFxType`, decisão 2; Aço vira Normal). A nota do toque não mexe no efeito (decisão 3). Os líderes rivais também
+  usam (decisão 8). Fada = Brilho da lua (decisão 7). A Liga roda sem a bandeira; o Duelo compara a versão 12.4.
+- **Números num lugar só:** `AGENCY.maxType` (`src/engine/agency.ts`); ganchos em `kick`/`maxFxShot` (na hora do
+  chute), no bloqueio e na defesa (`checkShotInteractions`, `maxFxStop`), na bola (`updateBall`, curva) e na posse
+  (`checkPossession`, voleio do Lutador). Evento novo `maxFx` (`shot`/`hit`).
+- **Ajustes da tabela pra caber no motor:** o goleiro **nunca** fica parado (parado = sem defesa nenhuma, o N3 virava
+  gol certo). Então Terrestre derruba só a linha (o goleiro alcança x0,8), Água empurra o goleiro 1 m sem derrubar,
+  Planta e Fada viram alcance (x0,86 e x0,85). Venenoso ganhou o efeito na hora (a nuvem envenena e quem está nela não
+  bloqueia). Pedra = fura o 1º bloqueio e espalma curto (sem as pedras no chão).
+- **Tela:** a faixa grande do N3 leva o nome do efeito na cor do tipo; a receita de um golpe do tipo (`move-fx.ts`) vai
+  do capitão ao goleiro; estouro do tipo na bola e o rastro do tipo; quem é pego ganha um texto curto ("Queimou!",
+  "Pulou na isca!"). Demo: `?demo=maximo&nivel=3&tipo=1&capitao=<id>`.
+- **Testes:** `src/engine/max-type.test.ts` (um por efeito, imunidades, bandeira desligada, determinismo) e 2 partidas
+  novas no golden master (`maxTypeMatch`: o robô n3 e o Lance).
+
+### Precisão do N3 (decisão 12)
+
+`scripts/balance/maximo-tipo.ts`, 400 partidas, política n3, nota 40/40/20, mesmas seeds (140 chutes N3, ± ≈ 4 pp):
+
+| Desfecho do N3 | Motor 11 | Motor 12 (mira) | Motor 12 + tipo |
+|---|---:|---:|---:|
+| gol | 38,6% | **53,6%** | 60,0% |
+| pra fora | **37,9%** | **17,9%** | 16,4% |
+| trave | 7,9% | 8,6% | 5,7% |
+| bloqueio | 7,1% | 11,4% | 7,1% |
+| defesa | 6,4% | 6,4% | 8,6% |
+
+### Robô por tipo (n=200)
+
+`MAXTIPO=1 CAPTYPE=<tipo> POLS=n3 npx tsx scripts/balance/coach.ts 200 out.json 4 max`: o capitão de linha do robô é
+de cada tipo (rodízio pelas espécies), política "segura pro N3" contra "nunca usa", mesmas seeds (± 1,3 a 2,4 pp):
+
+| Tipo | Δ vitória (pp) | ± | N3/jogo | Gol do N3/jogo |
+|---|---:|---:|---:|---:|
+| Água | **+3,5** | 2,1 | 0,37 | 0,22 |
+| Terrestre | **+3,5** | 1,5 | 0,24 | 0,12 |
+| Gelo | +3,0 | 2,2 | 0,48 | 0,30 |
+| Psíquico | +2,5 | 1,8 | 0,49 | 0,39 |
+| Elétrico | +2,0 | 2,2 | 0,44 | 0,28 |
+| Venenoso | +2,0 | 1,9 | 0,37 | 0,20 |
+| Inseto | +2,0 | 2,0 | 0,39 | 0,23 |
+| Pedra | +2,0 | 1,9 | 0,36 | 0,21 |
+| Voador | +1,5 | 2,4 | 0,51 | 0,24 |
+| Normal | +1,0 | 1,9 | 0,32 | 0,17 |
+| Planta | +1,0 | 2,1 | 0,49 | 0,28 |
+| Fogo | +0,5 | 1,5 | 0,34 | 0,20 |
+| Lutador | +0,5 | 1,8 | 0,22 | 0,14 |
+| Dragão | +0,5 | 1,3 | 0,35 | 0,20 |
+| Fada | +0,5 | 0,5 | 0,18 | 0,11 |
+| Fantasma | +0,0 | 2,4 | 0,45 | 0,23 |
+| **Média** | **+1,7** | | | |
+
+Política geral (capitão sorteado, 200 partidas pareadas):
+
+| Política (Δ vs nunca) | Motor 11 | Motor 12 (mira) | Motor 12 + tipo |
+|---|---:|---:|---:|
+| n1 (solta no 1º gomo) | +0,5 | +0,5 ± 3,4 | +0,5 ± 3,4 |
+| **n3 (segura pro 3º)** | +0,0 | **+1,5 ± 2,2** | **+3,5 ± 2,2** |
+
+Calibrate com o técnico IA nos dois times (`npm run calibrate -- --n 200 --agencia [--tipo]`):
+
+| | Gols/jogo | Favorito vence | Goleadas | Máximos/jogo (N1/N2/N3) | Viraram gol |
+|---|---:|---:|---:|---|---:|
+| Motor 11 (0.9.14) | 7,99 | 64,5% | 1,5% | 0,61 (0,04/0,41/0,15) | 0,22 |
+| Motor 12 | 7,99 | 65,9% | 1,5% | 0,60 (0,04/0,41/0,15) | 0,22 |
+| Motor 12 + tipo | 7,96 | 65,2% | 1,5% | 0,58 (0,03/0,41/0,15) | 0,23 |
+
+O que dá pra ler:
+
+- **Precisão: pra fora caiu de 38% pra 18%** e o gol do N3 subiu de 39% pra 54%. Só isso já faz segurar compensar
+  (+1,5 pp, era +0,0).
+- **Meta (decisão 5): segurar fica em +1 a +3 pp na média dos tipos (+1,7) e na política geral (+3,5 ± 2,2, no teto).**
+  Por tipo, Água e Terrestre (+3,5) passam 0,3 pp do limite "média + 1,5" (3,2), dentro do erro da medida (± 1,5 a
+  2,1). No fundo, Fantasma (+0,0), Fogo, Lutador, Dragão e Fada (+0,5). Os extremos ficam a 3,5 pp um do outro, o que
+  com n=200 ainda é quase todo ruído. Pra cravar, 384 por tipo nos extremos (Água, Terrestre, Fantasma).
+- **Gomo de 10 pontos (decisão 10): não precisa.** Segurar já passou de +1 pp.
+- O calibrate quase não mexe (os rivais soltam pouco N3: 0,15 por jogo).
+- **Psíquico** (o mais perigoso na proposta) ficou no meio (+2,5): a mira nova já tirou o balde de "pra fora" que ele
+  ia corrigir. **Venenoso** subiu com o efeito na hora (+2,0). **Terrestre** é o que mais pede o olho (+3,5): se
+  incomodar, o goleiro x0,85 em vez de x0,8.
+
+Prints (headless, `?demo=maximo&nivel=3&tipo=1&capitao=6|65|51|94`, 390 e 1440): o ícone do tipo aceso no botão do
+N3, a faixa "BOLA EM CHAMAS!" / "BOLA FANTASMA!" e a receita do tipo no lance. Pra ver de verdade: jogar na prévia.
+
+### Rascunho das Novidades
+
+Título: **Golpe máximo com a cara do capitão**
+
+- O chute do nível 3 agora mira mais pro meio do gol: bem menos bola pra fora
+- (com `?tipo=1`, até o Miguel jogar) No nível 3, o golpe máximo ganha o efeito do tipo do capitão
+- Charizard solta a bola em chamas, Blastoise empurra a defesa com uma onda, Gengar atravessa o zagueiro
+- Alakazam curva a bola, Dugtrio faz a quadra tremer, Scyther solta um enxame e o goleiro pula na isca
+- O ícone do tipo aparece no botão: apagado no nível 1 e 2, aceso no 3
+- Capitão de dois tipos: vale o tipo do golpe máximo, se for do tipo dele
+- Os líderes também usam: o Lance solta a Fúria do dragão
