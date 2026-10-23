@@ -2193,7 +2193,8 @@ export class MatchScene extends Phaser.Scene {
                             color: '#ffd447',
                             stroke: '#4a2a00',
                             at: { x: cap.sprite.x, y: cap.sprite.y },
-                            sub: e.moveId ? (MOVES[e.moveId]?.name ?? cap.name) : cap.name,
+                            // a nota do toque também na faixa grande (o texto pequeno fica atrás dela)
+                            sub: `${e.q === 2 ? `${dict().match.agency.maxPerfect} · ` : ''}${e.moveId ? (MOVES[e.moveId]?.name ?? cap.name) : cap.name}`,
                         });
                     }
                 }
@@ -2461,6 +2462,10 @@ export class MatchScene extends Phaser.Scene {
             .setOrigin(0.5)
             .setDepth(9000)
             .setResolution(2);
+        // não corta na beira da quadra (o texto do nível é mais comprido)
+        const v = this.cameras.main.worldView;
+        const half = t.displayWidth / 2 + 4;
+        if (v.width > 2 * half) t.x = Phaser.Math.Clamp(t.x, v.x + half, v.right - half);
         if (dy) {
             t.setScale(0.6);
             this.tweens.add({ targets: t, scale: 1, duration: 250, ease: 'Back.easeOut' });
