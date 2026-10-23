@@ -55,3 +55,19 @@ export function placeBalloon(hole: Box, b: { width: number; height: number }, vw
         arrow: 0,
     };
 }
+
+/** Seletor do que "tocar fora do balão" deve seguir: o toque fecha o balão e ainda vale pro botão tocado. */
+export const TAPPABLE = 'button, a[href], [role="button"], input, select, summary, label';
+
+type Hit = { closest(sel: string): Hit | null };
+
+/** De `document.elementsFromPoint`: o 1º que não é do próprio balão, subindo até o botão/link. */
+export function tappableUnder<T extends Hit>(stack: readonly T[]): T | null {
+    const under = stack.find((n) => !n.closest('.coach'));
+    return (under?.closest(TAPPABLE) as T | null | undefined) ?? null;
+}
+
+/** Só rola a página se o alvo estiver (em parte) fora da tela; alvo que já cabe não mexe na rolagem (o logo fica). */
+export function needsScroll(r: { top: number; bottom: number }, vh: number): boolean {
+    return r.top < 0 || r.bottom > vh;
+}

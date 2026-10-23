@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { COACH_EVENTS, EVENT_NAMES, pickedReward, sendable } from './track';
+import { COACH_EVENTS, EVENT_NAMES, isBot, pickedReward, sendable } from './track';
 
 describe('nomes dos eventos', () => {
     it('a lista do cliente é a da última migração do game_events_name_check (fora dela, o lote inteiro dá 400)', () => {
@@ -39,5 +39,27 @@ describe('pickedReward', () => {
         expect(pickedReward(before, run([mon('a', ['bubblebeam', 'growl']), before.picks[1]]))?.kind).toBe('tm');
         expect(pickedReward(before, run([before.picks[0], mon('b', ['ember'], 'leftovers')]))?.kind).toBe('item');
         expect(pickedReward(before, before)).toBeNull();
+    });
+});
+
+describe('isBot', () => {
+    const ua = {
+        chrome: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
+        cubot: 'Mozilla/5.0 (Linux; Android 10; CUBOT KingKong 5 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36',
+        googlebot:
+            'Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0 Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+        headless:
+            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0 Safari/537.36',
+    };
+
+    it('navegador automatizado (Playwright, Puppeteer: os testes no ar contavam como desktop novo) e rastreador não contam', () => {
+        expect(isBot({ webdriver: true, userAgent: ua.chrome })).toBe(true);
+        expect(isBot({ webdriver: false, userAgent: ua.googlebot })).toBe(true);
+        expect(isBot({ webdriver: false, userAgent: ua.headless })).toBe(true);
+    });
+
+    it('gente conta, inclusive celular com "bot" no nome', () => {
+        expect(isBot({ webdriver: false, userAgent: ua.chrome })).toBe(false);
+        expect(isBot({ webdriver: false, userAgent: ua.cubot })).toBe(false);
     });
 });
