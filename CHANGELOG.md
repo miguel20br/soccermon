@@ -1,5 +1,24 @@
 # Novidades
 
+## 0.9.16 · Golpe máximo por tipo e 4 Patrocínios (2026-10-23)
+
+### Golpe máximo por tipo
+- No nível 3, o golpe máximo ganha o efeito do tipo do capitão: um efeito pra cada um dos 16 tipos
+- Charizard solta a Bola em chamas, Blastoise empurra a defesa com a Onda e Gengar atravessa o zagueiro com a Bola fantasma
+- Alakazam curva a bola, Dugtrio derruba os zagueiros a até 6 m do gol e Scyther solta o Enxame: o goleiro pode pular na isca
+- Pikachu solta o Raio: bola x1,15 mais rápida e quem bloquear ou defender fica paralisado por 1,5 s
+- O ícone do tipo aparece no botão: apagado nos níveis 1 e 2, aceso no 3
+- Capitão de dois tipos: vale o tipo do golpe máximo, se for um dos tipos dele
+- Os líderes rivais também usam o efeito do capitão deles
+- O chute do nível 3 mira mais pro meio do gol: bem menos bola pra fora
+
+### Patrocínios
+- 4 Patrocínios novos no Mercado, ₽10 cada
+- Olheiro de Viridian: Pokémon avulsos e pacotes do Mercado com a raridade da fase seguinte
+- Preparador de Lavender: +6 de fôlego pro time todo
+- Charanga de Pewter: +4 em tudo enquanto o time perde. Quando ela entra, aparece "A CHARANGA ENTROU" na quadra
+- Clube Formador de Pallet: pontos pro seu time evoluir 14 ⇒ 10
+
 ## 0.9.15 · Rota de baby (2026-10-23)
 
 ### Rota Índigo

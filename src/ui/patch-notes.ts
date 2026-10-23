@@ -9,6 +9,36 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.16',
+        date: '2026-10-23',
+        title: 'Golpe máximo por tipo e 4 Patrocínios',
+        sections: [
+            {
+                title: 'Golpe máximo por tipo',
+                lines: [
+                    'No nível 3, o golpe máximo ganha o efeito do tipo do capitão: um efeito pra cada um dos 16 tipos',
+                    'Charizard solta a Bola em chamas, Blastoise empurra a defesa com a Onda e Gengar atravessa o zagueiro com a Bola fantasma',
+                    'Alakazam curva a bola, Dugtrio derruba os zagueiros a até 6 m do gol e Scyther solta o Enxame: o goleiro pode pular na isca',
+                    'Pikachu solta o Raio: bola x1,15 mais rápida e quem bloquear ou defender fica paralisado por 1,5 s',
+                    'O ícone do tipo aparece no botão: apagado nos níveis 1 e 2, aceso no 3',
+                    'Capitão de dois tipos: vale o tipo do golpe máximo, se for um dos tipos dele',
+                    'Os líderes rivais também usam o efeito do capitão deles',
+                    'O chute do nível 3 mira mais pro meio do gol: bem menos bola pra fora',
+                ],
+            },
+            {
+                title: 'Patrocínios',
+                lines: [
+                    '4 Patrocínios novos no Mercado, ₽10 cada',
+                    'Olheiro de Viridian: Pokémon avulsos e pacotes do Mercado com a raridade da fase seguinte',
+                    'Preparador de Lavender: +6 de fôlego pro time todo',
+                    'Charanga de Pewter: +4 em tudo enquanto o time perde. Quando ela entra, aparece "A CHARANGA ENTROU" na quadra',
+                    'Clube Formador de Pallet: pontos pro seu time evoluir 14 ⇒ 10',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.15',
         date: '2026-10-23',
         title: 'Rota de baby',
@@ -1478,6 +1508,36 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.16',
+        date: '2026-10-23',
+        title: 'Max move by type and 4 Sponsors',
+        sections: [
+            {
+                title: 'Max move by type',
+                lines: [
+                    "At level 3, the max move gets the effect of the captain's type: one effect for each of the 16 types",
+                    'Charizard fires the Fireball, Blastoise pushes the defense with the Wave and Gengar goes through the defender with the Ghost Ball',
+                    'Alakazam curves the ball, Dugtrio knocks down the defenders within 6 m of the goal and Scyther sends the Swarm: the keeper may take the bait',
+                    'Pikachu fires Lightning: the ball is x1.15 faster and whoever blocks or saves it is paralyzed for 1.5 s',
+                    'The type icon shows on the button: dim at levels 1 and 2, lit at 3',
+                    "Dual-type captain: the max move's type counts, if it is one of the captain's types",
+                    "Rival leaders also use their captain's effect",
+                    'The level 3 shot aims closer to the middle of the goal: far fewer shots go wide',
+                ],
+            },
+            {
+                title: 'Sponsors',
+                lines: [
+                    '4 new Sponsors in the Market, ₽10 each',
+                    'Viridian Scout: single Pokémon and packs in the Market with the next stage rarity',
+                    'Lavender Trainer: +6 stamina for the whole team',
+                    'Pewter Drum Band: +4 to everything while your team is losing. When it starts, "THE DRUMS KICK IN" shows on the court',
+                    'Pallet Youth Club: points for your team to evolve 14 ⇒ 10',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.15',
         date: '2026-10-23',
