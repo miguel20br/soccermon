@@ -5,8 +5,12 @@
 // A ordem vale `40 × velocidade` ticks à frente, como na copa; o golpe máximo, no próprio tick (o botão só acende na
 // hora certa: `maxCue`). CAP=gk: o capitão do robô é o goleiro (defesa máxima).
 // RIVAL=1: o time 1 ganha o técnico IA que reage (src/engine/rival-coach.ts), um líder por partida (em rodízio).
+// MAX3=1: golpe máximo em 3 níveis (`maxLevels`, golpe-maximo-niveis.md), com a nota do toque sorteada aqui fora (40%
+// perfeito, 40% bom, 20% fora) e mais duas políticas: n1 (solta no 1º gomo) e n3 (segura pro 3º).
+// Golpes e gols do máximo saem por nível (sem MAX3, o máximo de 1 nível conta como N2: é o mesmo efeito).
 import { writeFileSync } from 'node:fs';
 import { AGENCY, maxCharge } from '../../src/engine/agency';
+import { withConfig } from '../../src/engine/config';
 import { inMaxZoneOf, minuteOf } from '../../src/engine/match';
 import { COACH_LEADERS, RIVAL_COACH } from '../../src/engine/rival-coach';
 import { LiveRunner } from '../../src/engine/runners/live-runner';
@@ -20,13 +24,15 @@ const MECHS = (process.argv[5] ?? 'timeout,flyGk,max,pens,all').split(',');
 const CAP_GK = process.env.CAP === 'gk';
 const LEAD = 40 * SPEED;
 const RIVAL = process.env.RIVAL === '1';
+const MAX3 = process.env.MAX3 === '1';
+const CFG = MAX3 ? withConfig({ maxLevels: true }) : FUTSAL_5;
 // variantes pra comparar (ex.: AG_maxGkReach=1.4): mexe só nesta rodada do robô, nunca no jogo
 for (const [k, v] of Object.entries(process.env)) {
     if (k.startsWith('AG_') && v) (AGENCY as unknown as Record<string, number>)[k.slice(3)] = Number(v);
     // técnico IA rival (ex.: RC_leadTicks=200: avisa 10 s antes)
     if (k.startsWith('RC_') && v) (RIVAL_COACH as unknown as Record<string, number>)[k.slice(3)] = Number(v);
 }
-type Policy = 'never' | 'random' | 'good';
+type Policy = 'never' | 'random' | 'good' | 'n1' | 'n3';
 
 interface Plan {
     timeouts: number[];
@@ -57,6 +63,9 @@ interface Out {
     maxStarts: number;
     maxHits: number;
     maxGoals: number;
+    /** Golpes que saíram e gols deles, por nível (N1, N2, N3). */
+    hitsBy: number[];
+    goalsBy: number[];
     /** Defesas máximas que saíram (capitão goleiro). */
     maxSaves: number;
     flyGf: number;
@@ -71,7 +80,12 @@ function play(i: number, mech: string, policy: Policy): Out {
     const { A: A0, B } = baseTeams(i);
     const A = CAP_GK ? { ...A0, captainUid: A0.lineup[0].uid } : A0;
     const away = RIVAL ? { ...B, coach: COACH_LEADERS[i % COACH_LEADERS.length] } : B;
-    const runner = new LiveRunner(FUTSAL_5, A, away, `coach-${i}`);
+    const runner = new LiveRunner(CFG, A, away, `coach-${i}`);
+    const gradeRng = new Rng(`coach-${i}`, 'grade');
+    const grade = () => {
+        const r = gradeRng.next();
+        return r < 0.4 ? 2 : r < 0.8 ? 1 : 0;
+    };
     const s = runner.state;
     const plan = randomPlan(i);
     const use = (m: string) => policy !== 'never' && (mech === m || mech === 'all');
@@ -97,13 +111,21 @@ function play(i: number, mech: string, policy: Policy): Out {
         const cue =
             cap.role === 'GK' ? owner.team === 1 && inMaxZoneOf(s, owner, 'GK') : owner === cap && inMaxZoneOf(s, cap);
         if (!cue) return;
-        const c = maxCharge(s.events, 0, s.tick, FUTSAL_5.teamSize);
-        if (c.charge < 1 || c.used || c.active) return;
+        const c = maxCharge(s.events, 0, s.tick, FUTSAL_5.teamSize, MAX3);
+        if (c.level < 1 || c.used || c.active) return;
         const min = minuteOf(s);
         fullAt ??= min;
-        // aleatório: deixa passar umas chances antes de tocar; bom: toca na 1ª com o jogo apertado (ou perdendo)
-        const go = policy === 'random' ? min >= fullAt + plan.maxDelay : s.score[0] - s.score[1] <= 1;
-        if (go) order({ kind: 'max' }, 0);
+        // aleatório: deixa passar umas chances antes de tocar; bom: toca na 1ª com o jogo apertado (ou perdendo);
+        // n1: toca sempre que acende; n3: só com os 3 gomos
+        const go =
+            policy === 'n1'
+                ? true
+                : policy === 'n3'
+                  ? c.level >= 3
+                  : policy === 'random'
+                    ? min >= fullAt + plan.maxDelay
+                    : s.score[0] - s.score[1] <= 1;
+        if (go) order(MAX3 ? { kind: 'max', q: grade() } : { kind: 'max' }, 0);
     }
     function decide() {
         const min = minuteOf(s);
@@ -149,6 +171,8 @@ function summarize(s: MatchState): Out {
         maxStarts: 0,
         maxHits: 0,
         maxGoals: 0,
+        hitsBy: [0, 0, 0],
+        goalsBy: [0, 0, 0],
         maxSaves: 0,
         flyGf: 0,
         flyGa: 0,
@@ -157,7 +181,7 @@ function summarize(s: MatchState): Out {
         rivalCalls: ev.filter((e) => e.type === 'coach' && e.team === 1).length,
     };
     let fly = false;
-    let lastMaxHit: { tick: number; by: number } | null = null;
+    let lastMaxHit: { tick: number; by: number; lv: number } | null = null;
     for (const e of ev) {
         if (e.type === 'max' && e.team === 0) {
             if (e.phase === 'start') o.maxStarts++;
@@ -168,7 +192,9 @@ function summarize(s: MatchState): Out {
                 )
                     o.maxSaves++;
                 o.maxHits++;
-                lastMaxHit = { tick: e.tick, by: e.by };
+                const lv = (e.level ?? 2) - 1;
+                o.hitsBy[lv]++;
+                lastMaxHit = { tick: e.tick, by: e.by, lv };
             }
         }
         if (e.type === 'flyGk' && e.team === 0) fly = e.on;
@@ -176,7 +202,10 @@ function summarize(s: MatchState): Out {
         if (e.type === 'goal') {
             if (fly && e.team === 0) o.flyGf++;
             if (fly && e.team === 1) o.flyGa++;
-            if (lastMaxHit && e.team === 0 && e.by === lastMaxHit.by && e.tick - lastMaxHit.tick < 80) o.maxGoals++;
+            if (lastMaxHit && e.team === 0 && e.by === lastMaxHit.by && e.tick - lastMaxHit.tick < 80) {
+                o.maxGoals++;
+                o.goalsBy[lastMaxHit.lv]++;
+            }
             lastMaxHit = null;
         }
     }
@@ -186,10 +215,12 @@ function summarize(s: MatchState): Out {
 const configs: [string, Policy][] = [['none', 'never']];
 for (const m of MECHS) {
     configs.push([m, 'random'], [m, 'good']);
+    if (MAX3 && m === 'max') configs.push([m, 'n1'], [m, 'n3']);
 }
 const res: Record<string, Out[]> = {};
 const t0 = Date.now();
 console.log(RIVAL ? 'rival reagindo (técnico IA, líderes em rodízio)' : 'rival parado (como hoje)');
+console.log(MAX3 ? 'golpe máximo em 3 níveis (MAX3)' : 'golpe máximo de 1 nível (motor 10)');
 for (const [m, p] of configs) {
     const key = `${m}:${p}`;
     res[key] = [];
@@ -212,7 +243,7 @@ for (const [key, rows] of Object.entries(res)) {
     const [m, p] = key.split(':');
     const extra = [
         avg((r) => r.maxHits + r.maxStarts)
-            ? `máx sai ${avg((r) => r.maxHits).toFixed(2)}/jogo, gol ${avg((r) => r.maxGoals).toFixed(2)}, defesa ${avg((r) => r.maxSaves).toFixed(2)}`
+            ? `máx sai ${avg((r) => r.maxHits).toFixed(2)}/jogo (N1/N2/N3 ${[0, 1, 2].map((k) => avg((r) => r.hitsBy[k]).toFixed(2)).join('/')}), gol ${avg((r) => r.maxGoals).toFixed(2)} (${[0, 1, 2].map((k) => avg((r) => r.goalsBy[k]).toFixed(2)).join('/')}), defesa ${avg((r) => r.maxSaves).toFixed(2)}`
             : '',
         avg((r) => r.flyGf + r.flyGa)
             ? `goleiro-linha: ${avg((r) => r.flyGf).toFixed(2)} pró, ${avg((r) => r.flyGa).toFixed(2)} contra`

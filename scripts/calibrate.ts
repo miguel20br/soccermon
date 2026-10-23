@@ -4,9 +4,10 @@
  *
  * Uso: npm run calibrate -- --n 2000 [--csv out.csv] [--agencia]
  * --agencia: os dois times com o técnico IA da beira da quadra (src/engine/rival-coach.ts), líderes em rodízio.
+ * --maximo3: golpe máximo em 3 níveis (`maxLevels`, docs/planos/golpe-maximo-niveis.md); com --agencia, golpes por nível.
  */
 import { writeFileSync } from 'node:fs';
-import { FUTSAL_5 } from '../src/engine/config';
+import { FUTSAL_5, withConfig } from '../src/engine/config';
 import { species } from '../src/engine/data';
 import { aiDraftTeam } from '../src/engine/draft';
 import { FORMATIONS, type FormationId } from '../src/engine/formations';
@@ -21,6 +22,7 @@ const N = Number(args[args.indexOf('--n') + 1]) || 500;
 const csvPath = args.includes('--csv') ? args[args.indexOf('--csv') + 1] : null;
 const TACTICS: Tactic[] = ['balanced', 'offensive', 'defensive', 'counter'];
 const AGENCIA = args.includes('--agencia');
+const CFG = args.includes('--maximo3') ? withConfig({ maxLevels: true }) : FUTSAL_5;
 
 const rng = new Rng('calibrate');
 
@@ -192,6 +194,9 @@ let comebacks = 0;
 let maxHits = 0;
 let maxGoals = 0;
 let gkMax = 0;
+/** Golpes máximos por nível (N1, N2, N3; o de 1 nível conta como N2) e notas (fora, bom, perfeito). */
+const maxByLevel = [0, 0, 0];
+const maxByGrade = [0, 0, 0];
 const rows: string[] = ['seed,home,away,strHome,strAway,tactHome,tactAway,shootout'];
 const t0 = performance.now();
 
@@ -206,7 +211,7 @@ for (let i = 0; i < N; i++) {
         home.coach = COACH_LEADERS[i % COACH_LEADERS.length];
         away.coach = COACH_LEADERS[(i + 3) % COACH_LEADERS.length];
     }
-    const r = runMatch(FUTSAL_5, home, away, i, { snapshots: false });
+    const r = runMatch(CFG, home, away, i, { snapshots: false });
     const total = r.score[0] + r.score[1];
     goals += total;
     scoreDist.set(total, (scoreDist.get(total) ?? 0) + 1);
@@ -222,6 +227,8 @@ for (let i = 0; i < N; i++) {
     for (const e of r.events) {
         if (e.type === 'max' && e.phase === 'hit') {
             maxHits++;
+            maxByLevel[(e.level ?? 2) - 1]++;
+            if (e.q !== undefined) maxByGrade[e.q]++;
             if (r.roster[e.by]?.role === 'GK') gkMax++;
             hit = { tick: e.tick, by: e.by };
         } else if (e.type === 'goal' && hit) {
@@ -325,6 +332,6 @@ console.log(
 );
 if (AGENCIA)
     console.log(
-        `golpe máximo: ${per(maxHits)} saíram/jogo (${per(gkMax)} de goleiro), ${per(maxGoals)} viraram gol/jogo`,
+        `golpe máximo: ${per(maxHits)} saíram/jogo (${per(gkMax)} de goleiro), ${per(maxGoals)} viraram gol/jogo; N1/N2/N3 ${maxByLevel.map(per).join('/')}; fora/bom/perfeito ${maxByGrade.map(per).join('/')}`,
     );
 if (csvPath) writeFileSync(csvPath, rows.join('\n'));
