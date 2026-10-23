@@ -286,3 +286,41 @@ export function aiDraftTeam(
     const captain = lineup.reduce((best, p) => (overall(p) > overall(best) ? p : best));
     return { lineup, bench: picks.slice(needs.length - BENCH_SIZE), captainUid: captain.uid };
 }
+
+// ------------------------------------------------------------------------------ Rota: pré-evoluções (docs/planos/rota-pre-evolucoes.md)
+
+/** Forma-base da linha evolutiva (a própria espécie se não tem `prevo`). */
+export function rootOf(id: number): number {
+    let sp = species(id);
+    while (sp.prevo) sp = species(sp.prevo);
+    return sp.id;
+}
+
+/** Nota máxima da espécie em qualquer posição que ela joga. */
+const bestRating = (sp: Species) => Math.max(...Object.values(speciesProfile(sp).ratings));
+/** Sem linha evolutiva dentro dos 151 (nem `prevo`, nem quem evolua dela). */
+const loneSpecies = (sp: Species) => !sp.prevo && !SPECIES.some((o) => o.prevo === sp.id);
+/** Nota máxima que um sem-linha pode ter no draft inicial da Rota; os mais fortes entram por Baú e reforços. */
+export const LONE_START_MAX = 74;
+
+/** Espécies que não saem no draft inicial nem no capitão da Rota: sem linha e acima de `LONE_START_MAX`. */
+export const ROUTE_START_BANNED: ReadonlySet<number> = new Set(
+    SPECIES.filter((sp) => loneSpecies(sp) && bestRating(sp) > LONE_START_MAX).map((sp) => sp.id),
+);
+
+/**
+ * Cada opção vira a forma-base da linha (Charizard sai Charmander). Fica como está se a base já está no time
+ * (`taken`) ou já saiu nesta mesma rodada. Mantém o `uid` da opção.
+ */
+export function babyOptions(options: PokemonInstance[], rng: Rng, taken: ReadonlySet<number>): PokemonInstance[] {
+    const used = new Set<number>();
+    return options.map((o) => {
+        const root = rootOf(o.speciesId);
+        if (root === o.speciesId || taken.has(root) || used.has(root)) {
+            used.add(o.speciesId);
+            return o;
+        }
+        used.add(root);
+        return { ...createInstance(root, rng), uid: o.uid };
+    });
+}
