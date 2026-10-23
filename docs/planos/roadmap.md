@@ -2,7 +2,7 @@
 description: Roadmap do Soccermon: o que vem depois.
 ---
 
-# Roadmap do Soccermon (atualizado em 16/10/2026)
+# Roadmap do Soccermon (atualizado em 23/10/2026)
 
 **Plano de lançamento e versões 0.8.3 → 1.0: [lancamento.md](lancamento.md).** Tela de campeão: [tela-campeao.md](tela-campeao.md).
 
@@ -21,6 +21,23 @@ As memórias de preferência do Miguel (cópia das do Claude no PC) estão em [.
 | 0.7.2 | Bônus de time recalculados nas trocas e evoluções, privacidade e "Apagar minha conta", preparação para abrir o repo |
 | 0.8 | Perfil, Pokédex, Golpedex, golpes da Gen 1, MT do ginásio, jogo em inglês, estatísticas anônimas |
 | 0.8.2 | Hall da Fama com desfile, prêmios e seleção da copa, recordes, gols da campanha, card do título 9:16/1:1, celular deitado, Mimic |
+| 0.8.3–0.8.9 | Partida com peso, escanteio, Duelo ao vivo, Copa do Dia, melhores momentos, emotes, álbum de figurinhas, Sala de troféus |
+| 0.9.0–0.9.5 | Mercado e Patrocínios, Rota Índigo, golpes revisados, Duelo melhor de 3, formações com comportamento |
+| 0.9.6–0.9.13 | Beira da quadra, MTs mais fortes, música própria no jogo (temas dos líderes, viradas, tudo na batida), time no ranking |
+| 0.9.14–0.9.16 | Golpe máximo em 3 níveis na batida e por tipo, Rota de baby (pré-evoluções), 4 patrocínios novos, botão Esperar |
+
+## Agora (23/10/2026)
+
+Ritmo novo: versões menos frequentes e polidas, revisão dupla antes do "pode subir", trailerzinho por versão.
+
+- **0.9.17 (em andamento):** N3 com cara de especial de luta (hitstop, faixa com retrato), reação de quem é atingido
+  em todos os golpes de efeito, botões compactos no celular deitado pequeno, conserto do balão do tutorial e medição
+  nova do funil ([funil-boas-vindas.md](funil-boas-vindas.md)).
+- **Decidir com o Miguel:** Home da 1ª visita com um botão só e "Monta pra mim" como principal na 1ª copa (funil);
+  nomes que se embolam na quadra em pé; títulos dos creators (branch `titulos-creators`, nunca juntada).
+- **Depois:** golpe máximo por tipo fase 2 (12 assinaturas) e goleiro por tipo
+  ([golpe-maximo-por-tipo.md](golpe-maximo-por-tipo.md)); patrocínio Agente (botão Vender) e revisão do S.S. Anne
+  ([patrocinios-novos.md](patrocinios-novos.md)); jogo de ritmo como ideia.
 
 ## Agora (antes de divulgar)
 
