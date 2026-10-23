@@ -381,6 +381,121 @@ export class Cinematics {
         });
     }
 
+    /**
+     * Hitstop do N3: a tela inteira tingida da cor do tipo, sumindo em `ms` (a quadra congela por fora, na cena). Fica
+     * abaixo da bola (`depth`).
+     */
+    hitTint(color: number, ms: number, alpha: number, depth: number) {
+        const r = this.scene.add
+            .rectangle(GAME_W / 2, GAME_H / 2, GAME_W * 3, GAME_H * 3, color, alpha)
+            .setDepth(depth)
+            .setBlendMode(Phaser.BlendModes.ADD);
+        this.scene.tweens.add({
+            targets: r,
+            fillAlpha: 0,
+            duration: ms,
+            ease: 'Quad.easeIn',
+            onComplete: () => r.destroy(),
+        });
+    }
+
+    /**
+     * Faixa do especial (N3, estilo Super de jogo de luta): diagonal atravessando a tela com o retrato PMD do capitão, o
+     * nome do golpe e o tipo em letra grande. Entra deslizando em 200 ms, fica ~0,6 s e sai pro outro lado em 220 ms
+     * ("Reduzir movimento": só aparece e some). Abaixo da bola (`depth`): ela nunca some atrás da faixa.
+     */
+    superBanner(opts: {
+        portrait: string | null;
+        move: string;
+        typeLabel: string;
+        color: number;
+        typeInk: number;
+        fromRight: boolean;
+        reduce: boolean;
+        depth: number;
+    }) {
+        const scene = this.scene;
+        const s = Math.min(this.uiScale, 1.6);
+        const W = (GAME_W * 1.6) / s;
+        const h = 74;
+        const k = 18;
+        const band = scene.add.graphics();
+        const para = (dx: number, dy: number, hh: number) => [
+            new Phaser.Math.Vector2(-W / 2 + dx, -hh / 2 + dy),
+            new Phaser.Math.Vector2(W / 2 + dx, -hh / 2 + dy),
+            new Phaser.Math.Vector2(W / 2 - k + dx, hh / 2 + dy),
+            new Phaser.Math.Vector2(-W / 2 - k + dx, hh / 2 + dy),
+        ];
+        band.fillStyle(0x0d1024, 0.95).fillPoints(para(0, 7, h + 10), true);
+        band.fillStyle(opts.color, 1).fillPoints(para(0, 0, h), true);
+        band.fillStyle(0xffffff, 0.3).fillRect(-W / 2, -h / 2, W, 4);
+        band.fillStyle(0x0d1024, 0.3).fillRect(-W / 2, h / 2 - 9, W, 9);
+        const content: Phaser.GameObjects.GameObject[] = [];
+        let x = 0;
+        const size = 84;
+        if (opts.portrait && scene.textures.exists(opts.portrait)) {
+            const frame = scene.add.graphics();
+            frame.fillStyle(0x0d1024, 1).fillRect(4, -size / 2 + 4, size, size);
+            frame.fillStyle(0xffffff, 1).fillRect(-3, -size / 2 - 3, size + 6, size + 6);
+            frame.fillStyle(0x0d1024, 1).fillRect(0, -size / 2, size, size);
+            const img = scene.add
+                .image(size / 2, 0, opts.portrait)
+                .setDisplaySize(size, size)
+                .setFlipX(opts.fromRight);
+            content.push(frame, img);
+            x = size + 16;
+        }
+        const big = scene.add
+            .text(x, -9, opts.move.toUpperCase(), {
+                fontFamily: 'Galmuri11, monospace',
+                fontSize: '30px',
+                fontStyle: 'bold',
+                color: '#ffffff',
+                stroke: '#0d1024',
+                strokeThickness: 7,
+            })
+            .setOrigin(0, 0.5)
+            .setResolution(2);
+        const tag = scene.add
+            .text(x + 10, 24, opts.typeLabel.toUpperCase(), {
+                fontFamily: 'Galmuri11, monospace',
+                fontSize: '20px',
+                fontStyle: 'bold',
+                color: Phaser.Display.Color.IntegerToColor(opts.typeInk).rgba,
+            })
+            .setOrigin(0, 0.5)
+            .setResolution(2);
+        const tagBg = scene.add.graphics();
+        tagBg.fillStyle(0x0d1024, 1).fillRoundedRect(x, 24 - 13, tag.width + 20, 26, 4);
+        content.push(big, tagBg, tag);
+        const width = x + Math.max(big.width, tag.width + 20);
+        const group = scene.add.container(-width / 2, 0, content);
+        const inner = scene.add.container(0, 0, [band, group]).setRotation(-0.1);
+        const holder = scene.add.container(0, 0, [inner]).setDepth(opts.depth);
+        this.pin(holder, GAME_W / 2, GAME_H * 0.6, s);
+        const dir = opts.fromRight ? -1 : 1;
+        const off = GAME_W / s;
+        const out = () => holder.destroy();
+        if (opts.reduce) {
+            inner.setAlpha(0);
+            scene.tweens.add({ targets: inner, alpha: 1, duration: 200 });
+            scene.tweens.add({ targets: inner, alpha: 0, delay: 800, duration: 220, onComplete: out });
+            return;
+        }
+        inner.x = -dir * off;
+        group.x += dir * 90;
+        scene.tweens.add({ targets: inner, x: 0, duration: 200, ease: 'Cubic.easeOut' });
+        scene.tweens.add({ targets: group, x: -width / 2, duration: 300, ease: 'Cubic.easeOut' });
+        scene.tweens.add({
+            targets: inner,
+            x: dir * off,
+            delay: 800,
+            duration: 220,
+            ease: 'Cubic.easeIn',
+            onComplete: out,
+        });
+    }
+
     /** Texto grande de drama no alto da tela (a câmera centraliza o lance; o texto não o cobre). */
     drama(
         text: string,
