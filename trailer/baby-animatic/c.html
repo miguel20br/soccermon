@@ -1,0 +1,156 @@
+<!doctype html>
+<!--
+  Animatic C, "Álbum da turma" (Rota de baby, 23/10/2026): 9 quadros parados, 9:16. Roteiro e tempos em c.txt;
+  música em scripts/musica/pecas/animatic-album.mjs. As fotos são cenas do jogo (quadras dos ginásios, folhas PMD)
+  dentro de polaroids; cartas da escolha de capitão da Rota de baby, logo e troféu do jogo (PixelTrophy).
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Animatic C · Álbum da turma</title>
+<script src="midia/sprites.js"></script>
+<script src="comum.js"></script>
+</head>
+<body>
+<section class="q" id="c1"></section>
+<section class="q" id="c2"></section>
+<section class="q" id="c3"></section>
+<section class="q" id="c4"></section>
+<section class="q" id="c5"></section>
+<section class="q" id="c6"></section>
+<section class="q" id="c7"></section>
+<section class="q" id="c8"></section>
+<section class="q" id="c9"></section>
+<script>
+const { el, sp, palco, ginasio, bola, carta, texto, logo, taca, polaroid, fita, pagina } = window.Q;
+const $ = (id) => document.getElementById(id);
+const quadra = (n, cheia = 0.1) => (c) => ginasio(c, { quadra: n, cheia, hz: 430, alto: 340, alturaTotal: 1080, luzes: 22, rx: 58 });
+
+// as cenas de cada foto (1080x1080)
+const turmaBebe = (c) => {
+    quadra(0, 0.08)(c);
+    sp(c, 7, 'Idle', 0, 0, 6.5, 150, 830);
+    sp(c, 66, 'Idle', 0, 0, 6.5, 345, 815);
+    sp(c, 4, 'Idle', 0, 0, 6.5, 540, 830);
+    sp(c, 63, 'Idle', 0, 0, 6.5, 735, 815);
+    sp(c, 129, 'Idle', 0, 0, 6.5, 930, 830);
+    bola(c, 540, 975, 150, 30);
+};
+const charmander = (c) => {
+    quadra(0, 0.08)(c);
+    sp(c, 4, 'Idle', 0, 0, 10, 400, 960);
+    bola(c, 760, 880, 240, 20);
+};
+const magikarp = (c) => {
+    quadra(0, 0.08)(c);
+    sp(c, 129, 'Hop', 2, 4, 8, 520, 960);
+    bola(c, 840, 900, 160, 20);
+};
+const charizard = (c) => {
+    quadra(9, 0.6)(c);
+    sp(c, 6, 'Charge', 0, 0, 13, 520, 1060);
+    bola(c, 900, 960, 120, 20);
+};
+const gyarados = (c) => {
+    quadra(9, 0.6)(c);
+    sp(c, 130, 'Idle', 2, 0, 12, 600, 1330);
+    bola(c, 120, 980, 110, 20);
+};
+const turmaCampea = (c) => {
+    quadra(9, 1)(c);
+    sp(c, 130, 'Idle', 0, 0, 5.2, 900, 800);
+    sp(c, 68, 'Idle', 0, 0, 6.2, 150, 820);
+    sp(c, 65, 'Idle', 0, 0, 6.2, 330, 790);
+    sp(c, 9, 'Idle', 0, 0, 6.2, 730, 820);
+    sp(c, 6, 'Charge', 0, 0, 6.5, 530, 780, { z: 6 });
+    taca(c, 540, 1050, 13, 30);
+};
+
+// 1. Clique: a turma bebê no primeiro dia da Rota
+{
+    const q = $('c1');
+    pagina(q);
+    polaroid(q, 540, 880, 860, -3, 'ROTA 1 · A TURMA', turmaBebe, 20, 260);
+}
+
+// 2. Charmander e a bola do tamanho dele
+{
+    const q = $('c2');
+    pagina(q);
+    polaroid(q, 300, 420, 400, -9, 'ROTA 1 · A TURMA', turmaBebe, 10);
+    polaroid(q, 560, 1010, 760, 4, 'CHARMANDER · 1º JOGO', charmander, 20, 240);
+}
+
+// 3. Magikarp, titular
+{
+    const q = $('c3');
+    pagina(q);
+    polaroid(q, 300, 420, 400, -9, 'ROTA 1 · A TURMA', turmaBebe, 10);
+    polaroid(q, 790, 470, 400, 7, 'CHARMANDER · 1º JOGO', charmander, 11);
+    polaroid(q, 520, 1080, 760, -4, 'MAGIKARP · TITULAR', magikarp, 20, 240);
+}
+
+// 4. A foto do Charmander virou: Charizard no Planalto
+{
+    const q = $('c4');
+    pagina(q);
+    polaroid(q, 300, 420, 400, -9, 'ROTA 1 · A TURMA', turmaBebe, 10);
+    polaroid(q, 330, 1150, 420, -12, 'CHARMANDER · 1º JOGO', charmander, 11);
+    polaroid(q, 600, 960, 780, 5, 'CHARIZARD · PLANALTO', charizard, 12, 240);
+}
+
+// 5. A do Magikarp virou: Gyarados (não cabe na foto)
+{
+    const q = $('c5');
+    pagina(q);
+    polaroid(q, 300, 420, 400, -9, 'ROTA 1 · A TURMA', turmaBebe, 10);
+    polaroid(q, 790, 470, 400, 7, 'CHARIZARD · PLANALTO', charizard, 11);
+    polaroid(q, 760, 1250, 400, 10, 'MAGIKARP · TITULAR', magikarp, 11);
+    polaroid(q, 500, 1040, 780, -5, 'GYARADOS · TITULAR', gyarados, 12, 240);
+}
+
+// 6. Clique: a turma evoluída com o troféu
+{
+    const q = $('c6');
+    pagina(q);
+    polaroid(q, 540, 900, 880, 2, 'PLANALTO · CAMPEÕES', turmaCampea, 20, 280);
+}
+
+// 7. Explicação (1): modo novo, time começa com Pokémon não evoluídos (as cartas coladas no álbum)
+{
+    const q = $('c7');
+    pagina(q);
+    texto(q, '<b>MODO NOVO</b>', 230, 128);
+    texto(q, 'Seu time começa com Pokémon não evoluídos.', 420, 66);
+    carta(q, 66, 250, 1150, 330, -8, 10);
+    carta(q, 129, 830, 1150, 330, 8, 10);
+    carta(q, 4, 540, 1110, 380, 0, 12);
+    fita(q, 250, 900, 150, -20, 13);
+    fita(q, 830, 900, 150, 22, 13);
+    fita(q, 540, 840, 170, 2, 14);
+}
+
+// 8. Explicação (2): vence, evolui e chega ao Planalto (a polaroid da turma campeã)
+{
+    const q = $('c8');
+    pagina(q);
+    texto(q, 'Vence, evolui e chega ao Planalto com o time que <b>você</b> criou.', 230, 66);
+    polaroid(q, 290, 860, 400, -7, 'ROTA 1 · A TURMA', turmaBebe, 10, 160);
+    polaroid(q, 640, 1270, 560, 5, 'PLANALTO · CAMPEÕES', turmaCampea, 11, 200);
+    el(q, 'div', '', 'left:560px;top:700px;width:150px;height:150px;z-index:14;transform:rotate(35deg)',
+        '<svg viewBox="0 0 80 80" width="150" height="150"><path d="M8 30h36V10l30 30-30 30V50H8z" fill="#ffcb05" stroke="#0e1430" stroke-width="6" stroke-linejoin="round"/></svg>');
+}
+
+// 9. Tela final: logo, a lista das novidades e soccermon.com; a foto da turma campeã presa embaixo
+{
+    const q = $('c9');
+    palco(q);
+    logo(q, 220);
+    texto(q, '<b>MODO NOVO:</b> Rota de baby<br>+ golpe máximo por tipo<br>+ patrocínios novos<br>e muito mais', 500, 58);
+    texto(q, 'soccermon.com', 900, 70);
+    polaroid(q, 540, 1240, 360, -4, 'PLANALTO · CAMPEÕES', turmaCampea, 20, 150);
+    texto(q, 'Música original: Soccermon<br>Som da Polaroid: Work With Sounds (Wikimedia), CC BY 4.0', 1572, 26, '-webkit-text-stroke:8px #0e1430;text-shadow:none;color:#c9d3f2');
+}
+</script>
+</body>
+</html>

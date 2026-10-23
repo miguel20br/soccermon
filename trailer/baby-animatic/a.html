@@ -1,0 +1,132 @@
+<!doctype html>
+<!--
+  Animatic A, "Primeiro dia" (Rota de baby, 23/10/2026): 9 quadros parados, 9:16. Roteiro e tempos em a.txt; música
+  em scripts/musica/pecas/animatic-primeiro-dia.mjs. Imagens do jogo: quadras dos ginásios (quadras.mjs), folhas PMD,
+  retratos PMD, cartas da escolha de capitão da Rota de baby, logo e bola. midia/ sai do preparar.mjs (fora do git).
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Animatic A · Primeiro dia</title>
+<script src="midia/sprites.js"></script>
+<script src="comum.js"></script>
+</head>
+<body>
+<section class="q" id="a1"></section>
+<section class="q" id="a2"></section>
+<section class="q" id="a3"></section>
+<section class="q" id="a4"></section>
+<section class="q" id="a5"></section>
+<section class="q" id="a6"></section>
+<section class="q" id="a7"></section>
+<section class="q" id="a8"></section>
+<section class="q" id="a9"></section>
+<script>
+const { el, sp, palco, ginasio, selo, retrato, bola, carta, texto, logo } = window.Q;
+const $ = (id) => document.getElementById(id);
+
+// 1. A chegada: o ginásio de Pewter enorme e vazio; lá embaixo, um Charmander do tamanho da bola
+{
+    const q = $('a1');
+    ginasio(q, { quadra: 0, cheia: 0.06, hz: 1120, alto: 860, rx: 66 });
+    selo(q, 'ROTA 1', 'PEWTER');
+    sp(q, 4, 'Idle', 3, 0, 4, 480, 1640, { z: 10 });
+    bola(q, 610, 1590, 110, 10);
+}
+
+// 2. Os grandes riem: Nidoking, Rhydon e Snorlax vistos de baixo; o Charmander de costas, pequenininho
+{
+    const q = $('a2');
+    ginasio(q, { quadra: 0, cheia: 0.15, hz: 1180, alto: 520, rx: 70 });
+    sp(q, 34, 'Idle', 0, 0, 9, 220, 1420, { z: 10 });
+    sp(q, 143, 'Idle', 0, 0, 9, 860, 1420, { z: 10 });
+    sp(q, 112, 'Idle', 0, 0, 11, 540, 1470, { z: 12 });
+    retrato(q, '34-joyous', 200, 560, -6);
+    retrato(q, '112-joyous', 540, 470, 3);
+    retrato(q, '143-joyous', 880, 560, 7);
+    sp(q, 4, 'Idle', 4, 0, 4, 540, 1780, { z: 20 });
+}
+
+// 3. O chute: a bola anda um palmo
+{
+    const q = $('a3');
+    ginasio(q, { quadra: 0, cheia: 0.15, hz: 900, alto: 420 });
+    sp(q, 4, 'Shoot', 2, 6, 6, 360, 1420, { z: 10 });
+    bola(q, 560, 1350, 130, 10);
+    for (let i = 0; i < 3; i++) el(q, 'div', '', `left:${430 - i * 4}px;top:${1300 + i * 46}px;width:${48 - i * 8}px;height:12px;border-radius:6px;background:#fff;opacity:.85;z-index:11`);
+    retrato(q, '4-teary', 780, 560, 4);
+}
+
+// 4. Rota 2: Charmeleon com a bola no pé, a torcida chegando
+{
+    const q = $('a4');
+    ginasio(q, { quadra: 1, cheia: 0.5, hz: 900, alto: 420 });
+    selo(q, 'ROTA 2', 'CERULEAN');
+    sp(q, 5, 'Walk', 2, 1, 7, 430, 1480, { z: 10 });
+    bola(q, 640, 1440, 100, 10);
+    retrato(q, '5-determined', 780, 620, -3);
+}
+
+// 5. O Planalto: Charizard de frente, a torcida cheia
+{
+    const q = $('a5');
+    ginasio(q, { quadra: 9, cheia: 1, hz: 900, alto: 420 });
+    selo(q, 'PLANALTO ÍNDIGO', 'FINAL');
+    sp(q, 6, 'Charge', 0, 0, 11, 540, 1640, { z: 10 });
+    bola(q, 840, 1650, 90, 12);
+}
+
+// 6. GOL: o Charizard se joga na bola e ela estufa a rede
+{
+    const q = $('a6');
+    ginasio(q, { quadra: 9, cheia: 1, hz: 900, alto: 420 });
+    el(q, 'div', '', 'left:660px;top:1040px;width:380px;height:460px;z-index:8;border:18px solid #fff;border-right:none;box-shadow:0 0 0 6px #0e1430;' +
+        'background:#141b40 repeating-linear-gradient(45deg,rgb(255 255 255 / 40%) 0 4px,transparent 4px 34px);' +
+        'background-image:repeating-linear-gradient(45deg,rgb(255 255 255 / 40%) 0 4px,transparent 4px 34px),repeating-linear-gradient(-45deg,rgb(255 255 255 / 40%) 0 4px,transparent 4px 34px)');
+    sp(q, 6, 'Shoot', 2, 4, 10, 330, 1560, { z: 10 });
+    for (let i = 0; i < 4; i++) el(q, 'div', '', `left:${560 + i * 30}px;top:${1250 + i * 40}px;width:${150 - i * 30}px;height:14px;border-radius:7px;background:#ffcb05;box-shadow:0 0 0 5px #0e1430;z-index:11`);
+    el(q, 'img', 'pix', 'left:790px;top:1110px;width:300px;height:300px;z-index:13').src = 'midia/impact.png';
+    bola(q, 900, 1260, 120, 14);
+    texto(q, '<b>GOL!</b>', 210, 230, '-webkit-text-stroke:24px #0e1430;text-shadow:0 16px 0 #0e1430');
+}
+
+// 7. Explicação (1): modo novo, time começa com Pokémon não evoluídos
+{
+    const q = $('a7');
+    palco(q);
+    texto(q, '<b>MODO NOVO</b>', 230, 128);
+    texto(q, 'Seu time começa com Pokémon não evoluídos.', 420, 66);
+    carta(q, 66, 250, 1150, 330, -8, 10);
+    carta(q, 129, 830, 1150, 330, 8, 10);
+    carta(q, 4, 540, 1110, 380, 0, 12);
+}
+
+// 8. Explicação (2): vence, evolui e chega ao Planalto; a carta cresce
+{
+    const q = $('a8');
+    palco(q);
+    texto(q, 'Vence, evolui e chega ao Planalto com o time que <b>você</b> criou.', 230, 66);
+    const seta = (x, y) => el(q, 'div', '', `left:${x - 36}px;top:${y - 36}px;width:72px;height:72px;z-index:14`,
+        '<svg viewBox="0 0 80 80" width="72" height="72"><path d="M8 30h36V10l30 30-30 30V50H8z" fill="#ffcb05" stroke="#0e1430" stroke-width="7" stroke-linejoin="round"/></svg>');
+    carta(q, 4, 175, 1260, 250, -4, 10);
+    carta(q, 5, 480, 1200, 320, -1, 11);
+    carta(q, 6, 835, 1130, 400, 3, 12);
+    seta(318, 1060);
+    seta(655, 990);
+}
+
+// 9. Tela final: logo, a lista das novidades e soccermon.com; o Charmander e o Charizard lado a lado
+{
+    const q = $('a9');
+    palco(q);
+    logo(q, 220);
+    texto(q, '<b>MODO NOVO:</b> Rota de baby<br>+ golpe máximo por tipo<br>+ patrocínios novos<br>e muito mais', 500, 58);
+    texto(q, 'soccermon.com', 900, 70);
+    sp(q, 6, 'Swing', 2, 2, 10, 650, 1440, { z: 10 });
+    sp(q, 4, 'Idle', 0, 0, 5, 380, 1440, { z: 11 });
+    bola(q, 490, 1405, 80, 12);
+    texto(q, 'Música original: Soccermon', 1560, 30, '-webkit-text-stroke:8px #0e1430;text-shadow:none;color:#c9d3f2');
+}
+</script>
+</body>
+</html>

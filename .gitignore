@@ -86,3 +86,5 @@ supabase/functions/liga/engine.js
 /public/assets/portraits/1[6-9][0-9]-*.png
 /public/assets/portraits/2[0-4][0-9]-*.png
 /public/assets/portraits/25[01]-*.png
+trailer/baby-animatic/midia/
+trailer/baby-animatic/quadros/

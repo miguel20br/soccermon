@@ -713,3 +713,17 @@ do que ele disser ("mais rápido", "mais Kanto", "menos samba").
 - **Virada no placar: recusada (22/10/2026).** A vinheta por cima (música abaixando −10 dB) não agradou, e a ideia seguinte (breque, virada de bateria, torcida e subir de nível) foi descartada pelo Miguel. Saíram `playVirada`, a chamada no `Match.tsx` e `virada`/`virada-pressao` de `public/music/`, junto com as peças `pecas/virada*.mjs` (as dos líderes também). A partida só segue os trechos pelo minuto e pela pressão.
 - **Troca de tela no tempo (22/10/2026):** sem crossfade cego; o áudio espera a próxima batida (ou o compasso, se chega em até 0,7 s) da faixa que sai, e andamentos que casam entram na mesma batida. Skill §3.7.
 - **Gritos (branch `audio-mix`):** saíram do Draft (e do draft do Duelo): escolher é silencioso, só a música. Base dos gritos −12,7 dB (atrás da música); tabela de níveis na skill §6.
+
+## Animatics da Rota de baby (23/10/2026)
+
+Esboços de ~20 s compostos pro vídeo do modo novo (`trailer/baby-animatic/`), dois conceitos pro Miguel comparar:
+
+| Peça | Ideia |
+|---|---|
+| `animatic-primeiro-dia` (A) | piano de brinquedo sozinho (o Charmander), os grandes riem nos metais graves, a bola quica 4 vezes e para; a banda entra a cada evolução (Rota 2: funk leve; Planalto: +1 tom com metais e cordas), SOC-CER-MON no gol, +½ tom na tela final e hino Lá♭ → Mi♭; a última nota é do brinquedo. Dó → Ré → Mi♭, 124 BPM |
+| `animatic-album` (C) | caixinha de música em valsa (o álbum), um clique de Polaroid por foto, a virada de carta do Draft quando a foto vira; a cada foto que vira entra um naipe (tuba e "pá-pá", bateria, metais), SOC-CER-MON em 3/4 na turma campeã e na tela final; a caixinha desacelera no último compasso. Fá → Sol → Lá♭, 3/4 a 120 BPM |
+
+**Amostras novas (CC BY 4.0, crédito obrigatório):** `scripts/musica/amostras/polaroid-clique.wav` e `polaroid-saida.wav`,
+cortadas de ["WWS Polaroid1200iTakingapicture.ogg"](https://commons.wikimedia.org/wiki/File:WWS_Polaroid1200iTakingapicture.ogg)
+(Work With Sounds, Wikimedia Commons, CC BY 4.0). Crédito: "som da Polaroid: Work With Sounds (Wikimedia Commons),
+CC BY 4.0". `amostra()` do `synth.mjs` agora é exportada (o áudio das outras peças não muda).
