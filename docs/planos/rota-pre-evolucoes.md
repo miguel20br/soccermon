@@ -80,3 +80,40 @@ Leitura:
 - `Records.routeLock` + `newRun` da Rota usando a seed derivada + avanço do `n` em `finishRun`/eliminação; teste que falharia sem isso: abandonar e começar de novo dá o mesmo capitão. Merge da nuvem.
 - Rival −1 nas partidas 0 e 1 (`LONG_DIFFICULTY`) se aprovado, medir n=400, textos (Novidades) e patch notes. `ENGINE_VERSION` não sobe (resultado de partida com os mesmos times não muda).
 - O Miguel jogar umas Rotas na prévia: simulação não mede diversão.
+
+## Implementado na branch `rota-baby` (23/10/2026): código e números finais
+
+O Miguel aprovou as 8 decisões como recomendadas (23/10). Entrou: `rootOf`, `babyOptions` e `ROUTE_START_BANNED` em `src/engine/draft.ts`; `rollOptions`/`rollCaptains` da Rota usam a forma-base e banem os sem-linha com nota acima de 74 (o "Monta pra mim" passa pelos mesmos caminhos); `LONG_DIFFICULTY[1]` de 0 para -1; `Records.routeLock` (`rota-<sal>-<n>`, `n` sobe só quando a Rota termina, `mergeRecords` fica com o maior `n`, empate no menor sal); `newRun('longa')` sem `?seed=` usa a seed travada. Sem `SAVE_VERSION`, sem `ENGINE_VERSION`. Testes: `src/store/rota-baby.test.ts`.
+
+Nota: a **Rota 1 já estava no piso** (dificuldade -1 é o mínimo do `aiDraftTeam`), então "rival -1" só muda de verdade a Rota 2. Baixar mais a Rota 1 pede piso novo no `aiDraftTeam` (decisão à parte).
+
+### Antes e depois (n=400, robô "Monta pra mim", equilibrada, sem MT)
+
+`SIM=400 OPCAO=hoje scripts/pesado.sh npx vitest run --maxWorkers=2 scripts/balance/rota-progressao.sim.test.ts` (antes: `main`; depois: a branch). Erro de ±2,5 pp por taxa.
+
+| | Antes (main) | Depois (branch) | Meta da proposta |
+|---|---|---|---|
+| Nota inicial do time (média dos 5) | 79,5 | **62,2** | ~68 |
+| Capitão | 87,2 | 62,9 | ~77 |
+| Nota no Planalto (Grupo 1) | 84,7 | 84,4 | 84 a 85 |
+| Vitória Rota 1 | 74% | **29%** | 50 a 60% |
+| Vitória Rota 2 | 68% | 52% | 50 a 60% |
+| Vitória Rota 3 · 4 | 66% · 61% | 64% · 56% | |
+| Grupo 1 · 2 · 3 | 62 · 61 · 59% | 63 · 57 · 54% | |
+| Final | 66% | 57% | |
+| Chega ao Planalto · Final · **título** | 60% · 41% · 27% | 31% · 19% · **11%** | título 15 a 22% |
+
+**Fora da faixa: Rota 1 (29%) e título (11%). Não ajustei nada, parei aqui.** Por quê: a simulação da proposta deixava os 25 sem-linha nas opções (Scyther, Hitmonlee, Kangaskhan...), e foram eles que seguraram o começo em 68 e o capitão em 77. Com a decisão 3 aplicada (fora do começo os de nota acima de 74) o time sai em 62 e o capitão em 63: o salto até o Planalto continua (62 → 84, mesma chegada de hoje), mas a Rota 1 vira moeda ao vento contra o rival do piso (65,1). Opções pro Miguel, sem aplicar nenhuma: (a) deixar os sem-linha fracos-médios no começo (teto de 74 vira ~80); (b) capitão de base com 1 carta "dona de linha" garantida; (c) piso novo (-2) pro rival da Rota 1; (d) aceitar (título 11% é abaixo da Copa rápida, ~16%).
+
+### Prints (headless, 390x844 e 1440x900)
+
+Draft da Rota com formas-base (Squirtle, Koffing e Exeggcute de capitão; Oddish, Paras e Magikarp com o selo "vira N"). Uma carta evoluída sai quando a base dela já está na mesma rodada (Seel + Dewgong), como previsto.
+`scratchpad/baby-prints/2-capitao-390.png`, `4-draft-390.png`, `4-draft-1440.png` (fora do repo).
+
+### Rascunho das Novidades (não entrou em `patch-notes.ts`)
+
+Título: "Rota de baby"
+- A Rota Índigo agora começa na forma-base: o capitão e o draft saem como Charmander, Machop, Magikarp, e o time evolui pelo caminho
+- Os mais fortes sem evolução (Snorlax, Lapras, Tauros, lendários) só aparecem de reforço, depois do começo
+- Sair da Rota e voltar traz o mesmo sorteio: a Rota só muda quando você termina uma
+- O rival da 2ª partida ficou mais fraco
