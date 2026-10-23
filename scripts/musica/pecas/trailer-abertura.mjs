@@ -78,7 +78,7 @@ function pronto(y) {
 }
 
 /** Bumbo de verdade: seno que cai de 176 pra 46 Hz em ~30 ms, corpo de 0,2 s e um estalo de 2 ms por cima. */
-function bumbo() {
+export function bumbo() {
     const r = ruido(91);
     const y = new Float32Array(Math.round(0.5 * SR));
     let ph = 0;
@@ -92,7 +92,7 @@ function bumbo() {
 }
 
 /** Subida: ruído num passa-faixa que abre de 300 Hz a 8 kHz e um seno subindo 2 oitavas, crescendo até o fim. */
-function subida(seg) {
+export function subida(seg) {
     const r = ruido(17);
     const n = Math.round(seg * SR);
     const y = new Float32Array(n);
@@ -110,7 +110,7 @@ function subida(seg) {
 }
 
 /** Impacto: grave caindo de 108 pra 38 Hz por 1,5 s e um estouro de ruído abafado que fecha rápido. */
-function impacto() {
+export function impacto() {
     const r = ruido(5);
     const y = new Float32Array(Math.round(1.6 * SR));
     let [ph, lp] = [0, 0];
@@ -124,7 +124,7 @@ function impacto() {
 }
 
 /** Estalo da caixa: ruído em dois passa-faixas (2,2 e 4 kHz) que fecha em ~40 ms; a presença vem daqui, sem chiado. */
-function estalo() {
+export function estalo() {
     const r = ruido(33);
     const y = new Float32Array(Math.round(0.15 * SR));
     const bp = (f0, q) => {
@@ -147,16 +147,16 @@ function estalo() {
     return pronto(y);
 }
 
-const SERRA = ins({ vol: 0.3, a: 0.006, r: 0.1, shape: 2, sv: 0.75, d: 0.06 }); // lead largo
-const SUPER = ins({ vol: 0.12, a: 0.05, r: 0.35, shape: 2, sv: 1 }); // pad largo
-const MEIO = ins({ vol: 0.16, a: 0.003, r: 0.07, shape: 2, sv: 0.55, d: 0.09 }); // serra curta do meio (acordes)
-const SUB = ins({ vol: 0.6, a: 0.008, r: 0.06, shape: 0, sv: 1 }); // seno
+export const SERRA = ins({ vol: 0.3, a: 0.006, r: 0.1, shape: 2, sv: 0.75, d: 0.06 }); // lead largo
+export const SUPER = ins({ vol: 0.12, a: 0.05, r: 0.35, shape: 2, sv: 1 }); // pad largo
+export const MEIO = ins({ vol: 0.16, a: 0.003, r: 0.07, shape: 2, sv: 0.55, d: 0.09 }); // serra curta do meio (acordes)
+export const SUB = ins({ vol: 0.6, a: 0.008, r: 0.06, shape: 0, sv: 1 }); // seno
 
 /**
  * A mesma faixa vista com as notas desafinadas `c` semitons (cents / 100) e atrasadas `dt` linhas (efeito Haas):
  * dobra larga sem mexer no synth.mjs.
  */
-const desafina = (P, c, dt = 0) => ({ ...P, note: (t, m, len, v) => P.note(t + dt, m + c, len, v) });
+export const desafina = (P, c, dt = 0) => ({ ...P, note: (t, m, len, v) => P.note(t + dt, m + c, len, v) });
 
 export default function trailerAbertura() {
     // v3: o logo perdeu brilho de propósito (presença acima do remix) e ganha volume inteiro de volta (+1,8 dB)

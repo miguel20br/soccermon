@@ -1,0 +1,206 @@
+<!doctype html>
+<!--
+  Trailerzinho da 0.9.15 (Rota de baby), VERTICAL 9:16. RASCUNHO (23/10/2026): o gancho e o primeiro corte (compassos
+  0 a 4 do roteiro em trailer/baby/roteiro.txt); o resto só depois do ok do Miguel no tom.
+  Música: scripts/musica/pecas/trailer-baby.mjs (a banda do trailer 2 v3), 178 BPM; o vídeo começa na linha 0 do
+  compasso 0. T(c, l) = segundo da linha l (16 por compasso) do compasso c.
+  Imagens, todas do jogo de hoje: a quadra da partida (quadra.mjs), a folha PMD do Magikarp (Hop), a tela de evolução
+  gravada com trailer-capture (--cena baby --seed trailer39, o Magikarp capitão vira Gyarados aos 3'42") e as cartas
+  reais da escolha de capitão da Rota (passos.mjs). midia/ e som/ vêm do preparar.sh (fora do git).
+  Tudo centrado em x 540; textos entre y 130 e 1632 (fora dos 15% de baixo).
+  Render: npx hyperframes render trailer/baby -q high -w 1 --no-browser-gpu (pela fila pesada).
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920" />
+<title>Soccermon · Rota de baby (rascunho)</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script src="midia/magikarp.js"></script>
+<style>
+@font-face { font-family: "Galmuri11"; src: url("midia/Galmuri11-Bold.woff2") format("woff2"); font-weight: 700; }
+html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+#root { position: relative; width: 1080px; height: 1920px; overflow: hidden; font-family: "Galmuri11", monospace; background: #070a18; }
+.clip, .cena { position: absolute; inset: 0; width: 1080px; height: 1920px; overflow: hidden; }
+img { image-rendering: pixelated; }
+.palco { background: radial-gradient(circle at 50% 45%, #2a3a7a, #070a18 72%); }
+.raios { position: absolute; left: 50%; top: 45%; width: 3400px; height: 3400px; margin: -1700px 0 0 -1700px;
+  background: repeating-conic-gradient(rgb(255 255 255 / 7%) 0 6deg, transparent 6deg 13deg); }
+.flash { position: absolute; inset: 0; background: #fff; opacity: 0; z-index: 80; pointer-events: none; }
+.legenda { position: absolute; left: 160px; width: 760px; top: 190px; height: 300px; display: flex; align-items: center; justify-content: center;
+  text-align: center; z-index: 40; font-size: 78px; line-height: 1.2; letter-spacing: 2px; color: #fff;
+  -webkit-text-stroke: 14px #0e1430; paint-order: stroke fill; text-shadow: 0 8px 0 #0e1430; }
+.legenda b { color: #ffcb05; font-weight: 700; }
+
+/* gancho: a quadra da partida, câmera 6x no círculo central */
+#cam { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 470px 1120px; }
+#quadra { position: absolute; left: -2364px; top: -464px; width: 5808px; height: 3168px; }
+#vinheta { position: absolute; inset: 0; z-index: 1; background: radial-gradient(ellipse at 50% 58%, transparent 45%, rgb(7 10 24 / 70%) 100%); }
+#mk { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 10; }
+#mk .pulo { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+#mk .spr { position: absolute; background-image: url("midia/sp-129.png"); background-repeat: no-repeat; image-rendering: pixelated; }
+#mk .sombra { position: absolute; width: 230px; height: 56px; left: -115px; top: -28px; border-radius: 50%; background: rgb(0 0 0 / 30%); }
+#selo { position: absolute; width: 84px; height: 84px; margin: -42px 0 0 -42px; border-radius: 50%; background: #ffcb05; border: 7px solid #0e1430;
+  box-sizing: border-box; color: #0e1430; font-size: 52px; line-height: 70px; text-align: center; z-index: 12; box-shadow: 0 6px 0 rgb(0 0 0 / 35%); }
+.mira { position: absolute; z-index: 9; width: 420px; height: 420px; margin: -210px 0 0 -210px; border-radius: 50%;
+  border: 9px solid #fff; box-shadow: 0 0 40px #fff, inset 0 0 30px rgb(255 255 255 / 60%); opacity: 0; }
+.golpe { position: absolute; z-index: 30; display: flex; align-items: center; gap: 18px; white-space: nowrap; color: #fff;
+  padding: 14px 64px 14px 18px; clip-path: polygon(0 0, 100% 0, calc(100% - 40px) 100%, 0 100%);
+  background: linear-gradient(90deg, #6890f0, #1d2f6b); box-shadow: 0 8px 0 rgb(0 0 0 / 35%); opacity: 0; }
+.golpe .face { width: 120px; height: 120px; border: 6px solid #fff; border-radius: 12px; background: #10162e; overflow: hidden; flex: none; }
+.golpe .face img { width: 100%; height: 100%; display: block; }
+.golpe .quem { font-size: 34px; letter-spacing: 2px; text-shadow: 0 4px 0 rgb(0 0 0 / 55%); }
+.golpe .nome { font-size: 76px; line-height: 1; letter-spacing: 2px; color: #ffcb05; -webkit-text-stroke: 12px #0e1430; paint-order: stroke fill; text-shadow: 0 6px 0 #0e1430; }
+
+/* evolução: a tela do jogo recortada no 9:16 */
+.evo { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+#evo-zoom { position: absolute; inset: 0; transform-origin: 540px 960px; }
+
+/* cartas */
+.carta { position: absolute; image-rendering: auto; border-radius: 30px; filter: drop-shadow(0 18px 40px rgb(0 0 0 / 55%)); opacity: 0; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="7.25">
+
+  <!-- ===== compasso 0 · o Magikarp capitão entra pulando o SOC-CER-MON; SPLASH! ===== -->
+  <div id="gancho" class="clip" data-start="0" data-duration="1.3483">
+    <div id="cam">
+      <img id="quadra" src="midia/saida-vazia.png" alt="" />
+      <div id="vinheta"></div>
+      <div id="mk">
+        <div class="sombra" id="sombra"></div>
+        <div class="pulo" id="pulo"><div class="mira" id="mira"></div><div class="spr" id="spr"></div><div id="selo">C</div></div>
+      </div>
+    </div>
+    <div class="golpe" id="golpe" style="left:90px;top:1400px"><div class="face"><img src="midia/retrato-129.png" alt="" /></div><div><div class="quem">MAGIKARP usou</div><div class="nome">SPLASH!</div></div></div>
+  </div>
+
+  <!-- ===== compasso 1 · corte seco pra tela de evolução do jogo ===== -->
+  <div id="evolucao" class="cena" style="background:#0e1430;opacity:0">
+    <div id="evo-zoom">
+      <video id="v-evo-karp" class="clip evo" src="midia/evo-karp.mp4" muted playsinline data-start="1.3483" data-duration="1.3483"></video>
+      <img class="evo" id="sil-karp" src="midia/sil-karp.png" style="opacity:0" alt="" />
+      <img class="evo" id="sil-gyara" src="midia/sil-gyara.png" style="opacity:0" alt="" />
+    </div>
+  </div>
+
+  <!-- ===== compasso 2 · GYARADOS ===== -->
+  <div id="gyarados" class="cena" style="background:#0e1430;opacity:0">
+    <video id="v-evo-gyara" class="clip evo" src="midia/evo-gyara.mp4" muted playsinline data-start="2.6966" data-duration="1.3483"></video>
+  </div>
+
+  <!-- ===== compassos 3–4 · ROTA DE BABY: as cartas reais da escolha de capitão ===== -->
+  <div id="cartas" class="clip palco" data-start="4.0449" data-duration="3.2051">
+    <div class="raios" id="raios"></div>
+    <img class="carta" id="c1" src="midia/c-4.png" style="left:240px;top:600px;width:600px" alt="" />
+    <img class="carta" id="c2" src="midia/c-66.png" style="left:240px;top:600px;width:600px" alt="" />
+    <img class="carta" id="c3" src="midia/c-129.png" style="left:240px;top:600px;width:600px" alt="" />
+    <img class="carta" id="t1" src="midia/c-4.png" style="left:30px;top:760px;width:330px" alt="" />
+    <img class="carta" id="t2" src="midia/c-66.png" style="left:375px;top:700px;width:330px" alt="" />
+    <img class="carta" id="t3" src="midia/c-129.png" style="left:720px;top:760px;width:330px" alt="" />
+  </div>
+  <div class="clip legenda" id="leg-baby" data-start="4.0449" data-duration="3.2051"><span>ROTA DE <b>BABY</b></span></div>
+  <div class="flash" id="flash"></div>
+
+  <!-- ===== som ===== -->
+  <audio id="a-musica" class="clip" src="som/trailer-baby-v1.wav" data-start="0" data-duration="7.25" data-media-start="0" data-fade-out="0.5"></audio>
+  <audio id="a-karp" class="clip" src="midia/grito-129.wav" data-start="0.70" data-duration="0.6" data-volume="0.35" data-fade-out="0.2"></audio>
+  <audio id="a-gyara" class="clip" src="midia/grito-130-grave.wav" data-start="2.72" data-duration="1.3" data-volume="0.75" data-fade-out="0.3"></audio>
+
+  <script>
+    const L = 60 / 178 / 4; // uma linha (semicolcheia)
+    const T = (c, l = 0) => (c * 16 + l) * L;
+    const tl = gsap.timeline({ paused: true });
+    const flash = (t, o = 0.9, d = 0.3) => tl.fromTo("#flash", { opacity: o }, { opacity: 0, duration: d, ease: "power2.out", immediateRender: false }, t);
+    const corte = (sel, t, dur) => {
+      tl.set(sel, { opacity: 1 }, t);
+      tl.fromTo(sel, { scale: 1.06 }, { scale: 1, duration: 0.16, ease: "power2.out", immediateRender: false }, t);
+      if (dur) tl.set(sel, { opacity: 0 }, t + dur);
+    };
+
+    // ===== gancho: o Magikarp (folha PMD do jogo, Hop) a 10,8x, o mesmo 1,8x da quadra com a câmera em 6x =====
+    const MK = window.MAGIKARP, S = 10.8;
+    const spr = document.getElementById("spr");
+    gsap.set(spr, { width: 32 * S, height: 72 * S, left: -16 * S, top: -MK.pe * 72 * S, backgroundSize: `${MK.tam[0] * S}px ${MK.tam[1] * S}px` });
+    // um quadro da folha no tempo t; o selo C fica 60 px acima da cabeça (linha opaca de cima do quadro)
+    const quadro = (f, t) => {
+      tl.set(spr, { backgroundPosition: `${-f.x * S}px ${-f.y * S}px` }, t);
+      tl.set("#selo", { left: 0, top: (f.topo - MK.pe * 72) * S - 60 }, t);
+    };
+    const CHAO = 1210;
+    // três pulos no SOC-CER-MON (linhas 0, 3 e 6), da esquerda até o lado da bola
+    const PULOS = [[0, 3, 120, 240], [3, 6, 240, 350], [6, 8, 350, 440]];
+    tl.set("#mk", { x: 120, y: CHAO }, 0);
+    for (const [l0, l1, x0, x1] of PULOS) {
+      const t0 = T(0, l0), d = T(0, l1) - t0;
+      tl.fromTo("#mk", { x: x0 }, { x: x1, duration: d, ease: "none", immediateRender: false }, t0);
+      MK.hop2.forEach((f, i) => quadro(f, t0 + (i * d) / MK.hop2.length));
+    }
+    // a câmera chega um pouco mais perto no compasso
+    tl.fromTo("#cam", { scale: 1.3 }, { scale: 1.4, duration: T(1), ease: "none", immediateRender: false }, 0);
+    // SPLASH! (linha 8): vira de frente, pula alto se debatendo e cai de volta na linha 14
+    const tS = T(0, 8), tTopo = T(0, 11), tCai = T(0, 14);
+    for (let l = 8, i = 0; l < 14; l++, i++) quadro(MK.hop0[3 + (i % 5)], T(0, l));
+    for (let l = 8.5, i = 0; l < 14; l++, i++) quadro(MK.hop0[3 + ((i + 2) % 5)], T(0, l));
+    quadro(MK.hop0[0], tCai);
+    tl.fromTo("#pulo", { y: 0 }, { y: -300, duration: tTopo - tS, ease: "power2.out", immediateRender: false }, tS);
+    tl.to("#pulo", { y: 0, duration: tCai - tTopo, ease: "power2.in" }, tTopo);
+    tl.to("#pulo", { keyframes: { rotation: [-10, 10, -8, 8, -5, 0] }, duration: tCai - tS, ease: "none" }, tS);
+    tl.to("#sombra", { keyframes: { scale: [1, 0.55, 1] }, duration: tCai - tS, ease: "sine.inOut" }, tS);
+    // cai: amassa e a quadra treme
+    tl.fromTo("#spr", { scaleY: 0.82, transformOrigin: "50% 65%" }, { scaleY: 1, duration: 0.12, ease: "back.out(3)", immediateRender: false }, tCai);
+    tl.to("#cam", { keyframes: { x: [10, -8, 5, 0], y: [-6, 5, -2, 0] }, duration: 0.16, ease: "none" }, tCai);
+    // o letreiro do golpe, colado no Magikarp (anel nele e a faixa logo abaixo)
+    tl.set("#mira", { left: 0, top: -230 }, 0);
+    tl.fromTo("#mira", { opacity: 1, scale: 2.2 }, { opacity: 1, scale: 1, duration: 0.18, ease: "power2.out", immediateRender: false }, tS);
+    tl.to("#mira", { opacity: 0, duration: 0.1 }, tS + 0.2);
+    tl.set("#golpe", { opacity: 1 }, tS + 0.03);
+    tl.from("#golpe", { x: -140, scale: 0.3, duration: 0.18, ease: "back.out(2)", transformOrigin: "0% 100%" }, tS + 0.03);
+    tl.from("#golpe .nome", { scale: 1.8, opacity: 0, duration: 0.16, ease: "back.out(2.5)", transformOrigin: "0% 50%" }, tS + 0.12);
+
+    // as cenas da evolução e do Gyarados não têm tempo próprio (o vídeo dentro tem): aparecem e somem por aqui
+    tl.set("#evolucao", { opacity: 1 }, T(1));
+    tl.set("#evolucao", { opacity: 0 }, T(2));
+    tl.set("#gyarados", { opacity: 1 }, T(2));
+    tl.set("#gyarados", { opacity: 0 }, T(3));
+
+    // ===== evolução: corte seco; o Magikarp brilha e as silhuetas alternam no rufar, até o clarão (linha 14) =====
+    tl.fromTo("#evo-zoom", { scale: 1.06 }, { scale: 1.22, duration: T(1, 14) - T(1), ease: "power1.in", immediateRender: false }, T(1));
+    const ALTERNA = [[4, "k"], [6, "g"], [8, "k"], [10, "g"], [12, "k"], [13, "g"]];
+    for (const [l, q] of ALTERNA) {
+      tl.set("#sil-karp", { opacity: q === "k" ? 1 : 0 }, T(1, l));
+      tl.set("#sil-gyara", { opacity: q === "g" ? 1 : 0 }, T(1, l));
+    }
+    // clarão branco cheio na meia batida de silêncio (linhas 14–15)
+    tl.to("#flash", { opacity: 1, duration: L, ease: "power1.in" }, T(1, 13));
+
+    // ===== GYARADOS (compasso 2): o clarão abre, quadro invertido e tremida =====
+    tl.fromTo("#flash", { opacity: 1 }, { opacity: 0, duration: 0.4, ease: "power2.out", immediateRender: false }, T(2));
+    tl.set("#v-evo-gyara", { filter: "invert(1) contrast(1.6)" }, T(2) + 0.07);
+    tl.set("#v-evo-gyara", { filter: "none" }, T(2) + 0.14);
+    tl.fromTo("#gyarados", { scale: 1.25 }, { scale: 1.08, duration: 0.3, ease: "power3.out", immediateRender: false }, T(2));
+    tl.to("#gyarados", { keyframes: { x: [26, -22, 16, -10, 5, 0], y: [-12, 10, -7, 4, -2, 0] }, duration: 0.34, ease: "none" }, T(2));
+    // as 3 batidas do gancho em Ré (linhas 0, 3, 6): a câmera bate junto
+    for (const l of [3, 6]) tl.fromTo("#gyarados", { scale: 1.12 }, { scale: 1.08, duration: 0.15, ease: "power2.out", immediateRender: false }, T(2, l));
+    tl.to("#gyarados", { scale: 1.16, duration: T(3) - T(2, 8), ease: "none" }, T(2, 8));
+
+    // ===== ROTA DE BABY (compassos 3–4): uma carta a cada 2 batidas, depois as três =====
+    tl.to("#raios", { rotation: 25, duration: T(5) - T(3) + 0.5, ease: "none" }, T(3));
+    tl.from("#leg-baby", { y: 60, scale: 0.8, opacity: 0, duration: 0.22, ease: "back.out(2.5)" }, T(3) + 0.03);
+    flash(T(3), 0.6, 0.25);
+    corte("#c1", T(3), 8 * L);
+    corte("#c2", T(3, 8), 8 * L);
+    corte("#c3", T(4), 8 * L);
+    for (const [s, k] of [["#t1", 0], ["#t2", 1], ["#t3", 2]]) {
+      tl.set(s, { opacity: 1 }, T(4, 8) + k * L);
+      tl.from(s, { y: 120, scale: 0.85, duration: 0.2, ease: "back.out(2)" }, T(4, 8) + k * L);
+    }
+    flash(T(4, 8), 0.4, 0.2);
+
+    window.__timelines = window.__timelines || {};
+    window.__timelines.root = tl;
+  </script>
+</div>
+</body>
+</html>

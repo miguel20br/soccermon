@@ -1,0 +1,37 @@
+TRAILERZINHO 0.9.15 · ROTA DE BABY (9:16, ~18 s)
+Música nossa composta em cima do corte (scripts/musica/pecas/trailer-baby.mjs), a mesma banda do trailer 2 v3.
+178 BPM: 1 compasso = 1,35 s, 1 batida = 0,34 s. Todo corte cai numa batida.
+
+A história é o SOC-CER-MON: o Magikarp pula o gancho fraquinho; o Gyarados toca o mesmo gancho com a banda inteira;
+no fim, o logo pisca no mesmo gancho.
+
+[RASCUNHO: compassos 0 a 4, 0 a 7,2 s]
+
+0,0 s  (comp. 0)  Quadra da partida, câmera colada no círculo central. O Magikarp capitão (selo C) entra pulando
+                  da esquerda: um pulo em cada sílaba SOC-CER-MON, com bolha e bumbo em cada pulo.
+0,67 s            "MAGIKARP usou SPLASH!", letreiro colado nele. Ele vira de frente, pula alto se debatendo
+                  (apito de êmbolo subindo, a banda some) e cai de cara no chão do lado da bola. Nada aconteceu.
+1,35 s  (comp. 1) Corte seco pra tela de evolução de verdade do jogo (a mesma partida da quadra, gravada com trailer-capture).
+                  Rufar acelerando, Lá7 subindo; as silhuetas do Magikarp e do Gyarados alternam na batida,
+                  depois na semicolcheia. Meia batida de clarão branco em silêncio.
+2,70 s  (comp. 2) GYARADOS. Impacto, prato, quadro invertido, tremida e rugido grave. O gancho em Ré com a banda
+                  inteira, e a câmera bate nas 3 notas.
+4,04 s  (comp. 3) "ROTA DE BABY". Cartas reais da escolha de capitão da Rota, uma por corte (2 batidas cada, carta
+                  virando no som): Charmander 53, Machop 53, Magikarp 44, todas bronze com a seta da nota evoluída.
+6,07 s            As três juntas. (o rascunho acaba aqui)
+
+[DEPOIS DO OK NO TOM]
+
+6,7 s   (comp. 5–6)  "EVOLUI NO CAMINHO": a carta do Charmander vira Charmeleon (prata 67) e Charizard (ouro 84) na
+                     batida, enquanto o mapa da Rota passa de ginásio em ginásio até o Planalto. Sobe 1 tom.
+9,4 s   (comp. 7–8)  "GOLPE MÁXIMO EM 3 NÍVEIS": a barra enche 1, 2, 3 na batida, o anel fecha, PERFEITO!, chute
+                     nível 3 e gol (quadro invertido + clarão).
+12,1 s  (comp. 9)    "CARTAS NA BATIDA": as 3 cartas do draft virando no tempo da música (0.9.12).
+13,5 s  (comp. 10)   O Gyarados na final: o gol dele na mesma partida, 14 s depois de evoluir, câmera lenta no chute.
+14,8 s  (comp. 11–12) Tela final do trailer v3: clarão, logo, as sílabas SOC-CER-MON piscando no gancho.
+                     "ROTA DE BABY + GOLPE MÁXIMO EM 3 NÍVEIS + CARTAS NA BATIDA e muito mais" e soccermon.com.
+~18 s                Fim. Crédito: "Música original: Soccermon".
+
+Novidades usadas (src/ui/patch-notes.ts): 0.9.15 Rota de baby; 0.9.14 golpe máximo em 3 níveis (e defesa máxima);
+0.9.12 cartas do draft viram na batida e o logo pisca no SOC-CER-MON. A 0.9.13 (Novidades mais fáceis de ler)
+fica no "e muito mais".

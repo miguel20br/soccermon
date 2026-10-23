@@ -101,6 +101,15 @@
         ],
         "createdAt": "2026-10-22T18:10:47.168Z",
         "reason": "Claude: faixa lateral na cor do clube é padrão do brand guide (docs/marca, .bc-stripe); no curta dos pênaltis marca o time pra quem torcer"
+      },
+      {
+        "rule": "clipped-overflow-container",
+        "value": "*",
+        "files": [
+          "trailer/baby/index.html"
+        ],
+        "createdAt": "2026-10-23T19:41:06.237Z",
+        "reason": "Claude (agent): composição de vídeo 1080x1920; cada cena é um quadro que precisa cortar o que passa da borda, não é UI com popover"
       }
     ]
   }

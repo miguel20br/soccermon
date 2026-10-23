@@ -96,7 +96,9 @@ function rate(scene: TrailerScene, seed: string): Hit | null {
             score += 600 - (g.tick - evo.tick) / 10;
             lances.push(`${sec(g.tick)} gol do Gyarados`);
         }
-        for (const o of ev) if (o.type === 'evolve' && o.team === 0 && o.from !== 129) lances.push(`${sec(o.tick)} ${species(o.from).name} evolui`);
+        for (const o of ev)
+            if (o.type === 'evolve' && o.team === 0 && o.from !== 129)
+                lances.push(`${sec(o.tick)} ${species(o.from).name} evolui`);
     }
     if (scene === 'raio') {
         // só gol do Pikachu com golpe elétrico
@@ -174,7 +176,10 @@ function rate(scene: TrailerScene, seed: string): Hit | null {
                 (m.roster[sh.by].speciesId === 6 ? 200 : 0) +
                 (fim.type === 'post' || (fim.type === 'save' && !fim.caught) ? 150 : 0);
             if (!melhor || pts > melhor.pts)
-                melhor = { pts, txt: `${sec(sh.tick)} ${who(sh.by)} chuta com ${sh.moveId} → ${fim.type === 'post' ? 'trave' : fim.type === 'save' && fim.caught ? 'goleiro agarra' : 'goleiro espalma'}` };
+                melhor = {
+                    pts,
+                    txt: `${sec(sh.tick)} ${who(sh.by)} chuta com ${sh.moveId} → ${fim.type === 'post' ? 'trave' : fim.type === 'save' && fim.caught ? 'goleiro agarra' : 'goleiro espalma'}`,
+                };
         }
         if (!melhor) return null;
         score += 1000 + melhor.pts - gol.tick / 20;
