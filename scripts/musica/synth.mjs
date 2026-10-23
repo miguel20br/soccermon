@@ -67,7 +67,7 @@ function rng(seed) {
 }
 
 /** Filtro passa-faixa (biquad RBJ). */
-function bandpass(x, f0, q) {
+export function bandpass(x, f0, q) {
     const w = (2 * Math.PI * f0) / SR;
     const al = Math.sin(w) / (2 * q);
     const [b0, b2, a0, a1, a2] = [al, -al, 1 + al, -2 * Math.cos(w), 1 - al];
