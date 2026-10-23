@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.16 · Golpe máximo por tipo e 4 Patrocínios (23/10/2026)
+
+No ar: 0.9.16 (golpe máximo por tipo e 4 Patrocínios; `ENGINE_VERSION` 12, `liga` com o motor 12), Rota Índigo (`LONG_CUP_LIVE`), Copa Relâmpago e Duelo melhor de 3. Liga fechada até `LIGA_OPENS_AT`. Histórico: [docs/planos/historico.md](docs/planos/historico.md). Índice dos docs: `node scripts/indice.mjs`.
+
 ## 0.9.15 · Rota de baby (23/10/2026)
 
 No ar: 0.9.15 (Rota de baby) e 0.9.14 (golpe máximo em 3 níveis; `ENGINE_VERSION` 11, `liga` com o motor 11), Rota Índigo (`LONG_CUP_LIVE`), Copa Relâmpago e Duelo melhor de 3. Liga fechada até `LIGA_OPENS_AT`. Histórico: [docs/planos/historico.md](docs/planos/historico.md). Índice dos docs: `node scripts/indice.mjs`.

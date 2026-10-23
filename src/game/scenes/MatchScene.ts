@@ -57,6 +57,7 @@ import { blinkSchedule, evolutionView, RIVAL_EVO_MS } from '../evolution-view';
 import { drawStars, drawStatusIcon, dust, effectWord, readableColor, shockwave } from '../hit-fx';
 import { hurtSecondsAt, type Reaction, reactionFor, spanAt, WORD_RANK } from '../hit-react';
 import { castMove, preloadMoveFx } from '../move-fx';
+import { cutPortraitBg } from '../portrait-cut';
 
 export { GAME_H, GAME_W } from '../court';
 
@@ -2244,14 +2245,16 @@ export class MatchScene extends Phaser.Scene {
                 const n3 = e.phase === 'hit' && !gkSave && e.level === 3;
                 if (e.phase === 'start' || (e.phase === 'hit' && !gkSave)) {
                     playSfx('move');
+                }
+                // no N3 a faixa do especial leva tudo (golpe, efeito do tipo e a nota do toque): sem os textos de cima
+                if (e.phase === 'start' || (e.phase === 'hit' && !gkSave && !n3)) {
                     const a = dict().match.agency;
                     // o nível no rótulo e a nota do toque por cima ("PERFEITO!"), pros dois lados
                     const lv = e.level ? ` ${a.maxLevelShort.replace('{n}', String(e.level))}` : '';
                     this.popText(e.by, `${a.max.toUpperCase()}${lv}`, '#ffd447');
                     if (e.q === 2) this.popText(e.by, a.maxPerfect, '#7dffb0', 22);
                     else if (e.q === 1) this.popText(e.by, a.maxGood, '#9be7ff', 22);
-                    // no N3 a faixa do especial (retrato, golpe e tipo) entra no lugar da faixa do canto
-                    if (!n3) this.highlight('max', cap);
+                    this.highlight('max', cap);
                 }
                 if (e.phase === 'start') this.punch('hit');
                 else if (e.phase === 'hit') {
@@ -2262,7 +2265,7 @@ export class MatchScene extends Phaser.Scene {
                         (x) => x.type === 'maxFx' && x.step === 'shot' && x.tick === e.tick && x.by === e.by,
                     );
                     const fxType = fx?.type === 'maxFx' ? fx.fx : null;
-                    if (cinematic) {
+                    if (cinematic && !n3) {
                         this.cine.drama(
                             fxType
                                 ? `${(dict().match.agency.maxFx[fxType]?.[0] ?? fxType).toUpperCase()}!`
@@ -2276,7 +2279,7 @@ export class MatchScene extends Phaser.Scene {
                             },
                         );
                     }
-                    if (n3) this.superMove(cap, e.moveId ?? null, fxType, e.tick);
+                    if (n3) this.superMove(cap, e.moveId ?? null, fxType, e.tick, e.q ?? 0);
                     else if (!gkSave && !cinematic) this.lightZoom(cap);
                 }
                 break;
@@ -2301,7 +2304,7 @@ export class MatchScene extends Phaser.Scene {
                     });
                     typeBurst(this, e.fx, this.ball.x, this.ball.y, BALL_DEPTH + 1);
                     if (e.fx === 'Ground') this.cameras.main.shake(260, 0.008);
-                    if (!cinematic) this.popText(e.by, name[0].toUpperCase(), color, 22);
+                    // o nome do efeito vai na faixa do especial (superMove), sem texto em cima de quem chutou
                 } else if (e.target !== null && this.players[e.target]) {
                     // Normal e Terrestre derrubam (a reação diz DERRUBADO); Fogo e Elétrico já vêm no evento de status
                     if (!['Normal', 'Ground', 'Fire', 'Electric'].includes(e.fx))
@@ -2768,7 +2771,7 @@ export class MatchScene extends Phaser.Scene {
      * diagonal com o retrato do capitão, o golpe e o tipo, zoom forte e tremida no chute. O rastro do tipo vai na bola
      * (bfx do motor) e a onda de choque sai no impacto (`n3Shot`).
      */
-    private superMove(cap: PlayerView, moveId: string | null, fxType: string | null, tick: number) {
+    private superMove(cap: PlayerView, moveId: string | null, fxType: string | null, tick: number, q: number) {
         const move = moveId ? MOVES[moveId] : undefined;
         const type = fxType ?? move?.type ?? species(cap.speciesId).types[0];
         const color = hexToNumber(TYPE_COLOR[type] ?? '#ffd447');
@@ -2777,11 +2780,18 @@ export class MatchScene extends Phaser.Scene {
             this.holdReal = Math.max(this.holdReal, this.time.now + N3_HITSTOP_MS);
             this.cine.hitTint(color, N3_HITSTOP_MS + 120, reduce ? 0.16 : 0.4, REACT_DEPTH - 1);
         }
-        const portrait = `portrait-${cap.speciesId}`;
+        const a = dict().match.agency;
         this.cine.superBanner({
-            portrait: this.textures.exists(portrait) ? portrait : null,
-            move: move?.name ?? dict().match.agency.max,
-            typeLabel: typeName(type),
+            portrait: this.cutPortrait(`portrait-${cap.speciesId}`),
+            move: move?.name ?? a.max,
+            // o golpe pode ser Normal (Hyper Beam) e o efeito, do tipo do capitão: "efeito Dragão"
+            typeLabel: a.maxFxBy.replace('{t}', typeName(type)),
+            note:
+                q === 2
+                    ? { text: a.maxPerfect, color: '#7dffb0' }
+                    : q === 1
+                      ? { text: a.maxGood, color: '#9be7ff' }
+                      : null,
             color,
             typeInk: readableColor(type),
             fromRight: cap.team === 1,
@@ -2795,6 +2805,23 @@ export class MatchScene extends Phaser.Scene {
         // sem "Efeitos cinematográficos" o drama não devolve a câmera: devolve aqui
         if (!this.md.cinematic) this.time.delayedCall(N3_HITSTOP_MS + 600, () => this.cameraHome());
         this.n3Shot = { tick, type };
+    }
+
+    /** Retrato PMD sem o fundo rosa pintado (src/game/portrait-cut.ts), feito uma vez por espécie. */
+    private cutPortrait(key: string): string | null {
+        const cut = `${key}-cut`;
+        if (this.textures.exists(cut)) return cut;
+        if (!this.textures.exists(key)) return null;
+        const src = this.textures.get(key).getSourceImage() as HTMLImageElement;
+        const tex = this.textures.createCanvas(cut, src.width, src.height);
+        if (!tex) return key;
+        tex.context.drawImage(src, 0, 0);
+        const img = tex.context.getImageData(0, 0, src.width, src.height);
+        cutPortraitBg(img.data, src.width, src.height);
+        tex.context.putImageData(img, 0, 0);
+        tex.refresh();
+        tex.setFilter(Phaser.Textures.FilterMode.NEAREST);
+        return cut;
     }
 
     /** N1 e N2 (sem "Efeitos cinematográficos", que já aproximam): só um zoom leve em quem chutou. */

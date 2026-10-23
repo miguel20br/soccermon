@@ -1,5 +1,24 @@
 # Novidades
 
+## 0.9.17 · Nível 3 de especial e quem leva o golpe (2026-10-23)
+
+### Golpe máximo nível 3
+- A quadra congela 0,3 s na cor do tipo e uma faixa atravessa a tela com o retrato do capitão
+- Na faixa: o golpe, o efeito do tipo ("Hyper Beam · efeito Dragão") e a nota do toque, PERFEITO! ou BOM
+- No gol, na defesa, no bloqueio ou na trave sai uma onda de choque na cor do tipo
+
+### Golpes em quadra
+- Quem é atingido por um golpe de efeito é empurrado pra trás e ganha a palavra na cor do tipo: QUEIMADO, CONFUSO, DERRUBADO
+- Rasteira, arremesso, carrinho com golpe e o nível 3 de Normal e Terrestre derrubam: o Pokémon tomba e fica com estrelinhas
+- O status virou um ícone com um anel que mostra quanto falta, no lugar de PAR e BRN
+- No painel do jogador: quem causou o status e quanto falta ("Zubat foi confundido por Psychic (2 s)")
+- Chute com golpe: o rastro da bola agora tem a partícula do tipo (fogo sobe, água pinga). Antes saía sempre a estrelinha do Normal
+
+### Celular e tutorial
+- Celular deitado de tela baixa: golpe máximo e Esperar ficam lado a lado, sem tampar a quadra
+- Tocar fora do balão do tutorial fecha o balão e já vale pro botão tocado
+- Na 1ª visita, o balão não rola mais a página à toa e o logo da Home não some
+
 ## 0.9.16 · Golpe máximo por tipo e 4 Patrocínios (2026-10-23)
 
 ### Golpe máximo por tipo

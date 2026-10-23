@@ -408,6 +408,8 @@ export class Cinematics {
         portrait: string | null;
         move: string;
         typeLabel: string;
+        /** Nota do toque (PERFEITO!/BOM) dentro da faixa, ao lado do efeito. */
+        note: { text: string; color: string } | null;
         color: number;
         typeInk: number;
         fromRight: boolean;
@@ -437,7 +439,9 @@ export class Cinematics {
             const frame = scene.add.graphics();
             frame.fillStyle(0x0d1024, 1).fillRect(4, -size / 2 + 4, size, size);
             frame.fillStyle(0xffffff, 1).fillRect(-3, -size / 2 - 3, size + 6, size + 6);
-            frame.fillStyle(0x0d1024, 1).fillRect(0, -size / 2, size, size);
+            // atrás do retrato sem fundo: a cor do tipo, mais escura que a faixa
+            frame.fillStyle(Phaser.Display.Color.IntegerToColor(opts.color).darken(28).color, 1);
+            frame.fillRect(0, -size / 2, size, size);
             const img = scene.add
                 .image(size / 2, 0, opts.portrait)
                 .setDisplaySize(size, size)
@@ -468,7 +472,23 @@ export class Cinematics {
         const tagBg = scene.add.graphics();
         tagBg.fillStyle(0x0d1024, 1).fillRoundedRect(x, 24 - 14, tag.width + 20, 28, 4);
         content.push(big, tagBg, tag);
-        const width = x + Math.max(big.width, tag.width + 20);
+        let tagEnd = tag.width + 20;
+        if (opts.note) {
+            const note = scene.add
+                .text(x + tagEnd + 18, 24, opts.note.text, {
+                    fontFamily: 'Galmuri11, monospace',
+                    fontSize: '22px',
+                    fontStyle: 'bold',
+                    color: opts.note.color,
+                    stroke: '#0d1024',
+                    strokeThickness: 6,
+                })
+                .setOrigin(0, 0.5)
+                .setResolution(2);
+            content.push(note);
+            tagEnd += 18 + note.width;
+        }
+        const width = x + Math.max(big.width, tagEnd);
         const group = scene.add.container(-width / 2, 0, content);
         const inner = scene.add.container(0, 0, [band, group]).setRotation(-0.1);
         const holder = scene.add.container(0, 0, [inner]).setDepth(opts.depth);

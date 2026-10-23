@@ -155,6 +155,7 @@ export const match: typeof pt = {
             Fairy: ['Moonlight', 'Charmed!'],
         } as Record<string, [string, string]>,
         maxFxPreview: 'At L3: {x}',
+        maxFxBy: '{t} effect',
         timeoutPanel: {
             title: 'Time-out',
             sub: 'Your team gets a short rest. Subs and positions apply now.',

@@ -170,6 +170,8 @@ export const match = {
             Fairy: ['Brilho da lua', 'Encantado!'],
         } as Record<string, [string, string]>,
         maxFxPreview: 'No N3: {x}',
+        /** Faixa do especial N3: o golpe é do capitão, o efeito é do tipo dele. */
+        maxFxBy: 'efeito {t}',
         timeoutPanel: {
             title: 'Tempo técnico',
             sub: 'Seu time descansa um pouco. Troca e posições valem agora.',

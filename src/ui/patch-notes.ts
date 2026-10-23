@@ -9,6 +9,39 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.17',
+        date: '2026-10-23',
+        title: 'Nível 3 de especial e quem leva o golpe',
+        sections: [
+            {
+                title: 'Golpe máximo nível 3',
+                lines: [
+                    'A quadra congela 0,3 s na cor do tipo e uma faixa atravessa a tela com o retrato do capitão',
+                    'Na faixa: o golpe, o efeito do tipo ("Hyper Beam · efeito Dragão") e a nota do toque, PERFEITO! ou BOM',
+                    'No gol, na defesa, no bloqueio ou na trave sai uma onda de choque na cor do tipo',
+                ],
+            },
+            {
+                title: 'Golpes em quadra',
+                lines: [
+                    'Quem é atingido por um golpe de efeito é empurrado pra trás e ganha a palavra na cor do tipo: QUEIMADO, CONFUSO, DERRUBADO',
+                    'Rasteira, arremesso, carrinho com golpe e o nível 3 de Normal e Terrestre derrubam: o Pokémon tomba e fica com estrelinhas',
+                    'O status virou um ícone com um anel que mostra quanto falta, no lugar de PAR e BRN',
+                    'No painel do jogador: quem causou o status e quanto falta ("Zubat foi confundido por Psychic (2 s)")',
+                    'Chute com golpe: o rastro da bola agora tem a partícula do tipo (fogo sobe, água pinga). Antes saía sempre a estrelinha do Normal',
+                ],
+            },
+            {
+                title: 'Celular e tutorial',
+                lines: [
+                    'Celular deitado de tela baixa: golpe máximo e Esperar ficam lado a lado, sem tampar a quadra',
+                    'Tocar fora do balão do tutorial fecha o balão e já vale pro botão tocado',
+                    'Na 1ª visita, o balão não rola mais a página à toa e o logo da Home não some',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.16',
         date: '2026-10-23',
         title: 'Golpe máximo por tipo e 4 Patrocínios',
@@ -1509,6 +1542,39 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.17',
+        date: '2026-10-23',
+        title: 'Level 3 special and who takes the hit',
+        sections: [
+            {
+                title: 'Max move level 3',
+                lines: [
+                    "The court freezes for 0.3 s in the type's color and a banner crosses the screen with the captain's portrait",
+                    'On the banner: the move, the type effect ("Hyper Beam · Dragon effect") and your timing, PERFECT! or GOOD',
+                    "A goal, save, block or post sends out a shockwave in the type's color",
+                ],
+            },
+            {
+                title: 'Moves on the court',
+                lines: [
+                    "Whoever is hit by an effect move is pushed back and gets the word in the type's color: BURNED, CONFUSED, KNOCKED DOWN",
+                    'Low kicks, throws, tackles with a move and Normal and Ground level 3 knock players down: the Pokémon falls and sees stars',
+                    'Status is now an icon with a ring showing how long is left, instead of PAR and BRN',
+                    'On the player panel: who caused the status and how long is left ("Zubat became confused from Psychic (2 s)")',
+                    "Shot with a move: the ball trail now has the type's particle (fire rises, water drips). Before, it was always Normal's little star",
+                ],
+            },
+            {
+                title: 'Phone and tutorial',
+                lines: [
+                    'Short phone screen in landscape: max move and Wait sit side by side, without covering the court',
+                    'Tapping outside the tutorial balloon closes it and also counts for the button you tapped',
+                    'On the first visit, the balloon no longer scrolls the page for nothing and the Home logo stays',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.16',
         date: '2026-10-23',
