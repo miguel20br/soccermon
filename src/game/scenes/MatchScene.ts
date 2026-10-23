@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { maxCharge } from '../../engine/agency';
+import { fxTypeOf, maxCharge } from '../../engine/agency';
 import { computeAttributes, type Position } from '../../engine/attributes';
 import { FUTSAL_5 } from '../../engine/config';
 import { ABILITIES, MOVES, species } from '../../engine/data';
@@ -2226,7 +2226,7 @@ export class MatchScene extends Phaser.Scene {
                                 ? `${(dict().match.agency.maxFx[fxType]?.[0] ?? fxType).toUpperCase()}!`
                                 : `${dict().match.agency.max.toUpperCase()}!`,
                             {
-                                color: fxType ? (TYPE_COLOR[fxType] ?? '#ffd447') : '#ffd447',
+                                color: fxType ? (TYPE_COLOR[fxTypeOf(fxType)] ?? '#ffd447') : '#ffd447',
                                 stroke: '#1a1030',
                                 at: { x: cap.sprite.x, y: cap.sprite.y },
                                 // a nota do toque também na faixa grande (o texto pequeno fica atrás dela)
@@ -2241,23 +2241,42 @@ export class MatchScene extends Phaser.Scene {
                 const by = this.players[e.by];
                 if (!by) break;
                 const name = dict().match.agency.maxFx[e.fx] ?? [e.fx, '!'];
-                const color = TYPE_COLOR[e.fx] ?? '#ffd447';
-                if (e.step === 'shot') {
-                    // a animação do tipo (receita de um golpe do tipo, de quem chutou até o goleiro) e o estouro na bola
+                const type = fxTypeOf(e.fx);
+                const color = TYPE_COLOR[type] ?? '#ffd447';
+                // assinatura (fase 2, ?assinatura=1): receita própria `sig:<efeito>` em vez da receita do tipo
+                const sig = MAX_FX_RECIPE[e.fx] ? null : `sig:${e.fx}`;
+                const cast = (moveId: string) =>
                     castMove({
                         scene: this,
                         user: by.sprite,
-                        target: e.target !== null ? (this.players[e.target]?.sprite ?? null) : null,
-                        moveId: MAX_FX_RECIPE[e.fx] ?? 'megapunch',
-                        moveType: e.fx,
+                        target:
+                            e.target !== null && e.target !== e.by ? (this.players[e.target]?.sprite ?? null) : null,
+                        moveId,
+                        moveType: type,
                         kind: 'blast',
                         strong: true,
                         depth: FOCUS_DEPTH + 70,
                         baseScale: SPRITE_SCALE,
                     });
-                    typeBurst(this, e.fx, this.ball.x, this.ball.y, BALL_DEPTH + 1);
-                    if (e.fx === 'Ground') this.cameras.main.shake(260, 0.008);
-                    if (!cinematic) this.popText(e.by, name[0].toUpperCase(), color, 22);
+                if (e.step === 'shot') {
+                    // a animação do tipo (receita de um golpe do tipo, de quem chutou até o goleiro) e o estouro na bola
+                    cast(sig ?? MAX_FX_RECIPE[e.fx]);
+                    if (e.fx !== 'rest') typeBurst(this, type, this.ball.x, this.ball.y, BALL_DEPTH + 1);
+                    if (e.fx === 'Ground' || e.fx === 'hyperbeam' || e.fx === 'bodyslam')
+                        this.cameras.main.shake(260, 0.008);
+                    // o Snorlax no gol não tem o 'hit' do chute máximo: a faixa grande sai aqui
+                    if (cinematic && e.fx === 'rest')
+                        this.cine.drama(`${name[0].toUpperCase()}!`, {
+                            color,
+                            stroke: '#1a1030',
+                            at: { x: by.sprite.x, y: by.sprite.y },
+                            sub: by.name,
+                        });
+                    else if (!cinematic) this.popText(e.by, name[0].toUpperCase(), color, 22);
+                } else if (e.fx === 'metronome' || e.fx === 'transform') {
+                    // Mew sorteia, Ditto copia: o dedo balançando / o espelho antes do efeito que saiu
+                    cast(`sig:${e.fx}`);
+                    this.popText(e.by, name[1], color, 22);
                 } else if (e.target !== null && this.players[e.target]) {
                     this.popText(e.target, name[1], color);
                     const t = this.players[e.target];

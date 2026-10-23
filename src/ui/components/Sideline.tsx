@@ -1,13 +1,14 @@
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
-import { AGENCY, type MaxCharge, maxCharge } from '../../engine/agency';
+import { AGENCY, fxTypeOf, type MaxCharge, maxCharge } from '../../engine/agency';
 import { species } from '../../engine/data';
 import { maxFxType } from '../../engine/match';
 import type { MatchResult } from '../../engine/runners/batch-runner';
+import { MAX_SIGNATURE } from '../../engine/signature-moves';
 import { has } from '../../engine/sponsors';
 import { isAgencyOrder, type MatchEvent, type MatchOrder, type MaxGrade, type TeamSetup } from '../../engine/state';
 import { useT } from '../../i18n/react';
 import { captainAt, MAX_CUE_EARLY, MAX_CUE_LATCH, maxCueNear, roleAt } from '../match-view';
-import { beatPhase, maxGradeNow } from '../max-beat';
+import { beatPhase, MAX_ASSINATURA, maxGradeNow } from '../max-beat';
 import { useSwapMotion } from '../swap-motion';
 import { HudIcon, hex } from './MatchHud';
 import { TypeIcon } from './TypeIcon';
@@ -77,7 +78,7 @@ export function maxCueAt(m: MatchResult, setups: [TeamSetup, TeamSetup], side: 0
     return maxCueNear(m.snapshots, tick - MAX_CUE_LATCH, tick + MAX_CUE_EARLY, side, cap, roleAt(m, setups, cap, tick));
 }
 
-/** Efeito do N3 do capitão do time `side`: a mesma regra do motor (`maxFxType`). */
+/** Efeito do N3 do capitão do time `side`: a mesma regra do motor (`maxFxType`; com `?assinatura=1`, a assinatura). */
 export function capFxType(
     m: MatchResult,
     setups: [TeamSetup, TeamSetup],
@@ -87,6 +88,8 @@ export function capFxType(
     const cap = captainAt(m, setups, side, tick);
     const inst = [...setups[side].lineup, ...setups[side].bench].find((p) => p.uid === cap.uid);
     if (!inst || !cap.speciesId) return undefined;
+    const sig = MAX_ASSINATURA ? MAX_SIGNATURE[inst.speciesId] : undefined;
+    if (sig) return sig;
     return maxFxType(inst.moves, cap.speciesId, species(cap.speciesId).types);
 }
 
@@ -103,7 +106,7 @@ function FxBadge({ view }: { view: AgencyView }) {
             className={`sl-fx${view.max.level >= 3 ? ' on' : ''}`}
             title={d.match.agency.maxFxPreview.replace('{x}', name)}
         >
-            <TypeIcon type={view.fxType} size={14} />
+            <TypeIcon type={fxTypeOf(view.fxType)} size={14} />
         </span>
     );
 }

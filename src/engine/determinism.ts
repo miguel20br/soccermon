@@ -6,6 +6,7 @@
 import { maxCharge } from './agency';
 import { FUTSAL_5, withConfig } from './config';
 import { aiDraftTeam } from './draft';
+import { createInstance } from './instance';
 import { inMaxZoneOf } from './match';
 import { Rng } from './rng';
 import { type MatchResult, runMatch } from './runners/batch-runner';
@@ -98,6 +99,9 @@ export function determinismHashes(): string[] {
     // golpe máximo por tipo (`maxType`): o N3 com o efeito do tipo do capitão, dos dois lados
     // (t5: o Psíquico do robô; t10: o Psíquico do capitão do Lance)
     hashes.push(eventsHash(maxTypeMatch('t5')), eventsHash(maxTypeMatch('t10')));
+    // assinaturas (`maxSig`, motor 13 com ?assinatura=1): Mew sorteia o tipo no `rng`, Dragonite fura tudo e Ditto
+    // copia o Metronome do Mew do capitão rival
+    hashes.push(...[151, 149, 132].map((sp, k) => eventsHash(maxTypeMatch(['s2', 's3', 's9'][k], 4, sp))));
     // patrocínios de campo do motor 12 (Charanga liga e desliga a cada gol, Preparador, Clube Formador) dos dois lados
     const sp = ['charanga', 'preparador', 'formador'];
     hashes.push(
@@ -117,11 +121,16 @@ export function determinismHashes(): string[] {
  * Partida fixa com o efeito do tipo no N3: o técnico robô segura pro 3º gomo e toca na hora certa (como
  * scripts/balance/coach.ts, política n3); o rival é o Lance, que solta o dele sozinho. Devolve os eventos.
  */
-export function maxTypeMatch(seed: string, capSlot = 4): MatchEvent[] {
-    const home = team(`${seed}-a`, 'A', 3, { manualSubs: true });
+export function maxTypeMatch(seed: string, capSlot = 4, sigSpecies?: number): MatchEvent[] {
+    const base = team(`${seed}-a`, 'A', 3, { manualSubs: true });
+    // com `sigSpecies`: esse capitão no lugar e as assinaturas ligadas (`maxSig`)
+    const lineup = sigSpecies
+        ? base.lineup.map((p, i) => (i === capSlot ? createInstance(sigSpecies, new Rng(seed, 'sig')) : p))
+        : base.lineup;
+    const home = { ...base, lineup };
     const away: TeamSetup = { ...team(`${seed}-b`, 'B', 3), coach: 'lance' };
     const live = new LiveRunner(
-        withConfig({ maxType: true }),
+        withConfig({ maxType: true, maxSig: !!sigSpecies }),
         { ...home, captainUid: home.lineup[capSlot].uid },
         away,
         seed,

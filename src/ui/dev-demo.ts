@@ -48,7 +48,8 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * perdendo no fim: ao começar, já está na Pressão final, a 3 s dos acréscimos do 2º tempo ("+N'" no placar).
  * `?demo=maximo` abre na escalação uma partida que, ao começar, está a 2 s do botão do golpe máximo aceso
  * (barra cheia, capitão Dragonite com a bola na zona); `&goleiro=1`: capitão Snorlax no gol (defesa máxima);
- * `&capitao=<id>`: outro pivô capitão (com `&nivel=3`: o efeito do tipo dele no N3, ex. 6 Fogo, 94 Fantasma).
+ * `&capitao=<id>`: outro pivô capitão (com `&nivel=3`: o efeito do tipo dele no N3, ex. 6 Fogo, 94 Fantasma; com
+ * `&assinatura=1`, a assinatura dos 12 de `MAX_SIGNATURE`, ex. 149 Hyper Beam; `&goleiro=1`: o Snorlax deita no gol).
  * `?demo=charanga` abre na escalação uma partida com a Charanga de Pewter em que, ao começar, o rival está a 4 s de
  * abrir o placar (o aviso "A CHARANGA ENTROU" vem logo depois do gol).
  * `?demo=virada` abre na escalação uma partida que, ao começar, está a 4 s do gol que põe o seu time na frente no

@@ -10,6 +10,8 @@
 // Golpe máximo por tipo (motor 12, golpe-maximo-por-tipo.md): MAXTIPO=1 liga o efeito do tipo (`MatchConfig.maxType`);
 // CAPTYPE=<tipo> (Fire, Water…) põe no time do robô, no rodízio, um capitão de linha com esse efeito; POLS=n3,n1 limita
 // as políticas do golpe máximo.
+// Assinaturas (fase 2): SIG=1 liga `maxSig` (motor 13, ?assinatura=1); CAPID=<id da espécie> põe essa espécie de
+// capitão do robô (na vaga natural dela, senão de pivô; com CAP=gk, no gol).
 import { writeFileSync } from 'node:fs';
 import { AGENCY, maxCharge } from '../../src/engine/agency';
 import { withConfig } from '../../src/engine/config';
@@ -26,7 +28,9 @@ const MECHS = (process.argv[5] ?? 'timeout,flyGk,max,pens,all').split(',');
 const CAP_GK = process.env.CAP === 'gk';
 const LEAD = 40 * SPEED;
 const RIVAL = process.env.RIVAL === '1';
-const CFG = process.env.MAXTIPO === '1' ? withConfig({ maxType: true }) : FUTSAL_5;
+const SIG = process.env.SIG === '1';
+const CAPID = Number(process.env.CAPID) || 0;
+const CFG = SIG ? withConfig({ maxSig: true }) : process.env.MAXTIPO === '1' ? withConfig({ maxType: true }) : FUTSAL_5;
 const CAPTYPE = process.env.CAPTYPE;
 const POLS = process.env.POLS?.split(',');
 /** Espécies (forma de linha) cujo efeito N3 é o tipo pedido, com o golpe que a carta traz. */
@@ -55,6 +59,15 @@ function withCapType(t: TeamSetup, i: number): TeamSetup {
         return { ...t, lineup, captainUid: inst.uid };
     }
     throw new Error(`sem capitão ${CAPTYPE} na partida ${i}`);
+}
+/** O time do robô com a espécie `CAPID` de capitão. */
+function withCapId(t: TeamSetup, i: number): TeamSetup {
+    const inst = createInstance(CAPID, new Rng(`ins-${i}-${CAPID}`));
+    const at = (k: number) => ({ ...t, lineup: t.lineup.map((p, j) => (j === k ? inst : p)), captainUid: inst.uid });
+    if (CAP_GK) return at(0);
+    const r = insertSpecies(t, CAPID, i);
+    if (r && r.team.lineup.indexOf(r.inst) > 0) return { ...r.team, captainUid: r.inst.uid };
+    return at(t.lineup.length - 1);
 }
 // variantes pra comparar (ex.: AG_maxGkReach=1.4): mexe só nesta rodada do robô, nunca no jogo
 for (const [k, v] of Object.entries(process.env)) {
@@ -108,7 +121,7 @@ interface Out {
 
 function play(i: number, mech: string, policy: Policy): Out {
     const { A: A1, B } = baseTeams(i);
-    const A0 = CAPTYPE ? withCapType(A1, i) : A1;
+    const A0 = CAPID ? withCapId(A1, i) : CAPTYPE ? withCapType(A1, i) : A1;
     const A = CAP_GK ? { ...A0, captainUid: A0.lineup[0].uid } : A0;
     const away = RIVAL ? { ...B, coach: COACH_LEADERS[i % COACH_LEADERS.length] } : B;
     const runner = new LiveRunner(CFG, A, away, `coach-${i}`);

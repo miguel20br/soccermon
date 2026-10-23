@@ -1,6 +1,7 @@
 import type { MatchResult } from '../engine/runners/batch-runner';
 import type { SimRequest } from '../engine/sim.worker';
 import type { MatchOrder, TeamSetup } from '../engine/state';
+import { MAX_ASSINATURA } from './max-beat';
 
 /** Roda a simulação num Web Worker para não travar a UI. Falhas e demora excessiva viram erro (nunca trava). */
 let worker: Worker | null = null;
@@ -41,6 +42,8 @@ export function simulateMatch(
     seed: string,
     orders: MatchOrder[] = [],
     segmentSeeds?: string[],
+    /** Assinaturas do golpe máximo (`?assinatura=1`); a Liga passa false (o servidor confere com o motor 12). */
+    maxSig = MAX_ASSINATURA,
 ): Promise<MatchResult> {
     const id = nextId++;
     return new Promise((resolve, reject) => {
@@ -49,7 +52,7 @@ export function simulateMatch(
             reject(new Error('A simulação demorou demais'));
         }, TIMEOUT_MS);
         pending.set(id, { resolve, reject, timer });
-        const req: SimRequest = { id, home, away, seed, orders, segmentSeeds };
+        const req: SimRequest = { id, home, away, seed, orders, segmentSeeds, maxSig: maxSig || undefined };
         try {
             getWorker().postMessage(req);
         } catch (err) {

@@ -1,5 +1,5 @@
 import { abilityEffect, isStatusImmune } from './abilities';
-import { AGENCY, inMaxZone, maxCharge, maxGraded } from './agency';
+import { AGENCY, fxHas, fxTypeOf, inMaxZone, maxCharge, maxFxPieces, maxGraded } from './agency';
 import {
     type AttrKey,
     aerialScore,
@@ -41,7 +41,7 @@ import {
     TRAP,
 } from './moves';
 import { Rng } from './rng';
-import { SIGNATURE } from './signature-moves';
+import { MAX_SIGNATURE, MAX_SIGNATURE_GK, SIGNATURE } from './signature-moves';
 import {
     Action,
     type AgencyOrder,
@@ -1059,7 +1059,13 @@ function kick(
         const gy = s.cfg.pitch.width / 2;
         target = v(target.x, gy + (target.y - gy) * AGENCY.maxAim);
     }
-    const fx = max?.level === 3 && s.cfg.maxType ? maxTypeOf(p) : null;
+    const fx = max?.level === 3 && s.cfg.maxType ? maxFxOf(s, p) : null;
+    // Flamethrower (assinatura do Charizard): voa com a bola rumo ao gol e chuta de cima
+    if (fxHas(fx, 'flyIn')) {
+        const gx = goalXFor(s, p.team);
+        const step = clamp(Math.abs(gx - p.pos.x) - 4, 0, AGENCY.maxSigFx.flyIn);
+        p.pos = add(p.pos, scale(norm(sub(target, p.pos)), step));
+    }
     const toTarget = sub(target, p.pos);
     const distance = len(toTarget);
     let speed: number;
@@ -1089,7 +1095,7 @@ function kick(
         const crit = scope || moveCrit || focusCrit;
         const fixed = bonus?.fixedSpeed;
         // Voador (N3 por tipo): chute do céu, por cima dos bloqueios
-        lob = (!!bonus && hasTrait(bonus.moveId, 'lob')) || fx === 'Flying';
+        lob = (!!bonus && hasTrait(bonus.moveId, 'lob')) || fxHas(fx, 'lob');
         // combo de sinergia: chute mais forte e mais preciso
         const combo = comboLink(s, p);
         const comboMult = combo ? 1.2 : 1;
@@ -1105,7 +1111,7 @@ function kick(
               (bonus?.power ?? 1) *
               (crit ? T.critSpeed : 1) *
               comboMult *
-              (fx === 'Electric' ? AGENCY.maxType.speed : 1);
+              (fxHas(fx, 'fast') ? AGENCY.maxType.speed : 1);
         sigma =
             (0.07 * (1.3 - shooting / 99) * (1 + distance / 15)) /
             (bonus?.accuracy ?? 1) /
@@ -2251,8 +2257,8 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
     const fx = shot.fx;
     // Swift nunca erra (jogador de linha não bloqueia; a bola fantasma do N3 também atravessa); Egg Bomb e o chute do
     // céu do N3 Voador vão por cima dos bloqueios
-    const sure = hasTrait(moveId, 'sureHit') || fx === 'Ghost';
-    const lob = hasTrait(moveId, 'lob') || fx === 'Flying';
+    const sure = hasTrait(moveId, 'sureHit') || fxHas(fx, 'sure');
+    const lob = hasTrait(moveId, 'lob') || fxHas(fx, 'lob');
     // dano fixo (e o N3 Dragão): sem vantagem de tipo para nenhum lado
     const fixed = hasTrait(moveId, 'fixed') || !!shot.typeless;
     // Barrier: o muro invisível segura o próximo chute que passar perto
@@ -2290,7 +2296,7 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
             const reach =
                 (0.55 + (1.0 * eff(s, p, 'goalkeeping')) / 99) *
                 (lob ? T.lobGkReach : 1) *
-                (maxSave ? gkMaxReach(maxSave) : 1) *
+                (maxSave ? gkMaxReach(maxSave) * gkSigReach(s, p, maxSave) : 1) *
                 (shot.gkReach ?? 1);
             if (d > reach) continue;
             shot.gkChecked = true;
@@ -2333,8 +2339,9 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
                 // defender um Thunderbolt tem preço
                 if (moveId) applySecondary(s, shooter, p, moveId);
                 if (fx && !maxSave) {
-                    if (fx === 'Fire' && applyStatus(s, p, 'brn', shooter.idx, 'maxfx')) fxHit(s, shooter, fx, p.idx);
-                    if (fx === 'Normal') {
+                    if (fxHas(fx, 'burn') && applyStatus(s, p, 'brn', shooter.idx, 'maxfx'))
+                        fxHit(s, shooter, fx, p.idx);
+                    if (fxHas(fx, 'gkFall')) {
                         p.stun = Math.max(p.stun, AGENCY.maxType.gkStun);
                         setAction(p, Action.Hurt, AGENCY.maxType.gkStun);
                         fxHit(s, shooter, fx, p.idx);
@@ -2355,7 +2362,7 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
                     // chute no canto às vezes vai pra fora (escanteio); senão espalma para o lado, pra frente
                     const out = s.rng.chance(CORNER_TUNING.parryOut + CORNER_TUNING.parryOutPlacement * placement);
                     // N3 Fogo, Normal e Pedra: a espalmada sai curta e a bola fica na área
-                    const short = fx === 'Fire' || fx === 'Normal' || fx === 'Rock';
+                    const short = fxHas(fx, 'shortParry');
                     if (!out || short || !deflectOut(s, p, ball.pos)) {
                         const outward = v(attackSign(p.team) * s.rng.range(0.3, 1), s.rng.chance(0.5) ? 1 : -1);
                         ball.vel = scale(
@@ -2372,7 +2379,7 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
             const pBlock = clamp(0.3 + (eff(s, p, 'positioning') - 62) * 0.012, 0.08, 0.6);
             if (s.rng.chance(pBlock)) {
                 // Drill Peck/Cut (e o N3 Pedra): fura o primeiro bloqueio; o N3 Normal fura todos
-                if (((hasTrait(moveId, 'pierce') || fx === 'Rock') && !shot.pierced) || fx === 'Normal') {
+                if (((hasTrait(moveId, 'pierce') || fxHas(fx, 'pierce1')) && !shot.pierced) || fxHas(fx, 'pierceAll')) {
                     shot.pierced = true;
                     traitFx(s, shooter.idx, 'pierce', moveId || 'megapunch', p.idx);
                     continue;
@@ -3411,6 +3418,8 @@ function updateMax(s: MatchState) {
         max.live = true;
         max.until = s.tick + AGENCY.maxLevelGk[max.level].ticks;
         emit(s, { type: 'max', team, by: cap.idx, phase: 'start', moveId: null, ...maxTag(max) });
+        const gkSig = gkSigOf(s, cap, max);
+        if (gkSig) emit(s, { type: 'maxFx', by: cap.idx, fx: gkSig, step: 'shot', target: null });
     }
 }
 
@@ -3462,16 +3471,50 @@ export function maxFxType(moves: readonly string[], speciesId: number, types: re
     return MAX_FX_TYPES.has(t) ? t : 'Normal';
 }
 const maxTypeOf = (p: PlayerState) => maxFxType(p.inst.moves, p.inst.speciesId, typesOf(p));
+const FX_LIST = [...MAX_FX_TYPES];
+
+/**
+ * Efeito do N3 de `p`: o do tipo (fase 1) ou, com `maxSig`, a assinatura da espécie (fase 2). Mew (Metronome) sorteia
+ * um tipo com o `rng` da partida; Ditto (Transform) copia o do capitão rival (Ditto contra Ditto, ou sem capitão: Normal).
+ */
+function maxFxOf(s: MatchState, p: PlayerState, copy = false): string {
+    // o Ditto já entra transformado (`origin`): a assinatura é a dele, não a da cópia
+    const sig = s.cfg.maxSig ? MAX_SIGNATURE[(p.origin ?? p.inst).speciesId] : undefined;
+    if (!sig) return maxTypeOf(p);
+    if (sig === 'metronome') {
+        emit(s, { type: 'maxFx', by: p.idx, fx: sig, step: 'hit', target: p.idx });
+        return FX_LIST[s.rng.int(0, FX_LIST.length - 1)];
+    }
+    if (sig === 'transform') {
+        if (copy) return 'Normal';
+        const rival = s.players.find((o) => o.team !== p.team && o.captain) ?? null;
+        emit(s, { type: 'maxFx', by: p.idx, fx: sig, step: 'hit', target: rival?.idx ?? null });
+        return rival ? maxFxOf(s, rival, true) : 'Normal';
+    }
+    return sig;
+}
 
 const fxHit = (s: MatchState, by: PlayerState, fx: string, target: number | null) =>
     emit(s, { type: 'maxFx', by: by.idx, fx, step: 'hit', target });
 
+/** Fúria do Dragão (e do Tsunami do Gyarados): chute e velocidade a mais por um tempo. */
+function maxFury(s: MatchState, p: PlayerState, fx: string) {
+    const M = AGENCY.maxType;
+    p.buffs.push(
+        { attr: 'shooting', factor: M.fury, timer: M.furyT },
+        { attr: 'pace', factor: M.fury, timer: M.furyT },
+    );
+    fxHit(s, p, fx, p.idx);
+}
+
 /**
- * O efeito do tipo na hora do chute N3 (a bola já saiu, `shot` vivo): o que muda antes de a bola chegar. Sem sorteio,
- * exceto a isca do Inseto (`s.rng`, só com o efeito valendo).
+ * O efeito na hora do chute N3 (a bola já saiu, `shot` vivo): o que muda antes de a bola chegar, peça por peça
+ * (`maxFxPieces`). Sem sorteio, exceto a isca do Inseto (`s.rng`, só com o efeito valendo).
  */
 function maxFxShot(s: MatchState, p: PlayerState, fx: string, shot: ShotInfo, target: Vec2) {
     const M = AGENCY.maxType;
+    const S = AGENCY.maxSigFx;
+    const sig = AGENCY.maxSig[fx];
     const ball = s.ball;
     const gx = goalXFor(s, p.team);
     const gy = s.cfg.pitch.width / 2;
@@ -3484,104 +3527,144 @@ function maxFxShot(s: MatchState, p: PlayerState, fx: string, shot: ShotInfo, ta
         (fx === 'Ghost' && gkTypes.includes('Normal')) ||
         (fx === 'Dragon' && gkTypes.includes('Fairy')) ||
         (fx === 'Ground' && (gkTypes.includes('Flying') || gk?.inst.ability === 'levitate'));
-    const reach = immune ? 1 : (M.reach[fx] ?? 1);
+    const reach = immune ? 1 : ((sig ? sig.reach : M.reach[fx]) ?? 1);
     if (reach !== 1) shot.gkReach = (shot.gkReach ?? 1) * reach;
-    if (fx === 'Dragon' && !immune) shot.typeless = true;
+    if (fxHas(fx, 'typeless') && !immune) shot.typeless = true;
     const goal = v(gx, target.y);
     const onLine = (o: PlayerState) => pointSegment(o.pos, p.pos, goal).d < M.lineR;
-    switch (fx) {
-        case 'Water':
-            // a onda abre a linha do chute: empurra de lado (o goleiro só 1 m e sem cair, senão não defendia nunca)
-            for (const o of rivals) {
-                if (!onLine(o)) continue;
-                const side =
-                    o.pos.y >= p.pos.y + ((goal.y - p.pos.y) * (o.pos.x - p.pos.x)) / (goal.x - p.pos.x || 1e-9)
-                        ? 1
-                        : -1;
-                const m = o.role === 'GK' ? M.gkPush : M.push;
-                o.pos = v(o.pos.x, clamp(o.pos.y + side * m, 0.2, s.cfg.pitch.width - 0.2));
-                o.vel = v(0, 0);
-                if (o.role !== 'GK') {
-                    o.stun = Math.max(o.stun, 0.35);
-                    setAction(o, Action.Hurt, 0.45);
+    // pro lado da linha do chute em que `o` está (a onda empurra pra fora dela)
+    const sideOf = (o: PlayerState) =>
+        o.pos.y >= p.pos.y + ((goal.y - p.pos.y) * (o.pos.x - p.pos.x)) / (goal.x - p.pos.x || 1e-9) ? 1 : -1;
+    const push = (o: PlayerState, m: number) => {
+        o.pos = v(o.pos.x, clamp(o.pos.y + sideOf(o) * m, 0.2, s.cfg.pitch.width - 0.2));
+        o.vel = v(0, 0);
+        if (o.role !== 'GK') {
+            o.stun = Math.max(o.stun, 0.35);
+            setAction(o, Action.Hurt, 0.45);
+        }
+        emit(s, { type: 'knockback', target: o.idx, by: p.idx, moveId: 'surf' });
+    };
+    const freeze = (o: PlayerState, t: number) => {
+        if (applyStatus(s, o, 'frz', p.idx, 'maxfx') && o.status) o.status.timer = t;
+        else o.stun = Math.max(o.stun, t);
+    };
+    for (const piece of maxFxPieces(fx)) {
+        switch (piece) {
+            case 'wave':
+                // a onda abre a linha do chute: empurra de lado (o goleiro só 1 m e sem cair, senão não defendia nunca)
+                for (const o of rivals) if (onLine(o)) push(o, o.role === 'GK' ? M.gkPush : M.push);
+                break;
+            case 'tsunami':
+                // a onda do Gyarados pega todo mundo, não só quem está na linha
+                for (const o of rivals) push(o, o.role === 'GK' ? M.gkPush : S.tsunami);
+                break;
+            case 'iceLine':
+                for (const o of rivals) if (o.role !== 'GK' && onLine(o)) freeze(o, M.freeze);
+                break;
+            case 'snowArea': {
+                // nevasca: a área rival inteira congela (o goleiro só escorrega, no alcance)
+                const { penaltyAreaDepth: depth, penaltyAreaWidth: width } = s.cfg.pitch;
+                for (const o of rivals) {
+                    if (o.role === 'GK' || Math.abs(o.pos.x - gx) > depth || Math.abs(o.pos.y - gy) > width / 2)
+                        continue;
+                    freeze(o, S.snow);
                 }
-                emit(s, { type: 'knockback', target: o.idx, by: p.idx, moveId: 'surf' });
+                break;
             }
-            break;
-        case 'Ice':
-            for (const o of rivals) {
-                if (o.role === 'GK' || !onLine(o)) continue;
-                if (applyStatus(s, o, 'frz', p.idx, 'maxfx') && o.status) o.status.timer = M.freeze;
-                else o.stun = Math.max(o.stun, M.freeze);
+            case 'quake':
+                // terremoto: quem está perto do gol cai (Voador e Levitate não); o goleiro balança (alcance) mas não cai
+                for (const o of rivals) {
+                    if (o.role === 'GK' || dist(o.pos, v(gx, gy)) > M.quakeR) continue;
+                    if (typesOf(o).includes('Flying') || o.inst.ability === 'levitate') continue;
+                    o.stun = Math.max(o.stun, M.quakeStun);
+                    setAction(o, Action.Hurt, M.quakeStun);
+                    fxHit(s, p, fx, o.idx);
+                }
+                break;
+            case 'star': {
+                // Fire Blast: estrela de fogo na frente do gol; quem está nela cai e se queima (o goleiro só se queima)
+                const at = v(gx - attackSign(p.team) * 2, target.y);
+                for (const o of rivals) {
+                    if (dist(o.pos, at) > S.starR) continue;
+                    if (o.role !== 'GK') {
+                        o.stun = Math.max(o.stun, S.starStun);
+                        setAction(o, Action.Hurt, S.starStun);
+                    }
+                    applyStatus(s, o, 'brn', p.idx, 'maxfx');
+                    fxHit(s, p, fx, o.idx);
+                }
+                break;
             }
-            break;
-        case 'Ground':
-            // terremoto: quem está perto do gol cai (Voador e Levitate não); o goleiro balança (alcance) mas não cai
-            for (const o of rivals) {
-                if (o.role === 'GK' || dist(o.pos, v(gx, gy)) > M.quakeR) continue;
-                if (typesOf(o).includes('Flying') || o.inst.ability === 'levitate') continue;
-                o.stun = Math.max(o.stun, M.quakeStun);
-                setAction(o, Action.Hurt, M.quakeStun);
-                fxHit(s, p, fx, o.idx);
+            case 'chain': {
+                // Thunderbolt: o raio salta da bola pro goleiro e dele pros rivais mais perto (paralisia curta)
+                if (!gk) break;
+                fxHit(s, p, fx, gk.idx);
+                const near = rivals
+                    .filter((o) => o !== gk && dist(o.pos, gk.pos) <= S.chainR)
+                    .sort((a, b) => dist(a.pos, gk.pos) - dist(b.pos, gk.pos) || a.idx - b.idx)
+                    .slice(0, S.chainN);
+                for (const o of near) {
+                    if (applyStatus(s, o, 'par', p.idx, 'maxfx') && o.status) o.status.timer = M.par;
+                    o.stun = Math.max(o.stun, 0.35);
+                    fxHit(s, p, fx, o.idx);
+                }
+                break;
             }
-            break;
-        case 'Poison': {
-            // nuvem tóxica na frente do gol: envenena, quem está nela não bloqueia e o goleiro sai jogando pior
-            const at = v(gx - attackSign(p.team) * 2, target.y);
-            addZone(s, p, 'smoke', at, M.cloudR, M.cloudT, 'poisongas');
-            for (const o of rivals) {
-                if (dist(o.pos, at) > M.cloudR) continue;
-                applyStatus(s, o, 'psn', p.idx, 'maxfx');
-                if (o.role !== 'GK') shot.blockedBy.push(o.idx);
+            case 'cloud': {
+                // nuvem tóxica na frente do gol: envenena, quem está nela não bloqueia e o goleiro sai jogando pior
+                const at = v(gx - attackSign(p.team) * 2, target.y);
+                addZone(s, p, 'smoke', at, M.cloudR, M.cloudT, 'poisongas');
+                for (const o of rivals) {
+                    if (dist(o.pos, at) > M.cloudR) continue;
+                    applyStatus(s, o, 'psn', p.idx, 'maxfx');
+                    if (o.role !== 'GK') shot.blockedBy.push(o.idx);
+                }
+                break;
             }
-            break;
+            case 'trail':
+                // rastro de fogo no chão, na linha do chute
+                for (const k of [0.4, 0.7])
+                    addZone(s, p, 'fire', add(p.pos, scale(sub(goal, p.pos), k)), 1.3, 3, 'firespin');
+                break;
+            case 'curve': {
+                // a bola curva pro canto longe do goleiro (no máximo `curve` m por metro de chute)
+                const half = s.cfg.pitch.goalWidth / 2;
+                const side = gk ? (gk.pos.y > gy ? -1 : 1) : 1;
+                const t = (gx - ball.pos.x) / (ball.vel.x || 1e-9);
+                if (t <= 0) break;
+                const straight = ball.pos.y + ball.vel.y * t;
+                const cap = Math.abs(gx - ball.pos.x) * (sig?.curve ?? M.curve);
+                const d = clamp(gy + side * 0.6 * half - straight, -cap, cap);
+                shot.curve = (2 * d) / (t * t);
+                break;
+            }
+            case 'decoy':
+                if (gk && s.rng.chance(M.decoy)) shot.decoy = true;
+                break;
+            case 'furyNow':
+                maxFury(s, p, fx);
+                break;
+            case 'mark':
+                if (gk) fxHit(s, p, fx, gk.idx);
+                break;
         }
-        case 'Fire':
-            // rastro de fogo no chão, na linha do chute
-            for (const k of [0.4, 0.7])
-                addZone(s, p, 'fire', add(p.pos, scale(sub(goal, p.pos), k)), 1.3, 3, 'firespin');
-            break;
-        case 'Psychic': {
-            // a bola curva pro canto longe do goleiro (no máximo `curve` m por metro de chute)
-            const half = s.cfg.pitch.goalWidth / 2;
-            const side = gk ? (gk.pos.y > gy ? -1 : 1) : 1;
-            const t = (gx - ball.pos.x) / (ball.vel.x || 1e-9);
-            if (t <= 0) break;
-            const straight = ball.pos.y + ball.vel.y * t;
-            const cap = Math.abs(gx - ball.pos.x) * M.curve;
-            const d = clamp(gy + side * 0.6 * half - straight, -cap, cap);
-            shot.curve = (2 * d) / (t * t);
-            break;
-        }
-        case 'Bug':
-            if (gk && s.rng.chance(M.decoy)) shot.decoy = true;
-            break;
-        case 'Grass':
-        case 'Fairy':
-            if (gk) fxHit(s, p, fx, gk.idx);
-            break;
     }
 }
 
 /**
- * O chute N3 com efeito parou num zagueiro ou no goleiro (`by`): Elétrico paralisa quem tocou, Dragão deixa o capitão
- * em fúria e Lutador emenda o rebote (a bola volta pro pé dele e ele chuta de primeira com a força do N2). Devolve true
- * se a bola já tem destino (o rebote do Lutador).
+ * O chute N3 com efeito parou num zagueiro ou no goleiro (`by`): o choque paralisa quem tocou, a fúria acende no capitão
+ * e o voleio emenda o rebote (a bola volta pro pé dele e ele chuta de primeira com a força do N2). Devolve true se a
+ * bola já tem destino (o rebote do voleio).
  */
 function maxFxStop(s: MatchState, shooter: PlayerState, by: PlayerState, fx: string, contact: Vec2): boolean {
     const M = AGENCY.maxType;
-    if (fx === 'Electric' && applyStatus(s, by, 'par', shooter.idx, 'maxfx') && by.status) {
+    if (fxHas(fx, 'shock') && applyStatus(s, by, 'par', shooter.idx, 'maxfx') && by.status) {
         by.status.timer = M.par;
         fxHit(s, shooter, fx, by.idx);
     }
-    if (fx === 'Dragon') {
-        shooter.buffs.push(
-            { attr: 'shooting', factor: M.fury, timer: M.furyT },
-            { attr: 'pace', factor: M.fury, timer: M.furyT },
-        );
-        fxHit(s, shooter, fx, shooter.idx);
-    }
-    if (fx !== 'Fighting' || dist(shooter.pos, contact) > M.volleyR) return false;
+    if (fxHas(fx, 'fury')) maxFury(s, shooter, fx);
+    // voleio (Lutador) só de perto; o 2º canhão do Blastoise volta de onde for
+    if (!(fxHas(fx, 'volley') && dist(shooter.pos, contact) <= M.volleyR) && !fxHas(fx, 'cannon')) return false;
     const n2 = AGENCY.maxLevelShot[2];
     const moveId = maxMoveOf(shooter.inst.moves, shooter.inst.speciesId);
     shooter.shotBonus = {
@@ -3596,6 +3679,11 @@ function maxFxStop(s: MatchState, shooter: PlayerState, by: PlayerState, fx: str
     const to = sub(shooter.pos, contact);
     ball.shot = null;
     ball.pos = contact;
+    if (fxHas(fx, 'cannon')) {
+        // o jato devolve a bola de longe: ela sai 1 m à frente de quem defendeu, que fica um instante sem reação
+        ball.pos = add(contact, scale(norm(to), 1));
+        by.stun = Math.max(by.stun, AGENCY.maxSigFx.cannonStun);
+    }
     ball.z = 0;
     ball.vz = 0;
     ball.vel = scale(norm(to), clamp(Math.sqrt(2 * FRICTION * len(to)) * 1.1 + 1.5, 4, 14));
@@ -3620,6 +3708,14 @@ function gkMaxSave(s: MatchState, gk: PlayerState, max: { level: 1 | 2 | 3; q: M
     emit(s, { type: 'max', team: gk.team, by: gk.idx, phase: 'hit', moveId: null, ...maxTag(max) });
     if (caught) gk.ai.holdUntil = s.tick + 3;
 }
+
+/** Assinatura do capitão goleiro na defesa máxima N3 (`MAX_SIGNATURE_GK`, só com `maxSig`). */
+const gkSigOf = (s: MatchState, gk: PlayerState, max: { level: 1 | 2 | 3 }) =>
+    max.level === 3 && s.cfg.maxSig ? (MAX_SIGNATURE_GK[gk.inst.speciesId] ?? null) : null;
+
+/** Snorlax no gol: deitado na frente do gol alcança `wallReach` em vez do x1,4 do N3. */
+const gkSigReach = (s: MatchState, gk: PlayerState, max: { level: 1 | 2 | 3 }) =>
+    gkSigOf(s, gk, max) === 'rest' ? AGENCY.maxSigFx.wallReach / AGENCY.maxLevelGk[3].reach : 1;
 
 /** Alcance da defesa máxima no nível e na nota. */
 const gkMaxReach = (max: { level: 1 | 2 | 3; q: MaxGrade }) => maxGraded(AGENCY.maxLevelGk[max.level].reach, max.q);
@@ -3670,7 +3766,7 @@ export function snapshot(s: MatchState): MatchSnapshot {
         half: s.half,
         minute: minuteOf(s),
         phase: s.phase,
-        bfx: s.ball.shot?.fx ?? (s.ball.shot?.moveId ? s.ball.shot.moveType : ''),
+        bfx: s.ball.shot?.fx ? fxTypeOf(s.ball.shot.fx) : s.ball.shot?.moveId ? s.ball.shot.moveType : '',
         bx: Math.round(s.ball.pos.x * 100) / 100,
         by: Math.round(s.ball.pos.y * 100) / 100,
         bz: Math.round(s.ball.z * 100) / 100,

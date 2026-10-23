@@ -82,6 +82,45 @@ export const AGENCY = {
         furyT: 6,
     },
     /**
+     * Fase 2, assinaturas (`MatchConfig.maxSig`, `?assinatura=1`): o N3 do capitão das 12 espécies de `MAX_SIGNATURE`
+     * (signature-moves.ts) troca o efeito do tipo por um próprio, montado com as peças dos tipos (`MAX_FX_PIECES`) e
+     * umas novas. `type`: cor, rastro e ícone; `reach`: alcance do goleiro rival (vezes o x0,7 do N3); `curve`: teto da
+     * curva (Psíquico = `maxType.curve`). Mew (Metronome) sorteia um tipo; Ditto (Transform) copia o capitão rival.
+     */
+    maxSig: {
+        hyperbeam: { type: 'Normal', pieces: ['pierceAll'], reach: 0.85 },
+        bodyslam: { type: 'Normal', pieces: ['pierceAll', 'gkFall', 'shock', 'shortParry'] },
+        fireblast: { type: 'Fire', pieces: ['star', 'shortParry'] },
+        blizzard: { type: 'Ice', pieces: ['snowArea', 'mark'], reach: 0.9 },
+        hydropump: { type: 'Water', pieces: ['wave', 'cannon'] },
+        flamethrower: { type: 'Fire', pieces: ['flyIn', 'lob', 'burn', 'shortParry'] },
+        thunderbolt: { type: 'Electric', pieces: ['fast', 'chain', 'shock'] },
+        dreameater: { type: 'Ghost', pieces: ['sure', 'mark'], reach: 0.75 },
+        psychic: { type: 'Psychic', pieces: ['curve', 'mark'], reach: 0.9, curve: 0.2 },
+        tsunami: { type: 'Water', pieces: ['tsunami', 'furyNow'] },
+        metronome: { type: 'Psychic', pieces: [] },
+        transform: { type: 'Normal', pieces: [] },
+    } as Record<string, { type: string; pieces: readonly MaxPiece[]; reach?: number; curve?: number }>,
+    /** Números das peças novas das assinaturas. */
+    maxSigFx: {
+        /** Fire Blast: estrela de fogo na frente do gol; quem está a `starR` m cai `starStun` s e se queima. */
+        starR: 4,
+        starStun: 0.6,
+        /** Blizzard: a área rival inteira congela `snow` s (o goleiro só escorrega: `reach`). */
+        snow: 1.2,
+        /** Flamethrower: o Charizard voa até `flyIn` m rumo ao gol antes de chutar (nunca a menos de 4 m da linha). */
+        flyIn: 2,
+        /** Thunderbolt: o raio salta do goleiro pros `chainN` rivais mais perto dele (até `chainR` m). */
+        chainN: 2,
+        chainR: 10,
+        /** Tsunami: todos os rivais vão `tsunami` m pro lado (o goleiro `maxType.gkPush`). */
+        tsunami: 3,
+        /** Hydro Pump: quem defendeu ou bloqueou fica `cannonStun` s sem reação e a bola volta pro Blastoise. */
+        cannonStun: 0.5,
+        /** Snorlax no gol (defesa máxima N3): deita na frente do gol, alcance `wallReach` em vez do x1,4. */
+        wallReach: 1.8,
+    },
+    /**
      * Nota do toque na batida (`q` da ordem: 0 fora, 1 bom, 2 perfeito): quanto da parte extra do nível vale. Fora nunca
      * zera (diversão antes de punição). Ordem sem `q` vale como bom.
      */
@@ -108,6 +147,64 @@ export const AGENCY = {
     emptyNetRange: 26,
     emptyNetGkAway: 7,
 } as const;
+
+/**
+ * Peças dos efeitos do N3: cada tipo da fase 1 é um conjunto delas, e as assinaturas (`AGENCY.maxSig`) remontam as
+ * mesmas peças com umas novas (star, snowArea, flyIn, chain, tsunami, furyNow e cannon: o voleio de qualquer distância).
+ */
+export type MaxPiece =
+    | 'pierceAll'
+    | 'pierce1'
+    | 'sure'
+    | 'lob'
+    | 'fast'
+    | 'wave'
+    | 'iceLine'
+    | 'quake'
+    | 'cloud'
+    | 'trail'
+    | 'curve'
+    | 'decoy'
+    | 'mark'
+    | 'burn'
+    | 'gkFall'
+    | 'shortParry'
+    | 'shock'
+    | 'fury'
+    | 'volley'
+    | 'cannon'
+    | 'typeless'
+    | 'star'
+    | 'snowArea'
+    | 'flyIn'
+    | 'chain'
+    | 'tsunami'
+    | 'furyNow';
+
+export const MAX_FX_PIECES: Record<string, readonly MaxPiece[]> = {
+    Normal: ['pierceAll', 'gkFall', 'shortParry'],
+    Fire: ['trail', 'burn', 'shortParry'],
+    Water: ['wave'],
+    Electric: ['fast', 'shock'],
+    Grass: ['mark'],
+    Ice: ['iceLine'],
+    Fighting: ['volley'],
+    Poison: ['cloud'],
+    Ground: ['quake'],
+    Flying: ['lob'],
+    Psychic: ['curve'],
+    Bug: ['decoy'],
+    Rock: ['pierce1', 'shortParry'],
+    Ghost: ['sure'],
+    Dragon: ['typeless', 'fury'],
+    Fairy: ['mark'],
+};
+
+/** Peças do efeito `fx` (um tipo ou uma assinatura). */
+export const maxFxPieces = (fx: string): readonly MaxPiece[] => AGENCY.maxSig[fx]?.pieces ?? MAX_FX_PIECES[fx] ?? [];
+export const fxHas = (fx: string | null | undefined, piece: MaxPiece) => !!fx && maxFxPieces(fx).includes(piece);
+/** Tipo de um efeito (a assinatura tem o dela): cor, rastro da bola e ícone. */
+export const fxTypeOf = (fx: string) => AGENCY.maxSig[fx]?.type ?? fx;
 
 interface Pitch {
     length: number;
