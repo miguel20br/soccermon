@@ -4,10 +4,10 @@
 
 ### Rota Índigo
 - A Rota começa na forma-base: o capitão e o draft saem como Charmander, Machop, Magikarp, e o time evolui pelo caminho
-- Nota média do time no começo da Rota: 79,5 ⇒ 62,2
+- Nota média do time no começo da Rota: 79,5 ⇒ 64,6
 - Os mais fortes sem evolução (Snorlax, Lapras, lendários) só aparecem de reforço, depois do começo
 - Sair da Rota e voltar traz o mesmo sorteio: a Rota só muda quando você termina uma
-- O rival da 2ª partida ficou mais fraco: dificuldade 0 ⇒ -1
+- Os rivais do começo ficaram mais fracos: 1ª partida -1 ⇒ -2 e 2ª partida 0 ⇒ -1
 
 ## 0.9.14 · Golpe máximo em 3 níveis, na batida (2026-10-23)
 
