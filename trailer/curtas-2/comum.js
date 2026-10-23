@@ -607,7 +607,7 @@ ${trave(P(0, 1, 1), P(0, 0, 1))}${faixas(P(0, 1, 1), P(0, 0, 1))}${trave(P(0, 0,
 .site { position: absolute; left: 110px; width: 860px; top: ${top + 370}px; text-align: center; font-size: 62px; letter-spacing: 2px; color: #fff; opacity: 0; z-index: 5; }
 .selo { position: absolute; left: 110px; width: 860px; top: ${top + 480}px; display: flex; justify-content: center; opacity: 0; z-index: 5; }
 .selo span { padding: 18px 30px; border-radius: 14px; background: #e8423f; color: #fff; font-size: 38px; line-height: 1.3; letter-spacing: 2px; box-shadow: 0 7px 0 #8c1d1b; text-align: center; }
-.credito { position: absolute; left: 110px; width: 860px; top: 1560px; text-align: center; font-size: 34px; color: #9aa6d8; letter-spacing: 1px; opacity: 0; z-index: 5; }
+.credito { position: absolute; left: 110px; width: 860px; top: 1560px; text-align: center; font-size: 34px; color: #dfe4ff; letter-spacing: 1px; -webkit-text-stroke: 8px #0e1430; paint-order: stroke fill; opacity: 0; z-index: 5; }
 </style>
 <div id="logo"><img class="base" src="midia/logo-horizontal.svg" alt="" /></div>
 <div class="tag" id="tag">Temos que chutar!</div><div class="site" id="site">soccermon.com</div>
