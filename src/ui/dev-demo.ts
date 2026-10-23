@@ -1,7 +1,7 @@
 import { type LinkAsk, useCloud } from '../cloud/cloud';
 import type { SaveSummary } from '../cloud/reconcile-plan';
 import { maxCharge } from '../engine/agency';
-import { ENGINE_VERSION, FUTSAL_5, withConfig } from '../engine/config';
+import { ENGINE_VERSION, FUTSAL_5 } from '../engine/config';
 import { clubLeader, cupRival } from '../engine/cup';
 import { isMatchKind } from '../engine/cup-map';
 import { species } from '../engine/data';
@@ -20,7 +20,6 @@ import { playerTeam, useGame } from '../store/game-store';
 import { EVENT_IDS, type EventId, rollEvent } from '../store/long-events';
 import { earnedKeys, medalViewOf } from '../store/news';
 import { EDITION_BIT, editionBits } from '../store/profile';
-import { MAXIMO3 } from './max-beat';
 import { isTrailerScene, trailerPicks } from './trailer-scenes';
 
 /**
@@ -486,11 +485,8 @@ export function runDevDemo() {
     }
     if (demo === 'maximo') {
         const gk = new URLSearchParams(window.location.search).get('goleiro') === '1';
-        // com ?maximo3=1: &nivel=N espera a barra chegar no gomo N (1 a 3)
-        const nivel = MAXIMO3
-            ? Math.min(3, Math.max(1, Number(new URLSearchParams(window.location.search).get('nivel')) || 1))
-            : 1;
-        const cfg = MAXIMO3 ? withConfig({ maxLevels: true }) : FUTSAL_5;
+        // &nivel=N espera a barra chegar no gomo N (1 a 3)
+        const nivel = Math.min(3, Math.max(1, Number(new URLSearchParams(window.location.search).get('nivel')) || 1));
         for (let k = 0; k < 120; k++) {
             store.newRun('Demo FC', `max${k}`);
             const base = useGame.getState().run!;
@@ -510,15 +506,14 @@ export function runDevDemo() {
             };
             const team = { ...playerTeam(run), manualSubs: true };
             // a hora certa: barra cheia e o capitão com a bola na zona (ou o rival na zona do goleiro capitão)
-            const live = new LiveRunner(cfg, team, cupRival(run.opponents[0], true), `${run.seed}-stage-0`);
+            const live = new LiveRunner(FUTSAL_5, team, cupRival(run.opponents[0], true), `${run.seed}-stage-0`);
             const s = live.state;
             let at: number | null = null;
             while (!live.finished && at === null && s.tick < 6000) {
                 live.step();
                 const owner = s.ball.owner === null ? null : s.players[s.ball.owner];
                 const cap = s.players.find((p) => p.team === 0 && p.captain);
-                if (s.phase !== 'play' || !owner || !cap || maxCharge(s.events, 0, s.tick, 5, MAXIMO3).level < nivel)
-                    continue;
+                if (s.phase !== 'play' || !owner || !cap || maxCharge(s.events, 0, s.tick, 5).level < nivel) continue;
                 if (gk ? owner.team === 1 && inMaxZoneOf(s, owner, 'GK') : owner === cap && inMaxZoneOf(s, cap))
                     at = s.tick;
             }

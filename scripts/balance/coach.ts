@@ -5,12 +5,10 @@
 // A ordem vale `40 × velocidade` ticks à frente, como na copa; o golpe máximo, no próprio tick (o botão só acende na
 // hora certa: `maxCue`). CAP=gk: o capitão do robô é o goleiro (defesa máxima).
 // RIVAL=1: o time 1 ganha o técnico IA que reage (src/engine/rival-coach.ts), um líder por partida (em rodízio).
-// MAX3=1: golpe máximo em 3 níveis (`maxLevels`, golpe-maximo-niveis.md), com a nota do toque sorteada aqui fora (40%
-// perfeito, 40% bom, 20% fora) e mais duas políticas: n1 (solta no 1º gomo) e n3 (segura pro 3º).
-// Golpes e gols do máximo saem por nível (sem MAX3, o máximo de 1 nível conta como N2: é o mesmo efeito).
+// Golpe máximo em 3 níveis (motor 11, golpe-maximo-niveis.md): a nota do toque é sorteada aqui fora (40% perfeito, 40%
+// bom, 20% fora) e há mais duas políticas: n1 (solta no 1º gomo) e n3 (segura pro 3º). Golpes e gols por nível.
 import { writeFileSync } from 'node:fs';
 import { AGENCY, maxCharge } from '../../src/engine/agency';
-import { withConfig } from '../../src/engine/config';
 import { inMaxZoneOf, minuteOf } from '../../src/engine/match';
 import { COACH_LEADERS, RIVAL_COACH } from '../../src/engine/rival-coach';
 import { LiveRunner } from '../../src/engine/runners/live-runner';
@@ -24,8 +22,7 @@ const MECHS = (process.argv[5] ?? 'timeout,flyGk,max,pens,all').split(',');
 const CAP_GK = process.env.CAP === 'gk';
 const LEAD = 40 * SPEED;
 const RIVAL = process.env.RIVAL === '1';
-const MAX3 = process.env.MAX3 === '1';
-const CFG = MAX3 ? withConfig({ maxLevels: true }) : FUTSAL_5;
+const CFG = FUTSAL_5;
 // variantes pra comparar (ex.: AG_maxGkReach=1.4): mexe só nesta rodada do robô, nunca no jogo
 for (const [k, v] of Object.entries(process.env)) {
     if (k.startsWith('AG_') && v) (AGENCY as unknown as Record<string, number>)[k.slice(3)] = Number(v);
@@ -111,8 +108,8 @@ function play(i: number, mech: string, policy: Policy): Out {
         const cue =
             cap.role === 'GK' ? owner.team === 1 && inMaxZoneOf(s, owner, 'GK') : owner === cap && inMaxZoneOf(s, cap);
         if (!cue) return;
-        const c = maxCharge(s.events, 0, s.tick, FUTSAL_5.teamSize, MAX3);
-        if (c.level < 1 || c.used || c.active) return;
+        const c = maxCharge(s.events, 0, s.tick, FUTSAL_5.teamSize);
+        if (c.level < 1 || c.active) return;
         const min = minuteOf(s);
         fullAt ??= min;
         // aleatório: deixa passar umas chances antes de tocar; bom: toca na 1ª com o jogo apertado (ou perdendo);
@@ -125,7 +122,7 @@ function play(i: number, mech: string, policy: Policy): Out {
                   : policy === 'random'
                     ? min >= fullAt + plan.maxDelay
                     : s.score[0] - s.score[1] <= 1;
-        if (go) order(MAX3 ? { kind: 'max', q: grade() } : { kind: 'max' }, 0);
+        if (go) order({ kind: 'max', q: grade() }, 0);
     }
     function decide() {
         const min = minuteOf(s);
@@ -215,12 +212,11 @@ function summarize(s: MatchState): Out {
 const configs: [string, Policy][] = [['none', 'never']];
 for (const m of MECHS) {
     configs.push([m, 'random'], [m, 'good']);
-    if (MAX3 && m === 'max') configs.push([m, 'n1'], [m, 'n3']);
+    if (m === 'max') configs.push([m, 'n1'], [m, 'n3']);
 }
 const res: Record<string, Out[]> = {};
 const t0 = Date.now();
 console.log(RIVAL ? 'rival reagindo (técnico IA, líderes em rodízio)' : 'rival parado (como hoje)');
-console.log(MAX3 ? 'golpe máximo em 3 níveis (MAX3)' : 'golpe máximo de 1 nível (motor 10)');
 for (const [m, p] of configs) {
     const key = `${m}:${p}`;
     res[key] = [];

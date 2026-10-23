@@ -8,7 +8,6 @@ import type { MatchResult } from '../engine/runners/batch-runner';
 import { EventBus } from '../game/EventBus';
 import type { PlaybackSpeed } from '../store/game-store';
 import { snapAt } from '../ui/match-view';
-import { MAXIMO3 } from '../ui/max-beat';
 import {
     acceptTakeover,
     applyPreview,
@@ -1113,6 +1112,5 @@ export const duel = new DuelSession();
 
 /** Perfil do jogador pra sala (nome, avatar, título, clube e as versões). */
 export function makePeer(p: Omit<Peer, 'engine' | 'app'>): Peer {
-    // ponytail: com ?maximo3=1 o motor é outro; a versão "11.3" faz o lobby recusar quem está sem a bandeira (sai junto)
-    return { ...p, engine: ENGINE_VERSION + (MAXIMO3 ? 0.3 : 0), app: `${__APP_VERSION__}+${__APP_BUILD__}` };
+    return { ...p, engine: ENGINE_VERSION, app: `${__APP_VERSION__}+${__APP_BUILD__}` };
 }

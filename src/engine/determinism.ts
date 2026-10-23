@@ -75,7 +75,7 @@ export function determinismHashes(): string[] {
             }),
         ),
     );
-    // golpe máximo em 3 níveis com a nota do toque (`maxLevels`, ?maximo3=1) e o Lance sorteando a dele
+    // golpe máximo em 3 níveis com a nota do toque e o Lance sorteando a dele
     const lvOrders: MatchOrder[] = [1500, 2600, 3700, 4800].map((tick, k) => ({
         tick,
         team: 0,
@@ -84,15 +84,9 @@ export function determinismHashes(): string[] {
     }));
     hashes.push(
         matchHash(
-            runMatch(
-                withConfig({ maxLevels: true }),
-                { ...agHome, captainUid: agHome.lineup[2].uid },
-                agAway,
-                'det-max3',
-                {
-                    orders: lvOrders,
-                },
-            ),
+            runMatch(FUTSAL_5, { ...agHome, captainUid: agHome.lineup[2].uid }, agAway, 'det-max3', {
+                orders: lvOrders,
+            }),
         ),
     );
     return hashes;

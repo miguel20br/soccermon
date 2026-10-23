@@ -16,7 +16,7 @@ const EXPECTED_HASHES = [
     '45ed92f6',
     '650fe49f',
     '3cd48072',
-    '00158a1d',
+    '7c29f312',
     '46aa6dda',
 ];
 

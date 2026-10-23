@@ -2,12 +2,6 @@ import type { MaxGrade } from '../engine/state';
 import { beatNow } from '../game/music';
 
 /**
- * Golpe máximo em 3 níveis com o toque na batida (docs/planos/golpe-maximo-niveis.md), atrás de `?maximo3=1` até o
- * Miguel jogar (ADR 0005). A tela manda a bandeira pro simulador (`MatchConfig.maxLevels`).
- */
-export const MAXIMO3 = typeof location !== 'undefined' && new URLSearchParams(location.search).get('maximo3') === '1';
-
-/**
  * Janelas da nota (ms até a batida mais perto): perfeito e bom. `offsetMs` acerta o fone/celular (positivo = o toque
  * chega depois do que se ouve). Sem música, o anel segue um pulso fixo de `pulseBpm`.
  */

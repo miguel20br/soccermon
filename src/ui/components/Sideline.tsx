@@ -3,8 +3,8 @@ import { AGENCY, type MaxCharge, maxCharge } from '../../engine/agency';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { isAgencyOrder, type MatchEvent, type MatchOrder, type MaxGrade, type TeamSetup } from '../../engine/state';
 import { useT } from '../../i18n/react';
-import { captainAt, MAX_CUE_LATCH, maxCueNear, roleAt } from '../match-view';
-import { beatPhase, MAXIMO3, maxGradeNow } from '../max-beat';
+import { captainAt, MAX_CUE_EARLY, MAX_CUE_LATCH, maxCueNear, roleAt } from '../match-view';
+import { beatPhase, maxGradeNow } from '../max-beat';
 import { useSwapMotion } from '../swap-motion';
 import { HudIcon, hex } from './MatchHud';
 import './sideline.css';
@@ -51,7 +51,7 @@ export function agencyView(
         timeoutPending: !!lastTo && halfOf(lastTo.tick) === half && !timeouts.some((e) => e.tick >= lastTo.tick),
         flyOn,
         flyPending: flyWant !== flyOn ? flyWant : null,
-        max: maxCharge(events, side, tick, 5, MAXIMO3),
+        max: maxCharge(events, side, tick, 5),
         maxPending: mine.some((o) => o.kind === 'max' && o.tick > tick),
         maxCue: cue,
     };
@@ -59,36 +59,38 @@ export function agencyView(
 
 /**
  * É a hora do golpe máximo do time `side` no quadro `tick`: capitão de linha com a bola na zona, ou rival na zona do
- * goleiro capitão (a quadra entra em câmera lenta um pouco antes, MatchScene `maxCueNow`).
+ * goleiro capitão. Acende `MAX_CUE_EARLY` antes (o toque um pouco cedo não se perde: a ordem fica armada e o golpe sai
+ * no próximo chute ou defesa da zona) e fica `MAX_CUE_LATCH` depois (a quadra entra em câmera lenta antes ainda,
+ * MatchScene `maxCueNow`).
  */
 export function maxCueAt(m: MatchResult, setups: [TeamSetup, TeamSetup], side: 0 | 1, tick: number): boolean {
     const cap = captainAt(m, setups, side, tick).idx;
     if (cap === null) return false;
-    return maxCueNear(m.snapshots, tick - MAX_CUE_LATCH, tick, side, cap, roleAt(m, setups, cap, tick));
+    return maxCueNear(m.snapshots, tick - MAX_CUE_LATCH, tick + MAX_CUE_EARLY, side, cap, roleAt(m, setups, cap, tick));
 }
 
 /** Golpe máximo pronto e na hora certa (o botão acende). */
-export const maxLit = (v: AgencyView) => v.maxCue && v.max.level >= 1 && !v.max.used && !v.max.active && !v.maxPending;
+export const maxLit = (v: AgencyView) => v.maxCue && v.max.level >= 1 && !v.max.active && !v.maxPending;
 
 /**
- * Toque no golpe máximo: com `?maximo3=1`, a nota sai da distância até a batida no `pointerdown` (o `click` chega
- * depois de soltar o dedo e comeria a janela); teclado e leitor de tela tocam no `click`. Sem a bandeira, sem nota.
+ * Toque no golpe máximo: a nota sai da distância até a batida no `pointerdown` (o `click` chega depois de soltar o dedo
+ * e comeria a janela); teclado e leitor de tela tocam no `click`.
  */
-function useMaxTap(onMax: (q?: MaxGrade) => void) {
+function useMaxTap(onMax: (q: MaxGrade) => void) {
     const down = useRef<MaxGrade | null>(null);
     return {
         onPointerDown: () => {
-            down.current = MAXIMO3 ? maxGradeNow() : null;
+            down.current = maxGradeNow();
         },
         tap: () => {
-            const q = down.current ?? (MAXIMO3 ? maxGradeNow() : undefined);
+            const q = down.current ?? maxGradeNow();
             down.current = null;
             onMax(q);
         },
     };
 }
 
-/** Gomos da barra (3 com a bandeira; o rótulo do botão mostra o nível). */
+/** Gomos da barra (o rótulo do botão mostra o nível). */
 const maxLevelLabel = (lv: number, tpl: string) => tpl.replace('{n}', String(lv));
 
 /** Os botões do técnico (na aba Tática e na barra do desktop). */
@@ -104,13 +106,12 @@ export function SidelineControls({
     canAct: boolean;
     onTimeout?: () => void;
     onFlyGk: (on: boolean) => void;
-    onMax: (q?: MaxGrade) => void;
+    onMax: (q: MaxGrade) => void;
     /** Duelo: abre a ordem dos pênaltis (na copa ela aparece sozinha antes da disputa). */
     onPens?: () => void;
 }) {
     const { d } = useT();
     const a = d.match.agency;
-    const full = view.max.level >= 1 && !view.max.used && !view.max.active && !view.maxPending;
     const lit = maxLit(view) && canAct;
     const tap = useMaxTap(onMax);
     return (
@@ -165,39 +166,31 @@ export function SidelineControls({
                 </button>
                 <button
                     type="button"
-                    className={`sl-btn sl-max${lit ? ' ready' : full ? ' full' : ''}${view.max.active ? ' live' : ''}${MAXIMO3 ? ' lv3' : ''}`}
-                    title={MAXIMO3 ? `${a.maxHint} ${a.maxBeatHint}` : a.maxHint}
+                    className={`sl-btn sl-max lv3${lit ? ' ready' : view.max.level >= 1 ? ' full' : ''}${view.max.active ? ' live' : ''}`}
+                    title={`${a.maxHint} ${a.maxBeatHint}`}
                     aria-keyshortcuts="M"
                     // aria-disabled e não disabled: fica no Tab e o leitor acha o botão antes de ele acender
                     aria-disabled={!lit}
                     onPointerDown={tap.onPointerDown}
                     onClick={() => lit && tap.tap()}
-                    style={{ '--fill': view.max.used ? 1 : view.max.charge } as CSSProperties}
+                    style={{ '--fill': view.max.charge } as CSSProperties}
                 >
                     <HudIcon kind="max" />
                     <span>
                         <b>{a.max}</b>
                         <small>
-                            {view.max.used
-                                ? a.maxUsed
-                                : view.max.active || view.maxPending
-                                  ? a.maxActive
-                                  : lit
-                                    ? a.maxReady
-                                    : MAXIMO3
-                                      ? maxLevelLabel(view.max.level, a.maxLevel)
-                                      : full
-                                        ? a.maxFull
-                                        : `${Math.floor(view.max.charge * 100)}%`}
+                            {view.max.active || view.maxPending
+                                ? a.maxActive
+                                : lit
+                                  ? a.maxReady
+                                  : maxLevelLabel(view.max.level, a.maxLevel)}
                         </small>
                     </span>
                     <i className="sl-fill" aria-hidden />
                 </button>
                 {/* o leitor de tela avisa quando acende (o texto do botão muda a cada %; aqui só a hora certa) */}
                 <span className="sr-only" aria-live="polite">
-                    {lit
-                        ? `${a.max}: ${a.maxReady}${MAXIMO3 ? ` (${maxLevelLabel(view.max.level, a.maxLevel)})` : ''}`
-                        : ''}
+                    {lit ? `${a.max}: ${a.maxReady} (${maxLevelLabel(view.max.level, a.maxLevel)})` : ''}
                 </span>
                 {onPens && (
                     <button type="button" className="sl-btn" disabled={!canAct} onClick={onPens}>
@@ -223,7 +216,7 @@ export function MaxCueButton({
 }: {
     view: AgencyView;
     canAct: boolean;
-    onMax: (q?: MaxGrade) => void;
+    onMax: (q: MaxGrade) => void;
 }) {
     const { d } = useT();
     const a = d.match.agency;
@@ -232,17 +225,17 @@ export function MaxCueButton({
     return (
         <button
             type="button"
-            className={`sl-cue${MAXIMO3 ? ' lv3' : ''}`}
+            className="sl-cue lv3"
             data-exit
             aria-keyshortcuts="M"
-            title={MAXIMO3 ? a.maxBeatHint : undefined}
+            title={a.maxBeatHint}
             onPointerDown={tap.onPointerDown}
             onClick={tap.tap}
         >
-            {MAXIMO3 && <BeatRing />}
+            <BeatRing />
             <HudIcon kind="max" />
             <b>{a.max}</b>
-            {MAXIMO3 && <small className="sl-cue-lv">{maxLevelLabel(view.max.level, a.maxLevelShort)}</small>}
+            <small className="sl-cue-lv">{maxLevelLabel(view.max.level, a.maxLevelShort)}</small>
         </button>
     );
 }
@@ -279,13 +272,13 @@ export function MaxBars({
     return (
         <div className="sl-maxbars" title={t('match.agency.maxHint')}>
             {([0, 1] as const).map((team) => {
-                const c = maxCharge(events, team, tick, 5, MAXIMO3);
-                const state = c.used ? 'used' : c.active ? 'live' : c.charge >= 1 ? 'full' : '';
+                const c = maxCharge(events, team, tick, 5);
+                const state = c.active ? 'live' : c.charge >= 1 ? 'full' : '';
                 return (
                     <div
                         key={team}
-                        className={`sl-maxbar t${team} ${state}${MAXIMO3 ? ' lv3' : ''}`}
-                        style={{ '--tc': hex(colors[team]), '--fill': c.used ? 0 : c.charge } as CSSProperties}
+                        className={`sl-maxbar lv3 t${team} ${state}`}
+                        style={{ '--tc': hex(colors[team]), '--fill': c.charge } as CSSProperties}
                     >
                         <i />
                     </div>
@@ -316,7 +309,7 @@ export function SidelineOverlay({
         <div className="sl-overlay" aria-hidden>
             {([0, 1] as const).map((team) => {
                 const fly = past.filter((e) => e.type === 'flyGk' && e.team === team).at(-1);
-                const max = maxCharge(events, team, tick, 5, MAXIMO3);
+                const max = maxCharge(events, team, tick, 5);
                 const tags: ReactNode[] = [];
                 if (fly?.type === 'flyGk' && fly.on)
                     tags.push(

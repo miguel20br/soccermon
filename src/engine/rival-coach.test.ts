@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { en } from '../i18n/en';
 import { pt } from '../i18n/pt';
 import { AGENCY } from './agency';
-import { FUTSAL_5, withConfig } from './config';
+import { FUTSAL_5 } from './config';
 import { CLUBS, clubLeader, cupRival } from './cup';
 import { matchHash } from './determinism';
 import { aiDraftTeam } from './draft';
@@ -95,14 +95,13 @@ describe('técnico rival que reage (beira da quadra)', () => {
     });
 });
 
-describe('técnico rival com o golpe máximo em 3 níveis (?maximo3=1)', () => {
+describe('técnico rival com o golpe máximo em 3 níveis', () => {
     it('sorteia a nota (determinística) e solta no N2/N3, ou no N1 perdendo no fim', () => {
-        const L = withConfig({ maxLevels: true });
         let calls = 0;
         for (const [k, leader] of COACH_LEADERS.entries()) {
             const away = { ...B, coach: leader };
-            const r = runMatch(L, A, away, `rc-lv-${k}`, { snapshots: false });
-            expect(matchHash(runMatch(L, A, away, `rc-lv-${k}`, { snapshots: false }))).toBe(matchHash(r));
+            const r = runMatch(FUTSAL_5, A, away, `rc-lv-${k}`, { snapshots: false });
+            expect(matchHash(runMatch(FUTSAL_5, A, away, `rc-lv-${k}`, { snapshots: false }))).toBe(matchHash(r));
             for (const c of coachEvents(r.events).filter((c) => c.call === 'max')) {
                 calls++;
                 expect([0, 1, 2]).toContain(c.call === 'max' && c.q);

@@ -141,10 +141,10 @@ export const RIVAL_COACH = {
     tiredAt: [12, 28],
     tiredBelow: [0.62, 0.52],
     /**
-     * Golpe máximo em 3 níveis (`maxLevels`): nota do toque sorteada (perfeito, bom, fora). O líder de ginásio tira mais
-     * "bom"; o Lance (a final) mais "perfeito" (Miguel, 23/10/2026; golpe-maximo-niveis.md, decisão 7).
+     * Golpe máximo em 3 níveis: nota do toque sorteada (perfeito, bom, fora). Os líderes de ginásio 55/35/10 e o Lance
+     * (a final) 70/25/5 (Miguel, 23/10/2026; golpe-maximo-niveis.md, decisão 7).
      */
-    maxGradeOdds: { common: [0.25, 0.55, 0.2], final: [0.55, 0.35, 0.1] },
+    maxGradeOdds: { common: [0.55, 0.35, 0.1], final: [0.7, 0.25, 0.05] },
     /** Solta no N2 ou no N3; no N1 só perdendo a partir deste minuto. */
     maxN1From: 30,
 } as const;
@@ -223,12 +223,9 @@ export class RivalCoach {
         // golpe máximo: com a barra cheia, na hora certa (o capitão com a bola na zona, ou o rival na zona do goleiro
         // capitão). Vale já neste passo (antes da decisão dos jogadores), sem aviso: é um lance, não um plano
         if (s.phase === 'play' && !ag.max && (st.max === 'asap' || Math.abs(diff) <= 1) && this.maxCue(s)) {
-            const levels = !!s.cfg.maxLevels;
-            const c = maxCharge(s.events, team, s.tick, s.cfg.teamSize, levels);
-            const ready = levels
-                ? c.level >= 2 || (c.level === 1 && diff < 0 && min >= RIVAL_COACH.maxN1From)
-                : c.level >= 1;
-            if (ready && !c.used && !c.active) calls.push(levels ? { call: 'max', q: this.grade() } : { call: 'max' });
+            const c = maxCharge(s.events, team, s.tick, s.cfg.teamSize);
+            const ready = c.level >= 2 || (c.level === 1 && diff < 0 && min >= RIVAL_COACH.maxN1From);
+            if (ready && !c.active) calls.push({ call: 'max', q: this.grade() });
         }
 
         // tática: muda com o placar e volta pra de sempre

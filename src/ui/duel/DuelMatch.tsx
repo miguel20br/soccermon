@@ -539,7 +539,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         agency && maxCueAt(match, setups, side, clock.tick),
     );
     // golpe máximo: o carimbo do host põe a ordem um pouco à frente (rede); o motor deixa armada `AGENCY.maxArmTicks`
-    const sendMax = (q?: MaxGrade) => order(q === undefined ? { kind: 'max' } : { kind: 'max', q });
+    const sendMax = (q: MaxGrade) => order({ kind: 'max', q });
     const tactics = agency ? (
         <>
             {tacticControls}

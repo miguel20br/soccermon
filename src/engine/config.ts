@@ -23,11 +23,6 @@ export interface MatchConfig {
     halftimeRecovery: number; // fôlego recuperado no intervalo
     /** Acréscimos de cada tempo, em minutos do relógio exibido (sorteados no `rng` da partida); sem = não tem. */
     stoppage?: { min: number; max: number };
-    /**
-     * Golpe máximo em 3 níveis com a nota do toque na batida (docs/planos/golpe-maximo-niveis.md), atrás de
-     * `?maximo3=1` até o Miguel jogar. Sem = o golpe máximo de 1 nível (motor 10 bit a bit).
-     */
-    maxLevels?: boolean;
 }
 
 /**
@@ -54,7 +49,7 @@ export const STOPPAGE = { min: 1, max: 3 };
  * 10 = beira da quadra 2 (docs/planos/beira-da-quadra-2.md): troca e prancheta volantes (na hora), golpe máximo na hora
  *     certa e defesa máxima, sem gritos, goleiro-linha balanceado; golpe treinado (MT: +1 uso, x1,3
  *     de força, IA prioriza) e Mega Drain/BubbleBeam/Fissure mais fortes.
- * 11 = golpe máximo em 3 níveis com a nota do toque na batida (`maxLevels`, docs/planos/golpe-maximo-niveis.md).
+ * 11 = golpe máximo em 3 níveis com a nota do toque na batida (docs/planos/golpe-maximo-niveis.md).
  */
 export const ENGINE_VERSION = 11;
 

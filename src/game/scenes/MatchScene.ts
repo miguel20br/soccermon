@@ -30,7 +30,6 @@ import { dict, linkText, t as tr } from '../../i18n';
 import type { ArrowSize, ChanceSpeed, CryStyle, NamesOnField, PlaybackSpeed } from '../../store/game-store';
 import { bannerInk } from '../../store/profile';
 import { halftimeEnd, MAX_CUE_LATCH, maxCueNear } from '../../ui/match-view';
-import { MAXIMO3 } from '../../ui/max-beat';
 import { hexToNumber, TYPE_COLOR } from '../../ui/type-colors';
 import {
     animForAction,
@@ -639,8 +638,8 @@ export class MatchScene extends Phaser.Scene {
         // no Duelo a quadra dos dois anda junta: só na Copa
         if (!this.md.agency || this.md.replay || this.md.duel) return false;
         const team = this.mine as 0 | 1;
-        const c = maxCharge(this.matchEvents, team, this.playTick, 5, MAXIMO3);
-        if (c.level < 1 || c.used || c.active) return false;
+        const c = maxCharge(this.matchEvents, team, this.playTick, 5);
+        if (c.level < 1 || c.active) return false;
         const cap = this.players.findIndex((v) => v.team === team && v.captain);
         if (cap < 0) return false;
         const role = (this.md.result.roster[cap]?.role ?? 'PIVO') as Position;
@@ -2178,7 +2177,7 @@ export class MatchScene extends Phaser.Scene {
                 if (e.phase === 'start' || (e.phase === 'hit' && !gkSave)) {
                     playSfx('move');
                     const a = dict().match.agency;
-                    // 3 níveis (?maximo3=1): o nível no rótulo e a nota do toque por cima ("PERFEITO!"), pros dois lados
+                    // o nível no rótulo e a nota do toque por cima ("PERFEITO!"), pros dois lados
                     const lv = e.level ? ` ${a.maxLevelShort.replace('{n}', String(e.level))}` : '';
                     this.popText(e.by, `${a.max.toUpperCase()}${lv}`, '#ffd447');
                     if (e.q === 2) this.popText(e.by, a.maxPerfect, '#7dffb0', 22);

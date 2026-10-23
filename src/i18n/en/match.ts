@@ -123,10 +123,8 @@ export const match: typeof pt = {
         max: 'Max move',
         maxHint:
             "Fills with your team's plays. When full, it lights up when your captain can shoot (in goal: when the rival shoots). Shortcut: M.",
-        maxFull: 'Full',
         maxReady: 'Now!',
         maxActive: 'Live!',
-        maxUsed: 'Used',
         maxLevel: 'Level {n}',
         maxLevelShort: 'L{n}',
         maxPerfect: 'PERFECT!',

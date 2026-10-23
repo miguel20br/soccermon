@@ -11,7 +11,7 @@ const view = (cue: boolean): AgencyView => ({
     timeoutPending: false,
     flyOn: false,
     flyPending: null,
-    max: { charge: 1, level: 1, used: false, active: false },
+    max: { charge: 1, level: 1, active: false },
     maxPending: false,
     maxCue: cue,
 });
@@ -30,6 +30,6 @@ describe('golpe máximo no teclado e no leitor de tela', () => {
     });
     it('aceso: o aviso fala a hora', () => {
         expect(maxButton(html(true))).toContain('aria-disabled="false"');
-        expect(html(true)).toMatch(/aria-live="polite">Golpe máximo: Agora!</);
+        expect(html(true)).toMatch(/aria-live="polite">Golpe máximo: Agora! \(Nível 1\)</);
     });
 });

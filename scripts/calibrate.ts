@@ -4,7 +4,6 @@
  *
  * Uso: npm run calibrate -- --n 2000 [--csv out.csv] [--agencia]
  * --agencia: os dois times com o técnico IA da beira da quadra (src/engine/rival-coach.ts), líderes em rodízio.
- * --maximo3: golpe máximo em 3 níveis (`maxLevels`, docs/planos/golpe-maximo-niveis.md); com --agencia, golpes por nível.
  */
 import { writeFileSync } from 'node:fs';
 import { FUTSAL_5, withConfig } from '../src/engine/config';
@@ -22,7 +21,7 @@ const N = Number(args[args.indexOf('--n') + 1]) || 500;
 const csvPath = args.includes('--csv') ? args[args.indexOf('--csv') + 1] : null;
 const TACTICS: Tactic[] = ['balanced', 'offensive', 'defensive', 'counter'];
 const AGENCIA = args.includes('--agencia');
-const CFG = args.includes('--maximo3') ? withConfig({ maxLevels: true }) : FUTSAL_5;
+const CFG = FUTSAL_5;
 
 const rng = new Rng('calibrate');
 

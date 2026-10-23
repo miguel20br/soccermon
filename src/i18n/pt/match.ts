@@ -136,11 +136,9 @@ export const match = {
         max: 'Golpe máximo',
         maxHint:
             'Enche com os lances do time. Cheia, acende na hora do chute do capitão (no gol: no chute do rival). Atalho: M.',
-        maxFull: 'Cheia',
         maxReady: 'Agora!',
         maxActive: 'No ar!',
-        maxUsed: 'Já saiu',
-        /** Golpe máximo em 3 níveis (?maximo3=1): gomo, nota do toque na batida. */
+        /** Golpe máximo em 3 níveis: gomo, nota do toque na batida. */
         maxLevel: 'Nível {n}',
         maxLevelShort: 'N{n}',
         maxPerfect: 'PERFEITO!',

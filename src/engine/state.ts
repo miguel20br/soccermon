@@ -104,7 +104,7 @@ export interface LineupOrder {
 export type AgencyOrder =
     | { tick: number; team: 0 | 1; seq?: number; kind: 'timeout' }
     | { tick: number; team: 0 | 1; seq?: number; kind: 'flyGk'; on: boolean }
-    /** `q`: nota do toque na batida (0 fora, 1 bom, 2 perfeito; sem = bom), só com `MatchConfig.maxLevels`. */
+    /** `q`: nota do toque na batida (0 fora, 1 bom, 2 perfeito; sem = bom). */
     | { tick: number; team: 0 | 1; seq?: number; kind: 'max'; q?: MaxGrade }
     | { tick: number; team: 0 | 1; seq?: number; kind: 'penalties'; order: string[] };
 export type AgencyKind = AgencyOrder['kind'];
@@ -481,7 +481,7 @@ export type MatchEvent = MatchEventBase &
               by: number;
               phase: 'start' | 'hit' | 'miss';
               moveId?: string | null;
-              /** Com `maxLevels`: nível que saiu e nota do toque (a tela mostra "PERFEITO!"). */
+              /** Nível que saiu e nota do toque (a tela mostra "PERFEITO!"). */
               level?: 1 | 2 | 3;
               q?: MaxGrade;
           }

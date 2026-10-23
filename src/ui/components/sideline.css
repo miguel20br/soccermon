@@ -141,7 +141,7 @@
     }
 }
 
-/* golpe máximo em 3 níveis (?maximo3=1): anel da batida que fecha no botão, o nível ao lado e a barra em 3 gomos */
+/* golpe máximo em 3 níveis: anel da batida que fecha no botão, o nível ao lado e a barra em 3 gomos */
 .sl-cue.lv3 {
     overflow: visible;
 }
