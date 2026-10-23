@@ -23,6 +23,11 @@ export interface MatchConfig {
     halftimeRecovery: number; // fôlego recuperado no intervalo
     /** Acréscimos de cada tempo, em minutos do relógio exibido (sorteados no `rng` da partida); sem = não tem. */
     stoppage?: { min: number; max: number };
+    /**
+     * Efeito do tipo do capitão no golpe máximo N3 (fase 1 de docs/planos/golpe-maximo-por-tipo.md), atrás de `?tipo=1`
+     * até o Miguel jogar (ADR 0005). Sem = o N3 de força pura.
+     */
+    maxType?: boolean;
 }
 
 /**
@@ -50,8 +55,10 @@ export const STOPPAGE = { min: 1, max: 3 };
  *     certa e defesa máxima, sem gritos, goleiro-linha balanceado; golpe treinado (MT: +1 uso, x1,3
  *     de força, IA prioriza) e Mega Drain/BubbleBeam/Fissure mais fortes.
  * 11 = golpe máximo em 3 níveis com a nota do toque na batida (docs/planos/golpe-maximo-niveis.md).
+ * 12 = chute N3 mira mais pro meio do gol (`AGENCY.maxAim`) e, com `maxType`, o efeito do tipo do capitão no N3
+ *     (docs/planos/golpe-maximo-por-tipo.md).
  */
-export const ENGINE_VERSION = 11;
+export const ENGINE_VERSION = 12;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',

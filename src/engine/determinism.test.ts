@@ -18,6 +18,8 @@ const EXPECTED_HASHES = [
     '3cd48072',
     '7c29f312',
     '46aa6dda',
+    'bbab3738',
+    '7977a841',
 ];
 
 describe('determinismo entre navegadores', () => {

@@ -151,6 +151,8 @@ export interface PendingBonus {
     fixedSpeed?: number;
     /** Golpe carregado (Solar Beam, Sky Attack...): já passou pela carga. */
     charged?: boolean;
+    /** Lutador (golpe máximo N3): chuta de primeira quando a bola voltar pro pé. */
+    volley?: boolean;
 }
 
 /** Estado dos traços de golpe (src/engine/moves.ts → MOVE_TRAITS) em cada jogador. */
@@ -269,6 +271,14 @@ export interface ShotInfo {
     pierced?: boolean;
     /** Golpe máximo N3: alcance do goleiro rival nesse chute (`AGENCY.maxLevelShot`). */
     gkReach?: number;
+    /** Golpe máximo N3 com o efeito do tipo do capitão (`MatchConfig.maxType`): o tipo. */
+    fx?: string;
+    /** Psíquico: aceleração lateral da bola (m/s² em y) enquanto o chute vive. */
+    curve?: number;
+    /** Inseto: o goleiro pulou na isca (sem defesa nesse chute). */
+    decoy?: boolean;
+    /** Dragão: sem vantagem de tipo pra nenhum lado. */
+    typeless?: boolean;
 }
 
 export interface BallState {
@@ -485,6 +495,11 @@ export type MatchEvent = MatchEventBase &
               level?: 1 | 2 | 3;
               q?: MaxGrade;
           }
+        /**
+         * Efeito do tipo no golpe máximo N3 (`MatchConfig.maxType`): `shot` no chute (a animação do tipo), `hit` quando
+         * pega alguém (`target`: o goleiro na isca, quem levou o raio, o capitão em fúria…).
+         */
+        | { type: 'maxFx'; by: number; fx: string; step: 'shot' | 'hit'; target: number | null }
         /** Técnico IA avisou a ordem (vale `RIVAL_COACH.leadTicks` depois; src/engine/rival-coach.ts). */
         | ({ type: 'coach'; team: 0 | 1; leader: LeaderId } & CoachCall)
     );

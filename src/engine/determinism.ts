@@ -3,11 +3,14 @@
  * duelo ao vivo). O teste `determinism.test.ts` guarda os hashes esperados; `npm run determinismo` roda isto no
  * Chromium, Firefox e WebKit. Mudou o motor de propósito: atualize os hashes e suba `ENGINE_VERSION`.
  */
+import { maxCharge } from './agency';
 import { FUTSAL_5, withConfig } from './config';
 import { aiDraftTeam } from './draft';
+import { inMaxZoneOf } from './match';
 import { Rng } from './rng';
 import { type MatchResult, runMatch } from './runners/batch-runner';
-import type { MatchOrder, TeamSetup } from './state';
+import { LiveRunner } from './runners/live-runner';
+import type { MatchEvent, MatchOrder, TeamSetup } from './state';
 
 /** FNV-1a de 32 bits sobre os códigos UTF-16 da string. */
 function fnv1a(s: string): string {
@@ -24,6 +27,9 @@ export function matchHash(r: MatchResult): string {
     const { score, shootout, winner, events, snapshots, finalRoster, possession, ticks } = r;
     return fnv1a(JSON.stringify({ score, shootout, winner, events, snapshots, finalRoster, possession, ticks }));
 }
+
+/** Hash só dos eventos (partida do LiveRunner, sem quadros). */
+export const eventsHash = (events: readonly MatchEvent[]) => fnv1a(JSON.stringify(events));
 
 function team(seed: string, name: string, tier: number, extra: Partial<TeamSetup> = {}): TeamSetup {
     const draft = aiDraftTeam(new Rng(seed, 'team'), tier, [], extra.formation);
@@ -89,5 +95,39 @@ export function determinismHashes(): string[] {
             }),
         ),
     );
+    // golpe máximo por tipo (`maxType`, ?tipo=1): o N3 com o efeito do tipo do capitão, dos dois lados
+    // (t5: o Psíquico do robô; t10: o Psíquico do capitão do Lance)
+    hashes.push(eventsHash(maxTypeMatch('t5')), eventsHash(maxTypeMatch('t10')));
     return hashes;
+}
+
+/**
+ * Partida fixa com o efeito do tipo no N3: o técnico robô segura pro 3º gomo e toca na hora certa (como
+ * scripts/balance/coach.ts, política n3); o rival é o Lance, que solta o dele sozinho. Devolve os eventos.
+ */
+export function maxTypeMatch(seed: string, capSlot = 4): MatchEvent[] {
+    const home = team(`${seed}-a`, 'A', 3, { manualSubs: true });
+    const away: TeamSetup = { ...team(`${seed}-b`, 'B', 3), coach: 'lance' };
+    const live = new LiveRunner(
+        withConfig({ maxType: true }),
+        { ...home, captainUid: home.lineup[capSlot].uid },
+        away,
+        seed,
+    );
+    const s = live.state;
+    while (!live.finished) {
+        const cap = s.players.find((p) => p.team === 0 && p.captain);
+        if (
+            cap &&
+            s.phase === 'play' &&
+            !s.teams[0].agency.max &&
+            s.ball.owner === cap.idx &&
+            cap.role !== 'GK' &&
+            inMaxZoneOf(s, cap) &&
+            maxCharge(s.events, 0, s.tick).level >= 3
+        )
+            live.addOrder({ tick: s.tick, team: 0, kind: 'max', q: 2 });
+        live.step();
+    }
+    return s.events;
 }

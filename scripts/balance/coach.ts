@@ -7,13 +7,17 @@
 // RIVAL=1: o time 1 ganha o técnico IA que reage (src/engine/rival-coach.ts), um líder por partida (em rodízio).
 // Golpe máximo em 3 níveis (motor 11, golpe-maximo-niveis.md): a nota do toque é sorteada aqui fora (40% perfeito, 40%
 // bom, 20% fora) e há mais duas políticas: n1 (solta no 1º gomo) e n3 (segura pro 3º). Golpes e gols por nível.
+// Golpe máximo por tipo (motor 12, golpe-maximo-por-tipo.md): MAXTIPO=1 liga o efeito do tipo (`MatchConfig.maxType`);
+// CAPTYPE=<tipo> (Fire, Water…) põe no time do robô, no rodízio, um capitão de linha com esse efeito; POLS=n3,n1 limita
+// as políticas do golpe máximo.
 import { writeFileSync } from 'node:fs';
 import { AGENCY, maxCharge } from '../../src/engine/agency';
-import { inMaxZoneOf, minuteOf } from '../../src/engine/match';
+import { withConfig } from '../../src/engine/config';
+import { inMaxZoneOf, maxFxType, minuteOf } from '../../src/engine/match';
 import { COACH_LEADERS, RIVAL_COACH } from '../../src/engine/rival-coach';
 import { LiveRunner } from '../../src/engine/runners/live-runner';
 import type { MatchState } from '../../src/engine/state';
-import { baseTeams, FUTSAL_5, Rng } from './lib';
+import { baseTeams, FUTSAL_5, insertSpecies, Rng, SPECIES, species, type TeamSetup } from './lib';
 
 const N = Number(process.argv[2]) || 100;
 const OUT = process.argv[3] ?? 'coach.json';
@@ -22,7 +26,29 @@ const MECHS = (process.argv[5] ?? 'timeout,flyGk,max,pens,all').split(',');
 const CAP_GK = process.env.CAP === 'gk';
 const LEAD = 40 * SPEED;
 const RIVAL = process.env.RIVAL === '1';
-const CFG = FUTSAL_5;
+const CFG = process.env.MAXTIPO === '1' ? withConfig({ maxType: true }) : FUTSAL_5;
+const CAPTYPE = process.env.CAPTYPE;
+const POLS = process.env.POLS?.split(',');
+/** Espécies (forma de linha) cujo efeito N3 é o tipo pedido, com o golpe que a carta traz. */
+const capPool = CAPTYPE
+    ? SPECIES.filter((sp) => {
+          if (!sp || sp.id > 151) return false;
+          return (sp.types as string[]).includes(CAPTYPE);
+      }).map((sp) => sp.id)
+    : [];
+/** O time do robô com um capitão de linha do tipo `CAPTYPE` (rodízio pelas espécies desse tipo). */
+function withCapType(t: TeamSetup, i: number): TeamSetup {
+    for (let k = 0; k < capPool.length; k++) {
+        const id = capPool[(i + k) % capPool.length];
+        const r = insertSpecies(t, id, i);
+        if (!r) continue;
+        const { team, inst } = r;
+        const pos = team.lineup.indexOf(inst);
+        if (pos === 0 || maxFxType(inst.moves, id, species(id).types) !== CAPTYPE) continue;
+        return { ...team, captainUid: inst.uid };
+    }
+    throw new Error(`sem capitão ${CAPTYPE} na partida ${i}`);
+}
 // variantes pra comparar (ex.: AG_maxGkReach=1.4): mexe só nesta rodada do robô, nunca no jogo
 for (const [k, v] of Object.entries(process.env)) {
     if (k.startsWith('AG_') && v) (AGENCY as unknown as Record<string, number>)[k.slice(3)] = Number(v);
@@ -74,7 +100,8 @@ interface Out {
 }
 
 function play(i: number, mech: string, policy: Policy): Out {
-    const { A: A0, B } = baseTeams(i);
+    const { A: A1, B } = baseTeams(i);
+    const A0 = CAPTYPE ? withCapType(A1, i) : A1;
     const A = CAP_GK ? { ...A0, captainUid: A0.lineup[0].uid } : A0;
     const away = RIVAL ? { ...B, coach: COACH_LEADERS[i % COACH_LEADERS.length] } : B;
     const runner = new LiveRunner(CFG, A, away, `coach-${i}`);
@@ -213,6 +240,11 @@ const configs: [string, Policy][] = [['none', 'never']];
 for (const m of MECHS) {
     configs.push([m, 'random'], [m, 'good']);
     if (m === 'max') configs.push([m, 'n1'], [m, 'n3']);
+}
+if (POLS) {
+    const keep = configs.filter(([m, p]) => p === 'never' || (m === 'max' && POLS.includes(p)));
+    configs.length = 0;
+    configs.push(...keep);
 }
 const res: Record<string, Out[]> = {};
 const t0 = Date.now();
