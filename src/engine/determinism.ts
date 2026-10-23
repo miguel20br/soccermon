@@ -98,6 +98,18 @@ export function determinismHashes(): string[] {
     // golpe máximo por tipo (`maxType`, ?tipo=1): o N3 com o efeito do tipo do capitão, dos dois lados
     // (t5: o Psíquico do robô; t10: o Psíquico do capitão do Lance)
     hashes.push(eventsHash(maxTypeMatch('t5')), eventsHash(maxTypeMatch('t10')));
+    // patrocínios de campo do motor 12 (Charanga liga e desliga a cada gol, Preparador, Clube Formador) dos dois lados
+    const sp = ['charanga', 'preparador', 'formador'];
+    hashes.push(
+        matchHash(
+            runMatch(
+                FUTSAL_5,
+                team('det-sp-a', 'A', 1, { manualSubs: true, sponsors: sp }),
+                team('det-sp-b', 'B', 4, { sponsors: ['charanga'] }),
+                'det-sponsors',
+            ),
+        ),
+    );
     return hashes;
 }
 
