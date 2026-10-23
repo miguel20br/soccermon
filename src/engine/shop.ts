@@ -105,6 +105,16 @@ export function rerollPrice(rerolls: number, sponsors: readonly string[] = []): 
 /** Raridade dos Pokémon avulsos sobe a cada fase (mesma escada dos reforços da recompensa). */
 const SHOP_ROUND = [3, 5, 6];
 
+/**
+ * Linha de raridade dos avulsos e do pacote. Olheiro de Viridian: a da fase seguinte (na reta final já é a mais alta,
+ * então não muda).
+ */
+function shopRound(stage: number, sponsors: readonly string[], longRound?: number): number {
+    const up = has(sponsors, 'olheiro') ? 1 : 0;
+    if (longRound !== undefined) return longRound + up; // draftOptions para na última linha
+    return SHOP_ROUND[Math.min(stage + up, SHOP_ROUND.length - 1)];
+}
+
 interface ShopInput {
     seed: string;
     stage: number;
@@ -140,17 +150,12 @@ export function shopOffers({
     const rng = new Rng(seed, long ? `shop-${long.key}-r${reroll}` : `shop-${stage}-r${reroll}`);
     const taken = new Set(team.map((p) => p.speciesId));
     const count = 2 + (has(sponsors, 'loja') ? 1 : 0);
-    const mons: ShopOffer[] = draftOptions(
-        rng,
-        long?.round ?? SHOP_ROUND[Math.min(stage, 2)],
-        taken,
-        count,
-        [],
-        'ANY',
-    ).map((m) => {
-        const inst = rollSpecial(m, eventType);
-        return { kind: 'pokemon', inst, price: PRICES.pokemon[metalOf(viewInstance(inst).overall)] };
-    });
+    const mons: ShopOffer[] = draftOptions(rng, shopRound(stage, sponsors, long?.round), taken, count, [], 'ANY').map(
+        (m) => {
+            const inst = rollSpecial(m, eventType);
+            return { kind: 'pokemon', inst, price: PRICES.pokemon[metalOf(viewInstance(inst).overall)] };
+        },
+    );
 
     // o tipo da semana, o do capitão ou um sorteado, desde que ainda tenha carta fora do seu time (pacote vazio travava)
     const capType = captain ? species(captain.speciesId).types[0] : null;
@@ -201,6 +206,6 @@ export function packCards(
     const rng = new Rng(seed, `pack-${stage}-${type}-${n}`);
     const taken = new Set(team.map((p) => p.speciesId));
     const count = has(sponsors, 'safari') ? 4 : 3;
-    const round = longRound ?? SHOP_ROUND[Math.min(stage, 2)];
+    const round = shopRound(stage, sponsors, longRound);
     return draftOptions(rng, round, taken, count, [], 'ANY', undefined, type).map((m) => rollSpecial(m, eventType));
 }

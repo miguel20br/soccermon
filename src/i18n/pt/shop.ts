@@ -71,5 +71,17 @@ export const shop = {
             short: 'MASTER',
             desc: 'Capitão com +2 em tudo, +1 por Patrocínio a mais.',
         },
+        olheiro: {
+            name: 'Olheiro de Viridian',
+            short: 'OLHEIRO',
+            desc: 'Mercado e pacotes com Pokémon mais raros.',
+        },
+        preparador: { name: 'Preparador de Lavender', short: 'LAVENDER', desc: '+6 de fôlego pro time todo.' },
+        charanga: { name: 'Charanga de Pewter', short: 'CHARANGA', desc: '+4 em tudo enquanto o time perde.' },
+        formador: {
+            name: 'Clube Formador de Pallet',
+            short: 'PALLET',
+            desc: 'A barra de evolução do seu time enche 40% mais rápido.',
+        },
     } as Record<string, { name: string; short: string; desc: string }>,
 };

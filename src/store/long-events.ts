@@ -1,5 +1,5 @@
 import { draftOptions } from '../engine/draft';
-import { EVO_THRESHOLD, evolutionTarget } from '../engine/evolution';
+import { evolutionTarget, evoThreshold } from '../engine/evolution';
 import { type PokemonInstance, viewInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { rollSpecial } from '../engine/specials';
@@ -142,8 +142,10 @@ export function resolveEvent(
         out: { ...(next.out ?? {}), [uid]: n },
         outWhy: { ...(next.outWhy ?? {}), [uid]: why },
     });
+    // barra cheia = o limiar do seu time (Clube Formador baixa pra 10)
+    const evoMax = evoThreshold(run.sponsors);
     const evoFill = (uid: string, amount: number) =>
-        next.picks.map((p) => (p.uid === uid ? { ...p, evo: Math.min(EVO_THRESHOLD, (p.evo ?? 0) + amount) } : p));
+        next.picks.map((p) => (p.uid === uid ? { ...p, evo: Math.min(evoMax, (p.evo ?? 0) + amount) } : p));
     const swapIn = (inst: PokemonInstance, leaving: string): RunState => ({
         ...next,
         picks: [...next.picks.filter((p) => p.uid !== leaving), inst],
@@ -184,11 +186,11 @@ export function resolveEvent(
         case 'entrevista:provocar':
             return { ...next, rivalShift: 1 };
         case 'treinoPuxado:puxado':
-            return { ...next, picks: evoFill(target!, EVO_THRESHOLD / 2), ...out(target!, 1, 'cansado') };
+            return { ...next, picks: evoFill(target!, evoMax / 2), ...out(target!, 1, 'cansado') };
         case 'treinoPuxado:leve':
             return { ...next, rerolls: next.rerolls + 1 };
         case 'creche:deixar':
-            return { ...next, picks: evoFill(target!, EVO_THRESHOLD), ...out(target!, 2, 'creche') };
+            return { ...next, picks: evoFill(target!, evoMax), ...out(target!, 2, 'creche') };
         default:
             // recusar, seguir, sair, folga, soltar, fisioterapeuta: só o ₽ da escolha
             return next;

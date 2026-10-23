@@ -1,4 +1,4 @@
-import type { Position } from './attributes';
+import type { AttrKey, Position } from './attributes';
 import { species } from './data';
 import type { PokemonInstance } from './instance';
 
@@ -22,6 +22,10 @@ export const SPONSOR_IDS = [
     'academia',
     'torcida',
     'master',
+    'olheiro',
+    'preparador',
+    'charanga',
+    'formador',
 ] as const;
 export type SponsorId = (typeof SPONSOR_IDS)[number];
 export type SponsorFamily = 'economia' | 'recompensa' | 'campo';
@@ -39,7 +43,16 @@ export const SPONSOR_FAMILY: Record<SponsorId, SponsorFamily> = {
     academia: 'campo',
     torcida: 'campo',
     master: 'campo',
+    olheiro: 'recompensa',
+    preparador: 'campo',
+    charanga: 'campo',
+    formador: 'campo',
 };
+
+/** Charanga de Pewter: em tudo, só enquanto o time perde (Miguel, 23/10/2026; +3 se ficar forte demais). */
+export const CHARANGA_ADD = 4;
+/** Preparador de Lavender: fôlego pro time todo (o fôlego corta o gasto de energia em match.ts). */
+export const PREPARADOR_ADD = 6;
 
 /** Vagas de Patrocínio por copa (como os Jokers do Balatro). */
 export const MAX_SPONSORS = 3;
@@ -50,19 +63,21 @@ export const has = (sponsors: readonly string[] | undefined, id: SponsorId) => !
 /** Bônus de campo de um Patrocínio pra este Pokémon (soma em pontos, como edição e evolução). */
 export interface SponsorBonus {
     id: SponsorId;
-    attrs: 'all' | ('pace' | 'passing' | 'strength')[];
+    attrs: 'all' | AttrKey[];
     add: number;
 }
 
 /**
  * Os bônus de campo que este Pokémon recebe dos Patrocínios do time. `captain` = o capitão em campo (Silph Co. olha
- * o tipo dele; o Patrocínio Master dá o bônus a ele).
+ * o tipo dele; o Patrocínio Master dá o bônus a ele). `losing` = o time está perdendo agora (só a partida sabe; a Charanga
+ * liga e desliga a cada gol).
  */
 export function sponsorBonuses(
     inst: PokemonInstance,
     sponsors: readonly string[] | undefined,
     captain: PokemonInstance | null | undefined,
     role: Position | null | undefined,
+    losing = false,
 ): SponsorBonus[] {
     if (!sponsors?.length) return [];
     const out: SponsorBonus[] = [];
@@ -82,5 +97,7 @@ export function sponsorBonuses(
             attrs: 'all',
             add: 2 + sponsors.filter((s) => s !== 'master' && isSponsorId(s)).length,
         });
+    if (has(sponsors, 'preparador')) out.push({ id: 'preparador', attrs: ['stamina'], add: PREPARADOR_ADD });
+    if (has(sponsors, 'charanga') && losing) out.push({ id: 'charanga', attrs: 'all', add: CHARANGA_ADD });
     return out;
 }

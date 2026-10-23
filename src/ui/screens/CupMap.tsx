@@ -15,7 +15,7 @@ import {
     rivalTrainer,
     rivalTypes,
 } from '../../engine/cup-map';
-import { EVO_THRESHOLD, evolutionTarget } from '../../engine/evolution';
+import { evolutionTarget, evoThreshold } from '../../engine/evolution';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
@@ -489,7 +489,7 @@ export function Training() {
                     <p className="muted">{t('longCup.treino.evoLine')}</p>
                     <div className="squad-strip">
                         {evolvers.map((p) => {
-                            const pct = Math.min(100, Math.round(((p!.evo ?? 0) / EVO_THRESHOLD) * 100));
+                            const pct = Math.min(100, Math.round(((p!.evo ?? 0) / evoThreshold(run.sponsors)) * 100));
                             return (
                                 <button
                                     key={p!.uid}
