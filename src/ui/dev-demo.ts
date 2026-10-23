@@ -27,7 +27,7 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * partida termina empatada e vai para os pênaltis, já na tela de escalação. `?demo=ditto` monta um time
  * com Ditto e Mew + Mewtwo (sinergia Gênese) cuja primeira partida tem combo. `?demo=evolucao` monta um time
  * de iniciais cuja primeira partida tem evolução do seu time logo no começo (`&rival=1`: do rival). `?demo=campeao` joga uma copa
- * inteira com um time forte e para na tela do título (`?demo=momentos` é a mesma: Melhores momentos e gol da copa). `?demo=mercado` abre o Mercado depois das quartas (₽, 2 Patrocínios; `&novos=1` com os 4 de 23/10). `?demo=mt` abre a recompensa depois das oitavas com
+ * inteira com um time forte e para na tela do título (`?demo=momentos` é a mesma: Melhores momentos e gol da copa). `?demo=mercado` abre o Mercado depois das quartas (₽, 2 Patrocínios; `&novos=1` com os 4 de 23/10, Charanga e Clube Formador à venda; `&novos=2` Olheiro e Preparador). `?demo=mt` abre a recompensa depois das oitavas com
  * uma MT do ginásio entre as 3 cartas (Charmeleon, Caterpie e cia. para testar quem aprende). `?demo=conta&tipo=levar|juntar|juntar1|copa|outra|guardada`
  * mostra a pergunta depois do login (com resumos de mentira; os botões só fecham) ou a copa guardada na tela inicial. `?demo=trailer&cena=<cena>&seed=<seed>` abre na escalação a
  * partida que a caça de lances (scripts/trailer-hunt.ts) escolheu para o trailer. `?demo=escanteio` monta um time de
@@ -49,6 +49,8 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * `?demo=maximo` abre na escalação uma partida que, ao começar, está a 2 s do botão do golpe máximo aceso
  * (barra cheia, capitão Dragonite com a bola na zona); `&goleiro=1`: capitão Snorlax no gol (defesa máxima);
  * `&capitao=<id>`: outro pivô capitão (com `&nivel=3`: o efeito do tipo dele no N3, ex. 6 Fogo, 94 Fantasma).
+ * `?demo=charanga` abre na escalação uma partida com a Charanga de Pewter em que, ao começar, o rival está a 4 s de
+ * abrir o placar (o aviso "A CHARANGA ENTROU" vem logo depois do gol).
  * `?demo=virada` abre na escalação uma partida que, ao começar, está a 4 s do gol que põe o seu time na frente no
  * 2º tempo. `&clube=<id>` (brock, misty, rocket…): contra o clube desse treinador (a música dele); `&pressao=1`: a
  * virada vem depois de o seu time entrar na Pressão final, e a partida abre 2 s antes dela (a música entra no trecho
@@ -89,6 +91,7 @@ export function runDevDemo() {
         demo !== 'acrescimos' &&
         demo !== 'maximo' &&
         demo !== 'virada' &&
+        demo !== 'charanga' &&
         demo !== 'sala'
     )
         return;
@@ -527,6 +530,37 @@ export function runDevDemo() {
         }
         return;
     }
+    if (demo === 'charanga') {
+        for (let k = 0; k < 200; k++) {
+            store.newRun('Demo FC', `cha${k}`);
+            const base = useGame.getState().run!;
+            const rng = new Rng(`cha${k}`, 'demo');
+            // o time médio da virada, com a Charanga e mais 2 Patrocínios de campo novos
+            const lineup = [95, 67, 77, 8, 33].map((id) => createInstance(id, rng));
+            const bench = [17, 2].map((id) => createInstance(id, rng));
+            const run = {
+                ...base,
+                formation: '1-2-1' as const,
+                picks: [...lineup, ...bench],
+                lineup: lineup.map((p) => p.uid),
+                bench: bench.map((p) => p.uid),
+                captainUid: lineup[4].uid,
+                sponsors: ['charanga', 'preparador', 'formador'],
+                draftRound: 7,
+                status: 'lineup' as const,
+            };
+            const team = { ...playerTeam(run), manualSubs: true };
+            const rival = cupRival(run.opponents[0], true);
+            const r = runMatch(FUTSAL_5, team, rival, `${run.seed}-stage-0`, { snapshots: false });
+            const goal = r.events.find((e) => e.type === 'goal');
+            if (goal?.type !== 'goal' || goal.team !== 1 || goal.tick < 200) continue;
+            const live = { stage: 0, orders: [], tick: goal.tick - 80, engine: ENGINE_VERSION };
+            useGame.setState({ run: { ...run, lockedTeam: team, live }, screen: 'lineup' });
+            console.info(`[demo] copa ${run.seed}: o rival abre o placar no tick ${goal.tick}`);
+            return;
+        }
+        return;
+    }
     if (demo === 'virada') {
         const q = new URLSearchParams(window.location.search);
         const clube = q.get('clube');
@@ -958,7 +992,14 @@ function demoBinder() {
 
 /** ?demo=mercado: Mercado depois das quartas, com ₽12 guardados, 2 Patrocínios e a vitória por 3 a 0. */
 function demoShop(store: ReturnType<typeof useGame.getState>) {
-    const novos = new URLSearchParams(window.location.search).has('novos');
+    // &novos=2: os outros 2 à venda (Charanga e Clube Formador nas vagas, Olheiro e Preparador na vitrine)
+    const novosArg = new URLSearchParams(window.location.search).get('novos');
+    const novos = novosArg !== null;
+    const pairs = [
+        ['olheiro', 'preparador'],
+        ['charanga', 'formador'],
+    ] as const;
+    const [slots, onSale] = novosArg === '2' ? [pairs[1], pairs[0]] : pairs;
     store.newRun('Demo FC', 'mercado-demo');
     const run = useGame.getState().run!;
     const rng = new Rng('mercado-demo', 'demo');
@@ -986,14 +1027,14 @@ function demoShop(store: ReturnType<typeof useGame.getState>) {
             results: [result(0), result(1)],
             rewards: [],
             money: 12,
-            sponsors: novos ? ['olheiro', 'preparador'] : ['silph', 'creche'],
+            sponsors: novos ? [...slots] : ['silph', 'creche'],
         },
     });
     useGame.getState().skipReward();
     // &novos=1: os Patrocínios de 23/10 (Olheiro e Preparador nas vagas, Charanga e Clube Formador na vitrine)
     const shop = novos ? useGame.getState().run?.shop : null;
     if (shop) {
-        const ids = ['charanga', 'formador'] as const;
+        const ids = onSale;
         let k = 0;
         const offers = shop.offers.map((o) => (o.kind === 'sponsor' ? { ...o, id: ids[k++ % 2] } : o));
         useGame.setState({ run: { ...useGame.getState().run!, money: 24, shop: { ...shop, offers } } });
