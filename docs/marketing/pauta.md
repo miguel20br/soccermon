@@ -29,6 +29,8 @@ Legenda do trailer (TikTok; no Reels troca `/tt` por `/ig`):
 | 8 | seg 26/10 19h | TikTok + Reels + Shorts | Gol da copa em câmera lenta (Melhores momentos) | GOL EM CÂMERA LENTA | Seu time de Kanto faria esse gol? soccermon.com/tt |
 | 9 | qua 28/10 19h | TikTok + Reels + Shorts | Snorlax no gol fechando tudo | SNORLAX NO GOL | Ninguém passa. soccermon.com/tt |
 | 10 | sex 30/10 19h | TikTok + Reels + Shorts | Copa do Dia: a mesma copa pra todo mundo + o placar do Miguel | BATA MEU PLACAR | A Copa do Dia é igual pra todo mundo. Quantas vitórias você faz? soccermon.com/tt |
+| 11 | a definir | TikTok + Reels + Shorts | Série "Simulei": 5 Snorlax × 5 Pikachu (placar real do motor) | 5 SNORLAX × 5 PIKACHU | clipe reprovado (23/10): refazer na régua do trailer ou arquivar |
+| 12 | a definir | TikTok + Reels + Shorts | O mais escolhido de Kanto: top 10 real dos jogadores (`npm run stats`) | O MAIS ESCOLHIDO DE KANTO | clipe reprovado (23/10): refazer na régua do trailer ou arquivar |
 
 (Qua 28/10 às 10h tem o Show HN, fora desta pauta: rascunho em `docs/planos/divulgacao-trailer2.md`.)
 
