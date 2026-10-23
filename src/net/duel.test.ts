@@ -434,6 +434,12 @@ describe('log de ordens', () => {
         expect(reduce(s, shout, 'guest', ctx(0, { tick: 600 }))).toBe(s);
         s = reduce(s, max(1), 'guest', ctx(0, { tick: 600 }));
         expect(s.log[0]).toMatchObject({ team: 1, kind: 'max', seq: 1 });
+        // golpe máximo em 3 níveis: a nota do toque vai carimbada; nota inválida não entra
+        const graded = (q: number, seq: number) =>
+            ({ k: 'order', order: { kind: 'max', q }, tick: 0, seq }) as unknown as Intent;
+        const withQ = reduce(s, graded(2, 2), 'guest', ctx(0, { tick: 700 }));
+        expect(withQ.log.at(-1)).toMatchObject({ kind: 'max', q: 2, seq: 2 });
+        expect(reduce(s, graded(7, 2), 'guest', ctx(0, { tick: 700 })).log).toEqual(s.log);
         const mine = s.teams.guest!.lineup.map((p) => p.uid);
         const theirs = s.teams.host!.lineup.map((p) => p.uid);
         const pens = (order: string[], seq: number): Intent => ({

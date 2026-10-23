@@ -136,10 +136,14 @@ export const match = {
         max: 'Golpe máximo',
         maxHint:
             'Enche com os lances do time. Cheia, acende na hora do chute do capitão (no gol: no chute do rival). Atalho: M.',
-        maxFull: 'Cheia',
         maxReady: 'Agora!',
         maxActive: 'No ar!',
-        maxUsed: 'Já saiu',
+        /** Golpe máximo em 3 níveis: gomo, nota do toque na batida. */
+        maxLevel: 'Nível {n}',
+        maxLevelShort: 'N{n}',
+        maxPerfect: 'PERFEITO!',
+        maxGood: 'BOM',
+        maxBeatHint: 'Toque quando o anel fechar no botão, na batida da música.',
         timeoutPanel: {
             title: 'Tempo técnico',
             sub: 'Seu time descansa um pouco. Troca e posições valem agora.',

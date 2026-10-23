@@ -12,7 +12,7 @@
 import { inMaxZone, maxCharge } from './agency';
 import { emit, minuteOf } from './match';
 import { Rng } from './rng';
-import type { MatchOrder, MatchState, Tactic } from './state';
+import type { MatchOrder, MatchState, MaxGrade, Tactic } from './state';
 
 /** Os treinadores da copa: os 8 líderes de Kanto, a Agatha (Lavender) e o Lance (Liga Índigo). Mesmo id do sprite. */
 export type LeaderId =
@@ -140,18 +140,27 @@ export const RIVAL_COACH = {
     /** Pedido de tempo "cansado": minuto e fôlego médio em cada tempo (como o "usa bem" do robô). */
     tiredAt: [12, 28],
     tiredBelow: [0.62, 0.52],
+    /**
+     * Golpe máximo em 3 níveis: nota do toque sorteada (perfeito, bom, fora). Os líderes de ginásio 55/35/10 e o Lance
+     * (a final) 70/25/5 (Miguel, 23/10/2026; golpe-maximo-niveis.md, decisão 7).
+     */
+    maxGradeOdds: { common: [0.55, 0.35, 0.1], final: [0.7, 0.25, 0.05] },
+    /** Solta no N2 ou no N3; no N1 só perdendo a partir deste minuto. */
+    maxN1From: 30,
 } as const;
 
 export type CoachCall =
     | { call: 'timeout' }
     | { call: 'flyGk'; on: boolean }
-    | { call: 'max' }
+    | { call: 'max'; q?: MaxGrade }
     | { call: 'tactic'; tactic: Tactic };
 
 /** Técnico IA de um time (o rival da Copa). Uma instância por partida; `decide` roda dentro do LiveRunner. */
 export class RivalCoach {
     private readonly style: CoachStyle;
     private readonly shift: number;
+    /** Sorteio da nota do golpe máximo: Rng próprio, então o resto da partida não muda de sorteio. */
+    private readonly gradeRng: Rng;
     private wantFly = false;
     private wantTactic: Tactic;
     private prevDiff = 0;
@@ -167,6 +176,7 @@ export class RivalCoach {
     ) {
         this.style = COACH_STYLES[leader];
         this.shift = new Rng(seed, `coach-${team}`).range(-RIVAL_COACH.jitter, RIVAL_COACH.jitter);
+        this.gradeRng = new Rng(seed, `coach-max-${team}`);
         this.wantTactic = baseTactic;
     }
 
@@ -214,7 +224,8 @@ export class RivalCoach {
         // capitão). Vale já neste passo (antes da decisão dos jogadores), sem aviso: é um lance, não um plano
         if (s.phase === 'play' && !ag.max && (st.max === 'asap' || Math.abs(diff) <= 1) && this.maxCue(s)) {
             const c = maxCharge(s.events, team, s.tick, s.cfg.teamSize);
-            if (c.charge >= 1 && !c.used && !c.active) calls.push({ call: 'max' });
+            const ready = c.level >= 2 || (c.level === 1 && diff < 0 && min >= RIVAL_COACH.maxN1From);
+            if (ready && !c.active) calls.push({ call: 'max', q: this.grade() });
         }
 
         // tática: muda com o placar e volta pra de sempre
@@ -236,6 +247,13 @@ export class RivalCoach {
         });
     }
 
+    /** Nota do toque do técnico IA (perfeito, bom ou fora), pela tabela do líder. */
+    private grade(): MaxGrade {
+        const [perfect, good] = RIVAL_COACH.maxGradeOdds[this.leader === 'lance' ? 'final' : 'common'];
+        const r = this.gradeRng.next();
+        return r < perfect ? 2 : r < perfect + good ? 1 : 0;
+    }
+
     /** A hora do golpe máximo (a mesma zona do botão do técnico). */
     private maxCue(s: MatchState): boolean {
         const cap = s.players.find((p) => p.team === this.team && p.captain);
@@ -253,7 +271,7 @@ function toOrder(c: CoachCall, team: 0 | 1, tick: number): MatchOrder {
         case 'flyGk':
             return { tick, team, kind: 'flyGk', on: c.on };
         case 'max':
-            return { tick, team, kind: 'max' };
+            return c.q === undefined ? { tick, team, kind: 'max' } : { tick, team, kind: 'max', q: c.q };
         case 'tactic':
             return { tick, team, tactic: c.tactic };
     }

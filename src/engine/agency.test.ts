@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AGENCY, inMaxZone, maxCharge, maxCue } from './agency';
+import { AGENCY, inMaxZone, maxCharge, maxCue, maxGraded } from './agency';
 import { FUTSAL_5, withConfig } from './config';
 import { matchHash } from './determinism';
 import { aiDraftTeam } from './draft';
@@ -7,7 +7,7 @@ import { eff } from './effective';
 import { applyAgencyOrder, benchSpot, createMatch, inMaxZoneOf, maxMoveOf, toRel } from './match';
 import { Rng } from './rng';
 import { runMatch } from './runners/batch-runner';
-import { LiveRunner } from './runners/live-runner';
+import { LiveRunner, validOrder } from './runners/live-runner';
 import { type MatchEvent, type MatchOrder, SNAP_STRIDE, type TeamSetup } from './state';
 
 function team(seed: string, name: string): TeamSetup {
@@ -96,39 +96,12 @@ describe('agência do técnico (experimento)', () => {
         expect(eff(s, p, 'passing')).toBe(pass);
     });
 
-    it('barra do golpe máximo: lances do time, mais rápido perdendo, metade de volta se não sair', () => {
-        const at = (tick: number, e: Record<string, unknown>) =>
-            ({ ...e, tick, half: 1, minute: 0 }) as unknown as MatchEvent;
-        const tackles = (n: number, from: number) =>
-            Array.from({ length: n }, (_, i) => at(from + i, { type: 'tackle', by: 1, victim: 6, success: true }));
-        const even = maxCharge(tackles(4, 10), 0).charge;
-        const behind = maxCharge(
-            [at(1, { type: 'goal', by: 6, assist: null, team: 1, score: [0, 1], ownGoal: false }), ...tackles(4, 10)],
-            0,
-        ).charge;
-        expect(even).toBeCloseTo(4 / AGENCY.maxFull, 10);
-        expect(behind / even).toBeCloseTo(AGENCY.maxBehind[1], 10);
-        // o lance do rival não enche a minha
-        expect(maxCharge(tackles(4, 10), 1).charge).toBe(0);
-        const full = tackles(AGENCY.maxFull, 10);
-        expect(maxCharge(full, 0).charge).toBe(1);
-        const miss = [...full, at(100, { type: 'max', team: 0, by: 1, phase: 'start' })];
-        expect(maxCharge(miss, 0)).toEqual({ charge: 0, active: true, used: false });
-        miss.push(at(300, { type: 'max', team: 0, by: 1, phase: 'miss' }));
-        expect(maxCharge(miss, 0).charge).toBe(AGENCY.maxRefund);
-        miss.push(
-            at(400, { type: 'max', team: 0, by: 1, phase: 'start' }),
-            at(410, { type: 'max', team: 0, by: 1, phase: 'hit' }),
-        );
-        expect(maxCharge([...miss, ...tackles(30, 500)], 0)).toEqual({ charge: 0, active: false, used: true });
-    });
-
-    /** Primeiro tick (depois da barra cheia) em que `cue` vale, andando a partida sem ordem nenhuma. */
+    /** Primeiro tick (com o 1º gomo cheio) em que `cue` vale, andando a partida sem ordem nenhuma. */
     function firstCue(home: TeamSetup, seed: string, cue: (live: LiveRunner) => boolean, from = 0) {
         const live = new LiveRunner(FUTSAL_5, home, B, seed);
         while (!live.finished) {
             const s = live.state;
-            if (s.tick >= from && s.phase === 'play' && maxCharge(s.events, 0, s.tick).charge >= 1 && cue(live))
+            if (s.tick >= from && s.phase === 'play' && maxCharge(s.events, 0, s.tick).level >= 1 && cue(live))
                 return s.tick;
             live.step();
         }
@@ -182,15 +155,22 @@ describe('agência do técnico (experimento)', () => {
             expect(shot?.by).toBe(hit.by);
             const inst = P.lineup.find((p) => p.uid === cap.uid)!;
             expect(shot?.moveId).toBe(maxMoveOf(inst.moves, inst.speciesId));
-            // 1 por partida
-            expect(maxCharge(r.events, 0)).toEqual({ charge: 0, active: false, used: true });
+            // gastou a barra toda (o próprio chute já começa a encher de novo)
+            expect(maxCharge(r.events, 0, hit.tick)).toMatchObject({ level: 0, active: false });
 
             // fora da hora certa (o capitão sem a bola): fica armada um instante; se não vier a hora, nada gasta
             const early = firstCue(P, seed, (live) => live.state.ball.owner !== capOf(live).idx);
             const r2 = runP([{ tick: early!, team: 0, kind: 'max' }], seed);
             const hit2 = of(r2.events, 'max')[0];
             if (hit2) expect(hit2.tick - early!).toBeLessThanOrEqual(AGENCY.maxArmTicks);
-            else expect(maxCharge(r2.events, 0, early! + AGENCY.maxArmTicks + 1).charge).toBe(1);
+            else expect(maxCharge(r2.events, 0, early! + AGENCY.maxArmTicks + 1).level).toBeGreaterThanOrEqual(1);
+
+            // o toque um pouco antes de acender (a tela acende MAX_CUE_EARLY = 6 ticks antes) não se perde: sai no
+            // próximo chute da zona
+            const r3 = runP([{ tick: at - 6, team: 0, kind: 'max' }], seed);
+            const hit3 = of(r3.events, 'max')[0];
+            expect(hit3?.phase).toBe('hit');
+            expect(hit3.tick - (at - 6)).toBeLessThanOrEqual(AGENCY.maxArmTicks);
         }
         expect(checked).toBeGreaterThan(0);
     });
@@ -207,15 +187,17 @@ describe('agência do técnico (experimento)', () => {
                 return !!owner && owner.team === 1 && inMaxZoneOf(s, owner, 'GK');
             });
             if (at === null) continue;
+            // toque perfeito: segura e sai jogando (bom e fora espalmam)
             const r = runMatch(FUTSAL_5, H, B, seed, {
                 snapshots: false,
-                orders: [{ tick: at, team: 0, kind: 'max' }],
+                orders: [{ tick: at, team: 0, kind: 'max', q: 2 }],
             });
             const evs = of(r.events, 'max');
             expect(evs[0]?.phase).toBe('start');
             expect(r.roster[evs[0].by].uid).toBe(gkUid);
             const end = evs[1];
-            expect(end && end.tick - evs[0].tick).toBeLessThanOrEqual(AGENCY.maxGkTicks);
+            const level = evs[0].level!;
+            expect(end && end.tick - evs[0].tick).toBeLessThanOrEqual(AGENCY.maxLevelGk[level].ticks);
             // nada de gol do rival enquanto ela vale
             expect(
                 r.events.some((e) => e.type === 'goal' && e.team === 1 && e.tick > evs[0].tick && e.tick < end.tick),
@@ -224,10 +206,10 @@ describe('agência do técnico (experimento)', () => {
                 saves++;
                 const save = r.events.find((e) => e.type === 'save' && e.tick === end.tick);
                 expect(save?.type === 'save' && save.caught).toBe(true);
-                expect(maxCharge(r.events, 0).used).toBe(true);
+                expect(maxCharge(r.events, 0, end.tick).charge).toBe(0);
             } else {
                 expect(end.phase).toBe('miss');
-                expect(maxCharge(r.events, 0, end.tick).charge).toBe(AGENCY.maxRefund);
+                expect(maxCharge(r.events, 0, end.tick).charge).toBeCloseTo((level * AGENCY.maxRefund) / 3, 10);
             }
         }
         expect(saves).toBeGreaterThan(0);
@@ -315,5 +297,94 @@ describe('agência do técnico (experimento)', () => {
             return;
         }
         throw new Error('nenhuma partida foi pros pênaltis');
+    });
+});
+
+describe('golpe máximo em 3 níveis (golpe-maximo-niveis.md)', () => {
+    const at = (tick: number, e: Record<string, unknown>) =>
+        ({ ...e, tick, half: 1, minute: 0 }) as unknown as MatchEvent;
+    const tackles = (n: number, from: number) =>
+        Array.from({ length: n }, (_, i) => at(from + i, { type: 'tackle', by: 1, victim: 6, success: true }));
+
+    it('barra: 3 gomos de 12, o toque gasta tudo e ela volta a encher; sem chute, metade do nível de volta', () => {
+        const per = AGENCY.maxLevelPts;
+        // só lances do meu time; perdendo enche mais rápido
+        expect(maxCharge(tackles(4, 10), 1).charge).toBe(0);
+        const goal = at(1, { type: 'goal', by: 6, assist: null, team: 1, score: [0, 1], ownGoal: false });
+        expect(maxCharge([goal, ...tackles(4, 10)], 0).charge / maxCharge(tackles(4, 10), 0).charge).toBeCloseTo(
+            AGENCY.maxBehind[1],
+            10,
+        );
+        expect(maxCharge(tackles(per - 1, 10), 0).level).toBe(0);
+        expect(maxCharge(tackles(per, 10), 0).level).toBe(1);
+        expect(maxCharge(tackles(3 * per + 5, 10), 0)).toMatchObject({ charge: 1, level: 3 });
+        const hit = [...tackles(2 * per, 10), at(100, { type: 'max', team: 0, by: 1, phase: 'hit', level: 2, q: 2 })];
+        expect(maxCharge(hit, 0)).toMatchObject({ charge: 0, level: 0 });
+        expect(maxCharge([...hit, ...tackles(per, 200)], 0).level).toBe(1);
+        const miss = [
+            ...tackles(3 * per, 10),
+            at(100, { type: 'max', team: 0, by: 0, phase: 'start', level: 3, q: 1 }),
+            at(200, { type: 'max', team: 0, by: 0, phase: 'miss', level: 3, q: 1 }),
+        ];
+        expect(maxCharge(miss, 0).charge).toBeCloseTo(AGENCY.maxRefund, 10);
+    });
+
+    it('a nota escala só a parte extra (perfeito 100%, bom 70%, fora 40%) e o N3 é o mais forte', () => {
+        const n2 = AGENCY.maxLevelShot[2].power;
+        expect(maxGraded(n2, 2)).toBe(n2);
+        expect(maxGraded(n2, 1)).toBeCloseTo(1 + (n2 - 1) * 0.7, 10);
+        expect(maxGraded(n2, 0)).toBeGreaterThan(1);
+        const [, n1, , n3] = AGENCY.maxLevelShot;
+        expect(n3.power > n1.power && n3.accuracy > n1.accuracy && n3.rivalReach < 1).toBe(true);
+        expect(AGENCY.maxLevelGk[3].reach).toBeGreaterThan(AGENCY.maxLevelGk[1].reach);
+    });
+
+    it('no mesmo lance, perfeito sai mais forte que fora; ordem sem nota vale como bom; a barra volta a encher', () => {
+        const P = { ...A, captainUid: A.lineup[4].uid };
+        let checked = 0;
+        for (let k = 0; k < 20 && checked < 2; k++) {
+            const seed = `ag-lv-${k}`;
+            const live = new LiveRunner(FUTSAL_5, P, B, seed);
+            let cue: number | null = null;
+            while (!live.finished && cue === null) {
+                const s = live.state;
+                const cap = s.players.find((p) => p.team === 0 && p.captain)!;
+                if (
+                    s.phase === 'play' &&
+                    maxCharge(s.events, 0, s.tick).level >= 1 &&
+                    s.ball.owner === cap.idx &&
+                    inMaxZoneOf(s, cap)
+                )
+                    cue = s.tick;
+                else live.step();
+            }
+            if (cue === null) continue;
+            checked++;
+            const level = maxCharge(live.state.events, 0, cue).level;
+            /** Velocidade da bola logo depois do chute máximo. */
+            const shotSpeed = (q?: 0 | 1 | 2) => {
+                const r = new LiveRunner(FUTSAL_5, P, B, seed, [{ tick: cue!, team: 0, kind: 'max', q }]);
+                while (!r.state.events.some((e) => e.type === 'max')) r.step();
+                const hit = r.state.events.find((e) => e.type === 'max')!;
+                expect(hit).toMatchObject({ phase: 'hit', level, q: q ?? 1 });
+                return Math.hypot(r.state.ball.vel.x, r.state.ball.vel.y);
+            };
+            expect(shotSpeed(2)).toBeGreaterThan(shotSpeed(0));
+            const run = (q?: 0 | 1 | 2) =>
+                runMatch(FUTSAL_5, P, B, seed, { snapshots: false, orders: [{ tick: cue, team: 0, kind: 'max', q }] });
+            const noQ = run();
+            expect(matchHash(noQ)).toBe(matchHash(run(1)));
+            // gastou e voltou a encher: nada de "1 por partida"
+            expect(maxCharge(noQ.events, 0).charge).toBeGreaterThan(0);
+        }
+        expect(checked).toBeGreaterThan(0);
+    });
+
+    it('nota inválida não entra (Liga e Duelo passam pelo mesmo validOrder)', () => {
+        const base = runMatch(FUTSAL_5, A, B, 'ag-q');
+        const bad = { tick: 30, team: 0, kind: 'max', q: 7 } as unknown as MatchOrder;
+        expect(matchHash(runMatch(FUTSAL_5, A, B, 'ag-q', { orders: [bad] }))).toBe(matchHash(base));
+        expect(validOrder(bad)).toBe(false);
+        expect(validOrder({ tick: 30, team: 0, kind: 'max', q: 2 })).toBe(true);
     });
 });

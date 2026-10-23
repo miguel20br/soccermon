@@ -75,5 +75,19 @@ export function determinismHashes(): string[] {
             }),
         ),
     );
+    // golpe máximo em 3 níveis com a nota do toque e o Lance sorteando a dele
+    const lvOrders: MatchOrder[] = [1500, 2600, 3700, 4800].map((tick, k) => ({
+        tick,
+        team: 0,
+        kind: 'max',
+        q: (k % 3) as 0 | 1 | 2,
+    }));
+    hashes.push(
+        matchHash(
+            runMatch(FUTSAL_5, { ...agHome, captainUid: agHome.lineup[2].uid }, agAway, 'det-max3', {
+                orders: lvOrders,
+            }),
+        ),
+    );
     return hashes;
 }

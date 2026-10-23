@@ -67,8 +67,10 @@ function validAgency(o: AgencyOrder): boolean {
                 new Set(o.order).size === o.order.length
             );
         case 'timeout':
-        case 'max':
             return true;
+        case 'max':
+            // nota do toque na batida: só 0, 1 ou 2 (a Liga aceita a do cliente; golpe-maximo-niveis.md, decisão 8)
+            return o.q === undefined || o.q === 0 || o.q === 1 || o.q === 2;
         default:
             return false;
     }
