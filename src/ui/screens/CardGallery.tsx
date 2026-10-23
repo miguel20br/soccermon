@@ -224,6 +224,18 @@ const EVENT_SAMPLES = EVENT_TYPES.map((type) => ({ type, inst: card(EVENT_SPECIE
 const ICON_SAMPLES = Object.keys(ICONS).map((id) => withEdition(sample(Number(id)), 'icone'));
 
 export function CardGallery({ onExit }: { onExit: () => void }) {
+    // ?cards=1&mons=25,6: só as cartas pedidas, uma por <div data-mon> (render pros clipes de divulgação)
+    const mons = new URLSearchParams(window.location.search).get('mons');
+    if (mons)
+        return (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, padding: 24 }}>
+                {mons.split(',').map((id) => (
+                    <div key={id} data-mon={id} style={{ display: 'inline-block' }}>
+                        <PokeCard2 inst={sample(Number(id))} variant="metal" />
+                    </div>
+                ))}
+            </div>
+        );
     if (new URLSearchParams(window.location.search).get('arquivo') === '1')
         return (
             <Suspense fallback={null}>

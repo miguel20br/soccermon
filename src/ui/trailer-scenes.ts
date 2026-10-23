@@ -20,7 +20,9 @@ export const TRAILER_SCENES = {
     raio: { lineup: [143, 68, 135, 6, 25], bench: [] },
     // pênaltis decididos na última cobrança
     penaltis: { lineup: [143, 68, 151, 142, 150], bench: [149, 25] },
-} as const satisfies Record<string, { lineup: readonly number[]; bench: readonly number[] }>;
+    // série "Simulei": 5 Snorlax contra 5 Pikachu (o rival vem de `rival`, não da copa)
+    snorpika: { lineup: [143, 143, 143, 143, 143], bench: [], rival: [25, 25, 25, 25, 25] },
+} as const satisfies Record<string, { lineup: readonly number[]; bench: readonly number[]; rival?: readonly number[] }>;
 
 export type TrailerScene = keyof typeof TRAILER_SCENES;
 
@@ -39,4 +41,13 @@ export function trailerPicks(scene: TrailerScene, seed: string) {
 export function trailerTeam(scene: TrailerScene, seed: string, name: string, color: number): TeamSetup {
     const { lineup, bench, captainUid } = trailerPicks(scene, seed);
     return { name, lineup, bench, tactic: 'balanced', color, formation: '1-2-1', captainUid, manualSubs: true };
+}
+
+/** Rival fixo da cena (só as que têm `rival`); nas outras o rival é o da copa. */
+export function trailerRival(scene: TrailerScene, seed: string, name: string, color: number): TeamSetup | null {
+    const def: { rival?: readonly number[] } = TRAILER_SCENES[scene] as { rival?: readonly number[] };
+    if (!def.rival) return null;
+    const rng = new Rng(`trailer-rival-${scene}-${seed}`, 'time');
+    const lineup = def.rival.map((id) => createInstance(id, rng));
+    return { name, lineup, bench: [], tactic: 'balanced', color, formation: '1-2-1', captainUid: lineup[4].uid };
 }

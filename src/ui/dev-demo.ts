@@ -20,7 +20,7 @@ import { playerTeam, useGame } from '../store/game-store';
 import { EVENT_IDS, type EventId, rollEvent } from '../store/long-events';
 import { earnedKeys, medalViewOf } from '../store/news';
 import { EDITION_BIT, editionBits } from '../store/profile';
-import { isTrailerScene, trailerPicks } from './trailer-scenes';
+import { isTrailerScene, trailerPicks, trailerRival } from './trailer-scenes';
 
 /**
  * Atalhos de desenvolvimento (no dev e nas prévias da Vercel, `__SMOKE__`; nunca em produção):`?demo=penaltis` monta uma copa cuja primeira
@@ -150,6 +150,7 @@ export function runDevDemo() {
         store.newRun('Pallet FC', seed);
         const run = useGame.getState().run!;
         const { lineup, bench, captainUid } = trailerPicks(cena, seed);
+        const rival = trailerRival(cena, seed, 'Pikachu FC', 0xf2c53d);
         useGame.setState({
             run: {
                 ...run,
@@ -160,6 +161,7 @@ export function runDevDemo() {
                 captainUid,
                 draftRound: 7,
                 status: 'lineup',
+                opponents: rival ? [rival, ...run.opponents.slice(1)] : run.opponents,
             },
             screen: 'lineup',
         });
