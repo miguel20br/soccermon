@@ -127,6 +127,11 @@ export const match: typeof pt = {
         maxReady: 'Now!',
         maxActive: 'Live!',
         maxUsed: 'Used',
+        maxLevel: 'Level {n}',
+        maxLevelShort: 'L{n}',
+        maxPerfect: 'PERFECT!',
+        maxGood: 'GOOD',
+        maxBeatHint: 'Tap when the ring closes on the button, on the beat of the music.',
         timeoutPanel: {
             title: 'Time-out',
             sub: 'Your team gets a short rest. Subs and positions apply now.',

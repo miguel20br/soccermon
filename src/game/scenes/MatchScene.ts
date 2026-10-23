@@ -30,6 +30,7 @@ import { dict, linkText, t as tr } from '../../i18n';
 import type { ArrowSize, ChanceSpeed, CryStyle, NamesOnField, PlaybackSpeed } from '../../store/game-store';
 import { bannerInk } from '../../store/profile';
 import { halftimeEnd, MAX_CUE_LATCH, maxCueNear } from '../../ui/match-view';
+import { MAXIMO3 } from '../../ui/max-beat';
 import { hexToNumber, TYPE_COLOR } from '../../ui/type-colors';
 import {
     animForAction,
@@ -638,8 +639,8 @@ export class MatchScene extends Phaser.Scene {
         // no Duelo a quadra dos dois anda junta: só na Copa
         if (!this.md.agency || this.md.replay || this.md.duel) return false;
         const team = this.mine as 0 | 1;
-        const c = maxCharge(this.matchEvents, team, this.playTick);
-        if (c.charge < 1 || c.used || c.active) return false;
+        const c = maxCharge(this.matchEvents, team, this.playTick, 5, MAXIMO3);
+        if (c.level < 1 || c.used || c.active) return false;
         const cap = this.players.findIndex((v) => v.team === team && v.captain);
         if (cap < 0) return false;
         const role = (this.md.result.roster[cap]?.role ?? 'PIVO') as Position;
@@ -2176,7 +2177,12 @@ export class MatchScene extends Phaser.Scene {
                     );
                 if (e.phase === 'start' || (e.phase === 'hit' && !gkSave)) {
                     playSfx('move');
-                    this.popText(e.by, dict().match.agency.max.toUpperCase(), '#ffd447');
+                    const a = dict().match.agency;
+                    // 3 níveis (?maximo3=1): o nível no rótulo e a nota do toque por cima ("PERFEITO!"), pros dois lados
+                    const lv = e.level ? ` ${a.maxLevelShort.replace('{n}', String(e.level))}` : '';
+                    this.popText(e.by, `${a.max.toUpperCase()}${lv}`, '#ffd447');
+                    if (e.q === 2) this.popText(e.by, a.maxPerfect, '#7dffb0', 22);
+                    else if (e.q === 1) this.popText(e.by, a.maxGood, '#9be7ff', 22);
                     this.highlight('max', cap);
                 }
                 if (e.phase === 'start') this.punch('hit');
@@ -2438,12 +2444,13 @@ export class MatchScene extends Phaser.Scene {
         if (done.length) this.zoneViews = this.zoneViews.filter((z) => !done.includes(z));
     }
 
-    private popText(idx: number, text: string, color: string) {
+    /** Texto que sobe do jogador; `dy` põe mais alto (um segundo texto no mesmo lance) e entra com um pulo de 250 ms. */
+    private popText(idx: number, text: string, color: string, dy = 0) {
         const view = this.players[idx];
         if (!view) return;
         const s = Math.min(this.uiScale, 2);
         const t = this.add
-            .text(view.sprite.x, view.sprite.y - 52, text, {
+            .text(view.sprite.x, view.sprite.y - 52 - dy * s, text, {
                 fontFamily: 'Galmuri11, monospace',
                 fontSize: `${Math.round(14 * s)}px`,
                 fontStyle: 'bold',
@@ -2454,6 +2461,10 @@ export class MatchScene extends Phaser.Scene {
             .setOrigin(0.5)
             .setDepth(9000)
             .setResolution(2);
+        if (dy) {
+            t.setScale(0.6);
+            this.tweens.add({ targets: t, scale: 1, duration: 250, ease: 'Back.easeOut' });
+        }
         this.tweens.add({
             targets: t,
             y: t.y - 22,

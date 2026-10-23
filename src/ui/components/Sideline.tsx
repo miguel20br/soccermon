@@ -1,9 +1,10 @@
-import { type CSSProperties, type ReactNode, useRef, useState } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
 import { AGENCY, type MaxCharge, maxCharge } from '../../engine/agency';
 import type { MatchResult } from '../../engine/runners/batch-runner';
-import { isAgencyOrder, type MatchEvent, type MatchOrder, type TeamSetup } from '../../engine/state';
+import { isAgencyOrder, type MatchEvent, type MatchOrder, type MaxGrade, type TeamSetup } from '../../engine/state';
 import { useT } from '../../i18n/react';
 import { captainAt, MAX_CUE_LATCH, maxCueNear, roleAt } from '../match-view';
+import { beatPhase, MAXIMO3, maxGradeNow } from '../max-beat';
 import { useSwapMotion } from '../swap-motion';
 import { HudIcon, hex } from './MatchHud';
 import './sideline.css';
@@ -50,7 +51,7 @@ export function agencyView(
         timeoutPending: !!lastTo && halfOf(lastTo.tick) === half && !timeouts.some((e) => e.tick >= lastTo.tick),
         flyOn,
         flyPending: flyWant !== flyOn ? flyWant : null,
-        max: maxCharge(events, side, tick),
+        max: maxCharge(events, side, tick, 5, MAXIMO3),
         maxPending: mine.some((o) => o.kind === 'max' && o.tick > tick),
         maxCue: cue,
     };
@@ -67,7 +68,28 @@ export function maxCueAt(m: MatchResult, setups: [TeamSetup, TeamSetup], side: 0
 }
 
 /** Golpe máximo pronto e na hora certa (o botão acende). */
-export const maxLit = (v: AgencyView) => v.maxCue && v.max.charge >= 1 && !v.max.used && !v.max.active && !v.maxPending;
+export const maxLit = (v: AgencyView) => v.maxCue && v.max.level >= 1 && !v.max.used && !v.max.active && !v.maxPending;
+
+/**
+ * Toque no golpe máximo: com `?maximo3=1`, a nota sai da distância até a batida no `pointerdown` (o `click` chega
+ * depois de soltar o dedo e comeria a janela); teclado e leitor de tela tocam no `click`. Sem a bandeira, sem nota.
+ */
+function useMaxTap(onMax: (q?: MaxGrade) => void) {
+    const down = useRef<MaxGrade | null>(null);
+    return {
+        onPointerDown: () => {
+            down.current = MAXIMO3 ? maxGradeNow() : null;
+        },
+        tap: () => {
+            const q = down.current ?? (MAXIMO3 ? maxGradeNow() : undefined);
+            down.current = null;
+            onMax(q);
+        },
+    };
+}
+
+/** Gomos da barra (3 com a bandeira; o rótulo do botão mostra o nível). */
+const maxLevelLabel = (lv: number, tpl: string) => tpl.replace('{n}', String(lv));
 
 /** Os botões do técnico (na aba Tática e na barra do desktop). */
 export function SidelineControls({
@@ -82,14 +104,15 @@ export function SidelineControls({
     canAct: boolean;
     onTimeout?: () => void;
     onFlyGk: (on: boolean) => void;
-    onMax: () => void;
+    onMax: (q?: MaxGrade) => void;
     /** Duelo: abre a ordem dos pênaltis (na copa ela aparece sozinha antes da disputa). */
     onPens?: () => void;
 }) {
     const { d } = useT();
     const a = d.match.agency;
-    const full = view.max.charge >= 1 && !view.max.used && !view.max.active && !view.maxPending;
+    const full = view.max.level >= 1 && !view.max.used && !view.max.active && !view.maxPending;
     const lit = maxLit(view) && canAct;
+    const tap = useMaxTap(onMax);
     return (
         <div className="sl">
             <div className="bc-row">
@@ -142,12 +165,13 @@ export function SidelineControls({
                 </button>
                 <button
                     type="button"
-                    className={`sl-btn sl-max${lit ? ' ready' : full ? ' full' : ''}${view.max.active ? ' live' : ''}`}
-                    title={a.maxHint}
+                    className={`sl-btn sl-max${lit ? ' ready' : full ? ' full' : ''}${view.max.active ? ' live' : ''}${MAXIMO3 ? ' lv3' : ''}`}
+                    title={MAXIMO3 ? `${a.maxHint} ${a.maxBeatHint}` : a.maxHint}
                     aria-keyshortcuts="M"
                     // aria-disabled e não disabled: fica no Tab e o leitor acha o botão antes de ele acender
                     aria-disabled={!lit}
-                    onClick={() => lit && onMax()}
+                    onPointerDown={tap.onPointerDown}
+                    onClick={() => lit && tap.tap()}
                     style={{ '--fill': view.max.used ? 1 : view.max.charge } as CSSProperties}
                 >
                     <HudIcon kind="max" />
@@ -160,16 +184,20 @@ export function SidelineControls({
                                   ? a.maxActive
                                   : lit
                                     ? a.maxReady
-                                    : full
-                                      ? a.maxFull
-                                      : `${Math.floor(view.max.charge * 100)}%`}
+                                    : MAXIMO3
+                                      ? maxLevelLabel(view.max.level, a.maxLevel)
+                                      : full
+                                        ? a.maxFull
+                                        : `${Math.floor(view.max.charge * 100)}%`}
                         </small>
                     </span>
                     <i className="sl-fill" aria-hidden />
                 </button>
                 {/* o leitor de tela avisa quando acende (o texto do botão muda a cada %; aqui só a hora certa) */}
                 <span className="sr-only" aria-live="polite">
-                    {lit ? `${a.max}: ${a.maxReady}` : ''}
+                    {lit
+                        ? `${a.max}: ${a.maxReady}${MAXIMO3 ? ` (${maxLevelLabel(view.max.level, a.maxLevel)})` : ''}`
+                        : ''}
                 </span>
                 {onPens && (
                     <button type="button" className="sl-btn" disabled={!canAct} onClick={onPens}>
@@ -188,15 +216,53 @@ export function SidelineControls({
  * O botão grande do golpe máximo em cima da quadra: só aparece na hora certa (o da aba Tática acende junto), pra
  * dar tempo de tocar de qualquer aba.
  */
-export function MaxCueButton({ view, canAct, onMax }: { view: AgencyView; canAct: boolean; onMax: () => void }) {
+export function MaxCueButton({
+    view,
+    canAct,
+    onMax,
+}: {
+    view: AgencyView;
+    canAct: boolean;
+    onMax: (q?: MaxGrade) => void;
+}) {
     const { d } = useT();
+    const a = d.match.agency;
+    const tap = useMaxTap(onMax);
     if (!canAct || !maxLit(view)) return null;
     return (
-        <button type="button" className="sl-cue" data-exit aria-keyshortcuts="M" onClick={onMax}>
+        <button
+            type="button"
+            className={`sl-cue${MAXIMO3 ? ' lv3' : ''}`}
+            data-exit
+            aria-keyshortcuts="M"
+            title={MAXIMO3 ? a.maxBeatHint : undefined}
+            onPointerDown={tap.onPointerDown}
+            onClick={tap.tap}
+        >
+            {MAXIMO3 && <BeatRing />}
             <HudIcon kind="max" />
-            <b>{d.match.agency.max}</b>
+            <b>{a.max}</b>
+            {MAXIMO3 && <small className="sl-cue-lv">{maxLevelLabel(view.max.level, a.maxLevelShort)}</small>}
         </button>
     );
+}
+
+/**
+ * Anel da batida em volta do botão: fecha no ritmo da música (ou do pulso fixo sem som) e encosta no botão na
+ * batida, a hora do toque perfeito. Anda por `requestAnimationFrame` direto no estilo (nada de render do React).
+ */
+function BeatRing() {
+    const ref = useRef<HTMLSpanElement>(null);
+    useEffect(() => {
+        let raf = 0;
+        const loop = () => {
+            ref.current?.style.setProperty('--beat', beatPhase().phase.toFixed(3));
+            raf = requestAnimationFrame(loop);
+        };
+        loop();
+        return () => cancelAnimationFrame(raf);
+    }, []);
+    return <span ref={ref} className="sl-ring" aria-hidden />;
 }
 
 /** Barrinha do golpe máximo de cada time, embaixo do placar (os dois lados veem a do rival). */
@@ -213,12 +279,12 @@ export function MaxBars({
     return (
         <div className="sl-maxbars" title={t('match.agency.maxHint')}>
             {([0, 1] as const).map((team) => {
-                const c = maxCharge(events, team, tick);
+                const c = maxCharge(events, team, tick, 5, MAXIMO3);
                 const state = c.used ? 'used' : c.active ? 'live' : c.charge >= 1 ? 'full' : '';
                 return (
                     <div
                         key={team}
-                        className={`sl-maxbar t${team} ${state}`}
+                        className={`sl-maxbar t${team} ${state}${MAXIMO3 ? ' lv3' : ''}`}
                         style={{ '--tc': hex(colors[team]), '--fill': c.used ? 0 : c.charge } as CSSProperties}
                     >
                         <i />
@@ -250,7 +316,7 @@ export function SidelineOverlay({
         <div className="sl-overlay" aria-hidden>
             {([0, 1] as const).map((team) => {
                 const fly = past.filter((e) => e.type === 'flyGk' && e.team === team).at(-1);
-                const max = maxCharge(events, team, tick);
+                const max = maxCharge(events, team, tick, 5, MAXIMO3);
                 const tags: ReactNode[] = [];
                 if (fly?.type === 'flyGk' && fly.on)
                     tags.push(

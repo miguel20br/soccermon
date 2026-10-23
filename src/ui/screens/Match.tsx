@@ -12,6 +12,7 @@ import {
     isTacticOrder,
     type MatchEvent,
     type MatchOrder,
+    type MaxGrade,
     SNAP_STRIDE,
     type Tactic,
     type TeamSetup,
@@ -74,6 +75,7 @@ import { RivalEmotes } from '../duel/Emotes';
 import { rivalEmotes } from '../duel/emote-faces';
 import { LeaveConfirm } from '../leave-guard';
 import { captainAt, clockExtrasAt, roleAt, snapAt } from '../match-view';
+import { MAXIMO3, maxGradeNow } from '../max-beat';
 import { matchMusic, penaltyMusic } from '../music-sync';
 import { bannerText, useClubColor } from '../profile/club';
 import { reduceMotionOn } from '../settings-sync';
@@ -444,8 +446,12 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const canAgency = canChangeTactic && penPick === null;
     // golpe máximo: vale já no quadro da tela, antes da decisão do capitão (com +1 a IA chutava antes e o lance
     // passava; a quadra espera a partida nova; é um lance, não um plano)
-    const sendMax = () => sendOrder((tick) => ({ tick, team: 0, kind: 'max' }), Math.ceil(tickRef.current));
-    maxKey.current = () => canAgency && maxLit(sideline) && sendMax();
+    const sendMax = (q?: MaxGrade) =>
+        sendOrder(
+            (tick) => ({ tick, team: 0, kind: 'max', ...(q !== undefined && { q }) }),
+            Math.ceil(tickRef.current),
+        );
+    maxKey.current = () => canAgency && maxLit(sideline) && sendMax(MAXIMO3 ? maxGradeNow() : undefined);
     const sidelineControls = (
         <SidelineControls
             view={sideline}

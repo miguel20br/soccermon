@@ -4,8 +4,10 @@ description: Golpe máximo com barra em 3 níveis, toque na batida da música e 
 
 # Golpe máximo em 3 níveis, na batida (proposta, 23/10/2026)
 
-Ideia aprovada pelo Miguel em 22/10 ("golpe máximo com barra em 3 níveis, timing na batida e defesa com timing"),
-detalhes em aberto. Este doc é a proposta: **nada implementado ainda**. Base: [beira-da-quadra-2.md](beira-da-quadra-2.md)
+Ideia aprovada pelo Miguel em 22/10 ("golpe máximo com barra em 3 níveis, timing na batida e defesa com timing").
+Em 23/10 ele aprovou as decisões 1 a 6 e 8 como recomendadas e **mudou a 7** (rival IA sorteia a nota; ver
+[Decisões](#decisões-pro-miguel-recomendação-primeiro)). Implementado na branch `golpe-max` atrás de `?maximo3=1`
+(motor 11); os números de força ainda esperam o ok dele ([Medida](#medida-23102026-n200)). Base: [beira-da-quadra-2.md](beira-da-quadra-2.md)
 (golpe máximo de hoje), [balanceamento-geral.md](balanceamento-geral.md) §"Golpe máximo" (zona por posição) e o
 relógio de batida da fase 1 do ritmo (`src/game/music.ts`, commit efb1599f).
 
@@ -106,8 +108,18 @@ provar o toque no servidor sem o áudio, e isso também vale pro tick, que o cli
 pequeno: um golpe, e a diferença perfeito/bom é 0,165 de força no N2. Proposta: aceitar e só validar `q ∈ {0,1,2}`
 no `validOrder`.
 
-**IA rival** (`rival-coach.ts`): nada de sorteio novo. A nota é fixa por fase, rival comum "bom" e líder de ginásio
-ou final "perfeito". Solta no N2 ou no N3, ou no N1 se estiver perdendo nos 10 minutos finais. O técnico robô
+**IA rival** (`rival-coach.ts`, decisão 7 como o Miguel mudou em 23/10): a nota **é sorteada**, num Rng próprio da seed
+da partida (`coach-max-<time>`, igual ao "humor" do técnico: determinístico e sem mexer nos outros sorteios da
+partida). A chance depende do rival (`RIVAL_COACH.maxGradeOdds`):
+
+| Rival | perfeito | bom | fora |
+|---|---:|---:|---:|
+| comum: os líderes de ginásio (Brock a Giovanni, Agatha) | 25% | 55% | 20% |
+| final: o Lance (Liga Índigo, final da Copa e da Rota) | 55% | 35% | 10% |
+
+Hoje só líder tem técnico IA (treinador de rota da Rota Índigo não tem, `cupRival`), então "comum" são os líderes e
+"líder/final" ficou sendo o Lance. Se quiser os líderes de ginásio também na tabela de cima, é uma linha. Solta no N2
+ou no N3, ou no N1 se estiver perdendo do minuto 30 em diante (`maxN1From`). O técnico robô
 (`scripts/balance/coach.ts`) ganha a nota sorteada fora do motor (40% perfeito, 40% bom, 20% fora) e as políticas
 "solta no N1" e "segura pro N3".
 
@@ -148,6 +160,55 @@ nova e pede medida própria; dá pra fazer depois.
 - Save: nada a migrar (o campo é opcional na ordem guardada).
 - Atrás de bandeira (`?maximo3=1`) até o Miguel jogar na tela ([ADR 0005](../adr/0005-modo-novo-so-no-ar-depois-de-jogado.md)).
 
+## Medida (23/10/2026, n=200)
+
+Números da Opção 1 como estão na tabela (nada ajustado: força final espera o ok do Miguel). Robô
+(`scripts/balance/coach.ts`, rival parado, 200 partidas pareadas, ordem na hora certa, `MAX3=1` sorteia a nota 40/40/20)
+e `npm run calibrate -- --n 200 --agencia [--maximo3]` (técnico IA nos dois times). "Antes" = motor 10 (1 nível; conta
+como N2). ± = 1 desvio da diferença pareada.
+
+**Capitão de linha (golpe máximo)**
+
+| Política | Vitória (Δ vs nunca) | Gols pró / contra | Golpes/jogo (N1 / N2 / N3) | Gols do máximo/jogo (N1 / N2 / N3) |
+|---|---|---|---|---|
+| nunca usa | 47,5% | 3,81 / 3,94 | — | — |
+| antes, bom (1ª hora certa, jogo apertado) | 48,0% (+0,5 ± 3,4) | 3,75 / 4,00 | 0,65 (— / 0,65 / —) | 0,17 |
+| antes, aleatório | 50,0% (+2,5 ± 2,4) | 3,79 / 3,83 | 0,47 | 0,13 |
+| depois, bom | 48,0% (+0,5 ± 3,4) | 3,73 / 3,92 | 1,19 (0,91 / 0,21 / 0,07) | 0,24 (0,16 / 0,06 / 0,02) |
+| depois, n1 (solta no 1º gomo) | 49,0% (+1,5 ± 3,6) | 3,79 / 3,78 | 1,40 (1,09 / 0,24 / 0,06) | 0,28 (0,18 / 0,07 / 0,02) |
+| depois, n3 (segura pro 3º) | 47,0% (−0,5 ± 1,8) | 3,75 / 3,92 | 0,44 (— / — / 0,44) | 0,09 |
+| depois, aleatório | 52,5% (+5,0 ± 2,8) | 3,79 / 3,83 | 0,84 (0,36 / 0,24 / 0,23) | 0,27 (0,14 / 0,05 / 0,07) |
+
+**Capitão goleiro (defesa máxima)**
+
+| Política | Vitória (Δ vs nunca) | Gols pró / contra | Defesas/jogo (N1 / N2 / N3) |
+|---|---|---|---|
+| nunca usa | 51,0% | 3,75 / 3,64 | — |
+| antes, bom | 53,0% (+2,0 ± 2,7) | 3,67 / 3,54 | 0,46 |
+| antes, aleatório | 57,0% (+6,0 ± 2,2) | 3,71 / 3,40 | 0,41 |
+| depois, bom | 56,5% (+5,5 ± 3,2) | 3,69 / 3,36 | 0,72 (0,57 / 0,11 / 0,04) |
+| depois, n1 | 58,0% (+7,0 ± 3,4) | 3,75 / 3,23 | 0,93 (0,73 / 0,14 / 0,06) |
+| depois, n3 | 51,5% (+0,5 ± 1,3) | 3,73 / 3,54 | 0,28 (só N3) |
+
+**Calibrate com o técnico IA nos dois times**
+
+| | Gols/jogo | Favorito vence | Goleadas | Golpes máximos/jogo (N1 / N2 / N3) | Viraram gol | Notas do rival (fora / bom / perfeito) |
+|---|---:|---:|---:|---|---:|---|
+| antes | 7,96 | 62,3% | 2,0% | 0,66 (0,12 de goleiro) | 0,22 | — |
+| depois | 7,84 | 62,3% | 1,5% | 0,56 (0,02 / 0,39 / 0,15) | 0,17 | 0,10 / 0,28 / 0,18 |
+
+O que dá pra ler (com o erro de ±3 pp, quase tudo é ruído no golpe de linha):
+- **Gasta e recarrega dobra os golpes** (0,65 ⇒ 1,2–1,4 por jogo), mas quase tudo sai no N1, que é fraco: o golpe de
+  linha continua valendo pouco em vitória (+0,5 a +1,5 pp). O "momento grande" ainda não apareceu nos números.
+- **Segurar pro N3 não compensa:** com 3 gomos o capitão quase não tem mais a bola na zona (0,44 golpes/jogo) e o
+  resultado fica igual a nunca usar. A decisão "solto agora ou seguro?" hoje tem resposta óbvia (solta).
+- **A defesa ficou mais forte:** soltando a cada gomo, +7 pp (hoje +2 pp no "bom"); é o que a beira-da-quadra-2 já tinha
+  cortado (+7 pp com alcance 1,8). O N1 de goleiro repetido é o que pesa.
+- **O rival IA solta menos** (0,66 ⇒ 0,56 por jogo) porque espera o N2; gols e favorito ficam iguais.
+
+Ajustes possíveis pro Miguel decidir (nada aplicado): (a) N3 mais forte e/ou gomo de 10 pontos pra o N3 chegar ~min 26;
+(b) N1 de goleiro mais curto (1,5 s) ou sem o alcance extra; (c) N1 de linha x1,15 pra deixar a espera valer.
+
 ## Decisões pro Miguel (recomendação primeiro)
 
 1. **Formato da barra:** Opção 1 (solta o que tiver, 3 gomos), a 2 (gomo como moeda) ou a 3 (cada nível é outra
@@ -161,7 +222,8 @@ nova e pede medida própria; dá pra fazer depois.
 5. **Sem música:** anel com pulso visual fixo (100 BPM)? *Recomendo sim.*
 6. **Defesa:** D1 (na batida, igual ao ataque), D2 (reflexo no chute) ou D1 + D3 (desarme máximo)? *Recomendo D1
    agora e D3 numa rodada depois.*
-7. **Rival IA:** nota fixa (comum "bom", líder/final "perfeito"), soltando no N2/N3? *Recomendo sim.*
+7. **Rival IA:** ~~nota fixa~~ **sorteada** (Miguel, 23/10): comum 25/55/20 e final 55/35/10 (perfeito/bom/fora),
+   soltando no N2/N3 (N1 só perdendo do min 30).
 8. **Liga:** aceitar a nota do cliente (só checa 0–2)? *Recomendo aceitar, porque o ganho de trapacear é pequeno.*
 
 ## Depois do ok
