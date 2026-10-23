@@ -61,6 +61,8 @@ let started = false;
 
 export function runDevDemo() {
     if (!__SMOKE__ || started) return;
+    // os testes (fumaça, revisão) ouvem os lances e pulam pro fim do tempo normal, com ou sem demo
+    (window as unknown as { __soccermonBus?: typeof EventBus }).__soccermonBus = EventBus;
     const demo = new URLSearchParams(window.location.search).get('demo');
     if (
         demo !== 'penaltis' &&
@@ -97,8 +99,6 @@ export function runDevDemo() {
     )
         return;
     started = true;
-    // permite aos testes pular direto para o fim do tempo normal
-    (window as unknown as { __soccermonBus?: typeof EventBus }).__soccermonBus = EventBus;
     const store = useGame.getState();
     if (demo === 'colecao') {
         demoCollection();

@@ -21,11 +21,12 @@ interface Row {
 /**
  * Robô não é jogador: navegador automatizado (Playwright, Puppeteer, Selenium: `navigator.webdriver`, inclusive os
  * nossos testes no ar, que abrem em 1280x720 e contavam como "desktop novo") e os rastreadores que rodam JavaScript.
- * Pela lista de nomes, não por "bot" solto: celular CUBOT tem "bot" no user agent.
+ * Pela lista de nomes, não por "bot" solto: celular CUBOT tem "bot" no user agent, e o app de busca da Yandex
+ * (gente) tem "YandexSearch"; os robôs dela trazem "yandex.com/bots".
  */
 export const isBot = (nav: { webdriver?: boolean; userAgent?: string }) =>
     nav.webdriver === true ||
-    /googlebot|google-inspectiontool|bingbot|yandex|baiduspider|duckduckbot|applebot|ahrefs|semrush|petalbot|bytespider|gptbot|claudebot|headlesschrome|lighthouse|crawler|spider/i.test(
+    /googlebot|google-inspectiontool|bingbot|yandex\.com\/bots|baiduspider|duckduckbot|applebot|ahrefs|semrush|petalbot|bytespider|gptbot|claudebot|headlesschrome|lighthouse|crawler|spider/i.test(
         nav.userAgent ?? '',
     );
 
