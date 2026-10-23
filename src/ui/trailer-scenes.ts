@@ -24,6 +24,8 @@ export const TRAILER_SCENES = {
     raio: { lineup: [143, 68, 135, 6, 25], bench: [] },
     // pênaltis decididos na última cobrança
     penaltis: { lineup: [143, 68, 151, 142, 150], bench: [149, 25] },
+    // trailer da Rota de baby (0.9.15): time de pré-evoluções com o Magikarp de capitão, que vira Gyarados
+    baby: { lineup: [74, 7, 4, 66, 129], bench: [] },
 } as const satisfies Record<string, { lineup: readonly number[]; bench: readonly number[] }>;
 
 export type TrailerScene = keyof typeof TRAILER_SCENES;

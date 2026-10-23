@@ -85,6 +85,19 @@ function rate(scene: TrailerScene, seed: string): Hit | null {
             lances.push(`${sec(g.tick)} gol do evoluído`);
         }
     }
+    if (scene === 'baby') {
+        // o Magikarp (capitão) vira Gyarados; vale mais cedo e com gol do Gyarados depois
+        const evo = ev.find((e) => e.type === 'evolve' && e.team === 0 && e.from === 129);
+        if (!evo || evo.type !== 'evolve') return null;
+        score += 1000 - evo.tick / 10;
+        lances.push(`${sec(evo.tick)} Magikarp evolui pra Gyarados`);
+        const g = goals.find((x) => x.tick > evo.tick && m.roster[x.by].uid === evo.uid);
+        if (g) {
+            score += 600 - (g.tick - evo.tick) / 10;
+            lances.push(`${sec(g.tick)} gol do Gyarados`);
+        }
+        for (const o of ev) if (o.type === 'evolve' && o.team === 0 && o.from !== 129) lances.push(`${sec(o.tick)} ${species(o.from).name} evolui`);
+    }
     if (scene === 'raio') {
         // só gol do Pikachu com golpe elétrico
         for (const g of goals) {

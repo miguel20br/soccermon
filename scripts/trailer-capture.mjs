@@ -46,6 +46,8 @@ const browser = await puppeteer.launch({
     args: [
         '--no-sandbox',
         '--use-angle=swiftshader',
+        '--use-gl=angle',
+        '--ignore-gpu-blocklist',
         '--enable-unsafe-swiftshader',
         '--autoplay-policy=no-user-gesture-required',
     ],
@@ -267,6 +269,8 @@ const box = await page.evaluate(() => {
     const r = document.querySelector('.pitch-wrap').getBoundingClientRect();
     return { x: r.x, y: r.y, width: r.width, height: r.height, scale: 1 };
 });
+// --escala N: o print da página (modo pagina) sai N vezes maior (a tela de evolução nítida pra recortar no 9:16)
+box.scale = Number(arg('--escala', 1));
 let n = 0;
 const t1 = Date.now();
 // por quadro: tick da partida e bola na imagem (0..1), pra emendar câmera lenta e mirar o zoom (trailer-uau.mjs)
