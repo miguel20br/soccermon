@@ -9,6 +9,23 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.15',
+        date: '2026-10-23',
+        title: 'Rota de baby',
+        sections: [
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'A Rota começa na forma-base: o capitão e o draft saem como Charmander, Machop, Magikarp, e o time evolui pelo caminho',
+                    'Nota média do time no começo da Rota: 79,5 ⇒ 64,6',
+                    'Os mais fortes sem evolução (Snorlax, Lapras, lendários) só aparecem de reforço, depois do começo',
+                    'Sair da Rota e voltar traz o mesmo sorteio: a Rota só muda quando você termina uma',
+                    'Os rivais do começo ficaram mais fracos: 1ª partida -1 ⇒ -2 e 2ª partida 0 ⇒ -1',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.14',
         date: '2026-10-23',
         title: 'Golpe máximo em 3 níveis, na batida',
@@ -1461,6 +1478,23 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.15',
+        date: '2026-10-23',
+        title: 'Baby route',
+        sections: [
+            {
+                title: 'Indigo Route',
+                lines: [
+                    'The Route starts at base forms: the captain and the draft come out as Charmander, Machop, Magikarp, and the team evolves along the way',
+                    'Average team rating at the start of the Route: 79.5 ⇒ 64.6',
+                    'The strongest Pokémon with no evolution (Snorlax, Lapras, legendaries) only show up as reinforcements, after the start',
+                    'Leave the Route and come back to the same draw: the Route only changes when you finish one',
+                    'The early rivals got weaker: match 1 -1 ⇒ -2 and match 2 0 ⇒ -1',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.14',
         date: '2026-10-23',

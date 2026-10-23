@@ -276,3 +276,7 @@ Plano do trailer e dos posts de lançamento: [docs/planos/divulgacao-trailer.md]
 ## 0.9.13 · Novidades mais fáceis de ler (22/10/2026)
 
 No ar: 0.9.12 (viradas e pontes na música, temas de Erika a Giovanni, time no ranking; `ENGINE_VERSION` 10, Edge Function `liga` com o motor 10), Rota Índigo (`LONG_CUP_LIVE`), Copa Relâmpago e Duelo melhor de 3. Liga fechada até `LIGA_OPENS_AT`; a Copa do Dia segue no ar. Histórico: [docs/planos/historico.md](docs/planos/historico.md). Índice dos docs: `node scripts/indice.mjs`.
+
+## 0.9.14 · Golpe máximo em 3 níveis (23/10/2026)
+
+No ar: 0.9.14 (golpe máximo em 3 níveis na batida da música, defesa máxima por nível; `ENGINE_VERSION` 11, Edge Function `liga` com o motor 11), Rota Índigo (`LONG_CUP_LIVE`), Copa Relâmpago e Duelo melhor de 3. Liga fechada até `LIGA_OPENS_AT`; a Copa do Dia segue no ar. Histórico: [docs/planos/historico.md](docs/planos/historico.md). Índice dos docs: `node scripts/indice.mjs`.
