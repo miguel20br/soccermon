@@ -515,3 +515,32 @@
 [data-reduce-motion="true"] .sl-tag-max {
     animation: none;
 }
+
+/* celular deitado: a barra de velocidade (fixa embaixo) cobre o pé da quadra; o golpe e o "Esperar" sobem acima dela */
+@media (orientation: landscape) and (max-height: 520px) {
+    .sl-cue-row {
+        bottom: calc(10% + 44px);
+    }
+}
+/* 320 deitado: a quadra tem ~230 px de largura e os dois não cabem lado a lado; o "Esperar" vai pra baixo, menor */
+@media (orientation: landscape) and (max-height: 360px) {
+    .sl-cue-row {
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+    }
+    .sl-cue.sl-wait {
+        min-height: 32px;
+    }
+    .sl-cue,
+    .sl-cue.sl-wait {
+        gap: 5px;
+        min-height: 40px;
+        padding: 5px 8px;
+        font-size: 12px;
+    }
+    .sl-cue .hud-icon {
+        width: 16px;
+        height: 16px;
+    }
+}
