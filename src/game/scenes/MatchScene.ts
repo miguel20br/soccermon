@@ -964,7 +964,11 @@ export class MatchScene extends Phaser.Scene {
         const proto = new URLSearchParams(window.location.search).get('nomes');
         if (proto) {
             this.players.forEach((v, i) => {
-                const short = proto.includes('curto') ? v.name.slice(0, 4) : proto === 'num' ? String(i % 5 + 1) : v.name;
+                const short = proto.includes('curto')
+                    ? v.name.slice(0, 4)
+                    : proto === 'num'
+                      ? String((i % 5) + 1)
+                      : v.name;
                 const t = v.captain ? `C·${short}` : short;
                 if (v.label.text !== t) v.label.setText(t);
                 const keep = !proto.startsWith('bola') || i === owner || v.captain;
@@ -985,7 +989,9 @@ export class MatchScene extends Phaser.Scene {
                 const crowded = hit(x0, x0 + w, v.label.y, v.label.y + h);
                 if (!crowded) placed.push({ x0, x1: x0 + w, y0: v.label.y, y1: v.label.y + h });
                 v.crowd = Phaser.Math.Clamp(v.crowd + (crowded ? -step : step), 0, 1);
-                v.label.setAlpha(proto?.startsWith('bola') && !(this.players.indexOf(v) === owner || v.captain) ? 0 : v.crowd);
+                v.label.setAlpha(
+                    proto?.startsWith('bola') && !(this.players.indexOf(v) === owner || v.captain) ? 0 : v.crowd,
+                );
                 v.badge.y = v.label.y + h * v.crowd;
             }
             return;
