@@ -3661,7 +3661,7 @@ export function snapshot(s: MatchState): MatchSnapshot {
         half: s.half,
         minute: minuteOf(s),
         phase: s.phase,
-        bfx: s.ball.shot?.moveId ? s.ball.shot.moveType : '',
+        bfx: s.ball.shot?.fx ?? (s.ball.shot?.moveId ? s.ball.shot.moveType : ''),
         bx: Math.round(s.ball.pos.x * 100) / 100,
         by: Math.round(s.ball.pos.y * 100) / 100,
         bz: Math.round(s.ball.z * 100) / 100,

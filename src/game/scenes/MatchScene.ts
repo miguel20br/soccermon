@@ -218,6 +218,26 @@ interface DiveInfo {
 }
 
 const DRAMA = new Set(['goal', 'post', 'save', 'fulltime']);
+
+/** Golpe máximo por tipo (?tipo=1): a receita de golpe (move-fx.ts) que anima o efeito de cada tipo no N3. */
+const MAX_FX_RECIPE: Record<string, string> = {
+    Normal: 'megapunch',
+    Fire: 'fireblast',
+    Water: 'surf',
+    Electric: 'thunderbolt',
+    Grass: 'vinewhip',
+    Ice: 'blizzard',
+    Fighting: 'doublekick',
+    Poison: 'poisongas',
+    Ground: 'earthquake',
+    Flying: 'skyattack',
+    Psychic: 'psychic',
+    Bug: 'pinmissile',
+    Rock: 'rockslide',
+    Ghost: 'nightshade',
+    Dragon: 'dragonrage',
+    Fairy: 'lovelykiss',
+};
 /** O que o modo "Lances" mostra em 1x. */
 const HIGHLIGHT = new Set([
     'shot',
@@ -2187,15 +2207,53 @@ export class MatchScene extends Phaser.Scene {
                 if (e.phase === 'start') this.punch('hit');
                 else if (e.phase === 'hit') {
                     this.punch('boom');
+                    // golpe máximo por tipo (?tipo=1): a faixa grande leva o nome do efeito, na cor do tipo
+                    const fx = this.matchEvents.find(
+                        (x) => x.type === 'maxFx' && x.step === 'shot' && x.tick === e.tick && x.by === e.by,
+                    );
+                    const fxType = fx?.type === 'maxFx' ? fx.fx : null;
                     if (cinematic) {
-                        this.cine.drama(`${dict().match.agency.max.toUpperCase()}!`, {
-                            color: '#ffd447',
-                            stroke: '#4a2a00',
-                            at: { x: cap.sprite.x, y: cap.sprite.y },
-                            // a nota do toque também na faixa grande (o texto pequeno fica atrás dela)
-                            sub: `${e.q === 2 ? `${dict().match.agency.maxPerfect} · ` : ''}${e.moveId ? (MOVES[e.moveId]?.name ?? cap.name) : cap.name}`,
-                        });
+                        this.cine.drama(
+                            fxType
+                                ? `${(dict().match.agency.maxFx[fxType]?.[0] ?? fxType).toUpperCase()}!`
+                                : `${dict().match.agency.max.toUpperCase()}!`,
+                            {
+                                color: fxType ? (TYPE_COLOR[fxType] ?? '#ffd447') : '#ffd447',
+                                stroke: '#1a1030',
+                                at: { x: cap.sprite.x, y: cap.sprite.y },
+                                // a nota do toque também na faixa grande (o texto pequeno fica atrás dela)
+                                sub: `${e.q === 2 ? `${dict().match.agency.maxPerfect} · ` : ''}${e.moveId ? (MOVES[e.moveId]?.name ?? cap.name) : cap.name}`,
+                            },
+                        );
                     }
+                }
+                break;
+            }
+            case 'maxFx': {
+                const by = this.players[e.by];
+                if (!by) break;
+                const name = dict().match.agency.maxFx[e.fx] ?? [e.fx, '!'];
+                const color = TYPE_COLOR[e.fx] ?? '#ffd447';
+                if (e.step === 'shot') {
+                    // a animação do tipo (receita de um golpe do tipo, de quem chutou até o goleiro) e o estouro na bola
+                    castMove({
+                        scene: this,
+                        user: by.sprite,
+                        target: e.target !== null ? (this.players[e.target]?.sprite ?? null) : null,
+                        moveId: MAX_FX_RECIPE[e.fx] ?? 'megapunch',
+                        moveType: e.fx,
+                        kind: 'blast',
+                        strong: true,
+                        depth: FOCUS_DEPTH + 70,
+                        baseScale: SPRITE_SCALE,
+                    });
+                    typeBurst(this, e.fx, this.ball.x, this.ball.y, BALL_DEPTH + 1);
+                    if (e.fx === 'Ground') this.cameras.main.shake(260, 0.008);
+                    if (!cinematic) this.popText(e.by, name[0].toUpperCase(), color, 22);
+                } else if (e.target !== null && this.players[e.target]) {
+                    this.popText(e.target, name[1], color);
+                    const t = this.players[e.target];
+                    this.impact(t.sprite.x, t.sprite.y - 16, e.fx);
                 }
                 break;
             }

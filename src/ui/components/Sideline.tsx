@@ -1,12 +1,15 @@
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
 import { AGENCY, type MaxCharge, maxCharge } from '../../engine/agency';
+import { species } from '../../engine/data';
+import { maxFxType } from '../../engine/match';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { isAgencyOrder, type MatchEvent, type MatchOrder, type MaxGrade, type TeamSetup } from '../../engine/state';
 import { useT } from '../../i18n/react';
 import { captainAt, MAX_CUE_EARLY, MAX_CUE_LATCH, maxCueNear, roleAt } from '../match-view';
-import { beatPhase, maxGradeNow } from '../max-beat';
+import { beatPhase, MAX_TIPO, maxGradeNow } from '../max-beat';
 import { useSwapMotion } from '../swap-motion';
 import { HudIcon, hex } from './MatchHud';
+import { TypeIcon } from './TypeIcon';
 import './sideline.css';
 
 /**
@@ -25,6 +28,8 @@ export interface AgencyView {
     maxPending: boolean;
     /** Hora do golpe máximo no quadro da tela (`maxCueAt`). */
     maxCue: boolean;
+    /** Golpe máximo por tipo (`?tipo=1`): o efeito do N3 do capitão (a prévia no botão). */
+    fxType?: string;
 }
 
 /** Estado da beira da quadra de um time no tick da tela. `cue`: é a hora do golpe máximo (`maxCueAt`). */
@@ -67,6 +72,38 @@ export function maxCueAt(m: MatchResult, setups: [TeamSetup, TeamSetup], side: 0
     const cap = captainAt(m, setups, side, tick).idx;
     if (cap === null) return false;
     return maxCueNear(m.snapshots, tick - MAX_CUE_LATCH, tick + MAX_CUE_EARLY, side, cap, roleAt(m, setups, cap, tick));
+}
+
+/** Efeito do N3 do capitão do time `side` (só com `?tipo=1`): a mesma regra do motor (`maxFxType`). */
+export function capFxType(
+    m: MatchResult,
+    setups: [TeamSetup, TeamSetup],
+    side: 0 | 1,
+    tick: number,
+): string | undefined {
+    if (!MAX_TIPO) return undefined;
+    const cap = captainAt(m, setups, side, tick);
+    const inst = [...setups[side].lineup, ...setups[side].bench].find((p) => p.uid === cap.uid);
+    if (!inst || !cap.speciesId) return undefined;
+    return maxFxType(inst.moves, cap.speciesId, species(cap.speciesId).types);
+}
+
+/**
+ * Prévia do efeito do tipo no botão (decisão 1: só vale no N3; no N1 e no N2 o ícone fica apagado, pra o jogador saber
+ * o que está esperando).
+ */
+function FxBadge({ view }: { view: AgencyView }) {
+    const { d } = useT();
+    if (!view.fxType) return null;
+    const name = d.match.agency.maxFx[view.fxType]?.[0] ?? view.fxType;
+    return (
+        <span
+            className={`sl-fx${view.max.level >= 3 ? ' on' : ''}`}
+            title={d.match.agency.maxFxPreview.replace('{x}', name)}
+        >
+            <TypeIcon type={view.fxType} size={14} />
+        </span>
+    );
 }
 
 /** Golpe máximo pronto e na hora certa (o botão acende). */
@@ -186,6 +223,7 @@ export function SidelineControls({
                                   : maxLevelLabel(view.max.level, a.maxLevel)}
                         </small>
                     </span>
+                    <FxBadge view={view} />
                     <i className="sl-fill" aria-hidden />
                 </button>
                 {/* o leitor de tela avisa quando acende (o texto do botão muda a cada %; aqui só a hora certa) */}
@@ -236,6 +274,7 @@ export function MaxCueButton({
             <HudIcon kind="max" />
             <b>{a.max}</b>
             <small className="sl-cue-lv">{maxLevelLabel(view.max.level, a.maxLevelShort)}</small>
+            <FxBadge view={view} />
         </button>
     );
 }

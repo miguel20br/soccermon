@@ -79,6 +79,7 @@ import { cardSprite } from '../components/PokeCard';
 import { type BoardPlan, Prancheta, useMedia, WIDE } from '../components/Prancheta';
 import {
     agencyView,
+    capFxType,
     MaxBars,
     MaxCueButton,
     maxCueAt,
@@ -531,13 +532,10 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     );
     // beira da quadra (experimento): só com a sala do host ligada; as ordens passam pelo carimbo do host
     const agency = !!s.agency;
-    const sideline = agencyView(
-        match.events,
-        s.log,
-        side,
-        clock.tick,
-        agency && maxCueAt(match, setups, side, clock.tick),
-    );
+    const sideline = {
+        ...agencyView(match.events, s.log, side, clock.tick, agency && maxCueAt(match, setups, side, clock.tick)),
+        fxType: capFxType(match, setups, side, clock.tick),
+    };
     // golpe máximo: o carimbo do host põe a ordem um pouco à frente (rede); o motor deixa armada `AGENCY.maxArmTicks`
     const sendMax = (q: MaxGrade) => order({ kind: 'max', q });
     const tactics = agency ? (
