@@ -130,6 +130,11 @@ export const match: typeof pt = {
         maxLevelShort: 'L{n}',
         maxPerfect: 'PERFECT!',
         maxGood: 'GOOD',
+        maxWait: 'Wait',
+        maxWaitKey: 'W',
+        maxWaitHint:
+            'Save it for the next level: the cue and slow motion come back when the bar levels up. Shortcut: W.',
+        maxWaitHint3: 'Let this chance go: the cue comes back on the next play. Shortcut: W.',
         maxBeatHint: 'Tap when the ring closes on the button, on the beat of the music.',
         maxFx: {
             Normal: ['Mega Impact', 'Down!'],

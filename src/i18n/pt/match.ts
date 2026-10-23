@@ -145,6 +145,10 @@ export const match = {
         maxLevelShort: 'N{n}',
         maxPerfect: 'PERFEITO!',
         maxGood: 'BOM',
+        maxWait: 'Esperar',
+        maxWaitKey: 'E',
+        maxWaitHint: 'Guarda pro próximo nível: o aviso e a câmera lenta voltam quando a barra subir. Atalho: E.',
+        maxWaitHint3: 'Deixa passar esta chance: o aviso volta na próxima jogada. Atalho: E.',
         maxBeatHint: 'Toque quando o anel fechar no botão, na batida da música.',
         /** Golpe máximo por tipo: nome do efeito do N3 e o que aparece em quem ele pega. */
         maxFx: {

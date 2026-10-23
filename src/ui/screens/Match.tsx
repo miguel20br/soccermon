@@ -76,7 +76,7 @@ import { VersusIntro } from '../components/VersusIntro';
 import { RivalEmotes } from '../duel/Emotes';
 import { rivalEmotes } from '../duel/emote-faces';
 import { LeaveConfirm } from '../leave-guard';
-import { captainAt, clockExtrasAt, roleAt, snapAt } from '../match-view';
+import { captainAt, clockExtrasAt, type MaxWait, maxWaitNext, roleAt, snapAt } from '../match-view';
 import { maxGradeNow } from '../max-beat';
 import { matchMusic, penaltyMusic } from '../music-sync';
 import { bannerText, useClubColor } from '../profile/club';
@@ -130,6 +130,11 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const halftimeRef = useRef<HTMLDivElement>(null);
     const [subOut, setSubOut] = useState<{ uid: string } | null>(null);
     const [pending, setPending] = useState(false);
+    /** "Esperar" no golpe máximo (`maxWaitNext`): apaga o aviso; a quadra sai da câmera lenta (`match:max-wait`). */
+    const [maxWait, setMaxWait] = useState<MaxWait | null>(null);
+    useEffect(() => {
+        EventBus.emit('match:max-wait', maxWait !== null);
+    }, [maxWait]);
     /** A cena Phaser só escuta comandos depois de carregar; até lá os controles ficam travados. */
     const [sceneReady, setSceneReady] = useState(false);
     /** Se a quadra demorar demais (celular fraco, aba em segundo plano), oferece recarregar. */
@@ -354,14 +359,14 @@ export function Match({ liga = false }: { liga?: boolean }) {
         if (ended)
             scoreboardRef.current?.scrollIntoView({ block: 'nearest', behavior: reduceMotionOn() ? 'auto' : 'smooth' });
     }, [ended]);
-    // atalho do teclado: M dispara o golpe máximo na hora certa (o botão grande só aparece por ~1 s)
-    const maxKey = useRef<() => void>(() => {});
+    // atalho do teclado: M dispara o golpe máximo na hora certa (o botão grande só aparece por ~1 s); E/W, "Esperar"
+    const maxKey = useRef<(key: string) => void>(() => {});
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
-            if (e.key.toLowerCase() !== 'm' || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+            if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
             if (e.target instanceof HTMLElement && e.target.matches('input, textarea, select, [contenteditable]'))
                 return;
-            maxKey.current();
+            maxKey.current(e.key.toLowerCase());
         };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
@@ -444,16 +449,23 @@ export function Match({ liga = false }: { liga?: boolean }) {
 
     // beira da quadra: tempo, goleiro-linha e golpe máximo, pelo mesmo caminho das ordens
     const setups: [TeamSetup, TeamSetup] = [lockedSetup, opponent];
-    const sideline = {
-        ...agencyView(match.events, orders, 0, clock.tick, maxCueAt(match, setups, 0, clock.tick)),
-        fxType: capFxType(match, setups, 0, clock.tick),
-    };
+    const cue = maxCueAt(match, setups, 0, clock.tick);
+    const agency = agencyView(match.events, orders, 0, clock.tick, cue);
+    const wait = maxWaitNext(maxWait, agency.max.level, cue);
+    if (wait !== maxWait) setMaxWait(wait);
+    const sideline = { ...agency, fxType: capFxType(match, setups, 0, clock.tick), maxWaiting: wait !== null };
     const canAgency = canChangeTactic && penPick === null;
     // golpe máximo: vale já no quadro da tela, antes da decisão do capitão (com +1 a IA chutava antes e o lance
     // passava; a quadra espera a partida nova; é um lance, não um plano)
     const sendMax = (q: MaxGrade) =>
         sendOrder((tick) => ({ tick, team: 0, kind: 'max', q }), Math.ceil(tickRef.current));
-    maxKey.current = () => canAgency && maxLit(sideline) && sendMax(maxGradeNow());
+    const lit = canAgency && maxLit(sideline);
+    const waitMax = () => setMaxWait({ level: sideline.max.level });
+    maxKey.current = (key) => {
+        if (!lit) return;
+        if (key === 'm') sendMax(maxGradeNow());
+        else if (key === d.match.agency.maxWaitKey.toLowerCase()) waitMax();
+    };
     const sidelineControls = (
         <SidelineControls
             view={sideline}
@@ -665,7 +677,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         <Ticker lines={lines} colors={colors} />
                         <SidelineOverlay events={match.events} tick={clock.tick} colors={colors} names={teamNames} />
                         <CharangaCue events={match.events} tick={clock.tick} setups={setups} colors={colors} />
-                        <MaxCueButton view={sideline} canAct={canAgency} onMax={sendMax} />
+                        <MaxCueButton view={sideline} canAct={canAgency} onMax={sendMax} onWait={waitMax} />
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
                         {ended && !auto.held && (

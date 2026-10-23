@@ -55,6 +55,18 @@ export function maxCueNear(
     return false;
 }
 
+/**
+ * "Esperar" no golpe máximo (só tela): o nível da barra em que o jogador mandou esperar. Vale enquanto devolver o mesmo
+ * objeto: no N1 e no N2 até a barra mudar de nível; no N3 só nesta hora certa (`cue` apagou, a próxima jogada acende).
+ */
+export interface MaxWait {
+    level: number;
+}
+export function maxWaitNext(w: MaxWait | null, level: number, cue: boolean): MaxWait | null {
+    if (!w || level !== w.level || (w.level >= 3 && !cue)) return null;
+    return w;
+}
+
 export function snapAt(snaps: MatchSnapshot[], tick: number): MatchSnapshot {
     let lo = 0;
     let hi = snaps.length - 1;
