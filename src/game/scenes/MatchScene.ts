@@ -2241,6 +2241,7 @@ export class MatchScene extends Phaser.Scene {
                     this.matchEvents.some(
                         (x) => x.type === 'max' && x.team === e.team && x.phase === 'start' && x.tick <= e.tick,
                     );
+                const n3 = e.phase === 'hit' && !gkSave && e.level === 3;
                 if (e.phase === 'start' || (e.phase === 'hit' && !gkSave)) {
                     playSfx('move');
                     const a = dict().match.agency;
@@ -2249,9 +2250,9 @@ export class MatchScene extends Phaser.Scene {
                     this.popText(e.by, `${a.max.toUpperCase()}${lv}`, '#ffd447');
                     if (e.q === 2) this.popText(e.by, a.maxPerfect, '#7dffb0', 22);
                     else if (e.q === 1) this.popText(e.by, a.maxGood, '#9be7ff', 22);
-                    this.highlight('max', cap);
+                    // no N3 a faixa do especial (retrato, golpe e tipo) entra no lugar da faixa do canto
+                    if (!n3) this.highlight('max', cap);
                 }
-                const n3 = e.phase === 'hit' && !gkSave && e.level === 3;
                 if (e.phase === 'start') this.punch('hit');
                 else if (e.phase === 'hit') {
                     // N3: o hitstop com a cor do tipo entra no lugar da pausa e do clarão branco
@@ -2692,7 +2693,11 @@ export class MatchScene extends Phaser.Scene {
         if (r.fall) {
             const secs = Math.max(0.6, hurtSecondsAt(this.snaps, r.target, tick));
             const dir = by && sp.x < by.sprite.x ? -1 : 1;
-            view.down = { from: tick, to: tick + secs * TICK_RATE, dir, tumble: r.fall === 'tumble' };
+            const lying = view.down?.tumble && view.down.to > tick;
+            // tonto (hesitou) no mesmo lance de um tombo: continua no chão
+            if (lying && view.down && r.fall === 'dizzy')
+                view.down.to = Math.max(view.down.to, tick + secs * TICK_RATE);
+            else view.down = { from: tick, to: tick + secs * TICK_RATE, dir, tumble: r.fall === 'tumble' };
             if (r.fall === 'tumble') this.time.delayedCall(120, () => dust(this, sp.x, sp.y, 7, sp.depth - 1));
         }
         // a palavra: uma por vez em cada um (o status vence o empurrão do mesmo golpe)
@@ -2747,7 +2752,7 @@ export class MatchScene extends Phaser.Scene {
             span = view.stSpan = found ? { code, ...found } : null;
         }
         if (!span) return;
-        const r = 6.5 * s;
+        const r = 9 * s;
         drawStatusIcon(
             this.reactG,
             code,

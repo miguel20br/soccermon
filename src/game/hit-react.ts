@@ -60,7 +60,7 @@ export const WORD_RANK: Record<ReactWord, number> = {
     infatuation: 3,
     flinch: 2,
     seed: 3,
-    down: 2,
+    down: 2.5,
     push: 1,
     soak: 1,
 };

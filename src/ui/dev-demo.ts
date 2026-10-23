@@ -48,7 +48,8 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * perdendo no fim: ao começar, já está na Pressão final, a 3 s dos acréscimos do 2º tempo ("+N'" no placar).
  * `?demo=maximo` abre na escalação uma partida que, ao começar, está a 2 s do botão do golpe máximo aceso
  * (barra cheia, capitão Dragonite com a bola na zona); `&goleiro=1`: capitão Snorlax no gol (defesa máxima);
- * `&capitao=<id>`: outro pivô capitão (com `&nivel=3`: o efeito do tipo dele no N3, ex. 6 Fogo, 94 Fantasma).
+ * `&capitao=<id>`: outro pivô capitão (com `&nivel=3`: o efeito do tipo dele no N3, ex. 6 Fogo, 94 Fantasma);
+ * `&k=N`: pula as N primeiras copas (outra jogada, se a primeira não acender).
  * `?demo=charanga` abre na escalação uma partida com a Charanga de Pewter em que, ao começar, o rival está a 4 s de
  * abrir o placar (o aviso "A CHARANGA ENTROU" vem logo depois do gol).
  * `?demo=virada` abre na escalação uma partida que, ao começar, está a 4 s do gol que põe o seu time na frente no
@@ -491,7 +492,9 @@ export function runDevDemo() {
         const gk = new URLSearchParams(window.location.search).get('goleiro') === '1';
         // &nivel=N espera a barra chegar no gomo N (1 a 3)
         const nivel = Math.min(3, Math.max(1, Number(new URLSearchParams(window.location.search).get('nivel')) || 1));
-        for (let k = 0; k < 120; k++) {
+        // &k=N pula as N primeiras copas (outra jogada pro mesmo capitão)
+        const k0 = Number(new URLSearchParams(window.location.search).get('k')) || 0;
+        for (let k = k0; k < k0 + 120; k++) {
             store.newRun('Demo FC', `max${k}`);
             const base = useGame.getState().run!;
             const rng = new Rng(`max${k}`, 'demo');

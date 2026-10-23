@@ -446,9 +446,9 @@ export class Cinematics {
             x = size + 16;
         }
         const big = scene.add
-            .text(x, -9, opts.move.toUpperCase(), {
+            .text(x, -11, opts.move.toUpperCase(), {
                 fontFamily: 'Galmuri11, monospace',
-                fontSize: '30px',
+                fontSize: '36px',
                 fontStyle: 'bold',
                 color: '#ffffff',
                 stroke: '#0d1024',
@@ -459,14 +459,14 @@ export class Cinematics {
         const tag = scene.add
             .text(x + 10, 24, opts.typeLabel.toUpperCase(), {
                 fontFamily: 'Galmuri11, monospace',
-                fontSize: '20px',
+                fontSize: '22px',
                 fontStyle: 'bold',
                 color: Phaser.Display.Color.IntegerToColor(opts.typeInk).rgba,
             })
             .setOrigin(0, 0.5)
             .setResolution(2);
         const tagBg = scene.add.graphics();
-        tagBg.fillStyle(0x0d1024, 1).fillRoundedRect(x, 24 - 13, tag.width + 20, 26, 4);
+        tagBg.fillStyle(0x0d1024, 1).fillRoundedRect(x, 24 - 14, tag.width + 20, 28, 4);
         content.push(big, tagBg, tag);
         const width = x + Math.max(big.width, tag.width + 20);
         const group = scene.add.container(-width / 2, 0, content);

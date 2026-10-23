@@ -277,7 +277,7 @@ export function MaxCueButton({
             >
                 <BeatRing />
                 <HudIcon kind="max" />
-                <b>{a.max}</b>
+                <b className="sl-cue-name">{a.max}</b>
                 <small className="sl-cue-lv">{maxLevelLabel(view.max.level, a.maxLevelShort)}</small>
                 <FxBadge view={view} />
             </button>

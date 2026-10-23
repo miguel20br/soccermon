@@ -129,7 +129,7 @@ export function effectWord(
     const w = scene.add
         .text(x, y, text, {
             fontFamily: 'Galmuri11, monospace',
-            fontSize: `${Math.round(13 * s)}px`,
+            fontSize: `${Math.round(15 * s)}px`,
             fontStyle: 'bold',
             color: Phaser.Display.Color.IntegerToColor(color).rgba,
             stroke: '#000000',
