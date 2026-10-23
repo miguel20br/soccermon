@@ -1,10 +1,11 @@
 ---
-description: Proposta de 5 Patrocínios novos (olheiro, agente, preparador, charanga, clube formador) com uso real, efeito na taxa de título e decisões pro Miguel.
+description: Patrocínios novos (Olheiro, Preparador, Charanga, Clube Formador de Pallet): proposta, decisões do Miguel, medidas com o motor 12 e rascunho das Novidades.
 ---
 
-# Patrocínios novos (proposta, 23/10/2026)
+# Patrocínios novos (23/10/2026)
 
-Só proposta, nada implementado. Ideia aprovada pelo Miguel em 22/10; os efeitos e números abaixo esperam o ok dele.
+Ideia aprovada pelo Miguel em 22/10; as decisões, em 23/10 (todas como recomendadas). Implementado na branch
+`patrocinios` (motor 12): veja [Implementado](#implementado-2310-motor-12) no fim.
 
 ## Como funcionam hoje
 
@@ -103,3 +104,56 @@ Medido com o robô da copa (`scripts/balance/cup.ts`, 204 copas: 34 por formaç�
 7. **Ordem de entrada:** recomendo uma versão 0.9.x só com patrocínios, atrás de teste no `?demo=mercado`, porque a Charanga mexe em estado da partida e muda o resultado (sobe `ENGINE_VERSION`, republica a Edge Function `liga`).
 8. **Ícones:** desenhados em SVG, sem emoji; peço ok na galeria `?cards=1` antes de espalhar.
 9. **Atacar os fracos (ssanne e companhia)?** Recomendo olhar depois dessa leva: se o Agente e o Olheiro puxarem uso de ₽, o ssanne melhora sozinho. Se não, +3 vira +4 ₽ por vitória.
+
+## Implementado (23/10, motor 12)
+
+O Miguel aprovou as recomendações: entram 4 (o Agente fica pra depois, o S.S. Anne fica como está), todos a 10 ₽,
+ícones SVG no `HudIcon`. O Clube Formador virou **de Pallet** pra não repetir Pewter.
+
+| Patrocínio | Família | Efeito no código | Ícone |
+|---|---|---|---|
+| Olheiro de Viridian | recompensa | avulsos e pacote do Mercado com a raridade da fase seguinte (`shopRound` em `shop.ts`); no Mercado da reta final já é a mais alta | binóculo (o mesmo do evento Olheiro da Rota) |
+| Preparador de Lavender | campo | +6 de fôlego pro time todo (`sponsorBonuses`) | cronômetro |
+| Charanga de Pewter | campo | +4 em tudo enquanto o time perde; liga e desliga a cada gol (`scoreGoal` recalcula) | bumbo |
+| Clube Formador de Pallet | campo | o seu time evolui com 10 em vez de 14 (`evoThreshold`); barras da carta, prancheta, mapa e eventos acompanham | broto |
+
+- `ENGINE_VERSION` 11 → 12 (Charanga e Preparador mudam a partida). A Edge Function `liga` não foi republicada: a
+  integração faz isso junto com o golpe por tipo, que também usa o 12.
+- Save: nada novo (Patrocínio já era lista de ids), sem migração.
+- O painel do jogador na partida mostra a linha da Charanga quando o time está atrás (carta = campo).
+- Prévia: `?demo=mercado&novos=1` (Olheiro e Preparador nas vagas, Charanga e Clube Formador à venda).
+
+### Medidas (robô da copa, 204 copas: 34 por formação, mesmas seeds, `scripts/pesado.sh`)
+
+Agora com o código de verdade: `SPONSORS=<id>` no `scripts/balance/cup.ts` põe o Patrocínio desde a 1ª partida. O
+robô joga pela nota, sem MT, na equilibrada; erro de ±3 a 5 pp em cada linha.
+
+| Cenário | Proposta (estimativa à mão) | Motor 12 | Leitura |
+|---|---|---|---|
+| Sem patrocínio | 14% | 14% | mesma base (partida sem Patrocínio não mudou) |
+| Preparador | 18% | 19% | +5 pp, na borda do ruído |
+| Charanga +4 | +4 a +6 pp (estimado) | 18% | +4 pp: não ficou forte, fica no +4 |
+| Clube Formador (robô pela nota) | 15% | 15% | evoluções 0,36 → 0,39 por copa |
+| Clube Formador (robô pela evolução) | — | 15% → 16% | evoluções 1,68 → 2,07 por copa; copas com evolução 82% → 92% |
+| Mercado sem patrocínio novo | 16% | 19% | base do Mercado (robô compra Patrocínio de campo) |
+| Olheiro (no Mercado) | 19% | 19% | 0 pp: o robô já compra pouco Pokémon; o efeito aparece na vitrine (teste: nota média maior) |
+
+- Nenhum passa de +5 pp, abaixo de Silph/Master. A Charanga não precisou cair pra +3.
+- Calibrate n=200 (partidas sem Patrocínio, motor 12): 7,88 gols/jogo, favorito 68,8%, goleadas 1,5%, empates 18,5%.
+- Ressalva: o robô não sente ritmo nem virada; a Charanga e o Preparador precisam ser jogados na prévia.
+
+### Rascunho das Novidades (não está no `patch-notes.ts`)
+
+**PT**
+- 4 Patrocínios novos no Mercado, 10 ₽ cada:
+  - **Olheiro de Viridian**: Mercado e pacotes com Pokémon mais raros.
+  - **Preparador de Lavender**: +6 de fôlego pro time todo.
+  - **Charanga de Pewter**: +4 em tudo enquanto o time perde.
+  - **Clube Formador de Pallet**: a barra de evolução do seu time enche 40% mais rápido.
+
+**EN**
+- 4 new Sponsors in the Market, ₽10 each:
+  - **Viridian Scout**: rarer Pokémon in the Market and packs.
+  - **Lavender Trainer**: +6 stamina for the whole team.
+  - **Pewter Drum Band**: +4 to everything while losing.
+  - **Pallet Youth Club**: your team's evolution bar fills 40% faster.
