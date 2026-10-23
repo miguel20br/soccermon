@@ -14,7 +14,7 @@ import { COACH_GROUPS, type CoachId, coachSeen } from '../../store/coach';
 import { useGame } from '../../store/game-store';
 import { reduceMotionOn } from '../reduce-motion';
 import './coach.css';
-import { type Box, placeBalloon, tappableUnder } from './place';
+import { type Box, needsScroll, placeBalloon, tappableUnder } from './place';
 
 const PAD = 6;
 const FADE_MS = 220;
@@ -140,8 +140,8 @@ function Balloon({
             raf = requestAnimationFrame(tick);
         };
         const r0 = el.getBoundingClientRect();
-        if (r0.top < 60 || r0.bottom > window.innerHeight - 60)
-            el.scrollIntoView({ block: 'center', behavior: reduceMotionOn() ? 'auto' : 'smooth' });
+        if (needsScroll(r0, window.innerHeight))
+            el.scrollIntoView({ block: 'nearest', behavior: reduceMotionOn() ? 'auto' : 'smooth' });
         tick();
         return () => cancelAnimationFrame(raf);
     }, [el]);
