@@ -1,4 +1,12 @@
-import { type CSSProperties, type KeyboardEvent, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+    type CSSProperties,
+    type KeyboardEvent,
+    type MouseEvent,
+    useEffect,
+    useLayoutEffect,
+    useRef,
+    useState,
+} from 'react';
 import { track } from '../../analytics/track';
 import { fmt } from '../../i18n';
 import { useT } from '../../i18n/react';
@@ -6,7 +14,7 @@ import { COACH_GROUPS, type CoachId, coachSeen } from '../../store/coach';
 import { useGame } from '../../store/game-store';
 import { reduceMotionOn } from '../reduce-motion';
 import './coach.css';
-import { type Box, placeBalloon } from './place';
+import { type Box, placeBalloon, tappableUnder } from './place';
 
 const PAD = 6;
 const FADE_MS = 220;
@@ -193,6 +201,13 @@ function Balloon({
         end();
     };
 
+    // tocar fora fecha o balão E segue pro botão tocado (antes o toque morria no pedaço transparente)
+    const tapOutside = (e: MouseEvent) => {
+        const target = tappableUnder(document.elementsFromPoint(e.clientX, e.clientY));
+        skip();
+        (target as HTMLElement | null)?.click();
+    };
+
     // tocar no elemento aceso conta como "entendi": a ação dele acontece e o tutorial segue
     // biome-ignore lint/correctness/useExhaustiveDependencies: advance muda a cada render e só lê i/last
     useEffect(() => {
@@ -240,7 +255,7 @@ function Balloon({
                     ['dir', { left: right, top: rect.top, width: Math.max(0, vw - right), height: rect.height }],
                 ] as const
             ).map(([k, style]) => (
-                <div key={k} aria-hidden="true" className="coach-block" onClick={skip} style={style} />
+                <div key={k} aria-hidden="true" className="coach-block" onClick={tapOutside} style={style} />
             ))}
             <div
                 className="coach-hole"

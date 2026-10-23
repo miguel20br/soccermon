@@ -18,13 +18,50 @@ nada disso foi pro ar.
 | 3 dias (20–23/10) | 112 | 27 | 15 (56%) | 12 (44%) | 8 (30%) | 7 (26%) | 5 |
 | desde 22/10 00h (`--desde`) | 60 | 17 | 10 (59%) | 10 (59%) | 7 (41%) | 6 (35%) | 4 |
 
-- **Aparelho:** 62% celular, 33% desktop, 4% tablet (7 dias). O script não separa o funil por aparelho; ver opção A.
+- **Aparelho:** 62% celular, 33% desktop, 4% tablet (7 dias). O funil por aparelho já sai no `npm run stats` (abaixo).
 - **"Android converte 55%" não diz nada sobre a entrada:** o canal android teve **0 sessões novas** em 7 dias. Os
   55% são de gente que já joga.
 - **O segundo vazamento é o draft:** das novas que começam a copa, ~30% não chegam a jogar a 1ª partida (26 → 18 em 7
   dias, 10 → 7 desde 22/10). Na mão são 20 toques até a bola rolar (seção 3).
 - **Amostra pequena:** são ~10 sessões novas por dia. Cada pessoa mexe 1,5 a 6 pontos na porcentagem. Pra ver uma
   mudança de 10 pontos com alguma segurança, precisa de umas 2 semanas de dados.
+
+### Medição nova (`scripts/stats.ts`, 0.9.17, 7 dias, rodado em 23/10)
+
+O funil agora tem 5 etapas (a "Passou das boas-vindas" saiu, era igual a "Começou a copa"), tira as sessões do
+`?lab=`, do convite do Duelo (1ª tela vista é a do Duelo) e do TikTok/Instagram (origem do link), mostra essas
+separadas e quebra por aparelho. O evento não grava user agent: o navegador de dentro do TikTok/Instagram só é
+reconhecido pela origem (`utm_source`/referrer), então quem entra por ali sem origem ainda cai no funil.
+
+```
+== 3. Funil por sessão (sem lab, convite do Duelo e TikTok/Instagram) ==
+  Etapa               Sessões  % do total  Queda                    Novas  % novas
+  ──────────────────  ───────  ──────────  ─────  ────────────────  ─────  ───────
+  Abriu o jogo            227        100%         ████████████████     61     100%
+  Começou a copa          127         56%   -44%  █████████            25      41%
+  Jogou a 1ª partida      105         46%   -17%  ███████              17      28%
+  Terminou a copa          89         39%   -15%  ██████               14      23%
+  Campeão                  54         24%   -39%  ████                  6      10%
+  Fora do funil: 31 sessões (novas e voltando); a tabela de baixo mostra as novas.
+  "Começou a copa" inclui quem retomou uma copa (sessão voltando); a coluna Novas é a 1ª copa de verdade.
+
+  Funil por aparelho (só sessões novas)
+  Aparelho  Sessões novas  Começou a copa  Abriu → começou  Jogou a 1ª  Começou → jogou  Abriu → jogou
+  ────────  ─────────────  ──────────────  ───────────────  ──────────  ───────────────  ─────────────
+  celular              27              18              67%          12              67%            44%
+  desktop              24               6              25%           4              67%            17%
+  tablet               10               1              10%           1             100%            10%
+
+  Fora do funil (só sessões novas)
+  Grupo             Sessões novas  Começou a copa  Abriu → começou  Jogou a 1ª  Começou → jogou  Abriu → jogou
+  ────────────────  ─────────────  ──────────────  ───────────────  ──────────  ───────────────  ─────────────
+  convite do Duelo              8               1              13%           1             100%            13%
+  Maior vazamento: Abriu o jogo → Começou a copa (perde 59%, 36 sessões novas)
+  Monta pra mim: 23 de 127 sessões que começaram copa (87% jogaram partida; na mão: 82%)
+```
+
+Leitura: abriu → começou a 1ª copa é **41%** nas novas (celular 67%, desktop 25%, tablet 10%); começou → jogou a 1ª
+partida, 17 de 25 (68%). O vazamento da entrada é de desktop e tablet, não de celular.
 
 ## 2. É medição? Em parte, sim
 
