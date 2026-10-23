@@ -2214,6 +2214,7 @@ function updateBall(s: MatchState, dt: number) {
         const off = Math.abs(yCross - width / 2) - goalWidth / 2;
         if (Math.abs(off) < POST_TOLERANCE && ball.shot) {
             emit(s, { type: 'post', shooter: ball.shot.by });
+            if (cannonBack(s, v(lineX - attackSign(scoringTeam) * 0.15, yCross))) return;
             ball.pos = v(lineX - attackSign(scoringTeam) * 0.15, yCross);
             ball.vel = v(-ball.vel.x * 0.55, ball.vel.y + s.rng.range(-2, 2));
             ball.shot = null;
@@ -2223,6 +2224,7 @@ function updateBall(s: MatchState, dt: number) {
             scoreGoal(s, scoringTeam);
         } else {
             if (ball.shot) emit(s, { type: 'wide', shooter: ball.shot.by });
+            if (cannonBack(s, v(lineX - attackSign(scoringTeam) * 0.15, yCross))) return;
             const defending: 0 | 1 = scoringTeam === 0 ? 1 : 0;
             // último toque da defesa (espalmada, desvio, bola recuada): escanteio; do ataque: tiro de meta
             const toucher = ball.lastTouch !== null ? s.players[ball.lastTouch] : null;
@@ -2327,7 +2329,10 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
             }
             if (maxSave || sash || s.rng.chance(pSave)) {
                 p.stats.saves++;
-                const caught = maxSave ? maxSave.q === 2 : felt < 17 && s.rng.chance(0.55 + (0.3 * gk) / 99);
+                // o 2º canhão do Blastoise arranca até a bola que o goleiro segurou
+                const caught =
+                    (maxSave ? maxSave.q === 2 : felt < 17 && s.rng.chance(0.55 + (0.3 * gk) / 99)) &&
+                    (!!maxSave || !fxHas(fx, 'cannon'));
                 emit(s, { type: 'save', by: p.idx, shooter: shooter.idx, caught });
                 ball.shot = null;
                 // o contato nunca fica atrás do goleiro (entre ele e o gol): a bola parecia ter passado e virava
@@ -3595,6 +3600,16 @@ function maxFxShot(s: MatchState, p: PlayerState, fx: string, shot: ShotInfo, ta
                 }
                 break;
             }
+            case 'slam':
+                // Body Slam: o Snorlax se joga; quem está perto dele cai e fica paralisado (a sobra fica pro time dele)
+                for (const o of rivals) {
+                    if (o.role === 'GK' || dist(o.pos, p.pos) > S.slamR) continue;
+                    o.stun = Math.max(o.stun, S.slamStun);
+                    setAction(o, Action.Hurt, S.slamStun);
+                    if (applyStatus(s, o, 'par', p.idx, 'maxfx') && o.status) o.status.timer = M.par;
+                    fxHit(s, p, fx, o.idx);
+                }
+                break;
             case 'chain': {
                 // Thunderbolt: o raio salta da bola pro goleiro e dele pros rivais mais perto (paralisia curta)
                 if (!gk) break;
@@ -3656,9 +3671,9 @@ function maxFxShot(s: MatchState, p: PlayerState, fx: string, shot: ShotInfo, ta
  * e o voleio emenda o rebote (a bola volta pro pé dele e ele chuta de primeira com a força do N2). Devolve true se a
  * bola já tem destino (o rebote do voleio).
  */
-function maxFxStop(s: MatchState, shooter: PlayerState, by: PlayerState, fx: string, contact: Vec2): boolean {
+function maxFxStop(s: MatchState, shooter: PlayerState, by: PlayerState | null, fx: string, contact: Vec2): boolean {
     const M = AGENCY.maxType;
-    if (fxHas(fx, 'shock') && applyStatus(s, by, 'par', shooter.idx, 'maxfx') && by.status) {
+    if (by && fxHas(fx, 'shock') && applyStatus(s, by, 'par', shooter.idx, 'maxfx') && by.status) {
         by.status.timer = M.par;
         fxHit(s, shooter, fx, by.idx);
     }
@@ -3682,7 +3697,7 @@ function maxFxStop(s: MatchState, shooter: PlayerState, by: PlayerState, fx: str
     if (fxHas(fx, 'cannon')) {
         // o jato devolve a bola de longe: ela sai 1 m à frente de quem defendeu, que fica um instante sem reação
         ball.pos = add(contact, scale(norm(to), 1));
-        by.stun = Math.max(by.stun, AGENCY.maxSigFx.cannonStun);
+        if (by) by.stun = Math.max(by.stun, AGENCY.maxSigFx.cannonStun);
     }
     ball.z = 0;
     ball.vz = 0;
@@ -3691,6 +3706,13 @@ function maxFxStop(s: MatchState, shooter: PlayerState, by: PlayerState, fx: str
     ball.lastKick = { by: shooter.idx, kind: 'pass', tick: s.tick, receiverId: shooter.idx };
     fxHit(s, shooter, fx, shooter.idx);
     return true;
+}
+
+/** Blastoise: o chute N3 bateu na trave ou saiu pela linha de fundo (a sobra) e o 2º canhão devolve a bola pra ele. */
+function cannonBack(s: MatchState, at: Vec2): boolean {
+    const shot = s.ball.shot;
+    if (!shot?.fx || !fxHas(shot.fx, 'cannon')) return false;
+    return maxFxStop(s, s.players[shot.by], null, shot.fx, at);
 }
 
 /** Defesa máxima do goleiro valendo agora (o próximo chute no gol é dele). */

@@ -27,6 +27,8 @@ interface Opts {
     rivalCap?: number;
     defAt?: { x: number; y: number };
     gkY?: number;
+    /** Pra onde o capitão chuta (padrão: no gol). */
+    aim?: { x: number; y: number };
 }
 
 function scene(id: number, o: Opts = {}) {
@@ -57,7 +59,7 @@ function scene(id: number, o: Opts = {}) {
     s.ball.pos = v(30.3, 10);
     s.teams[0].agency.max = { idx: 4, until: 100, live: false, level: 3, q: 2 };
     const cmds = s.players.map(() => IDLE);
-    cmds[4] = { type: 'shoot', target: v(40, 10.6), power: 1 };
+    cmds[4] = { type: 'shoot', target: o.aim ? v(o.aim.x, o.aim.y) : v(40, 10.6), power: 1 };
     step(s, cmds);
     return s;
 }
@@ -109,7 +111,13 @@ describe('golpe máximo por Pokémon (fase 2, assinaturas)', () => {
         expect(scene(149).ball.shot?.gkReach).toBeCloseTo(n3 * 0.85, 6);
     });
 
-    it('Snorlax (Body Slam): o goleiro que defende cai e fica paralisado', () => {
+    it('Snorlax (Body Slam): se joga no chute (o rival perto cai e fica paralisado); o goleiro que defende também', () => {
+        const slam = scene(143, { defAt: { x: 31, y: 12 } });
+        expect(slam.players[6].stun).toBeGreaterThan(0);
+        expect(slam.players[6].status?.kind).toBe('par');
+        expect(of(slam, 'maxFx').some((e) => e.step === 'hit' && e.target === 6)).toBe(true);
+        // sem a bandeira (efeito do Normal) ninguém perto cai no chute
+        expect(scene(143, { defAt: { x: 31, y: 12 }, sig: false }).players[6].stun).toBe(0);
         const s = until(143, saved, noDef);
         expect(s).not.toBeNull();
         const gk = s!.players[5];
@@ -155,6 +163,11 @@ describe('golpe máximo por Pokémon (fase 2, assinaturas)', () => {
         expect(s).not.toBeNull();
         idle(s!, 40);
         expect(of(s!, 'shot').filter((e) => e.by === 4).length).toBeGreaterThanOrEqual(2);
+        // a sobra: o chute pra fora também volta pro Blastoise (sem tiro de meta)
+        const wide = until(9, (x) => of(x, 'wide').length > 0, { ...noDef, aim: { x: 40, y: 15 } });
+        expect(wide).not.toBeNull();
+        expect(of(wide!, 'goalkick')).toHaveLength(0);
+        expect(of(wide!, 'maxFx').some((e) => e.step === 'hit' && e.target === 4)).toBe(true);
     });
 
     it('Charizard (Flamethrower): voa 2 m rumo ao gol, chuta por cima e queima o goleiro que defende', () => {

@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { fxTypeOf, maxCharge } from '../../engine/agency';
+import { AGENCY, fxTypeOf, maxCharge } from '../../engine/agency';
 import { computeAttributes, type Position } from '../../engine/attributes';
 import { FUTSAL_5 } from '../../engine/config';
 import { ABILITIES, MOVES, species } from '../../engine/data';
@@ -2231,6 +2231,8 @@ export class MatchScene extends Phaser.Scene {
                                 at: { x: cap.sprite.x, y: cap.sprite.y },
                                 // a nota do toque também na faixa grande (o texto pequeno fica atrás dela)
                                 sub: `${e.q === 2 ? `${dict().match.agency.maxPerfect} · ` : ''}${e.moveId ? (MOVES[e.moveId]?.name ?? cap.name) : cap.name}`,
+                                // a assinatura vence as outras faixas do lance (o combo do Pikachu cobria a dele)
+                                top: !!fxType && fxType in AGENCY.maxSig,
                             },
                         );
                     }
@@ -2271,6 +2273,7 @@ export class MatchScene extends Phaser.Scene {
                             stroke: '#1a1030',
                             at: { x: by.sprite.x, y: by.sprite.y },
                             sub: by.name,
+                            top: true,
                         });
                     else if (!cinematic) this.popText(e.by, name[0].toUpperCase(), color, 22);
                 } else if (e.fx === 'metronome' || e.fx === 'transform') {

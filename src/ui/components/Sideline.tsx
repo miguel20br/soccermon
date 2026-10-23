@@ -84,12 +84,14 @@ export function capFxType(
     setups: [TeamSetup, TeamSetup],
     side: 0 | 1,
     tick: number,
+    /** A partida corre com as assinaturas (a copa retomada usa a do save, não a da URL). */
+    sig = MAX_ASSINATURA,
 ): string | undefined {
     const cap = captainAt(m, setups, side, tick);
     const inst = [...setups[side].lineup, ...setups[side].bench].find((p) => p.uid === cap.uid);
     if (!inst || !cap.speciesId) return undefined;
-    const sig = MAX_ASSINATURA ? MAX_SIGNATURE[inst.speciesId] : undefined;
-    if (sig) return sig;
+    const own = sig ? MAX_SIGNATURE[inst.speciesId] : undefined;
+    if (own) return own;
     return maxFxType(inst.moves, cap.speciesId, species(cap.speciesId).types);
 }
 

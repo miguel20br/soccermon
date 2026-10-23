@@ -380,6 +380,8 @@ sem a bandeira.
   assinatura no botão. Demo: `?demo=maximo&nivel=3&capitao=<id>&assinatura=1` (`&goleiro=1`: Snorlax no gol).
 - **Testes:** `src/engine/max-sig.test.ts` (um por assinatura, bandeira desligada, determinismo).
 - **Robô:** `SIG=1 CAPID=<id> POLS=n3 npx tsx scripts/balance/coach.ts 200 out.json 4 max` (`CAP=gk` pro Snorlax no gol).
+- **Save no meio da partida:** o `live.engine` guarda o motor de quando a partida começou (13 com a bandeira); retomar,
+  resimular uma ordem e rever um gol em Momentos usam o salvo (`engineSig`), com ou sem `?assinatura=1` na URL de agora.
 
 ### As 12 (e o Snorlax no gol)
 
@@ -388,11 +390,11 @@ Números de partida; a fase 1 ajustou parecido (o goleiro nunca fica parado, sen
 | Pokémon | Assinatura | Efeito no N3 | Peças |
 |---|---|---|---|
 | Dragonite | Hiper Raio (Hyper Beam) | Raio laranja que fura todos os bloqueios; goleiro x0,85. Errou: recarrega 1 s (o Hyper Beam de sempre) | `pierceAll` |
-| Snorlax | Pancada do Snorlax (Body Slam) | Fura os bloqueios; o goleiro que defende cai e fica paralisado | Normal + `shock` |
+| Snorlax | Pancada do Snorlax (Body Slam) | Se joga no chute: rival de linha a até 4 m dele cai 1 s e fica paralisado (a sobra é do time dele). Fura os bloqueios; o goleiro que defende cai e fica paralisado | Normal + `slam` + `shock` |
 | Snorlax no gol | Soneca no gol | Na defesa máxima N3 deita na frente do gol: alcance x1,8 em vez de x1,4 | `wallReach` |
 | Arcanine | Estrela de fogo (Fire Blast) | Estrela de fogo na frente do gol: quem está a 4 m cai 0,6 s e se queima | `star` |
 | Articuno | Nevasca (Blizzard) | A área rival inteira congela 1,2 s; o goleiro escorrega (x0,9) | `snowArea` |
-| Blastoise | Dois canhões (Hydro Pump) | A onda abre a linha; defendeu ou bloqueou, a bola volta pro Blastoise de qualquer distância e ele emenda | `wave` + `cannon` |
+| Blastoise | Dois canhões (Hydro Pump) | A onda abre a linha; o 1º não entrou (defesa, até a que segura, bloqueio, trave ou pra fora), a bola volta pro Blastoise de qualquer distância e ele emenda | `wave` + `cannon` |
 | Charizard | Voo em chamas (Flamethrower) | Voa 2 m rumo ao gol e chuta por cima; o goleiro que defende se queima e espalma curto | `flyIn` + `lob` + `burn` |
 | Pikachu | Raio em cadeia (Thunderbolt) | Bola 15% mais rápida; o raio salta do goleiro pros 2 rivais mais perto (paralisia 1,5 s) | `fast` + `chain` + `shock` |
 | Gengar | Come-sonho (Dream Eater) | Atravessa a defesa; o goleiro dorme (x0,75), até o Normal | `sure` |
@@ -409,11 +411,11 @@ mesmas seeds. "Tipo" = o mesmo capitão com o efeito do tipo dele (motor 12); "a
 | Capitão | Δ com a assinatura (pp) | Δ com o tipo (pp) | Assinatura − tipo (pp) | N3/jogo | Gol do N3/jogo (assin. / tipo) |
 |---|---:|---:|---:|---:|---|
 | Dragonite | +2,0 ± 1,4 | +1,5 ± 1,5 | +0,5 ± 0,5 | 0,45 | 0,34 / 0,27 |
-| Snorlax (linha) | −1,5 ± 1,3 | −1,5 ± 1,3 | +0,0 ± 0,0 | 0,27 | 0,22 / 0,22 |
+| Snorlax (linha) | −0,5 ± 1,3 | −1,5 ± 1,3 | +1,0 ± 1,0 | 0,27 | 0,21 / 0,22 |
 | Snorlax (gol) | −0,5 ± 1,5 | −1,0 ± 1,4 | +0,5 ± 0,5 | 0,34 defesas | — |
 | Arcanine | −1,0 ± 1,9 | −1,0 ± 1,4 | +0,0 ± 1,9 | 0,26 | 0,14 / 0,18 |
 | Articuno | +1,5 ± 2,1 | +1,5 ± 1,8 | +0,0 ± 1,7 | 0,52 | 0,23 / 0,31 |
-| Blastoise | +1,5 ± 1,1 | +1,5 ± 1,1 | +0,0 ± 0,0 | 0,22 | 0,15 / 0,15 |
+| Blastoise | +1,5 ± 1,1 | +1,5 ± 1,1 | +0,0 ± 0,7 | 0,22 | 0,16 / 0,15 |
 | Charizard | +3,5 ± 2,5 | +3,5 ± 2,2 | +0,0 ± 2,7 | 0,52 | 0,16 / 0,29 |
 | Pikachu | +1,0 ± 1,4 | +1,5 ± 1,7 | −0,5 ± 1,3 | 0,27 | 0,15 / 0,15 |
 | Gengar | +2,5 ± 2,6 | +2,5 ± 2,6 | +0,0 ± 0,7 | 0,53 | 0,33 / 0,32 |
@@ -430,14 +432,19 @@ O que dá pra ler:
 - **Mewtwo, Gyarados, Charizard e Mew passam da faixa da média dos tipos (+1,7 + 1,5 = 3,2) já com o efeito do tipo.**
   Isso é o capitão, não a assinatura: o Mewtwo chega na zona 0,69 vez por jogo e converte 83%. Se incomodar, é
   conversa de nota/atributo (balanceamento), não desta frente.
-- Snorlax de linha e Blastoise saem iguais ao tipo nas 200 (a paralisia em cima do "cai 1 s" do Normal e o 2º canhão
-  quase não aparecem: o goleiro defendeu 0 vez nos N3 medidos). Charizard e Mew fazem menos gol de N3 que o tipo e
-  ganham igual: ruído de 0,5 N3 por jogo.
+- Snorlax de linha e Blastoise (redesenho de 23/10): na 1ª medida saíam iguais ao tipo nas 200, porque o que mudava
+  dependia de o goleiro defender o N3, e isso não acontecia (o N3 do Snorlax entra ~80%; o do Blastoise ~70%). Agora o
+  Snorlax se joga no chute e derruba quem está a 4 m (sempre tem alguém: o rival mais perto fica a 0,4–3,5 m), 2 por
+  N3 em média; o 2º canhão do Blastoise sai em todo N3 que não entra (trave, pra fora, defesa ou bloqueio: 0,07 por
+  jogo, de 0,22 N3). Medida de novo (n=200, as linhas acima): Snorlax +1,0 ± 1,0 sobre o tipo, Blastoise +0,0 ± 0,7;
+  os dois dentro da meta. Robô: `coach.ts` mostra "efeito pegou" (eventos do efeito por jogo). Charizard e Mew fazem
+  menos gol de N3 que o tipo e ganham igual: ruído de 0,5 N3 por jogo.
 - Ressalva: n=200 (± 1 a 3 pp). Pra cravar o Mew e o Mewtwo, 384 partidas. O robô não usa MT nem joga no Duelo.
 
 Prints (headless, `?demo=maximo&nivel=3&capitao=149|6|25|130&assinatura=1`, 390 e 1440): faixa "HIPER RAIO!" com o
-raio laranja, "VOO EM CHAMAS!" com o Charizard no alto, o raio em cadeia do Pikachu (a faixa do combo "Eu escolho você"
-cobriu a da assinatura nesse lance) e "TSUNAMI!". Ícone do tipo aceso no botão no N3. Pra ver de verdade: jogar na
+raio laranja, "VOO EM CHAMAS!" com o Charizard no alto, o raio em cadeia do Pikachu e "TSUNAMI!". Faixa da assinatura
+vence as outras (`Cinematics.drama` `top`): o combo "Eu escolho você" que cobria o "RAIO EM CADEIA!" agora espera ela
+sair, e se outro texto chega na espera (o gol), o mais velho some. Ícone do tipo aceso no botão no N3. Pra ver de verdade: jogar na
 prévia com `?assinatura=1`.
 
 ### Rascunho das Novidades

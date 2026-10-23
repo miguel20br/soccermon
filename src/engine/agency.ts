@@ -89,7 +89,7 @@ export const AGENCY = {
      */
     maxSig: {
         hyperbeam: { type: 'Normal', pieces: ['pierceAll'], reach: 0.85 },
-        bodyslam: { type: 'Normal', pieces: ['pierceAll', 'gkFall', 'shock', 'shortParry'] },
+        bodyslam: { type: 'Normal', pieces: ['pierceAll', 'slam', 'gkFall', 'shock', 'shortParry'] },
         fireblast: { type: 'Fire', pieces: ['star', 'shortParry'] },
         blizzard: { type: 'Ice', pieces: ['snowArea', 'mark'], reach: 0.9 },
         hydropump: { type: 'Water', pieces: ['wave', 'cannon'] },
@@ -115,7 +115,13 @@ export const AGENCY = {
         chainR: 10,
         /** Tsunami: todos os rivais vão `tsunami` m pro lado (o goleiro `maxType.gkPush`). */
         tsunami: 3,
-        /** Hydro Pump: quem defendeu ou bloqueou fica `cannonStun` s sem reação e a bola volta pro Blastoise. */
+        /** Body Slam: o Snorlax se joga no chute; rival de linha a até `slamR` m dele cai `slamStun` s e fica paralisado. */
+        slamR: 4,
+        slamStun: 1,
+        /**
+         * Hydro Pump: o 2º canhão sai no rebote (defesa, até a que segura, bloqueio ou trave) e na sobra (chute pra fora):
+         * a bola volta pro Blastoise e quem defendeu ou bloqueou fica `cannonStun` s sem reação.
+         */
         cannonStun: 0.5,
         /** Snorlax no gol (defesa máxima N3): deita na frente do gol, alcance `wallReach` em vez do x1,4. */
         wallReach: 1.8,
@@ -178,6 +184,7 @@ export type MaxPiece =
     | 'snowArea'
     | 'flyIn'
     | 'chain'
+    | 'slam'
     | 'tsunami'
     | 'furyNow';
 
