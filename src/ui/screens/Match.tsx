@@ -58,6 +58,7 @@ import { cardSprite } from '../components/PokeCard';
 import { type BoardPlan, Prancheta, useMedia, WIDE } from '../components/Prancheta';
 import {
     agencyView,
+    CharangaCue,
     capFxType,
     MaxBars,
     MaxCueButton,
@@ -663,6 +664,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         )}
                         <Ticker lines={lines} colors={colors} />
                         <SidelineOverlay events={match.events} tick={clock.tick} colors={colors} names={teamNames} />
+                        <CharangaCue events={match.events} tick={clock.tick} setups={setups} colors={colors} />
                         <MaxCueButton view={sideline} canAct={canAgency} onMax={sendMax} />
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />

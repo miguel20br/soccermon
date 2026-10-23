@@ -3,6 +3,7 @@ import { AGENCY, type MaxCharge, maxCharge } from '../../engine/agency';
 import { species } from '../../engine/data';
 import { maxFxType } from '../../engine/match';
 import type { MatchResult } from '../../engine/runners/batch-runner';
+import { has } from '../../engine/sponsors';
 import { isAgencyOrder, type MatchEvent, type MatchOrder, type MaxGrade, type TeamSetup } from '../../engine/state';
 import { useT } from '../../i18n/react';
 import { captainAt, MAX_CUE_EARLY, MAX_CUE_LATCH, maxCueNear, roleAt } from '../match-view';
@@ -382,6 +383,62 @@ export function SidelineOverlay({
                     <span>{names[timeout.team]}</span>
                 </div>
             )}
+        </div>
+    );
+}
+
+/** Ticks depois do gol até o aviso da Charanga (deixa o "GOL!" passar) e até quando ele ainda pode entrar. */
+const CHARANGA_DELAY = 30;
+const CHARANGA_WINDOW = 400;
+
+/**
+ * Charanga de Pewter (a mesma regra do motor, `bonusesOf` em match.ts): o gol que deixou o time com ela perdendo agora
+ * (estava empatado) liga a charanga. Devolve o time e o tick desse gol, enquanto o aviso ainda pode entrar.
+ */
+export function charangaGoalAt(
+    events: readonly MatchEvent[],
+    tick: number,
+    setups: readonly [TeamSetup, TeamSetup],
+): { team: 0 | 1; tick: number } | null {
+    for (let i = events.length - 1; i >= 0; i--) {
+        const e = events[i];
+        if (e.tick > tick - CHARANGA_DELAY) continue;
+        if (e.tick < tick - CHARANGA_DELAY - CHARANGA_WINDOW) break;
+        if (e.type !== 'goal') continue;
+        const t = e.team === 0 ? 1 : 0;
+        return has(setups[t].sponsors, 'charanga') && e.score[t] === e.score[e.team] - 1
+            ? { team: t, tick: e.tick }
+            : null;
+    }
+    return null;
+}
+
+/** "A CHARANGA ENTROU": aviso curto na quadra com o bumbo (entra e sai em 240 ms; o resto do tempo fica parado). */
+export function CharangaCue({
+    events,
+    tick,
+    setups,
+    colors,
+}: {
+    events: readonly MatchEvent[];
+    tick: number;
+    setups: readonly [TeamSetup, TeamSetup];
+    colors: [number, number];
+}) {
+    const { d } = useT();
+    const [done, setDone] = useState<number | null>(null);
+    const on = charangaGoalAt(events, tick, setups);
+    if (!on || on.tick === done) return null;
+    return (
+        <div
+            key={on.tick}
+            className="sl-charanga"
+            style={{ '--tc': hex(colors[on.team]) } as CSSProperties}
+            role="status"
+            onAnimationEnd={() => setDone(on.tick)}
+        >
+            <HudIcon kind="drum" />
+            <b>{d.match.agency.charanga}</b>
         </div>
     );
 }

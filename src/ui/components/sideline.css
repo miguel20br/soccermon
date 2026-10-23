@@ -430,6 +430,61 @@
     }
 }
 
+/* Charanga de Pewter: aviso curto embaixo do meio da quadra (entra em 240 ms, fica, sai em 240 ms) */
+.sl-charanga {
+    position: absolute;
+    left: 50%;
+    top: 62%;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    border-bottom: 3px solid var(--tc);
+    border-radius: 6px;
+    background: var(--bc-ink);
+    color: var(--text);
+    font-size: 13px;
+    white-space: nowrap;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    animation: sl-charanga 2.4s linear both;
+}
+.sl-charanga .hud-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--tc);
+}
+@keyframes sl-charanga {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.7);
+        animation-timing-function: cubic-bezier(0.2, 1.4, 0.4, 1);
+    }
+    10%,
+    90% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+@keyframes sl-charanga-fade {
+    0%,
+    100% {
+        opacity: 0;
+    }
+    10%,
+    90% {
+        opacity: 1;
+    }
+}
+[data-reduce-motion="true"] .sl-charanga {
+    animation-name: sl-charanga-fade;
+}
+
 [data-reduce-motion="true"] .sl-cue {
     animation: sl-fade-in 0.2s var(--ease-out);
 }

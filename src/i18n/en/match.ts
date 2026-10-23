@@ -121,6 +121,7 @@ export const match: typeof pt = {
         flyGkOn: 'On',
         flyGkOff: 'Off',
         max: 'Max move',
+        charanga: 'THE DRUMS KICK IN',
         maxHint:
             "Fills with your team's plays. When full, it lights up when your captain can shoot (in goal: when the rival shoots). Shortcut: M.",
         maxReady: 'Now!',

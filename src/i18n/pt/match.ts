@@ -134,6 +134,8 @@ export const match = {
         flyGkOn: 'Ligado',
         flyGkOff: 'Desligado',
         max: 'Golpe máximo',
+        /** Charanga de Pewter ligou (o time passou a perder): aviso curto na quadra. */
+        charanga: 'A CHARANGA ENTROU',
         maxHint:
             'Enche com os lances do time. Cheia, acende na hora do chute do capitão (no gol: no chute do rival). Atalho: M.',
         maxReady: 'Agora!',
