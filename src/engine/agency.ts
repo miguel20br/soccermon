@@ -42,6 +42,46 @@ export const AGENCY = {
     ],
     maxLevelGk: [null, { ticks: 15, reach: 1.1 }, { ticks: 80, reach: 1.25 }, { ticks: 120, reach: 1.4 }],
     /**
+     * Mira do chute N3 (decisão 12 de golpe-maximo-por-tipo.md, motor 12): o alvo chega pro meio do gol nessa fração
+     * da distância (a IA mira a 0,3 m da trave e 43% dos N3 iam pra fora; o goleiro com alcance x0,7 ainda não chega).
+     */
+    maxAim: 0.6,
+    /**
+     * Efeito do tipo do capitão no chute N3 (fase 1 de golpe-maximo-por-tipo.md, `MatchConfig.maxType`): vem por cima
+     * dos números do N3. `reach`: alcance do goleiro rival nesse chute, por tipo (x0,7 do N3 vezes isto).
+     */
+    maxType: {
+        reach: { Grass: 0.86, Ice: 0.85, Ghost: 0.8, Dragon: 0.8, Fairy: 0.85, Ground: 0.8 } as Record<string, number>,
+        /** Água e Gelo: rivais a até `lineR` m da linha do chute. A onda empurra a linha `push` m e o goleiro `gkPush`. */
+        lineR: 2,
+        push: 2.5,
+        gkPush: 1,
+        /** Gelo: congela quem está na linha por `freeze` s. */
+        freeze: 1,
+        /** Terrestre: derruba (`quakeStun` s) quem está a até `quakeR` m do gol; Voador e Levitate não caem. */
+        quakeR: 6,
+        quakeStun: 0.6,
+        /** Elétrico: bola x`speed` e paralisia de `par` s em quem bloqueia ou defende. */
+        speed: 1.15,
+        par: 1.5,
+        /** Fogo, Normal e Pedra: a espalmada sai curta (fração da velocidade) e fica na área. */
+        parryShort: 0.15,
+        /** Normal: o goleiro que espalma cai `gkStun` s. */
+        gkStun: 1,
+        /** Venenoso: nuvem de `cloudR` m na frente do gol por `cloudT` s (envenena e quem está nela não bloqueia). */
+        cloudR: 4,
+        cloudT: 5,
+        /** Psíquico: a curva leva a bola pro canto longe do goleiro, no máximo `curve` m por metro (~8°). */
+        curve: 0.14,
+        /** Inseto: chance de o goleiro pular na isca (sem defesa). */
+        decoy: 0.5,
+        /** Lutador: emenda o rebote a até `volleyR` m com a força e a mira do N2. */
+        volleyR: 6,
+        /** Dragão: sem gol, o capitão fica em fúria (chute e velocidade x`fury`) por `furyT` s. */
+        fury: 1.15,
+        furyT: 6,
+    },
+    /**
      * Nota do toque na batida (`q` da ordem: 0 fora, 1 bom, 2 perfeito): quanto da parte extra do nível vale. Fora nunca
      * zera (diversão antes de punição). Ordem sem `q` vale como bom.
      */

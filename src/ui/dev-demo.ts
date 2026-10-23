@@ -47,7 +47,8 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * vestiário: várias trocas, desfazer e "O rival trocou"). `?demo=acrescimos` abre na escalação uma partida que você está
  * perdendo no fim: ao começar, já está na Pressão final, a 3 s dos acréscimos do 2º tempo ("+N'" no placar).
  * `?demo=maximo` abre na escalação uma partida que, ao começar, está a 2 s do botão do golpe máximo aceso
- * (barra cheia, capitão Dragonite com a bola na zona); `&goleiro=1`: capitão Snorlax no gol (defesa máxima).
+ * (barra cheia, capitão Dragonite com a bola na zona); `&goleiro=1`: capitão Snorlax no gol (defesa máxima);
+ * `&capitao=<id>`: outro pivô capitão (com `&tipo=1&nivel=3`: o efeito do tipo dele no N3, ex. 6 Fogo, 94 Fantasma).
  * `?demo=virada` abre na escalação uma partida que, ao começar, está a 4 s do gol que põe o seu time na frente no
  * 2º tempo. `&clube=<id>` (brock, misty, rocket…): contra o clube desse treinador (a música dele); `&pressao=1`: a
  * virada vem depois de o seu time entrar na Pressão final, e a partida abre 2 s antes dela (a música entra no trecho
@@ -492,7 +493,8 @@ export function runDevDemo() {
             const base = useGame.getState().run!;
             const rng = new Rng(`max${k}`, 'demo');
             // goleiro Snorlax, fixo Machamp, alas Gyarados e Pidgeot, pivô Dragonite; banco Onix e Pikachu
-            const lineup = [143, 68, 130, 18, 149].map((id) => createInstance(id, rng));
+            const capId = Number(new URLSearchParams(window.location.search).get('capitao')) || 149;
+            const lineup = [143, 68, 130, 18, capId].map((id) => createInstance(id, rng));
             const bench = [95, 25].map((id) => createInstance(id, rng));
             const run = {
                 ...base,

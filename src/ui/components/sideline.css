@@ -163,6 +163,26 @@
     color: var(--yellow);
     font-size: 12px;
 }
+/* golpe máximo por tipo (?tipo=1): o ícone do efeito no 3º gomo; apagado até o N3, aceso no N3 */
+.sl-fx {
+    display: inline-flex;
+    opacity: 0.35;
+    filter: grayscale(1);
+    transition:
+        opacity 250ms var(--ease-out),
+        filter 250ms var(--ease-out),
+        transform 250ms var(--ease-out);
+}
+.sl-max .sl-fx {
+    position: absolute;
+    right: 4px;
+    bottom: 7px;
+}
+.sl-fx.on {
+    opacity: 1;
+    filter: none;
+    transform: scale(1.15);
+}
 .sl-max.lv3 .sl-fill,
 .sl-maxbar.lv3 i {
     /* os 3 gomos: duas divisas fixas por cima do enchimento */

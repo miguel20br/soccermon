@@ -114,7 +114,14 @@ export function Liga() {
         }
         const [home, away] = ligaTeams(o.myTeam, o.ghostTeam);
         try {
-            const m = await simulateMatch(home, away, ligaMatchSeed(o.seed!), useLiga.getState().live?.orders ?? []);
+            const m = await simulateMatch(
+                home,
+                away,
+                ligaMatchSeed(o.seed!),
+                useLiga.getState().live?.orders ?? [],
+                undefined,
+                false,
+            );
             setMatch(m);
             go('liga-match');
         } catch {

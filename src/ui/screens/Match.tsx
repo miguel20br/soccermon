@@ -58,6 +58,7 @@ import { cardSprite } from '../components/PokeCard';
 import { type BoardPlan, Prancheta, useMedia, WIDE } from '../components/Prancheta';
 import {
     agencyView,
+    capFxType,
     MaxBars,
     MaxCueButton,
     maxCueAt,
@@ -442,7 +443,10 @@ export function Match({ liga = false }: { liga?: boolean }) {
 
     // beira da quadra: tempo, goleiro-linha e golpe máximo, pelo mesmo caminho das ordens
     const setups: [TeamSetup, TeamSetup] = [lockedSetup, opponent];
-    const sideline = agencyView(match.events, orders, 0, clock.tick, maxCueAt(match, setups, 0, clock.tick));
+    const sideline = {
+        ...agencyView(match.events, orders, 0, clock.tick, maxCueAt(match, setups, 0, clock.tick)),
+        fxType: capFxType(match, setups, 0, clock.tick),
+    };
     const canAgency = canChangeTactic && penPick === null;
     // golpe máximo: vale já no quadro da tela, antes da decisão do capitão (com +1 a IA chutava antes e o lance
     // passava; a quadra espera a partida nova; é um lance, não um plano)
