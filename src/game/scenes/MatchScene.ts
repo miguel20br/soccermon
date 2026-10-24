@@ -499,6 +499,7 @@ export class MatchScene extends Phaser.Scene {
     private linePos = new Map<number, { x: number; y: number }>();
     private viewPos = new Map<number, { x: number; y: number }>();
     private uiScale = 1;
+    private readonly labelWidths = new Map<string, number>();
     private unbind?: () => void;
     /** O jogador tocou em "Esperar" no golpe máximo (Match.tsx, `maxWaitNext`): sem câmera lenta até a tela soltar. */
     private maxWait = false;
@@ -999,8 +1000,7 @@ export class MatchScene extends Phaser.Scene {
             for (const v of views) {
                 // inteiro primeiro; se cruzar, o curto; só some se o curto também cruzar
                 const rects = [false, true].map((short) => {
-                    this.setLabelText(v, short);
-                    const w = v.label.width;
+                    const w = this.labelWidth(v, short);
                     const x0 = v.label.x - w / 2;
                     return { x0, x1: x0 + w, y0: v.label.y, y1: v.label.y + v.label.height };
                 });
@@ -1032,6 +1032,20 @@ export class MatchScene extends Phaser.Scene {
             }
             placed.push({ x0, x1, y0: y, y1: y + h });
         }
+    }
+
+    /** Largura do nome (inteiro ou curto) sem redesenhar o texto a cada quadro: mede uma vez por texto e tamanho. */
+    private labelWidth(v: PlayerView, short: boolean) {
+        const t = labelText(v.name, v.captain, short);
+        const key = `${v.label.style.fontSize}|${t}`;
+        let w = this.labelWidths.get(key);
+        if (w === undefined) {
+            const was = v.label.text;
+            w = v.label.setText(t).width;
+            v.label.setText(was);
+            this.labelWidths.set(key, w);
+        }
+        return w;
     }
 
     private setLabelText(v: PlayerView, short: boolean) {
