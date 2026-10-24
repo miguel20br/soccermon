@@ -25,7 +25,7 @@ Legenda do trailer (TikTok; no Reels troca `/tt` por `/ig`):
 
 | # | Quando | Canais | Lance | Texto na tela | Legenda |
 |---|---|---|---|---|---|
-| 7 | sex 23/10 19h | TikTok + Reels + Shorts | O líder evolui no meio da partida (evolução do rival com o nome do time) | O RIVAL EVOLUIU | O rival também evolui no meio do jogo. E agora? soccermon.com/tt |
+| 7 | dom 25/10 (pronto: 4-rival-evoluiu.mp4) | TikTok + Reels + Shorts | O líder evolui no meio da partida (evolução do rival com o nome do time) | O RIVAL EVOLUIU | refazendo na fórmula do Snorlax (24/10): rascunho antes |
 | 8 | seg 26/10 19h | TikTok + Reels + Shorts | Gol da copa em câmera lenta (Melhores momentos) | GOL EM CÂMERA LENTA | Seu time de Kanto faria esse gol? soccermon.com/tt |
 | 9 | qua 28/10 19h | TikTok + Reels + Shorts | Snorlax no gol fechando tudo | SNORLAX NO GOL | Ninguém passa. soccermon.com/tt |
 | 10 | sex 30/10 19h | TikTok + Reels + Shorts | Copa do Dia: a mesma copa pra todo mundo + o placar do Miguel | BATA MEU PLACAR | A Copa do Dia é igual pra todo mundo. Quantas vitórias você faz? soccermon.com/tt |
@@ -38,6 +38,14 @@ Legenda do trailer (TikTok; no Reels troca `/tt` por `/ig`):
 
 | Semana | Post | Views | Assistiu tudo | Compart. | Cliques no site | Nota |
 |---|---|---|---|---|---|---|
+| 1 | Snorlax no gol · Reels (24/10 ~09h, atrasado) https://www.instagram.com/soccermongame/reel/De4ECMUBxuu/ | | | | | publicado pelo Claude |
+| 1 | POV nível 3 · TikTok (24/10 ~10h, v3 sem o fim travado) https://www.tiktok.com/@soccermongame/video/7700264979227839752 | | | | | APAGADO pelo Miguel (clímax do N3 picotado); refazer |
+| 1 | POV nível 3 · Shorts (24/10 ~10h, v3) https://youtube.com/shorts/ZVNcaWjb3mE | | | | | APAGADO pelo Miguel (clímax do N3 picotado); refazer |
+| 1 | Snorlax no gol · Shorts (24/10 ~10h) https://youtube.com/shorts/JXSa1rw8_uA | | | | | publicado pelo Claude |
+| 1 | POV nível 3 (Dragonite) · TikTok (24/10 tarde) https://www.tiktok.com/@soccermongame/video/7700276072318766343 | | | | | v4, clímax refeito |
+| 1 | POV nível 3 (Dragonite) · Shorts (24/10 tarde) https://youtube.com/shorts/VV62k-zPieE | | | | | v4 |
+| 1 | POV nível 3 (Dragonite) · Reels (24/10 tarde) https://www.instagram.com/soccermongame/reel/De4mDSLBv0s/ | | | | | v4 |
+| 1 | POV nível 3 · Reels (24/10 ~10h, v3) https://www.instagram.com/soccermongame/reel/De4hDPWMcoB/ | | | | | APAGADO pelo Miguel (clímax do N3 picotado); refazer |
 
 ## Ouvidos (pedidos e bugs vindos dos comentários)
 

@@ -104,6 +104,9 @@ Plano do trailer e dos posts de lançamento (LinkedIn como projeto pessoal, X co
 - **Ultimate Team no Em breve (20/10/2026):** o Miguel quer dois modos principais, o futsal casual (Copa) e o
   Ultimate Team (time da temporada, pacotes, reset por temporada). Proposta com opções e decisões em
   [ultimate-team.md](ultimate-team.md); se entra na 1.0 é a decisão 6 de lá.
+- **Ferramentas de vídeo (24/10/2026):** o HyperFrames foi para a 0.8.191 (correções de memória no render).
+  Para trailer e curtas, testar a Lemo-Opuscar (plugin do Claude Code, MIT), que roda tudo na máquina: nenhum
+  sprite vai para serviço externo. Gerador online (Higgsfield e afins) nunca com asset do jogo. Avaliação em `~/Projects/MAB/_pesquisa/` (ferramentas-skills.md e ferramentas-plataformas.md).
 
 ## Decisões que continuam valendo
 
