@@ -19,10 +19,9 @@
 <style>
 .cheio { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; }
 .cheio video, .cheio img.q { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; image-rendering: pixelated; }
-#w-faixa { position: absolute; left: 0; top: 820px; width: 1080px; height: 616px; overflow: hidden; z-index: 5;
-  box-shadow: 0 0 0 6px #0e1430, 0 24px 60px rgb(0 0 0 / 55%); }
-#w-faixa video { position: absolute; left: 0; top: 0; width: 1080px; height: 616px; }
-.placar { position: absolute; left: 40px; width: 1000px; height: 88px; top: 700px; z-index: 20;
+#topo { position: absolute; left: 0; top: 0; width: 1080px; height: 900px; z-index: 15; pointer-events: none;
+  background: linear-gradient(rgb(7 10 24 / 88%) 0, rgb(7 10 24 / 60%) 520px, transparent 900px); }
+.placar { position: absolute; left: 40px; width: 1000px; height: 88px; top: 480px; z-index: 20;
   filter: drop-shadow(0 10px 0 rgb(0 0 0 / 35%)); }
 .placar img { position: absolute; left: 0; top: 0; width: 1000px; opacity: 0; }
 .placar img#p43 { opacity: 1; }
@@ -43,9 +42,10 @@
 <div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="18.3">
   <div id="fundo" class="cheio palco"><div class="raios" id="raios"></div></div>
 
-  <!-- compassos 0–1: a partida numa faixa, o placar e o TAVA GANHANDO -->
-  <div id="w-faixa"><video id="v-faixa" class="clip" src="midia/faixa.mp4" muted playsinline data-start="0" data-duration="3.75"></video></div>
-  <div class="legenda grande" id="tava" style="top:360px"><span>TAVA <b id="ganhando">GANHANDO...</b></span></div>
+  <!-- compassos 0–1: perto do Dragonair desde o 1º quadro, o placar e o TAVA GANHANDO -->
+  <div class="cheio" id="w-abre" style="z-index:5"><video id="v-abre" class="clip" src="midia/abre.mp4" muted playsinline data-start="0" data-duration="3.75"></video></div>
+  <div id="topo"></div>
+  <div class="legenda grande" id="tava" style="top:140px"><span>TAVA <b id="ganhando">GANHANDO...</b></span></div>
 
   <!-- compasso 2: a evolução (recorte no Dragonair) -->
   <div class="cheio" id="w-evo" style="z-index:10;opacity:0"><video id="v-evo" class="clip" src="midia/evo.mp4" muted playsinline data-start="3.75" data-duration="1.875"></video></div>
@@ -92,20 +92,20 @@
     // ===== 0–1: TAVA GANHANDO =====
     // (o placar já nasce visível com o 4x3 no CSS: set no tempo 0 não pegava no render)
     pop('#placar', 0.001, 1.12, 0.18);
-    tl.fromTo('#w-faixa', { scale: 1.08 }, { scale: 1, duration: 0.35, ease: 'power3.out', immediateRender: false }, 0);
+    tl.fromTo('#w-abre', { scale: 1.08 }, { scale: 1, duration: 0.35, ease: 'power3.out', immediateRender: false }, 0.001);
     mostra('#tava', 0);
     tl.fromTo('#tava', { scale: 0.6 }, { scale: 1, duration: 0.25, ease: 'back.out(3)', immediateRender: false }, 0);
     tl.set('#ganhando', { opacity: 0 }, 0);
     tl.set('#ganhando', { opacity: 1 }, BAT);
     // o shuffle: o letreiro balança de leve no 2 e no 4, convencido
-    // o herói aparece: no compasso 1 a faixa vai chegando perto do Dragonair (no centro, indo pra direita)
-    tl.set('#v-faixa', { transformOrigin: '640px 330px' }, 0.001);
-    tl.to('#v-faixa', { scale: 1.7, duration: 1.875, ease: 'power2.in' }, T(1, 0));
+    // no compasso 1 a câmera vai chegando no Dragonair (o recorte já anda com ele)
+    tl.set('#w-abre', { transformOrigin: '400px 1100px' }, 0.001);
+    tl.to('#w-abre', { scale: 1.25, duration: 1.875, ease: 'power2.in' }, T(1, 0));
     for (let b = 1; b < 8; b += 2) tl.fromTo('#tava', { rotation: -2 }, { rotation: 0, duration: 0.3, ease: 'power2.out', immediateRender: false }, b * BAT);
 
     // ===== 2: a evolução. Corte seco pra perto; a borda escurece; cada piscada dá um choque amarelo =====
     const tEvo = T(2, 0);
-    mostra(['#tava', '#placar'], tEvo, false);
+    mostra(['#tava', '#placar', '#topo'], tEvo, false);
     mostra('#w-evo', tEvo);
     tl.fromTo('#w-evo', { scale: 1.35 }, { scale: 1, duration: 0.3, ease: 'power3.out', immediateRender: false }, tEvo);
     tl.to('#vinheta', { opacity: 1, duration: 1.2, ease: 'power1.in' }, tEvo);
@@ -143,8 +143,8 @@
     mostra('#w-congela', tGol);
     flash(tl, tGol, 1, 0.45);
     treme(tl, '#w-congela', tGol + 0.03, 1.6, 0.4);
-    // o goleiro (270, 930 no quadro) vem pro centro e cresce: de 1,3x a 1,6x, pé em y 1150
-    tl.fromTo('#congela', { scale: 1.3, x: 0, y: -59, transformOrigin: '0px 0px' }, { scale: 1.6, y: -338, duration: 3.75, ease: 'sine.out', immediateRender: false }, tGol);
+    // recorte fechado: o goleiro (465, 805) e a bola na rede; chega um pouco mais perto dele
+    tl.fromTo('#congela', { scale: 1, transformOrigin: '465px 805px' }, { scale: 1.15, duration: 3.75, ease: 'sine.out', immediateRender: false }, tGol);
     tl.to('#escuro', { opacity: 0, duration: 0 }, 0);
     tl.set('#escuro', { zIndex: 14 }, tGol);
     tl.to('#escuro', { opacity: 0.35, duration: 1.2 }, tGol + 0.3);
