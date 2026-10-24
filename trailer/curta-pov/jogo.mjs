@@ -40,7 +40,8 @@ export async function abrir({ capitao, k = 0, fps = 30, largura = 1280, alto = 9
         if (pronto) break;
         await wait(1000);
     }
-    await page.evaluate(() => {
+    await page.evaluate((sf) => {
+        window.__semFaixa = sf;
         window.__tick = 0;
         window.__fim = false;
         window.__ev = [];
@@ -63,6 +64,8 @@ export async function abrir({ capitao, k = 0, fps = 30, largura = 1280, alto = 9
         // fora do vídeo: a faixa da torcida ("Vai, Demo FC!", profundidade -998/-999) e a caixa de narração
         for (const o of sc.children.list) if (o.depth === -998 || o.depth === -999) o.willRender = () => false;
         if (sc.battleBox?.container) sc.battleBox.container.willRender = () => false;
+        // SEM_FAIXA: a faixa do especial vem da montagem, grande (a do jogo cabe no canvas de 968 px e lê pequena)
+        if (window.__semFaixa) sc.cine.superBanner = () => {};
         const cam = sc.cameras.main;
         cam.setBounds(0, 0, cam.width, cam.height);
         g.loop.sleep();
@@ -102,7 +105,7 @@ export async function abrir({ capitao, k = 0, fps = 30, largura = 1280, alto = 9
                 }
             }
         };
-    });
+    }, !!process.env.SEM_FAIXA);
     await click('button', '^Começar');
     await wait(300);
     await click('button', '^Pular$');
@@ -123,6 +126,7 @@ export async function abrir({ capitao, k = 0, fps = 30, largura = 1280, alto = 9
                 return {
                     tick: window.__tick,
                     fim: window.__fim,
+                    hold: sc.holdReal > sc.time.now,
                     cue: cue ? cue.innerText.replace(/\s+/g, ' ').trim() : null,
                     ev: window.__ev.splice(0),
                     cam: { x: w.x, y: w.y, w: w.width, h: w.height, zoom: cam.zoom },

@@ -144,6 +144,109 @@ async function telaFinal(f) {
   }
 }
 
+// o retrato PMD do capitão sem o fundo rosa (a mesma regra do jogo: src/game/portrait-cut.ts, empacotado em PC)
+let retratoCut = null;
+async function retrato(src) {
+  if (retratoCut) return retratoCut;
+  const im = await carrega(src);
+  const cv = document.createElement('canvas');
+  cv.width = im.width;
+  cv.height = im.height;
+  const cx = cv.getContext('2d');
+  cx.drawImage(im, 0, 0);
+  const d = cx.getImageData(0, 0, im.width, im.height);
+  window.PC?.cutPortraitBg(d.data, im.width, im.height);
+  cx.putImageData(d, 0, 0);
+  retratoCut = cv;
+  return cv;
+}
+
+/** A faixa da assinatura, grande: entra da esquerda, fica com brilho passando e sai pela direita. */
+async function faixa(f) {
+  const cor = f.cor ?? '#EE8130';
+  const corTipo = f.corTipo ?? cor;
+  g.save();
+  g.translate(540 + f.dx, 870);
+  g.rotate(-0.12);
+  g.globalAlpha = f.alfa;
+  const W = 1500;
+  const H = 250;
+  // sombra, faixa, listra clara em cima e a tira escura de baixo
+  g.fillStyle = 'rgba(7,10,24,0.55)';
+  g.fillRect(-W / 2 + 14, -H / 2 + 18, W, H);
+  g.fillStyle = INK;
+  g.fillRect(-W / 2, -H / 2 - 10, W, H + 20);
+  g.fillStyle = cor;
+  g.fillRect(-W / 2, -H / 2, W, H - 64);
+  g.fillStyle = '#ffb27a';
+  g.fillRect(-W / 2, -H / 2, W, 14);
+  g.fillStyle = INK;
+  g.fillRect(-W / 2, H / 2 - 64, W, 64);
+  // brilho passando
+  g.save();
+  g.beginPath();
+  g.rect(-W / 2, -H / 2, W, H - 64);
+  g.clip();
+  const bx = -W / 2 + f.brilho * (W + 400) - 200;
+  const gr = g.createLinearGradient(bx - 120, 0, bx + 120, 0);
+  gr.addColorStop(0, 'rgba(255,255,255,0)');
+  gr.addColorStop(0.5, 'rgba(255,255,255,0.45)');
+  gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr;
+  g.fillRect(bx - 120, -H / 2, 240, H);
+  g.restore();
+  // retrato
+  const r = await retrato(f.retrato);
+  const R = 236 * f.pop;
+  const rx = -372;
+  const ry = -12;
+  g.fillStyle = INK;
+  g.fillRect(rx - R / 2 - 12, ry - R / 2 - 12, R + 24, R + 24);
+  g.fillStyle = '#fff';
+  g.fillRect(rx - R / 2 - 6, ry - R / 2 - 6, R + 12, R + 12);
+  g.fillStyle = f.fundoRetrato ?? '#c85a1e';
+  g.fillRect(rx - R / 2, ry - R / 2, R, R);
+  g.imageSmoothingEnabled = false;
+  g.drawImage(r, rx - R / 2, ry - R / 2, R, R);
+  // textos
+  g.textAlign = 'left';
+  const tx = -222 + f.dxTexto;
+  g.font = `700 ${f.tam ?? 80}px Galmuri11`;
+  g.lineJoin = 'round';
+  g.lineWidth = 16;
+  g.strokeStyle = INK;
+  g.strokeText(f.nome, tx, -18);
+  g.fillStyle = '#fff';
+  g.fillText(f.nome, tx, -18);
+  g.font = '700 36px Galmuri11';
+  g.fillStyle = corTipo;
+  g.fillText(f.tipo, tx, H / 2 - 18);
+  const tw = g.measureText(f.tipo).width;
+  g.fillStyle = '#7dffb0';
+  g.fillText(f.nota, tx + tw + 28, H / 2 - 18);
+  g.restore();
+}
+
+/** GOOOOL! por cima da quadra, no alto do painel, pulando. */
+async function golTexto(t, Q) {
+  g.save();
+  g.translate(540, Q.y + 190);
+  g.rotate(Math.sin(t.u * 9) * 0.04);
+  g.scale(t.escala, t.escala);
+  g.textAlign = 'center';
+  g.font = '700 150px Galmuri11';
+  g.lineJoin = 'round';
+  g.lineWidth = 30;
+  g.strokeStyle = INK;
+  g.strokeText('GOOOOL!', 0, 50);
+  g.lineWidth = 14;
+  g.strokeStyle = '#e8423f';
+  g.strokeText('GOOOOL!', 0, 50);
+  g.fillStyle = '#fff';
+  g.fillText('GOOOOL!', 0, 50);
+  g.restore();
+}
+
 // estado: { fundo, quadra: {src, sx, sy, sw, sh}, flash, gomos, gomoBrilho[], botao: {...}, dedo: {...}, titulo }
 window.quadro = async (e) => {
   // fundo de marca: azul-noite radial
@@ -184,6 +287,11 @@ window.quadro = async (e) => {
     g.imageSmoothingEnabled = sw > 400;
     g.drawImage(im, x0, y0, x1 - x0, y1 - y0, Q.x + (x0 - sx) * k, Q.y + (y0 - sy) * k, (x1 - x0) * k, (y1 - y0) * k);
     g.imageSmoothingEnabled = false;
+    if (e.escurece) {
+      g.fillStyle = `rgba(7,10,24,${e.escurece})`;
+      g.fillRect(Q.x, Q.y, Q.w, Q.h);
+    }
+    if (e.golTexto) await golTexto(e.golTexto, Q);
     if (e.flash) {
       g.fillStyle = `rgba(255,255,255,${e.flash})`;
       g.fillRect(Q.x, Q.y, Q.w, Q.h);
@@ -199,6 +307,8 @@ window.quadro = async (e) => {
     g.stroke();
     g.restore();
   }
+
+  if (e.faixa) await faixa(e.faixa);
 
   // a barra de 3 gomos (o que o jogador está segurando)
   {

@@ -12,6 +12,8 @@ const { browser, page, step, speed, click } = await abrir({ capitao, k, dsf: 3 }
 // o toque: quantos ticks depois do aceso previsto pelo cacar.ts (o N3 dentro da janela em que vira gol); a montagem
 // estica o trecho pra o dedo encostar na batida
 const DEPOIS = { n1: 6, n2: 6, n3: 4 };
+const FINO = Number(process.env.FINO ?? 1 / 3);
+if (process.env.DEPOIS_N3) DEPOIS.n3 = Number(process.env.DEPOIS_N3);
 let antes = -1;
 let parado = 0;
 
@@ -37,8 +39,11 @@ async function gravar(nome, ate, solta) {
     let aceso = -1;
     let tocou = -1;
     let gol = -1;
-    for (let n = 0; n < 900; n++) {
-        const s = await step(true);
+    for (let n = 0; n < 1400; n++) {
+        // depois do toque no N3, passo menor (FINO do quadro): o especial em câmera lenta lisa na montagem
+        const mult = solta && tocou >= 0 && (gol < 0 || n < gol + 60) ? FINO : 1;
+        const s = await step(true, mult);
+        s.mult = mult;
         writeFileSync(`${dir}/${String(n + 1).padStart(5, '0')}.png`, Buffer.from(s.png.split(',')[1], 'base64'));
         delete s.png;
         meta.push(s);
@@ -98,7 +103,7 @@ async function gravar(nome, ate, solta) {
             console.log(`${nome}: gol no quadro ${n}`, JSON.stringify(s.ev));
         }
         if (!solta && tocou >= 0 && n > tocou + 100) break;
-        if (solta && gol >= 0 && n > gol + 120) break;
+        if (solta && gol >= 0 && n > gol + 150) break;
         if (aceso < 0 && n > 400) break;
     }
     writeFileSync(`${dir}/meta.json`, JSON.stringify({ aceso, tocou, gol, meta }));
