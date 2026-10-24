@@ -55,7 +55,7 @@ import { COURTS } from '../court-themes';
 import { EventBus } from '../EventBus';
 import { blinkSchedule, evolutionView, RIVAL_EVO_MS } from '../evolution-view';
 import { drawStars, drawStatusIcon, dust, effectWord, readableColor, shockwave } from '../hit-fx';
-import { hurtSecondsAt, type Reaction, reactionFor, spanAt, WORD_RANK } from '../hit-react';
+import { hurtSecondsAt, type Reaction, reactionFor, showsWord, spanAt, WORD_RANK } from '../hit-react';
 import { firstFit, labelText, type Rect } from '../label-fit';
 import { castMove, preloadMoveFx } from '../move-fx';
 import { cutPortraitBg } from '../portrait-cut';
@@ -1786,7 +1786,7 @@ export class MatchScene extends Phaser.Scene {
         const cries = this.md.cries;
         const cinematic = this.md.cinematic;
         const reaction = reactionFor(e, this.reactCtx);
-        if (reaction) this.react(reaction, e.tick);
+        if (reaction) this.react(reaction, e.tick, showsWord(reaction, this.reactionsAt(e.tick), this.spritePos));
         // o chute N3 chegou (gol, defesa, bloqueio, trave): onda de choque do tipo onde a bola está
         if (this.n3Shot && (e.type === 'goal' || e.type === 'save' || e.type === 'block' || e.type === 'post')) {
             if (e.tick - this.n3Shot.tick <= TICK_RATE * 3)
@@ -1907,6 +1907,8 @@ export class MatchScene extends Phaser.Scene {
                 // seu gol: sobe um semitom a cada gol no jogo (o 3º soa mais alto que o 1º)
                 playSfx('goal', e.team === this.mine ? 2 ** ((e.score[this.mine] - 1) / 12) : 0.9);
                 playCrowd(e.team === this.mine ? 'gol' : 'vaia');
+                // a caixa de batalha não disputa a tela com o GOL (nem com os nomes embaixo)
+                this.battleBox.clear(this.time.now, 1500);
                 const scorer = this.players[e.by];
                 // grito de gol: o capitão grita junto com a torcida (se não foi ele quem marcou: esse já gritou)
                 const captain = this.players.find((v) => v.team === this.mine && v.captain);
@@ -2721,8 +2723,26 @@ export class MatchScene extends Phaser.Scene {
         hurtSeconds: (target: number, tick: number) => hurtSecondsAt(this.snaps, target, tick),
     };
 
-    /** Reação de quem foi atingido: empurrão pra trás, tombo ou tontura e a palavra do efeito na cor do tipo. */
-    private react(r: Reaction, tick: number) {
+    private readonly spritePos = (i: number) => this.players[i]?.sprite;
+
+    /** As reações de todos os eventos do tick (golpe de área: a palavra sai uma vez só, `showsWord`). */
+    private reactionsAt(tick: number): Reaction[] {
+        const ev = this.matchEvents;
+        let i = Math.min(this.eventCursor, ev.length) - 1;
+        while (i > 0 && ev[i - 1].tick === tick) i--;
+        const out: Reaction[] = [];
+        for (; i >= 0 && i < ev.length && ev[i].tick === tick; i++) {
+            const r = reactionFor(ev[i], this.reactCtx);
+            if (r) out.push(r);
+        }
+        return out;
+    }
+
+    /**
+     * Reação de quem foi atingido: empurrão pra trás, tombo ou tontura e a palavra do efeito na cor do tipo (`word`
+     * false: outro do mesmo golpe de área já leva a palavra).
+     */
+    private react(r: Reaction, tick: number, word = true) {
         const view = this.players[r.target];
         if (!view || view.evolving) return;
         const sp = view.sprite;
@@ -2751,6 +2771,7 @@ export class MatchScene extends Phaser.Scene {
             else view.down = { from: tick, to: tick + secs * TICK_RATE, dir, tumble: r.fall === 'tumble' };
             if (r.fall === 'tumble') this.time.delayedCall(120, () => dust(this, sp.x, sp.y, 7, sp.depth - 1));
         }
+        if (!word) return;
         // a palavra: uma por vez em cada um (o status vence o empurrão do mesmo golpe)
         const rank = WORD_RANK[r.word];
         const old = view.word;
@@ -2830,6 +2851,8 @@ export class MatchScene extends Phaser.Scene {
             this.holdReal = Math.max(this.holdReal, this.time.now + N3_HITSTOP_MS);
             this.cine.hitTint(color, N3_HITSTOP_MS + 120, reduce ? 0.16 : 0.4, REACT_DEPTH - 1);
         }
+        // a faixa entra: a caixa de batalha sai e o "foi paralisado!" do mesmo lance espera ela passar
+        this.battleBox.clear(this.time.now, 1020);
         const a = dict().match.agency;
         this.cine.superBanner({
             portrait: this.cutPortrait(`portrait-${cap.speciesId}`),

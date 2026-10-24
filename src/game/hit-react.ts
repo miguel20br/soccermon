@@ -117,6 +117,27 @@ export function reactionFor(e: MatchEvent, ctx: ReactContext): Reaction | null {
     }
 }
 
+/**
+ * Golpe de área (Pancada, Raio em cadeia, Terremoto…): dos atingidos no mesmo tick pela mesma causa com a mesma
+ * palavra, só o mais perto do meio do grupo leva a palavra; os outros ficam com o ícone e a reação. `same`: as reações
+ * do mesmo tick (inclui `r`).
+ */
+export function showsWord(
+    r: Reaction,
+    same: readonly Reaction[],
+    pos: (idx: number) => { x: number; y: number } | undefined,
+): boolean {
+    const group = same.filter((o) => o.by === r.by && o.word === r.word);
+    const ps = group.map((o) => pos(o.target));
+    if (group.length < 2 || ps.some((p) => !p)) return true;
+    const cx = ps.reduce((a, p) => a + (p?.x ?? 0), 0) / ps.length;
+    const cy = ps.reduce((a, p) => a + (p?.y ?? 0), 0) / ps.length;
+    const d = (k: number) => Math.hypot((ps[k]?.x ?? 0) - cx, (ps[k]?.y ?? 0) - cy);
+    let best = 0;
+    for (let i = 1; i < group.length; i++) if (d(i) < d(best)) best = i;
+    return group[best].target === r.target;
+}
+
 /** Índice do último snapshot com `tick` <= `tick` (0 se nenhum). */
 export function snapIndex(snaps: readonly MatchSnapshot[], tick: number): number {
     let lo = 0;

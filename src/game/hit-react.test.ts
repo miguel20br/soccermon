@@ -4,7 +4,15 @@ import { Action, SNAP_STRIDE, STATUS_CODE } from '../engine/state';
 import { en } from '../i18n/en';
 import { pt } from '../i18n/pt';
 import { trailKind } from './ball-trail';
-import { DOWN_SECONDS, type ReactContext, reactionFor, statusNow, WORD_TYPE } from './hit-react';
+import {
+    DOWN_SECONDS,
+    type ReactContext,
+    type Reaction,
+    reactionFor,
+    showsWord,
+    statusNow,
+    WORD_TYPE,
+} from './hit-react';
 
 const base = { tick: 10, half: 1 as const, minute: 1 };
 const ctx = (hurt = 0.45): ReactContext => ({
@@ -85,5 +93,16 @@ describe('reação do atingido: efeito → palavra/ícone', () => {
         expect(trailKind('Fire')).toBe('fire');
         expect(trailKind('Electric')).toBe('electric');
         expect(trailKind('Fairy')).toBe('normal');
+    });
+    it('golpe de área: a palavra sai uma vez só, no atingido mais perto do meio do grupo', () => {
+        // Pancada do Snorlax (by 0) paralisa 3 rivais; o 4 hesita com outro golpe e mantém a palavra dele
+        const par = (target: number): Reaction => ({ target, by: 0, word: 'par', type: 'Normal', fall: null, icon: 1 });
+        const flinch: Reaction = { target: 4, by: 2, word: 'flinch', type: 'Normal', fall: 'dizzy', icon: 0 };
+        const same = [par(5), par(6), par(7), flinch];
+        const pos = (i: number) =>
+            ({ 5: { x: 0, y: 0 }, 6: { x: 10, y: 1 }, 7: { x: 20, y: 0 }, 4: { x: 90, y: 0 } })[i];
+        expect(same.filter((r) => showsWord(r, same, pos)).map((r) => r.target)).toEqual([6, 4]);
+        // sozinho, sempre leva a palavra
+        expect(showsWord(par(5), [par(5)], pos)).toBe(true);
     });
 });

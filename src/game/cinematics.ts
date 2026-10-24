@@ -497,8 +497,11 @@ export class Cinematics {
             content.push(note);
             tagEnd += 18 + note.width;
         }
-        const width = x + Math.max(big.width, tagEnd);
-        const group = scene.add.container(-width / 2, 0, content);
+        // nome comprido (PANCADA DO SNORLAX no celular em pé): retrato, golpe e nota encolhem até caber com folga
+        const full = x + Math.max(big.width, tagEnd);
+        const fit = Math.min(1, ((GAME_W / s) * 0.8) / full);
+        const width = full * fit;
+        const group = scene.add.container(-width / 2, 0, content).setScale(fit);
         const inner = scene.add.container(0, 0, [band, group]).setRotation(-0.1);
         const holder = scene.add.container(0, 0, [inner]).setDepth(opts.depth);
         this.pin(holder, GAME_W / 2, GAME_H * 0.6, s);

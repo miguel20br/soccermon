@@ -39,6 +39,20 @@ export class BattleBox {
         while (this.queue.length > 3) this.queue.shift();
     }
 
+    /**
+     * Sai da frente (gol, faixa do golpe máximo): esquece a fila e some; o que chegar nos próximos `holdMs` espera a
+     * faixa sair.
+     */
+    clear(now: number, holdMs = 0) {
+        this.queue.length = 0;
+        this.showingUntil = now + holdMs;
+        if (this.visible) {
+            this.visible = false;
+            this.scene.tweens.killTweensOf(this.container);
+            this.scene.tweens.add({ targets: this.container, alpha: 0, duration: 200 });
+        }
+    }
+
     /** `speed` encurta o tempo de leitura quando o jogo está acelerado. */
     update(now: number, speed: number) {
         if (now < this.showingUntil) return;
