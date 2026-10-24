@@ -31,6 +31,7 @@
     "fonts": "tsx scripts/build-fonts.ts",
     "calibrate": "tsx scripts/calibrate.ts",
     "teleporte": "node scripts/teleporte.mjs",
+    "deitado": "node scripts/deitado.mjs",
     "stats": "tsx scripts/stats.ts",
     "determinismo": "tsx scripts/determinismo.ts",
     "edge:liga": "esbuild src/league/edge-entry.ts --bundle --minify --format=esm --platform=neutral --outfile=supabase/functions/liga/engine.js"
