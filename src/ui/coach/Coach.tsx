@@ -10,7 +10,7 @@ import {
 import { track } from '../../analytics/track';
 import { fmt } from '../../i18n';
 import { useT } from '../../i18n/react';
-import { COACH_GROUPS, type CoachId, coachSeen } from '../../store/coach';
+import { COACH_GROUPS, type CoachId, coachSeen, whenHydrated } from '../../store/coach';
 import { useGame } from '../../store/game-store';
 import { reduceMotionOn } from '../reduce-motion';
 import './coach.css';
@@ -20,11 +20,11 @@ const PAD = 6;
 const FADE_MS = 220;
 const MOVE_MS = 260;
 
-function useHydrated() {
+export function useHydrated() {
     const [ok, setOk] = useState(() => useGame.persist.hasHydrated());
     useEffect(() => {
         if (ok) return;
-        return useGame.persist.onFinishHydration(() => setOk(true));
+        return whenHydrated(useGame.persist, () => setOk(true));
     }, [ok]);
     return ok;
 }
@@ -33,7 +33,7 @@ const sameBox = (a: Box | null, b: Box | null) =>
     a === b || (!!a && !!b && a.left === b.left && a.top === b.top && a.width === b.width && a.height === b.height);
 
 /** Marca como visto (no save): só `ids`, ou o grupo inteiro quando a pessoa pula. */
-function markSeen(ids: readonly CoachId[]) {
+export function markSeen(ids: readonly CoachId[]) {
     const { profile, updateProfile } = useGame.getState();
     const have = profile.coach ?? [];
     const next = [...new Set([...have, ...ids])];

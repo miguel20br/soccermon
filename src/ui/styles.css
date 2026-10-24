@@ -487,6 +487,11 @@ img.pixel {
     line-height: 1.35;
     color: var(--muted);
 }
+/* na 1ª copa ele é o primário: o rótulo inteiro numa linha, a instrução fica com o resto da barra */
+.bc-thumbbar > .draft-auto-go.primary {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
 @media (min-width: 701px) and (min-height: 521px) {
     .draft-auto.ask {
         flex: 1 1 100%;
@@ -5524,6 +5529,32 @@ a.home-tile {
     display: block;
     width: 100%;
     height: auto;
+}
+
+/* 1ª visita (Home.tsx): um botão só no lugar dos modos, e o "Mais modos" discreto embaixo */
+.first-play {
+    width: min(460px, 100%);
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+}
+.first-play .first-go {
+    width: 100%;
+    min-height: 68px;
+    justify-content: space-between;
+    text-align: left;
+}
+.first-go .cup-go-txt b {
+    font-size: 24px;
+}
+.first-go .cup-go-txt small {
+    font-size: 13px;
+}
+.first-more {
+    color: var(--muted);
+    font-size: 13px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
 }
 
 /* área de jogar */

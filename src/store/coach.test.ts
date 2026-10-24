@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
 import { placeBalloon } from '../ui/coach/place';
-import { COACH_GROUPS, COACH_IDS, coachSeen } from './coach';
+import { COACH_GROUPS, COACH_IDS, coachSeen, isFirstVisit, whenHydrated } from './coach';
 import { DEFAULT_SETTINGS, migrateSave, type PersistedSave, withUnlocks } from './game-store';
 import { mergeProfileUnlocks } from './missions';
 import { DEFAULT_PROFILE, EMPTY_CAREER } from './profile';
@@ -93,5 +93,45 @@ describe('placeBalloon: o balão nunca cobre o alvo', () => {
                 expect(p.top + b.height).toBeLessThanOrEqual(vh);
             }
         }
+    });
+});
+
+describe('Home da 1ª visita (só o "Jogar")', () => {
+    it('save novo vê a Home de 1ª visita; quem começou uma copa, jogou Duelo ou Copa do Dia vê a de sempre', () => {
+        expect(isFirstVisit(save())).toBe(true);
+        expect(isFirstVisit(save({ onboarded: true }))).toBe(false);
+        expect(isFirstVisit(save({ records: { cups: 1, titles: 0, perfect: 0 } }))).toBe(false);
+        expect(isFirstVisit(save({ duels: [{ id: 'x' } as PersistedSave['duels'][number]] }))).toBe(false);
+        expect(isFirstVisit(save({ daily: [{ day: '2026-10-20' } as PersistedSave['daily'][number]] }))).toBe(false);
+    });
+
+    it('save antigo (backup v6) nunca cai na Home de 1ª visita', () => {
+        for (const lang of ['pt', 'en']) {
+            const backup = JSON.parse(readFileSync(`scripts/fixtures/backup-v6-${lang}.json`, 'utf8'));
+            const old = { ...backup.save };
+            delete old.onboarded; // save de antes do campo: vale o histórico
+            expect(isFirstVisit(migrateSave(old, backup.version))).toBe(false);
+        }
+    });
+});
+
+describe('whenHydrated', () => {
+    it('save que já carregou antes da assinatura ainda avisa (a Home de quem voltou ficava sem os modos)', () => {
+        const cb = vi.fn();
+        whenHydrated({ hasHydrated: () => true, onFinishHydration: () => () => {} }, cb);
+        expect(cb).toHaveBeenCalledTimes(1);
+    });
+
+    it('save que ainda vai carregar avisa quando terminar', () => {
+        const cb = vi.fn();
+        let done = () => {};
+        const onFinishHydration = (fn: () => void) => {
+            done = fn;
+            return () => {};
+        };
+        whenHydrated({ hasHydrated: () => false, onFinishHydration }, cb);
+        expect(cb).not.toHaveBeenCalled();
+        done();
+        expect(cb).toHaveBeenCalledTimes(1);
     });
 });
