@@ -26,7 +26,7 @@ import { rich, useT } from '../../i18n/react';
 import { ligaRun, useLiga } from '../../league/liga-store';
 import { PhaserGame } from '../../PhaserGame';
 import { fieldKit, lookOfCupClub, lookOfProfile, matchLooks } from '../../store/club-kit';
-import { liveOf, type PlaybackSpeed, playerTeam, useGame } from '../../store/game-store';
+import { engineSig, liveOf, type PlaybackSpeed, playerTeam, useGame } from '../../store/game-store';
 import { isFinalStage, isLong } from '../../store/long-cup';
 import { rivalColor, tagFromName } from '../../store/profile';
 import { Coach } from '../coach/Coach';
@@ -116,6 +116,8 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const { t, d } = useT();
     // retomando uma partida que ficou no meio: mesmo ponto e mesmas ordens
     const resume = useRef(liveOf(run)).current;
+    /** Motor da partida (o do save: com ou sem `?assinatura=1` na URL de agora, a partida segue igual). */
+    const sig = engineSig(resume);
     const [fontsReady, setFontsReady] = useState(false);
     const [lines, setLines] = useState<(CommentLine & { id: number })[]>([]);
     const lineId = useRef(0);
@@ -426,6 +428,8 @@ export function Match({ liga = false }: { liga?: boolean }) {
                 cupRival(opponent, true),
                 `${run.seed}-stage-${run.stage}`,
                 schedule,
+                undefined,
+                sig,
             );
             if (!alive.current || useGame.getState().match?.seed !== seed) return;
             setOrders(schedule);
@@ -453,7 +457,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const agency = agencyView(match.events, orders, 0, clock.tick, cue);
     const wait = maxWaitNext(maxWait, agency.max.level, cue);
     if (wait !== maxWait) setMaxWait(wait);
-    const sideline = { ...agency, fxType: capFxType(match, setups, 0, clock.tick), maxWaiting: wait !== null };
+    const sideline = { ...agency, fxType: capFxType(match, setups, 0, clock.tick, sig), maxWaiting: wait !== null };
     const canAgency = canChangeTactic && penPick === null;
     // golpe máximo: vale já no quadro da tela, antes da decisão do capitão (com +1 a IA chutava antes e o lance
     // passava; a quadra espera a partida nova; é um lance, não um plano)

@@ -1314,6 +1314,46 @@ class Kit {
     }
 
     /** Onda d'água varrendo até o alvo (Surf). */
+    /** Estrela de fogo grande girando no alvo (o Fire Blast do Arcanine no golpe máximo). */
+    fireStar() {
+        const at = this.to;
+        const g = this.s.add.graphics().setDepth(this.c.depth + 1);
+        g.setPosition(at.x, at.y).setScale(0.3).setBlendMode(Phaser.BlendModes.ADD);
+        starPoints(g, 0, 0, 26, 0xff8a3d, 0xffe08a);
+        this.s.tweens.add({
+            targets: g,
+            scale: 2.4,
+            angle: 72,
+            alpha: 0,
+            duration: 720,
+            ease: 'Quad.easeOut',
+            onComplete: () => g.destroy(),
+        });
+        return 0;
+    }
+
+    /** O Snorlax deita na frente do gol (a defesa máxima dele): uma cópia do sprite, deitada e roncando. */
+    lieDown() {
+        const u = this.c.user;
+        const body = this.s.add
+            .sprite(u.x, u.y - 6, u.texture.key, u.frame.name)
+            .setDepth(this.c.depth)
+            .setScale(this.c.baseScale * 1.5);
+        this.s.tweens.add({ targets: body, angle: 90, y: u.y + 2, duration: 280, ease: 'Back.easeOut' });
+        this.s.tweens.add({
+            targets: body,
+            scaleY: this.c.baseScale * 1.62,
+            duration: 700,
+            yoyo: true,
+            repeat: 1,
+            delay: 300,
+        });
+        this.later(1700, () => this.fade(body, { alpha: 0 }, 300));
+        this.icon('zzz', 'user', { ms: 1600 });
+        this.later(150, () => this.ring({ x: u.x, y: u.y }, 0xbfe8ff, 3.2, 520, 5));
+        return 300;
+    }
+
     surf() {
         const a = this.c.from;
         const b = this.to;
@@ -1666,6 +1706,93 @@ const MOVE_FX: Record<string, Recipe> = {
     bubble: R('stream', (k) => k.beam('bubbles')),
     bubblebeam: R('beam', (k) => k.beam('bubbles')),
     surf: R('wave', (k) => k.surf()),
+
+    // Assinaturas do golpe máximo N3 (fase 2, ?assinatura=1): uma receita própria por Pokémon (`sig:<efeito>`)
+    'sig:hyperbeam': R('beam', (k) => {
+        k.absorbIn(0xffa040, 'shine', 10, 360);
+        k.later(360, () => {
+            k.roar(true, 0xffc070);
+            k.beam('hyper');
+        });
+        k.later(560, () => k.shockwave('target', { color: 0xffa040, rings: 4, big: true }));
+        return k.hit(600);
+    }),
+    'sig:bodyslam': R('melee', (k) => {
+        k.c.nudge('user', 0, -70, 360);
+        k.later(330, () => {
+            k.quake(true);
+            k.explosion({ at: 'target', size: 2.5, color: 0xd8c8a0, quiet: true });
+            k.icon('dizzy', 'target', { ms: 900 });
+        });
+        return k.hit(340);
+    }),
+    'sig:rest': R('aura', (k) => k.lieDown()),
+    'sig:fireblast': R('explosion', (k) => {
+        const t = k.projectile({ name: 'fireball', scale: 1.8, ms: 420 });
+        k.later(420, () => {
+            k.fireStar();
+            k.explosion({ at: 'target', size: 5, color: 0xff6b3d });
+        });
+        return t;
+    }),
+    'sig:blizzard': R('sky', (k) => {
+        k.mist(0xdff4ff);
+        k.sky('snow', true);
+        k.later(300, () => k.shockwave('target', { color: 0xbfe8ff, rings: 3, big: true }));
+        return k.hit(400);
+    }),
+    'sig:hydropump': R('stream', (k) => {
+        k.stream({ name: 'waterwisp', count: 12, scale: 0.8, grow: 1.6, gap: 25 });
+        k.later(120, () => k.stream({ name: 'waterwisp', count: 12, scale: 0.8, grow: 1.6, gap: 25, jitter: 14 }));
+        k.later(200, () => k.surf());
+        return k.hit(420);
+    }),
+    'sig:flamethrower': R('sky', (k) => {
+        k.c.nudge('user', 0, -110, 460);
+        k.later(230, () => k.stream({ name: 'fireball', count: 16, scale: 0.9, grow: 2 }));
+        k.later(420, () => k.sky('dive'));
+        return k.hit(640);
+    }),
+    'sig:thunderbolt': R('beam', (k) => {
+        k.sky('bolt', true);
+        k.later(180, () => k.beam('bolt'));
+        k.later(380, () => k.shockwave('target', { color: 0xffe14d, rings: 3 }));
+        return k.hit(400);
+    }),
+    'sig:dreameater': R('beam', (k) => {
+        k.vanish();
+        k.later(120, () => k.icon('zzz', 'target', { ms: 900 }));
+        k.later(260, () => k.beam('shadow'));
+        k.later(420, () => k.stream({ name: 'mistball', count: 10, scale: 0.4, reverse: true, tint: 0xff7ad9 }));
+        return k.hit(300);
+    }),
+    'sig:psychic': R('beam', (k) => {
+        k.eyes(0xff7ad9);
+        k.spiral(0xff7ad9);
+        k.later(250, () => k.shockwave('target', { color: 0xff7ad9, rings: 4, big: true }));
+        k.tintFlash('target', 0xff9ae0, 600, 250);
+        return k.hit(300);
+    }),
+    'sig:tsunami': R('wave', (k) => {
+        k.roar(true, 0x9be7ff);
+        k.later(150, () => {
+            k.surf();
+            k.sky('water', true);
+        });
+        k.s.cameras.main.shake(420, 0.008);
+        return k.hit(450);
+    }),
+    'sig:metronome': R('aura', (k) => {
+        k.icon('finger', 'user', { wag: true, ms: 900 });
+        k.later(450, () => k.aura('shine'));
+        return 0;
+    }),
+    'sig:transform': R('aura', (k) => {
+        k.mirror();
+        if (k.c.target) k.stream({ name: 'shine', count: 10, scale: 0.4, reverse: true, tint: 0xd18bff });
+        k.later(300, () => k.pulse(1.3, 500));
+        return 0;
+    }),
     waterfall: R('wave', (k) => k.sky('water', true)),
 };
 

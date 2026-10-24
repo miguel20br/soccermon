@@ -35,6 +35,9 @@ export class Cinematics {
     private dramaHolder: Phaser.GameObjects.Container | null = null;
     /** Até quando (tempo real) o texto de drama fica na tela. */
     private dramaTextUntil = 0;
+    /** O texto de drama na tela é de prioridade (`drama` `top`) e o texto que espera ele sair (só o último espera). */
+    private dramaTop = false;
+    private dramaWait: Phaser.Time.TimerEvent | null = null;
     private spotlightUntil = 0;
     private slowFrom = 0;
     private slowUntil = 0;
@@ -415,8 +418,14 @@ export class Cinematics {
         fromRight: boolean;
         reduce: boolean;
         depth: number;
+        /** Vence os textos de drama (assinatura): o que chegar enquanto a faixa está na tela espera ela sair. */
+        top?: boolean;
     }) {
         const scene = this.scene;
+        if (opts.top) {
+            this.dramaTop = true;
+            this.dramaTextUntil = Math.max(this.dramaTextUntil, scene.time.now + 1020);
+        }
         const s = Math.min(this.uiScale, 1.6);
         const W = (GAME_W * 1.6) / s;
         const h = 74;
@@ -526,9 +535,28 @@ export class Cinematics {
             sub?: string;
             /** Curto: sai mais cedo (a defesa que vira escanteio dá a vez pra faixa do escanteio). */
             short?: boolean;
+            /**
+             * Vence as outras (o golpe máximo com assinatura): enquanto ele está na tela, o texto novo espera ele sair
+             * (combo, gol…); se outro chega na espera, o mais velho some.
+             */
+            top?: boolean;
         },
     ) {
         const now = this.scene.time.now;
+        if (this.dramaTop && !opts.top && now < this.dramaTextUntil) {
+            this.dramaWait?.remove();
+            this.dramaWait = this.scene.time.delayedCall(this.dramaTextUntil - now, () => {
+                this.dramaWait = null;
+                this.drama(text, opts);
+            });
+            return;
+        }
+        // texto comum entra agora: o que esperava é mais velho e some (o que espera uma assinatura nova continua)
+        if (!opts.top) {
+            this.dramaWait?.remove();
+            this.dramaWait = null;
+        }
+        this.dramaTop = !!opts.top;
         this.slowMotion(now, 0.25, 1100);
         this.dramaUntil = now + 1500;
         this.banner?.destroy();

@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ENGINE_VERSION } from '../../engine/config';
+import { ENGINE_VERSION, ENGINE_VERSION_SIG } from '../../engine/config';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { EventBus } from '../../game/EventBus';
 import type { MatchSceneData } from '../../game/scenes/MatchScene';
 import { clubName, cupStageName, fmt, moveName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { PhaserGame } from '../../PhaserGame';
-import { type RunState, useGame } from '../../store/game-store';
+import { engineSig, type RunState, useGame } from '../../store/game-store';
 import { rivalColor } from '../../store/profile';
 import { ClipRecorder, clipExt, clipMime } from '../clip-recorder';
 import { cupGoal, goalMoment, type Moment, pickMoments } from '../moments';
@@ -279,7 +279,8 @@ export function CupGoalCard({ run, match }: { run: RunState; match: MatchResult 
     if (!stage || !opponent) return null;
     // a partida da tela já está na memória; as outras rodam de novo (mesma seed, time e ordens = mesma partida)
     const live = pick.stage === run.stage && !!match?.snapshots.length;
-    const replay = stage.replay?.engine === ENGINE_VERSION ? stage.replay : null;
+    const replay =
+        stage.replay?.engine === ENGINE_VERSION || stage.replay?.engine === ENGINE_VERSION_SIG ? stage.replay : null;
     const colors: [number, number] = [clubColor, rivalColor(clubColor, opponent.color ?? 0x3a7bd5)];
     const names: [string, string] = [run.teamName, clubName(opponent.name)];
     const tx = d.moments.cup.reason;
@@ -304,7 +305,14 @@ export function CupGoalCard({ run, match }: { run: RunState; match: MatchResult 
                 live && match
                     ? match
                     : replay
-                      ? await simulateMatch(replay.team, opponent, `${run.seed}-stage-${pick.stage}`, replay.orders)
+                      ? await simulateMatch(
+                            replay.team,
+                            opponent,
+                            `${run.seed}-stage-${pick.stage}`,
+                            replay.orders,
+                            undefined,
+                            engineSig(replay),
+                        )
                       : null;
             // conferência: se a partida não saiu igual (motor mudou sem subir a versão), não mostra lance errado
             const clip = result && result.score.join() === stage.score.join() ? goalMoment(result, pick.goalNo) : null;

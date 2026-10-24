@@ -155,3 +155,26 @@ export const SIGNATURE: Record<number, string> = {
     150: 'psychic',
     151: 'metronome',
 };
+
+/**
+ * Assinatura do golpe máximo N3 (fase 2 de docs/planos/golpe-maximo-por-tipo.md, `MatchConfig.maxSig`): o capitão de
+ * linha destas 12 espécies troca o efeito do tipo pelo dele (`AGENCY.maxSig`). Só a forma final (o Pikachu é a exceção
+ * de propósito: é o mais icônico); evoluir no meio da copa destrava.
+ */
+export const MAX_SIGNATURE: Record<number, string> = {
+    149: 'hyperbeam',
+    143: 'bodyslam',
+    59: 'fireblast',
+    144: 'blizzard',
+    9: 'hydropump',
+    6: 'flamethrower',
+    25: 'thunderbolt',
+    94: 'dreameater',
+    150: 'psychic',
+    130: 'tsunami',
+    151: 'metronome',
+    132: 'transform',
+};
+
+/** Capitão no gol (defesa máxima N3) com assinatura própria: o Snorlax deita na frente do gol. */
+export const MAX_SIGNATURE_GK: Record<number, string> = { 143: 'rest' };

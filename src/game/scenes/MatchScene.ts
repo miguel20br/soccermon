@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { maxCharge } from '../../engine/agency';
+import { AGENCY, fxTypeOf, maxCharge } from '../../engine/agency';
 import { computeAttributes, type Position } from '../../engine/attributes';
 import { FUTSAL_5 } from '../../engine/config';
 import { ABILITIES, MOVES, species } from '../../engine/data';
@@ -2271,11 +2271,13 @@ export class MatchScene extends Phaser.Scene {
                                 ? `${(dict().match.agency.maxFx[fxType]?.[0] ?? fxType).toUpperCase()}!`
                                 : `${dict().match.agency.max.toUpperCase()}!`,
                             {
-                                color: fxType ? (TYPE_COLOR[fxType] ?? '#ffd447') : '#ffd447',
+                                color: fxType ? (TYPE_COLOR[fxTypeOf(fxType)] ?? '#ffd447') : '#ffd447',
                                 stroke: '#1a1030',
                                 at: { x: cap.sprite.x, y: cap.sprite.y },
                                 // a nota do toque também na faixa grande (o texto pequeno fica atrás dela)
                                 sub: `${e.q === 2 ? `${dict().match.agency.maxPerfect} · ` : ''}${e.moveId ? (MOVES[e.moveId]?.name ?? cap.name) : cap.name}`,
+                                // a assinatura vence as outras faixas do lance (o combo do Pikachu cobria a dele)
+                                top: !!fxType && fxType in AGENCY.maxSig,
                             },
                         );
                     }
@@ -2288,23 +2290,43 @@ export class MatchScene extends Phaser.Scene {
                 const by = this.players[e.by];
                 if (!by) break;
                 const name = dict().match.agency.maxFx[e.fx] ?? [e.fx, '!'];
-                const color = TYPE_COLOR[e.fx] ?? '#ffd447';
-                if (e.step === 'shot') {
-                    // a animação do tipo (receita de um golpe do tipo, de quem chutou até o goleiro) e o estouro na bola
+                const type = fxTypeOf(e.fx);
+                const color = TYPE_COLOR[type] ?? '#ffd447';
+                // assinatura (fase 2, ?assinatura=1): receita própria `sig:<efeito>` em vez da receita do tipo
+                const sig = MAX_FX_RECIPE[e.fx] ? null : `sig:${e.fx}`;
+                const cast = (moveId: string) =>
                     castMove({
                         scene: this,
                         user: by.sprite,
-                        target: e.target !== null ? (this.players[e.target]?.sprite ?? null) : null,
-                        moveId: MAX_FX_RECIPE[e.fx] ?? 'megapunch',
-                        moveType: e.fx,
+                        target:
+                            e.target !== null && e.target !== e.by ? (this.players[e.target]?.sprite ?? null) : null,
+                        moveId,
+                        moveType: type,
                         kind: 'blast',
                         strong: true,
                         depth: FOCUS_DEPTH + 70,
                         baseScale: SPRITE_SCALE,
                     });
-                    typeBurst(this, e.fx, this.ball.x, this.ball.y, BALL_DEPTH + 1);
-                    if (e.fx === 'Ground') this.cameras.main.shake(260, 0.008);
-                    // o nome do efeito vai na faixa do especial (superMove), sem texto em cima de quem chutou
+                if (e.step === 'shot') {
+                    // a animação do tipo (receita de um golpe do tipo, de quem chutou até o goleiro) e o estouro na bola
+                    cast(sig ?? MAX_FX_RECIPE[e.fx]);
+                    if (e.fx !== 'rest') typeBurst(this, type, this.ball.x, this.ball.y, BALL_DEPTH + 1);
+                    if (e.fx === 'Ground' || e.fx === 'hyperbeam' || e.fx === 'bodyslam')
+                        this.cameras.main.shake(260, 0.008);
+                    // o nome do efeito vai na faixa do especial (superMove); o Snorlax no gol não tem o 'hit' do chute
+                    // máximo: a faixa grande dele sai aqui
+                    if (cinematic && e.fx === 'rest')
+                        this.cine.drama(`${name[0].toUpperCase()}!`, {
+                            color,
+                            stroke: '#1a1030',
+                            at: { x: by.sprite.x, y: by.sprite.y },
+                            sub: by.name,
+                            top: true,
+                        });
+                } else if (e.fx === 'metronome' || e.fx === 'transform') {
+                    // Mew sorteia, Ditto copia: o dedo balançando / o espelho antes do efeito que saiu
+                    cast(`sig:${e.fx}`);
+                    this.popText(e.by, name[1], color, 22);
                 } else if (e.target !== null && this.players[e.target]) {
                     // Normal e Terrestre derrubam (a reação diz DERRUBADO); Fogo e Elétrico já vêm no evento de status
                     if (!['Normal', 'Ground', 'Fire', 'Electric'].includes(e.fx))
@@ -2773,7 +2795,9 @@ export class MatchScene extends Phaser.Scene {
      */
     private superMove(cap: PlayerView, moveId: string | null, fxType: string | null, tick: number, q: number) {
         const move = moveId ? MOVES[moveId] : undefined;
-        const type = fxType ?? move?.type ?? species(cap.speciesId).types[0];
+        const type = fxType ? fxTypeOf(fxType) : (move?.type ?? species(cap.speciesId).types[0]);
+        // assinatura (Hiper Raio, Nevasca…): o nome dela na faixa no lugar do golpe, e a faixa vence as outras
+        const sig = !!fxType && fxType in AGENCY.maxSig;
         const color = hexToNumber(TYPE_COLOR[type] ?? '#ffd447');
         const reduce = !!this.md.reduceMotion;
         if (this.speed !== 8) {
@@ -2783,9 +2807,10 @@ export class MatchScene extends Phaser.Scene {
         const a = dict().match.agency;
         this.cine.superBanner({
             portrait: this.cutPortrait(`portrait-${cap.speciesId}`),
-            move: move?.name ?? a.max,
+            move: sig && fxType ? (a.maxFx[fxType]?.[0] ?? fxType) : (move?.name ?? a.max),
             // o golpe pode ser Normal (Hyper Beam) e o efeito, do tipo do capitão: "efeito Dragão"
-            typeLabel: a.maxFxBy.replace('{t}', typeName(type)),
+            typeLabel: (sig ? a.maxSigBy : a.maxFxBy).replace('{t}', typeName(type)),
+            top: sig,
             note:
                 q === 2
                     ? { text: a.maxPerfect, color: '#7dffb0' }

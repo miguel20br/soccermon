@@ -168,10 +168,26 @@ export const match = {
             Ghost: ['Bola fantasma', 'Atravessou!'],
             Dragon: ['Fúria do dragão', 'Fúria!'],
             Fairy: ['Brilho da lua', 'Encantado!'],
+            // assinaturas (fase 2, ?assinatura=1)
+            hyperbeam: ['Hiper Raio', 'Atravessou!'],
+            bodyslam: ['Pancada do Snorlax', 'Esmagou!'],
+            rest: ['Soneca no gol', 'Zzz!'],
+            fireblast: ['Estrela de fogo', 'Queimou!'],
+            blizzard: ['Nevasca', 'Congelou!'],
+            hydropump: ['Dois canhões', 'De novo!'],
+            flamethrower: ['Voo em chamas', 'Queimou!'],
+            thunderbolt: ['Raio em cadeia', 'Paralisou!'],
+            dreameater: ['Come-sonho', 'Dormiu!'],
+            psychic: ['Telecinese', 'Curvou!'],
+            tsunami: ['Tsunami', 'Fúria!'],
+            metronome: ['Metrônomo', 'Metrônomo!'],
+            transform: ['Transformação', 'Copiou!'],
         } as Record<string, [string, string]>,
         maxFxPreview: 'No N3: {x}',
         /** Faixa do especial N3: o golpe é do capitão, o efeito é do tipo dele. */
         maxFxBy: 'efeito {t}',
+        /** Faixa do especial N3 com assinatura: o nome dela vai grande, o tipo aqui. */
+        maxSigBy: 'assinatura · {t}',
         timeoutPanel: {
             title: 'Tempo técnico',
             sub: 'Seu time descansa um pouco. Troca e posições valem agora.',

@@ -1,7 +1,7 @@
 import { type LinkAsk, useCloud } from '../cloud/cloud';
 import type { SaveSummary } from '../cloud/reconcile-plan';
 import { maxCharge } from '../engine/agency';
-import { ENGINE_VERSION, FUTSAL_5 } from '../engine/config';
+import { ENGINE_VERSION, ENGINE_VERSION_SIG, FUTSAL_5 } from '../engine/config';
 import { clubLeader, cupRival } from '../engine/cup';
 import { isMatchKind } from '../engine/cup-map';
 import { species } from '../engine/data';
@@ -20,6 +20,7 @@ import { playerTeam, useGame } from '../store/game-store';
 import { EVENT_IDS, type EventId, rollEvent } from '../store/long-events';
 import { earnedKeys, medalViewOf } from '../store/news';
 import { EDITION_BIT, editionBits } from '../store/profile';
+import { MAX_ASSINATURA } from './max-beat';
 import { isTrailerScene, trailerPicks } from './trailer-scenes';
 
 /**
@@ -48,7 +49,8 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * perdendo no fim: ao começar, já está na Pressão final, a 3 s dos acréscimos do 2º tempo ("+N'" no placar).
  * `?demo=maximo` abre na escalação uma partida que, ao começar, está a 2 s do botão do golpe máximo aceso
  * (barra cheia, capitão Dragonite com a bola na zona); `&goleiro=1`: capitão Snorlax no gol (defesa máxima);
- * `&capitao=<id>`: outro pivô capitão (com `&nivel=3`: o efeito do tipo dele no N3, ex. 6 Fogo, 94 Fantasma);
+ * `&capitao=<id>`: outro pivô capitão (com `&nivel=3`: o efeito do tipo dele no N3, ex. 6 Fogo, 94 Fantasma; com
+ * `&assinatura=1`, a assinatura dos 12 de `MAX_SIGNATURE`, ex. 149 Hyper Beam; `&goleiro=1`: o Snorlax deita no gol).
  * `&k=N`: pula as N primeiras copas (outra jogada, se a primeira não acender).
  * `?demo=charanga` abre na escalação uma partida com a Charanga de Pewter em que, ao começar, o rival está a 4 s de
  * abrir o placar (o aviso "A CHARANGA ENTROU" vem logo depois do gol).
@@ -526,7 +528,9 @@ export function runDevDemo() {
                     at = s.tick;
             }
             if (at === null || at < 200) continue;
-            const saved = { stage: 0, orders: [], tick: at - 40, engine: ENGINE_VERSION };
+            // com &assinatura=1 a partida é do motor 13 (o save guarda; retomar usa o mesmo)
+            const engine = MAX_ASSINATURA ? ENGINE_VERSION_SIG : ENGINE_VERSION;
+            const saved = { stage: 0, orders: [], tick: at - 40, engine };
             useGame.setState({ run: { ...run, lockedTeam: team, live: saved }, screen: 'lineup' });
             console.info(`[demo] copa ${run.seed}: golpe máximo na hora no tick ${at}`);
             return;

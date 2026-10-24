@@ -30,7 +30,14 @@ const LEAD = 40 * SPEED;
 const RIVAL = process.env.RIVAL === '1';
 const SIG = process.env.SIG === '1';
 const CAPID = Number(process.env.CAPID) || 0;
-const CFG = process.env.NOTYPE === '1' ? withConfig({ maxType: false }) : SIG ? withConfig({ maxSig: true }) : process.env.MAXTIPO === '1' ? withConfig({ maxType: true }) : FUTSAL_5;
+const CFG =
+    process.env.NOTYPE === '1'
+        ? withConfig({ maxType: false })
+        : SIG
+          ? withConfig({ maxSig: true })
+          : process.env.MAXTIPO === '1'
+            ? withConfig({ maxType: true })
+            : FUTSAL_5;
 const CAPTYPE = process.env.CAPTYPE;
 const POLS = process.env.POLS?.split(',');
 /** Espécies (forma de linha) cujo efeito N3 é o tipo pedido, com o golpe que a carta traz. */
@@ -117,6 +124,8 @@ interface Out {
     goalsBy: number[];
     /** Defesas máximas que saíram (capitão goleiro). */
     maxSaves: number;
+    /** Efeitos do N3 que pegaram alguém (`maxFx` 'hit' do robô): a assinatura apareceu em campo. */
+    fxHits: number;
     flyGf: number;
     flyGa: number;
     timeouts: number;
@@ -224,6 +233,7 @@ function summarize(s: MatchState): Out {
         hitsBy: [0, 0, 0],
         goalsBy: [0, 0, 0],
         maxSaves: 0,
+        fxHits: ev.filter((e) => e.type === 'maxFx' && e.step === 'hit' && s.players[e.by]?.team === 0).length,
         flyGf: 0,
         flyGa: 0,
         timeouts: 0,
@@ -297,7 +307,7 @@ for (const [key, rows] of Object.entries(res)) {
     const [m, p] = key.split(':');
     const extra = [
         avg((r) => r.maxHits + r.maxStarts)
-            ? `máx sai ${avg((r) => r.maxHits).toFixed(2)}/jogo (N1/N2/N3 ${[0, 1, 2].map((k) => avg((r) => r.hitsBy[k]).toFixed(2)).join('/')}), gol ${avg((r) => r.maxGoals).toFixed(2)} (${[0, 1, 2].map((k) => avg((r) => r.goalsBy[k]).toFixed(2)).join('/')}), defesa ${avg((r) => r.maxSaves).toFixed(2)}`
+            ? `máx sai ${avg((r) => r.maxHits).toFixed(2)}/jogo (N1/N2/N3 ${[0, 1, 2].map((k) => avg((r) => r.hitsBy[k]).toFixed(2)).join('/')}), gol ${avg((r) => r.maxGoals).toFixed(2)} (${[0, 1, 2].map((k) => avg((r) => r.goalsBy[k]).toFixed(2)).join('/')}), defesa ${avg((r) => r.maxSaves).toFixed(2)}, efeito pegou ${avg((r) => r.fxHits).toFixed(2)}`
             : '',
         avg((r) => r.flyGf + r.flyGa)
             ? `goleiro-linha: ${avg((r) => r.flyGf).toFixed(2)} pró, ${avg((r) => r.flyGa).toFixed(2)} contra`

@@ -2,6 +2,13 @@ import type { MaxGrade } from '../engine/state';
 import { beatNow } from '../game/music';
 
 /**
+ * Golpe máximo por Pokémon (fase 2 de docs/planos/golpe-maximo-por-tipo.md, assinaturas), atrás de `?assinatura=1` até
+ * o Miguel jogar (ADR 0005). A tela manda a bandeira pro simulador (`MatchConfig.maxSig`); com ela o motor é o 13.
+ */
+const q = typeof location !== 'undefined' ? new URLSearchParams(location.search) : null;
+export const MAX_ASSINATURA = q?.get('assinatura') === '1';
+
+/**
  * Janelas da nota (ms até a batida mais perto): perfeito e bom. `offsetMs` acerta o fone/celular (positivo = o toque
  * chega depois do que se ouve). Sem música, o anel segue um pulso fixo de `pulseBpm`.
  */

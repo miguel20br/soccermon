@@ -28,6 +28,12 @@ export interface MatchConfig {
      * mundo no FUTSAL_5 desde a 0.9.16 (copa, Duelo e Liga). Sem = o N3 de força pura.
      */
     maxType?: boolean;
+    /**
+     * Fase 2 (assinaturas): o N3 do capitão das 12 espécies de `MAX_SIGNATURE` (signature-moves.ts) troca o efeito do
+     * tipo por um próprio. Atrás de `?assinatura=1` até o Miguel jogar (ADR 0005); com ela o motor é o 13
+     * (`ENGINE_VERSION_SIG`). Sem = o motor 12 bit a bit.
+     */
+    maxSig?: boolean;
 }
 
 /**
@@ -60,6 +66,8 @@ export const STOPPAGE = { min: 1, max: 3 };
  *     com `maxType`, o efeito do tipo do capitão no N3 (docs/planos/golpe-maximo-por-tipo.md).
  */
 export const ENGINE_VERSION = 12;
+/** 13 = 12 + as assinaturas do golpe máximo (`maxSig`, `?assinatura=1`): só com a bandeira (o Duelo compara esta). */
+export const ENGINE_VERSION_SIG = 13;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',
