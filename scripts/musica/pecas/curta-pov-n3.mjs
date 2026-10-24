@@ -1,4 +1,4 @@
-// Curta "POV: você segurou o golpe até o nível 3" (~18 s). A música conta a história com o gancho: cada gomo da
+// Curta "POV: você segurou o golpe até o nível 3" (~15 s). A música conta a história com o gancho: cada gomo da
 // barra que acende canta uma nota do SOC-CER-MON, e o "Esperar" deixa a frase sem terminar até o N3.
 //   c.0  N1 acende: "SOC" (Sol5) no sino com o GOMO (o som de assinatura: a barra enchendo, um "plin" que escorrega
 //        até a nota). Coração no Sol grave, o relógio (bloco de madeira) marcando a espera. Na linha 12 o dedo vai pro
@@ -9,15 +9,14 @@
 //   c.4  N3: "SOC-CER..." e a frase fica pendurada. Lá e Si (sensível) no baixo, riser, caixa em semicolcheias. Na
 //        linha 12 o toque: TUM, e silêncio (o hitstop do jogo).
 //   c.5  "MON!" (Dó6): a banda inteira, prato, metais, funk. O gol na linha 12: a rede e as palmas 808 (x.x).
-//   c.6  a festa: o SOC-CER-MON inteiro nos metais com o lead.
-//   c.7  tela final: o gancho um tom acima (Ré), o logo pisca nas 3 notas.
-//   c.8  acorde final de Ré com o sino, e o rabo.
+//   c.6  tela final logo depois do gol: o gancho um tom acima (Ré), o logo pisca e o capitão pula nas 3 notas.
+//   c.7  acorde final de Ré (o vídeo corta ~1 s depois, com fade curto: sem rabo de silêncio).
 // Dó maior → Ré maior no fim. 110 (N1) → 122 (N2) → 134 BPM (N3 em diante).
 import { bass, drum, GANCHO, hz, I, mel, padChord, Song, SR, stabs } from '../synth.mjs';
 import { rede, som } from './livre-ginasio.mjs';
 
 export const meta = { titulo: 'POV: segurou até o nível 3', tela: 'Curta das redes', lufs: -15 };
-export const BPM = [110, 110, 122, 122, 134, 134, 134, 134, 134];
+export const BPM = [110, 110, 122, 122, 134, 134, 134, 134];
 
 const TAU = Math.PI * 2;
 /** O gomo da barra acendendo: um "plin" que escorrega de uma oitava abaixo até a nota (`m`, midi) e soa como vidro. */
@@ -58,7 +57,7 @@ export default function curtaPov() {
     // o volume geral cresce até o toque; o "MON!" explode por cima (c.5)
     const S = new Song({
         bpm: 110,
-        bars: 9,
+        bars: 8,
         bpmAt: (b) => BPM[Math.min(b, BPM.length - 1)],
         tail: 2.5,
         masterAt: (s) => (s < 9.6 ? 0.58 + 0.24 * (s / 9.6) : 1),
@@ -163,40 +162,25 @@ export default function curtaPov() {
     drum(cr, 5, 1, 'X...........X...');
     rd.note(5 * 16 + 12, 0, 0, 1);
     drum(cl, 5, 1, GANCHO.palmas);
-    // c.6 a festa: o SOC-CER-MON inteiro
-    mel(metais, 6, [GANCHO.em({ oitava: -1 })]);
-    mel(lead, 6, [GANCHO.bar]);
-    mel(sino, 6, ['r:12 C6:4'], { vel: 0.7 });
-    padChord(cordas, 6, 'F', 8, { low: 53, n: 4, vel: 0.6 });
-    padChord(cordas, 6, 'G7', 8, { low: 53, n: 4, vel: 0.6, at: 8 });
-    bass(bx, 6, 'F', '0:2 8:1~ r:1 5:2 0:2 r:8', { oct: -1 });
-    bass(bx, 6, 'G', 'r:8 0:2 8:1~ r:1 5:2 7:2', { oct: -1 });
-    stabs(stb, 6, 'F', [2, 6], { low: 60, n: 3 });
-    stabs(stb, 6, 'G7', [10, 14], { low: 60, n: 3 });
+    // c.6 tela final: o gancho um tom acima (Ré); o logo pisca nas 3 notas
+    mel(sino, 6, [GANCHO.em({ tom: 2 })]);
+    mel(lead, 6, [GANCHO.em({ tom: 2 })], { vel: 0.8 });
+    mel(metais, 6, [GANCHO.em({ tom: 2, oitava: -1 })]);
+    padChord(cordas, 6, 'D', 16, { low: 57, n: 4, vel: 0.7 });
+    bass(bx, 6, 'D', '0:2 8:1~ r:1 5:2 0:1 r:1 0:2 8:1~ r:1 s:2 5:2', { oct: -1 });
+    stabs(stb, 6, 'D', [2, 6, 10, 14], { low: 62, n: 3 });
     drum(kick, 6, 1, 'X..x..x...x..x..');
-    drum(cx, 6, 1, '....x..o....x.xx');
+    drum(cx, 6, 1, '....x.......x...');
     drum(hh, 6, 1, 'x.xx.x.xx.xx.x.x', { vel: 0.7 });
+    drum(cr, 6, 1, 'X...............');
     drum(cl, 6, 1, GANCHO.palmas);
-
-    // c.7 tela final: o gancho um tom acima (Ré); o logo pisca nas 3 notas
-    mel(sino, 7, [GANCHO.em({ tom: 2 })]);
-    mel(lead, 7, [GANCHO.em({ tom: 2 })], { vel: 0.8 });
-    mel(metais, 7, [GANCHO.em({ tom: 2, oitava: -1 })]);
+    // c.7 o acorde final (o vídeo acaba ~1 s depois do ataque)
+    mel(metais, 7, ['D5+F#5+A5+D6:12 r:4']);
+    mel(sino, 7, ['D6:16']);
     padChord(cordas, 7, 'D', 16, { low: 57, n: 4, vel: 0.7 });
-    bass(bx, 7, 'D', '0:2 8:1~ r:1 5:2 0:1 r:1 0:2 8:1~ r:1 s:2 5:2', { oct: -1 });
-    stabs(stb, 7, 'D', [2, 6, 10, 14], { low: 62, n: 3 });
-    drum(kick, 7, 1, 'X..x..x...x..x..');
-    drum(cx, 7, 1, '....x.......x...');
-    drum(hh, 7, 1, 'x.xx.x.xx.xx.x.x', { vel: 0.7 });
+    mel(bx, 7, ['D2:12 r:4']);
+    drum(kick, 7, 1, 'X...............');
     drum(cr, 7, 1, 'X...............');
-    drum(cl, 7, 1, GANCHO.palmas);
-    // c.8 o acorde final
-    mel(metais, 8, ['D5+F#5+A5+D6:12 r:4']);
-    mel(sino, 8, ['D6:16']);
-    padChord(cordas, 8, 'D', 16, { low: 57, n: 4, vel: 0.7 });
-    mel(bx, 8, ['D2:12 r:4']);
-    drum(kick, 8, 1, 'X...............');
-    drum(cr, 8, 1, 'X...............');
-    drum(tp, 8, 1, 'X...............');
+    drum(tp, 7, 1, 'X...............');
     return S;
 }

@@ -19,7 +19,7 @@ const S = peca();
 const B = Array.from({ length: 10 }, (_, b) => S.timeOfBar(b));
 const row = (b) => (B[b + 1] - B[b]) / 16;
 const T = (b, r = 0) => B[b] + r * row(b);
-const FIM = Number(process.env.FIM ?? (B[9] + 0.6).toFixed(2));
+const FIM = Number(process.env.FIM ?? (B[7] + 1).toFixed(2));
 const CAP = Number(process.env.CAPITAO ?? 6);
 const TMP = `${process.env.HOME}/.cache/soccermon-tmp/curta-pov/montar`;
 // PULA_QUADROS=1: reaproveita os quadros da última montagem (só refaz áudio e vídeo)
@@ -57,21 +57,18 @@ function mapa(anc, t) {
 // o gol na l.12 (as palmas), o GOOOOL do jogo um pouco mais lento e congela (CONGELA) até a tela final.
 const CORTE_DE = Number(process.env.CORTE_DE ?? 164);
 const CORTE_PARA = Number(process.env.CORTE_PARA ?? 184);
-const CONGELA = Number(process.env.CONGELA ?? 212);
 const T_CORTE = T(5, 8);
-const T_CONGELA = GOL + (CONGELA - s3.gol) / FPS / 0.8;
 function plano(t) {
     if (t < B[2]) return { s: s1, f: mapa([[s1.aceso, L[0]], [s1.tocou, P[0]]], t), i: t < B[1] ? 0 : -1 };
     if (t < B[3]) return { s: s2, f: mapa([[s2.aceso, L[1]], [s2.tocou, P[1]]], t), i: 1 };
     if (t < B[4]) return { s: s3, f: s3.aceso + (t - B[4]) * FPS, i: -1 };
     if (t < T_CORTE) return { s: s3, f: mapa([[s3.aceso, L[2]], [s3.tocou, P[2]], [sm, B[5]], [CORTE_DE, T_CORTE]], t), i: 2 };
     if (t < GOL) return { s: s3, f: CORTE_PARA + ((t - T_CORTE) / (GOL - T_CORTE)) * (s3.gol - CORTE_PARA), i: 2 };
-    if (t < T_CONGELA) return { s: s3, f: s3.gol + (t - GOL) * FPS * 0.8, i: 2 };
-    // congelado no GOOOOL, a câmera chegando perto do letreiro
-    const u = ease((t - T_CONGELA) / (B[7] - T_CONGELA));
-    const sw = 470 - 110 * u;
+    // o GOOOOL do jogo no ritmo normal, a câmera chegando perto, até o corte pra tela final no 1 do c.6
+    const u = ease((t - GOL) / (B[6] - GOL));
+    const sw = 470 - 90 * u;
     const sh = sw * ASP;
-    return { s: s3, f: CONGELA, i: 2, crop: { sx: 484 - sw / 2, sy: Math.max(0, 250 - 50 * u - sh / 2), sw, sh } };
+    return { s: s3, f: s3.gol + (t - GOL) * FPS, i: 2, crop: { sx: 484 - sw / 2, sy: Math.max(0, 250 - 40 * u - sh / 2), sw, sh } };
 }
 
 // câmera: centro e largura do recorte (px do canvas 968x528) por quadro de cada trecho, suavizado. O recorte tem a
@@ -135,7 +132,7 @@ const folha = JSON.parse(readFileSync(`public/assets/field/${CAP}.json`, 'utf8')
 const pmd = JSON.parse(readFileSync('src/data/pmd-anims.json', 'utf8'))[CAP].anims;
 const pes = JSON.parse(readFileSync('src/data/sprite-feet.json', 'utf8'))[CAP] ?? {};
 function sprite(t) {
-    const hops = [T(7, 0), T(7, 3), T(7, 6), T(8, 0)];
+    const hops = [T(6, 0), T(6, 3), T(6, 6), T(7, 0)];
     const h = hops.findLast((x) => t >= x);
     const durHop = pmd.Hop.durations.reduce((a, b) => a + b, 0) / 60;
     let nome = 'Idle';
@@ -147,30 +144,32 @@ function sprite(t) {
         while (k < pmd.Hop.durations.length - 1 && u >= pmd.Hop.durations[k]) u -= pmd.Hop.durations[k++];
     }
     const fr = folha[`${nome}/0/${k}`].frame;
-    return { rect: [fr.x, fr.y, fr.w, fr.h], pe: pes[nome] ?? 0.75 };
+    const pulo = h !== undefined && t - h < 0.32 ? Math.sin((Math.PI * (t - h)) / 0.32) * 70 : 0;
+    return { rect: [fr.x, fr.y, fr.w, fr.h], pe: pes[nome] ?? 0.75, pulo };
 }
 
 function estado(t) {
-    const e = { titulo: t < B[7] ? 1 : 0 };
+    const e = { titulo: t < B[6] ? 1 : 0 };
     // a barra: acende no 1 do compasso; enche nas moedas (c.1: 4 semínimas; c.3: 8 colcheias); o N3 esvazia no MON
     const moedas = (b, rows) => rows.filter((r) => t >= T(b, r)).length / rows.length;
     e.gomos = t < L[0] ? 0 : t < L[1] ? 1 : t < L[2] ? 2 : t < B[5] ? 3 : 0;
     e.enche = t >= B[1] && t < B[2] ? 0.92 * moedas(1, [2, 6, 10, 14]) : t >= B[3] && t < B[4] ? 0.92 * moedas(3, [0, 2, 4, 6, 8, 10, 12, 14]) : 0;
-    e.gomoBrilho = [0, 1, 2].map((k) => Math.max(0.9 * decai(t, L[k], 0.45), t >= B[5] && t < B[7] ? decai(t, B[5], 0.5) : 0));
-    if (t >= B[7]) {
+    e.gomoBrilho = [0, 1, 2].map((k) => Math.max(0.9 * decai(t, L[k], 0.45), t >= B[5] && t < B[6] ? decai(t, B[5], 0.5) : 0));
+    if (t >= B[6]) {
         // tela final
-        const u = t - B[7];
-        const pisca = [T(7, 0), T(7, 3), T(7, 6)].map((x) => decai(t, x, 0.22));
+        const u = t - B[6];
+        const pisca = [T(6, 0), T(6, 3), T(6, 6), T(7, 0)].map((x) => decai(t, x, 0.22));
         e.fim = {
             entra: ease(u / 0.35),
             logo: 1 + 0.07 * Math.max(...pisca),
             elastico: u < 0 ? 0 : 1 - Math.exp(-u / 0.09) * Math.cos(u * 26),
             sprite: sprite(t),
-            site: ease((t - T(7, 8)) / 0.3),
+            site: ease((t - T(6, 8)) / 0.2),
+            giro: u * 0.35,
         };
         e.gomos = 3;
         e.gomoBrilho = pisca;
-        e.flashTela = 0.8 * decai(t, B[7], 0.2);
+        e.flashTela = 0.8 * decai(t, B[6], 0.2);
         return e;
     }
     const { s, f, i, crop } = plano(t);
@@ -271,7 +270,7 @@ const lufs = (f) => {
     const o = spawnSync('ffmpeg', ['-hide_banner', '-i', f, '-af', 'ebur128=peak=true', '-f', 'null', '-']).stderr.toString();
     return Number(/I:\s+(-?[\d.]+) LUFS/.exec(o.slice(o.lastIndexOf('Summary')))?.[1]);
 };
-ff('-i', `${MUS}/curta-pov-n3.wav`, '-af', `atrim=0:${FIM},afade=t=out:st=${FIM - 0.6}:d=0.6`, '-ar', '48000', `${TMP}/a.wav`);
+ff('-i', `${MUS}/curta-pov-n3.wav`, '-af', `atrim=0:${FIM},afade=t=out:st=${FIM - 0.45}:d=0.45`, '-ar', '48000', `${TMP}/a.wav`);
 for (let k = 0; k < 3; k++) {
     const g = -14 - lufs(`${TMP}/a.wav`);
     ff('-i', `${TMP}/a.wav`, '-af', `volume=${g}dB,alimiter=limit=0.76:level=false:attack=1:release=80`, `${TMP}/b.wav`);

@@ -108,6 +108,7 @@ async function telaFinal(f) {
   g.save();
   g.globalAlpha = 0.07 * f.entra;
   g.translate(540, 760);
+  g.rotate(f.giro);
   for (let k = 0; k < 20; k++) {
     g.rotate((Math.PI * 2) / 20);
     g.beginPath();
@@ -134,7 +135,7 @@ async function telaFinal(f) {
   g.ellipse(540, 1240, 150, 34, 0, 0, Math.PI * 2);
   g.fillStyle = 'rgba(0,0,0,0.35)';
   g.fill();
-  g.drawImage(sp, sx, sy, sw, sh, 540 - (sw * k) / 2, 1250 - sh * f.sprite.pe * k, sw * k, sh * k);
+  g.drawImage(sp, sx, sy, sw, sh, 540 - (sw * k) / 2, 1250 - sh * f.sprite.pe * k - f.sprite.pulo, sw * k, sh * k);
   g.restore();
   if (f.site > 0) {
     g.globalAlpha = f.site;
