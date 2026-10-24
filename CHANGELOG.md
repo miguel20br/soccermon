@@ -30,6 +30,7 @@
 ### Celular e consertos
 - Celular em pé: quando dois nomes se encostam na quadra, o nome encurta pra 5 letras antes de sumir
 - Save que carregava antes da tela: o balão do tutorial sumia e a Home de quem voltou ficava sem os modos
+- Celular em pé: depois de escolher a ordem dos pênaltis, a quadra volta pra tela (a disputa ficava fora da vista)
 
 ## 0.9.17 · Nível 3 de especial e quem leva o golpe (2026-10-23)
 

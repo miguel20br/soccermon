@@ -49,6 +49,7 @@ export const PATCH_NOTES: PatchNotes[] = [
                 lines: [
                     'Celular em pé: quando dois nomes se encostam na quadra, o nome encurta pra 5 letras antes de sumir',
                     'Save que carregava antes da tela: o balão do tutorial sumia e a Home de quem voltou ficava sem os modos',
+                    'Celular em pé: depois de escolher a ordem dos pênaltis, a quadra volta pra tela (a disputa ficava fora da vista)',
                 ],
             },
         ],
@@ -1628,6 +1629,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 lines: [
                     'Phone in portrait: when two names touch on the court, the name shortens to 5 letters before hiding',
                     'Save loading before the screen: the tutorial tip disappeared and returning players saw a Home without the modes',
+                    'Phone in portrait: after picking the penalty order, the court scrolls back into view (the shootout used to happen off screen)',
                 ],
             },
         ],

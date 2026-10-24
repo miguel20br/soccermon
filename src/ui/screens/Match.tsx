@@ -624,6 +624,8 @@ export function Match({ liga = false }: { liga?: boolean }) {
     };
     const resumeFromPens = () => {
         setPenPick(null);
+        // no celular, o "Manter ordem" fica embaixo da dobra: a quadra volta pra tela antes da disputa
+        scoreboardRef.current?.scrollIntoView({ block: 'nearest', behavior: reduceMotionOn() ? 'auto' : 'smooth' });
         EventBus.emit('match:resume');
     };
 
