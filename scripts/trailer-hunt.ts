@@ -6,7 +6,7 @@
  *   npx tsx scripts/trailer-hunt.ts --cena golpe --n 300
  */
 import { FUTSAL_5 } from '../src/engine/config';
-import { buildCupOpponents } from '../src/engine/cup';
+import { buildCupOpponents, cupRival } from '../src/engine/cup';
 import { species } from '../src/engine/data';
 import { runMatch } from '../src/engine/runners/batch-runner';
 import type { MatchEvent, TeamSetup } from '../src/engine/state';
@@ -52,7 +52,8 @@ function nameOf(home: TeamSetup, away: TeamSetup, uid: string) {
 
 function rate(scene: TrailerScene, seed: string): Hit | null {
     const home = trailerTeam(scene, seed, 'Pallet FC', PLAYER_COLOR);
-    const away = buildCupOpponents(seed)[0];
+    // como a partida de verdade (Lineup.tsx/Match.tsx): o líder do clube na beira da quadra muda a partida
+    const away = cupRival(buildCupOpponents(seed)[0], true);
     const m = runMatch(FUTSAL_5, home, away, `${seed}-stage-0`, { snapshots: false });
     const ev = m.events;
     const who = (idx: number) => nameOf(home, away, m.roster[idx].uid);
@@ -84,6 +85,40 @@ function rate(scene: TrailerScene, seed: string): Hit | null {
             score += 600;
             lances.push(`${sec(g.tick)} gol do evoluído`);
         }
+    }
+    if (scene === 'rival') {
+        // evolução do rival (a mais icônica vale mais) com o seu time na frente; depois, gol do evoluído e a virada
+        const ICONE: Record<number, number> = {
+            5: 600,
+            64: 500,
+            93: 500,
+            61: 300,
+            75: 300,
+            67: 300,
+            2: 250,
+            8: 250,
+            148: 400,
+            17: 200,
+            33: 200,
+            30: 200,
+        };
+        const evo = ev.find((e) => e.type === 'evolve' && e.team === 1);
+        if (!evo || evo.type !== 'evolve') return null;
+        score += ICONE[evo.from] ?? 0;
+        const placarAte = (t: number) =>
+            [0, 1].map((k) => ev.filter((e) => e.type === 'goal' && e.team === k && e.tick <= t).length);
+        const [a, b] = placarAte(evo.tick);
+        if (a - b < 1) return null;
+        score += a - b >= 2 ? 400 : 150;
+        lances.push(
+            `${sec(evo.tick)} ${species(evo.from).name} do rival evolui pra ${species(evo.into).name} (${a}x${b})`,
+        );
+        const golsDele = ev.filter((e) => e.type === 'goal' && e.team === 1 && e.tick > evo.tick && e.by === evo.by);
+        if (!golsDele.length) return null;
+        score += 600 - (golsDele[0].tick - evo.tick) / 20 + (golsDele.length - 1) * 200;
+        for (const g of golsDele)
+            lances.push(`${sec(g.tick)} gol do ${species(evo.into).name} (${placarAte(g.tick).join('x')})`);
+        if (m.score[1] >= m.score[0]) score += 300;
     }
     if (scene === 'raio') {
         // só gol do Pikachu com golpe elétrico

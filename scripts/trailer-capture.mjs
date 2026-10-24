@@ -32,6 +32,8 @@ const semNomes = !args.includes('--nomes');
 // sem os textos do jogo (letreiros de golpe, GOOOOL, caixa de narração): o zoom do trailer cortaria; o texto do
 // trailer vem da composição. --textos mantém
 const semTextos = !args.includes('--textos');
+// --placar <arquivo.png>: print do placar de transmissão (.bc-head) no começo do trecho, com o placar da própria partida
+const placar = arg('--placar', null);
 if (!cena || !seed) throw new Error('use --cena e --seed (veja scripts/trailer-hunt.ts)');
 
 const TICK_RATE = 20; // FUTSAL_5.tickRate
@@ -44,6 +46,8 @@ const browser = await puppeteer.launch({
     args: [
         '--no-sandbox',
         '--use-angle=swiftshader',
+        '--use-gl=angle',
+        '--ignore-gpu-blocklist',
         '--enable-unsafe-swiftshader',
         '--autoplay-policy=no-user-gesture-required',
     ],
@@ -118,6 +122,8 @@ await page.evaluate((semTextos) => {
             return c;
         };
         sc.battleBox?.container?.setVisible(false);
+        // a faixa da torcida ("Vai, Pallet FC!", court.ts drawBanner: profundidade -999/-998) nasce antes deste filtro
+        for (const o of sc.children.list) if (o.depth === -999 || o.depth === -998) o.willRender = () => false;
     }
     // a câmera do jogo vai até o gol no GOOOOL e passa da borda da quadra (aparece o fundo de fora): prende ela
     // dentro do mundo do jogo; ela segue indo atrás do lance, só que para na borda
@@ -218,7 +224,7 @@ await page.evaluate((semTextos) => {
 }, semTextos);
 await click('^Começar');
 // grab: lê o canvas na mesma chamada do step (WebGL sem preserveDrawingBuffer: lido depois, às vezes sai preto)
-const step = (dt, grab = false) =>
+const step = (dt, grab = false, gifs = modo === 'pagina') =>
     page.evaluate(
         async (d, gif, semNomes, grab) => {
             window.__t += d;
@@ -230,7 +236,7 @@ const step = (dt, grab = false) =>
             return grab ? document.querySelector('.pitch-wrap canvas').toDataURL('image/png') : null;
         },
         dt,
-        modo === 'pagina',
+        gifs,
         semNomes,
         grab,
     );
@@ -238,8 +244,22 @@ const step = (dt, grab = false) =>
 // 1) avança rápido até o começo do lance (8x, sem gravar)
 await page.evaluate(() => window.__soccermonBus.emit('match:set-speed', 8));
 const t0 = Date.now();
-while ((await tick()) < from * TICK_RATE) await step(DT);
+// o vestiário do intervalo (0.8.8) espera o "Começar o 2º tempo": sem o clique a captura parava ali pra sempre
+const segueIntervalo = () => page.evaluate(() => document.querySelector('.ht-panel .btn.primary')?.click());
+for (let i = 0; (await tick()) < from * TICK_RATE; i++) {
+    // sem trocar os quadros dos GIFs no avanço rápido (no modo pagina isso deixava o avanço lentíssimo)
+    await step(DT, false, false);
+    if (i % 30 === 0) await segueIntervalo();
+}
 console.log(`no ponto: tick ${(await tick()).toFixed(0)} (${((Date.now() - t0) / 1000).toFixed(0)} s pra chegar)`);
+
+if (placar) {
+    await page.addStyleTag({ content: '.bc-head{display:flex!important}' });
+    await wait(400);
+    await (await page.$('.bc-head'))?.screenshot({ path: placar });
+    await page.addStyleTag({ content: '.bc-head{display:none!important}' });
+    console.log(`placar → ${placar}`);
+}
 
 // 2) grava quadro a quadro na velocidade pedida, direto do canvas do Phaser (resolução nativa do jogo; o print da
 // página trava com o tempo parado). As faixas em HTML (gol, evolução) ficam de fora: no trailer o texto é da composição.
@@ -249,6 +269,8 @@ const box = await page.evaluate(() => {
     const r = document.querySelector('.pitch-wrap').getBoundingClientRect();
     return { x: r.x, y: r.y, width: r.width, height: r.height, scale: 1 };
 });
+// --escala N: o print da página (modo pagina) sai N vezes maior (a tela de evolução nítida pra recortar no 9:16)
+box.scale = Number(arg('--escala', 1));
 let n = 0;
 const t1 = Date.now();
 // por quadro: tick da partida e bola na imagem (0..1), pra emendar câmera lenta e mirar o zoom (trailer-uau.mjs)

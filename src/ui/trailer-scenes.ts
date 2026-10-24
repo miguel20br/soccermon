@@ -20,6 +20,8 @@ export const TRAILER_SCENES = {
     raio: { lineup: [143, 68, 135, 6, 25], bench: [] },
     // pênaltis decididos na última cobrança
     penaltis: { lineup: [143, 68, 151, 142, 150], bench: [149, 25] },
+    // curta "O rival evoluiu": seu time abre o placar, o Pokémon do rival evolui no meio da partida e vira o jogo
+    rival: { lineup: [74, 7, 1, 133, 25], bench: [] },
 } as const satisfies Record<string, { lineup: readonly number[]; bench: readonly number[] }>;
 
 export type TrailerScene = keyof typeof TRAILER_SCENES;

@@ -86,3 +86,7 @@ supabase/functions/liga/engine.js
 /public/assets/portraits/1[6-9][0-9]-*.png
 /public/assets/portraits/2[0-4][0-9]-*.png
 /public/assets/portraits/25[01]-*.png
+
+# curta "O rival evoluiu": mídia gerada (link pra ~/.cache) e estado local do HyperFrames
+/trailer/rival/midia
+/trailer/rival/.hyperframes
