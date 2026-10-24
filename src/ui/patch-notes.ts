@@ -9,6 +9,33 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.18',
+        date: '2026-10-24',
+        title: 'Golpe máximo com assinatura',
+        sections: [
+            {
+                title: 'Assinaturas do nível 3',
+                lines: [
+                    '12 Pokémon trocam o efeito do tipo no golpe máximo nível 3 por um golpe só deles, com animação e faixa próprias',
+                    'Dragonite, Hiper Raio: fura todos os bloqueios. Alcance do goleiro rival x0,8 ⇒ x0,85 (Fúria do dragão ⇒ raio)',
+                    'Snorlax, Pancada: se joga no chute e quem estiver a até 4 m dele cai 1 s e fica paralisado',
+                    'Snorlax no gol, Soneca: na defesa máxima nível 3 deita na frente do gol. Alcance x1,4 ⇒ x1,8',
+                    'Arcanine, Estrela de fogo: estoura na frente do gol e quem estiver a até 4 m dela cai 0,6 s e se queima',
+                    'Articuno, Nevasca: a área rival inteira congela 1,2 s (antes, só quem estava na linha do chute, 1 s)',
+                    'Blastoise, Dois canhões: o 1º não entrou? A bola volta pra ele e ele emenda de qualquer distância',
+                    'Charizard, Voo em chamas: voa até 2 m rumo ao gol, chuta por cima e queima o goleiro que defender',
+                    'Pikachu, Raio em cadeia: o raio salta do goleiro pros 2 rivais mais perto e paralisa 1,5 s',
+                    'Gengar, Come-sonho: o goleiro cochila, alcance x0,8 ⇒ x0,75, até goleiro Normal (antes ele não caía)',
+                    'Mewtwo, Telecinese: a bola curva até ~11° pro canto longe do goleiro (antes ~8°) e o goleiro fica com alcance x0,9',
+                    'Gyarados, Tsunami: empurra todos os rivais 3 m (antes só a linha do chute, 2,5 m) e fica em fúria por 6 s',
+                    'Mew, Metrônomo: sorteia um dos 16 efeitos de tipo a cada golpe máximo',
+                    'Ditto, Transformação: copia o efeito do capitão rival, até a assinatura dele',
+                    'Evoluiu pra forma final no meio da copa? A assinatura vem junto',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.17',
         date: '2026-10-23',
         title: 'Nível 3 de especial e quem leva o golpe',
@@ -1542,6 +1569,33 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.18',
+        date: '2026-10-24',
+        title: 'Signature max moves',
+        sections: [
+            {
+                title: 'Level 3 signatures',
+                lines: [
+                    '12 Pokémon swap the type effect of their level 3 max move for one of their own, with its own animation and banner',
+                    "Dragonite, Hyper Beam: pierces every block. Rival keeper's reach x0.8 ⇒ x0.85 (Dragon Fury ⇒ beam)",
+                    'Snorlax, Body Slam: throws itself into the shot and anyone within 4 m falls for 1 s and is paralyzed',
+                    'Snorlax in goal, Goal Nap: on a level 3 max save it lies down in front of the goal. Reach x1.4 ⇒ x1.8',
+                    'Arcanine, Fire Blast: a fire star bursts in front of the goal and anyone within 4 m of it falls for 0.6 s and is burned',
+                    'Articuno, Blizzard: the whole rival box freezes for 1.2 s (before, only players on the shot line, 1 s)',
+                    "Blastoise, Hydro Pump: the first one didn't go in? The ball comes back and it fires again from any distance",
+                    'Charizard, Flamethrower: flies up to 2 m toward goal, shoots high and burns the keeper who saves it',
+                    'Pikachu, Thunderbolt: the bolt jumps from the keeper to the 2 closest rivals and paralyzes for 1.5 s',
+                    'Gengar, Dream Eater: the keeper dozes off, reach x0.8 ⇒ x0.75, even a Normal keeper (it used to be immune)',
+                    'Mewtwo, Psychic: the ball curves up to ~11° to the far corner (before ~8°) and the keeper gets reach x0.9',
+                    'Gyarados, Tsunami: pushes every rival 3 m (before only the shot line, 2.5 m) and goes into a 6 s rage',
+                    'Mew, Metronome: rolls one of the 16 type effects on every max move',
+                    "Ditto, Transform: copies the rival captain's effect, signature included",
+                    'Evolved into the final form mid-cup? The signature comes along',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.17',
         date: '2026-10-23',

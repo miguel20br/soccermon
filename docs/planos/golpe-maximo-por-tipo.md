@@ -367,21 +367,23 @@ Título: **Golpe máximo com a cara do capitão**
 
 ## Fase 2 no código (23/10): as 12 assinaturas
 
-Decisão 9 (versão própria). Branch `assinaturas`, **atrás de `?assinatura=1`** até o Miguel jogar (ADR 0005). Com a
-bandeira o motor é o **13** (`ENGINE_VERSION_SIG`; o Duelo compara essa e recusa quem está sem); sem ela o motor 12 fica
-igual bit a bit (as 11 partidas antigas do golden master não mudaram; entraram 3 novas com as assinaturas). A Liga roda
-sem a bandeira.
+Decisão 9 (versão própria). Feita na branch `assinaturas` atrás de `?assinatura=1`; o Miguel jogou e aprovou, e na
+`int-0918` (23/10) a bandeira saiu: **as 12 valem pra todos, motor 13** (`ENGINE_VERSION`), junto com o efeito do tipo
+(`MatchConfig.maxType`; `maxType: false` desliga os dois). Copa, Duelo e Liga no 13 (a `liga` precisa ser republicada
+no lançamento). Golden master: 2 hashes do N3 com efeito do tipo mudaram (o capitão do robô/Lance pode ser um dos 12).
 
 - **Peças:** cada efeito de tipo da fase 1 virou um conjunto de peças (`MAX_FX_PIECES` em `agency.ts`: `pierceAll`,
   `wave`, `burn`, `volley`…) e cada assinatura é outro conjunto (`AGENCY.maxSig`), com 7 peças novas (estrela de fogo,
   nevasca, voo, raio em cadeia, tsunami, fúria na hora e o 2º canhão). Espécie ⇒ assinatura em `MAX_SIGNATURE`
   (`signature-moves.ts`). Números novos em `AGENCY.maxSigFx`.
 - **Tela:** receita própria por assinatura (`sig:<efeito>` em `move-fx.ts`), faixa grande com o nome, ícone do tipo da
-  assinatura no botão. Demo: `?demo=maximo&nivel=3&capitao=<id>&assinatura=1` (`&goleiro=1`: Snorlax no gol).
-- **Testes:** `src/engine/max-sig.test.ts` (um por assinatura, bandeira desligada, determinismo).
-- **Robô:** `SIG=1 CAPID=<id> POLS=n3 npx tsx scripts/balance/coach.ts 200 out.json 4 max` (`CAP=gk` pro Snorlax no gol).
-- **Save no meio da partida:** o `live.engine` guarda o motor de quando a partida começou (13 com a bandeira); retomar,
-  resimular uma ordem e rever um gol em Momentos usam o salvo (`engineSig`), com ou sem `?assinatura=1` na URL de agora.
+  assinatura no botão. No N3 o nome da assinatura vai grande na faixa com o retrato (0.9.17), com a etiqueta
+"assinatura · <tipo>", e a faixa vence os textos de drama enquanto está na tela. Demo:
+`?demo=maximo&nivel=3&capitao=<id>` (`&goleiro=1`: Snorlax no gol).
+- **Testes:** `src/engine/max-sig.test.ts` (um por assinatura, comparando com o N3 de força pura ou outro capitão do
+  mesmo tipo, determinismo).
+- **Robô:** `CAPID=<id> POLS=n3 npx tsx scripts/balance/coach.ts 200 out.json 4 max` (`CAP=gk` pro Snorlax no gol;
+  `NOTYPE=1` tira o efeito do tipo e a assinatura).
 
 ### As 12 (e o Snorlax no gol)
 
@@ -441,17 +443,48 @@ O que dá pra ler:
   menos gol de N3 que o tipo e ganham igual: ruído de 0,5 N3 por jogo.
 - Ressalva: n=200 (± 1 a 3 pp). Pra cravar o Mew e o Mewtwo, 384 partidas. O robô não usa MT nem joga no Duelo.
 
-Prints (headless, `?demo=maximo&nivel=3&capitao=149|6|25|130&assinatura=1`, 390 e 1440): faixa "HIPER RAIO!" com o
+Prints (headless, na branch, `?demo=maximo&nivel=3&capitao=149|6|25|130&assinatura=1`, 390 e 1440): faixa "HIPER RAIO!" com o
 raio laranja, "VOO EM CHAMAS!" com o Charizard no alto, o raio em cadeia do Pikachu e "TSUNAMI!". Faixa da assinatura
 vence as outras (`Cinematics.drama` `top`): o combo "Eu escolho você" que cobria o "RAIO EM CADEIA!" agora espera ela
-sair, e se outro texto chega na espera (o gol), o mais velho some. Ícone do tipo aceso no botão no N3. Pra ver de verdade: jogar na
-prévia com `?assinatura=1`.
+sair, e se outro texto chega na espera (o gol), o mais velho some. Ícone do tipo aceso no botão no N3.
+
+### Medida final (motor 13, sem bandeira, n=400)
+
+24/10, `int-0918`: mesmo método de [n3-por-capitao.md](n3-por-capitao.md) (`CAPID=<id> POLS=n3 coach.ts 400 … 4 max`,
+pareado, ± = 1 desvio), pela fila pesada. "Só o tipo" = a coluna da 0.9.16 nessa doc (motor 12, n=400). Os capitães
+sem assinatura saem iguais bit a bit (Tauros conferido: 49,0% ⇒ 49,3%, +0,3, igual à 0.9.16), então Zapdos, Moltres,
+Dragonair, Rapidash e Machamp ficam com o número de lá.
+
+| Capitão | Assinatura | Nunca | N3 | Δ pp (assinatura) | ± | Δ pp (só o tipo, 0.9.16) | N3/jogo | Gol do N3/jogo |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| Mewtwo | Telecinese | 59,0% | 65,8% | **+6,8** | 1,6 | +5,8 | 0,67 | 0,56 |
+| Mew | Metrônomo | 57,0% | 62,3% | **+5,3** | 1,9 | +4,5 | 0,63 | 0,43 |
+| Gyarados | Tsunami | 59,8% | 64,3% | +4,5 | 1,4 | +3,5 | 0,41 | 0,34 |
+| Dragonite | Hiper Raio | 51,7% | 55,0% | +3,3 | 1,4 | +2,8 | 0,43 | 0,33 |
+| Ditto | Transformação | 53,8% | 56,0% | +2,3 | 1,4 | +1,8 | 0,61 | 0,42 |
+| Gengar | Come-sonho | 49,3% | 51,2% | +2,0 | 1,6 | +1,5 | 0,50 | 0,30 |
+| Blastoise | Dois canhões | 31,3% | 33,3% | +2,0 | 0,9 | +1,8 | 0,23 | 0,17 |
+| Charizard | Voo em chamas | 58,0% | 59,3% | +1,3 | 1,7 | +1,8 | 0,52 | 0,18 |
+| Pikachu | Raio em cadeia | 42,0% | 43,0% | +1,0 | 1,0 | +2,3 | 0,27 | 0,14 |
+| Articuno | Nevasca | 55,5% | 56,5% | +1,0 | 1,4 | +1,3 | 0,49 | 0,22 |
+| Snorlax (linha) | Pancada | 24,8% | 25,8% | +1,0 | 0,9 | 0,0 | 0,27 | 0,20 |
+| Snorlax (gol, `CAP=gk`) | Soneca no gol | 52,0% | 52,8% | +0,8 | 1,1 | — | 0,31 defesas | — |
+| Arcanine | Estrela de fogo | 53,8% | 54,5% | +0,8 | 1,2 | 0,0 | 0,28 | 0,17 |
+
+Média dos 15 da tabela da 0.9.16 (12 com assinatura + Zapdos, Moltres, Dragonair): **+2,5 pp** (era +2,2; limite
+média + 1,5 = +4,0). Médios (Rapidash, Tauros, Machamp): −0,2, iguais. Fora da faixa: **Mewtwo +6,8** (o +9,5 era a
+rodada de n=200; o Miguel aceitou) e **Mew +5,3**; Gyarados +4,5 encosta. Todas as diferenças assinatura − tipo ficam
+dentro de ~1 desvio: como na medida do N3, o desvio é do capitão (chute alto), não da assinatura.
+
+`npm run calibrate -- --n 400` na `int-0918` e na base (0.9.17, motor 12): saída idêntica linha por linha (7,92
+gols/jogo, mais forte vence 65,8%, vitórias por tipo e tática iguais); só o tempo de execução muda. Nada fora do golpe
+máximo mudou.
 
 ### Rascunho das Novidades
 
 Título: **Golpe máximo com assinatura**
 
-- (com `?assinatura=1`, até o Miguel jogar) 12 Pokémon ganham um golpe máximo nível 3 só deles
+- 12 Pokémon ganham um golpe máximo nível 3 só deles (texto final em `src/ui/patch-notes.ts`, 0.9.18)
 - Dragonite solta o Hiper Raio e fura a defesa inteira; Snorlax no gol deita na frente da trave
 - Arcanine explode uma estrela de fogo na área, Articuno congela a área toda, Gyarados solta um tsunami
 - Charizard voa com a bola e chuta em chamas, Pikachu solta um raio que salta de rival em rival
