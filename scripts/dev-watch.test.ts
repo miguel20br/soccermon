@@ -2,7 +2,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import config from '../vite/config.dev.mjs';
 
-const ignored = (config.server?.watch?.ignored as ((p: string) => boolean)[])[0];
+const [ignored] = (config.server as { watch: { ignored: ((p: string) => boolean)[] } }).watch.ignored;
 const root = resolve(__dirname, '..');
 
 describe('dev server: o que recarrega a página', () => {
