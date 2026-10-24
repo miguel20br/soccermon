@@ -142,9 +142,9 @@ Aprovadas pelo Miguel ("1a a 9a"); **cada tarefa é avaliada por si**, não é a
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (23/10/2026, v0.9.17)
+## Estado atual (24/10/2026, v0.9.18)
 
-No ar: 0.9.16 (golpe máximo por tipo; `ENGINE_VERSION` 12, `liga` no motor 12), Rota Índigo (`LONG_CUP_LIVE`), Copa Relâmpago, Duelo melhor de 3. Prévia `int-0917`: 0.9.17 (N3 de especial; motor 12). Liga fechada até `LIGA_OPENS_AT`. Histórico: [historico.md](docs/planos/historico.md). Índice: `node scripts/indice.mjs`.
+No ar: 0.9.17 (N3 de especial; `ENGINE_VERSION` 12, `liga` no motor 12), Rota Índigo, Relâmpago, Duelo. Prévia `int-0918`: 0.9.18 (assinaturas, motor 13: subir a `liga` junto; Home da 1ª visita). Liga fechada até `LIGA_OPENS_AT`. Histórico: [historico.md](docs/planos/historico.md). Índice: `node scripts/indice.mjs`.
 
 ## Armadilhas (o porquê de cada uma)
 

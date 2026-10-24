@@ -7,5 +7,5 @@
 - [Gosto musical](feedback-gosto-musical.md) — Rocket é a régua; sons criativos (moedas); clap clássico 808/909 em vez do sintetizado
 - [Música aprovada entra na hora](feedback-musica-aprovou-entra.md) — aprovou no localhost:8000 → converte e liga numa branch de música sem perguntar de novo
 - [Versão 1.0 ainda não](feedback-sem-1-0-ainda.md) — Miguel não quer lançar a 1.0 ainda; seguir 0.9.x (0.9.10, 0.9.11…)
-- [Vídeo sem inspiração](feedback-video-sem-inspiracao.md) — curtas banda/amigos arquivados, clipes 11-12 reprovados; régua = trailer v3, rascunho curto antes
+- [Vídeo sem inspiração](feedback-video-sem-inspiracao.md) — régua = trailer v3; fórmula do Snorlax (1 herói, começo/meio/fim) > mistura de conceitos; rascunho curto antes
 - [Versões menos frequentes](feedback-versoes-menos-frequentes.md) — desde 23/10: juntar frentes, revisão dupla antes de subir, trailerzinho por atualização

@@ -1,5 +1,36 @@
 # Novidades
 
+## 0.9.18 · Assinaturas e primeira visita (2026-10-24)
+
+### Assinaturas do nível 3
+- 12 Pokémon trocam o efeito do tipo no golpe máximo nível 3 por um golpe só deles, com animação e faixa próprias
+- Dragonite, Hiper Raio: fura todos os bloqueios. Alcance do goleiro rival x0,8 ⇒ x0,85 (Fúria do dragão ⇒ raio)
+- Snorlax, Pancada: se joga no chute e quem estiver a até 4 m dele cai 1 s e fica paralisado
+- Snorlax no gol, Soneca: na defesa máxima nível 3 deita na frente do gol. Alcance x1,4 ⇒ x1,8
+- Arcanine, Estrela de fogo: estoura na frente do gol e quem estiver a até 4 m dela cai 0,6 s e se queima
+- Articuno, Nevasca: a área rival inteira congela 1,2 s (antes, só quem estava na linha do chute, 1 s)
+- Blastoise, Dois canhões: o 1º não entrou? A bola volta pra ele e ele emenda de qualquer distância
+- Charizard, Voo em chamas: voa até 2 m rumo ao gol, chuta por cima e queima o goleiro que defender
+- Pikachu, Raio em cadeia: o raio salta do goleiro pros 2 rivais mais perto e paralisa 1,5 s
+- Gengar, Come-sonho: o goleiro cochila, alcance x0,8 ⇒ x0,75, até goleiro Normal (antes ele não caía)
+- Mewtwo, Telecinese: a bola curva até ~11° pro canto longe do goleiro (antes ~8°) e o goleiro fica com alcance x0,9
+- Gyarados, Tsunami: empurra todos os rivais 3 m (antes só a linha do chute, 2,5 m) e fica em fúria por 6 s
+- Mew, Metrônomo: sorteia um dos 16 efeitos de tipo a cada golpe máximo
+- Ditto, Transformação: copia o efeito do capitão rival, até a assinatura dele
+- Evoluiu pra forma final no meio da copa? A assinatura vem junto
+- Golpe que pega vários de uma vez (a Pancada do Snorlax) mostra PARALISADO uma vez só, no do meio; os outros ficam com o ícone
+- A caixa de batalha sai da frente quando entra o gol ou a faixa do nível 3
+- Nome comprido na faixa (PANCADA DO SNORLAX) encolhe pra caber no celular em pé
+
+### Primeira visita
+- Quem chega pela 1ª vez vê a Home com um botão só: Jogar (Copa Relâmpago, 4 jogos). Os outros modos ficam em Mais modos
+- Na 1ª copa, Monta pra mim vira o botão principal do draft, e o balão explica ele antes de ensinar a montar na mão
+- Quem já jogou continua caindo na Home de sempre
+
+### Celular e consertos
+- Celular em pé: quando dois nomes se encostam na quadra, o nome encurta pra 5 letras antes de sumir
+- Save que carregava antes da tela: o balão do tutorial sumia e a Home de quem voltou ficava sem os modos
+
 ## 0.9.17 · Nível 3 de especial e quem leva o golpe (2026-10-23)
 
 ### Golpe máximo nível 3

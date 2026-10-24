@@ -26,18 +26,19 @@ As memórias de preferência do Miguel (cópia das do Claude no PC) estão em [.
 | 0.9.6–0.9.13 | Beira da quadra, MTs mais fortes, música própria no jogo (temas dos líderes, viradas, tudo na batida), time no ranking |
 | 0.9.14–0.9.16 | Golpe máximo em 3 níveis na batida e por tipo, Rota de baby (pré-evoluções), 4 patrocínios novos, botão Esperar |
 
-## Agora (23/10/2026)
+## Agora (24/10/2026)
 
 Ritmo novo: versões menos frequentes e polidas, revisão dupla antes do "pode subir", trailerzinho por versão.
 
-- **0.9.17 (em andamento):** N3 com cara de especial de luta (hitstop, faixa com retrato), reação de quem é atingido
-  em todos os golpes de efeito, botões compactos no celular deitado pequeno, conserto do balão do tutorial e medição
-  nova do funil ([funil-boas-vindas.md](funil-boas-vindas.md)).
-- **Decidir com o Miguel:** Home da 1ª visita com um botão só e "Monta pra mim" como principal na 1ª copa (funil);
-  nomes que se embolam na quadra em pé; títulos dos creators (branch `titulos-creators`, nunca juntada).
-- **Depois:** golpe máximo por tipo fase 2 (12 assinaturas, motor 13: ligada pra todos na `int-0918`, vai na 0.9.18) e goleiro por tipo
-  ([golpe-maximo-por-tipo.md](golpe-maximo-por-tipo.md)); patrocínio Agente (botão Vender) e revisão do S.S. Anne
-  ([patrocinios-novos.md](patrocinios-novos.md)); jogo de ritmo como ideia.
+- **0.9.18 (revisão dupla na `int-0918`, esperando o "pode subir"):** 12 assinaturas do golpe máximo (motor 13,
+  [golpe-maximo-por-tipo.md](golpe-maximo-por-tipo.md)), Home da 1ª visita com um botão só e "Monta pra mim"
+  principal na 1ª copa ([funil-boas-vindas.md](funil-boas-vindas.md)), nome curto na quadra em pé
+  ([nomes-na-quadra.md](nomes-na-quadra.md)) e títulos dos creators (só o hash). Na subida: Edge Function `liga` com
+  o motor 13.
+- **Decidir com o Miguel:** faixa do Hiper Raio do Dragonite diz "assinatura · Normal" (o tipo que o motor dá à
+  assinatura); trocar pra Dragão muda cor, rastro e ícone.
+- **Depois:** goleiro por tipo ([golpe-maximo-por-tipo.md](golpe-maximo-por-tipo.md)); patrocínio Agente (botão
+  Vender) e revisão do S.S. Anne ([patrocinios-novos.md](patrocinios-novos.md)); jogo de ritmo como ideia.
 
 ## Agora (antes de divulgar)
 

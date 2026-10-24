@@ -11,7 +11,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.18',
         date: '2026-10-24',
-        title: 'Golpe máximo com assinatura',
+        title: 'Assinaturas e primeira visita',
         sections: [
             {
                 title: 'Assinaturas do nível 3',
@@ -31,6 +31,24 @@ export const PATCH_NOTES: PatchNotes[] = [
                     'Mew, Metrônomo: sorteia um dos 16 efeitos de tipo a cada golpe máximo',
                     'Ditto, Transformação: copia o efeito do capitão rival, até a assinatura dele',
                     'Evoluiu pra forma final no meio da copa? A assinatura vem junto',
+                    'Golpe que pega vários de uma vez (a Pancada do Snorlax) mostra PARALISADO uma vez só, no do meio; os outros ficam com o ícone',
+                    'A caixa de batalha sai da frente quando entra o gol ou a faixa do nível 3',
+                    'Nome comprido na faixa (PANCADA DO SNORLAX) encolhe pra caber no celular em pé',
+                ],
+            },
+            {
+                title: 'Primeira visita',
+                lines: [
+                    'Quem chega pela 1ª vez vê a Home com um botão só: Jogar (Copa Relâmpago, 4 jogos). Os outros modos ficam em Mais modos',
+                    'Na 1ª copa, Monta pra mim vira o botão principal do draft, e o balão explica ele antes de ensinar a montar na mão',
+                    'Quem já jogou continua caindo na Home de sempre',
+                ],
+            },
+            {
+                title: 'Celular e consertos',
+                lines: [
+                    'Celular em pé: quando dois nomes se encostam na quadra, o nome encurta pra 5 letras antes de sumir',
+                    'Save que carregava antes da tela: o balão do tutorial sumia e a Home de quem voltou ficava sem os modos',
                 ],
             },
         ],
@@ -1572,26 +1590,44 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.18',
         date: '2026-10-24',
-        title: 'Signature max moves',
+        title: 'Signatures and first visit',
         sections: [
             {
                 title: 'Level 3 signatures',
                 lines: [
                     '12 Pokémon swap the type effect of their level 3 max move for one of their own, with its own animation and banner',
                     "Dragonite, Hyper Beam: pierces every block. Rival keeper's reach x0.8 ⇒ x0.85 (Dragon Fury ⇒ beam)",
-                    'Snorlax, Body Slam: throws itself into the shot and anyone within 4 m falls for 1 s and is paralyzed',
+                    'Snorlax, Snorlax Slam: throws itself into the shot and anyone within 4 m falls for 1 s and is paralyzed',
                     'Snorlax in goal, Goal Nap: on a level 3 max save it lies down in front of the goal. Reach x1.4 ⇒ x1.8',
-                    'Arcanine, Fire Blast: a fire star bursts in front of the goal and anyone within 4 m of it falls for 0.6 s and is burned',
+                    'Arcanine, Fire Star: a fire star bursts in front of the goal and anyone within 4 m of it falls for 0.6 s and is burned',
                     'Articuno, Blizzard: the whole rival box freezes for 1.2 s (before, only players on the shot line, 1 s)',
-                    "Blastoise, Hydro Pump: the first one didn't go in? The ball comes back and it fires again from any distance",
-                    'Charizard, Flamethrower: flies up to 2 m toward goal, shoots high and burns the keeper who saves it',
-                    'Pikachu, Thunderbolt: the bolt jumps from the keeper to the 2 closest rivals and paralyzes for 1.5 s',
+                    "Blastoise, Twin Cannons: the first one didn't go in? The ball comes back and it fires again from any distance",
+                    'Charizard, Flaming Flight: flies up to 2 m toward goal, shoots high and burns the keeper who saves it',
+                    'Pikachu, Chain Lightning: the bolt jumps from the keeper to the 2 closest rivals and paralyzes for 1.5 s',
                     'Gengar, Dream Eater: the keeper dozes off, reach x0.8 ⇒ x0.75, even a Normal keeper (it used to be immune)',
-                    'Mewtwo, Psychic: the ball curves up to ~11° to the far corner (before ~8°) and the keeper gets reach x0.9',
+                    'Mewtwo, Telekinesis: the ball curves up to ~11° to the far corner (before ~8°) and the keeper gets reach x0.9',
                     'Gyarados, Tsunami: pushes every rival 3 m (before only the shot line, 2.5 m) and goes into a 6 s rage',
                     'Mew, Metronome: rolls one of the 16 type effects on every max move',
                     "Ditto, Transform: copies the rival captain's effect, signature included",
                     'Evolved into the final form mid-cup? The signature comes along',
+                    'A move that hits several at once (Snorlax Slam) shows PARALYZED only once, on the middle one; the others keep the icon',
+                    'The battle box gets out of the way when a goal or the level 3 banner comes in',
+                    'Long names on the banner (SNORLAX SLAM) shrink to fit a phone in portrait',
+                ],
+            },
+            {
+                title: 'First visit',
+                lines: [
+                    'First-time players see a Home with a single button: Play (Lightning Cup, 4 matches). The other modes sit under More modes',
+                    'In the first cup, Auto-draft becomes the main draft button, and the tip explains it before teaching how to pick by hand',
+                    'Returning players still land on the usual Home',
+                ],
+            },
+            {
+                title: 'Phone and fixes',
+                lines: [
+                    'Phone in portrait: when two names touch on the court, the name shortens to 5 letters before hiding',
+                    'Save loading before the screen: the tutorial tip disappeared and returning players saw a Home without the modes',
                 ],
             },
         ],
