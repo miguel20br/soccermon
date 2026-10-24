@@ -144,7 +144,7 @@ Aprovadas pelo Miguel ("1a a 9a"); **cada tarefa é avaliada por si**, não é a
 
 ## Estado atual (24/10/2026, v0.9.18)
 
-No ar: 0.9.17 (N3 de especial; `ENGINE_VERSION` 12, `liga` no motor 12), Rota Índigo, Relâmpago, Duelo. Prévia `int-0918`: 0.9.18 (assinaturas, motor 13: subir a `liga` junto; Home da 1ª visita). Liga fechada até `LIGA_OPENS_AT`. Histórico: [historico.md](docs/planos/historico.md). Índice: `node scripts/indice.mjs`.
+No ar: 0.9.18 (assinaturas do golpe máximo e Home da 1ª visita; `ENGINE_VERSION` 13, `liga` no motor 13), Rota Índigo, Relâmpago, Duelo. Liga fechada até `LIGA_OPENS_AT`. Histórico: [historico.md](docs/planos/historico.md). Índice: `node scripts/indice.mjs`.
 
 ## Armadilhas (o porquê de cada uma)
 
