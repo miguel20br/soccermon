@@ -15,9 +15,7 @@ export const PATCH_NOTES: PatchNotes[] = [
         sections: [
             {
                 title: 'Adicionado',
-                lines: [
-                    'Depois da 1ª copa, um balão na tela inicial apresenta a Rota Índigo (aparece uma vez só)',
-                ],
+                lines: ['Depois da 1ª copa, um balão na tela inicial apresenta a Rota Índigo (aparece uma vez só)'],
             },
             {
                 title: 'Corrigido',
@@ -1615,9 +1613,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
         sections: [
             {
                 title: 'Added',
-                lines: [
-                    'After your 1st cup, a tip on the home screen introduces the Indigo Road (shown only once)',
-                ],
+                lines: ['After your 1st cup, a tip on the home screen introduces the Indigo Road (shown only once)'],
             },
             {
                 title: 'Fixed',
