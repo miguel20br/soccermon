@@ -618,7 +618,9 @@ export const help = {
         ],
         rotaGrupo: ['Aqui a derrota não dá cartão.'],
         relampago: ['Mata-mata de 4 jogos: perdeu, acabou. Escolha a formação.'],
-        relampagoDraft: ['Monta pra mim escala o time num toque. Quer escolher? Toque numa vaga: saem 3 e você leva 1.'],
+        relampagoDraft: [
+            'Monta pra mim escala o time num toque. Quer escolher? Toque numa vaga: saem 3 e você leva 1.',
+        ],
         relampagoJogo: ['Mude a tática e troque jogadores durante o jogo. Quem joga muito evolui.'],
         duelo: ['Entre sem conta. Depois você cria a sala e manda o link.'],
         dueloSala: [
