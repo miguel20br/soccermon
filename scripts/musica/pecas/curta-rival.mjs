@@ -3,16 +3,16 @@
 // dedo); o Dragonair do rival (Vermilion Voltagem, o clube do Lt. Surge) começa a piscar e o assovio murcha; cada
 // piscada da evolução é um choque (o zap do Lt. Surge, subindo de tom); o Dragonite aparece e o MESMO assovio volta
 // em Fá menor, pesado, nos metais e na serra larga, com o choque virando a caixa da banda. No gol dele a música bate
-// em cada gol da virada no placar (choque, choque, o assovio ainda tenta no 5 a 6, choque, choque) e o assovio murcha
-// de vez. Tela final: o SOC-CER-MON em Fá menor com a banda inteira, e o último acorde vira Fá maior.
+// em cada virada do placar grande (choque, choque, choque) e o assovio murcha de vez. Tela final: o SOC-CER-MON
+// em Fá menor com a banda inteira, e o último acorde vira Fá maior.
 // 128 BPM, compasso 1,875 s. O vídeo começa na linha 0 do compasso 0.
 // Compasso: plano do vídeo → música
-//   0–1  TAVA GANHANDO (a partida inteira numa faixa): o assovio (Fmaj7 | Gm7 C7), baixo de pé, estalo no 2 e no 4
+//   0–1  TAVA GANHANDO (perto do Dragonair, placar grande): o assovio (Fmaj7 | Gm7 C7), baixo de pé, estalo no 2 e no 4
 //   2    a evolução (quadros 142–197 da captura): a banda some, o assovio despenca, pedal em Dó com 9ª menor, um choque
 //        em cada piscada (segundos medidos na captura), subida até a linha 14 e silêncio
 //   3    DRAGONITE (o quadro 198 cai no 1): impacto, o assovio em Fá menor nos metais, meio tempo pesado (Fm → Db)
 //   4–5  o Dragonite joga e chuta (quadros 572–684): o tema uma oitava acima | Eb → C7, o chute no segundo exato
-//   6–7  GOL (o quadro 684 congela no goleiro); o placar vira na batida: 4x4 4x5 4x6 5x6 | 5x7 5x8, "...TAVA."
+//   6–7  GOL e o placar grande vira na batida por cima do jogo: 4x4 4x5 4x6 5x8 | "...TAVA."
 //   8–9  tela final: o SOC-CER-MON (as sílabas do logo piscam nas linhas 0, 3 e 6 do 8) e o Fá maior no fim
 import { drum, GANCHO, I, mel, padChord, Song, stabs } from '../synth.mjs';
 import { ASSOVIO, chute, deslize, rede, zap } from './livre-ginasio.mjs';
@@ -178,41 +178,37 @@ export default function curtaRival() {
     ch.note(linha(CHUTE), 0, 0, 1);
     em(sobeGol, 5, 8.5, 0, 0.9);
 
-    // 6: GOL (linha 0) e o placar virando na batida: 4x5 (linha 4), 4x6 (8); no 5x6 (12) o assovio ainda tenta
+    // 6: GOL (linha 0) e o placar grande virando na batida: 4x5 (linha 4), 4x6 (8) e o 5x8 final (12), no C
     em(imp, 6, 0);
-    drum(cr, 6, 1, 'X...............');
+    drum(cr, 6, 1, 'X...........X...');
     em(rd, 6, 0, 0, 1);
     choque.note(96, -12, 0, 1);
     em(ti, 6, 0);
     em(k, 6, 0);
-    palmas(6, 'X...x...x.......');
-    mel(tuba, 6, ['F1:4 F1:4 F1:4 r:4']);
+    palmas(6, 'X...x...x...X...');
+    mel(tuba, 6, ['F1:4 F1:4 F1:4 C2:4']);
     sub.note(96, 29, 12, 1);
+    sub.note(108, 24, 4, 1);
     stabs(st, 6, 'Fm', [[0, 3], 4, 8], { low: 53 });
-    for (const P of meio) stabs(P, 6, 'Fm', [0, 4, 8], { low: 65, len: 2 });
+    stabs(st, 6, 'C', [[12, 4]], { low: 52, vel: 1.2 });
+    for (const P of meio) {
+        stabs(P, 6, 'Fm', [0, 4, 8], { low: 65, len: 2 });
+        stabs(P, 6, 'C', [[12, 3]], { low: 64 });
+    }
     for (const [r, p] of [
         [4, 0],
         [8, 3],
+        [12, 7],
     ]) {
-        choque.note(96 + r, p, 0, 0.9);
+        choque.note(96 + r, p, 0, 0.9 + r / 60);
         em(k, 6, r, 0, 0.9);
+        em(ti, 6, r, 0, 0.6);
     }
-    mel(asv, 6, ['r:12 C6:1 r:1 F6:2'], { vel: 0.9 });
-    // 7: 5x7 (linha 0) e 5x8 (linha 4) nos acordes de Db e C; o assovio murcha de vez (linha 8) e silêncio
-    for (const [r, sym, raiz, p] of [
-        [0, 'Db', 25, 5],
-        [4, 'C', 24, 7],
-    ]) {
-        choque.note(112 + r, p, 0, 1);
-        em(k, 7, r);
-        em(ti, 7, r, 0, 0.8);
-        stabs(st, 7, sym, [[r, 3]], { low: 53, vel: 1.1 });
-        for (const P of meio) stabs(P, 7, sym, [[r, 2]], { low: 64 });
-        tuba.note(112 + r, raiz + 12, 3, 1);
-    }
-    palmas(7, 'x...X...........');
-    em(murcha, 7, 8, 0, 1);
-    drum(sn, 7, 1, '............o.xX', { vel: 0.8 }); // a virada pro logo
+    // 7: "...TAVA.": o assovio murcha de vez e fica quase em silêncio; a caixa puxa pro logo
+    em(murcha, 7, 0, 0, 1);
+    em(ti, 7, 0, 0, 0.5);
+    cordas.note(112, 48, 8, 0.5);
+    drum(sn, 7, 1, '............o.xX', { vel: 0.8 });
 
     // 8: tela final. O SOC-CER-MON em Fá menor com a banda (as sílabas do logo piscam nas linhas 0, 3 e 6);
     // a torcida responde no 808 e a banda segue no Fm

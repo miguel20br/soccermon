@@ -9,7 +9,7 @@ cd "$(dirname "$0")/../.."
 TMP=${TMP_RIVAL:-$HOME/.cache/soccermon-tmp/curta-rival/montar}
 OUT=${OUT_RIVAL:-$HOME/Vídeos/soccermon-postar/4-rival-evoluiu}
 HF=${HYPERFRAMES:-$(ls -d "$HOME"/.npm/_npx/*/node_modules/hyperframes/bin/hyperframes.mjs | tail -1)}
-FIM=18.3
+FIM=17.9
 mkdir -p "$TMP" "$(dirname "$OUT")"
 
 node scripts/musica/render.mjs curta-rival --so-wav --out "$TMP"
@@ -39,8 +39,8 @@ ffmpeg -v error -y -i "$TMP/cena.mp4" -i "$TMP/audio.wav" -map 0:v -map 1:a -c:v
   -pass 2 -passlogfile "$P/x" -c:a aac -b:a 192k -t $FIM -movflags +faststart "$OUT-10mb.mp4"
 rm -rf "${P:?}"
 
-# capa: o Dragonite recém-evoluído com a faixa do jogo "Dragonair evoluiu!"
-ffmpeg -v error -y -ss 6.45 -i "$TMP/cena.mp4" -frames:v 1 "$OUT-capa.png"
+# capa: o Dragonite recém-evoluído com a faixa grande "DRAGONAIR EVOLUIU!"
+ffmpeg -v error -y -ss 6.6 -i "$TMP/cena.mp4" -frames:v 1 "$OUT-capa.png"
 ffmpeg -v error -y -i "$OUT.mp4" -vf "fps=2,scale=180:-1,drawtext=fontfile=/usr/share/fonts/TTF/DejaVuSans.ttf:text='%{pts\:hms}':x=4:y=4:fontsize=14:fontcolor=white:box=1:boxcolor=black@0.6,drawbox=x=89:y=0:w=2:h=ih:color=red,tile=12x4" -frames:v 1 "$TMP/folha.png"
 for f in "$OUT.mp4" "$OUT-10mb.mp4"; do
   echo "$f: $(du -h "$f" | cut -f1), $(ffprobe -v error -show_entries format=duration -of csv=p=0 "$f") s, $(lufs "$f") LUFS"

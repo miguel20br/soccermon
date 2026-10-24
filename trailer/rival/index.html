@@ -1,11 +1,13 @@
 <!doctype html>
 <!--
   Curta "O rival evoluiu" (pauta item 7, 24/10/2026), 9:16, ~18 s. Um herói (o Dragonair do Vermilion Voltagem), uma
-  situação (seu time ganhando), começo-meio-fim: TAVA GANHANDO → ele brilha e evolui → o Dragonite faz o gol, o vídeo
-  congela no seu goleiro e o placar vira na batida → "...TAVA." → tela final com o Dragonite embaixo do logo.
+  situação (seu time ganhando), começo-meio-fim: TAVA GANHANDO (placar grande 4x3) → ele brilha e evolui (faixa grande
+  "DRAGONAIR EVOLUIU!") → o Dragonite faz o gol (câmera fechada nele e na bola) → o placar grande vira na batida por
+  cima do jogo (4x4 4x5 4x6 5x8) → "...TAVA." → tela final com o Dragonite embaixo do logo.
   Música: scripts/musica/pecas/curta-rival.mjs (128 BPM, compasso 1,875 s), composta em cima deste corte.
   Imagens: a partida de verdade (cena rival, seed trailer1820), gravada por scripts/trailer-capture.mjs e recortada
   por preparar.sh (midia/ é link, fora do git). O áudio entra no montar.sh (música + gritos + torcida).
+  Nada fica parado: todo plano tem jogo andando ou uma câmera lenta empurrando (sem trecho congelado > 0,5 s).
 -->
 <html lang="pt-BR">
 <head>
@@ -18,54 +20,80 @@
 <script src="comum.js"></script>
 <style>
 .cheio { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; }
-.cheio video, .cheio img.q { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; image-rendering: pixelated; }
-#topo { position: absolute; left: 0; top: 0; width: 1080px; height: 900px; z-index: 15; pointer-events: none;
-  background: linear-gradient(rgb(7 10 24 / 88%) 0, rgb(7 10 24 / 60%) 520px, transparent 900px); }
-.placar { position: absolute; left: 40px; width: 1000px; height: 88px; top: 480px; z-index: 20;
-  filter: drop-shadow(0 10px 0 rgb(0 0 0 / 35%)); }
-.placar img { position: absolute; left: 0; top: 0; width: 1000px; opacity: 0; }
-.placar img#p43 { opacity: 1; }
-#faixa-evo { position: absolute; left: 60px; top: 1290px; width: 960px; height: 220px; overflow: hidden; z-index: 25; opacity: 0;
-  border-radius: 20px; box-shadow: 0 16px 0 rgb(0 0 0 / 35%); }
-#faixa-evo video { position: absolute; left: -26px; top: -6px; width: 1012px; height: 232px; image-rendering: pixelated; }
+.cheio video { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; image-rendering: pixelated; }
+#topo { position: absolute; left: 0; top: 0; width: 1080px; height: 1000px; z-index: 15; pointer-events: none;
+  background: linear-gradient(rgb(7 10 24 / 88%) 0, rgb(7 10 24 / 62%) 620px, transparent 1000px); }
+/* placar grande, no desenho do placar do jogo: faixa azul-noite, a cor de cada time na ponta, números em caixa clara */
+.pg { position: absolute; left: 60px; width: 960px; height: 270px; z-index: 35; box-sizing: border-box; display: flex; align-items: center;
+  justify-content: center; gap: 22px; background: #10183d; border: 8px solid #f8f8f0; border-radius: 26px;
+  box-shadow: 0 0 0 7px #0e1430, 0 22px 0 rgb(0 0 0 / 40%); overflow: hidden; }
+.pg .lado { width: 150px; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  font-size: 58px; letter-spacing: 3px; color: #fff; }
+.pg .lado i { display: block; width: 74px; height: 82px; clip-path: polygon(0 0, 100% 0, 100% 55%, 50% 100%, 0 55%); }
+.pg .pal i { background: #e8423f; } .pg .ver i { background: #f2c53d; }
+.pg .num { position: relative; width: 190px; height: 214px; border-radius: 18px; background: #f3efe2; color: #10183d; overflow: hidden; }
+.pg .num span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 190px; line-height: 1; opacity: 0; }
+.pg .num span.on { opacity: 1; }
+.pg .num b { position: absolute; inset: 0; background: #ffcb05; opacity: 0; }
+.pg .x { font-size: 80px; color: #9aa6d8; }
+.pg .barra { position: absolute; left: 0; top: 0; bottom: 0; width: 18px; background: #e8423f; }
+.pg .barra.dir { left: auto; right: 0; background: #f2c53d; }
+/* faixa grande da evolução (o desenho da faixa do jogo, quase a largura toda) */
+#fx-evo { position: absolute; left: 30px; top: 1250px; width: 1020px; height: 300px; z-index: 36; box-sizing: border-box; display: flex;
+  align-items: center; gap: 20px; padding: 0 28px; background: #10183d; border: 9px solid #ffcb05; border-radius: 30px;
+  box-shadow: 0 0 0 7px #0e1430, 0 22px 0 rgb(0 0 0 / 40%); opacity: 0; }
+#fx-evo .ret { width: 190px; height: 190px; border: 7px solid #f8f8f0; border-radius: 18px; background: #f3e9b0; image-rendering: pixelated; flex: none; }
+#fx-evo .velho { width: 104px; height: 104px; border-width: 6px; filter: grayscale(1) brightness(0.8); background: #8c93a8; }
+#fx-evo .seta { color: #ffcb05; font-size: 60px; flex: none; }
+#fx-evo .txt { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+#fx-evo .time { align-self: flex-start; padding: 4px 16px; border-radius: 10px; background: #ffcb05; color: #10183d; font-size: 34px; letter-spacing: 1px; white-space: nowrap; }
+#fx-evo .quem { color: #ffcb05; font-size: 58px; line-height: 1.05; letter-spacing: 1px; }
+#fx-evo .agora { color: #fff; font-size: 38px; }
 #zap { position: absolute; inset: 0; z-index: 30; opacity: 0; pointer-events: none;
   background: radial-gradient(circle at 42% 50%, rgb(255 236 120 / 0%) 18%, rgb(255 214 40 / 55%) 70%); }
 #vinheta { position: absolute; inset: 0; z-index: 29; opacity: 0; pointer-events: none;
   background: radial-gradient(circle at 42% 50%, transparent 30%, rgb(7 10 24 / 85%) 85%); }
-#escuro { position: absolute; inset: 0; z-index: 8; opacity: 0; background: #070a18; pointer-events: none; }
+#escuro { position: absolute; inset: 0; z-index: 14; opacity: 0; background: #070a18; pointer-events: none; }
 .legenda.grande { font-size: 96px; }
-#tava2 { top: 1330px; }
+#tava2 { top: 1180px; }
 .tag { font-size: 60px; }
 </style>
 </head>
 <body>
-<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="18.3">
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="17.9">
   <div id="fundo" class="cheio palco"><div class="raios" id="raios"></div></div>
 
-  <!-- compassos 0–1: perto do Dragonair desde o 1º quadro, o placar e o TAVA GANHANDO -->
+  <!-- compassos 0–1: perto do Dragonair desde o 1º quadro, o TAVA GANHANDO e o placar grande 4x3 -->
   <div class="cheio" id="w-abre" style="z-index:5"><video id="v-abre" class="clip" src="midia/abre.mp4" muted playsinline data-start="0" data-duration="3.75"></video></div>
   <div id="topo"></div>
-  <div class="legenda grande" id="tava" style="top:140px"><span>TAVA <b id="ganhando">GANHANDO...</b></span></div>
+  <div class="legenda grande" id="tava" style="top:110px"><span>TAVA <b id="ganhando">GANHANDO...</b></span></div>
 
   <!-- compasso 2: a evolução (recorte no Dragonair) -->
   <div class="cheio" id="w-evo" style="z-index:10;opacity:0"><video id="v-evo" class="clip" src="midia/evo.mp4" muted playsinline data-start="3.75" data-duration="1.875"></video></div>
-  <!-- compasso 3: o Dragonite em câmera lenta e a faixa do jogo -->
+  <!-- compasso 3: o Dragonite em câmera lenta e a faixa grande -->
   <div class="cheio" id="w-rev" style="z-index:11;opacity:0"><video id="v-rev" class="clip" src="midia/rev.mp4" muted playsinline data-start="5.625" data-duration="1.875"></video></div>
-  <div id="faixa-evo"><video id="v-faixa-evo" class="clip" src="midia/faixa-evo.mp4" muted playsinline data-start="5.625" data-duration="1.875"></video></div>
-  <!-- compassos 4–5: o lance do gol -->
+  <div id="fx-evo">
+    <img class="ret velho" src="midia/r148.png" alt="" /><span class="seta">›</span><img class="ret" src="midia/r149.png" alt="" />
+    <div class="txt"><span class="time">VERMILION VOLTAGEM</span><span class="quem">DRAGONAIR<br>EVOLUIU!</span><span class="agora">agora é Dragonite</span></div>
+  </div>
+  <!-- compassos 4–5: o lance do gol, câmera fechada -->
   <div class="cheio" id="w-jogo" style="z-index:12;opacity:0"><video id="v-jogo" class="clip" src="midia/jogo.mp4" muted playsinline data-start="7.5" data-duration="3.767"></video></div>
-  <!-- compassos 6–7: congela no goleiro -->
-  <div class="cheio" id="w-congela" style="z-index:13;opacity:0"><img class="q" id="congela" src="midia/congela.png" alt="" /></div>
+  <!-- compassos 6–7: o depois do gol, atrás do placar grande que vira -->
+  <div class="cheio" id="w-pos" style="z-index:13;opacity:0"><video id="v-pos" class="clip" src="midia/pos.mp4" muted playsinline data-start="11.25" data-duration="3.75"></video></div>
   <div id="escuro"></div>
   <div class="legenda grande" id="tava2" style="opacity:0"><span>...TAVA.</span></div>
 
+  <div class="pg" id="pg" style="top:470px">
+    <div class="barra"></div><div class="barra dir"></div>
+    <div class="lado pal"><i></i>PAL</div>
+    <div class="num" id="pgA"><b></b><span id="a4" class="on">4</span><span id="a5">5</span></div>
+    <div class="x">x</div>
+    <div class="num" id="pgB"><b></b><span id="b3" class="on">3</span><span id="b4">4</span><span id="b5">5</span><span id="b6">6</span><span id="b8">8</span></div>
+    <div class="lado ver"><i></i>VER</div>
+  </div>
+
   <div id="vinheta"></div>
   <div id="zap"></div>
-  <div class="placar" id="placar">
-    <img id="p43" src="midia/p43.png" alt="" /><img id="p44" src="midia/p44.png" alt="" /><img id="p45" src="midia/p45.png" alt="" />
-    <img id="p46" src="midia/p46.png" alt="" /><img id="p56" src="midia/p56.png" alt="" /><img id="p57" src="midia/p57.png" alt="" />
-    <img id="p58" src="midia/p58.png" alt="" />
-  </div>
 
   <!-- compassos 8–9: tela final -->
   <div id="final" class="cheio palco" style="z-index:60;opacity:0">
@@ -75,37 +103,35 @@
   <div class="flash" id="flash"></div>
 
   <script>
-    const { T, div, ator, anim, quadro, estouro, treme, flash, telaFinal, piscada } = C;
+    const { T, ator, anim, estouro, treme, flash, telaFinal, piscada } = C;
     const tl = gsap.timeline({ paused: true });
     const BAT = 1.875 / 4;
+    const DUR = 17.9;
     const PISCADAS = [4.1667, 4.5, 4.7333, 4.9, 5.0333, 5.1333, 5.2333, 5.3333, 5.4333, 5.5333];
     const mostra = (sel, t, on = true) => tl.set(sel, { opacity: on ? 1 : 0 }, t);
     const pop = (sel, t, de = 1.25, d = 0.22) =>
       tl.fromTo(sel, { scale: de }, { scale: 1, duration: d, ease: 'back.out(2.5)', immediateRender: false }, t);
-    const placar = (id, t) => {
-      tl.set('#placar img', { opacity: 0 }, t);
-      tl.set(`#${id}`, { opacity: 1 }, t);
-      pop('#placar', t, t > 11 ? 1.3 : 1.12, 0.2);
-    };
-    tl.to('#raios', { rotation: 40, duration: 18.3, ease: 'none' }, 0);
+    tl.to('#raios', { rotation: 40, duration: DUR, ease: 'none' }, 0);
 
-    // ===== 0–1: TAVA GANHANDO =====
-    // (o placar já nasce visível com o 4x3 no CSS: set no tempo 0 não pegava no render)
-    pop('#placar', 0.001, 1.12, 0.18);
+    // ===== 0–1: TAVA GANHANDO, com o placar grande 4x3 (o placar e o 4x3 já nascem visíveis no CSS) =====
     tl.fromTo('#w-abre', { scale: 1.08 }, { scale: 1, duration: 0.35, ease: 'power3.out', immediateRender: false }, 0.001);
+    pop('#pg', 0.001, 1.15, 0.3);
     mostra('#tava', 0);
     tl.fromTo('#tava', { scale: 0.6 }, { scale: 1, duration: 0.25, ease: 'back.out(3)', immediateRender: false }, 0);
     tl.set('#ganhando', { opacity: 0 }, 0);
     tl.set('#ganhando', { opacity: 1 }, BAT);
-    // o shuffle: o letreiro balança de leve no 2 e no 4, convencido
+    // o 4 do seu time pisca no 2 e no 4 (convencido); o letreiro balança junto
+    for (let b = 1; b < 8; b += 2) {
+      tl.fromTo('#tava', { rotation: -2 }, { rotation: 0, duration: 0.3, ease: 'power2.out', immediateRender: false }, b * BAT);
+      tl.fromTo('#pgA', { scale: 1.1 }, { scale: 1, duration: 0.25, ease: 'power2.out', immediateRender: false }, b * BAT);
+    }
     // no compasso 1 a câmera vai chegando no Dragonair (o recorte já anda com ele)
     tl.set('#w-abre', { transformOrigin: '400px 1100px' }, 0.001);
     tl.to('#w-abre', { scale: 1.25, duration: 1.875, ease: 'power2.in' }, T(1, 0));
-    for (let b = 1; b < 8; b += 2) tl.fromTo('#tava', { rotation: -2 }, { rotation: 0, duration: 0.3, ease: 'power2.out', immediateRender: false }, b * BAT);
 
     // ===== 2: a evolução. Corte seco pra perto; a borda escurece; cada piscada dá um choque amarelo =====
     const tEvo = T(2, 0);
-    mostra(['#tava', '#placar', '#topo'], tEvo, false);
+    mostra(['#tava', '#pg', '#topo'], tEvo, false);
     mostra('#w-evo', tEvo);
     tl.fromTo('#w-evo', { scale: 1.35 }, { scale: 1, duration: 0.3, ease: 'power3.out', immediateRender: false }, tEvo);
     tl.to('#vinheta', { opacity: 1, duration: 1.2, ease: 'power1.in' }, tEvo);
@@ -114,62 +140,74 @@
       if (i >= 5) treme(tl, '#w-evo', t, 0.4 + (i - 5) * 0.15, 0.1);
     });
 
-    // ===== 3: DRAGONITE =====
+    // ===== 3: DRAGONITE, câmera lenta empurrando, e a faixa grande (1,6 s na tela) =====
     const tRev = T(3, 0);
     mostra('#w-rev', tRev);
     tl.set('#vinheta', { opacity: 0 }, tRev);
     flash(tl, tRev, 1, 0.4);
     tl.fromTo('#w-rev', { scale: 1.18 }, { scale: 1, duration: 0.5, ease: 'power3.out', immediateRender: false }, tRev);
+    tl.fromTo('#v-rev', { scale: 1, transformOrigin: '470px 600px' }, { scale: 1.12, duration: 1.875, ease: 'none', immediateRender: false }, tRev);
     treme(tl, '#w-rev', tRev + 0.05, 1.4, 0.35);
     estouro(tl, document.getElementById('w-rev'), 470, 560, tRev, { tam: 520 });
-    mostra('#faixa-evo', T(3, 2));
-    tl.fromTo('#faixa-evo', { x: -1100 }, { x: 0, duration: 0.25, ease: 'power3.out', immediateRender: false }, T(3, 2));
+    mostra('#fx-evo', T(3, 2));
+    tl.fromTo('#fx-evo', { x: -1100 }, { x: 0, duration: 0.22, ease: 'power3.out', immediateRender: false }, T(3, 2));
+    tl.fromTo('#fx-evo .quem', { scale: 1.3 }, { scale: 1, duration: 0.2, ease: 'back.out(3)', transformOrigin: '0% 50%', immediateRender: false }, T(3, 4));
     // o choque virou a caixa: na linha 8 tudo pulsa
     tl.fromTo('#zap', { opacity: 0.45 }, { opacity: 0, duration: 0.15, immediateRender: false }, T(3, 8));
-    treme(tl, '#w-rev', T(3, 8), 0.7, 0.18);
+    treme(tl, ['#w-rev', '#fx-evo'], T(3, 8), 0.7, 0.18);
 
-    // ===== 4–5: ele joga, chuta, gol =====
+    // ===== 4–5: ele joga e chuta; a câmera fechada segue ele e depois a bola =====
     const tJogo = T(4, 0);
-    mostra('#faixa-evo', tJogo, false);
+    mostra('#fx-evo', tJogo, false);
     mostra('#w-jogo', tJogo);
     tl.fromTo('#w-jogo', { scale: 1.12 }, { scale: 1, duration: 0.3, ease: 'power3.out', immediateRender: false }, tJogo);
-    tl.set('#placar', { top: 150, opacity: 1 }, tJogo);
-    placar('p43', tJogo);
     tl.fromTo('#zap', { opacity: 0.35 }, { opacity: 0, duration: 0.15, immediateRender: false }, T(4, 12));
     tl.fromTo('#zap', { opacity: 0.6 }, { opacity: 0, duration: 0.2, immediateRender: false }, 10.033); // o chute
+    // a bola chegando: a câmera fecha no gol e no goleiro (sem isso o fim do lance parecia parado)
+    tl.fromTo('#v-jogo', { scale: 1, transformOrigin: '300px 960px' }, { scale: 1.3, duration: T(6, 0) - 10.35, ease: 'power2.in', immediateRender: false }, 10.35);
 
-    // ===== 6–7: GOL, congela no goleiro, o placar vira na batida =====
+    // ===== 6–7: GOL. O placar grande no centro, por cima do jogo, vira na batida: 4x4 4x5 4x6 5x8 =====
     const tGol = T(6, 0);
-    mostra('#w-congela', tGol);
+    mostra('#w-pos', tGol);
     flash(tl, tGol, 1, 0.45);
-    treme(tl, '#w-congela', tGol + 0.03, 1.6, 0.4);
-    // recorte fechado: o goleiro (465, 805) e a bola na rede; chega um pouco mais perto dele
-    tl.fromTo('#congela', { scale: 1, transformOrigin: '465px 805px' }, { scale: 1.15, duration: 3.75, ease: 'sine.out', immediateRender: false }, tGol);
-    tl.to('#escuro', { opacity: 0, duration: 0 }, 0);
-    tl.set('#escuro', { zIndex: 14 }, tGol);
-    tl.to('#escuro', { opacity: 0.35, duration: 1.2 }, tGol + 0.3);
-    // congelou: a cor some devagar (o quadro vira foto)
-    tl.fromTo('#congela', { filter: 'saturate(1)' }, { filter: 'saturate(0.25)', duration: 0.8, ease: 'power1.out', immediateRender: false }, tGol + 0.15);
-    tl.to('#placar', { top: 300, scale: 1, duration: 0.2, ease: 'power2.out' }, tGol);
-    ['p44', 'p45', 'p46', 'p56', 'p57', 'p58'].forEach((id, i) => {
-      const t = tGol + i * BAT;
-      placar(id, t);
-      if (id !== 'p56') tl.fromTo('#zap', { opacity: 0.5 }, { opacity: 0, duration: 0.14, immediateRender: false }, t);
-      if (i > 0 && id !== 'p56') treme(tl, '#w-congela', t, 0.6, 0.15);
-    });
-    mostra('#tava2', T(7, 8));
-    tl.fromTo('#tava2', { scale: 1.6 }, { scale: 1, duration: 0.2, ease: 'power3.out', immediateRender: false }, T(7, 8));
+    treme(tl, '#w-pos', tGol + 0.03, 1.6, 0.4);
+    tl.fromTo('#v-pos', { scale: 1.05, transformOrigin: '540px 960px' }, { scale: 1.2, duration: 1.875, ease: 'none', immediateRender: false }, tGol);
+    // no "...TAVA." a câmera continua chegando, mais rápido, até o logo
+    tl.fromTo('#v-pos', { scale: 1.2, transformOrigin: '540px 960px' }, { scale: 1.65, duration: 1.875, ease: 'power1.in', immediateRender: false }, T(7, 0));
+    tl.to('#escuro', { opacity: 0.3, duration: 0.4 }, T(7, 0));
+    tl.to('#escuro', { opacity: 0.5, duration: 0.3 }, tGol);
+    tl.set('#pg', { top: 760, opacity: 1 }, tGol);
+    pop('#pg', tGol, 1.4, 0.3);
+    const vira = (t, lado, de, para) => {
+      tl.set(`#${lado}${de}`, { opacity: 0 }, t);
+      tl.set(`#${lado}${para}`, { opacity: 1 }, t);
+      const caixa = lado === 'a' ? '#pgA' : '#pgB';
+      tl.fromTo(caixa, { scale: 1.45 }, { scale: 1, duration: 0.28, ease: 'back.out(3)', immediateRender: false }, t);
+      tl.fromTo(`${caixa} b`, { opacity: 0.9 }, { opacity: 0, duration: 0.25, ease: 'power2.out', immediateRender: false }, t);
+      tl.fromTo('#zap', { opacity: 0.55 }, { opacity: 0, duration: 0.15, immediateRender: false }, t);
+      treme(tl, ['#pg', '#w-pos'], t, 0.9, 0.18);
+    };
+    vira(tGol, 'b', 3, 4);
+    vira(tGol + BAT, 'b', 4, 5);
+    vira(tGol + 2 * BAT, 'b', 5, 6);
+    // o 5x8 final: os dois números no mesmo golpe (o choque mais grave), na linha 12
+    vira(tGol + 3 * BAT, 'b', 6, 8);
+    vira(tGol + 3 * BAT, 'a', 4, 5);
+    mostra('#tava2', T(7, 0));
+    tl.fromTo('#tava2', { scale: 1.6 }, { scale: 1, duration: 0.2, ease: 'power3.out', immediateRender: false }, T(7, 0));
+    tl.to('#pg', { y: 12, rotation: -3, duration: 0.6, ease: 'power2.out' }, T(7, 0)); // o placar "murcha" junto
 
     // ===== 8–9: tela final com o Dragonite embaixo do logo =====
     const tFim = T(8, 0);
     telaFinal(document.getElementById('final'));
     document.getElementById('tag').textContent = 'O rival também evolui';
     const dn = ator(document.getElementById('final-cena'), 149, { escala: 9, z: 5, x: 540, y: 1480 });
-    anim(tl, dn, 'Idle', 0, tFim, 18.3);
+    anim(tl, dn, 'Idle', 0, tFim, DUR);
     mostra('#final', tFim);
-    mostra(['#placar', '#tava2'], tFim, false);
+    mostra(['#pg', '#tava2'], tFim, false);
     flash(tl, tFim, 1, 0.35);
-    tl.to('#raios-final', { rotation: 30, duration: 18.3 - tFim, ease: 'none' }, tFim);
+    tl.to('#raios-final', { rotation: 30, duration: DUR - tFim, ease: 'none' }, tFim);
+    tl.fromTo('#final-cena', { scale: 1, transformOrigin: '540px 1480px' }, { scale: 1.08, duration: DUR - tFim, ease: 'none', immediateRender: false }, tFim);
     tl.set('#logo', { opacity: 1 }, tFim);
     tl.fromTo('#logo', { scale: 0.7 }, { scale: 1, duration: 0.45, ease: 'back.out(3)', immediateRender: false }, tFim);
     piscada(tl, [T(8, 0), T(8, 3), T(8, 6)], '#final');
