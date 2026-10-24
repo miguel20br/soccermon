@@ -1,5 +1,14 @@
 # Novidades
 
+## 0.9.19 · Rota Índigo e celular deitado (2026-10-24)
+
+### Adicionado
+- Depois da 1ª copa, um balão na tela inicial apresenta a Rota Índigo (aparece uma vez só)
+
+### Corrigido
+- Celular deitado pequeno: as recompensas depois da partida cabem na tela sem rolar
+- Celular deitado pequeno: os botões do intervalo (Substituir e Começar o 2º tempo) ficam sempre à vista
+
 ## 0.9.18 · Assinaturas e primeira visita (2026-10-24)
 
 ### Assinaturas do nível 3

@@ -9,6 +9,26 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.19',
+        date: '2026-10-24',
+        title: 'Rota Índigo e celular deitado',
+        sections: [
+            {
+                title: 'Adicionado',
+                lines: [
+                    'Depois da 1ª copa, um balão na tela inicial apresenta a Rota Índigo (aparece uma vez só)',
+                ],
+            },
+            {
+                title: 'Corrigido',
+                lines: [
+                    'Celular deitado pequeno: as recompensas depois da partida cabem na tela sem rolar',
+                    'Celular deitado pequeno: os botões do intervalo (Substituir e Começar o 2º tempo) ficam sempre à vista',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.18',
         date: '2026-10-24',
         title: 'Assinaturas e primeira visita',
@@ -1588,6 +1608,26 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.19',
+        date: '2026-10-24',
+        title: 'Indigo Road and landscape phones',
+        sections: [
+            {
+                title: 'Added',
+                lines: [
+                    'After your 1st cup, a tip on the home screen introduces the Indigo Road (shown only once)',
+                ],
+            },
+            {
+                title: 'Fixed',
+                lines: [
+                    'Small phones in landscape: the post-match rewards fit on screen without scrolling',
+                    'Small phones in landscape: the halftime buttons (Substitute and Start the 2nd half) are always visible',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.18',
         date: '2026-10-24',
