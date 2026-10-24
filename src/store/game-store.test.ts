@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 // sem IndexedDB no Node: o save fica só na memória
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
-import { ENGINE_VERSION, ENGINE_VERSION_SIG, FUTSAL_5 } from '../engine/config';
+import { ENGINE_VERSION, FUTSAL_5 } from '../engine/config';
 import { bestFit, DRAFT_PICKS } from '../engine/draft';
 import { evolutionTarget, evolveInstance } from '../engine/evolution';
 import { formationOf } from '../engine/formations';
@@ -20,7 +20,6 @@ import { type DuelRecord, mergeDuels } from './duels';
 import {
     DEFAULT_SETTINGS,
     dexLines,
-    engineSig,
     liveOf,
     markEvolvedPlayed,
     migrateSave,
@@ -163,36 +162,6 @@ describe('partida no meio', () => {
         expect(liveOf({ stage: 1, live })).toBeNull();
         expect(liveOf({ stage: 1, live: { ...live, engine: ENGINE_VERSION } })?.tick).toBe(900);
         expect(liveOf({ stage: 2, live: { ...live, engine: ENGINE_VERSION } })).toBeNull();
-    });
-
-    it('guarda o motor da partida (13 com ?assinatura=1) e retoma com ele, com ou sem a bandeira', () => {
-        const g = () => useGame.getState();
-        g().newRun('Pallet FC', 'live-sig');
-        const rng = new Rng('live-sig', 'team');
-        const picks = [143, 68, 151, 142, 9].map((id) => createInstance(id, rng));
-        useGame.setState({
-            run: {
-                ...g().run!,
-                formation: '1-2-1',
-                picks,
-                lineup: picks.map((p) => p.uid),
-                bench: [],
-                captainUid: picks[4].uid,
-                status: 'lineup',
-            },
-        });
-        g().lockMatch(playerTeam(g().run!), ENGINE_VERSION_SIG);
-        g().saveLive({ tick: 900 });
-        // o save vai pro disco e volta: a partida segue no motor 13 (a tela refaz com `maxSig`), mesmo sem a bandeira
-        const saved = migrateSave(JSON.parse(JSON.stringify({ run: g().run })), SAVE_VERSION);
-        const live = liveOf(saved.run);
-        expect(live?.tick).toBe(900);
-        expect(live?.engine).toBe(ENGINE_VERSION_SIG);
-        expect(engineSig(live)).toBe(true);
-        // a que começou sem a bandeira segue no 12, mesmo se a URL de agora tiver ?assinatura=1
-        expect(engineSig(liveOf({ stage: 1, live: { stage: 1, orders: [], tick: 0, engine: ENGINE_VERSION } }))).toBe(
-            false,
-        );
     });
 });
 

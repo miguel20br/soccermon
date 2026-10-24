@@ -168,7 +168,7 @@ export const match = {
             Ghost: ['Bola fantasma', 'Atravessou!'],
             Dragon: ['Fúria do dragão', 'Fúria!'],
             Fairy: ['Brilho da lua', 'Encantado!'],
-            // assinaturas (fase 2, ?assinatura=1)
+            // assinaturas (fase 2)
             hyperbeam: ['Hiper Raio', 'Atravessou!'],
             bodyslam: ['Pancada do Snorlax', 'Esmagou!'],
             rest: ['Soneca no gol', 'Zzz!'],

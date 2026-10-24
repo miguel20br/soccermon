@@ -82,7 +82,7 @@ export const AGENCY = {
         furyT: 6,
     },
     /**
-     * Fase 2, assinaturas (`MatchConfig.maxSig`, `?assinatura=1`): o N3 do capitão das 12 espécies de `MAX_SIGNATURE`
+     * Fase 2, assinaturas (motor 13, com `MatchConfig.maxType`): o N3 do capitão das 12 espécies de `MAX_SIGNATURE`
      * (signature-moves.ts) troca o efeito do tipo por um próprio, montado com as peças dos tipos (`MAX_FX_PIECES`) e
      * umas novas. `type`: cor, rastro e ícone; `reach`: alcance do goleiro rival (vezes o x0,7 do N3); `curve`: teto da
      * curva (Psíquico = `maxType.curve`). Mew (Metronome) sorteia um tipo; Ditto (Transform) copia o capitão rival.

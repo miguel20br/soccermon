@@ -116,7 +116,7 @@ import { screenTransition } from './screen-transition';
 /** Edição especial só quando as cartas novas estão no jogo. */
 const rollSpecial: typeof roll = (inst, ev) => (SPECIALS_LIVE ? roll(inst, ev) : inst);
 
-import { ENGINE_VERSION, ENGINE_VERSION_SIG } from '../engine/config';
+import { ENGINE_VERSION } from '../engine/config';
 import type { CornerPlan, MatchOrder, Tactic, TeamSetup } from '../engine/state';
 
 export type Screen =
@@ -291,22 +291,13 @@ export interface LiveMatch {
     stage: number;
     orders: MatchOrder[];
     tick: number;
-    /**
-     * Motor de quando a partida começou (sem = antes da 0.8.4): `ENGINE_VERSION`, ou `ENGINE_VERSION_SIG` se começou com
-     * `?assinatura=1`. Retomar usa o mesmo, com ou sem a bandeira na URL (`liveSig`).
-     */
+    /** `ENGINE_VERSION` de quando a partida começou (sem = antes da 0.8.4). */
     engine?: number;
 }
 
-/** Motores que dá pra retomar: o de hoje e o das assinaturas. */
-const LIVE_ENGINES: (number | undefined)[] = [ENGINE_VERSION, ENGINE_VERSION_SIG];
-
 /** Partida em andamento desta fase, se ainda for do mesmo motor (senão recomeça do 0 a 0). */
 export const liveOf = (run: { stage: number; live?: LiveMatch | null } | null | undefined): LiveMatch | null =>
-    run?.live && run.live.stage === run.stage && LIVE_ENGINES.includes(run.live.engine) ? run.live : null;
-
-/** A partida (ou o replay) começou com as assinaturas: refazer com elas (`MatchConfig.maxSig`). */
-export const engineSig = (x: { engine?: number } | null | undefined) => x?.engine === ENGINE_VERSION_SIG;
+    run?.live && run.live.stage === run.stage && run.live.engine === ENGINE_VERSION ? run.live : null;
 
 export type NamesOnField = 'all' | 'mine' | 'none';
 export type ArrowSize = 'small' | 'medium' | 'large';
@@ -481,8 +472,7 @@ export interface GameStore {
     setCorner(patch: { cornerPlan?: CornerPlan; cornerTakerUid?: string | null }): void;
     moveItem(fromUid: string, toUid: string): void;
     setMatch(m: MatchResult | null): void;
-    /** `engine`: o motor da partida (`ENGINE_VERSION_SIG` com `?assinatura=1`); retomar usa o salvo. */
-    lockMatch(team: TeamSetup, engine?: number): void;
+    lockMatch(team: TeamSetup): void;
     /** Guarda as ordens e o ponto da partida em andamento. */
     saveLive(patch: Partial<Omit<LiveMatch, 'stage'>>): void;
     recordResult(m: MatchResult): void;
@@ -1376,7 +1366,7 @@ export const useGame = create<GameStore>()(
 
                 setMatch: (match) => setState({ match }),
 
-                lockMatch: (team, engine = ENGINE_VERSION) => {
+                lockMatch: (team) => {
                     const run = getState().run;
                     // titular que está fora não joga: a escalação pede pra trocar antes (nada automático)
                     if (run?.status === 'lineup' && !run.lockedTeam && !run.lineup.some((u) => isOut(run, u))) {
@@ -1385,7 +1375,7 @@ export const useGame = create<GameStore>()(
                             run: {
                                 ...run,
                                 lockedTeam: team,
-                                live: { stage: run.stage, orders: [], tick: 0, engine },
+                                live: { stage: run.stage, orders: [], tick: 0, engine: ENGINE_VERSION },
                             },
                             dex: opp ? seenDex([...opp.lineup, ...opp.bench]) : getState().dex,
                         });
@@ -1495,7 +1485,7 @@ export const useGame = create<GameStore>()(
                         result.replay = {
                             team: run.lockedTeam,
                             orders: liveOf(run)?.orders ?? [],
-                            engine: liveOf(run)?.engine ?? ENGINE_VERSION,
+                            engine: ENGINE_VERSION,
                         };
                     const last = isFinalStage(run);
                     result.final = last;

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { realtimeClient } from '../cloud/cloud';
-import { ENGINE_VERSION, ENGINE_VERSION_SIG } from '../engine/config';
+import { ENGINE_VERSION } from '../engine/config';
 import { DRAFT_PICKS } from '../engine/draft';
 import { DEFAULT_SPECIAL_LIMIT, type DuelTeamRecipe, type SpecialLimit } from '../engine/duel-validate';
 import type { PokemonInstance } from '../engine/instance';
@@ -8,7 +8,6 @@ import type { MatchResult } from '../engine/runners/batch-runner';
 import { EventBus } from '../game/EventBus';
 import type { PlaybackSpeed } from '../store/game-store';
 import { snapAt } from '../ui/match-view';
-import { MAX_ASSINATURA } from '../ui/max-beat';
 import {
     acceptTakeover,
     applyPreview,
@@ -1113,10 +1112,5 @@ export const duel = new DuelSession();
 
 /** Perfil do jogador pra sala (nome, avatar, título, clube e as versões). */
 export function makePeer(p: Omit<Peer, 'engine' | 'app'>): Peer {
-    // com ?assinatura=1 o motor é o 13: o lobby recusa quem está sem a bandeira (sai junto com ela)
-    return {
-        ...p,
-        engine: MAX_ASSINATURA ? ENGINE_VERSION_SIG : ENGINE_VERSION,
-        app: `${__APP_VERSION__}+${__APP_BUILD__}`,
-    };
+    return { ...p, engine: ENGINE_VERSION, app: `${__APP_VERSION__}+${__APP_BUILD__}` };
 }

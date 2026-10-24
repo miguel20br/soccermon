@@ -3479,12 +3479,12 @@ const maxTypeOf = (p: PlayerState) => maxFxType(p.inst.moves, p.inst.speciesId, 
 const FX_LIST = [...MAX_FX_TYPES];
 
 /**
- * Efeito do N3 de `p`: o do tipo (fase 1) ou, com `maxSig`, a assinatura da espécie (fase 2). Mew (Metronome) sorteia
+ * Efeito do N3 de `p`: a assinatura da espécie (fase 2, as 12 de `MAX_SIGNATURE`) ou o do tipo (fase 1). Mew (Metronome) sorteia
  * um tipo com o `rng` da partida; Ditto (Transform) copia o do capitão rival (Ditto contra Ditto, ou sem capitão: Normal).
  */
 function maxFxOf(s: MatchState, p: PlayerState, copy = false): string {
     // o Ditto já entra transformado (`origin`): a assinatura é a dele, não a da cópia
-    const sig = s.cfg.maxSig ? MAX_SIGNATURE[(p.origin ?? p.inst).speciesId] : undefined;
+    const sig = MAX_SIGNATURE[(p.origin ?? p.inst).speciesId];
     if (!sig) return maxTypeOf(p);
     if (sig === 'metronome') {
         emit(s, { type: 'maxFx', by: p.idx, fx: sig, step: 'hit', target: p.idx });
@@ -3731,9 +3731,9 @@ function gkMaxSave(s: MatchState, gk: PlayerState, max: { level: 1 | 2 | 3; q: M
     if (caught) gk.ai.holdUntil = s.tick + 3;
 }
 
-/** Assinatura do capitão goleiro na defesa máxima N3 (`MAX_SIGNATURE_GK`, só com `maxSig`). */
+/** Assinatura do capitão goleiro na defesa máxima N3 (`MAX_SIGNATURE_GK`, com `maxType`). */
 const gkSigOf = (s: MatchState, gk: PlayerState, max: { level: 1 | 2 | 3 }) =>
-    max.level === 3 && s.cfg.maxSig ? (MAX_SIGNATURE_GK[gk.inst.speciesId] ?? null) : null;
+    max.level === 3 && s.cfg.maxType ? (MAX_SIGNATURE_GK[gk.inst.speciesId] ?? null) : null;
 
 /** Snorlax no gol: deitado na frente do gol alcança `wallReach` em vez do x1,4 do N3. */
 const gkSigReach = (s: MatchState, gk: PlayerState, max: { level: 1 | 2 | 3 }) =>

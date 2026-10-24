@@ -157,7 +157,7 @@ export const SIGNATURE: Record<number, string> = {
 };
 
 /**
- * Assinatura do golpe máximo N3 (fase 2 de docs/planos/golpe-maximo-por-tipo.md, `MatchConfig.maxSig`): o capitão de
+ * Assinatura do golpe máximo N3 (fase 2 de docs/planos/golpe-maximo-por-tipo.md, motor 13): o capitão de
  * linha destas 12 espécies troca o efeito do tipo pelo dele (`AGENCY.maxSig`). Só a forma final (o Pikachu é a exceção
  * de propósito: é o mais icônico); evoluir no meio da copa destrava.
  */

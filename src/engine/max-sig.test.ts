@@ -11,7 +11,7 @@ import type { MatchEvent, MatchState, TeamSetup } from './state';
 import { v } from './vec';
 
 /**
- * Golpe máximo por Pokémon, fase 2 (assinaturas, `maxSig`): o mesmo lance de max-type.test.ts. Capitão (pivô, idx 4)
+ * Golpe máximo por Pokémon, fase 2 (assinaturas, motor 13): o mesmo lance de max-type.test.ts. Capitão (pivô, idx 4)
  * da espécie pedida a 10 m do gol com o N3 armado; goleiro rival (idx 5) no gol, um zagueiro (idx 6) na linha do chute
  * a 4 m do gol e o resto longe. O capitão chuta no tick 1.
  */
@@ -21,7 +21,8 @@ function team(seed: string): TeamSetup {
 
 interface Opts {
     seed?: string;
-    sig?: boolean;
+    /** Sem o efeito do N3 (`maxType: false`, o N3 de força pura): a base pra comparar. */
+    noType?: boolean;
     gk?: number;
     /** Capitão rival (idx 7) dessa espécie (o Ditto copia o efeito dele). */
     rivalCap?: number;
@@ -44,7 +45,7 @@ function scene(id: number, o: Opts = {}) {
               : p,
     );
     const away = { ...B, lineup: awayLine, captainUid: awayLine[o.rivalCap ? 2 : 0].uid };
-    const cfg = withConfig({ maxSig: o.sig ?? true });
+    const cfg = o.noType ? withConfig({ maxType: false }) : FUTSAL_5;
     const s = createMatch(cfg, home, away, o.seed ?? 'ms');
     s.phase = 'play';
     const far = [v(8, 3), v(8, 17), v(4, 10), v(12, 10), v(15, 5), v(15, 15), v(20, 3)];
@@ -89,17 +90,20 @@ const saved = (s: MatchState) => of(s, 'save').some((e) => e.by === 5);
 const noDef = { defAt: { x: 10, y: 2 } };
 
 describe('golpe máximo por Pokémon (fase 2, assinaturas)', () => {
-    it('12 assinaturas; sem a bandeira cada uma volta pro efeito do tipo (motor 12)', () => {
+    it('12 assinaturas, ligadas no FUTSAL_5; os outros capitães seguem com o efeito do tipo', () => {
         expect(Object.keys(MAX_SIGNATURE)).toHaveLength(12);
         for (const [id, sig] of Object.entries(MAX_SIGNATURE)) {
             expect(AGENCY.maxSig[sig]).toBeDefined();
             if (sig === 'metronome' || sig === 'transform') continue;
             expect(fxOf(scene(Number(id)))).toBe(sig);
-            const inst = createInstance(Number(id), new Rng('ms-cap', id));
-            const off = scene(Number(id), { sig: false });
-            expect(fxOf(off)).toBe(maxFxType(inst.moves, Number(id), off.players[4].sp.types));
         }
-        expect(FUTSAL_5.maxSig).toBeUndefined();
+        // Venusaur e Machamp não têm assinatura: o efeito é o do tipo
+        for (const id of [3, 68]) {
+            const s = scene(id);
+            const inst = createInstance(id, new Rng('ms-cap', String(id)));
+            expect(fxOf(s)).toBe(maxFxType(inst.moves, id, s.players[4].sp.types));
+        }
+        expect(FUTSAL_5.maxType).toBe(true);
     });
 
     it('Dragonite (Hyper Beam): fura todos os bloqueios e o goleiro alcança x0,85', () => {
@@ -116,8 +120,8 @@ describe('golpe máximo por Pokémon (fase 2, assinaturas)', () => {
         expect(slam.players[6].stun).toBeGreaterThan(0);
         expect(slam.players[6].status?.kind).toBe('par');
         expect(of(slam, 'maxFx').some((e) => e.step === 'hit' && e.target === 6)).toBe(true);
-        // sem a bandeira (efeito do Normal) ninguém perto cai no chute
-        expect(scene(143, { defAt: { x: 31, y: 12 }, sig: false }).players[6].stun).toBe(0);
+        // sem o efeito (N3 de força pura) ninguém perto cai no chute
+        expect(scene(143, { defAt: { x: 31, y: 12 }, noType: true }).players[6].stun).toBe(0);
         const s = until(143, saved, noDef);
         expect(s).not.toBeNull();
         const gk = s!.players[5];
@@ -130,7 +134,7 @@ describe('golpe máximo por Pokémon (fase 2, assinaturas)', () => {
         const B = team('ms-b');
         const snorlax = createInstance(143, new Rng('ms-gk-cap'));
         const home = { ...A, lineup: A.lineup.map((p, i) => (i === 0 ? snorlax : p)), captainUid: snorlax.uid };
-        const s = createMatch(withConfig({ maxSig: true }), home, B, 'ms-wall');
+        const s = createMatch(FUTSAL_5, home, B, 'ms-wall');
         s.phase = 'play';
         s.players[9].pos = v(8, 10);
         s.ball.owner = 9;
@@ -174,7 +178,7 @@ describe('golpe máximo por Pokémon (fase 2, assinaturas)', () => {
         const s = scene(6);
         expect(s.players[4].pos.x).toBeGreaterThan(31.5);
         expect(s.ball.vz).toBeGreaterThan(0);
-        const off = scene(6, { sig: false });
+        const off = scene(6, { noType: true });
         expect(off.players[4].pos.x).toBeLessThan(30.5);
         const burn = until(6, saved, noDef);
         expect(burn?.players[5].status?.kind).toBe('brn');
@@ -200,7 +204,8 @@ describe('golpe máximo por Pokémon (fase 2, assinaturas)', () => {
 
     it('Mewtwo (Psychic): curva mais que o Psíquico do tipo, pro canto longe do goleiro', () => {
         const sig = scene(150, { gkY: 9.3 }).ball.shot?.curve ?? 0;
-        const type = scene(150, { gkY: 9.3, sig: false }).ball.shot?.curve ?? 0;
+        // Alakazam: Psíquico puro, sem assinatura (a curva do efeito do tipo)
+        const type = scene(65, { gkY: 9.3 }).ball.shot?.curve ?? 0;
         expect(sig).toBeGreaterThan(0);
         expect(sig).toBeGreaterThanOrEqual(type);
         expect(scene(150, { gkY: 10.7 }).ball.shot?.curve).toBeLessThan(0);

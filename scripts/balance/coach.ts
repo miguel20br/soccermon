@@ -10,8 +10,8 @@
 // Golpe máximo por tipo (motor 12, golpe-maximo-por-tipo.md): MAXTIPO=1 liga o efeito do tipo (`MatchConfig.maxType`);
 // CAPTYPE=<tipo> (Fire, Water…) põe no time do robô, no rodízio, um capitão de linha com esse efeito; POLS=n3,n1 limita
 // as políticas do golpe máximo.
-// Assinaturas (fase 2): SIG=1 liga `maxSig` (motor 13, ?assinatura=1); CAPID=<id da espécie> põe essa espécie de
-// capitão do robô (na vaga natural dela, senão de pivô; com CAP=gk, no gol).
+// Assinaturas (fase 2, motor 13: ligadas junto com o efeito do tipo; NOTYPE=1 desliga os dois); CAPID=<id da espécie>
+// põe essa espécie de capitão do robô (na vaga natural dela, senão de pivô; com CAP=gk, no gol).
 import { writeFileSync } from 'node:fs';
 import { AGENCY, maxCharge } from '../../src/engine/agency';
 import { withConfig } from '../../src/engine/config';
@@ -28,16 +28,13 @@ const MECHS = (process.argv[5] ?? 'timeout,flyGk,max,pens,all').split(',');
 const CAP_GK = process.env.CAP === 'gk';
 const LEAD = 40 * SPEED;
 const RIVAL = process.env.RIVAL === '1';
-const SIG = process.env.SIG === '1';
 const CAPID = Number(process.env.CAPID) || 0;
 const CFG =
     process.env.NOTYPE === '1'
         ? withConfig({ maxType: false })
-        : SIG
-          ? withConfig({ maxSig: true })
-          : process.env.MAXTIPO === '1'
-            ? withConfig({ maxType: true })
-            : FUTSAL_5;
+        : process.env.MAXTIPO === '1'
+          ? withConfig({ maxType: true })
+          : FUTSAL_5;
 const CAPTYPE = process.env.CAPTYPE;
 const POLS = process.env.POLS?.split(',');
 /** Espécies (forma de linha) cujo efeito N3 é o tipo pedido, com o golpe que a carta traz. */

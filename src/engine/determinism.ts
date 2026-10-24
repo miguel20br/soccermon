@@ -99,7 +99,7 @@ export function determinismHashes(): string[] {
     // golpe máximo por tipo (`maxType`): o N3 com o efeito do tipo do capitão, dos dois lados
     // (t5: o Psíquico do robô; t10: o Psíquico do capitão do Lance)
     hashes.push(eventsHash(maxTypeMatch('t5')), eventsHash(maxTypeMatch('t10')));
-    // assinaturas (`maxSig`, motor 13 com ?assinatura=1): Mew sorteia o tipo no `rng`, Dragonite fura tudo e Ditto
+    // assinaturas (motor 13): Mew sorteia o tipo no `rng`, Dragonite fura tudo e Ditto
     // copia o Metronome do Mew do capitão rival
     hashes.push(...[151, 149, 132].map((sp, k) => eventsHash(maxTypeMatch(['s2', 's3', 's9'][k], 4, sp))));
     // patrocínios de campo do motor 12 (Charanga liga e desliga a cada gol, Preparador, Clube Formador) dos dois lados
@@ -123,14 +123,14 @@ export function determinismHashes(): string[] {
  */
 export function maxTypeMatch(seed: string, capSlot = 4, sigSpecies?: number): MatchEvent[] {
     const base = team(`${seed}-a`, 'A', 3, { manualSubs: true });
-    // com `sigSpecies`: esse capitão no lugar e as assinaturas ligadas (`maxSig`)
+    // com `sigSpecies`: esse capitão no lugar (uma das 12 assinaturas)
     const lineup = sigSpecies
         ? base.lineup.map((p, i) => (i === capSlot ? createInstance(sigSpecies, new Rng(seed, 'sig')) : p))
         : base.lineup;
     const home = { ...base, lineup };
     const away: TeamSetup = { ...team(`${seed}-b`, 'B', 3), coach: 'lance' };
     const live = new LiveRunner(
-        withConfig({ maxType: true, maxSig: !!sigSpecies }),
+        withConfig({ maxType: true }),
         { ...home, captainUid: home.lineup[capSlot].uid },
         away,
         seed,

@@ -8,7 +8,7 @@ import { has } from '../../engine/sponsors';
 import { isAgencyOrder, type MatchEvent, type MatchOrder, type MaxGrade, type TeamSetup } from '../../engine/state';
 import { useT } from '../../i18n/react';
 import { captainAt, MAX_CUE_EARLY, MAX_CUE_LATCH, maxCueNear, roleAt } from '../match-view';
-import { beatPhase, MAX_ASSINATURA, maxGradeNow } from '../max-beat';
+import { beatPhase, maxGradeNow } from '../max-beat';
 import { useSwapMotion } from '../swap-motion';
 import { HudIcon, hex } from './MatchHud';
 import { TypeIcon } from './TypeIcon';
@@ -78,21 +78,17 @@ export function maxCueAt(m: MatchResult, setups: [TeamSetup, TeamSetup], side: 0
     return maxCueNear(m.snapshots, tick - MAX_CUE_LATCH, tick + MAX_CUE_EARLY, side, cap, roleAt(m, setups, cap, tick));
 }
 
-/** Efeito do N3 do capitão do time `side`: a mesma regra do motor (`maxFxType`; com `?assinatura=1`, a assinatura). */
+/** Efeito do N3 do capitão do time `side`: a mesma regra do motor (a assinatura dos 12 ou `maxFxType`). */
 export function capFxType(
     m: MatchResult,
     setups: [TeamSetup, TeamSetup],
     side: 0 | 1,
     tick: number,
-    /** A partida corre com as assinaturas (a copa retomada usa a do save, não a da URL). */
-    sig = MAX_ASSINATURA,
 ): string | undefined {
     const cap = captainAt(m, setups, side, tick);
     const inst = [...setups[side].lineup, ...setups[side].bench].find((p) => p.uid === cap.uid);
     if (!inst || !cap.speciesId) return undefined;
-    const own = sig ? MAX_SIGNATURE[inst.speciesId] : undefined;
-    if (own) return own;
-    return maxFxType(inst.moves, cap.speciesId, species(cap.speciesId).types);
+    return MAX_SIGNATURE[inst.speciesId] ?? maxFxType(inst.moves, cap.speciesId, species(cap.speciesId).types);
 }
 
 /**

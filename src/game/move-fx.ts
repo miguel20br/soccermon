@@ -1707,7 +1707,7 @@ const MOVE_FX: Record<string, Recipe> = {
     bubblebeam: R('beam', (k) => k.beam('bubbles')),
     surf: R('wave', (k) => k.surf()),
 
-    // Assinaturas do golpe máximo N3 (fase 2, ?assinatura=1): uma receita própria por Pokémon (`sig:<efeito>`)
+    // Assinaturas do golpe máximo N3 (fase 2, motor 13): uma receita própria por Pokémon (`sig:<efeito>`)
     'sig:hyperbeam': R('beam', (k) => {
         k.absorbIn(0xffa040, 'shine', 10, 360);
         k.later(360, () => {

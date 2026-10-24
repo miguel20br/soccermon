@@ -2292,7 +2292,7 @@ export class MatchScene extends Phaser.Scene {
                 const name = dict().match.agency.maxFx[e.fx] ?? [e.fx, '!'];
                 const type = fxTypeOf(e.fx);
                 const color = TYPE_COLOR[type] ?? '#ffd447';
-                // assinatura (fase 2, ?assinatura=1): receita própria `sig:<efeito>` em vez da receita do tipo
+                // assinatura (fase 2): receita própria `sig:<efeito>` em vez da receita do tipo
                 const sig = MAX_FX_RECIPE[e.fx] ? null : `sig:${e.fx}`;
                 const cast = (moveId: string) =>
                     castMove({

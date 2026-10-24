@@ -18,9 +18,9 @@ const EXPECTED_HASHES = [
     '3cd48072',
     '7c29f312',
     '46aa6dda',
-    'bbab3738',
-    '7977a841',
-    // assinaturas do golpe máximo (`maxSig`, motor 13 só com ?assinatura=1): Mew, Dragonite e Ditto
+    'c3835df1',
+    '514e5d11',
+    // assinaturas do golpe máximo (motor 13): Mew, Dragonite e Ditto
     'ed6ec28f',
     '72b9380f',
     'e9f23978',

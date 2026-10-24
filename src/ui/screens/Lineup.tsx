@@ -1,7 +1,6 @@
 import { type ReactNode, useRef, useState } from 'react';
 import { computeAttributes } from '../../engine/attributes';
 import { relampagoBracket } from '../../engine/bracket';
-import { ENGINE_VERSION, ENGINE_VERSION_SIG } from '../../engine/config';
 import { CLUBS, cupRival } from '../../engine/cup';
 import { species } from '../../engine/data';
 import { FORMATIONS, type FormationId, hasEdge } from '../../engine/formations';
@@ -14,7 +13,7 @@ import { type CornerPlan, TACTIC_LABEL, type Tactic } from '../../engine/state';
 import { computeSynergies } from '../../engine/synergy';
 import { clubName, cupStageName, dict, formationText, itemDesc, itemName, tn } from '../../i18n';
 import { useT } from '../../i18n/react';
-import { engineSig, liveOf, playerTeam, type SlotRef, useGame } from '../../store/game-store';
+import { liveOf, playerTeam, type SlotRef, useGame } from '../../store/game-store';
 import { isFinalStage, isLong, isOut, type OutWhy, outOf } from '../../store/long-cup';
 import { useCardModal } from '../card-modal';
 import { BracketPeek, bracketRivals, bracketYou } from '../components/Bracket';
@@ -29,7 +28,6 @@ import { Money, SponsorSlots } from '../components/SponsorCard';
 import { leaveWith } from '../feedback';
 import { edgeAgainst, FORMATION_ICON } from '../formation-info';
 import { Tip } from '../help/Tip';
-import { MAX_ASSINATURA } from '../max-beat';
 import { useClubColor } from '../profile/club';
 import { lineupAverage } from '../rating';
 import { simulateMatch } from '../sim-client';
@@ -75,21 +73,13 @@ export function Lineup() {
         // a partida trava o time: sair no meio e voltar retoma a mesma partida
         // save da 0.6 não tinha manualSubs: nada automático no time do jogador
         const team = run.lockedTeam ? { ...run.lockedTeam, manualSubs: true } : playerTeam(run);
-        // o motor da partida fica no save (com ?assinatura=1, o 13): retomar sem a bandeira dá a mesma partida
-        lockMatch(team, MAX_ASSINATURA ? ENGINE_VERSION_SIG : ENGINE_VERSION);
+        lockMatch(team);
         setLoading(true);
         setError(null);
         try {
             // retomando: as mesmas ordens do técnico (tática/substituições) dão a mesma partida
-            const live = liveOf(useGame.getState().run);
-            const result = await simulateMatch(
-                team,
-                cupRival(opponent, true),
-                `${seed}-stage-${stage}`,
-                live?.orders ?? [],
-                undefined,
-                engineSig(live),
-            );
+            const orders = liveOf(useGame.getState().run)?.orders ?? [];
+            const result = await simulateMatch(team, cupRival(opponent, true), `${seed}-stage-${stage}`, orders);
             // só abre a partida se o jogador ainda está nesta tela, nesta run e nesta fase
             const now = useGame.getState();
             if (now.screen !== 'lineup' || now.run?.seed !== seed || now.run.stage !== stage) return;
