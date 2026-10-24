@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { backTarget, guardAction } from './back-nav';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { backTarget, guardAction, installBackNav } from './back-nav';
 
 describe('voltar do sistema', () => {
     it('mapeia a tela para o destino do voltar', () => {
@@ -14,5 +14,30 @@ describe('voltar do sistema', () => {
         expect(guardAction('lineup', true)).toBe('none');
         expect(guardAction('home', true)).toBe('pop');
         expect(guardAction('home', false)).toBe('none');
+    });
+    afterEach(() => vi.unstubAllGlobals());
+    it('recarregou com a guarda no histórico e abriu na Home: limpa a marca sem voltar (não sai do jogo)', () => {
+        const history = {
+            state: { soccermonBack: 1 } as unknown,
+            back: vi.fn(),
+            pushState: vi.fn(),
+            replaceState: vi.fn((s: unknown) => {
+                history.state = s;
+            }),
+        };
+        vi.stubGlobal('window', { history, addEventListener: vi.fn(), removeEventListener: vi.fn() });
+        // StrictMode no dev: monta, desmonta e monta de novo
+        installBackNav(
+            () => 'home',
+            () => () => {},
+            vi.fn(),
+        )();
+        installBackNav(
+            () => 'home',
+            () => () => {},
+            vi.fn(),
+        );
+        expect(history.back).not.toHaveBeenCalled();
+        expect(history.state).toBeNull();
     });
 });

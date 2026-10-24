@@ -32,6 +32,12 @@ export function installBackNav(
     onBack: (screen: Screen) => void,
 ): () => void {
     let guarded = isGuard(window.history.state);
+    // recarregou fora da Home: a guarda velha veio junto e o jogo abre na Home. Só tira a marca; voltar aqui sairia
+    // do jogo (no dev, com o efeito montado duas vezes, voltava duas entradas e caía na página anterior)
+    if (guarded && getScreen() === 'home') {
+        window.history.replaceState(null, '');
+        guarded = false;
+    }
     let ignore = 0;
     const sync = () => {
         const act = guardAction(getScreen(), guarded);
