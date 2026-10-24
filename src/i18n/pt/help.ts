@@ -617,6 +617,7 @@ export const help = {
             'Vitória dá ₽. Gaste no Mercado ou guarde pra render juros.',
         ],
         rotaGrupo: ['Aqui a derrota não dá cartão.'],
+        rotaNova: ['Agora tem a Rota Índigo: uma copa longa, com os ginásios de Kanto.'],
         relampago: ['Mata-mata de 4 jogos: perdeu, acabou. Escolha a formação.'],
         relampagoDraft: [
             'Monta pra mim escala o time num toque. Quer escolher? Toque numa vaga: saem 3 e você leva 1.',

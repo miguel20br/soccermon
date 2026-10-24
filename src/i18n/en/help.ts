@@ -588,6 +588,7 @@ export const help: typeof pt = {
             'Wins pay ₽. Spend it at the Market or save it to earn interest.',
         ],
         rotaGrupo: ['Losing here costs no card.'],
+        rotaNova: ['Now there is Indigo Road: a long cup through the Kanto gyms.'],
         relampago: ['4-game knockout: lose and you are out. Pick a formation.'],
         relampagoDraft: ['Auto-draft fills the team in one tap. Want to pick? Tap a slot: 3 show up and you keep 1.'],
         relampagoJogo: ['Change tactics and make subs during the match. Players who play a lot evolve.'],

@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
 import { placeBalloon } from '../ui/coach/place';
-import { COACH_GROUPS, COACH_IDS, coachSeen, isFirstVisit, whenHydrated } from './coach';
+import { COACH_GROUPS, COACH_IDS, coachSeen, isFirstVisit, rotaNovaDue, whenHydrated } from './coach';
 import { DEFAULT_SETTINGS, migrateSave, type PersistedSave, withUnlocks } from './game-store';
 import { mergeProfileUnlocks } from './missions';
 import { DEFAULT_PROFILE, EMPTY_CAREER } from './profile';
@@ -67,6 +67,18 @@ describe('balões do tutorial: o que já foi jogado não aparece', () => {
 
     it('todo id tem grupo e Pular vale pro grupo do próprio id', () => {
         for (const id of COACH_IDS) expect(COACH_GROUPS[id]).toContain(id);
+    });
+});
+
+describe('balão da Rota Índigo (rotaNova)', () => {
+    const one = { cups: 1 };
+    it('só depois da 1ª copa, com a Home de 1ª visita já vista, e uma vez só', () => {
+        expect(rotaNovaDue({ cups: 0 }, ['intro'])).toBe(false);
+        expect(rotaNovaDue(one, [])).toBe(false);
+        expect(rotaNovaDue(one, ['intro'])).toBe(true);
+        expect(rotaNovaDue(one, ['intro', 'rotaNova'])).toBe(false);
+        expect(rotaNovaDue({ cups: 2 }, ['intro'])).toBe(false);
+        expect(rotaNovaDue({ cups: 1, longCups: 1 }, ['intro'])).toBe(false);
     });
 });
 

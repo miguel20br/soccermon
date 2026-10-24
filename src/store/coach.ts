@@ -9,6 +9,7 @@ export const COACH_IDS = [
     'intro',
     'rota',
     'rotaGrupo',
+    'rotaNova',
     'relampago',
     'relampagoDraft',
     'relampagoJogo',
@@ -26,6 +27,7 @@ export const COACH_GROUPS: Record<CoachId, readonly CoachId[]> = {
     intro: ['intro'],
     rota: ['rota'],
     rotaGrupo: ['rotaGrupo'],
+    rotaNova: ['rotaNova'],
     relampago: RELAMPAGO,
     relampagoDraft: RELAMPAGO,
     relampagoJogo: RELAMPAGO,
@@ -71,6 +73,10 @@ export function whenHydrated(
 
 /** 1ª visita: nada jogado em modo nenhum (nem copa começada). A Home mostra só o "Jogar". */
 export const isFirstVisit = (s: History) => coachPlayed(s).length === 0;
+
+/** "Agora tem a Rota Índigo": só na Home completa logo depois da 1ª copa, pra quem ainda não jogou a Rota. */
+export const rotaNovaDue = (records: { cups: number; longCups?: number }, coach: readonly string[] | undefined) =>
+    records.cups === 1 && !records.longCups && coachSeen(coach, 'intro') && !coachSeen(coach, 'rotaNova');
 
 /** Save de antes dos balões: `coach` nasce com o que a pessoa já jogou. Quem já tem o campo fica como está. */
 export function withCoachBaseline(s: PersistedSave): PersistedSave {

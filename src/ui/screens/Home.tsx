@@ -18,7 +18,7 @@ import { FriendChallenge } from '../profile/FriendsTab';
 import { TYPE_COLOR } from '../type-colors';
 import { HomeDailyCard } from './Daily';
 import '../home-motion.css';
-import { isFirstVisit } from '../../store/coach';
+import { isFirstVisit, rotaNovaDue } from '../../store/coach';
 import { type CupMode, cupLength, isLong, LONG_CUP_LIVE, lossColor } from '../../store/long-cup';
 import { Coach, markSeen, useHydrated } from '../coach/Coach';
 import { ComingSoon } from '../components/ComingSoon';
@@ -282,6 +282,13 @@ export function Home() {
             ) : (
                 <>
                     <Coach id="intro" targets={['[data-coach="quick"]', '[data-coach="help"]']} />
+                    {LONG_CUP_LIVE && (
+                        <Coach
+                            id="rotaNova"
+                            targets={['[data-coach="rota"]']}
+                            when={rotaNovaDue(records, profile.coach)}
+                        />
+                    )}
                     <DexProgress />
 
                     {/* o nome vale pra Rota e pra Relâmpago: fica acima dos dois cartões */}
@@ -327,6 +334,7 @@ export function Home() {
                                         <button
                                             type="button"
                                             className={`btn big cup-go cup-go-long ${red === 'rota' ? 'primary' : 'outline'}`}
+                                            data-coach="rota"
                                             onClick={() => start(undefined, 'longa')}
                                         >
                                             <span className="cup-go-txt">
