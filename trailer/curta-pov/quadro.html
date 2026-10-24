@@ -1,0 +1,284 @@
+<!doctype html>
+<!--
+  Curta "POV: você segurou o golpe até o nível 3" (9:16). Uma página que desenha UM quadro por chamada (montar.mjs
+  chama window.quadro(estado) e lê o canvas): a quadra gravada do jogo recortada em volta do lance (3x, pixel nítido),
+  a barra de 3 gomos, o botão do golpe máximo de verdade (print do jogo, 3x) e o polegar de quem joga. Tudo centrado
+  em x 540; título entre y 120 e 330.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<style>
+  html, body { margin: 0; background: #070a18; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>
+const c = document.getElementById('c');
+const g = c.getContext('2d');
+g.imageSmoothingEnabled = false;
+const INK = '#0e1430';
+const OURO = '#ffcb05';
+const imgs = new Map();
+const carrega = (src) => {
+  if (!imgs.has(src))
+    imgs.set(src, new Promise((ok, erro) => {
+      const im = new Image();
+      im.onload = () => ok(im);
+      im.onerror = () => erro(new Error(src));
+      im.src = src;
+    }));
+  return imgs.get(src);
+};
+
+// polegar em pixel art (16 colunas; a ponta pra cima); escala 9
+const DEDO = [
+  '.....OOOOOO.....',
+  '....ONNNNNNO....',
+  '...ONLLNNNNNO...',
+  '...ONLNNNNNNO...',
+  '...ONNNNNNNNO...',
+  '...OSNNNNNNSO...',
+  '...OSSNNNNSSO...',
+  '...OSSSSSSSDO...',
+  '...OSSSSSSSDO...',
+  '...OSSSSSSSDO...',
+  '...OSSSSSSSDO...',
+  '..OSSSSSSSSDO...',
+  '..OSSSSSSSSSDO..',
+  '.OSSSSSSSSSSDO..',
+  '.OSSSSSSSSSSDO..',
+  'OSSSSSSSSSSSSDO.',
+  'OSSSSSSSSSSSSDO.',
+  'OSSSSSSSSSSSSSDO',
+];
+const COR = { O: INK, S: '#f2b48a', D: '#d98a62', N: '#fde3d0', L: '#ffffff' };
+function dedo(x, y, px = 12) {
+  // x,y = a ponta (meio da unha, em cima); o resto desce até o fim da tela
+  const x0 = Math.round(x - 8 * px);
+  DEDO.forEach((linha, r) => {
+    [...linha].forEach((ch, k) => {
+      if (ch === '.') return;
+      g.fillStyle = COR[ch];
+      g.fillRect(x0 + k * px, Math.round(y + r * px), px, px);
+    });
+  });
+  const ult = DEDO.at(-1);
+  const y1 = Math.round(y + DEDO.length * px);
+  [...ult].forEach((ch, k) => {
+    if (ch === '.') return;
+    g.fillStyle = COR[ch];
+    g.fillRect(x0 + k * px, y1, px, 1920 - y1);
+  });
+}
+
+function texto(t, x, y, tam, cor = '#fff', borda = 14) {
+  g.font = `700 ${tam}px Galmuri11`;
+  g.textAlign = 'center';
+  g.textBaseline = 'alphabetic';
+  g.lineJoin = 'round';
+  g.lineWidth = borda;
+  g.strokeStyle = INK;
+  g.strokeText(t, x, y);
+  g.fillStyle = cor;
+  g.fillText(t, x, y);
+}
+/** Linha com pedaços de cores diferentes, centrada. */
+function textoCores(partes, x, y, tam) {
+  g.font = `700 ${tam}px Galmuri11`;
+  const w = partes.reduce((s, [t]) => s + g.measureText(t).width, 0);
+  let cx = x - w / 2;
+  for (const [t, cor] of partes) {
+    const tw = g.measureText(t).width;
+    texto(t, cx + tw / 2, y, tam, cor);
+    cx += tw;
+  }
+}
+
+function caixa(x, y, w, h, r) {
+  g.beginPath();
+  g.roundRect(x, y, w, h, r);
+}
+
+const CAP = new URLSearchParams(location.search).get('cap') ?? '6';
+async function telaFinal(f) {
+  // raios cônicos do fundo de marca
+  g.save();
+  g.globalAlpha = 0.07 * f.entra;
+  g.translate(540, 760);
+  for (let k = 0; k < 20; k++) {
+    g.rotate((Math.PI * 2) / 20);
+    g.beginPath();
+    g.moveTo(0, 0);
+    g.lineTo(-90, -1400);
+    g.lineTo(90, -1400);
+    g.fillStyle = '#fff';
+    g.fill();
+  }
+  g.restore();
+  const logo = await carrega('../../public/assets/ui/logo.svg');
+  const lw = 920 * f.logo;
+  const lh = (lw * 300) / 1441.4;
+  g.save();
+  g.globalAlpha = f.entra;
+  g.imageSmoothingEnabled = true;
+  g.drawImage(logo, 540 - lw / 2, 470 - lh / 2 + (1 - f.entra) * 40, lw, lh);
+  g.imageSmoothingEnabled = false;
+  // o capitão em pé em cima da barra cheia, pulando no gancho
+  const sp = await carrega(`../../public/assets/field/${CAP}.png`);
+  const [sx, sy, sw, sh] = f.sprite.rect;
+  const k = 9;
+  g.beginPath();
+  g.ellipse(540, 1240, 150, 34, 0, 0, Math.PI * 2);
+  g.fillStyle = 'rgba(0,0,0,0.35)';
+  g.fill();
+  g.drawImage(sp, sx, sy, sw, sh, 540 - (sw * k) / 2, 1250 - sh * f.sprite.pe * k, sw * k, sh * k);
+  g.restore();
+  if (f.site > 0) {
+    g.globalAlpha = f.site;
+    texto('soccermon.com', 540, 1620 + (1 - f.site) * 30, 92, '#fff', 16);
+    g.globalAlpha = 1;
+  }
+}
+
+// estado: { fundo, quadra: {src, sx, sy, sw, sh}, flash, gomos, gomoBrilho[], botao: {...}, dedo: {...}, titulo }
+window.quadro = async (e) => {
+  // fundo de marca: azul-noite radial
+  const gr = g.createRadialGradient(540, 760, 60, 540, 900, 1300);
+  gr.addColorStop(0, '#2a3a7a');
+  gr.addColorStop(1, '#070a18');
+  g.fillStyle = gr;
+  g.fillRect(0, 0, 1080, 1920);
+
+  if (e.fim) await telaFinal(e.fim);
+
+  // título
+  if (e.titulo > 0) {
+    g.globalAlpha = e.titulo;
+    texto('POV: você segurou o', 540, 218, 74);
+    textoCores([['golpe até o ', '#fff'], ['NÍVEL 3', OURO]], 540, 312, 74);
+    g.globalAlpha = 1;
+  }
+
+  // a quadra
+  const Q = { x: 60, y: 372, w: 960, h: 960 };
+  if (e.quadra) {
+    const im = await carrega(e.quadra.src);
+    g.save();
+    g.translate(e.treme?.[0] ?? 0, e.treme?.[1] ?? 0);
+    caixa(Q.x, Q.y, Q.w, Q.h, 34);
+    g.save();
+    g.clip();
+    g.imageSmoothingEnabled = e.quadra.sw > 330 ? true : false;
+    g.drawImage(im, e.quadra.sx, e.quadra.sy, e.quadra.sw, e.quadra.sh, Q.x, Q.y, Q.w, Q.h);
+    g.imageSmoothingEnabled = false;
+    if (e.flash) {
+      g.fillStyle = `rgba(255,255,255,${e.flash})`;
+      g.fillRect(Q.x, Q.y, Q.w, Q.h);
+    }
+    g.restore();
+    caixa(Q.x, Q.y, Q.w, Q.h, 34);
+    g.lineWidth = 12;
+    g.strokeStyle = INK;
+    g.stroke();
+    caixa(Q.x + 9, Q.y + 9, Q.w - 18, Q.h - 18, 26);
+    g.lineWidth = 5;
+    g.strokeStyle = 'rgba(120,140,220,0.55)';
+    g.stroke();
+    g.restore();
+  }
+
+  // a barra de 3 gomos (o que o jogador está segurando)
+  {
+    const W = 270, H = 46, gap = 22, y = 1372;
+    const x0 = 540 - (3 * W + 2 * gap) / 2;
+    for (let i = 0; i < 3; i++) {
+      const x = x0 + i * (W + gap);
+      const on = e.gomos > i;
+      const br = e.gomoBrilho?.[i] ?? 0;
+      caixa(x - 6, y - 6, W + 12, H + 12, 16);
+      g.fillStyle = INK;
+      g.fill();
+      caixa(x, y, W, H, 11);
+      g.fillStyle = on ? OURO : '#232c5c';
+      g.fill();
+      if (!on && i === e.gomos && e.enche > 0) {
+        caixa(x, y, W * e.enche, H, 11);
+        g.fillStyle = '#b8901a';
+        g.fill();
+      }
+      if (on) {
+        caixa(x + 8, y + 7, W - 16, 10, 5);
+        g.fillStyle = 'rgba(255,255,255,0.55)';
+        g.fill();
+      }
+      if (br > 0) {
+        g.save();
+        g.globalAlpha = br;
+        g.shadowColor = '#fff6b0';
+        g.shadowBlur = 40;
+        caixa(x, y, W, H, 11);
+        g.fillStyle = '#fff6c8';
+        g.fill();
+        g.restore();
+      }
+      texto(`N${i + 1}`, x + W / 2, y + H + 52, 34, on ? OURO : '#6f7bb8', 9);
+    }
+  }
+
+  // o botão do jogo (print 3x da linha .sl-cue-row) e o polegar
+  if (e.botao) {
+    const im = await carrega(e.botao.src);
+    const b = e.botao;
+    const k = b.escala; // px na tela por px do print
+    const w = im.width * k;
+    const h = im.height * k;
+    const x = 540 - w / 2;
+    const y = b.y;
+    g.save();
+    g.globalAlpha = b.alfa;
+    // cada botão desenhado à parte, com o "apertado" (encolhe) e o clarão
+    for (const [nome, r] of Object.entries(b.rects)) {
+      if (!r) continue;
+      const [rx, ry, rw, rh] = r.map((v) => v * 3);
+      const ap = b.aperta?.[nome] ?? 0;
+      const s = 1 - 0.07 * ap;
+      const cx = x + (rx + rw / 2) * k;
+      const cy = y + (ry + rh / 2) * k;
+      const dw = rw * k * s;
+      const dh = rh * k * s;
+      g.save();
+      // 2 px css pra dentro: a borda do print traz um fio do fundo da página
+      const m = 2 * 3 * k;
+      caixa(cx - dw / 2 + m, cy - dh / 2 + m, dw - 2 * m, dh - 2 * m, 11 * 3 * k);
+      g.clip();
+      g.drawImage(im, rx, ry, rw, rh, cx - dw / 2, cy - dh / 2, dw, dh);
+      g.restore();
+      const cl = b.clarao?.[nome] ?? 0;
+      if (cl > 0) {
+        g.save();
+        g.globalAlpha = cl * b.alfa;
+        caixa(cx - dw / 2, cy - dh / 2, dw, dh, 18 * k);
+        g.fillStyle = '#fff';
+        g.fill();
+        g.restore();
+      }
+    }
+    g.restore();
+  }
+  if (e.dedo) dedo(e.dedo.x, e.dedo.y);
+  if (e.flashTela) {
+    g.fillStyle = `rgba(255,255,255,${e.flashTela})`;
+    g.fillRect(0, 0, 1080, 1920);
+  }
+  return c.toDataURL('image/png');
+};
+window.pronto = (async () => {
+  const f = new FontFace('Galmuri11', 'url(../../public/fonts/Galmuri11-Bold.woff2)', { weight: '700' });
+  document.fonts.add(await f.load());
+})();
+</script>
+</body>
+</html>

@@ -50,7 +50,8 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * (barra cheia, capitão Dragonite com a bola na zona); `&goleiro=1`: capitão Snorlax no gol (defesa máxima);
  * `&capitao=<id>`: outro pivô capitão (com `&nivel=3`: o efeito do tipo dele no N3, ex. 3 Grama, 68 Lutador; os 12 de
  * `MAX_SIGNATURE` têm a assinatura, ex. 149 Hiper Raio, 143 Pancada; com `&goleiro=1` o Snorlax deita no gol).
- * `&k=N`: pula as N primeiras copas (outra jogada, se a primeira não acender).
+ * `&k=N`: pula as N primeiras copas (outra jogada, se a primeira não acender). `&desde=T`: começa no tick T (0 = do
+ * apito inicial).
  * `?demo=charanga` abre na escalação uma partida com a Charanga de Pewter em que, ao começar, o rival está a 4 s de
  * abrir o placar (o aviso "A CHARANGA ENTROU" vem logo depois do gol).
  * `?demo=virada` abre na escalação uma partida que, ao começar, está a 4 s do gol que põe o seu time na frente no
@@ -527,7 +528,14 @@ export function runDevDemo() {
                     at = s.tick;
             }
             if (at === null || at < 200) continue;
-            const saved = { stage: 0, orders: [], tick: at - 40, engine: ENGINE_VERSION };
+            // &desde=T: começa no tick T (0 = do apito inicial; o curta POV grava o N1, o N2 e o N3 da mesma partida)
+            const desde = new URLSearchParams(window.location.search).get('desde');
+            const saved = {
+                stage: 0,
+                orders: [],
+                tick: desde === null ? at - 40 : Number(desde),
+                engine: ENGINE_VERSION,
+            };
             useGame.setState({ run: { ...run, lockedTeam: team, live: saved }, screen: 'lineup' });
             console.info(`[demo] copa ${run.seed}: golpe máximo na hora no tick ${at}`);
             return;
