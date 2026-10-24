@@ -51,7 +51,7 @@ Polimento combinado em 15/10/2026 (antes de divulgar):
 - [x] "Como jogar" curto na primeira copa (3–4 dicas que dá pra fechar e não voltam)
 - [x] Botão "Dar feedback / reportar bug" na Home e no resultado, apontando pro Discussions
 - [x] Celular deitado: "Nova copa" fica abaixo da dobra (diminuir quadra/logo; visual: decidir com o Miguel)
-- [ ] Quadra em pé: nomes dos Pokémon se embolam (esconder quando juntos ou só os do seu time; decidir)
+- [x] Quadra em pé: nomes dos Pokémon se embolam (regra de prioridade + nome curto de 5 letras antes de esconder; A+C, 23/10/2026)
 
 Depois do lançamento: contador anônimo de jogadores (Vercel Analytics + página de privacidade), Phaser
 carregado só na partida (Home mais rápida; JS hoje ~600 KB gzip), monitoramento de erros, melhores momentos

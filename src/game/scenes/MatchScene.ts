@@ -56,6 +56,7 @@ import { EventBus } from '../EventBus';
 import { blinkSchedule, evolutionView, RIVAL_EVO_MS } from '../evolution-view';
 import { drawStars, drawStatusIcon, dust, effectWord, readableColor, shockwave } from '../hit-fx';
 import { hurtSecondsAt, type Reaction, reactionFor, spanAt, WORD_RANK } from '../hit-react';
+import { firstFit, labelText, type Rect } from '../label-fit';
 import { castMove, preloadMoveFx } from '../move-fx';
 import { cutPortraitBg } from '../portrait-cut';
 
@@ -498,6 +499,7 @@ export class MatchScene extends Phaser.Scene {
     private linePos = new Map<number, { x: number; y: number }>();
     private viewPos = new Map<number, { x: number; y: number }>();
     private uiScale = 1;
+    private readonly labelWidths = new Map<string, number>();
     private unbind?: () => void;
     /** O jogador tocou em "Esperar" no golpe máximo (Match.tsx, `maxWaitNext`): sem câmera lenta até a tela soltar. */
     private maxWait = false;
@@ -987,9 +989,7 @@ export class MatchScene extends Phaser.Scene {
      * sair de cima do outro (fila dos pênaltis, saída de bola), e o status acompanha.
      */
     private declutterLabels(owner: number, dt: number) {
-        const placed: { x0: number; x1: number; y0: number; y1: number }[] = [];
-        const hit = (x0: number, x1: number, y0: number, y1: number) =>
-            placed.some((r) => x0 < r.x1 && x1 > r.x0 && y0 < r.y1 && y1 > r.y0);
+        const placed: Rect[] = [];
         if (this.scale.displaySize.width < COMPACT_W) {
             const rank = (v: PlayerView) =>
                 (this.players.indexOf(v) === owner ? 0 : 4) + (v.team === this.mine ? 0 : 2) + (v.captain ? 0 : 1);
@@ -998,17 +998,24 @@ export class MatchScene extends Phaser.Scene {
                 .sort((a, b) => rank(a) - rank(b));
             const step = Math.min(1, dt / CROWD_FADE_MS);
             for (const v of views) {
-                const w = v.label.width;
+                // inteiro primeiro; se cruzar, o curto; só some se o curto também cruzar
+                const rects = [false, true].map((short) => {
+                    const w = this.labelWidth(v, short);
+                    const x0 = v.label.x - w / 2;
+                    return { x0, x1: x0 + w, y0: v.label.y, y1: v.label.y + v.label.height };
+                });
+                const fit = firstFit(placed, rects);
+                const crowded = fit < 0;
+                this.setLabelText(v, fit !== 0);
+                if (!crowded) placed.push(rects[fit]);
                 const h = v.label.height;
-                const x0 = v.label.x - w / 2;
-                const crowded = hit(x0, x0 + w, v.label.y, v.label.y + h);
-                if (!crowded) placed.push({ x0, x1: x0 + w, y0: v.label.y, y1: v.label.y + h });
                 v.crowd = Phaser.Math.Clamp(v.crowd + (crowded ? -step : step), 0, 1);
                 v.label.setAlpha(v.crowd);
                 v.badge.y = v.label.y + h * v.crowd;
             }
             return;
         }
+        for (const v of this.players) this.setLabelText(v, false);
         const views = this.players
             .filter((v) => v.label.visible && v.label.alpha > 0)
             .sort((a, b) => a.label.y - b.label.y);
@@ -1025,6 +1032,25 @@ export class MatchScene extends Phaser.Scene {
             }
             placed.push({ x0, x1, y0: y, y1: y + h });
         }
+    }
+
+    /** Largura do nome (inteiro ou curto) sem redesenhar o texto a cada quadro: mede uma vez por texto e tamanho. */
+    private labelWidth(v: PlayerView, short: boolean) {
+        const t = labelText(v.name, v.captain, short);
+        const key = `${v.label.style.fontSize}|${t}`;
+        let w = this.labelWidths.get(key);
+        if (w === undefined) {
+            const was = v.label.text;
+            w = v.label.setText(t).width;
+            v.label.setText(was);
+            this.labelWidths.set(key, w);
+        }
+        return w;
+    }
+
+    private setLabelText(v: PlayerView, short: boolean) {
+        const t = labelText(v.name, v.captain, short);
+        if (v.label.text !== t) v.label.setText(t);
     }
 
     /** Altura ocupada pelo nome (zero quando escondido): o status sobe para o lugar dele. */
