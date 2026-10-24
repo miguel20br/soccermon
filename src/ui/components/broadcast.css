@@ -853,6 +853,65 @@
         justify-self: center;
         width: min(calc(100% - 16px), 470px);
     }
+    /* deitado: info do intervalo na esquerda, botões e trocas na direita (numa coluna só os botões ficavam abaixo da dobra) */
+    .bc .ht-panel:has(.ht-info) {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+        align-items: center;
+        column-gap: 12px;
+    }
+    .bc .ht-info,
+    .bc .ht-ctl {
+        display: grid;
+        justify-items: center;
+        gap: 4px;
+        min-width: 0;
+    }
+    .bc .ht-ctl .ht-subs {
+        max-width: none;
+    }
+    .bc-stage > .ht-wrap:has(.ht-info) {
+        width: min(calc(100% - 16px), 600px);
+    }
+    .bc .ht-panel > small {
+        grid-column: 1 / -1;
+    }
+    /* palco estreito (568 px): uma coluna só, com o que se toca logo embaixo do placar e sem a dica */
+    @media (max-width: 640px) {
+        .bc .ht-panel:has(.ht-info) {
+            grid-template-columns: minmax(0, 1fr);
+        }
+        .bc .ht-info,
+        .bc .ht-ctl {
+            display: contents;
+        }
+        .bc .ht-title,
+        .bc .ht-score {
+            order: -2;
+        }
+        .bc .ht-panel:has(.ht-info) .ht-actions {
+            order: -1;
+        }
+        .bc .ht-panel .ht-stats {
+            order: 0;
+        }
+        .bc .ht-info .ht-tip,
+        .bc .ht-info .ht-title {
+            display: none;
+        }
+        .bc .ht-panel:has(.ht-info) .ht-actions {
+            flex-wrap: nowrap;
+            width: 100%;
+            gap: 6px;
+        }
+        .bc .ht-panel:has(.ht-info) .ht-actions .btn {
+            flex: 1 1 0;
+            min-width: 0;
+            padding-inline: 6px;
+            font-size: 11px;
+            line-height: 1.15;
+            white-space: normal;
+        }
+    }
     .bc .ht-panel {
         gap: 4px;
         padding: 8px 12px;

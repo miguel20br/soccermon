@@ -3269,6 +3269,11 @@ button,
     background: var(--panel);
     text-align: center;
 }
+/* os dois blocos só viram colunas no celular deitado (broadcast.css); fora dele não existem pro layout */
+.ht-info,
+.ht-ctl {
+    display: contents;
+}
 .ht-title {
     font-family: "Galmuri14", "Galmuri11", monospace;
     color: var(--yellow);
@@ -5988,6 +5993,42 @@ a.home-tile {
     .draft-options .fut-wrap,
     .draft-options .cpack-stage {
         --fut-w: min(150px, 17vw);
+    }
+    /* recompensa deitada: as 3 opções lado a lado, cartas menores, pra o "Escolher" não ficar abaixo da dobra */
+    .reward-grid .fut-wrap {
+        --fut-w: min(150px, 22vw, calc((100svh - 192px) / 1.41));
+    }
+    .reward-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+    .reward-grid .item-card {
+        min-height: 0;
+        gap: 4px;
+    }
+    .app:has(.reward-grid) {
+        gap: 4px;
+    }
+    .app:has(.reward-grid) .brand {
+        min-height: 26px;
+    }
+    .app:has(.reward-grid) .brand img {
+        height: 24px;
+    }
+    .app:has(.reward-grid) .draft-head.bc-screenhead {
+        margin-top: 14px;
+        padding-block: 4px;
+    }
+    .app:has(.reward-grid) .draft-head h1 {
+        font-size: 15px;
+    }
+    .app:has(.reward-grid) .draft-head .btn,
+    .reward-grid .fut-action {
+        min-height: 30px;
+        padding-block: 2px;
+    }
+    .reward-grid .fut-wrap {
+        gap: 6px;
     }
     /* campeão deitado: taça e título menores e os botões logo abaixo do "CAMPEÕES!" */
     .champ-trophy .trophy-svg {

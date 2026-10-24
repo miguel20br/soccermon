@@ -112,84 +112,90 @@ export function HalftimePanel({
 
     return (
         <div className="ht-panel" role="dialog" aria-label={t('match.halftime')}>
-            <span className="ht-title">{t('match.halftime')}</span>
-            <b className="ht-score">
-                {names[0]} {ht.score[0]} x {ht.score[1]} {names[1]}
-            </b>
-            <dl className="ht-stats">
-                <div>
-                    <dt>{t('match.ht.shots')}</dt>
-                    <dd>
-                        {shots[side]} x {shots[rival]}
-                    </dd>
-                </div>
-                <div>
-                    <dt>{t('match.ht.possession')}</dt>
-                    <dd>{poss}%</dd>
-                </div>
-                {tired && (
+            <div className="ht-info">
+                <span className="ht-title">{t('match.halftime')}</span>
+                <b className="ht-score">
+                    {names[0]} {ht.score[0]} x {ht.score[1]} {names[1]}
+                </b>
+                <dl className="ht-stats">
                     <div>
-                        <dt>{t('match.ht.tired')}</dt>
+                        <dt>{t('match.ht.shots')}</dt>
                         <dd>
-                            {nameOf(tired.idx)} {Math.round(tired.energy * 100)}%
+                            {shots[side]} x {shots[rival]}
                         </dd>
                     </div>
-                )}
-                {rivalEvos.length > 0 && (
-                    <div className="ht-rival-evo">
-                        <dt>{t('match.ht.rivalEvo')}</dt>
-                        <dd>{rivalEvos.join(', ')}</dd>
+                    <div>
+                        <dt>{t('match.ht.possession')}</dt>
+                        <dd>{poss}%</dd>
                     </div>
-                )}
-            </dl>
-            <p className="ht-tip">{tip}</p>
-            {suggest && (
-                <button type="button" className="ht-suggest" onClick={suggest.onPick}>
-                    {suggest.text}
-                </button>
-            )}
-            {mySubs.length > 0 && (
-                <section className="ht-subs" data-testid="ht-my-subs">
-                    <h3>{t('match.ht.mySubs')}</h3>
-                    <ul>
-                        {mySubs.map((x) => (
-                            <li key={x.key}>
-                                <img className="pixel" src={x.sprite} alt="" />
-                                <span>{rich(t('match.ht.subRow'), { in: <b>{x.inName}</b>, out: x.outName })}</span>
-                                {x.onUndo && (
-                                    <button type="button" className="ht-undo" onClick={x.onUndo}>
-                                        {t('match.ht.undo')}
-                                    </button>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
-                </section>
-            )}
-            {rivalSubs.length > 0 && (
-                <section className="ht-subs rival" data-testid="ht-rival-subs">
-                    <h3>{t('match.ht.rivalSubs')}</h3>
-                    <ul>
-                        {rivalSubs.map((x) => (
-                            <li key={x.key}>
-                                <img className="pixel" src={x.sprite} alt="" />
-                                <span>{rich(t('match.ht.rivalRow'), { in: <b>{x.inName}</b>, out: x.outName })}</span>
-                            </li>
-                        ))}
-                    </ul>
-                </section>
-            )}
-            <div className="ht-actions">
-                <button type="button" className="btn outline" disabled={!canSub} onClick={onSub}>
-                    {mySubs.length ? t('match.ht.subMore') : t('match.substitute')}
-                </button>
-                {ready ?? (
-                    <button type="button" className="btn primary" onClick={onContinue}>
-                        {t('match.ht.continue')}
+                    {tired && (
+                        <div>
+                            <dt>{t('match.ht.tired')}</dt>
+                            <dd>
+                                {nameOf(tired.idx)} {Math.round(tired.energy * 100)}%
+                            </dd>
+                        </div>
+                    )}
+                    {rivalEvos.length > 0 && (
+                        <div className="ht-rival-evo">
+                            <dt>{t('match.ht.rivalEvo')}</dt>
+                            <dd>{rivalEvos.join(', ')}</dd>
+                        </div>
+                    )}
+                </dl>
+                <p className="ht-tip">{tip}</p>
+            </div>
+            <div className="ht-ctl">
+                {suggest && (
+                    <button type="button" className="ht-suggest" onClick={suggest.onPick}>
+                        {suggest.text}
                     </button>
                 )}
+                {mySubs.length > 0 && (
+                    <section className="ht-subs" data-testid="ht-my-subs">
+                        <h3>{t('match.ht.mySubs')}</h3>
+                        <ul>
+                            {mySubs.map((x) => (
+                                <li key={x.key}>
+                                    <img className="pixel" src={x.sprite} alt="" />
+                                    <span>{rich(t('match.ht.subRow'), { in: <b>{x.inName}</b>, out: x.outName })}</span>
+                                    {x.onUndo && (
+                                        <button type="button" className="ht-undo" onClick={x.onUndo}>
+                                            {t('match.ht.undo')}
+                                        </button>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                )}
+                {rivalSubs.length > 0 && (
+                    <section className="ht-subs rival" data-testid="ht-rival-subs">
+                        <h3>{t('match.ht.rivalSubs')}</h3>
+                        <ul>
+                            {rivalSubs.map((x) => (
+                                <li key={x.key}>
+                                    <img className="pixel" src={x.sprite} alt="" />
+                                    <span>
+                                        {rich(t('match.ht.rivalRow'), { in: <b>{x.inName}</b>, out: x.outName })}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                )}
+                <div className="ht-actions">
+                    <button type="button" className="btn outline" disabled={!canSub} onClick={onSub}>
+                        {mySubs.length ? t('match.ht.subMore') : t('match.substitute')}
+                    </button>
+                    {ready ?? (
+                        <button type="button" className="btn primary" onClick={onContinue}>
+                            {t('match.ht.continue')}
+                        </button>
+                    )}
+                </div>
+                {footer}
             </div>
-            {footer}
             <small className="muted">{t('match.ht.tacticHint')}</small>
         </div>
     );
