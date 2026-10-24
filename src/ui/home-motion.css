@@ -228,6 +228,13 @@
 .home-enter .duel-card {
     animation: home-rise 0.45s var(--ease-out) 0.18s both;
 }
+.home-enter .first-play {
+    animation: home-rise 0.45s var(--ease-out) 0.1s both;
+}
+/* "Mais modos" na 1ª visita: a Home cheia sobe no lugar do botão */
+.home-more > :not(.home-top, .home-hero, .home-footer) {
+    animation: home-rise 0.28s var(--ease-out) both;
+}
 @keyframes hm-slide {
     from {
         opacity: 0;
@@ -247,7 +254,9 @@
     .home-enter .cup-event,
     .home-enter .rota-card,
     .home-enter .cup-card,
-    .home-enter .duel-card {
+    .home-enter .duel-card,
+    .home-enter .first-play,
+    .home-more > :not(.home-top, .home-hero, .home-footer) {
         animation: none;
     }
 }
@@ -261,7 +270,9 @@
 :root[data-reduce-motion="true"] .home-enter .cup-event,
 :root[data-reduce-motion="true"] .home-enter .rota-card,
 :root[data-reduce-motion="true"] .home-enter .cup-card,
-:root[data-reduce-motion="true"] .home-enter .duel-card {
+:root[data-reduce-motion="true"] .home-enter .duel-card,
+:root[data-reduce-motion="true"] .home-enter .first-play,
+:root[data-reduce-motion="true"] .home-more > * {
     animation: none;
 }
 /* com o "reduzir movimento" das Configurações as animações acabam na hora (motion.css): a corrida da 1ª cena

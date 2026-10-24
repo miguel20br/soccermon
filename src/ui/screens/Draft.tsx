@@ -54,9 +54,10 @@ function TeamAvg({ avg }: { avg: number }) {
 
 /**
  * "Monta pra mim": completa o draft com a melhor carta pra cada vaga (escolha do jogador, pede confirmação).
- * No celular fica na barra do polegar (à vista o draft inteiro); no PC, no cabeçalho.
+ * No celular fica na barra do polegar (à vista o draft inteiro); no PC, no cabeçalho. Na 1ª copa (`lead`) é o
+ * botão principal; montar na mão continua ali (vagas e cartas).
  */
-function AutoDraft({ captainUid, hint }: { captainUid?: string; hint?: string }) {
+function AutoDraft({ captainUid, hint, lead }: { captainUid?: string; hint?: string; lead?: boolean }) {
     const { run, autoDraft } = useGame();
     const { t, lang } = useT();
     const [ask, setAsk] = useState(false);
@@ -85,7 +86,11 @@ function AutoDraft({ captainUid, hint }: { captainUid?: string; hint?: string })
             ) : (
                 // fantasma à esquerda; à direita, a instrução da vez (no celular o cabeçalho já rolou pra cima)
                 <>
-                    <button type="button" className="btn ghost" onClick={() => setAsk(true)}>
+                    <button
+                        type="button"
+                        className={`btn draft-auto-go ${lead ? 'primary' : 'ghost'}`}
+                        onClick={() => setAsk(true)}
+                    >
                         <HudIcon kind="skip" />
                         {t('team.draft.auto')}
                     </button>
@@ -172,6 +177,7 @@ export function Draft() {
     const [selected, setSelected] = useState<string | null>(null);
     const [coachOn, setCoachOn] = useState(false);
     const coachSeenDraft = useGame((s) => coachSeen(s.profile.coach, 'relampagoDraft'));
+    const noCups = useGame((s) => !s.records.cups);
     const tr = useT();
     const { t, d, lang } = tr;
     // celular em pé: a quadra ocupa a tela e as cartas ficam lá embaixo. Leva até as cartas quando elas saem e
@@ -200,6 +206,8 @@ export function Draft() {
     const quick = !run.daily && !isLong(run);
     // o balão do draft ainda vai abrir (o Coach decide no efeito, depois do 1º desenho)
     const coachDue = quick && !coachSeenDraft;
+    // 1ª copa: "Monta pra mim" é o botão principal (o Miguel, 23/10/2026); nada é escolhido sem o toque
+    const firstCup = quick && noCups;
     if (run.status === 'formation') {
         return (
             <>
@@ -217,7 +225,7 @@ export function Draft() {
                         <MenuIcon kind="back" />
                     </button>
                     <h1>{t('team.draft.chooseFormation')}</h1>
-                    <AutoDraft />
+                    <AutoDraft lead={firstCup} />
                 </div>
                 {run.daily && daily.find((e) => e.day === run.daily)?.ranked === false && (
                     <p className="muted center">{t('liga.daily.unrankedNote')}</p>
@@ -320,7 +328,7 @@ export function Draft() {
                         />
                     ))}
                 </div>
-                <AutoDraft captainUid={chosen?.uid} hint={title} />
+                <AutoDraft captainUid={chosen?.uid} hint={title} lead={firstCup} />
             </div>
 
             {quick && (

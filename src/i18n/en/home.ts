@@ -26,6 +26,9 @@ export const home: typeof pt = {
     cupPath: 'Cup stages',
     resume: 'Continue',
     teamName: 'Your team name',
+    play: 'Play',
+    playTag: 'Lightning Cup · 4 matches',
+    moreModes: 'More modes',
     newCup: 'New cup',
     quickCup: {
         tag: '4 matches',

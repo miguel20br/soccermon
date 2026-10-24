@@ -302,6 +302,20 @@ Rascunho de texto pra B (curto, sem frase de efeito):
 7. **Meta:** 65% das sessões novas começando a 1ª copa (a régua do Poki), medida com A, depois de 2 semanas.
    Recomendo **sim** como régua.
 
+## Decisões do Miguel (23/10/2026)
+
+- **(2) Home da 1ª visita com um botão só:** feito na branch `funil-home`. Save sem nada jogado (`isFirstVisit` em
+  `src/store/coach.ts`: nenhuma copa começada, Duelo, Copa do Dia ou Hall) vê o logo, a quadra, um **Jogar** grande
+  (Copa Relâmpago · 4 jogos) e um "Mais modos" discreto que abre a Home de sempre. Sem o balão "intro" ali; tocar em
+  Jogar marca o "intro" como visto. Quem já jogou, save antigo e link de desafio (`?seed=`) caem na Home de sempre.
+- **(4) "Monta pra mim" como botão principal na 1ª copa:** só na Copa Relâmpago com `records.cups === 0`. Continua
+  pedindo a confirmação ("Montar"); vagas e cartas seguem tocáveis pra montar na mão.
+- **(7) Meta:** **65% das sessões novas começando a 1ª copa**, a contar de 23/10/2026, olhada depois de 2 semanas
+  (06/11/2026). Como medir: `npm run stats -- --dias 14`, seção "3. Funil por sessão", coluna **% novas** da linha
+  "Começou a copa" (e a tabela por aparelho logo abaixo). Antes da mudança: 41% (7 dias até 23/10). Com ~10 sessões
+  novas por dia, só leia o número com as 2 semanas cheias. Para comparar só depois do deploy, use `--desde` com a data
+  em que a versão subiu.
+
 ## Fontes
 
 - Poki, [O que faz um jogo de navegador de qualidade](https://poki.com/blog/what-makes-high-quality-browser-game)

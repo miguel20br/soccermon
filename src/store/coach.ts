@@ -56,6 +56,22 @@ export function coachPlayed(s: History): CoachId[] {
     return out;
 }
 
+/**
+ * Chama `cb` quando o save terminar de carregar, inclusive se já terminou entre o 1º desenho e o efeito (só assinar
+ * o aviso perdia esse caso: a Home de quem voltou ficava sem os modos).
+ */
+export function whenHydrated(
+    persist: { hasHydrated(): boolean; onFinishHydration(fn: () => void): () => void },
+    cb: () => void,
+): () => void {
+    const off = persist.onFinishHydration(cb);
+    if (persist.hasHydrated()) cb();
+    return off;
+}
+
+/** 1ª visita: nada jogado em modo nenhum (nem copa começada). A Home mostra só o "Jogar". */
+export const isFirstVisit = (s: History) => coachPlayed(s).length === 0;
+
 /** Save de antes dos balões: `coach` nasce com o que a pessoa já jogou. Quem já tem o campo fica como está. */
 export function withCoachBaseline(s: PersistedSave): PersistedSave {
     if (Array.isArray(s.profile.coach)) return s;

@@ -98,7 +98,7 @@ async function copa() {
     await step(p, 'home', async () => {
         await p.goto(`${base}/?vel=16`, { waitUntil: 'load' });
         await p
-            .getByRole('button', { name: /Nova copa/ })
+            .getByRole('button', { name: /Nova copa|Jogar Copa/ })
             .first()
             .waitFor({ timeout: 30000 });
         await skipOnboarding(p);
@@ -107,7 +107,7 @@ async function copa() {
     });
     await step(p, 'nova copa e formação', async () => {
         await p
-            .getByRole('button', { name: /Nova copa/ })
+            .getByRole('button', { name: /Nova copa|Jogar Copa/ })
             .first()
             .click();
         await p.locator('.formation-option').first().waitFor({ timeout: 15000 });

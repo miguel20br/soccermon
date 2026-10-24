@@ -18,8 +18,9 @@ import { FriendChallenge } from '../profile/FriendsTab';
 import { TYPE_COLOR } from '../type-colors';
 import { HomeDailyCard } from './Daily';
 import '../home-motion.css';
+import { isFirstVisit } from '../../store/coach';
 import { type CupMode, cupLength, isLong, LONG_CUP_LIVE, lossColor } from '../../store/long-cup';
-import { Coach } from '../coach/Coach';
+import { Coach, markSeen, useHydrated } from '../coach/Coach';
 import { ComingSoon } from '../components/ComingSoon';
 import { DoorTiles } from '../components/DoorTiles';
 import { HudIcon } from '../components/MatchHud';
@@ -148,6 +149,10 @@ export function Home() {
     }, []);
     const { run, newRun, go, profile, records, parkedRuns, resumeParked, discardParked } = useGame();
     const { t, d, lang } = useT();
+    // 1ª visita: só o "Jogar" (Copa Relâmpago). Antes do save carregar não dá pra saber: só o topo e o rodapé
+    const hydrated = useHydrated();
+    const firstVisit = useGame(isFirstVisit);
+    const [more, setMore] = useState(false);
     const notes = patchNotes(lang);
     const [teamName, setTeamName] = useState(profile.clubName || 'Pallet FC');
     // o perfil chega do IndexedDB/nuvem depois do primeiro render: acompanha até a pessoa digitar
@@ -163,6 +168,7 @@ export function Home() {
         return () => window.removeEventListener('keydown', onKey);
     }, [notesOpen]);
     const challengeSeed = seedFromUrl();
+    const simple = firstVisit && !more && !challengeSeed;
     const inProgress = run && !['eliminated', 'champion'].includes(run.status);
     const resumeScreen = run ? resumeScreenOf(run.status) : 'lineup';
     const name = () => teamName.trim() || 'Pallet FC';
@@ -236,8 +242,16 @@ export function Home() {
         </button>
     );
 
+    const play = () => {
+        // o balão "Primeira vez? Comece pela Relâmpago" não faz sentido depois: a Home cheia chega sem ele
+        markSeen(['intro']);
+        newRun(name());
+    };
+
     return (
-        <div className={`home${entering ? ' home-enter' : ''}${HOME_FORTE ? ' home-forte' : ''}`}>
+        <div
+            className={`home${entering ? ' home-enter' : ''}${more ? ' home-more' : ''}${HOME_FORTE ? ' home-forte' : ''}`}
+        >
             <div className="home-top">
                 <TopActions help={() => go('help')} />
             </div>
@@ -252,185 +266,208 @@ export function Home() {
                 <p className="tagline">{t('home.tagline')}</p>
             </section>
 
-            <Coach id="intro" targets={['[data-coach="quick"]', '[data-coach="help"]']} />
-            <DexProgress />
+            {!hydrated ? null : simple ? (
+                <div className="first-play">
+                    <button type="button" className="btn big primary cup-go first-go" onClick={play}>
+                        <span className="cup-go-txt">
+                            <b>{t('home.play')}</b>
+                            <small>{t('home.playTag')}</small>
+                        </span>
+                        <HudIcon kind="next" />
+                    </button>
+                    <button type="button" className="link-btn first-more" onClick={() => setMore(true)}>
+                        {t('home.moreModes')}
+                    </button>
+                </div>
+            ) : (
+                <>
+                    <Coach id="intro" targets={['[data-coach="quick"]', '[data-coach="help"]']} />
+                    <DexProgress />
 
-            {/* o nome vale pra Rota e pra Relâmpago: fica acima dos dois cartões */}
-            <div className="team-name-row">
-                <label className="bc-lbl" htmlFor="team-name">
-                    {t('home.teamName')}
-                </label>
-                <input
-                    id="team-name"
-                    className="team-name-input"
-                    value={teamName}
-                    maxLength={22}
-                    onChange={(e) => {
-                        setTyped(true);
-                        setTeamName(e.target.value);
-                    }}
-                />
-            </div>
+                    {/* o nome vale pra Rota e pra Relâmpago: fica acima dos dois cartões */}
+                    <div className="team-name-row">
+                        <label className="bc-lbl" htmlFor="team-name">
+                            {t('home.teamName')}
+                        </label>
+                        <input
+                            id="team-name"
+                            className="team-name-input"
+                            value={teamName}
+                            maxLength={22}
+                            onChange={(e) => {
+                                setTyped(true);
+                                setTeamName(e.target.value);
+                            }}
+                        />
+                    </div>
 
-            <div className="mode-cards">
-                {LONG_CUP_LIVE && (
-                    <div className="menu panel mode-card rota-card">
-                        <div className="mode-head">
-                            <b>
-                                {t('home.longCup.title')}
-                                {rotaNew && <span className="bc-tag rota-new">{t('profile.news.badge')}</span>}
-                            </b>
-                            <span>{t('home.longCup.line')}</span>
-                        </div>
-                        {confirm !== undefined && pendingMode === 'longa' ? (
-                            confirmBox
-                        ) : (
-                            <>
-                                {inProgress && isLong(run) ? (
-                                    resumeCard
+                    <div className="mode-cards">
+                        {LONG_CUP_LIVE && (
+                            <div className="menu panel mode-card rota-card">
+                                <div className="mode-head">
+                                    <b>
+                                        {t('home.longCup.title')}
+                                        {rotaNew && <span className="bc-tag rota-new">{t('profile.news.badge')}</span>}
+                                    </b>
+                                    <span>{t('home.longCup.line')}</span>
+                                </div>
+                                {confirm !== undefined && pendingMode === 'longa' ? (
+                                    confirmBox
                                 ) : (
-                                    <span className="rota-art" aria-hidden>
-                                        {GYM_LEADERS.map((id) => (
-                                            <img key={id} src={`assets/trainers/${id}.png`} alt="" />
-                                        ))}
-                                    </span>
-                                )}
-                                <button
-                                    type="button"
-                                    className={`btn big cup-go cup-go-long ${red === 'rota' ? 'primary' : 'outline'}`}
-                                    onClick={() => start(undefined, 'longa')}
-                                >
-                                    <span className="cup-go-txt">
-                                        <b>{t('home.longCup.go')}</b>
-                                        <small>{t('home.longCup.tag')}</small>
-                                    </span>
-                                    <HudIcon kind="next" />
-                                </button>
-                            </>
-                        )}
-                    </div>
-                )}
-                <div className="menu panel mode-card cup-card">
-                    <div className="mode-head">
-                        <b>{t('home.quickCup.title')}</b>
-                        <span>{t('home.quickCup.line')}</span>
-                    </div>
-                    {parkedAsk && parkedTarget ? (
-                        <div className="confirm-new">
-                            <p>
-                                {parkedAsk.kind === 'swap'
-                                    ? rich(t('account.confirmSwap'), {
-                                          team: <b>{parkedTarget.teamName}</b>,
-                                          current: <b>{run?.teamName}</b>,
-                                      })
-                                    : rich(t('account.confirmDiscard'), { team: <b>{parkedTarget.teamName}</b> })}
-                            </p>
-                            <div className="row" style={{ justifyContent: 'center' }}>
-                                <button
-                                    type="button"
-                                    className="btn primary"
-                                    onClick={() => {
-                                        if (parkedAsk.kind === 'swap') resumeParked(parkedAsk.seed);
-                                        else discardParked(parkedAsk.seed);
-                                        setParkedAsk(null);
-                                    }}
-                                >
-                                    {parkedAsk.kind === 'swap'
-                                        ? t('account.confirmSwapYes')
-                                        : t('account.confirmDiscardYes')}
-                                </button>
-                                <button type="button" className="btn ghost" onClick={() => setParkedAsk(null)}>
-                                    {t('common.ui.cancel')}
-                                </button>
-                            </div>
-                        </div>
-                    ) : confirm !== undefined && pendingMode !== 'longa' ? (
-                        confirmBox
-                    ) : (
-                        <>
-                            {inProgress && !isLong(run) && resumeCard}
-                            {parked.map((p) => (
-                                <div key={p.seed} className="parked-row">
-                                    <span className="pr-text">
-                                        <span className="pr-label">{t('account.parkedLabel')}</span>
-                                        <span>
-                                            <b>{p.teamName}</b>{' '}
-                                            <span className="pr-step">
-                                                · {cupStep({ ...p, played: p.results.length })}
+                                    <>
+                                        {inProgress && isLong(run) ? (
+                                            resumeCard
+                                        ) : (
+                                            <span className="rota-art" aria-hidden>
+                                                {GYM_LEADERS.map((id) => (
+                                                    <img key={id} src={`assets/trainers/${id}.png`} alt="" />
+                                                ))}
                                             </span>
-                                        </span>
-                                    </span>
-                                    <button type="button" className="btn small" onClick={() => resume(p.seed)}>
-                                        {t('account.resumeParked')}
-                                    </button>
+                                        )}
+                                        <button
+                                            type="button"
+                                            className={`btn big cup-go cup-go-long ${red === 'rota' ? 'primary' : 'outline'}`}
+                                            onClick={() => start(undefined, 'longa')}
+                                        >
+                                            <span className="cup-go-txt">
+                                                <b>{t('home.longCup.go')}</b>
+                                                <small>{t('home.longCup.tag')}</small>
+                                            </span>
+                                            <HudIcon kind="next" />
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+                        )}
+                        <div className="menu panel mode-card cup-card">
+                            <div className="mode-head">
+                                <b>{t('home.quickCup.title')}</b>
+                                <span>{t('home.quickCup.line')}</span>
+                            </div>
+                            {parkedAsk && parkedTarget ? (
+                                <div className="confirm-new">
+                                    <p>
+                                        {parkedAsk.kind === 'swap'
+                                            ? rich(t('account.confirmSwap'), {
+                                                  team: <b>{parkedTarget.teamName}</b>,
+                                                  current: <b>{run?.teamName}</b>,
+                                              })
+                                            : rich(t('account.confirmDiscard'), {
+                                                  team: <b>{parkedTarget.teamName}</b>,
+                                              })}
+                                    </p>
+                                    <div className="row" style={{ justifyContent: 'center' }}>
+                                        <button
+                                            type="button"
+                                            className="btn primary"
+                                            onClick={() => {
+                                                if (parkedAsk.kind === 'swap') resumeParked(parkedAsk.seed);
+                                                else discardParked(parkedAsk.seed);
+                                                setParkedAsk(null);
+                                            }}
+                                        >
+                                            {parkedAsk.kind === 'swap'
+                                                ? t('account.confirmSwapYes')
+                                                : t('account.confirmDiscardYes')}
+                                        </button>
+                                        <button type="button" className="btn ghost" onClick={() => setParkedAsk(null)}>
+                                            {t('common.ui.cancel')}
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : confirm !== undefined && pendingMode !== 'longa' ? (
+                                confirmBox
+                            ) : (
+                                <>
+                                    {inProgress && !isLong(run) && resumeCard}
+                                    {parked.map((p) => (
+                                        <div key={p.seed} className="parked-row">
+                                            <span className="pr-text">
+                                                <span className="pr-label">{t('account.parkedLabel')}</span>
+                                                <span>
+                                                    <b>{p.teamName}</b>{' '}
+                                                    <span className="pr-step">
+                                                        · {cupStep({ ...p, played: p.results.length })}
+                                                    </span>
+                                                </span>
+                                            </span>
+                                            <button type="button" className="btn small" onClick={() => resume(p.seed)}>
+                                                {t('account.resumeParked')}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="btn ghost small"
+                                                onClick={() => setParkedAsk({ kind: 'discard', seed: p.seed })}
+                                            >
+                                                {t('account.discardParked')}
+                                            </button>
+                                        </div>
+                                    ))}
                                     <button
                                         type="button"
-                                        className="btn ghost small"
-                                        onClick={() => setParkedAsk({ kind: 'discard', seed: p.seed })}
+                                        data-coach="quick"
+                                        className={`btn big cup-go cup-go-quick ${red === 'quick' ? 'primary' : 'outline'}`}
+                                        onClick={() => start()}
                                     >
-                                        {t('account.discardParked')}
+                                        <span className="cup-go-txt">
+                                            <b>{t('home.newCup')}</b>
+                                            <small>{t('home.quickCup.tag')}</small>
+                                        </span>
+                                        <HudIcon kind="next" />
+                                    </button>
+                                    <p
+                                        className="cup-event bc-stripe"
+                                        style={{ '--tc': TYPE_COLOR[eventType] } as CSSProperties}
+                                    >
+                                        <TypeIcon type={eventType} size={20} />
+                                        <span>
+                                            <b>{t('home.eventWeek', { type: typeName(eventType) })}</b>{' '}
+                                            {t('home.eventText', { type: typeName(eventType) })}
+                                        </span>
+                                    </p>
+                                    {challengeSeed && (
+                                        <button
+                                            type="button"
+                                            className="btn outline"
+                                            onClick={() => start(challengeSeed)}
+                                        >
+                                            {t('home.challenge', { seed: challengeSeed })}
+                                        </button>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                        {/* Duelo e Copa do Dia: no PC lado a lado, com a mesma largura e altura */}
+                        <div className="mode-pair">
+                            <div className="panel mode-card duel-card beta-ribbon" data-ribbon={t('duel.beta')}>
+                                <div className="dc-row">
+                                    <span className="duel-card-art" aria-hidden>
+                                        <img className="pixel" src="assets/cards/25.gif" alt="" />
+                                        <b>VS</b>
+                                        <img className="pixel flip" src="assets/cards/133.gif" alt="" />
+                                    </span>
+                                    <div className="mode-head">
+                                        <b>{t('duel.title')}</b>
+                                        <span>{t('duel.line')}</span>
+                                    </div>
+                                    <button type="button" className="btn dc-go duel-go" onClick={() => go('duel')}>
+                                        {t('duel.createRoom')}
                                     </button>
                                 </div>
-                            ))}
-                            <button
-                                type="button"
-                                data-coach="quick"
-                                className={`btn big cup-go cup-go-quick ${red === 'quick' ? 'primary' : 'outline'}`}
-                                onClick={() => start()}
-                            >
-                                <span className="cup-go-txt">
-                                    <b>{t('home.newCup')}</b>
-                                    <small>{t('home.quickCup.tag')}</small>
-                                </span>
-                                <HudIcon kind="next" />
-                            </button>
-                            <p
-                                className="cup-event bc-stripe"
-                                style={{ '--tc': TYPE_COLOR[eventType] } as CSSProperties}
-                            >
-                                <TypeIcon type={eventType} size={20} />
-                                <span>
-                                    <b>{t('home.eventWeek', { type: typeName(eventType) })}</b>{' '}
-                                    {t('home.eventText', { type: typeName(eventType) })}
-                                </span>
-                            </p>
-                            {challengeSeed && (
-                                <button type="button" className="btn outline" onClick={() => start(challengeSeed)}>
-                                    {t('home.challenge', { seed: challengeSeed })}
-                                </button>
-                            )}
-                        </>
-                    )}
-                </div>
-                {/* Duelo e Copa do Dia: no PC lado a lado, com a mesma largura e altura */}
-                <div className="mode-pair">
-                    <div className="panel mode-card duel-card beta-ribbon" data-ribbon={t('duel.beta')}>
-                        <div className="dc-row">
-                            <span className="duel-card-art" aria-hidden>
-                                <img className="pixel" src="assets/cards/25.gif" alt="" />
-                                <b>VS</b>
-                                <img className="pixel flip" src="assets/cards/133.gif" alt="" />
-                            </span>
-                            <div className="mode-head">
-                                <b>{t('duel.title')}</b>
-                                <span>{t('duel.line')}</span>
+                                <FriendChallenge />
                             </div>
-                            <button type="button" className="btn dc-go duel-go" onClick={() => go('duel')}>
-                                {t('duel.createRoom')}
-                            </button>
+                            <HomeDailyCard />
                         </div>
-                        <FriendChallenge />
                     </div>
-                    <HomeDailyCard />
-                </div>
-            </div>
 
-            {/* entrar com o Google: embaixo dos modos, pro "Nova copa" ficar na primeira tela do celular */}
-            <AccountBar />
+                    {/* entrar com o Google: embaixo dos modos, pro "Nova copa" ficar na primeira tela do celular */}
+                    <AccountBar />
 
-            <ComingSoon />
+                    <ComingSoon />
 
-            <DoorTiles which={['profile', 'collection', 'trophies']} />
+                    <DoorTiles which={['profile', 'collection', 'trophies']} />
+                </>
+            )}
             {notesOpen && (
                 // biome-ignore lint/a11y/noStaticElementInteractions: clicar fora fecha; o botão fecha pelo teclado
                 <div className="modal-backdrop" onClick={() => setNotesOpen(false)} role="presentation">

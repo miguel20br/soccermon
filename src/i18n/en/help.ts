@@ -589,7 +589,7 @@ export const help: typeof pt = {
         ],
         rotaGrupo: ['Losing here costs no card.'],
         relampago: ['4-game knockout: lose and you are out. Pick a formation.'],
-        relampagoDraft: ['Tap a slot: 3 show up and you keep 1.'],
+        relampagoDraft: ['Auto-draft fills the team in one tap. Want to pick? Tap a slot: 3 show up and you keep 1.'],
         relampagoJogo: ['Change tactics and make subs during the match. Players who play a lot evolve.'],
         duelo: ['Join without an account. Then you create the room and send the link.'],
         dueloSala: [
