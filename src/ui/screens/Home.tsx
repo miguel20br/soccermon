@@ -506,16 +506,16 @@ export function Home() {
             <footer className="home-footer">
                 <nav className="footer-links" aria-label={t('home.footerAria')}>
                     <button type="button" className="link-btn" onClick={() => setNotesOpen(true)}>
-                        {d.home.tiles.news[0]} <em className="tile-badge">v{notes[0].version}</em>
+                        {d.home.tiles.news} <em className="tile-badge">v{notes[0].version}</em>
                     </button>
                     <button type="button" className="link-btn" onClick={() => go('help')}>
-                        {d.home.tiles.help[0]}
+                        {d.home.tiles.help}
                     </button>
                     <button type="button" className="link-btn" onClick={() => go('credits')}>
-                        {d.home.tiles.credits[0]}
+                        {d.home.tiles.credits}
                     </button>
                     <a href={FEEDBACK_URL} target="_blank" rel="noopener">
-                        {d.home.tiles.feedback[0]}
+                        {d.home.tiles.feedback}
                     </a>
                     <a href={privacyUrl()} target="_blank" rel="noopener">
                         {t('home.privacy')}
@@ -525,7 +525,7 @@ export function Home() {
                     </a>
                     {import.meta.env.DEV && (
                         <button type="button" className="link-btn" onClick={() => openLab('?cards=1')}>
-                            {d.home.tiles.cards[0]}
+                            {d.home.tiles.cards}
                         </button>
                     )}
                 </nav>

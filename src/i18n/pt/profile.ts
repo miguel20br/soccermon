@@ -23,7 +23,6 @@ export const profile = {
     },
     collection: 'Coleção',
     publicHint: 'O cartão que os outros jogadores veem',
-    quick: { cups: 'Copas', titles: 'Títulos', goals: 'Gols' },
     /** Cartão do treinador: o perfil que os outros veem (Duelo) e o seu, pelo botão do Perfil. */
     card: {
         open: 'Ver meu perfil público',

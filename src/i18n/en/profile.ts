@@ -24,7 +24,6 @@ export const profile: typeof pt = {
     },
     collection: 'Collection',
     publicHint: 'The card other players see',
-    quick: { cups: 'Cups', titles: 'Titles', goals: 'Goals' },
     card: {
         open: 'See my public profile',
         aria: "{name}'s profile",

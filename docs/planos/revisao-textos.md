@@ -108,9 +108,9 @@ Padrões que se repetem no jogo todo (valem pros próximos blocos):
 | `account.parkedNote` | A outra fica guardada na tela inicial para você retomar quando quiser. | A outra fica guardada na tela inicial. | explica o óbvio |
 | `account.otherAccount` | Este aparelho tinha o save de outra conta; ele continua guardado nela. | Este aparelho tinha o jogo de outra conta. Ele continua salvo nela. | ponto e vírgula e "save" |
 
-### Strings sem uso (apagar em PT e EN, em vez de revisar)
+### Strings sem uso (apagadas em PT e EN em 25/10)
 
-Conferido com busca no código: nenhuma tela lê estas chaves.
+Conferido com busca no código: nenhuma tela lê estas chaves. Os atalhos (`home.tiles.*`) viraram texto simples.
 
 - `home.rec.*` (6): título, copa, perfeita, destaque, evolução, ícone.
 - `home.tiles.*[1]`, os subtítulos dos atalhos (6), e `home.tiles.moves` (2). A Home só mostra o nome
