@@ -78,6 +78,10 @@ export const isFirstVisit = (s: History) => coachPlayed(s).length === 0;
 export const rotaNovaDue = (records: { cups: number; longCups?: number }, coach: readonly string[] | undefined) =>
     records.cups === 1 && !records.longCups && coachSeen(coach, 'intro') && !coachSeen(coach, 'rotaNova');
 
+/** Balão `relampagoJogo` na 1ª partida: só depois do 1º gol ou no intervalo (não por cima do campo no apito inicial). */
+export const relampagoJogoDue = (score: readonly [number, number], halftime: boolean) =>
+    halftime || score[0] + score[1] > 0;
+
 /** Save de antes dos balões: `coach` nasce com o que a pessoa já jogou. Quem já tem o campo fica como está. */
 export function withCoachBaseline(s: PersistedSave): PersistedSave {
     if (Array.isArray(s.profile.coach)) return s;
