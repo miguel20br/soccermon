@@ -102,6 +102,8 @@ async function copa() {
             .first()
             .waitFor({ timeout: 30000 });
         await skipOnboarding(p);
+        // a Home de todo mundo é o Estádio dos ambientes; save vazio = 1ª visita: o logo no lugar do placar
+        await p.locator('.amb-panel.amb-estadio.on .es-logo').waitFor({ timeout: 10000 });
         await p.waitForTimeout(600);
         await shot(p, '01-home', true);
     });

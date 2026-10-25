@@ -268,6 +268,20 @@ function choose(a: Actor, all: Actor[], area: Area, rand: Rand, now: number) {
     begin(a, pick, all, area, rand, now);
 }
 
+/** Tocaram nele: pula com um coração ou uma nota; quem dormia acorda assustado. Devolve se acordou. */
+export function poke(a: Actor, now: number, rand: Rand = Math.random): boolean {
+    const woke = a.act === 'sleep';
+    a.act = 'hop';
+    a.t0 = now;
+    a.left = 900;
+    a.prey = undefined;
+    a.tx = a.x;
+    a.ty = a.y;
+    a.dir = 0;
+    a.emote = woke ? 'surprise' : rand() < 0.5 ? 'heart' : 'note';
+    return woke;
+}
+
 const LOOK = [2, 0, 6, 0];
 
 /**

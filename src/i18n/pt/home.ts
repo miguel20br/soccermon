@@ -81,6 +81,8 @@ export const home = {
         board: 'COPA RELÂMPAGO · COPA DO DIA · ROTA ÍNDIGO · DUELO AO VIVO · ',
         rotaGo: 'Continuar · {where}',
         labTitle: 'Laboratório do Carvalho',
+        /** No celular deitado e estreito o nome inteiro não cabe numa linha. */
+        labShort: 'Laboratório',
         arenaTitle: 'Arena',
         sedeTitle: 'Sede do clube',
         soon2x2: 'Dupla 2x2',
@@ -99,6 +101,8 @@ export const home = {
         /** Sede: o quadro de missões e a Sala de troféus. */
         sedeOf: 'Sede do {club}',
         sedeBoard: 'Quadro de missões',
+        /** Plaquinha na vitrine vazia da Sede (quem ainda não ganhou nada). */
+        sedeFirst: 'Seu 1º troféu fica aqui',
         sedeTitles: '{n} título|{n} títulos',
         sedeKit: 'Escudo e uniforme',
     },

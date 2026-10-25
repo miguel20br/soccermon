@@ -2,18 +2,18 @@ import { type CSSProperties, useEffect, useState } from 'react';
 import { weeklyEventType } from '../../engine/specials';
 import { typeName } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
-import { isCupInProgress, resumeScreenOf, seedFromUrl, useGame } from '../../store/game-store';
+import { resumeScreenOf, seedFromUrl, useGame } from '../../store/game-store';
 import { seenCount } from '../../store/profile';
+import { AboutFooter } from '../components/AboutFooter';
 import { AccountBar } from '../components/AccountBar';
 import { cupStep } from '../components/AccountLink';
 import { CountUp } from '../components/CountUp';
 import { HomeCourt } from '../components/HomeCourt';
 import { LogoHits } from '../components/LogoHits';
+import { ParkedRuns } from '../components/ParkedRuns';
 import { cardSprite } from '../components/PokeCard';
 import { TypeIcon } from '../components/TypeIcon';
-import { FEEDBACK_URL, privacyUrl } from '../links';
 import { readCount, writeCount } from '../local-count';
-import { type PatchNotes, patchNotes } from '../patch-notes';
 import { FriendChallenge } from '../profile/FriendsTab';
 import { TYPE_COLOR } from '../type-colors';
 import { HomeDailyCard } from './Daily';
@@ -63,84 +63,11 @@ function DexProgress() {
     );
 }
 
-/** Troca rápida de idioma no rodapé da tela inicial (as Configurações também têm). */
-function LangToggle() {
-    const { lang, t } = useT();
-    const updateSettings = useGame((s) => s.updateSettings);
-    return (
-        <fieldset className="lang-toggle bc-seg" aria-label={t('home.langAria')}>
-            {(['pt', 'en'] as const).map((l) => (
-                <button
-                    key={l}
-                    type="button"
-                    className={l === lang ? 'on' : ''}
-                    aria-pressed={l === lang}
-                    lang={l === 'pt' ? 'pt-BR' : 'en'}
-                    title={l === 'pt' ? 'Português (Brasil)' : 'English'}
-                    onClick={() => updateSettings({ lang: l })}
-                >
-                    {l.toUpperCase()}
-                </button>
-            ))}
-        </fieldset>
-    );
-}
-
 /** `?home=forte`: enfeites da Home (logo, brilho, pulos) com o dobro da intensidade, pra comparar. */
 const HOME_FORTE = new URLSearchParams(window.location.search).get('home') === 'forte';
 
 /** A entrada da Home (título sobe, botões em cascata) só na 1ª vez que o jogo abre; voltar pra Home é na hora. */
 let homeEntered = false;
-
-function PatchBody({ n }: { n: PatchNotes }) {
-    return n.sections.map((sec) => (
-        <div key={sec.title}>
-            <h3>{sec.title}</h3>
-            <ul>
-                {sec.lines.map((l) => (
-                    <li key={l}>{l}</li>
-                ))}
-            </ul>
-        </div>
-    ));
-}
-
-/** A mais nova vem aberta e em destaque; as antigas ficam recolhidas (versão, título, data). */
-function PatchVersion({ n, latest, lang }: { n: PatchNotes; latest: boolean; lang: 'pt' | 'en' }) {
-    const { t } = useT();
-    const [open, setOpen] = useState(false);
-    const date = new Date(`${n.date}T12:00:00Z`).toLocaleDateString(lang === 'pt' ? 'pt-BR' : 'en-US', {
-        day: 'numeric',
-        month: 'short',
-        timeZone: 'UTC',
-    });
-    if (latest) {
-        return (
-            <section className="patch-version patch-latest">
-                <p className="patch-meta">
-                    <span className="bc-tag">{t('home.latest')}</span>
-                    <time dateTime={n.date}>{date}</time>
-                </p>
-                <h2 className="bc-caption">{t('home.version', { v: n.version, title: n.title })}</h2>
-                <PatchBody n={n} />
-            </section>
-        );
-    }
-    return (
-        <section className={`patch-version patch-old${open ? ' open' : ''}`}>
-            <button type="button" className="patch-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
-                <span className="patch-old-title">{t('home.version', { v: n.version, title: n.title })}</span>
-                <time dateTime={n.date}>{date}</time>
-                <HudIcon kind="down" />
-            </button>
-            <div className="patch-fold" inert={!open}>
-                <div>
-                    <PatchBody n={n} />
-                </div>
-            </div>
-        </section>
-    );
-}
 
 type Run = NonNullable<ReturnType<typeof useGame.getState>['run']>;
 
@@ -179,26 +106,18 @@ export function Home() {
     useEffect(() => {
         homeEntered = true;
     }, []);
-    const { run, newRun, go, profile, records, parkedRuns, resumeParked, discardParked } = useGame();
-    const { t, d, lang } = useT();
+    const { run, newRun, go, profile, records } = useGame();
+    const { t } = useT();
     // 1ª visita: só o "Jogar" (Copa Relâmpago). Antes do save carregar não dá pra saber: só o topo e o rodapé
     const hydrated = useHydrated();
     const firstVisit = useGame(isFirstVisit);
     const [more, setMore] = useState(false);
-    const notes = patchNotes(lang);
     const [teamName, setTeamName] = useState(profile.clubName || 'Pallet FC');
     // o perfil chega do IndexedDB/nuvem depois do primeiro render: acompanha até a pessoa digitar
     const [typed, setTyped] = useState(false);
     useEffect(() => {
         if (!typed) setTeamName(profile.clubName || 'Pallet FC');
     }, [profile.clubName, typed]);
-    const [notesOpen, setNotesOpen] = useState(false);
-    useEffect(() => {
-        if (!notesOpen) return;
-        const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setNotesOpen(false);
-        window.addEventListener('keydown', onKey);
-        return () => window.removeEventListener('keydown', onKey);
-    }, [notesOpen]);
     const challengeSeed = seedFromUrl();
     const simple = firstVisit && !more && !challengeSeed;
     const inProgress = run && !['eliminated', 'champion'].includes(run.status);
@@ -213,19 +132,7 @@ export function Home() {
         if (inProgress && confirm === undefined) setConfirm(seed ?? null);
         else newRun(name(), seed, undefined, mode);
     };
-    /** Copas guardadas (vieram de um conflito entre aparelho e conta): retomar troca de lugar com a atual. */
-    const parked = parkedRuns.filter(isCupInProgress);
-    const [parkedAsk, setParkedAsk] = useState<{ kind: 'swap' | 'discard'; seed: string } | null>(null);
-    const parkedTarget = parkedAsk ? parked.find((p) => p.seed === parkedAsk.seed) : undefined;
-    const resume = (seed: string) => {
-        // sem copa em andamento não há o que guardar no lugar: retoma direto
-        if (inProgress) setParkedAsk({ kind: 'swap', seed });
-        else resumeParked(seed);
-    };
     const eventType = weeklyEventType(new Date());
-    const openLab = (q: string) => {
-        window.location.search = q;
-    };
 
     /** A Rota Índigo é NOVO até a 1ª Rota (terminada ou em andamento). */
     const rotaNew = LONG_CUP_LIVE && !records.longCups && !isLong(run);
@@ -360,65 +267,12 @@ export function Home() {
                                 <b>{t('home.quickCup.title')}</b>
                                 <span>{t('home.quickCup.line')}</span>
                             </div>
-                            {parkedAsk && parkedTarget ? (
-                                <div className="confirm-new">
-                                    <p>
-                                        {parkedAsk.kind === 'swap'
-                                            ? rich(t('account.confirmSwap'), {
-                                                  team: <b>{parkedTarget.teamName}</b>,
-                                                  current: <b>{run?.teamName}</b>,
-                                              })
-                                            : rich(t('account.confirmDiscard'), {
-                                                  team: <b>{parkedTarget.teamName}</b>,
-                                              })}
-                                    </p>
-                                    <div className="row" style={{ justifyContent: 'center' }}>
-                                        <button
-                                            type="button"
-                                            className="btn primary"
-                                            onClick={() => {
-                                                if (parkedAsk.kind === 'swap') resumeParked(parkedAsk.seed);
-                                                else discardParked(parkedAsk.seed);
-                                                setParkedAsk(null);
-                                            }}
-                                        >
-                                            {parkedAsk.kind === 'swap'
-                                                ? t('account.confirmSwapYes')
-                                                : t('account.confirmDiscardYes')}
-                                        </button>
-                                        <button type="button" className="btn ghost" onClick={() => setParkedAsk(null)}>
-                                            {t('common.ui.cancel')}
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : confirm !== undefined && pendingMode !== 'longa' ? (
+                            {confirm !== undefined && pendingMode !== 'longa' ? (
                                 confirmBox
                             ) : (
                                 <>
                                     {inProgress && !isLong(run) && resumeCard}
-                                    {parked.map((p) => (
-                                        <div key={p.seed} className="parked-row">
-                                            <span className="pr-text">
-                                                <span className="pr-label">{t('account.parkedLabel')}</span>
-                                                <span>
-                                                    <b>{p.teamName}</b>{' '}
-                                                    <span className="pr-step">
-                                                        · {cupStep({ ...p, played: p.results.length })}
-                                                    </span>
-                                                </span>
-                                            </span>
-                                            <button type="button" className="btn small" onClick={() => resume(p.seed)}>
-                                                {t('account.resumeParked')}
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="btn ghost small"
-                                                onClick={() => setParkedAsk({ kind: 'discard', seed: p.seed })}
-                                            >
-                                                {t('account.discardParked')}
-                                            </button>
-                                        </div>
-                                    ))}
+                                    <ParkedRuns />
                                     <button
                                         type="button"
                                         data-coach="quick"
@@ -484,63 +338,7 @@ export function Home() {
                     <DoorTiles which={['profile', 'collection', 'trophies']} />
                 </>
             )}
-            {notesOpen && (
-                // biome-ignore lint/a11y/noStaticElementInteractions: clicar fora fecha; o botão fecha pelo teclado
-                <div className="modal-backdrop" onClick={() => setNotesOpen(false)} role="presentation">
-                    {/* biome-ignore lint/a11y/useKeyWithClickEvents: só impede que o clique dentro feche */}
-                    <div
-                        className="modal panel patch-notes"
-                        role="dialog"
-                        aria-modal="true"
-                        aria-label={t('home.news')}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button
-                            type="button"
-                            className="modal-close"
-                            onClick={() => setNotesOpen(false)}
-                            aria-label={t('common.ui.close')}
-                            // biome-ignore lint/a11y/noAutofocus: o foco vai para dentro da janela que acabou de abrir
-                            autoFocus
-                        >
-                            <HudIcon kind="close" />
-                        </button>
-                        {notes.map((n, i) => (
-                            <PatchVersion key={n.version} n={n} latest={i === 0} lang={lang} />
-                        ))}
-                    </div>
-                </div>
-            )}
-            <footer className="home-footer">
-                <nav className="footer-links" aria-label={t('home.footerAria')}>
-                    <button type="button" className="link-btn" onClick={() => setNotesOpen(true)}>
-                        {d.home.tiles.news} <em className="tile-badge">v{notes[0].version}</em>
-                    </button>
-                    <button type="button" className="link-btn" onClick={() => go('help')}>
-                        {d.home.tiles.help}
-                    </button>
-                    <button type="button" className="link-btn" onClick={() => go('credits')}>
-                        {d.home.tiles.credits}
-                    </button>
-                    <a href={FEEDBACK_URL} target="_blank" rel="noopener">
-                        {d.home.tiles.feedback}
-                    </a>
-                    <a href={privacyUrl()} target="_blank" rel="noopener">
-                        {t('home.privacy')}
-                    </a>
-                    <a href="https://github.com/miguel20br/soccermon" target="_blank" rel="noopener">
-                        {t('home.github')}
-                    </a>
-                    {import.meta.env.DEV && (
-                        <button type="button" className="link-btn" onClick={() => openLab('?cards=1')}>
-                            {d.home.tiles.cards}
-                        </button>
-                    )}
-                </nav>
-                {/* fora da linha dos links: ao trocar o idioma os links mudam de largura e o botão ficava pulando */}
-                <LangToggle />
-                <p className="disclaimer">{t('home.disclaimer', { v: __APP_VERSION__.replace(/\.0$/, '') })}</p>
-            </footer>
+            <AboutFooter />
         </div>
     );
 }

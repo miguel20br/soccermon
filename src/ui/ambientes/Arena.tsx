@@ -1,4 +1,5 @@
-import { type CSSProperties, useState } from 'react';
+import { type CSSProperties, useEffect, useState } from 'react';
+import { playCry } from '../../game/audio';
 import { useT } from '../../i18n/react';
 import { ligaCountdown } from '../../league/rules';
 import { duelWins } from '../../store/duels';
@@ -46,7 +47,15 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
     const mine = avatar.kind === 'pokemon' ? avatar.speciesId : 25;
     const belt = nextBelt(wins);
     const liga = ligaCountdown();
-    const scale = small ? 1 : big ? 3 : 2;
+    // os dois do duelo maiores que os de volta: no desktop, 4x (com 3x o meio da quadra ficava vazio)
+    const scale = small ? 1 : big ? 4 : 2;
+    // tocar na silhueta mostra quem é, por um instante
+    const [seen, setSeen] = useState(false);
+    useEffect(() => {
+        if (!seen) return;
+        const id = window.setTimeout(() => setSeen(false), 1600);
+        return () => window.clearTimeout(id);
+    }, [seen]);
 
     return (
         <ClockCtx.Provider value={clock}>
@@ -71,13 +80,14 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
                         </svg>
                         <i className="ar-circle" />
                         <i className="ar-glow" />
+                        <img className="ar-ball" src="assets/ui/ball.svg" alt="" width="16" height="16" />
                         <div className="ar-duel">
                             <span className="ar-side me">
                                 <i className="es-shadow" />
                                 <FieldSprite id={mine} anim="Idle" dir={2} scale={scale} play={active} />
                             </span>
                             <b className="ar-vs">VS</b>
-                            <span className="ar-side rival">
+                            <span className={`ar-side rival${seen ? ' seen' : ''}`}>
                                 <i className="es-shadow" />
                                 <FieldSprite id={rival} anim="Idle" dir={6} scale={scale} play={active} />
                                 {/* o mesmo sprite, invisível, só pra pôr o "?" em cima da cabeça (a silhueta apaga tudo dentro dela) */}
@@ -91,6 +101,16 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
                                 >
                                     <i className="ar-ask">?</i>
                                 </FieldSprite>
+                                {/* biome-ignore lint/a11y/noStaticElementInteractions: enfeite da cena (aria-hidden) */}
+                                {/* biome-ignore lint/a11y/useKeyWithClickEvents: idem, sem foco nem função */}
+                                <i
+                                    className="ar-tap"
+                                    onClick={() => {
+                                        if (seen) return;
+                                        setSeen(true);
+                                        playCry(rival, useGame.getState().settings.cries, 0.5);
+                                    }}
+                                />
                             </span>
                         </div>
                         <div className="ar-walk">

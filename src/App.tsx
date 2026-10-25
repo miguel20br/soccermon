@@ -47,7 +47,7 @@ const CourtLab = lazy(() => import('./ui/screens/CourtLab').then((m) => ({ defau
 const EmoteLab = lazy(() => import('./ui/duel/EmoteLab').then((m) => ({ default: m.EmoteLab })));
 const IconLab = lazy(() => import('./ui/screens/IconLab').then((m) => ({ default: m.IconLab })));
 const StoryLab = lazy(() => import('./ui/screens/StoryLab').then((m) => ({ default: m.StoryLab })));
-// navegação por ambientes (?lab=ambientes, ADR 0005): pedaço à parte, a Home de sempre não carrega nada dela
+// a Home (navegação por ambientes, src/ui/ambientes): pedaço à parte, baixa junto com o save; `?lab=off` = Home de lista
 const Ambientes = lazy(() => import('./ui/ambientes/Ambientes').then((m) => ({ default: m.Ambientes })));
 
 /** Sai da tela atual (para a Home, ou `to`); sair do duelo guarda a sala (dá pra voltar pelo link). */
@@ -251,7 +251,7 @@ export default function App() {
             <FriendVitrine />
             <AccountLink />
             <UnlockNotice />
-            {hydrated && tour && screen === 'home' && !ambientes && <Onboarding />}
+            {hydrated && tour && screen === 'home' && <Onboarding />}
         </div>
     );
 }

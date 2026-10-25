@@ -18,6 +18,8 @@ import {
     useGame,
 } from '../../store/game-store';
 import { DEFAULT_PROFILE, EMPTY_CAREER, seenCount } from '../../store/profile';
+import { AboutFooter } from '../components/AboutFooter';
+import { AccountBar } from '../components/AccountBar';
 import { MenuHead } from '../components/MenuHead';
 import { leaveWith } from '../feedback';
 import { privacyUrl } from '../links';
@@ -151,6 +153,8 @@ export function Settings() {
     return (
         <div className="menu-screen settings-screen">
             <MenuHead title={t('settings.screen.title')} icon="settings" onBack={() => go('home')} />
+            {/* entrar com o Google (na Home de lista ficava embaixo dos modos) */}
+            <AccountBar />
 
             <Group title={t('settings.screen.langLabel')}>
                 <div className="set-row">
@@ -347,11 +351,8 @@ export function Settings() {
 
             <DataSettings />
             <AccountSettings />
-            <p className="muted center">
-                <a href={privacyUrl()} target="_blank" rel="noopener">
-                    {t('settings.screen.privacy')}
-                </a>
-            </p>
+            {/* a Home de ambientes não tem rodapé: Novidades, Ajuda, Créditos e o aviso de direitos moram aqui */}
+            <AboutFooter lang={false} />
         </div>
     );
 }

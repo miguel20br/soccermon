@@ -61,11 +61,21 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
                                 <KitShirt look={look} className="sd-shirt" />
                             </span>
                             <Mi k="glassCab" x={0} bottom={72} />
-                            <span className="sd-cups">
-                                {METALS.filter((m) => cups[m] > 0).map((m) => (
-                                    <PixelTrophy key={m} kind="taca" metal={m} />
-                                ))}
-                            </span>
+                            {METALS.some((m) => cups[m] > 0) ? (
+                                <span className="sd-cups">
+                                    {METALS.filter((m) => cups[m] > 0).map((m) => (
+                                        <PixelTrophy key={m} kind="taca" metal={m} />
+                                    ))}
+                                </span>
+                            ) : (
+                                // ainda sem taça: o lugar da 1ª reservado na vitrine, com a plaquinha
+                                <>
+                                    <span className="sd-cups empty">
+                                        <PixelTrophy kind="taca" metal="ouro" ghost />
+                                    </span>
+                                    <span className="sd-plaque">{t('home.amb.sedeFirst')}</span>
+                                </>
+                            )}
                             <Crest look={look} className="sd-crest" />
                             <Mi k="fireplace" x={124} bottom={78} />
                             <i className="sd-fire" />
@@ -79,7 +89,7 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
             </div>
             <div className="amb-ui rm-ui sd-ui">
                 <header className="rm-head">
-                    <h2>
+                    <h2 title={t('home.amb.sedeOf', { club })}>
                         <Crest look={look} className="crest sd-head-crest" />
                         {t('home.amb.sedeOf', { club })}
                     </h2>

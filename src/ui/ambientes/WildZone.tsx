@@ -1,7 +1,9 @@
 import { type RefObject, useEffect, useReducer, useRef, useState } from 'react';
+import { playCry } from '../../game/audio';
+import { useGame } from '../../store/game-store';
 import type { SceneClock } from './clock';
 import { type FieldAnim, FieldSprite } from './FieldSprite';
-import { type Actor, type Area, type Emote, type Pt, spawn, step, type Wild } from './wild';
+import { type Actor, type Area, type Emote, type Pt, poke, spawn, step, type Wild } from './wild';
 
 /** Uma zona da cena: onde dá pra pisar, velocidade, tamanho do sprite e a camada (z-index pela altura do pé). */
 export interface ZoneDef extends Omit<Area, 'aspect'> {
@@ -84,7 +86,15 @@ export function useWild(clock: SceneClock, list: Wild[], zones: Record<string, Z
         }
         return f;
     };
-    return { actors: [...actors.current.values()], zones, ref };
+    /** Toque num Pokémon ambiente: ele pula e solta o grito, baixinho. */
+    const tap = (key: string) => {
+        const a = actors.current.get(key);
+        if (!a) return;
+        poke(a, clock.t);
+        redraw();
+        playCry(a.id, useGame.getState().settings.cries, 0.5);
+    };
+    return { actors: [...actors.current.values()], zones, ref, tap };
 }
 export type WildScene = ReturnType<typeof useWild>;
 
@@ -133,11 +143,14 @@ export function WildZone({ wild, zone, className = '' }: { wild: WildScene; zone
                 wild.actors
                     .filter((a) => a.zone === zone)
                     .map((a) => (
+                        // biome-ignore lint/a11y/noStaticElementInteractions: enfeite da cena (aria-hidden), o toque só faz ele pular
+                        // biome-ignore lint/a11y/useKeyWithClickEvents: idem, sem foco nem função
                         <span
                             key={a.key}
                             ref={wild.ref(a.key, false)}
                             className={`wild${def.fly ? ' fly' : ''}${a.act === 'sleep' ? ' asleep' : ''}`}
                             style={{ left: `${a.x * 100}%`, top: `${a.y * 100}%`, zIndex: zOf(def, a.y) }}
+                            onClick={() => wild.tap(a.key)}
                         >
                             <i className="wild-shadow" />
                             <FieldSprite

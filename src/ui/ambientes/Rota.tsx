@@ -253,6 +253,7 @@ export function Rota({
     const go = useGame((s) => s.go);
     const clubName = useGame((s) => s.profile.clubName || 'Pallet FC');
     const done = useGame((s) => s.profile.missionsDone);
+    const records = useGame((s) => s.records);
     const avatar = useGame((s) => s.profile.avatar);
     const [confirm, setConfirm] = useState(false);
     const stop = stopOf(run);
@@ -342,7 +343,13 @@ export function Rota({
             </div>
             <div className="amb-ui rt-ui">
                 <header className="rt-head">
-                    <h2>{t('home.longCup.title')}</h2>
+                    <h2>
+                        <span className="rt-title">{t('home.longCup.title')}</span>
+                        {/* NOVO até a 1ª Rota (o mesmo selo da Home de lista) */}
+                        {!records.longCups && !longOn && (
+                            <span className="bc-tag rota-new">{t('profile.news.badge')}</span>
+                        )}
+                    </h2>
                     <span className="rt-badges" title={t('profile.badges.title')}>
                         <KantoBadge leader="brock" earned={nBadges > 0} />
                         {t('profile.badges.count', { n: nBadges, total: KANTO_BADGES.length })}

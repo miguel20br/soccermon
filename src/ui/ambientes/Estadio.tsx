@@ -1,17 +1,21 @@
-import { type CSSProperties, useRef, useState } from 'react';
-import { dict } from '../../i18n';
+import { type CSSProperties, useEffect, useRef, useState } from 'react';
+import { weeklyEventType } from '../../engine/specials';
+import { dict, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
+import { isFirstVisit } from '../../store/coach';
 import { dailyDay, dailyStreak } from '../../store/daily';
-import { resumeScreenOf, useGame } from '../../store/game-store';
+import { resumeScreenOf, seedFromUrl, useGame } from '../../store/game-store';
 import { bannerInk, clubColorHex } from '../../store/profile';
-import { markSeen } from '../coach/Coach';
+import { markSeen, useHydrated } from '../coach/Coach';
 import { HudIcon } from '../components/MatchHud';
+import { ParkedRuns } from '../components/ParkedRuns';
+import { FriendChallenge } from '../profile/FriendsTab';
 import { dailyInPlay, useDailyBegin } from '../screens/Daily';
 import { ResumeCard } from '../screens/Home';
 import { ClockCtx, useSceneClock } from './clock';
 import { FieldSprite } from './FieldSprite';
 import { type Threats, useMq, useWild, type WildScene, WildZone, type ZoneDef } from './WildZone';
-import type { Pt, Wild } from './wild';
+import { dirOf, type Pt, type Wild } from './wild';
 
 const css = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 /** Escurece uma cor 0xRRGGBB (sombra da camisa na torcida). */
@@ -105,7 +109,19 @@ function Floodlight({ side }: { side: 'l' | 'r' }) {
 }
 
 /** A quadra vista do túnel: tábuas, linhas em perspectiva, o capitão fazendo embaixadinha e quem está em volta. */
-function Court({ captain, play, small, wild }: { captain: number; play: boolean; small: boolean; wild: WildScene }) {
+function Court({
+    captain,
+    play,
+    small,
+    wild,
+    look,
+}: {
+    captain: number;
+    play: boolean;
+    small: boolean;
+    wild: WildScene;
+    look: number;
+}) {
     return (
         <div className="es-court">
             <svg
@@ -133,7 +149,7 @@ function Court({ captain, play, small, wild }: { captain: number; play: boolean;
             <WildZone wild={wild} zone="edge" />
             <div className="es-captain">
                 <i className="es-shadow" />
-                <FieldSprite id={captain} anim="Idle" dir={0} scale={small ? 1 : 2} play={play} className="es-mon" />
+                <FieldSprite id={captain} anim="Idle" dir={look} scale={small ? 1 : 2} play={play} className="es-mon" />
                 <img className="es-ball" src="assets/ui/ball.svg" alt="" width="16" height="16" />
             </div>
         </div>
@@ -214,12 +230,44 @@ function zonesOf(small: boolean, big: boolean, wide: boolean): Record<string, Zo
         edge: {
             ok: wide
                 ? (x, y) => y > 0.45 && y < 0.85 && x > 0.55
-                : (x, y) => y > 0.22 && y < 0.45 && (x < 0.3 || x > 0.7),
+                : // longe das paredes do túnel (que cobrem a beira da quadra no celular em pé)
+                  (x, y) => y > 0.22 && y < 0.45 && ((x > 0.13 && x < 0.3) || (x > 0.7 && x < 0.87)),
             speed: 0.2,
             scale: small ? 1 : big ? 3 : 2,
             z: () => 3,
         },
     };
+}
+
+/**
+ * O capitão vira pro dedo (ou pro mouse): a direção PMD do toque mais recente em relação a ele; parado 2,5 s, volta
+ * a olhar pra frente. Só com a aba na tela.
+ */
+function useLook(active: boolean): number {
+    const [dir, setDir] = useState(0);
+    useEffect(() => {
+        if (!active) return;
+        let idle = 0;
+        const on = (e: PointerEvent) => {
+            const el = document.querySelector('.amb-estadio .es-captain');
+            if (!el) return;
+            const r = el.getBoundingClientRect();
+            const dx = e.clientX - r.left;
+            const dy = e.clientY - (r.top - 20);
+            setDir(Math.hypot(dx, dy) < 24 ? 0 : dirOf(dx, dy));
+            window.clearTimeout(idle);
+            idle = window.setTimeout(() => setDir(0), 2500);
+        };
+        window.addEventListener('pointerdown', on);
+        window.addEventListener('pointermove', on);
+        return () => {
+            window.removeEventListener('pointerdown', on);
+            window.removeEventListener('pointermove', on);
+            window.clearTimeout(idle);
+            setDir(0);
+        };
+    }, [active]);
+    return dir;
 }
 
 /**
@@ -253,19 +301,27 @@ export function Estadio({
     const clubName = useGame((s) => s.profile.clubName || 'Pallet FC');
     const club = useGame((s) => clubColorHex(s.profile.clubColor));
     const avatar = useGame((s) => s.profile.avatar);
-    const [confirm, setConfirm] = useState(false);
+    const hydrated = useHydrated();
+    // 1ª visita (nada jogado): no lugar do placar, o logo e a frase; o JOGAR é o único botão
+    const firstVisit = useGame(isFirstVisit);
+    // link de desafio (?seed=): o mesmo draft do amigo vira o botão principal
+    const [challenge] = useState(seedFromUrl);
+    /** Começar outra copa apaga a atual: com uma em andamento, pede confirmação (`null` = copa sem seed). */
+    const [confirm, setConfirm] = useState<string | null | undefined>(undefined);
     const inProgress = !!run && !['eliminated', 'champion'].includes(run.status);
     const captain =
         (inProgress && (run.picks.find((p) => p.uid === run.captainUid) ?? run.picks[0])?.speciesId) ||
         (avatar.kind === 'pokemon' ? avatar.speciesId : 25);
-    const play = () => {
-        if (inProgress && !confirm) {
-            setConfirm(true);
+    const play = (seed: string | null = null) => {
+        if (inProgress && confirm === undefined) {
+            setConfirm(seed);
             return;
         }
         markSeen(['intro']);
-        enter(() => newRun(clubName));
+        enter(() => newRun(clubName, seed ?? undefined));
     };
+    const look = useLook(active);
+    const week = t('home.eventWeek', { type: typeName(weeklyEventType(new Date())) }).toUpperCase();
     const vars = {
         '--club': css(club),
         '--club-ink': css(bannerInk(club)),
@@ -303,11 +359,11 @@ export function Estadio({
                     </div>
                     <div className="es-led">
                         <span>
-                            {t('home.amb.board').repeat(3)}
-                            {t('home.amb.board').repeat(3)}
+                            {`${week} · ${t('home.amb.board')}`.repeat(3)}
+                            {`${week} · ${t('home.amb.board')}`.repeat(3)}
                         </span>
                     </div>
-                    <Court captain={captain} play={active} small={small} wild={w} />
+                    <Court captain={captain} play={active} small={small} wild={w} look={look} />
                 </div>
                 <div className="amb-layer es-tunnel" style={{ '--depth': 0 } as CSSProperties}>
                     <i className="es-wall l" />
@@ -317,34 +373,64 @@ export function Estadio({
                     <i className="es-mat" />
                 </div>
             </div>
-            <div className="amb-ui es-ui">
-                <Board />
+            <div className={`amb-ui es-ui${firstVisit ? ' es-first' : ''}`}>
+                {!hydrated ? (
+                    <i className="es-top-slot" />
+                ) : firstVisit && !challenge ? (
+                    <div className="es-welcome">
+                        <h1 className="es-logo">
+                            <img src="assets/ui/logo.svg" alt="Soccermon" width="1441" height="300" />
+                        </h1>
+                        <p>{t('home.tagline')}</p>
+                    </div>
+                ) : (
+                    <Board />
+                )}
                 <div className="es-actions">
+                    {/* "Fulano te chamou pro Duelo" (na Home o aviso por cima não aparece: fica aqui, onde todo mundo chega) */}
+                    <FriendChallenge />
                     {inProgress && <ResumeCard run={run} onClick={() => go(resumeScreenOf(run.status))} />}
-                    {confirm ? (
+                    <ParkedRuns />
+                    {confirm !== undefined ? (
                         <div className="confirm-new es-confirm bc-surface">
                             <p>{t('home.confirmNew', { team: run?.teamName ?? '' })}</p>
                             <div className="row" style={{ justifyContent: 'center' }}>
-                                <button type="button" className="btn primary" onClick={play}>
+                                <button type="button" className="btn primary" onClick={() => play(confirm)}>
                                     {t('home.confirmYes')}
                                 </button>
-                                <button type="button" className="btn ghost" onClick={() => setConfirm(false)}>
+                                <button type="button" className="btn ghost" onClick={() => setConfirm(undefined)}>
                                     {t('common.ui.cancel')}
                                 </button>
                             </div>
                         </div>
                     ) : (
-                        <button
-                            type="button"
-                            className={`btn big cup-go es-play ${inProgress ? 'outline' : 'primary'}`}
-                            onClick={play}
-                        >
-                            <span className="cup-go-txt">
-                                <b>{inProgress ? t('home.newCup') : t('home.play')}</b>
-                                <small>{t('home.playTag')}</small>
-                            </span>
-                            <HudIcon kind="next" />
-                        </button>
+                        <>
+                            {challenge && (
+                                <button
+                                    type="button"
+                                    className={`btn big cup-go es-play ${inProgress ? 'outline' : 'primary'}`}
+                                    onClick={() => play(challenge)}
+                                >
+                                    <span className="cup-go-txt">
+                                        <b>{t('home.challenge', { seed: challenge })}</b>
+                                        <small>{t('home.playTag')}</small>
+                                    </span>
+                                    <HudIcon kind="next" />
+                                </button>
+                            )}
+                            <button
+                                type="button"
+                                data-coach="quick"
+                                className={`btn big cup-go es-play ${inProgress || challenge ? 'outline' : 'primary'}`}
+                                onClick={() => play()}
+                            >
+                                <span className="cup-go-txt">
+                                    <b>{inProgress ? t('home.newCup') : t('home.play')}</b>
+                                    <small>{t('home.playTag')}</small>
+                                </span>
+                                <HudIcon kind="next" />
+                            </button>
+                        </>
                     )}
                 </div>
             </div>

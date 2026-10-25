@@ -1,6 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { TABS } from './nav';
-import { type Actor, type Area, dirOf, MAX_WILD, POOLS, rollAll, rollWild, spawn, step, wildQuota } from './wild';
+import {
+    type Actor,
+    type Area,
+    dirOf,
+    MAX_WILD,
+    POOLS,
+    poke,
+    rollAll,
+    rollWild,
+    spawn,
+    step,
+    wildQuota,
+} from './wild';
 
 /** Sorteio repetível pros testes (a tela usa Math.random). */
 function seeded(seed: number) {
@@ -121,6 +133,22 @@ describe('Pokémon ambiente: ações', () => {
             }
         }
         for (const act of ['walk', 'idle', 'look', 'hop', 'emote', 'chase', 'flee']) expect(acts).toContain(act);
+    });
+
+    it('tocado, pula com coração ou nota no lugar; quem dormia acorda assustado e depois segue a vida', () => {
+        const stand: Area = { aspect: 4, ok: () => true, speed: 0.1, still: true };
+        const rand = seeded(9);
+        const a = spawn({ key: 's', id: 143, zone: 'stand', mood: 'sleepy' }, stand, rand);
+        expect(a.act).toBe('sleep');
+        expect(poke(a, 1000, rand)).toBe(true);
+        expect([a.act, a.emote, a.t0]).toEqual(['hop', 'surprise', 1000]);
+        const at = [a.x, a.y];
+        step([a], { stand }, 950, 1950, {}, rand);
+        expect(a.act).not.toBe('hop');
+        expect([a.x, a.y]).toEqual(at);
+        const b = spawn({ key: 'b', id: 25, zone: 'grass', mood: 'busy' }, grass, rand);
+        expect(poke(b, 0, rand)).toBe(false);
+        expect(['heart', 'note']).toContain(b.emote);
     });
 
     it('o dorminhoco passa a maior parte do tempo dormindo e não sai do lugar na arquibancada', () => {

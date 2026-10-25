@@ -1,13 +1,17 @@
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
 import { useT } from '../../i18n/react';
+import { isFirstVisit, rotaNovaDue } from '../../store/coach';
 import { useGame } from '../../store/game-store';
+import { LONG_CUP_LIVE } from '../../store/long-cup';
+import { Coach, useHydrated } from '../coach/Coach';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { TopActions } from '../components/TopActions';
+import { feedback } from '../feedback';
 import { reduceMotionOn } from '../settings-sync';
 import { Arena } from './Arena';
 import { Estadio } from './Estadio';
 import { Lab } from './Lab';
-import { dragPos, START, snapTab, TABS, type Tab } from './nav';
+import { dragPos, START, skyOf, snapTab, TABS, type Tab } from './nav';
 import { Rota } from './Rota';
 import { Sede } from './Sede';
 import { installTabBack } from './tab-back';
@@ -27,13 +31,20 @@ const ENTER_MS = 860;
 let lastTab = START;
 
 /**
- * Navegação por ambientes (`?lab=ambientes`): 5 lugares lado a lado, a barra de abas embaixo (coluna à esquerda com
+ * A Home (navegação por ambientes; `?lab=off` = a Home de lista): 5 lugares lado a lado, a barra de abas embaixo (coluna à esquerda com
  * o celular deitado) e o arrasto de lado entre eles. Abre no Estádio. A troca anda 280 ms com o fundo em camadas
  * (céu devagar, cenário médio, botões junto do dedo); com "reduzir movimento", só um fade.
  */
 export function Ambientes() {
     const { t, d } = useT();
+    const go = useGame((s) => s.go);
+    const hydrated = useHydrated();
+    const firstVisit = useGame(isFirstVisit);
+    const records = useGame((s) => s.records);
+    const coachSeen = useGame((s) => s.profile.coach);
     const [tab, setTabState] = useState(lastTab);
+    // o céu do Estádio e da Rota segue a hora de verdade (dia, fim de tarde, noite); a Arena é sempre à noite
+    const [sky] = useState(() => skyOf(new Date().getHours()));
     const [entering, setEntering] = useState<(() => void) | null>(null);
     const root = useRef<HTMLDivElement>(null);
     const stage = useRef<HTMLDivElement>(null);
@@ -120,7 +131,10 @@ export function Ambientes() {
         if (!g?.on) return;
         root.current?.classList.remove('amb-drag');
         swallowClick.current = true;
-        setTab(snapTab(tab, e.clientX - g.x, g.vx, width()));
+        const to = snapTab(tab, e.clientX - g.x, g.vx, width());
+        // o toque na aba já faz o som (feedback.ts); o arrasto que troca de lugar faz o mesmo
+        if (to !== tab) feedback('tap');
+        setTab(to);
     };
 
     useEffect(() => {
@@ -161,10 +175,11 @@ export function Ambientes() {
         <div
             ref={root}
             className={`amb${entering ? ` amb-entering amb-enter-${TABS[tab]}` : ''}`}
+            data-sky={sky}
             style={{ '--pos': tab, '--n': TABS.length } as CSSProperties}
         >
             <div className="amb-top">
-                <TopActions />
+                <TopActions help={() => go('help')} />
             </div>
             <div
                 ref={stage}
@@ -217,6 +232,14 @@ export function Ambientes() {
                     ))}
                 </div>
             </nav>
+            {/* balões (fora do palco: o painel tem transform e cortaria o balão): o da Home depois da 1ª copa (o JOGAR
+                e a Ajuda) e "Agora tem a Rota Índigo" apontando a aba; só no Estádio */}
+            {tab === START && hydrated && !firstVisit && (
+                <Coach id="intro" targets={['[data-coach="quick"]', '[data-coach="help"]']} />
+            )}
+            {tab === START && LONG_CUP_LIVE && (
+                <Coach id="rotaNova" targets={['#amb-tab-rota']} when={rotaNovaDue(records, coachSeen)} />
+            )}
             {entering && (
                 <button type="button" className="amb-skip" aria-label={t('home.amb.skip')} onClick={entering} />
             )}

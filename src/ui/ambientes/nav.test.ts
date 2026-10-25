@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ambientesOn, dragPos, START, snapTab, TABS } from './nav';
+import { ambientesOn, dragPos, START, skyOf, snapTab, TABS } from './nav';
 
 describe('navegação por ambientes', () => {
     it('abre no Estádio, a aba do meio', () => {
@@ -7,17 +7,19 @@ describe('navegação por ambientes', () => {
         expect(START).toBe(Math.floor(TABS.length / 2));
     });
 
-    it('bandeira desligada = Home de sempre', () => {
-        expect(ambientesOn('', null)).toBe(false);
-        expect(ambientesOn('?lab=golpes', null)).toBe(false);
-        expect(ambientesOn('?demo=mapa', null)).toBe(false);
+    it('a Home de todo mundo são os ambientes (sem nada na URL nem na aba)', () => {
+        expect(ambientesOn('', null)).toBe(true);
+        expect(ambientesOn('?lab=golpes', null)).toBe(true);
+        expect(ambientesOn('?demo=mapa', null)).toBe(true);
+        expect(ambientesOn('?seed=ABC123', null)).toBe(true);
     });
 
-    it('?lab=ambientes liga, e fica ligado na aba depois que a URL muda; ?lab=off desliga', () => {
-        expect(ambientesOn('?lab=ambientes', null)).toBe(true);
-        expect(ambientesOn('?demo=mapa&lab=ambientes', null)).toBe(true);
+    it('?lab=off volta pra Home de lista e fica assim na aba; ?lab=ambientes religa', () => {
+        expect(ambientesOn('?lab=off', null)).toBe(false);
+        expect(ambientesOn('', '0')).toBe(false);
+        expect(ambientesOn('?demo=mapa', '0')).toBe(false);
+        expect(ambientesOn('?lab=ambientes', '0')).toBe(true);
         expect(ambientesOn('', '1')).toBe(true);
-        expect(ambientesOn('?lab=off', '1')).toBe(false);
     });
 
     it('arrastar mais da metade troca de aba; menos volta pra mesma', () => {
@@ -42,5 +44,19 @@ describe('navegação por ambientes', () => {
     it('nas pontas o arrasto é elástico', () => {
         expect(dragPos(0, 300, 300)).toBeCloseTo(-1 / 3);
         expect(dragPos(START, -195, 390)).toBeCloseTo(START + 0.5);
+    });
+
+    it('céu pela hora: dia, fim de tarde e noite', () => {
+        expect([5, 6, 12, 16, 17, 18, 19, 23, 0].map(skyOf)).toEqual([
+            'noite',
+            'dia',
+            'dia',
+            'dia',
+            'tarde',
+            'tarde',
+            'noite',
+            'noite',
+            'noite',
+        ]);
     });
 });

@@ -429,7 +429,7 @@ Adaptado pro Soccermon: **não temos loja nem baú** (ADR 0006, sem dinheiro nen
 | **3. Ambientes (a visão do Miguel, recomendado)** | O caminho 2 + um ambiente por aba, em etapas: Estádio e Rota primeiro, depois Arena, Laboratório e Sede, e por último as telas de dentro da copa | 6–9 dias (barra) + 13–19 dias (5 ambientes) + 6–9 dias (dentro da copa) | médio-alto, mas cada etapa já sai melhor que hoje |
 
 **Recomendação: caminho 3 em etapas.** Primeira entrega: a barra + **Estádio** (centro) + **Rota**, atrás de bandeira
-(`?lab=ambientes`) pra você arrastar no celular antes de trocar a Home. As outras 3 abas entram primeiro como telas
+(`?lab=ambientes`) pra você arrastar no celular antes de trocar a Home (trocada na 0.9.21). As outras 3 abas entram primeiro como telas
 simples (caminho 2) e ganham o ambiente uma por versão, o que casa com o ritmo de "versões menos frequentes e
 polidas, trailerzinho por versão": cada ambiente novo é um trailerzinho pronto.
 
@@ -498,6 +498,49 @@ kit LimeZu; meta x/151 e a fala do Carvalho; Abrir a Pokédex, Álbum e Golpedex
 seu Pokémon contra uma silhueta, neon do Arcade da semana com "em breve"; meta o próximo cinturão; Desafiar, Dupla
 2x2 e Arcade em breve, Liga com a contagem) e **Sede** (madeira, escudo e varal nas cores do clube, taças na vitrine;
 o quadro com as 3 missões mais perto de sair, `metas.ts`; Sala de troféus, Treinador, Clube e Amigos).
+
+Terceira entrega (mesma branch, pra 0.9.21): revisão de design dos 5 lugares e **os ambientes viram a Home de todo
+mundo** (`?lab=off` volta pra Home de lista, guardado na aba do navegador).
+
+### Revisão de design (25/10/2026)
+
+Olhado em 320x568, 390x844, 568x320, 844x390 e 1440x900, save vazio, save cheio e copa em andamento.
+
+Feito (barato e claramente melhor):
+
+| # | O quê | Onde |
+|---|---|---|
+| 1 | 1ª visita: o logo e a frase no lugar do placar, o JOGAR com um anel de luz; a Copa do Dia aparece depois da 1ª copa | Estádio |
+| 2 | Balões: o da Home (JOGAR e "?") depois da 1ª copa, e "Agora tem a Rota Índigo" apontando a aba Rota (fora do palco, que cortava o balão) | Estádio |
+| 3 | "?" da Ajuda no topo; Novidades, Ajuda, Créditos, Feedback, Privacidade, GitHub e o aviso de direitos no fim das Configurações; entrar com o Google no topo delas | topo, Configurações |
+| 4 | Desafio por link (`?seed=`) vira o botão principal; copas guardadas (conflito com a nuvem) e "Fulano te chamou pro Duelo" no Estádio | Estádio |
+| 5 | Letreiro de LED com a Semana do tipo | Estádio |
+| 6 | Céu pela hora de verdade: dia, fim de tarde e noite no Estádio; a Rota à noite escurece e acende as cidades | Estádio, Rota |
+| 7 | O capitão vira pro dedo (ou pro mouse) e volta a olhar pra frente depois de 2,5 s | Estádio |
+| 8 | Tocar num Pokémon ambiente: ele pula com coração ou nota e solta o grito baixinho; quem dorme acorda assustado | todos |
+| 9 | Silhueta com os traços do sprite e contorno mais grosso (virava mancha); tocar nela mostra quem é por um instante | Arena |
+| 10 | Desktop: a quadra do tamanho do duelo (o meio ficava vazio), os dois em 4x e a bola no círculo | Arena |
+| 11 | Vitrine vazia: a taça reservada e a plaquinha "Seu 1º troféu fica aqui" | Sede |
+| 12 | 320x568: o quadro mostra 1 missão e o chão aparece | Sede |
+| 13 | Letreiros numa linha só (reticências; "Laboratório" no deitado estreito) e o selo NOVO da Rota até a 1ª Rota | todos |
+| 14 | Copa em andamento: o nome em até 2 linhas (cortava no deitado e no 320) | Estádio |
+| 15 | Rota em 320x568 sem rolar 18 px (o mapa encolhe um pouco) | Rota |
+| 16 | Mascotes da beira longe das paredes do túnel no celular em pé (ficavam espremidos) | Estádio |
+| 17 | O arrasto que troca de lugar faz o mesmo som do toque na aba | barra |
+
+Fica como sugestão (custa mais ou pede decisão):
+
+- **Laboratório que enche:** estantes ganhando livros e pokébolas conforme a Pokédex cresce, e o "+3 novos" da Home de
+  lista aparecendo ali depois de uma copa.
+- **Estádio que cresce** com as copas ganhas (quadra de escola, ginásio, arena), como as arenas do Clash.
+- **"Próximo desbloqueio"** com barra no Estádio (Treinador Ás 3/5).
+- **Som de lugar:** torcida baixinha no Estádio, ondas na Rota, a lareira na Sede (passa pela skill de música).
+- **Medir as abas no funil:** um evento por troca de lugar mostraria quais ambientes o povo visita (hoje o funil
+  continua igual: `screen`, `run_start` e o resto saem do store; `?lab=off` conta como lab).
+- **Arena social:** quem te desafiou aparece no lugar da silhueta.
+- **Sede:** o seu Pokémon do avatar andando pela sala; mural de amigos online.
+- **Login mais à vista:** hoje fica nas Configurações e na aba Amigos.
+- **Apagar a Home de lista** quando a 0.9.21 assentar (uns 500 linhas de tela e o CSS dela).
 
 ## Decisões pro Miguel
 

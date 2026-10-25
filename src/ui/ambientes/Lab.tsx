@@ -57,7 +57,10 @@ export function Lab({ active, wild, near }: { active: boolean; wild: Wild[]; nea
             </div>
             <div className="amb-ui rm-ui">
                 <header className="rm-head">
-                    <h2>{t('home.amb.labTitle')}</h2>
+                    <h2 title={t('home.amb.labTitle')}>
+                        <span className="rm-full">{t('home.amb.labTitle')}</span>
+                        <span className="rm-short">{t('home.amb.labShort')}</span>
+                    </h2>
                     <span className="rt-badges" title={d.profile.tabs.dex}>
                         <HudIcon kind="dex" />
                         {seen}/{DEX_TOTAL}

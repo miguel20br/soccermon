@@ -11,6 +11,8 @@ const [W, H] = size.split('x').map(Number);
 
 // telas (url) e o que tocar nelas (seletores; cada elemento achado é tocado uma vez, Esc depois)
 const PAGES = [
+    // a Home (ambientes): as 5 abas da barra
+    ['/?motion=1', ['.amb-tab']],
     ['/?demo=colecao&motion=1', ['[role=tab]', '.pf-public']],
     ['/?demo=sala&motion=1', ['.tr-summary .btn']],
     ['/?demo=album&motion=1', ['[role=tab]']],

@@ -78,6 +78,8 @@ export const home: typeof pt = {
         board: 'LIGHTNING CUP · DAILY CUP · INDIGO ROAD · LIVE DUEL · ',
         rotaGo: 'Continue · {where}',
         labTitle: "Oak's Lab",
+        /** No celular deitado e estreito o nome inteiro não cabe numa linha. */
+        labShort: "Oak's Lab",
         arenaTitle: 'Arena',
         sedeTitle: 'Club house',
         soon2x2: '2v2 Duo',
@@ -93,6 +95,8 @@ export const home: typeof pt = {
         ligaOpens: 'Opens in {d}d',
         sedeOf: '{club} club house',
         sedeBoard: 'Mission board',
+        /** Plaquinha na vitrine vazia da Sede (quem ainda não ganhou nada). */
+        sedeFirst: 'Your first trophy goes here',
         sedeTitles: '{n} title|{n} titles',
         sedeKit: 'Crest and kit',
     },
