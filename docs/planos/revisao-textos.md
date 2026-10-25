@@ -147,3 +147,37 @@ Ficaram como "para":
 | `src/cloud/cloud.ts` `signOut` | erro "Não deu para salvar na nuvem antes de sair" | não aparece na tela (a tela mostra `settings.data.signOutFailed`) |
 
 Textos legais (`home.disclaimer`, privacidade e termos) e créditos não tinham "para".
+
+## 5. Bloco 2: Draft, escalação e cartas (376 strings)
+
+Só onde há melhora real. PT; o EN acompanha depois do ok. **Não aplicado.**
+
+| # | Chave | Hoje | Proposta | Por quê |
+|---|---|---|---|---|
+| 1 | `team.lineup.title` | Escalação — {team} | Escalação · {team} | travessão (achado do verificador) |
+| 2 | `team.lineup.swapHint` | Toque em dois jogadores pra trocá-los de vaga (inclusive com o banco). | Toque em dois pra trocar de vaga, inclusive com o banco. | "trocá-los" é língua escrita; parêntese |
+| 3 | `team.lineup.tacticDesc.balanced` | Passe e posicionamento um pouco melhores (+3%), sem cansar mais. | Passe e leitura +4%, desarme +3%. Não cansa mais. | o texto está errado: o motor dá +4% em passe e leitura e +3% em desarme (`TACTIC_MODS`), e o atributo se chama Leitura |
+| 4 | `team.lineup.tacticDesc.counter` | Pivô espera lá na frente; passes e arrancadas mais rápidos. | O pivô espera na frente. Passe e velocidade +2%. | ponto e vírgula; com o número fica igual ao Equilibrado (motor: +2% em passe e velocidade) |
+| 5 | `team.lineup.lockedNote` | Partida em andamento: escalação e tática ficam travadas até o apito final. | Escalação e tática travadas até o apito final. | dois-pontos de anúncio; "partida em andamento" é óbvio, você está nela |
+| 6 | `team.lineup.storySynEmpty` | Duplas famosas (Mew + Mewtwo, Equipe Rocket…) ficam mais fortes juntas e fazem combos. | Escale duplas famosas, como Mew e Mewtwo, pra ganhar bônus e combo. | parêntese com lista; Equipe Rocket é trio; fica no mesmo molde do aviso de tipo logo acima |
+| 7 | `team.lineup.giveHint` | Toque em quem recebe {item} (quem já tem item troca com ele). | Toque em quem recebe {item}. Se ele já tiver item, os dois trocam. | parêntese explicativo |
+| 8 | `team.lineup.abandonConfirm` | Abandonar esta copa? O time será perdido. | Abandonar esta copa? O time some de vez. | passiva de formulário; igual ao "Ela some de vez." da copa guardada |
+| 9 | `team.lineup.cornerDesc.area` | Bola alta na área: os grandões e fortes disputam no alto. | Bola alta na área pros grandões disputarem. | "alta… no alto" repete; dois-pontos |
+| 10 | `team.lineup.cornerDesc.mixed` | O time varia a jogada pelo elenco que tem. | Varia a jogada conforme o elenco. | "pelo elenco que tem" soa truncado |
+| 11 | `team.lineup.cornerTakerOff` | {name} não está em quadra: cobra o automático. | {name} está fora de quadra. Vale o automático. | "cobra o automático" parece que ele cobra |
+| 12 | `team.card.tipMvpOne` e `tipMvp` | MVP {n}: craque da partida {n} vezes. Carta com +{bonus} em tudo. | MVP {n}: craque da partida {n} vezes. +{bonus} em tudo. | as outras dicas de edição acabam em "+2 em tudo."; "Carta com" sobra |
+| 13 | `team.modal.kindExplain.status` | Aplica um status no rival mais perto (paralisia, sono, veneno, confusão…). | Paralisa, faz dormir, envenena ou confunde o rival mais perto. | "aplica um status" é palavra de sistema; parêntese com lista |
+| 14 | `team.inspect.buffed` | Reforçado por um golpe (atributos acima do normal) | Reforçado por um golpe | o parêntese explica o óbvio (o `debuffed` do lado já é assim) |
+| 15 | `team.inspect.aerialHint` | Força, tamanho e posicionamento: quem ganha a disputa no alto do escanteio. | Força, tamanho e leitura decidem a bola alta no escanteio. | dois-pontos; "posicionamento" se chama Leitura no jogo |
+| 16 | `team.inspect.ditto` | Ditto (Transformar): virou {name} nesta partida e não evolui. | Ditto (Transform): virou {name} nesta partida e não evolui. | golpe com o nome oficial em inglês |
+| 17 | `team.inspect.back` | Voltar à partida | Voltar pra partida | a mesma ação na escalação já é "Voltar pra partida" |
+| 18 | `common.formation['4-0'].description` | Sem pivô: os quatro giram de lugar, passam e correm. | Os quatro giram de lugar, passam e correm. | "Sem pivô:" repete a etiqueta "−Sem pivô" logo embaixo |
+
+### Ficam como estão
+
+- `team.evolution.evolving` e `evolved` ("O quê? {name} está evoluindo!", "Parabéns! {name} evoluiu pra {into}!"): é
+  a fala dos jogos.
+- Dicas do draft (`hintCaptain`, `hintOptions`, `tip`, `autoAsk`): curtas e faladas.
+- Nomes e combos das sinergias de história, nomes das formações, Ícones, tipos, posições e atributos: nomes.
+- `kindTcg.flavor` e `kindExplain.flavor` ("Não faz nada… ou faz?", "…mas a torcida adora."): humor de fã pontual.
+- Notas do corpo (`common.body`): rótulo curto, já no padrão.
