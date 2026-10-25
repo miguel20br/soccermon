@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
-import type { ZoneDef } from './WildZone';
+import type { Blockers, ZoneDef } from './WildZone';
 
 /**
  * O que os ambientes de dentro (Laboratório, Sede) e a Arena dividem: móveis do kit Modern Interiors (LimeZu, já no
@@ -61,6 +61,9 @@ export const BIG = '(min-width: 900px) and (min-height: 700px)';
 export const floorZone = (scale: number, ok: ZoneDef['ok'] = () => true): Record<string, ZoneDef> => ({
     floor: { ok: (x, y) => y > 0.12 && y < 0.9 && ok(x, y), speed: 0.2, scale },
 });
+
+/** Nas salas, os Pokémon contornam a base dos móveis (passar na frente pode) e os botões. */
+export const ROOM: Blockers = { feet: '.mi' };
 
 /** Botão menor do lugar (ícone, nome e uma linha); `soon` = ainda não abre (tracejado, sem clique). */
 export function Tile({

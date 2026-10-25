@@ -1,6 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import { TABS } from './nav';
-import { type Actor, type Area, dirOf, MAX_WILD, POOLS, poke, rollAll, rollWild, spawn, step, wildQuota } from './wild';
+import {
+    type Actor,
+    type Area,
+    type Box,
+    CROWD,
+    dirOf,
+    fits,
+    MAX_WILD,
+    POOLS,
+    poke,
+    rollAll,
+    rollWild,
+    spawn,
+    step,
+    wildQuota,
+} from './wild';
 
 /** Sorteio repetível pros testes (a tela usa Math.random). */
 function seeded(seed: number) {
@@ -182,5 +197,121 @@ describe('Pokémon ambiente: ações', () => {
             if (a.x !== x || a.y !== y) moving++;
         }
         expect(moving / 400).toBeGreaterThan(0.9);
+    });
+
+    // a tela medida (o que a WildZone faz): o chão de uma sala com um botão no meio de baixo, uma estante cuja base
+    // invade o chão à esquerda e a borda direita cortada (só 85% da caixa aparece)
+    const BODY: Box = [-0.04, -0.2, 0.04, 0.01];
+    const button: Box = [0.3, 0.55, 0.7, 1];
+    const shelf: Box = [0, 0, 0.25, 0.3];
+    const room = (): Area => ({
+        aspect: 1.6,
+        ok: (_x, y) => y > 0.12 && y < 0.95,
+        speed: 0.25,
+        bounds: [0, -0.5, 0.85, 1],
+        blocks: [button],
+        props: [shelf],
+    });
+    const hit = (a: Box, b: Box) => a[0] < b[2] && a[2] > b[0] && a[1] < b[3] && a[3] > b[1];
+    const bodyOf = (a: Actor): Box => [a.x + BODY[0], a.y + BODY[1], a.x + BODY[2], a.y + BODY[3]];
+    const overlap = (a: Actor, b: Actor) => {
+        const [p, q] = [bodyOf(a), bodyOf(b)];
+        const w = Math.min(p[2], q[2]) - Math.max(p[0], q[0]);
+        const h = Math.min(p[3], q[3]) - Math.max(p[1], q[1]);
+        return w > 0 && h > 0 ? (w * h) / ((BODY[2] - BODY[0]) * (BODY[3] - BODY[1])) : 0;
+    };
+
+    it('com a tela medida, o corpo nunca entra no botão, na base do móvel nem sai do que aparece', () => {
+        const rand = seeded(10);
+        const area = room();
+        const all = ['a', 'b', 'c'].map((key, i) => {
+            const a = spawn({ key, id: 19 + i, zone: 'floor', mood: 'busy' }, area, rand);
+            a.body = BODY;
+            return a;
+        });
+        let seen = 0;
+        for (let t = 0; t < 120_000; t += 50) {
+            step(all, { floor: area }, 50, t, {}, rand);
+            for (const a of all) {
+                if (!a.shown) continue;
+                seen++;
+                const b = bodyOf(a);
+                expect(hit(b, button)).toBe(false);
+                expect(hit(b, shelf)).toBe(false);
+                expect(b[2]).toBeLessThanOrEqual(0.85);
+                expect(fits(area, a.x, a.y, a.body)).toBe(true);
+            }
+        }
+        expect(seen).toBeGreaterThan(all.length * 2000);
+    });
+
+    it('ninguém atravessa ninguém: perseguir termina encostado, não um dentro do outro', () => {
+        const rand = seeded(11);
+        const area = room();
+        const all = ['a', 'b', 'c', 'd'].map((key, i) => {
+            const a = spawn({ key, id: 4 + i, zone: 'floor', mood: 'busy' }, area, rand);
+            a.body = BODY;
+            return a;
+        });
+        let chases = 0;
+        let worst = 0;
+        for (let t = 0; t < 120_000; t += 50) {
+            step(all, { floor: area }, 50, t, {}, rand);
+            if (all.some((a) => a.act === 'chase')) chases++;
+            for (let i = 0; i < all.length; i++)
+                for (let j = i + 1; j < all.length; j++) worst = Math.max(worst, overlap(all[i], all[j]));
+        }
+        expect(chases).toBeGreaterThan(100);
+        expect(worst).toBeLessThanOrEqual(CROWD + 0.05);
+    });
+
+    it('o mato e a água do mesmo mapa (mesmo chão na tela) também não se atravessam', () => {
+        const rand = seeded(12);
+        const land: Area = { aspect: 1, ok: (x) => x < 0.5, speed: 0.3, bounds: [0, -1, 1, 1], ground: 'mapa' };
+        const sea: Area = { aspect: 1, ok: (x) => x >= 0.5, speed: 0.3, bounds: [0, -1, 1, 1], ground: 'mapa' };
+        const g = spawn({ key: 'g', id: 19, zone: 'grass', mood: 'busy' }, land, rand);
+        const w = spawn({ key: 'w', id: 129, zone: 'water', mood: 'busy' }, sea, rand);
+        for (const a of [g, w]) a.body = [-0.08, -0.2, 0.08, 0.01];
+        // os dois andando um pro outro, na beira (já colados: chegar mais perto não pode, afastar pode)
+        [g.x, w.x, g.tx, w.tx] = [0.44, 0.56, 0.49, 0.51];
+        g.y = w.y = g.ty = w.ty = 0.5;
+        g.act = w.act = 'walk';
+        g.left = w.left = 5000;
+        g.shown = w.shown = true;
+        let near = 1;
+        for (let t = 0; t < 2000; t += 50) {
+            step([g, w], { grass: land, water: sea }, 50, t, {}, rand);
+            near = Math.min(near, Math.abs(g.x - w.x));
+        }
+        expect(near).toBeGreaterThan(0.11);
+    });
+
+    it('sem lugar livre na tela (botão cobrindo a zona toda), some em vez de ficar atrás do botão; volta quando abre', () => {
+        const rand = seeded(13);
+        const area = room();
+        area.blocks = [[0, -1, 1, 2]];
+        const a = spawn({ key: 'a', id: 25, zone: 'floor', mood: 'calm' }, area, rand);
+        a.body = BODY;
+        step([a], { floor: area }, 50, 0, {}, rand);
+        expect(a.shown).toBe(false);
+        const at = [a.x, a.y];
+        for (let t = 50; t < 3000; t += 50) step([a], { floor: area }, 50, t, {}, rand);
+        expect([a.x, a.y]).toEqual(at);
+        area.blocks = [button];
+        step([a], { floor: area }, 50, 3000, {}, rand);
+        expect(a.shown).toBe(true);
+        expect(fits(area, a.x, a.y, a.body)).toBe(true);
+    });
+
+    it('sprite ainda sem tamanho medido não aparece num lugar que pode estar errado', () => {
+        const rand = seeded(14);
+        const area = room();
+        const a = spawn({ key: 'a', id: 25, zone: 'floor', mood: 'calm' }, area, rand);
+        expect(a.shown).toBe(false);
+        step([a], { floor: area }, 50, 0, {}, rand);
+        expect(a.shown).toBe(false);
+        a.body = BODY;
+        step([a], { floor: area }, 50, 50, {}, rand);
+        expect(a.shown).toBe(true);
     });
 });

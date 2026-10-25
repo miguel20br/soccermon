@@ -108,13 +108,28 @@ export interface Pt {
     /** Raio do susto (em alturas da caixa); sem raio, 0,16. */
     r?: number;
 }
-/** Uma zona: onde dá pra pisar, a velocidade (alturas da caixa por segundo) e se voa ou fica sentado. */
+/** Retângulo em unidades da caixa da zona (0 a 1): esquerda, cima, direita, baixo. */
+export type Box = readonly [l: number, t: number, r: number, b: number];
+/**
+ * Uma zona: onde dá pra pisar, a velocidade (alturas da caixa por segundo) e se voa ou fica sentado. O resto vem da
+ * tela (`WildZone` mede): `bounds`, a parte da caixa que aparece (o corpo inteiro tem que caber nela); `blocks`, o
+ * que fica na frente de todo mundo (botões, textos, a parede do túnel); `props`, o que só quem anda no chão
+ * respeita (o pé dos móveis, as insígnias do mapa). Sem medida (testes, antes do 1º quadro), só o `ok` vale.
+ */
 export interface Area {
     aspect: number;
     ok: (x: number, y: number) => boolean;
     speed: number;
     fly?: boolean;
     still?: boolean;
+    bounds?: Box;
+    blocks?: Box[];
+    props?: Box[];
+    /** Zonas de chão com a mesma caixa na tela (o mato e a água do mapa, a linha de fundo e a beira da quadra) têm a
+     * mesma chave: quem está numa não atravessa quem está na outra. */
+    ground?: string;
+    /** O espaço do balão (emote, Zzz) em cima da cabeça, em alturas da caixa: também tem que caber. */
+    head?: number;
 }
 export interface Actor extends Wild {
     x: number;
@@ -130,6 +145,12 @@ export interface Actor extends Wild {
     dir: number;
     emote?: Emote;
     prey?: string;
+    /** O corpo (com o balão em cima) em volta do pé, em unidades da caixa: [-esq, -cima, dir, baixo]. Medido na tela. */
+    body?: Box;
+    /** Achou lugar livre na tela medida (senão fica escondido, em vez de aparecer atrás de um botão). */
+    shown: boolean;
+    /** O chão onde ele está (`Area.ground`). */
+    ground?: string;
 }
 
 const WEIGHTS: Record<Mood, Partial<Record<Act, number>>> = {
@@ -147,31 +168,79 @@ export function dirOf(dx: number, dy: number): number {
     return (2 - k + 8) % 8;
 }
 
-/** Um ponto válido perto de (x, y), a até `r` alturas; `null` se não achar em 16 tentativas. */
-function spotNear(area: Area, x: number, y: number, r: number, rand: Rand): [number, number] | null {
+const hit = (a: Box, b: Box) => a[0] < b[2] && a[2] > b[0] && a[1] < b[3] && a[3] > b[1];
+const bodyAt = (body: Box, x: number, y: number): Box => [x + body[0], y + body[1], x + body[2], y + body[3]];
+
+/**
+ * Dá pra ficar em (x, y)? O pé num lugar que a zona deixa, longe da borda, e (com a tela medida) o corpo inteiro à
+ * vista, fora dos botões e textos e, pra quem anda, fora do pé dos móveis.
+ */
+export function fits(area: Area, x: number, y: number, body?: Box): boolean {
+    if (!(x > 0.02 && x < 0.98 && y > 0.02 && y < 0.98) || !(area.fly || area.ok(x, y))) return false;
+    if (!body) return true;
+    const b = bodyAt([body[0], body[1] - (area.head ?? 0), body[2], body[3]], x, y);
+    const [l, t, r, bot] = area.bounds ?? [0, 0, 1, 1];
+    if (b[0] < l || b[1] < t || b[2] > r || b[3] > bot) return false;
+    if (area.blocks?.some((k) => hit(b, k))) return false;
+    return area.fly || !area.props?.some((k) => hit(b, k));
+}
+
+/** Quanto o corpo de `a` em (x, y) cobre o de `o` (0 a 1, pela área do menor). */
+function cover(a: Actor, x: number, y: number, o: Actor): number {
+    if (!a.body || !o.body) return 0;
+    const p = bodyAt(a.body, x, y);
+    const q = bodyAt(o.body, o.x, o.y);
+    const w = Math.min(p[2], q[2]) - Math.max(p[0], q[0]);
+    const h = Math.min(p[3], q[3]) - Math.max(p[1], q[1]);
+    if (w <= 0 || h <= 0) return 0;
+    return (w * h) / Math.min((p[2] - p[0]) * (p[3] - p[1]), (q[2] - q[0]) * (q[3] - q[1]));
+}
+/** Um em cima do outro a partir daqui (sprite dentro do sprite); menos que isso, um passa na frente do outro. */
+export const CROWD = 0.3;
+/** Quem está em (x, y) colado em `a` (da mesma zona, visível); `skip` = quem ele persegue ou quem o persegue. */
+function crowd(a: Actor, x: number, y: number, all: readonly Actor[], skip?: string): Actor | undefined {
+    return all.find(
+        (o) =>
+            o !== a &&
+            (o.zone === a.zone || (!!a.ground && o.ground === a.ground)) &&
+            o.shown &&
+            o.key !== skip &&
+            o.prey !== a.key &&
+            cover(a, x, y, o) > CROWD,
+    );
+}
+
+/** Um ponto válido perto de (x, y), a até `r` alturas, sem ficar colado em ninguém; `null` se não achar em 16 tentativas. */
+function spotNear(a: Actor, all: readonly Actor[], area: Area, r: number, rand: Rand): [number, number] | null {
     for (let i = 0; i < 16; i++) {
-        const a = rand() * Math.PI * 2;
+        const t = rand() * Math.PI * 2;
         const d = r * (0.35 + 0.65 * rand());
-        const nx = x + (Math.cos(a) * d) / area.aspect;
-        const ny = y + Math.sin(a) * d;
-        if (nx > 0.03 && nx < 0.97 && ny > 0.03 && ny < 0.97 && area.ok(nx, ny)) return [nx, ny];
+        const nx = a.x + (Math.cos(t) * d) / area.aspect;
+        const ny = a.y + Math.sin(t) * d;
+        if (fits(area, nx, ny, a.body) && !crowd(a, nx, ny, all)) return [nx, ny];
     }
     return null;
 }
 
-export function spawn(w: Wild, area: Area, rand: Rand = Math.random, now = 0): Actor {
-    let x = 0.5;
-    let y = 0.5;
+/** Um lugar livre qualquer da zona (60 tentativas). */
+function anySpot(a: Actor, all: readonly Actor[], area: Area, rand: Rand): [number, number] | null {
     for (let i = 0; i < 60; i++) {
         const nx = between(rand, 0.06, 0.94);
         const ny = between(rand, 0.06, 0.94);
-        if (area.ok(nx, ny)) {
-            x = nx;
-            y = ny;
-            break;
-        }
+        if (fits(area, nx, ny, a.body) && !crowd(a, nx, ny, all)) return [nx, ny];
     }
-    const a: Actor = { ...w, x, y, tx: x, ty: y, act: 'idle', left: 0, t0: now, dir: rand() < 0.5 ? 0 : 7 };
+    return null;
+}
+
+export function spawn(w: Wild, area: Area, rand: Rand = Math.random, now = 0, all: readonly Actor[] = []): Actor {
+    const a: Actor = { ...w, x: 0.5, y: 0.5, tx: 0.5, ty: 0.5, act: 'idle', left: 0, t0: now, dir: 0, shown: false };
+    const p = anySpot(a, all, area, rand);
+    if (p) [a.x, a.y] = p;
+    a.tx = a.x;
+    a.ty = a.y;
+    // sem medida da tela, aparece já; com medida, o 1º passo confere o lugar (corpo, botões) antes de mostrar
+    a.shown = !!p && !area.bounds;
+    a.dir = rand() < 0.5 ? 0 : 7;
     a.left = between(rand, 200, 1600); // cada um decide numa hora: ninguém sai andando junto
     if (area.fly) begin(a, 'walk', [], area, rand, now);
     else if (w.mood === 'sleepy') begin(a, 'sleep', [], area, rand, now);
@@ -184,14 +253,14 @@ function begin(a: Actor, act: Act, all: Actor[], area: Area, rand: Rand, now: nu
     a.emote = undefined;
     a.prey = undefined;
     if (act === 'walk') {
-        const p = area.fly
-            ? [between(rand, 0.06, 0.94), between(rand, 0.08, 0.92)]
-            : spotNear(area, a.x, a.y, 0.3, rand);
+        const p = area.fly ? anySpot(a, [], area, rand) : spotNear(a, all, area, 0.3, rand);
         if (!p) return begin(a, 'idle', all, area, rand, now);
         [a.tx, a.ty] = p;
         a.left = area.fly ? 9000 : 5000;
     } else if (act === 'chase') {
-        const prey = all.filter((o) => o !== a && o.zone === a.zone && o.act !== 'sleep' && o.act !== 'flee');
+        const prey = all.filter(
+            (o) => o !== a && o.zone === a.zone && o.shown && o.act !== 'sleep' && o.act !== 'flee',
+        );
         if (!prey.length) return begin(a, 'walk', all, area, rand, now);
         const p = prey[Math.floor(rand() * prey.length)];
         a.prey = p.key;
@@ -232,7 +301,7 @@ function flee(a: Actor, from: Pt, area: Area, now: number) {
         for (const len of [0.35, 0.22, 0.12]) {
             const nx = a.x + (ux * len) / area.aspect;
             const ny = a.y + uy * len;
-            if (nx > 0.02 && nx < 0.98 && ny > 0.02 && ny < 0.98 && area.ok(nx, ny)) {
+            if (fits(area, nx, ny, a.body)) {
                 a.tx = nx;
                 a.ty = ny;
                 return;
@@ -254,7 +323,7 @@ function choose(a: Actor, all: Actor[], area: Area, rand: Rand, now: number) {
         w.walk = 0;
         w.chase = 0;
     }
-    if (!all.some((o) => o !== a && o.zone === a.zone && o.act !== 'sleep')) w.chase = 0;
+    if (!all.some((o) => o !== a && o.zone === a.zone && o.shown && o.act !== 'sleep')) w.chase = 0;
     const acts = Object.keys(w) as Act[];
     let r = rand() * acts.reduce((s, k) => s + (w[k] ?? 0), 0);
     let pick = acts[acts.length - 1];
@@ -298,10 +367,30 @@ export function step(
     rand: Rand = Math.random,
 ): boolean {
     let changed = false;
+    // o chão de cada um antes de alguém andar (quem anda primeiro já respeita quem vem depois na lista)
+    for (const a of actors) a.ground = areas[a.zone]?.fly ? undefined : areas[a.zone]?.ground;
     for (const a of actors) {
         const area = areas[a.zone];
         if (!area) continue;
-        const before = `${a.act}${a.dir}${a.emote}${a.t0}`;
+        const before = `${a.act}${a.dir}${a.emote}${a.t0}${a.shown}`;
+        // com a tela medida: o lugar ainda serve? (a tela girou, apareceu um botão) Senão, outro lugar livre; sem
+        // nenhum, fica escondido até abrir espaço
+        // o sprite ainda não carregou: sem tamanho, sem lugar certo
+        if (area.bounds && !a.body) a.shown = false;
+        else if (area.bounds && !fits(area, a.x, a.y, a.body)) {
+            const p = anySpot(a, actors, area, rand);
+            a.shown = !!p;
+            if (p) {
+                [a.x, a.y] = p;
+                a.tx = a.x;
+                a.ty = a.y;
+                if (a.act === 'walk' || a.act === 'chase' || a.act === 'flee') a.left = 0;
+            }
+        } else if (area.bounds) a.shown = true;
+        if (!a.shown) {
+            if (`${a.act}${a.dir}${a.emote}${a.t0}${a.shown}` !== before) changed = true;
+            continue;
+        }
         for (const t of threats[a.zone] ?? []) {
             if (a.act === 'flee' || area.fly) break;
             if (Math.hypot((t.x - a.x) * area.aspect, t.y - a.y) > (t.r ?? 0.16)) continue;
@@ -313,43 +402,39 @@ export function step(
         }
         a.left -= dt;
         if (a.act === 'walk' || a.act === 'chase' || a.act === 'flee') {
+            const p = a.act === 'chase' ? actors.find((o) => o.key === a.prey) : undefined;
             if (a.act === 'chase') {
-                const p = actors.find((o) => o.key === a.prey);
                 if (!p) a.left = 0;
                 else {
                     a.tx = p.x;
                     a.ty = p.y;
-                    if (Math.hypot((p.x - a.x) * area.aspect, p.y - a.y) < 0.05) {
-                        begin(a, 'emote', actors, area, rand, now);
-                        a.emote = 'heart';
-                    }
                 }
             }
-            if (a.act === 'walk' || a.act === 'chase' || a.act === 'flee') {
-                const k = a.act === 'flee' ? 2.2 : a.act === 'chase' ? 1.7 : 1;
-                const len = (area.speed * k * dt) / 1000;
-                const dx = (a.tx - a.x) * area.aspect;
-                const dy = a.ty - a.y;
-                const d = Math.hypot(dx, dy);
-                if (d > 1e-4) a.dir = dirOf(dx, dy);
-                if (d <= len) {
-                    a.x = a.tx;
-                    a.y = a.ty;
-                    if (a.act !== 'chase') a.left = 0;
-                } else {
-                    const nx = a.x + (dx / d) * (len / area.aspect);
-                    const ny = a.y + (dy / d) * len;
-                    if (area.fly || area.ok(nx, ny)) {
-                        a.x = nx;
-                        a.y = ny;
-                    } else a.left = 0;
-                }
+            const k = a.act === 'flee' ? 2.2 : a.act === 'chase' ? 1.7 : 1;
+            const len = (area.speed * k * dt) / 1000;
+            const dx = (a.tx - a.x) * area.aspect;
+            const dy = a.ty - a.y;
+            const d = Math.hypot(dx, dy);
+            if (d > 1e-4) a.dir = dirOf(dx, dy);
+            const [nx, ny] = d <= len ? [a.tx, a.ty] : [a.x + (dx / d) * (len / area.aspect), a.y + (dy / d) * len];
+            // alcançou quem perseguia: encosta (sem entrar no sprite dele) e solta um coração
+            if (p && (d < 0.05 || cover(a, nx, ny, p) > CROWD / 2)) {
+                begin(a, 'emote', actors, area, rand, now);
+                a.emote = 'heart';
+            } else {
+                // não atravessa ninguém: se o passo entra no sprite de outro, para (afastar pode)
+                const o = crowd(a, nx, ny, actors, a.prey);
+                if (fits(area, nx, ny, a.body) && (!o || cover(a, nx, ny, o) < cover(a, a.x, a.y, o))) {
+                    a.x = nx;
+                    a.y = ny;
+                    if (d <= len && a.act !== 'chase') a.left = 0;
+                } else a.left = 0;
             }
         } else if (a.act === 'look') {
             a.dir = LOOK[Math.floor(a.left / 600) & 3];
         }
         if (a.left <= 0) choose(a, actors, area, rand, now);
-        if (`${a.act}${a.dir}${a.emote}${a.t0}` !== before) changed = true;
+        if (`${a.act}${a.dir}${a.emote}${a.t0}${a.shown}` !== before) changed = true;
     }
     return changed;
 }

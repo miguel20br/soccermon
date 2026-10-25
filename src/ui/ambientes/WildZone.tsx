@@ -3,7 +3,7 @@ import { playCry } from '../../game/audio';
 import { useGame } from '../../store/game-store';
 import type { SceneClock } from './clock';
 import { type FieldAnim, FieldSprite } from './FieldSprite';
-import { type Actor, type Area, type Emote, type Pt, poke, spawn, step, type Wild } from './wild';
+import { type Actor, type Area, type Box, type Emote, type Pt, poke, spawn, step, type Wild } from './wild';
 
 /** Uma zona da cena: onde dá pra pisar, velocidade, tamanho do sprite e a camada (z-index pela altura do pé). */
 export interface ZoneDef extends Omit<Area, 'aspect'> {
@@ -11,18 +11,124 @@ export interface ZoneDef extends Omit<Area, 'aspect'> {
     z?: (y: number) => number;
 }
 export type Threats = RefObject<Record<string, Pt[] | undefined>>;
+/**
+ * O que os Pokémon ambiente respeitam na tela (seletores dentro do painel do lugar): `ui`, o que fica na frente de
+ * todo mundo (botões, textos, quadro); `props`, o que quem anda no chão contorna (o corpo não encosta); `feet`, os
+ * móveis (o pé não entra na base deles, mas passar na frente pode). Os botões do topo (Ajuda, Configurações) valem
+ * sempre.
+ */
+export interface Blockers {
+    ui?: string;
+    props?: string;
+    feet?: string;
+}
 
-const zOf = (def: ZoneDef | undefined, y: number) => (def?.z ? def.z(y) : 10 + Math.round(y * 30));
+/** Camada pela altura do pé: quem está mais embaixo na tela passa na frente. */
+export const zOf = (def: ZoneDef | undefined, y: number) => (def?.z ? def.z(y) : 10 + Math.round(y * 30));
+/** Folga em volta do que bloqueia (px) e o espaço do balão em cima da cabeça (px). */
+const GAP = 4;
+const BUBBLE = 32;
+/** De quanto em quanto tempo a tela é medida de novo (ms de cena). */
+const MEASURE_MS = 500;
+
+/** A caixa parada no lugar (sem arrasto nem deslize de aba): só aí as medidas batem com a tela em repouso. */
+function atRest(el: Element): boolean {
+    for (let e: Element | null = el; e && !e.classList.contains('amb-stage'); e = e.parentElement) {
+        if (!e.matches('.amb-panel, .amb-layer, .amb-par')) continue;
+        const t = getComputedStyle(e).transform;
+        if (t !== 'none' && Math.abs(new DOMMatrixReadOnly(t).m41) > 0.5) return false;
+    }
+    return !el.closest('.amb-drag, .amb-entering');
+}
+
+/**
+ * Mede a tela de uma zona: a parte que aparece (cortada por quem tem `overflow`), os retângulos que bloqueiam e o
+ * corpo de cada Pokémon dela, tudo em unidades da caixa.
+ */
+function measure(box: HTMLElement, area: Area, sel: Blockers, actors: Actor[], els: Map<string, HTMLElement>): boolean {
+    const r = box.getBoundingClientRect();
+    if (r.width < 1 || r.height < 1 || !atRest(box)) return false;
+    const panel = box.closest('.amb-panel');
+    if (!panel) return false;
+    const nx = (px: number) => (px - r.left) / r.width;
+    const ny = (px: number) => (px - r.top) / r.height;
+    const norm = (q: DOMRect, g = GAP): Box => [nx(q.left - g), ny(q.top - g), nx(q.right + g), ny(q.bottom + g)];
+    // o corpo pode sair da caixa (a cabeça passa da linha do chão pra frente da parede); só não pode sair do que corta
+    let [l, t, rr, b] = [-1e5, -1e5, 1e5, 1e5];
+    for (let e = box.parentElement; e && e !== panel.parentElement; e = e.parentElement) {
+        const s = getComputedStyle(e);
+        if (s.overflowX === 'visible' && s.overflowY === 'visible') continue;
+        const c = e.getBoundingClientRect();
+        [l, t, rr, b] = [Math.max(l, c.left), Math.max(t, c.top), Math.min(rr, c.right), Math.min(b, c.bottom)];
+    }
+    area.aspect = r.width / r.height;
+    area.head = BUBBLE / r.height;
+    area.ground = [r.left, r.top, r.width, r.height].map(Math.round).join();
+    area.bounds = [nx(l), ny(t), nx(rr), ny(b)];
+    const rects = (q: string | undefined, root: ParentNode) =>
+        q
+            ? [...root.querySelectorAll(q)].flatMap((e) => {
+                  const k = e.getBoundingClientRect();
+                  return k.width > 0 && k.height > 0 ? [k] : [];
+              })
+            : [];
+    area.blocks = [...rects('.amb-top > *', document), ...rects(sel.ui ?? '.amb-ui > *', panel)].map((k) => norm(k));
+    area.props = [
+        ...rects(sel.props, panel).map((k) => norm(k)),
+        // a base do móvel: o terço de baixo e um pouco pra frente (o pé fica na frente dele ou longe)
+        ...rects(sel.feet, panel).map(
+            (k): Box => [nx(k.left), ny(k.bottom - k.height / 3), nx(k.right), ny(k.bottom + GAP)],
+        ),
+    ];
+    for (const a of actors) {
+        const el = els.get(a.key);
+        const spr = el?.querySelector('.wild-mon');
+        if (!el || !spr) continue;
+        const f = el.getBoundingClientRect();
+        const k = spr.getBoundingClientRect();
+        if (k.width < 1) continue;
+        // a folha tem borda transparente dos lados; em cima, o lugar do balão
+        // (o balão tem 18 px de largura em cima da cabeça: o corpo nunca é mais estreito que ele; a altura dele é
+        // `Area.head`)
+        const side = k.width * 0.15;
+        const body: Box = [
+            (Math.min(k.left + side, f.left - 10) - f.left) / r.width,
+            (k.top + k.height * 0.15 - f.top) / r.height,
+            (Math.max(k.right - side, f.left + 10) - f.left) / r.width,
+            (Math.max(k.bottom, f.top + 3) - f.top) / r.height,
+        ];
+        // o maior quadro visto (o sprite muda um pouco de tamanho entre as animações)
+        a.body = a.body
+            ? [
+                  Math.min(a.body[0], body[0]),
+                  Math.min(a.body[1], body[1]),
+                  Math.max(a.body[2], body[2]),
+                  Math.max(a.body[3], body[3]),
+              ]
+            : body;
+    }
+    return true;
+}
 
 /**
  * Os Pokémon ambiente de uma cena, no relógio dela. A posição anda por escrita direta no estilo a cada quadro (nada de
  * render por quadro); a tela só redesenha quando alguém troca de ação, de direção ou de emote. Quem sai da lista
  * (limite de sprites) some; quem entra nasce num lugar válido.
  */
-export function useWild(clock: SceneClock, list: Wild[], zones: Record<string, ZoneDef>, threats?: Threats) {
+export function useWild(
+    clock: SceneClock,
+    list: Wild[],
+    zones: Record<string, ZoneDef>,
+    threats?: Threats,
+    blockers: Blockers = {},
+) {
     const actors = useRef(new Map<string, Actor>());
     const areas = useRef<Record<string, Area>>({});
     const els = useRef(new Map<string, HTMLElement>());
+    const boxes = useRef(new Map<string, HTMLElement>());
+    const sel = useRef(blockers);
+    sel.current = blockers;
+    const measured = useRef(-Infinity);
     const refs = useRef(new Map<string, (el: HTMLElement | null) => void>());
     const [ro] = useState(() =>
         typeof ResizeObserver === 'undefined'
@@ -33,6 +139,7 @@ export function useWild(clock: SceneClock, list: Wild[], zones: Record<string, Z
                       const a = areas.current[zone];
                       const { width, height } = e.contentRect;
                       if (a && width > 0 && height > 0) a.aspect = width / height;
+                      measured.current = -Infinity;
                   }
               }),
     );
@@ -41,8 +148,19 @@ export function useWild(clock: SceneClock, list: Wild[], zones: Record<string, Z
     zonesRef.current = zones;
 
     for (const [z, def] of Object.entries(zones)) {
-        const aspect = areas.current[z]?.aspect ?? 1.6;
-        areas.current[z] = { ok: def.ok, speed: def.speed, fly: def.fly, still: def.still, aspect };
+        const old = areas.current[z];
+        areas.current[z] = {
+            ok: def.ok,
+            speed: def.speed,
+            fly: def.fly,
+            still: def.still,
+            aspect: old?.aspect ?? 1.6,
+            bounds: old?.bounds,
+            blocks: old?.blocks,
+            props: old?.props,
+            ground: old?.ground,
+            head: old?.head,
+        };
     }
     const keys = new Set(list.map((w) => w.key));
     for (const k of [...actors.current.keys()]) if (!keys.has(k)) actors.current.delete(k);
@@ -50,7 +168,7 @@ export function useWild(clock: SceneClock, list: Wild[], zones: Record<string, Z
         const a = actors.current.get(w.key);
         if (a?.id === w.id) continue;
         const area = areas.current[w.zone];
-        if (area) actors.current.set(w.key, spawn(w, area, Math.random, clock.t));
+        if (area) actors.current.set(w.key, spawn(w, area, Math.random, clock.t, [...actors.current.values()]));
     }
 
     useEffect(
@@ -58,6 +176,16 @@ export function useWild(clock: SceneClock, list: Wild[], zones: Record<string, Z
             clock.sub((t, dt) => {
                 if (!dt) return;
                 const all = [...actors.current.values()];
+                if (t - measured.current >= MEASURE_MS) {
+                    // aba ainda deslizando: tenta de novo no próximo quadro
+                    let ok = true;
+                    for (const [z, box] of boxes.current) {
+                        const area = areas.current[z];
+                        const mine = all.filter((a) => a.zone === z);
+                        if (area && !measure(box, area, sel.current, mine, els.current)) ok = false;
+                    }
+                    if (ok) measured.current = t;
+                }
                 if (step(all, areas.current, dt, t, threats?.current ?? {})) redraw();
                 for (const a of all) {
                     const el = els.current.get(a.key);
@@ -65,6 +193,7 @@ export function useWild(clock: SceneClock, list: Wild[], zones: Record<string, Z
                     el.style.left = `${a.x * 100}%`;
                     el.style.top = `${a.y * 100}%`;
                     el.style.zIndex = String(zOf(zonesRef.current[a.zone], a.y));
+                    el.classList.toggle('off', !a.shown);
                 }
             }),
         [clock, threats],
@@ -76,7 +205,12 @@ export function useWild(clock: SceneClock, list: Wild[], zones: Record<string, Z
         if (!f) {
             f = (el) => {
                 if (box) {
-                    if (el && ro) ro.observe(el);
+                    const z = key.slice(4);
+                    if (el) {
+                        boxes.current.set(z, el);
+                        ro?.observe(el);
+                        measured.current = -Infinity;
+                    } else boxes.current.delete(z);
                     return;
                 }
                 if (el) els.current.set(key, el);
@@ -148,7 +282,7 @@ export function WildZone({ wild, zone, className = '' }: { wild: WildScene; zone
                         <span
                             key={a.key}
                             ref={wild.ref(a.key, false)}
-                            className={`wild${def.fly ? ' fly' : ''}${a.act === 'sleep' ? ' asleep' : ''}`}
+                            className={`wild${def.fly ? ' fly' : ''}${a.act === 'sleep' ? ' asleep' : ''}${a.shown ? '' : ' off'}`}
                             style={{ left: `${a.x * 100}%`, top: `${a.y * 100}%`, zIndex: zOf(def, a.y) }}
                             onClick={() => wild.tap(a.key)}
                         >

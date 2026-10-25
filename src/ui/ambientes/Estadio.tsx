@@ -14,7 +14,7 @@ import { dailyInPlay, useDailyBegin } from '../screens/Daily';
 import { ResumeCard } from '../screens/Home';
 import { ClockCtx, useSceneClock } from './clock';
 import { FieldSprite } from './FieldSprite';
-import { type Threats, useMq, useWild, type WildScene, WildZone, type ZoneDef } from './WildZone';
+import { type Blockers, type Threats, useMq, useWild, type WildScene, WildZone, type ZoneDef } from './WildZone';
 import { dirOf, type Pt, type Wild } from './wild';
 
 const css = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
@@ -204,6 +204,14 @@ function Board() {
 const SMALL = '(max-width: 359px), (max-height: 700px)';
 const BIG = '(min-width: 900px) and (min-height: 700px)';
 const LANDSCAPE = '(orientation: landscape) and (max-height: 520px)';
+/**
+ * O que os Pokémon do Estádio respeitam: o placar e os botões, a boca do túnel (fica na frente de tudo), a faixa e o
+ * letreiro (o dorminhoco não deita em cima) e o capitão (ninguém entra no sprite dele).
+ */
+const STADIUM: Blockers = {
+    ui: '.es-ui > *, .es-wall, .es-lintel, .es-lamp',
+    props: '.es-banner, .es-led, .es-captain .fs-sprite',
+};
 const SCARE: Record<string, Pt[]> = {
     edge: [{ x: 0.5, y: 1.4, r: 9 }],
     ball: [{ x: 0.5, y: 1.4, r: 9 }],
@@ -226,7 +234,7 @@ function zonesOf(small: boolean, big: boolean, wide: boolean): Record<string, Zo
             scale: k,
             z: () => 2,
         },
-        ball: { ok: (_x, y) => y > 0.1 && y < 0.2, speed: 0.4, scale: k, z: () => 0 },
+        ball: { ok: (_x, y) => y > 0.1 && y < 0.2, speed: 0.4, scale: k },
         edge: {
             ok: wide
                 ? (x, y) => y > 0.45 && y < 0.85 && x > 0.55
@@ -234,7 +242,6 @@ function zonesOf(small: boolean, big: boolean, wide: boolean): Record<string, Zo
                   (x, y) => y > 0.22 && y < 0.45 && ((x > 0.13 && x < 0.3) || (x > 0.7 && x < 0.87)),
             speed: 0.2,
             scale: small ? 1 : big ? 3 : 2,
-            z: () => 3,
         },
     };
 }
@@ -294,7 +301,7 @@ export function Estadio({
     // o time saindo do túnel espanta quem está na beira (e acorda o dorminhoco)
     const threats: Threats = useRef<Record<string, Pt[] | undefined>>({});
     threats.current = entering ? SCARE : {};
-    const w = useWild(clock, wild, zones, threats);
+    const w = useWild(clock, wild, zones, threats, STADIUM);
     const run = useGame((s) => s.run);
     const newRun = useGame((s) => s.newRun);
     const go = useGame((s) => s.go);

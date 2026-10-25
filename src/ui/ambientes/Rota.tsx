@@ -1,4 +1,4 @@
-import { type CSSProperties, memo, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, memo, type RefObject, useEffect, useMemo, useRef, useState } from 'react';
 import { GROUP_START, regionOfRow } from '../../engine/cup-map';
 import { useT } from '../../i18n/react';
 import { resumeScreenOf, useGame } from '../../store/game-store';
@@ -9,7 +9,7 @@ import { HudIcon } from '../components/MatchHud';
 import { reduceMotionOn } from '../settings-sync';
 import { ClockCtx, useSceneClock } from './clock';
 import { FieldSprite } from './FieldSprite';
-import { type Threats, useWild, WildZone, type ZoneDef } from './WildZone';
+import { type Blockers, type Threats, useWild, WildZone, type ZoneDef } from './WildZone';
 import type { Pt, Wild } from './wild';
 
 /**
@@ -226,8 +226,55 @@ const zonesOf = (scale: number): Record<string, ZoneDef> => ({
     // no céu: por cima das nuvens (z 60), embaixo da plaquinha de onde o time está (z 65)
     sky: { ok: () => true, speed: tiles(2.6), fly: true, scale, z: () => 62 },
 });
+/**
+ * Na Rota, a UI é o que fica por cima do mapa (título, fala, botão, a plaquinha de onde o time está); as cidades e
+ * as insígnias, quem anda contorna (quem voa passa por cima).
+ */
+const ROUTE: Blockers = {
+    ui: '.rt-head, .rt-talk, .rt-go, .es-confirm, .rt-here',
+    props: '.rt-gym, .rt-city, .rt-plateau',
+};
 /** Quem atravessa o mar de fundo, devagar (um por abertura). */
 const SWIMMERS = [131, 130, 87, 73, 117, 72];
+/** Altura da faixa de mar livre que o nadador precisa (px, sprite 2x com folga). */
+const LANE = 64;
+
+/**
+ * Onde o nadador do fundo passa: no meio da maior faixa de mar aberto entre o título, o mapa, a fala e o botão (de
+ * ponta a ponta da tela), pra não sair de trás de um deles pela metade. `null` = nenhuma faixa cabe (some).
+ */
+function useSwimLane(ui: RefObject<HTMLDivElement | null>, again: unknown): number | null {
+    const [lane, setLane] = useState<number | null>(null);
+    // biome-ignore lint/correctness/useExhaustiveDependencies: `again` muda o que está na tela (a confirmação no lugar do botão)
+    useEffect(() => {
+        const el = ui.current;
+        if (!el || typeof ResizeObserver === 'undefined') return;
+        const find = () => {
+            const box = el.getBoundingClientRect();
+            const spans = [...el.children, ...document.querySelectorAll('.amb-top > *')]
+                .map((e) => e.getBoundingClientRect())
+                .filter((r) => r.height > 0)
+                .map((r) => [r.top - box.top, r.bottom - box.top] as const)
+                .sort((a, b) => a[0] - b[0]);
+            let best: number | null = null;
+            let gap = LANE - 1;
+            let end = 0;
+            for (const [top, bottom] of [...spans, [box.height, box.height] as const]) {
+                if (top - end > gap) {
+                    gap = top - end;
+                    best = (top + end) / 2;
+                }
+                end = Math.max(end, bottom);
+            }
+            setLane(best);
+        };
+        find();
+        const ro = new ResizeObserver(find);
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, [ui, again]);
+    return lane;
+}
 
 /**
  * Rota Índigo: o mapa de Kanto com as 8 insígnias nas cidades dos ginásios (acesas as que você já tem), o caminho da
@@ -256,6 +303,8 @@ export function Rota({
     const records = useGame((s) => s.records);
     const avatar = useGame((s) => s.profile.avatar);
     const [confirm, setConfirm] = useState(false);
+    const ui = useRef<HTMLDivElement>(null);
+    const lane = useSwimLane(ui, confirm);
     const stop = stopOf(run);
     const longOn = stop !== 'start' || (!!run && isLong(run) && !['eliminated', 'champion'].includes(run.status));
     const otherCup = !!run && !isLong(run) && !['eliminated', 'champion'].includes(run.status);
@@ -319,7 +368,7 @@ export function Rota({
     threats.current = entering
         ? { grass: [{ ...norm(lead.p), r: 9 }], water: [{ ...norm(lead.p), r: 9 }] }
         : { grass: near, water: near };
-    const w = useWild(clock, wild, zonesOf(scale), threats);
+    const w = useWild(clock, wild, zonesOf(scale), threats, ROUTE);
     const story = d.longCup.story[stop === 'start' ? 'rota1' : stop];
     const where = stop === 'start' ? '' : d.longCup.region[stop];
     const got = (id: string) => done.includes(id);
@@ -336,12 +385,15 @@ export function Rota({
         <ClockCtx.Provider value={clock}>
             <div className="amb-scene rt-scene" aria-hidden>
                 <div className="amb-layer rt-sea" style={{ '--depth': 0.6 } as CSSProperties}>
-                    <span className="rt-swim">
-                        <FieldSprite id={swimmer} anim="Walk" dir={2} scale={2} play={active} />
-                    </span>
+                    {lane !== null && (
+                        // o pé do sprite fica no ponto: meio sprite abaixo do meio da faixa
+                        <span className="rt-swim" style={{ top: lane + LANE / 3 }}>
+                            <FieldSprite id={swimmer} anim="Walk" dir={2} scale={2} play={active} />
+                        </span>
+                    )}
                 </div>
             </div>
-            <div className="amb-ui rt-ui">
+            <div ref={ui} className="amb-ui rt-ui">
                 <header className="rt-head">
                     <h2>
                         <span className="rt-title">{t('home.longCup.title')}</span>

@@ -634,10 +634,12 @@
         transform: translateX(-15%);
     }
 }
-/* o pé do capitão no meio do círculo central (cy = 30 de 100 no desenho da quadra, cortado pelo lado maior) */
+/* o pé do capitão no meio do círculo central (cy = 30 de 100 no desenho da quadra, cortado pelo lado maior); a
+   camada é a dos Pokémon ambiente com o pé na mesma altura (10 + 30 x altura, WildZone.zOf): quem está mais embaixo
+   passa na frente dele, quem está mais em cima, atrás */
 .es-captain {
     position: absolute;
-    z-index: 1;
+    z-index: 19;
     left: 50%;
     top: max(12.5cqw, 30cqh);
 }
@@ -650,6 +652,7 @@
 /* celular pequeno em pé: o capitão (1x) fica na faixa de quadra que sobra acima dos botões */
 @media (max-height: 700px) and (orientation: portrait) {
     .es-captain {
+        z-index: 17;
         top: min(max(12.5cqw, 30cqh), 22cqh);
     }
 }
@@ -2666,4 +2669,13 @@
 .amb .amb-panel:not(.on) *::before,
 .amb .amb-panel:not(.on) *::after {
     animation-play-state: paused;
+}
+
+/* Pokémon ambiente sem lugar livre na tela (atrás de botão, sala pequena): some num fade em vez de aparecer cortado */
+.wild {
+    transition: opacity 250ms var(--ease-out);
+}
+.wild.off {
+    opacity: 0;
+    pointer-events: none;
 }

@@ -10,11 +10,13 @@ import { ClockCtx, useSceneClock } from './clock';
 import { FieldSprite } from './FieldSprite';
 import { nextBelt } from './metas';
 import { BIG, floorZone, SMALL, Tile } from './Room';
-import { useMq, useWild, WildZone } from './WildZone';
+import { type Blockers, useMq, useWild, WildZone } from './WildZone';
 import type { Wild } from './wild';
 
 /** Quem pode aparecer em silhueta do outro lado da quadra ("quem vai encarar?"), um por abertura. */
 const LANDSCAPE = '(orientation: landscape) and (max-height: 520px)';
+/** Na quadra, os de volta contornam os dois do duelo, a bola, o VS e o poste. */
+const ARENA: Blockers = { props: '.ar-side .fs-sprite:not(.ar-head), .ar-ball, .ar-vs, .ar-lamp' };
 const RIVALS = [6, 9, 3, 94, 149, 130, 65, 68, 143, 59, 26, 112];
 
 /**
@@ -39,6 +41,8 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
                 ? (x, y) => x > 0.54 && (Math.abs(x - 0.73) > 0.14 || y > 0.75)
                 : (x, y) => x < 0.24 || x > 0.76 || y > 0.72,
         ),
+        undefined,
+        ARENA,
     );
     const go = useGame((s) => s.go);
     const avatar = useGame((s) => s.profile.avatar);

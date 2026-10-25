@@ -12,7 +12,7 @@ import { hexCss, missionText } from '../profile/club';
 import { useSaveView } from '../profile/TrainerTab';
 import { ClockCtx, useSceneClock } from './clock';
 import { closestMissions } from './metas';
-import { BIG, floorZone, Mi, SMALL, Tile } from './Room';
+import { BIG, floorZone, Mi, ROOM, SMALL, Tile } from './Room';
 import { useMq, useWild, WildZone } from './WildZone';
 import type { Wild } from './wild';
 
@@ -29,7 +29,7 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
     const clock = useSceneClock(active);
     const small = useMq(SMALL);
     const big = useMq(BIG);
-    const w = useWild(clock, wild, floorZone(small ? 1 : big ? 3 : 2));
+    const w = useWild(clock, wild, floorZone(small ? 1 : big ? 3 : 2), undefined, ROOM);
     const profile = useGame((s) => s.profile);
     const hall = useGame((s) => s.hall);
     const titles = useGame((s) => Math.max(s.records.titles, s.hall.length));

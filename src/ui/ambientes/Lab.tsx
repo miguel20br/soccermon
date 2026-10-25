@@ -5,7 +5,7 @@ import { albumCount, gameMoveIds, movesFound, seenCount } from '../../store/prof
 import { HudIcon } from '../components/MatchHud';
 import { openDoor } from '../doors';
 import { ClockCtx, useSceneClock } from './clock';
-import { BIG, floorZone, Mi, SMALL, Tile } from './Room';
+import { BIG, floorZone, Mi, ROOM, SMALL, Tile } from './Room';
 import { useMq, useWild, WildZone } from './WildZone';
 import type { Wild } from './wild';
 
@@ -21,7 +21,7 @@ export function Lab({ active, wild, near }: { active: boolean; wild: Wild[]; nea
     const clock = useSceneClock(active);
     const small = useMq(SMALL);
     const big = useMq(BIG);
-    const w = useWild(clock, wild, floorZone(small ? 1 : big ? 3 : 2));
+    const w = useWild(clock, wild, floorZone(small ? 1 : big ? 3 : 2), undefined, ROOM);
     const dex = useGame((s) => s.dex);
     const moves = useGame((s) => s.moves);
     const seen = seenCount(dex);
