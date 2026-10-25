@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Mission, SaveView } from '../../store/missions';
-import { closestMissions, nextBelt } from './metas';
+import { closestMissions, nextBelt, routeTeam } from './metas';
 
 const view = (done: string[] = []) => ({ done: new Set(done) }) as unknown as SaveView;
 const counter = (id: string, goal: number, n: number): Mission => ({ id, group: 'feitos', goal, count: () => n });
@@ -38,5 +38,25 @@ describe('nextBelt', () => {
         expect(nextBelt(0)).toEqual({ metal: 'bronze', n: 0, goal: 10 });
         expect(nextBelt(10)).toEqual({ metal: 'prata', n: 10, goal: 50 });
         expect(nextBelt(100)).toBeNull();
+    });
+});
+
+describe('routeTeam (quem anda no mapa da Rota)', () => {
+    const pick = (uid: string, speciesId: number) => ({ uid, speciesId });
+    it('Rota aberta ainda na formação (sem ninguém escolhido): o avatar no ponto de partida, nunca o mapa vazio', () => {
+        expect(routeTeam({ picks: [], lineup: [], captainUid: null }, true, 6)).toEqual([6]);
+        expect(routeTeam({ picks: [], lineup: [], captainUid: null }, true, null)).toEqual([25]);
+    });
+    it('draft sem escalação: o 1º escolhido; com escalação: capitão na frente e mais 2', () => {
+        expect(routeTeam({ picks: [pick('a', 4)], lineup: [], captainUid: null }, true, 6)).toEqual([4]);
+        const run = {
+            picks: [pick('a', 4), pick('b', 7), pick('c', 1), pick('d', 25)],
+            lineup: ['b', 'a', 'c', 'd'],
+            captainUid: 'a',
+        };
+        expect(routeTeam(run, true, 6)).toEqual([4, 7, 1]);
+    });
+    it('sem Rota aberta: o avatar sozinho em Pallet', () => {
+        expect(routeTeam({ picks: [pick('a', 4)], lineup: ['a'], captainUid: 'a' }, false, 133)).toEqual([133]);
     });
 });
