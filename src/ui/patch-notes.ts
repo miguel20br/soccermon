@@ -9,6 +9,26 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.20',
+        date: '2026-10-25',
+        title: 'Textos revistos e a 1ª partida',
+        sections: [
+            {
+                title: 'Melhorado',
+                lines: [
+                    'Textos do jogo revistos (Home, draft, partida e narração): frases mais curtas e naturais, "pra" no lugar de "para"',
+                    'Os golpes aparecem com o nome oficial em inglês em todo o jogo',
+                    'Tática Equilibrada mostra o número certo (+4% / +3%)',
+                    'A dica do intervalo ficou mais clara',
+                ],
+            },
+            {
+                title: 'Corrigido',
+                lines: ['O balão "Mude a tática…" agora aparece só depois do 1º gol ou no intervalo da 1ª partida'],
+            },
+        ],
+    },
+    {
         version: '0.9.19',
         date: '2026-10-24',
         title: 'Rota Índigo e celular deitado',
@@ -1606,6 +1626,28 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.20',
+        date: '2026-10-25',
+        title: 'Reworded texts and the 1st match',
+        sections: [
+            {
+                title: 'Improved',
+                lines: [
+                    'Game texts reviewed (home, draft, match and commentary): shorter, more natural lines',
+                    'Moves show their official English names across the whole game',
+                    'The Balanced tactic shows the right numbers (+4% / +3%)',
+                    'The halftime tip is clearer',
+                ],
+            },
+            {
+                title: 'Fixed',
+                lines: [
+                    'The "Change the tactic..." tip now shows only after the 1st goal or at halftime of the 1st match',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.19',
         date: '2026-10-24',
