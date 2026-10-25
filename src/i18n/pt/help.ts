@@ -569,7 +569,7 @@ export const help = {
     screen: {
         title: 'Ajuda',
         replay: 'Ver o passo a passo de novo',
-        tipsBack: 'As dicas voltaram',
+        tipsBack: 'As dicas voltaram à tela.',
         tipsShow: 'Mostrar as dicas de novo',
         searchLabel: 'Buscar na ajuda',
         searchPlaceholder: 'Buscar: evolução, pênaltis, itens…',

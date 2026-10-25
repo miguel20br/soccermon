@@ -158,7 +158,7 @@ export const common = {
         },
         '4-0': {
             name: 'Rodízio (4-0)',
-            description: 'Sem pivô: os quatro giram de lugar, passam e correm.',
+            description: 'Os quatro giram de lugar, passam e correm.',
             up: '+Giro +Passe e corre',
             down: '−Sem pivô',
         },

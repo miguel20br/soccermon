@@ -86,7 +86,7 @@ Padrões que se repetem no jogo todo (valem pros próximos blocos):
 
 ## 3. Bloco 1: Home, menus e primeira visita (205 strings)
 
-**Aplicado em 25/10** ("ok 1-16"). O EN acompanhou onde tinha o mesmo defeito: "Patch notes" virou "What's new",
+**Aplicado em 25/10** ("ok 1-16"; o item 5, `help.screen.tipsBack`, ficou "As dicas voltaram à tela."). O EN acompanhou onde tinha o mesmo defeito: "Patch notes" virou "What's new",
 "guest progress" e "save" saíram, "quick and direct" saiu, o parêntese do erro da nuvem virou frase.
 
 | Chave | Texto atual | Proposta | Por quê |
@@ -150,7 +150,7 @@ Textos legais (`home.disclaimer`, privacidade e termos) e créditos não tinham 
 
 ## 5. Bloco 2: Draft, escalação e cartas (376 strings)
 
-Só onde há melhora real. PT; o EN acompanha depois do ok. **Não aplicado.**
+Só onde há melhora real. **Aplicado em 25/10; 2 e 8 recusados** (ficam com o texto original; o 2 mantém o "pra"). O EN acompanhou onde tinha o mesmo defeito (1, 3, 4, 5, 7, 11, 12, 13, 14, 18); no 3 o número foi conferido em `TACTIC_MODS` e vale nos dois idiomas.
 
 | # | Chave | Hoje | Proposta | Por quê |
 |---|---|---|---|---|
