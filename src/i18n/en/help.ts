@@ -540,7 +540,7 @@ export const help: typeof pt = {
     screen: {
         title: 'Help',
         replay: 'Show the walkthrough again',
-        tipsBack: 'Tips are back on screen',
+        tipsBack: 'Tips are back on screen.',
         tipsShow: 'Show the tips again',
         searchLabel: 'Search help',
         searchPlaceholder: 'Search: evolution, penalties, items…',

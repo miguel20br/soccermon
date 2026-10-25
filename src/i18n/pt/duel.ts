@@ -4,7 +4,7 @@ export const duel = {
     beta: 'BETA',
     betaNote: 'Duelo em beta: se algo estranho acontecer,',
     betaLink: 'conta pra gente.',
-    line: 'Desafie um amigo ao vivo: mande o link e joguem juntos',
+    line: 'Mande o link pra um amigo e joguem ao vivo',
     createRoom: 'Criar sala',
     newDuel: 'Novo duelo',
     newHint: 'Escolha o modo e a velocidade e mande o link pro rival.',

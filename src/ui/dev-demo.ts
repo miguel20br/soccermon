@@ -49,7 +49,7 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * `?demo=maximo` abre na escalação uma partida que, ao começar, está a 2 s do botão do golpe máximo aceso
  * (barra cheia, capitão Dragonite com a bola na zona); `&goleiro=1`: capitão Snorlax no gol (defesa máxima);
  * `&capitao=<id>`: outro pivô capitão (com `&nivel=3`: o efeito do tipo dele no N3, ex. 3 Grama, 68 Lutador; os 12 de
- * `MAX_SIGNATURE` têm a assinatura, ex. 149 Hiper Raio, 143 Pancada; com `&goleiro=1` o Snorlax deita no gol).
+ * `MAX_SIGNATURE` têm a assinatura, ex. 149 Hyper Beam, 143 Pancada; com `&goleiro=1` o Snorlax deita no gol).
  * `&k=N`: pula as N primeiras copas (outra jogada, se a primeira não acender).
  * `?demo=charanga` abre na escalação uma partida com a Charanga de Pewter em que, ao começar, o rival está a 4 s de
  * abrir o placar (o aviso "A CHARANGA ENTROU" vem logo depois do gol).

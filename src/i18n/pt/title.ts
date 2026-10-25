@@ -39,14 +39,14 @@ export const title = {
     final: {
         h: 'A final',
         avg: 'média das cartas',
-        evolved: '{from} evoluiu para {into}',
+        evolved: '{from} evoluiu pra {into}',
     },
     form: 'Nota jogo a jogo',
     hall: {
         h: 'Hall da Fama',
         entry: 'Hall da Fama nº {n}',
-        empty: 'Ganhe uma copa para entrar no Hall da Fama.',
-        skip: 'Toque para pular',
+        empty: 'Ganhe uma copa pra entrar no Hall da Fama.',
+        skip: 'Toque pra pular',
         goals: '{n} gols',
         perfect: 'Copa perfeita',
     },

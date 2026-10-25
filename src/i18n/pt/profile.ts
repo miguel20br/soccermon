@@ -23,7 +23,6 @@ export const profile = {
     },
     collection: 'Coleção',
     publicHint: 'O cartão que os outros jogadores veem',
-    quick: { cups: 'Copas', titles: 'Títulos', goals: 'Gols' },
     /** Cartão do treinador: o perfil que os outros veem (Duelo) e o seu, pelo botão do Perfil. */
     card: {
         open: 'Ver meu perfil público',
@@ -138,7 +137,7 @@ export const profile = {
         empty: 'Nenhum Pokémon por aqui ainda.',
         stickers: 'Figurinhas',
         stickersAria: '{n} de {total} figurinhas do álbum',
-        stickersHelp: 'Escale uma carta de cada edição numa partida para colar a figurinha.',
+        stickersHelp: 'Escale uma carta de cada edição numa partida pra colar a figurinha.',
         stickersTip: 'Figurinhas: tem {got}; faltam {missing}',
         emptyMissing: 'Álbum completo por aqui. Que coleção!',
         ribbonAria: ', campeão {n} vez com você|, campeão {n} vezes com você',
@@ -209,7 +208,7 @@ export const profile = {
     numbers: {
         emptyTitle: 'Sua história começa na primeira copa',
         emptyText: 'Jogue uma partida e os seus números, artilheiros e recordes aparecem aqui.',
-        emptyCta: 'Ir para a Nova copa',
+        emptyCta: 'Ir pra Nova copa',
         career: 'Carreira',
         matches: 'Partidas',
         wins: 'Vitórias',
@@ -381,7 +380,7 @@ export const profile = {
             swimmer: 'Vença com 3+ titulares do tipo Água',
             hiker: 'Vença sem sofrer gol com goleiro Pedra ou Terra',
             birdkeeper: 'Vença com Articuno, Zapdos e Moltres titulares',
-            fisherman: 'Veja um Magikarp evoluir para Gyarados em campo',
+            fisherman: 'Veja um Magikarp evoluir pra Gyarados em campo',
             channeler: 'Marque um gol com Haunter ou Gengar',
             juggler: 'Marque um gol com o Ditto transformado',
             biker: 'Marque 10 gols numa copa só',
@@ -505,7 +504,7 @@ export const profile = {
         page: 'Página {n}/{total}',
         prev: 'Página anterior',
         next: 'Próxima página',
-        swipe: 'Arraste para o lado ou use as setas para virar a página.',
+        swipe: 'Arraste pro lado ou use as setas pra virar a página.',
     },
     medals: {
         summary: '{n} de {total}',

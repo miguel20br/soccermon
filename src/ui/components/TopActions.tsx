@@ -29,8 +29,8 @@ export function TopActions({ help }: { help?: () => void }) {
                 <button
                     type="button"
                     className="help-fab"
-                    aria-label={d.home.tiles.settings[0]}
-                    title={d.home.tiles.settings[0]}
+                    aria-label={d.home.tiles.settings}
+                    title={d.home.tiles.settings}
                     onClick={() => go('settings')}
                 >
                     <MenuIcon kind="settings" />

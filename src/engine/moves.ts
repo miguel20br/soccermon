@@ -389,13 +389,13 @@ const EXPLAIN = {
     mimic: 'Copia o último golpe que o rival usou e fica com ele até o fim da partida.',
     metronome: 'Balança o dedo e solta um golpe aleatório!',
     substitute: 'Cria um boneco que aguenta o próximo golpe ou carrinho no lugar dele (custa um pouco de fôlego).',
-    leechseed: 'Planta uma semente no rival: o fôlego dele escorre aos poucos para quem usou (Planta é imune).',
+    leechseed: 'Planta uma semente no rival: o fôlego dele escorre aos poucos pra quem usou (Planta é imune).',
     bide: 'Aguenta firme 3 s e depois solta uma onda que empurra e atordoa quem está perto: quanto mais apanhou, mais forte.',
     rage: 'Fúria por 15 s: chute e força sobem, e cada carrinho ou golpe que sofre deixa ainda mais forte (até 3 vezes).',
     conversion: 'Copia o tipo do rival mais perto por 12 s (muda a vantagem de tipo) e tira os enfraquecimentos.',
-    disable: 'Trava um golpe que o rival mais perto ainda tinha para usar.',
-    roar: 'Rugido: o rival mais perto foge de volta para o campo dele e larga a bola.',
-    whirlwind: 'Ventania que empurra os rivais em volta e sopra a bola solta para longe.',
+    disable: 'Trava um golpe que o rival mais perto ainda tinha pra usar.',
+    roar: 'Rugido: o rival mais perto foge de volta pro campo dele e larga a bola.',
+    whirlwind: 'Ventania que empurra os rivais em volta e sopra a bola solta pra longe.',
     splash: 'Pula e espirra água: fica difícil de desarmar por um instante (mas é só isso mesmo).',
     transform:
         'Vira uma cópia do rival mais perto: pega os atributos melhores dele por 12 segundos. (O Ditto já entra transformado pela habilidade Impostor.)',
@@ -446,7 +446,7 @@ const EXPLAIN = {
     sandattack: 'Areia no olho: o rival mais perto chuta e passa bem torto por 6 s.',
     kinesis: 'Entorta a colher: o próximo chute do rival mais perto sai bem torto.',
     flash: 'Clarão: todos os rivais a 7 m chutam e passam torto por 5 s.',
-    smokescreen: 'Cortina de fumaça no chão (3 m, 5 s): chute e passe de dentro dela saem tortos, para os dois times.',
+    smokescreen: 'Cortina de fumaça no chão (3 m, 5 s): chute e passe de dentro dela saem tortos, pros dois times.',
     // F7 dano fixo
     sonicboom:
         'Dano fixo: chute de velocidade fixa (não depende do atributo nem do tipo). Sem a bola, estrondo que atordoa o rival um tempo fixo (Fantasma é imune).',
@@ -463,14 +463,14 @@ const EXPLAIN = {
     doublekick: 'Dois chutes: sem a bola, duas tentativas de desarme seguidas.',
     twineedle: 'Duas agulhadas: duas tentativas de desarme, cada uma pode envenenar.',
     bonemerang:
-        'Bumerangue: desarme de longe (2,8 m), duas tentativas; o chute, se o goleiro espalmar ou alguém bloquear, volta para o pé dele.',
+        'Bumerangue: desarme de longe (2,8 m), duas tentativas; o chute, se o goleiro espalmar ou alguém bloquear, volta pro pé dele.',
     furyattack: 'De 2 a 5 tentativas de desarme seguidas (cada uma mais fraca).',
     furyswipes: 'De 2 a 5 arranhões: tentativas de desarme seguidas (cada uma mais fraca).',
     doubleslap: 'De 2 a 5 tapas: tentativas de desarme seguidas (cada uma mais fraca).',
     cometpunch: 'De 2 a 5 socos: tentativas de desarme seguidas (cada uma mais fraca).',
-    barrage: 'De 2 a 5 tentativas de desarme; o chute pode voltar para o pé dele se for defendido.',
-    pinmissile: 'De 2 a 5 tentativas de desarme; o chute pode voltar para o pé dele se for defendido.',
-    spikecannon: 'De 2 a 5 tentativas de desarme; o chute pode voltar para o pé dele se for defendido.',
+    barrage: 'De 2 a 5 tentativas de desarme; o chute pode voltar pro pé dele se for defendido.',
+    pinmissile: 'De 2 a 5 tentativas de desarme; o chute pode voltar pro pé dele se for defendido.',
+    spikecannon: 'De 2 a 5 tentativas de desarme; o chute pode voltar pro pé dele se for defendido.',
     vinewhip: 'Chicote: desarme de longe (2,8 m).',
     slam: 'Pancada com a cauda ou a vinha: com a bola, chute forte; sem a bola, desarme de longe (2,8 m).',
     boneclub: 'Osso na mão: desarme de longe (2,8 m), que pode fazer o rival hesitar.',
@@ -495,12 +495,12 @@ const EXPLAIN = {
     barrier: 'Muro invisível 3 s na frente dele: bloqueia o próximo chute que passar perto.',
     stomp: 'Pisão: com a bola, chute forte; sem a bola, desarme que pode fazer hesitar e ignora quem está pequenininho (Minimize).',
     // F12 controle de campo
-    gust: 'Com a bola: chute colocado. Sem a bola: rajada que empurra o rival e sopra a bola solta para longe.',
+    gust: 'Com a bola: chute colocado. Sem a bola: rajada que empurra o rival e sopra a bola solta pra longe.',
     strength: 'Carrinho-trator: quando ganha a dividida, empurra o rival 2,5 m.',
     softboiled: 'Cura o fôlego dele e o do companheiro mais cansado a 8 m.',
     dreameater:
         'Com a bola: chute colocado. Sem a bola: suga o fôlego do rival mais perto; se tiver alguém dormindo, devora o sonho dele e suga o dobro.',
-    payday: 'Chuva de moedas: com a bola, chute; sem a bola, os rivais a 3 m param um instante para olhar.',
+    payday: 'Chuva de moedas: com a bola, chute; sem a bola, os rivais a 3 m param um instante pra olhar.',
 };
 
 /** Golpes que têm explicação própria (a tradução em inglês precisa ter todas). */

@@ -85,7 +85,7 @@ export const ABILITIES = abilitiesJson as Record<string, AbilityData>;
 if (ABILITIES.imposter) {
     ABILITIES.imposter = {
         ...ABILITIES.imposter,
-        descPt: 'Transformar: no apito inicial, o Ditto vira uma cópia do melhor Pokémon da posição dele em campo, seja do seu time ou do rival.',
+        descPt: 'Transform: no apito inicial, o Ditto vira uma cópia do melhor Pokémon da posição dele em campo, seja do seu time ou do rival.',
     };
 }
 export const TYPES: TypeName[] = typechartJson.types;

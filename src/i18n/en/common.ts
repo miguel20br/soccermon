@@ -144,7 +144,7 @@ export const common: typeof pt = {
         },
         '4-0': {
             name: 'Rotation (4-0)',
-            description: 'No pivot: all four rotate, pass and run.',
+            description: 'All four rotate, pass and run.',
             up: '+Rotation +Pass and run',
             down: '−No pivot',
         },

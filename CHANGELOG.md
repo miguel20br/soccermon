@@ -1,5 +1,16 @@
 # Novidades
 
+## 0.9.20 · Textos revistos e a 1ª partida (2026-10-25)
+
+### Melhorado
+- Textos do jogo revistos (Home, draft, partida e narração): frases mais curtas e naturais, "pra" no lugar de "para"
+- Os golpes aparecem com o nome oficial em inglês em todo o jogo
+- Tática Equilibrada mostra o número certo (+4% / +3%)
+- A dica do intervalo ficou mais clara
+
+### Corrigido
+- O balão "Mude a tática…" agora aparece só depois do 1º gol ou no intervalo da 1ª partida
+
 ## 0.9.19 · Rota Índigo e celular deitado (2026-10-24)
 
 ### Adicionado

@@ -111,7 +111,7 @@ export const settings: typeof pt = {
     bar: {
         syncing: 'Saving…',
         saved: 'Saved to the cloud',
-        error: "Couldn't save to the cloud (the game is still saved on this device)",
+        error: "Couldn't save to the cloud. It's saved on this device.",
         signIn: 'Sign in with Google',
         signInFailed: "Couldn't open the Google sign-in. Check your connection and try again.",
         pitch: 'Sign in with Google to save to the cloud and play anywhere.',

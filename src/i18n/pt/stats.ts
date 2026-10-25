@@ -201,7 +201,7 @@ export const stats = {
         reviewed: 'Revisados: {n}/{total}',
         copied: 'Copiado!',
         copyReview: 'Copiar revisão',
-        backAll: 'Voltar para todos os Pokémon',
+        backAll: 'Voltar pra todos os Pokémon',
         searchMon: 'Nome ou número…',
         searchMonAria: 'Buscar Pokémon por nome ou número',
         missingOfType: 'Faltam {n} golpe de {type} pra descobrir.|Faltam {n} golpes de {type} pra descobrir.',
