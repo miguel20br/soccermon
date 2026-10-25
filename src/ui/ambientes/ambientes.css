@@ -2437,6 +2437,9 @@
     .rm-short {
         display: inline;
     }
+    .es-ui {
+        width: min(380px, 58%);
+    }
     .es-actions .rc-team {
         font-size: 13px;
     }
@@ -2453,6 +2456,17 @@
     }
 }
 
+/* celular estreito (320): letreiro menor, pro nome e o selo caberem */
+@media (max-width: 359px) {
+    .rt-head h2,
+    .rm-head h2 {
+        font-size: 16px;
+    }
+    .rt-head .rt-badges,
+    .rm-head .rt-badges {
+        font-size: 13px;
+    }
+}
 /* Rota no celular pequeno (320x568): o mapa encolhia pouco e a tela rolava 18 px */
 @media (orientation: portrait) and (max-width: 700px) and (max-height: 640px) {
     .rt-map {
