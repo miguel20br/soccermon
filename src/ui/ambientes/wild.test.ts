@@ -1,18 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { TABS } from './nav';
-import {
-    type Actor,
-    type Area,
-    dirOf,
-    MAX_WILD,
-    POOLS,
-    poke,
-    rollAll,
-    rollWild,
-    spawn,
-    step,
-    wildQuota,
-} from './wild';
+import { type Actor, type Area, dirOf, MAX_WILD, POOLS, poke, rollAll, rollWild, spawn, step, wildQuota } from './wild';
 
 /** Sorteio repetível pros testes (a tela usa Math.random). */
 function seeded(seed: number) {
