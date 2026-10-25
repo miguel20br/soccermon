@@ -227,9 +227,9 @@ Voo em chamas, Bola que curva…) ficam. O EN acompanhou onde tinha o mesmo defe
   `NA TRAAAVE!`): curtos e com cara de transmissão.
 - `highlightsHint`, `cornerHint`, as dicas da prancheta (`board.hint*`): claras; mexer só encurtaria.
 
-## 7. Bloco 4: Narração (160 strings)
+## 7. Bloco 4: Narração (160 strings, aplicado em 25/10)
 
-Propostas, esperando o ok. Só onde há melhora real; fatos conferidos no motor. Os golpes na narração já estão todos
+As 11 propostas foram aprovadas e aplicadas em 25/10. Só onde há melhora real; fatos conferidos no motor. Os golpes na narração já estão todos
 com o nome oficial em inglês. O EN acompanha onde tem o mesmo defeito (1, 6, 7, 8, 11); no 2, 4, 5 e 10 o EN já é
 assim.
 
