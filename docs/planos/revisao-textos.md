@@ -1,5 +1,5 @@
 ---
-description: Revisão de todos os textos do jogo em PT por blocos (inventário, verificador e propostas do bloco 1).
+description: Revisão de todos os textos do jogo em PT por blocos (inventário, verificador, blocos 1 e 2 aplicados, propostas do bloco 3).
 ---
 
 # Revisão dos textos do jogo (24/10/2026)
@@ -181,3 +181,39 @@ Só onde há melhora real. **Aplicado em 25/10; 2 e 8 recusados** (ficam com o t
 - Nomes e combos das sinergias de história, nomes das formações, Ícones, tipos, posições e atributos: nomes.
 - `kindTcg.flavor` e `kindExplain.flavor` ("Não faz nada… ou faz?", "…mas a torcida adora."): humor de fã pontual.
 - Notas do corpo (`common.body`): rótulo curto, já no padrão.
+
+## 6. Bloco 3: Partida, HUD, técnico e letreiros (372 strings)
+
+Propostas, esperando o ok. Só onde há melhora real; números conferidos no motor. Os nomes de efeito do golpe máximo
+que não são nome de golpe (Dois canhões, Voo em chamas, Bola que curva…) ficam. O EN acompanha onde tem o mesmo
+defeito (1, 4, 5, 7, 8, 16).
+
+| # | Chave | Hoje | Proposta | Por quê |
+|---|---|---|---|---|
+| 1 | `match.reload` | A quadra não carregou — recarregar | Recarregar a quadra | travessão (achado do verificador); o botão aparece quando a quadra demora (`sceneSlow`), não só quando falha |
+| 2 | `match.finalPressureHint` | Quem perde nos últimos 3 minutos ataca com tudo (vale pros dois times) | Nos últimos 3 minutos, quem está perdendo ataca com tudo. Vale pros dois times. | parêntese explicativo; os 3 minutos conferem (`FINAL_PRESSURE.lastMinutes`) |
+| 3 | `match.ht.tipTired` | {name} está cansado: talvez seja hora de trocar. | (sai; a dica cai na próxima regra) | abaixo de 40% de fôlego, o intervalo mostra o mesmo jogador três vezes: "Mais cansado" no quadro, esta dica e o botão "{name} com {p}% de fôlego: trocar?". Sem troca sobrando, manda trocar sem poder. Tira 1 condição no `HalftimePanel` |
+| 4 | `match.ht.tipEven` | Jogo aberto. Siga assim ou mude algo. | Ainda tem o 2º tempo inteiro. | aparece sempre que você não está na frente, perdendo inclusive, e aí "jogo aberto" fica errado; "mude algo" não diz nada |
+| 5 | `match.agency.timeoutHint` | 1 por tempo. Para quando a bola parar: descansa e faz trocas | 1 por tempo, na próxima bola parada. Seu time recupera 5% de fôlego e o rival, 3%. | "Para… parar" ecoa; "descansa" sem número (motor: +5% pra quem pede, +3% pro rival, `AGENCY.timeoutEnergy`); troca dá pra fazer a qualquer hora |
+| 6 | `match.agency.timeoutPanel.sub` | Seu time descansa um pouco. Troca e posições valem agora. | Seu time recupera 5% de fôlego. Trocas e posições entram na hora. | "um pouco" vago; o mesmo número do 5 |
+| 7 | `match.agency.maxHint` | Enche com os lances do time. Cheia, acende na hora do chute do capitão (no gol: no chute do rival). Atalho: M. | Enche com os lances do time. Acende já no N1, quando o capitão chega com a bola perto do gol. Capitão goleiro: quando o rival chega. Atalho: M. | ficou errado com os 3 níveis: acende com 1 gomo, não com a barra cheia (`maxCue`, botão aceso com `level >= 1`); com capitão goleiro acende quando o rival tem a bola na zona, não no chute; parêntese |
+| 8 | `match.agency.pens.keep` | Pela ordem do chute | Melhor chute primeiro | "ordem do chute" lê como a ordem de bater; o motor ordena pelo atributo Chute (`penaltyTakers`) |
+| 9 | `match.agency.maxFx` (assinaturas) | Hiper Raio, Nevasca, Come-sonho, Metrônomo (e o grito "Metrônomo!"), Transformação | Hyper Beam, Blizzard, Dream Eater, Metronome (e "Metronome!"), Transform | é o nome do golpe traduzido; golpe vai com o nome oficial em inglês (o EN já usa; o bloco 2 fez "Ditto (Transform)") |
+| 10 | `battle.transformBig` | TRANSFORMAR! | TRANSFORM! | nome do golpe, como no 9; o infinitivo gritado soa estranho |
+| 11 | `battle.substitutePop` | SUBSTITUTO! | SUBSTITUTE! | nome oficial do golpe; num jogo de futsal "SUBSTITUTO!" na cabeça do jogador parece substituição (a linha do lado já fala do boneco) |
+| 12 | `battle.line.blind` | {m} de {w}: o rival não acerta mais nada! | {m} de {w}: a precisão do rival caiu! | exagero: o erro do rival dobra por 6 s (Sand Attack) ou vale só no próximo chute (Kinesis) (`T.blind`); "a precisão caiu" é a fala dos jogos |
+| 13 | `battle.line.bideStored` | {w} solta o Bide (guardou {n} pancadas)! | {w} guardou {n} pancadas e solta o Bide! | parêntese |
+| 14 | `battle.line.coins` | Chuva de moedas: todo mundo parou pra olhar! | Chuva de moedas! Os rivais perto param pra olhar! | só os rivais a até 3 m param (`T.coinRadius`); "todo mundo" está errado |
+| 15 | `battle.haze` | A névoa do Haze limpa tudo em volta! | O Haze limpa tudo em volta! | "névoa do Haze" explica o nome do golpe (Haze já é névoa) |
+| 16 | `match.courtLab.win` e `lose` | Se ganhar / Se perder | Se você perder / Se você ganhar | "Se ganhar" parece você, mas a fala embaixo é a do treinador ganhando (`win` = o líder ganhou); `?lab=quadras` é público |
+
+### Ficam como estão
+
+- Falas de evolução (`battle.evolving`, `evolved` e as do rival): fala dos jogos.
+- `battle.line.focusBug` ("…como na Gen 1!") e `noRecharge`: humor de fã pontual, e o Hyper Beam sem recarga é
+  regra da Gen 1.
+- Nomes de efeito por tipo (`maxFx` de Normal a Fairy): descrevem o efeito, não são o golpe. "Terremoto" fica
+  como palavra comum.
+- `ht.tipShots`, `tipPossession`, `tipAhead`, `flyGkHint`, os pops e as faixas (`GOL!`, `QUE DEFESA!`,
+  `NA TRAAAVE!`): curtos e com cara de transmissão.
+- `highlightsHint`, `cornerHint`, as dicas da prancheta (`board.hint*`): claras; mexer só encurtaria.
