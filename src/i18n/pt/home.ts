@@ -86,5 +86,20 @@ export const home = {
         soon2x2: 'Dupla 2x2',
         soonArcade: 'Arcade',
         ligaSoon: 'Liga · abre em {d}d',
+        /** Laboratório: a meta é a Pokédex; o Carvalho fala quanto falta. */
+        labGo: 'Abrir a Pokédex',
+        labSeen: '{n} de {total} vistos',
+        labTalk: 'Faltam {n} pra completar a Pokédex de Kanto. Quem aparece no draft ou no time rival já conta.',
+        labTalkDone: 'Os 151 de Kanto, todos vistos! Agora é encher o Álbum.',
+        /** Arena: o Duelo na frente, o cinturão como meta, o resto chegando. */
+        arenaGo: 'Desafiar',
+        arenaLine: 'Duelo ao vivo com um amigo',
+        neonWeek: 'da semana',
+        ligaOpens: 'Abre em {d}d',
+        /** Sede: o quadro de missões e a Sala de troféus. */
+        sedeOf: 'Sede do {club}',
+        sedeBoard: 'Quadro de missões',
+        sedeTitles: '{n} título|{n} títulos',
+        sedeKit: 'Escudo e uniforme',
     },
 };

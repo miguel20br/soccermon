@@ -491,6 +491,14 @@ O Miguel aprovou as 20 decisões abaixo com as recomendações:
 Primeira entrega feita na branch `ambientes` (`src/ui/ambientes/`): barra de 5 abas, arrasto com fundo em camadas,
 Estádio e Rota Índigo com ambiente, Laboratório, Arena e Sede como telas simples que levam às de hoje.
 
+Segunda entrega (mesma branch): Pokémon aleatórios em cada lugar (`wild.ts`), a torcida do Estádio mais calma (4
+fileiras com cadeiras vazias, cores puxadas pro azul, quase parada) e os 3 lugares que faltavam com ambiente, cada um
+com um botão principal e uma meta à vista: **Laboratório** (estantes, mapa, bancada com a Pokédex e o computador do
+kit LimeZu; meta x/151 e a fala do Carvalho; Abrir a Pokédex, Álbum e Golpedex), **Arena** (quadra de rua à noite, o
+seu Pokémon contra uma silhueta, neon do Arcade da semana com "em breve"; meta o próximo cinturão; Desafiar, Dupla
+2x2 e Arcade em breve, Liga com a contagem) e **Sede** (madeira, escudo e varal nas cores do clube, taças na vitrine;
+o quadro com as 3 missões mais perto de sair, `metas.ts`; Sala de troféus, Treinador, Clube e Amigos).
+
 ## Decisões pro Miguel
 
 1. **2x2:** fazer A (parceiro IA) + B (amigo por link) juntos **(recomendado)** / só A agora / só B / ir direto pra

@@ -1,17 +1,16 @@
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
 import { useT } from '../../i18n/react';
-import { ligaCountdown } from '../../league/rules';
 import { useGame } from '../../store/game-store';
-import { DoorTiles } from '../components/DoorTiles';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { TopActions } from '../components/TopActions';
 import { reduceMotionOn } from '../settings-sync';
-import { ClockCtx, useSceneClock } from './clock';
+import { Arena } from './Arena';
 import { Estadio } from './Estadio';
+import { Lab } from './Lab';
 import { dragPos, START, snapTab, TABS, type Tab } from './nav';
 import { Rota } from './Rota';
+import { Sede } from './Sede';
 import { installTabBack } from './tab-back';
-import { useMq, useWild, WildZone, type ZoneDef } from './WildZone';
 import { rollAll, type Wild, wildQuota } from './wild';
 import './ambientes.css';
 
@@ -26,91 +25,6 @@ const ICON: Record<Tab, HudIconKind> = {
 const ENTER_MS = 860;
 /** A aba em que a pessoa estava (voltar de uma tela pra Home cai nela de novo; recarregar volta pro Estádio). */
 let lastTab = START;
-
-/** O chão das abas sem ambiente ainda: 1 ou 2 Pokémon passeando na faixa de baixo, atrás dos botões. */
-const floorOf = (scale: number): Record<string, ZoneDef> => ({
-    floor: { ok: (_x, y) => y > 0.2 && y < 0.85, speed: 0.22, scale },
-});
-/** Tela baixa (deitado) ou estreita: 1x, senão o Pokémon sobe por cima dos botões; desktop 3x. */
-const SMALL = '(max-width: 359px), (max-height: 520px)';
-const BIG = '(min-width: 900px) and (min-height: 700px)';
-
-/** As abas que ainda não têm ambiente: o nome do lugar, as portas pras telas de hoje e o chão com os Pokémon. */
-function Place({
-    tab,
-    title,
-    active,
-    wild,
-    children,
-}: {
-    tab: Tab;
-    title: string;
-    active: boolean;
-    wild: Wild[];
-    children: ReactNode;
-}) {
-    const clock = useSceneClock(active);
-    const small = useMq(SMALL);
-    const big = useMq(BIG);
-    const w = useWild(clock, wild, floorOf(small ? 1 : big ? 3 : 2));
-    return (
-        <ClockCtx.Provider value={clock}>
-            <div className={`amb-scene pl-scene pl-${tab}`} aria-hidden>
-                <div className="amb-layer pl-glow" style={{ '--depth': 0.5 } as CSSProperties}>
-                    <HudIcon kind={ICON[tab]} className="pl-icon" />
-                </div>
-                <div className="amb-layer pl-floor" style={{ '--depth': 0.2 } as CSSProperties}>
-                    <WildZone wild={w} zone="floor" />
-                </div>
-            </div>
-            <div className="amb-ui pl-ui">
-                <h2 className="pl-title">{title}</h2>
-                {children}
-            </div>
-        </ClockCtx.Provider>
-    );
-}
-
-function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
-    const { t } = useT();
-    const go = useGame((s) => s.go);
-    const liga = ligaCountdown();
-    return (
-        <Place tab="arena" title={t('home.amb.arenaTitle')} active={active} wild={wild}>
-            <button type="button" className="door bc-tile pl-duel" onClick={() => go('duel')}>
-                <span className="pl-vs" aria-hidden>
-                    <img className="pixel" src="assets/cards/25.gif" alt="" />
-                    <b>VS</b>
-                    <img className="pixel flip" src="assets/cards/133.gif" alt="" />
-                </span>
-                <span>
-                    <b>{t('duel.title')}</b>
-                    <small>{t('duel.line')}</small>
-                </span>
-            </button>
-            <div className="pl-soon">
-                <span>
-                    <HudIcon kind="players" />
-                    {t('home.amb.soon2x2')}
-                </span>
-                <span>
-                    <HudIcon kind="dice" />
-                    {t('home.amb.soonArcade')}
-                </span>
-                {liga ? (
-                    <span>
-                        <HudIcon kind="cup" />
-                        {t('home.amb.ligaSoon', { d: liga.d })}
-                    </span>
-                ) : (
-                    <button type="button" className="btn small" onClick={() => go('liga')}>
-                        {t('liga.home.ligaTag')}
-                    </button>
-                )}
-            </div>
-        </Place>
-    );
-}
 
 /**
  * Navegação por ambientes (`?lab=ambientes`): 5 lugares lado a lado, a barra de abas embaixo (coluna à esquerda com
@@ -135,6 +49,9 @@ export function Ambientes() {
         TABS.map((id) => rolled[id].length),
     );
     const wildOf = (i: number) => rolled[TABS[i]].slice(0, quota[i]);
+    // a arte do kit (Laboratório, Sede) só baixa quando a aba fica perto da tela, e depois fica
+    const seen = useRef(new Set<number>());
+    for (const i of [tab - 1, tab, tab + 1]) seen.current.add(i);
 
     const setPos = (p: number) => root.current?.style.setProperty('--pos', String(p));
     const setTab = (i: number) => {
@@ -232,20 +149,12 @@ export function Ambientes() {
         back.current?.sync();
     });
 
-    const view: Record<Tab, (active: boolean, wild: Wild[]) => ReactNode> = {
-        lab: (active, wild) => (
-            <Place tab="lab" title={t('home.amb.labTitle')} active={active} wild={wild}>
-                <DoorTiles which={['collection']} />
-            </Place>
-        ),
+    const view: Record<Tab, (active: boolean, wild: Wild[], near: boolean) => ReactNode> = {
+        lab: (active, wild, near) => <Lab active={active} wild={wild} near={near} />,
         rota: (active, wild) => <Rota active={active} enter={enter} wild={wild} entering={!!entering} />,
         estadio: (active, wild) => <Estadio active={active} enter={enter} wild={wild} entering={!!entering} />,
         arena: (active, wild) => <Arena active={active} wild={wild} />,
-        sede: (active, wild) => (
-            <Place tab="sede" title={t('home.amb.sedeTitle')} active={active} wild={wild}>
-                <DoorTiles which={['profile', 'trophies']} />
-            </Place>
-        ),
+        sede: (active, wild, near) => <Sede active={active} wild={wild} near={near} />,
     };
 
     return (
@@ -281,7 +190,7 @@ export function Ambientes() {
                         style={{ '--i': i } as CSSProperties}
                         inert={i !== tab}
                     >
-                        {view[id](i === tab, wildOf(i))}
+                        {view[id](i === tab, wildOf(i), seen.current.has(i))}
                     </section>
                 ))}
             </div>

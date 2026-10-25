@@ -18,25 +18,38 @@ const css = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 const shade = (n: number, k: number) =>
     css(((((n >> 16) & 255) * k) << 16) | ((((n >> 8) & 255) * k) << 8) | ((n & 255) * k));
 
-const SKIN = ['#f2c49b', '#c98b5a', '#8d5a3b', '#f7d7b5'];
-const HAIR = ['#2b1d14', '#6b3f1f', '#e8c15a', '#1b1b1b'];
+const SKIN = ['#d9b08c', '#a87754', '#7a5038', '#e0c3a4'];
+const HAIR = ['#2b1d14', '#5a3820', '#b89a52', '#1b1b1b'];
+/** Mistura duas cores 0xRRGGBB (k = quanto de `b`): a torcida fica mais apagada que a cor viva do clube. */
+const mix = (a: number, b: number, k: number) => {
+    const ch = (s: number) => Math.round(((a >> s) & 255) * (1 - k) + ((b >> s) & 255) * k);
+    return (ch(16) << 16) | (ch(8) << 8) | ch(0);
+};
+const SEAT = 0x232a58;
 
 /**
- * Um pedaço da torcida em pixel art (SVG em data URI, repetido de lado): 4 torcedores de 6 px, com o 2º quadro logo
- * abaixo (braços pra cima, 1 px mais alto). Metade pula num quadro e metade no outro: a fileira nunca pula inteira.
- * Camisas na cor do clube, uma branca e uma escura.
+ * Um pedaço da torcida em pixel art (SVG em data URI, repetido de lado): 6 lugares de 7 px, 4 ocupados e 2 cadeiras
+ * vazias (respiro), com o 2º quadro logo abaixo. Só 1 dos 4 levanta os braços no 2º quadro: a fileira quase não mexe.
+ * Camisas na cor do clube puxada pro azul do estádio (calma), uma clara e uma escura.
  */
 function crowdTile(club: number): string {
-    const shirts = [css(club), '#f4f1e6', css(club), shade(club, 0.62)];
+    const calm = mix(club, SEAT, 0.38);
+    const shirts = [css(calm), '', '#a9adc0', shade(calm, 0.7), '', css(calm)];
     let r = '';
     const rect = (x: number, y: number, w: number, h: number, c: string) =>
         (r += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"/>`);
     for (let f = 0; f < 2; f++) {
-        for (let j = 0; j < 4; j++) {
+        for (let j = 0; j < 6; j++) {
             const ox = j * 7;
             const oy = f * 9;
-            const up = (j + f) % 2 === 1;
             const s = shirts[j];
+            if (!s) {
+                // cadeira vazia: o encosto
+                rect(ox, oy + 5, 6, 4, css(SEAT));
+                rect(ox, oy + 5, 6, 1, '#2e3670');
+                continue;
+            }
+            const up = f === 1 && j === 2;
             const dy = up ? 0 : 1;
             if (up) {
                 rect(ox, oy, 1, 3, s);
@@ -48,16 +61,16 @@ function crowdTile(club: number): string {
         }
     }
     return `url("data:image/svg+xml,${encodeURIComponent(
-        `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="18" shape-rendering="crispEdges">${r}</svg>`,
+        `<svg xmlns="http://www.w3.org/2000/svg" width="42" height="18" shape-rendering="crispEdges">${r}</svg>`,
     )}")`;
 }
 
-const ROWS = 6;
-/** Flashes de câmera na torcida: poucos e fora de compasso (nada piscando junto). */
+/** Fileiras da torcida (poucas: o olho vai pro JOGAR e pros Pokémon, não pra arquibancada). */
+const ROWS = 4;
+/** Flashes de câmera na torcida: dois, raros e fora de compasso. */
 const FLASHES = [
-    { x: 14, y: 34, d: 5.3 },
-    { x: 62, y: 20, d: 7.9 },
-    { x: 84, y: 58, d: 6.7 },
+    { x: 18, y: 30, d: 11.3 },
+    { x: 77, y: 58, d: 14.9 },
 ];
 
 /** Tábuas da quadra: mais finas no fundo, mais grossas perto do túnel (perspectiva). */

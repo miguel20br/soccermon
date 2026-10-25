@@ -7,6 +7,8 @@
 .amb {
     --bar-h: 68px;
     --px: 3px;
+    /* 1 pixel do kit de móveis (Laboratório, Sede) e da Arena */
+    --mi: 2px;
     --amb-ms: 280ms;
     position: fixed;
     inset: 0;
@@ -22,11 +24,22 @@
 @media (min-width: 900px) and (min-height: 700px) {
     .amb {
         --px: 4px;
+        --mi: 3px;
     }
 }
 @media (max-height: 700px) {
     .amb {
         --px: 2px;
+    }
+}
+@media (max-width: 359px), (max-height: 700px) {
+    .amb {
+        --mi: 1.5px;
+    }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .amb {
+        --mi: 1px;
     }
 }
 .amb-top {
@@ -354,6 +367,8 @@
 /* ======================================================================================== Estádio */
 .es-scene {
     --stand-top: 24%;
+    /* 4 fileiras de 10 px de arte + o degrau de baixo */
+    --stand-h: calc(var(--px) * 44);
 }
 /* tela baixa (320, deitado): a arquibancada sobe pra baixo do placar e sobra quadra pro capitão */
 @media (max-height: 700px) {
@@ -393,7 +408,7 @@
         69vw 2vh #c9d4ff,
         83vw 9vh #fff,
         22vw 15vh #fff;
-    animation: es-twinkle 2.6s steps(2) infinite;
+    animation: es-twinkle 6s steps(2) infinite;
 }
 @keyframes es-twinkle {
     50% {
@@ -437,31 +452,34 @@
     fill: #fff;
 }
 
-/* a arquibancada do outro lado: 5 fileiras de torcida, a de cima mais escura (mais longe) */
+/* a arquibancada do outro lado: 4 fileiras de torcida com cadeiras vazias, cores puxadas pro azul do estádio e
+   quase parada (de vez em quando um levanta os braços): é fundo, o olho vai pro JOGAR e pros Pokémon */
 .es-stand {
     position: absolute;
     left: 0;
     right: 0;
     top: var(--stand-top);
-    height: calc(var(--px) * 64);
+    height: var(--stand-h);
     background: #121838;
 }
 .es-row {
     display: block;
     height: calc(var(--px) * 10);
-    border-bottom: var(--px) solid #273063;
-    background-color: #182050;
+    border-bottom: var(--px) solid #222a58;
+    background-color: #161d48;
     background-image: var(--crowd);
     background-repeat: repeat-x;
-    background-size: calc(var(--px) * 28) calc(var(--px) * 18);
-    background-position: calc(var(--r) * var(--px) * 11) var(--px);
+    background-size: calc(var(--px) * 42) calc(var(--px) * 18);
+    background-position: calc(var(--r) * var(--px) * 17) var(--px);
     image-rendering: pixelated;
-    filter: brightness(calc(0.62 + var(--r) * 0.09));
-    animation: es-cheer 0.6s steps(1) infinite;
-    animation-delay: calc(var(--r) * -0.15s);
+    filter: brightness(calc(0.5 + var(--r) * 0.07)) saturate(0.75);
+    animation: es-cheer calc(5.5s + var(--r) * 1.7s) steps(1) infinite;
+    animation-delay: calc(var(--r) * -2.3s);
 }
+/* um levanta os braços por menos de meio segundo, e a fileira volta a ficar parada */
 @keyframes es-cheer {
-    50% {
+    90%,
+    97% {
         background-position-y: calc(var(--px) * -8);
     }
 }
@@ -501,14 +519,14 @@
     height: var(--px);
     background: #fff;
     opacity: 0;
-    box-shadow: 0 0 0 var(--px) rgb(255 255 255 / 40%);
-    animation: es-flash 4s steps(1) infinite;
+    box-shadow: 0 0 0 var(--px) rgb(255 255 255 / 30%);
+    animation: es-flash 11s steps(1) infinite;
 }
 @keyframes es-flash {
-    94% {
-        opacity: 1;
-    }
     97% {
+        opacity: 0.8;
+    }
+    98% {
         opacity: 0;
     }
 }
@@ -534,7 +552,7 @@
     text-transform: uppercase;
     white-space: nowrap;
     transform: translateX(-50%);
-    animation: es-flag 2.4s steps(2) infinite;
+    animation: es-flag 5s steps(2) infinite;
 }
 @keyframes es-flag {
     50% {
@@ -546,7 +564,7 @@
     position: absolute;
     left: 0;
     right: 0;
-    top: calc(var(--stand-top) + var(--px) * 64);
+    top: calc(var(--stand-top) + var(--stand-h));
     height: calc(var(--px) * 8);
     display: flex;
     align-items: center;
@@ -561,8 +579,8 @@
     font-size: max(10px, calc(var(--px) * 4.4));
     font-weight: 700;
     letter-spacing: 1px;
-    color: var(--yellow);
-    animation: es-marquee 30s linear infinite;
+    color: rgb(255 203 5 / 62%);
+    animation: es-marquee 48s linear infinite;
 }
 .es-led::after {
     content: "";
@@ -580,7 +598,7 @@
     position: absolute;
     left: 0;
     right: 0;
-    top: calc(var(--stand-top) + var(--px) * 72);
+    top: calc(var(--stand-top) + var(--stand-h) + var(--px) * 8);
     container-type: size;
     bottom: 0;
     overflow: hidden;
@@ -609,7 +627,7 @@
     height: 55%;
     background: radial-gradient(closest-side, rgb(255 244 200 / 24%), transparent);
     transform: translateX(-85%);
-    animation: es-spot 8s ease-in-out infinite alternate;
+    animation: es-spot 16s ease-in-out infinite alternate;
 }
 @keyframes es-spot {
     to {
@@ -1024,7 +1042,8 @@
 .rt-go {
     margin-top: auto;
 }
-.rt-head {
+.rt-head,
+.rm-head {
     width: min(640px, 100%);
     display: flex;
     align-items: center;
@@ -1035,7 +1054,8 @@
     border-bottom: 2px solid var(--bc-edge);
     border-radius: 6px;
 }
-.rt-head h2 {
+.rt-head h2,
+.rm-head h2 {
     margin: 0;
     font-family: "Galmuri14", "Galmuri11", monospace;
     font-size: 20px;
@@ -1309,13 +1329,15 @@
 .rt-talk b {
     color: var(--red-dark);
 }
-.rt-go {
+.rt-go,
+.rm-go {
     width: min(460px, 100%);
     min-height: 64px;
     justify-content: space-between;
     text-align: left;
 }
-.rt-go .cup-go-txt b {
+.rt-go .cup-go-txt b,
+.rm-go .cup-go-txt b {
     font-size: 20px;
 }
 @media (max-width: 360px) {
@@ -1395,83 +1417,791 @@
     }
 }
 
-/* ======================================================================================== abas sem ambiente ainda */
-.pl-scene {
-    background: radial-gradient(120% 70% at 50% 0%, var(--pl-glow), var(--bg) 70%);
+/* ======================================================================================== Laboratório, Arena, Sede */
+/* Lugares de dentro (Laboratório, Sede): o teto escuro, a parede numa faixa e o chão; os móveis do kit (Room.tsx) num
+   conjunto de 190 px de arte no meio (o que passa disso só aparece em tela larga). Medidas em --mi. A UI segue o
+   desenho da Rota: o letreiro em cima, o cenário no meio, a fala ou o quadro e os botões embaixo. */
+.rm-scene {
+    --wall-top: 126px;
+    --wall-h: calc(var(--mi) * 64);
+    /* altura da UI de baixo: o chão dos Pokémon termina antes dela */
+    --ui-h: 236px;
+    --set-x: 50%;
+    background: #0d1129;
 }
-.pl-lab {
-    --pl-glow: #1f5a52;
-}
-.pl-arena {
-    --pl-glow: #5a1f4f;
-}
-.pl-sede {
-    --pl-glow: #5a3c1f;
-}
-.pl-glow {
-    display: grid;
-    place-items: center;
-}
-.pl-icon.hud-icon {
-    width: min(80vw, 520px);
-    height: min(80vw, 520px);
-    color: rgb(255 255 255 / 5%);
-    animation: pl-float 6s ease-in-out infinite alternate;
-}
-@keyframes pl-float {
-    to {
-        transform: translateY(-14px);
+@media (max-height: 700px) {
+    .rm-scene {
+        --wall-top: 116px;
+        --ui-h: 170px;
     }
 }
-.pl-ui {
-    justify-content: center;
-    padding-bottom: 12vh;
+@media (min-width: 900px) and (min-height: 700px) {
+    .rm-scene {
+        --wall-top: 170px;
+        --ui-h: 270px;
+    }
 }
-.pl-title {
-    margin: 4px 0 6px;
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 26px;
-    text-align: center;
+.rm-room {
+    overflow: hidden;
 }
-.pl-ui .doors {
-    width: min(460px, 100%);
-    grid-template-columns: minmax(0, 1fr);
+.rm-wall,
+.rm-floor {
+    position: absolute;
+    left: 0;
+    right: 0;
 }
-.pl-duel {
-    width: min(460px, 100%);
+.rm-wall {
+    top: var(--wall-top);
+    height: var(--wall-h);
+    border-top: calc(var(--mi) * 3) solid var(--rm-cap);
+    box-shadow: 0 calc(var(--mi) * -1) 0 #05070f;
 }
-.pl-vs {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex: none;
+.rm-floor {
+    top: calc(var(--wall-top) + var(--wall-h));
+    bottom: 0;
+    image-rendering: pixelated;
 }
-.pl-vs img {
-    height: 36px;
+/* o chão escurece embaixo, onde ficam os botões (o olho fica no botão, não no piso) */
+.rm-floor::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgb(6 8 22 / 18%), transparent 25%, rgb(6 8 22 / 70%) 85%);
 }
-.pl-vs img.flip {
+.rm-set {
+    position: absolute;
+    left: var(--set-x);
+    top: var(--wall-top);
+    width: calc(var(--mi) * 190);
+    height: var(--wall-h);
+    transform: translateX(-50%);
+}
+.mi {
+    position: absolute;
+    left: calc(var(--x) * var(--mi));
+    top: calc(var(--y) * var(--mi));
+    width: calc(var(--w) * var(--mi));
+    height: calc(var(--h) * var(--mi));
+    background:
+        url("/assets/room/mi/Interiors_free_32x32.png") calc(var(--sx) * var(--mi) * -1)
+        calc(var(--sy) * var(--mi) * -1) / calc(512 * var(--mi)) calc(2848 * var(--mi)) no-repeat;
+    image-rendering: pixelated;
+}
+.mi.flip {
     scale: -1 1;
 }
-.pl-vs b {
-    color: var(--yellow);
-    font-size: 13px;
+.rm-walk {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(var(--wall-top) + var(--wall-h) + var(--mi) * 6);
+    bottom: var(--ui-h);
 }
-.pl-soon {
-    width: min(460px, 100%);
+.rm-ui {
+    gap: 10px;
+}
+.rm-head {
+    margin-bottom: auto;
+}
+.rm-head h2 {
+    font-size: 18px;
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+.rm-head .rt-badges {
+    flex: none;
+    font-size: 14px;
+}
+.rm-head .hud-icon {
+    width: 18px;
+    height: 18px;
+}
+.rm-belt.tr-art {
+    width: 26px;
+    height: auto;
+}
+.rm-head .rm-belt.tr-taca {
+    width: 18px;
+}
+.rm-actions {
+    display: grid;
+    gap: 10px;
+    width: min(460px, 100%);
+}
+.rm-go {
+    width: 100%;
+}
+.rm-talk {
+    width: min(460px, 100%);
+}
+.amb-tiles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
 }
-.pl-soon span {
-    display: inline-flex;
+.amb-tiles.three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.amb-tile {
+    display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    min-height: 50px;
+    min-width: 0;
     padding: 6px 10px;
+}
+.amb-tile .hud-icon {
+    flex: none;
+    width: 20px;
+    height: 20px;
+}
+.amb-tile > span {
+    min-width: 0;
+}
+.amb-tile b {
+    display: block;
+    overflow: hidden;
+    overflow-wrap: normal;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    line-height: 1.15;
+}
+.amb-tile small {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+}
+.amb-tile.bc-tile small {
+    font-family: "Galmuri11", monospace;
+    color: var(--yellow);
+}
+/* ainda não abre: tracejado, sem sombra, apagado */
+.amb-tile.soon {
     border: 2px dashed var(--line);
     border-radius: 8px;
+    background: rgb(12 16 40 / 70%);
     color: var(--muted);
+}
+.amb-tiles.three .amb-tile {
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px 4px;
+    text-align: center;
+}
+.amb-tiles.three .amb-tile b {
     font-size: 12px;
+}
+
+/* ---------- Laboratório do Carvalho: parede verde-água com rodapé, piso de ladrilho creme ---------- */
+.lb-scene {
+    --rm-cap: #e9efe6;
+}
+.lb-scene .rm-wall {
+    background:
+        repeating-linear-gradient(
+            90deg,
+            transparent 0 calc(var(--mi) * 31),
+            rgb(40 70 70 / 12%) calc(var(--mi) * 31) calc(var(--mi) * 32)
+        ),
+        linear-gradient(
+            180deg,
+            #a9cdc1 0 56%,
+            #d9a57f 56% calc(56% + var(--mi) * 2),
+            #a9cdc1 calc(56% + var(--mi) * 2) 86%,
+            #d9a57f 86% calc(86% + var(--mi) * 2),
+            #9cbdb2 calc(86% + var(--mi) * 2) calc(100% - var(--mi) * 4),
+            #6b7f7c calc(100% - var(--mi) * 4)
+        );
+}
+.lb-scene .rm-floor {
+    background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%23b3ad8a'/%3E%3Crect x='1' y='1' width='14' height='14' fill='%23c2bb95'/%3E%3Crect x='1' y='1' width='14' height='1' fill='%23cec8a4'/%3E%3Crect x='0' y='15' width='16' height='1' fill='%239c9473'/%3E%3Crect x='15' y='0' width='1' height='16' fill='%239c9473'/%3E%3C/svg%3E")
+        0 0 / calc(var(--mi) * 16) calc(var(--mi) * 16);
+}
+/* as 3 pokébolas dos iniciais, em cima da estante */
+.lb-balls {
+    position: absolute;
+    z-index: 81;
+    left: calc(var(--mi) * 21);
+    top: calc(var(--mi) * 4);
+    width: calc(var(--mi) * 22);
+    height: calc(var(--mi) * 6);
+    background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='6' shape-rendering='crispEdges'%3E%3Cg id='b'%3E%3Crect x='1' y='0' width='4' height='1' fill='%231d1d2c'/%3E%3Crect x='0' y='1' width='6' height='4' fill='%231d1d2c'/%3E%3Crect x='1' y='1' width='4' height='2' fill='%23e8443a'/%3E%3Crect x='1' y='3' width='4' height='1' fill='%23f4f1e6'/%3E%3Crect x='2' y='2' width='2' height='2' fill='%23f4f1e6'/%3E%3Crect x='1' y='5' width='4' height='1' fill='%231d1d2c'/%3E%3C/g%3E%3Cuse href='%23b' x='8'/%3E%3Cuse href='%23b' x='16'/%3E%3C/svg%3E")
+        0 0 / 100% 100%;
+    image-rendering: pixelated;
+}
+
+/* ---------- Sede do clube: madeira escura, piso de tábuas, as cores do clube no varal, no tapete e no escudo ---------- */
+.sd-scene {
+    --rm-cap: #efe6d6;
+    --ui-h: 330px;
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .sd-scene {
+        --ui-h: 340px;
+    }
+}
+/* o quadro de missões é alto: no celular pequeno o chão dos Pokémon fica só na faixa logo abaixo da parede */
+@media (max-height: 700px) and (orientation: portrait) {
+    .sd-scene {
+        --ui-h: 262px;
+    }
+}
+.sd-scene .rm-wall {
+    background:
+        repeating-linear-gradient(
+            90deg,
+            transparent 0 calc(var(--mi) * 7),
+            rgb(0 0 0 / 22%) calc(var(--mi) * 7) calc(var(--mi) * 8)
+        ),
+        linear-gradient(180deg, #7b5240 0 calc(100% - var(--mi) * 5), #4e3226 calc(100% - var(--mi) * 5));
+}
+.sd-scene .rm-floor {
+    background:
+        repeating-linear-gradient(
+            180deg,
+            transparent 0 calc(var(--mi) * 7),
+            rgb(0 0 0 / 20%) calc(var(--mi) * 7) calc(var(--mi) * 8)
+        ),
+        repeating-linear-gradient(
+            90deg,
+            #9a6a45 0 calc(var(--mi) * 23),
+            #8e603d calc(var(--mi) * 23) calc(var(--mi) * 24)
+        );
+}
+/* o varal de bandeirinhas na parede, alternando as duas cores do clube */
+.sd-flags {
+    position: absolute;
+    left: calc(var(--mi) * -10);
+    right: calc(var(--mi) * -10);
+    top: calc(var(--mi) * 2);
+    display: flex;
+    justify-content: space-between;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: var(--mi) solid #2a1a14;
+}
+.sd-flags li {
+    width: calc(var(--mi) * 8);
+    height: calc(var(--mi) * 9);
+    background: var(--club);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+.sd-flags li:nth-child(even) {
+    background: var(--club2);
+}
+.sd-crest {
+    position: absolute;
+    z-index: 1;
+    left: calc(var(--mi) * 74);
+    top: calc(var(--mi) * 14);
+    width: calc(var(--mi) * 40);
+    height: calc(var(--mi) * 44);
+    filter: drop-shadow(0 var(--mi) 0 rgb(0 0 0 / 40%));
+}
+.sd-cups {
+    position: absolute;
+    z-index: 73;
+    left: calc(var(--mi) * 3);
+    top: calc(var(--mi) * 30);
+    width: calc(var(--mi) * 48);
+    display: flex;
+    justify-content: center;
+    gap: var(--mi);
+    align-items: flex-end;
+}
+.sd-cups .tr-art {
+    width: calc(var(--mi) * 16);
+    height: calc(var(--mi) * 14);
+}
+/* o fogo da lareira, aceso e devagar */
+.sd-fire {
+    position: absolute;
+    z-index: 79;
+    left: calc(var(--mi) * 146);
+    top: calc(var(--mi) * 60);
+    width: calc(var(--mi) * 20);
+    height: calc(var(--mi) * 8);
+    background: radial-gradient(closest-side, rgb(255 190 90 / 55%), transparent);
+    animation: sd-fire 3.6s steps(3) infinite alternate;
+}
+@keyframes sd-fire {
+    to {
+        opacity: 0.55;
+    }
+}
+/* a camisa do clube num quadro (só em tela larga, à esquerda) */
+.sd-frame {
+    position: absolute;
+    left: calc(var(--mi) * -116);
+    top: calc(var(--mi) * 14);
+    display: grid;
+    place-items: center;
+    width: calc(var(--mi) * 34);
+    height: calc(var(--mi) * 34);
+    background: #e8e0cc;
+    border: calc(var(--mi) * 2) solid #3a2418;
+    box-shadow: 0 var(--mi) 0 rgb(0 0 0 / 35%);
+}
+.sd-shirt {
+    display: block;
+    width: calc(var(--mi) * 24);
+    height: calc(var(--mi) * 22);
+    clip-path: polygon(32% 0, 68% 0, 100% 20%, 88% 42%, 78% 36%, 78% 100%, 22% 100%, 22% 36%, 12% 42%, 0 20%);
+}
+.sd-rug {
+    position: absolute;
+    z-index: 0;
+    left: calc(var(--mi) * 46);
+    top: calc(var(--mi) * 84);
+    width: calc(var(--mi) * 98);
+    height: calc(var(--mi) * 34);
+    background: var(--club);
+    border: calc(var(--mi) * 3) solid var(--club2);
+    box-shadow:
+        inset 0 0 0 calc(var(--mi) * 3) var(--club),
+        inset 0 0 0 calc(var(--mi) * 4) var(--club2),
+        0 var(--mi) 0 rgb(0 0 0 / 35%);
+    filter: brightness(0.62) saturate(0.75);
+}
+.sd-head-crest {
+    width: 22px;
+    height: 24px;
+}
+/* o quadro de missões: cortiça com 3 papéis, a barra de cada um */
+.sd-board {
+    width: min(460px, 100%);
+    display: grid;
+    gap: 6px;
+    padding: 8px 10px 10px;
+    border: 3px solid #4a2e20;
+    border-radius: 6px;
+    background:
+        radial-gradient(circle at 1px 1px, rgb(0 0 0 / 14%) 1px, transparent 1.5px) 0 0 / 5px 5px,
+        #b98a58;
+    box-shadow:
+        inset 0 0 0 2px #d6a874,
+        0 4px 0 var(--bc-edge);
+    color: #1d1d2c;
+    text-align: left;
+    cursor: pointer;
+}
+.sd-board:focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: 2px;
+}
+.sd-board-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    color: #2a1a10;
+}
+.sd-board-head b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 14px;
+}
+.sd-board-head small {
+    font-family: "Galmuri11", monospace;
+    font-size: 13px;
+}
+.sd-board ul {
+    display: grid;
+    gap: 5px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.sd-board li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 56px auto;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 8px;
+    background: #f8f4e6;
+    box-shadow: 0 2px 0 rgb(0 0 0 / 25%);
+    font-size: 12px;
+    line-height: 1.25;
+}
+.sd-board li > span:first-child {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.sd-bar {
+    height: 6px;
+    background: #d9d2bc;
+    border: 1px solid #8a7f62;
+}
+.sd-bar i {
+    display: block;
+    height: 100%;
+    background: #3fa34d;
+}
+.sd-board li small {
+    font-family: "Galmuri11", monospace;
+    font-size: 11px;
+    color: #4a3e2a;
+}
+
+/* ---------- Arena: quadra de rua à noite, o muro com o neon do Arcade, o poste ---------- */
+.ar-scene {
+    --wall-top: 130px;
+    --wall-h: calc(var(--mi) * 46);
+    --ui-h: 196px;
+}
+@media (max-height: 700px) {
+    .ar-scene {
+        --wall-top: 104px;
+        --ui-h: 270px;
+    }
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .ar-scene {
+        --wall-top: 150px;
+        --ui-h: 200px;
+    }
+}
+.ar-sky {
+    background: linear-gradient(180deg, #080a1f 0%, #15123a calc(var(--wall-top) + 10px), #1d1846 100%);
+}
+.ar-wall {
+    position: absolute;
+    z-index: 1;
+    left: 0;
+    right: 0;
+    top: var(--wall-top);
+    height: var(--wall-h);
+    background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='8' shape-rendering='crispEdges'%3E%3Crect width='16' height='8' fill='%23221a3c'/%3E%3Crect x='0' y='0' width='7' height='3' fill='%23302449'/%3E%3Crect x='8' y='0' width='8' height='3' fill='%232c2145'/%3E%3Crect x='0' y='4' width='3' height='3' fill='%232c2145'/%3E%3Crect x='4' y='4' width='8' height='3' fill='%2333274e'/%3E%3Crect x='13' y='4' width='3' height='3' fill='%23302449'/%3E%3C/svg%3E")
+        0 0 / calc(var(--mi) * 16) calc(var(--mi) * 8);
+    image-rendering: pixelated;
+    border-top: calc(var(--mi) * 2) solid #3d3160;
+    border-bottom: calc(var(--mi) * 2) solid #0b0920;
+}
+/* o alambrado em cima do muro */
+.ar-fence {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    height: calc(var(--mi) * 26);
+    background:
+        repeating-linear-gradient(
+            45deg,
+            transparent 0 calc(var(--mi) * 5),
+            rgb(150 160 210 / 16%) calc(var(--mi) * 5) calc(var(--mi) * 6)
+        ),
+        repeating-linear-gradient(
+            -45deg,
+            transparent 0 calc(var(--mi) * 5),
+            rgb(150 160 210 / 16%) calc(var(--mi) * 5) calc(var(--mi) * 6)
+        );
+    border-top: var(--mi) solid rgb(150 160 210 / 30%);
+}
+/* o neon do Arcade (homenagem ao Game Corner de Celadon): rosa e azul, respirando devagar */
+.ar-neon {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: grid;
+    justify-items: center;
+    padding: calc(var(--mi) * 3) calc(var(--mi) * 8) calc(var(--mi) * 4);
+    border: var(--mi) solid rgb(255 120 190 / 70%);
+    border-radius: calc(var(--mi) * 3);
+    background: rgb(10 6 24 / 70%);
+    box-shadow:
+        0 0 calc(var(--mi) * 4) rgb(255 90 170 / 40%),
+        inset 0 0 calc(var(--mi) * 3) rgb(255 90 170 / 25%);
+    transform: translate(-50%, -50%);
+    text-transform: uppercase;
+    white-space: nowrap;
+    animation: ar-neon 6s ease-in-out infinite alternate;
+}
+.ar-neon b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: max(16px, calc(var(--mi) * 11));
+    line-height: 1;
+    letter-spacing: 2px;
+    color: #ffd2ea;
+    text-shadow:
+        0 0 4px #ff5fa8,
+        0 0 10px rgb(255 80 160 / 60%);
+}
+.ar-neon small {
+    font-family: "Galmuri11", monospace;
+    font-size: max(10px, calc(var(--mi) * 5));
+    letter-spacing: 2px;
+    color: #c9f6ff;
+    text-shadow: 0 0 4px #4fd8ff;
+}
+@keyframes ar-neon {
+    to {
+        box-shadow:
+            0 0 calc(var(--mi) * 6) rgb(255 90 170 / 55%),
+            inset 0 0 calc(var(--mi) * 4) rgb(255 90 170 / 35%);
+    }
+}
+/* o papel colado por cima: ainda não abriu */
+.ar-tape {
+    position: absolute;
+    right: -18px;
+    bottom: -12px;
+    padding: 2px 6px;
+    background: #efe4c0;
+    color: #3a2a1a;
+    box-shadow: 0 2px 0 rgb(0 0 0 / 35%);
+    font-family: "Galmuri11", monospace;
+    font-size: 10px;
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-shadow: none;
+    rotate: -6deg;
+}
+/* o poste à esquerda, com a luz caindo na quadra */
+.ar-lamp {
+    position: absolute;
+    z-index: 1;
+    left: 8%;
+    top: calc(100% - var(--wall-h) + var(--mi) * 12);
+    width: calc(var(--mi) * 3);
+    height: calc(var(--wall-h) + var(--mi) * 8);
+    background: #0b0920;
+}
+/* a luz do poste, parada (sem piscar) */
+.ar-lamp::after {
+    content: "";
+    position: absolute;
+    left: calc(var(--mi) * -6);
+    top: calc(var(--mi) * -4);
+    width: calc(var(--mi) * 30);
+    height: calc(var(--mi) * 16);
+    background: radial-gradient(closest-side, rgb(255 233 168 / 30%), transparent);
+}
+.ar-lamp::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: calc(var(--mi) * 14);
+    height: calc(var(--mi) * 4);
+    background: #0b0920;
+    border-bottom: var(--mi) solid #ffe9a8;
+}
+.ar-court {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(var(--wall-top) + var(--wall-h));
+    bottom: 0;
+    background:
+        radial-gradient(40% 30% at 14% 0%, rgb(255 233 168 / 16%), transparent),
+        linear-gradient(180deg, #2b2a52, #1f1e40 60%, #141330);
+}
+.ar-lines {
+    position: absolute;
+    left: 6%;
+    right: 6%;
+    top: calc(var(--mi) * 6);
+    width: 88%;
+    height: calc(100% - var(--ui-h) + var(--mi) * 10);
+    fill: none;
+    stroke: rgb(230 225 255 / 32%);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+}
+.ar-lines * {
+    vector-effect: non-scaling-stroke;
+}
+/* o círculo do meio (achatado: a quadra está deitada) */
+.ar-circle,
+.ar-duel {
+    position: absolute;
+    left: 50%;
+    top: calc(var(--mi) * 6 + (100% - var(--ui-h) + var(--mi) * 10) / 2);
+}
+.ar-circle {
+    width: calc(var(--mi) * 44);
+    height: calc(var(--mi) * 30);
+    border: 2px solid rgb(230 225 255 / 32%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+}
+/* onde os Pokémon andam: a quadra que fica à vista, acima dos botões */
+.ar-walk {
+    position: absolute;
+    inset: 0 0 var(--ui-h);
+}
+.ar-glow {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 70%;
+    height: 70%;
+    transform: translateX(-50%);
+    background: radial-gradient(closest-side, rgb(160 140 255 / 10%), transparent);
+}
+.ar-duel {
+    display: flex;
+    align-items: flex-end;
+    gap: calc(var(--mi) * 20);
+    transform: translateX(-50%);
+}
+.ar-side {
+    position: relative;
+    width: 0;
+    height: 0;
+}
+.ar-side .fs-sprite {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+/* quem vai encarar: silhueta com o contorno aceso de leve */
+.ar-side.rival .fs-sprite {
+    filter: brightness(0) drop-shadow(1px 0 0 #7d70d0) drop-shadow(-1px 0 0 #7d70d0) drop-shadow(0 -1px 0 #7d70d0);
+}
+.ar-side.rival .fs-sprite.ar-head {
+    visibility: hidden;
+    filter: none;
+}
+.ar-head .ar-ask {
+    visibility: visible;
+}
+.ar-vs {
+    align-self: center;
+    margin-top: calc(var(--mi) * -14);
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: max(14px, calc(var(--mi) * 8));
+    color: var(--yellow);
+    text-shadow: 2px 2px 0 #0b0920;
+}
+.ar-ask {
+    position: absolute;
+    left: 0;
+    bottom: calc(var(--mi) * 3);
+    transform: translateX(-50%);
+    padding: 0 calc(var(--mi) * 2);
+    background: #f8f8f0;
+    border: var(--mi) solid #1d1d2c;
+    font-family: "Galmuri11", monospace;
+    font-size: max(10px, calc(var(--mi) * 6));
+    font-style: normal;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #3a6fd8;
+}
+.ar-ui {
+    gap: 10px;
+}
+
+/* deitado: os botões numa coluna à esquerda e o lugar à direita, à vista */
+@media (orientation: landscape) and (max-height: 520px) {
+    .rm-scene,
+    .ar-scene {
+        --wall-top: 70px;
+        --ui-h: 0px;
+        --set-x: 72%;
+    }
+    .rm-walk {
+        left: 52%;
+    }
+    .rm-ui,
+    .ar-ui {
+        width: min(380px, 52%);
+        align-items: stretch;
+        gap: 8px;
+        padding-top: calc(env(safe-area-inset-top) + 10px);
+    }
+    .rm-head {
+        margin-top: 0;
+    }
+    .rm-head h2 {
+        font-size: 15px;
+    }
+    .rm-talk,
+    .rm-go .cup-go-txt small {
+        display: none;
+    }
+    .rm-go {
+        min-height: 52px;
+    }
+    .ar-duel,
+    .ar-circle {
+        left: 73%;
+        top: 50%;
+    }
+    .ar-lamp {
+        left: 54%;
+    }
+    .ar-neon {
+        left: 76%;
+    }
+    .ar-lines {
+        left: 50%;
+        width: 46%;
+        height: calc(100% - var(--mi) * 12);
+    }
+    .sd-board li:nth-child(n + 3) {
+        display: none;
+    }
+    .sd-board li > span:first-child {
+        -webkit-line-clamp: 1;
+    }
+    .rm-go .cup-go-txt b {
+        font-size: 15px;
+    }
+    .amb-tiles {
+        gap: 6px;
+    }
+    .amb-tile,
+    .amb-tiles.three .amb-tile {
+        min-height: 38px;
+        flex-direction: row;
+        justify-content: center;
+        padding: 4px 2px;
+    }
+    .amb-tile .hud-icon {
+        display: none;
+    }
+    .amb-tile b,
+    .amb-tiles.three .amb-tile b {
+        white-space: normal;
+        font-size: 11px;
+    }
+    .amb-tile small {
+        font-size: 10px;
+    }
+}
+/* celular pequeno em pé: a fala do Carvalho sai, e o quadro mostra 2 missões */
+@media (max-height: 640px) and (orientation: portrait) {
+    .rm-talk {
+        display: none;
+    }
+    .sd-board li:nth-child(n + 3) {
+        display: none;
+    }
+    .rm-go {
+        min-height: 56px;
+    }
+    .rm-ui {
+        gap: 8px;
+    }
+    .amb-tiles.three .amb-tile {
+        min-height: 42px;
+        flex-direction: row;
+        padding: 4px 6px;
+    }
+    .amb-tiles.three .amb-tile .hud-icon {
+        display: none;
+    }
 }
 
 /* ======================================================================================== Pokémon ambiente */
@@ -1577,45 +2307,6 @@
         opacity: 0;
         transform: translate(10px, -22px);
     }
-}
-
-/* o chão das abas sem ambiente, onde os Pokémon passeiam */
-.pl-floor {
-    top: auto;
-    height: 24%;
-    border-top: var(--px) solid rgb(255 255 255 / 8%);
-    background:
-        repeating-linear-gradient(
-            90deg,
-            transparent 0 calc(var(--px) * 15),
-            rgb(0 0 0 / 12%) calc(var(--px) * 15) calc(var(--px) * 16)
-        ),
-        linear-gradient(180deg, var(--pl-floor), var(--bg));
-}
-/* uma luz larga passeando devagar pelo chão (contínua, sem piscar) */
-.pl-floor::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(30% 80% at 50% 40%, rgb(255 255 255 / 14%), transparent);
-    animation: pl-sweep 6s linear infinite alternate;
-}
-@keyframes pl-sweep {
-    from {
-        transform: translateX(-30%);
-    }
-    to {
-        transform: translateX(30%);
-    }
-}
-.pl-lab {
-    --pl-floor: #1d4a46;
-}
-.pl-arena {
-    --pl-floor: #4a2142;
-}
-.pl-sede {
-    --pl-floor: #4a3420;
 }
 
 /* ---------- reduzir movimento: sem paralaxe nem câmera; a troca é um fade de 200 ms ---------- */
