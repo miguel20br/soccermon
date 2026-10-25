@@ -5,7 +5,7 @@ export const match = {
     cup: 'Copa',
     highlights: 'Lances',
     highlightsHint: 'Lances: 1x nos chutes, gols e defesas; rápido no resto',
-    orderFailed: 'Não deu para mandar a ordem agora.',
+    orderFailed: 'Não deu pra mandar a ordem agora.',
     halftime: 'Intervalo',
     penalties: 'Pênaltis {a} x {b}',
     fulltime: 'Fim de jogo',
@@ -25,7 +25,7 @@ export const match = {
     corner: 'Escanteio',
     cornerHint: 'O que o time tenta no escanteio. Muda quando quiser.',
     changing: 'mudando…',
-    skip: 'Pular para o fim',
+    skip: 'Pular pro fim',
     seeResult: 'Ver resultado',
     /** Fim de jogo: o botão conta os segundos até ir sozinho. */
     goingResult: 'Ver resultado · {s} s',
@@ -273,7 +273,7 @@ export const match = {
         lance: {
             name: 'Lance',
             pre: 'Você chegou longe. Agora encare os dragões.',
-            win: 'Ainda falta para virar campeão.',
+            win: 'Ainda falta pra virar campeão.',
             lose: 'É isso! Você é o novo campeão de Kanto!',
         },
         // times da Rota (classes de treinador de Kanto, docs/planos/campeonato.md)

@@ -269,7 +269,7 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
                     ],
                     [
                         'Controle de campo',
-                        'Roar faz o rival fugir e largar a bola; Whirlwind e Gust sopram a bola; Strength empurra; Conversion copia o tipo do rival; Soft-Boiled cura um companheiro; Pay Day faz todo mundo parar para olhar as moedas.',
+                        'Roar faz o rival fugir e largar a bola; Whirlwind e Gust sopram a bola; Strength empurra; Conversion copia o tipo do rival; Soft-Boiled cura um companheiro; Pay Day faz todo mundo parar pra olhar as moedas.',
                     ],
                 ],
             },
@@ -326,7 +326,7 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
         title: 'Itens',
         blocks: [
             {
-                p: 'Cada Pokémon segura **1 item**. Eles vêm das recompensas da copa, e na escalação dá pra passar o item de um Pokémon pra outro (toque no jogador e use "Passar para").',
+                p: 'Cada Pokémon segura **1 item**. Eles vêm das recompensas da copa, e na escalação dá pra passar o item de um Pokémon pra outro (toque no jogador e use "Passar pra outro").',
             },
             { dyn: 'items' },
             { p: '**Itens de tipo** ({typeItems}): golpes daquele tipo ficam 20% mais fortes.' },
@@ -364,7 +364,7 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
             },
             {
                 list: [
-                    ['Velocidade', '1x, 2x, 4x, 8x ou Lances (só os melhores momentos). Ou pule para o fim.'],
+                    ['Velocidade', '1x, 2x, 4x, 8x ou Lances (só os melhores momentos). Ou pule pro fim.'],
                     ['Tática', 'mude quantas vezes quiser durante a partida (veja abaixo).'],
                     [
                         'Substituir',
@@ -382,7 +382,7 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
             },
             { p: '**Garra:** quem está perdendo por 3 ou mais cresce no jogo. Virada é sempre possível.' },
             {
-                p: '**Pênaltis:** empate no fim vai para 5 cobranças por time e depois morte súbita. Batem os melhores chutadores, e o tipo do batedor contra o do goleiro conta.',
+                p: '**Pênaltis:** empate no fim vai pra 5 cobranças por time e depois morte súbita. Batem os melhores chutadores, e o tipo do batedor contra o do goleiro conta.',
             },
             {
                 p: 'Saiu no meio? A escalação fica travada e, ao voltar, a mesma partida continua de onde estava.',
@@ -588,7 +588,7 @@ export const help = {
         carousel: 'carrossel',
         step: 'passo',
         stepOf: '{n} de {total}',
-        goToStep: 'Ir para o passo {n}: {title}',
+        goToStep: 'Ir pro passo {n}: {title}',
         prev: 'Anterior',
         next: 'Próximo',
         go: 'Bora jogar',

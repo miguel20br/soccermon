@@ -18,7 +18,7 @@ export const battle = {
         seed: 'foi semeado!',
     },
     shootout: 'Disputa de pênaltis!',
-    stepsUp: '{x} vai para a bola...',
+    stepsUp: '{x} vai pra bola...',
     tackleWon: 'DESARME!',
     intercept: 'CORTOU!',
     caught: '{x} segurou firme',
@@ -72,9 +72,9 @@ export const battle = {
     penSaved: 'PEGOU!',
     penScore: '{a} x {b}',
     evolving: 'O quê? {x} está evoluindo!',
-    evolved: 'Parabéns! {x} evoluiu para {y}!',
+    evolved: 'Parabéns! {x} evoluiu pra {y}!',
     evolvingRival: 'O quê? {x} deles está evoluindo!',
-    evolvedRival: 'Cuidado! {x} deles evoluiu para {y}!',
+    evolvedRival: 'Cuidado! {x} deles evoluiu pra {y}!',
     /** Traços de golpe (evento 'trait'): texto que sobe da cabeça. */
     pop: {
         crit: 'CRÍTICO!',
@@ -134,7 +134,7 @@ export const battle = {
         halfEnergy: '{w} tirou metade do fôlego do rival!',
         throw: '{w} arremessa o rival longe!',
         multi: '{w} tentou {n} vezes!',
-        rebound: 'A bola volta para o pé de {w}!',
+        rebound: 'A bola volta pro pé de {w}!',
         wrap: '{w} enrolou o rival: os dois ficam presos!',
         toxic: 'O veneno vai piorando!',
         bide: '{w} solta o Bide!',
@@ -143,7 +143,7 @@ export const battle = {
         clone: 'Acertaram um clone de {w}!',
         wall: '{w} ergue um muro invisível!',
         wallBlock: 'O muro de {w} segurou o chute!',
-        coins: 'Chuva de moedas: todo mundo parou para olhar!',
+        coins: 'Chuva de moedas: todo mundo parou pra olhar!',
     },
     /** Palavra em cima de quem é atingido por um golpe de efeito (src/game/hit-react.ts), ~1 s na cor do tipo. */
     react: {

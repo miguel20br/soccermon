@@ -25,7 +25,7 @@ export const result = {
     assist: ' (assist. {name})',
     evolvedMany: 'Evoluíram na partida!',
     evolvedOne: 'Evoluiu na partida!',
-    evolvedNote: 'A evolução vale para o resto da copa.',
+    evolvedNote: 'A evolução vale pro resto da copa.',
     rivalEvolved: 'Evoluções do rival',
     dexTip: 'Quem você viu entrou na Pokédex. Entre com Google pra salvar na nuvem.',
     destaqueTitle: 'Virou carta Destaque!',

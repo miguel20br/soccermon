@@ -5,7 +5,8 @@ description: Revisão de todos os textos do jogo em PT por blocos (inventário, 
 # Revisão dos textos do jogo (24/10/2026)
 
 O Miguel acha os textos "meio estranhos, meio feitos de IA". A revisão vai por blocos, na ordem em que o jogador
-vê: ele aprova um bloco, o Claude aplica (PT e EN juntos) e passa pro próximo. Nada foi alterado no jogo ainda.
+vê: ele aprova um bloco, o Claude aplica (PT e EN juntos) e passa pro próximo. Bloco 1 aplicado em 25/10 ("ok
+1-16"), junto com o "pra" padronizado e as 17 strings sem uso apagadas.
 
 Critérios: método de escrita do brand guide (§4), a memória "texto sem cara de IA" e a skill humanizer
 ("Signs of AI writing"): dois-pontos de anúncio, "não é X, é Y", trio por regra, par de enfeite ("rápido e
@@ -85,7 +86,8 @@ Padrões que se repetem no jogo todo (valem pros próximos blocos):
 
 ## 3. Bloco 1: Home, menus e primeira visita (205 strings)
 
-Só onde há melhora real. PT; o EN acompanha depois do ok.
+**Aplicado em 25/10** ("ok 1-16"). O EN acompanhou onde tinha o mesmo defeito: "Patch notes" virou "What's new",
+"guest progress" e "save" saíram, "quick and direct" saiu, o parêntese do erro da nuvem virou frase.
 
 | Chave | Texto atual | Proposta | Por quê |
 |---|---|---|---|
@@ -124,3 +126,24 @@ Conferido com busca no código: nenhuma tela lê estas chaves.
 - Subtítulos das portas ("Taças, medalhas e números", "Pokédex, Álbum e Golpedex"): são trios, mas repetem as
   abas de cada tela.
 - `home.disclaimer`: aviso legal, fica formal.
+
+## 4. "pra" no lugar de "para" (aplicado em 25/10)
+
+Toda preposição "para" dos textos PT do jogo virou "pra" (com contração: "para o" → "pro", "para os" → "pros",
+"para a" → "pra"): 65 trocas em `src/i18n/pt/*.ts` e no `MOVE_EXPLAIN` (`src/engine/moves.ts`). A ajuda de itens
+agora cita o botão como ele é ("Passar pra outro"). EN e chaves não mudaram.
+
+Ficaram como "para":
+
+| Onde | Texto | Por quê |
+|---|---|---|
+| `commentary.ts` `charge` | "{w} para e começa a carregar…" | verbo parar |
+| `commentary.ts` `coins` | "todo mundo para pra olhar" | o primeiro é o verbo parar (o segundo virou "pra") |
+| `commentary.ts` `timeout` | "A quadra para na próxima bola parada." | verbo parar |
+| `longCup.ts` `fisio` | "Ninguém para." | verbo parar |
+| `match.ts` `timeoutHint` | "Para quando a bola parar" | verbo parar |
+| `match.ts` (fala da Equipe Rocket) e `common.ts` `link.rocket.desc` | "Prepare-se para encrenca…" / "Preparem-se para encrenca!" | lema da Equipe Rocket na dublagem oficial |
+| `src/engine/links.ts` (`rocket`) e `src/engine/formations.ts` (`ferrolho`) | descrições do motor | não aparecem na tela (a tela lê o `common.ts`) |
+| `src/cloud/cloud.ts` `signOut` | erro "Não deu para salvar na nuvem antes de sair" | não aparece na tela (a tela mostra `settings.data.signOutFailed`) |
+
+Textos legais (`home.disclaimer`, privacidade e termos) e créditos não tinham "para".
