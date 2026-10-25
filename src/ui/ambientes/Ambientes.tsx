@@ -6,9 +6,13 @@ import { DoorTiles } from '../components/DoorTiles';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { TopActions } from '../components/TopActions';
 import { reduceMotionOn } from '../settings-sync';
+import { ClockCtx, useSceneClock } from './clock';
 import { Estadio } from './Estadio';
 import { dragPos, START, snapTab, TABS, type Tab } from './nav';
 import { Rota } from './Rota';
+import { installTabBack } from './tab-back';
+import { useMq, useWild, WildZone, type ZoneDef } from './WildZone';
+import { rollAll, type Wild, wildQuota } from './wild';
 import './ambientes.css';
 
 const ICON: Record<Tab, HudIconKind> = {
@@ -19,33 +23,60 @@ const ICON: Record<Tab, HudIconKind> = {
     sede: 'building',
 };
 /** Duração da entrada num modo (exceção ao ADR 0004, ver ADR 0008): um toque pula. */
-const ENTER_MS = 760;
+const ENTER_MS = 860;
 /** A aba em que a pessoa estava (voltar de uma tela pra Home cai nela de novo; recarregar volta pro Estádio). */
 let lastTab = START;
 
-/** As abas que ainda não têm ambiente: o nome do lugar e as portas pras telas de hoje. */
-function Place({ tab, title, children }: { tab: Tab; title: string; children: ReactNode }) {
+/** O chão das abas sem ambiente ainda: 1 ou 2 Pokémon passeando na faixa de baixo, atrás dos botões. */
+const floorOf = (scale: number): Record<string, ZoneDef> => ({
+    floor: { ok: (_x, y) => y > 0.2 && y < 0.85, speed: 0.22, scale },
+});
+/** Tela baixa (deitado) ou estreita: 1x, senão o Pokémon sobe por cima dos botões; desktop 3x. */
+const SMALL = '(max-width: 359px), (max-height: 520px)';
+const BIG = '(min-width: 900px) and (min-height: 700px)';
+
+/** As abas que ainda não têm ambiente: o nome do lugar, as portas pras telas de hoje e o chão com os Pokémon. */
+function Place({
+    tab,
+    title,
+    active,
+    wild,
+    children,
+}: {
+    tab: Tab;
+    title: string;
+    active: boolean;
+    wild: Wild[];
+    children: ReactNode;
+}) {
+    const clock = useSceneClock(active);
+    const small = useMq(SMALL);
+    const big = useMq(BIG);
+    const w = useWild(clock, wild, floorOf(small ? 1 : big ? 3 : 2));
     return (
-        <>
+        <ClockCtx.Provider value={clock}>
             <div className={`amb-scene pl-scene pl-${tab}`} aria-hidden>
                 <div className="amb-layer pl-glow" style={{ '--depth': 0.5 } as CSSProperties}>
                     <HudIcon kind={ICON[tab]} className="pl-icon" />
+                </div>
+                <div className="amb-layer pl-floor" style={{ '--depth': 0.2 } as CSSProperties}>
+                    <WildZone wild={w} zone="floor" />
                 </div>
             </div>
             <div className="amb-ui pl-ui">
                 <h2 className="pl-title">{title}</h2>
                 {children}
             </div>
-        </>
+        </ClockCtx.Provider>
     );
 }
 
-function Arena() {
+function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
     const { t } = useT();
     const go = useGame((s) => s.go);
     const liga = ligaCountdown();
     return (
-        <Place tab="arena" title={t('home.amb.arenaTitle')}>
+        <Place tab="arena" title={t('home.amb.arenaTitle')} active={active} wild={wild}>
             <button type="button" className="door bc-tile pl-duel" onClick={() => go('duel')}>
                 <span className="pl-vs" aria-hidden>
                     <img className="pixel" src="assets/cards/25.gif" alt="" />
@@ -94,6 +125,16 @@ export function Ambientes() {
     const stage = useRef<HTMLDivElement>(null);
     const drag = useRef<{ x: number; y: number; on: boolean; lx: number; lt: number; vx: number } | null>(null);
     const swallowClick = useRef(false);
+    // os Pokémon ambiente: sorteio novo a cada abertura, puxando pra quem você já viu na Pokédex
+    const [rolled] = useState(() => {
+        const dex = useGame.getState().dex;
+        return rollAll((id) => !!dex[id]);
+    });
+    const quota = wildQuota(
+        tab,
+        TABS.map((id) => rolled[id].length),
+    );
+    const wildOf = (i: number) => rolled[TABS[i]].slice(0, quota[i]);
 
     const setPos = (p: number) => root.current?.style.setProperty('--pos', String(p));
     const setTab = (i: number) => {
@@ -169,17 +210,39 @@ export function Ambientes() {
         setPos(tab);
     });
 
-    const view: Record<Tab, (active: boolean) => ReactNode> = {
-        lab: () => (
-            <Place tab="lab" title={t('home.amb.labTitle')}>
+    // voltar do Android: fora do Estádio, volta pro Estádio
+    const tabRef = useRef(tab);
+    tabRef.current = tab;
+    const back = useRef<ReturnType<typeof installTabBack> | null>(null);
+    useEffect(() => {
+        const tb = installTabBack(
+            () => tabRef.current !== START,
+            () => {
+                lastTab = START;
+                setTabState(START);
+            },
+        );
+        back.current = tb;
+        return () => {
+            tb.off();
+            back.current = null;
+        };
+    }, []);
+    useEffect(() => {
+        back.current?.sync();
+    });
+
+    const view: Record<Tab, (active: boolean, wild: Wild[]) => ReactNode> = {
+        lab: (active, wild) => (
+            <Place tab="lab" title={t('home.amb.labTitle')} active={active} wild={wild}>
                 <DoorTiles which={['collection']} />
             </Place>
         ),
-        rota: (active) => <Rota active={active} enter={enter} />,
-        estadio: (active) => <Estadio active={active} enter={enter} />,
-        arena: () => <Arena />,
-        sede: () => (
-            <Place tab="sede" title={t('home.amb.sedeTitle')}>
+        rota: (active, wild) => <Rota active={active} enter={enter} wild={wild} entering={!!entering} />,
+        estadio: (active, wild) => <Estadio active={active} enter={enter} wild={wild} entering={!!entering} />,
+        arena: (active, wild) => <Arena active={active} wild={wild} />,
+        sede: (active, wild) => (
+            <Place tab="sede" title={t('home.amb.sedeTitle')} active={active} wild={wild}>
                 <DoorTiles which={['profile', 'trophies']} />
             </Place>
         ),
@@ -218,7 +281,7 @@ export function Ambientes() {
                         style={{ '--i': i } as CSSProperties}
                         inert={i !== tab}
                     >
-                        {view[id](i === tab)}
+                        {view[id](i === tab, wildOf(i))}
                     </section>
                 ))}
             </div>

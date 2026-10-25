@@ -20,8 +20,9 @@ toque em qualquer lugar pula na hora. Trocar de aba, abrir janela e o resto dos 
 
 ## Consequências
 
-- Hoje: 760 ms (`ENTER_MS` em `src/ui/ambientes/Ambientes.tsx`), câmera em CSS, a tela termina no escuro e a View
-  Transition de sempre entra no draft.
+- Hoje: 860 ms (`ENTER_MS` em `src/ui/ambientes/Ambientes.tsx`), câmera em CSS: no Estádio ela atravessa o túnel
+  em passos (as paredes passam pelos lados), sai na luz dos refletores e a quadra cresce; na Rota, o mapa aproxima do
+  time. Os Pokémon ambiente fogem do time. A tela termina no escuro e a View Transition de sempre entra no draft.
 - Com "Reduzir movimento" não tem câmera: a copa começa direto, com o fade normal.
 - Continuar uma copa aberta não ganha a entrada longa (quem continua quer chegar logo).
 - Ambiente novo que tenha botão de começar modo segue a mesma regra e o mesmo `enter()`.

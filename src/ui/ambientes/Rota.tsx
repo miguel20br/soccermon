@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, memo, useEffect, useMemo, useRef, useState } from 'react';
 import { GROUP_START, regionOfRow } from '../../engine/cup-map';
 import { useT } from '../../i18n/react';
 import { resumeScreenOf, useGame } from '../../store/game-store';
@@ -7,7 +7,10 @@ import { KANTO_BADGES } from '../../store/missions';
 import { KantoBadge } from '../components/BadgeCase';
 import { HudIcon } from '../components/MatchHud';
 import { reduceMotionOn } from '../settings-sync';
+import { ClockCtx, useSceneClock } from './clock';
 import { FieldSprite } from './FieldSprite';
+import { type Threats, useWild, WildZone, type ZoneDef } from './WildZone';
+import type { Pt, Wild } from './wild';
 
 /**
  * Kanto em pixel art, no traço do mapa da cidade do FireRed (26 x 18 casas): `~` mar, `.` grama, `,` grama escura,
@@ -33,8 +36,12 @@ const KANTO = [
     '~~~~~...~~~~~~~~~~~~~~~~~~',
     '~~~~~~~~~~~~~~~~~~~~~~~~~~',
 ];
-const W = KANTO[0].length;
-const H = KANTO.length;
+/** O pedaço do desenho que aparece: sem a borda de mar de fora (o mapa ocupa mais a tela). */
+const X0 = 1;
+const Y0 = 1;
+const W = KANTO[0].length - 2;
+const H = KANTO.length - 2;
+const VIEWBOX = `${X0} ${Y0} ${W} ${H}`;
 const LAND_FILL: Record<string, string> = { '.': '#6fbf5a', ',': '#5aa84c', '^': '#94704c', T: '#2f7a3f' };
 const isSea = (x: number, y: number) => (KANTO[y]?.[x] ?? '~') === '~';
 
@@ -145,7 +152,11 @@ function along(s: number): { p: P; dir: number } {
     const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 2 : 6) : dy > 0 ? 0 : 4;
     return { p: c([a[0] + dx * f, a[1] + dy * f]), dir };
 }
-const pct = (p: P): CSSProperties => ({ left: `${(p[0] / W) * 100}%`, top: `${(p[1] / H) * 100}%` });
+const pct = (p: P): CSSProperties => ({ left: `${((p[0] - X0) / W) * 100}%`, top: `${((p[1] - Y0) / H) * 100}%` });
+/** Casa do desenho num ponto de 0 a 1 do mapa visível (as zonas dos Pokémon ambiente). */
+const tileAt = (x: number, y: number) => KANTO[Math.floor(Y0 + y * H)]?.[Math.floor(X0 + x * W)] ?? '~';
+/** Ponto do caminho (casas) em 0 a 1 do mapa visível. */
+const norm = (p: P): Pt => ({ x: (p[0] - X0) / W, y: (p[1] - Y0) / H });
 const pts = (line: P[]) => line.map((p) => c(p).join(',')).join(' ');
 
 /** Onde o time parou: a região da casa atual do mapa, o Planalto na fase de grupos, ou Pallet sem Rota aberta. */
@@ -157,8 +168,8 @@ function stopOf(run: ReturnType<typeof useGame.getState>['run']): Stop {
 }
 
 /** O chão do mapa: terra, beira-mar, montanha e floresta, uma casa por vez (o mar é o fundo da tela, animado). */
-const Land = () => (
-    <svg className="rt-land" viewBox={`0 0 ${W} ${H}`} shapeRendering="crispEdges" aria-hidden>
+const Land = memo(() => (
+    <svg className="rt-land" viewBox={VIEWBOX} shapeRendering="crispEdges" aria-hidden>
         {KANTO.flatMap((row, y) =>
             [...row].flatMap((ch, x) => {
                 const key = `${x}-${y}`;
@@ -203,15 +214,40 @@ const Land = () => (
             <polyline key={pts(r)} points={pts(r)} className="rt-road sea" />
         ))}
     </svg>
-);
+));
+
+/** Andando em casas do mapa por segundo, convertido pra alturas do mapa visível. */
+const tiles = (n: number) => n / H;
+/** z-index pela linha do pé, igual ao do time (quem está mais embaixo passa na frente). */
+const zRow = (y: number) => 10 + Math.round((Y0 + y * H) * 2);
+const zonesOf = (scale: number): Record<string, ZoneDef> => ({
+    grass: { ok: (x, y) => ['.', ','].includes(tileAt(x, y)), speed: tiles(1.3), scale, z: zRow },
+    water: { ok: (x, y) => tileAt(x, y) === '~', speed: tiles(0.8), scale, z: zRow },
+    // no céu: por cima das nuvens (z 60), embaixo da plaquinha de onde o time está (z 65)
+    sky: { ok: () => true, speed: tiles(2.6), fly: true, scale, z: () => 62 },
+});
+/** Quem atravessa o mar de fundo, devagar (um por abertura). */
+const SWIMMERS = [131, 130, 87, 73, 117, 72];
 
 /**
  * Rota Índigo: o mapa de Kanto com as 8 insígnias nas cidades dos ginásios (acesas as que você já tem), o caminho da
  * Rota até o Planalto e o seu time parado onde a copa parou. Quando a aba aparece, o time anda da parada anterior
  * até a atual. Embaixo, quem fala naquele trecho e o botão de começar ou continuar.
  */
-export function Rota({ active, enter }: { active: boolean; enter: (action: () => void) => void }) {
+export function Rota({
+    active,
+    enter,
+    wild,
+    entering,
+}: {
+    active: boolean;
+    enter: (action: () => void) => void;
+    wild: Wild[];
+    entering: boolean;
+}) {
     const { t, d } = useT();
+    const clock = useSceneClock(active);
+    const [swimmer] = useState(() => SWIMMERS[Math.floor(Math.random() * SWIMMERS.length)]);
     const run = useGame((s) => s.run);
     const newRun = useGame((s) => s.newRun);
     const go = useGame((s) => s.go);
@@ -240,42 +276,49 @@ export function Rota({ active, enter }: { active: boolean; enter: (action: () =>
     const [s, setS] = useState(from);
     const [walking, setWalking] = useState(false);
     const walked = useRef(false);
-    // sprite em 2x no mapa grande; no mapa pequeno (320 px, deitado estreito) em 1x, pra não cobrir as cidades
-    const mapRef = useRef<HTMLDivElement>(null);
-    const [big, setBig] = useState(true);
+    // sprite em 2x só com casa grande (desktop); no celular, em pé ou deitado, 1x pra não cobrir as cidades
+    const worldRef = useRef<HTMLDivElement>(null);
+    const [big, setBig] = useState(false);
     useEffect(() => {
-        const el = mapRef.current;
+        const el = worldRef.current;
         if (!el || typeof ResizeObserver === 'undefined') return;
-        const ro = new ResizeObserver(() => setBig(el.clientWidth >= 340));
+        const ro = new ResizeObserver(() => setBig(el.clientHeight / H >= 24));
         ro.observe(el);
         return () => ro.disconnect();
     }, []);
     useEffect(() => {
         if (!active || walked.current) return;
-        walked.current = true;
         if (reduceMotionOn() || from === target) {
+            walked.current = true;
             setS(target);
             return;
         }
         const ms = Math.min(2600, Math.max(700, (target - from) * 170));
-        const t0 = performance.now();
-        let raf = 0;
+        // espera o deslize da aba terminar antes de sair andando; anda no relógio da cena (pausa com a aba)
+        let el = -320;
         setWalking(true);
-        const tick = (now: number) => {
-            const k = Math.min(1, (now - t0) / ms);
+        const off = clock.sub((_t, dt) => {
+            el += dt;
+            if (el < 0) return;
+            const k = Math.min(1, el / ms);
             setS(from + (target - from) * k);
-            if (k < 1) raf = requestAnimationFrame(tick);
-            else setWalking(false);
-        };
-        // espera o deslize da aba terminar antes de sair andando
-        const wait = window.setTimeout(() => (raf = requestAnimationFrame(tick)), 320);
-        return () => {
-            window.clearTimeout(wait);
-            cancelAnimationFrame(raf);
-        };
-    }, [active, from, target]);
+            if (k < 1) return;
+            walked.current = true;
+            setWalking(false);
+            off();
+        });
+        return off;
+    }, [active, from, target, clock]);
 
     const lead = along(s);
+    const scale = big ? 2 : 1;
+    // o time passando espanta os selvagens do caminho; entrar na Rota espanta todo mundo
+    const threats: Threats = useRef<Record<string, Pt[] | undefined>>({});
+    const near = team.map((_, i) => norm(along(s - i * 2).p));
+    threats.current = entering
+        ? { grass: [{ ...norm(lead.p), r: 9 }], water: [{ ...norm(lead.p), r: 9 }] }
+        : { grass: near, water: near };
+    const w = useWild(clock, wild, zonesOf(scale), threats);
     const story = d.longCup.story[stop === 'start' ? 'rota1' : stop];
     const where = stop === 'start' ? '' : d.longCup.region[stop];
     const got = (id: string) => done.includes(id);
@@ -289,11 +332,11 @@ export function Rota({ active, enter }: { active: boolean; enter: (action: () =>
     };
 
     return (
-        <>
+        <ClockCtx.Provider value={clock}>
             <div className="amb-scene rt-scene" aria-hidden>
                 <div className="amb-layer rt-sea" style={{ '--depth': 0.6 } as CSSProperties}>
                     <span className="rt-swim">
-                        <FieldSprite id={131} anim="Walk" dir={2} scale={2} play={active} />
+                        <FieldSprite id={swimmer} anim="Walk" dir={2} scale={2} play={active} />
                     </span>
                 </div>
             </div>
@@ -305,79 +348,94 @@ export function Rota({ active, enter }: { active: boolean; enter: (action: () =>
                         {t('profile.badges.count', { n: nBadges, total: KANTO_BADGES.length })}
                     </span>
                 </header>
-                <div
-                    ref={mapRef}
-                    className="rt-map amb-par"
-                    style={
-                        {
-                            '--depth': 0.25,
-                            '--fx': `${(lead.p[0] / W) * 100}%`,
-                            '--fy': `${(lead.p[1] / H) * 100}%`,
-                        } as CSSProperties
-                    }
-                >
-                    <Land />
-                    <svg className="rt-trail" viewBox={`0 0 ${W} ${H}`} aria-hidden>
-                        <polyline points={pts(TRAIL)} className="rt-path" />
-                        <polyline points={pts(TRAIL.slice(0, STOP_AT[stop] + 1))} className="rt-done" />
-                        {stop !== 'planalto' && (
-                            <polyline
-                                points={pts(TRAIL.slice(STOP_AT[stop], STOP_AT[STOPS[STOPS.indexOf(stop) + 1]] + 1))}
-                                className="rt-next"
-                            />
-                        )}
-                    </svg>
-                    {CITIES.map((city) => (
-                        <i
-                            key={city.id}
-                            className={`rt-city${city.id === 'pallet' ? ' home' : ''}`}
-                            style={pct(c(city.at))}
-                        />
-                    ))}
-                    <i className="rt-plateau" style={pct(c([2, 2]))} />
-                    {CITIES.flatMap((city) =>
-                        city.gym ? (
-                            <span
-                                key={city.gym}
-                                className={`rt-gym${got(city.gym) ? ' got' : ''}`}
-                                style={pct([city.at[0] + 1.25, city.at[1] - 0.15])}
-                                title={d.profile.badges.names[city.gym]}
-                            >
-                                <KantoBadge leader={city.gym} earned={got(city.gym)} />
-                            </span>
-                        ) : (
-                            []
-                        ),
-                    )}
-                    <i className="rt-cloud k1" />
-                    <i className="rt-cloud k2" />
-                    <i className="rt-cloud k3" />
-                    {team.map((id, i) => {
-                        const at = along(s - i * 2);
-                        const still = !walking;
-                        return (
-                            <span
-                                // biome-ignore lint/suspicious/noArrayIndexKey: a fila do time não muda de ordem
-                                key={i}
-                                className="rt-walker"
-                                style={{ ...pct(at.p), zIndex: 10 + Math.round(at.p[1] * 2) - i }}
-                            >
-                                <FieldSprite
-                                    id={id}
-                                    anim={still ? 'Idle' : 'Walk'}
-                                    dir={still ? 0 : at.dir}
-                                    scale={big ? 2 : 1}
-                                    play={active}
-                                    className="rt-mon"
+                <div className="rt-map amb-par" style={{ '--depth': 0.25 } as CSSProperties}>
+                    <div
+                        ref={worldRef}
+                        className="rt-world"
+                        style={
+                            {
+                                '--fx': `${norm(lead.p).x * 100}%`,
+                                '--fy': `${norm(lead.p).y * 100}%`,
+                            } as CSSProperties
+                        }
+                    >
+                        <Land />
+                        <svg className="rt-trail" viewBox={VIEWBOX} aria-hidden>
+                            <polyline points={pts(TRAIL)} className="rt-path" />
+                            <polyline points={pts(TRAIL.slice(0, STOP_AT[stop] + 1))} className="rt-done" />
+                            {stop !== 'planalto' && (
+                                <polyline
+                                    points={pts(
+                                        TRAIL.slice(STOP_AT[stop], STOP_AT[STOPS[STOPS.indexOf(stop) + 1]] + 1),
+                                    )}
+                                    className="rt-next"
                                 />
+                            )}
+                        </svg>
+                        {CITIES.map((city) => (
+                            <i
+                                key={city.id}
+                                className={`rt-city${city.id === 'pallet' ? ' home' : ''}`}
+                                style={pct(c(city.at))}
+                            />
+                        ))}
+                        <i className="rt-plateau" style={pct(c([2, 2]))} />
+                        {CITIES.flatMap((city, i) =>
+                            city.gym ? (
+                                <span
+                                    key={city.gym}
+                                    className={`rt-gym${got(city.gym) ? ' got' : ''}`}
+                                    style={
+                                        {
+                                            ...pct([city.at[0] + 1.25, city.at[1] - 0.15]),
+                                            '--d': `${-i * 0.53}s`,
+                                        } as CSSProperties
+                                    }
+                                    title={d.profile.badges.names[city.gym]}
+                                >
+                                    <KantoBadge leader={city.gym} earned={got(city.gym)} />
+                                </span>
+                            ) : (
+                                []
+                            ),
+                        )}
+                        <WildZone wild={w} zone="water" />
+                        <WildZone wild={w} zone="grass" />
+                        {/* nuvem e sombra separadas: a sombra fica no chão (embaixo do time), a nuvem no alto */}
+                        <i className="rt-shade k1" />
+                        <i className="rt-shade k2" />
+                        <i className="rt-shade k3" />
+                        <i className="rt-cloud k1" />
+                        <i className="rt-cloud k2" />
+                        <i className="rt-cloud k3" />
+                        <WildZone wild={w} zone="sky" />
+                        {team.map((id, i) => {
+                            const at = along(s - i * 2);
+                            const still = !walking;
+                            return (
+                                <span
+                                    // biome-ignore lint/suspicious/noArrayIndexKey: a fila do time não muda de ordem
+                                    key={i}
+                                    className="rt-walker"
+                                    style={{ ...pct(at.p), zIndex: 10 + Math.round(at.p[1] * 2) - i }}
+                                >
+                                    <FieldSprite
+                                        id={id}
+                                        anim={still ? 'Idle' : 'Walk'}
+                                        dir={still ? 0 : at.dir}
+                                        scale={scale}
+                                        play={active}
+                                        className="rt-mon"
+                                    />
+                                </span>
+                            );
+                        })}
+                        {where && (
+                            <span className="rt-here bc-tag" style={pct([lead.p[0], lead.p[1] - (big ? 3 : 2)])}>
+                                {where}
                             </span>
-                        );
-                    })}
-                    {where && (
-                        <span className="rt-here bc-tag" style={pct([lead.p[0], lead.p[1] - 3])}>
-                            {where}
-                        </span>
-                    )}
+                        )}
+                    </div>
                 </div>
                 <div className="rt-talk">
                     <span className="rt-talk-face">
@@ -419,6 +477,6 @@ export function Rota({ active, enter }: { active: boolean; enter: (action: () =>
                     </button>
                 )}
             </div>
-        </>
+        </ClockCtx.Provider>
     );
 }

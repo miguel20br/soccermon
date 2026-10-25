@@ -1,4 +1,4 @@
-import { type CSSProperties, useState } from 'react';
+import { type CSSProperties, useRef, useState } from 'react';
 import { dict } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { dailyDay, dailyStreak } from '../../store/daily';
@@ -8,7 +8,10 @@ import { markSeen } from '../coach/Coach';
 import { HudIcon } from '../components/MatchHud';
 import { dailyInPlay, useDailyBegin } from '../screens/Daily';
 import { ResumeCard } from '../screens/Home';
+import { ClockCtx, useSceneClock } from './clock';
 import { FieldSprite } from './FieldSprite';
+import { type Threats, useMq, useWild, type WildScene, WildZone, type ZoneDef } from './WildZone';
+import type { Pt, Wild } from './wild';
 
 const css = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 /** Escurece uma cor 0xRRGGBB (sombra da camisa na torcida). */
@@ -50,13 +53,11 @@ function crowdTile(club: number): string {
 }
 
 const ROWS = 6;
+/** Flashes de câmera na torcida: poucos e fora de compasso (nada piscando junto). */
 const FLASHES = [
-    { x: 12, y: 30, d: 4.1 },
-    { x: 33, y: 62, d: 5.3 },
-    { x: 57, y: 18, d: 3.7 },
-    { x: 71, y: 74, d: 6.2 },
-    { x: 88, y: 40, d: 4.7 },
-    { x: 46, y: 48, d: 7.1 },
+    { x: 14, y: 34, d: 5.3 },
+    { x: 62, y: 20, d: 7.9 },
+    { x: 84, y: 58, d: 6.7 },
 ];
 
 /** Tábuas da quadra: mais finas no fundo, mais grossas perto do túnel (perspectiva). */
@@ -90,8 +91,8 @@ function Floodlight({ side }: { side: 'l' | 'r' }) {
     );
 }
 
-/** A quadra vista do túnel: tábuas, linhas em perspectiva e o capitão fazendo embaixadinha no meio. */
-function Court({ captain, play }: { captain: number; play: boolean }) {
+/** A quadra vista do túnel: tábuas, linhas em perspectiva, o capitão fazendo embaixadinha e quem está em volta. */
+function Court({ captain, play, small, wild }: { captain: number; play: boolean; small: boolean; wild: WildScene }) {
     return (
         <div className="es-court">
             <svg
@@ -115,9 +116,11 @@ function Court({ captain, play }: { captain: number; play: boolean }) {
                 <rect x="119" y="29.4" width="2" height="1.2" fill="#f4f1e6" />
             </svg>
             <i className="es-spot" />
+            <WildZone wild={wild} zone="ball" />
+            <WildZone wild={wild} zone="edge" />
             <div className="es-captain">
                 <i className="es-shadow" />
-                <FieldSprite id={captain} anim="Idle" dir={0} play={play} className="es-mon" />
+                <FieldSprite id={captain} anim="Idle" dir={0} scale={small ? 1 : 2} play={play} className="es-mon" />
                 <img className="es-ball" src="assets/ui/ball.svg" alt="" width="16" height="16" />
             </div>
         </div>
@@ -169,12 +172,68 @@ function Board() {
     );
 }
 
+const SMALL = '(max-width: 359px), (max-height: 700px)';
+const BIG = '(min-width: 900px) and (min-height: 700px)';
+const LANDSCAPE = '(orientation: landscape) and (max-height: 520px)';
+const SCARE: Record<string, Pt[]> = {
+    edge: [{ x: 0.5, y: 1.4, r: 9 }],
+    ball: [{ x: 0.5, y: 1.4, r: 9 }],
+    stand: [{ x: 0.5, y: 0.5, r: 9 }],
+};
+
+/**
+ * As zonas do Estádio: o dorminhoco sentado nas fileiras de baixo da arquibancada (fora da faixa do clube), o gandula
+ * correndo na linha de fundo e os torcedores/mascotes na beira, dos lados (o meio é do capitão; deitado, só à
+ * direita, porque os botões ficam à esquerda). Longe, sprite 1x; perto (beira), 2x; tudo maior no desktop e 1x no
+ * celular pequeno.
+ */
+function zonesOf(small: boolean, big: boolean, wide: boolean): Record<string, ZoneDef> {
+    const k = big ? 2 : 1;
+    return {
+        stand: {
+            ok: (x, y) => y > 0.62 && y < 0.9 && (x < 0.33 || x > 0.67),
+            speed: 0,
+            still: true,
+            scale: k,
+            z: () => 2,
+        },
+        ball: { ok: (_x, y) => y > 0.1 && y < 0.2, speed: 0.4, scale: k, z: () => 0 },
+        edge: {
+            ok: wide
+                ? (x, y) => y > 0.45 && y < 0.85 && x > 0.55
+                : (x, y) => y > 0.22 && y < 0.45 && (x < 0.3 || x > 0.7),
+            speed: 0.2,
+            scale: small ? 1 : big ? 3 : 2,
+            z: () => 3,
+        },
+    };
+}
+
 /**
  * Estádio (centro, a entrada): visto da boca do túnel, com a torcida na cor do clube, os refletores e o letreiro de
  * LED. Em cima, o placar com a Copa do Dia; embaixo, a copa em andamento (se tiver) e o JOGAR da Copa Relâmpago.
  */
-export function Estadio({ active, enter }: { active: boolean; enter: (action: () => void) => void }) {
+export function Estadio({
+    active,
+    enter,
+    wild,
+    entering,
+}: {
+    active: boolean;
+    enter: (action: () => void) => void;
+    wild: Wild[];
+    entering: boolean;
+}) {
     const { t } = useT();
+    const clock = useSceneClock(active);
+    const small = useMq(SMALL);
+    const big = useMq(BIG);
+    const wide = useMq(LANDSCAPE);
+    const zones = zonesOf(small, big, wide);
+    // o time saindo do túnel espanta quem está na beira (e acorda o dorminhoco)
+    const threats: Threats = useRef<Record<string, Pt[] | undefined>>({});
+    threats.current = entering ? SCARE : {};
+    const w = useWild(clock, wild, zones, threats);
     const run = useGame((s) => s.run);
     const newRun = useGame((s) => s.newRun);
     const go = useGame((s) => s.go);
@@ -201,7 +260,7 @@ export function Estadio({ active, enter }: { active: boolean; enter: (action: ()
     } as CSSProperties;
 
     return (
-        <>
+        <ClockCtx.Provider value={clock}>
             <div className="amb-scene es-scene" style={vars} aria-hidden>
                 <div className="amb-layer es-sky" style={{ '--depth': 0.6 } as CSSProperties}>
                     <i className="es-stars" />
@@ -227,6 +286,7 @@ export function Estadio({ active, enter }: { active: boolean; enter: (action: ()
                             />
                         ))}
                         <span className="es-banner">{clubName}</span>
+                        <WildZone wild={w} zone="stand" />
                     </div>
                     <div className="es-led">
                         <span>
@@ -234,7 +294,7 @@ export function Estadio({ active, enter }: { active: boolean; enter: (action: ()
                             {t('home.amb.board').repeat(3)}
                         </span>
                     </div>
-                    <Court captain={captain} play={active} />
+                    <Court captain={captain} play={active} small={small} wild={w} />
                 </div>
                 <div className="amb-layer es-tunnel" style={{ '--depth': 0 } as CSSProperties}>
                     <i className="es-wall l" />
@@ -275,6 +335,6 @@ export function Estadio({ active, enter }: { active: boolean; enter: (action: ()
                     )}
                 </div>
             </div>
-        </>
+        </ClockCtx.Provider>
     );
 }
