@@ -1,5 +1,21 @@
 # Novidades
 
+## 0.9.21 · Cada modo no seu lugar (2026-10-25)
+
+### Nova tela inicial
+- A tela inicial virou cinco lugares, numa barra embaixo: Laboratório, Rota Índigo, Estádio, Arena e Sede. Toque ou arraste de lado pra trocar
+- Estádio: o JOGAR, a copa em andamento e a Copa do Dia no placar
+- Rota Índigo: o mapa de Kanto com as insígnias e o seu time onde parou
+- Laboratório do Carvalho: Pokédex, Álbum e Golpedex
+- Arena: Duelo e Liga
+- Sede do clube: Sala de troféus, perfil e o quadro de missões
+- Pokémon selvagens andam, dormem e brincam em cada lugar. Toque neles
+- O céu acompanha a hora do dia
+
+### Alterado
+- Novidades, Ajuda, Créditos e o resto do rodapé ficaram nas Configurações
+- Quem prefere a tela antiga ainda abre com ?lab=off no endereço
+
 ## 0.9.20 · Textos revistos e a 1ª partida (2026-10-25)
 
 ### Melhorado

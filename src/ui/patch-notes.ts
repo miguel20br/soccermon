@@ -9,6 +9,33 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.21',
+        date: '2026-10-25',
+        title: 'Cada modo no seu lugar',
+        sections: [
+            {
+                title: 'Nova tela inicial',
+                lines: [
+                    'A tela inicial virou cinco lugares, numa barra embaixo: Laboratório, Rota Índigo, Estádio, Arena e Sede. Toque ou arraste de lado pra trocar',
+                    'Estádio: o JOGAR, a copa em andamento e a Copa do Dia no placar',
+                    'Rota Índigo: o mapa de Kanto com as insígnias e o seu time onde parou',
+                    'Laboratório do Carvalho: Pokédex, Álbum e Golpedex',
+                    'Arena: Duelo e Liga',
+                    'Sede do clube: Sala de troféus, perfil e o quadro de missões',
+                    'Pokémon selvagens andam, dormem e brincam em cada lugar. Toque neles',
+                    'O céu acompanha a hora do dia',
+                ],
+            },
+            {
+                title: 'Alterado',
+                lines: [
+                    'Novidades, Ajuda, Créditos e o resto do rodapé ficaram nas Configurações',
+                    'Quem prefere a tela antiga ainda abre com ?lab=off no endereço',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.20',
         date: '2026-10-25',
         title: 'Textos revistos e a 1ª partida',
@@ -1626,6 +1653,33 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.21',
+        date: '2026-10-25',
+        title: 'Every mode in its own place',
+        sections: [
+            {
+                title: 'New home screen',
+                lines: [
+                    'The home screen is now five places on a bottom bar: Lab, Road, Stadium, Arena and Club. Tap or swipe to switch',
+                    'Stadium: PLAY, your cup in progress and the Daily Cup on the scoreboard',
+                    'Indigo Road: the Kanto map with your badges and your team where you stopped',
+                    "Oak's Lab: Pokédex, Album and Movedex",
+                    'Arena: Duel and League',
+                    'Club house: Trophy room, profile and the mission board',
+                    'Wild Pokémon walk, nap and play in every place. Tap them',
+                    'The sky follows the time of day',
+                ],
+            },
+            {
+                title: 'Changed',
+                lines: [
+                    "What's new, Help, Credits and the rest of the footer moved to Settings",
+                    'The old home screen still opens with ?lab=off in the address',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.20',
         date: '2026-10-25',
