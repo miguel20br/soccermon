@@ -9,6 +9,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import pg from 'pg';
 import pokemon from '../src/data/pokemon.json' with { type: 'json' };
+import { ehMaratona, ehVersaoAntiga, MAX_COPAS, VERSOES_RECENTES, versoesRecentes } from './funil-criterio';
 
 // ---------- opções ----------
 
@@ -262,7 +263,7 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
         return 0;
     };
     // Desde a 0.9.2 não há tela de boas-vindas: "passou das boas-vindas" = "começou a copa", então a etapa saiu.
-    const ETAPAS = ['Abriu o jogo', 'Começou a copa', 'Jogou a 1ª partida', 'Terminou a copa', 'Campeão'];
+    const ETAPAS = ['Abriu o jogo', 'Começou a copa', 'Chegou ao apito da 1ª', 'Terminou a copa', 'Campeão'];
     const funil = (ss: string[]) => ETAPAS.map((_, i) => ss.filter((s) => etapa(s) >= i).length);
     // Fora do funil (o evento só guarda `lab` e a origem; user agent não é gravado): ?lab=, quem entrou pelo convite
     // do Duelo (1ª tela vista é a do Duelo) e o navegador de dentro do TikTok/Instagram (origem tiktok/instagram).
@@ -274,11 +275,21 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
         return '';
     };
     const foraDoFunil = sessions.filter((s) => grupo(s) && novas.includes(s));
-    const dentro = sessions.filter((s) => !grupo(s));
-    const foraTodas = sessions.length - dentro.length;
+    // Critério (documentado no título do funil): tira maratona e versão antiga, que distorcem as taxas.
+    const recentes = versoesRecentes(evs.flatMap((e) => (e.app_version ? [e.app_version] : [])));
+    const versaoDe = (s: string) =>
+        evs.filter((e) => e.session === s && e.app_version).at(-1)?.app_version ?? undefined;
+    const maratona = (s: string) => ehMaratona(by('run_start').filter((e) => e.session === s).length);
+    const foraCriterio = (s: string) => maratona(s) || ehVersaoAntiga(versaoDe(s), recentes);
+    const dentro = sessions.filter((s) => !grupo(s) && !foraCriterio(s));
+    const foraTodas = sessions.filter((s) => grupo(s)).length;
+    const foraCrit = sessions.filter((s) => !grupo(s) && foraCriterio(s)).length;
     const fTodas = funil(dentro);
     const fNovas = funil(dentro.filter((s) => novas.includes(s)));
     titulo('3. Funil por sessão (sem lab, convite do Duelo e TikTok/Instagram)');
+    nota(
+        `Critério: fora ${fmt(foraCrit)} sessões de maratona (mais de ${MAX_COPAS} copas) ou de versão antiga (fora das ${VERSOES_RECENTES} mais novas: ${[...recentes].join(', ')}). "Chegou ao apito da 1ª" é o evento match_end, não "jogou".`,
+    );
     tabela(
         ['Etapa', 'Sessões', '% do total', 'Queda', '', 'Novas', '% novas'],
         ETAPAS.map((nome, i) => [
@@ -304,7 +315,14 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
         return [f[0], f[1], pct(f[1], f[0]), f[2], pct(f[2], f[1]), pct(f[2], f[0])];
     };
     const novasDentro = dentro.filter((s) => novas.includes(s));
-    const FH = ['Sessões novas', 'Começou a copa', 'Abriu → começou', 'Jogou a 1ª', 'Começou → jogou', 'Abriu → jogou'];
+    const FH = [
+        'Sessões novas',
+        'Começou a copa',
+        'Abriu → começou',
+        'Chegou ao apito da 1ª',
+        'Começou → jogou',
+        'Abriu → jogou',
+    ];
     tabela(
         ['Aparelho', ...FH],
         count(novasDentro, tipo).map(([a]) => [a, ...funilDe(novasDentro.filter((s) => tipo(s) === a))]),

@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
 import { placeBalloon } from '../ui/coach/place';
-import { COACH_GROUPS, COACH_IDS, coachSeen, isFirstVisit, rotaNovaDue, whenHydrated } from './coach';
+import { COACH_GROUPS, COACH_IDS, coachSeen, isFirstVisit, relampagoJogoDue, rotaNovaDue, whenHydrated } from './coach';
 import { DEFAULT_SETTINGS, migrateSave, type PersistedSave, withUnlocks } from './game-store';
 import { mergeProfileUnlocks } from './missions';
 import { DEFAULT_PROFILE, EMPTY_CAREER } from './profile';
@@ -145,5 +145,14 @@ describe('whenHydrated', () => {
         expect(cb).not.toHaveBeenCalled();
         done();
         expect(cb).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('balão relampagoJogo', () => {
+    it('só depois do 1º gol ou no intervalo, nunca no apito inicial', () => {
+        expect(relampagoJogoDue([0, 0], false)).toBe(false);
+        expect(relampagoJogoDue([1, 0], false)).toBe(true);
+        expect(relampagoJogoDue([0, 2], false)).toBe(true);
+        expect(relampagoJogoDue([0, 0], true)).toBe(true);
     });
 });

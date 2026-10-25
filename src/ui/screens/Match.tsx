@@ -26,6 +26,7 @@ import { rich, useT } from '../../i18n/react';
 import { ligaRun, useLiga } from '../../league/liga-store';
 import { PhaserGame } from '../../PhaserGame';
 import { fieldKit, lookOfCupClub, lookOfProfile, matchLooks } from '../../store/club-kit';
+import { relampagoJogoDue } from '../../store/coach';
 import { liveOf, type PlaybackSpeed, playerTeam, useGame } from '../../store/game-store';
 import { isFinalStage, isLong } from '../../store/long-cup';
 import { rivalColor, tagFromName } from '../../store/profile';
@@ -780,7 +781,14 @@ export function Match({ liga = false }: { liga?: boolean }) {
                     <Coach
                         id="relampagoJogo"
                         targets={['.bc-coach .bc-tabs']}
-                        when={!liga && !!run && !run.daily && !isLong(run) && run.results.length === 0}
+                        when={
+                            !liga &&
+                            !!run &&
+                            !run.daily &&
+                            !isLong(run) &&
+                            run.results.length === 0 &&
+                            relampagoJogoDue(clock.score, halftime)
+                        }
                     />
                     <CoachTabs tabs={tabs} active={tab} onPick={setTab} />
                     <div className={`bc-pane pane-${tab}`} role="tabpanel">
