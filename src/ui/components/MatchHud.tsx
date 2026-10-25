@@ -328,6 +328,9 @@ export const ICONS = {
     egg: 'M12 3c4 0 7 6 7 11a7 7 0 0 1-14 0c0-5 3-11 7-11zM8 14l2 1.5 2-1.5 2 1.5 2-1.5',
     leaf: 'M5 19C5 10 11 4 20 4c0 9-6 15-15 15zM5 19l8-8',
     building: 'M5 21V4h9v17M14 9h5v12M3 21h18M8 8h3M8 12h3M8 16h3',
+    // abas dos ambientes (?lab=ambientes): mapa dobrado (Rota) e a arquibancada oval (Estádio)
+    map: 'M3 6.5l6-2.5 6 2.5 6-2.5v13.5l-6 2.5-6-2.5-6 2.5zM9 4v13.5M15 6.5V20',
+    stadium: 'M3 9c0-2.2 4-4 9-4s9 1.8 9 4v6c0 2.2-4 4-9 4s-9-1.8-9-4zM3 9c0 2.2 4 4 9 4s9-1.8 9-4M8 12.6v6M16 12.6v6',
     bike: 'M3.5 17a3 3 0 1 0 6 0 3 3 0 1 0-6 0M14.5 17a3 3 0 1 0 6 0 3 3 0 1 0-6 0M6.5 17L10 9h5l2.5 8M10 9l3 8M13 6h3',
     book: 'M3 5h6a3 3 0 0 1 3 3v12a2.5 2.5 0 0 0-2.5-2.5H3zM21 5h-6a3 3 0 0 0-3 3v12a2.5 2.5 0 0 1 2.5-2.5H21z',
     crown: 'M4 19h16M5 16L3 7l5 4 4-6 4 6 5-4-2 9z',

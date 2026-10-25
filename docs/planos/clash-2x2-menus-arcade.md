@@ -472,6 +472,25 @@ compartilhar estilo Wordle (`src/store/daily.ts`): o modelo serve pro recorde de
 
 ---
 
+## Decisões aprovadas (25/10/2026)
+
+O Miguel aprovou as 20 decisões abaixo com as recomendações:
+
+- **2x2 (1–7):** parceiro IA e amigo por link juntos; Técnico e Capitão trocando no intervalo; cada um escolhe metade
+  do time com 1 troca de carta; chamar o parceiro IA é exceção aceita ao "nada automático"; casual; fila aleatória
+  depois; 2x2 no mesmo celular entra (+1 dia).
+- **Menus (8–16):** ambientes em etapas. Barra Laboratório | Rota | **Estádio** (centro, entrada) | Arena | Sede.
+  Perfil e Sala de troféus juntos na Sede; Arcade e 2x2 na Arena. Entrar num modo leva 600–900 ms e um toque pula
+  (exceção registrada no [ADR 0008](../adr/0008-entrada-de-modo-mais-longa.md)). Arte no traço FireRed com Pokémon
+  PMD. Primeira entrega: barra + Estádio + Rota em `?lab=ambientes`, o resto como tela simples. Nome do time sai da
+  Home. Duelo com as regras recolhidas.
+- **Arcade (17–19):** vaga fixa "Arcade da semana" trocando toda segunda; começar por Monotipo, Draft às cegas e
+  Pênaltis sem fim; modo que mexe no motor só com os números antes/depois na frente dele.
+- **Ordem (20):** menus, depois arcade, depois 2x2.
+
+Primeira entrega feita na branch `ambientes` (`src/ui/ambientes/`): barra de 5 abas, arrasto com fundo em camadas,
+Estádio e Rota Índigo com ambiente, Laboratório, Arena e Sede como telas simples que levam às de hoje.
+
 ## Decisões pro Miguel
 
 1. **2x2:** fazer A (parceiro IA) + B (amigo por link) juntos **(recomendado)** / só A agora / só B / ir direto pra

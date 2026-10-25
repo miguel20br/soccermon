@@ -81,4 +81,19 @@ export const home = {
     privacy: 'Privacidade e termos',
     github: 'Código no GitHub',
     langAria: 'Idioma / Language',
+    /** Navegação por ambientes (?lab=ambientes, docs/planos/clash-2x2-menus-arcade.md). */
+    amb: {
+        tabsAria: 'Lugares',
+        tabs: { lab: 'Lab', rota: 'Rota', estadio: 'Estádio', arena: 'Arena', sede: 'Sede' },
+        skip: 'Toque pra pular',
+        /** Letreiro de LED do Estádio, rolando sem parar (o fim emenda no começo). */
+        board: 'COPA RELÂMPAGO · COPA DO DIA · ROTA ÍNDIGO · DUELO AO VIVO · ',
+        rotaGo: 'Continuar · {where}',
+        labTitle: 'Laboratório do Carvalho',
+        arenaTitle: 'Arena',
+        sedeTitle: 'Sede do clube',
+        soon2x2: 'Dupla 2x2',
+        soonArcade: 'Arcade',
+        ligaSoon: 'Liga · abre em {d}d',
+    },
 };

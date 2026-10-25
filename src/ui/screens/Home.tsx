@@ -142,6 +142,38 @@ function PatchVersion({ n, latest, lang }: { n: PatchNotes; latest: boolean; lan
     );
 }
 
+type Run = NonNullable<ReturnType<typeof useGame.getState>['run']>;
+
+/** Cartão da copa em andamento (Home e Estádio dos ambientes): time, fase, caminho e o elenco. */
+export function ResumeCard({ run, onClick }: { run: Run; onClick: () => void }) {
+    const { t } = useT();
+    const byUid = new Map(run.picks.map((p) => [p.uid, p]));
+    const squad = run.lineup.flatMap((u) => byUid.get(u) ?? []);
+    const runStep = cupStep({ ...run, played: run.results.length });
+    return (
+        <button type="button" className="resume-card bc-surface bc-stripe" onClick={onClick}>
+            <span className="rc-label bc-tag">{t('home.inProgress')}</span>
+            <b className="rc-team">{run.teamName}</b>
+            <span className="rc-step">{runStep}</span>
+            <span className="rc-path" title={t('home.cupPath')}>
+                {Array.from({ length: cupLength(run) }, (_, i) => `p${i}`).map((st, i) => {
+                    const r = run.results.find((x) => x.stage === i);
+                    const cls = r ? (r.won ? 'won' : `lost-${lossColor(run, i)}`) : i === run.stage ? 'now' : '';
+                    return <i key={st} className={cls} />;
+                })}
+            </span>
+            {squad.length > 0 && (
+                <span className="rc-squad">
+                    {squad.map((p) => (
+                        <img key={p.uid} className="pixel" src={cardSprite(p)} alt="" />
+                    ))}
+                </span>
+            )}
+            <span className="btn primary rc-go">{t('home.resume')}</span>
+        </button>
+    );
+}
+
 export function Home() {
     const [entering] = useState(() => !homeEntered);
     useEffect(() => {
@@ -191,9 +223,6 @@ export function Home() {
         else resumeParked(seed);
     };
     const eventType = weeklyEventType(new Date());
-    const byUid = new Map(run?.picks.map((p) => [p.uid, p]) ?? []);
-    const squad = run ? run.lineup.flatMap((u) => byUid.get(u) ?? []) : [];
-    const runStep = run ? cupStep({ ...run, played: run.results.length }) : '';
     const openLab = (q: string) => {
         window.location.search = q;
     };
@@ -219,28 +248,7 @@ export function Home() {
             </div>
         </div>
     );
-    const resumeCard = run && (
-        <button type="button" className="resume-card bc-surface bc-stripe" onClick={() => go(resumeScreen)}>
-            <span className="rc-label bc-tag">{t('home.inProgress')}</span>
-            <b className="rc-team">{run.teamName}</b>
-            <span className="rc-step">{runStep}</span>
-            <span className="rc-path" title={t('home.cupPath')}>
-                {Array.from({ length: cupLength(run) }, (_, i) => `p${i}`).map((st, i) => {
-                    const r = run.results.find((x) => x.stage === i);
-                    const cls = r ? (r.won ? 'won' : `lost-${lossColor(run, i)}`) : i === run.stage ? 'now' : '';
-                    return <i key={st} className={cls} />;
-                })}
-            </span>
-            {squad.length > 0 && (
-                <span className="rc-squad">
-                    {squad.map((p) => (
-                        <img key={p.uid} className="pixel" src={cardSprite(p)} alt="" />
-                    ))}
-                </span>
-            )}
-            <span className="btn primary rc-go">{t('home.resume')}</span>
-        </button>
-    );
+    const resumeCard = run && <ResumeCard run={run} onClick={() => go(resumeScreen)} />;
 
     const play = () => {
         // o balão "Primeira vez? Comece pela Relâmpago" não faz sentido depois: a Home cheia chega sem ele

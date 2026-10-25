@@ -79,4 +79,18 @@ export const home: typeof pt = {
     privacy: 'Privacy and terms',
     github: 'Code on GitHub',
     langAria: 'Idioma / Language',
+    /** Places navigation (?lab=ambientes). */
+    amb: {
+        tabsAria: 'Places',
+        tabs: { lab: 'Lab', rota: 'Road', estadio: 'Stadium', arena: 'Arena', sede: 'Club' },
+        skip: 'Tap to skip',
+        board: 'LIGHTNING CUP · DAILY CUP · INDIGO ROAD · LIVE DUEL · ',
+        rotaGo: 'Continue · {where}',
+        labTitle: "Oak's Lab",
+        arenaTitle: 'Arena',
+        sedeTitle: 'Club house',
+        soon2x2: '2v2 Duo',
+        soonArcade: 'Arcade',
+        ligaSoon: 'League · opens in {d}d',
+    },
 };

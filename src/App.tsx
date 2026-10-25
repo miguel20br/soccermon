@@ -4,6 +4,7 @@ import { useT } from './i18n/react';
 import { duel } from './net/session';
 import { preloadGame } from './PhaserGame';
 import { type Screen, useGame } from './store/game-store';
+import { readAmbientes } from './ui/ambientes/nav';
 import { backTarget, installBackNav } from './ui/back-nav';
 import { AccountLink } from './ui/components/AccountLink';
 import { CardModal } from './ui/components/CardModal';
@@ -46,6 +47,8 @@ const CourtLab = lazy(() => import('./ui/screens/CourtLab').then((m) => ({ defau
 const EmoteLab = lazy(() => import('./ui/duel/EmoteLab').then((m) => ({ default: m.EmoteLab })));
 const IconLab = lazy(() => import('./ui/screens/IconLab').then((m) => ({ default: m.IconLab })));
 const StoryLab = lazy(() => import('./ui/screens/StoryLab').then((m) => ({ default: m.StoryLab })));
+// navegação por ambientes (?lab=ambientes, ADR 0005): pedaço à parte, a Home de sempre não carrega nada dela
+const Ambientes = lazy(() => import('./ui/ambientes/Ambientes').then((m) => ({ default: m.Ambientes })));
 
 /** Sai da tela atual (para a Home, ou `to`); sair do duelo guarda a sala (dá pra voltar pelo link). */
 function leaveScreen(screen: Screen, to: Screen = 'home') {
@@ -87,6 +90,7 @@ export default function App() {
         if (__SMOKE__ && (q === 'versus' || q === 'sala' || q === 'icones' || q === 'cenas')) return q;
         return (__SMOKE__ || params.has('revisao')) && q === 'posicoes' ? q : null;
     });
+    const [ambientes] = useState(readAmbientes);
     const [cards, setCards] = useState(
         () => __SMOKE__ && new URLSearchParams(window.location.search).get('cards') === '1',
     );
@@ -213,7 +217,14 @@ export default function App() {
                     {MENU_SCREENS.includes(screen) && <TopActions />}
                 </header>
             )}
-            {screen === 'home' && <Home />}
+            {screen === 'home' &&
+                (ambientes ? (
+                    <Suspense fallback={null}>
+                        <Ambientes />
+                    </Suspense>
+                ) : (
+                    <Home />
+                ))}
             {screen === 'draft' && <Draft />}
             {screen === 'lineup' && <Lineup />}
             {screen === 'match' && <Match />}
@@ -240,7 +251,7 @@ export default function App() {
             <FriendVitrine />
             <AccountLink />
             <UnlockNotice />
-            {hydrated && tour && screen === 'home' && <Onboarding />}
+            {hydrated && tour && screen === 'home' && !ambientes && <Onboarding />}
         </div>
     );
 }

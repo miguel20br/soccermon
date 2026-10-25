@@ -1,0 +1,1451 @@
+/* Navegação por ambientes (?lab=ambientes, src/ui/ambientes): 5 lugares lado a lado, barra de abas, fundo em camadas.
+   --pos = aba atual (fracionária durante o arrasto); cada painel tem --i, e cada camada --depth (0 = anda junto com o
+   dedo, 0.6 = anda devagar). --px = 1 pixel da arte. */
+.amb {
+    --bar-h: 68px;
+    --px: 3px;
+    --amb-ms: 280ms;
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    background: var(--bg);
+    overflow: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .amb {
+        --px: 4px;
+    }
+}
+@media (max-height: 700px) {
+    .amb {
+        --px: 2px;
+    }
+}
+.amb-top {
+    position: absolute;
+    z-index: 20;
+    top: calc(10px + env(safe-area-inset-top));
+    right: calc(12px + env(safe-area-inset-right));
+}
+.amb-stage {
+    position: relative;
+    overflow: hidden;
+    touch-action: pan-y;
+}
+.amb-panel {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    transform: translate3d(calc((var(--i) - var(--pos)) * 100%), 0, 0);
+    transition: transform var(--amb-ms) var(--ease-out);
+}
+.amb-layer {
+    position: absolute;
+    inset: 0;
+}
+.amb-layer,
+.amb-par {
+    transform: translate3d(calc((var(--i) - var(--pos)) * var(--depth, 0) * -100%), 0, 0);
+    transition: transform var(--amb-ms) var(--ease-out);
+}
+.amb-drag .amb-panel,
+.amb-drag .amb-layer,
+.amb-drag .amb-par,
+.amb-drag .amb-ind {
+    transition: none;
+}
+/* o fade de "[role=tabpanel] > *" (broadcast-kit.css) não vale aqui: o painel vizinho aparece durante o arrasto */
+.amb .amb-panel > * {
+    animation: none;
+}
+.amb-scene {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+.amb-ui {
+    position: relative;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: calc(env(safe-area-inset-top) + 72px) calc(16px + env(safe-area-inset-right)) 14px
+        calc(16px + env(safe-area-inset-left));
+}
+.amb-ui::-webkit-scrollbar {
+    display: none;
+}
+
+/* ---------- barra de abas ---------- */
+.amb-bar {
+    position: relative;
+    z-index: 10;
+    background: var(--bc-ink);
+    border-top: 2px solid var(--bc-edge);
+    box-shadow: 0 -3px 0 rgb(0 0 0 / 25%);
+    padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.amb-tabs {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    max-width: 560px;
+    height: var(--bar-h);
+    margin: 0 auto;
+}
+.amb-ind {
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    left: 0;
+    width: calc(100% / var(--n));
+    transform: translateX(calc(var(--pos) * 100%));
+    transition: transform var(--amb-ms) var(--ease-out);
+}
+.amb-ind::before {
+    content: "";
+    position: absolute;
+    inset: 0 4px;
+    border-radius: 8px;
+    background: var(--panel-2);
+    border-bottom: 3px solid var(--yellow);
+}
+.amb-tab {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 3px;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0 2px;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color var(--amb-ms) var(--ease-out);
+}
+.amb-tab .hud-icon {
+    width: 24px;
+    height: 24px;
+}
+.amb-tab-lbl {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+.amb-tab.on {
+    color: var(--yellow);
+}
+.amb-tab:focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: -4px;
+    border-radius: 8px;
+}
+/* o Estádio é o maior, no centro, subindo pra fora da barra (o "Batalha" do Clash) */
+.amb-tab-estadio .amb-tab-ic {
+    display: grid;
+    place-items: center;
+    width: 54px;
+    height: 54px;
+    margin-top: -24px;
+    border-radius: 50%;
+    background: var(--panel-2);
+    border: 3px solid var(--bc-edge);
+    box-shadow: 0 3px 0 var(--bc-edge);
+    color: var(--text);
+    transition:
+        background var(--amb-ms) var(--ease-out),
+        color var(--amb-ms) var(--ease-out);
+}
+.amb-tab-estadio .hud-icon {
+    width: 28px;
+    height: 28px;
+}
+.amb-tab-estadio.on .amb-tab-ic {
+    background: var(--yellow);
+    color: var(--bc-ink);
+}
+
+/* celular deitado: a barra vira coluna estreita à esquerda */
+@media (orientation: landscape) and (max-height: 520px) {
+    .amb {
+        --bar-h: auto;
+        grid-template-rows: minmax(0, 1fr);
+        grid-template-columns: 76px minmax(0, 1fr);
+    }
+    .amb-bar {
+        grid-row: 1;
+        grid-column: 1;
+        border-top: 0;
+        border-right: 2px solid var(--bc-edge);
+        box-shadow: 3px 0 0 rgb(0 0 0 / 25%);
+        padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+    .amb-stage {
+        grid-row: 1;
+        grid-column: 2;
+    }
+    .amb-tabs {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: repeat(var(--n), minmax(0, 1fr));
+        height: 100%;
+    }
+    .amb-ind {
+        top: 0;
+        left: 6px;
+        right: 6px;
+        bottom: auto;
+        width: auto;
+        height: calc(100% / var(--n));
+        transform: translateY(calc(var(--pos) * 100%));
+    }
+    .amb-ind::before {
+        inset: 3px 0;
+        border-bottom: 0;
+        border-left: 3px solid var(--yellow);
+    }
+    .amb-tab-estadio .amb-tab-ic {
+        width: 40px;
+        height: 40px;
+        margin-top: 0;
+    }
+    .amb-tab-estadio .hud-icon {
+        width: 22px;
+        height: 22px;
+    }
+    .amb-tab .hud-icon {
+        width: 20px;
+        height: 20px;
+    }
+    .amb-ui {
+        padding-top: calc(env(safe-area-inset-top) + 12px);
+    }
+}
+
+/* ---------- entrar num modo (ADR 0008): 760 ms, um toque pula ---------- */
+.amb-skip {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+.amb-entering::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    pointer-events: none;
+    background: var(--bg);
+    animation: amb-enter-fade 760ms ease-in both;
+}
+@keyframes amb-enter-fade {
+    0%,
+    70% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+.amb-entering .amb-panel.on .amb-ui > * {
+    opacity: 0;
+    transition: opacity 200ms var(--ease-out);
+}
+.amb-enter-estadio .amb-estadio .es-arena {
+    transform: scale(1.7) translateY(-8%);
+    transition: transform 760ms cubic-bezier(0.55, 0, 0.8, 0.4);
+}
+.amb-enter-estadio .amb-estadio .es-sky {
+    transform: scale(1.25);
+    transition: transform 760ms cubic-bezier(0.55, 0, 0.8, 0.4);
+}
+.amb-enter-estadio .amb-estadio .es-tunnel {
+    transform: scale(2.6);
+    opacity: 0;
+    transition:
+        transform 760ms cubic-bezier(0.55, 0, 0.8, 0.4),
+        opacity 500ms ease-in 200ms;
+}
+.amb-enter-rota .amb-rota .rt-map {
+    opacity: 1;
+    transform: scale(2.4);
+    transform-origin: var(--fx) var(--fy);
+    transition: transform 760ms cubic-bezier(0.55, 0, 0.8, 0.4);
+}
+
+/* ======================================================================================== Estádio */
+.es-scene {
+    --stand-top: 24%;
+}
+.es-sky {
+    background: linear-gradient(180deg, #070b1e 0%, #111a44 45%, #1f2b62 100%);
+}
+/* estrelas de 1 px de arte (sombras de um ponto só), metade piscando */
+.es-stars {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--px);
+    height: var(--px);
+    background: #fff;
+    box-shadow:
+        12vw 3vh #fff,
+        27vw 8vh #c9d4ff,
+        41vw 2vh #fff,
+        58vw 6vh #fff,
+        73vw 11vh #c9d4ff,
+        88vw 4vh #fff,
+        6vw 13vh #c9d4ff,
+        35vw 14vh #fff,
+        64vw 15vh #fff,
+        95vw 12vh #c9d4ff;
+}
+.es-stars.s2 {
+    left: 4vw;
+    top: 1vh;
+    box-shadow:
+        18vw 6vh #fff,
+        47vw 10vh #fff,
+        69vw 2vh #c9d4ff,
+        83vw 9vh #fff,
+        22vw 15vh #fff;
+    animation: es-twinkle 2.6s steps(2) infinite;
+}
+@keyframes es-twinkle {
+    50% {
+        opacity: 0.2;
+    }
+}
+.es-flood {
+    position: absolute;
+    top: calc(env(safe-area-inset-top) + 9%);
+    width: calc(var(--px) * 24);
+    height: calc(var(--px) * 40);
+    overflow: visible;
+}
+.es-flood.l {
+    left: 7%;
+}
+.es-flood.r {
+    right: 7%;
+    scale: -1 1;
+}
+.es-beam {
+    fill: #fff3c4;
+    opacity: 0.1;
+    animation: es-beam 5s steps(5) infinite;
+}
+@keyframes es-beam {
+    40% {
+        opacity: 0.14;
+    }
+    60% {
+        opacity: 0.08;
+    }
+}
+.es-bulb {
+    fill: #fff6d6;
+}
+.es-bulb.b1 {
+    fill: #ffe27a;
+}
+.es-bulb.b2 {
+    fill: #fff;
+    animation: es-bulb 3.3s steps(1) infinite;
+}
+@keyframes es-bulb {
+    92% {
+        fill: #b9a85a;
+    }
+}
+
+/* a arquibancada do outro lado: 5 fileiras de torcida, a de cima mais escura (mais longe) */
+.es-stand {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: var(--stand-top);
+    height: calc(var(--px) * 64);
+    background: #121838;
+}
+.es-row {
+    display: block;
+    height: calc(var(--px) * 10);
+    border-bottom: var(--px) solid #273063;
+    background-color: #182050;
+    background-image: var(--crowd);
+    background-repeat: repeat-x;
+    background-size: calc(var(--px) * 28) calc(var(--px) * 18);
+    background-position: calc(var(--r) * var(--px) * 11) var(--px);
+    image-rendering: pixelated;
+    filter: brightness(calc(0.62 + var(--r) * 0.09));
+    animation: es-cheer 0.6s steps(1) infinite;
+    animation-delay: calc(var(--r) * -0.15s);
+}
+@keyframes es-cheer {
+    50% {
+        background-position-y: calc(var(--px) * -8);
+    }
+}
+/* a cobertura da arquibancada, com a fileira de refletores piscando de leve */
+.es-stand::before {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    height: calc(var(--px) * 5);
+    background:
+        repeating-linear-gradient(
+            90deg,
+            transparent 0 calc(var(--px) * 5),
+            #fff3c4 calc(var(--px) * 5) calc(var(--px) * 8),
+            transparent calc(var(--px) * 8) calc(var(--px) * 13)
+        )
+        0 calc(var(--px) * 2) / 100% calc(var(--px) * 2) no-repeat,
+        #0b1026;
+    border-bottom: var(--px) solid #000;
+    animation: es-roof 4.4s steps(1) infinite;
+}
+@keyframes es-roof {
+    93% {
+        filter: brightness(0.7);
+    }
+}
+.es-stand::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: calc(var(--px) * 4);
+    background: #2c3868;
+    border-top: var(--px) solid #4b5a9a;
+}
+.es-flash {
+    position: absolute;
+    width: var(--px);
+    height: var(--px);
+    background: #fff;
+    opacity: 0;
+    box-shadow: 0 0 0 var(--px) rgb(255 255 255 / 40%);
+    animation: es-flash 4s steps(1) infinite;
+}
+@keyframes es-flash {
+    94% {
+        opacity: 1;
+    }
+    97% {
+        opacity: 0;
+    }
+}
+/* a faixa da torcida, na cor do clube, balançando de leve */
+.es-banner {
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    bottom: calc(var(--px) * 3);
+    max-width: 70%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 calc(var(--px) * 4);
+    line-height: calc(var(--px) * 8);
+    background: var(--club);
+    color: var(--club-ink);
+    border: var(--px) solid rgb(0 0 0 / 45%);
+    box-shadow: 0 var(--px) 0 rgb(0 0 0 / 45%);
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: calc(var(--px) * 5);
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transform: translateX(-50%);
+    animation: es-flag 2.4s steps(2) infinite;
+}
+@keyframes es-flag {
+    50% {
+        transform: translateX(-50%) skewY(-1.5deg);
+    }
+}
+/* o letreiro de LED entre a arquibancada e a quadra */
+.es-led {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(var(--stand-top) + var(--px) * 64);
+    height: calc(var(--px) * 8);
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background: #070a1a;
+    border-top: var(--px) solid #000;
+    border-bottom: var(--px) solid #000;
+}
+.es-led span {
+    flex: none;
+    white-space: pre;
+    font-size: max(10px, calc(var(--px) * 4.4));
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--yellow);
+    animation: es-marquee 30s linear infinite;
+}
+.es-led::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(90deg, transparent 0 2px, rgb(7 10 26 / 55%) 2px 3px);
+}
+@keyframes es-marquee {
+    to {
+        transform: translateX(-50%);
+    }
+}
+/* a quadra: tábuas em perspectiva, as linhas, o refletor passeando e o capitão no meio */
+.es-court {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(var(--stand-top) + var(--px) * 72);
+    container-type: size;
+    bottom: 0;
+    overflow: hidden;
+}
+.es-floor {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+.es-lines {
+    stroke: rgb(244 241 230 / 85%);
+    stroke-width: 0.8;
+}
+.es-court::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgb(10 14 40 / 45%), transparent 35%, transparent 60%, rgb(5 8 22 / 55%));
+}
+.es-spot {
+    position: absolute;
+    left: 50%;
+    top: 4%;
+    width: 70%;
+    height: 55%;
+    background: radial-gradient(closest-side, rgb(255 244 200 / 24%), transparent);
+    transform: translateX(-85%);
+    animation: es-spot 8s ease-in-out infinite alternate;
+}
+@keyframes es-spot {
+    to {
+        transform: translateX(-15%);
+    }
+}
+/* o pé do capitão no meio do círculo central (cy = 30 de 100 no desenho da quadra, cortado pelo lado maior) */
+.es-captain {
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    top: max(12.5cqw, 30cqh);
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .es-captain {
+        top: min(max(12.5cqw, 30cqh), 36cqh);
+        scale: 2;
+    }
+}
+.es-shadow {
+    position: absolute;
+    left: calc(var(--px) * -6);
+    top: calc(var(--px) * -1.5);
+    width: calc(var(--px) * 12);
+    height: calc(var(--px) * 3);
+    border-radius: 50%;
+    background: rgb(0 0 0 / 35%);
+}
+.fs-sprite {
+    display: block;
+    image-rendering: pixelated;
+    background-repeat: no-repeat;
+}
+.es-mon {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+.es-mon.fs-gif {
+    transform: translate(-50%, -100%) scale(2);
+    transform-origin: 50% 100%;
+}
+.es-ball {
+    position: absolute;
+    left: calc(var(--px) * -2.5);
+    top: calc(var(--px) * -5);
+    width: calc(var(--px) * 5);
+    height: calc(var(--px) * 5);
+    animation: es-juggle 0.9s infinite;
+}
+@keyframes es-juggle {
+    0%,
+    100% {
+        transform: translateY(0) rotate(0deg);
+        animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1);
+    }
+    50% {
+        transform: translateY(calc(var(--px) * -22)) rotate(180deg);
+        animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.3);
+    }
+}
+/* a boca do túnel: paredes de bloco, a viga de cima com degraus e a luminária */
+.es-tunnel {
+    --brick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='8' shape-rendering='crispEdges'%3E%3Crect width='16' height='8' fill='%231b2142'/%3E%3Crect x='0' y='0' width='7' height='3' fill='%23262d55'/%3E%3Crect x='8' y='0' width='8' height='3' fill='%23232a50'/%3E%3Crect x='0' y='4' width='3' height='3' fill='%23232a50'/%3E%3Crect x='4' y='4' width='8' height='3' fill='%23283060'/%3E%3Crect x='13' y='4' width='3' height='3' fill='%23262d55'/%3E%3Crect x='0' y='0' width='7' height='1' fill='%232f3768'/%3E%3Crect x='4' y='4' width='8' height='1' fill='%232f3768'/%3E%3C/svg%3E");
+    --wall: clamp(22px, 7vw, 96px);
+    --lintel: calc(env(safe-area-inset-top) + var(--px) * 18);
+}
+.es-wall,
+.es-lintel {
+    position: absolute;
+    background: var(--brick) 0 0 / calc(var(--px) * 16) calc(var(--px) * 8);
+    image-rendering: pixelated;
+}
+.es-wall {
+    top: 0;
+    bottom: 0;
+    width: var(--wall);
+}
+.es-wall.l {
+    left: 0;
+    border-right: var(--px) solid #3b4676;
+}
+.es-wall.r {
+    right: 0;
+    border-left: var(--px) solid #3b4676;
+}
+/* os degraus do arco, 2 de cada lado, embaixo da viga */
+.es-wall::before,
+.es-wall::after {
+    content: "";
+    position: absolute;
+    top: var(--lintel);
+    background: inherit;
+    border-bottom: var(--px) solid #3b4676;
+}
+.es-wall::before {
+    width: calc(var(--px) * 8);
+    height: calc(var(--px) * 4);
+}
+.es-wall::after {
+    width: calc(var(--px) * 4);
+    height: calc(var(--px) * 8);
+}
+.es-wall.l::before,
+.es-wall.l::after {
+    left: 100%;
+}
+.es-wall.r::before,
+.es-wall.r::after {
+    right: 100%;
+}
+.es-lintel {
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--lintel);
+    border-bottom: var(--px) solid #3b4676;
+    box-shadow: 0 var(--px) 0 rgb(0 0 0 / 50%);
+}
+.es-lamp {
+    position: absolute;
+    left: 50%;
+    top: var(--lintel);
+    width: calc(var(--px) * 12);
+    height: calc(var(--px) * 3);
+    transform: translateX(-50%);
+    background: #fff1b8;
+    border: var(--px) solid #0b1026;
+    border-top: 0;
+    animation: es-lamp 6s steps(1) infinite;
+}
+.es-lamp::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    width: 46vw;
+    height: 26vh;
+    transform: translateX(-50%);
+    clip-path: polygon(40% 0, 60% 0, 100% 100%, 0 100%);
+    background: linear-gradient(180deg, rgb(255 236 160 / 18%), transparent);
+}
+@keyframes es-lamp {
+    0%,
+    88%,
+    92%,
+    100% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 0.45;
+    }
+}
+/* o chão do túnel em perspectiva (mais largo perto de quem olha), com o tapete na cor do clube até a quadra */
+.es-mat {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 17%;
+    background:
+        repeating-linear-gradient(
+            180deg,
+            transparent 0 calc(var(--px) * 6),
+            rgb(0 0 0 / 22%) calc(var(--px) * 6) calc(var(--px) * 7)
+        ),
+        #1a2042;
+    clip-path: polygon(var(--wall) 0, calc(100% - var(--wall)) 0, 100% 100%, 0 100%);
+    border-top: var(--px) solid #3b4676;
+}
+.es-mat::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        repeating-linear-gradient(
+            180deg,
+            transparent 0 calc(var(--px) * 6),
+            rgb(0 0 0 / 18%) calc(var(--px) * 6) calc(var(--px) * 7)
+        ),
+        var(--club);
+    clip-path: polygon(38% 0, 62% 0, 76% 100%, 24% 100%);
+    filter: brightness(0.75);
+}
+.es-tunnel::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 40%;
+    background: linear-gradient(180deg, transparent, rgb(6 9 22 / 55%) 70%, rgb(6 9 22 / 70%));
+}
+
+/* o placar da Copa do Dia, pendurado */
+.es-ui {
+    justify-content: space-between;
+}
+.es-board {
+    position: relative;
+    width: min(320px, 86%);
+    container-type: inline-size;
+}
+.es-cable {
+    position: absolute;
+    bottom: 100%;
+    width: 3px;
+    height: 100vh;
+    background: #0b1026;
+}
+.es-cable.l {
+    left: 18%;
+}
+.es-cable.r {
+    right: 18%;
+}
+.es-board-in {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px 10px;
+    padding: 8px 10px 10px 12px;
+    border: 3px solid var(--bc-edge);
+    border-radius: 6px;
+    background:
+        radial-gradient(circle at 1px 1px, rgb(255 203 5 / 9%) 1px, transparent 1.5px) 0 0 / 4px 4px,
+        #090d22;
+    box-shadow:
+        0 0 0 3px #39447a,
+        0 6px 0 3px var(--bc-edge);
+}
+.es-board-title {
+    margin: 0;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    line-height: 1.1;
+    text-transform: uppercase;
+    color: var(--yellow);
+    white-space: nowrap;
+}
+.es-board-go {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+}
+/* placar estreito (320 px, deitado): o botão desce pra baixo dos dias */
+@container (max-width: 300px) {
+    .es-board-in {
+        grid-template-columns: minmax(0, 1fr);
+        justify-items: start;
+    }
+    .es-board-go {
+        grid-row: auto;
+        grid-column: 1;
+    }
+}
+.es-week {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(7, 20px);
+    gap: 4px;
+}
+/* a lâmpada de cada dia, com a letra dentro: acesa nos dias jogados, piscando no dia de hoje */
+.es-week li {
+    display: grid;
+    place-items: center;
+    height: 20px;
+    background: #1b2147;
+    border: 2px solid var(--bc-edge);
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--muted);
+}
+.es-week .on {
+    background: var(--yellow);
+    color: var(--bc-ink);
+}
+.es-week .today:not(.on) {
+    animation: es-today 1.1s steps(2) infinite;
+}
+@keyframes es-today {
+    50% {
+        background: #5c4d12;
+        color: var(--yellow);
+    }
+}
+.es-actions {
+    display: grid;
+    gap: 10px;
+    width: min(460px, 100%);
+}
+.es-play {
+    width: 100%;
+    min-height: 68px;
+    justify-content: space-between;
+    text-align: left;
+}
+.es-play .cup-go-txt b {
+    font-size: 24px;
+}
+.es-play .cup-go-txt small {
+    font-size: 13px;
+}
+.es-confirm {
+    padding: 14px;
+}
+/* a copa em andamento no Estádio: compacta, o botão ao lado (o elenco já está na quadra) */
+.es-actions .resume-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 10px 10px 10px 16px;
+}
+.es-actions .resume-card .rc-go {
+    grid-column: 2;
+    grid-row: 1 / span 4;
+    margin: 0;
+}
+.es-actions .rc-squad {
+    display: none;
+}
+.es-actions .rc-team {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 18px;
+}
+.es-actions .rc-path i {
+    width: 18px;
+}
+
+/* deitado: placar e botões numa coluna à esquerda; o capitão vai pra direita, à vista */
+@media (orientation: landscape) and (max-height: 520px) {
+    .es-ui {
+        width: min(380px, 52%);
+        align-items: stretch;
+        gap: 10px;
+    }
+    .es-captain {
+        left: 72%;
+        top: min(max(12.5cqw, 30cqh), 62cqh);
+    }
+    .es-board {
+        width: 100%;
+    }
+    .es-actions {
+        width: 100%;
+    }
+    .es-actions .rc-path,
+    .es-actions .rc-step,
+    .es-play .cup-go-txt small {
+        display: none;
+    }
+    .es-board-title {
+        font-size: 14px;
+    }
+    .es-board-in {
+        gap: 6px;
+        padding: 8px 10px 10px;
+    }
+    .es-board-title {
+        font-size: 14px;
+    }
+    .es-play {
+        min-height: 56px;
+    }
+    .es-play .cup-go-txt b {
+        font-size: 19px;
+    }
+}
+
+/* ======================================================================================== Rota Índigo */
+.rt-scene {
+    background: #17306a;
+}
+/* o mar: ondinhas de pixel indo pro lado em 4 passos */
+.rt-sea,
+.rt-map {
+    --wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' shape-rendering='crispEdges'%3E%3Crect x='2' y='4' width='3' height='1' fill='%23ffffff' fill-opacity='.22'/%3E%3Crect x='5' y='3' width='2' height='1' fill='%23ffffff' fill-opacity='.22'/%3E%3Crect x='10' y='11' width='3' height='1' fill='%23ffffff' fill-opacity='.22'/%3E%3Crect x='13' y='10' width='2' height='1' fill='%23ffffff' fill-opacity='.22'/%3E%3C/svg%3E");
+}
+.rt-sea {
+    background: var(--wave) 0 0 / calc(var(--px) * 16) calc(var(--px) * 16);
+    image-rendering: pixelated;
+    animation: rt-waves 3.2s steps(4) infinite;
+}
+/* o Lapras atravessando o mar de fundo, devagar */
+.rt-swim {
+    position: absolute;
+    left: 0;
+    top: 30%;
+    animation: rt-swim 38s linear infinite;
+    animation-delay: -6s;
+}
+.rt-swim .fs-sprite {
+    position: absolute;
+}
+@keyframes rt-swim {
+    from {
+        transform: translateX(-80px);
+    }
+    to {
+        transform: translateX(calc(100vw + 80px));
+    }
+}
+@keyframes rt-waves {
+    to {
+        background-position-x: calc(var(--px) * 16);
+    }
+}
+.rt-ui {
+    gap: 10px;
+}
+.rt-map {
+    margin-top: auto;
+}
+.rt-go {
+    margin-top: auto;
+}
+.rt-head {
+    width: min(640px, 100%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--bc-ink);
+    border-bottom: 2px solid var(--bc-edge);
+    border-radius: 6px;
+}
+.rt-head h2 {
+    margin: 0;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 20px;
+    line-height: 1.1;
+}
+.rt-badges {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 15px;
+    color: var(--yellow);
+    white-space: nowrap;
+}
+.rt-badges .kb-badge {
+    width: 20px;
+    height: 20px;
+}
+.rt-map {
+    position: relative;
+    flex: none;
+    container-type: inline-size;
+    width: min(100%, 760px, calc((100dvh - 372px) * 26 / 18));
+    min-width: 240px;
+    aspect-ratio: 26 / 18;
+    overflow: hidden;
+    border: 3px solid var(--bc-edge);
+    border-radius: 8px;
+    box-shadow:
+        0 0 0 3px #f4f1e6,
+        0 6px 0 3px var(--bc-edge);
+    background: var(--wave) 0 0 / 8% auto #3a74d0;
+    animation: rt-waves-map 3.2s steps(4) infinite;
+}
+@keyframes rt-waves-map {
+    to {
+        background-position-x: 8%;
+    }
+}
+.rt-land,
+.rt-trail {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+.rt-foam {
+    fill: #7fb4f2;
+}
+.rt-coast {
+    fill: #2c5a2e;
+}
+.rt-road {
+    fill: none;
+    stroke: #ead8a2;
+    stroke-width: 0.34;
+    stroke-linecap: square;
+}
+.rt-road.sea {
+    stroke: #d6e8ff;
+    stroke-width: 0.18;
+    stroke-dasharray: 0.35 0.3;
+    stroke-linecap: butt;
+}
+.rt-trail polyline {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.rt-path {
+    stroke: rgb(14 20 48 / 55%);
+    stroke-width: 0.16;
+    stroke-dasharray: 0.3 0.25;
+}
+.rt-done {
+    stroke: var(--yellow);
+    stroke-width: 0.3;
+}
+.rt-next {
+    stroke: #fff;
+    stroke-width: 0.22;
+    stroke-dasharray: 0.32 0.28;
+    animation: rt-march 0.9s linear infinite;
+}
+@keyframes rt-march {
+    to {
+        stroke-dashoffset: -0.6;
+    }
+}
+.rt-city,
+.rt-plateau,
+.rt-gym,
+.rt-walker,
+.rt-here,
+.rt-cloud {
+    position: absolute;
+}
+.rt-city {
+    width: 4.2%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    background: #f4f1e6;
+    border: 2px solid var(--bc-edge);
+    border-radius: 2px;
+}
+.rt-city.home {
+    background: var(--red);
+}
+.rt-plateau {
+    width: 6%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    background: var(--yellow);
+    border: 2px solid var(--bc-edge);
+    border-radius: 2px;
+    box-shadow:
+        inset 0 0 0 3px var(--yellow),
+        inset 0 0 0 6px var(--bc-ink);
+    animation: rt-goal 1.4s steps(2) infinite;
+}
+@keyframes rt-goal {
+    50% {
+        box-shadow:
+            inset 0 0 0 3px #fff3b0,
+            inset 0 0 0 6px var(--bc-ink);
+    }
+}
+.rt-gym {
+    width: 6.4%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+}
+.rt-gym .kb-badge {
+    width: 100%;
+    height: 100%;
+}
+.rt-gym.got .kb-badge {
+    filter: drop-shadow(0 1px 0 var(--bc-edge));
+    animation: rt-shine 3s steps(1) infinite;
+}
+@keyframes rt-shine {
+    96% {
+        filter: drop-shadow(0 1px 0 var(--bc-edge)) brightness(1.5);
+    }
+}
+.rt-gym:not(.got) .kb-badge {
+    filter: grayscale(1) brightness(1.6);
+    opacity: 0.4;
+}
+/* nuvens de pixel atravessando o mapa, com a sombra no chão */
+.rt-cloud {
+    z-index: 30;
+    left: 0;
+    width: 16%;
+    aspect-ratio: 16 / 6;
+    background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='6' shape-rendering='crispEdges'%3E%3Crect x='4' y='0' width='5' height='1' fill='%23fff'/%3E%3Crect x='2' y='1' width='9' height='1' fill='%23fff'/%3E%3Crect x='10' y='1' width='3' height='1' fill='%23fff'/%3E%3Crect x='1' y='2' width='14' height='2' fill='%23fff'/%3E%3Crect x='0' y='4' width='16' height='1' fill='%23fff'/%3E%3Crect x='1' y='5' width='14' height='1' fill='%23d6e2f5'/%3E%3C/svg%3E")
+        0 0 / 100% 100%;
+    image-rendering: pixelated;
+    opacity: 0.88;
+    pointer-events: none;
+    animation: rt-cloud 48s linear infinite;
+}
+.rt-cloud::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: inherit;
+    filter: brightness(0);
+    opacity: 0.16;
+    transform: translate(18%, 140%);
+}
+.rt-cloud.k1 {
+    top: 8%;
+    animation-delay: -12s;
+}
+.rt-cloud.k2 {
+    top: 44%;
+    width: 12%;
+    animation-duration: 64s;
+    animation-delay: -40s;
+}
+.rt-cloud.k3 {
+    top: 70%;
+    animation-duration: 56s;
+    animation-delay: -24s;
+}
+@keyframes rt-cloud {
+    from {
+        transform: translateX(-110%);
+    }
+    to {
+        transform: translateX(640%);
+    }
+}
+.rt-walker {
+    width: 0;
+    height: 0;
+}
+.rt-mon {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+.rt-mon.fs-gif {
+    height: 30px;
+    transform: translate(-50%, -90%);
+}
+.rt-here {
+    z-index: 35;
+    transform: translate(-50%, -100%);
+    pointer-events: none;
+}
+/* a caixa de fala do FireRed: quem fala naquele trecho da estrada */
+.rt-talk {
+    width: min(640px, 100%);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 12px 6px 6px;
+    background: #f8f8f0;
+    color: #1d1d2c;
+    border: 3px solid #2a2a3c;
+    border-radius: 6px;
+    box-shadow:
+        inset 0 0 0 2px #f8f8f0,
+        inset 0 0 0 4px #7a7a9a,
+        0 4px 0 var(--bc-edge);
+}
+.rt-talk-face {
+    flex: none;
+    width: 48px;
+    height: 48px;
+    overflow: hidden;
+    display: grid;
+    justify-items: center;
+}
+.rt-talk-face img {
+    width: 80px;
+    height: 80px;
+    margin-top: -6px;
+}
+.rt-talk p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.35;
+}
+.rt-talk b {
+    color: var(--red-dark);
+}
+.rt-go {
+    width: min(460px, 100%);
+    min-height: 64px;
+    justify-content: space-between;
+    text-align: left;
+}
+.rt-go .cup-go-txt b {
+    font-size: 20px;
+}
+@media (max-width: 360px) {
+    .rt-go .cup-go-txt b {
+        font-size: 16px;
+    }
+}
+@media (min-width: 1000px) and (min-height: 700px) {
+    .rt-map {
+        width: min(100%, 820px, calc((100dvh - 380px) * 26 / 18));
+    }
+}
+/* deitado: o mapa à esquerda na altura toda, o resto numa coluna ao lado */
+@media (orientation: landscape) and (max-height: 520px) {
+    .rt-ui {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        align-items: start;
+        gap: 8px 12px;
+        padding-top: calc(env(safe-area-inset-top) + 10px);
+    }
+    .rt-map {
+        grid-row: 1 / span 3;
+        grid-column: 1;
+        width: auto;
+        min-width: 0;
+        height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 30px);
+    }
+    .rt-head {
+        grid-column: 2;
+        margin-top: 52px;
+        flex-wrap: wrap;
+    }
+    .rt-head h2 {
+        font-size: 16px;
+    }
+    .rt-talk {
+        grid-column: 2;
+        align-self: center;
+    }
+    .rt-go {
+        grid-column: 2;
+        min-height: 54px;
+    }
+    .rt-go .cup-go-txt b {
+        font-size: 16px;
+    }
+}
+/* deitado e estreito: o mapa vai pro fundo e a fala some (o botão fica no canto do mar) */
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 700px) {
+    .rt-ui {
+        display: flex;
+        padding: 10px 12px;
+    }
+    .rt-map {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        height: calc(100% - 20px);
+    }
+    .rt-talk,
+    .rt-head {
+        display: none;
+    }
+    .rt-go {
+        position: absolute;
+        z-index: 2;
+        right: 12px;
+        bottom: 10px;
+        width: min(250px, 50%);
+        min-height: 52px;
+    }
+    .rt-go .cup-go-txt small {
+        display: none;
+    }
+}
+
+/* ======================================================================================== abas sem ambiente ainda */
+.pl-scene {
+    background: radial-gradient(120% 70% at 50% 0%, var(--pl-glow), var(--bg) 70%);
+}
+.pl-lab {
+    --pl-glow: #1f5a52;
+}
+.pl-arena {
+    --pl-glow: #5a1f4f;
+}
+.pl-sede {
+    --pl-glow: #5a3c1f;
+}
+.pl-glow {
+    display: grid;
+    place-items: center;
+}
+.pl-icon.hud-icon {
+    width: min(80vw, 520px);
+    height: min(80vw, 520px);
+    color: rgb(255 255 255 / 5%);
+    animation: pl-float 6s ease-in-out infinite alternate;
+}
+@keyframes pl-float {
+    to {
+        transform: translateY(-14px);
+    }
+}
+.pl-ui {
+    justify-content: center;
+    padding-bottom: 12vh;
+}
+.pl-title {
+    margin: 4px 0 6px;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 26px;
+    text-align: center;
+}
+.pl-ui .doors {
+    width: min(460px, 100%);
+    grid-template-columns: minmax(0, 1fr);
+}
+.pl-duel {
+    width: min(460px, 100%);
+}
+.pl-vs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: none;
+}
+.pl-vs img {
+    height: 36px;
+}
+.pl-vs img.flip {
+    scale: -1 1;
+}
+.pl-vs b {
+    color: var(--yellow);
+    font-size: 13px;
+}
+.pl-soon {
+    width: min(460px, 100%);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+}
+.pl-soon span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border: 2px dashed var(--line);
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+/* ---------- reduzir movimento: sem paralaxe nem câmera; a troca é um fade de 200 ms ---------- */
+:root[data-reduce-motion="true"] .amb-panel,
+:root[data-reduce-motion="true"] .amb-layer,
+:root[data-reduce-motion="true"] .amb-par {
+    transform: none;
+}
+:root[data-reduce-motion="true"] .amb-panel {
+    opacity: 0;
+    transition: opacity 200ms var(--ease-out);
+}
+:root[data-reduce-motion="true"] .amb-panel.on {
+    opacity: 1;
+}
+:root[data-reduce-motion="true"] .amb *,
+:root[data-reduce-motion="true"] .amb *::before,
+:root[data-reduce-motion="true"] .amb *::after {
+    animation: none;
+}
+:root[data-reduce-motion="true"] .es-led span {
+    transform: translateX(-12%);
+}
+@media (prefers-reduced-motion: reduce) {
+    :root:not([data-reduce-motion="false"]) .amb-panel,
+    :root:not([data-reduce-motion="false"]) .amb-layer,
+    :root:not([data-reduce-motion="false"]) .amb-par {
+        transform: none;
+    }
+    :root:not([data-reduce-motion="false"]) .amb-panel {
+        opacity: 0;
+        transition: opacity 200ms var(--ease-out);
+    }
+    :root:not([data-reduce-motion="false"]) .amb-panel.on {
+        opacity: 1;
+    }
+    :root:not([data-reduce-motion="false"]) .amb * {
+        animation: none;
+    }
+}
+
+/* o que está fora da tela não gasta: animação parada até a aba aparecer (no fim do arquivo: ganha das de cima) */
+.amb .amb-panel:not(.on) *,
+.amb .amb-panel:not(.on) *::before,
+.amb .amb-panel:not(.on) *::after {
+    animation-play-state: paused;
+}
