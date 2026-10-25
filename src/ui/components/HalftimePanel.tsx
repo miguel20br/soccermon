@@ -36,6 +36,16 @@ export function rivalHtSubs(match: MatchResult, team: 0 | 1): HtSub[] {
 }
 
 /**
+ * Dica do intervalo. O mais cansado já aparece no quadro ("Mais cansado") e na sugestão de troca, então não entra
+ * aqui (antes a dica repetia o nome dele pela terceira vez, mesmo sem troca sobrando).
+ */
+export function htTip(myShots: number, rivalShots: number, poss: number, ahead: boolean) {
+    if (rivalShots >= myShots + 3) return 'tipShots';
+    if (poss >= 60 && myShots <= rivalShots) return 'tipPossession';
+    return ahead ? 'tipAhead' : 'tipEven';
+}
+
+/**
  * Intervalo de verdade (estilo Retro Bowl/FM), o vestiário: a partida para, mostra como foi o 1º tempo e uma dica, e o
  * técnico decide (tática e substituição continuam nos controles de sempre). Várias trocas no mesmo intervalo, cada uma
  * com desfazer até o 2º tempo começar, e as do rival à vista. Nada muda sozinho: "Continuar" segue o jogo.
@@ -99,16 +109,10 @@ export function HalftimePanel({
         .map((idx) => ({ idx, energy: snap.p[idx * SNAP_STRIDE + 6] ?? 1 }))
         .sort((a, b) => a.energy - b.energy)[0];
 
-    const tip =
-        tired && tired.energy < 0.4
-            ? t('match.ht.tipTired', { name: nameOf(tired.idx), p: Math.round(tired.energy * 100) })
-            : shots[rival] >= shots[side] + 3
-              ? t('match.ht.tipShots', { a: shots[rival], b: shots[side] })
-              : poss >= 60 && shots[side] <= shots[rival]
-                ? t('match.ht.tipPossession')
-                : ht.score[side] > ht.score[rival]
-                  ? t('match.ht.tipAhead')
-                  : t('match.ht.tipEven');
+    const tip = t(`match.ht.${htTip(shots[side], shots[rival], poss, ht.score[side] > ht.score[rival])}`, {
+        a: shots[rival],
+        b: shots[side],
+    });
 
     return (
         <div className="ht-panel" role="dialog" aria-label={t('match.halftime')}>

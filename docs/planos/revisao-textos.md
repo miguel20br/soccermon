@@ -1,5 +1,5 @@
 ---
-description: Revisão de todos os textos do jogo em PT por blocos (inventário, verificador, blocos 1 e 2 aplicados, propostas do bloco 3).
+description: Revisão de todos os textos do jogo em PT por blocos (inventário, verificador, blocos 1 a 3 aplicados, propostas do bloco 4).
 ---
 
 # Revisão dos textos do jogo (24/10/2026)
@@ -184,9 +184,18 @@ Só onde há melhora real. **Aplicado em 25/10; 2 e 8 recusados** (ficam com o t
 
 ## 6. Bloco 3: Partida, HUD, técnico e letreiros (372 strings)
 
-Propostas, esperando o ok. Só onde há melhora real; números conferidos no motor. Os nomes de efeito do golpe máximo
-que não são nome de golpe (Dois canhões, Voo em chamas, Bola que curva…) ficam. O EN acompanha onde tem o mesmo
-defeito (1, 4, 5, 7, 8, 16).
+**Aplicado em 25/10, as 16** ("ok 1-16"). Os nomes de efeito do golpe máximo que não são nome de golpe (Dois canhões,
+Voo em chamas, Bola que curva…) ficam. O EN acompanhou onde tinha o mesmo defeito (1, 3, 4, 5, 7, 8, 16).
+
+- **5 e 6:** número conferido de novo no motor: o pedido de tempo soma 0,05 ao fôlego de cada jogador de quem pediu e
+  0,03 aos do rival (`AGENCY.timeoutEnergy` e `timeoutRivalEnergy`, aplicados em `applyDeadBallAgency`, teto 100%).
+- **3:** a dica do intervalo virou a função `htTip` no `HalftimePanel` (sem a condição do cansado), com teste em
+  `halftime-tip.test.ts`.
+- **9 a 11, nome oficial do golpe em inglês no resto do PT:** além das assinaturas do `maxFx` (Hyper Beam, Blizzard,
+  Dream Eater, Metronome, Transform) e dos letreiros TRANSFORM! e SUBSTITUTE!, a descrição do Imposter do Ditto
+  (`src/engine/data.ts`) trocou "Transformar:" por "Transform:". A narração já usava os nomes em inglês. Ficam:
+  "transformado" e "nevasca" como palavra comum (no `MOVE_EXPLAIN` do Blizzard, que é do bloco 6), e as assinaturas
+  inventadas (Pancada do Snorlax, Voo em chamas, Estrela de fogo, Raio em cadeia, Telecinese, Tsunami…).
 
 | # | Chave | Hoje | Proposta | Por quê |
 |---|---|---|---|---|
@@ -217,3 +226,36 @@ defeito (1, 4, 5, 7, 8, 16).
 - `ht.tipShots`, `tipPossession`, `tipAhead`, `flyGkHint`, os pops e as faixas (`GOL!`, `QUE DEFESA!`,
   `NA TRAAAVE!`): curtos e com cara de transmissão.
 - `highlightsHint`, `cornerHint`, as dicas da prancheta (`board.hint*`): claras; mexer só encurtaria.
+
+## 7. Bloco 4: Narração (160 strings)
+
+Propostas, esperando o ok. Só onde há melhora real; fatos conferidos no motor. Os golpes na narração já estão todos
+com o nome oficial em inglês. O EN acompanha onde tem o mesmo defeito (1, 6, 7, 8, 11); no 2, 4, 5 e 10 o EN já é
+assim.
+
+| # | Chave | Hoje | Proposta | Por quê |
+|---|---|---|---|---|
+| 1 | `fulltimeDraw` | Fim de jogo! {score} — vamos pros pênaltis! | Fim de jogo! {score}. Vamos pros pênaltis! | travessão (achado do verificador) |
+| 2 | `status.seed` | {x} ficou semeado (perde fôlego aos poucos)!{by} | {x} foi semeado!{by} Vai perdendo fôlego aos poucos. | parêntese explicativo; com o golpe no fim saíam dois parênteses seguidos: "…aos poucos)! (Leech Seed)" |
+| 3 | `special.rage` | {w} fica com RAIVA! Cada pancada deixa mais forte! | {w} fica com RAIVA! Quanto mais apanha, mais forte fica! | "deixa mais forte" sem objeto soa truncado; confere no motor (cada pancada sofrida soma, até 3: `onHurt`, `T.rageMax`) |
+| 4 | `trait.blindMany` | {m} de {w}: {n} rivais sem mira! | {m} de {w}: a precisão de {n} rivais caiu! | exagero: o erro do alvo dobra por uns segundos (`T.blind`); mesma fala do letreiro (bloco 3, item 12) |
+| 5 | `trait.blindOne` | {m} de {w}: {tg} perde a mira! | {m} de {w}: a precisão de {tg} caiu! | idem |
+| 6 | `trait.guard` | {tg} bate e volta: {w} está protegido ({m})! | {tg} tenta o desarme, mas o {m} protege {w}! | parêntese; a linha sai quando o desarme bate no Withdraw, Acid Armor, Clamp ou Skull Bash carregando |
+| 7 | `trait.typeCopy` | {w} usa Conversion e vira do tipo de {tg}! | {w} vira do tipo de {tg}! | sai logo depois de "{w} usa Conversion!" no mesmo lance; o golpe aparecia duas vezes seguidas |
+| 8 | `trait.coins` | Pay Day de {w}: chuva de moedas e todo mundo para pra olhar! | Pay Day de {w}: chuva de moedas e os rivais perto param pra olhar! | só os rivais a até 3 m param (`T.coinRadius`), como no item 14 do bloco 3 |
+| 9 | `haze` | {x} solta Haze: a névoa limpa {n} Pokémon em volta! | {x} solta Haze e limpa {n} Pokémon em volta! | "a névoa" explica o nome do golpe, como no item 15 do bloco 3 |
+| 10 | `debuffMiss` | {w} usa {m}, mas não surte efeito. | {w} usa {m}... mas falhou! | "não surte efeito" é língua escrita; "But it failed!" é a fala dos jogos (o EN já usa) |
+| 11 | `timeout` | Tempo pedido pelo {team}: todo mundo na beira da quadra. | {team} pede tempo! Todo mundo na beira da quadra. | passiva de formulário; a do técnico rival logo abaixo já é "{leader} pediu tempo!" |
+
+### Ficam como estão
+
+- Gritos de gol, chutes, defesas, trave e pra fora (`shouts`, `shots`, `saveCaught`, `post`, `wide`…): cara de
+  transmissão, curtos.
+- Humor de fã: `focusBug`, `noRecharge`, `flavor` ("A torcida não entendeu nada."), `roarMiss`, os dois `splash`.
+- `rageUp` ("({n}/3)"): o parêntese é o placar da fúria, não explicação.
+- `corner` ("Jogada: {play}."): o nome da jogada vem com maiúscula (Na área, Curta); no meio da frase ficaria pior.
+- `olympic` ("…faz a curva no vento!"): confere, o gol olímpico só sai com Gust ou Whirlwind.
+- `penaltyMissed` ("{gk} defende!"): confere, pênalti perdido é sempre defesa na tela.
+- `maxMiss` ("a barra volta pela metade"): confere (`AGENCY.maxRefund` = 0,5).
+- `stoppage` ("Acréscimos: +{min}"), `status` (ficou paralisado, confuso, hesitante…), falas do técnico rival:
+  claras; mexer só encurtaria.

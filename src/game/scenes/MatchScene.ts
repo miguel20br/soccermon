@@ -2843,7 +2843,7 @@ export class MatchScene extends Phaser.Scene {
     private superMove(cap: PlayerView, moveId: string | null, fxType: string | null, tick: number, q: number) {
         const move = moveId ? MOVES[moveId] : undefined;
         const type = fxType ? fxTypeOf(fxType) : (move?.type ?? species(cap.speciesId).types[0]);
-        // assinatura (Hiper Raio, Nevasca…): o nome dela na faixa no lugar do golpe, e a faixa vence as outras
+        // assinatura (Hyper Beam, Blizzard…): o nome dela na faixa no lugar do golpe, e a faixa vence as outras
         const sig = !!fxType && fxType in AGENCY.maxSig;
         const color = hexToNumber(TYPE_COLOR[type] ?? '#ffd447');
         const reduce = !!this.md.reduceMotion;

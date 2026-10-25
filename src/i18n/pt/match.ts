@@ -14,13 +14,13 @@ export const match = {
     added: "+{min}'",
     /** Pressão final: quem perde nos últimos minutos vai pra cima (a mesma regra pros dois times). */
     finalPressure: 'Pressão final',
-    finalPressureHint: 'Quem perde nos últimos 3 minutos ataca com tudo (vale pros dois times)',
+    finalPressureHint: 'Nos últimos 3 minutos, quem está perdendo ataca com tudo. Vale pros dois times.',
     half: ['1º tempo', '2º tempo'],
     subPending: '{in} entrando no lugar de {out}',
     /** No intervalo a troca entra na volta do 2º tempo. */
     subPendingHt: '{in} entra no lugar de {out} no 2º tempo',
     boardPending: 'Mudando pra {formation}',
-    reload: 'A quadra não carregou — recarregar',
+    reload: 'Recarregar a quadra',
     substitute: 'Substituir',
     corner: 'Escanteio',
     cornerHint: 'O que o time tenta no escanteio. Muda quando quiser.',
@@ -96,11 +96,10 @@ export const match = {
         tacticHint: 'Tática também muda agora.',
         /** Sugestão de troca (só abre o Substituir; nada troca sozinho). */
         suggest: '{name} com {p}% de fôlego: trocar?',
-        tipTired: '{name} está cansado: talvez seja hora de trocar.',
         tipShots: 'Eles chutaram {a} vezes, você {b}. Retranca segura o jogo.',
         tipPossession: 'Muita posse e pouco chute: o Ofensivo arrisca mais.',
         tipAhead: 'Você está na frente: segurar ou ampliar?',
-        tipEven: 'Jogo aberto. Siga assim ou mude algo.',
+        tipEven: 'Ainda tem o 2º tempo inteiro.',
         /** Lembrete da evolução do rival no 1º tempo. */
         rivalEvo: 'Rival evoluiu',
         mySubs: 'Suas trocas pro 2º tempo',
@@ -125,7 +124,7 @@ export const match = {
     agency: {
         title: 'Beira da quadra',
         timeout: 'Pedir tempo',
-        timeoutHint: '1 por tempo. Para quando a bola parar: descansa e faz trocas',
+        timeoutHint: '1 por tempo, na próxima bola parada. Seu time recupera 5% de fôlego e o rival, 3%.',
         timeoutUsed: 'Tempo já pedido',
         timeoutPerHalf: '1 por tempo',
         timeoutPending: 'quando a bola parar',
@@ -137,7 +136,7 @@ export const match = {
         /** Charanga de Pewter ligou (o time passou a perder): aviso curto na quadra. */
         charanga: 'A CHARANGA ENTROU',
         maxHint:
-            'Enche com os lances do time. Cheia, acende na hora do chute do capitão (no gol: no chute do rival). Atalho: M.',
+            'Enche com os lances do time. Acende já no N1, quando o capitão chega com a bola perto do gol. Capitão goleiro: quando o rival chega. Atalho: M.',
         maxReady: 'Agora!',
         maxActive: 'No ar!',
         /** Golpe máximo em 3 níveis: gomo, nota do toque na batida. */
@@ -169,19 +168,19 @@ export const match = {
             Dragon: ['Fúria do dragão', 'Fúria!'],
             Fairy: ['Brilho da lua', 'Encantado!'],
             // assinaturas (fase 2)
-            hyperbeam: ['Hiper Raio', 'Atravessou!'],
+            hyperbeam: ['Hyper Beam', 'Atravessou!'],
             bodyslam: ['Pancada do Snorlax', 'Esmagou!'],
             rest: ['Soneca no gol', 'Zzz!'],
             fireblast: ['Estrela de fogo', 'Queimou!'],
-            blizzard: ['Nevasca', 'Congelou!'],
+            blizzard: ['Blizzard', 'Congelou!'],
             hydropump: ['Dois canhões', 'De novo!'],
             flamethrower: ['Voo em chamas', 'Queimou!'],
             thunderbolt: ['Raio em cadeia', 'Paralisou!'],
-            dreameater: ['Come-sonho', 'Dormiu!'],
+            dreameater: ['Dream Eater', 'Dormiu!'],
             psychic: ['Telecinese', 'Curvou!'],
             tsunami: ['Tsunami', 'Fúria!'],
-            metronome: ['Metrônomo', 'Metrônomo!'],
-            transform: ['Transformação', 'Copiou!'],
+            metronome: ['Metronome', 'Metronome!'],
+            transform: ['Transform', 'Copiou!'],
         } as Record<string, [string, string]>,
         maxFxPreview: 'No N3: {x}',
         /** Faixa do especial N3: o golpe é do capitão, o efeito é do tipo dele. */
@@ -190,14 +189,14 @@ export const match = {
         maxSigBy: 'assinatura · {t}',
         timeoutPanel: {
             title: 'Tempo técnico',
-            sub: 'Seu time descansa um pouco. Troca e posições valem agora.',
+            sub: 'Seu time recupera 5% de fôlego. Trocas e posições entram na hora.',
             back: 'Voltar pro jogo',
         },
         pens: {
             title: 'Ordem dos pênaltis',
             hint: 'Quem bate primeiro? Toque em dois pra trocar de lugar.',
             confirm: 'Confirmar ordem',
-            keep: 'Pela ordem do chute',
+            keep: 'Melhor chute primeiro',
             up: 'Subir {name}',
             down: 'Descer {name}',
             gk: 'goleiro',
@@ -343,8 +342,8 @@ export const match = {
         intro: 'Cada clube da copa joga em casa, na quadra do ginásio. As falas aparecem no VERSUS e no fim do jogo.',
         alt: 'Quadra do {club}',
         pre: 'Antes',
-        win: 'Se ganhar',
-        lose: 'Se perder',
+        win: 'Se você perder',
+        lose: 'Se você ganhar',
     },
     vs: {
         yourTeam: 'Seu time',
