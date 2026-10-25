@@ -110,7 +110,7 @@ export const settings = {
     bar: {
         syncing: 'Salvando…',
         saved: 'Salvo na nuvem',
-        error: 'Não deu para salvar na nuvem (o jogo continua salvo neste aparelho)',
+        error: 'Não deu pra salvar na nuvem. Neste aparelho está salvo.',
         signIn: 'Entrar com Google',
         signInFailed: 'Não deu pra abrir o login do Google. Confira a internet.',
         pitch: 'Entre com Google pra salvar na nuvem e jogar em qualquer aparelho.',

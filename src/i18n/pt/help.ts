@@ -569,7 +569,7 @@ export const help = {
     screen: {
         title: 'Ajuda',
         replay: 'Ver o passo a passo de novo',
-        tipsBack: 'Dicas de volta nas telas',
+        tipsBack: 'As dicas voltaram',
         tipsShow: 'Mostrar as dicas de novo',
         searchLabel: 'Buscar na ajuda',
         searchPlaceholder: 'Buscar: evolução, pênaltis, itens…',
@@ -593,7 +593,7 @@ export const help = {
         next: 'Próximo',
         go: 'Bora jogar',
         welcomeTitle: 'Bem-vindo ao Soccermon',
-        welcomeText: 'Os **151 de Kanto** num futsal 5 contra 5. Monte o time e ganhe a copa.',
+        welcomeText: 'Os **151 de Kanto** jogando futsal 5 contra 5. Monte o time e ganhe a copa.',
         draftTitle: 'Draft: 1 de 3',
         draftText: 'Toque numa vaga: saem 3 Pokémon e você leva 1. Não gostou? **Sorteie de novo**.',
         coachTitle: 'Você é o técnico',

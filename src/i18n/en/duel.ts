@@ -5,7 +5,7 @@ export const duel: typeof pt = {
     beta: 'BETA',
     betaNote: 'Duels are in beta: if anything weird happens,',
     betaLink: 'let us know.',
-    line: 'Challenge a friend live: send the link and play together',
+    line: 'Send a friend the link and play live',
     createRoom: 'Create room',
     newDuel: 'New duel',
     newHint: 'Pick the mode and speed, then send the link to your rival.',

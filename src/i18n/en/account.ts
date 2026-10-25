@@ -4,13 +4,13 @@ import type { account as pt } from '../pt/account';
 export const account: typeof pt = {
     bring: {
         title: 'Bring your progress to your account?',
-        text: 'You signed in with Google. This device has guest progress:',
+        text: 'You signed in with Google. This device has a game saved without an account:',
         after: 'It gets saved to the cloud so you can continue on any device.',
         yes: 'Bring to my account',
     },
     merge: {
         title: 'Combine with your account?',
-        text: 'Your account already has a save, and this device has guest progress.',
+        text: 'Your account already has a saved game, and this device has another one.',
         yes: 'Combine and sign in',
     },
     cup: {
@@ -22,7 +22,7 @@ export const account: typeof pt = {
     which: 'Which cup do you want to continue?',
     pickDevice: "Continue this device's cup",
     pickCloud: "Continue the account's cup",
-    parkedNote: 'The other one is kept on the home screen so you can resume it whenever you want.',
+    parkedNote: 'The other one is kept on the home screen.',
     notNow: 'Not now',
     notNowHint: 'Signs you out and leaves this device exactly as it is.',
     device: 'On this device',
@@ -34,7 +34,7 @@ export const account: typeof pt = {
     titles: '{n} title|{n} titles',
     seen: 'Pokédex: {n} seen|Pokédex: {n} seen',
     parked: '{n} saved cup|{n} saved cups',
-    otherAccount: "This device had another account's save; it's still kept in that account.",
+    otherAccount: "This device had another account's game. It's still saved there.",
     ok: 'OK',
     parkedLabel: 'Saved cup',
     resumeParked: 'Resume',

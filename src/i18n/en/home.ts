@@ -3,7 +3,7 @@ import type { home as pt } from '../pt/home';
 export const home: typeof pt = {
     soon: [
         { title: 'Story mode', text: 'Gyms, badges and the Indigo League' },
-        { title: 'Ultimate Team', text: 'Your season squad, built by opening packs' },
+        { title: 'Ultimate Team', text: 'Open packs and build your season squad' },
         { title: 'Full-size football', text: '11-a-side matches' },
         { title: 'Generation 2', text: 'The Pokémon of Johto' },
     ],
@@ -15,7 +15,7 @@ export const home: typeof pt = {
     choosingReward: 'Choosing the reward',
     atMarket: 'At the Market',
     eventWeek: '{type}-type week',
-    eventText: '{type}-type Event cards may show up in the draft.',
+    eventText: '{type} Event cards can turn up in the draft.',
     helpAria: 'How to play (see the walkthrough again)',
     helpTitle: 'How to play',
     live: 'LIVE',
@@ -33,7 +33,7 @@ export const home: typeof pt = {
     quickCup: {
         tag: '4 matches',
         title: 'Lightning Cup',
-        line: 'A 4-match knockout, quick and direct.',
+        line: 'Knockout from the round of 16 to the final.',
     },
     longCup: {
         tag: '8 matches',
@@ -54,13 +54,13 @@ export const home: typeof pt = {
     tiles: {
         moves: ['Movedex', "The moves you've seen on the court"],
         help: ['Help', 'How to play and every mechanic'],
-        news: ['Patch notes', 'What changed in version {v}'],
+        news: ["What's new", 'What changed in version {v}'],
         settings: ['Settings', 'Sound, cries and effects'],
         credits: ['Credits', 'Sprites, sounds and data'],
         feedback: ['Send feedback', 'Idea, praise or bug: tell us'],
         cards: ['Cards (test)', 'Development gallery'],
     },
-    news: 'Patch notes',
+    news: "What's new",
     doors: {
         profile: ['Profile', 'Trainer, club and friends'],
         collection: ['Collection', 'Pokédex, Album and Movedex'],
