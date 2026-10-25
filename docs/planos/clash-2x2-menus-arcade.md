@@ -16,7 +16,7 @@ de Home, Perfil, Coleção, Sala de troféus, Duelo, Mercado e mapa da Rota; e p
 | Pedido | Recomendação | Custo | Mexe no motor? |
 |---|---|---|---|
 | 2x2 | **Dupla dividindo um time**: primeiro com parceiro IA (offline), depois com amigo por link (4 na sala do Duelo) | 3–4 dias + 8–12 dias | não |
-| Menus | **Caminho 2: barra de abas embaixo com Jogar no centro**, deslizando de lado | 6–9 dias | não |
+| Menus | **Cada modo é um lugar** (visão do Miguel): barra de 5 abas embaixo, arrastar de lado, cada aba um ambiente animado (Laboratório, Rota, **Estádio no centro**, Arena, Sede do clube), em etapas | 6–9 dias (barra) + 13–19 dias (ambientes) | não |
 | Arcade | Começar por **Monotipo**, **Draft às cegas** e **Pênaltis sem fim**, um por semana numa vaga fixa "Arcade da semana" | 2–4 dias cada | só Pênaltis (flag nova) |
 
 ---
@@ -142,148 +142,296 @@ exige latência baixa e o Duelo hoje troca ordens com segundos de antecedência.
 
 ---
 
-## 2. Menus estilo Clash Royale
+## 2. Menus: cada modo é um lugar
+
+### A visão do Miguel (25/10/2026)
+
+> "O maior problema dos menus atuais é que falta propósito. Cada menu com uma tela própria: uma tela própria pra
+> Rota Índigo, com ambientação e etc; aí você arrasta pro lado ou clica em outro modo mostrado na parte de baixo e a
+> tela desliza pra outro 'ambiente' bonitinho animado. O jogo tá ótimo mas super desorganizado, uma bagunça, e não
+> tá retendo o povo."
+
+Esse é o eixo desta parte. A barra de abas do Clash é o **como navegar**; os **ambientes** são o **porquê**: cada
+tela é um lugar de Kanto com um propósito só, um botão principal e um motivo pra voltar amanhã.
 
 ### Diagnóstico (prints a 390x844, save cheio)
 
 O que os prints mostram:
 
-1. **A Home tem 2 telas de altura (1.689 px).** A primeira tela mostra só Rota e Relâmpago. Logo, frase e o campo
+1. **A Home é uma lista de cartões iguais.** Rota, Relâmpago, Duelo e Copa do Dia têm o mesmo painel azul com borda
+   amarela. Nada diz "aqui é a estrada até o Planalto Índigo" ou "aqui é o estádio". É isso que o Miguel chama de
+   falta de propósito.
+2. **A Home tem 2 telas de altura (1.689 px).** A primeira tela mostra só Rota e Relâmpago. Logo, frase e o campo
    "Nome do seu time" ocupam ~350 px antes do primeiro modo.
-2. **Duelo e Copa do Dia ficam abaixo da dobra.** Perfil, Coleção e Sala de troféus ficam no fim da 2ª tela, depois
+3. **Duelo e Copa do Dia ficam abaixo da dobra.** Perfil, Coleção e Sala de troféus ficam no fim da 2ª tela, depois
    da fileira "Vem aí" (5 cadeados ocupando uma linha inteira).
-3. **Perfil tem 6,6 telas** (1 tela de cartão, depois as 63 missões em lista). A Coleção tem 4,4 (a grade da
+4. **Perfil tem 6,6 telas** (1 tela de cartão, depois as 63 missões em lista). A Coleção tem 4,4 (a grade da
    Pokédex). A Sala cabe em 1 tela, mas as seções dela são chips que vazam pra direita.
-4. **O Perfil repete as portas** de Sala de troféus e Coleção logo abaixo do cartão.
-5. **Dois "voltar" em toda tela de menu:** o logo ("Voltar ao início") e a seta. E o avatar de cima também leva
+5. **O Perfil repete as portas** de Sala de troféus e Coleção logo abaixo do cartão.
+6. **Dois "voltar" em toda tela de menu:** o logo ("Voltar ao início") e a seta. E o avatar de cima também leva
    ao Perfil.
-6. **Duelo: 4 escolhas antes de criar a sala** (modo, velocidade, duração, número de jogos), e na primeira visita um
+7. **Duelo: 4 escolhas antes de criar a sala** (modo, velocidade, duração, número de jogos), e na primeira visita um
    balão de tour por cima. Na Home e no Duelo o balão do tour bloqueia o resto da tela até ser fechado (o robô do
    teste travou nele).
-7. **Mercado e mapa da Rota estão bem:** são telas de dentro da copa, com uma ação clara e o botão **Seguir** fixo
-   embaixo, na zona do polegar. É o padrão que falta no resto.
+8. **O que já tem ambiente funciona:** o mapa da Rota (faixas de Rota 1, Floresta de Viridian, Mt. Moon, com o Prof.
+   Carvalho falando) e a Sala de troféus (o quarto à noite) são as telas com mais cara de jogo. O Mercado tem uma
+   ação clara e o **Seguir** fixo embaixo, na zona do polegar. É o padrão que falta no resto.
 
 Toques a partir da Home (celular em pé):
 
-| Destino | Hoje | Com barra de abas (caminho 2) |
+| Destino | Hoje | Com ambientes e barra |
 |---|---|---|
-| Nova Rota / nova Relâmpago | 1 | 1 |
-| Continuar copa | 1 (cartão "Copa em andamento") | 1 |
-| Copa do Dia | rolar 1 tela + 1 | 1 (seletor de modo) ou 1 deslize |
-| Duelo (até mandar o link) | rolar + 1 + 4 escolhas + Criar sala | 2 (Duelo + Criar sala com o padrão já marcado) |
-| Perfil | 1 (avatar) ou rolar 2 telas + 1 | 1 |
-| Pokédex | rolar 2 telas + 1 | 1 |
+| Nova Rota / nova Relâmpago | 1 | 1 (deslizar até o ambiente e tocar no botão principal, ou 1 se for o centro) |
+| Continuar copa | 1 (cartão "Copa em andamento") | 1 (o centro sempre mostra) |
+| Copa do Dia | rolar 1 tela + 1 | 1 (fica no placar do Estádio) |
+| Duelo (até mandar o link) | rolar + 1 + 4 escolhas + Criar sala | 2 (aba Arena + Criar sala com o padrão marcado) |
+| Perfil | 1 (avatar) ou rolar 2 telas + 1 | 1 (aba Sede) |
+| Pokédex | rolar 2 telas + 1 | 1 (aba Laboratório) |
 | Álbum / Golpedex | rolar 2 telas + 2 | 2 |
 | Medalhas | rolar 2 telas + 2 | 2 |
-| Missões | 1 + rolar ~1 tela | 2 (aba própria) |
-| Notas da versão | rolar até o rodapé + 1 | 2 (Perfil → engrenagem/sobre) |
+| Missões | 1 + rolar ~1 tela | 2 (quadro de avisos da Sede) |
+| Notas da versão | rolar até o rodapé + 1 | 2 (engrenagem → Sobre) |
 
-### O que o Clash faz
+### Referências: hub por ambiente
 
-- **Barra fixa embaixo com 5 telas lado a lado** (Loja, Cartas, Batalha, Social/Clã, Eventos), e dá pra deslizar o
-  dedo entre elas. Abre sempre na do meio.
-- **Batalha é o botão maior, no centro, na metade de baixo**, ao alcance do polegar com uma mão.
-- **Baús e recompensas sempre à vista** na tela de batalha: você sabe o que vem a seguir sem abrir menu.
-- **Quase nada passa de 1 nível.** Janelas não ocupam a tela toda e fecham tocando fora.
-- **Cartas e ícones grandes**, pouco texto.
-- O Clash refez a Home e o Perfil em 2022 (o Perfil virou "Social"); o Clash of Clans fez o mesmo depois.
-- Thumb zone (Hoober/Smashing): a ação principal no terço de baixo da tela, navegação embaixo e não em cima.
+- **Clash Royale:** barra fixa embaixo com 5 telas lado a lado (Loja, Cartas, Batalha, Social, Eventos), dá pra
+  deslizar o dedo entre elas e abre sempre na do meio. Batalha é o botão maior, no centro, ao alcance do polegar.
+  Baús e recompensas à vista. Quase nada passa de 1 nível; janelas fecham tocando fora. E o principal pra nós: **a
+  tela de Batalha mostra a sua arena**, e cada arena tem tema próprio (Estádio dos Goblins, Fosso dos Ossos, Arena
+  da Selva…) liberado por troféus. O fundo é o seu progresso.
+- **Brawl Stars:** a Home mostra o seu brawler parado no cenário e um botão Jogar amarelo enorme; o seletor de modo
+  fica do lado do Jogar. A crítica de UX da Pratt aponta o problema contrário ao nosso: botão demais em volta.
+- **Pokémon (as cidades):** cada cidade tem cor, música e função (Centro, Mart, ginásio). O Centro Pokémon é igual em
+  todo lugar (mesma função, mesmo balcão) e a cidade em volta muda. É o modelo: **função fixa, ambiente próprio**.
+- **Menus diegéticos** (Hearthstone com a caixa de madeira, o Pip-Boy do Fallout, mesas e escritórios como menu):
+  o menu é um objeto do mundo. Funciona quando a ação principal continua óbvia; vira bagunça quando tudo é objeto
+  clicável sem rótulo. Por isso cada ambiente aqui tem **um botão grande com texto**, e o cenário é fundo.
+- **Thumb zone** (Hoober/Smashing): ação principal no terço de baixo, navegação embaixo.
 
-Adaptado pro Soccermon: **não temos loja nem baú** (ADR 0006, sem dinheiro nenhum). O equivalente do "baú à vista" é o
-**próximo desbloqueio**: o próximo treinador ou título ("Treinador Ás: 3/5 copas"), a Copa do Dia de hoje e o
-progresso da Pokédex.
+Adaptado pro Soccermon: **não temos loja nem baú** (ADR 0006, sem dinheiro nenhum). O "baú à vista" vira o
+**próximo desbloqueio** (o próximo treinador ou título, "Treinador Ás: 3/5 copas"), a **sequência da Copa do Dia**
+(os quadradinhos S T Q Q S S D que já existem em `src/store/daily.ts`) e o **progresso da Pokédex**.
 
-### Caminho 1: Faxina com botão de jogar (pequeno)
+### Brainstorm: os ambientes
 
-Mantém uma Home só, sem barra, mas o principal cabe na 1ª tela.
+#### A barra e a ordem
+
+```
+ ← desliza →
+┌────────┬────────┬────────┬────────┬────────┐
+│ Labora-│  Rota  │ ESTÁDIO│ Arena  │  Sede  │
+│ tório  │ Índigo │ (maior)│        │do clube│
+└────────┴────────┴────────┴────────┴────────┘
+ Coleção   modo     entrada  Duelo,   Perfil,
+           longo    Relâmp.  2x2,     Sala de
+                    + Dia    Arcade,  troféus,
+                             Liga     Clube
+```
+
+- **Centro (tela de entrada): o Estádio.** É onde está o jogo rápido (Relâmpago), o "continuar copa" de qualquer
+  modo e a meta do dia (Copa do Dia no placar). Quem abre o jogo pela primeira vez cai nele e joga em 1 toque, como
+  o funil da 0.9.18 já quer.
+- **Esquerda = o que é seu de longo prazo** (Laboratório: coleção; Rota: a campanha). **Direita = os outros**
+  (Arena: amigos e rivais; Sede: o seu clube e o que você ganhou).
+- Ícones desenhados (o kit `HudIcon` e SVG), rótulo sempre embaixo do ícone, alvo de 44 px, pontinho de novidade
+  por aba (já existe: `NEWS_DOORS` em `src/store/news.ts`).
+- A barra **some dentro da copa e da partida** (como no Clash na batalha). Dentro da copa, as telas de passagem
+  (draft, escalação, mercado) também ganham ambiente (lista no fim).
+
+#### 1. Estádio (centro): Copa Relâmpago e Copa do Dia
 
 ```
 ┌──────────────────────────────┐
-│ [?]          [engr] [avatar] │
-│      SOCCERMON (menor)       │
+│ Pallet FC      121/151 [engr]│
+│  ▓▓▓ PLACAR ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  │  placar eletrônico:
+│  COPA DO DIA  S T Q · · · ·  │  sequência da semana
+│  [ Jogar hoje ]              │
+│ ░░░ arquibancada (torcida) ░░│
+│   ═══ quadra vista do túnel ═│
+│        (capitão quicando)    │
 │  ┌────────────────────────┐  │
-│  │ Copa em andamento      │  │  (só se tiver)
+│  │ Copa em andamento  >   │  │  (só se tiver)
 │  └────────────────────────┘  │
-│  < Rota | Relâmpago | Dia | Duelo >   seletor de modo
 │  ┌────────────────────────┐  │
-│  │   JOGAR  Rota Índigo   │  │  botão grande, polegar
-│  └────────────────────────┘  │
-│ Próximo: Treinador Ás 3/5    │
-│ [Perfil] [Coleção] [Sala]    │  3 portas em linha
-└──────────────────────────────┘
-  rolando: Vem aí (1 linha pequena), rodapé
-```
-
-- **Muda:** nome do time sai da Home (vai pra Escalação e Perfil); logo e quadra menores; 4 modos num seletor
-  (deslizar ou tocar) com um botão JOGAR só; portas sobem pra 1ª tela; "Vem aí" vira uma linha pequena; Perfil para
-  de repetir as portas; o logo deixa de ser "voltar".
-- **Custo:** 2–3 dias. **Risco:** baixo. Não resolve as telas longas (Perfil 6,6 telas).
-
-### Caminho 2: Barra de abas embaixo, Jogar no centro (recomendado)
-
-```
-┌──────────────────────────────┐
-│ Pallet FC  ·  121/151  [engr]│  topo fino: time, Pokédex
-│                              │
-│      (quadra + logo)         │
-│  ┌────────────────────────┐  │
-│  │ Copa em andamento  >   │  │
-│  └────────────────────────┘  │
-│  < Rota | Relâmpago | Dia >  │
-│  ┌────────────────────────┐  │
-│  │        JOGAR           │  │
+│  │  NOVA COPA RELÂMPAGO   │  │  botão principal
 │  └────────────────────────┘  │
 │  Próximo: Treinador Ás 3/5   │
 ├──────┬──────┬──────┬──────┬──┤
-│Coleç.│Arcade│ JOGAR│ Sala │Eu│  barra fixa, ícones grandes
-└──────┴──────┴──────┴──────┴──┘
 ```
 
-As 5 abas (deslizar de lado troca de aba, como no Clash):
+- **A tela:** a boca do túnel do vestiário olhando pra quadra; arquibancada com a torcida (sprites pequenos
+  balançando), refletores; o seu capitão quicando a bola no meio. Em cima, o placar eletrônico com a Copa do Dia. A
+  torcida e a faixa levam a cor do clube.
+- **Propósito:** jogar agora. Partida rápida e a meta do dia.
+- **Botão principal:** Nova copa (ou Continuar, se tiver uma aberta).
+- **Retenção:** placar com a sequência da semana (vontade de não quebrar), "Próximo desbloqueio" com barra, e o
+  estádio cresce com as copas ganhas (quadra de escola → ginásio → arena), como as arenas do Clash.
+- **Reaproveita:** `HomeCourt` (a quadrinha da Home), o cartão da Copa do Dia (`HomeDailyCard`) e a sequência
+  (`dailyStreak`), sprites PMD da quadra, a cor do clube do Perfil.
+- **Custo:** 3–4 dias (arte da cena em camadas + tela).
 
-| Aba | O que tem | Vem de |
+#### 2. Rota Índigo: a estrada de Kanto
+
+```
+┌──────────────────────────────┐
+│  ROTA ÍNDIGO     insígnias   │
+│  ○ ○ ● ○ ○ ○ ○ ○             │  8 insígnias, as ganhas acesas
+│  ~~ mapa de Kanto em pixel ~~│
+│  Pallet ─ Viridian ─ Pewter  │
+│     \        (você aqui)     │  o seu time andando na trilha
+│   Cerulean ─ ... ─ Planalto  │
+│  [Carvalho]: "Já pensou em   │
+│   encarar a Misty?"          │
+│  ┌────────────────────────┐  │
+│  │  CONTINUAR: MT. MOON   │  │  ou "Começar a Rota"
+│  └────────────────────────┘  │
+├──────┬──────┬──────┬──────┬──┤
+```
+
+- **A tela:** o mapa de Kanto (traço FireRed), com as cidades dos 8 ginásios, a trilha até o Planalto e o seu time
+  (3 sprites) parado onde você parou. Os líderes já vencidos aparecem na porta do ginásio; os outros, em silhueta.
+- **Propósito:** a campanha. "Onde eu parei e quem vem agora."
+- **Botão principal:** Começar a Rota / Continuar (com o nome do trecho).
+- **Retenção:** progresso visível (insígnias, o time andando no mapa), o próximo líder sempre com nome e rosto, e a
+  fala do Carvalho mudando com o momento.
+- **Reaproveita:** o mapa da copa longa (`CupMap.tsx`, `long-cup.css`, as faixas de região), os sprites dos líderes
+  (`GYM_LEADERS`, `public/assets/trainers`), a caixa de fala do Carvalho e as falas de `docs/planos/rota-textos.md`.
+- **Custo:** 3–5 dias (o mapa de Kanto inteiro é arte nova; o resto existe).
+
+#### 3. Arena: Duelo, 2x2, Arcade e Liga
+
+```
+┌──────────────────────────────┐
+│   ARENA          [código?]   │
+│ ▒▒ quadra à noite, 2 lados ▒▒│
+│ [seu capitão]  VS  [ ? ]     │  luz na cor de cada time
+│                              │
+│  ┌──────────┐ ┌──────────┐   │
+│  │ DUELO 1x1│ │ DUPLA 2x2│   │
+│  └──────────┘ └──────────┘   │
+│  ARCADE DA SEMANA: Monotipo  │  cartaz de neon
+│  [ Jogar ]                   │
+│  LIGA  abre em 37 dias       │
+├──────┬──────┬──────┬──────┬──┤
+```
+
+- **A tela:** uma quadra de rua à noite, dividida ao meio; o seu capitão de um lado, uma silhueta do outro
+  ("quem vai encarar?"). Do lado, um cartaz de neon de fliperama com o Arcade da semana (homenagem ao Game Corner
+  de Celadon).
+- **Propósito:** jogar contra gente e coisa diferente.
+- **Botão principal:** Criar sala (Duelo) com as regras recolhidas; 2x2 e Arcade como cartões grandes.
+- **Retenção:** Arcade novo toda segunda, "Fulano te desafiou" aparece aqui (a silhueta vira o avatar dele), recorde
+  da semana no cartaz, contagem da Liga.
+- **Reaproveita:** a tela do Duelo inteira (`src/ui/duel/`), a arte do VS (cartas 25 e 133 da Home), o desafio de
+  amigo (`FriendChallenge`), a Liga (`Liga.tsx`, ainda fechada).
+- **Custo:** 2–3 dias.
+
+#### 4. Laboratório do Carvalho: Coleção
+
+```
+┌──────────────────────────────┐
+│  LABORATÓRIO     121/151     │
+│ [estante][estante][máquina]  │  estantes cheias conforme
+│   ▯▯▯▯▯    ▯▯▯     (PC)      │  a Pokédex enche
+│      mesa com a Pokédex      │
+│  [Pokédex] [Álbum] [Golpedex]│  3 objetos grandes, com nome
+│  "Faltam 30. Nesta semana    │
+│   aparecem mais do tipo Água"│
+├──────┬──────┬──────┬──────┬──┤
+```
+
+- **A tela:** o laboratório de Pallet: estantes, a mesa com a Pokédex, o PC. As estantes vão enchendo de livros e
+  pokébolas conforme a Pokédex cresce; o álbum de figurinhas aberto na mesa.
+- **Propósito:** completar a coleção.
+- **Botão principal:** abrir a Pokédex; Álbum e Golpedex como os outros dois objetos.
+- **Retenção:** a dica de "o que falta e onde achar" (casa com a Semana do tipo), contador grande, platina à vista.
+- **Reaproveita:** a Coleção inteira (`Collection.tsx`, Pokédex, Álbum, Golpedex), o Carvalho da Rota, o kit de
+  móveis já no projeto (Modern Interiors da LimeZu em `public/assets/room/mi`, KayKit em `room/kaykit`).
+- **Custo:** 2–3 dias.
+
+#### 5. Sede do clube: Perfil, Sala de troféus, Clube e Amigos
+
+```
+┌──────────────────────────────┐
+│  SEDE DO PALLET FC   nível 2 │
+│ ▒ a sala de troféus (cena) ▒ │  o quarto que já existe
+│  [vitrine][vitrine][quadro]  │
+│      (seu Pokémon andando)   │
+│  ┌──────────┐ ┌──────────┐   │
+│  │ Treinador│ │  Clube   │   │  escudo, uniforme, faixa
+│  └──────────┘ └──────────┘   │
+│  [Quadro de missões 19/63]   │
+│  [Amigos 3 online]           │
+├──────┬──────┬──────┬──────┬──┤
+```
+
+- **A tela:** a Sala de troféus que já existe vira a sede do clube (o nível da sala já sobe de quarto do Red →
+  sede → vestiário do estádio). Na parede: o escudo e a camisa do clube, o quadro de missões, o mural de amigos.
+- **Propósito:** quem eu sou e o que eu ganhei, num lugar só. Junta o Perfil (hoje 6,6 telas) e a Sala.
+- **Botão principal:** não tem jogar; cada móvel abre a sua seção (como a sala faz hoje), com nome embaixo.
+- **Retenção:** a sala muda de nível com os títulos, a medalha mais perto de sair fica à vista, missões viram um
+  quadro com 3 em destaque em vez de lista de 63.
+- **Reaproveita:** `TrophyRoom.tsx`, `TrophyRoomScene.ts` (Phaser, luz 2D) ou o canvas de `RoomScene.tsx`, o
+  Perfil (`Profile.tsx`: Treinador, Clube, Amigos), `doors.ts` pros links antigos.
+- **Custo:** 3–4 dias (juntar Perfil e Sala é mais mudança de tela que arte).
+
+#### Dentro da copa (sem barra)
+
+| Tela | Ambiente | Reaproveita | Custo |
+|---|---|---|---|
+| Draft | a peneira: os 3 Pokémon chegando pela lateral da quadra de treino | cartas e `Draft.tsx` | 1–2 dias |
+| Escalação | o vestiário: a prancheta na parede, armários com os nomes | `Lineup.tsx`, `Prancheta` | 1–2 dias |
+| Mercado | o Poké Mart: balcão, vendedor, cartas na vitrine | `Shop.tsx` | 1–2 dias |
+| Evento, Treino, Baú | as casas do mapa da Rota, cada uma com o fundo da região | `CupMap.tsx` | 1 dia cada |
+| Ginásio | a porta do ginásio do líder antes do VS | sprites dos líderes | 1 dia |
+
+### Navegação entre ambientes
+
+- **Trocar de aba (tocar ou arrastar):** a tela desliza de lado em **250–300 ms**, com o fundo em 3 camadas andando
+  em velocidades diferentes (céu devagar, cenário médio, botões junto do dedo). Arrastar acompanha o dedo e solta
+  pro lado mais perto. É a regra do ADR 0004 (nada teleporta) do jeito que o Miguel descreveu.
+- **Entrar num modo** (tocar em Nova copa, Começar a Rota): aí vale uma transição **mais longa e com cara de
+  cinema, 600–900 ms**: a câmera anda pelo túnel até a quadra, ou o time dá o primeiro passo na estrada. Toque
+  pula. É um "evento grande" no sentido das regras de design, mas é exceção aos 200–300 ms do ADR 0004 e precisa do
+  seu ok.
+- **Reduzir movimento:** sem paralaxe nem câmera; troca por fade de 200 ms.
+- **Celular deitado (844x390):** a barra vira coluna estreita à esquerda. **Desktop:** a barra fica embaixo,
+  centralizada, e os ambientes ocupam a coluna central com o cenário se estendendo dos lados.
+
+### A parte técnica que pesa
+
+- **Phaser fora da primeira carga** (Armadilhas do CLAUDE.md): a Home não pode importar `phaser`. Então os ambientes
+  são **camadas de pixel art (PNG) com CSS** (paralaxe, sprites animados por `steps()`), como a `HomeCourt` já faz.
+  Phaser só onde já está (partida e sala de troféus, carregado na hora).
+- **Peso:** cada ambiente carrega a arte quando a aba fica vizinha da atual (o Estádio vem na primeira carga, o
+  resto depois). Meta: o Estádio com menos de ~150 KB de arte.
+- **Arte é o custo de verdade.** Direção sugerida: o traço FireRed (16 px, contorno escuro) que já está na sala e
+  nos treinadores, com os Pokémon em sprite PMD. Nada copiado de tile de jogo; desenhado por nós ou dos kits que já
+  estão no projeto (LimeZu, KayKit).
+
+### Como isso ajuda a reter
+
+| Gancho | Onde mora | O que já existe |
 |---|---|---|
-| **Coleção** | Pokédex, Álbum, Golpedex (abas de cima, como hoje) | porta Coleção |
-| **Arcade** | Duelo (e 2x2), Copa do Dia, o Arcade da semana, Liga quando abrir, "Vem aí" no fim | cartões do Duelo e do Dia, fileira Vem aí |
-| **Jogar** (centro, abre aqui) | continuar copa, seletor Rota/Relâmpago, JOGAR, próximo desbloqueio | Home |
-| **Sala** | Sala de troféus como hoje (quarto + Troféus, Medalhas, Números) | porta Sala |
-| **Eu** | cartão público, Treinador, Missões (aba própria em vez de lista de 6 telas), Clube, Amigos; Notas da versão, Ajuda e Créditos no fim | Perfil + rodapé |
+| Meta diária | placar do Estádio (Copa do Dia + sequência) | `dailyStreak`, texto estilo Wordle |
+| Progresso visível | insígnias e o time andando no mapa da Rota; estantes do Laboratório; nível da Sede | `CupMap`, Pokédex, nível da sala |
+| Próxima recompensa | "Próximo: Treinador Ás 3/5" no Estádio; medalha mais perto na Sede | missões e medalhas |
+| Novidade semanal | Arcade da semana no cartaz da Arena, Semana do tipo no Laboratório | Semana do tipo |
+| Social | "Fulano te desafiou" na Arena, amigos online na Sede | amigos, desafio por link |
+| Saber onde está cada coisa | um lugar, um propósito, um botão | (é o que falta hoje) |
 
-- **Regras:** a barra some dentro da copa e da partida (como no Clash na batalha); trocar de aba desliza a tela
-  inteira em 250 ms, o marcador da aba desliza junto (o `tab-slide.ts` já faz isso nas `.bc-tabs`); Reduzir
-  movimento troca o deslize por um fade de 200 ms; ícones desenhados (o kit `HudIcon` e os SVG de hoje, sem emoji);
-  alvo de toque de 44 px; o rótulo da aba sempre aparece embaixo do ícone (não só ícone).
-- **Celular deitado (844x390):** a barra vira uma coluna estreita à esquerda, senão come 15% da altura.
-  **Desktop:** a barra fica embaixo, centralizada na largura da coluna (como no Clash no tablet).
-- **Duelo:** "Criar sala" já com o padrão marcado (Disputa, 4x, normal, 1 jogo) e as 4 escolhas recolhidas em
-  "Regras da sala". Dois toques até o link.
-- **Tour/coach:** os balões apontam pras abas novas e não bloqueiam a tela inteira.
-- **Links antigos** (`?perfil=medalhas`, `?aba=`) continuam via `src/ui/doors.ts`.
-- **Custo:** 6–9 dias (Home nova, componente da barra com deslize, mudar 4 telas pra viverem dentro de aba, textos
-  PT/EN, prints em 320/390/deitado/desktop, teleporte). **Risco:** médio. É a mudança que mais muda o jeito de
-  usar; vale um protótipo atrás de bandeira (`?lab=abas`) pra você mexer antes.
+### Caminhos pra chegar lá
 
-### Caminho 3: Três abas (Jogar, Coleção, Eu)
+| Caminho | O que é | Custo | Risco |
+|---|---|---|---|
+| **1. Faxina** | Home única: logo menor, seletor de modo e um JOGAR grande na 1ª tela, portas sobem, nome do time sai da Home, "Vem aí" vira uma linha | 2–3 dias | baixo; não resolve o "sem propósito" |
+| **2. Barra de abas, telas simples** | A barra de 5 abas e o deslize, cada aba com fundo de cor e ícone grande, sem cenário ainda | 6–9 dias | médio |
+| **3. Ambientes (a visão do Miguel, recomendado)** | O caminho 2 + um ambiente por aba, em etapas: Estádio e Rota primeiro, depois Arena, Laboratório e Sede, e por último as telas de dentro da copa | 6–9 dias (barra) + 13–19 dias (5 ambientes) + 6–9 dias (dentro da copa) | médio-alto, mas cada etapa já sai melhor que hoje |
 
-```
-├──────────┬──────────┬──────────┤
-│ Coleção  │  JOGAR   │    Eu    │
-└──────────┴──────────┴──────────┘
-```
-
-- **Como:** só 3 abas, maiores. Jogar tem todos os modos (Rota, Relâmpago, Dia, Duelo, Arcade) num carrossel de
-  cartões grandes. **Eu** junta Perfil e Sala de troféus (o cartão público já mostra as taças; a sala vira a
-  primeira seção do Eu).
-- **Muda:** menos coisas pra aprender; o Perfil e a Sala param de se sobrepor. Perde o lugar próprio dos modos
-  arcade, que ficam espremidos no carrossel.
-- **Custo:** 5–7 dias. **Risco:** médio; juntar Perfil e Sala desfaz parte das "três portas" decididas em 20/10.
-
-### Recomendação
-
-**Caminho 2.** É o que mais se parece com o que você pediu, dá casa pros modos arcade e pro 2x2 (aba Arcade) e
-corta os dois maiores problemas: coisa importante abaixo da dobra e telas de 6 telas de altura. Se quiser algo já
-na próxima versão sem risco, o Caminho 1 é um passo que não se perde (o seletor de modo e o JOGAR grande são os
-mesmos do 2).
+**Recomendação: caminho 3 em etapas.** Primeira entrega: a barra + **Estádio** (centro) + **Rota**, atrás de bandeira
+(`?lab=ambientes`) pra você arrastar no celular antes de trocar a Home. As outras 3 abas entram primeiro como telas
+simples (caminho 2) e ganham o ambiente uma por versão, o que casa com o ritmo de "versões menos frequentes e
+polidas, trailerzinho por versão": cada ambiente novo é um trailerzinho pronto.
 
 ---
 
@@ -297,7 +445,7 @@ o Hades tem o Pacto (você escolhe a dificuldade e ganha mais); o Wordle viraliz
 spoiler.
 
 O que funciona em todos: **uma regra só, com nome**, que muda o que é "bom", e **rotação** (volta depois, dá
-saudade). Proposta de formato: **uma vaga fixa "Arcade da semana"** na aba Arcade, trocando toda segunda, junto da
+saudade). Proposta de formato: **uma vaga fixa "Arcade da semana"** no cartaz de neon da Arena, trocando toda segunda, junto da
 "Semana do tipo" que já existe.
 
 | # | Modo | Regra em 1 linha | Por que diverte / viraliza | Custo | Motor? |
@@ -305,7 +453,7 @@ saudade). Proposta de formato: **uma vaga fixa "Arcade da semana"** na aba Arcad
 | 1 | **Monotipo** | Copa sem fim só com Pokémon do tipo da semana: vai até perder | "fui até 9 vitórias com time só de Inseto" é post pronto; casa com a Semana do tipo | 2–3 dias | não (filtro no draft) |
 | 2 | **Draft às cegas** | As cartas vêm viradas (só tipo e posição); a nota aparece na escalação | a revelação dá clipe ("tirei um Magikarp de pivô"); zero balanceamento | 1–2 dias | não |
 | 3 | **Pênaltis sem fim** | Seu time cobra e defende contra a IA em morte súbita até errar | 1 minuto por tentativa, recorde fácil de comparar, ótimo pro TikTok | 3–4 dias | sim: flag nova "só pênaltis" (não muda partida normal) |
-| 4 | **Grade do Dia** | A Copa do Dia que já existe ganha um resultado em quadradinhos (V, E, D, gols) pra compartilhar | o efeito Wordle sem spoiler; puxa o jogador todo dia | 1 dia | não |
+| 4 | **Mata-mata de capitães** | A cada partida você escolhe só o capitão (1 de 3) e o resto do time é sorteado; perdeu, acabou | partida atrás de partida sem draft longo; "quantos capitães você aguenta?" | 2 dias | não |
 | 5 | **Espelho** | Os dois times iguais (no Duelo ou contra a IA): só a tática e a escalação decidem | mostra que a tática importa; bom no Duelo entre amigos | 2 dias | não |
 | 6 | **Chefão** | Seu time da copa contra um time absurdo (5 lendários, Mewtwo capitão) com prêmio por gol marcado | "segurei o Mewtwo no 0 a 0"; casa com a Rota | 2–3 dias | não (time pronto) |
 | 7 | **Morte súbita** | Copa Relâmpago onde o primeiro gol acaba a partida | partidas de 30 s, tensão do começo ao fim | 2 dias | sim: flag nova (fim no 1º gol) |
@@ -319,8 +467,8 @@ teste de determinismo, que ganha hashes novos pras flags). Modo arcade fica atr�
 (ADR 0005).
 
 **As 3 melhores pra começar:** Monotipo (identidade Pokémon pura, casa com a Semana do tipo), Draft às cegas (o mais
-barato e o mais "clipável") e Pênaltis sem fim (curtíssimo, recorde, perfeito pro TikTok). A Grade do Dia é de 1
-dia e pode ir junto de qualquer uma.
+barato e o mais "clipável") e Pênaltis sem fim (curtíssimo, recorde, perfeito pro TikTok). A Copa do Dia já tem o
+compartilhar estilo Wordle (`src/store/daily.ts`): o modelo serve pro recorde de qualquer arcade.
 
 ---
 
@@ -339,19 +487,30 @@ dia e pode ir junto de qualquer uma.
 6. **Parceiro aleatório (fila):** depois, se `npm run stats` mostrar gente jogando ao mesmo tempo **(recomendado)** /
    já nesta versão.
 7. **2x2 no mesmo celular** (sofá), +1 dia **(recomendado)** / não.
-8. **Menus:** Caminho 2, barra de 5 abas com Jogar no centro **(recomendado)** / Caminho 1, faxina / Caminho 3, três
-   abas.
-9. **Protótipo das abas** em `?lab=abas` pra você mexer antes de trocar a Home **(recomendado)** / direto na Home.
-10. **Nome do time sai da Home** (vai pra Escalação e Perfil) **(recomendado)** / fica.
-11. **Duelo com regras recolhidas** (Criar sala já com Disputa, 4x, normal, 1 jogo) **(recomendado)** / manter as 4
+8. **Menus:** caminho 3, ambientes em etapas (a sua visão) **(recomendado)** / caminho 2, só a barra com telas
+   simples / caminho 1, faxina.
+9. **Ordem da barra:** Laboratório, Rota, **Estádio (centro, tela de entrada)**, Arena, Sede **(recomendado)** /
+   Rota no centro / outra ordem.
+10. **Juntar Perfil e Sala de troféus na Sede do clube** (o Perfil de 6,6 telas some) **(recomendado)** / Perfil e Sala
+    continuam separados (aí são 6 abas, ou o Laboratório entra na Sede).
+11. **Arcade e 2x2 morando na Arena** (cartaz de neon do Arcade da semana) **(recomendado)** / Arcade com aba própria.
+12. **Transição pra entrar num modo** com 600–900 ms cinematográficos (exceção ao ADR 0004, toque pula)
+    **(recomendado)** / tudo em 200–300 ms.
+13. **Arte dos ambientes:** traço FireRed (16 px, contorno escuro, o da sala e dos treinadores) com Pokémon PMD
+    **(recomendado)** / outra direção (ver um ambiente de teste antes).
+14. **Primeira entrega:** barra + Estádio + Rota em `?lab=ambientes`, o resto como tela simples e um ambiente por
+    versão **(recomendado)** / tudo de uma vez.
+15. **Nome do time sai da Home** (vai pra Escalação e Sede) **(recomendado)** / fica no Estádio.
+16. **Duelo com regras recolhidas** (Criar sala já com Disputa, 4x, normal, 1 jogo) **(recomendado)** / manter as 4
     escolhas abertas.
-12. **Arcade:** uma vaga fixa "Arcade da semana" trocando toda segunda **(recomendado)** / todos os modos sempre
+17. **Arcade:** uma vaga fixa "Arcade da semana" trocando toda segunda **(recomendado)** / todos os modos sempre
     abertos numa lista.
-13. **Primeiros modos arcade:** Monotipo, Draft às cegas e Pênaltis sem fim, mais a Grade do Dia **(recomendado)** /
-    outra escolha da lista (diga os números).
-14. **Modos que mexem no motor** (Pênaltis, Morte súbita, Caos) só com os números antes/depois na sua frente, pela
+18. **Primeiros modos arcade:** Monotipo, Draft às cegas e Pênaltis sem fim **(recomendado)** / outra escolha da lista
+    (diga os números).
+19. **Modos que mexem no motor** (Pênaltis, Morte súbita, Caos) só com os números antes/depois na sua frente, pela
     skill de balanceamento **(recomendado)** / deixar esses de fora.
-15. **Ordem:** menus primeiro (dão casa pro resto), depois arcade, depois 2x2 **(recomendado)** / 2x2 primeiro.
+20. **Ordem das frentes:** menus primeiro (dão casa pro resto), depois arcade, depois 2x2 **(recomendado)** / 2x2
+    primeiro.
 
 ## Fontes
 
@@ -373,6 +532,9 @@ Menus e navegação
 - Thumb zone: https://smashingmagazine.com/2016/09/the-thumb-zone-designing-for-mobile-users
 - Barra de navegação embaixo: https://blog.appmysite.com/bottom-navigation-bar-in-mobile-apps-heres-all-you-need-to-know/
 - Menu principal do Brawl Stars: https://samurai-gamers.com/brawl-stars/main-menu-guide/
+- Crítica de UX do Brawl Stars (Pratt): https://ixd.prattsi.org/2025/02/design-critique-brawl-stars/
+- Arenas do Clash Royale, cada uma com tema: https://www.sportskeeda.com/esports/all-arenas-in-clash-royale-what-new-cards-unlock e https://mobi.gg/en/tips/clash-royale-arenas-guide/
+- Interfaces diegéticas (menu como objeto do mundo): https://www.wayline.io/blog/diegetic-interfaces-game-design
 
 Modos arcade e rotativos
 - Clash Royale, eventos de 2026: https://www.sportsdunia.com/gaming/clash-royale-august-events-2026
