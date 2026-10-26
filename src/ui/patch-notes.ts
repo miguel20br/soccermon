@@ -9,6 +9,20 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.23.1',
+        date: '2026-10-26',
+        title: 'Ajustes nos lugares',
+        sections: [
+            {
+                title: 'Corrigido',
+                lines: [
+                    'Tocar num Pokémon fazia ele pular de lugar. Agora ele só dá o pulinho, e quem precisa mudar de lugar some e reaparece',
+                    'A quadra da Arena ganhou as áreas, os gols e os escanteios',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.23',
         date: '2026-10-26',
         title: 'Vestiário',
@@ -1730,6 +1744,20 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.23.1',
+        date: '2026-10-26',
+        title: 'Place fixes',
+        sections: [
+            {
+                title: 'Fixed',
+                lines: [
+                    'Tapping a Pokémon made it jump to another spot. Now it just hops, and anyone who needs to move fades out and back in',
+                    'The Arena court now has the boxes, the goals and the corners',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.23',
         date: '2026-10-26',

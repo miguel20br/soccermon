@@ -1,5 +1,11 @@
 # Novidades
 
+## 0.9.23.1 · Ajustes nos lugares (2026-10-26)
+
+### Corrigido
+- Tocar num Pokémon fazia ele pular de lugar. Agora ele só dá o pulinho, e quem precisa mudar de lugar some e reaparece
+- A quadra da Arena ganhou as áreas, os gols e os escanteios
+
 ## 0.9.23 · Vestiário (2026-10-26)
 
 ### Escalação no vestiário
