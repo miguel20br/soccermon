@@ -1771,7 +1771,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 title: 'Max Move',
                 lines: [
                     'The button stays lit longer and the game nearly stops while it glows, even at 8x and in Duels',
-                    'The move\'s shot flies in slow motion with a glowing ball, and the level 3 move name stays on screen longer',
+                    "The move's shot flies in slow motion with a glowing ball, and the level 3 move name stays on screen longer",
                 ],
             },
         ],
