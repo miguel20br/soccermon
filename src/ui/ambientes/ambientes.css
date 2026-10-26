@@ -3843,3 +3843,28 @@
 .amb .amb-tab.on .amb-tab-lbl {
     text-shadow: none;
 }
+
+/*
+ * Estádio de quem já jogou (variante B, escolhida em 26/10, docs/planos/revamp-ui/estadio-*-variantes.jpg): as metas
+ * sobem pra arquibancada, logo abaixo do telão (só ícone e número; o nome fica no toque e no leitor de tela), e o jogar
+ * fica no pé. A quadra fica livre pros Pokémon. Celular deitado continua no layout de colunas.
+ */
+@media not ((orientation: landscape) and (max-height: 520px)) {
+    .es-ui .es-top {
+        order: 0;
+    }
+    .es-ui .es-slots {
+        order: 1;
+    }
+    .es-ui .es-actions {
+        order: 2;
+        margin-top: auto;
+    }
+    .es-ui .es-slot {
+        min-height: 0;
+        padding: 4px 6px 6px;
+    }
+    .es-ui .es-slot-lbl {
+        display: none;
+    }
+}
