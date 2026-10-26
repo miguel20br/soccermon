@@ -18,6 +18,9 @@ o nome da fase cortava na barra da copa ("QUARTAS DE FIN…") e agora usa o nome
 
 ## Lista (aprovar por número)
 
+**Aprovados e feitos (26/10):** 1 a 10, na branch `vestiario` (prints em `revamp-ui/revisao-1a10.jpg`). 11 e 12
+viraram prévias pra escolher: `revamp-ui/partida-variantes.jpg` e `revamp-ui/draft-cartas-variantes.jpg`.
+
 | # | Tela | Problema visto | Proposta | Recomendo |
 |---|---|---|---|---|
 | 1 | Resultado, Recompensa, Mercado | A fase aparece 2 a 3 vezes: barra da copa, etiqueta amarela ("VITÓRIA! PRÓXIMA FASE: QUARTAS") e frase ("Oitavas de final vencidas") | A barra da copa vira o único lugar da fase; sai a etiqueta repetida e a frase | sim |
