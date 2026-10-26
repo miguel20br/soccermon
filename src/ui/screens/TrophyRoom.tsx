@@ -22,6 +22,7 @@ import { HudIcon } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { type ArtKind, PixelTrophy } from '../components/PixelTrophy';
 import { initialTab, openDoor } from '../doors';
+import { Sheet as KitSheet } from '../kit/Sheet';
 import { useCardShowcase } from '../profile/Album';
 import { bannerText, clubVars } from '../profile/club';
 import { MedalsTab, useMedalView } from '../profile/Medals';
@@ -138,30 +139,10 @@ function TrophyCard({
 
 /** Painel por cima da sala (medalhas, números, Hall da Fama, a lista de tudo). */
 function SheetPanel({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
-    const { t } = useT();
-    useEffect(() => {
-        const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
-        window.addEventListener('keydown', onKey);
-        return () => window.removeEventListener('keydown', onKey);
-    }, [onClose]);
     return (
-        // biome-ignore lint/a11y/noStaticElementInteractions: clicar fora fecha; Esc e o botão fechar cobrem o teclado
-        <div className="modal-backdrop" onClick={onClose} role="presentation">
-            {/* biome-ignore lint/a11y/useKeyWithClickEvents: só impede que o clique dentro feche */}
-            <div
-                className="modal panel tr-sheet-panel"
-                role="dialog"
-                aria-modal="true"
-                aria-label={title}
-                onClick={(e) => e.stopPropagation()}
-            >
-                <button type="button" className="modal-close" onClick={onClose} aria-label={t('common.ui.close')}>
-                    <HudIcon kind="close" />
-                </button>
-                <h2 className="bc-caption">{title}</h2>
-                {children}
-            </div>
-        </div>
+        <KitSheet open onClose={onClose} title={title} className="tr-sheet-panel">
+            {children}
+        </KitSheet>
     );
 }
 

@@ -1,5 +1,5 @@
 /* Melhores momentos (Moments.tsx) e o cartão do gol da copa (CupGoalCard). */
-.moments-modal {
+.k-sheet.moments-modal {
     width: min(980px, 100%);
     display: grid;
     /* minmax: o canvas de 968 px não pode alargar a coluna (no celular a quadra saía cortada) */
@@ -64,9 +64,6 @@
 }
 /* celular deitado: a quadra ocupa a altura e os botões vão pra coluna do lado */
 @media (orientation: landscape) and (max-height: 520px) {
-    .moments-backdrop {
-        padding: 6px;
-    }
     .moments-modal {
         grid-template-columns: minmax(0, 1fr) auto;
         align-items: center;

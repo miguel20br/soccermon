@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useId, useRef } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useT } from '../../i18n/react';
 import { HudIcon } from '../components/MatchHud';
@@ -14,6 +14,7 @@ export function Sheet({
     title,
     children,
     className = '',
+    style,
     alert,
 }: {
     open: boolean;
@@ -21,6 +22,7 @@ export function Sheet({
     title: ReactNode;
     children: ReactNode;
     className?: string;
+    style?: CSSProperties;
     /** Confirmação: `alertdialog` e sem o X (quem decide são os dois botões). */
     alert?: boolean;
 }) {
@@ -56,6 +58,7 @@ export function Sheet({
                 role={alert ? 'alertdialog' : 'dialog'}
                 aria-modal="true"
                 aria-labelledby={id}
+                style={style}
                 onClick={stop}
             >
                 <i className="k-sheet-grab" aria-hidden />

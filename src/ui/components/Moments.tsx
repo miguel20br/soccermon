@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { ENGINE_VERSION } from '../../engine/config';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { EventBus } from '../../game/EventBus';
@@ -17,6 +16,7 @@ import { downloadBlob } from '../share-card';
 import { simulateMatch } from '../sim-client';
 import { cardSprite } from './PokeCard';
 import './moments.css';
+import { Sheet } from '../kit/Sheet';
 import { HudIcon } from './MatchHud';
 
 type Mode = 'watch' | 'record' | 'clip';
@@ -144,12 +144,6 @@ export function Moments({
         },
         [clip],
     );
-    useEffect(() => {
-        const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
-        window.addEventListener('keydown', onKey);
-        return () => window.removeEventListener('keydown', onKey);
-    }, [onClose]);
-
     const restart = (from = 0) => {
         setIndex(from);
         setDone(false);
@@ -176,91 +170,83 @@ export function Moments({
         }
     };
 
-    // no body: dentro da tela de resultado o painel animado vira o "fixed" dele e o modal sai do lugar
-    return createPortal(
-        <div className="modal-backdrop moments-backdrop" role="presentation">
-            <div
-                className="modal panel moments-modal"
-                role="dialog"
-                aria-modal="true"
-                aria-label={cup ? t('moments.cup.h') : t('moments.title')}
-            >
-                <button type="button" className="modal-close" onClick={onClose} aria-label={t('moments.close')}>
-                    <HudIcon kind="close" />
-                </button>
-                <div className="bc-screenhead moments-head">
-                    <span className="bc-tag">
-                        {cup ? t('moments.cup.h') : t('moments.of', { n: index + 1, total: clips.length })}
-                    </span>
-                    <h2>{current ? momentCaption(current, d.moments.kind) : ''}</h2>
-                </div>
+    return (
+        <Sheet
+            open
+            onClose={onClose}
+            title={current ? momentCaption(current, d.moments.kind) : cup ? t('moments.cup.h') : t('moments.title')}
+            className="moments-modal"
+        >
+            <div className="bc-screenhead moments-head">
+                <span className="bc-tag">
+                    {cup ? t('moments.cup.h') : t('moments.of', { n: index + 1, total: clips.length })}
+                </span>
+            </div>
 
-                {mode === 'clip' && clip ? (
-                    <div className="moments-clip">
-                        <video src={clip.url} controls autoPlay muted loop playsInline />
-                        <p className="muted">
-                            {t('moments.ready')} · {(clip.blob.size / 1e6).toFixed(1)} MB
-                        </p>
-                        <div className="row moments-actions">
-                            <button
-                                type="button"
-                                className="btn outline"
-                                onClick={() => file && downloadBlob(file, file.name)}
-                            >
-                                {t('moments.download')}
+            {mode === 'clip' && clip ? (
+                <div className="moments-clip">
+                    <video src={clip.url} controls autoPlay muted loop playsInline />
+                    <p className="muted">
+                        {t('moments.ready')} · {(clip.blob.size / 1e6).toFixed(1)} MB
+                    </p>
+                    <div className="row moments-actions">
+                        <button
+                            type="button"
+                            className="btn outline"
+                            onClick={() => file && downloadBlob(file, file.name)}
+                        >
+                            {t('moments.download')}
+                        </button>
+                        {canShare && (
+                            <button type="button" className="btn" onClick={share}>
+                                {t('moments.share')}
                             </button>
-                            {canShare && (
-                                <button type="button" className="btn" onClick={share}>
-                                    {t('moments.share')}
+                        )}
+                        <button type="button" className="btn ghost" onClick={() => restart(recIndex)}>
+                            {t('moments.back')}
+                        </button>
+                    </div>
+                </div>
+            ) : (
+                <>
+                    <div className="moments-court">
+                        <PhaserGame key={run} data={sceneData} />
+                    </div>
+                    {mode === 'record' ? (
+                        <div className="moments-rec" role="status">
+                            <div className="moments-bar">
+                                <i style={{ width: `${Math.round(progress * 100)}%` }} />
+                            </div>
+                            <b>{t('moments.recording', { p: Math.round(progress * 100) })}</b>
+                            <small className="muted">{t('moments.recordingNote')}</small>
+                        </div>
+                    ) : (
+                        <div className="row moments-actions">
+                            {done ? (
+                                <button type="button" className="btn confirm" onClick={() => restart(0)}>
+                                    {t('moments.again')}
+                                </button>
+                            ) : (
+                                index < clips.length - 1 && (
+                                    <button type="button" className="btn confirm" onClick={next}>
+                                        {t('moments.next')}
+                                    </button>
+                                )
+                            )}
+                            {mime && (
+                                <button type="button" className="btn outline" onClick={record}>
+                                    {t('moments.export')}
                                 </button>
                             )}
-                            <button type="button" className="btn ghost" onClick={() => restart(recIndex)}>
-                                {t('moments.back')}
+                            <button type="button" className="btn ghost" onClick={onClose}>
+                                {t('moments.close')}
                             </button>
                         </div>
-                    </div>
-                ) : (
-                    <>
-                        <div className="moments-court">
-                            <PhaserGame key={run} data={sceneData} />
-                        </div>
-                        {mode === 'record' ? (
-                            <div className="moments-rec" role="status">
-                                <div className="moments-bar">
-                                    <i style={{ width: `${Math.round(progress * 100)}%` }} />
-                                </div>
-                                <b>{t('moments.recording', { p: Math.round(progress * 100) })}</b>
-                                <small className="muted">{t('moments.recordingNote')}</small>
-                            </div>
-                        ) : (
-                            <div className="row moments-actions">
-                                {done ? (
-                                    <button type="button" className="btn confirm" onClick={() => restart(0)}>
-                                        {t('moments.again')}
-                                    </button>
-                                ) : (
-                                    index < clips.length - 1 && (
-                                        <button type="button" className="btn confirm" onClick={next}>
-                                            {t('moments.next')}
-                                        </button>
-                                    )
-                                )}
-                                {mime && (
-                                    <button type="button" className="btn outline" onClick={record}>
-                                        {t('moments.export')}
-                                    </button>
-                                )}
-                                <button type="button" className="btn ghost" onClick={onClose}>
-                                    {t('moments.close')}
-                                </button>
-                            </div>
-                        )}
-                        {error && <p className="muted moments-error">{error}</p>}
-                    </>
-                )}
-            </div>
-        </div>,
-        document.body,
+                    )}
+                    {error && <p className="muted moments-error">{error}</p>}
+                </>
+            )}
+        </Sheet>
     );
 }
 

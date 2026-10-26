@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
+import { Sheet } from '../kit/Sheet';
 import { FEEDBACK_URL, privacyUrl } from '../links';
 import { type PatchNotes, patchNotes } from '../patch-notes';
 import { HudIcon } from './MatchHud';
@@ -88,41 +89,14 @@ export function AboutFooter({ lang: withLang = true }: { lang?: boolean }) {
     const go = useGame((s) => s.go);
     const notes = patchNotes(lang);
     const [notesOpen, setNotesOpen] = useState(false);
-    useEffect(() => {
-        if (!notesOpen) return;
-        const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setNotesOpen(false);
-        window.addEventListener('keydown', onKey);
-        return () => window.removeEventListener('keydown', onKey);
-    }, [notesOpen]);
+    const closeNotes = useCallback(() => setNotesOpen(false), []);
     return (
         <>
-            {notesOpen && (
-                // biome-ignore lint/a11y/noStaticElementInteractions: clicar fora fecha; o botão fecha pelo teclado
-                <div className="modal-backdrop" onClick={() => setNotesOpen(false)} role="presentation">
-                    {/* biome-ignore lint/a11y/useKeyWithClickEvents: só impede que o clique dentro feche */}
-                    <div
-                        className="modal panel patch-notes"
-                        role="dialog"
-                        aria-modal="true"
-                        aria-label={t('home.news')}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button
-                            type="button"
-                            className="modal-close"
-                            onClick={() => setNotesOpen(false)}
-                            aria-label={t('common.ui.close')}
-                            // biome-ignore lint/a11y/noAutofocus: o foco vai para dentro da janela que acabou de abrir
-                            autoFocus
-                        >
-                            <HudIcon kind="close" />
-                        </button>
-                        {notes.map((n, i) => (
-                            <PatchVersion key={n.version} n={n} latest={i === 0} lang={lang} />
-                        ))}
-                    </div>
-                </div>
-            )}
+            <Sheet open={notesOpen} onClose={closeNotes} title={t('home.news')} className="patch-notes">
+                {notes.map((n, i) => (
+                    <PatchVersion key={n.version} n={n} latest={i === 0} lang={lang} />
+                ))}
+            </Sheet>
             <footer className="home-footer">
                 <nav className="footer-links" aria-label={t('home.footerAria')}>
                     <button type="button" className="link-btn" onClick={() => setNotesOpen(true)}>

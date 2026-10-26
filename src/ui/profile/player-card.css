@@ -1,5 +1,5 @@
 /* ---------- Cartão do treinador (perfil público: o seu e o do rival no Duelo) ---------- */
-.modal.pcard {
+.k-sheet.pcard {
     --club: #e8423f;
     width: min(620px, 100%);
     display: grid;
@@ -124,7 +124,7 @@
     font-size: 14px;
 }
 @media (max-width: 560px) {
-    .modal.pcard {
+    .k-sheet.pcard {
         padding: 14px 12px 16px 16px;
     }
     .pcard-cards {
@@ -137,7 +137,7 @@
 }
 /* deitado: sobra largura e falta altura, as 3 numa fileira */
 @media (orientation: landscape) and (max-height: 500px) {
-    .modal.pcard {
+    .k-sheet.pcard {
         width: min(760px, 100%);
     }
     .pcard-cards {

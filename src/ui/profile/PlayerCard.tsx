@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useMemo, useRef } from 'react';
+import { type CSSProperties, useCallback, useEffect, useMemo } from 'react';
 import { create } from 'zustand';
 import { useCloud } from '../../cloud/cloud';
 import { SPECIES } from '../../engine/data';
@@ -17,8 +17,8 @@ import { titleClass } from '../../store/title-codes';
 import { cupCounts, cupList, METALS } from '../../store/trophies';
 import { useCardModal } from '../card-modal';
 import { FutCard } from '../components/FutCard';
-import { HudIcon } from '../components/MatchHud';
 import { PixelTrophy } from '../components/PixelTrophy';
+import { Sheet } from '../kit/Sheet';
 import { AddFriendButton } from './AddFriendButton';
 import { useCardShowcase } from './Album';
 import { Crest } from './Crest';
@@ -219,101 +219,86 @@ export const usePlayerCard = create<{ info: PlayerInfo | null; open(i: PlayerInf
 export function PlayerCardModal() {
     const { info, close } = usePlayerCard();
     const { t } = useT();
-    const ref = useRef<HTMLDivElement>(null);
     const open = !!info;
 
     useEffect(() => {
         if (!open) return;
-        // Esc com a carta inteira aberta por cima fecha só a carta
-        const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !useCardModal.getState().inst && close();
-        window.addEventListener('keydown', onKey);
         const back = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-        ref.current?.focus({ preventScroll: true });
-        return () => {
-            window.removeEventListener('keydown', onKey);
-            back?.focus({ preventScroll: true });
-        };
-    }, [open, close]);
+        return () => back?.focus({ preventScroll: true });
+    }, [open]);
+    // com a carta inteira aberta por cima, Esc e toque fora fecham só a carta
+    const closeIfTop = useCallback(() => {
+        if (!useCardModal.getState().inst) close();
+    }, [close]);
 
     if (!info) return null;
     return (
-        // biome-ignore lint/a11y/noStaticElementInteractions: clicar fora fecha; Esc e o botão fechar cobrem o teclado
-        <div className="modal-backdrop" onClick={close} role="presentation">
-            {/* biome-ignore lint/a11y/useKeyWithClickEvents: só impede que o clique dentro feche */}
-            <div
-                ref={ref}
-                tabIndex={-1}
-                className={`modal panel pcard bc-surface bc-stripe${trainerFrame(info.trainer)}`}
-                style={{ '--club': hexCss(info.look.color), '--tc': hexCss(info.look.color) } as CSSProperties}
-                role="dialog"
-                aria-modal="true"
-                aria-label={t('profile.card.aria', { name: info.name })}
-                onClick={(e) => e.stopPropagation()}
-            >
-                <button type="button" className="modal-close" onClick={close} aria-label={t('common.ui.close')}>
-                    <HudIcon kind="close" />
-                </button>
-                <header className="pcard-head">
-                    <div className="pf-duo">
-                        <TrainerSprite id={info.trainer} className="pf-duo-trainer" />
-                        <img
-                            className={`pf-avatar${info.avatar.google ? '' : ' pixel'}${frameClass(info.frame)}`}
-                            src={info.avatar.src}
-                            alt=""
-                            referrerPolicy="no-referrer"
-                        />
-                    </div>
-                    <div className="pf-who">
-                        <h2>{info.name}</h2>
-                        {info.title.name && (
-                            <span className={`pf-title-line${info.title.look ? ` ${info.title.look}` : ''}`}>
-                                {info.title.name}
-                            </span>
-                        )}
-                        <span className="pf-clubline">
-                            <Crest look={info.look} className="crest pf-crest" />
-                            {info.clubName} · <b>{info.clubTag}</b>
+        <Sheet
+            open
+            onClose={closeIfTop}
+            title={info.name}
+            style={{ '--club': hexCss(info.look.color), '--tc': hexCss(info.look.color) } as CSSProperties}
+            className={`pcard bc-surface bc-stripe${trainerFrame(info.trainer)}`}
+        >
+            <header className="pcard-head">
+                <div className="pf-duo">
+                    <TrainerSprite id={info.trainer} className="pf-duo-trainer" />
+                    <img
+                        className={`pf-avatar${info.avatar.google ? '' : ' pixel'}${frameClass(info.frame)}`}
+                        src={info.avatar.src}
+                        alt=""
+                        referrerPolicy="no-referrer"
+                    />
+                </div>
+                <div className="pf-who">
+                    {info.title.name && (
+                        <span className={`pf-title-line${info.title.look ? ` ${info.title.look}` : ''}`}>
+                            {info.title.name}
                         </span>
-                        {info.anon && <span className="duel-anon pcard-anon">{t('duel.lobby.anon')}</span>}
-                    </div>
-                </header>
-                <ShowcaseRow items={info.showcase} className="pcard-medals" />
-                {info.cups.some((n) => n > 0) && (
-                    <div
-                        className="pcard-cups"
-                        role="img"
-                        aria-label={`${t('trophies.cardTrophies')}: ${info.cups.join(' · ')}`}
-                    >
-                        {METALS.map((m, i) =>
-                            info.cups[i] ? (
-                                <span key={m} className="pcard-cup">
-                                    <PixelTrophy kind="taca" metal={m} />
-                                    <b>{t('trophies.times', { n: info.cups[i] })}</b>
-                                </span>
-                            ) : null,
-                        )}
-                    </div>
-                )}
-                <h3 className="bc-lbl pcard-lbl">{t('profile.card.cards')}</h3>
-                {info.cards.length ? (
-                    <ul className="pcard-cards">
-                        {info.cards.map((p) => (
-                            <li key={p.uid}>
-                                <FutCard inst={p} />
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p className="muted pcard-empty">{t('profile.card.noCards')}</p>
-                )}
-                {info.friend && <FriendPart f={info.friend} name={info.name} />}
-                {info.other && info.id && (
-                    <div className="pcard-friend">
-                        <AddFriendButton peer={{ id: info.id, anon: info.anon }} />
-                    </div>
-                )}
-            </div>
-        </div>
+                    )}
+                    <span className="pf-clubline">
+                        <Crest look={info.look} className="crest pf-crest" />
+                        {info.clubName} · <b>{info.clubTag}</b>
+                    </span>
+                    {info.anon && <span className="duel-anon pcard-anon">{t('duel.lobby.anon')}</span>}
+                </div>
+            </header>
+            <ShowcaseRow items={info.showcase} className="pcard-medals" />
+            {info.cups.some((n) => n > 0) && (
+                <div
+                    className="pcard-cups"
+                    role="img"
+                    aria-label={`${t('trophies.cardTrophies')}: ${info.cups.join(' · ')}`}
+                >
+                    {METALS.map((m, i) =>
+                        info.cups[i] ? (
+                            <span key={m} className="pcard-cup">
+                                <PixelTrophy kind="taca" metal={m} />
+                                <b>{t('trophies.times', { n: info.cups[i] })}</b>
+                            </span>
+                        ) : null,
+                    )}
+                </div>
+            )}
+            <h3 className="bc-lbl pcard-lbl">{t('profile.card.cards')}</h3>
+            {info.cards.length ? (
+                <ul className="pcard-cards">
+                    {info.cards.map((p) => (
+                        <li key={p.uid}>
+                            <FutCard inst={p} />
+                        </li>
+                    ))}
+                </ul>
+            ) : (
+                <p className="muted pcard-empty">{t('profile.card.noCards')}</p>
+            )}
+            {info.friend && <FriendPart f={info.friend} name={info.name} />}
+            {info.other && info.id && (
+                <div className="pcard-friend">
+                    <AddFriendButton peer={{ id: info.id, anon: info.anon }} />
+                </div>
+            )}
+        </Sheet>
     );
 }
 

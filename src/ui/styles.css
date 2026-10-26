@@ -3694,7 +3694,7 @@ button,
 }
 
 /* ---------- painel do jogador em campo (tocar no Pokémon) ---------- */
-.inspect-panel {
+.k-sheet.inspect-panel {
     width: min(760px, 100%);
 }
 .inspect-grid {
@@ -4494,7 +4494,11 @@ button,
 }
 
 /* ---------- novidades (patch notes) ---------- */
-.patch-notes {
+.panel.k-sheet.patch-notes > h2 {
+    margin-bottom: 12px;
+}
+.k-sheet.patch-notes {
+    display: block;
     width: min(620px, 100%);
     text-align: left;
 }
@@ -7692,12 +7696,10 @@ body {
     height: 12px;
 }
 /* a folha do teaser: a arte sai da sombra */
-.soon-sheet {
+.k-sheet.soon-sheet {
     width: min(380px, 100%);
-    display: grid;
     justify-items: center;
     gap: 8px;
-    text-align: center;
 }
 .soon-sheet-art {
     display: grid;
@@ -7713,13 +7715,8 @@ body {
     width: 72px;
     height: 72px;
 }
-.soon-sheet h3 {
-    margin: 0;
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 22px;
-    color: var(--text);
-}
 .soon-sheet p {
+    text-align: center;
     margin: 0;
     font-size: 13px;
     line-height: 1.45;
@@ -7729,31 +7726,6 @@ body {
     color: var(--yellow);
     font-weight: 700;
     font-variant-numeric: tabular-nums;
-}
-@media (max-width: 640px) {
-    .soon-backdrop {
-        align-items: end;
-        padding: 0;
-    }
-    .soon-backdrop .soon-sheet {
-        width: 100%;
-        padding-bottom: calc(20px + env(safe-area-inset-bottom));
-        border-radius: 12px 12px 0 0;
-        animation: soon-up 260ms var(--ease-out) both;
-    }
-}
-@keyframes soon-up {
-    from {
-        transform: translateY(100%);
-    }
-}
-:root[data-reduce-motion="true"] .soon-backdrop .soon-sheet {
-    animation: screen-in 0.2s var(--ease-out) both;
-}
-@media (prefers-reduced-motion: reduce) {
-    .soon-backdrop .soon-sheet {
-        animation: screen-in 0.2s var(--ease-out) both;
-    }
 }
 
 /* ícone de menu (MonIcon): pixel art em escala inteira, sem suavizar */

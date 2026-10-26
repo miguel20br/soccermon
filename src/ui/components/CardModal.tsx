@@ -33,6 +33,7 @@ import {
 import { rich, useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { useCardModal } from '../card-modal';
+import { Sheet } from '../kit/Sheet';
 import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
 import { FutCard } from './FutCard';
@@ -70,20 +71,11 @@ export function CardModal() {
     const { t, tn, d, lang } = useT();
     const movesRef = useRef<HTMLHeadingElement>(null);
 
-    useEffect(() => {
-        if (!inst) return;
-        const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close();
-        window.addEventListener('keydown', onKey);
-        return () => window.removeEventListener('keydown', onKey);
-    }, [inst, close]);
-
-    // foco entra na carta ao abrir (leitor de tela e teclado começam nela) e volta pra quem abriu ao fechar
-    const dialogRef = useRef<HTMLDivElement>(null);
+    // o foco entra na folha (Sheet) ao abrir e volta pra quem abriu ao fechar
     const open = !!inst;
     useEffect(() => {
         if (!open) return;
         const back = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-        dialogRef.current?.focus({ preventScroll: true });
         return () => back?.focus({ preventScroll: true });
     }, [open]);
 
@@ -123,253 +115,232 @@ export function CardModal() {
     const body = d.common.body[sp.shape] ?? { label: physique.body, note: physique.note };
 
     return (
-        // biome-ignore lint/a11y/noStaticElementInteractions: clicar fora fecha; Esc e o botão × cobrem o teclado
-        <div className="modal-backdrop" onClick={close} role="presentation">
-            {/* biome-ignore lint/a11y/useKeyWithClickEvents: só impede que o clique dentro feche o modal */}
-            <div
-                ref={dialogRef}
-                tabIndex={-1}
-                className="modal panel card-modal"
-                role="dialog"
-                aria-modal="true"
-                aria-label={t('team.modal.aria', { name: view.displayName })}
-                onClick={(e) => e.stopPropagation()}
-            >
-                <button type="button" className="modal-close" onClick={close} aria-label={t('common.ui.close')}>
-                    <HudIcon kind="close" />
-                </button>
-                <div className="card-modal-grid">
-                    <div className="card-modal-left">
-                        <FutCard inst={inst} position={position} captain={captain} inModal />
-                        <div className="row" style={{ gap: 4, justifyContent: 'center' }}>
-                            {sp.types.map((t) => (
-                                <TypeBadge key={t} type={t} />
+        <Sheet open onClose={close} title={view.displayName} className="card-modal">
+            <div className="card-modal-grid">
+                <div className="card-modal-left">
+                    <FutCard inst={inst} position={position} captain={captain} inModal />
+                    <div className="row" style={{ gap: 4, justifyContent: 'center' }}>
+                        {sp.types.map((t) => (
+                            <TypeBadge key={t} type={t} />
+                        ))}
+                    </div>
+                    <div className="muted center" style={{ fontSize: 11 }}>
+                        {t('team.modal.dexLine', {
+                            id: String(sp.id).padStart(3, '0'),
+                            tier: d.common.tier[sp.tier],
+                            level: inst.level,
+                        })}
+                    </div>
+                    {evoTarget && (
+                        <>
+                            {/* a mesma barra da partida, com nome: a do quadro da escalação parecia fôlego */}
+                            <div className="inspect-energy evo">
+                                <span>{t('team.inspect.evolution')}</span>
+                                <span className="bar">
+                                    <i style={{ width: `${evoPct}%` }} />
+                                </span>
+                                <b>{evoPct}%</b>
+                            </div>
+                            <div className="muted inspect-note">
+                                {t('team.modal.evoNote', { name: species(evoTarget).name })}
+                            </div>
+                        </>
+                    )}
+                    {note && <div className="card-note">{note}</div>}
+                    {actions.length > 0 && (
+                        <div className="modal-actions">
+                            {actions.map((a) => (
+                                <button
+                                    key={a.label}
+                                    type="button"
+                                    className={`btn${a.primary ? ' confirm' : ''}`}
+                                    onClick={() => {
+                                        close();
+                                        a.onClick();
+                                    }}
+                                >
+                                    {a.label}
+                                </button>
                             ))}
                         </div>
-                        <div className="muted center" style={{ fontSize: 11 }}>
-                            {t('team.modal.dexLine', {
-                                id: String(sp.id).padStart(3, '0'),
-                                tier: d.common.tier[sp.tier],
-                                level: inst.level,
-                            })}
-                        </div>
-                        {evoTarget && (
-                            <>
-                                {/* a mesma barra da partida, com nome: a do quadro da escalação parecia fôlego */}
-                                <div className="inspect-energy evo">
-                                    <span>{t('team.inspect.evolution')}</span>
-                                    <span className="bar">
-                                        <i style={{ width: `${evoPct}%` }} />
-                                    </span>
-                                    <b>{evoPct}%</b>
+                    )}
+                    {extra}
+                </div>
+
+                <div className="card-modal-right">
+                    <h3>{t('team.modal.positions')}</h3>
+                    <div className="pos-table">
+                        {POSITIONS.map((p) => {
+                            const r = ratingAt(inst, p);
+                            return (
+                                <div key={p} className={`pos-row ${r.fit}`}>
+                                    <span>{d.common.pos[p]}</span>
+                                    <b>{r.rating}</b>
+                                    <span className="muted">{d.team.modal.fit[r.fit]}</span>
                                 </div>
-                                <div className="muted inspect-note">
-                                    {t('team.modal.evoNote', { name: species(evoTarget).name })}
-                                </div>
-                            </>
-                        )}
-                        {note && <div className="card-note">{note}</div>}
-                        {actions.length > 0 && (
-                            <div className="modal-actions">
-                                {actions.map((a) => (
-                                    <button
-                                        key={a.label}
-                                        type="button"
-                                        className={`btn${a.primary ? ' confirm' : ''}`}
-                                        onClick={() => {
-                                            close();
-                                            a.onClick();
-                                        }}
-                                    >
-                                        {a.label}
-                                    </button>
+                            );
+                        })}
+                    </div>
+
+                    <h3>{t('team.modal.physique')}</h3>
+                    <p className="tactic-desc physique-line">
+                        <b>{d.common.size[physique.size] ?? physique.size}</b> · {body.label}
+                        {body.note && ` · ${body.note}`}
+                        {' · '}
+                        {t('team.modal.aerial', {
+                            level: d.common.aerial[
+                                aerialLevel(aerialScore(inField.strength, inField.positioning, sizePercentile(sp)))
+                            ],
+                        })}
+                    </p>
+
+                    {linksOf(sp.id).length > 0 && (
+                        <>
+                            <h3>{t('team.modal.storySynergies')}</h3>
+                            <div className="modal-links">
+                                {linksOf(sp.id).map((l) => (
+                                    <div key={l.id} className="tactic-desc">
+                                        {rich(d.team.modal.linkWith, {
+                                            chip: <LinkChip def={l} />,
+                                            names: l.groups
+                                                .filter((g) => !g.includes(sp.id))
+                                                .map((g) => species(g[0]).name)
+                                                .join(', '),
+                                            n: l.need,
+                                            combo: linkText(l.id, lang).combo,
+                                        })}
+                                    </div>
                                 ))}
                             </div>
-                        )}
-                        {extra}
-                    </div>
+                        </>
+                    )}
 
-                    <div className="card-modal-right">
-                        <h2>{view.displayName}</h2>
+                    {mods.length > 0 && (
+                        <>
+                            <h3>{t('team.modal.mods')}</h3>
+                            <div className="mod-list">
+                                {mods.map((m) => {
+                                    const up = (m.add ?? 0) > 0 || (m.factor ?? 1) > 1;
+                                    return (
+                                        <div key={m.label} className={`mod-row ${up ? 'up' : 'down'}`}>
+                                            <HudIcon kind={up ? 'up' : 'down'} />
+                                            {modLabel(m, lang)}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </>
+                    )}
 
-                        <h3>{t('team.modal.positions')}</h3>
-                        <div className="pos-table">
-                            {POSITIONS.map((p) => {
-                                const r = ratingAt(inst, p);
-                                return (
-                                    <div key={p} className={`pos-row ${r.fit}`}>
-                                        <span>{d.common.pos[p]}</span>
-                                        <b>{r.rating}</b>
-                                        <span className="muted">{d.team.modal.fit[r.fit]}</span>
-                                    </div>
-                                );
-                            })}
-                        </div>
-
-                        <h3>{t('team.modal.physique')}</h3>
-                        <p className="tactic-desc physique-line">
-                            <b>{d.common.size[physique.size] ?? physique.size}</b> · {body.label}
-                            {body.note && ` · ${body.note}`}
-                            {' · '}
-                            {t('team.modal.aerial', {
-                                level: d.common.aerial[
-                                    aerialLevel(aerialScore(inField.strength, inField.positioning, sizePercentile(sp)))
-                                ],
-                            })}
+                    <h3>
+                        {t('team.modal.attrs')}
+                        {onTeam ? t('team.modal.attrsOnTeam') : ''}
+                    </h3>
+                    {/* a nota com o time (capitão, sinergias, Patrocínios): o número grande da carta é ela sozinha */}
+                    {onTeam && fieldOvr !== cardOvr && (
+                        <p className="modal-field-ovr">
+                            {t('team.modal.fieldOvr', { n: fieldOvr })}{' '}
+                            <b className={fieldOvr > cardOvr ? 'up' : 'down'}>
+                                {fieldOvr > cardOvr ? '+' : ''}
+                                {fieldOvr - cardOvr}
+                            </b>
                         </p>
-
-                        {linksOf(sp.id).length > 0 && (
-                            <>
-                                <h3>{t('team.modal.storySynergies')}</h3>
-                                <div className="modal-links">
-                                    {linksOf(sp.id).map((l) => (
-                                        <div key={l.id} className="tactic-desc">
-                                            {rich(d.team.modal.linkWith, {
-                                                chip: <LinkChip def={l} />,
-                                                names: l.groups
-                                                    .filter((g) => !g.includes(sp.id))
-                                                    .map((g) => species(g[0]).name)
-                                                    .join(', '),
-                                                n: l.need,
-                                                combo: linkText(l.id, lang).combo,
-                                            })}
-                                        </div>
-                                    ))}
-                                </div>
-                            </>
-                        )}
-
-                        {mods.length > 0 && (
-                            <>
-                                <h3>{t('team.modal.mods')}</h3>
-                                <div className="mod-list">
-                                    {mods.map((m) => {
-                                        const up = (m.add ?? 0) > 0 || (m.factor ?? 1) > 1;
-                                        return (
-                                            <div key={m.label} className={`mod-row ${up ? 'up' : 'down'}`}>
-                                                <HudIcon kind={up ? 'up' : 'down'} />
-                                                {modLabel(m, lang)}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </>
-                        )}
-
-                        <h3>
-                            {t('team.modal.attrs')}
-                            {onTeam ? t('team.modal.attrsOnTeam') : ''}
-                        </h3>
-                        {/* a nota com o time (capitão, sinergias, Patrocínios): o número grande da carta é ela sozinha */}
-                        {onTeam && fieldOvr !== cardOvr && (
-                            <p className="modal-field-ovr">
-                                {t('team.modal.fieldOvr', { n: fieldOvr })}{' '}
-                                <b className={fieldOvr > cardOvr ? 'up' : 'down'}>
-                                    {fieldOvr > cardOvr ? '+' : ''}
-                                    {fieldOvr - cardOvr}
-                                </b>
-                            </p>
-                        )}
-                        <div className="attrs modal-attrs">
-                            {ALL_ATTRS.map((k) => {
-                                const v = Math.round(view.attributes[k]);
-                                const delta = Math.round(inField[k] - view.attributes[k]);
-                                return (
-                                    <div className="attr" key={k}>
-                                        <span>{d.common.attr[k]}</span>
-                                        <span className="bar">
-                                            <i
-                                                style={{
-                                                    width: `${v}%`,
-                                                    background:
-                                                        v >= 80
-                                                            ? '#58c26b'
-                                                            : v >= 65
-                                                              ? '#b6d94c'
-                                                              : v >= 50
-                                                                ? '#ffcb05'
-                                                                : '#ff8a4c',
-                                                }}
-                                            />
-                                        </span>
-                                        <b>{v}</b>
-                                        {delta !== 0 && (
-                                            <em className={`attr-mod ${delta > 0 ? 'up' : 'down'}`}>
-                                                {delta > 0 ? `▲${delta}` : `▼${-delta}`}
-                                            </em>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-
-                        <h3 ref={movesRef}>{t('team.modal.moves')}</h3>
-                        <div className="move-details">
-                            {inst.moves.map((m) => {
-                                const data = MOVES[m];
-                                const prof = moveProfile(m);
-                                const sec = secondaryText(m, d);
-                                const kindExplain = d.team.modal.kindExplain[prof.kind];
-                                return (
-                                    <div key={m} className="move-detail" style={{ borderColor: TYPE_COLOR[data.type] }}>
-                                        <div className="row" style={{ gap: 6, justifyContent: 'space-between' }}>
-                                            <b>
-                                                {moveName(m)}
-                                                <TaughtMark inst={inst} move={m} />
-                                            </b>
-                                            <span className="row" style={{ gap: 4 }}>
-                                                <TypeBadge type={data.type} />
-                                                <span className="pos-chip">{d.team.modal.kindName[prof.kind]}</span>
-                                            </span>
-                                        </div>
-                                        <div className="tactic-desc">
-                                            {moveExplain(m, lang) ??
-                                                (DRAIN[m] ? `${kindExplain}${t('team.modal.drain')}` : kindExplain)}
-                                        </div>
-                                        {moveMods
-                                            .filter((mm) => mm.moveId === m)
-                                            .map((mm) => (
-                                                <div
-                                                    key={mm.label}
-                                                    className={`mod-row ${mm.factor > 1 ? 'up' : 'down'}`}
-                                                >
-                                                    <HudIcon kind={mm.factor > 1 ? 'up' : 'down'} />
-                                                    {moveModLabel(mm, lang)}
-                                                </div>
-                                            ))}
-                                        <div className="tactic-desc">
-                                            {tn('team.modal.uses', moveUses(inst, m))}
-                                            {t('team.modal.perMatch')}
-                                            {data.power > 0 && t('team.modal.power', { n: data.power })}
-                                            {sec && ` · ${sec}`}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-
-                        <h3>{t('team.modal.ability')}</h3>
-                        <p className="tactic-desc" style={{ margin: 0 }}>
-                            <b style={{ color: 'var(--text)' }}>{abilityName(inst.ability)}</b>
-                            {abilityWorks ? t('team.modal.abilityOn') : t('team.modal.abilityOff')} —{' '}
-                            {abilityDesc(inst.ability, lang)}
-                        </p>
-
-                        {item && (
-                            <>
-                                <h3>{t('team.modal.item')}</h3>
-                                <p className="tactic-desc card-item-row" style={{ margin: 0 }}>
-                                    <img className="pixel" src={itemSprite(item)} alt="" />
-                                    <span>
-                                        <b style={{ color: 'var(--text)' }}>{itemName(item)}</b> —{' '}
-                                        {itemDesc(item, lang)}
+                    )}
+                    <div className="attrs modal-attrs">
+                        {ALL_ATTRS.map((k) => {
+                            const v = Math.round(view.attributes[k]);
+                            const delta = Math.round(inField[k] - view.attributes[k]);
+                            return (
+                                <div className="attr" key={k}>
+                                    <span>{d.common.attr[k]}</span>
+                                    <span className="bar">
+                                        <i
+                                            style={{
+                                                width: `${v}%`,
+                                                background:
+                                                    v >= 80
+                                                        ? '#58c26b'
+                                                        : v >= 65
+                                                          ? '#b6d94c'
+                                                          : v >= 50
+                                                            ? '#ffcb05'
+                                                            : '#ff8a4c',
+                                            }}
+                                        />
                                     </span>
-                                </p>
-                            </>
-                        )}
+                                    <b>{v}</b>
+                                    {delta !== 0 && (
+                                        <em className={`attr-mod ${delta > 0 ? 'up' : 'down'}`}>
+                                            {delta > 0 ? `▲${delta}` : `▼${-delta}`}
+                                        </em>
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
+
+                    <h3 ref={movesRef}>{t('team.modal.moves')}</h3>
+                    <div className="move-details">
+                        {inst.moves.map((m) => {
+                            const data = MOVES[m];
+                            const prof = moveProfile(m);
+                            const sec = secondaryText(m, d);
+                            const kindExplain = d.team.modal.kindExplain[prof.kind];
+                            return (
+                                <div key={m} className="move-detail" style={{ borderColor: TYPE_COLOR[data.type] }}>
+                                    <div className="row" style={{ gap: 6, justifyContent: 'space-between' }}>
+                                        <b>
+                                            {moveName(m)}
+                                            <TaughtMark inst={inst} move={m} />
+                                        </b>
+                                        <span className="row" style={{ gap: 4 }}>
+                                            <TypeBadge type={data.type} />
+                                            <span className="pos-chip">{d.team.modal.kindName[prof.kind]}</span>
+                                        </span>
+                                    </div>
+                                    <div className="tactic-desc">
+                                        {moveExplain(m, lang) ??
+                                            (DRAIN[m] ? `${kindExplain}${t('team.modal.drain')}` : kindExplain)}
+                                    </div>
+                                    {moveMods
+                                        .filter((mm) => mm.moveId === m)
+                                        .map((mm) => (
+                                            <div key={mm.label} className={`mod-row ${mm.factor > 1 ? 'up' : 'down'}`}>
+                                                <HudIcon kind={mm.factor > 1 ? 'up' : 'down'} />
+                                                {moveModLabel(mm, lang)}
+                                            </div>
+                                        ))}
+                                    <div className="tactic-desc">
+                                        {tn('team.modal.uses', moveUses(inst, m))}
+                                        {t('team.modal.perMatch')}
+                                        {data.power > 0 && t('team.modal.power', { n: data.power })}
+                                        {sec && ` · ${sec}`}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <h3>{t('team.modal.ability')}</h3>
+                    <p className="tactic-desc" style={{ margin: 0 }}>
+                        <b style={{ color: 'var(--text)' }}>{abilityName(inst.ability)}</b>
+                        {abilityWorks ? t('team.modal.abilityOn') : t('team.modal.abilityOff')} —{' '}
+                        {abilityDesc(inst.ability, lang)}
+                    </p>
+
+                    {item && (
+                        <>
+                            <h3>{t('team.modal.item')}</h3>
+                            <p className="tactic-desc card-item-row" style={{ margin: 0 }}>
+                                <img className="pixel" src={itemSprite(item)} alt="" />
+                                <span>
+                                    <b style={{ color: 'var(--text)' }}>{itemName(item)}</b> — {itemDesc(item, lang)}
+                                </span>
+                            </p>
+                        </>
+                    )}
                 </div>
             </div>
-        </div>
+        </Sheet>
     );
 }

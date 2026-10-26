@@ -4,6 +4,7 @@ import type { CupSummary, SaveSummary, Side } from '../../cloud/reconcile-plan';
 import { cupStageName, stageName, t } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { isLong } from '../../store/long-cup';
+import { Sheet } from '../kit/Sheet';
 import './account-link.css';
 
 /**
@@ -70,6 +71,8 @@ function SideCard({
     );
 }
 
+const noop = () => {};
+
 function AskDialog({ ask }: { ask: LinkAsk }) {
     const { t } = useT();
     const [busy, setBusy] = useState(false);
@@ -96,66 +99,62 @@ function AskDialog({ ask }: { ask: LinkAsk }) {
     const kept = ask.keep === 'device' ? ask.device.cup : ask.cloud?.cup;
 
     return (
-        <div className="modal-backdrop link-backdrop" role="presentation">
-            <div className="modal panel link-modal" role="dialog" aria-modal="true" aria-labelledby="link-title">
-                <h2 id="link-title">{title}</h2>
-                <p className="link-lead">
-                    {lead}
-                    {ask.cupChoice && (
-                        <>
-                            {' '}
-                            <b className="link-q">{t('account.which')}</b>
-                        </>
-                    )}
-                </p>
-                <div className={`link-sides${ask.cloud ? ' two' : ''}`}>
-                    <SideCard
-                        label={t('account.device')}
-                        s={ask.device}
-                        busy={busy}
-                        pick={ask.cupChoice ? () => answer('device') : undefined}
-                        pickLabel={t('account.pickDevice')}
-                    />
-                    {ask.cloud && (
-                        <SideCard
-                            label={t('account.cloud')}
-                            s={ask.cloud}
-                            busy={busy}
-                            pick={ask.cupChoice ? () => answer('cloud') : undefined}
-                            pickLabel={t('account.pickCloud')}
-                        />
-                    )}
-                </div>
-                {ask.kind === 'bring' && <p className="link-note">{t('account.bring.after')}</p>}
-                {ask.kind !== 'bring' && <p className="link-note link-best">{t('account.best')}</p>}
-                {ask.cupChoice ? (
-                    <p className="link-note">{t('account.parkedNote')}</p>
-                ) : (
-                    ask.kind === 'merge' &&
-                    kept && (
-                        <p className="link-note">{t('account.continues', { team: kept.team, step: cupStep(kept) })}</p>
-                    )
+        // sem fechar por fora: é uma decisão (o "Agora não" é a saída)
+        <Sheet open onClose={noop} title={title} alert className="link-modal">
+            <p className="link-lead">
+                {lead}
+                {ask.cupChoice && (
+                    <>
+                        {' '}
+                        <b className="link-q">{t('account.which')}</b>
+                    </>
                 )}
-                <div className="link-actions">
-                    {!ask.cupChoice && (
-                        <button
-                            type="button"
-                            className="btn confirm big"
-                            disabled={busy}
-                            onClick={() => answer(ask.keep)}
-                            // biome-ignore lint/a11y/noAutofocus: o foco vai para a resposta principal da janela que acabou de abrir
-                            autoFocus
-                        >
-                            {ask.kind === 'bring' ? t('account.bring.yes') : t('account.merge.yes')}
-                        </button>
-                    )}
-                    <button type="button" className="btn ghost" disabled={busy} onClick={decline}>
-                        {t('account.notNow')}
-                    </button>
-                    <span className="muted link-hint">{t('account.notNowHint')}</span>
-                </div>
+            </p>
+            <div className={`link-sides${ask.cloud ? ' two' : ''}`}>
+                <SideCard
+                    label={t('account.device')}
+                    s={ask.device}
+                    busy={busy}
+                    pick={ask.cupChoice ? () => answer('device') : undefined}
+                    pickLabel={t('account.pickDevice')}
+                />
+                {ask.cloud && (
+                    <SideCard
+                        label={t('account.cloud')}
+                        s={ask.cloud}
+                        busy={busy}
+                        pick={ask.cupChoice ? () => answer('cloud') : undefined}
+                        pickLabel={t('account.pickCloud')}
+                    />
+                )}
             </div>
-        </div>
+            {ask.kind === 'bring' && <p className="link-note">{t('account.bring.after')}</p>}
+            {ask.kind !== 'bring' && <p className="link-note link-best">{t('account.best')}</p>}
+            {ask.cupChoice ? (
+                <p className="link-note">{t('account.parkedNote')}</p>
+            ) : (
+                ask.kind === 'merge' &&
+                kept && <p className="link-note">{t('account.continues', { team: kept.team, step: cupStep(kept) })}</p>
+            )}
+            <div className="link-actions">
+                {!ask.cupChoice && (
+                    <button
+                        type="button"
+                        className="btn confirm big"
+                        disabled={busy}
+                        onClick={() => answer(ask.keep)}
+                        // biome-ignore lint/a11y/noAutofocus: o foco vai para a resposta principal da janela que acabou de abrir
+                        autoFocus
+                    >
+                        {ask.kind === 'bring' ? t('account.bring.yes') : t('account.merge.yes')}
+                    </button>
+                )}
+                <button type="button" className="btn ghost" disabled={busy} onClick={decline}>
+                    {t('account.notNow')}
+                </button>
+                <span className="muted link-hint">{t('account.notNowHint')}</span>
+            </div>
+        </Sheet>
     );
 }
 
