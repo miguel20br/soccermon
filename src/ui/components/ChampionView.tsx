@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useState } from 'react';
 import { useCloud } from '../../cloud/cloud';
 import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
@@ -6,6 +6,7 @@ import { clubName, cupStageName } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { isPerfectCup, type RunState, useGame } from '../../store/game-store';
 import { cupLength } from '../../store/long-cup';
+import { useCountUp } from '../ambientes/TopBar';
 import { trainerLabel } from '../profile/club';
 import { aggregate, avg } from '../stats/CupStats';
 import { CupAwards, CupFinal, CupGoals, CupXI, FormSpark, TitleRecords, useRarity } from './ChampionExtras';
@@ -16,6 +17,16 @@ import { HudIcon } from './MatchHud';
 import { cardSprite } from './PokeCard';
 import { Confetti } from './ResultHero';
 import { Trophy } from './Trophy';
+
+/** Número do resumo da copa: contornado, contando do 0 (com "reduzir movimento", já parado). */
+function TotalNum({ n, run, suffix }: { n: number; run: boolean; suffix?: string }) {
+    return (
+        <b className="cb-num">
+            {useCountUp(n, run)}
+            {suffix && <small>{suffix}</small>}
+        </b>
+    );
+}
 
 /**
  * Tela do título: a taça, o caminho até ela (as 4 partidas, com placar, rival e craque) e o elenco campeão
@@ -46,10 +57,20 @@ export function ChampionView({ run, actions }: { run: RunState; actions: ReactNo
     const star = players
         .filter((a) => a.games >= 2)
         .reduce<(typeof players)[number] | null>((best, a) => (!best || avg(a) > avg(best) ? a : best), null);
+    const parading = !!(hallEntry && run.champ && !run.champ.paraded);
+    // os números contam depois do desfile; um toque em qualquer lugar completa
+    const [skip, setSkip] = useState(false);
+    useEffect(() => {
+        if (parading) return;
+        const done = () => setSkip(true);
+        window.addEventListener('pointerdown', done, { once: true });
+        return () => window.removeEventListener('pointerdown', done);
+    }, [parading]);
+    const count = !parading && !skip;
 
     return (
         <>
-            {hallEntry && run.champ && !run.champ.paraded && (
+            {hallEntry && parading && (
                 <HallParade entry={hallEntry} trainer={trainerLabel(profile, googleName)} onDone={markParaded} />
             )}
             <section className="panel rh rh-champ champ" aria-label={t('result.champ.aria')}>
@@ -67,7 +88,7 @@ export function ChampionView({ run, actions }: { run: RunState; actions: ReactNo
                 </h1>
                 <div className="champ-sub">{rich(t('result.champ.sub'), { team: <b>{run.teamName}</b> })}</div>
                 {isPerfectCup(run) && (
-                    <div className="perfect-badge">
+                    <div className="perfect-badge k-ribbon">
                         <HudIcon kind="max" />
                         {t('result.champ.perfect')}
                         <HudIcon kind="max" />
@@ -78,28 +99,30 @@ export function ChampionView({ run, actions }: { run: RunState; actions: ReactNo
 
                 <div className="cup-totals champ-totals">
                     <div>
-                        <b>
-                            {run.results.filter((r) => r.won).length}/{cupLength(run)}
-                        </b>
+                        <TotalNum
+                            n={run.results.filter((r) => r.won).length}
+                            run={count}
+                            suffix={`/${cupLength(run)}`}
+                        />
                         <span>{t('result.champ.wins')}</span>
                     </div>
                     <div>
-                        <b>{gf}</b>
+                        <TotalNum n={gf} run={count} />
                         <span>{t('result.champ.gf')}</span>
                     </div>
                     <div>
-                        <b>{ga}</b>
+                        <TotalNum n={ga} run={count} />
                         <span>{t('result.champ.ga')}</span>
                     </div>
                     {poss !== null && (
                         <div>
-                            <b>{poss}%</b>
+                            <TotalNum n={poss} run={count} suffix="%" />
                             <span>{t('result.champ.poss')}</span>
                         </div>
                     )}
                     {topScorer && topScorer.goals > 0 && (
                         <div>
-                            <b>{topScorer.goals}</b>
+                            <TotalNum n={topScorer.goals} run={count} />
                             <span>
                                 {t('result.champ.topScorer', {
                                     goals: tn('result.champ.goalWord', topScorer.goals),
@@ -110,7 +133,7 @@ export function ChampionView({ run, actions }: { run: RunState; actions: ReactNo
                     )}
                     {star && (
                         <div>
-                            <b>{avg(star).toFixed(1)}</b>
+                            <b className="cb-num">{avg(star).toFixed(1)}</b>
                             <span>{t('result.champ.star', { name: star.name })}</span>
                         </div>
                     )}

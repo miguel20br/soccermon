@@ -334,6 +334,10 @@
 .tr-summary small {
     font-size: 12px;
 }
+.tr-level-bar {
+    width: min(220px, 100%);
+    margin-top: 4px;
+}
 .tr-sheet-panel {
     width: min(720px, 100%);
     max-height: min(86vh, 900px);

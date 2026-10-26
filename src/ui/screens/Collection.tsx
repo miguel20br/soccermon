@@ -23,7 +23,7 @@ export function Collection() {
         <div className="menu-screen pf">
             <MenuHead title={t('profile.collection')} icon="dex" onBack={() => go('profile')} />
             <div
-                className="pf-tabs bc-tabs"
+                className="pf-tabs k-tabs"
                 role="tablist"
                 aria-label={t('profile.collection')}
                 style={{ '--n': DOOR_TABS.collection.length } as CSSProperties}

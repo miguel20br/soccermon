@@ -623,3 +623,258 @@
     clip-path: none;
     opacity: 0;
 }
+
+/* =====================================================================================================================
+ * Telas de menu e resultado (revisão de estilo, itens 5, 6, 7 e 9): abas de pasta, barra de progresso, selo e fita,
+ * campo de texto. Uma classe por peça; a tela só ajusta o lugar.
+ * ===================================================================================================================== */
+
+/* ---------- abas de pasta (.k-tabs): a ativa sobe 4 px, ganha a faixa dourada e se abre pro conteúdo ---------- */
+.k-tabs {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    align-items: end;
+    gap: 4px;
+    padding: 6px 4px 0;
+    border-bottom: 3px solid var(--cb-ink);
+}
+.k-tabs > [role="tab"] {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 0;
+    min-height: 48px;
+    padding: 7px 4px 6px;
+    border: 3px solid var(--cb-ink);
+    border-bottom: 0;
+    border-radius: 8px 8px 0 0;
+    background: var(--bc-ink-2);
+    box-shadow: inset 0 2px 0 rgb(255 255 255 / 8%);
+    color: var(--muted);
+    font: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        transform var(--dur-ui) var(--ease-out),
+        background-color var(--dur-ui) var(--ease-out),
+        color var(--dur-ui) var(--ease-out);
+}
+.k-tabs > [role="tab"] > span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.k-tabs > [role="tab"]:hover {
+    color: var(--text);
+}
+.k-tabs > [role="tab"][aria-selected="true"] {
+    z-index: 1;
+    transform: translateY(-4px);
+    background: var(--panel);
+    box-shadow: inset 0 2px 0 rgb(255 255 255 / 14%);
+    color: #fff;
+}
+/* a faixa dourada em cima da ativa */
+.k-tabs > [role="tab"]::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 4px;
+    border-radius: 5px 5px 0 0;
+    background: var(--yellow);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform var(--dur-ui) var(--ease-out);
+}
+.k-tabs > [role="tab"][aria-selected="true"]::before {
+    transform: none;
+}
+/* a ativa desce até cobrir a linha de baixo: a pasta da frente se abre pro conteúdo */
+.k-tabs > [role="tab"][aria-selected="true"]::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 -7px;
+    height: 7px;
+    background: var(--panel);
+}
+.k-tabs > [role="tab"]:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: -6px;
+}
+/* o conteúdo que a aba abre entra subindo (nada teleporta); a tela troca a key pra reanimar */
+.k-pane {
+    animation: k-pane-in var(--dur-ui) var(--ease-out);
+}
+@keyframes k-pane-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+}
+
+/* ---------- barra de progresso (.k-bar): 14 px, chanfrada, "x/y" contornado dentro; verde quando completa ---------- */
+.k-bar {
+    position: relative;
+    display: block;
+    height: 14px;
+    border: 2px solid var(--cb-ink);
+    border-radius: 4px;
+    background: var(--bc-ink-3);
+    box-shadow:
+        inset 0 2px 0 rgb(0 0 0 / 35%),
+        0 2px 0 var(--cb-ink);
+    overflow: hidden;
+}
+/* o que encheu (pode ter duas camadas: .k-bar-ghost é a de trás, mais clara) */
+.k-bar > i {
+    position: absolute;
+    inset: 0 auto 0 0;
+    max-width: 100%;
+    background: linear-gradient(180deg, var(--gold-hi) 0 45%, var(--yellow) 45%);
+    box-shadow: inset 0 -2px 0 var(--gold-lo);
+    transform-origin: left;
+    animation: k-bar-fill var(--dur-tela) var(--ease-pop) both;
+}
+.k-bar > i.k-bar-ghost {
+    background: color-mix(in srgb, var(--yellow) 40%, var(--panel-2));
+    box-shadow: none;
+}
+.k-bar.full > i:not(.k-bar-ghost) {
+    background: linear-gradient(180deg, var(--green-hi) 0 45%, var(--green-c) 45%);
+    box-shadow: inset 0 -2px 0 var(--green-lo);
+}
+.k-bar > b {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-family: "Galmuri11", monospace;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    text-shadow: var(--k-out-1);
+    font-variant-numeric: tabular-nums;
+}
+@keyframes k-bar-fill {
+    from {
+        transform: scaleX(0);
+    }
+}
+
+/* ---------- selo (.k-seal) e fita (.k-ribbon): plaquinha dourada com contorno e base dura; batem com pop ---------- */
+.k-seal,
+.k-ribbon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 3px 10px 4px;
+    border: 3px solid var(--cb-ink);
+    border-radius: 4px;
+    background: linear-gradient(180deg, var(--gold-hi) 0 45%, var(--yellow) 45%);
+    box-shadow:
+        inset 0 -3px 0 var(--gold-lo),
+        var(--lift-1);
+    color: var(--cb-ink);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+    animation: k-seal-in var(--dur-pop) var(--ease-pop) both;
+    animation-delay: calc(var(--i, 0) * 60ms);
+}
+/* o selo de apoio é azul-noite com o texto dourado (o dourado cheio fica pro principal) */
+.k-seal.k-seal-dark {
+    background: linear-gradient(180deg, var(--bc-ink-2) 0 45%, var(--bc-ink) 45%);
+    box-shadow:
+        inset 0 -3px 0 var(--cb-ink),
+        var(--lift-1);
+    color: var(--yellow);
+}
+/* fita: pontas cortadas em V, texto maior com contorno */
+.k-ribbon {
+    padding: 5px 22px 7px;
+    border-radius: 0;
+    border-inline: 0;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 50%, 100% 100%, 0 100%, 10px 50%);
+    color: #fff;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    text-shadow: var(--k-out-1);
+    --ol: var(--gold-ol);
+}
+@keyframes k-seal-in {
+    from {
+        opacity: 0;
+        transform: scale(1.4);
+    }
+}
+
+/* ---------- campo de texto (.k-field): a caixa com o ícone, contorno de 3 px e base dura; foco dourado ---------- */
+.k-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    border: 3px solid var(--cb-ink);
+    border-radius: 8px;
+    background: var(--bc-ink-3);
+    box-shadow:
+        inset 0 3px 0 rgb(0 0 0 / 35%),
+        inset 0 0 0 2px var(--frame-in),
+        var(--lift-1);
+    transition: box-shadow var(--dur-ui) var(--ease-out);
+}
+.k-field:focus-within {
+    box-shadow:
+        inset 0 3px 0 rgb(0 0 0 / 35%),
+        inset 0 0 0 2px var(--yellow),
+        var(--lift-1);
+}
+.k-field input {
+    flex: 1;
+    min-width: 0;
+    height: 44px;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-size: 16px;
+    outline: none;
+}
+.k-field input::placeholder {
+    color: var(--muted);
+}
+.k-field .hud-icon {
+    color: var(--muted);
+}
+
+/* reduzir movimento: sem pulo nem enchimento; a troca vira só cor */
+@media (prefers-reduced-motion: reduce) {
+    :root:not([data-reduce-motion="false"]) :is(.k-pane, .k-bar > i, .k-seal, .k-ribbon) {
+        animation: none;
+    }
+    :root:not([data-reduce-motion="false"]) .k-tabs > [role="tab"] {
+        transition-property: background-color, color;
+    }
+    :root:not([data-reduce-motion="false"]) .k-tabs > [role="tab"]::before {
+        transition: none;
+    }
+}
+:root[data-reduce-motion="true"] :is(.k-pane, .k-bar > i, .k-seal, .k-ribbon) {
+    animation: none;
+}
+:root[data-reduce-motion="true"] .k-tabs > [role="tab"] {
+    transition-property: background-color, color;
+}
+:root[data-reduce-motion="true"] .k-tabs > [role="tab"]::before {
+    transition: none;
+}
