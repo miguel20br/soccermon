@@ -142,9 +142,9 @@ Aprovadas pelo Miguel ("1a a 9a"); **cada tarefa é avaliada por si**, não é a
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (25/10/2026, v0.9.21)
+## Estado atual (26/10/2026, v0.9.22)
 
-No ar: 0.9.21 (tela inicial em 5 ambientes: Lab, Rota, Estádio, Arena, Sede; `?lab=off` = Home antiga; motor 13, `liga` no 13). Liga fechada até `LIGA_OPENS_AT`. Histórico: [historico.md](docs/planos/historico.md). Índice: `node scripts/indice.mjs`.
+No ar: 0.9.22 (kit de botões com relevo, cor por função, painel com placa; ambientes desde a 0.9.21, `?lab=off` = Home antiga; motor 13, `liga` no 13). Liga fechada até `LIGA_OPENS_AT`. Histórico: [historico.md](docs/planos/historico.md). Índice: `node scripts/indice.mjs`.
 
 ## Armadilhas (o porquê de cada uma)
 

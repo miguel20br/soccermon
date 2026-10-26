@@ -9,6 +9,33 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.22',
+        date: '2026-10-26',
+        title: 'Botão de apertar',
+        sections: [
+            {
+                title: 'Visual novo',
+                lines: [
+                    'Botões com relevo no jogo inteiro: afundam e quicam no toque, com som',
+                    'A cor diz o que o botão faz: dourado joga, verde segue ou compra, azul é o resto, vermelho só pra apagar ou sair',
+                    'Um botão grande por tela, o do próximo passo. Comprar e Escalar viraram um selo na própria carta',
+                    'Painéis com moldura grossa e o título numa placa, igual ao Estádio',
+                    'O que está escolhido fica sempre em azul',
+                ],
+            },
+            {
+                title: 'Melhorado',
+                lines: [
+                    'Nível de treinador na barra de cima: sobe com as missões cumpridas',
+                    'Draft: as 3 cartas cabem na primeira tela do celular',
+                    'Monta pra mim ficou mais discreto: quem quer escolher escolhe',
+                    'O aviso rápido não cobre mais o botão de baixo',
+                    'A confirmação de Abandonar copa não fica mais atrás da barra do Jogar',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.21',
         date: '2026-10-25',
         title: 'Cada modo no seu lugar',
@@ -1653,6 +1680,33 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.22',
+        date: '2026-10-26',
+        title: 'Press the button',
+        sections: [
+            {
+                title: 'New look',
+                lines: [
+                    'Raised buttons across the whole game: they sink and bounce when tapped, with sound',
+                    'The color tells what a button does: gold plays, green moves on or buys, blue is everything else, red only to delete or leave',
+                    'One big button per screen, for the next step. Buy and Pick became a tag on the card itself',
+                    'Panels with a thick frame and the title on a plaque, like the Stadium',
+                    'Whatever is selected is always blue',
+                ],
+            },
+            {
+                title: 'Improved',
+                lines: [
+                    'Trainer level on the top bar: it goes up with the missions you complete',
+                    'Draft: the 3 cards fit on the first phone screen',
+                    'Auto-draft is more low-key now: if you want to pick, you pick',
+                    'The quick notice no longer covers the bottom button',
+                    'The Leave cup confirmation no longer hides behind the Play bar',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.21',
         date: '2026-10-25',

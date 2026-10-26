@@ -32,7 +32,7 @@ mexer. Aqui fica o que conferir sempre.
       `--green`, `--bc-ink*`. Hex solto só se for cor de tipo (`TYPE_COLOR`), de metal/raridade (`rarity.ts`) ou do
       logo.
 - [ ] Cor por função (guia, "Cor"): dourado joga (um JOGAR por tela), verde confirma ou compra, azul é secundário,
-      vermelho só perigo ou fechar dentro da confirmação. Relevo (base escura) = dá pra tocar; painel é chapado.
+      vermelho só perigo ou fechar dentro da confirmação. Relevo (base escura) = dá pra tocar; um botão gordo por tela, lista vira chip; painel tem moldura com título em placa; escolhido = azul.
 - [ ] Contraste da tabela do guia: branco sobre verde não; texto pequeno no vermelho vai em `--red-dark`.
 - [ ] Sombra dura (sem blur), raios 4/6/8/10, borda de baixo preta no placar.
 

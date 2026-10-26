@@ -1,5 +1,21 @@
 # Novidades
 
+## 0.9.22 · Botão de apertar (2026-10-26)
+
+### Visual novo
+- Botões com relevo no jogo inteiro: afundam e quicam no toque, com som
+- A cor diz o que o botão faz: dourado joga, verde segue ou compra, azul é o resto, vermelho só pra apagar ou sair
+- Um botão grande por tela, o do próximo passo. Comprar e Escalar viraram um selo na própria carta
+- Painéis com moldura grossa e o título numa placa, igual ao Estádio
+- O que está escolhido fica sempre em azul
+
+### Melhorado
+- Nível de treinador na barra de cima: sobe com as missões cumpridas
+- Draft: as 3 cartas cabem na primeira tela do celular
+- Monta pra mim ficou mais discreto: quem quer escolher escolhe
+- O aviso rápido não cobre mais o botão de baixo
+- A confirmação de Abandonar copa não fica mais atrás da barra do Jogar
+
 ## 0.9.21 · Cada modo no seu lugar (2026-10-25)
 
 ### Nova tela inicial
