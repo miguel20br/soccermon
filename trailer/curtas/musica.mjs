@@ -5,6 +5,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import penaltis from '../../scripts/musica/pecas/livre-penaltis.mjs';
+import magikarp from '../../scripts/musica/pecas/livre-magikarp.mjs';
 import snorlax from '../../scripts/musica/pecas/livre-snorlax.mjs';
 import { SR, Song, writeWav } from '../../scripts/musica/synth.mjs';
 
@@ -68,8 +69,8 @@ Song.prototype.part = function (...args) {
 if (import.meta.url === `file://${process.argv[1]}`) {
     const OUT = process.argv[2] ?? '/tmp/soccermon-curtas';
     mkdirSync(OUT, { recursive: true });
-    for (const [nome, peca] of Object.entries({ snorlax, penaltis })) {
-        MAPA = MAPAS[nome];
+    for (const [nome, peca] of Object.entries({ snorlax, penaltis, magikarp })) {
+        MAPA = MAPAS[nome] ?? null; // o EP 2 foi composto já na ordem do curta
         const S = peca();
         MAPA = null;
         const audio = S.render();
@@ -77,7 +78,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         // início de cada compasso (s), andamento e swing: a cena calcula o tempo de cada linha com isso
         const inicios = Array.from({ length: S.bars + 1 }, (_, b) => Math.round(S.timeOfBar(b) * 1e6) / 1e6);
         const bpm = Array.from({ length: S.bars }, (_, b) => (S.bpmAt ? S.bpmAt(b) : S.bpm));
-        const info = { mapa: MAPAS[nome], inicios, bpm, swing: S.swing, duracao: audio[0].length / SR };
+        const info = { mapa: MAPAS[nome] ?? null, inicios, bpm, swing: S.swing, duracao: audio[0].length / SR };
         writeFileSync(join(OUT, `${nome}.js`), `window.MUSICA = ${JSON.stringify(info)};\n`);
         console.log(nome, `${S.bars} compassos`, `${inicios.at(-1).toFixed(2)} s + rabo = ${info.duracao.toFixed(2)} s`);
     }

@@ -1,0 +1,314 @@
+<!doctype html>
+<!--
+  Curta "Quem reforma melhor?" (26/10/2026, nova interface): o Pikachu e o Ditto disputam quem reforma a Home antiga
+  (0.9.20) mais rápido. Placar no pé da tela; cada um troca uma peça velha pela nova (o Pikachu no chute e no raio, o
+  Ditto no Transform: derrete em cima e a peça sai nova). Na última peça os dois batem de cabeça, a Home inteira vira
+  a nova e eles ficam amigos. Música: tema-rocket (112 BPM, compasso = 2,142857 s; intro de 2 compassos). Tempos:
+  C.T(compasso, linha), 16 linhas por compasso. img/ = prints 1080x1920 da 0.9.20 e da 0.9.23 (soccermon.com).
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920" />
+<title>Soccermon · Quem reforma melhor</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script src="midia/sprites.js"></script>
+<script>window.MUSICA = { inicios: Array.from({ length: 9 }, (_, i) => i * 2.142857), swing: 0 };</script>
+<script src="comum.js"></script>
+<style>
+#tela { position: absolute; inset: 0; background: radial-gradient(ellipse 120% 60% at 50% 35%, #192141, #141a33 70%); }
+.peca { position: absolute; left: 0; width: 1080px; background-repeat: no-repeat; background-size: 1080px 1920px; transform-origin: 50% 50%; }
+.velha { background-image: url(img/antiga.png); }
+.nova { background-image: url(img/nova.png); opacity: 0; }
+#zoom { position: absolute; inset: 0; transform-origin: 540px 900px; }
+#foco { position: absolute; inset: 0; z-index: 15; pointer-events: none; --fx: 540px; --fy: 900px; --fr: 330px;
+  background: radial-gradient(circle at var(--fx) var(--fy), transparent var(--fr), rgb(5 8 20 / 80%) calc(var(--fr) + 260px)); }
+#mao { position: absolute; left: 0; top: 0; z-index: 75; opacity: 0; }
+#inteira { position: absolute; inset: 0; background: url(img/nova.png) 0 0 / 1080px 1920px; opacity: 0; }
+.placar { position: absolute; left: 140px; width: 800px; top: 1440px; height: 150px; z-index: 60; display: flex; align-items: center; justify-content: center; gap: 26px;
+  background: #10183d; border: 8px solid #f8f8f0; border-radius: 22px; box-shadow: 0 0 0 6px #0e1430, 0 14px 0 rgb(0 0 0 / 40%); color: #fff; font-size: 52px; letter-spacing: 2px; opacity: 0; }
+.placar .n { font-size: 84px; color: #ffcb05; -webkit-text-stroke: 10px #0e1430; paint-order: stroke fill; display: inline-block; }
+.placar .x { color: #9aa6d8; }
+.placar .empate { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 76px; color: #ffcb05; background: #10183d; border-radius: 14px; opacity: 0; }
+.raio { position: absolute; left: 0; top: 0; z-index: 40; opacity: 0; overflow: visible; }
+.coracao { position: absolute; left: 0; top: 0; z-index: 45; opacity: 0; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="17.143">
+  <div id="cena" class="clip" data-start="0" data-duration="15">
+    <div id="tela"><div id="zoom">
+      <div id="inteira"></div>
+      <div class="peca velha" id="o-topo" style="top:0;height:185px;background-position:0 0"></div>
+      <div class="peca velha" id="o-quadra" style="top:185px;height:310px;background-position:0 -185px"></div>
+      <div class="peca velha" id="o-logo" style="top:495px;height:250px;background-position:0 -495px"></div>
+      <div class="peca velha" id="o-jogar" style="top:770px;height:255px;background-position:0 -770px"></div>
+      <div class="peca velha" id="o-links" style="top:1025px;height:895px;background-position:0 -1025px"></div>
+      <div class="peca nova" id="n-topo" style="top:0;height:185px;background-position:0 0"></div>
+      <div class="peca nova" id="n-quadra" style="top:185px;height:310px;background-position:0 -171px"></div>
+      <div class="peca nova" id="n-jogar" style="top:778px;height:240px;background-position:0 -1440px"></div>
+      <div id="n-abas"></div>
+      <div id="foco"></div>
+      <div id="cam" class="camada"></div>
+    </div></div>
+    <div id="mao"></div>
+    <div class="legenda" id="gancho" style="top:1060px;height:300px"><span>QUEM REFORMA <b>MELHOR?</b></span></div>
+    <div class="legenda" id="nova-ui" style="top:1290px;height:160px;opacity:0;z-index:70"><span>NOVA <b>INTERFACE</b></span></div>
+    <div class="placar" id="placar">PIKACHU <span class="n" id="p1">0</span><span class="x">×</span><span class="n" id="p2">0</span> DITTO<div class="empate" id="empate">EMPATE!</div></div>
+  </div>
+  <div id="final" class="clip palco" data-start="15" data-duration="2.143">
+    <div class="raios" id="raios-final"></div>
+    <div id="final-cena" class="camada"></div>
+  </div>
+  <div class="flash" id="flash"></div>
+  <audio id="a-musica" class="clip" src="som/tema-rocket.mp3" data-start="0" data-duration="17.143" data-media-start="0" data-fade-out="0.8"></audio>
+  <audio id="a-pika1" class="clip" src="som/pikachu.ogg" data-start="3.214" data-duration="1.2" data-media-start="0"></audio>
+  <audio id="a-ditto1" class="clip" src="som/ditto.ogg" data-start="3.75" data-duration="1.2" data-media-start="0"></audio>
+  <audio id="a-ditto2" class="clip" src="som/ditto.ogg" data-start="8.036" data-duration="1.2" data-media-start="0"></audio>
+  <audio id="a-uuh" class="clip" src="som/torcida-uuh-1.mp3" data-start="10.714" data-duration="2" data-media-start="0"></audio>
+  <audio id="a-pika2" class="clip" src="som/pikachu.ogg" data-start="12.857" data-duration="1.2" data-media-start="0"></audio>
+  <audio id="a-ditto3" class="clip" src="som/ditto.ogg" data-start="13" data-duration="1.2" data-media-start="0"></audio>
+  <audio id="a-gol" class="clip" src="som/torcida-gol-1.mp3" data-start="12.857" data-duration="2.2" data-media-start="0"></audio>
+
+  <script>
+    const T = (b, r = 0) => C.T(b + 1, r); // compasso 0 = depois da abertura do dedo
+    const { div, ator, anim, quadro, bola, estouro, poeira, treme, flash, telaFinal, piscada } = C;
+    const tl = gsap.timeline({ paused: true });
+    const cam = document.getElementById('cam');
+    const PE = 780; // em cima do "Jogar" velho
+    const pk = ator(cam, 25, { escala: 15, z: 20, x: 300, y: PE, opacity: 0 });
+    const dt = ator(cam, 132, { escala: 16, z: 21, x: 790, y: PE, opacity: 0 });
+    const bl = bola(cam, { d: 110, z: 22, x: -200, y: PE });
+    tl.set(bl.el, { opacity: 0 }, 0);
+    const mover = (a, t0, t1, x, y, ease = 'none') => tl.to(a.el, { x, y, duration: t1 - t0, ease }, t0);
+    const pulo = (a, t, h, d = 0.25) => tl.to(a.corpo, { keyframes: { y: [-h, 0] }, duration: d, ease: 'power1.inOut' }, t);
+    const salto = (a, t0, t1, x, y, h) => {
+      mover(a, t0, t1, x, y, 'power1.inOut');
+      tl.to(a.corpo, { keyframes: { y: [-h, 0] }, duration: t1 - t0, ease: 'power1.inOut' }, t0);
+    };
+    const tremer = (t, f, d = 0.3) => treme(tl, ['#tela'], t, f, d);
+    // peça velha sai girando como carta; a nova entra no mesmo lugar com quique
+    const sai = (sel, t) => tl.to(sel, { scaleY: 0, duration: 0.14, ease: 'power2.in' }, t);
+    const entra = (sel, t) => {
+      tl.set(sel, { opacity: 1 }, t);
+      tl.fromTo(sel, { scaleY: 0 }, { scaleY: 1, duration: 0.32, ease: 'back.out(2.6)', immediateRender: false }, t);
+    };
+    const ponto = (id, n, t) => {
+      tl.set(id, { textContent: n }, t);
+      tl.fromTo(id, { scale: 1.9 }, { scale: 1, duration: 0.3, ease: 'back.out(3)', immediateRender: false }, t);
+    };
+
+    // ===== a mão do jogador (cursor de mão em pixel, a ponta do dedo é o ponto do toque) =====
+    const MAO = ['.....XX.........', '....XWWX........', '....XWWX........', '....XWWX........', '....XWWXXX......', '....XWWXWWXXX...',
+      '.XX.XWWXWWXWWXX.', 'XWWXXWWWWWXWWXWX', 'XWWWXWWWWWWWWWWX', '.XWWWWWWWWWWWWWX', '..XWWWWWWWWWWWWX', '..XWWWWWWWWWWWX.',
+      '...XWWWWWWWWWWX.', '...XWWWWWWWWWX..', '....XWWWWWWWWX..', '....XXXXXXXXXX..'];
+    const PX = 20;
+    const mao = document.getElementById('mao');
+    mao.innerHTML = `<svg width="${16 * PX}" height="${16 * PX}" viewBox="0 0 16 16" shape-rendering="crispEdges">${MAO.flatMap((l, y) =>
+      [...l].map((c, x) => (c === '.' ? '' : `<rect x="${x}" y="${y}" width="1" height="1" fill="${c === 'X' ? '#0e1430' : '#fff'}"/>`))).join('')}</svg>`;
+    gsap.set(mao, { transformOrigin: `${5.5 * PX}px 0px` });
+    const maoEm = (x, y) => ({ x: x - 5.5 * PX, y });
+    const toque = (t) => tl.fromTo(mao, { scale: 0.86 }, { scale: 1, duration: 0.18, ease: 'back.out(3)', immediateRender: false }, t);
+    // câmera fechada na peça da vez: o resto da tela fica no escuro
+    const foco = (t0, t1, fx, fy, fr, s, ox, oy, ease = 'power2.inOut') => {
+      tl.to('#foco', { '--fx': `${fx}px`, '--fy': `${fy}px`, '--fr': `${fr}px`, duration: t1 - t0, ease }, t0);
+      tl.to('#zoom', { scale: s, transformOrigin: `${ox}px ${oy}px`, duration: t1 - t0, ease }, t0);
+    };
+    gsap.set('#zoom', { scale: 1.12, transformOrigin: '540px 900px' });
+
+    // ===== abertura: o dedo toca no Jogar velho e nada acontece; os dois aparecem, olham pra câmera e um pro outro =====
+    tl.set(mao, { opacity: 1 }, 0);
+    tl.fromTo(mao, { x: 900, y: 2000 }, { ...maoEm(600, 905), duration: T(-1, 3), ease: 'power2.out', immediateRender: false }, 0);
+    for (const r of [4, 6]) {
+      toque(T(-1, r));
+      tl.fromTo('#o-jogar', { scale: 0.97 }, { scale: 1, duration: 0.15, ease: 'power2.out', immediateRender: false }, T(-1, r));
+    }
+    tl.set([pk.el, dt.el], { opacity: 1 }, T(-1, 8));
+    anim(tl, pk, 'Walk', 2, T(-1, 8), T(-1, 10), { vel: 2.4 });
+    tl.fromTo(pk.el, { x: -200 }, { x: 300, duration: T(-1, 10) - T(-1, 8), ease: 'power2.out', immediateRender: false }, T(-1, 8));
+    anim(tl, dt, 'Walk', 6, T(-1, 8), T(-1, 10), { vel: 2.4 });
+    tl.fromTo(dt.el, { x: 1280 }, { x: 790, duration: T(-1, 10) - T(-1, 8), ease: 'power2.out', immediateRender: false }, T(-1, 8));
+    // olham pro dedo (pra câmera) e o dedo sai de fininho
+    anim(tl, pk, 'Idle', 0, T(-1, 10), T(-1, 14));
+    anim(tl, dt, 'Idle', 0, T(-1, 10), T(-1, 14));
+    pulo(pk, T(-1, 10), 40, 0.2);
+    pulo(dt, T(-1, 10), 40, 0.2);
+    tl.to(mao, { x: 1000, y: 2050, duration: 0.35, ease: 'power2.in' }, T(-1, 11));
+    anim(tl, pk, 'Idle', 2, T(-1, 14), T(0, 0));
+    anim(tl, dt, 'Idle', 6, T(-1, 14), T(0, 0));
+
+    // ===== compasso 0: os dois chegam correndo e se encaram em cima do Jogar velho =====
+    tl.set('#gancho', { opacity: 0 }, 0);
+    tl.set('#gancho', { opacity: 1 }, T(0, 0));
+    tl.from('#gancho', { y: 60, scale: 0.8, duration: 0.22, ease: 'back.out(2.5)' }, T(0, 0));
+    tl.to('#gancho', { opacity: 0, y: -40, duration: 0.2 }, T(1, 0) - 0.2);
+    anim(tl, pk, 'Idle', 2, T(0, 0), T(1, 0));
+    anim(tl, dt, 'Idle', 6, T(0, 0), T(2, 0));
+    // provocação: cada um dá um pulinho no seu grito
+    anim(tl, pk, 'Hop', 2, T(0, 8), T(0, 11), { loop: false });
+    pulo(pk, T(0, 8), 60, 0.24);
+    anim(tl, dt, 'Hop', 6, T(0, 12), T(0, 15), { loop: false });
+    pulo(dt, T(0, 12), 60, 0.24);
+    tl.to('#placar', { opacity: 1, duration: 0.15 }, T(0, 10));
+    tl.from('#placar', { y: 60, duration: 0.25, ease: 'back.out(2)' }, T(0, 10));
+
+    // a câmera acompanha cada rodada
+    foco(T(1, 0), T(1, 4), 540, 1000, 470, 1.12, 540, 1100);
+    foco(T(1, 14), T(2, 2), 540, 1460, 540, 1.12, 540, 1920);
+    foco(T(2, 14), T(3, 1), 540, 380, 560, 1.12, 540, 0);
+    foco(T(3, 12), T(4, 0), 540, 640, 420, 1.15, 540, 640, 'power2.in');
+    tl.set('#foco', { '--fr': '2600px' }, T(4, 0));
+    tl.set('#zoom', { scale: 1 }, T(4, 0));
+
+    // ===== compasso 1: Pikachu chuta a bola no Jogar velho e ele vira o dourado =====
+    anim(tl, pk, 'Walk', 2, T(1, 0), T(1, 4), { vel: 1.6 });
+    mover(pk, T(1, 0), T(1, 4), 220, PE + 420, 'power1.inOut');
+    tl.set(bl.el, { opacity: 1, x: 380, y: PE + 430 }, T(1, 4));
+    anim(tl, pk, 'Shoot', 2, T(1, 5), T(1, 9), { loop: false });
+    mover(bl, T(1, 6), T(1, 8), 540, 905, 'none');
+    tl.to(bl.gira, { rotation: '+=540', duration: T(1, 8) - T(1, 6), ease: 'none' }, T(1, 6));
+    const tR1 = T(1, 8);
+    tl.set(bl.el, { opacity: 0 }, tR1);
+    estouro(tl, cam, 540, 900, tR1, { tam: 260 });
+    tremer(tR1, 0.8);
+    sai('#o-jogar', tR1);
+    entra('#n-jogar', tR1 + 0.14);
+    flash(tl, tR1 + 0.14, 0.35, 0.25);
+    ponto('#p1', 1, T(1, 12));
+    anim(tl, pk, 'Pose', 2, T(1, 12), T(2, 4), { loop: false });
+    // o Ditto fica invocado
+    anim(tl, dt, 'Hurt', 6, tR1, T(1, 14), { loop: false });
+    anim(tl, dt, 'Idle', 6, T(1, 14), T(2, 0));
+
+    // ===== compasso 2: Ditto pula na lista de links, derrete em cima e sai a barra nova =====
+    anim(tl, dt, 'Hop', 6, T(2, 0), T(2, 4), { loop: false });
+    salto(dt, T(2, 0), T(2, 4), 540, 1330, 380);
+    const tMelt = T(2, 4);
+    poeira(tl, cam, 540, 1340, tMelt, { n: 7, r: 260, tam: 40, cor: '#c9a0e6' });
+    tl.to(dt.corpo, { scaleX: 5, scaleY: 0.22, duration: T(2, 7) - tMelt, ease: 'power2.out' }, tMelt);
+    tl.to('#o-links', { opacity: 0, scaleY: 0.9, duration: T(2, 7) - tMelt, ease: 'power2.in' }, tMelt);
+    const tPop = T(2, 8);
+    tl.to(dt.corpo, { scaleX: 1, scaleY: 1, duration: 0.5, ease: 'elastic.out(1.1, 0.35)' }, tPop);
+    salto(dt, tPop, T(2, 12), 790, PE, 420);
+    estouro(tl, cam, 540, 1500, tPop, { tam: 240, cor: '#c9a0e6' });
+    tremer(tPop, 0.6);
+    // as 5 abas sobem uma a uma
+    const abas = document.getElementById('n-abas');
+    for (let i = 0; i < 5; i++) {
+      const a = div(abas, 'peca nova', `left:${i * 216}px;width:216px;top:1700px;height:220px;background-position:${-i * 216}px -1700px`);
+      tl.set(a, { opacity: 1 }, tPop);
+      tl.fromTo(a, { y: 260 }, { y: 0, duration: 0.3, ease: 'back.out(2.4)', immediateRender: false }, tPop + i * 0.06);
+    }
+    ponto('#p2', 1, T(2, 12));
+    anim(tl, pk, 'Hurt', 2, T(2, 12), T(3, 0), { loop: false });
+    anim(tl, dt, 'Idle', 6, T(2, 12), T(3, 6));
+
+    // ===== compasso 3: rápido. Raio do Pikachu troca o topo; o Ditto estica na quadrinha e ela vira o estádio =====
+    anim(tl, pk, 'Charge', 2, T(3, 0), T(3, 3), { loop: false });
+    mover(pk, T(3, 0), T(3, 2), 300, PE, 'power2.out');
+    const raio = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    raio.setAttribute('class', 'raio');
+    raio.setAttribute('width', '1080');
+    raio.setAttribute('height', '1920');
+    raio.innerHTML = '<polyline points="330,480 420,470 380,450 520,300 470,280 640,150 600,130 800,90" fill="none" stroke="#fff" stroke-width="34" stroke-linejoin="bevel"/><polyline points="330,480 420,470 380,450 520,300 470,280 640,150 600,130 800,90" fill="none" stroke="#ffcb05" stroke-width="18" stroke-linejoin="bevel"/>';
+    document.getElementById('tela').appendChild(raio);
+    const tRaio = T(3, 3);
+    tl.fromTo(raio, { opacity: 1 }, { keyframes: { opacity: [1, 0.3, 1, 0] }, duration: 0.25, ease: 'none', immediateRender: false }, tRaio);
+    flash(tl, tRaio, 0.6, 0.2);
+    tremer(tRaio, 0.7, 0.25);
+    estouro(tl, cam, 800, 90, tRaio, { tam: 200 });
+    sai('#o-topo', tRaio);
+    tl.set('#n-topo', { opacity: 1 }, tRaio + 0.1);
+    tl.fromTo('#n-topo', { y: -200 }, { y: 0, duration: 0.3, ease: 'bounce.out', immediateRender: false }, tRaio + 0.1);
+    ponto('#p1', 2, T(3, 6));
+    anim(tl, pk, 'Pose', 2, T(3, 6), T(3, 13), { loop: false });
+    // Ditto
+    anim(tl, dt, 'Hop', 6, T(3, 6), T(3, 9), { loop: false });
+    salto(dt, T(3, 6), T(3, 9), 540, 470, 260);
+    const tEst = T(3, 9);
+    tl.to(dt.corpo, { scaleX: 5.5, scaleY: 0.3, duration: 0.14, ease: 'power2.out' }, tEst);
+    sai('#o-quadra', tEst);
+    tl.to(dt.corpo, { scaleX: 1, scaleY: 1, duration: 0.4, ease: 'elastic.out(1.1, 0.35)' }, tEst + 0.18);
+    entra('#n-quadra', tEst + 0.16);
+    estouro(tl, cam, 540, 340, tEst + 0.16, { tam: 220, cor: '#c9a0e6' });
+    ponto('#p2', 2, T(3, 11));
+    salto(dt, T(3, 11), T(3, 13), 790, PE, 160);
+
+    // a última peça (o logo): os dois correm e batem de cabeça
+    anim(tl, pk, 'Walk', 2, T(3, 13), T(4, 0), { vel: 3 });
+    mover(pk, T(3, 13), T(4, 0), 470, 680, 'power2.in');
+    anim(tl, dt, 'Walk', 6, T(3, 13), T(4, 0), { vel: 3 });
+    mover(dt, T(3, 13), T(4, 0), 620, 680, 'power2.in');
+
+    // ===== compasso 4: BUM. A Home inteira vira a nova; os dois caem tontos na quadra =====
+    const tBum = T(4, 0);
+    flash(tl, tBum, 1, 0.5);
+    tremer(tBum, 2.2, 0.5);
+    estouro(tl, cam, 540, 560, tBum, { tam: 420 });
+    tl.set('.peca', { opacity: 0 }, tBum);
+    tl.set('#inteira', { opacity: 1 }, tBum);
+    tl.set('#placar', { y: -150 }, tBum); // sobe pra não cobrir o JOGAR novo
+    anim(tl, pk, 'Hurt', 2, tBum, T(4, 8), { loop: false });
+    anim(tl, dt, 'Hurt', 6, tBum, T(4, 8), { loop: false });
+    salto(pk, tBum, tBum + 0.5, 340, 1150, 300);
+    salto(dt, tBum, tBum + 0.5, 740, 1150, 300);
+    poeira(tl, cam, 340, 1160, tBum + 0.5, { n: 5, r: 140, tam: 30 });
+    poeira(tl, cam, 740, 1160, tBum + 0.5, { n: 5, r: 140, tam: 30 });
+    // olham a tela nova (de costas), depois um pro outro
+    anim(tl, pk, 'Idle', 4, T(4, 8), T(4, 13));
+    anim(tl, dt, 'Idle', 4, T(4, 8), T(4, 13));
+    anim(tl, pk, 'Idle', 2, T(4, 13), T(5, 0));
+    anim(tl, dt, 'Idle', 6, T(4, 13), T(5, 0));
+
+    // ===== compasso 5: amigos. Coração, EMPATE e os dois pulam juntos =====
+    const cor = div(document.getElementById('tela'), 'coracao');
+    cor.innerHTML = '<svg width="240" height="240" viewBox="0 0 15 15"><rect x="1" y="1" width="13" height="11" rx="2" fill="#fff" stroke="#0e1430" stroke-width="1"/><path d="M5 6h2v1h1V6h2v2H9v1H8v1H7V9H6V8H5z" fill="#e8423f"/><path d="M6.5 12l1 2 1-2z" fill="#fff" stroke="#0e1430" stroke-width="0.6"/></svg>';
+    tl.set(cor, { x: 420, y: 520 }, 0);
+    tl.set(cor, { opacity: 1 }, T(5, 0));
+    tl.fromTo(cor, { scale: 0.2 }, { scale: 1, duration: 0.35, ease: 'back.out(3)', immediateRender: false }, T(5, 0));
+    tl.set('#empate', { opacity: 1 }, T(5, 0));
+    tl.fromTo('#empate', { scale: 1.5 }, { scale: 1, duration: 0.3, ease: 'back.out(3)', immediateRender: false }, T(5, 0));
+    for (const r of [2, 6, 10]) {
+      anim(tl, pk, 'Hop', 2, T(5, r), T(5, r + 3), { loop: false });
+      anim(tl, dt, 'Hop', 6, T(5, r), T(5, r + 3), { loop: false });
+      pulo(pk, T(5, r), 90, 0.3);
+      pulo(dt, T(5, r), 90, 0.3);
+    }
+    tl.to('#placar', { opacity: 0, duration: 0.15 }, T(5, 8));
+    tl.set('#nova-ui', { opacity: 1 }, T(5, 8));
+    tl.from('#nova-ui', { scale: 0.7, y: 40, duration: 0.25, ease: 'back.out(2.5)' }, T(5, 8));
+
+    // o dedo volta e toca no JOGAR novo: agora funciona
+    tl.to(mao, { ...maoEm(560, 1560), duration: T(5, 11) - T(5, 8), ease: 'power2.out' }, T(5, 8));
+    toque(T(5, 12));
+    estouro(tl, document.getElementById('tela'), 560, 1560, T(5, 12), { tam: 320 });
+    flash(tl, T(5, 12), 0.5, 0.2);
+
+    // ===== compasso 6: tela final, com os dois pulando juntos embaixo do logo =====
+    const FIM = T(6, 0);
+    telaFinal(document.getElementById('final'));
+    document.getElementById('tag').textContent = 'Nova interface!';
+    const fc = document.getElementById('final-cena');
+    const pk2 = ator(fc, 25, { escala: 8, z: 5, x: 420, y: 1500 });
+    const dt2 = ator(fc, 132, { escala: 9, z: 5, x: 660, y: 1500 });
+    for (const r of [0, 4, 8, 12]) {
+      anim(tl, pk2, 'Hop', 0, T(6, r), T(6, r + 3), { loop: false });
+      anim(tl, dt2, 'Hop', 0, T(6, r), T(6, r + 3), { loop: false });
+      pulo(pk2, T(6, r), 70, 0.28);
+      pulo(dt2, T(6, r), 70, 0.28);
+    }
+    flash(tl, FIM, 1, 0.3);
+    tl.to('#raios-final', { rotation: 20, duration: 2.143, ease: 'none' }, FIM);
+    tl.set('#logo', { opacity: 1 }, FIM);
+    tl.fromTo('#logo', { scale: 0.7 }, { scale: 1, duration: 0.4, ease: 'back.out(3)', immediateRender: false }, FIM);
+    piscada(tl, [T(6, 2), T(6, 4), T(6, 6)], '#final-cena');
+    tl.set('#tag', { opacity: 1 }, T(6, 8));
+    tl.from('#tag', { scale: 1.6, duration: 0.25, ease: 'back.out(2)' }, T(6, 8));
+    tl.to(['#site', '#selo', '#credito'], { opacity: 1, duration: 0.2 }, T(6, 10));
+
+    window.__timelines = window.__timelines || {};
+    window.__timelines.root = tl;
+  </script>
+</div>
+</body>
+</html>
