@@ -64,3 +64,29 @@ export function routeTeam(run: TeamRun | null | undefined, longOn: boolean, avat
     }
     return [avatarId ?? 25];
 }
+
+/** Um slot de meta do Estádio (o "baú" do Clash): quanto já foi e se fechou. */
+export interface Slot {
+    n: number;
+    goal: number;
+}
+
+/**
+ * A barrinha de um slot: a fração (0 a 1, sem passar) e se fechou. Meta até 8 vira gomos (as lâmpadas da semana, as 8
+ * insígnias); acima disso, barra corrida.
+ */
+export function slotFill({ n, goal }: Slot): { k: number; full: boolean; segs: number } {
+    const g = Math.max(1, goal);
+    const k = Math.min(1, Math.max(0, n / g));
+    return { k, full: k >= 1, segs: g <= 8 ? g : 0 };
+}
+
+/**
+ * O número que sobe (contador do Clash): de 0 ao alvo em `dur` ms, rápido no começo e assentando no fim; sempre
+ * inteiro, nunca passa do alvo nem volta.
+ */
+export function countAt(target: number, ms: number, dur = 700): number {
+    if (ms >= dur || target <= 0) return target;
+    const t = Math.max(0, ms) / dur;
+    return Math.min(target, Math.floor(target * (1 - (1 - t) ** 3)));
+}

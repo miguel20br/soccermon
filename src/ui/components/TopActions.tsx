@@ -5,9 +5,9 @@ import { MenuIcon } from './MenuIcon';
 
 /**
  * Canto de cima à direita, igual em toda tela de menu (Home inclusive): Ajuda ("?", só na Home: o Como jogar),
- * Configurações (engrenagem) e o seu Perfil.
+ * Configurações (engrenagem) e o seu Perfil (`profile={false}`: a Home dos ambientes tem o treinador na barra de cima).
  */
-export function TopActions({ help }: { help?: () => void }) {
+export function TopActions({ help, profile = true }: { help?: () => void; profile?: boolean }) {
     const { t, d } = useT();
     const screen = useGame((s) => s.screen);
     const go = useGame((s) => s.go);
@@ -36,7 +36,7 @@ export function TopActions({ help }: { help?: () => void }) {
                     <MenuIcon kind="settings" />
                 </button>
             )}
-            <ProfileChip />
+            {profile && <ProfileChip />}
         </div>
     );
 }

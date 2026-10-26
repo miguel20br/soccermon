@@ -3083,3 +3083,1080 @@
         font-size: 26px;
     }
 }
+
+/* ======================================================================================== apelo Clash (0.9.21, 3ª passada) */
+/* Um sistema só de botão, placa e número nos 5 lugares: botão gordo com chanfro (faixa clara em cima, borda escura
+   embaixo), contorno preto e sombra dura que afunda ao tocar e quica ao soltar; números e títulos grandes com contorno
+   grosso. Dourado = o JOGAR (um só); azul = ir a um lugar; verde = entrar num jogo ou confirmar. */
+.amb {
+    --cb-ink: #0b0f24;
+    --gold-hi: color-mix(in srgb, var(--yellow), #fff 42%);
+    --gold-lo: color-mix(in srgb, var(--yellow), #d24a00 52%);
+    --gold-ol: #5a2a00;
+    --blue-c: color-mix(in oklch, var(--blue), #1e8bff 55%);
+    --blue-hi: color-mix(in srgb, var(--blue-c), #fff 38%);
+    --blue-lo: color-mix(in srgb, var(--blue-c), #06154a 45%);
+    --green-c: color-mix(in oklch, var(--green), #2bd43a 50%);
+    --green-hi: color-mix(in srgb, var(--green-c), #fff 40%);
+    --green-lo: color-mix(in srgb, var(--green-c), #063a10 50%);
+}
+/* contorno grosso de 2 px (8 direções) e a sombra de 2 px embaixo: o texto "de jogo" do Clash */
+.amb .cb,
+.amb .cb-num,
+.amb .es-pill b,
+.amb .es-slot-n,
+.amb .res-me-txt b,
+.amb .rt-head h2,
+.amb .rm-head h2,
+.amb .rt-badges,
+.amb .es-mode b {
+    text-shadow:
+        -2px -2px 0 var(--ol, var(--cb-ink)),
+        0 -2px 0 var(--ol, var(--cb-ink)),
+        2px -2px 0 var(--ol, var(--cb-ink)),
+        2px 0 0 var(--ol, var(--cb-ink)),
+        2px 2px 0 var(--ol, var(--cb-ink)),
+        0 2px 0 var(--ol, var(--cb-ink)),
+        -2px 2px 0 var(--ol, var(--cb-ink)),
+        -2px 0 0 var(--ol, var(--cb-ink)),
+        0 4px 0 var(--ol, var(--cb-ink));
+}
+.amb .cb small,
+.amb .es-slot-n small {
+    text-shadow:
+        -1px -1px 0 var(--ol, var(--cb-ink)),
+        1px -1px 0 var(--ol, var(--cb-ink)),
+        1px 1px 0 var(--ol, var(--cb-ink)),
+        -1px 1px 0 var(--ol, var(--cb-ink)),
+        0 2px 0 var(--ol, var(--cb-ink));
+}
+
+/* ---------- o botão ---------- */
+.amb .cb {
+    --c: var(--panel-2);
+    --hi: color-mix(in srgb, var(--c), #fff 30%);
+    --lo: color-mix(in srgb, var(--c), #000 40%);
+    position: relative;
+    isolation: isolate;
+    border: 3px solid var(--cb-ink);
+    border-radius: 10px;
+    background: linear-gradient(180deg, var(--hi) 0 44%, var(--c) 44% 100%);
+    box-shadow:
+        inset 0 -6px 0 var(--lo),
+        inset 0 2px 0 rgb(255 255 255 / 55%),
+        0 5px 0 var(--cb-ink);
+    color: #fff;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    transition:
+        transform 320ms var(--ease-pop),
+        box-shadow 320ms var(--ease-pop),
+        filter 150ms var(--ease-out);
+}
+.amb .cb small {
+    font-family: "Galmuri11", monospace;
+    color: #fff;
+}
+.amb .cb:hover {
+    filter: brightness(1.08) saturate(1.1);
+}
+/* afunda ao tocar (60 ms) e quica ao soltar (a volta usa o --ease-pop, que passa do ponto) */
+.amb .cb:active:not(:disabled),
+.amb .es-slot:active,
+.amb .res-me:active,
+.amb .res-chip:active,
+.amb .es-pill:active {
+    transform: translateY(4px) scale(0.97);
+    transition-duration: 60ms;
+}
+.amb .cb:active:not(:disabled) {
+    box-shadow:
+        inset 0 -3px 0 var(--lo),
+        inset 0 2px 0 rgb(255 255 255 / 55%),
+        0 1px 0 var(--cb-ink);
+}
+.amb .cb:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+}
+.amb .cb-gold {
+    --c: var(--yellow);
+    --hi: var(--gold-hi);
+    --lo: var(--gold-lo);
+    --ol: var(--gold-ol);
+}
+.amb .cb-blue {
+    --c: var(--blue-c);
+    --hi: var(--blue-hi);
+    --lo: var(--blue-lo);
+    --ol: #071647;
+}
+.amb .cb-green {
+    --c: var(--green-c);
+    --hi: var(--green-hi);
+    --lo: var(--green-lo);
+    --ol: #06330d;
+}
+.amb .cb .hud-icon {
+    filter: drop-shadow(2px 0 0 var(--ol)) drop-shadow(-2px 0 0 var(--ol)) drop-shadow(0 2px 0 var(--ol))
+        drop-shadow(0 -2px 0 var(--ol));
+}
+/* o brilho que passa pelo botão a cada 4 s */
+.cb-shine {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    border-radius: 7px;
+    pointer-events: none;
+}
+.cb-shine::before {
+    content: "";
+    position: absolute;
+    top: -20%;
+    bottom: -20%;
+    left: 0;
+    width: 22%;
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 70%) 40% 60%, transparent);
+    transform: translateX(-160%) skewX(-22deg);
+    animation: cb-shine 4s var(--ease-out) 1.2s infinite;
+}
+@keyframes cb-shine {
+    0% {
+        transform: translateX(-160%) skewX(-22deg);
+    }
+    22%,
+    100% {
+        transform: translateX(560%) skewX(-22deg);
+    }
+}
+
+/* ---------- o JOGAR (o "BATTLE") ---------- */
+.amb .es-play {
+    width: 100%;
+    min-height: 80px;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 2px;
+    padding: 8px 16px 12px;
+    border-radius: 14px;
+    text-align: center;
+}
+.amb .es-play:disabled {
+    filter: grayscale(0.6);
+}
+.es-play-verb {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 34px;
+    line-height: 1;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.amb .es-play .es-play-verb {
+    --ol: #3d1c00;
+    text-shadow:
+        -3px -3px 0 var(--ol),
+        0 -3px 0 var(--ol),
+        3px -3px 0 var(--ol),
+        3px 0 0 var(--ol),
+        3px 3px 0 var(--ol),
+        0 3px 0 var(--ol),
+        -3px 3px 0 var(--ol),
+        -3px 0 0 var(--ol),
+        0 6px 0 var(--ol);
+}
+.amb .es-play .es-play-sub {
+    font-size: 13px;
+    line-height: 1.2;
+}
+/* o anel da 1ª visita (o JOGAR chama) segue no botão novo */
+.es-first .es-play::after {
+    content: "";
+    position: absolute;
+    inset: -8px;
+    border: 3px solid var(--yellow);
+    border-radius: 16px;
+    opacity: 0;
+    pointer-events: none;
+    animation: es-call 2.4s var(--ease-out) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+    :root:not([data-reduce-motion="false"]) .es-first .es-play::after,
+    :root:not([data-reduce-motion="false"]) .cb-shine::before {
+        animation: none;
+    }
+}
+
+/* ---------- a pílula do modo, em cima do JOGAR ---------- */
+.es-go.has-modes {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+}
+.es-pick {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+}
+.amb .es-arrow {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+}
+.es-arrow .hud-icon {
+    width: 22px;
+    height: 22px;
+}
+.m-continue,
+.m-challenge,
+.m-daily {
+    --mode: var(--yellow);
+}
+.m-quick {
+    --mode: var(--red);
+}
+.m-long {
+    --mode: var(--green);
+}
+.m-duel {
+    --mode: var(--blue);
+}
+.es-pill {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    min-height: 50px;
+    padding: 4px 10px 4px 5px;
+    border: 3px solid var(--cb-ink);
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgb(255 255 255 / 9%) 0 46%, transparent 46%), #161d45;
+    box-shadow:
+        inset 0 0 0 2px color-mix(in srgb, var(--mode), transparent 35%),
+        0 4px 0 var(--cb-ink);
+    color: #fff;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: transform 320ms var(--ease-pop);
+    animation: cb-pop 360ms var(--ease-pop);
+}
+.es-pill .es-mode-ic {
+    grid-row: auto;
+    width: 36px;
+    height: 36px;
+    border: 2px solid var(--cb-ink);
+    border-radius: 8px;
+    box-shadow: inset 0 -3px 0 rgb(0 0 0 / 25%);
+}
+.es-pill-txt {
+    display: grid;
+    min-width: 0;
+    line-height: 1.1;
+}
+.es-pill-txt b,
+.es-pill-txt small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.es-pill-txt b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 17px;
+}
+.es-pill-txt small {
+    margin-top: 3px;
+    font-size: 11px;
+    color: var(--muted);
+}
+.es-pill-caret {
+    width: 20px;
+    height: 20px;
+    color: var(--yellow);
+    transition: transform 250ms var(--ease-out);
+}
+.es-pill.open .es-pill-caret {
+    transform: rotate(180deg);
+}
+.es-pill:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+}
+@keyframes cb-pop {
+    0% {
+        scale: 0.85;
+    }
+    55% {
+        scale: 1.06;
+    }
+    100% {
+        scale: 1;
+    }
+}
+/* a lista de modos: o escolhido com a borda dourada */
+.es-mode.on {
+    border-color: var(--yellow);
+    box-shadow: 0 3px 0 var(--cb-ink);
+}
+.es-mode b {
+    color: #fff;
+}
+.es-mode-ic {
+    background: var(--mode);
+}
+
+/* ---------- as metas à vista (os "baús" do Clash) ---------- */
+.es-ui {
+    justify-content: flex-start;
+}
+.es-actions {
+    margin-top: auto;
+}
+.es-slots {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    width: min(460px, 100%);
+}
+.es-slot {
+    --acc: var(--yellow);
+    position: relative;
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 3px;
+    min-width: 0;
+    min-height: 82px;
+    padding: 6px 5px 6px;
+    border: 3px solid var(--cb-ink);
+    border-radius: 10px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--acc), #26306a 30%) 0 40%, #26306a 40% 100%);
+    box-shadow:
+        inset 0 -4px 0 #161d45,
+        inset 0 2px 0 rgb(255 255 255 / 22%),
+        0 4px 0 var(--cb-ink);
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+    transition: transform 320ms var(--ease-pop);
+}
+.es-slot.s-mission {
+    --acc: var(--red);
+}
+.es-slot.s-badges {
+    --acc: var(--green);
+}
+.es-slot.s-belt {
+    --acc: var(--blue);
+}
+.es-slot:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+}
+.es-slot-ic {
+    display: grid;
+    place-items: center;
+    height: 28px;
+}
+.es-slot-ic .hud-icon {
+    width: 24px;
+    height: 24px;
+    color: #fff;
+    filter: drop-shadow(0 2px 0 var(--cb-ink));
+}
+.es-slot-ic .kb-badge {
+    width: 26px;
+    height: 26px;
+}
+.es-slot-ic .tr-art {
+    width: 32px;
+    height: auto;
+}
+.es-slot-n {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 17px;
+    line-height: 1;
+    white-space: nowrap;
+}
+.es-slot-n .cb-num {
+    font-weight: 700;
+}
+.es-slot-n small {
+    font-size: 11px;
+    color: var(--muted);
+}
+.es-slot-bar {
+    display: flex;
+    gap: 1px;
+    width: 100%;
+    height: 9px;
+    padding: 1px;
+    border: 2px solid var(--cb-ink);
+    border-radius: 3px;
+    background: #0d1233;
+    overflow: hidden;
+}
+.es-slot-bar > i {
+    display: block;
+    border-radius: 1px;
+    background: linear-gradient(180deg, var(--green-hi) 0 45%, var(--green-c) 45%);
+}
+.es-slot-bar.segs > i {
+    flex: 1;
+    background: #232b5c;
+}
+.es-slot-bar.segs > i.on {
+    background: linear-gradient(180deg, var(--gold-hi) 0 45%, var(--yellow) 45%);
+}
+.es-slot.full .es-slot-bar > i,
+.es-slot.full .es-slot-bar.segs > i.on {
+    background: linear-gradient(180deg, var(--green-hi) 0 45%, var(--green-c) 45%);
+}
+.es-slot-lbl {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    color: #c9d1f5;
+}
+/* fechou: o check verde no canto e as faíscas (uma vez, ao abrir a aba) */
+.es-slot.done {
+    box-shadow:
+        inset 0 -4px 0 #161d45,
+        inset 0 2px 0 rgb(255 255 255 / 22%),
+        inset 0 0 0 2px var(--yellow),
+        0 4px 0 var(--cb-ink);
+}
+.es-slot-ok {
+    position: absolute;
+    top: -8px;
+    right: -6px;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--cb-ink);
+    border-radius: 50%;
+    background: var(--green-c);
+    color: #fff;
+}
+.es-slot-ok .hud-icon {
+    width: 14px;
+    height: 14px;
+    stroke-width: 3;
+}
+/* chama: a Copa do Dia de hoje ainda não jogada (bolinha vermelha pulsando) */
+.es-slot.hot::after {
+    content: "";
+    position: absolute;
+    top: -6px;
+    right: -5px;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--cb-ink);
+    border-radius: 50%;
+    background: var(--red);
+    animation: es-hot 1.4s var(--ease-out) infinite;
+}
+@keyframes es-hot {
+    0%,
+    60%,
+    100% {
+        scale: 1;
+    }
+    30% {
+        scale: 1.3;
+    }
+}
+.es-burst {
+    position: absolute;
+    left: 50%;
+    top: 20px;
+    pointer-events: none;
+}
+.es-burst b {
+    position: absolute;
+    left: -3px;
+    top: -3px;
+    width: 6px;
+    height: 6px;
+    background: #fff6c2;
+    box-shadow: 0 0 0 2px var(--yellow);
+    opacity: 0;
+}
+.amb-panel.on .es-burst b {
+    animation: es-spark 650ms var(--ease-out) 650ms both;
+}
+@keyframes es-spark {
+    0% {
+        opacity: 1;
+        transform: rotate(calc(var(--k) * 60deg)) translateY(0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: rotate(calc(var(--k) * 60deg)) translateY(-30px) scale(0.3);
+    }
+}
+@media (max-height: 640px) {
+    .es-slots {
+        gap: 6px;
+    }
+    .es-slot {
+        min-height: 66px;
+        gap: 2px;
+        padding-block: 4px;
+    }
+    .es-slot-ic {
+        height: 22px;
+    }
+    .es-slot-ic .hud-icon {
+        width: 20px;
+        height: 20px;
+    }
+    .es-slot-ic .kb-badge {
+        width: 20px;
+        height: 20px;
+    }
+    .es-slot-ic .tr-art {
+        width: 26px;
+    }
+    .es-slot-n {
+        font-size: 15px;
+    }
+    .amb .es-play {
+        min-height: 66px;
+    }
+    .es-play-verb {
+        font-size: 28px;
+    }
+    .es-pill {
+        min-height: 44px;
+    }
+    .es-pill .es-mode-ic {
+        width: 30px;
+        height: 30px;
+    }
+    .amb .es-arrow {
+        width: 40px;
+        height: 40px;
+    }
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .es-slots {
+        gap: 12px;
+    }
+    .es-slot {
+        min-height: 96px;
+    }
+    .es-slot-n {
+        font-size: 20px;
+    }
+    .es-slot-lbl {
+        font-size: 11px;
+    }
+    .amb .es-play {
+        min-height: 88px;
+    }
+    .es-play-verb {
+        font-size: 40px;
+    }
+}
+
+/* ---------- a barra de cima: o treinador, os títulos e a Pokédex ---------- */
+.amb-top {
+    left: calc(12px + env(safe-area-inset-left));
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.amb-top .top-actions {
+    gap: 6px;
+}
+.amb-top .help-fab {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--cb-ink);
+    border-radius: 10px;
+    background: linear-gradient(180deg, #3b4a8f 0 46%, #2a3570 46%);
+    box-shadow:
+        inset 0 -4px 0 #1a2150,
+        0 3px 0 var(--cb-ink);
+    transition: transform 320ms var(--ease-pop);
+}
+.amb-top .help-fab:active {
+    transform: translateY(3px) scale(0.95);
+    transition-duration: 60ms;
+}
+.amb-top .help-fab .menu-icon {
+    width: 24px;
+    height: 24px;
+}
+.amb-res {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.res-me {
+    --club: var(--red);
+    position: relative;
+    flex: 0 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 46px;
+    padding: 2px 10px 2px 2px;
+    border: 3px solid var(--cb-ink);
+    border-radius: 24px 10px 10px 24px;
+    background: linear-gradient(180deg, #3b4a8f 0 46%, #2a3570 46%);
+    box-shadow:
+        inset 0 -4px 0 #1a2150,
+        0 3px 0 var(--cb-ink);
+    color: #fff;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: transform 320ms var(--ease-pop);
+}
+.res-me .pf-avatar {
+    flex: none;
+    width: 38px;
+    height: 38px;
+    border-width: 2px;
+    box-shadow: none;
+}
+.res-me-txt {
+    display: grid;
+    min-width: 0;
+    line-height: 1.1;
+}
+.res-me-txt b,
+.res-me-txt small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.res-me-txt b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 14px;
+}
+.res-me-txt small {
+    margin-top: 2px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    color: var(--yellow);
+}
+.res-chip {
+    position: relative;
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 36px;
+    margin-left: 12px;
+    padding: 0 8px 0 19px;
+    border: 3px solid var(--cb-ink);
+    border-radius: 8px;
+    background: #0e1438;
+    box-shadow:
+        inset 0 2px 0 rgb(255 255 255 / 10%),
+        0 3px 0 var(--cb-ink);
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+    transition: transform 320ms var(--ease-pop);
+}
+/* o ícone grande saindo da placa pela esquerda */
+.res-chip > :first-child {
+    position: absolute;
+    left: -14px;
+    top: 50%;
+    translate: 0 -50%;
+}
+.res-cup .tr-art {
+    width: 32px;
+    height: auto;
+    filter: drop-shadow(0 2px 0 var(--cb-ink));
+}
+.res-dex .hud-icon {
+    box-sizing: content-box;
+    width: 18px;
+    height: 18px;
+    padding: 5px;
+    border: 2px solid var(--cb-ink);
+    border-radius: 50%;
+    background: var(--red);
+    color: #fff;
+}
+.res-chip .cb-num {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 18px;
+    line-height: 1;
+}
+.res-me:focus-visible,
+.res-chip:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+/* a bolinha de novidade do Perfil, no canto do avatar */
+.res-me > .new-dot.res-dot {
+    top: -3px;
+    left: 28px;
+    right: auto;
+    width: 12px;
+    height: 12px;
+}
+/* celular em pé: Ajuda e Configurações menores, pra sobrar o nome do treinador */
+@media (max-width: 429px) {
+    .amb-top .help-fab {
+        width: 36px;
+        height: 36px;
+    }
+    .res-me .pf-avatar {
+        width: 36px;
+        height: 36px;
+    }
+    .res-me-txt b {
+        font-size: 13px;
+    }
+}
+/* celular estreito: o treinador vira só o avatar */
+@media (max-width: 359px) {
+    .res-me-txt {
+        display: none;
+    }
+    .res-me {
+        padding-right: 2px;
+        border-radius: 24px;
+    }
+}
+/* deitado: a barra fica no canto direito, compacta (a coluna da esquerda é do telão e do JOGAR) */
+@media (orientation: landscape) and (max-height: 520px) {
+    .amb-top {
+        left: auto;
+        top: calc(6px + env(safe-area-inset-top));
+    }
+    .res-me-txt {
+        display: none;
+    }
+    .res-me {
+        height: 40px;
+        padding-right: 2px;
+        border-radius: 22px;
+    }
+    .res-me .pf-avatar {
+        width: 32px;
+        height: 32px;
+    }
+    .res-chip {
+        height: 32px;
+    }
+    .amb-top .help-fab {
+        width: 36px;
+        height: 36px;
+    }
+}
+
+/* ---------- letreiros e placas dos 4 lugares no mesmo sistema ---------- */
+.rt-head h2,
+.rm-head h2 {
+    color: #fff;
+}
+.rt-head .rt-badges,
+.rm-head .rt-badges {
+    border: 2px solid var(--cb-ink);
+    background: #0e1438;
+    box-shadow: inset 0 2px 0 rgb(255 255 255 / 10%);
+    font-size: 17px;
+    color: var(--yellow);
+}
+/* os botões menores (Álbum, Golpedex, Treinador, Clube, Amigos): o mesmo azul gordo */
+.amb .amb-tile.bc-tile {
+    border: 3px solid var(--cb-ink);
+    border-radius: 10px;
+    background: linear-gradient(180deg, var(--blue-hi) 0 44%, var(--blue-c) 44% 100%);
+    box-shadow:
+        inset 0 -5px 0 var(--blue-lo),
+        inset 0 2px 0 rgb(255 255 255 / 45%),
+        0 4px 0 var(--cb-ink);
+    color: #fff;
+    transition: transform 320ms var(--ease-pop);
+    --ol: #071647;
+}
+.amb .amb-tile.bc-tile:active {
+    transform: translateY(3px) scale(0.97);
+    transition-duration: 60ms;
+}
+.amb .amb-tile.bc-tile b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    text-shadow:
+        -1px -1px 0 var(--ol),
+        1px -1px 0 var(--ol),
+        1px 1px 0 var(--ol),
+        -1px 1px 0 var(--ol),
+        0 2px 0 var(--ol);
+}
+.amb .amb-tile.bc-tile small {
+    color: #fff3a8;
+    text-shadow: 0 1px 0 var(--ol);
+}
+.amb .amb-tile.bc-tile .hud-icon {
+    color: #fff;
+    filter: drop-shadow(0 2px 0 var(--ol));
+}
+/* o botão principal de cada lugar: texto à esquerda, seta à direita, no mesmo chanfro */
+.amb .rm-go,
+.amb .rt-go {
+    border-radius: 12px;
+}
+.amb .rm-go .cup-go-txt b,
+.amb .rt-go .cup-go-txt b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+}
+
+/* ---------- o Estádio como arena: a quadra mais viva e o capitão num palco de luz ---------- */
+.es-lines {
+    stroke: #fff;
+    stroke-width: 1;
+}
+.es-court::before {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    top: max(12.5cqw, 30cqh);
+    width: min(78cqw, 520px);
+    aspect-ratio: 5 / 2;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgb(255 236 150 / 55%), rgb(255 200 80 / 25%) 55%, transparent);
+    pointer-events: none;
+    animation: es-stage 3.2s ease-in-out infinite alternate;
+}
+@keyframes es-stage {
+    to {
+        opacity: 0.7;
+    }
+}
+@media (max-height: 700px) and (orientation: portrait) {
+    .es-court::before {
+        top: min(max(12.5cqw, 30cqh), 25cqh);
+    }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .es-court::before {
+        left: 72%;
+        top: min(max(12.5cqw, 30cqh), 62cqh);
+        width: 46cqw;
+    }
+}
+.es-floor rect:nth-child(odd) {
+    fill: #dd8a43;
+}
+.es-floor rect:nth-child(even) {
+    fill: #c97735;
+}
+
+/* ---------- juice: o pop de entrada ao abrir a aba ---------- */
+.amb-panel.on .amb-ui > :not(.amb-par, .es-top),
+.amb-panel.on .es-slot,
+.amb-panel.on .amb-tiles > * {
+    animation: amb-pop 460ms var(--ease-pop) backwards;
+    animation-delay: calc(80ms + var(--k, 0) * 70ms);
+}
+.amb-panel.on .es-top {
+    animation: amb-drop 520ms var(--ease-pop) 40ms backwards;
+}
+.amb-ui > :nth-child(2),
+.amb-tiles > :nth-child(2),
+.es-slot:nth-child(2) {
+    --k: 1;
+}
+.amb-ui > :nth-child(3),
+.amb-tiles > :nth-child(3),
+.es-slot:nth-child(3) {
+    --k: 2;
+}
+.amb-ui > :nth-child(4),
+.es-slot:nth-child(4) {
+    --k: 3;
+}
+.amb-ui > :nth-child(5) {
+    --k: 4;
+}
+.amb-panel.on .es-slot {
+    animation-delay: calc(260ms + var(--k, 0) * 70ms);
+}
+.amb-panel.on .amb-tiles > * {
+    animation-delay: calc(200ms + var(--k, 0) * 70ms);
+}
+@keyframes amb-pop {
+    0% {
+        scale: 0.6;
+    }
+    55% {
+        scale: 1.07;
+    }
+    80% {
+        scale: 0.98;
+    }
+    100% {
+        scale: 1;
+    }
+}
+@keyframes amb-drop {
+    0% {
+        translate: 0 -70px;
+    }
+    65% {
+        translate: 0 6px;
+    }
+    100% {
+        translate: 0 0;
+    }
+}
+/* o ícone da aba quica quando ela acende */
+.amb-tab.on .amb-tab-ic {
+    animation: cb-pop 360ms var(--ease-pop);
+}
+
+/* rótulo curto do slot no celular estreito e deitado */
+.es-slot-short {
+    display: none;
+}
+@media (max-width: 399px) {
+    .es-slot-full {
+        display: none;
+    }
+    .es-slot-short {
+        display: inline;
+    }
+}
+@media (max-width: 359px) {
+    .es-slots {
+        gap: 5px;
+    }
+    .es-slot {
+        padding-inline: 3px;
+    }
+    .es-slot-lbl {
+        font-size: 9px;
+        letter-spacing: 0;
+    }
+}
+/* lista de modos aberta: a barra de cima sai do caminho (a lista sobe por baixo dela) */
+.amb-top {
+    transition: opacity 220ms var(--ease-out);
+}
+.amb:has(.amb-panel.on .es-modes.open) .amb-top {
+    opacity: 0;
+    pointer-events: none;
+}
+/* celular baixo: a lista só com os nomes, pra caber os 5 modos acima da pílula */
+@media (max-height: 640px) and (orientation: portrait) {
+    .es-mode {
+        grid-template-rows: auto;
+        min-height: 40px;
+    }
+    .es-mode .es-mode-ic,
+    .es-mode::after {
+        grid-row: auto;
+    }
+    .es-mode small {
+        display: none;
+    }
+}
+/* deitado: tudo começa embaixo da barra de cima; no Estádio, as metas embaixo à direita (o capitão em cima delas) */
+@media (orientation: landscape) and (max-height: 520px) {
+    .amb-ui:not(.rt-ui) {
+        padding-top: calc(env(safe-area-inset-top) + 54px);
+    }
+    .es-slot-lbl {
+        display: none;
+    }
+    .es-slots {
+        grid-column: 2;
+        grid-row: 3;
+        align-self: end;
+        width: 100%;
+        gap: 6px;
+    }
+    .es-slot {
+        min-height: 0;
+        gap: 2px;
+        padding: 4px 3px;
+    }
+    .es-slot-ic {
+        height: 20px;
+    }
+    .es-slot-ic .hud-icon,
+    .es-slot-ic .kb-badge {
+        width: 18px;
+        height: 18px;
+    }
+    .es-slot-ic .tr-art {
+        width: 24px;
+    }
+    .es-slot-n {
+        font-size: 14px;
+    }
+    .es-slot-lbl {
+        font-size: 9px;
+        letter-spacing: 0;
+    }
+}
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 700px) {
+    .rt-map {
+        top: calc(50% + 24px);
+        height: calc(100% - 68px);
+    }
+}
+/* a barra de abas no mesmo chanfro: a aba acesa vira um botão azul, o Estádio dourado */
+.amb-ind::before {
+    border: 3px solid var(--cb-ink);
+    border-bottom-width: 3px;
+    background: linear-gradient(180deg, var(--blue-hi) 0 44%, var(--blue-c) 44%);
+    box-shadow: inset 0 -4px 0 var(--blue-lo);
+}
+.amb-tab.on {
+    color: #fff;
+}
+.amb-tab.on .amb-tab-lbl {
+    text-shadow:
+        -1px -1px 0 var(--cb-ink),
+        1px -1px 0 var(--cb-ink),
+        1px 1px 0 var(--cb-ink),
+        -1px 1px 0 var(--cb-ink);
+}
+.amb-tab-estadio .amb-tab-ic {
+    border-color: var(--cb-ink);
+    box-shadow:
+        inset 0 -4px 0 rgb(0 0 0 / 25%),
+        0 3px 0 var(--cb-ink);
+}
+.amb-tab-estadio.on .amb-tab-ic {
+    background: linear-gradient(180deg, var(--gold-hi) 0 44%, var(--yellow) 44%);
+    color: var(--cb-ink);
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .amb-ind::before {
+        border-left-width: 3px;
+    }
+}
+/* o selo NOVO dentro do letreiro não leva o contorno do título */
+.rt-head h2 .bc-tag {
+    text-shadow: none;
+}

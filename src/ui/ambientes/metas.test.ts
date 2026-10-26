@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Mission, SaveView } from '../../store/missions';
-import { closestMissions, nextBelt, routeTeam } from './metas';
+import { closestMissions, countAt, nextBelt, routeTeam, slotFill } from './metas';
 
 const view = (done: string[] = []) => ({ done: new Set(done) }) as unknown as SaveView;
 const counter = (id: string, goal: number, n: number): Mission => ({ id, group: 'feitos', goal, count: () => n });
@@ -58,5 +58,25 @@ describe('routeTeam (quem anda no mapa da Rota)', () => {
     });
     it('sem Rota aberta: o avatar sozinho em Pallet', () => {
         expect(routeTeam({ picks: [pick('a', 4)], lineup: ['a'], captainUid: 'a' }, false, 133)).toEqual([133]);
+    });
+});
+
+describe('slots e contadores do Estádio', () => {
+    it('a barrinha não passa de cheia, e meta até 8 vira gomos', () => {
+        expect(slotFill({ n: 3, goal: 7 })).toEqual({ k: 3 / 7, full: false, segs: 7 });
+        expect(slotFill({ n: 8, goal: 8 })).toEqual({ k: 1, full: true, segs: 8 });
+        expect(slotFill({ n: 12, goal: 10 })).toEqual({ k: 1, full: true, segs: 0 });
+        expect(slotFill({ n: 0, goal: 0 }).k).toBe(0);
+    });
+    it('o contador sobe de 0 ao alvo, inteiro, sem passar nem voltar', () => {
+        const seen = [0, 50, 100, 200, 350, 500, 650, 699, 700, 900].map((ms) => countAt(120, ms));
+        expect(seen[0]).toBe(0);
+        expect(seen.at(-1)).toBe(120);
+        expect(countAt(120, 700)).toBe(120);
+        for (let i = 1; i < seen.length; i++) expect(seen[i]).toBeGreaterThanOrEqual(seen[i - 1]);
+        expect(seen.every((v) => Number.isInteger(v) && v <= 120)).toBe(true);
+        // começa rápido: na metade do tempo já passou de 80%
+        expect(countAt(120, 350)).toBeGreaterThan(96);
+        expect(countAt(0, 100)).toBe(0);
     });
 });

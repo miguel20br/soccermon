@@ -132,7 +132,7 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
                     </span>
                 </header>
                 <div className="rm-actions">
-                    <button type="button" className="btn big cup-go rm-go primary" onClick={() => go('duel')}>
+                    <button type="button" className="btn big cup-go rm-go cb cb-green" onClick={() => go('duel')}>
                         <span className="cup-go-txt">
                             <b>{t('home.amb.arenaGo')}</b>
                             <small>{t('home.amb.arenaLine')}</small>

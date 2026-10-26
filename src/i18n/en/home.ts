@@ -90,7 +90,18 @@ export const home: typeof pt = {
         labTalk: '{n} to go for the Kanto Pokédex. Anyone you meet in a draft or on a rival team counts.',
         labTalkDone: 'All 151 of Kanto seen! Now go fill the Album.',
         signDuel: 'With friends',
-        modes: 'Modes',
+        /** The arrows on the Stadium mode pill. */
+        modePrev: 'Previous mode',
+        modeNext: 'Next mode',
+        /** The goals always in view at the Stadium (Clash's "chests"). */
+        slotsAria: 'Your goals',
+        slotDailyShort: 'Daily',
+        slotMission: 'Mission',
+        slotBadges: 'Badges',
+        slotBelt: 'Belt',
+        /** The top bar: titles won and the Pokédex. */
+        resTitles: 'Titles: {n}',
+        resDex: 'Pokédex: {n} seen',
         arenaGo: 'Challenge',
         arenaLine: 'Live duel with a friend',
         neonWeek: 'of the week',

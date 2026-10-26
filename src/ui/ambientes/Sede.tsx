@@ -122,7 +122,11 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
                     </ul>
                 </button>
                 <div className="rm-actions">
-                    <button type="button" className="btn big cup-go rm-go primary" onClick={() => openDoor('trophies')}>
+                    <button
+                        type="button"
+                        className="btn big cup-go rm-go cb cb-blue"
+                        onClick={() => openDoor('trophies')}
+                    >
                         <span className="cup-go-txt">
                             <b>{d.home.doors.trophies[0]}</b>
                             <small>{tn('home.amb.sedeTitles', titles)}</small>

@@ -14,6 +14,7 @@ import { Lab } from './Lab';
 import { dragPos, START, skyOf, snapTab, TABS, type Tab } from './nav';
 import { Rota } from './Rota';
 import { Sede } from './Sede';
+import { TopBar } from './TopBar';
 import { installTabBack } from './tab-back';
 import { rollAll, type Wild, wildQuota } from './wild';
 import './ambientes.css';
@@ -166,7 +167,15 @@ export function Ambientes() {
     const view: Record<Tab, (active: boolean, wild: Wild[], near: boolean) => ReactNode> = {
         lab: (active, wild, near) => <Lab active={active} wild={wild} near={near} />,
         rota: (active, wild) => <Rota active={active} enter={enter} wild={wild} entering={!!entering} />,
-        estadio: (active, wild) => <Estadio active={active} enter={enter} wild={wild} entering={!!entering} />,
+        estadio: (active, wild) => (
+            <Estadio
+                active={active}
+                enter={enter}
+                wild={wild}
+                entering={!!entering}
+                goTab={(id) => setTab(TABS.indexOf(id))}
+            />
+        ),
         arena: (active, wild) => <Arena active={active} wild={wild} />,
         sede: (active, wild, near) => <Sede active={active} wild={wild} near={near} />,
     };
@@ -179,7 +188,8 @@ export function Ambientes() {
             style={{ '--pos': tab, '--n': TABS.length } as CSSProperties}
         >
             <div className="amb-top">
-                <TopActions help={() => go('help')} />
+                <TopBar />
+                <TopActions help={() => go('help')} profile={false} />
             </div>
             <div
                 ref={stage}

@@ -96,8 +96,18 @@ export const home = {
         /** Arena: o Duelo na frente, o cinturão como meta, o resto chegando. */
         /** O Duelo no seletor de modos do Estádio. */
         signDuel: 'Com amigos',
-        /** Gatilho do seletor de modos, ao lado do JOGAR do Estádio. */
-        modes: 'Modos',
+        /** As setas da pílula de modo do Estádio. */
+        modePrev: 'Modo anterior',
+        modeNext: 'Próximo modo',
+        /** As metas à vista no Estádio (os "baús" do Clash). */
+        slotsAria: 'Suas metas',
+        slotDailyShort: 'Diária',
+        slotMission: 'Missão',
+        slotBadges: 'Insígnias',
+        slotBelt: 'Cinturão',
+        /** A barra de cima: títulos ganhos e a Pokédex. */
+        resTitles: 'Títulos: {n}',
+        resDex: 'Pokédex: {n} vistos',
         arenaGo: 'Desafiar',
         arenaLine: 'Duelo ao vivo com um amigo',
         neonWeek: 'da semana',

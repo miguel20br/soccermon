@@ -30,6 +30,7 @@ import { edgeAgainst, FORMATION_ICON } from '../formation-info';
 import { Tip } from '../help/Tip';
 import { useClubColor } from '../profile/club';
 import { lineupAverage } from '../rating';
+import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
 import { useHeld } from '../use-held';
 
@@ -235,7 +236,14 @@ export function Lineup() {
                 footer={
                     /* sem o confirm() do navegador: o 1º toque pergunta aqui mesmo, o 2º confirma */
                     askAbandon ? (
-                        <div className="abandon-ask" role="alert">
+                        <div
+                            className="abandon-ask"
+                            role="alert"
+                            // a confirmação cresce pra baixo: traz ela pra cima da barra do Jogar (scroll-padding)
+                            ref={(el) =>
+                                el?.scrollIntoView({ block: 'nearest', behavior: reduceMotionOn() ? 'auto' : 'smooth' })
+                            }
+                        >
                             <span>{t('team.lineup.abandonConfirm')}</span>
                             <button
                                 type="button"
