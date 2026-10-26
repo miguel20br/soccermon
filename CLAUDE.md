@@ -144,7 +144,7 @@ Aprovadas pelo Miguel ("1a a 9a"); **cada tarefa é avaliada por si**, não é a
 
 ## Estado atual (26/10/2026, v0.9.23.1)
 
-No ar: 0.9.23 "Vestiário" (lousa, sheets, barra da copa, momento, menus novos, instalável); 0.9.23.1 (Pokémon sem teleporte, quadra da Arena) na branch `consertos-0923`. Partida nova atrás de `?lab=hud`. Motor 13 (`liga` 13). Liga fechada até `LIGA_OPENS_AT`. Histórico: [historico.md](docs/planos/historico.md). Índice: `node scripts/indice.mjs`.
+No ar: 0.9.23 "Vestiário" (lousa, sheets, barra da copa, momento, menus, instalável). 0.9.23.1 (sem teleporte, Arena) na `consertos-0923`. Partida nova atrás de `?lab=hud`. Motor 13 (`liga` 13). Liga fechada até `LIGA_OPENS_AT`. Histórico: [historico.md](docs/planos/historico.md). Índice: `node scripts/indice.mjs`.
 
 ## Armadilhas (o porquê de cada uma)
 
