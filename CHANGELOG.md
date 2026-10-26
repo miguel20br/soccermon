@@ -4,7 +4,7 @@
 
 ### Nova tela inicial
 - A tela inicial virou cinco lugares, numa barra embaixo: Laboratório, Rota Índigo, Estádio, Arena e Sede. Toque ou arraste de lado pra trocar
-- Estádio: o JOGAR, a copa em andamento e a Copa do Dia no placar
+- Estádio: um JOGAR dourado, a pílula pra escolher o modo e quatro metas à vista (Copa do Dia, missão, insígnias e cinturão)
 - Rota Índigo: o mapa de Kanto com as insígnias e o seu time onde parou
 - Laboratório do Carvalho: Pokédex, Álbum e Golpedex
 - Arena: Duelo e Liga
