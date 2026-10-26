@@ -404,8 +404,8 @@
     background: var(--bc-ink-2);
 }
 .room-chip.on {
-    background: var(--yellow);
-    color: var(--bc-ink);
+    background: var(--blue-c);
+    color: #fff;
 }
 .room-chip:disabled {
     opacity: 0.5;

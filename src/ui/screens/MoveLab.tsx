@@ -373,7 +373,7 @@ export function MoveLab({ onExit, bare }: { onExit: () => void; bare?: boolean }
             {empty && (
                 <section className="panel gdx-empty">
                     <p>{rich(L.empty)}</p>
-                    <button type="button" className="btn primary small" onClick={onExit}>
+                    <button type="button" className="btn small" onClick={onExit}>
                         {t('common.ui.backHome')}
                     </button>
                 </section>

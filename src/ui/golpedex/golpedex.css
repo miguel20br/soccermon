@@ -161,11 +161,11 @@
     font-size: 10px;
     opacity: 0.8;
 }
-/* o mesmo seletor da partida (.bc-seg): o escolhido em amarelo */
+/* o mesmo seletor da partida (.bc-seg): o escolhido em azul (o dourado cheio é só do JOGAR) */
 .gdx-tabs button.on,
 .gdx-seg button.on {
-    background: var(--yellow);
-    color: var(--bc-ink);
+    background: var(--blue-c);
+    color: #fff;
 }
 .gdx-tabs button:focus-visible,
 .gdx-seg button:focus-visible {

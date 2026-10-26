@@ -551,7 +551,7 @@ export function Training() {
                 </div>
                 <button
                     type="button"
-                    className="btn"
+                    className="btn confirm"
                     onClick={() => {
                         train('rest');
                     }}
