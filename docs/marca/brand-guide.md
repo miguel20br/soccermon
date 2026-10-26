@@ -180,18 +180,23 @@ O site inteiro usa as peças da tela de partida (`src/ui/broadcast-kit.css`). Vi
 - **Superfície de placar** (`.bc-surface`): fundo `--bc-ink` sólido, borda de baixo preta de 2 px, raio 6 px,
   sem sombra macia. `.bc-stripe` põe a faixa lateral de 6 px na cor do time (ou dourada).
 - **Etiqueta** (`.bc-tag`): pílula dourada, texto azul-noite, 10 px, negrito, caixa alta.
-- **Cabeçalho de tela** (`.bc-screenhead`): o título num placar com a etiqueta da fase em cima.
+- **Cabeçalho de tela** (`.bc-screenhead`): o título na placa do Estádio (moldura preta grossa, faixa de cima
+  amarela, base dura) com a etiqueta da fase em cima.
 - **Rótulo de seção** (`.bc-lbl`), **peça com ícone** (`.bc-tile`), **abas** (`.bc-tabs`), **seletor
   segmentado** (`.bc-seg`), **barra do polegar** (`.bc-thumbbar`: a ação principal fixa embaixo no celular).
-- **Painel** (`.panel`): `--panel`, moldura dupla (borda 3 px `--cb-ink` e filete de 2 px `--frame-in` por dentro),
-  raio 10 px, **chapado** (sem base: informação não é botão).
+- **Painel** (`.panel`): `--panel`, moldura dupla grossa (borda 3 px `--cb-ink`, filete de 3 px `--frame-in` e um fio
+  escuro por dentro), raio 10 px e base dura de 4 px, sem textura. O título (`h2` de cima, `.shop-shelf-title`,
+  `.champ-h`) vai na placa do Estádio: moldura preta, faixa amarela em cima, Galmuri14 15 px; no painel fica
+  pendurada na borda de cima. `.bc-surface`, toast e balão do tutorial usam o mesmo material.
 - **Botão** (`.btn`, kit em `src/ui/kit/kit.css`, galeria `?lab=kit`): chanfrado, como o do Clash em pixel. Contorno
-  3 px `--cb-ink`, faixa clara na metade de cima, base escura de 5 px por dentro e sombra dura de 4 px; texto branco
-  com contorno de pixel (1 px no texto pequeno, 2 px no grande e no dourado). No toque afunda 3 px em 60 ms e volta
+  3 px `--cb-ink`, faixa clara na metade de cima, base escura de 5 px por dentro e sombra dura de 4 px; texto branco,
+  com contorno de pixel de 2 px só de 16 px pra cima (o gordo da tela). No toque afunda 3 px em 60 ms e volta
   com quique (`--ease-pop`, 180 ms) e som; com Reduzir movimento, afunda sem quique. Desabilitado fica no lugar, sem
   cor e sem base, e diz o porquê em `.btn-why`. A cor é a função (ver Cor).
-- **Regra de ouro: base escura embaixo = dá pra tocar.** Botão, `.bc-tile` e carta clicável têm base; painel, placar e
-  caixa de informação são chapados.
+- **Hierarquia (variante B, 26/10):** cada tela tem **um** botão gordo, o da barra do polegar ou um `.big`: dourado
+  se joga, verde se segue ou confirma. O secundário azul é baixo e de face lisa. Ação repetida de lista (Comprar,
+  Escalar, Escolher, Ensinar) é o **chip** baixo (`.k-chip`, `.fut-action`, `.shop-buy`) preso na borda de baixo da
+  carta ou do item. O escolhido num seletor (`.bc-seg`) é azul: o dourado cheio fica só no JOGAR.
 - **Número com contorno** (`.cb-num`): Galmuri14 com o contorno de pixel de 2 px, pra ₽, x/151, nível, taças e placar.
   Só a partir de 15 px. A nota da carta não muda (carta só pela galeria `?cards=1`).
 - Raios: 4 (etiqueta), 6 (placar), 8 (botão), 10 (painel e carta). Sombra é sempre dura (sem desfoque), exceto o
