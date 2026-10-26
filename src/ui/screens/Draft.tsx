@@ -343,7 +343,7 @@ export function Draft() {
                 </div>
 
                 {showOptions && (
-                    <div className="draft-options" ref={optionsRef}>
+                    <div className="draft-options cards-legible" ref={optionsRef}>
                         <div className="row options-bar">
                             <span className="bc-lbl">
                                 {isCaptain
