@@ -15,10 +15,10 @@ export const meta = { titulo: 'Escalaram um Magikarp no gol', tela: 'Curta da s�
 
 const UA = ins({ vol: 0.38, a: 0.03, r: 0.12, shape: 2, curve: 0.8, sv: 0.85, d: 0.06, slide: -0.3, rep: 0.12, trem: 0.35 });
 /** Compassos da montagem de treino (104 BPM). */
-export const TREINO = [11, 12, 13, 14];
+export const TREINO = [12, 13, 14, 15];
 
 export default function magikarp() {
-    const S = new Song({ bpm: 88, bars: 22, swing: 0.15, tail: 3, loopFrom: 2, bpmAt: (b) => (TREINO.includes(b) ? 104 : 88) });
+    const S = new Song({ bpm: 88, bars: 24, swing: 0.15, tail: 3, loopFrom: 2, bpmAt: (b) => (TREINO.includes(b) ? 104 : 88) });
     const fag = S.part('fagote', I.bassoon, { pan: -0.1, gain: 1.5, rev: 0.15 });
     const tuba = S.part('tuba', I.tuba, { gain: 0.6 });
     const pah = S.part('pah', I.stab, { pan: 0.25, gain: 1.1, corte: 2500 });
@@ -109,92 +109,101 @@ export default function magikarp() {
     mel(pc, 6, ['C6:1 r:1 A5:1 r:1 C6:1 r:1 A5:1 r:9'], { vel: 0.8 });
     mel(pz, 6, ['r:8 F4:1 r:2 F4:1 r:4']);
     oompah(6, 'F', false);
-    // 7 · ele chora
-    padChord(ep, 7, 'Dm', 16, { low: 53, n: 3, vel: 0.55 });
-    mel(ua, 7, ['A3:8 Ab3:8']);
-    // 8 · o sol se põe; os holofotes desligam um a um
-    padChord(ep, 8, 'Bb', 8, { low: 53, n: 3, vel: 0.4 });
-    padChord(ep, 8, 'Gm', 8, { low: 50, n: 3, vel: 0.35, at: 8 });
-    for (const r of [4, 8, 12]) lz.note(8 * 16 + r, 0, 0, 0.9);
+    // 7 · ele olha o cartaz da GRANDE FINAL na arquibancada: o tema no sino, devagar e em menor
+    padChord(ep, 7, 'Fm', 16, { low: 53, n: 3, vel: 0.45 });
+    mel(cx, 7, ['C5:4 F5:4 Ab5:8'], { vel: 0.6 });
+    // 8 · ele chora
+    padChord(ep, 8, 'Dm', 16, { low: 53, n: 3, vel: 0.55 });
+    mel(ua, 8, ['A3:8 Ab3:8']);
+    // 9 · o sol se põe; os holofotes desligam um a um
+    padChord(ep, 9, 'Bb', 8, { low: 53, n: 3, vel: 0.4 });
+    padChord(ep, 9, 'Gm', 8, { low: 50, n: 3, vel: 0.35, at: 8 });
+    for (const r of [4, 8, 12]) lz.note(9 * 16 + r, 0, 0, 0.9);
 
-    // 9 · os passos do Snorlax do EP 1 e o BUUM
-    mel(tuba, 9, ['F2:4 C2:4 F2:4 r:4']);
-    drum(tp, 9, 1, 'x...x...x.......', { pitch: -7 });
-    bar.note(9 * 16 + 12, -12, 0, 1.2);
-    // 10 · a conversa; o "!" dele no sino; a virada pra montagem
-    padChord(ep, 10, 'F', 16, { low: 53, n: 3, vel: 0.35 });
-    mel(cx, 10, ['r:8 A5:2 C6:2 F6:4'], { vel: 0.7 });
-    drum(sn, 10, 1, '............xxXX', { vel: 0.9 });
-    drum(tp, 10, 1, '............x.XX', { vel: 0.7 });
+    // 10 · os passos do Snorlax do EP 1 e o BUUM
+    mel(tuba, 10, ['F2:4 C2:4 F2:4 r:4']);
+    drum(tp, 10, 1, 'x...x...x.......', { pitch: -7 });
+    bar.note(10 * 16 + 12, -12, 0, 1.2);
+    // 11 · a conversa; o "!" dele no sino; a virada pra montagem
+    padChord(ep, 11, 'F', 16, { low: 53, n: 3, vel: 0.35 });
+    mel(cx, 11, ['r:8 A5:2 C6:2 F6:4'], { vel: 0.7 });
+    drum(sn, 11, 1, '............xxXX', { vel: 0.9 });
+    drum(tp, 11, 1, '............x.XX', { vel: 0.7 });
 
-    // 11–14 · a montagem de treino (104 BPM): o tema nos metais
-    mel(met, 11, [TEMA[0], TEMA[1], TEMA[2], TEMA[3]]);
-    mel(cor, 11, ['F4:16', 'G4:8 E4:8', 'A4:16', 'D5:8 C5:8'], { vel: 0.5 });
-    treino(11, 'F');
-    treino(12, 'C7');
-    treino(13, 'F');
-    treino(14, 'Bb');
-    drum(cr, 11, 1, 'X...............');
+    // 12–15 · a montagem de treino (104 BPM): o tema nos metais
+    mel(met, 12, [TEMA[0], TEMA[1], TEMA[2], TEMA[3]]);
+    mel(cor, 12, ['F4:16', 'G4:8 E4:8', 'A4:16', 'D5:8 C5:8'], { vel: 0.5 });
+    treino(12, 'F');
+    treino(13, 'C7');
+    treino(14, 'F');
+    treino(15, 'Bb');
+    drum(cr, 12, 1, 'X...............');
     // dia 1: ele pula baixinho e a bola passa
-    splash(11, [4]);
-    ch.note(11 * 16 + 8, 0, 0, 0.9);
-    rd.note(11 * 16 + 10, 0, 0, 0.7);
+    splash(12, [4]);
+    ch.note(12 * 16 + 8, 0, 0, 0.9);
+    rd.note(12 * 16 + 10, 0, 0, 0.7);
     // dia 4: a barriga (BOING); ele tenta e cai
-    bar.note(12 * 16 + 4, 0, 0, 1.1);
-    splash(12, [10]);
-    drum(tp, 12, 1, '............xxxx', { pitch: -3, vel: 0.6 });
+    bar.note(13 * 16 + 4, 0, 0, 1.1);
+    splash(13, [10]);
+    drum(tp, 13, 1, '............xxxx', { pitch: -3, vel: 0.6 });
     // dia 9: o Pikachu chuta; ele defende a primeira
-    ch.note(13 * 16 + 6, 0, 0, 0.9);
-    splash(13, [8], 'A5');
-    bar.note(13 * 16 + 10, 7, 0, 0.7);
-    drum(cl, 13, 1, '............x.x.', { vel: 0.6 });
+    ch.note(14 * 16 + 6, 0, 0, 0.9);
+    splash(14, [8], 'A5');
+    bar.note(14 * 16 + 10, 7, 0, 0.7);
+    drum(cl, 14, 1, '............x.x.', { vel: 0.6 });
     // dia 30: a bola na trave; prato
-    drum(cr, 14, 1, 'X...........X...');
-    splash(14, [6], 'C6');
-    tv.note(14 * 16 + 8, 0, 0, 1);
-    drum(tp, 14, 1, '............xxXX', { vel: 0.8 });
+    drum(cr, 15, 1, 'X...........X...');
+    splash(15, [6], 'C6');
+    tv.note(15 * 16 + 8, 0, 0, 1);
+    drum(tp, 15, 1, '............xxXX', { vel: 0.8 });
 
-    // 15 · a final (88 BPM): estádio cheio e a fanfarra em Ré menor
-    fundo.note(15 * 16, 0, 0, 1);
-    padChord(cor, 15, 'Dm', 16, { low: 50, n: 3, vel: 0.55 });
-    mel(met, 15, ['r:4 D4:2 F4:2 A4:8'], { vel: 0.9 });
-    drum(tp, 15, 1, 'x.......x.......', { pitch: -5 });
-    // 16 · o Mewtwo
-    padChord(cor, 16, 'Dm', 16, { low: 50, n: 3, vel: 0.5 });
-    mel(met, 16, ['r:8 D3:4 C#3:4'], { vel: 0.9 });
-    // 17 · o apito (sample) na linha 0, o rufo crescendo e o silêncio nas 4 últimas linhas
-    drum(sn, 17, 1, '..oooxxxxxXX....', { vel: 0.9 });
-    drum(tp, 17, 1, '..x.xxxxxxXX....', { pitch: -5, vel: 0.8 });
-    padChord(cor, 17, 'A7', 12, { low: 50, n: 3, vel: 0.65 });
-    // 18 · o pênalti: chute, o Splash subindo nas cordas, BOING e prato no contato (linha 8), a festa na 12
-    ch.note(18 * 16, 0, 0, 1.3);
-    mel(cor, 18, ['D4:1 F4:1 A4:1 D5:1 F5:1 A5:1 D6:2 r:8'], { vel: 0.8 });
-    splash(18, [2], 'D6');
-    bar.note(18 * 16 + 8, 5, 0, 1.4);
-    drum(cr, 18, 1, '........X.......');
-    drum(tp, 18, 1, '........X.......', { pitch: -5 });
-    festa.note(18 * 16 + 12, 0, 0, 1.2);
+    // 16 · GRANDE FINAL: o cartaz toma a tela; rufo e a fanfarra em Fá
+    drum(tp, 16, 1, 'xxxx............', { vel: 0.8 });
+    drum(cr, 16, 1, '....X...........');
+    mel(met, 16, ['r:4 F4:2 A4:2 C5:2 F5:6']);
+    stabs(pah, 16, 'F', [4, 8], { low: 57, n: 3, len: 4 });
+    drum(sn, 16, 1, '....x...x...xxXX', { vel: 0.9 });
+    // 17 · a final (88 BPM): estádio cheio e a fanfarra em Ré menor
+    fundo.note(17 * 16, 0, 0, 1);
+    padChord(cor, 17, 'Dm', 16, { low: 50, n: 3, vel: 0.55 });
+    mel(met, 17, ['r:4 D4:2 F4:2 A4:8'], { vel: 0.9 });
+    drum(tp, 17, 1, 'x.......x.......', { pitch: -5 });
+    // 18 · o Mewtwo
+    padChord(cor, 18, 'Dm', 16, { low: 50, n: 3, vel: 0.5 });
+    mel(met, 18, ['r:8 D3:4 C#3:4'], { vel: 0.9 });
+    // 19 · o apito (sample) na linha 0, o rufo crescendo e o silêncio nas 4 últimas linhas
+    drum(sn, 19, 1, '..oooxxxxxXX....', { vel: 0.9 });
+    drum(tp, 19, 1, '..x.xxxxxxXX....', { pitch: -5, vel: 0.8 });
+    padChord(cor, 19, 'A7', 12, { low: 50, n: 3, vel: 0.65 });
+    // 20 · o pênalti: chute, o Splash subindo nas cordas, BOING e prato no contato (linha 8), a festa na 12
+    ch.note(20 * 16, 0, 0, 1.3);
+    mel(cor, 20, ['D4:1 F4:1 A4:1 D5:1 F5:1 A5:1 D6:2 r:8'], { vel: 0.8 });
+    splash(20, [2], 'D6');
+    bar.note(20 * 16 + 8, 5, 0, 1.4);
+    drum(cr, 20, 1, '........X.......');
+    drum(tp, 20, 1, '........X.......', { pitch: -5 });
+    festa.note(20 * 16 + 12, 0, 0, 1.2);
 
-    // 19 · campeão: SOC-CER-MON no pícolo, palmas, o tema cheio
-    mel(fag, 19, [TEMA[2]]);
-    mel(met, 19, [TEMA[2]], { vel: 0.7 });
-    mel(pc, 19, [GANCHO.em({ tom: 5 })], { vel: 0.9 });
-    drum(cl, 19, 1, GANCHO.palmas, { vel: 0.8 });
-    oompah(19, 'F');
-    drum(cr, 19, 1, 'X...............');
-    splash(19, [2, 6, 10, 14], 'A5');
-    // 20 · as pazes: o tema mais macio e o "toca aqui" (palmas e prato na linha 12)
-    mel(fag, 20, [TEMA[3]], { vel: 0.8 });
-    padChord(ep, 20, 'Bb', 8, { low: 53, n: 3, vel: 0.4 });
-    padChord(ep, 20, 'C7', 8, { low: 52, n: 3, vel: 0.4, at: 8 });
-    bass(tuba, 20, 'Bb', '0:4 r:4 5:4 r:4', { vel: 0.7 });
-    drum(cl, 20, 1, '............X...');
-    drum(cr, 20, 1, '............x...', { vel: 0.5 });
-
-    // 21 · tela final: o tema, e a roleta girando de novo sem parar (EP 3?)
-    mel(fag, 21, [TEMA[0]]);
+    // 21 · campeão: SOC-CER-MON no pícolo, palmas, o tema cheio
+    mel(fag, 21, [TEMA[2]]);
+    mel(met, 21, [TEMA[2]], { vel: 0.7 });
+    mel(pc, 21, [GANCHO.em({ tom: 5 })], { vel: 0.9 });
+    drum(cl, 21, 1, GANCHO.palmas, { vel: 0.8 });
     oompah(21, 'F');
-    splash(21, [0, 4]);
-    drum(bl, 21, 1, '........xxxxxxxx', { pitch: 12, vel: 0.6 });
+    drum(cr, 21, 1, 'X...............');
+    splash(21, [2, 6, 10, 14], 'A5');
+    // 22 · as pazes: o tema mais macio e o "toca aqui" (palmas e prato na linha 12)
+    mel(fag, 22, [TEMA[3]], { vel: 0.8 });
+    padChord(ep, 22, 'Bb', 8, { low: 53, n: 3, vel: 0.4 });
+    padChord(ep, 22, 'C7', 8, { low: 52, n: 3, vel: 0.4, at: 8 });
+    bass(tuba, 22, 'Bb', '0:4 r:4 5:4 r:4', { vel: 0.7 });
+    drum(cl, 22, 1, '............X...');
+    drum(cr, 22, 1, '............x...', { vel: 0.5 });
+
+    // 23 · tela final: o tema, e a roleta girando de novo sem parar (EP 3?)
+    mel(fag, 23, [TEMA[0]]);
+    oompah(23, 'F');
+    splash(23, [0, 4]);
+    drum(bl, 23, 1, '........xxxxxxxx', { pitch: 12, vel: 0.6 });
     return S;
 }

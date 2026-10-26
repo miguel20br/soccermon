@@ -83,6 +83,42 @@
         ],
         "createdAt": "2026-10-20T19:28:54.421Z",
         "reason": "Faixa lateral na cor (tipo do golpe, clube) é o padrão do kit da transmissão do brand guide (docs/marca, .bc-stripe); regras de 0.8.0, anteriores a esta sessão"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          "trailer/curtas/magikarp/index.html"
+        ],
+        "createdAt": "2026-10-26T22:45:47.805Z",
+        "reason": "Claude: texto branco do vídeo tem contorno escuro de 10–16px (-webkit-text-stroke) sobre a quadra; o detector lê o fundo como branco"
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          "trailer/curtas/magikarp/index.html"
+        ],
+        "createdAt": "2026-10-26T23:11:03.147Z",
+        "reason": "Claude: é o brilho dos holofotes da quadra numa cena de vídeo (luz dentro da história), não sombra de interface"
+      },
+      {
+        "rule": "buried-raster",
+        "value": "*",
+        "files": [
+          "trailer/curtas/reforma/index.html"
+        ],
+        "createdAt": "2026-10-26T23:31:45.559Z",
+        "reason": "Claude: vídeo animado; as peças da tela nova começam com opacidade 0 e a animação revela cada uma (o raster aparece na tela)"
+      },
+      {
+        "rule": "wide-tracking",
+        "value": "*",
+        "files": [
+          "trailer/curtas/magikarp/index.html"
+        ],
+        "createdAt": "2026-10-26T23:31:45.583Z",
+        "reason": "Claude: vídeo 9:16; o espaçamento largo está em rótulos curtos em maiúsculas (carimbos DIA, cartazes, placar), não em texto corrido"
       }
     ]
   }
