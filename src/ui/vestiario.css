@@ -1,6 +1,6 @@
 /*
- * Escalação no vestiário (revamp-ui §3.3, 0.9.23): a parede de armários com os quadros (chave e tática, cada um abre
- * a sua sheet) e a prancheta logo embaixo, na 1ª tela. Armário em pixel art de 24x44 (SVG), 2x na tela.
+ * Escalação no vestiário (revamp-ui §3.3, 0.9.23): a lousa de tática com os quadros (chave e tática, cada um abre a
+ * sua sheet) e a prancheta logo embaixo, na 1ª tela.
  */
 .vt-room {
     display: grid;
@@ -13,19 +13,19 @@
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    min-height: 104px;
-    padding: 12px 10px 22px;
+    min-height: 92px;
+    padding: 12px 12px 16px;
     border: 3px solid var(--cb-ink);
     border-bottom: 0;
     border-radius: var(--radius) var(--radius) 0 0;
+    /* a lousa azul de tática (escolhida em 26/10 entre armários, azulejo e lousa): X, O e a seta de giz, moldura de
+       madeira e o apoio do giz embaixo */
     background:
-        /* o banco de madeira na frente dos armários */
-        linear-gradient(0deg, #3d2412 0 3px, #8a5a2e 3px 9px, #b07a44 9px 12px, transparent 12px) bottom / 100% 12px
-        no-repeat,
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='44' shape-rendering='crispEdges'%3E%3Crect width='24' height='44' fill='%23131a3d'/%3E%3Crect x='1' y='1' width='22' height='42' fill='%233f5fa8'/%3E%3Crect x='1' y='1' width='22' height='2' fill='%236f8fd8'/%3E%3Crect x='1' y='1' width='1' height='42' fill='%235a7ac4'/%3E%3Crect x='22' y='1' width='1' height='42' fill='%232a417c'/%3E%3Crect x='6' y='6' width='12' height='1' fill='%23172552'/%3E%3Crect x='6' y='9' width='12' height='1' fill='%23172552'/%3E%3Crect x='6' y='12' width='12' height='1' fill='%23172552'/%3E%3Crect x='8' y='17' width='8' height='4' fill='%23e8e4cc'/%3E%3Crect x='18' y='22' width='2' height='6' fill='%23c9d3f0'/%3E%3Crect x='6' y='34' width='12' height='1' fill='%23172552'/%3E%3Crect x='6' y='37' width='12' height='1' fill='%23172552'/%3E%3C/svg%3E")
-        center 6px / 48px 88px repeat-x,
-        #131a3d;
-    image-rendering: pixelated;
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='90' fill='none' stroke='%23eef3ff' stroke-opacity='.32' stroke-width='3'%3E%3Cpath d='M14 20l12 12M26 20L14 32M60 60a8 8 0 1 0 0.1 0M30 70c20-30 50-40 70-30M92 34l8 6-9 5'/%3E%3C/svg%3E")
+        0 6px / 120px 90px repeat-x,
+        linear-gradient(0deg, #5a3a1c 0 6px, transparent 6px) bottom / 100% 6px no-repeat,
+        linear-gradient(180deg, #27508f, #1d3d72);
+    box-shadow: inset 0 0 0 4px #6b4423;
 }
 /* os quadros pendurados: cortiça (chave) e quadro-branco (tática); base escura = dá pra tocar */
 .vt-obj {
