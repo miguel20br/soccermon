@@ -42,6 +42,9 @@ export const match = {
         board: 'Posições',
         team: 'Time',
         feed: 'Lances',
+        /** Botões da partida no ?lab=hud (Trocar abre as Posições; Tempo, o pedido de tempo e o goleiro-linha). */
+        hudSwap: 'Trocar',
+        hudTime: 'Tempo',
         style: 'Como o time joga',
         styleShort: {
             balanced: 'Ataca e defende igual',

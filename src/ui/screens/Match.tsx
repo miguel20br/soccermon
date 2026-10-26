@@ -75,8 +75,11 @@ import {
 import { sponsorBoards } from '../components/SponsorCard';
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
+import { useCourtFollow } from '../court-follow';
 import { RivalEmotes } from '../duel/Emotes';
 import { rivalEmotes } from '../duel/emote-faces';
+import { readHud } from '../hud-lab';
+import { Sheet } from '../kit/Sheet';
 import { LeaveConfirm } from '../leave-guard';
 import { captainAt, clockExtrasAt, type MaxWait, maxWaitNext, roleAt, snapAt } from '../match-view';
 import { maxGradeNow } from '../max-beat';
@@ -103,6 +106,9 @@ const HIGHLIGHTS_MULT = 4;
 const SAVE_EVERY_MS = 1500;
 
 /** `liga`: partida contra um time fantasma (src/league): a mesma tela, com a partida da Liga no lugar da copa. */
+/** Sheets da partida no ?lab=hud: Tática, Trocar (Posições), Tempo e Lances. */
+type HudSheet = 'tactic' | 'board' | 'time' | 'feed';
+
 export function Match({ liga = false }: { liga?: boolean }) {
     const store = useGame();
     const { match, settings, updateSettings, setMatch, go } = store;
@@ -154,6 +160,14 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const alive = useRef(true);
     // painel do técnico: no desktop a Tática fica embaixo da quadra e as abas abrem na Prancheta
     const wide = useMedia(WIDE);
+    // ?lab=hud (revamp-ui §3.5, variante A): no celular em pé, quadra grande seguindo a bola e o painel vira 4 botões
+    const [hudLab] = useState(readHud);
+    const portrait = useMedia('(orientation: portrait)');
+    const hud = hudLab && !wide && portrait;
+    const [hudSheet, setHudSheet] = useState<HudSheet | null>(null);
+    const [hudFeedTab, setHudFeedTab] = useState<CoachTab>('feed');
+    const pitchRef = useRef<HTMLDivElement>(null);
+    useCourtFollow(hud, pitchRef);
     const tabs: CoachTab[] = wide ? ['board', 'team', 'feed'] : ['tactic', 'board', 'team', 'feed'];
     const [tab, setTab] = useCoachTab(tabs, wide ? 'board' : 'tactic');
     const latest = useRef<MatchResult | null>(match);
@@ -524,6 +538,11 @@ export function Match({ liga = false }: { liga?: boolean }) {
     };
     // Substituir (botão, intervalo, pedido de tempo, sugestão): abre a prancheta, já com quem sai marcado se tiver
     const openBoard = (uid?: string) => {
+        if (hud) {
+            setSubOut(uid ? { uid } : null);
+            setHudSheet('board');
+            return;
+        }
         setTab('board');
         setSubOut(uid ? { uid } : null);
         requestAnimationFrame(() => coachRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
@@ -598,8 +617,8 @@ export function Match({ liga = false }: { liga?: boolean }) {
             onTactic={changeTactic}
             onCorner={changeCorner}
             canSub={canSub}
-            // no intervalo o Substituir mora no painel do intervalo (antes aparecia duas vezes)
-            onSub={halftime ? undefined : () => openBoard(tired ? tiredSlot.uid : undefined)}
+            // no intervalo o Substituir mora no painel do intervalo (antes aparecia duas vezes); no ?lab=hud, no Trocar
+            onSub={halftime || hud ? undefined : () => openBoard(tired ? tiredSlot.uid : undefined)}
             tired={tired}
         />
     );
@@ -630,6 +649,49 @@ export function Match({ liga = false }: { liga?: boolean }) {
         scoreboardRef.current?.scrollIntoView({ block: 'nearest', behavior: reduceMotionOn() ? 'auto' : 'smooth' });
         EventBus.emit('match:resume');
     };
+
+    const jogoCoach = (
+        <Coach
+            id="relampagoJogo"
+            targets={[hud ? '.bc-hudbar' : '.bc-coach .bc-tabs']}
+            when={
+                !liga &&
+                !!run &&
+                !run.daily &&
+                !isLong(run) &&
+                run.results.length === 0 &&
+                relampagoJogoDue(clock.score, halftime)
+            }
+        />
+    );
+    /** O conteúdo de cada aba do técnico (no painel ou na sheet do ?lab=hud). */
+    const pane = (k: CoachTab) =>
+        k === 'board' ? (
+            <Prancheta
+                match={match}
+                setups={[lockedSetup, opponent]}
+                side={0}
+                tick={clock.tick}
+                names={teamNames}
+                selectedUid={subOut}
+                onMine={(_, idx) => idx !== null && EventBus.emit('match:inspect-request', idx)}
+                onSub={canSub ? orderSub : undefined}
+                subs={subOrders.filter((o) => !subsDone.includes(o.inUid))}
+                edit={{ enabled: canChangeTactic, pending: pendingBoard, onConfirm: orderBoard, over }}
+            />
+        ) : k === 'team' ? (
+            <TeamPanel
+                match={match}
+                setups={[lockedSetup, opponent]}
+                tick={clock.tick}
+                teamNames={teamNames}
+                interactive={sceneReady && !ended}
+            />
+        ) : k === 'feed' ? (
+            <MatchFeed lines={lines} colors={colors} />
+        ) : (
+            tactics
+        );
 
     return (
         <>
@@ -672,7 +734,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                 </div>
 
                 <div className="bc-stage" onPointerDownCapture={auto.hold}>
-                    <div className="pitch-wrap">
+                    <div className={`pitch-wrap${hud ? ' hud-follow' : ''}`} ref={pitchRef}>
                         {fontsReady ? (
                             <PhaserGame key={`${match.seed}-${sceneKey}`} data={sceneData} />
                         ) : (
@@ -778,53 +840,85 @@ export function Match({ liga = false }: { liga?: boolean }) {
                     {wide && <div className="bc-deskbar">{tactics}</div>}
                 </div>
 
-                <div className="panel bc-coach" ref={coachRef} onPointerDownCapture={auto.hold}>
-                    <Coach
-                        id="relampagoJogo"
-                        targets={['.bc-coach .bc-tabs']}
-                        when={
-                            !liga &&
-                            !!run &&
-                            !run.daily &&
-                            !isLong(run) &&
-                            run.results.length === 0 &&
-                            relampagoJogoDue(clock.score, halftime)
-                        }
-                    />
-                    <CoachTabs tabs={tabs} active={tab} onPick={setTab} />
-                    <div className={`bc-pane pane-${tab}`} role="tabpanel">
-                        {tab === 'tactic' && tactics}
-                        {tab === 'board' && (
-                            <Prancheta
-                                match={match}
-                                setups={[lockedSetup, opponent]}
-                                side={0}
-                                tick={clock.tick}
-                                names={teamNames}
-                                selectedUid={subOut}
-                                onMine={(_, idx) => idx !== null && EventBus.emit('match:inspect-request', idx)}
-                                onSub={canSub ? orderSub : undefined}
-                                subs={subOrders.filter((o) => !subsDone.includes(o.inUid))}
-                                edit={{ enabled: canChangeTactic, pending: pendingBoard, onConfirm: orderBoard, over }}
-                            />
-                        )}
-                        {tab === 'team' && (
-                            <TeamPanel
-                                match={match}
-                                setups={[lockedSetup, opponent]}
-                                tick={clock.tick}
-                                teamNames={teamNames}
-                                interactive={sceneReady && !ended}
-                            />
-                        )}
-                        {tab === 'feed' && <MatchFeed lines={lines} colors={colors} />}
-                    </div>
-                    {wide && tab !== 'feed' && lines.length > 0 && (
-                        <div className="bc-recent">
-                            <MatchFeed lines={lines.slice(0, 3)} colors={colors} />
+                {hud ? (
+                    <>
+                        {jogoCoach}
+                        {/* ?lab=hud: 4 botões no lugar das abas; cada um abre a sua sheet (o estado fica à vista) */}
+                        <nav className="bc-hudbar" aria-label={t('match.coach.title')}>
+                            {(
+                                [
+                                    ['tactic', currentTactic, t('match.coach.tactic'), d.common.tactic[currentTactic]],
+                                    ['board', 'sub', t('match.coach.hudSwap'), t('match.coach.board')],
+                                    [
+                                        'time',
+                                        'timeout',
+                                        t('match.coach.hudTime'),
+                                        sideline.timeoutPending
+                                            ? d.match.agency.timeoutPending
+                                            : sideline.timeoutUsed
+                                              ? d.match.agency.timeoutUsed
+                                              : d.match.agency.timeoutPerHalf,
+                                    ],
+                                    [
+                                        'feed',
+                                        'feed',
+                                        t('match.coach.feed'),
+                                        lines[0] ? `${Math.floor(lines[0].minute)}'` : '',
+                                    ],
+                                ] as const
+                            ).map(([k, icon, label, sub]) => (
+                                <button
+                                    key={k}
+                                    type="button"
+                                    className={`bc-hudbtn${hudSheet === k ? ' on' : ''}`}
+                                    aria-haspopup="dialog"
+                                    onClick={() => setHudSheet(k)}
+                                >
+                                    <HudIcon kind={icon} />
+                                    <b>{label}</b>
+                                    <small>{sub}</small>
+                                </button>
+                            ))}
+                        </nav>
+                        <Sheet
+                            open={hudSheet !== null}
+                            onClose={() => setHudSheet(null)}
+                            title={
+                                hudSheet === 'board'
+                                    ? t('match.coach.hudSwap')
+                                    : hudSheet === 'time'
+                                      ? t('match.coach.hudTime')
+                                      : hudSheet === 'feed'
+                                        ? t('match.coach.feed')
+                                        : t('match.coach.tactic')
+                            }
+                            className={`hud-sheet hud-${hudSheet ?? 'tactic'}`}
+                        >
+                            {hudSheet === 'tactic' && tacticControls}
+                            {hudSheet === 'board' && pane('board')}
+                            {hudSheet === 'time' && sidelineControls}
+                            {hudSheet === 'feed' && (
+                                <>
+                                    <CoachTabs tabs={['feed', 'team']} active={hudFeedTab} onPick={setHudFeedTab} />
+                                    {pane(hudFeedTab)}
+                                </>
+                            )}
+                        </Sheet>
+                    </>
+                ) : (
+                    <div className="panel bc-coach" ref={coachRef} onPointerDownCapture={auto.hold}>
+                        {jogoCoach}
+                        <CoachTabs tabs={tabs} active={tab} onPick={setTab} />
+                        <div className={`bc-pane pane-${tab}`} role="tabpanel">
+                            {tab === 'tactic' ? tactics : pane(tab)}
                         </div>
-                    )}
-                </div>
+                        {wide && tab !== 'feed' && lines.length > 0 && (
+                            <div className="bc-recent">
+                                <MatchFeed lines={lines.slice(0, 3)} colors={colors} />
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 <div className="bc-thumb">
                     {!ended ? (

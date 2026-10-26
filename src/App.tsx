@@ -15,6 +15,7 @@ import { TopActions } from './ui/components/TopActions';
 import { UnlockNotice } from './ui/components/UnlockNotice';
 import { runDevDemo } from './ui/dev-demo';
 import { Duel, duelCodeFromUrl } from './ui/duel/Duel';
+import { readHud } from './ui/hud-lab';
 import { requestBack, requestLeave } from './ui/leave-guard';
 import { FriendInvite, FriendVitrine } from './ui/profile/FriendsTab';
 import { PlayerCardModal } from './ui/profile/PlayerCard';
@@ -95,6 +96,8 @@ export default function App() {
         return (__SMOKE__ || params.has('revisao')) && q === 'posicoes' ? q : null;
     });
     const [ambientes] = useState(readAmbientes);
+    // ?lab=hud (partida nova, revamp-ui §3.5): guarda na aba já na entrada, a partida lê depois
+    useState(readHud);
     const [cards, setCards] = useState(
         () => __SMOKE__ && new URLSearchParams(window.location.search).get('cards') === '1',
     );

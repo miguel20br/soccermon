@@ -307,7 +307,7 @@
 }
 /* intervalo e painel de troca rolam pra tela sem ficar embaixo da barra fixa */
 .bc .ht-wrap,
-.bc .sub-panel {
+:is(.bc, .hud-sheet) .sub-panel {
     scroll-margin-bottom: calc(76px + env(safe-area-inset-bottom));
 }
 .bc .ht-panel {
@@ -379,7 +379,7 @@
 .bc-pane .tp-toggle {
     display: none;
 }
-.bc .feed {
+:is(.bc, .hud-sheet) .feed {
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -411,7 +411,7 @@
     gap: 8px;
 }
 /* peça da tática: nome, o que muda em palavras simples e a régua ataque/defesa */
-.bc .tac-tile {
+:is(.bc, .hud-sheet) .tac-tile {
     position: relative;
     flex-direction: column;
     align-items: stretch;
@@ -429,7 +429,7 @@
     width: 18px;
     height: 18px;
 }
-.bc .tac-tile small {
+:is(.bc, .hud-sheet) .tac-tile small {
     font-size: 11px;
     line-height: 1.2;
     color: var(--text);
@@ -493,7 +493,7 @@
     animation: none;
 }
 /* escanteio: ícone, nome e pra que serve */
-.bc .corner-seg button {
+:is(.bc, .hud-sheet) .corner-seg button {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1162,4 +1162,78 @@
         grid-column: auto;
         grid-row: auto;
     }
+}
+
+/*
+ * ?lab=hud (revamp-ui §3.5, variante A, escolhida em 26/10): no celular em pé a quadra ocupa ~60% da altura e o canvas,
+ * mais largo que a tela, anda de lado seguindo a bola (court-follow.ts). Embaixo, 4 botões no lugar das abas, cada um
+ * abre a sua sheet; o estado fica escrito no botão.
+ */
+.bc .pitch-wrap.hud-follow {
+    --hud-h: clamp(220px, calc(100svh - 330px - env(safe-area-inset-bottom)), 560px);
+    position: relative;
+    overflow: hidden;
+}
+.bc .pitch-wrap.hud-follow .phaser-container {
+    width: calc(var(--hud-h) * 968 / 528);
+    max-width: none;
+    height: var(--hud-h);
+    aspect-ratio: auto;
+    will-change: transform;
+}
+.bc-hudbar {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 8px;
+}
+.bc-hudbtn {
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 1px;
+    min-width: 0;
+    min-height: 58px;
+    padding: 6px 4px 9px;
+    border: 3px solid var(--cb-ink);
+    border-radius: 10px;
+    background: linear-gradient(180deg, #3b4a8f 0 46%, #2a3570 46%);
+    box-shadow:
+        inset 0 -4px 0 #1a2150,
+        0 3px 0 var(--cb-ink);
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+    transition: transform var(--dur-solta) var(--ease-pop);
+}
+.bc-hudbtn .hud-icon {
+    width: 20px;
+    height: 20px;
+}
+.bc-hudbtn b {
+    font-size: 13px;
+    line-height: 1.1;
+}
+.bc-hudbtn small {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--muted);
+    font-size: 10px;
+}
+.bc-hudbtn.on {
+    box-shadow: var(--pick-ring);
+}
+.bc-hudbtn:active {
+    transform: translateY(2px);
+    transition-duration: var(--dur-toque);
+}
+.bc-hudbtn:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+}
+/* sheet do Tempo: o golpe máximo já mora na barra de baixo */
+.hud-sheet .sl-max {
+    display: none;
 }

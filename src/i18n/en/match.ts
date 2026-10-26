@@ -36,6 +36,9 @@ export const match: typeof pt = {
         board: 'Positions',
         team: 'Team',
         feed: 'Plays',
+        /** Match buttons in ?lab=hud (Swap opens Positions; Time, the timeout and flying keeper). */
+        hudSwap: 'Swap',
+        hudTime: 'Time',
         style: 'How the team plays',
         styleShort: {
             balanced: 'Attacks and defends evenly',
