@@ -31,7 +31,8 @@ mexer. Aqui fica o que conferir sempre.
 - [ ] Só tokens: `--bg`, `--panel`, `--panel-2`, `--line`, `--text`, `--muted`, `--yellow`, `--red`, `--blue`,
       `--green`, `--bc-ink*`. Hex solto só se for cor de tipo (`TYPE_COLOR`), de metal/raridade (`rarity.ts`) ou do
       logo.
-- [ ] Dourado é destaque (etiqueta, seleção); vermelho é a ação principal; um por tela.
+- [ ] Cor por função (guia, "Cor"): dourado joga (um JOGAR por tela), verde confirma ou compra, azul é secundário,
+      vermelho só perigo ou fechar dentro da confirmação. Relevo (base escura) = dá pra tocar; painel é chapado.
 - [ ] Contraste da tabela do guia: branco sobre verde não; texto pequeno no vermelho vai em `--red-dark`.
 - [ ] Sombra dura (sem blur), raios 4/6/8/10, borda de baixo preta no placar.
 
