@@ -3,9 +3,12 @@
 - [Social media em lote](feedback-social-media-em-lote.md) — Claude cuida das redes; só vai ao ar o que está na pauta semanal que ele aprovou numa linha
 - [Texto sem cara de IA](feedback-texto-sem-cara-de-ia.md) — falas curtas e naturais; ginásio continua ginásio (não "quadra")
 - [Economia de tokens](feedback-economia-de-tokens.md) — agente novo por rodada, Sonnet/Haiku quando der, máx. 3 em paralelo, CLAUDE.md enxuto
-- [Retomar frentes (21/10)](retomar-frentes-21-10.md) — LER PRIMEIRO: frentes paradas pelo limite, worktree e próximo passo de cada
+- [Retomar (estado 26/10)](retomar-frentes-21-10.md) — LER PRIMEIRO: 0.9.22 no ar (kit B), próximo 0.9.23 Vestiário do revamp-ui, lembretes, redes e pendências
 - [Gosto musical](feedback-gosto-musical.md) — Rocket é a régua; sons criativos (moedas); clap clássico 808/909 em vez do sintetizado
 - [Música aprovada entra na hora](feedback-musica-aprovou-entra.md) — aprovou no localhost:8000 → converte e liga numa branch de música sem perguntar de novo
 - [Versão 1.0 ainda não](feedback-sem-1-0-ainda.md) — Miguel não quer lançar a 1.0 ainda; seguir 0.9.x (0.9.10, 0.9.11…)
 - [Vídeo sem inspiração](feedback-video-sem-inspiracao.md) — régua = trailer v3; fórmula do Snorlax (1 herói, começo/meio/fim) > mistura de conceitos; rascunho curto antes
 - [Versões menos frequentes](feedback-versoes-menos-frequentes.md) — desde 23/10: juntar frentes, revisão dupla antes de subir, trailerzinho por atualização
+- [Postar pelo Chrome](reference-postar-pelo-chrome.md) — conta pessoal + perfil Miguel, /add-dir dos vídeos, aba nova por rede, pegadinhas de IG/TikTok/YT
+- [Modo mochila](feedback-modo-mochila.md) — Claude pode desligar sozinho; on [horas]|off|status
+- [Menus como ambientes](project-menus-ambientes.md) — visão 25/10: cada modo uma tela-ambiente, barra embaixo + arrastar (estilo Clash)

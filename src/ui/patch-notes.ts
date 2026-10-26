@@ -9,6 +9,56 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.23',
+        date: '2026-10-26',
+        title: 'Vestiário',
+        sections: [
+            {
+                title: 'Escalação no vestiário',
+                lines: [
+                    'A escalação fica numa lousa de tática: a Chave e a Tática são quadros pendurados, cada um abre a sua janela',
+                    'A prancheta encosta na lousa e o time inteiro aparece na primeira tela do celular',
+                    'Na copa, a barra de cima mostra a fase, os ₽ e os sorteios',
+                ],
+            },
+            {
+                title: 'Mais simples',
+                lines: [
+                    'Janelas sobem de baixo no celular, com o X redondo. Toda confirmação virou uma janela curta',
+                    'O pacote da vitória abre sozinho, e Pular e Sortear de novo ficam juntos embaixo',
+                    'O fim de jogo espera você tocar em Ver resultado',
+                    'Treinador ou título novo aparece logo abaixo do placar',
+                    'Mercado mais curto: os Patrocínios ficam numa linha que abre a janela',
+                    'Draft sem a mesma instrução repetida, e os atributos das cartas maiores',
+                    'O Golpe Máximo fica sempre à vista na barra de baixo da partida. Tocar antes da hora explica quando acende',
+                ],
+            },
+            {
+                title: 'Visual novo',
+                lines: [
+                    'Estádio: as metas sobem pra arquibancada e o botão de jogar fica embaixo, com a quadra livre',
+                    'Começar a copa, entrar em quadra e virar campeão ganham uma transição com papel de parede (um desenho diferente a cada vez)',
+                    'Perfil, Coleção, Sala de troféus, Ajuda e Configurações com a barra de cima, abas de pasta e barras de progresso novas',
+                    'Intervalo, ordem dos pênaltis e Campeão no mesmo estilo dos botões',
+                    'O aviso rápido desce do topo: verde quando deu certo, vermelho quando deu errado',
+                ],
+            },
+            {
+                title: 'Novo',
+                lines: [
+                    'Jogar como app: nas Configurações, Instalar põe o Soccermon na tela inicial do Android, em tela cheia (no iPhone, Compartilhar e Adicionar à Tela de Início)',
+                ],
+            },
+            {
+                title: 'Corrigido',
+                lines: [
+                    'A tela não pisca mais preta ao trocar de menu',
+                    'O Esperar do Golpe Máximo saía da tela em celular pequeno',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.22',
         date: '2026-10-26',
         title: 'Botão de apertar',
@@ -1680,6 +1730,56 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.23',
+        date: '2026-10-26',
+        title: 'Locker room',
+        sections: [
+            {
+                title: 'Lineup in the locker room',
+                lines: [
+                    'The lineup sits on a tactics board: the Bracket and Tactics are boards on the wall, each one opens its own panel',
+                    'The clipboard sits right below, and the whole team fits on the first phone screen',
+                    'During a cup, the top bar shows the round, your ₽ and your rerolls',
+                ],
+            },
+            {
+                title: 'Simpler',
+                lines: [
+                    'Panels slide up from the bottom on phones, with a round X. Every confirmation is a short panel',
+                    'The victory pack opens by itself, and Skip and Reroll sit together at the bottom',
+                    'Full time waits for you to tap See result',
+                    'A new trainer or title shows right below the score',
+                    'Shorter Market: Sponsors sit on one line that opens a panel',
+                    'Draft without the same instruction repeated, and bigger card attributes',
+                    'The Max Move is always in view on the bottom bar of the match. Tapping it early tells you when it lights up',
+                ],
+            },
+            {
+                title: 'New look',
+                lines: [
+                    'Stadium: goals move up to the stands and the play button sits at the bottom, leaving the court clear',
+                    'Starting a cup, walking on court and winning the title get a wallpaper transition (a different drawing each time)',
+                    'Profile, Collection, Trophy room, Help and Settings with the top bar, folder tabs and new progress bars',
+                    'Halftime, penalty order and Champion in the same style as the buttons',
+                    'Quick notices drop from the top: green when it worked, red when it failed',
+                ],
+            },
+            {
+                title: 'New',
+                lines: [
+                    'Play as an app: in Settings, Install puts Soccermon on your Android home screen, full screen (on iPhone, Share and Add to Home Screen)',
+                ],
+            },
+            {
+                title: 'Fixed',
+                lines: [
+                    'The screen no longer flashes black when switching menus',
+                    'The Max Move Wait button went off screen on small phones',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.22',
         date: '2026-10-26',

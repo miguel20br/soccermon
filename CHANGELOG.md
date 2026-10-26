@@ -1,5 +1,35 @@
 # Novidades
 
+## 0.9.23 · Vestiário (2026-10-26)
+
+### Escalação no vestiário
+- A escalação fica numa lousa de tática: a Chave e a Tática são quadros pendurados, cada um abre a sua janela
+- A prancheta encosta na lousa e o time inteiro aparece na primeira tela do celular
+- Na copa, a barra de cima mostra a fase, os ₽ e os sorteios
+
+### Mais simples
+- Janelas sobem de baixo no celular, com o X redondo. Toda confirmação virou uma janela curta
+- O pacote da vitória abre sozinho, e Pular e Sortear de novo ficam juntos embaixo
+- O fim de jogo espera você tocar em Ver resultado
+- Treinador ou título novo aparece logo abaixo do placar
+- Mercado mais curto: os Patrocínios ficam numa linha que abre a janela
+- Draft sem a mesma instrução repetida, e os atributos das cartas maiores
+- O Golpe Máximo fica sempre à vista na barra de baixo da partida. Tocar antes da hora explica quando acende
+
+### Visual novo
+- Estádio: as metas sobem pra arquibancada e o botão de jogar fica embaixo, com a quadra livre
+- Começar a copa, entrar em quadra e virar campeão ganham uma transição com papel de parede (um desenho diferente a cada vez)
+- Perfil, Coleção, Sala de troféus, Ajuda e Configurações com a barra de cima, abas de pasta e barras de progresso novas
+- Intervalo, ordem dos pênaltis e Campeão no mesmo estilo dos botões
+- O aviso rápido desce do topo: verde quando deu certo, vermelho quando deu errado
+
+### Novo
+- Jogar como app: nas Configurações, Instalar põe o Soccermon na tela inicial do Android, em tela cheia (no iPhone, Compartilhar e Adicionar à Tela de Início)
+
+### Corrigido
+- A tela não pisca mais preta ao trocar de menu
+- O Esperar do Golpe Máximo saía da tela em celular pequeno
+
 ## 0.9.22 · Botão de apertar (2026-10-26)
 
 ### Visual novo
