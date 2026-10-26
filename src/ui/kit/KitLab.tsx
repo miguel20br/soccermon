@@ -3,7 +3,7 @@ import { TopBar, useCountUp } from '../ambientes/TopBar';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import '../ambientes/ambientes.css';
 import './kit-lab.css';
-import { MomentWipe, type WipeArt } from './MomentWipe';
+import { MomentWipe, randomArt, WIPE_ART, type WipeArt } from './MomentWipe';
 
 /** Um botão de cada função, do jeito que as telas usam (`.btn` + modificador). */
 const ROLES: { cls: string; name: string; use: string; label: string; icon?: HudIconKind }[] = [
@@ -62,16 +62,18 @@ export function KitLab({ onExit }: { onExit: () => void }) {
             <section className="panel" id="transicao">
                 <h2>Transição de momento</h2>
                 <p className="muted">
-                    Linha na diagonal revela o papel de parede com o logo; ele sai da direita pra esquerda. Só pra
-                    momento (começar a copa, entrar em quadra, título).
+                    Linha na diagonal revela o papel de parede com o logo; ele sai da direita pra esquerda. Cada vez um
+                    desenho (ou o do momento: bola pra entrar em quadra, troféu pro título). Só pra momento.
                 </p>
                 <div className="kl-btns">
-                    <button type="button" className="btn" onClick={() => setWipe('pokebolas')}>
-                        A · Pokébolas
+                    <button type="button" className="btn" onClick={() => setWipe(randomArt())}>
+                        <HudIcon kind="dice" /> Sorteado
                     </button>
-                    <button type="button" className="btn" onClick={() => setWipe('simbolo')}>
-                        B · Símbolo do Soccermon
-                    </button>
+                    {(Object.keys(WIPE_ART) as WipeArt[]).map((a) => (
+                        <button key={a} type="button" className="btn small ghost" onClick={() => setWipe(a)}>
+                            {a}
+                        </button>
+                    ))}
                 </div>
                 {wipe && <MomentWipe key={wipe} art={wipe} onDone={() => setWipe(null)} />}
             </section>

@@ -594,33 +594,12 @@
 .k-wipe-paper {
     display: grid;
     place-items: center;
-    background-color: #24398a;
-    image-rendering: pixelated;
-    animation: k-wipe-drift 1.2s linear infinite;
-}
-/* papel A: pokébolas em dois tons de azul (padrão de parede, não símbolo), em xadrez */
-.k-wipe-paper.art-pokebolas {
-    --ball: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' shape-rendering='crispEdges'%3E%3Ccircle cx='16' cy='16' r='10' fill='%23172a6e'/%3E%3Cpath d='M7 16a9 9 0 0 1 18 0z' fill='%235f7fe0'/%3E%3Cpath d='M7 16a9 9 0 0 0 18 0z' fill='%23c3d1ff'/%3E%3Crect x='6' y='15' width='20' height='2' fill='%23172a6e'/%3E%3Ccircle cx='16' cy='16' r='3.4' fill='%23172a6e'/%3E%3Ccircle cx='16' cy='16' r='1.8' fill='%23c3d1ff'/%3E%3C/svg%3E");
-    background-image: var(--ball), var(--ball);
-    background-size: 56px 56px;
+    background-image: var(--tile), var(--tile);
+    background-size: 96px 96px;
     background-position:
         0 0,
-        28px 28px;
-}
-/* papel B: o símbolo do Soccermon (a carta com a bola), apagado por um véu azul */
-.k-wipe-paper.art-simbolo {
-    background-image:
-        linear-gradient(rgb(36 57 138 / 55%), rgb(36 57 138 / 55%)), url("/assets/ui/simbolo.svg"),
-        url("/assets/ui/simbolo.svg");
-    background-size:
-        auto,
-        40px 50px,
-        40px 50px;
-    background-position:
-        0 0,
-        0 0,
-        20px 25px;
-    image-rendering: auto;
+        48px 48px;
+    animation: k-wipe-drift 2.4s linear infinite;
 }
 .k-wipe-mark {
     width: min(72vw, 420px);
@@ -635,19 +614,8 @@
 @keyframes k-wipe-drift {
     to {
         background-position:
-            56px 56px,
-            84px 84px;
-    }
-}
-.k-wipe-paper.art-simbolo {
-    animation-name: k-wipe-drift-b;
-}
-@keyframes k-wipe-drift-b {
-    to {
-        background-position:
-            0 0,
-            40px 50px,
-            60px 75px;
+            96px 96px,
+            144px 144px;
     }
 }
 :root[data-reduce-motion="true"] .k-wipe-paper {
