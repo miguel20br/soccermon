@@ -3,6 +3,7 @@ import { TopBar, useCountUp } from '../ambientes/TopBar';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import '../ambientes/ambientes.css';
 import './kit-lab.css';
+import { MomentWipe, type WipeArt } from './MomentWipe';
 
 /** Um botão de cada função, do jeito que as telas usam (`.btn` + modificador). */
 const ROLES: { cls: string; name: string; use: string; label: string; icon?: HudIconKind }[] = [
@@ -47,6 +48,7 @@ function Num({ n, of, size }: { n: number; of?: number; size: number }) {
 export function KitLab({ onExit }: { onExit: () => void }) {
     const [sel, setSel] = useState(1);
     const [run, setRun] = useState(0);
+    const [wipe, setWipe] = useState<WipeArt | null>(null);
     return (
         <div className="kl">
             <header className="kl-head bc-screenhead">
@@ -56,6 +58,23 @@ export function KitLab({ onExit }: { onExit: () => void }) {
                     <HudIcon kind="prev" /> Sair
                 </button>
             </header>
+
+            <section className="panel" id="transicao">
+                <h2>Transição de momento</h2>
+                <p className="muted">
+                    Linha na diagonal revela o papel de parede com o logo; ele sai da direita pra esquerda. Só pra
+                    momento (começar a copa, entrar em quadra, título).
+                </p>
+                <div className="kl-btns">
+                    <button type="button" className="btn" onClick={() => setWipe('pokebolas')}>
+                        A · Pokébolas
+                    </button>
+                    <button type="button" className="btn" onClick={() => setWipe('simbolo')}>
+                        B · Símbolo do Soccermon
+                    </button>
+                </div>
+                {wipe && <MomentWipe key={wipe} art={wipe} onDone={() => setWipe(null)} />}
+            </section>
 
             <section className="panel">
                 <h2>O JOGAR</h2>
