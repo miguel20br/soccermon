@@ -29,7 +29,7 @@ import { dir8 } from '../../engine/vec';
 import { dict, linkText, t as tr, typeName } from '../../i18n';
 import type { ArrowSize, ChanceSpeed, CryStyle, NamesOnField, PlaybackSpeed } from '../../store/game-store';
 import { bannerInk } from '../../store/profile';
-import { halftimeEnd, MAX_CUE_LATCH, maxCueNear } from '../../ui/match-view';
+import { halftimeEnd, MAX_CUE_EARLY, MAX_CUE_LATCH, maxCueNear } from '../../ui/match-view';
 import { portraitSrc } from '../../ui/portrait';
 import { hexToNumber, TYPE_COLOR } from '../../ui/type-colors';
 import {
@@ -177,6 +177,14 @@ const TICK_RATE = FUTSAL_5.tickRate;
  */
 const MAX_CUE_SLOW = 0.25;
 const MAX_CUE_LEAD = 12;
+/**
+ * Assim que o botão acende, a quadra quase para (bullet time) por esse tempo real, em qualquer velocidade: dá pra ver e
+ * tocar mesmo no 8x (antes acendia e sumia). Depois segue na câmera lenta de `MAX_CUE_SLOW` até a hora certa passar.
+ */
+const MAX_CUE_HOLD = 0.04;
+const MAX_CUE_HOLD_MS = 2500;
+/** O golpe saiu: a bola voa em câmera lenta até o desfecho (gol, defesa, trave, fora), em qualquer velocidade. */
+const MAX_SHOT_SLOW = { n3: 0.2, other: 0.35 };
 /** Ticks antes de gol/trave/defesa em que a câmera lenta começa. */
 const DRAMA_LEAD = 12;
 /**
@@ -186,8 +194,8 @@ const DRAMA_LEAD = 12;
 const BALL_DEPTH = FOCUS_DEPTH + 200;
 /** Reação do atingido (ícone, estrelinhas, palavra) e faixa do especial: acima do escurecimento, abaixo da bola. */
 const REACT_DEPTH = BALL_DEPTH - 6;
-/** Hitstop do N3: a quadra congela no toque (tempo real), menos em 8x. */
-const N3_HITSTOP_MS = 300;
+/** Hitstop do N3: a quadra congela no toque (tempo real), em qualquer velocidade (o momento grande da partida). */
+const N3_HITSTOP_MS = 650;
 /** Rastro da bola: quantos ticks de jogo para trás ele alcança. */
 const TRAIL_TICKS = 5;
 /** Mergulho do goleiro: começa alguns ticks antes do contato e volta depois. */
@@ -456,6 +464,11 @@ export class MatchScene extends Phaser.Scene {
     private reactG!: Phaser.GameObjects.Graphics;
     /** Chute N3 no ar: o impacto (gol, defesa, bloqueio, trave) solta a onda de choque do tipo. */
     private n3Shot: { tick: number; type: string } | null = null;
+    /** Golpe máximo no ar: câmera lenta até o desfecho e o brilho na bola (cor do tipo no N3). */
+    private maxSlow: { until: number; factor: number; color: number } | null = null;
+    private maxBallG: Phaser.GameObjects.Graphics | null = null;
+    /** Hora (relógio da cena) em que o botão do golpe máximo acendeu, pro bullet time. */
+    private cueSince: number | null = null;
     private ballGlow!: Phaser.GameObjects.Arc;
     private ballShadow!: Phaser.GameObjects.Ellipse;
     private trailG!: Phaser.GameObjects.Graphics;
@@ -691,23 +704,26 @@ export class MatchScene extends Phaser.Scene {
     }
 
     /** O botão do golpe máximo do seu time está aceso agora ou vai acender já (`MAX_CUE_LEAD`; a conta é a da tela). */
-    private maxCueNow(): boolean {
-        // no Duelo a quadra dos dois anda junta: só na Copa
-        if (!this.md.agency || this.md.replay || this.md.duel || this.maxWait) return false;
-        const team = this.mine as 0 | 1;
-        const c = maxCharge(this.matchEvents, team, this.playTick, 5);
-        if (c.level < 1 || c.active) return false;
-        const cap = this.players.findIndex((v) => v.team === team && v.captain);
-        if (cap < 0) return false;
-        const role = (this.md.result.roster[cap]?.role ?? 'PIVO') as Position;
-        return maxCueNear(
-            this.snaps,
-            Math.floor(this.playTick) - MAX_CUE_LATCH,
-            Math.floor(this.playTick) + MAX_CUE_LEAD,
-            team,
-            cap,
-            role,
-        );
+    private maxCueNow(ahead = MAX_CUE_LEAD): boolean {
+        if (!this.md.agency || this.md.replay || this.maxWait) return false;
+        // no Duelo as duas telas andam juntas: as duas desaceleram quando o botão de QUALQUER capitão acende (a conta é
+        // a mesma dos dois lados, só dos dados da partida), então ninguém fica pra trás
+        const teams: (0 | 1)[] = this.md.duel ? [0, 1] : [this.mine as 0 | 1];
+        return teams.some((team) => {
+            const c = maxCharge(this.matchEvents, team, this.playTick, 5);
+            if (c.level < 1 || c.active) return false;
+            const cap = this.players.findIndex((v) => v.team === team && v.captain);
+            if (cap < 0) return false;
+            const role = (this.md.result.roster[cap]?.role ?? 'PIVO') as Position;
+            return maxCueNear(
+                this.snaps,
+                Math.floor(this.playTick) - MAX_CUE_LATCH,
+                Math.floor(this.playTick) + ahead,
+                team,
+                cap,
+                role,
+            );
+        });
     }
 
     /** Desenha as auras (a cada quadro, embaixo do jogador): dourada pulsando no golpe máximo, amarela no goleiro-linha. */
@@ -1198,6 +1214,7 @@ export class MatchScene extends Phaser.Scene {
             this.applySnapshot(index, t, factor);
         }
         this.updateBallMotion(inShootout);
+        this.drawMaxBall(time);
         this.battleBox.update(time, Math.max(1, factor));
         this.cine.updatePins();
         this.updateZoneViews();
@@ -1209,6 +1226,26 @@ export class MatchScene extends Phaser.Scene {
 
         const lastSnap = this.snaps[this.snaps.length - 1].tick;
         if (this.playTick > Math.max(lastSnap, this.lastEventTick) + TICK_RATE * 1.5) this.finish();
+    }
+
+    /** Golpe máximo no ar: um brilho pulsando em volta da bola (dourado; no N3, a cor do tipo), até o desfecho. */
+    private drawMaxBall(time: number) {
+        const m = this.maxSlow;
+        if (!m || this.playTick > m.until) {
+            this.maxBallG?.clear();
+            if (m && this.playTick > m.until) this.maxSlow = null;
+            return;
+        }
+        if (!this.maxBallG)
+            this.maxBallG = this.add
+                .graphics()
+                .setBlendMode(Phaser.BlendModes.ADD)
+                .setDepth(BALL_DEPTH - 1);
+        const g = this.maxBallG;
+        const r = 11 + (this.md.reduceMotion ? 0 : 3 * Math.sin(time / 70));
+        g.clear();
+        g.fillStyle(m.color, 0.22).fillCircle(this.ball.x, this.ball.y, r * 1.9);
+        g.fillStyle(m.color, 0.45).fillCircle(this.ball.x, this.ball.y, r);
     }
 
     // ------------------------------------------------------------------ disputa de pênaltis
@@ -1397,14 +1434,24 @@ export class MatchScene extends Phaser.Scene {
         }
         // a disputa de pênaltis sempre em ritmo assistível, em qualquer velocidade
         if (this.penalties.length > 0 && this.playTick >= this.fulltimeTick) base = Math.min(base, 1.25);
+        // golpe máximo: o botão acendeu (bullet time e depois câmera lenta) e o chute no ar (até o desfecho), em
+        // qualquer velocidade e mesmo com "não cair" nas chances
+        // o bullet time começa quando o BOTÃO acende (a mesma conta da tela, `MAX_CUE_EARLY` antes da hora certa): o
+        // toque nele arma o golpe antes do chute do capitão. Antes disso, só a câmera lenta chegando (`MAX_CUE_LEAD`)
+        if (this.maxCueNow(MAX_CUE_EARLY)) {
+            this.cueSince ??= now;
+            base = Math.min(base, now - this.cueSince < MAX_CUE_HOLD_MS ? MAX_CUE_HOLD : MAX_CUE_SLOW);
+        } else {
+            this.cueSince = null;
+            if (this.maxCueNow()) base = Math.min(base, MAX_CUE_SLOW);
+        }
+        if (this.maxSlow && this.playTick <= this.maxSlow.until) base = Math.min(base, this.maxSlow.factor);
         // lance de gol chegando (gol, trave ou defesa): cai para 1x mesmo em 8x (81% jogam em 8x e perdiam o lance)
         // (Configurações: 1x, 2x, 4x ou não cair)
         const slow = this.md.chanceSpeed ?? 1;
         if (!slow) return base;
         const goal = this.goalTicks.find((t) => t >= this.playTick);
         if (goal !== undefined && goal - this.playTick <= GOAL_LEAD) base = Math.min(base, slow);
-        // golpe máximo na hora certa (beira da quadra): câmera lenta enquanto o botão está aceso, pra dar tempo de tocar
-        if (this.maxCueNow()) base = Math.min(base, MAX_CUE_SLOW);
         if (!this.md.cinematic) return base;
         // câmera lenta chegando no gol/trave/defesa
         const next = this.dramaTicks.find((t) => t >= this.playTick);
@@ -1788,6 +1835,12 @@ export class MatchScene extends Phaser.Scene {
         const reaction = reactionFor(e, this.reactCtx);
         if (reaction) this.react(reaction, e.tick, showsWord(reaction, this.reactionsAt(e.tick), this.spritePos));
         // o chute N3 chegou (gol, defesa, bloqueio, trave): onda de choque do tipo onde a bola está
+        // o golpe máximo chegou a um desfecho: a câmera lenta acaba logo depois (o tempo de ver a bola no gol/na mão)
+        if (
+            this.maxSlow &&
+            (e.type === 'goal' || e.type === 'save' || e.type === 'block' || e.type === 'post' || e.type === 'wide')
+        )
+            this.maxSlow.until = Math.min(this.maxSlow.until, e.tick + 10);
         if (this.n3Shot && (e.type === 'goal' || e.type === 'save' || e.type === 'block' || e.type === 'post')) {
             if (e.tick - this.n3Shot.tick <= TICK_RATE * 3)
                 shockwave(this, this.ball.x, this.ball.y, this.n3Shot.type, BALL_DEPTH - 3, !this.md.reduceMotion);
@@ -2309,6 +2362,17 @@ export class MatchScene extends Phaser.Scene {
                             },
                         );
                     }
+                    if (!gkSave)
+                        this.maxSlow = {
+                            until: e.tick + TICK_RATE * 3,
+                            factor: n3 ? MAX_SHOT_SLOW.n3 : MAX_SHOT_SLOW.other,
+                            color: n3
+                                ? hexToNumber(
+                                      TYPE_COLOR[fxType ? fxTypeOf(fxType) : species(cap.speciesId).types[0]] ??
+                                          '#ffd447',
+                                  )
+                                : 0xffd447,
+                        };
                     if (n3) this.superMove(cap, e.moveId ?? null, fxType, e.tick, e.q ?? 0);
                     else if (!gkSave && !cinematic) this.lightZoom(cap);
                 }
@@ -2847,12 +2911,10 @@ export class MatchScene extends Phaser.Scene {
         const sig = !!fxType && fxType in AGENCY.maxSig;
         const color = hexToNumber(TYPE_COLOR[type] ?? '#ffd447');
         const reduce = !!this.md.reduceMotion;
-        if (this.speed !== 8) {
-            this.holdReal = Math.max(this.holdReal, this.time.now + N3_HITSTOP_MS);
-            this.cine.hitTint(color, N3_HITSTOP_MS + 120, reduce ? 0.16 : 0.4, REACT_DEPTH - 1);
-        }
+        this.holdReal = Math.max(this.holdReal, this.time.now + N3_HITSTOP_MS);
+        this.cine.hitTint(color, N3_HITSTOP_MS + 120, reduce ? 0.16 : 0.4, REACT_DEPTH - 1);
         // a faixa entra: a caixa de batalha sai e o "foi paralisado!" do mesmo lance espera ela passar
-        this.battleBox.clear(this.time.now, 1020);
+        this.battleBox.clear(this.time.now, 1720);
         const a = dict().match.agency;
         this.cine.superBanner({
             portrait: this.cutPortrait(`portrait-${cap.speciesId}`),

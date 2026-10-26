@@ -22,6 +22,13 @@ export const PATCH_NOTES: PatchNotes[] = [
                     'As cartas do draft voltaram a mostrar os atributos como antes',
                 ],
             },
+            {
+                title: 'Golpe Máximo',
+                lines: [
+                    'O botão fica aceso mais tempo e o jogo quase para enquanto ele brilha, até no 8x e no Duelo',
+                    'O chute do golpe vai em câmera lenta com a bola brilhando, e o nome do golpe de nível 3 fica mais tempo na tela',
+                ],
+            },
         ],
     },
     {
@@ -1758,6 +1765,13 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'The Arena court now has the boxes, the goals and the corners',
                     'Closing a panel (Tactics, card, confirmation) no longer flashes dark',
                     'Draft cards show their stats like before again',
+                ],
+            },
+            {
+                title: 'Max Move',
+                lines: [
+                    'The button stays lit longer and the game nearly stops while it glows, even at 8x and in Duels',
+                    'The move\'s shot flies in slow motion with a glowing ball, and the level 3 move name stays on screen longer',
                 ],
             },
         ],

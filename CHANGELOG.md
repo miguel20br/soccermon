@@ -8,6 +8,10 @@
 - Fechar uma janela (Tática, carta, confirmação) não pisca mais escuro
 - As cartas do draft voltaram a mostrar os atributos como antes
 
+### Golpe Máximo
+- O botão fica aceso mais tempo e o jogo quase para enquanto ele brilha, até no 8x e no Duelo
+- O chute do golpe vai em câmera lenta com a bola brilhando, e o nome do golpe de nível 3 fica mais tempo na tela
+
 ## 0.9.23 · Vestiário (2026-10-26)
 
 ### Escalação no vestiário

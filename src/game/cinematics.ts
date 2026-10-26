@@ -17,6 +17,9 @@ const hexColor = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 /** Tamanho dos textos presos dentro do recorte do clipe (cabem na faixa e seguem legíveis no 9:16). */
 const CROP_TEXT_SCALE = 0.72;
 
+/** Quanto a faixa do N3 (retrato, golpe e tipo) fica parada na tela antes de sair (tempo real). */
+const SUPER_HOLD_MS = 1500;
+
 export class Cinematics {
     readonly focused = new Set<number>();
     private readonly dim: Phaser.GameObjects.Rectangle;
@@ -424,7 +427,7 @@ export class Cinematics {
         const scene = this.scene;
         if (opts.top) {
             this.dramaTop = true;
-            this.dramaTextUntil = Math.max(this.dramaTextUntil, scene.time.now + 1020);
+            this.dramaTextUntil = Math.max(this.dramaTextUntil, scene.time.now + 1720);
         }
         const s = Math.min(this.uiScale, 1.6);
         const W = (GAME_W * 1.6) / s;
@@ -511,7 +514,7 @@ export class Cinematics {
         if (opts.reduce) {
             inner.setAlpha(0);
             scene.tweens.add({ targets: inner, alpha: 1, duration: 200 });
-            scene.tweens.add({ targets: inner, alpha: 0, delay: 800, duration: 220, onComplete: out });
+            scene.tweens.add({ targets: inner, alpha: 0, delay: SUPER_HOLD_MS, duration: 220, onComplete: out });
             return;
         }
         inner.x = -dir * off;
@@ -521,7 +524,7 @@ export class Cinematics {
         scene.tweens.add({
             targets: inner,
             x: dir * off,
-            delay: 800,
+            delay: SUPER_HOLD_MS,
             duration: 220,
             ease: 'Cubic.easeIn',
             onComplete: out,
