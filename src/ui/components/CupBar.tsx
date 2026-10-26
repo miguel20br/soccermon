@@ -10,7 +10,7 @@ import { HudIcon } from './MatchHud';
  */
 export function CupBar({ onBack }: { onBack: () => void }) {
     const run = useGame((s) => s.run);
-    const { t, lang } = useT();
+    const { t, d, lang } = useT();
     if (!run) return null;
     const money = hasShop(run) || isLong(run);
     return (
@@ -18,7 +18,10 @@ export function CupBar({ onBack }: { onBack: () => void }) {
             <button type="button" className="k-icon-btn" onClick={onBack} aria-label={t('common.ui.backHome')}>
                 <HudIcon kind="prev" />
             </button>
-            <span className="k-cupbar-stage">{cupStageName(run, run.stage, lang)}</span>
+            {/* Relâmpago: o nome curto ("Quartas de final" cortava com ₽ de 2 dígitos); Rota: "Partida 3 de 8" */}
+            <span className="k-cupbar-stage">
+                {isLong(run) ? cupStageName(run, run.stage, lang) : d.match.stageShort[run.stage]}
+            </span>
             {money && (
                 <span className="k-res" role="img" aria-label={t('common.ui.cupMoney', { n: run.money ?? 0 })}>
                     <i className="k-res-coin" aria-hidden>
